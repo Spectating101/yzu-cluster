@@ -1,0 +1,14 @@
+[
+  {
+    "ticker":"NVDA.O",
+    "distress_score":0.687
+  },
+  {
+    "ticker":"MSFT.O",
+    "distress_score":0.543
+  },
+  {
+    "ticker":"AAPL.OQ",
+    "distress_score":0.549
+  }
+]

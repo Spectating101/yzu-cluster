@@ -1,0 +1,18 @@
+{
+  "nodes": {
+    "digitalocean_ipfs": {
+      "host": "192.168.1.100",
+      "user": "root",
+      "key_path": "~/.ssh/id_rsa",
+      "capabilities": ["ipfs", "scraping"],
+      "python_path": "/usr/bin/python3"
+    },
+    "gpu_monster": {
+      "host": "10.0.0.50",
+      "user": "ubuntu",
+      "key_path": "~/.ssh/google_cloud_key",
+      "capabilities": ["training", "llm"],
+      "python_path": "/opt/conda/bin/python"
+    }
+  }
+}

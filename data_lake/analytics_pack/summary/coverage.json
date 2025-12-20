@@ -1,0 +1,29 @@
+[
+  {
+    "ticker":"NVDA.O",
+    "skew_put_minus_call":0.0,
+    "term_structure_inversion":0.0,
+    "liquidity_flag":0.818,
+    "short_interest":0.0,
+    "returns_5d":0.997,
+    "drawdown":0.962
+  },
+  {
+    "ticker":"MSFT.O",
+    "skew_put_minus_call":0.0,
+    "term_structure_inversion":0.0,
+    "liquidity_flag":0.818,
+    "short_interest":0.0,
+    "returns_5d":0.997,
+    "drawdown":0.962
+  },
+  {
+    "ticker":"AAPL.OQ",
+    "skew_put_minus_call":0.0,
+    "term_structure_inversion":0.0,
+    "liquidity_flag":0.818,
+    "short_interest":0.0,
+    "returns_5d":0.997,
+    "drawdown":0.962
+  }
+]

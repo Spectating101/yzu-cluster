@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=61.0", "maturin>=1.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sharpe-renaissance"
+version = "2.0.0"
+description = "Unified Financial Intelligence Platform with Distributed Compute"
+authors = [{name = "Molina", email = "admin@molina.ai"}]
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "pandas",
+    "numpy",
+    "scipy",
+    "statsmodels",
+    "openai",
+    "pydantic",
+    "paramiko",
+    "python-dotenv",
+    "networkx",
+    "pyarrow",
+    "pytest",
+    "pytest-asyncio"
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["api*", "trading*", "engine*", "agents*", "distributed*", "data_tools*"]
+
+[tool.maturin]
+# Config for the Rust module in high_perf
+manifest-path = "high_perf/Cargo.toml"
+# python-source line removed as the folder does not exist

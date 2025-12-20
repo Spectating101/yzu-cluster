@@ -1,0 +1,1 @@
+/home/phyrexian/Downloads/llm_automation/project_portfolio/Sharpe-IDX-Engine/rust/target/release/libsharpe_rust.so: /home/phyrexian/Downloads/llm_automation/project_portfolio/Sharpe-IDX-Engine/rust/src/lib.rs

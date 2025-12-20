@@ -1,0 +1,15 @@
+system:
+  mode: "paper"  # paper, live, backtest
+  log_level: "INFO"
+
+market:
+  universe: ["AAPL", "NVDA", "MSFT", "TSLA"]
+  data_source: "refinitiv"
+
+paths:
+  data_lake: "./data_lake"
+  models: "./models"
+
+api_keys:
+  cerebras: "${CEREBRAS_API_KEY}"
+  refinitiv: "${REFINITIV_KEY}"

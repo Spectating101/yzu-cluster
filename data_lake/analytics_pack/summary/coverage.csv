@@ -1,0 +1,4 @@
+ticker,skew_put_minus_call,term_structure_inversion,liquidity_flag,short_interest,returns_5d,drawdown
+NVDA.O,0.0,0.0,0.818,0.0,0.997,0.962
+MSFT.O,0.0,0.0,0.818,0.0,0.997,0.962
+AAPL.OQ,0.0,0.0,0.818,0.0,0.997,0.962
