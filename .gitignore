@@ -1,0 +1,78 @@
+# Local environment
+.env
+.env.*
+!.env.example
+
+# Python caches and build metadata
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+*.dist-info/
+build/
+dist/
+
+# Rust build output
+target/
+high_perf/target/
+
+# Runtime logs and process state
+logs/
+*.log
+*.pid
+*.bak
+*.tmp
+*.old
+*.orig
+
+# SQLite runtime sidecars
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite3-wal
+*.sqlite3-shm
+*.db-wal
+*.db-shm
+
+# Local databases and bulk data artifacts
+*.sqlite
+*.sqlite3
+*.db
+*.duckdb
+*.parquet
+*.feather
+*.csv.gz
+*.jsonl.gz
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+
+# Large local research/data collections
+data_lake/
+deliverables/
+backtests/outputs/
+reports/
+Sharpe-Renaissance/
+
+# Local generated installs
+sharpe_rust/
+
+# Generated local project state
+.codex
+.codex/
+config/generated/
+scripts/data_lake/
+
+# Generated large local catalogs
+reports/asset_catalog.json
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

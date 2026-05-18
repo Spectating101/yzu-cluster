@@ -1,8 +1,0 @@
-/home/phyrexian/Downloads/llm_automation/project_portfolio/Sharpe-Expanded (chatgpt failed)/rust/target/release/build/target-lexicon-33f5a5ff619fa445/build_script_build-33f5a5ff619fa445.d: /home/phyrexian/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/target-lexicon-0.12.16/build.rs /home/phyrexian/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/target-lexicon-0.12.16/src/data_model.rs /home/phyrexian/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/target-lexicon-0.12.16/src/triple.rs /home/phyrexian/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/target-lexicon-0.12.16/src/targets.rs
-
-/home/phyrexian/Downloads/llm_automation/project_portfolio/Sharpe-Expanded (chatgpt failed)/rust/target/release/build/target-lexicon-33f5a5ff619fa445/build_script_build-33f5a5ff619fa445: /home/phyrexian/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/target-lexicon-0.12.16/build.rs /home/phyrexian/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/target-lexicon-0.12.16/src/data_model.rs /home/phyrexian/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/target-lexicon-0.12.16/src/triple.rs /home/phyrexian/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/target-lexicon-0.12.16/src/targets.rs
-
-/home/phyrexian/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/target-lexicon-0.12.16/build.rs:
-/home/phyrexian/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/target-lexicon-0.12.16/src/data_model.rs:
-/home/phyrexian/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/target-lexicon-0.12.16/src/triple.rs:
-/home/phyrexian/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/target-lexicon-0.12.16/src/targets.rs:
