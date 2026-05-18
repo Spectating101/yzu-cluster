@@ -105,3 +105,23 @@ uvicorn scripts.refinitiv_api:app --reload
 #   GET /coverage
 #   GET /movers
 ```
+
+### Crypto Data Pipeline (free-first with optional CoinGecko)
+```bash
+# Quick starter run (free only, CoinLore + CryptoCompare)
+python scripts/crypto_data_pipeline.py --profile quick --coingecko-mode off
+
+# Hybrid run (free + CoinGecko public probe)
+python scripts/crypto_data_pipeline.py --profile quick --coingecko-mode public
+
+# Full run with CoinGecko Pro key
+COINGECKO_API_KEY=... python scripts/crypto_data_pipeline.py --profile full --coingecko-mode pro --strict
+```
+
+`scripts/crypto_data_pipeline.py` in Sharpe is a thin wrapper over the shared workspace pipeline at
+`../scripts/market/crypto_data_pipeline.py`, with Sharpe-specific output defaults.
+
+Run artifacts are written to:
+- `data_lake/crypto_pipeline/<run-id>/logs/`
+- `data_lake/crypto_pipeline/<run-id>/reports/coverage_summary.json`
+- `data_lake/crypto_pipeline/<run-id>/reports/coverage_summary.md`

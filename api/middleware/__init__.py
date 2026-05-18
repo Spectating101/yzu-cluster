@@ -1,6 +1,6 @@
 """Middleware for FinSight API"""
 
-from src.middleware.auth import AuthMiddleware
-from src.middleware.rate_limiter import RateLimitMiddleware
+from api.middleware.auth import AuthMiddleware
+from api.middleware.rate_limiter import RateLimitMiddleware
 
 __all__ = ["AuthMiddleware", "RateLimitMiddleware"]

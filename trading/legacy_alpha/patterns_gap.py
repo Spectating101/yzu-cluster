@@ -717,7 +717,7 @@ def main():
         with open('data/processed_tickers.txt', 'r') as f:
             symbols = [line.strip() for line in f.readlines() if line.strip()]
         symbols = symbols[:50]  # Start with 50 symbols
-    except:
+    except (OSError, ValueError):
         symbols = ['BBCA.JK', 'TLKM.JK', 'ASII.JK', 'BMRI.JK', 'BBRI.JK', 'UNTR.JK', 'PGAS.JK', 'KLBF.JK']
     
     # Initialize system

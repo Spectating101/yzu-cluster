@@ -6,8 +6,11 @@ import asyncio
 from openai import AsyncOpenAI
 from typing import Dict, Any, Optional
 
-# Configuration
-CEREBRAS_API_KEY = os.getenv("CEREBRAS_API_KEY")
+try:
+    from config.settings import settings
+except ImportError:
+    settings = None
+
 CEREBRAS_BASE_URL = "https://api.cerebras.ai/v1"
 CEREBRAS_MODEL = "llama-3.3-70b"
 
@@ -17,8 +20,13 @@ class RefinitivAnalyst:
     """
     def __init__(self):
         self.client = None
-        if CEREBRAS_API_KEY:
-            self.client = AsyncOpenAI(api_key=CEREBRAS_API_KEY, base_url=CEREBRAS_BASE_URL)
+        api_key = None
+        if settings is not None:
+            api_key = getattr(settings, "CEREBRAS_API_KEY", None)
+        if not api_key:
+            api_key = os.getenv("CEREBRAS_API_KEY")
+        if api_key:
+            self.client = AsyncOpenAI(api_key=api_key, base_url=CEREBRAS_BASE_URL)
         self.data_cache = {}
 
     def load_mock_data(self, ticker: str) -> pd.DataFrame:

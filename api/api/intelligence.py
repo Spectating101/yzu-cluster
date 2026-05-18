@@ -121,7 +121,7 @@ async def get_insights(
         # Get current quote
         try:
             quote_data = await market_data.get_realtime_quote(ticker)
-        except:
+        except Exception:
             quote_data = None
 
         # Generate insights
@@ -225,7 +225,7 @@ async def get_recommendation(
 
         try:
             quote_data = await market_data.get_realtime_quote(ticker)
-        except:
+        except Exception:
             quote_data = None
 
         # Generate insights

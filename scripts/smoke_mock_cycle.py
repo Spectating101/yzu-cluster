@@ -10,6 +10,7 @@ import asyncio
 import os
 import logging
 from pathlib import Path
+import sys
 
 
 def main() -> int:
@@ -19,6 +20,8 @@ def main() -> int:
     # Ensure imports resolve relative to repo root.
     base_dir = Path(__file__).resolve().parent.parent
     os.chdir(base_dir)
+    if str(base_dir) not in sys.path:
+        sys.path.insert(0, str(base_dir))
 
     try:
         from main import SharpeSystem  # noqa: WPS433

@@ -84,6 +84,62 @@ def load_tidy_panel(csv_path: Path = TIDY_PANEL) -> pd.DataFrame:
     return df
 
 
+def load_market_panel_any(source: Path = DEFAULT_SOURCE) -> pd.DataFrame:
+    """
+    Load market data from whichever local Refinitiv-style snapshot is available.
+
+    Preference order:
+    1. Native tidy panel (`3_Market_Panel_Data (1).csv`)
+    2. Any `PATCH_Global_*.csv` files normalized into tidy format
+
+    Returns a tidy panel with at least:
+    `Instrument`, `Date`, `Price_Close`, `Volume`
+    """
+    source = Path(source)
+
+    tidy_candidates = [
+        source / "3_Market_Panel_Data (1).csv",
+        source / "3_Market_Panel_Advanced.csv",
+    ]
+    for candidate in tidy_candidates:
+        if candidate.exists():
+            df = pd.read_csv(candidate, parse_dates=["Date"])
+            required = {"Instrument", "Date", "Price_Close"}
+            if required.issubset(df.columns):
+                if "Volume" not in df.columns:
+                    df["Volume"] = pd.NA
+                return df
+
+    patch_frames: List[pd.DataFrame] = []
+    for patch_csv in sorted(source.glob("PATCH_Global_*.csv")):
+        try:
+            df = pd.read_csv(patch_csv, parse_dates=["Date"])
+        except Exception:
+            continue
+
+        if "Date" not in df.columns:
+            continue
+
+        instrument = patch_csv.stem.replace("PATCH_Global_", "").replace("_", ".")
+        frame = pd.DataFrame(
+            {
+                "Instrument": instrument,
+                "Date": df["Date"],
+                "Price_Close": pd.to_numeric(df.get("Price Close"), errors="coerce"),
+                "Volume": pd.to_numeric(df.get("Volume"), errors="coerce"),
+                "HistVol_30D": pd.to_numeric(df.get("Volatility - 30 days"), errors="coerce"),
+            }
+        ).dropna(subset=["Date", "Price_Close"])
+
+        if not frame.empty:
+            patch_frames.append(frame)
+
+    if patch_frames:
+        return pd.concat(patch_frames, ignore_index=True).sort_values(["Instrument", "Date"])
+
+    raise FileNotFoundError(f"No supported market panel found under {source}")
+
+
 def load_supply_chain_graph(csv_path: Path):
     """
     Build a graph from supply chain CSV (requires networkx).

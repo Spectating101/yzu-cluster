@@ -1,6 +1,6 @@
 """Data source plugins for FinSight"""
 
-from src.data_sources.base import (
+from api.data_sources.base import (
     DataSource,
     DataSourcePlugin,
     DataSourceType,

@@ -838,7 +838,7 @@ class BayesianStructuralTS:
                         component_forecasts[component] = {
                             'mean': component_forecast.values
                         }
-            except:
+            except Exception:
                 logger.warning("Could not extract component forecasts from statsmodels model")
         
         return {

@@ -387,7 +387,7 @@ class StrategyAnalyzer:
                     try:
                         max_idx = forward_data['high'].idxmax()
                         days_to_max = (max_idx - entry_date).days
-                    except:
+                    except (ValueError, KeyError, TypeError):
                         days_to_max = None
                     
                     # Record trade
@@ -483,7 +483,7 @@ class StrategyAnalyzer:
                         sharpe_ratio = float('inf') if avg_return > self.risk_free_rate else float('-inf')
                 else:
                     sharpe_ratio = None
-            except:
+            except (ValueError, TypeError, ZeroDivisionError):
                 sharpe_ratio = None
         else:
             sharpe_ratio = None
