@@ -1,0 +1,18 @@
+[Unit]
+Description=Sharpe-Renaissance CoinGecko daily failover updater
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=@SR_DIR@
+Environment=COINGECKO_FAILOVER_RANDOM_DELAY_MAX_SEC=1800
+ExecStart=@SR_DIR@/scripts/run_coingecko_daily_failover.sh
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=6
+StandardOutput=append:@SR_DIR@/logs/panel_update_failover.log
+StandardError=append:@SR_DIR@/logs/panel_update_failover.log
+
+[Install]
+WantedBy=default.target

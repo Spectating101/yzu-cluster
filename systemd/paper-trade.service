@@ -1,0 +1,11 @@
+[Unit]
+Description=Sharpe-Renaissance paper trading pipeline (signal->execute->reconcile)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/env python3 @REPO_ROOT@/Sharpe-Renaissance/scripts/paper_trade_pipeline.py --execute
+WorkingDirectory=@REPO_ROOT@
+Nice=10
+

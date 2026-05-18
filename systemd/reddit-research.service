@@ -1,0 +1,11 @@
+[Unit]
+Description=Sharpe-Renaissance weekly Reddit alpha scorecard
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/env python3 @REPO_ROOT@/Sharpe-Renaissance/scripts/reddit_weekly_scorecard.py
+WorkingDirectory=@REPO_ROOT@
+Nice=10
+

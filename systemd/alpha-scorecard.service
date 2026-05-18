@@ -1,0 +1,13 @@
+[Unit]
+Description=Sharpe-Renaissance Alpha Paper Scorecard
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=@REPO_ROOT@
+ExecStart=/usr/bin/env python3 Sharpe-Renaissance/scripts/alpha_daily_scorecard.py
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=6
+

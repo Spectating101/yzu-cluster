@@ -1,0 +1,11 @@
+[Unit]
+Description=Run Sharpe-Renaissance Alpha Paper Scorecard daily
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+RandomizedDelaySec=2400
+
+[Install]
+WantedBy=timers.target
+

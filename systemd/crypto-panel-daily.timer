@@ -1,0 +1,12 @@
+[Unit]
+Description=Run Sharpe-Renaissance crypto panel update daily at 01:00 UTC
+Requires=crypto-panel-daily.service
+
+[Timer]
+# Run daily at 01:00 UTC (CoinGecko publishes daily OHLCV around midnight UTC)
+OnCalendar=*-*-* 01:00:00 UTC
+Persistent=true
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target

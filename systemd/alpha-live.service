@@ -1,0 +1,13 @@
+[Unit]
+Description=Sharpe-Renaissance Alpha Live Cycle (yfinance -> signal -> ledger)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=@REPO_ROOT@
+ExecStart=/usr/bin/env python3 Sharpe-Renaissance/scripts/alpha_live_cycle.py --auto-params --policy-window 12
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=6
+

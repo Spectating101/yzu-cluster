@@ -1,0 +1,10 @@
+[Unit]
+Description=Run Sharpe-Renaissance CoinGecko failover updater once per day
+Requires=crypto-panel-failover.service
+
+[Timer]
+OnCalendar=*-*-* 00:30:00 UTC
+Persistent=true
+
+[Install]
+WantedBy=timers.target

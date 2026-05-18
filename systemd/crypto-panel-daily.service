@@ -1,0 +1,18 @@
+[Unit]
+Description=Sharpe-Renaissance daily crypto panel update (price + mcap + volume)
+Documentation=https://github.com/your-org/Sharpe-Renaissance
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=@REPO_ROOT@/Sharpe-Renaissance
+ExecStart=/usr/bin/env python3 scripts/coingecko_panel_update.py --mode daily
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=6
+StandardOutput=append:@REPO_ROOT@/Sharpe-Renaissance/logs/panel_update_daily.log
+StandardError=append:@REPO_ROOT@/Sharpe-Renaissance/logs/panel_update_daily.log
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,10 @@
+[Unit]
+Description=Sharpe-Renaissance Reddit daily ingestion (raw + sqlite + panel)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/env bash @REPO_ROOT@/Sharpe-Renaissance/scripts/run_reddit_ingest_daily.sh
+WorkingDirectory=@REPO_ROOT@
+Nice=10

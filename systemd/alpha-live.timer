@@ -1,0 +1,11 @@
+[Unit]
+Description=Run Sharpe-Renaissance Alpha Live Cycle daily
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+RandomizedDelaySec=1800
+
+[Install]
+WantedBy=timers.target
+

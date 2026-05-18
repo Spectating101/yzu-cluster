@@ -1,0 +1,12 @@
+[Unit]
+Description=Run Sharpe-Renaissance paper trading daily
+
+[Timer]
+OnCalendar=*-*-* 20:10:00 UTC
+Persistent=true
+RandomizedDelaySec=10m
+Unit=paper-trade.service
+
+[Install]
+WantedBy=timers.target
+
