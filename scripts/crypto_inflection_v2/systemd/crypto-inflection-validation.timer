@@ -1,0 +1,11 @@
+[Unit]
+Description=Crypto Inflection Tracker - Validation Timer
+Requires=crypto-inflection-validation.service
+
+[Timer]
+OnCalendar=daily
+OnCalendar=10:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

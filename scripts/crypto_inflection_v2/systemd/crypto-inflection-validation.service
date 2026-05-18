@@ -1,0 +1,14 @@
+[Unit]
+Description=Crypto Inflection Tracker - Validation Runner
+After=network.target crypto-inflection.service
+
+[Service]
+Type=oneshot
+User=phyrexian
+WorkingDirectory=/home/phyrexian/Downloads/llm_automation/project_portfolio/Molina-Optiplex/Sharpe-Renaissance
+ExecStart=/usr/bin/python3 /home/phyrexian/Downloads/llm_automation/project_portfolio/Molina-Optiplex/Sharpe-Renaissance/scripts/crypto_inflection_v2/daily_runner.py --validate 7
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
