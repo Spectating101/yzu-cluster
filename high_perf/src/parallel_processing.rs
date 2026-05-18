@@ -1,4 +1,4 @@
-use ndarray::{Array1, Array2, ArrayView2, Axis};
+use ndarray::{Array1, Array2, ArrayView2, Axis, s};
 use rayon::prelude::*;
 use std::collections::HashMap;
 use crate::error::{SharpeError, SharpeResult};
@@ -244,7 +244,7 @@ pub fn calculate_percentile_parallel(
     data: &ArrayView2<f64>,
     percentile: f64,
 ) -> SharpeResult<Array1<f64>> {
-    let (n_assets, n_obs) = data.dim();
+    let (_n_assets, n_obs) = data.dim();
     
     if n_obs == 0 {
         return Err(SharpeError::InsufficientData);

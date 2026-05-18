@@ -1,7 +1,58 @@
 use ndarray::{Array1, Array2, ArrayView1, ArrayView2, Axis};
+use nalgebra::DMatrix;
 use rayon::prelude::*;
-use std::collections::HashMap;
 use crate::error::{SharpeError, SharpeResult};
+
+fn invert_matrix(matrix: &Array2<f64>) -> SharpeResult<Array2<f64>> {
+    let (nrows, ncols) = matrix.dim();
+    if nrows != ncols {
+        return Err(SharpeError::MatrixError {
+            message: "Matrix must be square to invert".to_string(),
+        });
+    }
+
+    let data = matrix
+        .as_slice()
+        .ok_or_else(|| SharpeError::MatrixError {
+            message: "Matrix is not contiguous".to_string(),
+        })?;
+
+    let m = DMatrix::from_row_slice(nrows, ncols, data);
+    let inv = m.try_inverse().ok_or_else(|| SharpeError::MatrixError {
+        message: "Failed to invert matrix".to_string(),
+    })?;
+
+    let mut out = Vec::with_capacity(nrows * ncols);
+    for i in 0..nrows {
+        for j in 0..ncols {
+            out.push(inv[(i, j)]);
+        }
+    }
+
+    Array2::from_shape_vec((nrows, ncols), out).map_err(|e| SharpeError::MatrixError {
+        message: e.to_string(),
+    })
+}
+
+fn normalize_long_only(weights: &mut Array1<f64>) {
+    let n = weights.len();
+    for w in weights.iter_mut() {
+        if !w.is_finite() || *w < 0.0 {
+            *w = 0.0;
+        }
+    }
+
+    let sum = weights.sum();
+    if sum > 0.0 {
+        *weights /= sum;
+        return;
+    }
+
+    // Fallback: equal weights.
+    if n > 0 {
+        weights.fill(1.0 / n as f64);
+    }
+}
 
 pub fn optimize_risk_parity(
     returns: &ArrayView2<f64>,
@@ -42,11 +93,7 @@ pub fn optimize_risk_parity(
             new_weights[i] -= learning_rate * risk_diff * gradient;
         }
         
-        // Normalize weights
-        let sum = new_weights.sum();
-        if sum > 0.0 {
-            new_weights /= sum;
-        }
+        normalize_long_only(&mut new_weights);
         
         // Check convergence
         let weight_diff = (&new_weights - &weights).mapv(|x| x.abs()).sum();
@@ -62,6 +109,7 @@ pub fn optimize_risk_parity(
     if current_vol > 0.0 {
         weights *= target_vol / current_vol;
     }
+    normalize_long_only(&mut weights);
     
     Ok(weights)
 }
@@ -101,7 +149,7 @@ pub fn optimize_black_litterman(
     views: &ArrayView2<f64>,
     view_confidences: &ArrayView1<f64>,
 ) -> SharpeResult<Array1<f64>> {
-    let (n_assets, n_obs) = returns.dim();
+    let (_n_assets, n_obs) = returns.dim();
     
     if n_obs < 2 {
         return Err(SharpeError::InsufficientData);
@@ -165,10 +213,7 @@ pub fn optimize_kelly_criterion(
         });
     
     // Normalize weights
-    let sum = kelly_weights.sum();
-    if sum > 0.0 {
-        kelly_weights /= sum;
-    }
+    normalize_long_only(&mut kelly_weights);
     
     Ok(kelly_weights)
 }
@@ -278,7 +323,7 @@ fn perform_hierarchical_clustering(
 
 fn calculate_hrp_weights(
     returns: &ArrayView2<f64>,
-    clusters: &[usize],
+    _clusters: &[usize],
 ) -> SharpeResult<Array1<f64>> {
     let (n_assets, _) = returns.dim();
     let mut weights = Array1::zeros(n_assets);
@@ -343,9 +388,7 @@ fn calculate_black_litterman_returns(
     let tau_cov = cov_matrix * tau;
     let m1 = tau_cov.dot(&p.t());
     let m2 = omega + p.dot(&tau_cov).dot(&p.t());
-    let m2_inv = m2.inv().map_err(|_| SharpeError::MatrixError {
-        message: "Failed to invert matrix".to_string(),
-    })?;
+    let m2_inv = invert_matrix(&m2)?;
     
     let bl_returns = pi + m1.dot(&m2_inv).dot(&(q - p.dot(pi)));
     
@@ -364,9 +407,7 @@ fn optimize_mean_variance(
     
     // Calculate optimal weights (simplified)
     let risk_aversion = 2.5;
-    let optimal_weights = cov_matrix.inv().map_err(|_| SharpeError::MatrixError {
-        message: "Failed to invert covariance matrix".to_string(),
-    })?;
+    let optimal_weights = invert_matrix(cov_matrix)?;
     
     let weights_vec = optimal_weights.dot(expected_returns) / risk_aversion;
     

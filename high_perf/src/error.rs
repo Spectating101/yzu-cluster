@@ -57,14 +57,6 @@ impl From<rayon::ThreadPoolBuildError> for SharpeError {
     }
 }
 
-impl From<tokio::task::JoinError> for SharpeError {
-    fn from(err: tokio::task::JoinError) -> Self {
-        SharpeError::AsyncError {
-            message: err.to_string(),
-        }
-    }
-}
-
 impl From<serde_json::Error> for SharpeError {
     fn from(err: serde_json::Error) -> Self {
         SharpeError::DataProcessingError {

@@ -1,4 +1,4 @@
-use ndarray::{Array1, Array2, Axis, ArrayView1, ArrayView2};
+use ndarray::{Array1, Array2, ArrayView1, s};
 use rayon::prelude::*;
 use std::collections::HashMap;
 use crate::error::SharpeError;
@@ -24,10 +24,11 @@ pub fn calculate_all_indicators_parallel(
     let mut indicators = HashMap::new();
     
     // Extract OHLC data
-    let opens = prices.column(0);
+    let _opens = prices.column(0);
     let highs = prices.column(1);
     let lows = prices.column(2);
     let closes = prices.column(3);
+    let volumes = volumes.view();
     
     // Calculate indicators in parallel
     let results: Vec<_> = vec![
@@ -67,7 +68,7 @@ pub fn calculate_all_indicators_parallel(
     Ok(indicators)
 }
 
-pub fn calculate_ema(prices: &ArrayView1<f64>, period: usize) -> Result<Array1<f64>, SharpeError> {
+pub fn calculate_ema(prices: ArrayView1<f64>, period: usize) -> Result<Array1<f64>, SharpeError> {
     if prices.len() < period {
         return Err(SharpeError::InsufficientData);
     }
@@ -87,7 +88,7 @@ pub fn calculate_ema(prices: &ArrayView1<f64>, period: usize) -> Result<Array1<f
     Ok(ema)
 }
 
-pub fn calculate_sma(prices: &ArrayView1<f64>, period: usize) -> Result<Array1<f64>, SharpeError> {
+pub fn calculate_sma(prices: ArrayView1<f64>, period: usize) -> Result<Array1<f64>, SharpeError> {
     if prices.len() < period {
         return Err(SharpeError::InsufficientData);
     }
@@ -103,7 +104,7 @@ pub fn calculate_sma(prices: &ArrayView1<f64>, period: usize) -> Result<Array1<f
     Ok(sma)
 }
 
-pub fn calculate_rsi(prices: &ArrayView1<f64>, period: usize) -> Result<Array1<f64>, SharpeError> {
+pub fn calculate_rsi(prices: ArrayView1<f64>, period: usize) -> Result<Array1<f64>, SharpeError> {
     if prices.len() < period + 1 {
         return Err(SharpeError::InsufficientData);
     }
@@ -146,7 +147,7 @@ pub fn calculate_rsi(prices: &ArrayView1<f64>, period: usize) -> Result<Array1<f
 }
 
 pub fn calculate_macd(
-    prices: &ArrayView1<f64>,
+    prices: ArrayView1<f64>,
     fast_period: usize,
     slow_period: usize,
     signal_period: usize,
@@ -155,7 +156,7 @@ pub fn calculate_macd(
     let ema_slow = calculate_ema(prices, slow_period)?;
     
     let macd_line = &ema_fast - &ema_slow;
-    let signal_line = calculate_ema(&macd_line.view(), signal_period)?;
+    let signal_line = calculate_ema(macd_line.view(), signal_period)?;
     let histogram = &macd_line - &signal_line;
     
     Ok(MacdResult {
@@ -166,7 +167,7 @@ pub fn calculate_macd(
 }
 
 pub fn calculate_bollinger_bands(
-    prices: &ArrayView1<f64>,
+    prices: ArrayView1<f64>,
     period: usize,
     std_dev: f64,
 ) -> Result<BollingerBandsResult, SharpeError> {
@@ -193,9 +194,9 @@ pub fn calculate_bollinger_bands(
 }
 
 pub fn calculate_atr(
-    highs: &ArrayView1<f64>,
-    lows: &ArrayView1<f64>,
-    closes: &ArrayView1<f64>,
+    highs: ArrayView1<f64>,
+    lows: ArrayView1<f64>,
+    closes: ArrayView1<f64>,
     period: usize,
 ) -> Result<Array1<f64>, SharpeError> {
     if highs.len() < period + 1 {
@@ -225,9 +226,9 @@ pub fn calculate_atr(
 }
 
 pub fn calculate_price_position(
-    highs: &ArrayView1<f64>,
-    lows: &ArrayView1<f64>,
-    closes: &ArrayView1<f64>,
+    highs: ArrayView1<f64>,
+    lows: ArrayView1<f64>,
+    closes: ArrayView1<f64>,
 ) -> Result<Array1<f64>, SharpeError> {
     let mut position = Array1::zeros(closes.len());
     
@@ -242,7 +243,7 @@ pub fn calculate_price_position(
 }
 
 pub fn calculate_volume_ratio(
-    volumes: &ArrayView1<f64>,
+    volumes: ArrayView1<f64>,
     period: usize,
 ) -> Result<Array1<f64>, SharpeError> {
     let volume_sma = calculate_sma(volumes, period)?;
@@ -258,7 +259,7 @@ pub fn calculate_volume_ratio(
 }
 
 pub fn calculate_volatility(
-    prices: &ArrayView1<f64>,
+    prices: ArrayView1<f64>,
     period: usize,
 ) -> Result<Array1<f64>, SharpeError> {
     if prices.len() < period + 1 {
@@ -269,7 +270,9 @@ pub fn calculate_volatility(
     
     for i in period..prices.len() {
         let slice = prices.slice(s![i - period + 1..=i]);
-        let returns: Vec<f64> = slice.windows(2)
+        let returns: Vec<f64> = slice
+            .windows(2)
+            .into_iter()
             .map(|w| (w[1] / w[0] - 1.0).ln())
             .collect();
         
@@ -287,13 +290,13 @@ pub fn calculate_volatility(
 // Parallel processing functions
 pub fn calculate_ema_parallel(prices: &Array1<f64>, periods: &[usize]) -> HashMap<usize, Array1<f64>> {
     periods.par_iter()
-        .map(|&period| (period, calculate_ema(&prices.view(), period).unwrap_or_default()))
+        .map(|&period| (period, calculate_ema(prices.view(), period).unwrap_or_default()))
         .collect()
 }
 
 pub fn calculate_rsi_parallel(prices: &Array1<f64>, periods: &[usize]) -> HashMap<usize, Array1<f64>> {
     periods.par_iter()
-        .map(|&period| (period, calculate_rsi(&prices.view(), period).unwrap_or_default()))
+        .map(|&period| (period, calculate_rsi(prices.view(), period).unwrap_or_default()))
         .collect()
 }
 
@@ -302,7 +305,7 @@ pub fn calculate_volatility_parallel(
     periods: &[usize],
 ) -> HashMap<usize, Array1<f64>> {
     periods.par_iter()
-        .map(|&period| (period, calculate_volatility(&prices.view(), period).unwrap_or_default()))
+        .map(|&period| (period, calculate_volatility(prices.view(), period).unwrap_or_default()))
         .collect()
 }
 
@@ -314,7 +317,7 @@ mod tests {
     #[test]
     fn test_ema_calculation() {
         let prices = array![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0];
-        let ema = calculate_ema(&prices.view(), 3).unwrap();
+        let ema = calculate_ema(prices.view(), 3).unwrap();
         
         assert_eq!(ema.len(), prices.len());
         assert!(ema[0] > 0.0);
@@ -323,7 +326,7 @@ mod tests {
     #[test]
     fn test_rsi_calculation() {
         let prices = array![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0];
-        let rsi = calculate_rsi(&prices.view(), 3).unwrap();
+        let rsi = calculate_rsi(prices.view(), 3).unwrap();
         
         assert_eq!(rsi.len(), prices.len());
         assert!(rsi[9] > 0.0); // RSI should be positive for upward trend
@@ -332,7 +335,7 @@ mod tests {
     #[test]
     fn test_macd_calculation() {
         let prices = array![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0];
-        let macd = calculate_macd(&prices.view(), 3, 5, 2).unwrap();
+        let macd = calculate_macd(prices.view(), 3, 5, 2).unwrap();
         
         assert_eq!(macd.macd.len(), prices.len());
         assert_eq!(macd.signal.len(), prices.len());

@@ -1,7 +1,26 @@
-use ndarray::{Array1, Array2, ArrayView1, ArrayView2, Axis};
-use rayon::prelude::*;
+use ndarray::{Array1, Array2, ArrayView1, s};
 use std::collections::HashMap;
 use crate::error::{SharpeError, SharpeResult};
+
+fn mean_view(data: ArrayView1<f64>) -> f64 {
+    if data.is_empty() {
+        return 0.0;
+    }
+    data.iter().sum::<f64>() / data.len() as f64
+}
+
+fn mean_array(data: &Array1<f64>) -> f64 {
+    mean_view(data.view())
+}
+
+fn std_array(data: &Array1<f64>) -> f64 {
+    if data.is_empty() {
+        return 0.0;
+    }
+    let mean = mean_array(data);
+    let var = data.iter().map(|&x| (x - mean).powi(2)).sum::<f64>() / data.len() as f64;
+    var.sqrt()
+}
 
 #[derive(Debug, Clone)]
 pub struct MarketImpact {
@@ -18,36 +37,37 @@ pub fn calculate_all_liquidity_metrics(
     let mut metrics = HashMap::new();
     
     // Extract OHLC data
-    let opens = prices.column(0);
+    let _opens = prices.column(0);
     let highs = prices.column(1);
     let lows = prices.column(2);
     let closes = prices.column(3);
+    let volumes = volumes.view();
     
     // Calculate basic liquidity measures
-    metrics.insert("avg_volume".to_string(), volumes.mean());
-    metrics.insert("volume_volatility".to_string(), calculate_volume_volatility(volumes));
-    metrics.insert("turnover_ratio".to_string(), calculate_turnover_ratio(closes, volumes)?);
+    metrics.insert("avg_volume".to_string(), mean_view(volumes));
+    metrics.insert("volume_volatility".to_string(), calculate_volume_volatility(&volumes));
+    metrics.insert("turnover_ratio".to_string(), calculate_turnover_ratio(&closes, &volumes)?);
     
     // Calculate Amihud illiquidity
-    metrics.insert("amihud_illiquidity".to_string(), calculate_amihud_illiquidity(closes, volumes)?);
+    metrics.insert("amihud_illiquidity".to_string(), calculate_amihud_illiquidity(&closes, &volumes)?);
     
     // Calculate Roll's implicit spread
-    metrics.insert("roll_spread".to_string(), calculate_roll_spread(closes)?);
+    metrics.insert("roll_spread".to_string(), calculate_roll_spread(&closes)?);
     
     // Calculate Kyle's lambda
-    metrics.insert("kyle_lambda".to_string(), calculate_kyle_lambda(closes, volumes)?);
+    metrics.insert("kyle_lambda".to_string(), calculate_kyle_lambda(&closes, &volumes)?);
     
     // Calculate bid-ask spread proxy
-    metrics.insert("spread_proxy".to_string(), calculate_spread_proxy(highs, lows, closes)?);
+    metrics.insert("spread_proxy".to_string(), calculate_spread_proxy(&highs, &lows, &closes)?);
     
     // Calculate liquidity ratio
-    metrics.insert("liquidity_ratio".to_string(), calculate_liquidity_ratio(closes, volumes)?);
+    metrics.insert("liquidity_ratio".to_string(), calculate_liquidity_ratio(&closes, &volumes)?);
     
     // Calculate market depth proxy
-    metrics.insert("market_depth".to_string(), calculate_market_depth(volumes, &metrics["spread_proxy"])?);
+    metrics.insert("market_depth".to_string(), calculate_market_depth(&volumes, &metrics["spread_proxy"])?);
     
     // Calculate liquidity persistence
-    metrics.insert("liquidity_persistence".to_string(), calculate_liquidity_persistence(volumes)?);
+    metrics.insert("liquidity_persistence".to_string(), calculate_liquidity_persistence(&volumes)?);
     
     // Calculate Indonesian market specific liquidity score
     metrics.insert("idx_liquidity_score".to_string(), calculate_idx_liquidity_score(&metrics));
@@ -63,7 +83,7 @@ pub fn calculate_market_impact(
     let closes = prices.column(3);
     
     // Calculate daily volume and price volatility
-    let daily_volume = volumes.mean();
+    let daily_volume = mean_view(volumes.view());
     let price_volatility = calculate_price_volatility(&closes)?;
     
     // Almgren-Chriss model parameters
@@ -74,8 +94,6 @@ pub fn calculate_market_impact(
     let mut temporary_impact = 0.0;
     let mut permanent_impact = 0.0;
     let mut total_impact = 0.0;
-    let mut optimal_trade_size = 0.0;
-    
     for &trade_size in trade_sizes.iter() {
         let temp_impact = alpha * (trade_size / daily_volume) * price_volatility;
         let perm_impact = beta * (trade_size / daily_volume).sqrt() * price_volatility;
@@ -93,8 +111,7 @@ pub fn calculate_market_impact(
     total_impact /= n_trades;
     
     // Calculate optimal trade size
-    optimal_trade_size = daily_volume * 0.01; // 1% of daily volume
-    optimal_trade_size *= (1.0 - total_impact).max(0.1);
+    let optimal_trade_size = daily_volume * 0.01 * (1.0 - total_impact).max(0.1);
     
     Ok(MarketImpact {
         temporary_impact,
@@ -133,9 +150,11 @@ pub fn calculate_price_discovery_metrics(
 
 // Helper functions
 fn calculate_volume_volatility(volumes: &ArrayView1<f64>) -> f64 {
-    let mean = volumes.mean();
+    let mean = mean_view(*volumes);
     if mean > 0.0 {
-        volumes.std(0.0) / mean
+        // population stddev
+        let var = volumes.iter().map(|&x| (x - mean).powi(2)).sum::<f64>() / volumes.len() as f64;
+        var.sqrt() / mean
     } else {
         0.0
     }
@@ -224,8 +243,8 @@ fn calculate_kyle_lambda(
     let volume_changes = calculate_volume_changes(volumes)?;
     
     // Calculate correlation between returns and volume changes
-    let return_mean = returns.mean();
-    let volume_change_mean = volume_changes.mean();
+    let return_mean = mean_array(&returns);
+    let volume_change_mean = mean_array(&volume_changes);
     
     let mut numerator = 0.0;
     let mut return_var = 0.0;
@@ -246,8 +265,8 @@ fn calculate_kyle_lambda(
         0.0
     };
     
-    let return_std = returns.std(0.0);
-    let volume_std = volume_changes.std(0.0);
+    let return_std = std_array(&returns);
+    let volume_std = std_array(&volume_changes);
     
     let lambda = if volume_std > 0.0 {
         correlation * return_std / volume_std
@@ -295,7 +314,11 @@ fn calculate_liquidity_ratio(
         let volume_slice = volumes.slice(s![i - window..=i]);
         
         let price_sum = price_slice.iter().zip(volume_slice.iter()).map(|(&p, &v)| p * v).sum::<f64>();
-        let return_sum = price_slice.windows(2).map(|w| (w[1] / w[0] - 1.0).abs()).sum::<f64>();
+        let return_sum = price_slice
+            .windows(2)
+            .into_iter()
+            .map(|w| (w[1] / w[0] - 1.0).abs())
+            .sum::<f64>();
         
         if return_sum > 0.0 {
             liquidity_sum += price_sum / return_sum;
@@ -314,7 +337,7 @@ fn calculate_market_depth(
     volumes: &ArrayView1<f64>,
     spread_proxy: &f64,
 ) -> SharpeResult<f64> {
-    let avg_volume = volumes.mean();
+    let avg_volume = mean_view(*volumes);
     
     if *spread_proxy > 0.0 {
         Ok(avg_volume / spread_proxy)
@@ -328,7 +351,7 @@ fn calculate_liquidity_persistence(volumes: &ArrayView1<f64>) -> SharpeResult<f6
         return Ok(0.0);
     }
     
-    let mean = volumes.mean();
+    let mean = mean_view(*volumes);
     let mut numerator = 0.0;
     let mut denominator = 0.0;
     
@@ -373,7 +396,7 @@ fn calculate_price_volatility(prices: &ArrayView1<f64>) -> SharpeResult<f64> {
     }
     
     let returns = calculate_returns(prices)?;
-    Ok(returns.std(0.0))
+    Ok(std_array(&returns))
 }
 
 fn calculate_returns(prices: &ArrayView1<f64>) -> SharpeResult<Array1<f64>> {
@@ -418,7 +441,11 @@ fn calculate_variance_ratio(returns: &Array1<f64>) -> SharpeResult<f64> {
     
     for &lag in lags.iter() {
         if returns.len() >= lag * 2 {
-            let k_returns: Vec<f64> = returns.windows(lag).map(|w| w.sum()).collect();
+            let k_returns: Vec<f64> = returns
+                .windows(lag)
+                .into_iter()
+                .map(|w| w.sum())
+                .collect();
             let var_k = calculate_variance(&k_returns);
             let var_1 = calculate_variance(returns.as_slice().unwrap());
             
@@ -550,7 +577,15 @@ fn calculate_rs_statistic(data: &[f64]) -> f64 {
         Some(*acc)
     }).collect();
     
-    let r = cumsum.iter().fold(0.0, |max, &x| max.max(x)) - cumsum.iter().fold(0.0, |min, &x| min.min(x));
+    let max = cumsum
+        .iter()
+        .copied()
+        .fold(f64::NEG_INFINITY, f64::max);
+    let min = cumsum
+        .iter()
+        .copied()
+        .fold(f64::INFINITY, f64::min);
+    let r = max - min;
     let s = deviations.iter().map(|&x| x.powi(2)).sum::<f64>().sqrt();
     
     if s > 0.0 {
@@ -580,7 +615,7 @@ fn calculate_autocorrelation(data: &Array1<f64>, lag: usize) -> SharpeResult<f64
         return Err(SharpeError::InsufficientData);
     }
     
-    let mean = data.mean();
+    let mean = mean_array(data);
     let mut numerator = 0.0;
     let mut denominator = 0.0;
     

@@ -13,6 +13,13 @@ pub mod technical_indicators;
 
 use market_microstructure::{calculate_all_liquidity_metrics, calculate_price_discovery_metrics};
 
+fn mean_view_1d(data: ArrayView1<f64>) -> f64 {
+    if data.is_empty() {
+        return 0.0;
+    }
+    data.iter().sum::<f64>() / data.len() as f64
+}
+
 /// A Python module implemented in Rust.
 #[pymodule]
 fn sharpe_rust(_py: Python, m: &PyModule) -> PyResult<()> {
@@ -40,9 +47,9 @@ fn calculate_microstructure_metrics(
 ) -> PyResult<PyObject> {
     let prices_array = unsafe { prices.as_array().to_owned() };
     let volumes_array = unsafe { volumes.as_array().to_owned() };
-    
-    // Run calculation (CPU intensive, so release GIL if possible, though here we clone first)
-    let result = calculate_all_liquidity_metrics(&prices_array, &volumes_array)
+
+    let result = py
+        .allow_threads(|| calculate_all_liquidity_metrics(&prices_array, &volumes_array))
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{}", e)))?;
         
     let result_dict = PyDict::new(py);
@@ -59,8 +66,9 @@ fn calculate_discovery_metrics(
     prices: &PyArray2<f64>,
 ) -> PyResult<PyObject> {
     let prices_array = unsafe { prices.as_array().to_owned() };
-    
-    let result = calculate_price_discovery_metrics(&prices_array)
+
+    let result = py
+        .allow_threads(|| calculate_price_discovery_metrics(&prices_array))
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{}", e)))?;
         
     let result_dict = PyDict::new(py);
@@ -86,7 +94,7 @@ fn calculate_ema_parallel(
         }).collect::<Vec<_>>()
     });
     
-    let mut result_dict = PyDict::new(py);
+    let result_dict = PyDict::new(py);
     
     for (period, values) in result {
         let py_array = values.into_pyarray(py);
@@ -111,7 +119,7 @@ fn calculate_rsi_parallel(
         }).collect::<Vec<_>>()
     });
     
-    let mut result_dict = PyDict::new(py);
+    let result_dict = PyDict::new(py);
     
     for (period, values) in result {
         let py_array = values.into_pyarray(py);
@@ -136,7 +144,7 @@ fn calculate_sma_parallel(
         }).collect::<Vec<_>>()
     });
     
-    let mut result_dict = PyDict::new(py);
+    let result_dict = PyDict::new(py);
     
     for (period, values) in result {
         let py_array = values.into_pyarray(py);
@@ -276,8 +284,8 @@ fn calculate_correlation_matrix(returns: &ArrayView2<f64>) -> Array2<f64> {
                 let col_i = returns.column(i);
                 let col_j = returns.column(j);
                 
-                let mean_i = col_i.mean().unwrap_or(0.0);
-                let mean_j = col_j.mean().unwrap_or(0.0);
+                let mean_i = mean_view_1d(col_i);
+                let mean_j = mean_view_1d(col_j);
                 
                 let mut numerator = 0.0;
                 let mut var_i: f64 = 0.0;
