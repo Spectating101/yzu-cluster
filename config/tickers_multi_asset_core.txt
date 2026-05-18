@@ -1,0 +1,27 @@
+#
+# Core multi-asset "managed futures / trend" style universe.
+# Kept intentionally small for robust, low-turnover, passive-ish behavior.
+#
+# Equities
+SPY
+QQQ
+IWM
+EFA
+EEM
+VNQ
+#
+# Rates
+TLT
+IEF
+#
+# Commodities / Gold
+GLD
+DBC
+#
+# Defensive cash-like proxy (optional; if missing, strategy uses 0% return cash)
+BIL
+#
+# Crypto
+BTC-USD
+ETH-USD
+

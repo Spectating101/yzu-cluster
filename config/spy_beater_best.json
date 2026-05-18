@@ -1,0 +1,22 @@
+{
+  "benchmark": "SPY",
+  "risky": ["UPRO", "TQQQ", "SSO", "QLD"],
+  "defensive": ["TLT", "IEF", "GLD", "BIL"],
+  "inverse": ["SH", "PSQ"],
+  "bear_mode": "best",
+  "top_k_risky": 1,
+  "top_k_defensive": 1,
+  "rebalance_every": 1,
+  "cash": "BIL",
+  "core_weight": 0.35,
+  "core_to_cash_when_bear": true,
+  "sma_days": 200,
+  "mom_days": 42,
+  "vol_lookback": 20,
+  "target_vol": 0.22,
+  "max_gross": 1.0,
+  "dd_stop": 0.08,
+  "dd_floor_gross": 0.4,
+  "rebalance_threshold": 0.02,
+  "cost_bps": 2.0
+}

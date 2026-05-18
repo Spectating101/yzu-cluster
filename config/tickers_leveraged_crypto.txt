@@ -1,0 +1,28 @@
+#
+# Leveraged "SPY beater" universe + majors crypto.
+#
+# Benchmarks
+SPY
+QQQ
+IWM
+#
+# Leveraged equity
+UPRO   # 3x SPY
+TQQQ   # 3x QQQ
+SSO    # 2x SPY
+QLD    # 2x QQQ
+#
+# Defensive / diversifiers
+TLT
+IEF
+GLD
+BIL
+#
+# Optional tail-risk / inverses (use with care)
+SH     # -1x SPY
+PSQ    # -1x QQQ
+#
+# Crypto
+BTC-USD
+ETH-USD
+

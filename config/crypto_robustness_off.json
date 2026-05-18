@@ -1,0 +1,20 @@
+{
+  "benchmark": "BTC-USD",
+  "risky": ["BTC-USD"],
+  "defensive": ["BTC-USD"],
+  "inverse": [],
+  "bear_mode": "cash",
+  "top_k_risky": 1,
+  "top_k_defensive": 0,
+  "rebalance_every": 7,
+  "cash": "",
+  "core_weight": 0.0,
+  "ann_factor": 365.0,
+  "sma_days": 50,
+  "mom_days": 21,
+  "mom_floor": 0.0,
+  "require_asset_trend": false,
+  "allocate_residual_to_cash": true,
+  "max_gross": 0.5,
+  "cost_bps": 10.0
+}

@@ -1,0 +1,63 @@
+#
+# Expanded ETF universe for "beat SPY" research (daily decision cadence).
+# NOTE: Some tickers have shorter history; the panel will have NaNs early on.
+#
+# Benchmarks
+SPY
+QQQ
+IWM
+#
+# Leveraged equity (core)
+UPRO   # 3x SPY
+TQQQ   # 3x QQQ
+SSO    # 2x SPY
+QLD    # 2x QQQ
+#
+# Sector ETFs (risk-on rotation)
+XLF
+XLK
+XLE
+XLI
+XLY
+XLP
+XLV
+XLU
+XLRE
+XLB
+#
+# Factor/style ETFs
+MTUM
+QUAL
+USMV
+VLUE
+SIZE
+#
+# Credit / rates
+TLT
+IEF
+TIP
+LQD
+HYG
+#
+# Commodities / diversifiers
+GLD
+SLV
+DBC
+USO
+UNG
+#
+# International (optional)
+EFA
+EEM
+#
+# Cash-like
+BIL
+#
+# Inverse hedges (use with care)
+SH
+PSQ
+SDS
+QID
+#
+# Volatility ETPs (decay risk; use with extreme caution)
+VIXY

@@ -1,0 +1,38 @@
+{
+  "panel": "Sharpe-Renaissance/data_lake/markets/taiwan_10y.csv",
+  "benchmark": "EWT",
+  "train_days": 756,
+  "refit_every": 5,
+  "label_horizon": 5,
+  "hard_crash_days": 3,
+  "hard_crash_ret": -0.1,
+  "hard_vol_lookback": 10,
+  "hard_vol_max": 0.0,
+  "prob_risk_on_enter": 0.5,
+  "prob_risk_on_exit": 0.45,
+  "rebalance_every": 1,
+  "turnover_cap": 0.0,
+  "risk_on_config": "Sharpe-Renaissance/config/markets/taiwan_risk_on.json",
+  "risk_off_config": "Sharpe-Renaissance/config/markets/taiwan_risk_off.json",
+  "crash_config": "Sharpe-Renaissance/config/markets/taiwan_crash.json",
+  "meta": {
+    "max_gross": 1.0,
+    "cash": "BIL",
+    "port_dd_stop": 0.0,
+    "port_dd_cooldown_days": 21,
+    "cppi_floor_frac": 0.0,
+    "cppi_multiplier": 0.0,
+    "vol_target": 0.0,
+    "vol_lookback": 20
+  },
+  "put_hedge": {
+    "enabled": false,
+    "maturity_days": 21,
+    "otm": 0.05,
+    "notional_frac": 0.3,
+    "iv_mult": 1.25,
+    "opt_rate": 0.0,
+    "opt_steps": 200
+  }
+}
+

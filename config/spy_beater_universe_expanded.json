@@ -1,0 +1,21 @@
+{
+  "benchmark": "SPY",
+  "risky": [
+    "UPRO",
+    "TQQQ",
+    "SSO",
+    "QLD",
+    "QQQ",
+    "IWM",
+    "XLF",
+    "XLK",
+    "XLE",
+    "XLI",
+    "XLY",
+    "XLV",
+    "MTUM",
+    "QUAL"
+  ],
+  "defensive": ["TLT", "IEF", "TIP", "LQD", "GLD", "BIL"],
+  "inverse": ["SH", "PSQ", "SDS", "QID", "VIXY"]
+}

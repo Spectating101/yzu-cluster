@@ -1,0 +1,7 @@
+{
+  "benchmark": "SPY",
+  "risky": ["UPRO", "TQQQ", "SSO", "QLD", "BTC-USD", "ETH-USD"],
+  "defensive": ["TLT", "IEF", "GLD", "BIL"],
+  "inverse": ["SH", "PSQ"]
+}
+

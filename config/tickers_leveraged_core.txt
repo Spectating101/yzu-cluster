@@ -1,0 +1,25 @@
+#
+# Leveraged / tactical universe for "beat SPY with guardrails".
+# Daily bars via yfinance.
+#
+# Benchmarks
+SPY
+QQQ
+IWM
+#
+# Leveraged equity
+UPRO   # 3x SPY
+TQQQ   # 3x QQQ
+SSO    # 2x SPY
+QLD    # 2x QQQ
+#
+# Defensive / diversifiers
+TLT
+IEF
+GLD
+BIL
+#
+# Optional tail-risk / inverses (use with care)
+SH     # -1x SPY
+PSQ    # -1x QQQ
+

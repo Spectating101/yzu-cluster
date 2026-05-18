@@ -1,0 +1,18 @@
+{
+  "benchmark": "EIDO",
+  "cash": "BIL",
+  "cost_bps": 2,
+  "sma_days": 200,
+  "mom_days": 63,
+  "top_k_risky": 1,
+  "top_k_defensive": 2,
+  "core_weight": 0.50,
+  "core_to_cash_when_bear": false,
+  "max_gross": 1.0,
+  "allocate_residual_to_cash": true,
+  "bear_mode": "defensive",
+  "risky": ["EIDO"],
+  "defensive": ["BIL", "TLT", "GLD"],
+  "inverse": []
+}
+
