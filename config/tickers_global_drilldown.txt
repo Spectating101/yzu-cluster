@@ -1,0 +1,115 @@
+#
+# Global drill-down universe: country ETF + 2-5 leading single-stocks per
+# country, so the screener can rank both the broad bet AND the names within.
+# Tickers are yfinance-format (suffix .KS = Korea, .TW = Taiwan, etc.).
+#
+
+# === US ===
+SPY
+QQQ
+IWM
+QUAL
+MOAT
+ARKK
+# US individual mega-caps
+AAPL
+MSFT
+NVDA
+GOOGL
+META
+AMZN
+
+# === Korea === (Samsung + SK Hynix dominate the index; 005380=Hyundai Motor)
+EWY
+005930.KS
+000660.KS
+035420.KS
+005380.KS
+035720.KS
+
+# === Taiwan === (TSMC + Hon Hai/Foxconn + MediaTek = >40% of TWSE weight)
+EWT
+2330.TW
+2317.TW
+2454.TW
+2412.TW
+2308.TW
+
+# === China A-shares + HK-listed + US-ADR ===
+MCHI
+ASHR
+FXI
+BABA
+JD
+PDD
+BIDU
+600519.SS
+601318.SS
+
+# === Japan ===
+EWJ
+TM
+SONY
+6758.T
+7203.T
+
+# === India === (ADRs since direct NSE/BSE not on yfinance)
+INDA
+INFY
+WIT
+HDB
+IBN
+
+# === Brazil ===
+EWZ
+PBR
+VALE
+ITUB
+
+# === Mexico ===
+EWW
+AMX
+FMX
+CX
+
+# === Argentina / LatAm growth ===
+GGAL
+YPF
+
+# === Indonesia ===
+EIDO
+
+# === Thailand ===
+THD
+
+# === Turkey ===
+TUR
+
+# === South Africa ===
+EZA
+
+# === Australia / Canada ===
+EWA
+EWC
+
+# === Europe ===
+EFA
+EWG
+EWU
+SAP
+ASML
+BAYRY
+
+# === Frontier / emerging-broad ===
+EEM
+VWO
+FM
+
+# === Defensive cash ===
+BIL
+SHY
+TLT
+IEF
+
+# === Gold (often diverges from equities — useful diversifier) ===
+GLD
