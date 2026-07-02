@@ -1,0 +1,149 @@
+{
+  "label": "DEMO",
+  "datasets": [
+    {
+      "dataset_id": "gdelt_asia_daily_country_panel",
+      "name": "Asia daily news-risk panel",
+      "grain": "country-day",
+      "local_root": "research_panels/gdelt",
+      "join_keys": ["date", "country"],
+      "entity_fields": ["country"],
+      "time_field": "date",
+      "coverage": "2018–2026",
+      "analysis_readiness": "instant",
+      "description": "GDELT Asia daily country broadcast panel",
+      "source": "GDELT GKG",
+      "recommended_use": "Asia news-risk overlays · country-day joins",
+      "limitations": "English-heavy sources · lag 24–48h",
+      "preview_rows": [
+        { "date": "2026-04-30", "country": "TW", "score": 0.82, "mentions": 412 },
+        { "date": "2026-04-30", "country": "JP", "score": 0.71, "mentions": 890 },
+        { "date": "2026-04-29", "country": "TW", "score": 0.79, "mentions": 388 }
+      ]
+    },
+    {
+      "dataset_id": "ticker_week_country_broadcast_panel",
+      "name": "Ticker week panel",
+      "grain": "country-week",
+      "local_root": "research_panels/ticker",
+      "join_keys": ["week", "country"],
+      "entity_fields": ["ticker", "country"],
+      "time_field": "week",
+      "coverage": "2019–2026",
+      "analysis_readiness": "instant",
+      "source": "GDELT + ticker registry",
+      "recommended_use": "Cross-asset week panels",
+      "limitations": "Sparse pre-2019"
+    },
+    {
+      "dataset_id": "coingecko_daily_archive",
+      "name": "CoinGecko market archive",
+      "grain": "asset-day",
+      "local_root": "research_panels/crypto/coingecko",
+      "join_keys": ["date", "asset_id"],
+      "time_field": "date",
+      "coverage": "2017–2026",
+      "analysis_readiness": "instant",
+      "source": "CoinGecko API",
+      "recommended_use": "Crypto market baselines"
+    },
+    {
+      "dataset_id": "ethereum_usdt_transfers",
+      "name": "USDT transfer catalogue",
+      "grain": "tx",
+      "local_root": "research_panels/crypto/ethereum",
+      "join_keys": ["block_time", "tx_hash"],
+      "time_field": "block_time",
+      "coverage": "2020–2026",
+      "analysis_readiness": "connected"
+    },
+    {
+      "dataset_id": "sec_crypto_enforcement_filings",
+      "name": "SEC crypto enforcement filings",
+      "grain": "filing",
+      "local_root": "reference/sec/crypto",
+      "join_keys": ["filing_date", "cik"],
+      "time_field": "filing_date",
+      "coverage": "2015–2026",
+      "analysis_readiness": "instant"
+    },
+    {
+      "dataset_id": "twse_openapi_governance_panel",
+      "name": "TWSE OpenAPI governance panel",
+      "grain": "issuer-quarter",
+      "local_root": "research_panels/taiwan/twse",
+      "join_keys": ["quarter", "ticker"],
+      "entity_fields": ["ticker"],
+      "time_field": "quarter",
+      "coverage": "2018–2026",
+      "analysis_readiness": "connected"
+    },
+    {
+      "dataset_id": "stablecoin_incident_registry",
+      "name": "Stablecoin incident registry",
+      "grain": "incident",
+      "local_root": "research_panels/crypto/stablecoin",
+      "join_keys": ["incident_date", "asset"],
+      "time_field": "incident_date",
+      "coverage": "2017–2026",
+      "analysis_readiness": "instant"
+    },
+    {
+      "dataset_id": "indonesia_idx_daily_panel",
+      "name": "Indonesia IDX daily panel",
+      "grain": "ticker-day",
+      "local_root": "research_panels/indonesia/idx",
+      "join_keys": ["date", "ticker"],
+      "entity_fields": ["ticker"],
+      "time_field": "date",
+      "coverage": "2016–2026",
+      "analysis_readiness": "instant"
+    }
+  ],
+  "discover_suggestions": ["TWSE governance", "MOPS filings", "stablecoin incidents", "Indonesia IDX"],
+  "discover_samples": [
+    {
+      "dataset_id": "twse_openapi_governance_ext",
+      "title": "TWSE OpenAPI governance disclosures",
+      "name": "TWSE OpenAPI governance disclosures",
+      "source": "TWSE",
+      "collect_via": "twse_openapi",
+      "coverage": "2018–2026",
+      "license": "Open Government",
+      "grain": "issuer-quarter",
+      "description": "Taiwan exchange governance panel via OpenAPI"
+    },
+    {
+      "dataset_id": "mops_financial_statements_ext",
+      "title": "MOPS financial statements (Taiwan)",
+      "name": "MOPS financial statements",
+      "source": "MOPS",
+      "collect_via": "mops_tw",
+      "coverage": "2015–2026",
+      "license": "Open Government",
+      "grain": "issuer-quarter",
+      "description": "TW listed company filings from Market Observation Post System"
+    },
+    {
+      "dataset_id": "datacite_ocean_temperature_ext",
+      "title": "Global ocean temperature anomaly (DataCite)",
+      "name": "Ocean temperature anomaly",
+      "source": "DataCite",
+      "collect_via": "datacite",
+      "coverage": "1990–2025",
+      "license": "CC-BY 4.0",
+      "grain": "grid-month",
+      "description": "Published research dataset — procure via DataCite DOI harvest"
+    }
+  ],
+  "health": {
+    "status": "demo",
+    "desk": {
+      "jobs": { "running": 4, "pending_approval": 1, "gdelt_progress": "18 / 99 mo" },
+      "composer_configured": false,
+      "storage_tiers": { "canonical": { "quota_tb": 5, "used_tb": 2.1 }, "cache": { "used_pct": 68 } },
+      "gdrive": { "ok": true },
+      "worker_pools": { "busy": 3, "total": 12 }
+    }
+  }
+}

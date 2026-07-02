@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.tmp-pw/
+test-results/
+playwright-report/
+.env
+.env.local
+*.zip
+docs/screenshots-review/
