@@ -1,10 +1,10 @@
 {
   "product": "Research Drive (YZU Cluster procurement desk)",
-  "captured_at": "2026-07-02T17:47:59.808Z",
+  "captured_at": "2026-07-02T18:02:55.349Z",
   "base_url": "http://127.0.0.1:5178",
   "github_repo": "Spectating101/yzu-cluster",
   "github_screenshots_path": "docs/screenshots-review/",
-  "git_head": "eea304d",
+  "git_head": "c47c9bc",
   "viewports": {
     "desktop": {
       "width": 1440,
@@ -41,6 +41,11 @@
       "label": "Discover"
     },
     {
+      "slug": "discover-search",
+      "path": "/?tab=browse&q=TWSE",
+      "label": "Discover · search results"
+    },
+    {
       "slug": "resources",
       "path": "/?tab=resources",
       "label": "Resources"
@@ -55,6 +60,8 @@
     "desktop-library-full.png",
     "desktop-discover-viewport.png",
     "desktop-discover-full.png",
+    "desktop-discover-search-viewport.png",
+    "desktop-discover-search-full.png",
     "desktop-resources-viewport.png",
     "desktop-resources-full.png",
     "tablet-home-viewport.png",
@@ -65,6 +72,8 @@
     "tablet-library-full.png",
     "tablet-discover-viewport.png",
     "tablet-discover-full.png",
+    "tablet-discover-search-viewport.png",
+    "tablet-discover-search-full.png",
     "tablet-resources-viewport.png",
     "tablet-resources-full.png",
     "mobile-home-viewport.png",
@@ -75,6 +84,8 @@
     "mobile-library-full.png",
     "mobile-discover-viewport.png",
     "mobile-discover-full.png",
+    "mobile-discover-search-viewport.png",
+    "mobile-discover-search-full.png",
     "mobile-resources-viewport.png",
     "mobile-resources-full.png"
   ],

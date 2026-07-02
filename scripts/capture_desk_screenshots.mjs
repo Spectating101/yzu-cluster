@@ -34,6 +34,7 @@ const ROUTES = [
   },
   { slug: "library", path: "/?tab=library", label: "Library root" },
   { slug: "discover", path: "/?tab=browse", label: "Discover" },
+  { slug: "discover-search", path: "/?tab=browse&q=TWSE", label: "Discover · search results" },
   { slug: "resources", path: "/?tab=resources", label: "Resources" },
 ];
 

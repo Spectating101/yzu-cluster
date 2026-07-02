@@ -26,10 +26,10 @@ export function useAskChat({ dataset, onCollected, onToast } = {}) {
       setMessages((m) => [...m, { role: "user", text: prompt }]);
       setInput("");
       setBusy(true);
-      setStatus("Composer is planning…");
+      setStatus("Planning response…");
       setMessages((m) => [
         ...m,
-        { role: "assistant", text: "", streaming: true, activity: "Composer is planning…" },
+        { role: "assistant", text: "", streaming: true, activity: "Planning response…" },
       ]);
 
       try {

@@ -132,8 +132,8 @@ function DiscoverCandidateRow({ row, labIds, selectedId, onSelectRow }) {
         <span className="rd-v2-discover-candidate-main">
           <span className="rd-v2-discover-candidate-top">
             <strong>{candidateTitle(row)}</strong>
-            <span className="rd-v2-discover-route">{route}</span>
           </span>
+          <span className="rd-v2-discover-route">{route}</span>
           <span className="rd-v2-discover-evidence">{candidateEvidence(row, state)}</span>
           {subline ? <span className="rd-v2-discover-subline">{subline}</span> : null}
         </span>

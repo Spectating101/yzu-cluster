@@ -282,8 +282,8 @@ function WorkersToolbarStat({ workers }) {
   const value = total != null && count !== total ? `${count}/${total} ${qualifier}` : `${count} ${qualifier}`;
 
   return (
-    <span className="rd-v2-toolbar-stat" aria-label={`Workers ${value}`}>
-      <span>Workers</span>
+    <span className="rd-v2-toolbar-stat" aria-label={`Collection workers ${value}`}>
+      <span>Collectors</span>
       <strong>{value}</strong>
     </span>
   );
@@ -673,9 +673,9 @@ export function ResourcesPage({
 
   const filterLabel =
     activityFilter?.meterId === "bigquery"
-      ? "BigQuery events"
+      ? "Remote table events"
       : activityFilter?.meterId === "tavily"
-        ? "Tavily / discover"
+        ? "Web discovery events"
         : activityFilter?.meterId === "composer"
           ? "Ask turns"
           : null;

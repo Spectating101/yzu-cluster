@@ -48,15 +48,17 @@ function readParams() {
     dataset: p.get("dataset") || "",
     folder: p.get("folder") || "",
     preview: p.get("preview") === "1",
+    q: p.get("q") || "",
   };
 }
 
-function writeParams({ tab, dataset, folder, preview }) {
+function writeParams({ tab, dataset, folder, preview, q }) {
   const p = new URLSearchParams();
   if (tab && tab !== "home") p.set("tab", tab);
   if (folder) p.set("folder", folder);
   if (dataset) p.set("dataset", dataset);
   if (preview) p.set("preview", "1");
+  if (q) p.set("q", q);
   const qs = p.toString();
   const url = `${window.location.pathname}${qs ? `?${qs}` : ""}`;
   window.history.replaceState(null, "", url);
@@ -113,7 +115,7 @@ export function V2App() {
   const [detail, setDetail] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [profile, setProfile] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(() => readParams().q);
   const [loadError, setLoadError] = useState("");
   const [health, setHealth] = useState(null);
   const [deskRefreshedAt, setDeskRefreshedAt] = useState(null);
@@ -256,15 +258,23 @@ export function V2App() {
 
   const syncUrl = useCallback(
     (patch) => {
+      const nextTab = patch.tab ?? tab;
+      const nextQ =
+        patch.q !== undefined
+          ? patch.q
+          : nextTab === "browse"
+            ? searchQuery.trim()
+            : "";
       const next = {
-        tab: patch.tab ?? tab,
+        tab: nextTab,
         folder: patch.folder ?? folderId,
         dataset: patch.dataset ?? selectedId,
         preview: patch.preview ?? previewOpen,
+        q: nextQ,
       };
       writeParams(next);
     },
-    [tab, folderId, selectedId, previewOpen],
+    [tab, folderId, selectedId, previewOpen, searchQuery],
   );
 
   const goTab = useCallback(
@@ -329,10 +339,11 @@ export function V2App() {
     const q = searchQuery.trim();
     if (q) {
       goTab("browse");
+      syncUrl({ tab: "browse", q });
       setPendingAsk(`Find datasets for: ${q}`);
     }
     setRailTab("ask");
-  }, [searchQuery, goTab]);
+  }, [searchQuery, goTab, syncUrl]);
 
   const askAddToLab = useCallback(
     (target) => {

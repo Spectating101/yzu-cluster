@@ -68,7 +68,6 @@ export function V2DeskHeader({
         </button>
       </div>
       <div className="rd-v2-header-meta">
-        <span className="rd-v2-header-meta-count">{metaText}</span>
         <div className="rd-v2-trust-strip" aria-label="Desk status">
           {usingSeed || deskStatus === "demo" ? (
             <span className="rd-v2-trust-badge warn">Demo catalog</span>
@@ -82,15 +81,11 @@ export function V2DeskHeader({
           ) : null}
           {fresh ? <span className="rd-v2-trust-badge muted">Updated {fresh}</span> : null}
         </div>
-        {usingSeed ? (
-          <span className="rd-v2-offline-chip">
-            offline
-            {onRetry ? (
-              <button type="button" className="rd-v2-text-link" onClick={onRetry}>
-                retry
-              </button>
-            ) : null}
-          </span>
+        <span className="rd-v2-header-meta-count">{metaText}</span>
+        {usingSeed && onRetry ? (
+          <button type="button" className="rd-v2-header-retry" onClick={onRetry}>
+            Retry
+          </button>
         ) : null}
       </div>
       <button type="button" className="rd-header-avatar" aria-label="Account">
