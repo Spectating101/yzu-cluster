@@ -2348,8 +2348,75 @@
   margin: 0 20px 18px;
   overflow: hidden;
   border: 1px solid var(--rd-border);
-  border-radius: 10px;
+  border-radius: 0;
   background: #fff;
+}
+
+.rd-v2-res-status-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  margin: 0 20px 10px;
+  border: 1px solid var(--rd-border);
+  border-radius: 0;
+  background: #fbfcfe;
+  overflow: hidden;
+}
+
+.rd-v2-res-status-strip-activity {
+  margin-top: 0;
+}
+
+.rd-v2-res-status-cell {
+  min-width: 0;
+  padding: 10px 14px;
+  border-right: 1px solid var(--rd-border);
+  background: #fbfcfe;
+}
+
+.rd-v2-res-status-cell:last-child {
+  border-right: 0;
+}
+
+.rd-v2-res-status-cell.warn {
+  background: #fffaf0;
+}
+
+.rd-v2-res-status-cell.off {
+  background: #fff7f7;
+}
+
+.rd-v2-res-status-cell span,
+.rd-v2-res-status-cell em {
+  display: block;
+  color: var(--rd-muted);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rd-v2-res-status-cell strong {
+  display: block;
+  margin: 3px 0 1px;
+  color: var(--rd-text);
+  font-size: 13px;
+  font-weight: 650;
+  font-family: var(--rd-mono);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rd-v2-res-status-cell em {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .rd-v2-res-inventory-head {
@@ -3543,6 +3610,17 @@
     margin-right: 14px;
     margin-left: 14px;
   }
+  .rd-v2-res-status-strip {
+    margin-right: 14px;
+    margin-left: 14px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .rd-v2-res-status-cell:nth-child(2n) {
+    border-right: 0;
+  }
+  .rd-v2-res-status-cell:nth-child(-n + 2) {
+    border-bottom: 1px solid var(--rd-border);
+  }
   .rd-v2-res-inventory-head,
   .rd-v2-res-inventory-section-head {
     padding: 0 10px;
@@ -3605,16 +3683,24 @@
 .rd-v2-res-log-summary {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
+  gap: 0;
   margin: 0 10px 10px;
+  border: 1px solid var(--rd-border);
+  border-radius: 0;
+  background: #fbfcfe;
+  overflow: hidden;
 }
 
 .rd-v2-res-log-stat {
   min-width: 0;
-  padding: 9px 10px;
-  border: 1px solid var(--rd-border);
-  border-radius: 10px;
-  background: var(--rd-surface);
+  padding: 10px 12px;
+  border-right: 1px solid var(--rd-border);
+  border-radius: 0;
+  background: #fbfcfe;
+}
+
+.rd-v2-res-log-stat:last-child {
+  border-right: 0;
 }
 
 .rd-v2-res-log-stat span,
@@ -3773,8 +3859,19 @@
 }
 
 @media (max-width: 720px) {
-  .rd-v2-res-log-summary {
+  .rd-v2-res-log-summary,
+  .rd-v2-res-status-strip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rd-v2-res-status-cell:nth-child(2n),
+  .rd-v2-res-log-stat:nth-child(2n) {
+    border-right: 0;
+  }
+
+  .rd-v2-res-status-cell:nth-child(-n + 2),
+  .rd-v2-res-log-stat:nth-child(-n + 2) {
+    border-bottom: 1px solid var(--rd-border);
   }
 
   .rd-v2-res-activity-row {
@@ -5038,6 +5135,10 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
   color: var(--rd-muted);
 }
 
+.rd-v2-rail-mobile-grip {
+  display: none;
+}
+
 .rd-v2-rail-ehead {
   background:
     linear-gradient(180deg, rgba(26, 115, 232, 0.05), rgba(26, 115, 232, 0) 70%),
@@ -5458,6 +5559,40 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
     max-height: min(72dvh, 560px);
     border-top: 1px solid var(--rd-border);
     box-shadow: 0 -10px 28px rgba(15, 23, 42, 0.14);
+  }
+
+  .yzu-inspector.rd-v2-rail-collapsed {
+    max-height: none;
+    height: auto;
+    box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.1);
+  }
+
+  .yzu-inspector.rd-v2-rail-collapsed .rd-v2-rail-pane,
+  .yzu-inspector.rd-v2-rail-collapsed .rd-v2-rail-selection {
+    display: none;
+  }
+
+  .rd-v2-rail-mobile-grip {
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: 8px 12px;
+    border: 0;
+    border-bottom: 1px solid var(--rd-border);
+    background: #f8fafd;
+    color: var(--rd-accent);
+    font-size: 12px;
+    font-weight: 650;
+    text-align: center;
+    cursor: pointer;
+  }
+
+  .yzu-main {
+    padding-bottom: 52px;
+  }
+
+  .rd-v2-shell:has(.yzu-inspector:not(.rd-v2-rail-collapsed)) .yzu-main {
+    padding-bottom: min(72dvh, 560px);
   }
 
   .rd-v2-page {

@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   BrowseRailPanel,
   ClusterRailPanel,
@@ -41,6 +42,15 @@ function railSelectionHint(mainTab, dataset, browseTarget, resourceRow, clusterC
   }
   return "No selection";
 }
+
+const MOBILE_RAIL_IDLE_HINTS = new Set([
+  "No selection",
+  "No discover result",
+  "No compare selected",
+  "Resources",
+  "Profile context",
+  "Desk setup",
+]);
 
 function activeHintBelongsToTab(mainTab, object) {
   if (!object) return false;
@@ -145,10 +155,29 @@ export function InspectorRail({
     (allowActiveHint ? activeObjectSelectionHint(activeObject) : "") ||
     railSelectionHint(mainTab, dataset, browseTarget, resourceRow, clusterContext);
 
+  const [mobileRailOpen, setMobileRailOpen] = useState(false);
+
+  useEffect(() => {
+    if (!MOBILE_RAIL_IDLE_HINTS.has(selectionHint)) {
+      setMobileRailOpen(true);
+    }
+  }, [selectionHint]);
+
   return (
-    <aside className="yzu-inspector rd-v2-rail" aria-label="Inspector">
+    <aside
+      className={`yzu-inspector rd-v2-rail${mobileRailOpen ? "" : " rd-v2-rail-collapsed"}`}
+      aria-label="Inspector"
+    >
       <div className="yzu-inspector-stack rd-v2-rail-stack">
         <div className="rd-v2-rail-chrome">
+          <button
+            type="button"
+            className="rd-v2-rail-mobile-grip"
+            aria-expanded={mobileRailOpen}
+            onClick={() => setMobileRailOpen((open) => !open)}
+          >
+            {mobileRailOpen ? "Hide panel" : "Show Detail · Ask"}
+          </button>
           <div className="rd-v2-rail-toggle" role="tablist" aria-label="Inspector mode">
             <button
               type="button"

@@ -17,7 +17,7 @@ This repo is the **pitch-facing frontend slice**. The full control plane (Python
 
 | Surface | URL |
 |---------|-----|
-| **GitHub Pages** (static UI + demo seed) | https://spectating101.github.io/yzu-cluster/ |
+| **GitHub Pages** (static UI + demo seed) | https://spectating101.github.io/yzu-cluster/ — enable via [`docs/GITHUB_PAGES_SETUP.md`](docs/GITHUB_PAGES_SETUP.md) |
 | **Full desk** (API + chat + workers) | Run locally — see below |
 
 Static Pages shows the v2 shell and offline demo catalog. Composer chat and live registry need the API running.

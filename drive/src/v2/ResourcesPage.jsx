@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import {
+  buildAccountSummaryRows,
   buildActionRows,
   buildActivityRows,
   spendingPeriodLabel,
@@ -130,6 +131,42 @@ function groupActivityRows(rows) {
   }));
 }
 
+function StatusStripCell({ label, value, sub, tone = "" }) {
+  return (
+    <div className={`rd-v2-res-status-cell${tone ? ` ${tone}` : ""}`}>
+      <span>{label}</span>
+      <strong>{value}</strong>
+      <em>{sub}</em>
+    </div>
+  );
+}
+
+function ResourcesStatusStrip({ rollup }) {
+  const rows = buildAccountSummaryRows(rollup);
+  const qe = rollup?.hero?.query_engine || {};
+  if (!rows.length && qe.port == null) return null;
+
+  return (
+    <section className="rd-v2-res-status-strip" aria-label="Operations status">
+      {rows.map((row) => (
+        <StatusStripCell
+          key={row.key}
+          label={row.label}
+          value={row.metric}
+          sub={row.detail || row.sublabel}
+          tone={row.warn ? "warn" : ""}
+        />
+      ))}
+      <StatusStripCell
+        label="Query engine"
+        value={qe.up ? `:${qe.port ?? 8765} up` : "offline"}
+        sub="desk API"
+        tone={qe.up === false ? "off" : ""}
+      />
+    </section>
+  );
+}
+
 function ActivityUsageSummary({ rollup }) {
   const period = rollup?.spending?.period?.totals || {};
   const today = rollup?.spending?.today || {};
@@ -140,13 +177,9 @@ function ActivityUsageSummary({ rollup }) {
     ["Probes", fmtCount(period.probe_calls, "probe"), `${today.probe_calls ?? 0} today`],
   ];
   return (
-    <section className="rd-v2-res-log-summary" aria-label="Usage report">
+    <section className="rd-v2-res-status-strip rd-v2-res-status-strip-activity" aria-label="Usage report">
       {cells.map(([label, value, sub]) => (
-        <div key={label} className="rd-v2-res-log-stat">
-          <span>{label}</span>
-          <strong>{value}</strong>
-          <em>{sub}</em>
-        </div>
+        <StatusStripCell key={label} label={label} value={value} sub={sub} />
       ))}
     </section>
   );
@@ -647,11 +680,14 @@ export function ResourcesPage({
             Loading resources…
           </p>
         ) : (
-          <ResourceInventory
-            sections={inventorySections}
-            selectedKey={selectedKey}
-            onSelect={onSelectRow}
-          />
+          <>
+            <ResourcesStatusStrip rollup={viewRollup} />
+            <ResourceInventory
+              sections={inventorySections}
+              selectedKey={selectedKey}
+              onSelect={onSelectRow}
+            />
+          </>
         )
       ) : (
         <>
