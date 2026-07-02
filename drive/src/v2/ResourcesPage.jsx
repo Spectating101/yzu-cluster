@@ -639,7 +639,7 @@ export function ResourcesPage({
       : activityFilter?.meterId === "tavily"
         ? "Tavily / discover"
         : activityFilter?.meterId === "composer"
-          ? "Composer / Ask"
+          ? "Ask turns"
           : null;
 
   return (
