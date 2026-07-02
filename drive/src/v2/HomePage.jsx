@@ -87,10 +87,8 @@ export function HomePage({
   const runningJobs = healthJobs.running ?? pipeline.filter((a) => a.stage === "running").length;
   const firstPendingJob = pendingJobs[0];
   const firstPipeline = pipeline[0] || null;
-  const commandTitle = continueDs ? displayName(continueDs) : "Library ready";
-  const commandSub = continueDs
-    ? continueDs.dataset_id
-    : `${datasets.length} indexed holdings`;
+  const heroPromise =
+    "Search the lab vault. Procure missing datasets. Register everything for reuse.";
   const attentionItems = useMemo(() => {
     const items = [];
     if (pending > 0) {
@@ -192,8 +190,15 @@ export function HomePage({
       <section className="rd-v2-home-command" aria-label="Research Drive command surface">
         <div className="rd-v2-home-command-copy">
           <span>Research Drive</span>
-          <strong>{commandTitle}</strong>
-          <p>{commandSub}</p>
+          <strong>{heroPromise}</strong>
+          {continueDs ? (
+            <p className="rd-v2-home-continue">
+              Continue: <em>{displayName(continueDs)}</em>
+              <span className="rd-v2-home-continue-id">{continueDs.dataset_id}</span>
+            </p>
+          ) : (
+            <p>{datasets.length} indexed holdings ready to browse.</p>
+          )}
         </div>
         <div className="rd-v2-home-command-actions">
           <button type="button" className="primary" onClick={() => onGoTab("library")}>

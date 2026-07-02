@@ -202,7 +202,7 @@ function LibraryIntakeRailPanel({ object, onSubmitUpload, onSubmitUrl, onSubmitP
         <RailEntityHeader
           id={object.id}
           title="Add URL / DOI"
-          description="Probe a public source, collect metadata, and hand the acquisition plan to Composer."
+          description="Probe a public source, collect metadata, and hand the acquisition plan to Ask."
           pills={<span className="rd-v2-pill ext">Intake</span>}
         />
         <div className="rd-v2-rail-scroll">
@@ -241,8 +241,8 @@ function LibraryIntakeRailPanel({ object, onSubmitUpload, onSubmitUrl, onSubmitP
         <RailEntityHeader
           id={object.id}
           title="Procure branch"
-          description="Use the current Library branch as the destination and ask Composer to search, probe, and propose acquisition steps."
-          pills={<span className="rd-v2-pill ext">Composer</span>}
+          description="Use the current Library branch as the destination and ask the desk to search, probe, and propose acquisition steps."
+          pills={<span className="rd-v2-pill ext">Procure</span>}
         />
         <div className="rd-v2-rail-scroll">
           <RailFieldGrid>
@@ -254,7 +254,7 @@ function LibraryIntakeRailPanel({ object, onSubmitUpload, onSubmitUrl, onSubmitP
         </div>
         <RailStickyFooter>
           <button type="button" className="rd-v2-btn sm primary" onClick={() => onSubmitProcure?.(object)}>
-            Ask Composer to procure
+            Ask to procure
           </button>
         </RailStickyFooter>
       </RailFrame>
@@ -266,7 +266,7 @@ function LibraryIntakeRailPanel({ object, onSubmitUpload, onSubmitUrl, onSubmitP
       <RailEntityHeader
         id={object.id}
         title="Upload files"
-        description="Stage local files against the current Library branch and hand ingestion/vaulting to Composer."
+        description="Stage local files against the current Library branch and hand ingestion to the vault via Ask."
         pills={<span className="rd-v2-pill lab">Upload</span>}
       />
       <div className="rd-v2-rail-scroll">
@@ -290,7 +290,7 @@ function LibraryIntakeRailPanel({ object, onSubmitUpload, onSubmitUrl, onSubmitP
             onChange={(event) => setPickedFiles(event.target.files)}
           />
           <strong>Drop files here</strong>
-          <p>or choose files from disk for Composer ingestion.</p>
+          <p>or choose files from disk for vault ingestion.</p>
           <button type="button" className="rd-v2-btn sm" onClick={chooseFiles}>
             Choose files
           </button>
@@ -306,7 +306,7 @@ function LibraryIntakeRailPanel({ object, onSubmitUpload, onSubmitUrl, onSubmitP
           disabled={!files.length}
           onClick={() => onSubmitUpload?.(files, object)}
         >
-          Ask Composer
+          Send to Ask
         </button>
       </RailStickyFooter>
     </RailFrame>
