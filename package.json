@@ -8,6 +8,7 @@
     "test:v2-parity": "mkdir -p .tmp-pw && TMPDIR=$PWD/.tmp-pw playwright test e2e/v2-parity.spec.js",
     "test:v2": "mkdir -p .tmp-pw && TMPDIR=$PWD/.tmp-pw playwright test e2e/v2-parity.spec.js e2e/v2-discover.spec.js e2e/v2-cluster.spec.js e2e/v2-resources.spec.js",
     "test:beta-workflow": "mkdir -p .tmp-pw && TMPDIR=$PWD/.tmp-pw playwright test e2e/beta-workflow.spec.js",
+    "test:professor-demo": "mkdir -p .tmp-pw docs/status/generated && TMPDIR=$PWD/.tmp-pw playwright test e2e/professor-demo.spec.js",
     "desk:integration": "node scripts/desk_verify_live.mjs",
     "desk:capture": "bash scripts/capture_desk_screenshots.sh",
     "desk:capture:live": "YZU_REQUIRE_LIVE=1 bash scripts/capture_desk_screenshots.sh",
