@@ -34,6 +34,8 @@ Outputs:
 - `docs/status/generated/professor_demo_report.json` — machine evidence
 - `docs/status/generated/professor_demo_report.md` — paste into ChatGPT
 
+Synced to public `yzu-cluster` on `npm run sync:yzu-cluster` (monorepo).
+
 ## ChatGPT packet
 
 1. Zip: `research-drive-screenshots.zip` (live capture: `npm run desk:capture:live`)
