@@ -42,6 +42,16 @@ export function SettingsPage({ health, onProfileRefresh, onToast }) {
           <p className="rd-v2-settings-hint">Used for profile-aware Discover ranking and procurement chat.</p>
         </StatementSection>
 
+        <StatementSection title="Desk brain">
+          <StatementRow
+            label="Ask / Composer"
+            metric={desk.composer_configured ? "Ready" : "Not configured"}
+            sublabel={desk.brain || desk.composer_model || "cursor_composer"}
+            detail={desk.composer_configured ? "OK" : "KEY"}
+            warn={!desk.composer_configured}
+          />
+        </StatementSection>
+
         <StatementSection title="Credentials">
           <StatementRow label="BigQuery SA" metric="Configured" sublabel="Service account" detail="OK" />
           <StatementRow label="GDrive OAuth" metric={desk.gdrive?.ok === false ? "Needs review" : "Configured"} sublabel="Archive vault" detail={desk.gdrive?.ok === false ? "FAIL" : "OK"} warn={desk.gdrive?.ok === false} />

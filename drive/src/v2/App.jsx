@@ -139,27 +139,36 @@ export function V2App() {
       .catch(() => setProfile({ email, unknown: true }));
   }, []);
 
+  const applyCatalog = useCallback((rows, errMsg = "") => {
+    const { catalog, usingSeed: seed } = resolveCatalog(rows);
+    setDatasets(catalog);
+    setUsingSeed(seed);
+    setLoadError(seed ? errMsg : "");
+    const ids = catalog.map((d) => d.dataset_id);
+    setCompareIds((cur) => {
+      const valid = cur.every((id) => ids.includes(id));
+      if (valid && cur[0] && cur[1]) return cur;
+      const a = ids.find((id) => /gdelt.*asia/i.test(id)) || ids[0];
+      const b = ids.find((id) => /ticker.*week/i.test(id)) || ids[1] || ids[0];
+      return a && b ? [a, b] : cur;
+    });
+  }, []);
+
   const refreshBackend = useCallback(() => {
     listDatasets()
-      .then((rows) => {
-        const { catalog, usingSeed: seed } = resolveCatalog(rows);
-        setDatasets(catalog);
-        setUsingSeed(seed);
-        if (seed) setLoadError("");
-        const ids = catalog.map((d) => d.dataset_id);
-        setCompareIds((cur) => {
-          const valid = cur.every((id) => ids.includes(id));
-          if (valid && cur[0] && cur[1]) return cur;
-          const a = ids.find((id) => /gdelt.*asia/i.test(id)) || ids[0];
-          const b = ids.find((id) => /ticker.*week/i.test(id)) || ids[1] || ids[0];
-          return a && b ? [a, b] : cur;
-        });
-      })
-      .catch((err) => {
-        const { catalog, usingSeed: seed } = resolveCatalog([]);
-        setDatasets(catalog);
-        setUsingSeed(seed);
-        setLoadError(err.message);
+      .then((rows) => applyCatalog(rows))
+      .catch(async (err) => {
+        try {
+          const h = await deskHealth(true);
+          if (h?.status === "ok") {
+            const rows = await listDatasets();
+            applyCatalog(rows);
+            return;
+          }
+        } catch {
+          /* fall through to demo seed */
+        }
+        applyCatalog([], err.message);
       });
     deskHealth(true)
       .then((h) => setHealth(mergeHealth(h)))
@@ -190,7 +199,7 @@ export function V2App() {
       .catch(() => setResourcesRollup((cur) => (cur === undefined ? null : cur)));
     reloadProfile();
     setDeskRefreshedAt(Date.now());
-  }, [reloadProfile]);
+  }, [reloadProfile, applyCatalog]);
 
   const handleApproveJob = useCallback(
     async (jobId) => {
@@ -511,7 +520,7 @@ export function V2App() {
     });
   }, [catalog, searchQuery]);
 
-  const headerDsCount = health?.datasets ?? catalog.length;
+  const headerDsCount = catalog.length || Number(health?.datasets) || 0;
   const headerConnected = catalog.filter((d) =>
     /instant|query/i.test(String(d.analysis_readiness || "")),
   ).length;
@@ -631,7 +640,13 @@ export function V2App() {
         datasetCount={headerDsCount}
         usingSeed={usingSeed}
         workCount={health?.desk?.jobs?.pending_approval ?? 0}
-        deskStatus={usingSeed ? "demo" : health?.status || "unknown"}
+        deskStatus={
+          usingSeed
+            ? health?.status === "ok"
+              ? "empty"
+              : "demo"
+            : health?.status || "unknown"
+        }
         refreshedAt={deskRefreshedAt}
       />
       <V2Sidebar tab={tab} onTabChange={goTab} />

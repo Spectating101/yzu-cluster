@@ -28,13 +28,27 @@ export function resolveCatalog(liveRows) {
   return { catalog: SEED_DATASETS, usingSeed: true };
 }
 
+const NEUTRAL_DESK = {
+  jobs: {},
+  composer_configured: false,
+  composer_model: "composer-2.5",
+  mcp_tools: { total: 0, core: 0, acquire: 0, ops: 0 },
+  storage_tiers: { canonical: { quota_tb: 5, used_tb: 0 }, cache: { used_pct: 0 } },
+  gdrive: { ok: null },
+  worker_pools: { busy: 0, total: 0 },
+};
+
+/** Live desk health — never blend demo job fiction when API reports ok. */
 export function mergeHealth(live) {
-  if (live && (live.datasets || live.desk)) {
+  const liveOk = live?.status === "ok";
+  if (live && (liveOk || live.datasets || live.desk)) {
     return {
-      ...FALLBACK_HEALTH,
       ...live,
-      datasets: live.datasets ?? FALLBACK_HEALTH.datasets,
-      desk: { ...FALLBACK_HEALTH.desk, ...(live.desk || {}) },
+      status: live.status || (liveOk ? "ok" : "unknown"),
+      datasets: live.datasets != null ? live.datasets : undefined,
+      desk: liveOk
+        ? { ...NEUTRAL_DESK, ...(live.desk || {}) }
+        : { ...FALLBACK_HEALTH.desk, ...(live.desk || {}) },
     };
   }
   return FALLBACK_HEALTH;
@@ -79,6 +93,7 @@ export function discoverDemoSearch(query) {
 export function deskPipelineStrips(health, acquisitions = []) {
   const running = acquisitions.filter((a) => (a.stage || "running") === "running").slice(0, 3);
   if (running.length) return running;
+  if (health?.status === "ok") return [];
   const jobs = health?.desk?.jobs || {};
   return [
     {

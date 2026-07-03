@@ -31,10 +31,23 @@ Browse on GitHub: `docs/screenshots-review/` folder.
 
 ## Generate / refresh screenshots
 
-**Prerequisite:** desk UI reachable (usually `http://127.0.0.1:5178`).
+**Prerequisite:** full desk running — API on `:8765` and UI on `:5178`. See [DESK_COMMANDS.md](../DESK_COMMANDS.md).
+
+**Live capture (recommended — fails on demo/offline):**
+
+```bash
+npm run desk:capture:live
+# equivalent:
+YZU_REQUIRE_LIVE=1 bash scripts/capture_desk_screenshots.sh
+```
+
+**Offline shell capture (demo seed allowed):**
 
 ```bash
 bash scripts/capture_desk_screenshots.sh
+```
+
+```bash
 git add docs/screenshots-review research-drive-screenshots.zip
 git commit -m "chore: refresh Research Drive visual review screenshots"
 git push origin main

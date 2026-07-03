@@ -1,10 +1,10 @@
 {
   "product": "Research Drive (YZU Cluster procurement desk)",
-  "captured_at": "2026-07-02T18:02:55.349Z",
+  "captured_at": "2026-07-03T05:53:03.451Z",
   "base_url": "http://127.0.0.1:5178",
   "github_repo": "Spectating101/yzu-cluster",
   "github_screenshots_path": "docs/screenshots-review/",
-  "git_head": "c47c9bc",
+  "git_head": "6809d3f",
   "viewports": {
     "desktop": {
       "width": 1440,
@@ -89,9 +89,10 @@
     "mobile-resources-viewport.png",
     "mobile-resources-full.png"
   ],
+  "require_live": true,
   "notes": [
     "Screenshots committed under docs/screenshots-review/ for ChatGPT + GitHub connector review.",
     "Zip at repo root: research-drive-screenshots.zip",
-    "Live API enriches data; offline seed still renders shell when API is down."
+    "Set YZU_REQUIRE_LIVE=1 to fail capture unless header shows Live registry (API on :8765)."
   ]
 }

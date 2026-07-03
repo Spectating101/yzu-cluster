@@ -5,6 +5,7 @@
  * Usage:
  *   node scripts/capture_desk_screenshots.mjs
  *   YZU_DESK_URL=http://127.0.0.1:5178 node scripts/capture_desk_screenshots.mjs
+ *   YZU_REQUIRE_LIVE=1 node scripts/capture_desk_screenshots.mjs
  */
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
@@ -13,7 +14,11 @@ import { fileURLToPath } from "node:url";
 import { chromium } from "@playwright/test";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const ROOT = path.resolve(__dirname, "..");
+const ROOT = fs.existsSync(path.join(__dirname, "..", "drive", "src", "v2", "main.jsx"))
+  ? path.resolve(__dirname, "..")
+  : fs.existsSync(path.join(__dirname, "..", "..", "drive", "src", "v2", "main.jsx"))
+    ? path.resolve(__dirname, "../..")
+    : path.resolve(__dirname, "..");
 const OUT_DIR = path.join(ROOT, "docs", "screenshots-review");
 const ZIP_PATH = path.join(ROOT, "research-drive-screenshots.zip");
 
@@ -43,15 +48,48 @@ function gitHead() {
   return r.status === 0 ? r.stdout.trim() : "unknown";
 }
 
+async function waitForTrustBadge(page, liveOnly = false) {
+  await page.waitForFunction(
+    (requireLive) => {
+      const text = document.body?.innerText || "";
+      const badges = Array.from(document.querySelectorAll(".rd-v2-trust-badge"))
+        .map((el) => el.textContent || "")
+        .join(" ");
+      const hay = `${text} ${badges}`;
+      if (requireLive) return hay.includes("Live registry");
+      return (
+        hay.includes("Live registry") ||
+        hay.includes("Demo catalog") ||
+        hay.includes("Desk API offline")
+      );
+    },
+    liveOnly,
+    { timeout: 45_000 },
+  );
+}
+
 async function waitForShell(page) {
   await page.waitForSelector(".rd-v2-shell, .yzu-shell", { timeout: 45_000 });
+  await waitForTrustBadge(page, false);
+
+  if (process.env.YZU_REQUIRE_LIVE === "1") {
+    try {
+      await waitForTrustBadge(page, true);
+    } catch {
+      await page.reload({ waitUntil: "load" });
+      await page.waitForSelector(".rd-v2-shell, .yzu-shell", { timeout: 45_000 });
+      await waitForTrustBadge(page, false);
+      await waitForTrustBadge(page, true);
+    }
+  }
+
   await page.waitForTimeout(600);
 }
 
 async function captureRoute(browser, vpName, viewport, route) {
   const page = await browser.newPage({ viewport });
   const url = `${BASE_URL}${route.path}`;
-  await page.goto(url, { waitUntil: "domcontentloaded" });
+  await page.goto(url, { waitUntil: "load" });
   await waitForShell(page);
 
   const prefix = `${vpName}-${route.slug}`;
@@ -80,10 +118,11 @@ async function main() {
     viewports: VIEWPORTS,
     routes: ROUTES.map((r) => ({ slug: r.slug, path: r.path, label: r.label })),
     files: [],
+    require_live: process.env.YZU_REQUIRE_LIVE === "1",
     notes: [
       "Screenshots committed under docs/screenshots-review/ for ChatGPT + GitHub connector review.",
       "Zip at repo root: research-drive-screenshots.zip",
-      "Live API enriches data; offline seed still renders shell when API is down.",
+      "Set YZU_REQUIRE_LIVE=1 to fail capture unless header shows Live registry (API on :8765).",
     ],
   };
 

@@ -69,10 +69,12 @@ export function V2DeskHeader({
       </div>
       <div className="rd-v2-header-meta">
         <div className="rd-v2-trust-strip" aria-label="Desk status">
-          {usingSeed || deskStatus === "demo" ? (
-            <span className="rd-v2-trust-badge warn">Demo catalog</span>
-          ) : deskStatus === "ok" ? (
+          {deskStatus === "ok" ? (
             <span className="rd-v2-trust-badge ok">Live registry</span>
+          ) : deskStatus === "empty" ? (
+            <span className="rd-v2-trust-badge warn">Empty registry</span>
+          ) : usingSeed || deskStatus === "demo" ? (
+            <span className="rd-v2-trust-badge warn">Demo catalog</span>
           ) : (
             <span className="rd-v2-trust-badge warn">Desk API offline</span>
           )}
