@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { discoverCandidateState } from "@/v2/browseMeta";
+import { discoverCandidateUrl } from "@/v2/discoverActions";
 import { displayName } from "@/v2/datasetMeta";
 import { EmptyRailState } from "@/v2/EmptyRailState";
 import {
@@ -506,7 +507,16 @@ export function ClusterRailPanel({ compare, onAskAbout }) {
   );
 }
 
-export function BrowseRailPanel({ target, onAskAbout, onAddToLab, onPreviewExternal }) {
+export function BrowseRailPanel({
+  target,
+  labIds,
+  onAskAbout,
+  onAddToLab,
+  onPreviewExternal,
+  onProbeSource,
+  probeState,
+  onOpenInLibrary,
+}) {
   if (!target) {
     return (
       <RailFrame>
@@ -521,17 +531,28 @@ export function BrowseRailPanel({ target, onAskAbout, onAddToLab, onPreviewExter
   }
 
   const title = target.title || target.name || target.dataset_id || "External dataset";
-  const state = target.discover_state || discoverCandidateState(target);
+  const state = target.discover_state || discoverCandidateState(target, labIds);
+  const probeUrl = discoverCandidateUrl(target);
   const activeStep = state.key === "in_lab" ? 3 : state.key === "queued" ? 2 : state.key === "probe_ready" ? 1 : 0;
   const steps = ["Registry", "Probe", "Plan", "Lab"];
+  const probeSummaryText =
+    typeof probeState?.result?.summary === "string" ? probeState.result.summary : "";
+  const connector = probeState?.result?.connector;
+  const connectorSpec = connector?.spec || {};
+  const probeLoading = Boolean(probeState?.loading);
+  const probeError = probeState?.error || "";
   const discoverNext =
-    state.key === "probe_ready"
-      ? "Preview source, then add to lab"
-      : state.key === "queued"
-        ? "Review plan and collection destination"
-        : state.key === "in_lab"
-          ? "Open Library record"
-          : "Probe source and confirm fit";
+    state.key === "in_lab"
+      ? "Open the Library record"
+      : probeSummaryText
+        ? "Review probe results, then add to lab"
+        : state.key === "probe_ready"
+          ? "Probe source, then add to lab"
+          : state.key === "queued"
+            ? "Review plan and collection destination"
+            : probeUrl
+              ? "Probe source and confirm fit"
+              : "Confirm fit, then add to lab";
 
   return (
     <RailFrame>
@@ -571,11 +592,47 @@ export function BrowseRailPanel({ target, onAskAbout, onAddToLab, onPreviewExter
           <RailField label="Coverage" value={target.coverage || target.subtitle} />
           <RailField label="Grain" value={target.grain} />
         </RailFieldGrid>
+        {probeError ? (
+          <p className="rd-v2-discover-probe-error">{probeError}</p>
+        ) : null}
+        {probeSummaryText || connector ? (
+          <div className="rd-v2-discover-probe-result" aria-label="Probe result">
+            <p className="rd-v2-rail-section-label">Probe result</p>
+            {probeSummaryText ? <p className="rd-v2-discover-probe-summary">{probeSummaryText}</p> : null}
+            {connector ? (
+              <RailFieldGrid>
+                <RailField label="Connector" value={connector.connector_id || connector.id || "—"} />
+                <RailField label="Access" value={connectorSpec.access_mode || "—"} />
+                <RailField label="Format" value={connectorSpec.content_type || "—"} />
+                <RailField
+                  label="Files"
+                  value={String((connectorSpec.discovered_files || []).length || 0)}
+                />
+              </RailFieldGrid>
+            ) : null}
+          </div>
+        ) : null}
       </div>
       <RailStickyFooter>
-        <button type="button" className="rd-v2-btn primary sm" onClick={() => onAddToLab?.(target)}>
-          Add to lab
-        </button>
+        {state.key === "in_lab" ? (
+          <button type="button" className="rd-v2-btn primary sm" onClick={() => onOpenInLibrary?.(target)}>
+            Open in Library
+          </button>
+        ) : (
+          <button type="button" className="rd-v2-btn primary sm" onClick={() => onAddToLab?.(target)} disabled={probeLoading}>
+            Add to lab
+          </button>
+        )}
+        {state.key !== "in_lab" && probeUrl ? (
+          <button
+            type="button"
+            className="rd-v2-btn sm"
+            onClick={() => onProbeSource?.(target)}
+            disabled={probeLoading}
+          >
+            {probeLoading ? "Probing…" : "Probe source"}
+          </button>
+        ) : null}
         <button type="button" className="rd-v2-btn sm" onClick={onPreviewExternal}>
           Preview source
         </button>

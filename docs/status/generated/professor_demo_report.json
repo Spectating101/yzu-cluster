@@ -8,7 +8,7 @@
     "composer_configured": true,
     "brain": "cursor_composer",
     "registry_count": 128,
-    "captured_at": "2026-07-03T06:32:47.307Z",
+    "captured_at": "2026-07-06T07:34:39.250Z",
     "passed": 9,
     "total": 9,
     "all_passed": true
@@ -18,7 +18,7 @@
       "id": "home_command",
       "title": "Home command surface + attention queue",
       "ok": true,
-      "at": "2026-07-03T06:30:57.455Z",
+      "at": "2026-07-06T07:33:35.583Z",
       "holdings": 128,
       "attention_items": 4,
       "header_meta": "128 datasets · 7 pending"
@@ -27,7 +27,7 @@
       "id": "library_vault",
       "title": "Library vault drill-in + query-ready detail",
       "ok": true,
-      "at": "2026-07-03T06:31:40.744Z",
+      "at": "2026-07-06T07:33:39.733Z",
       "folder": "research_panels/gdelt",
       "visible_datasets": 2,
       "selected_dataset": "data_lake/news_shock_taxonomy/processed"
@@ -36,9 +36,9 @@
       "id": "discover_search",
       "title": "Discover search + acquisition pipeline",
       "ok": true,
-      "at": "2026-07-03T06:31:46.807Z",
+      "at": "2026-07-06T07:33:44.043Z",
       "query": "TWSE",
-      "candidates": 5,
+      "candidates": 11,
       "first_candidate": "Taiwan TWSE OpenAPI market layer",
       "source_badge": "“TWSE”"
     },
@@ -46,15 +46,15 @@
       "id": "discover_probe_add",
       "title": "Discover candidate probe + Add to lab → Ask",
       "ok": true,
-      "at": "2026-07-03T06:31:52.307Z",
+      "at": "2026-07-06T07:33:48.906Z",
       "candidate": "Taiwan TWSE OpenAPI market layer",
-      "ask_snippet": "You: Add to lab vault: Taiwan TWSE OpenAPI market layer\n\nPlanning response…\n\nAgent: …"
+      "ask_snippet": "You: Add to lab vault: Taiwan TWSE OpenAPI market layer Candidate (structured): { \"title\": \"Taiwan TWSE OpenAPI market layer\", \"dataset_id\": null, \"doi\": null, \"url\": null, \"source\": \"procured\", \"connector_id\": null, \"probe\": null } If no j"
     },
     {
       "id": "resources_safety",
       "title": "Resources safety ledger (professor labels)",
       "ok": true,
-      "at": "2026-07-03T06:31:56.893Z",
+      "at": "2026-07-06T07:33:53.510Z",
       "faculty_labels_found": [
         "Remote tables",
         "procurement routes",
@@ -62,13 +62,13 @@
       ],
       "has_status_strip": true,
       "has_inventory": true,
-      "page_excerpt": "Resources\n\nStorage, account limits, and procurement routes\n\nOverview\nActivity\nCollectors\n5/6 busy\n2026-06-04 – 2026-07-03\nUpdated 3s ago\nRefresh\nASK USAGE\n27 month\nProcurement chat this month\nCOLLECTION WORKERS\n5/6 busy\n0 running\nLAB VAULT\nquota pending\nhot 83.1%\nDESK CONNECTION\nConnected\nCatalog and query service\nKey resources\n10 shown · 5 source routes\nStorage\nWhere collected data is archived or staged. Check capacity before large downloads.\n2\nDrive vault\nArchive\n3 TB cap · usage pending\nLong-term archive\nWorking disk\nWorkspace\n52 GB free · 83.1% used\nLocal working space\nAccounts & limits\nAc"
+      "page_excerpt": "Resources\n\nStorage, account limits, and procurement routes\n\nOverview\nActivity\nCollectors\n5/6 busy\n2026-06-07 – 2026-07-06\nUpdated 4s ago\nRefresh\nASK USAGE\n29 month\nProcurement chat this month\nCOLLECTION WORKERS\n5/6 busy\n0 running\nLAB VAULT\nquota pending\nhot 82.4%\nDESK CONNECTION\nConnected\nCatalog and query service\nKey resources\n10 shown · 5 source routes\nStorage\nWhere collected data is archived or staged. Check capacity before large downloads.\n2\nDrive vault\nArchive\n3 TB cap · usage pending\nLong-term archive\nWorking disk\nWorkspace\n55 GB free · 82.4% used\nLocal working space\nAccounts & limits\nAc"
     },
     {
       "id": "resources_approvals",
       "title": "Pending approvals surfaced in desk",
       "ok": true,
-      "at": "2026-07-03T06:32:02.394Z",
+      "at": "2026-07-06T07:33:57.838Z",
       "pending_count": 7,
       "home_strip": false,
       "header_meta": "128 datasets · 7 pending"
@@ -77,7 +77,7 @@
       "id": "profile_faculty",
       "title": "Faculty profile loaded from registry",
       "ok": true,
-      "at": "2026-07-03T06:32:37.497Z",
+      "at": "2026-07-06T07:34:02.185Z",
       "name_en": "Kong, De-Rong",
       "email": "drkong@saturn.yzu.edu.tw"
     },
@@ -85,7 +85,7 @@
       "id": "library_preview",
       "title": "Query-ready preview on registered dataset",
       "ok": true,
-      "at": "2026-07-03T06:32:42.083Z",
+      "at": "2026-07-06T07:34:33.035Z",
       "dataset_id": "gdelt_asia_daily_country_panel",
       "preview_hint": "Preview — GDELT Asia Daily Country News Shock Panel\n×\nPreview\nSchema\nQuery\n\nLoading preview…\n\nExport CSV\nOpen query engine"
     },
@@ -93,7 +93,7 @@
       "id": "verify_in_lab",
       "title": "Registered datasets findable after Discover session",
       "ok": true,
-      "at": "2026-07-03T06:32:47.225Z",
+      "at": "2026-07-06T07:34:39.182Z",
       "in_lab_ui_matches": 12,
       "registry_count": 128,
       "filter": "In lab",

@@ -886,6 +886,30 @@
   line-height: 1.45;
 }
 
+.rd-v2-home-cluster-stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--rd-border, #e5e7eb);
+  border-radius: 10px;
+  background: var(--rd-surface-2, #f8fafc);
+  font-size: 12px;
+  color: var(--rd-muted);
+}
+
+.rd-v2-home-cluster-stats strong {
+  color: var(--rd-fg, var(--rd-text));
+  font-size: 14px;
+}
+
+.rd-v2-home-cluster-stats .warn {
+  color: #b45309;
+  font-weight: 600;
+}
+
 .rd-v2-home-continue em {
   font-style: normal;
   font-weight: 600;
@@ -1089,6 +1113,132 @@
   display: inline-flex;
   gap: 6px;
   justify-self: end;
+}
+
+.rd-v2-home-synthesis {
+  margin: 0 20px 18px;
+}
+
+.rd-v2-desk-lanes {
+  margin: 0 20px 20px;
+}
+
+.rd-v2-desk-lanes-lead {
+  margin: 0 0 10px;
+}
+
+.rd-v2-desk-lanes-list {
+  list-style: none;
+  margin: 0 0 10px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (max-width: 960px) {
+  .rd-v2-desk-lanes-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+.rd-v2-desk-lane-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--rd-border);
+  border-radius: 10px;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.rd-v2-desk-lane-card:hover {
+  border-color: var(--rd-accent, #c49a6c);
+}
+
+.rd-v2-desk-lane-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--rd-muted);
+}
+
+.rd-v2-desk-lane-meta {
+  font-size: 11px;
+  color: var(--rd-muted);
+}
+
+.rd-v2-home-suggested {
+  margin: 18px 0 8px;
+}
+
+.rd-v2-home-suggested-lead {
+  margin: 0 0 10px;
+}
+
+.rd-v2-synthesis-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rd-v2-synthesis-card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--rd-border);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.rd-v2-synthesis-card-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.rd-v2-synthesis-card-hit:hover strong {
+  text-decoration: underline;
+}
+
+.rd-v2-synthesis-card-main strong {
+  font-size: 13px;
+}
+
+.rd-v2-synthesis-card-actions {
+  display: inline-flex;
+  flex-shrink: 0;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.rd-v2-cluster-synthesis {
+  margin: 12px 0 0;
+  padding: 12px 14px;
+  border: 1px solid var(--rd-border);
+  border-radius: 10px;
+  background: var(--rd-surface);
 }
 
 .rd-v2-home-list-panel {
@@ -2407,6 +2557,37 @@
   color: var(--rd-accent);
   cursor: pointer;
   padding: 2px 0;
+}
+
+.rd-v2-res-databank {
+  margin: 0 20px 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--rd-border);
+  background: #fbfcfe;
+}
+
+.rd-v2-res-databank-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rd-v2-res-databank-head h2 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.rd-v2-res-databank-head span {
+  color: var(--rd-muted);
+  font-size: 0.82rem;
+}
+
+.rd-v2-res-databank-note {
+  margin: 6px 0 0;
+  color: var(--rd-muted);
+  font-size: 0.82rem;
 }
 
 .rd-v2-res-inventory {
@@ -4406,6 +4587,36 @@
   padding: 16px 18px;
   font-size: 13px;
   color: var(--rd-muted);
+}
+.rd-v2-discover-miss {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px 16px;
+  border-bottom: 1px solid var(--rd-border);
+}
+.rd-v2-discover-miss .rd-v2-empty-inline {
+  padding: 0;
+  margin: 0;
+}
+.rd-v2-discover-probe-result {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--rd-border);
+  background: #fbfcfe;
+}
+.rd-v2-discover-probe-summary {
+  margin: 0 0 10px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--rd-fg);
+}
+.rd-v2-discover-probe-error {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: var(--rd-danger-fg, #b42318);
 }
 .rd-v2-empty-inline.warn { color: var(--rd-review-fg); }
 

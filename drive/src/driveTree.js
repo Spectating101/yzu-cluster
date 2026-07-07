@@ -97,6 +97,20 @@ export function consumerDatasetPath(row, scope = datasetDriveScope(row)) {
     return labPathFromDataLake(resolved);
   }
 
+  if (raw.startsWith("data/datasets/")) {
+    const parts = raw
+      .replace(/^data\/datasets\//, "")
+      .split("/")
+      .filter(Boolean)
+      .map(cleanSegment);
+    const project = parts[0] || "datasets";
+    const tail = parts.slice(1).filter((seg) => seg !== "latest");
+    const leaf = tail.length ? tail[tail.length - 1] : did;
+    const folders = tail.length > 1 ? tail.slice(0, -1) : [];
+    const fileStem = leaf.includes(".") ? leaf.replace(/\.[^.]+$/, "") : leaf;
+    return ["research_panels", project, ...folders, fileStem || did];
+  }
+
   if (domain === "procured") {
     if (raw && raw.includes("procured")) {
       const tail = raw.split("procured/", 2)[1];

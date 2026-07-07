@@ -80,6 +80,10 @@ export function InspectorRail({
   onSeeCluster,
   onAddToLab,
   onPreviewExternal,
+  onProbeSource,
+  probeState,
+  onOpenInLibrary,
+  labIds,
   onApproveJob,
   onRefresh,
   onViewActivity,
@@ -98,9 +102,13 @@ export function InspectorRail({
     detailPanel = (
       <BrowseRailPanel
         target={browseTarget}
+        labIds={labIds}
         onAskAbout={onAskAbout}
         onAddToLab={onAddToLab}
         onPreviewExternal={onPreviewExternal}
+        onProbeSource={onProbeSource}
+        probeState={probeState}
+        onOpenInLibrary={onOpenInLibrary}
       />
     );
   } else if (mainTab === "resources") {

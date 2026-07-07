@@ -82,7 +82,9 @@ export function ProfilePage({ profile, datasets, compareIds = [], onGoTab }) {
           <h1 className="rd-v2-profile-name">{name}</h1>
           {org ? <p className="rd-v2-profile-org">{org}</p> : null}
           {profile?.unknown ? (
-            <p className="rd-v2-profile-hint">Sign in with @yzu.edu.tw to load faculty profile from registry.</p>
+            <p className="rd-v2-profile-hint">
+              Sign in with @yzu.edu.tw to load your faculty research profile (tracks, grants, corpus hints).
+            </p>
           ) : email ? (
             <p className="rd-v2-profile-hint">{email}</p>
           ) : null}

@@ -42,6 +42,45 @@ export function discoverSearch(query = "", limit = 12, email = "") {
   return fetchJson(`/library/discover?${params}`);
 }
 
+export function webDiscover(query = "", limit = 8, tavilyLive = true) {
+  const params = new URLSearchParams({ q: query, limit: String(limit) });
+  if (!tavilyLive) params.set("tavily", "0");
+  return fetchJson(`/library/discover/web?${params}`);
+}
+
+export function probePublicSource(url, name = "") {
+  return fetchJson("/library/discover/probe", {
+    method: "POST",
+    headers: deskHeaders(),
+    body: JSON.stringify({ url, name }),
+  });
+}
+
+export function submitDiscoverCollect(connectorId, { limit = 200, autoApprove = false } = {}) {
+  return fetchJson("/library/discover/collect", {
+    method: "POST",
+    headers: deskHeaders(),
+    body: JSON.stringify({
+      connector_id: connectorId,
+      limit,
+      auto_approve: autoApprove,
+    }),
+  });
+}
+
+export function submitLibraryJob({ title, plan, autoApprove = false, request = {} }) {
+  return fetchJson("/library/jobs", {
+    method: "POST",
+    headers: deskHeaders(),
+    body: JSON.stringify({
+      title,
+      plan,
+      request,
+      auto_approve: autoApprove,
+    }),
+  });
+}
+
 export function unifiedSearch(query = "", limit = 12, email = "") {
   const params = new URLSearchParams({ q: query, limit: String(limit) });
   if (email) params.set("email", email);
@@ -60,6 +99,10 @@ export function libraryOps(lane = "") {
 
 export function libraryOverview() {
   return fetchJson("/library/overview");
+}
+
+export function listPartitions() {
+  return fetchJson("/library/partitions").then((d) => d.partitions || []);
 }
 
 export function procurementCatalogSummary() {
@@ -103,6 +146,56 @@ export function approveJob(jobId) {
   });
 }
 
+export function deskWarm({ sessionId, userEmail, background = true } = {}) {
+  return fetchJson("/library/desk/warm", {
+    method: "POST",
+    headers: deskHeaders(),
+    body: JSON.stringify({
+      session_id: sessionId || loadChatSessionId() || undefined,
+      user_email: userEmail || loadUserEmail() || undefined,
+      background,
+    }),
+  });
+}
+
+export function libraryConsolidated(live = false) {
+  const q = live ? "?live=1" : "";
+  return fetchJson(`/library/consolidated${q}`);
+}
+
+export function listSynthesisProfiles() {
+  /** MCP/Composer equipment — not a faculty UI surface. */
+  return fetchJson("/library/synthesis/profiles");
+}
+
+export function getSynthesisProfile(profileId, { refresh = false } = {}) {
+  const q = refresh ? "?refresh=1" : "";
+  return fetchJson(`/library/synthesis/${encodeURIComponent(profileId)}${q}`);
+}
+
+export function runSynthesis(profileId, { previewLimit = 50, gapLimit = 100 } = {}) {
+  return fetchJson("/library/synthesis/run", {
+    method: "POST",
+    headers: deskHeaders(),
+    body: JSON.stringify({
+      profile_id: profileId,
+      preview_limit: previewLimit,
+      gap_limit: gapLimit,
+    }),
+  });
+}
+
+export function runSynthesisPair(leftDatasetId, rightDatasetId) {
+  return fetchJson("/library/synthesis/pair", {
+    method: "POST",
+    headers: deskHeaders(),
+    body: JSON.stringify({
+      left_dataset_id: leftDatasetId,
+      right_dataset_id: rightDatasetId,
+    }),
+  });
+}
+
 export function adviseDatasets(goal, { datasetId = "", limit = 5 } = {}) {
   return fetchJson("/library/advise", {
     method: "POST",
@@ -135,11 +228,15 @@ export function downloadText(filename, text, mime = "text/plain") {
   URL.revokeObjectURL(url);
 }
 
-export async function sendChatMessage(message, { sessionId, userEmail, onDelta, onActivity } = {}) {
+export async function sendChatMessage(
+  message,
+  { sessionId, userEmail, railContext, onDelta, onActivity } = {},
+) {
   const body = JSON.stringify({
     message,
     session_id: sessionId || undefined,
     user_email: userEmail || loadUserEmail() || undefined,
+    rail_context: railContext && typeof railContext === "object" ? railContext : undefined,
   });
 
   const streamRes = await fetch(`${API}/library/chat/stream`, {

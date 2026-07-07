@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { discoverSearch, unifiedSearch } from "@/v2/api";
+import { discoverSearch, unifiedSearch, webDiscover } from "@/v2/api";
 import {
   discoverCandidateState,
   discoverStageCounts,
 } from "@/v2/browseMeta";
+import { webHitsToRows, discoverCandidateUrl } from "@/v2/discoverActions";
 import { loadUserEmail } from "@/v2/deskSession";
 import { discoverDemoSearch } from "@/v2/deskSeed";
 import { DiscoverEmptyState } from "@/v2/DiscoverEmptyState";
@@ -111,7 +112,7 @@ function DiscoverFact({ label, value }) {
 
 function DiscoverCandidateRow({ row, labIds, selectedId, onSelectRow }) {
   const state = row.discover_state || discoverCandidateState(row, labIds);
-  const selected = selectedId === candidateId(row) || selectedId === row.dataset_id || selectedId === row.title;
+  const selected = selectedId === candidateId(row);
   const ribbonSource = row.source || row.collect_via || row.source_route || row.publisher || row.backend;
   const route = candidateRoute(row);
   const subline = candidateSubline(row);
@@ -173,6 +174,33 @@ function DiscoverCandidateList({ rows, labIds, selectedId, onSelectRow }) {
   );
 }
 
+function dedupeRows(rows) {
+  const seen = new Set();
+  const out = [];
+  for (const row of rows) {
+    const key = candidateId(row).toLowerCase();
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    out.push(row);
+  }
+  return out;
+}
+
+function hasExternalRows(rows) {
+  return rows.some((row) => {
+    const kind = String(row?.kind || "").toLowerCase();
+    const source = String(row?.source || "").toLowerCase();
+    return (
+      kind === "datacite" ||
+      kind === "huggingface" ||
+      kind === "web_scrape" ||
+      source.includes("datacite") ||
+      source.includes("huggingface") ||
+      source.includes("scrape")
+    );
+  });
+}
+
 export function BrowsePage({
   labIds,
   selectedId,
@@ -181,6 +209,7 @@ export function BrowsePage({
   jobs = [],
   usingSeed = false,
   onSuggestSearch,
+  onSearchWeb,
 }) {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -188,6 +217,8 @@ export function BrowsePage({
   const [source, setSource] = useState("");
   const [demoFallback, setDemoFallback] = useState(false);
   const [stateFilter, setStateFilter] = useState("all");
+  const [indexMiss, setIndexMiss] = useState(false);
+  const [showExternal, setShowExternal] = useState(false);
 
   const queuedTitles = useMemo(() => {
     const out = [];
@@ -205,10 +236,12 @@ export function BrowsePage({
     const immediateDemo = discoverDemoSearch(q);
     setLoading(true);
     setError("");
-    setSource(immediateDemo.length ? "demo" : "");
-    setDemoFallback(immediateDemo.length > 0);
-    setRows(immediateDemo);
+    setSource("");
+    setDemoFallback(false);
+    setRows([]);
     setStateFilter("all");
+    setIndexMiss(false);
+    setShowExternal(false);
 
     const flattenRows = (data) => {
       const fromApi = (data.sections || []).flatMap((s) => s.rows || []);
@@ -233,21 +266,71 @@ export function BrowsePage({
           return;
         }
         const discover = await discoverSearch(q, 12, email);
-        const fromDiscover = flattenRows(discover);
-        if (fromDiscover.length) {
-          apply(discover, "discover");
-          return;
+        const discoverRows = flattenRows(discover);
+        const needsUnified =
+          discoverRows.length === 0 || Boolean(discover.index_miss || discover.weak_match);
+        let mergedRows = discoverRows;
+        let label = discoverRows.length ? "discover" : "";
+        let miss = Boolean(discover.index_miss) && discoverRows.length === 0;
+        let external = false;
+
+        if (needsUnified) {
+          const search = await unifiedSearch(q, 12, email);
+          const searchRows = flattenRows(search);
+          if (searchRows.length) {
+            mergedRows = dedupeRows([...discoverRows, ...searchRows]);
+            label = discoverRows.length ? "discover" : "search";
+            external = hasExternalRows(searchRows);
+          }
+          if (!discoverRows.length) {
+            miss = Boolean(
+              discover.index_miss || search.index_miss || search.discover_index_miss || !searchRows.length,
+            );
+          }
         }
-        const search = await unifiedSearch(q, 12, email);
-        const fromSearch = flattenRows(search);
-        if (fromSearch.length) {
-          apply(search, "search");
+
+        const hasAcquireCandidate = mergedRows.some((r) => {
+          const st = discoverCandidateState(r, labIds);
+          return st.key !== "in_lab" && Boolean(discoverCandidateUrl(r));
+        });
+
+        if (mergedRows.length && !hasAcquireCandidate && q) {
+          const web = await webDiscover(q, 8);
+          const webRows = webHitsToRows(web);
+          if (webRows.length) {
+            mergedRows = dedupeRows([...mergedRows, ...webRows]);
+            if (!label || discoverStageCounts(mergedRows, labIds).inLab === mergedRows.length - webRows.length) {
+              label = mergedRows.length === webRows.length ? "web" : label || "search";
+            }
+            external = true;
+          }
+        }
+
+        if (mergedRows.length) {
+          apply({ sections: [{ id: label, rows: mergedRows }] }, label);
+          setIndexMiss(false);
+          setShowExternal(external || label === "web");
           return;
         }
 
         if (immediateDemo.length) {
+          apply({ sections: [{ id: "demo", rows: immediateDemo }] }, "demo");
+          setIndexMiss(false);
+          setShowExternal(false);
           return;
         }
+
+        const web = await webDiscover(q, 8);
+        const webRows = webHitsToRows(web);
+        if (webRows.length) {
+          apply({ sections: [{ id: "web", rows: webRows }] }, "web");
+          setIndexMiss(false);
+          setShowExternal(true);
+          return;
+        }
+
+        setIndexMiss(miss);
+        setShowExternal(false);
         setRows([]);
       } catch (err) {
         if (cancelled) return;
@@ -261,7 +344,7 @@ export function BrowsePage({
           setError("Catalog search unavailable. Check the query engine and retry.");
         }
       } finally {
-        if (!cancelled) setLoading(false);
+        setLoading(false);
       }
     };
 
@@ -269,7 +352,7 @@ export function BrowsePage({
     return () => {
       cancelled = true;
     };
-  }, [searchQuery]);
+  }, [searchQuery, labIds]);
 
   const merged = useMemo(() => {
     const seen = new Set();
@@ -295,11 +378,15 @@ export function BrowsePage({
       ? "Discover API"
       : source === "search"
         ? "Unified search"
-        : source === "demo"
-          ? "Demo catalog"
-          : null;
+        : source === "web"
+          ? "Open web"
+          : source === "demo"
+            ? "Demo catalog"
+            : null;
 
   const q = (searchQuery || "").trim();
+  const allInLab =
+    !loading && merged.length > 0 && stageCounts.inLab > 0 && stageCounts.inLab === merged.length;
 
   return (
     <PageShell
@@ -309,6 +396,7 @@ export function BrowsePage({
         <>
           <Chip active={!!q}>{q ? `“${q}”` : "Awaiting search"}</Chip>
           {sourceLabel ? <Chip>{sourceLabel}</Chip> : null}
+          {showExternal ? <Chip>External catalogs</Chip> : null}
           {demoFallback || (usingSeed && source === "demo") ? (
             <Chip warn>Offline sample</Chip>
           ) : null}
@@ -339,16 +427,36 @@ export function BrowsePage({
             <p className="rd-v2-browse-loading">Showing offline matches while live catalogs refresh…</p>
           ) : null}
           {loading && !filtered.length ? <p className="rd-v2-browse-loading">Searching catalogs…</p> : null}
+          {!loading && allInLab ? (
+            <div className="rd-v2-discover-miss">
+              <p className="rd-v2-empty-inline warn">
+                All {merged.length} matches are already in your lab vault. Search the open web for new sources.
+              </p>
+              {onSearchWeb ? (
+                <button type="button" className="rd-v2-btn sm" onClick={() => onSearchWeb(q)}>
+                  Search the open web via Ask →
+                </button>
+              ) : null}
+            </div>
+          ) : null}
           {!loading && error ? (
             <div className="rd-v2-discover-error">
               <p>{error}</p>
             </div>
           ) : null}
           {!loading && !error && filtered.length === 0 ? (
-            <p className="rd-v2-empty-inline">
-              No matches for “{q}”
-              {stateFilter !== "all" ? ` with filter ${stateFilter.replace("_", " ")}` : ""}.
-            </p>
+            <div className="rd-v2-discover-miss">
+              <p className="rd-v2-empty-inline">
+                No matches for “{q}”
+                {stateFilter !== "all" ? ` with filter ${stateFilter.replace("_", " ")}` : ""}
+                {indexMiss ? " in the local lab index." : "."}
+              </p>
+              {indexMiss && onSearchWeb ? (
+                <button type="button" className="rd-v2-btn sm" onClick={() => onSearchWeb(q)}>
+                  Search the open web via Ask →
+                </button>
+              ) : null}
+            </div>
           ) : null}
           <div className="rd-v2-discover-list-panel">
             <DiscoverCandidateList

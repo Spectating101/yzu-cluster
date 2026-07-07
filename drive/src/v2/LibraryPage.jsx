@@ -212,8 +212,14 @@ function LibraryHeadActions({
   );
 }
 
+function laneLabel(lane) {
+  return lane?.subtitle || lane?.name || lane?.id || "lane";
+}
+
 export function LibraryPage({
   datasets,
+  partitions = [],
+  cluster,
   folderId,
   onFolderChange,
   selectedId,
@@ -227,11 +233,41 @@ export function LibraryPage({
 }) {
   const [sortBy, setSortBy] = useState("name");
   const [filterMode, setFilterMode] = useState("all");
+  const [partitionFilter, setPartitionFilter] = useState("");
   const [newMenuOpen, setNewMenuOpen] = useState(false);
 
+  const laneOptions = useMemo(() => {
+    const rows = partitions.length ? partitions : cluster?.lanes || [];
+    const priority = (lane) => {
+      const pid = String(lane.detail?.partition_id || lane.id || "").toLowerCase();
+      if (pid.includes("refinitiv")) return "0";
+      if (pid.includes("research-panels") || pid.includes("derived")) return "1";
+      if (pid.includes("gdelt")) return "2";
+      if (pid.includes("mops") || pid.includes("twse")) return "3";
+      return `9${laneLabel(lane)}`;
+    };
+    return rows
+      .filter((lane) => (lane.detail?.registry_dataset_ids || []).length > 0 || lane.registry_datasets > 0)
+      .slice()
+      .sort((a, b) => priority(a).localeCompare(priority(b)));
+  }, [cluster?.lanes, partitions]);
+
+  const scopedDatasets = useMemo(() => {
+    if (!partitionFilter) return datasets;
+    const lane = (partitions.length ? partitions : cluster?.lanes || []).find((row) => row.id === partitionFilter);
+    if (!lane) return datasets;
+    const ids = new Set(lane.detail?.registry_dataset_ids || []);
+    const partitionId = String((lane.detail || {}).partition_id || "").replace(/^partition_/, "").replace(/_/g, ".");
+    return datasets.filter((row) => {
+      if (ids.has(row.dataset_id)) return true;
+      const pid = String(row.partition_id || row.collection?.partition_id || "");
+      return partitionId && pid === partitionId;
+    });
+  }, [cluster?.lanes, datasets, partitionFilter, partitions]);
+
   const tree = useMemo(
-    () => buildConsumerDriveTree(datasets, { scope: DRIVE_LAB }),
-    [datasets],
+    () => buildConsumerDriveTree(scopedDatasets, { scope: DRIVE_LAB }),
+    [scopedDatasets],
   );
 
   const trail = useMemo(() => {
@@ -245,8 +281,8 @@ export function LibraryPage({
 
   const items = useMemo(() => listFolderChildren(tree, folderId), [tree, folderId]);
   const branchRows = useMemo(
-    () => datasets.filter((row) => datasetMatchesFolder(row, folderId)).map(datasetListItem),
-    [datasets, folderId],
+    () => scopedDatasets.filter((row) => datasetMatchesFolder(row, folderId)).map(datasetListItem),
+    [scopedDatasets, folderId],
   );
   const displayRows = useMemo(() => {
     if (items.length) return items;
@@ -259,8 +295,8 @@ export function LibraryPage({
   const currentFolderName = isRoot ? "Lab root" : trail[trail.length - 1]?.name || "Lab";
   const showingBranchFallback = !items.length && branchRows.length > 0;
   const branchDatasetRows = useMemo(
-    () => (isRoot ? datasets : branchRows.map(itemDataset)),
-    [branchRows, datasets, isRoot],
+    () => (isRoot ? scopedDatasets : branchRows.map(itemDataset)),
+    [branchRows, scopedDatasets, isRoot],
   );
   const readyCount = readinessCount(branchDatasetRows);
   const folderCount = visibleRows.filter((item) => item.kind === "folder").length;
@@ -335,6 +371,24 @@ export function LibraryPage({
       }
       toolbar={
         <>
+          {laneOptions.length ? (
+            <Chip active={!partitionFilter} onClick={() => setPartitionFilter("")}>
+              All lanes
+            </Chip>
+          ) : null}
+          {laneOptions.slice(0, 12).map((lane) => (
+              <Chip
+                key={lane.id}
+                active={partitionFilter === lane.id}
+                onClick={() => setPartitionFilter((cur) => (cur === lane.id ? "" : lane.id))}
+              >
+                {laneLabel(lane)}
+                {lane.detail?.registry_dataset_ids?.length || lane.registry_datasets
+                  ? ` (${lane.detail?.registry_dataset_ids?.length || lane.registry_datasets})`
+                  : ""}
+              </Chip>
+            ))}
+          <span className="rd-v2-toolbar-spacer" />
           <Chip active>≡ list</Chip>
           <Chip active={sortBy === "name"} onClick={() => setSortBy("name")}>
             Name {sortBy === "name" ? "↑" : "↕"}

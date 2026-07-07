@@ -1,13 +1,29 @@
-import { useCallback, useRef, useState } from "react";
-import { sendChatMessage } from "@/v2/api";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { deskWarm, sendChatMessage } from "@/v2/api";
 import { loadChatSessionId, loadUserEmail } from "@/v2/deskSession";
 
-export function useAskChat({ dataset, onCollected, onToast } = {}) {
+export function useAskChat({ dataset, railContext, onCollected, onToast } = {}) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState("");
   const sessionRef = useRef(loadChatSessionId());
+  const warmStartedRef = useRef(false);
+  const railRef = useRef(railContext);
+
+  useEffect(() => {
+    railRef.current = railContext;
+  }, [railContext]);
+
+  useEffect(() => {
+    if (warmStartedRef.current) return;
+    warmStartedRef.current = true;
+    deskWarm({
+      sessionId: sessionRef.current,
+      userEmail: loadUserEmail(),
+      background: true,
+    }).catch(() => {});
+  }, []);
 
   const contextPrefix = dataset?.dataset_id
     ? `[context: ${dataset.dataset_id}] `
@@ -36,6 +52,7 @@ export function useAskChat({ dataset, onCollected, onToast } = {}) {
         const out = await sendChatMessage(full, {
           sessionId: sessionRef.current,
           userEmail: loadUserEmail(),
+          railContext: railRef.current,
           onDelta: (chunk) => {
             setStatus("");
             setMessages((m) =>

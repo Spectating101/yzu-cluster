@@ -1,5 +1,5 @@
 {
-  "label": "DEMO",
+  "label": "OFFLINE",
   "datasets": [
     {
       "dataset_id": "gdelt_asia_daily_country_panel",
@@ -98,9 +98,66 @@
       "time_field": "date",
       "coverage": "2016–2026",
       "analysis_readiness": "instant"
+    },
+    {
+      "dataset_id": "refinitiv_security_master",
+      "name": "Refinitiv security master",
+      "grain": "instrument",
+      "local_root": "data_lake/refinitiv_backfill/2026-07-06-complete/processed",
+      "join_keys": ["ric"],
+      "entity_fields": ["ric", "trbc_sector", "country_code"],
+      "time_field": "pulled_at",
+      "coverage": "570 RICs",
+      "analysis_readiness": "instant",
+      "entitlement_status": "collected",
+      "field_coverage": "query-ready",
+      "known_gap": "ISIN often empty",
+      "best_use": "Join hub for institutional panels",
+      "recommended_use": "Universe construction · cross-panel joins",
+      "limitations": "Frozen release 2026-07-06-complete"
+    },
+    {
+      "dataset_id": "refinitiv_index_membership_pit",
+      "name": "Refinitiv PIT index membership",
+      "grain": "index-constituent-month",
+      "local_root": "data_lake/refinitiv_backfill/2026-07-06-complete/processed",
+      "join_keys": ["index_ric", "as_of_date", "constituent_ric"],
+      "entity_fields": ["index_ric", "constituent_ric"],
+      "time_field": "as_of_date",
+      "coverage": "548k rows · SPX JKSE TWII N225 KS11 STI",
+      "analysis_readiness": "instant",
+      "field_coverage": "query-ready",
+      "best_use": "Survivorship-correct event studies with GDELT",
+      "limitations": "Monthly PIT 2010–2026"
+    },
+    {
+      "dataset_id": "refinitiv_entity_market_spine",
+      "name": "Refinitiv entity market spine",
+      "grain": "instrument",
+      "local_root": "data_lake/research_panels/refinitiv/2026-07-06-complete",
+      "join_keys": ["ric", "gdelt_entity_id"],
+      "entity_fields": ["ric", "gdelt_entity_id", "country_code"],
+      "time_field": "built_at",
+      "coverage": "570 RICs + GDELT entity bridge",
+      "analysis_readiness": "instant",
+      "best_use": "GDELT ↔ ticker/RIC ↔ index membership joins",
+      "limitations": "GDELT entity join strongest for Asia mapped names"
+    },
+    {
+      "dataset_id": "refinitiv_rescued_us_risk_desktop",
+      "name": "Refinitiv US vol/skew (desktop rescue)",
+      "grain": "instrument-day-metric",
+      "local_root": "data_lake/refinitiv_backfill/rescued_desktop_20251215/processed",
+      "join_keys": ["ric", "date", "metric"],
+      "entity_fields": ["ric", "metric"],
+      "time_field": "date",
+      "coverage": "495 S&P names · 2015–2025",
+      "analysis_readiness": "instant",
+      "best_use": "US vol/skew/SI history where EDP is empty",
+      "limitations": "Desktop Eikon Dec 2025; not auto-refreshed"
     }
   ],
-  "discover_suggestions": ["TWSE governance", "MOPS filings", "stablecoin incidents", "Indonesia IDX"],
+  "discover_suggestions": ["TWSE governance", "MOPS filings", "stablecoin incidents", "Indonesia IDX", "Refinitiv PIT membership", "GDELT news shocks"],
   "discover_samples": [
     {
       "dataset_id": "twse_openapi_governance_ext",

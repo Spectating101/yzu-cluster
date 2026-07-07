@@ -35,7 +35,9 @@ Ask → search dictionary (registry + partitions + curated / DataCite index)
 
 **Dictionary** = partitions + registry + curated index.  
 **Hands** = procurement MCP (62 atomic tools) + job queue + worker + scripts.  
-**Brain** = **Cursor Composer 2.5** in the faculty UI (`config/procurement_magic.json` → `chat.brain: cursor_composer`).
+**Brain** = **Cursor Composer** in the faculty UI (`config/procurement_magic.json` → `chat.brain: cursor_composer`). Cloud agent + MCP by default; see [`docs/DATASET_SYNTHESIS.md`](DATASET_SYNTHESIS.md).
+
+**Dataset synthesis** = multi-source join capability (showcase: `stablecoin_trust_engagement`). MCP + HTTP integrated; faculty UI tab not yet.
 
 This is the **production lab stack** (not a throwaway demo): same API, vault, and chat path you operate on daily. Individual datasets may still be pilot-scale until archived under `collection/`.
 
@@ -153,6 +155,10 @@ Rules: `tests/README.md`
 
 | Doc | Use for |
 |-----|---------|
+| [`DATABANK_STATE.md`](DATABANK_STATE.md) | **Neutral inventory** — what exists, where, coverage axes |
+| [`DESK_ACTIVATION.md`](DESK_ACTIVATION.md) | **Activation backlog** — profile-filtered priorities (not global doctrine) |
+| [`DATASET_SYNTHESIS.md`](DATASET_SYNTHESIS.md) | Synthesis capability, Composer vs harness, profiles |
+| [`GDELT_EXPANDED_FLEET.md`](GDELT_EXPANDED_FLEET.md) | Expanded GDELT downloads on cluster / Transcend |
 | [`RESEARCH_DRIVE_UI_CANON.md`](RESEARCH_DRIVE_UI_CANON.md) | **UI composition + workflows** — shell, DetailPanel, handoffs |
 | [`RESEARCH_DRIVE_RIGHT_RAIL_CONTRACT.md`](RESEARCH_DRIVE_RIGHT_RAIL_CONTRACT.md) | Right rail as the interface + integration anchor |
 | [`design/TOKENS.md`](design/TOKENS.md) | Visual tokens (colors, spacing) |

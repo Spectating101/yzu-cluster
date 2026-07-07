@@ -547,6 +547,35 @@ function buildResourceInventorySections(panels) {
   ].filter((section) => section.rows.length);
 }
 
+function DatabankStatusStrip({ cluster }) {
+  const inv = cluster?.platform_state;
+  if (!inv && !cluster?.registry_datasets) return null;
+  const registry = inv?.registry_datasets ?? cluster?.registry_datasets ?? "—";
+  const instant = inv?.instant_datasets ?? cluster?.instant_datasets ?? "—";
+  const partitions = inv?.professor_partitions ?? cluster?.professor_partitions ?? "—";
+  const refinitiv = inv?.refinitiv_datasets ?? 0;
+  const unassigned = inv?.unassigned_registry_ids ?? 0;
+  const incomplete = cluster?.incomplete_items?.length ?? 0;
+  return (
+    <section className="rd-v2-res-databank" aria-label="Databank inventory">
+      <div className="rd-v2-res-databank-head">
+        <h2>Databank</h2>
+        <span>
+          {registry} registry · {instant} instant · {partitions} partitions
+          {refinitiv ? ` · ${refinitiv} Refinitiv` : ""}
+          {unassigned === 0 ? " · fully mapped" : ` · ${unassigned} unmapped`}
+        </span>
+      </div>
+      <p className="rd-v2-res-databank-note">
+        {cluster?.refinitiv_frozen
+          ? "Refinitiv harvest frozen (2026-07-06-complete) — query-ready institutional spine."
+          : "Neutral catalog inventory from platform_progress."}
+        {incomplete ? ` ${incomplete} activation item(s) tracked.` : ""}
+      </p>
+    </section>
+  );
+}
+
 function ResourceInventoryRow({ item, selected, onSelect }) {
   return (
     <button
@@ -720,6 +749,7 @@ export function ResourcesPage({
         ) : (
           <>
             <ResourcesStatusStrip rollup={viewRollup} />
+            <DatabankStatusStrip cluster={health?.cluster || cluster} />
             <ResourceInventory
               sections={inventorySections}
               selectedKey={selectedKey}

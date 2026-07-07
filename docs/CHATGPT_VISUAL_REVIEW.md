@@ -20,7 +20,11 @@ GitHub alone cannot answer whether the hero hooks or the rail feels cramped.
 | [desktop-home-viewport.png](desktop-home-viewport.png) | Home |
 | [desktop-library-viewport.png](desktop-library-viewport.png) | Library root |
 | [desktop-library-connections-queue-viewport.png](desktop-library-connections-queue-viewport.png) | Connections queue |
-| [desktop-discover-viewport.png](desktop-discover-viewport.png) | Discover |
+| [desktop-discover-viewport.png](desktop-discover-viewport.png) | Discover empty state |
+| [desktop-discover-search-viewport.png](desktop-discover-search-viewport.png) | TWSE search (in-lab) |
+| [desktop-discover-acquire-viewport.png](desktop-discover-acquire-viewport.png) | MOPS candidate selected |
+| [desktop-discover-probe-viewport.png](desktop-discover-probe-viewport.png) | Probe result in rail |
+| [desktop-discover-ask-viewport.png](desktop-discover-ask-viewport.png) | Add to lab → Ask |
 | [desktop-resources-viewport.png](desktop-resources-viewport.png) | Resources |
 
 Full set: all `desktop-*`, `tablet-*`, `mobile-*` viewport + full-page PNGs. See [manifest.json](manifest.json) for capture metadata.

@@ -1,6 +1,6 @@
 # Professor demo — automated evidence
 
-Captured: 2026-07-03T06:32:47.307Z
+Captured: 2026-07-06T07:34:39.250Z
 Faculty: drkong@saturn.yzu.edu.tw
 Registry: 128 datasets · Composer: ready
 
@@ -32,18 +32,14 @@ Return → In lab filter finds registered holdings
 ### PASS — Discover search + acquisition pipeline
 - **id:** `discover_search`
 - **query:** TWSE
-- **candidates:** 5
+- **candidates:** 11
 - **first_candidate:** Taiwan TWSE OpenAPI market layer
 - **source_badge:** “TWSE”
 
 ### PASS — Discover candidate probe + Add to lab → Ask
 - **id:** `discover_probe_add`
 - **candidate:** Taiwan TWSE OpenAPI market layer
-- **ask_snippet:** You: Add to lab vault: Taiwan TWSE OpenAPI market layer
-
-Planning response…
-
-Agent: …
+- **ask_snippet:** You: Add to lab vault: Taiwan TWSE OpenAPI market layer Candidate (structured): { "title": "Taiwan TWSE OpenAPI market layer", "dataset_id": null, "doi": null, "url": null, "source": "procured", "connector_id": null, "probe": null } If no j
 
 ### PASS — Resources safety ledger (professor labels)
 - **id:** `resources_safety`
@@ -58,18 +54,18 @@ Overview
 Activity
 Collectors
 5/6 busy
-2026-06-04 – 2026-07-03
-Updated 3s ago
+2026-06-07 – 2026-07-06
+Updated 4s ago
 Refresh
 ASK USAGE
-27 month
+29 month
 Procurement chat this month
 COLLECTION WORKERS
 5/6 busy
 0 running
 LAB VAULT
 quota pending
-hot 83.1%
+hot 82.4%
 DESK CONNECTION
 Connected
 Catalog and query service
@@ -84,7 +80,7 @@ Archive
 Long-term archive
 Working disk
 Workspace
-52 GB free · 83.1% used
+55 GB free · 82.4% used
 Local working space
 Accounts & limits
 Ac

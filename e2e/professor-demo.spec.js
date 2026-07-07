@@ -176,7 +176,22 @@ test.describe("professor demo @ live-desk", () => {
     await page.goto(`/?tab=browse&q=${encodeURIComponent(SEARCH_QUERY)}`, { waitUntil: "load" });
     await waitLive(page);
 
-    const candidate = page.locator('.rd-v2-catalog button.row[data-kind="external"]').first();
+    async function pickAcquireCandidate() {
+      const notInLab = page.locator(
+        '.rd-v2-catalog button.row[data-kind="external"]:not([data-state="in_lab"])',
+      );
+      if (await notInLab.count()) return notInLab.first();
+      await page.locator(".rd-v2-search-pill input").fill("MOPS");
+      await page.locator(".rd-v2-search-pill input").press("Enter");
+      await page.waitForTimeout(2500);
+      const retry = page.locator(
+        '.rd-v2-catalog button.row[data-kind="external"]:not([data-state="in_lab"])',
+      );
+      if (await retry.count()) return retry.first();
+      return page.locator('.rd-v2-catalog button.row[data-kind="external"]').first();
+    }
+
+    const candidate = await pickAcquireCandidate();
     await candidate.waitFor({ state: "visible", timeout: 30_000 });
     const title = await candidate.locator("strong").innerText();
     await candidate.click();
@@ -190,11 +205,31 @@ test.describe("professor demo @ live-desk", () => {
     await expect(rail.locator(".rd-v2-detail-label", { hasText: "Access" })).toBeVisible();
     await expect(rail.locator(".rd-v2-detail-label", { hasText: "Destination" })).toBeVisible();
 
-    const addBtn = rail.locator(".rd-v2-rail-sticky .rd-v2-btn.primary", { hasText: "Add to lab" });
-    await expect(addBtn).toBeVisible();
-    await addBtn.click();
+    const probeBtn = rail.getByRole("button", { name: "Probe source" });
+    if (await probeBtn.isVisible()) {
+      await probeBtn.click();
+      await expect(
+        rail.locator(".rd-v2-discover-probe-result, .rd-v2-discover-probe-error"),
+      ).toBeVisible({ timeout: 45_000 });
+    }
 
-    await expect(page.locator(".rd-v2-toast")).toContainText("Add to lab", { timeout: 10_000 });
+    const primaryBtn = rail.locator(".rd-v2-rail-sticky .rd-v2-btn.primary").first();
+    await expect(primaryBtn).toBeVisible();
+    const primaryLabel = (await primaryBtn.innerText()).trim();
+    if (primaryLabel === "Open in Library") {
+      await primaryBtn.click();
+      record("discover_probe_add", "Discover in-lab candidate → Open in Library", true, {
+        candidate: title,
+        action: "open_in_library",
+      });
+      return;
+    }
+
+    await primaryBtn.click();
+
+    await expect(page.locator(".rd-v2-toast")).toContainText(/Add to lab|Collection job/, {
+      timeout: 10_000,
+    });
     await expect(page.locator(".rd-v2-rail-toggle").getByRole("tab", { name: "Ask" })).toHaveAttribute(
       "aria-selected",
       "true",

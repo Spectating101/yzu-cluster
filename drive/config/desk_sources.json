@@ -59,6 +59,43 @@
   ],
   "sources": [
     {
+      "id": "lseg_edp",
+      "label": "LSEG Workspace / EDP (YZU seat)",
+      "endpoint": "lseg.com / localhost:9000",
+      "layers": ["harvest", "registry", "frozen_release"],
+      "routes": "refinitiv_backfill · refinitiv_promote_registry · entitlement probes",
+      "collect_via": ["lseg_data_api"],
+      "show_on_resources": true
+    },
+    {
+      "id": "wrds",
+      "label": "WRDS (CRSP · Compustat · CCM)",
+      "endpoint": "wrds.wharton.upenn.edu",
+      "layers": ["queue", "planned"],
+      "routes": "wrds_crsp_compustat_ccm queue task → data_lake/wrds/",
+      "collect_via": ["wrds"],
+      "show_on_resources": true,
+      "notes": "Not available on desk creds — use crsp_moveit + capital_iq instead"
+    },
+    {
+      "id": "crsp_moveit",
+      "label": "CRSP MOVEit Cloud",
+      "endpoint": "crsp.moveitcloud.com",
+      "layers": ["bulk", "manifest", "sftp"],
+      "routes": "crsp_moveit_manifest · crsp_moveit_sync_priority",
+      "collect_via": ["moveit_sftp"],
+      "show_on_resources": true
+    },
+    {
+      "id": "capital_iq",
+      "label": "S&P Capital IQ / Compustat",
+      "endpoint": "capitaliq.com",
+      "layers": ["web_export", "planned_feed"],
+      "routes": "Manual Compustat export → data_lake/compustat/raw/",
+      "collect_via": ["web_export"],
+      "show_on_resources": true
+    },
+    {
       "id": "gdelt",
       "label": "GDELT",
       "endpoint": "gdeltproject.org",

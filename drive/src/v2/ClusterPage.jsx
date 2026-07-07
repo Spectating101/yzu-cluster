@@ -8,7 +8,13 @@ import {
 import { displayName } from "@/v2/datasetMeta";
 import { Chip, ChipRow, PageShell, StatementRow, StatementSection } from "@/v2/ui";
 
-export function ClusterPage({ datasets, compareIds, onCompareChange, onGoTab }) {
+export function ClusterPage({
+  datasets,
+  compareIds,
+  onCompareChange,
+  onGoTab,
+  onAskComposer,
+}) {
   const picks = useMemo(() => {
     const ids = compareIds.filter(Boolean);
     return ids.map((id) => datasets.find((d) => d.dataset_id === id)).filter(Boolean);
@@ -144,6 +150,9 @@ export function ClusterPage({ datasets, compareIds, onCompareChange, onGoTab }) 
               </div>
             </div>
             {overlap.join ? <p className="muted small" style={{ marginTop: 6 }}>Join on: <code>{overlap.join}</code></p> : null}
+            <p className="muted small" style={{ marginTop: 8 }}>
+              Overlap is context for Composer — use Ask to compare join viability or request a synthesis run.
+            </p>
           </>
         ) : (
           <p className="muted">Pick two datasets above to compare overlap.</p>
@@ -152,6 +161,16 @@ export function ClusterPage({ datasets, compareIds, onCompareChange, onGoTab }) 
 
       <ChipRow>
         <Chip onClick={() => onGoTab("browse")}>Find in Discover</Chip>
+        <Chip
+          onClick={() =>
+            onAskComposer?.(
+              `Compare ${picks[0]?.dataset_id} and ${picks[1]?.dataset_id} for synthesis. Shared keys: ${overlap?.shared?.join(", ") || "none"}. Use the research tools to assess join viability and recommend next steps.`,
+            )
+          }
+          disabled={!overlap}
+        >
+          Ask about overlap
+        </Chip>
         <Chip onClick={exportKeys} disabled={!overlap}>
           Export join keys
         </Chip>

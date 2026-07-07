@@ -10,9 +10,11 @@ export function AskRail({
   onCollected,
   onApproveJob,
   onToast,
+  railContext,
 }) {
   const { messages, input, setInput, busy, status, send, contextLabel } = useAskChat({
     dataset,
+    railContext,
     onCollected,
     onToast,
   });
@@ -42,7 +44,8 @@ export function AskRail({
       <div className="rd-v2-ask-messages" data-testid="ask-messages">
         {messages.length === 0 ? (
           <p className="rd-v2-ask-placeholder">
-            Ask about catalog coverage, overlaps, vault paths, or how to procure an external dataset.
+            Ask about vault holdings, Hugging Face or DOI imports, overlaps, or what to procure next — the assistant
+            searches, queries, collects, and archives via the research tools.
           </p>
         ) : (
           messages.map((m, i) => (

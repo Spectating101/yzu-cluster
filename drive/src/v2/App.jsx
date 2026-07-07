@@ -5,13 +5,17 @@ import {
   describeDataset,
   deskHealth,
   deskResources,
+  deskWarm,
   facultyProfile,
   libraryOps,
   libraryOverview,
   listAcquisitions,
   listDatasets,
   listJobs,
+  listPartitions,
+  probePublicSource,
   procurementCatalogSummary,
+  submitDiscoverCollect,
   yzuClusterStatus,
 } from "@/v2/api";
 import { AskRail } from "@/v2/AskRail";
@@ -39,6 +43,9 @@ import { touchRecent } from "@/v2/recent";
 import { mergeHealth, resolveCatalog } from "@/v2/deskSeed";
 import { loadSettings } from "@/v2/settingsStore";
 import { CLUSTER_NAV_DEFERRED } from "@/v2/nav-config.jsx";
+import { browseTargetKey, buildAddToLabPrompt, discoverCandidateUrl } from "@/v2/discoverActions";
+import { discoverCandidateState } from "@/v2/browseMeta";
+import { buildRailContext } from "@/v2/railContext";
 
 function readParams() {
   const p = new URLSearchParams(window.location.search);
@@ -110,6 +117,7 @@ export function V2App() {
   const [folderId, setFolderId] = useState(() => readParams().folder);
   const [selectedId, setSelectedId] = useState(() => readParams().dataset);
   const [browseRow, setBrowseRow] = useState(null);
+  const [browseProbe, setBrowseProbe] = useState({ key: "", loading: false, result: null, error: "" });
   const [resourceRow, setResourceRow] = useState(null);
   const [activeObject, setActiveObject] = useState(null);
   const [compareIds, setCompareIds] = useState(DEFAULT_COMPARE);
@@ -127,6 +135,7 @@ export function V2App() {
   const [health, setHealth] = useState(null);
   const [deskRefreshedAt, setDeskRefreshedAt] = useState(null);
   const [acquisitions, setAcquisitions] = useState([]);
+  const [partitions, setPartitions] = useState([]);
   const [ops, setOps] = useState(null);
   const [jobs, setJobs] = useState([]);
   const [overview, setOverview] = useState(null);
@@ -183,6 +192,9 @@ export function V2App() {
     listAcquisitions(true)
       .then((d) => setAcquisitions(d.acquisitions || []))
       .catch(() => setAcquisitions([]));
+    listPartitions()
+      .then((rows) => setPartitions(Array.isArray(rows) ? rows : []))
+      .catch(() => setPartitions([]));
     libraryOps()
       .then(setOps)
       .catch(() => setOps(null));
@@ -225,6 +237,16 @@ export function V2App() {
   useEffect(() => {
     refreshBackend();
   }, [refreshBackend]);
+
+  useEffect(() => {
+    deskWarm({ userEmail: loadUserEmail(), background: true }).catch(() => {});
+  }, []);
+
+  const askFromPrompt = useCallback((prompt) => {
+    if (!prompt) return;
+    setPendingAsk(prompt);
+    setRailTab("ask");
+  }, []);
 
   // Normalize deep links (e.g. tab=browse + folder=dataset → library) into the address bar.
   useEffect(() => {
@@ -282,7 +304,11 @@ export function V2App() {
   }, [selectedId, selectedFromList]);
 
   const browseTarget = browseRow;
-  const browseSelectedId = browseRow?.dataset_id || browseRow?.title || "";
+  const browseSelectedId = browseRow ? browseTargetKey(browseRow) : "";
+  const browseProbeState =
+    browseProbe.key && browseProbe.key === browseTargetKey(browseTarget)
+      ? browseProbe
+      : { loading: false, result: null, error: "" };
 
   const clusterContext = useMemo(() => {
     const [aId, bId] = compareIds;
@@ -292,6 +318,21 @@ export function V2App() {
     const overlap = computeDatasetOverlap(a, b);
     return { a, b, ...overlap };
   }, [compareIds, catalog]);
+
+  const railContext = useMemo(
+    () =>
+      buildRailContext({
+        tab,
+        mode: railTab,
+        dataset: detail,
+        activeObject,
+        searchQuery,
+        folderId,
+        clusterContext,
+        profileEmail: profile?.email || loadUserEmail(),
+      }),
+    [tab, railTab, detail, activeObject, searchQuery, folderId, clusterContext, profile],
+  );
 
   const syncUrl = useCallback(
     (patch) => {
@@ -382,15 +423,102 @@ export function V2App() {
     setRailTab("ask");
   }, [searchQuery, goTab, syncUrl]);
 
+  const askSearchWeb = useCallback(
+    (query) => {
+      const q = String(query || searchQuery || "").trim();
+      if (!q) return;
+      goTab("browse");
+      syncUrl({ tab: "browse", q });
+      setRailTab("ask");
+      setPendingAsk(
+        `Find external datasets for: ${q}. Start with open-web discovery, probe promising sources, and propose the safest acquisition plan for this lab.`,
+      );
+    },
+    [searchQuery, goTab, syncUrl],
+  );
+
   const askAddToLab = useCallback(
-    (target) => {
-      const label = target?.title || target?.dataset_id || target?.name || "this dataset";
+    async (target) => {
+      if (!target) return;
+      const state = target.discover_state || discoverCandidateState(target, labIds);
+      if (state.key === "in_lab") {
+        const id = target.dataset_id;
+        if (!id) return;
+        setTab("library");
+        const row = catalog.find((d) => d.dataset_id === id) || { dataset_id: id, ...target };
+        setSelectedId(id);
+        setActiveObject(datasetObject(row));
+        touchRecent(id);
+        setRailTab("detail");
+        syncUrl({ tab: "library", dataset: id, preview: false, q: "" });
+        showToast("Opened in Library");
+        return;
+      }
+
       setActiveObject(externalCandidateObject(target));
       setRailTab("ask");
-      setPendingAsk(`Add to lab vault: ${label}`);
+
+      const key = browseTargetKey(target);
+      const probeResult = browseProbe.key === key ? browseProbe.result : null;
+      const connectorId = probeResult?.connector?.connector_id || probeResult?.connector?.id;
+
+      if (connectorId) {
+        try {
+          const out = await submitDiscoverCollect(connectorId, { limit: 200, autoApprove: false });
+          const job = out?.job;
+          refreshBackend();
+          setPendingAsk(
+            `${buildAddToLabPrompt(target, probeResult)}\n\nCollection job queued: ${job?.id || "see Resources → Active jobs"}.`,
+          );
+          showToast(job?.id ? `Collection job queued (${job.id})` : "Collection job queued");
+          return;
+        } catch (err) {
+          setPendingAsk(buildAddToLabPrompt(target, probeResult));
+          showToast(err?.message || "Collect failed — queued Ask instead");
+          return;
+        }
+      }
+
+      setPendingAsk(buildAddToLabPrompt(target, probeResult));
       showToast("Queued Ask — Add to lab");
     },
-    [showToast],
+    [labIds, browseProbe, catalog, syncUrl, showToast, refreshBackend],
+  );
+
+  const probeDiscoverCandidate = useCallback(async (target) => {
+    const url = discoverCandidateUrl(target);
+    const key = browseTargetKey(target);
+    if (!url) {
+      setBrowseProbe({ key, loading: false, result: null, error: "No public URL to probe for this candidate." });
+      return;
+    }
+    setBrowseProbe({ key, loading: true, result: null, error: "" });
+    try {
+      const out = await probePublicSource(url, target?.title || target?.name || "");
+      if (out?.error) {
+        setBrowseProbe({ key, loading: false, result: null, error: String(out.error) });
+        return;
+      }
+      setBrowseProbe({ key, loading: false, result: out, error: "" });
+      showToast("Source probed — review connector details");
+    } catch (err) {
+      setBrowseProbe({ key, loading: false, result: null, error: err?.message || "Probe failed" });
+    }
+  }, [showToast]);
+
+  const openInLibraryFromDiscover = useCallback(
+    (target) => {
+      const id = target?.dataset_id;
+      if (!id) return;
+      setTab("library");
+      const row = catalog.find((d) => d.dataset_id === id) || { dataset_id: id, ...target };
+      setSelectedId(id);
+      setActiveObject(datasetObject(row));
+      touchRecent(id);
+      setRailTab("detail");
+      syncUrl({ tab: "library", dataset: id, preview: false, q: "" });
+    },
+    [catalog, syncUrl],
   );
 
   const askAboutSelection = useCallback(
@@ -436,6 +564,7 @@ export function V2App() {
 
   useEffect(() => {
     setBrowseRow(null);
+    setBrowseProbe({ key: "", loading: false, result: null, error: "" });
     setActiveObject((current) => (current?.kind === "external_candidate" ? null : current));
   }, [searchQuery]);
 
@@ -560,9 +689,13 @@ export function V2App() {
         <HomePage
           datasets={catalog}
           health={health}
+          cluster={health?.cluster}
+          profile={profile}
           acquisitions={acquisitions}
+          partitions={partitions}
           jobs={jobs}
           usingSeed={usingSeed}
+          onAskComposer={askFromPrompt}
           onGoTab={goTab}
           onOpenAttention={openHomeAttention}
           onSelectDataset={selectDataset}
@@ -575,6 +708,8 @@ export function V2App() {
       main = (
         <LibraryPage
           datasets={filteredDatasets}
+          partitions={partitions}
+          cluster={health?.cluster}
           folderId={folderId}
           onFolderChange={changeLibraryFolder}
           selectedId={selectedId}
@@ -595,6 +730,7 @@ export function V2App() {
           compareIds={compareIds}
           onCompareChange={setCompareIds}
           onGoTab={goTab}
+          onAskComposer={askFromPrompt}
         />
       );
       break;
@@ -610,8 +746,14 @@ export function V2App() {
             setSearchQuery(q);
             goTab("browse");
           }}
+          onSearchWeb={askSearchWeb}
           onSelectRow={(row) => {
             setBrowseRow(row);
+            setBrowseProbe((current) =>
+              current.key === browseTargetKey(row)
+                ? current
+                : { key: "", loading: false, result: null, error: "" },
+            );
             setActiveObject(externalCandidateObject(row));
             setRailTab("detail");
           }}
@@ -627,7 +769,7 @@ export function V2App() {
           ops={ops}
           jobs={jobs}
           catalogSummary={catalogSummary}
-          cluster={cluster}
+          cluster={health?.cluster || cluster}
           mode={resourceMode}
           onModeChange={setResourceMode}
           activityFilter={activityFilter}
@@ -673,7 +815,9 @@ export function V2App() {
             ? health?.status === "ok"
               ? "empty"
               : "demo"
-            : health?.status || "unknown"
+            : health?.status === "ok" || datasets.length > 0
+              ? "ok"
+              : health?.status || "unknown"
         }
         refreshedAt={deskRefreshedAt}
       />
@@ -714,6 +858,10 @@ export function V2App() {
         }}
         onSeeCluster={CLUSTER_NAV_DEFERRED ? undefined : () => goTab("cluster")}
         onAddToLab={askAddToLab}
+        onProbeSource={probeDiscoverCandidate}
+        probeState={browseProbeState}
+        onOpenInLibrary={openInLibraryFromDiscover}
+        labIds={labIds}
         onPreviewExternal={() => browseRow && openPreviewExternal(browseRow)}
         onApproveJob={handleApproveJob}
         onRefresh={refreshBackend}
@@ -753,6 +901,7 @@ export function V2App() {
             onCollected={refreshBackend}
             onApproveJob={handleApproveJob}
             onToast={showToast}
+            railContext={railContext}
           />
         }
       />

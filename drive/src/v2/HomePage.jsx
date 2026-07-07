@@ -1,5 +1,7 @@
 import { useMemo } from "react";
 import { CatalogList } from "@/v2/CatalogList";
+import { DeskLanesStrip } from "@/v2/DeskLanesStrip";
+import { HomeSuggestedAsks } from "@/v2/HomeSuggestedAsks";
 import { deskPipelineStrips } from "@/v2/deskSeed";
 import { recentDatasets } from "@/v2/recent";
 import { PageShell, SectionTitle, Strip } from "@/v2/ui";
@@ -65,8 +67,13 @@ function HomeAttentionRow({ item, onOpen, onAsk }) {
 export function HomePage({
   datasets,
   health,
+  cluster,
+  profile = null,
   acquisitions = [],
+  partitions = [],
   jobs = [],
+  usingSeed = false,
+  onAskComposer,
   onGoTab,
   onOpenAttention,
   onSelectDataset,
@@ -83,12 +90,24 @@ export function HomePage({
   const pending = healthJobs.pending_approval ?? pendingJobs.length;
   const pipeline = useMemo(() => deskPipelineStrips(health, acquisitions), [health, acquisitions]);
   const recentRows = recent.length ? recent : datasets.slice(0, 5);
-  const readyCount = datasets.filter((d) => /ready|query/i.test(d.analysis_readiness || "")).length;
+  const readyCount = datasets.filter((d) =>
+    /instant|ready|query|connected/i.test(String(d.analysis_readiness || "")),
+  ).length;
+  const registryTotal = cluster?.registry_datasets || health?.datasets || datasets.length;
+  const instantTotal = cluster?.instant_datasets || readyCount;
+  const refinitivLane = (cluster?.lanes || []).find((lane) =>
+    String(lane.id || "").includes("refinitiv"),
+  );
+  const refinitivCount =
+    refinitivLane?.registry_datasets ||
+    refinitivLane?.detail?.registry_dataset_ids?.length ||
+    cluster?.platform_state?.refinitiv_datasets ||
+    0;
   const runningJobs = healthJobs.running ?? pipeline.filter((a) => a.stage === "running").length;
   const firstPendingJob = pendingJobs[0];
   const firstPipeline = pipeline[0] || null;
   const heroPromise =
-    "Search the lab vault. Procure missing datasets. Register everything for reuse.";
+    "Google Drive vault for the lab. Discover Hugging Face, DOI catalogs, and the open web. Ask the assistant to search, query, collect, and register.";
   const attentionItems = useMemo(() => {
     const items = [];
     if (pending > 0) {
@@ -197,8 +216,24 @@ export function HomePage({
               <span className="rd-v2-home-continue-id">{continueDs.dataset_id}</span>
             </p>
           ) : (
-            <p>{datasets.length} indexed holdings ready to browse.</p>
+            <p>
+              {readyCount || instantTotal} query-ready holdings · browse Lab Drive or ask the assistant for cross-source
+              work.
+            </p>
           )}
+        </div>
+        <div className="rd-v2-home-cluster-stats" aria-label="Vault coverage">
+          <span className={usingSeed ? "warn" : ""}>
+            {usingSeed ? "Offline catalog — start API :8765 for full registry" : "Live registry"}
+          </span>
+          <strong>{readyCount || instantTotal} query-ready</strong>
+          <span>{registryTotal} registered</span>
+          {cluster?.refinitiv_frozen && refinitivCount ? (
+            <span>{refinitivCount} Refinitiv</span>
+          ) : null}
+          <button type="button" className="rd-v2-btn sm ghost" onClick={() => onGoTab("resources")}>
+            Acquisitions →
+          </button>
         </div>
         <div className="rd-v2-home-command-actions">
           <button type="button" className="primary" onClick={() => onGoTab("library")}>
@@ -232,6 +267,10 @@ export function HomePage({
           ))}
         </div>
       </section>
+
+      <DeskLanesStrip holdings={datasets.length} onGoTab={onGoTab} onAskComposer={onAskComposer} />
+
+      <HomeSuggestedAsks profile={profile} onAskComposer={onAskComposer} />
 
       <SectionTitle title="Recent" actionLabel="See Library →" onAction={() => onGoTab("library")} />
       <div className="rd-v2-home-list-panel">
