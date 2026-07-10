@@ -280,7 +280,7 @@ export function V2App() {
     const pick = first.dataset_id;
     setSelectedId(pick);
     setActiveObject(datasetObject(first));
-    touchRecent(pick);
+    // Do not touchRecent here — Home auto-select must not rewrite recent history.
     writeParams({ tab, folder: folderId, dataset: pick, preview: previewOpen });
   }, [datasets, selectedId, tab, folderId, previewOpen]);
 

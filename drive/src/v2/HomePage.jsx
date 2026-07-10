@@ -5,7 +5,7 @@ import { HomeSuggestedAsks } from "@/v2/HomeSuggestedAsks";
 import { deskPipelineStrips } from "@/v2/deskSeed";
 import { recentDatasets } from "@/v2/recent";
 import { PageShell, SectionTitle, Strip } from "@/v2/ui";
-import { displayName } from "@/v2/datasetMeta";
+import { displayName, statusPill } from "@/v2/datasetMeta";
 
 function datasetListItem(row) {
   return {
@@ -25,14 +25,6 @@ function jobTitle(job) {
     job?.type ||
     "Procurement job"
   );
-}
-
-function readinessLabel(ds) {
-  const raw = String(ds?.analysis_readiness || "").toLowerCase();
-  if (/instant|ready|query|connected/.test(raw)) return "Query-ready";
-  if (/dry/.test(raw)) return "Dry-run";
-  if (raw) return raw.replace(/_/g, " ");
-  return "In vault";
 }
 
 function purposeLine(ds) {
@@ -197,6 +189,7 @@ export function HomePage({
       return;
     }
     onSelectDataset?.(continueDs);
+    onPreviewDataset?.(continueDs);
   };
 
   const openContinueInLibrary = () => {
@@ -221,9 +214,9 @@ export function HomePage({
           {continueDs ? (
             <>
               <h2>{displayName(continueDs)}</h2>
-              <p>{purposeLine(continueDs)}</p>
+              <p className="rd-v2-home-continue-purpose">{purposeLine(continueDs)}</p>
               <p className="rd-v2-home-continue-meta">
-                <span className="rd-v2-pill">{readinessLabel(continueDs)}</span>
+                <span className="rd-v2-pill">{statusPill(continueDs)}</span>
                 <span>{lastActivityLine(continueDs)}</span>
               </p>
               <p className="rd-v2-home-continue-id mono">{continueDs.dataset_id}</p>

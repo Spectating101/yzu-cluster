@@ -903,6 +903,18 @@
   line-height: 1.45;
 }
 
+.rd-v2-home-continue-purpose {
+  margin: 8px 0 0;
+  color: var(--rd-body);
+  font-size: 13px;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
 .rd-v2-home-continue-meta {
   display: flex;
   flex-wrap: wrap;
@@ -1104,6 +1116,36 @@
   display: inline-flex;
   gap: 6px;
   justify-self: end;
+}
+
+/* Home Attention: tablet canvas is narrow while shell keeps sidebar + rail. */
+@media (min-width: 761px) and (max-width: 1020px) {
+  .rd-v2-home-attention-row {
+    grid-template-areas:
+      "label metric actions"
+      "main main main";
+    grid-template-columns: max-content max-content minmax(0, 1fr);
+    align-items: start;
+    row-gap: 6px;
+    column-gap: 10px;
+    min-height: 0;
+  }
+
+  .rd-v2-home-attention-main strong,
+  .rd-v2-home-attention-main span,
+  .rd-v2-home-attention-main small {
+    overflow: visible;
+    text-overflow: unset;
+    white-space: normal;
+  }
+
+  .rd-v2-home-attention-metric {
+    justify-self: start;
+  }
+
+  .rd-v2-home-attention-actions {
+    justify-self: end;
+  }
 }
 
 .rd-v2-home-attention-empty {

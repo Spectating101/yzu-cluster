@@ -1,6 +1,10 @@
 import { test, expect } from "@playwright/test";
 import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 
+const RECENT_KEY = "rd_v2_recent_datasets";
+const TICKER_ID = "ticker_week_country_broadcast_panel";
+const ASIA_ID = "gdelt_asia_daily_country_panel";
+
 test.describe("v2 Home continuation surface", () => {
   test.beforeEach(async ({ page }) => {
     await mockV2Api(page);
@@ -17,12 +21,20 @@ test.describe("v2 Home continuation surface", () => {
     await expect(page.locator(".rd-v2-home-command")).toHaveCount(0);
   });
 
-  test("Continue selects dataset and preserves Detail | Ask rail context", async ({ page }) => {
+  test("Continue opens dataset preview and keeps rail grounded", async ({ page }) => {
     const cont = page.getByTestId("home-continue");
     await expect(cont.locator(".rd-v2-home-continue-id")).toBeVisible();
     const title = (await cont.locator("h2").innerText()).trim();
     const datasetId = (await cont.locator(".rd-v2-home-continue-id").innerText()).trim();
     await cont.getByRole("button", { name: "Continue" }).click();
+
+    const modal = page.locator(".rd-v2-preview-modal");
+    await expect(modal).toBeVisible();
+    await expect(modal).toContainText(title);
+    await expect(page.locator(".rd-v2-page-head h1", { hasText: "Home" })).toBeVisible();
+
+    await modal.getByRole("button", { name: "Close" }).click();
+    await expect(modal).toHaveCount(0);
 
     const rail = page.locator("aside.rd-v2-rail");
     await expect(rail.locator(".rd-v2-rail-selection")).toContainText(title);
@@ -107,5 +119,28 @@ test.describe("v2 Home continuation surface", () => {
     const asks = page.locator(".rd-v2-home-suggested");
     await expect(asks).toBeVisible();
     await expect(asks.getByRole("button").first()).toBeVisible();
+  });
+});
+
+test.describe("v2 Home recent history", () => {
+  test("loading Home does not rewrite stored recent with first catalog row", async ({ page }) => {
+    await mockV2Api(page);
+    await page.addInitScript(
+      ([key, ids]) => {
+        localStorage.setItem(key, JSON.stringify(ids));
+      },
+      [RECENT_KEY, [TICKER_ID, ASIA_ID]],
+    );
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+
+    const cont = page.getByTestId("home-continue");
+    await expect(cont).toContainText("Ticker week panel");
+    await expect(cont.locator(".rd-v2-home-continue-id")).toHaveText(TICKER_ID);
+
+    const stored = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) || "[]"), RECENT_KEY);
+    expect(stored[0]).toBe(TICKER_ID);
+    expect(stored).not.toEqual([ASIA_ID, TICKER_ID]);
   });
 });

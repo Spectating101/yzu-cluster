@@ -95,25 +95,26 @@ async function v2Nav(page, label) {
 }
 
 test.describe("professor demo @ live-desk", () => {
-  test("scenario 1 — Home command surface and attention", async ({ page }) => {
+  test("scenario 1 — Home continuation surface and attention", async ({ page }) => {
     await page.goto("/?tab=home", { waitUntil: "load" });
     await waitLive(page);
 
-    await expect(page.locator(".rd-v2-home-command")).toContainText(
-      "Google Drive vault for the lab. Discover Hugging Face, DOI catalogs, and the open web.",
-    );
-    await expect(page.locator(".rd-v2-home-command")).toContainText(
-      "Ask the assistant to search, query, collect, and register.",
-    );
-    const holdingsBtn = page.locator(".rd-v2-home-command-actions button", { hasText: "Open lab vault" });
-    await expect(holdingsBtn).toBeVisible();
-    const holdingsText = await holdingsBtn.innerText();
-    const holdings = parseInt(holdingsText, 10) || datasetCount;
-
+    const cont = page.getByTestId("home-continue");
+    await expect(cont).toBeVisible();
+    await expect(cont).toContainText("Continue working");
+    await expect(cont.getByRole("button", { name: "Continue" })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Search the lab/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Discover data/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Ask the assistant/i })).toBeVisible();
     await expect(page.locator(".rd-v2-home-attention")).toBeVisible();
+    await expect(page.getByRole("region", { name: "Recent research assets" })).toBeVisible();
+
+    const holdingsText = await page.locator(".rd-v2-home-action", { hasText: "Search the lab" }).innerText();
+    const holdingsMatch = holdingsText.match(/(\d+)\s+holdings/i);
+    const holdings = holdingsMatch ? parseInt(holdingsMatch[1], 10) : datasetCount;
     const attentionCount = await page.locator(".rd-v2-home-attention article").count();
 
-    record("home_command", "Home command surface + attention queue", true, {
+    record("home_command", "Home continuation surface + attention queue", true, {
       holdings,
       attention_items: attentionCount,
       header_meta: await page.locator(".rd-v2-header-meta-count").innerText(),
@@ -398,7 +399,7 @@ test.afterAll(async () => {
     "## Product model exercised",
     "",
     "```text",
-    "Home → command surface + attention",
+    "Home → continuation surface + attention",
     "Library → lab vault + query-ready preview",
     "Discover → search → probe facts → Add to lab → Ask",
     "Resources → safety ledger + approvals",
