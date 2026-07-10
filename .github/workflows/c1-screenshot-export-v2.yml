@@ -1,0 +1,21 @@
+name: C1 screenshot export v2
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify screenshots
+        run: |
+          test -f docs/screenshots-review/polish-c1/desktop-ask-add-to-lab.png
+          test -f docs/screenshots-review/polish-c1/tablet-ask-add-to-lab.png
+          test -f docs/screenshots-review/polish-c1/mobile-ask-add-to-lab.png
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c1-screenshots-v2
+          path: docs/screenshots-review/polish-c1
+          retention-days: 1
