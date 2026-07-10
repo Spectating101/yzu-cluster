@@ -1,0 +1,19 @@
+name: Export Discover audit
+on:
+  pull_request:
+    branches: [main]
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package audit evidence
+        run: |
+          mkdir -p export
+          cp docs/status/generated/DISCOVER_AUDIT_AND_SPEC.md export/
+          cp -R docs/screenshots-review/discover-audit-current export/screenshots
+      - uses: actions/upload-artifact@v4
+        with:
+          name: discover-audit-review
+          path: export
+          retention-days: 1
