@@ -476,7 +476,7 @@ export function V2App() {
             prompt: `${buildAddToLabPrompt(target, probeResult)}\n\nCollection job queued: ${job?.id || "see Resources → Active jobs"}.`,
             displayText: buildAddToLabDisplayText(target, probeResult, job?.id),
           });
-          showToast(job?.id ? `Collection job queued (${job.id})` : "Collection job queued");
+          showToast(job?.id ? "Collection job queued — track it in Resources" : "Collection job queued");
           return;
         } catch (err) {
           setPendingAsk({

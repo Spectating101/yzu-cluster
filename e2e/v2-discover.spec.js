@@ -72,6 +72,12 @@ test.describe("v2 Discover tab", () => {
   });
 
   test("Add to lab after probe queues structured Ask", async ({ page }) => {
+    const chatBodies = [];
+    page.on("request", (req) => {
+      if (req.url().includes("/library/chat") && req.method() === "POST") {
+        chatBodies.push(req.postData() || "");
+      }
+    });
     await mockV2Api(page, { discoverBody: MOCK_DISCOVER_HIT });
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
@@ -82,10 +88,20 @@ test.describe("v2 Discover tab", () => {
     await expect(rail.locator(".rd-v2-discover-probe-result")).toBeVisible();
     await rail.locator(".rd-v2-rail-sticky").getByRole("button", { name: "Add to lab" }).click();
     await expect(rail.getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "true");
-    await expect(page.getByTestId("ask-messages")).toContainText("Add to lab vault");
-    await expect(page.getByTestId("ask-messages")).toContainText("Collection job queued");
-    await expect(page.getByTestId("ask-messages")).not.toContainText("Candidate (structured)");
-    await expect(page.getByTestId("ask-messages")).not.toContainText("example_com_data");
+    const ask = page.getByTestId("ask-messages");
+    await expect(ask).toContainText("Add to lab vault");
+    await expect(ask).toContainText("Collection job queued");
+    await expect(ask).toContainText("Track it in Resources");
+    await expect(ask).not.toContainText("job-discover-collect-1");
+    await expect(ask).not.toContainText("Candidate (structured)");
+    await expect(ask).not.toContainText("example_com_data");
+    const toast = page.locator(".rd-v2-toast");
+    await expect(toast).toBeVisible();
+    await expect(toast).toContainText("Collection job queued — track it in Resources");
+    await expect(toast).not.toContainText("job-discover-collect-1");
+    const joined = chatBodies.join("\n");
+    expect(joined).toMatch(/Candidate \(structured\)|connector|MOPS financial statements/i);
+    expect(joined).toMatch(/job-discover-collect-1|Collection job queued/i);
   });
 
   test("new Discover query clears stale selected candidate and resets filters", async ({ page }) => {

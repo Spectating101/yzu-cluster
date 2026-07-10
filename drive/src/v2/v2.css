@@ -4889,6 +4889,16 @@
 
 .rd-v2-toast.error { background: #b91c1c; }
 
+@media (max-width: 640px) {
+  .rd-v2-toast {
+    top: 72px;
+    bottom: auto;
+    width: max-content;
+    max-width: calc(100vw - 24px);
+    text-align: center;
+  }
+}
+
 /* ── 19. Misc utilities ──────────────────────────────────────── */
 .mono,
 code {

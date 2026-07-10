@@ -44,7 +44,7 @@ export function buildAddToLabPrompt(target, probeResult) {
 export function buildAddToLabDisplayText(target, probeResult, jobId = "") {
   const label = target?.title || target?.dataset_id || target?.name || "this dataset";
   const firstLine = `Add to lab vault: ${label}`;
-  if (jobId) return `${firstLine}\nCollection job queued: ${jobId}.`;
+  if (jobId) return `${firstLine}\nCollection job queued. Track it in Resources.`;
   if (probeResult?.summary) {
     return `${firstLine}\nUse the verified source details to prepare a safe collection plan.`;
   }
