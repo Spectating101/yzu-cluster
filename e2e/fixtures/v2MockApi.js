@@ -29,6 +29,7 @@ export const MOCK_DISCOVER_HIT = {
       rows: [
         {
           dataset_id: "mops_financial_statements_ext",
+          candidate_key: "dataset:mops_financial_statements_ext",
           title: "MOPS financial statements (Taiwan)",
           source: "MOPS",
           collect_via: "mops_tw",
@@ -105,6 +106,10 @@ export const MOCK_JOBS = {
       id: "job-pending-1",
       status: "pending_approval",
       type: "procure",
+      candidate_key: null,
+      connector_id: null,
+      registered_dataset_id: null,
+      output_manifest_id: null,
       plan: { title: "MOPS financial statements" },
     },
   ],
@@ -118,10 +123,12 @@ export const MOCK_PROBE_RESULT = {
     spec: {
       access_mode: "direct_file",
       content_type: "text/csv",
+      source_url: "https://example.com/data.csv",
       discovered_files: [{ url: "https://example.com/data.csv" }],
     },
   },
   summary: "direct_file source; 1 downloadable links detected; recommendation: collect_manifest",
+  resolved_url: "https://example.com/data.csv",
 };
 
 export const MOCK_WEB_DISCOVER = {
@@ -135,6 +142,7 @@ export const MOCK_WEB_DISCOVER = {
           kind: "web_hit",
           title: "Example open dataset",
           url: "https://example.com/dataset",
+          candidate_key: "url:https://example.com/dataset",
           source: "web",
           description: "Public CSV mirror",
         },
@@ -181,6 +189,7 @@ export async function mockV2Api(page, { discoverBody = { sections: [], total: 0 
         ...MOCK_PROBE_RESULT,
         candidate_key: candidateKey || null,
         connector_id: MOCK_PROBE_RESULT.connector.connector_id,
+        resolved_url: MOCK_PROBE_RESULT.resolved_url,
       }),
     });
   });
