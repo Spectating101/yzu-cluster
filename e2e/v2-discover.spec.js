@@ -83,7 +83,9 @@ test.describe("v2 Discover tab", () => {
     await rail.locator(".rd-v2-rail-sticky").getByRole("button", { name: "Add to lab" }).click();
     await expect(rail.getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "true");
     await expect(page.getByTestId("ask-messages")).toContainText("Add to lab vault");
-    await expect(page.getByTestId("ask-messages")).toContainText("example_com_data");
+    await expect(page.getByTestId("ask-messages")).toContainText("Collection job queued");
+    await expect(page.getByTestId("ask-messages")).not.toContainText("Candidate (structured)");
+    await expect(page.getByTestId("ask-messages")).not.toContainText("example_com_data");
   });
 
   test("new Discover query clears stale selected candidate and resets filters", async ({ page }) => {

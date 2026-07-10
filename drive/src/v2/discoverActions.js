@@ -40,6 +40,17 @@ export function buildAddToLabPrompt(target, probeResult) {
   ].join("\n");
 }
 
+
+export function buildAddToLabDisplayText(target, probeResult, jobId = "") {
+  const label = target?.title || target?.dataset_id || target?.name || "this dataset";
+  const firstLine = `Add to lab vault: ${label}`;
+  if (jobId) return `${firstLine}\nCollection job queued: ${jobId}.`;
+  if (probeResult?.summary) {
+    return `${firstLine}\nUse the verified source details to prepare a safe collection plan.`;
+  }
+  return `${firstLine}\nInspect the source if needed, then prepare a safe collection plan.`;
+}
+
 export function webHitsToRows(data) {
   const fromSections = (data.sections || []).flatMap((s) => s.rows || []);
   if (fromSections.length) return fromSections;

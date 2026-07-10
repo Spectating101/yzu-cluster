@@ -23,8 +23,12 @@ export function AskRail({
 
   useEffect(() => {
     if (!pendingMessage || busy) return;
-    if (pendingSentRef.current === pendingMessage) return;
-    pendingSentRef.current = pendingMessage;
+    const pendingKey =
+      typeof pendingMessage === "string"
+        ? pendingMessage
+        : `${pendingMessage.prompt || ""}::${pendingMessage.displayText || ""}`;
+    if (!pendingKey || pendingSentRef.current === pendingKey) return;
+    pendingSentRef.current = pendingKey;
     send(pendingMessage).finally(() => {
       pendingSentRef.current = "";
       onPendingConsumed?.();

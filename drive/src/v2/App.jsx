@@ -43,7 +43,12 @@ import { touchRecent } from "@/v2/recent";
 import { mergeHealth, resolveCatalog } from "@/v2/deskSeed";
 import { loadSettings } from "@/v2/settingsStore";
 import { CLUSTER_NAV_DEFERRED } from "@/v2/nav-config.jsx";
-import { browseTargetKey, buildAddToLabPrompt, discoverCandidateUrl } from "@/v2/discoverActions";
+import {
+  browseTargetKey,
+  buildAddToLabDisplayText,
+  buildAddToLabPrompt,
+  discoverCandidateUrl,
+} from "@/v2/discoverActions";
 import { discoverCandidateState } from "@/v2/browseMeta";
 import { buildRailContext } from "@/v2/railContext";
 
@@ -467,19 +472,26 @@ export function V2App() {
           const out = await submitDiscoverCollect(connectorId, { limit: 200, autoApprove: false });
           const job = out?.job;
           refreshBackend();
-          setPendingAsk(
-            `${buildAddToLabPrompt(target, probeResult)}\n\nCollection job queued: ${job?.id || "see Resources → Active jobs"}.`,
-          );
+          setPendingAsk({
+            prompt: `${buildAddToLabPrompt(target, probeResult)}\n\nCollection job queued: ${job?.id || "see Resources → Active jobs"}.`,
+            displayText: buildAddToLabDisplayText(target, probeResult, job?.id),
+          });
           showToast(job?.id ? `Collection job queued (${job.id})` : "Collection job queued");
           return;
         } catch (err) {
-          setPendingAsk(buildAddToLabPrompt(target, probeResult));
+          setPendingAsk({
+            prompt: buildAddToLabPrompt(target, probeResult),
+            displayText: buildAddToLabDisplayText(target, probeResult),
+          });
           showToast(err?.message || "Collect failed — queued Ask instead");
           return;
         }
       }
 
-      setPendingAsk(buildAddToLabPrompt(target, probeResult));
+      setPendingAsk({
+        prompt: buildAddToLabPrompt(target, probeResult),
+        displayText: buildAddToLabDisplayText(target, probeResult),
+      });
       showToast("Queued Ask — Add to lab");
     },
     [labIds, browseProbe, catalog, syncUrl, showToast, refreshBackend],

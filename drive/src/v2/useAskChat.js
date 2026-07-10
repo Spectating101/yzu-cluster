@@ -2,6 +2,17 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { deskWarm, sendChatMessage } from "@/v2/api";
 import { loadChatSessionId, loadUserEmail } from "@/v2/deskSession";
 
+function normalizeOutgoingMessage(value, fallback = "") {
+  const raw = value ?? fallback;
+  if (raw && typeof raw === "object") {
+    const prompt = String(raw.prompt || raw.text || "").trim();
+    const displayText = String(raw.displayText || raw.label || prompt).trim();
+    return { prompt, displayText };
+  }
+  const prompt = String(raw || "").trim();
+  return { prompt, displayText: prompt };
+}
+
 export function useAskChat({ dataset, railContext, onCollected, onToast } = {}) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
@@ -33,13 +44,14 @@ export function useAskChat({ dataset, railContext, onCollected, onToast } = {}) 
 
   const send = useCallback(
     async (text) => {
-      const prompt = String(text ?? input).trim();
+      const outgoing = normalizeOutgoingMessage(text, input);
+      const prompt = outgoing.prompt;
       if (!prompt || busy) return;
       const full = contextPrefix && !prompt.startsWith("[context:")
         ? `${contextPrefix}${prompt}`
         : prompt;
 
-      setMessages((m) => [...m, { role: "user", text: prompt }]);
+      setMessages((m) => [...m, { role: "user", text: outgoing.displayText }]);
       setInput("");
       setBusy(true);
       setStatus("Planning response…");
