@@ -68,6 +68,34 @@ def normalize_title(value: Any) -> str:
     return re.sub(r"\s+", " ", _trim(value)).lower()
 
 
+def slugify_provider(value: Any) -> str:
+    """Unicode-safe provider namespace (D0.2).
+
+    NFKC → trim → casefold → keep letters/numbers/._- → collapse other runs to _.
+    """
+    import unicodedata
+
+    raw = _trim(value)
+    if not raw:
+        return "unknown"
+    s = unicodedata.normalize("NFKC", raw).casefold().strip()
+    parts: list[str] = []
+    prev_us = False
+    for ch in s:
+        if ch.isalnum() or ch in "._-":
+            parts.append(ch)
+            prev_us = False
+        else:
+            if not prev_us:
+                parts.append("_")
+                prev_us = True
+    slug = "".join(parts).strip("_")
+    slug = "".join(list(slug)[:80])
+    if not any(ch.isalnum() for ch in slug):
+        return "unknown"
+    return slug or "unknown"
+
+
 def _provider_slug(row: dict[str, Any]) -> str:
     host = ""
     url = _trim(row.get("url") or row.get("source_url") or row.get("resolved_url") or "")
@@ -83,10 +111,9 @@ def _provider_slug(row: dict[str, Any]) -> str:
         or _trim(row.get("collect_via"))
         or _trim(row.get("kind"))
         or host
-        or "unknown"
+        or ""
     )
-    slug = re.sub(r"[^a-z0-9._-]+", "_", raw.lower()).strip("_")[:80]
-    return slug or "unknown"
+    return slugify_provider(raw)
 
 
 def _source_external_id(row: dict[str, Any]) -> tuple[str, str] | None:

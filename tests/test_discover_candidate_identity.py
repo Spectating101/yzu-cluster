@@ -12,7 +12,7 @@ import pytest
 REPO = Path(__file__).resolve().parents[1]
 FIXTURE = REPO / "tests/fixtures/candidate_key_vectors.json"
 # Must match yzu-cluster drive/src/v2/fixtures/candidate_key_vectors.json
-EXPECTED_FIXTURE_SHA256 = "8170d7de2ba0b0d3a4cf5d71102319869b6e4337a54d025c8575ad1467358edc"
+EXPECTED_FIXTURE_SHA256 = "b702dccd624a569d735f6f82ad7993eec602c1db8e490d5a7d96216227539f68"
 
 
 @pytest.fixture(scope="module")
@@ -31,7 +31,7 @@ def stack():
 
 
 def test_shared_fixture_hash(vectors):
-    assert vectors["version"] == 1
+    assert vectors["version"] == 2
     assert len(vectors["candidate_key"]) >= 8
 
 
@@ -44,6 +44,13 @@ def test_canonicalize_from_fixture(vectors):
         assert canonicalize_url(row["input"]) == row["expected"]
 
 
+def test_provider_slug_from_fixture(vectors):
+    from scripts.research_data_mcp.candidate_key import slugify_provider
+
+    for row in vectors.get("provider_slug") or []:
+        assert slugify_provider(row["input"]) == row["expected"], row
+
+
 def test_candidate_key_from_fixture(vectors):
     from scripts.research_data_mcp.candidate_key import candidate_key
 
@@ -52,6 +59,12 @@ def test_candidate_key_from_fixture(vectors):
     a = next(r for r in vectors["candidate_key"] if r["name"] == "title_mops")
     b = next(r for r in vectors["candidate_key"] if r["name"] == "title_twse")
     assert candidate_key(a["row"]) != candidate_key(b["row"])
+    ua = next(r for r in vectors["candidate_key"] if r["name"] == "unicode_title_provider_mops")
+    ub = next(r for r in vectors["candidate_key"] if r["name"] == "unicode_title_provider_twse")
+    assert candidate_key(ua["row"]) != candidate_key(ub["row"])
+    ea = next(r for r in vectors["candidate_key"] if r["name"] == "source_ext_id_nonlatin_a")
+    eb = next(r for r in vectors["candidate_key"] if r["name"] == "source_ext_id_nonlatin_b")
+    assert candidate_key(ea["row"]) != candidate_key(eb["row"])
 
 
 def test_discover_search_stamps_candidate_key(stack):
