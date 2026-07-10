@@ -1,0 +1,24 @@
+name: Frontend audit export
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package audit inputs
+        run: |
+          mkdir -p audit-export
+          cp package.json package-lock.json playwright.config.* vite.config.* audit-export/ 2>/dev/null || true
+          cp -R drive audit-export/drive
+          cp -R e2e audit-export/e2e
+          cp -R docs/screenshots-review audit-export/screenshots-review
+          cp -R scripts audit-export/scripts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: frontend-audit-inputs
+          path: audit-export
+          retention-days: 1
