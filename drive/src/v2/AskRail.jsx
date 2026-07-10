@@ -32,21 +32,34 @@ export function AskRail({
   }, [pendingMessage, busy, send, onPendingConsumed]);
 
   const ctxParts = [contextLabel, mainTab, searchQuery ? `search: ${searchQuery}` : ""].filter(Boolean);
+  const isProfile = mainTab === "profile";
+  const profileContext = dataset?.title || "Profile";
+  const hasThread = messages.length > 0;
 
   return (
     <div className="rd-v2-ask-shell">
       <header className="rd-v2-ask-head">
-        <strong>Procurement chat</strong>
+        <strong>{isProfile ? "Ask" : "Procurement chat"}</strong>
         <p className="rd-v2-ask-ctx">
-          {ctxParts.length ? ctxParts.join(" · ") : "Select a dataset for grounded answers"}
+          {isProfile
+            ? hasThread
+              ? `Continuing · context → ${profileContext}`
+              : `Context · ${profileContext}`
+            : ctxParts.length
+              ? ctxParts.join(" · ")
+              : "Select a dataset for grounded answers"}
         </p>
       </header>
       <div className="rd-v2-ask-messages" data-testid="ask-messages">
         {messages.length === 0 ? (
-          <p className="rd-v2-ask-placeholder">
-            Ask about vault holdings, Hugging Face or DOI imports, overlaps, or what to procure next — the assistant
-            searches, queries, collects, and archives via the research tools.
-          </p>
+          isProfile ? (
+            <p className="rd-v2-ask-placeholder rd-v2-ask-placeholder-quiet" />
+          ) : (
+            <p className="rd-v2-ask-placeholder">
+              Ask about vault holdings, Hugging Face or DOI imports, overlaps, or what to procure next — the assistant
+              searches, queries, collects, and archives via the research tools.
+            </p>
+          )
         ) : (
           messages.map((m, i) => (
             <div
@@ -102,7 +115,7 @@ export function AskRail({
           ref={textareaRef}
           value={input}
           rows={3}
-          placeholder="Ask about coverage, overlaps, or procurement…"
+          placeholder={isProfile ? "Message…" : "Ask about coverage, overlaps, or procurement…"}
           disabled={busy}
           data-testid="ask-composer"
           onChange={(e) => setInput(e.target.value)}

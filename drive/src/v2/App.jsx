@@ -786,7 +786,17 @@ export function V2App() {
       );
       break;
     case "profile":
-      main = <ProfilePage profile={profile} datasets={catalog} compareIds={compareIds} onGoTab={goTab} />;
+      main = (
+        <ProfilePage
+          profile={profile}
+          onGoTab={goTab}
+          onSuggestSearch={(q) => {
+            setSearchQuery(q);
+            setTab("browse");
+            syncUrl({ tab: "browse", q });
+          }}
+        />
+      );
       break;
     case "settings":
       main = <SettingsPage health={health} onProfileRefresh={reloadProfile} onToast={showToast} />;
@@ -849,6 +859,7 @@ export function V2App() {
         resourceRow={resourceRow}
         resourcesRollup={resourcesRollup}
         activeObject={activeObject}
+        profile={profile}
         onPreview={() => detail && openPreview(detail)}
         onAskAbout={askAboutSelection}
         onViewActivity={(filter) => {
@@ -889,7 +900,12 @@ export function V2App() {
                       title: `Library · ${activeObject.title}`,
                     }
                 : tab === "profile"
-                  ? { title: "Profile context" }
+                  ? {
+                      title:
+                        profile?.name_en && !profile.unknown
+                          ? `Profile · ${profile.name_en}`
+                          : "Profile",
+                    }
                 : tab === "settings"
                   ? { title: "Desk setup" }
                 : detail

@@ -1,182 +1,244 @@
-import { loadPinnedCompares } from "@/v2/clusterOverlap";
-import { CLUSTER_NAV_DEFERRED } from "@/v2/nav-config.jsx";
-import { Chip, ChipRow, PageShell } from "@/v2/ui";
+import { useEffect, useState } from "react";
+import { facultyProfile } from "@/v2/api";
+import {
+  PILOT_PREVIEW_EMAIL,
+  buildDeskRead,
+  buildLab,
+  buildMemoryCards,
+  buildWorks,
+} from "@/v2/profileViewModel";
+import { PageShell } from "@/v2/ui";
 
-function trackTitle(track) {
-  if (!track) return "";
-  if (typeof track === "string") return track;
-  return track.title || track.name || "";
-}
+/**
+ * Profile — Memory · Works · Lab (organic from faculty registry).
+ * Unbound shows pilot preview so the page demonstrates itself.
+ */
+export function ProfilePage({ profile, onGoTab, onSuggestSearch }) {
+  const bound = Boolean(profile && !profile.unknown);
+  const [pilot, setPilot] = useState(null);
 
-function corpusRows(profile, datasets) {
-  const stack = profile?.lab_fintech_stack || [];
-  const recs = (profile?.procurement_recommendations || []).filter(
-    (r) => r.source_route && r.source_route !== "vault",
-  );
-  const byId = new Map(datasets.map((d) => [d.dataset_id, d]));
-
-  if (stack.length) {
-    return stack.map((item) => {
-      const ids = item.registry_dataset_ids || [];
-      const holdings = ids
-        .map((id) => byId.get(id)?.dataset_id || id)
-        .filter(Boolean)
-        .join(", ");
-      const gaps = recs
-        .filter((r) => String(r.grant_track || r.partition_id || "") === String(item.id || item.partition_id || ""))
-        .map((r) => r.dataset || r.prompt)
-        .slice(0, 3);
-      return {
-        track: item.label || item.id || "Track",
-        holdings: holdings || "—",
-        gaps,
-      };
-    });
-  }
-
-  const tracks = profile?.research_tracks || [];
-  return tracks.slice(0, 6).map((track) => {
-    const title = trackTitle(track);
-    const keywords = (typeof track === "object" ? track.keywords || track.tags : []) || [];
-    const holdings = datasets
-      .filter((d) => {
-        const blob = `${d.dataset_id} ${d.name} ${d.description || ""}`.toLowerCase();
-        return keywords.some((k) => blob.includes(String(k).toLowerCase()))
-          || title.split(/\s+/).some((w) => w.length > 4 && blob.includes(w.toLowerCase()));
+  useEffect(() => {
+    if (bound) {
+      setPilot(null);
+      return undefined;
+    }
+    let cancelled = false;
+    facultyProfile(PILOT_PREVIEW_EMAIL)
+      .then((data) => {
+        if (!cancelled && data?.found && data.profile) setPilot(data.profile);
       })
-      .map((d) => d.dataset_id)
-      .slice(0, 3)
-      .join(", ");
-    const gaps = recs
-      .filter((r) => title && String(r.prompt || r.dataset || "").toLowerCase().includes(title.split(" ")[0]?.toLowerCase() || ""))
-      .map((r) => r.dataset || r.prompt)
-      .slice(0, 3);
-    return { track: title || "Track", holdings: holdings || "—", gaps };
-  });
-}
+      .catch(() => {
+        if (!cancelled) setPilot(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [bound]);
 
-export function ProfilePage({ profile, datasets, compareIds = [], onGoTab }) {
-  const name = profile?.name_en || profile?.name || "Research profile";
-  const org = [profile?.title, profile?.discipline].filter(Boolean).join(" · ");
-  const email = profile?.email || "";
-  const tracks = (profile?.research_tracks || []).map(trackTitle).filter(Boolean);
-  const tags = profile?.domain_tags || profile?.method_tags || [];
-  const initials = name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase() || "YZ";
+  const previewing = !bound && Boolean(pilot);
+  const active = bound ? profile : pilot;
+  const name = active?.name_en || active?.name || "Research profile";
+  const paperCount = active?.paper_count_parsed || active?.paper_count || null;
+  const orgLine = [active?.title, active?.discipline, paperCount ? `${paperCount} papers` : null]
+    .filter(Boolean)
+    .join(" · ");
+  const email = active?.email || "";
+  const memory = buildMemoryCards(active);
+  const works = buildWorks(active);
+  const lab = buildLab(active);
 
-  const pinnedIds = compareIds.filter(Boolean);
-  const pinned = pinnedIds
-    .map((id) => datasets.find((d) => d.dataset_id === id))
-    .filter(Boolean);
-  const fallbackPinned = loadPinnedCompares()
-    .flatMap((p) => [datasets.find((d) => d.dataset_id === p.aId), datasets.find((d) => d.dataset_id === p.bId)])
-    .filter(Boolean);
-  const pinnedRows = (pinned.length ? pinned : fallbackPinned).slice(0, 4);
-
-  const scopeRows = corpusRows(profile, datasets);
+  const runQuery = (q) => {
+    const query = String(q || "").trim();
+    if (query && onSuggestSearch) {
+      onSuggestSearch(query);
+      return;
+    }
+    onGoTab?.("browse");
+  };
 
   return (
-    <PageShell title={null} lead={null}>
-      <div className="rd-v2-profile-hero">
-        <div className="rd-v2-profile-avatar">{initials}</div>
+    <PageShell
+      className={`rd-v2-profile-page${previewing ? " is-preview" : ""}`}
+      title="Profile"
+      lead="Saved research context"
+    >
+      <section className="rd-v2-profile-identity" aria-label="Faculty identity">
         <div className="rd-v2-profile-ident">
-          <h1 className="rd-v2-profile-name">{name}</h1>
-          {org ? <p className="rd-v2-profile-org">{org}</p> : null}
-          {profile?.unknown ? (
-            <p className="rd-v2-profile-hint">
-              Sign in with @yzu.edu.tw to load your faculty research profile (tracks, grants, corpus hints).
-            </p>
-          ) : email ? (
-            <p className="rd-v2-profile-hint">{email}</p>
-          ) : null}
+          {previewing ? <span className="rd-v2-profile-badge">Example</span> : null}
+          <h2 className="rd-v2-profile-name">{name}</h2>
+          {orgLine ? <p className="rd-v2-profile-org">{orgLine}</p> : null}
+          <p className="rd-v2-profile-hint">
+            {email || "—"}
+            {previewing ? " · Example · pilot faculty" : ""}
+          </p>
         </div>
-        <div className="rd-v2-profile-hero-actions">
-          <Chip onClick={() => onGoTab("settings")}>Edit account</Chip>
-          {profile && !profile.unknown ? (
-            <Chip onClick={() => onGoTab("browse")}>Open Discover</Chip>
-          ) : null}
+        <div className="rd-v2-profile-identity-actions">
+          {bound ? null : (
+            <button type="button" className="rd-v2-btn sm primary" onClick={() => onGoTab?.("settings")}>
+              Use my email
+            </button>
+          )}
         </div>
-      </div>
+      </section>
 
-      <div className="rd-v2-profile-grid">
-        <div className="rd-v2-profile-col">
-          <div className="rd-v2-profile-block">
-            <h3>Research tracks</h3>
-            {tracks.length ? (
-              <ol className="rd-v2-track-list">
-                {tracks.map((t, i) => (
-                  <li key={`${t}-${i}`}><span className="rd-v2-track-num">{i + 1}</span>{t}</li>
-                ))}
-              </ol>
-            ) : (
-              <p className="rd-v2-empty-inline">No tracks in faculty profile.</p>
-            )}
-            {tags.length ? (
-              <div className="rd-v2-tag-row">
-                {tags.map((t) => (
-                  <span key={t} className="rd-v2-tag">{t}</span>
-                ))}
-              </div>
-            ) : null}
-          </div>
+      {(bound || previewing) && memory.length ? (
+        <section className="rd-v2-profile-section" data-testid="profile-memory" aria-labelledby="profile-memory-title">
+          <header className="rd-v2-profile-section-head">
+            <h2 id="profile-memory-title">Memory</h2>
+            <span>{memory.length} saved</span>
+          </header>
+          <ul className="rd-v2-profile-memory">
+            {memory.map((card) => (
+              <li key={card.id} className="rd-v2-profile-memory-card">
+                {card.text}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
-          {!CLUSTER_NAV_DEFERRED ? (
-          <div className="rd-v2-profile-block">
-            <h3>Pinned for Cluster</h3>
-            {pinnedRows.length ? (
-              <div className="rd-v2-pinned-list">
-                {pinnedRows.map((d) => (
-                  <div key={d.dataset_id} className="rd-v2-pinned-row">
-                    <div className="rd-v2-pinned-info">
-                      <span className="mono small">{d.dataset_id}</span>
-                      <span className="rd-v2-pinned-name">{d.name || d.dataset_id}</span>
-                    </div>
-                    <button type="button" className="rd-v2-btn sm" onClick={() => onGoTab("cluster")}>
-                      Cluster
+      {(bound || previewing) && (works.items.length || works.paperCount) ? (
+        <section className="rd-v2-profile-section" data-testid="profile-works" aria-labelledby="profile-works-title">
+          <header className="rd-v2-profile-section-head">
+            <h2 id="profile-works-title">Works</h2>
+            {works.paperCount ? <span>{works.paperCount} indexed</span> : null}
+          </header>
+          {works.items.length ? (
+            <ul className="rd-v2-profile-works">
+              {works.items.map((work) => (
+                <li key={work.raw}>{work.title}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="rd-v2-empty-inline">—</p>
+          )}
+        </section>
+      ) : null}
+
+      {(bound || previewing) ? (
+        <section className="rd-v2-profile-section" data-testid="profile-lab" aria-labelledby="profile-lab-title">
+          <header className="rd-v2-profile-section-head">
+            <h2 id="profile-lab-title">Lab</h2>
+            <span>Linked · next</span>
+          </header>
+
+          <div className="rd-v2-profile-lab-block">
+            <h3 className="rd-v2-profile-lab-label">Linked to you</h3>
+            {lab.linked.length ? (
+              <ul className="rd-v2-profile-lab-rows">
+                {lab.linked.map((row) => (
+                  <li key={row.id}>
+                    <span className="rd-v2-profile-lab-title" title={row.label}>
+                      {row.label}
+                    </span>
+                    <button
+                      type="button"
+                      className="rd-v2-profile-lab-action"
+                      onClick={() => runQuery(row.label)}
+                    >
+                      {row.routeLabel} · Open →
                     </button>
-                  </div>
+                  </li>
                 ))}
-              </div>
+              </ul>
             ) : (
-              <p className="rd-v2-empty-inline">Pin compares on Cluster to show them here.</p>
+              <p className="rd-v2-empty-inline" data-testid="profile-lab-linked-empty">
+                None yet
+              </p>
             )}
           </div>
-          ) : null}
-        </div>
 
-        <div className="rd-v2-profile-col">
-          <div className="rd-v2-profile-block">
-            <h3>Corpus scope — holdings vs gaps</h3>
-            {scopeRows.length ? (
-              <table className="rd-v2-table">
-                <thead>
-                  <tr>
-                    <th>Track</th>
-                    <th>Holdings</th>
-                    <th>Gaps</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {scopeRows.map((row) => (
-                    <tr key={row.track}>
-                      <td>{row.track}</td>
-                      <td className="mono small">{row.holdings}</td>
-                      <td>
-                        {row.gaps.length
-                          ? row.gaps.map((gap) => (
-                              <span key={gap} className="rd-v2-gap-chip">{gap}</span>
-                            ))
-                          : "—"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <div className="rd-v2-profile-lab-block">
+            <h3 className="rd-v2-profile-lab-label">Suggested</h3>
+            {lab.suggested.length ? (
+              <ul className="rd-v2-profile-lab-rows">
+                {lab.suggested.map((row) => (
+                  <li key={row.id}>
+                    <span className="rd-v2-profile-lab-title" title={row.label}>
+                      {row.label}
+                      <em> — {row.reason}</em>
+                    </span>
+                    <button
+                      type="button"
+                      className="rd-v2-profile-lab-action"
+                      onClick={() => runQuery(row.query)}
+                    >
+                      {row.action === "link" ? "Link →" : "Search →"}
+                    </button>
+                  </li>
+                ))}
+              </ul>
             ) : (
-              <p className="rd-v2-empty-inline">Profile stack and procurement routes load from faculty registry.</p>
+              <p className="rd-v2-empty-inline">—</p>
             )}
           </div>
-        </div>
-      </div>
+        </section>
+      ) : (
+        <p className="rd-v2-profile-loading" data-testid="profile-know-empty">
+          Loading example profile…
+        </p>
+      )}
     </PageShell>
+  );
+}
+
+/** DETAIL rail content for Profile — Scholar / Strengths / Desk. */
+export function ProfileDetailPanel({ profile }) {
+  const bound = Boolean(profile && !profile.unknown);
+  const [pilot, setPilot] = useState(null);
+
+  useEffect(() => {
+    if (bound) {
+      setPilot(null);
+      return undefined;
+    }
+    let cancelled = false;
+    facultyProfile(PILOT_PREVIEW_EMAIL)
+      .then((data) => {
+        if (!cancelled && data?.found && data.profile) setPilot(data.profile);
+      })
+      .catch(() => {
+        if (!cancelled) setPilot(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [bound]);
+
+  const previewing = !bound && Boolean(pilot);
+  const active = bound ? profile : pilot;
+  const read = buildDeskRead(active, { previewing });
+
+  if (!active) {
+    return (
+      <div className="rd-v2-profile-rail" data-testid="profile-detail-rail">
+        <p className="rd-v2-empty-inline">Loading…</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rd-v2-profile-rail" data-testid="profile-detail-rail">
+      <section className="rd-v2-profile-rail-block">
+        <h3>Scholar</h3>
+        <p>{read.scholar}</p>
+      </section>
+      {read.strengths.length ? (
+        <section className="rd-v2-profile-rail-block">
+          <h3>Strengths</h3>
+          <ul>
+            {read.strengths.map((s) => (
+              <li key={s}>{s}</li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+      {read.desk ? (
+        <section className="rd-v2-profile-rail-block">
+          <h3>Desk</h3>
+          <p>{read.desk}</p>
+        </section>
+      ) : null}
+    </div>
   );
 }

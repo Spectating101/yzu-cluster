@@ -4901,130 +4901,342 @@ code {
 button:disabled { opacity: 0.55; cursor: not-allowed; }
 
 /* ── 20. Profile & Settings pages ───────────────────────────────── */
+/* One flat composition: shared row rhythm, quiet actions, no box-in-box. */
 
-/* Profile hero */
-.rd-v2-profile-hero {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  padding: 30px 34px 26px;
-  border-bottom: 1px solid var(--rd-border);
-  background: var(--rd-surface);
+.rd-v2-profile-page .rd-v2-page-head {
+  margin-bottom: 8px;
 }
-.rd-v2-profile-avatar {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background: var(--rd-accent);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 22px;
-  font-weight: 700;
-  flex-shrink: 0;
-  letter-spacing: -0.5px;
-}
-.rd-v2-profile-ident { flex: 1; min-width: 0; }
-.rd-v2-profile-name {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--rd-heading);
+
+.rd-v2-profile-page .rd-v2-page-head h1 {
+  font-size: 24px;
   margin: 0 0 2px;
-  letter-spacing: -0.3px;
+  line-height: 1.15;
 }
-.rd-v2-profile-org {
-  font-size: 13px;
-  color: var(--rd-body);
-  margin: 0 0 3px;
-}
-.rd-v2-profile-hint {
+
+.rd-v2-profile-page .rd-v2-lead {
+  margin: 0;
   font-size: 12px;
   color: var(--rd-muted);
-  margin: 0;
-}
-.rd-v2-profile-hero-actions {
-  display: flex;
-  gap: 8px;
-  flex-shrink: 0;
 }
 
-/* Profile two-column grid */
-.rd-v2-profile-grid {
-  display: grid;
-  grid-template-columns: minmax(260px, 0.8fr) minmax(380px, 1.2fr);
-  gap: 30px;
-  padding: 0 34px 34px;
-}
-.rd-v2-profile-col { padding: 26px 0 0; min-width: 0; }
-.rd-v2-profile-col + .rd-v2-profile-col { padding-left: 30px; border-left: 1px solid var(--rd-border); }
-
-/* Track list */
-.rd-v2-track-list {
-  list-style: none;
-  margin: 0 0 12px;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.rd-v2-track-list li {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 13px;
-  color: var(--rd-body);
-}
-.rd-v2-track-num {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: var(--rd-canvas);
-  border: 1px solid var(--rd-border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--rd-muted);
-  flex-shrink: 0;
-}
-.rd-v2-tag-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-.rd-v2-tag {
-  padding: 2px 8px;
-  border-radius: 10px;
-  background: var(--rd-canvas);
-  border: 1px solid var(--rd-border);
-  font-size: 11px;
-  color: var(--rd-muted);
+.rd-v2-profile-page .rd-v2-body-scroll {
+  padding: 16px 20px 20px;
 }
 
-/* Pinned list */
-.rd-v2-pinned-list { display: flex; flex-direction: column; gap: 0; }
-.rd-v2-pinned-row {
+.rd-v2-profile-identity {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
-  padding: 8px 0;
+  gap: 10px 16px;
+  margin: 0 0 14px;
+  padding: 0 0 12px;
   border-bottom: 1px solid var(--rd-border);
 }
-.rd-v2-pinned-row:last-child { border-bottom: none; }
-.rd-v2-pinned-info { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-.rd-v2-pinned-name { font-size: 12px; color: var(--rd-body); }
 
-/* Gap chips */
-.rd-v2-gap-chip {
+.rd-v2-profile-ident {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+
+.rd-v2-profile-badge {
   display: inline-block;
-  padding: 1px 6px;
-  border-radius: 8px;
-  background: #fff7ed;
-  border: 1px solid #fed7aa;
-  color: #9a3412;
-  font-size: 10px;
+  margin: 0 0 6px;
+  padding: 1px 7px;
+  border: 1px solid #e8d4a8;
+  border-radius: 3px;
+  background: transparent;
+  color: #8a6a20;
+  font-family: var(--rd-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.rd-v2-profile-name {
+  margin: 0;
+  color: var(--rd-text);
+  font-family: var(--rd-font);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.2px;
+}
+
+.rd-v2-profile-org {
+  margin: 4px 0 0;
+  color: var(--rd-body);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.rd-v2-profile-hint {
+  margin: 2px 0 0;
+  color: var(--rd-muted);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.rd-v2-profile-identity-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+
+.rd-v2-profile-identity-actions .rd-v2-btn.sm {
+  color: var(--rd-body);
+  border-color: var(--rd-border2);
+  background: #fff;
   font-weight: 600;
-  margin-right: 3px;
+}
+
+.rd-v2-profile-loading {
+  margin: 12px 0;
+  color: var(--rd-muted);
+  font-size: 12px;
+}
+
+.rd-v2-profile-section {
+  margin: 0 0 14px;
+}
+
+.rd-v2-profile-section:last-child {
+  margin-bottom: 0;
+}
+
+.rd-v2-profile-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 6px;
+  padding: 0;
+  border-bottom: 0;
+}
+
+.rd-v2-profile-section-head h2 {
+  margin: 0;
+  color: var(--rd-muted);
+  font-family: var(--rd-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rd-v2-profile-section-head span {
+  color: var(--rd-muted);
+  font-size: 10px;
+  font-family: var(--rd-mono);
+}
+
+/* Memory = one frame, row dividers — not four nested cards */
+.rd-v2-profile-memory {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: block;
+  border: 1px solid var(--rd-border);
+  background: #fff;
+}
+
+.rd-v2-profile-memory-card {
+  margin: 0;
+  padding: 8px 11px;
+  border: 0;
+  border-bottom: 1px solid var(--rd-border);
+  background: transparent;
+  color: var(--rd-text);
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+.rd-v2-profile-memory-card:last-child {
+  border-bottom: 0;
+}
+
+/* Works + Lab share the same hairline row language */
+.rd-v2-profile-works,
+.rd-v2-profile-lab-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--rd-border);
+}
+
+.rd-v2-profile-works li,
+.rd-v2-profile-lab-rows li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 12px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--rd-border);
+  color: var(--rd-text);
+  font-size: 12.5px;
+  line-height: 1.35;
+}
+
+.rd-v2-profile-works li {
+  display: block;
+  grid-template-columns: none;
+}
+
+.rd-v2-profile-lab-block {
+  margin: 0 0 10px;
+}
+
+.rd-v2-profile-lab-block:last-child {
+  margin-bottom: 0;
+}
+
+.rd-v2-profile-lab-label {
+  margin: 0 0 2px;
+  color: var(--rd-muted);
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+}
+
+.rd-v2-profile-lab-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.rd-v2-profile-lab-title em {
+  color: var(--rd-muted);
+  font-style: normal;
+  font-weight: 500;
+}
+
+.rd-v2-profile-lab-action {
+  flex-shrink: 0;
+  border: 0;
+  background: transparent;
+  color: var(--rd-muted);
+  font-family: var(--rd-mono);
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  white-space: nowrap;
+  padding: 0;
+}
+
+.rd-v2-profile-lab-action:hover {
+  color: var(--rd-accent);
+  text-decoration: none;
+}
+
+/* Rail: calmer on Profile; content uses same mono labels */
+.rd-v2-shell:has(.rd-v2-profile-page) .rd-v2-rail-toggle {
+  height: 36px;
+  padding: 6px 10px;
+}
+
+.rd-v2-shell:has(.rd-v2-profile-page) .rd-v2-rail-toggle button {
+  height: 24px;
+  border-radius: 6px;
+  font-size: 11px;
+}
+
+.rd-v2-shell:has(.rd-v2-profile-page) .rd-v2-rail-toggle button.on {
+  background: var(--rd-text);
+  border-color: var(--rd-text);
+  color: #fff;
+}
+
+.rd-v2-shell:has(.rd-v2-profile-page) .rd-v2-rail-selection {
+  display: none;
+}
+
+.rd-v2-profile-rail {
+  padding: 16px 16px 20px;
+  overflow-y: auto;
+}
+
+.rd-v2-profile-rail-block {
+  margin: 0 0 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--rd-border);
+}
+
+.rd-v2-profile-rail-block:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.rd-v2-profile-rail-block h3 {
+  margin: 0 0 6px;
+  color: var(--rd-muted);
+  font-family: var(--rd-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rd-v2-profile-rail-block p {
+  margin: 0;
+  color: var(--rd-text);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.rd-v2-profile-rail-block ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--rd-text);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.rd-v2-profile-rail-block li {
+  margin: 0 0 4px;
+  padding-left: 0;
+}
+
+.rd-v2-profile-rail-block li::before {
+  content: none;
+}
+
+.rd-v2-ask-placeholder-quiet {
+  min-height: 1.5rem;
+  opacity: 0;
+}
+
+/* Settings (unchanged below) */
+
+.rd-v2-empty-inline {
+  margin: 0;
+  color: var(--rd-muted);
+  font-size: 12px;
+}
+
+@media (max-width: 1100px) {
+  .rd-v2-profile-page .rd-v2-body-scroll {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+}
+
+/* Kill legacy profile-ident span styling that fights the freeze layout */
+.rd-v2-profile-page .rd-v2-profile-ident > span:not(.rd-v2-profile-badge) {
+  display: inline;
+  margin: 0;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+  text-transform: none;
+  color: inherit;
 }
 
 .rd-v2-settings-grid {

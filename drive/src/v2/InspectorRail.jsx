@@ -9,6 +9,7 @@ import {
   PageRailPanel,
   ResourcesRailPanel,
 } from "@/v2/RailPanels";
+import { ProfileDetailPanel } from "@/v2/ProfilePage";
 import { activeObjectSelectionHint } from "@/v2/activeObject";
 import { displayName } from "@/v2/datasetMeta";
 
@@ -26,7 +27,7 @@ function railSelectionHint(mainTab, dataset, browseTarget, resourceRow, clusterC
     return "Resources";
   }
   if (mainTab === "profile") {
-    return "Profile context";
+    return "Profile";
   }
   if (mainTab === "settings") {
     return "Desk setup";
@@ -48,7 +49,7 @@ const MOBILE_RAIL_IDLE_HINTS = new Set([
   "No discover result",
   "No compare selected",
   "Resources",
-  "Profile context",
+  "Profile",
   "Desk setup",
 ]);
 
@@ -94,6 +95,7 @@ export function InspectorRail({
   onSubmitLibraryUrl,
   onSubmitLibraryProcure,
   askPanel,
+  profile = null,
 }) {
   let detailPanel;
   if (mainTab === "cluster") {
@@ -122,8 +124,10 @@ export function InspectorRail({
         onAskAbout={onAskAbout}
       />
     );
-  } else if (mainTab === "profile" || mainTab === "settings") {
-    detailPanel = <PageRailPanel page={mainTab} onAskAbout={onAskAbout} />;
+  } else if (mainTab === "profile") {
+    detailPanel = <ProfileDetailPanel profile={profile} />;
+  } else if (mainTab === "settings") {
+    detailPanel = <PageRailPanel page="settings" onAskAbout={onAskAbout} />;
   } else if (
     mainTab === "library" &&
     (activeObject?.kind === "library_folder" || activeObject?.kind === "library_intake")
