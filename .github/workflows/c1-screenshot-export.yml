@@ -1,0 +1,22 @@
+name: C1 screenshot export
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package screenshots
+        run: |
+          mkdir -p c1-screenshots
+          cp docs/status/generated/polish-c1-ask-add-to-lab-desktop-1440x900.png c1-screenshots/
+          cp docs/status/generated/polish-c1-ask-add-to-lab-tablet-900x1200.png c1-screenshots/
+          cp docs/status/generated/polish-c1-ask-add-to-lab-mobile-390x1200.png c1-screenshots/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c1-screenshots
+          path: c1-screenshots
+          retention-days: 1
