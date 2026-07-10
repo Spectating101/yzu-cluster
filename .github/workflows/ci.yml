@@ -26,9 +26,12 @@ jobs:
       - name: Production build
         run: npm run build
         env:
-          GITHUB_ACTIONS: "true"
+          # Match Pages artifact base path without poisoning the mock e2e dev server.
+          YZU_PAGES: "true"
 
       - name: Mock e2e (no live API)
         run: npm run test:v2-mock
         env:
           CI: "true"
+          # Explicit: mock desk must serve at / so Playwright webServer url is 2xx.
+          YZU_PAGES: "false"

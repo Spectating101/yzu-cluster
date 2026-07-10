@@ -24,7 +24,11 @@ const proxy = {
 };
 
 // GitHub Pages: https://spectating101.github.io/yzu-cluster/
-const pagesBase = process.env.GITHUB_ACTIONS === "true" ? "/yzu-cluster/" : "/";
+// Use YZU_PAGES=true only for Pages builds. Do not key off GITHUB_ACTIONS —
+// Actions runners always set it, which would force base=/yzu-cluster/ during
+// Playwright webServer startup and make http://127.0.0.1:PORT/ return 302
+// (not 2xx), timing out the mock e2e job at ~120s.
+const pagesBase = process.env.YZU_PAGES === "true" ? "/yzu-cluster/" : "/";
 
 export default defineConfig({
   base: pagesBase,
