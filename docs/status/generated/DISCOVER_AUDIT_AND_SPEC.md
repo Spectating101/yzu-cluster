@@ -252,23 +252,23 @@ Desired hierarchy (spec below) is only partially met: NEXT exists, but evidence 
 
 #### Blocker
 
-1. Mobile selected candidate does not expose Detail\|Ask / Add to lab / Probe (capture evidence).
-2. `candidateId` vs `browseTargetKey` field-order mismatch (selection highlight / probe key edge cases).
-3. Collection lifecycle (running / approve / fail / complete / queryable) absent from Discover while pipeline chrome implies it.
+1. **`candidateId` vs `browseTargetKey` mismatch** — foundational identity failure. **D0 required first** (not optional).
+2. Collection lifecycle (running / approve / fail / complete / queryable) absent from Discover while pipeline chrome implies it — needs real candidate→job→dataset linkage (D4 / D4a+D4b); do not fake with decorative pills.
+3. Mobile selected candidate does not expose Detail\|Ask / Add to lab / Probe (capture evidence) — **D8 after D0–D4**; not an isolated mobile patch.
 
 #### Important
 
-4. No local↔external equivalence / sufficiency logic.
-5. Fit labels are keyword heuristics presented as facts.
-6. Probe UI thin vs backend evidence; “verified” copy overclaims.
-7. Queued = fuzzy title match.
+4. No local↔external equivalence / sufficiency logic (start with deterministic labels in D5).
+5. Fit labels are keyword heuristics presented as facts — remove/rename in D1.
+6. Probe UI thin vs backend evidence; “verified” copy overclaims — D2.
+7. Queued = fuzzy title match — eliminated by D0/D4.
 8. Settings/docs claim profile-aware ranking; client has none; backend email ≠ score boost.
 9. Header Enter opens Ask (“Find datasets…”) rather than silent Discover search — contract ambiguity.
-10. Add-to-lab can run without probe; approval path leaves Discover.
+10. Add-to-lab can run without probe; approval path leaves Discover — D4 (explicit trusted-source skip only; Discover must show awaiting approval + deep-link).
 
 #### Polish
 
-11. Decorative pipeline Approve/Collect/Register vs live FSM.
+11. Decorative pipeline Approve/Collect/Register vs live FSM (bind or hide in D4).
 12. No explicit deselect.
 13. No probe warning severity.
 14. Repeated metadata card↔rail.
