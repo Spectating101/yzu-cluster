@@ -1,0 +1,24 @@
+name: C2.1 visual review export
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package review inputs
+        run: |
+          mkdir -p review-inputs/screenshots
+          cp -R docs/screenshots-review/polish-c2.1/. review-inputs/screenshots/
+          cp drive/src/v2/HomePage.jsx review-inputs/HomePage.jsx
+          cp drive/src/v2/App.jsx review-inputs/App.jsx
+          cp drive/src/v2/v2.css review-inputs/v2.css
+          cp e2e/v2-home.spec.js review-inputs/v2-home.spec.js
+          cp e2e/professor-demo.spec.js review-inputs/professor-demo.spec.js
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c21-visual-review
+          path: review-inputs
+          retention-days: 1
