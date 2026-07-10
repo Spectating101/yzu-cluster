@@ -397,13 +397,17 @@ def _handlers() -> dict[str, Handler]:
             plan["destination"] = dest
 
         requested_key = str(payload.get("candidate_key") or "").strip()
+        # Public field is source_identity; legacy `source` still accepted and normalized.
+        source_identity = str(
+            payload.get("source_identity") or payload.get("source") or payload.get("provider") or ""
+        ).strip()
         identity_row = {
             "candidate_key": requested_key,
             "dataset_id": payload.get("dataset_id"),
             "doi": payload.get("doi"),
             "url": payload.get("url") or payload.get("source_url"),
             "title": payload.get("name") or payload.get("title"),
-            "source": payload.get("source") or payload.get("provider"),
+            "source": source_identity,
             "provider": payload.get("provider"),
             "external_id": payload.get("external_id"),
             "kind": payload.get("kind"),
@@ -426,7 +430,6 @@ def _handlers() -> dict[str, Handler]:
             val = payload.get(field)
             if val is not None and str(val).strip():
                 request[field] = val
-        source_identity = str(payload.get("source") or "").strip()
         if source_identity:
             request["source_identity"] = source_identity
 
