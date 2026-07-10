@@ -1,0 +1,28 @@
+name: C2 visual review export
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package review inputs
+        run: |
+          mkdir -p c2-review
+          cp -R docs/screenshots-review/polish-c2 c2-review/screenshots
+          mkdir -p c2-review/source
+          cp drive/src/v2/HomePage.jsx c2-review/source/
+          cp drive/src/v2/DeskLanesStrip.jsx c2-review/source/
+          cp drive/src/v2/v2.css c2-review/source/
+          cp e2e/v2-home.spec.js c2-review/source/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c2-visual-review
+          path: c2-review
+          retention-days: 1
