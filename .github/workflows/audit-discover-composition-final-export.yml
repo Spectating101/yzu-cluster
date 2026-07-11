@@ -1,0 +1,17 @@
+name: Discover Composition Final Visual Export
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Upload landed composition screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: discover-composition-final-screenshots
+          path: docs/screenshots-review/discover-composition/*.png
+          retention-days: 1
