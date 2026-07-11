@@ -1,0 +1,20 @@
+name: Discover Composition Visual Export
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  export-screenshots:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Upload Discover composition screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: discover-composition-screenshots
+          path: docs/screenshots-review/discover-composition/
+          if-no-files-found: error
+          retention-days: 1
