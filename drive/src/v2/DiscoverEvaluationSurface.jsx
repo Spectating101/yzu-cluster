@@ -565,7 +565,9 @@ export function DiscoverEvaluationSurface({
     </>
   );
 
-  if (variant === "workspace") return body;
+  if (variant === "workspace") {
+    return <div className="rd-v2-eval-workspace-shell">{body}</div>;
+  }
 
   return (
     <RailFrame>
