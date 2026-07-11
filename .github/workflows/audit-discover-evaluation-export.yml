@@ -1,9 +1,9 @@
 name: Discover Evaluation Visual Export
 
 on:
-  push:
+  pull_request:
     branches:
-      - audit/discover-evaluation-export-20260711
+      - main
 
 jobs:
   export-screenshots:
