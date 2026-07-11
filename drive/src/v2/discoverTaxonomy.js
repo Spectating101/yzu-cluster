@@ -301,7 +301,10 @@ export function orderDiscoverResults(rows, labIds) {
   const decorated = rows.map((row, index) => ({
     row,
     index,
-    classification: classifyDiscoverResult(row, labIds),
+    classification:
+      row?.discover_taxonomy?.lifecycle_projected
+        ? row.discover_taxonomy
+        : classifyDiscoverResult(row, labIds),
   }));
   decorated.sort((a, b) => {
     if (a.classification.group !== b.classification.group) {

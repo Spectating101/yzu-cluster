@@ -2,11 +2,14 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   LIFECYCLE,
+  applyLifecycleToEvaluation,
   buildDiscoverLifecycle,
   classifyJobLifecycle,
   exactJobsForCandidate,
+  projectDiscoverCandidateLifecycle,
   selectLifecycleJob,
 } from "./discoverLifecycle.js";
+import { buildDiscoverEvaluation } from "./discoverEvaluation.js";
 
 const ROW = {
   candidate_key: "dataset:mops_financial_statements_ext",
@@ -197,5 +200,136 @@ describe("buildDiscoverLifecycle", () => {
     });
     assert.equal(life.state, LIFECYCLE.RUNNING);
     assert.equal(life.refreshFailed, true);
+  });
+
+  it("does not reuse lastKnown across different candidate_key", () => {
+    const rowA = ROW;
+    const rowB = {
+      ...ROW,
+      candidate_key: "dataset:other_source",
+      dataset_id: "other_source",
+      connector_id: "other_tw",
+    };
+    const lastKnown = buildDiscoverLifecycle({
+      row: rowA,
+      jobs: [job({ status: "running" })],
+    });
+    assert.equal(lastKnown.state, LIFECYCLE.RUNNING);
+    const lifeB = buildDiscoverLifecycle({
+      row: rowB,
+      jobs: [],
+      refreshFailed: true,
+      lastKnown,
+    });
+    assert.equal(lifeB, null);
+  });
+
+  it("queued stages do not include approval", () => {
+    const life = buildDiscoverLifecycle({
+      row: ROW,
+      jobs: [job({ status: "queued" })],
+    });
+    assert.deepEqual(life.stages, ["submitted", "queue"]);
+    assert.equal(life.stages.includes("approval"), false);
+  });
+
+  it("running stages do not include approval", () => {
+    const life = buildDiscoverLifecycle({
+      row: ROW,
+      jobs: [job({ status: "running" })],
+    });
+    assert.deepEqual(life.stages, ["submitted", "queue", "running"]);
+    assert.equal(life.stages.includes("approval"), false);
+  });
+
+  it("approval-required stages include approval", () => {
+    const life = buildDiscoverLifecycle({
+      row: ROW,
+      jobs: [job({ status: "pending_approval" })],
+    });
+    assert.ok(life.stages.includes("approval"));
+  });
+});
+
+describe("projectDiscoverCandidateLifecycle (A4)", () => {
+  it("projects query-ready as in-lab + query-ready, not external", () => {
+    const life = buildDiscoverLifecycle({
+      row: ROW,
+      jobs: [
+        job({
+          status: "completed",
+          registered_dataset_id: "mops_panel",
+          result: { query_ready: true },
+        }),
+      ],
+    });
+    const projected = projectDiscoverCandidateLifecycle(ROW, life);
+    assert.equal(projected.discover_taxonomy.key, "local-query-ready");
+    assert.match(projected.discover_taxonomy.label, /Query ready/i);
+    assert.equal(projected.candidate_key, ROW.candidate_key);
+  });
+
+  it("projects registered as in-lab, not query-ready", () => {
+    const life = buildDiscoverLifecycle({
+      row: ROW,
+      jobs: [job({ status: "completed", registered_dataset_id: "mops_panel" })],
+      catalog: [{ dataset_id: "mops_panel", analysis_readiness: "metadata_search" }],
+    });
+    assert.equal(life.state, LIFECYCLE.REGISTERED);
+    const projected = projectDiscoverCandidateLifecycle(ROW, life);
+    assert.equal(projected.discover_taxonomy.key, "local-connected");
+    assert.match(projected.discover_taxonomy.label, /Registered/i);
+    assert.notEqual(projected.discover_taxonomy.key, "local-query-ready");
+  });
+
+  it("does not project approval/queued/running into local holdings", () => {
+    for (const status of ["pending_approval", "queued", "running", "failed"]) {
+      const life = buildDiscoverLifecycle({
+        row: ROW,
+        jobs: [job({ status, error: status === "failed" ? "x" : "" })],
+      });
+      const projected = projectDiscoverCandidateLifecycle(ROW, life);
+      assert.equal(projected.discover_taxonomy, undefined);
+    }
+  });
+});
+
+describe("applyLifecycleToEvaluation (A4)", () => {
+  it("terminal query-ready overrides stale external decision and unknowns", () => {
+    const evaluation = buildDiscoverEvaluation(ROW, new Set(), null);
+    assert.match(evaluation.decision.headline, /Acquisition available|External/i);
+    const life = buildDiscoverLifecycle({
+      row: ROW,
+      jobs: [
+        job({
+          status: "completed",
+          registered_dataset_id: "mops_panel",
+          result: { query_ready: true },
+        }),
+      ],
+    });
+    const next = applyLifecycleToEvaluation(evaluation, life);
+    assert.equal(next.decision.headline, "In lab · Query ready");
+    assert.equal(next.taxonomyKey, "local-query-ready");
+    assert.equal(
+      next.unknowns.some((u) => /endpoint not probed|Acquisition constraints/i.test(u)),
+      false,
+    );
+  });
+
+  it("registered overrides decision without claiming query-ready", () => {
+    const evaluation = buildDiscoverEvaluation(ROW, new Set(), null);
+    const life = buildDiscoverLifecycle({
+      row: ROW,
+      jobs: [job({ status: "completed", registered_dataset_id: "mops_panel" })],
+    });
+    const next = applyLifecycleToEvaluation(evaluation, life);
+    assert.equal(next.decision.headline, "Registered in lab");
+    assert.notEqual(next.taxonomyKey, "local-query-ready");
+    assert.equal(
+      next.unknowns.some((u) => /endpoint not probed|Acquisition constraints/i.test(u)),
+      false,
+    );
+    assert.ok(next.unknowns.some((u) => /query path|Instant query/i.test(u)));
   });
 });

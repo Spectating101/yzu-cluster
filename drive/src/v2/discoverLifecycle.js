@@ -20,7 +20,7 @@
  */
 
 import { candidateKey, jobMatchesCandidate } from "./candidateKey.js";
-import { isQueryReady } from "./discoverTaxonomy.js";
+import { isQueryReady, TAXONOMY } from "./discoverTaxonomy.js";
 
 export const LIFECYCLE = {
   SUBMITTING: "submitting",
@@ -308,17 +308,25 @@ export function buildDiscoverLifecycle({
   }
 
   const job = selectLifecycleJob(row, jobs);
+  const scopedLast =
+    lastKnown &&
+    row &&
+    lastKnown.candidateKey &&
+    lastKnown.candidateKey === candidateKey(row)
+      ? lastKnown
+      : null;
+
   if (!job) {
-    if (refreshFailed && lastKnown) {
-      return { ...lastKnown, refreshFailed: true };
+    if (refreshFailed && scopedLast) {
+      return { ...scopedLast, refreshFailed: true };
     }
     return null;
   }
 
   const classified = classifyJobLifecycle(job, { catalog, labIds });
   if (!classified) {
-    if (refreshFailed && lastKnown) {
-      return { ...lastKnown, refreshFailed: true };
+    if (refreshFailed && scopedLast) {
+      return { ...scopedLast, refreshFailed: true };
     }
     return null;
   }
@@ -365,6 +373,115 @@ export function lifecycleStagesReached(state) {
 export function isLifecycleActive(lifecycle) {
   if (!lifecycle) return false;
   return !lifecycle.terminal && lifecycle.state !== LIFECYCLE.SUBMITTING;
+}
+
+/**
+ * Usability/readiness projection for terminal registered/query-ready handoffs.
+ * Preserves canonical candidate_key / source identity; stamps discover_taxonomy only.
+ */
+export function projectDiscoverCandidateLifecycle(row, lifecycle) {
+  if (!row || !lifecycle) return row;
+  const key = candidateKey(row);
+  if (lifecycle.candidateKey && key && lifecycle.candidateKey !== key) return row;
+
+  if (lifecycle.state === LIFECYCLE.QUERY_READY) {
+    const base = TAXONOMY["local-query-ready"];
+    return {
+      ...row,
+      discover_taxonomy: {
+        ...base,
+        key: "local-query-ready",
+        label: "In lab · Query ready",
+        lifecycle_projected: true,
+      },
+    };
+  }
+  if (lifecycle.state === LIFECYCLE.REGISTERED) {
+    const base = TAXONOMY["local-connected"];
+    return {
+      ...row,
+      discover_taxonomy: {
+        ...base,
+        key: "local-connected",
+        label: "In lab · Registered",
+        readiness: "Registered",
+        lifecycle_projected: true,
+      },
+    };
+  }
+  return row;
+}
+
+function lifecycleHandoffUnknowns(state) {
+  if (state === LIFECYCLE.QUERY_READY) {
+    return [
+      "Freshness / last refresh not described",
+      "Known caveats not described",
+      "Schema details not shown",
+      "Coverage completeness not verified",
+    ];
+  }
+  if (state === LIFECYCLE.REGISTERED) {
+    return [
+      "Instant query path not confirmed",
+      "Freshness / last refresh not described",
+      "Known caveats not described",
+      "Schema details not shown",
+      "Coverage completeness not verified",
+    ];
+  }
+  if (state === LIFECYCLE.COMPLETED_UNREGISTERED) {
+    return [
+      "Registration not complete",
+      "Reusable dataset path not yet confirmed",
+      "Query readiness not established",
+    ];
+  }
+  return null;
+}
+
+/**
+ * Apply terminal lifecycle handoff to the Evaluation decision surface.
+ * Non-terminal lifecycles leave the evaluation unchanged.
+ */
+export function applyLifecycleToEvaluation(evaluation, lifecycle) {
+  if (!evaluation || !lifecycle) return evaluation;
+
+  if (lifecycle.state === LIFECYCLE.QUERY_READY) {
+    return {
+      ...evaluation,
+      taxonomyKey: "local-query-ready",
+      taxonomyLabel: "In lab · Query ready",
+      decision: {
+        headline: "In lab · Query ready",
+        body: "You can query this dataset now.",
+      },
+      unknowns: lifecycleHandoffUnknowns(LIFECYCLE.QUERY_READY),
+    };
+  }
+  if (lifecycle.state === LIFECYCLE.REGISTERED) {
+    return {
+      ...evaluation,
+      taxonomyKey: "local-connected",
+      taxonomyLabel: "In lab · Registered",
+      decision: {
+        headline: "Registered in lab",
+        body: "A Library dataset record exists. Instant query access is not confirmed.",
+      },
+      unknowns: lifecycleHandoffUnknowns(LIFECYCLE.REGISTERED),
+    };
+  }
+  if (lifecycle.state === LIFECYCLE.COMPLETED_UNREGISTERED) {
+    return {
+      ...evaluation,
+      decision: {
+        headline: "Not yet reusable",
+        body: "Collection finished, but registration is still pending.",
+      },
+      unknowns: lifecycleHandoffUnknowns(LIFECYCLE.COMPLETED_UNREGISTERED),
+    };
+  }
+  return evaluation;
 }
 
 export function resourceRowForJob(job) {

@@ -248,19 +248,6 @@ test.describe("v2 Discover tab", () => {
         ],
       },
     });
-    await page.route("**/datasets", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify([
-          {
-            dataset_id: "mops_financial_statements_2026",
-            name: "MOPS statements",
-            analysis_readiness: "metadata_search",
-          },
-        ]),
-      }),
-    );
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
     await page.locator(".rd-v2-search-pill input").fill("mops");
@@ -268,6 +255,79 @@ test.describe("v2 Discover tab", () => {
     const life = page.getByTestId("discover-lifecycle");
     await expect(life).toContainText("Registered in lab");
     await expect(life).not.toContainText("Query ready");
+    const evalSurface = page.getByTestId("discover-eval-surface");
+    await expect(evalSurface.locator('[aria-label="Can I use this"]')).toContainText("Registered in lab");
+    await expect(evalSurface.locator('[aria-label="Can I use this"]')).not.toContainText(
+      "Acquisition available",
+    );
+    await expect(page.locator(".rd-v2-discover-candidate.selected")).toContainText("In lab · Registered");
+    await expect(page.locator(".rd-v2-discover-pipeline-counts")).toContainText("1 in lab");
+    await expect(page.locator(".rd-v2-discover-pipeline-counts")).toContainText("0 query ready");
+    await expect(page.locator(".rd-v2-discover-pipeline-counts")).toContainText("0 external");
+    await expect(evalSurface.locator('[aria-label="Still unknown"]')).not.toContainText(
+      "Source endpoint not probed",
+    );
+  });
+
+  test("query-ready lifecycle projects in-lab counts and decision", async ({ page }) => {
+    await mockV2Api(page, {
+      discoverBody: MOCK_DISCOVER_HIT,
+      jobsBody: {
+        jobs: [
+          {
+            id: "job-qr",
+            status: "completed",
+            candidate_key: "dataset:mops_financial_statements_ext",
+            registered_dataset_id: "mops_financial_statements_2026",
+            result: { query_ready: true, analysis_readiness: "instant" },
+            plan: { title: "MOPS" },
+          },
+        ],
+      },
+    });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await page.locator(".rd-v2-search-pill input").fill("mops");
+    await page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate', { hasText: "MOPS" }).click();
+    const evalSurface = page.getByTestId("discover-eval-surface");
+    await expect(page.getByTestId("discover-lifecycle")).toContainText("Query ready");
+    await expect(evalSurface.locator('[aria-label="Can I use this"]')).toContainText("In lab · Query ready");
+    await expect(evalSurface.locator('[aria-label="Can I use this"]')).not.toContainText(
+      "Acquisition available",
+    );
+    await expect(page.locator(".rd-v2-discover-candidate.selected")).toContainText("In lab · Query ready");
+    await expect(page.locator(".rd-v2-discover-pipeline-counts")).toContainText("1 query ready");
+    await expect(page.locator(".rd-v2-discover-pipeline-counts")).toContainText("1 in lab");
+    await expect(page.locator(".rd-v2-discover-pipeline-counts")).toContainText("0 external");
+    await expect(evalSurface.locator('[aria-label="Still unknown"]')).not.toContainText(
+      "Acquisition constraints",
+    );
+  });
+
+  test("queued lifecycle path does not mark Approval reached", async ({ page }) => {
+    await mockV2Api(page, {
+      discoverBody: MOCK_DISCOVER_HIT,
+      jobsBody: {
+        jobs: [
+          {
+            id: "job-q",
+            status: "queued",
+            candidate_key: "dataset:mops_financial_statements_ext",
+            plan: { title: "MOPS" },
+          },
+        ],
+      },
+    });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await page.locator(".rd-v2-search-pill input").fill("mops");
+    await page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate', { hasText: "MOPS" }).click();
+    const approval = page.locator('.rd-v2-eval-lifecycle-path [data-stage="approval"]');
+    await expect(approval).toHaveAttribute("data-reached", "false");
+    await expect(page.locator('.rd-v2-eval-lifecycle-path [data-stage="queue"]')).toHaveAttribute(
+      "data-reached",
+      "true",
+    );
   });
 
   test("probe evidence stays bound to the selected candidate", async ({ page }) => {

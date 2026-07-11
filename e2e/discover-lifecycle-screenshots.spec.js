@@ -97,6 +97,14 @@ test.describe("Discover lifecycle screenshots", () => {
     // 04 queued
     await openMops(page, { jobs: [job("queued")] });
     await expect(page.getByTestId("discover-lifecycle")).toContainText("Queued");
+    await expect(page.locator('.rd-v2-eval-lifecycle-path [data-stage="approval"]')).toHaveAttribute(
+      "data-reached",
+      "false",
+    );
+    await expect(page.locator('.rd-v2-eval-lifecycle-path [data-stage="queue"]')).toHaveAttribute(
+      "data-reached",
+      "true",
+    );
     await shot(page, "04-desktop-queued");
 
     // 05 running
@@ -104,6 +112,14 @@ test.describe("Discover lifecycle screenshots", () => {
       jobs: [job("running", { result: { stage: "Downloading files" } })],
     });
     await expect(page.getByTestId("discover-lifecycle")).toContainText("Running");
+    await expect(page.locator('.rd-v2-eval-lifecycle-path [data-stage="approval"]')).toHaveAttribute(
+      "data-reached",
+      "false",
+    );
+    await expect(page.locator('.rd-v2-eval-lifecycle-path [data-stage="running"]')).toHaveAttribute(
+      "data-reached",
+      "true",
+    );
     await shot(page, "05-desktop-running");
 
     // 06 failed
@@ -124,6 +140,16 @@ test.describe("Discover lifecycle screenshots", () => {
     });
     await expect(page.getByTestId("discover-lifecycle")).toContainText("Registered in lab");
     await expect(page.getByTestId("discover-lifecycle")).not.toContainText("Query ready");
+    await expect(page.getByTestId("discover-eval-surface").locator('[aria-label="Can I use this"]')).toContainText(
+      "Registered in lab",
+    );
+    await expect(page.getByTestId("discover-eval-surface").locator('[aria-label="Can I use this"]')).not.toContainText(
+      "Acquisition available",
+    );
+    await expect(page.locator(".rd-v2-discover-candidate.selected")).toContainText("In lab · Registered");
+    await expect(page.locator(".rd-v2-discover-pipeline-counts")).toContainText("1 in lab");
+    await expect(page.locator(".rd-v2-discover-pipeline-counts")).toContainText("0 query ready");
+    await expect(page.locator(".rd-v2-discover-pipeline-counts")).toContainText("0 external");
     await shot(page, "08-desktop-registered");
 
     // 09 query ready — registered + explicit readiness on job.result (catalog may lag)
@@ -136,6 +162,19 @@ test.describe("Discover lifecycle screenshots", () => {
       ],
     });
     await expect(page.getByTestId("discover-lifecycle")).toContainText("Query ready");
+    await expect(page.getByTestId("discover-eval-surface").locator('[aria-label="Can I use this"]')).toContainText(
+      "In lab · Query ready",
+    );
+    await expect(page.getByTestId("discover-eval-surface").locator('[aria-label="Can I use this"]')).not.toContainText(
+      "Acquisition available",
+    );
+    await expect(page.locator(".rd-v2-discover-candidate.selected")).toContainText("In lab · Query ready");
+    await expect(page.locator(".rd-v2-discover-pipeline-counts")).toContainText("1 query ready");
+    await expect(page.locator(".rd-v2-discover-pipeline-counts")).toContainText("1 in lab");
+    await expect(page.locator(".rd-v2-discover-pipeline-counts")).toContainText("0 external");
+    await expect(page.getByTestId("discover-eval-surface").locator('[aria-label="Still unknown"]')).not.toContainText(
+      "Source endpoint not probed",
+    );
     await shot(page, "09-desktop-query-ready");
 
     // 10 Resources deep-link

@@ -12,6 +12,7 @@ import {
 } from "@/v2/browseMeta";
 import { discoverCandidateUrl, webHitsToRows } from "@/v2/discoverActions";
 import { candidateKey, isCandidateQueued, withCandidateKey } from "@/v2/candidateKey";
+import { buildDiscoverLifecycle, projectDiscoverCandidateLifecycle } from "@/v2/discoverLifecycle";
 import { loadUserEmail } from "@/v2/deskSession";
 import { discoverDemoSearch } from "@/v2/deskSeed";
 import { DiscoverEmptyState } from "@/v2/DiscoverEmptyState";
@@ -127,6 +128,7 @@ function hasExternalRows(rows) {
 
 export function BrowsePage({
   labIds,
+  catalog = [],
   selectedId,
   onSelectRow,
   searchQuery,
@@ -287,10 +289,17 @@ export function BrowsePage({
               },
             }
           : stamped;
-      stampedRows.push(queued ? { ...withProbe, queued: true } : withProbe);
+      const base = queued ? { ...withProbe, queued: true } : withProbe;
+      const life = buildDiscoverLifecycle({
+        row: base,
+        jobs,
+        catalog,
+        labIds,
+      });
+      stampedRows.push(projectDiscoverCandidateLifecycle(base, life));
     }
     return orderDiscoverResults(stampedRows, labIds);
-  }, [rows, jobs, labIds, probeSnapshots]);
+  }, [rows, jobs, labIds, catalog, probeSnapshots]);
 
   const filtered = useMemo(() => {
     if (stateFilter === "all") return merged;

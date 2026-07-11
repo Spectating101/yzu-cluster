@@ -595,6 +595,9 @@ export function V2App() {
   const browseLifecycle = useMemo(() => {
     const key = browseTarget ? candidateKey(browseTarget) : "";
     const submitting = Boolean(key && collectSubmittingKey === key);
+    const prior = lifecycleLastKnownRef.current;
+    const lastKnown =
+      prior && key && prior.candidateKey === key ? prior : null;
     const life = buildDiscoverLifecycle({
       row: browseTarget,
       jobs,
@@ -602,7 +605,7 @@ export function V2App() {
       labIds,
       submitting,
       refreshFailed: lifecycleRefreshFailed,
-      lastKnown: lifecycleLastKnownRef.current,
+      lastKnown,
     });
     if (life && life.state !== "submitting") {
       lifecycleLastKnownRef.current = life;
@@ -914,6 +917,7 @@ export function V2App() {
       main = (
         <BrowsePage
           labIds={labIds}
+          catalog={catalog}
           selectedId={browseSelectedId}
           searchQuery={searchQuery}
           jobs={jobs}

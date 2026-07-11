@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { buildDiscoverEvaluation } from "@/v2/discoverEvaluation";
-import { LIFECYCLE } from "@/v2/discoverLifecycle";
+import { applyLifecycleToEvaluation, LIFECYCLE } from "@/v2/discoverLifecycle";
 import { displayName } from "@/v2/datasetMeta";
 import { EmptyRailState } from "@/v2/EmptyRailState";
 import {
@@ -534,7 +534,10 @@ export function BrowseRailPanel({
     );
   }
 
-  const evaluation = buildDiscoverEvaluation(target, labIds, probeState);
+  const evaluation = applyLifecycleToEvaluation(
+    buildDiscoverEvaluation(target, labIds, probeState),
+    lifecycle,
+  );
   const probeLoading = evaluation.probeLoading;
   const submitting = lifecycle?.state === LIFECYCLE.SUBMITTING;
   const targetKey = target?.candidate_key || target?.dataset_id || target?.url || evaluation.title;
@@ -615,16 +618,7 @@ export function BrowseRailPanel({
     { id: "running", label: "Running" },
     { id: "registered", label: "Registered" },
   ];
-  const stageOn = (id) => {
-    const s = lifecycle?.state;
-    if (!s) return false;
-    if (id === "submitted") return true;
-    if (id === "approval") return s === LIFECYCLE.APPROVAL_REQUIRED || ["queued", "running", "failed", "completed-unregistered", "registered", "query-ready"].includes(s);
-    if (id === "queue") return ["queued", "running", "failed", "completed-unregistered", "registered", "query-ready"].includes(s);
-    if (id === "running") return ["running", "failed", "completed-unregistered", "registered", "query-ready"].includes(s);
-    if (id === "registered") return ["registered", "query-ready"].includes(s);
-    return false;
-  };
+  const reachedStages = new Set(lifecycle?.stages || []);
 
   return (
     <RailFrame>
@@ -681,10 +675,15 @@ export function BrowseRailPanel({
               {pathStages.map((stage) => (
                 <li
                   key={stage.id}
-                  className={`${stageOn(stage.id) ? "on" : ""}${
-                    lifecycle.state === LIFECYCLE.FAILED && stage.id === "running" ? " failed" : ""
+                  className={`${reachedStages.has(stage.id) ? "on" : ""}${
+                    lifecycle.state === LIFECYCLE.FAILED &&
+                    stage.id === "running" &&
+                    reachedStages.has("failed")
+                      ? " failed"
+                      : ""
                   }`}
                   data-stage={stage.id}
+                  data-reached={reachedStages.has(stage.id) ? "true" : "false"}
                 >
                   {stage.label}
                 </li>

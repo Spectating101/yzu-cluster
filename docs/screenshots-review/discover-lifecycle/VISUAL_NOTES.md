@@ -10,9 +10,11 @@ Backend status map (authoritative):
 | `failed` | Failed | yes |
 | `completed` + no `registered_dataset_id` | Collection complete · Registration pending | yes |
 | `completed` + `registered_dataset_id` | Registered in lab | yes |
-| + catalog `analysis_readiness` instant/queryable | In lab · Query ready | yes |
+| + catalog / result query readiness | In lab · Query ready | yes |
 
 Linkage: exact `candidate_key` or exact `connector_id` only.
+
+A4 handoff: terminal Registered / Query ready project usability (row, Can I use this?, counts/filters). Path stages come only from `lifecycle.stages`.
 
 ## Screenshots
 
@@ -36,13 +38,13 @@ Linkage: exact `candidate_key` or exact `connector_id` only.
 
 ### 04 — queued
 - **Evidence:** `queued`
-- **Decision:** wait for worker
+- **Path:** Submitted + Queue only (Approval not reached)
 - **Primary:** Track in Resources
-- **Not claimed:** running
+- **Not claimed:** running / approval passed
 
 ### 05 — running
 - **Evidence:** `running` + optional stage
-- **Decision:** monitor
+- **Path:** Submitted → Queue → Running (Approval not highlighted)
 - **Primary:** Track in Resources
 - **Not claimed:** fake %
 
@@ -54,16 +56,22 @@ Linkage: exact `candidate_key` or exact `connector_id` only.
 
 ### 07 — registration pending
 - **Evidence:** `completed` without `registered_dataset_id`
-- **Decision:** wait for registry
+- **Can I use this?:** Not yet reusable
 - **Not claimed:** In lab / Query ready
 
 ### 08 — registered
 - **Evidence:** `registered_dataset_id` without query-readiness evidence
+- **Can I use this?:** Registered in lab (not External · Acquisition available)
+- **Row / counts:** In lab · Registered · 1 in lab · 0 query ready · 0 external
+- **Unknowns:** query path / freshness / schema — not endpoint-probe acquisition
 - **Primary:** Open in Library
 - **Not claimed:** Query ready
 
 ### 09 — query ready
-- **Evidence:** `registered_dataset_id` + `result.query_ready` / `analysis_readiness: instant` (or catalog readiness)
+- **Evidence:** `registered_dataset_id` + `result.query_ready` / `analysis_readiness: instant`
+- **Can I use this?:** In lab · Query ready
+- **Row / counts:** In lab · Query ready · 1 query ready · 1 in lab · 0 external
+- **Unknowns:** freshness / caveats / schema — not source-endpoint or acquisition constraints
 - **Primary:** Open in Library
 
 ### 10 — Resources deep-link
@@ -71,7 +79,7 @@ Linkage: exact `candidate_key` or exact `connector_id` only.
 - **Decision:** approve/operate in Resources
 
 ### 11–16
-Tablet/mobile variants of running, failed, approval, registered.
+Tablet/mobile variants of running, failed, approval, registered / query ready.
 
 ## Gaps
 - `output_manifest_id` usually null — kept null when absent
