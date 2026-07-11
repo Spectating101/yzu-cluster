@@ -90,12 +90,13 @@ export function libraryAssetCounts(rows = []) {
 }
 
 export function collectionDescriptor(folder) {
-  const segment = String(folder?.segment || folder?.id || "").split("/")[0];
-  const known = COLLECTIONS[segment];
+  const idParts = String(folder?.id || "").split("/").filter(Boolean);
+  const segment = String(folder?.segment || idParts[0] || "");
+  const known = idParts.length <= 1 ? COLLECTIONS[segment] : null;
   if (known) return known;
   return {
     title: folder?.name || "Collection",
-    description: "Research assets organized in this collection",
+    description: `Assets organized under ${folder?.name || "this collection"}`,
     tone: "default",
   };
 }
