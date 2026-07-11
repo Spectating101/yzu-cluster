@@ -19,16 +19,35 @@ import { assessLocalSufficiency } from "@/v2/discoverSufficiency";
 import { loadUserEmail } from "@/v2/deskSession";
 import { discoverDemoSearch } from "@/v2/deskSeed";
 import { DiscoverEmptyState } from "@/v2/DiscoverEmptyState";
-import { DiscoverPipeline } from "@/v2/DiscoverPipeline";
 import { Chip, PageShell, SourceRibbon } from "@/v2/ui";
 
 const FILTERS = [
-  { id: "all", label: "All" },
+  { id: "all", label: "All results" },
   { id: "in_lab", label: "In lab" },
   { id: "query_ready", label: "Query ready" },
-  { id: "external", label: "External" },
+  { id: "external", label: "Beyond your lab" },
   { id: "needs_access", label: "Needs access" },
 ];
+
+function plural(value, singular, pluralValue = `${singular}s`) {
+  return `${value} ${value === 1 ? singular : pluralValue}`;
+}
+
+function resultScopeSummary(counts) {
+  const wider = Math.max(0, Number(counts?.external || 0) - Number(counts?.needsAccess || 0));
+  return [
+    counts?.inLab ? `${plural(counts.inLab, "result")} already in your lab` : null,
+    wider ? `${plural(wider, "source")} beyond your lab` : null,
+    counts?.needsAccess
+      ? counts.needsAccess === 1
+        ? "1 source needs access review"
+        : `${counts.needsAccess} sources need access review`
+      : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+}
+
 
 function candidateTitle(row) {
   return row?.title || row?.name || row?.dataset_id || row?.doi || row?.url || "External dataset";
@@ -71,16 +90,15 @@ function DiscoverCandidateRow({ row, labIds, selectedId, onSelectRow }) {
           ) : null}
         </span>
         <span className="rd-v2-discover-candidate-main">
-          <strong className="rd-v2-discover-candidate-title">
-            {selected ? <span className="rd-v2-discover-selected-mark" aria-hidden="true" /> : null}
-            {candidateTitle(row)}
-          </strong>
-          <em className="rd-v2-discover-possession">{taxonomyLine}</em>
-          <span className="rd-v2-discover-evidence">{descriptiveLine(row)}</span>
-          <span className="rd-v2-discover-coverage">
-            <b>Coverage</b>
-            <em>{coverageLine(row)}</em>
+          <span className="rd-v2-discover-candidate-heading">
+            <strong className="rd-v2-discover-candidate-title">
+              {selected ? <span className="rd-v2-discover-selected-mark" aria-hidden="true" /> : null}
+              {candidateTitle(row)}
+            </strong>
+            <em className="rd-v2-discover-possession">{taxonomyLine}</em>
           </span>
+          <span className="rd-v2-discover-evidence">{descriptiveLine(row)}</span>
+          <span className="rd-v2-discover-coverage">{coverageLine(row)}</span>
           {showSufficiency ? (
             <span
               className={`rd-v2-discover-sufficiency rd-v2-discover-sufficiency-${row.discover_sufficiency.state}`}
@@ -124,20 +142,6 @@ function dedupeRows(rows) {
   return out;
 }
 
-function hasExternalRows(rows) {
-  return rows.some((row) => {
-    const kind = String(row?.kind || "").toLowerCase();
-    const source = String(row?.source || "").toLowerCase();
-    return (
-      kind === "datacite" ||
-      kind === "huggingface" ||
-      kind === "web_scrape" ||
-      source.includes("datacite") ||
-      source.includes("huggingface") ||
-      source.includes("scrape")
-    );
-  });
-}
 
 export function BrowsePage({
   labIds,
@@ -172,7 +176,6 @@ export function BrowsePage({
   const [demoFallback, setDemoFallback] = useState(false);
   const [stateFilter, setStateFilter] = useState("all");
   const [indexMiss, setIndexMiss] = useState(false);
-  const [showExternal, setShowExternal] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -186,7 +189,6 @@ export function BrowsePage({
     setRows([]);
     setStateFilter("all");
     setIndexMiss(false);
-    setShowExternal(false);
 
     const flattenRows = (data) => {
       const fromApi = (data.sections || []).flatMap((s) => s.rows || []);
@@ -217,7 +219,6 @@ export function BrowsePage({
         let mergedRows = discoverRows;
         let label = discoverRows.length ? "discover" : "";
         let miss = Boolean(discover.index_miss) && discoverRows.length === 0;
-        let external = false;
 
         if (needsUnified) {
           const search = await unifiedSearch(q, 12, email);
@@ -225,7 +226,6 @@ export function BrowsePage({
           if (searchRows.length) {
             mergedRows = dedupeRows([...discoverRows, ...searchRows]);
             label = discoverRows.length ? "discover" : "search";
-            external = hasExternalRows(searchRows);
           }
           if (!discoverRows.length) {
             miss = Boolean(
@@ -245,21 +245,18 @@ export function BrowsePage({
           if (webRows.length) {
             mergedRows = dedupeRows([...mergedRows, ...webRows]);
             if (!label) label = "web";
-            external = true;
           }
         }
 
         if (mergedRows.length) {
           apply({ sections: [{ id: label, rows: mergedRows }] }, label);
           setIndexMiss(false);
-          setShowExternal(external || label === "web");
           return;
         }
 
         if (immediateDemo.length) {
           apply({ sections: [{ id: "demo", rows: immediateDemo }] }, "demo");
           setIndexMiss(false);
-          setShowExternal(false);
           return;
         }
 
@@ -268,12 +265,10 @@ export function BrowsePage({
         if (webRows.length) {
           apply({ sections: [{ id: "web", rows: webRows }] }, "web");
           setIndexMiss(false);
-          setShowExternal(true);
           return;
         }
 
         setIndexMiss(miss);
-        setShowExternal(false);
         setRows([]);
       } catch (err) {
         if (cancelled) return;
@@ -346,6 +341,22 @@ export function BrowsePage({
 
   const browseGroups = useMemo(() => groupDiscoverBrowseRows(filtered), [filtered]);
 
+  const filterCounts = useMemo(
+    () =>
+      Object.fromEntries(
+        FILTERS.map((item) => [
+          item.id,
+          item.id === "all"
+            ? merged.length
+            : merged.filter((row) => {
+                const taxonomy = row.discover_taxonomy || classifyDiscoverResult(row, labIds);
+                return taxonomyMatchesFilter(taxonomy, item.id);
+              }).length,
+        ]),
+      ),
+    [merged, labIds],
+  );
+
   const stageCounts = useMemo(() => {
     const tax = taxonomyStageCounts(merged, labIds);
     return {
@@ -355,20 +366,16 @@ export function BrowsePage({
     };
   }, [merged, labIds]);
 
-  const sourceLabel =
-    source === "discover"
-      ? "Discover API"
-      : source === "search"
-        ? "Unified search"
-        : source === "web"
-          ? "Open web"
-          : source === "demo"
-            ? "Demo catalog"
-            : null;
-
   const q = (searchQuery || "").trim();
   const allInLab =
     !loading && merged.length > 0 && stageCounts.inLab > 0 && stageCounts.inLab === merged.length;
+  const demoMode = demoFallback || (usingSeed && source === "demo");
+  const scopeSummary = resultScopeSummary(stageCounts);
+  const activeFilter = FILTERS.find((item) => item.id === stateFilter) || FILTERS[0];
+  const resultHeadline =
+    stateFilter === "all"
+      ? `${plural(merged.length, "result")} for “${q}”`
+      : `${plural(filtered.length, "result")} · ${activeFilter.label}`;
 
   // Focused Evaluation mode — evaluation owns the main canvas.
   if (focusTarget) {
@@ -410,93 +417,129 @@ export function BrowsePage({
   return (
     <PageShell
       title="Discover"
-      lead="Find holdings and public sources, then see what you can actually use"
-      toolbar={
-        <>
-          <Chip active={!!q}>{q ? `“${q}”` : "Awaiting search"}</Chip>
-          {sourceLabel ? <Chip>{sourceLabel}</Chip> : null}
-          {showExternal ? <Chip>External catalogs</Chip> : null}
-          {demoFallback || (usingSeed && source === "demo") ? (
-            <Chip warn>Offline sample</Chip>
-          ) : null}
-          <span className="rd-v2-toolbar-spacer" />
-          <span className="rd-v2-toolbar-count">
-            {filtered.length} result{filtered.length === 1 ? "" : "s"}
-          </span>
-        </>
-      }
+      lead="Search the lab first, then evaluate sources beyond it before you collect"
+      toolbar={demoMode ? <Chip warn>Demo preview · static sample</Chip> : null}
     >
       <div className="rd-v2-discover-browse" data-testid="discover-browse-mode" data-mode="browse">
-        <DiscoverPipeline counts={stageCounts} />
         {!q ? (
           <DiscoverEmptyState onSuggest={onSuggestSearch} />
         ) : (
           <>
-            <p className="rd-v2-discover-browse-prompt">What data do you need?</p>
-            <div className="rd-v2-toolbar inline">
-              {FILTERS.map((f) => (
-                <Chip
-                  key={f.id}
-                  active={stateFilter === f.id}
-                  onClick={() => setStateFilter(f.id)}
-                >
-                  {f.label}
-                </Chip>
-              ))}
-            </div>
-            {loading && filtered.length ? (
-              <p className="rd-v2-browse-loading">Showing offline matches while live catalogs refresh…</p>
-            ) : null}
-            {loading && !filtered.length ? <p className="rd-v2-browse-loading">Searching catalogs…</p> : null}
-            {!loading && allInLab ? (
-              <div className="rd-v2-discover-miss">
-                <p className="rd-v2-empty-inline warn">
-                  All {merged.length} matches are already in your lab vault. Search the open web for new sources.
+            <section
+              className="rd-v2-discover-result-summary"
+              aria-label="Discover result summary"
+              data-testid="discover-result-summary"
+            >
+              <div className="rd-v2-discover-result-copy">
+                <p className="rd-v2-discover-result-eyebrow">Research index</p>
+                <h2 className="rd-v2-discover-result-title">{resultHeadline}</h2>
+                <p className="rd-v2-discover-result-scope">
+                  {scopeSummary || "No classified holdings or source candidates yet."}
                 </p>
+              </div>
+
+              <details className="rd-v2-discover-filter-menu" data-testid="discover-filter-menu">
+                <summary>
+                  <span>Filter</span>
+                  {stateFilter !== "all" ? <strong>{activeFilter.label}</strong> : null}
+                </summary>
+                <div className="rd-v2-discover-filter-popover" role="group" aria-label="Filter Discover results">
+                  {FILTERS.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      className={stateFilter === item.id ? "on" : ""}
+                      aria-pressed={stateFilter === item.id}
+                      onClick={(event) => {
+                        setStateFilter(item.id);
+                        event.currentTarget.closest("details")?.removeAttribute("open");
+                      }}
+                    >
+                      <span>{item.label}</span>
+                      <b>{filterCounts[item.id] || 0}</b>
+                    </button>
+                  ))}
+                </div>
+              </details>
+            </section>
+
+            {loading && filtered.length ? (
+              <p className="rd-v2-browse-loading">Showing current matches while wider sources refresh…</p>
+            ) : null}
+            {loading && !filtered.length ? (
+              <p className="rd-v2-browse-loading">Searching the lab and wider sources…</p>
+            ) : null}
+
+            {!loading && allInLab ? (
+              <div className="rd-v2-discover-expand-search">
+                <div>
+                  <strong>You already hold every current match.</strong>
+                  <span>Continue beyond the lab to look for alternatives or broader coverage.</span>
+                </div>
                 {onSearchWeb ? (
                   <button type="button" className="rd-v2-btn sm" onClick={() => onSearchWeb(q)}>
-                    Search the open web via Ask →
+                    Search wider sources →
                   </button>
                 ) : null}
               </div>
             ) : null}
+
             {!loading && error ? (
               <div className="rd-v2-discover-error">
                 <p>{error}</p>
               </div>
             ) : null}
+
             {!loading && !error && filtered.length === 0 ? (
               <div className="rd-v2-discover-miss">
                 <p className="rd-v2-empty-inline">
-                  No matches for “{q}”
-                  {stateFilter !== "all" ? ` with filter ${stateFilter.replace("_", " ")}` : ""}
-                  {indexMiss ? " in the local lab index." : "."}
+                  No {stateFilter === "all" ? "" : `${activeFilter.label.toLowerCase()} `}matches for “{q}”
+                  {indexMiss ? " in the current research index." : "."}
                 </p>
                 {indexMiss && onSearchWeb ? (
                   <button type="button" className="rd-v2-btn sm" onClick={() => onSearchWeb(q)}>
-                    Search the open web via Ask →
+                    Ask Research Drive to search wider →
                   </button>
                 ) : null}
               </div>
             ) : null}
-            <div className="rd-v2-discover-list-panel rd-v2-discover-browse-groups">
-              {browseGroups.map((group) => (
-                <section
-                  key={group.id}
-                  className="rd-v2-discover-group"
-                  data-group={group.id}
-                  aria-label={group.title}
-                >
-                  <h3 className="rd-v2-discover-group-title">{group.title}</h3>
-                  <DiscoverCandidateList
-                    rows={group.rows}
-                    labIds={labIds}
-                    selectedId={selectedId}
-                    onSelectRow={onSelectRow}
-                  />
-                </section>
-              ))}
-            </div>
+
+            {browseGroups.length ? (
+              <div className="rd-v2-discover-browse-groups">
+                {browseGroups.map((group) => (
+                  <section
+                    key={group.id}
+                    className="rd-v2-discover-group"
+                    data-group={group.id}
+                    aria-label={group.title}
+                  >
+                    <header className="rd-v2-discover-group-head">
+                      <div>
+                        <h3 className="rd-v2-discover-group-title">{group.title}</h3>
+                        <p className="rd-v2-discover-group-description">{group.description}</p>
+                      </div>
+                      <span className="rd-v2-discover-group-count" aria-label={`${group.rows.length} results`}>
+                        {group.rows.length}
+                      </span>
+                    </header>
+                    <DiscoverCandidateList
+                      rows={group.rows}
+                      labIds={labIds}
+                      selectedId={selectedId}
+                      onSelectRow={onSelectRow}
+                    />
+                  </section>
+                ))}
+              </div>
+            ) : null}
+
+            <details className="rd-v2-discover-process-disclosure">
+              <summary>How Discover handles a missing dataset</summary>
+              <p>
+                Discover checks lab holdings first, evaluates wider source candidates when the lab is insufficient,
+                and returns successful acquisitions to Library for reuse.
+              </p>
+            </details>
           </>
         )}
       </div>
