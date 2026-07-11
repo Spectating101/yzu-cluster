@@ -1,0 +1,39 @@
+name: Apply Director Decision Render Fix
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/discover-sufficiency
+          fetch-depth: 0
+      - name: Apply exact render reference fix
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path("drive/src/v2/DiscoverEvaluationSurface.jsx")
+          text = path.read_text()
+          old = '''          <p className="rd-v2-eval-decision-headline">{evaluation.decision.headline}</p>
+                    <p className="rd-v2-eval-decision-body">{evaluation.decision.body}</p>'''
+          new = '''          <p className="rd-v2-eval-decision-headline">{displayDecision.headline}</p>
+                    <p className="rd-v2-eval-decision-body">{displayDecision.body}</p>'''
+          assert text.count(old) == 1, text.count(old)
+          path.write_text(text.replace(old, new, 1))
+          PY
+          git diff --check
+          git diff -- drive/src/v2/DiscoverEvaluationSurface.jsx
+      - name: Commit and push
+        run: |
+          git config user.name "ChatGPT Design Director"
+          git config user.email "christstrife+chatgpt-design@users.noreply.github.com"
+          git add drive/src/v2/DiscoverEvaluationSurface.jsx
+          git commit -m "fix(discover): render exact-local usability decision"
+          git push origin HEAD:feature/discover-sufficiency
