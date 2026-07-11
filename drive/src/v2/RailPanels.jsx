@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { discoverCandidateState } from "@/v2/browseMeta";
+import { classifyDiscoverResult, discoverCandidateState } from "@/v2/browseMeta";
 import { discoverCandidateUrl } from "@/v2/discoverActions";
 import { displayName } from "@/v2/datasetMeta";
 import { EmptyRailState } from "@/v2/EmptyRailState";
@@ -531,28 +531,21 @@ export function BrowseRailPanel({
   }
 
   const title = target.title || target.name || target.dataset_id || "External dataset";
-  const state = target.discover_state || discoverCandidateState(target, labIds);
+  const probeBound =
+    probeState?.result && !probeState?.loading
+      ? { ...target, probe_snapshot: target.probe_snapshot || probeState.result }
+      : target;
+  const state = probeBound.discover_state || discoverCandidateState(probeBound, labIds);
+  const taxonomy = state.taxonomy || classifyDiscoverResult(probeBound, labIds);
   const probeUrl = discoverCandidateUrl(target);
-  const activeStep = state.key === "in_lab" ? 3 : state.key === "queued" ? 2 : state.key === "probe_ready" ? 1 : 0;
-  const steps = ["Registry", "Probe", "Plan", "Lab"];
   const probeSummaryText =
     typeof probeState?.result?.summary === "string" ? probeState.result.summary : "";
   const connector = probeState?.result?.connector;
   const connectorSpec = connector?.spec || {};
   const probeLoading = Boolean(probeState?.loading);
   const probeError = probeState?.error || "";
-  const discoverNext =
-    state.key === "in_lab"
-      ? "Open the Library record"
-      : probeSummaryText
-        ? "Review probe results, then add to lab"
-        : state.key === "probe_ready"
-          ? "Probe source, then add to lab"
-          : state.key === "queued"
-            ? "Review plan and collection destination"
-            : probeUrl
-              ? "Probe source and confirm fit"
-              : "Confirm fit, then add to lab";
+  const inLab = String(state.key || "").startsWith("in_lab") || String(taxonomy?.key || "").startsWith("local-");
+  const discoverNext = state.nextAction || "Inspect source";
 
   return (
     <RailFrame>
@@ -562,35 +555,31 @@ export function BrowseRailPanel({
         description={target.description}
         pills={
           <span className={`rd-v2-pill ${state.className}`}>
-            {state.label}
+            {taxonomy?.label || state.label}
           </span>
         }
       />
       <RailDecisionSummary
-        status={state.label}
-        primary={state.key === "in_lab" ? "Already registered in Library" : "Candidate can be reviewed for acquisition"}
-        risk={state.access || "Check source terms before collection"}
+        status={taxonomy?.label || state.label}
+        primary={
+          inLab
+            ? "Already in the lab vault"
+            : taxonomy?.key === "licensed-manual"
+              ? "Licensed or manual access required"
+              : "Inspect what is known before collecting"
+        }
+        risk={target.license || "Check source terms before collection"}
         next={discoverNext}
       />
       <div className="rd-v2-rail-scroll">
-        <div className="rd-v2-discover-rail-path" aria-label="Acquisition path">
-          {steps.map((step, index) => (
-            <span key={step} className={index <= activeStep ? "on" : ""}>
-              {step}
-            </span>
-          ))}
-        </div>
-        <p className="rd-v2-rail-section-label">Acquisition state</p>
+        <p className="rd-v2-rail-section-label">What we know</p>
         <RailFieldGrid>
-          <RailField label="State" value={state.label} />
-          <RailField label="Access" value={state.access} />
-          <RailField label="Fit" value={state.fit} />
-          <RailField label="Probe" value={state.probe} />
-          <RailField label="Destination" value={state.destination} />
-          <RailField label="Source" value={target.source || target.collect_via} />
+          <RailField label="Possession" value={taxonomy?.possession || state.possession} />
+          <RailField label="Readiness" value={taxonomy?.readiness || state.readiness} />
+          <RailField label="Source" value={target.source || target.collect_via || target.publisher} />
           <RailField label="License" value={target.license || "See source terms"} />
-          <RailField label="Coverage" value={target.coverage || target.subtitle} />
-          <RailField label="Grain" value={target.grain} />
+          <RailField label="Coverage" value={target.coverage || target.subtitle || "Not described"} />
+          <RailField label="Grain" value={target.grain || "—"} />
         </RailFieldGrid>
         {probeError ? (
           <p className="rd-v2-discover-probe-error">{probeError}</p>
@@ -602,7 +591,7 @@ export function BrowseRailPanel({
             {connector ? (
               <RailFieldGrid>
                 <RailField label="Connector" value={connector.connector_id || connector.id || "—"} />
-                <RailField label="Access" value={connectorSpec.access_mode || "—"} />
+                <RailField label="Access mode" value={connectorSpec.access_mode || "—"} />
                 <RailField label="Format" value={connectorSpec.content_type || "—"} />
                 <RailField
                   label="Files"
@@ -614,7 +603,7 @@ export function BrowseRailPanel({
         ) : null}
       </div>
       <RailStickyFooter>
-        {state.key === "in_lab" ? (
+        {inLab ? (
           <button type="button" className="rd-v2-btn primary sm" onClick={() => onOpenInLibrary?.(target)}>
             Open in Library
           </button>
@@ -623,7 +612,7 @@ export function BrowseRailPanel({
             Add to lab
           </button>
         )}
-        {state.key !== "in_lab" && probeUrl ? (
+        {!inLab && probeUrl ? (
           <button
             type="button"
             className="rd-v2-btn sm"

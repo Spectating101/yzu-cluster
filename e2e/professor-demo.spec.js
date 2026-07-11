@@ -159,9 +159,9 @@ test.describe("professor demo @ live-desk", () => {
     await expect(page.locator(".rd-v2-page-head h1", { hasText: "Discover" })).toBeVisible();
     await expect(page.locator(".rd-v2-discover-pipeline")).toBeVisible();
     await expect(page.locator(".rd-v2-discover-pipeline")).toContainText("Search");
-    await expect(page.locator(".rd-v2-discover-pipeline")).toContainText("Register");
+    await expect(page.locator(".rd-v2-discover-pipeline")).toContainText("Collect");
 
-    const candidates = page.locator('.rd-v2-catalog button.row[data-kind="external"]');
+    const candidates = page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate');
     await expect(candidates.first()).toBeVisible({ timeout: 30_000 });
     const candidateCount = await candidates.count();
 
@@ -182,17 +182,17 @@ test.describe("professor demo @ live-desk", () => {
 
     async function pickAcquireCandidate() {
       const notInLab = page.locator(
-        '.rd-v2-catalog button.row[data-kind="external"]:not([data-state="in_lab"])',
+        '.rd-v2-catalog button.row.rd-v2-discover-candidate:not([data-state="in_lab"])',
       );
       if (await notInLab.count()) return notInLab.first();
       await page.locator(".rd-v2-search-pill input").fill("MOPS");
       await page.locator(".rd-v2-search-pill input").press("Enter");
       await page.waitForTimeout(2500);
       const retry = page.locator(
-        '.rd-v2-catalog button.row[data-kind="external"]:not([data-state="in_lab"])',
+        '.rd-v2-catalog button.row.rd-v2-discover-candidate:not([data-state="in_lab"])',
       );
       if (await retry.count()) return retry.first();
-      return page.locator('.rd-v2-catalog button.row[data-kind="external"]').first();
+      return page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate').first();
     }
 
     const candidate = await pickAcquireCandidate();
@@ -201,13 +201,10 @@ test.describe("professor demo @ live-desk", () => {
     await candidate.click();
 
     const rail = page.locator("aside.rd-v2-rail");
-    await expect(rail).toContainText("Acquisition state");
-    await expect(page.locator(".rd-v2-discover-candidate.selected .rd-v2-discover-fact", { hasText: "Fit" })).toBeVisible();
-    await expect(page.locator(".rd-v2-discover-candidate.selected .rd-v2-discover-fact", { hasText: "Access" })).toBeVisible();
-    await expect(page.locator(".rd-v2-discover-candidate.selected .rd-v2-discover-fact", { hasText: "Probe" })).toBeVisible();
-    await expect(page.locator(".rd-v2-discover-candidate.selected .rd-v2-discover-fact", { hasText: "Destination" })).toBeVisible();
-    await expect(rail.locator(".rd-v2-detail-label", { hasText: "Access" })).toBeVisible();
-    await expect(rail.locator(".rd-v2-detail-label", { hasText: "Destination" })).toBeVisible();
+    await expect(rail).toContainText("What we know");
+    await expect(page.locator(".rd-v2-discover-candidate.selected .rd-v2-discover-possession")).toBeVisible();
+    await expect(rail.locator(".rd-v2-detail-label", { hasText: "Possession" })).toBeVisible();
+    await expect(rail.locator(".rd-v2-detail-label", { hasText: "Readiness" })).toBeVisible();
 
     const probeBtn = rail.getByRole("button", { name: "Probe source" });
     if (await probeBtn.isVisible()) {

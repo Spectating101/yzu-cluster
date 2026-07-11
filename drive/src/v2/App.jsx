@@ -123,6 +123,8 @@ export function V2App() {
   const [selectedId, setSelectedId] = useState(() => readParams().dataset);
   const [browseRow, setBrowseRow] = useState(null);
   const [browseProbe, setBrowseProbe] = useState({ candidateKey: "", loading: false, result: null, error: "" });
+  /** Candidate-bound probe stamps for Discover taxonomy (survives selection changes). */
+  const [probeSnapshots, setProbeSnapshots] = useState({});
   /** Race-safe selected Discover identity — updated on selection, read after async probe. */
   const browseSelectedKeyRef = useRef("");
   const [resourceRow, setResourceRow] = useState(null);
@@ -526,8 +528,15 @@ export function V2App() {
         }
         return;
       }
+      // Stamp probe on the candidate even if selection moved — taxonomy needs bound evidence.
+      setProbeSnapshots((prev) => ({ ...prev, [key]: out }));
       if (!stillSelected) return;
       setBrowseProbe({ candidateKey: key, loading: false, result: out, error: "" });
+      setBrowseRow((current) =>
+        current && candidateKey(current) === key
+          ? { ...current, probe_snapshot: out }
+          : current,
+      );
       showToast("Source probed — review connector details");
     } catch (err) {
       if (browseSelectedKeyRef.current !== key) return;
@@ -600,6 +609,7 @@ export function V2App() {
     setBrowseRow(null);
     browseSelectedKeyRef.current = "";
     setBrowseProbe({ candidateKey: "", loading: false, result: null, error: "" });
+    setProbeSnapshots({});
     setActiveObject((current) => (current?.kind === "external_candidate" ? null : current));
   }, [searchQuery]);
 
@@ -777,6 +787,7 @@ export function V2App() {
           searchQuery={searchQuery}
           jobs={jobs}
           usingSeed={usingSeed}
+          probeSnapshots={probeSnapshots}
           onSuggestSearch={(q) => {
             setSearchQuery(q);
             goTab("browse");
@@ -785,13 +796,19 @@ export function V2App() {
           onSelectRow={(row) => {
             const nextKey = candidateKey(row);
             browseSelectedKeyRef.current = nextKey;
-            setBrowseRow(row);
+            const stamped =
+              probeSnapshots[nextKey] && !row.probe_snapshot
+                ? { ...row, probe_snapshot: probeSnapshots[nextKey] }
+                : row;
+            setBrowseRow(stamped);
             setBrowseProbe((current) =>
               current.candidateKey === nextKey
                 ? current
-                : { candidateKey: "", loading: false, result: null, error: "" },
+                : probeSnapshots[nextKey]
+                  ? { candidateKey: nextKey, loading: false, result: probeSnapshots[nextKey], error: "" }
+                  : { candidateKey: "", loading: false, result: null, error: "" },
             );
-            setActiveObject(externalCandidateObject(row));
+            setActiveObject(externalCandidateObject(stamped));
             setRailTab("detail");
           }}
         />

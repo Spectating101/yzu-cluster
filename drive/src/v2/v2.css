@@ -4281,16 +4281,30 @@
 }
 
 .rd-v2-discover-pipeline {
-  margin: 0 18px 14px;
-  padding: 12px 14px;
+  margin: 0 18px 10px;
+  padding: 8px 12px;
   border: 1px solid var(--rd-border);
   border-radius: 0;
-  background: #f8fafd;
+  background: #fafbfc;
+  opacity: 0.92;
+}
+
+.rd-v2-discover-pipeline-overview {
+  max-width: 720px;
+}
+
+.rd-v2-discover-pipeline-kicker {
+  margin: 0 0 6px;
+  color: var(--rd-muted);
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .rd-v2-discover-pipeline-steps {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 6px;
 }
 
@@ -4462,16 +4476,24 @@
 }
 
 .rd-v2-discover-list-panel .rd-v2-catalog button.rd-v2-discover-candidate {
-  grid-template-areas:
-    "source main status"
-    "source facts facts";
+  grid-template-areas: "source main status";
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: start;
-  gap: clamp(10px, 1.2vw, 18px);
-  min-height: 104px;
-  padding: 14px 16px;
-  border-left-color: transparent;
+  gap: clamp(12px, 1.4vw, 20px);
+  min-height: 96px;
+  padding: 16px 18px;
+  border-left: 3px solid transparent;
   background: #ffffff;
+}
+
+.rd-v2-discover-list-panel .rd-v2-catalog button.rd-v2-discover-candidate[data-kind^="local-"] {
+  border-left-color: #c5d4e8;
+  background: #fbfcfe;
+}
+
+.rd-v2-discover-list-panel .rd-v2-catalog button.rd-v2-discover-candidate[data-kind="licensed-manual"],
+.rd-v2-discover-list-panel .rd-v2-catalog button.rd-v2-discover-candidate[data-kind="external-unavailable"] {
+  border-left-color: #e8d9c8;
 }
 
 .rd-v2-discover-list-panel .rd-v2-catalog button.rd-v2-discover-candidate:hover {
@@ -4503,16 +4525,60 @@
   display: flex;
   min-width: 0;
   align-items: baseline;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .rd-v2-discover-candidate-top strong {
   min-width: 0;
   overflow: hidden;
   color: var(--rd-text);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
-  line-height: 1.25;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-v2-discover-possession {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--rd-muted);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-v2-discover-coverage {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  gap: 6px;
+  color: var(--rd-muted);
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+
+.rd-v2-discover-coverage b {
+  flex: 0 0 auto;
+  color: #8a94a6;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.rd-v2-discover-coverage em {
+  min-width: 0;
+  overflow: hidden;
+  color: #5f6368;
+  font-style: normal;
+  font-weight: 500;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -4533,7 +4599,7 @@
   display: -webkit-box;
   overflow: hidden;
   color: #5f6368;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.45;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -4659,6 +4725,8 @@
 .rd-v2-source-ribbon.bq    { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
 .rd-v2-source-ribbon.doi   { background: #f5f3ff; color: #5b21b6; border-color: #ddd6fe; }
 .rd-v2-source-ribbon.gdelt { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+.rd-v2-source-ribbon.lab   { background: #e8f0fe; color: #174ea6; border-color: #c6dafc; }
+.rd-v2-source-ribbon.warn  { background: #fff7ed; color: #9a3412; border-color: #fed7aa; }
 
 /* ── 16. Cluster page ────────────────────────────────────────── */
 .rd-v2-cluster-toolbar {
@@ -6158,11 +6226,6 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
     grid-template-columns: auto minmax(0, 1fr) auto;
   }
 
-  .rd-v2-discover-facts {
-    grid-area: facts;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .rd-v2-discover-list-panel .rd-v2-catalog button.rd-v2-discover-candidate > .rd-v2-pill {
     grid-area: status;
   }
@@ -6359,12 +6422,11 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
   .rd-v2-discover-list-panel .rd-v2-catalog button.rd-v2-discover-candidate {
     grid-template-areas:
       "source status"
-      "main main"
-      "facts facts";
+      "main main";
     grid-template-columns: minmax(0, 1fr) auto;
-    gap: 9px;
+    gap: 10px;
     min-height: auto;
-    padding: 12px;
+    padding: 14px 12px;
   }
 
   .rd-v2-discover-candidate-source {
@@ -6379,17 +6441,17 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
   .rd-v2-discover-candidate-top {
     align-items: flex-start;
     flex-direction: column;
-    gap: 2px;
+    gap: 4px;
   }
 
   .rd-v2-discover-candidate-top strong,
-  .rd-v2-discover-route {
+  .rd-v2-discover-possession,
+  .rd-v2-discover-coverage em {
     white-space: normal;
   }
 
-  .rd-v2-discover-facts {
-    grid-area: facts;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .rd-v2-discover-possession {
+    text-align: left;
   }
 
   .rd-v2-discover-list-panel .rd-v2-catalog button.rd-v2-discover-candidate > .rd-v2-pill {

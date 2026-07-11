@@ -90,11 +90,11 @@ test("D0 desktop identity + exact queue + probe switch", async ({ page }) => {
   await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
   await page.locator(".rd-v2-search-pill input").fill("MOPS");
-  await expect(page.locator('.rd-v2-catalog button.row[data-kind="external"]')).toHaveCount(2);
-  const rowA = page.locator('.rd-v2-catalog button.row[data-kind="external"]', {
+  await expect(page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate')).toHaveCount(2);
+  const rowA = page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate', {
     hasText: "MOPS financial statements",
   }).first();
-  const rowB = page.locator('.rd-v2-catalog button.row[data-kind="external"]', {
+  const rowB = page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate', {
     hasText: "MOPS financial statements extended",
   });
   await expect(rowA.locator(".rd-v2-pill", { hasText: "Queued" })).toHaveCount(1);
@@ -108,10 +108,10 @@ test("D0 desktop identity + exact queue + probe switch", async ({ page }) => {
   await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
   await page.locator(".rd-v2-search-pill input").fill("governance");
-  const mops = page.locator('.rd-v2-catalog button.row[data-kind="external"]', {
+  const mops = page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate', {
     hasText: "MOPS financial statements",
   });
-  const twse = page.locator('.rd-v2-catalog button.row[data-kind="external"]', {
+  const twse = page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate', {
     hasText: "TWSE OpenAPI governance",
   });
   await mops.click();
@@ -131,7 +131,7 @@ test("D0 tablet selected row and rail parity", async ({ page }) => {
   await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
   await page.locator(".rd-v2-search-pill input").fill("mops");
-  await page.locator('.rd-v2-catalog button.row[data-kind="external"]', { hasText: "MOPS" }).click();
+  await page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate', { hasText: "MOPS" }).click();
   await expect(page.locator("aside.rd-v2-rail")).toContainText("MOPS financial statements");
   await shot(page, "tablet-900x1200__selected-row-rail-parity");
 });
@@ -142,7 +142,7 @@ test("D0 mobile selected row + manual Detail sheet", async ({ page }) => {
   await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
   await page.locator(".rd-v2-search-pill input").fill("mops");
-  await page.locator('.rd-v2-catalog button.row[data-kind="external"]', { hasText: "MOPS" }).click();
+  await page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate', { hasText: "MOPS" }).click();
   await shot(page, "mobile-390x1200__selected-row");
   const openDetail = page.getByRole("button", { name: /Detail|Open detail|View detail/i }).first();
   if (await openDetail.isVisible().catch(() => false)) {

@@ -23,24 +23,21 @@ test.describe("v2 Discover tab", () => {
   test("suggestion chip fills header search and shows demo results", async ({ page }) => {
     await page.getByRole("button", { name: "TWSE governance" }).click();
     await expect(page.locator(".rd-v2-search-pill input")).toHaveValue("TWSE governance");
-    await expect(page.locator('.rd-v2-catalog button.row[data-kind="external"]')).toHaveCount(1, { timeout: 10_000 });
+    await expect(page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate')).toHaveCount(1, { timeout: 10_000 });
     await expect(page.locator(".rd-v2-discover-list-panel")).toContainText("TWSE OpenAPI");
     await expect(page.locator(".rd-v2-discover-pipeline")).toContainText("Search");
-    await expect(page.locator(".rd-v2-toolbar.inline").getByRole("button", { name: "Ready to check" })).toBeVisible();
+    await expect(page.locator(".rd-v2-toolbar.inline").getByRole("button", { name: "External" })).toBeVisible();
   });
 
   test("selecting discover row opens acquisition rail with Add to lab", async ({ page }) => {
     await page.locator(".rd-v2-search-pill input").fill("MOPS");
     await page.locator(".rd-v2-search-pill input").press("Enter");
-    await page.locator('.rd-v2-catalog button.row[data-kind="external"]').first().click();
+    await page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate').first().click();
     await expect(page.locator("aside .rd-v2-rail-sticky .rd-v2-btn.primary", { hasText: "Add to lab" })).toBeVisible();
     await expect(page.locator(".rd-v2-detail-label", { hasText: "Source" })).toBeVisible();
-    await expect(page.locator(".rd-v2-detail-label", { hasText: "Access" })).toBeVisible();
-    await expect(page.locator(".rd-v2-detail-label", { hasText: "Probe" })).toBeVisible();
-    await expect(page.locator(".rd-v2-detail-label", { hasText: "Destination" })).toBeVisible();
-    await expect(page.locator("aside.rd-v2-rail")).toContainText("Acquisition state");
-    await expect(page.locator("aside.rd-v2-rail")).toContainText("Registry");
-    await expect(page.locator("aside.rd-v2-rail")).toContainText("Probe");
+    await expect(page.locator(".rd-v2-detail-label", { hasText: "Possession" })).toBeVisible();
+    await expect(page.locator(".rd-v2-detail-label", { hasText: "Readiness" })).toBeVisible();
+    await expect(page.locator("aside.rd-v2-rail")).toContainText("What we know");
     await expect(page.locator("aside.rd-v2-rail")).toContainText("MOPS");
   });
 
@@ -49,7 +46,7 @@ test.describe("v2 Discover tab", () => {
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
     await page.locator(".rd-v2-search-pill input").fill("mops");
-    await page.locator('.rd-v2-catalog button.row[data-kind="external"]', { hasText: "MOPS" }).click();
+    await page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate', { hasText: "MOPS" }).click();
 
     const rail = page.locator("aside.rd-v2-rail");
     await rail.locator(".rd-v2-rail-sticky").getByRole("button", { name: "Ask about this →" }).click();
@@ -64,7 +61,7 @@ test.describe("v2 Discover tab", () => {
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
     await page.locator(".rd-v2-search-pill input").fill("mops");
-    await page.locator('.rd-v2-catalog button.row[data-kind="external"]', { hasText: "MOPS" }).click();
+    await page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate', { hasText: "MOPS" }).click();
     const rail = page.locator("aside.rd-v2-rail");
     await rail.locator(".rd-v2-rail-sticky").getByRole("button", { name: "Probe source" }).click();
     await expect(rail.locator(".rd-v2-discover-probe-result")).toContainText("direct_file");
@@ -82,7 +79,7 @@ test.describe("v2 Discover tab", () => {
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
     await page.locator(".rd-v2-search-pill input").fill("mops");
-    await page.locator('.rd-v2-catalog button.row[data-kind="external"]', { hasText: "MOPS" }).click();
+    await page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate', { hasText: "MOPS" }).click();
     const rail = page.locator("aside.rd-v2-rail");
     await rail.locator(".rd-v2-rail-sticky").getByRole("button", { name: "Probe source" }).click();
     await expect(rail.locator(".rd-v2-discover-probe-result")).toBeVisible();
@@ -133,10 +130,10 @@ test.describe("v2 Discover tab", () => {
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
     await page.locator(".rd-v2-search-pill input").fill("governance");
-    const mops = page.locator('.rd-v2-catalog button.row[data-kind="external"]', {
+    const mops = page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate', {
       hasText: "MOPS financial statements",
     });
-    const twse = page.locator('.rd-v2-catalog button.row[data-kind="external"]', {
+    const twse = page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate', {
       hasText: "TWSE OpenAPI governance",
     });
     await mops.click();
@@ -186,7 +183,7 @@ test.describe("v2 Discover tab", () => {
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
     await page.locator(".rd-v2-search-pill input").fill("MOPS");
-    await expect(page.locator('.rd-v2-catalog button.row[data-kind="external"]')).toHaveCount(2);
+    await expect(page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate')).toHaveCount(2);
     await expect(page.locator(".rd-v2-pill", { hasText: "Queued" })).toHaveCount(0);
   });
 
@@ -229,10 +226,10 @@ test.describe("v2 Discover tab", () => {
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
     await page.locator(".rd-v2-search-pill input").fill("MOPS");
-    const rowA = page.locator('.rd-v2-catalog button.row[data-kind="external"]', {
+    const rowA = page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate', {
       hasText: "MOPS financial statements",
     }).first();
-    const rowB = page.locator('.rd-v2-catalog button.row[data-kind="external"]', {
+    const rowB = page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate', {
       hasText: "MOPS financial statements extended",
     });
     await expect(rowA.locator(".rd-v2-pill", { hasText: "Queued" })).toHaveCount(1);
@@ -303,10 +300,10 @@ test.describe("v2 Discover tab", () => {
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
     await page.locator(".rd-v2-search-pill input").fill("governance");
-    const mops = page.locator('.rd-v2-catalog button.row[data-kind="external"]', {
+    const mops = page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate', {
       hasText: "MOPS financial statements",
     });
-    const twse = page.locator('.rd-v2-catalog button.row[data-kind="external"]', {
+    const twse = page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate', {
       hasText: "TWSE OpenAPI governance",
     });
     await mops.click();
@@ -392,7 +389,7 @@ test.describe("v2 Discover tab", () => {
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
     await page.locator(".rd-v2-search-pill input").fill("Redirected");
-    await page.locator('.rd-v2-catalog button.row[data-kind="external"]').first().click();
+    await page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate').first().click();
     const rail = page.locator("aside.rd-v2-rail");
     await rail.locator(".rd-v2-rail-sticky").getByRole("button", { name: "Probe source" }).click();
     await expect(rail.locator(".rd-v2-discover-probe-result")).toBeVisible();
@@ -415,7 +412,7 @@ test.describe("v2 Discover tab", () => {
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
     await page.locator(".rd-v2-search-pill input").fill("mops");
-    await page.locator('.rd-v2-catalog button.row[data-kind="external"]', { hasText: "MOPS" }).click();
+    await page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate', { hasText: "MOPS" }).click();
     // Open Detail sheet via rail tab control (existing mobile chrome)
     const detailTab = page.getByRole("tab", { name: "Detail" });
     if (await detailTab.count()) {
@@ -429,21 +426,128 @@ test.describe("v2 Discover tab", () => {
   test("new Discover query clears stale selected candidate and resets filters", async ({ page }) => {
     await page.locator(".rd-v2-search-pill input").fill("MOPS");
     await page.locator(".rd-v2-search-pill input").press("Enter");
-    await page.locator('.rd-v2-catalog button.row[data-kind="external"]').first().click();
+    await page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate').first().click();
     await expect(page.locator("aside.rd-v2-rail")).toContainText("MOPS");
 
-    await page.locator(".rd-v2-toolbar.inline").getByRole("button", { name: "Queued" }).click();
-    await expect(page.locator(".rd-v2-toolbar.inline").getByRole("button", { name: "Queued" })).toHaveClass(/on/);
+    await page.locator(".rd-v2-toolbar.inline").getByRole("button", { name: "External" }).click();
+    await expect(page.locator(".rd-v2-toolbar.inline").getByRole("button", { name: "External" })).toHaveClass(/on/);
 
     await page.locator(".rd-v2-search-pill input").fill("no-such-dataset-xyz");
     await expect(page.locator(".rd-v2-toolbar.inline").getByRole("button", { name: "All" })).toHaveClass(/on/);
     await expect(page.locator("aside.rd-v2-rail")).toContainText("No candidate selected");
   });
 
+  test("D1 taxonomy: honest kinds, no FIT grid, filters map", async ({ page }) => {
+    await mockV2Api(page, {
+      discoverBody: {
+        sections: [
+          {
+            title: "Mixed",
+            rows: [
+              {
+                dataset_id: "gdelt_asia_daily_country_panel",
+                title: "Asia daily news-risk panel",
+                source: "GDELT",
+                analysis_readiness: "instant",
+                local_root: "research_panels/gdelt",
+                coverage: "2018–2026 · Asia",
+                description: "Lab panel ready for query",
+              },
+              {
+                dataset_id: "registry_card_only",
+                title: "Registry metadata card",
+                source: "Lab registry",
+                in_lab: true,
+                description: "Registered metadata without a query path",
+              },
+              {
+                title: "Inspectable open page",
+                source: "Web",
+                url: "https://example.com/open-data",
+                description: "Public page without a collection route",
+              },
+              {
+                title: "Licensed vendor fundamentals",
+                source: "Vendor",
+                manual_access: true,
+                access_mode: "licensed",
+                license: "Proprietary — commercial license",
+                description: "Requires entitlement",
+              },
+            ],
+          },
+        ],
+        total: 4,
+      },
+    });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await page.locator(".rd-v2-search-pill input").fill("panel");
+    await page.locator(".rd-v2-search-pill input").press("Enter");
+
+    const rows = page.locator(".rd-v2-catalog button.row.rd-v2-discover-candidate");
+    await expect(rows).toHaveCount(4, { timeout: 10_000 });
+    await expect(page.locator('.rd-v2-catalog button.row[data-kind="external"]')).toHaveCount(0);
+    await expect(page.locator('.rd-v2-catalog button.row[data-kind="local-query-ready"]')).toHaveCount(1);
+    await expect(page.locator('.rd-v2-catalog button.row[data-kind="local-metadata"]')).toHaveCount(1);
+    await expect(page.locator('.rd-v2-catalog button.row[data-kind="external-discoverable"]')).toHaveCount(1);
+    await expect(page.locator('.rd-v2-catalog button.row[data-kind="licensed-manual"]')).toHaveCount(1);
+
+    await expect(page.locator(".rd-v2-discover-fact", { hasText: "Fit" })).toHaveCount(0);
+    await expect(page.locator(".rd-v2-discover-list-panel")).not.toContainText("Faculty finance");
+    await expect(page.locator(".rd-v2-discover-list-panel")).not.toContainText("FIT · ACCESS · PROBE · DESTINATION");
+    await expect(page.locator(".rd-v2-discover-pipeline")).toContainText("Process overview");
+
+    // Group order: local query-ready, local metadata, external, licensed
+    await expect(rows.nth(0)).toHaveAttribute("data-kind", "local-query-ready");
+    await expect(rows.nth(1)).toHaveAttribute("data-kind", "local-metadata");
+    await expect(rows.nth(2)).toHaveAttribute("data-kind", "external-discoverable");
+    await expect(rows.nth(3)).toHaveAttribute("data-kind", "licensed-manual");
+
+    await page.locator(".rd-v2-toolbar.inline").getByRole("button", { name: "Query ready" }).click();
+    await expect(page.locator(".rd-v2-catalog button.row.rd-v2-discover-candidate")).toHaveCount(1);
+    await expect(page.locator('.rd-v2-catalog button.row[data-kind="local-query-ready"]')).toHaveCount(1);
+
+    await page.locator(".rd-v2-toolbar.inline").getByRole("button", { name: "Needs access" }).click();
+    await expect(page.locator('.rd-v2-catalog button.row[data-kind="licensed-manual"]')).toHaveCount(1);
+  });
+
+  test("D1 taxonomy: probe stamps External · Probed without inventing acquisition", async ({ page }) => {
+    await mockV2Api(page, {
+      discoverBody: {
+        sections: [
+          {
+            title: "Probeable",
+            rows: [
+              {
+                title: "Bare public CSV index",
+                source: "Web",
+                url: "https://example.com/index.csv",
+                description: "No collect_via — probe only",
+              },
+            ],
+          },
+        ],
+        total: 1,
+      },
+    });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await page.locator(".rd-v2-search-pill input").fill("csv");
+    const row = page.locator(".rd-v2-catalog button.row.rd-v2-discover-candidate").first();
+    await expect(row).toHaveAttribute("data-kind", "external-discoverable");
+    await row.click();
+    const rail = page.locator("aside.rd-v2-rail");
+    await rail.locator(".rd-v2-rail-sticky").getByRole("button", { name: "Probe source" }).click();
+    await expect(rail.locator(".rd-v2-discover-probe-result")).toBeVisible();
+    await expect(page.locator('.rd-v2-catalog button.row[data-kind="external-probed"]')).toHaveCount(1);
+    await expect(page.locator('.rd-v2-catalog button.row[data-kind="external-acquirable"]')).toHaveCount(0);
+  });
+
   test("Preview ext opens external metadata modal", async ({ page }) => {
     await page.locator(".rd-v2-search-pill input").fill("TWSE");
     await page.locator(".rd-v2-search-pill input").press("Enter");
-    await page.locator('.rd-v2-catalog button.row[data-kind="external"]').first().click();
+    await page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate').first().click();
     await page.locator("aside .rd-v2-rail-sticky").getByRole("button", { name: "Preview source" }).click();
     const modal = page.locator(".rd-v2-preview-modal");
     await expect(modal).toBeVisible();

@@ -1,10 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { discoverSearch, unifiedSearch, webDiscover } from "@/v2/api";
 import {
+  classifyDiscoverResult,
+  coverageLine,
+  descriptiveLine,
   discoverCandidateState,
-  discoverStageCounts,
+  orderDiscoverResults,
+  taxonomyMatchesFilter,
+  taxonomyStageCounts,
 } from "@/v2/browseMeta";
-import { webHitsToRows, discoverCandidateUrl } from "@/v2/discoverActions";
+import { discoverCandidateUrl, webHitsToRows } from "@/v2/discoverActions";
 import { candidateKey, isCandidateQueued, withCandidateKey } from "@/v2/candidateKey";
 import { loadUserEmail } from "@/v2/deskSession";
 import { discoverDemoSearch } from "@/v2/deskSeed";
@@ -14,14 +19,11 @@ import { Chip, PageShell, SourceRibbon } from "@/v2/ui";
 
 const FILTERS = [
   { id: "all", label: "All" },
-  { id: "probe_ready", label: "Ready to check" },
-  { id: "queued", label: "Queued" },
   { id: "in_lab", label: "In lab" },
+  { id: "query_ready", label: "Query ready" },
+  { id: "external", label: "External" },
+  { id: "needs_access", label: "Needs access" },
 ];
-
-function rowFilterState(row, labIds) {
-  return discoverCandidateState(row, labIds).key;
-}
 
 function candidateTitle(row) {
   return row?.title || row?.name || row?.dataset_id || row?.doi || row?.url || "External dataset";
@@ -36,80 +38,21 @@ function hostLabel(value) {
   }
 }
 
-function uniqueParts(parts) {
-  const seen = new Set();
-  const out = [];
-  for (const part of parts) {
-    const text = String(part || "").trim();
-    const key = text.toLowerCase();
-    if (!text || seen.has(key)) continue;
-    seen.add(key);
-    out.push(text);
-  }
-  return out;
-}
-
-function shortText(value, max = 180) {
-  const text = String(value || "").replace(/\s+/g, " ").trim();
-  if (text.length <= max) return text;
-  return `${text.slice(0, max - 1).trim()}…`;
-}
-
-function candidateRoute(row) {
-  const host = hostLabel(row?.url);
-  const source = row?.publisher || row?.source || row?.domain || host || row?.backend;
-  const route = row?.collect_via || row?.source_route || row?.access_mode;
-  return uniqueParts([source, route]).join(" · ") || "Public source";
-}
-
-function candidateEvidence(row, state) {
-  const sourceText = row?.description || row?.recommended_use || row?.limitations;
-  const metadata = uniqueParts([
-    row?.coverage || row?.date_range || row?.temporal_coverage,
-    row?.grain,
-    row?.license || row?.access,
-  ]).join(" · ");
-  const fallback = uniqueParts([state.fit, state.access, state.probe]).join(" · ");
-  return shortText(uniqueParts([sourceText, metadata]).join(" · ") || fallback, 210);
-}
-
-function candidateSubline(row) {
-  return uniqueParts([
-    row?.dataset_id,
-    row?.doi,
-    hostLabel(row?.url),
-  ]).join(" · ");
-}
-
-function stateLabel(state) {
-  if (state.key === "probe_ready") return "Ready to check";
-  if (state.key === "in_lab") return "In lab";
-  if (state.key === "queued") return "Queued";
-  return "External";
-}
-
-function DiscoverFact({ label, value }) {
-  return (
-    <span className="rd-v2-discover-fact">
-      <b>{label}</b>
-      <em>{value}</em>
-    </span>
-  );
-}
-
 function DiscoverCandidateRow({ row, labIds, selectedId, onSelectRow }) {
+  const taxonomy = row.discover_taxonomy || classifyDiscoverResult(row, labIds);
   const state = row.discover_state || discoverCandidateState(row, labIds);
   const selected = selectedId === candidateKey(row);
-  const ribbonSource = row.source || row.collect_via || row.source_route || row.publisher || row.backend;
-  const route = candidateRoute(row);
-  const subline = candidateSubline(row);
+  const ribbonSource =
+    row.source || row.collect_via || row.source_route || row.publisher || row.backend || hostLabel(row.url);
+  const possessionLine = `${taxonomy.possession} · ${taxonomy.readiness}`;
+  const pillLabel = state.key === "queued" ? "Queued" : taxonomy.readiness;
 
   return (
     <li className={selected ? "rd-v2-row-on" : undefined}>
       <button
         type="button"
         className={`row rd-v2-discover-candidate${selected ? " selected" : ""}`}
-        data-kind="external"
+        data-kind={taxonomy.key}
         data-state={state.key}
         aria-pressed={selected}
         onClick={() => onSelectRow(row)}
@@ -120,18 +63,15 @@ function DiscoverCandidateRow({ row, labIds, selectedId, onSelectRow }) {
         <span className="rd-v2-discover-candidate-main">
           <span className="rd-v2-discover-candidate-top">
             <strong>{candidateTitle(row)}</strong>
+            <em className="rd-v2-discover-possession">{possessionLine}</em>
           </span>
-          <span className="rd-v2-discover-route">{route}</span>
-          <span className="rd-v2-discover-evidence">{candidateEvidence(row, state)}</span>
-          {subline ? <span className="rd-v2-discover-subline">{subline}</span> : null}
+          <span className="rd-v2-discover-evidence">{descriptiveLine(row)}</span>
+          <span className="rd-v2-discover-coverage">
+            <b>Coverage</b>
+            <em>{coverageLine(row)}</em>
+          </span>
         </span>
-        <span className="rd-v2-discover-facts" aria-label="Candidate details">
-          <DiscoverFact label="Fit" value={state.fit} />
-          <DiscoverFact label="Access" value={state.access} />
-          <DiscoverFact label="Probe" value={state.probe} />
-          <DiscoverFact label="Destination" value={state.destination} />
-        </span>
-        <span className={`rd-v2-pill ${state.className}`}>{stateLabel(state)}</span>
+        <span className={`rd-v2-pill ${state.className}`}>{pillLabel}</span>
       </button>
     </li>
   );
@@ -139,14 +79,7 @@ function DiscoverCandidateRow({ row, labIds, selectedId, onSelectRow }) {
 
 function DiscoverCandidateList({ rows, labIds, selectedId, onSelectRow }) {
   return (
-    <>
-      <div className="rd-v2-discover-list-hd" aria-hidden="true">
-        <span>Source</span>
-        <span>Candidate</span>
-        <span>Fit · access · probe · destination</span>
-        <span>Action</span>
-      </div>
-      <ul className="rd-v2-catalog rd-v2-discover-candidates" aria-label="Discover candidates">
+    <ul className="rd-v2-catalog rd-v2-discover-candidates" aria-label="Discover candidates">
       {rows.map((row) => (
         <DiscoverCandidateRow
           key={candidateKey(row) || candidateTitle(row)}
@@ -157,7 +90,6 @@ function DiscoverCandidateList({ rows, labIds, selectedId, onSelectRow }) {
         />
       ))}
     </ul>
-    </>
   );
 }
 
@@ -196,6 +128,7 @@ export function BrowsePage({
   searchQuery,
   jobs = [],
   usingSeed = false,
+  probeSnapshots = {},
   onSuggestSearch,
   onSearchWeb,
 }) {
@@ -269,8 +202,8 @@ export function BrowsePage({
         }
 
         const hasAcquireCandidate = mergedRows.some((r) => {
-          const st = discoverCandidateState(r, labIds);
-          return st.key !== "in_lab" && Boolean(discoverCandidateUrl(r));
+          const tax = classifyDiscoverResult(r, labIds);
+          return !tax.key.startsWith("local-") && Boolean(discoverCandidateUrl(r));
         });
 
         if (mergedRows.length && !hasAcquireCandidate && q) {
@@ -278,9 +211,7 @@ export function BrowsePage({
           const webRows = webHitsToRows(web);
           if (webRows.length) {
             mergedRows = dedupeRows([...mergedRows, ...webRows]);
-            if (!label || discoverStageCounts(mergedRows, labIds).inLab === mergedRows.length - webRows.length) {
-              label = mergedRows.length === webRows.length ? "web" : label || "search";
-            }
+            if (!label) label = "web";
             external = true;
           }
         }
@@ -335,23 +266,38 @@ export function BrowsePage({
 
   const merged = useMemo(() => {
     const seen = new Set();
-    const out = [];
+    const stampedRows = [];
     for (const r of rows) {
       const stamped = withCandidateKey(r);
       const key = candidateKey(stamped);
       if (!key || seen.has(key)) continue;
       seen.add(key);
       const queued = isCandidateQueued(stamped, jobs);
-      out.push(queued ? { ...stamped, queued: true } : stamped);
+      const withProbe =
+        probeSnapshots[key] && !stamped.probe_snapshot
+          ? { ...stamped, probe_snapshot: probeSnapshots[key] }
+          : stamped;
+      stampedRows.push(queued ? { ...withProbe, queued: true } : withProbe);
     }
-    return out;
-  }, [rows, jobs]);
+    return orderDiscoverResults(stampedRows, labIds);
+  }, [rows, jobs, labIds, probeSnapshots]);
 
   const filtered = useMemo(() => {
     if (stateFilter === "all") return merged;
-    return merged.filter((r) => rowFilterState(r, labIds) === stateFilter);
+    return merged.filter((r) => {
+      const tax = r.discover_taxonomy || classifyDiscoverResult(r, labIds);
+      return taxonomyMatchesFilter(tax, stateFilter);
+    });
   }, [merged, stateFilter, labIds]);
-  const stageCounts = useMemo(() => discoverStageCounts(merged, labIds), [merged, labIds]);
+
+  const stageCounts = useMemo(() => {
+    const tax = taxonomyStageCounts(merged, labIds);
+    return {
+      ...tax,
+      queued: merged.filter((r) => r.queued).length,
+      acquirable: tax.acquirable,
+    };
+  }, [merged, labIds]);
 
   const sourceLabel =
     source === "discover"
@@ -371,7 +317,7 @@ export function BrowsePage({
   return (
     <PageShell
       title="Discover"
-      lead="Find external datasets, check source fit, then add them to the lab"
+      lead="Find holdings and public sources, then see what you can actually use"
       toolbar={
         <>
           <Chip active={!!q}>{q ? `“${q}”` : "Awaiting search"}</Chip>

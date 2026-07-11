@@ -121,15 +121,22 @@ export function CatalogHeader({ columns }) {
 }
 
 export function SourceRibbon({ source }) {
-  const key = String(source || "web").toLowerCase();
-  let label = "WEB";
+  const raw = String(source || "").trim();
+  const key = raw.toLowerCase();
+  let label = raw ? raw.slice(0, 12).toUpperCase() : "WEB";
   let tone = "neutral";
   if (key.includes("twse")) { label = "TWSE"; tone = "tw"; }
+  else if (key.includes("mops")) { label = "MOPS"; tone = "tw"; }
   else if (key.includes("hugging")) { label = "HF"; tone = "hf"; }
   else if (key.includes("sec")) { label = "SEC"; tone = "sec"; }
   else if (key.includes("bigquery") || key === "bq") { label = "BQ"; tone = "bq"; }
   else if (key.includes("datacite") || key.includes("doi")) { label = "DOI"; tone = "doi"; }
   else if (key.includes("gdelt")) { label = "GDELT"; tone = "gdelt"; }
+  else if (key.includes("refinitiv") || key.includes("lseg")) { label = "LSEG"; tone = "warn"; }
+  else if (key.includes("lab") || key.includes("registry") || key.includes("vault")) {
+    label = "LAB";
+    tone = "lab";
+  }
   return <span className={`rd-v2-source-ribbon ${tone}`}>{label}</span>;
 }
 

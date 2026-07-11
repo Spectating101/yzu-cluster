@@ -1,34 +1,36 @@
-/** Discover acquisition pipeline — desktop main-canvas staging. */
+/** Discover acquisition overview — process map, not live lifecycle (D1). */
 
 const STEPS = [
   { id: "search", label: "Search" },
-  { id: "probe", label: "Probe" },
-  { id: "approve", label: "Approve" },
+  { id: "inspect", label: "Inspect" },
   { id: "collect", label: "Collect" },
-  { id: "register", label: "Register" },
+  { id: "lab", label: "Lab" },
 ];
 
-function activePipelineStep(counts = {}) {
-  if ((counts.inLab || 0) > 0) return 4;
-  if ((counts.queued || 0) > 0) return 2;
-  if ((counts.probeReady || 0) > 0) return 1;
+/**
+ * Overview only: highlight the earliest stage that still has work in the result set.
+ * Does not claim Approve/Running/Failed completion (those need D4).
+ */
+function overviewStep(counts = {}, searching = false) {
+  if (searching) return 0;
+  if ((counts.inLab || 0) > 0 && (counts.external || 0) === 0) return 3;
+  if ((counts.acquirable || 0) > 0 || (counts.queued || 0) > 0) return 2;
+  if ((counts.external || 0) > 0) return 1;
   return 0;
 }
 
 export function DiscoverPipeline({ counts, searching = false }) {
-  const active = searching ? 0 : activePipelineStep(counts);
-  const hasCounts = counts && (counts.probeReady || counts.queued || counts.inLab);
+  const active = overviewStep(counts, searching);
+  const hasCounts = counts && counts.total > 0;
 
   return (
-    <section className="rd-v2-discover-pipeline" aria-label="Acquisition pipeline">
+    <section className="rd-v2-discover-pipeline rd-v2-discover-pipeline-overview" aria-label="Acquisition overview">
+      <p className="rd-v2-discover-pipeline-kicker">Process overview · not live job status</p>
       <div className="rd-v2-discover-pipeline-steps">
         {STEPS.map((step, index) => (
           <span
             key={step.id}
-            className={[
-              index < active ? "done" : "",
-              index === active ? "on" : "",
-            ]
+            className={[index < active ? "done" : "", index === active ? "on" : ""]
               .filter(Boolean)
               .join(" ")}
           >
@@ -39,13 +41,14 @@ export function DiscoverPipeline({ counts, searching = false }) {
       </div>
       {hasCounts ? (
         <div className="rd-v2-discover-pipeline-counts">
-          <span>{counts.probeReady} to probe</span>
-          <span>{counts.queued} awaiting approval</span>
-          <span>{counts.inLab} in lab</span>
+          <span>{counts.queryReady || 0} query ready</span>
+          <span>{counts.inLab || 0} in lab</span>
+          <span>{counts.external || 0} external</span>
+          {(counts.needsAccess || 0) > 0 ? <span>{counts.needsAccess} need access</span> : null}
         </div>
       ) : (
         <p className="rd-v2-discover-pipeline-lead">
-          Search registries and public sources, then probe, approve, collect, and register in Library.
+          Search holdings and public sources, inspect what you can use, then collect into the lab when a route exists.
         </p>
       )}
     </section>

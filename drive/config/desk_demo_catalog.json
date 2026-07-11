@@ -165,10 +165,11 @@
       "name": "TWSE OpenAPI governance disclosures",
       "source": "TWSE",
       "collect_via": "twse_openapi",
-      "coverage": "2018–2026",
+      "coverage": "2018–2026 · Taiwan listed companies",
       "license": "Open Government",
       "grain": "issuer-quarter",
-      "description": "Taiwan exchange governance panel via OpenAPI"
+      "description": "Taiwan exchange governance panel via OpenAPI",
+      "url": "https://openapi.twse.com.tw/example"
     },
     {
       "dataset_id": "mops_financial_statements_ext",
@@ -176,21 +177,35 @@
       "name": "MOPS financial statements",
       "source": "MOPS",
       "collect_via": "mops_tw",
-      "coverage": "2015–2026",
+      "coverage": "2015–2026 · Taiwan listed issuers",
       "license": "Open Government",
       "grain": "issuer-quarter",
-      "description": "TW listed company filings from Market Observation Post System"
+      "description": "Listed-company filings from Market Observation Post System",
+      "url": "https://mops.twse.com.tw/example"
     },
     {
       "dataset_id": "datacite_ocean_temperature_ext",
       "title": "Global ocean temperature anomaly (DataCite)",
       "name": "Ocean temperature anomaly",
       "source": "DataCite",
-      "collect_via": "datacite",
       "coverage": "1990–2025",
       "license": "CC-BY 4.0",
       "grain": "grid-month",
-      "description": "Published research dataset — procure via DataCite DOI harvest"
+      "description": "Published research dataset — inspect DOI before deciding how to acquire",
+      "url": "https://doi.org/10.5281/zenodo.example",
+      "doi": "10.5281/zenodo.example"
+    },
+    {
+      "dataset_id": "refinitiv_asia_equity_manual",
+      "title": "Refinitiv Asia equity fundamentals (licensed)",
+      "name": "Refinitiv Asia equity fundamentals",
+      "source": "Refinitiv",
+      "coverage": "2000–2026 · Asia equities",
+      "license": "Proprietary — commercial license",
+      "grain": "issuer-day",
+      "description": "Vendor fundamentals requiring lab entitlement and manual intake",
+      "manual_access": true,
+      "access_mode": "licensed"
     }
   ],
   "health": {
