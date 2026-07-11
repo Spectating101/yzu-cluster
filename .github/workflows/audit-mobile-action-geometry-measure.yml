@@ -20,7 +20,7 @@ jobs:
       - name: Measure current design branch geometry
         run: |
           git fetch origin design/discover-responsive-finish
-          git checkout origin/design/discover-responsive-finish -- drive/src/v2/DiscoverEvaluationSurface.jsx drive/src/v2/v2.css docs/screenshots-review/discover-sufficiency/VISUAL_NOTES.md
+          git checkout origin/design/discover-responsive-finish -- drive/src/v2/DiscoverEvaluationSurface.jsx drive/src/v2/InspectorRail.jsx drive/src/v2/v2.css docs/screenshots-review/discover-sufficiency/VISUAL_NOTES.md
           CI=true YZU_PAGES=false TMPDIR=$PWD/.tmp-pw npx playwright test e2e/audit-mobile-action-geometry.spec.js
       - uses: actions/upload-artifact@v4
         with:
