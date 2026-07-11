@@ -1,0 +1,27 @@
+name: Render Director Sufficiency Review
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/discover-sufficiency
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Render sufficiency screenshots
+        run: CI=true YZU_PAGES=false TMPDIR=$PWD/.tmp-pw npx playwright test e2e/discover-sufficiency-screenshots.spec.js
+      - name: Upload runtime screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: director-sufficiency-runtime-screenshots
+          path: docs/screenshots-review/discover-sufficiency/*.png
+          retention-days: 1
