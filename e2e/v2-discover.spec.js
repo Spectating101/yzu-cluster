@@ -325,9 +325,10 @@ test.describe("v2 Discover tab", () => {
     );
     await page.getByTestId("discover-focus-workspace").getByRole("button", { name: "← Back to results" }).click();
     await expect(page.locator(".rd-v2-discover-candidate")).toContainText("In lab · Registered");
-    await expect(page.locator(".rd-v2-discover-pipeline-counts")).toContainText("1 in lab");
-    await expect(page.locator(".rd-v2-discover-pipeline-counts")).toContainText("0 query ready");
-    await expect(page.locator(".rd-v2-discover-pipeline-counts")).toContainText("0 external");
+    await expect(page.getByTestId("discover-result-summary")).toContainText("1 result already in your lab");
+    await page.getByTestId("discover-filter-menu").click();
+    await expect(page.getByTestId("discover-filter-menu").getByRole("button", { name: /Query ready/ })).toContainText("0");
+    await expect(page.getByTestId("discover-filter-menu").getByRole("button", { name: /Beyond your lab/ })).toContainText("0");
   });
 
   test("query-ready lifecycle projects in-lab counts and decision", async ({ page }) => {
@@ -362,9 +363,10 @@ test.describe("v2 Discover tab", () => {
     );
     await page.getByTestId("discover-focus-workspace").getByRole("button", { name: "← Back to results" }).click();
     await expect(page.locator(".rd-v2-discover-candidate")).toContainText("In lab · Query ready");
-    await expect(page.locator(".rd-v2-discover-pipeline-counts")).toContainText("1 query ready");
-    await expect(page.locator(".rd-v2-discover-pipeline-counts")).toContainText("1 in lab");
-    await expect(page.locator(".rd-v2-discover-pipeline-counts")).toContainText("0 external");
+    await expect(page.getByTestId("discover-result-summary")).toContainText("1 result already in your lab");
+    await page.getByTestId("discover-filter-menu").click();
+    await expect(page.getByTestId("discover-filter-menu").getByRole("button", { name: /Query ready/ })).toContainText("1");
+    await expect(page.getByTestId("discover-filter-menu").getByRole("button", { name: /Beyond your lab/ })).toContainText("0");
   });
 
   test("queued lifecycle path does not mark Approval reached", async ({ page }) => {
