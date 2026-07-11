@@ -1,0 +1,29 @@
+name: Audit Mobile Action Geometry Measure
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: audit/discover-mobile-focus-render-20260711
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Measure current design branch geometry
+        run: |
+          git fetch origin design/discover-responsive-finish
+          git checkout origin/design/discover-responsive-finish -- drive/src/v2/DiscoverEvaluationSurface.jsx drive/src/v2/v2.css docs/screenshots-review/discover-sufficiency/VISUAL_NOTES.md
+          CI=true YZU_PAGES=false TMPDIR=$PWD/.tmp-pw npx playwright test e2e/audit-mobile-action-geometry.spec.js
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mobile-action-geometry
+          path: mobile-action-geometry.json
+          retention-days: 1
