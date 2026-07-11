@@ -1,0 +1,36 @@
+name: Commit Director Sufficiency Screenshots
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/discover-sufficiency
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Render current sufficiency review evidence
+        run: CI=true YZU_PAGES=false TMPDIR=$PWD/.tmp-pw npx playwright test e2e/discover-sufficiency-screenshots.spec.js
+      - name: Commit regenerated PNGs
+        run: |
+          git config user.name "ChatGPT Design Director"
+          git config user.email "christstrife+chatgpt-design@users.noreply.github.com"
+          git add docs/screenshots-review/discover-sufficiency/*.png
+          if git diff --cached --quiet; then
+            echo "Screenshots already current"
+            exit 0
+          fi
+          git commit -m "docs(discover): refresh sufficiency design evidence"
+          git push origin HEAD:feature/discover-sufficiency
