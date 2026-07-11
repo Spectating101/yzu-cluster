@@ -140,7 +140,6 @@ test("render Library estate browser and inspector review states", async ({ page 
   await page.screenshot({ path: `${OUT}/04-desktop-selected-metadata-only.png`, fullPage: false });
 
   await openCollection(page, "Connected sources");
-  await openNestedCollection(page, "BigQuery");
   await selectAsset(page, "USDT BigQuery catalogue");
   await expect(page.locator("aside.rd-v2-rail")).toContainText("Connected");
   await expect(page.locator("aside.rd-v2-rail")).not.toContainText("You can preview and query this dataset now.");
