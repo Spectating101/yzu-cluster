@@ -1,0 +1,113 @@
+name: Apply Director Exact Local Handoff
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/discover-sufficiency
+          fetch-depth: 0
+
+      - name: Patch exact-local decision handoff
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path("drive/src/v2/DiscoverEvaluationSurface.jsx")
+          text = path.read_text()
+
+          old = '''  buildSufficiencyAskContext,
+            sufficiencyAskPrompts,
+          } from "@/v2/discoverSufficiency";
+          '''
+          new = '''  buildSufficiencyAskContext,
+            sufficiencyAskPrompts,
+            SUFFICIENCY,
+          } from "@/v2/discoverSufficiency";
+          '''
+          assert old in text
+          text = text.replace(old, new, 1)
+
+          old = '''  const sufficiency = useMemo(() => {
+              if (!target) return null;
+              if (target?.discover_sufficiency?.state) return target.discover_sufficiency;
+              const taxonomy = target.discover_taxonomy;
+              const group = Number(taxonomy?.group);
+              // Lab holdings do not need local-alternative comparison against themselves.
+              if (Number.isFinite(group) && group <= 2) return null;
+              return assessLocalSufficiency(target, catalog);
+            }, [target, catalog]);
+
+            if (!target || !evaluation) {
+          '''
+          new = '''  const sufficiency = useMemo(() => {
+              if (!target) return null;
+              if (target?.discover_sufficiency?.state) return target.discover_sufficiency;
+              const taxonomy = target.discover_taxonomy;
+              const group = Number(taxonomy?.group);
+              // Lab holdings do not need local-alternative comparison against themselves.
+              if (Number.isFinite(group) && group <= 2) return null;
+              return assessLocalSufficiency(target, catalog);
+            }, [target, catalog]);
+            const exactLocalEvaluation = useMemo(() => {
+              if (lifecycle || sufficiency?.state !== SUFFICIENCY.EXACT_LOCAL || !sufficiency?.bestLocal) {
+                return null;
+              }
+              return buildDiscoverEvaluation(sufficiency.bestLocal, labIds, null);
+            }, [lifecycle, sufficiency, labIds]);
+
+            if (!target || !evaluation) {
+          '''
+          assert old in text
+          text = text.replace(old, new, 1)
+
+          old = '''  const probeLoading = evaluation.probeLoading;
+            const submitting = lifecycle?.state === LIFECYCLE.SUBMITTING;
+            const targetKey = target?.candidate_key || target?.dataset_id || target?.url || evaluation.title;
+          '''
+          new = '''  const probeLoading = evaluation.probeLoading;
+            const submitting = lifecycle?.state === LIFECYCLE.SUBMITTING;
+            const targetKey = target?.candidate_key || target?.dataset_id || target?.url || evaluation.title;
+            const displayDecision = exactLocalEvaluation?.decision || evaluation.decision;
+            const displayUnknowns = exactLocalEvaluation?.unknowns || evaluation.unknowns;
+          '''
+          assert old in text
+          text = text.replace(old, new, 1)
+
+          text = text.replace(
+            '''          <p className="rd-v2-eval-decision-headline">{evaluation.decision.headline}</p>
+                      <p className="rd-v2-eval-decision-body">{evaluation.decision.body}</p>
+            ''',
+            '''          <p className="rd-v2-eval-decision-headline">{displayDecision.headline}</p>
+                      <p className="rd-v2-eval-decision-body">{displayDecision.body}</p>
+            ''',
+            1,
+          )
+
+          old = '''              {evaluation.unknowns.map((item) => (
+          '''
+          new = '''              {displayUnknowns.map((item) => (
+          '''
+          assert old in text
+          text = text.replace(old, new, 1)
+
+          path.write_text(text)
+          PY
+
+          git diff --check
+          git diff -- drive/src/v2/DiscoverEvaluationSurface.jsx
+
+      - name: Commit and push handoff correction
+        run: |
+          git config user.name "ChatGPT Design Director"
+          git config user.email "christstrife+chatgpt-design@users.noreply.github.com"
+          git add drive/src/v2/DiscoverEvaluationSurface.jsx
+          git commit -m "design(discover): hand exact matches to lab usability"
+          git push origin HEAD:feature/discover-sufficiency
