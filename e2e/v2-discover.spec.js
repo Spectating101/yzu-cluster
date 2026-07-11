@@ -24,9 +24,10 @@ test.describe("v2 Discover tab", () => {
     await page.getByRole("button", { name: "TWSE governance" }).click();
     await expect(page.locator(".rd-v2-search-pill input")).toHaveValue("TWSE governance");
     await expect(page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate')).toHaveCount(1, { timeout: 10_000 });
-    await expect(page.locator(".rd-v2-discover-list-panel")).toContainText("TWSE OpenAPI");
-    await expect(page.locator(".rd-v2-discover-pipeline")).toContainText("Search");
-    await expect(page.locator(".rd-v2-toolbar.inline").getByRole("button", { name: "External" })).toBeVisible();
+    await expect(page.locator(".rd-v2-discover-browse-groups")).toContainText("TWSE OpenAPI");
+    await expect(page.getByTestId("discover-result-summary")).toContainText(/1 result/i);
+    await expect(page.getByTestId("discover-filter-menu")).toBeVisible();
+    await expect(page.getByTestId("discover-browse-mode")).not.toContainText(/process overview/i);
   });
 
   test("selecting discover row opens evaluation surface with decision hierarchy", async ({ page }) => {
