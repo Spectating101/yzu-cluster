@@ -1,0 +1,20 @@
+name: Discover Evaluation Visual Export
+
+on:
+  push:
+    branches:
+      - audit/discover-evaluation-export-20260711
+
+jobs:
+  export-screenshots:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Upload Discover evaluation screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: discover-evaluation-screenshots
+          path: docs/screenshots-review/discover-evaluation/
+          if-no-files-found: error
+          retention-days: 1
