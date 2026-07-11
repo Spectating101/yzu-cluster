@@ -255,8 +255,8 @@ export function DiscoverEvaluationSurface({
 
         <section className="rd-v2-eval-decision" aria-label="Can I use this">
           <p className="rd-v2-eval-section-label">Can I use this?</p>
-          <p className="rd-v2-eval-decision-headline">{evaluation.decision.headline}</p>
-          <p className="rd-v2-eval-decision-body">{evaluation.decision.body}</p>
+          <p className="rd-v2-eval-decision-headline">{displayDecision.headline}</p>
+          <p className="rd-v2-eval-decision-body">{displayDecision.body}</p>
         </section>
 
         {lifecycle ? (
