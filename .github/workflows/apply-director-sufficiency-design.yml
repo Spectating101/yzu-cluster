@@ -1,0 +1,466 @@
+name: Apply Director Sufficiency Design
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/discover-sufficiency
+          fetch-depth: 0
+
+      - name: Apply bounded design patch
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          jsx_path = Path("drive/src/v2/DiscoverEvaluationSurface.jsx")
+          js_path = Path("drive/src/v2/discoverSufficiency.js")
+          css_path = Path("drive/src/v2/v2.css")
+
+          jsx = jsx_path.read_text()
+          js = js_path.read_text()
+          css = css_path.read_text()
+
+          old = '''const PATH_STAGES = [
+            { id: "submitted", label: "Submitted" },
+            { id: "approval", label: "Approval" },
+            { id: "queue", label: "Queue" },
+            { id: "running", label: "Running" },
+            { id: "registered", label: "Registered" },
+          ];
+          '''
+          new = old + '''
+          const SUFFICIENCY_DIMENSION_LABELS = Object.freeze({
+            temporal_coverage: "Time coverage",
+            grain: "Grain",
+            geographic_coverage: "Geography",
+            variables: "Variables",
+            entity_universe: "Entity universe",
+          });
+
+          function sufficiencyDimensionLabel(dimension) {
+            const key = String(dimension || "").trim();
+            if (SUFFICIENCY_DIMENSION_LABELS[key]) return SUFFICIENCY_DIMENSION_LABELS[key];
+            return key ? key.replace(/_/g, " ") : "Difference";
+          }
+
+          function sufficiencyLocalTitle(sufficiency) {
+            const local = sufficiency?.bestLocal;
+            return String(local?.title || local?.name || local?.dataset_id || "").trim();
+          }
+          '''
+          assert old in jsx
+          jsx = jsx.replace(old, new, 1)
+
+          old = '''  const secondary = lifecycle?.primaryAction
+              ? lifecycle.secondaryActions || []
+              : actions.secondary;
+
+            const openLocal = () => {
+          '''
+          new = '''  const secondary = lifecycle?.primaryAction
+              ? lifecycle.secondaryActions || []
+              : actions.secondary;
+            const sufficiencyDifferences = (sufficiency?.differences || []).filter(
+              (difference) => difference?.local || difference?.candidate,
+            );
+            const localDatasetTitle = sufficiencyLocalTitle(sufficiency);
+
+            const openLocal = () => {
+          '''
+          assert old in jsx
+          jsx = jsx.replace(old, new, 1)
+
+          old = '''        {sufficiency ? (
+                    <section
+                      className={`rd-v2-eval-sufficiency rd-v2-eval-sufficiency-${sufficiency.state}`}
+                      aria-label="Lab coverage"
+                      data-testid="discover-lab-coverage"
+                    >
+                      <p className="rd-v2-eval-section-label">Lab coverage</p>
+                      <p className="rd-v2-eval-decision-headline">{sufficiency.focusHeadline}</p>
+                      <p className="rd-v2-eval-decision-body">{sufficiency.focusBody}</p>
+                      {sufficiency.gapLines?.length ? (
+                        <div className="rd-v2-eval-sufficiency-gaps">
+                          <p className="rd-v2-eval-sufficiency-gap-label">Gap</p>
+                          <ul>
+                            {sufficiency.gapLines.map((line) => (
+                              <li key={line}>{line}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : null}
+                      {sufficiency.bestLocal &&
+                      (sufficiency.state === SUFFICIENCY.EXACT_LOCAL ||
+                        sufficiency.state === SUFFICIENCY.LIKELY_EQUIVALENT ||
+                        sufficiency.state === SUFFICIENCY.PARTIAL_LOCAL ||
+                        sufficiency.state === SUFFICIENCY.RELATED_LOCAL) ? (
+                        <button type="button" className="rd-v2-btn sm rd-v2-eval-sufficiency-open" onClick={openLocal}>
+                          {sufficiency.state === SUFFICIENCY.RELATED_LOCAL
+                            ? "Inspect local asset"
+                            : "Open local dataset"}
+                        </button>
+                      ) : null}
+                    </section>
+                  ) : null}
+          '''
+          new = '''        {sufficiency ? (
+                    <section
+                      className={`rd-v2-eval-sufficiency rd-v2-eval-sufficiency-${sufficiency.state}`}
+                      aria-label="Lab coverage"
+                      data-testid="discover-lab-coverage"
+                    >
+                      <div className="rd-v2-eval-sufficiency-copy">
+                        <p className="rd-v2-eval-section-label">Lab coverage</p>
+                        <p className="rd-v2-eval-decision-headline">{sufficiency.focusHeadline}</p>
+                        <p className="rd-v2-eval-decision-body">{sufficiency.focusBody}</p>
+                      </div>
+
+                      {sufficiencyDifferences.length ? (
+                        <div className="rd-v2-eval-sufficiency-compare" aria-label="Lab coverage comparison">
+                          {sufficiencyDifferences.map((difference) => (
+                            <div
+                              key={`${difference.dimension}-${difference.local}-${difference.candidate}`}
+                              className="rd-v2-eval-sufficiency-compare-row"
+                            >
+                              <span className="rd-v2-eval-sufficiency-dimension">
+                                {sufficiencyDimensionLabel(difference.dimension)}
+                              </span>
+                              <span className="rd-v2-eval-sufficiency-side">
+                                <small>In lab</small>
+                                <strong>{difference.local || "Not described"}</strong>
+                              </span>
+                              <span className="rd-v2-eval-sufficiency-arrow" aria-hidden="true">
+                                →
+                              </span>
+                              <span className="rd-v2-eval-sufficiency-side">
+                                <small>Candidate</small>
+                                <strong>{difference.candidate || "Not described"}</strong>
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
+
+                      {localDatasetTitle ? (
+                        <p className="rd-v2-eval-sufficiency-reference">
+                          <span>Local asset</span>
+                          <strong>{localDatasetTitle}</strong>
+                        </p>
+                      ) : null}
+                    </section>
+                  ) : null}
+          '''
+          assert old in jsx
+          jsx = jsx.replace(old, new, 1)
+          jsx = jsx.replace('''  sufficiencyAskPrompts,\n  SUFFICIENCY,\n} from "@/v2/discoverSufficiency";\n''', '''  sufficiencyAskPrompts,\n} from "@/v2/discoverSufficiency";\n''', 1)
+          jsx_path.write_text(jsx)
+
+          old = '''    summary: ready
+                ? `${title} is already in your lab and query ready.`
+                : `${title} is already in your lab.`,
+          '''
+          new = '''    summary: ready
+                ? "A query-ready dataset with the same canonical identity is already in your lab."
+                : "A dataset with the same canonical identity is already in your lab.",
+          '''
+          assert old in js
+          js = js.replace(old, new, 1)
+
+          old = '''    focusBody: ready
+                ? `${title} is already in your lab and query ready.`
+                : `${title} is already in your lab.`,
+          '''
+          new = '''    focusBody: ready
+                ? "A query-ready dataset with the same canonical identity is already in your lab."
+                : "A dataset with the same canonical identity is already in your lab.",
+          '''
+          assert old in js
+          js = js.replace(old, new, 1)
+
+          old = '''    const shortGap =
+                diffs[0].dimension === "temporal_coverage"
+                  ? `Local data covers ${diffs[0].local}`
+                  : diffs[0].dimension === "grain"
+                    ? `${diffs[0].local}, candidate is ${diffs[0].candidate}`
+                    : diffs[0].summary;
+          '''
+          new = '''    const shortGap =
+                diffs[0].dimension === "temporal_coverage"
+                  ? `In lab ${diffs[0].local} · Candidate ${diffs[0].candidate}`
+                  : diffs[0].dimension === "grain"
+                    ? `In lab ${diffs[0].local} · Candidate ${diffs[0].candidate}`
+                    : diffs[0].summary;
+          '''
+          assert old in js
+          js = js.replace(old, new, 1)
+
+          old = '''      focusBody: `A related local panel covers ${coverageText(lab) || normalizeGrain(lab?.grain) || "a subset"}. This candidate covers ${coverageText(candidate) || normalizeGrain(candidate?.grain) || "a different range"}.`,
+          '''
+          new = '''      focusBody: "Your lab covers part of this need. The known difference is shown below.",
+          '''
+          assert old in js
+          js = js.replace(old, new, 1)
+
+          old = '''    focusBody: `The lab has ${title} for the same research object, but equivalence is not established.`,
+          '''
+          new = '''    focusBody: "The lab has a related dataset for the same research object. Equivalence is not established.",
+          '''
+          assert old in js
+          js = js.replace(old, new, 1)
+          js_path.write_text(js)
+
+          old = '''.rd-v2-discover-sufficiency {
+            display: block;
+            margin-top: 6px;
+            font-size: 12.5px;
+            line-height: 1.35;
+            color: #5f6368;
+          }
+          '''
+          new = '''.rd-v2-discover-sufficiency {
+            display: block;
+            margin-top: 5px;
+            padding-left: 9px;
+            border-left: 2px solid #cbd5e1;
+            font-size: 12px;
+            font-weight: 560;
+            line-height: 1.4;
+            color: #5f6368;
+          }
+          '''
+          assert old in css
+          css = css.replace(old, new, 1)
+
+          replacements = {
+          '''.rd-v2-discover-sufficiency-exact-local,
+          .rd-v2-discover-sufficiency-likely-equivalent {
+            color: #166534;
+          }
+          ''': '''.rd-v2-discover-sufficiency-exact-local,
+          .rd-v2-discover-sufficiency-likely-equivalent {
+            border-left-color: #86c7a1;
+            color: #166534;
+          }
+          ''',
+          '''.rd-v2-discover-sufficiency-partial-local {
+            color: #92400e;
+          }
+          ''': '''.rd-v2-discover-sufficiency-partial-local {
+            border-left-color: #e2aa65;
+            color: #92400e;
+          }
+          ''',
+          '''.rd-v2-discover-sufficiency-related-local {
+            color: #1e40af;
+          }
+          ''': '''.rd-v2-discover-sufficiency-related-local {
+            border-left-color: #9ab7ef;
+            color: #1e40af;
+          }
+          ''',
+          }
+          for before, after in replacements.items():
+            assert before in css
+            css = css.replace(before, after, 1)
+
+          old = '''.rd-v2-eval-sufficiency {
+            margin: 0 0 14px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(148, 163, 184, 0.28);
+            background: rgba(255, 255, 255, 0.03);
+          }
+
+          .rd-v2-eval-sufficiency-exact-local,
+          .rd-v2-eval-sufficiency-likely-equivalent {
+            border-color: rgba(22, 101, 52, 0.35);
+            box-shadow: inset 3px 0 0 #16a34a;
+          }
+
+          .rd-v2-eval-sufficiency-partial-local {
+            border-color: rgba(146, 64, 14, 0.35);
+            box-shadow: inset 3px 0 0 #d97706;
+          }
+
+          .rd-v2-eval-sufficiency-related-local {
+            border-color: rgba(30, 64, 175, 0.3);
+            box-shadow: inset 3px 0 0 #3b82f6;
+          }
+
+          .rd-v2-eval-sufficiency-no-local-alternative {
+            box-shadow: inset 3px 0 0 #94a3b8;
+          }
+
+          .rd-v2-eval-sufficiency-comparison-unknown {
+            box-shadow: inset 3px 0 0 #a8a29e;
+          }
+
+          .rd-v2-eval-sufficiency-gaps {
+            margin-top: 10px;
+          }
+
+          .rd-v2-eval-sufficiency-gap-label {
+            margin: 0 0 4px;
+            font-size: 11px;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: rgba(226, 232, 240, 0.62);
+          }
+
+          .rd-v2-eval-sufficiency-gaps ul {
+            margin: 0;
+            padding-left: 1.1rem;
+          }
+
+          .rd-v2-eval-sufficiency-open {
+            margin-top: 10px;
+          }
+          '''
+          new = '''.rd-v2-eval-sufficiency {
+            margin: 0;
+            padding: 14px 16px 16px;
+            border: 0;
+            border-bottom: 1px solid #2a3a52;
+            border-left: 3px solid #94a3b8;
+            border-radius: 0;
+            background: rgba(255, 255, 255, 0.018);
+          }
+
+          .rd-v2-eval-sufficiency-exact-local,
+          .rd-v2-eval-sufficiency-likely-equivalent {
+            border-left-color: #16a34a;
+          }
+
+          .rd-v2-eval-sufficiency-partial-local {
+            border-left-color: #d97706;
+          }
+
+          .rd-v2-eval-sufficiency-related-local {
+            border-left-color: #3b82f6;
+          }
+
+          .rd-v2-eval-sufficiency-comparison-unknown {
+            border-left-color: #a8a29e;
+          }
+
+          .rd-v2-eval-sufficiency-copy {
+            max-width: 760px;
+          }
+
+          .rd-v2-eval-sufficiency-compare {
+            display: grid;
+            gap: 8px;
+            margin-top: 12px;
+            max-width: 760px;
+          }
+
+          .rd-v2-eval-sufficiency-compare-row {
+            display: grid;
+            grid-template-columns: 110px minmax(0, 1fr) auto minmax(0, 1fr);
+            align-items: center;
+            gap: 10px;
+            padding: 9px 0;
+            border-top: 1px solid rgba(148, 163, 184, 0.18);
+          }
+
+          .rd-v2-eval-sufficiency-dimension {
+            color: #8090a8;
+            font-size: 10.5px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+          }
+
+          .rd-v2-eval-sufficiency-side {
+            display: grid;
+            gap: 2px;
+            min-width: 0;
+          }
+
+          .rd-v2-eval-sufficiency-side small {
+            color: #8090a8;
+            font-size: 10px;
+            font-weight: 650;
+            text-transform: uppercase;
+          }
+
+          .rd-v2-eval-sufficiency-side strong {
+            min-width: 0;
+            color: #e8eef7;
+            font-size: 13px;
+            font-weight: 650;
+            overflow-wrap: anywhere;
+          }
+
+          .rd-v2-eval-sufficiency-arrow {
+            color: #60728b;
+            font-size: 14px;
+          }
+
+          .rd-v2-eval-sufficiency-reference {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            margin: 10px 0 0;
+            color: #9aabc0;
+            font-size: 12px;
+          }
+
+          .rd-v2-eval-sufficiency-reference span {
+            color: #8090a8;
+            font-size: 10.5px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+          }
+
+          .rd-v2-eval-sufficiency-reference strong {
+            color: #dbe5f3;
+            font-weight: 650;
+          }
+
+          @media (max-width: 760px) {
+            .rd-v2-eval-sufficiency-compare-row {
+              grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+              gap: 8px 12px;
+            }
+
+            .rd-v2-eval-sufficiency-dimension {
+              grid-column: 1 / -1;
+            }
+
+            .rd-v2-eval-sufficiency-arrow {
+              display: none;
+            }
+
+            .rd-v2-eval-sufficiency-reference {
+              align-items: flex-start;
+              flex-direction: column;
+              gap: 2px;
+            }
+          }
+          '''
+          assert old in css
+          css = css.replace(old, new, 1)
+          css_path.write_text(css)
+          PY
+
+          git diff --check
+          git diff -- drive/src/v2/DiscoverEvaluationSurface.jsx drive/src/v2/discoverSufficiency.js drive/src/v2/v2.css
+
+      - name: Commit and push design patch
+        run: |
+          git config user.name "ChatGPT Design Director"
+          git config user.email "christstrife+chatgpt-design@users.noreply.github.com"
+          git add drive/src/v2/DiscoverEvaluationSurface.jsx drive/src/v2/discoverSufficiency.js drive/src/v2/v2.css
+          git commit -m "design(discover): clarify lab coverage comparison"
+          git push origin HEAD:feature/discover-sufficiency
