@@ -21,6 +21,16 @@ Inspected Sharpe-Renaissance `/library/discover`, `/library/search`, registry, a
 
 No backend commit in this pass — comparison runs client-side against the lab `/datasets` catalog via `discoverSufficiency.js`. Optional `row.local_comparison` is accepted when present.
 
+## Design direction
+
+`LAB COVERAGE` is a comparison decision band, not another nested status card or a second action surface.
+
+- Exact local match hands the primary usability decision to the canonical local asset while preserving the external candidate identity.
+- Partial coverage shows the known dimension as an explicit `In lab → Candidate` comparison.
+- Related assets are named once and never upgraded to equivalent.
+- The coverage block contains no duplicate Open/Inspect button; the Evaluation action bar remains the single command authority.
+- External source evidence remains available below the comparison, while exact-local uncertainty follows the local asset's readiness context.
+
 ## Screenshots
 
 | # | State | Evidence | User decision | Primary action | Claim not made |
@@ -29,9 +39,9 @@ No backend commit in this pass — comparison runs client-side against the lab `
 | 02 | Browse partial | same source family + temporal gap | Inspect gap / maybe acquire | Source actions | Exact match |
 | 03 | Browse related | same source + join keys, no gap | Inspect related | Source actions | Equivalent |
 | 04 | Browse none | source identity searched, no lab hit | Acquire path remains | Source actions | “Does not exist in lab forever” |
-| 05 | Focus exact | canonical id | Use lab | Open local dataset | Need to collect |
-| 07 | Focus partial temporal | coverage local vs candidate | Understand gap | Probe/Add remain | Exact / equivalent |
-| 08 | Focus partial grain | week vs day | Understand grain gap | Probe/Add remain | Equivalent |
+| 05 | Focus exact | canonical id | Use query-ready lab asset | Open local dataset | Need to collect |
+| 07 | Focus partial temporal | `2018–2024 → 2015–2026` | Understand time gap | Probe/Add remain | Exact / equivalent |
+| 08 | Focus partial grain | `issuer_week → issuer_day` | Understand grain gap | Probe/Add remain | Equivalent |
 | 09 | Focus related | same family | Inspect related | Inspect secondary | Equivalent |
 | 10 | Focus none | completed empty compare | Ordinary acquire | Probe/Add | Unknown |
 | 11 | Focus unknown | thin URL-only hit | Do not treat as none | Ordinary | No alternative found |
