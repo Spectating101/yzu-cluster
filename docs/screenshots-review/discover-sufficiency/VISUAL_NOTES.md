@@ -66,6 +66,20 @@ Measured acceptance at `390×1200`, for exact-local and partial-local Focus:
 
 The regression suite locks both geometry and interaction ownership: selecting a candidate must keep Focus/no-rail; tapping `Ask` must intentionally open the inspector.
 
+### Discover Browse — research world index
+
+Browse no longer explains the procurement pipeline as the dominant page composition.
+
+- The result index owns the canvas.
+- Results are grouped by the user's decision: `Already in your lab`, `Sources beyond your lab`, and `Needs access`.
+- The summary states how much of the current result set is already owned versus beyond the lab.
+- Permanent filter chips and backend route labels are removed from the primary interface; filters move into one counted disclosure.
+- Candidate rows scan in the order source → title/readiness → useful description → known coverage → lab sufficiency.
+- Synthetic source/grain fallback descriptions and `Coverage not described` are not promoted into Browse row chrome. Focus remains the authority for missing evidence.
+- The process explanation remains available only as the subordinate `How Discover handles a missing dataset` disclosure.
+
+Visual acceptance was reviewed across exact-local, partial-local, related-local, no-local, and `390px` mobile Browse. The intended first impression is a research source index with lab memory, not an admin catalog or process tutorial.
+
 ## Screenshots
 
 | # | State | Evidence | User decision | Primary action | Claim not made |
@@ -87,7 +101,8 @@ The regression suite locks both geometry and interaction ownership: selecting a 
 
 ## Scope
 
-- Composition not redesigned
-- Lifecycle / Evaluation / D0 / D1 semantics unchanged
-- Mobile Focus action hierarchy and viewport ownership are completed in this responsive slice
-- Broader tablet/mobile Browse and page-shell responsive polish remains
+- Evaluation / D0 / D1 / Lifecycle semantics unchanged
+- Sufficiency authority unchanged
+- Mobile Focus action hierarchy and viewport ownership are completed
+- Discover Browse now uses the research world-index composition
+- Adaptive source-route construction remains a backend contract question; the UI does not claim an autonomous pipeline is ready without deterministic evidence
