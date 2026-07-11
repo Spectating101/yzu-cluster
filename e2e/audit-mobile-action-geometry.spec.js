@@ -34,8 +34,10 @@ async function geometry(page, state) {
       const s = getComputedStyle(el);
       return {
         selector,
+        className: typeof el.className === "string" ? el.className : "",
         rect: { x: r.x, y: r.y, width: r.width, height: r.height, top: r.top, right: r.right, bottom: r.bottom, left: r.left },
         display: s.display,
+        visibility: s.visibility,
         position: s.position,
         overflow: s.overflow,
         overflowX: s.overflowX,
@@ -55,6 +57,8 @@ async function geometry(page, state) {
       viewport: { width: innerWidth, height: innerHeight, scrollWidth: document.documentElement.scrollWidth, scrollHeight: document.documentElement.scrollHeight },
       shell: pick(".rd-v2-shell"),
       main: pick(".yzu-main"),
+      inspector: pick(".yzu-inspector"),
+      railPane: pick(".rd-v2-rail-pane"),
       focus: pick(".rd-v2-discover-focus"),
       workspaceShell: pick(".rd-v2-eval-workspace-shell"),
       workspace: pick(".rd-v2-eval-workspace"),
