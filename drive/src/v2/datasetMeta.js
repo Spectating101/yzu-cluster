@@ -6,19 +6,19 @@ export function statusPillKind(dataset) {
     return { kind: "external", label: "External" };
   }
   if (readiness === "instant" || readiness === "instant_or_minutes") {
-    return { kind: "query-ready", label: "Query-ready" };
+    return { kind: "query-ready", label: "Query ready" };
   }
   if (readiness === "dry_run_before_execution" || /bigquery/i.test(dataset?.backend || "")) {
     return { kind: "connected", label: "Connected" };
   }
   if (readiness === "connected") return { kind: "connected", label: "Connected" };
   if (readiness === "metadata_search" || readiness === "metadata_only") {
-    return { kind: "remote", label: "Remote" };
+    return { kind: "remote", label: "Metadata only" };
   }
   if (readiness === "procurement_planning") return { kind: "queued", label: "Queued" };
   if (readiness === "sample_now_full_later") return { kind: "warn", label: "Review" };
   if (readiness === "failed") return { kind: "failed", label: "Failed" };
-  return { kind: "query-ready", label: "Query-ready" };
+  return { kind: "unknown", label: "Readiness unknown" };
 }
 
 export function statusPill(dataset) {
