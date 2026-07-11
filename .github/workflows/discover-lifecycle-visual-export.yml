@@ -1,0 +1,20 @@
+name: Discover Lifecycle Visual Export
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  export-screenshots:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Upload Discover lifecycle screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: discover-lifecycle-screenshots
+          path: docs/screenshots-review/discover-lifecycle/
+          if-no-files-found: error
+          retention-days: 1
