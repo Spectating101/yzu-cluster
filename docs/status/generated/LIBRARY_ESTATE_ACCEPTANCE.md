@@ -74,4 +74,4 @@ The estate browser and inspector are visually approved. Global mobile navigation
 
 ## Test gate
 
-The broad mock E2E suite targets the accepted estate-browser and Library-inspector contracts. Legacy `.rd-v2-catalog` dataset selectors and the retired `Lab root` presentation label are not test authorities for Library.
+The broad mock E2E suite targets the accepted estate-browser and Library-inspector contracts. Legacy `.rd-v2-catalog` dataset selectors and the retired `Lab root` presentation label are not test authorities for Library. Parity asserts the query-ready decision contract directly; missing source metadata must remain omitted rather than synthesized to satisfy presentation tests.
