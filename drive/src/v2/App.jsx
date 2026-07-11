@@ -538,7 +538,7 @@ export function V2App() {
           ? { ...current, probe_snapshot: stamped }
           : current,
       );
-      showToast("Source probed — review connector details");
+      showToast("Source probed — review verified evidence");
     } catch (err) {
       if (browseSelectedKeyRef.current !== key) return;
       setBrowseProbe({
@@ -566,13 +566,19 @@ export function V2App() {
   );
 
   const askAboutSelection = useCallback(
-    (target) => {
+    (target, promptOverride) => {
       if (tab === "browse" && target) {
         const label = target.title || target.dataset_id || target.name || "this Discover candidate";
         setActiveObject(externalCandidateObject(target));
         setRailTab("ask");
+        const override =
+          typeof promptOverride === "string" && promptOverride.trim() ? promptOverride.trim() : "";
         setPendingAsk(
-          `Assess this Discover candidate for procurement: ${label}. Verify fit, access terms, probe route, vault destination, and the safest next action.`,
+          override ||
+            {
+              prompt: `Assess this Discover source for research use: ${label}. Summarize what is verified, what remains unknown, access/acquisition constraints, and the safest next action. Do not invent legal clearance or query readiness.`,
+              displayText: `Assess this source: ${label}`,
+            },
         );
         return;
       }

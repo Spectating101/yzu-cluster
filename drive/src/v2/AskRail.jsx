@@ -37,18 +37,22 @@ export function AskRail({
 
   const ctxParts = [contextLabel, mainTab, searchQuery ? `search: ${searchQuery}` : ""].filter(Boolean);
   const isProfile = mainTab === "profile";
+  const isDiscover = mainTab === "browse";
   const profileContext = dataset?.title || "Profile";
   const hasThread = messages.length > 0;
+  const discoverTitle = dataset?.title || dataset?.dataset_id || "";
 
   return (
     <div className="rd-v2-ask-shell">
       <header className="rd-v2-ask-head">
-        <strong>{isProfile ? "Ask" : "Procurement chat"}</strong>
+        <strong>{isProfile ? "Ask" : isDiscover ? "Ask · selected source" : "Procurement chat"}</strong>
         <p className="rd-v2-ask-ctx">
           {isProfile
             ? hasThread
               ? `Continuing · context → ${profileContext}`
               : `Context · ${profileContext}`
+            : isDiscover && discoverTitle
+              ? `Evaluating · ${discoverTitle}`
             : ctxParts.length
               ? ctxParts.join(" · ")
               : "Select a dataset for grounded answers"}
@@ -58,6 +62,31 @@ export function AskRail({
         {messages.length === 0 ? (
           isProfile ? (
             <p className="rd-v2-ask-placeholder rd-v2-ask-placeholder-quiet" />
+          ) : isDiscover && discoverTitle ? (
+            <div className="rd-v2-ask-placeholder">
+              <p>
+                Selected candidate stays in context. Ask about usability, risks, lab overlap, or what to probe next —
+                without inventing clearance or completeness.
+              </p>
+              <div className="rd-v2-chips-row rd-v2-ask-chips">
+                {[
+                  `Assess this source: ${discoverTitle}`,
+                  `What are the main risks of ${discoverTitle}?`,
+                  `Compare ${discoverTitle} with my lab holdings`,
+                  `What should I probe next for ${discoverTitle}?`,
+                ].map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    className="rd-v2-chip clickable"
+                    disabled={busy}
+                    onClick={() => send(p)}
+                  >
+                    {String(p).slice(0, 42)}
+                  </button>
+                ))}
+              </div>
+            </div>
           ) : (
             <p className="rd-v2-ask-placeholder">
               Ask about vault holdings, Hugging Face or DOI imports, overlaps, or what to procure next — the assistant

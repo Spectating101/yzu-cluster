@@ -1,7 +1,5 @@
 import { useRef, useState } from "react";
-import { classifyDiscoverResult, discoverCandidateState } from "@/v2/browseMeta";
-import { candidateKey } from "@/v2/candidateKey";
-import { discoverCandidateUrl } from "@/v2/discoverActions";
+import { buildDiscoverEvaluation } from "@/v2/discoverEvaluation";
 import { displayName } from "@/v2/datasetMeta";
 import { EmptyRailState } from "@/v2/EmptyRailState";
 import {
@@ -524,124 +522,216 @@ export function BrowseRailPanel({
         <div className="rd-v2-rail-scroll">
           <EmptyRailState
             title="No candidate selected"
-            hint="Search in the header, then select a candidate to inspect source, access, probe state, and acquisition actions."
+            hint="Search, then select a candidate to evaluate what you can use and what remains unknown."
           />
         </div>
       </RailFrame>
     );
   }
 
-  const title = target.title || target.name || target.dataset_id || "External dataset";
-  const probeBound =
-    probeState?.result && !probeState?.loading
-      ? {
-          ...target,
-          discover_state: undefined,
-          discover_taxonomy: undefined,
-          probe_snapshot:
-            target.probe_snapshot ||
-            {
-              ...probeState.result,
-              candidate_key:
-                probeState.result.candidate_key ||
-                probeState.candidateKey ||
-                candidateKey(target),
-            },
-        }
-      : target;
-  const taxonomy = classifyDiscoverResult(probeBound, labIds);
-  const state = discoverCandidateState({ ...probeBound, discover_taxonomy: taxonomy }, labIds);
-  const probeUrl = discoverCandidateUrl(target);
-  const probeSummaryText =
-    typeof probeState?.result?.summary === "string" ? probeState.result.summary : "";
-  const connector = probeState?.result?.connector;
-  const connectorSpec = connector?.spec || {};
-  const probeLoading = Boolean(probeState?.loading);
-  const probeError = probeState?.error || "";
-  const inLab = String(state.key || "").startsWith("in_lab") || String(taxonomy?.key || "").startsWith("local-");
-  const discoverNext = state.nextAction || "Inspect source";
+  const evaluation = buildDiscoverEvaluation(target, labIds, probeState);
+  const probeLoading = evaluation.probeLoading;
+  const targetKey = target?.candidate_key || target?.dataset_id || target?.url || evaluation.title;
+
+  const askPrompts = [
+    {
+      id: "assess",
+      label: "Assess this source",
+      prompt: `Assess this Discover source: ${evaluation.title}. What is verified, what remains unknown, and what should I do next?`,
+    },
+    {
+      id: "risks",
+      label: "What are the main risks?",
+      prompt: `What are the main risks of using or acquiring ${evaluation.title}? Distinguish verified facts from unknowns.`,
+    },
+    {
+      id: "compare",
+      label: "Compare with lab holdings",
+      prompt: `Compare ${evaluation.title} with my current lab holdings. Note overlaps and gaps without inventing coverage.`,
+    },
+    {
+      id: "probe_next",
+      label: "What should I probe next?",
+      prompt: `Given ${evaluation.title}, what should I probe next, and what would still remain unknown after a successful probe?`,
+    },
+  ];
+
+  const runAction = (id) => {
+    if (id === "open_library" || id === "inspect_record") onOpenInLibrary?.(target);
+    else if (id === "add_lab") onAddToLab?.(target);
+    else if (id === "probe") onProbeSource?.(target);
+    else if (id === "preview") onPreviewExternal?.();
+    else if (id === "ask" || id === "review_access") onAskAbout?.(target);
+    else if (id === "track_resources") onAskAbout?.(target);
+  };
 
   return (
     <RailFrame>
-      <RailEntityHeader
-        id={target.dataset_id || target.doi || "external"}
-        title={title}
-        description={target.description}
-        pills={
-          <span className={`rd-v2-pill ${state.className}`}>
-            {taxonomy?.label || state.label}
-          </span>
-        }
-      />
-      <RailDecisionSummary
-        status={taxonomy?.label || state.label}
-        primary={
-          inLab
-            ? "Already in the lab vault"
-            : taxonomy?.key === "licensed-manual"
-              ? "Licensed or manual access required"
-              : "Inspect what is known before collecting"
-        }
-        risk={target.license || "Check source terms before collection"}
-        next={discoverNext}
-      />
-      <div className="rd-v2-rail-scroll">
-        <p className="rd-v2-rail-section-label">What we know</p>
-        <RailFieldGrid>
-          <RailField label="Possession" value={taxonomy?.possession || state.possession} />
-          <RailField label="Readiness" value={taxonomy?.readiness || state.readiness} />
-          <RailField label="Source" value={target.source || target.collect_via || target.publisher} />
-          <RailField label="License" value={target.license || "See source terms"} />
-          <RailField label="Coverage" value={target.coverage || target.subtitle || "Not described"} />
-          <RailField label="Grain" value={target.grain || "—"} />
-        </RailFieldGrid>
-        {probeError ? (
-          <p className="rd-v2-discover-probe-error">{probeError}</p>
-        ) : null}
-        {probeSummaryText || connector ? (
-          <div className="rd-v2-discover-probe-result" aria-label="Probe result">
-            <p className="rd-v2-rail-section-label">Probe result</p>
-            {probeSummaryText ? <p className="rd-v2-discover-probe-summary">{probeSummaryText}</p> : null}
-            {connector ? (
-              <RailFieldGrid>
-                <RailField label="Connector" value={connector.connector_id || connector.id || "—"} />
-                <RailField label="Access mode" value={connectorSpec.access_mode || "—"} />
-                <RailField label="Format" value={connectorSpec.content_type || "—"} />
-                <RailField
-                  label="Files"
-                  value={String((connectorSpec.discovered_files || []).length || 0)}
-                />
-              </RailFieldGrid>
-            ) : null}
+      <div
+        className="rd-v2-eval-surface"
+        data-testid="discover-eval-surface"
+        data-taxonomy={evaluation.taxonomyKey}
+        data-selected-title={evaluation.title}
+      >
+        <header className="rd-v2-eval-identity">
+          <p className="rd-v2-eval-kicker">Selected candidate</p>
+          <h2 className="rd-v2-eval-title">{evaluation.title}</h2>
+          <p className="rd-v2-eval-source">
+            {evaluation.sourceLine}
+            <span aria-hidden="true"> · </span>
+            {evaluation.taxonomyLabel}
+          </p>
+        </header>
+
+        <section className="rd-v2-eval-decision" aria-label="Can I use this">
+          <p className="rd-v2-eval-section-label">Can I use this?</p>
+          <p className="rd-v2-eval-decision-headline">{evaluation.decision.headline}</p>
+          <p className="rd-v2-eval-decision-body">{evaluation.decision.body}</p>
+        </section>
+
+        <div className="rd-v2-rail-scroll rd-v2-eval-scroll">
+          <section className="rd-v2-eval-block" aria-label="Useful for">
+            <p className="rd-v2-eval-section-label">Useful for</p>
+            <p className="rd-v2-eval-prose">{evaluation.usefulFor}</p>
+          </section>
+
+          {evaluation.coverage.length ? (
+            <section className="rd-v2-eval-block" aria-label="Coverage">
+              <p className="rd-v2-eval-section-label">Coverage</p>
+              <ul className="rd-v2-eval-list">
+                {evaluation.coverage.map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+              </ul>
+            </section>
+          ) : (
+            <section className="rd-v2-eval-block" aria-label="Coverage">
+              <p className="rd-v2-eval-section-label">Coverage</p>
+              <p className="rd-v2-eval-prose muted">Coverage not described</p>
+            </section>
+          )}
+
+          {evaluation.hasProbe && evaluation.verified.length ? (
+            <section className="rd-v2-eval-block rd-v2-eval-verified" aria-label="Verified">
+              <p className="rd-v2-eval-section-label">Verified</p>
+              <ul className="rd-v2-eval-checklist">
+                {evaluation.verified.map((item) => (
+                  <li key={item}>
+                    <span className="rd-v2-eval-mark ok" aria-hidden="true">
+                      ✓
+                    </span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
+          {evaluation.inferred.length ? (
+            <section className="rd-v2-eval-block rd-v2-eval-inferred" aria-label="Inferred">
+              <p className="rd-v2-eval-section-label">Inferred</p>
+              <ul className="rd-v2-eval-checklist">
+                {evaluation.inferred.map((item) => (
+                  <li key={item}>
+                    <span className="rd-v2-eval-mark infer" aria-hidden="true">
+                      ~
+                    </span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
+          <section className="rd-v2-eval-block rd-v2-eval-unknown" aria-label="Still unknown">
+            <p className="rd-v2-eval-section-label">Still unknown</p>
+            <ul className="rd-v2-eval-checklist">
+              {evaluation.unknowns.map((item) => (
+                <li key={item}>
+                  <span className="rd-v2-eval-mark unknown" aria-hidden="true">
+                    ?
+                  </span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          {evaluation.probeError ? (
+            <p className="rd-v2-discover-probe-error">{evaluation.probeError}</p>
+          ) : null}
+
+          {evaluation.technical.length || evaluation.modelNotes.length ? (
+            <details key={targetKey} className="rd-v2-eval-tech">
+              <summary>Technical evidence</summary>
+              <div className="rd-v2-eval-tech-body">
+                {evaluation.modelNotes.map((note) => (
+                  <p key={note.label} className="rd-v2-eval-model-note">
+                    <span className="rd-v2-eval-section-label">Model interpretation</span>
+                    {note.detail || note.label}
+                  </p>
+                ))}
+                <RailFieldGrid>
+                  {evaluation.technical.map((fact) => (
+                    <RailField
+                      key={`${fact.label}-${fact.detail}`}
+                      label={fact.label}
+                      value={fact.detail || "—"}
+                      mono={/url|etag|connector/i.test(fact.label)}
+                    />
+                  ))}
+                </RailFieldGrid>
+              </div>
+            </details>
+          ) : (
+            <details key={targetKey} className="rd-v2-eval-tech">
+              <summary>Technical evidence</summary>
+              <p className="rd-v2-eval-prose muted">
+                No probe evidence yet. Probe the source to collect endpoint facts.
+              </p>
+            </details>
+          )}
+
+          <div className="rd-v2-eval-ask-chips" aria-label="Ask about this source">
+            <p className="rd-v2-eval-section-label">Ask about this source</p>
+            <div className="rd-v2-chips-row">
+              {askPrompts.map((chip) => (
+                <button
+                  key={chip.id}
+                  type="button"
+                  className="rd-v2-chip clickable"
+                  onClick={() => onAskAbout?.(target, chip.prompt)}
+                >
+                  {chip.label}
+                </button>
+              ))}
+            </div>
           </div>
-        ) : null}
+        </div>
       </div>
+
       <RailStickyFooter>
-        {inLab ? (
-          <button type="button" className="rd-v2-btn primary sm" onClick={() => onOpenInLibrary?.(target)}>
-            Open in Library
-          </button>
-        ) : (
-          <button type="button" className="rd-v2-btn primary sm" onClick={() => onAddToLab?.(target)} disabled={probeLoading}>
-            Add to lab
-          </button>
-        )}
-        {!inLab && probeUrl ? (
+        <button
+          type="button"
+          className="rd-v2-btn primary sm"
+          disabled={probeLoading && evaluation.actions.primary.id === "probe"}
+          onClick={() => runAction(evaluation.actions.primary.id)}
+        >
+          {probeLoading && evaluation.actions.primary.id === "probe"
+            ? "Probing…"
+            : evaluation.actions.primary.label}
+        </button>
+        {evaluation.actions.secondary.map((action) => (
           <button
+            key={action.id}
             type="button"
             className="rd-v2-btn sm"
-            onClick={() => onProbeSource?.(target)}
-            disabled={probeLoading}
+            disabled={probeLoading && action.id === "probe"}
+            onClick={() => runAction(action.id)}
           >
-            {probeLoading ? "Probing…" : "Probe source"}
+            {probeLoading && action.id === "probe" ? "Probing…" : action.label}
           </button>
-        ) : null}
-        <button type="button" className="rd-v2-btn sm" onClick={onPreviewExternal}>
-          Preview source
-        </button>
-        <button type="button" className="rd-v2-btn sm" onClick={() => onAskAbout?.(target)}>
-          Ask about this →
-        </button>
+        ))}
       </RailStickyFooter>
     </RailFrame>
   );

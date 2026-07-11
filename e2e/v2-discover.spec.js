@@ -29,16 +29,21 @@ test.describe("v2 Discover tab", () => {
     await expect(page.locator(".rd-v2-toolbar.inline").getByRole("button", { name: "External" })).toBeVisible();
   });
 
-  test("selecting discover row opens acquisition rail with Add to lab", async ({ page }) => {
+  test("selecting discover row opens evaluation surface with decision hierarchy", async ({ page }) => {
     await page.locator(".rd-v2-search-pill input").fill("MOPS");
     await page.locator(".rd-v2-search-pill input").press("Enter");
     await page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate').first().click();
+    const surface = page.getByTestId("discover-eval-surface");
+    await expect(surface).toBeVisible();
+    await expect(surface.locator(".rd-v2-eval-title")).toContainText("MOPS financial statements");
+    await expect(surface).toContainText("Can I use this?");
+    await expect(surface).toContainText("Useful for");
+    await expect(surface).toContainText("Still unknown");
+    await expect(surface.locator(".rd-v2-eval-tech")).toBeVisible();
+    await expect(surface.locator(".rd-v2-eval-tech")).not.toHaveAttribute("open");
     await expect(page.locator("aside .rd-v2-rail-sticky .rd-v2-btn.primary", { hasText: "Add to lab" })).toBeVisible();
-    await expect(page.locator(".rd-v2-detail-label", { hasText: "Source" })).toBeVisible();
-    await expect(page.locator(".rd-v2-detail-label", { hasText: "Possession" })).toBeVisible();
-    await expect(page.locator(".rd-v2-detail-label", { hasText: "Readiness" })).toBeVisible();
-    await expect(page.locator("aside.rd-v2-rail")).toContainText("What we know");
-    await expect(page.locator("aside.rd-v2-rail")).toContainText("MOPS");
+    await expect(page.locator("aside.rd-v2-rail")).not.toContainText("What we know");
+    await expect(page.locator("aside.rd-v2-rail")).not.toContainText("Possession");
   });
 
   test("Discover candidate Ask actions carry candidate context", async ({ page }) => {
@@ -49,14 +54,14 @@ test.describe("v2 Discover tab", () => {
     await page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate', { hasText: "MOPS" }).click();
 
     const rail = page.locator("aside.rd-v2-rail");
-    await rail.locator(".rd-v2-rail-sticky").getByRole("button", { name: "Ask about this →" }).click();
+    await rail.locator(".rd-v2-rail-sticky").getByRole("button", { name: "Ask about this source" }).click();
     await expect(rail.getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "true");
-    await expect(rail.locator(".rd-v2-ask-ctx")).toContainText("mops_financial_statements_ext");
-    await expect(page.getByTestId("ask-messages")).toContainText("Assess this Discover candidate for procurement");
+    await expect(rail.locator(".rd-v2-ask-ctx")).toContainText("MOPS financial statements");
+    await expect(page.getByTestId("ask-messages")).toContainText("Assess this");
     await expect(page.getByTestId("ask-messages")).toContainText("MOPS financial statements");
   });
 
-  test("Probe source shows connector summary in rail", async ({ page }) => {
+  test("Probe source shows verified facts; technical evidence stays collapsed", async ({ page }) => {
     await mockV2Api(page, { discoverBody: MOCK_DISCOVER_HIT });
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
@@ -64,8 +69,14 @@ test.describe("v2 Discover tab", () => {
     await page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate', { hasText: "MOPS" }).click();
     const rail = page.locator("aside.rd-v2-rail");
     await rail.locator(".rd-v2-rail-sticky").getByRole("button", { name: "Probe source" }).click();
-    await expect(rail.locator(".rd-v2-discover-probe-result")).toContainText("direct_file");
-    await expect(rail.locator(".rd-v2-detail-label", { hasText: "Connector" })).toBeVisible();
+    const surface = page.getByTestId("discover-eval-surface");
+    await expect(surface.locator(".rd-v2-eval-verified")).toContainText("text/csv");
+    await expect(surface.locator(".rd-v2-eval-inferred")).toContainText(/direct file|machine-readable/i);
+    await expect(surface.locator(".rd-v2-eval-tech")).not.toHaveAttribute("open");
+    await surface.locator(".rd-v2-eval-tech > summary").click();
+    await expect(surface.locator(".rd-v2-eval-tech")).toHaveAttribute("open", "");
+    await expect(surface.locator(".rd-v2-eval-tech")).toContainText("Connector ID");
+    await expect(surface.locator(".rd-v2-eval-tech")).toContainText("direct_file");
   });
 
   test("Add to lab after probe queues structured Ask", async ({ page }) => {
@@ -82,7 +93,7 @@ test.describe("v2 Discover tab", () => {
     await page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate', { hasText: "MOPS" }).click();
     const rail = page.locator("aside.rd-v2-rail");
     await rail.locator(".rd-v2-rail-sticky").getByRole("button", { name: "Probe source" }).click();
-    await expect(rail.locator(".rd-v2-discover-probe-result")).toBeVisible();
+    await expect(page.getByTestId("discover-eval-surface").locator(".rd-v2-eval-verified")).toBeVisible();
     await rail.locator(".rd-v2-rail-sticky").getByRole("button", { name: "Add to lab" }).click();
     await expect(rail.getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "true");
     const ask = page.getByTestId("ask-messages");
@@ -139,10 +150,10 @@ test.describe("v2 Discover tab", () => {
     await mops.click();
     const rail = page.locator("aside.rd-v2-rail");
     await rail.locator(".rd-v2-rail-sticky").getByRole("button", { name: "Probe source" }).click();
-    await expect(rail.locator(".rd-v2-discover-probe-result")).toContainText("direct_file");
+    await expect(page.getByTestId("discover-eval-surface").locator(".rd-v2-eval-verified")).toBeVisible();
     await twse.click();
     await expect(rail).toContainText("TWSE OpenAPI");
-    await expect(rail.locator(".rd-v2-discover-probe-result")).toHaveCount(0);
+    await expect(page.getByTestId("discover-eval-surface").locator(".rd-v2-eval-verified")).toHaveCount(0);
   });
 
   test("similar titles do not inherit queued state without candidate_key", async ({ page }) => {
@@ -314,7 +325,7 @@ test.describe("v2 Discover tab", () => {
     releaseA();
     await page.waitForTimeout(400);
     await expect(rail).toContainText("TWSE OpenAPI");
-    await expect(rail.locator(".rd-v2-discover-probe-result")).toHaveCount(0);
+    await expect(page.getByTestId("discover-eval-surface").locator(".rd-v2-eval-verified")).toHaveCount(0);
     await expect(page.locator(".rd-v2-toast")).toHaveCount(0);
   });
 
@@ -392,7 +403,7 @@ test.describe("v2 Discover tab", () => {
     await page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate').first().click();
     const rail = page.locator("aside.rd-v2-rail");
     await rail.locator(".rd-v2-rail-sticky").getByRole("button", { name: "Probe source" }).click();
-    await expect(rail.locator(".rd-v2-discover-probe-result")).toBeVisible();
+    await expect(page.getByTestId("discover-eval-surface").locator(".rd-v2-eval-verified")).toBeVisible();
     expect(probeBodies[0].url).toBe("https://cdn.example.com/final/data.csv");
     expect(probeBodies[0].candidate_key).toBe("url:https://cdn.example.com/final/data.csv");
     await rail.locator(".rd-v2-rail-sticky").getByRole("button", { name: "Add to lab" }).click();
@@ -552,7 +563,7 @@ test.describe("v2 Discover tab", () => {
     await row.click();
     const rail = page.locator("aside.rd-v2-rail");
     await rail.locator(".rd-v2-rail-sticky").getByRole("button", { name: "Probe source" }).click();
-    await expect(rail.locator(".rd-v2-discover-probe-result")).toBeVisible();
+    await expect(page.getByTestId("discover-eval-surface").locator(".rd-v2-eval-verified")).toBeVisible();
     await expect(page.locator('.rd-v2-catalog button.row[data-kind="external-probed"]')).toHaveCount(1);
     await expect(page.locator('.rd-v2-catalog button.row[data-kind="external-acquirable"]')).toHaveCount(0);
     await expect(page.locator('.rd-v2-catalog button.row[data-kind="external-probed"] .rd-v2-pill')).toHaveCount(0);

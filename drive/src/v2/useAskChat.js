@@ -134,6 +134,9 @@ export function useAskChat({ dataset, railContext, onCollected, onToast } = {}) 
     busy,
     status,
     send,
-    contextLabel: dataset?.dataset_id || dataset?.title || null,
+    contextLabel:
+      dataset?.kind === "external_candidate"
+        ? dataset.title || dataset.row?.dataset_id || dataset.id || null
+        : dataset?.dataset_id || dataset?.title || null,
   };
 }

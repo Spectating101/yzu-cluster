@@ -65,7 +65,10 @@ function DiscoverCandidateRow({ row, labIds, selectedId, onSelectRow }) {
           ) : null}
         </span>
         <span className="rd-v2-discover-candidate-main">
-          <strong className="rd-v2-discover-candidate-title">{candidateTitle(row)}</strong>
+          <strong className="rd-v2-discover-candidate-title">
+            {selected ? <span className="rd-v2-discover-selected-mark" aria-hidden="true" /> : null}
+            {candidateTitle(row)}
+          </strong>
           <em className="rd-v2-discover-possession">{taxonomyLine}</em>
           <span className="rd-v2-discover-evidence">{descriptiveLine(row)}</span>
           <span className="rd-v2-discover-coverage">
