@@ -1,0 +1,32 @@
+name: Director Discover Mobile Focus PR
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: design/discover-responsive-finish
+          fetch-depth: 0
+      - name: Apply bounded design patch
+        run: python3 scripts/director_discover_mobile_focus.py
+      - name: Validate diff
+        run: git diff --check
+      - name: Commit product changes
+        run: |
+          if git diff --quiet; then
+            echo "No product patch required"
+            exit 0
+          fi
+          git config user.name "ChatGPT Design Director"
+          git config user.email "christstrife+chatgpt-design@users.noreply.github.com"
+          git add drive/src/v2/DiscoverEvaluationSurface.jsx drive/src/v2/v2.css
+          git commit -m "design(discover): focus mobile actions on one decision"
+          git push origin HEAD:design/discover-responsive-finish
