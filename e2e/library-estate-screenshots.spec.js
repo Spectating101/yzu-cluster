@@ -99,7 +99,18 @@ async function setup(page, viewport) {
   await expect(page.getByTestId("library-estate-browser")).toBeVisible();
 }
 
-test("render Library estate browser review states", async ({ page }) => {
+async function openCollection(page, name) {
+  await page.getByRole("button", { name: "Lab", exact: true }).click();
+  await page.locator('[data-testid="library-collection"]', { hasText: name }).click();
+}
+
+async function selectAsset(page, title) {
+  const row = page.locator('.rd-v2-library-asset[data-kind="dataset"]', { hasText: title });
+  await row.click();
+  await expect(page.locator("aside.rd-v2-rail")).toContainText(title);
+}
+
+test("render Library estate browser and inspector review states", async ({ page }) => {
   mkdirSync(OUT, { recursive: true });
 
   await setup(page, { width: 1440, height: 900 });
@@ -110,19 +121,34 @@ test("render Library estate browser review states", async ({ page }) => {
   await page.screenshot({ path: `${OUT}/02-desktop-research-panels.png`, fullPage: false });
 
   await page.locator('[data-testid="library-collection"]', { hasText: "gdelt" }).click();
-  const gdelt = page.locator('.rd-v2-library-asset[data-kind="dataset"]', { hasText: "Asia daily news-risk panel" });
-  await gdelt.click();
-  await expect(page.locator("aside.rd-v2-rail")).toContainText("Asia daily news-risk panel");
-  await page.screenshot({ path: `${OUT}/03-desktop-selected-derived.png`, fullPage: false });
+  await selectAsset(page, "Asia daily news-risk panel");
+  await expect(page.locator("aside.rd-v2-rail")).toContainText("Can I use this?");
+  await expect(page.locator("aside.rd-v2-rail")).toContainText("Query ready");
+  await page.screenshot({ path: `${OUT}/03-desktop-selected-query-ready.png`, fullPage: false });
 
-  await page.getByRole("button", { name: "Lab", exact: true }).click();
-  await page.locator('[data-testid="library-collection"]', { hasText: "Acquired data" }).click();
-  await expect(page.getByTestId("library-estate-browser")).toContainText("MOPS financial statements");
-  await page.screenshot({ path: `${OUT}/04-desktop-acquired-data.png`, fullPage: false });
+  await openCollection(page, "Acquired data");
+  await selectAsset(page, "MOPS financial statements");
+  await expect(page.locator("aside.rd-v2-rail")).toContainText("Metadata only");
+  await expect(page.locator("aside.rd-v2-rail").getByRole("button", { name: "Preview rows" })).toHaveCount(0);
+  await page.screenshot({ path: `${OUT}/04-desktop-selected-metadata-only.png`, fullPage: false });
+
+  await openCollection(page, "Connected sources");
+  await selectAsset(page, "USDT BigQuery catalogue");
+  await expect(page.locator("aside.rd-v2-rail")).toContainText("Connected");
+  await expect(page.locator("aside.rd-v2-rail")).not.toContainText("You can preview and query this dataset now.");
+  await page.screenshot({ path: `${OUT}/05-desktop-selected-connected.png`, fullPage: false });
+
+  await openCollection(page, "Other assets");
+  await selectAsset(page, "Unclassified registry asset");
+  await expect(page.locator("aside.rd-v2-rail")).toContainText("Readiness unknown");
+  await expect(page.locator("aside.rd-v2-rail").getByRole("button", { name: "Preview rows" })).toHaveCount(0);
+  await page.screenshot({ path: `${OUT}/06-desktop-selected-unknown.png`, fullPage: false });
 
   await setup(page, { width: 390, height: 1200 });
-  await page.screenshot({ path: `${OUT}/05-mobile-root.png`, fullPage: false });
+  await page.screenshot({ path: `${OUT}/07-mobile-root.png`, fullPage: false });
 
   await page.locator('[data-testid="library-collection"]', { hasText: "Research panels" }).click();
-  await page.screenshot({ path: `${OUT}/06-mobile-research-panels.png`, fullPage: false });
+  await page.locator('[data-testid="library-collection"]', { hasText: "gdelt" }).click();
+  await selectAsset(page, "Asia daily news-risk panel");
+  await page.screenshot({ path: `${OUT}/08-mobile-selected-query-ready.png`, fullPage: false });
 });
