@@ -1,0 +1,38 @@
+name: Audit Apply Discover Mobile Focus Shell
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: audit/discover-mobile-focus-render-20260711
+          fetch-depth: 0
+      - name: Prepare bounded patch script and product branch
+        run: |
+          cp scripts/audit_fix_discover_mobile_focus_shell.py /tmp/fix_discover_mobile_focus_shell.py
+          git fetch origin design/discover-responsive-finish
+          git checkout -B director-work origin/design/discover-responsive-finish
+      - name: Apply mobile Focus shell correction
+        run: |
+          python3 /tmp/fix_discover_mobile_focus_shell.py
+          git diff --check
+          git diff -- drive/src/v2/InspectorRail.jsx drive/src/v2/v2.css
+      - name: Commit product correction
+        run: |
+          if git diff --quiet; then
+            echo "No Focus shell patch required"
+            exit 0
+          fi
+          git config user.name "ChatGPT Design Director"
+          git config user.email "christstrife+chatgpt-design@users.noreply.github.com"
+          git add drive/src/v2/InspectorRail.jsx drive/src/v2/v2.css
+          git commit -m "fix(discover): make mobile Focus own its viewport"
+          git push origin HEAD:design/discover-responsive-finish
