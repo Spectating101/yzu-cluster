@@ -1,0 +1,52 @@
+name: Audit Discover Focus Geometry
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: design/discover-responsive-finish
+      - name: Export focus source contexts
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          css = Path('drive/src/v2/v2.css').read_text().splitlines()
+          needles = [
+            'rd-v2-eval-workspace-shell',
+            'rd-v2-eval-workspace',
+            'rd-v2-discover-focus',
+            'rd-v2-shell',
+            'overflow: hidden',
+            'transform:',
+            'contain:',
+          ]
+          hits = []
+          for i, line in enumerate(css):
+            if any(n in line for n in needles):
+              hits.append(i)
+          out = []
+          seen = set()
+          for i in hits:
+            start, end = max(0, i - 8), min(len(css), i + 24)
+            if any(a <= i <= b for a, b in seen):
+              continue
+            seen.add((start, end))
+            out.append(f'--- lines {start+1}-{end} ---')
+            out.extend(f'{n+1:05d}: {css[n]}' for n in range(start, end))
+          Path('focus-css-contexts.txt').write_text('\n'.join(out))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: discover-focus-geometry-source
+          path: |
+            focus-css-contexts.txt
+            drive/src/v2/BrowsePage.jsx
+            drive/src/v2/DiscoverEvaluationSurface.jsx
+            drive/src/v2/v2.css
+            e2e/discover-sufficiency-screenshots.spec.js
+          retention-days: 1
