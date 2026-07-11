@@ -12,7 +12,6 @@ import {
   applySufficiencyToActions,
   buildSufficiencyAskContext,
   sufficiencyAskPrompts,
-  SUFFICIENCY,
 } from "@/v2/discoverSufficiency";
 import {
   RailField,
@@ -29,6 +28,25 @@ const PATH_STAGES = [
   { id: "running", label: "Running" },
   { id: "registered", label: "Registered" },
 ];
+
+const SUFFICIENCY_DIMENSION_LABELS = Object.freeze({
+  temporal_coverage: "Time coverage",
+  grain: "Grain",
+  geographic_coverage: "Geography",
+  variables: "Variables",
+  entity_universe: "Entity universe",
+});
+
+function sufficiencyDimensionLabel(dimension) {
+  const key = String(dimension || "").trim();
+  if (SUFFICIENCY_DIMENSION_LABELS[key]) return SUFFICIENCY_DIMENSION_LABELS[key];
+  return key ? key.replace(/_/g, " ") : "Difference";
+}
+
+function sufficiencyLocalTitle(sufficiency) {
+  const local = sufficiency?.bestLocal;
+  return String(local?.title || local?.name || local?.dataset_id || "").trim();
+}
 
 export function DiscoverEvaluationSurface({
   target,
@@ -140,6 +158,10 @@ export function DiscoverEvaluationSurface({
   const secondary = lifecycle?.primaryAction
     ? lifecycle.secondaryActions || []
     : actions.secondary;
+  const sufficiencyDifferences = (sufficiency?.differences || []).filter(
+    (difference) => difference?.local || difference?.candidate,
+  );
+  const localDatasetTitle = sufficiencyLocalTitle(sufficiency);
 
   const openLocal = () => {
     const local = sufficiency?.bestLocal;
@@ -281,29 +303,43 @@ export function DiscoverEvaluationSurface({
             aria-label="Lab coverage"
             data-testid="discover-lab-coverage"
           >
-            <p className="rd-v2-eval-section-label">Lab coverage</p>
-            <p className="rd-v2-eval-decision-headline">{sufficiency.focusHeadline}</p>
-            <p className="rd-v2-eval-decision-body">{sufficiency.focusBody}</p>
-            {sufficiency.gapLines?.length ? (
-              <div className="rd-v2-eval-sufficiency-gaps">
-                <p className="rd-v2-eval-sufficiency-gap-label">Gap</p>
-                <ul>
-                  {sufficiency.gapLines.map((line) => (
-                    <li key={line}>{line}</li>
-                  ))}
-                </ul>
+            <div className="rd-v2-eval-sufficiency-copy">
+              <p className="rd-v2-eval-section-label">Lab coverage</p>
+              <p className="rd-v2-eval-decision-headline">{sufficiency.focusHeadline}</p>
+              <p className="rd-v2-eval-decision-body">{sufficiency.focusBody}</p>
+            </div>
+
+            {sufficiencyDifferences.length ? (
+              <div className="rd-v2-eval-sufficiency-compare" aria-label="Lab coverage comparison">
+                {sufficiencyDifferences.map((difference) => (
+                  <div
+                    key={`${difference.dimension}-${difference.local}-${difference.candidate}`}
+                    className="rd-v2-eval-sufficiency-compare-row"
+                  >
+                    <span className="rd-v2-eval-sufficiency-dimension">
+                      {sufficiencyDimensionLabel(difference.dimension)}
+                    </span>
+                    <span className="rd-v2-eval-sufficiency-side">
+                      <small>In lab</small>
+                      <strong>{difference.local || "Not described"}</strong>
+                    </span>
+                    <span className="rd-v2-eval-sufficiency-arrow" aria-hidden="true">
+                      →
+                    </span>
+                    <span className="rd-v2-eval-sufficiency-side">
+                      <small>Candidate</small>
+                      <strong>{difference.candidate || "Not described"}</strong>
+                    </span>
+                  </div>
+                ))}
               </div>
             ) : null}
-            {sufficiency.bestLocal &&
-            (sufficiency.state === SUFFICIENCY.EXACT_LOCAL ||
-              sufficiency.state === SUFFICIENCY.LIKELY_EQUIVALENT ||
-              sufficiency.state === SUFFICIENCY.PARTIAL_LOCAL ||
-              sufficiency.state === SUFFICIENCY.RELATED_LOCAL) ? (
-              <button type="button" className="rd-v2-btn sm rd-v2-eval-sufficiency-open" onClick={openLocal}>
-                {sufficiency.state === SUFFICIENCY.RELATED_LOCAL
-                  ? "Inspect local asset"
-                  : "Open local dataset"}
-              </button>
+
+            {localDatasetTitle ? (
+              <p className="rd-v2-eval-sufficiency-reference">
+                <span>Local asset</span>
+                <strong>{localDatasetTitle}</strong>
+              </p>
             ) : null}
           </section>
         ) : null}

@@ -131,8 +131,8 @@ function exactMatch(lab) {
     state: SUFFICIENCY.EXACT_LOCAL,
     label: LABELS[SUFFICIENCY.EXACT_LOCAL],
     summary: ready
-      ? `${title} is already in your lab and query ready.`
-      : `${title} is already in your lab.`,
+      ? "A query-ready dataset with the same canonical identity is already in your lab."
+      : "A dataset with the same canonical identity is already in your lab.",
     localMatches: [lab],
     bestLocal: lab,
     basis: [{ dimension: "canonical_identity", relation: "same" }],
@@ -141,8 +141,8 @@ function exactMatch(lab) {
     browseLine: `${LABELS[SUFFICIENCY.EXACT_LOCAL]} · ${title}`,
     focusHeadline: LABELS[SUFFICIENCY.EXACT_LOCAL],
     focusBody: ready
-      ? `${title} is already in your lab and query ready.`
-      : `${title} is already in your lab.`,
+      ? "A query-ready dataset with the same canonical identity is already in your lab."
+      : "A dataset with the same canonical identity is already in your lab.",
     primaryActionHint: { id: "open_local", label: "Open local dataset" },
     secondaryActionHint: null,
   };
@@ -182,9 +182,9 @@ function relatedOrPartial(lab, candidate, basis) {
     const gapLine = diffs.map((d) => d.summary).join("; ");
     const shortGap =
       diffs[0].dimension === "temporal_coverage"
-        ? `Local data covers ${diffs[0].local}`
+        ? `In lab ${diffs[0].local} · Candidate ${diffs[0].candidate}`
         : diffs[0].dimension === "grain"
-          ? `${diffs[0].local}, candidate is ${diffs[0].candidate}`
+          ? `In lab ${diffs[0].local} · Candidate ${diffs[0].candidate}`
           : diffs[0].summary;
     return {
       state: SUFFICIENCY.PARTIAL_LOCAL,
@@ -197,7 +197,7 @@ function relatedOrPartial(lab, candidate, basis) {
       comparisonComplete: true,
       browseLine: `${LABELS[SUFFICIENCY.PARTIAL_LOCAL]} · ${shortGap}`,
       focusHeadline: LABELS[SUFFICIENCY.PARTIAL_LOCAL],
-      focusBody: `A related local panel covers ${coverageText(lab) || normalizeGrain(lab?.grain) || "a subset"}. This candidate covers ${coverageText(candidate) || normalizeGrain(candidate?.grain) || "a different range"}.`,
+      focusBody: "Your lab covers part of this need. The known difference is shown below.",
       gapLines: diffs.map((d) => d.summary),
       primaryActionHint: null,
       secondaryActionHint: { id: "open_local", label: "Open local dataset" },
@@ -221,7 +221,7 @@ function relatedOrPartial(lab, candidate, basis) {
     comparisonComplete: true,
     browseLine: `${LABELS[SUFFICIENCY.RELATED_LOCAL]} · ${basisNote}`,
     focusHeadline: LABELS[SUFFICIENCY.RELATED_LOCAL],
-    focusBody: `The lab has ${title} for the same research object, but equivalence is not established.`,
+    focusBody: "The lab has a related dataset for the same research object. Equivalence is not established.",
     primaryActionHint: null,
     secondaryActionHint: { id: "inspect_related", label: "Inspect related lab asset" },
   };
