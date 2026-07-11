@@ -1,5 +1,5 @@
 /**
- * Discover Evaluation Surface screenshots (E3).
+ * Discover Evaluation Surface screenshots (E3 + E4 integrity).
  * Run: CI=true YZU_PAGES=false TMPDIR=$PWD/.tmp-pw npx playwright test e2e/discover-evaluation-screenshots.spec.js
  */
 import { test, expect } from "@playwright/test";
@@ -12,6 +12,13 @@ fs.mkdirSync(OUT, { recursive: true });
 
 async function shot(page, label) {
   await page.screenshot({ path: path.join(OUT, `${label}.png`), fullPage: false });
+}
+
+async function waitProbeToastClear(page) {
+  const toast = page.locator(".rd-v2-toast[data-toast-scope='discover-probe']");
+  if (await toast.count()) {
+    await expect(toast).toHaveCount(0, { timeout: 6000 });
+  }
 }
 
 const MIXED = {
@@ -69,8 +76,8 @@ test.describe("Discover evaluation screenshots", () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
+    // Type without Enter so Ask does not auto-start a Find-datasets thread yet.
     await page.locator(".rd-v2-search-pill input").fill("evaluation");
-    await page.locator(".rd-v2-search-pill input").press("Enter");
     await expect(page.locator(".rd-v2-discover-candidate")).toHaveCount(4);
 
     // 1. external before probe
@@ -79,15 +86,18 @@ test.describe("Discover evaluation screenshots", () => {
     await expect(page.locator("aside .rd-v2-rail-sticky .rd-v2-btn.primary")).toContainText("Probe source");
     await shot(page, "01-desktop-external-before-probe");
 
-    // 2. after successful probe
+    // 2. after successful probe — wait for toast clear so hierarchy is the subject
     await page.locator("aside .rd-v2-rail-sticky").getByRole("button", { name: "Probe source" }).click();
     await expect(page.getByTestId("discover-eval-surface").locator(".rd-v2-eval-verified")).toBeVisible();
+    await expect(page.locator("aside .rd-v2-rail-sticky .rd-v2-btn.primary")).toContainText("Preview source");
+    await waitProbeToastClear(page);
     await shot(page, "02-desktop-external-after-probe");
 
-    // 3. acquisition-available
+    // 3. acquisition-available (no stale probe toast)
     await page.locator(".rd-v2-discover-candidate", { hasText: "MOPS financial statements" }).click();
     await expect(page.getByTestId("discover-eval-surface")).toContainText("Acquisition available");
     await expect(page.locator("aside .rd-v2-rail-sticky .rd-v2-btn.primary")).toContainText("Add to lab");
+    await expect(page.locator(".rd-v2-toast[data-toast-scope='discover-probe']")).toHaveCount(0);
     await shot(page, "03-desktop-acquisition-available");
 
     // 4. licensed/manual
@@ -98,31 +108,43 @@ test.describe("Discover evaluation screenshots", () => {
     );
     await shot(page, "04-desktop-licensed-manual");
 
-    // 5. local query-ready
+    // 5. local query-ready — unknowns must be lab-relevant
     await page.locator(".rd-v2-discover-candidate", { hasText: "Asia daily news-risk panel" }).click();
     await expect(page.getByTestId("discover-eval-surface")).toContainText("Query ready");
     await expect(page.locator("aside .rd-v2-rail-sticky .rd-v2-btn.primary")).toContainText("Open in Library");
+    await expect(page.getByTestId("discover-eval-surface")).not.toContainText("Source endpoint not probed");
+    await expect(page.getByTestId("discover-eval-surface")).not.toContainText("Acquisition constraints not verified");
     await shot(page, "05-desktop-local-query-ready");
 
     // 6. tablet after probe
     await page.setViewportSize({ width: 900, height: 1200 });
     await page.locator(".rd-v2-discover-candidate", { hasText: "Bare public CSV index" }).click();
     await expect(page.getByTestId("discover-eval-surface").locator(".rd-v2-eval-verified")).toBeVisible();
+    await expect(page.locator("aside .rd-v2-rail-sticky .rd-v2-btn.primary")).toContainText("Preview source");
     await shot(page, "06-tablet-external-after-probe");
 
     // 7–9 mobile
     await page.setViewportSize({ width: 390, height: 1200 });
     await page.locator(".rd-v2-discover-candidate", { hasText: "Bare public CSV index" }).click();
     await shot(page, "07-mobile-selected-row");
-    // open detail if collapsed
     const grip = page.locator(".rd-v2-rail-mobile-grip");
     if (await grip.isVisible()) {
       await grip.click();
     }
     await expect(page.getByTestId("discover-eval-surface")).toBeVisible();
     await shot(page, "08-mobile-detail-after-probe");
+
+    // Seed a prior generic Ask thread, then show selected-context transition.
+    await page.locator(".rd-v2-search-pill input").press("Enter");
+    await expect(page.getByTestId("ask-messages")).toContainText("Find datasets for: evaluation");
+    await page.locator("aside.rd-v2-rail").getByRole("tab", { name: "Detail" }).click();
+    await page.locator(".rd-v2-discover-candidate", { hasText: "Bare public CSV index" }).click();
+    if (await grip.isVisible()) {
+      await grip.click();
+    }
     await page.locator("aside.rd-v2-rail").getByRole("tab", { name: "Ask" }).click();
-    await expect(page.locator(".rd-v2-ask-ctx")).toContainText("Bare public CSV");
+    await expect(page.locator(".rd-v2-ask-ctx")).toContainText("Selected context · Bare public CSV");
+    await expect(page.getByTestId("ask-context-notice")).toBeVisible();
     await shot(page, "09-mobile-detail-ask-context");
   });
 });

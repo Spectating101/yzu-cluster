@@ -155,7 +155,7 @@ export function V2App() {
   const [resourceMode, setResourceMode] = useState("spending");
   const [activityFilter, setActivityFilter] = useState(null);
   const [pendingAsk, setPendingAsk] = useState("");
-  const { toast, show: showToast } = useToast();
+  const { toast, show: showToast, dismissIf: dismissToastIf } = useToast();
 
   const reloadProfile = useCallback(() => {
     const email = loadUserEmail();
@@ -538,7 +538,11 @@ export function V2App() {
           ? { ...current, probe_snapshot: stamped }
           : current,
       );
-      showToast("Source probed — review verified evidence");
+      const label = String(target?.title || target?.name || target?.dataset_id || "Source").trim();
+      showToast(`${label} probed — review verified evidence`, {
+        scope: "discover-probe",
+        candidateKey: key,
+      });
     } catch (err) {
       if (browseSelectedKeyRef.current !== key) return;
       setBrowseProbe({
@@ -618,7 +622,8 @@ export function V2App() {
     setBrowseProbe({ candidateKey: "", loading: false, result: null, error: "" });
     setProbeSnapshots({});
     setActiveObject((current) => (current?.kind === "external_candidate" ? null : current));
-  }, [searchQuery]);
+    dismissToastIf((t) => t.scope === "discover-probe");
+  }, [searchQuery, dismissToastIf]);
 
   const focusLibraryFolder = useCallback((object) => {
     if (activeObject?.kind === "library_intake") return;
@@ -803,6 +808,9 @@ export function V2App() {
           onSelectRow={(row) => {
             const nextKey = candidateKey(row);
             browseSelectedKeyRef.current = nextKey;
+            dismissToastIf(
+              (t) => t.scope === "discover-probe" && t.candidateKey && t.candidateKey !== nextKey,
+            );
             const stamped =
               probeSnapshots[nextKey] && !row.probe_snapshot
                 ? { ...row, probe_snapshot: probeSnapshots[nextKey] }

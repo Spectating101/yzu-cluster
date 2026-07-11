@@ -73,7 +73,8 @@ describe("classifyProbeEvidence", () => {
     const verified = classified.verified.map((f) => f.label).join(" | ");
     const inferred = classified.inferred.map((f) => f.label).join(" | ");
     const model = classified.model.map((f) => f.label).join(" | ");
-    assert.match(verified, /MOPS publisher|mops\.twse/i);
+    assert.match(verified, /mops\.twse\.com\.tw domain observed/i);
+    assert.doesNotMatch(verified, /MOPS publisher/i);
     assert.match(verified, /HTTP endpoint responded \(200\)/);
     assert.match(verified, /text\/csv/);
     assert.match(inferred, /direct file|machine-readable/i);
@@ -83,6 +84,24 @@ describe("classifyProbeEvidence", () => {
       classified.verified.some((f) => /legal|open license|acquirable|research-ready/i.test(f.label)),
       false,
     );
+  });
+
+  it("does not verify row publisher from observed domain alone", () => {
+    const classified = classifyProbeEvidence(
+      {
+        candidate_key: "url:https://example.com/data.csv",
+        source: "MOPS",
+        url: "https://example.com/data.csv",
+      },
+      {
+        candidate_key: "url:https://example.com/data.csv",
+        resolved_url: "https://example.com/data.csv",
+        http_status: 200,
+      },
+    );
+    const verified = classified.verified.map((f) => f.label).join(" | ");
+    assert.match(verified, /example\.com domain observed/i);
+    assert.doesNotMatch(verified, /MOPS publisher/i);
   });
 
   it("does not promote probe summary to verified", () => {
@@ -106,11 +125,58 @@ describe("honesty guards", () => {
 });
 
 describe("unknowns + primary verified", () => {
-  it("surfaces unknowns before probe", () => {
+  it("surfaces unknowns before probe for external candidates", () => {
     const taxonomy = classifyDiscoverResult(ROW, new Set());
     const unknowns = deriveUnknowns(ROW, taxonomy, { verified: [] }, false);
     assert.ok(unknowns.some((u) => /not probed/i.test(u)));
     assert.ok(unknowns.some((u) => /Acquisition constraints/i.test(u)));
+  });
+
+  it("local-query-ready never shows endpoint-probe or acquisition unknowns", () => {
+    const row = {
+      dataset_id: "gdelt_asia_daily_country_panel",
+      title: "Asia daily news-risk panel",
+      analysis_readiness: "instant",
+      local_root: "research_panels/gdelt",
+      coverage: "2018–2026 · Asia countries",
+    };
+    const labIds = new Set(["gdelt_asia_daily_country_panel"]);
+    const taxonomy = classifyDiscoverResult(row, labIds);
+    assert.equal(taxonomy.key, "local-query-ready");
+    const unknowns = deriveUnknowns(row, taxonomy, { verified: [] }, false);
+    assert.equal(unknowns.some((u) => /endpoint not probed/i.test(u)), false);
+    assert.equal(unknowns.some((u) => /Acquisition constraints/i.test(u)), false);
+    assert.equal(unknowns.some((u) => /Bulk-download/i.test(u)), false);
+    assert.ok(unknowns.some((u) => /Freshness|caveats|Schema details/i.test(u)));
+  });
+
+  it("local-connected calls out missing instant query path", () => {
+    const row = {
+      dataset_id: "connected_only",
+      title: "Connected panel",
+      in_lab: true,
+      local_root: "vault/x",
+    };
+    const labIds = new Set(["connected_only"]);
+    const taxonomy = classifyDiscoverResult(row, labIds);
+    assert.equal(taxonomy.key, "local-connected");
+    const unknowns = deriveUnknowns(row, taxonomy, { verified: [] }, false);
+    assert.ok(unknowns.some((u) => /Instant query path/i.test(u)));
+    assert.equal(unknowns.some((u) => /endpoint not probed/i.test(u)), false);
+  });
+
+  it("local-metadata calls out missing usable local path", () => {
+    const row = {
+      dataset_id: "registry_card_only",
+      title: "Registry metadata card",
+      in_lab: true,
+    };
+    const labIds = new Set(["registry_card_only"]);
+    const taxonomy = classifyDiscoverResult(row, labIds);
+    assert.equal(taxonomy.key, "local-metadata");
+    const unknowns = deriveUnknowns(row, taxonomy, { verified: [] }, false);
+    assert.ok(unknowns.some((u) => /Usable local data path/i.test(u)));
+    assert.equal(unknowns.some((u) => /endpoint not probed/i.test(u)), false);
   });
 
   it("caps primary verified facts", () => {

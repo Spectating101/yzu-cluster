@@ -71,12 +71,84 @@ test.describe("v2 Discover tab", () => {
     await rail.locator(".rd-v2-rail-sticky").getByRole("button", { name: "Probe source" }).click();
     const surface = page.getByTestId("discover-eval-surface");
     await expect(surface.locator(".rd-v2-eval-verified")).toContainText("text/csv");
+    await expect(surface.locator(".rd-v2-eval-verified")).toContainText(/domain observed/i);
+    await expect(surface.locator(".rd-v2-eval-verified")).not.toContainText("MOPS publisher");
     await expect(surface.locator(".rd-v2-eval-inferred")).toContainText(/direct file|machine-readable/i);
     await expect(surface.locator(".rd-v2-eval-tech")).not.toHaveAttribute("open");
     await surface.locator(".rd-v2-eval-tech > summary").click();
     await expect(surface.locator(".rd-v2-eval-tech")).toHaveAttribute("open", "");
     await expect(surface.locator(".rd-v2-eval-tech")).toContainText("Connector ID");
     await expect(surface.locator(".rd-v2-eval-tech")).toContainText("direct_file");
+  });
+
+  test("probe toast is candidate-scoped and clears on selection change", async ({ page }) => {
+    await mockV2Api(page, {
+      discoverBody: {
+        sections: [
+          {
+            title: "Registry",
+            rows: [
+              {
+                title: "Bare public CSV index",
+                source: "Web",
+                url: "https://example.com/index.csv",
+              },
+              {
+                dataset_id: "mops_financial_statements_ext",
+                title: "MOPS financial statements (Taiwan)",
+                source: "MOPS",
+                collect_via: "mops_tw",
+                url: "https://mops.twse.com.tw/example",
+              },
+            ],
+          },
+        ],
+        total: 2,
+      },
+    });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await page.locator(".rd-v2-search-pill input").fill("csv");
+    await page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate', {
+      hasText: "Bare public CSV index",
+    }).click();
+    const rail = page.locator("aside.rd-v2-rail");
+    await rail.locator(".rd-v2-rail-sticky").getByRole("button", { name: "Probe source" }).click();
+    const toast = page.locator(".rd-v2-toast");
+    await expect(toast).toBeVisible();
+    await expect(toast).toContainText("Bare public CSV index probed");
+    await expect(toast).toHaveAttribute("data-toast-scope", "discover-probe");
+    await page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate', {
+      hasText: "MOPS financial statements",
+    }).click();
+    await expect(page.getByTestId("discover-eval-surface")).toContainText("Acquisition available");
+    await expect(page.getByTestId("discover-eval-surface").locator(".rd-v2-eval-verified")).toHaveCount(0);
+    await expect(page.locator(".rd-v2-toast[data-toast-scope='discover-probe']")).toHaveCount(0);
+    await expect(page.locator(".rd-v2-toast")).toHaveCount(0);
+  });
+
+  test("Ask shows context-transition notice when history already exists", async ({ page }) => {
+    await mockV2Api(page, { discoverBody: MOCK_DISCOVER_HIT });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await page.locator(".rd-v2-search-pill input").fill("mops");
+    await page.locator(".rd-v2-search-pill input").press("Enter");
+    await expect(page.getByTestId("ask-messages")).toContainText("Find datasets for: mops");
+    await page.locator("aside.rd-v2-rail").getByRole("tab", { name: "Detail" }).click();
+    await page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate', { hasText: "MOPS" }).click();
+    await page.locator("aside.rd-v2-rail").getByRole("tab", { name: "Ask" }).click();
+    await expect(page.locator(".rd-v2-ask-ctx")).toContainText("Selected context · MOPS financial statements");
+    await expect(page.getByTestId("ask-context-notice")).toContainText("New messages use this source context");
+    await expect(page.getByTestId("ask-messages")).toContainText("Find datasets for: mops");
+    const chatBodies = [];
+    page.on("request", (req) => {
+      if (req.url().includes("/library/chat") && req.method() === "POST") {
+        chatBodies.push(req.postData() || "");
+      }
+    });
+    await page.getByTestId("ask-composer").fill("What should I probe next?");
+    await page.locator(".rd-v2-ask-input").getByRole("button", { name: "Send" }).click();
+    await expect.poll(() => chatBodies.join("\n")).toMatch(/\[context:.*MOPS|mops_financial_statements/i);
   });
 
   test("Add to lab after probe queues structured Ask", async ({ page }) => {

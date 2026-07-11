@@ -51,6 +51,8 @@ export function AskRail({
             ? hasThread
               ? `Continuing · context → ${profileContext}`
               : `Context · ${profileContext}`
+            : isDiscover && discoverTitle && hasThread
+              ? `Selected context · ${discoverTitle}`
             : isDiscover && discoverTitle
               ? `Evaluating · ${discoverTitle}`
             : ctxParts.length
@@ -94,7 +96,13 @@ export function AskRail({
             </p>
           )
         ) : (
-          messages.map((m, i) => (
+          <>
+            {isDiscover && discoverTitle ? (
+              <p className="rd-v2-ask-context-notice" data-testid="ask-context-notice">
+                New messages use this source context.
+              </p>
+            ) : null}
+            {messages.map((m, i) => (
             <div
               key={`${m.role}-${i}`}
               className={`rd-v2-ask-bubble${m.role === "assistant" ? " agent" : ""}${m.role === "error" ? " error" : ""}`}
@@ -139,7 +147,8 @@ export function AskRail({
                 </>
               )}
             </div>
-          ))
+          ))}
+          </>
         )}
       </div>
       {status ? <p className="rd-v2-ask-status">{status}</p> : null}

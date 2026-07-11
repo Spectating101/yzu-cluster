@@ -168,11 +168,11 @@ export function evaluationActions(row, taxonomy, { queued = false, hasProbeUrl =
   }
   if (key === "external-probed") {
     return {
-      primary: { id: "ask", label: "Review evidence / Ask" },
+      primary: { id: "preview", label: "Preview source" },
       secondary: [
         { id: "add_lab", label: "Add to lab" },
         hasProbeUrl ? { id: "probe", label: "Probe again" } : null,
-        { id: "preview", label: "Preview source" },
+        { id: "ask", label: "Ask about this source" },
       ].filter(Boolean),
     };
   }

@@ -2136,8 +2136,24 @@
   line-height: 1.4;
 }
 
+.rd-v2-ask-context-notice {
+  margin: 0 0 10px;
+  padding: 8px 10px;
+  border-left: 3px solid #4a6fa5;
+  background: rgba(74, 111, 165, 0.12);
+  color: #5f6f86;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
 .rd-v2-rail .rd-v2-ask-ctx {
   color: #8da0b5;
+}
+
+.rd-v2-rail .rd-v2-ask-context-notice {
+  color: #b7c4d6;
+  border-left-color: #6b8fc4;
+  background: rgba(107, 143, 196, 0.12);
 }
 
 .rd-v2-ask-messages {

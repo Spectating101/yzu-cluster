@@ -50,6 +50,15 @@ describe("evaluationActions", () => {
     const actions = evaluationActions({}, taxonomy, { hasProbeUrl: true, probed: false });
     assert.equal(actions.primary.id, "add_lab");
   });
+
+  it("external-probed primary is Preview, not Ask-as-review", () => {
+    const taxonomy = { key: "external-probed", label: "External · Probed" };
+    const actions = evaluationActions({}, taxonomy, { hasProbeUrl: true, probed: true });
+    assert.equal(actions.primary.id, "preview");
+    assert.equal(actions.primary.label, "Preview source");
+    assert.ok(actions.secondary.some((a) => a.id === "ask" && a.label === "Ask about this source"));
+    assert.equal(actions.secondary.some((a) => /Review evidence/i.test(a.label)), false);
+  });
 });
 
 describe("buildDiscoverEvaluation", () => {

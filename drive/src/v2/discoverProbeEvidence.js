@@ -87,17 +87,11 @@ export function classifyProbeEvidence(row, probeResult) {
   const files = Array.isArray(spec.discovered_files) ? spec.discovered_files : [];
   const accessMode = trim(spec.access_mode || connector.access_mode);
   const summary = trim(probeResult?.summary);
-  const publisher = trim(row.source || row.publisher);
   const domain = hostFromUrl(resolved || requested);
 
-  // Publisher/domain is verified only when a domain is observed from probe URLs.
+  // Observed domain only — row publisher metadata is not independently verified.
   if (domain) {
-    pushFact(
-      verified,
-      EVIDENCE_KIND.VERIFIED,
-      publisher ? `${publisher} publisher / domain` : `${domain} domain`,
-      domain,
-    );
+    pushFact(verified, EVIDENCE_KIND.VERIFIED, `${domain} domain observed`, domain);
   }
   if (requested) {
     pushFact(technical, EVIDENCE_KIND.VERIFIED, "Requested URL", requested);
@@ -176,15 +170,43 @@ export function primaryVerifiedFacts(classified) {
 
 /**
  * Honest unknowns derived from missing evidence / taxonomy.
+ * Local usability uncertainty ≠ external acquisition uncertainty.
  */
 export function deriveUnknowns(row, taxonomy, classified, hasProbe) {
   const unknowns = [];
+  const key = taxonomy?.key || "";
   const verifiedLabels = new Set((classified?.verified || []).map((f) => f.label.toLowerCase()));
 
-  if (!hasProbe) {
+  const hasAny = (...fields) => fields.some((f) => trim(row?.[f]));
+
+  if (key === "local-query-ready" || key === "local-connected" || key === "local-metadata") {
+    if (key === "local-connected") {
+      unknowns.push("Instant query path not confirmed");
+    }
+    if (key === "local-metadata") {
+      unknowns.push("Usable local data path not confirmed");
+    }
+    if (!hasAny("freshness", "last_refresh", "refreshed_at", "updated_at", "as_of")) {
+      unknowns.push("Freshness / last refresh not described");
+    }
+    if (!hasAny("caveats", "limitations", "known_issues", "quality_notes")) {
+      unknowns.push("Known caveats not described");
+    }
+    if (!hasAny("coverage", "date_range", "temporal_coverage", "geographic_coverage")) {
+      unknowns.push("Coverage completeness not verified");
+    } else if (!hasAny("coverage", "date_range", "temporal_coverage")) {
+      unknowns.push("Temporal coverage not fully described");
+    }
+    if (!hasAny("schema", "columns", "schema_summary", "variables")) {
+      unknowns.push("Schema details not shown");
+    }
+  } else if (!hasProbe) {
     unknowns.push("Source endpoint not probed");
     unknowns.push("Acquisition constraints not verified");
     unknowns.push("Schema not inspected");
+    if (!hasAny("coverage", "date_range", "temporal_coverage")) {
+      unknowns.push("Temporal coverage not described");
+    }
   } else {
     if (![...verifiedLabels].some((l) => l.includes("content type") || l.includes("response"))) {
       unknowns.push("Content type not confirmed");
@@ -196,19 +218,13 @@ export function deriveUnknowns(row, taxonomy, classified, hasProbe) {
     unknowns.push("Schema not fully inspected");
   }
 
-  if (taxonomy?.key === "licensed-manual") {
+  if (key === "licensed-manual") {
     unknowns.push("Entitlement / credential path not confirmed in-session");
   }
-  if (taxonomy?.key === "external-unavailable") {
+  if (key === "external-unavailable") {
     unknowns.push("No supported acquisition route confirmed");
   }
-  if (!trim(row?.coverage) && !trim(row?.date_range) && !trim(row?.temporal_coverage)) {
-    if (!unknowns.includes("Coverage completeness not verified")) {
-      unknowns.push("Temporal coverage not described");
-    }
-  }
 
-  // Dedupe, cap
   const seen = new Set();
   const out = [];
   for (const u of unknowns) {

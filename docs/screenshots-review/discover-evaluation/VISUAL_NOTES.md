@@ -91,8 +91,11 @@ If later needed for richer Verified bullets:
 | `robots` / auth challenge flags | Not consistently returned | Claiming “open” or “auth required” without response evidence |
 | Schema sample / column names | Only discovered_files occasionally | Inventing schema from content-type alone |
 
-## Scope confirmations
+## E4 integrity notes (post-correction)
 
-- Acquisition lifecycle (approval / running / completed / archive): **not started**
-- Local sufficiency / equivalence: **not started**
-- Final tablet/mobile responsive redesign: **not started**
+- Probe toasts are candidate-scoped (`scope: discover-probe`) and clear when selection changes.
+- Local query-ready Still unknown concerns freshness / caveats / schema — not endpoint probe or acquisition.
+- Verified domain wording is literal: `example.com domain observed` (not “Web publisher / domain”).
+- After probe, primary action is **Preview source** (Ask remains secondary).
+- Ask with existing history uses `Selected context · …` plus `New messages use this source context.`
+- Screenshot harness waits for probe toast clear before capturing other candidate states.
