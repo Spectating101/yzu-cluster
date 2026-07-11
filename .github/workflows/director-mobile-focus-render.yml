@@ -1,0 +1,26 @@
+name: Director Mobile Focus Render
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: design/discover-responsive-finish
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Render Discover sufficiency states
+        run: CI=true YZU_PAGES=false TMPDIR=$PWD/.tmp-pw npx playwright test e2e/discover-sufficiency-screenshots.spec.js
+      - uses: actions/upload-artifact@v4
+        with:
+          name: director-mobile-focus-screenshots
+          path: docs/screenshots-review/discover-sufficiency/*.png
+          retention-days: 1
