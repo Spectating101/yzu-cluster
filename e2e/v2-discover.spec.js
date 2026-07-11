@@ -718,11 +718,14 @@ test.describe("v2 Discover tab", () => {
     await expect(page.getByTestId("discover-focus-workspace")).toContainText("MOPS");
 
     await page.getByTestId("discover-focus-workspace").getByRole("button", { name: "← Back to results" }).click();
-    await page.locator(".rd-v2-toolbar.inline").getByRole("button", { name: "External" }).click();
-    await expect(page.locator(".rd-v2-toolbar.inline").getByRole("button", { name: "External" })).toHaveClass(/on/);
+    const filter = page.getByTestId("discover-filter-menu");
+    await filter.click();
+    await filter.getByRole("button", { name: /Beyond your lab/ }).click();
+    await expect(filter.locator("summary")).toContainText("Beyond your lab");
 
     await page.locator(".rd-v2-search-pill input").fill("no-such-dataset-xyz");
-    await expect(page.locator(".rd-v2-toolbar.inline").getByRole("button", { name: "All" })).toHaveClass(/on/);
+    await expect(filter.locator("summary")).not.toContainText("Beyond your lab");
+    await expect(filter.locator("summary")).toContainText("Filter");
     await expect(page.getByTestId("discover-browse-mode")).toBeVisible();
     await expect(page.getByTestId("discover-focus-workspace")).toHaveCount(0);
   });
@@ -784,11 +787,14 @@ test.describe("v2 Discover tab", () => {
     await expect(page.locator('.rd-v2-catalog button.row[data-kind="licensed-manual"]')).toHaveCount(1);
 
     await expect(page.locator(".rd-v2-discover-fact", { hasText: "Fit" })).toHaveCount(0);
-    await expect(page.locator(".rd-v2-discover-list-panel")).not.toContainText("Faculty finance");
-    await expect(page.locator(".rd-v2-discover-list-panel")).not.toContainText("FIT · ACCESS · PROBE · DESTINATION");
-    await expect(page.locator(".rd-v2-discover-pipeline")).toContainText("Process overview");
-    await expect(page.locator(".rd-v2-discover-pipeline-steps span.on")).toHaveCount(0);
-    await expect(page.locator(".rd-v2-discover-pipeline-steps span.done")).toHaveCount(0);
+    await expect(page.getByTestId("discover-browse-mode")).not.toContainText("Faculty finance");
+    await expect(page.getByTestId("discover-browse-mode")).not.toContainText("FIT · ACCESS · PROBE · DESTINATION");
+    await expect(page.getByTestId("discover-result-summary")).toBeVisible();
+    await expect(page.getByTestId("discover-browse-mode")).not.toContainText(/process overview/i);
+    const process = page.locator(".rd-v2-discover-process-disclosure");
+    await expect(process).toBeVisible();
+    await expect(process.locator("summary")).toContainText("How Discover handles a missing dataset");
+    await expect(process).not.toHaveAttribute("open");
 
     // Single taxonomy statement — no duplicate readiness pill on normal rows
     await expect(page.locator('.rd-v2-catalog button.row[data-kind="local-query-ready"] .rd-v2-discover-possession')).toContainText(
@@ -807,11 +813,14 @@ test.describe("v2 Discover tab", () => {
     await expect(rows.nth(2)).toHaveAttribute("data-kind", "external-discoverable");
     await expect(rows.nth(3)).toHaveAttribute("data-kind", "licensed-manual");
 
-    await page.locator(".rd-v2-toolbar.inline").getByRole("button", { name: "Query ready" }).click();
+    const filter = page.getByTestId("discover-filter-menu");
+    await filter.click();
+    await filter.getByRole("button", { name: /Query ready/ }).click();
     await expect(page.locator(".rd-v2-catalog button.row.rd-v2-discover-candidate")).toHaveCount(1);
     await expect(page.locator('.rd-v2-catalog button.row[data-kind="local-query-ready"]')).toHaveCount(1);
 
-    await page.locator(".rd-v2-toolbar.inline").getByRole("button", { name: "Needs access" }).click();
+    await filter.click();
+    await filter.getByRole("button", { name: /Needs access/ }).click();
     await expect(page.locator('.rd-v2-catalog button.row[data-kind="licensed-manual"]')).toHaveCount(1);
   });
 
@@ -873,8 +882,10 @@ test.describe("v2 Discover API integration", () => {
     await page.locator(".rd-v2-search-pill input").fill("mops");
     await page.locator(".rd-v2-search-pill input").press("Enter");
     await v2Nav(page, "Discover");
-    await expect(page.locator(".rd-v2-chip", { hasText: "Discover API" })).toBeVisible();
-    await expect(page.locator(".rd-v2-chip", { hasText: "Offline sample" })).toHaveCount(0);
-    await expect(page.locator(".rd-v2-discover-list-panel")).toContainText("MOPS financial statements");
+    await expect(page.locator(".rd-v2-chip", { hasText: "Discover API" })).toHaveCount(0);
+    await expect(page.locator(".rd-v2-chip", { hasText: "Demo preview · static sample" })).toHaveCount(0);
+    await expect(page.getByTestId("discover-result-summary")).toContainText(/1 result/i);
+    await expect(page.locator(".rd-v2-discover-browse-groups")).toContainText("Sources beyond your lab");
+    await expect(page.locator(".rd-v2-discover-browse-groups")).toContainText("MOPS financial statements");
   });
 });
