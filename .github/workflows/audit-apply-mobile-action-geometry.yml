@@ -22,46 +22,53 @@ jobs:
           p = Path('drive/src/v2/v2.css')
           css = p.read_text()
 
-          needle = '  flex-shrink: 0;\n  max-width: 1080px;\n'
-          assert css.count(needle) >= 1
+          box_needle = '  flex-shrink: 0;\n  max-width: 1080px;\n'
+          assert box_needle in css
           css = css.replace(
-              needle,
+              box_needle,
               '  flex-shrink: 0;\n  box-sizing: border-box;\n  max-width: 1080px;\n',
               1,
           )
 
-          mobile_old = '''  .rd-v2-eval-workspace-shell > [data-testid="discover-eval-actions"] {
-            display: grid;
-            gap: 9px;
-            padding: 10px 12px max(12px, env(safe-area-inset-bottom));
-            border-top: 1px solid #2a3a52;
-            background: rgba(15, 23, 36, 0.97);
-            box-shadow: 0 -10px 24px rgba(2, 8, 18, 0.2);
-          }
-          '''
-          mobile_new = '''  .rd-v2-eval-workspace-shell > [data-testid="discover-eval-actions"] {
-            position: fixed;
-            right: 0;
-            bottom: 0;
-            left: 0;
-            z-index: 24;
-            display: grid;
-            gap: 9px;
-            max-width: none;
-            width: auto;
-            margin: 0;
-            padding: 10px 12px max(12px, env(safe-area-inset-bottom));
-            border-top: 1px solid #2a3a52;
-            background: rgba(15, 23, 36, 0.97);
-            box-shadow: 0 -10px 24px rgba(2, 8, 18, 0.2);
-          }
+          mobile_head = (
+              '  .rd-v2-eval-workspace-shell > [data-testid="discover-eval-actions"] {\n'
+              '    display: grid;\n'
+              '    gap: 9px;\n'
+          )
+          assert mobile_head in css
+          css = css.replace(
+              mobile_head,
+              '  .rd-v2-eval-workspace-shell > [data-testid="discover-eval-actions"] {\n'
+              '    position: fixed;\n'
+              '    right: 0;\n'
+              '    bottom: 0;\n'
+              '    left: 0;\n'
+              '    z-index: 24;\n'
+              '    display: grid;\n'
+              '    gap: 9px;\n'
+              '    max-width: none;\n'
+              '    width: auto;\n'
+              '    margin: 0;\n',
+              1,
+          )
 
-          .rd-v2-eval-workspace {
-            padding-bottom: 132px;
-          }
-          '''
-          assert mobile_old in css
-          css = css.replace(mobile_old, mobile_new, 1)
+          mobile_tail = (
+              '    box-shadow: 0 -10px 24px rgba(2, 8, 18, 0.2);\n'
+              '  }\n\n'
+              '  .rd-v2-eval-actions-wide {\n'
+          )
+          assert mobile_tail in css
+          css = css.replace(
+              mobile_tail,
+              '    box-shadow: 0 -10px 24px rgba(2, 8, 18, 0.2);\n'
+              '  }\n\n'
+              '  .rd-v2-eval-workspace {\n'
+              '    padding-bottom: 132px;\n'
+              '  }\n\n'
+              '  .rd-v2-eval-actions-wide {\n',
+              1,
+          )
+
           p.write_text(css)
           PY
           git diff --check
