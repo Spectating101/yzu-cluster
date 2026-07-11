@@ -6961,6 +6961,29 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
     grid-template-columns: minmax(0, 1fr);
   }
 
+  .rd-v2-shell.no-rail:has(.rd-v2-discover-focus) {
+    grid-template-rows: var(--rd-header) auto minmax(0, 1fr);
+    height: 100vh;
+    height: 100dvh;
+    min-height: 100vh;
+    min-height: 100dvh;
+    max-height: 100vh;
+    max-height: 100dvh;
+    overflow: hidden;
+  }
+
+  .rd-v2-shell.no-rail:has(.rd-v2-discover-focus) .yzu-main {
+    min-height: 0;
+    padding-bottom: 0;
+    overflow: hidden;
+  }
+
+  .rd-v2-shell.no-rail:has(.rd-v2-discover-focus) .rd-v2-discover-focus {
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+  }
+
   .rd-v2-header {
     grid-column: 1;
     grid-row: 1;
