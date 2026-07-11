@@ -71,6 +71,12 @@ function DiscoverCandidateRow({ row, labIds, selectedId, onSelectRow }) {
   const taxonomyLine = taxonomy.label;
   const exceptionPill = exceptionalRowPill(row, taxonomy, state);
   const showSufficiency = Number(taxonomy.group) >= 3 && row.discover_sufficiency?.browseLine;
+  const hasExplicitDescription = Boolean(
+    String(row?.description || row?.recommended_use || row?.subtitle || "").trim(),
+  );
+  const evidenceLine = hasExplicitDescription ? descriptiveLine(row) : "";
+  const coverage = coverageLine(row);
+  const showCoverage = coverage && coverage !== "Coverage not described";
 
   return (
     <li className={selected ? "rd-v2-row-on" : undefined}>
@@ -97,8 +103,8 @@ function DiscoverCandidateRow({ row, labIds, selectedId, onSelectRow }) {
             </strong>
             <em className="rd-v2-discover-possession">{taxonomyLine}</em>
           </span>
-          <span className="rd-v2-discover-evidence">{descriptiveLine(row)}</span>
-          <span className="rd-v2-discover-coverage">{coverageLine(row)}</span>
+          {evidenceLine ? <span className="rd-v2-discover-evidence">{evidenceLine}</span> : null}
+          {showCoverage ? <span className="rd-v2-discover-coverage">{coverage}</span> : null}
           {showSufficiency ? (
             <span
               className={`rd-v2-discover-sufficiency rd-v2-discover-sufficiency-${row.discover_sufficiency.state}`}
