@@ -167,6 +167,24 @@ export function DiscoverEvaluationSurface({
   const secondary = lifecycle?.primaryAction
     ? lifecycle.secondaryActions || []
     : actions.secondary;
+  const mobileSecondary = (() => {
+    if (lifecycle?.primaryAction || !secondary.length) return null;
+    const preferredIds =
+      sufficiency?.state === SUFFICIENCY.EXACT_LOCAL
+        ? ["preview", "probe", "ask"]
+        : sufficiency?.state === SUFFICIENCY.PARTIAL_LOCAL ||
+            sufficiency?.state === SUFFICIENCY.RELATED_LOCAL
+          ? ["open_local", "inspect_related", "preview", "probe", "ask"]
+          : ["preview", "open_local", "inspect_related", "probe", "ask"];
+    return preferredIds
+      .map((id) => secondary.find((action) => action.id === id))
+      .find(Boolean) || secondary[0];
+  })();
+  const mobileOverflowActions = secondary.filter((action) => action.id !== mobileSecondary?.id);
+  const mobileSecondaryLabel =
+    mobileSecondary?.id === "preview" && sufficiency?.state === SUFFICIENCY.EXACT_LOCAL
+      ? "Inspect external source"
+      : mobileSecondary?.label;
   const sufficiencyDifferences = (sufficiency?.differences || []).filter(
     (difference) => difference?.local || difference?.candidate,
   );
@@ -480,30 +498,76 @@ export function DiscoverEvaluationSurface({
         {probeLoading || submitting ? (
           <p className="rd-v2-eval-action-status">{submitting ? "Submitting…" : "Probing source…"}</p>
         ) : null}
+
         <button
           type="button"
-          className="rd-v2-btn primary"
+          className="rd-v2-btn primary rd-v2-eval-primary-action"
           disabled={probeLoading || submitting}
           onClick={() => runAction(primary.id)}
         >
           {primary.label}
         </button>
-        {secondary.map((action) => (
-          <button
-            key={action.id}
-            type="button"
-            className="rd-v2-btn"
-            disabled={probeLoading || submitting}
-            onClick={() => runAction(action.id)}
-          >
-            {action.label}
-          </button>
-        ))}
+
+        <div className="rd-v2-eval-actions-wide" aria-label="Additional candidate actions">
+          {secondary.map((action) => (
+            <button
+              key={action.id}
+              type="button"
+              className="rd-v2-btn"
+              disabled={probeLoading || submitting}
+              onClick={() => runAction(action.id)}
+            >
+              {action.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="rd-v2-eval-actions-mobile" aria-label="Additional focused candidate actions">
+          {mobileSecondary || mobileOverflowActions.length ? (
+            <div className="rd-v2-eval-mobile-secondary-row">
+              {mobileSecondary ? (
+                <button
+                  type="button"
+                  className="rd-v2-eval-mobile-secondary"
+                  disabled={probeLoading || submitting}
+                  onClick={() => runAction(mobileSecondary.id)}
+                >
+                  {mobileSecondaryLabel}
+                </button>
+              ) : (
+                <span />
+              )}
+
+              {mobileOverflowActions.length ? (
+                <details className="rd-v2-eval-action-menu">
+                  <summary aria-label="More actions">•••</summary>
+                  <div className="rd-v2-eval-action-menu-popover">
+                    {mobileOverflowActions.map((action) => (
+                      <button
+                        key={action.id}
+                        type="button"
+                        disabled={probeLoading || submitting}
+                        onClick={(event) => {
+                          runAction(action.id);
+                          event.currentTarget.closest("details")?.removeAttribute("open");
+                        }}
+                      >
+                        {action.label}
+                      </button>
+                    ))}
+                  </div>
+                </details>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
       </div>
     </>
   );
 
-  if (variant === "workspace") return body;
+  if (variant === "workspace") {
+    return <div className="rd-v2-eval-workspace-shell">{body}</div>;
+  }
 
   return (
     <RailFrame>

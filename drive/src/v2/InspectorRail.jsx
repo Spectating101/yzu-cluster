@@ -189,10 +189,14 @@ export function InspectorRail({
   const [mobileRailOpen, setMobileRailOpen] = useState(false);
 
   useEffect(() => {
+    if (mainTab === "browse") {
+      setMobileRailOpen(Boolean(browseTarget) && railTab === "ask");
+      return;
+    }
     if (!MOBILE_RAIL_IDLE_HINTS.has(selectionHint)) {
       setMobileRailOpen(true);
     }
-  }, [selectionHint]);
+  }, [selectionHint, mainTab, browseTarget, railTab]);
 
   return (
     <aside
