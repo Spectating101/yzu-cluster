@@ -1,0 +1,38 @@
+name: Audit Discover Action CSS Selectors
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: design/discover-responsive-finish
+      - name: Extract action selector contexts
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('drive/src/v2/v2.css')
+          lines = p.read_text().splitlines()
+          hits = [i for i, line in enumerate(lines) if 'rd-v2-eval-actions' in line or 'discover-eval-actions' in line or 'rd-v2-eval-action-status' in line]
+          chunks = []
+          seen = set()
+          for i in hits:
+              start = max(0, i - 8)
+              end = min(len(lines), i + 22)
+              key = (start, end)
+              if key in seen:
+                  continue
+              seen.add(key)
+              chunks.append(f'--- lines {start + 1}-{end} ---')
+              chunks.extend(f'{n + 1:05d}: {lines[n]}' for n in range(start, end))
+          Path('action-selectors.txt').write_text('\n'.join(chunks))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: discover-action-css-selectors
+          path: action-selectors.txt
+          retention-days: 1
