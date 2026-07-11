@@ -1,0 +1,21 @@
+name: Sufficiency Source Export
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Upload source files
+        uses: actions/upload-artifact@v4
+        with:
+          name: sufficiency-source-files
+          path: |
+            drive/src/v2/DiscoverEvaluationSurface.jsx
+            drive/src/v2/discoverSufficiency.js
+            drive/src/v2/v2.css
+            e2e/discover-sufficiency-screenshots.spec.js
+          retention-days: 1
