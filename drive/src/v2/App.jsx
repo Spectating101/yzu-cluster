@@ -528,13 +528,14 @@ export function V2App() {
         }
         return;
       }
+      const stamped = { ...out, candidate_key: key };
       // Stamp probe on the candidate even if selection moved — taxonomy needs bound evidence.
-      setProbeSnapshots((prev) => ({ ...prev, [key]: out }));
+      setProbeSnapshots((prev) => ({ ...prev, [key]: stamped }));
       if (!stillSelected) return;
-      setBrowseProbe({ candidateKey: key, loading: false, result: out, error: "" });
+      setBrowseProbe({ candidateKey: key, loading: false, result: stamped, error: "" });
       setBrowseRow((current) =>
         current && candidateKey(current) === key
-          ? { ...current, probe_snapshot: out }
+          ? { ...current, probe_snapshot: stamped }
           : current,
       );
       showToast("Source probed — review connector details");

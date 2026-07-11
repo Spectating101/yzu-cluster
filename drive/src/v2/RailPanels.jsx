@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { classifyDiscoverResult, discoverCandidateState } from "@/v2/browseMeta";
+import { candidateKey } from "@/v2/candidateKey";
 import { discoverCandidateUrl } from "@/v2/discoverActions";
 import { displayName } from "@/v2/datasetMeta";
 import { EmptyRailState } from "@/v2/EmptyRailState";
@@ -533,7 +534,18 @@ export function BrowseRailPanel({
   const title = target.title || target.name || target.dataset_id || "External dataset";
   const probeBound =
     probeState?.result && !probeState?.loading
-      ? { ...target, probe_snapshot: target.probe_snapshot || probeState.result }
+      ? {
+          ...target,
+          probe_snapshot:
+            target.probe_snapshot ||
+            {
+              ...probeState.result,
+              candidate_key:
+                probeState.result.candidate_key ||
+                probeState.candidateKey ||
+                candidateKey(target),
+            },
+        }
       : target;
   const state = probeBound.discover_state || discoverCandidateState(probeBound, labIds);
   const taxonomy = state.taxonomy || classifyDiscoverResult(probeBound, labIds);

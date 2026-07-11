@@ -5,6 +5,7 @@ import {
   coverageLine,
   descriptiveLine,
   discoverCandidateState,
+  exceptionalRowPill,
   orderDiscoverResults,
   taxonomyMatchesFilter,
   taxonomyStageCounts,
@@ -44,14 +45,14 @@ function DiscoverCandidateRow({ row, labIds, selectedId, onSelectRow }) {
   const selected = selectedId === candidateKey(row);
   const ribbonSource =
     row.source || row.collect_via || row.source_route || row.publisher || row.backend || hostLabel(row.url);
-  const possessionLine = `${taxonomy.possession} · ${taxonomy.readiness}`;
-  const pillLabel = state.key === "queued" ? "Queued" : taxonomy.readiness;
+  const taxonomyLine = taxonomy.label;
+  const exceptionPill = exceptionalRowPill(row, taxonomy, state);
 
   return (
     <li className={selected ? "rd-v2-row-on" : undefined}>
       <button
         type="button"
-        className={`row rd-v2-discover-candidate${selected ? " selected" : ""}`}
+        className={`row rd-v2-discover-candidate${selected ? " selected" : ""}${exceptionPill ? " has-exception" : ""}`}
         data-kind={taxonomy.key}
         data-state={state.key}
         aria-pressed={selected}
@@ -59,19 +60,19 @@ function DiscoverCandidateRow({ row, labIds, selectedId, onSelectRow }) {
       >
         <span className="rd-v2-discover-candidate-source">
           <SourceRibbon source={ribbonSource} />
+          {exceptionPill ? (
+            <span className={`rd-v2-pill ${exceptionPill.className}`}>{exceptionPill.label}</span>
+          ) : null}
         </span>
         <span className="rd-v2-discover-candidate-main">
-          <span className="rd-v2-discover-candidate-top">
-            <strong>{candidateTitle(row)}</strong>
-            <em className="rd-v2-discover-possession">{possessionLine}</em>
-          </span>
+          <strong className="rd-v2-discover-candidate-title">{candidateTitle(row)}</strong>
+          <em className="rd-v2-discover-possession">{taxonomyLine}</em>
           <span className="rd-v2-discover-evidence">{descriptiveLine(row)}</span>
           <span className="rd-v2-discover-coverage">
             <b>Coverage</b>
             <em>{coverageLine(row)}</em>
           </span>
         </span>
-        <span className={`rd-v2-pill ${state.className}`}>{pillLabel}</span>
       </button>
     </li>
   );
@@ -275,7 +276,13 @@ export function BrowsePage({
       const queued = isCandidateQueued(stamped, jobs);
       const withProbe =
         probeSnapshots[key] && !stamped.probe_snapshot
-          ? { ...stamped, probe_snapshot: probeSnapshots[key] }
+          ? {
+              ...stamped,
+              probe_snapshot: {
+                ...probeSnapshots[key],
+                candidate_key: probeSnapshots[key].candidate_key || key,
+              },
+            }
           : stamped;
       stampedRows.push(queued ? { ...withProbe, queued: true } : withProbe);
     }
@@ -333,7 +340,7 @@ export function BrowsePage({
         </>
       }
     >
-      <DiscoverPipeline counts={stageCounts} searching={!!q && loading} />
+      <DiscoverPipeline counts={stageCounts} />
       {!q ? (
         <DiscoverEmptyState onSuggest={onSuggestSearch} />
       ) : (

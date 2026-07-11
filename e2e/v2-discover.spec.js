@@ -497,6 +497,19 @@ test.describe("v2 Discover tab", () => {
     await expect(page.locator(".rd-v2-discover-list-panel")).not.toContainText("Faculty finance");
     await expect(page.locator(".rd-v2-discover-list-panel")).not.toContainText("FIT · ACCESS · PROBE · DESTINATION");
     await expect(page.locator(".rd-v2-discover-pipeline")).toContainText("Process overview");
+    await expect(page.locator(".rd-v2-discover-pipeline-steps span.on")).toHaveCount(0);
+    await expect(page.locator(".rd-v2-discover-pipeline-steps span.done")).toHaveCount(0);
+
+    // Single taxonomy statement — no duplicate readiness pill on normal rows
+    await expect(page.locator('.rd-v2-catalog button.row[data-kind="local-query-ready"] .rd-v2-discover-possession')).toContainText(
+      "In lab · Query ready",
+    );
+    await expect(page.locator('.rd-v2-catalog button.row[data-kind="local-query-ready"] .rd-v2-pill')).toHaveCount(0);
+    await expect(page.locator('.rd-v2-catalog button.row[data-kind="external-discoverable"] .rd-v2-pill')).toHaveCount(0);
+    await expect(page.locator('.rd-v2-catalog button.row[data-kind="licensed-manual"] .rd-v2-pill')).toContainText("Manual access");
+    await expect(page.locator('.rd-v2-catalog button.row[data-kind="licensed-manual"] .rd-v2-discover-possession')).toContainText(
+      "Licensed / manual access",
+    );
 
     // Group order: local query-ready, local metadata, external, licensed
     await expect(rows.nth(0)).toHaveAttribute("data-kind", "local-query-ready");
@@ -542,6 +555,10 @@ test.describe("v2 Discover tab", () => {
     await expect(rail.locator(".rd-v2-discover-probe-result")).toBeVisible();
     await expect(page.locator('.rd-v2-catalog button.row[data-kind="external-probed"]')).toHaveCount(1);
     await expect(page.locator('.rd-v2-catalog button.row[data-kind="external-acquirable"]')).toHaveCount(0);
+    await expect(page.locator('.rd-v2-catalog button.row[data-kind="external-probed"] .rd-v2-pill')).toHaveCount(0);
+    await expect(page.locator('.rd-v2-catalog button.row[data-kind="external-probed"] .rd-v2-discover-possession')).toContainText(
+      "External · Probed",
+    );
   });
 
   test("Preview ext opens external metadata modal", async ({ page }) => {

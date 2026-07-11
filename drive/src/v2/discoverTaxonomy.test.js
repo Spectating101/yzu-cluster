@@ -2,11 +2,15 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   classifyDiscoverResult,
+  exceptionalRowPill,
+  hasAcquisitionRoute,
+  hasBoundProbe,
+  isQueryReady,
   orderDiscoverResults,
   taxonomyMatchesFilter,
 } from "./discoverTaxonomy.js";
 
-describe("discover taxonomy (D1)", () => {
+describe("discover taxonomy (D1 / D1.1)", () => {
   it("classifies query-ready local holdings", () => {
     const lab = new Set(["gdelt_asia"]);
     const c = classifyDiscoverResult(
@@ -47,17 +51,32 @@ describe("discover taxonomy (D1)", () => {
     const c = classifyDiscoverResult({
       title: "Open page",
       url: "https://example.com/data",
-      probe_snapshot: { connector: { id: "x" } },
+      candidate_key: "url:https://example.com/data",
+      probe_snapshot: {
+        candidate_key: "url:https://example.com/data",
+        connector: { id: "x" },
+      },
     });
     assert.equal(c.key, "external-probed");
+  });
+
+  it("does not treat unbound probed:true as External · Probed", () => {
+    const c = classifyDiscoverResult({
+      title: "Open page",
+      url: "https://example.com/data",
+      probed: true,
+      probe_result: { ok: true },
+    });
+    assert.equal(c.key, "external-discoverable");
+    assert.equal(hasBoundProbe({ probed: true, probe_result: { ok: true } }), false);
   });
 
   it("does not treat probe success alone as acquisition available", () => {
     const c = classifyDiscoverResult({
       title: "Open page",
       url: "https://example.com/data",
-      probed: true,
-      probe_result: { ok: true },
+      candidate_key: "url:https://example.com/data",
+      probe_snapshot: { candidate_key: "url:https://example.com/data", ok: true },
     });
     assert.equal(c.key, "external-probed");
     assert.notEqual(c.key, "external-acquirable");
@@ -70,6 +89,59 @@ describe("discover taxonomy (D1)", () => {
       collect_via: "mops_tw",
     });
     assert.equal(c.key, "external-acquirable");
+  });
+
+  it("does not treat connector_id alone as acquisition available", () => {
+    assert.equal(hasAcquisitionRoute({ connector_id: "example_com_data" }), false);
+    const c = classifyDiscoverResult({
+      title: "Probeable",
+      url: "https://example.com/data",
+      connector_id: "example_com_data",
+    });
+    assert.notEqual(c.key, "external-acquirable");
+  });
+
+  it("does not treat probe connector alone as acquisition available", () => {
+    const row = {
+      title: "Probed only",
+      url: "https://example.com/data",
+      candidate_key: "url:https://example.com/data",
+      probe_connector_id: "probe_only",
+      probe_snapshot: {
+        candidate_key: "url:https://example.com/data",
+        connector: { id: "probe_only" },
+      },
+    };
+    assert.equal(hasAcquisitionRoute(row), false);
+    assert.equal(classifyDiscoverResult(row).key, "external-probed");
+  });
+
+  it("treats collectable:true as acquisition available", () => {
+    assert.equal(hasAcquisitionRoute({ collectable: true }), true);
+    assert.equal(
+      classifyDiscoverResult({ title: "X", url: "https://x.example", collectable: true }).key,
+      "external-acquirable",
+    );
+  });
+
+  it("treats explicit collection capability as acquisition available", () => {
+    const row = {
+      title: "Capable",
+      url: "https://example.com/data",
+      connector: { id: "c1", capabilities: ["collect_manifest"] },
+    };
+    assert.equal(hasAcquisitionRoute(row), true);
+    assert.equal(classifyDiscoverResult(row).key, "external-acquirable");
+  });
+
+  it("does not treat capabilities:['panel'] as query-ready", () => {
+    const lab = new Set(["panel_only"]);
+    assert.equal(isQueryReady({ dataset_id: "panel_only", capabilities: ["panel"] }), false);
+    const c = classifyDiscoverResult(
+      { dataset_id: "panel_only", capabilities: ["panel"], local_root: "x" },
+      lab,
+    );
+    assert.notEqual(c.key, "local-query-ready");
   });
 
   it("keeps licensed/manual out of immediate acquisition", () => {
@@ -114,5 +186,32 @@ describe("discover taxonomy (D1)", () => {
 
     const lic = classifyDiscoverResult({ title: "l", manual_access: true });
     assert.equal(taxonomyMatchesFilter(lic, "needs_access"), true);
+  });
+
+  it("exceptional pills only for queued / manual / unavailable", () => {
+    assert.equal(
+      exceptionalRowPill({}, { key: "local-query-ready", readiness: "Query ready" }, { key: "in_lab" }),
+      null,
+    );
+    assert.equal(
+      exceptionalRowPill({}, { key: "external-probed", readiness: "Probed", className: "ext" }, {}),
+      null,
+    );
+    assert.equal(
+      exceptionalRowPill({}, { key: "external-acquirable", readiness: "Acquisition available" }, {}),
+      null,
+    );
+    assert.deepEqual(
+      exceptionalRowPill({ queued: true }, { key: "external-discoverable" }, { key: "queued" }),
+      { label: "Queued", className: "queue" },
+    );
+    assert.deepEqual(
+      exceptionalRowPill({}, { key: "licensed-manual", className: "warn" }, {}),
+      { label: "Manual access", className: "warn" },
+    );
+    assert.deepEqual(
+      exceptionalRowPill({}, { key: "external-unavailable", className: "warn" }, {}),
+      { label: "Unavailable", className: "warn" },
+    );
   });
 });

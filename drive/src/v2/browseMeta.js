@@ -11,6 +11,7 @@ import {
 
 export {
   classifyDiscoverResult,
+  exceptionalRowPill,
   orderDiscoverResults,
   taxonomyMatchesFilter,
   taxonomyStageCounts,
