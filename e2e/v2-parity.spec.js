@@ -177,7 +177,7 @@ test.describe("v2 parity @ desk-v2-1440", () => {
     await expect(
       page.locator("aside .rd-v2-rail-sticky .rd-v2-btn.primary", { hasText: "Preview rows" }),
     ).toBeVisible();
-    await expect(page.locator('aside.rd-v2-rail [aria-label="Provenance"]')).toContainText("Source");
+    await expect(page.locator('aside.rd-v2-rail [aria-label="Can I use this?"]')).toContainText("Query ready");
     await page.locator(".rd-v2-rail-toggle").getByRole("tab", { name: "Ask" }).click();
     await expect(page.getByTestId("ask-composer")).toBeVisible();
     await expect(page.locator('[data-testid="rail-pane-detail"] .rd-v2-rail-sticky')).not.toBeVisible();
