@@ -919,10 +919,32 @@ export function V2App() {
           labIds={labIds}
           catalog={catalog}
           selectedId={browseSelectedId}
+          focusTarget={browseTarget}
           searchQuery={searchQuery}
           jobs={jobs}
           usingSeed={usingSeed}
           probeSnapshots={probeSnapshots}
+          probeState={browseProbeState}
+          browseLifecycle={browseLifecycle}
+          onAskAbout={askAboutSelection}
+          onAddToLab={askAddToLab}
+          onPreviewExternal={() => browseRow && openPreviewExternal(browseRow)}
+          onProbeSource={probeDiscoverCandidate}
+          onOpenInLibrary={openInLibraryFromDiscover}
+          onTrackResources={trackJobInResources}
+          onReviewApproval={reviewApprovalInResources}
+          onRetryLifecycleRefresh={retryLifecycleRefresh}
+          onBackToResults={() => {
+            browseSelectedKeyRef.current = "";
+            setBrowseRow(null);
+            setBrowseProbe({ candidateKey: "", loading: false, result: null, error: "" });
+            setRailTab("detail");
+            setActiveObject((cur) => (cur?.kind === "external_candidate" ? null : cur));
+          }}
+          onOpenAsk={(target) => {
+            if (target) setActiveObject(externalCandidateObject(target));
+            setRailTab("ask");
+          }}
           onSuggestSearch={(q) => {
             setSearchQuery(q);
             goTab("browse");
@@ -997,7 +1019,7 @@ export function V2App() {
       main = null;
   }
 
-  const hideRail = false;
+  const hideRail = tab === "browse" && (!browseTarget || railTab !== "ask");
 
   return (
     <div className={`yzu-shell with-inspector rd-theme-light rd-v2-shell${hideRail ? " no-rail" : ""}`}>

@@ -13,6 +13,8 @@ import {
 import { discoverCandidateUrl, webHitsToRows } from "@/v2/discoverActions";
 import { candidateKey, isCandidateQueued, withCandidateKey } from "@/v2/candidateKey";
 import { buildDiscoverLifecycle, projectDiscoverCandidateLifecycle } from "@/v2/discoverLifecycle";
+import { DiscoverEvaluationSurface } from "@/v2/DiscoverEvaluationSurface";
+import { groupDiscoverBrowseRows } from "@/v2/discoverComposition";
 import { loadUserEmail } from "@/v2/deskSession";
 import { discoverDemoSearch } from "@/v2/deskSeed";
 import { DiscoverEmptyState } from "@/v2/DiscoverEmptyState";
@@ -130,13 +132,27 @@ export function BrowsePage({
   labIds,
   catalog = [],
   selectedId,
+  focusTarget = null,
   onSelectRow,
+  onBackToResults,
+  onOpenAsk,
   searchQuery,
   jobs = [],
   usingSeed = false,
   probeSnapshots = {},
   onSuggestSearch,
   onSearchWeb,
+  // Focused evaluation wiring
+  probeState,
+  browseLifecycle,
+  onAskAbout,
+  onAddToLab,
+  onPreviewExternal,
+  onProbeSource,
+  onOpenInLibrary,
+  onTrackResources,
+  onReviewApproval,
+  onRetryLifecycleRefresh,
 }) {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -309,6 +325,8 @@ export function BrowsePage({
     });
   }, [merged, stateFilter, labIds]);
 
+  const browseGroups = useMemo(() => groupDiscoverBrowseRows(filtered), [filtered]);
+
   const stageCounts = useMemo(() => {
     const tax = taxonomyStageCounts(merged, labIds);
     return {
@@ -333,6 +351,42 @@ export function BrowsePage({
   const allInLab =
     !loading && merged.length > 0 && stageCounts.inLab > 0 && stageCounts.inLab === merged.length;
 
+  // Focused Evaluation mode — evaluation owns the main canvas.
+  if (focusTarget) {
+    return (
+      <div className="rd-v2-discover-focus" data-testid="discover-focus-workspace" data-mode="focus">
+        <header className="rd-v2-discover-focus-bar">
+          <button type="button" className="rd-v2-btn ghost sm" onClick={() => onBackToResults?.()}>
+            ← Back to results
+          </button>
+          <span className="rd-v2-discover-focus-spacer" />
+          <button
+            type="button"
+            className="rd-v2-btn sm"
+            onClick={() => onOpenAsk?.(focusTarget)}
+          >
+            Ask
+          </button>
+        </header>
+        <DiscoverEvaluationSurface
+          variant="workspace"
+          target={focusTarget}
+          labIds={labIds}
+          onAskAbout={onAskAbout}
+          onAddToLab={onAddToLab}
+          onPreviewExternal={onPreviewExternal}
+          onProbeSource={onProbeSource}
+          probeState={probeState}
+          onOpenInLibrary={onOpenInLibrary}
+          lifecycle={browseLifecycle}
+          onTrackResources={onTrackResources}
+          onReviewApproval={onReviewApproval}
+          onRetryLifecycleRefresh={onRetryLifecycleRefresh}
+        />
+      </div>
+    );
+  }
+
   return (
     <PageShell
       title="Discover"
@@ -352,67 +406,80 @@ export function BrowsePage({
         </>
       }
     >
-      <DiscoverPipeline counts={stageCounts} />
-      {!q ? (
-        <DiscoverEmptyState onSuggest={onSuggestSearch} />
-      ) : (
-        <>
-          <div className="rd-v2-toolbar inline">
-            {FILTERS.map((f) => (
-              <Chip
-                key={f.id}
-                active={stateFilter === f.id}
-                onClick={() => setStateFilter(f.id)}
-              >
-                {f.label}
-              </Chip>
-            ))}
-          </div>
-          {loading && filtered.length ? (
-            <p className="rd-v2-browse-loading">Showing offline matches while live catalogs refresh…</p>
-          ) : null}
-          {loading && !filtered.length ? <p className="rd-v2-browse-loading">Searching catalogs…</p> : null}
-          {!loading && allInLab ? (
-            <div className="rd-v2-discover-miss">
-              <p className="rd-v2-empty-inline warn">
-                All {merged.length} matches are already in your lab vault. Search the open web for new sources.
-              </p>
-              {onSearchWeb ? (
-                <button type="button" className="rd-v2-btn sm" onClick={() => onSearchWeb(q)}>
-                  Search the open web via Ask →
-                </button>
-              ) : null}
+      <div className="rd-v2-discover-browse" data-testid="discover-browse-mode" data-mode="browse">
+        <DiscoverPipeline counts={stageCounts} />
+        {!q ? (
+          <DiscoverEmptyState onSuggest={onSuggestSearch} />
+        ) : (
+          <>
+            <p className="rd-v2-discover-browse-prompt">What data do you need?</p>
+            <div className="rd-v2-toolbar inline">
+              {FILTERS.map((f) => (
+                <Chip
+                  key={f.id}
+                  active={stateFilter === f.id}
+                  onClick={() => setStateFilter(f.id)}
+                >
+                  {f.label}
+                </Chip>
+              ))}
             </div>
-          ) : null}
-          {!loading && error ? (
-            <div className="rd-v2-discover-error">
-              <p>{error}</p>
+            {loading && filtered.length ? (
+              <p className="rd-v2-browse-loading">Showing offline matches while live catalogs refresh…</p>
+            ) : null}
+            {loading && !filtered.length ? <p className="rd-v2-browse-loading">Searching catalogs…</p> : null}
+            {!loading && allInLab ? (
+              <div className="rd-v2-discover-miss">
+                <p className="rd-v2-empty-inline warn">
+                  All {merged.length} matches are already in your lab vault. Search the open web for new sources.
+                </p>
+                {onSearchWeb ? (
+                  <button type="button" className="rd-v2-btn sm" onClick={() => onSearchWeb(q)}>
+                    Search the open web via Ask →
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
+            {!loading && error ? (
+              <div className="rd-v2-discover-error">
+                <p>{error}</p>
+              </div>
+            ) : null}
+            {!loading && !error && filtered.length === 0 ? (
+              <div className="rd-v2-discover-miss">
+                <p className="rd-v2-empty-inline">
+                  No matches for “{q}”
+                  {stateFilter !== "all" ? ` with filter ${stateFilter.replace("_", " ")}` : ""}
+                  {indexMiss ? " in the local lab index." : "."}
+                </p>
+                {indexMiss && onSearchWeb ? (
+                  <button type="button" className="rd-v2-btn sm" onClick={() => onSearchWeb(q)}>
+                    Search the open web via Ask →
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
+            <div className="rd-v2-discover-list-panel rd-v2-discover-browse-groups">
+              {browseGroups.map((group) => (
+                <section
+                  key={group.id}
+                  className="rd-v2-discover-group"
+                  data-group={group.id}
+                  aria-label={group.title}
+                >
+                  <h3 className="rd-v2-discover-group-title">{group.title}</h3>
+                  <DiscoverCandidateList
+                    rows={group.rows}
+                    labIds={labIds}
+                    selectedId={selectedId}
+                    onSelectRow={onSelectRow}
+                  />
+                </section>
+              ))}
             </div>
-          ) : null}
-          {!loading && !error && filtered.length === 0 ? (
-            <div className="rd-v2-discover-miss">
-              <p className="rd-v2-empty-inline">
-                No matches for “{q}”
-                {stateFilter !== "all" ? ` with filter ${stateFilter.replace("_", " ")}` : ""}
-                {indexMiss ? " in the local lab index." : "."}
-              </p>
-              {indexMiss && onSearchWeb ? (
-                <button type="button" className="rd-v2-btn sm" onClick={() => onSearchWeb(q)}>
-                  Search the open web via Ask →
-                </button>
-              ) : null}
-            </div>
-          ) : null}
-          <div className="rd-v2-discover-list-panel">
-            <DiscoverCandidateList
-              rows={filtered}
-              labIds={labIds}
-              selectedId={selectedId}
-              onSelectRow={onSelectRow}
-            />
-          </div>
-        </>
-      )}
+          </>
+        )}
+      </div>
     </PageShell>
   );
 }

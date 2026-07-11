@@ -9,6 +9,8 @@ import {
   PageRailPanel,
   ResourcesRailPanel,
 } from "@/v2/RailPanels";
+import { EmptyRailState } from "@/v2/EmptyRailState";
+import { RailFrame } from "@/v2/RailFrame";
 import { ProfileDetailPanel } from "@/v2/ProfilePage";
 import { activeObjectSelectionHint } from "@/v2/activeObject";
 import { displayName } from "@/v2/datasetMeta";
@@ -105,7 +107,16 @@ export function InspectorRail({
   if (mainTab === "cluster") {
     detailPanel = <ClusterRailPanel compare={clusterContext} onAskAbout={onAskAbout} />;
   } else if (mainTab === "browse") {
-    detailPanel = (
+    detailPanel = browseTarget ? (
+      <RailFrame>
+        <div className="rd-v2-rail-scroll">
+          <EmptyRailState
+            title="Evaluating in main canvas"
+            hint="The selected Discover candidate is open in Focused Evaluation. Use Ask here for grounded questions."
+          />
+        </div>
+      </RailFrame>
+    ) : (
       <BrowseRailPanel
         target={browseTarget}
         labIds={labIds}

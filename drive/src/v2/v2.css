@@ -4739,6 +4739,116 @@
   color: #d2b56a;
 }
 
+/* Discover composition: Browse index vs Focused Evaluation workspace */
+.rd-v2-discover-browse {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+.rd-v2-discover-browse-prompt {
+  margin: 4px 0 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--rd-body);
+}
+
+.rd-v2-discover-group {
+  margin: 0 0 18px;
+}
+
+.rd-v2-discover-group-title {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--rd-muted);
+}
+
+.rd-v2-discover-focus {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: #0f1724;
+  color: #e8eef7;
+}
+
+.rd-v2-discover-focus-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  padding: 10px 16px;
+  border-bottom: 1px solid #2a3a52;
+  background: #121c2b;
+}
+
+.rd-v2-discover-focus-spacer {
+  flex: 1;
+}
+
+.rd-v2-discover-focus .rd-v2-btn.ghost {
+  color: #c5d0e0;
+  border-color: #2a3a52;
+  background: transparent;
+}
+
+.rd-v2-eval-workspace-shell {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.rd-v2-eval-workspace {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  max-width: 1080px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 8px 20px 24px;
+}
+
+.rd-v2-eval-workspace .rd-v2-eval-title {
+  font-size: 26px;
+  line-height: 1.2;
+}
+
+.rd-v2-eval-workspace .rd-v2-eval-evidence-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+
+@media (min-width: 900px) {
+  .rd-v2-eval-workspace .rd-v2-eval-evidence-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 20px;
+    align-items: start;
+  }
+}
+
+.rd-v2-eval-workspace-shell > [data-testid="discover-eval-actions"] {
+  flex-shrink: 0;
+  max-width: 1080px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 20px 16px;
+  background: #0f1724;
+}
+
+.rd-v2-eval-workspace-shell .rd-v2-rail-sticky {
+  position: static;
+  border-top: 1px solid #2a3a52;
+  background: #121c2b;
+  padding: 12px 0 0;
+}
+
 /* Collection lifecycle block inside evaluation surface */
 .rd-v2-eval-lifecycle {
   margin: 0;
