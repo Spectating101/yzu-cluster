@@ -1,0 +1,37 @@
+name: Synthesis graph visual audit
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    if: github.head_ref == 'agent/synthesis-construction-graph'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install chromium --with-deps
+      - name: Render Synthesis construction states
+        run: |
+          mkdir -p .tmp-pw docs/screenshots-review/synthesis-graph-visual-audit
+          TMPDIR=$PWD/.tmp-pw npx playwright test e2e/synthesis-graph-visual-audit.spec.js
+        env:
+          CI: 'true'
+          YZU_PAGES: 'false'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: synthesis-graph-visual-audit
+          path: |
+            docs/screenshots-review/synthesis-graph-visual-audit/*.png
+            test-results/**
+          if-no-files-found: warn
+          retention-days: 2
