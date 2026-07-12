@@ -58,6 +58,12 @@ jobs:
           CI: "true"
           YZU_PAGES: "false"
 
+      - name: Render uniquely named current product surfaces
+        run: TMPDIR=$PWD/.tmp-pw npx playwright test e2e/current-product-review-audit.spec.js --retries=0
+        env:
+          CI: "true"
+          YZU_PAGES: "false"
+
       - name: Capture current Home Profile Resources and Library shell
         continue-on-error: true
         run: |
