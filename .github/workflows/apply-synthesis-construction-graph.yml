@@ -39,39 +39,33 @@ jobs:
           data = json.loads(package.read_text())
           data['scripts']['test:synthesis-model'] = 'node --test drive/src/v2/synthesisWorkspace.test.js'
           package.write_text(json.dumps(data, indent=2) + '\n')
-
-          ci = Path('.github/workflows/ci.yml')
-          text = ci.read_text()
-          needle = '      - name: Candidate identity unit tests\n        run: npm run test:candidate-key\n\n'
-          replacement = needle + '      - name: Synthesis state unit tests\n        run: npm run test:synthesis-model\n\n'
-          if 'Synthesis state unit tests' not in text:
-              if needle not in text:
-                  raise SystemExit('CI insertion point not found')
-              text = text.replace(needle, replacement, 1)
-          ci.write_text(text)
           PY
       - name: Validate construction model and production build
         run: |
           npm ci
           npm run test:synthesis-model
           npm run build
-      - name: Stage implementation and remove patch transport
-        run: |
-          rm -f .github/patches/synthesis-construction-graph.b64
-          rm -f .github/patches/synthesis-construction-graph-0*
-          rm -f .github/patches/synthesis-construction-graph-v2-*
-          rm -f .github/workflows/apply-synthesis-construction-graph.yml
-          git status --short
-          git add -A
-          git diff --cached --stat
-      - name: Commit implementation
+      - name: Commit validated product files
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add drive/src/v2/App.jsx \
+            drive/src/v2/InspectorRail.jsx \
+            drive/src/v2/SynthesisGraphCanvas.jsx \
+            drive/src/v2/SynthesisPage.jsx \
+            drive/src/v2/SynthesisRailPanel.jsx \
+            drive/src/v2/main.jsx \
+            drive/src/v2/premium-synthesis.css \
+            drive/src/v2/railContext.js \
+            drive/src/v2/synthesisWorkspace.js \
+            drive/src/v2/synthesisWorkspace.test.js \
+            e2e/v2-synthesis.spec.js \
+            package.json
+          git diff --cached --stat
           git commit -m "Build Synthesis construction graph"
       - name: Rebase branch head
         run: |
           git fetch origin agent/synthesis-construction-graph
           git rebase origin/agent/synthesis-construction-graph
-      - name: Push implementation
+      - name: Push validated product files
         run: git push origin HEAD:agent/synthesis-construction-graph
