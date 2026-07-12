@@ -14,7 +14,7 @@ test.describe("v2 Synthesis construction workspace", () => {
     await expect(page.getByTestId("synthesis-workbench")).toBeVisible();
     await expect(page.getByText("Historical stablecoin attention", { exact: true }).first()).toBeVisible();
     await expect(page.getByRole("button", { name: "Map", exact: true })).toHaveAttribute("aria-current", "page");
-    await expect(page.locator(".rd-syn-flow")).toBeVisible();
+    await expect(page.getByTestId("synthesis-construction-map")).toBeVisible();
     await expect(page.getByTestId("synthesis-proposal")).toContainText("Use GDELT as a validation signal");
     await expect(page.locator("aside.rd-v2-rail")).toBeVisible();
     await expect(page.locator("aside.rd-v2-rail")).toContainText("Historical stablecoin attention");
@@ -58,7 +58,7 @@ test.describe("v2 Synthesis construction workspace", () => {
     await page.setViewportSize({ width: 390, height: 1200 });
     await page.reload({ waitUntil: "domcontentloaded" });
     await waitForShell(page);
-    await expect(page.locator(".rd-syn-flow")).toBeVisible();
+    await expect(page.getByTestId("synthesis-construction-map")).toBeVisible();
     await page.getByText("GDELT crypto news", { exact: true }).click();
     const rail = page.locator("aside.rd-v2-rail");
     await expect(rail).not.toHaveClass(/rd-v2-rail-collapsed/);
