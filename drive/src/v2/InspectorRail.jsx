@@ -213,10 +213,20 @@ export function InspectorRail({
       setMobileRailOpen(Boolean(browseTarget) && railTab === "ask");
       return;
     }
-    if (!MOBILE_RAIL_IDLE_HINTS.has(selectionHint)) {
-      setMobileRailOpen(true);
+    if (mainTab === "home") {
+      setMobileRailOpen(railTab === "ask");
+      return;
     }
-  }, [selectionHint, mainTab, browseTarget, railTab]);
+    if (mainTab === "library" && activeObject?.kind === "library_folder") {
+      setMobileRailOpen(false);
+      return;
+    }
+    if (MOBILE_RAIL_IDLE_HINTS.has(selectionHint)) {
+      setMobileRailOpen(false);
+      return;
+    }
+    setMobileRailOpen(true);
+  }, [selectionHint, mainTab, browseTarget, railTab, activeObject?.kind]);
 
   return (
     <aside
