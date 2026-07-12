@@ -10,7 +10,7 @@ async function openSynthesis(page, viewport) {
   await page.goto("/?tab=synthesis", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
   await expect(page.getByTestId("synthesis-workbench")).toBeVisible();
-  await expect(page.locator(".rd-syn-flow")).toBeVisible();
+  await expect(page.getByTestId("synthesis-construction-map")).toBeVisible();
   await expect(page.getByText("attention_proxy_index", { exact: true })).toBeVisible();
   await page.waitForTimeout(900);
 }
