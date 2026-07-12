@@ -26,7 +26,7 @@ test.describe("v2 Synthesis construction workspace", () => {
     await expect(rail).toContainText("GDELT crypto news");
     await expect(rail).toContainText("Proposed");
     await expect(rail).toContainText("Candidate validation signal");
-    await expect(rail).toContainText("News/editorial coverage");
+    await expect(rail).toContainText("News coverage is related to public visibility");
   });
 
   test("applying an agent proposal changes the visible construction state", async ({ page }) => {
