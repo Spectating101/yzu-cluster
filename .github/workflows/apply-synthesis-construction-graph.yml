@@ -51,11 +51,23 @@ jobs:
           ci.write_text(text)
           PY
       - name: Validate construction model and production build
+        id: validate
+        continue-on-error: true
         run: |
-          npm ci
-          npm run test:synthesis-model
-          npm run build
+          mkdir -p diagnostics
+          set -o pipefail
+          npm ci 2>&1 | tee diagnostics/npm-ci.log
+          npm run test:synthesis-model 2>&1 | tee diagnostics/synthesis-model.log
+          npm run build 2>&1 | tee diagnostics/build.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: synthesis-graph-apply-diagnostics
+          path: diagnostics/*.log
+          if-no-files-found: warn
+          retention-days: 1
       - name: Publish implementation and remove patch transport
+        if: steps.validate.outcome == 'success'
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
@@ -65,3 +77,6 @@ jobs:
           git add -A
           git commit -m "Build Synthesis construction graph"
           git push origin HEAD:agent/synthesis-construction-graph
+      - name: Preserve validation failure
+        if: steps.validate.outcome == 'failure'
+        run: exit 1
