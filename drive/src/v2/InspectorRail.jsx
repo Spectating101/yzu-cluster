@@ -179,7 +179,15 @@ export function InspectorRail({
     detailPanel = <PageRailPanel page="library" onAskAbout={onAskAbout} />;
   } else if (mainTab === "home" && activeObject?.kind === "home_attention") {
     detailPanel = <HomeAttentionRailPanel object={activeObject} onAskAbout={onAskAbout} />;
-  } else if (mainTab === "home" && !dataset?.dataset_id) {
+  } else if (mainTab === "home" && dataset?.dataset_id) {
+    detailPanel = (
+      <LibraryDatasetRailPanel
+        dataset={dataset}
+        onPreview={onPreview}
+        onAskAbout={onAskAbout}
+      />
+    );
+  } else if (mainTab === "home") {
     detailPanel = <PageRailPanel page="home" onAskAbout={onAskAbout} />;
   } else {
     detailPanel = (
