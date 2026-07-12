@@ -22,15 +22,15 @@ jobs:
           cache: npm
       - name: Reconstruct verified product patch
         run: |
-          cat .github/patches/synthesis-construction-graph-0* > /tmp/synthesis-construction-graph.b64
-          test "$(wc -c < /tmp/synthesis-construction-graph.b64)" -eq 34552
-          echo "e4376ff295cf82d08941306055b57706684a2d2b657448fca080f608681c6746  /tmp/synthesis-construction-graph.b64" | sha256sum -c -
-          base64 -d /tmp/synthesis-construction-graph.b64 | gunzip > /tmp/synthesis-construction-graph.patch
-          echo "47addf0dd61f2cd23261cb6eb3fc8bcc8329d479de4150ac9ec6d32a27b207c6  /tmp/synthesis-construction-graph.patch" | sha256sum -c -
+          cat .github/patches/synthesis-construction-graph-v2-* > /tmp/synthesis-construction-graph-v2.b64
+          test "$(wc -c < /tmp/synthesis-construction-graph-v2.b64)" -eq 48652
+          echo "ba53c571871a825861f8e71df4e31df9cb81e1c472423682d5109e0577f247f0  /tmp/synthesis-construction-graph-v2.b64" | sha256sum -c -
+          base64 -d /tmp/synthesis-construction-graph-v2.b64 | gunzip > /tmp/synthesis-construction-graph-v2.patch
+          echo "5632c42691273464d4af3bab3c36b52def8e7ec7805eef97f415f33eb179274a  /tmp/synthesis-construction-graph-v2.patch" | sha256sum -c -
       - name: Apply product patch
         run: |
-          git apply --check /tmp/synthesis-construction-graph.patch
-          git apply /tmp/synthesis-construction-graph.patch
+          git apply --check /tmp/synthesis-construction-graph-v2.patch
+          git apply /tmp/synthesis-construction-graph-v2.patch
           python - <<'PY'
           from pathlib import Path
           import json
@@ -51,32 +51,18 @@ jobs:
           ci.write_text(text)
           PY
       - name: Validate construction model and production build
-        id: validate
-        continue-on-error: true
         run: |
-          mkdir -p diagnostics
-          set -o pipefail
-          npm ci 2>&1 | tee diagnostics/npm-ci.log
-          npm run test:synthesis-model 2>&1 | tee diagnostics/synthesis-model.log
-          npm run build 2>&1 | tee diagnostics/build.log
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: synthesis-graph-apply-diagnostics
-          path: diagnostics/*.log
-          if-no-files-found: warn
-          retention-days: 1
+          npm ci
+          npm run test:synthesis-model
+          npm run build
       - name: Publish implementation and remove patch transport
-        if: steps.validate.outcome == 'success'
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           rm -f .github/patches/synthesis-construction-graph.b64
           rm -f .github/patches/synthesis-construction-graph-0*
+          rm -f .github/patches/synthesis-construction-graph-v2-*
           rm -f .github/workflows/apply-synthesis-construction-graph.yml
           git add -A
           git commit -m "Build Synthesis construction graph"
           git push origin HEAD:agent/synthesis-construction-graph
-      - name: Preserve validation failure
-        if: steps.validate.outcome == 'failure'
-        run: exit 1
