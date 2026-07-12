@@ -21,20 +21,45 @@ jobs:
       - name: Install Playwright Chromium
         run: npx playwright install chromium --with-deps
 
-      - name: Render deterministic Discover and Library states
+      - name: Render current Library states
+        continue-on-error: true
         run: |
           mkdir -p .tmp-pw
-          TMPDIR=$PWD/.tmp-pw npx playwright test \
-            e2e/library-estate-screenshots.spec.js \
-            e2e/discover-composition-screenshots.spec.js \
-            e2e/discover-sufficiency-screenshots.spec.js \
-            e2e/discover-lifecycle-screenshots.spec.js \
-            e2e/discover-evaluation-screenshots.spec.js
+          TMPDIR=$PWD/.tmp-pw npx playwright test e2e/library-estate-screenshots.spec.js --retries=0
+        env:
+          CI: "true"
+          YZU_PAGES: "false"
+
+      - name: Render current Discover composition
+        continue-on-error: true
+        run: TMPDIR=$PWD/.tmp-pw npx playwright test e2e/discover-composition-screenshots.spec.js --retries=0
+        env:
+          CI: "true"
+          YZU_PAGES: "false"
+
+      - name: Render current Discover sufficiency
+        continue-on-error: true
+        run: TMPDIR=$PWD/.tmp-pw npx playwright test e2e/discover-sufficiency-screenshots.spec.js --retries=0
+        env:
+          CI: "true"
+          YZU_PAGES: "false"
+
+      - name: Render current Discover lifecycle
+        continue-on-error: true
+        run: TMPDIR=$PWD/.tmp-pw npx playwright test e2e/discover-lifecycle-screenshots.spec.js --retries=0
+        env:
+          CI: "true"
+          YZU_PAGES: "false"
+
+      - name: Render current Discover evaluation
+        continue-on-error: true
+        run: TMPDIR=$PWD/.tmp-pw npx playwright test e2e/discover-evaluation-screenshots.spec.js --retries=0
         env:
           CI: "true"
           YZU_PAGES: "false"
 
       - name: Capture current Home Profile Resources and Library shell
+        continue-on-error: true
         run: |
           npm run dev -- --port 5179 > /tmp/yzu-vite.log 2>&1 &
           for i in $(seq 1 60); do
@@ -50,6 +75,7 @@ jobs:
           YZU_PAGES: "false"
 
       - name: Upload rendered review evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: current-product-review-pngs
@@ -57,4 +83,5 @@ jobs:
             docs/screenshots-review
             research-drive-screenshots.zip
             research-drive-chatgpt-packet.zip
+          if-no-files-found: error
           retention-days: 1
