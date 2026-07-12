@@ -1,4 +1,4 @@
-name: Diagnose PR29 mock e2e
+name: Diagnose PR29 Synthesis e2e
 
 on:
   pull_request:
@@ -19,18 +19,18 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install chromium --with-deps
-      - name: Capture focused test failure
+      - name: Capture Synthesis browser contract
         run: |
           set +e
-          npm run test:v2-mock > /tmp/mock-e2e.log 2>&1
+          npx playwright test e2e/v2-synthesis.spec.js --reporter=line > /tmp/synthesis-e2e.log 2>&1
           status=$?
-          tail -n 320 /tmp/mock-e2e.log > pr29-ci-tail.txt
-          echo "$status" > pr29-ci-status.txt
+          cat /tmp/synthesis-e2e.log > pr29-synthesis-e2e.txt
+          echo "$status" > pr29-synthesis-status.txt
           exit 0
       - uses: actions/upload-artifact@v4
         with:
-          name: pr29-ci-diagnostic
+          name: pr29-synthesis-diagnostic
           path: |
-            pr29-ci-tail.txt
-            pr29-ci-status.txt
+            pr29-synthesis-e2e.txt
+            pr29-synthesis-status.txt
           retention-days: 1
