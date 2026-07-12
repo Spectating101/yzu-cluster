@@ -20,11 +20,11 @@ import { synthesisStatusMeta } from "@/v2/synthesisWorkspace";
 const elk = new ELK();
 
 const NODE_SIZES = {
-  target: { width: 344, height: 138 },
-  construct: { width: 226, height: 104 },
-  source: { width: 258, height: 132 },
-  process: { width: 258, height: 116 },
-  output: { width: 326, height: 150 },
+  target: { width: 310, height: 118 },
+  construct: { width: 200, height: 86 },
+  source: { width: 226, height: 110 },
+  process: { width: 226, height: 98 },
+  output: { width: 294, height: 128 },
 };
 
 function sizeFor(node) {
@@ -38,12 +38,12 @@ async function layoutProject(project) {
       "elk.algorithm": "layered",
       "elk.direction": "DOWN",
       "elk.edgeRouting": "ORTHOGONAL",
-      "elk.spacing.nodeNode": "42",
-      "elk.layered.spacing.nodeNodeBetweenLayers": "76",
+      "elk.spacing.nodeNode": "34",
+      "elk.layered.spacing.nodeNodeBetweenLayers": "54",
       "elk.layered.nodePlacement.strategy": "NETWORK_SIMPLEX",
       "elk.layered.crossingMinimization.strategy": "LAYER_SWEEP",
       "elk.layered.considerModelOrder.strategy": "NODES_AND_EDGES",
-      "elk.padding": "[top=52,left=54,bottom=52,right=54]",
+      "elk.padding": "[top=34,left=38,bottom=34,right=38]",
     },
     children: project.nodes.map((node) => {
       const size = sizeFor(node);
@@ -202,7 +202,7 @@ function SynthesisGraphInner({ project, selectedNodeId, onSelectNode }) {
         setLayout(next);
         setLoading(false);
         window.requestAnimationFrame(() => {
-          fitView({ padding: 0.15, duration: 520, minZoom: 0.46, maxZoom: 1.2 });
+          fitView({ padding: 0.06, duration: 520, minZoom: 0.58, maxZoom: 1.08 });
         });
       })
       .catch(() => {
@@ -254,13 +254,13 @@ function SynthesisGraphInner({ project, selectedNodeId, onSelectNode }) {
         elementsSelectable
         panOnScroll
         zoomOnDoubleClick={false}
-        minZoom={0.4}
+        minZoom={0.5}
         maxZoom={1.5}
         onMove={(_, viewport) => setZoom(viewport.zoom)}
         onNodeClick={(_, node) => onSelectNode?.(project.nodes.find((item) => item.id === node.id) || null)}
         onPaneClick={() => onSelectNode?.(null)}
         fitView
-        proOptions={{ hideAttribution: false }}
+        proOptions={{ hideAttribution: true }}
       >
         <Background gap={24} size={1} className="rd-syn-map-background" />
         <Controls showInteractive={false} className="rd-syn-map-controls" />

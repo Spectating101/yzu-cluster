@@ -14,6 +14,8 @@ test("applying the GDELT proposal changes evidence role and edge semantics", () 
   assert.equal(gdelt.status, "queryable");
   assert.equal(gdelt.role, "Validation signal");
   assert.equal(edge.relation, "validates");
+  assert.deepEqual(next.spec.validation, [["GDELT", "News coverage · external validation"]]);
+  assert.deepEqual(gdelt.progress, ["Indexed", "Capability known", "Query design pending"]);
   assert.equal(next.proposal, null);
 });
 

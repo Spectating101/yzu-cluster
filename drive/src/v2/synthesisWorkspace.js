@@ -209,9 +209,10 @@ export const ATTENTION_SYNTHESIS_PROJECT = {
     nodeId: "gdelt",
     impact: ["Core proxy remains three-component", "Adds an external visibility check", "Requires entity review before validation"],
     operations: [
-      { op: "update_node", id: "gdelt", patch: { status: "queryable", eyebrow: "Reachable source", role: "Validation signal", proposalId: null } },
+      { op: "update_node", id: "gdelt", patch: { status: "queryable", eyebrow: "Reachable source", role: "Validation signal", progress: ["Indexed", "Capability known", "Query design pending"], proposalId: null } },
       { op: "update_edge", id: "attention-gdelt", patch: { relation: "validates", label: "validation evidence" } },
       { op: "update_edge", id: "gdelt-output", patch: { relation: "validates", label: "validates" } },
+      { op: "update_spec", patch: { validation: [["GDELT", "News coverage · external validation"]] } },
       { op: "append_activity", message: "GDELT approved as a validation signal." },
     ],
   },
@@ -413,7 +414,7 @@ function cloneProject(project) {
   };
 }
 
-const ALLOWED_PATCH_OPS = new Set(["update_node", "add_node", "remove_node", "update_edge", "add_edge", "append_activity"]);
+const ALLOWED_PATCH_OPS = new Set(["update_node", "add_node", "remove_node", "update_edge", "add_edge", "update_spec", "append_activity"]);
 
 export function applySynthesisPatch(project, operations = []) {
   const next = cloneProject(project);
@@ -446,6 +447,8 @@ export function applySynthesisPatch(project, operations = []) {
         throw new Error("Synthesis edge endpoints must exist.");
       }
       next.edges.push({ ...operation.edge });
+    } else if (operation.op === "update_spec") {
+      next.spec = { ...(next.spec || {}), ...(operation.patch || {}) };
     } else if (operation.op === "append_activity") {
       next.activity.push({ time: "Now", kind: "change", message: operation.message || "Synthesis state updated." });
     }

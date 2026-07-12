@@ -393,13 +393,11 @@ export function SynthesisPage({ datasets = [], onAskComposer, onSelectObject }) 
     const next = applyProjectProposal(project);
     setProjectOverrides((current) => ({ ...current, [project.id]: next }));
     setSelectedNodeId(project.proposal?.nodeId || "");
-    setActivityOpen(true);
   };
   const rejectProposal = () => {
     const next = rejectProjectProposal(project);
     setProjectOverrides((current) => ({ ...current, [project.id]: next }));
     setSelectedNodeId("");
-    setActivityOpen(true);
   };
 
   if (!project) return null;
