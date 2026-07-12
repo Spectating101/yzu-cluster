@@ -421,6 +421,8 @@ export async function mockV2Api(page, { discoverBody = { sections: [], total: 0 
   });
   await page.route("**/library/synthesis/*", (route) => {
     const id = decodeURIComponent(route.request().url().split("/library/synthesis/")[1]?.split("?")[0] || "");
+    // This wildcard is registered last, so let the explicit profile/run/pair routes handle their contracts.
+    if (["profiles", "run", "pair"].includes(id)) return route.continue();
     const profile =
       MOCK_SYNTHESIS_PROFILES.profiles.find((item) => item.profile_id === id) ||
       MOCK_SYNTHESIS_PROFILES.profiles[0];
