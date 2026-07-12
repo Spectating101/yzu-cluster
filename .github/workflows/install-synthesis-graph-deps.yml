@@ -1,0 +1,33 @@
+name: Install Synthesis graph dependencies
+
+on:
+  push:
+    branches: [agent/synthesis-construction-graph]
+    paths:
+      - .github/workflows/install-synthesis-graph-deps.yml
+
+permissions:
+  contents: write
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/synthesis-construction-graph
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - name: Install graph primitives
+        run: npm install @xyflow/react@12.11.2 elkjs@0.12.0 --save
+      - name: Commit dependency lock and remove installer
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          rm -f .github/workflows/install-synthesis-graph-deps.yml
+          git add package.json package-lock.json .github/workflows/install-synthesis-graph-deps.yml
+          git commit -m "Add Synthesis graph primitives"
+          git push origin HEAD:agent/synthesis-construction-graph
