@@ -1,0 +1,15 @@
+/* Premium interaction corrections discovered in rendered + mock-e2e review. */
+
+/* Preview is a modal work surface. It must sit above the persistent inspector,
+   header, and mobile product chrome rather than competing inside their stack. */
+.rd-v2-preview-scrim {
+  z-index: 120 !important;
+}
+
+/* Discover Focus keeps one command authority, but the action region must end
+   before the floating mobile navigation begins instead of extending behind it. */
+@media (max-width: 720px) {
+  .rd-v2-discover-focus {
+    padding-bottom: 76px;
+  }
+}
