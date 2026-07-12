@@ -1,0 +1,44 @@
+name: Premium visual audit
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Chromium
+        run: npx playwright install chromium --with-deps
+      - name: Render premium review states
+        run: |
+          mkdir -p .tmp-pw
+          TMPDIR=$PWD/.tmp-pw npx playwright test e2e/premium-visual-audit.spec.js --retries=0
+        env:
+          CI: "true"
+          YZU_PAGES: "false"
+      - name: Run accepted Library and Discover screenshot contracts
+        run: |
+          TMPDIR=$PWD/.tmp-pw npx playwright test \
+            e2e/library-estate-screenshots.spec.js \
+            e2e/discover-composition-screenshots.spec.js \
+            e2e/discover-sufficiency-screenshots.spec.js \
+            --retries=0
+        env:
+          CI: "true"
+          YZU_PAGES: "false"
+      - name: Upload review evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: premium-visual-audit-pngs
+          path: docs/screenshots-review
+          if-no-files-found: error
+          retention-days: 1
