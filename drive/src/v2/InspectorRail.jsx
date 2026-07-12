@@ -15,6 +15,7 @@ import { ProfileDetailPanel } from "@/v2/ProfilePage";
 import { activeObjectSelectionHint } from "@/v2/activeObject";
 import { displayName } from "@/v2/datasetMeta";
 import { LibraryDatasetRailPanel } from "@/v2/LibraryDatasetRailPanel";
+import { ResourcesOverviewRailPanel } from "@/v2/ResourcesOverviewRailPanel";
 
 function railSelectionHint(mainTab, dataset, browseTarget, resourceRow, clusterContext) {
   if (mainTab === "browse" && browseTarget) {
@@ -134,7 +135,7 @@ export function InspectorRail({
       />
     );
   } else if (mainTab === "resources") {
-    detailPanel = (
+    detailPanel = resourceRow ? (
       <ResourcesRailPanel
         row={resourceRow}
         rollup={resourcesRollup}
@@ -143,6 +144,8 @@ export function InspectorRail({
         onViewActivity={onViewActivity}
         onAskAbout={onAskAbout}
       />
+    ) : (
+      <ResourcesOverviewRailPanel rollup={resourcesRollup} onViewActivity={onViewActivity} />
     );
   } else if (mainTab === "profile") {
     detailPanel = <ProfileDetailPanel profile={profile} />;
