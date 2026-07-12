@@ -55,14 +55,23 @@ jobs:
           npm ci
           npm run test:synthesis-model
           npm run build
-      - name: Publish implementation and remove patch transport
+      - name: Stage implementation and remove patch transport
         run: |
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           rm -f .github/patches/synthesis-construction-graph.b64
           rm -f .github/patches/synthesis-construction-graph-0*
           rm -f .github/patches/synthesis-construction-graph-v2-*
           rm -f .github/workflows/apply-synthesis-construction-graph.yml
+          git status --short
           git add -A
+          git diff --cached --stat
+      - name: Commit implementation
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git commit -m "Build Synthesis construction graph"
-          git push origin HEAD:agent/synthesis-construction-graph
+      - name: Rebase branch head
+        run: |
+          git fetch origin agent/synthesis-construction-graph
+          git rebase origin/agent/synthesis-construction-graph
+      - name: Push implementation
+        run: git push origin HEAD:agent/synthesis-construction-graph
