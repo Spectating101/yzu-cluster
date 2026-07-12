@@ -26,6 +26,9 @@ jobs:
       - name: Candidate identity unit tests
         run: npm run test:candidate-key
 
+      - name: Synthesis state unit tests
+        run: npm run test:synthesis-model
+
       - name: Production build
         run: npm run build
         env:
