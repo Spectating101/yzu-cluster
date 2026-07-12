@@ -22,7 +22,7 @@ jobs:
           node-version: '20'
           cache: npm
       - name: Install graph primitives
-        run: npm install @xyflow/react@12.11.2 elkjs@0.12.0 --save
+        run: npm install @xyflow/react@12.11.2 elkjs@0.11.1 --save
       - name: Commit dependency lock and remove installer
         run: |
           git config user.name github-actions[bot]
