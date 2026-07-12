@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   getSynthesisProfile,
   listSynthesisProfiles,
@@ -399,6 +399,7 @@ export function SynthesisPage({
   const [detailLoading, setDetailLoading] = useState(false);
   const [customMode, setCustomMode] = useState(false);
   const [runState, setRunState] = useState({ status: "idle", result: null, error: "" });
+  const outputRef = useRef(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -531,6 +532,11 @@ export function SynthesisPage({
         ? await runSynthesisPair(inputs[0].dataset_id, inputs[1].dataset_id)
         : await runSynthesis(activeProfile.profile_id);
       setRunState({ status: "success", result, error: "" });
+      window.requestAnimationFrame(() => {
+        if (window.matchMedia?.("(max-width: 720px)").matches) {
+          outputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      });
     } catch (error) {
       setRunState({
         status: "error",
@@ -694,7 +700,7 @@ export function SynthesisPage({
               </div>
             </section>
 
-            <section className="rd-syn-output" aria-labelledby="rd-syn-output-title">
+            <section ref={outputRef} className="rd-syn-output" aria-labelledby="rd-syn-output-title">
               <div className="rd-syn-section-head">
                 <span id="rd-syn-output-title">Research output</span>
                 <small>{outputState}</small>

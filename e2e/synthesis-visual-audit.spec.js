@@ -36,5 +36,6 @@ test("render Synthesis studio review states", async ({ page }) => {
 
   await page.getByRole("button", { name: "Run synthesis" }).click();
   await expect(page.getByTestId("synthesis-output-card")).toContainText("Registered in Library");
+  await page.waitForTimeout(700);
   await shot(page, "05-mobile-registered-output");
 });
