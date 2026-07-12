@@ -20,7 +20,7 @@ async function shot(page, name) {
   await page.screenshot({ path: `${OUT}/${name}.png`, fullPage: false });
 }
 
-test("render Synthesis construction workbench states", async ({ page }) => {
+test("render corrected Synthesis construction workbench states", async ({ page }) => {
   mkdirSync(OUT, { recursive: true });
 
   await openSynthesis(page, { width: 1440, height: 900 });
