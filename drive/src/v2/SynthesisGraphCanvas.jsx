@@ -202,7 +202,15 @@ function SynthesisGraphInner({ project, selectedNodeId, onSelectNode }) {
         setLayout(next);
         setLoading(false);
         window.requestAnimationFrame(() => {
-          fitView({ padding: 0.06, duration: 520, minZoom: 0.58, maxZoom: 1.08 });
+          const mobile = window.matchMedia?.("(max-width: 720px)").matches;
+          const entryNodes = next.nodes.filter((node) =>
+            node.data?.layer === "target" || node.data?.layer === "evidence"
+          );
+          fitView(
+            mobile
+              ? { padding: 0.06, duration: 520, minZoom: 0.58, maxZoom: 1.08 }
+              : { nodes: entryNodes, padding: 0.08, duration: 520, minZoom: 0.58, maxZoom: 0.82 },
+          );
         });
       })
       .catch(() => {
