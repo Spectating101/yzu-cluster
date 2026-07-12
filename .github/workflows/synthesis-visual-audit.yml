@@ -20,12 +20,35 @@ jobs:
       - run: npm ci
       - run: npx playwright install chromium --with-deps
       - name: Render Synthesis states
-        run: mkdir -p .tmp-pw && TMPDIR=$PWD/.tmp-pw npx playwright test e2e/synthesis-visual-audit.spec.js
+        id: visual
+        continue-on-error: true
+        run: |
+          mkdir -p .tmp-pw docs/screenshots-review/synthesis-visual-audit diagnostics
+          set -o pipefail
+          TMPDIR=$PWD/.tmp-pw npx playwright test e2e/synthesis-visual-audit.spec.js 2>&1 | tee diagnostics/visual.log
+        env:
+          CI: 'true'
+          YZU_PAGES: 'false'
+      - name: Run Synthesis browser contract
+        id: contract
+        continue-on-error: true
+        run: |
+          mkdir -p .tmp-pw diagnostics
+          set -o pipefail
+          TMPDIR=$PWD/.tmp-pw npx playwright test e2e/v2-synthesis.spec.js 2>&1 | tee diagnostics/contract.log
         env:
           CI: 'true'
           YZU_PAGES: 'false'
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: synthesis-visual-audit
-          path: docs/screenshots-review/synthesis-visual-audit/*.png
+          path: |
+            docs/screenshots-review/synthesis-visual-audit/*.png
+            diagnostics/*.log
+            test-results/**
+          if-no-files-found: warn
           retention-days: 2
+      - name: Preserve failure status
+        if: steps.visual.outcome == 'failure' || steps.contract.outcome == 'failure'
+        run: exit 1
