@@ -15,13 +15,26 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install chromium --with-deps
-      - name: Capture mock e2e log
+      - name: Capture first failure per mock e2e spec
         run: |
           set +e
-          npm run test:v2-mock > mock-e2e.log 2>&1
-          code=$?
-          echo "$code" > mock-e2e-exit-code.txt
-          tail -n 240 mock-e2e.log
+          : > mock-e2e.log
+          failed=0
+          for spec in \
+            e2e/v2-home.spec.js \
+            e2e/v2-parity.spec.js \
+            e2e/v2-discover.spec.js \
+            e2e/v2-library.spec.js \
+            e2e/v2-resources.spec.js
+          do
+            echo "===== $spec =====" | tee -a mock-e2e.log
+            TMPDIR=$PWD/.tmp-pw npx playwright test "$spec" --retries=0 --max-failures=1 >> mock-e2e.log 2>&1
+            code=$?
+            echo "exit=$code" | tee -a mock-e2e.log
+            if [ "$code" -ne 0 ]; then failed=1; fi
+          done
+          echo "$failed" > mock-e2e-exit-code.txt
+          tail -n 400 mock-e2e.log
           exit 0
         env:
           CI: "true"
