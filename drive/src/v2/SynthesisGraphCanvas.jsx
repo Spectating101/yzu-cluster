@@ -275,6 +275,7 @@ function SynthesisGraphInner({ project, selectedNodeId, onSelectNode }) {
         <MiniMap
           pannable={false}
           zoomable={false}
+          style={{ pointerEvents: "none" }}
           className="rd-syn-minimap"
           nodeColor={(node) => {
             const status = node?.data?.status;
