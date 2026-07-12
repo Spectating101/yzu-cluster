@@ -36,6 +36,9 @@ function railSelectionHint(mainTab, dataset, browseTarget, resourceRow, clusterC
   if (mainTab === "settings") {
     return "Desk setup";
   }
+  if (mainTab === "synthesis") {
+    return "Synthesis";
+  }
   if (mainTab === "cluster" && clusterContext?.a && clusterContext?.b) {
     return `${displayName(clusterContext.a)} × ${displayName(clusterContext.b)}`;
   }
@@ -151,6 +154,8 @@ export function InspectorRail({
     detailPanel = <ProfileDetailPanel profile={profile} />;
   } else if (mainTab === "settings") {
     detailPanel = <PageRailPanel page="settings" onAskAbout={onAskAbout} />;
+  } else if (mainTab === "synthesis") {
+    detailPanel = <PageRailPanel page="synthesis" onAskAbout={onAskAbout} />;
   } else if (
     mainTab === "library" &&
     (activeObject?.kind === "library_folder" || activeObject?.kind === "library_intake")
@@ -214,6 +219,10 @@ export function InspectorRail({
       return;
     }
     if (mainTab === "home") {
+      setMobileRailOpen(railTab === "ask");
+      return;
+    }
+    if (mainTab === "synthesis") {
       setMobileRailOpen(railTab === "ask");
       return;
     }

@@ -113,6 +113,86 @@ export const MOCK_OPS = {
   query_engine: { ok: true },
 };
 
+export const MOCK_SYNTHESIS_PROFILES = {
+  profiles: [
+    {
+      profile_id: "stablecoin_trust_engagement",
+      title: "Stablecoin trust & engagement",
+      type: "Research panel",
+      objective: "Combine security, on-chain activity, and public attention into one weekly research panel.",
+      inputs: [
+        {
+          dataset_id: "skynet_stablecoin_security",
+          name: "Stablecoin security & governance",
+          source: "CertiK Skynet",
+          grain: "asset-week",
+          coverage: "2021–2026",
+          join_keys: ["asset_id", "week"],
+          analysis_readiness: "instant",
+        },
+        {
+          dataset_id: "etherscan_stablecoin_activity",
+          name: "Stablecoin on-chain activity",
+          source: "Etherscan",
+          grain: "asset-day",
+          coverage: "2021–2026",
+          join_keys: ["asset_id", "date"],
+          analysis_readiness: "instant",
+        },
+        {
+          dataset_id: "stablecoin_attention_overlay",
+          name: "Public attention overlay",
+          source: "GDELT · Wikipedia · GitHub",
+          grain: "asset-week",
+          coverage: "2021–2026",
+          join_keys: ["asset_id", "week"],
+          analysis_readiness: "instant",
+        },
+      ],
+      output: {
+        dataset_id: "stablecoin_trust_weekly_panel",
+        name: "Stablecoin trust weekly panel",
+        grain: "asset-week",
+        coverage: "2021–2026",
+        destination: "Research panels",
+      },
+    },
+    {
+      profile_id: "skynet_etherscan_stablecoin",
+      title: "Security × on-chain activity",
+      type: "Two-source synthesis",
+      objective: "Join governance and security signals to observed on-chain activity.",
+      inputs: [
+        {
+          dataset_id: "skynet_stablecoin_security",
+          name: "Stablecoin security & governance",
+          source: "CertiK Skynet",
+          grain: "asset-week",
+          coverage: "2021–2026",
+          join_keys: ["asset_id", "week"],
+          analysis_readiness: "instant",
+        },
+        {
+          dataset_id: "etherscan_stablecoin_activity",
+          name: "Stablecoin on-chain activity",
+          source: "Etherscan",
+          grain: "asset-day",
+          coverage: "2021–2026",
+          join_keys: ["asset_id", "date"],
+          analysis_readiness: "instant",
+        },
+      ],
+      output: {
+        dataset_id: "skynet_etherscan_stablecoin_panel",
+        name: "Security and activity panel",
+        grain: "asset-week",
+        coverage: "2021–2026",
+        destination: "Synthesis outputs",
+      },
+    },
+  ],
+};
+
 export const MOCK_JOBS = {
   jobs: [
     {
@@ -289,6 +369,67 @@ export async function mockV2Api(page, { discoverBody = { sections: [], total: 0 
   await page.route("**/library/partitions*", (route) =>
     route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ partitions: [] }) }),
   );
+  await page.route("**/library/synthesis/profiles", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(MOCK_SYNTHESIS_PROFILES),
+    }),
+  );
+  await page.route("**/library/synthesis/run", (route) => {
+    if (route.request().method() !== "POST") return route.continue();
+    let body = {};
+    try {
+      body = JSON.parse(route.request().postData() || "{}");
+    } catch {
+      body = {};
+    }
+    const profile =
+      MOCK_SYNTHESIS_PROFILES.profiles.find((item) => item.profile_id === body.profile_id) ||
+      MOCK_SYNTHESIS_PROFILES.profiles[0];
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        status: "completed",
+        registered: true,
+        registered_dataset_id: profile.output.dataset_id,
+        row_count: 18432,
+        output: { ...profile.output, registered: true },
+      }),
+    });
+  });
+  await page.route("**/library/synthesis/pair", (route) => {
+    if (route.request().method() !== "POST") return route.continue();
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        status: "completed",
+        registered: false,
+        output_dataset_id: "custom_pair_synthesis",
+        row_count: 830,
+        output: {
+          dataset_id: "custom_pair_synthesis",
+          name: "Custom pair synthesis",
+          grain: "derived",
+          coverage: "Computed from input overlap",
+          destination: "Synthesis outputs",
+        },
+      }),
+    });
+  });
+  await page.route("**/library/synthesis/*", (route) => {
+    const id = decodeURIComponent(route.request().url().split("/library/synthesis/")[1]?.split("?")[0] || "");
+    const profile =
+      MOCK_SYNTHESIS_PROFILES.profiles.find((item) => item.profile_id === id) ||
+      MOCK_SYNTHESIS_PROFILES.profiles[0];
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ profile }),
+    });
+  });
   await page.route("**/library/desk/warm", (route) => {
     if (route.request().method() !== "POST") {
       return route.continue();
