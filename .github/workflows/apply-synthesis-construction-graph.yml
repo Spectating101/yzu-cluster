@@ -20,9 +20,15 @@ jobs:
         with:
           node-version: '20'
           cache: npm
+      - name: Reconstruct verified product patch
+        run: |
+          cat .github/patches/synthesis-construction-graph-0* > /tmp/synthesis-construction-graph.b64
+          test "$(wc -c < /tmp/synthesis-construction-graph.b64)" -eq 34552
+          echo "e4376ff295cf82d08941306055b57706684a2d2b657448fca080f608681c6746  /tmp/synthesis-construction-graph.b64" | sha256sum -c -
+          base64 -d /tmp/synthesis-construction-graph.b64 | gunzip > /tmp/synthesis-construction-graph.patch
+          echo "47addf0dd61f2cd23261cb6eb3fc8bcc8329d479de4150ac9ec6d32a27b207c6  /tmp/synthesis-construction-graph.patch" | sha256sum -c -
       - name: Apply product patch
         run: |
-          base64 -d .github/patches/synthesis-construction-graph.b64 | gunzip > /tmp/synthesis-construction-graph.patch
           git apply --check /tmp/synthesis-construction-graph.patch
           git apply /tmp/synthesis-construction-graph.patch
           python - <<'PY'
@@ -53,7 +59,9 @@ jobs:
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          rm -f .github/patches/synthesis-construction-graph.b64 .github/workflows/apply-synthesis-construction-graph.yml
+          rm -f .github/patches/synthesis-construction-graph.b64
+          rm -f .github/patches/synthesis-construction-graph-0*
+          rm -f .github/workflows/apply-synthesis-construction-graph.yml
           git add -A
           git commit -m "Build Synthesis construction graph"
           git push origin HEAD:agent/synthesis-construction-graph
