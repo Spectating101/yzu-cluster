@@ -1,0 +1,39 @@
+name: Diagnose PR29 mock e2e
+
+on:
+  push:
+    branches: [agent/synthesis-construction-graph]
+    paths:
+      - .github/workflows/diagnose-pr29-ci.yml
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/synthesis-construction-graph
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install chromium --with-deps
+      - name: Capture focused test failure
+        run: |
+          set +e
+          npm run test:v2-mock > /tmp/mock-e2e.log 2>&1
+          status=$?
+          tail -n 320 /tmp/mock-e2e.log > pr29-ci-tail.txt
+          echo "$status" > pr29-ci-status.txt
+          exit 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pr29-ci-diagnostic
+          path: |
+            pr29-ci-tail.txt
+            pr29-ci-status.txt
+          retention-days: 1
