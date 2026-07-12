@@ -22,14 +22,14 @@ jobs:
       - name: Capture Synthesis browser contract
         run: |
           set +e
-          npx playwright test e2e/v2-synthesis.spec.js --reporter=line > /tmp/synthesis-e2e.log 2>&1
+          CI= npx playwright test e2e/v2-synthesis.spec.js --reporter=line --timeout=20000 --retries=0 > /tmp/synthesis-e2e.log 2>&1
           status=$?
           cat /tmp/synthesis-e2e.log > pr29-synthesis-e2e.txt
           echo "$status" > pr29-synthesis-status.txt
           exit 0
       - uses: actions/upload-artifact@v4
         with:
-          name: pr29-synthesis-diagnostic
+          name: pr29-synthesis-diagnostic-fast
           path: |
             pr29-synthesis-e2e.txt
             pr29-synthesis-status.txt
