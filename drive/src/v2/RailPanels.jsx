@@ -162,6 +162,15 @@ const PAGE_RAIL_COPY = {
       ["Trust cue", "Rows should show readiness, source, and destination"],
     ],
   },
+  synthesis: {
+    title: "Synthesis studio",
+    desc: "Build a reusable research output from owned Library assets.",
+    fields: [
+      ["Use this page", "Choose a blueprint or custom pair"],
+      ["Review", "Join path, grain, time overlap, and readiness"],
+      ["Output", "Run the synthesis and confirm registration"],
+    ],
+  },
   profile: {
     title: "Profile context",
     desc: "Faculty profile controls ranking, procurement hints, and research-area context.",

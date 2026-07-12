@@ -37,6 +37,7 @@ import { PreviewModal } from "@/v2/PreviewModal";
 import { ProfilePage } from "@/v2/ProfilePage";
 import { ResourcesPage } from "@/v2/ResourcesPage";
 import { SettingsPage } from "@/v2/SettingsPage";
+import { SynthesisPage } from "@/v2/SynthesisPage";
 import {
   buildDiscoverLifecycle,
   isLifecycleActive,
@@ -978,6 +979,18 @@ export function V2App() {
         />
       );
       break;
+    case "synthesis":
+      main = (
+        <SynthesisPage
+          datasets={catalog}
+          compareIds={compareIds}
+          onCompareChange={setCompareIds}
+          onAskComposer={askFromPrompt}
+          onGoTab={goTab}
+          onOpenDataset={openInLibraryFromDiscover}
+        />
+      );
+      break;
     case "resources":
       main = (
         <ResourcesPage
@@ -1023,7 +1036,9 @@ export function V2App() {
       main = null;
   }
 
-  const hideRail = tab === "browse" && (!browseTarget || railTab !== "ask");
+  const hideRail =
+    (tab === "browse" && (!browseTarget || railTab !== "ask")) ||
+    (tab === "synthesis" && railTab !== "ask");
 
   return (
     <div className={`yzu-shell with-inspector rd-theme-light rd-v2-shell${hideRail ? " no-rail" : ""}`}>
@@ -1121,6 +1136,8 @@ export function V2App() {
                   ? {
                       title: `Library · ${activeObject.title}`,
                     }
+                : tab === "synthesis"
+                  ? { title: "Synthesis studio" }
                 : tab === "profile"
                   ? {
                       title:

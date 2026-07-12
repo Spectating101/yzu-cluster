@@ -26,6 +26,15 @@ const BrowseIcon = () => (
     <line x1="21" y1="21" x2="16.65" y2="16.65"/>
   </svg>
 );
+const SynthesisIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <circle cx="5" cy="6" r="2.5"/>
+    <circle cx="5" cy="18" r="2.5"/>
+    <circle cx="19" cy="12" r="2.5"/>
+    <path d="M7.4 7.2 16.6 10.8"/>
+    <path d="M7.4 16.8 16.6 13.2"/>
+  </svg>
+);
 const ResourcesIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
     <rect x="2" y="3" width="20" height="14" rx="2"/>
@@ -55,6 +64,7 @@ export const V2_SIDEBAR_TABS = [
   { id: "home",      label: "Home",      Icon: HomeIcon },
   { id: "library",   label: "Library",   Icon: LibraryIcon },
   { id: "browse",    label: "Discover",  Icon: BrowseIcon },
+  { id: "synthesis", label: "Synthesis", Icon: SynthesisIcon },
   { id: "resources", label: "Resources", Icon: ResourcesIcon },
   { id: "profile",   label: "Profile",   Icon: ProfileIcon },
   { id: "settings",  label: "Settings",  Icon: SettingsIcon },
