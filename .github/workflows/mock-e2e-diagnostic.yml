@@ -15,36 +15,13 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install chromium --with-deps
-      - name: Capture first failure per mock e2e spec
+      - name: Run corrected interaction and shell contracts
         run: |
-          set +e
-          : > mock-e2e.log
-          failed=0
-          for spec in \
-            e2e/v2-home.spec.js \
-            e2e/v2-parity.spec.js \
-            e2e/v2-discover.spec.js \
-            e2e/v2-library.spec.js \
-            e2e/v2-resources.spec.js
-          do
-            echo "===== $spec =====" | tee -a mock-e2e.log
-            TMPDIR=$PWD/.tmp-pw npx playwright test "$spec" --retries=0 --max-failures=1 >> mock-e2e.log 2>&1
-            code=$?
-            echo "exit=$code" | tee -a mock-e2e.log
-            if [ "$code" -ne 0 ]; then failed=1; fi
-          done
-          echo "$failed" > mock-e2e-exit-code.txt
-          tail -n 400 mock-e2e.log
-          exit 0
+          mkdir -p .tmp-pw
+          TMPDIR=$PWD/.tmp-pw npx playwright test e2e/v2-home.spec.js --retries=0 --max-failures=1 -g "Continue opens dataset preview"
+          TMPDIR=$PWD/.tmp-pw npx playwright test e2e/v2-parity.spec.js --retries=0 --max-failures=1 -g "shell grid keeps adaptive rail proportions"
+          TMPDIR=$PWD/.tmp-pw npx playwright test e2e/v2-discover.spec.js --retries=0 --max-failures=1 -g "mobile Discover Focus owns the viewport"
+          TMPDIR=$PWD/.tmp-pw npx playwright test e2e/v2-resources.spec.js --retries=0 --max-failures=1 -g "right rail starts with operational posture"
         env:
           CI: "true"
           YZU_PAGES: "false"
-      - uses: actions/upload-artifact@v4
-        with:
-          name: mock-e2e-diagnostic
-          path: |
-            mock-e2e.log
-            mock-e2e-exit-code.txt
-            test-results
-          if-no-files-found: warn
-          retention-days: 1
