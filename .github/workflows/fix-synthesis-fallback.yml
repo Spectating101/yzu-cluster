@@ -1,0 +1,39 @@
+name: Fix synthesis mock fallback
+
+on:
+  push:
+    branches: [agent/synthesis-visual-studio]
+    paths:
+      - .github/workflows/fix-synthesis-fallback.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/synthesis-visual-studio
+          fetch-depth: 0
+      - name: Correct Playwright route handoff
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('e2e/fixtures/v2MockApi.js')
+          text = path.read_text()
+          old = 'if (["profiles", "run", "pair"].includes(id)) return route.continue();'
+          new = 'if (["profiles", "run", "pair"].includes(id)) return route.fallback();'
+          if old not in text:
+              raise SystemExit('fallback target not found')
+          path.write_text(text.replace(old, new, 1))
+          PY
+      - name: Publish correction and remove transport
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          rm -f .github/workflows/fix-synthesis-fallback.yml
+          git add -A
+          git commit -m "Fix synthesis mock route fallback"
+          git push origin HEAD:agent/synthesis-visual-studio
