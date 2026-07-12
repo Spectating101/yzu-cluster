@@ -449,6 +449,8 @@ export function applySynthesisPatch(project, operations = []) {
       next.edges.push({ ...operation.edge });
     } else if (operation.op === "update_spec") {
       next.spec = { ...(next.spec || {}), ...(operation.patch || {}) };
+    } else if (operation.op === "update_spec") {
+      next.spec = { ...(next.spec || {}), ...(operation.patch || {}) };
     } else if (operation.op === "append_activity") {
       next.activity.push({ time: "Now", kind: "change", message: operation.message || "Synthesis state updated." });
     }
