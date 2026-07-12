@@ -1,0 +1,60 @@
+name: Apply Synthesis construction graph
+
+on:
+  push:
+    branches: [agent/synthesis-construction-graph]
+    paths:
+      - .github/workflows/apply-synthesis-construction-graph.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/synthesis-construction-graph
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - name: Apply product patch
+        run: |
+          base64 -d .github/patches/synthesis-construction-graph.b64 | gunzip > /tmp/synthesis-construction-graph.patch
+          git apply --check /tmp/synthesis-construction-graph.patch
+          git apply /tmp/synthesis-construction-graph.patch
+          python - <<'PY'
+          from pathlib import Path
+          import json
+
+          package = Path('package.json')
+          data = json.loads(package.read_text())
+          data['scripts']['test:synthesis-model'] = 'node --test drive/src/v2/synthesisWorkspace.test.js'
+          package.write_text(json.dumps(data, indent=2) + '\n')
+
+          ci = Path('.github/workflows/ci.yml')
+          text = ci.read_text()
+          needle = '      - name: Candidate identity unit tests\n        run: npm run test:candidate-key\n\n'
+          replacement = needle + '      - name: Synthesis state unit tests\n        run: npm run test:synthesis-model\n\n'
+          if 'Synthesis state unit tests' not in text:
+              if needle not in text:
+                  raise SystemExit('CI insertion point not found')
+              text = text.replace(needle, replacement, 1)
+          ci.write_text(text)
+          PY
+      - name: Validate construction model and production build
+        run: |
+          npm ci
+          npm run test:synthesis-model
+          npm run build
+      - name: Publish implementation and remove patch transport
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          rm -f .github/patches/synthesis-construction-graph.b64 .github/workflows/apply-synthesis-construction-graph.yml
+          git add -A
+          git commit -m "Build Synthesis construction graph"
+          git push origin HEAD:agent/synthesis-construction-graph
