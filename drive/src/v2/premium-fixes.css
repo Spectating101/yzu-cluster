@@ -1,8 +1,15 @@
 /* Premium interaction corrections discovered in rendered + mock-e2e review. */
 
-/* Preview is a modal work surface. It must sit above the persistent inspector,
-   header, and mobile product chrome rather than competing inside their stack. */
+/* Preview belongs to the main work surface. Confining the overlay to main keeps
+   the persistent inspector mounted and prevents sibling stacking contexts from
+   intercepting modal controls. */
+.yzu-main {
+  position: relative;
+}
+
 .rd-v2-preview-scrim {
+  position: absolute !important;
+  inset: 0 !important;
   z-index: 120 !important;
 }
 
