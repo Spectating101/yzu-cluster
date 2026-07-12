@@ -1,0 +1,37 @@
+name: Mock e2e diagnostic
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install chromium --with-deps
+      - name: Capture mock e2e log
+        run: |
+          set +e
+          npm run test:v2-mock > mock-e2e.log 2>&1
+          code=$?
+          echo "$code" > mock-e2e-exit-code.txt
+          tail -n 240 mock-e2e.log
+          exit 0
+        env:
+          CI: "true"
+          YZU_PAGES: "false"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mock-e2e-diagnostic
+          path: |
+            mock-e2e.log
+            mock-e2e-exit-code.txt
+            test-results
+          if-no-files-found: warn
+          retention-days: 1
