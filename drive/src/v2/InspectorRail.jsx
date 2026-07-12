@@ -16,8 +16,9 @@ import { activeObjectSelectionHint } from "@/v2/activeObject";
 import { displayName } from "@/v2/datasetMeta";
 import { LibraryDatasetRailPanel } from "@/v2/LibraryDatasetRailPanel";
 import { ResourcesOverviewRailPanel } from "@/v2/ResourcesOverviewRailPanel";
+import { SynthesisRailPanel } from "@/v2/SynthesisRailPanel";
 
-function railSelectionHint(mainTab, dataset, browseTarget, resourceRow, clusterContext) {
+function railSelectionHint(mainTab, dataset, browseTarget, resourceRow, clusterContext, activeObject) {
   if (mainTab === "browse" && browseTarget) {
     return browseTarget.title || browseTarget.dataset_id || "Discover result";
   }
@@ -37,7 +38,7 @@ function railSelectionHint(mainTab, dataset, browseTarget, resourceRow, clusterC
     return "Desk setup";
   }
   if (mainTab === "synthesis") {
-    return "Synthesis";
+    return activeObjectSelectionHint(activeObject) || "Synthesis";
   }
   if (mainTab === "cluster" && clusterContext?.a && clusterContext?.b) {
     return `${displayName(clusterContext.a)} × ${displayName(clusterContext.b)}`;
@@ -69,6 +70,7 @@ function activeHintBelongsToTab(mainTab, object) {
   if (mainTab === "resources") return object.kind === "resource_row";
   if (mainTab === "home") return ["dataset", "home_attention"].includes(object.kind);
   if (mainTab === "cluster") return object.kind === "comparison";
+  if (mainTab === "synthesis") return ["synthesis_node", "synthesis_project"].includes(object.kind);
   return false;
 }
 
@@ -155,7 +157,7 @@ export function InspectorRail({
   } else if (mainTab === "settings") {
     detailPanel = <PageRailPanel page="settings" onAskAbout={onAskAbout} />;
   } else if (mainTab === "synthesis") {
-    detailPanel = <PageRailPanel page="synthesis" onAskAbout={onAskAbout} />;
+    detailPanel = <SynthesisRailPanel object={activeObject} onAskAbout={onAskAbout} />;
   } else if (
     mainTab === "library" &&
     (activeObject?.kind === "library_folder" || activeObject?.kind === "library_intake")
@@ -209,7 +211,7 @@ export function InspectorRail({
   const allowActiveHint = activeHintBelongsToTab(mainTab, activeObject);
   const selectionHint =
     (allowActiveHint ? activeObjectSelectionHint(activeObject) : "") ||
-    railSelectionHint(mainTab, dataset, browseTarget, resourceRow, clusterContext);
+    railSelectionHint(mainTab, dataset, browseTarget, resourceRow, clusterContext, activeObject);
 
   const [mobileRailOpen, setMobileRailOpen] = useState(false);
 
@@ -223,7 +225,7 @@ export function InspectorRail({
       return;
     }
     if (mainTab === "synthesis") {
-      setMobileRailOpen(railTab === "ask");
+      setMobileRailOpen(railTab === "ask" || activeObject?.kind === "synthesis_node");
       return;
     }
     if (mainTab === "library" && activeObject?.kind === "library_folder") {

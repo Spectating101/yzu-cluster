@@ -42,6 +42,9 @@ export function buildRailContext({
   } else if (activeObject?.kind === "home_attention") {
     entity = { kind: "home_attention", id: activeObject.id, title: activeObject.title };
     actions = ["open", "ask_about"];
+  } else if (activeObject?.kind === "synthesis_node" || activeObject?.kind === "synthesis_project") {
+    entity = { kind: activeObject.kind, id: activeObject.id, title: activeObject.title };
+    actions = ["ask_about", "propose_change"];
   } else if (dataset?.dataset_id) {
     entity = {
       kind: "dataset",

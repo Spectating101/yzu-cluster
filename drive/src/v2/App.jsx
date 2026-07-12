@@ -692,6 +692,11 @@ export function V2App() {
     [catalog, syncUrl],
   );
 
+  const selectSynthesisObject = useCallback((object) => {
+    setActiveObject(object);
+    setRailTab("detail");
+  }, []);
+
   const askAboutSelection = useCallback(
     (target, promptOverride) => {
       if (tab === "browse" && target) {
@@ -711,6 +716,20 @@ export function V2App() {
               displayText: `Assess this source: ${label}`,
             },
         );
+        return;
+      }
+      if (tab === "synthesis" && target && ["synthesis_node", "synthesis_project"].includes(target.kind)) {
+        setActiveObject(target);
+        setRailTab("ask");
+        if (promptOverride && typeof promptOverride === "object") {
+          setPendingAsk(promptOverride);
+          return;
+        }
+        const selected = target.kind === "synthesis_node" ? ` Selected object: ${target.title}.` : "";
+        setPendingAsk({
+          prompt: `Work on the synthesis "${target.projectTitle || target.title}". Objective: ${target.objective}.${selected} Explain the current role and state honestly, inspect held and reachable evidence as needed, and propose a structured synthesis change rather than silently changing methodology.`,
+          displayText: `Ask about ${target.title}`,
+        });
         return;
       }
       if (target?.kind === "library_folder") {
@@ -983,11 +1002,8 @@ export function V2App() {
       main = (
         <SynthesisPage
           datasets={catalog}
-          compareIds={compareIds}
-          onCompareChange={setCompareIds}
           onAskComposer={askFromPrompt}
-          onGoTab={goTab}
-          onOpenDataset={openInLibraryFromDiscover}
+          onSelectObject={selectSynthesisObject}
         />
       );
       break;
@@ -1036,9 +1052,7 @@ export function V2App() {
       main = null;
   }
 
-  const hideRail =
-    (tab === "browse" && (!browseTarget || railTab !== "ask")) ||
-    (tab === "synthesis" && railTab !== "ask");
+  const hideRail = tab === "browse" && (!browseTarget || railTab !== "ask");
 
   return (
     <div className={`yzu-shell with-inspector rd-theme-light rd-v2-shell${hideRail ? " no-rail" : ""}`}>
@@ -1137,7 +1151,12 @@ export function V2App() {
                       title: `Library · ${activeObject.title}`,
                     }
                 : tab === "synthesis"
-                  ? { title: "Synthesis studio" }
+                  ? {
+                      title:
+                        activeObject?.kind === "synthesis_node" || activeObject?.kind === "synthesis_project"
+                          ? `Synthesis · ${activeObject.title}`
+                          : "Synthesis",
+                    }
                 : tab === "profile"
                   ? {
                       title:

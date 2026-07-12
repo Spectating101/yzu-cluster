@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 
-test.describe("v2 Synthesis studio", () => {
+test.describe("v2 Synthesis construction workspace", () => {
   test.beforeEach(async ({ page }) => {
     await mockV2Api(page);
     await page.setViewportSize({ width: 1440, height: 900 });
@@ -9,45 +9,59 @@ test.describe("v2 Synthesis studio", () => {
     await waitForShell(page);
   });
 
-  test("renders a first-class studio with blueprint, inputs, compatibility, and output", async ({ page }) => {
+  test("renders a persistent construction map with the existing right rail", async ({ page }) => {
     await expect(page.locator(".rd-v2-page-head h1", { hasText: "Synthesis" })).toBeVisible();
-    await expect(page.getByTestId("synthesis-studio")).toBeVisible();
-    await expect(page.getByRole("tab", { name: /Stablecoin trust & engagement/i })).toHaveAttribute(
-      "aria-selected",
-      "true",
-    );
-    await expect(page.getByTestId("synthesis-input-card")).toHaveCount(3);
-    await expect(page.getByText("Compatibility", { exact: true })).toBeVisible();
-    await expect(page.getByTestId("synthesis-output-card")).toContainText("Stablecoin trust weekly panel");
-    await expect(page.locator("aside.rd-v2-rail")).toBeHidden();
+    await expect(page.getByTestId("synthesis-workbench")).toBeVisible();
+    await expect(page.getByText("Historical stablecoin attention", { exact: true }).first()).toBeVisible();
+    await expect(page.getByRole("button", { name: "Map", exact: true })).toHaveAttribute("aria-current", "page");
+    await expect(page.locator(".rd-syn-flow")).toBeVisible();
+    await expect(page.getByTestId("synthesis-proposal")).toContainText("Use GDELT as a validation signal");
+    await expect(page.locator("aside.rd-v2-rail")).toBeVisible();
+    await expect(page.locator("aside.rd-v2-rail")).toContainText("Historical stablecoin attention");
   });
 
-  test("runs a profile and exposes the registered reusable output", async ({ page }) => {
-    await page.getByRole("button", { name: "Run synthesis" }).click();
-    await expect(page.getByTestId("synthesis-output-card")).toContainText("Registered in Library");
-    await expect(page.getByTestId("synthesis-output-card")).toContainText("18,432");
-    await expect(page.getByRole("button", { name: "Open in Library" })).toBeVisible();
+  test("selecting GDELT drives the contextual right rail", async ({ page }) => {
+    await page.getByText("GDELT crypto news", { exact: true }).click();
+    const rail = page.locator("aside.rd-v2-rail");
+    await expect(rail).toContainText("GDELT crypto news");
+    await expect(rail).toContainText("Proposed");
+    await expect(rail).toContainText("Candidate validation signal");
+    await expect(rail).toContainText("News/editorial coverage");
   });
 
-  test("custom pair uses Library asset selectors", async ({ page }) => {
-    await page.getByRole("button", { name: /Custom pair/i }).click();
-    await expect(page.getByLabel("Synthesis input 1")).toBeVisible();
-    await expect(page.getByLabel("Synthesis input 2")).toBeVisible();
-    await expect(page.getByRole("button", { name: "Run synthesis" })).toBeEnabled();
+  test("applying an agent proposal changes the visible construction state", async ({ page }) => {
+    await page.getByTestId("synthesis-proposal").getByRole("button", { name: "Apply" }).click();
+    await expect(page.getByTestId("synthesis-proposal")).toHaveCount(0);
+    await expect(page.locator(".rd-syn-statusbar")).toContainText("0 proposed");
+    const rail = page.locator("aside.rd-v2-rail");
+    await expect(rail).toContainText("GDELT crypto news");
+    await expect(rail).toContainText("Queryable");
+    await expect(rail).toContainText("Validation signal");
   });
 
-  test("mobile keeps the studio and primary action above navigation", async ({ page }) => {
+  test("spec, data, and charts remain honest inspection views", async ({ page }) => {
+    await page.getByRole("button", { name: "Spec", exact: true }).click();
+    await expect(page.getByTestId("synthesis-spec-view")).toContainText("Research asset specification");
+    await expect(page.getByTestId("synthesis-spec-view")).toContainText("Historical X follower growth");
+    await expect(page.getByTestId("synthesis-spec-view")).toContainText("Known limitations");
+
+    await page.getByRole("button", { name: "Data", exact: true }).click();
+    await expect(page.getByTestId("synthesis-data-view")).toContainText("no rows materialised");
+    await expect(page.getByTestId("synthesis-data-view")).toContainText("Planned output schema");
+
+    await page.getByRole("button", { name: "Charts", exact: true }).click();
+    await expect(page.getByTestId("synthesis-charts-view")).toContainText("Evidence coverage");
+    await expect(page.getByTestId("synthesis-charts-view")).toContainText("Ask agent to preview");
+  });
+
+  test("mobile preserves the map and opens detail for node selection", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 1200 });
     await page.reload({ waitUntil: "domcontentloaded" });
     await waitForShell(page);
-    const actionbar = page.locator(".rd-syn-actionbar");
-    const nav = page.locator("aside.yzu-sidebar");
-    await expect(actionbar).toBeVisible();
-    await expect(nav.getByRole("button")).toHaveCount(7);
-    const actionBox = await actionbar.boundingBox();
-    const navBox = await nav.boundingBox();
-    expect(actionBox).toBeTruthy();
-    expect(navBox).toBeTruthy();
-    expect(actionBox.y + actionBox.height).toBeLessThanOrEqual(navBox.y + 1);
+    await expect(page.locator(".rd-syn-flow")).toBeVisible();
+    await page.getByText("GDELT crypto news", { exact: true }).click();
+    const rail = page.locator("aside.rd-v2-rail");
+    await expect(rail).not.toHaveClass(/rd-v2-rail-collapsed/);
+    await expect(rail).toContainText("GDELT crypto news");
   });
 });

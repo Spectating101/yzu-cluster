@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import "./v2-base.css";
 import "./v2.css";
+import "@xyflow/react/dist/style.css";
 import "./premium.css";
 import "./premium-components.css";
 import "./premium-profile.css";

@@ -18,7 +18,8 @@
     "preview": "vite preview --host 127.0.0.1",
     "test:e2e": "YZU_DESK_URL=http://127.0.0.1:5179 playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:ui-contract": "playwright test e2e/ui-contract.spec.js"
+    "test:ui-contract": "playwright test e2e/ui-contract.spec.js",
+    "test:synthesis-model": "node --test drive/src/v2/synthesisWorkspace.test.js"
   },
   "dependencies": {
     "@radix-ui/react-separator": "^1.1.10",

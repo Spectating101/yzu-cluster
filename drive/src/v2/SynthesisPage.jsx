@@ -1,785 +1,445 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { getSynthesisProfile, listSynthesisProfiles } from "@/v2/api";
+import { SynthesisGraphCanvas } from "@/v2/SynthesisGraphCanvas";
 import {
-  getSynthesisProfile,
-  listSynthesisProfiles,
-  runSynthesis,
-  runSynthesisPair,
-} from "@/v2/api";
-import { displayName, statusPill } from "@/v2/datasetMeta";
+  ATTENTION_SYNTHESIS_PROJECT,
+  applyProjectProposal,
+  projectFromSynthesisProfile,
+  rejectProjectProposal,
+  synthesisNodeObject,
+  synthesisProjectObject,
+  synthesisProjectStats,
+} from "@/v2/synthesisWorkspace";
 import { PageShell } from "@/v2/ui";
 
-const FALLBACK_PROFILES = [
-  {
-    profile_id: "stablecoin_trust_engagement",
-    title: "Stablecoin trust & engagement",
-    type: "Research panel",
-    objective:
-      "Combine security, on-chain activity, and public attention into one weekly research panel.",
-    inputs: [
-      {
-        dataset_id: "skynet_stablecoin_security",
-        name: "Stablecoin security & governance",
-        source: "CertiK Skynet",
-        grain: "asset-week",
-        coverage: "2021–2026",
-        join_keys: ["asset_id", "week"],
-        analysis_readiness: "instant",
-      },
-      {
-        dataset_id: "etherscan_stablecoin_activity",
-        name: "Stablecoin on-chain activity",
-        source: "Etherscan",
-        grain: "asset-day",
-        coverage: "2021–2026",
-        join_keys: ["asset_id", "date"],
-        analysis_readiness: "instant",
-      },
-      {
-        dataset_id: "stablecoin_attention_overlay",
-        name: "Public attention overlay",
-        source: "GDELT · Wikipedia · GitHub",
-        grain: "asset-week",
-        coverage: "2021–2026",
-        join_keys: ["asset_id", "week"],
-        analysis_readiness: "instant",
-      },
-    ],
-    output: {
-      dataset_id: "stablecoin_trust_weekly_panel",
-      name: "Stablecoin trust weekly panel",
-      grain: "asset-week",
-      coverage: "2021–2026",
-      destination: "Research panels",
-    },
-  },
-  {
-    profile_id: "skynet_etherscan_stablecoin",
-    title: "Security × on-chain activity",
-    type: "Two-source synthesis",
-    objective: "Join governance and security signals to observed on-chain activity.",
-    inputs: [
-      {
-        dataset_id: "skynet_stablecoin_security",
-        name: "Stablecoin security & governance",
-        source: "CertiK Skynet",
-        grain: "asset-week",
-        coverage: "2021–2026",
-        join_keys: ["asset_id", "week"],
-        analysis_readiness: "instant",
-      },
-      {
-        dataset_id: "etherscan_stablecoin_activity",
-        name: "Stablecoin on-chain activity",
-        source: "Etherscan",
-        grain: "asset-day",
-        coverage: "2021–2026",
-        join_keys: ["asset_id", "date"],
-        analysis_readiness: "instant",
-      },
-    ],
-    output: {
-      dataset_id: "skynet_etherscan_stablecoin_panel",
-      name: "Security and activity panel",
-      grain: "asset-week",
-      coverage: "2021–2026",
-      destination: "Synthesis outputs",
-    },
-  },
-  {
-    profile_id: "jkse_pit_idn_microstructure_revisions",
-    title: "JKSE point-in-time revisions",
-    type: "Point-in-time panel",
-    objective:
-      "Assemble Indonesian market, estimates, and point-in-time accounting evidence without look-ahead leakage.",
-    inputs: [
-      {
-        dataset_id: "jkse_point_in_time",
-        name: "JKSE point-in-time fundamentals",
-        source: "Refinitiv",
-        grain: "security-date",
-        coverage: "2010–2026",
-        join_keys: ["ric", "date"],
-        analysis_readiness: "instant",
-      },
-      {
-        dataset_id: "idn_estimate_revisions",
-        name: "Indonesia estimate revisions",
-        source: "Refinitiv estimates",
-        grain: "security-date",
-        coverage: "2017–2026",
-        join_keys: ["ric", "date"],
-        analysis_readiness: "instant",
-      },
-      {
-        dataset_id: "idn_market_spine",
-        name: "Indonesia market spine",
-        source: "In-house panel",
-        grain: "security-date",
-        coverage: "2010–2026",
-        join_keys: ["ric", "date"],
-        analysis_readiness: "instant",
-      },
-    ],
-    output: {
-      dataset_id: "jkse_pit_revision_panel",
-      name: "JKSE PIT revision panel",
-      grain: "security-date",
-      coverage: "2010–2026",
-      destination: "Research panels",
-    },
-  },
+const VIEW_TABS = [
+  ["map", "Map"],
+  ["spec", "Spec"],
+  ["data", "Data"],
+  ["charts", "Charts"],
 ];
 
-function humanize(value) {
-  return String(value || "")
-    .replace(/[_-]+/g, " ")
-    .replace(/\b\w/g, (char) => char.toUpperCase())
-    .trim();
+function profileRows(payload) {
+  if (Array.isArray(payload)) return payload;
+  return payload?.profiles || payload?.items || payload?.results || [];
 }
 
-function asArray(value) {
-  if (Array.isArray(value)) return value;
-  if (value && typeof value === "object") return Object.values(value);
-  return [];
+function readableMaterialisation(value) {
+  return String(value || "not_materialised").replaceAll("_", " ");
 }
 
-function normalizeInput(value, datasets) {
-  const spec = typeof value === "string" ? { dataset_id: value } : value || {};
-  const id = spec.dataset_id || spec.id || spec.registry_id || spec.name || spec.title;
-  const catalogRow = datasets.find((row) => row.dataset_id === id) || null;
-  return {
-    ...catalogRow,
-    ...spec,
-    dataset_id: id || catalogRow?.dataset_id || "",
-    name:
-      spec.name ||
-      spec.title ||
-      catalogRow?.name ||
-      catalogRow?.title ||
-      humanize(id) ||
-      "Research asset",
-    source:
-      spec.source ||
-      spec.publisher ||
-      spec.source_system ||
-      catalogRow?.source ||
-      catalogRow?.source_system ||
-      "Lab registry",
-    grain: spec.grain || catalogRow?.grain || "Grain not described",
-    coverage:
-      spec.coverage ||
-      spec.date_range ||
-      spec.temporal_coverage ||
-      catalogRow?.coverage ||
-      catalogRow?.date_range ||
-      "Coverage not described",
-    join_keys: asArray(spec.join_keys || spec.keys || catalogRow?.join_keys),
-    analysis_readiness:
-      spec.analysis_readiness || spec.readiness || catalogRow?.analysis_readiness || "unknown",
-  };
-}
-
-function sourceList(profile) {
+function ProjectTabs({ projects, activeId, onChange, onNew }) {
   return (
-    profile?.inputs ||
-    profile?.sources ||
-    profile?.datasets ||
-    profile?.peer_sources ||
-    profile?.peers ||
-    profile?.source_datasets ||
-    []
-  );
-}
-
-function outputSpec(profile) {
-  const raw = profile?.output || profile?.result || profile?.target || {};
-  const id =
-    raw.dataset_id ||
-    raw.id ||
-    profile?.output_dataset_id ||
-    profile?.target_dataset_id ||
-    profile?.profile_id ||
-    "synthesis_output";
-  return {
-    ...raw,
-    dataset_id: id,
-    name: raw.name || raw.title || profile?.output_name || humanize(id),
-    grain: raw.grain || profile?.output_grain || "Derived research grain",
-    coverage: raw.coverage || profile?.coverage || "Computed from input overlap",
-    destination:
-      raw.destination ||
-      raw.output_area ||
-      raw.path ||
-      profile?.output_area ||
-      profile?.output_path ||
-      "Synthesis outputs",
-  };
-}
-
-function normalizeProfile(raw, datasets) {
-  const id = raw?.profile_id || raw?.id || raw?.key || raw?.name || "synthesis-profile";
-  const inputs = asArray(sourceList(raw)).map((item) => normalizeInput(item, datasets));
-  return {
-    ...raw,
-    profile_id: id,
-    title: raw?.title || raw?.label || raw?.name || humanize(id),
-    type: raw?.type || raw?.profile_type || raw?.kind || "Synthesis blueprint",
-    objective:
-      raw?.objective ||
-      raw?.description ||
-      raw?.summary ||
-      "Combine selected lab assets into a reusable research output.",
-    inputs,
-    output: outputSpec(raw),
-  };
-}
-
-function normalizeProfileList(payload, datasets) {
-  const rows = Array.isArray(payload)
-    ? payload
-    : payload?.profiles || payload?.items || payload?.results || [];
-  return asArray(rows).map((row) => normalizeProfile(row, datasets)).filter((row) => row.profile_id);
-}
-
-function parseYears(value) {
-  const years = String(value || "").match(/(?:19|20)\d{2}/g) || [];
-  if (!years.length) return null;
-  return { start: Number(years[0]), end: Number(years[years.length - 1]) };
-}
-
-function intersectCoverage(inputs) {
-  const spans = inputs.map((input) => parseYears(input.coverage)).filter(Boolean);
-  if (!spans.length) return "Unknown";
-  const start = Math.max(...spans.map((span) => span.start));
-  const end = Math.min(...spans.map((span) => span.end));
-  return start <= end ? `${start}–${end}` : "No confirmed overlap";
-}
-
-function sharedKeys(inputs) {
-  const sets = inputs
-    .map((input) => new Set(asArray(input.join_keys).map((key) => String(key).toLowerCase())))
-    .filter((set) => set.size);
-  if (!sets.length) return [];
-  return [...sets[0]].filter((key) => sets.every((set) => set.has(key)));
-}
-
-function compatibilityFor(inputs) {
-  const valid = inputs.filter(Boolean);
-  const keys = sharedKeys(valid);
-  const grains = [...new Set(valid.map((input) => String(input.grain || "").toLowerCase()).filter(Boolean))];
-  const readyCount = valid.filter((input) => /instant|query|connected/i.test(String(input.analysis_readiness || ""))).length;
-  const time = intersectCoverage(valid);
-  const exactGrain = grains.length === 1;
-  const knownCoverage = time !== "Unknown" && time !== "No confirmed overlap";
-  return {
-    key: keys.length ? keys.join(" · ") : "Key mapping required",
-    keyTone: keys.length ? "ok" : "warn",
-    grain: exactGrain ? "Aligned" : grains.length ? "Transform required" : "Unknown",
-    grainDetail: exactGrain ? valid[0]?.grain : grains.join(" → ") || "No grain metadata",
-    grainTone: exactGrain ? "ok" : grains.length ? "warn" : "unknown",
-    time,
-    timeTone: knownCoverage ? "ok" : time === "No confirmed overlap" ? "warn" : "unknown",
-    readiness: `${readyCount}/${valid.length || 0} ready`,
-    readinessTone: valid.length && readyCount === valid.length ? "ok" : readyCount ? "warn" : "unknown",
-    overall:
-      keys.length && knownCoverage
-        ? exactGrain
-          ? "Ready to run"
-          : "Ready with one transformation"
-        : "Review required",
-    overallTone: keys.length && knownCoverage ? (exactGrain ? "ok" : "warn") : "warn",
-    transformations: exactGrain ? [] : grains.length ? ["Normalize input grain"] : [],
-  };
-}
-
-function resultOutput(result, fallback) {
-  const raw = result?.output || result?.dataset || result?.registered_dataset || result?.result || {};
-  const datasetId =
-    result?.registered_dataset_id ||
-    result?.output_dataset_id ||
-    raw?.dataset_id ||
-    raw?.id ||
-    fallback?.dataset_id;
-  return {
-    ...fallback,
-    ...raw,
-    dataset_id: datasetId,
-    name: raw?.name || raw?.title || result?.output_name || fallback?.name,
-    grain: raw?.grain || result?.grain || fallback?.grain,
-    coverage: raw?.coverage || result?.coverage || fallback?.coverage,
-    destination:
-      raw?.destination || raw?.path || result?.output_path || fallback?.destination,
-    row_count: result?.row_count ?? result?.rows ?? raw?.row_count ?? raw?.rows ?? null,
-    registered: Boolean(result?.registered_dataset_id || raw?.registered || result?.registered),
-  };
-}
-
-function AssetMark() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <ellipse cx="12" cy="5" rx="7" ry="3" />
-      <path d="M5 5v6c0 1.7 3.1 3 7 3s7-1.3 7-3V5" />
-      <path d="M5 11v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6" />
-    </svg>
-  );
-}
-
-function BlueprintMark() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="5" cy="7" r="2.5" />
-      <circle cx="5" cy="17" r="2.5" />
-      <circle cx="19" cy="12" r="2.5" />
-      <path d="M7.5 7.8 16.5 11M7.5 16.2 16.5 13" />
-    </svg>
-  );
-}
-
-function InputCard({ input, index, editable, datasets, onChange }) {
-  return (
-    <article className="rd-syn-input-card" data-testid="synthesis-input-card">
-      <div className="rd-syn-input-icon"><AssetMark /></div>
-      <div className="rd-syn-input-main">
-        <div className="rd-syn-input-order">Input {String(index + 1).padStart(2, "0")}</div>
-        {editable ? (
-          <select
-            aria-label={`Synthesis input ${index + 1}`}
-            value={input?.dataset_id || ""}
-            onChange={(event) => onChange?.(event.target.value)}
+    <div className="rd-syn-project-tabs" role="tablist" aria-label="Open synthesis work">
+      <div className="rd-syn-project-tab-scroll">
+        {projects.slice(0, 5).map((project) => (
+          <button
+            key={project.id}
+            type="button"
+            role="tab"
+            aria-selected={project.id === activeId}
+            className={project.id === activeId ? "is-active" : ""}
+            onClick={() => onChange(project.id)}
           >
-            <option value="">Choose a Library asset</option>
-            {datasets.map((dataset) => (
-              <option key={dataset.dataset_id} value={dataset.dataset_id}>
-                {displayName(dataset)}
-              </option>
-            ))}
-          </select>
-        ) : (
-          <strong>{input?.name || "Research asset"}</strong>
-        )}
-        <span>{input?.source || "Lab registry"}</span>
+            <span className="rd-syn-tab-mark" />
+            <span>{project.title}</span>
+            {project.id === activeId ? <b aria-hidden>×</b> : null}
+          </button>
+        ))}
       </div>
-      <div className="rd-syn-input-meta">
-        <span>{input?.grain || "Grain unknown"}</span>
-        <span>{input?.coverage || "Coverage unknown"}</span>
-        <em>{statusPill(input)}</em>
-      </div>
-    </article>
-  );
-}
-
-function CompatibilityMetric({ label, value, detail, tone = "unknown" }) {
-  return (
-    <div className={`rd-syn-compat-metric is-${tone}`}>
-      <span>{label}</span>
-      <strong>{value}</strong>
-      {detail ? <small>{detail}</small> : null}
+      <button type="button" className="rd-syn-new-project" onClick={onNew} aria-label="Start new synthesis">
+        ＋
+      </button>
     </div>
   );
 }
 
-export function SynthesisPage({
-  datasets = [],
-  compareIds = [],
-  onCompareChange,
-  onAskComposer,
-  onGoTab,
-  onOpenDataset,
-}) {
-  const fallbackProfiles = useMemo(
-    () => FALLBACK_PROFILES.map((profile) => normalizeProfile(profile, datasets)),
-    [datasets],
+function ProjectHeader({ project, stats, view, onView, onAsk }) {
+  return (
+    <header className="rd-syn-project-head">
+      <div className="rd-syn-project-copy">
+        <div className="rd-syn-project-kicker">
+          <span className={`rd-syn-maturity is-${project.maturity}`}>{project.maturityLabel}</span>
+          <span>{stats.held} held</span>
+          {stats.queryable ? <span>{stats.queryable} queryable</span> : null}
+          {stats.proposed ? <span>{stats.proposed} proposed</span> : null}
+          {stats.missing ? <span>{stats.missing} ideal gap</span> : null}
+        </div>
+        <h2>{project.title}</h2>
+        <p>{project.objective}</p>
+      </div>
+      <button type="button" className="rd-syn-ask-project" onClick={onAsk}>
+        <span>✦</span>
+        Ask about synthesis
+      </button>
+      <nav className="rd-syn-view-tabs" aria-label="Synthesis workspace views">
+        {VIEW_TABS.map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            aria-current={view === id ? "page" : undefined}
+            className={view === id ? "is-active" : ""}
+            onClick={() => onView(id)}
+          >
+            {label}
+          </button>
+        ))}
+      </nav>
+    </header>
   );
-  const [profiles, setProfiles] = useState(fallbackProfiles);
-  const [profileSource, setProfileSource] = useState("loading");
-  const [selectedProfileId, setSelectedProfileId] = useState(
-    fallbackProfiles[0]?.profile_id || "custom_pair",
+}
+
+function ProposalBar({ proposal, onReview, onApply, onReject }) {
+  if (!proposal) return null;
+  return (
+    <aside className="rd-syn-proposal" data-testid="synthesis-proposal">
+      <div className="rd-syn-proposal-mark" aria-hidden>✦</div>
+      <div className="rd-syn-proposal-copy">
+        <span>Agent proposal</span>
+        <strong>{proposal.title}</strong>
+        <p>{proposal.summary}</p>
+        <div>
+          {(proposal.impact || []).map((item) => <small key={item}>{item}</small>)}
+        </div>
+      </div>
+      <div className="rd-syn-proposal-actions">
+        <button type="button" onClick={onReview}>Review</button>
+        <button type="button" className="primary" onClick={onApply}>Apply</button>
+        <button type="button" className="quiet" onClick={onReject}>Reject</button>
+      </div>
+    </aside>
   );
-  const [profileDetail, setProfileDetail] = useState(null);
-  const [detailLoading, setDetailLoading] = useState(false);
-  const [customMode, setCustomMode] = useState(false);
-  const [runState, setRunState] = useState({ status: "idle", result: null, error: "" });
-  const outputRef = useRef(null);
+}
+
+function MapView({ project, selectedNodeId, onSelectNode, onReviewProposal, onApplyProposal, onRejectProposal }) {
+  return (
+    <section className="rd-syn-map-view" aria-label="Construction map">
+      <SynthesisGraphCanvas
+        project={project}
+        selectedNodeId={selectedNodeId}
+        onSelectNode={onSelectNode}
+      />
+      <ProposalBar
+        proposal={project.proposal}
+        onReview={onReviewProposal}
+        onApply={onApplyProposal}
+        onReject={onRejectProposal}
+      />
+    </section>
+  );
+}
+
+function SpecView({ project }) {
+  const spec = project.spec || {};
+  return (
+    <section className="rd-syn-spec-view" data-testid="synthesis-spec-view">
+      <article className="rd-syn-spec-document">
+        <span className="rd-syn-doc-kicker">Research asset specification</span>
+        <h3>{project.title}</h3>
+        <p className="rd-syn-doc-purpose">{spec.purpose || project.objective}</p>
+        <div className="rd-syn-doc-fact">
+          <span>Target grain</span>
+          <strong>{spec.grain || "Not resolved"}</strong>
+        </div>
+        <section>
+          <h4>Core evidence</h4>
+          <div className="rd-syn-doc-evidence">
+            {(spec.coreEvidence || []).map(([name, role]) => (
+              <div key={name}><span>✓</span><strong>{name}</strong><small>{role}</small></div>
+            ))}
+          </div>
+        </section>
+        {(spec.validation || []).length ? (
+          <section>
+            <h4>Validation</h4>
+            <div className="rd-syn-doc-evidence validation">
+              {spec.validation.map(([name, role]) => (
+                <div key={name}><span>◇</span><strong>{name}</strong><small>{role}</small></div>
+              ))}
+            </div>
+          </section>
+        ) : null}
+        {(spec.unavailable || []).length ? (
+          <section>
+            <h4>Ideal evidence unavailable</h4>
+            <div className="rd-syn-doc-evidence unavailable">
+              {spec.unavailable.map(([name, role]) => (
+                <div key={name}><span>×</span><strong>{name}</strong><small>{role}</small></div>
+              ))}
+            </div>
+          </section>
+        ) : null}
+        <section>
+          <h4>Construction</h4>
+          <ol className="rd-syn-doc-steps">
+            {(spec.construction || []).map((step) => <li key={step}>{step}</li>)}
+          </ol>
+        </section>
+        <section>
+          <h4>Known limitations</h4>
+          <ul className="rd-syn-doc-limitations">
+            {(spec.limitations || []).map((item) => <li key={item}>{item}</li>)}
+          </ul>
+        </section>
+      </article>
+      <aside className="rd-syn-spec-margin">
+        <span>State</span>
+        <strong>{project.maturityLabel}</strong>
+        <small>{readableMaterialisation(project.materialisation)}</small>
+        <hr />
+        <span>Why this exists</span>
+        <p>The specification persists what the agent and researcher have agreed before data is materialised.</p>
+      </aside>
+    </section>
+  );
+}
+
+function DataView({ project }) {
+  const sourceNodes = project.nodes.filter((node) => node.type === "source");
+  return (
+    <section className="rd-syn-data-view" data-testid="synthesis-data-view">
+      <div className="rd-syn-data-toolbar">
+        <div>
+          <strong>Working data shape</strong>
+          <span>Specification preview · no rows materialised</span>
+        </div>
+        <button type="button" disabled>Preview rows</button>
+      </div>
+      <div className="rd-syn-data-grid">
+        <section>
+          <header><span>Evidence inventory</span><small>{sourceNodes.length} mapped sources</small></header>
+          <div className="rd-syn-data-table sources">
+            <div className="head"><span>Source</span><span>State</span><span>Grain</span><span>Role</span></div>
+            {sourceNodes.map((node) => (
+              <div key={node.id}>
+                <span><strong>{node.label}</strong><small>{node.source || "—"}</small></span>
+                <span className={`state is-${node.status}`}>{node.status.replaceAll("_", " ")}</span>
+                <span className="mono">{node.grain || "—"}</span>
+                <span>{node.role || "—"}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+        <section>
+          <header><span>Planned output schema</span><small>{project.plannedColumns?.length || 0} fields</small></header>
+          {project.plannedColumns?.length ? (
+            <div className="rd-syn-data-table schema">
+              <div className="head"><span>Field</span><span>Meaning</span><span>Role</span></div>
+              {project.plannedColumns.map(([name, meaning, role]) => (
+                <div key={name}>
+                  <span className="mono">{name}</span>
+                  <span>{meaning}</span>
+                  <span className={`schema-role is-${role}`}>{role}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="rd-syn-data-empty">This registered profile does not expose a planned schema yet.</div>
+          )}
+        </section>
+      </div>
+    </section>
+  );
+}
+
+function parseCoverage(value) {
+  const years = String(value || "").match(/(?:19|20)\d{2}/g) || [];
+  if (!years.length) return null;
+  return { start: Number(years[0]), end: Number(years.at(-1)) || 2026 };
+}
+
+function ChartsView({ project, onAsk }) {
+  const sources = project.nodes
+    .filter((node) => node.type === "source")
+    .map((node) => ({ ...node, span: parseCoverage(node.coverage) }))
+    .filter((node) => node.span);
+  const minYear = Math.min(...sources.map((node) => node.span.start), 2021);
+  const maxYear = Math.max(...sources.map((node) => node.span.end), 2026);
+  const range = Math.max(1, maxYear - minYear);
+
+  return (
+    <section className="rd-syn-charts-view" data-testid="synthesis-charts-view">
+      <article className="rd-syn-coverage-chart">
+        <header>
+          <div><span>Evidence coverage</span><strong>{minYear} → {maxYear}</strong></div>
+          <small>Registry metadata · not row counts</small>
+        </header>
+        <div className="rd-syn-coverage-years">
+          {[minYear, Math.round(minYear + range / 3), Math.round(minYear + (2 * range) / 3), maxYear].map((year) => <span key={year}>{year}</span>)}
+        </div>
+        <div className="rd-syn-coverage-bars">
+          {sources.map((node) => {
+            const left = ((node.span.start - minYear) / range) * 100;
+            const width = Math.max(4, ((node.span.end - node.span.start) / range) * 100);
+            return (
+              <div key={node.id}>
+                <span>{node.label}</span>
+                <div><i className={`is-${node.status}`} style={{ left: `${left}%`, width: `${Math.min(100 - left, width)}%` }} /></div>
+              </div>
+            );
+          })}
+        </div>
+      </article>
+      <div className="rd-syn-chart-ideas">
+        {(project.chartIdeas || []).map(([title, description]) => (
+          <button key={title} type="button" onClick={() => onAsk?.(title)}>
+            <span>✦</span>
+            <strong>{title}</strong>
+            <p>{description}</p>
+            <small>Ask agent to preview →</small>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ActivityPanel({ project, open, onToggle }) {
+  return (
+    <section className={`rd-syn-activity${open ? " is-open" : ""}`}>
+      <button type="button" className="rd-syn-activity-toggle" onClick={onToggle} aria-expanded={open}>
+        <span><i /> Activity</span>
+        <strong>{project.activity?.length || 0} events</strong>
+        <span>{open ? "⌄" : "⌃"}</span>
+      </button>
+      {open ? (
+        <div className="rd-syn-activity-log">
+          {(project.activity || []).slice().reverse().map((item, index) => (
+            <div key={`${item.time}-${item.message}-${index}`}>
+              <time>{item.time}</time>
+              <span className={`is-${item.kind}`} />
+              <p>{item.message}</p>
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+export function SynthesisPage({ datasets = [], onAskComposer, onSelectObject }) {
+  const [registryProjects, setRegistryProjects] = useState([]);
+  const [projectOverrides, setProjectOverrides] = useState({});
+  const [activeId, setActiveId] = useState(ATTENTION_SYNTHESIS_PROJECT.id);
+  const [selectedNodeId, setSelectedNodeId] = useState("");
+  const [view, setView] = useState("map");
+  const [activityOpen, setActivityOpen] = useState(false);
 
   useEffect(() => {
-    let cancelled = false;
-    setProfiles(fallbackProfiles);
+    let active = true;
     listSynthesisProfiles()
-      .then((payload) => {
-        if (cancelled) return;
-        const live = normalizeProfileList(payload, datasets);
-        if (!live.length) {
-          setProfileSource("fallback");
-          return;
-        }
-        setProfiles(live);
-        setProfileSource("live");
-        setSelectedProfileId((current) =>
-          live.some((profile) => profile.profile_id === current)
-            ? current
-            : live[0].profile_id,
-        );
+      .then(async (payload) => {
+        const rows = profileRows(payload).slice(0, 4);
+        const details = await Promise.all(rows.map(async (row) => {
+          const id = row?.profile_id || row?.id || row?.key || row?.name;
+          if (!id) return row;
+          if (row?.inputs || row?.sources || row?.datasets || row?.peer_sources) return row;
+          try {
+            const detail = await getSynthesisProfile(id);
+            return detail?.profile || detail || row;
+          } catch {
+            return row;
+          }
+        }));
+        if (!active) return;
+        setRegistryProjects(details.map((row) => projectFromSynthesisProfile(row, datasets)).filter(Boolean));
       })
       .catch(() => {
-        if (!cancelled) setProfileSource("fallback");
+        if (active) setRegistryProjects([]);
       });
     return () => {
-      cancelled = true;
+      active = false;
     };
-  }, [datasets, fallbackProfiles]);
+  }, [datasets]);
 
-  const baseProfile = profiles.find((profile) => profile.profile_id === selectedProfileId) || profiles[0] || null;
+  const baseProjects = useMemo(
+    () => [ATTENTION_SYNTHESIS_PROJECT, ...registryProjects.filter((project) => project.id !== ATTENTION_SYNTHESIS_PROJECT.id)],
+    [registryProjects],
+  );
+  const projects = useMemo(
+    () => baseProjects.map((project) => projectOverrides[project.id] || project),
+    [baseProjects, projectOverrides],
+  );
+  const project = projects.find((item) => item.id === activeId) || projects[0];
+  const stats = synthesisProjectStats(project);
 
   useEffect(() => {
-    if (customMode || !baseProfile?.profile_id || profileSource !== "live") {
-      setProfileDetail(null);
-      setDetailLoading(false);
-      return;
-    }
-    let cancelled = false;
-    setDetailLoading(true);
-    getSynthesisProfile(baseProfile.profile_id)
-      .then((payload) => {
-        if (cancelled) return;
-        const raw = payload?.profile || payload?.item || payload;
-        setProfileDetail(normalizeProfile({ ...baseProfile, ...raw }, datasets));
-      })
-      .catch(() => {
-        if (!cancelled) setProfileDetail(null);
-      })
-      .finally(() => {
-        if (!cancelled) setDetailLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [baseProfile?.profile_id, customMode, datasets, profileSource]);
+    if (!project) return;
+    const node = selectedNodeId ? project.nodes.find((item) => item.id === selectedNodeId) : null;
+    onSelectObject?.(node ? synthesisNodeObject(project, node) : synthesisProjectObject(project));
+  }, [project, selectedNodeId, onSelectObject]);
 
-  const activeProfile = useMemo(() => {
-    if (customMode) {
-      const chosen = compareIds
-        .slice(0, 2)
-        .map((id) => datasets.find((dataset) => dataset.dataset_id === id))
-        .filter(Boolean)
-        .map((dataset) => normalizeInput(dataset, datasets));
-      return {
-        profile_id: "custom_pair",
-        title: "Custom synthesis",
-        type: "Library pair",
-        objective: "Choose two owned assets, review compatibility, and build a reusable output.",
-        inputs: chosen,
-        output: {
-          dataset_id: chosen.length === 2 ? `${chosen[0].dataset_id}_${chosen[1].dataset_id}_synthesis` : "custom_synthesis_output",
-          name:
-            chosen.length === 2
-              ? `${chosen[0].name} × ${chosen[1].name}`
-              : "Custom synthesis output",
-          grain: chosen[0]?.grain || "Derived research grain",
-          coverage: intersectCoverage(chosen),
-          destination: "Synthesis outputs",
-        },
-      };
-    }
-    return profileDetail || baseProfile;
-  }, [baseProfile, compareIds, customMode, datasets, profileDetail]);
-
-  const inputs = useMemo(
-    () => asArray(activeProfile?.inputs).map((input) => normalizeInput(input, datasets)),
-    [activeProfile, datasets],
-  );
-  const compatibility = useMemo(() => compatibilityFor(inputs), [inputs]);
-  const plannedOutput = useMemo(() => outputSpec(activeProfile || {}), [activeProfile]);
-  const producedOutput = runState.result ? resultOutput(runState.result, plannedOutput) : plannedOutput;
-  const runEnabled = inputs.length >= 2 && inputs.every((input) => input.dataset_id);
-
-  const selectProfile = (profileId) => {
-    setCustomMode(false);
-    setSelectedProfileId(profileId);
-    setRunState({ status: "idle", result: null, error: "" });
+  const selectProject = (id) => {
+    setActiveId(id);
+    setSelectedNodeId("");
+    setView("map");
+    setActivityOpen(false);
   };
 
-  const selectCustom = () => {
-    setCustomMode(true);
-    setProfileDetail(null);
-    setRunState({ status: "idle", result: null, error: "" });
-    if (!compareIds[0] || !compareIds[1]) {
-      const ids = datasets.slice(0, 2).map((dataset) => dataset.dataset_id);
-      if (ids.length === 2) onCompareChange?.(ids);
-    }
+  const selectNode = (node) => setSelectedNodeId(node?.id || "");
+  const askProject = () => onAskComposer?.({
+    prompt: `Work on the synthesis "${project.title}". Objective: ${project.objective} Review the current construction state, held and reachable evidence, measurement gaps, unresolved methodological decisions, and propose the strongest defensible next change. Treat any graph change as a proposal until the researcher approves it.`,
+    displayText: `Work on ${project.title}`,
+  });
+  const askChart = (chartTitle) => onAskComposer?.({
+    prompt: `For the synthesis "${project.title}", propose a ${chartTitle} preview using only evidence currently held or honestly queryable. Explain which actual fields and source states are required; do not invent values.`,
+    displayText: `Preview ${chartTitle}`,
+  });
+  const startNew = () => onAskComposer?.({
+    prompt: "Start a new research-data synthesis. Ask me what research construct, historical measure, panel, proxy, event set, or derived research asset I need. Then search the lab and indexed source capabilities before proposing a construction state.",
+    displayText: "Start a new synthesis",
+  });
+  const applyProposal = () => {
+    const next = applyProjectProposal(project);
+    setProjectOverrides((current) => ({ ...current, [project.id]: next }));
+    setSelectedNodeId(project.proposal?.nodeId || "");
+    setActivityOpen(true);
+  };
+  const rejectProposal = () => {
+    const next = rejectProjectProposal(project);
+    setProjectOverrides((current) => ({ ...current, [project.id]: next }));
+    setSelectedNodeId("");
+    setActivityOpen(true);
   };
 
-  const updateCustomInput = (index, id) => {
-    const next = [...compareIds];
-    next[index] = id;
-    onCompareChange?.(next);
-    setRunState({ status: "idle", result: null, error: "" });
-  };
-
-  const askCompatibility = () => {
-    const inputNames = inputs.map((input) => `${input.name} (${input.grain})`).join("; ");
-    onAskComposer?.(
-      `Review this synthesis plan: ${activeProfile?.title || "Custom synthesis"}. Inputs: ${inputNames}. ` +
-        `Common join path: ${compatibility.key}. Grain: ${compatibility.grainDetail}. ` +
-        `Time overlap: ${compatibility.time}. Explain remaining risks, required transformations, and whether the output is safe to build.`,
-    );
-  };
-
-  const execute = async () => {
-    if (!runEnabled || runState.status === "running") return;
-    setRunState({ status: "running", result: null, error: "" });
-    try {
-      const result = customMode
-        ? await runSynthesisPair(inputs[0].dataset_id, inputs[1].dataset_id)
-        : await runSynthesis(activeProfile.profile_id);
-      setRunState({ status: "success", result, error: "" });
-      window.requestAnimationFrame(() => {
-        if (window.matchMedia?.("(max-width: 720px)").matches) {
-          outputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
-      });
-    } catch (error) {
-      setRunState({
-        status: "error",
-        result: null,
-        error: error?.message || "Synthesis could not run. Check the desk connection and profile inputs.",
-      });
-    }
-  };
-
-  const outputState =
-    runState.status === "running"
-      ? "Building output"
-      : runState.status === "success"
-        ? producedOutput.registered
-          ? "Registered in Library"
-          : "Output created"
-        : "Planned output";
+  if (!project) return null;
 
   return (
     <PageShell
       className="rd-v2-synthesis-page"
       title="Synthesis"
-      lead="Combine owned research assets into a reusable output."
+      lead="Construct research assets from the lab and the reachable data universe."
     >
-      <div className="rd-syn-studio" data-testid="synthesis-studio">
-        <aside className="rd-syn-blueprints" aria-label="Synthesis blueprints">
-          <div className="rd-syn-blueprints-head">
-            <span>Blueprints</span>
-            <small>{profileSource === "live" ? `${profiles.length} available` : "Desk recipes"}</small>
-          </div>
-          <div className="rd-syn-blueprint-list" role="tablist" aria-label="Synthesis blueprint list">
-            {profiles.map((profile) => (
-              <button
-                key={profile.profile_id}
-                type="button"
-                role="tab"
-                aria-selected={!customMode && selectedProfileId === profile.profile_id}
-                className={!customMode && selectedProfileId === profile.profile_id ? "is-active" : ""}
-                onClick={() => selectProfile(profile.profile_id)}
-              >
-                <span className="rd-syn-blueprint-icon"><BlueprintMark /></span>
-                <span className="rd-syn-blueprint-copy">
-                  <strong>{profile.title}</strong>
-                  <small>{profile.type} · {profile.inputs?.length || "—"} inputs</small>
-                </span>
-                <span className="rd-syn-blueprint-arrow">›</span>
-              </button>
-            ))}
-          </div>
-          <button
-            type="button"
-            className={`rd-syn-custom-blueprint${customMode ? " is-active" : ""}`}
-            onClick={selectCustom}
-          >
-            <span>＋</span>
-            <strong>Custom pair</strong>
-            <small>Choose from Library</small>
-          </button>
-          <div className="rd-syn-blueprints-foot">
-            <span className={`rd-syn-source-dot is-${profileSource}`} />
-            {profileSource === "live"
-              ? "Live synthesis registry"
-              : profileSource === "loading"
-                ? "Loading registry"
-                : "Previewing documented recipes"}
-          </div>
-        </aside>
-
-        <section className="rd-syn-workspace" aria-label="Synthesis workspace">
-          <header className="rd-syn-workspace-head">
-            <div>
-              <span className="rd-syn-kicker">Synthesis studio</span>
-              <h2>{activeProfile?.title || "Choose a blueprint"}</h2>
-              <p>{activeProfile?.objective}</p>
-            </div>
-            <div className="rd-syn-workspace-state">
-              <span className={`rd-syn-status is-${compatibility.overallTone}`}>
-                <i /> {detailLoading ? "Reading blueprint" : compatibility.overall}
-              </span>
-              <button type="button" className="rd-v2-btn sm" onClick={askCompatibility}>
-                Ask
-              </button>
-            </div>
-          </header>
-
-          <div className="rd-syn-assembly">
-            <section className="rd-syn-inputs" aria-labelledby="rd-syn-inputs-title">
-              <div className="rd-syn-section-head">
-                <span id="rd-syn-inputs-title">Owned inputs</span>
-                <small>{inputs.length} selected</small>
-              </div>
-              <div className="rd-syn-input-stack">
-                {inputs.slice(0, 3).map((input, index) => (
-                  <InputCard
-                    key={`${input.dataset_id}-${index}`}
-                    input={input}
-                    index={index}
-                    editable={customMode}
-                    datasets={datasets}
-                    onChange={(id) => updateCustomInput(index, id)}
-                  />
-                ))}
-                {customMode && inputs.length < 2
-                  ? [0, 1].slice(inputs.length).map((offset) => (
-                      <InputCard
-                        key={`empty-${offset}`}
-                        input={null}
-                        index={inputs.length + offset}
-                        editable
-                        datasets={datasets}
-                        onChange={(id) => updateCustomInput(inputs.length + offset, id)}
-                      />
-                    ))
-                  : null}
-                {inputs.length > 3 ? (
-                  <div className="rd-syn-more-inputs">+{inputs.length - 3} additional sources in this blueprint</div>
-                ) : null}
-              </div>
-            </section>
-
-            <section className="rd-syn-compat" aria-labelledby="rd-syn-compat-title">
-              <div className="rd-syn-compat-node" aria-hidden="true">
-                <span />
-                <strong>S</strong>
-                <span />
-              </div>
-              <div className="rd-syn-section-head">
-                <span id="rd-syn-compat-title">Compatibility</span>
-                <small>Registry-derived</small>
-              </div>
-              <div className="rd-syn-compat-summary">
-                <strong>{compatibility.overall}</strong>
-                <span>
-                  {compatibility.transformations.length
-                    ? compatibility.transformations.join(" · ")
-                    : "No structural transformation identified"}
-                </span>
-              </div>
-              <div className="rd-syn-compat-grid">
-                <CompatibilityMetric
-                  label="Join path"
-                  value={compatibility.key}
-                  tone={compatibility.keyTone}
-                />
-                <CompatibilityMetric
-                  label="Grain"
-                  value={compatibility.grain}
-                  detail={compatibility.grainDetail}
-                  tone={compatibility.grainTone}
-                />
-                <CompatibilityMetric
-                  label="Time overlap"
-                  value={compatibility.time}
-                  tone={compatibility.timeTone}
-                />
-                <CompatibilityMetric
-                  label="Readiness"
-                  value={compatibility.readiness}
-                  tone={compatibility.readinessTone}
-                />
-              </div>
-            </section>
-
-            <section ref={outputRef} className="rd-syn-output" aria-labelledby="rd-syn-output-title">
-              <div className="rd-syn-section-head">
-                <span id="rd-syn-output-title">Research output</span>
-                <small>{outputState}</small>
-              </div>
-              <article className={`rd-syn-output-card is-${runState.status}`} data-testid="synthesis-output-card">
-                <div className="rd-syn-output-orbit" aria-hidden="true"><span /><span /><span /></div>
-                <span className="rd-syn-output-label">{outputState}</span>
-                <h3>{producedOutput.name}</h3>
-                <p>{producedOutput.dataset_id}</p>
-                <dl>
-                  <div><dt>Grain</dt><dd>{producedOutput.grain}</dd></div>
-                  <div><dt>Coverage</dt><dd>{producedOutput.coverage}</dd></div>
-                  <div><dt>Destination</dt><dd>{producedOutput.destination}</dd></div>
-                  {producedOutput.row_count != null ? (
-                    <div><dt>Rows</dt><dd>{Number(producedOutput.row_count).toLocaleString()}</dd></div>
-                  ) : null}
-                </dl>
-                {runState.status === "success" ? (
-                  <div className="rd-syn-output-complete">
-                    <span>✓</span>
-                    <strong>
-                      {producedOutput.registered
-                        ? "Reusable asset registered"
-                        : "Output produced; registration not confirmed"}
-                    </strong>
-                  </div>
-                ) : null}
-              </article>
-            </section>
-          </div>
-
-          {runState.status === "error" ? (
-            <div className="rd-syn-message is-error" role="alert">
-              <strong>Synthesis did not run.</strong>
-              <span>{runState.error}</span>
-            </div>
-          ) : null}
-
-          <footer className="rd-syn-actionbar">
-            <div className="rd-syn-plan-summary">
-              <span>{inputs.length} inputs</span>
-              <span>{compatibility.transformations.length || 0} transformations</span>
-              <span>{producedOutput.destination}</span>
-            </div>
-            <div className="rd-syn-actions">
-              {runState.status === "success" ? (
-                producedOutput.registered ? (
-                  <button
-                    type="button"
-                    className="rd-v2-btn sm"
-                    onClick={() => onOpenDataset?.(producedOutput)}
-                  >
-                    Open in Library
-                  </button>
-                ) : (
-                  <button type="button" className="rd-v2-btn sm" onClick={askCompatibility}>
-                    Ask to register
-                  </button>
-                )
-              ) : (
-                <button type="button" className="rd-v2-btn sm" onClick={() => onGoTab?.("library")}>
-                  Open Library
-                </button>
-              )}
-              <button
-                type="button"
-                className="rd-v2-btn sm primary rd-syn-run"
-                disabled={!runEnabled || runState.status === "running"}
-                onClick={execute}
-              >
-                {runState.status === "running"
-                  ? "Building…"
-                  : runState.status === "success"
-                    ? "Run again"
-                    : "Run synthesis"}
-              </button>
-            </div>
-          </footer>
-        </section>
+      <div className="rd-syn-workbench" data-testid="synthesis-workbench">
+        <ProjectTabs projects={projects} activeId={project.id} onChange={selectProject} onNew={startNew} />
+        <ProjectHeader project={project} stats={stats} view={view} onView={setView} onAsk={askProject} />
+        <main className="rd-syn-editor-surface">
+          {view === "map" ? (
+            <MapView
+              project={project}
+              selectedNodeId={selectedNodeId}
+              onSelectNode={selectNode}
+              onReviewProposal={() => selectNode(project.nodes.find((node) => node.id === project.proposal?.nodeId))}
+              onApplyProposal={applyProposal}
+              onRejectProposal={rejectProposal}
+            />
+          ) : view === "spec" ? (
+            <SpecView project={project} />
+          ) : view === "data" ? (
+            <DataView project={project} />
+          ) : (
+            <ChartsView project={project} onAsk={askChart} />
+          )}
+        </main>
+        <ActivityPanel project={project} open={activityOpen} onToggle={() => setActivityOpen((current) => !current)} />
+        <footer className="rd-syn-statusbar">
+          <span>{project.maturityLabel}</span>
+          <span>{stats.held} held</span>
+          <span>{stats.queryable} queryable</span>
+          <span>{stats.proposed} proposed</span>
+          <span>{stats.openDecisions} decisions open</span>
+          <strong>{readableMaterialisation(project.materialisation)}</strong>
+        </footer>
       </div>
     </PageShell>
   );
