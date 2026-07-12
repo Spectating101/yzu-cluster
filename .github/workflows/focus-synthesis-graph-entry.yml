@@ -1,16 +1,15 @@
 name: Focus Synthesis graph entry
 
 on:
-  push:
-    branches: [agent/synthesis-construction-graph]
-    paths:
-      - .github/workflows/focus-synthesis-graph-entry.yml
+  pull_request:
+    branches: [main]
 
 permissions:
   contents: write
 
 jobs:
   focus:
+    if: github.head_ref == 'agent/synthesis-construction-graph'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
