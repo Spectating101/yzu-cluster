@@ -273,8 +273,8 @@ function SynthesisGraphInner({ project, selectedNodeId, onSelectNode }) {
         <Background gap={24} size={1} className="rd-syn-map-background" />
         <Controls showInteractive={false} className="rd-syn-map-controls" />
         <MiniMap
-          pannable
-          zoomable
+          pannable={false}
+          zoomable={false}
           className="rd-syn-minimap"
           nodeColor={(node) => {
             const status = node?.data?.status;
