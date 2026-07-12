@@ -1,0 +1,36 @@
+name: Apply synthesis product patch
+
+on:
+  push:
+    branches: [agent/synthesis-visual-studio]
+    paths:
+      - .github/workflows/apply-synthesis-patch.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/synthesis-visual-studio
+          fetch-depth: 0
+      - name: Reconstruct and apply product patch
+        run: |
+          cat .github/patches/synthesis-patch-* | base64 -d | gunzip > /tmp/synthesis.patch
+          git apply --check /tmp/synthesis.patch
+          git apply /tmp/synthesis.patch
+      - name: Validate production build
+        run: |
+          npm ci
+          npm run build
+      - name: Publish product implementation and remove transport
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          rm -f .github/patches/synthesis-patch-* .github/workflows/apply-synthesis-patch.yml
+          git add -A
+          git commit -m "Build synthesis visual studio [synthesis-applied]"
+          git push origin HEAD:agent/synthesis-visual-studio
