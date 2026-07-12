@@ -1,0 +1,26 @@
+name: Synthesis source export
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    if: github.head_ref == 'agent/synthesis-visual-studio'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package source
+        run: |
+          mkdir -p /tmp/source-export
+          rsync -a --exclude='.git' --exclude='node_modules' ./ /tmp/source-export/yzu-cluster/
+          cd /tmp/source-export
+          zip -qr yzu-cluster-source.zip yzu-cluster
+      - uses: actions/upload-artifact@v4
+        with:
+          name: synthesis-source-export
+          path: /tmp/source-export/yzu-cluster-source.zip
+          retention-days: 1
