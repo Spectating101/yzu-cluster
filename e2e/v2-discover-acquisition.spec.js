@@ -30,12 +30,12 @@ test.describe("Discover acquisition engineering", () => {
       ],
     });
 
-    await expect(routes).toContainText("Acquisition engineering");
-    await expect(routes).toContainText("Needs decision");
+    await expect(routes).toContainText("Acquisition plan");
+    await expect(routes).toContainText("Decision");
+    await expect(routes).toContainText("Acquisition decision");
     await page.screenshot({ path: "test-results/discover-acquisition-overview.png" });
 
     await routes.getByRole("button", { name: /Historical stablecoin attention evidence/i }).click();
-    await expect(routes).toContainText("Acquisition decision");
     await expect(routes).toContainText("Access checkpoint");
     await expect(routes).toContainText("Collection scope");
     await expect(routes).toContainText("Refresh design");
@@ -73,6 +73,6 @@ test.describe("Discover acquisition engineering", () => {
 
     await archivedRow.click();
     await expect(routes).toContainText("Drive archive");
-    await expect(routes).toContainText("not presented as registered");
+    await expect(routes).toContainText("registration is not claimed");
   });
 });
