@@ -42,11 +42,11 @@ jobs:
           # Explicit: mock desk must serve at / so Playwright webServer url is 2xx.
           YZU_PAGES: "false"
 
-      - name: Upload Playwright failure evidence
-        if: failure()
+      - name: Upload Playwright interface evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-failure-evidence
+          name: playwright-interface-evidence
           path: |
             playwright-report
             test-results
