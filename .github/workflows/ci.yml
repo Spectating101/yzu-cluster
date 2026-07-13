@@ -41,3 +41,14 @@ jobs:
           CI: "true"
           # Explicit: mock desk must serve at / so Playwright webServer url is 2xx.
           YZU_PAGES: "false"
+
+      - name: Upload Playwright failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-failure-evidence
+          path: |
+            playwright-report
+            test-results
+          if-no-files-found: warn
+          retention-days: 7
