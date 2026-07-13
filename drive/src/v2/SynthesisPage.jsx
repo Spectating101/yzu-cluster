@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   applySynthesisThreadPatch,
+  approveJob,
   createSynthesisThread,
   getSynthesisProfile,
   getSynthesisThread,
@@ -50,6 +51,42 @@ function readableMaterialisation(value) {
   return String(value || "not_materialised").replaceAll("_", " ");
 }
 
+const ACTIVE_EXECUTION_STATUSES = new Set([
+  "pending_approval",
+  "approved",
+  "queued",
+  "running",
+  "produced",
+  "archiving",
+  "registering",
+  "completed",
+]);
+
+function executionLabel(status) {
+  const labels = {
+    ready: "Ready for review",
+    pending_approval: "Approval required",
+    approved: "Approved",
+    queued: "Queued",
+    running: "Constructing asset",
+    produced: "Output produced",
+    archiving: "Verifying archive",
+    registering: "Registering in Library",
+    completed: "Completing registration",
+    registered: "Registered",
+    failed: "Execution failed",
+    cancelled: "Cancelled",
+  };
+  return labels[status] || readableMaterialisation(status || "ready");
+}
+
+function metricLabel(metric = {}) {
+  const fn = String(metric.function || "aggregate").toLowerCase();
+  const source = metric.column ? ` ${metric.column}` : " rows";
+  const alias = metric.as ? ` → ${metric.as}` : "";
+  return `${fn}${source}${alias}`;
+}
+
 function ProjectTabs({ projects, activeId, onChange, onNew }) {
   return (
     <div className="rd-syn-project-tabs" role="tablist" aria-label="Open synthesis work">
@@ -76,14 +113,17 @@ function ProjectTabs({ projects, activeId, onChange, onNew }) {
   );
 }
 
-function ProjectHeader({ project, stats, view, onView, onOpenSourcingContext, onRunProfile, onOpenRegisteredOutput, onSubmitExecution, executionBusy, durableError, unformed }) {
+function ProjectHeader({ project, stats, view, onView, onOpenSourcingContext, onRunProfile, profileRunBusy, durableError, unformed }) {
+  const registered = project.execution?.status === "registered";
   return (
     <header className="rd-syn-project-head">
       <div className="rd-syn-project-copy">
         <div className="rd-syn-project-kicker">
-          <span className={`rd-syn-maturity is-${project.maturity}`}>{project.maturityLabel}</span>
+          <span className={`rd-syn-maturity is-${project.maturity}`}>
+            {registered ? "Registered output" : project.maturityLabel}
+          </span>
           {unformed ? (
-            <span>{project.execution?.status === "registered" ? "Method record pending" : "No evidence mapped"}</span>
+            <span>{registered ? "Method record pending" : "No evidence mapped"}</span>
           ) : (
             <>
               <span>{stats.held} held</span>
@@ -111,39 +151,15 @@ function ProjectHeader({ project, stats, view, onView, onOpenSourcingContext, on
             {profileRunBusy ? "Running registered profile…" : "Run registered profile"}
           </button>
         ) : null}
-        {onOpenRegisteredOutput ? (
-          <button type="button" className="rd-syn-open-output" onClick={onOpenRegisteredOutput}>
-            Open registered asset
-          </button>
-        ) : null}
-        {onSubmitExecution ? (
-          <button type="button" className="rd-syn-run-profile" onClick={onSubmitExecution} disabled={executionBusy}>
-            {executionBusy ? "Submitting for approval…" : "Materialise approved spec"}
-          </button>
-        ) : null}
-        {project.execution?.status ? (
-          <p className="rd-syn-execution-state" data-testid="synthesis-execution-state">
-            {project.execution.status === "registered"
-              ? `Registered in Library · ${project.execution.output_dataset_id || "derived asset"}`
-              : `Execution ${String(project.execution.status).replaceAll("_", " ")} · ${project.execution.job_id || "job pending"}`}
-          </p>
-        ) : null}
-        <div role="status" aria-live="polite" style={{ position: "absolute", width: 1, height: 1, padding: 0, margin: -1, overflow: "hidden", clip: "rect(0, 0, 0, 0)", whiteSpace: "nowrap", border: 0 }}>
-          {durableError || ""}
-        </div>
         {durableError ? (
-          <p
-            role="alert"
-            data-testid="synthesis-durable-error"
-            style={{ position: "absolute", width: 1, height: 1, padding: 0, margin: -1, overflow: "hidden", clip: "rect(0, 0, 0, 0)", whiteSpace: "nowrap", border: 0 }}
-          >
+          <p role="alert" className="rd-syn-visible-error" data-testid="synthesis-durable-error">
             {durableError}
           </p>
         ) : null}
       </div>
       {unformed ? (
         <div className="rd-syn-view-tabs" aria-label="Synthesis workspace stage">
-          <span className="is-active" aria-current="page">Working brief</span>
+          <span className="is-active" aria-current="page">{registered ? "Registered output" : "Working brief"}</span>
         </div>
       ) : (
         <nav className="rd-syn-view-tabs" aria-label="Synthesis workspace views">
@@ -161,6 +177,90 @@ function ProjectHeader({ project, stats, view, onView, onOpenSourcingContext, on
         </nav>
       )}
     </header>
+  );
+}
+
+function ExecutionShelf({
+  project,
+  onSubmit,
+  onApprove,
+  onOpenRegisteredOutput,
+  executionBusy,
+  approvalBusy,
+}) {
+  const spec = project.execution_spec || {};
+  const execution = project.execution || {};
+  const status = String(execution.status || (spec.input_dataset_id ? "ready" : "")).toLowerCase();
+  if (!status) return null;
+
+  const registered = status === "registered";
+  const failed = status === "failed" || status === "cancelled";
+  const metrics = Array.isArray(spec.metrics) ? spec.metrics : [];
+  const groupBy = Array.isArray(spec.group_by) ? spec.group_by : [];
+  const manifestId = execution.manifest_id || execution.output_manifest_id || execution.manifest?.id || "";
+  const specHash = execution.accepted_spec_hash || execution.spec_hash || project.accepted_spec_hash || "";
+  const canSubmit = status === "ready" || failed;
+
+  return (
+    <section className={`rd-syn-execution-shelf is-${status}`} data-testid="synthesis-execution-shelf" aria-label="Synthesis execution plan">
+      <header>
+        <div>
+          <span>{registered ? "Registered research asset" : "Bounded execution plan"}</span>
+          <h3>{registered ? execution.output_dataset_id || spec.output_dataset_id || project.title : "Review, approve, and materialise"}</h3>
+        </div>
+        <strong className="rd-syn-execution-pill" data-testid="synthesis-execution-state">{executionLabel(status)}</strong>
+      </header>
+
+      <div className="rd-syn-execution-facts">
+        <div><span>Input</span><strong className="mono">{spec.input_dataset_id || execution.input_dataset_id || "Not reported"}</strong></div>
+        <div><span>Output</span><strong className="mono">{execution.output_dataset_id || spec.output_dataset_id || "Not resolved"}</strong></div>
+        <div><span>Group by</span><strong>{groupBy.length ? groupBy.join(" · ") : "Whole dataset"}</strong></div>
+        <div><span>Spec revision</span><strong className="mono">{specHash ? specHash.slice(0, 16) : "Accepted thread state"}</strong></div>
+      </div>
+
+      {metrics.length ? (
+        <div className="rd-syn-execution-metrics" data-testid="synthesis-execution-metrics">
+          <span>Aggregations</span>
+          <div>{metrics.map((metric, index) => <code key={`${metric.as || metric.function}-${index}`}>{metricLabel(metric)}</code>)}</div>
+        </div>
+      ) : null}
+
+      {registered ? (
+        <div className="rd-syn-execution-proof" data-testid="synthesis-execution-proof">
+          <div><span>Rows</span><strong>{execution.rows ?? "—"}</strong></div>
+          <div><span>Manifest</span><strong className="mono">{manifestId || "Recorded"}</strong></div>
+          <div><span>Drive archive</span><strong>{execution.drive_verified === true ? "Verified" : "Not reported"}</strong></div>
+          <div><span>Library state</span><strong>Query ready</strong></div>
+        </div>
+      ) : null}
+
+      {failed ? (
+        <p className="rd-syn-execution-error" role="alert" data-testid="synthesis-execution-error">
+          {execution.error || execution.message || "The bounded execution did not complete. Review the failure before retrying."}
+        </p>
+      ) : null}
+
+      <footer>
+        {status === "pending_approval" ? (
+          <button type="button" className="primary" data-testid="synthesis-approve-execution" onClick={onApprove} disabled={approvalBusy}>
+            {approvalBusy ? "Approving…" : "Approve execution"}
+          </button>
+        ) : null}
+        {canSubmit ? (
+          <button type="button" className="primary" data-testid="synthesis-submit-execution" onClick={onSubmit} disabled={executionBusy}>
+            {executionBusy ? "Submitting…" : failed ? "Retry execution" : "Request execution"}
+          </button>
+        ) : null}
+        {registered && onOpenRegisteredOutput ? (
+          <button type="button" className="primary" data-testid="synthesis-open-registered-output" onClick={onOpenRegisteredOutput}>
+            Open registered asset
+          </button>
+        ) : null}
+        {ACTIVE_EXECUTION_STATUSES.has(status) && status !== "pending_approval" ? (
+          <span className="rd-syn-execution-refresh">Refreshing durable execution state…</span>
+        ) : null}
+      </footer>
+    </section>
   );
 }
 
@@ -217,33 +317,33 @@ function NewObjectiveDialog({ open, value, onChange, onClose, onSubmit, busy, er
   );
 }
 
-function WorkingBrief({ project, onAsk }) {
+function WorkingBrief({ project, onAsk, onOpenRegisteredOutput }) {
   const registered = project.execution?.status === "registered";
+  const manifestId = project.execution?.manifest_id || project.execution?.output_manifest_id || "";
   return (
-    <section className="rd-syn-working-brief" data-testid="synthesis-working-brief" aria-label="Working brief">
+    <section className="rd-syn-working-brief" data-testid="synthesis-working-brief" aria-label={registered ? "Registered output" : "Working brief"}>
       <article className="rd-syn-spec-document">
         <span className="rd-syn-doc-kicker">{registered ? "Registered output" : "Working brief"}</span>
         <h3>{project.title}</h3>
         <p className="rd-syn-doc-purpose">{project.objective}</p>
         <div className="rd-syn-brief-facts">
-          <div><span>{registered ? "Output rows" : "Evidence"}</span><strong>{registered ? `${project.execution?.rows || "—"} registered` : "None mapped yet"}</strong></div>
+          <div><span>{registered ? "Output rows" : "Evidence"}</span><strong>{registered ? `${project.execution?.rows ?? "—"} registered` : "None mapped yet"}</strong></div>
           <div><span>Materialisation</span><strong>{registered ? "Registered in Library" : "Not materialised"}</strong></div>
-          <div><span>{registered ? "Provenance" : "Construction"}</span><strong>{registered ? "Manifest recorded" : "Not started"}</strong></div>
+          <div><span>{registered ? "Provenance" : "Construction"}</span><strong>{registered ? manifestId || "Manifest recorded" : "Not started"}</strong></div>
         </div>
         <p>
           {registered
-            ? "The approved bounded execution completed and registered its output. Add an evidence map to preserve the methodological narrative alongside the reusable asset."
+            ? "The approved bounded execution is registered and reusable. The methodological evidence map remains an explicit follow-up, not a condition hidden behind the asset state."
             : "This thread begins as a research conversation. Ask the agent to search held and indexed evidence before any construction state is proposed. No borrowed evidence or materialised output is claimed."}
         </p>
-        <button
-          type="button"
-          className="rd-syn-ask-project"
-          data-testid="synthesis-brief-ask"
-          onClick={onAsk}
-        >
-          <span aria-hidden>✦</span>
-          Continue in Ask
-        </button>
+        {registered && onOpenRegisteredOutput ? (
+          <button type="button" className="rd-syn-open-output" onClick={onOpenRegisteredOutput}>Open registered asset</button>
+        ) : (
+          <button type="button" className="rd-syn-ask-project" data-testid="synthesis-brief-ask" onClick={onAsk}>
+            <span aria-hidden>✦</span>
+            Continue in Ask
+          </button>
+        )}
       </article>
     </section>
   );
@@ -576,6 +676,7 @@ export function SynthesisPage({
   const [profileRunBusy, setProfileRunBusy] = useState(false);
   const [profileRunResult, setProfileRunResult] = useState(null);
   const [executionBusy, setExecutionBusy] = useState(false);
+  const [approvalBusy, setApprovalBusy] = useState(false);
   const pendingGroundingRef = useRef(null);
 
   useEffect(() => {
@@ -621,7 +722,6 @@ export function SynthesisPage({
       })
       .catch(() => {
         if (!active) return;
-        // Local fallback when the durable thread API is unavailable.
         setAttentionProject(ATTENTION_SYNTHESIS_PROJECT);
       })
       .finally(() => {
@@ -647,7 +747,6 @@ export function SynthesisPage({
           const thread = await getSynthesisThread(threadId);
           if (!thread?.id) return null;
           const stateKey = thread.state?.projectKey;
-          // Never infer identity from title — require the stored project key.
           if (stateKey !== projectKey) return null;
           return projectFromSynthesisThread(
             thread,
@@ -699,6 +798,41 @@ export function SynthesisPage({
     : null;
 
   useEffect(() => {
+    const status = String(project?.execution?.status || "").toLowerCase();
+    if (!project?.threadId || !ACTIVE_EXECUTION_STATUSES.has(status)) return undefined;
+
+    let active = true;
+    let timer = null;
+    const refresh = async () => {
+      try {
+        const thread = await getSynthesisThread(project.threadId);
+        if (!active || !thread?.id) return;
+        const fallback = project.id === ATTENTION_SYNTHESIS_PROJECT.id
+          ? ATTENTION_SYNTHESIS_PROJECT
+          : emptyConstructionProject({
+              projectKey: project.id,
+              objective: project.objective,
+              title: project.title,
+            });
+        const next = projectFromSynthesisThread(thread, fallback);
+        replaceProjectState(next);
+        const nextStatus = String(next.execution?.status || "").toLowerCase();
+        if (ACTIVE_EXECUTION_STATUSES.has(nextStatus)) {
+          timer = window.setTimeout(refresh, 2200);
+        }
+      } catch {
+        if (active) timer = window.setTimeout(refresh, 3500);
+      }
+    };
+
+    timer = window.setTimeout(refresh, 900);
+    return () => {
+      active = false;
+      if (timer) window.clearTimeout(timer);
+    };
+  }, [project?.threadId, project?.id, project?.objective, project?.title, project?.execution?.status]);
+
+  useEffect(() => {
     if (!proposalRefreshEpoch || !project?.threadId) return;
     let active = true;
     getSynthesisThread(project.threadId)
@@ -719,9 +853,7 @@ export function SynthesisPage({
         }
         setProposalOpen(Boolean(next.proposal));
       })
-      .catch(() => {
-        // The existing workspace remains usable if proposal refresh fails.
-      });
+      .catch(() => {});
     return () => {
       active = false;
     };
@@ -779,6 +911,29 @@ export function SynthesisPage({
     }
   };
 
+  const approveExecution = async () => {
+    const jobId = project?.execution?.job_id;
+    if (!jobId || approvalBusy) return;
+    setApprovalBusy(true);
+    setDurableError("");
+    try {
+      const result = await approveJob(jobId);
+      const job = result?.job || result || {};
+      replaceProjectState({
+        ...project,
+        execution: {
+          ...(project.execution || {}),
+          status: job.status || "queued",
+          job_id: job.id || jobId,
+        },
+      });
+    } catch (err) {
+      setDurableError(err?.message || "Could not approve this Synthesis execution.");
+    } finally {
+      setApprovalBusy(false);
+    }
+  };
+
   const submitExecution = async () => {
     if (!project?.threadId || !project?.execution_spec || executionBusy) return;
     setExecutionBusy(true);
@@ -789,9 +944,12 @@ export function SynthesisPage({
       const next = {
         ...project,
         execution: {
+          ...(project.execution || {}),
+          ...(result.job || {}),
           status: result.job.status || "pending_approval",
           job_id: result.job.id,
-          output_dataset_id: project.execution_spec.output_dataset_id,
+          output_dataset_id: result.job.output_dataset_id || project.execution_spec.output_dataset_id,
+          error: null,
         },
       };
       replaceProjectState(next);
@@ -840,8 +998,14 @@ export function SynthesisPage({
     }
   };
 
-  const replaceProjectState = (next) => {
+  function replaceProjectState(next) {
     if (!next?.id) return;
+    setProjectOverrides((current) => {
+      if (!Object.prototype.hasOwnProperty.call(current, next.id)) return current;
+      const copy = { ...current };
+      delete copy[next.id];
+      return copy;
+    });
     if (next.id === ATTENTION_SYNTHESIS_PROJECT.id) {
       setAttentionProject(next);
       return;
@@ -851,11 +1015,10 @@ export function SynthesisPage({
       if (!exists) return [next, ...current];
       return current.map((item) => (item.id === next.id ? next : item));
     });
-  };
+  }
 
   const applyLocalDecision = (decision) => {
-    const next =
-      decision === "accept" ? applyProjectProposal(project) : rejectProjectProposal(project);
+    const next = decision === "accept" ? applyProjectProposal(project) : rejectProjectProposal(project);
     setProjectOverrides((current) => ({ ...current, [project.id]: next }));
     replaceProjectState({
       ...next,
@@ -883,11 +1046,6 @@ export function SynthesisPage({
       });
       const next = projectFromSynthesisThread(thread, project);
       replaceProjectState(next);
-      setProjectOverrides((current) => {
-        const copy = { ...current };
-        delete copy[project.id];
-        return copy;
-      });
       setSelectedNodeId(project.proposal?.nodeId || "");
       setProposalOpen(false);
     } catch (err) {
@@ -913,11 +1071,6 @@ export function SynthesisPage({
       });
       const next = projectFromSynthesisThread(thread, project);
       replaceProjectState(next);
-      setProjectOverrides((current) => {
-        const copy = { ...current };
-        delete copy[project.id];
-        return copy;
-      });
       setSelectedNodeId("");
       setProposalOpen(false);
     } catch (err) {
@@ -965,16 +1118,25 @@ export function SynthesisPage({
           onView={setView}
           onOpenSourcingContext={showSourcingHandoff ? openSourcingContext : undefined}
           onRunProfile={project.profileId ? runRegisteredProfile : undefined}
-          onOpenRegisteredOutput={project.execution?.status === "registered" && registeredOutputId ? () => onOpenLibrary?.(registeredOutputId) : undefined}
-          onSubmitExecution={project.threadId && project.execution_spec && !project.execution?.job_id ? submitExecution : undefined}
-          executionBusy={executionBusy}
           profileRunBusy={profileRunBusy}
           durableError={durableError}
           unformed={unformed}
         />
+        <ExecutionShelf
+          project={project}
+          onSubmit={submitExecution}
+          onApprove={approveExecution}
+          onOpenRegisteredOutput={registeredOutputId ? () => onOpenLibrary?.(registeredOutputId) : undefined}
+          executionBusy={executionBusy}
+          approvalBusy={approvalBusy}
+        />
         <main className="rd-syn-editor-surface">
           {unformed ? (
-            <WorkingBrief project={project} onAsk={askAboutActive} />
+            <WorkingBrief
+              project={project}
+              onAsk={askAboutActive}
+              onOpenRegisteredOutput={registeredOutputId ? () => onOpenLibrary?.(registeredOutputId) : undefined}
+            />
           ) : view === "map" ? (
             <MapView
               project={project}
@@ -988,11 +1150,11 @@ export function SynthesisPage({
               proposalBusy={proposalBusy || (project.id === ATTENTION_SYNTHESIS_PROJECT.id && !durableReady)}
             />
           ) : view === "plan" ? (
-          <SpecView
-            project={project}
-            profileRunResult={project.profileId ? profileRunResult : null}
-            registeredOutput={registeredOutput}
-          />
+            <SpecView
+              project={project}
+              profileRunResult={project.profileId ? profileRunResult : null}
+              registeredOutput={registeredOutput}
+            />
           ) : (
             <EvidenceView project={project} onAsk={askChart} />
           )}
