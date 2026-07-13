@@ -20,6 +20,17 @@ test.describe("v2 Discover tab", () => {
     await expect(page.getByRole("button", { name: "TWSE governance" })).toBeVisible();
   });
 
+  test("collection routes keep operational detail behind an intentional workspace switch", async ({ page }) => {
+    await page.getByRole("tab", { name: "Collection routes", exact: true }).click();
+    const routes = page.getByTestId("discover-routes-mode");
+    await expect(routes).toBeVisible();
+    await expect(routes).toContainText("Evidence entering the lab");
+    await expect(routes).toContainText("Needs attention");
+    await routes.getByRole("button", { name: /MOPS financial statements/i }).click();
+    await expect(routes).toContainText("Selected route");
+    await expect(routes.getByRole("button", { name: "Ask about this route" })).toBeVisible();
+  });
+
   test("suggestion chip fills header search and shows demo results", async ({ page }) => {
     await page.getByRole("button", { name: "TWSE governance" }).click();
     await expect(page.locator(".rd-v2-search-pill input")).toHaveValue("TWSE governance");

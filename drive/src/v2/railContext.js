@@ -33,6 +33,19 @@ export function buildRailContext({
     };
     datasetId = activeObject.row?.dataset_id || activeObject.row?.doi || "";
     actions = ["add_to_lab", "probe", "ask_about"];
+  } else if (activeObject?.kind === "collection_route") {
+    const route = activeObject.route || {};
+    entity = {
+      kind: "collection_route",
+      id: activeObject.id,
+      title: activeObject.title,
+      status: route.status || "unknown",
+      source_route: route.plan?.connector_id || route.request?.connector_id || route.request?.schedule_id || "",
+      library_destination:
+        route.result?.drive_finalize?.archives?.[0]?.remote_suffix || route.result?.dataset_id || route.registered_dataset_id || "",
+      latest_event: route.events?.at(-1)?.message || route.error || "",
+    };
+    actions = ["explain", "inspect_route"];
   } else if (activeObject?.kind === "resource_row") {
     entity = { kind: "resource_row", id: activeObject.id, title: activeObject.title };
     actions = ["explain", "approve_job"];

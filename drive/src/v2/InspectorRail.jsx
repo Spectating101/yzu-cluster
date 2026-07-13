@@ -66,7 +66,7 @@ function activeHintBelongsToTab(mainTab, object) {
   if (mainTab === "library") {
     return ["library_folder", "library_intake", "dataset"].includes(object.kind);
   }
-  if (mainTab === "browse") return object.kind === "external_candidate";
+  if (mainTab === "browse") return ["external_candidate", "collection_route"].includes(object.kind);
   if (mainTab === "resources") return object.kind === "resource_row";
   if (mainTab === "home") return ["dataset", "home_attention"].includes(object.kind);
   if (mainTab === "cluster") return object.kind === "comparison";
@@ -217,7 +217,7 @@ export function InspectorRail({
 
   useEffect(() => {
     if (mainTab === "browse") {
-      setMobileRailOpen(Boolean(browseTarget) && railTab === "ask");
+      setMobileRailOpen(Boolean(browseTarget || activeObject) && railTab === "ask");
       return;
     }
     if (mainTab === "home") {

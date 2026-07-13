@@ -699,6 +699,19 @@ export function V2App() {
 
   const askAboutSelection = useCallback(
     (target, promptOverride) => {
+      if (tab === "browse" && target?.kind === "collection_route") {
+        setActiveObject(target);
+        setRailTab("ask");
+        setPendingAsk(
+          promptOverride && typeof promptOverride === "object"
+            ? promptOverride
+            : {
+                prompt: `Assess this Discover collection route: ${target.title}. Explain the current state, source route, Library destination, and safest researcher action. Do not claim a completed or registered asset unless the route reports one.`,
+                displayText: `Assess collection route: ${target.title}`,
+              },
+        );
+        return;
+      }
       if (tab === "browse" && target) {
         const label = target.title || target.dataset_id || target.name || "this Discover candidate";
         setActiveObject(externalCandidateObject(target));
@@ -1141,7 +1154,7 @@ export function V2App() {
                     title: `Resources · ${resourceRow.label}`,
                   }
                 : tab === "browse"
-                  ? browseTarget
+                  ? browseTarget || (activeObject?.kind === "collection_route" ? { title: `Collection route · ${activeObject.title}` } : null)
                 : tab === "home" && activeObject?.kind === "home_attention"
                   ? {
                       title: `Home · ${activeObject.title}`,

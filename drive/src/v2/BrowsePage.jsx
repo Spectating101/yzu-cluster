@@ -19,6 +19,7 @@ import { assessLocalSufficiency } from "@/v2/discoverSufficiency";
 import { loadUserEmail } from "@/v2/deskSession";
 import { discoverDemoSearch } from "@/v2/deskSeed";
 import { DiscoverEmptyState } from "@/v2/DiscoverEmptyState";
+import { DiscoverRoutes } from "@/v2/DiscoverRoutes";
 import { Chip, PageShell, SourceRibbon } from "@/v2/ui";
 
 const FILTERS = [
@@ -182,6 +183,7 @@ export function BrowsePage({
   const [demoFallback, setDemoFallback] = useState(false);
   const [stateFilter, setStateFilter] = useState("all");
   const [indexMiss, setIndexMiss] = useState(false);
+  const [workspace, setWorkspace] = useState("explore");
 
   useEffect(() => {
     let cancelled = false;
@@ -424,9 +426,28 @@ export function BrowsePage({
     <PageShell
       title="Discover"
       lead="Search the lab first, then evaluate sources beyond it before you collect"
-      toolbar={demoMode ? <Chip warn>Demo preview · static sample</Chip> : null}
+      toolbar={
+        <div className="rd-v2-discover-workspace-tabs" role="tablist" aria-label="Discover workspace">
+          <button type="button" role="tab" aria-selected={workspace === "explore"} className={workspace === "explore" ? "is-active" : ""} onClick={() => setWorkspace("explore")}>Explore evidence</button>
+          <button type="button" role="tab" aria-selected={workspace === "routes"} className={workspace === "routes" ? "is-active" : ""} onClick={() => setWorkspace("routes")}>Collection routes</button>
+          {demoMode ? <Chip warn>Demo preview</Chip> : null}
+        </div>
+      }
     >
-      <div className="rd-v2-discover-browse" data-testid="discover-browse-mode" data-mode="browse">
+      {workspace === "routes" ? (
+        <DiscoverRoutes
+          jobs={jobs}
+          onAskRoute={(job) => onAskAbout?.({
+            kind: "collection_route",
+            id: job.id || job.request?.schedule_id || job.title,
+            title: routeTitleForAsk(job),
+            route: job,
+          }, {
+            prompt: `Assess this Discover collection route: ${routeTitleForAsk(job)}. Explain its current state, source route, Library destination, latest event, and the safest researcher action. Do not claim a failed or scheduled route is complete.`,
+            displayText: `Assess collection route: ${routeTitleForAsk(job)}`,
+          })}
+        />
+      ) : <div className="rd-v2-discover-browse" data-testid="discover-browse-mode" data-mode="browse">
         {!q ? (
           <DiscoverEmptyState onSuggest={onSuggestSearch} />
         ) : (
@@ -548,7 +569,11 @@ export function BrowsePage({
             </details>
           </>
         )}
-      </div>
+      </div>}
     </PageShell>
   );
+}
+
+function routeTitleForAsk(job) {
+  return job?.title || job?.plan?.title || job?.request?.schedule_id || "collection route";
 }

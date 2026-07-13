@@ -41,11 +41,12 @@ export function AskRail({
   const profileContext = dataset?.title || "Profile";
   const hasThread = messages.length > 0;
   const discoverTitle = dataset?.title || dataset?.dataset_id || "";
+  const isCollectionRoute = isDiscover && /^Collection route\s·/i.test(discoverTitle);
 
   return (
     <div className="rd-v2-ask-shell">
       <header className="rd-v2-ask-head">
-        <strong>{isProfile ? "Ask" : isDiscover ? "Ask · selected source" : "Procurement chat"}</strong>
+        <strong>{isProfile ? "Ask" : isCollectionRoute ? "Ask · collection route" : isDiscover ? "Ask · selected source" : "Procurement chat"}</strong>
         <p className="rd-v2-ask-ctx">
           {isProfile
             ? hasThread
