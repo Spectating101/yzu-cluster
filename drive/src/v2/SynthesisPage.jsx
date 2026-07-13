@@ -8,6 +8,7 @@ import {
   listSynthesisProfiles,
   listSynthesisThreads,
   runSynthesis,
+  submitSynthesisThreadExecution,
 } from "@/v2/api";
 import { loadChatSessionId } from "@/v2/deskSession";
 import { SynthesisGraphCanvas } from "@/v2/SynthesisGraphCanvas";
@@ -75,7 +76,7 @@ function ProjectTabs({ projects, activeId, onChange, onNew }) {
   );
 }
 
-function ProjectHeader({ project, stats, view, onView, onOpenSourcingContext, onRunProfile, onOpenRegisteredOutput, profileRunBusy, durableError, unformed }) {
+function ProjectHeader({ project, stats, view, onView, onOpenSourcingContext, onRunProfile, onOpenRegisteredOutput, onSubmitExecution, executionBusy, durableError, unformed }) {
   return (
     <header className="rd-syn-project-head">
       <div className="rd-syn-project-copy">
@@ -114,6 +115,18 @@ function ProjectHeader({ project, stats, view, onView, onOpenSourcingContext, on
           <button type="button" className="rd-syn-open-output" onClick={onOpenRegisteredOutput}>
             Open registered asset
           </button>
+        ) : null}
+        {onSubmitExecution ? (
+          <button type="button" className="rd-syn-run-profile" onClick={onSubmitExecution} disabled={executionBusy}>
+            {executionBusy ? "Submitting for approval…" : "Materialise approved spec"}
+          </button>
+        ) : null}
+        {project.execution?.status ? (
+          <p className="rd-syn-execution-state" data-testid="synthesis-execution-state">
+            {project.execution.status === "registered"
+              ? `Registered in Library · ${project.execution.output_dataset_id || "derived asset"}`
+              : `Execution ${String(project.execution.status).replaceAll("_", " ")} · ${project.execution.job_id || "job pending"}`}
+          </p>
         ) : null}
         <div role="status" aria-live="polite" style={{ position: "absolute", width: 1, height: 1, padding: 0, margin: -1, overflow: "hidden", clip: "rect(0, 0, 0, 0)", whiteSpace: "nowrap", border: 0 }}>
           {durableError || ""}
@@ -205,20 +218,22 @@ function NewObjectiveDialog({ open, value, onChange, onClose, onSubmit, busy, er
 }
 
 function WorkingBrief({ project, onAsk }) {
+  const registered = project.execution?.status === "registered";
   return (
     <section className="rd-syn-working-brief" data-testid="synthesis-working-brief" aria-label="Working brief">
       <article className="rd-syn-spec-document">
-        <span className="rd-syn-doc-kicker">Working brief</span>
+        <span className="rd-syn-doc-kicker">{registered ? "Registered output" : "Working brief"}</span>
         <h3>{project.title}</h3>
         <p className="rd-syn-doc-purpose">{project.objective}</p>
         <div className="rd-syn-brief-facts">
-          <div><span>Evidence</span><strong>None mapped yet</strong></div>
-          <div><span>Materialisation</span><strong>Not materialised</strong></div>
-          <div><span>Construction</span><strong>Not started</strong></div>
+          <div><span>Evidence</span><strong>{registered ? "Execution inputs recorded" : "None mapped yet"}</strong></div>
+          <div><span>Materialisation</span><strong>{registered ? "Registered in Library" : "Not materialised"}</strong></div>
+          <div><span>Construction</span><strong>{registered ? "Execution recorded" : "Not started"}</strong></div>
         </div>
         <p>
-          This thread begins as a research conversation. Ask the agent to search held and indexed evidence
-          before any construction state is proposed. No borrowed evidence or materialised output is claimed.
+          {registered
+            ? "The approved bounded execution completed and registered its output. Add an evidence map to preserve the methodological narrative alongside the reusable asset."
+            : "This thread begins as a research conversation. Ask the agent to search held and indexed evidence before any construction state is proposed. No borrowed evidence or materialised output is claimed."}
         </p>
         <button
           type="button"
@@ -560,6 +575,7 @@ export function SynthesisPage({
   const [objectiveError, setObjectiveError] = useState("");
   const [profileRunBusy, setProfileRunBusy] = useState(false);
   const [profileRunResult, setProfileRunResult] = useState(null);
+  const [executionBusy, setExecutionBusy] = useState(false);
   const pendingGroundingRef = useRef(null);
 
   useEffect(() => {
@@ -762,6 +778,29 @@ export function SynthesisPage({
     }
   };
 
+  const submitExecution = async () => {
+    if (!project?.threadId || !project?.execution_spec || executionBusy) return;
+    setExecutionBusy(true);
+    setDurableError("");
+    try {
+      const result = await submitSynthesisThreadExecution(project.threadId);
+      if (!result?.job?.id) throw new Error(result?.error || "Execution submission did not return a job.");
+      const next = {
+        ...project,
+        execution: {
+          status: result.job.status || "pending_approval",
+          job_id: result.job.id,
+          output_dataset_id: project.execution_spec.output_dataset_id,
+        },
+      };
+      replaceProjectState(next);
+    } catch (err) {
+      setDurableError(err?.message || "Could not submit the approved synthesis spec.");
+    } finally {
+      setExecutionBusy(false);
+    }
+  };
+
   const createFromObjective = async () => {
     const objective = String(objectiveDraft || "").trim();
     if (!objective || objectiveBusy) return;
@@ -918,6 +957,8 @@ export function SynthesisPage({
           onOpenSourcingContext={showSourcingHandoff ? openSourcingContext : undefined}
           onRunProfile={project.profileId ? runRegisteredProfile : undefined}
           onOpenRegisteredOutput={registeredOutput ? () => onOpenLibrary?.(registeredOutput.dataset_id) : undefined}
+          onSubmitExecution={project.threadId && project.execution_spec && !project.execution?.job_id ? submitExecution : undefined}
+          executionBusy={executionBusy}
           profileRunBusy={profileRunBusy}
           durableError={durableError}
           unformed={unformed}

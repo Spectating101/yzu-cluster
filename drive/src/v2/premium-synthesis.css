@@ -1155,6 +1155,13 @@
   font-weight: 720;
 }
 .rd-syn-run-profile:disabled { cursor: wait; opacity: .65; }
+.rd-syn-execution-state {
+  display: inline-block;
+  margin: 8px 0 0 9px;
+  color: #5b687c;
+  font-size: 10px;
+  line-height: 1.3;
+}
 .rd-syn-profile-run-report {
   padding: 12px 0;
   border-top: 1px solid #e7eaf0;

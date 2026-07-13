@@ -260,6 +260,15 @@ export function getSynthesisThreadMaterialisation(threadId) {
   return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}/materialisation`);
 }
 
+/** Submit a researcher-accepted bounded Synthesis spec to the approval queue. */
+export function submitSynthesisThreadExecution(threadId) {
+  return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}/execute`, {
+    method: "POST",
+    headers: deskHeaders(),
+    body: JSON.stringify({}),
+  });
+}
+
 /** Link a Composer/procurement chat session to a durable synthesis thread. */
 export function linkSynthesisThreadConversation(
   threadId,
