@@ -1,8 +1,21 @@
 import { useEffect, useMemo, useState } from "react";
 
-function value(value, fallback = "Not specified") {
-  const text = String(value ?? "").trim();
+function value(input, fallback = "Not specified") {
+  const text = String(input ?? "").trim();
   return text || fallback;
+}
+
+function routeTitle(job = {}) {
+  return job.title || job.plan?.title || job.request?.schedule_id || "Collection route";
+}
+
+function routeTime(job = {}) {
+  const raw = job.updated_at || job.created_at;
+  if (!raw) return "Time not reported";
+  const date = new Date(raw);
+  return Number.isNaN(date.valueOf())
+    ? String(raw)
+    : date.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
 }
 
 function routeId(job = {}) {
@@ -64,10 +77,6 @@ function routeStatus(job = {}) {
   return { group: "unknown", label: "State unverified", tone: "muted" };
 }
 
-function routeTitle(job = {}) {
-  return job.title || job.plan?.title || job.request?.schedule_id || "Collection route";
-}
-
 function routeSource(job = {}) {
   return (
     job.plan?.connector_id ||
@@ -87,15 +96,6 @@ function routeDestination(job = {}) {
     return value(archive.remote_suffix || archive.remote || archive.path, "Drive archive recorded");
   }
   return job.result?.dataset_id || job.plan?.output_dataset_id || "Library destination pending";
-}
-
-function routeTime(job = {}) {
-  const raw = job.updated_at || job.created_at;
-  if (!raw) return "Time not reported";
-  const date = new Date(raw);
-  return Number.isNaN(date.valueOf())
-    ? String(raw)
-    : date.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
 }
 
 function routeScope(job = {}) {
@@ -133,27 +133,14 @@ function routeEvidence(job = {}) {
   return "No execution evidence reported yet";
 }
 
-function routeCompleteness(job = {}) {
-  const facts = [
-    routeSource(job) !== "Source route not specified",
-    routeScope(job) !== "Collection scope not specified",
-    routeAccess(job) !== "Access terms not recorded",
-    routeDestination(job) !== "Library destination pending",
-  ];
-  const known = facts.filter(Boolean).length;
-  if (known === facts.length) return "Route design described";
-  if (known >= 2) return "Route design partially described";
-  return "Route design incomplete";
-}
-
 function routeGroups(jobs) {
   const groups = [
-    ["attention", "Needs attention", "Approval, failure, or cancellation requires a researcher decision."],
-    ["active", "Collecting now", "Approved work that is queued or currently running."],
-    ["scheduled", "Scheduled / monitored", "Recurring acquisition routes and their current state."],
-    ["registered", "Registered outputs", "Outputs with an explicit reusable Library dataset identity."],
-    ["pending", "Registration pending", "Output exists, but reusable Library identity is not yet proven."],
-    ["unknown", "State unresolved", "The current state cannot be classified from reported evidence."],
+    ["attention", "Needs attention", "Approval or recovery"],
+    ["active", "In progress", "Queued or collecting"],
+    ["scheduled", "Scheduled", "Recurring acquisition"],
+    ["registered", "Registered", "Reusable Library assets"],
+    ["pending", "Registration pending", "Output exists; identity unproven"],
+    ["unknown", "State unresolved", "Evidence cannot verify the state"],
   ];
   return groups
     .map(([id, title, description]) => ({
@@ -174,12 +161,21 @@ function summaryCounts(jobs) {
   return counts;
 }
 
-function CompactMetric({ label, value: metricValue, tone = "" }) {
+function summaryText(counts) {
+  return [
+    `${counts.attention} decision${counts.attention === 1 ? "" : "s"}`,
+    `${counts.active} active`,
+    `${counts.registered} registered`,
+    `${counts.pending} pending`,
+  ].join(" · ");
+}
+
+function FactRow({ label, children, mono = false }) {
   return (
-    <span className={`rd-v2-acquisition-metric${tone ? ` is-${tone}` : ""}`}>
-      <strong>{metricValue}</strong>
-      <span>{label}</span>
-    </span>
+    <div>
+      <dt>{label}</dt>
+      <dd className={mono ? "mono" : undefined}>{children}</dd>
+    </div>
   );
 }
 
@@ -187,65 +183,49 @@ function RouteDetail({ job, onAskRoute }) {
   const state = routeStatus(job);
   const registered = registeredDatasetId(job);
   const archive = driveArchive(job);
+
   return (
-    <aside className="rd-v2-route-detail rd-v2-acquisition-detail" aria-live="polite">
-      <div className="rd-v2-route-detail-head">
-        <div>
+    <aside className="rd-v2-acquisition-detail" aria-live="polite">
+      <header className="rd-v2-acquisition-detail-head">
+        <div className="rd-v2-acquisition-detail-title">
           <p>Selected route</p>
           <h3>{routeTitle(job)}</h3>
-        </div>
-        <div className="rd-v2-acquisition-detail-head-actions">
           <span className={`rd-v2-acquisition-status is-${state.tone}`}>{state.label}</span>
         </div>
-      </div>
-
-      <section className="rd-v2-acquisition-decision">
-        <div>
-          <p>Acquisition decision</p>
-          <strong>{routeCompleteness(job)}</strong>
-        </div>
-        <span>
-          Verify source, access, scope, refresh, and Library outcome before approval.
-        </span>
-      </section>
+        <button
+          type="button"
+          className="rd-v2-acquisition-ask"
+          onClick={() => onAskRoute?.(job)}
+        >
+          Ask about route
+        </button>
+      </header>
 
       <dl className="rd-v2-acquisition-facts">
-        <div><dt>Research need</dt><dd>{routeTitle(job)}</dd></div>
-        <div><dt>Source route</dt><dd className="mono">{routeSource(job)}</dd></div>
-        <div><dt>Access checkpoint</dt><dd>{routeAccess(job)}</dd></div>
-        <div><dt>Collection scope</dt><dd>{routeScope(job)}</dd></div>
-        <div><dt>Refresh design</dt><dd>{routeRefresh(job)}</dd></div>
-        <div>
-          <dt>{registered ? "Registered asset" : archive ? "Drive archive" : "Library destination"}</dt>
-          <dd className="mono">{routeDestination(job)}</dd>
-        </div>
-        <div><dt>Latest evidence</dt><dd>{routeEvidence(job)}</dd></div>
-        <div><dt>Latest event</dt><dd>{routeTime(job)}</dd></div>
+        <FactRow label="Source" mono>{routeSource(job)}</FactRow>
+        <FactRow label="Access">{routeAccess(job)}</FactRow>
+        <FactRow label="Scope">{routeScope(job)}</FactRow>
+        <FactRow label="Refresh">{routeRefresh(job)}</FactRow>
+        <FactRow label={registered ? "Registered asset" : archive ? "Drive archive" : "Destination"} mono>
+          {routeDestination(job)}
+        </FactRow>
+        <FactRow label="Evidence">{routeEvidence(job)}</FactRow>
+        <FactRow label="Updated">{routeTime(job)}</FactRow>
       </dl>
 
       {archive && !registered ? (
         <p className="rd-v2-route-warning">
-          A Drive archive exists, but registration is not claimed until a registry dataset identity is reported.
+          Drive archival is recorded, but this route remains unregistered until a registry dataset identity is reported.
         </p>
       ) : null}
       {job.error ? <p className="rd-v2-route-error">{job.error}</p> : null}
-
-      <div className="rd-v2-route-detail-actions">
-        <button
-          type="button"
-          className="rd-v2-btn sm primary"
-          onClick={() => onAskRoute?.(job)}
-        >
-          Ask about this route
-        </button>
-      </div>
     </aside>
   );
 }
 
 function RouteList({ groups, selectedId, onSelect }) {
   return (
-    <div className="rd-v2-routes-groups rd-v2-acquisition-groups">
+    <div className="rd-v2-acquisition-groups">
       {groups.map((group) => (
         <section key={group.id} className="rd-v2-route-group" aria-label={group.title}>
           <header>
@@ -259,26 +239,25 @@ function RouteList({ groups, selectedId, onSelect }) {
           <div className="rd-v2-route-list">
             {group.rows.slice(0, 8).map((job) => {
               const id = routeId(job);
-              const selectedRow = selectedId === id;
+              const selected = selectedId === id;
               const state = routeStatus(job);
               return (
-                <div key={id} className="rd-v2-route-item">
-                  <button
-                    data-testid="discover-route-row"
-                    type="button"
-                    className={selectedRow ? "is-selected" : ""}
-                    aria-pressed={selectedRow}
-                    onClick={() => onSelect(id)}
-                  >
-                    <span className={`rd-v2-route-state is-${state.group}`} />
-                    <span className="rd-v2-acquisition-row-copy">
-                      <strong>{routeTitle(job)}</strong>
-                      <small>{routeSource(job)} · {routeTime(job)}</small>
-                      <small className="rd-v2-acquisition-row-meta">{routeScope(job)}</small>
-                    </span>
-                    <em>{state.label}</em>
-                  </button>
-                </div>
+                <button
+                  key={id}
+                  data-testid="discover-route-row"
+                  type="button"
+                  className={`rd-v2-acquisition-route${selected ? " is-selected" : ""}`}
+                  aria-pressed={selected}
+                  onClick={() => onSelect(id)}
+                >
+                  <span className={`rd-v2-route-state is-${state.group}`} />
+                  <span className="rd-v2-acquisition-row-copy">
+                    <strong>{routeTitle(job)}</strong>
+                    <small>{routeSource(job)} · {routeTime(job)}</small>
+                    <small className="rd-v2-acquisition-row-meta">{routeScope(job)}</small>
+                  </span>
+                  <em>{state.label}</em>
+                </button>
               );
             })}
           </div>
@@ -309,40 +288,23 @@ export function DiscoverRoutes({ jobs = [], onAskRoute }) {
 
   return (
     <section className="rd-v2-routes rd-v2-acquisition-workspace" data-testid="discover-routes-mode">
-      <header className="rd-v2-routes-intro rd-v2-acquisition-intro">
-        <div className="rd-v2-acquisition-intro-copy">
-          <p>Acquisition plan</p>
-          <h2>Evidence entering the lab</h2>
-          <span>Review source, access, scope, refresh, and Library outcome before execution.</span>
+      <header className="rd-v2-acquisition-bar">
+        <div>
+          <strong>Acquisition plan</strong>
+          <span>Choose a route, inspect the exact design, then act.</span>
         </div>
-
-        <div className="rd-v2-acquisition-metrics" aria-label="Acquisition plan summary">
-          <CompactMetric label="Decision" value={counts.attention} tone={counts.attention ? "warn" : ""} />
-          <CompactMetric label="Active" value={counts.active} />
-          <CompactMetric label="Registered" value={counts.registered} tone={counts.registered ? "ready" : ""} />
-          <CompactMetric label="Pending" value={counts.pending} />
-          <span className="rd-v2-acquisition-tracked">{rows.length} tracked</span>
-        </div>
+        <p>{summaryText(counts)}</p>
       </header>
 
       {groups.length ? (
-        <div className={`rd-v2-acquisition-layout${selectedJob ? " has-selection" : ""}`}>
+        <div className="rd-v2-acquisition-layout">
           <section className="rd-v2-acquisition-list-pane" aria-label="Acquisition routes">
-            <RouteList
-              groups={groups}
-              selectedId={selectedId}
-              onSelect={(id) => setSelectedId(id)}
-            />
+            <RouteList groups={groups} selectedId={selectedId} onSelect={setSelectedId} />
           </section>
-
           {selectedJob ? (
-            <RouteDetail
-              job={selectedJob}
-              onAskRoute={onAskRoute}
-            />
+            <RouteDetail job={selectedJob} onAskRoute={onAskRoute} />
           ) : (
             <aside className="rd-v2-acquisition-detail rd-v2-acquisition-detail-empty">
-              <p>Route detail</p>
               <strong>Select a route to inspect its acquisition design.</strong>
             </aside>
           )}
