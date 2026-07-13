@@ -24,11 +24,11 @@ test.describe("v2 Discover tab", () => {
     await page.getByRole("tab", { name: "Collection routes", exact: true }).click();
     const routes = page.getByTestId("discover-routes-mode");
     await expect(routes).toBeVisible();
-    await expect(routes).toContainText("Evidence entering the lab");
+    await expect(routes).toContainText("Acquisition plan");
     await expect(routes).toContainText("Needs attention");
     await routes.getByRole("button", { name: /MOPS financial statements/i }).click();
     await expect(routes).toContainText("Selected route");
-    await expect(routes.getByRole("button", { name: "Ask about this route" })).toBeVisible();
+    await expect(routes.getByRole("button", { name: "Ask about route" })).toBeVisible();
   });
 
   test("suggestion chip fills header search and shows demo results", async ({ page }) => {
