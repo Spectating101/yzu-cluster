@@ -19,6 +19,130 @@ async function waitForAttentionThread(page) {
   await expect(page.getByTestId("synthesis-discover-handoff")).toBeVisible({ timeout: 20_000 });
 }
 
+async function installExecutionLifecycle(page, { failFirst = false } = {}) {
+  const snapshot = await page.evaluate(async () => {
+    const threadId = localStorage.getItem("rd_v2_synthesis_thread:stablecoin_attention_proxy");
+    if (!threadId) throw new Error("Attention synthesis thread was not stored");
+    const response = await fetch(`/api/library/synthesis/threads/${encodeURIComponent(threadId)}`);
+    if (!response.ok) throw new Error("Could not load attention synthesis thread");
+    return { threadId, thread: await response.json() };
+  });
+
+  const outputId = "synthesis_stablecoin_weekly_e2e";
+  const specHash = "spec_hash_e2e_20260713";
+  const executionSpec = {
+    input_dataset_id: "stablecoin_trust_engagement_weekly",
+    output_dataset_id: outputId,
+    group_by: ["week"],
+    metrics: [
+      { function: "count", as: "observations" },
+      { function: "mean", column: "google_trends", as: "google_trends_mean" },
+    ],
+  };
+  const thread = structuredClone(snapshot.thread);
+  thread.state = {
+    ...(thread.state || {}),
+    proposal: null,
+    execution_spec: executionSpec,
+    accepted_spec_hash: specHash,
+    execution: null,
+  };
+  thread.materialisation = "not_materialised";
+
+  let attempt = 0;
+  let phase = "ready";
+  let polls = 0;
+  let activeJobId = "";
+
+  await page.route(`**/library/synthesis/threads/${snapshot.threadId}/execute`, async (route) => {
+    if (route.request().method() !== "POST") return route.fallback();
+    attempt += 1;
+    polls = 0;
+    phase = "pending_approval";
+    activeJobId = `job-synthesis-e2e-${attempt}`;
+    thread.state.execution = {
+      status: "pending_approval",
+      job_id: activeJobId,
+      output_dataset_id: outputId,
+      accepted_spec_hash: specHash,
+    };
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        job: {
+          id: activeJobId,
+          status: "pending_approval",
+          output_dataset_id: outputId,
+        },
+      }),
+    });
+  });
+
+  await page.route("**/library/jobs/*/approve", async (route) => {
+    if (route.request().method() !== "POST") return route.fallback();
+    phase = "queued";
+    polls = 0;
+    thread.state.execution = {
+      ...(thread.state.execution || {}),
+      status: "queued",
+      job_id: activeJobId,
+    };
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ job: { id: activeJobId, status: "queued" } }),
+    });
+  });
+
+  await page.route(`**/library/synthesis/threads/${snapshot.threadId}`, async (route) => {
+    const url = new URL(route.request().url());
+    if (route.request().method() !== "GET" || url.pathname.endsWith("/execute")) return route.fallback();
+
+    if (phase === "queued" || phase === "running") {
+      polls += 1;
+      if (polls === 1) {
+        phase = "running";
+        thread.state.execution = {
+          ...(thread.state.execution || {}),
+          status: "running",
+        };
+      } else if (failFirst && attempt === 1) {
+        phase = "failed";
+        thread.state.execution = {
+          ...(thread.state.execution || {}),
+          status: "failed",
+          error: "Input checksum changed during execution.",
+        };
+      } else {
+        phase = "registered";
+        thread.materialisation = "registered";
+        thread.state.materialisation = "registered";
+        thread.state.execution = {
+          ...(thread.state.execution || {}),
+          status: "registered",
+          rows: 263,
+          manifest_id: `synthesis_manifest_${activeJobId}`,
+          drive_verified: true,
+          output_dataset_id: outputId,
+          accepted_spec_hash: specHash,
+        };
+      }
+    }
+
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(structuredClone(thread)),
+    });
+  });
+
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await waitForShell(page);
+  await waitForAttentionThread(page);
+  return { outputId, specHash };
+}
+
 test.describe("v2 Synthesis construction workspace", () => {
   test.beforeEach(async ({ page }) => {
     await clearSynthesisLocalState(page);
@@ -173,6 +297,46 @@ test.describe("v2 Synthesis construction workspace", () => {
     const rail = page.locator("aside.rd-v2-rail");
     await expect(rail).not.toHaveClass(/rd-v2-rail-collapsed/);
     await expect(rail).toContainText("GDELT crypto news");
+  });
+
+  test("approved execution refreshes through registration and opens the Library asset", async ({ page }) => {
+    const { outputId } = await installExecutionLifecycle(page);
+    const shelf = page.getByTestId("synthesis-execution-shelf");
+
+    await expect(shelf).toContainText("Ready for review");
+    await expect(shelf).toContainText("stablecoin_trust_engagement_weekly");
+    await expect(shelf).toContainText(outputId);
+    await expect(page.getByTestId("synthesis-execution-metrics")).toContainText("mean google_trends");
+
+    await page.getByTestId("synthesis-submit-execution").click();
+    await expect(page.getByTestId("synthesis-execution-state")).toHaveText("Approval required");
+    await page.getByTestId("synthesis-approve-execution").click();
+
+    await expect(page.getByTestId("synthesis-execution-state")).toHaveText("Registered", { timeout: 12_000 });
+    await expect(page.getByTestId("synthesis-execution-proof")).toContainText("263");
+    await expect(page.getByTestId("synthesis-execution-proof")).toContainText("synthesis_manifest_job-synthesis-e2e-1");
+    await expect(page.getByTestId("synthesis-execution-proof")).toContainText("Verified");
+
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await expect(page.getByTestId("synthesis-execution-state")).toHaveText("Registered");
+    await page.getByTestId("synthesis-open-registered-output").click();
+    await expect(page).toHaveURL(new RegExp(`tab=library.*dataset=${outputId}|dataset=${outputId}.*tab=library`));
+  });
+
+  test("failed execution explains the failure and can be retried", async ({ page }) => {
+    await installExecutionLifecycle(page, { failFirst: true });
+
+    await page.getByTestId("synthesis-submit-execution").click();
+    await page.getByTestId("synthesis-approve-execution").click();
+    await expect(page.getByTestId("synthesis-execution-state")).toHaveText("Execution failed", { timeout: 12_000 });
+    await expect(page.getByTestId("synthesis-execution-error")).toContainText("Input checksum changed");
+
+    await page.getByTestId("synthesis-submit-execution").click();
+    await expect(page.getByTestId("synthesis-execution-state")).toHaveText("Approval required");
+    await page.getByTestId("synthesis-approve-execution").click();
+    await expect(page.getByTestId("synthesis-execution-state")).toHaveText("Registered", { timeout: 12_000 });
+    await expect(page.getByTestId("synthesis-execution-proof")).toContainText("263");
   });
 
   test("new objective creates a durable unformed thread that survives reload", async ({ page }) => {
