@@ -11,7 +11,7 @@ async function openAcquisitionWorkspace(page, jobsBody) {
 }
 
 test.describe("Discover acquisition engineering", () => {
-  test("presents acquisition design before operational detail", async ({ page }) => {
+  test("presents one acquisition decision surface before operational detail", async ({ page }) => {
     const routes = await openAcquisitionWorkspace(page, {
       jobs: [
         {
@@ -31,16 +31,15 @@ test.describe("Discover acquisition engineering", () => {
     });
 
     await expect(routes).toContainText("Acquisition plan");
-    await expect(routes).toContainText("Decision");
-    await expect(routes).toContainText("Acquisition decision");
-    await page.screenshot({ path: "test-results/discover-acquisition-overview.png" });
-
-    await routes.getByRole("button", { name: /Historical stablecoin attention evidence/i }).click();
-    await expect(routes).toContainText("Access checkpoint");
-    await expect(routes).toContainText("Collection scope");
-    await expect(routes).toContainText("Refresh design");
+    await expect(routes).toContainText("1 decision");
+    await expect(routes).toContainText("Selected route");
+    await expect(routes).toContainText("Needs approval");
+    await expect(routes).toContainText("Access");
+    await expect(routes).toContainText("Scope");
+    await expect(routes).toContainText("Refresh");
     await expect(routes).toContainText("Weekly backfill, then daily refresh");
-    await page.screenshot({ path: "test-results/discover-acquisition-detail.png" });
+    await expect(routes.getByRole("button", { name: "Ask about route" })).toBeVisible();
+    await page.screenshot({ path: "test-results/discover-acquisition-overview.png" });
   });
 
   test("does not promote archive or unknown evidence into registered state", async ({ page }) => {
@@ -73,6 +72,6 @@ test.describe("Discover acquisition engineering", () => {
 
     await archivedRow.click();
     await expect(routes).toContainText("Drive archive");
-    await expect(routes).toContainText("registration is not claimed");
+    await expect(routes).toContainText("remains unregistered");
   });
 });
