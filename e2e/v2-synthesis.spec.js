@@ -21,11 +21,13 @@ async function waitForAttentionThread(page) {
 
 async function installExecutionLifecycle(page, { failFirst = false } = {}) {
   const snapshot = await page.evaluate(async () => {
-    const threadId = localStorage.getItem("rd_v2_synthesis_thread:stablecoin_attention_proxy");
-    if (!threadId) throw new Error("Attention synthesis thread was not stored");
-    const response = await fetch(`/api/library/synthesis/threads/${encodeURIComponent(threadId)}`);
-    if (!response.ok) throw new Error("Could not load attention synthesis thread");
-    return { threadId, thread: await response.json() };
+    const listed = await fetch("/api/library/synthesis/threads?limit=30");
+    if (!listed.ok) throw new Error("Could not list synthesis threads");
+    const payload = await listed.json();
+    const rows = Array.isArray(payload) ? payload : payload.threads || payload.items || [];
+    const thread = rows.find((item) => item?.state?.projectKey === "stablecoin_attention_proxy");
+    if (!thread?.id) throw new Error("Attention synthesis thread was not listed");
+    return { threadId: thread.id, thread };
   });
 
   const outputId = "synthesis_stablecoin_weekly_e2e";
