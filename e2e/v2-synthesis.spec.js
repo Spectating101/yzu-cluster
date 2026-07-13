@@ -1,8 +1,27 @@
 import { test, expect } from "@playwright/test";
 import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 
+async function clearSynthesisLocalState(page) {
+  await page.addInitScript(() => {
+    try {
+      if (sessionStorage.getItem("__rd_v2_syn_cleared") === "1") return;
+      sessionStorage.setItem("__rd_v2_syn_cleared", "1");
+      for (const key of Object.keys(localStorage)) {
+        if (key.startsWith("rd_v2_synthesis_")) localStorage.removeItem(key);
+      }
+    } catch {
+      /* ignore */
+    }
+  });
+}
+
+async function waitForAttentionThread(page) {
+  await expect(page.getByTestId("synthesis-discover-handoff")).toBeVisible({ timeout: 20_000 });
+}
+
 test.describe("v2 Synthesis construction workspace", () => {
   test.beforeEach(async ({ page }) => {
+    await clearSynthesisLocalState(page);
     await mockV2Api(page);
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/?tab=synthesis", { waitUntil: "domcontentloaded" });
@@ -21,7 +40,7 @@ test.describe("v2 Synthesis construction workspace", () => {
   });
 
   test("selecting GDELT drives the contextual right rail", async ({ page }) => {
-    await page.getByText("GDELT crypto news", { exact: true }).click();
+    await page.getByTestId("rf__node-gdelt").getByText("GDELT crypto news", { exact: true }).click();
     const rail = page.locator("aside.rd-v2-rail");
     await expect(rail).toContainText("GDELT crypto news");
     await expect(rail).toContainText("Proposed");
@@ -30,6 +49,7 @@ test.describe("v2 Synthesis construction workspace", () => {
   });
 
   test("proposal review is intentional and applying it changes the construction state", async ({ page }) => {
+    await waitForAttentionThread(page);
     await page.getByTestId("synthesis-proposal").click();
     const dialog = page.getByRole("dialog", { name: "Review agent proposal" });
     await expect(dialog).toContainText("GDELT measures editorial/news coverage");
@@ -39,6 +59,96 @@ test.describe("v2 Synthesis construction workspace", () => {
     await expect(rail).toContainText("GDELT crypto news");
     await expect(rail).toContainText("Queryable");
     await expect(rail).toContainText("Validation signal");
+  });
+
+  test("accepted proposal state is retained after reload", async ({ page }) => {
+    await waitForAttentionThread(page);
+    await expect(page.getByTestId("synthesis-proposal")).toBeVisible();
+    await page.getByTestId("synthesis-proposal").click();
+    await page.getByRole("dialog", { name: "Review agent proposal" }).getByRole("button", { name: "Approve proposal" }).click();
+    await expect(page.getByTestId("synthesis-proposal")).toHaveCount(0);
+    await page.getByTestId("rf__node-gdelt").getByText("GDELT crypto news", { exact: true }).click();
+    await expect(page.locator("aside.rd-v2-rail")).toContainText("Queryable");
+
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await expect(page.getByTestId("synthesis-workbench")).toBeVisible();
+    await expect(page.getByTestId("synthesis-proposal")).toHaveCount(0);
+    await page.getByTestId("rf__node-gdelt").getByText("GDELT crypto news", { exact: true }).click();
+    const rail = page.locator("aside.rd-v2-rail");
+    await expect(rail).toContainText("GDELT crypto news");
+    await expect(rail).toContainText("Queryable");
+    await expect(rail).toContainText("Validation signal");
+  });
+
+  test("open sourcing context navigates to Discover without inventing a collection", async ({ page }) => {
+    await waitForAttentionThread(page);
+    const handoffResponse = page.waitForResponse(
+      (response) =>
+        response.url().includes("/library/synthesis/threads/") &&
+        response.url().includes("/discover-handoff") &&
+        response.ok(),
+    );
+    await page.getByTestId("synthesis-discover-handoff").click();
+    const handoff = await handoffResponse;
+    const body = await handoff.json();
+    expect(body.collection).toBeNull();
+    expect(body.fake_collection).toBe(false);
+    expect(Array.isArray(body.missing_evidence)).toBeTruthy();
+    expect(body.missing_evidence.some((row) => row.id === "x_followers")).toBeTruthy();
+
+    await expect(page).toHaveURL(/tab=browse/);
+    await expect(page).toHaveURL(/q=/);
+    await expect(page.locator(".rd-v2-page-head h1", { hasText: "Discover" })).toBeVisible();
+    await expect(page.getByTestId("synthesis-sourcing-brief")).toContainText("Sourcing brief from Synthesis");
+    await expect(page.getByTestId("synthesis-sourcing-brief")).toContainText("evidence gap");
+    const query = decodeURIComponent(new URL(page.url()).searchParams.get("q") || "");
+    expect(query.toLowerCase()).toContain("follower");
+  });
+
+  test("Ask session links to the synthesis thread and restores transcript after reload", async ({ page }) => {
+    await waitForAttentionThread(page);
+    await page.locator("aside.rd-v2-rail").getByRole("tab", { name: "Ask", exact: true }).click();
+
+    const chatResponse = page.waitForResponse(
+      (response) =>
+        response.url().includes("/library/chat") &&
+        !response.url().includes("/stream") &&
+        response.request().method() === "POST" &&
+        response.ok(),
+    );
+    const linkResponse = page.waitForResponse(
+      (response) =>
+        response.url().includes("/library/synthesis/threads/") &&
+        response.url().includes("/conversation") &&
+        response.request().method() === "POST" &&
+        response.ok(),
+    );
+
+    const askInput = page.getByTestId("ask-composer");
+    await askInput.fill("Keep this synthesis Ask thread");
+    await page.locator("aside.rd-v2-rail").getByRole("button", { name: "Send", exact: true }).click();
+
+    const chat = await chatResponse;
+    const chatBody = await chat.json();
+    expect(chatBody.session_id).toBeTruthy();
+
+    const linked = await linkResponse;
+    const linkedBody = await linked.json();
+    expect(linkedBody.session_id).toBe(chatBody.session_id);
+    expect(linkedBody.id).toBeTruthy();
+
+    const askMessages = page.getByTestId("ask-messages");
+    await expect(askMessages).toContainText("Keep this synthesis Ask thread");
+    await expect(askMessages).toContainText("Resources context received.");
+
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await waitForAttentionThread(page);
+    await page.locator("aside.rd-v2-rail").getByRole("tab", { name: "Ask", exact: true }).click();
+    const restored = page.getByTestId("ask-messages");
+    await expect(restored).toContainText("Keep this synthesis Ask thread");
+    await expect(restored).toContainText("Resources context received.");
   });
 
   test("research plan and evidence remain honest inspection views", async ({ page }) => {
@@ -59,9 +169,63 @@ test.describe("v2 Synthesis construction workspace", () => {
     await page.reload({ waitUntil: "domcontentloaded" });
     await waitForShell(page);
     await expect(page.getByTestId("synthesis-construction-map")).toBeVisible();
-    await page.getByText("GDELT crypto news", { exact: true }).click();
+    await page.getByTestId("rf__node-gdelt").getByText("GDELT crypto news", { exact: true }).click();
     const rail = page.locator("aside.rd-v2-rail");
     await expect(rail).not.toHaveClass(/rd-v2-rail-collapsed/);
     await expect(rail).toContainText("GDELT crypto news");
+  });
+
+  test("new objective creates a durable unformed thread that survives reload", async ({ page }) => {
+    const objective =
+      "Construct a weekly cross-exchange stablecoin liquidity stress indicator from held market panels.";
+    const title = objective.slice(0, 72);
+
+    await waitForAttentionThread(page);
+    await page.getByRole("button", { name: "Start new synthesis" }).click();
+    const dialog = page.getByTestId("synthesis-objective-dialog");
+    await expect(dialog).toBeVisible();
+    await dialog.getByTestId("synthesis-objective-input").fill(objective);
+
+    const createResponse = page.waitForResponse(
+      (response) =>
+        /\/library\/synthesis\/threads(?:\?|$)/.test(response.url()) &&
+        response.request().method() === "POST" &&
+        response.ok(),
+    );
+    await dialog.getByTestId("synthesis-objective-submit").click();
+    const created = await createResponse;
+    const createdBody = await created.json();
+    const createPayload = created.request().postDataJSON();
+    expect(createPayload.session_id).toBeUndefined();
+    expect(createdBody.id).toBeTruthy();
+    expect(createdBody.state?.projectKey).toBeTruthy();
+    expect(createdBody.state?.projectKey).not.toBe("stablecoin_attention_proxy");
+    expect(createdBody.state?.nodes || []).toEqual([]);
+    expect(createdBody.materialisation).toBe("not_materialised");
+
+    await expect(page.getByTestId("synthesis-working-brief")).toBeVisible();
+    await expect(page.getByTestId("synthesis-working-brief")).toContainText(objective);
+    await expect(page.getByTestId("synthesis-working-brief")).toContainText("None mapped yet");
+    await expect(page.getByTestId("synthesis-working-brief")).toContainText("Not materialised");
+    await expect(page.getByTestId("synthesis-construction-map")).toHaveCount(0);
+    await expect(page.getByTestId("synthesis-workbench")).not.toContainText("Google Trends weekly panel");
+    await expect(page.getByTestId("synthesis-workbench")).not.toContainText("GDELT crypto news");
+
+    const rail = page.locator("aside.rd-v2-rail");
+    await expect(rail.getByRole("tab", { name: "Ask", exact: true })).toHaveAttribute("aria-selected", "true");
+    await expect(rail).toContainText(title);
+    await expect(page.getByTestId("ask-messages")).toContainText(/Ground research|Begin research|liquidity stress/i);
+
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await expect(page.getByRole("tab", { name: title })).toBeVisible();
+    await page.getByRole("tab", { name: title }).click();
+    await expect(page.getByTestId("synthesis-working-brief")).toBeVisible();
+    await expect(page.getByTestId("synthesis-construction-map")).toHaveCount(0);
+    await expect(page.getByTestId("synthesis-workbench")).not.toContainText("Google Trends weekly panel");
+
+    await page.locator("aside.rd-v2-rail").getByRole("tab", { name: "Ask", exact: true }).click();
+    await expect(page.locator("aside.rd-v2-rail")).toContainText(`Synthesis · ${title}`);
+    await expect(page.locator("aside.rd-v2-rail")).toContainText(objective.slice(0, 40));
   });
 });

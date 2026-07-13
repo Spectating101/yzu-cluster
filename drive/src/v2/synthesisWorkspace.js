@@ -301,7 +301,9 @@ export function projectFromSynthesisProfile(raw, datasets = []) {
   const objective = raw.objective || raw.description || raw.summary || `Construct ${title}.`;
   const inputs = asArray(raw.inputs || raw.sources || raw.datasets || raw.peer_sources || raw.peers).map((item) => normalizeProfileInput(item, datasets));
   const outputRaw = raw.output || raw.result || raw.target || {};
-  const outputId = outputRaw.dataset_id || raw.output_dataset_id || raw.target_dataset_id || `${id}_output`;
+  // Registered profiles conventionally use their profile id as the output
+  // dataset id unless an explicit output identity is declared.
+  const outputId = outputRaw.dataset_id || raw.output_dataset_id || raw.target_dataset_id || id;
   const outputLabel = outputRaw.name || outputRaw.title || raw.output_name || humanize(outputId);
   const processId = `${id}:construction`;
   const targetId = `${id}:target`;
@@ -378,6 +380,7 @@ export function projectFromSynthesisProfile(raw, datasets = []) {
   return {
     id: `profile:${id}`,
     profileId: id,
+    outputDatasetId: outputId,
     title,
     objective,
     maturity: "registered",
@@ -477,6 +480,247 @@ export function rejectProjectProposal(project) {
   return { ...next, proposal: null, lastActivity: `${project.proposal.title} rejected` };
 }
 
+const THREAD_ID_STORAGE_PREFIX = "rd_v2_synthesis_thread:";
+const CUSTOM_PROJECT_KEYS_STORAGE = "rd_v2_synthesis_custom_project_keys";
+
+export function synthesisThreadStorageKey(projectId = ATTENTION_SYNTHESIS_PROJECT.id) {
+  return `${THREAD_ID_STORAGE_PREFIX}${projectId}`;
+}
+
+export function loadStoredSynthesisThreadId(projectId = ATTENTION_SYNTHESIS_PROJECT.id) {
+  try {
+    return localStorage.getItem(synthesisThreadStorageKey(projectId)) || "";
+  } catch {
+    return "";
+  }
+}
+
+export function storeSynthesisThreadId(threadId, projectId = ATTENTION_SYNTHESIS_PROJECT.id) {
+  if (!threadId) return;
+  try {
+    localStorage.setItem(synthesisThreadStorageKey(projectId), threadId);
+  } catch {
+    /* ignore quota / private mode */
+  }
+}
+
+/** Stable local project keys for researcher-created threads (never inferred from title). */
+export function loadCustomSynthesisProjectKeys() {
+  try {
+    const raw = localStorage.getItem(CUSTOM_PROJECT_KEYS_STORAGE);
+    const parsed = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(
+      (key) => typeof key === "string" && key && key !== ATTENTION_SYNTHESIS_PROJECT.id,
+    );
+  } catch {
+    return [];
+  }
+}
+
+export function rememberCustomSynthesisProjectKey(projectKey) {
+  if (!projectKey || projectKey === ATTENTION_SYNTHESIS_PROJECT.id) return;
+  try {
+    const keys = loadCustomSynthesisProjectKeys().filter((key) => key !== projectKey);
+    localStorage.setItem(
+      CUSTOM_PROJECT_KEYS_STORAGE,
+      JSON.stringify([projectKey, ...keys].slice(0, 20)),
+    );
+  } catch {
+    /* ignore quota / private mode */
+  }
+}
+
+export function newSynthesisProjectKey() {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return `synth_${crypto.randomUUID()}`;
+  }
+  return `synth_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+/** Honest empty construction for a new research objective — not a borrowed graph. */
+export function emptyConstructionProject({ projectKey, objective = "", title = "" } = {}) {
+  const objectiveText = String(objective || "").trim();
+  const displayTitle =
+    String(title || "").trim() || objectiveText.slice(0, 72) || "Untitled synthesis";
+  return {
+    id: projectKey,
+    title: displayTitle,
+    objective: objectiveText,
+    maturity: "unformed",
+    maturityLabel: "Working brief",
+    lastActivity: "Research objective captured. Construction not started.",
+    materialisation: "not_materialised",
+    unformed: true,
+    nodes: [],
+    edges: [],
+    proposal: null,
+    decisions: [],
+    activity: [
+      {
+        time: "Now",
+        kind: "objective",
+        message: "Research objective recorded. No evidence mapped yet.",
+      },
+    ],
+    spec: {
+      purpose: objectiveText,
+      grain: "",
+      coreEvidence: [],
+      validation: [],
+      unavailable: [],
+      construction: [],
+      limitations: [
+        "No evidence has been mapped for this objective yet.",
+        "Nothing has been materialised.",
+      ],
+    },
+    plannedColumns: [],
+    chartIdeas: [],
+  };
+}
+
+export function isUnformedSynthesisProject(project) {
+  if (!project) return false;
+  if (project.unformed === true || project.maturity === "unformed") return true;
+  return Array.isArray(project.nodes) && project.nodes.length === 0;
+}
+
+export function synthesisGroundingPrompt(project) {
+  const objective = String(project?.objective || "").trim() || "the stated research objective";
+  const title = String(project?.title || "").trim() || "new synthesis";
+  return {
+    prompt: `Begin research for this synthesis objective: ${objective}. Search the lab and indexed source capabilities before proposing any construction state. Do not invent evidence or claim materialisation.`,
+    displayText: `Ground research: ${title}`,
+  };
+}
+
+/** Serialize a workspace project into durable thread state (frontend-compatible). */
+export function constructionStateFromProject(project) {
+  if (!project) return null;
+  const grain =
+    project.required_grain ||
+    project.requiredGrain ||
+    project.spec?.grain ||
+    "";
+  return {
+    projectKey: project.id,
+    title: project.title,
+    objective: project.objective,
+    required_grain: grain,
+    materialisation: project.materialisation || "not_materialised",
+    maturity: project.maturity,
+    maturityLabel: project.maturityLabel,
+    lastActivity: project.lastActivity,
+    unformed: Boolean(project.unformed) || project.maturity === "unformed",
+    nodes: asArray(project.nodes).map((node) => ({ ...node, progress: asArray(node.progress) })),
+    edges: asArray(project.edges).map((edge) => ({ ...edge })),
+    proposal: project.proposal
+      ? {
+          ...project.proposal,
+          operations: asArray(project.proposal.operations).map((op) => ({
+            ...op,
+            patch: op.patch ? { ...op.patch } : undefined,
+          })),
+        }
+      : null,
+    decisions: asArray(project.decisions).map((row) => ({ ...row })),
+    activity: asArray(project.activity).map((row) => ({ ...row })),
+    spec: project.spec ? { ...project.spec } : {},
+    plannedColumns: asArray(project.plannedColumns).map((row) =>
+      Array.isArray(row) ? [...row] : row,
+    ),
+    chartIdeas: asArray(project.chartIdeas).map((row) =>
+      Array.isArray(row) ? [...row] : row,
+    ),
+  };
+}
+
+function threadMatchesAttentionProject(thread, project = ATTENTION_SYNTHESIS_PROJECT) {
+  if (!thread) return false;
+  const state = thread.state || {};
+  return state.projectKey === project.id;
+}
+
+export function findAttentionSynthesisThread(threads = [], project = ATTENTION_SYNTHESIS_PROJECT) {
+  const rows = Array.isArray(threads) ? threads : threads?.threads || [];
+  return rows.find((thread) => threadMatchesAttentionProject(thread, project)) || null;
+}
+
+/** Hydrate a workspace project from a durable backend thread. */
+export function projectFromSynthesisThread(thread, fallback = ATTENTION_SYNTHESIS_PROJECT) {
+  if (!thread) return fallback;
+  const state = thread.state && typeof thread.state === "object" ? thread.state : {};
+  const projectKey = state.projectKey || fallback.id || ATTENTION_SYNTHESIS_PROJECT.id;
+  const isAttentionSeed = projectKey === ATTENTION_SYNTHESIS_PROJECT.id;
+  const base = isAttentionSeed
+    ? fallback
+    : emptyConstructionProject({
+        projectKey,
+        objective: thread.objective || state.objective || fallback.objective || "",
+        title: thread.title || state.title || fallback.title || "",
+      });
+  const hasNodes = Object.prototype.hasOwnProperty.call(state, "nodes");
+  const hasEdges = Object.prototype.hasOwnProperty.call(state, "edges");
+  const nodes = asArray(state.nodes);
+  const edges = asArray(state.edges);
+  const hydratedNodes = hasNodes
+    ? nodes.map((node) => ({ ...node, progress: asArray(node.progress) }))
+    : asArray(base.nodes);
+  const hydratedEdges = hasEdges ? edges.map((edge) => ({ ...edge })) : asArray(base.edges);
+  const unformed =
+    Boolean(state.unformed) ||
+    state.maturity === "unformed" ||
+    (!isAttentionSeed && hydratedNodes.length === 0);
+  return {
+    ...base,
+    ...state,
+    id: projectKey,
+    threadId: thread.id,
+    sessionId: thread.session_id || thread.sessionId || fallback.sessionId || "",
+    conversationId:
+      thread.conversation_id || thread.conversationId || fallback.conversationId || "",
+    title: thread.title || state.title || base.title,
+    objective: thread.objective || state.objective || base.objective,
+    materialisation:
+      thread.materialisation || state.materialisation || base.materialisation || "not_materialised",
+    maturity: state.maturity || base.maturity,
+    maturityLabel: state.maturityLabel || base.maturityLabel,
+    lastActivity: state.lastActivity || base.lastActivity,
+    unformed,
+    nodes: hydratedNodes,
+    edges: hydratedEdges,
+    proposal: Object.prototype.hasOwnProperty.call(state, "proposal") ? state.proposal : base.proposal,
+    decisions: Object.prototype.hasOwnProperty.call(state, "decisions")
+      ? asArray(state.decisions).map((row) => ({ ...row }))
+      : base.decisions,
+    activity: Object.prototype.hasOwnProperty.call(state, "activity")
+      ? asArray(state.activity).map((row) => ({ ...row }))
+      : base.activity,
+    spec: state.spec ? { ...base.spec, ...state.spec } : base.spec,
+    plannedColumns: Object.prototype.hasOwnProperty.call(state, "plannedColumns")
+      ? asArray(state.plannedColumns)
+      : base.plannedColumns,
+    chartIdeas: Object.prototype.hasOwnProperty.call(state, "chartIdeas")
+      ? asArray(state.chartIdeas)
+      : base.chartIdeas,
+  };
+}
+
+/** Build a Discover search query from a conservative handoff payload. */
+export function discoverQueryFromHandoff(handoff) {
+  if (!handoff || typeof handoff !== "object") return "";
+  const missing = asArray(handoff.missing_evidence);
+  const first = missing[0] || null;
+  return String(
+    first?.label ||
+      first?.source_identity ||
+      first?.source ||
+      handoff.objective ||
+      "",
+  ).trim();
+}
+
 export function synthesisProjectStats(project) {
   const nodes = asArray(project?.nodes);
   const count = (status) => nodes.filter((node) => node.status === status).length;
@@ -501,6 +745,9 @@ export function synthesisNodeObject(project, node) {
     projectId: project.id,
     projectTitle: project.title,
     objective: project.objective,
+    threadId: project.threadId || "",
+    sessionId: project.sessionId || "",
+    conversationId: project.conversationId || "",
     row: { ...node },
     project: {
       id: project.id,
@@ -508,6 +755,9 @@ export function synthesisNodeObject(project, node) {
       objective: project.objective,
       maturity: project.maturityLabel,
       materialisation: project.materialisation,
+      threadId: project.threadId || "",
+      sessionId: project.sessionId || "",
+      conversationId: project.conversationId || "",
       decisions: asArray(project.decisions),
       edges: asArray(project.edges),
       nodes: asArray(project.nodes).map(({ id, label, type, status }) => ({ id, label, type, status })),
@@ -524,12 +774,17 @@ export function synthesisProjectObject(project) {
     projectId: project.id,
     projectTitle: project.title,
     objective: project.objective,
+    threadId: project.threadId || "",
+    sessionId: project.sessionId || "",
+    conversationId: project.conversationId || "",
     row: {
       maturity: project.maturityLabel,
       materialisation: project.materialisation,
       stats: synthesisProjectStats(project),
       decisions: asArray(project.decisions),
       lastActivity: project.lastActivity,
+      sessionId: project.sessionId || "",
+      conversationId: project.conversationId || "",
     },
     project: {
       id: project.id,
@@ -537,6 +792,9 @@ export function synthesisProjectObject(project) {
       objective: project.objective,
       maturity: project.maturityLabel,
       materialisation: project.materialisation,
+      threadId: project.threadId || "",
+      sessionId: project.sessionId || "",
+      conversationId: project.conversationId || "",
       decisions: asArray(project.decisions),
       edges: asArray(project.edges),
       nodes: asArray(project.nodes).map(({ id, label, type, status }) => ({ id, label, type, status })),

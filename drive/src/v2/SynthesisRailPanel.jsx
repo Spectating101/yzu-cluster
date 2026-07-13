@@ -38,6 +38,14 @@ function ProjectRail({ object, onAskAbout }) {
   const row = object?.row || {};
   const stats = row.stats || {};
   const decisions = row.decisions || [];
+  const unformed =
+    String(row.maturity || "").toLowerCase().includes("working brief") ||
+    String(row.maturity || "").toLowerCase() === "unformed" ||
+    ((stats.held || 0) === 0 &&
+      (stats.queryable || 0) === 0 &&
+      (stats.proposed || 0) === 0 &&
+      (stats.missing || 0) === 0 &&
+      !(object?.project?.nodes || []).length);
   return (
     <RailFrame>
       <RailEntityHeader
@@ -49,9 +57,21 @@ function ProjectRail({ object, onAskAbout }) {
       <div className="rd-v2-rail-scroll rd-syn-rail-scroll">
         <RailDecisionSummary
           status={row.maturity || "Exploring"}
-          primary="Inspect the construction map"
-          risk={stats.missing ? `${stats.missing} ideal measure missing` : "No mapped measurement gap"}
-          next={stats.openDecisions ? `Resolve ${stats.openDecisions} construction decisions` : "Review materialisation"}
+          primary={unformed ? "Continue in Ask" : "Inspect the construction map"}
+          risk={
+            unformed
+              ? "No evidence mapped yet"
+              : stats.missing
+                ? `${stats.missing} ideal measure missing`
+                : "No mapped measurement gap"
+          }
+          next={
+            unformed
+              ? "Search held and indexed evidence before construction"
+              : stats.openDecisions
+                ? `Resolve ${stats.openDecisions} construction decisions`
+                : "Review materialisation"
+          }
         />
         <RailFieldGrid>
           <RailField label="Held evidence" value={String(stats.held || 0)} />

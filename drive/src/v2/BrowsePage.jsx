@@ -49,6 +49,29 @@ function resultScopeSummary(counts) {
     .join(" · ");
 }
 
+function SynthesisSourcingBrief({ handoff, onDismiss }) {
+  if (!handoff?.thread_id) return null;
+  const held = Array.isArray(handoff.held_evidence) ? handoff.held_evidence : [];
+  const missing = Array.isArray(handoff.missing_evidence) ? handoff.missing_evidence : [];
+  return (
+    <section className="rd-v2-synthesis-handoff" aria-label="Synthesis sourcing brief" data-testid="synthesis-sourcing-brief">
+      <div>
+        <p>Sourcing brief from Synthesis</p>
+        <strong>{handoff.objective || "Research construction need"}</strong>
+        <span>
+          {handoff.required_grain ? `${handoff.required_grain} target` : "Target grain not set"}
+          {missing.length ? ` · ${missing.length} evidence gap${missing.length === 1 ? "" : "s"}` : " · no unresolved evidence gap"}
+        </span>
+      </div>
+      <div className="rd-v2-synthesis-handoff-evidence">
+        <span>{held.length} held</span>
+        <span>{missing.length} to source</span>
+        <button type="button" onClick={onDismiss} aria-label="Clear synthesis sourcing brief">×</button>
+      </div>
+    </section>
+  );
+}
+
 
 function candidateTitle(row) {
   return row?.title || row?.name || row?.dataset_id || row?.doi || row?.url || "External dataset";
@@ -175,6 +198,8 @@ export function BrowsePage({
   onTrackResources,
   onReviewApproval,
   onRetryLifecycleRefresh,
+  synthesisHandoff = null,
+  onDismissSynthesisHandoff,
 }) {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -448,6 +473,7 @@ export function BrowsePage({
           })}
         />
       ) : <div className="rd-v2-discover-browse" data-testid="discover-browse-mode" data-mode="browse">
+        <SynthesisSourcingBrief handoff={synthesisHandoff} onDismiss={onDismissSynthesisHandoff} />
         {!q ? (
           <DiscoverEmptyState onSuggest={onSuggestSearch} />
         ) : (

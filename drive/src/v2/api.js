@@ -192,6 +192,98 @@ export function getSynthesisProfile(profileId, { refresh = false } = {}) {
   return fetchJson(`/library/synthesis/${encodeURIComponent(profileId)}${q}`);
 }
 
+/** Durable Synthesis construction threads (researcher-accepted state). */
+export function listSynthesisThreads({ limit = 30, sessionId = "" } = {}) {
+  const params = new URLSearchParams({ limit: String(limit) });
+  if (sessionId) params.set("session_id", sessionId);
+  return fetchJson(`/library/synthesis/threads?${params}`);
+}
+
+export function createSynthesisThread({
+  objective,
+  title = "",
+  sessionId = "",
+  conversationId = "",
+  requiredGrain = "",
+  state = null,
+} = {}) {
+  const body = {
+    objective,
+    title,
+    session_id: sessionId || undefined,
+    conversation_id: conversationId || undefined,
+    required_grain: requiredGrain || undefined,
+  };
+  if (state && typeof state === "object") body.state = state;
+  return fetchJson("/library/synthesis/threads", {
+    method: "POST",
+    headers: deskHeaders(),
+    body: JSON.stringify(body),
+  });
+}
+
+export function getSynthesisThread(threadId) {
+  return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}`);
+}
+
+export function applySynthesisThreadPatch(
+  threadId,
+  { decision, operations = null, proposal = null } = {},
+) {
+  const body = { decision };
+  if (Array.isArray(operations)) body.operations = operations;
+  if (proposal && typeof proposal === "object") body.proposal = proposal;
+  return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}/patches`, {
+    method: "POST",
+    headers: deskHeaders(),
+    body: JSON.stringify(body),
+  });
+}
+
+export function setSynthesisThreadProposal(threadId, proposal) {
+  return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}/proposal`, {
+    method: "POST",
+    headers: deskHeaders(),
+    body: JSON.stringify(
+      proposal && typeof proposal === "object" && !Array.isArray(proposal)
+        ? { proposal }
+        : { proposal: proposal ?? null },
+    ),
+  });
+}
+
+export function getSynthesisThreadDiscoverHandoff(threadId) {
+  return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}/discover-handoff`);
+}
+
+export function getSynthesisThreadMaterialisation(threadId) {
+  return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}/materialisation`);
+}
+
+/** Link a Composer/procurement chat session to a durable synthesis thread. */
+export function linkSynthesisThreadConversation(
+  threadId,
+  { sessionId = "", conversationId = "" } = {},
+) {
+  const body = {
+    session_id: sessionId || undefined,
+  };
+  if (conversationId) body.conversation_id = conversationId;
+  return fetchJson(
+    `/library/synthesis/threads/${encodeURIComponent(threadId)}/conversation`,
+    {
+      method: "POST",
+      headers: deskHeaders(),
+      body: JSON.stringify(body),
+    },
+  );
+}
+
+/** Restore an existing procurement chat transcript by session id. */
+export function getChatSession(sessionId) {
+  return fetchJson(`/library/chat/${encodeURIComponent(sessionId)}`);
+}
+
 export function runSynthesis(profileId, { previewLimit = 50, gapLimit = 100 } = {}) {
   return fetchJson("/library/synthesis/run", {
     method: "POST",

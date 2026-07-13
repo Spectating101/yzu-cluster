@@ -246,10 +246,114 @@ export const MOCK_WEB_DISCOVER = {
   index_miss: true,
 };
 
+function cloneJson(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+function applyMockSynthesisOps(state, operations = []) {
+  const next = cloneJson(state || {});
+  next.nodes = Array.isArray(next.nodes) ? next.nodes : [];
+  next.edges = Array.isArray(next.edges) ? next.edges : [];
+  next.activity = Array.isArray(next.activity) ? next.activity : [];
+  next.spec = next.spec && typeof next.spec === "object" ? next.spec : {};
+  for (const operation of operations) {
+    if (!operation?.op) continue;
+    if (operation.op === "update_node") {
+      const index = next.nodes.findIndex((node) => node.id === operation.id);
+      if (index >= 0) next.nodes[index] = { ...next.nodes[index], ...(operation.patch || {}) };
+    } else if (operation.op === "remove_node") {
+      next.nodes = next.nodes.filter((node) => node.id !== operation.id);
+      next.edges = next.edges.filter((edge) => edge.source !== operation.id && edge.target !== operation.id);
+    } else if (operation.op === "update_edge") {
+      const index = next.edges.findIndex((edge) => edge.id === operation.id);
+      if (index >= 0) next.edges[index] = { ...next.edges[index], ...(operation.patch || {}) };
+    } else if (operation.op === "add_node" && operation.node?.id) {
+      if (!next.nodes.some((node) => node.id === operation.node.id)) next.nodes.push({ ...operation.node });
+    } else if (operation.op === "add_edge" && operation.edge?.id) {
+      if (!next.edges.some((edge) => edge.id === operation.edge.id)) next.edges.push({ ...operation.edge });
+    } else if (operation.op === "update_spec") {
+      next.spec = { ...next.spec, ...(operation.patch || {}) };
+    } else if (operation.op === "append_activity") {
+      next.activity.push({ time: "Now", kind: "change", message: operation.message || "Synthesis state updated." });
+    }
+  }
+  return next;
+}
+
+function acceptMockProposal(state) {
+  const current = cloneJson(state || {});
+  const proposal = current.proposal;
+  if (!proposal) throw new Error("No synthesis proposal to accept.");
+  const next = applyMockSynthesisOps(current, proposal.operations || []);
+  next.proposal = null;
+  next.lastActivity = proposal.title || "Proposal accepted";
+  next.activity = Array.isArray(next.activity) ? next.activity : [];
+  next.activity.push({
+    time: "Now",
+    kind: "decision",
+    message: `Accepted proposal: ${proposal.title || proposal.id || "untitled"}.`,
+  });
+  return next;
+}
+
+function rejectMockProposal(state) {
+  const current = cloneJson(state || {});
+  const proposal = current.proposal;
+  if (!proposal) throw new Error("No synthesis proposal to reject.");
+  const nodeId = proposal.nodeId;
+  const title = proposal.title || proposal.id || "proposal";
+  const operations = nodeId
+    ? [
+        { op: "remove_node", id: nodeId },
+        { op: "append_activity", message: `${title} rejected.` },
+      ]
+    : [{ op: "append_activity", message: `${title} rejected.` }];
+  const next = applyMockSynthesisOps(current, operations);
+  next.proposal = null;
+  next.lastActivity = `${title} rejected`;
+  return next;
+}
+
+function mockDiscoverHandoff(thread) {
+  const state = thread.state || {};
+  const held = [];
+  const missing = [];
+  for (const node of state.nodes || []) {
+    if (!node || (node.type !== "source" && node.type !== "construct" && node.layer !== "evidence")) continue;
+    const status = String(node.status || "");
+    const identity = {
+      id: node.id,
+      label: node.label || node.id,
+      status,
+      type: node.type,
+      role: node.role,
+    };
+    for (const key of ["dataset_id", "candidate_key", "source_identity", "source", "grain", "coverage"]) {
+      if (node[key]) identity[key] = node[key];
+    }
+    if (["held", "queryable"].includes(status)) held.push(identity);
+    if (["missing", "needs_access", "sourceable"].includes(status)) missing.push(identity);
+  }
+  return {
+    thread_id: thread.id,
+    objective: thread.objective || state.objective || "",
+    required_grain: state.required_grain || state.spec?.grain || "",
+    held_evidence: held,
+    missing_evidence: missing,
+    collection: null,
+    fake_collection: false,
+    note: "Conservative Discover handoff: objective, required grain, and held/missing evidence identities only. No acquisition jobs invented.",
+  };
+}
+
 export async function mockV2Api(page, { discoverBody = { sections: [], total: 0 }, jobsBody = MOCK_JOBS } = {}) {
   const liveJobs = {
     jobs: Array.isArray(jobsBody?.jobs) ? [...jobsBody.jobs] : [],
   };
+  const liveThreads = {
+    threads: [],
+  };
+  const threadById = (id) => liveThreads.threads.find((thread) => thread.id === id) || null;
   await page.route("**/datasets", (route) =>
     route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(MOCK_DATASETS) }),
   );
@@ -376,6 +480,252 @@ export async function mockV2Api(page, { discoverBody = { sections: [], total: 0 
       body: JSON.stringify(MOCK_SYNTHESIS_PROFILES),
     }),
   );
+  await page.route("**/library/synthesis/threads/*/patches", async (route) => {
+    if (route.request().method() !== "POST") return route.continue();
+    const url = route.request().url();
+    const threadId = decodeURIComponent(url.split("/library/synthesis/threads/")[1]?.split("/")[0] || "");
+    const thread = threadById(threadId);
+    if (!thread) {
+      return route.fulfill({
+        status: 404,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "Thread not found" }),
+      });
+    }
+    let body = {};
+    try {
+      body = JSON.parse(route.request().postData() || "{}");
+    } catch {
+      body = {};
+    }
+    const decision = String(body.decision || body.action || "").toLowerCase();
+    try {
+      if (body.proposal && typeof body.proposal === "object") {
+        thread.state = { ...thread.state, proposal: body.proposal };
+      }
+      if (decision === "accept" || decision === "accepted" || decision === "apply_proposal") {
+        thread.state = acceptMockProposal(thread.state);
+      } else if (decision === "reject" || decision === "rejected") {
+        thread.state = rejectMockProposal(thread.state);
+      } else if (decision === "apply" || decision === "apply_operations" || decision === "patch") {
+        if (!Array.isArray(body.operations)) throw new Error("operations are required for apply decisions");
+        thread.state = applyMockSynthesisOps(thread.state, body.operations);
+        thread.state.lastActivity = "Accepted synthesis patch applied.";
+      } else {
+        throw new Error("decision must be accept, reject, or apply");
+      }
+      thread.updated_at = new Date().toISOString();
+      thread.materialisation = thread.state.materialisation || thread.materialisation || "not_materialised";
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(cloneJson(thread)),
+      });
+    } catch (err) {
+      return route.fulfill({
+        status: 400,
+        contentType: "application/json",
+        body: JSON.stringify({ error: err.message || String(err) }),
+      });
+    }
+  });
+  await page.route("**/library/synthesis/threads/*/proposal", async (route) => {
+    if (route.request().method() !== "POST") return route.continue();
+    const threadId = decodeURIComponent(route.request().url().split("/library/synthesis/threads/")[1]?.split("/")[0] || "");
+    const thread = threadById(threadId);
+    if (!thread) {
+      return route.fulfill({
+        status: 404,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "Thread not found" }),
+      });
+    }
+    let body = {};
+    try {
+      body = JSON.parse(route.request().postData() || "{}");
+    } catch {
+      body = {};
+    }
+    thread.state = { ...thread.state, proposal: body.proposal ?? null };
+    thread.updated_at = new Date().toISOString();
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(cloneJson(thread)),
+    });
+  });
+  await page.route("**/library/synthesis/threads/*/conversation", async (route) => {
+    if (route.request().method() !== "POST") return route.continue();
+    const threadId = decodeURIComponent(
+      route.request().url().split("/library/synthesis/threads/")[1]?.split("/")[0] || "",
+    );
+    const thread = threadById(threadId);
+    if (!thread) {
+      return route.fulfill({
+        status: 404,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "Thread not found" }),
+      });
+    }
+    let body = {};
+    try {
+      body = JSON.parse(route.request().postData() || "{}");
+    } catch {
+      body = {};
+    }
+    const sessionId = String(body.session_id || body.session || "").trim();
+    if (!sessionId) {
+      return route.fulfill({
+        status: 400,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "session_id is required" }),
+      });
+    }
+    const conversationRaw = body.conversation_id ?? body.conversation;
+    const conversationId = String(conversationRaw || "").trim();
+    if (conversationRaw != null && conversationRaw !== "" && !conversationId) {
+      return route.fulfill({
+        status: 400,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "conversation_id must be a non-empty stable id when provided" }),
+      });
+    }
+    thread.session_id = sessionId.slice(0, 64);
+    if (conversationId) thread.conversation_id = conversationId.slice(0, 64);
+    thread.updated_at = new Date().toISOString();
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(cloneJson(thread)),
+    });
+  });
+  await page.route("**/library/synthesis/threads/*/discover-handoff", (route) => {
+    const threadId = decodeURIComponent(route.request().url().split("/library/synthesis/threads/")[1]?.split("/")[0] || "");
+    const thread = threadById(threadId);
+    if (!thread) {
+      return route.fulfill({
+        status: 404,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "Thread not found" }),
+      });
+    }
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(mockDiscoverHandoff(thread)),
+    });
+  });
+  await page.route("**/library/synthesis/threads/*/materialisation", (route) => {
+    const threadId = decodeURIComponent(route.request().url().split("/library/synthesis/threads/")[1]?.split("/")[0] || "");
+    const thread = threadById(threadId);
+    if (!thread) {
+      return route.fulfill({
+        status: 404,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "Thread not found" }),
+      });
+    }
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        thread_id: thread.id,
+        materialisation: thread.materialisation || "not_materialised",
+        executed: false,
+        output_registered: false,
+        execution_recorded: false,
+        note: "Honest materialisation only: no output is claimed generated without an execution record on this thread.",
+      }),
+    });
+  });
+  await page.route("**/library/synthesis/threads/*", (route) => {
+    const pathPart = route.request().url().split("/library/synthesis/threads/")[1] || "";
+    const threadId = decodeURIComponent(pathPart.split("?")[0].split("/")[0] || "");
+    if (!threadId || pathPart.includes("/")) return route.fallback();
+    const thread = threadById(threadId);
+    if (!thread) {
+      return route.fulfill({
+        status: 404,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "Thread not found" }),
+      });
+    }
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(cloneJson(thread)),
+    });
+  });
+  await page.route("**/library/synthesis/threads", async (route) => {
+    const method = route.request().method();
+    if (method === "GET") {
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ threads: cloneJson(liveThreads.threads), total: liveThreads.threads.length }),
+      });
+    }
+    if (method !== "POST") return route.continue();
+    let body = {};
+    try {
+      body = JSON.parse(route.request().postData() || "{}");
+    } catch {
+      body = {};
+    }
+    const objective = String(body.objective || "").trim();
+    if (!objective) {
+      return route.fulfill({
+        status: 400,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "objective is required" }),
+      });
+    }
+    const stamp = new Date().toISOString();
+    const state =
+      body.state && typeof body.state === "object"
+        ? cloneJson(body.state)
+        : {
+            title: body.title || objective.slice(0, 120),
+            objective,
+            required_grain: body.required_grain || body.grain || "",
+            materialisation: "not_materialised",
+            nodes: [],
+            edges: [],
+            proposal: null,
+            activity: [],
+            spec: {},
+          };
+    if (body.required_grain && !state.required_grain) state.required_grain = body.required_grain;
+    state.objective = state.objective || objective;
+    state.title = state.title || body.title || objective.slice(0, 120);
+    state.materialisation = state.materialisation || "not_materialised";
+    const thread = {
+      id: `thread-${liveThreads.threads.length + 1}`,
+      created_at: stamp,
+      updated_at: stamp,
+      title: String(body.title || state.title || objective).slice(0, 200),
+      objective,
+      session_id: body.session_id || "",
+      conversation_id: body.conversation_id || "",
+      materialisation: state.materialisation || "not_materialised",
+      state,
+      execution_recorded: false,
+    };
+    liveThreads.threads = [thread, ...liveThreads.threads];
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(cloneJson(thread)),
+    });
+  });
+  await page.route("**/library/synthesis/threads?*", async (route) => {
+    if (route.request().method() !== "GET") return route.fallback();
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ threads: cloneJson(liveThreads.threads), total: liveThreads.threads.length }),
+    });
+  });
   await page.route("**/library/synthesis/run", (route) => {
     if (route.request().method() !== "POST") return route.continue();
     let body = {};
@@ -421,8 +771,8 @@ export async function mockV2Api(page, { discoverBody = { sections: [], total: 0 
   });
   await page.route("**/library/synthesis/*", (route) => {
     const id = decodeURIComponent(route.request().url().split("/library/synthesis/")[1]?.split("?")[0] || "");
-    // This wildcard is registered last, so let the explicit profile/run/pair routes handle their contracts.
-    if (["profiles", "run", "pair"].includes(id)) return route.fallback();
+    // This wildcard is registered last, so let the explicit profile/run/pair/threads routes handle their contracts.
+    if (["profiles", "run", "pair", "threads"].includes(id) || id.startsWith("threads/")) return route.fallback();
     const profile =
       MOCK_SYNTHESIS_PROFILES.profiles.find((item) => item.profile_id === id) ||
       MOCK_SYNTHESIS_PROFILES.profiles[0];
@@ -442,25 +792,67 @@ export async function mockV2Api(page, { discoverBody = { sections: [], total: 0 
       body: JSON.stringify({ primed: true, session_id: "warm-test" }),
     });
   });
-  const chatReply = {
-    session_id: "test-session",
-    reply: "Resources context received.",
-    action: "answer",
+  const chatSessions = new Map();
+  const ensureChatSession = (sessionId) => {
+    const sid = String(sessionId || "test-session").trim() || "test-session";
+    if (!chatSessions.has(sid)) {
+      chatSessions.set(sid, {
+        session_id: sid,
+        title: "Procurement chat",
+        state: {},
+        candidates: [],
+        messages: [],
+      });
+    }
+    return chatSessions.get(sid);
+  };
+  const fulfillChat = async (route) => {
+    let body = {};
+    try {
+      body = JSON.parse(route.request().postData() || "{}");
+    } catch {
+      body = {};
+    }
+    const session = ensureChatSession(body.session_id || "test-session");
+    const message = String(body.message || "").trim();
+    if (message) {
+      session.messages.push({ role: "user", content: message, artifacts: {} });
+    }
+    const reply = "Resources context received.";
+    session.messages.push({ role: "assistant", content: reply, artifacts: {} });
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        session_id: session.session_id,
+        reply,
+        action: "answer",
+      }),
+    });
   };
   await page.route("**/api/library/chat/stream", (route) =>
     route.fulfill({
-      status: 200,
+      status: 404,
       contentType: "application/json",
-      body: JSON.stringify(chatReply),
+      body: JSON.stringify({ error: "stream unavailable in mock" }),
     }),
   );
-  await page.route("**/api/library/chat", (route) =>
-    route.fulfill({
+  await page.route("**/api/library/chat", (route) => {
+    if (route.request().method() !== "POST") return route.fallback();
+    return fulfillChat(route);
+  });
+  await page.route("**/api/library/chat/*", (route) => {
+    if (route.request().method() !== "GET") return route.fallback();
+    const sessionId = decodeURIComponent(
+      route.request().url().split("/library/chat/")[1]?.split("?")[0] || "",
+    );
+    const session = ensureChatSession(sessionId);
+    return route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify(chatReply),
-    }),
-  );
+      body: JSON.stringify(cloneJson(session)),
+    });
+  });
   await page.route("**/yzu/acquisitions*", (route) =>
     route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ acquisitions: [] }) }),
   );

@@ -9,6 +9,7 @@ import {
   facultyProfile,
   libraryOps,
   libraryOverview,
+  linkSynthesisThreadConversation,
   listAcquisitions,
   listDatasets,
   listJobs,
@@ -129,6 +130,8 @@ export function V2App() {
   const [selectedId, setSelectedId] = useState(() => readParams().dataset);
   const [browseRow, setBrowseRow] = useState(null);
   const [browseProbe, setBrowseProbe] = useState({ candidateKey: "", loading: false, result: null, error: "" });
+  const [synthesisProposalEpoch, setSynthesisProposalEpoch] = useState(0);
+  const [synthesisHandoff, setSynthesisHandoff] = useState(null);
   const [collectSubmittingKey, setCollectSubmittingKey] = useState("");
   const [lifecycleRefreshFailed, setLifecycleRefreshFailed] = useState(false);
   const lifecycleLastKnownRef = useRef(null);
@@ -362,6 +365,60 @@ export function V2App() {
         profileEmail: profile?.email || loadUserEmail(),
       }),
     [tab, railTab, detail, activeObject, searchQuery, folderId, clusterContext, profile],
+  );
+
+  const handleAskSessionId = useCallback(
+    (sessionId, chatPayload = {}) => {
+      const sid = String(sessionId || "").trim();
+      if (!sid) return;
+      const isSynthesis =
+        activeObject?.kind === "synthesis_node" || activeObject?.kind === "synthesis_project";
+      const threadId = String(activeObject?.threadId || "").trim();
+      if (!isSynthesis || !threadId) return;
+      const conversationId = String(
+        chatPayload.conversation_id || chatPayload.conversationId || activeObject?.conversationId || "",
+      ).trim();
+      linkSynthesisThreadConversation(threadId, {
+        sessionId: sid,
+        conversationId,
+      })
+        .then((thread) => {
+          const nextSession = thread?.session_id || sid;
+          const nextConversation = thread?.conversation_id || conversationId || "";
+          setActiveObject((current) => {
+            if (
+              !current ||
+              (current.kind !== "synthesis_node" && current.kind !== "synthesis_project")
+            ) {
+              return current;
+            }
+            if (current.threadId !== threadId) return current;
+            return {
+              ...current,
+              sessionId: nextSession,
+              conversationId: nextConversation,
+              project: current.project
+                ? {
+                    ...current.project,
+                    sessionId: nextSession,
+                    conversationId: nextConversation,
+                  }
+                : current.project,
+              row: current.row
+                ? {
+                    ...current.row,
+                    sessionId: nextSession,
+                    conversationId: nextConversation,
+                  }
+                : current.row,
+            };
+          });
+        })
+        .catch(() => {
+          // Keep Ask usable when the durable thread link backend is unavailable.
+        });
+    },
+    [activeObject],
   );
 
   const syncUrl = useCallback(
@@ -971,6 +1028,8 @@ export function V2App() {
           onTrackResources={trackJobInResources}
           onReviewApproval={reviewApprovalInResources}
           onRetryLifecycleRefresh={retryLifecycleRefresh}
+          synthesisHandoff={synthesisHandoff}
+          onDismissSynthesisHandoff={() => setSynthesisHandoff(null)}
           onBackToResults={() => {
             browseSelectedKeyRef.current = "";
             setBrowseRow(null);
@@ -1015,8 +1074,22 @@ export function V2App() {
       main = (
         <SynthesisPage
           datasets={catalog}
+          proposalRefreshEpoch={synthesisProposalEpoch}
           onAskComposer={askFromPrompt}
           onSelectObject={selectSynthesisObject}
+          onOpenDiscover={(q, handoff) => {
+            const query = String(q || "").trim();
+            if (!query) return;
+            setSynthesisHandoff(handoff && typeof handoff === "object" ? handoff : null);
+            setSearchQuery(query);
+            goTab("browse");
+            syncUrl({ tab: "browse", q: query });
+          }}
+          onOpenLibrary={(datasetId) => {
+            setSelectedId(datasetId);
+            goTab("library");
+            syncUrl({ tab: "library", dataset: datasetId });
+          }}
         />
       );
       break;
@@ -1188,6 +1261,8 @@ export function V2App() {
             onCollected={refreshBackend}
             onApproveJob={handleApproveJob}
             onToast={showToast}
+            onSessionId={handleAskSessionId}
+            onSynthesisProposal={() => setSynthesisProposalEpoch((value) => value + 1)}
             railContext={railContext}
           />
         }

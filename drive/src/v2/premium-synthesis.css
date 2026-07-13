@@ -19,6 +19,7 @@
 }
 
 .rd-syn-workbench {
+  position: relative;
   min-height: 0;
   height: 100%;
   display: grid;
@@ -1034,4 +1035,134 @@
   .rd-syn-evidence-view { grid-template-columns: minmax(0,1fr); padding: 12px; }
   .rd-syn-evidence-view .rd-syn-data-grid { overflow-x: auto; }
   .rd-syn-evidence-view .rd-syn-data-table { min-width: 560px; }
+}
+
+/* ── Working brief / new-objective dialog ───────────────────── */
+.rd-syn-view-tabs span.is-active {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-width: 58px;
+  height: 33px;
+  padding: 0 10px;
+  color: #3142c7;
+  font-size: 10px;
+  font-weight: 680;
+}
+.rd-syn-view-tabs span.is-active::after {
+  content: "";
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 999px 999px 0 0;
+  background: #5362ee;
+}
+
+.rd-syn-working-brief {
+  height: 100%;
+  overflow: auto;
+  padding: 22px 20px 36px;
+  background: #f6f7fa;
+}
+.rd-syn-working-brief .rd-syn-spec-document {
+  max-width: 640px;
+  margin: 0 auto;
+}
+.rd-syn-brief-facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 18px 0;
+}
+.rd-syn-brief-facts > div {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid #e4e8ef;
+  border-radius: 10px;
+  background: #fbfcfe;
+}
+.rd-syn-brief-facts span {
+  color: #7a8496;
+  font-size: 8px;
+  font-weight: 780;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.rd-syn-brief-facts strong {
+  color: #243044;
+  font-size: 12px;
+  font-weight: 700;
+}
+.rd-syn-objective-field {
+  display: grid;
+  gap: 7px;
+  margin-top: 18px;
+}
+.rd-syn-objective-field > span {
+  color: #485264;
+  font-size: 9px;
+  font-weight: 780;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.rd-syn-objective-field textarea {
+  width: 100%;
+  min-height: 96px;
+  padding: 11px 12px;
+  border: 1px solid #d9c8a7;
+  border-radius: 10px;
+  background: #fff;
+  color: #242b39;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.45;
+  resize: vertical;
+}
+.rd-syn-objective-field textarea:focus {
+  outline: 2px solid rgba(83, 98, 238, .28);
+  border-color: #b8c0ef;
+}
+.rd-syn-objective-dialog [data-testid="synthesis-objective-error"] {
+  margin: 12px 0 0;
+  color: #a14b3a;
+  font-size: 11px;
+}
+
+.rd-syn-run-profile {
+  margin-top: 12px;
+  padding: 7px 10px;
+  border: 1px solid #ccd3f5;
+  border-radius: 6px;
+  background: #f8f9ff;
+  color: #4352cf;
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 720;
+}
+.rd-syn-open-output {
+  margin: 12px 0 0 8px;
+  padding: 7px 10px;
+  border: 0;
+  background: transparent;
+  color: #5362ee;
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 720;
+}
+.rd-syn-run-profile:disabled { cursor: wait; opacity: .65; }
+.rd-syn-profile-run-report {
+  padding: 12px 0;
+  border-top: 1px solid #e7eaf0;
+}
+.rd-syn-profile-run-report p { margin: 0; color: #293449; font-size: 12px; font-weight: 700; }
+.rd-syn-profile-run-report small,
+.rd-syn-profile-run-report em { display: block; margin-top: 5px; color: #6c778a; font-size: 11px; font-style: normal; line-height: 1.45; }
+
+@media (max-width: 720px) {
+  .rd-syn-brief-facts { grid-template-columns: minmax(0, 1fr); }
 }

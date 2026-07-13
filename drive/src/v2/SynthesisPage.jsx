@@ -1,11 +1,33 @@
-import { useEffect, useMemo, useState } from "react";
-import { getSynthesisProfile, listSynthesisProfiles } from "@/v2/api";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  applySynthesisThreadPatch,
+  createSynthesisThread,
+  getSynthesisProfile,
+  getSynthesisThread,
+  getSynthesisThreadDiscoverHandoff,
+  listSynthesisProfiles,
+  listSynthesisThreads,
+  runSynthesis,
+} from "@/v2/api";
+import { loadChatSessionId } from "@/v2/deskSession";
 import { SynthesisGraphCanvas } from "@/v2/SynthesisGraphCanvas";
 import {
   ATTENTION_SYNTHESIS_PROJECT,
   applyProjectProposal,
+  constructionStateFromProject,
+  discoverQueryFromHandoff,
+  emptyConstructionProject,
+  findAttentionSynthesisThread,
+  isUnformedSynthesisProject,
+  loadCustomSynthesisProjectKeys,
+  loadStoredSynthesisThreadId,
+  newSynthesisProjectKey,
   projectFromSynthesisProfile,
+  projectFromSynthesisThread,
   rejectProjectProposal,
+  rememberCustomSynthesisProjectKey,
+  storeSynthesisThreadId,
+  synthesisGroundingPrompt,
   synthesisNodeObject,
   synthesisProjectObject,
   synthesisProjectStats,
@@ -53,38 +75,166 @@ function ProjectTabs({ projects, activeId, onChange, onNew }) {
   );
 }
 
-function ProjectHeader({ project, stats, view, onView }) {
+function ProjectHeader({ project, stats, view, onView, onOpenSourcingContext, onRunProfile, onOpenRegisteredOutput, profileRunBusy, durableError, unformed }) {
   return (
     <header className="rd-syn-project-head">
       <div className="rd-syn-project-copy">
         <div className="rd-syn-project-kicker">
           <span className={`rd-syn-maturity is-${project.maturity}`}>{project.maturityLabel}</span>
-          <span>{stats.held} held</span>
-          {stats.queryable ? <span>{stats.queryable} queryable</span> : null}
-          {stats.proposed ? <span>{stats.proposed} proposed</span> : null}
-          {stats.missing ? <span>{stats.missing} ideal gap</span> : null}
+          {unformed ? (
+            <span>No evidence mapped</span>
+          ) : (
+            <>
+              <span>{stats.held} held</span>
+              {stats.queryable ? <span>{stats.queryable} queryable</span> : null}
+              {stats.proposed ? <span>{stats.proposed} proposed</span> : null}
+              {stats.missing ? <span>{stats.missing} ideal gap</span> : null}
+            </>
+          )}
         </div>
         <h2>{project.title}</h2>
         <p>{project.objective}</p>
-      </div>
-      <nav className="rd-syn-view-tabs" aria-label="Synthesis workspace views">
-        {VIEW_TABS.map(([id, label]) => (
+        {onOpenSourcingContext ? (
           <button
-            key={id}
             type="button"
-            aria-current={view === id ? "page" : undefined}
-            className={view === id ? "is-active" : ""}
-            onClick={() => onView(id)}
+            className="rd-syn-ask-project"
+            data-testid="synthesis-discover-handoff"
+            onClick={onOpenSourcingContext}
           >
-            {label}
+            <span aria-hidden>↗</span>
+            Open sourcing context
           </button>
-        ))}
-      </nav>
+        ) : null}
+        {onRunProfile ? (
+          <button type="button" className="rd-syn-run-profile" onClick={onRunProfile} disabled={profileRunBusy}>
+            {profileRunBusy ? "Running registered profile…" : "Run registered profile"}
+          </button>
+        ) : null}
+        {onOpenRegisteredOutput ? (
+          <button type="button" className="rd-syn-open-output" onClick={onOpenRegisteredOutput}>
+            Open registered asset
+          </button>
+        ) : null}
+        <div role="status" aria-live="polite" style={{ position: "absolute", width: 1, height: 1, padding: 0, margin: -1, overflow: "hidden", clip: "rect(0, 0, 0, 0)", whiteSpace: "nowrap", border: 0 }}>
+          {durableError || ""}
+        </div>
+        {durableError ? (
+          <p
+            role="alert"
+            data-testid="synthesis-durable-error"
+            style={{ position: "absolute", width: 1, height: 1, padding: 0, margin: -1, overflow: "hidden", clip: "rect(0, 0, 0, 0)", whiteSpace: "nowrap", border: 0 }}
+          >
+            {durableError}
+          </p>
+        ) : null}
+      </div>
+      {unformed ? (
+        <div className="rd-syn-view-tabs" aria-label="Synthesis workspace stage">
+          <span className="is-active" aria-current="page">Working brief</span>
+        </div>
+      ) : (
+        <nav className="rd-syn-view-tabs" aria-label="Synthesis workspace views">
+          {VIEW_TABS.map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              aria-current={view === id ? "page" : undefined}
+              className={view === id ? "is-active" : ""}
+              onClick={() => onView(id)}
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
+      )}
     </header>
   );
 }
 
-function ProposalReview({ proposal, open, onOpen, onClose, onApply, onReject }) {
+function NewObjectiveDialog({ open, value, onChange, onClose, onSubmit, busy, error }) {
+  if (!open) return null;
+  return (
+    <div
+      className="rd-syn-proposal-dialog rd-syn-objective-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Start synthesis"
+      data-testid="synthesis-objective-dialog"
+    >
+      <button type="button" className="rd-syn-proposal-scrim" aria-label="Cancel new synthesis" onClick={onClose} />
+      <section className="rd-syn-proposal-sheet">
+        <div className="rd-syn-proposal-sheet-head">
+          <span>New synthesis</span>
+          <button type="button" aria-label="Close" onClick={onClose} disabled={busy}>×</button>
+        </div>
+        <h3>What research construct do you need?</h3>
+        <p>
+          Describe the measure, panel, proxy, or derived asset. Synthesis starts as a research conversation —
+          not a prefilled graph.
+        </p>
+        <label className="rd-syn-objective-field">
+          <span>Research objective</span>
+          <textarea
+            data-testid="synthesis-objective-input"
+            value={value}
+            onChange={(event) => onChange(event.target.value)}
+            rows={4}
+            autoFocus
+            disabled={busy}
+            placeholder="e.g. A weekly cross-exchange stablecoin liquidity stress indicator…"
+          />
+        </label>
+        {error ? (
+          <p role="alert" data-testid="synthesis-objective-error">{error}</p>
+        ) : null}
+        <footer>
+          <button type="button" className="quiet" disabled={busy} onClick={onClose}>Cancel</button>
+          <button
+            type="button"
+            className="primary"
+            data-testid="synthesis-objective-submit"
+            disabled={busy || !String(value || "").trim()}
+            onClick={onSubmit}
+          >
+            {busy ? "Creating…" : "Start research"}
+          </button>
+        </footer>
+      </section>
+    </div>
+  );
+}
+
+function WorkingBrief({ project, onAsk }) {
+  return (
+    <section className="rd-syn-working-brief" data-testid="synthesis-working-brief" aria-label="Working brief">
+      <article className="rd-syn-spec-document">
+        <span className="rd-syn-doc-kicker">Working brief</span>
+        <h3>{project.title}</h3>
+        <p className="rd-syn-doc-purpose">{project.objective}</p>
+        <div className="rd-syn-brief-facts">
+          <div><span>Evidence</span><strong>None mapped yet</strong></div>
+          <div><span>Materialisation</span><strong>Not materialised</strong></div>
+          <div><span>Construction</span><strong>Not started</strong></div>
+        </div>
+        <p>
+          This thread begins as a research conversation. Ask the agent to search held and indexed evidence
+          before any construction state is proposed. No borrowed evidence or materialised output is claimed.
+        </p>
+        <button
+          type="button"
+          className="rd-syn-ask-project"
+          data-testid="synthesis-brief-ask"
+          onClick={onAsk}
+        >
+          <span aria-hidden>✦</span>
+          Continue in Ask
+        </button>
+      </article>
+    </section>
+  );
+}
+
+function ProposalReview({ proposal, open, onOpen, onClose, onApply, onReject, busy }) {
   if (!proposal) return null;
   return (
     <>
@@ -109,8 +259,22 @@ function ProposalReview({ proposal, open, onOpen, onClose, onApply, onReject }) 
               <ul>{(proposal.impact || []).map((item) => <li key={item}>{item}</li>)}</ul>
             </div>
             <footer>
-              <button type="button" className="quiet" onClick={() => { onReject(); onClose(); }}>Reject</button>
-              <button type="button" className="primary" onClick={() => { onApply(); onClose(); }}>Approve proposal</button>
+              <button
+                type="button"
+                className="quiet"
+                disabled={busy}
+                onClick={() => { onReject(); }}
+              >
+                Reject
+              </button>
+              <button
+                type="button"
+                className="primary"
+                disabled={busy}
+                onClick={() => { onApply(); }}
+              >
+                Approve proposal
+              </button>
             </footer>
           </section>
         </div>
@@ -119,7 +283,17 @@ function ProposalReview({ proposal, open, onOpen, onClose, onApply, onReject }) 
   );
 }
 
-function MapView({ project, selectedNodeId, onSelectNode, proposalOpen, onOpenProposal, onCloseProposal, onApplyProposal, onRejectProposal }) {
+function MapView({
+  project,
+  selectedNodeId,
+  onSelectNode,
+  proposalOpen,
+  onOpenProposal,
+  onCloseProposal,
+  onApplyProposal,
+  onRejectProposal,
+  proposalBusy,
+}) {
   return (
     <section className="rd-syn-map-view" aria-label="Construction map">
       <SynthesisGraphCanvas
@@ -134,12 +308,13 @@ function MapView({ project, selectedNodeId, onSelectNode, proposalOpen, onOpenPr
         onClose={onCloseProposal}
         onApply={onApplyProposal}
         onReject={onRejectProposal}
+        busy={proposalBusy}
       />
     </section>
   );
 }
 
-function SpecView({ project }) {
+function SpecView({ project, profileRunResult = null, registeredOutput = null }) {
   const spec = project.spec || {};
   return (
     <section className="rd-syn-spec-view" data-testid="synthesis-spec-view">
@@ -159,6 +334,20 @@ function SpecView({ project }) {
             ))}
           </div>
         </section>
+        {profileRunResult ? (
+          <section className="rd-syn-profile-run-report" data-testid="synthesis-profile-run-report">
+            <h4>Latest registered run</h4>
+            <p>{profileRunResult.title || project.title}</p>
+            <small>
+              {profileRunResult.generated_at || "Run timestamp not reported"} · {Object.keys(profileRunResult.artifacts || {}).length} reported artifacts
+            </small>
+            <em>
+              {registeredOutput
+                ? `Registered asset available: ${registeredOutput.dataset_id}.`
+                : "Execution output was returned by the registered profile. Registry promotion is not claimed here."}
+            </em>
+          </section>
+        ) : null}
         {(spec.validation || []).length ? (
           <section>
             <h4>Validation</h4>
@@ -313,13 +502,65 @@ function EvidenceView({ project, onAsk }) {
   );
 }
 
-export function SynthesisPage({ datasets = [], onAskComposer, onSelectObject }) {
+async function ensureAttentionThread() {
+  const storedId = loadStoredSynthesisThreadId(ATTENTION_SYNTHESIS_PROJECT.id);
+  if (storedId) {
+    try {
+      const thread = await getSynthesisThread(storedId);
+      if (thread?.id) return thread;
+    } catch {
+      /* fall through to list/create */
+    }
+  }
+
+  const listed = await listSynthesisThreads({
+    limit: 30,
+    sessionId: loadChatSessionId() || "",
+  });
+  const existing = findAttentionSynthesisThread(listed, ATTENTION_SYNTHESIS_PROJECT);
+  if (existing?.id) {
+    storeSynthesisThreadId(existing.id, ATTENTION_SYNTHESIS_PROJECT.id);
+    return existing;
+  }
+
+  const created = await createSynthesisThread({
+    objective: ATTENTION_SYNTHESIS_PROJECT.objective,
+    title: ATTENTION_SYNTHESIS_PROJECT.title,
+    sessionId: loadChatSessionId() || "",
+    requiredGrain: ATTENTION_SYNTHESIS_PROJECT.spec?.grain || "asset × week",
+    state: constructionStateFromProject(ATTENTION_SYNTHESIS_PROJECT),
+  });
+  if (created?.id) storeSynthesisThreadId(created.id, ATTENTION_SYNTHESIS_PROJECT.id);
+  return created;
+}
+
+export function SynthesisPage({
+  datasets = [],
+  onAskComposer,
+  onSelectObject,
+  onOpenDiscover,
+  onOpenLibrary,
+  proposalRefreshEpoch = 0,
+}) {
   const [registryProjects, setRegistryProjects] = useState([]);
+  const [attentionProject, setAttentionProject] = useState(ATTENTION_SYNTHESIS_PROJECT);
+  const [customProjects, setCustomProjects] = useState([]);
   const [projectOverrides, setProjectOverrides] = useState({});
   const [activeId, setActiveId] = useState(ATTENTION_SYNTHESIS_PROJECT.id);
   const [selectedNodeId, setSelectedNodeId] = useState("");
   const [view, setView] = useState("map");
   const [proposalOpen, setProposalOpen] = useState(false);
+  const [proposalBusy, setProposalBusy] = useState(false);
+  const [durableError, setDurableError] = useState("");
+  const [handoffBusy, setHandoffBusy] = useState(false);
+  const [durableReady, setDurableReady] = useState(false);
+  const [objectiveOpen, setObjectiveOpen] = useState(false);
+  const [objectiveDraft, setObjectiveDraft] = useState("");
+  const [objectiveBusy, setObjectiveBusy] = useState(false);
+  const [objectiveError, setObjectiveError] = useState("");
+  const [profileRunBusy, setProfileRunBusy] = useState(false);
+  const [profileRunResult, setProfileRunResult] = useState(null);
+  const pendingGroundingRef = useRef(null);
 
   useEffect(() => {
     let active = true;
@@ -348,9 +589,82 @@ export function SynthesisPage({ datasets = [], onAskComposer, onSelectObject }) 
     };
   }, [datasets]);
 
+  useEffect(() => {
+    let active = true;
+    setDurableReady(false);
+    ensureAttentionThread()
+      .then((thread) => {
+        if (!active || !thread?.id) return;
+        setAttentionProject(projectFromSynthesisThread(thread, ATTENTION_SYNTHESIS_PROJECT));
+        setProjectOverrides((current) => {
+          const next = { ...current };
+          delete next[ATTENTION_SYNTHESIS_PROJECT.id];
+          return next;
+        });
+        setDurableError("");
+      })
+      .catch(() => {
+        if (!active) return;
+        // Local fallback when the durable thread API is unavailable.
+        setAttentionProject(ATTENTION_SYNTHESIS_PROJECT);
+      })
+      .finally(() => {
+        if (active) setDurableReady(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    const keys = loadCustomSynthesisProjectKeys();
+    if (!keys.length) {
+      setCustomProjects([]);
+      return undefined;
+    }
+    Promise.all(
+      keys.map(async (projectKey) => {
+        const threadId = loadStoredSynthesisThreadId(projectKey);
+        if (!threadId) return null;
+        try {
+          const thread = await getSynthesisThread(threadId);
+          if (!thread?.id) return null;
+          const stateKey = thread.state?.projectKey;
+          // Never infer identity from title — require the stored project key.
+          if (stateKey !== projectKey) return null;
+          return projectFromSynthesisThread(
+            thread,
+            emptyConstructionProject({
+              projectKey,
+              objective: thread.objective || "",
+              title: thread.title || "",
+            }),
+          );
+        } catch {
+          return null;
+        }
+      }),
+    ).then((rows) => {
+      if (!active) return;
+      setCustomProjects(rows.filter(Boolean));
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const baseProjects = useMemo(
-    () => [ATTENTION_SYNTHESIS_PROJECT, ...registryProjects.filter((project) => project.id !== ATTENTION_SYNTHESIS_PROJECT.id)],
-    [registryProjects],
+    () => [
+      attentionProject,
+      ...customProjects.filter((project) => project.id !== ATTENTION_SYNTHESIS_PROJECT.id),
+      ...registryProjects.filter(
+        (project) =>
+          project.id !== ATTENTION_SYNTHESIS_PROJECT.id &&
+          !customProjects.some((custom) => custom.id === project.id),
+      ),
+    ],
+    [attentionProject, customProjects, registryProjects],
   );
   const projects = useMemo(
     () => baseProjects.map((project) => projectOverrides[project.id] || project),
@@ -358,12 +672,54 @@ export function SynthesisPage({ datasets = [], onAskComposer, onSelectObject }) 
   );
   const project = projects.find((item) => item.id === activeId) || projects[0];
   const stats = synthesisProjectStats(project);
+  const unformed = isUnformedSynthesisProject(project);
+  const showSourcingHandoff =
+    Boolean(project?.threadId) &&
+    project.id === ATTENTION_SYNTHESIS_PROJECT.id &&
+    stats.missing > 0;
+  const registeredOutput = project?.outputDatasetId
+    ? datasets.find((dataset) => dataset.dataset_id === project.outputDatasetId) || null
+    : null;
+
+  useEffect(() => {
+    if (!proposalRefreshEpoch || !project?.threadId) return;
+    let active = true;
+    getSynthesisThread(project.threadId)
+      .then((thread) => {
+        if (!active || !thread?.id) return;
+        const fallback = project.id === ATTENTION_SYNTHESIS_PROJECT.id
+          ? ATTENTION_SYNTHESIS_PROJECT
+          : emptyConstructionProject({
+              projectKey: project.id,
+              objective: project.objective,
+              title: project.title,
+            });
+        const next = projectFromSynthesisThread(thread, fallback);
+        if (project.id === ATTENTION_SYNTHESIS_PROJECT.id) {
+          setAttentionProject(next);
+        } else {
+          setCustomProjects((current) => current.map((item) => (item.id === project.id ? next : item)));
+        }
+        setProposalOpen(Boolean(next.proposal));
+      })
+      .catch(() => {
+        // The existing workspace remains usable if proposal refresh fails.
+      });
+    return () => {
+      active = false;
+    };
+  }, [proposalRefreshEpoch, project?.threadId, project?.id, project?.objective, project?.title]);
 
   useEffect(() => {
     if (!project) return;
     const node = selectedNodeId ? project.nodes.find((item) => item.id === selectedNodeId) : null;
     onSelectObject?.(node ? synthesisNodeObject(project, node) : synthesisProjectObject(project));
-  }, [project, selectedNodeId, onSelectObject]);
+    if (pendingGroundingRef.current) {
+      const prompt = pendingGroundingRef.current;
+      pendingGroundingRef.current = null;
+      onAskComposer?.(prompt);
+    }
+  }, [project, selectedNodeId, onSelectObject, onAskComposer]);
 
   const selectProject = (id) => {
     setActiveId(id);
@@ -373,27 +729,175 @@ export function SynthesisPage({ datasets = [], onAskComposer, onSelectObject }) 
   };
 
   const selectNode = (node) => setSelectedNodeId(node?.id || "");
-  const askProject = () => onAskComposer?.({
-    prompt: `Work on the synthesis "${project.title}". Objective: ${project.objective} Review the current construction state, held and reachable evidence, measurement gaps, unresolved methodological decisions, and propose the strongest defensible next change. Treat any graph change as a proposal until the researcher approves it.`,
-    displayText: `Work on ${project.title}`,
-  });
   const askChart = (chartTitle) => onAskComposer?.({
     prompt: `For the synthesis "${project.title}", propose a ${chartTitle} preview using only evidence currently held or honestly queryable. Explain which actual fields and source states are required; do not invent values.`,
     displayText: `Preview ${chartTitle}`,
   });
-  const startNew = () => onAskComposer?.({
-    prompt: "Start a new research-data synthesis. Ask me what research construct, historical measure, panel, proxy, event set, or derived research asset I need. Then search the lab and indexed source capabilities before proposing a construction state.",
-    displayText: "Start a new synthesis",
-  });
-  const applyProposal = () => {
-    const next = applyProjectProposal(project);
-    setProjectOverrides((current) => ({ ...current, [project.id]: next }));
-    setSelectedNodeId(project.proposal?.nodeId || "");
+  const openObjectiveDialog = () => {
+    setObjectiveError("");
+    setObjectiveDraft("");
+    setObjectiveOpen(true);
   };
-  const rejectProposal = () => {
-    const next = rejectProjectProposal(project);
+  const closeObjectiveDialog = () => {
+    if (objectiveBusy) return;
+    setObjectiveOpen(false);
+    setObjectiveError("");
+  };
+  const askAboutActive = () => {
+    if (!project) return;
+    onAskComposer?.(synthesisGroundingPrompt(project));
+  };
+
+  const runRegisteredProfile = async () => {
+    if (!project?.profileId || profileRunBusy) return;
+    setProfileRunBusy(true);
+    setDurableError("");
+    try {
+      const result = await runSynthesis(project.profileId, { previewLimit: 12, gapLimit: 40 });
+      setProfileRunResult(result || null);
+    } catch (err) {
+      setDurableError(err?.message || "Could not run the registered synthesis profile.");
+    } finally {
+      setProfileRunBusy(false);
+    }
+  };
+
+  const createFromObjective = async () => {
+    const objective = String(objectiveDraft || "").trim();
+    if (!objective || objectiveBusy) return;
+    setObjectiveBusy(true);
+    setObjectiveError("");
+    setDurableError("");
+    const projectKey = newSynthesisProjectKey();
+    const draft = emptyConstructionProject({ projectKey, objective });
+    try {
+      const created = await createSynthesisThread({
+        objective: draft.objective,
+        title: draft.title,
+        state: constructionStateFromProject(draft),
+      });
+      if (!created?.id) throw new Error("Synthesis thread create did not return a stable id.");
+      storeSynthesisThreadId(created.id, projectKey);
+      rememberCustomSynthesisProjectKey(projectKey);
+      const next = projectFromSynthesisThread(created, draft);
+      setCustomProjects((current) => [next, ...current.filter((item) => item.id !== projectKey)]);
+      setProjectOverrides((current) => {
+        const copy = { ...current };
+        delete copy[projectKey];
+        return copy;
+      });
+      setActiveId(projectKey);
+      setSelectedNodeId("");
+      setView("map");
+      setProposalOpen(false);
+      setObjectiveOpen(false);
+      setObjectiveDraft("");
+      pendingGroundingRef.current = synthesisGroundingPrompt(next);
+    } catch (err) {
+      setObjectiveError(err?.message || "Could not create a durable synthesis thread.");
+    } finally {
+      setObjectiveBusy(false);
+    }
+  };
+
+  const replaceProjectState = (next) => {
+    if (!next?.id) return;
+    if (next.id === ATTENTION_SYNTHESIS_PROJECT.id) {
+      setAttentionProject(next);
+      return;
+    }
+    setCustomProjects((current) => {
+      const exists = current.some((item) => item.id === next.id);
+      if (!exists) return [next, ...current];
+      return current.map((item) => (item.id === next.id ? next : item));
+    });
+  };
+
+  const applyLocalDecision = (decision) => {
+    const next =
+      decision === "accept" ? applyProjectProposal(project) : rejectProjectProposal(project);
     setProjectOverrides((current) => ({ ...current, [project.id]: next }));
-    setSelectedNodeId("");
+    replaceProjectState({
+      ...next,
+      threadId: project.threadId,
+      sessionId: project.sessionId,
+      conversationId: project.conversationId,
+    });
+    setSelectedNodeId(decision === "accept" ? project.proposal?.nodeId || "" : "");
+    setProposalOpen(false);
+  };
+
+  const applyProposal = async () => {
+    if (!project?.proposal || proposalBusy) return;
+    if (!project.threadId) {
+      applyLocalDecision("accept");
+      return;
+    }
+    setProposalBusy(true);
+    setDurableError("");
+    try {
+      const thread = await applySynthesisThreadPatch(project.threadId, { decision: "accept" });
+      const next = projectFromSynthesisThread(thread, project);
+      replaceProjectState(next);
+      setProjectOverrides((current) => {
+        const copy = { ...current };
+        delete copy[project.id];
+        return copy;
+      });
+      setSelectedNodeId(project.proposal?.nodeId || "");
+      setProposalOpen(false);
+    } catch (err) {
+      setDurableError(err?.message || "Could not persist proposal acceptance.");
+    } finally {
+      setProposalBusy(false);
+    }
+  };
+
+  const rejectProposal = async () => {
+    if (!project?.proposal || proposalBusy) return;
+    if (!project.threadId) {
+      applyLocalDecision("reject");
+      return;
+    }
+    setProposalBusy(true);
+    setDurableError("");
+    try {
+      const thread = await applySynthesisThreadPatch(project.threadId, { decision: "reject" });
+      const next = projectFromSynthesisThread(thread, project);
+      replaceProjectState(next);
+      setProjectOverrides((current) => {
+        const copy = { ...current };
+        delete copy[project.id];
+        return copy;
+      });
+      setSelectedNodeId("");
+      setProposalOpen(false);
+    } catch (err) {
+      setDurableError(err?.message || "Could not persist proposal rejection.");
+    } finally {
+      setProposalBusy(false);
+    }
+  };
+
+  const openSourcingContext = async () => {
+    if (!project?.threadId || handoffBusy) return;
+    setHandoffBusy(true);
+    setDurableError("");
+    try {
+      const handoff = await getSynthesisThreadDiscoverHandoff(project.threadId);
+      if (handoff?.collection || handoff?.fake_collection) {
+        throw new Error("Discover handoff returned an unexpected collection payload.");
+      }
+      const query = discoverQueryFromHandoff(handoff);
+      if (!query) {
+        throw new Error("Discover handoff did not include a usable sourcing query.");
+      }
+      onOpenDiscover?.(query, handoff);
+    } catch (err) {
+      setDurableError(err?.message || "Could not open Discover sourcing context.");
+    } finally {
+      setHandoffBusy(false);
+    }
   };
 
   if (!project) return null;
@@ -405,10 +909,23 @@ export function SynthesisPage({ datasets = [], onAskComposer, onSelectObject }) 
       lead="Construct research assets from the lab and the reachable data universe."
     >
       <div className="rd-syn-workbench" data-testid="synthesis-workbench">
-        <ProjectTabs projects={projects} activeId={project.id} onChange={selectProject} onNew={startNew} />
-        <ProjectHeader project={project} stats={stats} view={view} onView={setView} />
+        <ProjectTabs projects={projects} activeId={project.id} onChange={selectProject} onNew={openObjectiveDialog} />
+        <ProjectHeader
+          project={project}
+          stats={stats}
+          view={view}
+          onView={setView}
+          onOpenSourcingContext={showSourcingHandoff ? openSourcingContext : undefined}
+          onRunProfile={project.profileId ? runRegisteredProfile : undefined}
+          onOpenRegisteredOutput={registeredOutput ? () => onOpenLibrary?.(registeredOutput.dataset_id) : undefined}
+          profileRunBusy={profileRunBusy}
+          durableError={durableError}
+          unformed={unformed}
+        />
         <main className="rd-syn-editor-surface">
-          {view === "map" ? (
+          {unformed ? (
+            <WorkingBrief project={project} onAsk={askAboutActive} />
+          ) : view === "map" ? (
             <MapView
               project={project}
               selectedNodeId={selectedNodeId}
@@ -418,13 +935,27 @@ export function SynthesisPage({ datasets = [], onAskComposer, onSelectObject }) 
               onCloseProposal={() => setProposalOpen(false)}
               onApplyProposal={applyProposal}
               onRejectProposal={rejectProposal}
+              proposalBusy={proposalBusy || (project.id === ATTENTION_SYNTHESIS_PROJECT.id && !durableReady)}
             />
           ) : view === "plan" ? (
-            <SpecView project={project} />
+          <SpecView
+            project={project}
+            profileRunResult={project.profileId ? profileRunResult : null}
+            registeredOutput={registeredOutput}
+          />
           ) : (
             <EvidenceView project={project} onAsk={askChart} />
           )}
         </main>
+        <NewObjectiveDialog
+          open={objectiveOpen}
+          value={objectiveDraft}
+          onChange={setObjectiveDraft}
+          onClose={closeObjectiveDialog}
+          onSubmit={createFromObjective}
+          busy={objectiveBusy}
+          error={objectiveError}
+        />
       </div>
     </PageShell>
   );
