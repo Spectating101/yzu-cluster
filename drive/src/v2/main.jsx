@@ -6,6 +6,7 @@ import "./premium.css";
 import "./premium-components.css";
 import "./premium-profile.css";
 import "./premium-synthesis.css";
+import "./synthesis-execution.css";
 import "./premium-fixes.css";
 import { V2App } from "./App.jsx";
 
