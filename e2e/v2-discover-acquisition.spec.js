@@ -32,12 +32,15 @@ test.describe("Discover acquisition engineering", () => {
 
     await expect(routes).toContainText("Acquisition engineering");
     await expect(routes).toContainText("Needs decision");
+    await page.screenshot({ path: "test-results/discover-acquisition-overview.png" });
+
     await routes.getByRole("button", { name: /Historical stablecoin attention evidence/i }).click();
     await expect(routes).toContainText("Acquisition decision");
     await expect(routes).toContainText("Access checkpoint");
     await expect(routes).toContainText("Collection scope");
     await expect(routes).toContainText("Refresh design");
     await expect(routes).toContainText("Weekly backfill, then daily refresh");
+    await page.screenshot({ path: "test-results/discover-acquisition-detail.png" });
   });
 
   test("does not promote archive or unknown evidence into registered state", async ({ page }) => {
