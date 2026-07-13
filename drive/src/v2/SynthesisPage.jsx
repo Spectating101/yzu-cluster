@@ -14,9 +14,8 @@ import { PageShell } from "@/v2/ui";
 
 const VIEW_TABS = [
   ["map", "Map"],
-  ["spec", "Spec"],
-  ["data", "Data"],
-  ["charts", "Charts"],
+  ["plan", "Research plan"],
+  ["evidence", "Evidence"],
 ];
 
 function profileRows(payload) {
@@ -54,7 +53,7 @@ function ProjectTabs({ projects, activeId, onChange, onNew }) {
   );
 }
 
-function ProjectHeader({ project, stats, view, onView, onAsk }) {
+function ProjectHeader({ project, stats, view, onView }) {
   return (
     <header className="rd-syn-project-head">
       <div className="rd-syn-project-copy">
@@ -68,10 +67,6 @@ function ProjectHeader({ project, stats, view, onView, onAsk }) {
         <h2>{project.title}</h2>
         <p>{project.objective}</p>
       </div>
-      <button type="button" className="rd-syn-ask-project" onClick={onAsk}>
-        <span>✦</span>
-        Ask about synthesis
-      </button>
       <nav className="rd-syn-view-tabs" aria-label="Synthesis workspace views">
         {VIEW_TABS.map(([id, label]) => (
           <button
@@ -89,29 +84,42 @@ function ProjectHeader({ project, stats, view, onView, onAsk }) {
   );
 }
 
-function ProposalBar({ proposal, onReview, onApply, onReject }) {
+function ProposalReview({ proposal, open, onOpen, onClose, onApply, onReject }) {
   if (!proposal) return null;
   return (
-    <aside className="rd-syn-proposal" data-testid="synthesis-proposal">
-      <div className="rd-syn-proposal-mark" aria-hidden>✦</div>
-      <div className="rd-syn-proposal-copy">
-        <span>Agent proposal</span>
-        <strong>{proposal.title}</strong>
-        <p>{proposal.summary}</p>
-        <div>
-          {(proposal.impact || []).map((item) => <small key={item}>{item}</small>)}
+    <>
+      <button type="button" className="rd-syn-proposal-prompt" onClick={onOpen} data-testid="synthesis-proposal">
+        <span aria-hidden>✦</span>
+        <span><small>Agent proposal</small><strong>{proposal.title}</strong></span>
+        <b>{open ? "Reviewing" : "Review"} →</b>
+      </button>
+      {open ? (
+        <div className="rd-syn-proposal-dialog" role="dialog" aria-modal="true" aria-label="Review agent proposal">
+          <button type="button" className="rd-syn-proposal-scrim" aria-label="Close proposal" onClick={onClose} />
+          <section className="rd-syn-proposal-sheet">
+            <div className="rd-syn-proposal-sheet-head">
+              <span>Agent proposal</span>
+              <button type="button" aria-label="Close proposal" onClick={onClose}>×</button>
+            </div>
+            <h3>{proposal.title}</h3>
+            <p>{proposal.summary}</p>
+            <div className="rd-syn-proposal-reason"><strong>Reasoning</strong><span>{proposal.reason}</span></div>
+            <div className="rd-syn-proposal-impact">
+              <strong>What changes</strong>
+              <ul>{(proposal.impact || []).map((item) => <li key={item}>{item}</li>)}</ul>
+            </div>
+            <footer>
+              <button type="button" className="quiet" onClick={() => { onReject(); onClose(); }}>Reject</button>
+              <button type="button" className="primary" onClick={() => { onApply(); onClose(); }}>Approve proposal</button>
+            </footer>
+          </section>
         </div>
-      </div>
-      <div className="rd-syn-proposal-actions">
-        <button type="button" onClick={onReview}>Review</button>
-        <button type="button" className="primary" onClick={onApply}>Apply</button>
-        <button type="button" className="quiet" onClick={onReject}>Reject</button>
-      </div>
-    </aside>
+      ) : null}
+    </>
   );
 }
 
-function MapView({ project, selectedNodeId, onSelectNode, onReviewProposal, onApplyProposal, onRejectProposal }) {
+function MapView({ project, selectedNodeId, onSelectNode, proposalOpen, onOpenProposal, onCloseProposal, onApplyProposal, onRejectProposal }) {
   return (
     <section className="rd-syn-map-view" aria-label="Construction map">
       <SynthesisGraphCanvas
@@ -119,9 +127,11 @@ function MapView({ project, selectedNodeId, onSelectNode, onReviewProposal, onAp
         selectedNodeId={selectedNodeId}
         onSelectNode={onSelectNode}
       />
-      <ProposalBar
+      <ProposalReview
         proposal={project.proposal}
-        onReview={onReviewProposal}
+        open={proposalOpen}
+        onOpen={onOpenProposal}
+        onClose={onCloseProposal}
         onApply={onApplyProposal}
         onReject={onRejectProposal}
       />
@@ -294,25 +304,11 @@ function ChartsView({ project, onAsk }) {
   );
 }
 
-function ActivityPanel({ project, open, onToggle }) {
+function EvidenceView({ project, onAsk }) {
   return (
-    <section className={`rd-syn-activity${open ? " is-open" : ""}`}>
-      <button type="button" className="rd-syn-activity-toggle" onClick={onToggle} aria-expanded={open}>
-        <span><i /> Activity</span>
-        <strong>{project.activity?.length || 0} events</strong>
-        <span>{open ? "⌄" : "⌃"}</span>
-      </button>
-      {open ? (
-        <div className="rd-syn-activity-log">
-          {(project.activity || []).slice().reverse().map((item, index) => (
-            <div key={`${item.time}-${item.message}-${index}`}>
-              <time>{item.time}</time>
-              <span className={`is-${item.kind}`} />
-              <p>{item.message}</p>
-            </div>
-          ))}
-        </div>
-      ) : null}
+    <section className="rd-syn-evidence-view" data-testid="synthesis-evidence-view">
+      <DataView project={project} />
+      <ChartsView project={project} onAsk={onAsk} />
     </section>
   );
 }
@@ -323,7 +319,7 @@ export function SynthesisPage({ datasets = [], onAskComposer, onSelectObject }) 
   const [activeId, setActiveId] = useState(ATTENTION_SYNTHESIS_PROJECT.id);
   const [selectedNodeId, setSelectedNodeId] = useState("");
   const [view, setView] = useState("map");
-  const [activityOpen, setActivityOpen] = useState(false);
+  const [proposalOpen, setProposalOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -373,7 +369,7 @@ export function SynthesisPage({ datasets = [], onAskComposer, onSelectObject }) 
     setActiveId(id);
     setSelectedNodeId("");
     setView("map");
-    setActivityOpen(false);
+    setProposalOpen(false);
   };
 
   const selectNode = (node) => setSelectedNodeId(node?.id || "");
@@ -410,34 +406,25 @@ export function SynthesisPage({ datasets = [], onAskComposer, onSelectObject }) 
     >
       <div className="rd-syn-workbench" data-testid="synthesis-workbench">
         <ProjectTabs projects={projects} activeId={project.id} onChange={selectProject} onNew={startNew} />
-        <ProjectHeader project={project} stats={stats} view={view} onView={setView} onAsk={askProject} />
+        <ProjectHeader project={project} stats={stats} view={view} onView={setView} />
         <main className="rd-syn-editor-surface">
           {view === "map" ? (
             <MapView
               project={project}
               selectedNodeId={selectedNodeId}
               onSelectNode={selectNode}
-              onReviewProposal={() => selectNode(project.nodes.find((node) => node.id === project.proposal?.nodeId))}
+              proposalOpen={proposalOpen}
+              onOpenProposal={() => setProposalOpen(true)}
+              onCloseProposal={() => setProposalOpen(false)}
               onApplyProposal={applyProposal}
               onRejectProposal={rejectProposal}
             />
-          ) : view === "spec" ? (
+          ) : view === "plan" ? (
             <SpecView project={project} />
-          ) : view === "data" ? (
-            <DataView project={project} />
           ) : (
-            <ChartsView project={project} onAsk={askChart} />
+            <EvidenceView project={project} onAsk={askChart} />
           )}
         </main>
-        <ActivityPanel project={project} open={activityOpen} onToggle={() => setActivityOpen((current) => !current)} />
-        <footer className="rd-syn-statusbar">
-          <span>{project.maturityLabel}</span>
-          <span>{stats.held} held</span>
-          <span>{stats.queryable} queryable</span>
-          <span>{stats.proposed} proposed</span>
-          <span>{stats.openDecisions} decisions open</span>
-          <strong>{readableMaterialisation(project.materialisation)}</strong>
-        </footer>
       </div>
     </PageShell>
   );

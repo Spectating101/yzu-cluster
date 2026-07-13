@@ -203,13 +203,10 @@ function SynthesisGraphInner({ project, selectedNodeId, onSelectNode }) {
         setLoading(false);
         window.requestAnimationFrame(() => {
           const mobile = window.matchMedia?.("(max-width: 720px)").matches;
-          const entryNodes = next.nodes.filter((node) =>
-            node.data?.layer === "target" || node.data?.layer === "evidence"
-          );
           fitView(
             mobile
               ? { padding: 0.06, duration: 520, minZoom: 0.58, maxZoom: 1.08 }
-              : { nodes: entryNodes, padding: 0.08, duration: 520, minZoom: 0.58, maxZoom: 0.82 },
+              : { nodes: next.nodes, padding: 0.07, duration: 520, minZoom: 0.4, maxZoom: 0.78 },
           );
         });
       })

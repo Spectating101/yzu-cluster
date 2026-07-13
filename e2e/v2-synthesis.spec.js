@@ -29,27 +29,27 @@ test.describe("v2 Synthesis construction workspace", () => {
     await expect(rail).toContainText("News coverage is related to public visibility");
   });
 
-  test("applying an agent proposal changes the visible construction state", async ({ page }) => {
-    await page.getByTestId("synthesis-proposal").getByRole("button", { name: "Apply" }).click();
+  test("proposal review is intentional and applying it changes the construction state", async ({ page }) => {
+    await page.getByTestId("synthesis-proposal").click();
+    const dialog = page.getByRole("dialog", { name: "Review agent proposal" });
+    await expect(dialog).toContainText("GDELT measures editorial/news coverage");
+    await dialog.getByRole("button", { name: "Approve proposal" }).click();
     await expect(page.getByTestId("synthesis-proposal")).toHaveCount(0);
-    await expect(page.locator(".rd-syn-statusbar")).toContainText("0 proposed");
     const rail = page.locator("aside.rd-v2-rail");
     await expect(rail).toContainText("GDELT crypto news");
     await expect(rail).toContainText("Queryable");
     await expect(rail).toContainText("Validation signal");
   });
 
-  test("spec, data, and charts remain honest inspection views", async ({ page }) => {
-    await page.getByRole("button", { name: "Spec", exact: true }).click();
+  test("research plan and evidence remain honest inspection views", async ({ page }) => {
+    await page.getByRole("button", { name: "Research plan", exact: true }).click();
     await expect(page.getByTestId("synthesis-spec-view")).toContainText("Research asset specification");
     await expect(page.getByTestId("synthesis-spec-view")).toContainText("Historical X follower growth");
     await expect(page.getByTestId("synthesis-spec-view")).toContainText("Known limitations");
 
-    await page.getByRole("button", { name: "Data", exact: true }).click();
+    await page.getByRole("button", { name: "Evidence", exact: true }).click();
     await expect(page.getByTestId("synthesis-data-view")).toContainText("no rows materialised");
     await expect(page.getByTestId("synthesis-data-view")).toContainText("Planned output schema");
-
-    await page.getByRole("button", { name: "Charts", exact: true }).click();
     await expect(page.getByTestId("synthesis-charts-view")).toContainText("Evidence coverage");
     await expect(page.getByTestId("synthesis-charts-view")).toContainText("Ask agent to preview");
   });
