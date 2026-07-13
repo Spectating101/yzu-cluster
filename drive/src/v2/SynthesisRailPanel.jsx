@@ -38,6 +38,7 @@ function ProjectRail({ object, onAskAbout }) {
   const row = object?.row || {};
   const stats = row.stats || {};
   const decisions = row.decisions || [];
+  const registered = row.execution?.status === "registered";
   const unformed =
     String(row.maturity || "").toLowerCase().includes("working brief") ||
     String(row.maturity || "").toLowerCase() === "unformed" ||
@@ -57,16 +58,20 @@ function ProjectRail({ object, onAskAbout }) {
       <div className="rd-v2-rail-scroll rd-syn-rail-scroll">
         <RailDecisionSummary
           status={row.maturity || "Exploring"}
-          primary={unformed ? "Continue in Ask" : "Inspect the construction map"}
+          primary={registered ? "Open registered asset" : unformed ? "Continue in Ask" : "Inspect the construction map"}
           risk={
-            unformed
+            registered
+              ? unformed ? "Method record has no evidence map" : "No unresolved execution risk"
+              : unformed
               ? "No evidence mapped yet"
               : stats.missing
                 ? `${stats.missing} ideal measure missing`
                 : "No mapped measurement gap"
           }
           next={
-            unformed
+            registered
+              ? "Inspect the registered asset in Library"
+              : unformed
               ? "Search held and indexed evidence before construction"
               : stats.openDecisions
                 ? `Resolve ${stats.openDecisions} construction decisions`
@@ -79,6 +84,7 @@ function ProjectRail({ object, onAskAbout }) {
           <RailField label="Proposed" value={String(stats.proposed || 0)} />
           <RailField label="Open decisions" value={String(stats.openDecisions || 0)} />
           <RailField label="Materialisation" value={String(row.materialisation || "not_materialised").replaceAll("_", " ")} />
+          {registered ? <RailField label="Output rows" value={String(row.execution?.rows ?? "—")} /> : null}
           <RailField label="Latest" value={row.lastActivity || "—"} />
         </RailFieldGrid>
         {decisions.length ? (

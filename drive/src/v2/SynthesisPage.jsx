@@ -83,7 +83,7 @@ function ProjectHeader({ project, stats, view, onView, onOpenSourcingContext, on
         <div className="rd-syn-project-kicker">
           <span className={`rd-syn-maturity is-${project.maturity}`}>{project.maturityLabel}</span>
           {unformed ? (
-            <span>No evidence mapped</span>
+            <span>{project.execution?.status === "registered" ? "Method record pending" : "No evidence mapped"}</span>
           ) : (
             <>
               <span>{stats.held} held</span>
@@ -226,9 +226,9 @@ function WorkingBrief({ project, onAsk }) {
         <h3>{project.title}</h3>
         <p className="rd-syn-doc-purpose">{project.objective}</p>
         <div className="rd-syn-brief-facts">
-          <div><span>Evidence</span><strong>{registered ? "Execution inputs recorded" : "None mapped yet"}</strong></div>
+          <div><span>{registered ? "Output rows" : "Evidence"}</span><strong>{registered ? `${project.execution?.rows || "—"} registered` : "None mapped yet"}</strong></div>
           <div><span>Materialisation</span><strong>{registered ? "Registered in Library" : "Not materialised"}</strong></div>
-          <div><span>Construction</span><strong>{registered ? "Execution recorded" : "Not started"}</strong></div>
+          <div><span>{registered ? "Provenance" : "Construction"}</span><strong>{registered ? "Manifest recorded" : "Not started"}</strong></div>
         </div>
         <p>
           {registered
@@ -693,8 +693,9 @@ export function SynthesisPage({
     Boolean(project?.threadId) &&
     project.id === ATTENTION_SYNTHESIS_PROJECT.id &&
     stats.missing > 0;
-  const registeredOutput = project?.outputDatasetId
-    ? datasets.find((dataset) => dataset.dataset_id === project.outputDatasetId) || null
+  const registeredOutputId = project?.outputDatasetId || project?.execution?.output_dataset_id || "";
+  const registeredOutput = registeredOutputId
+    ? datasets.find((dataset) => dataset.dataset_id === registeredOutputId) || { dataset_id: registeredOutputId }
     : null;
 
   useEffect(() => {
@@ -875,7 +876,11 @@ export function SynthesisPage({
     setProposalBusy(true);
     setDurableError("");
     try {
-      const thread = await applySynthesisThreadPatch(project.threadId, { decision: "accept" });
+      const thread = await applySynthesisThreadPatch(project.threadId, {
+        decision: "accept",
+        proposalId: project.proposal.id,
+        proposalHash: project.proposal.proposal_hash,
+      });
       const next = projectFromSynthesisThread(thread, project);
       replaceProjectState(next);
       setProjectOverrides((current) => {
@@ -901,7 +906,11 @@ export function SynthesisPage({
     setProposalBusy(true);
     setDurableError("");
     try {
-      const thread = await applySynthesisThreadPatch(project.threadId, { decision: "reject" });
+      const thread = await applySynthesisThreadPatch(project.threadId, {
+        decision: "reject",
+        proposalId: project.proposal.id,
+        proposalHash: project.proposal.proposal_hash,
+      });
       const next = projectFromSynthesisThread(thread, project);
       replaceProjectState(next);
       setProjectOverrides((current) => {
@@ -956,7 +965,7 @@ export function SynthesisPage({
           onView={setView}
           onOpenSourcingContext={showSourcingHandoff ? openSourcingContext : undefined}
           onRunProfile={project.profileId ? runRegisteredProfile : undefined}
-          onOpenRegisteredOutput={registeredOutput ? () => onOpenLibrary?.(registeredOutput.dataset_id) : undefined}
+          onOpenRegisteredOutput={project.execution?.status === "registered" && registeredOutputId ? () => onOpenLibrary?.(registeredOutputId) : undefined}
           onSubmitExecution={project.threadId && project.execution_spec && !project.execution?.job_id ? submitExecution : undefined}
           executionBusy={executionBusy}
           profileRunBusy={profileRunBusy}

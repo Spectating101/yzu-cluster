@@ -684,6 +684,8 @@ export function projectFromSynthesisThread(thread, fallback = ATTENTION_SYNTHESI
     objective: thread.objective || state.objective || base.objective,
     materialisation:
       thread.materialisation || state.materialisation || base.materialisation || "not_materialised",
+    outputDatasetId:
+      state.outputDatasetId || state.execution?.output_dataset_id || base.outputDatasetId || "",
     maturity: state.maturity || base.maturity,
     maturityLabel: state.maturityLabel || base.maturityLabel,
     lastActivity: state.lastActivity || base.lastActivity,
@@ -755,6 +757,7 @@ export function synthesisNodeObject(project, node) {
       objective: project.objective,
       maturity: project.maturityLabel,
       materialisation: project.materialisation,
+      execution: project.execution || null,
       threadId: project.threadId || "",
       sessionId: project.sessionId || "",
       conversationId: project.conversationId || "",
@@ -780,6 +783,7 @@ export function synthesisProjectObject(project) {
     row: {
       maturity: project.maturityLabel,
       materialisation: project.materialisation,
+      execution: project.execution || null,
       stats: synthesisProjectStats(project),
       decisions: asArray(project.decisions),
       lastActivity: project.lastActivity,

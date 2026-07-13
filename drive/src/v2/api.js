@@ -228,11 +228,12 @@ export function getSynthesisThread(threadId) {
 
 export function applySynthesisThreadPatch(
   threadId,
-  { decision, operations = null, proposal = null } = {},
+  { decision, operations = null, proposalId = "", proposalHash = "" } = {},
 ) {
   const body = { decision };
   if (Array.isArray(operations)) body.operations = operations;
-  if (proposal && typeof proposal === "object") body.proposal = proposal;
+  if (proposalId) body.proposal_id = proposalId;
+  if (proposalHash) body.proposal_hash = proposalHash;
   return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}/patches`, {
     method: "POST",
     headers: deskHeaders(),
