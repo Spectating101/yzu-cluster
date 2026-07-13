@@ -38,7 +38,9 @@ function ProjectRail({ object, onAskAbout }) {
   const row = object?.row || {};
   const stats = row.stats || {};
   const decisions = row.decisions || [];
-  const registered = row.execution?.status === "registered";
+  const execution = row.execution || {};
+  const registered = execution.status === "registered";
+  const failed = execution.status === "failed" || execution.status === "cancelled";
   const unformed =
     String(row.maturity || "").toLowerCase().includes("working brief") ||
     String(row.maturity || "").toLowerCase() === "unformed" ||
@@ -53,15 +55,17 @@ function ProjectRail({ object, onAskAbout }) {
         id={object?.id}
         title={object?.title || "Synthesis"}
         description={object?.objective || "AI-maintained research construction workspace."}
-        pills={<span className="rd-v2-pill ext">{row.maturity || "Exploring"}</span>}
+        pills={<span className={`rd-v2-pill ${registered ? "lab" : failed ? "warn" : "ext"}`}>{registered ? "Registered" : failed ? "Execution failed" : row.maturity || "Exploring"}</span>}
       />
       <div className="rd-v2-rail-scroll rd-syn-rail-scroll">
         <RailDecisionSummary
-          status={row.maturity || "Exploring"}
-          primary={registered ? "Open registered asset" : unformed ? "Continue in Ask" : "Inspect the construction map"}
+          status={registered ? "Registered" : failed ? "Execution failed" : row.maturity || "Exploring"}
+          primary={registered ? "Open registered asset" : failed ? "Review failure and retry" : unformed ? "Continue in Ask" : "Inspect the construction map"}
           risk={
             registered
               ? unformed ? "Method record has no evidence map" : "No unresolved execution risk"
+              : failed
+                ? execution.error || execution.message || "Execution did not complete"
               : unformed
               ? "No evidence mapped yet"
               : stats.missing
@@ -71,6 +75,8 @@ function ProjectRail({ object, onAskAbout }) {
           next={
             registered
               ? "Inspect the registered asset in Library"
+              : failed
+                ? "Retry the accepted bounded specification"
               : unformed
               ? "Search held and indexed evidence before construction"
               : stats.openDecisions
@@ -84,7 +90,10 @@ function ProjectRail({ object, onAskAbout }) {
           <RailField label="Proposed" value={String(stats.proposed || 0)} />
           <RailField label="Open decisions" value={String(stats.openDecisions || 0)} />
           <RailField label="Materialisation" value={String(row.materialisation || "not_materialised").replaceAll("_", " ")} />
-          {registered ? <RailField label="Output rows" value={String(row.execution?.rows ?? "—")} /> : null}
+          {execution.status ? <RailField label="Execution" value={String(execution.status).replaceAll("_", " ")} /> : null}
+          {registered ? <RailField label="Output rows" value={String(execution.rows ?? "—")} /> : null}
+          {registered ? <RailField label="Manifest" value={execution.manifest_id || execution.output_manifest_id || "Recorded"} mono /> : null}
+          {registered ? <RailField label="Drive archive" value={execution.drive_verified === true ? "verified" : "not reported"} /> : null}
           <RailField label="Latest" value={row.lastActivity || "—"} />
         </RailFieldGrid>
         {decisions.length ? (
