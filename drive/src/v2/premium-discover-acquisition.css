@@ -1,3 +1,11 @@
+.rd-v2-body-scroll:has(> .rd-v2-acquisition-workspace) {
+  padding-top: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
 .rd-v2-acquisition-workspace {
   display: flex;
   min-height: 0;
