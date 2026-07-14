@@ -21,11 +21,12 @@ export function datasetObject(row) {
 
 export function externalCandidateObject(row) {
   if (!row) return null;
-  const id = row.dataset_id || row.doi || row.url || row.title || "external";
+  const id =
+    row.candidate_key || row.source_id || row.dataset_id || row.doi || row.url || row.title || "external";
   return {
     kind: "external_candidate",
     id,
-    title: compactText(row.title || row.name || row.dataset_id, "External dataset"),
+    title: compactText(row.title || row.name || row.label || row.dataset_id || row.source_id, "External source"),
     row,
   };
 }
@@ -36,7 +37,10 @@ export function historyEventObject(event) {
   return {
     kind: "history_event",
     id,
-    title: compactText(event.target, String(event.action || "Research history").replace(/_/g, " ")),
+    title: compactText(
+      event.target,
+      String(event.action || event.kind || "Research history").replace(/_/g, " "),
+    ),
     event,
   };
 }

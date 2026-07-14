@@ -9,12 +9,27 @@ export function discoverCandidateUrl(row) {
   }
   const handle = String(row.open_handle || "").trim();
   if (handle.startsWith("doi:")) return `https://doi.org/${handle.slice(4)}`;
+  const endpoint = String(row.endpoint || "").trim();
+  if (endpoint) {
+    if (/^https?:\/\//i.test(endpoint)) return endpoint;
+    if (/^[a-z0-9.-]+\.[a-z]{2,}(\/|$)/i.test(endpoint)) return `https://${endpoint}`;
+  }
   return "";
 }
 
 export function browseTargetKey(target) {
   if (!target) return "";
-  return target.dataset_id || target.url || target.doi || target.title || target.name || "";
+  return (
+    target.candidate_key ||
+    target.source_id ||
+    target.dataset_id ||
+    target.url ||
+    target.doi ||
+    target.connector_id ||
+    target.title ||
+    target.name ||
+    ""
+  );
 }
 
 export function buildAddToLabPrompt(target, probeResult) {
@@ -23,6 +38,8 @@ export function buildAddToLabPrompt(target, probeResult) {
   const summary = probeResult?.summary;
   const facts = [
     target?.dataset_id ? `dataset ${target.dataset_id}` : "",
+    target?.source_id ? `source ${target.source_id}` : "",
+    target?.candidate_key ? `candidate ${target.candidate_key}` : "",
     target?.doi ? `DOI ${target.doi}` : "",
     discoverCandidateUrl(target) ? `URL ${discoverCandidateUrl(target)}` : "",
     target?.source || target?.collect_via ? `source ${target.source || target.collect_via}` : "",

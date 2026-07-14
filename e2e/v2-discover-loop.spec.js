@@ -31,29 +31,27 @@ test.describe("v2 Discover loop anchor", () => {
     await expect(page.locator(".rd-v2-discover-search-summary")).not.toContainText(/Checking|updating/i);
   });
 
-  test("query is preserved across Search and Review queue", async ({ page }) => {
+  test("query is preserved when the Explore queue opens", async ({ page }) => {
     await page.getByTestId("discover-search-input").fill("TWSE");
     await page.getByTestId("discover-search-input").press("Enter");
     await expect(page.getByTestId("discover-search-input")).toHaveValue("TWSE");
     await page.getByRole("button", { name: /Review queue/ }).click();
-    await expect(page.getByTestId("discover-activity")).toBeVisible();
-    await expect(page.getByTestId("discover-search-input")).toBeVisible();
+    await expect(page.getByTestId("discover-queue-strip")).toBeVisible();
     await expect(page.getByTestId("discover-search-input")).toHaveValue("TWSE");
-    await page.getByRole("tab", { name: "Search" }).click();
-    await expect(page.getByTestId("discover-search-input")).toHaveValue("TWSE");
+    await expect(page.getByRole("tab", { name: "Explore" })).toHaveAttribute("aria-selected", "true");
     await expect(page.locator(".rd-v2-discover-candidate").first()).toBeVisible({ timeout: 10_000 });
   });
 
-  test("Activity job selection owns the rail", async ({ page }) => {
+  test("Explore queue selection owns the rail", async ({ page }) => {
     await page.getByRole("button", { name: "TWSE governance" }).click();
     await expect(page.locator("aside.rd-v2-rail .rd-v2-rail-sticky").getByRole("button", { name: "Add to lab" })).toBeVisible({
       timeout: 10_000,
     });
     await page.getByRole("button", { name: /Review queue/ }).click();
-    await expect(page.getByTestId("discover-activity")).toBeVisible();
-    // Stale Search candidate must not remain — sticky Add to lab goes away.
+    const queue = page.getByTestId("discover-queue-strip");
+    await expect(queue).toBeVisible();
     await expect(page.locator("aside.rd-v2-rail .rd-v2-rail-sticky").getByRole("button", { name: "Add to lab" })).toHaveCount(0);
-    const row = page.getByTestId("discover-activity-row").first();
+    const row = page.getByTestId("discover-queue-row").first();
     await expect(row).toBeVisible();
     await expect(row).toHaveAttribute("aria-pressed", "true");
     const rail = page.locator("aside.rd-v2-rail");
@@ -61,22 +59,19 @@ test.describe("v2 Discover loop anchor", () => {
     await expect(rail.getByTestId("procurement-decision-card")).toBeVisible();
   });
 
-  test("header pending opens Discover Activity awaiting", async ({ page }) => {
+  test("header pending opens the Explore queue", async ({ page }) => {
     await page.getByTestId("header-pending-link").click();
-    await expect(page).toHaveURL(/mode=(approvals|activity)/);
-    await expect(page.getByTestId("discover-activity")).toBeVisible();
-    await expect(page.getByTestId("discover-activity")).toContainText("Review queue");
-    await expect(page.getByTestId("discover-activity")).not.toContainText(/GiB|Ask usage|REMOTE TABLES/i);
-    await expect(page.getByTestId("discover-activity-filters").getByRole("button", { name: /Awaiting/ })).toHaveClass(
-      /on/,
-    );
+    await expect(page).not.toHaveURL(/mode=(approvals|activity|history)/);
+    const queue = page.getByTestId("discover-queue-strip");
+    await expect(queue).toBeVisible();
+    await expect(queue).toContainText("Needs your review");
   });
 
-  test("Discover exposes Search Activity and History as stable modes", async ({ page }) => {
+  test("Discover exposes Explore and History as stable modes", async ({ page }) => {
     const modes = page.getByRole("tablist", { name: "Discover mode" });
-    await expect(modes.getByRole("tab", { name: "Search" })).toHaveAttribute("aria-selected", "true");
-    await expect(modes.getByRole("tab", { name: /Activity/ })).toBeVisible();
+    await expect(modes.getByRole("tab", { name: "Explore" })).toHaveAttribute("aria-selected", "true");
     await expect(modes.getByRole("tab", { name: "History" })).toBeVisible();
+    await expect(modes.getByRole("tab", { name: /Activity/ })).toHaveCount(0);
     await expect(page.getByTestId("discover-search-input")).toBeVisible();
 
     await modes.getByRole("tab", { name: "History" }).click();
@@ -84,11 +79,12 @@ test.describe("v2 Discover loop anchor", () => {
     await expect(page.getByTestId("discover-history")).toBeVisible();
     await expect(page.getByTestId("discover-search-input")).toBeVisible();
 
-    await modes.getByRole("tab", { name: /Activity/ }).click();
-    await expect(page.getByTestId("discover-activity")).toBeVisible();
+    // Legacy Activity URLs normalize to Explore rather than reviving a third mode.
+    await page.goto("/?tab=browse&mode=activity", { waitUntil: "domcontentloaded" });
+    await expect(page.getByRole("tab", { name: "Explore" })).toHaveAttribute("aria-selected", "true");
     await expect(page.getByTestId("discover-search-input")).toBeVisible();
 
-    await modes.getByRole("tab", { name: "Search" }).click();
+    await page.getByRole("tab", { name: "Explore" }).click();
     await expect(page.getByTestId("discover-search-input")).toBeVisible();
     await expect(page).not.toHaveURL(/mode=(activity|history)/);
   });
@@ -114,7 +110,7 @@ test.describe("v2 Discover loop anchor", () => {
     await expect(page).toHaveURL(/q=TWSE(\+|%20)governance/);
 
     await page.getByRole("tab", { name: "History" }).click();
-    await page.getByRole("tab", { name: "Search" }).click();
+    await page.getByRole("tab", { name: "Explore" }).click();
     await expect(page.getByTestId("discover-search-input")).toHaveValue("TWSE governance");
   });
 

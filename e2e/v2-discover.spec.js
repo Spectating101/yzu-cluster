@@ -175,7 +175,7 @@ test.describe("v2 Discover tab", () => {
     await expect(page.getByTestId("discover-activity")).toBeVisible();
     await expect(page.getByTestId("discover-activity")).toContainText("Review queue");
     await expect(page.getByTestId("discover-bulk-approve-safe")).toBeVisible();
-    await page.getByRole("tab", { name: "Search" }).click();
+    await page.getByRole("tab", { name: "Explore" }).click();
     await expect(page.getByTestId("discover-empty")).toBeVisible();
     await expect(page).not.toHaveURL(/mode=(approvals|activity)/);
   });

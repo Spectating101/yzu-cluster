@@ -100,21 +100,51 @@ export function PreviewModal({
               {isExternal ? (
                 <div className="rd-v2-preview-ext-meta">
                   <p>
-                    <strong>Publisher:</strong> {dataset.source || dataset.collect_via || "—"}
+                    <strong>Publisher:</strong> {dataset.publisher || dataset.source || dataset.provider || dataset.collect_via || "—"}
                   </p>
                   <p>
-                    <strong>Format:</strong> {dataset.grain || "registry metadata"}
+                    <strong>Access:</strong> {dataset.access_mode || dataset.license || "See source terms"}
                   </p>
                   <p>
-                    <strong>License:</strong> {dataset.license || "See source terms"}
+                    <strong>Preview status:</strong>{" "}
+                    {dataset.source_preview?.status || (dataset.preview_supported ? "supported" : "metadata only")}
                   </p>
                   <p>
-                    <strong>Coverage:</strong> {dataset.coverage || "—"}
+                    <strong>Coverage:</strong>{" "}
+                    {Array.isArray(dataset.source_preview?.coverage)
+                      ? dataset.source_preview.coverage.join(" · ")
+                      : dataset.coverage || (Array.isArray(dataset.capabilities) ? dataset.capabilities.slice(0, 4).join(" · ") : "—")}
                   </p>
-                  {dataset.description ? <p>{dataset.description}</p> : null}
-                  <p className="rd-v2-preview-muted">
-                    Row preview is available after Add to lab completes procurement.
-                  </p>
+                  {dataset.source_preview?.notes ? <p>{dataset.source_preview.notes}</p> : null}
+                  {dataset.description && !dataset.source_preview?.notes ? <p>{dataset.description}</p> : null}
+                  {Array.isArray(dataset.source_preview?.sample_rows) && dataset.source_preview.sample_rows.length ? (
+                    <table className="rd-v2-preview-table" aria-label="Source preview sample">
+                      <thead>
+                        <tr>
+                          {Object.keys(dataset.source_preview.sample_rows[0] || {}).slice(0, 8).map((c) => (
+                            <th key={c}>{c}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {dataset.source_preview.sample_rows.slice(0, 12).map((row, i) => (
+                          <tr key={i}>
+                            {Object.keys(dataset.source_preview.sample_rows[0] || {}).slice(0, 8).map((c) => (
+                              <td key={c}>{String(row[c] ?? "")}</td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <p className="rd-v2-preview-muted">
+                      {dataset.source_preview?.status === "schema_only"
+                        ? "Schema/access facts only — no live sample claimed."
+                        : dataset.source_preview?.status === "access_required"
+                          ? "Access required before a bounded sample can be shown."
+                          : "Bounded sample unavailable; Detail explains the next valid action."}
+                    </p>
+                  )}
                 </div>
               ) : (
                 <>

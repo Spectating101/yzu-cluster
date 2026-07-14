@@ -30,6 +30,23 @@ ROUTE_CATALOG: list[dict[str, str]] = [
     {"method": "GET", "path": "/library/discover/web", "handler": "library_discover_web"},
     {"method": "POST", "path": "/library/discover/probe", "handler": "library_discover_probe"},
     {"method": "POST", "path": "/library/discover/collect", "handler": "library_discover_collect"},
+    {"method": "GET", "path": "/library/discover/intents", "handler": "library_discover_intents_list"},
+    {"method": "POST", "path": "/library/discover/intents", "handler": "library_discover_intents_create"},
+    {"method": "GET", "path": "/library/discover/intents/{intent_id}", "handler": "library_discover_intent_get"},
+    {"method": "POST", "path": "/library/discover/intents/{intent_id}/proposal", "handler": "library_discover_intent_proposal"},
+    {"method": "POST", "path": "/library/discover/intents/{intent_id}/review", "handler": "library_discover_intent_review"},
+    {"method": "POST", "path": "/library/discover/intents/{intent_id}/route", "handler": "library_discover_intent_route"},
+    {"method": "POST", "path": "/library/discover/intents/{intent_id}/submit", "handler": "library_discover_intent_submit"},
+    {"method": "GET", "path": "/library/discover/sources", "handler": "library_discover_sources"},
+    {"method": "POST", "path": "/library/discover/sources/preview", "handler": "library_discover_source_preview"},
+    {"method": "GET", "path": "/library/discover/sources/preview", "handler": "library_discover_source_preview"},
+    {"method": "GET", "path": "/library/discover/subscriptions", "handler": "library_discover_subscriptions_list"},
+    {"method": "POST", "path": "/library/discover/subscriptions", "handler": "library_discover_subscriptions_create"},
+    {"method": "GET", "path": "/library/discover/subscriptions/{subscription_id}", "handler": "library_discover_subscription_get"},
+    {"method": "POST", "path": "/library/discover/subscriptions/{subscription_id}/pause", "handler": "library_discover_subscription_pause"},
+    {"method": "POST", "path": "/library/discover/subscriptions/{subscription_id}/resume", "handler": "library_discover_subscription_resume"},
+    {"method": "POST", "path": "/library/discover/subscriptions/{subscription_id}/stop", "handler": "library_discover_subscription_stop"},
+    {"method": "GET", "path": "/library/discover/history", "handler": "library_discover_history"},
     {"method": "GET", "path": "/library/overview", "handler": "library_overview"},
     {"method": "GET", "path": "/library/partitions", "handler": "library_partitions"},
     {"method": "GET", "path": "/library/browse", "handler": "library_browse"},
@@ -42,6 +59,15 @@ ROUTE_CATALOG: list[dict[str, str]] = [
     {"method": "GET", "path": "/library/consolidated", "handler": "library_consolidated"},
     {"method": "GET", "path": "/library/faculty/profile", "handler": "library_faculty_profile"},
     {"method": "GET", "path": "/library/synthesis/profiles", "handler": "library_synthesis_profiles"},
+    {"method": "GET", "path": "/library/synthesis/threads", "handler": "library_synthesis_threads_list"},
+    {"method": "POST", "path": "/library/synthesis/threads", "handler": "library_synthesis_threads_create"},
+    {"method": "GET", "path": "/library/synthesis/threads/{thread_id}", "handler": "library_synthesis_thread_get"},
+    {"method": "POST", "path": "/library/synthesis/threads/{thread_id}/patches", "handler": "library_synthesis_thread_patch"},
+    {"method": "POST", "path": "/library/synthesis/threads/{thread_id}/proposal", "handler": "library_synthesis_thread_set_proposal"},
+    {"method": "POST", "path": "/library/synthesis/threads/{thread_id}/conversation", "handler": "library_synthesis_thread_link_conversation"},
+    {"method": "GET", "path": "/library/synthesis/threads/{thread_id}/discover-handoff", "handler": "library_synthesis_thread_discover_handoff"},
+    {"method": "GET", "path": "/library/synthesis/threads/{thread_id}/materialisation", "handler": "library_synthesis_thread_materialisation"},
+    {"method": "POST", "path": "/library/synthesis/threads/{thread_id}/execute", "handler": "library_synthesis_thread_execute"},
     {"method": "GET", "path": "/library/synthesis/{id}", "handler": "library_synthesis_get"},
     {"method": "POST", "path": "/library/synthesis/run", "handler": "library_synthesis_run"},
     {"method": "POST", "path": "/library/synthesis/pair", "handler": "library_synthesis_pair"},
@@ -456,6 +482,145 @@ def _handlers() -> dict[str, Handler]:
         )
         return out
 
+    def library_discover_intents_list(stack, query, payload, params):
+        return stack.gateway.discover_intent_list(
+            limit=_query_int(query, "limit", 30), session_id=str(query.get("session_id") or "")
+        )
+
+    def library_discover_intents_create(stack, query, payload, params):
+        candidate = payload.get("candidate")
+        return stack.gateway.discover_intent_create(
+            research_need=str(payload.get("research_need") or payload.get("need") or payload.get("query") or ""),
+            title=str(payload.get("title") or ""),
+            candidate=candidate if isinstance(candidate, dict) else None,
+            session_id=str(payload.get("session_id") or ""),
+            user_email=str(payload.get("user_email") or payload.get("email") or ""),
+        )
+
+    def library_discover_intent_get(stack, query, payload, params):
+        return stack.gateway.discover_intent_get(params["intent_id"])
+
+    def library_discover_intent_proposal(stack, query, payload, params):
+        proposal = payload.get("proposal")
+        if not isinstance(proposal, dict):
+            raise ValueError("proposal is required")
+        return stack.gateway.discover_intent_set_proposal(params["intent_id"], proposal)
+
+    def library_discover_intent_review(stack, query, payload, params):
+        return stack.gateway.discover_intent_review(
+            params["intent_id"],
+            decision=str(payload.get("decision") or ""),
+            proposal_id=str(payload.get("proposal_id") or ""),
+            proposal_hash=str(payload.get("proposal_hash") or ""),
+        )
+
+    def library_discover_intent_route(stack, query, payload, params):
+        return stack.gateway.discover_intent_select_route(params["intent_id"], str(payload.get("route_id") or ""))
+
+    def library_discover_intent_submit(stack, query, payload, params):
+        out = stack.gateway.discover_intent_submit_collection(
+            params["intent_id"], limit=int(payload.get("limit") or 200)
+        )
+        job = out.get("job") if isinstance(out, dict) else None
+        _activity(
+            stack,
+            "job_submit",
+            "Discover reviewed collection",
+            meta={"intent_id": params["intent_id"], "job_id": job.get("id") if isinstance(job, dict) else None},
+        )
+        return out
+
+    def library_discover_sources(stack, query, payload, params):
+        q = str(query.get("q") or query.get("query") or "")
+        live = str(query.get("live") or "").strip().lower() in {"1", "true", "yes"}
+        semantic = str(query.get("semantic") or query.get("mode") or "").strip().lower() in {
+            "1",
+            "true",
+            "yes",
+            "semantic",
+        }
+        prefer = str(query.get("prefer") or query.get("kind") or "").strip()
+        out = stack.gateway.discover_source_search(
+            q,
+            limit=_query_int(query, "limit", 24),
+            live=live,
+            semantic=semantic,
+            prefer=prefer,
+        )
+        if q.strip():
+            _activity(
+                stack,
+                "discover_sources",
+                q[:200],
+                meta={"total": out.get("total"), "live": live, "semantic": semantic},
+            )
+        return out
+
+    def library_discover_source_preview(stack, query, payload, params):
+        body = payload if payload else {}
+        # GET query params also accepted
+        def _pick(key: str, default: str = "") -> str:
+            return str(body.get(key) or query.get(key) or default).strip()
+
+        out = stack.gateway.discover_source_preview(
+            source_id=_pick("source_id"),
+            connector_id=_pick("connector_id"),
+            candidate_key=_pick("candidate_key"),
+            url=_pick("url"),
+            doi=_pick("doi"),
+            dataset_id=_pick("dataset_id"),
+            name=_pick("name") or _pick("title"),
+            limit=int(body.get("limit") or query.get("limit") or 5),
+        )
+        target = _pick("source_id") or _pick("connector_id") or _pick("url") or _pick("doi") or _pick("dataset_id") or "preview"
+        _activity(stack, "preview", target[:200], meta={"status": out.get("status")})
+        return out
+
+    def library_discover_subscriptions_list(stack, query, payload, params):
+        return stack.gateway.discover_refresh_list(
+            limit=_query_int(query, "limit", 50),
+            intent_id=str(query.get("intent_id") or ""),
+            status=str(query.get("status") or ""),
+        )
+
+    def library_discover_subscriptions_create(stack, query, payload, params):
+        out = stack.gateway.discover_refresh_create(
+            cadence=str(payload.get("cadence") or "manual"),
+            destination=str(payload.get("destination") or ""),
+            intent_id=str(payload.get("intent_id") or ""),
+            source_id=str(payload.get("source_id") or ""),
+            connector_id=str(payload.get("connector_id") or ""),
+            candidate_key=str(payload.get("candidate_key") or ""),
+            enabled=bool(payload.get("enabled", True)),
+        )
+        _activity(
+            stack,
+            "refresh_subscription",
+            out.get("source_id") or out.get("connector_id") or out.get("id") or "subscription",
+            meta={"subscription_id": out.get("id"), "status": out.get("status")},
+        )
+        return out
+
+    def library_discover_subscription_get(stack, query, payload, params):
+        return stack.gateway.discover_refresh_get(params["subscription_id"])
+
+    def library_discover_subscription_pause(stack, query, payload, params):
+        return stack.gateway.discover_refresh_pause(params["subscription_id"])
+
+    def library_discover_subscription_resume(stack, query, payload, params):
+        return stack.gateway.discover_refresh_resume(params["subscription_id"])
+
+    def library_discover_subscription_stop(stack, query, payload, params):
+        return stack.gateway.discover_refresh_stop(params["subscription_id"])
+
+    def library_discover_history(stack, query, payload, params):
+        return stack.gateway.discover_history(
+            limit=_query_int(query, "limit", 50),
+            kind=str(query.get("kind") or query.get("filter") or ""),
+            session_id=str(query.get("session_id") or ""),
+            include_jobs=query.get("include_jobs", "1") not in {"0", "false", "no"},
+        )
+
     def library_datacite_enrich(stack, query, payload, params):
         rows = payload.get("rows") or []
         if not rows and payload.get("dois"):
@@ -531,6 +696,69 @@ def _handlers() -> dict[str, Handler]:
             ),
         }
 
+    def library_synthesis_threads_list(stack, query, payload, params):
+        return stack.gateway.synthesis_thread_list(
+            limit=_query_int(query, "limit", 30),
+            session_id=str(query.get("session_id") or ""),
+        )
+
+    def library_synthesis_threads_create(stack, query, payload, params):
+        state = payload.get("state")
+        return stack.gateway.synthesis_thread_create(
+            objective=str(payload.get("objective") or ""),
+            title=str(payload.get("title") or ""),
+            session_id=str(payload.get("session_id") or ""),
+            conversation_id=str(payload.get("conversation_id") or payload.get("conversation") or ""),
+            required_grain=str(payload.get("required_grain") or payload.get("grain") or ""),
+            state=state if isinstance(state, dict) else None,
+        )
+
+    def library_synthesis_thread_get(stack, query, payload, params):
+        return stack.gateway.synthesis_thread_get(params["thread_id"])
+
+    def library_synthesis_thread_patch(stack, query, payload, params):
+        operations = payload.get("operations")
+        return stack.gateway.synthesis_thread_apply_patch(
+            params["thread_id"],
+            decision=str(payload.get("decision") or payload.get("action") or ""),
+            operations=operations if isinstance(operations, list) else None,
+            proposal_id=str(payload.get("proposal_id") or ""),
+            proposal_hash=str(payload.get("proposal_hash") or ""),
+        )
+
+    def library_synthesis_thread_set_proposal(stack, query, payload, params):
+        proposal = payload.get("proposal")
+        if proposal is None and "operations" in payload:
+            proposal = {
+                "id": str(payload.get("id") or payload.get("proposal_id") or ""),
+                "title": str(payload.get("title") or ""),
+                "summary": str(payload.get("summary") or ""),
+                "nodeId": payload.get("nodeId") or payload.get("node_id"),
+                "operations": payload.get("operations") or [],
+            }
+            if isinstance(payload.get("execution_spec"), dict):
+                proposal["execution_spec"] = payload["execution_spec"]
+        return stack.gateway.synthesis_thread_set_proposal(
+            params["thread_id"],
+            proposal if isinstance(proposal, dict) else None,
+        )
+
+    def library_synthesis_thread_discover_handoff(stack, query, payload, params):
+        return stack.gateway.synthesis_thread_discover_handoff(params["thread_id"])
+
+    def library_synthesis_thread_materialisation(stack, query, payload, params):
+        return stack.gateway.synthesis_thread_materialisation(params["thread_id"])
+
+    def library_synthesis_thread_execute(stack, query, payload, params):
+        return stack.gateway.synthesis_thread_submit_execution(params["thread_id"])
+
+    def library_synthesis_thread_link_conversation(stack, query, payload, params):
+        return stack.gateway.synthesis_thread_link_conversation(
+            params["thread_id"],
+            session_id=str(payload.get("session_id") or payload.get("session") or ""),
+            conversation_id=str(payload.get("conversation_id") or payload.get("conversation") or ""),
+        )
+
     def library_synthesis_profiles(stack, query, payload, params):
         return stack.gateway.synthesis_list_profiles()
 
@@ -542,7 +770,8 @@ def _handlers() -> dict[str, Handler]:
         latest = stack.gateway.synthesis_get_latest(profile_id)
         if latest.get("found"):
             return latest
-        return stack.gateway.synthesis_run(profile_id)
+        # Faculty read must not build — miss returns found:false; Build uses POST /run or ?refresh=1.
+        return {"found": False, "profile_id": profile_id}
 
     def library_synthesis_run(stack, query, payload, params):
         profile_id = str(payload.get("profile_id") or query.get("profile_id") or "")
@@ -852,6 +1081,22 @@ def _handlers() -> dict[str, Handler]:
         "library_discover_web": library_discover_web,
         "library_discover_probe": library_discover_probe,
         "library_discover_collect": library_discover_collect,
+        "library_discover_intents_list": library_discover_intents_list,
+        "library_discover_intents_create": library_discover_intents_create,
+        "library_discover_intent_get": library_discover_intent_get,
+        "library_discover_intent_proposal": library_discover_intent_proposal,
+        "library_discover_intent_review": library_discover_intent_review,
+        "library_discover_intent_route": library_discover_intent_route,
+        "library_discover_intent_submit": library_discover_intent_submit,
+        "library_discover_sources": library_discover_sources,
+        "library_discover_source_preview": library_discover_source_preview,
+        "library_discover_subscriptions_list": library_discover_subscriptions_list,
+        "library_discover_subscriptions_create": library_discover_subscriptions_create,
+        "library_discover_subscription_get": library_discover_subscription_get,
+        "library_discover_subscription_pause": library_discover_subscription_pause,
+        "library_discover_subscription_resume": library_discover_subscription_resume,
+        "library_discover_subscription_stop": library_discover_subscription_stop,
+        "library_discover_history": library_discover_history,
         "library_datacite_enrich": library_datacite_enrich,
         "library_license_approve": library_license_approve,
         "library_credential_profiles": library_credential_profiles,
@@ -862,6 +1107,15 @@ def _handlers() -> dict[str, Handler]:
         "library_procure_chat": library_procure_chat,
         "library_procure_chat_stream": library_procure_chat_stream,
         "library_synthesis_profiles": library_synthesis_profiles,
+        "library_synthesis_threads_list": library_synthesis_threads_list,
+        "library_synthesis_threads_create": library_synthesis_threads_create,
+        "library_synthesis_thread_get": library_synthesis_thread_get,
+        "library_synthesis_thread_patch": library_synthesis_thread_patch,
+        "library_synthesis_thread_set_proposal": library_synthesis_thread_set_proposal,
+        "library_synthesis_thread_link_conversation": library_synthesis_thread_link_conversation,
+        "library_synthesis_thread_discover_handoff": library_synthesis_thread_discover_handoff,
+        "library_synthesis_thread_materialisation": library_synthesis_thread_materialisation,
+        "library_synthesis_thread_execute": library_synthesis_thread_execute,
         "library_synthesis_get": library_synthesis_get,
         "library_synthesis_run": library_synthesis_run,
         "library_synthesis_pair": library_synthesis_pair,
@@ -962,5 +1216,11 @@ def _dispatch(method: str, path: str, query: dict[str, str], payload: dict[str, 
         return {"status": 404, "body": {"error": "not_found", "handler": handler_name}}
     try:
         return {"status": 200, "body": _attach_deprecation(path, handler(stack, query, payload, params))}
+    except PermissionError as exc:
+        return {"status": 403, "body": {"error": "forbidden", "message": str(exc)}}
+    except KeyError as exc:
+        return {"status": 404, "body": {"error": "not_found", "message": str(exc)}}
+    except ValueError as exc:
+        return {"status": 400, "body": {"error": "invalid_request", "message": str(exc)}}
     except Exception as exc:
         return {"status": 500, "body": {"error": type(exc).__name__, "message": str(exc)}}

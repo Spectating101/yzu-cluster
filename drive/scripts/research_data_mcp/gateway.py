@@ -758,6 +758,9 @@ class ResearchDataGateway:
         for job in self.jobs.list(limit, status="pending_approval").get("jobs") or []:
             jid = str(job.get("id") or "")
             plan = job.get("plan") or {}
+            if plan.get("job_type") == "synthesis_execute":
+                skipped += 1
+                continue
             if not jid or not should_auto_approve_plan(plan, self.repo_root, orchestrator=self.orchestrator):
                 skipped += 1
                 continue
@@ -1194,6 +1197,381 @@ class ResearchDataGateway:
     def list_schedules(self) -> list[dict[str, Any]]:
         return self.orchestrator.schedules()
 
+    # --- synthesis research threads (durable construction state) ---
+    def _synthesis_thread_store(self):
+        from scripts.research_data_mcp.synthesis_thread_store import (
+            SynthesisThreadStore,
+            default_synthesis_thread_db,
+        )
+
+        store = getattr(self, "_synthesis_threads_store", None)
+        if store is None:
+            store = SynthesisThreadStore(default_synthesis_thread_db(self.repo_root))
+            self._synthesis_threads_store = store
+        return store
+
+    # --- Discover collection intents (durable sourcing decisions) ---
+    def _discover_intent_store(self):
+        from scripts.research_data_mcp.discover_intent_store import DiscoverIntentStore, discover_intent_store_path
+
+        store = getattr(self, "_discover_intents_store", None)
+        if store is None:
+            store = DiscoverIntentStore(discover_intent_store_path(self.repo_root))
+            self._discover_intents_store = store
+        return store
+
+    def discover_intent_create(self, *, research_need: str, title: str = "", candidate: dict | None = None, session_id: str = "", user_email: str = "") -> dict:
+        return self._discover_intent_store().create(research_need=research_need, title=title, candidate=candidate, session_id=session_id, user_email=user_email)
+
+    def _discover_intent_with_job(self, intent: dict) -> dict:
+        item = dict(intent)
+        state = dict(item.get("state") or {})
+        collection = dict(state.get("collection") or {})
+        job_id = str(collection.get("job_id") or "")
+        if job_id:
+            job = self.jobs.get(job_id)
+            result = job.get("result") or {}
+            promotion = result.get("registry_promotion") or []
+            registered_id = str(job.get("registered_dataset_id") or result.get("registered_dataset_id") or next((row.get("dataset_id") for row in promotion if row.get("dataset_id")), "") or "")
+            collection["status"] = str(job.get("status") or collection.get("status") or "unknown")
+            if registered_id:
+                collection["registered_dataset_id"] = registered_id
+            state["collection"] = collection
+            item["job"] = job
+        item["state"] = state
+        return item
+
+    def discover_intent_list(self, *, limit: int = 30, session_id: str = "") -> dict:
+        rows = self._discover_intent_store().list(limit=limit, session_id=session_id)
+        return {"intents": [self._discover_intent_with_job(row) for row in rows], "total": len(rows)}
+
+    def discover_intent_get(self, intent_id: str) -> dict:
+        return self._discover_intent_with_job(self._discover_intent_store().get(intent_id))
+
+    def discover_intent_set_proposal(self, intent_id: str, proposal: dict) -> dict:
+        return self._discover_intent_store().set_proposal(intent_id, proposal)
+
+    def discover_intent_review(self, intent_id: str, *, decision: str, proposal_id: str, proposal_hash: str) -> dict:
+        return self._discover_intent_store().review_proposal(intent_id, decision=decision, proposal_id=proposal_id, proposal_hash=proposal_hash)
+
+    def discover_intent_select_route(self, intent_id: str, route_id: str) -> dict:
+        return self._discover_intent_store().select_route(intent_id, route_id)
+
+    def discover_intent_submit_collection(self, intent_id: str, *, limit: int = 200) -> dict:
+        store = self._discover_intent_store()
+        intent = store.get(intent_id)
+        state = intent.get("state") or {}
+        selected_id = str(state.get("selected_route_id") or "")
+        route = next((row for row in state.get("routes") or [] if row.get("id") == selected_id), None)
+        if not route:
+            raise ValueError("select a reviewed acquisition route before collection")
+        connector_id = str(route.get("connector_id") or "")
+        if not connector_id:
+            raise ValueError("selected route cannot be collected until it has a verified connector")
+        plan = dict(self.procurement.manifest_plan_from_connector(connector_id, limit=min(max(int(limit), 1), 2000)))
+        plan.update({"discover_intent_id": intent_id, "candidate_key": route.get("candidate_key") or (state.get("candidate") or {}).get("candidate_key") or "", "destination": route.get("destination") or plan.get("destination") or "", "refresh_strategy": route.get("refresh") or ""})
+        submitted = self.jobs.submit(plan.get("title") or intent.get("title") or "Discover collection", plan, {"source": "discover_intent", "discover_intent_id": intent_id, "research_need": intent.get("research_need") or "", "route_id": selected_id, "connector_id": connector_id}, auto_approve=False)
+        job = submitted.get("job") or {}
+        linked = store.link_job(intent_id, job)
+        return {"intent": self._discover_intent_with_job(linked), "job": job}
+
+    # --- Discover Explore: sources, preview, refresh subscriptions, history ---
+    def _discover_refresh_store(self):
+        from scripts.research_data_mcp.discover_refresh_store import (
+            DiscoverRefreshStore,
+            discover_refresh_store_path,
+        )
+
+        store = getattr(self, "_discover_refresh_subscriptions_store", None)
+        if store is None:
+            store = DiscoverRefreshStore(discover_refresh_store_path(self.repo_root))
+            self._discover_refresh_subscriptions_store = store
+        return store
+
+    def discover_source_search(
+        self,
+        query: str = "",
+        *,
+        limit: int = 24,
+        live: bool = False,
+        semantic: bool = False,
+        prefer: str = "",
+        prefer_embeddings: bool = True,
+    ) -> dict[str, Any]:
+        from scripts.research_data_mcp.discover_source_search import search_discover_sources
+
+        return search_discover_sources(
+            self.repo_root,
+            query,
+            limit=limit,
+            live=live,
+            semantic=semantic,
+            prefer=prefer,
+            prefer_embeddings=prefer_embeddings,
+        )
+
+    def discover_source_preview(
+        self,
+        *,
+        source_id: str = "",
+        connector_id: str = "",
+        candidate_key: str = "",
+        url: str = "",
+        doi: str = "",
+        dataset_id: str = "",
+        name: str = "",
+        limit: int = 5,
+    ) -> dict[str, Any]:
+        from scripts.research_data_mcp.discover_source_preview import preview_discover_source
+
+        return preview_discover_source(
+            self,
+            source_id=source_id,
+            connector_id=connector_id,
+            candidate_key_value=candidate_key,
+            url=url,
+            doi=doi,
+            dataset_id=dataset_id,
+            name=name,
+            limit=limit,
+        )
+
+    def discover_refresh_create(
+        self,
+        *,
+        cadence: str = "manual",
+        destination: str = "",
+        intent_id: str = "",
+        source_id: str = "",
+        connector_id: str = "",
+        candidate_key: str = "",
+        enabled: bool = True,
+    ) -> dict[str, Any]:
+        return self._discover_refresh_store().create(
+            cadence=cadence,
+            destination=destination,
+            intent_id=intent_id,
+            source_id=source_id,
+            connector_id=connector_id,
+            candidate_key=candidate_key,
+            enabled=enabled,
+        )
+
+    def discover_refresh_list(self, *, limit: int = 50, intent_id: str = "", status: str = "") -> dict[str, Any]:
+        rows = self._discover_refresh_store().list(limit=limit, intent_id=intent_id, status=status)
+        return {"subscriptions": rows, "total": len(rows)}
+
+    def discover_refresh_get(self, subscription_id: str) -> dict[str, Any]:
+        return self._discover_refresh_store().get(subscription_id)
+
+    def discover_refresh_pause(self, subscription_id: str) -> dict[str, Any]:
+        return self._discover_refresh_store().pause(subscription_id)
+
+    def discover_refresh_resume(self, subscription_id: str) -> dict[str, Any]:
+        return self._discover_refresh_store().resume(subscription_id)
+
+    def discover_refresh_stop(self, subscription_id: str) -> dict[str, Any]:
+        return self._discover_refresh_store().stop(subscription_id)
+
+    def discover_history(
+        self,
+        *,
+        limit: int = 50,
+        kind: str = "",
+        session_id: str = "",
+        include_jobs: bool = True,
+    ) -> dict[str, Any]:
+        from scripts.research_data_mcp.discover_history import build_discover_history
+
+        intents = self._discover_intent_store().list(limit=min(limit, 100), session_id=session_id)
+        intents = [self._discover_intent_with_job(row) for row in intents]
+        subscriptions = self._discover_refresh_store().list(limit=min(limit, 100))
+        jobs: list[dict[str, Any]] = []
+        if include_jobs:
+            jobs = list((self.jobs.list(limit=min(limit * 2, 100)).get("jobs") or []))
+        return build_discover_history(
+            intents=intents,
+            subscriptions=subscriptions,
+            jobs=jobs,
+            limit=limit,
+            kind=kind,
+            session_id=session_id,
+        )
+
+    def synthesis_thread_create(
+        self,
+        *,
+        objective: str,
+        title: str = "",
+        session_id: str = "",
+        conversation_id: str = "",
+        required_grain: str = "",
+        state: dict | None = None,
+    ) -> dict:
+        return self._synthesis_thread_store().create(
+            objective=objective,
+            title=title,
+            session_id=session_id,
+            conversation_id=conversation_id,
+            required_grain=required_grain,
+            state=state,
+        )
+
+    def synthesis_thread_list(self, *, limit: int = 30, session_id: str = "") -> dict:
+        rows = self._synthesis_thread_store().list(limit=limit, session_id=session_id)
+        return {"threads": rows, "total": len(rows)}
+
+    def synthesis_thread_get(self, thread_id: str) -> dict:
+        return self._synthesis_thread_store().get(thread_id)
+
+    def synthesis_thread_apply_patch(
+        self,
+        thread_id: str,
+        *,
+        decision: str,
+        operations: list | None = None,
+        proposal_id: str = "",
+        proposal_hash: str = "",
+    ) -> dict:
+        return self._synthesis_thread_store().apply_patch_decision(
+            thread_id,
+            decision=decision,
+            operations=operations,
+            proposal_id=proposal_id,
+            proposal_hash=proposal_hash,
+        )
+
+    def synthesis_thread_set_proposal(self, thread_id: str, proposal: dict | None) -> dict:
+        return self._synthesis_thread_store().set_proposal(thread_id, proposal)
+
+    def synthesis_thread_propose_state(
+        self,
+        thread_id: str,
+        *,
+        proposal_id: str,
+        title: str,
+        summary: str,
+        operations: list,
+        reason: str = "",
+        impact: list | None = None,
+        node_id: str = "",
+        execution_spec: dict | None = None,
+    ) -> dict:
+        """Persist a Composer proposal for explicit researcher review only."""
+        proposal = {
+            "id": proposal_id,
+            "title": title,
+            "summary": summary,
+            "operations": operations,
+        }
+        if reason:
+            proposal["reason"] = reason
+        if impact is not None:
+            proposal["impact"] = impact
+        if node_id:
+            proposal["nodeId"] = node_id
+        if execution_spec is not None:
+            proposal["execution_spec"] = execution_spec
+        return self._synthesis_thread_store().set_proposal(thread_id, proposal)
+
+    def synthesis_thread_discover_handoff(self, thread_id: str) -> dict:
+        return self._synthesis_thread_store().discover_handoff(thread_id)
+
+    def synthesis_thread_materialisation(self, thread_id: str) -> dict:
+        return self._synthesis_thread_store().materialisation(thread_id)
+
+    def synthesis_thread_record_execution(self, thread_id: str, job: dict) -> dict:
+        thread = self._synthesis_thread_store().get(thread_id)
+        state = thread.get("state") or {}
+        execution = state.get("execution") or {}
+        plan = job.get("plan") or {}
+        result = job.get("result") or {}
+        materialized = result.get("materialized") or {}
+        output_id = str(materialized.get("dataset_id") or "")
+        promotion = result.get("registry_promotion") or []
+        drive = result.get("drive_finalize") or {}
+        if job.get("status") != "completed" or plan.get("job_type") != "synthesis_execute":
+            raise ValueError("only completed synthesis execution jobs can register output")
+        if plan.get("thread_id") != thread_id or execution.get("job_id") != job.get("id"):
+            raise ValueError("execution job does not match the active synthesis thread revision")
+        if plan.get("accepted_spec_hash") != state.get("accepted_spec_hash") or execution.get("spec_hash") != state.get("accepted_spec_hash"):
+            raise ValueError("execution job does not match the accepted synthesis spec revision")
+        if output_id != execution.get("output_dataset_id") or not result.get("output_manifest_id"):
+            raise ValueError("execution output identity or manifest is missing")
+        if not drive.get("ok") or not any(row.get("dataset_id") == output_id for row in promotion):
+            raise ValueError("execution lacks verified Drive and matching registry promotion evidence")
+        registry_doc = json.loads((self.repo_root / "config/research_query_registry.json").read_text(encoding="utf-8"))
+        row = next((item for item in registry_doc.get("datasets") or [] if item.get("dataset_id") == output_id), None)
+        if not row or not row.get("canonical_remote"):
+            raise ValueError("registered output could not be read back from the registry")
+        return self._synthesis_thread_store().record_execution(thread_id, job, verified=True)
+
+    def synthesis_thread_record_execution_failure(self, thread_id: str, job_id: str, error: str) -> dict:
+        return self._synthesis_thread_store().record_execution_failure(thread_id, job_id, error)
+
+    def synthesis_thread_submit_execution(self, thread_id: str) -> dict:
+        """Submit an accepted, bounded execution spec for researcher approval."""
+        from scripts.research_data_mcp.synthesis_executor import validate_execution_spec
+
+        thread = self._synthesis_thread_store().get(thread_id)
+        state = thread.get("state") or {}
+        spec = validate_execution_spec(dict(state.get("execution_spec") or {}))
+        accepted_hash = str(state.get("accepted_spec_hash") or "")
+        if not accepted_hash:
+            raise ValueError("execution spec has not been accepted as a reviewed revision")
+        execution = state.get("execution") or {}
+        if execution.get("spec_hash") == accepted_hash and execution.get("job_id"):
+            existing = self.jobs.get(str(execution["job_id"]))
+            if existing.get("status") in {"pending_approval", "queued", "running", "completed"}:
+                return {"job": existing, "plan": existing.get("plan") or {}, "idempotent": True}
+        registry_doc = json.loads((self.repo_root / "config/research_query_registry.json").read_text(encoding="utf-8"))
+        if any(row.get("dataset_id") == spec["output_dataset_id"] for row in registry_doc.get("datasets") or []):
+            raise ValueError("output_dataset_id already exists; create a new versioned synthesis asset")
+        plan = {
+            "title": f"Synthesis: {thread.get('title') or spec['output_dataset_id']}",
+            "job_type": "synthesis_execute",
+            "thread_id": thread_id,
+            "execution_spec": spec,
+            "accepted_spec_hash": accepted_hash,
+            "dataset_id": spec["output_dataset_id"],
+            "partition_id": "derived.research-panels",
+            "launchable": True,
+        }
+        submitted = self.jobs.submit(
+            plan["title"],
+            plan,
+            {
+                "thread_id": thread_id,
+                "objective": thread.get("objective") or "",
+                "search_goal": thread.get("objective") or "",
+            },
+            auto_approve=False,
+        )
+        job = submitted.get("job")
+        if job:
+            next_state = dict(state)
+            next_state["execution"] = {
+                "status": "pending_approval",
+                "job_id": job.get("id"),
+                "output_dataset_id": spec["output_dataset_id"],
+                "spec_hash": accepted_hash,
+            }
+            self._synthesis_thread_store()._save_state(thread_id, next_state)
+        return submitted
+
+    def synthesis_thread_link_conversation(
+        self,
+        thread_id: str,
+        *,
+        session_id: str,
+        conversation_id: str = "",
+    ) -> dict:
+        return self._synthesis_thread_store().link_conversation(
+            thread_id,
+            session_id=session_id,
+            conversation_id=conversation_id,
+        )
+
     # --- synthesis (multi-source join) ---
     def synthesis_list_profiles(self) -> dict[str, Any]:
         from scripts.research_data_mcp.synthesis.engine import list_synthesis_profiles
@@ -1249,6 +1627,9 @@ class ResearchDataGateway:
         return self.jobs.submit(title, plan, request, auto_approve=auto_approve)
 
     def approve_yzu_job(self, job_id: str) -> dict[str, Any]:
+        job = self.jobs.get(job_id)
+        if (job.get("plan") or {}).get("job_type") == "synthesis_execute":
+            raise PermissionError("Synthesis execution requires researcher approval through the desk UI")
         return self.jobs.approve(job_id)
 
     def cancel_yzu_job(self, job_id: str) -> dict[str, Any]:

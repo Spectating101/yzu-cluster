@@ -7,6 +7,7 @@ import {
   deskHealth,
   deskResources,
   deskWarm,
+  discoverHistory,
   facultyProfile,
   libraryOps,
   libraryOverview,
@@ -14,6 +15,7 @@ import {
   listDatasets,
   listJobs,
   listPartitions,
+  previewDiscoverSource,
   probePublicSource,
   procurementCatalogSummary,
   submitDiscoverCollect,
@@ -47,6 +49,8 @@ import { mergeHealth, resolveCatalog } from "@/v2/deskSeed";
 import { loadSettings } from "@/v2/settingsStore";
 import { CLUSTER_NAV_DEFERRED } from "@/v2/nav-config.jsx";
 import { browseTargetKey, discoverCandidateUrl } from "@/v2/discoverActions";
+import { durableHistoryToEvents, mergeHistoryEvents } from "@/v2/discoverAdapters";
+import { discoverModeFromLegacy, discoverModeToUrlState } from "@/v2/discoverMode";
 import { discoverCandidateState } from "@/v2/browseMeta";
 import { jobToCandidateRow, pendingApprovalJobs } from "@/v2/procurementJobs";
 import { buildRailContext } from "@/v2/railContext";
@@ -63,24 +67,16 @@ function readParams() {
   if (tab === "browse" && folder && !q) {
     tab = "library";
   }
-  // Discover modes: search (default) | activity (acquisition control) | history (research trail).
-  // Legacy mode=approvals|awaiting deep-links land on Activity.
-  let discoverMode = "search";
-  if (tab === "browse") {
-    if (rawMode === "activity" || rawMode === "approvals" || rawMode === "awaiting") {
-      discoverMode = "activity";
-    } else if (rawMode === "history") {
-      discoverMode = "history";
-    }
-  }
+  // Discover has only Explore and History. Legacy modes normalize to an accepted state.
+  const discoverState = tab === "browse" ? discoverModeFromLegacy(rawMode) : { mode: "explore", focusAwaiting: false };
   return {
     tab,
     dataset: p.get("dataset") || "",
     folder,
     preview: p.get("preview") === "1",
     q,
-    discoverMode,
-    discoverFocusAwaiting: rawMode === "approvals" || rawMode === "awaiting",
+    discoverMode: discoverState.mode,
+    discoverFocusAwaiting: discoverState.focusAwaiting,
   };
 }
 
@@ -91,9 +87,8 @@ function writeParams({ tab, dataset, folder, preview, q, mode }) {
   if (dataset) p.set("dataset", dataset);
   if (preview) p.set("preview", "1");
   if (q) p.set("q", q);
-  if (tab === "browse" && (mode === "activity" || mode === "approvals" || mode === "history")) {
-    p.set("mode", mode === "approvals" ? "approvals" : mode);
-  }
+  const discoverMode = tab === "browse" ? discoverModeToUrlState(mode) : "";
+  if (discoverMode) p.set("mode", discoverMode);
   const qs = p.toString();
   const url = `${window.location.pathname}${qs ? `?${qs}` : ""}`;
   window.history.replaceState(null, "", url);
@@ -177,6 +172,8 @@ export function V2App() {
   const [catalogSummary, setCatalogSummary] = useState(null);
   const [cluster, setCluster] = useState(null);
   const [resourcesRollup, setResourcesRollup] = useState(undefined);
+
+  const [durableHistoryEvents, setDurableHistoryEvents] = useState([]);
   const [resourcesRefreshedAt, setResourcesRefreshedAt] = useState(null);
   const [resourceMode, setResourceMode] = useState("spending");
   const [activityFilter, setActivityFilter] = useState(null);
@@ -428,7 +425,7 @@ export function V2App() {
   const goTab = useCallback(
     (id) => {
       if (id !== "browse") {
-        setDiscoverMode("search");
+        setDiscoverMode("explore");
         setDiscoverFocusAwaiting(false);
         setDiscoverActivityFilter("all");
         setDiscoverFilter("all");
@@ -441,7 +438,7 @@ export function V2App() {
         setPreviewTarget(null);
         setActiveObject(null);
         setRailTab("detail");
-        syncUrl({ tab: id, dataset: "", preview: false, mode: "search" });
+        syncUrl({ tab: id, dataset: "", preview: false, mode: "explore" });
         return;
       }
       setTab(id);
@@ -479,14 +476,32 @@ export function V2App() {
     [selectedId, selectedFromList, syncUrl],
   );
 
-  const openPreviewExternal = useCallback((row) => {
+  const openPreviewExternal = useCallback(async (row) => {
     if (!row) return;
     setBrowseRow(row);
     setActiveObject(externalCandidateObject(row));
-    setPreviewTarget(row);
     setPreviewMode("external");
-    setPreviewOpen(true);
     setRailTab("detail");
+    const canPreview =
+      row.source_id || row.connector_id || row.candidate_key || row.url || row.dataset_id;
+    if (canPreview) {
+      try {
+        const preview = await previewDiscoverSource({
+          sourceId: row.source_id || "",
+          connectorId: row.connector_id || "",
+          candidateKey: row.candidate_key || "",
+          url: discoverCandidateUrl(row) || row.url || "",
+          datasetId: row.dataset_id || "",
+        });
+        setPreviewTarget({ ...row, source_preview: preview });
+        setPreviewOpen(true);
+        return;
+      } catch {
+        /* fall through to metadata-only preview */
+      }
+    }
+    setPreviewTarget(row);
+    setPreviewOpen(true);
   }, []);
 
   const askFromSearch = useCallback(() => {
@@ -542,17 +557,17 @@ export function V2App() {
 
   const openDiscoverActivity = useCallback(
     ({ job = null, focusAwaiting = false } = {}) => {
-      setDiscoverMode("activity");
+      setDiscoverMode("explore");
       setDiscoverFocusAwaiting(Boolean(focusAwaiting || job));
       setDiscoverActivityFilter(focusAwaiting || job ? "awaiting" : "all");
       setDiscoverFilter(focusAwaiting || job ? "awaiting" : "all");
-      // Preserve searchQuery — Activity hides Search UI but must not wipe the loop.
+      // Preserve searchQuery — the Explore queue must not wipe the research loop.
       setTab("browse");
       setRailTab("detail");
       syncUrl({
         tab: "browse",
         q: searchQuery.trim(),
-        mode: focusAwaiting || job ? "approvals" : "activity",
+        mode: "explore",
       });
       const targetJob =
         (job?.id ? jobs.find((j) => j.id === job.id) : null) ||
@@ -578,39 +593,26 @@ export function V2App() {
   );
 
   const setDiscoverModeSafe = useCallback(
-    (mode) => {
-      const next = mode === "activity" || mode === "history" ? mode : "search";
+    (rawMode) => {
+      const nextState = discoverModeFromLegacy(rawMode);
+      const next = nextState.mode;
       setDiscoverMode(next);
-      if (next === "search") {
-        setDiscoverFocusAwaiting(false);
-        setDiscoverActivityFilter("all");
-        setDiscoverFilter("all");
+      setDiscoverFocusAwaiting(nextState.focusAwaiting);
+      setDiscoverActivityFilter("all");
+      setDiscoverFilter("all");
+      if (next === "explore") {
         setBrowseRow((prev) => (prev?.kind === "job_pending" ? null : prev));
         setActiveObject((prev) => {
           if (prev?.kind === "history_event") return null;
           if (prev?.kind === "external_candidate" && prev?.row?.kind === "job_pending") return null;
           return prev;
         });
-        syncUrl({ tab: "browse", q: searchQuery.trim(), mode: "search" });
-      } else if (next === "activity") {
-        setDiscoverFocusAwaiting(false);
-        setDiscoverActivityFilter("all");
-        setDiscoverFilter("all");
-        setBrowseRow((prev) => (prev?.kind === "job_pending" ? prev : null));
-        setActiveObject((prev) => {
-          if (prev?.kind === "external_candidate" && prev?.row?.kind === "job_pending") return prev;
-          return null;
-        });
-        syncUrl({ tab: "browse", q: searchQuery.trim(), mode: "activity" });
       } else {
-        setDiscoverFocusAwaiting(false);
-        setDiscoverActivityFilter("all");
-        setDiscoverFilter("all");
         setBrowseRow(null);
         setActiveObject((prev) => (prev?.kind === "history_event" ? prev : null));
         setRailTab("detail");
-        syncUrl({ tab: "browse", q: searchQuery.trim(), mode: "history" });
       }
+      syncUrl({ tab: "browse", q: searchQuery.trim(), mode: next });
     },
     [searchQuery, syncUrl],
   );
@@ -650,7 +652,12 @@ export function V2App() {
           const out = await submitDiscoverCollect(connectorId, {
             limit: 200,
             autoApprove: false,
-            destination: discoverDestination,
+            destination: dest,
+            candidateKey: target?.candidate_key || "",
+            sourceId: target?.source_id || "",
+            url: discoverCandidateUrl(target) || target?.url || "",
+            provider: target?.provider || target?.source || "",
+            kind: target?.kind || "",
           });
           touchRecentDestination(discoverDestination);
           setDestinationRecentsTick((n) => n + 1);
@@ -702,7 +709,13 @@ export function V2App() {
     }
     setBrowseProbe({ key, loading: true, result: null, error: "" });
     try {
-      const out = await probePublicSource(url, target?.title || target?.name || "");
+      const out = await probePublicSource(url, target?.title || target?.name || "", {
+        candidateKey: target?.candidate_key || "",
+        sourceId: target?.source_id || "",
+        connectorId: target?.connector_id || "",
+        provider: target?.provider || target?.source || "",
+        kind: target?.kind || "",
+      });
       if (out?.error) {
         setBrowseProbe({ key, loading: false, result: null, error: String(out.error) });
         return;
@@ -902,6 +915,21 @@ export function V2App() {
     setRailTab("detail");
   }, []);
 
+  
+  useEffect(() => {
+    let cancelled = false;
+    discoverHistory({ limit: 50 })
+      .then((data) => {
+        if (!cancelled) setDurableHistoryEvents(durableHistoryToEvents(data));
+      })
+      .catch(() => {
+        if (!cancelled) setDurableHistoryEvents([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [jobs]);
+
   const selectHistoryEvent = useCallback((event) => {
     if (!event) {
       setActiveObject((current) => (current?.kind === "history_event" ? null : current));
@@ -991,12 +1019,12 @@ export function V2App() {
           searchQuery={searchQuery}
           onSearchChange={(q) => {
             setSearchQuery(q);
-            if (discoverMode !== "search") {
-              setDiscoverMode("search");
+            if (discoverMode !== "explore" && discoverMode !== "search") {
+              setDiscoverMode("explore");
               setDiscoverFocusAwaiting(false);
               setDiscoverActivityFilter("all");
               setDiscoverFilter("all");
-              syncUrl({ tab: "browse", q, mode: "search" });
+              syncUrl({ tab: "browse", q, mode: "explore" });
             }
           }}
           jobs={jobs}
@@ -1014,19 +1042,19 @@ export function V2App() {
           usingSeed={usingSeed}
           onSuggestSearch={(q) => {
             setSearchQuery(q);
-            setDiscoverMode("search");
+            setDiscoverMode("explore");
             setDiscoverFocusAwaiting(false);
             setDiscoverActivityFilter("all");
             setDiscoverFilter("all");
             setTab("browse");
-            syncUrl({ tab: "browse", q, mode: "search" });
+            syncUrl({ tab: "browse", q, mode: "explore" });
           }}
           onSearchWeb={askSearchWeb}
           onResearchQuestion={researchFromDiscover}
           onSelectRow={selectBrowseRow}
           onMergedRowsChange={setBrowsePeerRows}
           onApproveSafeJobs={handleApproveSafeJobs}
-          historyEvents={resourcesRollup?.activity?.events || []}
+          historyEvents={mergeHistoryEvents(durableHistoryEvents, resourcesRollup?.activity?.events || [])}
           selectedHistoryId={activeObject?.kind === "history_event" ? activeObject.id : ""}
           onSelectHistoryEvent={selectHistoryEvent}
         />
@@ -1071,12 +1099,12 @@ export function V2App() {
           onGoTab={goTab}
           onSuggestSearch={(q) => {
             setSearchQuery(q);
-            setDiscoverMode("search");
+            setDiscoverMode("explore");
             setDiscoverFocusAwaiting(false);
             setDiscoverActivityFilter("all");
             setDiscoverFilter("all");
             setTab("browse");
-            syncUrl({ tab: "browse", q, mode: "search" });
+            syncUrl({ tab: "browse", q, mode: "explore" });
           }}
         />
       );
@@ -1113,9 +1141,17 @@ export function V2App() {
             ? health?.status === "ok"
               ? "empty"
               : "demo"
-            : health?.status === "ok" || datasets.length > 0
-              ? "ok"
-              : health?.status || "unknown"
+            : health?.status === "ok"
+              ? "synced"
+              : health?.status === "degraded"
+                ? "cached"
+                : health?.status === "demo"
+                  ? "demo"
+                  : !health
+                    ? "unknown"
+                    : datasets.length > 0
+                      ? "cached"
+                      : "offline"
         }
         refreshedAt={deskRefreshedAt}
       />

@@ -79,15 +79,73 @@ export function webDiscover(query = "", limit = 8, tavilyLive = true) {
   return fetchJson(`/library/discover/web?${params}`, { timeoutMs: 10000 });
 }
 
-export function probePublicSource(url, name = "") {
-  return fetchJson("/library/discover/probe", {
+/** Explore source catalogue — preferred Discover search contract. */
+export function discoverSources(query = "", { limit = 12, live = false, prefer = "" } = {}) {
+  const params = new URLSearchParams({ q: query, limit: String(limit) });
+  if (live) params.set("live", "1");
+  if (prefer) params.set("prefer", prefer);
+  return fetchJson(`/library/discover/sources?${params}`, { timeoutMs: 10000 });
+}
+
+/** Durable Discover history (intents / subscriptions / collection runs). */
+export function discoverHistory({ limit = 50, kind = "", sessionId = "" } = {}) {
+  const params = new URLSearchParams({ limit: String(limit) });
+  if (kind) params.set("kind", kind);
+  if (sessionId) params.set("session_id", sessionId);
+  return fetchJson(`/library/discover/history?${params}`, { timeoutMs: 8000 });
+}
+
+/** Bounded Explore source preview. */
+export function previewDiscoverSource({
+  sourceId = "",
+  connectorId = "",
+  candidateKey = "",
+  url = "",
+  datasetId = "",
+  limit = 20,
+} = {}) {
+  return fetchJson("/library/discover/sources/preview", {
     method: "POST",
     headers: deskHeaders(),
-    body: JSON.stringify({ url, name }),
+    body: JSON.stringify({
+      source_id: sourceId || undefined,
+      connector_id: connectorId || undefined,
+      candidate_key: candidateKey || undefined,
+      url: url || undefined,
+      dataset_id: datasetId || undefined,
+      limit,
+    }),
+    timeoutMs: 15000,
   });
 }
 
-export function submitDiscoverCollect(connectorId, { limit = 200, autoApprove = false, destination = "" } = {}) {
+export function probePublicSource(url, name = "", extra = {}) {
+  return fetchJson("/library/discover/probe", {
+    method: "POST",
+    headers: deskHeaders(),
+    body: JSON.stringify({
+      url,
+      name,
+      candidate_key: extra.candidateKey || extra.candidate_key || undefined,
+      source_id: extra.sourceId || extra.source_id || undefined,
+      connector_id: extra.connectorId || extra.connector_id || undefined,
+      provider: extra.provider || undefined,
+      kind: extra.kind || undefined,
+      external_id: extra.externalId || extra.external_id || undefined,
+    }),
+  });
+}
+
+export function submitDiscoverCollect(connectorId, {
+  limit = 200,
+  autoApprove = false,
+  destination = "",
+  candidateKey = "",
+  sourceId = "",
+  url = "",
+  provider = "",
+  kind = "",
+} = {}) {
   return fetchJson("/library/discover/collect", {
     method: "POST",
     headers: deskHeaders(),
@@ -96,6 +154,11 @@ export function submitDiscoverCollect(connectorId, { limit = 200, autoApprove = 
       limit,
       auto_approve: autoApprove,
       destination: destination || undefined,
+      candidate_key: candidateKey || undefined,
+      source_id: sourceId || undefined,
+      url: url || undefined,
+      provider: provider || undefined,
+      kind: kind || undefined,
     }),
   });
 }

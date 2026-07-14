@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { discoverSearch, semanticDiscover, unifiedSearch, webDiscover } from "@/v2/api";
+import { discoverSearch, discoverSources, semanticDiscover, unifiedSearch, webDiscover } from "@/v2/api";
+import { sourcesResponseToRows } from "@/v2/discoverAdapters";
 import {
   discoverCandidateState,
   discoverStageCounts,
@@ -12,7 +13,6 @@ import {
 } from "@/v2/procurementJobs";
 import { loadUserEmail } from "@/v2/deskSession";
 import { discoverDemoSearch } from "@/v2/deskSeed";
-import { DiscoverActivityPanel } from "@/v2/DiscoverActivityPanel";
 import { DiscoverHistoryPanel } from "@/v2/DiscoverHistoryPanel";
 import { DiscoverEmptyState, DiscoverSuggestedCards } from "@/v2/DiscoverEmptyState";
 import { discoverSuggestedRows } from "@/v2/discoverSuggested";
@@ -25,11 +25,40 @@ const RESULT_FILTERS = [
   { id: "in_lab", label: "In lab" },
 ];
 
-function DiscoverModeTabs({ mode = "search", pendingCount = 0, onChange }) {
+function DiscoverQueueStrip({ rows = [], selectedId, onSelectJob }) {
+  if (!rows.length) return null;
+  return (
+    <section className="rd-v2-discover-queue-strip" data-testid="discover-queue-strip" aria-label="Discover requests needing review">
+      <div className="rd-v2-discover-queue-strip__head">
+        <span>Needs your review</span>
+        <small>{rows.length} request{rows.length === 1 ? "" : "s"}</small>
+      </div>
+      <div className="rd-v2-discover-queue-strip__rows">
+        {rows.slice(0, 3).map((row) => {
+          const selected = String(selectedId || "") === String(row.dataset_id || row.id || "");
+          return (
+            <button
+              key={row.id || row.dataset_id || row.title}
+              type="button"
+              className={selected ? "on" : ""}
+              data-testid="discover-queue-row"
+              aria-pressed={selected}
+              onClick={() => onSelectJob?.(row)}
+            >
+              <strong>{row.title || "Collection request"}</strong>
+              <span>{row.status_label || "Approval required"}</span>
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function DiscoverModeTabs({ mode = "explore", pendingCount = 0, onChange }) {
   const tabs = [
-    { id: "search", label: "Search" },
-    { id: "activity", label: pendingCount ? `Activity · ${pendingCount}` : "Activity" },
-    { id: "history", label: "History" },
+    { id: "explore", label: "Explore" },
+    { id: "history", label: pendingCount ? `History · ${pendingCount}` : "History" },
   ];
   return (
     <div className="rd-v2-discover-modes" role="tablist" aria-label="Discover mode">
@@ -533,7 +562,7 @@ function DiscoverSearchSummary({ rows, loading, sourceLabel, showExternal }) {
   // Never claim "Checking…" once we already have rows — that stuck status was the audit failure.
   const status = loading && !rows.length
     ? "Searching…"
-    : [sourceLabel || (loading ? "Searching…" : "Search"), showExternal ? "includes open web" : null]
+    : [sourceLabel || (loading ? "Searching…" : "Explore"), showExternal ? "includes open web" : null]
         .filter(Boolean)
         .join(" · ");
 
@@ -729,18 +758,38 @@ export function BrowsePage({
           setSearchPhase("idle");
           return;
         }
-        const discover = await discoverSearch(q, 12, email);
+        // Preferred Explore contract: /library/discover/sources
+        let exploreRows = [];
+        try {
+          const sources = await discoverSources(q, { limit: 12 });
+          if (cancelled) return;
+          exploreRows = sourcesResponseToRows(sources);
+          if (exploreRows.length) {
+            apply({ sections: [{ id: "explore", rows: exploreRows }] }, "explore");
+          }
+        } catch {
+          /* fall through to legacy discover cascade */
+        }
+
+        const discover = exploreRows.length
+          ? { sections: [{ id: "explore", rows: exploreRows }], index_miss: false, weak_match: false }
+          : await discoverSearch(q, 12, email);
         if (cancelled) return;
-        const discoverRows = dedupeRows([...immediateCatalog, ...flattenRows(discover)]);
-        if (discoverRows.length) {
+        const discoverRows = dedupeRows([
+          ...immediateCatalog,
+          ...(exploreRows.length ? exploreRows : flattenRows(discover)),
+        ]);
+        if (discoverRows.length && !exploreRows.length) {
           apply({ sections: [{ id: "discover", rows: discoverRows }] }, "discover");
         }
         const needsUnified =
           discoverRows.length === 0 || Boolean(discover.index_miss || discover.weak_match);
         let mergedRows = discoverRows;
-        let label = discoverRows.length ? (immediateCatalog.length ? "catalog" : "discover") : "";
+        let label = discoverRows.length
+          ? (exploreRows.length ? "explore" : immediateCatalog.length ? "catalog" : "discover")
+          : "";
         let miss = Boolean(discover.index_miss) && discoverRows.length === 0;
-        let external = false;
+        let external = Boolean(exploreRows.length);
 
         if (needsUnified) {
           setSearchPhase("search");
@@ -876,11 +925,12 @@ export function BrowsePage({
               : null;
 
   const q = (semanticSearch.goal || searchQuery || "").trim();
-  const showActivity = discoverMode === "activity";
+  const isExplore = discoverMode === "explore" || discoverMode === "search";
   const showHistory = discoverMode === "history";
-  const showDefaultHome = discoverMode === "search" && !q;
+  const showQueueStrip = isExplore && pendingRows.length > 0;
+  const showDefaultHome = isExplore && !q;
   const hasContextDataset = Boolean(contextDataset?.dataset_id);
-  const showSearchResults = discoverMode === "search" && Boolean(q);
+  const showSearchResults = isExplore && Boolean(q);
   const allInLab =
     !loading && !semanticSearch.loading && showSearchResults && merged.length > 0 && stageCounts.inLab > 0 && stageCounts.inLab === merged.length;
 
@@ -893,12 +943,12 @@ export function BrowsePage({
     [suggestedRows, jobs, jobBindings],
   );
 
-  const commitSearch = (raw, { switchToSearch = false } = {}) => {
+  const commitSearch = (raw, { switchToExplore = false } = {}) => {
     const next = String(raw ?? draftQuery ?? "").trim();
     setDraftQuery(next);
     setSemanticSearch({ goal: "", loading: false, error: "", total: 0 });
-    if (switchToSearch || discoverMode !== "search") {
-      onDiscoverModeChange?.("search");
+    if (switchToExplore || (discoverMode !== "explore" && discoverMode !== "search")) {
+      onDiscoverModeChange?.("explore");
     }
     onSearchChange?.(next);
     onSuggestSearch?.(next);
@@ -913,7 +963,7 @@ export function BrowsePage({
     setSource("");
     setError("");
     onSelectRow?.(null);
-    if (discoverMode !== "search") onDiscoverModeChange?.("search");
+    if (discoverMode !== "explore" && discoverMode !== "search") onDiscoverModeChange?.("explore");
     try {
       const out = await semanticDiscover(goal, 12);
       const semanticRows = (out.sections || []).flatMap((section) => section.rows || []);
@@ -931,7 +981,7 @@ export function BrowsePage({
   };
 
   const runSuggestedSearch = (suggestion) => {
-    commitSearch(suggestion, { switchToSearch: true });
+    commitSearch(suggestion, { switchToExplore: true });
   };
 
   const clearSearch = () => {
@@ -960,7 +1010,7 @@ export function BrowsePage({
 
   const toolbarTrailing = (
     <>
-      {demoFallback || (usingSeed && source === "demo" && !loading && discoverMode === "search") ? (
+      {demoFallback || (usingSeed && source === "demo" && !loading && isExplore) ? (
         <Chip warn>Offline sample</Chip>
       ) : null}
       {pendingRows.length ? (
@@ -1011,27 +1061,21 @@ export function BrowsePage({
           setDraftQuery={setDraftQuery}
           searchInputRef={searchInputRef}
           placeholder={searchPlaceholder}
-          onCommit={(value) => commitSearch(value, { switchToSearch: true })}
+          onCommit={(value) => commitSearch(value, { switchToExplore: true })}
           onSemanticSearch={runSemanticSearch}
           onClear={clearSearch}
           trailing={toolbarTrailing}
         />
       }
     >
-      {showActivity ? (
-        <DiscoverActivityPanel
-          jobs={jobs}
+      {showQueueStrip ? (
+        <DiscoverQueueStrip
+          rows={pendingRows}
           selectedId={selectedId}
-          focusAwaiting={discoverFocusAwaiting}
-          activityFilter={discoverActivityFilter}
-          onActivityFilterChange={onDiscoverActivityFilterChange}
-          onApproveSafeJobs={onApproveSafeJobs}
-          onSelectJob={(job) => {
-            const row = jobToCandidateRow(job);
-            if (row) onSelectRow?.(row);
-          }}
+          onSelectJob={(row) => onSelectRow?.(row)}
         />
-      ) : showHistory ? (
+      ) : null}
+      {showHistory ? (
         <DiscoverHistoryPanel
           events={historyEvents}
           selectedId={selectedHistoryId}

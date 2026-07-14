@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { getSynthesisProfile, listSynthesisProfiles } from "@/v2/api";
+import { getSynthesisProfile, listSynthesisProfiles, runSynthesis } from "@/v2/api";
 import { Chip, ChipRow, PageShell } from "@/v2/ui";
 
 const FEATURED_ID = "stablecoin_trust_engagement";
@@ -72,10 +72,27 @@ export function SynthesisPage({ onAskComposer, onToast }) {
     if (!profileId) return;
     setBusy(true);
     try {
-      const out = await getSynthesisProfile(profileId, { refresh });
+      if (refresh) {
+        const out = await runSynthesis(profileId);
+        setDetail(out);
+        setError("");
+        onToast?.(`Synthesis run finished · ${profileId}`);
+        try {
+          const catalog = await listSynthesisProfiles();
+          setCatalog(catalog);
+        } catch {
+          /* keep prior catalog */
+        }
+        return;
+      }
+      const out = await getSynthesisProfile(profileId);
+      if (out && out.found === false) {
+        setDetail(null);
+        setError("");
+        return;
+      }
       setDetail(out);
       setError("");
-      if (refresh) onToast?.(`Synthesis run finished · ${profileId}`);
     } catch (err) {
       setError(err.message || String(err));
     } finally {

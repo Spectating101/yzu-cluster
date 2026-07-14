@@ -91,16 +91,22 @@ export function V2DeskHeader({
       )}
       <div className="rd-v2-header-meta">
         <div className="rd-v2-trust-strip" aria-label="Desk status">
-          {deskStatus === "ok" ? (
+          {deskStatus === "ok" || deskStatus === "synced" ? (
             <span className="rd-v2-trust-badge ok" title={fresh ? `Updated ${fresh}` : "Registry connected"}>
-              Live
+              Synced
+            </span>
+          ) : deskStatus === "cached" ? (
+            <span className="rd-v2-trust-badge muted" title="Serving cached desk state">
+              Cached
             </span>
           ) : deskStatus === "empty" ? (
             <span className="rd-v2-trust-badge warn">Empty registry</span>
           ) : usingSeed || deskStatus === "demo" ? (
             <span className="rd-v2-trust-badge warn">Demo</span>
-          ) : (
+          ) : deskStatus === "offline" ? (
             <span className="rd-v2-trust-badge warn">Offline</span>
+          ) : (
+            <span className="rd-v2-trust-badge muted">Unknown</span>
           )}
           {dryRunProtected ? (
             <span className="rd-v2-trust-badge muted" title="Remote queries stay dry-run until approved">

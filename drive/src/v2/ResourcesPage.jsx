@@ -12,14 +12,14 @@ import { Chip, PageShell, StatementRow, StatementSection } from "@/v2/ui";
 
 const PLACEHOLDER_ROLLUP = {
   hero: {
-    composer: { model: "composer-2.5", configured: true, legacy_configured: false },
+    composer: { model: "", configured: false, legacy_configured: false },
     workers: {},
     vault: {},
-    query_engine: { port: 8765, up: true },
+    query_engine: { port: 8765, up: false },
   },
-  ai: { composer_model: "composer-2.5", mcp_tools: {} },
+  ai: { composer_model: "", mcp_tools: {} },
   metered: {
-    bigquery: { configured: true },
+    bigquery: { configured: false },
     tavily: { keys_loaded: 0 },
   },
   spending: {
@@ -30,6 +30,7 @@ const PLACEHOLDER_ROLLUP = {
   activity: { events: [] },
   motion: { jobs: {} },
   issues: [],
+  _placeholder: true,
 };
 
 function shortText(value, max = 92) {

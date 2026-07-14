@@ -3,11 +3,14 @@ import { Chip } from "@/v2/ui";
 
 const HISTORY_FILTERS = [
   { id: "all", label: "All" },
+  { id: "needs_approval", label: "Needs approval" },
+  { id: "active", label: "Active" },
+  { id: "ready", label: "Ready" },
+  { id: "needs_recovery", label: "Recovery" },
+  { id: "scheduled", label: "Scheduled" },
   { id: "search", label: "Search" },
   { id: "probe", label: "Probe" },
-  { id: "query", label: "Query" },
   { id: "procure", label: "Procure" },
-  { id: "registered", label: "Registered" },
 ];
 
 const ACTION_LABELS = {
@@ -25,6 +28,9 @@ const ACTION_LABELS = {
   register: "Registered",
   registry_promote: "Registered",
   synthesis: "Synthesis built",
+  intent: "Discover intent",
+  subscription: "Refresh subscription",
+  collection_run: "Collection run",
 };
 
 function cleanTarget(value) {
@@ -35,10 +41,20 @@ function cleanTarget(value) {
 
 function eventKind(event) {
   const action = String(event?.action || "").toLowerCase();
+  const status = String(event?.status || event?.meta?.status || "").toLowerCase();
+  if (event?.durable || event?.kind) {
+    if (/pending_approval|ready_for_review|awaiting|needs_approval/.test(status)) return "needs_approval";
+    if (/queued|running|active|in_progress/.test(status)) return "active";
+    if (/failed|error|needs_recovery|blocked/.test(status)) return "needs_recovery";
+    if (action === "subscription" || /scheduled|paused/.test(status)) return "scheduled";
+    if (/completed|ready|registered|archived|done|succeeded/.test(status)) return "ready";
+    if (action === "intent") return "needs_approval";
+    if (action === "collection_run") return "active";
+  }
   if (/discover|search/.test(action)) return "search";
   if (/probe/.test(action)) return "probe";
   if (/query|preview|bq_/.test(action)) return "query";
-  if (/register|promote/.test(action)) return "registered";
+  if (/register|promote/.test(action)) return "ready";
   if (/procure|job_|approve|archive|collect/.test(action)) return "procure";
   return action || "other";
 }
@@ -80,10 +96,12 @@ function eventOutcome(event) {
     const latest = meta.total != null ? ` · ${meta.total} latest results` : "";
     return `${meta.repeat_count} repeated searches${latest}`;
   }
+  if (meta.summary) return String(meta.summary);
+  if (event?.summary) return String(event.summary);
   if (meta.dataset_id) return `Dataset · ${meta.dataset_id}`;
   if (meta.job_id) return `Job · ${meta.job_id}`;
   if (meta.total != null) return `${meta.total} result${meta.total === 1 ? "" : "s"}`;
-  if (meta.status) return String(meta.status).replace(/_/g, " ");
+  if (meta.status || event?.status) return String(meta.status || event.status).replace(/_/g, " ");
   return eventKind(event) === "search" ? "Research discovery" : "Recorded by the desk";
 }
 
@@ -166,7 +184,7 @@ export function DiscoverHistoryPanel({
         <div>
           <span className="rd-v2-eyebrow">Research trail</span>
           <h2>From question to registered evidence</h2>
-          <p>Searches, probes, queries and procurement outcomes remain linked so the lab can reuse prior work.</p>
+          <p>Intents, collection runs, approvals and prior searches stay linked so the lab can reuse prior work.</p>
         </div>
         <strong>{normalized.length} recorded event{normalized.length === 1 ? "" : "s"}</strong>
       </div>
