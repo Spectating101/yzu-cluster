@@ -153,9 +153,45 @@ def _probe_fallback_plan(
     source_id: str,
     candidate_key: str,
     catalog_connector_id: str,
+    prefer_browser: bool = True,
 ) -> dict[str, Any]:
+    """When catalog has no file manifest: browser scrape (Spectator/windows_lab) or probe."""
     probe_url = _https_url(url)
     label = title or source_id or catalog_connector_id or connector_id or "Discover source"
+    # Site roots / OpenAPI portals need Playwright — not a fake file harvest.
+    path = ""
+    try:
+        from urllib.parse import urlparse
+        path = (urlparse(probe_url).path or "").rstrip("/")
+    except Exception:  # noqa: BLE001
+        path = ""
+    looks_like_portal = prefer_browser and probe_url.startswith("http") and (
+        not path or path in {"", "/"} or path.endswith((".html", ".htm", "/openapi", "/api"))
+        or "openapi." in probe_url
+        or "mops." in probe_url
+    )
+    if looks_like_portal:
+        return {
+            "title": f"Discover scrape · {label}",
+            "job_type": "scraper_run",
+            "script_key": "generic_url_scrape",
+            "url": probe_url,
+            "scrape_mode": "page",
+            "launchable": True,
+            "requires_approval": True,
+            "agent_initiated": True,
+            "timeout_seconds": 1800,
+            "connector_id": connector_id or catalog_connector_id,
+            "catalog_connector_id": catalog_connector_id or connector_id,
+            "source_id": source_id,
+            "candidate_key": candidate_key,
+            "collect_resolution": "catalog_browser_scrape_fallback",
+            "collect_note": (
+                "No bounded HTTP file manifest; queued Spectator generic_url_scrape "
+                "on windows_lab (Discover-linked)."
+            ),
+            "pool_hint": "windows_lab",
+        }
     return {
         "title": f"Discover collect · {label}",
         "job_type": "source_probe",

@@ -323,6 +323,7 @@ def is_direct_discovery_message(message: str, rail_context: dict[str, Any] | Non
         or is_direct_discover_search_message(message, rail_context)
         or is_direct_discover_collect_message(message, rail_context)
         or is_direct_approve_job_message(message, rail_context)
+        or (parse_scrape_request(message, rail_context) is not None)
         or is_direct_status_message(message)
         or is_direct_describe_message(message, rail_context)
         or is_direct_query_message(message, rail_context)
@@ -950,6 +951,120 @@ def try_direct_approve_job_turn(gateway: Any, message: str, state: dict[str, Any
     )
 
 
+
+_SCRAPE_INTENT = re.compile(
+    r"\b(scrape|browser[- ]?scrape|playwright|spectator\s+scrape)\b",
+    re.I,
+)
+
+
+def parse_scrape_request(message: str, rail_context: dict[str, Any] | None = None) -> dict[str, Any] | None:
+    text = (message or "").strip()
+    if not text:
+        return None
+    urls = extract_urls(text)
+    selected = _rail_selected(rail_context)
+    actions = [str(a).lower() for a in ((rail_context or {}).get("actions") or [])] if isinstance(rail_context, dict) else []
+    wants = bool(_SCRAPE_INTENT.search(text[:200])) or "scrape" in actions
+    if not wants:
+        return None
+    url = urls[0] if urls else ""
+    if not url:
+        endpoint = str(selected.get("url") or selected.get("endpoint") or "").strip()
+        if endpoint:
+            url = endpoint if endpoint.startswith("http") else f"https://{endpoint}"
+    script_key = "generic_url_scrape"
+    m = re.search(r"\b(cake_board|yourator_board|tw_boards_refresh|generic_url_scrape)\b", text, re.I)
+    if m:
+        script_key = m.group(1).lower()
+    # Named board scrapers are allowlisted without a URL; generic scrape still needs one.
+    if script_key == "generic_url_scrape" and not url.startswith("http"):
+        return None
+    if script_key != "generic_url_scrape" and not url.startswith("http"):
+        url = ""
+    mode = "page"
+    if re.search(r"\bcatalog\b", text, re.I):
+        mode = "catalog"
+    return {
+        "url": url,
+        "script_key": script_key,
+        "mode": mode,
+        "title": str(selected.get("title") or script_key or url)[:160],
+        "source_id": str(selected.get("source_id") or ""),
+        "connector_id": str(selected.get("connector_id") or ""),
+        "candidate_key": str(selected.get("candidate_key") or ""),
+    }
+
+
+def try_direct_scrape_turn(gateway: Any, message: str, state: dict[str, Any]) -> AgentTurn | None:
+    """Queue Spectator/windows_lab scrape — niche/browser harvest path."""
+    req = parse_scrape_request(message, state.get("rail_context"))
+    if not req:
+        return None
+    from scripts.research_data_mcp.job_identity import enrich_job_identity
+    from scripts.research_data_mcp.spectator_tools import build_spectator_plan
+
+    try:
+        plan = build_spectator_plan(
+            url=req["url"],
+            script_key=req["script_key"],
+            mode=req.get("mode") or "",
+            title=req.get("title") or "",
+            agent_initiated=True,
+        )
+    except Exception as exc:  # noqa: BLE001
+        return AgentTurn(
+            plan={"action": "spectator_scrape", "fast_path": True, **req},
+            action_result={"action": "spectator_scrape", "fast_path": True, "error": str(exc), **req},
+            reply=f"Could not build Spectator scrape plan: {exc}",
+            suggested_prompts=["Probe the URL first", "Collect via HTTP if it is a direct file"],
+            tool_name="procurement_submit_collection_job",
+        )
+    if req.get("source_id"):
+        plan["source_id"] = req["source_id"]
+    if req.get("connector_id"):
+        plan["connector_id"] = req["connector_id"]
+    if req.get("candidate_key"):
+        plan["candidate_key"] = req["candidate_key"]
+    plan["collect_resolution"] = plan.get("collect_resolution") or "spectator_scrape"
+    request = {
+        "source": "discover_ui",
+        "url": req["url"],
+        "script_key": req["script_key"],
+    }
+    for k in ("source_id", "connector_id", "candidate_key"):
+        if req.get(k):
+            request[k] = req[k]
+    submitted = gateway.jobs.submit(plan.get("title") or req["title"], plan, request, auto_approve=False)
+    job = submitted.get("job") if isinstance(submitted, dict) else None
+    if isinstance(job, dict):
+        job = enrich_job_identity(job)
+    jid = str((job or {}).get("id") or "")
+    reply = (
+        f"Queued Spectator scrape on **windows_lab** for `{req['url']}`\n"
+        f"- Job `{jid[:12]}…` · status={(job or {}).get('status')}\n"
+        f"- Script `{req['script_key']}` · mode={plan.get('scrape_mode') or req.get('mode') or 'page'}\n"
+        f"- Lands in Discover History; approve to run the remote Playwright worker."
+    )
+    return AgentTurn(
+        plan={"action": "spectator_scrape", "fast_path": True, **req},
+        action_result={
+            "action": "spectator_scrape",
+            "fast_path": True,
+            "job": job,
+            "job_id": jid,
+            "plan": plan,
+            "platform_registered": bool(jid),
+            "history_kind": "collection_run",
+            "pool_hint": "windows_lab",
+            **req,
+        },
+        reply=reply,
+        suggested_prompts=[f"Approve job {jid}" if jid else "Open Discover History"],
+        tool_name="procurement_submit_collection_job",
+    )
+
+
 def try_direct_equipment_turn(
     gateway: Any,
     message: str,
@@ -961,6 +1076,9 @@ def try_direct_equipment_turn(
     approve = try_direct_approve_job_turn(gateway, message, state)
     if approve is not None:
         return approve
+    scrape = try_direct_scrape_turn(gateway, message, state)
+    if scrape is not None:
+        return scrape
     discover = try_direct_discover_search_turn(gateway, message, state)
     if discover is not None:
         return discover

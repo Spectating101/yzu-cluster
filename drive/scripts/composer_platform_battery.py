@@ -342,6 +342,43 @@ def c_collect_http(c: Case) -> None:
     c.detail = f"job={jid} type={(job.get('plan') or {}).get('job_type')} status={job.get('status')}"
 
 
+
+def c_spectator_scrape(c: Case) -> None:
+    """Niche browser harvest via SpectatorEngine → windows_lab."""
+    rail = {
+        "selected": {
+            "title": "TWSE Open API",
+            "source_id": "twse_official",
+            "connector_id": "twse",
+            "candidate_key": "source:twse_official",
+            "endpoint": "openapi.twse.com.tw",
+        }
+    }
+    out = chat("Scrape this source with Spectator.", rail)
+    arts = out.get("artifacts") or {}
+    jid = arts.get("job_id") or (arts.get("job") or {}).get("id")
+    if not jid:
+        c.ok = False
+        c.detail = f"action={out.get('action')} no job"
+        return
+    # approve + expect windows execution (may take >60s)
+    chat(f"Approve job {jid}", timeout=300)
+    job = http_json("GET", f"/library/jobs/{jid}")
+    # poll up to ~2 min
+    import time as _t
+    for _ in range(24):
+        job = http_json("GET", f"/library/jobs/{jid}")
+        if job.get("status") in {"completed", "failed", "cancelled"}:
+            break
+        _t.sleep(5)
+    res = job.get("result") if isinstance(job.get("result"), dict) else {}
+    hist = http_json("GET", "/library/discover/history?kind=collection_run&limit=40")
+    hit = next((i for i in (hist.get("items") or []) if i.get("id") == jid or i.get("job_id") == jid), None)
+    c.ok = job.get("status") == "completed" and res.get("pool") == "windows_lab" and bool(hit)
+    c.detail = f"job={jid} status={job.get('status')} pool={res.get('pool')} extract={res.get('extract_path')}"
+    c.evidence = {"job_id": jid, "status": job.get("status"), "pool": res.get("pool")}
+
+
 def c_honesty(c: Case) -> None:
     subs = http_json("GET", "/library/discover/subscriptions").get("subscriptions") or []
     lying = [s.get("id") for s in subs if s.get("auto_refresh") or s.get("next_run_at")]
@@ -380,6 +417,7 @@ def main() -> int:
     run(Case("approve job → History lifecycle", "direct"), c_approve_lifecycle)
     run(Case("HTTP catalog collect → History", "http"), c_collect_http)
     run(Case("SEC http_manifest collect+approve", "http"), c_sec_manifest_collect)
+    run(Case("spectator scrape TWSE→windows_lab", "spectator"), c_spectator_scrape)
     run(Case("honesty non-executing", "http"), c_honesty)
     run(Case("composer schedule register", "composer"), c_composer_schedule)
 
@@ -415,6 +453,7 @@ def main() -> int:
                 "approve_lifecycle",
                 "http_collect",
                 "sec_manifest",
+                "spectator_scrape",
                 "honesty",
                 "composer_schedule",
             ],
