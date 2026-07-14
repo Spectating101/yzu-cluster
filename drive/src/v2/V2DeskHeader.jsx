@@ -23,6 +23,7 @@ export function V2DeskHeader({
   deskStatus = "unknown",
   refreshedAt = null,
   dryRunProtected = true,
+  integrationChips = [],
 }) {
   const metaText = usingSeed
     ? `${datasetCount} datasets`
@@ -30,6 +31,7 @@ export function V2DeskHeader({
       ? `${datasetCount} datasets · ${workCount} pending`
       : `${datasetCount} datasets`;
   const fresh = freshnessLabel(refreshedAt);
+  const chips = Array.isArray(integrationChips) ? integrationChips : [];
 
   return (
     <header className="yzu-header rd-v2-header">
@@ -69,15 +71,28 @@ export function V2DeskHeader({
         </button>
       </div>
       <div className="rd-v2-header-meta">
-        <div className="rd-v2-trust-strip" aria-label="Desk status">
+        <div className="rd-v2-trust-strip" aria-label="Desk status" data-testid="desk-integration-strip">
           {deskStatus === "ok" ? (
             <span className="rd-v2-trust-badge ok">Live registry</span>
           ) : deskStatus === "empty" ? (
             <span className="rd-v2-trust-badge warn">Empty registry</span>
           ) : usingSeed || deskStatus === "demo" ? (
             <span className="rd-v2-trust-badge warn">Demo catalog</span>
+          ) : deskStatus === "degraded" ? (
+            <span className="rd-v2-trust-badge warn">Desk degraded</span>
           ) : (
             <span className="rd-v2-trust-badge warn">Desk API offline</span>
+          )}
+          {chips.map((chip) =>
+            chip.id === "desk" && (deskStatus === "degraded" || deskStatus === "ok") ? null : (
+              <span
+                key={chip.id}
+                className={`rd-v2-trust-badge ${chip.tone || "muted"}`}
+                title={chip.label}
+              >
+                {chip.label}
+              </span>
+            ),
           )}
           {dryRunProtected ? (
             <span className="rd-v2-trust-badge">Dry-run protected</span>

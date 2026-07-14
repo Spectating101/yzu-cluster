@@ -320,7 +320,12 @@ export async function sendChatMessage(
         const event = JSON.parse(line);
         if (event.type === "delta" && event.text) onDelta?.(event.text);
         if ((event.type === "activity" || event.type === "progress") && event.text) {
-          onActivity?.(event.text);
+          onActivity?.({
+            text: event.text,
+            phase: event.phase || event.action || event.type,
+            action: event.action || null,
+            elapsed_seconds: event.elapsed_seconds,
+          });
         }
         if (event.type === "error") {
           throw new Error(event.message || event.error || "Chat stream error");

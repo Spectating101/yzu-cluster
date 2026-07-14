@@ -46,7 +46,19 @@ export function sourceResultToCandidate(row = {}) {
 
 export function sourcesResponseToRows(data) {
   const results = Array.isArray(data?.results) ? data.results : [];
-  return results.map(sourceResultToCandidate);
+  const searchMeta = {
+    search_mode: data?.search_mode || null,
+    result_kind: data?.result_kind || null,
+    query: data?.query || null,
+    cached: data?.cached ?? null,
+    freshness: data?.freshness || data?.as_of || null,
+  };
+  return results.map((row) => ({
+    ...sourceResultToCandidate(row),
+    _search_meta: searchMeta,
+    search_meta: searchMeta,
+    cached: row.cached ?? data?.cached,
+  }));
 }
 
 export function durableHistoryToEvents(data) {
@@ -66,11 +78,17 @@ export function durableHistoryToEvents(data) {
         intent_id: item.intent_id,
         candidate_key: item.candidate_key,
         subscription_id: item.subscription_id,
+        cadence: item.cadence,
+        requested_schedule: item.requested_schedule,
+        execution_mode: item.execution_mode,
+        source_id: item.source_id,
       },
       durable: true,
       status: item.status,
       kind: item.kind,
       summary: item.summary,
+      cadence: item.cadence,
+      requested_schedule: item.requested_schedule,
     }));
 }
 
@@ -89,12 +107,18 @@ export function mergeHistoryEvents(durableEvents = [], deskEvents = []) {
 
 export function historyLifecycleBucket(event) {
   const status = String(event?.status || event?.meta?.status || "").toLowerCase();
+  const kind = String(event?.kind || event?.action || "").toLowerCase();
+  // Refresh subscriptions are scheduled records even when status is "active".
+  if (
+    kind === "subscription" ||
+    kind === "refresh_subscription" ||
+    /scheduled|paused|subscription/.test(status)
+  ) {
+    return "scheduled";
+  }
   if (/pending_approval|ready_for_review|awaiting|needs_approval/.test(status)) return "needs_approval";
   if (/queued|running|active|in_progress/.test(status)) return "active";
   if (/failed|error|needs_recovery|blocked/.test(status)) return "needs_recovery";
-  if (/scheduled|paused|subscription/.test(status) || event?.kind === "subscription" || event?.action === "subscription") {
-    return "scheduled";
-  }
   if (/completed|ready|registered|archived|done|succeeded/.test(status)) return "ready";
   return "all";
 }

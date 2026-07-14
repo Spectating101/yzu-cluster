@@ -115,8 +115,24 @@ export function AskRail({
                 m.text
               ) : (
                 <>
-                  {m.activity ? <p className="muted small">{m.activity}</p> : null}
+                  {m.activityLog?.length ? (
+                    <ol className="rd-v2-ask-phases" data-testid="ask-tool-phases" aria-label="Agent tool activity">
+                      {m.activityLog.map((step, si) => (
+                        <li key={`${step.phase}-${si}`} data-phase={step.phase}>
+                          <span className="rd-v2-ask-phase-label">{step.phase}</span>
+                          <span className="rd-v2-ask-phase-text">{step.text}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  ) : m.activity ? (
+                    <p className="muted small">{m.activity}</p>
+                  ) : null}
                   <strong>Agent:</strong> {m.text || (m.streaming ? "…" : "")}
+                  {m.action || m.toolName ? (
+                    <p className="rd-v2-ask-action-meta muted small">
+                      {[m.toolName, m.action].filter(Boolean).join(" · ")}
+                    </p>
+                  ) : null}
                   {m.pendingJobId && m.jobStatus === "pending_approval" ? (
                     <div className="rd-v2-ask-actions">
                       <button

@@ -1,4 +1,5 @@
 import { displayName } from "@/v2/datasetMeta";
+import { candidateKey } from "@/v2/candidateKey";
 
 function readinessLabel(dataset) {
   const raw = String(dataset?.analysis_readiness || "").trim();
@@ -24,15 +25,30 @@ export function buildRailContext({
   let entity = null;
   let datasetId = "";
   let actions = [];
+  let selected = null;
 
   if (activeObject?.kind === "external_candidate") {
+    const row = activeObject.row || {};
+    const sourceId = row.source_id || "";
+    const connectorId = row.connector_id || row.desk_connector_id || "";
+    const key = row.candidate_key || candidateKey(row) || activeObject.id || "";
     entity = {
       kind: "external_candidate",
       id: activeObject.id,
       title: activeObject.title,
+      source_id: sourceId || undefined,
+      connector_id: connectorId || undefined,
+      candidate_key: key || undefined,
     };
-    datasetId = activeObject.row?.dataset_id || activeObject.row?.doi || "";
-    actions = ["add_to_lab", "probe", "ask_about"];
+    selected = {
+      title: activeObject.title,
+      source_id: sourceId || undefined,
+      connector_id: connectorId || undefined,
+      candidate_key: key || undefined,
+      endpoint: row.endpoint || row.url || undefined,
+    };
+    datasetId = row.dataset_id || row.doi || "";
+    actions = ["add_to_lab", "probe", "ask_about", "schedule_refresh"];
   } else if (activeObject?.kind === "resource_row") {
     entity = { kind: "resource_row", id: activeObject.id, title: activeObject.title };
     actions = ["explain", "approve_job"];
@@ -69,6 +85,7 @@ export function buildRailContext({
     tab,
     mode,
     entity,
+    selected: selected || undefined,
     dataset_id: datasetId || undefined,
     folder_id: folderId || undefined,
     search_query: searchQuery?.trim() || undefined,

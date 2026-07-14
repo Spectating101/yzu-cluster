@@ -21,6 +21,7 @@ import {
   RailStickyFooter,
 } from "@/v2/RailFrame";
 import { EmptyRailState } from "@/v2/EmptyRailState";
+import { buildObjectEstateCrumb } from "@/v2/deskIntegration";
 
 const PATH_STAGES = [
   { id: "submitted", label: "Submitted" },
@@ -249,6 +250,17 @@ export function DiscoverEvaluationSurface({
 
   const reachedStages = new Set(lifecycle?.stages || []);
   const shellClass = variant === "workspace" ? "rd-v2-eval-workspace" : "rd-v2-eval-rail";
+  const estate = buildObjectEstateCrumb(target, {
+    probeState: probeState
+      ? {
+          loading: Boolean(probeLoading),
+          observedAt: probeState.observed_at || probeState.observedAt || probeState.at || null,
+        }
+      : probeLoading
+        ? { loading: true }
+        : null,
+    searchMeta: target?.search_meta || target?._search_meta || null,
+  });
 
   const body = (
     <>
@@ -269,6 +281,11 @@ export function DiscoverEvaluationSurface({
             <span aria-hidden="true"> · </span>
             {evaluation.taxonomyLabel}
           </p>
+          {estate.location || estate.freshness || estate.authority ? (
+            <p className="rd-v2-estate-crumb" data-testid="object-estate-crumb">
+              {[estate.authority, estate.location, estate.freshness].filter(Boolean).join(" · ")}
+            </p>
+          ) : null}
         </header>
 
         <section className="rd-v2-eval-decision" aria-label="Can I use this">

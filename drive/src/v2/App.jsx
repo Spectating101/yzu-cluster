@@ -48,6 +48,7 @@ import { Toast, useToast } from "@/v2/toast";
 import { V2Sidebar } from "@/v2/V2Sidebar";
 import { touchRecent } from "@/v2/recent";
 import { mergeHealth, resolveCatalog } from "@/v2/deskSeed";
+import { buildDeskIntegrationChips } from "@/v2/deskIntegration";
 import { loadSettings } from "@/v2/settingsStore";
 import { CLUSTER_NAV_DEFERRED } from "@/v2/nav-config.jsx";
 import {
@@ -259,6 +260,9 @@ export function V2App() {
         setResourcesRefreshedAt(Date.now());
       })
       .catch(() => setResourcesRollup((cur) => (cur === undefined ? null : cur)));
+    discoverHistory({ limit: 50 })
+      .then((data) => setHistoryEvents(mergeHistoryEvents(durableHistoryToEvents(data), [])))
+      .catch(() => {});
     reloadProfile();
     setDeskRefreshedAt(Date.now());
   }, [reloadProfile, applyCatalog]);
@@ -1145,11 +1149,14 @@ export function V2App() {
             ? health?.status === "ok"
               ? "empty"
               : "demo"
-            : health?.status === "ok" || datasets.length > 0
-              ? "ok"
-              : health?.status || "unknown"
+            : health?.status === "degraded"
+              ? "degraded"
+              : health?.status === "ok" || datasets.length > 0
+                ? "ok"
+                : health?.status || "unknown"
         }
         refreshedAt={deskRefreshedAt}
+        integrationChips={usingSeed ? [] : buildDeskIntegrationChips(health)}
       />
       <V2Sidebar tab={tab} onTabChange={goTab} />
       <main className="yzu-main rd-v2-shell-main">

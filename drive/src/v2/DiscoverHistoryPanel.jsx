@@ -42,11 +42,20 @@ function cleanTarget(value) {
 function eventKind(event) {
   const action = String(event?.action || "").toLowerCase();
   const status = String(event?.status || event?.meta?.status || "").toLowerCase();
+  const kind = String(event?.kind || "").toLowerCase();
+  // Subscriptions are scheduled refresh records — classify before generic "active".
+  if (
+    kind === "subscription" ||
+    action === "subscription" ||
+    action === "refresh_subscription" ||
+    /scheduled|paused|subscription/.test(status)
+  ) {
+    return "scheduled";
+  }
   if (event?.durable || event?.kind) {
     if (/pending_approval|ready_for_review|awaiting|needs_approval/.test(status)) return "needs_approval";
     if (/queued|running|active|in_progress/.test(status)) return "active";
     if (/failed|error|needs_recovery|blocked/.test(status)) return "needs_recovery";
-    if (action === "subscription" || /scheduled|paused/.test(status)) return "scheduled";
     if (/completed|ready|registered|archived|done|succeeded/.test(status)) return "ready";
     if (action === "intent") return "needs_approval";
     if (action === "collection_run") return "active";
@@ -95,6 +104,17 @@ function eventOutcome(event) {
   if (meta.repeat_count > 1) {
     const latest = meta.total != null ? ` · ${meta.total} latest results` : "";
     return `${meta.repeat_count} repeated searches${latest}`;
+  }
+  if (event?.kind === "subscription" || event?.action === "subscription") {
+    const requested = event.requested_schedule || meta.requested_schedule;
+    const cadence = event.cadence || meta.cadence;
+    const mode = meta.execution_mode || event.execution_mode;
+    const bits = [];
+    if (requested) bits.push(String(requested).slice(0, 120));
+    else if (cadence) bits.push(`Cadence · ${cadence}`);
+    if (mode === "non_executing") bits.push("Recorded on platform · auto-run not claimed");
+    else if (meta.summary) bits.push(String(meta.summary));
+    if (bits.length) return bits.join(" · ");
   }
   if (meta.summary) return String(meta.summary);
   if (event?.summary) return String(event.summary);

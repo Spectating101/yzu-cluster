@@ -203,9 +203,10 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   min-width: 0;
-  overflow: hidden;
+  max-width: min(42vw, 520px);
+  justify-content: flex-end;
 }
 
 .rd-v2-trust-badge {
@@ -238,6 +239,55 @@
 .rd-v2-trust-badge.muted {
   color: var(--rd-muted);
   background: #fbfcfe;
+}
+
+.rd-v2-trust-badge.bad {
+  border-color: #f0c2c2;
+  background: #fef2f2;
+  color: #b42318;
+}
+
+.rd-v2-estate-crumb {
+  margin: 6px 0 0;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--rd-muted);
+}
+
+.rd-v2-ask-phases {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rd-v2-ask-phases li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 8px;
+  align-items: baseline;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--rd-muted);
+}
+
+.rd-v2-ask-phase-label {
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-size: 9px;
+  color: var(--rd-body);
+  opacity: 0.72;
+}
+
+.rd-v2-ask-phase-text {
+  min-width: 0;
+}
+
+.rd-v2-ask-action-meta {
+  margin: 4px 0 0;
 }
 
 .rd-header-avatar {
