@@ -84,6 +84,8 @@ class DiscoverRefreshStore:
         enabled: bool = True,
         requested_schedule: str = "",
         schedule_note: str = "",
+        timezone: str = "",
+        schedule_spec: dict | None = None,
     ) -> dict[str, Any]:
         cad = str(cadence or "manual").strip().lower()
         if cad not in ALLOWED_CADENCES:
@@ -97,15 +99,26 @@ class DiscoverRefreshStore:
 
         sid = uuid.uuid4().hex[:16]
         stamp = _now()
+        from scripts.research_data_mcp.discover_schedule_spec import build_schedule_spec
+
+        req = str(requested_schedule or "").strip()[:240]
+        note = str(schedule_note or "").strip()[:400]
+        spec = build_schedule_spec(
+            requested_schedule=req,
+            cadence=cad,
+            timezone=timezone or "",
+            explicit=schedule_spec if isinstance(schedule_spec, dict) else None,
+        )
         state = {
             "execution_mode": EXECUTION_MODE,
             "execution_note": EXECUTION_NOTE,
             "last_run_at": None,
-            "next_run_at": None,
+            "next_run_at": None,  # never invent; runner must set
             "last_job_id": None,
             "auto_refresh": False,
-            "requested_schedule": str(requested_schedule or "").strip()[:240],
-            "schedule_note": str(schedule_note or "").strip()[:400],
+            "requested_schedule": req or str(spec.get("requested_schedule") or ""),
+            "schedule_note": note,
+            "schedule_spec": spec,
         }
         status = ACTIVE if enabled else PAUSED
         with self._db() as db:
@@ -176,6 +189,7 @@ class DiscoverRefreshStore:
             "auto_refresh": False,
             "requested_schedule": state.get("requested_schedule") or "",
             "schedule_note": state.get("schedule_note") or "",
+            "schedule_spec": state.get("schedule_spec") or {},
             # Only surface run stamps when honestly known (never invent next_run).
             "last_run_at": state.get("last_run_at") or None,
             "next_run_at": state.get("next_run_at") or None,
@@ -194,6 +208,7 @@ class DiscoverRefreshStore:
             "auto_refresh": False,
             "requested_schedule": current.get("requested_schedule") or "",
             "schedule_note": current.get("schedule_note") or "",
+            "schedule_spec": current.get("schedule_spec") or {},
         }
         status = str(fields.get("status", current["status"]))
         if status not in ALLOWED_STATUS:

@@ -410,14 +410,36 @@ def _handlers() -> dict[str, Handler]:
 
     def library_discover_collect(stack, query, payload, params):
         cid = str(payload.get("connector_id") or "").strip()
-        if not cid:
-            return {"error": "connector_id is required", "status": "error"}
+        source_id = str(payload.get("source_id") or "").strip()
+        if not cid and not source_id:
+            return {"error": "connector_id or source_id is required", "status": "error"}
         from scripts.research_data_mcp.candidate_key import candidate_key
+        from scripts.research_data_mcp.discover_collect_plan import resolve_discover_collect_plan
         from scripts.research_data_mcp.job_identity import enrich_job_identity
 
         limit = int(payload.get("limit") or 200)
         auto_approve = bool(payload.get("auto_approve"))
-        plan = stack.gateway.procurement.manifest_plan_from_connector(cid, limit=limit)
+        try:
+            plan = resolve_discover_collect_plan(
+                stack.gateway.procurement,
+                stack.gateway.repo_root,
+                connector_id=cid,
+                source_id=source_id,
+                limit=limit,
+                title=str(payload.get("name") or payload.get("title") or "").strip(),
+                url=str(payload.get("url") or payload.get("source_url") or "").strip(),
+                candidate_key=str(payload.get("candidate_key") or "").strip(),
+            )
+        except KeyError as exc:
+            return {
+                "error": "not_found",
+                "message": f"No collectable plan for connector_id={cid!r} source_id={source_id!r}: {exc}",
+                "status": "error",
+                "connector_id": cid,
+                "source_id": source_id,
+            }
+        # Prefer resolved procurement/catalog id for identity stamping
+        cid = str(plan.get("connector_id") or plan.get("catalog_connector_id") or cid).strip()
         dest = str(payload.get("destination") or "").strip()
         if dest:
             plan["destination"] = dest
@@ -450,6 +472,12 @@ def _handlers() -> dict[str, Handler]:
             "limit": limit,
             "source": "discover_ui",
         }
+        for link_key in ("discover_intent_id", "discover_subscription_id"):
+            link_val = str(payload.get(link_key) or "").strip()
+            if link_val:
+                request[link_key] = link_val
+                plan = dict(plan)
+                plan[link_key] = link_val
         if ck:
             request["candidate_key"] = ck
         for field in ("dataset_id", "doi", "url", "external_id", "kind", "provider"):
@@ -594,6 +622,12 @@ def _handlers() -> dict[str, Handler]:
             enabled=bool(payload.get("enabled", True)),
             requested_schedule=str(payload.get("requested_schedule") or ""),
             schedule_note=str(payload.get("schedule_note") or ""),
+            timezone=str(payload.get("timezone") or ""),
+            schedule_spec=payload.get("schedule_spec") if isinstance(payload.get("schedule_spec"), dict) else (
+                {"cron": str(payload.get("cron") or ""), "timezone": str(payload.get("timezone") or ""), "requested_schedule": str(payload.get("requested_schedule") or "")}
+                if payload.get("cron")
+                else None
+            ),
         )
         _activity(
             stack,

@@ -43,6 +43,9 @@ MCP_TOOL_CORE: tuple[str, ...] = (
     "research_discover_propose_intent",
     "research_discover_history",
     "research_discover_create_refresh_subscription",
+    "research_discover_pause_refresh_subscription",
+    "research_discover_resume_refresh_subscription",
+    "research_discover_stop_refresh_subscription",
     "research_quant_brief",
     "procurement_probe_public_source",
 )

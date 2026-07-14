@@ -434,6 +434,10 @@ class ProcurementChatOrchestrator:
     def _progress_label(action: str) -> str:
         labels = {
             "schedule_refresh": "Registering refresh in Discover History…",
+            "create_intent": "Recording Discover intent…",
+            "pause_subscription": "Pausing refresh subscription…",
+            "resume_subscription": "Resuming refresh subscription…",
+            "stop_subscription": "Stopping refresh subscription…",
             "composer": "Composer is working with the research tools…",
             "composer_unavailable": "Composer is not configured…",
             "composer_error": "Composer hit an error…",
@@ -458,7 +462,26 @@ class ProcurementChatOrchestrator:
         """Label Composer outcomes for UI state; Composer still chooses all tools."""
         if action and action != "composer":
             return action
+        # Prefer explicit platform mutations from equipment / tools.
+        if action_result.get("platform_registered") and action_result.get("subscription_id"):
+            return "schedule_refresh"
+        if action_result.get("subscription") and isinstance(action_result.get("subscription"), dict):
+            return "schedule_refresh"
+        if action_result.get("intent_id") or (
+            isinstance(action_result.get("intent"), dict) and action_result.get("intent", {}).get("id")
+        ):
+            return "create_intent"
         text = f"{message}\n{reply}".lower()
+        if "subscription" in text and any(t in text for t in ("schedule", "monday", "weekly", "refresh")):
+            if "pause" in text[:200]:
+                return "pause_subscription"
+            if "resume" in text[:200]:
+                return "resume_subscription"
+            if "stop" in text[:200]:
+                return "stop_subscription"
+            return "schedule_refresh"
+        if "create" in text[:160] and "intent" in text[:200]:
+            return "create_intent"
         if action_result.get("job") or action_result.get("pending_job_id"):
             return "queue"
         if action_result.get("preview"):

@@ -1,0 +1,110 @@
+{
+  "session_id": "battery-1784043233",
+  "score": "11/11",
+  "passed": 11,
+  "total": 11,
+  "cases": [
+    {
+      "name": "mcp tools 76+",
+      "kind": "http",
+      "ok": true,
+      "elapsed": 0.01,
+      "detail": "count=76 miss=none",
+      "error": "",
+      "evidence": {}
+    },
+    {
+      "name": "API schedule_spec cron",
+      "kind": "http",
+      "ok": true,
+      "elapsed": 0.02,
+      "detail": "id=a60b4dba649b457e cron=0 10 * * 1 exec=non_executing",
+      "error": "",
+      "evidence": {}
+    },
+    {
+      "name": "direct probe",
+      "kind": "direct",
+      "ok": true,
+      "elapsed": 0.13,
+      "detail": "action=probe_url 0.13s",
+      "error": "",
+      "evidence": {}
+    },
+    {
+      "name": "direct search",
+      "kind": "direct",
+      "ok": true,
+      "elapsed": 2.21,
+      "detail": "action=search total=19",
+      "error": "",
+      "evidence": {}
+    },
+    {
+      "name": "direct schedule+spec",
+      "kind": "direct",
+      "ok": true,
+      "elapsed": 0.06,
+      "detail": "action=schedule_refresh cron=0 10 * * 1 n=11->12 sub=427740c56d2e44b2",
+      "error": "",
+      "evidence": {}
+    },
+    {
+      "name": "direct create intent",
+      "kind": "direct",
+      "ok": true,
+      "elapsed": 0.28,
+      "detail": "action=create_intent new=['3c8769d635564837'] id=3c8769d635564837",
+      "error": "",
+      "evidence": {}
+    },
+    {
+      "name": "direct pause sub",
+      "kind": "direct",
+      "ok": true,
+      "elapsed": 0.06,
+      "detail": "action=pause_subscription status=paused",
+      "error": "",
+      "evidence": {}
+    },
+    {
+      "name": "direct resume sub",
+      "kind": "direct",
+      "ok": true,
+      "elapsed": 0.06,
+      "detail": "action=resume_subscription status=active",
+      "error": "",
+      "evidence": {}
+    },
+    {
+      "name": "collect \u2192 History run",
+      "kind": "http",
+      "ok": true,
+      "elapsed": 0.55,
+      "detail": "job=32f95da00ac9 status=pending_approval type=source_probe in_history=True resolution=catalog_source_probe_fallback",
+      "error": "",
+      "evidence": {
+        "job_id": "32f95da00ac9",
+        "status": "pending_approval"
+      }
+    },
+    {
+      "name": "honesty non-executing",
+      "kind": "http",
+      "ok": true,
+      "elapsed": 0.0,
+      "detail": "n=12 lying_next=[] bad_exec=[]",
+      "error": "",
+      "evidence": {}
+    },
+    {
+      "name": "composer schedule register",
+      "kind": "composer",
+      "ok": true,
+      "elapsed": 49.09,
+      "detail": "action=schedule_refresh new=['0f1af07d934d40f9'] brain=cursor_composer",
+      "error": "",
+      "evidence": {}
+    }
+  ]
+}

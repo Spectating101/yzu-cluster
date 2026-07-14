@@ -183,14 +183,17 @@ class ResearchToolHandlers:
         enabled: bool = True,
         requested_schedule: str = "",
         schedule_note: str = "",
+        timezone: str = "Asia/Taipei",
+        cron: str = "",
     ) -> dict[str, Any]:
         """Register a Discover refresh subscription in History.
 
-        Cadence is one of manual|daily|weekly|monthly. For requests like
-        "every Monday 10:00", pass cadence=weekly and requested_schedule with
-        the faculty wording. Records always appear in Discover History; they are
-        non-executing until a per-source scheduler exists — never claim auto-run.
+        Cadence is one of manual|daily|weekly|monthly. For "every Monday 10:00",
+        pass cadence=weekly + requested_schedule (faculty wording). Optional
+        timezone/cron populate schedule_spec for a future runner — never claim
+        auto-run; next_run_at stays null until an executor exists.
         """
+        explicit = {"timezone": timezone, "cron": cron, "requested_schedule": requested_schedule} if cron else None
         return self.gateway.discover_refresh_create(
             cadence=cadence,
             destination=destination,
@@ -201,7 +204,21 @@ class ResearchToolHandlers:
             enabled=enabled,
             requested_schedule=requested_schedule,
             schedule_note=schedule_note,
+            timezone=timezone,
+            schedule_spec=explicit,
         )
+
+    def research_discover_pause_refresh_subscription(self, subscription_id: str) -> dict[str, Any]:
+        """Pause a Discover refresh subscription (History remains)."""
+        return self.gateway.discover_refresh_pause(subscription_id)
+
+    def research_discover_resume_refresh_subscription(self, subscription_id: str) -> dict[str, Any]:
+        """Resume a paused Discover refresh subscription."""
+        return self.gateway.discover_refresh_resume(subscription_id)
+
+    def research_discover_stop_refresh_subscription(self, subscription_id: str) -> dict[str, Any]:
+        """Stop a Discover refresh subscription permanently."""
+        return self.gateway.discover_refresh_stop(subscription_id)
 
     def research_collection_hydrate(
         self,

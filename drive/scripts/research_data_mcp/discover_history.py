@@ -72,6 +72,7 @@ def _subscription_item(sub: dict[str, Any]) -> dict[str, Any]:
         "candidate_key": sub.get("candidate_key") or "",
         "cadence": cadence,
         "requested_schedule": requested,
+        "schedule_spec": sub.get("schedule_spec") or {},
         "enabled": bool(sub.get("enabled")),
         "execution_mode": sub.get("execution_mode"),
         "auto_refresh": False,

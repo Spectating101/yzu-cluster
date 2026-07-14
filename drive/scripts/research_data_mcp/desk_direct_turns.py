@@ -166,6 +166,8 @@ def is_direct_discovery_message(message: str, rail_context: dict[str, Any] | Non
         or is_direct_describe_message(message, rail_context)
         or is_direct_query_message(message, rail_context)
         or is_direct_schedule_message(message, rail_context)
+        or is_direct_intent_message(message, rail_context)
+        or is_direct_subscription_lifecycle_message(message, rail_context)
     )
 
 
@@ -279,8 +281,10 @@ def try_direct_search_turn(
 
 
 _SCHEDULE_INTENT = re.compile(
-    r"\b(schedule|subscribe|subscription|auto[- ]?refresh|recurring|"
-    r"every\s+monday|every\s+week|weekly|daily|monthly|cron)\b",
+    r"\b(schedule|subscribe|subscription|auto[- ]?refresh|recurring|cron)\b|"
+    r"\b(every\s+monday|every\s+week)\b|"
+    r"\b(weekly|daily|monthly)\s+(refresh|schedule|subscription|update|sync)\b|"
+    r"\b(refresh|update|sync)\s+(weekly|daily|monthly)\b",
     re.I,
 )
 
@@ -301,6 +305,8 @@ def parse_schedule_request(
     """Return cadence + source identity when the user asked to schedule a refresh."""
     text = (message or "").strip()
     if not text or not _SCHEDULE_INTENT.search(text[:240]):
+        return None
+    if _INTENT_CREATE.search(text[:220]):
         return None
     # Avoid treating pure "status" / probe as schedule.
     if is_direct_status_message(text) or is_direct_probe_message(text, rail_context):
@@ -378,6 +384,7 @@ def try_direct_schedule_turn(
             candidate_key=req.get("candidate_key") or "",
             enabled=True,
             requested_schedule=req.get("requested_schedule") or "",
+            timezone="Asia/Taipei",
             schedule_note=(
                 "Registered from Ask. Visible in Discover → History → Scheduled. "
                 "Per-source auto-run is not claimed yet."
@@ -396,14 +403,17 @@ def try_direct_schedule_turn(
     cadence = str(sub.get("cadence") or req["cadence"])
     requested = str(sub.get("requested_schedule") or req.get("requested_schedule") or cadence)
     target = sub.get("source_id") or sub.get("connector_id") or sub.get("candidate_key") or "source"
+    spec = sub.get("schedule_spec") if isinstance(sub.get("schedule_spec"), dict) else {}
+    cron = str(spec.get("cron") or "")
+    tz = str(spec.get("timezone") or "Asia/Taipei")
     reply = (
         f"Registered refresh for **{target}** in Discover History.\n"
         f"- Requested: {requested}\n"
         f"- Platform cadence bucket: `{cadence}`\n"
+        f"- Schedule spec: `{cron or 'manual'}` ({tz}) — stored for a future runner\n"
         f"- Subscription `{sub_id[:12]}…` · status **{sub.get('status') or 'active'}**\n\n"
         "Open **Discover → History → Scheduled** to see it. "
-        "This record is durable on the platform; automatic Monday execution is not claimed yet "
-        "(YZU has no per-source subscription runner)."
+        "This record is durable on the platform; automatic execution is not claimed yet."
     )
     try:
         from scripts.research_data_mcp.desk_activity import record_activity
@@ -438,6 +448,178 @@ def try_direct_schedule_turn(
     )
 
 
+
+_INTENT_CREATE = re.compile(
+    r"\b(create|record|open|start)\b.{0,40}\b(discover\s+)?intent\b|\bresearch\s+intent\b",
+    re.I | re.S,
+)
+_INTENT_NEED = re.compile(
+    r"(?:intent(?:\s+for)?|need(?:ing)?|research(?:ing)?)\s*[:\-]?\s*(.+)$",
+    re.I | re.S,
+)
+
+
+def parse_intent_request(message: str, rail_context: dict[str, Any] | None = None) -> dict[str, Any] | None:
+    text = (message or "").strip()
+    if not text or not _INTENT_CREATE.search(text[:220]):
+        return None
+    if is_direct_schedule_message(text, rail_context) or is_direct_probe_message(text, rail_context):
+        return None
+    need = ""
+    # Prefer explicit "for: …" / "for …" research need.
+    m = re.search(r"\bintent\b(?:\s+for)?\s*[:\-]?\s*(.+)$", text, re.I | re.S)
+    if m:
+        need = m.group(1).strip().strip('"').strip("'")
+        need = re.sub(r"^(a\s+|an\s+|the\s+)?", "", need, flags=re.I)
+    if not need or len(need) < 8:
+        need = re.sub(
+            r"^(please\s+)?(create|record|open|start)\s+(a\s+)?(discover\s+)?(research\s+)?intent\s*(for)?\s*[:\-]?",
+            "",
+            text,
+            flags=re.I,
+        ).strip()
+    need = re.sub(r"\s+", " ", need).strip(" :-")
+    if len(need) < 8:
+        return None
+    selected = _rail_selected(rail_context)
+    candidate = {}
+    for key in ("source_id", "connector_id", "candidate_key", "title", "endpoint", "url"):
+        if selected.get(key):
+            candidate[key] = selected.get(key)
+    title = str(selected.get("title") or need[:80])
+    return {"research_need": need[:500], "title": title[:160], "candidate": candidate or None}
+
+
+def is_direct_intent_message(message: str, rail_context: dict[str, Any] | None = None) -> bool:
+    return parse_intent_request(message, rail_context) is not None
+
+
+def try_direct_intent_turn(gateway: Any, message: str, state: dict[str, Any]) -> AgentTurn | None:
+    req = parse_intent_request(message, state.get("rail_context"))
+    if not req:
+        return None
+    try:
+        intent = gateway.discover_intent_create(
+            research_need=req["research_need"],
+            title=req.get("title") or "",
+            candidate=req.get("candidate"),
+            session_id=str(state.get("session_id") or ""),
+            user_email=str(state.get("user_email") or ""),
+        )
+    except Exception as exc:  # noqa: BLE001
+        return AgentTurn(
+            plan={"action": "create_intent", "fast_path": True},
+            action_result={"action": "create_intent", "fast_path": True, "error": str(exc)},
+            reply=f"Could not record Discover intent: {exc}",
+            suggested_prompts=["Search vault for related datasets"],
+            tool_name="research_discover_create_intent",
+        )
+    iid = str(intent.get("id") or "")
+    reply = (
+        f"Recorded Discover intent `{iid[:12]}…`\\n"
+        f"- Need: {req['research_need'][:200]}\\n"
+        f"- Status: draft (no collection started)\\n\\n"
+        "It appears under Discover → History. Propose routes or collect only after review."
+    )
+    try:
+        from scripts.research_data_mcp.desk_activity import record_activity
+        record_activity("intent", req["research_need"][:200], repo_root=getattr(gateway, "repo_root", None), meta={"intent_id": iid})
+    except Exception:
+        pass
+    return AgentTurn(
+        plan={"action": "create_intent", "fast_path": True},
+        action_result={
+            "action": "create_intent",
+            "fast_path": True,
+            "intent": intent,
+            "intent_id": iid,
+            "platform_registered": True,
+            "history_kind": "intent",
+        },
+        reply=reply,
+        suggested_prompts=["Open Discover History", "Propose collection routes for this intent"],
+        tool_name="research_discover_create_intent",
+    )
+
+
+_SUB_LIFECYCLE = re.compile(r"\b(pause|resume|stop)\b.{0,40}\b(subscription|refresh|schedule)\b|\b(subscription|refresh)\b.{0,40}\b(pause|resume|stop)\b", re.I)
+_SUB_ID = re.compile(r"\b([a-f0-9]{12,16})\b", re.I)
+
+
+def parse_subscription_lifecycle(message: str, rail_context: dict[str, Any] | None = None) -> dict[str, Any] | None:
+    text = (message or "").strip()
+    if not text or not _SUB_LIFECYCLE.search(text[:240]):
+        return None
+    lowered = text.lower()
+    if re.search(r"\bpause\b", lowered):
+        op = "pause"
+    elif re.search(r"\bresume\b", lowered):
+        op = "resume"
+    elif re.search(r"\bstop\b", lowered):
+        op = "stop"
+    else:
+        return None
+    sid = ""
+    m = _SUB_ID.search(text)
+    if m:
+        sid = m.group(1)
+    selected = _rail_selected(rail_context)
+    if not sid:
+        sid = str(selected.get("subscription_id") or selected.get("id") or "").strip()
+    if not sid:
+        return None
+    return {"op": op, "subscription_id": sid}
+
+
+def is_direct_subscription_lifecycle_message(message: str, rail_context: dict[str, Any] | None = None) -> bool:
+    return parse_subscription_lifecycle(message, rail_context) is not None
+
+
+def try_direct_subscription_lifecycle_turn(gateway: Any, message: str, state: dict[str, Any]) -> AgentTurn | None:
+    req = parse_subscription_lifecycle(message, state.get("rail_context"))
+    if not req:
+        return None
+    op = req["op"]
+    sid = req["subscription_id"]
+    try:
+        if op == "pause":
+            sub = gateway.discover_refresh_pause(sid)
+            action = "pause_subscription"
+        elif op == "resume":
+            sub = gateway.discover_refresh_resume(sid)
+            action = "resume_subscription"
+        else:
+            sub = gateway.discover_refresh_stop(sid)
+            action = "stop_subscription"
+    except Exception as exc:  # noqa: BLE001
+        return AgentTurn(
+            plan={"action": "subscription_lifecycle", "fast_path": True, **req},
+            action_result={"action": "subscription_lifecycle", "fast_path": True, "error": str(exc), **req},
+            reply=f"Could not {op} subscription `{sid[:12]}…`: {exc}",
+            suggested_prompts=["Open Discover History Scheduled"],
+            tool_name=f"research_discover_{op}_refresh_subscription",
+        )
+    reply = (
+        f"{op.capitalize()}d refresh subscription `{sid[:12]}…`\\n"
+        f"- Status: **{sub.get('status')}**\\n"
+        f"- Source: {sub.get('source_id') or sub.get('connector_id') or 'n/a'}\\n"
+        "Discover → History → Scheduled reflects this change."
+    )
+    return AgentTurn(
+        plan={"action": action, "fast_path": True, **req},
+        action_result={
+            "action": action,
+            "fast_path": True,
+            "subscription": sub,
+            "subscription_id": sid,
+            "platform_registered": True,
+        },
+        reply=reply,
+        suggested_prompts=["Open Discover History Scheduled", "status"],
+        tool_name=f"research_discover_{op}_refresh_subscription",
+    )
+
+
 def try_direct_equipment_turn(
     gateway: Any,
     message: str,
@@ -446,9 +628,15 @@ def try_direct_equipment_turn(
     status = try_direct_status_turn(gateway, message, state)
     if status is not None:
         return status
+    intent = try_direct_intent_turn(gateway, message, state)
+    if intent is not None:
+        return intent
     schedule = try_direct_schedule_turn(gateway, message, state)
     if schedule is not None:
         return schedule
+    lifecycle = try_direct_subscription_lifecycle_turn(gateway, message, state)
+    if lifecycle is not None:
+        return lifecycle
     probe = try_direct_probe_turn(gateway, message, state)
     if probe is not None:
         return probe

@@ -1268,7 +1268,20 @@ class ResearchDataGateway:
         connector_id = str(route.get("connector_id") or "")
         if not connector_id:
             raise ValueError("selected route cannot be collected until it has a verified connector")
-        plan = dict(self.procurement.manifest_plan_from_connector(connector_id, limit=min(max(int(limit), 1), 2000)))
+        from scripts.research_data_mcp.discover_collect_plan import resolve_discover_collect_plan
+
+        plan = dict(
+            resolve_discover_collect_plan(
+                self.procurement,
+                self.repo_root,
+                connector_id=connector_id,
+                source_id=str((state.get("candidate") or {}).get("source_id") or intent.get("source_id") or ""),
+                limit=min(max(int(limit), 1), 2000),
+                title=str(intent.get("title") or ""),
+                url=str(route.get("url") or route.get("source_url") or ""),
+                candidate_key=str(route.get("candidate_key") or (state.get("candidate") or {}).get("candidate_key") or ""),
+            )
+        )
         plan.update({"discover_intent_id": intent_id, "candidate_key": route.get("candidate_key") or (state.get("candidate") or {}).get("candidate_key") or "", "destination": route.get("destination") or plan.get("destination") or "", "refresh_strategy": route.get("refresh") or ""})
         submitted = self.jobs.submit(plan.get("title") or intent.get("title") or "Discover collection", plan, {"source": "discover_intent", "discover_intent_id": intent_id, "research_need": intent.get("research_need") or "", "route_id": selected_id, "connector_id": connector_id}, auto_approve=False)
         job = submitted.get("job") or {}
@@ -1348,6 +1361,8 @@ class ResearchDataGateway:
         enabled: bool = True,
         requested_schedule: str = "",
         schedule_note: str = "",
+        timezone: str = "",
+        schedule_spec: dict | None = None,
     ) -> dict[str, Any]:
         return self._discover_refresh_store().create(
             cadence=cadence,
@@ -1359,6 +1374,8 @@ class ResearchDataGateway:
             enabled=enabled,
             requested_schedule=requested_schedule,
             schedule_note=schedule_note,
+            timezone=timezone,
+            schedule_spec=schedule_spec,
         )
 
     def discover_refresh_list(self, *, limit: int = 50, intent_id: str = "", status: str = "") -> dict[str, Any]:
