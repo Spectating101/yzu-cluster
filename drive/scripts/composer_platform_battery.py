@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Operate-the-platform battery: direct equipment + Composer + durable readback."""
+"""Operate-the-platform battery — registration + Discover routing + approve lifecycle."""
 from __future__ import annotations
 
 import json
 import os
 import time
+import urllib.error
 import urllib.request
 from dataclasses import dataclass, field
 from typing import Any
@@ -27,9 +28,11 @@ class Case:
 results: list[Case] = []
 LAST_SUB: str | None = None
 LAST_INTENT: str | None = None
+LAST_JOB: str | None = None
+LAST_SEC_JOB: str | None = None
 
 
-def http_json(method: str, path: str, body: dict | None = None, timeout: float = 60) -> Any:
+def http_json(method: str, path: str, body: dict | None = None, timeout: float = 90) -> Any:
     data = None if body is None else json.dumps(body).encode()
     req = urllib.request.Request(
         API + path,
@@ -51,7 +54,6 @@ def chat(message: str, rail: dict | None = None, timeout: float = 180) -> dict[s
         method="POST",
     )
     complete = None
-    acts: list[str] = []
     t0 = time.time()
     with urllib.request.urlopen(req, timeout=timeout) as resp:
         for raw in resp:
@@ -59,16 +61,13 @@ def chat(message: str, rail: dict | None = None, timeout: float = 180) -> dict[s
             if not line:
                 continue
             ev = json.loads(line)
-            if ev.get("type") in ("progress", "activity"):
-                acts.append(f"{ev.get('phase')}:{(ev.get('text') or '')[:60]}")
-            elif ev.get("type") == "complete":
+            if ev.get("type") == "complete":
                 complete = ev.get("result") or {}
             elif ev.get("type") == "error":
                 raise RuntimeError(ev.get("message") or ev.get("error") or "err")
     if not complete:
         raise RuntimeError("no complete")
     complete["_elapsed"] = round(time.time() - t0, 2)
-    complete["_acts"] = acts
     return complete
 
 
@@ -83,7 +82,7 @@ def run(case: Case, fn) -> None:
         case.error = str(exc)[:280]
     results.append(case)
     print(
-        f"[{'PASS' if case.ok else 'FAIL'}] {case.kind:8} {case.name:42} {case.elapsed:6.1f}s  "
+        f"[{'PASS' if case.ok else 'FAIL'}] {case.kind:8} {case.name:46} {case.elapsed:6.1f}s  "
         f"{(case.detail or case.error)[:110]}"
     )
 
@@ -94,6 +93,7 @@ TWSE_RAIL = {
         "source_id": "twse_official",
         "connector_id": "twse",
         "candidate_key": "source:twse_official",
+        "endpoint": "openapi.twse.com.tw",
     },
     "actions": ["schedule_refresh", "ask_about"],
 }
@@ -104,11 +104,13 @@ def c_tools(c: Case) -> None:
     need = [
         "research_discover_create_refresh_subscription",
         "research_discover_pause_refresh_subscription",
+        "research_discover_stop_refresh_subscription",
         "research_discover_create_intent",
+        "research_discover_source_search",
         "procurement_probe_public_source",
     ]
     miss = [n for n in need if n not in (d.get("tools") or [])]
-    c.ok = not miss and int(d.get("count") or 0) >= 76
+    c.ok = not miss and int(d.get("count") or 0) >= 78
     c.detail = f"count={d.get('count')} miss={miss or 'none'}"
 
 
@@ -132,7 +134,7 @@ def c_schedule_spec_api(c: Case) -> None:
         and spec.get("cron") == "0 10 * * 1"
         and out.get("next_run_at") in (None, "")
     )
-    c.detail = f"id={out.get('id')} cron={spec.get('cron')} exec={out.get('execution_mode')}"
+    c.detail = f"id={out.get('id')} cron={spec.get('cron')}"
     LAST_SUB = out.get("id")
 
 
@@ -144,8 +146,17 @@ def c_probe(c: Case) -> None:
 
 def c_search(c: Case) -> None:
     out = chat("search vault for TWSE")
-    c.ok = out.get("action") == "search"
+    c.ok = out.get("action") == "search" and int((out.get("artifacts") or {}).get("total") or 0) > 0
     c.detail = f"action={out.get('action')} total={(out.get('artifacts') or {}).get('total')}"
+
+
+def c_discover_search(c: Case) -> None:
+    out = chat("Use research_discover_search for query TWSE. List source_id and access_mode.")
+    arts = out.get("artifacts") or {}
+    rows = arts.get("results") or (arts.get("discover") or {}).get("results") or []
+    sids = [r.get("source_id") for r in rows if isinstance(r, dict)]
+    c.ok = out.get("action") == "discover_search" and "twse_official" in sids
+    c.detail = f"action={out.get('action')} sids={sids[:3]}"
 
 
 def c_schedule(c: Case) -> None:
@@ -163,9 +174,9 @@ def c_schedule(c: Case) -> None:
         out.get("action") == "schedule_refresh"
         and arts.get("platform_registered")
         and n1 > n0
-        and (spec.get("cron") == "0 10 * * 1" or "Monday" in str(arts.get("requested_schedule") or ""))
+        and spec.get("cron") == "0 10 * * 1"
     )
-    c.detail = f"action={out.get('action')} cron={spec.get('cron')} n={n0}->{n1} sub={arts.get('subscription_id')}"
+    c.detail = f"sub={arts.get('subscription_id')} cron={spec.get('cron')}"
     LAST_SUB = arts.get("subscription_id") or LAST_SUB
 
 
@@ -180,7 +191,7 @@ def c_intent(c: Case) -> None:
     ids1 = {i.get("id") for i in http_json("GET", "/library/discover/history?kind=intent&limit=50").get("items") or []}
     new = ids1 - ids0
     c.ok = out.get("action") == "create_intent" and bool(new or arts.get("intent_id"))
-    c.detail = f"action={out.get('action')} new={sorted(new)[:2]} id={arts.get('intent_id')}"
+    c.detail = f"new={sorted(new)[:1]} id={arts.get('intent_id')}"
     LAST_INTENT = sorted(new)[0] if new else arts.get("intent_id")
 
 
@@ -190,21 +201,121 @@ def c_pause(c: Case) -> None:
         c.detail = "no subscription"
         return
     out = chat(f"Pause subscription {LAST_SUB}")
-    arts = out.get("artifacts") or {}
-    sub = arts.get("subscription") or http_json("GET", f"/library/discover/subscriptions/{LAST_SUB}")
+    sub = http_json("GET", f"/library/discover/subscriptions/{LAST_SUB}")
     c.ok = out.get("action") == "pause_subscription" and sub.get("status") == "paused"
-    c.detail = f"action={out.get('action')} status={sub.get('status')}"
+    c.detail = f"status={sub.get('status')}"
 
 
 def c_resume(c: Case) -> None:
     out = chat(f"Resume subscription {LAST_SUB}")
-    arts = out.get("artifacts") or {}
-    sub = arts.get("subscription") or {}
+    sub = http_json("GET", f"/library/discover/subscriptions/{LAST_SUB}")
     c.ok = out.get("action") == "resume_subscription" and sub.get("status") == "active"
-    c.detail = f"action={out.get('action')} status={sub.get('status')}"
+    c.detail = f"status={sub.get('status')}"
 
 
-def c_collect_history(c: Case) -> None:
+def c_stop(c: Case) -> None:
+    # use a disposable sub so we don't kill the resume one mid-battery
+    disposable = http_json(
+        "POST",
+        "/library/discover/subscriptions",
+        {
+            "cadence": "weekly",
+            "source_id": "twse_official",
+            "connector_id": "twse",
+            "requested_schedule": "every Monday at 10:00 stop-test",
+            "timezone": "Asia/Taipei",
+            "enabled": True,
+        },
+    ).get("id")
+    out = chat(f"Stop subscription {disposable}")
+    sub = http_json("GET", f"/library/discover/subscriptions/{disposable}")
+    c.ok = out.get("action") == "stop_subscription" and sub.get("status") in {"stopped", "cancelled", "inactive", "disabled"} or (
+        out.get("action") == "stop_subscription" and sub.get("enabled") is False
+    )
+    # tolerate status naming
+    if out.get("action") == "stop_subscription" and (sub.get("status") in {"stopped", "cancelled", "inactive", "disabled"} or sub.get("enabled") is False):
+        c.ok = True
+    c.detail = f"action={out.get('action')} status={sub.get('status')} enabled={sub.get('enabled')}"
+
+
+def c_direct_collect(c: Case) -> None:
+    global LAST_JOB
+    before = {i.get("id") for i in http_json("GET", "/library/discover/history?kind=collection_run&limit=80").get("items") or []}
+    out = chat("Collect this source.", TWSE_RAIL)
+    arts = out.get("artifacts") or {}
+    jid = arts.get("job_id") or (arts.get("job") or {}).get("id")
+    time.sleep(0.3)
+    after = http_json("GET", "/library/discover/history?kind=collection_run&limit=80")
+    hit = [i for i in (after.get("items") or []) if i.get("id") == jid or i.get("job_id") == jid]
+    c.ok = out.get("action") == "discover_collect" and bool(jid) and bool(hit)
+    c.detail = f"action={out.get('action')} job={jid} in_history={bool(hit)}"
+    LAST_JOB = jid
+
+
+def c_approve_lifecycle(c: Case) -> None:
+    global LAST_JOB
+    if not LAST_JOB:
+        c.ok = False
+        c.detail = "no job"
+        return
+    out = chat(f"Approve job {LAST_JOB}")
+    job = http_json("GET", f"/library/jobs/{LAST_JOB}")
+    hist = http_json("GET", "/library/discover/history?kind=collection_run&limit=80")
+    hit = next((i for i in (hist.get("items") or []) if i.get("id") == LAST_JOB or i.get("job_id") == LAST_JOB), None)
+    status = job.get("status")
+    c.ok = (
+        out.get("action") == "approve_job"
+        and status in {"queued", "running", "completed", "approved"}
+        and bool(hit)
+        and hit.get("status") == status
+    )
+    # if completed already, even better
+    if status == "completed" and hit and hit.get("status") == "completed":
+        c.ok = True
+    c.detail = f"action={out.get('action')} job_status={status} hist_status={(hit or {}).get('status')}"
+    c.evidence = {"job_id": LAST_JOB, "status": status}
+
+
+def c_sec_manifest_collect(c: Case) -> None:
+    global LAST_SEC_JOB
+    out = http_json(
+        "POST",
+        "/library/discover/collect",
+        {
+            "connector_id": "src_ace4a0fb8e9e",
+            "limit": 2,
+            "auto_approve": False,
+            "name": "SEC company tickers battery",
+            "candidate_key": "connector:src_ace4a0fb8e9e",
+        },
+        timeout=90,
+    )
+    job = out.get("job") or {}
+    jid = job.get("id")
+    plan = job.get("plan") or {}
+    # approve
+    if jid:
+        http_json("POST", f"/library/jobs/{jid}/approve")
+        job = http_json("GET", f"/library/jobs/{jid}")
+    hist = http_json("GET", "/library/discover/history?kind=collection_run&limit=80")
+    hit = next((i for i in (hist.get("items") or []) if i.get("id") == jid or i.get("job_id") == jid), None)
+    c.ok = (
+        bool(jid)
+        and plan.get("job_type") == "http_manifest"
+        and plan.get("public_direct_url") is True
+        and job.get("status") in {"queued", "running", "completed"}
+        and bool(hit)
+    )
+    c.detail = (
+        f"job={jid} type={plan.get('job_type')} public={plan.get('public_direct_url')} "
+        f"status={job.get('status')} hist={bool(hit)}"
+    )
+    LAST_SEC_JOB = jid
+    c.evidence = {"job_id": jid, "status": job.get("status")}
+
+
+def c_collect_http(c: Case) -> None:
+    # legacy HTTP collect path still works for TWSE catalog
     out = http_json(
         "POST",
         "/library/discover/collect",
@@ -214,25 +325,21 @@ def c_collect_history(c: Case) -> None:
             "limit": 5,
             "auto_approve": False,
             "candidate_key": "source:twse_official",
-            "name": "TWSE Open API battery collect",
+            "name": "TWSE catalog collect battery",
             "discover_intent_id": LAST_INTENT or "",
         },
         timeout=90,
     )
-    job = (out.get("job") if isinstance(out, dict) else None) or {}
+    job = out.get("job") or {}
     jid = job.get("id")
-    time.sleep(0.4)
-    after = http_json("GET", "/library/discover/history?kind=collection_run&limit=80")
-    hit = [i for i in (after.get("items") or []) if i.get("id") == jid or i.get("job_id") == jid]
-    if jid and not hit:
-        all_h = http_json("GET", "/library/discover/history?limit=100")
-        hit = [i for i in (all_h.get("items") or []) if i.get("id") == jid or i.get("job_id") == jid]
+    time.sleep(0.3)
+    hit = [
+        i
+        for i in http_json("GET", "/library/discover/history?kind=collection_run&limit=80").get("items") or []
+        if i.get("id") == jid or i.get("job_id") == jid
+    ]
     c.ok = bool(jid) and bool(hit)
-    c.detail = (
-        f"job={jid} status={job.get('status')} type={(job.get('plan') or {}).get('job_type')} "
-        f"in_history={bool(hit)} resolution={(job.get('plan') or {}).get('collect_resolution')}"
-    )
-    c.evidence = {"job_id": jid, "status": job.get("status")}
+    c.detail = f"job={jid} type={(job.get('plan') or {}).get('job_type')} status={job.get('status')}"
 
 
 def c_honesty(c: Case) -> None:
@@ -240,7 +347,7 @@ def c_honesty(c: Case) -> None:
     lying = [s.get("id") for s in subs if s.get("auto_refresh") or s.get("next_run_at")]
     bad_exec = [s.get("id") for s in subs if s.get("execution_mode") not in (None, "non_executing")]
     c.ok = bool(subs) and not lying and not bad_exec
-    c.detail = f"n={len(subs)} lying_next={lying[:2]} bad_exec={bad_exec[:2]}"
+    c.detail = f"n={len(subs)} lying={lying[:2]} bad_exec={bad_exec[:2]}"
 
 
 def c_composer_schedule(c: Case) -> None:
@@ -259,15 +366,20 @@ def c_composer_schedule(c: Case) -> None:
 
 def main() -> int:
     print("SESSION", SID, "API", API)
-    run(Case("mcp tools 76+", "http"), c_tools)
+    run(Case("mcp tools 78+", "http"), c_tools)
     run(Case("API schedule_spec cron", "http"), c_schedule_spec_api)
     run(Case("direct probe", "direct"), c_probe)
-    run(Case("direct search", "direct"), c_search)
+    run(Case("direct vault search", "direct"), c_search)
+    run(Case("direct Discover catalog search", "direct"), c_discover_search)
     run(Case("direct schedule+spec", "direct"), c_schedule)
     run(Case("direct create intent", "direct"), c_intent)
     run(Case("direct pause sub", "direct"), c_pause)
     run(Case("direct resume sub", "direct"), c_resume)
-    run(Case("collect → History run", "http"), c_collect_history)
+    run(Case("direct stop sub", "direct"), c_stop)
+    run(Case("direct collect selected → History", "direct"), c_direct_collect)
+    run(Case("approve job → History lifecycle", "direct"), c_approve_lifecycle)
+    run(Case("HTTP catalog collect → History", "http"), c_collect_http)
+    run(Case("SEC http_manifest collect+approve", "http"), c_sec_manifest_collect)
     run(Case("honesty non-executing", "http"), c_honesty)
     run(Case("composer schedule register", "composer"), c_composer_schedule)
 
@@ -278,15 +390,9 @@ def main() -> int:
         if not r.ok:
             print("FAIL", r.name, r.detail or r.error)
 
-    out = os.path.join(
-        os.path.dirname(__file__),
-        "..",
-        "docs",
-        "status",
-        "generated",
-        "composer_platform_battery.json",
+    out = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "docs", "status", "generated", "composer_platform_battery.json")
     )
-    out = os.path.abspath(out)
     os.makedirs(os.path.dirname(out), exist_ok=True)
     json.dump(
         {
@@ -294,6 +400,24 @@ def main() -> int:
             "score": f"{passed}/{len(results)}",
             "passed": passed,
             "total": len(results),
+            "ladder": [
+                "tools",
+                "schedule_spec",
+                "probe",
+                "vault_search",
+                "discover_search",
+                "schedule",
+                "intent",
+                "pause",
+                "resume",
+                "stop",
+                "collect",
+                "approve_lifecycle",
+                "http_collect",
+                "sec_manifest",
+                "honesty",
+                "composer_schedule",
+            ],
             "cases": [
                 {
                     "name": r.name,

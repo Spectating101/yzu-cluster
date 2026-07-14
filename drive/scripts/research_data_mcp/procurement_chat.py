@@ -444,6 +444,7 @@ class ProcurementChatOrchestrator:
             "desk_session": "Searching vault and preparing your answer…",
             "search": "Searching the lab registry…",
             "discover_search": "Searching Discover catalog…",
+            "discover_collect": "Queuing Discover collection…",
             "query": "Querying the selected dataset…",
             "probe_url": "Probing the public source…",
             "collect_doi": "Checking DOI acquisition state…",
@@ -499,6 +500,8 @@ class ProcurementChatOrchestrator:
                 return "collect_doi"
         if action_result.get("result_kind") == "discover_sources" or action_result.get("action") == "discover_search":
             return "discover_search"
+        if action_result.get("action") == "discover_collect" or action_result.get("result_kind") == "discover_collect":
+            return "discover_collect"
         if "discover catalog" in text or "source_id" in text and "access" in text:
             if any(tkn in text[:200] for tkn in ("discover", "catalog", "source")):
                 return "discover_search"

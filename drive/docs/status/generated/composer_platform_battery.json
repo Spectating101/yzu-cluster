@@ -1,11 +1,29 @@
 {
-  "session_id": "battery-1784047739",
-  "score": "11/11",
-  "passed": 11,
-  "total": 11,
+  "session_id": "battery-1784048666",
+  "score": "16/16",
+  "passed": 16,
+  "total": 16,
+  "ladder": [
+    "tools",
+    "schedule_spec",
+    "probe",
+    "vault_search",
+    "discover_search",
+    "schedule",
+    "intent",
+    "pause",
+    "resume",
+    "stop",
+    "collect",
+    "approve_lifecycle",
+    "http_collect",
+    "sec_manifest",
+    "honesty",
+    "composer_schedule"
+  ],
   "cases": [
     {
-      "name": "mcp tools 76+",
+      "name": "mcp tools 78+",
       "kind": "http",
       "ok": true,
       "elapsed": 0.02,
@@ -18,7 +36,7 @@
       "kind": "http",
       "ok": true,
       "elapsed": 0.02,
-      "detail": "id=4626ae592323451c cron=0 10 * * 1 exec=non_executing",
+      "detail": "id=cf83e6077840448e cron=0 10 * * 1",
       "error": "",
       "evidence": {}
     },
@@ -26,17 +44,26 @@
       "name": "direct probe",
       "kind": "direct",
       "ok": true,
-      "elapsed": 0.18,
-      "detail": "action=probe_url 0.18s",
+      "elapsed": 0.12,
+      "detail": "action=probe_url 0.12s",
       "error": "",
       "evidence": {}
     },
     {
-      "name": "direct search",
+      "name": "direct vault search",
       "kind": "direct",
       "ok": true,
-      "elapsed": 2.99,
+      "elapsed": 2.51,
       "detail": "action=search total=19",
+      "error": "",
+      "evidence": {}
+    },
+    {
+      "name": "direct Discover catalog search",
+      "kind": "direct",
+      "ok": true,
+      "elapsed": 0.05,
+      "detail": "action=discover_search sids=['twse_official', 'mops_taiwan']",
       "error": "",
       "evidence": {}
     },
@@ -44,8 +71,8 @@
       "name": "direct schedule+spec",
       "kind": "direct",
       "ok": true,
-      "elapsed": 0.09,
-      "detail": "action=schedule_refresh cron=0 10 * * 1 n=15->16 sub=8ef3f560c6174545",
+      "elapsed": 0.07,
+      "detail": "sub=cc2e835279f143b9 cron=0 10 * * 1",
       "error": "",
       "evidence": {}
     },
@@ -53,8 +80,8 @@
       "name": "direct create intent",
       "kind": "direct",
       "ok": true,
-      "elapsed": 0.4,
-      "detail": "action=create_intent new=['01d2ed4b44dd41af'] id=01d2ed4b44dd41af",
+      "elapsed": 0.33,
+      "detail": "new=['5c78812bf6a84b48'] id=5c78812bf6a84b48",
       "error": "",
       "evidence": {}
     },
@@ -62,8 +89,8 @@
       "name": "direct pause sub",
       "kind": "direct",
       "ok": true,
-      "elapsed": 0.07,
-      "detail": "action=pause_subscription status=paused",
+      "elapsed": 0.52,
+      "detail": "status=paused",
       "error": "",
       "evidence": {}
     },
@@ -71,29 +98,68 @@
       "name": "direct resume sub",
       "kind": "direct",
       "ok": true,
-      "elapsed": 0.07,
-      "detail": "action=resume_subscription status=active",
+      "elapsed": 0.16,
+      "detail": "status=active",
       "error": "",
       "evidence": {}
     },
     {
-      "name": "collect \u2192 History run",
-      "kind": "http",
+      "name": "direct stop sub",
+      "kind": "direct",
       "ok": true,
-      "elapsed": 0.58,
-      "detail": "job=5ce2c45179f6 status=pending_approval type=source_probe in_history=True resolution=catalog_source_probe_fallback",
+      "elapsed": 0.1,
+      "detail": "action=stop_subscription status=stopped enabled=False",
+      "error": "",
+      "evidence": {}
+    },
+    {
+      "name": "direct collect selected \u2192 History",
+      "kind": "direct",
+      "ok": true,
+      "elapsed": 0.68,
+      "detail": "action=discover_collect job=49c6ecd54b46 in_history=True",
+      "error": "",
+      "evidence": {}
+    },
+    {
+      "name": "approve job \u2192 History lifecycle",
+      "kind": "direct",
+      "ok": true,
+      "elapsed": 0.29,
+      "detail": "action=approve_job job_status=completed hist_status=completed",
       "error": "",
       "evidence": {
-        "job_id": "5ce2c45179f6",
-        "status": "pending_approval"
+        "job_id": "49c6ecd54b46",
+        "status": "completed"
+      }
+    },
+    {
+      "name": "HTTP catalog collect \u2192 History",
+      "kind": "http",
+      "ok": true,
+      "elapsed": 0.42,
+      "detail": "job=787dd596f3c1 type=source_probe status=pending_approval",
+      "error": "",
+      "evidence": {}
+    },
+    {
+      "name": "SEC http_manifest collect+approve",
+      "kind": "http",
+      "ok": true,
+      "elapsed": 19.33,
+      "detail": "job=66739bd56336 type=http_manifest public=True status=completed hist=True",
+      "error": "",
+      "evidence": {
+        "job_id": "66739bd56336",
+        "status": "completed"
       }
     },
     {
       "name": "honesty non-executing",
       "kind": "http",
       "ok": true,
-      "elapsed": 0.01,
-      "detail": "n=16 lying_next=[] bad_exec=[]",
+      "elapsed": 0.0,
+      "detail": "n=29 lying=[] bad_exec=[]",
       "error": "",
       "evidence": {}
     },
@@ -101,8 +167,8 @@
       "name": "composer schedule register",
       "kind": "composer",
       "ok": true,
-      "elapsed": 28.38,
-      "detail": "action=schedule_refresh new=['64141072129343fa'] brain=cursor_composer",
+      "elapsed": 40.61,
+      "detail": "action=schedule_refresh new=['a6f71bd8c45d48c6'] brain=cursor_composer",
       "error": "",
       "evidence": {}
     }

@@ -38,6 +38,46 @@ def _host_of(url_or_host: str) -> str:
         return ""
 
 
+
+_PUBLIC_GOV_HOSTS = frozenset(
+    {
+        "www.sec.gov",
+        "sec.gov",
+        "data.sec.gov",
+        "www.data.gov",
+        "data.gov",
+        "openapi.twse.com.tw",
+        "www.twse.com.tw",
+        "mops.twse.com.tw",
+        "api.worldbank.org",
+        "databank.worldbank.org",
+    }
+)
+
+
+def _stamp_public_collect_plan(plan: dict[str, Any]) -> dict[str, Any]:
+    """Mark clearly public HTTP manifests so approve-safe policy can launch them."""
+    if not isinstance(plan, dict):
+        return plan
+    if str(plan.get("job_type") or "") != "http_manifest":
+        return plan
+    urls: list[str] = []
+    if plan.get("url"):
+        urls.append(str(plan.get("url")))
+    for item in plan.get("items") or []:
+        if isinstance(item, dict) and item.get("url"):
+            urls.append(str(item["url"]))
+        elif isinstance(item, str):
+            urls.append(item)
+    hosts = {_host_of(u) for u in urls if u}
+    hosts.discard("")
+    if hosts and hosts <= _PUBLIC_GOV_HOSTS:
+        plan = dict(plan)
+        plan.setdefault("public_direct_url", True)
+        plan.setdefault("collect_class", "public_government")
+        plan.setdefault("requires_approval", True)  # still explicit unless auto-approve policy says otherwise
+    return plan
+
 def _lookup_catalog_source(repo_root: Any, *, connector_id: str = "", source_id: str = "") -> dict[str, Any]:
     from pathlib import Path
 
@@ -176,7 +216,7 @@ def resolve_discover_collect_plan(
                 plan["candidate_key"] = ck
             if cid and cid != pid:
                 plan["catalog_connector_id"] = cid
-            return plan
+            return _stamp_public_collect_plan(plan)
         except KeyError as exc:
             errors.append(f"procurement_missing:{exc}")
             return None
@@ -188,7 +228,7 @@ def resolve_discover_collect_plan(
     if cid:
         plan = try_manifest(cid)
         if plan:
-            return plan
+            return _stamp_public_collect_plan(plan)
 
     catalog = _lookup_catalog_source(repo_root, connector_id=cid, source_id=sid)
     catalog_cid = str(catalog.get("connector_id") or catalog.get("desk_connector_id") or cid).strip()
@@ -213,7 +253,7 @@ def resolve_discover_collect_plan(
                 plan["candidate_key"] = ck
             if catalog_title and not plan.get("title"):
                 plan["title"] = f"Collect {catalog_title}"
-            return plan
+            return _stamp_public_collect_plan(plan)
 
     # 3) Probe fallback — durable History row without inventing harvest files
     if catalog_url:

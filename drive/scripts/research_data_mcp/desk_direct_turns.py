@@ -308,10 +308,21 @@ def is_direct_query_message(message: str, rail_context: dict[str, Any] | None = 
     return dataset_id_from_message(message, rail_context, mode="query") is not None
 
 
+def is_direct_discover_collect_message(message: str, rail_context: dict[str, Any] | None = None) -> bool:
+    return parse_discover_collect_request(message, rail_context) is not None
+
+
+def is_direct_approve_job_message(message: str, rail_context: dict[str, Any] | None = None) -> bool:
+    return bool(_APPROVE_JOB.search((message or "").strip()[:200]))
+
+
 def is_direct_discovery_message(message: str, rail_context: dict[str, Any] | None = None) -> bool:
     return (
         is_direct_probe_message(message, rail_context)
         or is_direct_search_message(message, rail_context)
+        or is_direct_discover_search_message(message, rail_context)
+        or is_direct_discover_collect_message(message, rail_context)
+        or is_direct_approve_job_message(message, rail_context)
         or is_direct_status_message(message)
         or is_direct_describe_message(message, rail_context)
         or is_direct_query_message(message, rail_context)
@@ -792,6 +803,153 @@ def try_direct_subscription_lifecycle_turn(gateway: Any, message: str, state: di
     )
 
 
+
+_COLLECT_SELECTED = re.compile(
+    r"\b(collect|queue\s+collect(?:ion)?|start\s+collect(?:ion)?)\b",
+    re.I,
+)
+_COLLECT_SELECTED_BLOCK = re.compile(
+    r"\b(plan|compare|explain|why|should|summarize|doi)\b",
+    re.I,
+)
+
+
+def parse_discover_collect_request(message: str, rail_context: dict[str, Any] | None = None) -> dict[str, Any] | None:
+    text = (message or "").strip()
+    if not text or not _COLLECT_SELECTED.search(text[:200]):
+        return None
+    # Negation: "do not collect" is intent/language, not a collect command.
+    if re.search(r"\b(do\s+not|don'?t|without|no)\s+collect\b", text, re.I):
+        return None
+    if _COLLECT_SELECTED_BLOCK.search(text[:160]):
+        return None
+    # Multi-step Composer instructions — leave alone
+    if any(tok in text.lower() for tok in ("research_discover_search", "pick the best", "then create")):
+        return None
+    selected = _rail_selected(rail_context)
+    if not (selected.get("connector_id") or selected.get("source_id") or selected.get("candidate_key")):
+        return None
+    # Prefer short imperative collects
+    if len(text) > 220 and "intent" in text.lower():
+        return None
+    return {
+        "connector_id": str(selected.get("connector_id") or "").strip(),
+        "source_id": str(selected.get("source_id") or "").strip(),
+        "candidate_key": str(selected.get("candidate_key") or "").strip(),
+        "title": str(selected.get("title") or selected.get("source_id") or "Discover source").strip(),
+        "url": str(selected.get("url") or selected.get("endpoint") or "").strip(),
+    }
+
+
+def try_direct_discover_collect_turn(gateway: Any, message: str, state: dict[str, Any]) -> AgentTurn | None:
+    req = parse_discover_collect_request(message, state.get("rail_context"))
+    if not req:
+        return None
+    from scripts.research_data_mcp.discover_collect_plan import resolve_discover_collect_plan
+    from scripts.research_data_mcp.job_identity import enrich_job_identity
+
+    try:
+        plan = resolve_discover_collect_plan(
+            gateway.procurement,
+            gateway.repo_root,
+            connector_id=req["connector_id"],
+            source_id=req["source_id"],
+            limit=25,
+            title=req["title"],
+            url=req["url"],
+            candidate_key=req["candidate_key"],
+        )
+    except Exception as exc:  # noqa: BLE001
+        return AgentTurn(
+            plan={"action": "discover_collect", "fast_path": True, **req},
+            action_result={"action": "discover_collect", "fast_path": True, "error": str(exc), **req},
+            reply=f"Could not build a Discover collect plan: {exc}",
+            suggested_prompts=["Probe the selected source", "Create a Discover intent instead"],
+            tool_name="research_discover_collect",
+        )
+    request = {
+        "source": "discover_ui",
+        "connector_id": plan.get("connector_id") or req["connector_id"],
+        "candidate_key": req["candidate_key"],
+    }
+    if req["source_id"]:
+        request["source_id"] = req["source_id"]
+        plan = dict(plan)
+        plan["source_id"] = req["source_id"]
+    submitted = gateway.jobs.submit(plan.get("title") or req["title"], plan, request, auto_approve=False)
+    job = submitted.get("job") if isinstance(submitted, dict) else None
+    if isinstance(job, dict):
+        job = enrich_job_identity(job)
+    jid = str((job or {}).get("id") or "")
+    resolution = plan.get("collect_resolution") or plan.get("job_type")
+    reply = (
+        f"Queued Discover collect for **{req['title']}** as job `{jid[:12]}…`\n"
+        f"- Status: {(job or {}).get('status') or 'unknown'}\n"
+        f"- Plan: `{resolution}`\n"
+        f"- Appears under Discover → History (collection run). Approve to execute."
+    )
+    return AgentTurn(
+        plan={"action": "discover_collect", "fast_path": True, **req},
+        action_result={
+            "action": "discover_collect",
+            "fast_path": True,
+            "job": job,
+            "job_id": jid,
+            "plan": plan,
+            "platform_registered": bool(jid),
+            "history_kind": "collection_run",
+            "result_kind": "discover_collect",
+            **req,
+        },
+        reply=reply,
+        suggested_prompts=[f"Approve job {jid}" if jid else "Open Discover History", "Pause if this was a mistake"],
+        tool_name="procurement_submit_collection_job",
+    )
+
+
+
+_APPROVE_JOB = re.compile(r"\bapprove\s+(?:job\s+)?([a-f0-9]{8,16})\b", re.I)
+
+
+def try_direct_approve_job_turn(gateway: Any, message: str, state: dict[str, Any]) -> AgentTurn | None:
+    text = (message or "").strip()
+    m = _APPROVE_JOB.search(text[:200] if text else "")
+    if not m:
+        return None
+    jid = m.group(1)
+    try:
+        job = gateway.jobs.approve(jid)
+        # kick worker once like HTTP handler
+        try:
+            gateway.jobs.tick()
+        except Exception:
+            pass
+        job = gateway.jobs.get(jid) or job
+    except Exception as exc:  # noqa: BLE001
+        return AgentTurn(
+            plan={"action": "approve_job", "fast_path": True, "job_id": jid},
+            action_result={"action": "approve_job", "fast_path": True, "job_id": jid, "error": str(exc)},
+            reply=f"Could not approve job `{jid}`: {exc}",
+            suggested_prompts=["Open Discover History"],
+            tool_name="procurement_approve_job",
+        )
+    status = (job or {}).get("status")
+    return AgentTurn(
+        plan={"action": "approve_job", "fast_path": True, "job_id": jid},
+        action_result={
+            "action": "approve_job",
+            "fast_path": True,
+            "job_id": jid,
+            "job": job,
+            "platform_registered": True,
+            "history_kind": "collection_run",
+        },
+        reply=f"Approved job `{jid}` — status now **{status}**. Discover History should reflect the collection run.",
+        suggested_prompts=["Open Discover History", f"status"],
+        tool_name="procurement_approve_job",
+    )
+
+
 def try_direct_equipment_turn(
     gateway: Any,
     message: str,
@@ -800,9 +958,15 @@ def try_direct_equipment_turn(
     status = try_direct_status_turn(gateway, message, state)
     if status is not None:
         return status
+    approve = try_direct_approve_job_turn(gateway, message, state)
+    if approve is not None:
+        return approve
     discover = try_direct_discover_search_turn(gateway, message, state)
     if discover is not None:
         return discover
+    collect = try_direct_discover_collect_turn(gateway, message, state)
+    if collect is not None:
+        return collect
     intent = try_direct_intent_turn(gateway, message, state)
     if intent is not None:
         return intent
