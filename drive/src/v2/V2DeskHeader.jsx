@@ -19,6 +19,7 @@ export function V2DeskHeader({
   datasetCount = 0,
   usingSeed = false,
   workCount = 0,
+  onPendingClick,
   deskStatus = "unknown",
   refreshedAt = null,
   dryRunProtected = true,
@@ -83,7 +84,25 @@ export function V2DeskHeader({
           ) : null}
           {fresh ? <span className="rd-v2-trust-badge muted">Updated {fresh}</span> : null}
         </div>
-        <span className="rd-v2-header-meta-count">{metaText}</span>
+        <span className="rd-v2-header-meta-count">
+          {usingSeed ? (
+            metaText
+          ) : workCount > 0 && onPendingClick ? (
+            <>
+              {`${datasetCount} datasets · `}
+              <button
+                type="button"
+                className="rd-v2-header-pending-link"
+                data-testid="header-pending-link"
+                onClick={onPendingClick}
+              >
+                {workCount} pending
+              </button>
+            </>
+          ) : (
+            metaText
+          )}
+        </span>
         {usingSeed && onRetry ? (
           <button type="button" className="rd-v2-header-retry" onClick={onRetry}>
             Retry

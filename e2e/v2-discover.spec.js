@@ -6,6 +6,12 @@ import {
   waitForShell,
 } from "./fixtures/v2MockApi.js";
 
+/**
+ * Discover feature E2E (main composition + Explore|History converge).
+ * Authority: docs/UI_PRODUCT_AUTHORITY.md
+ * Classify via docs/DISCOVER_E2E_AUTHORITY_AUDIT.md before product fixes.
+ */
+
 test.describe("v2 Discover tab", () => {
   test.beforeEach(async ({ page }) => {
     await mockV2Api(page);

@@ -65,4 +65,14 @@ No cached/demo/model result appears as live authority.
 - E2E: Explore/History, selected-row rail, Preview overlay, local sufficiency, request-to-registration, exact handoffs, Ask parity.
 - Visual: desktop 1440, laptop 1280, tablet 900, mobile 390; review selection, loading, empty, unavailable, recovery, and output states.
 
-No later slice begins until the preceding slice passes its behavior and rendered-pixel review.
+### Discover E2E interpretation rule
+
+Before treating any Discover Playwright red as a Slice failure:
+
+1. Classify each test against [`DISCOVER_E2E_AUTHORITY_AUDIT.md`](DISCOVER_E2E_AUTHORITY_AUDIT.md).
+2. Discard **ENVIRONMENT FAILURE** runs (wrong Vite tree, contested port, overlapping workers).
+3. Do not use **LEGACY EXPECTATION** tests (Activity workspace / `discover-activity*`) as Slice 1 acceptance gates.
+4. Report **git SHA + Vite cwd + base URL** on every run.
+5. Prefer a clean report-only audit on an isolated port (`YZU_DESK_URL`, `--strictPort`, `workers=1`) before product patches.
+
+No later slice begins until the preceding slice passes its behavior and rendered-pixel review under current authority — not under historical Search/Activity anchors.

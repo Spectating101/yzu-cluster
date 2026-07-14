@@ -8098,3 +8098,90 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 }
 
 /* ── 24. Full-width shell — fills viewport at all sizes ────────── */
+
+
+/* --- Discover Explore | History (converged from FE↔BE donor) --- */
+.rd-v2-discover-modes {
+  display: inline-flex;
+  gap: 4px;
+  padding: 2px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--rd-ink, #1c1917) 6%, transparent);
+}
+.rd-v2-discover-modes button {
+  border: 0;
+  background: transparent;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--rd-muted, #73716c);
+}
+.rd-v2-discover-modes button:hover { color: var(--rd-ink, #1c1917); }
+.rd-v2-discover-modes button.on {
+  background: var(--rd-paper, #fff);
+  color: var(--rd-ink, #1c1917);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 8%);
+}
+.rd-v2-discover-queue-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid color-mix(in srgb, var(--rd-ink, #1c1917) 14%, transparent);
+  background: var(--rd-paper, #fff);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.rd-v2-discover-queue-btn strong { font-weight: 650; }
+.rd-v2-discover-queue-btn:hover { border-color: color-mix(in srgb, var(--rd-cobalt, #2563eb) 40%, transparent); }
+.rd-v2-header-pending-link {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  color: var(--rd-cobalt, #2563eb);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.rd-v2-discover-queue-strip {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--rd-ink, #1c1917) 10%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--rd-cobalt, #2563eb) 5%, var(--rd-paper, #fff));
+}
+.rd-v2-discover-queue-strip__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.rd-v2-discover-queue-strip__head small { color: var(--rd-muted, #73716c); font-weight: 500; }
+.rd-v2-discover-queue-strip__rows { display: flex; flex-direction: column; gap: 6px; }
+.rd-v2-discover-queue-strip__rows button {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  border: 1px solid transparent;
+  background: var(--rd-paper, #fff);
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+  font: inherit;
+}
+.rd-v2-discover-queue-strip__rows button:hover,
+.rd-v2-discover-queue-strip__rows button.on {
+  border-color: color-mix(in srgb, var(--rd-cobalt, #2563eb) 35%, transparent);
+}
+.rd-v2-discover-queue-strip__rows strong { font-size: 12px; }
+.rd-v2-discover-queue-strip__rows span { color: var(--rd-muted, #73716c); font-size: 11px; white-space: nowrap; }
+.rd-v2-discover-history { display: flex; flex-direction: column; gap: 12px; }

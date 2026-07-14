@@ -321,7 +321,8 @@ Ask-assisted and non-Ask parity
 2. `UI_IMPLEMENTATION_PROGRAM.md` is the execution plan derived from this authority.
 3. `RESEARCH_DRIVE_RIGHT_RAIL_CONTRACT.md` is a subordinate typed rail/backend contract.
 4. `DISCOVER_ACQUISITION.md` is a subordinate operational runbook.
-5. `RESEARCH_DRIVE_UI_CANON.md`, `RESEARCH_DRIVE_UI_V2.md`, and `RESEARCH_DRIVE_UX_HANDOFF_2026-07-14.md` are historical redirects only.
-6. `RESEARCH_DRIVE_UI_CONTRACT.md` is legacy-only until its legacy UI and tests are retired.
+5. `DISCOVER_E2E_AUTHORITY_AUDIT.md` is the subordinate Discover Playwright classification and clean-audit contract. It does not amend product composition; it governs how E2E reds are interpreted (CURRENT AUTHORITY FAILURE vs LEGACY EXPECTATION vs SELECTOR DRIFT vs ENVIRONMENT FAILURE) and requires git SHA / Vite root identity on every report.
+6. `RESEARCH_DRIVE_UI_CANON.md`, `RESEARCH_DRIVE_UI_V2.md`, `RESEARCH_DRIVE_UX_HANDOFF_2026-07-14.md`, and `design/DISCOVER_LOOP_ANCHOR.md` are historical redirects only.
+7. `RESEARCH_DRIVE_UI_CONTRACT.md` is legacy-only until its legacy UI and tests are retired.
 
-Any proposed interface change must amend this document first, then update the implementation program and subordinate contracts.
+Any proposed interface change must amend this document first, then update the implementation program and subordinate contracts. Discover E2E rewrites must stay consistent with this file and update `DISCOVER_E2E_AUTHORITY_AUDIT.md` classification tables in the same change.

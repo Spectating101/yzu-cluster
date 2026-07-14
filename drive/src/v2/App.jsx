@@ -6,6 +6,7 @@ import {
   deskHealth,
   deskResources,
   deskWarm,
+  discoverHistory,
   facultyProfile,
   libraryOps,
   libraryOverview,
@@ -55,6 +56,9 @@ import {
   discoverCandidateUrl,
 } from "@/v2/discoverActions";
 import { candidateKey } from "@/v2/candidateKey";
+import { durableHistoryToEvents, mergeHistoryEvents } from "@/v2/discoverAdapters";
+import { discoverModeFromLegacy, discoverModeToUrlState } from "@/v2/discoverMode";
+import { jobToCandidateRow, pendingApprovalJobs } from "@/v2/procurementJobs";
 import { discoverCandidateState } from "@/v2/browseMeta";
 import { buildRailContext } from "@/v2/railContext";
 
@@ -68,22 +72,27 @@ function readParams() {
   if (tab === "browse" && folder && !q) {
     tab = "library";
   }
+  const discoverState = discoverModeFromLegacy(p.get("mode") || "");
   return {
     tab,
     dataset: p.get("dataset") || "",
     folder,
     preview: p.get("preview") === "1",
     q,
+    discoverMode: discoverState.mode,
+    discoverFocusAwaiting: discoverState.focusAwaiting,
   };
 }
 
-function writeParams({ tab, dataset, folder, preview, q }) {
+function writeParams({ tab, dataset, folder, preview, q, mode }) {
   const p = new URLSearchParams();
   if (tab && tab !== "home") p.set("tab", tab);
   if (folder) p.set("folder", folder);
   if (dataset) p.set("dataset", dataset);
   if (preview) p.set("preview", "1");
   if (q) p.set("q", q);
+  const modeUrl = discoverModeToUrlState(mode || "explore");
+  if (tab === "browse" && modeUrl) p.set("mode", modeUrl);
   const qs = p.toString();
   const url = `${window.location.pathname}${qs ? `?${qs}` : ""}`;
   window.history.replaceState(null, "", url);
@@ -150,6 +159,10 @@ export function V2App() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [profile, setProfile] = useState(null);
   const [searchQuery, setSearchQuery] = useState(() => readParams().q);
+  const [discoverMode, setDiscoverMode] = useState(() => readParams().discoverMode || "explore");
+  const [discoverFocusAwaiting, setDiscoverFocusAwaiting] = useState(() => Boolean(readParams().discoverFocusAwaiting));
+  const [historyEvents, setHistoryEvents] = useState([]);
+  const [selectedHistoryId, setSelectedHistoryId] = useState("");
   const [loadError, setLoadError] = useState("");
   const [health, setHealth] = useState(null);
   const [deskRefreshedAt, setDeskRefreshedAt] = useState(null);
@@ -379,11 +392,69 @@ export function V2App() {
         dataset: patch.dataset ?? selectedId,
         preview: patch.preview ?? previewOpen,
         q: nextQ,
+        mode: patch.mode !== undefined ? patch.mode : discoverMode,
       };
       writeParams(next);
     },
-    [tab, folderId, selectedId, previewOpen, searchQuery],
+    [tab, folderId, selectedId, previewOpen, searchQuery, discoverMode],
   );
+
+  const setDiscoverModeSafe = useCallback(
+    (rawMode) => {
+      const nextState = discoverModeFromLegacy(rawMode);
+      setDiscoverMode(nextState.mode);
+      setDiscoverFocusAwaiting(nextState.focusAwaiting);
+      if (nextState.mode === "history") {
+        setBrowseRow(null);
+        setRailTab("detail");
+      }
+      syncUrl({ tab: "browse", q: searchQuery.trim(), mode: nextState.mode });
+    },
+    [searchQuery, syncUrl],
+  );
+
+  const openDiscoverAwaiting = useCallback(
+    ({ job = null, focusAwaiting = true } = {}) => {
+      setDiscoverMode("explore");
+      setDiscoverFocusAwaiting(Boolean(focusAwaiting || job));
+      setTab("browse");
+      setRailTab("detail");
+      syncUrl({ tab: "browse", q: searchQuery.trim(), mode: "explore" });
+      const targetJob =
+        (job?.id ? jobs.find((j) => j.id === job.id) : null) ||
+        job ||
+        (focusAwaiting ? pendingApprovalJobs(jobs)[0] : null);
+      if (targetJob) {
+        const row = jobToCandidateRow(targetJob);
+        if (row) {
+          setBrowseRow(row);
+          setActiveObject(externalCandidateObject(row));
+        }
+      } else if (focusAwaiting) {
+        setBrowseRow(null);
+        setActiveObject(null);
+      }
+    },
+    [jobs, syncUrl, searchQuery],
+  );
+
+  // Durable Discover History (optional endpoint — ignore failures).
+  useEffect(() => {
+    if (tab !== "browse") return undefined;
+    let cancelled = false;
+    discoverHistory({ limit: 50 })
+      .then((data) => {
+        if (cancelled) return;
+        setHistoryEvents(mergeHistoryEvents(durableHistoryToEvents(data), []));
+      })
+      .catch(() => {
+        if (!cancelled) setHistoryEvents((cur) => cur);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [tab, jobs]);
+
 
   const goTab = useCallback(
     (id) => {
@@ -636,9 +707,11 @@ export function V2App() {
 
   const reviewApprovalInResources = useCallback(
     (jobOrTarget) => {
-      trackJobInResources(jobOrTarget);
+      // Authority: pending approvals stay in Discover (Explore queue / Detail), not Resources.
+      const job = jobOrTarget?.bound_job || jobOrTarget;
+      openDiscoverAwaiting({ job: job?.id ? job : null, focusAwaiting: true });
     },
-    [trackJobInResources],
+    [openDiscoverAwaiting],
   );
 
   const retryLifecycleRefresh = useCallback(() => {
@@ -931,6 +1004,16 @@ export function V2App() {
           probeSnapshots={probeSnapshots}
           probeState={browseProbeState}
           browseLifecycle={browseLifecycle}
+          discoverMode={discoverMode}
+          discoverFocusAwaiting={discoverFocusAwaiting}
+          onDiscoverModeChange={setDiscoverModeSafe}
+          onOpenReviewQueue={() => openDiscoverAwaiting()}
+          historyEvents={historyEvents}
+          selectedHistoryId={selectedHistoryId}
+          onSelectHistoryEvent={(event) => {
+            setSelectedHistoryId(event?.id || "");
+            setRailTab("detail");
+          }}
           onAskAbout={askAboutSelection}
           onAddToLab={askAddToLab}
           onPreviewExternal={() => browseRow && openPreviewExternal(browseRow)}
@@ -1052,7 +1135,11 @@ export function V2App() {
         headerInitials="YZ"
         datasetCount={headerDsCount}
         usingSeed={usingSeed}
-        workCount={health?.desk?.jobs?.pending_approval ?? 0}
+        workCount={Math.max(
+          Number(health?.desk?.jobs?.pending_approval ?? 0),
+          pendingApprovalJobs(jobs).length,
+        )}
+        onPendingClick={() => openDiscoverAwaiting()}
         deskStatus={
           usingSeed
             ? health?.status === "ok"
