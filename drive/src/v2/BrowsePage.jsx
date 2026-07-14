@@ -612,8 +612,9 @@ export function BrowsePage({
   jobs = [],
   jobBindings = {},
   discoverFilter = "all",
-  discoverMode = "search",
+  discoverMode = "explore",
   discoverFocusAwaiting = false,
+  onOpenReviewQueue,
   discoverActivityFilter = "all",
   onDiscoverActivityFilterChange,
   onDiscoverModeChange,
@@ -659,14 +660,14 @@ export function BrowsePage({
   );
 
   useEffect(() => {
-    if (discoverMode !== "search") return;
+    if (discoverMode !== "explore" && discoverMode !== "search") return;
     if (discoverFilter && discoverFilter !== "awaiting" && discoverFilter !== stateFilter) {
       setStateFilter(discoverFilter);
     }
   }, [discoverFilter, discoverMode, stateFilter]);
 
   useEffect(() => {
-    if (discoverMode !== "activity") return;
+    if (discoverMode !== "explore" && discoverMode !== "search") return;
     if (!pendingRows.length) return;
     if (selectedId) return;
     if (!(discoverFocusAwaiting || discoverActivityFilter === "awaiting")) return;
@@ -690,7 +691,7 @@ export function BrowsePage({
         cancelled = true;
       };
     }
-    if (discoverMode !== "search") {
+    if (discoverMode === "history") {
       setLoading(false);
       setSearchPhase("idle");
       setRows([]);
@@ -992,21 +993,17 @@ export function BrowsePage({
     searchInputRef.current?.focus();
   };
 
-  const pageLead = showActivity
-    ? "Review sources waiting for approval"
-    : showHistory
-      ? "Trace research questions to reusable evidence"
-      : hasContextDataset
-        ? `Find sources related to ${displayName(contextDataset)}`
-        : "Find sources outside the vault";
+  const pageLead = showHistory
+    ? "Trace research questions to reusable evidence"
+    : hasContextDataset
+      ? `Find sources related to ${displayName(contextDataset)}`
+      : "Find sources outside the vault";
 
-  const searchPlaceholder = showActivity
-    ? "Search sources, then open results…"
-    : showHistory
-      ? "Search from this trail…"
-      : hasContextDataset
-        ? "Search sources for this dataset…"
-        : "Search external datasets…";
+  const searchPlaceholder = showHistory
+    ? "Search from this trail…"
+    : hasContextDataset
+      ? "Search sources for this dataset…"
+      : "Search external datasets…";
 
   const toolbarTrailing = (
     <>
@@ -1017,20 +1014,21 @@ export function BrowsePage({
         <button
           type="button"
           className="rd-v2-discover-queue-btn"
-          onClick={() => onDiscoverModeChange?.("activity")}
+          onClick={() => {
+            if (onOpenReviewQueue) onOpenReviewQueue();
+            else if (pendingRows[0]) onSelectRow?.(pendingRows[0]);
+          }}
         >
           Review queue <strong>{pendingRows.length}</strong>
         </button>
       ) : null}
       <span className="rd-v2-toolbar-count">
-        {showActivity
-          ? pendingRows.length
-            ? `${pendingRows.length} awaiting approval`
-            : "Queue clear"
-          : showHistory
-            ? `${(historyEvents || []).length} recorded`
-            : showSearchResults
-              ? `${filtered.length} result${filtered.length === 1 ? "" : "s"}`
+        {showHistory
+          ? `${(historyEvents || []).length} recorded`
+          : showSearchResults
+            ? `${filtered.length} result${filtered.length === 1 ? "" : "s"}`
+            : pendingRows.length
+              ? `${pendingRows.length} awaiting approval`
               : "Type to search"}
       </span>
     </>
@@ -1040,7 +1038,7 @@ export function BrowsePage({
     <PageShell
       className={[
         "rd-v2-discover-page",
-        showActivity ? "rd-v2-discover-page--activity" : "",
+        showQueueStrip ? "rd-v2-discover-page--queue" : "",
         showHistory ? "rd-v2-discover-page--history" : "",
         hasContextDataset && showDefaultHome ? "rd-v2-discover-page--context" : "",
       ]

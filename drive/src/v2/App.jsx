@@ -1032,6 +1032,7 @@ export function V2App() {
           discoverFilter={discoverFilter}
           discoverMode={discoverMode}
           discoverFocusAwaiting={discoverFocusAwaiting}
+          onOpenReviewQueue={openDiscoverAwaiting}
           discoverActivityFilter={discoverActivityFilter}
           onDiscoverActivityFilterChange={setDiscoverActivityFilter}
           onDiscoverModeChange={setDiscoverModeSafe}

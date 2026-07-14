@@ -6,6 +6,13 @@ import {
   waitForShell,
 } from "./fixtures/v2MockApi.js";
 
+/**
+ * Discover feature E2E.
+ * Authority: docs/UI_PRODUCT_AUTHORITY.md (Explore | History).
+ * Classify results via docs/DISCOVER_E2E_AUTHORITY_AUDIT.md before product fixes.
+ * Assertions that require mode=activity / discover-activity* are LEGACY EXPECTATION.
+ */
+
 test.describe("v2 Discover tab", () => {
   test.beforeEach(async ({ page }) => {
     await mockV2Api(page, { jobsBody: { jobs: [] } });
@@ -150,6 +157,8 @@ test.describe("v2 Discover tab", () => {
     await expect(rail.getByTestId("discover-compare-alt")).toHaveCount(0);
   });
 
+  // MIXED: sticky Detail approve is current; mode=activity / discover-activity is LEGACY.
+  // docs/DISCOVER_E2E_AUTHORITY_AUDIT.md §7
   test("awaiting approval uses sticky approve in rail footer", async ({ page }) => {
     await mockV2Api(page);
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
@@ -164,6 +173,8 @@ test.describe("v2 Discover tab", () => {
     await expect(rail.getByTestId("procurement-decision-card").getByRole("button", { name: "Approve collection" })).toHaveCount(0);
   });
 
+  // MIXED: not-Resources is current; Activity panel / mode=activity is LEGACY.
+  // Prefer Explore queue strip (discover-queue-strip) after rewrite.
   test("pending approvals open Discover Review queue, not Resources", async ({ page }) => {
     await mockV2Api(page);
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
@@ -180,6 +191,8 @@ test.describe("v2 Discover tab", () => {
     await expect(page).not.toHaveURL(/mode=(approvals|activity)/);
   });
 
+  // LEGACY EXPECTATION as written (mode=activity + discover-activity*).
+  // Rewrite to Explore strip / History + Detail. See DISCOVER_E2E_AUTHORITY_AUDIT.md §7.
   test("Discover Review queue shows acquisition jobs separate from Resources", async ({ page }) => {
     await mockV2Api(page);
     await page.goto("/?tab=browse&mode=activity", { waitUntil: "domcontentloaded" });

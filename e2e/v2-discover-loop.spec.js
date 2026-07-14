@@ -2,8 +2,16 @@ import { test, expect } from "@playwright/test";
 import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 
 /**
- * Discover Loop Anchor gates — primary viewport 1920×1080.
- * See docs/design/DISCOVER_LOOP_ANCHOR.md
+ * Discover E2E — Explore | History (authority-aligned intent).
+ * Primary viewport 1920×1080.
+ *
+ * Product authority: docs/UI_PRODUCT_AUTHORITY.md
+ * Slice program:     docs/UI_IMPLEMENTATION_PROGRAM.md
+ * Classification:    docs/DISCOVER_E2E_AUTHORITY_AUDIT.md
+ *
+ * Historical Search|Activity anchor (docs/design/DISCOVER_LOOP_ANCHOR.md) is a redirect only.
+ * Do not treat Activity-summary assertions as Slice 1 gates.
+ * Every report must include git SHA + Vite root; discard contaminated runs.
  */
 test.describe("v2 Discover loop anchor", () => {
   test.beforeEach(async ({ page }) => {
@@ -114,6 +122,9 @@ test.describe("v2 Discover loop anchor", () => {
     await expect(page.getByTestId("discover-search-input")).toHaveValue("TWSE governance");
   });
 
+  // LEGACY EXPECTATION — superseded Activity dashboard.
+  // See docs/DISCOVER_E2E_AUTHORITY_AUDIT.md §6. Not a Slice 1 acceptance gate.
+  // Rewrite target: History lifecycle inbox and/or Explore queue strip + Detail.
   test("Activity summarizes actionable acquisition states", async ({ page }) => {
     await mockV2Api(page, {
       jobsBody: {
