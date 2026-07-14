@@ -1,8 +1,12 @@
-# Discover — acquisition ladder (live desk)
+# Discover — acquisition ladder (subordinate operational runbook)
+
+**UX authority:** [`UI_PRODUCT_AUTHORITY.md`](UI_PRODUCT_AUTHORITY.md). This document describes API and operational mechanics only; it does not define page tabs, visual composition, rail behavior, or top-level ownership.
 
 Discover is the **procurement entry point**: find external datasets, assess fit, probe sources, queue collection, then verify in Library.
 
-**Requires:** query engine `:8765` + Vite UI `:5178` (not GitHub Pages demo).
+**Operational scope:** endpoint ladder, probes, collection requests, and verification. Current researcher-facing ownership is Explore/History in Discover; Resources is a capability map rather than the primary acquisition lifecycle surface.
+
+**Requires:** query engine `:8765` + Vite UI `:5178` / `:5179` (not GitHub Pages demo).
 
 ## Ladder (what runs in production)
 
@@ -13,19 +17,22 @@ Discover is the **procurement entry point**: find external datasets, assess fit,
 4. Probe source        POST /library/discover/probe  { url, name }
 5. Collect / Ask       POST /library/discover/collect { connector_id }
                        or Ask rail with structured JSON plan
-6. Library             vaulted dataset findable under lab folders
+6. Approve (if needed) Discover → Activity (awaiting) — not Resources
+7. Library             vaulted dataset findable under lab folders
 ```
 
 ## Professor walkthrough (≈3 min)
 
 | Step | Action | Screenshot |
 |------|--------|------------|
-| 1 | Header search **MOPS** → Discover tab | `desktop-discover-acquire-viewport.png` |
+| 1 | Discover Search **MOPS** (page search or Try chip) | `desktop-discover-acquire-viewport.png` |
 | 2 | Select external candidate (not **In lab**) | Rail shows Fit · Access · Probe · Destination |
 | 3 | **Probe source** | `desktop-discover-probe-viewport.png` — connector, access mode, file count |
 | 4 | **Add to lab** | Queues collection job (if probed) or structured Ask | `desktop-discover-ask-viewport.png` |
-| 5 | Resources → Active jobs | Pending approval if policy requires |
+| 5 | **Discover → Activity** | Pending approval / running / queued — acquisition control |
 | 6 | Library | Dataset appears after collect completes |
+
+**Resources → Activity** is the consumption ledger (meters, spend, run log). It is **not** the primary approve path for Discover jobs.
 
 **TWSE** search is useful to show **already vaulted** hits: primary CTA becomes **Open in Library** and the **All matches already in lab** banner may appear.
 
