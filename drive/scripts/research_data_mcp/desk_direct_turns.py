@@ -58,6 +58,9 @@ def search_query_from_message(message: str, rail_context: dict[str, Any] | None 
     text = (message or "").strip()
     if not text or _SEARCH_BLOCK.search(text[:200]):
         return None
+    # Discover Explore search is a different equipment path — do not steal as vault search.
+    if _DISCOVER_SEARCH_HINT.search(text[:280]):
+        return None
     rail = rail_context if isinstance(rail_context, dict) else {}
     actions = [str(a).lower() for a in (rail.get("actions") or [])]
     if "search" in actions:
@@ -76,6 +79,153 @@ def search_query_from_message(message: str, rail_context: dict[str, Any] | None 
 
 def is_direct_search_message(message: str, rail_context: dict[str, Any] | None = None) -> bool:
     return search_query_from_message(message, rail_context) is not None
+
+
+_DISCOVER_SEARCH_HINT = re.compile(
+    r"\bresearch_discover_(?:source_)?search\b|"
+    r"\bdiscover\s+(?:source[_\s-]*)?(?:search|catalog|explore)\b|"
+    r"\bsearch\s+(?:the\s+)?discover\b|"
+    r"\b(?:search|find|look\s+up)\s+(?:in\s+|across\s+)?(?:discover|catalog)\b|"
+    r"\bdiscover\s+sources?\b",
+    re.I,
+)
+
+_DISCOVER_QUERY_PATTERNS = (
+    re.compile(
+        r"research_discover_(?:source_)?search\s+for\s+query\s+['\"]?([^'\".,;\n]+)['\"]?",
+        re.I,
+    ),
+    re.compile(
+        r"research_discover_(?:source_)?search(?:\s+with)?(?:\s+query)?\s*[:=]\s*['\"]?([^'\"\n]+)['\"]?",
+        re.I,
+    ),
+    re.compile(
+        r"(?:search|find|look\s+up)\s+(?:the\s+)?(?:discover(?:\s+catalog|\s+sources?)?|catalog)\s+(?:for\s+)?(.+?)\s*[?.!]*\s*$",
+        re.I,
+    ),
+    re.compile(
+        r"discover\s+(?:source[_\s-]*)?(?:search|catalog|explore)\s+(?:for\s+)?(.+?)\s*[?.!]*\s*$",
+        re.I,
+    ),
+    re.compile(
+        r"\bquery\s+['\"]([^'\"]+)['\"]",
+        re.I,
+    ),
+)
+
+
+def discover_query_from_message(message: str, rail_context: dict[str, Any] | None = None) -> str | None:
+    """Return a query when the user asked to search Discover Explore (not vault)."""
+    text = (message or "").strip()
+    if not text:
+        return None
+    rail = rail_context if isinstance(rail_context, dict) else {}
+    actions = [str(a).lower() for a in (rail.get("actions") or [])]
+    if any(a in {"discover_search", "discover_sources", "search_discover"} for a in actions):
+        explicit = str(rail.get("search_query") or rail.get("discover_query") or "").strip()
+        if explicit:
+            return explicit
+    # Multi-step judgment (search → pick → intent) belongs to Composer, not a direct query steal.
+    lowered = text.lower()
+    if any(tok in lowered for tok in ("pick the best", "then create", "then record", "and then create")):
+        return None
+    if "create" in lowered and "intent" in lowered and "search" in lowered and len(text) > 140:
+        return None
+    if not _DISCOVER_SEARCH_HINT.search(text[:320]) and "discover_search" not in actions:
+        return None
+    for pattern in _DISCOVER_QUERY_PATTERNS:
+        match = pattern.search(text)
+        if not match:
+            continue
+        query = match.group(1).strip().strip('"').strip("'").rstrip(".,;")
+        query = re.sub(r"^(?:for\s+)?(?:query\s+)?", "", query, flags=re.I).strip()
+        query = re.sub(r"\s+", " ", query)
+        # Strip trailing instruction clauses
+        query = re.split(
+            r"\b(?:list\s+top|do\s+not|return\s+|confirm\s+|ignore\s+|use\s+only)\b",
+            query,
+            maxsplit=1,
+            flags=re.I,
+        )[0].strip(" .,;:-")
+        if len(query) >= 2:
+            return query[:160]
+    # Fallback: quoted phrase after discover hint
+    q = re.search(r"['\"]([^'\"]{2,120})['\"]", text)
+    if q:
+        return q.group(1).strip()[:160]
+    return None
+
+
+def is_direct_discover_search_message(message: str, rail_context: dict[str, Any] | None = None) -> bool:
+    return discover_query_from_message(message, rail_context) is not None
+
+
+def _discover_search_reply(query: str, out: dict[str, Any]) -> str:
+    rows = list(out.get("results") or [])
+    if not rows:
+        for sec in out.get("sections") or []:
+            if isinstance(sec, dict) and sec.get("id") == "discover_sources":
+                rows = list(sec.get("rows") or [])
+                break
+    mode = out.get("search_mode") or "catalog"
+    if not rows:
+        return (
+            f"No Discover catalog sources for **{query}** (mode={mode}). "
+            "Try live search, or search the vault for lab holdings."
+        )
+    lines = [f"Discover catalog · **{len(rows)}** source(s) for **{query}** (mode={mode}):"]
+    for i, row in enumerate(rows[:6], 1):
+        sid = row.get("source_id") or row.get("connector_id") or "?"
+        title = row.get("title") or row.get("label") or sid
+        access = row.get("access_mode") or "—"
+        lines.append(f"{i}. `{sid}` — {title} · access=`{access}`")
+    return "\n".join(lines)
+
+
+def try_direct_discover_search_turn(
+    gateway: Any,
+    message: str,
+    state: dict[str, Any],
+) -> AgentTurn | None:
+    """Run Discover Explore catalog search directly — not vault/registry."""
+    query = discover_query_from_message(message, state.get("rail_context"))
+    if not query:
+        return None
+    live = bool(re.search(r"\blive\b", message or "", re.I))
+    out = gateway.discover_source_search(query, limit=12, live=live)
+    # Shape like research_discover_search for FE/artifacts
+    rows = list(out.get("results") or [])
+    shaped = {
+        "query": query,
+        "result_kind": "discover_sources",
+        "search_mode": out.get("search_mode") or ("live" if live else "catalog"),
+        "sections": [{"id": "discover_sources", "label": "Discover catalog", "rows": rows}] if rows else [],
+        "results": rows,
+        "catalog_total": len(rows),
+        "lab_total": 0,
+        "total": len(rows),
+        "index_miss": not rows,
+    }
+    return AgentTurn(
+        plan={"action": "discover_search", "fast_path": True, "query": query},
+        action_result={
+            "action": "discover_search",
+            "fast_path": True,
+            "query": query,
+            "result_kind": "discover_sources",
+            "search": shaped,
+            "discover": shaped,
+            "results": rows,
+            "total": len(rows),
+            "search_mode": shaped["search_mode"],
+        },
+        reply=_discover_search_reply(query, shaped),
+        suggested_prompts=[
+            f"Preview source {(rows[0].get('source_id') if rows else query)}",
+            f"Create a Discover intent for {query}",
+        ],
+        tool_name="research_discover_source_search",
+    )
 
 
 _DOI_RE = re.compile(r"(?:doi:\s*)?(10\.\d{4,9}/[^\s'\"<>]+)", re.I)
@@ -465,6 +615,22 @@ def parse_intent_request(message: str, rail_context: dict[str, Any] | None = Non
         return None
     if is_direct_schedule_message(text, rail_context) or is_direct_probe_message(text, rail_context):
         return None
+    # Multi-step / Composer instruction turns belong to Composer (or discover search), not intent steal.
+    lowered = text.lower()
+    if any(
+        token in lowered
+        for token in (
+            "research_discover_search",
+            "research_discover_source_search",
+            "call only",
+            "use only the mcp",
+            "pick the best",
+            "search discover",
+        )
+    ):
+        return None
+    if "search" in lowered[:240] and "intent" in lowered and len(text) > 160:
+        return None
     need = ""
     # Prefer explicit "for: …" / "for …" research need.
     m = re.search(r"\bintent\b(?:\s+for)?\s*[:\-]?\s*(.+)$", text, re.I | re.S)
@@ -479,6 +645,12 @@ def parse_intent_request(message: str, rail_context: dict[str, Any] | None = Non
             flags=re.I,
         ).strip()
     need = re.sub(r"\s+", " ", need).strip(" :-")
+    need = re.split(
+        r"\b(?:Do not collect|Return the|Use research_|Confirm via|Call only)\b",
+        need,
+        maxsplit=1,
+        flags=re.I,
+    )[0].strip(" :-")
     if len(need) < 8:
         return None
     selected = _rail_selected(rail_context)
@@ -628,6 +800,9 @@ def try_direct_equipment_turn(
     status = try_direct_status_turn(gateway, message, state)
     if status is not None:
         return status
+    discover = try_direct_discover_search_turn(gateway, message, state)
+    if discover is not None:
+        return discover
     intent = try_direct_intent_turn(gateway, message, state)
     if intent is not None:
         return intent

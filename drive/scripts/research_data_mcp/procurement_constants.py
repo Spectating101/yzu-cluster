@@ -28,6 +28,8 @@ MCP_TOOL_CORE: tuple[str, ...] = (
     "research_faculty_profile",
     "collection_status",
     "research_discover_search",
+    "research_discover_source_search",
+    "research_discover_source_preview",
     "research_web_discover",
     "research_list_datasets",
     "research_describe_dataset",
@@ -111,7 +113,7 @@ ACQUISITION_LADDER: tuple[str, ...] = (
     "vault_dictionary",       # collection_dictionary + collection_index FTS
     "registry_catalog",       # research_query_registry + curated catalog + on-disk check
     "datacite_local_prefetch",  # harvested index_v3 snippets
-    "discover_search",        # smart_search profile-aware merge
+    "discover_search",        # Explore catalog (source_id) + optional lab supplement
     "web_discover",           # Tavily / DuckDuckGo / Zenodo / OpenAlex (index_miss)
     "probe_url",              # connector classification
     "shell_direct_http",      # curl — webfetch-equivalent

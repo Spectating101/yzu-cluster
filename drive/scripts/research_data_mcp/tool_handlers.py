@@ -141,9 +141,23 @@ class ResearchToolHandlers:
         """Persist candidate acquisition routes for explicit researcher review; never collect."""
         return self.gateway.discover_intent_set_proposal(intent_id, proposal)
 
-    def research_discover_source_search(self, query: str = "", limit: int = 24) -> dict[str, Any]:
-        """Explore known external sources/providers/connectors — not registry holdings."""
-        return self.gateway.discover_source_search(query, limit=min(max(int(limit), 1), 100))
+    def research_discover_source_search(
+        self,
+        query: str = "",
+        limit: int = 24,
+        live: bool = False,
+        semantic: bool = False,
+    ) -> dict[str, Any]:
+        """Explore known external sources/providers/connectors — not registry holdings.
+
+        Returns source_id / access_mode / connector_id rows (Discover Explore catalog).
+        """
+        return self.gateway.discover_source_search(
+            query,
+            limit=min(max(int(limit), 1), 100),
+            live=bool(live),
+            semantic=bool(semantic),
+        )
 
     def research_discover_source_preview(
         self,
@@ -497,9 +511,58 @@ class ResearchToolHandlers:
         query: str,
         email: str = "",
         limit: int = 12,
+        live: bool = False,
+        include_lab: bool = True,
     ) -> dict[str, Any]:
-        """Catalog discover — registry/dictionary rows + optional faculty hints (no ranking intelligence)."""
-        return self.gateway.discover_search(query, email=email, limit=limit)
+        """Discover Explore catalog first (source_id / access_mode), optional lab registry supplement.
+
+        Prefer this (or research_discover_source_search) when faculty mean Discover sources.
+        Use research_unified_search for vault / HF / DataCite holdings.
+        """
+        lim = min(max(int(limit), 1), 100)
+        catalog = self.gateway.discover_source_search(
+            query,
+            limit=lim,
+            live=bool(live),
+        )
+        source_rows = list(catalog.get("results") or [])
+        sections: list[dict] = []
+        if source_rows:
+            sections.append(
+                {
+                    "id": "discover_sources",
+                    "label": "Discover catalog",
+                    "rows": source_rows,
+                }
+            )
+        lab_total = 0
+        if include_lab and len(source_rows) < max(3, lim // 2):
+            lab = self.gateway.discover_search(query, email=email, limit=lim)
+            for sec in lab.get("sections") or []:
+                if not isinstance(sec, dict):
+                    continue
+                rows = list(sec.get("rows") or [])
+                if not rows:
+                    continue
+                lab_total += len(rows)
+                sections.append(
+                    {
+                        "id": "lab_registry",
+                        "label": "Lab registry (supplement)",
+                        "rows": rows,
+                    }
+                )
+        return {
+            "query": query,
+            "result_kind": "discover_sources",
+            "search_mode": catalog.get("search_mode") or ("live" if live else "catalog"),
+            "sections": sections,
+            "results": source_rows,
+            "catalog_total": len(source_rows),
+            "lab_total": lab_total,
+            "total": len(source_rows) + lab_total,
+            "index_miss": not source_rows and lab_total == 0,
+        }
 
     def research_faculty_profile(self, email: str = "", slug: str = "") -> dict[str, Any]:
         """Faculty research profile — stacks, scopes, starter prompts for procurement routing."""
@@ -674,15 +737,15 @@ class ResearchToolHandlers:
             "start_here": "research_platform_consolidated",
             "playbook": (
                 "1. research_platform_consolidated — desk snapshot (instant vs pending, entitlement gaps)\n"
-                "2. research_discover_search / research_unified_search — catalog + DataCite + HuggingFace\n"
+                "2. research_discover_search / research_discover_source_search — Discover Explore catalog (source_id)\n   research_unified_search — vault + DataCite + HuggingFace\n"
                 "3. research_describe_dataset + research_query_dataset when access_tier is query_instant (auto-hydrates GDrive)\n"
                 "4. If miss: datacite_collect_doi or huggingface_collect_dataset → vault + registry flywheel\n"
                 "5. Else: research_web_discover → procurement_probe_public_source → yzu_submit_job"
             ),
             "prefer": [
                 "research_platform_consolidated() at session start or before licensed-data collects",
-                "research_discover_search(query) when you need catalog matches",
-                "research_unified_search(query) for HF + DataCite + local registry in one pass",
+                "research_discover_search(query) or research_discover_source_search(query) for Discover Explore sources (source_id/access_mode)",
+                "research_unified_search(query) for vault / HF / DataCite holdings",
                 "research_query_dataset when access_tier is query_instant (hydrates from GDrive if needed)",
                 "huggingface_collect_dataset(org/name) after HF search hit — same flywheel as datacite_collect_doi",
                 "datacite_collect_doi(doi) for DOI procured datasets",

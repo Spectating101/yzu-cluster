@@ -443,6 +443,7 @@ class ProcurementChatOrchestrator:
             "composer_error": "Composer hit an error…",
             "desk_session": "Searching vault and preparing your answer…",
             "search": "Searching the lab registry…",
+            "discover_search": "Searching Discover catalog…",
             "query": "Querying the selected dataset…",
             "probe_url": "Probing the public source…",
             "collect_doi": "Checking DOI acquisition state…",
@@ -496,6 +497,11 @@ class ProcurementChatOrchestrator:
                 return "in_lab"
             if "queued" in text or "collection job" in text or "collected" in text:
                 return "collect_doi"
+        if action_result.get("result_kind") == "discover_sources" or action_result.get("action") == "discover_search":
+            return "discover_search"
+        if "discover catalog" in text or "source_id" in text and "access" in text:
+            if any(tkn in text[:200] for tkn in ("discover", "catalog", "source")):
+                return "discover_search"
         if any(token in text[:160] for token in ("what ", "find ", "search ", "which ", "do we have")):
             return "search"
         return "composer"
