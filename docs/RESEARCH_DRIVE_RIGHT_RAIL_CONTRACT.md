@@ -24,7 +24,7 @@ If a feature cannot produce a rail object, it is not ready for the main desk UI.
 | Rail modes | Exactly **Detail** and **Ask**. One visible pane; both mounted. |
 | Detail | API-backed truth: metadata, provenance, readiness, vault path, job status, actions. |
 | Ask | Composer + MCP conversation scoped to the same selected object. |
-| Main tabs | Home, Library, Cluster, Discover, Resources, Profile, Settings. |
+| Navigation | Defined exclusively by [`UI_PRODUCT_AUTHORITY.md`](UI_PRODUCT_AUTHORITY.md). This contract does not restate faculty navigation. |
 | Not tabs | Ask, Pipeline, Vault tree, Source. These are rail modes, resources rows, or detail fields. |
 
 Legacy `src/main.jsx` still contains `Source`, `Pipeline`, and `Details | Assistant`. Treat that as cutover debt only. New work uses `src/v2/*` and `Detail | Ask`.
@@ -71,9 +71,9 @@ Rules:
 
 | Entity kind | Produced by | Detail must show | Primary actions |
 |-------------|-------------|------------------|-----------------|
-| `dataset` | Home, Library, Cluster | title, `dataset_id`, readiness, source, coverage, grain, join keys, vault path, limitations | Preview rows, Ask about this, See on Cluster |
+| `dataset` | Home, Library | title, `dataset_id`, readiness, source, coverage, grain, join keys, vault path, limitations | Preview rows, Ask about this, See on Cluster |
 | `external_candidate` | Discover | title, publisher/source, access class, format/size if known, in-lab/queued state, provenance URL/DOI | Add to lab, Preview ext, Ask |
-| `cluster_compare` | Cluster | datasets compared, shared keys/date coverage, only-A/only-B gaps, honesty note when unknown | Ask about overlap, open dataset |
+| `cluster_compare` | Operational compatibility context only; not faculty navigation | datasets compared, shared keys/date coverage, only-A/only-B gaps, honesty note when unknown | Ask about overlap, open dataset |
 | `resource_row` | Resources | measured value, status, source endpoint, last refresh, related job if any | Explain, view activity, supported operational action; acquisition approval routes to Discover |
 | `profile_scope` | Profile | affiliation, tracks, holdings/gaps, pinned corpora | Ask with this scope, edit profile |
 | `settings_account` | Settings | email, credentials summary, notification prefs | Save, test connection, ask setup |
@@ -131,7 +131,7 @@ Professor-facing copy should say "Ask", "Add to lab", "Discover", "Resources", a
 |-----|------------------|------------------|----------|
 | Home | continue, recent, running highlights | selected recent dataset or desk summary | resume scoped question |
 | Library | vault folders + catalog table | selected dataset truth | questions about selected dataset, queryability, related data |
-| Cluster | coverage/overlap visualization | selected compare or dataset gap | explanation of overlap/gap |
+| Operational compatibility | coverage/overlap visualization | selected compare or dataset gap | explanation of overlap/gap |
 | Discover | external search results | selected candidate truth | Add to lab, source comparison, collection plan |
 | Resources | capacity, cost, jobs, activity | selected metric/job/account row | explain resource row and supported operational action; acquisition decisions route to Discover |
 | Profile | faculty research context | selected track/scope | ranking/procurement with that profile |
