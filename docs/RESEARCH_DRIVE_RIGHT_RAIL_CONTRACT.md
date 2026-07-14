@@ -1,7 +1,7 @@
 # Research Drive right rail integration contract
 
-**Status:** Active — 2026-06-30  
-**Authority:** Binding companion to [`RESEARCH_DRIVE_UI_CANON.md`](RESEARCH_DRIVE_UI_CANON.md) and [`design/V2_FRONTEND_BACKEND.md`](design/V2_FRONTEND_BACKEND.md).  
+**Status:** Active backend/context contract; product composition superseded 2026-07-11  
+**Authority:** Subordinate to [`UI_PRODUCT_AUTHORITY.md`](UI_PRODUCT_AUTHORITY.md). Entity/context and backend mappings remain binding. Product composition, navigation, idle-rail, Preview, responsive, and lifecycle ownership rules are defined only by the authority and its 2026-07-14 amendment.  
 **Scope:** v2 interface and integration: `src/v2/InspectorRail.jsx`, `src/v2/DetailPanel.jsx`, `src/v2/RailPanels.jsx`, `src/v2/AskRail.jsx`, `src/v2/api.js`.
 
 The right rail is the product spine. The main tabs are lenses over the same research desk; the rail is where the selected object becomes usable, explainable, and actionable.
@@ -74,7 +74,7 @@ Rules:
 | `dataset` | Home, Library, Cluster | title, `dataset_id`, readiness, source, coverage, grain, join keys, vault path, limitations | Preview rows, Ask about this, See on Cluster |
 | `external_candidate` | Discover | title, publisher/source, access class, format/size if known, in-lab/queued state, provenance URL/DOI | Add to lab, Preview ext, Ask |
 | `cluster_compare` | Cluster | datasets compared, shared keys/date coverage, only-A/only-B gaps, honesty note when unknown | Ask about overlap, open dataset |
-| `resource_row` | Resources | measured value, status, source endpoint, last refresh, related job if any | Explain, approve job, view activity |
+| `resource_row` | Resources | measured value, status, source endpoint, last refresh, related job if any | Explain, view activity, supported operational action; acquisition approval routes to Discover |
 | `profile_scope` | Profile | affiliation, tracks, holdings/gaps, pinned corpora | Ask with this scope, edit profile |
 | `settings_account` | Settings | email, credentials summary, notification prefs | Save, test connection, ask setup |
 | `empty_page` | no selection | page summary and next useful selection | Toggle Ask |
@@ -95,7 +95,7 @@ Use `/library/*` for new integrations. `/yzu/*` remains a compatibility surface 
 | Discover/search | `GET /library/search?q=` or `GET /library/discover?q=` | Produces `external_candidate` rows. |
 | Ask rail | `POST /library/chat/stream` | Composer + MCP. Add `rail_context` in the next protocol pass. |
 | Fallback chat | `POST /library/chat` | Same brain, non-streaming fallback. |
-| Jobs | `GET /library/jobs`, `POST /library/jobs/{id}/approve` | Resources and Ask job approvals. |
+| Jobs | `GET /library/jobs`, `POST /library/jobs/{id}/approve` | Resources monitors; acquisition approval opens the candidate/job Focus in Discover. |
 | Resources | `GET /library/desk/resources`, `GET /library/ops` | Countable status ledger. |
 | Acquisitions | `GET /yzu/acquisitions` | Compatibility until folded into `/library/*`. |
 | Profile | `GET /library/faculty/profile?email=` | Ranking and Ask context. |
@@ -133,7 +133,7 @@ Professor-facing copy should say "Ask", "Add to lab", "Discover", "Resources", a
 | Library | vault folders + catalog table | selected dataset truth | questions about selected dataset, queryability, related data |
 | Cluster | coverage/overlap visualization | selected compare or dataset gap | explanation of overlap/gap |
 | Discover | external search results | selected candidate truth | Add to lab, source comparison, collection plan |
-| Resources | capacity, cost, jobs, activity | selected metric/job/account row | explain resource row, approve/retry guidance |
+| Resources | capacity, cost, jobs, activity | selected metric/job/account row | explain resource row and supported operational action; acquisition decisions route to Discover |
 | Profile | faculty research context | selected track/scope | ranking/procurement with that profile |
 | Settings | preferences and credential summaries | selected account setting | setup help only |
 
@@ -188,3 +188,10 @@ If the feature needs its own full page, prove why the rail object is not enough.
 - [ ] Desktop grid uses a 440px rail target at 1440px.
 - [ ] No new UI mentions DeepSeek, magic procure, Python planner, `/library/magic`, `/library/assist`, or `/library/workflow`.
 - [ ] Legacy `Source`/`Pipeline` names are not used in v2 nav.
+
+
+### Current v2 entity additions
+
+The rail contract must also support `synthesis_recipe` and `synthesis_output`. Detail receives the selected blueprint/output identity, input readiness, gap identities, output authority, and allowed UI intents. Ask receives the same typed context plus evidence scope; it must not fall back to a generic “Synthesis studio” prefix.
+
+The rail is visually intense only for an active evidence object or Ask. It must not be used to impose a permanent empty inspector on an idle page.
