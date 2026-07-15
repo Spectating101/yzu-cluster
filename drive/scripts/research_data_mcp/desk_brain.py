@@ -36,6 +36,12 @@ _TOOL_ACTIVITY_LABELS: dict[str, str] = {
     "research_synthesis_list_profiles": "Listing synthesis profiles…",
     "research_synthesis_run": "Synthesizing multi-source panel…",
     "research_synthesis_pair": "Comparing dataset join overlap…",
+    "research_synthesis_propose_state": "Recording synthesis proposal…",
+    "research_synthesis_preflight_spec": "Preflighting execution spec…",
+    "research_synthesis_discover_handoff": "Building Discover handoff…",
+    "research_synthesis_collect_missing": "Collecting missing evidence…",
+    "research_synthesis_materialisation": "Checking synthesis materialisation…",
+    "research_synthesis_submit_execution": "Submitting synthesis for approval…",
     "research_collection_hydrate": "Pulling files from Drive…",
     "yzu_submit_job": "Submitting collection job…",
     "datacite_collect_doi": "Collecting dataset…",
@@ -327,6 +333,12 @@ def _artifacts_from_conversation(run: Any) -> dict[str, Any]:
                     "research_synthesis_run",
                     "research_synthesis_list_profiles",
                     "research_synthesis_pair",
+                    "research_synthesis_propose_state",
+                    "research_synthesis_preflight_spec",
+                    "research_synthesis_discover_handoff",
+                    "research_synthesis_collect_missing",
+                    "research_synthesis_materialisation",
+                    "research_synthesis_submit_execution",
                 ):
                     summary = payload.get("summary") or {}
                     samples = payload.get("panel_samples") or payload.get("entities") or []

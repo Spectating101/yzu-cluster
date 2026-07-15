@@ -100,6 +100,125 @@ def validate_execution_spec(spec: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+
+def preflight_execution_spec(repo_root: Path, spec: dict[str, Any]) -> dict[str, Any]:
+    """Validate structure and, when local bytes exist, required columns.
+
+    Returns a structured report so agents can fix proposals before researcher review.
+    Does not invent data or run aggregates.
+    """
+    repo_root = Path(repo_root).resolve()
+    normalized = validate_execution_spec(dict(spec or {}))
+    registry = _load_registry(repo_root)
+    issues: list[dict[str, Any]] = []
+    warnings: list[str] = []
+
+    def need_row(dataset_id: str) -> dict[str, Any] | None:
+        try:
+            return _registry_row(registry, dataset_id)
+        except ValueError as exc:
+            issues.append({"code": "unknown_dataset", "dataset_id": dataset_id, "detail": str(exc)})
+            return None
+
+    def try_columns(dataset_id: str, source: dict[str, Any]) -> list[str] | None:
+        local = str(source.get("local_path") or "").strip()
+        if not local or "*" in local:
+            warnings.append(f"{dataset_id}: local path missing or glob — column check skipped")
+            return None
+        path = repo_root / local
+        if not path.is_file():
+            # directory or compacted
+            if path.is_dir():
+                warnings.append(f"{dataset_id}: directory input — column check skipped")
+                return None
+            warnings.append(f"{dataset_id}: local bytes absent — hydrate before execute; column check skipped")
+            return None
+        try:
+            frame = _read_frame(path)
+        except Exception as exc:  # noqa: BLE001
+            issues.append({"code": "unreadable_input", "dataset_id": dataset_id, "detail": str(exc)[:400]})
+            return None
+        return [str(c) for c in frame.columns]
+
+    input_row = need_row(normalized["input_dataset_id"])
+    input_cols = try_columns(normalized["input_dataset_id"], input_row) if input_row else None
+
+    # Transform column checks (approximate: filter/select/sort against input before join)
+    working_cols = set(input_cols) if input_cols is not None else None
+    for step in normalized.get("transforms") or []:
+        op = step.get("op")
+        if working_cols is None:
+            if op == "join":
+                need_row(str(step.get("right_dataset_id") or ""))
+            continue
+        if op == "filter":
+            col = str(step.get("column") or "")
+            if col not in working_cols:
+                issues.append({"code": "missing_column", "op": "filter", "column": col, "available_sample": sorted(working_cols)[:24]})
+        elif op == "select":
+            missing = [c for c in (step.get("columns") or []) if c not in working_cols]
+            if missing:
+                issues.append({"code": "missing_column", "op": "select", "columns": missing, "available_sample": sorted(working_cols)[:24]})
+            else:
+                working_cols = set(step.get("columns") or [])
+        elif op == "rename":
+            mapping = step.get("mapping") or {}
+            missing = [str(k) for k in mapping if str(k) not in working_cols]
+            if missing:
+                issues.append({"code": "missing_column", "op": "rename", "columns": missing})
+            else:
+                for old, new in mapping.items():
+                    working_cols.discard(str(old))
+                    working_cols.add(str(new))
+        elif op == "sort":
+            by = step.get("by") or step.get("columns") or []
+            if isinstance(by, str):
+                by = [by]
+            missing = [c for c in by if c not in working_cols]
+            if missing:
+                issues.append({"code": "missing_column", "op": "sort", "columns": missing})
+        elif op == "drop_na":
+            subset = step.get("columns")
+            if isinstance(subset, list) and subset:
+                missing = [c for c in subset if c not in working_cols]
+                if missing:
+                    issues.append({"code": "missing_column", "op": "drop_na", "columns": missing})
+        elif op == "join":
+            right_id = str(step.get("right_dataset_id") or "")
+            right_row = need_row(right_id)
+            right_cols = try_columns(right_id, right_row) if right_row else None
+            on = list(step.get("on") or [])
+            for col in on:
+                if col not in working_cols:
+                    issues.append({"code": "missing_column", "op": "join", "side": "left", "column": col})
+                if right_cols is not None and col not in right_cols:
+                    issues.append({"code": "missing_column", "op": "join", "side": "right", "column": col, "dataset_id": right_id})
+            if right_cols is not None:
+                # approximate post-join columns
+                working_cols = set(working_cols) | set(right_cols)
+
+    if working_cols is not None:
+        needed = set(normalized.get("group_by") or [])
+        needed.update(str(m.get("column") or "") for m in normalized.get("metrics") or [] if m.get("column"))
+        missing = sorted(c for c in needed if c and c not in working_cols)
+        if missing:
+            issues.append({"code": "missing_column", "op": "aggregate", "columns": missing, "available_sample": sorted(working_cols)[:24]})
+
+    ok = not issues
+    return {
+        "ok": ok,
+        "execution_spec": normalized,
+        "issues": issues,
+        "warnings": warnings,
+        "review_required": True,
+        "note": (
+            "Preflight only — does not execute or materialise. "
+            + ("Fix issues before proposing." if not ok else "Spec is structurally runnable when local inputs are present.")
+        ),
+    }
+
+
+
 def _load_registry(repo_root: Path) -> dict[str, Any]:
     return json.loads((repo_root / "config/research_query_registry.json").read_text(encoding="utf-8"))
 

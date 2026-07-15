@@ -1511,7 +1511,21 @@ class ResearchDataGateway:
         if node_id:
             proposal["nodeId"] = node_id
         if execution_spec is not None:
-            proposal["execution_spec"] = execution_spec
+            from scripts.research_data_mcp.synthesis_executor import preflight_execution_spec
+
+            preflight = preflight_execution_spec(Path(self.repo_root), dict(execution_spec))
+            if not preflight.get("ok"):
+                issues = preflight.get("issues") or []
+                detail = "; ".join(
+                    f"{i.get('code')}:{i.get('column') or i.get('columns') or i.get('dataset_id') or i.get('detail')}"
+                    for i in issues[:6]
+                )
+                raise ValueError(f"execution_spec preflight failed: {detail}")
+            proposal["execution_spec"] = preflight["execution_spec"]
+            proposal["execution_preflight"] = {
+                "ok": True,
+                "warnings": preflight.get("warnings") or [],
+            }
         return self._synthesis_thread_store().set_proposal(thread_id, proposal)
 
     def synthesis_thread_discover_handoff(self, thread_id: str) -> dict:

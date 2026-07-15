@@ -125,6 +125,53 @@ class ResearchToolHandlers:
             "synthesis_proposal": (thread.get("state") or {}).get("proposal"),
             "review_required": True,
             "execution_recorded": False,
+            "execution_preflight": ((thread.get("state") or {}).get("proposal") or {}).get("execution_preflight"),
+        }
+
+    def research_synthesis_preflight_spec(self, execution_spec: dict[str, Any]) -> dict[str, Any]:
+        """Dry-run validate an execution_spec (datasets/transforms/columns). Never executes."""
+        from scripts.research_data_mcp.synthesis_executor import preflight_execution_spec
+
+        return preflight_execution_spec(self.gateway.repo_root, dict(execution_spec or {}))
+
+    def research_synthesis_discover_handoff(self, thread_id: str) -> dict[str, Any]:
+        """Return held/missing evidence + resolvable collect_intents. Never submits jobs."""
+        handoff = self.gateway.synthesis_thread_discover_handoff(thread_id)
+        handoff["review_required"] = True
+        handoff["agent_may_collect"] = True
+        handoff["agent_may_approve_synthesis"] = False
+        return handoff
+
+    def research_synthesis_collect_missing(
+        self,
+        thread_id: str,
+        evidence_ids: list[str] | None = None,
+        auto_approve_safe: bool = True,
+        limit: int = 8,
+    ) -> dict[str, Any]:
+        """Submit Discover collect jobs for resolvable missing-evidence intents only."""
+        return self.gateway.synthesis_thread_collect_missing(
+            thread_id,
+            evidence_ids=list(evidence_ids or []),
+            auto_approve_safe=bool(auto_approve_safe),
+            limit=int(limit or 8),
+        )
+
+    def research_synthesis_materialisation(self, thread_id: str) -> dict[str, Any]:
+        """Honest materialisation view for a synthesis thread (never invents output)."""
+        return self.gateway.synthesis_thread_materialisation(thread_id)
+
+    def research_synthesis_submit_execution(self, thread_id: str) -> dict[str, Any]:
+        """Queue accepted execution_spec as pending_approval. Agent cannot approve it."""
+        out = self.gateway.synthesis_thread_submit_execution(thread_id)
+        job = out.get("job") if isinstance(out, dict) else None
+        return {
+            **(out if isinstance(out, dict) else {"result": out}),
+            "review_required": True,
+            "agent_may_approve_synthesis": False,
+            "note": "Submitted for researcher desk approval only — Composer cannot approve synthesis_execute.",
+            "job_id": (job or {}).get("id") if isinstance(job, dict) else None,
+            "job_status": (job or {}).get("status") if isinstance(job, dict) else None,
         }
 
     def research_discover_create_intent(
