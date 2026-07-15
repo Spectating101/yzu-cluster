@@ -1058,7 +1058,7 @@ def _handlers() -> dict[str, Handler]:
         return stack.jobs.get(params["id"])
 
     def job_approve(stack, query, payload, params):
-        # Route through gateway so synthesis_execute stays researcher-gated.
+        # Desk researcher approve (gateway); synthesis allowed here, not via approve-safe/agents.
         out = stack.gateway.approve_yzu_job(params["id"])
         ticked = stack.jobs.tick()
         if isinstance(out, dict) and isinstance(ticked, dict) and ticked.get("id"):

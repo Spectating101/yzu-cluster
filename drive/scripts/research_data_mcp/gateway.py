@@ -1803,9 +1803,11 @@ class ResearchDataGateway:
         return self.jobs.submit(title, plan, request, auto_approve=auto_approve)
 
     def approve_yzu_job(self, job_id: str) -> dict[str, Any]:
-        job = self.jobs.get(job_id)
-        if (job.get("plan") or {}).get("job_type") == "synthesis_execute":
-            raise PermissionError("Synthesis execution requires researcher approval through the desk UI")
+        """Researcher desk approve path.
+
+        Synthesis jobs are allowed here (History / approve button). They must
+        still never pass approve-safe bulk policy or Composer/agent tool wrappers.
+        """
         return self.jobs.approve(job_id)
 
     def cancel_yzu_job(self, job_id: str) -> dict[str, Any]:

@@ -166,18 +166,16 @@ def _read_frame(file_path: Path):
         return pd.read_csv(file_path)
 
     def _from_json_bytes() -> Any:
-        try:
-            return pd.read_json(file_path)
-        except ValueError:
-            raw = json.loads(file_path.read_text(encoding="utf-8"))
-            if isinstance(raw, list):
-                return pd.DataFrame(raw)
-            if isinstance(raw, dict):
-                # SEC company_tickers style: { "0": {...}, "1": {...} }
-                if all(isinstance(v, dict) for v in raw.values()):
-                    return pd.DataFrame(list(raw.values()))
-                return pd.json_normalize(raw)
-            raise ValueError("unsupported json shape for execution input")
+        # Prefer explicit JSON parse first. pd.read_json on SEC company_tickers
+        # ({"0":{cik,ticker,title}, ...}) succeeds but returns a transposed wide frame.
+        raw = json.loads(file_path.read_text(encoding="utf-8"))
+        if isinstance(raw, list):
+            return pd.DataFrame(raw)
+        if isinstance(raw, dict):
+            if raw and all(isinstance(v, dict) for v in raw.values()):
+                return pd.DataFrame(list(raw.values()))
+            return pd.json_normalize(raw)
+        raise ValueError("unsupported json shape for execution input")
 
     if suffix == ".json" or suffix == "":
         return _from_json_bytes()
