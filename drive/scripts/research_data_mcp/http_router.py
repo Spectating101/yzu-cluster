@@ -1048,7 +1048,8 @@ def _handlers() -> dict[str, Handler]:
         return stack.jobs.get(params["id"])
 
     def job_approve(stack, query, payload, params):
-        out = stack.jobs.approve(params["id"])
+        # Route through gateway so synthesis_execute stays researcher-gated.
+        out = stack.gateway.approve_yzu_job(params["id"])
         ticked = stack.jobs.tick()
         if isinstance(out, dict) and isinstance(ticked, dict) and ticked.get("id"):
             out["tick_started"] = ticked.get("id")

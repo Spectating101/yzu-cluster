@@ -1,0 +1,30 @@
+{
+  "audit": "synthesis_cleanliness",
+  "generated_at": "2026-07-15T08:42:00Z",
+  "unit_tests": {
+    "test_synthesis_thread_state": "16 passed"
+  },
+  "grades": {
+    "thread_state_honesty": "A",
+    "proposal_accept_execute_gate": "A-",
+    "approve_safe_skips_synthesis": "A",
+    "http_approve_guard": "A (fixed: routes through gateway.approve_yzu_job \u2192 403)",
+    "materialisation_honesty": "A",
+    "full_lifecycle_with_local_input": "A",
+    "lifecycle_when_input_drive_only": "C (fails loud: input bytes unavailable locally \u2014 needs hydrate first)",
+    "queue_hygiene": "B (cancelled 11 thin empty-plan synthesis_execute noise)"
+  },
+  "proven_happy_path": {
+    "job_id": "bdb8e9a0f1f2",
+    "input": "stablecoin_trust_engagement_weekly",
+    "output": "synthesis_audit_local_1784104820",
+    "rows": 263,
+    "materialisation": "registered",
+    "drive_verified": true
+  },
+  "gaps": [
+    "Prior synthesis outputs compacted off local disk; execute fails until hydrate from Drive",
+    "Thin synthesis_execute jobs (plan only job_type) were creatable via tests/noise \u2014 now cleaned; HTTP approve no longer lets them through",
+    "Discover handoff is evidence-shaped, not a collect button yet"
+  ]
+}
