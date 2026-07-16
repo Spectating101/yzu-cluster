@@ -2,10 +2,10 @@
 
 **Status:** ACTIVE CHANGE-CONTROL LOCK  
 **Date:** 2026-07-16  
-**Scope:** Discover, Library, Profile, and Home product composition  
+**Scope:** Discover, Library, Profile, Home, and Resources product composition  
 **Purpose:** prevent converged faculty-facing pages from being casually reopened, reinterpreted, or redesigned during remaining Research Drive convergence
 
-This is a change-control lock used with [`UI_PRODUCT_AUTHORITY.md`](UI_PRODUCT_AUTHORITY.md) and the page-specific frozen appendices.
+This change-control lock is used with [`UI_PRODUCT_AUTHORITY.md`](UI_PRODUCT_AUTHORITY.md), [`RESEARCH_DRIVE_RIGHT_RAIL_CONTRACT.md`](RESEARCH_DRIVE_RIGHT_RAIL_CONTRACT.md), and the page-specific frozen appendices.
 
 The current lock state is:
 
@@ -14,11 +14,19 @@ DISCOVER     HARD FROZEN
 LIBRARY      HARD FROZEN
 PROFILE      GROUNDED HARD FROZEN
 HOME         HARD FROZEN — ITERATION 10
+RESOURCES    HARD FROZEN — ITERATION 05
 ```
 
-The remaining product-design work is Preview validation, Settings convergence, and Synthesis.
+The remaining active product-design work is:
 
-Responsive, component, accessibility, and pixel convergence may continue across frozen pages only when page ownership and composition are preserved.
+```text
+PROFILE      bounded visual polish / thin-state completion inside the grounded freeze
+PREVIEW      renderer / centre-overlay validation
+SETTINGS     truthful low-complexity convergence
+SYNTHESIS    final major product-design problem
+```
+
+Responsive, component, accessibility, implementation, and pixel convergence may continue across frozen pages only when page ownership and composition are preserved.
 
 ---
 
@@ -81,14 +89,6 @@ A Discover composition change is permitted only when all of the following are tr
 6. The right-rail contract and Discover E2E authority audit are updated where affected.
 
 New backend capability, new MCP tools, new source connectors, or new execution machinery do **not** by themselves justify a new Discover surface.
-
-```text
-BACKEND CAPABILITY
-≠
-FRONTEND PAGE INVENTION
-```
-
-The default answer to a proposed Discover redesign is **no**.
 
 ---
 
@@ -171,18 +171,7 @@ ranking-effect ledger
 synthetic researcher ontology
 ```
 
-The current frontend must not invent canonical Profile truth for:
-
-```text
-markets / entities
-evidence preferences
-inferred signals
-accepted context
-product-effect ledgers
-profile-belief provenance
-```
-
-unless a durable backing profile model and authority contract are built first.
+The frontend must not invent canonical Profile truth for markets/entities, evidence preferences, inferred signals, accepted context, product-effect ledgers, profile-belief provenance, or other unsupported fields.
 
 ### Profile change rule
 
@@ -204,13 +193,12 @@ Lab Linked / Suggested balance
 Detail rail typography / spacing
 thin-profile rendering
 pilot / unbound labelling
+"saved contexts" honesty correction
 responsive convergence
 pixel polish
 ```
 
 A richer faculty-profile backend does not automatically reopen Profile design.
-
-If the backend later gains additional durable fields, those fields must first be evaluated against the existing `Memory → Works → Lab` composition. Only a proven inability to represent truthful research memory inside the frozen composition can justify reopening the page.
 
 The default answer to a proposed Profile redesign is **no**.
 
@@ -224,42 +212,20 @@ Normative Home authority:
 - [`RESEARCH_DRIVE_RIGHT_RAIL_CONTRACT.md`](RESEARCH_DRIVE_RIGHT_RAIL_CONTRACT.md)
 - canonical Library / Discover / Synthesis / Resources object truth used by the Home projection
 
-Approved composition:
+Approved Iteration 10 composition:
 
 ```text
 TOP BAND
 
 PICK UP                         RESOURCE HEADROOM
 
-
 MIDDLE BAND
 
 RECOMMENDED EVIDENCE
 
-
 BOTTOM BAND
 
 RECENT TRAIL
-```
-
-Frozen Home functions:
-
-```text
-PICK UP
-=
-exact resumable work state
-
-RESOURCE HEADROOM
-=
-1 pinned + 1 material authoritative bounded resource
-
-RECOMMENDED EVIDENCE
-=
-grounded evidence suggestions with exact owning-surface handoff
-
-RECENT TRAIL
-=
-durable material machine consequences
 ```
 
 Frozen caps:
@@ -281,28 +247,13 @@ DESKTOP HOME PAGE SCROLL
 NEVER
 ```
 
-Home does not become:
-
-```text
-command centre
-metrics dashboard
-activity feed
-worker monitor
-news feed
-research pulse
-related-method recommender
-session analytics surface
-```
+Home does not become a command centre, metrics dashboard, activity feed, worker monitor, news feed, research pulse, related-method recommender, or session-analytics surface.
 
 Resource bars require authoritative used value, real cap / denominator, and current resource state.
 
-Reset / renewal copy requires explicit reset authority.
-
-Recommendations require grounded recommendation authority. Model prose alone does not create canonical recommendations.
+Recommendations require grounded recommendation authority.
 
 Recent Trail excludes browser history and ordinary execution noise.
-
-A Home exact resume point activates the exact underlying typed object. The centre displays object + resumable state; Detail owns structured truth and the current decision; Ask operates the same object.
 
 ### Home change rule
 
@@ -310,40 +261,176 @@ A Home exact resume point activates the exact underlying typed object. The centr
 NO CASUAL HOME REDESIGN.
 ```
 
-A Home composition change is permitted only when all of the following are true:
-
-1. A concrete rendered-workflow failure or cross-page contradiction exists.
-2. The problem cannot be solved inside the frozen Iteration 10 composition.
-3. The alternative is reviewed visually at full-page scale.
-4. `HOME_FULL_SCALE_FREEZE_2026-07-16.md` is explicitly amended before implementation.
-5. `UI_PRODUCT_AUTHORITY.md` is mechanically aligned where its older Home section conflicts.
-6. This change lock is updated.
-
-The default answer to a proposed Home redesign is **no**.
+A Home composition change is permitted only when a concrete rendered failure or cross-page contradiction cannot be solved inside Iteration 10, and the alternative is reviewed visually at full-page scale before the Home appendix and this lock are amended.
 
 ---
 
-## 5. What remains open
+## 5. Resources — hard frozen
 
-The following pages may still undergo active product-design iteration:
+Normative Resources authority:
+
+- [`RESOURCES_FULL_SCALE_FREEZE_2026-07-16.md`](RESOURCES_FULL_SCALE_FREEZE_2026-07-16.md)
+- [`UI_PRODUCT_AUTHORITY.md`](UI_PRODUCT_AUTHORITY.md), especially the permanent `Sources | Usage | Method` family
+- [`RESEARCH_DRIVE_RIGHT_RAIL_CONTRACT.md`](RESEARCH_DRIVE_RIGHT_RAIL_CONTRACT.md)
+- current source manifest, Resources rollup, and durable expenditure records as truth inputs
+
+Approved Iteration 05 family:
 
 ```text
-PREVIEW       narrow renderer / overlay validation remains
-SETTINGS      truthful low-complexity convergence remains
-SYNTHESIS     final major product-design problem remains
+SOURCES
+capability
+current headroom
+access authority
+source routes
+
+USAGE
+period totals
+resource expenditure history
+research-object attribution
+recorded outcomes
+
+METHOD
+find
+acquire
+execute
+promote
+bounded current method progress
 ```
 
-Current order:
+Frozen permanent tabs:
 
 ```text
+Sources | Usage | Method
+```
+
+Frozen ownership:
+
+```text
+SOURCES
+What can the lab use now?
+
+USAGE
+What resources did the lab actually spend,
+when, and on what research object?
+
+METHOD
+How does evidence move through the machine?
+```
+
+Progress bars require:
+
+```text
+current numerator
++
+real denominator
++
+current authoritative state
+```
+
+A manifest route definition is not provider health.
+
+```text
+ROUTE EXISTS
+≠
+ACCESS VERIFIED
+```
+
+Resources must distinguish:
+
+```text
+OBSERVED
+ROUTE DEFINED
+CONDITIONAL
+UNAVAILABLE
+NOT CHECKED
+```
+
+Usage is an expenditure ledger, not generic application activity.
+
+Every primary Usage history row should answer:
+
+```text
+WHEN?
+WHAT RESOURCE?
+HOW MUCH?
+FOR WHAT RESEARCH OBJECT?
+WHAT RECORDED OUTCOME?
+```
+
+Method explains evidence movement; it does not default to worker tables, queue tables, ports, MCP counts, architecture prose, or a job browser.
+
+The following rejected directions must not return:
+
+```text
+Overview | Activity
+Activity as a permanent Resources tab
+Review / Jobs / Ask / Discovery / Query / Metered filter browser
+generic run log
+worker-dashboard posture
+job approvals inside Resources centre
+Storage / Agents / Integrations / Billing / Architecture permanent tabs
+fake quota bars
+manifest declaration presented as live health
+```
+
+### Resources change rule
+
+```text
+NO CASUAL RESOURCES REDESIGN.
+```
+
+A Resources composition change is permitted only when all of the following are true:
+
+1. A concrete rendered-workflow failure or cross-page contradiction exists.
+2. The problem cannot be solved inside the frozen Iteration 05 family.
+3. The alternative is reviewed visually at full-page scale.
+4. `RESOURCES_FULL_SCALE_FREEZE_2026-07-16.md` is explicitly amended before implementation.
+5. This change lock and `UI_PRODUCT_AUTHORITY.md` are aligned where affected.
+6. Resources tests are updated to the new authority rather than preserving old implementation drift.
+
+The current `Overview | Activity` implementation and its tests do not override the frozen Resources appendix.
+
+The default answer to a proposed Resources redesign is **no**.
+
+---
+
+## 6. What remains open
+
+The following work remains:
+
+```text
+PROFILE
+bounded visual polish and complete thin / unbound full-page state preservation
+
 PREVIEW
+centre-scoped renderer / overlay validation
+
+SETTINGS
+truthful low-complexity convergence and removal of hardcoded / developer-facing status leakage
+
+SYNTHESIS
+final major product-design problem
+```
+
+Recommended design order:
+
+```text
+PROFILE POLISH
 ↓
 SETTINGS
+↓
+PREVIEW
 ↓
 SYNTHESIS
 ↓
 RESPONSIVE / COMPONENT / PIXEL CONVERGENCE
 ```
+
+Profile polish and Settings should be deliberately short passes.
+
+Preview is narrow but renderer-sensitive.
+
+Synthesis remains the only major unresolved product surface.
 
 Frozen pages may still be implemented, made responsive, accessibility-correct, and pixel-polished.
 
@@ -351,7 +438,7 @@ That does not reopen their page thesis or centre composition.
 
 ---
 
-## 6. Recovery rule
+## 7. Recovery rule
 
 When a new agent, model, developer, or design session enters the repository:
 
@@ -360,14 +447,16 @@ READ UI_PRODUCT_AUTHORITY.md
 ↓
 READ FROZEN_PAGE_CHANGE_LOCK_2026-07-16.md
 ↓
-READ THE PAGE'S FREEZE APPENDIX / GROUNDED FREEZE
+READ THE PAGE'S FULL-SCALE FREEZE / GROUNDED FREEZE
 ↓
 READ RESEARCH_DRIVE_RIGHT_RAIL_CONTRACT.md WHERE RELEVANT
 ↓
 IMPLEMENT OR POLISH INSIDE THE FROZEN COMPOSITION
 ```
 
-For Home specifically, `HOME_FULL_SCALE_FREEZE_2026-07-16.md` is the approved Iteration 10 visual authority. The older Home section in `UI_PRODUCT_AUTHORITY.md` predates the approved Iteration 10 convergence and must be mechanically aligned before or with Home implementation; it is not permission to regress to the old research-intention / needs-you composition.
+For Home, `HOME_FULL_SCALE_FREEZE_2026-07-16.md` is the approved Iteration 10 visual authority.
+
+For Resources, `RESOURCES_FULL_SCALE_FREEZE_2026-07-16.md` is the approved Iteration 05 visual authority.
 
 Do not infer that an old component, screenshot, test, fixture, backend object, or newly added capability grants permission to redesign a frozen page.
 
@@ -396,8 +485,12 @@ DO NOT REDESIGN.
 
 PROFILE
 DO NOT REDESIGN.
+POLISH INSIDE THE GROUNDED FREEZE.
 
 HOME
+DO NOT REDESIGN.
+
+RESOURCES
 DO NOT REDESIGN.
 ```
 
