@@ -1,786 +1,96 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  getSynthesisProfile,
-  listSynthesisProfiles,
-  runSynthesis,
-  runSynthesisPair,
-} from "@/v2/api";
-import { displayName, statusPill } from "@/v2/datasetMeta";
+import { useEffect, useRef, useState } from "react";
 import { PageShell } from "@/v2/ui";
 
-const FALLBACK_PROFILES = [
-  {
-    profile_id: "stablecoin_trust_engagement",
-    title: "Stablecoin trust & engagement",
-    type: "Research panel",
-    objective:
-      "Combine security, on-chain activity, and public attention into one weekly research panel.",
-    inputs: [
-      {
-        dataset_id: "skynet_stablecoin_security",
-        name: "Stablecoin security & governance",
-        source: "CertiK Skynet",
-        grain: "asset-week",
-        coverage: "2021–2026",
-        join_keys: ["asset_id", "week"],
-        analysis_readiness: "instant",
-      },
-      {
-        dataset_id: "etherscan_stablecoin_activity",
-        name: "Stablecoin on-chain activity",
-        source: "Etherscan",
-        grain: "asset-day",
-        coverage: "2021–2026",
-        join_keys: ["asset_id", "date"],
-        analysis_readiness: "instant",
-      },
-      {
-        dataset_id: "stablecoin_attention_overlay",
-        name: "Public attention overlay",
-        source: "GDELT · Wikipedia · GitHub",
-        grain: "asset-week",
-        coverage: "2021–2026",
-        join_keys: ["asset_id", "week"],
-        analysis_readiness: "instant",
-      },
-    ],
-    output: {
-      dataset_id: "stablecoin_trust_weekly_panel",
-      name: "Stablecoin trust weekly panel",
-      grain: "asset-week",
-      coverage: "2021–2026",
-      destination: "Research panels",
-    },
-  },
-  {
-    profile_id: "skynet_etherscan_stablecoin",
-    title: "Security × on-chain activity",
-    type: "Two-source synthesis",
-    objective: "Join governance and security signals to observed on-chain activity.",
-    inputs: [
-      {
-        dataset_id: "skynet_stablecoin_security",
-        name: "Stablecoin security & governance",
-        source: "CertiK Skynet",
-        grain: "asset-week",
-        coverage: "2021–2026",
-        join_keys: ["asset_id", "week"],
-        analysis_readiness: "instant",
-      },
-      {
-        dataset_id: "etherscan_stablecoin_activity",
-        name: "Stablecoin on-chain activity",
-        source: "Etherscan",
-        grain: "asset-day",
-        coverage: "2021–2026",
-        join_keys: ["asset_id", "date"],
-        analysis_readiness: "instant",
-      },
-    ],
-    output: {
-      dataset_id: "skynet_etherscan_stablecoin_panel",
-      name: "Security and activity panel",
-      grain: "asset-week",
-      coverage: "2021–2026",
-      destination: "Synthesis outputs",
-    },
-  },
-  {
-    profile_id: "jkse_pit_idn_microstructure_revisions",
-    title: "JKSE point-in-time revisions",
-    type: "Point-in-time panel",
-    objective:
-      "Assemble Indonesian market, estimates, and point-in-time accounting evidence without look-ahead leakage.",
-    inputs: [
-      {
-        dataset_id: "jkse_point_in_time",
-        name: "JKSE point-in-time fundamentals",
-        source: "Refinitiv",
-        grain: "security-date",
-        coverage: "2010–2026",
-        join_keys: ["ric", "date"],
-        analysis_readiness: "instant",
-      },
-      {
-        dataset_id: "idn_estimate_revisions",
-        name: "Indonesia estimate revisions",
-        source: "Refinitiv estimates",
-        grain: "security-date",
-        coverage: "2017–2026",
-        join_keys: ["ric", "date"],
-        analysis_readiness: "instant",
-      },
-      {
-        dataset_id: "idn_market_spine",
-        name: "Indonesia market spine",
-        source: "In-house panel",
-        grain: "security-date",
-        coverage: "2010–2026",
-        join_keys: ["ric", "date"],
-        analysis_readiness: "instant",
-      },
-    ],
-    output: {
-      dataset_id: "jkse_pit_revision_panel",
-      name: "JKSE PIT revision panel",
-      grain: "security-date",
-      coverage: "2010–2026",
-      destination: "Research panels",
-    },
-  },
-];
+const INTENT = "Reconstruct a defensible weekly measure of public attention to individual stablecoins from 2021 onward using evidence available to the lab.";
+const THREADS = [["Stablecoin attention", "Exploration ready"], ["Incident response", "Draft method"], ["JKSE PIT revisions", "Registered"]];
+const STEPS = ["Explore", "Design", "Test", "Build", "Registered"];
+const SOURCES = [["Search intent", "Google Trends", "asset-week"], ["Community activity", "Reddit", "asset-week"], ["Public visibility", "Wikipedia", "asset-day"]];
 
-function humanize(value) {
-  return String(value || "")
-    .replace(/[_-]+/g, " ")
-    .replace(/\b\w/g, (char) => char.toUpperCase())
-    .trim();
+function fromUrl() {
+  if (typeof window === "undefined") return "explore";
+  const state = new URLSearchParams(window.location.search).get("synthesis_state");
+  return ["intent", "explore", "design", "test", "build", "failed", "registered", "stale"].includes(state) ? state : "explore";
 }
 
-function asArray(value) {
-  if (Array.isArray(value)) return value;
-  if (value && typeof value === "object") return Object.values(value);
-  return [];
+function label(state) {
+  return ({ intent: "New synthesis", explore: "Exploration ready", design: "Method design", test: "Preview ready", build: "Build in progress", failed: "Build failed", registered: "Registered", stale: "Refresh available" })[state] || "Synthesis";
 }
 
-function normalizeInput(value, datasets) {
-  const spec = typeof value === "string" ? { dataset_id: value } : value || {};
-  const id = spec.dataset_id || spec.id || spec.registry_id || spec.name || spec.title;
-  const catalogRow = datasets.find((row) => row.dataset_id === id) || null;
-  return {
-    ...catalogRow,
-    ...spec,
-    dataset_id: id || catalogRow?.dataset_id || "",
-    name:
-      spec.name ||
-      spec.title ||
-      catalogRow?.name ||
-      catalogRow?.title ||
-      humanize(id) ||
-      "Research asset",
-    source:
-      spec.source ||
-      spec.publisher ||
-      spec.source_system ||
-      catalogRow?.source ||
-      catalogRow?.source_system ||
-      "Lab registry",
-    grain: spec.grain || catalogRow?.grain || "Grain not described",
-    coverage:
-      spec.coverage ||
-      spec.date_range ||
-      spec.temporal_coverage ||
-      catalogRow?.coverage ||
-      catalogRow?.date_range ||
-      "Coverage not described",
-    join_keys: asArray(spec.join_keys || spec.keys || catalogRow?.join_keys),
-    analysis_readiness:
-      spec.analysis_readiness || spec.readiness || catalogRow?.analysis_readiness || "unknown",
-  };
+function StepRail({ state }) {
+  if (["intent", "explore"].includes(state)) return null;
+  const effective = state === "failed" ? "build" : state === "stale" ? "registered" : state;
+  const current = ["explore", "design", "test", "build", "registered"].indexOf(effective);
+  return <ol className="s04-steps">{STEPS.map((step, i) => <li key={step} className={i < current ? "done" : i === current ? "now" : ""}><span>{i < current ? "✓" : i + 1}</span>{step}</li>)}</ol>;
 }
 
-function sourceList(profile) {
-  return (
-    profile?.inputs ||
-    profile?.sources ||
-    profile?.datasets ||
-    profile?.peer_sources ||
-    profile?.peers ||
-    profile?.source_datasets ||
-    []
-  );
+function AskPanel({ state, ask, compare }) {
+  const copy = state === "design" ? ["One decision needed", "Component weighting", "Equal weighting is transparent and avoids unsupported confidence in source reliability."] : state === "test" ? ["Preview warning", "Component imbalance", "Reddit contributes more than 60% of weekly variance for six assets."] : state === "build" ? ["Current operation", "Validating final output", "Source revisions are locked while output-key, lineage, and source-consistency checks run."] : state === "failed" ? ["Failure", "Validation did not complete", "No manifest was accepted and no Library asset was registered."] : ["AI interpretation", "Longitudinal attention measure", "The request is interpreted as a reusable longitudinal measure rather than an event-only dataset."];
+  const questions = state === "registered" || state === "stale" ? ["Can this support a DiD?", "What are the identification risks?", "Draft a refresh policy."] : state === "test" ? ["Explain the warning.", "Which assets are affected?", "Compare redesign options."] : ["Why is GDELT validation?", "Compare alternatives.", "What will I decide later?"];
+  return <aside className="s04-ask">
+    <header><div><small>Ask context</small><strong>{label(state)}</strong></div><i /></header>
+    <section><small>{copy[0]}</small><h3>{copy[1]}</h3><p>{copy[2]}</p>{state === "explore" ? <button onClick={compare}>Make event response primary</button> : null}</section>
+    {state === "explore" ? <section><small>Why this route</small><ul><li>Best longitudinal coverage</li><li>Complementary evidence roles</li><li>Transparent proxy construction</li></ul></section> : null}
+    <section className="s04-questions"><small>Quick questions</small>{questions.map(q => <button key={q} onClick={() => ask(q)}>{q}</button>)}</section>
+    <button className="s04-askbox" onClick={() => ask("Help me refine this synthesis using the full current thread.")}>Correct, constrain, or ask…</button>
+  </aside>;
 }
 
-function outputSpec(profile) {
-  const raw = profile?.output || profile?.result || profile?.target || {};
-  const id =
-    raw.dataset_id ||
-    raw.id ||
-    profile?.output_dataset_id ||
-    profile?.target_dataset_id ||
-    profile?.profile_id ||
-    "synthesis_output";
-  return {
-    ...raw,
-    dataset_id: id,
-    name: raw.name || raw.title || profile?.output_name || humanize(id),
-    grain: raw.grain || profile?.output_grain || "Derived research grain",
-    coverage: raw.coverage || profile?.coverage || "Computed from input overlap",
-    destination:
-      raw.destination ||
-      raw.output_area ||
-      raw.path ||
-      profile?.output_area ||
-      profile?.output_path ||
-      "Synthesis outputs",
-  };
-}
-
-function normalizeProfile(raw, datasets) {
-  const id = raw?.profile_id || raw?.id || raw?.key || raw?.name || "synthesis-profile";
-  const inputs = asArray(sourceList(raw)).map((item) => normalizeInput(item, datasets));
-  return {
-    ...raw,
-    profile_id: id,
-    title: raw?.title || raw?.label || raw?.name || humanize(id),
-    type: raw?.type || raw?.profile_type || raw?.kind || "Synthesis blueprint",
-    objective:
-      raw?.objective ||
-      raw?.description ||
-      raw?.summary ||
-      "Combine selected lab assets into a reusable research output.",
-    inputs,
-    output: outputSpec(raw),
-  };
-}
-
-function normalizeProfileList(payload, datasets) {
-  const rows = Array.isArray(payload)
-    ? payload
-    : payload?.profiles || payload?.items || payload?.results || [];
-  return asArray(rows).map((row) => normalizeProfile(row, datasets)).filter((row) => row.profile_id);
-}
-
-function parseYears(value) {
-  const years = String(value || "").match(/(?:19|20)\d{2}/g) || [];
-  if (!years.length) return null;
-  return { start: Number(years[0]), end: Number(years[years.length - 1]) };
-}
-
-function intersectCoverage(inputs) {
-  const spans = inputs.map((input) => parseYears(input.coverage)).filter(Boolean);
-  if (!spans.length) return "Unknown";
-  const start = Math.max(...spans.map((span) => span.start));
-  const end = Math.min(...spans.map((span) => span.end));
-  return start <= end ? `${start}–${end}` : "No confirmed overlap";
-}
-
-function sharedKeys(inputs) {
-  const sets = inputs
-    .map((input) => new Set(asArray(input.join_keys).map((key) => String(key).toLowerCase())))
-    .filter((set) => set.size);
-  if (!sets.length) return [];
-  return [...sets[0]].filter((key) => sets.every((set) => set.has(key)));
-}
-
-function compatibilityFor(inputs) {
-  const valid = inputs.filter(Boolean);
-  const keys = sharedKeys(valid);
-  const grains = [...new Set(valid.map((input) => String(input.grain || "").toLowerCase()).filter(Boolean))];
-  const readyCount = valid.filter((input) => /instant|query|connected/i.test(String(input.analysis_readiness || ""))).length;
-  const time = intersectCoverage(valid);
-  const exactGrain = grains.length === 1;
-  const knownCoverage = time !== "Unknown" && time !== "No confirmed overlap";
-  return {
-    key: keys.length ? keys.join(" · ") : "Key mapping required",
-    keyTone: keys.length ? "ok" : "warn",
-    grain: exactGrain ? "Aligned" : grains.length ? "Transform required" : "Unknown",
-    grainDetail: exactGrain ? valid[0]?.grain : grains.join(" → ") || "No grain metadata",
-    grainTone: exactGrain ? "ok" : grains.length ? "warn" : "unknown",
-    time,
-    timeTone: knownCoverage ? "ok" : time === "No confirmed overlap" ? "warn" : "unknown",
-    readiness: `${readyCount}/${valid.length || 0} ready`,
-    readinessTone: valid.length && readyCount === valid.length ? "ok" : readyCount ? "warn" : "unknown",
-    overall:
-      keys.length && knownCoverage
-        ? exactGrain
-          ? "Ready to run"
-          : "Ready with one transformation"
-        : "Review required",
-    overallTone: keys.length && knownCoverage ? (exactGrain ? "ok" : "warn") : "warn",
-    transformations: exactGrain ? [] : grains.length ? ["Normalize input grain"] : [],
-  };
-}
-
-function resultOutput(result, fallback) {
-  const raw = result?.output || result?.dataset || result?.registered_dataset || result?.result || {};
-  const datasetId =
-    result?.registered_dataset_id ||
-    result?.output_dataset_id ||
-    raw?.dataset_id ||
-    raw?.id ||
-    fallback?.dataset_id;
-  return {
-    ...fallback,
-    ...raw,
-    dataset_id: datasetId,
-    name: raw?.name || raw?.title || result?.output_name || fallback?.name,
-    grain: raw?.grain || result?.grain || fallback?.grain,
-    coverage: raw?.coverage || result?.coverage || fallback?.coverage,
-    destination:
-      raw?.destination || raw?.path || result?.output_path || fallback?.destination,
-    row_count: result?.row_count ?? result?.rows ?? raw?.row_count ?? raw?.rows ?? null,
-    registered: Boolean(result?.registered_dataset_id || raw?.registered || result?.registered),
-  };
-}
-
-function AssetMark() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <ellipse cx="12" cy="5" rx="7" ry="3" />
-      <path d="M5 5v6c0 1.7 3.1 3 7 3s7-1.3 7-3V5" />
-      <path d="M5 11v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6" />
-    </svg>
-  );
-}
-
-function BlueprintMark() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="5" cy="7" r="2.5" />
-      <circle cx="5" cy="17" r="2.5" />
-      <circle cx="19" cy="12" r="2.5" />
-      <path d="M7.5 7.8 16.5 11M7.5 16.2 16.5 13" />
-    </svg>
-  );
-}
-
-function InputCard({ input, index, editable, datasets, onChange }) {
-  return (
-    <article className="rd-syn-input-card" data-testid="synthesis-input-card">
-      <div className="rd-syn-input-icon"><AssetMark /></div>
-      <div className="rd-syn-input-main">
-        <div className="rd-syn-input-order">Input {String(index + 1).padStart(2, "0")}</div>
-        {editable ? (
-          <select
-            aria-label={`Synthesis input ${index + 1}`}
-            value={input?.dataset_id || ""}
-            onChange={(event) => onChange?.(event.target.value)}
-          >
-            <option value="">Choose a Library asset</option>
-            {datasets.map((dataset) => (
-              <option key={dataset.dataset_id} value={dataset.dataset_id}>
-                {displayName(dataset)}
-              </option>
-            ))}
-          </select>
-        ) : (
-          <strong>{input?.name || "Research asset"}</strong>
-        )}
-        <span>{input?.source || "Lab registry"}</span>
-      </div>
-      <div className="rd-syn-input-meta">
-        <span>{input?.grain || "Grain unknown"}</span>
-        <span>{input?.coverage || "Coverage unknown"}</span>
-        <em>{statusPill(input)}</em>
-      </div>
-    </article>
-  );
-}
-
-function CompatibilityMetric({ label, value, detail, tone = "unknown" }) {
-  return (
-    <div className={`rd-syn-compat-metric is-${tone}`}>
-      <span>{label}</span>
-      <strong>{value}</strong>
-      {detail ? <small>{detail}</small> : null}
+function Explore({ accept, compare }) {
+  return <section className="s04-card" data-testid="synthesis-recommendation">
+    <header className="s04-title"><div><small>Recommended construction</small><h2>Composite weekly attention index</h2></div><em>Recommended</em></header>
+    <div className="s04-map" role="img" aria-label="Google Trends, Reddit, and Wikipedia combine into a weekly attention index validated against GDELT news">
+      <strong className="target">Historical stablecoin attention</strong><b>↓</b>
+      <div className="sources">{SOURCES.map(([role, name, grain]) => <article key={name}><small>{role}</small><strong>{name}</strong><span>{grain}</span></article>)}</div>
+      <b>↓</b><span className="process">Align entities · aggregate weeks · normalise</span><b>↓</b><strong className="output">Composite attention index</strong>
+      <div className="validation"><span>validate against</span><article><small>External visibility</small><strong>GDELT news</strong><span>event-day</span></article></div>
     </div>
-  );
+    <div className="s04-pairs"><article><small>Expected output</small><strong>Stablecoin attention weekly panel</strong><p>asset-week · 2021–2026 · reusable Library asset</p></article><article><small>Unavailable ideal</small><strong>Historical X follower growth</strong><p>No verified longitudinal route; this remains an observable proxy.</p></article></div>
+    <div className="s04-resolved"><span><small>AI resolved</small>source roles · grain · validation · identity strategy</span><span><small>Method design resolves</small>weighting · missing-component rule</span></div>
+    <button className="s04-alts" onClick={compare}>2 alternative constructions available <b>›</b></button>
+    <footer className="s04-actions"><p><small>What happens next</small>Accepting drafts the detailed method and surfaces only material choices. It does not build data.</p><button className="rd-v2-btn" onClick={compare}>Compare alternatives</button><button className="rd-v2-btn primary" onClick={accept}>Accept &amp; design method</button></footer>
+  </section>;
 }
 
-export function SynthesisPage({
-  datasets = [],
-  compareIds = [],
-  onCompareChange,
-  onAskComposer,
-  onGoTab,
-  onOpenDataset,
-}) {
-  const fallbackProfiles = useMemo(
-    () => FALLBACK_PROFILES.map((profile) => normalizeProfile(profile, datasets)),
-    [datasets],
-  );
-  const [profiles, setProfiles] = useState(fallbackProfiles);
-  const [profileSource, setProfileSource] = useState("loading");
-  const [selectedProfileId, setSelectedProfileId] = useState(
-    fallbackProfiles[0]?.profile_id || "custom_pair",
-  );
-  const [profileDetail, setProfileDetail] = useState(null);
-  const [detailLoading, setDetailLoading] = useState(false);
-  const [customMode, setCustomMode] = useState(false);
-  const [runState, setRunState] = useState({ status: "idle", result: null, error: "" });
-  const outputRef = useRef(null);
+function Design({ weighting, setWeighting, next, ask }) {
+  return <section className="s04-card" data-testid="synthesis-design-state">
+    <header className="s04-title"><div><small>AI-designed method</small><h2>One methodological decision remains</h2></div><em className="neutral">Draft method</em></header>
+    <dl className="s04-method"><div><dt>Evidence</dt><dd>Trends · Reddit · Wikipedia</dd></div><div><dt>Grain</dt><dd>asset-week</dd></div><div><dt>Construction</dt><dd>align → aggregate → normalise → combine → validate</dd></div><div><dt>Output</dt><dd>stablecoin_attention_weekly</dd></div></dl>
+    <div className="s04-resolved-list"><strong>Six routine decisions resolved by AI</strong><ul><li>Canonical asset identity mapping</li><li>Daily-to-weekly aggregation</li><li>Within-source standardisation</li><li>GDELT validation-only</li><li>Unique output key</li><li>Field lineage required</li></ul></div>
+    <fieldset className="s04-choice"><legend>How should the three core signals contribute?</legend>{[["equal", "Equal weighting", "Recommended · transparent and reproducible"], ["reliability", "Reliability-adjusted", "Requires a defensible reliability model"], ["custom", "Custom weights", "Researcher-defined shares"]].map(([value, title, sub]) => <label key={value} className={weighting === value ? "selected" : ""}><input type="radio" checked={weighting === value} onChange={() => setWeighting(value)} /><span><strong>{title}</strong><small>{sub}</small></span></label>)}</fieldset>
+    <footer className="s04-actions"><p><small>Next</small>Compile the bounded method and run a non-registering preview.</p><button className="rd-v2-btn" onClick={() => ask("Challenge the weighting recommendation.")}>Challenge recommendation</button><button className="rd-v2-btn primary" onClick={next}>Accept &amp; test</button></footer>
+  </section>;
+}
 
-  useEffect(() => {
-    let cancelled = false;
-    setProfiles(fallbackProfiles);
-    listSynthesisProfiles()
-      .then((payload) => {
-        if (cancelled) return;
-        const live = normalizeProfileList(payload, datasets);
-        if (!live.length) {
-          setProfileSource("fallback");
-          return;
-        }
-        setProfiles(live);
-        setProfileSource("live");
-        setSelectedProfileId((current) =>
-          live.some((profile) => profile.profile_id === current)
-            ? current
-            : live[0].profile_id,
-        );
-      })
-      .catch(() => {
-        if (!cancelled) setProfileSource("fallback");
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [datasets, fallbackProfiles]);
+function Test({ back, build, ask }) {
+  return <section className="s04-card" data-testid="synthesis-test-state">
+    <header className="s04-title"><div><small>Bounded preview</small><h2>Ready to build—with one documented warning</h2></div><em className="warn">1 warning</em></header>
+    <div className="s04-metrics">{[["Preview rows", "3,120", "nothing registered"], ["Entities matched", "29 / 30", "1 alias unresolved"], ["Complete components", "94.8%", "3 of 3 signals"], ["Output key", "Unique", "asset_id + week"]].map(([a,b,c]) => <article key={a}><small>{a}</small><strong>{b}</strong><span>{c}</span></article>)}</div>
+    <div className="s04-table"><table><thead><tr><th>Asset</th><th>Week</th><th>Trends</th><th>Reddit</th><th>Wiki</th><th>Count</th><th>Attention</th></tr></thead><tbody><tr><td>USDT</td><td>2025-W01</td><td>0.18</td><td>0.44</td><td>0.21</td><td>3</td><td>0.28</td></tr><tr><td>USDC</td><td>2025-W01</td><td>0.20</td><td>0.15</td><td>0.24</td><td>3</td><td>0.20</td></tr><tr><td>DAI</td><td>2025-W01</td><td>-0.04</td><td>0.72</td><td>0.11</td><td>3</td><td>0.26</td></tr></tbody></table></div>
+    <div className="s04-results"><article><b>✓</b><strong>Five checks passed</strong><p>Coverage, key, lineage, source binding, and availability are coherent.</p></article><article className="warning"><b>!</b><strong>Component imbalance</strong><p>Reddit dominates variance for six assets.</p><button onClick={() => ask("Explain the component-imbalance warning.")}>Review warning</button></article></div>
+    <footer className="s04-actions"><p><small>Write effect</small>The next action requests a durable build; approval remains required before registration.</p><button className="rd-v2-btn" onClick={back}>Return to design</button><button className="rd-v2-btn primary" onClick={build}>Accept warning &amp; request build</button></footer>
+  </section>;
+}
 
-  const baseProfile = profiles.find((profile) => profile.profile_id === selectedProfileId) || profiles[0] || null;
+function Build({ progress, phase, fail }) {
+  const phases = ["Lock revisions", "Align entities", "Construct components", "Generate output", "Verify output", "Register"];
+  const active = Math.min(phases.length - 1, Math.floor(progress / 17));
+  return <section className="s04-card" data-testid="synthesis-build-state"><header className="s04-title"><div><small>Durable build</small><h2>Building stablecoin attention weekly panel</h2></div><em>{progress}%</em></header><div className="s04-progress"><span style={{ width: `${progress}%` }} /></div><div className="s04-build"><ol>{phases.map((p,i) => <li key={p} className={i < active ? "done" : i === active ? "now" : ""}><b>{i < active ? "✓" : i + 1}</b><strong>{p}</strong><small>{i < active ? "Complete" : i === active ? "Running" : "Waiting"}</small></li>)}</ol><article><small>Current output</small><strong>{Math.round(13827 * Math.max(progress,18) / 100).toLocaleString()} provisional rows</strong><p>29 assets · 7 fields · 2021-W01 → 2026-W26</p><dl><div><dt>Plan</dt><dd>s04-r3</dd></div><div><dt>Source lock</dt><dd>4 revisions</dd></div><div><dt>Operation</dt><dd>{phase}</dd></div></dl></article></div><p className="s04-fixture">Fixture-backed target lifecycle; no live backend write is claimed.</p><button className="s04-fail-link" onClick={fail}>Exercise failure state</button></section>;
+}
 
-  useEffect(() => {
-    if (customMode || !baseProfile?.profile_id || profileSource !== "live") {
-      setProfileDetail(null);
-      setDetailLoading(false);
-      return;
-    }
-    let cancelled = false;
-    setDetailLoading(true);
-    getSynthesisProfile(baseProfile.profile_id)
-      .then((payload) => {
-        if (cancelled) return;
-        const raw = payload?.profile || payload?.item || payload;
-        setProfileDetail(normalizeProfile({ ...baseProfile, ...raw }, datasets));
-      })
-      .catch(() => {
-        if (!cancelled) setProfileDetail(null);
-      })
-      .finally(() => {
-        if (!cancelled) setDetailLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [baseProfile?.profile_id, customMode, datasets, profileSource]);
+function Registered({ stale, open, refresh, ask }) {
+  return <section className="s04-card" data-testid="synthesis-registered-state"><header className="s04-title"><div><small>{stale ? "Refresh available" : "Verified and registered"}</small><h2>Stablecoin attention weekly panel</h2></div><em className={stale ? "warn" : "success"}>{stale ? "Updates found" : "Query ready"}</em></header><div className="s04-metrics">{[["Rows","13,827",""],["Fields","7",""],["Assets","29",""],["Coverage","2021–2026",""]].map(([a,b,c]) => <article key={a}><small>{a}</small><strong>{b}</strong><span>{c}</span></article>)}</div><div className="s04-proof"><section><small>Verification</small><ul><li>Unique asset-week key</li><li>Complete field lineage</li><li>96.3% complete three-component rows</li><li>GDELT diagnostics recorded</li></ul></section><section><small>Registration proof</small><dl><div><dt>Dataset</dt><dd>stablecoin_attention_weekly</dd></div><div><dt>Manifest</dt><dd>mft_s04_0726</dd></div><div><dt>Spec hash</dt><dd>sha256:8a4…d19</dd></div><div><dt>Drive</dt><dd>Verified</dd></div></dl></section></div><div className="s04-use"><small>What this asset may support</small><div><article><strong>Descriptive research</strong><p>Attention trends and cross-asset cycles.</p></article><article><strong>Panel and event research</strong><p>Fixed effects and event response.</p></article></div><button onClick={() => ask("Assess the strongest empirical designs this asset supports.")}>Ask about empirical use</button></div><footer className="s04-actions"><p><small>Saved construction</small>{stale ? "Review new source revisions before refreshing." : "Duplicate, inspect, or assess freshness when source assets update."}</p><button className="rd-v2-btn" onClick={refresh}>{stale ? "Review refresh" : "Assess freshness"}</button><button className="rd-v2-btn primary" onClick={open}>Open in Library</button></footer></section>;
+}
 
-  const activeProfile = useMemo(() => {
-    if (customMode) {
-      const chosen = compareIds
-        .slice(0, 2)
-        .map((id) => datasets.find((dataset) => dataset.dataset_id === id))
-        .filter(Boolean)
-        .map((dataset) => normalizeInput(dataset, datasets));
-      return {
-        profile_id: "custom_pair",
-        title: "Custom synthesis",
-        type: "Library pair",
-        objective: "Choose two owned assets, review compatibility, and build a reusable output.",
-        inputs: chosen,
-        output: {
-          dataset_id: chosen.length === 2 ? `${chosen[0].dataset_id}_${chosen[1].dataset_id}_synthesis` : "custom_synthesis_output",
-          name:
-            chosen.length === 2
-              ? `${chosen[0].name} × ${chosen[1].name}`
-              : "Custom synthesis output",
-          grain: chosen[0]?.grain || "Derived research grain",
-          coverage: intersectCoverage(chosen),
-          destination: "Synthesis outputs",
-        },
-      };
-    }
-    return profileDetail || baseProfile;
-  }, [baseProfile, compareIds, customMode, datasets, profileDetail]);
-
-  const inputs = useMemo(
-    () => asArray(activeProfile?.inputs).map((input) => normalizeInput(input, datasets)),
-    [activeProfile, datasets],
-  );
-  const compatibility = useMemo(() => compatibilityFor(inputs), [inputs]);
-  const plannedOutput = useMemo(() => outputSpec(activeProfile || {}), [activeProfile]);
-  const producedOutput = runState.result ? resultOutput(runState.result, plannedOutput) : plannedOutput;
-  const runEnabled = inputs.length >= 2 && inputs.every((input) => input.dataset_id);
-
-  const selectProfile = (profileId) => {
-    setCustomMode(false);
-    setSelectedProfileId(profileId);
-    setRunState({ status: "idle", result: null, error: "" });
-  };
-
-  const selectCustom = () => {
-    setCustomMode(true);
-    setProfileDetail(null);
-    setRunState({ status: "idle", result: null, error: "" });
-    if (!compareIds[0] || !compareIds[1]) {
-      const ids = datasets.slice(0, 2).map((dataset) => dataset.dataset_id);
-      if (ids.length === 2) onCompareChange?.(ids);
-    }
-  };
-
-  const updateCustomInput = (index, id) => {
-    const next = [...compareIds];
-    next[index] = id;
-    onCompareChange?.(next);
-    setRunState({ status: "idle", result: null, error: "" });
-  };
-
-  const askCompatibility = () => {
-    const inputNames = inputs.map((input) => `${input.name} (${input.grain})`).join("; ");
-    onAskComposer?.(
-      `Review this synthesis plan: ${activeProfile?.title || "Custom synthesis"}. Inputs: ${inputNames}. ` +
-        `Common join path: ${compatibility.key}. Grain: ${compatibility.grainDetail}. ` +
-        `Time overlap: ${compatibility.time}. Explain remaining risks, required transformations, and whether the output is safe to build.`,
-    );
-  };
-
-  const execute = async () => {
-    if (!runEnabled || runState.status === "running") return;
-    setRunState({ status: "running", result: null, error: "" });
-    try {
-      const result = customMode
-        ? await runSynthesisPair(inputs[0].dataset_id, inputs[1].dataset_id)
-        : await runSynthesis(activeProfile.profile_id);
-      setRunState({ status: "success", result, error: "" });
-      window.requestAnimationFrame(() => {
-        if (window.matchMedia?.("(max-width: 720px)").matches) {
-          outputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
-      });
-    } catch (error) {
-      setRunState({
-        status: "error",
-        result: null,
-        error: error?.message || "Synthesis could not run. Check the desk connection and profile inputs.",
-      });
-    }
-  };
-
-  const outputState =
-    runState.status === "running"
-      ? "Building output"
-      : runState.status === "success"
-        ? producedOutput.registered
-          ? "Registered in Library"
-          : "Output created"
-        : "Planned output";
-
-  return (
-    <PageShell
-      className="rd-v2-synthesis-page"
-      title="Synthesis"
-      lead="Combine owned research assets into a reusable output."
-    >
-      <div className="rd-syn-studio" data-testid="synthesis-studio">
-        <aside className="rd-syn-blueprints" aria-label="Synthesis blueprints">
-          <div className="rd-syn-blueprints-head">
-            <span>Blueprints</span>
-            <small>{profileSource === "live" ? `${profiles.length} available` : "Desk recipes"}</small>
-          </div>
-          <div className="rd-syn-blueprint-list" role="tablist" aria-label="Synthesis blueprint list">
-            {profiles.map((profile) => (
-              <button
-                key={profile.profile_id}
-                type="button"
-                role="tab"
-                aria-selected={!customMode && selectedProfileId === profile.profile_id}
-                className={!customMode && selectedProfileId === profile.profile_id ? "is-active" : ""}
-                onClick={() => selectProfile(profile.profile_id)}
-              >
-                <span className="rd-syn-blueprint-icon"><BlueprintMark /></span>
-                <span className="rd-syn-blueprint-copy">
-                  <strong>{profile.title}</strong>
-                  <small>{profile.type} · {profile.inputs?.length || "—"} inputs</small>
-                </span>
-                <span className="rd-syn-blueprint-arrow">›</span>
-              </button>
-            ))}
-          </div>
-          <button
-            type="button"
-            className={`rd-syn-custom-blueprint${customMode ? " is-active" : ""}`}
-            onClick={selectCustom}
-          >
-            <span>＋</span>
-            <strong>Custom pair</strong>
-            <small>Choose from Library</small>
-          </button>
-          <div className="rd-syn-blueprints-foot">
-            <span className={`rd-syn-source-dot is-${profileSource}`} />
-            {profileSource === "live"
-              ? "Live synthesis registry"
-              : profileSource === "loading"
-                ? "Loading registry"
-                : "Previewing documented recipes"}
-          </div>
-        </aside>
-
-        <section className="rd-syn-workspace" aria-label="Synthesis workspace">
-          <header className="rd-syn-workspace-head">
-            <div>
-              <span className="rd-syn-kicker">Synthesis studio</span>
-              <h2>{activeProfile?.title || "Choose a blueprint"}</h2>
-              <p>{activeProfile?.objective}</p>
-            </div>
-            <div className="rd-syn-workspace-state">
-              <span className={`rd-syn-status is-${compatibility.overallTone}`}>
-                <i /> {detailLoading ? "Reading blueprint" : compatibility.overall}
-              </span>
-              <button type="button" className="rd-v2-btn sm" onClick={askCompatibility}>
-                Ask
-              </button>
-            </div>
-          </header>
-
-          <div className="rd-syn-assembly">
-            <section className="rd-syn-inputs" aria-labelledby="rd-syn-inputs-title">
-              <div className="rd-syn-section-head">
-                <span id="rd-syn-inputs-title">Owned inputs</span>
-                <small>{inputs.length} selected</small>
-              </div>
-              <div className="rd-syn-input-stack">
-                {inputs.slice(0, 3).map((input, index) => (
-                  <InputCard
-                    key={`${input.dataset_id}-${index}`}
-                    input={input}
-                    index={index}
-                    editable={customMode}
-                    datasets={datasets}
-                    onChange={(id) => updateCustomInput(index, id)}
-                  />
-                ))}
-                {customMode && inputs.length < 2
-                  ? [0, 1].slice(inputs.length).map((offset) => (
-                      <InputCard
-                        key={`empty-${offset}`}
-                        input={null}
-                        index={inputs.length + offset}
-                        editable
-                        datasets={datasets}
-                        onChange={(id) => updateCustomInput(inputs.length + offset, id)}
-                      />
-                    ))
-                  : null}
-                {inputs.length > 3 ? (
-                  <div className="rd-syn-more-inputs">+{inputs.length - 3} additional sources in this blueprint</div>
-                ) : null}
-              </div>
-            </section>
-
-            <section className="rd-syn-compat" aria-labelledby="rd-syn-compat-title">
-              <div className="rd-syn-compat-node" aria-hidden="true">
-                <span />
-                <strong>S</strong>
-                <span />
-              </div>
-              <div className="rd-syn-section-head">
-                <span id="rd-syn-compat-title">Compatibility</span>
-                <small>Registry-derived</small>
-              </div>
-              <div className="rd-syn-compat-summary">
-                <strong>{compatibility.overall}</strong>
-                <span>
-                  {compatibility.transformations.length
-                    ? compatibility.transformations.join(" · ")
-                    : "No structural transformation identified"}
-                </span>
-              </div>
-              <div className="rd-syn-compat-grid">
-                <CompatibilityMetric
-                  label="Join path"
-                  value={compatibility.key}
-                  tone={compatibility.keyTone}
-                />
-                <CompatibilityMetric
-                  label="Grain"
-                  value={compatibility.grain}
-                  detail={compatibility.grainDetail}
-                  tone={compatibility.grainTone}
-                />
-                <CompatibilityMetric
-                  label="Time overlap"
-                  value={compatibility.time}
-                  tone={compatibility.timeTone}
-                />
-                <CompatibilityMetric
-                  label="Readiness"
-                  value={compatibility.readiness}
-                  tone={compatibility.readinessTone}
-                />
-              </div>
-            </section>
-
-            <section ref={outputRef} className="rd-syn-output" aria-labelledby="rd-syn-output-title">
-              <div className="rd-syn-section-head">
-                <span id="rd-syn-output-title">Research output</span>
-                <small>{outputState}</small>
-              </div>
-              <article className={`rd-syn-output-card is-${runState.status}`} data-testid="synthesis-output-card">
-                <div className="rd-syn-output-orbit" aria-hidden="true"><span /><span /><span /></div>
-                <span className="rd-syn-output-label">{outputState}</span>
-                <h3>{producedOutput.name}</h3>
-                <p>{producedOutput.dataset_id}</p>
-                <dl>
-                  <div><dt>Grain</dt><dd>{producedOutput.grain}</dd></div>
-                  <div><dt>Coverage</dt><dd>{producedOutput.coverage}</dd></div>
-                  <div><dt>Destination</dt><dd>{producedOutput.destination}</dd></div>
-                  {producedOutput.row_count != null ? (
-                    <div><dt>Rows</dt><dd>{Number(producedOutput.row_count).toLocaleString()}</dd></div>
-                  ) : null}
-                </dl>
-                {runState.status === "success" ? (
-                  <div className="rd-syn-output-complete">
-                    <span>✓</span>
-                    <strong>
-                      {producedOutput.registered
-                        ? "Reusable asset registered"
-                        : "Output produced; registration not confirmed"}
-                    </strong>
-                  </div>
-                ) : null}
-              </article>
-            </section>
-          </div>
-
-          {runState.status === "error" ? (
-            <div className="rd-syn-message is-error" role="alert">
-              <strong>Synthesis did not run.</strong>
-              <span>{runState.error}</span>
-            </div>
-          ) : null}
-
-          <footer className="rd-syn-actionbar">
-            <div className="rd-syn-plan-summary">
-              <span>{inputs.length} inputs</span>
-              <span>{compatibility.transformations.length || 0} transformations</span>
-              <span>{producedOutput.destination}</span>
-            </div>
-            <div className="rd-syn-actions">
-              {runState.status === "success" ? (
-                producedOutput.registered ? (
-                  <button
-                    type="button"
-                    className="rd-v2-btn sm"
-                    onClick={() => onOpenDataset?.(producedOutput)}
-                  >
-                    Open in Library
-                  </button>
-                ) : (
-                  <button type="button" className="rd-v2-btn sm" onClick={askCompatibility}>
-                    Ask to register
-                  </button>
-                )
-              ) : (
-                <button type="button" className="rd-v2-btn sm" onClick={() => onGoTab?.("library")}>
-                  Open Library
-                </button>
-              )}
-              <button
-                type="button"
-                className="rd-v2-btn sm primary rd-syn-run"
-                disabled={!runEnabled || runState.status === "running"}
-                onClick={execute}
-              >
-                {runState.status === "running"
-                  ? "Building…"
-                  : runState.status === "success"
-                    ? "Run again"
-                    : "Run synthesis"}
-              </button>
-            </div>
-          </footer>
-        </section>
-      </div>
-    </PageShell>
-  );
+export function SynthesisPage({ datasets = [], onAskComposer, onGoTab, onOpenDataset }) {
+  const [state, setState] = useState(fromUrl);
+  const [intent, setIntent] = useState(INTENT);
+  const [weighting, setWeighting] = useState("equal");
+  const [compare, setCompare] = useState(false);
+  const [progress, setProgress] = useState(state === "build" ? 24 : 0);
+  const [phase, setPhase] = useState("Locking source revisions");
+  const timer = useRef(null);
+  const ask = prompt => onAskComposer?.({ prompt: `${prompt}\n\nSynthesis context: ${intent}\nCurrent state: ${label(state)}.`, displayText: prompt });
+  useEffect(() => () => timer.current && clearInterval(timer.current), []);
+  const build = () => { setState("build"); setProgress(8); clearInterval(timer.current); timer.current = setInterval(() => setProgress(p => { const n = Math.min(100, p + 8); setPhase(n < 35 ? "Locking source revisions" : n < 60 ? "Constructing components" : n < 85 ? "Generating output" : "Verifying and registering"); if (n === 100) { clearInterval(timer.current); setTimeout(() => setState("registered"), 300); } return n; }), 220); };
+  return <PageShell className="rd-v2-synthesis-page" title="Synthesis" lead="Turn a research intention into a defensible, reusable research asset."><div className="s04-shell" data-testid="synthesis-studio"><aside className="s04-threads"><header><span>Active work</span><small>{THREADS.length} threads</small></header>{THREADS.map(([name, status],i) => <button key={name} className={i === 0 ? "active" : ""} onClick={() => i ? ask(`Open ${name} and summarize its state.`) : setState("explore")}><b>{i ? i + 1 : "S"}</b><span><strong>{name}</strong><small>{status}</small></span></button>)}<button className="new" onClick={() => { setState("intent"); setIntent(""); }}>＋ New synthesis</button><footer><small>Registered outputs</small><button onClick={() => onGoTab?.("library")}>Trust weekly panel</button><button onClick={() => onGoTab?.("library")}>Security event panel</button></footer></aside><main className="s04-main"><header className="s04-head"><div><small>{label(state)}</small><h1>{state === "intent" ? "New synthesis" : "Historical stablecoin attention"}</h1><p>{state === "intent" ? "Start with the research object, not a predefined pipeline." : "A durable research-construction thread shared with Ask."}</p></div><em>{state === "registered" || state === "stale" ? "Registered proof available" : state === "build" ? "Fixture-backed lifecycle" : "Nothing written yet"}</em></header><StepRail state={state}/>{state !== "intent" ? <div className="s04-brief"><span><small>Research brief</small>{intent || INTENT}</span><button onClick={() => setState("intent")}>Edit intent</button></div> : null}{state === "intent" ? <section className="s04-intent" data-testid="synthesis-intent-state"><small>Start a research construction</small><h2>What research asset do you need?</h2><p>Ask interprets the construct before any method or data operation is accepted.</p><textarea rows={7} value={intent} onChange={e => setIntent(e.target.value)} /><footer><span>Nothing will be built or registered.</span><button className="rd-v2-btn primary" disabled={!intent.trim()} onClick={() => { setState("explore"); ask(intent); }}>Review interpretation</button></footer></section> : null}{state === "explore" ? <Explore accept={() => setState("design")} compare={() => setCompare(true)} /> : null}{state === "design" ? <Design weighting={weighting} setWeighting={setWeighting} next={() => setState("test")} ask={ask} /> : null}{state === "test" ? <Test back={() => setState("design")} build={build} ask={ask} /> : null}{state === "build" ? <Build progress={progress} phase={phase} fail={() => { clearInterval(timer.current); setState("failed"); }} /> : null}{state === "failed" ? <section className="s04-card s04-failed" data-testid="synthesis-failed-state"><b>!</b><h2>Build stopped before registration</h2><p>No manifest was accepted and no Library asset was created.</p><button className="rd-v2-btn primary" onClick={build}>Retry build</button></section> : null}{state === "registered" || state === "stale" ? <Registered stale={state === "stale"} open={() => onOpenDataset?.({ dataset_id: "stablecoin_attention_weekly", name: "Stablecoin attention weekly panel", analysis_readiness: "instant" })} refresh={() => setState(state === "stale" ? "test" : "stale")} ask={ask} /> : null}</main><AskPanel state={state} ask={ask} compare={() => setCompare(true)} /></div>{compare ? <div className="s04-overlay" role="dialog" aria-modal="true"><section><header><div><small>Compare constructions</small><h2>Three materially different research objects</h2></div><button onClick={() => setCompare(false)}>×</button></header><div>{[["Recommended","Composite behavioural index","Best balance of construct clarity, coverage, and feasibility."],["Easiest","News-visibility index","Simpler, but measures editorial visibility only."],["Different object","Event-attention panel","Useful around incidents, but not a general longitudinal measure."]].map(([tag,title,copy]) => <article key={title}><em>{tag}</em><h3>{title}</h3><p>{copy}</p>{tag === "Different object" ? <button onClick={() => { setIntent("Construct an event-response panel measuring stablecoin attention around depegs and security incidents."); setCompare(false); ask("Redesign this as an event-response panel and explain the output change."); }}>Make primary</button> : null}</article>)}</div><button className="rd-v2-btn primary" onClick={() => setCompare(false)}>Keep recommended construction</button></section></div> : null}</PageShell>;
 }
