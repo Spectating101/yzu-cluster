@@ -19,18 +19,21 @@ test.describe("v2 Synthesis S-04", () => {
 
   test("opens on one AI recommendation with integrated Ask context", async ({ page }) => {
     const recommendation = page.getByTestId("synthesis-recommendation");
+    const primary = recommendation.getByRole("button", { name: "Accept & design method" });
     await expect(page.getByTestId("synthesis-studio")).toBeVisible();
     await expect(recommendation).toContainText("Composite weekly attention index");
     await expect(recommendation.getByText("Google Trends", { exact: true })).toBeVisible();
     await expect(recommendation.getByText("GDELT news", { exact: true })).toBeVisible();
     await expect(page.getByText("AI interpretation", { exact: true })).toBeVisible();
-    await expect(recommendation.getByRole("button", { name: "Accept & design method" })).toBeVisible();
+    await expect(primary).toBeVisible();
+    await expect(primary).toBeInViewport();
     await capture(page, "01-explore-desktop");
   });
 
   test("moves through design, preview, build, and registration", async ({ page }) => {
     await page.getByTestId("synthesis-recommendation").getByRole("button", { name: "Accept & design method" }).click();
     await expect(page.getByTestId("synthesis-design-state")).toContainText("One methodological decision remains");
+    await expect(page.getByRole("heading", { name: "Historical stablecoin attention" })).toBeInViewport();
     await capture(page, "02-design-desktop");
 
     await page.getByRole("button", { name: "Accept & test" }).click();
@@ -39,10 +42,12 @@ test.describe("v2 Synthesis S-04", () => {
 
     await page.getByRole("button", { name: "Accept warning & request build" }).click();
     await expect(page.getByTestId("synthesis-build-state")).toBeVisible();
+    await expect(page.getByRole("button", { name: "What is being written now?" })).toBeVisible();
     await capture(page, "04-build-desktop");
 
     await expect(page.getByTestId("synthesis-registered-state")).toBeVisible({ timeout: 7000 });
     await expect(page.getByTestId("synthesis-registered-state")).toContainText("mft_s04_0726");
+    await expect(page.getByText("Verified and query ready", { exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Open in Library" })).toBeVisible();
     await capture(page, "05-registered-desktop");
   });
@@ -59,8 +64,27 @@ test.describe("v2 Synthesis S-04", () => {
   });
 
   test("opens the shared Ask rail from Synthesis context", async ({ page }) => {
+    const reply = JSON.stringify({
+      session_id: "synthesis-test-session",
+      reply: "Synthesis thread context received. GDELT remains validation evidence because it measures editorial visibility.",
+      action: "answer",
+    });
+    await page.route("**/api/library/chat/stream", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: reply }),
+    );
+    await page.route("**/api/library/chat", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: reply }),
+    );
+
     await page.getByRole("button", { name: "Why is GDELT validation?" }).click();
-    await expect(page.locator("aside.rd-v2-rail")).toBeVisible();
+    const rail = page.locator("aside.rd-v2-rail");
+    await expect(rail).toBeVisible();
+    await expect(rail).toContainText("Ask · synthesis thread");
+    await expect(rail).toContainText("Synthesis thread context received");
+    await expect(rail.getByTestId("ask-composer")).toHaveAttribute(
+      "placeholder",
+      "Correct the interpretation, add a constraint, or ask…",
+    );
     await expect(page.locator(".s04-ask")).toBeHidden();
     await capture(page, "07-shared-ask-desktop");
   });
@@ -70,6 +94,7 @@ test.describe("v2 Synthesis S-04", () => {
     await waitForShell(page);
     await page.getByRole("button", { name: "Exercise failure state" }).click();
     await expect(page.getByTestId("synthesis-failed-state")).toContainText(/no Library asset was created/i);
+    await expect(page.getByRole("button", { name: "Is retry safe?" })).toBeVisible();
     await capture(page, "08-failure-desktop");
     await page.getByRole("button", { name: "Retry build" }).click();
     await expect(page.getByTestId("synthesis-registered-state")).toBeVisible({ timeout: 7000 });
@@ -79,9 +104,10 @@ test.describe("v2 Synthesis S-04", () => {
     await page.setViewportSize({ width: 390, height: 1200 });
     await page.reload({ waitUntil: "domcontentloaded" });
     await waitForShell(page);
+    const primary = page.getByTestId("synthesis-recommendation").getByRole("button", { name: "Accept & design method" });
     await expect(page.getByTestId("synthesis-recommendation")).toBeVisible();
-    await expect(page.getByTestId("synthesis-recommendation").getByRole("button", { name: "Accept & design method" })).toBeVisible();
-    await expect(page.locator(".s04-ask")).toBeVisible();
+    await expect(primary).toBeVisible();
+    await expect(primary).toBeInViewport();
     await expect(page.locator(".s04-shell")).not.toHaveCSS("overflow-x", "scroll");
     await capture(page, "09-explore-mobile");
   });
