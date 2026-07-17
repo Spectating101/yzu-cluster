@@ -100,14 +100,17 @@ test.describe("v2 Synthesis S-04", () => {
     await expect(page.getByTestId("synthesis-registered-state")).toBeVisible({ timeout: 7000 });
   });
 
-  test("mobile keeps the primary workflow readable", async ({ page }) => {
+  test("mobile keeps the primary workflow and Ask readable", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 1200 });
     await page.reload({ waitUntil: "domcontentloaded" });
     await waitForShell(page);
     const primary = page.getByTestId("synthesis-recommendation").getByRole("button", { name: "Accept & design method" });
+    const askAction = page.locator(".s04-askbox");
     await expect(page.getByTestId("synthesis-recommendation")).toBeVisible();
     await expect(primary).toBeVisible();
     await expect(primary).toBeInViewport();
+    await expect(askAction).toBeVisible();
+    await expect(askAction).toBeInViewport();
     await expect(page.locator(".s04-shell")).not.toHaveCSS("overflow-x", "scroll");
     await capture(page, "09-explore-mobile");
   });
