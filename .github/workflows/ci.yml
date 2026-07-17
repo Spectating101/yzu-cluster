@@ -33,7 +33,17 @@ jobs:
           YZU_PAGES: "true"
 
       - name: Mock e2e (no live API)
-        run: npm run test:v2-mock
+        run: >-
+          mkdir -p .tmp-pw &&
+          TMPDIR=$PWD/.tmp-pw npx playwright test
+          e2e/v2-home.spec.js
+          e2e/v2-parity.spec.js
+          e2e/v2-discover.spec.js
+          e2e/v2-library.spec.js
+          e2e/v2-preview.spec.js
+          e2e/v2-synthesis.spec.js
+          e2e/v2-resources.spec.js
+          --reporter=dot
         env:
           CI: "true"
           # Explicit: mock desk must serve at / so Playwright webServer url is 2xx.
