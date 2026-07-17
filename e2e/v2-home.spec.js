@@ -28,13 +28,13 @@ test.describe("v2 Home continuation surface", () => {
     const datasetId = (await cont.locator(".rd-v2-home-continue-id").innerText()).trim();
     await cont.getByRole("button", { name: "Continue" }).click();
 
-    const modal = page.locator(".rd-v2-preview-modal");
-    await expect(modal).toBeVisible();
-    await expect(modal).toContainText(title);
+    const preview = page.getByRole("dialog", { name: `${title} preview` });
+    await expect(preview).toBeVisible();
+    await expect(preview).toContainText(title);
     await expect(page.locator(".rd-v2-page-head h1", { hasText: "Home" })).toBeVisible();
 
-    await modal.getByRole("button", { name: "Close" }).click();
-    await expect(modal).toHaveCount(0);
+    await preview.getByRole("button", { name: "Close preview" }).click();
+    await expect(preview).toHaveCount(0);
 
     const rail = page.locator("aside.rd-v2-rail");
     await expect(rail.locator(".rd-v2-rail-selection")).toContainText(title);
