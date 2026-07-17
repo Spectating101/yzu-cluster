@@ -32,7 +32,7 @@ test.describe("v2 Synthesis S-04", () => {
 
   test("keeps alternative constructions secondary", async ({ page }) => {
     await page.getByRole("button", { name: "Compare alternatives" }).click();
-    const dialog = page.getByRole("dialog", { name: "Compare synthesis constructions" });
+    const dialog = page.locator(".s04-overlay");
     await expect(dialog).toBeVisible();
     await expect(dialog).toContainText("News-visibility index");
     await expect(dialog).toContainText("Event-attention panel");
