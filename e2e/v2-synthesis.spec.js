@@ -1,53 +1,67 @@
 import { test, expect } from "@playwright/test";
 import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 
-test.describe("v2 Synthesis studio", () => {
+test.describe("v2 Synthesis S-04", () => {
   test.beforeEach(async ({ page }) => {
     await mockV2Api(page);
-    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.setViewportSize({ width: 1440, height: 1000 });
     await page.goto("/?tab=synthesis", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
   });
 
-  test("renders a first-class studio with blueprint, inputs, compatibility, and output", async ({ page }) => {
-    await expect(page.locator(".rd-v2-page-head h1", { hasText: "Synthesis" })).toBeVisible();
+  test("opens on one AI recommendation with integrated Ask context", async ({ page }) => {
     await expect(page.getByTestId("synthesis-studio")).toBeVisible();
-    await expect(page.getByRole("tab", { name: /Stablecoin trust & engagement/i })).toHaveAttribute(
-      "aria-selected",
-      "true",
-    );
-    await expect(page.getByTestId("synthesis-input-card")).toHaveCount(3);
-    await expect(page.getByText("Compatibility", { exact: true })).toBeVisible();
-    await expect(page.getByTestId("synthesis-output-card")).toContainText("Stablecoin trust weekly panel");
-    await expect(page.locator("aside.rd-v2-rail")).toBeHidden();
+    await expect(page.getByTestId("synthesis-recommendation")).toContainText("Composite weekly attention index");
+    await expect(page.getByText("Google Trends", { exact: true })).toBeVisible();
+    await expect(page.getByText("GDELT news", { exact: true })).toBeVisible();
+    await expect(page.getByText("AI interpretation", { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Accept & design method" })).toBeVisible();
   });
 
-  test("runs a profile and exposes the registered reusable output", async ({ page }) => {
-    await page.getByRole("button", { name: "Run synthesis" }).click();
-    await expect(page.getByTestId("synthesis-output-card")).toContainText("Registered in Library");
-    await expect(page.getByTestId("synthesis-output-card")).toContainText("18,432");
+  test("moves through design, preview, build, and registration", async ({ page }) => {
+    await page.getByRole("button", { name: "Accept & design method" }).click();
+    await expect(page.getByTestId("synthesis-design-state")).toContainText("One methodological decision remains");
+    await page.getByRole("button", { name: "Accept & test" }).click();
+    await expect(page.getByTestId("synthesis-test-state")).toContainText("3,120");
+    await page.getByRole("button", { name: "Accept warning & request build" }).click();
+    await expect(page.getByTestId("synthesis-build-state")).toBeVisible();
+    await expect(page.getByTestId("synthesis-registered-state")).toBeVisible({ timeout: 7000 });
+    await expect(page.getByTestId("synthesis-registered-state")).toContainText("mft_s04_0726");
     await expect(page.getByRole("button", { name: "Open in Library" })).toBeVisible();
   });
 
-  test("custom pair uses Library asset selectors", async ({ page }) => {
-    await page.getByRole("button", { name: /Custom pair/i }).click();
-    await expect(page.getByLabel("Synthesis input 1")).toBeVisible();
-    await expect(page.getByLabel("Synthesis input 2")).toBeVisible();
-    await expect(page.getByRole("button", { name: "Run synthesis" })).toBeEnabled();
+  test("keeps alternative constructions secondary", async ({ page }) => {
+    await page.getByRole("button", { name: "Compare alternatives" }).click();
+    const dialog = page.getByRole("dialog", { name: "Compare synthesis constructions" });
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toContainText("News-visibility index");
+    await expect(dialog).toContainText("Event-attention panel");
+    await dialog.getByRole("button", { name: "Keep recommended construction" }).click();
+    await expect(dialog).toBeHidden();
   });
 
-  test("mobile keeps the studio and primary action above navigation", async ({ page }) => {
+  test("opens the shared Ask rail from Synthesis context", async ({ page }) => {
+    await page.getByRole("button", { name: "Why is GDELT validation?" }).click();
+    await expect(page.locator("aside.rd-v2-rail")).toBeVisible();
+    await expect(page.locator(".s04-ask")).toBeHidden();
+  });
+
+  test("supports explicit failure and retry", async ({ page }) => {
+    await page.goto("/?tab=synthesis&synthesis_state=build", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await page.getByRole("button", { name: "Exercise failure state" }).click();
+    await expect(page.getByTestId("synthesis-failed-state")).toContainText("No Library asset was created");
+    await page.getByRole("button", { name: "Retry build" }).click();
+    await expect(page.getByTestId("synthesis-registered-state")).toBeVisible({ timeout: 7000 });
+  });
+
+  test("mobile keeps the primary workflow readable", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 1200 });
     await page.reload({ waitUntil: "domcontentloaded" });
     await waitForShell(page);
-    const actionbar = page.locator(".rd-syn-actionbar");
-    const nav = page.locator("aside.yzu-sidebar");
-    await expect(actionbar).toBeVisible();
-    await expect(nav.getByRole("button")).toHaveCount(7);
-    const actionBox = await actionbar.boundingBox();
-    const navBox = await nav.boundingBox();
-    expect(actionBox).toBeTruthy();
-    expect(navBox).toBeTruthy();
-    expect(actionBox.y + actionBox.height).toBeLessThanOrEqual(navBox.y + 1);
+    await expect(page.getByTestId("synthesis-recommendation")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Accept & design method" })).toBeVisible();
+    await expect(page.locator(".s04-ask")).toBeVisible();
+    await expect(page.locator(".s04-shell")).not.toHaveCSS("overflow-x", "scroll");
   });
 });
