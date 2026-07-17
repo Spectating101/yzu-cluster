@@ -1,6 +1,4 @@
 /* Render-review corrections for Synthesis S-04. */
-
-/* Keep the consequential next action available when the recommendation is taller than the viewport. */
 .s04-card > .s04-actions {
   position: sticky;
   bottom: -18px;
@@ -12,51 +10,15 @@
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), #fff 28%);
   box-shadow: 0 -12px 24px rgba(31, 43, 87, 0.045);
 }
-
-/* The main element remounts between lifecycle states; keep its first frame visually stable. */
-.s04-main {
-  scroll-behavior: auto;
-}
-
+.s04-main { scroll-behavior: auto; }
 @media (max-width: 720px) {
-  /* Preserve the semantic construction without turning three evidence inputs into three full screens. */
-  .s04-map .sources {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 6px;
-  }
-
-  .s04-map .sources article {
-    min-width: 0;
-    padding: 8px 7px;
-  }
-
-  .s04-map .sources article small {
-    min-height: 19px;
-    font-size: 6.5px;
-    line-height: 1.25;
-  }
-
-  .s04-map .sources article strong {
-    overflow: hidden;
-    font-size: 8.5px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .s04-map .sources article span {
-    font-size: 7px;
-  }
-
-  .s04-map .validation {
-    grid-template-columns: auto minmax(0, 1fr);
-    text-align: left;
-  }
-
-  .s04-map .validation > span {
-    display: block;
-  }
-
-  /* On mobile the next primary action stays above the fixed app navigation. */
+  .s04-map .sources { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .s04-map .sources article { min-width: 0; padding: 8px 7px; }
+  .s04-map .sources article small { min-height: 19px; font-size: 6.5px; line-height: 1.25; }
+  .s04-map .sources article strong { overflow: hidden; font-size: 8.5px; text-overflow: ellipsis; white-space: nowrap; }
+  .s04-map .sources article span { font-size: 7px; }
+  .s04-map .validation { grid-template-columns: auto minmax(0, 1fr); text-align: left; }
+  .s04-map .validation > span { display: block; }
   .s04-card > .s04-actions {
     bottom: 72px;
     margin-top: 64px;
@@ -67,13 +29,23 @@
     box-shadow: 0 -10px 26px rgba(24, 33, 68, 0.11);
     backdrop-filter: blur(12px);
   }
-
   .s04-card > .s04-actions p,
-  .s04-card > .s04-actions .rd-v2-btn:not(.primary) {
-    display: none;
+  .s04-card > .s04-actions .rd-v2-btn:not(.primary) { display: none; }
+  .s04-card > .s04-actions .rd-v2-btn.primary { width: 100%; }
+  .s04-askbox {
+    position: fixed;
+    right: 16px;
+    bottom: 134px;
+    z-index: 24;
+    width: auto;
+    margin: 0;
+    padding: 10px 14px;
+    border-color: #6874e7;
+    border-radius: 999px;
+    background: #fff;
+    color: transparent;
+    font-size: 0;
+    box-shadow: 0 10px 28px rgba(45, 56, 117, 0.18);
   }
-
-  .s04-card > .s04-actions .rd-v2-btn.primary {
-    width: 100%;
-  }
+  .s04-askbox::after { content: "Ask"; color: #4653d2; font-size: 10px; font-weight: 800; }
 }
