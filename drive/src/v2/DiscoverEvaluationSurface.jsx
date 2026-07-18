@@ -18,7 +18,6 @@ import {
   RailField,
   RailFieldGrid,
   RailFrame,
-  RailStickyFooter,
 } from "@/v2/RailFrame";
 import { EmptyRailState } from "@/v2/EmptyRailState";
 import { buildObjectEstateCrumb } from "@/v2/deskIntegration";
@@ -168,8 +167,11 @@ export function DiscoverEvaluationSurface({
   const secondary = lifecycle?.primaryAction
     ? lifecycle.secondaryActions || []
     : actions.secondary;
+  // Ask has its own persistent rail tab. Keep the footer about the next
+  // research action, rather than duplicating chat as a competing CTA.
+  const footerSecondary = secondary.filter((action) => action.id !== "ask").slice(0, 2);
   const mobileSecondary = (() => {
-    if (lifecycle?.primaryAction || !secondary.length) return null;
+    if (lifecycle?.primaryAction || !footerSecondary.length) return null;
     const preferredIds =
       sufficiency?.state === SUFFICIENCY.EXACT_LOCAL
         ? ["preview", "probe", "ask"]
@@ -178,10 +180,10 @@ export function DiscoverEvaluationSurface({
           ? ["open_local", "inspect_related", "preview", "probe", "ask"]
           : ["preview", "open_local", "inspect_related", "probe", "ask"];
     return preferredIds
-      .map((id) => secondary.find((action) => action.id === id))
-      .find(Boolean) || secondary[0];
+      .map((id) => footerSecondary.find((action) => action.id === id))
+      .find(Boolean) || footerSecondary[0];
   })();
-  const mobileOverflowActions = secondary.filter((action) => action.id !== mobileSecondary?.id);
+  const mobileOverflowActions = footerSecondary.filter((action) => action.id !== mobileSecondary?.id);
   const mobileSecondaryLabel =
     mobileSecondary?.id === "preview" && sufficiency?.state === SUFFICIENCY.EXACT_LOCAL
       ? "Inspect external source"
@@ -526,7 +528,7 @@ export function DiscoverEvaluationSurface({
         </button>
 
         <div className="rd-v2-eval-actions-wide" aria-label="Additional candidate actions">
-          {secondary.map((action) => (
+          {footerSecondary.map((action) => (
             <button
               key={action.id}
               type="button"
@@ -589,9 +591,6 @@ export function DiscoverEvaluationSurface({
   return (
     <RailFrame>
       {body}
-      <RailStickyFooter>
-        <span className="rd-v2-muted">Candidate {targetKey}</span>
-      </RailStickyFooter>
     </RailFrame>
   );
 }

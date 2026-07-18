@@ -3,210 +3,153 @@ import { Chip } from "@/v2/ui";
 
 const HISTORY_FILTERS = [
   { id: "all", label: "All" },
-  { id: "needs_approval", label: "Needs approval" },
+  { id: "needs_approval", label: "Needs you" },
   { id: "active", label: "Active" },
   { id: "ready", label: "Ready" },
   { id: "needs_recovery", label: "Recovery" },
   { id: "scheduled", label: "Scheduled" },
-  { id: "search", label: "Search" },
-  { id: "probe", label: "Probe" },
-  { id: "procure", label: "Procure" },
 ];
 
-const ACTION_LABELS = {
-  ask: "Research request",
-  discover: "Searched",
-  search: "Searched",
-  probe: "Probed",
-  query: "Queried",
-  preview: "Previewed",
-  procure: "Procurement submitted",
-  job_submit: "Collection submitted",
-  job_approve: "Collection approved",
-  approve_collect: "Collection approved",
-  archive: "Archived",
-  register: "Registered",
-  registry_promote: "Registered",
-  synthesis: "Synthesis built",
-  intent: "Discover intent",
-  subscription: "Refresh subscription",
-  collection_run: "Collection run",
-};
-
 function cleanTarget(value) {
-  const text = String(value || "").replace(/\s+/g, " ").trim();
-  if (!text.startsWith("[context:") || !text.includes("]")) return text;
-  return text.split("]").slice(1).join("]").trim();
+  const valueText = String(value || "").replace(/\s+/g, " ").trim();
+  if (!valueText.startsWith("[context:") || !valueText.includes("]")) return valueText;
+  return valueText.split("]").slice(1).join("]").trim();
 }
 
 function eventKind(event) {
   const action = String(event?.action || "").toLowerCase();
   const status = String(event?.status || event?.meta?.status || "").toLowerCase();
   const kind = String(event?.kind || "").toLowerCase();
-  // Subscriptions are scheduled refresh records — classify before generic "active".
-  if (
-    kind === "subscription" ||
-    action === "subscription" ||
-    action === "refresh_subscription" ||
-    /scheduled|paused|subscription/.test(status)
-  ) {
+  if (kind === "subscription" || action === "subscription" || /scheduled|paused|subscription/.test(status)) {
     return "scheduled";
   }
-  if (event?.durable || event?.kind) {
-    if (/pending_approval|ready_for_review|awaiting|needs_approval/.test(status)) return "needs_approval";
-    if (/queued|running|active|in_progress/.test(status)) return "active";
-    if (/failed|error|needs_recovery|blocked/.test(status)) return "needs_recovery";
-    if (/completed|ready|registered|archived|done|succeeded/.test(status)) return "ready";
-    if (action === "intent") return "needs_approval";
-    if (action === "collection_run") return "active";
+  if (/pending_approval|ready_for_review|awaiting|needs_approval/.test(status) || action === "intent") {
+    return "needs_approval";
   }
-  if (/discover|search/.test(action)) return "search";
-  if (/probe/.test(action)) return "probe";
-  if (/query|preview|bq_/.test(action)) return "query";
-  if (/register|promote/.test(action)) return "ready";
-  if (/procure|job_|approve|archive|collect/.test(action)) return "procure";
-  return action || "other";
+  if (/queued|running|active|in_progress/.test(status)) return "active";
+  if (/failed|error|needs_recovery|blocked/.test(status)) return "needs_recovery";
+  if (/completed|ready|registered|archived|done|succeeded/.test(status)) return "ready";
+  if (action === "collection_run") return "active";
+  return "other";
 }
 
-function eventLabel(event) {
-  return ACTION_LABELS[event?.action] || String(event?.action || "Activity").replace(/_/g, " ");
+function stateLabel(event) {
+  const kind = eventKind(event);
+  const status = String(event?.status || event?.meta?.status || "").toLowerCase();
+  if (kind === "needs_approval") return "Approval required";
+  if (kind === "scheduled") return "Scheduled refresh";
+  if (kind === "active") return status === "queued" ? "Queued" : "Collecting";
+  if (kind === "needs_recovery") return "Recovery required";
+  if (kind === "ready") return /query[_ -]?ready/.test(status) ? "Query ready" : "Completed";
+  return "Route investigating";
 }
 
 function eventTime(event) {
   if (!event?.ts) return "Time unavailable";
   const date = new Date(event.ts);
   if (Number.isNaN(date.getTime())) return String(event.ts);
-  return date.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+  return date.toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
-function eventDay(event) {
-  if (!event?.ts) return { key: "undated", label: "Earlier" };
-  const date = new Date(event.ts);
-  if (Number.isNaN(date.getTime())) return { key: "undated", label: "Earlier" };
-  const key = [
-    date.getFullYear(),
-    String(date.getMonth() + 1).padStart(2, "0"),
-    String(date.getDate()).padStart(2, "0"),
-  ].join("-");
-  const today = new Date();
-  const yesterday = new Date(today);
-  yesterday.setDate(today.getDate() - 1);
-  if (date.toDateString() === today.toDateString()) return { key, label: "Today" };
-  if (date.toDateString() === yesterday.toDateString()) return { key, label: "Yesterday" };
-  return {
-    key,
-    label: date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }),
-  };
-}
-
-function eventOutcome(event) {
+function eventSummary(event) {
   const meta = event?.meta || {};
-  if (meta.repeat_count > 1) {
-    const latest = meta.total != null ? ` · ${meta.total} latest results` : "";
-    return `${meta.repeat_count} repeated searches${latest}`;
-  }
-  if (event?.kind === "subscription" || event?.action === "subscription") {
-    const requested = event.requested_schedule || meta.requested_schedule;
-    const cadence = event.cadence || meta.cadence;
-    const mode = meta.execution_mode || event.execution_mode;
-    const bits = [];
-    if (requested) bits.push(String(requested).slice(0, 120));
-    else if (cadence) bits.push(`Cadence · ${cadence}`);
-    if (mode === "non_executing") bits.push("Recorded on platform · auto-run not claimed");
-    else if (meta.summary) bits.push(String(meta.summary));
-    if (bits.length) return bits.join(" · ");
-  }
   if (meta.summary) return String(meta.summary);
   if (event?.summary) return String(event.summary);
-  if (meta.dataset_id) return `Dataset · ${meta.dataset_id}`;
-  if (meta.job_id) return `Job · ${meta.job_id}`;
-  if (meta.total != null) return `${meta.total} result${meta.total === 1 ? "" : "s"}`;
-  if (meta.status || event?.status) return String(meta.status || event.status).replace(/_/g, " ");
-  return eventKind(event) === "search" ? "Research discovery" : "Recorded by the desk";
+  if (meta.cadence) return `Cadence: ${meta.cadence}`;
+  if (meta.candidate_key) return `Candidate: ${meta.candidate_key}`;
+  return "Durable Discover record";
 }
 
 function eventId(event, index = 0) {
   return event?.id || `${event?.ts || "event"}:${index}`;
 }
 
-function compactRepeatedSearches(events) {
-  const compacted = [];
-  for (const event of events) {
-    const previous = compacted[compacted.length - 1];
-    const currentTime = new Date(event?.ts || 0).getTime();
-    const previousTime = new Date(previous?.ts || 0).getTime();
-    const sameSearch =
-      previous &&
-      eventKind(event) === "search" &&
-      eventKind(previous) === "search" &&
-      cleanTarget(event.target).toLowerCase() === cleanTarget(previous.target).toLowerCase() &&
-      Number.isFinite(currentTime) &&
-      Number.isFinite(previousTime) &&
-      Math.abs(previousTime - currentTime) <= 15 * 60 * 1000;
-    if (!sameSearch) {
-      compacted.push(event);
-      continue;
-    }
-    const repeatCount = Number(previous.meta?.repeat_count || 1) + 1;
-    compacted[compacted.length - 1] = {
-      ...previous,
-      meta: { ...previous.meta, repeat_count: repeatCount },
-    };
-  }
-  return compacted;
+function HistoryRow({ event, selectedId, index, onSelectEvent }) {
+  const id = eventId(event, index);
+  const title = cleanTarget(event.target) || event.title || "Discover request";
+  const kind = eventKind(event);
+  return (
+    <button
+      key={id}
+      type="button"
+      className={`rd-v2-history-row${selectedId === id ? " on" : ""}`}
+      aria-label={`${title} ${stateLabel(event)}`}
+      aria-pressed={selectedId === id}
+      onClick={() => onSelectEvent?.({ ...event, id })}
+    >
+      <span className={`rd-v2-history-node ${kind}`} aria-hidden />
+      <span className="rd-v2-history-main">
+        <strong>{title}</strong>
+        <span>{eventSummary(event)}</span>
+      </span>
+      <span className="rd-v2-history-state">
+        <em>{stateLabel(event)}</em>
+        <time>{eventTime(event)}</time>
+      </span>
+    </button>
+  );
 }
 
-function groupEvents(events) {
-  const groups = [];
-  const index = new Map();
-  for (const event of events) {
-    const day = eventDay(event);
-    let group = index.get(day.key);
-    if (!group) {
-      group = { ...day, events: [] };
-      index.set(day.key, group);
-      groups.push(group);
-    }
-    group.events.push(event);
-  }
-  return groups;
+function Territory({ title, events, selectedId, onSelectEvent, startIndex = 0 }) {
+  if (!events.length) return null;
+  return (
+    <section className="rd-v2-history-territory" aria-label={title}>
+      <header className="rd-v2-history-territory-head">
+        <h3>{title}</h3>
+        <span>{events.length}</span>
+      </header>
+      <div className="rd-v2-history-list">
+        {events.map((event, index) => (
+          <HistoryRow
+            key={eventId(event, index)}
+            event={event}
+            selectedId={selectedId}
+            index={startIndex + index}
+            onSelectEvent={onSelectEvent}
+          />
+        ))}
+      </div>
+    </section>
+  );
 }
 
-export function DiscoverHistoryPanel({
-  events = [],
-  selectedId = "",
-  onSelectEvent,
-}) {
+export function DiscoverHistoryPanel({ events = [], selectedId = "", onSelectEvent }) {
   const [filter, setFilter] = useState("all");
+  const [visibleCount, setVisibleCount] = useState(8);
   const normalized = useMemo(
-    () => compactRepeatedSearches(
+    () =>
       [...events]
         .filter((event) => event && (event.id || event.ts || event.target))
         .sort((a, b) => String(b.ts || "").localeCompare(String(a.ts || ""))),
-    ),
     [events],
   );
   const filtered = useMemo(
     () => (filter === "all" ? normalized : normalized.filter((event) => eventKind(event) === filter)),
     [filter, normalized],
   );
-  const groups = useMemo(() => groupEvents(filtered), [filtered]);
+  const visible = filtered.slice(0, visibleCount);
+  const needsYou = filter === "all" ? visible.filter((event) => eventKind(event) === "needs_approval") : [];
+  const lifecycle = filter === "all" ? visible.filter((event) => eventKind(event) !== "needs_approval") : visible;
 
   useEffect(() => {
-    if (!filtered.length || !onSelectEvent) return;
-    const hasVisibleSelection = filtered.some((event, index) => eventId(event, index) === selectedId);
-    if (!hasVisibleSelection) onSelectEvent({ ...filtered[0], id: eventId(filtered[0], 0) });
-  }, [filtered, onSelectEvent, selectedId]);
+    setVisibleCount(8);
+  }, [filter]);
+
+  useEffect(() => {
+    if (!visible.length || !onSelectEvent) return;
+    const hasVisibleSelection = visible.some((event, index) => eventId(event, index) === selectedId);
+    if (!hasVisibleSelection) onSelectEvent({ ...visible[0], id: eventId(visible[0], 0) });
+  }, [visible, onSelectEvent, selectedId]);
 
   return (
-    <section className="rd-v2-discover-history" data-testid="discover-history" aria-label="Research trail">
+    <section className="rd-v2-discover-history" data-testid="discover-history" aria-label="Research lifecycle">
       <div className="rd-v2-history-intro">
         <div>
-          <span className="rd-v2-eyebrow">Research trail</span>
-          <h2>From question to registered evidence</h2>
-          <p>Intents, collection runs, approvals and prior searches stay linked so the lab can reuse prior work.</p>
+          <span className="rd-v2-eyebrow">Research lifecycle</span>
+          <h2>Durable evidence requests and results</h2>
+          <p>Researcher decisions come first. Collection, recovery, schedules, and reusable results remain linked.</p>
         </div>
-        <strong>{normalized.length} recorded event{normalized.length === 1 ? "" : "s"}</strong>
+        <strong>{normalized.length} item{normalized.length === 1 ? "" : "s"}</strong>
       </div>
 
       <div className="rd-v2-toolbar inline rd-v2-history-filters" aria-label="History filters">
@@ -217,48 +160,39 @@ export function DiscoverHistoryPanel({
         ))}
       </div>
 
-      {!groups.length ? (
+      {!visible.length ? (
         <div className="rd-v2-discover-miss">
           <p className="rd-v2-empty-inline">
-            No history matches this filter. Search, preview, probe or collect a source to create a reusable trail.
+            No durable Discover items match this filter. Requests, collections, schedules, and registered outputs appear here.
           </p>
         </div>
+      ) : filter === "all" ? (
+        <div className="rd-v2-history-territories">
+          <Territory title="Needs you" events={needsYou} selectedId={selectedId} onSelectEvent={onSelectEvent} />
+          <Territory
+            title="Research lifecycle"
+            events={lifecycle}
+            selectedId={selectedId}
+            onSelectEvent={onSelectEvent}
+            startIndex={needsYou.length}
+          />
+        </div>
       ) : (
-        <div className="rd-v2-history-groups">
-          {groups.map((group) => (
-            <section key={group.key} className="rd-v2-history-day" aria-label={group.label}>
-              <div className="rd-v2-history-day-head">
-                <h3>{group.label}</h3>
-                <span>{group.events.length} event{group.events.length === 1 ? "" : "s"}</span>
-              </div>
-              <div className="rd-v2-history-list">
-                {group.events.map((event, index) => {
-                  const id = eventId(event, index);
-                  const title = cleanTarget(event.target) || eventLabel(event);
-                  return (
-                    <button
-                      key={id}
-                      type="button"
-                      className={`rd-v2-history-row${selectedId === id ? " on" : ""}`}
-                      aria-label={`${eventLabel(event)} ${title}`}
-                      aria-pressed={selectedId === id}
-                      onClick={() => onSelectEvent?.({ ...event, id })}
-                    >
-                      <span className={`rd-v2-history-node ${eventKind(event)}`} aria-hidden />
-                      <time>{eventTime(event)}</time>
-                      <span className="rd-v2-history-main">
-                        <strong>{eventLabel(event)}</strong>
-                        <span>{title}</span>
-                      </span>
-                      <em>{eventOutcome(event)}</em>
-                    </button>
-                  );
-                })}
-              </div>
-            </section>
-          ))}
+        <div className="rd-v2-history-territories">
+          <Territory
+            title={HISTORY_FILTERS.find((item) => item.id === filter)?.label || "Research lifecycle"}
+            events={lifecycle}
+            selectedId={selectedId}
+            onSelectEvent={onSelectEvent}
+          />
         </div>
       )}
+
+      {filtered.length > visible.length ? (
+        <button type="button" className="rd-v2-history-load-more" onClick={() => setVisibleCount((count) => count + 8)}>
+          Load more
+        </button>
+      ) : null}
     </section>
   );
 }

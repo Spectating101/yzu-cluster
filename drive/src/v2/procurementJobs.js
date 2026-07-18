@@ -47,6 +47,38 @@ export function jobToCandidateRow(job) {
   };
 }
 
+export function jobToDiscoverHistoryEvent(job) {
+  if (!job?.id) return null;
+  const status = String(job.status || "queued");
+  const title = jobTitle(job);
+  const source = job.plan?.source || job.request?.source || job.connector_id || job.type || "Collection route";
+  const summary =
+    job.error ||
+    job.message ||
+    job.plan?.summary ||
+    (status === "pending_approval"
+      ? "Researcher approval is required before collection begins"
+      : `${source} · ${status.replace(/_/g, " ")}`);
+  return {
+    id: `job:${job.id}`,
+    ts: job.updated_at || job.created_at || job.submitted_at || "",
+    action: status === "pending_approval" ? "intent" : "collection_run",
+    kind: status === "pending_approval" ? "intent" : "collection_run",
+    target: title,
+    summary,
+    status,
+    meta: {
+      status,
+      kind: status === "pending_approval" ? "intent" : "collection_run",
+      summary,
+      job_id: job.id,
+      candidate_key: job.candidate_key || job.request?.candidate_key,
+      source_id: source,
+    },
+    durable: true,
+  };
+}
+
 export function bindJobsToCandidates(rows, jobs = [], localBindings = {}) {
   return rows.map((row) => {
     const key = row.dataset_id || row.doi || row.title || row.url || row.name;

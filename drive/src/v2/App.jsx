@@ -22,6 +22,7 @@ import {
 import { AskRail } from "@/v2/AskRail";
 import {
   datasetObject,
+  discoverHistoryObject,
   externalCandidateObject,
   homeAttentionObject,
   libraryIntakeObject,
@@ -59,7 +60,7 @@ import {
 import { candidateKey } from "@/v2/candidateKey";
 import { durableHistoryToEvents, mergeHistoryEvents } from "@/v2/discoverAdapters";
 import { discoverModeFromLegacy, discoverModeToUrlState } from "@/v2/discoverMode";
-import { jobToCandidateRow, pendingApprovalJobs } from "@/v2/procurementJobs";
+import { jobToDiscoverHistoryEvent, pendingApprovalJobs } from "@/v2/procurementJobs";
 import { discoverCandidateState } from "@/v2/browseMeta";
 import { buildRailContext } from "@/v2/railContext";
 
@@ -352,6 +353,26 @@ export function V2App() {
 
   const browseTarget = browseRow;
   const browseSelectedId = browseRow ? candidateKey(browseRow) : "";
+  const historyItems = useMemo(() => {
+    const durableJobIds = new Set(
+      historyEvents
+        .map((event) => event?.meta?.job_id || event?.job_id)
+        .filter(Boolean),
+    );
+    const jobEvents = jobs
+      .filter((job) => job?.id && !durableJobIds.has(job.id))
+      .map(jobToDiscoverHistoryEvent)
+      .filter(Boolean);
+    return mergeHistoryEvents(historyEvents, jobEvents);
+  }, [historyEvents, jobs]);
+  const selectedHistoryEvent = useMemo(
+    () => historyItems.find((event) => event?.id === selectedHistoryId) || null,
+    [historyItems, selectedHistoryId],
+  );
+  const selectedHistoryJob = useMemo(() => {
+    const jobId = selectedHistoryEvent?.meta?.job_id || selectedHistoryEvent?.job_id || "";
+    return jobs.find((job) => job?.id === jobId) || null;
+  }, [jobs, selectedHistoryEvent]);
   const browseProbeState =
     browseProbe.candidateKey && browseProbe.candidateKey === candidateKey(browseTarget)
       ? browseProbe
@@ -410,7 +431,11 @@ export function V2App() {
       setDiscoverFocusAwaiting(nextState.focusAwaiting);
       if (nextState.mode === "history") {
         setBrowseRow(null);
+        setActiveObject((current) => (current?.kind === "external_candidate" ? null : current));
         setRailTab("detail");
+      } else {
+        setSelectedHistoryId("");
+        setActiveObject((current) => (current?.kind === "discover_history" ? null : current));
       }
       syncUrl({ tab: "browse", q: searchQuery.trim(), mode: nextState.mode });
     },
@@ -419,23 +444,23 @@ export function V2App() {
 
   const openDiscoverAwaiting = useCallback(
     ({ job = null, focusAwaiting = true } = {}) => {
-      setDiscoverMode("explore");
-      setDiscoverFocusAwaiting(Boolean(focusAwaiting || job));
+      setDiscoverMode("history");
+      setDiscoverFocusAwaiting(false);
       setTab("browse");
       setRailTab("detail");
-      syncUrl({ tab: "browse", q: searchQuery.trim(), mode: "explore" });
+      syncUrl({ tab: "browse", q: searchQuery.trim(), mode: "history" });
       const targetJob =
         (job?.id ? jobs.find((j) => j.id === job.id) : null) ||
         job ||
         (focusAwaiting ? pendingApprovalJobs(jobs)[0] : null);
       if (targetJob) {
-        const row = jobToCandidateRow(targetJob);
-        if (row) {
-          setBrowseRow(row);
-          setActiveObject(externalCandidateObject(row));
-        }
-      } else if (focusAwaiting) {
+        const event = jobToDiscoverHistoryEvent(targetJob);
         setBrowseRow(null);
+        setSelectedHistoryId(event?.id || "");
+        setActiveObject(discoverHistoryObject(event));
+      } else {
+        setBrowseRow(null);
+        setSelectedHistoryId("");
         setActiveObject(null);
       }
     },
@@ -773,6 +798,18 @@ export function V2App() {
     (target, promptOverride) => {
       if (tab === "browse" && target) {
         const label = target.title || target.dataset_id || target.name || "this Discover candidate";
+        if (target.kind === "discover_history") {
+          setRailTab("ask");
+          const override = typeof promptOverride === "string" && promptOverride.trim() ? promptOverride.trim() : "";
+          setPendingAsk(
+            override ||
+              {
+                prompt: `Explain this Discover lifecycle item: ${label}. Summarize its durable state, what is verified, what is still unknown, and the safest next action. Do not claim collection, registration, or query readiness unless the record proves it.`,
+                displayText: `Explain this lifecycle item: ${label}`,
+              },
+          );
+          return;
+        }
         setActiveObject(externalCandidateObject(target));
         setRailTab("ask");
         if (promptOverride && typeof promptOverride === "object") {
@@ -1001,41 +1038,19 @@ export function V2App() {
           labIds={labIds}
           catalog={catalog}
           selectedId={browseSelectedId}
-          focusTarget={browseTarget}
           searchQuery={searchQuery}
           jobs={jobs}
           usingSeed={usingSeed}
           probeSnapshots={probeSnapshots}
-          probeState={browseProbeState}
-          browseLifecycle={browseLifecycle}
           discoverMode={discoverMode}
           discoverFocusAwaiting={discoverFocusAwaiting}
           onDiscoverModeChange={setDiscoverModeSafe}
-          onOpenReviewQueue={() => openDiscoverAwaiting()}
-          historyEvents={historyEvents}
+          historyEvents={historyItems}
           selectedHistoryId={selectedHistoryId}
           onSelectHistoryEvent={(event) => {
             setSelectedHistoryId(event?.id || "");
+            setActiveObject(discoverHistoryObject(event));
             setRailTab("detail");
-          }}
-          onAskAbout={askAboutSelection}
-          onAddToLab={askAddToLab}
-          onPreviewExternal={() => browseRow && openPreviewExternal(browseRow)}
-          onProbeSource={probeDiscoverCandidate}
-          onOpenInLibrary={openInLibraryFromDiscover}
-          onTrackResources={trackJobInResources}
-          onReviewApproval={reviewApprovalInResources}
-          onRetryLifecycleRefresh={retryLifecycleRefresh}
-          onBackToResults={() => {
-            browseSelectedKeyRef.current = "";
-            setBrowseRow(null);
-            setBrowseProbe({ candidateKey: "", loading: false, result: null, error: "" });
-            setRailTab("detail");
-            setActiveObject((cur) => (cur?.kind === "external_candidate" ? null : cur));
-          }}
-          onOpenAsk={(target) => {
-            if (target) setActiveObject(externalCandidateObject(target));
-            setRailTab("ask");
           }}
           onSuggestSearch={(q) => {
             setSearchQuery(q);
@@ -1124,7 +1139,7 @@ export function V2App() {
   }
 
   const hideRail =
-    (tab === "browse" && (!browseTarget || railTab !== "ask")) ||
+    (tab === "browse" && !browseTarget && !selectedHistoryEvent) ||
     (tab === "synthesis" && railTab !== "ask");
 
   return (
@@ -1183,6 +1198,8 @@ export function V2App() {
         detailLoading={detailLoading}
         clusterContext={clusterContext}
         browseTarget={browseTarget}
+        historyEvent={selectedHistoryEvent}
+        historyJob={selectedHistoryJob}
         resourceRow={resourceRow}
         resourcesRollup={resourcesRollup}
         activeObject={activeObject}
@@ -1204,6 +1221,10 @@ export function V2App() {
         onTrackResources={trackJobInResources}
         onReviewApproval={reviewApprovalInResources}
         onRetryLifecycleRefresh={retryLifecycleRefresh}
+        onReviewHistoryRequest={(item) => {
+          const job = item?.id && item?.status ? item : selectedHistoryJob;
+          if (job) reviewApprovalInResources(job);
+        }}
         onPreviewExternal={() => browseRow && openPreviewExternal(browseRow)}
         onApproveJob={handleApproveJob}
         onRefresh={refreshBackend}
@@ -1221,7 +1242,9 @@ export function V2App() {
                     title: `Resources · ${resourceRow.label}`,
                   }
                 : tab === "browse"
-                  ? browseTarget
+                  ? selectedHistoryEvent
+                    ? { ...selectedHistoryEvent, title: selectedHistoryEvent.target || selectedHistoryEvent.title, kind: "discover_history" }
+                    : browseTarget
                 : tab === "home" && activeObject?.kind === "home_attention"
                   ? {
                       title: `Home · ${activeObject.title}`,

@@ -31,6 +31,18 @@ export function externalCandidateObject(row) {
   };
 }
 
+export function discoverHistoryObject(event) {
+  if (!event) return null;
+  const meta = event.meta || {};
+  const id = event.id || meta.intent_id || meta.job_id || meta.subscription_id || event.target || "discover-history";
+  return {
+    kind: "discover_history",
+    id,
+    title: compactText(event.target || event.title, "Discover lifecycle item"),
+    row: event,
+  };
+}
+
 export function resourceObject(row) {
   if (!row) return null;
   return {

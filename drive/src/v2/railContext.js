@@ -49,6 +49,34 @@ export function buildRailContext({
     };
     datasetId = row.dataset_id || row.doi || "";
     actions = ["add_to_lab", "probe", "ask_about", "schedule_refresh"];
+  } else if (activeObject?.kind === "discover_history") {
+    const row = activeObject.row || {};
+    const meta = row.meta || {};
+    const status = row.status || meta.status || "";
+    const sourceId = meta.source_id || row.source_id || "";
+    const candidateKey = meta.candidate_key || row.candidate_key || "";
+    const eventId = row.id || meta.intent_id || meta.job_id || meta.subscription_id || activeObject.id || "";
+    entity = {
+      kind: "discover_history",
+      id: eventId,
+      title: activeObject.title,
+      status: status || undefined,
+      event_kind: row.kind || row.action || undefined,
+    };
+    selected = {
+      title: activeObject.title,
+      status: status || undefined,
+      event_kind: row.kind || row.action || undefined,
+      source_id: sourceId || undefined,
+      candidate_key: candidateKey || undefined,
+      job_id: meta.job_id || row.job_id || undefined,
+      intent_id: meta.intent_id || undefined,
+      summary: meta.summary || row.summary || undefined,
+    };
+    actions = ["explain", "ask_about"];
+    if (/pending_approval|ready_for_review|awaiting|needs_approval/i.test(String(status))) {
+      actions.push("review_request");
+    }
   } else if (activeObject?.kind === "resource_row") {
     entity = { kind: "resource_row", id: activeObject.id, title: activeObject.title };
     actions = ["explain", "approve_job"];

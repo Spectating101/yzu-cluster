@@ -28,7 +28,7 @@ test.describe("v2 Discover Explore|History (main converge)", () => {
     await expect(page.getByRole("tab", { name: "Explore" })).toHaveAttribute("aria-selected", "true");
   });
 
-  test("header pending opens the Explore queue when jobs await approval", async ({ page }) => {
+  test("header pending opens the exact History request when jobs await approval", async ({ page }) => {
     await mockV2Api(page, {
       jobsBody: {
         jobs: [{ id: "pending", status: "pending_approval", plan: { title: "TWSE governance" } }],
@@ -39,9 +39,11 @@ test.describe("v2 Discover Explore|History (main converge)", () => {
     const pending = page.getByTestId("header-pending-link");
     await expect(pending).toBeVisible({ timeout: 10_000 });
     await pending.click();
-    await expect(page).not.toHaveURL(/mode=(approvals|activity|history)/);
-    await expect(page.getByRole("tab", { name: "Explore" })).toHaveAttribute("aria-selected", "true");
-    await expect(page.getByTestId("discover-queue-strip")).toBeVisible({ timeout: 10_000 });
+    await expect(page).toHaveURL(/mode=history/);
+    await expect(page.getByRole("tab", { name: /History/ })).toHaveAttribute("aria-selected", "true");
+    const rail = page.getByRole("complementary", { name: "Inspector" });
+    await expect(rail).toContainText("TWSE governance");
+    await expect(rail).toContainText("Approval required");
   });
 
   test("LEGACY: Activity workspace is not a Discover mode", async ({ page }) => {

@@ -16,7 +16,6 @@ import {
 import { discoverCandidateUrl, webHitsToRows } from "@/v2/discoverActions";
 import { candidateKey, isCandidateQueued, withCandidateKey } from "@/v2/candidateKey";
 import { buildDiscoverLifecycle, projectDiscoverCandidateLifecycle } from "@/v2/discoverLifecycle";
-import { DiscoverEvaluationSurface } from "@/v2/DiscoverEvaluationSurface";
 import { groupDiscoverBrowseRows } from "@/v2/discoverComposition";
 import { assessLocalSufficiency } from "@/v2/discoverSufficiency";
 import { loadUserEmail } from "@/v2/deskSession";
@@ -63,36 +62,6 @@ function hostLabel(value) {
   } catch {
     return "";
   }
-}
-
-function DiscoverQueueStrip({ rows = [], selectedId, onSelectJob }) {
-  if (!rows.length) return null;
-  return (
-    <section className="rd-v2-discover-queue-strip" data-testid="discover-queue-strip" aria-label="Discover requests needing review">
-      <div className="rd-v2-discover-queue-strip__head">
-        <span>Needs your review</span>
-        <small>{rows.length} request{rows.length === 1 ? "" : "s"}</small>
-      </div>
-      <div className="rd-v2-discover-queue-strip__rows">
-        {rows.slice(0, 3).map((row) => {
-          const selected = String(selectedId || "") === String(row.dataset_id || row.id || "");
-          return (
-            <button
-              key={row.id || row.dataset_id || row.title}
-              type="button"
-              className={selected ? "on" : ""}
-              data-testid="discover-queue-row"
-              aria-pressed={selected}
-              onClick={() => onSelectJob?.(row)}
-            >
-              <strong>{row.title || "Collection request"}</strong>
-              <span>{row.status_label || "Approval required"}</span>
-            </button>
-          );
-        })}
-      </div>
-    </section>
-  );
 }
 
 function DiscoverModeTabs({ mode = "explore", pendingCount = 0, onChange }) {
@@ -209,10 +178,7 @@ export function BrowsePage({
   labIds,
   catalog = [],
   selectedId,
-  focusTarget = null,
   onSelectRow,
-  onBackToResults,
-  onOpenAsk,
   searchQuery,
   jobs = [],
   usingSeed = false,
@@ -222,21 +188,9 @@ export function BrowsePage({
   discoverMode = "explore",
   onDiscoverModeChange,
   discoverFocusAwaiting = false,
-  onOpenReviewQueue,
   historyEvents = [],
   selectedHistoryId = "",
   onSelectHistoryEvent,
-  // Focused evaluation wiring
-  probeState,
-  browseLifecycle,
-  onAskAbout,
-  onAddToLab,
-  onPreviewExternal,
-  onProbeSource,
-  onOpenInLibrary,
-  onTrackResources,
-  onReviewApproval,
-  onRetryLifecycleRefresh,
 }) {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -252,7 +206,6 @@ export function BrowsePage({
   );
   const isExplore = discoverMode === "explore" || discoverMode === "search";
   const showHistory = discoverMode === "history";
-  const showQueueStrip = isExplore && pendingRows.length > 0;
 
   useEffect(() => {
     if (!isExplore) return;
@@ -482,7 +435,6 @@ export function BrowsePage({
       ? `${plural(merged.length, "result")} for “${q}”`
       : `${plural(filtered.length, "result")} · ${activeFilter.label}`;
 
-  // Focused Evaluation mode — evaluation owns the main canvas.
   const modeTabs = (
     <DiscoverModeTabs
       mode={showHistory ? "history" : "explore"}
@@ -491,19 +443,6 @@ export function BrowsePage({
     />
   );
 
-  const reviewQueueBtn = pendingRows.length ? (
-    <button
-      type="button"
-      className="rd-v2-discover-queue-btn"
-      onClick={() => {
-        if (onOpenReviewQueue) onOpenReviewQueue();
-        else if (pendingRows[0]) onSelectRow?.(pendingRows[0]);
-      }}
-    >
-      Review queue <strong>{pendingRows.length}</strong>
-    </button>
-  ) : null;
-
   if (showHistory) {
     return (
       <PageShell
@@ -511,7 +450,6 @@ export function BrowsePage({
         title="Discover"
         lead="Trace research questions to reusable evidence"
         headExtra={modeTabs}
-        toolbar={reviewQueueBtn}
       >
         <DiscoverHistoryPanel
           events={historyEvents}
@@ -522,73 +460,14 @@ export function BrowsePage({
     );
   }
 
-  if (focusTarget) {
-    return (
-      <div className="rd-v2-discover-focus" data-testid="discover-focus-workspace" data-mode="focus">
-        <div className="rd-v2-discover-focus-chrome">
-          {modeTabs}
-          {reviewQueueBtn}
-        </div>
-        {showQueueStrip ? (
-          <DiscoverQueueStrip
-            rows={pendingRows}
-            selectedId={selectedId}
-            onSelectJob={(row) => onSelectRow?.(row)}
-          />
-        ) : null}
-        <header className="rd-v2-discover-focus-bar">
-          <button type="button" className="rd-v2-btn ghost sm" onClick={() => onBackToResults?.()}>
-            ← Back to results
-          </button>
-          <span className="rd-v2-discover-focus-spacer" />
-          <button
-            type="button"
-            className="rd-v2-btn sm"
-            onClick={() => onOpenAsk?.(focusTarget)}
-          >
-            Ask
-          </button>
-        </header>
-        <DiscoverEvaluationSurface
-          variant="workspace"
-          target={focusTarget}
-          labIds={labIds}
-          catalog={catalog}
-          onAskAbout={onAskAbout}
-          onAddToLab={onAddToLab}
-          onPreviewExternal={onPreviewExternal}
-          onProbeSource={onProbeSource}
-          probeState={probeState}
-          onOpenInLibrary={onOpenInLibrary}
-          lifecycle={browseLifecycle}
-          onTrackResources={onTrackResources}
-          onReviewApproval={onReviewApproval}
-          onRetryLifecycleRefresh={onRetryLifecycleRefresh}
-        />
-      </div>
-    );
-  }
-
   return (
     <PageShell
       className="rd-v2-discover-page"
       title="Discover"
       lead="Search the lab first, then evaluate sources beyond it before you collect"
       headExtra={modeTabs}
-      toolbar={
-        <>
-          {demoMode ? <Chip warn>Demo preview · static sample</Chip> : null}
-          {reviewQueueBtn}
-        </>
-      }
+      toolbar={demoMode ? <Chip warn>Demo preview · static sample</Chip> : null}
     >
-      {showQueueStrip ? (
-        <DiscoverQueueStrip
-          rows={pendingRows}
-          selectedId={selectedId}
-          onSelectJob={(row) => onSelectRow?.(row)}
-        />
-      ) : null}
       <div className="rd-v2-discover-browse" data-testid="discover-browse-mode" data-mode="browse">
         {!q ? (
           <DiscoverEmptyState onSuggest={onSuggestSearch} />

@@ -38,6 +38,7 @@ export function AskRail({
   const ctxParts = [contextLabel, mainTab, searchQuery ? `search: ${searchQuery}` : ""].filter(Boolean);
   const isProfile = mainTab === "profile";
   const isDiscover = mainTab === "browse";
+  const isDiscoverHistory = isDiscover && dataset?.kind === "discover_history";
   const isSynthesis = mainTab === "synthesis";
   const profileContext = dataset?.title || "Profile";
   const synthesisContext =
@@ -48,6 +49,8 @@ export function AskRail({
   const discoverTitle = dataset?.title || dataset?.dataset_id || "";
   const railTitle = isProfile
     ? "Ask"
+    : isDiscoverHistory
+      ? "Ask · lifecycle item"
     : isDiscover
       ? "Ask · selected source"
       : isSynthesis
@@ -57,6 +60,8 @@ export function AskRail({
     ? hasThread
       ? `Continuing · context → ${profileContext}`
       : `Context · ${profileContext}`
+    : isDiscoverHistory && discoverTitle
+      ? `Lifecycle context · ${discoverTitle}`
     : isDiscover && discoverTitle && hasThread
       ? `Selected context · ${discoverTitle}`
       : isDiscover && discoverTitle
@@ -79,6 +84,24 @@ export function AskRail({
         {messages.length === 0 ? (
           isProfile ? (
             <p className="rd-v2-ask-placeholder rd-v2-ask-placeholder-quiet" />
+          ) : isDiscoverHistory && discoverTitle ? (
+            <div className="rd-v2-ask-placeholder">
+              <p>
+                This lifecycle record stays in context. Ask about its durable state, evidence, uncertainty, or the
+                safest next action without upgrading a status claim.
+              </p>
+              <div className="rd-v2-chips-row rd-v2-ask-chips">
+                {[
+                  `Explain the current state of ${discoverTitle}`,
+                  `What remains unverified for ${discoverTitle}?`,
+                  `What is the safest next action for ${discoverTitle}?`,
+                ].map((p) => (
+                  <button key={p} type="button" className="rd-v2-chip clickable" disabled={busy} onClick={() => send(p)}>
+                    {String(p).slice(0, 42)}
+                  </button>
+                ))}
+              </div>
+            </div>
           ) : isDiscover && discoverTitle ? (
             <div className="rd-v2-ask-placeholder">
               <p>
@@ -136,7 +159,11 @@ export function AskRail({
           )
         ) : (
           <>
-            {isDiscover && discoverTitle ? (
+            {isDiscoverHistory ? (
+              <p className="rd-v2-ask-context-notice" data-testid="ask-context-notice">
+                New messages use this lifecycle context.
+              </p>
+            ) : isDiscover && discoverTitle ? (
               <p className="rd-v2-ask-context-notice" data-testid="ask-context-notice">
                 New messages use this source context.
               </p>
@@ -221,6 +248,8 @@ export function AskRail({
               ? "Message…"
               : isSynthesis
                 ? "Correct the interpretation, add a constraint, or ask…"
+                : isDiscoverHistory
+                  ? "Ask about this lifecycle record…"
                 : "Ask about coverage, overlaps, or procurement…"
           }
           disabled={busy}

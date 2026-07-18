@@ -9,15 +9,17 @@ import {
   PageRailPanel,
   ResourcesRailPanel,
 } from "@/v2/RailPanels";
-import { EmptyRailState } from "@/v2/EmptyRailState";
-import { RailFrame } from "@/v2/RailFrame";
 import { ProfileDetailPanel } from "@/v2/ProfilePage";
 import { activeObjectSelectionHint } from "@/v2/activeObject";
 import { displayName } from "@/v2/datasetMeta";
 import { LibraryDatasetRailPanel } from "@/v2/LibraryDatasetRailPanel";
 import { ResourcesOverviewRailPanel } from "@/v2/ResourcesOverviewRailPanel";
+import { DiscoverHistoryRailPanel } from "@/v2/DiscoverHistoryRailPanel";
 
-function railSelectionHint(mainTab, dataset, browseTarget, resourceRow, clusterContext) {
+function railSelectionHint(mainTab, dataset, browseTarget, historyEvent, resourceRow, clusterContext) {
+  if (mainTab === "browse" && historyEvent) {
+    return historyEvent.target || historyEvent.title || historyEvent.id || "Discover lifecycle item";
+  }
   if (mainTab === "browse" && browseTarget) {
     return browseTarget.title || browseTarget.dataset_id || "Discover result";
   }
@@ -65,7 +67,7 @@ function activeHintBelongsToTab(mainTab, object) {
   if (mainTab === "library") {
     return ["library_folder", "library_intake", "dataset"].includes(object.kind);
   }
-  if (mainTab === "browse") return object.kind === "external_candidate";
+  if (mainTab === "browse") return ["external_candidate", "discover_history"].includes(object.kind);
   if (mainTab === "resources") return object.kind === "resource_row";
   if (mainTab === "home") return ["dataset", "home_attention"].includes(object.kind);
   if (mainTab === "cluster") return object.kind === "comparison";
@@ -80,6 +82,8 @@ export function InspectorRail({
   detailLoading,
   clusterContext,
   browseTarget,
+  historyEvent,
+  historyJob,
   resourceRow,
   resourcesRollup,
   activeObject,
@@ -96,6 +100,7 @@ export function InspectorRail({
   onTrackResources,
   onReviewApproval,
   onRetryLifecycleRefresh,
+  onReviewHistoryRequest,
   onApproveJob,
   onRefresh,
   onViewActivity,
@@ -112,15 +117,13 @@ export function InspectorRail({
   if (mainTab === "cluster") {
     detailPanel = <ClusterRailPanel compare={clusterContext} onAskAbout={onAskAbout} />;
   } else if (mainTab === "browse") {
-    detailPanel = browseTarget ? (
-      <RailFrame>
-        <div className="rd-v2-rail-scroll">
-          <EmptyRailState
-            title="Evaluating in main canvas"
-            hint="The selected Discover candidate is open in Focused Evaluation. Use Ask here for grounded questions."
-          />
-        </div>
-      </RailFrame>
+    detailPanel = historyEvent ? (
+      <DiscoverHistoryRailPanel
+        event={historyEvent}
+        job={historyJob}
+        onAskAbout={onAskAbout}
+        onReviewRequest={onReviewHistoryRequest}
+      />
     ) : (
       <BrowseRailPanel
         target={browseTarget}
@@ -209,13 +212,13 @@ export function InspectorRail({
   const allowActiveHint = activeHintBelongsToTab(mainTab, activeObject);
   const selectionHint =
     (allowActiveHint ? activeObjectSelectionHint(activeObject) : "") ||
-    railSelectionHint(mainTab, dataset, browseTarget, resourceRow, clusterContext);
+    railSelectionHint(mainTab, dataset, browseTarget, historyEvent, resourceRow, clusterContext);
 
   const [mobileRailOpen, setMobileRailOpen] = useState(false);
 
   useEffect(() => {
     if (mainTab === "browse") {
-      setMobileRailOpen(Boolean(browseTarget) && railTab === "ask");
+      setMobileRailOpen(Boolean(browseTarget || historyEvent) && railTab === "ask");
       return;
     }
     if (mainTab === "home") {
@@ -235,7 +238,7 @@ export function InspectorRail({
       return;
     }
     setMobileRailOpen(true);
-  }, [selectionHint, mainTab, browseTarget, railTab, activeObject?.kind]);
+  }, [selectionHint, mainTab, browseTarget, historyEvent, railTab, activeObject?.kind]);
 
   return (
     <aside
