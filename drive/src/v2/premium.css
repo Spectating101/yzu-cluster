@@ -493,14 +493,21 @@ summary:focus-visible {
   padding-bottom: 12px;
 }
 
+.rd-v2-library-page .rd-v2-body-scroll {
+  margin-bottom: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
 .rd-v2-library-estate {
-  padding: 24px 24px 36px;
-  background:
-    linear-gradient(180deg, rgba(247,249,252,.95) 0%, #f8fafc 100%);
+  padding: 8px 24px 36px;
+  background: transparent;
 }
 
 .rd-v2-library-estate-summary {
-  padding: 5px 2px 22px;
+  padding: 12px 2px 18px;
   border-bottom-color: #dfe5ee;
 }
 
@@ -516,39 +523,84 @@ summary:focus-visible {
 }
 
 .rd-v2-library-collections {
-  gap: 12px;
+  display: block;
+  overflow: hidden;
+  border-top: 1px solid #dfe5ee;
+  border-bottom: 1px solid #dfe5ee;
 }
 
 .rd-v2-library-collection {
+  width: 100%;
   min-height: 108px;
-  padding: 17px 18px;
-  border-color: #dfe4ec;
-  border-radius: 15px;
-  box-shadow: 0 1px 2px rgba(16,24,40,.02);
-  transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease, background 150ms ease;
+  min-height: 76px;
+  padding: 12px 8px;
+  border: 0;
+  border-bottom: 1px solid #e6eaf0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  transition: background 150ms ease;
 }
+
+.rd-v2-library-collection:last-child { border-bottom: 0; }
 
 .rd-v2-library-collection:hover {
-  border-color: #cbd2e0;
-  background: #fff;
-  transform: translateY(-2px);
-  box-shadow: 0 14px 32px rgba(16,24,40,.08);
+  border-color: transparent;
+  background: #f8faff;
+  transform: none;
+  box-shadow: none;
 }
 
-.rd-v2-library-collection.on,
-.rd-v2-row-on .row,
-.rd-v2-catalog .row.selected {
-  border-color: #bcc4ff;
-  background: linear-gradient(90deg, #f1f2ff 0%, #f8f9ff 100%);
-  box-shadow: inset 3px 0 0 #5362ee;
+.rd-v2-library-collection-mark {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
 }
 
-.rd-v2-catalog .row {
-  transition: background 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+.rd-v2-library-collection-mark span {
+  width: 16px;
+  height: 12px;
 }
 
-.rd-v2-catalog .row:hover {
-  background: #f8f9fc;
+.rd-v2-library-collection-copy {
+  gap: 1px;
+}
+
+.rd-v2-library-collection-copy strong {
+  font-size: 14px;
+}
+
+.rd-v2-library-collection-copy span {
+  font-size: 11.5px;
+}
+
+.rd-v2-library-collection-copy em {
+  margin-top: 0;
+}
+
+.rd-v2-library-assets {
+  border-color: #dfe5ee;
+  border-radius: 0;
+  background: transparent;
+}
+
+.rd-v2-library-asset {
+  min-height: 72px;
+  padding: 11px 10px;
+  background: transparent;
+}
+
+.rd-v2-library-asset:hover { background: #f8faff; }
+.rd-v2-library-asset.selected { background: #eef3ff; }
+
+.rd-v2-library-estate-section {
+  margin-top: 20px;
+}
+
+@media (min-width: 761px) {
+  .rd-v2-library-actions {
+    margin-left: auto;
+  }
 }
 
 /* ── Discover — research index ───────────────────────────────── */
@@ -1255,5 +1307,21 @@ summary:focus-visible {
 
   .rd-v2-home-continue-copy h2 {
     font-size: 22px;
+  }
+}
+
+/* Library remains a directory on small screens too, not a floating card. */
+@media (max-width: 760px) {
+  .rd-v2-library-page .rd-v2-body-scroll {
+    margin-right: 0;
+    margin-bottom: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .rd-v2-library-estate {
+    padding: 8px 14px calc(88px + env(safe-area-inset-bottom));
   }
 }
