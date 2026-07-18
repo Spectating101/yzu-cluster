@@ -86,6 +86,28 @@ export function buildRailContext({
   } else if (activeObject?.kind === "home_attention") {
     entity = { kind: "home_attention", id: activeObject.id, title: activeObject.title };
     actions = ["open", "ask_about"];
+  } else if (activeObject?.kind === "synthesis_thread") {
+    const thread = activeObject.thread || {};
+    const state = thread.state || {};
+    const execution = state.execution || {};
+    entity = {
+      kind: "synthesis_thread",
+      id: activeObject.id,
+      title: activeObject.title,
+      status: execution.status || thread.materialisation || state.maturity || undefined,
+    };
+    selected = {
+      thread_id: activeObject.id,
+      title: activeObject.title,
+      objective: thread.objective || state.objective || undefined,
+      required_grain: state.required_grain || state.spec?.grain || undefined,
+      maturity: state.maturity || state.maturityLabel || undefined,
+      proposal_id: state.proposal?.id || undefined,
+      proposal_hash: state.proposal?.proposal_hash || undefined,
+      execution_status: execution.status || undefined,
+      output_dataset_id: execution.output_dataset_id || undefined,
+    };
+    actions = ["ask_about", "challenge_method", "review_proposal"];
   } else if (dataset?.dataset_id) {
     entity = {
       kind: "dataset",

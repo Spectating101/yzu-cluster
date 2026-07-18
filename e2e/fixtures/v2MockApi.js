@@ -474,6 +474,8 @@ export async function mockV2Api(
         ? `Lifecycle context received for ${entity.title || "selected record"}.`
         : entity.kind === "external_candidate"
           ? `Source context received for ${entity.title || "selected candidate"}.`
+          : entity.kind === "synthesis_thread"
+            ? `Synthesis thread context received for ${entity.title || "selected thread"}.`
           : "Resources context received.";
     return route.fulfill({
       status: 200,

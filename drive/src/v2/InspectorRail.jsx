@@ -15,6 +15,7 @@ import { displayName } from "@/v2/datasetMeta";
 import { LibraryDatasetRailPanel } from "@/v2/LibraryDatasetRailPanel";
 import { ResourcesOverviewRailPanel } from "@/v2/ResourcesOverviewRailPanel";
 import { DiscoverHistoryRailPanel } from "@/v2/DiscoverHistoryRailPanel";
+import { SynthesisThreadRailPanel } from "@/v2/SynthesisThreadRailPanel";
 
 function railSelectionHint(mainTab, dataset, browseTarget, historyEvent, resourceRow, clusterContext) {
   if (mainTab === "browse" && historyEvent) {
@@ -71,6 +72,7 @@ function activeHintBelongsToTab(mainTab, object) {
   if (mainTab === "resources") return object.kind === "resource_row";
   if (mainTab === "home") return ["dataset", "home_attention"].includes(object.kind);
   if (mainTab === "cluster") return object.kind === "comparison";
+  if (mainTab === "synthesis") return object.kind === "synthesis_thread";
   return false;
 }
 
@@ -114,7 +116,15 @@ export function InspectorRail({
   profile = null,
 }) {
   let detailPanel;
-  if (mainTab === "cluster") {
+  if (mainTab === "synthesis" && activeObject?.kind === "synthesis_thread") {
+    detailPanel = (
+      <SynthesisThreadRailPanel
+        thread={activeObject.thread}
+        onAskAbout={onAskAbout}
+        onOpenInLibrary={onOpenInLibrary}
+      />
+    );
+  } else if (mainTab === "cluster") {
     detailPanel = <ClusterRailPanel compare={clusterContext} onAskAbout={onAskAbout} />;
   } else if (mainTab === "browse") {
     detailPanel = historyEvent ? (

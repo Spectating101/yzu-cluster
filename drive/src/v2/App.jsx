@@ -27,6 +27,7 @@ import {
   homeAttentionObject,
   libraryIntakeObject,
   resourceObject,
+  synthesisThreadObject,
 } from "@/v2/activeObject";
 import { BrowsePage } from "@/v2/BrowsePage";
 import { ClusterPage } from "@/v2/ClusterPage";
@@ -1090,6 +1091,10 @@ export function V2App() {
           onAskComposer={askFromPrompt}
           onGoTab={goTab}
           onOpenDataset={openInLibraryFromDiscover}
+          onSelectThread={(thread) => {
+            setActiveObject(synthesisThreadObject(thread));
+            setRailTab("detail");
+          }}
         />
       );
       break;
@@ -1138,9 +1143,7 @@ export function V2App() {
       main = null;
   }
 
-  const hideRail =
-    (tab === "browse" && !browseTarget && !selectedHistoryEvent) ||
-    (tab === "synthesis" && railTab !== "ask");
+  const hideRail = tab === "browse" && !browseTarget && !selectedHistoryEvent;
 
   return (
     <div className={`yzu-shell with-inspector rd-theme-light rd-v2-shell${hideRail ? " no-rail" : ""}`}>
@@ -1254,7 +1257,9 @@ export function V2App() {
                       title: `Library · ${activeObject.title}`,
                     }
                 : tab === "synthesis"
-                  ? { title: "Synthesis studio" }
+                  ? activeObject?.kind === "synthesis_thread"
+                    ? { title: activeObject.title, kind: "synthesis_thread" }
+                    : { title: "Synthesis studio", kind: "synthesis_thread" }
                 : tab === "profile"
                   ? {
                       title:

@@ -118,6 +118,16 @@ export function homeAttentionObject(item) {
   };
 }
 
+export function synthesisThreadObject(thread) {
+  if (!thread) return null;
+  return {
+    kind: "synthesis_thread",
+    id: thread.id || "synthesis-thread",
+    title: compactText(thread.title || thread.state?.title, "Synthesis thread"),
+    thread,
+  };
+}
+
 export function pageObject(page) {
   return {
     kind: "page",

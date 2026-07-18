@@ -1,120 +1,525 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PageShell } from "@/v2/ui";
+import {
+  createSynthesisThread,
+  decideSynthesisProposal,
+  getSynthesisThread,
+  listSynthesisThreads,
+  requestSynthesisExecution,
+} from "@/v2/api";
 
-const INTENT = "Reconstruct a defensible weekly measure of public attention to individual stablecoins from 2021 onward using evidence available to the lab.";
-const THREADS = [["Stablecoin attention", "Exploration ready"], ["Incident response", "Draft method"], ["JKSE PIT revisions", "Registered"]];
-const STEPS = ["Explore", "Design", "Test", "Build", "Registered"];
-const SOURCES = [["Search intent", "Google Trends", "asset-week"], ["Community activity", "Reddit", "asset-week"], ["Public visibility", "Wikipedia", "asset-day"]];
-
-function fromUrl() {
-  if (typeof window === "undefined") return "explore";
-  const state = new URLSearchParams(window.location.search).get("synthesis_state");
-  return ["intent", "explore", "design", "test", "build", "failed", "registered", "stale"].includes(state) ? state : "explore";
+function text(value, fallback = "") {
+  return String(value || "").trim() || fallback;
 }
 
-function label(state) {
-  return ({ intent: "New synthesis", explore: "Exploration ready", design: "Method design", test: "Preview ready", build: "Build in progress", failed: "Build failed", registered: "Registered", stale: "Refresh available" })[state] || "Synthesis";
+function titleFor(thread) {
+  return text(thread?.title || thread?.state?.title, "Untitled synthesis");
 }
 
-function StepRail({ state }) {
-  if (["intent", "explore"].includes(state)) return null;
-  const effective = state === "failed" ? "build" : state === "stale" ? "registered" : state;
-  const current = ["explore", "design", "test", "build", "registered"].indexOf(effective);
-  return <ol className="s04-steps">{STEPS.map((step, i) => <li key={step} className={i < current ? "done" : i === current ? "now" : ""}><span>{i < current ? "✓" : i + 1}</span>{step}</li>)}</ol>;
+function stateFor(thread) {
+  const state = thread?.state || {};
+  const execution = state.execution || {};
+  if (execution.status === "registered" || thread?.materialisation === "registered") return "registered";
+  if (execution.status === "failed") return "failed";
+  if (execution.status) return "execution";
+  if (state.proposal) return "proposal";
+  if ((state.nodes || []).length) return "explore";
+  return "draft";
 }
 
-function AskPanel({ state, ask, compare }) {
-  const copy =
-    state === "design"
-      ? ["One decision needed", "Component weighting", "Equal weighting is transparent and avoids unsupported confidence in source reliability."]
-      : state === "test"
-        ? ["Preview warning", "Component imbalance", "Reddit contributes more than 60% of weekly variance for six assets."]
-        : state === "build"
-          ? ["Current operation", "Building accepted revision", "Source revisions are locked while output-key, lineage, and source-consistency checks run."]
-          : state === "failed"
-            ? ["Failure", "Build stopped safely", "No manifest was accepted and no Library asset was registered."]
-            : state === "registered"
-              ? ["Registered asset", "Verified and query ready", "The accepted construction, source revisions, manifest, and Library identity are now durable."]
-              : state === "stale"
-                ? ["Freshness review", "New source revisions available", "The registered asset remains valid; review the source changes before creating a new version."]
-                : ["AI interpretation", "Longitudinal attention measure", "The request is interpreted as a reusable longitudinal measure rather than an event-only dataset."];
-  const questions =
-    state === "design"
-      ? ["Why equal weighting?", "What changes if all components are required?", "Show the full method."]
-      : state === "test"
-        ? ["Explain the warning.", "Which assets are affected?", "Compare redesign options."]
-        : state === "build"
-          ? ["What is being written now?", "Which revisions are locked?", "What could still fail?"]
-          : state === "failed"
-            ? ["Explain the failure.", "What remained unchanged?", "Is retry safe?"]
-            : state === "registered" || state === "stale"
-              ? ["Can this support a DiD?", "What are the identification risks?", "Draft a refresh policy."]
-              : ["Why is GDELT validation?", "Compare alternatives.", "What will I decide later?"];
-  return <aside className="s04-ask">
-    <header><div><small>Ask context</small><strong>{label(state)}</strong></div><i /></header>
-    <section><small>{copy[0]}</small><h3>{copy[1]}</h3><p>{copy[2]}</p>{state === "explore" ? <button onClick={compare}>Make event response primary</button> : null}</section>
-    {state === "explore" ? <section><small>Why this route</small><ul><li>Best longitudinal coverage</li><li>Complementary evidence roles</li><li>Transparent proxy construction</li></ul></section> : null}
-    <section className="s04-questions"><small>Quick questions</small>{questions.map(q => <button key={q} onClick={() => ask(q)}>{q}</button>)}</section>
-    <button className="s04-askbox" onClick={() => ask("Help me refine this synthesis using the full current thread.")}>Correct, constrain, or ask…</button>
-  </aside>;
+function stageLabel(thread) {
+  const state = thread?.state || {};
+  const execution = state.execution || {};
+  const mode = stateFor(thread);
+  if (mode === "registered") return "Registered output";
+  if (mode === "failed") return "Execution failed";
+  if (mode === "execution") return text(execution.status).replace(/_/g, " ");
+  if (mode === "proposal") return "Proposal needs review";
+  return text(state.maturityLabel || state.maturity, mode === "draft" ? "New thread" : "Evidence mapping");
 }
 
-function Explore({ accept, compare }) {
-  return <section className="s04-card" data-testid="synthesis-recommendation">
-    <header className="s04-title"><div><small>Recommended construction</small><h2>Composite weekly attention index</h2></div><em>Recommended</em></header>
-    <div className="s04-map" role="img" aria-label="Google Trends, Reddit, and Wikipedia combine into a weekly attention index validated against GDELT news">
-      <strong className="target">Historical stablecoin attention</strong><b>↓</b>
-      <div className="sources">{SOURCES.map(([role, name, grain]) => <article key={name}><small>{role}</small><strong>{name}</strong><span>{grain}</span></article>)}</div>
-      <b>↓</b><span className="process">Align entities · aggregate weeks · normalise</span><b>↓</b><strong className="output">Composite attention index</strong>
-      <div className="validation"><span>validate against</span><article><small>External visibility</small><strong>GDELT news</strong><span>event-day</span></article></div>
-    </div>
-    <div className="s04-pairs"><article><small>Expected output</small><strong>Stablecoin attention weekly panel</strong><p>asset-week · 2021–2026 · reusable Library asset</p></article><article><small>Unavailable ideal</small><strong>Historical X follower growth</strong><p>No verified longitudinal route; this remains an observable proxy.</p></article></div>
-    <div className="s04-resolved"><span><small>AI resolved</small>source roles · grain · validation · identity strategy</span><span><small>Method design resolves</small>weighting · missing-component rule</span></div>
-    <button className="s04-alts" onClick={compare}>2 alternative constructions available <b>›</b></button>
-    <footer className="s04-actions"><p><small>What happens next</small>Accepting drafts the detailed method and surfaces only material choices. It does not build data.</p><button className="rd-v2-btn" onClick={compare}>Compare alternatives</button><button className="rd-v2-btn primary" onClick={accept}>Accept &amp; design method</button></footer>
-  </section>;
+function evidenceNodes(thread) {
+  return (thread?.state?.nodes || []).filter(
+    (node) => node?.layer === "evidence" || node?.type === "source" || node?.type === "construct",
+  );
 }
 
-function Design({ weighting, setWeighting, next, ask }) {
-  return <section className="s04-card" data-testid="synthesis-design-state">
-    <header className="s04-title"><div><small>AI-designed method</small><h2>One methodological decision remains</h2></div><em className="neutral">Draft method</em></header>
-    <dl className="s04-method"><div><dt>Evidence</dt><dd>Trends · Reddit · Wikipedia</dd></div><div><dt>Grain</dt><dd>asset-week</dd></div><div><dt>Construction</dt><dd>align → aggregate → normalise → combine → validate</dd></div><div><dt>Output</dt><dd>stablecoin_attention_weekly</dd></div></dl>
-    <div className="s04-resolved-list"><strong>Six routine decisions resolved by AI</strong><ul><li>Canonical asset identity mapping</li><li>Daily-to-weekly aggregation</li><li>Within-source standardisation</li><li>GDELT validation-only</li><li>Unique output key</li><li>Field lineage required</li></ul></div>
-    <fieldset className="s04-choice"><legend>How should the three core signals contribute?</legend>{[["equal", "Equal weighting", "Recommended · transparent and reproducible"], ["reliability", "Reliability-adjusted", "Requires a defensible reliability model"], ["custom", "Custom weights", "Researcher-defined shares"]].map(([value, title, sub]) => <label key={value} className={weighting === value ? "selected" : ""}><input type="radio" checked={weighting === value} onChange={() => setWeighting(value)} /><span><strong>{title}</strong><small>{sub}</small></span></label>)}</fieldset>
-    <footer className="s04-actions"><p><small>Next</small>Compile the bounded method and run a non-registering preview.</p><button className="rd-v2-btn" onClick={() => ask("Challenge the weighting recommendation.")}>Challenge recommendation</button><button className="rd-v2-btn primary" onClick={next}>Accept &amp; test</button></footer>
-  </section>;
+function targetNode(thread) {
+  return (thread?.state?.nodes || []).find((node) => node?.layer === "target" || node?.type === "target");
 }
 
-function Test({ back, build, ask }) {
-  return <section className="s04-card" data-testid="synthesis-test-state">
-    <header className="s04-title"><div><small>Bounded preview</small><h2>Ready to build—with one documented warning</h2></div><em className="warn">1 warning</em></header>
-    <div className="s04-metrics">{[["Preview rows", "3,120", "nothing registered"], ["Entities matched", "29 / 30", "1 alias unresolved"], ["Complete components", "94.8%", "3 of 3 signals"], ["Output key", "Unique", "asset_id + week"]].map(([a,b,c]) => <article key={a}><small>{a}</small><strong>{b}</strong><span>{c}</span></article>)}</div>
-    <div className="s04-table"><table><thead><tr><th>Asset</th><th>Week</th><th>Trends</th><th>Reddit</th><th>Wiki</th><th>Count</th><th>Attention</th></tr></thead><tbody><tr><td>USDT</td><td>2025-W01</td><td>0.18</td><td>0.44</td><td>0.21</td><td>3</td><td>0.28</td></tr><tr><td>USDC</td><td>2025-W01</td><td>0.20</td><td>0.15</td><td>0.24</td><td>3</td><td>0.20</td></tr><tr><td>DAI</td><td>2025-W01</td><td>-0.04</td><td>0.72</td><td>0.11</td><td>3</td><td>0.26</td></tr></tbody></table></div>
-    <div className="s04-results"><article><b>✓</b><strong>Five checks passed</strong><p>Coverage, key, lineage, source binding, and availability are coherent.</p></article><article className="warning"><b>!</b><strong>Component imbalance</strong><p>Reddit dominates variance for six assets.</p><button onClick={() => ask("Explain the component-imbalance warning.")}>Review warning</button></article></div>
-    <footer className="s04-actions"><p><small>Write effect</small>The next action requests a durable build; approval remains required before registration.</p><button className="rd-v2-btn" onClick={back}>Return to design</button><button className="rd-v2-btn primary" onClick={build}>Accept warning &amp; request build</button></footer>
-  </section>;
+function threadStatus(thread) {
+  const state = thread?.state || {};
+  const execution = state.execution || {};
+  if (execution.status === "registered" || thread?.materialisation === "registered") return "Registered";
+  if (execution.status === "failed") return "Needs recovery";
+  if (execution.status) return text(execution.status).replace(/_/g, " ");
+  if (state.proposal) return "Review proposal";
+  return text(state.maturityLabel || state.maturity, "Exploring");
 }
 
-function Build({ progress, phase, fail }) {
-  const phases = ["Lock revisions", "Align entities", "Construct components", "Generate output", "Verify output", "Register"];
-  const active = Math.min(phases.length - 1, Math.floor(progress / 17));
-  return <section className="s04-card" data-testid="synthesis-build-state"><header className="s04-title"><div><small>Durable build</small><h2>Building stablecoin attention weekly panel</h2></div><em>{progress}%</em></header><div className="s04-progress"><span style={{ width: `${progress}%` }} /></div><div className="s04-build"><ol>{phases.map((p,i) => <li key={p} className={i < active ? "done" : i === active ? "now" : ""}><b>{i < active ? "✓" : i + 1}</b><strong>{p}</strong><small>{i < active ? "Complete" : i === active ? "Running" : "Waiting"}</small></li>)}</ol><article><small>Current output</small><strong>{Math.round(13827 * Math.max(progress,18) / 100).toLocaleString()} provisional rows</strong><p>29 assets · 7 fields · 2021-W01 → 2026-W26</p><dl><div><dt>Plan</dt><dd>s04-r3</dd></div><div><dt>Source lock</dt><dd>4 revisions</dd></div><div><dt>Operation</dt><dd>{phase}</dd></div></dl></article></div><p className="s04-fixture">Fixture-backed target lifecycle; no live backend write is claimed.</p><button className="s04-fail-link" onClick={fail}>Exercise failure state</button></section>;
+function threadOutput(thread) {
+  const state = thread?.state || {};
+  return state.execution?.output_dataset_id || state.execution_spec?.output_dataset_id || "";
 }
 
-function Registered({ stale, open, refresh, ask }) {
-  return <section className="s04-card" data-testid="synthesis-registered-state"><header className="s04-title"><div><small>{stale ? "Refresh available" : "Verified and registered"}</small><h2>Stablecoin attention weekly panel</h2></div><em className={stale ? "warn" : "success"}>{stale ? "Updates found" : "Query ready"}</em></header><div className="s04-metrics">{[["Rows","13,827",""],["Fields","7",""],["Assets","29",""],["Coverage","2021–2026",""]].map(([a,b,c]) => <article key={a}><small>{a}</small><strong>{b}</strong><span>{c}</span></article>)}</div><div className="s04-proof"><section><small>Verification</small><ul><li>Unique asset-week key</li><li>Complete field lineage</li><li>96.3% complete three-component rows</li><li>GDELT diagnostics recorded</li></ul></section><section><small>Registration proof</small><dl><div><dt>Dataset</dt><dd>stablecoin_attention_weekly</dd></div><div><dt>Manifest</dt><dd>mft_s04_0726</dd></div><div><dt>Spec hash</dt><dd>sha256:8a4…d19</dd></div><div><dt>Drive</dt><dd>Verified</dd></div></dl></section></div><div className="s04-use"><small>What this asset may support</small><div><article><strong>Descriptive research</strong><p>Attention trends and cross-asset cycles.</p></article><article><strong>Panel and event research</strong><p>Fixed effects and event response.</p></article></div><button onClick={() => ask("Assess the strongest empirical designs this asset supports.")}>Ask about empirical use</button></div><footer className="s04-actions"><p><small>Saved construction</small>{stale ? "Review new source revisions before refreshing." : "Duplicate, inspect, or assess freshness when source assets update."}</p><button className="rd-v2-btn" onClick={refresh}>{stale ? "Review refresh" : "Assess freshness"}</button><button className="rd-v2-btn primary" onClick={open}>Open in Library</button></footer></section>;
+function ThreadList({ threads, selectedId, loading, onSelect, onNew }) {
+  const selectedRef = useRef(null);
+  useEffect(() => {
+    selectedRef.current?.scrollIntoView({ block: "nearest" });
+  }, [selectedId]);
+
+  return (
+    <aside className="s04-threads" aria-label="Synthesis threads">
+      <header>
+        <div>
+          <span>Research construction</span>
+          <small>{loading ? "Loading" : `${threads.length} threads`}</small>
+        </div>
+        <button type="button" className="s04-thread-new" onClick={onNew}>+ New</button>
+      </header>
+      {threads.map((thread) => (
+        <button
+          type="button"
+          key={thread.id}
+          ref={thread.id === selectedId ? selectedRef : null}
+          className={thread.id === selectedId ? "active" : ""}
+          onClick={() => onSelect(thread.id)}
+          data-testid="synthesis-thread-item"
+        >
+          <b>{stateFor(thread) === "registered" ? "✓" : stateFor(thread) === "failed" ? "!" : "S"}</b>
+          <span>
+            <strong>{titleFor(thread)}</strong>
+            <small>{threadStatus(thread)}</small>
+          </span>
+        </button>
+      ))}
+      {!loading && !threads.length ? <p className="s04-thread-empty">No Synthesis threads yet.</p> : null}
+      <footer>
+        <small>Thread memory</small>
+        <p>Methods, review decisions, execution state, and registered outputs stay attached to the research object.</p>
+      </footer>
+    </aside>
+  );
 }
 
-export function SynthesisPage({ datasets = [], onAskComposer, onGoTab, onOpenDataset }) {
-  const [state, setState] = useState(fromUrl);
-  const [intent, setIntent] = useState(INTENT);
-  const [weighting, setWeighting] = useState("equal");
-  const [compare, setCompare] = useState(false);
-  const [progress, setProgress] = useState(state === "build" ? 24 : 0);
-  const [phase, setPhase] = useState("Locking source revisions");
-  const timer = useRef(null);
-  const ask = prompt => onAskComposer?.({ prompt: `${prompt}\n\nSynthesis context: ${intent}\nCurrent state: ${label(state)}.`, displayText: prompt });
-  useEffect(() => () => timer.current && clearInterval(timer.current), []);
-  const build = () => { setState("build"); setProgress(8); clearInterval(timer.current); timer.current = setInterval(() => setProgress(p => { const n = Math.min(100, p + 8); setPhase(n < 35 ? "Locking source revisions" : n < 60 ? "Constructing components" : n < 85 ? "Generating output" : "Verifying and registering"); if (n === 100) { clearInterval(timer.current); setTimeout(() => setState("registered"), 300); } return n; }), 220); };
-  return <PageShell className="rd-v2-synthesis-page" title="Synthesis" lead="Turn a research intention into a defensible, reusable research asset."><div className="s04-shell" data-testid="synthesis-studio"><aside className="s04-threads"><header><span>Active work</span><small>{THREADS.length} threads</small></header>{THREADS.map(([name, status],i) => <button key={name} className={i === 0 ? "active" : ""} onClick={() => i ? ask(`Open ${name} and summarize its state.`) : setState("explore")}><b>{i ? i + 1 : "S"}</b><span><strong>{name}</strong><small>{status}</small></span></button>)}<button className="new" onClick={() => { setState("intent"); setIntent(""); }}>＋ New synthesis</button><footer><small>Registered outputs</small><button onClick={() => onGoTab?.("library")}>Trust weekly panel</button><button onClick={() => onGoTab?.("library")}>Security event panel</button></footer></aside><main key={state} className="s04-main"><header className="s04-head"><div><small>{label(state)}</small><h1>{state === "intent" ? "New synthesis" : "Historical stablecoin attention"}</h1><p>{state === "intent" ? "Start with the research object, not a predefined pipeline." : "A durable research-construction thread shared with Ask."}</p></div><em>{state === "registered" || state === "stale" ? "Registered proof available" : state === "build" ? "Fixture-backed lifecycle" : "Nothing written yet"}</em></header><StepRail state={state}/>{state !== "intent" ? <div className="s04-brief"><span><small>Research brief</small>{intent || INTENT}</span><button onClick={() => setState("intent")}>Edit intent</button></div> : null}{state === "intent" ? <section className="s04-intent" data-testid="synthesis-intent-state"><small>Start a research construction</small><h2>What research asset do you need?</h2><p>Ask interprets the construct before any method or data operation is accepted.</p><textarea rows={7} value={intent} onChange={e => setIntent(e.target.value)} /><footer><span>Nothing will be built or registered.</span><button className="rd-v2-btn primary" disabled={!intent.trim()} onClick={() => { setState("explore"); ask(intent); }}>Review interpretation</button></footer></section> : null}{state === "explore" ? <Explore accept={() => setState("design")} compare={() => setCompare(true)} /> : null}{state === "design" ? <Design weighting={weighting} setWeighting={setWeighting} next={() => setState("test")} ask={ask} /> : null}{state === "test" ? <Test back={() => setState("design")} build={build} ask={ask} /> : null}{state === "build" ? <Build progress={progress} phase={phase} fail={() => { clearInterval(timer.current); setState("failed"); }} /> : null}{state === "failed" ? <section className="s04-card s04-failed" data-testid="synthesis-failed-state"><b>!</b><h2>Build stopped before registration</h2><p>No manifest was accepted and no Library asset was created.</p><button className="rd-v2-btn primary" onClick={build}>Retry build</button></section> : null}{state === "registered" || state === "stale" ? <Registered stale={state === "stale"} open={() => onOpenDataset?.({ dataset_id: "stablecoin_attention_weekly", name: "Stablecoin attention weekly panel", analysis_readiness: "instant" })} refresh={() => setState(state === "stale" ? "test" : "stale")} ask={ask} /> : null}</main><AskPanel state={state} ask={ask} compare={() => setCompare(true)} /></div>{compare ? <div className="s04-overlay" role="dialog" aria-modal="true"><section><header><div><small>Compare constructions</small><h2>Three materially different research objects</h2></div><button onClick={() => setCompare(false)}>×</button></header><div>{[["Recommended","Composite behavioural index","Best balance of construct clarity, coverage, and feasibility."],["Easiest","News-visibility index","Simpler, but measures editorial visibility only."],["Different object","Event-attention panel","Useful around incidents, but not a general longitudinal measure."]].map(([tag,title,copy]) => <article key={title}><em>{tag}</em><h3>{title}</h3><p>{copy}</p>{tag === "Different object" ? <button onClick={() => { setIntent("Construct an event-response panel measuring stablecoin attention around depegs and security incidents."); setCompare(false); ask("Redesign this as an event-response panel and explain the output change."); }}>Make primary</button> : null}</article>)}</div><button className="rd-v2-btn primary" onClick={() => setCompare(false)}>Keep recommended construction</button></section></div> : null}</PageShell>;
+function ThreadHeader({ thread }) {
+  const state = thread?.state || {};
+  const execution = state.execution || {};
+  const registered = stateFor(thread) === "registered";
+  return (
+    <>
+      <header className="s04-head">
+        <div>
+          <small>{stageLabel(thread)}</small>
+          <h1>{titleFor(thread)}</h1>
+          <p>{text(thread?.objective || state.objective, "A durable research-construction thread.")}</p>
+        </div>
+        <em>
+          {registered
+            ? "Registered evidence"
+            : execution.status
+              ? "Durable execution state"
+              : state.proposal
+                ? "Reviewable change"
+                : "Nothing registered"}
+        </em>
+      </header>
+      <div className="s04-brief">
+        <span>
+          <small>Current record</small>
+          {text(state.lastActivity, "No method or output claim has been recorded yet.")}
+        </span>
+        <span className="s04-brief-grain">
+          <small>Required grain</small>
+          {text(state.required_grain || state.spec?.grain, "Not specified")}
+        </span>
+      </div>
+    </>
+  );
+}
+
+function EvidenceMap({ thread, onAsk }) {
+  const target = targetNode(thread);
+  const evidence = evidenceNodes(thread);
+  const state = thread?.state || {};
+  const missing = evidence.filter((node) => /missing|needs_access|sourceable/i.test(String(node.status || "")));
+  return (
+    <section className="s04-card" data-testid="synthesis-evidence-state">
+      <header className="s04-title">
+        <div>
+          <small>Evidence map</small>
+          <h2>{text(target?.label, "Research construction")}</h2>
+        </div>
+        <em className="neutral">{evidence.length ? `${evidence.length} mapped inputs` : "No inputs mapped"}</em>
+      </header>
+      <div className="s04-map" role="img" aria-label="The current Synthesis evidence map">
+        <strong className="target">{text(target?.label, text(thread?.objective, "Research objective"))}</strong>
+        <b>↓</b>
+        <div className="sources">
+          {evidence.length ? (
+            evidence.slice(0, 6).map((node) => (
+              <article key={node.id || node.label}>
+                <small>{text(node.role || node.eyebrow || node.status, "Evidence")}</small>
+                <strong>{text(node.label || node.dataset_id, "Unnamed evidence")}</strong>
+                <span>{[node.grain, node.coverage].filter(Boolean).join(" · ") || "Metadata not reported"}</span>
+              </article>
+            ))
+          ) : (
+            <article className="s04-empty-evidence">
+              <small>Next</small>
+              <strong>Map evidence with Ask</strong>
+              <span>No source relationship has been persisted.</span>
+            </article>
+          )}
+        </div>
+        {state.spec?.summary || state.spec?.method ? (
+          <>
+            <b>↓</b>
+            <span className="process">{text(state.spec.summary || state.spec.method, "Method detail not reported")}</span>
+          </>
+        ) : null}
+      </div>
+      <div className="s04-pairs">
+        <article>
+          <small>Research object</small>
+          <strong>{text(thread?.objective || state.objective, "Not reported")}</strong>
+          <p>{text(target?.interpretation, "Ask can refine the object before a method proposal is accepted.")}</p>
+        </article>
+        <article>
+          <small>Unresolved evidence</small>
+          <strong>{missing.length ? `${missing.length} source decision${missing.length === 1 ? "" : "s"} remain` : "No missing source is recorded"}</strong>
+          <p>{missing.length ? missing.map((node) => node.label || node.dataset_id).filter(Boolean).join(" · ") : "This is not a claim of complete coverage."}</p>
+        </article>
+      </div>
+      <footer className="s04-actions">
+        <p>
+          <small>Next</small>
+          Ask proposes reviewable changes. It cannot silently accept a method or register an output.
+        </p>
+        <button type="button" className="rd-v2-btn primary" onClick={() => onAsk("Explain the current evidence map and identify the next material research decision.")}>
+          Discuss construction in Ask
+        </button>
+      </footer>
+    </section>
+  );
+}
+
+function ProposalReview({ thread, busy, onDecide, onAsk }) {
+  const proposal = thread?.state?.proposal || {};
+  const operations = Array.isArray(proposal.operations) ? proposal.operations : [];
+  const canDecide = Boolean(proposal.id && proposal.proposal_hash);
+  return (
+    <section className="s04-card" data-testid="synthesis-proposal-state">
+      <header className="s04-title">
+        <div>
+          <small>Review proposed change</small>
+          <h2>{text(proposal.title, "Untitled proposal")}</h2>
+        </div>
+        <em className="warn">Review required</em>
+      </header>
+      <div className="s04-resolved-list">
+        <strong>{text(proposal.summary, "The agent proposed a change to this durable construction.")}</strong>
+        <ul>
+          {operations.length ? (
+            operations.slice(0, 8).map((operation, index) => (
+              <li key={`${operation.op || operation.type || "change"}-${index}`}>
+                {text(operation.summary || operation.label || operation.path || operation.op || operation.type, "Structured state change")}
+              </li>
+            ))
+          ) : (
+            <li>No operation summary was returned. Inspect this proposal with Ask before deciding.</li>
+          )}
+        </ul>
+      </div>
+      {proposal.execution_spec ? (
+        <div className="s04-method">
+          <div><dt>Input</dt><dd>{text(proposal.execution_spec.input_dataset_id, "Not reported")}</dd></div>
+          <div><dt>Output</dt><dd>{text(proposal.execution_spec.output_dataset_id, "Not reported")}</dd></div>
+          <div><dt>Grouping</dt><dd>{Array.isArray(proposal.execution_spec.group_by) ? proposal.execution_spec.group_by.join(" · ") : "Not reported"}</dd></div>
+          <div><dt>Metrics</dt><dd>{Array.isArray(proposal.execution_spec.metrics) ? proposal.execution_spec.metrics.length : "Not reported"}</dd></div>
+        </div>
+      ) : null}
+      {!canDecide ? <p className="s04-fixture">This proposal has no revision hash, so it cannot be accepted from the desk. Refresh it through Ask.</p> : null}
+      <footer className="s04-actions">
+        <p>
+          <small>Approval boundary</small>
+          A decision is bound to this exact proposal revision. A changed proposal must be reviewed again.
+        </p>
+        <button type="button" className="rd-v2-btn" onClick={() => onAsk("Challenge this Synthesis proposal and explain every methodological consequence.")}>Challenge in Ask</button>
+        <button type="button" className="rd-v2-btn" disabled={busy || !canDecide} onClick={() => onDecide("reject")}>Reject</button>
+        <button type="button" className="rd-v2-btn primary" disabled={busy || !canDecide} onClick={() => onDecide("accept")}>Accept proposal</button>
+      </footer>
+    </section>
+  );
+}
+
+function ExecutionRecord({ thread, busy, onRequest, onAsk, onOpenDataset }) {
+  const state = thread?.state || {};
+  const execution = state.execution || {};
+  const spec = state.execution_spec || {};
+  const status = text(execution.status, "not requested").replace(/_/g, " ");
+  const outputId = threadOutput(thread);
+  const registered = stateFor(thread) === "registered";
+  const failed = execution.status === "failed";
+  const hasSpec = Boolean(spec.input_dataset_id && spec.output_dataset_id);
+
+  return (
+    <section className="s04-card" data-testid={registered ? "synthesis-registered-state" : failed ? "synthesis-failed-state" : "synthesis-execution-state"}>
+      <header className="s04-title">
+        <div>
+          <small>{registered ? "Registered research asset" : failed ? "Execution failed" : "Execution record"}</small>
+          <h2>{registered ? text(outputId, "Registered output") : text(spec.output_dataset_id, "No execution requested")}</h2>
+        </div>
+        <em className={registered ? "success" : failed ? "warn" : "neutral"}>{registered ? "Query ready" : status}</em>
+      </header>
+      {hasSpec ? (
+        <dl className="s04-method">
+          <div><dt>Input</dt><dd>{text(spec.input_dataset_id)}</dd></div>
+          <div><dt>Output</dt><dd>{text(spec.output_dataset_id)}</dd></div>
+          <div><dt>Group by</dt><dd>{Array.isArray(spec.group_by) ? spec.group_by.join(" · ") : "Not reported"}</dd></div>
+          <div><dt>Metrics</dt><dd>{Array.isArray(spec.metrics) ? `${spec.metrics.length} defined` : "Not reported"}</dd></div>
+        </dl>
+      ) : null}
+      <div className="s04-proof">
+        <section>
+          <small>Execution evidence</small>
+          <dl>
+            <div><dt>Job</dt><dd>{text(execution.job_id, "Not requested")}</dd></div>
+            <div><dt>Rows</dt><dd>{execution.rows == null ? "Not reported" : Number(execution.rows).toLocaleString()}</dd></div>
+            <div><dt>Manifest</dt><dd>{text(execution.manifest_id, "Not reported")}</dd></div>
+          </dl>
+        </section>
+        <section>
+          <small>Registration evidence</small>
+          <dl>
+            <div><dt>Archive</dt><dd>{execution.drive_verified ? "Reported verified" : "Not reported"}</dd></div>
+            <div><dt>Registry</dt><dd>{registered ? "Registered output reported" : "Not claimed"}</dd></div>
+            <div><dt>Output</dt><dd>{text(outputId, "Not registered")}</dd></div>
+          </dl>
+        </section>
+      </div>
+      {failed ? <p className="s04-fixture">{text(execution.error, "The execution failed without a recorded error detail.")}</p> : null}
+      <footer className="s04-actions">
+        <p>
+          <small>Truth boundary</small>
+          {registered
+            ? "This asset is shown because the thread reports a registered output."
+            : failed
+              ? "The accepted specification remains inspectable; no output is claimed registered."
+              : hasSpec
+                ? "Requesting execution creates a durable job. Registration remains a separate verified outcome."
+                : "An accepted execution specification is required before this thread can request a build."}
+        </p>
+        {registered ? <button type="button" className="rd-v2-btn primary" onClick={() => onOpenDataset?.({ dataset_id: outputId, name: outputId, analysis_readiness: "instant" })}>Open in Library</button> : null}
+        {!registered && hasSpec ? <button type="button" className="rd-v2-btn primary" disabled={busy || Boolean(execution.status)} onClick={onRequest}>Request execution</button> : null}
+        <button type="button" className="rd-v2-btn" onClick={() => onAsk("Explain the exact execution state and which evidence is still missing before this output can be trusted.")}>Ask about execution</button>
+      </footer>
+    </section>
+  );
+}
+
+function NewThread({ objective, setObjective, busy, onCreate, onAsk }) {
+  return (
+    <section className="s04-intent" data-testid="synthesis-intent-state">
+      <small>New research construction</small>
+      <h2>What reusable research asset do you need?</h2>
+      <p>Start with the research object. Ask can reason with the thread, but no method, execution, or Library asset is created until separately reviewed.</p>
+      <textarea rows={7} value={objective} onChange={(event) => setObjective(event.target.value)} placeholder="Describe the research object, coverage, grain, and constraints…" />
+      <footer>
+        <span>A new durable thread is created before the conversation continues.</span>
+        <button type="button" className="rd-v2-btn primary" disabled={busy || !objective.trim()} onClick={onCreate}>Create thread &amp; discuss</button>
+        <button type="button" className="rd-v2-btn" disabled={!objective.trim()} onClick={() => onAsk(objective)}>Ask first</button>
+      </footer>
+    </section>
+  );
+}
+
+function EmptyWorkspace({ onNew }) {
+  return (
+    <section className="s04-intent" data-testid="synthesis-empty-state">
+      <small>Synthesis</small>
+      <h2>Start a research construction</h2>
+      <p>No persisted Synthesis thread is available in this desk session. Create one from a research objective; the thread becomes the shared context for Detail and Ask.</p>
+      <footer><span>No local sample is substituted for missing work.</span><button type="button" className="rd-v2-btn primary" onClick={onNew}>New synthesis</button></footer>
+    </section>
+  );
+}
+
+export function SynthesisPage({ onAskComposer, onOpenDataset, onSelectThread }) {
+  const [threads, setThreads] = useState([]);
+  const [selectedId, setSelectedId] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [newMode, setNewMode] = useState(false);
+  const [objective, setObjective] = useState("");
+  const notified = useRef("");
+
+  const replaceThread = useCallback((next) => {
+    if (!next?.id) return;
+    setThreads((current) => {
+      const present = current.some((thread) => thread.id === next.id);
+      return present ? current.map((thread) => (thread.id === next.id ? next : thread)) : [next, ...current];
+    });
+  }, []);
+
+  const refreshThreads = useCallback(async ({ keepLoading = false } = {}) => {
+    if (!keepLoading) setLoading(true);
+    setError("");
+    try {
+      const result = await listSynthesisThreads();
+      const next = Array.isArray(result?.threads) ? result.threads : [];
+      setThreads(next);
+      setSelectedId((current) => {
+        if (current && next.some((thread) => thread.id === current)) return current;
+        const familiar = next.find((thread) => /stablecoin attention/i.test(titleFor(thread)));
+        return familiar?.id || next[0]?.id || "";
+      });
+    } catch (cause) {
+      setError(text(cause?.message, "Synthesis threads could not be loaded."));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshThreads();
+  }, [refreshThreads]);
+
+  const selected = useMemo(() => threads.find((thread) => thread.id === selectedId) || null, [threads, selectedId]);
+
+  useEffect(() => {
+    if (!selected) return;
+    const key = `${selected.id}:${selected.updated_at || ""}:${selected.state?.execution?.status || ""}`;
+    if (notified.current === key) return;
+    notified.current = key;
+    onSelectThread?.(selected);
+  }, [selected, onSelectThread]);
+
+  const refreshThread = useCallback(async (threadId = selectedId) => {
+    if (!threadId) return null;
+    const next = await getSynthesisThread(threadId);
+    replaceThread(next);
+    return next;
+  }, [replaceThread, selectedId]);
+
+  useEffect(() => {
+    const execution = selected?.state?.execution || {};
+    if (!selected || !/pending_approval|queued|running|registering|archiving/i.test(String(execution.status || ""))) return undefined;
+    const timer = window.setInterval(() => {
+      refreshThread().catch(() => {});
+    }, 4000);
+    return () => window.clearInterval(timer);
+  }, [selected, refreshThread]);
+
+  const selectThread = async (threadId) => {
+    setSelectedId(threadId);
+    setNewMode(false);
+    setError("");
+    try {
+      const next = await refreshThread(threadId);
+      if (next) onSelectThread?.(next);
+    } catch (cause) {
+      setError(text(cause?.message, "This Synthesis thread could not be refreshed."));
+    }
+  };
+
+  const ask = (prompt) => {
+    const context = selected
+      ? `\n\nSynthesis thread: ${titleFor(selected)}\nObjective: ${text(selected.objective || selected.state?.objective)}\nDurable status: ${stageLabel(selected)}.`
+      : "\n\nSynthesis workspace context.";
+    onAskComposer?.({ prompt: `${text(prompt)}${context}`, displayText: text(prompt, "Discuss this synthesis") });
+  };
+
+  const createThread = async () => {
+    const nextObjective = objective.trim();
+    if (!nextObjective) return;
+    setBusy(true);
+    setError("");
+    try {
+      const created = await createSynthesisThread({ objective: nextObjective });
+      replaceThread(created);
+      setSelectedId(created.id);
+      setNewMode(false);
+      setObjective("");
+      onSelectThread?.(created);
+      ask(`Interpret this research objective and propose the smallest defensible construction: ${nextObjective}`);
+    } catch (cause) {
+      setError(text(cause?.message, "The Synthesis thread could not be created."));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const decideProposal = async (decision) => {
+    const proposal = selected?.state?.proposal;
+    if (!selected || !proposal?.id || !proposal?.proposal_hash) return;
+    setBusy(true);
+    setError("");
+    try {
+      const next = await decideSynthesisProposal(selected.id, {
+        decision,
+        proposalId: proposal.id,
+        proposalHash: proposal.proposal_hash,
+      });
+      replaceThread(next);
+      onSelectThread?.(next);
+    } catch (cause) {
+      setError(text(cause?.message, "The proposal changed before this decision could be saved."));
+      refreshThread().catch(() => {});
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const requestExecution = async () => {
+    if (!selected) return;
+    setBusy(true);
+    setError("");
+    try {
+      const result = await requestSynthesisExecution(selected.id);
+      const next = result?.thread || (result?.state ? result : await refreshThread(selected.id));
+      if (next) {
+        replaceThread(next);
+        onSelectThread?.(next);
+      }
+    } catch (cause) {
+      setError(text(cause?.message, "The execution request could not be created."));
+      refreshThread().catch(() => {});
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const mode = stateFor(selected);
+  const showExecution = Boolean(selected && (mode === "execution" || mode === "registered" || mode === "failed" || selected.state?.execution_spec));
+
+  return (
+    <PageShell className="rd-v2-synthesis-page" title="Synthesis" lead="Construct reusable research assets from registered evidence, with decisions and execution state kept durable.">
+      <div className="s04-shell" data-testid="synthesis-studio">
+        <ThreadList
+          threads={threads}
+          selectedId={selectedId}
+          loading={loading}
+          onSelect={selectThread}
+          onNew={() => { setNewMode(true); setObjective(""); }}
+        />
+        <main className="s04-main">
+          {error ? <p className="s04-fixture" role="alert">{error}</p> : null}
+          {newMode ? <NewThread objective={objective} setObjective={setObjective} busy={busy} onCreate={createThread} onAsk={ask} /> : null}
+          {!newMode && !loading && !selected ? <EmptyWorkspace onNew={() => setNewMode(true)} /> : null}
+          {!newMode && selected ? (
+            <>
+              <ThreadHeader thread={selected} />
+              {mode === "proposal" ? <ProposalReview thread={selected} busy={busy} onDecide={decideProposal} onAsk={ask} /> : null}
+              {showExecution ? <ExecutionRecord thread={selected} busy={busy} onRequest={requestExecution} onAsk={ask} onOpenDataset={onOpenDataset} /> : null}
+              {mode === "explore" ? <EvidenceMap thread={selected} onAsk={ask} /> : null}
+              {mode === "draft" ? <EmptyWorkspace onNew={() => setNewMode(true)} /> : null}
+            </>
+          ) : null}
+        </main>
+      </div>
+    </PageShell>
+  );
 }

@@ -227,6 +227,54 @@ export function listSynthesisProfiles() {
   return fetchJson("/library/synthesis/profiles");
 }
 
+/** Durable Synthesis workspaces. The thread, not a browser-local stage, is authoritative. */
+export function listSynthesisThreads({ limit = 30, sessionId = "" } = {}) {
+  const params = new URLSearchParams({ limit: String(limit) });
+  if (sessionId) params.set("session_id", sessionId);
+  return fetchJson(`/library/synthesis/threads?${params}`);
+}
+
+export function getSynthesisThread(threadId) {
+  return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}`);
+}
+
+export function createSynthesisThread({ objective, title = "", requiredGrain = "", sessionId = "" } = {}) {
+  return fetchJson("/library/synthesis/threads", {
+    method: "POST",
+    headers: deskHeaders(),
+    body: JSON.stringify({
+      objective,
+      title: title || undefined,
+      required_grain: requiredGrain || undefined,
+      session_id: sessionId || loadChatSessionId() || undefined,
+    }),
+  });
+}
+
+export function decideSynthesisProposal(threadId, { decision, proposalId, proposalHash } = {}) {
+  return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}/patches`, {
+    method: "POST",
+    headers: deskHeaders(),
+    body: JSON.stringify({
+      decision,
+      proposal_id: proposalId,
+      proposal_hash: proposalHash,
+    }),
+  });
+}
+
+export function requestSynthesisExecution(threadId) {
+  return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}/execute`, {
+    method: "POST",
+    headers: deskHeaders(),
+    body: JSON.stringify({}),
+  });
+}
+
+export function synthesisMaterialisation(threadId) {
+  return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}/materialisation`);
+}
+
 export function getSynthesisProfile(profileId, { refresh = false } = {}) {
   const q = refresh ? "?refresh=1" : "";
   return fetchJson(`/library/synthesis/${encodeURIComponent(profileId)}${q}`);
