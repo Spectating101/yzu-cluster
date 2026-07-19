@@ -87,8 +87,31 @@ class WorkerRunner:
             payload=result.get("detail") if isinstance(result.get("detail"), Mapping) else None,
             at=at,
         )
+
+        connector_state = None
+        connector_probe = result.get("connector_probe")
+        if isinstance(connector_probe, Mapping):
+            connector_id = str(connector_probe.get("connector_id") or connector_probe.get("source_id") or "").strip()
+            if not connector_id:
+                raise ValueError("connector_probe requires connector_id")
+            connector_state = self.store.record_probe(connector_id, connector_probe)
+
+        connector_sync = result.get("connector_sync")
+        if isinstance(connector_sync, Mapping):
+            connector_id = str(connector_sync.get("connector_id") or connector_sync.get("source_id") or "").strip()
+            if not connector_id:
+                raise ValueError("connector_sync requires connector_id")
+            connector_state = self.store.record_sync(
+                connector_id,
+                state_token=connector_sync.get("state_token") or connector_sync.get("cursor"),
+                last_synced_at=connector_sync.get("last_synced_at") or connector_sync.get("timestamp"),
+                quota_remaining=connector_sync.get("quota_remaining"),
+            )
+
         registration = result.get("registration")
         if not isinstance(registration, Mapping):
+            if connector_state is not None:
+                completed["connector"] = connector_state
             return completed
 
         dataset_id = str(registration.get("dataset_id") or (completed.get("outputs") or [""])[0])
@@ -99,7 +122,9 @@ class WorkerRunner:
             revision_id=registration.get("revision_id"),
             manifest_id=str(registration.get("manifest_id") or result.get("manifest_id") or ""),
             vault_path=str(registration.get("vault_path") or registration.get("gdrive_path") or ""),
-            archive_verified=bool(registration.get("archive_verified", registration.get("drive_verified", result.get("archive_verified")))),
+            archive_verified=bool(
+                registration.get("archive_verified", registration.get("drive_verified", result.get("archive_verified")))
+            ),
             readiness=str(registration.get("readiness") or "query_ready"),
             title=registration.get("title") or registration.get("name"),
             verification_state=str(registration.get("verification_state") or "not_checked"),
@@ -117,4 +142,7 @@ class WorkerRunner:
             coverage=registration.get("coverage"),
             at=at,
         )
-        return {"job": self.store.snapshot(claim.run_id), "asset": asset}
+        response = {"job": self.store.snapshot(claim.run_id), "asset": asset}
+        if connector_state is not None:
+            response["connector"] = connector_state
+        return response
