@@ -1,5 +1,7 @@
 /** Resources — running jobs, stack, storage (sources/layers live in deskSourcesManifest.js). */
 
+import { normalizeExecutionLifecycle } from "./executionLifecycle.js";
+
 function fracProgress(text) {
   const m = String(text || "").match(/(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)/);
   if (!m) return null;
@@ -13,17 +15,16 @@ function rowBase(row) {
   return { ok: true, warn: false, ...row };
 }
 
-const ACTIVE_JOB_STATUS = new Set(["running", "pending_approval", "queued"]);
-
 export function buildRunningRows({ health, ops, jobs = [] }) {
   const list = [];
   const desk = health?.desk || {};
   const cq = ops?.collection_queue;
   const dh = ops?.datacite_harvest;
 
-  const activeJobs = jobs.filter((job) => ACTIVE_JOB_STATUS.has(String(job.status || "")));
-  for (const job of activeJobs.slice(0, 8)) {
-    const st = job.status || "unknown";
+  const activeJobs = jobs
+    .map((job) => ({ job, lifecycle: normalizeExecutionLifecycle(job) }))
+    .filter(({ lifecycle }) => lifecycle.visible);
+  for (const { job, lifecycle } of activeJobs.slice(0, 8)) {
     const title = job.plan?.title || job.type || job.name || job.id;
     list.push(
       rowBase({
@@ -31,11 +32,14 @@ export function buildRunningRows({ health, ops, jobs = [] }) {
         kind: "active",
         key: `job-${job.id}`,
         label: title,
-        metric: st.replace(/_/g, " "),
-        ok: st === "completed" || st === "running",
-        warn: st === "pending_approval" || st === "queued",
+        metric: lifecycle.label,
+        detail: lifecycle.detail,
+        progress: lifecycle.progress,
+        ok: lifecycle.ok,
+        warn: lifecycle.warn,
+        lifecycle,
         job,
-        priority: st === "pending_approval" ? 0 : st === "running" ? 1 : 2,
+        priority: lifecycle.priority,
       }),
     );
   }
