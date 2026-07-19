@@ -237,15 +237,20 @@ class YzuOrchestrator:
             renewal = self.runtime.lease_renewer(claim).start()
             try:
                 result = self.executor.execute(job_id, job["plan"])
+                renewal.raise_if_lost()
+                self.store.event(job_id, "info", "Execution completed")
+                if self._on_job_completed:
+                    promo = self._on_job_completed(job_id, job["plan"], result)
+                    if promo:
+                        result = dict(result or {})
+                        result["registry_promotion"] = promo
+                # Archive verification, promotion, and registry read-back are
+                # part of the owned attempt. Keep renewing until authoritative
+                # completion proof is ready to be recorded.
+                renewal.raise_if_lost()
             finally:
                 renewal.stop()
             renewal.raise_if_lost()
-            self.store.event(job_id, "info", "Execution completed")
-            if self._on_job_completed:
-                promo = self._on_job_completed(job_id, job["plan"], result)
-                if promo:
-                    result = dict(result or {})
-                    result["registry_promotion"] = promo
             runtime_state = self.runtime.complete(claim, result)
             self.store.update(job_id, "completed", result=result)
             if self._on_job_post_completed:

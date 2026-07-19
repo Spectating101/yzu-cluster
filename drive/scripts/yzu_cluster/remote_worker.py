@@ -300,33 +300,37 @@ def execute_http_manifest(
             timeout=int(plan.get("timeout_seconds", 7200)),
             check=False,
         )
+        heartbeat.raise_if_lost()
+        if process.returncode not in {0, 2}:
+            raise RuntimeError(
+                f"remote_collect exited {process.returncode}: {(process.stderr or process.stdout)[-1000:]}"
+            )
+        if not artifact_path.is_file() or artifact_path.stat().st_size < 32:
+            raise RuntimeError("remote collector produced no usable artifact ZIP")
+
+        # Artifact transfer and usage proof still belong to this worker attempt.
+        # Controller-side completion renewal takes over only after upload returns.
+        uploaded = client.upload(
+            job_id,
+            worker_id=claim["worker_id"],
+            attempt=attempt,
+            path=artifact_path,
+        )
+        elapsed = max(0.0, time.monotonic() - started)
+        client.usage(
+            job_id,
+            {
+                "worker_id": claim["worker_id"],
+                "attempt": attempt,
+                "disk_written_mb": round(artifact_path.stat().st_size / (1024 * 1024), 6),
+                "network_bytes": artifact_path.stat().st_size,
+                "api_calls": len(items),
+            },
+        )
+        heartbeat.raise_if_lost()
     finally:
         heartbeat.stop()
     heartbeat.raise_if_lost()
-    if process.returncode not in {0, 2}:
-        raise RuntimeError(
-            f"remote_collect exited {process.returncode}: {(process.stderr or process.stdout)[-1000:]}"
-        )
-    if not artifact_path.is_file() or artifact_path.stat().st_size < 32:
-        raise RuntimeError("remote collector produced no usable artifact ZIP")
-
-    uploaded = client.upload(
-        job_id,
-        worker_id=claim["worker_id"],
-        attempt=attempt,
-        path=artifact_path,
-    )
-    elapsed = max(0.0, time.monotonic() - started)
-    client.usage(
-        job_id,
-        {
-            "worker_id": claim["worker_id"],
-            "attempt": attempt,
-            "disk_written_mb": round(artifact_path.stat().st_size / (1024 * 1024), 6),
-            "network_bytes": artifact_path.stat().st_size,
-            "api_calls": len(items),
-        },
-    )
     return client.complete(
         job_id,
         {
