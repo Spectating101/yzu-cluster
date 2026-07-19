@@ -26,10 +26,16 @@ class JobContext:
             total=total,
             next_stage=stage,
             at=at,
+            expected_attempt=self.claim.attempt,
         )
 
     def usage(self, **values: Any) -> dict[str, Any]:
-        return self.store.record_usage(self.claim.run_id, worker_id=self.claim.worker_id, **values)
+        return self.store.record_usage(
+            self.claim.run_id,
+            worker_id=self.claim.worker_id,
+            expected_attempt=self.claim.attempt,
+            **values,
+        )
 
 
 class WorkerRunner:
@@ -55,6 +61,7 @@ class WorkerRunner:
                 retryable=False,
                 message="No worker handler is registered for this job type.",
                 at=at,
+                expected_attempt=claim.attempt,
             )
 
         context = JobContext(self.store, claim, self.lease_seconds)
@@ -69,6 +76,7 @@ class WorkerRunner:
                 error=f"{type(exc).__name__}: {exc}",
                 retryable=True,
                 at=at,
+                expected_attempt=claim.attempt,
             )
 
         usage = result.get("usage")
@@ -83,6 +91,7 @@ class WorkerRunner:
                 api_calls=usage.get("api_calls"),
                 storage_bytes=usage.get("storage_bytes"),
                 at=usage.get("timestamp") or at,
+                expected_attempt=claim.attempt,
             )
 
         progress = result.get("progress") if isinstance(result.get("progress"), Mapping) else {}
@@ -103,6 +112,7 @@ class WorkerRunner:
             message=result.get("message"),
             payload=result.get("detail") if isinstance(result.get("detail"), Mapping) else None,
             at=at,
+            expected_attempt=claim.attempt,
         )
 
         connector_state = None
@@ -162,6 +172,7 @@ class WorkerRunner:
             grain=registration.get("grain"),
             coverage=registration.get("coverage"),
             at=at,
+            expected_attempt=claim.attempt,
         )
         response = {"job": self.store.snapshot(claim.run_id), "asset": asset}
         if connector_state is not None:
