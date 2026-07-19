@@ -18,10 +18,11 @@ import subprocess
 import sys
 import threading
 import time
+from http.client import HTTPConnection, HTTPSConnection
 from pathlib import Path
 from typing import Any
 from urllib.error import HTTPError, URLError
-from urllib.parse import quote
+from urllib.parse import quote, urlsplit
 from urllib.request import Request, urlopen
 
 from .worker_control import TOKEN_ENV
@@ -118,20 +119,47 @@ class ControlClient:
         attempt: int,
         path: Path,
     ) -> dict[str, Any]:
-        content = path.read_bytes()
-        digest = hashlib.sha256(content).hexdigest()
-        return self._request(
-            "PUT",
-            f"/v1/jobs/{quote(job_id, safe='')}/artifacts/{quote(path.name, safe='')}",
-            content=content,
-            headers={
-                "Content-Type": "application/octet-stream",
-                "X-YZU-Worker-Id": worker_id,
-                "X-YZU-Attempt": str(attempt),
-                "X-Content-Sha256": digest,
-            },
+        size = path.stat().st_size
+        digest_builder = hashlib.sha256()
+        with path.open("rb") as handle:
+            while chunk := handle.read(1024 * 1024):
+                digest_builder.update(chunk)
+        digest = digest_builder.hexdigest()
+
+        parsed = urlsplit(self.base_url)
+        if parsed.scheme not in {"http", "https"} or not parsed.hostname:
+            raise ValueError("worker control URL must be http or https")
+        connection_type = HTTPSConnection if parsed.scheme == "https" else HTTPConnection
+        connection = connection_type(
+            parsed.hostname,
+            parsed.port,
             timeout=max(self.timeout, 1800),
         )
+        endpoint = (
+            f"{parsed.path.rstrip('/')}/v1/jobs/{quote(job_id, safe='')}/artifacts/"
+            f"{quote(path.name, safe='')}"
+        )
+        try:
+            connection.putrequest("PUT", endpoint)
+            connection.putheader("Authorization", f"Bearer {self.token}")
+            connection.putheader("Accept", "application/json")
+            connection.putheader("Content-Type", "application/octet-stream")
+            connection.putheader("Content-Length", str(size))
+            connection.putheader("X-YZU-Worker-Id", worker_id)
+            connection.putheader("X-YZU-Attempt", str(attempt))
+            connection.putheader("X-Content-Sha256", digest)
+            connection.endheaders()
+            with path.open("rb") as handle:
+                while chunk := handle.read(1024 * 1024):
+                    connection.send(chunk)
+            response = connection.getresponse()
+            raw = response.read()
+            if response.status >= 400:
+                detail = raw.decode("utf-8", errors="replace")
+                raise RuntimeError(f"control plane HTTP {response.status}: {detail}")
+            return json.loads(raw.decode("utf-8")) if raw else {}
+        finally:
+            connection.close()
 
     def complete(self, job_id: str, payload: dict[str, Any]) -> dict[str, Any]:
         return self._request(

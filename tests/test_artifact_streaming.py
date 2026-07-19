@@ -1,7 +1,4 @@
-from pathlib import Path
-
-Path("tests/test_artifact_streaming.py").write_text(
-    '''from __future__ import annotations
+from __future__ import annotations
 
 import hashlib
 import json
@@ -134,6 +131,3 @@ def test_control_client_streams_file_without_path_read_bytes(tmp_path: Path, mon
     assert captured["length"] == len(payload)
     assert captured["body"] == payload
     assert captured["digest"] == hashlib.sha256(payload).hexdigest()
-''',
-    encoding="utf-8",
-)
