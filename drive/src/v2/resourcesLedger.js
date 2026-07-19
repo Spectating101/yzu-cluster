@@ -1,6 +1,7 @@
 /** Resources — running jobs, stack, storage (sources/layers live in deskSourcesManifest.js). */
 
 import { normalizeExecutionLifecycle } from "./executionLifecycle.js";
+import { evaluateJobRouting } from "./workerRouting.js";
 
 function fracProgress(text) {
   const m = String(text || "").match(/(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)/);
@@ -20,9 +21,21 @@ export function buildRunningRows({ health, ops, jobs = [] }) {
   const desk = health?.desk || {};
   const cq = ops?.collection_queue;
   const dh = ops?.datacite_harvest;
+  const sharedWorkers = health?.cluster?.workers ?? desk?.workers ?? ops?.workers ?? [];
 
   const activeJobs = jobs
-    .map((job) => ({ job, lifecycle: normalizeExecutionLifecycle(job) }))
+    .map((job) => {
+      const normalized = normalizeExecutionLifecycle(job);
+      const routing = evaluateJobRouting(job, job?.worker_inventory ?? job?.available_workers ?? sharedWorkers);
+      const lifecycle = {
+        ...normalized,
+        routing,
+        ok: normalized.ok && !routing.warn,
+        warn: normalized.warn || routing.warn,
+        detail: [normalized.detail, routing.warn ? routing.detail : null].filter(Boolean).join(" · ") || null,
+      };
+      return { job, lifecycle };
+    })
     .filter(({ lifecycle }) => lifecycle.visible);
   for (const { job, lifecycle } of activeJobs.slice(0, 8)) {
     const title = job.plan?.title || job.type || job.name || job.id;
