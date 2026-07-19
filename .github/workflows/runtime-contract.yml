@@ -5,7 +5,7 @@ on:
     paths:
       - "drive/src/v2/**"
       - "scripts/yzu_cluster/**"
-      - "tests/test_yzu_interop_contract.py"
+      - "tests/test_yzu_interop_*.py"
       - "docs/product/CLUSTER_RUNTIME_INTEROP_CONTRACT.md"
       - "package.json"
       - "package-lock.json"
@@ -16,7 +16,7 @@ on:
     paths:
       - "drive/src/v2/**"
       - "scripts/yzu_cluster/**"
-      - "tests/test_yzu_interop_contract.py"
+      - "tests/test_yzu_interop_*.py"
       - "docs/product/CLUSTER_RUNTIME_INTEROP_CONTRACT.md"
       - "package.json"
       - "package-lock.json"
@@ -42,8 +42,8 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Verify backend orchestration contract
-        run: python -m unittest tests.test_yzu_interop_contract -v
+      - name: Verify backend orchestration contracts
+        run: python -m unittest discover -s tests -p "test_yzu_interop_*.py" -v
 
       - name: Use Node.js
         uses: actions/setup-node@v4
