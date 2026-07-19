@@ -111,7 +111,8 @@ def test_remote_worker_join_claim_heartbeat_usage_and_complete(tmp_path: Path) -
     assert usage["memory_peak_mb"] == 512
     assert completed["status"] == "completed"
     assert completed["lifecycle"]["stage"] == "completed"
-    assert completed["assigned_worker"] == "windows-01"
+    assert completed["assigned_worker"]["id"] == "windows-01"
+    assert completed["worker_id"] == "windows-01"
 
     with pytest.raises((PermissionError, ValueError), match="stale execution attempt|not writable"):
         control.heartbeat(
