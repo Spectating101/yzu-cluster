@@ -10,15 +10,7 @@ from datetime import datetime, timedelta, timezone
 import sqlite3
 from typing import Any, Iterable, Mapping
 
-from ._interop_common import (
-    Claim,
-    dumps,
-    ids,
-    loads,
-    normalize_capabilities,
-    now_utc,
-    parse_time,
-)
+from ._interop_common import Claim, ids, loads, normalize_capabilities, now_utc, parse_time
 from .interop_resources import RESOURCE_KEYS, normalize_requirements
 
 RUNNABLE_WORKER_STATES = {"online", "ready", "idle"}
@@ -47,10 +39,9 @@ class ReliabilityMixin:
             stored_status in RUNNABLE_WORKER_STATES
             and (heartbeat is None or (age_seconds is not None and age_seconds > threshold))
         )
-        freshness_state = "stale" if stale else "fresh" if heartbeat else "unknown"
         worker["stored_status"] = stored_status
         worker["freshness"] = {
-            "state": freshness_state,
+            "state": "stale" if stale else "fresh" if heartbeat else "unknown",
             "age_seconds": age_seconds,
             "stale_after_seconds": threshold,
         }
@@ -71,18 +62,16 @@ class ReliabilityMixin:
         retryable: bool,
         resource_requirements: Mapping[str, Any] | None,
     ) -> bool:
-        return all(
-            (
-                row["job_type"] == job_type,
-                (row["title"] or None) == (title or None),
-                int(row["max_attempts"]) == int(max_attempts),
-                bool(row["retryable"]) == bool(retryable),
-                loads(row["required_capabilities"], []) == normalize_capabilities(required_capabilities),
-                loads(row["inputs"], []) == ids(inputs),
-                loads(row["outputs"], []) == ids(outputs),
-                self.requirements(row["run_id"]) == _requirements(resource_requirements),
-            )
-        )
+        return all((
+            row["job_type"] == job_type,
+            (row["title"] or None) == (title or None),
+            int(row["max_attempts"]) == int(max_attempts),
+            bool(row["retryable"]) == bool(retryable),
+            loads(row["required_capabilities"], []) == normalize_capabilities(required_capabilities),
+            loads(row["inputs"], []) == ids(inputs),
+            loads(row["outputs"], []) == ids(outputs),
+            self.requirements(row["run_id"]) == _requirements(resource_requirements),
+        ))
 
     def submit(
         self,
@@ -164,15 +153,11 @@ class ReliabilityMixin:
                 WHERE runs.stage IN('queued','retrying') AND runs.attempt<runs.max_attempts
                 ORDER BY scheduling_priority DESC,runs.created_at,runs.run_id"""
             ).fetchall()
-            selected = next(
-                (
-                    row
-                    for row in rows
-                    if set(loads(row["required_capabilities"], [])).issubset(available)
-                    and self._resource_fit(row["run_id"], worker_id)
-                ),
-                None,
-            )
+            selected = next((
+                row for row in rows
+                if set(loads(row["required_capabilities"], [])).issubset(available)
+                and self._resource_fit(row["run_id"], worker_id)
+            ), None)
             if selected is None:
                 return None
             attempt = int(selected["attempt"]) + 1
@@ -182,23 +167,15 @@ class ReliabilityMixin:
                 (attempt, worker_id, worker["pool"], expiry, at, selected["run_id"]),
             )
             self._event(
-                selected["run_id"],
-                "assigned",
-                "assigned",
-                at=at,
-                worker_id=worker_id,
-                attempt=attempt,
+                selected["run_id"], "assigned", "assigned", at=at,
+                worker_id=worker_id, attempt=attempt,
                 payload={"lease_expires_at": expiry, "priority": int(selected["scheduling_priority"])},
             )
 
         row = self._row(selected["run_id"])
         requirements = self.requirements(row["run_id"])
         return Claim(
-            row["run_id"],
-            row["job_id"],
-            row["job_type"],
-            attempt,
-            worker_id,
+            row["run_id"], row["job_id"], row["job_type"], attempt, worker_id,
             tuple(loads(row["required_capabilities"], [])),
             tuple(loads(row["inputs"], [])),
             tuple(loads(row["outputs"], [])),
@@ -225,25 +202,24 @@ class ReliabilityMixin:
         grain: str | None,
         coverage: str | None,
     ) -> bool:
-        return all(
-            (
-                existing["registry_id"] == registry_id,
-                existing["manifest_id"] == manifest_id,
-                existing["vault_path"] == vault_path,
-                existing["analysis_readiness"] == readiness,
-                existing["drive_verified"] is True,
-                _same_optional(existing.get("revision_id"), revision_id),
-                _same_optional(existing.get("checksum"), checksum),
-                _same_optional(existing.get("method_revision"), method_revision),
-                lineage_inputs is None or existing["lineage"]["inputs"] == ids(lineage_inputs),
-                not list(source_snapshots) or existing["lineage"]["source_snapshots"] == ids(source_snapshots),
-                _same_optional(existing.get("row_count"), rows),
-                _same_optional(existing.get("field_count"), fields),
-                _same_optional(existing.get("entity_count"), entities),
-                _same_optional(existing.get("grain"), grain),
-                _same_optional(existing.get("coverage"), coverage),
-            )
-        )
+        snapshots = list(source_snapshots)
+        return all((
+            existing["registry_id"] == registry_id,
+            existing["manifest_id"] == manifest_id,
+            existing["vault_path"] == vault_path,
+            existing["analysis_readiness"] == readiness,
+            existing["drive_verified"] is True,
+            _same_optional(existing.get("revision_id"), revision_id),
+            _same_optional(existing.get("checksum"), checksum),
+            _same_optional(existing.get("method_revision"), method_revision),
+            lineage_inputs is None or existing["lineage"]["inputs"] == ids(lineage_inputs),
+            not snapshots or existing["lineage"]["source_snapshots"] == ids(snapshots),
+            _same_optional(existing.get("row_count"), rows),
+            _same_optional(existing.get("field_count"), fields),
+            _same_optional(existing.get("entity_count"), entities),
+            _same_optional(existing.get("grain"), grain),
+            _same_optional(existing.get("coverage"), coverage),
+        ))
 
     def register(
         self,
@@ -274,12 +250,22 @@ class ReliabilityMixin:
         coverage: str | None = None,
         at: str | None = None,
     ) -> dict[str, Any]:
+        if not all((dataset_id, registry_id, manifest_id, vault_path)):
+            raise ValueError("dataset_id, registry_id, manifest_id, and vault_path are required")
+        if not archive_verified:
+            raise ValueError("registered assets require verified archive proof")
         ready = readiness.strip().lower().replace("-", "_")
+        if ready not in {"registered", "query_ready"}:
+            raise ValueError("invalid readiness")
+
         run = self._row(run_id)
+        declared = loads(run["outputs"], [])
+        if declared and dataset_id not in declared:
+            raise ValueError("registered dataset_id must match a declared run output")
+
         existing_row = self.db.execute("SELECT dataset_id FROM assets WHERE dataset_id=?", (dataset_id,)).fetchone()
         existing = self.asset(dataset_id) if existing_row is not None else None
         snapshots = list(source_snapshots)
-
         if existing is not None:
             if not self._registration_matches(
                 existing,
