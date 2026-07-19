@@ -158,6 +158,8 @@ class ClusterRuntimeAdapter:
         self.connection.close()
 
     def register_controller(self) -> dict[str, Any]:
+        """Register or refresh the local controller heartbeat and measured capacity."""
+
         capabilities = ["controller", "orchestration", "python", "archive", "pipeline"]
         operations = self.config.get("operations") or {}
         if not operations.get("disable_local_http_collect"):
@@ -230,24 +232,30 @@ class ClusterRuntimeAdapter:
         return self.store.record(run_id, "blocked", message=message)
 
     def claim_next(self, worker_id: str | None = None, *, lease_seconds: int = 120) -> Claim | None:
+        resolved_worker = worker_id or self.controller_id
+        if resolved_worker == self.controller_id:
+            self.register_controller()
         self.store.reap_expired()
-        return self.store.claim(worker_id or self.controller_id, lease_seconds=lease_seconds)
+        return self.store.claim(resolved_worker, lease_seconds=lease_seconds)
 
     def claim_job(self, job_id: str, worker_id: str | None = None, *, lease_seconds: int = 120) -> Claim | None:
         """Claim one named legacy job without disturbing queue order elsewhere."""
 
+        resolved_worker = worker_id or self.controller_id
+        if resolved_worker == self.controller_id:
+            self.register_controller()
         self.store.reap_expired()
         return self.store.claim(
-            worker_id or self.controller_id,
+            resolved_worker,
             lease_seconds=lease_seconds,
             job_id=job_id,
         )
 
-    def start(self, claim: Claim) -> dict[str, Any]:
+    def start(self, claim: Claim, *, lease_seconds: int = 120) -> dict[str, Any]:
         return self.store.heartbeat(
             claim.run_id,
             claim.worker_id,
-            lease_seconds=120,
+            lease_seconds=lease_seconds,
             next_stage="running",
             expected_attempt=claim.attempt,
         )
@@ -260,6 +268,7 @@ class ClusterRuntimeAdapter:
         attempt: int,
         progress: Mapping[str, Any] | None = None,
         stage: str | None = None,
+        lease_seconds: int = 120,
     ) -> dict[str, Any]:
         progress = progress or {}
         return self.store.heartbeat(
@@ -268,6 +277,7 @@ class ClusterRuntimeAdapter:
             current=progress.get("current"),
             total=progress.get("total"),
             next_stage=stage,
+            lease_seconds=lease_seconds,
             expected_attempt=attempt,
         )
 
@@ -314,6 +324,8 @@ class ClusterRuntimeAdapter:
             return completed
         if evidence.get("archive_verified") is not True:
             return completed
+        if manifest_id and str(evidence["manifest_id"]) != str(manifest_id):
+            raise ValueError("registration manifest_id does not match completed run proof")
         self.store.register(
             run_id,
             dataset_id=str(evidence["dataset_id"]),
@@ -353,7 +365,7 @@ class ClusterRuntimeAdapter:
         )
 
     def project(self, job: Mapping[str, Any]) -> dict[str, Any]:
-        """Add runtime truth without changing legacy fields or status names."""
+        """Add authoritative runtime truth while preserving legacy compatibility."""
 
         projected = dict(job)
         try:
@@ -361,8 +373,21 @@ class ClusterRuntimeAdapter:
         except KeyError:
             return projected
         projected["runtime"] = runtime
-        for key in ("run_id", "attempt", "assigned_worker", "worker_pool", "lease_expires_at", "progress"):
+        projected["lifecycle"] = runtime.get("lifecycle")
+        projected["execution"] = runtime.get("execution")
+        for key in (
+            "run_id",
+            "attempt",
+            "assigned_worker",
+            "worker_pool",
+            "lease_expires_at",
+            "progress",
+            "outputs",
+            "manifest_id",
+            "registration_id",
+        ):
             projected[key] = runtime.get(key)
+        projected["archive_verified"] = runtime.get("drive_verified")
         return projected
 
     def health(self) -> dict[str, Any]:
