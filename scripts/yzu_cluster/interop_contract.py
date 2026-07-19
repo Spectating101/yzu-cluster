@@ -6,10 +6,15 @@ YzuOrchestrator. It emits the additive contracts consumed by Research Drive.
 from ._interop_common import BaseStore, Claim, stage, now_utc, normalize_capabilities
 from ._interop_runtime import RuntimeMixin
 from ._interop_registry import RegistryMixin
+from .interop_connectors import ConnectorMixin
 
 
-class InteropStore(RuntimeMixin, RegistryMixin, BaseStore):
-    """Durable worker, execution, lease, retry, and asset-registration store."""
+class InteropStore(ConnectorMixin, RuntimeMixin, RegistryMixin, BaseStore):
+    """Durable worker, execution, connector, and asset-registration store."""
+
+    def __init__(self, database=":memory:") -> None:
+        super().__init__(database)
+        self._init_connectors()
 
 
 __all__ = ["Claim", "InteropStore", "stage", "now_utc", "normalize_capabilities"]
