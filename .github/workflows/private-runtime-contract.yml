@@ -10,6 +10,7 @@ on:
       - "tests/test_orchestrator_runtime.py"
       - "tests/test_bootstrap_drive_order.py"
       - "tests/test_acquisition_manifest.py"
+      - "tests/test_scraper_manifest.py"
       - "tests/test_job_status_counts.py"
       - "tests/test_yzu_interop_*.py"
       - ".github/workflows/private-runtime-contract.yml"
