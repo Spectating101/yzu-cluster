@@ -30,9 +30,10 @@ const STAGE_ALIASES = new Map([
   ["materializing", "registering"],
   ["materialising", "registering"],
   ["registered", "registered"],
-  ["query_ready", "registered"],
-  ["materialized", "registered"],
-  ["materialised", "registered"],
+  ["query_ready", "query_ready"],
+  ["queryable", "query_ready"],
+  ["materialized", "completed"],
+  ["materialised", "completed"],
   ["completed", "completed"],
   ["complete", "completed"],
   ["succeeded", "completed"],
@@ -56,6 +57,7 @@ const STAGE_LABELS = {
   archiving: "archiving",
   registering: "registering",
   registered: "registered",
+  query_ready: "query-ready",
   completed: "completed",
   blocked: "blocked",
   failed: "failed",
@@ -76,6 +78,7 @@ const STAGE_PRIORITY = {
   unknown: 4,
   completed: 9,
   registered: 9,
+  query_ready: 9,
 };
 
 const VISIBLE_STAGES = new Set([
@@ -91,7 +94,7 @@ const VISIBLE_STAGES = new Set([
   "failed",
 ]);
 
-const TERMINAL_STAGES = new Set(["registered", "completed", "blocked", "failed"]);
+const TERMINAL_STAGES = new Set(["query_ready", "registered", "completed", "blocked", "failed"]);
 
 function firstValue(...values) {
   return values.find((value) => value !== undefined && value !== null && value !== "");
@@ -220,6 +223,7 @@ export function normalizeExecutionLifecycle(job = {}) {
   );
   const registryVerified =
     stage === "registered" ||
+    stage === "query_ready" ||
     truthy(
       firstValue(
         job?.registry_verified,
@@ -276,6 +280,16 @@ export function normalizeExecutionLifecycle(job = {}) {
       registration_id: registrationId || null,
       archive_verified: archiveVerified,
       registry_verified: registryVerified,
+      query_ready:
+        stage === "query_ready" ||
+        truthy(
+          firstValue(
+            job?.query_ready,
+            job?.lifecycle?.query_ready,
+            job?.execution?.query_ready,
+            job?.registration?.query_ready,
+          ),
+        ),
       rows: countValue(job?.rows, job?.row_count, job?.execution?.rows, job?.lifecycle?.rows),
       fields: countValue(job?.fields, job?.field_count, job?.execution?.fields, job?.lifecycle?.fields),
       entities: countValue(job?.entities, job?.entity_count, job?.execution?.entities, job?.lifecycle?.entities),
@@ -288,8 +302,16 @@ export function normalizeSynthesisExecution(thread = {}) {
   const execution = state.execution || {};
   const spec = state.execution_spec || execution.execution_spec || {};
   const materialisation = firstValue(thread?.materialisation, state?.materialisation, execution?.materialisation);
-  const registered = normalizeStage(materialisation) === "registered" || normalizeStage(execution?.status) === "registered";
-  const status = registered ? "registered" : firstValue(execution?.status, materialisation, "unknown");
+  const materialisationStage = normalizeStage(materialisation);
+  const executionStage = normalizeStage(execution?.status);
+  const status =
+    materialisationStage === "query_ready"
+      ? "query_ready"
+      : materialisationStage === "registered"
+        ? "registered"
+        : firstValue(execution?.status, materialisation, "unknown");
+  const resolvedStage = normalizeStage(status);
+  const registered = resolvedStage === "registered" || resolvedStage === "query_ready";
   const outputId = firstValue(execution?.output_dataset_id, spec?.output_dataset_id);
   const inputIds = firstValue(execution?.inputs, spec?.input_dataset_ids, spec?.input_dataset_id);
 
@@ -297,12 +319,13 @@ export function normalizeSynthesisExecution(thread = {}) {
     ...execution,
     id: firstValue(execution?.job_id, execution?.run_id, thread?.id),
     job_id: firstValue(execution?.job_id, execution?.run_id),
-    status,
+    status: executionStage === "unknown" ? status : resolvedStage,
     inputs: inputIds,
     outputs: firstValue(execution?.outputs, outputId),
     manifest_id: firstValue(execution?.manifest_id, state?.manifest_id),
     drive_verified: firstValue(execution?.drive_verified, execution?.archive_verified),
     registry_verified: registered,
+    query_ready: resolvedStage === "query_ready",
     registration_id: firstValue(execution?.registration_id, execution?.registry_id, outputId),
   });
 }

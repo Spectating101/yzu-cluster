@@ -1,17 +1,36 @@
 /** Research Drive v2 — HTTP client (dev proxies /api → :8765 via vite.config.js). */
 
 import { deskHeaders, loadChatSessionId, loadUserEmail, saveChatSessionId } from "@/v2/deskSession";
+import { createRequestAbort, decodeNdjson, normalizeApiError } from "./transportContract.js";
 
 export const API = import.meta.env.DEV ? "/api" : "";
 
-export async function fetchJson(path, init) {
-  const r = await fetch(`${API}${path}`, init);
-  const data = await r.json().catch(() => ({}));
-  if (!r.ok) {
-    const msg = data.message || data.error || `${r.status} ${path}`;
-    throw new Error(msg);
+export async function fetchJson(path, init = {}) {
+  const options = { ...(init || {}) };
+  const timeoutMs = Number(options.timeoutMs || 0);
+  delete options.timeoutMs;
+  const requestAbort = createRequestAbort(timeoutMs, options.signal);
+  if (requestAbort.signal) options.signal = requestAbort.signal;
+
+  try {
+    const r = await fetch(`${API}${path}`, options);
+    const raw = await r.text();
+    let data = {};
+    if (raw) {
+      try {
+        data = JSON.parse(raw);
+      } catch {
+        data = { message: raw };
+      }
+    }
+    if (!r.ok) throw new Error(normalizeApiError(data, r.status, path));
+    return data;
+  } catch (error) {
+    if (requestAbort.timedOut()) throw new Error(`Request timed out after ${timeoutMs}ms: ${path}`);
+    throw error;
+  } finally {
+    requestAbort.cancel();
   }
-  return data;
 }
 
 export function listDatasets() {
@@ -346,44 +365,50 @@ export async function sendChatMessage(
     rail_context: railContext && typeof railContext === "object" ? railContext : undefined,
   });
 
+  const consumeEvent = (event, state) => {
+    if (event.type === "delta" && event.text) onDelta?.(event.text);
+    if ((event.type === "activity" || event.type === "progress") && event.text) {
+      onActivity?.({ text: event.text, action: event.action || null, elapsed_seconds: event.elapsed_seconds });
+    }
+    if (event.type === "error") throw new Error(event.message || event.error || "Chat stream error");
+    if (event.type === "complete") state.result = event.result || null;
+  };
+
   const streamRes = await fetch(`${API}/library/chat/stream`, {
     method: "POST",
     headers: deskHeaders(),
     body,
   });
+  const contentType = streamRes.headers.get("content-type") || "";
 
-  if (streamRes.ok && (streamRes.headers.get("content-type") || "").includes("ndjson")) {
+  if (streamRes.ok && contentType.includes("ndjson") && streamRes.body) {
     const reader = streamRes.body.getReader();
     const decoder = new TextDecoder();
+    const state = { result: null };
     let buffer = "";
-    let result = null;
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split("\n");
-      buffer = lines.pop() || "";
-      for (const line of lines) {
-        if (!line.trim()) continue;
-        const event = JSON.parse(line);
-        if (event.type === "delta" && event.text) onDelta?.(event.text);
-        if ((event.type === "activity" || event.type === "progress") && event.text) {
-          onActivity?.({
-            text: event.text,
-            phase: event.phase || event.action || event.type,
-            action: event.action || null,
-            elapsed_seconds: event.elapsed_seconds,
-          });
-        }
-        if (event.type === "error") {
-          throw new Error(event.message || event.error || "Chat stream error");
-        }
-        if (event.type === "complete") result = event.result || null;
-      }
+      const decoded = decodeNdjson(buffer, decoder.decode(value, { stream: true }));
+      buffer = decoded.buffer;
+      decoded.events.forEach((event) => consumeEvent(event, state));
     }
-    if (!result) throw new Error("Chat ended without a response");
-    if (result.session_id) saveChatSessionId(result.session_id);
-    return result;
+    const tail = decodeNdjson(buffer, decoder.decode(), { final: true });
+    tail.events.forEach((event) => consumeEvent(event, state));
+    if (!state.result) throw new Error("Chat ended without a response");
+    if (state.result.session_id) saveChatSessionId(state.result.session_id);
+    return state.result;
+  }
+
+  if (streamRes.ok) {
+    const payload = await streamRes.json().catch(() => ({}));
+    if (payload.session_id) saveChatSessionId(payload.session_id);
+    return payload;
+  }
+
+  if (![404, 405, 406, 415].includes(streamRes.status)) {
+    const streamError = await streamRes.json().catch(() => ({}));
+    throw new Error(normalizeApiError(streamError, streamRes.status, "/library/chat/stream"));
   }
 
   const fallback = await fetch(`${API}/library/chat`, {
@@ -392,7 +417,7 @@ export async function sendChatMessage(
     body,
   });
   const payload = await fallback.json().catch(() => ({}));
-  if (!fallback.ok) throw new Error(payload.message || payload.error || "Chat error");
+  if (!fallback.ok) throw new Error(normalizeApiError(payload, fallback.status, "/library/chat"));
   if (payload.session_id) saveChatSessionId(payload.session_id);
   return payload;
 }
