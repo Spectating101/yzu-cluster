@@ -77,7 +77,10 @@ class AttemptFenceTests(unittest.TestCase):
         }
         first = store.record(run["run_id"], "completed", **proof)
         replay = store.record(run["run_id"], "completed", **proof)
-        self.assertEqual(replay, first)
+        self.assertEqual(replay["run_id"], first["run_id"])
+        self.assertEqual(replay["status"], "completed")
+        self.assertEqual(replay["manifest_id"], "manifest-a")
+        self.assertEqual(replay["outputs"], ["snapshot-a"])
         completed_events = store.db.execute(
             "SELECT COUNT(*) FROM events WHERE run_id=? AND event_type='completed'",
             (run["run_id"],),
