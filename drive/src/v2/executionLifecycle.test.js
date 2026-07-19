@@ -5,6 +5,7 @@ import {
   executionSortPriority,
   isExecutionVisible,
   normalizeExecutionLifecycle,
+  normalizeSynthesisExecution,
 } from "./executionLifecycle.js";
 import { buildRunningRows } from "./resourcesLedger.js";
 
@@ -23,6 +24,7 @@ test("normalizes a running cluster job without inventing progress", () => {
   assert.equal(result.proof.run_id, "job-17");
   assert.equal(result.proof.pool, "windows_lab");
   assert.equal(result.visible, true);
+  assert.equal(result.terminal, false);
 });
 
 test("uses explicit bounded progress and preserves output proof", () => {
@@ -48,22 +50,67 @@ test("uses explicit bounded progress and preserves output proof", () => {
 });
 
 test("surfaces failed and blocked jobs as attention items", () => {
-  const failed = normalizeExecutionLifecycle({ status: "error", attempt: 2 });
+  const failed = normalizeExecutionLifecycle({ status: "error", attempt: 2, retryable: true });
   const blocked = normalizeExecutionLifecycle({ status: "stalled" });
 
   assert.equal(failed.stage, "failed");
   assert.equal(failed.warn, true);
+  assert.equal(failed.retryable, true);
   assert.match(failed.detail, /attempt 2/);
   assert.equal(blocked.stage, "blocked");
   assert.equal(isExecutionVisible(blocked), true);
   assert.equal(executionSortPriority(failed), 0);
 });
 
-test("does not keep completed work in the active Resources list", () => {
-  const completed = normalizeExecutionLifecycle({ status: "succeeded" });
+test("distinguishes completed execution from registered research asset", () => {
+  const completed = normalizeExecutionLifecycle({ status: "succeeded", outputs: ["panel-v1"] });
+  const registered = normalizeExecutionLifecycle({
+    status: "registered",
+    outputs: ["panel-v1"],
+    manifest_id: "manifest-7",
+    drive_verified: true,
+    registration_id: "registry:panel-v1",
+  });
+
   assert.equal(completed.stage, "completed");
-  assert.equal(completed.visible, false);
-  assert.equal(isExecutionVisible({ status: "completed" }), false);
+  assert.equal(completed.proof.registry_verified, false);
+  assert.equal(registered.stage, "registered");
+  assert.equal(registered.terminal, true);
+  assert.equal(registered.visible, false);
+  assert.equal(registered.proof.manifest_id, "manifest-7");
+  assert.equal(registered.proof.archive_verified, true);
+  assert.equal(registered.proof.registry_verified, true);
+});
+
+test("normalizes a Synthesis thread into the shared execution contract", () => {
+  const result = normalizeSynthesisExecution({
+    id: "syn-4",
+    materialisation: "registered",
+    state: {
+      execution_spec: {
+        input_dataset_id: "reddit-events",
+        output_dataset_id: "attention-index-v1",
+      },
+      execution: {
+        job_id: "job-syn-4",
+        status: "completed",
+        worker: "optiplex",
+        manifest_id: "manifest-syn-4",
+        drive_verified: true,
+        rows: 3120,
+        field_count: 14,
+      },
+    },
+  });
+
+  assert.equal(result.stage, "registered");
+  assert.equal(result.proof.run_id, "job-syn-4");
+  assert.equal(result.proof.worker, "optiplex");
+  assert.deepEqual(result.proof.inputs, ["reddit-events"]);
+  assert.deepEqual(result.proof.outputs, ["attention-index-v1"]);
+  assert.equal(result.proof.rows, 3120);
+  assert.equal(result.proof.fields, 14);
+  assert.equal(result.proof.registry_verified, true);
 });
 
 test("Resources rows expose worker, explicit progress, and failed jobs", () => {
