@@ -50,6 +50,28 @@ class InteropAPI:
     def approve_job(self, run_id: str) -> dict[str, Any]:
         return {"job": self.store.approve(run_id)}
 
+    def upsert_connector(self, payload: Mapping[str, Any]) -> dict[str, Any]:
+        return {"connector": self.store.upsert_connector(payload)}
+
+    def connector(self, connector_id: str) -> dict[str, Any]:
+        return {"connector": self.store.connector(connector_id)}
+
+    def connectors(self) -> dict[str, Any]:
+        return {"connectors": self.store.list_connectors()}
+
+    def record_connector_probe(self, connector_id: str, payload: Mapping[str, Any]) -> dict[str, Any]:
+        return {"connector": self.store.record_probe(connector_id, payload)}
+
+    def record_connector_sync(self, connector_id: str, payload: Mapping[str, Any]) -> dict[str, Any]:
+        return {
+            "connector": self.store.record_sync(
+                connector_id,
+                state_token=payload.get("state_token") or payload.get("cursor"),
+                last_synced_at=payload.get("last_synced_at") or payload.get("timestamp"),
+                quota_remaining=payload.get("quota_remaining"),
+            )
+        }
+
     def join_worker(self, payload: Mapping[str, Any]) -> dict[str, Any]:
         worker_id = str(payload.get("id") or payload.get("worker_id") or "").strip()
         worker = self.store.upsert_worker(
@@ -143,7 +165,10 @@ class InteropAPI:
         return {"jobs": self.store.active(limit=limit)}
 
     def health(self) -> dict[str, Any]:
-        workers = [self.store.worker(row["worker_id"]) for row in self.store.db.execute("SELECT worker_id FROM workers ORDER BY worker_id")]
+        workers = [
+            self.store.worker(row["worker_id"])
+            for row in self.store.db.execute("SELECT worker_id FROM workers ORDER BY worker_id")
+        ]
         stages = Counter(row["stage"] for row in self.store.db.execute("SELECT stage FROM runs"))
         pool_counts: dict[str, dict[str, int]] = {}
         for worker in workers:
@@ -153,13 +178,20 @@ class InteropAPI:
             if worker.get("status") in {"online", "ready", "idle"}:
                 pool_counts[pool]["online"] += 1
         active = sum(count for state, count in stages.items() if state not in {"completed", "registered"})
+        connectors = self.store.list_connectors()
+        access_counts = Counter(item["access_state"] for item in connectors)
+        busy = sum(
+            1
+            for _row in self.store.db.execute(
+                "SELECT DISTINCT worker_id FROM runs WHERE worker_id IS NOT NULL "
+                "AND stage NOT IN('completed','registered','failed','blocked')"
+            )
+        )
         return {
             "cluster": {"workers": workers, "worker_pools": pool_counts},
             "desk": {
+                "connectors": {"total": len(connectors), **dict(access_counts)},
                 "jobs": {"active": active, **dict(stages)},
-                "worker_pools": {
-                    "total": len(workers),
-                    "busy": sum(1 for row in self.store.db.execute("SELECT DISTINCT worker_id FROM runs WHERE worker_id IS NOT NULL AND stage NOT IN('completed','registered','failed','blocked')")),
-                },
+                "worker_pools": {"total": len(workers), "busy": busy},
             },
         }
