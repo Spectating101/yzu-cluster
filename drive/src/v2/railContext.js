@@ -16,6 +16,7 @@ function vaultPath(dataset) {
 
 function lifecycleSelection(lifecycle = {}) {
   const proof = lifecycle.proof || {};
+  const routing = lifecycle.routing || {};
   return {
     execution_status: lifecycle.stage || undefined,
     progress: lifecycle.progress ?? undefined,
@@ -36,6 +37,10 @@ function lifecycleSelection(lifecycle = {}) {
     outputs: proof.outputs?.length ? proof.outputs : undefined,
     error: lifecycle.error || undefined,
     retryable: lifecycle.retryable || undefined,
+    routing_status: routing.status || undefined,
+    required_capabilities: routing.required?.length ? routing.required : undefined,
+    missing_capabilities: routing.missing?.length ? routing.missing : undefined,
+    eligible_workers: routing.eligible_workers?.length ? routing.eligible_workers : undefined,
   };
 }
 
