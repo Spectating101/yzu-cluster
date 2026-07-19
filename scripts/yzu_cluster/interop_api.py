@@ -43,6 +43,7 @@ class InteropAPI:
             pending_approval=bool(payload.get("pending_approval") or payload.get("approval_required")),
             max_attempts=int(payload.get("max_attempts") or 3),
             retryable=payload.get("retryable") is not False,
+            resource_requirements=payload.get("resource_requirements") or payload.get("resources"),
             run_id=payload.get("run_id"),
         )
         return {"job": job}
@@ -131,6 +132,21 @@ class InteropAPI:
     def reap_expired(self, *, at: str | None = None) -> dict[str, Any]:
         return {"requeued_or_failed": self.store.reap_expired(at=at)}
 
+    def record_usage(self, run_id: str, payload: Mapping[str, Any]) -> dict[str, Any]:
+        return {
+            "usage": self.store.record_usage(
+                run_id,
+                worker_id=payload.get("worker_id"),
+                cpu_seconds=payload.get("cpu_seconds"),
+                memory_peak_mb=payload.get("memory_peak_mb"),
+                disk_written_mb=payload.get("disk_written_mb"),
+                network_bytes=payload.get("network_bytes"),
+                api_calls=payload.get("api_calls"),
+                storage_bytes=payload.get("storage_bytes"),
+                at=payload.get("timestamp") or payload.get("at"),
+            )
+        }
+
     def register_output(self, run_id: str, payload: Mapping[str, Any]) -> dict[str, Any]:
         asset = self.store.register(
             run_id,
@@ -180,6 +196,7 @@ class InteropAPI:
         active = sum(count for state, count in stages.items() if state not in {"completed", "registered"})
         connectors = self.store.list_connectors()
         access_counts = Counter(item["access_state"] for item in connectors)
+        resources = self.store.resources_rollup()
         busy = sum(
             1
             for _row in self.store.db.execute(
@@ -188,7 +205,9 @@ class InteropAPI:
             )
         )
         return {
-            "cluster": {"workers": workers, "worker_pools": pool_counts},
+            "cluster": {
+                "workers": resources["workers"], "worker_pools": pool_counts, "usage": resources["usage"],
+            },
             "desk": {
                 "connectors": {"total": len(connectors), **dict(access_counts)},
                 "jobs": {"active": active, **dict(stages)},
