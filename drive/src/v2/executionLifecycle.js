@@ -124,7 +124,7 @@ function normalizeProgress(job) {
     const current = Number(firstValue(progress.current, progress.completed, progress.done));
     const total = Number(firstValue(progress.total, progress.expected));
     if (Number.isFinite(current) && Number.isFinite(total) && total > 0) {
-      return Math.max(0, Math.min(100, Math.round((current / total) * 100));
+      return Math.max(0, Math.min(100, Math.round((current / total) * 100)));
     }
   }
   return null;
