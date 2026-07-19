@@ -33,12 +33,14 @@ function readinessState(asset) {
     .trim()
     .toLowerCase()
     .replace(/[\s-]+/g, "_");
-  if (/unavailable|not_verified|not_available|blocked/.test(raw)) return "unavailable_unverified";
-  if (/instant|query_ready|queryable|ready/.test(raw) || truthy(asset?.query_ready) || truthy(asset?.queryable)) {
+  if (/^(unavailable|not_verified|not_available|not_ready|blocked|offline)$/.test(raw)) {
+    return "unavailable_unverified";
+  }
+  if (["instant", "instant_query", "query_ready", "queryable", "ready"].includes(raw) || truthy(asset?.query_ready) || truthy(asset?.queryable)) {
     return "query_ready";
   }
-  if (/registered|catalogued|cataloged/.test(raw) || asset?.registry_id || truthy(asset?.registered)) return "registered";
-  if (/metadata|described|indexed/.test(raw) || asset?.dataset_id || asset?.id) return "metadata_only";
+  if (["registered", "catalogued", "cataloged"].includes(raw) || asset?.registry_id || truthy(asset?.registered)) return "registered";
+  if (["metadata", "metadata_only", "described", "indexed"].includes(raw) || asset?.dataset_id || asset?.id) return "metadata_only";
   return "unknown";
 }
 
@@ -81,6 +83,7 @@ export function normalizeAssetAuthority(asset = {}) {
   const readiness = readinessState(asset);
   const verification = verificationState(asset);
   const source = asset?.source && typeof asset.source === "object" ? asset.source : {};
+  const sourceLabel = typeof asset?.source === "string" ? asset.source : null;
   const provenance = asset?.provenance && typeof asset.provenance === "object" ? asset.provenance : {};
   const lineage = asset?.lineage && typeof asset.lineage === "object" ? asset.lineage : {};
   const manifest = asset?.manifest && typeof asset.manifest === "object" ? asset.manifest : {};
@@ -129,7 +132,7 @@ export function normalizeAssetAuthority(asset = {}) {
     },
     source: {
       id: firstValue(source.id, asset?.source_id, provenance.source_id) || null,
-      label: firstValue(source.label, source.name, asset?.source, asset?.provider, asset?.origin) || null,
+      label: firstValue(source.label, source.name, sourceLabel, asset?.provider, asset?.origin) || null,
       url: firstValue(source.url, asset?.source_url, asset?.url) || null,
       version: firstValue(source.version, provenance.source_version, asset?.source_version) || null,
       snapshot_at: firstValue(source.snapshot_at, provenance.snapshot_at, asset?.source_snapshot_at) || null,
