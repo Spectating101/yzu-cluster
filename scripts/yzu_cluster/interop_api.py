@@ -24,6 +24,11 @@ def _required(payload: Mapping[str, Any]) -> list[str]:
     return normalize_capabilities([*defaults, *explicit])
 
 
+def _attempt(payload: Mapping[str, Any]) -> int | None:
+    value = payload.get("attempt", payload.get("expected_attempt"))
+    return int(value) if value is not None else None
+
+
 class InteropAPI:
     """Methods map directly onto thin HTTP route handlers."""
 
@@ -99,6 +104,7 @@ class InteropAPI:
             total=progress.get("total", payload.get("progress_total")),
             next_stage=payload.get("stage"),
             at=payload.get("timestamp") or payload.get("at"),
+            expected_attempt=_attempt(payload),
         )
         return {"job": job}
 
@@ -123,6 +129,7 @@ class InteropAPI:
             message=payload.get("message"),
             payload=payload.get("detail") if isinstance(payload.get("detail"), Mapping) else None,
             at=payload.get("timestamp") or payload.get("at"),
+            expected_attempt=_attempt(payload),
         )
         return {"job": job}
 
@@ -144,6 +151,7 @@ class InteropAPI:
                 api_calls=payload.get("api_calls"),
                 storage_bytes=payload.get("storage_bytes"),
                 at=payload.get("timestamp") or payload.get("at"),
+                expected_attempt=_attempt(payload),
             )
         }
 
@@ -174,6 +182,7 @@ class InteropAPI:
             grain=payload.get("grain"),
             coverage=payload.get("coverage"),
             at=payload.get("timestamp") or payload.get("at"),
+            expected_attempt=_attempt(payload),
         )
         return {"asset": asset, "job": self.store.snapshot(run_id)}
 
@@ -189,10 +198,12 @@ class InteropAPI:
         pool_counts: dict[str, dict[str, int]] = {}
         for worker in workers:
             pool = worker.get("pool") or "unassigned"
-            pool_counts.setdefault(pool, {"total": 0, "online": 0})
+            pool_counts.setdefault(pool, {"total": 0, "online": 0, "stale": 0})
             pool_counts[pool]["total"] += 1
             if worker.get("status") in {"online", "ready", "idle"}:
                 pool_counts[pool]["online"] += 1
+            elif worker.get("status") == "stale":
+                pool_counts[pool]["stale"] += 1
         active = sum(count for state, count in stages.items() if state not in {"completed", "registered"})
         connectors = self.store.list_connectors()
         access_counts = Counter(item["access_state"] for item in connectors)
@@ -211,6 +222,10 @@ class InteropAPI:
             "desk": {
                 "connectors": {"total": len(connectors), **dict(access_counts)},
                 "jobs": {"active": active, **dict(stages)},
-                "worker_pools": {"total": len(workers), "busy": busy},
+                "worker_pools": {
+                    "total": len(workers),
+                    "busy": busy,
+                    "stale": sum(1 for worker in workers if worker.get("status") == "stale"),
+                },
             },
         }
