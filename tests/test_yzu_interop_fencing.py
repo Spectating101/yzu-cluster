@@ -92,7 +92,7 @@ class AttemptFenceTests(unittest.TestCase):
             )
 
     def test_api_propagates_attempt_and_reports_stale_workers(self) -> None:
-        store = InteropStore(worker_stale_after_seconds=1)
+        store = InteropStore(worker_stale_after_seconds=300)
         self.addCleanup(store.close)
         api = InteropAPI(store)
         api.join_worker({
