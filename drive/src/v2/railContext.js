@@ -1,5 +1,6 @@
 import { displayName } from "@/v2/datasetMeta";
 import { candidateKey } from "@/v2/candidateKey";
+import { normalizeSynthesisExecution } from "@/v2/executionLifecycle";
 
 function readinessLabel(dataset) {
   const raw = String(dataset?.analysis_readiness || "").trim();
@@ -10,6 +11,31 @@ function readinessLabel(dataset) {
 
 function vaultPath(dataset) {
   return dataset?.vault_path || dataset?.gdrive_path || dataset?.local_root || "";
+}
+
+function lifecycleSelection(lifecycle = {}) {
+  const proof = lifecycle.proof || {};
+  return {
+    execution_status: lifecycle.stage || undefined,
+    progress: lifecycle.progress ?? undefined,
+    run_id: proof.run_id || undefined,
+    worker: proof.worker || undefined,
+    worker_pool: proof.pool || undefined,
+    attempt: proof.attempt ?? undefined,
+    heartbeat_at: proof.heartbeat_at || undefined,
+    latest_event_at: proof.latest_event_at || undefined,
+    manifest_id: proof.manifest_id || undefined,
+    registration_id: proof.registration_id || undefined,
+    archive_verified: proof.archive_verified || undefined,
+    registry_verified: proof.registry_verified || undefined,
+    rows: proof.rows ?? undefined,
+    fields: proof.fields ?? undefined,
+    entities: proof.entities ?? undefined,
+    inputs: proof.inputs?.length ? proof.inputs : undefined,
+    outputs: proof.outputs?.length ? proof.outputs : undefined,
+    error: lifecycle.error || undefined,
+    retryable: lifecycle.retryable || undefined,
+  };
 }
 
 export function buildRailContext({
@@ -80,7 +106,6 @@ export function buildRailContext({
   } else if (activeObject?.kind === "resource_row") {
     const row = activeObject.row || {};
     const lifecycle = row.lifecycle || {};
-    const proof = lifecycle.proof || {};
     entity = {
       kind: "resource_row",
       id: activeObject.id,
@@ -92,18 +117,14 @@ export function buildRailContext({
       resource_kind: row.kind || undefined,
       status: lifecycle.stage || row.metric || undefined,
       detail: row.detail || lifecycle.detail || undefined,
-      progress: lifecycle.progress ?? row.progress ?? undefined,
-      run_id: proof.run_id || undefined,
-      worker: proof.worker || undefined,
-      worker_pool: proof.pool || undefined,
-      attempt: proof.attempt ?? undefined,
-      latest_event_at: proof.latest_event_at || undefined,
-      inputs: proof.inputs?.length ? proof.inputs : undefined,
-      outputs: proof.outputs?.length ? proof.outputs : undefined,
+      ...lifecycleSelection(lifecycle),
     };
     actions = ["explain"];
     if (lifecycle.stage === "pending_approval" || row.job?.status === "pending_approval") {
       actions.push("approve_job");
+    }
+    if (lifecycle.retryable && /failed|blocked/.test(String(lifecycle.stage || ""))) {
+      actions.push("retry_job");
     }
   } else if (activeObject?.kind === "library_folder" || activeObject?.kind === "library_intake") {
     entity = { kind: activeObject.kind, id: activeObject.id, title: activeObject.title };
@@ -114,12 +135,13 @@ export function buildRailContext({
   } else if (activeObject?.kind === "synthesis_thread") {
     const thread = activeObject.thread || {};
     const state = thread.state || {};
-    const execution = state.execution || {};
+    const lifecycle = normalizeSynthesisExecution(thread);
+    const outputId = lifecycle.proof?.outputs?.[0] || state.execution?.output_dataset_id || state.execution_spec?.output_dataset_id;
     entity = {
       kind: "synthesis_thread",
       id: activeObject.id,
       title: activeObject.title,
-      status: execution.status || thread.materialisation || state.maturity || undefined,
+      status: lifecycle.stage !== "unknown" ? lifecycle.stage : state.maturity || undefined,
     };
     selected = {
       thread_id: activeObject.id,
@@ -129,10 +151,13 @@ export function buildRailContext({
       maturity: state.maturity || state.maturityLabel || undefined,
       proposal_id: state.proposal?.id || undefined,
       proposal_hash: state.proposal?.proposal_hash || undefined,
-      execution_status: execution.status || undefined,
-      output_dataset_id: execution.output_dataset_id || undefined,
+      output_dataset_id: outputId || undefined,
+      ...lifecycleSelection(lifecycle),
     };
     actions = ["ask_about", "challenge_method", "review_proposal"];
+    if (lifecycle.stage === "pending_approval") actions.push("review_execution");
+    if (lifecycle.retryable && /failed|blocked/.test(lifecycle.stage)) actions.push("retry_execution");
+    if (lifecycle.stage === "registered") actions.push("open_output", "refresh_output");
   } else if (dataset?.dataset_id) {
     entity = {
       kind: "dataset",
