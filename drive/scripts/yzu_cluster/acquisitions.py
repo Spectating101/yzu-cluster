@@ -218,6 +218,21 @@ def materialize_job(
         "validation": validation,
         "collect_mode": result.get("collect_mode", "remote"),
     }
+    if validation.get("ok") and canonical.exists() and promoted_files:
+        manifest_id = f"collection_manifest_{job_id}"
+        manifest = {
+            "manifest_id": manifest_id,
+            "job_id": job_id,
+            "output": {"dataset_id": meta["dataset_id"], "canonical_dir": meta["canonical_dir"]},
+            "files": promoted_files,
+            "validation": validation,
+            "plan": meta["plan"],
+            "created_at": meta["materialized_at"],
+        }
+        manifest_path = canonical / "manifest.json"
+        manifest_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        meta["manifest_id"] = manifest_id
+        meta["manifest_path"] = str(manifest_path.relative_to(repo_root))
     (staging / "meta.json").write_text(json.dumps(meta, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
     out = dict(result)
@@ -225,6 +240,9 @@ def materialize_job(
     out["staging_dir"] = meta["staging_dir"]
     out["canonical_dir"] = meta["canonical_dir"]
     out["dataset_id"] = meta["dataset_id"]
+    if meta.get("manifest_id"):
+        out["output_manifest_id"] = meta["manifest_id"]
+        out["manifest_id"] = meta["manifest_id"]
     return out
 
 

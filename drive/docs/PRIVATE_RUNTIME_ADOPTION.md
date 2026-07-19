@@ -25,10 +25,11 @@ are dispatched by the controller and are not yet lease-owning runtime workers.
 
 ## Verified truth boundaries
 
-Synthesis already finalises to Drive before promotion and records a failed
-finalisation back to the synthesis thread. Generic collection currently
-promotes before Drive verification, so it must be corrected before a promoted
-asset is exposed as registered or query-ready.
+Synthesis and Drive-first generic collection finalise to Drive before canonical
+promotion. A materialised output must also carry a manifest that proves its
+exact output dataset identity. Archive proof, manifest identity, and registry
+read-back are required before the runtime may expose a registered or
+query-ready asset.
 
 ```text
 completed != registered != query_ready
@@ -72,20 +73,31 @@ Completed in this private branch:
 2. Bound new legacy submissions to stable idempotent runtime runs and projected
    runtime facts through existing job payloads.
 3. Routed controller execution through capability-aware claims, leases, attempt
-   fencing, and truthful completion/registration stages. Browser work remains
-   queued until a live browser-capable worker joins.
-4. Corrected generic Drive-first collection ordering to validate, archive,
-   verify, promote, read back the registry, then compact local staging.
-5. Added a proof gate: only explicit matching manifest, archive, and registry
-   read-back evidence can advance a run from `completed` to `registered`.
-6. Added regression coverage for archive-before-promotion, metadata-only jobs,
-   idempotency, capability mismatch, registration evidence, and expired lease
-   retry with stale-attempt rejection.
+   fencing, and truthful completion/registration stages. The controller now
+   maintains a runtime heartbeat and refreshes immediately before a local
+   claim; browser work remains queued until a live browser-capable worker joins.
+4. Added attempt-scoped lease renewal around synchronous executor work. A long
+   execution keeps its own lease alive and stops renewal before terminal state
+   recording.
+5. Corrected Drive-first collection ordering to validate, archive, verify,
+   require a matching manifest, promote, read back the registry, then compact
+   local staging. An archived output without a valid manifest cannot mutate the
+   canonical Library registry.
+6. Projected authoritative `lifecycle`, `execution`, archive proof, registration
+   identity, and outputs onto the legacy job payload expected by the public
+   frontend normalizers. Resources now carries the runtime worker, freshness,
+   reservation, usage, and run rollups alongside existing legacy fields.
+7. Moved semantic indexing, flywheel, campaign, and thread presentation work to
+   a best-effort post-registration hook. Failure there records a warning without
+   rewriting a registered execution as failed.
+8. Added legacy/runtime reconciliation after lease recovery and conflict-safe
+   legacy idempotent submission. A private GitHub Actions workflow now runs the
+   full non-HMM suite, the 32 reference interop tests, and runtime compilation.
 
 Current local verification:
 
 ```text
-208 passed, 9 deselected
+217 passed, 9 deselected
 ```
 
 The nine deselected tests are unrelated trading HMM tests. They require the
@@ -108,3 +120,8 @@ Do not mark this branch deployment-ready until those host-level facts are
 captured. The existing HTTP router does not yet expose an authenticated worker
 control-plane endpoint, so that transport must be introduced with a secret held
 outside Git rather than opening worker claims to unauthenticated callers.
+
+The current private configuration still contains machine-specific inventory and
+SSH defaults for operational compatibility. Keep this repository private; move
+those values behind deployment-specific local configuration before any wider
+access is considered.

@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 
 from scripts.research_data_mcp.campaign_runner import CampaignRunner
@@ -22,6 +23,50 @@ from scripts.yzu_cluster.orchestrator import YzuOrchestrator
 from sharpe_kernel.paths import repo_root_from_file
 
 DEFAULT_REGISTRY = "config/research_query_registry.json"
+
+
+def _valid_materialization_manifest(
+    repo_root: Path,
+    result: dict[str, Any] | None,
+    materialized: dict[str, Any] | None,
+    dataset_id: str,
+) -> str | None:
+    """Return a manifest ID only when a local manifest proves this exact output.
+
+    Registry promotion is a Library authority mutation, not a convenience marker
+    for a completed worker process. Both generic collection and Synthesis must
+    present the same manifest identity that runtime registration later consumes.
+    """
+
+    result = result or {}
+    materialized = materialized or {}
+    manifest_id = str(
+        result.get("output_manifest_id")
+        or result.get("manifest_id")
+        or materialized.get("manifest_id")
+        or ""
+    ).strip()
+    raw_path = str(result.get("manifest_path") or materialized.get("manifest_path") or "").strip()
+    if not (manifest_id and raw_path and dataset_id):
+        return None
+    path = Path(raw_path)
+    path = path if path.is_absolute() else repo_root / path
+    try:
+        path = path.resolve()
+        path.relative_to(repo_root.resolve())
+    except ValueError:
+        return None
+    if not path.is_file():
+        return None
+    try:
+        document = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    output = document.get("output") if isinstance(document.get("output"), dict) else {}
+    documented_id = str(output.get("dataset_id") or document.get("dataset_id") or "").strip()
+    if document.get("manifest_id") != manifest_id or documented_id != dataset_id:
+        return None
+    return manifest_id
 
 
 @dataclass
@@ -153,6 +198,12 @@ def create_stack(
             materialized = (result or {}).get("materialized") or {}
             if not materialized.get("canonical_dir"):
                 raise RuntimeError("synthesis execution did not return a materialized output")
+            output_id = str(materialized.get("dataset_id") or "")
+            manifest_id = _valid_materialization_manifest(root, result, materialized, output_id)
+            if not manifest_id:
+                raise RuntimeError("synthesis execution did not return a valid output manifest")
+            if isinstance(result, dict):
+                result["output_manifest_id"] = manifest_id
             if is_drive_first(root):
                 finalize = finalize_job_to_drive(
                     root,
@@ -172,7 +223,6 @@ def create_stack(
 
             payload["result"] = result
             promoted = promoter.promote_job(payload, campaign_id=campaign_id)
-            output_id = str(materialized.get("dataset_id") or "")
             if not any(row.get("dataset_id") == output_id for row in promoted):
                 raise RuntimeError("synthesis output was not promoted into the registry")
             if isinstance(result, dict):
@@ -185,25 +235,6 @@ def create_stack(
             compacted = compact_ephemeral_path(root, str(materialized["canonical_dir"]))
             if isinstance(result, dict):
                 result["drive_finalize"]["compacted"] = [compacted]
-            gateway.reload_registry()
-            from scripts.research_data_mcp.semantic_index import invalidate_semantic_index
-
-            invalidate_semantic_index()
-            from scripts.research_data_mcp.partition_wiring import wire_promoted_to_partition
-
-            wiring = wire_promoted_to_partition(
-                root,
-                promoted=promoted,
-                plan=plan or {},
-                search_goal=str((job.get("request") or {}).get("search_goal") or ""),
-                registry_path=registry,
-            )
-            if isinstance(result, dict) and wiring.get("wired"):
-                result["partition_wiring"] = wiring
-            completed_job = dict(job)
-            completed_job.update({"status": "completed", "plan": plan, "result": result})
-            gateway.synthesis_thread_record_execution(str(plan.get("thread_id") or ""), completed_job)
-            campaign_runner.on_job_completed(completed_job, promoted=promoted)
             return promoted
         doi = str((plan or {}).get("datacite_doi") or "")
         hf_id = str((plan or {}).get("hf_dataset_id") or "")
@@ -254,7 +285,13 @@ def create_stack(
         # Metadata/probe work can complete without materialising a Library asset.
         # In Drive-first mode, a collection with no archivable output remains a
         # completed job, not a promoted dataset.
-        if is_drive_first(root) and not archive_required:
+        output_id = str(materialized.get("dataset_id") or "")
+        manifest_id = _valid_materialization_manifest(root, result, materialized, output_id) if output_id else None
+        if output_id and not manifest_id:
+            # Archive proof without an output manifest is still not canonical
+            # Library evidence. Leave the job completed and recoverable.
+            promoted = []
+        elif is_drive_first(root) and not archive_required:
             promoted = []
         elif hf_id:
             promoted = promoter.promote_huggingface_collect(payload, hf_dataset_id=hf_id, campaign_id=campaign_id)
@@ -265,6 +302,8 @@ def create_stack(
         if promoted:
             if isinstance(result, dict):
                 result["registry_promotion"] = promoted
+                if manifest_id:
+                    result["output_manifest_id"] = manifest_id
             if drive_finalize is not None:
                 archived_ids = {
                     str(row.get("dataset_id") or "")
@@ -289,8 +328,44 @@ def create_stack(
                 compacted = compact_finalized_archives(root, drive_finalize, plan=plan or {})
                 if isinstance(result, dict):
                     result["drive_finalize"]["compacted"] = compacted
+        return promoted
+
+    orchestrator.set_on_job_completed(_on_job_completed)
+
+    def _on_job_post_completed(
+        job_id: str,
+        plan: dict,
+        result: dict | None,
+        runtime_state: dict | None,
+    ) -> None:
+        """Run non-authoritative follow-ups after lifecycle registration.
+
+        Search indexing, flywheel work, campaign updates, and Synthesis thread
+        presentation are valuable, but none can invalidate archive + registry
+        proof that already created a registered research asset.
+        """
+
+        job = orchestrator.store.get(job_id)
+        campaign_id = str((job.get("request") or {}).get("campaign_id") or "")
+        payload = {
+            "id": job_id,
+            "status": "completed",
+            "plan": plan,
+            "result": result,
+            "request": job.get("request"),
+        }
+        promoted = list((result or {}).get("registry_promotion") or [])
+        search_goal = str((job.get("request") or {}).get("search_goal") or "")
+        if not search_goal and campaign_id:
+            try:
+                search_goal = str(campaigns.get(campaign_id).get("goal") or "")
+            except KeyError:
+                pass
+
+        if promoted:
             gateway.reload_registry()
             from scripts.research_data_mcp.semantic_index import invalidate_semantic_index
+            from scripts.research_data_mcp.partition_wiring import wire_promoted_to_partition
 
             invalidate_semantic_index()
             flywheel_result = flywheel.promote_after_collect(
@@ -299,6 +374,19 @@ def create_stack(
                 campaign_id=campaign_id,
                 search_goal=search_goal,
             )
+            wiring = wire_promoted_to_partition(
+                root,
+                promoted=promoted,
+                plan=plan or {},
+                search_goal=search_goal,
+                registry_path=registry,
+            )
+            if isinstance(result, dict):
+                if wiring.get("wired"):
+                    result["partition_wiring"] = wiring
+                if flywheel_result.get("curated_added") or flywheel_result.get("locators_added"):
+                    result["flywheel"] = flywheel_result
+
             if str((plan or {}).get("job_type") or "") == "scraper_run":
                 from scripts.research_data_mcp.scrape_flywheel import (
                     plan_follow_up_downloads,
@@ -306,16 +394,9 @@ def create_stack(
                     submit_follow_up_downloads,
                 )
 
-                reg_row = None
-                if promoted:
-                    did = str(promoted[0].get("dataset_id") or "")
-                    reg_path = root / "config/research_query_registry.json"
-                    if reg_path.is_file() and did:
-                        reg_doc = json.loads(reg_path.read_text(encoding="utf-8"))
-                        reg_row = next(
-                            (r for r in reg_doc.get("datasets") or [] if str(r.get("dataset_id")) == did),
-                            None,
-                        )
+                did = str(promoted[0].get("dataset_id") or "")
+                reg_doc = json.loads(registry.read_text(encoding="utf-8")) if registry.is_file() else {}
+                reg_row = next((row for row in reg_doc.get("datasets") or [] if str(row.get("dataset_id")) == did), None)
                 scrape_fw = promote_scrape_job(
                     root,
                     payload,
@@ -331,70 +412,52 @@ def create_stack(
                     if extract:
                         follow_plans = plan_follow_up_downloads(root, payload, extract, search_goal=search_goal)
                 scrape_fw["follow_up_submitted"] = submit_follow_up_downloads(gateway, payload, follow_plans)
-                payload = dict(payload)
-                payload["scrape_flywheel"] = scrape_fw
-            if flywheel_result.get("curated_added") or flywheel_result.get("locators_added"):
-                payload = dict(payload)
-                payload["flywheel"] = flywheel_result
-            archive_jobs: list[dict] = []
-            if drive_finalize is not None:
-                archive_jobs = list(drive_finalize.get("archives") or [])
-            else:
-                from scripts.research_data_mcp.archive_after_job import (
-                    queue_archive_materialized,
-                    queue_auto_archives,
-                )
-
-                if materialized.get("canonical_dir"):
-                    mat_job = queue_archive_materialized(
-                        repo_root=root,
-                        jobs=jobs,
-                        job_id=job_id,
-                        materialized=materialized,
-                        storage=storage,
-                        campaign_id=campaign_id,
-                        plan=plan or {},
-                    )
-                    if mat_job:
-                        archive_jobs.append({"materialized": True, "archive_job": mat_job})
-                elif promoted:
-                    archive_jobs = queue_auto_archives(
-                        repo_root=root,
-                        jobs=jobs,
-                        job_id=job_id,
-                        plan=plan,
-                        promoted=promoted,
-                        registry_path=registry,
-                        storage=storage,
-                        campaign_id=campaign_id,
-                    )
-            if archive_jobs:
                 if isinstance(result, dict):
-                    result["gdrive_archives"] = archive_jobs
-            if promoted:
-                from scripts.research_data_mcp.partition_wiring import wire_promoted_to_partition
+                    result["scrape_flywheel"] = scrape_fw
 
-                wiring = wire_promoted_to_partition(
-                    root,
-                    promoted=promoted,
+        # Non Drive-first operation remains a legacy compatibility path. It can
+        # enqueue archival work but never upgrades the runtime to registered.
+        materialized = (result or {}).get("materialized") or {}
+        if not (result or {}).get("drive_finalize"):
+            storage = json.loads((root / "config/yzu_cluster.json").read_text(encoding="utf-8")).get("storage") or {}
+            from scripts.research_data_mcp.archive_after_job import queue_archive_materialized, queue_auto_archives
+
+            archive_jobs: list[dict] = []
+            if materialized.get("canonical_dir"):
+                mat_job = queue_archive_materialized(
+                    repo_root=root,
+                    jobs=jobs,
+                    job_id=job_id,
+                    materialized=materialized,
+                    storage=storage,
+                    campaign_id=campaign_id,
                     plan=plan or {},
-                    search_goal=search_goal,
-                    registry_path=registry,
                 )
-                if isinstance(result, dict) and wiring.get("wired"):
-                    result["partition_wiring"] = wiring
-        finished = dict(job)
-        finished.update({"status": "completed", "plan": plan, "result": result})
+                if mat_job:
+                    archive_jobs.append({"materialized": True, "archive_job": mat_job})
+            elif promoted:
+                archive_jobs = queue_auto_archives(
+                    repo_root=root,
+                    jobs=jobs,
+                    job_id=job_id,
+                    plan=plan,
+                    promoted=promoted,
+                    registry_path=registry,
+                    storage=storage,
+                    campaign_id=campaign_id,
+                )
+            if archive_jobs and isinstance(result, dict):
+                result["gdrive_archives"] = archive_jobs
+
+        finished = orchestrator.store.get(job_id)
+        finished.update({"status": "completed", "plan": plan, "result": result or {}})
         campaign_runner.on_job_completed(finished, promoted=promoted)
         if str((plan or {}).get("job_type") or "") == "synthesis_execute":
             thread_id = str((plan or {}).get("thread_id") or "")
-            if thread_id:
-                completed_job = orchestrator.store.get(job_id)
-                completed_job["result"] = result if isinstance(result, dict) else {}
-                gateway.synthesis_thread_record_execution(thread_id, completed_job)
-        return promoted
+            if thread_id and isinstance(runtime_state, dict) and runtime_state.get("status") == "registered":
+                gateway.synthesis_thread_record_execution(thread_id, orchestrator.get_job(job_id))
 
-    orchestrator.set_on_job_completed(_on_job_completed)
+    orchestrator.set_on_job_post_completed(_on_job_post_completed)
 
     def _on_job_failed(job_id: str, plan: dict, error: str) -> None:
         if str((plan or {}).get("job_type") or "") != "synthesis_execute":

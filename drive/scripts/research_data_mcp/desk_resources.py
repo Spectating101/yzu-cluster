@@ -124,6 +124,12 @@ def build_desk_resources(gateway: Any, *, live: bool = False) -> dict[str, Any]:
     wl = (cluster.get("worker_pools") or {}).get("windows_lab") or {}
     pools = desk.get("worker_pools") or {}
     jobs = gateway.orchestrator.stats()
+    runtime = gateway.orchestrator.runtime_health()
+    runtime_cluster = runtime.get("cluster") or {}
+    runtime_desk = runtime.get("desk") or {}
+    runtime_workers = list(runtime_cluster.get("workers") or [])
+    runtime_usage = runtime_cluster.get("usage") or {}
+    runtime_runs = runtime_desk.get("jobs") or {}
     ops = gateway.ops_status()
 
     campaigns = gateway.list_campaigns(limit=50).get("campaigns") or []
@@ -214,8 +220,8 @@ def build_desk_resources(gateway: Any, *, live: bool = False) -> dict[str, Any]:
             "mcp_tools": mcp.get("total"),
             "query_engine": {"port": 8765, "up": health.get("status") in {"ok", "demo"}},
             "workers": {
-                "busy": pools.get("busy") if pools.get("busy") is not None else wl.get("joined"),
-                "total": pools.get("total") if pools.get("total") is not None else wl.get("total"),
+                "busy": runtime_desk.get("worker_pools", {}).get("busy", pools.get("busy") if pools.get("busy") is not None else wl.get("joined")),
+                "total": runtime_desk.get("worker_pools", {}).get("total", pools.get("total") if pools.get("total") is not None else wl.get("total")),
             },
             "vault": {
                 "used_tb": vault_used,
@@ -293,6 +299,7 @@ def build_desk_resources(gateway: Any, *, live: bool = False) -> dict[str, Any]:
         },
         "motion": {
             "jobs": jobs,
+            "runtime_runs": runtime_runs,
             "campaigns_active": campaigns_active,
             "gdelt": {
                 "progress": desk.get("jobs", {}).get("gdelt_progress") or cq.get("gdelt_progress"),
@@ -323,7 +330,17 @@ def build_desk_resources(gateway: Any, *, live: bool = False) -> dict[str, Any]:
                 "pipelines": catalog.get("pipelines"),
                 "connectors": catalog.get("connectors"),
             },
+            "runtime": {
+                "workers": runtime_workers,
+                "worker_pools": runtime_desk.get("worker_pools") or {},
+                "runs": runtime_runs,
+                "usage": runtime_usage,
+            },
         },
+        # Canonical runtime truth is additive: existing Resources cards retain
+        # their legacy compatibility fields while new consumers can render
+        # freshness, reservations, usage, and lifecycle facts directly.
+        "runtime": runtime,
         "connect": {
             "source_count": source_count,
             "layer_count": layer_count,

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 import re
+import sqlite3
 import threading
 from pathlib import Path
 from typing import Any
@@ -24,10 +25,12 @@ class YzuOrchestrator:
         engine: Any | None = None,
         *,
         on_job_completed: Any | None = None,
+        on_job_post_completed: Any | None = None,
     ):
         self.repo_root = (repo_root or repo_root_from_file(__file__)).resolve()
         self.engine = engine
         self._on_job_completed = on_job_completed
+        self._on_job_post_completed = on_job_post_completed
         self._on_job_failed: Any | None = None
         self.cfg = json.loads((self.repo_root / "config/yzu_cluster.json").read_text(encoding="utf-8"))
         jobs_root = self.repo_root / self.cfg["controller"]["jobs_root"]
@@ -37,20 +40,14 @@ class YzuOrchestrator:
         self.runtime = ClusterRuntimeAdapter(self.store.path, self.cfg)
         self.executor = YzuExecutor(self.repo_root, self.cfg, jobs_root, event_cb=self.store.event)
         self.scheduler = YzuScheduler(self.repo_root, self.cfg)
-        operations = self.cfg.get("operations") or {}
-        self._runtime_lease_seconds = max(2, int(operations.get("runtime_lease_seconds") or 120))
-        default_heartbeat = max(1.0, min(30.0, self._runtime_lease_seconds / 3.0))
-        self._runtime_heartbeat_seconds = max(
-            0.1,
-            float(operations.get("runtime_heartbeat_seconds") or default_heartbeat),
-        )
-        if self._runtime_heartbeat_seconds >= self._runtime_lease_seconds:
-            self._runtime_heartbeat_seconds = max(0.1, self._runtime_lease_seconds / 3.0)
         self._lock = threading.Lock()
         self._running_job: str | None = None
 
     def set_on_job_completed(self, callback: Any | None) -> None:
         self._on_job_completed = callback
+
+    def set_on_job_post_completed(self, callback: Any | None) -> None:
+        self._on_job_post_completed = callback
 
     def set_on_job_failed(self, callback: Any | None) -> None:
         self._on_job_failed = callback
@@ -81,51 +78,15 @@ class YzuOrchestrator:
             and self._canonical(job.get("plan") or {}) == self._canonical(plan)
         )
 
-    def _start_lease_renewal(self, claim: Any) -> tuple[threading.Event, threading.Thread, list[Exception]]:
-        """Renew one claimed attempt while its blocking executor/callback is active."""
-
-        stop = threading.Event()
-        errors: list[Exception] = []
-
-        def _renew() -> None:
-            while not stop.wait(self._runtime_heartbeat_seconds):
-                try:
-                    self.runtime.heartbeat(
-                        claim.job_id,
-                        claim.worker_id,
-                        attempt=claim.attempt,
-                        lease_seconds=self._runtime_lease_seconds,
-                    )
-                except Exception as exc:  # noqa: BLE001
-                    errors.append(exc)
-                    return
-
-        thread = threading.Thread(
-            target=_renew,
-            name=f"runtime-lease-{claim.job_id}-{claim.attempt}",
-            daemon=True,
-        )
-        thread.start()
-        return stop, thread, errors
-
-    def _stop_lease_renewal(
-        self,
-        state: tuple[threading.Event, threading.Thread, list[Exception]] | None,
-    ) -> list[Exception]:
-        if state is None:
-            return []
-        stop, thread, errors = state
-        stop.set()
-        thread.join(timeout=max(1.0, self._runtime_heartbeat_seconds * 2.0))
-        return errors
-
     def project_job(self, job: dict[str, Any]) -> dict[str, Any]:
         return self.runtime.project(job)
 
     def get_job(self, job_id: str) -> dict[str, Any]:
+        self.reconcile_runtime()
         return self.project_job(self.store.get(job_id))
 
     def list_jobs(self, limit: int = 30, status: str = "") -> list[dict[str, Any]]:
+        self.reconcile_runtime()
         return [self.project_job(job) for job in self.store.list(limit=limit, status=status)]
 
     def submit(self, title: str, plan: dict[str, Any], request: dict | None = None, *, auto_approve: bool = False) -> dict:
@@ -142,7 +103,15 @@ class YzuOrchestrator:
                 if not self._same_submission(existing, title=title, request=request, plan=plan):
                     raise ValueError("idempotency key already exists with a different request")
                 return self.project_job(existing)
-        job = self.store.create(title, request, plan, status=status, job_id=idempotency_key)
+        try:
+            job = self.store.create(title, request, plan, status=status, job_id=idempotency_key)
+        except sqlite3.IntegrityError:
+            if not idempotency_key:
+                raise
+            existing = self.store.get(idempotency_key)
+            if not self._same_submission(existing, title=title, request=request, plan=plan):
+                raise ValueError("idempotency key already exists with a different request") from None
+            return self.project_job(existing)
         self.runtime.ensure(job)
         if status == "queued":
             self.store.event(job["id"], "info", "Auto-approved and queued")
@@ -248,14 +217,13 @@ class YzuOrchestrator:
                 raise RuntimeError(f"worker busy with job {self._running_job}")
             self._running_job = job_id
         job: dict[str, Any] = {}
-        lease_state: tuple[threading.Event, threading.Thread, list[Exception]] | None = None
         try:
             job = self.store.get(job_id)
             if job["status"] == "cancelled":
                 return self.project_job(job)
             self.runtime.ensure(job)
             if claim is None:
-                claim = self.runtime.claim_job(job_id, lease_seconds=self._runtime_lease_seconds)
+                claim = self.runtime.claim_job(job_id)
             if claim is None:
                 # A configured remote pool is not a live worker. Keep this job
                 # queued until a fresh worker advertises the required capability.
@@ -263,39 +231,56 @@ class YzuOrchestrator:
                 return self.get_job(job_id)
             if claim.job_id != job_id:
                 raise RuntimeError("runtime claim does not match the requested legacy job")
-            self.runtime.start(claim, lease_seconds=self._runtime_lease_seconds)
-            lease_state = self._start_lease_renewal(claim)
+            self.runtime.start(claim)
             self.store.update(job_id, "running")
             self.store.event(job_id, "info", f"Execution started (attempt {claim.attempt} on {claim.worker_id})")
+            renewal = self.runtime.lease_renewer(claim).start()
             try:
                 result = self.executor.execute(job_id, job["plan"])
-                self.store.event(job_id, "info", "Execution completed")
-                if self._on_job_completed:
-                    promo = self._on_job_completed(job_id, job["plan"], result)
-                    if promo:
-                        result = dict(result or {})
-                        result["registry_promotion"] = promo
             finally:
-                lease_errors = self._stop_lease_renewal(lease_state)
-                lease_state = None
-            if lease_errors:
-                raise RuntimeError(f"runtime lease renewal failed: {lease_errors[-1]}")
-            self.runtime.complete(claim, result)
+                renewal.stop()
+            renewal.raise_if_lost()
+            self.store.event(job_id, "info", "Execution completed")
+            if self._on_job_completed:
+                promo = self._on_job_completed(job_id, job["plan"], result)
+                if promo:
+                    result = dict(result or {})
+                    result["registry_promotion"] = promo
+            runtime_state = self.runtime.complete(claim, result)
             self.store.update(job_id, "completed", result=result)
+            if self._on_job_post_completed:
+                try:
+                    self._on_job_post_completed(job_id, job["plan"], result, runtime_state)
+                except Exception as post_exc:  # noqa: BLE001
+                    # Registration is already proven. Follow-up indexing or
+                    # campaign work must be independently retryable, never turn
+                    # a registered research asset into a failed execution.
+                    self.store.event(job_id, "warning", f"Post-registration follow-up failed: {post_exc}")
             return self.get_job(job_id)
         except Exception as exc:
             self.store.event(job_id, "error", str(exc))
+            runtime_state = None
             if claim is not None:
                 try:
-                    self.runtime.fail(claim, str(exc), retryable=job.get("plan", {}).get("retryable") is not False)
+                    runtime_state = self.runtime.fail(
+                        claim,
+                        str(exc),
+                        retryable=job.get("plan", {}).get("retryable") is not False,
+                    )
                 except Exception as runtime_exc:  # noqa: BLE001
                     self.store.event(job_id, "error", f"runtime failure recording failed: {runtime_exc}")
+                    try:
+                        runtime_state = self.runtime.snapshot(job_id)
+                    except KeyError:
+                        runtime_state = None
+            if isinstance(runtime_state, dict) and runtime_state.get("status") == "retrying":
+                self.reconcile_runtime()
+                return self.get_job(job_id)
             if self._on_job_failed:
                 self._on_job_failed(job_id, job.get("plan") or {}, str(exc))
             self.store.update(job_id, "failed", error=str(exc))
             return self.get_job(job_id)
         finally:
-            self._stop_lease_renewal(lease_state)
             with self._lock:
                 if self._running_job == job_id:
                     self._running_job = None
@@ -304,9 +289,11 @@ class YzuOrchestrator:
         if self._running_job:
             return None
         self.scheduler_tick()
+        self.runtime.reap_expired()
+        self.reconcile_runtime()
         for job in self.store.list(limit=200, status="queued"):
             self.runtime.ensure(job)
-        claim = self.runtime.claim_next(lease_seconds=self._runtime_lease_seconds)
+        claim = self.runtime.claim_next(reap_expired=False)
         if not claim:
             return None
         return self.execute_job(claim.job_id, claim=claim)
@@ -326,7 +313,42 @@ class YzuOrchestrator:
         Prefer ``actionable`` / ``failed_recent`` over lifetime ``failed``/
         ``cancelled`` when triaging live debt.
         """
+        runtime = getattr(self, "runtime", None)
+        if runtime is not None:
+            runtime.reap_expired()
+            self.reconcile_runtime()
         return self.store.status_counts()
+
+    def reconcile_runtime(self) -> None:
+        """Project authoritative runtime recovery states onto legacy jobs."""
+
+        runtime_adapter = getattr(self, "runtime", None)
+        if runtime_adapter is None:
+            return
+
+        legacy_status = {
+            "pending_approval": "pending_approval",
+            "queued": "queued",
+            "retrying": "queued",
+            "assigned": "queued",
+            "running": "running",
+            "validating": "running",
+            "archiving": "running",
+            "registering": "running",
+            "completed": "completed",
+            "registered": "completed",
+            "blocked": "cancelled",
+            "failed": "failed",
+        }
+        for job in self.store.list(limit=500):
+            try:
+                runtime = runtime_adapter.snapshot(str(job["id"]))
+            except KeyError:
+                continue
+            projected = legacy_status.get(str(runtime.get("status") or ""))
+            if projected and job.get("status") != projected:
+                self.store.update(str(job["id"]), projected, result=job.get("result") or {}, error=str(runtime.get("error") or ""))
+                self.store.event(str(job["id"]), "info", f"Runtime state reconciled: {runtime.get('status')}")
 
     def runtime_health(self) -> dict[str, Any]:
         return self.runtime.health()

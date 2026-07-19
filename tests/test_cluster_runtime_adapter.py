@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sqlite3
+import time
 from pathlib import Path
 
 import pytest
@@ -155,3 +156,98 @@ def test_expired_lease_retries_and_fences_the_old_attempt(tmp_path: Path) -> Non
 
     with pytest.raises(PermissionError, match="stale execution attempt"):
         runtime.heartbeat(job["id"], first.worker_id, attempt=first.attempt)
+
+
+def test_controller_refreshes_before_claiming_after_stale_interval(tmp_path: Path) -> None:
+    database = tmp_path / "jobs.sqlite3"
+    legacy = YzuJobStore(database)
+    runtime = ClusterRuntimeAdapter(
+        database,
+        {
+            "controller": {"hostname": "optiplex"},
+            "runtime": {"worker_stale_after_seconds": 1, "controller_heartbeat_seconds": 0},
+        },
+    )
+    job = _legacy_job(legacy, "fresh-controller")
+    runtime.ensure(job)
+    controller = runtime.store.worker("optiplex")
+    runtime.store.upsert_worker(
+        "optiplex",
+        pool=controller["pool"],
+        capabilities=controller["capabilities"],
+        capacity=controller["capacity"],
+        heartbeat_at="2000-01-01T00:00:00Z",
+    )
+
+    claim = runtime.claim_next()
+
+    assert claim is not None
+    assert runtime.store.worker("optiplex")["freshness"]["state"] == "fresh"
+    runtime.close()
+
+
+def test_lease_renewer_keeps_long_running_attempt_claimed(tmp_path: Path) -> None:
+    database = tmp_path / "jobs.sqlite3"
+    legacy = YzuJobStore(database)
+    runtime = ClusterRuntimeAdapter(
+        database,
+        {
+            "controller": {"hostname": "optiplex"},
+            "runtime": {"controller_heartbeat_seconds": 0, "lease_seconds": 1, "lease_heartbeat_seconds": 0.05},
+        },
+    )
+    job = _legacy_job(legacy, "long-running")
+    runtime.ensure(job)
+    claim = runtime.claim_next(lease_seconds=1)
+    assert claim is not None
+    runtime.start(claim, lease_seconds=1)
+    renewer = runtime.lease_renewer(claim, lease_seconds=1, interval_seconds=0.05).start()
+    try:
+        time.sleep(1.15)
+        assert runtime.store.reap_expired() == []
+        assert runtime.snapshot(job["id"])["status"] == "running"
+        renewer.raise_if_lost()
+    finally:
+        renewer.stop()
+        runtime.close()
+
+
+def test_project_exposes_registered_runtime_shape_at_top_level(tmp_path: Path) -> None:
+    database = tmp_path / "jobs.sqlite3"
+    legacy = YzuJobStore(database)
+    runtime = ClusterRuntimeAdapter(
+        database,
+        {"controller": {"hostname": "optiplex"}, "runtime": {"controller_heartbeat_seconds": 0}},
+    )
+    job = _legacy_job(legacy, "projected-registered")
+    runtime.ensure(job)
+    claim = runtime.claim_next()
+    assert claim is not None
+    runtime.start(claim)
+    runtime.complete(
+        claim,
+        {
+            "outputs": ["raw_usdt_history"],
+            "drive_finalize": {"ok": True},
+            "registry_promotion": [{"dataset_id": "raw_usdt_history"}],
+            "registration_evidence": {
+                "dataset_id": "raw_usdt_history",
+                "registry_id": "raw_usdt_history",
+                "manifest_id": "manifest-usdt-v1",
+                "vault_path": "gdrive:archive/usdt",
+                "archive_verified": True,
+                "registry_readback": True,
+                "readiness": "query_ready",
+            },
+        },
+    )
+
+    projected = runtime.project(legacy.get(job["id"]))
+
+    assert projected["status"] == "queued"
+    assert projected["lifecycle"]["stage"] == "registered"
+    assert projected["execution"]["stage"] == "registered"
+    assert projected["archive_verified"] is True
+    assert projected["registration_id"] == "raw_usdt_history"
+    assert projected["outputs"] == ["raw_usdt_history"]
+    runtime.close()
