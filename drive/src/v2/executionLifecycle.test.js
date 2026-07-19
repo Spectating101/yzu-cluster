@@ -62,10 +62,17 @@ test("surfaces failed and blocked jobs as attention items", () => {
   assert.equal(executionSortPriority(failed), 0);
 });
 
-test("distinguishes completed execution from registered research asset", () => {
-  const completed = normalizeExecutionLifecycle({ status: "succeeded", outputs: ["panel-v1"] });
+test("distinguishes completed, registered, and query-ready research assets", () => {
+  const completed = normalizeExecutionLifecycle({ status: "materialized", outputs: ["panel-v1"] });
   const registered = normalizeExecutionLifecycle({
     status: "registered",
+    outputs: ["panel-v1"],
+    manifest_id: "manifest-7",
+    drive_verified: true,
+    registration_id: "registry:panel-v1",
+  });
+  const queryReady = normalizeExecutionLifecycle({
+    status: "query_ready",
     outputs: ["panel-v1"],
     manifest_id: "manifest-7",
     drive_verified: true,
@@ -74,12 +81,18 @@ test("distinguishes completed execution from registered research asset", () => {
 
   assert.equal(completed.stage, "completed");
   assert.equal(completed.proof.registry_verified, false);
+  assert.equal(completed.proof.query_ready, false);
   assert.equal(registered.stage, "registered");
   assert.equal(registered.terminal, true);
   assert.equal(registered.visible, false);
   assert.equal(registered.proof.manifest_id, "manifest-7");
   assert.equal(registered.proof.archive_verified, true);
   assert.equal(registered.proof.registry_verified, true);
+  assert.equal(registered.proof.query_ready, false);
+  assert.equal(queryReady.stage, "query_ready");
+  assert.equal(queryReady.label, "query-ready");
+  assert.equal(queryReady.proof.registry_verified, true);
+  assert.equal(queryReady.proof.query_ready, true);
 });
 
 test("normalizes a Synthesis thread into the shared execution contract", () => {
@@ -141,4 +154,20 @@ test("Resources rows expose worker, explicit progress, and failed jobs", () => {
   assert.equal(rows[1].detail, "worker asus-03");
   assert.equal(rows[1].progress, 40);
   assert.equal(rows[1].lifecycle.proof.worker, "asus-03");
+});
+
+
+test("Synthesis preserves query-ready beyond registration", () => {
+  const result = normalizeSynthesisExecution({
+    id: "syn-ready",
+    materialisation: "query_ready",
+    state: {
+      execution_spec: { output_dataset_id: "ready-panel" },
+      execution: { job_id: "job-ready", status: "completed", registry_id: "registry:ready-panel" },
+    },
+  });
+
+  assert.equal(result.stage, "query_ready");
+  assert.equal(result.proof.registration_id, "registry:ready-panel");
+  assert.equal(result.proof.query_ready, true);
 });
