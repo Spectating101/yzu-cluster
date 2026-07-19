@@ -3,6 +3,12 @@
 This runbook is the remaining deployment gate for private PR #1. It proves the
 runtime on real hosts; it does not change the application architecture.
 
+Before host work, fast-forward the local checkout to the exact remote head and
+confirm the private runtime workflow is green. Do not redesign the scheduler,
+registry, lifecycle, or frontend contracts during acceptance. Any host-specific
+code change must be isolated, explained, tested, and pushed back to the same
+draft PR before the acceptance run is repeated.
+
 ## Security boundary
 
 - Bind the worker-control service only to the Optiplex Tailscale interface or a
