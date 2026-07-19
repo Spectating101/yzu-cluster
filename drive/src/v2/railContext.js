@@ -78,8 +78,33 @@ export function buildRailContext({
       actions.push("review_request");
     }
   } else if (activeObject?.kind === "resource_row") {
-    entity = { kind: "resource_row", id: activeObject.id, title: activeObject.title };
-    actions = ["explain", "approve_job"];
+    const row = activeObject.row || {};
+    const lifecycle = row.lifecycle || {};
+    const proof = lifecycle.proof || {};
+    entity = {
+      kind: "resource_row",
+      id: activeObject.id,
+      title: activeObject.title,
+      status: lifecycle.stage || row.metric || undefined,
+    };
+    selected = {
+      title: activeObject.title,
+      resource_kind: row.kind || undefined,
+      status: lifecycle.stage || row.metric || undefined,
+      detail: row.detail || lifecycle.detail || undefined,
+      progress: lifecycle.progress ?? row.progress ?? undefined,
+      run_id: proof.run_id || undefined,
+      worker: proof.worker || undefined,
+      worker_pool: proof.pool || undefined,
+      attempt: proof.attempt ?? undefined,
+      latest_event_at: proof.latest_event_at || undefined,
+      inputs: proof.inputs?.length ? proof.inputs : undefined,
+      outputs: proof.outputs?.length ? proof.outputs : undefined,
+    };
+    actions = ["explain"];
+    if (lifecycle.stage === "pending_approval" || row.job?.status === "pending_approval") {
+      actions.push("approve_job");
+    }
   } else if (activeObject?.kind === "library_folder" || activeObject?.kind === "library_intake") {
     entity = { kind: activeObject.kind, id: activeObject.id, title: activeObject.title };
     actions = ["upload", "add_url", "procure"];
