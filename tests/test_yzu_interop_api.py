@@ -64,6 +64,22 @@ class InteropAPITests(unittest.TestCase):
         with self.assertRaises(PermissionError):
             self.api.heartbeat(run["run_id"], "worker-b", {"stage": "running"})
 
+    def test_connector_endpoints_preserve_probe_and_sync_truth(self) -> None:
+        created = self.api.upsert_connector({
+            "connector_id": "datacite", "source_id": "datacite", "access_state": "unknown",
+        })["connector"]
+        self.assertTrue(created["probe_required"])
+        probed = self.api.record_connector_probe("datacite", {
+            "status": "available", "fields": ["doi", "updated"],
+        })["connector"]
+        self.assertEqual(probed["access_state"], "available")
+        synced = self.api.record_connector_sync("datacite", {
+            "state_token": "cursor-9", "timestamp": "2026-07-19T13:00:00Z", "quota_remaining": 77,
+        })["connector"]
+        self.assertEqual(synced["state_token"], "cursor-9")
+        self.assertEqual(self.api.connectors()["connectors"][0]["quota_remaining"], 77)
+        self.assertEqual(self.api.health()["desk"]["connectors"]["available"], 1)
+
 
 if __name__ == "__main__":
     unittest.main()
