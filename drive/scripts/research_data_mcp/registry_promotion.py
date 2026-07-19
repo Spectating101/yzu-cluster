@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from scripts.research_data_mcp.drive_first import is_drive_first
+from scripts.research_data_mcp.registry_transaction import atomic_update_json
 from scripts.yzu_cluster.acquisitions import registry_spec_from_materialized
 
 
@@ -168,65 +169,75 @@ class RegistryPromoter:
         return None
 
     def _spec_from_scraper_run(self, job: dict[str, Any], task_id: str) -> dict[str, Any] | None:
-        jid = str(job.get("id") or "")
-        if not jid:
-            return None
-        rel = f"data_lake/spectator_engine/scrapes/{jid}/manifest.json"
-        catalog_dir = f"data_lake/spectator_engine/scrapes/{jid}"
-        if self._artifact_exists(rel):
-            local_path = catalog_dir
-            grain = "catalog_harvest"
-            backend = "local_json_glob"
-            access_shape = "local_file_tree"
-        elif self._artifact_exists(f"{catalog_dir}/extract.json"):
-            rel = f"{catalog_dir}/extract.json"
-            local_path = rel
-            grain = "scrape_snapshot"
-            backend = "local_json_file"
-            access_shape = "local_file"
-        else:
-            return None
+        result = job.get("result") or {}
+        materialized = result.get("materialized") or {}
+        if materialized:
+            spec = registry_spec_from_materialized(self.repo_root, job, materialized)
+            if spec:
+                return spec
         plan = job.get("plan") or {}
+        script_key = str(plan.get("script_key") or "")
         url = str(plan.get("url") or "")
-        title = str(job.get("title") or plan.get("title") or f"Web scrape {jid[:8]}")
+        dest = str(plan.get("destination") or "")
+        if not dest:
+            dest = str(result.get("output_dir") or "")
+        if not dest or not self._artifact_exists(dest):
+            return None
+        domain = "Generic Web"
+        if "medicare.gov" in url:
+            domain = "Medicare"
+        elif "sec.gov" in url:
+            domain = "SEC"
+        elif "machinereadable.narod.ru" in url:
+            domain = "Narod Russia"
+        elif script_key:
+            domain = script_key.replace("_", " ").title()
         return {
             "dataset_id": task_id,
-            "name": title[:240],
-            "backend": backend,
-            "access_shape": access_shape,
+            "name": domain + " - Scraped Dataset",
+            "backend": "local_json_glob",
+            "access_shape": "local_file_tree",
             "analysis_readiness": "metadata_search",
-            "grain": grain,
-            "local_path": local_path if grain == "catalog_harvest" else rel,
-            "description": f"Auto-promoted from scraper_run `{jid}` ({url[:120]}).",
+            "grain": "page_snapshot",
+            "local_path": f"{dest.rstrip('/')}/*",
+            "description": f"Scraped dataset from {url}",
             "capabilities": ["limit", "export_json"],
-            "recommended_use": f"Open scrape extract via handle scrape:{jid}",
-            "domain": "web_scrape",
+            "recommended_use": f"Query scraped artifacts from {dest}.",
+            "source_url": url,
+            "scraper_key": script_key,
         }
 
-    def promote_job(self, job: dict[str, Any], *, campaign_id: str = "") -> list[dict[str, Any]]:
+    def _spec_from_synthesis_execute(self, job: dict[str, Any], task_id: str, campaign_id: str = "") -> dict[str, Any] | None:
+        materialized = (job.get("result") or {}).get("materialized") or {}
+        if not materialized:
+            return None
+        return registry_spec_from_materialized(self.repo_root, job, materialized, campaign_id=campaign_id)
+
+    def _spec_for_task(self, task_id: str, job: dict[str, Any], campaign_id: str = "") -> dict[str, Any] | None:
+        jt = (job.get("plan") or {}).get("job_type")
+        if jt == "http_manifest":
+            return self._spec_from_http_manifest(job, task_id, campaign_id)
+        if jt == "scraper_run":
+            return self._spec_from_scraper_run(job, task_id)
+        if jt == "synthesis_execute":
+            return self._spec_from_synthesis_execute(job, task_id, campaign_id)
+        tasks = self._map.get("tasks") or {}
+        if task_id in tasks:
+            return dict(tasks[task_id])
+        if jt == "registered_pipeline":
+            return self._spec_from_registered_pipeline(task_id, job)
+        return self._spec_from_queue_task(task_id)
+
+    def promote_job(self, job: dict[str, Any], campaign_id: str = "") -> list[dict[str, Any]]:
         if job.get("status") != "completed":
             return []
-        promoted: list[dict[str, Any]] = []
-        tasks = self._map.get("tasks") or {}
+        self.reload_map()
+        promoted = []
         for task_id in self._task_ids_from_job(job):
-            plan = job.get("plan") or {}
-            if plan.get("job_type") == "http_manifest":
-                spec = self._spec_from_http_manifest(job, task_id, campaign_id=campaign_id)
-            elif plan.get("job_type") == "scraper_run":
-                spec = self._spec_from_scraper_run(job, task_id)
-            elif plan.get("job_type") == "registered_pipeline":
-                spec = self._spec_from_registered_pipeline(task_id, job)
-            elif plan.get("job_type") == "synthesis_execute":
-                spec = self._spec_from_http_manifest(job, task_id, campaign_id=campaign_id)
-            else:
-                spec = tasks.get(task_id) or self._spec_from_queue_task(task_id)
+            spec = self._spec_for_task(task_id, job, campaign_id)
             if not spec:
                 continue
-            plan = job.get("plan") or {}
-            pid = str(plan.get("partition_id") or "").strip()
-            if pid:
-                spec["partition_id"] = pid
-            local_path = str(spec.get("local_path", ""))
+            local_path = spec.get("local_path") or spec.get("local_root")
             if local_path and not self._artifact_exists(local_path):
                 continue
             entry = self._upsert_dataset(spec, task_id=task_id, job_id=job.get("id", ""), campaign_id=campaign_id)
@@ -369,7 +380,7 @@ class RegistryPromoter:
             "access_shape": access_shape,
             "analysis_readiness": readiness,
             "grain": "hf_snapshot",
-            "description": f"Procured Hugging Face dataset `{did}`.",
+            "description": f"Procured Hugging Face dataset `{dad}`.",
             "capabilities": ["limit", "export_json", "filter_date_range"],
             "recommended_use": f"Query cached HF data; handle hf:{did}",
             "domain": "huggingface",
@@ -401,8 +412,6 @@ class RegistryPromoter:
     def _upsert_dataset(self, spec: dict[str, Any], *, task_id: str, job_id: str, campaign_id: str = "") -> dict[str, Any]:
         if not is_drive_first(self.repo_root):
             raise PermissionError("canonical registry promotion requires Drive-first verified storage")
-        registry = json.loads(self.registry_path.read_text(encoding="utf-8"))
-        datasets = list(registry.get("datasets") or [])
         dataset_id = spec["dataset_id"]
         now = datetime.now(timezone.utc).isoformat()
         entry = dict(spec)
@@ -430,18 +439,30 @@ class RegistryPromoter:
             entry["lineage"]["campaign_id"] = campaign_id
             entry["lineage"]["alpha_ready"] = True
             entry["lineage"]["join_keys"] = spec.get("join_keys") or spec.get("grain", "")
-        replaced = False
-        for index, row in enumerate(datasets):
-            if row.get("dataset_id") == dataset_id:
-                merged = dict(row)
-                merged.update(entry)
-                datasets[index] = merged
-                entry = merged
-                replaced = True
-                break
-        if not replaced:
-            datasets.append(entry)
-        registry["datasets"] = datasets
-        registry["updated_at"] = now
-        self.registry_path.write_text(json.dumps(registry, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-        return {"dataset_id": dataset_id, "replaced": replaced, "promoted_at": now}
+
+        def mutate(registry: dict[str, Any]) -> dict[str, Any]:
+            datasets = list(registry.get("datasets") or [])
+            replaced = False
+            stored = entry
+            for index, row in enumerate(datasets):
+                if row.get("dataset_id") == dataset_id:
+                    merged = dict(row)
+                    merged.update(entry)
+                    datasets[index] = merged
+                    stored = merged
+                    replaced = True
+                    break
+            if not replaced:
+                datasets.append(entry)
+            registry["datasets"] = datasets
+            registry["updated_at"] = now
+            return {
+                "dataset_id": dataset_id,
+                "replaced": replaced,
+                "promoted_at": now,
+                "stored": stored,
+            }
+
+        result = atomic_update_json(self.registry_path, mutate)
+        result.pop("stored", None)
+        return result
