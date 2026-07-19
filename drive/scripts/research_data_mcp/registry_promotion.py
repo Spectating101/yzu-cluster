@@ -9,6 +9,7 @@ from glob import glob
 from pathlib import Path
 from typing import Any
 
+from scripts.research_data_mcp.drive_first import is_drive_first
 from scripts.yzu_cluster.acquisitions import registry_spec_from_materialized
 
 
@@ -398,6 +399,8 @@ class RegistryPromoter:
         return [entry]
 
     def _upsert_dataset(self, spec: dict[str, Any], *, task_id: str, job_id: str, campaign_id: str = "") -> dict[str, Any]:
+        if not is_drive_first(self.repo_root):
+            raise PermissionError("canonical registry promotion requires Drive-first verified storage")
         registry = json.loads(self.registry_path.read_text(encoding="utf-8"))
         datasets = list(registry.get("datasets") or [])
         dataset_id = spec["dataset_id"]
