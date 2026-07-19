@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import re
 import threading
 from pathlib import Path
 from typing import Any
@@ -11,6 +12,7 @@ from typing import Any
 from .executor import ALLOWED_JOB_TYPES, YzuExecutor
 from .jobs import YzuJobStore
 from .queue_catalog import list_tasks
+from .runtime_adapter import ClusterRuntimeAdapter
 from .scheduler import YzuScheduler
 from sharpe_kernel.paths import repo_root_from_file
 
@@ -32,6 +34,7 @@ class YzuOrchestrator:
         jobs_root.mkdir(parents=True, exist_ok=True)
         self.jobs_root = jobs_root
         self.store = YzuJobStore(jobs_root / "jobs.sqlite3")
+        self.runtime = ClusterRuntimeAdapter(self.store.path, self.cfg)
         self.executor = YzuExecutor(self.repo_root, self.cfg, jobs_root, event_cb=self.store.event)
         self.scheduler = YzuScheduler(self.repo_root, self.cfg)
         self._lock = threading.Lock()
@@ -48,28 +51,75 @@ class YzuOrchestrator:
         allowed = set(agent.get("allowed_job_types", [])) | set(agent.get("future_job_types", []))
         return sorted(allowed & ALLOWED_JOB_TYPES)
 
+    @staticmethod
+    def _canonical(value: Any) -> str:
+        return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+
+    @staticmethod
+    def _idempotency_job_id(request: dict[str, Any], plan: dict[str, Any]) -> str | None:
+        raw = request.get("job_id") or request.get("idempotency_key") or plan.get("job_id")
+        if raw in (None, ""):
+            return None
+        job_id = str(raw).strip()
+        if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,119}", job_id):
+            raise ValueError("idempotency key must use letters, digits, ., _, :, or -")
+        return job_id
+
+    def _same_submission(self, job: dict[str, Any], *, title: str, request: dict[str, Any], plan: dict[str, Any]) -> bool:
+        return (
+            job.get("title") == title
+            and self._canonical(job.get("request") or {}) == self._canonical(request)
+            and self._canonical(job.get("plan") or {}) == self._canonical(plan)
+        )
+
+    def project_job(self, job: dict[str, Any]) -> dict[str, Any]:
+        return self.runtime.project(job)
+
+    def get_job(self, job_id: str) -> dict[str, Any]:
+        return self.project_job(self.store.get(job_id))
+
+    def list_jobs(self, limit: int = 30, status: str = "") -> list[dict[str, Any]]:
+        return [self.project_job(job) for job in self.store.list(limit=limit, status=status)]
+
     def submit(self, title: str, plan: dict[str, Any], request: dict | None = None, *, auto_approve: bool = False) -> dict:
         plan = self.validate_plan(plan)
+        request = dict(request or {})
         status = "queued" if auto_approve and plan.get("launchable", True) else "pending_approval"
-        job = self.store.create(title, request or {}, plan, status=status)
+        idempotency_key = self._idempotency_job_id(request, plan)
+        if idempotency_key:
+            try:
+                existing = self.store.get(idempotency_key)
+            except KeyError:
+                existing = None
+            if existing is not None:
+                if not self._same_submission(existing, title=title, request=request, plan=plan):
+                    raise ValueError("idempotency key already exists with a different request")
+                return self.project_job(existing)
+        job = self.store.create(title, request, plan, status=status, job_id=idempotency_key)
+        self.runtime.ensure(job)
         if status == "queued":
             self.store.event(job["id"], "info", "Auto-approved and queued")
-        return job
+        return self.get_job(job["id"])
 
     def approve(self, job_id: str) -> dict:
         job = self.store.get(job_id)
         if job["status"] != "pending_approval":
             raise ValueError(f"job is {job['status']}, not pending_approval")
+        self.runtime.ensure(job)
+        self.runtime.approve(job_id)
         self.store.update(job_id, "queued")
         self.store.event(job_id, "info", "Approved — waiting for worker")
-        return self.store.get(job_id)
+        return self.get_job(job_id)
 
     def cancel(self, job_id: str) -> dict:
         job = self.store.get(job_id)
         if job["status"] not in {"pending_approval", "queued"}:
             raise ValueError("only pending or queued jobs can be cancelled")
+        self.runtime.ensure(job)
+        self.runtime.cancel(job_id)
         self.store.event(job_id, "warning", "Job cancelled by user")
-        return self.store.update(job_id, "cancelled")
+        self.store.update(job_id, "cancelled")
+        return self.get_job(job_id)
 
     def validate_plan(self, plan: dict[str, Any]) -> dict[str, Any]:
         if not plan:
@@ -145,17 +195,29 @@ class YzuOrchestrator:
     def scheduler_tick(self) -> dict[str, Any] | None:
         return self.scheduler.tick(self)
 
-    def execute_job(self, job_id: str) -> dict:
+    def execute_job(self, job_id: str, *, claim: Any | None = None) -> dict:
         with self._lock:
             if self._running_job and self._running_job != job_id:
                 raise RuntimeError(f"worker busy with job {self._running_job}")
             self._running_job = job_id
+        job: dict[str, Any] = {}
         try:
             job = self.store.get(job_id)
             if job["status"] == "cancelled":
-                return job
+                return self.project_job(job)
+            self.runtime.ensure(job)
+            if claim is None:
+                claim = self.runtime.claim_job(job_id)
+            if claim is None:
+                # A configured remote pool is not a live worker. Keep this job
+                # queued until a fresh worker advertises the required capability.
+                self.store.event(job_id, "info", "Waiting for a fresh compatible runtime worker")
+                return self.get_job(job_id)
+            if claim.job_id != job_id:
+                raise RuntimeError("runtime claim does not match the requested legacy job")
+            self.runtime.start(claim)
             self.store.update(job_id, "running")
-            self.store.event(job_id, "info", "Execution started")
+            self.store.event(job_id, "info", f"Execution started (attempt {claim.attempt} on {claim.worker_id})")
             result = self.executor.execute(job_id, job["plan"])
             self.store.event(job_id, "info", "Execution completed")
             if self._on_job_completed:
@@ -163,12 +225,20 @@ class YzuOrchestrator:
                 if promo:
                     result = dict(result or {})
                     result["registry_promotion"] = promo
-            return self.store.update(job_id, "completed", result=result)
+            self.runtime.complete(claim, result)
+            self.store.update(job_id, "completed", result=result)
+            return self.get_job(job_id)
         except Exception as exc:
             self.store.event(job_id, "error", str(exc))
+            if claim is not None:
+                try:
+                    self.runtime.fail(claim, str(exc), retryable=job.get("plan", {}).get("retryable") is not False)
+                except Exception as runtime_exc:  # noqa: BLE001
+                    self.store.event(job_id, "error", f"runtime failure recording failed: {runtime_exc}")
             if self._on_job_failed:
                 self._on_job_failed(job_id, job.get("plan") or {}, str(exc))
-            return self.store.update(job_id, "failed", error=str(exc))
+            self.store.update(job_id, "failed", error=str(exc))
+            return self.get_job(job_id)
         finally:
             with self._lock:
                 if self._running_job == job_id:
@@ -178,10 +248,12 @@ class YzuOrchestrator:
         if self._running_job:
             return None
         self.scheduler_tick()
-        job_id = self.store.next_queued()
-        if not job_id:
+        for job in self.store.list(limit=200, status="queued"):
+            self.runtime.ensure(job)
+        claim = self.runtime.claim_next()
+        if not claim:
             return None
-        return self.execute_job(job_id)
+        return self.execute_job(claim.job_id, claim=claim)
 
     def run_worker(self, poll_seconds: float = 2.0, once: bool = False) -> None:
         import time

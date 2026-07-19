@@ -45,10 +45,10 @@ class JobService:
         return enrich_job_identity(self.orchestrator.cancel(job_id)) or {}
 
     def get(self, job_id: str) -> dict[str, Any]:
-        return enrich_job_identity(self.orchestrator.store.get(job_id)) or {}
+        return enrich_job_identity(self.orchestrator.get_job(job_id)) or {}
 
     def list(self, limit: int = 30, status: str = "") -> dict[str, Any]:
-        payload = {"jobs": self.orchestrator.store.list(min(max(limit, 1), 200), status=status)}
+        payload = {"jobs": self.orchestrator.list_jobs(min(max(limit, 1), 200), status=status)}
         return enrich_jobs_payload(payload) or payload
 
     def run_schedule(self, schedule_id: str) -> dict[str, Any]:

@@ -155,26 +155,86 @@ def create_stack(
             return promoted
         doi = str((plan or {}).get("datacite_doi") or "")
         hf_id = str((plan or {}).get("hf_dataset_id") or "")
-        if hf_id:
+        search_goal = ""
+        if campaign_id:
+            try:
+                search_goal = str(campaigns.get(campaign_id).get("goal") or "")
+            except KeyError:
+                pass
+        if not search_goal:
+            req = job.get("request") or {}
+            search_goal = str(req.get("search_goal") or req.get("goal") or req.get("message") or "")
+
+        materialized = (result or {}).get("materialized") or {}
+        storage = json.loads((root / "config/yzu_cluster.json").read_text(encoding="utf-8")).get("storage") or {}
+        from scripts.research_data_mcp.drive_first import (
+            _stamp_registry_drive_paths,
+            compact_finalized_archives,
+            finalize_job_to_drive,
+            is_drive_first,
+        )
+
+        # Generic collection previously promoted into the registry and only then
+        # attempted archival.  A Drive failure therefore left a false Library
+        # asset behind.  Keep staging intact through archive verification and
+        # promote only after the archive proof exists.
+        job_type = str((plan or {}).get("job_type") or "")
+        archive_required = bool(materialized.get("canonical_dir")) or job_type == "scraper_run"
+        drive_finalize: dict[str, Any] | None = None
+        if is_drive_first(root) and archive_required:
+            drive_finalize = finalize_job_to_drive(
+                root,
+                job_id=job_id,
+                plan=plan or {},
+                result=result if isinstance(result, dict) else {},
+                materialized=materialized,
+                search_goal=search_goal,
+                compact=False,
+                stamp_registry=False,
+            )
+            if isinstance(result, dict):
+                result["drive_finalize"] = drive_finalize
+            if not drive_finalize.get("ok"):
+                raise RuntimeError(drive_finalize.get("error") or "GDrive partition finalize failed")
+            if drive_finalize.get("skipped"):
+                raise RuntimeError("Drive-first collection produced no archive targets")
+
+        # Metadata/probe work can complete without materialising a Library asset.
+        # In Drive-first mode, a collection with no archivable output remains a
+        # completed job, not a promoted dataset.
+        if is_drive_first(root) and not archive_required:
+            promoted = []
+        elif hf_id:
             promoted = promoter.promote_huggingface_collect(payload, hf_dataset_id=hf_id, campaign_id=campaign_id)
         elif doi:
             promoted = promoter.promote_datacite_collect(payload, doi=doi, campaign_id=campaign_id)
         else:
             promoted = promoter.promote_job(payload, campaign_id=campaign_id)
         if promoted:
+            if drive_finalize is not None:
+                archived_ids = {
+                    str(row.get("dataset_id") or "")
+                    for row in drive_finalize.get("registry_updates") or []
+                    if row.get("dataset_id")
+                }
+                promoted_ids = {str(row.get("dataset_id") or "") for row in promoted if row.get("dataset_id")}
+                expected_id = str(materialized.get("dataset_id") or "")
+                if expected_id and expected_id not in promoted_ids:
+                    raise RuntimeError("verified output was not promoted under its declared dataset identity")
+                if archived_ids and not archived_ids.intersection(promoted_ids):
+                    raise RuntimeError("registry promotion does not match the verified archive identity")
+                _stamp_registry_drive_paths(
+                    root,
+                    list(drive_finalize.get("registry_updates") or []),
+                    plan=plan or {},
+                )
+                compacted = compact_finalized_archives(root, drive_finalize, plan=plan or {})
+                if isinstance(result, dict):
+                    result["drive_finalize"]["compacted"] = compacted
             gateway.reload_registry()
             from scripts.research_data_mcp.semantic_index import invalidate_semantic_index
 
             invalidate_semantic_index()
-            search_goal = ""
-            if campaign_id:
-                try:
-                    search_goal = str(campaigns.get(campaign_id).get("goal") or "")
-                except KeyError:
-                    pass
-            if not search_goal:
-                req = job.get("request") or {}
-                search_goal = str(req.get("search_goal") or req.get("goal") or req.get("message") or "")
             flywheel_result = flywheel.promote_after_collect(
                 payload,
                 promoted,
@@ -218,26 +278,9 @@ def create_stack(
             if flywheel_result.get("curated_added") or flywheel_result.get("locators_added"):
                 payload = dict(payload)
                 payload["flywheel"] = flywheel_result
-            materialized = (result or {}).get("materialized") or {}
-            storage = json.loads((root / "config/yzu_cluster.json").read_text(encoding="utf-8")).get("storage") or {}
-            from scripts.research_data_mcp.drive_first import finalize_job_to_drive, is_drive_first
-
             archive_jobs: list[dict] = []
-            if is_drive_first(root):
-                finalize = finalize_job_to_drive(
-                    root,
-                    job_id=job_id,
-                    plan=plan or {},
-                    result=result if isinstance(result, dict) else {},
-                    promoted=promoted,
-                    materialized=materialized,
-                    search_goal=search_goal,
-                )
-                if isinstance(result, dict):
-                    result["drive_finalize"] = finalize
-                if not finalize.get("ok"):
-                    raise RuntimeError(finalize.get("error") or "GDrive partition finalize failed")
-                archive_jobs = list(finalize.get("archives") or [])
+            if drive_finalize is not None:
+                archive_jobs = list(drive_finalize.get("archives") or [])
             else:
                 from scripts.research_data_mcp.archive_after_job import (
                     queue_archive_materialized,

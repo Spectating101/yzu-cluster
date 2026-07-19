@@ -173,6 +173,7 @@ def finalize_job_to_drive(
     materialized: dict[str, Any] | None = None,
     search_goal: str = "",
     compact: bool = True,
+    stamp_registry: bool = True,
 ) -> dict[str, Any]:
     """Synchronous partition archive — job is not done until GDrive verify passes."""
     from scripts.research_data_mcp.partition_wiring import attach_partition_to_plan, infer_partition_id
@@ -246,13 +247,30 @@ def finalize_job_to_drive(
             if not row.get("ok"):
                 return {"ok": False, "error": "promoted_archive_failed", "archives": archives, "failed": row}
 
-    if registry_updates:
+    if registry_updates and stamp_registry:
         _stamp_registry_drive_paths(repo_root, registry_updates, plan=plan)
 
     if not archives:
         return {"ok": True, "skipped": True, "reason": "no_archive_targets"}
 
     return {"ok": True, "archives": archives, "compacted": compacted, "registry_updates": registry_updates}
+
+
+def compact_finalized_archives(
+    repo_root: Path,
+    finalization: dict[str, Any],
+    *,
+    plan: dict[str, Any],
+) -> list[dict[str, Any]]:
+    """Compact verified staging only after a caller has completed promotion."""
+
+    if not _should_compact_local(plan, repo_root):
+        return []
+    compacted: list[dict[str, Any]] = []
+    for archive in finalization.get("archives") or []:
+        if archive.get("ok") and archive.get("local_path"):
+            compacted.append(compact_ephemeral_path(repo_root, str(archive["local_path"])))
+    return compacted
 
 
 def _stamp_registry_drive_paths(

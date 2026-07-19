@@ -221,6 +221,13 @@ class ClusterRuntimeAdapter:
             return current
         raise ValueError(f"runtime job is {current['status']}, not pending_approval")
 
+    def cancel(self, job_id: str, *, message: str = "Job cancelled by user") -> dict[str, Any]:
+        run_id = self._run_id(job_id)
+        current = self.store.snapshot(run_id)
+        if current["status"] not in {"pending_approval", "queued", "retrying"}:
+            raise ValueError(f"runtime job is {current['status']}, not cancellable")
+        return self.store.record(run_id, "blocked", message=message)
+
     def claim_next(self, worker_id: str | None = None, *, lease_seconds: int = 120) -> Claim | None:
         self.store.reap_expired()
         return self.store.claim(worker_id or self.controller_id, lease_seconds=lease_seconds)
