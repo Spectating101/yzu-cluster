@@ -59,8 +59,25 @@ jobs:
           python -m pytest -q tests/test_scraper_manifest.py tests/test_registry_authority.py
 
       - name: Run private suite excluding optional HMM tests
+        id: private-suite
+        continue-on-error: true
+        shell: bash
         run: |
-          python -m pytest -q -k "not strategy_regime_hmm"
+          set -o pipefail
+          python -m pytest -q -k "not strategy_regime_hmm" 2>&1 | tee private-suite.log
+
+      - name: Upload private suite diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: private-suite-log
+          path: private-suite.log
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Enforce private suite result
+        if: steps.private-suite.outcome == 'failure'
+        run: exit 1
 
       - name: Run public interoperability contracts
         run: |
