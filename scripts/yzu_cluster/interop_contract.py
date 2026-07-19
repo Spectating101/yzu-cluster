@@ -3,11 +3,20 @@ from ._interop_common import BaseStore, Claim, stage, now_utc, normalize_capabil
 from ._interop_runtime import RuntimeMixin
 from ._interop_registry import RegistryMixin
 from .interop_connectors import ConnectorMixin
+from .interop_fencing import AttemptFenceMixin
 from .interop_reliability import ReliabilityMixin
 from .interop_resources import ResourceMixin
 
 
-class InteropStore(ReliabilityMixin, ResourceMixin, ConnectorMixin, RuntimeMixin, RegistryMixin, BaseStore):
+class InteropStore(
+    AttemptFenceMixin,
+    ReliabilityMixin,
+    ResourceMixin,
+    ConnectorMixin,
+    RuntimeMixin,
+    RegistryMixin,
+    BaseStore,
+):
     """Durable worker, execution, connector, resource, and asset-registration store."""
 
     def __init__(self, database=":memory:", *, worker_stale_after_seconds: int = 300) -> None:
