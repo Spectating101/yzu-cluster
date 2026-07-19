@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import hashlib
+import io
 import json
+import zipfile
 from pathlib import Path
 
 import pytest
@@ -114,6 +117,76 @@ def test_remote_worker_join_claim_heartbeat_usage_and_complete(tmp_path: Path) -
         control.heartbeat(
             submitted["id"],
             {"worker_id": "windows-01", "attempt": 1, "stage": "running"},
+        )
+
+
+def test_uploaded_artifact_materializes_on_controller(tmp_path: Path) -> None:
+    orchestrator = _orchestrator(tmp_path)
+    control = WorkerControlPlane(orchestrator, token="secret-token", max_artifact_bytes=1024 * 1024)
+    job = orchestrator.submit(
+        "Remote artifact collection",
+        {
+            "job_type": "http_manifest",
+            "dataset_id": "remote_uploaded_dataset",
+            "url": "https://example.test/upload.csv",
+            "validation": {"min_files": 1, "min_total_bytes": 1},
+        },
+        {"idempotency_key": "remote-upload-1"},
+        auto_approve=True,
+    )
+    control.join(
+        {
+            "worker_id": "windows-01",
+            "pool": "windows_lab",
+            "capabilities": ["http"],
+            "capacity": {"cpu_cores": 2, "memory_mb": 2048},
+        }
+    )
+    claim = control.claim({"worker_id": "windows-01"})
+    assert claim is not None
+    control.heartbeat(job["id"], {"worker_id": "windows-01", "attempt": 1, "stage": "running"})
+
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w") as archive:
+        archive.writestr("raw/upload.csv", "timestamp,value\n2026-01-01,1\n")
+    content = buffer.getvalue()
+    digest = hashlib.sha256(content).hexdigest()
+    uploaded = control.upload_artifact(
+        job["id"],
+        worker_id="windows-01",
+        attempt=1,
+        name="worker-output.zip",
+        content=content,
+        expected_sha256=digest,
+    )
+
+    completed = control.complete(
+        job["id"],
+        {
+            "worker_id": "windows-01",
+            "attempt": 1,
+            "result": {
+                "artifacts": [{"artifact": uploaded["artifact"], "bytes": uploaded["bytes"]}],
+                "collect_mode": "remote_control",
+            },
+        },
+    )
+
+    materialized = completed["result"]["materialized"]
+    manifest = tmp_path / materialized["manifest_path"]
+    assert uploaded["sha256"] == digest
+    assert materialized["dataset_id"] == "remote_uploaded_dataset"
+    assert manifest.is_file()
+    assert completed["lifecycle"]["stage"] == "completed"
+    assert completed["manifest_id"] == materialized["manifest_id"]
+
+    with pytest.raises((PermissionError, ValueError), match="not writable|stale execution attempt"):
+        control.upload_artifact(
+            job["id"],
+            worker_id="windows-01",
+            attempt=1,
+            name="late.zip",
+            content=content,
         )
 
 
