@@ -82,6 +82,54 @@ def create_stack(
     campaign_runner = CampaignRunner(gateway, campaigns, memory=memory)
     jobs.set_campaign_runner(campaign_runner)
 
+    def _registration_evidence(result: dict[str, Any] | None, dataset_id: str) -> dict[str, Any] | None:
+        """Return proof only after archive and canonical registry read-back agree."""
+
+        if not isinstance(result, dict) or not dataset_id:
+            return None
+        drive = result.get("drive_finalize") if isinstance(result.get("drive_finalize"), dict) else {}
+        manifest_id = str(result.get("output_manifest_id") or result.get("manifest_id") or "")
+        promotion = result.get("registry_promotion") or []
+        promoted = any(isinstance(row, dict) and row.get("dataset_id") == dataset_id for row in promotion)
+        archive = next(
+            (
+                row
+                for row in drive.get("archives") or []
+                if isinstance(row, dict) and row.get("ok") and row.get("dataset_id") == dataset_id
+            ),
+            None,
+        )
+        if not (drive.get("ok") and manifest_id and promoted and archive and archive.get("remote_path")):
+            return None
+        document = json.loads(registry.read_text(encoding="utf-8"))
+        registry_row = next(
+            (row for row in document.get("datasets") or [] if row.get("dataset_id") == dataset_id),
+            None,
+        )
+        remote_path = str((registry_row or {}).get("canonical_remote") or "")
+        if not registry_row or remote_path != str(archive.get("remote_path") or ""):
+            return None
+        readiness = str(registry_row.get("analysis_readiness") or "registered")
+        if readiness not in {"registered", "query_ready"}:
+            readiness = "registered"
+        execution_spec = result.get("execution_spec") if isinstance(result.get("execution_spec"), dict) else {}
+        return {
+            "dataset_id": dataset_id,
+            # The canonical registry has dataset_id as its durable row identity.
+            "registry_id": dataset_id,
+            "manifest_id": manifest_id,
+            "vault_path": remote_path,
+            "archive_verified": True,
+            "registry_readback": True,
+            "readiness": readiness,
+            "title": registry_row.get("name"),
+            "source": registry_row.get("source") or registry_row.get("procurement"),
+            "lineage_inputs": [execution_spec["input_dataset_id"]] if execution_spec.get("input_dataset_id") else [],
+            "rows": result.get("rows"),
+            "grain": registry_row.get("grain"),
+            "coverage": registry_row.get("coverage"),
+        }
+
     def _on_job_completed(job_id: str, plan: dict, result: dict | None) -> list[dict]:
         job = orchestrator.store.get(job_id)
         campaign_id = str((job.get("request") or {}).get("campaign_id") or "")
@@ -130,6 +178,10 @@ def create_stack(
             if isinstance(result, dict):
                 result["registry_promotion"] = promoted
             _stamp_registry_drive_paths(root, list(finalize.get("registry_updates") or []), plan=plan or {})
+            if isinstance(result, dict):
+                evidence = _registration_evidence(result, output_id)
+                if evidence:
+                    result["registration_evidence"] = evidence
             compacted = compact_ephemeral_path(root, str(materialized["canonical_dir"]))
             if isinstance(result, dict):
                 result["drive_finalize"]["compacted"] = [compacted]
@@ -211,6 +263,8 @@ def create_stack(
         else:
             promoted = promoter.promote_job(payload, campaign_id=campaign_id)
         if promoted:
+            if isinstance(result, dict):
+                result["registry_promotion"] = promoted
             if drive_finalize is not None:
                 archived_ids = {
                     str(row.get("dataset_id") or "")
@@ -228,6 +282,10 @@ def create_stack(
                     list(drive_finalize.get("registry_updates") or []),
                     plan=plan or {},
                 )
+                if isinstance(result, dict) and expected_id:
+                    evidence = _registration_evidence(result, expected_id)
+                    if evidence:
+                        result["registration_evidence"] = evidence
                 compacted = compact_finalized_archives(root, drive_finalize, plan=plan or {})
                 if isinstance(result, dict):
                     result["drive_finalize"]["compacted"] = compacted

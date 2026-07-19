@@ -27,7 +27,7 @@ def vectors():
 def stack():
     from scripts.research_data_mcp.bootstrap import create_stack
 
-    return create_stack(repo_root=REPO)
+    return create_stack(repo_root=REPO / "drive")
 
 
 def test_shared_fixture_hash(vectors):

@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any, Iterable, Mapping
 
 from ._interop_common import Claim, normalize_capabilities
+from .interop_api import InteropAPI
 from .interop_contract import InteropStore
 
 
@@ -293,7 +294,7 @@ class ClusterRuntimeAdapter:
             if result.get("registry_promotion"):
                 self.store.record(run_id, "registering", worker_id=claim.worker_id, expected_attempt=claim.attempt)
 
-        return self.store.record(
+        completed = self.store.record(
             run_id,
             "completed",
             worker_id=claim.worker_id,
@@ -305,6 +306,41 @@ class ClusterRuntimeAdapter:
             entities=int(entities) if isinstance(entities, (int, float)) else None,
             expected_attempt=claim.attempt,
         )
+        evidence = result.get("registration_evidence")
+        if not isinstance(evidence, Mapping) or evidence.get("registry_readback") is not True:
+            return completed
+        required = ("dataset_id", "registry_id", "manifest_id", "vault_path")
+        if not all(str(evidence.get(key) or "").strip() for key in required):
+            return completed
+        if evidence.get("archive_verified") is not True:
+            return completed
+        self.store.register(
+            run_id,
+            dataset_id=str(evidence["dataset_id"]),
+            registry_id=str(evidence["registry_id"]),
+            manifest_id=str(evidence["manifest_id"]),
+            vault_path=str(evidence["vault_path"]),
+            archive_verified=True,
+            readiness=str(evidence.get("readiness") or "registered"),
+            title=evidence.get("title"),
+            verification_state=str(evidence.get("verification_state") or "not_checked"),
+            verification_summary=evidence.get("verification_summary"),
+            source=evidence.get("source"),
+            lineage_inputs=evidence.get("lineage_inputs"),
+            source_snapshots=evidence.get("source_snapshots") or (),
+            checksum=evidence.get("checksum"),
+            method_revision=evidence.get("method_revision"),
+            refresh_policy=evidence.get("refresh_policy"),
+            last_refreshed_at=evidence.get("last_refreshed_at"),
+            next_refresh_at=evidence.get("next_refresh_at"),
+            rows=evidence.get("rows"),
+            fields=evidence.get("fields"),
+            entities=evidence.get("entities"),
+            grain=evidence.get("grain"),
+            coverage=evidence.get("coverage"),
+            expected_attempt=claim.attempt,
+        )
+        return self.store.snapshot(run_id)
 
     def fail(self, claim: Claim, error: str, *, retryable: bool = True) -> dict[str, Any]:
         return self.store.record(
@@ -328,3 +364,6 @@ class ClusterRuntimeAdapter:
         for key in ("run_id", "attempt", "assigned_worker", "worker_pool", "lease_expires_at", "progress"):
             projected[key] = runtime.get(key)
         return projected
+
+    def health(self) -> dict[str, Any]:
+        return InteropAPI(self.store).health()

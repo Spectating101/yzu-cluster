@@ -74,3 +74,84 @@ def test_runtime_requires_a_real_capability_for_browser_work(tmp_path: Path) -> 
 
     assert runtime.claim_next() is None
     assert runtime.snapshot(job["id"])["status"] == "queued"
+
+
+def test_runtime_registers_only_explicit_readback_proof(tmp_path: Path) -> None:
+    database = tmp_path / "jobs.sqlite3"
+    legacy = YzuJobStore(database)
+    runtime = ClusterRuntimeAdapter(database, {"controller": {"hostname": "optiplex"}})
+    job = _legacy_job(legacy, "register-usdt")
+    runtime.ensure(job)
+    claim = runtime.claim_next()
+    assert claim is not None
+    runtime.start(claim)
+
+    registered = runtime.complete(
+        claim,
+        {
+            "outputs": ["raw_usdt_history"],
+            "output_manifest_id": "manifest-usdt-v1",
+            "drive_finalize": {"ok": True},
+            "registry_promotion": [{"dataset_id": "raw_usdt_history"}],
+            "registration_evidence": {
+                "dataset_id": "raw_usdt_history",
+                "registry_id": "raw_usdt_history",
+                "manifest_id": "manifest-usdt-v1",
+                "vault_path": "gdrive:archive/usdt",
+                "archive_verified": True,
+                "registry_readback": True,
+                "readiness": "query_ready",
+            },
+        },
+    )
+
+    assert registered["status"] == "registered"
+    assert runtime.store.asset("raw_usdt_history")["analysis_readiness"] == "query_ready"
+
+
+def test_runtime_does_not_register_partial_or_unverified_evidence(tmp_path: Path) -> None:
+    database = tmp_path / "jobs.sqlite3"
+    legacy = YzuJobStore(database)
+    runtime = ClusterRuntimeAdapter(database, {"controller": {"hostname": "optiplex"}})
+    job = _legacy_job(legacy, "partial-usdt")
+    runtime.ensure(job)
+    claim = runtime.claim_next()
+    assert claim is not None
+    runtime.start(claim)
+
+    completed = runtime.complete(
+        claim,
+        {
+            "outputs": ["raw_usdt_history"],
+            "registration_evidence": {
+                "dataset_id": "raw_usdt_history",
+                "registry_id": "raw_usdt_history",
+                "manifest_id": "manifest-usdt-v1",
+                "vault_path": "gdrive:archive/usdt",
+                "archive_verified": False,
+                "registry_readback": True,
+            },
+        },
+    )
+
+    assert completed["status"] == "completed"
+
+
+def test_expired_lease_retries_and_fences_the_old_attempt(tmp_path: Path) -> None:
+    database = tmp_path / "jobs.sqlite3"
+    legacy = YzuJobStore(database)
+    runtime = ClusterRuntimeAdapter(database, {"controller": {"hostname": "optiplex"}})
+    job = _legacy_job(legacy, "retry-usdt")
+    runtime.ensure(job)
+    first = runtime.claim_next(lease_seconds=1)
+    assert first is not None
+    runtime.start(first)
+
+    runtime.store.reap_expired(at="2099-01-01T00:00:00Z")
+    assert runtime.snapshot(job["id"])["status"] == "retrying"
+    second = runtime.claim_next()
+    assert second is not None
+    assert second.attempt == first.attempt + 1
+
+    with pytest.raises(PermissionError, match="stale execution attempt"):
+        runtime.heartbeat(job["id"], first.worker_id, attempt=first.attempt)

@@ -65,10 +65,46 @@ The implementation must preserve the public PR #41 behavioral contract:
 
 ## Delivery order
 
-1. Add the namespaced schema, migration checks, and runtime adapter tests.
-2. Bind legacy job IDs to idempotent runtime runs without changing routes.
-3. Route worker claims and lifecycle writes through the runtime adapter.
-4. Correct generic collection to validate, archive, verify, promote, then
-   expose the registered asset.
-5. Add a Windows worker heartbeat/capacity endpoint and prove one live run plus
-   one expired-lease retry.
+Completed in this private branch:
+
+1. Added namespaced `cluster_*` runtime tables beside legacy `jobs` and
+   `events`, with no destructive schema migration.
+2. Bound new legacy submissions to stable idempotent runtime runs and projected
+   runtime facts through existing job payloads.
+3. Routed controller execution through capability-aware claims, leases, attempt
+   fencing, and truthful completion/registration stages. Browser work remains
+   queued until a live browser-capable worker joins.
+4. Corrected generic Drive-first collection ordering to validate, archive,
+   verify, promote, read back the registry, then compact local staging.
+5. Added a proof gate: only explicit matching manifest, archive, and registry
+   read-back evidence can advance a run from `completed` to `registered`.
+6. Added regression coverage for archive-before-promotion, metadata-only jobs,
+   idempotency, capability mismatch, registration evidence, and expired lease
+   retry with stale-attempt rejection.
+
+Current local verification:
+
+```text
+208 passed, 9 deselected
+```
+
+The nine deselected tests are unrelated trading HMM tests. They require the
+optional `hmmlearn` dependency, which is not installed in this runtime
+environment.
+
+## Remaining live-adoption gate
+
+The code has not yet proven a real Windows/GDrive run. That needs the actual
+worker hosts, authenticated worker transport, and the configured Drive remote:
+
+1. Register one Windows worker with measured capabilities and capacity.
+2. Run an approved public-source collection through its heartbeat/lease path.
+3. Verify the archived bytes, registry read-back, Library readiness, and
+   Resources/Synthesis projection from the same run ID.
+4. Stop the worker heartbeat, confirm retry, and confirm the old attempt is
+   rejected.
+
+Do not mark this branch deployment-ready until those host-level facts are
+captured. The existing HTTP router does not yet expose an authenticated worker
+control-plane endpoint, so that transport must be introduced with a secret held
+outside Git rather than opening worker claims to unauthenticated callers.

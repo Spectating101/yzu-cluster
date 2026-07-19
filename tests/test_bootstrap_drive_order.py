@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from uuid import uuid4
 
 from scripts.research_data_mcp.bootstrap import create_stack
 
@@ -23,7 +24,13 @@ def test_generic_collection_archives_before_registry_promotion(monkeypatch) -> N
     order: list[str] = []
     plan = {"job_type": "http_manifest", "dataset_id": "raw_usdt_history"}
     result = {"materialized": {"dataset_id": "raw_usdt_history", "canonical_dir": "data_lake/staging/usdt"}}
-    job = stack.orchestrator.store.create("Collect USDT", {}, plan, status="running", job_id="archive-before-promote")
+    job = stack.orchestrator.store.create(
+        "Collect USDT",
+        {},
+        plan,
+        status="running",
+        job_id=f"archive-before-promote-{uuid4().hex}",
+    )
 
     def finalize(*_args, **kwargs):
         order.append("archive")
@@ -59,7 +66,13 @@ def test_metadata_only_job_does_not_promote_without_an_archive(monkeypatch) -> N
 
     stack = _quiet_stack(monkeypatch)
     plan = {"job_type": "source_probe", "url": "https://example.test"}
-    job = stack.orchestrator.store.create("Probe source", {}, plan, status="running", job_id="probe-no-promotion")
+    job = stack.orchestrator.store.create(
+        "Probe source",
+        {},
+        plan,
+        status="running",
+        job_id=f"probe-no-promotion-{uuid4().hex}",
+    )
 
     monkeypatch.setattr(drive_first, "is_drive_first", lambda _root: True)
     monkeypatch.setattr(

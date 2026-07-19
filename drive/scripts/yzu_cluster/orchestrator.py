@@ -272,6 +272,9 @@ class YzuOrchestrator:
         """
         return self.store.status_counts()
 
+    def runtime_health(self) -> dict[str, Any]:
+        return self.runtime.health()
+
     def components(self) -> dict[str, Any]:
         return {
             "controller": self.cfg["controller"]["hostname"],
@@ -280,6 +283,7 @@ class YzuOrchestrator:
             "pipelines": list(self.executor.pipelines().keys()),
             "allowed_job_types": self.allowed_job_types(),
             "jobs_db": str(self.store.path.relative_to(self.repo_root)),
+            "runtime": self.runtime_health(),
             "schedules": self.schedules(),
             "queue_tasks_runnable": len(self.queue_tasks(runnable_only=True)),
         }

@@ -403,16 +403,19 @@ class YzuClusterAPI:
                     "pool": "windows_lab",
                 }
             )
+        runtime = self.orchestrator.runtime_health() if self.orchestrator else None
         return {
             "windows_lab": nodes,
             "datacite_shards": self.datacite_shards(live=live),
             "local_controller": {"hostname": self.cfg["controller"]["hostname"], "pool": "optiplex"},
             "spectator": self.cfg["worker_pools"].get("spectator", {}),
             "storage": self.cfg.get("storage", {}),
+            "runtime": runtime,
         }
 
     def status(self, live: bool = False) -> dict[str, Any]:
         dc = self.datacite_summary(live=live)
+        runtime = self.orchestrator.runtime_health() if self.orchestrator else None
         return {
             "cluster": self.cfg["name"],
             "controller": self.cfg["controller"]["hostname"],
@@ -428,6 +431,7 @@ class YzuClusterAPI:
             "gdelt": self.gdelt_summary(),
             "jobs": self.job_stats(),
             "storage": self.cfg.get("storage", {}),
+            "runtime": runtime,
             "live": live,
         }
 
