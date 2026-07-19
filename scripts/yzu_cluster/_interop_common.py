@@ -56,7 +56,11 @@ def ids(values: Iterable[Any] | None) -> list[str]:
         if isinstance(value, (str, int, float)):
             item = str(value)
         elif isinstance(value, Mapping):
-            item = next((str(value[k]) for k in ("dataset_id", "asset_id", "id", "name", "uri", "path") if value.get(k) not in (None, "")), "")
+            item = next(
+                (str(value[key]) for key in ("dataset_id", "asset_id", "id", "name", "uri", "path")
+                 if value.get(key) not in (None, "")),
+                "",
+            )
         else:
             item = ""
         if item and item not in result:
@@ -65,10 +69,12 @@ def ids(values: Iterable[Any] | None) -> list[str]:
 
 
 def normalize_capabilities(values: Iterable[Any] | None) -> list[str]:
-    aliases = {"python3": "python", "py": "python", "requests": "http", "download": "http",
-               "cdp": "browser", "puppeteer": "browser", "playwright": "browser",
-               "rclone": "archive", "gdrive": "archive", "etl": "pipeline"}
-    normalized = {str(v).strip().lower().replace("-", "_") for v in values or () if str(v).strip()}
+    aliases = {
+        "python3": "python", "py": "python", "requests": "http", "download": "http",
+        "cdp": "browser", "puppeteer": "browser", "playwright": "browser",
+        "rclone": "archive", "gdrive": "archive", "etl": "pipeline",
+    }
+    normalized = {str(value).strip().lower().replace("-", "_") for value in values or () if str(value).strip()}
     return sorted({aliases.get(value, value) for value in normalized})
 
 
@@ -82,6 +88,7 @@ class Claim:
     required_capabilities: tuple[str, ...]
     inputs: tuple[str, ...]
     outputs: tuple[str, ...]
+    resource_requirements: tuple[tuple[str, float], ...]
     lease_expires_at: str
 
 
@@ -138,9 +145,11 @@ class BaseStore:
         row = self.db.execute("SELECT * FROM workers WHERE worker_id=?", (worker_id,)).fetchone()
         if row is None:
             raise KeyError(worker_id)
-        return {"id": row["worker_id"], "pool": row["pool"], "status": row["status"],
-                "capabilities": loads(row["capabilities"], []), "capacity": loads(row["capacity"], {}),
-                "heartbeat_at": row["heartbeat_at"], "updated_at": row["updated_at"]}
+        return {
+            "id": row["worker_id"], "pool": row["pool"], "status": row["status"],
+            "capabilities": loads(row["capabilities"], []), "capacity": loads(row["capacity"], {}),
+            "heartbeat_at": row["heartbeat_at"], "updated_at": row["updated_at"],
+        }
 
     def upsert_worker(self, worker_id: str, *, pool: str | None = None, status: str = "online",
                       capabilities: Iterable[str] = (), capacity: Mapping[str, Any] | None = None,
@@ -148,15 +157,18 @@ class BaseStore:
         if not worker_id:
             raise ValueError("worker_id is required")
         at = heartbeat_at or now_utc()
-        self.db.execute("""INSERT INTO workers VALUES(?,?,?,?,?,?,?) ON CONFLICT(worker_id) DO UPDATE SET
-          pool=excluded.pool,status=excluded.status,capabilities=excluded.capabilities,capacity=excluded.capacity,
-          heartbeat_at=excluded.heartbeat_at,updated_at=excluded.updated_at""",
-          (worker_id, pool, status, dumps(normalize_capabilities(capabilities)), dumps(dict(capacity or {})), at, at))
+        self.db.execute(
+            """INSERT INTO workers VALUES(?,?,?,?,?,?,?) ON CONFLICT(worker_id) DO UPDATE SET
+            pool=excluded.pool,status=excluded.status,capabilities=excluded.capabilities,capacity=excluded.capacity,
+            heartbeat_at=excluded.heartbeat_at,updated_at=excluded.updated_at""",
+            (worker_id, pool, status, dumps(normalize_capabilities(capabilities)), dumps(dict(capacity or {})), at, at),
+        )
         return self.worker(worker_id)
 
     def submit(self, *, job_id: str, job_type: str, title: str | None = None,
                required_capabilities: Iterable[str] = (), inputs: Iterable[Any] = (), outputs: Iterable[Any] = (),
                pending_approval: bool = False, max_attempts: int = 3, retryable: bool = True,
+               resource_requirements: Mapping[str, Any] | None = None,
                run_id: str | None = None) -> dict[str, Any]:
         if not job_id or not job_type:
             raise ValueError("job_id and job_type are required")
@@ -165,64 +177,108 @@ class BaseStore:
         at, run_id = now_utc(), run_id or f"run-{uuid4().hex}"
         state = "pending_approval" if pending_approval else "queued"
         with self.transaction():
-            self.db.execute("""INSERT INTO runs(run_id,job_id,job_type,title,stage,max_attempts,retryable,
-              required_capabilities,inputs,outputs,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)""",
-              (run_id,job_id,job_type,title,state,max_attempts,int(retryable),dumps(normalize_capabilities(required_capabilities)),
-               dumps(ids(inputs)),dumps(ids(outputs)),at,at))
-            self._event(run_id,state,state,at=at)
+            self.db.execute(
+                """INSERT INTO runs(run_id,job_id,job_type,title,stage,max_attempts,retryable,
+                required_capabilities,inputs,outputs,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)""",
+                (run_id, job_id, job_type, title, state, max_attempts, int(retryable),
+                 dumps(normalize_capabilities(required_capabilities)), dumps(ids(inputs)), dumps(ids(outputs)), at, at),
+            )
+            self._store_requirements(run_id, resource_requirements)
+            self._event(run_id, state, state, at=at)
         return self.snapshot(run_id)
 
     def approve(self, run_id: str) -> dict[str, Any]:
         if self._row(run_id)["stage"] != "pending_approval":
             raise ValueError("run is not pending approval")
-        return self.record(run_id,"queued",event_type="approved")
+        return self.record(run_id, "queued", event_type="approved")
 
     def claim(self, worker_id: str, *, lease_seconds: int = 120, at: str | None = None) -> Claim | None:
         if lease_seconds < 1:
             raise ValueError("lease_seconds must be positive")
         at = at or now_utc()
         worker = self.worker(worker_id)
-        if worker["status"] not in {"online","ready","idle"}:
+        if worker["status"] not in {"online", "ready", "idle"}:
             return None
         available = set(normalize_capabilities(worker["capabilities"]))
-        expiry = ((parse_time(at) or datetime.now(timezone.utc))+timedelta(seconds=lease_seconds)).isoformat().replace("+00:00","Z")
+        expiry = (
+            (parse_time(at) or datetime.now(timezone.utc)) + timedelta(seconds=lease_seconds)
+        ).isoformat().replace("+00:00", "Z")
         with self.transaction():
-            rows = self.db.execute("SELECT * FROM runs WHERE stage IN('queued','retrying') AND attempt<max_attempts ORDER BY created_at,run_id").fetchall()
-            selected = next((r for r in rows if set(loads(r["required_capabilities"],[])).issubset(available)), None)
+            rows = self.db.execute(
+                "SELECT * FROM runs WHERE stage IN('queued','retrying') AND attempt<max_attempts ORDER BY created_at,run_id"
+            ).fetchall()
+            selected = next(
+                (
+                    row for row in rows
+                    if set(loads(row["required_capabilities"], [])).issubset(available)
+                    and self._resource_fit(row["run_id"], worker_id)
+                ),
+                None,
+            )
             if selected is None:
                 return None
-            attempt = int(selected["attempt"])+1
-            self.db.execute("UPDATE runs SET stage='assigned',attempt=?,worker_id=?,pool=?,lease_expires_at=?,error=NULL,updated_at=? WHERE run_id=?",
-                            (attempt,worker_id,worker["pool"],expiry,at,selected["run_id"]))
-            self._event(selected["run_id"],"assigned","assigned",at=at,worker_id=worker_id,attempt=attempt,payload={"lease_expires_at":expiry})
+            attempt = int(selected["attempt"]) + 1
+            self._reserve_resources(selected["run_id"], worker_id, at=at)
+            self.db.execute(
+                "UPDATE runs SET stage='assigned',attempt=?,worker_id=?,pool=?,lease_expires_at=?,error=NULL,updated_at=? WHERE run_id=?",
+                (attempt, worker_id, worker["pool"], expiry, at, selected["run_id"]),
+            )
+            self._event(
+                selected["run_id"], "assigned", "assigned", at=at, worker_id=worker_id, attempt=attempt,
+                payload={"lease_expires_at": expiry},
+            )
         row = self._row(selected["run_id"])
-        return Claim(row["run_id"],row["job_id"],row["job_type"],attempt,worker_id,
-                     tuple(loads(row["required_capabilities"],[])),tuple(loads(row["inputs"],[])),
-                     tuple(loads(row["outputs"],[])),expiry)
+        requirements = self.requirements(row["run_id"])
+        return Claim(
+            row["run_id"], row["job_id"], row["job_type"], attempt, worker_id,
+            tuple(loads(row["required_capabilities"], [])), tuple(loads(row["inputs"], [])),
+            tuple(loads(row["outputs"], [])),
+            tuple(sorted((key, float(value)) for key, value in requirements.items() if key != "priority")),
+            expiry,
+        )
+
+    def _store_requirements(self, run_id: str, requirements: Mapping[str, Any] | None) -> None:
+        del run_id, requirements
+
+    def _resource_fit(self, run_id: str, worker_id: str) -> bool:
+        del run_id, worker_id
+        return True
+
+    def _reserve_resources(self, run_id: str, worker_id: str, *, at: str) -> None:
+        del run_id, worker_id, at
+
+    def _release_resources(self, run_id: str) -> None:
+        del run_id
+
+    def requirements(self, run_id: str) -> dict[str, Any]:
+        del run_id
+        return {}
 
     def _row(self, run_id: str) -> sqlite3.Row:
-        row = self.db.execute("SELECT * FROM runs WHERE run_id=?",(run_id,)).fetchone()
+        row = self.db.execute("SELECT * FROM runs WHERE run_id=?", (run_id,)).fetchone()
         if row is None:
             raise KeyError(run_id)
         return row
 
     def _transition(self, current: str, nxt: str) -> None:
-        current,nxt = stage(current),stage(nxt)
+        current, nxt = stage(current), stage(nxt)
         if current == nxt:
             return
         if current == "registered":
             raise ValueError("registered runs are immutable")
         if current == "completed" and nxt != "registered":
             raise ValueError("completed execution may only advance to registered")
-        if current in {"failed","blocked"} and nxt != "retrying":
+        if current in {"failed", "blocked"} and nxt != "retrying":
             raise ValueError("failed or blocked runs must retry before advancing")
-        if nxt in {"failed","blocked"}:
+        if nxt in {"failed", "blocked"}:
             return
-        if ORDER.get(nxt,-1) < ORDER.get(current,-1):
+        if ORDER.get(nxt, -1) < ORDER.get(current, -1):
             raise ValueError(f"stage regression is not allowed: {current} -> {nxt}")
 
     def _event(self, run_id: str, state: str, event_type: str, *, at: str,
                worker_id: str | None = None, attempt: int | None = None,
-               message: str | None = None, payload: Mapping[str,Any] | None = None) -> None:
-        self.db.execute("INSERT INTO events(run_id,stage,event_type,timestamp,worker_id,attempt,message,payload) VALUES(?,?,?,?,?,?,?,?)",
-                        (run_id,stage(state),event_type,at,worker_id,attempt,message,dumps(dict(payload or {}))))
+               message: str | None = None, payload: Mapping[str, Any] | None = None) -> None:
+        self.db.execute(
+            "INSERT INTO events(run_id,stage,event_type,timestamp,worker_id,attempt,message,payload) VALUES(?,?,?,?,?,?,?,?)",
+            (run_id, stage(state), event_type, at, worker_id, attempt, message, dumps(dict(payload or {}))),
+        )
