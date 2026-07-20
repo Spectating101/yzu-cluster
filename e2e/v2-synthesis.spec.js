@@ -98,6 +98,26 @@ const REGISTERED_THREAD = {
   },
 };
 
+const QUERY_READY_THREAD = {
+  ...structuredClone(REGISTERED_THREAD),
+  id: "thread-query-ready",
+  title: "Query-ready stablecoin attention panel",
+  materialisation: "query_ready",
+  state: {
+    ...structuredClone(REGISTERED_THREAD.state),
+    title: "Query-ready stablecoin attention panel",
+    maturity: "query_ready",
+    maturityLabel: "Query-ready output",
+    lastActivity: "Registered output passed query-engine readiness checks.",
+    execution: {
+      ...structuredClone(REGISTERED_THREAD.state.execution),
+      status: "query_ready",
+      job_id: "job-synthesis-43",
+      output_dataset_id: "stablecoin_attention_query_ready",
+    },
+  },
+};
+
 async function capture(page, name) {
   mkdirSync(renderDir, { recursive: true });
   await page.screenshot({ path: `${renderDir}/${name}.png`, fullPage: true });
@@ -105,7 +125,7 @@ async function capture(page, name) {
 
 async function installSynthesisThreadMock(page) {
   const threads = new Map(
-    [EXPLORING_THREAD, PROPOSAL_THREAD, REGISTERED_THREAD].map((thread) => [thread.id, structuredClone(thread)]),
+    [EXPLORING_THREAD, PROPOSAL_THREAD, REGISTERED_THREAD, QUERY_READY_THREAD].map((thread) => [thread.id, structuredClone(thread)]),
   );
 
   await page.route("**/api/library/synthesis/threads**", async (route) => {
@@ -198,8 +218,9 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await page.getByRole("button", { name: "Accept proposal" }).click();
     await expect(page.getByTestId("synthesis-execution-state")).toContainText("stablecoin_attention_weekly");
     await page.getByRole("button", { name: "Request execution" }).click();
-    await expect(page.getByTestId("synthesis-execution-state")).toContainText("pending approval");
-    await expect(page.getByText("Query ready", { exact: true })).toHaveCount(0);
+    const pending = page.getByTestId("synthesis-execution-state");
+    await expect(pending).toContainText("pending approval");
+    await expect(pending.getByText("Query ready", { exact: true })).toHaveCount(0);
     await capture(page, "02-execution-request-desktop");
   });
 
@@ -209,8 +230,18 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await expect(registered).toContainText("13,827");
     await expect(registered).toContainText("mft_s04_0726");
     await expect(registered).toContainText("Reported verified");
+    await expect(registered.getByText("Registered", { exact: true })).toBeVisible();
+    await expect(registered.getByText("Query ready", { exact: true })).toHaveCount(0);
     await expect(registered.getByRole("button", { name: "Open in Library" })).toBeVisible();
     await capture(page, "03-registered-desktop");
+  });
+
+  test("renders query-ready only from an explicit query-ready lifecycle", async ({ page }) => {
+    await page.getByTestId("synthesis-thread-item").filter({ hasText: "Query-ready stablecoin attention panel" }).click();
+    const ready = page.getByTestId("synthesis-query-ready-state");
+    await expect(ready.getByText("Query ready", { exact: true })).toBeVisible();
+    await expect(ready).toContainText("Query-ready output reported");
+    await expect(ready.getByRole("button", { name: "Open in Library" })).toBeVisible();
   });
 
   test("sends the selected durable thread to the shared Ask rail", async ({ page }) => {
