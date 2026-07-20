@@ -37,6 +37,11 @@
   to { opacity: 1; transform: translate(-50%, 0) scale(1); }
 }
 
+@keyframes rd-toast-exit {
+  from { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  to { opacity: 0; transform: translate(-50%, 4px) scale(0.985); }
+}
+
 /* Preserve the shell geometry; page and rail content only fade into place. */
 .rd-v2-page {
   animation: rd-page-enter var(--rd-decor-duration-fade) var(--rd-decor-ease-enter) both;
@@ -49,6 +54,11 @@
 
 .rd-v2-toast {
   animation: rd-toast-enter var(--rd-decor-duration-system) var(--rd-decor-ease-enter) both;
+}
+
+.rd-v2-toast.exiting {
+  pointer-events: none;
+  animation: rd-toast-exit var(--rd-decor-duration-small) var(--rd-decor-ease-exit) both;
 }
 
 /* Productive control motion: direct, brief, and local to the control. */
