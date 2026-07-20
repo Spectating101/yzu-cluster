@@ -212,8 +212,19 @@
   background: rgba(185, 195, 216, 0.72);
 }
 
-.rd-v2-progress-card li[data-state="done"]:not(:last-child)::after {
-  background: rgba(56, 145, 106, 0.42);
+/* Past timed cues are not displayed as verified completion. */
+.rd-v2-progress-card li[data-state="past"] {
+  color: #647089;
+}
+
+.rd-v2-progress-card li[data-state="past"]:not(:last-child)::after {
+  background: rgba(70, 86, 232, 0.24);
+}
+
+.rd-v2-progress-card li[data-state="past"] .rd-v2-progress-marker {
+  border-color: rgba(70, 86, 232, 0.28);
+  background: rgba(70, 86, 232, 0.055);
+  color: #5b68b8;
 }
 
 /* One-shot emphasis when the active stage changes; no sustained pulsing. */
