@@ -43,6 +43,31 @@ The public reference runtime is intentionally framework-neutral. It does not con
 
 Static Pages shows the v2 shell and offline/demo data. Composer chat and live registry require the private API.
 
+## RC2 accepted release
+
+Research Drive RC2 is live-accepted with the implementation pins below:
+
+| Surface | Accepted SHA |
+|---|---|
+| Public product | `b40ff0945f5e1957f0100742185e2a78b06dd498` |
+| Private runtime | `07cb7b885454aef32f3e2351da8733794fe9c17b` |
+
+The release truth anchor is `procured_src_b0a7ba3817a5`: it is **Registered**, queryable through the accepted runtime authority, and deliberately **not** represented as Query ready.
+
+- [RC2 release notes](docs/releases/RESEARCH_DRIVE_RC2.md)
+- [RC2 operator quickstart](docs/releases/RC2_OPERATOR_QUICKSTART.md)
+- [Machine-readable RC2 manifest](release/research-drive-rc2.json)
+
+Run the independent clean-checkout release gate locally:
+
+```bash
+npm ci
+npx playwright install chromium --with-deps
+npm run release:verify
+npm run release:test
+npm run release:package
+```
+
 ## Run locally
 
 ### Frontend and public fixtures
@@ -71,9 +96,13 @@ Do not infer that a Python facade in this public history is the deployed backend
 npm run build
 npm run test:runtime-contract
 python -m unittest discover -s tests -p "test_yzu_interop_*.py" -v
+npm run release:verify
+npm run release:test
 ```
 
 Rendered review uses the Playwright suites under `e2e/` and, when the private desk is available, the live integration capture scripts.
+
+`npm run release:package` creates a deterministic public static distribution, file inventory, and SHA-256 checksums under `artifacts/`. It never packages the private control plane, secrets, registry data, or collected datasets.
 
 ## Canon docs
 
