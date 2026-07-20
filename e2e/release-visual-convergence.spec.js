@@ -1,3 +1,4 @@
+import { mkdir } from "node:fs/promises";
 import { test, expect } from "@playwright/test";
 import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 
@@ -9,6 +10,7 @@ test.describe("Research Drive release visual contract", () => {
   test.beforeEach(async ({ page }) => {
     await mockV2Api(page);
     await page.setViewportSize({ width: 1440, height: 900 });
+    await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
   });
@@ -121,6 +123,30 @@ test.describe("Research Drive release visual contract", () => {
     const overflowing = await rail.evaluate((node) => node.scrollWidth > node.clientWidth + 2);
     expect(overflowing).toBe(false);
     expect(railBox?.width || 0).toBeGreaterThanOrEqual(370);
+  });
+
+  test("capture every implemented release page for pixel review", async ({ page }) => {
+    await mkdir("artifacts/release-visual", { recursive: true });
+    const pages = [
+      ["Home", "home"],
+      ["Library", "library"],
+      ["Discover", "discover"],
+      ["Synthesis", "synthesis"],
+      ["Resources", "resources"],
+      ["Profile", "profile"],
+      ["Settings", "settings"],
+    ];
+
+    for (const [label, file] of pages) {
+      if (label !== "Home") await openTab(page, label);
+      await page.waitForTimeout(120);
+      await page.screenshot({ path: `artifacts/release-visual/${file}-1440x900.png`, fullPage: false });
+    }
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await page.screenshot({ path: "artifacts/release-visual/home-390x844.png", fullPage: false });
   });
 });
 
