@@ -80,7 +80,10 @@ jobs:
 
       - name: Verify package archive
         run: |
-          sha256sum -c artifacts/research-drive-rc2-public.tar.gz.sha256
+          (
+            cd artifacts
+            sha256sum -c research-drive-rc2-public.tar.gz.sha256
+          )
           tar -tzf artifacts/research-drive-rc2-public.tar.gz
           test -f artifacts/rc2-release/research-drive-rc2/SHA256SUMS
           (
