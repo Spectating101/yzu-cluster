@@ -1,3 +1,6 @@
+import json
+import os
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -87,3 +90,109 @@ def test_invalid_environment_port_is_rejected(monkeypatch):
     monkeypatch.setenv("YZU_DESK_PORT", "not-a-port")
     with pytest.raises(ValueError, match="must be an integer"):
         server.build_parser()
+
+
+def _git(repo: Path, *args: str) -> str:
+    return subprocess.check_output(["git", "-C", str(repo), *args], text=True).strip()
+
+
+def _public_authority(tmp_path: Path) -> tuple[Path, str]:
+    public = tmp_path / "public"
+    public.mkdir()
+    subprocess.run(["git", "init", "-q", str(public)], check=True)
+    _git(public, "config", "user.email", "front-door-test@example.invalid")
+    _git(public, "config", "user.name", "Front Door Test")
+    (public / "authority.txt").write_text("public authority\n", encoding="utf-8")
+    _git(public, "add", "authority.txt")
+    _git(public, "commit", "-q", "-m", "public authority")
+    return public, _git(public, "rev-parse", "HEAD")
+
+
+def _fake_python(tmp_path: Path) -> tuple[Path, Path]:
+    capture = tmp_path / "server-args.txt"
+    fake = tmp_path / "python-front-door-test"
+    fake.write_text(
+        "#!/usr/bin/env bash\n"
+        "set -euo pipefail\n"
+        "if [[ ${1:-} == - ]]; then exec python3 \"$@\"; fi\n"
+        "printf '%s\\n' \"$@\" > \"${YZU_TEST_CAPTURE}\"\n",
+        encoding="utf-8",
+    )
+    fake.chmod(0o755)
+    return fake, capture
+
+
+def _launcher_environment(repo_root: Path, public: Path, public_sha: str, fake_python: Path, capture: Path) -> dict:
+    env = os.environ.copy()
+    env.update(
+        {
+            "YZU_PUBLIC_REPO": str(public),
+            "YZU_PUBLIC_SHA": public_sha,
+            "YZU_DESK_HOST": "100.64.0.10",
+            "YZU_DESK_PORT": "8765",
+            "YZU_DESK_ACCESS_TOKEN": "test-token",
+            "YZU_PYTHON_BIN": str(fake_python),
+            "YZU_TEST_CAPTURE": str(capture),
+            "SHARPE_REGISTRY_PATH": "drive/config/research_query_registry.json",
+        }
+    )
+    env.pop("YZU_DESK_STATIC_DIR", None)
+    return env
+
+
+def test_optiplex_launcher_accepts_exact_public_and_private_authorities(tmp_path):
+    repo_root = Path(__file__).resolve().parents[1]
+    private_sha = _git(repo_root, "rev-parse", "HEAD")
+    public, public_sha = _public_authority(tmp_path)
+    static_dir = public / "dist"
+    static_dir.mkdir()
+    (static_dir / "index.html").write_text("<main>Research Drive</main>", encoding="utf-8")
+    (static_dir / "research-drive-build.json").write_text(
+        json.dumps({"public_sha": public_sha, "private_sha": private_sha}),
+        encoding="utf-8",
+    )
+    fake_python, capture = _fake_python(tmp_path)
+    env = _launcher_environment(repo_root, public, public_sha, fake_python, capture)
+
+    result = subprocess.run(
+        ["bash", str(repo_root / "drive/scripts/research_query_engine/run_optiplex_front_door.sh")],
+        cwd=repo_root,
+        env=env,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+    assert result.returncode == 0, result.stderr
+    args = capture.read_text(encoding="utf-8").splitlines()
+    assert args[0] == "drive/scripts/research_query_engine/server.py"
+    assert "--serve-ui" in args
+    assert "100.64.0.10" in args
+    assert str(static_dir) in args
+
+
+def test_optiplex_launcher_rejects_stale_private_build_identity(tmp_path):
+    repo_root = Path(__file__).resolve().parents[1]
+    public, public_sha = _public_authority(tmp_path)
+    static_dir = public / "dist"
+    static_dir.mkdir()
+    (static_dir / "index.html").write_text("<main>Research Drive</main>", encoding="utf-8")
+    (static_dir / "research-drive-build.json").write_text(
+        json.dumps({"public_sha": public_sha, "private_sha": "stale-private-sha"}),
+        encoding="utf-8",
+    )
+    fake_python, capture = _fake_python(tmp_path)
+    env = _launcher_environment(repo_root, public, public_sha, fake_python, capture)
+
+    result = subprocess.run(
+        ["bash", str(repo_root / "drive/scripts/research_query_engine/run_optiplex_front_door.sh")],
+        cwd=repo_root,
+        env=env,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+    assert result.returncode == 1
+    assert "rebuild before start" in result.stderr
+    assert not capture.exists()
