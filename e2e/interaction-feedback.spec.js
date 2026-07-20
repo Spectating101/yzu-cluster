@@ -48,6 +48,7 @@ test.describe("Research Drive interaction feedback convergence", () => {
     await expect(popover).toContainText("Research Drive state");
     await expect(popover.locator("li")).toHaveCount(3);
     await expect(popover).toContainText("Safest next step");
+    await page.waitForTimeout(260);
     ensureArtifactDir();
     await page.screenshot({ path: `${ARTIFACT_DIR}/feedback-readiness-popover-1440x900.png` });
     await popover.screenshot({ path: `${ARTIFACT_DIR}/feedback-readiness-popover-card.png` });
