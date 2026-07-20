@@ -30,7 +30,7 @@ test.describe("Research Drive interaction feedback convergence", () => {
     await expect(page.getByTestId("interaction-skeleton").first()).toBeVisible();
     await expect(page.getByTestId("home-continue")).toHaveAttribute("aria-busy", "true");
     ensureArtifactDir();
-    await page.screenshot({ path: `${ARTIFACT_DIR}/feedback-home-loading-1440x900.png`, fullPage: true });
+    await page.screenshot({ path: `${ARTIFACT_DIR}/feedback-home-loading-1440x900.png` });
 
     await expect(page.getByTestId("home-loading-state")).toHaveCount(0, { timeout: 10_000 });
     await expect(page.getByTestId("home-continue").getByRole("button", { name: "Continue" })).toBeVisible();
@@ -49,7 +49,8 @@ test.describe("Research Drive interaction feedback convergence", () => {
     await expect(popover.locator("li")).toHaveCount(3);
     await expect(popover).toContainText("Safest next step");
     ensureArtifactDir();
-    await page.screenshot({ path: `${ARTIFACT_DIR}/feedback-readiness-popover-1440x900.png`, fullPage: true });
+    await page.screenshot({ path: `${ARTIFACT_DIR}/feedback-readiness-popover-1440x900.png` });
+    await popover.screenshot({ path: `${ARTIFACT_DIR}/feedback-readiness-popover-card.png` });
   });
 
   test("Ask exposes staged progress while retaining the conversation", async ({ page }) => {
@@ -87,7 +88,7 @@ test.describe("Research Drive interaction feedback convergence", () => {
     await expect(rail).toContainText("Explain whether this asset is ready for analysis.");
     await expect(rail.getByRole("button", { name: /Working/ })).toBeDisabled();
     ensureArtifactDir();
-    await page.screenshot({ path: `${ARTIFACT_DIR}/feedback-ask-progress-1440x900.png`, fullPage: true });
+    await page.screenshot({ path: `${ARTIFACT_DIR}/feedback-ask-progress-1440x900.png` });
 
     await expect(progress).toHaveCount(0, { timeout: 10_000 });
     await expect(rail).toContainText("grounded in the current Research Drive context");
