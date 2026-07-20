@@ -41,7 +41,11 @@ test.describe("Research Drive transient toast lifecycle", () => {
     });
     expect(entrance).toEqual({ name: "rd-toast-enter", duration: "0.24s" });
 
-    await expect(toast).toHaveClass(/exiting/, { timeout: 4300 });
+    await page.waitForFunction(
+      () => document.querySelector(".rd-v2-toast.exiting"),
+      null,
+      { timeout: 4300, polling: "raf" },
+    );
     const exitName = await toast.evaluate((node) => getComputedStyle(node).animationName);
     expect(exitName).toBe("rd-toast-exit");
     await expect(toast).toHaveCount(0, { timeout: 1000 });
