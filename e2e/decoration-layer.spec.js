@@ -9,7 +9,7 @@ function ensureArtifactDir() {
 }
 
 test.describe("Research Drive RC2.1 transient decoration layer", () => {
-  test("Ask uses honest indeterminate activity feedback while work is active", async ({ page }) => {
+  test("Ask uses compact, honest indeterminate activity feedback", async ({ page }) => {
     await mockV2Api(page);
     await page.unroute("**/api/library/chat/stream");
     await page.unroute("**/api/library/chat");
@@ -40,11 +40,19 @@ test.describe("Research Drive RC2.1 transient decoration layer", () => {
     const progress = rail.getByTestId("interaction-progress");
     const activityBar = progress.getByRole("progressbar");
     await expect(progress).toBeVisible();
+    await expect(progress).toHaveAttribute("role", "status");
     await expect(progress.locator("li")).toHaveCount(4);
-    await expect(progress).toContainText(/Working · \d+s/);
+    await expect(progress).toContainText(/Active · \d+s/);
     await expect(activityBar).not.toHaveAttribute("aria-valuenow", /.+/);
     await expect(activityBar).not.toHaveAttribute("aria-valuemax", /.+/);
     await expect(activityBar).toHaveAttribute("aria-valuetext", /Preparing|Searching|Checking|Composing|Planning/);
+
+    const activityVisual = await progress.evaluate((node) => ({
+      height: node.getBoundingClientRect().height,
+      overflows: node.scrollWidth > node.clientWidth + 1,
+    }));
+    expect(activityVisual.height).toBeLessThan(230);
+    expect(activityVisual.overflows).toBe(false);
 
     const barAnimation = await progress.locator(".rd-v2-progress-phase-fill").evaluate((node) => {
       const computed = getComputedStyle(node);
@@ -56,6 +64,8 @@ test.describe("Research Drive RC2.1 transient decoration layer", () => {
     await page.waitForTimeout(1150);
     const activeStep = Number(await progress.getAttribute("data-active-step"));
     expect(activeStep).toBeGreaterThanOrEqual(2);
+    await expect(progress.locator('li[data-state="past"]')).not.toHaveCount(0);
+    await expect(progress.locator('li[data-state="past"] .rd-v2-progress-marker svg')).toHaveCount(0);
 
     ensureArtifactDir();
     await page.screenshot({ path: `${ARTIFACT_DIR}/decoration-ask-activity-1440x900.png`, fullPage: true });
@@ -65,7 +75,7 @@ test.describe("Research Drive RC2.1 transient decoration layer", () => {
     await expect(rail.getByRole("progressbar")).toHaveCount(0);
   });
 
-  test("productive motion is brief, spatially stable, and removable", async ({ page }) => {
+  test("productive motion is unified, spatially stable, keyboard-visible, and removable", async ({ page }) => {
     await mockV2Api(page, { discoverBody: MOCK_DISCOVER_HIT });
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
@@ -81,6 +91,14 @@ test.describe("Research Drive RC2.1 transient decoration layer", () => {
       };
     });
     expect(motionTokens).toEqual({ press: "70ms", fade: "110ms", small: "150ms", system: "240ms" });
+
+    const pageMotion = await page.locator(".rd-v2-page").first().evaluate((node) => {
+      const computed = getComputedStyle(node);
+      return { name: computed.animationName, duration: computed.animationDuration, transform: computed.transform };
+    });
+    expect(pageMotion.name).toBe("rd-page-enter");
+    expect(pageMotion.duration).toBe("0.11s");
+    expect(pageMotion.transform).toBe("none");
 
     const search = page.locator(".rd-v2-search-pill input");
     await search.fill("mops");
@@ -109,6 +127,14 @@ test.describe("Research Drive RC2.1 transient decoration layer", () => {
     expect(resting.boxShadow).toBe(baseline.boxShadow);
     expect(resting.transform).toBe("none");
 
+    await candidate.focus();
+    const focusStyle = await candidate.evaluate((node) => {
+      const computed = getComputedStyle(node);
+      return { style: computed.outlineStyle, width: computed.outlineWidth };
+    });
+    expect(focusStyle.style).not.toBe("none");
+    expect(focusStyle.width).not.toBe("0px");
+
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.reload({ waitUntil: "domcontentloaded" });
     await waitForShell(page);
@@ -122,12 +148,12 @@ test.describe("Research Drive RC2.1 transient decoration layer", () => {
       return { transform: computed.transform, transitionDuration: computed.transitionDuration };
     });
     expect(reducedStyles.transform).toBe("none");
-    expect(reducedStyles.transitionDuration).toMatch(/0s|0ms/);
+    expect(reducedStyles.transitionDuration).toMatch(/0s|0\.00001s|0\.01ms/);
 
-    const pageAnimation = await page.locator("main.rd-v2-shell-main > :first-child").evaluate(
+    const reducedPageAnimation = await page.locator(".rd-v2-page").first().evaluate(
       (node) => getComputedStyle(node).animationName,
     );
-    expect(pageAnimation).toBe("none");
+    expect(reducedPageAnimation).toBe("none");
 
     await page.setViewportSize({ width: 390, height: 844 });
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 2);
