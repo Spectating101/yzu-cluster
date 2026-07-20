@@ -12,8 +12,8 @@ sys.path[:0] = [str(REPO), str(REPO / "kernel"), str(REPO / "drive")]
 from scripts.yzu_cluster.triage_pending_jobs import _noise_reason
 
 
-def test_noise_reasons_for_denied_and_fixture_jobs():
-    assert _noise_reason({"plan": {"job_type": "synthesis_execute"}, "id": "abc"}) == "denied_job_type_remote_worker"
+def test_noise_reasons_for_fixture_jobs_only():
+    assert _noise_reason({"plan": {"job_type": "synthesis_execute"}, "id": "legitimate-synthesis"}) == ""
     assert (
         _noise_reason({"plan": {"job_type": "source_probe"}, "id": "probe-no-promotion-deadbeef"})
         == "fixture_probe_no_promotion"
