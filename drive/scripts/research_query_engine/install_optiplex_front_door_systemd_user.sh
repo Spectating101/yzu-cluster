@@ -34,6 +34,13 @@ command -v bash >/dev/null 2>&1 || {
   exit 2
 }
 
+link_script="${repo_root}/drive/scripts/research_query_engine/link_front_door_host_config.sh"
+[[ -f "${link_script}" ]] || {
+  echo "host config linker missing: ${link_script}" >&2
+  exit 2
+}
+bash "${link_script}"
+
 if command -v stat >/dev/null 2>&1; then
   env_mode="$(stat -c '%a' "${env_file}" 2>/dev/null || true)"
   if [[ -n "${env_mode}" && "${env_mode: -2}" != "00" ]]; then
