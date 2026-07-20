@@ -42,6 +42,13 @@ def _noise_reason(job: dict) -> str:
         return "integration_scrape"
     if job_type == "collection_queue_batch":
         return "duplicate_batch"
+    jid = str(job.get("id") or "")
+    if job_type == "source_probe" and jid.startswith("probe-no-promotion"):
+        return "fixture_probe_no_promotion"
+    if job_type == "http_manifest" and (
+        jid.startswith("archive-before-promote") or jid.startswith("missing-manifest-")
+    ):
+        return "fixture_http_manifest_stuck"
     if job_type == "harvest_shard" and str(plan.get("action") or "") in {"restart", "harvest"}:
         return "destructive_shard_action"
     if job_type == "collection_queue_task" and str(plan.get("task_id") or "").startswith("gdelt_gkg_asia_monthly_backlog"):
@@ -82,6 +89,8 @@ def main() -> int:
     recovered = 0
     report: list[dict] = []
 
+    cancelled_ids: set[str] = set()
+
     if args.recover_stale_hours:
         from scripts.yzu_cluster.recover_stale_jobs import _parse_ts as parse_job_ts
 
@@ -101,23 +110,43 @@ def main() -> int:
             recovered += 1
             report.append({"id": jid, "action": "fail_stale_running", "age_hours": round(age_h, 2)})
 
+    if args.cancel_noise:
+        # Drain only explicitly classified fixture/integration noise.
+        for job in orch.store.list(args.limit):
+            status = str(job.get("status") or "")
+            if status not in {"queued", "running", "pending_approval"}:
+                continue
+            reason = _noise_reason(job)
+            if not reason:
+                continue
+            jid = str(job.get("id") or "")
+            row = {
+                "id": jid,
+                "job_type": (job.get("plan") or {}).get("job_type"),
+                "title": job.get("title"),
+                "status": status,
+                "action": "cancel",
+                "reason": reason,
+            }
+            if not args.dry_run:
+                # orchestrator.cancel only accepts pending/queued
+                if status == "running":
+                    orch.store.update(jid, "failed", error=f"triage noise: {reason}")
+                    orch.store.event(jid, "error", f"cancelled noise while running ({reason})")
+                else:
+                    orch.cancel(jid)
+            cancelled += 1
+            cancelled_ids.add(jid)
+            report.append(row)
+
     for job in pending:
         jid = str(job.get("id") or "")
+        if jid in cancelled_ids:
+            continue
         plan = job.get("plan") or {}
         created = _parse_ts(job.get("created_at"))
         age_days = (now - created).days if created else 0
         row = {"id": jid, "job_type": plan.get("job_type"), "title": job.get("title"), "age_days": age_days}
-
-        if args.cancel_noise:
-            reason = _noise_reason(job)
-            if reason:
-                row["action"] = "cancel"
-                row["reason"] = reason
-                if not args.dry_run:
-                    orch.cancel(jid)
-                cancelled += 1
-                report.append(row)
-                continue
 
         if args.cancel_stale_days and age_days >= args.cancel_stale_days:
             row["action"] = "cancel"
