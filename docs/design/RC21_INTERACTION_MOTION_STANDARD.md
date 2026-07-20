@@ -14,7 +14,7 @@ Expressive motion is reserved for rare system communication such as a toast ente
 |---|---:|---|
 | `--rd-decor-duration-press` | `70ms` | Button and control press response |
 | `--rd-decor-duration-fade` | `110ms` | Hover, color, opacity, and top-level fades |
-| `--rd-decor-duration-small` | `150ms` | Small transient panels and operation cards |
+| `--rd-decor-duration-small` | `150ms` | Small transient panels and exit motion |
 | `--rd-decor-duration-system` | `240ms` | Toasts and important system communication |
 | `--rd-decor-ease-standard` | `cubic-bezier(0.2, 0, 0.38, 0.9)` | State changes visible throughout |
 | `--rd-decor-ease-enter` | `cubic-bezier(0, 0, 0.38, 0.9)` | Elements entering the view |
@@ -51,8 +51,11 @@ These values follow Carbon's productive-motion scale and easing definitions. Flu
 
 ### Toasts and system messages
 
+- Each new message receives a fresh identity so entrance motion and assistive announcements reliably restart.
 - Enter over `240ms` using opacity and at most a few pixels of translation.
-- Use `role="status"` for advisory success/information and reserve `role="alert"` for urgent errors.
+- Exit over `150ms`; do not disappear abruptly after the reading interval.
+- Use `role="status"` with polite announcement for advisory success/information.
+- Use `role="alert"` with assertive announcement only for urgent errors.
 - Do not generate repeated or stacked notifications for routine events.
 - A message must remain long enough to read or be recoverable elsewhere.
 
@@ -62,6 +65,8 @@ These values follow Carbon's productive-motion scale and easing definitions. Flu
 - Spinners or indeterminate activity rails are appropriate when duration is unknown.
 - Determinate progress is allowed only when the backend reports measurable advancement.
 - Never convert time-based presentation stages into a percentage or imply exact completion.
+- Past timed cues remain numbered and neutral; they are not shown as verified completion.
+- Live regions announce meaningful stage changes only. Elapsed timers remain silent to assistive technology.
 - Operation indicators are transient and disappear when the operation completes.
 
 ### Lifecycle activity
@@ -76,13 +81,14 @@ These values follow Carbon's productive-motion scale and easing definitions. Flu
 - Avoid animating layout properties such as width, height, top, left, margin, or padding.
 - `will-change` is not applied pre-emptively; introduce it only after measured performance evidence.
 - Keep animation local to the element receiving focus or reporting state.
+- One shared token and easing authority governs the application; feature styles must not redefine competing motion systems.
 
 ## Accessibility rules
 
 Under `prefers-reduced-motion: reduce`:
 
 - all entrance, pulse, spinner, and progress-rail animation stops;
-- transitions become immediate;
+- transitions become effectively immediate;
 - no meaning or state disappears;
 - focus outlines and textual status remain intact.
 
@@ -100,7 +106,9 @@ Remove or reject a decoration when any answer is “yes”:
 6. Does it oscillate indefinitely without essential meaning?
 7. Does reduced motion remove information rather than movement?
 8. Does it animate layout or cause mobile overflow?
-9. Is the average user likely to notice the animation itself rather than the state change?
+9. Does it create repeated assistive announcements for a ticking timer?
+10. Does it duplicate or override another motion authority?
+11. Is the average user likely to notice the animation itself rather than the state change?
 
 ## Primary references
 
