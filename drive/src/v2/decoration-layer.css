@@ -1,0 +1,232 @@
+/* RC2.1 transient decoration layer — visual polish only while something changes. */
+
+@keyframes rd-decor-card-enter {
+  from { opacity: 0; transform: translateY(2px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes rd-decor-marker-halo {
+  0% { box-shadow: 0 0 0 0 rgba(70, 86, 232, 0.22); }
+  100% { box-shadow: 0 0 0 6px rgba(70, 86, 232, 0); }
+}
+
+@keyframes rd-decor-live-node {
+  0% { box-shadow: 0 0 0 0 rgba(70, 86, 232, 0.24); }
+  100% { box-shadow: 0 0 0 5px rgba(70, 86, 232, 0); }
+}
+
+@keyframes rd-decor-progress-indeterminate {
+  from { transform: translateX(-130%); }
+  to { transform: translateX(290%); }
+}
+
+/* Quiet hover feedback: no geometry shifts in dense research lists. */
+@media (hover: hover) and (pointer: fine) {
+  .rd-v2-btn:not(:disabled):hover,
+  .rd-v2-chip.clickable:not(:disabled):hover,
+  .rd-v2-home-actions button:not(:disabled):hover,
+  .rd-v2-history-load-more:not(:disabled):hover {
+    box-shadow: 0 4px 12px rgba(24, 35, 70, 0.085);
+  }
+
+  .rd-v2-catalog button.row:hover,
+  .rd-v2-library-asset:hover,
+  .rd-v2-library-collection:hover,
+  .rd-v2-discover-candidate:hover,
+  .rd-v2-history-row:hover,
+  .rd-v2-resource-row:hover,
+  .rd-v2-statement-row:hover,
+  .rd-v2-ledger-row:hover {
+    border-color: rgba(112, 126, 177, 0.34);
+    box-shadow: 0 4px 14px rgba(31, 43, 80, 0.055);
+  }
+}
+
+.rd-v2-btn:not(:disabled):active,
+.rd-v2-chip.clickable:not(:disabled):active,
+.rd-v2-home-actions button:not(:disabled):active,
+.rd-v2-history-load-more:not(:disabled):active,
+.yzu-sidebar button:not(:disabled):active {
+  box-shadow: none;
+}
+
+/* Operation feedback exists only while Ask is actively working. */
+.rd-v2-progress-card {
+  position: relative;
+  overflow: hidden;
+  animation: rd-decor-card-enter var(--rd-decor-duration-small) var(--rd-decor-ease-enter) both;
+}
+
+.rd-v2-progress-announcement {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.rd-v2-progress-card::before {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  content: "";
+  background: linear-gradient(90deg, #4656e8, #7461ee 58%, #4c9bd8);
+  opacity: 0.82;
+}
+
+.rd-v2-progress-card-head {
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 7px 12px;
+  margin-bottom: 9px;
+}
+
+.rd-v2-progress-card-title {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 190px;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.rd-v2-progress-card-title > svg {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: #4656d8;
+  animation: rd-feedback-spin 0.9s linear infinite;
+}
+
+.rd-v2-progress-card-title strong {
+  min-width: 0;
+  color: #26365b;
+  font-size: 11.5px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.rd-v2-progress-card-meta {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  color: #707b91;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.rd-v2-progress-live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #4656e8;
+}
+
+/* Indeterminate by design: no percentage is implied without backend measurement. */
+.rd-v2-progress-phase-track {
+  height: 3px;
+  margin: 0 0 11px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(183, 193, 218, 0.34);
+}
+
+.rd-v2-progress-phase-fill {
+  display: block;
+  width: 42%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(70, 86, 232, 0.24), #4656e8 48%, #7461ee);
+  animation: rd-decor-progress-indeterminate 1.05s linear infinite;
+}
+
+.rd-v2-progress-card ol {
+  gap: 5px;
+}
+
+.rd-v2-progress-card li {
+  position: relative;
+  min-height: 22px;
+  padding: 2px 5px 2px 0;
+  border-radius: 7px;
+  transition:
+    background-color var(--rd-decor-duration-fade) var(--rd-decor-ease-standard),
+    color var(--rd-decor-duration-fade) var(--rd-decor-ease-standard),
+    opacity var(--rd-decor-duration-fade) var(--rd-decor-ease-standard);
+}
+
+.rd-v2-progress-card li:not(:last-child)::after {
+  position: absolute;
+  top: 18px;
+  bottom: -6px;
+  left: 8.5px;
+  width: 1px;
+  content: "";
+  background: rgba(185, 195, 216, 0.66);
+}
+
+.rd-v2-progress-card li[data-state="past"] {
+  color: #717b8f;
+  opacity: 0.78;
+}
+
+.rd-v2-progress-card li[data-state="past"]:not(:last-child)::after {
+  background: rgba(70, 86, 232, 0.2);
+}
+
+.rd-v2-progress-card li[data-state="past"] .rd-v2-progress-marker {
+  border-color: rgba(70, 86, 232, 0.24);
+  background: rgba(70, 86, 232, 0.045);
+  color: #6570a8;
+}
+
+.rd-v2-progress-card li[data-state="active"] {
+  background: rgba(70, 86, 232, 0.055);
+  color: #34415a;
+}
+
+.rd-v2-progress-card li[data-state="active"] .rd-v2-progress-marker {
+  animation: rd-decor-marker-halo 400ms var(--rd-decor-ease-enter) 1;
+}
+
+.rd-v2-progress-card li[data-state="pending"] {
+  opacity: 0.58;
+}
+
+/* One-shot state emphasis; persistent running items do not pulse forever. */
+.rd-v2-history-node.active {
+  animation: rd-decor-live-node 400ms var(--rd-decor-ease-enter) 1;
+}
+
+@media (max-width: 720px) {
+  .rd-v2-progress-card-meta {
+    font-size: 9px;
+  }
+
+  .rd-v2-progress-card-title {
+    flex-basis: 170px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rd-v2-progress-card,
+  .rd-v2-progress-card-title > svg,
+  .rd-v2-progress-phase-fill,
+  .rd-v2-progress-card li[data-state="active"] .rd-v2-progress-marker,
+  .rd-v2-history-node.active {
+    animation-name: none !important;
+  }
+
+  .rd-v2-progress-card li {
+    transition-duration: 0.01ms !important;
+  }
+}

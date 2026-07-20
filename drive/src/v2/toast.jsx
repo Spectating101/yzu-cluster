@@ -1,4 +1,8 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+const TOAST_VISIBLE_MS = 4050;
+const TOAST_EXIT_MS = 150;
+let toastSequence = 0;
 
 /**
  * Toast with optional scoping metadata for candidate-bound chrome.
@@ -8,6 +12,23 @@ import { useCallback, useState } from "react";
  */
 export function useToast() {
   const [toast, setToast] = useState(null);
+  const hideTimerRef = useRef(null);
+  const clearTimerRef = useRef(null);
+
+  const clearTimers = useCallback(() => {
+    window.clearTimeout(hideTimerRef.current);
+    window.clearTimeout(clearTimerRef.current);
+    hideTimerRef.current = null;
+    clearTimerRef.current = null;
+  }, []);
+
+  const dismissAnimated = useCallback(() => {
+    window.clearTimeout(clearTimerRef.current);
+    setToast((current) => (current ? { ...current, phase: "exiting" } : current));
+    clearTimerRef.current = window.setTimeout(() => setToast(null), TOAST_EXIT_MS);
+  }, []);
+
+  useEffect(() => clearTimers, [clearTimers]);
 
   const show = useCallback((message, kindOrMeta = "info") => {
     const text = String(message || "").trim();
@@ -22,36 +43,48 @@ export function useToast() {
       scope = kindOrMeta.scope || undefined;
       candidateKey = kindOrMeta.candidateKey || undefined;
     }
-    setToast({ message: text, kind, scope, candidateKey });
-    window.clearTimeout(useToast._timer);
-    useToast._timer = window.setTimeout(() => setToast(null), 4200);
-  }, []);
+
+    clearTimers();
+    setToast({
+      id: ++toastSequence,
+      message: text,
+      kind,
+      scope,
+      candidateKey,
+      phase: "entered",
+    });
+    hideTimerRef.current = window.setTimeout(dismissAnimated, TOAST_VISIBLE_MS);
+  }, [clearTimers, dismissAnimated]);
 
   const dismissIf = useCallback((predicate) => {
-    setToast((current) => {
-      if (!current) return null;
-      try {
-        return predicate(current) ? null : current;
-      } catch {
-        return current;
-      }
-    });
-  }, []);
+    if (!toast) return;
+    try {
+      if (!predicate(toast)) return;
+      clearTimers();
+      setToast(null);
+    } catch {
+      /* Keep the current toast when a caller predicate is invalid. */
+    }
+  }, [clearTimers, toast]);
 
   const clear = useCallback(() => {
-    window.clearTimeout(useToast._timer);
+    clearTimers();
     setToast(null);
-  }, []);
+  }, [clearTimers]);
 
   return { toast, show, dismissIf, clear };
 }
 
 export function Toast({ toast }) {
   if (!toast) return null;
+  const urgent = toast.kind === "error";
   return (
     <div
-      className={`rd-v2-toast ${toast.kind}`}
-      role="status"
+      key={toast.id}
+      className={`rd-v2-toast ${toast.kind}${toast.phase === "exiting" ? " exiting" : ""}`}
+      role={urgent ? "alert" : "status"}
+      aria-live={urgent ? "assertive" : "polite"}
+      aria-atomic="true"
       data-toast-scope={toast.scope || undefined}
       data-toast-candidate={toast.candidateKey || undefined}
     >

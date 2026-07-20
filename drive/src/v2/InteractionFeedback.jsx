@@ -25,6 +25,32 @@ export function useTimedProgress(active, steps = DEFAULT_ASK_STEPS, intervalMs =
   return index;
 }
 
+export function useElapsedSeconds(active) {
+  const [seconds, setSeconds] = useState(0);
+
+  useEffect(() => {
+    if (!active) {
+      setSeconds(0);
+      return undefined;
+    }
+
+    const startedAt = Date.now();
+    const update = () => setSeconds(Math.max(0, Math.floor((Date.now() - startedAt) / 1000)));
+    update();
+    const timer = window.setInterval(update, 1000);
+    return () => window.clearInterval(timer);
+  }, [active]);
+
+  return seconds;
+}
+
+function elapsedLabel(seconds) {
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.floor(seconds / 60);
+  const remainder = seconds % 60;
+  return `${minutes}m ${String(remainder).padStart(2, "0")}s`;
+}
+
 export function ProgressSteps({
   active = false,
   activeText = "",
@@ -33,32 +59,57 @@ export function ProgressSteps({
   className = "",
 }) {
   const index = useTimedProgress(active, steps);
+  const elapsed = useElapsedSeconds(active);
   const visibleSteps = useMemo(
-    () => steps.map((text, stepIndex) => ({
-      text: stepIndex === index && activeText ? activeText : text,
-      state: stepIndex < index ? "done" : stepIndex === index ? "active" : "pending",
-    })),
+    () =>
+      steps.map((text, stepIndex) => ({
+        text: stepIndex === index && activeText ? activeText : text,
+        state: stepIndex < index ? "past" : stepIndex === index ? "active" : "pending",
+      })),
     [activeText, index, steps],
   );
 
   if (!active) return null;
 
+  const activeStage = visibleSteps[index]?.text || "Working…";
+
   return (
     <section
       className={`rd-v2-progress-card${className ? ` ${className}` : ""}`}
       aria-label={label}
-      aria-live="polite"
+      data-active-step={Math.min(index + 1, steps.length)}
       data-testid="interaction-progress"
     >
+      <span className="rd-v2-progress-announcement" role="status" aria-live="polite" aria-atomic="true">
+        {activeStage}
+      </span>
       <div className="rd-v2-progress-card-head">
-        <LoaderCircle aria-hidden="true" />
-        <strong>{visibleSteps[index]?.text || "Working…"}</strong>
+        <div className="rd-v2-progress-card-title">
+          <LoaderCircle aria-hidden="true" />
+          <strong>{activeStage}</strong>
+        </div>
+        <span className="rd-v2-progress-card-meta" aria-hidden="true">
+          <span className="rd-v2-progress-live-dot" />
+          Active · {elapsedLabel(elapsed)}
+        </span>
       </div>
-      <ol>
+      <div
+        className="rd-v2-progress-phase-track"
+        role="progressbar"
+        aria-label={`${label}: ${activeStage}`}
+        aria-valuetext={activeStage}
+      >
+        <span className="rd-v2-progress-phase-fill" aria-hidden="true" />
+      </div>
+      <ol aria-label="Indicative activity sequence">
         {visibleSteps.map((step, stepIndex) => (
-          <li key={`${step.text}-${stepIndex}`} data-state={step.state}>
+          <li
+            key={stepIndex}
+            data-state={step.state}
+            aria-current={step.state === "active" ? "step" : undefined}
+          >
             <span className="rd-v2-progress-marker" aria-hidden="true">
-              {step.state === "done" ? <Check /> : stepIndex + 1}
+              {stepIndex + 1}
             </span>
             <span>{step.text}</span>
           </li>
