@@ -117,26 +117,6 @@ export function ProgressSteps({
   );
 }
 
-export function CompletionNotice({
-  visible = false,
-  label = "Complete",
-  detail = "The latest result is ready.",
-}) {
-  if (!visible) return null;
-
-  return (
-    <div className="rd-v2-completion-notice" role="status" aria-live="polite" data-testid="completion-notice">
-      <span className="rd-v2-completion-icon" aria-hidden="true">
-        <Check />
-      </span>
-      <span className="rd-v2-completion-copy">
-        <strong>{label}</strong>
-        <span>{detail}</span>
-      </span>
-    </div>
-  );
-}
-
 export function Skeleton({ className = "", lines = 1, label = "Loading" }) {
   return (
     <div
