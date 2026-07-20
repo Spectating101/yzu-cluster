@@ -2,6 +2,11 @@ name: Synthesis UI Validation
 on:
   pull_request:
     branches: [main]
+
+concurrency:
+  group: synthesis-ui-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   synthesis-ui:
     runs-on: ubuntu-latest
