@@ -84,20 +84,26 @@ test.describe("Research Drive release visual contract", () => {
     await expect(continuation).toBeVisible();
   });
 
-  test("all faculty pages remain implemented in the shared shell", async ({ page }) => {
+  test("all faculty pages remain implemented with context-sensitive rail behavior", async ({ page }) => {
     const destinations = [
-      ["Library", "Library"],
-      ["Discover", "Discover"],
-      ["Synthesis", "Synthesis"],
-      ["Resources", "Resources"],
-      ["Profile", "Profile"],
-      ["Settings", "Settings"],
+      { tab: "Library", title: "Library", rail: true },
+      { tab: "Discover", title: "Discover", rail: false },
+      { tab: "Synthesis", title: "Synthesis", rail: true },
+      { tab: "Resources", title: "Resources", rail: true },
+      { tab: "Profile", title: "Profile", rail: true },
+      { tab: "Settings", title: "Settings", rail: true },
     ];
 
-    for (const [tab, title] of destinations) {
-      await openTab(page, tab);
-      await expect(page.locator(".rd-v2-page-head h1", { hasText: title })).toBeVisible();
-      await expect(page.locator("aside.rd-v2-rail").getByRole("tab", { name: "Ask" })).toBeVisible();
+    for (const destination of destinations) {
+      await openTab(page, destination.tab);
+      await expect(page.locator(".rd-v2-page-head h1", { hasText: destination.title })).toBeVisible();
+      const rail = page.locator("aside.rd-v2-rail");
+      if (destination.rail) {
+        await expect(rail.getByRole("tab", { name: "Ask" })).toBeVisible();
+      } else {
+        await expect(rail).toHaveCount(0);
+        await expect(page.locator(".rd-v2-shell.no-rail")).toBeVisible();
+      }
     }
   });
 
@@ -163,7 +169,7 @@ test.describe("Research Drive release visual contract", () => {
 });
 
 test.describe("Research Drive mobile composition", () => {
-  test("the active page remains primary and the complete resume object precedes the collapsible rail", async ({ page }) => {
+  test("the complete resume object stays contained before the collapsible rail", async ({ page }) => {
     await mockV2Api(page);
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/", { waitUntil: "domcontentloaded" });
@@ -172,9 +178,22 @@ test.describe("Research Drive mobile composition", () => {
 
     await expect(page.locator("main.yzu-main")).toBeVisible();
     const continuation = page.getByTestId("home-continue");
+    const continueButton = continuation.getByRole("button", { name: "Continue" });
+    const libraryButton = continuation.getByRole("button", { name: "Open in Library" });
     await expect(continuation.locator("h2")).toBeVisible();
-    await expect(continuation.getByRole("button", { name: "Continue" })).toBeVisible();
-    await expect(continuation.getByRole("button", { name: "Open in Library" })).toBeVisible();
+    await expect(continueButton).toBeVisible();
+    await expect(libraryButton).toBeVisible();
+    await expect(page.locator(".rd-v2-home-actions").getByRole("button", { name: /Search the lab/i })).toBeVisible();
+
+    const boxes = await Promise.all([
+      continuation.boundingBox(),
+      libraryButton.boundingBox(),
+      page.locator(".rd-v2-home-actions").boundingBox(),
+    ]);
+    const [cardBox, libraryBox, actionsBox] = boxes;
+    expect(cardBox && libraryBox && actionsBox).toBeTruthy();
+    expect(libraryBox.y + libraryBox.height).toBeLessThanOrEqual(cardBox.y + cardBox.height + 1);
+    expect(cardBox.y + cardBox.height).toBeLessThanOrEqual(actionsBox.y + 1);
 
     const rail = page.locator("aside.rd-v2-rail");
     await expect(rail.getByRole("button", { name: /Show Detail · Ask|Hide panel/ })).toBeVisible();
