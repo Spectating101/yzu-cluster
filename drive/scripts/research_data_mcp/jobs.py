@@ -45,20 +45,28 @@ class JobService:
         return enrich_job_identity(self.orchestrator.cancel(job_id)) or {}
 
     def get(self, job_id: str) -> dict[str, Any]:
-        return enrich_job_identity(self.orchestrator.store.get(job_id)) or {}
+        return enrich_job_identity(self.orchestrator.get_job(job_id)) or {}
 
     def list(self, limit: int = 30, status: str = "") -> dict[str, Any]:
-        payload = {"jobs": self.orchestrator.store.list(min(max(limit, 1), 200), status=status)}
+        payload = {"jobs": self.orchestrator.list_jobs(min(max(limit, 1), 200), status=status)}
         return enrich_jobs_payload(payload) or payload
 
     def run_schedule(self, schedule_id: str) -> dict[str, Any]:
         return self.orchestrator.run_schedule(schedule_id)
 
     def tick(self) -> dict[str, Any] | None:
+        # Cadence first — must not wait behind a long-running job execution.
+        gateway = getattr(self, "gateway", None) or getattr(self.campaign_runner, "gateway", None)
+        if gateway is not None and hasattr(gateway, "discover_refresh_tick"):
+            try:
+                gateway.discover_refresh_tick(limit=5, auto_approve_safe=True)
+            except Exception:  # noqa: BLE001
+                pass
         job = self.orchestrator.worker_tick()
         if self.campaign_runner:
             self.campaign_runner.tick()
         return job
+
 
     def archive_plan(
         self,
