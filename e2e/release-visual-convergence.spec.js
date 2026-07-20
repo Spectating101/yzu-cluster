@@ -109,8 +109,11 @@ test.describe("Research Drive release visual contract", () => {
   });
 
   test("long research identities wrap instead of breaking the rail", async ({ page }) => {
-    await openTab(page, "Library");
-    const firstDataset = page.locator('.rd-v2-library-asset[data-kind="dataset"], .rd-v2-catalog button.row').first();
+    await page.goto("/?tab=library&folder=research_panels/gdelt", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+
+    const firstDataset = page.locator('.rd-v2-library-asset[data-kind="dataset"]').first();
+    await expect(firstDataset).toBeVisible();
     await firstDataset.click();
 
     const rail = page.locator("aside.rd-v2-rail");
