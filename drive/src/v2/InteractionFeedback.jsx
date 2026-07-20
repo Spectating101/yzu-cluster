@@ -76,20 +76,20 @@ export function ProgressSteps({
   return (
     <section
       className={`rd-v2-progress-card${className ? ` ${className}` : ""}`}
-      role="status"
       aria-label={label}
-      aria-live="polite"
-      aria-atomic="false"
       data-active-step={Math.min(index + 1, steps.length)}
       data-testid="interaction-progress"
     >
+      <span className="rd-v2-progress-announcement" role="status" aria-live="polite" aria-atomic="true">
+        {activeStage}
+      </span>
       <div className="rd-v2-progress-card-head">
         <div className="rd-v2-progress-card-title">
           <LoaderCircle aria-hidden="true" />
           <strong>{activeStage}</strong>
         </div>
-        <span className="rd-v2-progress-card-meta">
-          <span className="rd-v2-progress-live-dot" aria-hidden="true" />
+        <span className="rd-v2-progress-card-meta" aria-hidden="true">
+          <span className="rd-v2-progress-live-dot" />
           Active · {elapsedLabel(elapsed)}
         </span>
       </div>
