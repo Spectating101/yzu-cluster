@@ -1,50 +1,77 @@
-/* RC2.1 transient decoration layer — motion and feedback only while something changes. */
+/* RC2.1 transient decoration layer — productive motion only while something changes. */
+
+:root {
+  --rd-decor-duration-press: 70ms;
+  --rd-decor-duration-fade: 110ms;
+  --rd-decor-duration-small: 150ms;
+  --rd-decor-duration-system: 240ms;
+  --rd-decor-ease-standard: cubic-bezier(0.2, 0, 0.38, 0.9);
+  --rd-decor-ease-enter: cubic-bezier(0, 0, 0.38, 0.9);
+  --rd-decor-ease-exit: cubic-bezier(0.2, 0, 1, 0.9);
+}
 
 @keyframes rd-decor-page-enter {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes rd-decor-card-enter {
+  from { opacity: 0; transform: translateY(2px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes rd-decor-marker-halo {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(70, 86, 232, 0.16); }
-  50% { box-shadow: 0 0 0 6px rgba(70, 86, 232, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(70, 86, 232, 0.2); }
+  100% { box-shadow: 0 0 0 6px rgba(70, 86, 232, 0); }
 }
 
 @keyframes rd-decor-toast-enter {
-  from { opacity: 0; transform: translateY(8px) scale(0.985); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes rd-decor-live-node {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(70, 86, 232, 0.2); }
-  50% { box-shadow: 0 0 0 5px rgba(70, 86, 232, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(70, 86, 232, 0.24); }
+  100% { box-shadow: 0 0 0 5px rgba(70, 86, 232, 0); }
 }
 
-/* Appears only when the active page changes. */
+@keyframes rd-decor-progress-indeterminate {
+  from { transform: translateX(-125%); }
+  to { transform: translateX(285%); }
+}
+
+/* Top-level navigation uses a quick fade; the shell and rails stay spatially stable. */
 .rd-v2-shell-main > :first-child {
-  animation: rd-decor-page-enter 180ms var(--rd-motion-emphasized, cubic-bezier(.2, .8, .2, 1)) both;
+  animation: rd-decor-page-enter var(--rd-decor-duration-fade) var(--rd-decor-ease-enter) both;
 }
 
-/* Resting surfaces keep their existing RC2 appearance. */
+/* Resting surfaces keep their accepted RC2 appearance. */
 .rd-v2-btn,
 .rd-v2-chip.clickable,
 .rd-v2-home-actions button,
 .rd-v2-history-load-more,
 .yzu-sidebar button,
 .rd-v2-rail-toggle button,
-.rd-v2-rich-popover-close,
+.rd-v2-rich-popover-close {
+  transition:
+    transform var(--rd-decor-duration-press) var(--rd-decor-ease-standard),
+    box-shadow var(--rd-decor-duration-fade) var(--rd-decor-ease-standard),
+    border-color var(--rd-decor-duration-fade) var(--rd-decor-ease-standard),
+    background-color var(--rd-decor-duration-fade) var(--rd-decor-ease-standard),
+    color var(--rd-decor-duration-fade) var(--rd-decor-ease-standard),
+    opacity var(--rd-decor-duration-fade) var(--rd-decor-ease-standard);
+}
+
 .rd-v2-catalog button.row,
 .rd-v2-library-asset,
 .rd-v2-discover-candidate,
 .rd-v2-history-row,
 .rd-v2-resource-row {
   transition:
-    transform 150ms var(--rd-motion-emphasized, ease),
-    box-shadow 150ms ease,
-    border-color 150ms ease,
-    background-color 150ms ease,
-    color 150ms ease,
-    opacity 150ms ease;
+    box-shadow var(--rd-decor-duration-small) var(--rd-decor-ease-standard),
+    border-color var(--rd-decor-duration-fade) var(--rd-decor-ease-standard),
+    background-color var(--rd-decor-duration-fade) var(--rd-decor-ease-standard),
+    color var(--rd-decor-duration-fade) var(--rd-decor-ease-standard);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -52,8 +79,7 @@
   .rd-v2-chip.clickable:not(:disabled):hover,
   .rd-v2-home-actions button:not(:disabled):hover,
   .rd-v2-history-load-more:not(:disabled):hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(24, 35, 70, 0.09);
+    box-shadow: 0 4px 12px rgba(24, 35, 70, 0.085);
   }
 
   .rd-v2-catalog button.row:hover,
@@ -61,13 +87,8 @@
   .rd-v2-discover-candidate:hover,
   .rd-v2-history-row:hover,
   .rd-v2-resource-row:hover {
-    transform: translateX(2px);
     border-color: rgba(112, 126, 177, 0.34);
-    box-shadow: 0 6px 18px rgba(31, 43, 80, 0.065);
-  }
-
-  .yzu-sidebar button:not(.active):hover {
-    transform: translateX(2px);
+    box-shadow: 0 4px 14px rgba(31, 43, 80, 0.055);
   }
 }
 
@@ -80,10 +101,29 @@
   box-shadow: none;
 }
 
+:is(
+  .rd-v2-btn,
+  .rd-v2-chip.clickable,
+  .rd-v2-home-actions button,
+  .rd-v2-history-load-more,
+  .yzu-sidebar button,
+  .rd-v2-rail-toggle button,
+  .rd-v2-rich-popover-close,
+  .rd-v2-catalog button.row,
+  .rd-v2-library-asset,
+  .rd-v2-discover-candidate,
+  .rd-v2-history-row,
+  .rd-v2-resource-row
+):focus-visible {
+  outline: 2px solid rgba(70, 86, 232, 0.78);
+  outline-offset: 2px;
+}
+
 /* The richer process treatment exists only while an operation is active. */
 .rd-v2-progress-card {
   position: relative;
   overflow: hidden;
+  animation: rd-decor-card-enter var(--rd-decor-duration-small) var(--rd-decor-ease-enter) both;
 }
 
 .rd-v2-progress-card::before {
@@ -138,11 +178,11 @@
   height: 6px;
   border-radius: 999px;
   background: #4656e8;
-  box-shadow: 0 0 0 3px rgba(70, 86, 232, 0.11);
 }
 
+/* Indeterminate: the frontend does not claim a measurable completion percentage. */
 .rd-v2-progress-phase-track {
-  height: 4px;
+  height: 3px;
   margin: 0 0 12px;
   overflow: hidden;
   border-radius: 999px;
@@ -151,11 +191,11 @@
 
 .rd-v2-progress-phase-fill {
   display: block;
+  width: 42%;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, #4656e8, #745fef);
-  box-shadow: 0 0 10px rgba(70, 86, 232, 0.24);
-  transition: width 360ms var(--rd-motion-emphasized, ease);
+  background: linear-gradient(90deg, rgba(70, 86, 232, 0.35), #4656e8 48%, #745fef);
+  animation: rd-decor-progress-indeterminate 1.05s linear infinite;
 }
 
 .rd-v2-progress-card li {
@@ -176,17 +216,18 @@
   background: rgba(56, 145, 106, 0.42);
 }
 
+/* One-shot emphasis when the active stage changes; no sustained pulsing. */
 .rd-v2-progress-card li[data-state="active"] .rd-v2-progress-marker {
-  animation: rd-decor-marker-halo 1.7s ease-in-out infinite;
+  animation: rd-decor-marker-halo 400ms var(--rd-decor-ease-enter) 1;
 }
 
-/* Toasts and live lifecycle markers are inherently temporary. */
+/* Toasts and live lifecycle markers are temporary and non-blocking. */
 .rd-v2-toast {
-  animation: rd-decor-toast-enter 190ms var(--rd-motion-emphasized, ease) both;
+  animation: rd-decor-toast-enter var(--rd-decor-duration-system) var(--rd-decor-ease-enter) both;
 }
 
 .rd-v2-history-node.active {
-  animation: rd-decor-live-node 1.8s ease-in-out infinite;
+  animation: rd-decor-live-node 400ms var(--rd-decor-ease-enter) 1;
 }
 
 @media (max-width: 720px) {
@@ -197,7 +238,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   .rd-v2-shell-main > :first-child,
+  .rd-v2-progress-card,
   .rd-v2-progress-card-title > svg,
+  .rd-v2-progress-phase-fill,
   .rd-v2-progress-card li[data-state="active"] .rd-v2-progress-marker,
   .rd-v2-toast,
   .rd-v2-history-node.active {
@@ -209,24 +252,21 @@
   .rd-v2-home-actions button,
   .rd-v2-history-load-more,
   .yzu-sidebar button,
+  .rd-v2-rail-toggle button,
+  .rd-v2-rich-popover-close,
   .rd-v2-catalog button.row,
   .rd-v2-library-asset,
   .rd-v2-discover-candidate,
   .rd-v2-history-row,
-  .rd-v2-resource-row,
-  .rd-v2-progress-phase-fill {
+  .rd-v2-resource-row {
     transition-duration: 0ms !important;
   }
 
-  .rd-v2-btn:not(:disabled):hover,
-  .rd-v2-chip.clickable:not(:disabled):hover,
-  .rd-v2-home-actions button:not(:disabled):hover,
-  .rd-v2-catalog button.row:hover,
-  .rd-v2-library-asset:hover,
-  .rd-v2-discover-candidate:hover,
-  .rd-v2-history-row:hover,
-  .rd-v2-resource-row:hover,
-  .yzu-sidebar button:hover {
+  .rd-v2-btn:not(:disabled):active,
+  .rd-v2-chip.clickable:not(:disabled):active,
+  .rd-v2-home-actions button:not(:disabled):active,
+  .rd-v2-history-load-more:not(:disabled):active,
+  .yzu-sidebar button:not(:disabled):active {
     transform: none !important;
   }
 }
