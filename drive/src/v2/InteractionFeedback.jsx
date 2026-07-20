@@ -70,38 +70,33 @@ export function ProgressSteps({
 
   if (!active) return null;
 
-  const phaseNumber = Math.min(index + 1, steps.length);
-  const phaseFill = steps.length ? (phaseNumber / steps.length) * 100 : 0;
-  const phaseText = `Phase ${phaseNumber} of ${steps.length}`;
+  const activeStage = visibleSteps[index]?.text || "Working…";
 
   return (
     <section
       className={`rd-v2-progress-card${className ? ` ${className}` : ""}`}
       aria-label={label}
       aria-live="polite"
-      data-active-step={phaseNumber}
+      data-active-step={Math.min(index + 1, steps.length)}
       data-testid="interaction-progress"
     >
       <div className="rd-v2-progress-card-head">
         <div className="rd-v2-progress-card-title">
           <LoaderCircle aria-hidden="true" />
-          <strong>{visibleSteps[index]?.text || "Working…"}</strong>
+          <strong>{activeStage}</strong>
         </div>
         <span className="rd-v2-progress-card-meta">
           <span className="rd-v2-progress-live-dot" aria-hidden="true" />
-          {phaseText} · {elapsedLabel(elapsed)}
+          Working · {elapsedLabel(elapsed)}
         </span>
       </div>
       <div
         className="rd-v2-progress-phase-track"
         role="progressbar"
-        aria-label={`${label} phases`}
-        aria-valuemin={1}
-        aria-valuemax={steps.length}
-        aria-valuenow={phaseNumber}
-        aria-valuetext={phaseText}
+        aria-label={`${label}: ${activeStage}`}
+        aria-valuetext={activeStage}
       >
-        <span className="rd-v2-progress-phase-fill" style={{ width: `${phaseFill}%` }} />
+        <span className="rd-v2-progress-phase-fill" aria-hidden="true" />
       </div>
       <ol>
         {visibleSteps.map((step, stepIndex) => (
