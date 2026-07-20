@@ -12,7 +12,11 @@ from typing import Any
 from urllib.parse import parse_qs, urlparse
 
 from scripts.research_data_mcp.bootstrap import ResearchLibraryStack, create_stack
-from scripts.research_data_mcp.desk_auth import authorize
+from scripts.research_data_mcp.desk_auth import (
+    authorize,
+    clear_desk_session,
+    issue_desk_session,
+)
 from scripts.research_data_mcp.http_router import handle_get, handle_post
 from sharpe_kernel.paths import repo_root_from_file
 
@@ -137,21 +141,45 @@ class ResearchQueryHandler(BaseHTTPRequestHandler):
             return
         self.send_header("Access-Control-Allow-Origin", self.cors_origin)
         self.send_header("Vary", "Origin")
-        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Desk-Token")
+        self.send_header("Access-Control-Allow-Credentials", "true")
 
-    def _send_json(self, payload: dict, status: int = 200) -> None:
+    def _send_json(
+        self,
+        payload: dict,
+        status: int = 200,
+        *,
+        extra_headers: list[tuple[str, str]] | None = None,
+    ) -> None:
         body = json.dumps(payload, ensure_ascii=False, indent=2).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self._send_cors_headers()
         self.send_header("X-Content-Type-Options", "nosniff")
+        for key, value in extra_headers or []:
+            self.send_header(key, value)
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         try:
             self.wfile.write(body)
         except BrokenPipeError:
             pass
+
+    def _handle_desk_session(self, *, clear: bool = False) -> None:
+        if clear:
+            ok, msg, cookie = clear_desk_session(self)
+            body = {"ok": ok, "cleared": bool(ok), "desk_session_cookie": True}
+        else:
+            ok, msg, cookie = issue_desk_session(self)
+            body = {"ok": ok, "authorized": bool(ok), "desk_session_cookie": True}
+        if not ok:
+            body["error"] = "Forbidden"
+            body["message"] = msg
+            self._send_json(body, status=403)
+            return
+        headers = [("Set-Cookie", cookie)] if cookie else None
+        self._send_json(body, status=200, extra_headers=headers)
 
     def do_OPTIONS(self) -> None:
         self.send_response(204)
@@ -278,6 +306,16 @@ class ResearchQueryHandler(BaseHTTPRequestHandler):
     def do_POST(self) -> None:
         parsed = urlparse(self.path)
         path = normalize_api_path(parsed.path)
+        if path == "/library/desk/session":
+            length = int(self.headers.get("Content-Length", "0"))
+            raw = self.rfile.read(length) if length else b"{}"
+            try:
+                payload = json.loads(raw or b"{}")
+            except Exception:
+                payload = {}
+            clear = bool(isinstance(payload, dict) and payload.get("action") == "clear")
+            self._handle_desk_session(clear=clear)
+            return
         ok, msg = authorize(self, path)
         if not ok:
             self._send_json({"error": "Unauthorized", "message": msg}, status=401)
@@ -290,6 +328,14 @@ class ResearchQueryHandler(BaseHTTPRequestHandler):
             self._send_ndjson_stream(body["events"], status=result["status"])
             return
         self._send_json(body, result["status"])
+
+    def do_DELETE(self) -> None:
+        parsed = urlparse(self.path)
+        path = normalize_api_path(parsed.path)
+        if path == "/library/desk/session":
+            self._handle_desk_session(clear=True)
+            return
+        self._send_json({"error": "not_found", "message": "DELETE not supported for this path"}, status=404)
 
 
 def main() -> int:

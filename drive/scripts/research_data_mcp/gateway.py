@@ -931,6 +931,7 @@ class ResearchDataGateway:
                 },
                 "serve_ui": bool(getattr(self, "_serve_ui", False)),
                 "desk_token_required": bool(access_token_required()),
+                "desk_session_cookie": bool(access_token_required()),
             },
         }
         storage = getattr(self.orchestrator, "cfg", {}).get("storage") or {}

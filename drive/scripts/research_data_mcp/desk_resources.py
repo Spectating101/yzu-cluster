@@ -240,6 +240,7 @@ def build_desk_resources(gateway: Any, *, live: bool = False) -> dict[str, Any]:
             "composer_configured": composer_ok,
             "legacy_llm_configured": legacy_ok,
             "desk_token_required": bool(desk.get("desk_token_required")),
+            "desk_session_cookie": bool(desk.get("desk_session_cookie")),
             "mcp_tools": mcp,
             "composer_turns_today": usage_today.get("composer_turns") or 0,
         },

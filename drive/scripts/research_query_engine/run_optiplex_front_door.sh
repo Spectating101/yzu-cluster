@@ -68,6 +68,7 @@ if [[ "${built_private_sha}" != "${actual_private_sha}" ]]; then
 fi
 
 cd "${repo_root}"
+bash "${repo_root}/drive/scripts/research_query_engine/link_front_door_host_config.sh"
 export SHARPE_REPO_ROOT="${SHARPE_REPO_ROOT:-${repo_root}}"
 export PYTHONPATH="${repo_root}:${repo_root}/kernel:${repo_root}/drive${PYTHONPATH:+:${PYTHONPATH}}"
 export YZU_DESK_SERVE_UI=true
