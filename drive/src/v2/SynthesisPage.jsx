@@ -19,8 +19,10 @@ function titleFor(thread) {
 function stateFor(thread) {
   const state = thread?.state || {};
   const execution = state.execution || {};
-  if (execution.status === "registered" || thread?.materialisation === "registered") return "registered";
-  if (execution.status === "failed") return "failed";
+  const lifecycle = text(execution.status || thread?.materialisation).toLowerCase().replace(/-/g, "_");
+  if (lifecycle === "query_ready") return "query_ready";
+  if (lifecycle === "registered") return "registered";
+  if (lifecycle === "failed") return "failed";
   if (execution.status) return "execution";
   if (state.proposal) return "proposal";
   if ((state.nodes || []).length) return "explore";
@@ -31,6 +33,7 @@ function stageLabel(thread) {
   const state = thread?.state || {};
   const execution = state.execution || {};
   const mode = stateFor(thread);
+  if (mode === "query_ready") return "Query-ready output";
   if (mode === "registered") return "Registered output";
   if (mode === "failed") return "Execution failed";
   if (mode === "execution") return text(execution.status).replace(/_/g, " ");
@@ -51,8 +54,10 @@ function targetNode(thread) {
 function threadStatus(thread) {
   const state = thread?.state || {};
   const execution = state.execution || {};
-  if (execution.status === "registered" || thread?.materialisation === "registered") return "Registered";
-  if (execution.status === "failed") return "Needs recovery";
+  const mode = stateFor(thread);
+  if (mode === "query_ready") return "Query ready";
+  if (mode === "registered") return "Registered";
+  if (mode === "failed") return "Needs recovery";
   if (execution.status) return text(execution.status).replace(/_/g, " ");
   if (state.proposal) return "Review proposal";
   return text(state.maturityLabel || state.maturity, "Exploring");
@@ -87,7 +92,7 @@ function ThreadList({ threads, selectedId, loading, onSelect, onNew }) {
           onClick={() => onSelect(thread.id)}
           data-testid="synthesis-thread-item"
         >
-          <b>{stateFor(thread) === "registered" ? "✓" : stateFor(thread) === "failed" ? "!" : "S"}</b>
+          <b>{["registered", "query_ready"].includes(stateFor(thread)) ? "✓" : stateFor(thread) === "failed" ? "!" : "S"}</b>
           <span>
             <strong>{titleFor(thread)}</strong>
             <small>{threadStatus(thread)}</small>
@@ -106,7 +111,9 @@ function ThreadList({ threads, selectedId, loading, onSelect, onNew }) {
 function ThreadHeader({ thread }) {
   const state = thread?.state || {};
   const execution = state.execution || {};
-  const registered = stateFor(thread) === "registered";
+  const mode = stateFor(thread);
+  const queryReady = mode === "query_ready";
+  const registered = mode === "registered" || queryReady;
   return (
     <>
       <header className="s04-head">
@@ -116,9 +123,11 @@ function ThreadHeader({ thread }) {
           <p>{text(thread?.objective || state.objective, "A durable research-construction thread.")}</p>
         </div>
         <em>
-          {registered
-            ? "Registered evidence"
-            : execution.status
+          {queryReady
+            ? "Query-ready evidence"
+            : registered
+              ? "Registered evidence"
+              : execution.status
               ? "Durable execution state"
               : state.proposal
                 ? "Reviewable change"
@@ -260,18 +269,20 @@ function ExecutionRecord({ thread, busy, onRequest, onAsk, onOpenDataset }) {
   const spec = state.execution_spec || {};
   const status = text(execution.status, "not requested").replace(/_/g, " ");
   const outputId = threadOutput(thread);
-  const registered = stateFor(thread) === "registered";
+  const mode = stateFor(thread);
+  const queryReady = mode === "query_ready";
+  const registered = mode === "registered" || queryReady;
   const failed = execution.status === "failed";
   const hasSpec = Boolean(spec.input_dataset_id && spec.output_dataset_id);
 
   return (
-    <section className="s04-card" data-testid={registered ? "synthesis-registered-state" : failed ? "synthesis-failed-state" : "synthesis-execution-state"}>
+    <section className="s04-card" data-testid={queryReady ? "synthesis-query-ready-state" : registered ? "synthesis-registered-state" : failed ? "synthesis-failed-state" : "synthesis-execution-state"}>
       <header className="s04-title">
         <div>
-          <small>{registered ? "Registered research asset" : failed ? "Execution failed" : "Execution record"}</small>
+          <small>{queryReady ? "Query-ready research asset" : registered ? "Registered research asset" : failed ? "Execution failed" : "Execution record"}</small>
           <h2>{registered ? text(outputId, "Registered output") : text(spec.output_dataset_id, "No execution requested")}</h2>
         </div>
-        <em className={registered ? "success" : failed ? "warn" : "neutral"}>{registered ? "Query ready" : status}</em>
+        <em className={registered ? "success" : failed ? "warn" : "neutral"}>{queryReady ? "Query ready" : registered ? "Registered" : status}</em>
       </header>
       {hasSpec ? (
         <dl className="s04-method">
@@ -294,7 +305,7 @@ function ExecutionRecord({ thread, busy, onRequest, onAsk, onOpenDataset }) {
           <small>Registration evidence</small>
           <dl>
             <div><dt>Archive</dt><dd>{execution.drive_verified ? "Reported verified" : "Not reported"}</dd></div>
-            <div><dt>Registry</dt><dd>{registered ? "Registered output reported" : "Not claimed"}</dd></div>
+            <div><dt>Registry</dt><dd>{queryReady ? "Query-ready output reported" : registered ? "Registered output reported" : "Not claimed"}</dd></div>
             <div><dt>Output</dt><dd>{text(outputId, "Not registered")}</dd></div>
           </dl>
         </section>
@@ -303,9 +314,11 @@ function ExecutionRecord({ thread, busy, onRequest, onAsk, onOpenDataset }) {
       <footer className="s04-actions">
         <p>
           <small>Truth boundary</small>
-          {registered
-            ? "This asset is shown because the thread reports a registered output."
-            : failed
+          {queryReady
+            ? "This asset is shown because the thread reports a query-ready output."
+            : registered
+              ? "This asset is shown because the thread reports a registered output; query readiness is not implied."
+              : failed
               ? "The accepted specification remains inspectable; no output is claimed registered."
               : hasSpec
                 ? "Requesting execution creates a durable job. Registration remains a separate verified outcome."
