@@ -48,10 +48,13 @@ export function useToast() {
 
 export function Toast({ toast }) {
   if (!toast) return null;
+  const urgent = toast.kind === "error";
   return (
     <div
       className={`rd-v2-toast ${toast.kind}`}
-      role="status"
+      role={urgent ? "alert" : "status"}
+      aria-live={urgent ? "assertive" : "polite"}
+      aria-atomic="true"
       data-toast-scope={toast.scope || undefined}
       data-toast-candidate={toast.candidateKey || undefined}
     >
