@@ -31,6 +31,63 @@ export function statusPill(dataset) {
   return statusPillKind(dataset).label;
 }
 
+/** Faculty-facing "Can I use this?" copy — keeps Registered distinct from Query ready. */
+export function canIUseDecision(dataset) {
+  const state = statusPillKind(dataset);
+  if (state.kind === "query-ready") {
+    return {
+      headline: "Query ready",
+      body: "You can preview and query this dataset now.",
+    };
+  }
+  if (state.kind === "connected") {
+    return {
+      headline: "Connected",
+      body: "A live source connection exists. Instant local query access is not confirmed.",
+    };
+  }
+  if (state.kind === "remote") {
+    return {
+      headline: "Metadata only",
+      body: "This record supports discovery and acquisition. A queryable local asset is not confirmed.",
+    };
+  }
+  if (state.kind === "queued") {
+    return {
+      headline: "Queued",
+      body: "Acquisition or registration work is still pending.",
+    };
+  }
+  if (state.kind === "warn") {
+    return {
+      headline: "Review required",
+      body: "The current asset needs review before analysis.",
+    };
+  }
+  if (state.kind === "failed") {
+    return {
+      headline: "Failed",
+      body: "The current asset path failed and needs attention before use.",
+    };
+  }
+  if (state.kind === "external") {
+    return {
+      headline: "External source",
+      body: "This source is not confirmed as a usable local lab asset.",
+    };
+  }
+  if (state.kind === "registered") {
+    return {
+      headline: "Registered",
+      body: "Registered and reusable as an archived research asset; querying has not yet been proven.",
+    };
+  }
+  return {
+    headline: "Readiness unknown",
+    body: "Current metadata does not establish a usable query path.",
+  };
+}
+
 export function displayName(dataset) {
   return dataset?.name || dataset?.title || dataset?.dataset_id || "Dataset";
 }

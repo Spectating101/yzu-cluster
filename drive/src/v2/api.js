@@ -1,12 +1,20 @@
 /** Research Drive v2 — HTTP client (dev proxies /api → :8765 via vite.config.js). */
 
-import { deskHeaders, loadChatSessionId, loadUserEmail, saveChatSessionId } from "@/v2/deskSession";
+import {
+  deskFetchInit,
+  deskHeaders,
+  deskSessionBootstrapped,
+  loadChatSessionId,
+  loadUserEmail,
+  markDeskSessionBootstrapped,
+  saveChatSessionId,
+} from "@/v2/deskSession";
 import { createRequestAbort, decodeNdjson, normalizeApiError } from "./transportContract.js";
 
 export const API = import.meta.env.DEV ? "/api" : "";
 
 export async function fetchJson(path, init = {}) {
-  const options = { ...(init || {}) };
+  const options = deskFetchInit(init || {});
   const timeoutMs = Number(options.timeoutMs || 0);
   delete options.timeoutMs;
   const requestAbort = createRequestAbort(timeoutMs, options.signal);
@@ -30,6 +38,42 @@ export async function fetchJson(path, init = {}) {
     throw error;
   } finally {
     requestAbort.cancel();
+  }
+}
+
+/** Same-origin HttpOnly desk session — no DevTools token injection required. */
+export async function ensureDeskSession({ force = false } = {}) {
+  if (!force && deskSessionBootstrapped()) {
+    return { ok: true, bootstrapped: true, reused: true };
+  }
+  try {
+    const data = await fetchJson("/library/desk/session", {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+    const ok = Boolean(data?.ok || data?.authorized);
+    markDeskSessionBootstrapped(ok);
+    return { ok, bootstrapped: ok, ...data };
+  } catch (error) {
+    markDeskSessionBootstrapped(false);
+    return { ok: false, bootstrapped: false, error: String(error?.message || error) };
+  }
+}
+
+export async function clearDeskSession() {
+  markDeskSessionBootstrapped(false);
+  try {
+    return await fetchJson("/library/desk/session", {
+      method: "POST",
+      body: JSON.stringify({ action: "clear" }),
+    });
+  } catch {
+    try {
+      const r = await fetch(`${API}/library/desk/session`, deskFetchInit({ method: "DELETE" }));
+      return r.json().catch(() => ({ ok: r.ok }));
+    } catch (error) {
+      return { ok: false, error: String(error?.message || error) };
+    }
   }
 }
 
@@ -214,18 +258,16 @@ export function fetchLiveIdentity({ datasetId = "", jobId = "" } = {}) {
 
 export function approveJob(jobId) {
   const body = JSON.stringify({});
-  return fetch(`${API}/library/jobs/${encodeURIComponent(jobId)}/approve`, {
+  return fetch(`${API}/library/jobs/${encodeURIComponent(jobId)}/approve`, deskFetchInit({
     method: "POST",
-    headers: deskHeaders(),
     body,
-  }).then(async (r) => {
+  })).then(async (r) => {
     const data = await r.json().catch(() => ({}));
     if (!r.ok && r.status === 404) {
-      const r2 = await fetch(`${API}/yzu/jobs/${encodeURIComponent(jobId)}/approve`, {
+      const r2 = await fetch(`${API}/yzu/jobs/${encodeURIComponent(jobId)}/approve`, deskFetchInit({
         method: "POST",
-        headers: deskHeaders(),
         body,
-      });
+      }));
       const d2 = await r2.json().catch(() => ({}));
       if (!r2.ok) throw new Error(d2.message || d2.error || "Approve failed");
       return d2;
@@ -385,11 +427,10 @@ export async function sendChatMessage(
     if (event.type === "complete") state.result = event.result || null;
   };
 
-  const streamRes = await fetch(`${API}/library/chat/stream`, {
+  const streamRes = await fetch(`${API}/library/chat/stream`, deskFetchInit({
     method: "POST",
-    headers: deskHeaders(),
     body,
-  });
+  }));
   const contentType = streamRes.headers.get("content-type") || "";
 
   if (streamRes.ok && contentType.includes("ndjson") && streamRes.body) {
@@ -422,11 +463,10 @@ export async function sendChatMessage(
     throw new Error(normalizeApiError(streamError, streamRes.status, "/library/chat/stream"));
   }
 
-  const fallback = await fetch(`${API}/library/chat`, {
+  const fallback = await fetch(`${API}/library/chat`, deskFetchInit({
     method: "POST",
-    headers: deskHeaders(),
     body,
-  });
+  }));
   const payload = await fallback.json().catch(() => ({}));
   if (!fallback.ok) throw new Error(normalizeApiError(payload, fallback.status, "/library/chat"));
   if (payload.session_id) saveChatSessionId(payload.session_id);

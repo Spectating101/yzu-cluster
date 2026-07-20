@@ -6,6 +6,7 @@ import {
   deskHealth,
   deskResources,
   deskWarm,
+  ensureDeskSession,
   discoverHistory,
   facultyProfile,
   libraryOps,
@@ -288,7 +289,15 @@ export function V2App() {
   }, [refreshBackend]);
 
   useEffect(() => {
-    deskWarm({ userEmail: loadUserEmail(), background: true }).catch(() => {});
+    let cancelled = false;
+    (async () => {
+      await ensureDeskSession().catch(() => ({ ok: false }));
+      if (cancelled) return;
+      deskWarm({ userEmail: loadUserEmail(), background: true }).catch(() => {});
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const askFromPrompt = useCallback((prompt) => {
