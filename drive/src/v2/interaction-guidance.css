@@ -1,62 +1,117 @@
 /* Research Drive interaction guidance and motion hierarchy. */
 
 :root {
-  --rd-motion-fast: 120ms;
-  --rd-motion-standard: 190ms;
+  --rd-decor-duration-press: 70ms;
+  --rd-decor-duration-fade: 110ms;
+  --rd-decor-duration-small: 150ms;
+  --rd-decor-duration-system: 240ms;
+  --rd-decor-ease-standard: cubic-bezier(0.2, 0, 0.38, 0.9);
+  --rd-decor-ease-enter: cubic-bezier(0, 0, 0.38, 0.9);
+  --rd-decor-ease-exit: cubic-bezier(0.2, 0, 1, 0.9);
+
+  /* Compatibility aliases for the accepted RC2 interaction components. */
+  --rd-motion-fast: var(--rd-decor-duration-fade);
+  --rd-motion-standard: var(--rd-decor-duration-small);
   --rd-motion-slow: 280ms;
-  --rd-motion-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
-  --rd-motion-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
+  --rd-motion-ease: var(--rd-decor-ease-standard);
+  --rd-motion-emphasized: var(--rd-decor-ease-enter);
 }
 
 @keyframes rd-page-enter {
-  from { opacity: 0; transform: translateY(5px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes rd-pane-enter {
-  from { opacity: 0; transform: translateX(5px); }
-  to { opacity: 1; transform: translateX(0); }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes rd-tooltip-enter {
-  from { opacity: 0; transform: translateY(2px) scale(0.98); }
+  from { opacity: 0; transform: translateY(2px) scale(0.985); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 @keyframes rd-toast-enter {
-  from { opacity: 0; transform: translate(-50%, 8px) scale(0.98); }
+  from { opacity: 0; transform: translate(-50%, 6px) scale(0.985); }
   to { opacity: 1; transform: translate(-50%, 0) scale(1); }
 }
 
+/* Preserve the shell geometry; page and rail content only fade into place. */
 .rd-v2-page {
-  animation: rd-page-enter var(--rd-motion-standard) var(--rd-motion-emphasized) both;
+  animation: rd-page-enter var(--rd-decor-duration-fade) var(--rd-decor-ease-enter) both;
 }
 
 .rd-v2-rail-pane,
 .rd-v2-ask-rail {
-  animation: rd-pane-enter var(--rd-motion-standard) var(--rd-motion-emphasized) both;
+  animation: rd-pane-enter var(--rd-decor-duration-small) var(--rd-decor-ease-enter) both;
 }
 
 .rd-v2-toast {
-  animation: rd-toast-enter var(--rd-motion-standard) var(--rd-motion-emphasized) both;
+  animation: rd-toast-enter var(--rd-decor-duration-system) var(--rd-decor-ease-enter) both;
 }
 
+/* Productive control motion: direct, brief, and local to the control. */
 .rd-v2-btn,
 .rd-v2-chip,
 .yzu-sidebar button,
+.rd-v2-home-actions button,
+.rd-v2-history-load-more,
+.rd-v2-rail-toggle button,
+.rd-v2-rich-popover-close {
+  transition:
+    transform var(--rd-decor-duration-press) var(--rd-decor-ease-standard),
+    background-color var(--rd-decor-duration-fade) var(--rd-decor-ease-standard),
+    border-color var(--rd-decor-duration-fade) var(--rd-decor-ease-standard),
+    color var(--rd-decor-duration-fade) var(--rd-decor-ease-standard),
+    box-shadow var(--rd-decor-duration-fade) var(--rd-decor-ease-standard),
+    opacity var(--rd-decor-duration-fade) var(--rd-decor-ease-standard);
+}
+
+/* Dense research rows remain spatially stable; only paint properties change. */
 .rd-v2-library-asset,
 .rd-v2-library-collection,
 .rd-v2-discover-candidate,
+.rd-v2-catalog button.row,
+.rd-v2-history-row,
+.rd-v2-resource-row,
 .rd-v2-statement-row,
 .rd-v2-ledger-row {
-  transition-duration: var(--rd-motion-fast);
-  transition-timing-function: var(--rd-motion-ease);
+  transition:
+    background-color var(--rd-decor-duration-fade) var(--rd-decor-ease-standard),
+    border-color var(--rd-decor-duration-fade) var(--rd-decor-ease-standard),
+    color var(--rd-decor-duration-fade) var(--rd-decor-ease-standard),
+    box-shadow var(--rd-decor-duration-small) var(--rd-decor-ease-standard);
 }
 
 .rd-v2-btn:active:not(:disabled),
-.rd-v2-chip.clickable:active,
-.yzu-sidebar button:active {
-  transform: translateY(0) scale(0.985);
+.rd-v2-chip.clickable:active:not(:disabled),
+.rd-v2-home-actions button:active:not(:disabled),
+.rd-v2-history-load-more:active:not(:disabled),
+.yzu-sidebar button:active:not(:disabled) {
+  transform: scale(0.985);
+  transition-duration: var(--rd-decor-duration-press);
+}
+
+:is(
+  .rd-v2-btn,
+  .rd-v2-chip.clickable,
+  .rd-v2-home-actions button,
+  .rd-v2-history-load-more,
+  .yzu-sidebar button,
+  .rd-v2-rail-toggle button,
+  .rd-v2-rich-popover-close,
+  .rd-v2-library-asset,
+  .rd-v2-library-collection,
+  .rd-v2-discover-candidate,
+  .rd-v2-catalog button.row,
+  .rd-v2-history-row,
+  .rd-v2-resource-row,
+  .rd-v2-statement-row,
+  .rd-v2-ledger-row
+):focus-visible {
+  outline: 2px solid rgba(70, 86, 232, 0.78);
+  outline-offset: 2px;
 }
 
 .rd-v2-context-help {
@@ -73,7 +128,10 @@
   opacity: 0.5;
   cursor: help;
   vertical-align: middle;
-  transition: opacity var(--rd-motion-fast) var(--rd-motion-ease), background var(--rd-motion-fast) var(--rd-motion-ease), transform var(--rd-motion-fast) var(--rd-motion-ease);
+  transition:
+    opacity var(--rd-decor-duration-fade) var(--rd-decor-ease-standard),
+    background-color var(--rd-decor-duration-fade) var(--rd-decor-ease-standard),
+    transform var(--rd-decor-duration-press) var(--rd-decor-ease-standard);
 }
 
 .rd-v2-context-help svg {
@@ -111,7 +169,7 @@
   line-height: 1.45;
   text-align: left;
   transform-origin: var(--radix-tooltip-content-transform-origin);
-  animation: rd-tooltip-enter var(--rd-motion-fast) var(--rd-motion-emphasized) both;
+  animation: rd-tooltip-enter var(--rd-decor-duration-small) var(--rd-decor-ease-enter) both;
   user-select: none;
 }
 
@@ -147,7 +205,7 @@
 .rd-v2-library-control-popover,
 .rd-v2-discover-filter-popover {
   transform-origin: top right;
-  animation: rd-tooltip-enter var(--rd-motion-fast) var(--rd-motion-emphasized) both;
+  animation: rd-tooltip-enter var(--rd-decor-duration-small) var(--rd-decor-ease-enter) both;
 }
 
 @media (max-width: 720px) {
@@ -182,6 +240,16 @@
   .rd-v2-library-control-popover,
   .rd-v2-discover-filter-popover {
     animation-name: none !important;
+    transform: none !important;
+  }
+
+  .rd-v2-btn:active:not(:disabled),
+  .rd-v2-chip.clickable:active:not(:disabled),
+  .rd-v2-home-actions button:active:not(:disabled),
+  .rd-v2-history-load-more:active:not(:disabled),
+  .yzu-sidebar button:active:not(:disabled),
+  .rd-v2-context-help:hover,
+  .rd-v2-context-help:focus-visible {
     transform: none !important;
   }
 }
