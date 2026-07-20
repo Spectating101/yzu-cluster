@@ -25,6 +25,32 @@ export function useTimedProgress(active, steps = DEFAULT_ASK_STEPS, intervalMs =
   return index;
 }
 
+export function useElapsedSeconds(active) {
+  const [seconds, setSeconds] = useState(0);
+
+  useEffect(() => {
+    if (!active) {
+      setSeconds(0);
+      return undefined;
+    }
+
+    const startedAt = Date.now();
+    const update = () => setSeconds(Math.max(0, Math.floor((Date.now() - startedAt) / 1000)));
+    update();
+    const timer = window.setInterval(update, 1000);
+    return () => window.clearInterval(timer);
+  }, [active]);
+
+  return seconds;
+}
+
+function elapsedLabel(seconds) {
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.floor(seconds / 60);
+  const remainder = seconds % 60;
+  return `${minutes}m ${String(remainder).padStart(2, "0")}s`;
+}
+
 export function ProgressSteps({
   active = false,
   activeText = "",
@@ -33,6 +59,7 @@ export function ProgressSteps({
   className = "",
 }) {
   const index = useTimedProgress(active, steps);
+  const elapsed = useElapsedSeconds(active);
   const visibleSteps = useMemo(
     () => steps.map((text, stepIndex) => ({
       text: stepIndex === index && activeText ? activeText : text,
@@ -43,16 +70,38 @@ export function ProgressSteps({
 
   if (!active) return null;
 
+  const phaseNumber = Math.min(index + 1, steps.length);
+  const phaseFill = steps.length ? (phaseNumber / steps.length) * 100 : 0;
+  const phaseText = `Phase ${phaseNumber} of ${steps.length}`;
+
   return (
     <section
       className={`rd-v2-progress-card${className ? ` ${className}` : ""}`}
       aria-label={label}
       aria-live="polite"
+      data-active-step={phaseNumber}
       data-testid="interaction-progress"
     >
       <div className="rd-v2-progress-card-head">
-        <LoaderCircle aria-hidden="true" />
-        <strong>{visibleSteps[index]?.text || "Working…"}</strong>
+        <div className="rd-v2-progress-card-title">
+          <LoaderCircle aria-hidden="true" />
+          <strong>{visibleSteps[index]?.text || "Working…"}</strong>
+        </div>
+        <span className="rd-v2-progress-card-meta">
+          <span className="rd-v2-progress-live-dot" aria-hidden="true" />
+          {phaseText} · {elapsedLabel(elapsed)}
+        </span>
+      </div>
+      <div
+        className="rd-v2-progress-phase-track"
+        role="progressbar"
+        aria-label={`${label} phases`}
+        aria-valuemin={1}
+        aria-valuemax={steps.length}
+        aria-valuenow={phaseNumber}
+        aria-valuetext={phaseText}
+      >
+        <span className="rd-v2-progress-phase-fill" style={{ width: `${phaseFill}%` }} />
       </div>
       <ol>
         {visibleSteps.map((step, stepIndex) => (
@@ -65,6 +114,26 @@ export function ProgressSteps({
         ))}
       </ol>
     </section>
+  );
+}
+
+export function CompletionNotice({
+  visible = false,
+  label = "Complete",
+  detail = "The latest result is ready.",
+}) {
+  if (!visible) return null;
+
+  return (
+    <div className="rd-v2-completion-notice" role="status" aria-live="polite" data-testid="completion-notice">
+      <span className="rd-v2-completion-icon" aria-hidden="true">
+        <Check />
+      </span>
+      <span className="rd-v2-completion-copy">
+        <strong>{label}</strong>
+        <span>{detail}</span>
+      </span>
+    </div>
   );
 }
 
