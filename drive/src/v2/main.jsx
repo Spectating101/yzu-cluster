@@ -12,6 +12,7 @@ import "./release-mobile-fixes.css";
 import "./interaction-guidance.css";
 import "./interaction-feedback.css";
 import "./decoration-layer.css";
+import "./decoration-operations.css";
 import { InteractionProvider } from "./InteractionGuidance.jsx";
 import { V2App } from "./App.jsx";
 
