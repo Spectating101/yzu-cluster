@@ -10,6 +10,7 @@ import "./synthesis-s04-review.css";
 import "./release-visual.css";
 import "./release-mobile-fixes.css";
 import "./interaction-guidance.css";
+import "./interaction-feedback.css";
 import { InteractionProvider } from "./InteractionGuidance.jsx";
 import { V2App } from "./App.jsx";
 
