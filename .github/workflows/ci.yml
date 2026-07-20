@@ -63,6 +63,10 @@ jobs:
         run: TMPDIR=$PWD/.tmp-pw npx playwright test e2e/decoration-layer.spec.js --reporter=dot
         env: *mock-env
 
+      - name: Mock e2e — Toast lifecycle
+        run: TMPDIR=$PWD/.tmp-pw npx playwright test e2e/toast-lifecycle.spec.js --reporter=dot
+        env: *mock-env
+
       - name: Mock e2e — Discover
         run: TMPDIR=$PWD/.tmp-pw npx playwright test e2e/v2-discover.spec.js --reporter=dot
         env: *mock-env
