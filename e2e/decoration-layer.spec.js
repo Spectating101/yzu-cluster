@@ -39,10 +39,15 @@ test.describe("Research Drive RC2.1 transient decoration layer", () => {
 
     const progress = rail.getByTestId("interaction-progress");
     const activityBar = progress.getByRole("progressbar");
+    const announcement = progress.locator(".rd-v2-progress-announcement");
+    const elapsedMeta = progress.locator(".rd-v2-progress-card-meta");
     await expect(progress).toBeVisible();
-    await expect(progress).toHaveAttribute("role", "status");
     await expect(progress.locator("li")).toHaveCount(4);
     await expect(progress).toContainText(/Active · \d+s/);
+    await expect(announcement).toHaveAttribute("role", "status");
+    await expect(announcement).toHaveAttribute("aria-live", "polite");
+    await expect(announcement).toHaveText(/Preparing|Searching|Checking|Composing|Planning/);
+    await expect(elapsedMeta).toHaveAttribute("aria-hidden", "true");
     await expect(activityBar).not.toHaveAttribute("aria-valuenow", /.+/);
     await expect(activityBar).not.toHaveAttribute("aria-valuemax", /.+/);
     await expect(activityBar).toHaveAttribute("aria-valuetext", /Preparing|Searching|Checking|Composing|Planning/);
