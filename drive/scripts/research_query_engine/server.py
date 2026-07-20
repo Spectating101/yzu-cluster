@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
@@ -16,7 +17,7 @@ from scripts.research_data_mcp.http_router import handle_get, handle_post
 from sharpe_kernel.paths import repo_root_from_file
 
 REPO_ROOT = repo_root_from_file(__file__)
-STATIC_DIR = REPO_ROOT / "dist"
+DEFAULT_STATIC_DIR = REPO_ROOT / "dist"
 API_PREFIXES = (
     "/health",
     "/datasets",
@@ -25,6 +26,44 @@ API_PREFIXES = (
     "/yzu/",
     "/agent/",
 )
+
+
+def _env_bool(name: str, default: bool = False) -> bool:
+    raw = str(os.getenv(name) or "").strip().lower()
+    if not raw:
+        return default
+    return raw in {"1", "true", "yes", "on"}
+
+
+def _env_port(name: str, default: int) -> int:
+    raw = str(os.getenv(name) or "").strip()
+    if not raw:
+        return default
+    try:
+        port = int(raw)
+    except ValueError as exc:
+        raise ValueError(f"{name} must be an integer") from exc
+    if not 1 <= port <= 65535:
+        raise ValueError(f"{name} must be between 1 and 65535")
+    return port
+
+
+def resolve_static_dir(value: str | Path | None = None) -> Path:
+    raw = value or os.getenv("YZU_DESK_STATIC_DIR") or DEFAULT_STATIC_DIR
+    path = Path(raw).expanduser()
+    if not path.is_absolute():
+        path = REPO_ROOT / path
+    return path.resolve()
+
+
+def require_ui_build(static_dir: Path) -> Path:
+    index = static_dir / "index.html"
+    if not index.is_file():
+        raise FileNotFoundError(
+            f"Research Drive UI build missing at {index}. "
+            "Build the public yzu-cluster authority and set YZU_DESK_STATIC_DIR to its dist directory."
+        )
+    return index
 
 
 def normalize_api_path(path: str) -> str:
@@ -41,9 +80,36 @@ def is_api_path(path: str) -> bool:
     return any(path == prefix.rstrip("/") or path.startswith(prefix) for prefix in API_PREFIXES)
 
 
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="Research library HTTP API")
+    parser.add_argument("--host", default=os.getenv("YZU_DESK_HOST") or "127.0.0.1")
+    parser.add_argument("--port", type=int, default=_env_port("YZU_DESK_PORT", 8765))
+    parser.add_argument(
+        "--registry",
+        default=(
+            os.getenv("SHARPE_REGISTRY_PATH")
+            or os.getenv("YZU_REGISTRY_PATH")
+            or "config/research_query_registry.json"
+        ),
+    )
+    parser.add_argument(
+        "--static-dir",
+        default=os.getenv("YZU_DESK_STATIC_DIR") or str(DEFAULT_STATIC_DIR),
+        help="Built public yzu-cluster dist directory used by --serve-ui",
+    )
+    parser.add_argument(
+        "--serve-ui",
+        action="store_true",
+        default=_env_bool("YZU_DESK_SERVE_UI"),
+        help="Serve production UI from --static-dir on non-API GET paths",
+    )
+    return parser
+
+
 class ResearchQueryHandler(BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
     stack: ResearchLibraryStack
+    static_dir: Path = DEFAULT_STATIC_DIR
 
     def _send_json(self, payload: dict, status: int = 200) -> None:
         body = json.dumps(payload, ensure_ascii=False, indent=2).encode("utf-8")
@@ -66,7 +132,14 @@ class ResearchQueryHandler(BaseHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Desk-Token")
         self.end_headers()
 
-    def _send_bytes(self, body: bytes, *, status: int = 200, content_type: str = "application/octet-stream", download_name: str = "") -> None:
+    def _send_bytes(
+        self,
+        body: bytes,
+        *,
+        status: int = 200,
+        content_type: str = "application/octet-stream",
+        download_name: str = "",
+    ) -> None:
         self.send_response(status)
         self.send_header("Content-Type", content_type)
         self.send_header("Access-Control-Allow-Origin", "*")
@@ -80,23 +153,24 @@ class ResearchQueryHandler(BaseHTTPRequestHandler):
             pass
 
     def _serve_static(self, path: str) -> bool:
-        if not getattr(self.stack, "serve_ui", False) or not STATIC_DIR.is_dir():
+        static_dir = self.static_dir
+        if not getattr(self.stack, "serve_ui", False) or not static_dir.is_dir():
             return False
         if is_api_path(path):
             return False
         rel = path.lstrip("/")
         if not rel or not Path(rel).suffix:
             rel = "index.html"
-        target = (STATIC_DIR / rel).resolve()
+        target = (static_dir / rel).resolve()
         try:
-            target.relative_to(STATIC_DIR.resolve())
+            target.relative_to(static_dir.resolve())
         except ValueError:
             self._send_json({"error": "NotFound", "message": "invalid path"}, status=404)
             return True
         if not target.is_file():
-            target = STATIC_DIR / "index.html"
+            target = static_dir / "index.html"
             if not target.is_file():
-                self._send_json({"error": "NotFound", "message": "UI build missing — run npm run build"}, status=404)
+                self._send_json({"error": "NotFound", "message": "UI build missing"}, status=404)
                 return True
         content = target.read_bytes()
         suffix = target.suffix.lower()
@@ -108,7 +182,10 @@ class ResearchQueryHandler(BaseHTTPRequestHandler):
             ".png": "image/png",
             ".ico": "image/x-icon",
             ".json": "application/json; charset=utf-8",
+            ".woff": "font/woff",
             ".woff2": "font/woff2",
+            ".ttf": "font/ttf",
+            ".webp": "image/webp",
         }.get(suffix, "application/octet-stream")
         self._send_bytes(content, status=200, content_type=content_type)
         return True
@@ -189,24 +266,24 @@ class ResearchQueryHandler(BaseHTTPRequestHandler):
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Research library HTTP API")
-    parser.add_argument("--host", default="127.0.0.1")
-    parser.add_argument("--port", type=int, default=8765)
-    parser.add_argument("--registry", default="config/research_query_registry.json")
-    parser.add_argument(
-        "--serve-ui",
-        action="store_true",
-        help="Serve production UI from dist/ on non-API GET paths (run npm run build first)",
-    )
+    parser = build_parser()
     args = parser.parse_args()
+    static_dir = resolve_static_dir(args.static_dir)
+    if args.serve_ui:
+        try:
+            require_ui_build(static_dir)
+        except FileNotFoundError as exc:
+            parser.error(str(exc))
+
     stack = create_stack(registry_path=args.registry)
     stack.serve_ui = bool(args.serve_ui)
     stack.gateway._serve_ui = bool(args.serve_ui)
     ResearchQueryHandler.stack = stack
+    ResearchQueryHandler.static_dir = static_dir
     server = ThreadingHTTPServer((args.host, args.port), ResearchQueryHandler)
     print(f"research_library_api=http://{args.host}:{args.port}")
     if args.serve_ui:
-        print(f"research_desk_ui=http://{args.host}:{args.port}/  (static from {STATIC_DIR})")
+        print(f"research_desk_ui=http://{args.host}:{args.port}/  (static from {static_dir})")
     print("entry=scripts/research_data_mcp/bootstrap.py + gateway.py + http_router.py")
     server.serve_forever()
     return 0
