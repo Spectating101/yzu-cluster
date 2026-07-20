@@ -61,10 +61,11 @@ export function ProgressSteps({
   const index = useTimedProgress(active, steps);
   const elapsed = useElapsedSeconds(active);
   const visibleSteps = useMemo(
-    () => steps.map((text, stepIndex) => ({
-      text: stepIndex === index && activeText ? activeText : text,
-      state: stepIndex < index ? "past" : stepIndex === index ? "active" : "pending",
-    })),
+    () =>
+      steps.map((text, stepIndex) => ({
+        text: stepIndex === index && activeText ? activeText : text,
+        state: stepIndex < index ? "past" : stepIndex === index ? "active" : "pending",
+      })),
     [activeText, index, steps],
   );
 
@@ -74,9 +75,11 @@ export function ProgressSteps({
 
   return (
     <section
-      className={`rd-v2-progress-card${className ? ` ${className}` : ""}`
+      className={`rd-v2-progress-card${className ? ` ${className}` : ""}`}
+      role="status"
       aria-label={label}
       aria-live="polite"
+      aria-atomic="false"
       data-active-step={Math.min(index + 1, steps.length)}
       data-testid="interaction-progress"
     >
@@ -87,7 +90,7 @@ export function ProgressSteps({
         </div>
         <span className="rd-v2-progress-card-meta">
           <span className="rd-v2-progress-live-dot" aria-hidden="true" />
-          Working · {elapsedLabel(elapsed)}
+          Active · {elapsedLabel(elapsed)}
         </span>
       </div>
       <div
@@ -100,8 +103,14 @@ export function ProgressSteps({
       </div>
       <ol aria-label="Indicative activity sequence">
         {visibleSteps.map((step, stepIndex) => (
-          <li key={`${step.text}-${stepIndex}`} data-state={step.state}>
-            <span className="rd-v2-progress-marker" aria-hidden="true">{stepIndex + 1}</span>
+          <li
+            key={stepIndex}
+            data-state={step.state}
+            aria-current={step.state === "active" ? "step" : undefined}
+          >
+            <span className="rd-v2-progress-marker" aria-hidden="true">
+              {stepIndex + 1}
+            </span>
             <span>{step.text}</span>
           </li>
         ))}
@@ -113,7 +122,7 @@ export function ProgressSteps({
 export function Skeleton({ className = "", lines = 1, label = "Loading" }) {
   return (
     <div
-      className={`rd-v2-skeleton${className ? ` ${className}` : ""}`
+      className={`rd-v2-skeleton${className ? ` ${className}` : ""}`}
       role="status"
       aria-label={label}
       data-testid="interaction-skeleton"
