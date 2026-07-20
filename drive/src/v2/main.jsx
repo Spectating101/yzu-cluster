@@ -7,6 +7,7 @@ import "./premium-profile.css";
 import "./premium-synthesis.css";
 import "./premium-fixes.css";
 import "./synthesis-s04-review.css";
+import "./release-visual.css";
 import { V2App } from "./App.jsx";
 
 createRoot(document.getElementById("root")).render(<V2App />);
