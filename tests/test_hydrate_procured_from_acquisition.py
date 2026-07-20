@@ -7,6 +7,8 @@ import json
 import sys
 from pathlib import Path
 
+import pytest
+
 REPO = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(REPO), str(REPO / "kernel"), str(REPO / "drive")]
 
@@ -66,3 +68,25 @@ def test_hydrate_refuses_checksum_mismatch(tmp_path: Path):
     result = hydrate(repo_root=root, job_id=job, dry_run=True)
     assert result["ok"] is False
     assert any(row["action"] == "refuse_mismatch" for row in result["files"])
+
+
+def test_hydrate_rejects_destination_outside_procured_root(tmp_path: Path):
+    root = tmp_path / "repo"
+    job = "job_scope"
+    acq = root / "data_lake/yzu_cluster/acquisitions" / job
+    raw = acq / "raw"
+    raw.mkdir(parents=True)
+    (raw / "sample.txt").write_text("safe\n", encoding="utf-8")
+    (acq / "meta.json").write_text(
+        json.dumps(
+            {
+                "job_id": job,
+                "dataset_id": "procured_demo",
+                "canonical_dir": "drive/config/not-a-procured-asset",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="data_lake/procured"):
+        hydrate(repo_root=root, job_id=job, dry_run=True)
