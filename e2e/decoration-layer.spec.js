@@ -9,7 +9,7 @@ function ensureArtifactDir() {
 }
 
 test.describe("Research Drive RC2.1 transient decoration layer", () => {
-  test("Ask presents operation-only semantic phase progress", async ({ page }) => {
+  test("Ask uses honest indeterminate activity feedback while work is active", async ({ page }) => {
     await mockV2Api(page);
     await page.unroute("**/api/library/chat/stream");
     await page.unroute("**/api/library/chat");
@@ -38,45 +38,76 @@ test.describe("Research Drive RC2.1 transient decoration layer", () => {
     await rail.getByRole("button", { name: "Send" }).click();
 
     const progress = rail.getByTestId("interaction-progress");
-    const phaseBar = progress.getByRole("progressbar", { name: "Research assistant progress phases" });
+    const activityBar = progress.getByRole("progressbar");
     await expect(progress).toBeVisible();
     await expect(progress.locator("li")).toHaveCount(4);
-    await expect(phaseBar).toHaveAttribute("aria-valuemax", "4");
-    await expect(phaseBar).toHaveAttribute("aria-valuetext", /Phase [1-4] of 4/);
-    await expect(progress).toContainText(/Phase [1-4] of 4 · \d+s/);
+    await expect(progress).toContainText(/Working · \d+s/);
+    await expect(activityBar).not.toHaveAttribute("aria-valuenow", /.+/);
+    await expect(activityBar).not.toHaveAttribute("aria-valuemax", /.+/);
+    await expect(activityBar).toHaveAttribute("aria-valuetext", /Preparing|Searching|Checking|Composing|Planning/);
+
+    const barAnimation = await progress.locator(".rd-v2-progress-phase-fill").evaluate((node) => {
+      const computed = getComputedStyle(node);
+      return { name: computed.animationName, count: computed.animationIterationCount };
+    });
+    expect(barAnimation.name).toContain("rd-decor-progress-indeterminate");
+    expect(barAnimation.count).toBe("infinite");
 
     await page.waitForTimeout(1150);
     const activeStep = Number(await progress.getAttribute("data-active-step"));
     expect(activeStep).toBeGreaterThanOrEqual(2);
 
     ensureArtifactDir();
-    await page.screenshot({ path: `${ARTIFACT_DIR}/decoration-ask-phase-progress-1440x900.png`, fullPage: true });
+    await page.screenshot({ path: `${ARTIFACT_DIR}/decoration-ask-activity-1440x900.png`, fullPage: true });
 
     await expect(progress).toHaveCount(0, { timeout: 10_000 });
     await expect(rail).toContainText("grounded in the current Research Drive context");
     await expect(rail.getByRole("progressbar")).toHaveCount(0);
   });
 
-  test("hover decoration appears, clears, and is disabled by reduced motion", async ({ page }) => {
+  test("productive motion is brief, spatially stable, and removable", async ({ page }) => {
     await mockV2Api(page, { discoverBody: MOCK_DISCOVER_HIT });
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
+
+    const motionTokens = await page.evaluate(() => {
+      const computed = getComputedStyle(document.documentElement);
+      return {
+        press: computed.getPropertyValue("--rd-decor-duration-press").trim(),
+        fade: computed.getPropertyValue("--rd-decor-duration-fade").trim(),
+        small: computed.getPropertyValue("--rd-decor-duration-small").trim(),
+        system: computed.getPropertyValue("--rd-decor-duration-system").trim(),
+      };
+    });
+    expect(motionTokens).toEqual({ press: "70ms", fade: "110ms", small: "150ms", system: "240ms" });
 
     const search = page.locator(".rd-v2-search-pill input");
     await search.fill("mops");
     const candidate = page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate', { hasText: "MOPS" });
     await expect(candidate).toBeVisible();
 
+    const baseline = await candidate.evaluate((node) => {
+      const computed = getComputedStyle(node);
+      return { boxShadow: computed.boxShadow, transform: computed.transform };
+    });
     await candidate.hover();
     await page.waitForTimeout(180);
-    const hoverTransform = await candidate.evaluate((node) => getComputedStyle(node).transform);
-    expect(hoverTransform).not.toBe("none");
+    const hovered = await candidate.evaluate((node) => {
+      const computed = getComputedStyle(node);
+      return { boxShadow: computed.boxShadow, transform: computed.transform };
+    });
+    expect(hovered.boxShadow).not.toBe(baseline.boxShadow);
+    expect(hovered.transform).toBe("none");
 
     await search.hover();
     await page.waitForTimeout(220);
-    const restingTransform = await candidate.evaluate((node) => getComputedStyle(node).transform);
-    expect(restingTransform).toBe("none");
+    const resting = await candidate.evaluate((node) => {
+      const computed = getComputedStyle(node);
+      return { boxShadow: computed.boxShadow, transform: computed.transform };
+    });
+    expect(resting.boxShadow).toBe(baseline.boxShadow);
+    expect(resting.transform).toBe("none");
 
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.reload({ waitUntil: "domcontentloaded" });
