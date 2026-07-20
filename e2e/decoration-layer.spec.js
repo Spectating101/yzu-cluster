@@ -132,6 +132,7 @@ test.describe("Research Drive RC2.1 transient decoration layer", () => {
     expect(resting.boxShadow).toBe(baseline.boxShadow);
     expect(resting.transform).toBe("none");
 
+    await page.keyboard.press("Tab");
     await candidate.focus();
     const focusStyle = await candidate.evaluate((node) => {
       const computed = getComputedStyle(node);
