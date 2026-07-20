@@ -34,6 +34,23 @@ test.describe("Research Drive RC2 release journey", () => {
       discoverBody: MOCK_DISCOVER_HIT,
       jobsBody: { jobs: [] },
     });
+    await page.unroute("**/api/library/chat/stream");
+    await page.unroute("**/api/library/chat");
+    const delayedReadOnlyChat = async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 650));
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          session_id: "rc2-release-read-only",
+          reply: "The selected asset is grounded in the current Research Drive context.",
+          action: "answer",
+        }),
+      });
+    };
+    await page.route("**/api/library/chat/stream", delayedReadOnlyChat);
+    await page.route("**/api/library/chat", delayedReadOnlyChat);
+
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
@@ -56,10 +73,12 @@ test.describe("Research Drive RC2 release journey", () => {
     await expect(preview).toBeVisible();
     await preview.getByRole("button", { name: "Close preview" }).click();
 
-    // Library + Ask: select an asset and complete one grounded read-only turn.
+    // Library + Ask: drill to a dataset and complete one grounded read-only turn.
     await openTab(page, "Library");
     await expect(page.locator(".rd-v2-page-head h1", { hasText: "Library" })).toBeVisible();
-    const firstAsset = page.locator('.rd-v2-library-asset[data-kind="dataset"]').first();
+    await page.locator('[data-testid="library-collection"][data-kind="folder"]', { hasText: "Research panels" }).click();
+    await page.locator('[data-testid="library-collection"][data-kind="folder"]', { hasText: "gdelt" }).click();
+    const firstAsset = page.locator('.rd-v2-library-asset[data-kind="dataset"]', { hasText: "Asia daily news-risk panel" });
     await expect(firstAsset).toBeVisible();
     await firstAsset.click();
 
@@ -71,7 +90,7 @@ test.describe("Research Drive RC2 release journey", () => {
     await expect(rail.getByTestId("interaction-progress")).toBeVisible();
     await expect(rail).toContainText("Summarize what this selected asset can safely support.");
     await expect(rail.getByTestId("interaction-progress")).toHaveCount(0, { timeout: 10_000 });
-    await expect(rail).toContainText(/context received|grounded/i);
+    await expect(rail).toContainText("grounded in the current Research Drive context");
 
     // Discover: inspect an external candidate without probing or collecting it.
     await openTab(page, "Discover");
