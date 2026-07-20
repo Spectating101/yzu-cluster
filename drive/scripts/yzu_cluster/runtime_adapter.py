@@ -301,6 +301,8 @@ class ClusterRuntimeAdapter:
         *,
         lease_seconds: int | None = None,
         reap_expired: bool = True,
+        allowed_job_types: Iterable[str] | None = None,
+        deny_job_id_prefixes: Iterable[str] | None = None,
     ) -> Claim | None:
         worker_id = worker_id or self.controller_id
         if worker_id == self.controller_id:
@@ -308,7 +310,12 @@ class ClusterRuntimeAdapter:
         if reap_expired:
             self.reap_expired()
         with self._lock:
-            return self.store.claim(worker_id, lease_seconds=lease_seconds or self.lease_seconds)
+            return self.store.claim(
+                worker_id,
+                lease_seconds=lease_seconds or self.lease_seconds,
+                allowed_job_types=allowed_job_types,
+                deny_job_id_prefixes=deny_job_id_prefixes,
+            )
 
     def claim_job(
         self,

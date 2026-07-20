@@ -141,6 +141,8 @@ class ReliabilityMixin:
         lease_seconds: int = 120,
         at: str | None = None,
         job_id: str | None = None,
+        allowed_job_types: Iterable[str] | None = None,
+        deny_job_id_prefixes: Iterable[str] | None = None,
     ) -> Claim | None:
         if lease_seconds < 1:
             raise ValueError("lease_seconds must be positive")
@@ -149,9 +151,21 @@ class ReliabilityMixin:
         if worker["status"] not in RUNNABLE_WORKER_STATES:
             return None
         available = set(normalize_capabilities(worker["capabilities"]))
+        allowed_types = {str(item).strip() for item in (allowed_job_types or ()) if str(item).strip()}
+        deny_prefixes = tuple(str(item) for item in (deny_job_id_prefixes or ()) if str(item))
         expiry = (
             (parse_time(at) or datetime.now(timezone.utc)) + timedelta(seconds=lease_seconds)
         ).isoformat().replace("+00:00", "Z")
+
+        def _claimable(row: Any) -> bool:
+            if allowed_types and str(row["job_type"] or "") not in allowed_types:
+                return False
+            job_key = str(row["job_id"] or "")
+            if any(job_key.startswith(prefix) for prefix in deny_prefixes):
+                return False
+            return set(loads(row["required_capabilities"], [])).issubset(available) and self._resource_fit(
+                row["run_id"], worker_id
+            )
 
         with self.transaction():
             query = """SELECT runs.*,COALESCE(run_resources.priority,50) scheduling_priority
@@ -163,11 +177,7 @@ class ReliabilityMixin:
                 params = (job_id,)
             query += " ORDER BY scheduling_priority DESC,runs.created_at,runs.run_id"
             rows = self.db.execute(query, params).fetchall()
-            selected = next((
-                row for row in rows
-                if set(loads(row["required_capabilities"], [])).issubset(available)
-                and self._resource_fit(row["run_id"], worker_id)
-            ), None)
+            selected = next((row for row in rows if _claimable(row)), None)
             if selected is None:
                 return None
             attempt = int(selected["attempt"]) + 1
