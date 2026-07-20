@@ -1,0 +1,49 @@
+{
+  "generated_at": "2026-07-20T08:04:37.388615Z",
+  "source": "private main post-merge smoke",
+  "private_main_sha": "50915273f5597d4f0656f08a3bda17e798b869c1",
+  "job_id": "host-acceptance-main-smoke-20260720a",
+  "run_id": "run-5f32dab53fc44ce39bb8a48ad65f470e",
+  "attempt": 1,
+  "worker_id": "windows-01",
+  "dataset_id": "host_acceptance_main_smoke_20260720",
+  "registry_id": "host_acceptance_main_smoke_20260720",
+  "manifest_id": "collection_manifest_host-acceptance-main-smoke-20260720a",
+  "readiness": "registered",
+  "archive_verified": true,
+  "registry_readback": true,
+  "legacy_status": "completed",
+  "lifecycle": "registered",
+  "artifact_bytes": 16161,
+  "artifact_sha256": "8616ada919cd000e6bfec79b3768046772538486244b42967bf45ecb6346bc1f",
+  "vault_suffix": "collection/acquired/procured/host_acceptance_main_smoke_20260720",
+  "synthesis_expectation": {
+    "badge": "Registered",
+    "not_badge": "Query ready",
+    "openable_in_library": true
+  },
+  "resources_expectation": {
+    "worker_id": "windows-01",
+    "run_id": "run-5f32dab53fc44ce39bb8a48ad65f470e",
+    "lifecycle": "registered"
+  },
+  "library_expectation": {
+    "dataset_id": "host_acceptance_main_smoke_20260720",
+    "manifest_id": "collection_manifest_host-acceptance-main-smoke-20260720a",
+    "registry_id": "host_acceptance_main_smoke_20260720"
+  },
+  "detail_ask_expectation": {
+    "selected_asset": "host_acceptance_main_smoke_20260720",
+    "grounding": "registered archive + registry proof"
+  },
+  "discover_history_expectation": {
+    "job_id": "host-acceptance-main-smoke-20260720a",
+    "trail": [
+      "queued",
+      "assigned",
+      "running",
+      "completed",
+      "registered"
+    ]
+  }
+}

@@ -18,6 +18,15 @@
     "prefer_local_queue": true,
     "queue_local_fallback": true,
     "procurement_routes_via_cluster": true,
+    "remote_worker": {
+      "allowed_job_types": ["http_manifest"],
+      "deny_job_id_prefixes": [
+        "probe-no-promotion-",
+        "missing-manifest-",
+        "archive-before-promote-"
+      ],
+      "notes": "Day-2: production Windows workers claim only http_manifest; fixture id prefixes are skipped before assignment."
+    },
     "notes": "Controller queues jobs; browser scrapes run on windows_lab only (disable_local_scrape). Run scripts/yzu_cluster/provision_windows_scraper_bundle.sh once per worker.",
     "ops_host": {
       "mode": "local",

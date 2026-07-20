@@ -19,6 +19,12 @@ from ._interop_common import Claim
 TOKEN_ENV = "YZU_WORKER_CONTROL_TOKEN"
 MAX_ARTIFACT_ENV = "YZU_WORKER_MAX_ARTIFACT_BYTES"
 ACTIVE_ATTEMPT_STAGES = {"assigned", "running", "validating", "archiving", "registering"}
+DEFAULT_REMOTE_JOB_TYPES = ("http_manifest",)
+DEFAULT_FIXTURE_ID_PREFIXES = (
+    "probe-no-promotion-",
+    "missing-manifest-",
+    "archive-before-promote-",
+)
 
 
 def _bearer_token(authorization: str | None, explicit: str | None = None) -> str:
@@ -37,6 +43,36 @@ class WorkerControlPlane:
         self.token = token
         configured = max_artifact_bytes or int(os.environ.get(MAX_ARTIFACT_ENV, 512 * 1024 * 1024))
         self.max_artifact_bytes = max(1, int(configured))
+        remote = ((getattr(orchestrator, "cfg", None) or {}).get("operations") or {}).get("remote_worker") or {}
+        types = remote.get("allowed_job_types")
+        if types is None:
+            types = DEFAULT_REMOTE_JOB_TYPES
+        self.allowed_job_types = tuple(str(item).strip() for item in types if str(item).strip())
+        prefixes = remote.get("deny_job_id_prefixes")
+        if prefixes is None:
+            prefixes = DEFAULT_FIXTURE_ID_PREFIXES
+        self.deny_job_id_prefixes = tuple(str(item) for item in prefixes if str(item))
+
+    def queue_contamination_report(self) -> dict[str, Any]:
+        """Count queued jobs that production remote workers will refuse to claim."""
+
+        queued = list(self.orchestrator.store.list(limit=500, status="queued"))
+        denied_type: list[str] = []
+        denied_prefix: list[str] = []
+        for job in queued:
+            job_id = str(job.get("id") or "")
+            job_type = str((job.get("plan") or {}).get("job_type") or "")
+            if self.allowed_job_types and job_type and job_type not in self.allowed_job_types:
+                denied_type.append(job_id)
+            elif any(job_id.startswith(prefix) for prefix in self.deny_job_id_prefixes):
+                denied_prefix.append(job_id)
+        return {
+            "queued": len(queued),
+            "denied_job_type_count": len(denied_type),
+            "denied_fixture_prefix_count": len(denied_prefix),
+            "allowed_job_types": list(self.allowed_job_types),
+            "deny_job_id_prefixes": list(self.deny_job_id_prefixes),
+        }
 
     def authorize(self, candidate: str | None) -> None:
         supplied = str(candidate or "").strip()
@@ -114,6 +150,8 @@ class WorkerControlPlane:
             worker_id,
             lease_seconds=int(payload.get("lease_seconds") or self.orchestrator.runtime.lease_seconds),
             reap_expired=False,
+            allowed_job_types=self.allowed_job_types,
+            deny_job_id_prefixes=self.deny_job_id_prefixes,
         )
         return self._claim_payload(claim, self.orchestrator.store.get(claim.job_id)) if claim else None
 
@@ -370,7 +408,16 @@ def create_app(
 
     @app.get("/health")
     def health():
-        return {"status": "ok", "token_required": True}
+        report = control.queue_contamination_report()
+        return {
+            "status": "ok",
+            "token_required": True,
+            "queue": {
+                "queued": report["queued"],
+                "denied_job_type_count": report["denied_job_type_count"],
+                "denied_fixture_prefix_count": report["denied_fixture_prefix_count"],
+            },
+        }
 
     @app.post("/v1/workers/join", dependencies=[Depends(authorize)])
     def join(payload: dict[str, Any]):
