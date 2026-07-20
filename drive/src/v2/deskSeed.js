@@ -30,7 +30,6 @@ export function resolveCatalog(liveRows) {
 
 const NEUTRAL_DESK = {
   jobs: {},
-  composer_configured: false,
   composer_model: "composer-2.5",
   mcp_tools: { total: 0, core: 0, acquire: 0, ops: 0 },
   storage_tiers: { canonical: { quota_tb: 5, used_tb: 0 }, cache: { used_pct: 0 } },
