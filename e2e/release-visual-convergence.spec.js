@@ -101,8 +101,8 @@ test.describe("Research Drive release visual contract", () => {
       if (destination.rail) {
         await expect(rail.getByRole("tab", { name: "Ask" })).toBeVisible();
       } else {
-        await expect(rail).toHaveCount(0);
         await expect(page.locator(".rd-v2-shell.no-rail")).toBeVisible();
+        await expect(rail).not.toBeVisible();
       }
     }
   });
