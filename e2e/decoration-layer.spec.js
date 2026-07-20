@@ -8,8 +8,8 @@ function ensureArtifactDir() {
   fs.mkdirSync(ARTIFACT_DIR, { recursive: true });
 }
 
-test.describe("Research Drive RC2.1 decoration layer", () => {
-  test("Ask presents semantic phase progress with restrained visual feedback", async ({ page }) => {
+test.describe("Research Drive RC2.1 transient decoration layer", () => {
+  test("Ask presents operation-only semantic phase progress", async ({ page }) => {
     await mockV2Api(page);
     await page.unroute("**/api/library/chat/stream");
     await page.unroute("**/api/library/chat");
@@ -44,7 +44,6 @@ test.describe("Research Drive RC2.1 decoration layer", () => {
     await expect(phaseBar).toHaveAttribute("aria-valuemax", "4");
     await expect(phaseBar).toHaveAttribute("aria-valuetext", /Phase [1-4] of 4/);
     await expect(progress).toContainText(/Phase [1-4] of 4 · \d+s/);
-    await expect(progress.locator(".rd-v2-progress-phase-fill")).toBeVisible();
 
     await page.waitForTimeout(1150);
     const activeStep = Number(await progress.getAttribute("data-active-step"));
@@ -55,40 +54,55 @@ test.describe("Research Drive RC2.1 decoration layer", () => {
 
     await expect(progress).toHaveCount(0, { timeout: 10_000 });
     await expect(rail).toContainText("grounded in the current Research Drive context");
+    await expect(rail.getByRole("progressbar")).toHaveCount(0);
   });
 
-  test("selected lifecycle surfaces stay polished and static under reduced motion", async ({ page }) => {
+  test("hover decoration appears, clears, and is disabled by reduced motion", async ({ page }) => {
     await mockV2Api(page, { discoverBody: MOCK_DISCOVER_HIT });
-    await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.setViewportSize({ width: 390, height: 844 });
+    await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
 
     const search = page.locator(".rd-v2-search-pill input");
     await search.fill("mops");
     const candidate = page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate', { hasText: "MOPS" });
-    await candidate.click();
-    await expect(candidate).toHaveClass(/selected/);
+    await expect(candidate).toBeVisible();
 
-    const styles = await candidate.evaluate((node) => {
+    await candidate.hover();
+    await page.waitForTimeout(180);
+    const hoverTransform = await candidate.evaluate((node) => getComputedStyle(node).transform);
+    expect(hoverTransform).not.toBe("none");
+
+    await search.hover();
+    await page.waitForTimeout(220);
+    const restingTransform = await candidate.evaluate((node) => getComputedStyle(node).transform);
+    expect(restingTransform).toBe("none");
+
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    const reducedSearch = page.locator(".rd-v2-search-pill input");
+    await reducedSearch.fill("mops");
+    const reducedCandidate = page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate', { hasText: "MOPS" });
+    await reducedCandidate.hover();
+
+    const reducedStyles = await reducedCandidate.evaluate((node) => {
       const computed = getComputedStyle(node);
-      return {
-        boxShadow: computed.boxShadow,
-        transitionDuration: computed.transitionDuration,
-      };
+      return { transform: computed.transform, transitionDuration: computed.transitionDuration };
     });
-    expect(styles.boxShadow).not.toBe("none");
-    expect(styles.transitionDuration).toMatch(/0s|0ms/);
+    expect(reducedStyles.transform).toBe("none");
+    expect(reducedStyles.transitionDuration).toMatch(/0s|0ms/);
 
     const pageAnimation = await page.locator("main.rd-v2-shell-main > :first-child").evaluate(
       (node) => getComputedStyle(node).animationName,
     );
     expect(pageAnimation).toBe("none");
 
+    await page.setViewportSize({ width: 390, height: 844 });
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 2);
     expect(overflow).toBe(false);
 
     ensureArtifactDir();
-    await page.screenshot({ path: `${ARTIFACT_DIR}/decoration-mobile-selected-390x844.png`, fullPage: false });
+    await page.screenshot({ path: `${ARTIFACT_DIR}/decoration-reduced-motion-mobile-390x844.png`, fullPage: false });
   });
 });
