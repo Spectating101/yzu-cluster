@@ -34,6 +34,14 @@ command -v bash >/dev/null 2>&1 || {
   exit 2
 }
 
+if command -v stat >/dev/null 2>&1; then
+  env_mode="$(stat -c '%a' "${env_file}" 2>/dev/null || true)"
+  if [[ -n "${env_mode}" && "${env_mode: -2}" != "00" ]]; then
+    echo "environment file exposes secrets to group/other (mode ${env_mode}); run chmod 600 ${env_file}" >&2
+    exit 2
+  fi
+fi
+
 mkdir -p "${unit_dir}"
 backup=""
 if [[ -f "${unit_file}" ]]; then
@@ -69,8 +77,17 @@ if [[ "${start_now}" == "1" ]]; then
   systemctl --user restart research-drive-front-door.service
 fi
 
+linger="unknown"
+if command -v loginctl >/dev/null 2>&1; then
+  linger="$(loginctl show-user "${USER}" -p Linger --value 2>/dev/null || printf unknown)"
+fi
+
 printf 'unit=%s\n' "${unit_file}"
 printf 'environment=%s\n' "${env_file}"
+printf 'user_linger=%s\n' "${linger}"
+if [[ "${linger}" != "yes" ]]; then
+  printf 'boot_persistence_warning=user service may not start before login; host operator should evaluate sudo loginctl enable-linger %s\n' "${USER}"
+fi
 if [[ -n "${backup}" ]]; then
   printf 'previous_unit_backup=%s\n' "${backup}"
 fi
