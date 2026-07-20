@@ -7,6 +7,7 @@ import {
   saveUserEmail,
 } from "@/v2/deskSession";
 import { clearDeskSession, ensureDeskSession } from "@/v2/api";
+import { ContextHelp } from "@/v2/InteractionGuidance";
 import { loadSettings, saveSettings } from "@/v2/settingsStore";
 import { PageShell, StatementRow, StatementSection } from "@/v2/ui";
 import { V2_TABS } from "@/v2/nav-config.jsx";
@@ -26,10 +27,36 @@ function archiveStatus(desk) {
   return { ok: true, label: "Connected", detail: "Research archive" };
 }
 
-function SummaryCard({ label, value, detail }) {
+function assistantStatus(health) {
+  const desk = health?.desk || {};
+  const explicit = desk.composer_configured;
+  const legacy = desk.legacy_llm_configured;
+  const model = String(desk.composer_model || desk.brain || "").trim();
+
+  if (explicit === true || legacy === true) {
+    return {
+      ready: true,
+      known: true,
+      label: "Ready",
+      detail: model ? `${model} runtime` : "Ask and acquisition planning",
+    };
+  }
+  if (explicit === false && legacy !== true) {
+    return { ready: false, known: true, label: "Needs setup", detail: "Assistant health reports offline" };
+  }
+  if (model) {
+    return { ready: true, known: true, label: "Ready", detail: `${model} runtime signal` };
+  }
+  return { ready: false, known: false, label: "Check status", detail: "No assistant health signal" };
+}
+
+function SummaryCard({ label, value, detail, help }) {
   return (
     <article className="rd-v2-settings-summary-card">
-      <span>{label}</span>
+      <span>
+        {label}
+        <ContextHelp content={help} label={`Explain ${label}`} side="bottom" align="start" />
+      </span>
       <strong>{value}</strong>
       <em>{detail}</em>
     </article>
@@ -44,7 +71,7 @@ export function SettingsPage({ health, onProfileRefresh, onToast }) {
   const desk = health?.desk || {};
   const access = deskAccessStatus(health);
   const archive = archiveStatus(desk);
-  const assistantReady = Boolean(desk.composer_configured);
+  const assistant = assistantStatus(health);
 
   const patch = (p) => setSettings(saveSettings(p));
 
@@ -90,13 +117,24 @@ export function SettingsPage({ health, onProfileRefresh, onToast }) {
     <PageShell title="Settings" lead="Identity, access, and research-desk preferences">
       <div className="rd-v2-settings-statement">
         <section className="rd-v2-settings-summary" aria-label="Research desk status">
-          <SummaryCard label="Browser access" value={access.label} detail={access.detail} />
+          <SummaryCard
+            label="Browser access"
+            value={access.label}
+            detail={access.detail}
+            help="Controls authorized actions such as approvals. Browsing and read-only inspection may remain available without a write session."
+          />
           <SummaryCard
             label="Research assistant"
-            value={assistantReady ? "Ready" : "Needs setup"}
-            detail={assistantReady ? "Ask and acquisition planning" : "Composer runtime unavailable"}
+            value={assistant.label}
+            detail={assistant.detail}
+            help="Derived from explicit Composer health, a legacy assistant signal, or an active runtime/model identity. Missing data is shown as unknown rather than incorrectly offline."
           />
-          <SummaryCard label="Archive" value={archive.label} detail={archive.detail} />
+          <SummaryCard
+            label="Archive"
+            value={archive.label}
+            detail={archive.detail}
+            help="The verified long-term store for registered assets. Archive connected does not by itself mean a dataset is query ready."
+          />
         </section>
 
         <StatementSection title="Research identity">
@@ -154,10 +192,10 @@ export function SettingsPage({ health, onProfileRefresh, onToast }) {
         <StatementSection title="Research services">
           <StatementRow
             label="Ask and acquisition planning"
-            metric={assistantReady ? "Ready" : "Needs setup"}
+            metric={assistant.label}
             sublabel="Search holdings, explain gaps, and prepare reviewable collection plans"
-            detail={assistantReady ? "OK" : "CHECK"}
-            warn={!assistantReady}
+            detail={assistant.ready ? "OK" : assistant.known ? "CHECK" : "VERIFY"}
+            warn={!assistant.ready}
           />
           <StatementRow
             label="Research archive"
@@ -209,10 +247,10 @@ export function SettingsPage({ health, onProfileRefresh, onToast }) {
             <StatementRow label="Development desk" metric=":5178" sublabel="Local frontend preview" detail="DEV" />
             <StatementRow
               label="Assistant runtime"
-              metric={desk.brain || desk.composer_model || "cursor_composer"}
+              metric={desk.brain || desk.composer_model || "Not reported"}
               sublabel="Private orchestration authority"
-              detail={assistantReady ? "READY" : "CHECK"}
-              warn={!assistantReady}
+              detail={assistant.ready ? "READY" : assistant.known ? "CHECK" : "UNKNOWN"}
+              warn={!assistant.ready}
             />
           </div>
         </details>
