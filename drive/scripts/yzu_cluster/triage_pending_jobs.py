@@ -42,9 +42,6 @@ def _noise_reason(job: dict) -> str:
         return "integration_scrape"
     if job_type == "collection_queue_batch":
         return "duplicate_batch"
-    # Remote workers only claim http_manifest; these sit forever as denied_job_type.
-    if job_type == "synthesis_execute":
-        return "denied_job_type_remote_worker"
     jid = str(job.get("id") or "")
     if job_type == "source_probe" and jid.startswith("probe-no-promotion"):
         return "fixture_probe_no_promotion"
@@ -114,7 +111,7 @@ def main() -> int:
             report.append({"id": jid, "action": "fail_stale_running", "age_hours": round(age_h, 2)})
 
     if args.cancel_noise:
-        # Drain queued/running/pending jobs that remote workers will never claim.
+        # Drain only explicitly classified fixture/integration noise.
         for job in orch.store.list(args.limit):
             status = str(job.get("status") or "")
             if status not in {"queued", "running", "pending_approval"}:
