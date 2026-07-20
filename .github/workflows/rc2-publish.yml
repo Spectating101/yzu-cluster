@@ -6,6 +6,8 @@ on:
     paths:
       - ".github/workflows/rc2-publish.yml"
       - "scripts/verify_rc2_release.mjs"
+      - "scripts/package_rc2_release.sh"
+      - ".github/workflows/rc2-release.yml"
   workflow_dispatch:
 
 permissions:
@@ -43,6 +45,7 @@ jobs:
         run: npm run release:package
         env:
           YZU_REQUIRE_RELEASE_ANCESTRY: "1"
+          YZU_REUSE_RELEASE_VERIFICATION: "1"
 
       - name: Create immutable RC2 tag
         env:
@@ -70,6 +73,7 @@ jobs:
           assets=(
             artifacts/research-drive-rc2-public.tar.gz
             artifacts/research-drive-rc2-public.tar.gz.sha256
+            artifacts/rc2-release-verification.json
             release/research-drive-rc2.json
           )
           if gh release view "${TAG}" >/dev/null 2>&1; then
