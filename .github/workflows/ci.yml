@@ -66,3 +66,12 @@ jobs:
       - name: Mock e2e — Resources
         run: TMPDIR=$PWD/.tmp-pw npx playwright test e2e/v2-resources.spec.js --reporter=dot
         env: *mock-env
+
+      - name: Upload release visual renders
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: research-drive-release-visuals
+          path: artifacts/release-visual
+          if-no-files-found: warn
+          retention-days: 14
