@@ -18,7 +18,26 @@ def test_is_api_path_does_not_capture_spa_routes():
     assert server.is_api_path("/datasets/example")
     assert not server.is_api_path("/")
     assert not server.is_api_path("/library-ui")
+    assert not server.is_api_path("/datasets-old")
     assert not server.is_api_path("/discover/history")
+
+
+def test_cors_is_same_origin_only_by_default(monkeypatch):
+    monkeypatch.delenv("YZU_DESK_CORS_ORIGIN", raising=False)
+    assert server.normalize_cors_origin() == ""
+
+
+def test_cors_accepts_one_explicit_origin():
+    assert server.normalize_cors_origin("https://desk.example.test/") == "https://desk.example.test"
+
+
+@pytest.mark.parametrize(
+    "value",
+    ["*", "desk.example.test", "https://desk.example.test/path", "https://desk.example.test?q=1"],
+)
+def test_cors_rejects_wildcard_and_non_origin_values(value):
+    with pytest.raises(ValueError):
+        server.normalize_cors_origin(value)
 
 
 def test_resolve_static_dir_uses_repo_root_for_relative_paths(monkeypatch, tmp_path):
@@ -52,6 +71,7 @@ def test_parser_reads_optiplex_environment(monkeypatch, tmp_path):
     monkeypatch.setenv("YZU_DESK_STATIC_DIR", str(static_dir))
     monkeypatch.setenv("SHARPE_REGISTRY_PATH", str(registry))
     monkeypatch.setenv("YZU_DESK_SERVE_UI", "true")
+    monkeypatch.setenv("YZU_DESK_CORS_ORIGIN", "https://desk.example.test")
 
     args = server.build_parser().parse_args([])
 
@@ -60,6 +80,7 @@ def test_parser_reads_optiplex_environment(monkeypatch, tmp_path):
     assert Path(args.static_dir) == static_dir
     assert Path(args.registry) == registry
     assert args.serve_ui is True
+    assert args.cors_origin == "https://desk.example.test"
 
 
 def test_invalid_environment_port_is_rejected(monkeypatch):
