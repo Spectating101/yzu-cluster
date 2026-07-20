@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "release_id": "research-drive-rc2",
+  "status": "live_accepted",
+  "accepted_date": "2026-07-21",
+  "pins": {
+    "public_product_sha": "b40ff0945f5e1957f0100742185e2a78b06dd498",
+    "private_runtime_sha": "07cb7b885454aef32f3e2351da8733794fe9c17b"
+  },
+  "golden_asset": {
+    "dataset_id": "procured_src_b0a7ba3817a5",
+    "job_id": "01bf070a7e86",
+    "manifest_id": "collection_manifest_01bf070a7e86",
+    "run_id": "run-eb54da87916b43728d4ca474c72a159a",
+    "readiness": "registered",
+    "analysis_readiness": "metadata_search",
+    "query_ready": false,
+    "query_smoke_files": [
+      "manifest.json",
+      "rfc9110.txt"
+    ]
+  },
+  "accepted_capabilities": [
+    "seven-page responsive Research Drive interface",
+    "persistent Detail and Ask rail",
+    "Composer-backed read-only Ask with staged progress",
+    "catalog, dataset describe, and registered-asset query paths",
+    "Discover evaluation and evidence-bound acquisition planning",
+    "Synthesis workspace and runtime interoperability contract",
+    "rich readiness explanations with keyboard and touch parity",
+    "layout-preserving loading states and reduced-motion support",
+    "runtime authority reconciliation without receipt-only drift",
+    "Tailscale-isolated worker control outside the public tunnel"
+  ],
+  "truth_constraints": {
+    "registered_is_not_query_ready": true,
+    "public_repository_is_not_the_production_control_plane": true,
+    "release_verification_is_read_only": true,
+    "automatic_query_ready_promotion_in_scope": false
+  },
+  "out_of_scope": [
+    "public multi-user SaaS",
+    "permanent branded public gateway",
+    "automatic query-ready promotion",
+    "additional worker job types",
+    "unbounded connector expansion",
+    "decorative animation work"
+  ]
+}
