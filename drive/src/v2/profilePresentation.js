@@ -9,7 +9,6 @@ export function isProfileBound(profile) {
   return Boolean(profile && !profile.unknown);
 }
 
-/** Unbound desks stay quiet — never auto-promote EXAMPLE as the primary centre. */
 export function profileCentreMode(profile) {
   return isProfileBound(profile) ? "bound" : "unbound";
 }
@@ -21,10 +20,6 @@ export function profilePrimaryCommand(mode) {
   return null;
 }
 
-/**
- * Detail rail state. Never returns generic "Loading" once the page has a profile
- * payload (bound, unknown, or explicitly unbound/null-resolved).
- */
 export function buildProfileRailState({
   profile = null,
   selectedWork = null,
@@ -33,12 +28,11 @@ export function buildProfileRailState({
   const bound = isProfileBound(profile);
 
   if (!profileResolved && profile == null) {
-    // Centre already paints unbound; Detail stays truthful, never Loading.
     return {
       status: "unbound",
       identity: ["Desk unbound", "Faculty identity pending"],
-      judgement: "Connect a faculty email to load Memory, Works, and Lab.",
-      facts: ["Profile ranking uses generic desk defaults until bound."],
+      judgement: "Connect a faculty email in Settings to load Memory, Works, and Lab.",
+      facts: ["Ranking uses generic desk defaults until a faculty email is saved on this browser."],
       unknowns: ["Faculty identity", "Research memory", "Lab links"],
       primaryAction: { id: "connect-email", label: "Connect faculty email", tab: "settings" },
       secondaryActions: [],
@@ -49,19 +43,12 @@ export function buildProfileRailState({
   if (selectedWork?.title) {
     return {
       status: "work",
-      identity: [
-        selectedWork.title,
-        selectedWork.type || "Publication",
-        selectedWork.relationship || "Research output",
-      ].filter(Boolean),
-      judgement: "Selected work from your research record.",
+      identity: [selectedWork.title, selectedWork.type || "Publication"].filter(Boolean),
+      judgement: "Use Ask to interpret this work against the bound research context.",
       facts: [
-        selectedWork.type ? `Type · ${selectedWork.type}` : null,
-        selectedWork.relationship ? `Relation · ${selectedWork.relationship}` : null,
-        selectedWork.raw && selectedWork.raw !== selectedWork.title
-          ? `Source · publication highlight`
-          : null,
-      ].filter(Boolean).slice(0, 5),
+        selectedWork.relationship ? `Theme · ${selectedWork.relationship}` : null,
+        "Ask opens with this work as context.",
+      ].filter(Boolean).slice(0, 4),
       unknowns: [],
       primaryAction: { id: "ask-work", label: "Ask about this work" },
       secondaryActions: [],
@@ -71,43 +58,29 @@ export function buildProfileRailState({
 
   if (bound) {
     const name = profile.name_en || profile.name || "Faculty";
-    const focus =
-      (profile.research_tracks || []).find((t) => t && (t.title || t.name || typeof t === "string")) ||
-      null;
-    const focusTitle =
-      typeof focus === "string" ? focus : String(focus?.title || focus?.name || "").trim();
+    const role = [profile.title, profile.discipline].filter(Boolean).join(" · ") || "Faculty profile";
+    const papers = profile.paper_count_parsed || profile.paper_count;
     return {
       status: "context",
-      identity: [
-        name,
-        [profile.title, profile.discipline].filter(Boolean).join(" · ") || "Faculty profile",
-        profile.email || "",
-      ].filter(Boolean),
-      judgement: focusTitle
-        ? `Active research context centres on ${focusTitle}.`
-        : "Bound research context is available for ranking and Ask.",
+      identity: [name, role],
+      judgement: "Bound research context shapes Discover ranking and Ask on this browser.",
       facts: [
-        profile.email ? `Email · ${profile.email}` : null,
-        Array.isArray(profile.specialties) && profile.specialties.length
-          ? `Focus · ${profile.specialties.slice(0, 3).join(", ")}`
-          : null,
-        profile.paper_count_parsed || profile.paper_count
-          ? `Works indexed · ${profile.paper_count_parsed || profile.paper_count}`
-          : null,
-      ].filter(Boolean).slice(0, 5),
+        profile.email ? `Bound email · ${profile.email}` : null,
+        papers ? `${papers} works indexed` : null,
+        "Not a sign-in — browser-local research context only.",
+      ].filter(Boolean).slice(0, 4),
       unknowns: [],
-      primaryAction: { id: "edit-settings", label: "Edit identity", tab: "settings" },
+      primaryAction: null,
       secondaryActions: [],
       loadingLabel: null,
     };
   }
 
-  // Unbound or unknown — explicit quiet state, never EXAMPLE / Loading
   return {
     status: "unbound",
     identity: ["Desk unbound", "No faculty email on this browser"],
-    judgement: "Connect a faculty email to load Memory, Works, and Lab.",
-    facts: ["Profile ranking uses generic desk defaults until bound."],
+    judgement: "Connect a faculty email in Settings to load Memory, Works, and Lab.",
+    facts: ["Ranking uses generic desk defaults until bound."],
     unknowns: ["Faculty identity", "Research memory", "Lab links"],
     primaryAction: { id: "connect-email", label: "Connect faculty email", tab: "settings" },
     secondaryActions: [],

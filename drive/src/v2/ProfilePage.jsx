@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
 import {
   buildDeskRead,
   buildLab,
-  buildMemoryCards,
+  buildMemoryBrief,
   buildWorks,
 } from "@/v2/profileViewModel";
 import {
@@ -18,36 +17,11 @@ import {
   RailStickyFooter,
 } from "@/v2/RailFrame";
 
-const MEMORY_LABELS = {
-  focus: "Focus",
-  current: "Current",
-  also: "Also",
-  methods: "Methods",
-};
-
-function MemoryEditIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M12 20h9"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinecap="round"
-      />
-      <path
-        d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
 /**
  * Profile — Memory · Works · Lab.
+ * Bound: calm research brief + scan Works + compressed Lab.
  * Unbound desks stay quiet; EXAMPLE / pilot is never a primary CTA.
+ * Memory is read-only here — browser-local identity lives in Settings.
  */
 export function ProfilePage({
   profile,
@@ -65,44 +39,14 @@ export function ProfilePage({
   const orgLine = bound
     ? [profile?.title, profile?.discipline].filter(Boolean).join(" · ")
     : "Connect a faculty email to load research context";
-  const email = bound ? profile?.email || "" : "";
-  const memory = bound ? buildMemoryCards(profile) : [];
+  const statusLine = bound
+    ? "Research context bound on this browser"
+    : "No faculty email on this browser";
+  const brief = bound ? buildMemoryBrief(profile) : { statement: "", descriptors: [] };
   const works = bound ? buildWorks(profile) : { paperCount: null, items: [] };
-  const lab = bound ? buildLab(profile) : { linked: [], suggested: [] };
-  const [memoryDraft, setMemoryDraft] = useState([]);
-  const [editingMemoryId, setEditingMemoryId] = useState(null);
-  const [editBuffer, setEditBuffer] = useState("");
-  const memoryKey = bound
-    ? `${profile?.email || ""}:${memory.map((c) => c.id).join(",")}:${memory.map((c) => c.text).join("|")}`
-    : "unbound";
-
-  useEffect(() => {
-    setMemoryDraft(memory.map((card) => ({ ...card })));
-    setEditingMemoryId(null);
-    setEditBuffer("");
-    // Reset drafts when the bound profile memory payload changes, not on every render.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [memoryKey]);
-
-  const startEdit = (card) => {
-    setEditingMemoryId(card.id);
-    setEditBuffer(card.text || "");
-  };
-
-  const cancelEdit = () => {
-    setEditingMemoryId(null);
-    setEditBuffer("");
-  };
-
-  const saveEdit = () => {
-    if (!editingMemoryId) return;
-    const next = String(editBuffer || "").trim();
-    setMemoryDraft((rows) =>
-      rows.map((row) => (row.id === editingMemoryId ? { ...row, text: next } : row)),
-    );
-    setEditingMemoryId(null);
-    setEditBuffer("");
-  };
+  const lab = bound
+    ? buildLab(profile)
+    : { linked: [], suggested: [], linkedTotal: 0, gapTotal: 0, exploreQuery: "" };
 
   const runQuery = (q) => {
     const query = String(q || "").trim();
@@ -113,11 +57,17 @@ export function ProfilePage({
     onGoTab?.("browse");
   };
 
+  const openLibrary = () => onGoTab?.("library");
+  const exploreGaps = () => {
+    const q = lab.exploreQuery || lab.suggested[0]?.query || lab.suggested[0]?.label || "";
+    runQuery(q);
+  };
+
   return (
     <PageShell
       className={`rd-v2-profile-page${bound ? "" : " is-unbound"}`}
       title="Profile"
-      lead="Saved research context for Discover and Ask"
+      lead="Research context for Discover and Ask"
     >
       <section className="rd-v2-profile-identity" aria-label="Faculty identity">
         <div className="rd-v2-profile-ident">
@@ -125,11 +75,15 @@ export function ProfilePage({
             <span className="rd-v2-profile-badge quiet" data-testid="profile-unbound-badge">
               Unbound
             </span>
-          ) : null}
+          ) : (
+            <span className="rd-v2-profile-badge quiet" data-testid="profile-bound-badge">
+              Bound
+            </span>
+          )}
           <h2 className="rd-v2-profile-name">{name}</h2>
           {orgLine ? <p className="rd-v2-profile-org">{orgLine}</p> : null}
-          <p className="rd-v2-profile-hint">
-            {email || (bound ? "—" : "No faculty email on this browser")}
+          <p className="rd-v2-profile-hint" data-testid="profile-context-status">
+            {statusLine}
           </p>
         </div>
         <div className="rd-v2-profile-identity-actions">
@@ -154,86 +108,36 @@ export function ProfilePage({
       >
         <header className="rd-v2-profile-section-head">
           <h2 id="profile-memory-title">Memory</h2>
-          <span>{bound ? (memoryDraft.length ? `${memoryDraft.length} saved` : "None yet") : "Unavailable"}</span>
+          <span>{bound ? (brief.statement ? "Context" : "None yet") : "Unavailable"}</span>
         </header>
-        {bound && memoryDraft.length ? (
-          <ul className="rd-v2-profile-memory">
-            {memoryDraft.map((card) => {
-              const label = MEMORY_LABELS[card.id] || card.id;
-              const active = editingMemoryId === card.id;
-              return (
-                <li
-                  key={card.id}
-                  className={`rd-v2-profile-memory-row${active ? " is-editing" : ""}`}
-                  data-memory={card.id}
-                >
-                  {active ? (
-                    <div className="rd-v2-profile-memory-edit">
-                      <label
-                        className="rd-v2-profile-memory-label"
-                        htmlFor={`profile-memory-${card.id}`}
-                      >
-                        {label}
-                      </label>
-                      <textarea
-                        id={`profile-memory-${card.id}`}
-                        className="rd-v2-profile-memory-input"
-                        rows={3}
-                        value={editBuffer}
-                        onChange={(e) => setEditBuffer(e.target.value)}
-                        data-testid={`profile-memory-${card.id}`}
-                        // eslint-disable-next-line jsx-a11y/no-autofocus
-                        autoFocus
-                      />
-                      <div className="rd-v2-profile-memory-edit-actions">
-                        <button
-                          type="button"
-                          className="rd-v2-btn sm primary"
-                          data-testid={`profile-memory-save-${card.id}`}
-                          onClick={saveEdit}
-                        >
-                          Save
-                        </button>
-                        <button
-                          type="button"
-                          className="rd-v2-btn sm"
-                          data-testid={`profile-memory-cancel-${card.id}`}
-                          onClick={cancelEdit}
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="rd-v2-profile-memory-line">
-                      <span className="rd-v2-profile-memory-label">{label}</span>
-                      <span
-                        className="rd-v2-profile-memory-value"
-                        data-testid={`profile-memory-${card.id}`}
-                        title={card.text || undefined}
-                      >
-                        {card.text || "—"}
-                      </span>
-                      <button
-                        type="button"
-                        className="rd-v2-profile-memory-edit-btn"
-                        aria-label={`Edit ${label}`}
-                        data-testid={`profile-memory-edit-${card.id}`}
-                        onClick={() => startEdit(card)}
-                      >
-                        <MemoryEditIcon />
-                        <span>Edit</span>
-                      </button>
-                    </div>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
+        {bound && brief.statement ? (
+          <div className="rd-v2-profile-memory-brief">
+            <p className="rd-v2-profile-memory-statement" data-testid="profile-memory-statement">
+              {brief.statement}
+            </p>
+            {brief.descriptors.length ? (
+              <ul className="rd-v2-profile-memory-descriptors">
+                {brief.descriptors.map((d) => (
+                  <li key={d.id} data-testid={`profile-memory-${d.id}`}>
+                    <span className="rd-v2-profile-memory-desc-label">{d.label}</span>
+                    <span className="rd-v2-profile-memory-desc-text">{d.text}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+            <button
+              type="button"
+              className="rd-v2-linkish rd-v2-profile-manage-context"
+              data-testid="profile-manage-context"
+              onClick={() => onGoTab?.("settings")}
+            >
+              Manage context in Settings
+            </button>
+          </div>
         ) : (
           <p className="rd-v2-empty-inline" data-testid="profile-memory-empty">
             {bound
-              ? "No specialties, tracks, or methods on file."
+              ? "No research statement on file yet."
               : "Memory unavailable until a faculty email is attached."}
           </p>
         )}
@@ -247,7 +151,9 @@ export function ProfilePage({
       >
         <header className="rd-v2-profile-section-head">
           <h2 id="profile-works-title">Works</h2>
-          {bound && works.paperCount ? <span>{works.paperCount} indexed</span> : null}
+          {bound && works.paperCount ? (
+            <span className="rd-v2-profile-works-count">{works.paperCount} indexed</span>
+          ) : null}
           {!bound ? <span>Unavailable</span> : null}
         </header>
         {bound && works.items.length ? (
@@ -309,13 +215,7 @@ export function ProfilePage({
                   <span className="rd-v2-profile-lab-title" title={row.label}>
                     {row.label}
                   </span>
-                  <button
-                    type="button"
-                    className="rd-v2-profile-lab-action"
-                    onClick={() => runQuery(row.label)}
-                  >
-                    {row.routeLabel} · Open →
-                  </button>
+                  <span className="rd-v2-profile-lab-meta">{row.routeLabel}</span>
                 </li>
               ))}
             </ul>
@@ -336,13 +236,6 @@ export function ProfilePage({
                     {row.label}
                     <em> — {row.reason}</em>
                   </span>
-                  <button
-                    type="button"
-                    className="rd-v2-profile-lab-action"
-                    onClick={() => runQuery(row.query)}
-                  >
-                    {row.action === "link" ? "Link →" : "Search →"}
-                  </button>
                 </li>
               ))}
             </ul>
@@ -352,14 +245,36 @@ export function ProfilePage({
             </p>
           )}
         </div>
+
+        {bound ? (
+          <div className="rd-v2-profile-lab-links" data-testid="profile-lab-links">
+            <button
+              type="button"
+              className="rd-v2-linkish"
+              data-testid="profile-lab-view-linked"
+              onClick={openLibrary}
+            >
+              View all linked evidence
+            </button>
+            <button
+              type="button"
+              className="rd-v2-linkish"
+              data-testid="profile-lab-explore-gaps"
+              onClick={exploreGaps}
+              disabled={!lab.exploreQuery && !lab.suggested.length}
+            >
+              Explore gaps
+            </button>
+          </div>
+        ) : null}
       </section>
     </PageShell>
   );
 }
 
 /**
- * DETAIL rail — selected work or research context.
- * Never shows Loading once Profile centre has rendered (including unbound).
+ * DETAIL rail — selected work or research context synopsis.
+ * Sticky CTA only for real actions (Ask about work / Connect email).
  */
 export function ProfileDetailPanel({
   profile,
@@ -368,7 +283,6 @@ export function ProfileDetailPanel({
   onClearWork,
   onAskAbout,
 }) {
-  // Centre always renders; treat null/undefined as unbound pending — not Loading.
   const rail = buildProfileRailState({
     profile: profile ?? { unknown: true },
     selectedWork,
@@ -385,8 +299,8 @@ export function ProfileDetailPanel({
         description={rail.identity.slice(1).filter(Boolean).join(" · ") || null}
       />
       <div className="rd-v2-rail-scroll" data-testid="profile-detail-rail">
-        <section className="rd-v2-rail-value-brief" aria-label="Judgement">
-          <p className="rd-v2-rail-section-label">Judgement</p>
+        <section className="rd-v2-rail-value-brief" aria-label="Synopsis">
+          <p className="rd-v2-rail-section-label">Synopsis</p>
           <p>{rail.judgement}</p>
         </section>
         {rail.facts.length ? (
@@ -416,37 +330,33 @@ export function ProfileDetailPanel({
             </ul>
           </section>
         ) : null}
-        {read?.desk ? (
-          <section className="rd-v2-profile-rail-block">
-            <h3>Desk</h3>
-            <p>{read.desk}</p>
-          </section>
-        ) : null}
       </div>
-      <RailStickyFooter>
-        {rail.primaryAction?.id === "ask-work" ? (
-          <button
-            type="button"
-            className="rd-v2-btn sm primary"
-            data-testid="profile-ask-about-work"
-            onClick={() => onAskAbout?.(selectedWork)}
-          >
-            {rail.primaryAction.label}
-          </button>
-        ) : rail.primaryAction?.id === "clear-work" ? (
-          <button type="button" className="rd-v2-btn sm primary" onClick={() => onClearWork?.()}>
-            {rail.primaryAction.label}
-          </button>
-        ) : rail.primaryAction?.tab ? (
-          <button
-            type="button"
-            className="rd-v2-btn sm primary"
-            onClick={() => onGoTab?.(rail.primaryAction.tab)}
-          >
-            {rail.primaryAction.label}
-          </button>
-        ) : null}
-      </RailStickyFooter>
+      {rail.primaryAction ? (
+        <RailStickyFooter>
+          {rail.primaryAction.id === "ask-work" ? (
+            <button
+              type="button"
+              className="rd-v2-btn sm primary"
+              data-testid="profile-ask-about-work"
+              onClick={() => onAskAbout?.(selectedWork)}
+            >
+              {rail.primaryAction.label}
+            </button>
+          ) : rail.primaryAction.id === "clear-work" ? (
+            <button type="button" className="rd-v2-btn sm primary" onClick={() => onClearWork?.()}>
+              {rail.primaryAction.label}
+            </button>
+          ) : rail.primaryAction.tab ? (
+            <button
+              type="button"
+              className="rd-v2-btn sm primary"
+              onClick={() => onGoTab?.(rail.primaryAction.tab)}
+            >
+              {rail.primaryAction.label}
+            </button>
+          ) : null}
+        </RailStickyFooter>
+      ) : null}
     </RailFrame>
   );
 }

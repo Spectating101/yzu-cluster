@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { deskHealth } from "@/v2/api";
+import { deskHealth, facultyProfile } from "@/v2/api";
 import {
   clearDeskToken,
   hasDeskToken,
@@ -7,6 +7,11 @@ import {
   saveUserEmail,
 } from "@/v2/deskSession";
 import { loadSettings, saveSettings } from "@/v2/settingsStore";
+import {
+  SETTINGS_GROUP_LABELS,
+  buildSettingsRailState,
+  settingsAdvancedDefaultOpen,
+} from "@/v2/settingsPresentation";
 import { PageShell, StatementRow, StatementSection } from "@/v2/ui";
 import { V2_TABS } from "@/v2/nav-config.jsx";
 import {
@@ -14,7 +19,6 @@ import {
   RailField,
   RailFieldGrid,
   RailFrame,
-  RailStickyFooter,
 } from "@/v2/RailFrame";
 
 export const SETTINGS_GROUPS = [
@@ -75,10 +79,11 @@ function archiveLabel(desk, healthLoaded) {
 
 /**
  * Settings centre — Identity → Access → Defaults → Advanced recovery (collapsed).
- * No top metric-card dashboard. Browser / bootstrap / fallback token stay in Advanced.
+ * No section Detail links. Identity save is browser-local research context only.
  */
 export function SettingsPage({
   health,
+  profile = null,
   onProfileRefresh,
   onToast,
   activeGroup,
@@ -96,7 +101,9 @@ export function SettingsPage({
   const [tokenDraft, setTokenDraft] = useState("");
   const [tokenPresent, setTokenPresent] = useState(() => hasDeskToken());
   const [liveHealth, setLiveHealth] = useState(null);
-  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [advancedOpen, setAdvancedOpen] = useState(() => settingsAdvancedDefaultOpen());
+  const [bindStatus, setBindStatus] = useState(null);
+  const [savingIdentity, setSavingIdentity] = useState(false);
 
   const effectiveHealth = liveHealth || health;
   const desk = effectiveHealth?.desk || {};
@@ -132,12 +139,57 @@ export function SettingsPage({
     if (groupId === "advanced") setAdvancedOpen(true);
   }, [groupId]);
 
-  const saveEmail = () => {
+  useEffect(() => {
+    if (!settings.email) {
+      setBindStatus(null);
+      return;
+    }
+    if (profile && !profile.unknown && (profile.name_en || profile.name)) {
+      setBindStatus({
+        ok: true,
+        name: profile.name_en || profile.name,
+      });
+    } else if (profile?.unknown && profile?.email) {
+      setBindStatus({ ok: false, email: profile.email });
+    }
+  }, [profile, settings.email]);
+
+  const saveEmail = async () => {
     const email = saveUserEmail(emailDraft);
     patch({ email });
-    onProfileRefresh?.();
-    onToast?.(email ? `Profile loaded for ${email}` : "Email cleared");
     selectGroup("identity");
+    setSavingIdentity(true);
+    setBindStatus(null);
+
+    try {
+      if (!email) {
+        onProfileRefresh?.();
+        setBindStatus(null);
+        onToast?.("Research context cleared on this browser");
+        return;
+      }
+
+      const data = await facultyProfile(email);
+      onProfileRefresh?.();
+      if (data?.found && data.profile) {
+        const name = data.profile.name_en || data.profile.name || "";
+        setBindStatus({ ok: true, name: name || email });
+        onToast?.(
+          name
+            ? `Context bound to ${name} on this browser`
+            : `Context bound for ${email} on this browser`,
+        );
+      } else {
+        setBindStatus({ ok: false, email });
+        onToast?.(`No faculty profile resolved for ${email}`);
+      }
+    } catch {
+      onProfileRefresh?.();
+      setBindStatus({ ok: false, email });
+      onToast?.(`Could not resolve faculty profile for ${email}`);
+    } finally {
+      setSavingIdentity(false);
+    }
   };
 
   const saveToken = () => {
@@ -166,11 +218,6 @@ export function SettingsPage({
         <StatementSection
           title="Identity"
           className={groupId === "identity" ? "is-active-group" : ""}
-          action={
-            <button type="button" className="rd-v2-linkish" onClick={() => selectGroup("identity")}>
-              Detail
-            </button>
-          }
         >
           <div
             className="rd-v2-settings-group"
@@ -191,24 +238,39 @@ export function SettingsPage({
                 onFocus={() => selectGroup("identity")}
                 autoComplete="email"
               />
-              <button type="button" className="rd-v2-btn sm primary" onClick={saveEmail}>
-                Save identity
+              <button
+                type="button"
+                className="rd-v2-btn sm primary"
+                data-testid="settings-save-identity"
+                disabled={savingIdentity}
+                onClick={saveEmail}
+              >
+                {savingIdentity ? "Saving…" : "Save research context"}
               </button>
             </div>
-            <p className="rd-v2-settings-hint">
-              Used for profile-aware Discover ranking and Ask context. Binding happens here — not on Profile.
-            </p>
+            {bindStatus?.ok ? (
+              <p className="rd-v2-settings-bind-ok" data-testid="settings-bind-status">
+                Context bound to {bindStatus.name} on this browser. This is not sign-in or access
+                control — it only shapes Discover ranking and Ask on this browser.
+              </p>
+            ) : null}
+            {bindStatus && !bindStatus.ok ? (
+              <p className="rd-v2-settings-bind-fail" data-testid="settings-bind-status">
+                No faculty profile resolved for {bindStatus.email}. The email is saved on this
+                browser only; ranking stays on generic defaults until a known profile resolves.
+              </p>
+            ) : null}
+            {!bindStatus ? (
+              <p className="rd-v2-settings-hint">
+                Saves a browser-local research-context email. Not sign-in or access control.
+              </p>
+            ) : null}
           </div>
         </StatementSection>
 
         <StatementSection
           title="Access"
           className={groupId === "access" ? "is-active-group" : ""}
-          action={
-            <button type="button" className="rd-v2-linkish" onClick={() => selectGroup("access")}>
-              Detail
-            </button>
-          }
         >
           <div
             className="rd-v2-settings-group"
@@ -240,11 +302,6 @@ export function SettingsPage({
         <StatementSection
           title="Defaults"
           className={groupId === "defaults" ? "is-active-group" : ""}
-          action={
-            <button type="button" className="rd-v2-linkish" onClick={() => selectGroup("defaults")}>
-              Detail
-            </button>
-          }
         >
           <div
             className="rd-v2-settings-group"
@@ -357,115 +414,43 @@ export function SettingsPage({
   );
 }
 
-const GROUP_COPY = {
-  identity: {
-    judgement: "Faculty email drives Profile memory, Discover ranking, and Ask context.",
-    actionLabel: "Focus Identity",
-  },
-  access: {
-    judgement: "Show only verified /health signals — never invent Ready.",
-    actionLabel: "Focus Access",
-  },
-  defaults: {
-    judgement: "Landing tab and selection behaviour for this browser only.",
-    actionLabel: "Focus Defaults",
-  },
-  advanced: {
-    judgement: "Browser, bootstrap, and fallback-token repair stay off the normal path.",
-    actionLabel: "Open Advanced recovery",
-  },
-};
-
-/** DETAIL rail — current Settings group, ≤5 facts, one action. Never Loading / blank. */
+/** DETAIL rail — active group label + 2–4 facts. No Judgement, no Focus CTA. */
 export function SettingsDetailPanel({
   health = null,
   settings: settingsProp = null,
+  profile = null,
   activeGroup = "identity",
   group: groupProp = null,
-  onSelectGroup,
-  onFocusGroup,
 }) {
   const settings = settingsProp || loadSettings();
-  const desk = health?.desk || {};
-  const healthLoaded = healthSignalsPresent(desk);
   const groupId = groupProp || activeGroup || "identity";
   const group = SETTINGS_GROUPS.find((g) => g.id === groupId) || SETTINGS_GROUPS[0];
-  const selectGroup = onSelectGroup || onFocusGroup;
-  const copy = GROUP_COPY[group.id] || GROUP_COPY.identity;
-  const assistant = assistantLabel(desk, healthLoaded);
-  const archive = archiveLabel(desk, healthLoaded);
-  const email = settings.email || "";
-  const deskPort =
-    typeof window !== "undefined" ? `:${window.location.port || "8765"}` : ":8765";
 
-  const facts = useMemo(() => {
-    if (group.id === "identity") {
-      return [
-        ["Faculty email", email || "Not set"],
-        ["Profile routing", email ? "Bound" : "Unbound"],
-        ["Edit surface", "Centre Identity group"],
-      ];
-    }
-    if (group.id === "access") {
-      const rows = [
-        ["Ask / Composer", assistant.label],
-        ["Research archive", archive.label],
-        ["Health payload", healthLoaded ? health?.status || "received" : "Not reported"],
-      ];
-      return rows.slice(0, 5);
-    }
-    if (group.id === "defaults") {
-      return [
-        ["Default tab", settings.defaultTab || "home"],
-        ["On select", settings.onSelect === "ask" ? "Open Ask" : "Show Detail"],
-        ["Scope", "This browser only"],
-      ];
-    }
-    return [
-      ["Fallback token", hasDeskToken() ? "Present" : "Absent"],
-      ["Bootstrap", healthLoaded ? "Health received" : "Not received"],
-      ["Port", deskPort],
-      ["Edit surface", "Centre Advanced group"],
-    ].slice(0, 5);
-  }, [
-    group.id,
-    email,
-    assistant.label,
-    archive.label,
-    healthLoaded,
-    health,
-    settings.defaultTab,
-    settings.onSelect,
-    deskPort,
-  ]);
+  const rail = useMemo(
+    () =>
+      buildSettingsRailState({
+        group: group.id,
+        settings,
+        health,
+        profile,
+        tokenPresent: hasDeskToken(),
+      }),
+    [group.id, settings, health, profile],
+  );
+
+  const title = SETTINGS_GROUP_LABELS[group.id] || group.title;
 
   return (
     <RailFrame>
-      <RailEntityHeader
-        id={`settings-${group.id}`}
-        title={group.title}
-        description={copy.judgement}
-      />
+      <RailEntityHeader id={`settings-${group.id}`} title={title} />
       <div className="rd-v2-rail-scroll" data-testid="settings-detail-rail">
-        <p className="rd-v2-rail-section-label">Judgement</p>
-        <p className="rd-v2-settings-rail-judgement">{copy.judgement}</p>
         <p className="rd-v2-rail-section-label">Facts</p>
         <RailFieldGrid>
-          {facts.map(([label, value]) => (
+          {rail.facts.map(([label, value]) => (
             <RailField key={label} label={label} value={value} />
           ))}
         </RailFieldGrid>
       </div>
-      <RailStickyFooter>
-        <button
-          type="button"
-          className="rd-v2-btn sm primary"
-          data-testid="settings-detail-action"
-          onClick={() => selectGroup?.(group.id)}
-        >
-          {copy.actionLabel}
-        </button>
-      </RailStickyFooter>
     </RailFrame>
   );
 }

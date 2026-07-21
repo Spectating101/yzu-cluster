@@ -33,12 +33,13 @@ import {
 import { BrowsePage } from "@/v2/BrowsePage";
 import { ClusterPage } from "@/v2/ClusterPage";
 import { computeDatasetOverlap } from "@/v2/clusterOverlap";
-import { loadUserEmail } from "@/v2/deskSession";
+import { loadUserEmail, saveUserEmail } from "@/v2/deskSession";
 import { HomePage } from "@/v2/HomePage";
 import { InspectorRail } from "@/v2/InspectorRail";
 import { LibraryPage } from "@/v2/LibraryPage";
 import { PreviewModal } from "@/v2/PreviewModal";
 import { ProfilePage } from "@/v2/ProfilePage";
+import { buildProfileContextAskPrompt } from "@/v2/profilePresentation";
 import { ResourcesPage } from "@/v2/ResourcesPage";
 import { SettingsPage } from "@/v2/SettingsPage";
 import { SynthesisPage } from "@/v2/SynthesisPage";
@@ -46,7 +47,7 @@ import { Toast, useToast } from "@/v2/toast";
 import { V2Sidebar } from "@/v2/V2Sidebar";
 import { touchRecent } from "@/v2/recent";
 import { mergeHealth, resolveCatalog } from "@/v2/deskSeed";
-import { loadSettings } from "@/v2/settingsStore";
+import { loadSettings, resetLocalPreferences, saveSettings } from "@/v2/settingsStore";
 import { CLUSTER_NAV_DEFERRED } from "@/v2/nav-config.jsx";
 import { browseTargetKey, discoverCandidateUrl } from "@/v2/discoverActions";
 import { durableHistoryToEvents, mergeHistoryEvents } from "@/v2/discoverAdapters";
@@ -797,6 +798,15 @@ export function V2App() {
         return;
       }
       if (tab === "profile") {
+        if (target?.kind === "profile_context") {
+          const prompt = buildProfileContextAskPrompt(target);
+          setRailTab("ask");
+          setPendingAsk(
+            prompt ||
+              "Ask about this bound research context using only the structured profile inputs.",
+          );
+          return;
+        }
         const work = target?.title ? target : selectedProfileWork;
         const label = work?.title || "this work";
         setRailTab("ask");
@@ -1114,14 +1124,15 @@ export function V2App() {
       main = (
         <ProfilePage
           profile={profile}
-          datasets={catalog}
-          compareIds={compareIds}
           selectedWorkId={selectedProfileWork?.raw || null}
           onSelectWork={(work) => {
             setSelectedProfileWork(work);
             setRailTab("detail");
           }}
           onGoTab={goTab}
+          onAskAboutContext={(ctx) => askAboutSelection(ctx)}
+          onProfileRefresh={reloadProfile}
+          onToast={showToast}
           onSuggestSearch={(q) => {
             setSearchQuery(q);
             setDiscoverMode("explore");
@@ -1138,6 +1149,7 @@ export function V2App() {
       main = (
         <SettingsPage
           health={health}
+          profile={profile}
           onProfileRefresh={reloadProfile}
           onToast={showToast}
           activeGroup={settingsGroup}
@@ -1153,6 +1165,10 @@ export function V2App() {
       main = null;
   }
 
+
+
+
+
   const hideRail = false;
 
   return (
@@ -1165,6 +1181,10 @@ export function V2App() {
         onBrandClick={() => goTab("home")}
         onRetry={refreshBackend}
         headerInitials="YZ"
+        profile={profile}
+        onGoTab={goTab}
+        onToast={showToast}
+        onWorkspacePrefsSaved={() => {}}
         datasetCount={headerDsCount}
         usingSeed={usingSeed}
         workCount={Math.max(
@@ -1192,7 +1212,13 @@ export function V2App() {
         }
         refreshedAt={deskRefreshedAt}
       />
-      <V2Sidebar tab={tab} onTabChange={goTab} />
+      <V2Sidebar
+        tab={tab}
+        onTabChange={goTab}
+        profile={profile}
+        onToast={showToast}
+        onWorkspacePrefsSaved={() => {}}
+      />
       <main className="yzu-main rd-v2-shell-main">
         {main}
         <PreviewModal

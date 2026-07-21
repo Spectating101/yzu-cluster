@@ -12,7 +12,6 @@ import {
 } from "@/v2/RailPanels";
 import { ProfileDetailPanel } from "@/v2/ProfilePage";
 import { SettingsDetailPanel } from "@/v2/SettingsPage";
-import { loadSettings } from "@/v2/settingsStore";
 import { activeObjectSelectionHint } from "@/v2/activeObject";
 import { displayName } from "@/v2/datasetMeta";
 
@@ -101,6 +100,7 @@ export function InspectorRail({
   onGoTab,
   settingsGroup = "identity",
   onSettingsFocusGroup,
+  onClearSettingsContext,
   health = null,
   browsePeerRows = [],
   onSelectBrowsePeer,
@@ -175,6 +175,7 @@ export function InspectorRail({
         onGoTab={onGoTab}
         onClearWork={onClearProfileWork}
         onAskAbout={onAskAbout}
+        onAskAboutContext={onAskAbout}
       />
     );
   } else if (mainTab === "settings") {
@@ -183,7 +184,7 @@ export function InspectorRail({
         activeGroup={settingsGroup || "identity"}
         settings={loadSettings()}
         health={health}
-        onSelectGroup={onSettingsFocusGroup}
+        profile={profile}
       />
     );
   } else if (

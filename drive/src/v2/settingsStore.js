@@ -1,4 +1,4 @@
-import { loadUserEmail } from "@/v2/deskSession";
+import { loadUserEmail, saveUserEmail } from "./deskSession.js";
 
 const KEY = "rd_v2_settings";
 
@@ -22,4 +22,15 @@ export function saveSettings(patch) {
   const next = { ...loadSettings(), ...patch };
   localStorage.setItem(KEY, JSON.stringify(next));
   return next;
+}
+
+/** Clear browser-local research context email + workspace preferences. Does not clear desk tokens. */
+export function resetLocalPreferences() {
+  try {
+    localStorage.removeItem(KEY);
+  } catch {
+    /* ignore */
+  }
+  saveUserEmail("");
+  return { ...DEFAULTS, email: "" };
 }

@@ -1,6 +1,7 @@
 /**
  * Settings centre + Detail rail presentation helpers.
  * Centre model is exactly Identity → Access → Defaults → Advanced recovery.
+ * Detail shows active group label + 2–4 facts only — no Focus CTA, no Judgement paragraph.
  */
 
 export const SETTINGS_SECTION_ORDER = Object.freeze([
@@ -39,7 +40,6 @@ export function assistantStatusFromHealth(health) {
   if (explicit === false && legacy !== true) {
     return { ready: false, known: true, label: "Needs setup", detail: "Assistant health reports offline" };
   }
-  // Never invent Ready from a bare model string alone when flags are absent
   if (model && (explicit === true || legacy === true)) {
     return { ready: true, known: true, label: "Ready", detail: `${model} runtime` };
   }
@@ -77,7 +77,8 @@ export function archiveStatusFromHealth(health) {
 }
 
 /**
- * Concise Detail facts for a settings group — max 5, truth-backed only.
+ * Concise Detail facts for a settings group — 2–4 facts, truth-backed only.
+ * No judgement paragraph, no Focus primary action (controls live in centre).
  */
 export function buildSettingsRailState({
   group = "identity",
@@ -86,26 +87,31 @@ export function buildSettingsRailState({
   access = null,
   assistant = null,
   archive = null,
+  profile = null,
+  tokenPresent = false,
 } = {}) {
   const g = SETTINGS_SECTION_ORDER.includes(group) ? group : "identity";
   const accessState = access || deskAccessStatusFromHealth(health);
   const assistantState = assistant || assistantStatusFromHealth(health);
   const archiveState = archive || archiveStatusFromHealth(health);
   const email = settings.email || "";
+  const boundName =
+    profile && !profile.unknown
+      ? profile.name_en || profile.name || ""
+      : "";
 
   if (g === "identity") {
     return {
       group: g,
-      identity: ["Faculty identity", email || "Not connected"],
-      judgement: email
-        ? "Profile routing uses this faculty email."
-        : "Desk is unbound until a faculty email is saved.",
+      identity: [SETTINGS_GROUP_LABELS.identity],
+      judgement: null,
       facts: [
-        email ? `Email · ${email}` : "Email · not set",
-        `Default tab · ${settings.defaultTab || "home"}`,
-      ].slice(0, 5),
-      unknowns: email ? [] : ["Faculty identity"],
-      primaryAction: { id: "focus-email", label: email ? "Update email" : "Connect faculty email" },
+        ["Faculty email", email || "Not set"],
+        ["Context", boundName ? `Bound · ${boundName}` : email ? "Email saved · profile unresolved" : "Unbound"],
+        ["Scope", "This browser only — not sign-in"],
+      ].slice(0, 4),
+      unknowns: [],
+      primaryAction: null,
       secondaryActions: [],
       disclosure: null,
     };
@@ -114,63 +120,52 @@ export function buildSettingsRailState({
   if (g === "access") {
     return {
       group: g,
-      identity: ["Desk access", accessState.label],
-      judgement: accessState.ok
-        ? "This browser can reach the research desk."
-        : "Connect this browser before write actions.",
+      identity: [SETTINGS_GROUP_LABELS.access],
+      judgement: null,
       facts: [
-        `Status · ${accessState.label}`,
-        `Detail · ${accessState.detail}`,
-        assistantState.known ? `Assistant · ${assistantState.label}` : "Assistant · Not reported",
-        archiveState.ok != null ? `Archive · ${archiveState.label}` : "Archive · Not reported",
-      ].slice(0, 5),
-      unknowns: [
-        !assistantState.known ? "Assistant health" : null,
-        archiveState.ok == null ? "Archive health" : null,
-      ].filter(Boolean).slice(0, 3),
-      primaryAction: accessState.ok
-        ? { id: "review-advanced", label: "Advanced recovery" }
-        : { id: "connect-browser", label: "Connect browser" },
+        ["Ask / Composer", assistantState.label],
+        ["Research archive", archiveState.label],
+        ["Desk", accessState.label],
+      ].slice(0, 4),
+      unknowns: [],
+      primaryAction: null,
       secondaryActions: [],
-      disclosure: "Session bootstrap and fallback tokens live under Advanced recovery.",
+      disclosure: null,
     };
   }
 
   if (g === "defaults") {
     return {
       group: g,
-      identity: ["Workspace defaults", "Display preferences"],
-      judgement: "Defaults affect first landing and selection behaviour only.",
+      identity: [SETTINGS_GROUP_LABELS.defaults],
+      judgement: null,
       facts: [
-        `Open on · ${settings.defaultTab || "home"}`,
-        `On select · ${settings.onSelect === "ask" ? "Ask" : "Detail"}`,
-      ],
+        ["Default tab", settings.defaultTab || "home"],
+        ["On select", settings.onSelect === "ask" ? "Open Ask" : "Show Detail"],
+        ["Scope", "This browser only"],
+      ].slice(0, 4),
       unknowns: [],
-      primaryAction: { id: "focus-defaults", label: "Edit defaults" },
+      primaryAction: null,
       secondaryActions: [],
       disclosure: null,
     };
   }
 
-  // advanced
-  const jobs = health?.desk?.jobs;
-  const facts = [
-    health?.status ? `API · ${health.status}` : "API · Not reported",
-    assistantState.known ? `Assistant · ${assistantState.label}` : "Assistant · Not reported",
-    jobs
-      ? `Jobs · ${jobs.pending_approval ?? 0} pending · ${jobs.failed_recent ?? jobs.failed ?? 0} failed`
-      : "Jobs · Not reported",
-    accessState.detail ? `Access · ${accessState.detail}` : null,
-  ].filter(Boolean).slice(0, 5);
+  const deskPort =
+    typeof window !== "undefined" ? `:${window.location.port || "8765"}` : ":8765";
 
   return {
     group: g,
-    identity: ["Advanced recovery", "Diagnostics and session repair"],
-    judgement: "Use only when the normal identity/access path needs recovery.",
-    facts,
-    unknowns: jobs ? [] : ["Job counters"],
-    primaryAction: { id: "connect-browser", label: "Reconnect browser" },
-    secondaryActions: [{ id: "save-fallback", label: "Save fallback token" }],
-    disclosure: "Fallback tokens and raw health links are recovery tools, not daily controls.",
+    identity: [SETTINGS_GROUP_LABELS.advanced],
+    judgement: null,
+    facts: [
+      ["Fallback token", tokenPresent ? "Present" : "Absent"],
+      ["Bootstrap", health?.desk ? "Health received" : "Not received"],
+      ["Port", deskPort],
+    ].slice(0, 4),
+    unknowns: [],
+    primaryAction: null,
+    secondaryActions: [],
+    disclosure: null,
   };
 }
