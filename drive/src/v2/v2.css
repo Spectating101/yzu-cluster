@@ -154,6 +154,28 @@
 
 .rd-v2-search-pill input::placeholder { color: var(--rd-muted); }
 
+.rd-v2-search-pill--ask {
+  cursor: pointer;
+}
+
+.rd-v2-header-ask-trigger {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--rd-muted);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rd-v2-header-ask-trigger:hover {
+  color: var(--rd-text);
+}
+
 .rd-v2-search-kbd {
   border: none;
   background: none;

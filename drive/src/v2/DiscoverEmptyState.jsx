@@ -27,12 +27,12 @@ export function DiscoverEmptyState({ onSuggest }) {
             name="need"
             className="rd-v2-discover-need-input"
             data-testid="discover-need-query"
-            rows={2}
+            rows={1}
             placeholder="Describe the evidence need — keyword, gap, or research question…"
             aria-label="Evidence need"
           />
           <button type="submit" className="rd-v2-btn sm primary" aria-label="Search evidence need">
-            ⌕
+            Search
           </button>
         </form>
       </header>

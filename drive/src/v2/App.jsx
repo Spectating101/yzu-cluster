@@ -51,7 +51,7 @@ import { Toast, useToast } from "@/v2/toast";
 import { V2Sidebar } from "@/v2/V2Sidebar";
 import { recentDatasets, touchRecent } from "@/v2/recent";
 import { displayName } from "@/v2/datasetMeta";
-import { buildLab } from "@/v2/profileViewModel";
+import { buildLab, PILOT_PREVIEW_EMAIL } from "@/v2/profileViewModel";
 import { mergeHealth, resolveCatalog } from "@/v2/deskSeed";
 import { buildDeskIntegrationChips } from "@/v2/deskIntegration";
 import { loadSettings } from "@/v2/settingsStore";
@@ -164,6 +164,10 @@ export function V2App() {
   const [detail, setDetail] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [profile, setProfile] = useState(null);
+  /** Unbound desk still binds sidebar Active research from EXAMPLE pilot (same as Profile). */
+  const [pilotProfile, setPilotProfile] = useState(null);
+  /** Bump when touchRecent runs so sidebar Recent recomputes (localStorage alone does not). */
+  const [recentEpoch, setRecentEpoch] = useState(0);
   const [searchQuery, setSearchQuery] = useState(() => readParams().q);
   const [discoverMode, setDiscoverMode] = useState(() => readParams().discoverMode || "explore");
   const [discoverFocusAwaiting, setDiscoverFocusAwaiting] = useState(() => Boolean(readParams().discoverFocusAwaiting));
@@ -198,6 +202,25 @@ export function V2App() {
       })
       .catch(() => setProfile({ email, unknown: true }));
   }, []);
+
+  useEffect(() => {
+    if (profile && !profile.unknown) {
+      setPilotProfile(null);
+      return undefined;
+    }
+    let cancelled = false;
+    facultyProfile(PILOT_PREVIEW_EMAIL)
+      .then((data) => {
+        if (cancelled) return;
+        if (data?.found && data.profile && !data.profile.unknown) setPilotProfile(data.profile);
+      })
+      .catch(() => {
+        if (!cancelled) setPilotProfile(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [profile]);
 
   const applyCatalog = useCallback((rows, errMsg = "") => {
     const { catalog, usingSeed: seed } = resolveCatalog(rows);
@@ -504,15 +527,19 @@ export function V2App() {
 
 
   const goTab = useCallback(
-    (id) => {
+    (id, opts = {}) => {
       if (id === "library") {
         setTab(id);
+        setRailTab("detail");
+        if (opts.keepSelection) {
+          syncUrl({ tab: id, preview: false });
+          return;
+        }
         setSelectedId("");
         setDetail(null);
         setPreviewOpen(false);
         setPreviewTarget(null);
         setActiveObject(null);
-        setRailTab("detail");
         syncUrl({ tab: id, dataset: "", preview: false });
         return;
       }
@@ -524,15 +551,40 @@ export function V2App() {
 
   const selectDataset = useCallback(
     (row) => {
-      const id = row.dataset_id || row.id;
+      const id = row?.dataset_id || row?.id;
+      if (!id) return;
       setSelectedId(id);
+      setDetail(row);
       setActiveObject(datasetObject(row));
       touchRecent(id);
+      setRecentEpoch((n) => n + 1);
       setRailTab(loadSettings().onSelect === "ask" ? "ask" : "detail");
       syncUrl({ dataset: id, preview: false });
       setPreviewOpen(false);
     },
     [syncUrl],
+  );
+
+  /** Home Continue / Recent — land Library with asset rail in one write (no clear-then-select race). */
+  const openLibraryDataset = useCallback(
+    (row) => {
+      const id = row?.dataset_id || row?.id;
+      if (!id) {
+        goTab("library");
+        return;
+      }
+      setTab("library");
+      setSelectedId(id);
+      setDetail(row);
+      setActiveObject(datasetObject(row));
+      setPreviewOpen(false);
+      setPreviewTarget(null);
+      touchRecent(id);
+      setRecentEpoch((n) => n + 1);
+      setRailTab(loadSettings().onSelect === "ask" ? "ask" : "detail");
+      syncUrl({ tab: "library", dataset: id, preview: false });
+    },
+    [goTab, syncUrl],
   );
 
   const openPreview = useCallback(
@@ -544,6 +596,7 @@ export function V2App() {
       setSelectedId(id);
       setActiveObject(datasetObject(row || selectedFromList || { dataset_id: id }));
       touchRecent(id);
+      setRecentEpoch((n) => n + 1);
       setPreviewOpen(true);
       setRailTab("detail");
       syncUrl({ dataset: id, preview: true });
@@ -596,8 +649,10 @@ export function V2App() {
         setTab("library");
         const row = catalog.find((d) => d.dataset_id === id) || { dataset_id: id, ...target };
         setSelectedId(id);
+        setDetail(row);
         setActiveObject(datasetObject(row));
         touchRecent(id);
+        setRecentEpoch((n) => n + 1);
         setRailTab("detail");
         syncUrl({ tab: "library", dataset: id, preview: false, q: "" });
         showToast("Opened in Library");
@@ -804,8 +859,10 @@ export function V2App() {
       setTab("library");
       const row = catalog.find((d) => d.dataset_id === id) || { dataset_id: id, ...target };
       setSelectedId(id);
+      setDetail(row);
       setActiveObject(datasetObject(row));
       touchRecent(id);
+      setRecentEpoch((n) => n + 1);
       setRailTab("detail");
       syncUrl({ tab: "library", dataset: id, preview: false, q: "" });
     },
@@ -885,9 +942,12 @@ export function V2App() {
   }, [searchQuery, dismissToastIf]);
 
   const focusLibraryFolder = useCallback((object) => {
-    if (activeObject?.kind === "library_intake") return;
-    setActiveObject(object);
-  }, [activeObject?.kind]);
+    setActiveObject((current) => {
+      if (current?.kind === "library_intake") return current;
+      if (current?.kind === "dataset") return current;
+      return object;
+    });
+  }, []);
 
   const changeLibraryFolder = useCallback(
     (id) => {
@@ -1021,7 +1081,7 @@ export function V2App() {
           onAskComposer={askFromPrompt}
           onGoTab={goTab}
           onOpenAttention={openHomeAttention}
-          onSelectDataset={selectDataset}
+          onSelectDataset={openLibraryDataset}
           onPreviewDataset={openPreview}
           onAskAttention={askHomeAttention}
           onSuggestSearch={(q) => {
@@ -1174,29 +1234,34 @@ export function V2App() {
   const hideRail = tab === "browse" && !browseTarget && !selectedHistoryEvent;
 
   const activeResearch = useMemo(() => {
-    const lab = buildLab(profile && !profile.unknown ? profile : null);
+    const source = profile && !profile.unknown ? profile : pilotProfile;
+    const lab = buildLab(source || null);
     const primaryTrack =
-      Array.isArray(profile?.research_tracks) && profile.research_tracks.length
-        ? profile.research_tracks.find((t) => t?.phase === "active_grant") || profile.research_tracks[0]
+      Array.isArray(source?.research_tracks) && source.research_tracks.length
+        ? source.research_tracks.find((t) => t?.phase === "active_grant") || source.research_tracks[0]
         : null;
     const trackTitle =
       typeof primaryTrack === "string"
         ? primaryTrack
         : primaryTrack?.title || primaryTrack?.name || "";
     const title =
-      (profile && !profile.unknown && (trackTitle || profile.research_direction || profile.current_research || profile.name_en)) ||
+      (source &&
+        (trackTitle ||
+          source.research_direction ||
+          source.current_research ||
+          source.name_en)) ||
       "Active research";
     const emphases = [
-      ...(Array.isArray(profile?.specialties) ? profile.specialties : []),
-      ...(Array.isArray(profile?.research_emphases) ? profile.research_emphases : []),
+      ...(Array.isArray(source?.specialties) ? source.specialties : []),
+      ...(Array.isArray(source?.research_emphases) ? source.research_emphases : []),
       ...(Array.isArray(lab?.themes) ? lab.themes : []),
-      ...(Array.isArray(profile?.themes) ? profile.themes : []),
+      ...(Array.isArray(source?.themes) ? source.themes : []),
     ]
       .map((item) => (typeof item === "string" ? item : item?.label || item?.name))
       .filter(Boolean)
       .slice(0, 3);
     return { title: String(title).slice(0, 48), emphases };
-  }, [profile]);
+  }, [profile, pilotProfile]);
 
   const sidebarRecent = useMemo(
     () =>
@@ -1205,7 +1270,7 @@ export function V2App() {
         title: displayName(ds),
         dataset: ds,
       })),
-    [datasets],
+    [datasets, recentEpoch],
   );
 
   return (
@@ -1240,6 +1305,7 @@ export function V2App() {
         integrationChips={usingSeed ? [] : buildDeskIntegrationChips(health)}
         activeResearchTitle={activeResearch.title}
         currentPage={tab}
+        discoverOwnsSearch={tab === "browse"}
       />
       <V2Sidebar
         tab={tab}
@@ -1247,10 +1313,7 @@ export function V2App() {
         activeResearch={activeResearch}
         recentItems={sidebarRecent}
         onOpenRecent={(item) => {
-          if (item?.dataset) {
-            goTab("library");
-            selectDataset(item.dataset);
-          }
+          if (item?.dataset) openLibraryDataset(item.dataset);
         }}
       />
       <main className="yzu-main rd-v2-shell-main">

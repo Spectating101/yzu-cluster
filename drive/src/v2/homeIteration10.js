@@ -191,7 +191,9 @@ export function buildRecentTrail({ jobs = [], datasets = [], limit = 3 } = {}) {
   const material = [...jobs]
     .filter((job) => {
       const status = String(job.status || "");
-      if (!/completed|registered|failed|cancelled|canceled|running|queued/i.test(status)) return false;
+      // Home trail is resume surface — keep cancelled out of the first viewport.
+      if (/cancelled|canceled/i.test(status)) return false;
+      if (!/completed|registered|failed|running|queued/i.test(status)) return false;
       return !isHistoryNoise({
         id: job.id,
         target: job?.plan?.title || job?.title || job?.name || job?.dataset_id,
@@ -224,7 +226,6 @@ export function buildRecentTrail({ jobs = [], datasets = [], limit = 3 } = {}) {
     let kind = "PROCUREMENT";
     if (/registered|completed/.test(status)) kind = "COLLECTION COMPLETED";
     else if (/failed/.test(status)) kind = "COLLECTION FAILED";
-    else if (/cancelled|canceled/.test(status)) kind = "COLLECTION CANCELLED";
     else if (/running|queued/.test(status)) kind = "REFRESH ADVANCED";
     const title =
       job?.plan?.title ||

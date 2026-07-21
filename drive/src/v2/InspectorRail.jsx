@@ -169,6 +169,15 @@ export function InspectorRail({
     detailPanel = <PageRailPanel page="settings" onAskAbout={onAskAbout} />;
   } else if (mainTab === "synthesis") {
     detailPanel = <PageRailPanel page="synthesis" onAskAbout={onAskAbout} />;
+  } else if (mainTab === "library" && dataset?.dataset_id) {
+    // Dataset selection wins over folder/page guide (Continue / row click must show SOURCE+VERIFY).
+    detailPanel = (
+      <LibraryDatasetRailPanel
+        dataset={dataset}
+        onPreview={onPreview}
+        onAskAbout={onAskAbout}
+      />
+    );
   } else if (
     mainTab === "library" &&
     (activeObject?.kind === "library_folder" || activeObject?.kind === "library_intake")
@@ -183,14 +192,6 @@ export function InspectorRail({
         onSubmitUpload={onSubmitLibraryUpload}
         onSubmitUrl={onSubmitLibraryUrl}
         onSubmitProcure={onSubmitLibraryProcure}
-      />
-    );
-  } else if (mainTab === "library" && dataset?.dataset_id) {
-    detailPanel = (
-      <LibraryDatasetRailPanel
-        dataset={dataset}
-        onPreview={onPreview}
-        onAskAbout={onAskAbout}
       />
     );
   } else if (mainTab === "library" && !dataset?.dataset_id) {

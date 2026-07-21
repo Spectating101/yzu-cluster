@@ -118,7 +118,7 @@ export function HomePage({
       onGoTab(point?.tab || "library");
       return;
     }
-    onGoTab("library");
+    // openLibraryDataset (passed as onSelectDataset) sets tab+selection atomically.
     onSelectDataset?.(point.dataset);
   };
 
@@ -278,7 +278,10 @@ export function HomePage({
                   type="button"
                   className="rd-v2-home-trail-row"
                   onClick={() => {
-                    if (item.dataset) onSelectDataset?.(item.dataset);
+                    if (item.dataset) {
+                      onSelectDataset?.(item.dataset);
+                      return;
+                    }
                     if (item.dest === "history") {
                       onGoTab("browse");
                       return;

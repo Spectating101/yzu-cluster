@@ -499,12 +499,12 @@ export function BrowsePage({
                     data-testid="discover-need-query"
                     defaultValue={q}
                     key={q}
-                    rows={2}
+                    rows={1}
                     placeholder="Describe the evidence need — keyword, gap, or research question…"
                     aria-label="Evidence need"
                   />
                   <button type="submit" className="rd-v2-btn sm primary" aria-label="Search evidence need">
-                    ⌕
+                    Search
                   </button>
                 </form>
               </header>
