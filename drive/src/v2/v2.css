@@ -6790,6 +6790,11 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
   outline: none;
 }
 
+.rd-v2-input::placeholder {
+  color: var(--rd-muted);
+  opacity: 0.72;
+}
+
 .rd-v2-input:focus {
   border-color: var(--rd-accent);
   box-shadow: 0 0 0 2px rgba(26,115,232,0.15);

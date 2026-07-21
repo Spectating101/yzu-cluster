@@ -42,11 +42,16 @@ function assistantLabel(desk, healthLoaded) {
       label: "Ready",
       known: true,
       ready: true,
-      detail: desk.composer_model || desk.brain || "Composer",
+      detail: desk.composer_model || desk.brain || "Composer runtime",
     };
   }
   if (desk.composer_configured === false) {
-    return { label: "Needs setup", known: true, ready: false, detail: "composer_configured=false" };
+    return {
+      label: "Needs setup",
+      known: true,
+      ready: false,
+      detail: "Assistant health reports offline",
+    };
   }
   return { label: "Not reported", known: false, ready: false, detail: "No composer flag on /health" };
 }
@@ -186,10 +191,11 @@ export function SettingsPage({
                 id="settings-email"
                 type="email"
                 className="rd-v2-input"
-                placeholder="faculty@yzu.edu.tw"
+                placeholder="name@yzu.edu.tw"
                 value={emailDraft}
                 onChange={(e) => setEmailDraft(e.target.value)}
                 onFocus={() => selectGroup("identity")}
+                autoComplete="email"
               />
               <button type="button" className="rd-v2-btn sm primary" onClick={saveEmail}>
                 Save identity
