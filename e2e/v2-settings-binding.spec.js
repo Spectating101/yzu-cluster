@@ -22,6 +22,8 @@ test.describe("Settings binding", () => {
     await expect(page.getByTestId("settings-group-access")).toBeVisible();
     await expect(page.getByTestId("settings-group-defaults")).toBeVisible();
     await expect(page.getByTestId("settings-group-advanced")).toBeVisible();
+    await expect(page.getByText(/MCP tools/i)).toHaveCount(0);
+    await expect(page.getByText(/Jobs pending approval/i)).toHaveCount(0);
 
     const centre = page.getByTestId("settings-centre");
     const titles = await centre.locator(".rd-v2-statement-head h2, summary").allTextContents();
