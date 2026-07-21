@@ -3,10 +3,38 @@ const TOKEN_KEY = "desk_access_token";
 const SESSION_KEY = "rd_v2_chat_session";
 const DESK_SESSION_BOOTSTRAPPED_KEY = "rd_desk_session_bootstrapped";
 
+function flattenHeaderBag(extra = {}) {
+  const out = {};
+  if (!extra) return out;
+  // Headers instances do not spread; copy entries explicitly.
+  if (typeof extra.forEach === "function") {
+    extra.forEach((value, key) => {
+      out[key] = value;
+    });
+    return out;
+  }
+  if (Array.isArray(extra)) {
+    for (const pair of extra) {
+      if (pair && pair.length >= 2) out[String(pair[0])] = pair[1];
+    }
+    return out;
+  }
+  return { ...extra };
+}
+
+/**
+ * Desk API headers. When a browser-local token is present, send both
+ * X-Desk-Token and Authorization: Bearer — matching desk_auth.authorize().
+ */
 export function deskHeaders(extra = {}) {
-  const headers = { "Content-Type": "application/json", ...extra };
+  const headers = { "Content-Type": "application/json", ...flattenHeaderBag(extra) };
   const token = loadDeskToken();
-  if (token) headers["X-Desk-Token"] = token;
+  if (token) {
+    headers["X-Desk-Token"] = token;
+    if (!headers.Authorization && !headers.authorization) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+  }
   return headers;
 }
 

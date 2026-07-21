@@ -228,7 +228,10 @@ export function unifiedSearch(query = "", limit = 12, email = "", { skipDiscover
 }
 
 export function facultyProfile(email = "") {
-  const q = email ? `?email=${encodeURIComponent(email)}` : "";
+  // Prefer the explicit arg; fall back to the browser-local preference so a
+  // missed caller still hits the live registry with the bound email.
+  const addr = String(email || loadUserEmail() || "").trim();
+  const q = addr ? `?email=${encodeURIComponent(addr)}` : "";
   return fetchJson(`/library/faculty/profile${q}`);
 }
 
