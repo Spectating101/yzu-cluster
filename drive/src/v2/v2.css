@@ -6653,15 +6653,43 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 }
 
 .rd-v2-settings-page .rd-v2-statement-section {
-  margin: 0 0 16px;
-  padding: 0 0 12px;
+  margin: 0 0 14px;
+  padding: 0 0 10px;
+  border: 0;
   border-bottom: 1px solid var(--rd-border);
+  border-radius: 0;
   background: transparent;
   box-shadow: none;
+  overflow: visible;
 }
 
 .rd-v2-settings-page .rd-v2-statement-section.is-active-group {
   border-bottom-color: var(--rd-border2);
+}
+
+.rd-v2-settings-page .rd-v2-statement-head {
+  min-height: 0;
+  padding: 0 0 6px;
+  border-bottom: 0;
+  background: transparent;
+}
+
+.rd-v2-settings-page .rd-v2-statement-body {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.rd-v2-settings-page .rd-v2-statement-row {
+  padding-left: 0;
+  padding-right: 0;
+  border-radius: 0;
+}
+
+.rd-v2-settings-page .rd-v2-input,
+.rd-v2-settings-page .rd-v2-select,
+.rd-v2-settings-page .rd-v2-btn {
+  border-radius: 6px;
 }
 
 .rd-v2-settings-page .rd-v2-linkish {
@@ -8337,6 +8365,13 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
   .rd-v2-body-scroll {
     overflow: visible;
     border-radius: 8px;
+  }
+
+  .rd-v2-settings-page .rd-v2-body-scroll,
+  .rd-v2-profile-page .rd-v2-body-scroll {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
   }
 
   .rd-v2-profile-identity {

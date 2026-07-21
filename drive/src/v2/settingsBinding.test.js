@@ -47,13 +47,11 @@ export function buildSettingsDetailFacts({
     ];
   }
   if (group === "access") {
-    const rows = [
+    return [
       ["Ask / Composer", assistant.label],
       ["Archive", desk.gdrive ? (desk.gdrive.ok === true ? "Connected" : "Needs review") : "Not reported"],
-    ];
-    if (desk.mcp_tools?.total != null) rows.push(["MCP tools", String(desk.mcp_tools.total)]);
-    rows.push(["Health payload", healthLoaded ? health?.status || "received" : "Not reported"]);
-    return rows.slice(0, 5);
+      ["Health payload", healthLoaded ? health?.status || "received" : "Not reported"],
+    ].slice(0, 5);
   }
   if (group === "defaults") {
     return [

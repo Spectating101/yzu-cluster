@@ -61,6 +61,10 @@ test.describe("Settings binding", () => {
     await page.getByTestId("settings-group-advanced").locator("summary").click();
     await expect(page.getByTestId("settings-advanced-body")).toBeVisible();
     await expect(page.getByLabel("Fallback access token")).toBeVisible();
+    // MCP / pending approvals belong on Resources/Home — never in Settings, including Advanced.
+    await expect(page.getByText(/MCP tools/i)).toHaveCount(0);
+    await expect(page.getByText(/Jobs pending approval/i)).toHaveCount(0);
+    await expect(page.getByText(/^Jobs pending$/i)).toHaveCount(0);
     await page.screenshot({
       path: path.join(OUT, "settings_advanced_desktop_1440.png"),
       fullPage: false,

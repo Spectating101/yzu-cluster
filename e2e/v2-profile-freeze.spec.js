@@ -61,7 +61,12 @@ test.describe("Profile freeze showcase", () => {
     const works = page.getByTestId("profile-works");
     const lab = page.getByTestId("profile-lab");
     await expect(memory).toBeVisible();
-    await expect(memory.locator(".rd-v2-profile-memory-input").first()).toBeVisible();
+    await expect(memory.getByTestId("profile-memory-focus")).toBeVisible();
+    await expect(memory.locator(".rd-v2-profile-memory-input")).toHaveCount(0);
+    await memory.getByTestId("profile-memory-edit-focus").click();
+    await expect(memory.locator(".rd-v2-profile-memory-input")).toHaveCount(1);
+    await memory.getByTestId("profile-memory-cancel-focus").click();
+    await expect(memory.locator(".rd-v2-profile-memory-input")).toHaveCount(0);
     await expect(works).toBeVisible();
     await expect(works).toContainText(/indexed/i);
     const workBtn = works.locator(".rd-v2-profile-work-row").first();
@@ -84,6 +89,8 @@ test.describe("Profile freeze showcase", () => {
     await workBtn.click();
     await expect(detail).toContainText(/Selected work|Publication|Alternative|Momentum/i);
     await expect(detail.getByText(/^Loading/)).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /Ask about this work/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Show research context/i })).toHaveCount(0);
 
     await expect(page.getByTestId("profile-know")).toHaveCount(0);
     await expect(page.getByTestId("profile-offer")).toHaveCount(0);

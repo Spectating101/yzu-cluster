@@ -103,11 +103,6 @@ export function SettingsPage({
   const healthLoaded = healthSignalsPresent(desk);
   const assistant = assistantLabel(desk, healthLoaded);
   const archive = archiveLabel(desk, healthLoaded);
-  const toolCount = desk.mcp_tools?.total;
-  const pendingJobs =
-    healthLoaded && desk.jobs && "pending_approval" in desk.jobs
-      ? Number(desk.jobs.pending_approval ?? 0)
-      : null;
   const deskPort =
     typeof window !== "undefined" ? `:${window.location.port || "8765"}` : ":8765";
   const browserOrigin = typeof window !== "undefined" ? window.location.origin : "—";
@@ -325,18 +320,6 @@ export function SettingsPage({
               <span>Fallback token</span>
               <code>{tokenPresent ? "present in sessionStorage" : "absent"}</code>
             </div>
-            <StatementRow
-              label="MCP tools"
-              metric={toolCount != null ? String(toolCount) : "Not reported"}
-              sublabel="From /health.desk.mcp_tools"
-              detail={toolCount != null ? "REPORTED" : "UNKNOWN"}
-            />
-            <StatementRow
-              label="Jobs pending approval"
-              metric={pendingJobs == null ? "Not reported" : String(pendingJobs)}
-              sublabel="From /health.desk.jobs"
-              detail={pendingJobs == null ? "UNKNOWN" : "REPORTED"}
-            />
             <div className="rd-v2-settings-row stack">
               <label className="rd-v2-settings-label" htmlFor="settings-fallback-token">
                 Fallback access token
@@ -440,15 +423,9 @@ export function SettingsDetailPanel({
     }
     return [
       ["Fallback token", hasDeskToken() ? "Present" : "Absent"],
-      ["MCP tools", desk.mcp_tools?.total != null ? String(desk.mcp_tools.total) : "Not reported"],
-      [
-        "Jobs pending",
-        healthLoaded && desk.jobs && "pending_approval" in desk.jobs
-          ? String(desk.jobs.pending_approval ?? 0)
-          : "Not reported",
-      ],
       ["Bootstrap", healthLoaded ? "Health received" : "Not received"],
       ["Port", deskPort],
+      ["Edit surface", "Centre Advanced group"],
     ].slice(0, 5);
   }, [
     group.id,
@@ -459,8 +436,6 @@ export function SettingsDetailPanel({
     health,
     settings.defaultTab,
     settings.onSelect,
-    desk.mcp_tools?.total,
-    desk.jobs,
     deskPort,
   ]);
 
