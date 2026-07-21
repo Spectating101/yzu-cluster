@@ -755,6 +755,14 @@ export function V2App() {
 
   const askAboutSelection = useCallback(
     (target) => {
+      if (tab === "profile" && (target?.title || selectedProfileWork?.title)) {
+        const work = target?.title ? target : selectedProfileWork;
+        setRailTab("ask");
+        setPendingAsk(
+          `Ask about this work: ${work.title}. Summarize its contribution, related vault evidence, and the safest useful next research step.`,
+        );
+        return;
+      }
       if (tab === "browse" && activeObject?.kind === "history_event") {
         setRailTab("ask");
         setPendingAsk(
@@ -798,7 +806,7 @@ export function V2App() {
       }
       setRailTab("ask");
     },
-    [activeObject, tab],
+    [activeObject, selectedProfileWork, tab],
   );
 
   const focusLibraryFolder = useCallback((object) => {

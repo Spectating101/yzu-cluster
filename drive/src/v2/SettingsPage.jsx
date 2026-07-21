@@ -3,7 +3,6 @@ import { deskHealth } from "@/v2/api";
 import {
   clearDeskToken,
   hasDeskToken,
-  loadDeskToken,
   saveDeskToken,
   saveUserEmail,
 } from "@/v2/deskSession";
@@ -427,13 +426,9 @@ export function SettingsDetailPanel({
     if (group.id === "access") {
       const rows = [
         ["Ask / Composer", assistant.label],
-        ["Archive", archive.label],
+        ["Research archive", archive.label],
+        ["Health payload", healthLoaded ? health?.status || "received" : "Not reported"],
       ];
-      if (desk.mcp_tools?.total != null) rows.push(["MCP tools", String(desk.mcp_tools.total)]);
-      if (healthLoaded && desk.jobs && "pending_approval" in desk.jobs) {
-        rows.push(["Jobs pending", String(desk.jobs.pending_approval ?? 0)]);
-      }
-      rows.push(["Health payload", healthLoaded ? health?.status || "received" : "Not reported"]);
       return rows.slice(0, 5);
     }
     if (group.id === "defaults") {
@@ -445,7 +440,13 @@ export function SettingsDetailPanel({
     }
     return [
       ["Fallback token", hasDeskToken() ? "Present" : "Absent"],
-      ["Token length", hasDeskToken() ? String(loadDeskToken().length) : "—"],
+      ["MCP tools", desk.mcp_tools?.total != null ? String(desk.mcp_tools.total) : "Not reported"],
+      [
+        "Jobs pending",
+        healthLoaded && desk.jobs && "pending_approval" in desk.jobs
+          ? String(desk.jobs.pending_approval ?? 0)
+          : "Not reported",
+      ],
       ["Bootstrap", healthLoaded ? "Health received" : "Not received"],
       ["Port", deskPort],
     ].slice(0, 5);

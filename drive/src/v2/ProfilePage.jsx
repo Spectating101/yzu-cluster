@@ -50,18 +50,38 @@ export function ProfilePage({
   const works = bound ? buildWorks(profile) : { paperCount: null, items: [] };
   const lab = bound ? buildLab(profile) : { linked: [], suggested: [] };
   const [memoryDraft, setMemoryDraft] = useState([]);
+  const [editingMemoryId, setEditingMemoryId] = useState(null);
+  const [editBuffer, setEditBuffer] = useState("");
   const memoryKey = bound
     ? `${profile?.email || ""}:${memory.map((c) => c.id).join(",")}:${memory.map((c) => c.text).join("|")}`
     : "unbound";
 
   useEffect(() => {
     setMemoryDraft(memory.map((card) => ({ ...card })));
+    setEditingMemoryId(null);
+    setEditBuffer("");
     // Reset drafts when the bound profile memory payload changes, not on every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [memoryKey]);
 
-  const updateMemory = (id, text) => {
-    setMemoryDraft((rows) => rows.map((row) => (row.id === id ? { ...row, text } : row)));
+  const beginEditMemory = (card) => {
+    setEditingMemoryId(card.id);
+    setEditBuffer(card.text || "");
+  };
+
+  const cancelEditMemory = () => {
+    setEditingMemoryId(null);
+    setEditBuffer("");
+  };
+
+  const saveEditMemory = () => {
+    if (!editingMemoryId) return;
+    const next = String(editBuffer || "").trim();
+    setMemoryDraft((rows) =>
+      rows.map((row) => (row.id === editingMemoryId ? { ...row, text: next || row.text } : row)),
+    );
+    setEditingMemoryId(null);
+    setEditBuffer("");
   };
 
   const runQuery = (q) => {
@@ -118,21 +138,69 @@ export function ProfilePage({
         </header>
         {bound && memoryDraft.length ? (
           <ul className="rd-v2-profile-memory">
-            {memoryDraft.map((card) => (
-              <li key={card.id} className="rd-v2-profile-memory-row" data-memory={card.id}>
-                <label className="rd-v2-profile-memory-label" htmlFor={`profile-memory-${card.id}`}>
-                  {MEMORY_LABELS[card.id] || card.id}
-                </label>
-                <textarea
-                  id={`profile-memory-${card.id}`}
-                  className="rd-v2-profile-memory-input"
-                  rows={2}
-                  value={card.text}
-                  onChange={(e) => updateMemory(card.id, e.target.value)}
-                  data-testid={`profile-memory-${card.id}`}
-                />
-              </li>
-            ))}
+            {memoryDraft.map((card) => {
+              const editing = editingMemoryId === card.id;
+              return (
+                <li
+                  key={card.id}
+                  className={`rd-v2-profile-memory-row${editing ? " is-editing" : ""}`}
+                  data-memory={card.id}
+                >
+                  <span className="rd-v2-profile-memory-label" id={`profile-memory-label-${card.id}`}>
+                    {MEMORY_LABELS[card.id] || card.id}
+                  </span>
+                  {editing ? (
+                    <div className="rd-v2-profile-memory-edit">
+                      <textarea
+                        id={`profile-memory-${card.id}`}
+                        className="rd-v2-profile-memory-input"
+                        rows={3}
+                        value={editBuffer}
+                        onChange={(e) => setEditBuffer(e.target.value)}
+                        aria-labelledby={`profile-memory-label-${card.id}`}
+                        data-testid={`profile-memory-${card.id}`}
+                        autoFocus
+                      />
+                      <div className="rd-v2-profile-memory-edit-actions">
+                        <button
+                          type="button"
+                          className="rd-v2-btn sm primary"
+                          data-testid={`profile-memory-save-${card.id}`}
+                          onClick={saveEditMemory}
+                        >
+                          Save
+                        </button>
+                        <button
+                          type="button"
+                          className="rd-v2-btn sm"
+                          data-testid={`profile-memory-cancel-${card.id}`}
+                          onClick={cancelEditMemory}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="rd-v2-profile-memory-read">
+                      <p
+                        className="rd-v2-profile-memory-text"
+                        data-testid={`profile-memory-${card.id}`}
+                      >
+                        {card.text || "—"}
+                      </p>
+                      <button
+                        type="button"
+                        className="rd-v2-profile-memory-edit-btn"
+                        data-testid={`profile-memory-edit-${card.id}`}
+                        onClick={() => beginEditMemory(card)}
+                      >
+                        Edit
+                      </button>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         ) : (
           <p className="rd-v2-empty-inline" data-testid="profile-memory-empty">
@@ -265,7 +333,13 @@ export function ProfilePage({
  * DETAIL rail — selected work or research context.
  * Never shows Loading once Profile centre has rendered (including unbound).
  */
-export function ProfileDetailPanel({ profile, selectedWork = null, onGoTab, onClearWork }) {
+export function ProfileDetailPanel({
+  profile,
+  selectedWork = null,
+  onGoTab,
+  onClearWork,
+  onAskAbout,
+}) {
   // Centre always renders; treat null/undefined as unbound pending — not Loading.
   const rail = buildProfileRailState({
     profile: profile ?? { unknown: true },
@@ -322,7 +396,16 @@ export function ProfileDetailPanel({ profile, selectedWork = null, onGoTab, onCl
         ) : null}
       </div>
       <RailStickyFooter>
-        {rail.primaryAction?.id === "clear-work" ? (
+        {rail.primaryAction?.id === "ask-work" ? (
+          <button
+            type="button"
+            className="rd-v2-btn sm primary"
+            data-testid="profile-ask-work"
+            onClick={() => onAskAbout?.(selectedWork)}
+          >
+            {rail.primaryAction.label}
+          </button>
+        ) : rail.primaryAction?.id === "clear-work" ? (
           <button type="button" className="rd-v2-btn sm primary" onClick={() => onClearWork?.()}>
             {rail.primaryAction.label}
           </button>
