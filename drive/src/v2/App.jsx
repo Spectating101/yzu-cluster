@@ -160,6 +160,8 @@ export function V2App() {
   const [detail, setDetail] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [profile, setProfile] = useState(null);
+  const [selectedProfileWork, setSelectedProfileWork] = useState(null);
+  const [settingsGroup, setSettingsGroup] = useState("identity");
   const [searchQuery, setSearchQuery] = useState(() => readParams().q);
   const [loadError, setLoadError] = useState("");
   const [health, setHealth] = useState(null);
@@ -182,6 +184,10 @@ export function V2App() {
 
   const reloadProfile = useCallback(() => {
     const email = loadUserEmail();
+    if (!email) {
+      setProfile({ unknown: true });
+      return;
+    }
     facultyProfile(email)
       .then((data) => setProfile(data?.found ? data.profile : { email, unknown: true }))
       .catch(() => setProfile({ email, unknown: true }));
@@ -430,6 +436,8 @@ export function V2App() {
         setDiscoverActivityFilter("all");
         setDiscoverFilter("all");
       }
+      if (id !== "profile") setSelectedProfileWork(null);
+      if (id !== "settings") setSettingsGroup("identity");
       if (id === "library") {
         setTab(id);
         setSelectedId("");
@@ -1097,6 +1105,11 @@ export function V2App() {
           profile={profile}
           datasets={catalog}
           compareIds={compareIds}
+          selectedWorkId={selectedProfileWork?.raw || null}
+          onSelectWork={(work) => {
+            setSelectedProfileWork(work);
+            setRailTab("detail");
+          }}
           onGoTab={goTab}
           onSuggestSearch={(q) => {
             setSearchQuery(q);
@@ -1111,7 +1124,19 @@ export function V2App() {
       );
       break;
     case "settings":
-      main = <SettingsPage health={health} onProfileRefresh={reloadProfile} onToast={showToast} />;
+      main = (
+        <SettingsPage
+          health={health}
+          onProfileRefresh={reloadProfile}
+          onToast={showToast}
+          activeGroup={settingsGroup}
+          selectedGroup={settingsGroup}
+          onSelectGroup={(group) => {
+            setSettingsGroup(group);
+            setRailTab("detail");
+          }}
+        />
+      );
       break;
     default:
       main = null;
@@ -1202,6 +1227,15 @@ export function V2App() {
         onDiscoverDestinationChange={handleDiscoverDestinationChange}
         catalog={catalog}
         profile={profile}
+        selectedProfileWork={selectedProfileWork}
+        onClearProfileWork={() => setSelectedProfileWork(null)}
+        onGoTab={goTab}
+        settingsGroup={settingsGroup}
+        onSettingsFocusGroup={(id) => {
+          setSettingsGroup(id);
+          setRailTab("detail");
+        }}
+        health={health}
         browsePeerRows={browsePeerRows}
         onSelectBrowsePeer={selectBrowseRow}
         onApproveSafeJobs={handleApproveSafeJobs}
@@ -1244,7 +1278,7 @@ export function V2App() {
                           : "Profile",
                     }
                 : tab === "settings"
-                  ? { title: "Desk setup" }
+                  ? { title: "Settings" }
                 : detail
             }
             mainTab={tab}

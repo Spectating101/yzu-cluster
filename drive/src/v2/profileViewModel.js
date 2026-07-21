@@ -143,10 +143,17 @@ export function buildMemoryCards(profile) {
 export function buildWorks(profile) {
   const highlights = profile?.publication_highlights || [];
   const paperCount = profile?.paper_count_parsed || profile?.paper_count || null;
+  const primary = primaryTrack(profile?.research_tracks || []);
+  const relation = shortTheme(trackTitle(primary)) || "Research output";
   const items = highlights
-    .map((h) => ({ raw: h, title: workTitleFromHighlight(h) }))
+    .map((h) => ({
+      raw: h,
+      title: workTitleFromHighlight(h),
+      type: "Publication",
+      relationship: relation,
+    }))
     .filter((w) => w.title)
-    .slice(0, 2);
+    .slice(0, 6);
   return { paperCount, items };
 }
 

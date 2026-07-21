@@ -11,10 +11,20 @@ import {
   ResourcesRailPanel,
 } from "@/v2/RailPanels";
 import { ProfileDetailPanel } from "@/v2/ProfilePage";
+import { SettingsDetailPanel } from "@/v2/SettingsPage";
+import { loadSettings } from "@/v2/settingsStore";
 import { activeObjectSelectionHint } from "@/v2/activeObject";
 import { displayName } from "@/v2/datasetMeta";
 
-function railSelectionHint(mainTab, dataset, browseTarget, resourceRow, clusterContext) {
+function railSelectionHint(
+  mainTab,
+  dataset,
+  browseTarget,
+  resourceRow,
+  clusterContext,
+  selectedProfileWork = null,
+  settingsGroup = "",
+) {
   if (mainTab === "browse" && browseTarget) {
     return browseTarget.title || browseTarget.dataset_id || "Discover result";
   }
@@ -31,10 +41,11 @@ function railSelectionHint(mainTab, dataset, browseTarget, resourceRow, clusterC
     return "Resources";
   }
   if (mainTab === "profile") {
+    if (selectedProfileWork?.title) return selectedProfileWork.title;
     return "Profile";
   }
   if (mainTab === "settings") {
-    return "Desk setup";
+    return "Settings";
   }
   if (mainTab === "cluster" && clusterContext?.a && clusterContext?.b) {
     return `${displayName(clusterContext.a)} × ${displayName(clusterContext.b)}`;
@@ -85,6 +96,12 @@ export function InspectorRail({
   onDiscoverDestinationChange,
   catalog = [],
   profile = null,
+  selectedProfileWork = null,
+  onClearProfileWork,
+  onGoTab,
+  settingsGroup = "identity",
+  onSettingsFocusGroup,
+  health = null,
   browsePeerRows = [],
   onSelectBrowsePeer,
   onOpenInLibrary,
@@ -151,9 +168,23 @@ export function InspectorRail({
   } else if (mainTab === "synthesis") {
     detailPanel = <PageRailPanel page="synthesis" onAskAbout={onAskAbout} />;
   } else if (mainTab === "profile") {
-    detailPanel = <ProfileDetailPanel profile={profile} />;
+    detailPanel = (
+      <ProfileDetailPanel
+        profile={profile}
+        selectedWork={selectedProfileWork}
+        onGoTab={onGoTab}
+        onClearWork={onClearProfileWork}
+      />
+    );
   } else if (mainTab === "settings") {
-    detailPanel = <PageRailPanel page="settings" onAskAbout={onAskAbout} />;
+    detailPanel = (
+      <SettingsDetailPanel
+        activeGroup={settingsGroup || "identity"}
+        settings={loadSettings()}
+        health={health}
+        onSelectGroup={onSettingsFocusGroup}
+      />
+    );
   } else if (
     mainTab === "library" &&
     (activeObject?.kind === "library_folder" || activeObject?.kind === "library_intake")
@@ -198,7 +229,15 @@ export function InspectorRail({
   const allowActiveHint = activeHintBelongsToTab(mainTab, activeObject);
   const selectionHint =
     (allowActiveHint ? activeObjectSelectionHint(activeObject) : "") ||
-    railSelectionHint(mainTab, dataset, browseTarget, resourceRow, clusterContext);
+    railSelectionHint(
+      mainTab,
+      dataset,
+      browseTarget,
+      resourceRow,
+      clusterContext,
+      selectedProfileWork,
+      settingsGroup,
+    );
 
   const [mobileRailOpen, setMobileRailOpen] = useState(false);
 
