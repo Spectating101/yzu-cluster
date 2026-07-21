@@ -42,6 +42,21 @@ test("history noise fence hides triage fixture recovery spam", () => {
   assert.equal(fenced.visible[0].id, "real-1");
 });
 
+test("history noise fence hides deploy smoke jobs", () => {
+  assert.equal(
+    isHistoryNoise({ title: "day2 deploy smoke: http_manifest", status: "completed" }),
+    true,
+  );
+  assert.equal(
+    isHistoryNoise({ title: "post-merge main smoke: http_manifest", status: "completed" }),
+    true,
+  );
+  assert.equal(
+    isHistoryNoise({ title: "RFC 9110 HTTP Semantics", status: "completed" }),
+    false,
+  );
+});
+
 test("history fence collapses duplicate durable rows", () => {
   const events = [
     {

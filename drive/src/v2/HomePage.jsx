@@ -95,6 +95,7 @@ export function HomePage({
   onSuggestSearch,
 }) {
   const loading = health == null && datasets.length === 0;
+  const headroomLoading = resourcesRollup === undefined;
   const pickUp = useMemo(
     () => buildPickUp({ datasets, jobs, health }),
     [datasets, jobs, health],
@@ -148,7 +149,7 @@ export function HomePage({
     <PageShell
       className="rd-v2-home-page rd-v2-home-i10"
       title="Home"
-      lead="Resume · recommendations · headroom · durable consequences"
+      lead="Resume · headroom · durable consequences"
       footer={null}
     >
       <div className="rd-v2-home-topband">
@@ -186,7 +187,7 @@ export function HomePage({
               Resources →
             </button>
           </div>
-          {loading ? (
+          {loading || headroomLoading ? (
             <Skeleton lines={3} label="Loading headroom" />
           ) : headroom.length ? (
             <ul className="rd-v2-home-headroom-list">

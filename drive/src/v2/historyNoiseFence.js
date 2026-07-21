@@ -7,7 +7,7 @@
  */
 
 const NOISE_RE =
-  /triage\s*noise|fixture[_ -]?(http_manifest|probe|h\b)|fixture_|no[_ -]?promotion|archive[_ -]?before[_ -]?promote|missing[_ -]?manifest/i;
+  /triage\s*noise|fixture[_ -]?(http_manifest|probe|h\b)|fixture_|no[_ -]?promotion|archive[_ -]?before[_ -]?promote|missing[_ -]?manifest|deploy\s*smoke|post-merge|day\d+\s*deploy|integration[_ -]?smoke|smoke:\s*http_manifest/i;
 
 const FIXTURE_TARGET_RE = /^(raw_usdt_history|fixture[_-]|probe[_-]?no[_-]?promotion)/i;
 
