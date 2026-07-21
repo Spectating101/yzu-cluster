@@ -45,7 +45,7 @@ test("resource headroom rounds float percentages", () => {
       hot: { used_pct: 83.40000000000001, free_gb: 50.9123, label: "NVMe desk" },
     },
   });
-  assert.match(slots[1].headroom, /^16% headroom$/);
+  assert.match(slots[1].headroom, /^17% headroom$/);
   assert.match(slots[1].metric, /50\.9 GB free/);
 });
 
