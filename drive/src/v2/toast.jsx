@@ -12,8 +12,14 @@ let toastSequence = 0;
  */
 export function useToast() {
   const [toast, setToast] = useState(null);
+  const toastRef = useRef(null);
   const hideTimerRef = useRef(null);
   const clearTimerRef = useRef(null);
+
+  const commitToast = useCallback((next) => {
+    toastRef.current = next;
+    setToast(next);
+  }, []);
 
   const clearTimers = useCallback(() => {
     window.clearTimeout(hideTimerRef.current);
@@ -24,9 +30,14 @@ export function useToast() {
 
   const dismissAnimated = useCallback(() => {
     window.clearTimeout(clearTimerRef.current);
-    setToast((current) => (current ? { ...current, phase: "exiting" } : current));
-    clearTimerRef.current = window.setTimeout(() => setToast(null), TOAST_EXIT_MS);
-  }, []);
+    const current = toastRef.current;
+    if (current) {
+      const exiting = { ...current, phase: "exiting" };
+      toastRef.current = exiting;
+      setToast(exiting);
+    }
+    clearTimerRef.current = window.setTimeout(() => commitToast(null), TOAST_EXIT_MS);
+  }, [commitToast]);
 
   useEffect(() => clearTimers, [clearTimers]);
 
@@ -45,7 +56,7 @@ export function useToast() {
     }
 
     clearTimers();
-    setToast({
+    commitToast({
       id: ++toastSequence,
       message: text,
       kind,
@@ -54,23 +65,24 @@ export function useToast() {
       phase: "entered",
     });
     hideTimerRef.current = window.setTimeout(dismissAnimated, TOAST_VISIBLE_MS);
-  }, [clearTimers, dismissAnimated]);
+  }, [clearTimers, commitToast, dismissAnimated]);
 
   const dismissIf = useCallback((predicate) => {
-    if (!toast) return;
+    const current = toastRef.current;
+    if (!current) return;
     try {
-      if (!predicate(toast)) return;
+      if (!predicate(current)) return;
       clearTimers();
-      setToast(null);
+      commitToast(null);
     } catch {
       /* Keep the current toast when a caller predicate is invalid. */
     }
-  }, [clearTimers, toast]);
+  }, [clearTimers, commitToast]);
 
   const clear = useCallback(() => {
     clearTimers();
-    setToast(null);
-  }, [clearTimers]);
+    commitToast(null);
+  }, [clearTimers, commitToast]);
 
   return { toast, show, dismissIf, clear };
 }
