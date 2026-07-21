@@ -755,14 +755,6 @@ export function V2App() {
 
   const askAboutSelection = useCallback(
     (target) => {
-      if (tab === "profile" && (target?.title || selectedProfileWork?.title)) {
-        const work = target?.title ? target : selectedProfileWork;
-        setRailTab("ask");
-        setPendingAsk(
-          `Ask about this work: ${work.title}. Summarize its contribution, related vault evidence, and the safest useful next research step.`,
-        );
-        return;
-      }
       if (tab === "browse" && activeObject?.kind === "history_event") {
         setRailTab("ask");
         setPendingAsk(
@@ -802,6 +794,17 @@ export function V2App() {
       if (tab === "resources" && target) {
         setRailTab("ask");
         setPendingAsk(resourceAskPrompt(target));
+        return;
+      }
+      if (tab === "profile") {
+        const work = target?.title ? target : selectedProfileWork;
+        const label = work?.title || "this work";
+        setRailTab("ask");
+        setPendingAsk(
+          work?.title
+            ? `Ask about this work: ${label}. Summarize its contribution, how it fits the desk research context, and the safest next Discover or Lab action.`
+            : "Ask about this research profile and its works.",
+        );
         return;
       }
       setRailTab("ask");
@@ -1280,8 +1283,9 @@ export function V2App() {
                     }
                 : tab === "profile"
                   ? {
-                      title:
-                        profile?.name_en && !profile.unknown
+                      title: selectedProfileWork?.title
+                        ? `Work · ${selectedProfileWork.title}`
+                        : profile?.name_en && !profile.unknown
                           ? `Profile · ${profile.name_en}`
                           : "Profile",
                     }

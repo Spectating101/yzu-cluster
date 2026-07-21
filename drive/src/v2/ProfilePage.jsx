@@ -25,6 +25,26 @@ const MEMORY_LABELS = {
   methods: "Methods",
 };
 
+function MemoryEditIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M12 20h9"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      />
+      <path
+        d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 /**
  * Profile — Memory · Works · Lab.
  * Unbound desks stay quiet; EXAMPLE / pilot is never a primary CTA.
@@ -64,21 +84,21 @@ export function ProfilePage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [memoryKey]);
 
-  const beginEditMemory = (card) => {
+  const startEdit = (card) => {
     setEditingMemoryId(card.id);
     setEditBuffer(card.text || "");
   };
 
-  const cancelEditMemory = () => {
+  const cancelEdit = () => {
     setEditingMemoryId(null);
     setEditBuffer("");
   };
 
-  const saveEditMemory = () => {
+  const saveEdit = () => {
     if (!editingMemoryId) return;
     const next = String(editBuffer || "").trim();
     setMemoryDraft((rows) =>
-      rows.map((row) => (row.id === editingMemoryId ? { ...row, text: next || row.text } : row)),
+      rows.map((row) => (row.id === editingMemoryId ? { ...row, text: next } : row)),
     );
     setEditingMemoryId(null);
     setEditBuffer("");
@@ -139,26 +159,30 @@ export function ProfilePage({
         {bound && memoryDraft.length ? (
           <ul className="rd-v2-profile-memory">
             {memoryDraft.map((card) => {
-              const editing = editingMemoryId === card.id;
+              const label = MEMORY_LABELS[card.id] || card.id;
+              const active = editingMemoryId === card.id;
               return (
                 <li
                   key={card.id}
-                  className={`rd-v2-profile-memory-row${editing ? " is-editing" : ""}`}
+                  className={`rd-v2-profile-memory-row${active ? " is-editing" : ""}`}
                   data-memory={card.id}
                 >
-                  <span className="rd-v2-profile-memory-label" id={`profile-memory-label-${card.id}`}>
-                    {MEMORY_LABELS[card.id] || card.id}
-                  </span>
-                  {editing ? (
+                  {active ? (
                     <div className="rd-v2-profile-memory-edit">
+                      <label
+                        className="rd-v2-profile-memory-label"
+                        htmlFor={`profile-memory-${card.id}`}
+                      >
+                        {label}
+                      </label>
                       <textarea
                         id={`profile-memory-${card.id}`}
                         className="rd-v2-profile-memory-input"
                         rows={3}
                         value={editBuffer}
                         onChange={(e) => setEditBuffer(e.target.value)}
-                        aria-labelledby={`profile-memory-label-${card.id}`}
                         data-testid={`profile-memory-${card.id}`}
+                        // eslint-disable-next-line jsx-a11y/no-autofocus
                         autoFocus
                       />
                       <div className="rd-v2-profile-memory-edit-actions">
@@ -166,7 +190,7 @@ export function ProfilePage({
                           type="button"
                           className="rd-v2-btn sm primary"
                           data-testid={`profile-memory-save-${card.id}`}
-                          onClick={saveEditMemory}
+                          onClick={saveEdit}
                         >
                           Save
                         </button>
@@ -174,27 +198,31 @@ export function ProfilePage({
                           type="button"
                           className="rd-v2-btn sm"
                           data-testid={`profile-memory-cancel-${card.id}`}
-                          onClick={cancelEditMemory}
+                          onClick={cancelEdit}
                         >
                           Cancel
                         </button>
                       </div>
                     </div>
                   ) : (
-                    <div className="rd-v2-profile-memory-read">
-                      <p
-                        className="rd-v2-profile-memory-text"
+                    <div className="rd-v2-profile-memory-line">
+                      <span className="rd-v2-profile-memory-label">{label}</span>
+                      <span
+                        className="rd-v2-profile-memory-value"
                         data-testid={`profile-memory-${card.id}`}
+                        title={card.text || undefined}
                       >
                         {card.text || "—"}
-                      </p>
+                      </span>
                       <button
                         type="button"
                         className="rd-v2-profile-memory-edit-btn"
+                        aria-label={`Edit ${label}`}
                         data-testid={`profile-memory-edit-${card.id}`}
-                        onClick={() => beginEditMemory(card)}
+                        onClick={() => startEdit(card)}
                       >
-                        Edit
+                        <MemoryEditIcon />
+                        <span>Edit</span>
                       </button>
                     </div>
                   )}
@@ -400,7 +428,7 @@ export function ProfileDetailPanel({
           <button
             type="button"
             className="rd-v2-btn sm primary"
-            data-testid="profile-ask-work"
+            data-testid="profile-ask-about-work"
             onClick={() => onAskAbout?.(selectedWork)}
           >
             {rail.primaryAction.label}
