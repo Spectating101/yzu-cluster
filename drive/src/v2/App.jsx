@@ -1203,7 +1203,7 @@ export function V2App() {
         railTab={railTab}
         onRailTabChange={setRailTab}
         dataset={detail}
-        detailLoading={detailLoading}
+        detailLoading={tab === "profile" || tab === "settings" ? false : detailLoading}
         clusterContext={clusterContext}
         browseTarget={browseTarget}
         resourceRow={resourceRow}

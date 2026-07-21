@@ -6176,8 +6176,12 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
   color: var(--rd-muted);
 }
 
-.rd-v2-profile-page .rd-v2-body-scroll {
-  padding: 12px 20px 20px;
+.rd-v2-profile-page .rd-v2-body-scroll,
+.rd-v2-settings-page .rd-v2-body-scroll {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding-top: 0;
 }
 
 .rd-v2-profile-identity {
