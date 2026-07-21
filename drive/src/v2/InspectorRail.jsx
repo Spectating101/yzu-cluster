@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   BrowseRailPanel,
   ClusterRailPanel,
@@ -12,6 +12,25 @@ import {
 } from "@/v2/RailPanels";
 import { activeObjectSelectionHint } from "@/v2/activeObject";
 import { displayName } from "@/v2/datasetMeta";
+
+/** Matches mobile sheet breakpoint in v2.css — collapsed class is mobile-only. */
+const MOBILE_RAIL_MQ = "(max-width: 720px)";
+
+function useMobileRailViewport() {
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== "undefined" ? window.matchMedia(MOBILE_RAIL_MQ).matches : false,
+  );
+
+  useEffect(() => {
+    const mq = window.matchMedia(MOBILE_RAIL_MQ);
+    const sync = () => setIsMobile(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  return isMobile;
+}
 
 function railSelectionHint(
   mainTab,
@@ -202,12 +221,14 @@ export function InspectorRail({
     );
 
   const [mobileRailOpen, setMobileRailOpen] = useState(false);
+  const isMobileRail = useMobileRailViewport();
+  const railCollapsed = isMobileRail && !mobileRailOpen;
 
   return (
     <aside
-      className={`yzu-inspector rd-v2-rail${mobileRailOpen ? "" : " rd-v2-rail-collapsed"}`}
+      className={`yzu-inspector rd-v2-rail${railCollapsed ? " rd-v2-rail-collapsed" : ""}`}
       aria-label="Inspector"
-      data-rail-collapsed={mobileRailOpen ? "false" : "true"}
+      data-rail-collapsed={railCollapsed ? "true" : "false"}
     >
       <div className="yzu-inspector-stack rd-v2-rail-stack">
         <div className="rd-v2-rail-chrome">

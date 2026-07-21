@@ -56,6 +56,8 @@ test.describe("Account cluster navigation", () => {
     await expect(nav.getByRole("button", { name: /^Settings$/i })).toHaveCount(0);
 
     // Header account control must be normally clickable on desktop (rail must not intercept).
+    // Collapsed rail class must not apply at 1440 — otherwise it intercepts.
+    await expect(page.locator(".yzu-inspector")).not.toHaveClass(/rd-v2-rail-collapsed/);
     const headerAccount = page.getByTestId("header-account-menu");
     await expect(headerAccount).toBeVisible();
     await headerAccount.click();
