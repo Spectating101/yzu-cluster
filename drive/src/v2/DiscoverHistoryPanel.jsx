@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Chip } from "@/v2/ui";
+import { fenceHistoryEvents } from "@/v2/historyNoiseFence";
+import { historyLifecycleBucket } from "@/v2/discoverAdapters";
 
 const HISTORY_FILTERS = [
   { id: "all", label: "All" },
@@ -17,29 +19,26 @@ function cleanTarget(value) {
 }
 
 function eventKind(event) {
+  const bucket = historyLifecycleBucket(event);
+  if (bucket !== "all") return bucket;
   const action = String(event?.action || "").toLowerCase();
-  const status = String(event?.status || event?.meta?.status || "").toLowerCase();
-  const kind = String(event?.kind || "").toLowerCase();
-  if (kind === "subscription" || action === "subscription" || /scheduled|paused|subscription/.test(status)) {
-    return "scheduled";
-  }
-  if (/pending_approval|ready_for_review|awaiting|needs_approval/.test(status) || action === "intent") {
-    return "needs_approval";
-  }
-  if (/queued|running|active|in_progress/.test(status)) return "active";
-  if (/failed|error|needs_recovery|blocked/.test(status)) return "needs_recovery";
-  if (/completed|ready|registered|archived|done|succeeded/.test(status)) return "ready";
+  if (action === "intent") return "needs_approval";
   if (action === "collection_run") return "active";
   return "other";
 }
 
+/** One Recovery vocabulary — failed/blocked only; cancelled noise is fenced out. */
 function stateLabel(event) {
   const kind = eventKind(event);
   const status = String(event?.status || event?.meta?.status || "").toLowerCase();
   if (kind === "needs_approval") return "Approval required";
   if (kind === "scheduled") return "Scheduled refresh";
   if (kind === "active") return status === "queued" ? "Queued" : "Collecting";
-  if (kind === "needs_recovery") return "Recovery required";
+  if (kind === "needs_recovery") {
+    if (/blocked/.test(status)) return "Blocked — needs recovery";
+    if (/error/.test(status)) return "Failed — needs recovery";
+    return "Failed — needs recovery";
+  }
   if (kind === "ready") {
     if (/query[_ -]?ready/.test(status)) return "Query ready";
     if (status === "registered") return "Registered";
@@ -121,13 +120,13 @@ function Territory({ title, events, selectedId, onSelectEvent, startIndex = 0 })
 export function DiscoverHistoryPanel({ events = [], selectedId = "", onSelectEvent }) {
   const [filter, setFilter] = useState("all");
   const [visibleCount, setVisibleCount] = useState(8);
-  const normalized = useMemo(
-    () =>
-      [...events]
-        .filter((event) => event && (event.id || event.ts || event.target))
-        .sort((a, b) => String(b.ts || "").localeCompare(String(a.ts || ""))),
-    [events],
-  );
+  const fenced = useMemo(() => {
+    const raw = [...events]
+      .filter((event) => event && (event.id || event.ts || event.target))
+      .sort((a, b) => String(b.ts || "").localeCompare(String(a.ts || "")));
+    return fenceHistoryEvents(raw);
+  }, [events]);
+  const normalized = fenced.visible;
   const filtered = useMemo(
     () => (filter === "all" ? normalized : normalized.filter((event) => eventKind(event) === filter)),
     [filter, normalized],
@@ -153,6 +152,14 @@ export function DiscoverHistoryPanel({ events = [], selectedId = "", onSelectEve
           <span className="rd-v2-eyebrow">Research lifecycle</span>
           <h2>Durable evidence requests and results</h2>
           <p>Researcher decisions come first. Collection, recovery, schedules, and reusable results remain linked.</p>
+          {fenced.hiddenNoise > 0 ? (
+            <p className="rd-v2-history-noise-note muted small" data-testid="history-noise-fence">
+              {fenced.hiddenNoise} fixture/ops noise row{fenced.hiddenNoise === 1 ? "" : "s"} hidden
+              {fenced.collapsedDuplicates > 0
+                ? ` · ${fenced.collapsedDuplicates} duplicate${fenced.collapsedDuplicates === 1 ? "" : "s"} collapsed`
+                : ""}
+            </p>
+          ) : null}
         </div>
         <strong>{normalized.length} item{normalized.length === 1 ? "" : "s"}</strong>
       </div>

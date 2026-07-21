@@ -225,12 +225,17 @@ export function AskRail({
                         <p className="muted small">{m.activity}</p>
                       ) : null}
                       <strong>Agent:</strong> {m.text}
-                      {m.action || m.toolName ? (
-                        <p className="rd-v2-ask-action-meta muted small">
-                          {[m.toolName, m.action].filter(Boolean).join(" · ")}
-                        </p>
-                      ) : null}
-                      {m.pendingJobId && m.jobStatus === "pending_approval" ? (
+                      {(() => {
+                        if (m.intent === "status") return null;
+                        const meta = [m.toolName, m.action]
+                          .filter(Boolean)
+                          .filter((part) => !/describe[_ ]?dataset|planning|working/i.test(String(part)));
+                        if (!meta.length) return null;
+                        return (
+                          <p className="rd-v2-ask-action-meta muted small">{meta.join(" · ")}</p>
+                        );
+                      })()}
+                      {m.intent !== "status" && m.pendingJobId && m.jobStatus === "pending_approval" ? (
                         <div className="rd-v2-ask-actions">
                           <button
                             type="button"

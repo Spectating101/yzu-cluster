@@ -1,0 +1,91 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { fenceHistoryEvents, isHistoryNoise } from "./historyNoiseFence.js";
+import {
+  countOpsAttention,
+  resourcesOpsPosture,
+  resourcesOpsPill,
+} from "./attentionModel.js";
+import {
+  classifyAskIntent,
+  shapeAskReplyForIntent,
+} from "./askIntent.js";
+
+test("history noise fence hides triage fixture recovery spam", () => {
+  const events = [
+    {
+      id: "noise-1",
+      target: "raw_usdt_history",
+      summary: "triage noise: fixture_http_manifest_stuck",
+      status: "failed",
+      ts: "2026-07-20T21:00:00Z",
+    },
+    {
+      id: "noise-2",
+      target: "raw_usdt_history",
+      summary: "triage noise: fixture_http_manifest_stuck",
+      status: "failed",
+      ts: "2026-07-20T21:00:01Z",
+    },
+    {
+      id: "real-1",
+      target: "GDELT Asia panel refresh",
+      summary: "Registered into lab vault",
+      status: "registered",
+      ts: "2026-07-20T22:00:00Z",
+    },
+  ];
+  assert.equal(isHistoryNoise(events[0]), true);
+  const fenced = fenceHistoryEvents(events);
+  assert.equal(fenced.hiddenNoise, 2);
+  assert.equal(fenced.visible.length, 1);
+  assert.equal(fenced.visible[0].id, "real-1");
+});
+
+test("history fence collapses duplicate durable rows", () => {
+  const events = [
+    {
+      id: "a",
+      target: "Same journey",
+      summary: "Collecting",
+      status: "running",
+      ts: "2026-07-20T22:00:00Z",
+    },
+    {
+      id: "b",
+      target: "Same journey",
+      summary: "Collecting",
+      status: "running",
+      ts: "2026-07-20T21:00:00Z",
+    },
+  ];
+  const fenced = fenceHistoryEvents(events);
+  assert.equal(fenced.visible.length, 1);
+  assert.equal(fenced.collapsedDuplicates, 1);
+});
+
+test("resources ops posture does not say need attention", () => {
+  const counts = countOpsAttention({
+    issues: new Array(47).fill({}),
+    jobs: { pending_approval: 0, failed: 0, running: 0 },
+  });
+  const posture = resourcesOpsPosture(counts);
+  assert.match(posture, /47 capacity warnings/);
+  assert.doesNotMatch(posture, /need attention/i);
+  assert.equal(resourcesOpsPill(counts, true).label, "Ops");
+});
+
+test("status ask intent strips Queue DOI / DESCRIBE_DATASET affordances", () => {
+  assert.equal(classifyAskIntent("Status only: reply with OK"), "status");
+  const shaped = shapeAskReplyForIntent("status", {
+    action: "collect_doi",
+    toolName: "DESCRIBE_DATASET",
+    pendingJobId: "job-1",
+    jobStatus: "pending_approval",
+    suggestedPrompts: ["Queue DOI collect for gdelt_asia", "Explain readiness"],
+  });
+  assert.equal(shaped.action, null);
+  assert.equal(shaped.toolName, null);
+  assert.equal(shaped.pendingJobId, null);
+  assert.deepEqual(shaped.suggestedPrompts, ["Explain readiness"]);
+});

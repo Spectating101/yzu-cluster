@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { deskWarm, sendChatMessage } from "@/v2/api";
 import { normalizeActivityStep } from "@/v2/deskIntegration";
 import { loadChatSessionId, loadUserEmail } from "@/v2/deskSession";
+import { classifyAskIntent, shapeAskReplyForIntent } from "@/v2/askIntent";
 
 function normalizeOutgoingMessage(value, fallback = "") {
   const raw = value ?? fallback;
@@ -103,6 +104,7 @@ export function useAskChat({ dataset, railContext, onCollected, onToast } = {}) 
         });
 
         if (out.session_id) sessionRef.current = out.session_id;
+        const intent = classifyAskIntent(outgoing.displayText || prompt);
         const reply = out.reply || out.message || "Done.";
         const artifacts = out.artifacts || {};
         const statePatch = artifacts.state_patch || out.state_patch || {};
@@ -110,28 +112,50 @@ export function useAskChat({ dataset, railContext, onCollected, onToast } = {}) 
           artifacts.job?.id || statePatch.pending_job_id || out.pending_job_id || null;
         const jobStatus = artifacts.job?.status || statePatch.job_status;
         const toolName = artifacts.tool_name || out.tool_name || null;
+        const shaped = shapeAskReplyForIntent(intent, {
+          action: out.action,
+          toolName,
+          activityLog: undefined,
+          candidates: out.candidates || artifacts.candidates || [],
+          suggestedPrompts: out.suggested_prompts || artifacts.suggestions || [],
+          pendingJobId,
+          jobStatus,
+        });
 
         setMessages((m) => {
           const streaming = m.find((x) => x.streaming);
-          const activityLog = streaming?.activityLog || [];
+          const activityLog =
+            intent === "status" ? [] : streaming?.activityLog || [];
           const trimmed = m.filter((x) => !x.streaming);
           return [
             ...trimmed,
             {
               role: "assistant",
               text: reply,
-              action: out.action,
-              toolName,
+              intent,
+              action: shaped.action,
+              toolName: shaped.toolName,
               activityLog,
-              candidates: out.candidates || artifacts.candidates || [],
-              suggestedPrompts: out.suggested_prompts || artifacts.suggestions || [],
-              pendingJobId,
-              jobStatus,
+              candidates: shaped.candidates || [],
+              suggestedPrompts: shaped.suggestedPrompts || [],
+              pendingJobId: shaped.pendingJobId,
+              jobStatus: shaped.jobStatus,
             },
           ];
         });
-        setStatus(out.campaign_id ? `Campaign ${String(out.campaign_id).slice(0, 8)}…` : "");
-        if (["collect", "acquire", "collect_doi", "approve_collect", "queue", "schedule_refresh"].includes(out.action)) {
+        setStatus(
+          intent === "status"
+            ? ""
+            : out.campaign_id
+              ? `Campaign ${String(out.campaign_id).slice(0, 8)}…`
+              : "",
+        );
+        if (
+          intent !== "status" &&
+          ["collect", "acquire", "collect_doi", "approve_collect", "queue", "schedule_refresh"].includes(
+            out.action,
+          )
+        ) {
           onCollected?.();
           onToast?.(
             out.action === "schedule_refresh"
@@ -144,13 +168,17 @@ export function useAskChat({ dataset, railContext, onCollected, onToast } = {}) 
           artifacts.subscription?.id ||
           out.subscription_id ||
           null;
-        if (subId || out.action === "schedule_refresh") {
+        if (intent !== "status" && (subId || out.action === "schedule_refresh")) {
           onCollected?.();
           if (out.action !== "schedule_refresh") {
             onToast?.("Refresh registered in Discover History");
           }
         }
-        if (pendingJobId && jobStatus === "pending_approval") {
+        if (
+          intent !== "status" &&
+          shaped.pendingJobId &&
+          shaped.jobStatus === "pending_approval"
+        ) {
           onToast?.("Job pending approval — use Approve below");
         }
       } catch (err) {
