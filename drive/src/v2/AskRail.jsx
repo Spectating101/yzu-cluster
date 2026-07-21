@@ -212,16 +212,22 @@ export function AskRail({
                     m.text
                   ) : (
                     <>
-                      {!m.streaming && m.activityLog?.length ? (
+                      {!m.streaming && m.intent !== "status" && m.activityLog?.length ? (
                         <ol className="rd-v2-ask-phases" data-testid="ask-tool-phases" aria-label="Agent tool activity">
-                          {m.activityLog.map((step, si) => (
+                          {m.activityLog
+                            .filter((step) => !/describe[_ ]?dataset/i.test(`${step.phase || ""} ${step.text || ""}`))
+                            .map((step, si) => (
                             <li key={`${step.phase}-${si}`} data-phase={step.phase}>
-                              <span className="rd-v2-ask-phase-label">{step.phase}</span>
+                              <span className="rd-v2-ask-phase-label">
+                                {/^(planning|working)$/i.test(String(step.phase || ""))
+                                  ? "Working"
+                                  : step.phase}
+                              </span>
                               <span className="rd-v2-ask-phase-text">{step.text}</span>
                             </li>
                           ))}
                         </ol>
-                      ) : !m.streaming && m.activity ? (
+                      ) : !m.streaming && m.intent !== "status" && m.activity ? (
                         <p className="muted small">{m.activity}</p>
                       ) : null}
                       <strong>Agent:</strong> {m.text}
