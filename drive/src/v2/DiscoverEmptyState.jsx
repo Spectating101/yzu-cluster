@@ -3,6 +3,7 @@ import { DISCOVER_SUGGESTIONS } from "@/v2/deskSeed";
 /**
  * Discover Explore empty / starter — DISCOVER_FULL_SCALE_FREEZE.
  * Centre owns the evidence-need field; starters are shortcuts only.
+ * Fill first viewport with need + method cue + starter ledger (no giant empty canvas).
  */
 export function DiscoverEmptyState({ onSuggest }) {
   const suggestions = DISCOVER_SUGGESTIONS.length
@@ -37,7 +38,23 @@ export function DiscoverEmptyState({ onSuggest }) {
         </form>
       </header>
 
+      <ol className="rd-v2-discover-method-cue" aria-label="How Discover works">
+        <li>
+          <strong>1 · Need</strong>
+          <span>State the evidence gap in research language.</span>
+        </li>
+        <li>
+          <strong>2 · Rank</strong>
+          <span>Lab holdings first, then external candidates.</span>
+        </li>
+        <li>
+          <strong>3 · Evaluate</strong>
+          <span>Detail owns fit, unknowns, and one primary action.</span>
+        </li>
+      </ol>
+
       <section className="rd-v2-discover-explore-starters" aria-label="Suggested evidence needs">
+        <span className="rd-v2-eyebrow">Suggested needs</span>
         <ul className="rd-v2-discover-starter-list">
           {suggestions.slice(0, 6).map((s) => (
             <li key={s}>

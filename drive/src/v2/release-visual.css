@@ -524,22 +524,20 @@
 .rd-v2-home-pickup-card {
   position: relative;
   overflow: visible;
-  padding: 16px 16px 14px 20px;
-  border: 1px solid #d8deea;
-  border-radius: 12px;
-  background:
-    radial-gradient(circle at 100% 0, rgba(82, 97, 238, 0.1), transparent 34%),
-    linear-gradient(145deg, #ffffff 0%, #fafbff 100%);
-  box-shadow: 0 12px 28px rgba(31, 42, 68, 0.06);
+  padding: 14px 14px 12px 18px;
+  border: 1px solid #d0d7e4;
+  border-radius: 4px;
+  background: #fff;
+  box-shadow: none;
 }
 
 .rd-v2-home-pickup-card::before {
   content: "";
   position: absolute;
   inset: 0 auto 0 0;
-  width: 4px;
-  border-radius: 12px 0 0 12px;
-  background: linear-gradient(180deg, #6b72ff, #3c4cdd);
+  width: 3px;
+  border-radius: 0;
+  background: #3c4cdd;
   pointer-events: none;
 }
 
@@ -1240,6 +1238,122 @@
   margin: 0;
   color: #5b6578;
   font-size: 0.88rem;
+}
+
+/* Discover Explore empty — densify first viewport (freeze: no giant blank canvas) */
+.rd-v2-discover-explore-start {
+  display: grid;
+  gap: 14px;
+  padding: 4px 2px 12px;
+  align-content: start;
+}
+.rd-v2-discover-method-cue {
+  list-style: none;
+  margin: 0;
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px 14px;
+  border: 1px solid #e4e8f0;
+  background: #fbfcfe;
+}
+.rd-v2-discover-method-cue li {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.rd-v2-discover-method-cue strong {
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #5b6578;
+  font-weight: 700;
+}
+.rd-v2-discover-method-cue span {
+  color: #3a4558;
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+.rd-v2-discover-starter-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  border: 1px solid #e4e8f0;
+  background: #fff;
+}
+.rd-v2-discover-starter-list li {
+  border-bottom: 1px solid #eef1f6;
+  border-right: 1px solid #eef1f6;
+}
+.rd-v2-discover-starter-list li:nth-child(2n) {
+  border-right: 0;
+}
+.rd-v2-discover-starter-list li:nth-last-child(-n + 2) {
+  border-bottom: 0;
+}
+@media (max-width: 900px) {
+  .rd-v2-discover-method-cue {
+    grid-template-columns: 1fr;
+  }
+  .rd-v2-discover-starter-list {
+    grid-template-columns: 1fr;
+  }
+  .rd-v2-discover-starter-list li {
+    border-right: 0;
+  }
+}
+
+/* Synthesis exploration-ready blueprints */
+.s04-exploration-ready {
+  max-width: 52rem;
+}
+.s04-blueprint-recipes {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0;
+  border: 1px solid #dfe4ed;
+  background: #fff;
+}
+.s04-blueprint-recipe {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  gap: 2px 12px;
+  padding: 12px 14px;
+  border: 0;
+  border-bottom: 1px solid #eef1f6;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+.s04-blueprint-recipe:last-child {
+  border-bottom: 0;
+}
+.s04-blueprint-recipe:hover {
+  background: #f7f9fc;
+}
+.s04-blueprint-recipe strong {
+  grid-column: 1;
+  color: #172033;
+  font-size: 0.95rem;
+}
+.s04-blueprint-recipe span {
+  grid-column: 1;
+  color: #5b6578;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+.s04-blueprint-recipe em {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  color: #3c4cdd;
+  font-style: normal;
+  font-size: 0.82rem;
+  font-weight: 650;
 }
 
 /* Wireframe completion — Discover need / History 3-line / Resources capacity */

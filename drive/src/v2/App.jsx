@@ -1072,7 +1072,7 @@ export function V2App() {
           datasets={catalog}
           health={health}
           cluster={health?.cluster}
-          profile={profile}
+          profile={profile && !profile.unknown ? profile : pilotProfile || profile}
           resourcesRollup={resourcesRollup}
           acquisitions={acquisitions}
           partitions={partitions}

@@ -127,6 +127,9 @@
   overflow: visible;
   display: block;
   white-space: normal;
+  text-overflow: unset;
+  -webkit-line-clamp: unset;
+  line-clamp: unset;
 }
 
 .rd-v2-profile-memory-anchor {

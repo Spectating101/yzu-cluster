@@ -349,14 +349,45 @@ function NewThread({ objective, setObjective, busy, onCreate, onAsk }) {
 }
 
 function EmptyWorkspace({ onNew }) {
+  const recipes = [
+    {
+      id: "pair",
+      title: "Pair two lab assets",
+      body: "Join owned Library evidence on a shared grain — coverage, time overlap, readiness checked first.",
+    },
+    {
+      id: "panel",
+      title: "Build a research panel",
+      body: "Compose a reusable panel recipe from registered inputs; build/refresh stays an explicit mutation.",
+    },
+    {
+      id: "gap",
+      title: "Fill an input gap",
+      body: "Missing grain or coverage becomes an exact Discover handoff — Synthesis does not invent sources.",
+    },
+  ];
   return (
-    <section className="s04-intent s04-intent-quiet" data-testid="synthesis-empty-state">
-      <small>Synthesis</small>
-      <h2>No construction thread yet</h2>
-      <p>Start from a research object. Detail and Ask share the thread once it exists.</p>
+    <section className="s04-intent s04-intent-quiet s04-exploration-ready" data-testid="synthesis-empty-state">
+      <small>Exploration ready</small>
+      <h2>Choose a blueprint or start a custom construction</h2>
+      <p>
+        Synthesis is blueprint/recipe oriented: owned Library inputs → defined method → verified output.
+        Viewing is read-only until you accept a proposal and request a build.
+      </p>
+      <ul className="s04-blueprint-recipes" aria-label="Recommended constructions">
+        {recipes.map((recipe) => (
+          <li key={recipe.id}>
+            <button type="button" className="s04-blueprint-recipe" onClick={onNew}>
+              <strong>{recipe.title}</strong>
+              <span>{recipe.body}</span>
+              <em>Start →</em>
+            </button>
+          </li>
+        ))}
+      </ul>
       <footer>
         <button type="button" className="rd-v2-btn primary" onClick={onNew}>
-          New synthesis
+          New synthesis thread
         </button>
       </footer>
     </section>

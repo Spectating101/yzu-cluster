@@ -121,16 +121,27 @@ export function buildResourceHeadroom(rollup) {
 
   const vault = usage.vault || hero.vault || {};
   if (vault.used_tb != null || vault.cap_tb != null) {
-    const pct = vault.pct != null ? Number(vault.pct) : headroomPct(vault.used_tb, vault.cap_tb);
     const used = Number.isFinite(Number(vault.used_tb)) ? Number(vault.used_tb) : null;
     const cap = Number.isFinite(Number(vault.cap_tb)) ? Number(vault.cap_tb) : null;
+    const observed = vault.observed !== false && used != null;
+    const pct = observed
+      ? vault.pct != null
+        ? Number(vault.pct)
+        : headroomPct(used, cap)
+      : null;
     slots.push({
       id: "vault",
       name: vault.label || "GDrive vault",
       pinned: true,
-      metric: `${used ?? "?"}/${cap ?? "?"} TB`,
+      metric: observed
+        ? used === 0 && cap != null
+          ? `Empty · ${cap} TB capacity`
+          : `${used}/${cap ?? "?"} TB`
+        : cap != null
+          ? `${cap} TB capacity · use not observed`
+          : "Quota not observed",
       pct: Number.isFinite(pct) ? Math.round(pct) : null,
-      headroom: formatHeadroom(pct),
+      headroom: observed ? formatHeadroom(pct) : "NOT OBSERVED",
       warn: pct != null && pct >= 75,
       action: "resources",
     });
@@ -148,7 +159,14 @@ export function buildResourceHeadroom(rollup) {
       id: "hot",
       name: hot.label || "Working disk",
       pinned: false,
-      metric: free != null ? `${free} GB free` : Number.isFinite(pct) ? `${Math.round(pct)}% used` : "Capacity",
+      metric:
+        free != null && Number.isFinite(pct)
+          ? `${free} GB free · ${Math.round(pct)}% used`
+          : free != null
+            ? `${free} GB free`
+            : Number.isFinite(pct)
+              ? `${Math.round(pct)}% used`
+              : "Capacity",
       pct: Number.isFinite(pct) ? Math.round(pct) : null,
       headroom:
         Number.isFinite(pct) && pct >= 85 ? "Check →" : formatHeadroom(pct),

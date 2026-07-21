@@ -32,8 +32,12 @@ export function buildCapacityAccessPairs(rollup) {
   const connect = rollup?.connect || {};
   const compute = rollup?.compute || {};
 
-  const vaultPct =
+  const vaultPctRaw =
     vault.pct != null ? Number(vault.pct) : pctOf(vault.used_tb, vault.cap_tb);
+  const vaultUsed = Number.isFinite(Number(vault.used_tb)) ? Number(vault.used_tb) : null;
+  const vaultCap = Number.isFinite(Number(vault.cap_tb)) ? Number(vault.cap_tb) : null;
+  const vaultObserved = vault.observed !== false && vaultUsed != null;
+  const vaultPct = vaultObserved ? vaultPctRaw : null;
   const cachePct =
     cache.pct != null ? Number(cache.pct) : pctOf(cache.used_gb, cache.total_gb);
   const hotPct = hot.used_pct != null ? Number(hot.used_pct) : null;
@@ -49,15 +53,19 @@ export function buildCapacityAccessPairs(rollup) {
     meter({
       id: "vault",
       name: vault.label || "GDrive vault",
-      metric:
-        vault.used_tb != null || vault.cap_tb != null
-          ? `${vault.used_tb ?? "?"}/${vault.cap_tb ?? "?"} TB`
-          : "Quota pending",
+      metric: vaultObserved
+        ? vaultUsed === 0 && vaultCap != null
+          ? `Empty · ${vaultCap} TB capacity`
+          : `${vaultUsed}/${vaultCap ?? "?"} TB`
+        : vaultCap != null
+          ? `${vaultCap} TB · use not observed`
+          : "NOT OBSERVED",
       pct: vaultPct,
-      available:
-        vault.cap_tb != null && vault.used_tb != null
-          ? `${Math.max(0, Number(vault.cap_tb) - Number(vault.used_tb)).toFixed(1)} TB available`
-          : null,
+      available: vaultObserved
+        ? vaultCap != null && vaultUsed != null
+          ? `${Math.max(0, vaultCap - vaultUsed).toFixed(1)} TB available`
+          : null
+        : "NOT OBSERVED",
       warn: vaultPct != null && vaultPct >= 85,
     }),
     meter({
@@ -84,11 +92,13 @@ export function buildCapacityAccessPairs(rollup) {
       id: "hot",
       name: hot.label || "Working disk",
       metric:
-        hot.free_gb != null
-          ? `${Math.round(Number(hot.free_gb) * 10) / 10} GB free`
-          : hotPct != null
-            ? `${Math.round(hotPct)}% used`
-            : "Capacity pending",
+        hotPct != null && hot.free_gb != null
+          ? `${Math.round(Number(hot.free_gb) * 10) / 10} GB free · ${Math.round(hotPct)}% used`
+          : hot.free_gb != null
+            ? `${Math.round(Number(hot.free_gb) * 10) / 10} GB free`
+            : hotPct != null
+              ? `${Math.round(hotPct)}% used`
+              : "Capacity pending",
       pct: hotPct,
       available: hotPct != null ? `${Math.max(0, 100 - Math.round(hotPct))}% headroom` : null,
       warn: hot.headroom_ok === false || (hotPct != null && hotPct >= 85),
