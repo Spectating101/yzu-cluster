@@ -6,7 +6,7 @@
 import { test, expect } from "@playwright/test";
 import path from "path";
 import { fileURLToPath } from "url";
-import { mockV2Api } from "./fixtures/v2MockApi.js";
+import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OUT = path.resolve(__dirname, "../docs/status/generated/profile-freeze-showcase.png");
@@ -51,6 +51,7 @@ test.describe("Profile freeze showcase", () => {
       }
     });
     await page.goto("/?tab=profile", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
     await expect(page.getByRole("heading", { name: "Profile" })).toBeVisible({ timeout: 20_000 });
     await expect(page.locator(".rd-v2-profile-name")).toContainText(/Kong/i);
     await expect(page.getByRole("button", { name: /Use my email|Bind example/i })).toHaveCount(0);
@@ -101,6 +102,7 @@ test.describe("Profile freeze showcase", () => {
       }
     });
     await page.goto("/?tab=profile", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
     await expect(page.getByTestId("profile-unbound-badge")).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId("profile-primary-command")).toHaveText(/Connect faculty email/i);
     await expect(page.getByRole("button", { name: /Bind example|Use EXAMPLE/i })).toHaveCount(0);
@@ -113,6 +115,7 @@ test.describe("Settings Identity → Access → Defaults → Advanced", () => {
   test("sections present; advanced collapsed; Detail never Loading", async ({ page }) => {
     await mockV2Api(page);
     await page.goto("/?tab=settings", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
     await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId("settings-group-identity")).toBeVisible();
     await expect(page.getByTestId("settings-group-access")).toBeVisible();
