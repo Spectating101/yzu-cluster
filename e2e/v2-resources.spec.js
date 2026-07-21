@@ -18,9 +18,9 @@ test.describe("v2 Resources tab", () => {
     await waitForShell(page);
   });
 
-  test("Overview shows capacity, value, and progressive source routes", async ({ page }) => {
+  test("Sources shows capacity, value, and progressive source routes", async ({ page }) => {
     await expect(page.locator("main").getByRole("heading", { name: "Resources", exact: true })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Overview", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Sources", exact: true })).toBeVisible();
     const main = page.locator("main");
     const inventory = capacityInventory(page);
     await expect(inventory).toContainText("Capacity & access");
@@ -80,9 +80,9 @@ test.describe("v2 Resources tab", () => {
     await expect(rail).not.toContainText("Select a key resource");
   });
 
-  test("Activity tab shows event log", async ({ page }) => {
+  test("Usage tab shows event log", async ({ page }) => {
     const main = page.locator("main");
-    await page.getByRole("button", { name: "Activity", exact: true }).click();
+    await page.getByRole("button", { name: "Usage", exact: true }).click();
     await expect(main.locator('[aria-label="Usage report"]')).toContainText("Remote tables");
     await expect(main.getByRole("heading", { name: "Review queue" })).toBeVisible();
     await expect(main.getByRole("heading", { name: "Run log" })).toBeVisible();
@@ -92,9 +92,9 @@ test.describe("v2 Resources tab", () => {
     await expect(main.getByText("Remote tables 2.4 GiB")).toBeVisible();
   });
 
-  test("Activity filters log categories", async ({ page }) => {
+  test("Usage filters log categories", async ({ page }) => {
     const main = page.locator("main");
-    await page.getByRole("button", { name: "Activity", exact: true }).click();
+    await page.getByRole("button", { name: "Usage", exact: true }).click();
     await main.getByRole("button", { name: "Discovery", exact: true }).click();
     await expect(main.getByRole("button", { name: "Discovery", exact: true })).toHaveClass(/on/);
     await expect(main.getByText("taiwan equity")).toBeVisible();
@@ -111,7 +111,7 @@ test.describe("v2 Resources tab", () => {
     ).toBeVisible();
   });
 
-  test("View activity switches to Activity tab filtered", async ({ page }) => {
+  test("View activity switches to Usage tab filtered", async ({ page }) => {
     await capacityInventory(page).locator('[data-kind="metered"]', { hasText: "BigQuery" }).click();
     await page.locator("aside").getByRole("button", { name: "View activity →" }).click();
     await expect(page.getByRole("button", { name: /Remote table events/ })).toBeVisible();
@@ -127,9 +127,9 @@ test.describe("v2 Resources tab", () => {
     await expect(rail).toContainText("Explain this metered Resources provider");
   });
 
-  test("approval review row lives in Activity", async ({ page }) => {
+  test("approval review row lives in Usage", async ({ page }) => {
     const main = page.locator("main");
-    await page.getByRole("button", { name: "Activity", exact: true }).click();
+    await page.getByRole("button", { name: "Usage", exact: true }).click();
     await expect(main.getByRole("heading", { name: "Review queue" })).toBeVisible();
     await expect(main.getByRole("button", { name: /awaiting approval/ })).toBeVisible();
     await expect(main.getByRole("button", { name: /Approval needed/ })).toBeVisible();

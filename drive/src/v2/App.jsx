@@ -49,7 +49,9 @@ import {
 } from "@/v2/discoverLifecycle";
 import { Toast, useToast } from "@/v2/toast";
 import { V2Sidebar } from "@/v2/V2Sidebar";
-import { touchRecent } from "@/v2/recent";
+import { recentDatasets, touchRecent } from "@/v2/recent";
+import { displayName } from "@/v2/datasetMeta";
+import { buildLab } from "@/v2/profileViewModel";
 import { mergeHealth, resolveCatalog } from "@/v2/deskSeed";
 import { buildDeskIntegrationChips } from "@/v2/deskIntegration";
 import { loadSettings } from "@/v2/settingsStore";
@@ -179,7 +181,7 @@ export function V2App() {
   const [cluster, setCluster] = useState(null);
   const [resourcesRollup, setResourcesRollup] = useState(undefined);
   const [resourcesRefreshedAt, setResourcesRefreshedAt] = useState(null);
-  const [resourceMode, setResourceMode] = useState("spending");
+  const [resourceMode, setResourceMode] = useState("sources");
   const [activityFilter, setActivityFilter] = useState(null);
   const [pendingAsk, setPendingAsk] = useState("");
   const { toast, show: showToast, dismissIf: dismissToastIf } = useToast();
@@ -731,10 +733,10 @@ export function V2App() {
       const row = resourceRowForJob(job);
       if (!row) {
         goTab("resources");
-        setResourceMode("spending");
+        setResourceMode("sources");
         return;
       }
-      setResourceMode("spending");
+      setResourceMode("sources");
       setActivityFilter(null);
       setResourceRow(row);
       setActiveObject(resourceObject(row));
@@ -963,7 +965,7 @@ export function V2App() {
   const openHomeAttention = useCallback(
     (item) => {
       if (item?.tab === "resources" && item.resourceRow) {
-        setResourceMode("spending");
+        setResourceMode("sources");
         setActivityFilter(null);
         setResourceRow(item.resourceRow);
         setActiveObject(resourceObject(item.resourceRow));
@@ -1159,6 +1161,34 @@ export function V2App() {
 
   const hideRail = tab === "browse" && !browseTarget && !selectedHistoryEvent;
 
+  const activeResearch = useMemo(() => {
+    const lab = buildLab(profile);
+    const title =
+      profile?.research_direction ||
+      profile?.current_research ||
+      profile?.name_en ||
+      "Active research";
+    const emphases = [
+      ...(Array.isArray(profile?.research_emphases) ? profile.research_emphases : []),
+      ...(Array.isArray(lab?.themes) ? lab.themes : []),
+      ...(Array.isArray(profile?.themes) ? profile.themes : []),
+    ]
+      .map((item) => (typeof item === "string" ? item : item?.label || item?.name))
+      .filter(Boolean)
+      .slice(0, 3);
+    return { title: String(title).slice(0, 48), emphases };
+  }, [profile]);
+
+  const sidebarRecent = useMemo(
+    () =>
+      recentDatasets(datasets, 4).map((ds) => ({
+        id: ds.dataset_id,
+        title: displayName(ds),
+        dataset: ds,
+      })),
+    [datasets],
+  );
+
   return (
     <div className={`yzu-shell with-inspector rd-theme-light rd-v2-shell${hideRail ? " no-rail" : ""}`}>
       <V2DeskHeader
@@ -1189,8 +1219,21 @@ export function V2App() {
         }
         refreshedAt={deskRefreshedAt}
         integrationChips={usingSeed ? [] : buildDeskIntegrationChips(health)}
+        activeResearchTitle={activeResearch.title}
+        currentPage={tab}
       />
-      <V2Sidebar tab={tab} onTabChange={goTab} />
+      <V2Sidebar
+        tab={tab}
+        onTabChange={goTab}
+        activeResearch={activeResearch}
+        recentItems={sidebarRecent}
+        onOpenRecent={(item) => {
+          if (item?.dataset) {
+            goTab("library");
+            selectDataset(item.dataset);
+          }
+        }}
+      />
       <main className="yzu-main rd-v2-shell-main">
         {main}
         <PreviewModal
@@ -1224,7 +1267,7 @@ export function V2App() {
         onPreview={() => detail && openPreview(detail)}
         onAskAbout={askAboutSelection}
         onViewActivity={(filter) => {
-          setResourceMode("activity");
+          setResourceMode("usage");
           setActivityFilter(filter);
           setRailTab("detail");
         }}

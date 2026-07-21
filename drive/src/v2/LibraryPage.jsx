@@ -39,7 +39,11 @@ function itemUpdatedTime(item) {
 
 function itemMatchesFilter(item, mode) {
   if (mode === "all" || item?.kind === "folder") return true;
-  return libraryAssetCounts([itemDataset(item)]).queryReady === 1;
+  const counts = libraryAssetCounts([itemDataset(item)]);
+  if (mode === "ready") return counts.queryReady === 1;
+  if (mode === "registered") return counts.registered === 1 && counts.metadataOnly === 0;
+  if (mode === "metadata") return counts.metadataOnly === 1;
+  return true;
 }
 
 function sortItems(rows, sortBy, isRoot) {
@@ -121,24 +125,22 @@ function LibraryNewMenu({ open, onToggle, onUploadFile, onAddUrl, onProcure, onC
         className="rd-v2-btn sm rd-v2-library-action-btn primary"
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label="Open new library item menu"
+        aria-label="Add evidence"
         onClick={onToggle}
       >
-        New ▾
+        + Add evidence ▾
       </button>
       {open ? (
-        <div className="rd-v2-library-action-menu" role="menu" aria-label="New library item">
+        <div className="rd-v2-library-action-menu" role="menu" aria-label="Add evidence">
           <button type="button" role="menuitem" className="rd-v2-library-menu-item" onClick={onUploadFile}>
-            Upload file...
+            Upload files…
           </button>
           <button type="button" role="menuitem" className="rd-v2-library-menu-item" onClick={onAddUrl}>
-            Add URL / DOI...
+            Add URL or DOI…
           </button>
+          <hr className="rd-v2-library-menu-sep" />
           <button type="button" role="menuitem" className="rd-v2-library-menu-item" onClick={onProcure}>
-            Find missing data...
-          </button>
-          <button type="button" role="menuitem" className="rd-v2-library-menu-item" disabled>
-            New folder
+            Find external evidence…
           </button>
         </div>
       ) : null}
@@ -193,6 +195,7 @@ export function LibraryPage({
   const [sortBy, setSortBy] = useState("name");
   const [filterMode, setFilterMode] = useState("all");
   const [newMenuOpen, setNewMenuOpen] = useState(false);
+  const [estateQuery, setEstateQuery] = useState("");
 
   const tree = useMemo(
     () => buildConsumerDriveTree(datasets, { scope: DRIVE_LAB }),
@@ -313,6 +316,8 @@ export function LibraryPage({
         selectedId={selectedId}
         filterMode={filterMode}
         sortBy={sortBy}
+        estateQuery={estateQuery}
+        onEstateQueryChange={setEstateQuery}
         onFilterChange={setFilterMode}
         onSortChange={setSortBy}
         onOpenFolder={(folder) => onFolderChange(folder.id)}

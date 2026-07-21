@@ -3,106 +3,89 @@ import { StatusPill } from "@/v2/StatusPill";
 import {
   assetMeta,
   assetPurpose,
-  assetTypeLabel,
   collectionEstateSummary,
   libraryAssetCounts,
 } from "@/v2/libraryEstate";
 
-function LibraryFilterMenu({ mode, counts, onChange }) {
+/**
+ * Library estate — LIBRARY_FULL_SCALE_FREEZE skeletal centre:
+ * readiness chips · COLLECTIONS | EVIDENCE ledger (SOURCE · VERIFY · STATE)
+ */
+
+function ReadinessChips({ mode, counts, onChange }) {
+  const chips = [
+    { id: "all", label: "All", count: counts.total },
+    { id: "ready", label: "Query-ready", count: counts.queryReady },
+    { id: "registered", label: "Registered", count: counts.registered },
+    { id: "metadata", label: "Metadata only", count: counts.metadataOnly },
+  ];
   return (
-    <details className="rd-v2-library-control-menu" data-testid="library-filter-menu">
-      <summary>
-        <span>Filter</span>
-        {mode === "ready" ? <strong>Query ready</strong> : null}
-      </summary>
-      <div className="rd-v2-library-control-popover" role="group" aria-label="Filter Library assets">
-        <button type="button" className={mode === "all" ? "on" : ""} onClick={(event) => { onChange("all"); event.currentTarget.closest("details")?.removeAttribute("open"); }}>
-          <span>All assets</span>
-          <b>{counts.total}</b>
+    <div className="rd-v2-library-readiness" role="tablist" aria-label="Evidence readiness">
+      {chips.map((chip) => (
+        <button
+          key={chip.id}
+          type="button"
+          role="tab"
+          aria-selected={mode === chip.id}
+          className={mode === chip.id ? "on" : ""}
+          onClick={() => onChange(chip.id)}
+        >
+          {chip.label} <b>{chip.count}</b>
         </button>
-        <button type="button" className={mode === "ready" ? "on" : ""} onClick={(event) => { onChange("ready"); event.currentTarget.closest("details")?.removeAttribute("open"); }}>
-          <span>Query ready</span>
-          <b>{counts.queryReady}</b>
-        </button>
-      </div>
-    </details>
+      ))}
+    </div>
   );
 }
 
-function LibrarySortMenu({ sortBy, onChange }) {
-  return (
-    <details className="rd-v2-library-control-menu" data-testid="library-sort-menu">
-      <summary>
-        <span>Sort</span>
-        <strong>{sortBy === "updated" ? "Last modified" : "Name"}</strong>
-      </summary>
-      <div className="rd-v2-library-control-popover" role="group" aria-label="Sort Library assets">
-        <button type="button" className={sortBy === "name" ? "on" : ""} onClick={(event) => { onChange("name"); event.currentTarget.closest("details")?.removeAttribute("open"); }}>
-          Name
-        </button>
-        <button type="button" className={sortBy === "updated" ? "on" : ""} onClick={(event) => { onChange("updated"); event.currentTarget.closest("details")?.removeAttribute("open"); }}>
-          Last modified
-        </button>
-      </div>
-    </details>
-  );
+function sourceCell(row) {
+  return row?.source || row?.publisher || row?.source_route || row?.backend || "—";
 }
 
-function CollectionCard({ folder, datasets, onOpen }) {
+function verifyCell(row) {
+  const kind = statusPillKind(row).kind;
+  if (kind === "query-ready") return "Verified";
+  if (row?.archive_verified === true) return "Archived";
+  if (kind === "connected") return "Connected";
+  return "Unverified";
+}
+
+function CollectionTreeItem({ folder, datasets, onOpen, active }) {
   const summary = collectionEstateSummary(folder, datasets);
   return (
     <button
       type="button"
-      className={`rd-v2-library-collection rd-v2-library-collection-${summary.tone}`}
+      className={`rd-v2-library-tree-item${active ? " on" : ""}`}
       onClick={() => onOpen(folder)}
       data-testid="library-collection"
       data-kind="folder"
     >
-      <span className="rd-v2-library-collection-mark" aria-hidden>
-        <span />
-      </span>
-      <span className="rd-v2-library-collection-copy">
-        <strong>{summary.title}</strong>
-        <span>{summary.description}</span>
-        <em>
-          {summary.counts.total} dataset{summary.counts.total === 1 ? "" : "s"}
-          {summary.counts.queryReady ? ` · ${summary.counts.queryReady} query ready` : ""}
-        </em>
-      </span>
-      <span className="rd-v2-library-row-arrow" aria-hidden>→</span>
+      <strong>{summary.title}</strong>
+      <span>{summary.counts.total}</span>
     </button>
   );
 }
 
-function AssetRow({ item, selected, onSelect, onDoubleClick }) {
+function EvidenceLedgerRow({ item, selected, onSelect, onDoubleClick }) {
   const row = item?.row || item;
   const purpose = assetPurpose(row);
-  const meta = assetMeta(row);
-  const state = statusPillKind(row);
   return (
     <button
       type="button"
-      className={`rd-v2-library-asset${selected ? " selected" : ""}`}
+      className={`rd-v2-library-ledger-row${selected ? " selected" : ""}`}
       onClick={() => onSelect(row)}
       onDoubleClick={() => onDoubleClick?.(row)}
       data-kind="dataset"
-      data-readiness={state.kind}
       aria-pressed={selected}
     >
-      <span className="rd-v2-library-asset-main">
-        <span className="rd-v2-library-asset-heading">
-          <strong>{displayName(row)}</strong>
-          <StatusPill dataset={row} />
-        </span>
-        {purpose ? <span className="rd-v2-library-asset-purpose">{purpose}</span> : null}
-        {meta.length ? (
-          <span className="rd-v2-library-asset-meta">
-            {meta.map((value) => <em key={value}>{value}</em>)}
-          </span>
-        ) : null}
+      <span className="rd-v2-library-ledger-title">
+        <strong>{displayName(row)}</strong>
+        {purpose ? <em>{purpose}</em> : null}
       </span>
-      <span className="rd-v2-library-asset-type">{assetTypeLabel(row)}</span>
-      <span className="rd-v2-library-row-arrow" aria-hidden>→</span>
+      <span className="rd-v2-library-ledger-source">{sourceCell(row)}</span>
+      <span className="rd-v2-library-ledger-verify">{verifyCell(row)}</span>
+      <span className="rd-v2-library-ledger-state">
+        <StatusPill dataset={row} />
+      </span>
     </button>
   );
 }
@@ -117,6 +100,8 @@ export function LibraryEstateBrowser({
   selectedId,
   filterMode,
   sortBy,
+  estateQuery = "",
+  onEstateQueryChange,
   onFilterChange,
   onSortChange,
   onOpenFolder,
@@ -126,75 +111,109 @@ export function LibraryEstateBrowser({
   const folders = rows.filter((item) => item?.kind === "folder");
   const assets = rows.filter((item) => item?.kind !== "folder");
   const counts = libraryAssetCounts(branchDatasets);
-  const rootTitle = "All holdings";
+  const q = String(estateQuery || "").trim().toLowerCase();
+  const visibleAssets = q
+    ? assets.filter((item) => {
+        const row = item?.row || item;
+        const hay = [displayName(row), assetPurpose(row), sourceCell(row), ...(assetMeta(row) || [])]
+          .join(" ")
+          .toLowerCase();
+        return hay.includes(q);
+      })
+    : assets;
 
   return (
-    <div className="rd-v2-library-estate" data-testid="library-estate-browser">
-      <section className="rd-v2-library-estate-summary" aria-label="Library estate summary">
+    <div className="rd-v2-library-estate rd-v2-library-estate-wire" data-testid="library-estate-browser">
+      <header className="rd-v2-library-estate-head">
         <div>
-          <p className="rd-v2-library-estate-eyebrow">{isRoot ? "Research data estate" : "Folder"}</p>
-          <h2>{isRoot ? rootTitle : currentFolderName}</h2>
-          <p className="rd-v2-library-estate-scope">
+          <h2>{isRoot ? "Research evidence estate" : currentFolderName}</h2>
+          <p>
             {counts.total} asset{counts.total === 1 ? "" : "s"}
-            {counts.queryReady ? ` · ${counts.queryReady} ready to use` : ""}
+            {counts.queryReady ? ` · ${counts.queryReady} query-ready` : ""}
           </p>
           {!isRoot && branchNote ? <p className="rd-v2-library-estate-note">{branchNote}</p> : null}
         </div>
-        <div className="rd-v2-library-estate-controls">
-          <LibraryFilterMenu mode={filterMode} counts={counts} onChange={onFilterChange} />
-          <LibrarySortMenu sortBy={sortBy} onChange={onSortChange} />
-        </div>
-      </section>
+        <label className="rd-v2-library-estate-search">
+          <span className="sr-only">Search assets</span>
+          <input
+            value={estateQuery}
+            onChange={(e) => onEstateQueryChange?.(e.target.value)}
+            placeholder="Search assets, entities, fields, sources, provenance…"
+            aria-label="Search Library estate"
+          />
+        </label>
+      </header>
 
-      {folders.length ? (
-        <section className="rd-v2-library-estate-section" aria-label="Collections">
-          <header className="rd-v2-library-estate-section-head">
-            <div>
-              <p>Folders</p>
-              <span>{isRoot ? "Organize and browse the lab's data estate" : "Folders in this collection"}</span>
-            </div>
+      <ReadinessChips mode={filterMode} counts={counts} onChange={onFilterChange} />
+
+      <div className="rd-v2-library-split">
+        <aside className="rd-v2-library-collections-pane" aria-label="Collections">
+          <header>
+            <span>Collections</span>
             <b>{folders.length}</b>
           </header>
-          <div className="rd-v2-library-collections">
-            {folders.map((folder) => (
-              <CollectionCard key={folder.id} folder={folder} datasets={datasets} onOpen={onOpenFolder} />
-            ))}
-          </div>
-        </section>
-      ) : null}
-
-      {assets.length ? (
-        <section className="rd-v2-library-estate-section" aria-label="Assets">
-          <header className="rd-v2-library-estate-section-head">
-            <div>
-              <p>Data assets</p>
-              <span>Registered datasets and reusable research objects</span>
-            </div>
-            <b>{assets.length}</b>
-          </header>
-          <div className="rd-v2-library-assets">
-            {assets.map((item) => {
-              const row = item?.row || item;
-              return (
-                <AssetRow
-                  key={row.dataset_id || item.id}
-                  item={item}
-                  selected={selectedId === row.dataset_id}
-                  onSelect={onSelectDataset}
-                  onDoubleClick={onPreviewDataset}
+          <div className="rd-v2-library-tree">
+            {folders.length ? (
+              folders.map((folder) => (
+                <CollectionTreeItem
+                  key={folder.id}
+                  folder={folder}
+                  datasets={datasets}
+                  onOpen={onOpenFolder}
                 />
-              );
-            })}
+              ))
+            ) : (
+              <p className="rd-v2-library-pane-empty">No collections in this branch.</p>
+            )}
+          </div>
+        </aside>
+
+        <section className="rd-v2-library-evidence-pane" aria-label="Evidence">
+          <header className="rd-v2-library-ledger-head">
+            <span>Evidence</span>
+            <span>Source</span>
+            <span>Verify</span>
+            <span>State</span>
+          </header>
+          <div className="rd-v2-library-ledger">
+            {visibleAssets.length ? (
+              visibleAssets.map((item) => {
+                const row = item?.row || item;
+                return (
+                  <EvidenceLedgerRow
+                    key={row.dataset_id || item.id}
+                    item={item}
+                    selected={selectedId === row.dataset_id}
+                    onSelect={onSelectDataset}
+                    onDoubleClick={onPreviewDataset}
+                  />
+                );
+              })
+            ) : (
+              <div className="rd-v2-library-empty">
+                <strong>No holdings in this collection</strong>
+                <p>Clear the filter or return to Lab to browse the indexed data estate.</p>
+              </div>
+            )}
+          </div>
+          <div className="rd-v2-library-ledger-tools">
+            <button
+              type="button"
+              className={sortBy === "name" ? "on" : ""}
+              onClick={() => onSortChange?.("name")}
+            >
+              Name
+            </button>
+            <button
+              type="button"
+              className={sortBy === "updated" ? "on" : ""}
+              onClick={() => onSortChange?.("updated")}
+            >
+              Last modified
+            </button>
           </div>
         </section>
-      ) : null}
-
-      {!rows.length ? (
-        <div className="rd-v2-library-empty">
-          <strong>No holdings in this collection</strong>
-          <p>Clear the filter or return to Lab to browse the indexed data estate.</p>
-        </div>
-      ) : null}
+      </div>
     </div>
   );
 }

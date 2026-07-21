@@ -1,4 +1,4 @@
-/** v2 header — docs/design/UX_SPEC_MICRO.md §1.2 */
+/** v2 header — freeze shell: research context ▾ · page · search · resting status */
 
 function freshnessLabel(refreshedAt) {
   if (refreshedAt == null) return null;
@@ -7,6 +7,16 @@ function freshnessLabel(refreshedAt) {
   const min = Math.round(sec / 60);
   return `${min}m ago`;
 }
+
+const PAGE_LABELS = {
+  home: "HOME",
+  library: "LIBRARY",
+  browse: "DISCOVER",
+  synthesis: "SYNTHESIS",
+  resources: "RESOURCES",
+  profile: "PROFILE",
+  settings: "SETTINGS",
+};
 
 export function V2DeskHeader({
   searchQuery,
@@ -24,6 +34,8 @@ export function V2DeskHeader({
   refreshedAt = null,
   dryRunProtected = true,
   integrationChips = [],
+  activeResearchTitle = "Active research",
+  currentPage = "home",
 }) {
   const metaText = usingSeed
     ? `${datasetCount} datasets`
@@ -32,15 +44,27 @@ export function V2DeskHeader({
       : `${datasetCount} datasets`;
   const fresh = freshnessLabel(refreshedAt);
   const chips = Array.isArray(integrationChips) ? integrationChips : [];
+  const pageLabel = PAGE_LABELS[currentPage] || String(currentPage || "").toUpperCase();
 
   return (
-    <header className="yzu-header rd-v2-header">
+    <header className="yzu-header rd-v2-header rd-v2-header-wire">
       <button type="button" className="yzu-brand" onClick={onBrandClick}>
         <span className="rd-brand-mark">RD</span>
         <div className="yzu-brand-text">
           <strong>Research Drive</strong>
         </div>
       </button>
+
+      <div className="rd-v2-header-context" aria-label="Active research context">
+        <button type="button" className="rd-v2-header-research" title={activeResearchTitle}>
+          <span>{activeResearchTitle}</span>
+          <em aria-hidden>▾</em>
+        </button>
+        <span className="rd-v2-header-page" data-testid="header-page-label">
+          {pageLabel}
+        </span>
+      </div>
+
       <div className="rd-search rd-v2-search-pill">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path
@@ -83,7 +107,6 @@ export function V2DeskHeader({
           ) : (
             <span className="rd-v2-trust-badge warn">Desk API offline</span>
           )}
-          {/* Resting header: only warn/error integration chips — not tool dumps */}
           {chips
             .filter((chip) => chip.tone === "warn" || chip.tone === "error" || chip.tone === "danger")
             .map((chip) => (

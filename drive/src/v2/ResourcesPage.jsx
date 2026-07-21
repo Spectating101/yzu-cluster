@@ -754,17 +754,26 @@ export function ResourcesPage({
   return (
     <PageShell
       title="Resources"
-      lead="Capacity, usage, and research capability across the lab."
+      lead="Sources · usage · evidence-movement method."
       toolbar={
         <>
-          <Chip active={mode === "spending"} onClick={() => onModeChange?.("spending")}>
-            Overview
+          <Chip
+            active={mode === "sources" || mode === "spending"}
+            onClick={() => onModeChange?.("sources")}
+          >
+            Sources
           </Chip>
-          <Chip active={mode === "activity"} onClick={() => onModeChange?.("activity")}>
-            Activity
+          <Chip
+            active={mode === "usage" || mode === "activity"}
+            onClick={() => onModeChange?.("usage")}
+          >
+            Usage
+          </Chip>
+          <Chip active={mode === "method"} onClick={() => onModeChange?.("method")}>
+            Method
           </Chip>
           <WorkersToolbarStat workers={viewRollup?.hero?.workers} />
-          {mode === "spending" ? (
+          {(mode === "sources" || mode === "spending") && periodLabel ? (
             <span className="rd-v2-toolbar-meta">{periodLabel}</span>
           ) : filterLabel ? (
             <Chip active onClick={() => onClearActivityFilter?.()}>
@@ -783,20 +792,26 @@ export function ResourcesPage({
         </p>
       ) : null}
 
-      {mode === "spending" ? (
+      {mode === "sources" || mode === "spending" ? (
         isInitialLoading ? (
           <p className="rd-v2-res-loading" role="status">
             Loading resources…
           </p>
         ) : (
           <>
-            <ResourcesStatusStrip rollup={viewRollup} />
-            <ResearchCapability
-              cluster={health?.cluster || cluster}
-              panels={panels}
-              rollup={viewRollup}
-              catalogSummary={catalogSummary}
-            />
+            <section className="rd-v2-res-wire-band" aria-label="Capacity and access">
+              <h2 className="rd-v2-res-wire-title">Capacity &amp; access</h2>
+              <ResourcesStatusStrip rollup={viewRollup} />
+            </section>
+            <section className="rd-v2-res-wire-band" aria-label="Source capabilities">
+              <h2 className="rd-v2-res-wire-title">Source capabilities</h2>
+              <ResearchCapability
+                cluster={health?.cluster || cluster}
+                panels={panels}
+                rollup={viewRollup}
+                catalogSummary={catalogSummary}
+              />
+            </section>
             <ResourceInventory
               sections={inventorySections}
               selectedKey={selectedKey}
@@ -804,16 +819,49 @@ export function ResourcesPage({
             />
           </>
         )
+      ) : mode === "method" ? (
+        <section className="rd-v2-res-method-wire" data-testid="resources-method" aria-label="Evidence movement method">
+          <h2 className="rd-v2-res-wire-title">Evidence movement</h2>
+          <ol className="rd-v2-res-method-map">
+            <li>
+              <strong>Find</strong>
+              <span>Discover ranks candidate evidence against the research need.</span>
+            </li>
+            <li>
+              <strong>Acquire</strong>
+              <span>Approved requests become durable collection jobs.</span>
+            </li>
+            <li>
+              <strong>Execute</strong>
+              <span>Workers run the chosen route under dry-run protection.</span>
+            </li>
+            <li>
+              <strong>Promote</strong>
+              <span>Archive + registry read-back yields a Library asset.</span>
+            </li>
+          </ol>
+          <div className="rd-v2-res-method-progress">
+            <h3>Current method progress</h3>
+            <p>
+              {reviewRows.length
+                ? `${reviewRows.length} item${reviewRows.length === 1 ? "" : "s"} need researcher review before collection continues.`
+                : "No method decisions waiting. Active routes appear here when collection is in flight."}
+            </p>
+          </div>
+        </section>
       ) : (
         <>
-          <ActivityFilterBar
-            value={activityFilter ? null : activityKind}
-            onChange={(next) => {
-              onClearActivityFilter?.();
-              setActivityKind(next);
-            }}
-          />
-          <ActivityUsageSummary rollup={viewRollup} />
+          <section className="rd-v2-res-wire-band" aria-label="Usage">
+            <h2 className="rd-v2-res-wire-title">Recorded expenditure</h2>
+            <ActivityFilterBar
+              value={activityFilter ? null : activityKind}
+              onChange={(next) => {
+                onClearActivityFilter?.();
+                setActivityKind(next);
+              }}
+            />
+            <ActivityUsageSummary rollup={viewRollup} />
+          </section>
           {showActivityAttention ? (
             <StatementSection title="Review queue">
               {reviewRows.map((r) => {
@@ -823,7 +871,7 @@ export function ResourcesPage({
                     key={key}
                     {...rowProps}
                     active={selectedKey === key}
-                    onClick={() => issue ? selectIssue(issue) : onSelectRow?.(r)}
+                    onClick={() => (issue ? selectIssue(issue) : onSelectRow?.(r))}
                   />
                 );
               })}
@@ -832,7 +880,7 @@ export function ResourcesPage({
           {showActivityFeed ? (
             <ActivityLog rows={activity} selectedKey={selectedKey} onSelectRow={onSelectRow} />
           ) : reviewRows.length ? null : (
-            <p className="rd-v2-res-idle">No review items right now.</p>
+            <p className="rd-v2-res-idle">No usage rows in this period.</p>
           )}
         </>
       )}
