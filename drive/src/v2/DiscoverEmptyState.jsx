@@ -1,32 +1,44 @@
 import { DISCOVER_SUGGESTIONS } from "@/v2/deskSeed";
-import { Chip, ChipRow } from "@/v2/ui";
 
+/**
+ * Discover Explore empty / starter — toward DISCOVER_FULL_SCALE_FREEZE Explore wireframe.
+ * Not a giant marketing card: evidence-need prompt + ranked starter lanes.
+ */
 export function DiscoverEmptyState({ onSuggest }) {
   const suggestions = DISCOVER_SUGGESTIONS.length
     ? DISCOVER_SUGGESTIONS
-    : ["TWSE governance", "MOPS filings", "stablecoin"];
+    : ["TWSE governance", "MOPS filings", "stablecoin", "Indonesia IDX", "GDELT news shocks"];
 
   return (
-    <div className="rd-v2-discover-empty" data-testid="discover-empty">
-      <div className="rd-v2-discover-empty-icon" aria-hidden>
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-          <circle cx="11" cy="11" r="8" />
-          <path d="m21 21-4.35-4.35" strokeLinecap="round" />
-        </svg>
-      </div>
-      <h2>Discover external datasets</h2>
-      <p>
-        Search the header bar to find datasets outside your lab vault — TWSE, MOPS, DataCite, and registry
-        sources. Select a row to procure into the vault.
-      </p>
-      <p className="rd-v2-discover-empty-hint">Try a suggested query:</p>
-      <ChipRow>
-        {suggestions.map((s) => (
-          <Chip key={s} active onClick={() => onSuggest?.(s)}>
-            {s}
-          </Chip>
-        ))}
-      </ChipRow>
+    <div className="rd-v2-discover-explore-start" data-testid="discover-empty">
+      <header className="rd-v2-discover-explore-need">
+        <span className="rd-v2-eyebrow">Explore</span>
+        <h2>What evidence are you looking for?</h2>
+        <p>
+          Use the header search to describe the evidence need. Results stay ranked in this centre;
+          Detail judges the selected source.
+        </p>
+        <p className="rd-v2-discover-explore-hint muted">
+          Search the header bar — TWSE, MOPS, DataCite, registry sources, and lab overlap.
+        </p>
+      </header>
+
+      <section className="rd-v2-discover-explore-starters" aria-label="Suggested evidence needs">
+        <div className="rd-v2-home-section-head">
+          <h3>Try a grounded starter</h3>
+        </div>
+        <ul className="rd-v2-discover-starter-list">
+          {suggestions.slice(0, 6).map((s) => (
+            <li key={s}>
+              <button type="button" className="rd-v2-discover-starter-row" onClick={() => onSuggest?.(s)}>
+                <strong>{s}</strong>
+                <span>Interpret as an evidence need and rank candidates</span>
+                <em>Search →</em>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </section>
     </div>
   );
 }

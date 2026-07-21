@@ -999,6 +999,7 @@ export function V2App() {
           health={health}
           cluster={health?.cluster}
           profile={profile}
+          resourcesRollup={resourcesRollup}
           acquisitions={acquisitions}
           partitions={partitions}
           jobs={jobs}
@@ -1009,6 +1010,10 @@ export function V2App() {
           onSelectDataset={selectDataset}
           onPreviewDataset={openPreview}
           onAskAttention={askHomeAttention}
+          onSuggestSearch={(q) => {
+            setSearchQuery(q);
+            goTab("browse");
+          }}
         />
       );
       break;

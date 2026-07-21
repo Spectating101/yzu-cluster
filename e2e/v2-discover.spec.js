@@ -22,8 +22,8 @@ test.describe("v2 Discover tab", () => {
 
   test("empty state shows suggestions before search", async ({ page }) => {
     await expect(page.getByTestId("discover-empty")).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Discover external datasets" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "TWSE governance" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "What evidence are you looking for?" })).toBeVisible();
+    await expect(page.getByRole("button", { name: /TWSE governance/i })).toBeVisible();
   });
 
   test("suggestion chip fills header search and shows demo results", async ({ page }) => {

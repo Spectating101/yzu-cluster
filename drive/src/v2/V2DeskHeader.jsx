@@ -83,8 +83,10 @@ export function V2DeskHeader({
           ) : (
             <span className="rd-v2-trust-badge warn">Desk API offline</span>
           )}
-          {chips.map((chip) =>
-            chip.id === "desk" && (deskStatus === "degraded" || deskStatus === "ok") ? null : (
+          {/* Resting header: only warn/error integration chips — not tool dumps */}
+          {chips
+            .filter((chip) => chip.tone === "warn" || chip.tone === "error" || chip.tone === "danger")
+            .map((chip) => (
               <span
                 key={chip.id}
                 className={`rd-v2-trust-badge ${chip.tone || "muted"}`}
@@ -92,14 +94,13 @@ export function V2DeskHeader({
               >
                 {chip.label}
               </span>
-            ),
-          )}
+            ))}
           {dryRunProtected ? (
             <span className="rd-v2-trust-badge">Dry-run protected</span>
           ) : null}
           {fresh ? <span className="rd-v2-trust-badge muted">Updated {fresh}</span> : null}
         </div>
-        <span className="rd-v2-header-meta-count">
+        <span className="rd-v2-header-meta-count" title={metaText}>
           {workCount > 0 && onPendingClick ? (
             <>
               {`${datasetCount} datasets · `}
