@@ -110,10 +110,13 @@ test.describe("v2 Discover tab", () => {
     await expect(surface).toBeVisible();
     await expect(surface.locator(".rd-v2-eval-title")).toContainText(/MOPS|Taiwan/i);
     await expect(candidate).toHaveClass(/selected/);
-    await page.waitForTimeout(100);
-    await expect(surface).toBeVisible();
 
     await page.locator('[data-testid="discover-eval-actions"]').getByRole("button", { name: "Probe source" }).click();
+    const probeToast = page.locator('.rd-v2-toast[data-toast-scope="discover-probe"]');
+    await expect(probeToast).toBeVisible();
+    await expect(probeToast).toHaveAttribute("data-toast-candidate", /.+/);
+    await expect(surface).toBeVisible();
+    await expect(candidate).toHaveClass(/selected/);
     await expect(surface.locator(".rd-v2-eval-verified")).toContainText("text/csv");
     await expect(surface.locator(".rd-v2-eval-verified")).toContainText(/domain observed/i);
     await expect(surface.locator(".rd-v2-eval-verified")).not.toContainText("MOPS publisher");
