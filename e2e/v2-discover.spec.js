@@ -100,9 +100,18 @@ test.describe("v2 Discover tab", () => {
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
     await page.locator(".rd-v2-search-pill input").fill("mops");
-    await page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate', { hasText: "MOPS" }).click();
+    const candidate = page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate', { hasText: "MOPS" });
+    await candidate.click();
+
+    const rail = page.locator("aside.rd-v2-rail");
+    const surface = rail.getByTestId("discover-eval-surface");
+    await expect(surface).toBeVisible();
+    await expect(surface.locator(".rd-v2-eval-title")).toContainText(/MOPS|Taiwan/i);
+    await expect(candidate).toHaveClass(/selected/);
+    await page.waitForTimeout(100);
+    await expect(surface).toBeVisible();
+
     await page.locator('[data-testid="discover-eval-actions"]').getByRole("button", { name: "Probe source" }).click();
-    const surface = page.locator("aside.rd-v2-rail").getByTestId("discover-eval-surface");
     await expect(surface.locator(".rd-v2-eval-verified")).toContainText("text/csv");
     await expect(surface.locator(".rd-v2-eval-verified")).toContainText(/domain observed/i);
     await expect(surface.locator(".rd-v2-eval-verified")).not.toContainText("MOPS publisher");
