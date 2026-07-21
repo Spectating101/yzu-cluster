@@ -42,10 +42,7 @@ test.describe("Settings binding", () => {
     await expect(detail).toBeVisible();
     await expect(detail.getByText(/^Loading/i)).toHaveCount(0);
     await expect(page.getByTestId("settings-detail-action")).toBeVisible();
-
-    await page.getByTestId("settings-group-advanced").locator("summary").click();
-    await expect(page.getByTestId("settings-advanced-body")).toBeVisible();
-    await expect(page.getByLabel("Fallback access token")).toBeVisible();
+    await expect(detail.getByText(/Identity|Access|Defaults|Advanced/i).first()).toBeVisible();
 
     await page.screenshot({
       path: path.join(OUT, "settings_desktop_1440.png"),
@@ -55,6 +52,15 @@ test.describe("Settings binding", () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.screenshot({
       path: path.join(OUT, "settings_mobile_390.png"),
+      fullPage: false,
+    });
+
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.getByTestId("settings-group-advanced").locator("summary").click();
+    await expect(page.getByTestId("settings-advanced-body")).toBeVisible();
+    await expect(page.getByLabel("Fallback access token")).toBeVisible();
+    await page.screenshot({
+      path: path.join(OUT, "settings_advanced_desktop_1440.png"),
       fullPage: false,
     });
   });
