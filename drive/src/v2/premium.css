@@ -921,9 +921,14 @@ summary:focus-visible {
 .rd-v2-profile-page .rd-v2-body-scroll {
   gap: 18px;
   padding: 22px;
+  overflow-y: auto;
   background:
     radial-gradient(circle at 12% 0%, rgba(71, 86, 232, .07), transparent 27rem),
     #f8f9fc;
+}
+
+.rd-v2-profile-page .rd-v2-body-scroll > * {
+  flex-shrink: 0;
 }
 
 .rd-v2-profile-identity {
@@ -948,11 +953,12 @@ summary:focus-visible {
 }
 
 .rd-v2-profile-section {
-  overflow: hidden;
+  overflow: visible;
   border: 1px solid #dfe4ec;
   border-radius: 16px;
   background: #fff;
   box-shadow: var(--rd-shadow-xs);
+  flex-shrink: 0;
 }
 
 .rd-v2-profile-section-head {

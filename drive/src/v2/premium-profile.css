@@ -131,8 +131,8 @@
 
 .rd-v2-profile-memory-anchor {
   position: relative;
-  overflow: hidden;
-  min-height: 198px;
+  overflow: visible;
+  min-height: 0;
   padding: 22px;
   border-radius: 16px;
   background:

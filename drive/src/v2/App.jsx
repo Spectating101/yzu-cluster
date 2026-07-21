@@ -1260,7 +1260,7 @@ export function V2App() {
       .map((item) => (typeof item === "string" ? item : item?.label || item?.name))
       .filter(Boolean)
       .slice(0, 3);
-    return { title: String(title).slice(0, 48), emphases };
+    return { title: String(title).slice(0, 96), emphases };
   }, [profile, pilotProfile]);
 
   const sidebarRecent = useMemo(
