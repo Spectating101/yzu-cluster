@@ -99,7 +99,9 @@ test.describe("v2 Discover tab", () => {
     await mockV2Api(page, { discoverBody: MOCK_DISCOVER_HIT });
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
-    await page.locator(".rd-v2-search-pill input").fill("mops");
+    const search = page.locator(".rd-v2-search-pill input");
+    await search.fill("mops");
+    await search.press("Enter");
     const candidate = page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate', { hasText: "MOPS" });
     await candidate.click();
 
