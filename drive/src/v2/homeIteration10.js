@@ -16,15 +16,34 @@ function purposeLine(ds) {
   );
 }
 
+function folderLabel(value) {
+  if (value == null || value === "") return "";
+  if (typeof value === "string" || typeof value === "number") return String(value);
+  if (typeof value === "object") {
+    return (
+      value.path ||
+      value.name ||
+      value.label ||
+      value.folder ||
+      value.id ||
+      value.dataset_id ||
+      ""
+    );
+  }
+  return "";
+}
+
 function folderLocation(ds) {
-  const folder =
-    ds?.library_folder ||
-    ds?.folder ||
-    ds?.collection ||
-    ds?.estate_folder ||
-    "";
+  const folder = folderLabel(
+    ds?.library_folder || ds?.folder || ds?.collection || ds?.estate_folder || "",
+  );
   if (folder) return `LIBRARY / ${String(folder).replace(/_/g, " ").toUpperCase()}`;
   return "LIBRARY";
+}
+
+function formatHeadroom(pct) {
+  if (!Number.isFinite(pct)) return "Capacity on file";
+  return `${Math.max(0, Math.round(100 - pct))}% headroom`;
 }
 
 export function buildPickUp({ datasets = [], jobs = [], health } = {}) {
@@ -102,14 +121,15 @@ export function buildResourceHeadroom(rollup) {
   const vault = usage.vault || hero.vault || {};
   if (vault.used_tb != null || vault.cap_tb != null) {
     const pct = vault.pct != null ? Number(vault.pct) : headroomPct(vault.used_tb, vault.cap_tb);
+    const used = Number.isFinite(Number(vault.used_tb)) ? Number(vault.used_tb) : null;
+    const cap = Number.isFinite(Number(vault.cap_tb)) ? Number(vault.cap_tb) : null;
     slots.push({
       id: "vault",
       name: vault.label || "GDrive vault",
       pinned: true,
-      metric: `${vault.used_tb ?? "?"}/${vault.cap_tb ?? "?"} TB`,
-      pct: Number.isFinite(pct) ? pct : null,
-      headroom:
-        Number.isFinite(pct) ? `${Math.max(0, 100 - pct)}% headroom` : "Capacity on file",
+      metric: `${used ?? "?"}/${cap ?? "?"} TB`,
+      pct: Number.isFinite(pct) ? Math.round(pct) : null,
+      headroom: formatHeadroom(pct),
       warn: pct != null && pct >= 75,
       action: "resources",
     });
@@ -119,18 +139,18 @@ export function buildResourceHeadroom(rollup) {
   const cache = usage.cache || {};
   if (hot.used_pct != null || hot.free_gb != null) {
     const pct = Number(hot.used_pct);
+    const free =
+      hot.free_gb != null && Number.isFinite(Number(hot.free_gb))
+        ? Math.round(Number(hot.free_gb) * 10) / 10
+        : null;
     slots.push({
       id: "hot",
       name: hot.label || "Working disk",
       pinned: false,
-      metric: hot.free_gb != null ? `${hot.free_gb} GB free` : `${pct}% used`,
-      pct: Number.isFinite(pct) ? pct : null,
+      metric: free != null ? `${free} GB free` : Number.isFinite(pct) ? `${Math.round(pct)}% used` : "Capacity",
+      pct: Number.isFinite(pct) ? Math.round(pct) : null,
       headroom:
-        Number.isFinite(pct) && pct >= 85
-          ? "Check →"
-          : Number.isFinite(pct)
-            ? `${Math.max(0, 100 - pct)}% headroom`
-            : "Capacity on file",
+        Number.isFinite(pct) && pct >= 85 ? "Check →" : formatHeadroom(pct),
       warn: hot.headroom_ok === false || (Number.isFinite(pct) && pct >= 85),
       action: Number.isFinite(pct) && pct >= 85 ? "check" : "resources",
     });
@@ -143,8 +163,8 @@ export function buildResourceHeadroom(rollup) {
       metric: cache.total_gb
         ? `${cache.used_gb ?? "?"}/${cache.total_gb} GB`
         : "mounted",
-      pct: Number.isFinite(pct) ? pct : null,
-      headroom: Number.isFinite(pct) ? `${Math.max(0, 100 - pct)}% headroom` : "Mounted",
+      pct: Number.isFinite(pct) ? Math.round(pct) : null,
+      headroom: formatHeadroom(pct),
       warn: pct != null && pct >= 85,
       action: "resources",
     });

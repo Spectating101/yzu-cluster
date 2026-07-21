@@ -22,6 +22,33 @@ test("pick up prefers recent library asset as primary", () => {
   assert.equal(secondary?.kind, "library_asset");
 });
 
+test("folder location never stringifies objects as [object Object]", () => {
+  const { primary } = buildPickUp({
+    datasets: [
+      {
+        dataset_id: "a",
+        name: "Alpha",
+        folder: { name: "asia_panels", path: "asia_panels" },
+      },
+    ],
+    jobs: [],
+    health: { desk: { jobs: {} } },
+  });
+  assert.match(primary.location, /ASIA PANELS|LIBRARY/);
+  assert.doesNotMatch(primary.location, /object Object/i);
+});
+
+test("resource headroom rounds float percentages", () => {
+  const slots = buildResourceHeadroom({
+    usage: {
+      vault: { used_tb: 0, cap_tb: 3, pct: 0, label: "GDrive vault" },
+      hot: { used_pct: 83.40000000000001, free_gb: 50.9123, label: "NVMe desk" },
+    },
+  });
+  assert.match(slots[1].headroom, /^16% headroom$/);
+  assert.match(slots[1].metric, /50\.9 GB free/);
+});
+
 test("pending approval becomes secondary decision, not a separate Attention page", () => {
   const { secondary, pending } = buildPickUp({
     datasets: [{ dataset_id: "a", name: "Alpha" }],
