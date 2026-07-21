@@ -1,14 +1,16 @@
 import {
-  buildDeskRead,
   buildLab,
   buildMemoryBrief,
+  buildResearchUnderstanding,
   buildWorks,
 } from "@/v2/profileViewModel";
 import {
   buildProfileRailState,
+  buildUnboundProfileCentre,
   isProfileBound,
   profileCentreMode,
   profilePrimaryCommand,
+  profileSectionsVisible,
 } from "@/v2/profilePresentation";
 import { PageShell } from "@/v2/ui";
 import {
@@ -18,10 +20,10 @@ import {
 } from "@/v2/RailFrame";
 
 /**
- * Profile — Memory · Works · Lab.
- * Bound: calm research brief + scan Works + compressed Lab.
- * Unbound desks stay quiet; EXAMPLE / pilot is never a primary CTA.
- * Memory is read-only here — browser-local identity lives in Settings.
+ * Profile — Understanding, then Memory · Works · Lab as supporting evidence.
+ * Bound: deterministic research reading + calm brief + scan Works + compressed Lab.
+ * Unbound: one compact zero-state + Settings CTA; no empty section shells.
+ * No inline Memory edits — browser-local identity lives in Settings / overlays.
  */
 export function ProfilePage({
   profile,
@@ -29,22 +31,28 @@ export function ProfilePage({
   onSelectWork,
   onGoTab,
   onSuggestSearch,
+  onAskAboutContext,
+  onAskAboutWork,
+  embedded = false,
 }) {
   const bound = isProfileBound(profile);
+  const showSections = profileSectionsVisible(profile);
   const mode = profileCentreMode(profile);
   const primary = profilePrimaryCommand(mode);
+  const unbound = bound ? null : buildUnboundProfileCentre();
   const name = bound
     ? profile?.name_en || profile?.name || "Research profile"
-    : "Desk unbound";
+    : unbound.title;
   const orgLine = bound
     ? [profile?.title, profile?.discipline].filter(Boolean).join(" · ")
-    : "Connect a faculty email to load research context";
+    : unbound.lead;
   const statusLine = bound
     ? "Research context bound on this browser"
-    : "No faculty email on this browser";
-  const brief = bound ? buildMemoryBrief(profile) : { statement: "", descriptors: [] };
-  const works = bound ? buildWorks(profile) : { paperCount: null, items: [] };
-  const lab = bound
+    : unbound.hint;
+  const understanding = showSections ? buildResearchUnderstanding(profile) : null;
+  const brief = showSections ? buildMemoryBrief(profile) : { statement: "", descriptors: [] };
+  const works = showSections ? buildWorks(profile) : { paperCount: null, items: [] };
+  const lab = showSections
     ? buildLab(profile)
     : { linked: [], suggested: [], linkedTotal: 0, gapTotal: 0, exploreQuery: "" };
 
@@ -65,15 +73,21 @@ export function ProfilePage({
 
   return (
     <PageShell
-      className={`rd-v2-profile-page${bound ? "" : " is-unbound"}`}
-      title="Profile"
-      lead="Research context for Discover and Ask"
+      className={`rd-v2-profile-page${bound ? "" : " is-unbound"}${embedded ? " is-embedded" : ""}`}
+      title={embedded ? null : "Profile"}
+      lead={
+        embedded
+          ? null
+          : bound
+            ? "How Research Drive reads this research context"
+            : "Bind a faculty email preference for this browser"
+      }
     >
-      <section className="rd-v2-profile-identity" aria-label="Faculty identity">
+      <section className="rd-v2-profile-identity" aria-label="Faculty identity" data-testid="profile-identity">
         <div className="rd-v2-profile-ident">
           {!bound ? (
             <span className="rd-v2-profile-badge quiet" data-testid="profile-unbound-badge">
-              Unbound
+              {unbound.badge}
             </span>
           ) : (
             <span className="rd-v2-profile-badge quiet" data-testid="profile-bound-badge">
@@ -90,7 +104,7 @@ export function ProfilePage({
           {primary ? (
             <button
               type="button"
-              className="rd-v2-btn sm"
+              className="rd-v2-btn sm primary"
               data-testid="profile-primary-command"
               onClick={() => onGoTab?.(primary.tab || "settings")}
             >
@@ -100,6 +114,118 @@ export function ProfilePage({
         </div>
       </section>
 
+      {showSections && understanding?.synthesis ? (
+        <section
+          className="rd-v2-profile-section rd-v2-profile-understanding"
+          data-testid="profile-understanding"
+          data-section="understanding"
+          aria-labelledby="profile-understanding-title"
+        >
+          <header className="rd-v2-profile-section-head">
+            <h2 id="profile-understanding-title">How Research Drive reads this</h2>
+            <span>Structured reading</span>
+          </header>
+
+          <p className="rd-v2-profile-understanding-synthesis" data-testid="profile-understanding-synthesis">
+            {understanding.synthesis}
+          </p>
+
+          <div className="rd-v2-profile-understanding-grid">
+            {understanding.threads.length ? (
+              <div className="rd-v2-profile-understanding-block" data-testid="profile-understanding-threads">
+                <h3>Threads seen</h3>
+                <ul>
+                  {understanding.threads.map((t) => (
+                    <li key={t.id}>
+                      <span>{t.label}</span>
+                      <em>{t.source}</em>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            {understanding.held ? (
+              <div className="rd-v2-profile-understanding-block" data-testid="profile-understanding-held">
+                <h3>Most relevant held evidence</h3>
+                <p>
+                  {understanding.held.label}
+                  <em> — {understanding.held.detail}</em>
+                </p>
+              </div>
+            ) : null}
+
+            {understanding.missing ? (
+              <div className="rd-v2-profile-understanding-block" data-testid="profile-understanding-missing">
+                <h3>Important evidence still missing</h3>
+                <p>
+                  {understanding.missing.label}
+                  <em> — {understanding.missing.detail}</em>
+                </p>
+              </div>
+            ) : null}
+          </div>
+
+          <div className="rd-v2-profile-understanding-layers">
+            {understanding.facts.length ? (
+              <div data-testid="profile-understanding-facts">
+                <h3>Facts on file</h3>
+                <ul>
+                  {understanding.facts.map((f) => (
+                    <li key={f}>{f}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            <div data-testid="profile-understanding-interpretation">
+              <h3>Interpretation</h3>
+              <p>
+                Deterministic composition of the fields above. It shapes Discover ranking and Ask
+                context on this browser; it is not a verified research claim.
+              </p>
+            </div>
+            {understanding.unknowns.length ? (
+              <div data-testid="profile-understanding-unknowns">
+                <h3>Unknowns</h3>
+                <ul>
+                  {understanding.unknowns.map((u) => (
+                    <li key={u}>{u}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <div data-testid="profile-understanding-unknowns">
+                <h3>Unknowns</h3>
+                <p>No structural gaps in the fields used for this reading.</p>
+              </div>
+            )}
+            {understanding.provenance.length ? (
+              <div data-testid="profile-understanding-provenance">
+                <h3>Where this came from</h3>
+                <ul>
+                  {understanding.provenance.map((p) => (
+                    <li key={p.kind}>{p.label}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </div>
+
+          {understanding.askContext && onAskAboutContext ? (
+            <button
+              type="button"
+              className="rd-v2-btn sm"
+              data-testid="profile-ask-about-context"
+              onClick={() => onAskAboutContext(understanding.askContext)}
+            >
+              Ask about this context
+            </button>
+          ) : null}
+        </section>
+      ) : null}
+
+      {showSections ? (
+        <>
       <section
         className="rd-v2-profile-section rd-v2-profile-memory-section"
         data-testid="profile-memory"
@@ -108,7 +234,7 @@ export function ProfilePage({
       >
         <header className="rd-v2-profile-section-head">
           <h2 id="profile-memory-title">Memory</h2>
-          <span>{bound ? (brief.statement ? "Context" : "None yet") : "Unavailable"}</span>
+          <span>{bound ? (brief.statement ? "Saved context" : "None yet") : "Unavailable"}</span>
         </header>
         {bound && brief.statement ? (
           <div className="rd-v2-profile-memory-brief">
@@ -131,7 +257,7 @@ export function ProfilePage({
               data-testid="profile-manage-context"
               onClick={() => onGoTab?.("settings")}
             >
-              Manage context in Settings
+              Manage research context
             </button>
           </div>
         ) : (
@@ -157,6 +283,7 @@ export function ProfilePage({
           {!bound ? <span>Unavailable</span> : null}
         </header>
         {bound && works.items.length ? (
+          <>
           <ul className="rd-v2-profile-works" role="listbox" aria-label="Publication works">
             {works.items.map((work, index) => {
               const selected = Boolean(selectedWorkId) && selectedWorkId === work.raw;
@@ -184,6 +311,20 @@ export function ProfilePage({
               );
             })}
           </ul>
+          {selectedWorkId && onAskAboutWork ? (
+            <button
+              type="button"
+              className="rd-v2-btn sm primary"
+              data-testid="profile-ask-about-work"
+              onClick={() => {
+                const work = works.items.find((w) => w.raw === selectedWorkId);
+                if (work) onAskAboutWork(work);
+              }}
+            >
+              Ask about this work
+            </button>
+          ) : null}
+          </>
         ) : (
           <p className="rd-v2-empty-inline" data-testid="profile-works-empty">
             {bound
@@ -268,13 +409,15 @@ export function ProfilePage({
           </div>
         ) : null}
       </section>
+        </>
+      ) : null}
     </PageShell>
   );
 }
 
 /**
- * DETAIL rail — selected work or research context synopsis.
- * Sticky CTA only for real actions (Ask about work / Connect email).
+ * DETAIL rail — understanding provenance, or selected-work Ask.
+ * Sticky CTA only for real Ask / Connect actions.
  */
 export function ProfileDetailPanel({
   profile,
@@ -282,14 +425,15 @@ export function ProfileDetailPanel({
   onGoTab,
   onClearWork,
   onAskAbout,
+  onAskAboutContext,
 }) {
+  const understanding = isProfileBound(profile) ? buildResearchUnderstanding(profile) : null;
   const rail = buildProfileRailState({
     profile: profile ?? { unknown: true },
     selectedWork,
     profileResolved: true,
+    understanding,
   });
-  const bound = isProfileBound(profile);
-  const read = bound && !selectedWork ? buildDeskRead(profile, { previewing: false }) : null;
 
   return (
     <RailFrame>
@@ -299,10 +443,20 @@ export function ProfileDetailPanel({
         description={rail.identity.slice(1).filter(Boolean).join(" · ") || null}
       />
       <div className="rd-v2-rail-scroll" data-testid="profile-detail-rail">
-        <section className="rd-v2-rail-value-brief" aria-label="Synopsis">
-          <p className="rd-v2-rail-section-label">Synopsis</p>
+        <section className="rd-v2-rail-value-brief" aria-label="Derivation">
+          <p className="rd-v2-rail-section-label">Derivation</p>
           <p>{rail.judgement}</p>
         </section>
+        {rail.provenance?.length ? (
+          <section className="rd-v2-profile-rail-block" data-testid="profile-rail-provenance">
+            <h3>Sources used</h3>
+            <ul>
+              {rail.provenance.map((p) => (
+                <li key={p.kind || p.label}>{p.label}</li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
         {rail.facts.length ? (
           <ul className="rd-v2-profile-rail-facts">
             {rail.facts.map((fact) => (
@@ -320,16 +474,6 @@ export function ProfileDetailPanel({
             </ul>
           </section>
         ) : null}
-        {read?.strengths?.length ? (
-          <section className="rd-v2-profile-rail-block">
-            <h3>Strengths</h3>
-            <ul>
-              {read.strengths.map((s) => (
-                <li key={s}>{s}</li>
-              ))}
-            </ul>
-          </section>
-        ) : null}
       </div>
       {rail.primaryAction ? (
         <RailStickyFooter>
@@ -339,6 +483,15 @@ export function ProfileDetailPanel({
               className="rd-v2-btn sm primary"
               data-testid="profile-ask-about-work"
               onClick={() => onAskAbout?.(selectedWork)}
+            >
+              {rail.primaryAction.label}
+            </button>
+          ) : rail.primaryAction.id === "ask-context" ? (
+            <button
+              type="button"
+              className="rd-v2-btn sm primary"
+              data-testid="profile-ask-about-context-rail"
+              onClick={() => onAskAboutContext?.(understanding?.askContext)}
             >
               {rail.primaryAction.label}
             </button>

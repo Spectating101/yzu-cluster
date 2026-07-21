@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { V2DeskHeader } from "@/v2/V2DeskHeader";
 import {
   approveJob,
@@ -38,16 +38,16 @@ import { HomePage } from "@/v2/HomePage";
 import { InspectorRail } from "@/v2/InspectorRail";
 import { LibraryPage } from "@/v2/LibraryPage";
 import { PreviewModal } from "@/v2/PreviewModal";
-import { ProfilePage } from "@/v2/ProfilePage";
-import { buildProfileContextAskPrompt } from "@/v2/profilePresentation";
+import { ResearchContextOverlay } from "@/v2/ResearchContextOverlay";
 import { ResourcesPage } from "@/v2/ResourcesPage";
-import { SettingsPage } from "@/v2/SettingsPage";
+import { WorkspacePreferencesOverlay } from "@/v2/WorkspacePreferencesOverlay";
 import { SynthesisPage } from "@/v2/SynthesisPage";
 import { Toast, useToast } from "@/v2/toast";
 import { V2Sidebar } from "@/v2/V2Sidebar";
 import { touchRecent } from "@/v2/recent";
 import { mergeHealth, resolveCatalog } from "@/v2/deskSeed";
-import { loadSettings, resetLocalPreferences, saveSettings } from "@/v2/settingsStore";
+import { loadSettings, saveSettings } from "@/v2/settingsStore";
+import { buildProfileContextAskPrompt } from "@/v2/profilePresentation";
 import { CLUSTER_NAV_DEFERRED } from "@/v2/nav-config.jsx";
 import { browseTargetKey, discoverCandidateUrl } from "@/v2/discoverActions";
 import { durableHistoryToEvents, mergeHistoryEvents } from "@/v2/discoverAdapters";
@@ -64,6 +64,15 @@ function readParams() {
   const q = p.get("q") || "";
   const rawMode = p.get("mode") || "";
   let tab = rawTab === "discover" ? "browse" : rawTab;
+  // Legacy Profile/Settings pages → workspace tab + overlay after load.
+  let accountOverlay = null;
+  if (tab === "profile") {
+    accountOverlay = "research-context";
+    tab = "home";
+  } else if (tab === "settings") {
+    accountOverlay = "workspace-prefs";
+    tab = "home";
+  }
   // Library deep links: folder+dataset without a Discover query belong on Library.
   if (tab === "browse" && folder && !q) {
     tab = "library";
@@ -78,6 +87,7 @@ function readParams() {
     q,
     discoverMode: discoverState.mode,
     discoverFocusAwaiting: discoverState.focusAwaiting,
+    accountOverlay,
   };
 }
 
@@ -162,7 +172,18 @@ export function V2App() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [profile, setProfile] = useState(null);
   const [selectedProfileWork, setSelectedProfileWork] = useState(null);
-  const [settingsGroup, setSettingsGroup] = useState("identity");
+  const [settingsNonce, setSettingsNonce] = useState(0);
+  const [researchContextOpen, setResearchContextOpen] = useState(
+    () => readParams().accountOverlay === "research-context",
+  );
+  const [workspacePrefsOpen, setWorkspacePrefsOpen] = useState(
+    () => readParams().accountOverlay === "workspace-prefs",
+  );
+  const [workspacePrefsMode, setWorkspacePrefsMode] = useState(() =>
+    readParams().accountOverlay === "workspace-prefs" ? "settings" : "workspace",
+  );
+  const [workspacePrefsAdvanced, setWorkspacePrefsAdvanced] = useState(false);
+  const accountTriggerRef = useRef(null);
   const [searchQuery, setSearchQuery] = useState(() => readParams().q);
   const [loadError, setLoadError] = useState("");
   const [health, setHealth] = useState(null);
@@ -182,6 +203,20 @@ export function V2App() {
   const [activityFilter, setActivityFilter] = useState(null);
   const [pendingAsk, setPendingAsk] = useState("");
   const { toast, show: showToast } = useToast();
+
+  useEffect(() => {
+    const overlay = readParams().accountOverlay;
+    if (!overlay) return;
+    writeParams({
+      tab: "home",
+      dataset: readParams().dataset,
+      folder: readParams().folder,
+      preview: readParams().preview,
+      q: readParams().q,
+      mode: readParams().discoverMode,
+    });
+  }, []);
+
 
   const reloadProfile = useCallback(() => {
     const email = loadUserEmail();
@@ -431,14 +466,25 @@ export function V2App() {
 
   const goTab = useCallback(
     (id) => {
+      if (id === "profile") {
+        setWorkspacePrefsOpen(false);
+        setResearchContextOpen(true);
+        return;
+      }
+      if (id === "settings") {
+        setResearchContextOpen(false);
+        setWorkspacePrefsMode("settings");
+        setWorkspacePrefsAdvanced(false);
+        setWorkspacePrefsOpen(true);
+        return;
+      }
       if (id !== "browse") {
         setDiscoverMode("explore");
         setDiscoverFocusAwaiting(false);
         setDiscoverActivityFilter("all");
         setDiscoverFilter("all");
       }
-      if (id !== "profile") setSelectedProfileWork(null);
-      if (id !== "settings") setSettingsGroup("identity");
+      setSelectedProfileWork(null);
       if (id === "library") {
         setTab(id);
         setSelectedId("");
@@ -661,7 +707,7 @@ export function V2App() {
           const out = await submitDiscoverCollect(connectorId, {
             limit: 200,
             autoApprove: false,
-            destination: dest,
+            destination: discoverDestination,
             candidateKey: target?.candidate_key || "",
             sourceId: target?.source_id || "",
             url: discoverCandidateUrl(target) || target?.url || "",
@@ -797,29 +843,25 @@ export function V2App() {
         setPendingAsk(resourceAskPrompt(target));
         return;
       }
-      if (tab === "profile") {
-        if (target?.kind === "profile_context") {
-          const prompt = buildProfileContextAskPrompt(target);
-          setRailTab("ask");
-          setPendingAsk(
-            prompt ||
-              "Ask about this bound research context using only the structured profile inputs.",
-          );
-          return;
-        }
-        const work = target?.title ? target : selectedProfileWork;
-        const label = work?.title || "this work";
+      if (target?.kind === "profile_context") {
         setRailTab("ask");
         setPendingAsk(
-          work?.title
-            ? `Ask about this work: ${label}. Summarize its contribution, how it fits the desk research context, and the safest next Discover or Lab action.`
-            : "Ask about this research profile and its works.",
+          buildProfileContextAskPrompt(target) ||
+            "Ask about this bound research context using only the structured profile inputs.",
+        );
+        return;
+      }
+      // Source highlights from Research context overlay (raw citation key).
+      if (target?.raw && target?.title) {
+        setRailTab("ask");
+        setPendingAsk(
+          `Ask about this work: ${target.title}. Summarize its contribution, how it fits the desk research context, and the safest next Discover or Lab action.`,
         );
         return;
       }
       setRailTab("ask");
     },
-    [activeObject, selectedProfileWork, tab],
+    [activeObject, tab],
   );
 
   const focusLibraryFolder = useCallback((object) => {
@@ -1121,45 +1163,8 @@ export function V2App() {
       );
       break;
     case "profile":
-      main = (
-        <ProfilePage
-          profile={profile}
-          selectedWorkId={selectedProfileWork?.raw || null}
-          onSelectWork={(work) => {
-            setSelectedProfileWork(work);
-            setRailTab("detail");
-          }}
-          onGoTab={goTab}
-          onAskAboutContext={(ctx) => askAboutSelection(ctx)}
-          onProfileRefresh={reloadProfile}
-          onToast={showToast}
-          onSuggestSearch={(q) => {
-            setSearchQuery(q);
-            setDiscoverMode("explore");
-            setDiscoverFocusAwaiting(false);
-            setDiscoverActivityFilter("all");
-            setDiscoverFilter("all");
-            setTab("browse");
-            syncUrl({ tab: "browse", q, mode: "explore" });
-          }}
-        />
-      );
-      break;
     case "settings":
-      main = (
-        <SettingsPage
-          health={health}
-          profile={profile}
-          onProfileRefresh={reloadProfile}
-          onToast={showToast}
-          activeGroup={settingsGroup}
-          selectedGroup={settingsGroup}
-          onSelectGroup={(group) => {
-            setSettingsGroup(group);
-            setRailTab("detail");
-          }}
-        />
-      );
+      // Should not render as pages — overlays handle these.
       break;
     default:
       main = null;
@@ -1169,7 +1174,44 @@ export function V2App() {
 
 
 
+
+  const clearResearchContext = useCallback(() => {
+    saveUserEmail("");
+    saveSettings({ email: "" });
+    setSettingsNonce((n) => n + 1);
+    setSelectedProfileWork(null);
+    reloadProfile();
+    showToast("Research context cleared on this browser");
+  }, [reloadProfile, showToast]);
+
+  const openResearchContext = useCallback((triggerEl) => {
+    if (triggerEl && typeof triggerEl.focus === "function") {
+      accountTriggerRef.current = triggerEl;
+    }
+    setWorkspacePrefsOpen(false);
+    setResearchContextOpen(true);
+  }, []);
+
+  const openWorkspacePrefs = useCallback((optsOrTrigger = {}, maybeTrigger) => {
+    const triggerFromFirst =
+      optsOrTrigger && typeof optsOrTrigger.focus === "function" ? optsOrTrigger : null;
+    const trigger = triggerFromFirst || (maybeTrigger && typeof maybeTrigger.focus === "function" ? maybeTrigger : null);
+    if (trigger) accountTriggerRef.current = trigger;
+    const opts = triggerFromFirst ? {} : (optsOrTrigger || {});
+    setResearchContextOpen(false);
+    setWorkspacePrefsMode(opts?.mode === "settings" || opts?.advanced ? "settings" : "workspace");
+    setWorkspacePrefsAdvanced(Boolean(opts?.advanced));
+    setWorkspacePrefsOpen(true);
+  }, []);
+
+  const openAdvancedRecovery = useCallback((triggerEl) => {
+    openWorkspacePrefs({ mode: "settings", advanced: true }, triggerEl);
+  }, [openWorkspacePrefs]);
+
+
+
   const hideRail = false;
+
 
   return (
     <div className={`yzu-shell with-inspector rd-theme-light rd-v2-shell${hideRail ? " no-rail" : ""}`}>
@@ -1182,9 +1224,10 @@ export function V2App() {
         onRetry={refreshBackend}
         headerInitials="YZ"
         profile={profile}
-        onGoTab={goTab}
-        onToast={showToast}
-        onWorkspacePrefsSaved={() => {}}
+        onOpenResearchContext={openResearchContext}
+        onOpenWorkspacePrefs={openWorkspacePrefs}
+        onOpenAdvanced={openAdvancedRecovery}
+        onClearContext={clearResearchContext}
         datasetCount={headerDsCount}
         usingSeed={usingSeed}
         workCount={Math.max(
@@ -1216,8 +1259,10 @@ export function V2App() {
         tab={tab}
         onTabChange={goTab}
         profile={profile}
-        onToast={showToast}
-        onWorkspacePrefsSaved={() => {}}
+        onOpenResearchContext={openResearchContext}
+        onOpenWorkspacePrefs={openWorkspacePrefs}
+        onOpenAdvanced={openAdvancedRecovery}
+        onClearContext={clearResearchContext}
       />
       <main className="yzu-main rd-v2-shell-main">
         {main}
@@ -1235,12 +1280,59 @@ export function V2App() {
           }}
         />
       </main>
+      
+      <ResearchContextOverlay
+        open={researchContextOpen}
+        profile={profile}
+        selectedWorkId={selectedProfileWork?.raw || null}
+        onSelectWork={setSelectedProfileWork}
+        onClose={() => setResearchContextOpen(false)}
+        restoreFocusRef={accountTriggerRef}
+        onAskAboutContext={(ctx) => {
+          setResearchContextOpen(false);
+          askAboutSelection(ctx);
+        }}
+        onSuggestSearch={(q) => {
+          setResearchContextOpen(false);
+          goTab("browse");
+          setSearchQuery(q);
+        }}
+        onGoTab={(t) => {
+          setResearchContextOpen(false);
+          goTab(t);
+        }}
+        onChangeContext={() => {
+          setResearchContextOpen(false);
+          openWorkspacePrefs({ mode: "settings", advanced: false });
+        }}
+        onAskAboutWork={(work) => {
+          setResearchContextOpen(false);
+          askAboutSelection(work || selectedProfileWork);
+        }}
+      />
+      <WorkspacePreferencesOverlay
+        key={`workspace-prefs-${settingsNonce}`}
+        open={workspacePrefsOpen}
+        profile={profile}
+        mode={workspacePrefsMode}
+        onClose={() => {
+          setWorkspacePrefsOpen(false);
+          setWorkspacePrefsAdvanced(false);
+          setWorkspacePrefsMode("workspace");
+        }}
+        onProfileRefresh={reloadProfile}
+        onToast={showToast}
+        onClearContext={clearResearchContext}
+        restoreFocusRef={accountTriggerRef}
+        initialAdvancedOpen={workspacePrefsAdvanced}
+      />
+
       <InspectorRail
         mainTab={tab}
         railTab={railTab}
         onRailTabChange={setRailTab}
         dataset={detail}
-        detailLoading={tab === "profile" || tab === "settings" ? false : detailLoading}
+        detailLoading={detailLoading}
         clusterContext={clusterContext}
         browseTarget={browseTarget}
         resourceRow={resourceRow}
@@ -1264,15 +1356,6 @@ export function V2App() {
         onDiscoverDestinationChange={handleDiscoverDestinationChange}
         catalog={catalog}
         profile={profile}
-        selectedProfileWork={selectedProfileWork}
-        onClearProfileWork={() => setSelectedProfileWork(null)}
-        onGoTab={goTab}
-        settingsGroup={settingsGroup}
-        onSettingsFocusGroup={(id) => {
-          setSettingsGroup(id);
-          setRailTab("detail");
-        }}
-        health={health}
         browsePeerRows={browsePeerRows}
         onSelectBrowsePeer={selectBrowseRow}
         onApproveSafeJobs={handleApproveSafeJobs}
@@ -1307,16 +1390,6 @@ export function V2App() {
                   ? {
                       title: `Library · ${activeObject.title}`,
                     }
-                : tab === "profile"
-                  ? {
-                      title: selectedProfileWork?.title
-                        ? `Work · ${selectedProfileWork.title}`
-                        : profile?.name_en && !profile.unknown
-                          ? `Profile · ${profile.name_en}`
-                          : "Profile",
-                    }
-                : tab === "settings"
-                  ? { title: "Settings" }
                 : detail
             }
             mainTab={tab}

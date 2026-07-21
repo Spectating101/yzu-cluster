@@ -1,28 +1,31 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {
-  SETTINGS_SECTION_ORDER,
-  assistantStatusFromHealth,
-  buildSettingsRailState,
-  settingsAdvancedDefaultOpen,
-} from "./settingsPresentation.js";
+import { SETTINGS_SECTION_ORDER, buildSettingsRailState, settingsAdvancedDefaultOpen } from "./settingsPresentation.js";
+import { loadSettings, resetLocalPreferences, saveSettings } from "./settingsStore.js";
 
-test("Settings centre model is Identity → Access → Defaults → Advanced recovery", () => {
-  assert.deepEqual(SETTINGS_SECTION_ORDER, ["identity", "access", "defaults", "advanced"]);
+test("Settings centre model is Research context → Workspace → Advanced", () => {
+  assert.deepEqual(SETTINGS_SECTION_ORDER, ["context", "workspace", "advanced"]);
 });
-test("Advanced recovery disclosure defaults to collapsed", () => {
+test("Advanced disclosure defaults to collapsed", () => {
   assert.equal(settingsAdvancedDefaultOpen(), false);
 });
-test("assistant status never claims Ready without health contract", () => {
-  assert.equal(assistantStatusFromHealth(null).label, "Not reported");
-  assert.equal(assistantStatusFromHealth({ desk: { composer_configured: true } }).label, "Ready");
-});
-test("Settings Detail rail has 2–4 facts and no Focus action", () => {
-  const identity = buildSettingsRailState({
-    group: "identity",
-    settings: { email: "drkong@saturn.yzu.edu.tw" },
+test("Settings Detail shows local values", () => {
+  const context = buildSettingsRailState({
+    group: "context",
+    settings: { email: "drkong@saturn.yzu.edu.tw", defaultTab: "home" },
     profile: { name_en: "Kong, De-Rong" },
   });
-  assert.equal(identity.primaryAction, null);
-  assert.ok(identity.facts.length >= 2 && identity.facts.length <= 4);
+  assert.equal(context.primaryAction?.id, "clear-context");
+  assert.equal(context.judgement, null);
+});
+test("saveSettings and resetLocalPreferences persist", () => {
+  const store = new Map();
+  globalThis.localStorage = {
+    getItem: (k) => (store.has(k) ? store.get(k) : null),
+    setItem: (k, v) => store.set(k, String(v)),
+    removeItem: (k) => store.delete(k),
+  };
+  saveSettings({ email: "drkong@saturn.yzu.edu.tw", defaultTab: "library", onSelect: "ask" });
+  assert.equal(loadSettings().defaultTab, "library");
+  assert.equal(resetLocalPreferences().email, "");
 });

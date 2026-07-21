@@ -1,7 +1,20 @@
 import { useEffect, useRef } from "react";
 import { V2_SIDEBAR_TABS } from "@/v2/nav-config.jsx";
+import { AccountMenu } from "@/v2/AccountMenu";
 
-export function V2Sidebar({ tab, onTabChange }) {
+/**
+ * Desktop: primary workspace stack + bottom-anchored account cluster.
+ * Mobile: horizontal workspace row only (account via header avatar).
+ */
+export function V2Sidebar({
+  tab,
+  onTabChange,
+  profile = null,
+  onOpenResearchContext,
+  onOpenWorkspacePrefs,
+  onOpenAdvanced,
+  onClearContext,
+}) {
   const activeButtonRef = useRef(null);
 
   useEffect(() => {
@@ -9,8 +22,8 @@ export function V2Sidebar({ tab, onTabChange }) {
   }, [tab]);
 
   return (
-    <aside className="yzu-sidebar">
-      <nav>
+    <aside className="yzu-sidebar" data-testid="v2-sidebar">
+      <nav aria-label="Workspace">
         {V2_SIDEBAR_TABS.map(({ id, label, Icon }) => (
           <button
             key={id}
@@ -25,6 +38,16 @@ export function V2Sidebar({ tab, onTabChange }) {
           </button>
         ))}
       </nav>
+      <div className="rd-v2-sidebar-account" data-testid="sidebar-account-cluster">
+        <AccountMenu
+          variant="sidebar"
+          profile={profile}
+          onOpenResearchContext={onOpenResearchContext}
+          onOpenWorkspacePrefs={onOpenWorkspacePrefs}
+          onOpenAdvanced={onOpenAdvanced}
+          onClearContext={onClearContext}
+        />
+      </div>
     </aside>
   );
 }

@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-test("Settings group order is Identity Access Defaults Advanced", () => {
-  assert.deepEqual(["identity", "access", "defaults", "advanced"], ["identity", "access", "defaults", "advanced"]);
+test("no access group", async () => {
+  const { SETTINGS_SECTION_ORDER } = await import("./settingsPresentation.js");
+  assert.ok(!SETTINGS_SECTION_ORDER.includes("access"));
+  assert.deepEqual(SETTINGS_SECTION_ORDER, ["context","workspace","advanced"]);
 });

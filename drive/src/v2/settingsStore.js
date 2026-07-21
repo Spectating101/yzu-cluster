@@ -24,13 +24,10 @@ export function saveSettings(patch) {
   return next;
 }
 
-/** Clear browser-local research context email + workspace preferences. Does not clear desk tokens. */
 export function resetLocalPreferences() {
   try {
     localStorage.removeItem(KEY);
-  } catch {
-    /* ignore */
-  }
+  } catch {}
   saveUserEmail("");
   return { ...DEFAULTS, email: "" };
 }

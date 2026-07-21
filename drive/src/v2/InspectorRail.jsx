@@ -10,8 +10,6 @@ import {
   PageRailPanel,
   ResourcesRailPanel,
 } from "@/v2/RailPanels";
-import { ProfileDetailPanel } from "@/v2/ProfilePage";
-import { SettingsDetailPanel } from "@/v2/SettingsPage";
 import { activeObjectSelectionHint } from "@/v2/activeObject";
 import { displayName } from "@/v2/datasetMeta";
 
@@ -21,8 +19,6 @@ function railSelectionHint(
   browseTarget,
   resourceRow,
   clusterContext,
-  selectedProfileWork = null,
-  settingsGroup = "",
 ) {
   if (mainTab === "browse" && browseTarget) {
     return browseTarget.title || browseTarget.dataset_id || "Discover result";
@@ -38,13 +34,6 @@ function railSelectionHint(
   }
   if (mainTab === "resources") {
     return "Resources";
-  }
-  if (mainTab === "profile") {
-    if (selectedProfileWork?.title) return selectedProfileWork.title;
-    return "Profile";
-  }
-  if (mainTab === "settings") {
-    return "Settings";
   }
   if (mainTab === "cluster" && clusterContext?.a && clusterContext?.b) {
     return `${displayName(clusterContext.a)} × ${displayName(clusterContext.b)}`;
@@ -95,13 +84,6 @@ export function InspectorRail({
   onDiscoverDestinationChange,
   catalog = [],
   profile = null,
-  selectedProfileWork = null,
-  onClearProfileWork,
-  onGoTab,
-  settingsGroup = "identity",
-  onSettingsFocusGroup,
-  onClearSettingsContext,
-  health = null,
   browsePeerRows = [],
   onSelectBrowsePeer,
   onOpenInLibrary,
@@ -167,26 +149,6 @@ export function InspectorRail({
     );
   } else if (mainTab === "synthesis") {
     detailPanel = <PageRailPanel page="synthesis" onAskAbout={onAskAbout} />;
-  } else if (mainTab === "profile") {
-    detailPanel = (
-      <ProfileDetailPanel
-        profile={profile}
-        selectedWork={selectedProfileWork}
-        onGoTab={onGoTab}
-        onClearWork={onClearProfileWork}
-        onAskAbout={onAskAbout}
-        onAskAboutContext={onAskAbout}
-      />
-    );
-  } else if (mainTab === "settings") {
-    detailPanel = (
-      <SettingsDetailPanel
-        activeGroup={settingsGroup || "identity"}
-        settings={loadSettings()}
-        health={health}
-        profile={profile}
-      />
-    );
   } else if (
     mainTab === "library" &&
     (activeObject?.kind === "library_folder" || activeObject?.kind === "library_intake")
@@ -237,8 +199,6 @@ export function InspectorRail({
       browseTarget,
       resourceRow,
       clusterContext,
-      selectedProfileWork,
-      settingsGroup,
     );
 
   const [mobileRailOpen, setMobileRailOpen] = useState(false);
@@ -282,18 +242,10 @@ export function InspectorRail({
             {selectionHint}
           </p>
         </div>
-        <div
-          className={`rd-v2-rail-pane${railTab === "detail" ? " rd-v2-rail-pane-on" : ""}`}
-          aria-hidden={railTab !== "detail"}
-          data-testid="rail-pane-detail"
-        >
-          {detailPanel}
+        <div className="rd-v2-rail-body" hidden={railTab !== "detail"}>
+          {detailPanel || <EmptyRailPanel />}
         </div>
-        <div
-          className={`rd-v2-rail-pane rd-v2-ask-rail${railTab === "ask" ? " rd-v2-rail-pane-on" : ""}`}
-          aria-hidden={railTab !== "ask"}
-          data-testid="rail-pane-ask"
-        >
+        <div className="rd-v2-rail-body" hidden={railTab !== "ask"}>
           {askPanel}
         </div>
       </div>

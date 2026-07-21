@@ -1,6 +1,6 @@
 /**
- * Profile freeze — Understanding + Memory→Works→Lab, research context on Profile,
- * Settings absent from primary nav.
+ * Research context / Workspace preferences freeze —
+ * Understanding + Memory→Works→Lab in overlay; browser-local prefs; Detail stays contextual.
  */
 import { test, expect } from "@playwright/test";
 import path from "path";
@@ -8,7 +8,7 @@ import { fileURLToPath } from "url";
 import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const OUT = path.resolve(__dirname, "../docs/status/generated/profile-settings-visual");
+const OUT = path.resolve(__dirname, "../docs/status/generated/profile-freeze-showcase.png");
 
 const PROFILE = {
   found: true,
@@ -40,83 +40,74 @@ const PROFILE = {
   },
 };
 
-test.describe("Profile freeze showcase", () => {
-  test("bound Understanding Memory Works Lab and context control", async ({ page }) => {
+test.describe("Research context freeze showcase", () => {
+  test("bound Understanding Memory Works Lab in overlay; Detail not duplicated", async ({ page }) => {
     await mockV2Api(page, { profileBody: PROFILE });
     await page.addInitScript(() => {
-      try {
-        localStorage.setItem("procure_user_email", "drkong@saturn.yzu.edu.tw");
-      } catch {
-        /* ignore */
-      }
+      try { localStorage.setItem("procure_user_email", "drkong@saturn.yzu.edu.tw"); } catch {}
     });
-    await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/?tab=profile", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
-    await expect(page.getByRole("heading", { name: "Profile" })).toBeVisible({ timeout: 20_000 });
-    await expect(page.locator(".rd-v2-profile-name")).toContainText(/Kong/i);
-    await expect(page.locator(".yzu-sidebar nav").getByRole("button", { name: /^Settings$/i })).toHaveCount(0);
+    const overlay = page.getByTestId("research-context-overlay");
+    await expect(overlay.getByRole("heading", { name: "Research context" })).toBeVisible({ timeout: 20_000 });
+    await expect(overlay.locator(".rd-v2-profile-name")).toContainText(/Kong/i);
+    await expect(overlay.getByRole("button", { name: /Use my email|Bind example/i })).toHaveCount(0);
 
-    const understanding = page.getByTestId("profile-understanding");
-    const memory = page.getByTestId("profile-memory");
-    const works = page.getByTestId("profile-works");
-    const lab = page.getByTestId("profile-lab");
+    const understanding = overlay.getByTestId("profile-understanding");
+    const memory = overlay.getByTestId("profile-memory");
+    const works = overlay.getByTestId("profile-works");
+    const lab = overlay.getByTestId("profile-lab");
     await expect(understanding).toBeVisible();
     await expect(understanding.getByTestId("profile-understanding-synthesis")).toBeVisible();
     await expect(understanding.getByTestId("profile-understanding-threads")).toBeVisible();
-    await expect(page.getByTestId("profile-memory-edit-focus")).toHaveCount(0);
+    await expect(overlay.getByTestId("profile-memory-edit-focus")).toHaveCount(0);
     await expect(memory.getByTestId("profile-memory-statement")).toBeVisible();
-    await expect(page.getByTestId("profile-manage-context")).toHaveCount(0);
-    await expect(page.getByTestId("profile-research-context-toggle")).toBeVisible();
+    await expect(memory.getByTestId("profile-manage-context")).toBeVisible();
+    await expect(works).toContainText(/indexed/i);
     await expect(works.locator(".rd-v2-profile-work-row")).toHaveCount(3);
+    await expect(lab.getByText(/Linked evidence/i)).toBeVisible();
+    expect(await lab.locator(".rd-v2-profile-lab-block").first().locator("li").count()).toBeLessThanOrEqual(3);
+    expect(await lab.locator(".rd-v2-profile-lab-block").nth(1).locator("li").count()).toBeLessThanOrEqual(2);
 
-    const understandingBox = await understanding.boundingBox();
-    const memoryBox = await memory.boundingBox();
-    const worksBox = await works.boundingBox();
-    expect(understandingBox.y).toBeLessThan(memoryBox.y);
-    expect(memoryBox.y).toBeLessThan(worksBox.y);
-
-    const detail = page.getByTestId("profile-detail-rail");
-    await expect(detail.getByText(/Derivation/i)).toBeVisible();
-    await expect(page.getByTestId("profile-rail-provenance")).toBeVisible();
-    await expect(page.getByTestId("profile-ask-about-context-rail")).toBeVisible();
+    await expect(page.getByTestId("profile-detail-rail")).toHaveCount(0);
+    await expect(page.getByTestId("settings-detail-rail")).toHaveCount(0);
 
     await works.locator(".rd-v2-profile-work-row").first().click();
-    await expect(page.getByRole("button", { name: /Ask about this work/i })).toBeVisible();
-
-    await page.screenshot({
-      path: path.join(OUT, "bound_profile_desktop.png"),
-      fullPage: false,
-    });
-
-    await page.setViewportSize({ width: 390, height: 844 });
-    await page.screenshot({
-      path: path.join(OUT, "bound_profile_mobile.png"),
-      fullPage: false,
-    });
+    await expect(overlay.getByRole("button", { name: /Ask about this work/i })).toBeVisible();
+    await page.screenshot({ path: OUT, fullPage: true });
   });
 
-  test("Profile context bind updates bound identity without Settings nav", async ({ page }) => {
-    await mockV2Api(page, { profileBody: PROFILE });
+  test("unbound research context is quiet and not EXAMPLE primary", async ({ page }) => {
+    await mockV2Api(page);
     await page.addInitScript(() => {
-      try {
-        localStorage.removeItem("procure_user_email");
-        localStorage.setItem("rd_v2_settings", JSON.stringify({ defaultTab: "home", onSelect: "detail", email: "" }));
-      } catch {
-        /* ignore */
-      }
+      try { localStorage.removeItem("procure_user_email"); } catch {}
     });
     await page.goto("/?tab=profile", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
-    await expect(page.getByTestId("profile-unbound-badge")).toBeVisible({ timeout: 20_000 });
-    await expect(page.getByTestId("profile-understanding")).toHaveCount(0);
-    await expect(page.locator(".yzu-sidebar").getByRole("button", { name: /^Settings$/i })).toHaveCount(0);
+    const overlay = page.getByTestId("research-context-overlay");
+    await expect(overlay.getByTestId("profile-unbound-badge")).toBeVisible({ timeout: 20_000 });
+    await expect(overlay.getByTestId("profile-primary-command")).toHaveText(/Connect faculty email/i);
+    await expect(overlay.getByTestId("profile-understanding")).toHaveCount(0);
+    await expect(overlay.getByRole("button", { name: /Bind example|Use EXAMPLE/i })).toHaveCount(0);
+  });
+});
 
-    await page.getByTestId("profile-research-context-toggle").click();
-    await page.getByTestId("profile-context-email").fill("drkong@saturn.yzu.edu.tw");
-    await page.getByTestId("profile-context-save").click();
-    await expect(page.locator(".rd-v2-profile-name")).toContainText(/Kong/i, { timeout: 15_000 });
-    await expect(page.getByTestId("profile-bound-badge")).toBeVisible();
-    await expect(page.getByTestId("profile-understanding")).toBeVisible();
+test.describe("Workspace preferences Research context → Workspace → Advanced", () => {
+  test("sections present; advanced collapsed; no health admin; Detail not Settings", async ({ page }) => {
+    await mockV2Api(page);
+    await page.goto("/?tab=settings", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    const prefs = page.getByTestId("workspace-prefs-overlay");
+    await expect(prefs.getByRole("heading", { name: "Workspace preferences" })).toBeVisible({ timeout: 20_000 });
+    await expect(prefs.getByTestId("settings-group-context")).toBeVisible();
+    await expect(prefs.getByTestId("settings-group-workspace")).toBeVisible();
+    await expect(prefs.getByTestId("settings-group-access")).toHaveCount(0);
+    await expect(prefs.getByTestId("settings-open-health")).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /Detail|Focus Identity/i })).toHaveCount(0);
+    const advanced = prefs.getByTestId("settings-group-advanced");
+    await expect(advanced).not.toHaveAttribute("open", "");
+    await advanced.locator("summary").click();
+    await expect(prefs.getByTestId("settings-reset-local")).toBeVisible();
+    await expect(page.getByTestId("settings-detail-rail")).toHaveCount(0);
   });
 });
