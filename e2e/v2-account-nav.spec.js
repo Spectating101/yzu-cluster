@@ -95,6 +95,16 @@ test.describe("Account cluster navigation", () => {
     await expect(research).toBeVisible({ timeout: 15_000 });
     await expect(research.getByRole("heading", { name: "Research context" })).toBeVisible();
     await expect(research.getByTestId("profile-understanding")).toBeVisible();
+    await expect(research.getByTestId("profile-understanding-columns")).toBeVisible();
+    await expect(research.getByTestId("profile-understanding-col-threads")).toBeVisible();
+    await expect(research.getByTestId("profile-understanding-col-evidence")).toBeVisible();
+
+    const panelBox = await research.locator(".rd-v2-account-overlay-panel--research").boundingBox();
+    expect(panelBox).toBeTruthy();
+    expect(panelBox.width).toBeGreaterThanOrEqual(880);
+    expect(panelBox.width).toBeLessThanOrEqual(960);
+    expect(panelBox.height).toBeGreaterThan(500);
+    expect(panelBox.height).toBeLessThanOrEqual(900);
 
     await page.screenshot({
       path: path.join(OUT, "account_bound_research_context_desktop_1440.png"),
@@ -182,7 +192,26 @@ test.describe("Account cluster navigation", () => {
       fullPage: false,
     });
 
-    await menu.getByTestId("account-menu-workspace").click();
+    await menu.getByTestId("account-menu-profile").click();
+    const research = page.getByTestId("research-context-overlay");
+    await expect(research).toBeVisible({ timeout: 15_000 });
+    await expect(research.getByTestId("profile-understanding")).toBeVisible();
+    const researchPanel = research.locator(".rd-v2-account-overlay-panel--research");
+    const researchBox = await researchPanel.boundingBox();
+    expect(researchBox).toBeTruthy();
+    expect(researchBox.width).toBeGreaterThanOrEqual(360);
+    expect(researchBox.height).toBeGreaterThan(500);
+
+    await page.screenshot({
+      path: path.join(OUT, "account_bound_research_context_mobile_390.png"),
+      fullPage: false,
+    });
+
+    await research.getByTestId("research-context-close").click();
+    await expect(research).toHaveCount(0);
+
+    await page.getByTestId("header-account-menu").click();
+    await page.getByTestId("account-menu").getByTestId("account-menu-workspace").click();
     const prefs = page.getByTestId("workspace-prefs-overlay");
     await expect(prefs).toBeVisible();
     await expect(prefs.getByTestId("workspace-preferences")).toBeVisible();

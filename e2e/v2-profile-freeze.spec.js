@@ -59,7 +59,9 @@ test.describe("Research context freeze showcase", () => {
     const lab = overlay.getByTestId("profile-lab");
     await expect(understanding).toBeVisible();
     await expect(understanding.getByTestId("profile-understanding-synthesis")).toBeVisible();
+    await expect(understanding.getByTestId("profile-understanding-columns")).toBeVisible();
     await expect(understanding.getByTestId("profile-understanding-threads")).toBeVisible();
+    await expect(understanding.getByTestId("profile-understanding-col-evidence")).toBeVisible();
     await expect(overlay.getByTestId("profile-memory-edit-focus")).toHaveCount(0);
     await expect(memory.getByTestId("profile-memory-statement")).toBeVisible();
     await expect(memory.getByTestId("profile-manage-context")).toBeVisible();

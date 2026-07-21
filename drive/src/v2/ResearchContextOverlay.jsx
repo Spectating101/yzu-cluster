@@ -60,7 +60,7 @@ export function ResearchContextOverlay({
 
   return (
     <div
-      className={`rd-v2-account-overlay${compact ? " is-compact" : ""}`}
+      className={`rd-v2-account-overlay rd-v2-account-overlay--research${compact ? " is-compact" : ""}`}
       data-testid="research-context-overlay"
       data-compact={compact ? "true" : undefined}
       role="presentation"

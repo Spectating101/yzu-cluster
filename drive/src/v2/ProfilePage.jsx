@@ -134,53 +134,7 @@ export function ProfilePage({
             {understanding.synthesis}
           </p>
 
-          <div className="rd-v2-profile-understanding-grid">
-            {understanding.threads.length ? (
-              <div className="rd-v2-profile-understanding-block" data-testid="profile-understanding-threads">
-                <h3>Supported threads</h3>
-                <ul>
-                  {understanding.threads.map((t) => (
-                    <li key={t.id}>
-                      <span>{t.label}</span>
-                      <em>{t.source}</em>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-
-            {understanding.held ? (
-              <div className="rd-v2-profile-understanding-block" data-testid="profile-understanding-held">
-                <h3>Most relevant held evidence</h3>
-                <p>
-                  {understanding.held.label}
-                  <em> — {understanding.held.detail}</em>
-                </p>
-              </div>
-            ) : null}
-
-            {understanding.missing ? (
-              <div className="rd-v2-profile-understanding-block" data-testid="profile-understanding-missing">
-                <h3>Open gaps</h3>
-                <p>
-                  {understanding.missing.label}
-                  <em> — {understanding.missing.detail}</em>
-                </p>
-              </div>
-            ) : null}
-          </div>
-
-          <div className="rd-v2-profile-understanding-layers">
-            {understanding.facts.length ? (
-              <div data-testid="profile-understanding-facts">
-                <h3>Facts on file</h3>
-                <ul>
-                  {understanding.facts.map((f) => (
-                    <li key={f}>{f}</li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
+          <div className="rd-v2-profile-understanding-primary">
             <div data-testid="profile-understanding-interpretation">
               <h3>Supported interpretation</h3>
               <p>
@@ -188,31 +142,108 @@ export function ProfilePage({
                 context on this browser; it is not a verified research claim.
               </p>
             </div>
-            {understanding.unknowns.length ? (
-              <div data-testid="profile-understanding-unknowns">
-                <h3>Unknowns</h3>
-                <ul>
-                  {understanding.unknowns.map((u) => (
-                    <li key={u}>{u}</li>
-                  ))}
-                </ul>
-              </div>
-            ) : (
-              <div data-testid="profile-understanding-unknowns">
-                <h3>Unknowns</h3>
-                <p>No structural gaps in the fields used for this reading.</p>
-              </div>
-            )}
-            {understanding.provenance.length ? (
-              <div data-testid="profile-understanding-provenance">
-                <h3>Sources and evidence</h3>
-                <ul>
-                  {understanding.provenance.map((p) => (
-                    <li key={p.kind}>{p.label}</li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
+          </div>
+
+          <div
+            className="rd-v2-profile-understanding-columns"
+            data-testid="profile-understanding-columns"
+          >
+            <div
+              className="rd-v2-profile-understanding-col rd-v2-profile-understanding-col--threads"
+              data-testid="profile-understanding-col-threads"
+            >
+              {understanding.threads.length ? (
+                <div className="rd-v2-profile-understanding-block" data-testid="profile-understanding-threads">
+                  <h3>Supported threads</h3>
+                  <ul>
+                    {understanding.threads.map((t) => (
+                      <li key={t.id}>
+                        <span>{t.label}</span>
+                        <em>{t.source}</em>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
+              {understanding.facts.length ? (
+                <div
+                  className="rd-v2-profile-understanding-block"
+                  data-testid="profile-understanding-facts"
+                >
+                  <h3>Facts on file</h3>
+                  <ul>
+                    {understanding.facts.map((f) => (
+                      <li key={f}>{f}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </div>
+
+            <div
+              className="rd-v2-profile-understanding-col rd-v2-profile-understanding-col--evidence"
+              data-testid="profile-understanding-col-evidence"
+            >
+              {understanding.held ? (
+                <div className="rd-v2-profile-understanding-block" data-testid="profile-understanding-held">
+                  <h3>Most relevant held evidence</h3>
+                  <p>
+                    {understanding.held.label}
+                    <em> — {understanding.held.detail}</em>
+                  </p>
+                </div>
+              ) : null}
+
+              {understanding.missing ? (
+                <div
+                  className="rd-v2-profile-understanding-block"
+                  data-testid="profile-understanding-missing"
+                >
+                  <h3>Open gaps</h3>
+                  <p>
+                    {understanding.missing.label}
+                    <em> — {understanding.missing.detail}</em>
+                  </p>
+                </div>
+              ) : null}
+
+              {understanding.unknowns.length ? (
+                <div
+                  className="rd-v2-profile-understanding-block"
+                  data-testid="profile-understanding-unknowns"
+                >
+                  <h3>Unknowns</h3>
+                  <ul>
+                    {understanding.unknowns.map((u) => (
+                      <li key={u}>{u}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                <div
+                  className="rd-v2-profile-understanding-block"
+                  data-testid="profile-understanding-unknowns"
+                >
+                  <h3>Unknowns</h3>
+                  <p>No structural gaps in the fields used for this reading.</p>
+                </div>
+              )}
+
+              {understanding.provenance.length ? (
+                <div
+                  className="rd-v2-profile-understanding-block"
+                  data-testid="profile-understanding-provenance"
+                >
+                  <h3>Sources and evidence</h3>
+                  <ul>
+                    {understanding.provenance.map((p) => (
+                      <li key={p.kind}>{p.label}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </div>
           </div>
 
           {understanding.askContext && onAskAboutContext ? (
