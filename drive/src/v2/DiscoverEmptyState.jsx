@@ -2,7 +2,7 @@ import { DISCOVER_SUGGESTIONS } from "@/v2/deskSeed";
 
 /**
  * Discover Explore empty / starter — DISCOVER_FULL_SCALE_FREEZE.
- * Short need prompt + starters. No marketing essay.
+ * Centre owns the evidence-need field; starters are shortcuts only.
  */
 export function DiscoverEmptyState({ onSuggest }) {
   const suggestions = DISCOVER_SUGGESTIONS.length
@@ -14,9 +14,27 @@ export function DiscoverEmptyState({ onSuggest }) {
       <header className="rd-v2-discover-explore-need">
         <span className="rd-v2-eyebrow">Explore</span>
         <h2>What evidence are you looking for?</h2>
-        <p className="rd-v2-discover-explore-hint muted">
-          Search the header — results stay ranked here; Detail judges the selected source.
-        </p>
+        <form
+          className="rd-v2-discover-need-form"
+          data-testid="discover-need-form"
+          onSubmit={(event) => {
+            event.preventDefault();
+            const next = String(event.currentTarget.elements.need?.value || "").trim();
+            if (next) onSuggest?.(next);
+          }}
+        >
+          <textarea
+            name="need"
+            className="rd-v2-discover-need-input"
+            data-testid="discover-need-query"
+            rows={2}
+            placeholder="Describe the evidence need — keyword, gap, or research question…"
+            aria-label="Evidence need"
+          />
+          <button type="submit" className="rd-v2-btn sm primary" aria-label="Search evidence need">
+            ⌕
+          </button>
+        </form>
       </header>
 
       <section className="rd-v2-discover-explore-starters" aria-label="Suggested evidence needs">
