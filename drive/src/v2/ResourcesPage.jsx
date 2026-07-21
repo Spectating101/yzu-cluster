@@ -799,7 +799,7 @@ export function ResourcesPage({
           </p>
         ) : (
           <>
-            <section className="rd-v2-res-wire-band" aria-label="Capacity and access">
+            <section className="rd-v2-res-wire-band" aria-label="Sources overview">
               <h2 className="rd-v2-res-wire-title">Capacity &amp; access</h2>
               <ResourcesStatusStrip rollup={viewRollup} />
             </section>

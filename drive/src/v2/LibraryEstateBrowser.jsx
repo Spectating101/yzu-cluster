@@ -109,7 +109,11 @@ export function LibraryEstateBrowser({
   onPreviewDataset,
 }) {
   const folders = rows.filter((item) => item?.kind === "folder");
-  const assets = rows.filter((item) => item?.kind !== "folder");
+  const assetsFromRows = rows.filter((item) => item?.kind !== "folder");
+  // Freeze: at estate root, COLLECTIONS tree + EVIDENCE ledger of holdings (not only loose root files).
+  const assets = isRoot && !assetsFromRows.length
+    ? (branchDatasets || []).map((row) => ({ kind: "dataset", id: row.dataset_id, row }))
+    : assetsFromRows;
   const counts = libraryAssetCounts(branchDatasets);
   const q = String(estateQuery || "").trim().toLowerCase();
   const visibleAssets = q
