@@ -40,6 +40,7 @@ function stateLabel(event) {
     return "Failed — needs recovery";
   }
   if (kind === "ready") {
+    if (/cancelled|canceled/.test(status)) return "Cancelled";
     if (/query[_ -]?ready/.test(status)) return "Query ready";
     if (status === "registered") return "Registered";
     if (status === "archived") return "Archived";

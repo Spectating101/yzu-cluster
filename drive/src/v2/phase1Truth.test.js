@@ -89,3 +89,11 @@ test("status ask intent strips Queue DOI / DESCRIBE_DATASET affordances", () => 
   assert.equal(shaped.pendingJobId, null);
   assert.deepEqual(shaped.suggestedPrompts, ["Explain readiness"]);
 });
+
+test("cancelled history rows are not Collecting", async () => {
+  const { historyLifecycleBucket } = await import("./discoverAdapters.js");
+  assert.equal(
+    historyLifecycleBucket({ status: "cancelled", action: "collection_run", target: "Synthesis boundary" }),
+    "ready",
+  );
+});

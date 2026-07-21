@@ -134,6 +134,7 @@ export function historyLifecycleBucket(event) {
     return "scheduled";
   }
   if (/pending_approval|ready_for_review|awaiting|needs_approval/.test(status)) return "needs_approval";
+  if (/cancelled|canceled/.test(status)) return "ready";
   if (/queued|running|active|in_progress/.test(status)) return "active";
   if (/failed|error|needs_recovery|blocked/.test(status)) return "needs_recovery";
   if (/completed|ready|registered|archived|done|succeeded/.test(status)) return "ready";
