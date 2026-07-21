@@ -29,8 +29,12 @@ function folderLocation(ds) {
 
 export function buildPickUp({ datasets = [], jobs = [], health } = {}) {
   const recent = recentDatasets(datasets, 2);
+  // Prefer touched recent IDs; fall back to first holdings so Pick Up is never empty when the vault has assets.
   const primaryDs = recent[0] || datasets[0] || null;
-  const secondaryDs = recent[1] || null;
+  const secondaryDs =
+    recent[1] ||
+    (primaryDs && datasets.find((ds) => ds?.dataset_id && ds.dataset_id !== primaryDs.dataset_id)) ||
+    null;
   const pendingJobs = jobs.filter((job) =>
     /pending|approval|hold/i.test(String(job.status || job.state || "")),
   );

@@ -16,7 +16,10 @@ import {
 import { discoverCandidateUrl, webHitsToRows } from "@/v2/discoverActions";
 import { candidateKey, isCandidateQueued, withCandidateKey } from "@/v2/candidateKey";
 import { buildDiscoverLifecycle, projectDiscoverCandidateLifecycle } from "@/v2/discoverLifecycle";
-import { groupDiscoverBrowseRows } from "@/v2/discoverComposition";
+import {
+  interpretEvidenceNeed,
+  splitBestFitAndOthers,
+} from "@/v2/discoverComposition";
 import { assessLocalSufficiency } from "@/v2/discoverSufficiency";
 import { loadUserEmail } from "@/v2/deskSession";
 import { discoverDemoSearch } from "@/v2/deskSeed";
@@ -397,7 +400,8 @@ export function BrowsePage({
     });
   }, [merged, stateFilter, labIds]);
 
-  const browseGroups = useMemo(() => groupDiscoverBrowseRows(filtered), [filtered]);
+  const ranked = useMemo(() => splitBestFitAndOthers(filtered), [filtered]);
+  const interpretation = useMemo(() => interpretEvidenceNeed(searchQuery), [searchQuery]);
 
   const filterCounts = useMemo(
     () =>
@@ -430,10 +434,6 @@ export function BrowsePage({
   const demoMode = demoFallback || (usingSeed && source === "demo");
   const scopeSummary = resultScopeSummary(stageCounts);
   const activeFilter = FILTERS.find((item) => item.id === stateFilter) || FILTERS[0];
-  const resultHeadline =
-    stateFilter === "all"
-      ? `${plural(merged.length, "result")} for “${q}”`
-      : `${plural(filtered.length, "result")} · ${activeFilter.label}`;
 
   const modeTabs = (
     <DiscoverModeTabs
@@ -474,21 +474,38 @@ export function BrowsePage({
         ) : (
           <>
             <section
-              className="rd-v2-discover-result-summary"
-              aria-label="Discover result summary"
+              className="rd-v2-discover-explore-workspace"
+              aria-label="Discover explore"
               data-testid="discover-result-summary"
             >
-              <div className="rd-v2-discover-result-copy">
-                <p className="rd-v2-discover-result-eyebrow">Research index</p>
-                <h2 className="rd-v2-discover-result-title">{resultHeadline}</h2>
-                <p className="rd-v2-discover-result-scope">
-                  {scopeSummary || "No classified holdings or source candidates yet."}
+              <header className="rd-v2-discover-explore-need">
+                <h2>What evidence are you looking for?</h2>
+                <p className="rd-v2-discover-need-query" data-testid="discover-need-query">
+                  {q}
                 </p>
-              </div>
+              </header>
+
+              {interpretation.chips.length ? (
+                <div className="rd-v2-discover-interpreting" data-testid="discover-interpreting">
+                  <span className="rd-v2-eyebrow">Interpreting</span>
+                  <div className="rd-v2-discover-interpreting-chips" role="list" aria-label="Interpreted evidence need">
+                    {interpretation.chips.map((chip) => (
+                      <span key={chip} role="listitem" className="rd-v2-discover-chip">
+                        {chip}
+                      </span>
+                    ))}
+                    {interpretation.overflow > 0 ? (
+                      <span role="listitem" className="rd-v2-discover-chip muted">
+                        +{interpretation.overflow}
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+              ) : null}
 
               <details className="rd-v2-discover-filter-menu" data-testid="discover-filter-menu">
                 <summary>
-                  <span>Filter</span>
+                  <span>Filters</span>
                   {stateFilter !== "all" ? <strong>{activeFilter.label}</strong> : null}
                 </summary>
                 <div className="rd-v2-discover-filter-popover" role="group" aria-label="Filter Discover results">
@@ -552,33 +569,43 @@ export function BrowsePage({
               </div>
             ) : null}
 
-            {browseGroups.length ? (
-              <div className="rd-v2-discover-browse-groups">
-                {browseGroups.map((group) => (
-                  <section
-                    key={group.id}
-                    className="rd-v2-discover-group"
-                    data-group={group.id}
-                    aria-label={group.title}
-                  >
-                    <header className="rd-v2-discover-group-head">
-                      <div>
-                        <h3 className="rd-v2-discover-group-title">{group.title}</h3>
-                        <p className="rd-v2-discover-group-description">{group.description}</p>
-                      </div>
-                      <span className="rd-v2-discover-group-count" aria-label={`${group.rows.length} results`}>
-                        {group.rows.length}
-                      </span>
-                    </header>
-                    <DiscoverCandidateList
-                      rows={group.rows}
-                      labIds={labIds}
-                      selectedId={selectedId}
-                      onSelectRow={onSelectRow}
-                    />
-                  </section>
-                ))}
-              </div>
+            {ranked.bestFit ? (
+              <section className="rd-v2-discover-best-fit" aria-label="Best fit" data-testid="discover-best-fit">
+                <div className="rd-v2-home-section-head">
+                  <h3>Best fit</h3>
+                  {scopeSummary ? <span className="muted">{scopeSummary}</span> : null}
+                </div>
+                <DiscoverCandidateList
+                  rows={[ranked.bestFit]}
+                  labIds={labIds}
+                  selectedId={selectedId}
+                  onSelectRow={onSelectRow}
+                />
+              </section>
+            ) : null}
+
+            {ranked.others.length ? (
+              <section className="rd-v2-discover-other-matches" aria-label="Other matches" data-testid="discover-other-matches">
+                <div className="rd-v2-home-section-head">
+                  <h3>Other matches</h3>
+                </div>
+                <DiscoverCandidateList
+                  rows={ranked.others}
+                  labIds={labIds}
+                  selectedId={selectedId}
+                  onSelectRow={onSelectRow}
+                />
+              </section>
+            ) : null}
+
+            {ranked.total ? (
+              <footer className="rd-v2-discover-rank-foot" data-testid="discover-rank-foot">
+                <span>
+                  {plural(ranked.total, "candidate")}
+                  {stateFilter !== "all" ? ` · ${activeFilter.label}` : ""}
+                </span>
+                <span className="muted">Ranked using active research + interpreted evidence need</span>
+              </footer>
             ) : null}
 
             <details className="rd-v2-discover-process-disclosure">

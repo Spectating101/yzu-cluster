@@ -778,6 +778,78 @@
 
 .rd-v2-discover-explore-hint { font-size: 0.85rem; }
 
+.rd-v2-discover-explore-workspace {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.rd-v2-discover-need-query {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid #e4e8f0;
+  border-radius: 10px;
+  background: #fbfcfe;
+  color: #1c2434;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.rd-v2-discover-interpreting {
+  display: grid;
+  gap: 8px;
+}
+
+.rd-v2-discover-interpreting-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.rd-v2-discover-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid #d9e0ef;
+  background: #f4f6fb;
+  font-size: 0.78rem;
+  color: #3a4558;
+}
+
+.rd-v2-discover-chip.muted {
+  color: #7a8498;
+  background: transparent;
+}
+
+.rd-v2-discover-best-fit,
+.rd-v2-discover-other-matches {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.rd-v2-discover-best-fit .rd-v2-discover-candidates {
+  border: 1px solid #d5dced;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.rd-v2-discover-best-fit .rd-v2-discover-candidate {
+  border-left: 3px solid #3c4cdd;
+}
+
+.rd-v2-discover-rank-foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 4px 0 16px;
+  font-size: 0.8rem;
+  color: #5b6578;
+}
+
 @media (max-width: 1100px) {
   .rd-v2-home-topband {
     grid-template-columns: 1fr;
