@@ -20,10 +20,10 @@ import {
 } from "@/v2/RailFrame";
 
 /**
- * Profile — Understanding, then Memory · Works · Lab as supporting evidence.
- * Bound: deterministic research reading + calm brief + scan Works + compressed Lab.
- * Unbound: one compact zero-state + Settings CTA; no empty section shells.
- * No inline Memory edits — browser-local identity lives in Settings / overlays.
+ * Research context — Understanding first (facts · interpretation · sources · gaps),
+ * then Memory · source highlights · Lab as supporting evidence — not a CV dump.
+ * Unbound: one compact zero-state + connect CTA; no empty section shells.
+ * No inline Memory edits — browser-local identity lives in Workspace preferences.
  */
 export function ProfilePage({
   profile,
@@ -41,7 +41,7 @@ export function ProfilePage({
   const primary = profilePrimaryCommand(mode);
   const unbound = bound ? null : buildUnboundProfileCentre();
   const name = bound
-    ? profile?.name_en || profile?.name || "Research profile"
+    ? profile?.name_en || profile?.name || "Research context"
     : unbound.title;
   const orgLine = bound
     ? [profile?.title, profile?.discipline].filter(Boolean).join(" · ")
@@ -74,12 +74,12 @@ export function ProfilePage({
   return (
     <PageShell
       className={`rd-v2-profile-page${bound ? "" : " is-unbound"}${embedded ? " is-embedded" : ""}`}
-      title={embedded ? null : "Profile"}
+      title={embedded ? null : "Research context"}
       lead={
         embedded
           ? null
           : bound
-            ? "How Research Drive reads this research context"
+            ? "What Research Drive understands for this browser"
             : "Bind a faculty email preference for this browser"
       }
     >
@@ -122,7 +122,7 @@ export function ProfilePage({
           aria-labelledby="profile-understanding-title"
         >
           <header className="rd-v2-profile-section-head">
-            <h2 id="profile-understanding-title">How Research Drive reads this</h2>
+            <h2 id="profile-understanding-title">What Drive understands</h2>
             <span>Structured reading</span>
           </header>
 
@@ -133,7 +133,7 @@ export function ProfilePage({
           <div className="rd-v2-profile-understanding-grid">
             {understanding.threads.length ? (
               <div className="rd-v2-profile-understanding-block" data-testid="profile-understanding-threads">
-                <h3>Threads seen</h3>
+                <h3>Supported threads</h3>
                 <ul>
                   {understanding.threads.map((t) => (
                     <li key={t.id}>
@@ -157,7 +157,7 @@ export function ProfilePage({
 
             {understanding.missing ? (
               <div className="rd-v2-profile-understanding-block" data-testid="profile-understanding-missing">
-                <h3>Important evidence still missing</h3>
+                <h3>Open gaps</h3>
                 <p>
                   {understanding.missing.label}
                   <em> — {understanding.missing.detail}</em>
@@ -178,7 +178,7 @@ export function ProfilePage({
               </div>
             ) : null}
             <div data-testid="profile-understanding-interpretation">
-              <h3>Interpretation</h3>
+              <h3>Supported interpretation</h3>
               <p>
                 Deterministic composition of the fields above. It shapes Discover ranking and Ask
                 context on this browser; it is not a verified research claim.
@@ -201,7 +201,7 @@ export function ProfilePage({
             )}
             {understanding.provenance.length ? (
               <div data-testid="profile-understanding-provenance">
-                <h3>Where this came from</h3>
+                <h3>Sources and evidence</h3>
                 <ul>
                   {understanding.provenance.map((p) => (
                     <li key={p.kind}>{p.label}</li>
@@ -233,8 +233,8 @@ export function ProfilePage({
         aria-labelledby="profile-memory-title"
       >
         <header className="rd-v2-profile-section-head">
-          <h2 id="profile-memory-title">Memory</h2>
-          <span>{bound ? (brief.statement ? "Saved context" : "None yet") : "Unavailable"}</span>
+          <h2 id="profile-memory-title">Saved context</h2>
+          <span>{bound ? (brief.statement ? "On file" : "None yet") : "Unavailable"}</span>
         </header>
         {bound && brief.statement ? (
           <div className="rd-v2-profile-memory-brief">
@@ -257,14 +257,14 @@ export function ProfilePage({
               data-testid="profile-manage-context"
               onClick={() => onGoTab?.("settings")}
             >
-              Manage research context
+              Change research context
             </button>
           </div>
         ) : (
           <p className="rd-v2-empty-inline" data-testid="profile-memory-empty">
             {bound
               ? "No research statement on file yet."
-              : "Memory unavailable until a faculty email is attached."}
+              : "Saved context unavailable until a faculty email is attached."}
           </p>
         )}
       </section>
@@ -276,7 +276,7 @@ export function ProfilePage({
         aria-labelledby="profile-works-title"
       >
         <header className="rd-v2-profile-section-head">
-          <h2 id="profile-works-title">Works</h2>
+          <h2 id="profile-works-title">Source highlights</h2>
           {bound && works.paperCount ? (
             <span className="rd-v2-profile-works-count">{works.paperCount} indexed</span>
           ) : null}
@@ -284,7 +284,7 @@ export function ProfilePage({
         </header>
         {bound && works.items.length ? (
           <>
-          <ul className="rd-v2-profile-works" role="listbox" aria-label="Publication works">
+          <ul className="rd-v2-profile-works" role="listbox" aria-label="Source highlights">
             {works.items.map((work, index) => {
               const selected = Boolean(selectedWorkId) && selectedWorkId === work.raw;
               return (
@@ -330,8 +330,8 @@ export function ProfilePage({
             {bound
               ? works.paperCount
                 ? "Indexed count on file; highlights not listed."
-                : "No works on file."
-              : "Works unavailable until a faculty email is attached."}
+                : "No source highlights on file."
+              : "Source highlights unavailable until a faculty email is attached."}
           </p>
         )}
       </section>
@@ -343,7 +343,7 @@ export function ProfilePage({
         aria-labelledby="profile-lab-title"
       >
         <header className="rd-v2-profile-section-head">
-          <h2 id="profile-lab-title">Lab</h2>
+          <h2 id="profile-lab-title">Evidence links</h2>
           <span>Linked · gaps</span>
         </header>
 
@@ -368,7 +368,7 @@ export function ProfilePage({
         </div>
 
         <div className="rd-v2-profile-lab-block">
-          <h3 className="rd-v2-profile-lab-label">Evidence gaps</h3>
+          <h3 className="rd-v2-profile-lab-label">Open gaps</h3>
           {bound && lab.suggested.length ? (
             <ul className="rd-v2-profile-lab-rows">
               {lab.suggested.map((row) => (

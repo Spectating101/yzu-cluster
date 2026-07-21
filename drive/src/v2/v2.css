@@ -628,12 +628,16 @@
   gap: 10px;
 }
 
-.rd-v2-account-overlay-body .rd-v2-settings-block {
-  padding-bottom: 14px;
-}
-
 .rd-v2-account-overlay-panel--research {
   width: min(640px, 100vw);
+}
+
+.rd-v2-account-overlay-panel--prefs {
+  width: min(480px, 100vw);
+}
+
+.rd-v2-account-overlay-body .rd-v2-settings-block {
+  padding-bottom: 14px;
 }
 
 .rd-v2-account-overlay-panel--settings {
