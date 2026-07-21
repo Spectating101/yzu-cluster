@@ -1,6 +1,4 @@
 import { useEffect, useId, useRef, useState } from "react";
-import { loadSettings } from "@/v2/settingsStore";
-import { loadUserEmail } from "@/v2/deskSession";
 import { ProfileIcon } from "@/v2/nav-config.jsx";
 import { isProfileBound } from "@/v2/profilePresentation";
 import { accountDisplayName, accountInitials } from "@/v2/accountPresentation";
@@ -24,20 +22,12 @@ function PreferencesIcon() {
   );
 }
 
-function WrenchIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
-    </svg>
-  );
-}
-
-function MenuItem({ testId, children, onClick, onKeyDown, className = "" }) {
+function MenuItem({ testId, children, onClick, onKeyDown }) {
   return (
     <button
       type="button"
       role="menuitem"
-      className={`rd-v2-account-menu-item${className ? ` ${className}` : ""}`}
+      className="rd-v2-account-menu-item"
       data-testid={testId}
       onKeyDown={onKeyDown}
       onClick={onClick}
@@ -49,7 +39,8 @@ function MenuItem({ testId, children, onClick, onKeyDown, className = "" }) {
 
 /**
  * Shared account menu — desktop sidebar cluster + header/mobile avatar.
- * Opens Research Context / Workspace Preferences overlays; no page-level nav.
+ * Two principal choices: Research context understanding, and compact workspace prefs.
+ * Bind / clear / advanced live in the full preferences surface (?tab=settings or Manage context).
  */
 export function AccountMenu({
   variant = "header",
@@ -57,8 +48,6 @@ export function AccountMenu({
   headerInitials = "YZ",
   onOpenResearchContext,
   onOpenWorkspacePrefs,
-  onOpenAdvanced,
-  onClearContext,
 }) {
   const bound = isProfileBound(profile);
   const [open, setOpen] = useState(false);
@@ -69,7 +58,6 @@ export function AccountMenu({
 
   const initials = accountInitials(profile, headerInitials);
   const label = accountDisplayName(profile);
-  const hasEmail = Boolean(loadUserEmail() || loadSettings().email || (bound && profile?.email));
 
   useEffect(() => {
     if (!open) return undefined;
@@ -95,11 +83,6 @@ export function AccountMenu({
     if (!open) return;
     queueMicrotask(() => listRef.current?.querySelector('[role="menuitem"]')?.focus());
   }, [open]);
-
-  const close = () => {
-    setOpen(false);
-    triggerRef.current?.focus();
-  };
 
   const focusRelative = (current, delta) => {
     const items = [...(listRef.current?.querySelectorAll('[role="menuitem"]') || [])];
@@ -137,23 +120,6 @@ export function AccountMenu({
     onOpenWorkspacePrefs?.({ mode: "workspace" }, el);
   };
 
-  const openBindContext = () => {
-    const el = triggerRef.current;
-    setOpen(false);
-    onOpenWorkspacePrefs?.({ mode: "settings" }, el);
-  };
-
-  const openAdvanced = () => {
-    const el = triggerRef.current;
-    setOpen(false);
-    onOpenAdvanced?.(el);
-  };
-
-  const clearContext = () => {
-    onClearContext?.();
-    close();
-  };
-
   const panel = open ? (
     <div
       id={panelId}
@@ -171,25 +137,6 @@ export function AccountMenu({
       <MenuItem testId="account-menu-workspace" onClick={openPrefs} onKeyDown={onMenuKeyDown}>
         <PreferencesIcon />
         <span>Workspace preferences</span>
-      </MenuItem>
-
-      <div className="rd-v2-account-menu-sep" role="separator" />
-
-      <MenuItem testId="account-menu-context" onClick={openBindContext} onKeyDown={onMenuKeyDown}>
-        <span className="rd-v2-account-menu-glyph" aria-hidden>@</span>
-        <span>{bound || hasEmail ? "Change research context" : "Connect research context"}</span>
-      </MenuItem>
-
-      {hasEmail ? (
-        <MenuItem testId="account-menu-clear" onClick={clearContext} onKeyDown={onMenuKeyDown}>
-          <span className="rd-v2-account-menu-glyph" aria-hidden>×</span>
-          <span>Clear research context</span>
-        </MenuItem>
-      ) : null}
-
-      <MenuItem testId="account-menu-advanced" onClick={openAdvanced} onKeyDown={onMenuKeyDown}>
-        <WrenchIcon />
-        <span>Advanced recovery</span>
       </MenuItem>
     </div>
   ) : null;

@@ -28,8 +28,6 @@ export function V2DeskHeader({
   profile = null,
   onOpenResearchContext,
   onOpenWorkspacePrefs,
-  onOpenAdvanced,
-  onClearContext,
 }) {
   const fresh = freshnessLabel(refreshedAt);
 
@@ -152,8 +150,6 @@ export function V2DeskHeader({
         headerInitials={headerInitials}
         onOpenResearchContext={onOpenResearchContext}
         onOpenWorkspacePrefs={onOpenWorkspacePrefs}
-        onOpenAdvanced={onOpenAdvanced}
-        onClearContext={onClearContext}
       />
     </header>
   );

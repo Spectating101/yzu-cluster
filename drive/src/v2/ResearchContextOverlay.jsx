@@ -1,9 +1,11 @@
 import { useEffect, useRef } from "react";
 import { ProfilePage } from "@/v2/ProfilePage";
+import { isProfileBound } from "@/v2/profilePresentation";
 import { useFocusTrap } from "@/v2/useFocusTrap";
 
 /**
  * Research Context overlay — what Drive understands for this browser.
+ * Bound: substantial sheet. Unbound: compact zero-state sheet.
  * Legacy ?tab=profile opens this instead of a page-level Profile route.
  */
 export function ResearchContextOverlay({
@@ -21,6 +23,8 @@ export function ResearchContextOverlay({
 }) {
   const panelRef = useRef(null);
   useFocusTrap(open, { containerRef: panelRef, restoreFocusRef });
+  const bound = isProfileBound(profile);
+  const compact = !bound;
 
   useEffect(() => {
     if (!open) return undefined;
@@ -50,8 +54,17 @@ export function ResearchContextOverlay({
     onGoTab?.(tab);
   };
 
+  const panelClass = compact
+    ? "rd-v2-account-overlay-panel rd-v2-account-overlay-panel--research rd-v2-account-overlay-panel--compact is-unbound"
+    : "rd-v2-account-overlay-panel rd-v2-account-overlay-panel--research";
+
   return (
-    <div className="rd-v2-account-overlay" data-testid="research-context-overlay" role="presentation">
+    <div
+      className={`rd-v2-account-overlay${compact ? " is-compact" : ""}`}
+      data-testid="research-context-overlay"
+      data-compact={compact ? "true" : undefined}
+      role="presentation"
+    >
       <button
         type="button"
         className="rd-v2-account-overlay-backdrop"
@@ -60,7 +73,7 @@ export function ResearchContextOverlay({
         onClick={() => onClose?.()}
       />
       <div
-        className="rd-v2-account-overlay-panel rd-v2-account-overlay-panel--research"
+        className={panelClass}
         role="dialog"
         aria-modal="true"
         aria-labelledby="research-context-title"

@@ -83,7 +83,11 @@ export function ProfilePage({
             : "Bind a faculty email preference for this browser"
       }
     >
-      <section className="rd-v2-profile-identity" aria-label="Faculty identity" data-testid="profile-identity">
+      <section
+        className={`rd-v2-profile-identity${bound ? "" : " is-zero"}`}
+        aria-label="Faculty identity"
+        data-testid="profile-identity"
+      >
         <div className="rd-v2-profile-ident">
           {!bound ? (
             <span className="rd-v2-profile-badge quiet" data-testid="profile-unbound-badge">

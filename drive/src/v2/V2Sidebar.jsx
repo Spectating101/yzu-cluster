@@ -12,8 +12,6 @@ export function V2Sidebar({
   profile = null,
   onOpenResearchContext,
   onOpenWorkspacePrefs,
-  onOpenAdvanced,
-  onClearContext,
 }) {
   const activeButtonRef = useRef(null);
 
@@ -44,8 +42,6 @@ export function V2Sidebar({
           profile={profile}
           onOpenResearchContext={onOpenResearchContext}
           onOpenWorkspacePrefs={onOpenWorkspacePrefs}
-          onOpenAdvanced={onOpenAdvanced}
-          onClearContext={onClearContext}
         />
       </div>
     </aside>

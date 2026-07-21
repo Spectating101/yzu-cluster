@@ -7,6 +7,7 @@ import {
   deskHealth,
   deskResources,
   deskWarm,
+  ensureDeskSession,
   discoverHistory,
   facultyProfile,
   libraryOps,
@@ -219,10 +220,14 @@ export function V2App() {
 
 
   const reloadProfile = useCallback(() => {
-    const email = loadUserEmail();
+    const email = loadUserEmail() || loadSettings().email || "";
     if (!email) {
       setProfile({ unknown: true });
       return;
+    }
+    // Keep settings email in sync with the browser preference used for binding.
+    if (loadSettings().email !== email) {
+      saveSettings({ email });
     }
     facultyProfile(email)
       .then((data) => {
@@ -316,7 +321,14 @@ export function V2App() {
   }, [refreshBackend, showToast]);
 
   useEffect(() => {
-    refreshBackend();
+    let cancelled = false;
+    (async () => {
+      await ensureDeskSession().catch(() => {});
+      if (!cancelled) refreshBackend();
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [refreshBackend]);
 
   useEffect(() => {
@@ -1212,10 +1224,6 @@ export function V2App() {
     setWorkspacePrefsOpen(true);
   }, []);
 
-  const openAdvancedRecovery = useCallback((triggerEl) => {
-    openWorkspacePrefs({ mode: "settings", advanced: true }, triggerEl);
-  }, [openWorkspacePrefs]);
-
 
 
   const hideRail = false;
@@ -1234,8 +1242,6 @@ export function V2App() {
         profile={profile}
         onOpenResearchContext={openResearchContext}
         onOpenWorkspacePrefs={openWorkspacePrefs}
-        onOpenAdvanced={openAdvancedRecovery}
-        onClearContext={clearResearchContext}
         datasetCount={headerDsCount}
         usingSeed={usingSeed}
         workCount={Math.max(
@@ -1269,8 +1275,6 @@ export function V2App() {
         profile={profile}
         onOpenResearchContext={openResearchContext}
         onOpenWorkspacePrefs={openWorkspacePrefs}
-        onOpenAdvanced={openAdvancedRecovery}
-        onClearContext={clearResearchContext}
       />
       <main className="yzu-main rd-v2-shell-main">
         {main}

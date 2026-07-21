@@ -65,7 +65,7 @@ test.describe("Research context freeze showcase", () => {
     await expect(memory.getByTestId("profile-manage-context")).toBeVisible();
     await expect(works).toContainText(/indexed/i);
     await expect(works.locator(".rd-v2-profile-work-row")).toHaveCount(3);
-    await expect(lab.getByText(/Linked evidence/i)).toBeVisible();
+    await expect(lab.getByRole("heading", { name: "Linked evidence" })).toBeVisible();
     expect(await lab.locator(".rd-v2-profile-lab-block").first().locator("li").count()).toBeLessThanOrEqual(3);
     expect(await lab.locator(".rd-v2-profile-lab-block").nth(1).locator("li").count()).toBeLessThanOrEqual(2);
 

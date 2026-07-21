@@ -82,6 +82,9 @@
   padding: 0 18px;
   background: var(--rd-surface);
   border-bottom: 1px solid var(--rd-border);
+  /* Sit above the inspector column so the account avatar stays clickable */
+  position: relative;
+  z-index: 10;
 }
 
 .yzu-brand {
@@ -286,7 +289,7 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
-  overflow-y: auto;
+  overflow: visible;
 }
 
 .yzu-sidebar nav {
@@ -294,6 +297,9 @@
   flex-direction: column;
   gap: 2px;
   padding: 0 12px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .rd-v2-sidebar-section {
@@ -452,13 +458,14 @@
 
 .rd-v2-account-menu-panel {
   position: absolute;
-  z-index: 50;
+  z-index: 120;
   width: min(280px, calc(100vw - 24px));
   padding: 6px;
   border: 1px solid var(--rd-border);
   border-radius: 8px;
   background: #fff;
   box-shadow: 0 6px 20px color-mix(in srgb, var(--rd-ink, #111) 10%, transparent);
+  overflow: visible;
 }
 
 .rd-v2-account-menu-panel--sidebar {
@@ -472,9 +479,9 @@
   top: calc(100% + 8px);
   right: 0;
   left: auto;
-  max-width: min(280px, calc(100vw - 16px));
-  max-height: min(70vh, 420px);
-  overflow-y: auto;
+  width: min(260px, calc(100vw - 24px));
+  max-height: none;
+  overflow: visible;
 }
 
 .rd-v2-account-menu-item {
@@ -622,10 +629,14 @@
 
 .rd-v2-account-overlay-body .rd-v2-profile-understanding-grid {
   gap: 10px 14px;
+  /* Overlay width is ~640px — keep blocks readable, not a cramped 3-up */
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 
 .rd-v2-account-overlay-body .rd-v2-profile-understanding-layers {
-  gap: 10px;
+  gap: 12px;
+  /* Interpretation is prose — stack in the sheet so it doesn't squeeze */
+  grid-template-columns: 1fr;
 }
 
 .rd-v2-account-overlay-panel--research {
@@ -637,7 +648,12 @@
 }
 
 .rd-v2-account-overlay-body .rd-v2-settings-block {
-  padding-bottom: 14px;
+  padding-bottom: 18px;
+}
+
+.rd-v2-account-overlay-body .rd-v2-settings-row.stack .rd-v2-settings-hint {
+  margin-bottom: 2px;
+  line-height: 1.45;
 }
 
 .rd-v2-account-overlay-panel--settings {
@@ -645,13 +661,30 @@
 }
 
 .rd-v2-account-overlay-panel--compact {
-  width: min(400px, 100vw);
+  width: min(340px, calc(100vw - 48px));
   height: auto;
-  max-height: min(92vh, 100%);
+  max-height: min(70vh, 420px);
   align-self: center;
-  margin-right: max(24px, 4vw);
+  margin: 0;
   border-radius: 12px;
   box-shadow: 0 16px 48px rgba(15, 23, 42, 0.22);
+}
+
+.rd-v2-account-overlay-panel--research.rd-v2-account-overlay-panel--compact {
+  width: min(340px, calc(100vw - 48px));
+}
+
+.rd-v2-account-overlay.is-compact {
+  align-items: center;
+  justify-content: center;
+}
+
+.rd-v2-account-overlay.is-compact .rd-v2-account-overlay-panel--compact {
+  margin: 0;
+}
+
+.rd-v2-account-overlay.is-compact .rd-v2-account-overlay-body .rd-v2-body-scroll {
+  padding: 12px 16px 18px;
 }
 
 .rd-v2-workspace-prefs-compact {
@@ -666,44 +699,60 @@
 }
 
 @media (max-width: 720px) {
-  .rd-v2-account-overlay {
+  .rd-v2-account-overlay:not(.is-compact) {
     align-items: flex-end;
     justify-content: stretch;
   }
 
-  .rd-v2-account-overlay-panel {
+  .rd-v2-account-overlay.is-compact {
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+
+  .rd-v2-account-overlay:not(.is-compact) .rd-v2-account-overlay-panel {
     width: 100%;
     height: min(92vh, 100%);
     border-radius: 16px 16px 0 0;
     box-shadow: 0 -8px 32px rgba(15, 23, 42, 0.2);
   }
 
-  .rd-v2-account-overlay-panel--compact {
-    width: 100%;
+  .rd-v2-account-overlay-panel--compact,
+  .rd-v2-account-overlay.is-compact .rd-v2-account-overlay-panel--compact {
+    width: min(360px, calc(100vw - 32px));
+    height: auto;
+    max-height: min(75vh, 480px);
     margin: 0;
-    align-self: flex-end;
-    border-radius: 16px 16px 0 0;
+    align-self: center;
+    border-radius: 12px;
+  }
+
+  .yzu-header.rd-v2-header,
+  .rd-v2-header,
+  .rd-v2-header-meta,
+  .rd-v2-account-menu--header {
+    overflow: visible;
+  }
+
+  .rd-v2-header {
+    z-index: 100;
   }
 
   .rd-v2-account-menu--header {
     position: relative;
-    z-index: 40;
-  }
-
-  .rd-v2-header,
-  .rd-v2-header-meta {
-    overflow: visible;
+    z-index: 110;
   }
 
   .rd-v2-account-menu-panel--header {
-    position: absolute;
-    top: calc(100% + 8px);
-    right: 0;
+    position: fixed;
+    top: calc(var(--rd-header, 56px) + 6px);
+    right: 12px;
     left: auto;
-    width: min(260px, calc(100vw - 24px));
-    max-height: min(60vh, 360px);
-    overflow-y: auto;
-    z-index: 90;
+    bottom: auto;
+    width: min(280px, calc(100vw - 24px));
+    max-height: none;
+    overflow: visible;
+    z-index: 130;
   }
 }
 
@@ -2125,6 +2174,15 @@
   min-height: 0;
   width: var(--rd-rail);
   z-index: 2;
+  overflow: hidden;
+  /* Collapsed / chrome must not steal header avatar hits in the shared right edge */
+  pointer-events: auto;
+}
+
+/* Desktop: collapsed class is present before mobile open, but the rail stays in-grid.
+   Keep hit-testing inside the rail column — never over the header row. */
+.yzu-inspector.rd-v2-rail-collapsed {
+  align-self: stretch;
 }
 
 .rd-v2-rail-stack {
@@ -7183,6 +7241,9 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 .rd-v2-settings-advanced > summary {
   list-style: none;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 12px 0;
   color: var(--rd-text);
   font-family: var(--rd-font);
@@ -7190,6 +7251,22 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
   font-weight: 650;
   letter-spacing: -0.01em;
   text-transform: none;
+  user-select: none;
+}
+
+.rd-v2-settings-advanced > summary::before {
+  content: "";
+  width: 0;
+  height: 0;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 6px solid currentColor;
+  opacity: 0.65;
+  transition: transform 0.12s ease;
+}
+
+.rd-v2-settings-advanced[open] > summary::before {
+  transform: rotate(90deg);
 }
 
 .rd-v2-settings-advanced > summary::-webkit-details-marker {
@@ -8710,7 +8787,7 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
     padding: 0 12px;
     position: sticky;
     top: 0;
-    z-index: 5;
+    z-index: 30;
   }
 
   .rd-v2-header-meta {
@@ -8797,11 +8874,19 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
     max-height: none;
     height: auto;
     box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.1);
+    /* Collapsed sheet must not steal taps meant for the header account menu. */
+    pointer-events: none;
   }
 
+  .yzu-inspector.rd-v2-rail-collapsed .rd-v2-rail-mobile-grip {
+    pointer-events: auto;
+  }
+
+  .yzu-inspector.rd-v2-rail-collapsed .rd-v2-rail-body,
   .yzu-inspector.rd-v2-rail-collapsed .rd-v2-rail-pane,
   .yzu-inspector.rd-v2-rail-collapsed .rd-v2-rail-selection {
     display: none !important;
+    pointer-events: none !important;
   }
 
   .yzu-inspector.rd-v2-rail-collapsed .rd-v2-rail-toggle {

@@ -61,6 +61,7 @@ export function SettingsPage({
 
   useEffect(() => {
     if (groupId === "advanced") setAdvancedOpen(true);
+    else setAdvancedOpen(false);
   }, [groupId]);
 
   useEffect(() => {

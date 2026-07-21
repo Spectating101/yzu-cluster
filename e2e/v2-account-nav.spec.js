@@ -55,6 +55,15 @@ test.describe("Account cluster navigation", () => {
     await expect(nav.getByRole("button", { name: /^Profile$/i })).toHaveCount(0);
     await expect(nav.getByRole("button", { name: /^Settings$/i })).toHaveCount(0);
 
+    // Header account control must be normally clickable on desktop (rail must not intercept).
+    const headerAccount = page.getByTestId("header-account-menu");
+    await expect(headerAccount).toBeVisible();
+    await headerAccount.click();
+    await expect(page.getByTestId("account-menu")).toBeVisible();
+    await expect(page.getByTestId("account-menu").getByRole("menuitem")).toHaveCount(2);
+    await page.keyboard.press("Escape");
+    await expect(page.getByTestId("account-menu")).toHaveCount(0);
+
     const cluster = page.getByTestId("sidebar-account-menu");
     await expect(cluster).toBeVisible();
     await expect(cluster).toContainText(/Kong/i);
@@ -64,9 +73,10 @@ test.describe("Account cluster navigation", () => {
     await expect(menu).toBeVisible();
     await expect(menu.getByTestId("account-menu-profile")).toContainText(/Research context/i);
     await expect(menu.getByTestId("account-menu-workspace")).toContainText(/Workspace preferences/i);
-    await expect(menu.getByTestId("account-menu-context")).toBeVisible();
-    await expect(menu.getByTestId("account-menu-clear")).toBeVisible();
-    await expect(menu.getByTestId("account-menu-advanced")).toBeVisible();
+    await expect(menu.getByTestId("account-menu-context")).toHaveCount(0);
+    await expect(menu.getByTestId("account-menu-clear")).toHaveCount(0);
+    await expect(menu.getByTestId("account-menu-advanced")).toHaveCount(0);
+    await expect(menu.getByRole("menuitem")).toHaveCount(2);
 
     await page.screenshot({
       path: path.join(OUT, "account_menu_desktop_1440.png"),
@@ -98,7 +108,10 @@ test.describe("Account cluster navigation", () => {
     await expect(prefs).toBeVisible();
     await expect(prefs.getByRole("heading", { name: "Workspace preferences" })).toBeVisible();
     await expect(prefs.getByTestId("workspace-preferences")).toBeVisible();
-    await expect(prefs.getByTestId("settings-default-tab")).toBeVisible();
+    await expect(prefs.getByTestId("workspace-prefs-compact")).toBeVisible();
+    await expect(prefs.getByTestId("workspace-default-tab")).toBeVisible();
+    await expect(prefs.getByTestId("workspace-on-select")).toBeVisible();
+    await expect(prefs.getByTestId("settings-group-context")).toHaveCount(0);
 
     await page.screenshot({
       path: path.join(OUT, "account_workspace_prefs_desktop_1440.png"),
@@ -123,8 +136,11 @@ test.describe("Account cluster navigation", () => {
     await expect(cluster).toContainText(/Research context/i);
     await expect(cluster).toContainText(/Unbound/i);
     await cluster.click();
-    await expect(page.getByTestId("account-menu-context")).toContainText(/Connect research context/i);
-    await expect(page.getByTestId("account-menu-clear")).toHaveCount(0);
+    const menu = page.getByTestId("account-menu");
+    await expect(menu.getByTestId("account-menu-profile")).toBeVisible();
+    await expect(menu.getByTestId("account-menu-workspace")).toBeVisible();
+    await expect(menu.getByTestId("account-menu-context")).toHaveCount(0);
+    await expect(menu.getByRole("menuitem")).toHaveCount(2);
 
     await page.screenshot({
       path: path.join(OUT, "account_unbound_desktop_1440.png"),
@@ -154,6 +170,9 @@ test.describe("Account cluster navigation", () => {
     await page.getByTestId("header-account-menu").click();
     const menu = page.getByTestId("account-menu");
     await expect(menu).toBeVisible();
+    await expect(menu.getByTestId("account-menu-profile")).toBeVisible();
+    await expect(menu.getByTestId("account-menu-workspace")).toBeVisible();
+    await expect(menu.getByRole("menuitem")).toHaveCount(2);
 
     await page.screenshot({
       path: path.join(OUT, "account_bound_mobile_menu_390.png"),
@@ -164,7 +183,7 @@ test.describe("Account cluster navigation", () => {
     const prefs = page.getByTestId("workspace-prefs-overlay");
     await expect(prefs).toBeVisible();
     await expect(prefs.getByTestId("workspace-preferences")).toBeVisible();
-    await prefs.getByTestId("settings-default-tab").selectOption("library");
+    await prefs.getByTestId("workspace-default-tab").selectOption("library");
     const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("rd_v2_settings") || "{}"));
     expect(stored.defaultTab).toBe("library");
 
@@ -203,5 +222,6 @@ test.describe("Account cluster navigation", () => {
     await expect(
       page.getByTestId("workspace-prefs-overlay").getByRole("heading", { name: "Workspace preferences" }),
     ).toBeVisible();
+    await expect(page.getByTestId("settings-group-context")).toBeVisible();
   });
 });
