@@ -49,6 +49,7 @@ test.describe("Research Drive RC2.1 transient decoration layer", () => {
     const announcement = progress.locator(".rd-v2-progress-announcement");
     const elapsedMeta = progress.locator(".rd-v2-progress-card-meta");
     await expect(progress).toBeVisible();
+    await expect(rail.locator(".rd-v2-ask-bubble.agent")).toHaveCount(0);
     await expect(progress.locator("li")).toHaveCount(4);
     await expect(progress).toContainText(/Active · \d+s/);
     await expect(announcement).toHaveAttribute("role", "status");
@@ -84,6 +85,7 @@ test.describe("Research Drive RC2.1 transient decoration layer", () => {
 
     await expect(progress).toHaveCount(0, { timeout: 10_000 });
     await expect(rail).toContainText("grounded in the current Research Drive context");
+    await expect(rail.locator(".rd-v2-ask-bubble.agent")).toHaveCount(1);
     await expect(rail.getByRole("progressbar")).toHaveCount(0);
   });
 
