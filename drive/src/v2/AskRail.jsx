@@ -197,6 +197,7 @@ export function AskRail({
               </p>
             ) : null}
             {messages.map((m, i) => {
+              if (m.streaming && !m.text) return null;
               const approval = m.pendingJobId ? approvalState[m.pendingJobId]?.status : "";
               return (
                 <div
@@ -211,7 +212,7 @@ export function AskRail({
                     m.text
                   ) : (
                     <>
-                      {m.activityLog?.length ? (
+                      {!m.streaming && m.activityLog?.length ? (
                         <ol className="rd-v2-ask-phases" data-testid="ask-tool-phases" aria-label="Agent tool activity">
                           {m.activityLog.map((step, si) => (
                             <li key={`${step.phase}-${si}`} data-phase={step.phase}>
@@ -220,10 +221,10 @@ export function AskRail({
                             </li>
                           ))}
                         </ol>
-                      ) : m.activity ? (
+                      ) : !m.streaming && m.activity ? (
                         <p className="muted small">{m.activity}</p>
                       ) : null}
-                      <strong>Agent:</strong> {m.text || (m.streaming ? "…" : "")}
+                      <strong>Agent:</strong> {m.text}
                       {m.action || m.toolName ? (
                         <p className="rd-v2-ask-action-meta muted small">
                           {[m.toolName, m.action].filter(Boolean).join(" · ")}
