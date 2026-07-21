@@ -189,7 +189,13 @@ export function V2App() {
   const reloadProfile = useCallback(() => {
     const email = loadUserEmail();
     facultyProfile(email)
-      .then((data) => setProfile(data?.found ? data.profile : { email, unknown: true }))
+      .then((data) => {
+        if (!data?.found || !data.profile || data.profile.unknown) {
+          setProfile({ email, unknown: true });
+          return;
+        }
+        setProfile(data.profile);
+      })
       .catch(() => setProfile({ email, unknown: true }));
   }, []);
 
@@ -1168,13 +1174,20 @@ export function V2App() {
   const hideRail = tab === "browse" && !browseTarget && !selectedHistoryEvent;
 
   const activeResearch = useMemo(() => {
-    const lab = buildLab(profile);
+    const lab = buildLab(profile && !profile.unknown ? profile : null);
+    const primaryTrack =
+      Array.isArray(profile?.research_tracks) && profile.research_tracks.length
+        ? profile.research_tracks.find((t) => t?.phase === "active_grant") || profile.research_tracks[0]
+        : null;
+    const trackTitle =
+      typeof primaryTrack === "string"
+        ? primaryTrack
+        : primaryTrack?.title || primaryTrack?.name || "";
     const title =
-      profile?.research_direction ||
-      profile?.current_research ||
-      profile?.name_en ||
+      (profile && !profile.unknown && (trackTitle || profile.research_direction || profile.current_research || profile.name_en)) ||
       "Active research";
     const emphases = [
+      ...(Array.isArray(profile?.specialties) ? profile.specialties : []),
       ...(Array.isArray(profile?.research_emphases) ? profile.research_emphases : []),
       ...(Array.isArray(lab?.themes) ? lab.themes : []),
       ...(Array.isArray(profile?.themes) ? profile.themes : []),

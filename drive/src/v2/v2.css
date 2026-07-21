@@ -6675,8 +6675,23 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 }
 
 .rd-v2-profile-works li {
-  display: block;
-  grid-template-columns: none;
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.rd-v2-profile-works li > span:first-child {
+  color: var(--rd-muted);
+  font-family: var(--rd-mono);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.rd-v2-profile-works li > em {
+  color: var(--rd-muted);
+  font-style: normal;
+  font-weight: 650;
 }
 
 .rd-v2-profile-lab-block {
