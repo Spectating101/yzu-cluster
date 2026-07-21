@@ -24,7 +24,7 @@ test.describe("v2 Home Iteration 10 freeze", () => {
     const recommended = page.getByRole("region", { name: "Recommended evidence" });
     // Freeze: no grounded authority → section disappears (count 0), else ≤2 rows.
     if ((await recommended.count()) > 0) {
-      await expect(recommended.locator(".rd-v2-home-recommended-row")).toHaveCount({ min: 1 });
+      expect(await recommended.locator(".rd-v2-home-recommended-row").count()).toBeGreaterThan(0);
     }
   });
 
