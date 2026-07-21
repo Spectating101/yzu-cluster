@@ -1248,8 +1248,9 @@
 }
 .rd-v2-discover-need-input {
   width: 100%;
-  min-height: 2.6rem;
-  max-height: 5.5rem;
+  height: 2.75rem;
+  min-height: 2.75rem;
+  max-height: 2.75rem;
   padding: 10px 12px;
   border: 1px solid #d7dde8;
   border-radius: 10px;
@@ -1257,13 +1258,16 @@
   color: #1c2434;
   font: inherit;
   font-size: 0.95rem;
-  line-height: 1.4;
-  resize: vertical;
+  line-height: 1.35;
+  resize: none;
+  overflow: hidden;
 }
 .rd-v2-discover-need-form .rd-v2-btn {
-  min-height: 2.6rem;
+  height: 2.75rem;
+  min-height: 2.75rem;
   min-width: 5.5rem;
   padding: 0 14px;
+  align-self: stretch;
 }
 .rd-v2-discover-refine {
   margin-top: 4px;

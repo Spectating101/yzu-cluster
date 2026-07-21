@@ -976,13 +976,14 @@ summary:focus-visible {
 }
 
 .rd-v2-profile-memory-card {
-  min-height: 78px;
-  padding: 16px 17px;
+  min-height: 0;
+  padding: 14px 16px;
   border: 1px solid #e0e4ed;
   border-radius: 13px;
   background: linear-gradient(145deg, #fff, #f8f9ff);
   color: #344054;
   line-height: 1.48;
+  overflow: visible;
 }
 
 .rd-v2-profile-works,
@@ -993,7 +994,9 @@ summary:focus-visible {
 
 .rd-v2-profile-lab-rows li,
 .rd-v2-profile-works li {
-  min-height: 54px;
+  min-height: 0;
+  align-items: start;
+  overflow: visible;
 }
 
 .rd-v2-profile-lab-action {

@@ -96,6 +96,7 @@
 .rd-v2-profile-memory-layout .rd-v2-profile-memory-card {
   display: flex;
   min-height: 0;
+  height: auto;
   flex-direction: column;
   justify-content: flex-start;
   gap: 8px;
@@ -104,6 +105,10 @@
   border-radius: 14px;
   background: #fbfcfe;
   overflow: visible;
+}
+
+.rd-v2-profile-memory-layout .rd-v2-profile-memory {
+  align-items: start;
 }
 
 .rd-v2-profile-memory-card > span {
@@ -191,9 +196,11 @@
   display: grid;
   grid-template-columns: 38px minmax(0,1fr);
   gap: 12px;
-  align-items: center;
-  min-height: 62px;
+  align-items: start;
+  min-height: 0;
+  padding: 12px 0;
   border-bottom: 1px solid #e8ebf1;
+  overflow: visible;
 }
 
 .rd-v2-profile-works li:last-child {
@@ -211,6 +218,8 @@
   font-size: 12.5px;
   font-weight: 620;
   line-height: 1.45;
+  white-space: normal;
+  overflow: visible;
 }
 
 .rd-v2-profile-lab-grid {
