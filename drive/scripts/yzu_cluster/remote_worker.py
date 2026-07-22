@@ -293,7 +293,9 @@ def execute_http_manifest(
         json.dumps({"job_id": job_id, "shard": 0, "items": items}, indent=2),
         encoding="utf-8",
     )
-    script = repo_root / "scripts/cluster_agent/remote_collect.py"
+    from scripts.yzu_cluster.acquisitions import remote_collect_script
+
+    script = remote_collect_script(repo_root)
     if not script.is_file():
         raise FileNotFoundError(f"remote collector not found: {script}")
     command = [

@@ -17,6 +17,23 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def remote_collect_script(repo_root: Path) -> Path:
+    """Resolve remote_collect.py for both monorepo roots and drive/ roots.
+
+    Desk processes use a monorepo root (kernel/ + drive/ siblings), so the
+    collector lives at drive/scripts/cluster_agent/. Worker-control and some
+    CLIs pass --repo-root .../drive, where scripts/cluster_agent/ is correct.
+    """
+    candidates = (
+        repo_root / "drive/scripts/cluster_agent/remote_collect.py",
+        repo_root / "scripts/cluster_agent/remote_collect.py",
+    )
+    for path in candidates:
+        if path.is_file():
+            return path
+    return candidates[0]
+
+
 def acquisitions_root(repo_root: Path, cfg: dict[str, Any] | None = None) -> Path:
     cfg = cfg or {}
     storage = cfg.get("storage") or {}
@@ -100,7 +117,9 @@ def collect_local_manifest(
     manifest = job_dir / f"local_{job_id}.json"
     artifact = job_dir / f"local_{job_id}.zip"
     manifest.write_text(json.dumps({"job_id": job_id, "shard": 0, "items": items}, indent=2), encoding="utf-8")
-    script = repo_root / "scripts/cluster_agent/remote_collect.py"
+    script = remote_collect_script(repo_root)
+    if not script.is_file():
+        raise FileNotFoundError(f"remote collector not found (tried drive/ and scripts/): {script}")
     python = repo_root / ".venv/bin/python"
     if not python.exists():
         python = Path("python3")

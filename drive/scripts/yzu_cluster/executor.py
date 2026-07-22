@@ -16,6 +16,7 @@ from scripts.yzu_cluster.acquisitions import (
     enrich_http_manifest_plan,
     materialize_job,
     registry_spec_from_materialized,
+    remote_collect_script,
 )
 from scripts.yzu_cluster.pools import (
     datacite_shard_probe_argv,
@@ -53,7 +54,7 @@ class YzuExecutor:
         self.cfg = cfg
         self.jobs_root = jobs_root
         self.procurement = ProcurementWorkbench(jobs_root)
-        self.remote_worker = repo_root / "scripts/cluster_agent/remote_collect.py"
+        self.remote_worker = remote_collect_script(repo_root)
         self.agent_cfg = self._load_agent_cfg()
         self.spectator = SpectatorEngine(self.repo_root, self.cfg, agent_cfg=self.agent_cfg)
         self._event = event_cb or (lambda _j, _l, _m: None)
