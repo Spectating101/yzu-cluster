@@ -34,15 +34,6 @@ function AccountTrigger({ initials }) {
     };
   }, [open]);
 
-  const openDestination = (tab) => {
-    setOpen(false);
-    const url = new URL(window.location.href);
-    url.searchParams.set("tab", tab);
-    url.searchParams.delete("dataset");
-    url.searchParams.delete("preview");
-    window.location.assign(url.toString());
-  };
-
   return (
     <div className="rd-v2-account-menu rd-v2-account-menu--header" ref={rootRef} data-testid="header-account-root">
       <button
@@ -60,14 +51,14 @@ function AccountTrigger({ initials }) {
       </button>
       {open ? (
         <div id={menuId} className="rd-v2-account-menu-panel rd-v2-account-menu-panel--header" role="menu" aria-label="Account">
-          <button type="button" role="menuitem" data-testid="account-menu-profile" onClick={() => openDestination("profile")}>
+          <a href="/?tab=profile" role="menuitem" data-testid="account-menu-profile" onClick={() => setOpen(false)}>
             <span aria-hidden>◎</span>
             <span><strong>Research context</strong><small>Identity, work, and lab context</small></span>
-          </button>
-          <button type="button" role="menuitem" data-testid="account-menu-workspace" onClick={() => openDestination("settings")}>
+          </a>
+          <a href="/?tab=settings" role="menuitem" data-testid="account-menu-workspace" onClick={() => setOpen(false)}>
             <span aria-hidden>⚙</span>
             <span><strong>Workspace preferences</strong><small>Desk, access, and connection settings</small></span>
-          </button>
+          </a>
         </div>
       ) : null}
     </div>
