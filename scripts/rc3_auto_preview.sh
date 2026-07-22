@@ -72,7 +72,7 @@ start_vite() {
     cd "$release_dir"
     exec 9>&-
     exec env YZU_API_URL="$API_TARGET" \
-      __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS=optiplex.tail639327.ts.net \
+      __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS=optiplex.tail639327.ts.net,rc3.easycamp.tech,previous.easycamp.tech \
       ./node_modules/.bin/vite --host "$host" --port "$port" --strictPort
   ) >"$log_path" 2>&1 &
   printf '%s\n' "$!"
