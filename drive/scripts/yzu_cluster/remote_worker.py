@@ -25,7 +25,9 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlsplit
 from urllib.request import Request, urlopen
 
-from .worker_control import TOKEN_ENV
+# Keep the pull-worker free of the FastAPI control-plane import graph so thin
+# Windows checkouts can run with remote_worker + remote_collect only.
+TOKEN_ENV = "YZU_WORKER_CONTROL_TOKEN"
 
 
 class ControlClient:

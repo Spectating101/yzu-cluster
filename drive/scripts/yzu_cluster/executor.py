@@ -17,6 +17,7 @@ from scripts.yzu_cluster.acquisitions import (
     materialize_job,
     registry_spec_from_materialized,
     remote_collect_script,
+    repo_relpath,
 )
 from scripts.yzu_cluster.pools import (
     datacite_shard_probe_argv,
@@ -561,11 +562,14 @@ class YzuExecutor:
                 result = future.result()
                 results.append(result)
                 self._event(job_id, "info", f"Shard {result['shard']} returned from {result['worker']}")
-        return {"artifacts": sorted(results, key=lambda row: row["shard"]), "output_dir": str(job_dir.relative_to(self.repo_root)), "collect_mode": "remote"}
+        return {"artifacts": sorted(results, key=lambda row: row["shard"]), "output_dir": repo_relpath(job_dir, self.repo_root), "collect_mode": "remote"}
 
     def _windows_workers(self) -> list[dict[str, Any]]:
         inv = self.agent_cfg.get("inventory") or self.cfg["worker_pools"]["windows_lab"]["inventory"]
-        return windows_workers(inv)
+        key = self.agent_cfg.get("ssh_key") or self.cfg["worker_pools"]["windows_lab"].get("ssh_key")
+        # Skip inventory hosts that are marked joined but SSH-dead — otherwise the
+        # first shards burn ConnectTimeout before local_fallback.
+        return windows_workers(inv, require_reachable=True, ssh_key=key)
 
     def _dispatch_shard(self, job_id: str, shard: int, worker: dict, items: list[dict], job_dir: Path, plan: dict) -> dict:
         prefix = f"rd_{job_id}_{shard:02d}"
@@ -580,8 +584,13 @@ class YzuExecutor:
         remote_artifact = f"{prefix}.zip"
         subprocess.run(["scp", *common, str(self.remote_worker), f"{target}:{remote_script}"], check=True, timeout=60)
         subprocess.run(["scp", *common, str(manifest), f"{target}:{remote_manifest}"], check=True, timeout=60)
+        remote_python = (
+            self.agent_cfg.get("remote_python")
+            or self.cfg.get("worker_pools", {}).get("windows_lab", {}).get("remote_python")
+            or "py -3"
+        )
         command = (
-            f"{self.agent_cfg.get('remote_python', 'python')} .\\{remote_script} --manifest .\\{remote_manifest} "
+            f"{remote_python} .\\{remote_script} --manifest .\\{remote_manifest} "
             f"--artifact .\\{remote_artifact} --workers {min(int(plan.get('per_node_workers', 2)), 4)} "
             f"--timeout {min(int(plan.get('request_timeout', 60)), 300)} --retries {min(int(plan.get('retries', 3)), 5)} "
             f"--delay {max(float(plan.get('delay_seconds', 0.25)), 0.1)}"
@@ -603,7 +612,7 @@ class YzuExecutor:
         return {
             "shard": shard,
             "worker": worker["hostname"],
-            "artifact": str(artifact.relative_to(self.repo_root)),
+            "artifact": repo_relpath(artifact, self.repo_root),
             "bytes": artifact.stat().st_size,
             "worker_exit": run.returncode,
         }
