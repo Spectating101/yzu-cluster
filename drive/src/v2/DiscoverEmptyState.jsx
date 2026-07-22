@@ -22,6 +22,11 @@ export function DiscoverEmptyState({ onSuggest }) {
 
   return (
     <section className="rd-v2-discover-empty rd-recovery-discover-start rd-convergence-discover-start" data-testid="discover-empty" aria-label="Discover catalog start">
+      <div className="rd-convergence-discover-intro">
+        <h2>Find evidence beyond the current vault</h2>
+        <p>Search the lab first, then compare supported external routes only when evidence is missing.</p>
+      </div>
+
       <div className="rd-convergence-discover-toolbar">
         <div className="rd-convergence-discover-mode" role="group" aria-label="Discover search mode">
           <button type="button" className={mode === "catalog" ? "active" : ""} onClick={() => setMode("catalog")}>Catalog</button>
