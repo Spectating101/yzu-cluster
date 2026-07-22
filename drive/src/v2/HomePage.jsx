@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { CatalogList } from "@/v2/CatalogList";
-import { DeskLanesStrip } from "@/v2/DeskLanesStrip";
 import { GuidedState, Skeleton } from "@/v2/InteractionFeedback";
 import { recentDatasets } from "@/v2/recent";
 import { PageShell, SectionTitle } from "@/v2/ui";
@@ -32,7 +31,7 @@ function purposeLine(ds) {
     ds?.description ||
     ds?.purpose ||
     [ds?.source, ds?.coverage, ds?.grain].filter(Boolean).join(" · ") ||
-    "Research dataset in the lab vault"
+    "Research dataset in the faculty vault"
   );
 }
 
@@ -40,35 +39,18 @@ function lastActivityLine(ds) {
   const stamp = ds?.updated_at || ds?.last_accessed || ds?.last_activity || ds?.as_of;
   if (stamp) return `Last activity · ${stamp}`;
   if (ds?.coverage) return `Coverage · ${ds.coverage}`;
-  return "Available in the lab vault";
+  return "Available in the faculty vault";
 }
 
-function HomeAttentionRow({ item, onOpen }) {
-  const actionName = `${item.label}: ${item.title}`;
-  return (
-    <article
-      className={`rd-v2-home-attention-row${item.warn ? " warn" : ""}`}
-      data-kind={item.kind}
-      aria-label={`${item.label}: ${item.title}`}
-    >
-      <span className="rd-v2-home-attention-label">{item.label}</span>
-      <div className="rd-v2-home-attention-main">
-        <strong>{item.title}</strong>
-        <span>{item.detail}</span>
-        <small>{item.next}</small>
-      </div>
-      <span className="rd-v2-home-attention-metric">{item.metric}</span>
-      <div className="rd-v2-home-attention-actions">
-        <button
-          type="button"
-          className="rd-v2-btn sm"
-          aria-label={`Review ${actionName}`}
-          onClick={() => onOpen(item)}
-        >
-          Review
-        </button>
-      </div>
-    </article>
+function isQueryReady(row) {
+  return /instant|query.?ready|connected/i.test(
+    String(row?.analysis_readiness || row?.readiness || row?.status || ""),
+  );
+}
+
+function isRunningJob(job) {
+  return /queued|running|claimed|archiving|registering/i.test(
+    String(job?.status || job?.state || ""),
   );
 }
 
@@ -85,6 +67,124 @@ function HomeContinueSkeleton() {
   );
 }
 
+function ResearchLifecycle({ holdings, queryReady, onGoTab, onAskComposer }) {
+  const steps = [
+    {
+      id: "find",
+      label: "Find",
+      detail: `${holdings} holdings plus external indexes`,
+      action: () => onGoTab("browse"),
+    },
+    {
+      id: "verify",
+      label: "Verify",
+      detail: `${queryReady} query-ready · coverage, provenance, readiness`,
+      action: () => onGoTab("library"),
+    },
+    {
+      id: "acquire",
+      label: "Acquire",
+      detail: "Probe → approve → worker → vault",
+      action: () => onGoTab("browse"),
+    },
+    {
+      id: "synthesize",
+      label: "Synthesize",
+      detail: "Join registered evidence into reusable panels",
+      action: () => onGoTab("synthesis"),
+    },
+  ];
+
+  return (
+    <section className="rd-rc3-lifecycle" aria-label="Research lifecycle">
+      {steps.map((step, index) => (
+        <button key={step.id} type="button" onClick={step.action}>
+          <span className="rd-rc3-lifecycle-index">0{index + 1}</span>
+          <strong>{step.label}</strong>
+          <small>{step.detail}</small>
+        </button>
+      ))}
+      <button
+        type="button"
+        className="rd-rc3-lifecycle-command"
+        onClick={() =>
+          onAskComposer?.({
+            prompt:
+              "Review the current faculty data estate and suggest the most material research gap to investigate next. Separate held evidence, missing evidence, access constraints, and executable next steps.",
+            displayText: "What should the lab investigate next?",
+          })
+        }
+      >
+        <span>Language steers the desk</span>
+        <strong>Ask across the workflow →</strong>
+      </button>
+    </section>
+  );
+}
+
+function AttentionRow({ item, onOpen, onAsk }) {
+  return (
+    <article
+      className={`rd-v2-home-attention-row${item.warn ? " warn" : ""}`}
+      data-kind={item.kind}
+      aria-label={`${item.label}: ${item.title}`}
+    >
+      <span className="rd-v2-home-attention-label">{item.label}</span>
+      <div className="rd-v2-home-attention-main">
+        <strong>{item.title}</strong>
+        <span>{item.detail}</span>
+        <small>{item.next}</small>
+      </div>
+      <span className="rd-v2-home-attention-metric">{item.metric}</span>
+      <div className="rd-v2-home-attention-actions">
+        <button type="button" className="rd-v2-btn sm" onClick={() => onAsk?.(item)}>
+          Ask
+        </button>
+        <button type="button" className="rd-v2-btn sm primary" onClick={() => onOpen(item)}>
+          Review
+        </button>
+      </div>
+    </article>
+  );
+}
+
+function ResearchStateBrief({ continueDs, runningJobs, pending, onGoTab }) {
+  const changeTitle = runningJobs[0] ? jobTitle(runningJobs[0]) : continueDs ? displayName(continueDs) : "Faculty vault";
+  const changeDetail = runningJobs[0]
+    ? `${String(runningJobs[0]?.status || runningJobs[0]?.state || "running").replace(/_/g, " ")} · execution remains attached to Discover History`
+    : continueDs
+      ? `${statusPill(continueDs)} · ${lastActivityLine(continueDs)}`
+      : "No recent research object has been restored in this browser.";
+
+  return (
+    <section className="rd-rc3-home-brief" aria-label="Research state brief">
+      <div className="rd-rc3-home-brief-lead">
+        <span>What matters now</span>
+        <h2>{pending ? `${pending} decision${pending === 1 ? "" : "s"} can change research progress` : "The desk has no blocked decision"}</h2>
+        <p>
+          Home is a working brief, not the full catalogue. Continue active research, resolve consequential work, or return to the evidence estate.
+        </p>
+      </div>
+      <div className="rd-rc3-home-brief-facts">
+        <article>
+          <small>Latest material change</small>
+          <strong>{changeTitle}</strong>
+          <span>{changeDetail}</span>
+        </article>
+        <article>
+          <small>Research continuity</small>
+          <strong>{continueDs ? "A reusable asset is ready to resume" : "Open the estate or start a search"}</strong>
+          <span>{continueDs ? purposeLine(continueDs) : "Discover and Library remain the two evidence entrances."}</span>
+        </article>
+        <button type="button" onClick={() => onGoTab("browse")}>
+          <small>Open exploration</small>
+          <strong>Investigate missing evidence →</strong>
+        </button>
+      </div>
+    </section>
+  );
+}
+
 export function HomePage({
   datasets,
   health,
@@ -94,6 +194,7 @@ export function HomePage({
   onOpenAttention,
   onSelectDataset,
   onPreviewDataset,
+  onAskAttention,
 }) {
   const recent = useMemo(() => recentDatasets(datasets, 3), [datasets]);
   const continueDs = recent[0] || datasets[0] || null;
@@ -103,8 +204,10 @@ export function HomePage({
     () => jobs.filter((job) => /pending|approval|hold/i.test(String(job.status || job.state || ""))),
     [jobs],
   );
+  const runningJobs = useMemo(() => jobs.filter(isRunningJob), [jobs]);
   const pending = healthJobs.pending_approval ?? pendingJobs.length;
   const recentRows = recent.length ? recent : datasets.slice(0, 3);
+  const queryReady = datasets.filter(isQueryReady).length;
   const firstPendingJob = pendingJobs[0];
 
   const attentionItems = useMemo(() => {
@@ -115,38 +218,18 @@ export function HomePage({
       items.push({
         id: "approval",
         kind: "approval",
-        label: "Approval",
+        label: "Procurement",
         title,
         metric: `${pending} pending`,
-        detail: "Decision required before collection can continue.",
-        next: "Review source, cost, destination",
-        tab: "resources",
+        detail: "A consequential acquisition is waiting for source, cost, and destination review.",
+        next: "Review in Discover History",
+        tab: "browse",
         warn: true,
-        resourceRow: {
-          kind: "active",
-          key: jobId ? `job-${jobId}` : "jobs-pending",
-          label: title,
-          metric: firstPendingJob?.status
-            ? String(firstPendingJob.status).replace(/_/g, " ")
-            : `${pending} job(s) pending`,
-          section: "active",
-          warn: true,
-          ok: false,
-          job: firstPendingJob,
-        },
-        prompt: `Review the pending procurement approval for ${title}${jobId ? ` (job ${jobId})` : ""}. Check source fit, access terms, expected cost, vault destination, and whether this should be approved now.`,
+        prompt: `Review the pending procurement approval for ${title}${jobId ? ` (job ${jobId})` : ""}. Check research fit, source authority, access terms, expected cost, vault destination, and whether this should be approved now.`,
       });
     }
     return items;
   }, [firstPendingJob, pending]);
-
-  const openAttention = (item) => {
-    if (item.tab === "resources" && item.resourceRow && onOpenAttention) {
-      onOpenAttention(item);
-      return;
-    }
-    onGoTab(item.tab);
-  };
 
   const continueWork = () => {
     if (!continueDs) {
@@ -164,13 +247,18 @@ export function HomePage({
 
   return (
     <PageShell
-      className="rd-v2-home-page"
+      className="rd-v2-home-page rd-rc3-home-page"
       title="Home"
-      lead="Resume a research context or address the one decision that needs you."
+      lead="Institutional research data OS — turn a research question into trusted, reusable evidence."
       footer={null}
     >
+      <section className="rd-rc3-product-thesis" aria-label="Research Drive purpose">
+        <span>Research Drive</span>
+        <h2>Search the lab first, verify source and coverage, acquire what is missing, and preserve every useful result for the next project.</h2>
+      </section>
+
       <section
-        className="rd-v2-home-continue-card"
+        className="rd-v2-home-continue-card rd-rc3-home-continue"
         aria-label="Continue working"
         aria-busy={loading}
         data-testid="home-continue"
@@ -203,9 +291,7 @@ export function HomePage({
           )}
         </div>
         <div className="rd-v2-home-continue-actions">
-          {loading ? (
-            <Skeleton className="rd-v2-home-action-skeleton" lines={2} label="Loading actions" />
-          ) : (
+          {!loading ? (
             <>
               <button type="button" className="rd-v2-btn sm primary" onClick={continueWork}>
                 Continue
@@ -220,7 +306,7 @@ export function HomePage({
                 </button>
               )}
             </>
-          )}
+          ) : null}
         </div>
       </section>
 
@@ -231,23 +317,38 @@ export function HomePage({
           <Skeleton lines={2} />
         </div>
       ) : (
-        <DeskLanesStrip holdings={datasets.length} onGoTab={onGoTab} onAskComposer={onAskComposer} />
+        <ResearchLifecycle
+          holdings={datasets.length}
+          queryReady={queryReady}
+          onGoTab={onGoTab}
+          onAskComposer={onAskComposer}
+        />
       )}
+
+      {!loading ? (
+        <ResearchStateBrief
+          continueDs={continueDs}
+          runningJobs={runningJobs}
+          pending={pending}
+          onGoTab={onGoTab}
+        />
+      ) : null}
 
       <section className="rd-v2-home-attention" aria-label="Attention queue" aria-busy={loading}>
         <div className="rd-v2-home-attention-head">
-          <h2>Attention</h2>
-          <span>{loading ? "Checking" : attentionItems.length ? `${attentionItems.length} needing action` : "Clear"}</span>
+          <h2>Needs attention</h2>
+          <span>{loading ? "Checking" : attentionItems.length ? `${attentionItems.length} of ${attentionItems.length}` : "Clear"}</span>
         </div>
         <div className="rd-v2-home-attention-body">
           {loading ? (
             <Skeleton className="rd-v2-home-attention-skeleton" lines={2} label="Checking the attention queue" />
           ) : attentionItems.length ? (
             attentionItems.map((item) => (
-              <HomeAttentionRow
+              <AttentionRow
                 key={item.id}
                 item={item}
-                onOpen={openAttention}
+                onOpen={(selected) => onOpenAttention?.(selected)}
+                onAsk={onAskAttention}
               />
             ))
           ) : (
@@ -257,7 +358,7 @@ export function HomePage({
       </section>
 
       <section className="rd-v2-home-recent" aria-label="Recent research assets" aria-busy={loading}>
-        <SectionTitle title="Recent research assets" actionLabel="Open Library →" onAction={() => onGoTab("library")} />
+        <SectionTitle title="Recent research assets" actionLabel="See Library →" onAction={() => onGoTab("library")} />
         <div className="rd-v2-home-list-panel">
           {loading ? (
             <div className="rd-v2-home-list-skeletons">
