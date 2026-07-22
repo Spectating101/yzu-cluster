@@ -3,6 +3,8 @@ name: Live interface comparison
 on:
   push:
     branches: [agent/rc3-semantic-research-desk]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
