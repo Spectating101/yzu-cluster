@@ -18,3 +18,62 @@
 .rd-convergence-sidebar-context > a.active {
   color: var(--rd-converge-blue);
 }
+
+/* Resource rows must remain readable at the live three-pane width. */
+.rd-recovery-resource-groups {
+  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+}
+
+.rd-recovery-resource-group:nth-child(3) {
+  grid-column: 1 / -1;
+}
+
+.rd-recovery-resource-row strong,
+.rd-recovery-resource-row small,
+.rd-recovery-resource-row em {
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
+}
+
+.rd-recovery-resource-group:nth-child(2) .rd-recovery-resource-row {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px;
+}
+
+.rd-recovery-resource-group:nth-child(2) .rd-recovery-resource-row em {
+  text-align: left;
+}
+
+.rd-recovery-resource-group:nth-child(3) > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 22px;
+  max-height: 310px;
+  overflow: auto;
+}
+
+.rd-recovery-resource-group:nth-child(3) .rd-recovery-resource-row {
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: 3px;
+}
+
+.rd-recovery-resource-group:nth-child(3) .rd-recovery-resource-row em {
+  text-align: left;
+}
+
+@media (max-width: 980px) {
+  .rd-recovery-resource-groups {
+    grid-template-columns: 1fr;
+  }
+
+  .rd-recovery-resource-group:nth-child(3) {
+    grid-column: auto;
+  }
+
+  .rd-recovery-resource-group:nth-child(3) > div {
+    grid-template-columns: 1fr;
+    max-height: 300px;
+  }
+}
