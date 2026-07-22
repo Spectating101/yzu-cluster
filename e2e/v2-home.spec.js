@@ -18,7 +18,7 @@ test.describe("RC3 Home research operating brief", () => {
     await expect(cont).toBeVisible();
     await expect(cont).toContainText("Continue working");
     await expect(cont.getByRole("button", { name: "Continue" })).toBeVisible();
-    await expect(page.locator(".rd-rc3-product-thesis")).toContainText("Institutional research data OS");
+    await expect(page.locator(".rd-rc3-product-thesis")).toContainText("Search the lab first");
   });
 
   test("Continue opens dataset preview and keeps rail grounded", async ({ page }) => {
