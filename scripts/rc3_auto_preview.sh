@@ -21,6 +21,7 @@ RELEASES_DIR="$DEPLOY_ROOT/releases"
 LOG_FILE="${RC3_LOG_FILE:-$DEPLOY_ROOT/deploy.log}"
 DEPLOYED_SHA_FILE="$DEPLOY_ROOT/deployed.sha"
 FAILED_SHA_FILE="$DEPLOY_ROOT/failed.sha"
+FAILED_AT_FILE="$DEPLOY_ROOT/failed.at"
 LOCK_FILE="$DEPLOY_ROOT/deploy.lock"
 LIVE_HOST="${RC3_LIVE_HOST:-100.127.141.44}"
 LIVE_PORT="${RC3_LIVE_PORT:-8767}"
@@ -28,6 +29,7 @@ SMOKE_HOST="${RC3_SMOKE_HOST:-127.0.0.1}"
 SMOKE_PORT="${RC3_SMOKE_PORT:-18767}"
 API_TARGET="${RC3_API_TARGET:-http://100.127.141.44:8765}"
 POLL_SECONDS="${RC3_POLL_SECONDS:-30}"
+RETRY_SECONDS="${RC3_RETRY_SECONDS:-300}"
 
 mkdir -p "$RELEASES_DIR"
 exec 9>"$LOCK_FILE"
@@ -141,6 +143,7 @@ deploy_sha() {
   log "checking ${sha}"
   if ! run_checks "$release_dir" >>"$LOG_FILE" 2>&1; then
     printf '%s\n' "$sha" >"$FAILED_SHA_FILE"
+    date +%s >"$FAILED_AT_FILE"
     log "checks failed for ${sha}; keeping current preview"
     return 1
   fi
@@ -150,6 +153,7 @@ deploy_sha() {
     log "smoke server failed for ${sha}; keeping current preview"
     stop_pid "$smoke_pid"
     printf '%s\n' "$sha" >"$FAILED_SHA_FILE"
+    date +%s >"$FAILED_AT_FILE"
     return 1
   fi
   curl --silent --show-error --fail --max-time 5 \
@@ -174,11 +178,12 @@ deploy_sha() {
       wait_for_port "$LIVE_PORT" 30 "$LIVE_HOST" || stop_pid "$rollback_pid"
     fi
     printf '%s\n' "$sha" >"$FAILED_SHA_FILE"
+    date +%s >"$FAILED_AT_FILE"
     return 1
   fi
 
   printf '%s\n' "$sha" >"$DEPLOYED_SHA_FILE"
-  rm -f "$FAILED_SHA_FILE"
+  rm -f "$FAILED_SHA_FILE" "$FAILED_AT_FILE"
   log "deployed ${sha} to http://${LIVE_HOST}:${LIVE_PORT}"
   cleanup_releases
 }
@@ -195,7 +200,12 @@ deploy_once() {
     return 0
   fi
   if [ -f "$FAILED_SHA_FILE" ] && [ "$(cat "$FAILED_SHA_FILE")" = "$sha" ]; then
-    return 0
+    local failed_at
+    failed_at="$(cat "$FAILED_AT_FILE" 2>/dev/null || printf '0')"
+    if [ $(( $(date +%s) - failed_at )) -lt "$RETRY_SECONDS" ]; then
+      return 0
+    fi
+    log "retrying failed ${sha} after ${RETRY_SECONDS}s backoff"
   fi
   deploy_sha "$sha" || true
 }
