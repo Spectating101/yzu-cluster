@@ -19,6 +19,16 @@
   color: var(--rd-converge-blue);
 }
 
+/* The Synthesis reasoning surface is Composer, while preserving the shared rail contract. */
+.rd-v2-shell:has(.yzu-sidebar button[title="Synthesis"].active) .rd-v2-rail-toggle button:nth-child(2) {
+  font-size: 0;
+}
+
+.rd-v2-shell:has(.yzu-sidebar button[title="Synthesis"].active) .rd-v2-rail-toggle button:nth-child(2)::after {
+  content: "Composer";
+  font-size: 11px;
+}
+
 /* Resource rows must remain readable at the live three-pane width. */
 .rd-recovery-resource-groups {
   grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
