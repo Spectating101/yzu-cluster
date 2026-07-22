@@ -14,7 +14,22 @@ function normalizeOutgoingMessage(value, fallback = "") {
   return { prompt, displayText: prompt };
 }
 
+function contextKeyFor(dataset, railContext) {
+  const entity = railContext?.entity || {};
+  const objectKind = entity.kind || dataset?.kind || "workspace";
+  const objectId =
+    entity.id ||
+    dataset?.dataset_id ||
+    dataset?.id ||
+    dataset?.title ||
+    railContext?.folder_id ||
+    railContext?.search_query ||
+    "root";
+  return [railContext?.tab || "desk", objectKind, objectId].map((value) => String(value || "")).join("::");
+}
+
 export function useAskChat({ dataset, railContext, onCollected, onToast } = {}) {
+  const contextKey = contextKeyFor(dataset, railContext);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -23,10 +38,30 @@ export function useAskChat({ dataset, railContext, onCollected, onToast } = {}) 
   const warmStartedRef = useRef(false);
   const railRef = useRef(railContext);
   const busyRef = useRef(false);
+  const contextStoreRef = useRef(new Map());
+  const activeContextRef = useRef(contextKey);
+  const messagesRef = useRef(messages);
 
   useEffect(() => {
     railRef.current = railContext;
   }, [railContext]);
+
+  useEffect(() => {
+    messagesRef.current = messages;
+    contextStoreRef.current.set(activeContextRef.current, messages);
+  }, [messages]);
+
+  useEffect(() => {
+    const previousKey = activeContextRef.current;
+    if (previousKey === contextKey) return;
+    contextStoreRef.current.set(previousKey, messagesRef.current);
+    activeContextRef.current = contextKey;
+    const nextMessages = contextStoreRef.current.get(contextKey) || [];
+    messagesRef.current = nextMessages;
+    setMessages(nextMessages);
+    setInput("");
+    setStatus("");
+  }, [contextKey]);
 
   useEffect(() => {
     if (warmStartedRef.current) return;
@@ -38,28 +73,41 @@ export function useAskChat({ dataset, railContext, onCollected, onToast } = {}) 
     }).catch(() => {});
   }, []);
 
+  const updateContextMessages = useCallback((key, updater) => {
+    if (activeContextRef.current === key) {
+      setMessages((current) => {
+        const next = updater(current);
+        messagesRef.current = next;
+        contextStoreRef.current.set(key, next);
+        return next;
+      });
+      return;
+    }
+    const current = contextStoreRef.current.get(key) || [];
+    contextStoreRef.current.set(key, updater(current));
+  }, []);
+
   const contextPrefix = dataset?.dataset_id
     ? `[context: ${dataset.dataset_id}] `
     : dataset?.title
       ? `[context: ${dataset.title}] `
-      : "";
+      : railContext?.entity?.title
+        ? `[context: ${railContext.entity.title}] `
+        : "";
 
   const send = useCallback(
-    async (text) => {
-      const outgoing = normalizeOutgoingMessage(text, input);
+    async (value) => {
+      const outgoing = normalizeOutgoingMessage(value, input);
       const prompt = outgoing.prompt;
       if (!prompt || busyRef.current) return;
       busyRef.current = true;
-      const full = contextPrefix && !prompt.startsWith("[context:")
-        ? `${contextPrefix}${prompt}`
-        : prompt;
+      const sendContextKey = activeContextRef.current;
+      const sendRailContext = railRef.current;
+      const full = contextPrefix && !prompt.startsWith("[context:") ? `${contextPrefix}${prompt}` : prompt;
 
-      setMessages((m) => [...m, { role: "user", text: outgoing.displayText }]);
-      setInput("");
-      setBusy(true);
-      setStatus("Planning response…");
-      setMessages((m) => [
-        ...m,
+      updateContextMessages(sendContextKey, (current) => [
+        ...current,
+        { role: "user", text: outgoing.displayText },
         {
           role: "assistant",
           text: "",
@@ -68,36 +116,30 @@ export function useAskChat({ dataset, railContext, onCollected, onToast } = {}) 
           activityLog: [{ phase: "planning", text: "Planning response…", at: Date.now() }],
         },
       ]);
+      setInput("");
+      setBusy(true);
+      setStatus("Planning response…");
 
       try {
         const out = await sendChatMessage(full, {
           sessionId: sessionRef.current,
           userEmail: loadUserEmail(),
-          railContext: railRef.current,
+          railContext: sendRailContext,
           onDelta: (chunk) => {
-            setStatus("");
-            setMessages((m) =>
-              m.map((item) =>
-                item.streaming
-                  ? { ...item, text: `${item.text || ""}${chunk}` }
-                  : item,
-              ),
+            if (activeContextRef.current === sendContextKey) setStatus("");
+            updateContextMessages(sendContextKey, (current) =>
+              current.map((item) => item.streaming ? { ...item, text: `${item.text || ""}${chunk}` } : item),
             );
           },
           onActivity: (event) => {
-            const line =
-              event && typeof event === "object" ? String(event.text || "") : String(event || "");
-            setStatus(line);
-            setMessages((m) =>
-              m.map((item) =>
-                item.streaming
-                  ? {
-                      ...item,
-                      activity: line,
-                      activityLog: normalizeActivityStep(event, item.activityLog || []),
-                    }
-                  : item,
-              ),
+            const line = event && typeof event === "object" ? String(event.text || "") : String(event || "");
+            if (activeContextRef.current === sendContextKey) setStatus(line);
+            updateContextMessages(sendContextKey, (current) =>
+              current.map((item) => item.streaming ? {
+                ...item,
+                activity: line,
+                activityLog: normalizeActivityStep(event, item.activityLog || []),
+              } : item),
             );
           },
         });
@@ -106,17 +148,15 @@ export function useAskChat({ dataset, railContext, onCollected, onToast } = {}) 
         const reply = out.reply || out.message || "Done.";
         const artifacts = out.artifacts || {};
         const statePatch = artifacts.state_patch || out.state_patch || {};
-        const pendingJobId =
-          artifacts.job?.id || statePatch.pending_job_id || out.pending_job_id || null;
+        const pendingJobId = artifacts.job?.id || statePatch.pending_job_id || out.pending_job_id || null;
         const jobStatus = artifacts.job?.status || statePatch.job_status;
         const toolName = artifacts.tool_name || out.tool_name || null;
 
-        setMessages((m) => {
-          const streaming = m.find((x) => x.streaming);
+        updateContextMessages(sendContextKey, (current) => {
+          const streaming = current.find((item) => item.streaming);
           const activityLog = streaming?.activityLog || [];
-          const trimmed = m.filter((x) => !x.streaming);
           return [
-            ...trimmed,
+            ...current.filter((item) => !item.streaming),
             {
               role: "assistant",
               text: reply,
@@ -130,41 +170,34 @@ export function useAskChat({ dataset, railContext, onCollected, onToast } = {}) 
             },
           ];
         });
-        setStatus(out.campaign_id ? `Campaign ${String(out.campaign_id).slice(0, 8)}…` : "");
+
+        if (activeContextRef.current === sendContextKey) {
+          setStatus(out.campaign_id ? `Campaign ${String(out.campaign_id).slice(0, 8)}…` : "");
+        }
         if (["collect", "acquire", "collect_doi", "approve_collect", "queue", "schedule_refresh"].includes(out.action)) {
           onCollected?.();
-          onToast?.(
-            out.action === "schedule_refresh"
-              ? "Refresh registered in Discover History"
-              : "Queued for collection",
-          );
+          onToast?.(out.action === "schedule_refresh" ? "Refresh registered in Discover History" : "Queued for collection");
         }
-        const subId =
-          artifacts.subscription_id ||
-          artifacts.subscription?.id ||
-          out.subscription_id ||
-          null;
+        const subId = artifacts.subscription_id || artifacts.subscription?.id || out.subscription_id || null;
         if (subId || out.action === "schedule_refresh") {
           onCollected?.();
-          if (out.action !== "schedule_refresh") {
-            onToast?.("Refresh registered in Discover History");
-          }
+          if (out.action !== "schedule_refresh") onToast?.("Refresh registered in Discover History");
         }
         if (pendingJobId && jobStatus === "pending_approval") {
           onToast?.("Job pending approval — use Approve below");
         }
-      } catch (err) {
-        setMessages((m) => [
-          ...m.filter((x) => !x.streaming),
-          { role: "error", text: err.message || String(err) },
+      } catch (error) {
+        updateContextMessages(sendContextKey, (current) => [
+          ...current.filter((item) => !item.streaming),
+          { role: "error", text: error.message || String(error) },
         ]);
-        setStatus(err.message || "Chat failed");
+        if (activeContextRef.current === sendContextKey) setStatus(error.message || "Chat failed");
       } finally {
         busyRef.current = false;
         setBusy(false);
       }
     },
-    [contextPrefix, input, onCollected, onToast],
+    [contextPrefix, input, onCollected, onToast, updateContextMessages],
   );
 
   return {
@@ -177,6 +210,6 @@ export function useAskChat({ dataset, railContext, onCollected, onToast } = {}) 
     contextLabel:
       dataset?.kind === "external_candidate"
         ? dataset.title || dataset.row?.dataset_id || dataset.id || null
-        : dataset?.dataset_id || dataset?.title || null,
+        : dataset?.dataset_id || dataset?.title || railContext?.entity?.title || null,
   };
 }
