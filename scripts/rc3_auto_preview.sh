@@ -108,6 +108,12 @@ run_checks() {
   (
     cd "$release_dir"
     npm ci --no-audit --no-fund
+    # npm can omit platform-specific optional packages even when npm ci exits
+    # successfully. Vite/Tailwind needs the native oxide binding for E2E.
+    if ! node -e "import('@tailwindcss/oxide')" >/dev/null 2>&1; then
+      rm -rf node_modules
+      npm install --no-audit --no-fund
+    fi
     npm run build
     npm run test:candidate-key
     npm run test:runtime-contract
