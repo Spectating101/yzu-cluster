@@ -1,0 +1,20 @@
+.rd-convergence-sidebar-context > a {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) 16px;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 8px 4px;
+  border: 0;
+  background: transparent;
+  color: var(--rd-converge-ink);
+  text-align: left;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+.rd-convergence-sidebar-context > a:hover,
+.rd-convergence-sidebar-context > a:focus-visible,
+.rd-convergence-sidebar-context > a.active {
+  color: var(--rd-converge-blue);
+}
