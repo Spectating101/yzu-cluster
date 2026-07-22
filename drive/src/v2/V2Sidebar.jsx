@@ -25,6 +25,21 @@ export function V2Sidebar({ tab, onTabChange }) {
           </button>
         ))}
       </nav>
+      <div className="rd-convergence-sidebar-context">
+        <button
+          type="button"
+          className={tab === "profile" || tab === "settings" ? "active" : ""}
+          onClick={() => onTabChange("profile")}
+          aria-label="Open research context"
+        >
+          <span className="rd-convergence-context-avatar">YZ</span>
+          <span className="rd-convergence-context-copy">
+            <strong>Research context</strong>
+            <small>Unbound workspace</small>
+          </span>
+          <span className="rd-convergence-context-chevron" aria-hidden>⌄</span>
+        </button>
+      </div>
     </aside>
   );
 }
