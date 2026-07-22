@@ -1,0 +1,52 @@
+/* RC3 visual corrections found during CI artifact review. */
+
+.rd-v2-home-page .rd-rc3-home-continue {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 24px;
+  min-height: 138px;
+  margin-top: 26px;
+  padding: 22px 20px;
+  overflow: visible;
+  border: 1px solid var(--rc3-line-strong);
+  background: var(--rc3-paper);
+  box-shadow: none;
+}
+
+.rd-v2-home-page .rd-rc3-home-continue::before {
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--rc3-blue);
+}
+
+.rd-v2-home-page .rd-rc3-home-continue .rd-v2-home-continue-copy,
+.rd-v2-home-page .rd-rc3-home-continue .rd-v2-home-continue-actions,
+.rd-v2-home-page .rd-rc3-home-continue .rd-v2-home-continue-copy > * {
+  position: relative;
+  z-index: 1;
+  visibility: visible;
+  opacity: 1;
+}
+
+.rd-v2-home-page .rd-rc3-home-continue .rd-v2-home-continue-purpose,
+.rd-v2-home-page .rd-rc3-home-continue .rd-v2-home-continue-meta {
+  display: flex;
+}
+
+.rd-v2-home-page .rd-rc3-home-continue .rd-v2-home-continue-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+@media (max-width: 980px) {
+  .rd-v2-home-page .rd-rc3-home-continue {
+    grid-template-columns: 1fr;
+  }
+
+  .rd-v2-home-page .rd-rc3-home-continue .rd-v2-home-continue-actions {
+    justify-content: flex-start;
+  }
+}
