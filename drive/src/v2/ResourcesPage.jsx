@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { buildActivityRows, spendingPeriodLabel } from "@/v2/resourcesSpending";
+import { buildAccountSummaryRows, buildActivityRows, spendingPeriodLabel } from "@/v2/resourcesSpending";
 import { buildResourcesPanels } from "@/v2/resourcesFromRollup";
 import { PageShell } from "@/v2/ui";
 
@@ -16,92 +16,88 @@ function formatGiB(value) {
   return `${number} GiB`;
 }
 
-function rowStatus(row) {
-  if (row?.warn) return "Attention";
-  if (row?.ok === false) return "Unavailable";
-  return "Available";
+function friendlySummaryLabel(label, key) {
+  if (key === "statement-ask" || label === "Ask / model turns") return "Ask usage";
+  if (label === "Workers") return "Collection workers";
+  if (label === "Vault") return "Lab vault";
+  if (label === "Query engine") return "Desk connection";
+  return label || "Resource";
 }
 
-function CapabilityRow({ row, selected, onSelect }) {
+function OperationalStrip({ rollup }) {
+  const rows = buildAccountSummaryRows(rollup);
+  const queryEngine = rollup?.hero?.query_engine || {};
+  const normalized = rows.slice(0, 4).map((row) => ({
+    ...row,
+    label: friendlySummaryLabel(row.label, row.key),
+  }));
+  if (!normalized.some((row) => row.label === "Desk connection")) {
+    normalized.push({
+      key: "desk-connection",
+      label: "Desk connection",
+      metric: queryEngine.up ? "Connected" : "Offline",
+      detail: "Catalog and query service",
+      warn: queryEngine.up === false,
+    });
+  }
   return (
-    <button
-      type="button"
-      className={`rd-rc3-capability-row${selected ? " selected" : ""}${row?.warn ? " warn" : ""}`}
-      data-kind={row?.kind || "resource"}
-      onClick={() => onSelect?.(row)}
-    >
-      <span>
-        <strong>{row?.label || "Unnamed resource"}</strong>
-        <small>{row?.detail || row?.endpoint || row?.section || "Research infrastructure"}</small>
-      </span>
-      <em>{row?.metric || "Not reported"}</em>
-      <b>{rowStatus(row)}</b>
-    </button>
-  );
-}
-
-function CapabilitySection({ index, title, lead, rows, selectedKey, onSelect }) {
-  return (
-    <section className="rd-rc3-capability-section">
-      <header>
-        <span>{String(index).padStart(2, "0")}</span>
-        <div><h2>{title}</h2><p>{lead}</p></div>
-        <em>{rows.length}</em>
-      </header>
-      <div>
-        {rows.length ? rows.map((row) => (
-          <CapabilityRow key={row.key || `${row.kind}-${row.label}`} row={row} selected={selectedKey === row.key} onSelect={onSelect} />
-        )) : <p className="rd-rc3-resource-empty">No capability record is available in this response.</p>}
-      </div>
+    <section className="rd-recovery-resources-strip" aria-label="Operations status">
+      {normalized.slice(0, 5).map((row) => (
+        <article key={row.key || row.label} className={row.warn ? "warn" : ""}>
+          <span>{row.label}</span>
+          <strong>{row.metric || "—"}</strong>
+          <small>{row.detail || row.sublabel || "Current desk state"}</small>
+        </article>
+      ))}
     </section>
   );
 }
 
-function CapabilityOverview({ panels, selectedKey, onSelect }) {
-  const sourceRows = [...(panels.providers || []), ...(panels.layers || []), ...(panels.metered || [])];
-  const executionRows = [...(panels.compute || []), ...(panels.ai || [])];
-  const estateRows = panels.usage || [];
-  const attention = [...sourceRows, ...executionRows, ...estateRows].filter((row) => row?.warn || row?.ok === false);
+function CompactResourceRow({ row, selected, onSelect }) {
+  return (
+    <button
+      type="button"
+      className={`rd-recovery-resource-row${selected ? " selected" : ""}${row?.warn ? " warn" : ""}`}
+      data-kind={row?.kind || "resource"}
+      onClick={() => onSelect?.(row)}
+    >
+      <span><strong>{row?.label || "Unnamed resource"}</strong><small>{row?.detail || row?.endpoint || row?.section || "Research infrastructure"}</small></span>
+      <em>{row?.metric || "Not reported"}</em>
+    </button>
+  );
+}
+
+function ResourceGroup({ title, lead, rows, selectedKey, onSelect }) {
+  if (!rows.length) return null;
+  return (
+    <section className="rd-recovery-resource-group" aria-label={title}>
+      <header><div><h2>{title}</h2><p>{lead}</p></div><span>{rows.length}</span></header>
+      <div>{rows.map((row) => <CompactResourceRow key={row.key || `${row.kind}-${row.label}`} row={row} selected={selectedKey === row.key} onSelect={onSelect} />)}</div>
+    </section>
+  );
+}
+
+function Overview({ rollup, panels, catalogSummary, selectedKey, onSelect }) {
+  const storageRows = panels.usage || [];
+  const accountRows = [...(panels.metered || []), ...(panels.ai || [])];
+  const routeRows = [...(panels.providers || []), ...(panels.layers || []), ...(panels.compute || [])];
+  const summary = catalogSummary || {};
+  const registryCount = summary.registry ?? summary.datasets ?? summary.total ?? "—";
+  const instantCount = summary.instant ?? summary.query_ready ?? summary.ready ?? "—";
 
   return (
-    <div className="rd-rc3-capabilities" aria-label="Research capabilities">
-      <section className="rd-rc3-capability-hero">
-        <div>
-          <span>What the lab can support now</span>
-          <h2>Source access, execution, and storage are shown as research capability—not as a second ownership layer for Discover or Synthesis.</h2>
-        </div>
-        <dl>
-          <div><dt>Source routes</dt><dd>{sourceRows.length}</dd></div>
-          <div><dt>Execution services</dt><dd>{executionRows.length}</dd></div>
-          <div><dt>Needs attention</dt><dd>{attention.length}</dd></div>
-        </dl>
+    <div className="rd-recovery-resources-overview" data-testid="resources-overview">
+      <OperationalStrip rollup={rollup} />
+
+      <section className="rd-recovery-databank" aria-label="Databank status">
+        <div><span>Databank</span><h2>{registryCount} registered · {instantCount} query-ready</h2><p>Institutional evidence index and query service. Registration, possession, and analytical readiness remain separate claims.</p></div>
+        <button type="button" onClick={() => onSelect?.({ key: "databank", kind: "capacity", label: "Databank", metric: `${registryCount} registered`, detail: `${instantCount} query-ready`, section: "overview" })}>Inspect →</button>
       </section>
 
-      <div className="rd-rc3-capability-grid" role="region" aria-label="Capacity and access">
-        <CapabilitySection
-          index={1}
-          title="Source access"
-          lead="Providers, external indexes, metered accounts, and intake routes available to Discover."
-          rows={sourceRows}
-          selectedKey={selectedKey}
-          onSelect={onSelect}
-        />
-        <CapabilitySection
-          index={2}
-          title="Execution"
-          lead="Composer, MCP, query services, and workers that can support acquisition or construction."
-          rows={executionRows}
-          selectedKey={selectedKey}
-          onSelect={onSelect}
-        />
-        <CapabilitySection
-          index={3}
-          title="Evidence estate"
-          lead="Archive, working storage, and other capacity that constrains durable research work."
-          rows={estateRows}
-          selectedKey={selectedKey}
-          onSelect={onSelect}
-        />
+      <div className="rd-recovery-resource-groups" role="region" aria-label="Key resources">
+        <ResourceGroup title="Storage" lead="Archive and working capacity for durable research evidence." rows={storageRows} selectedKey={selectedKey} onSelect={onSelect} />
+        <ResourceGroup title="Accounts & limits" lead="Metered or configured services that can constrain agent work." rows={accountRows} selectedKey={selectedKey} onSelect={onSelect} />
+        <ResourceGroup title="Source routes & execution" lead="Connectors, workers, and supported routes available when research work needs them." rows={routeRows} selectedKey={selectedKey} onSelect={onSelect} />
       </div>
     </div>
   );
@@ -118,9 +114,7 @@ function UsageSummary({ rollup }) {
   ];
   return (
     <section className="rd-rc3-usage-summary" aria-label="Usage report">
-      {metrics.map(([label, value, detail]) => (
-        <article key={label}><span>{label}</span><strong>{value}</strong><small>{detail}</small></article>
-      ))}
+      {metrics.map(([label, value, detail]) => <article key={label}><span>{label}</span><strong>{value}</strong><small>{detail}</small></article>)}
     </section>
   );
 }
@@ -134,29 +128,7 @@ function eventCost(row) {
   return parts.join(" · ") || "No metered cost reported";
 }
 
-function UsageLog({ rows, selectedKey, onSelect }) {
-  return (
-    <section className="rd-rc3-usage-log">
-      <header><div><span>Attributable activity</span><h2>What research work consumed the desk</h2></div><em>{rows.length} events</em></header>
-      <div>
-        {rows.length ? rows.map((row, index) => (
-          <button
-            type="button"
-            key={row.key || `${row.label}-${index}`}
-            className={selectedKey === row.key ? "selected" : ""}
-            onClick={() => onSelect?.(row)}
-          >
-            <span><strong>{row.label || "Research activity"}</strong><small>{row.target || row.sublabel || row.actionLabel || "No research object reported"}</small></span>
-            <em>{row.actionLabel || row.metric || "Activity"}</em>
-            <b>{eventCost(row)}</b>
-          </button>
-        )) : <p>No usage event is available for this view.</p>}
-      </div>
-    </section>
-  );
-}
-
-function UsageView({ rollup, activityFilter, selectedKey, onSelectRow }) {
+function ActivityView({ rollup, activityFilter, selectedKey, onSelectRow }) {
   const [filter, setFilter] = useState("all");
   const effectiveFilter = useMemo(() => {
     if (activityFilter) return activityFilter;
@@ -175,7 +147,18 @@ function UsageView({ rollup, activityFilter, selectedKey, onSelectRow }) {
       <div className="rd-rc3-usage-filters" role="group" aria-label="Usage filters">
         {filters.map(([id, label]) => <button key={id} type="button" className={!activityFilter && filter === id ? "on" : ""} onClick={() => setFilter(id)}>{label}</button>)}
       </div>
-      <UsageLog rows={rows} selectedKey={selectedKey} onSelect={onSelectRow} />
+      <section className="rd-rc3-usage-log">
+        <header><div><span>Activity</span><h2>What research work consumed the desk</h2></div><em>{rows.length} events</em></header>
+        <div>
+          {rows.length ? rows.map((row, index) => (
+            <button type="button" key={row.key || `${row.label}-${index}`} className={selectedKey === row.key ? "selected" : ""} onClick={() => onSelectRow?.(row)}>
+              <span><strong>{row.label || "Research activity"}</strong><small>{row.target || row.sublabel || row.actionLabel || "No research object reported"}</small></span>
+              <em>{row.actionLabel || row.metric || "Activity"}</em>
+              <b>{eventCost(row)}</b>
+            </button>
+          )) : <p>No usage event is available for this view.</p>}
+        </div>
+      </section>
     </div>
   );
 }
@@ -205,15 +188,15 @@ export function ResourcesPage({
 
   return (
     <PageShell
-      className="rd-rc3-resources-page"
+      className="rd-rc3-resources-page rd-recovery-resources-page"
       title="Resources"
-      lead="Understand what Research Drive can access and execute, then trace the capacity consumed by research work."
+      lead="Storage, account limits, worker availability, and procurement routes."
       toolbar={
         <div className="rd-rc3-resource-toolbar">
-          <button type="button" aria-pressed={mode === "spending"} className={mode === "spending" ? "on" : ""} onClick={() => onModeChange?.("spending")}>Capabilities</button>
-          <button type="button" aria-pressed={mode === "activity"} className={mode === "activity" ? "on" : ""} onClick={() => onModeChange?.("activity")}>Usage</button>
+          <button type="button" aria-pressed={mode === "spending"} className={mode === "spending" ? "on" : ""} onClick={() => onModeChange?.("spending")}>Overview</button>
+          <button type="button" aria-pressed={mode === "activity"} className={mode === "activity" ? "on" : ""} onClick={() => onModeChange?.("activity")}>Activity</button>
           <span>{period}</span>
-          {activityFilter ? <button type="button" onClick={() => onClearActivityFilter?.()}>Filtered usage ×</button> : null}
+          {activityFilter ? <button type="button" onClick={() => onClearActivityFilter?.()}>Filtered activity ×</button> : null}
           {freshness ? <span>Updated {freshness}</span> : null}
           <button type="button" onClick={() => onRefresh?.()}>Refresh</button>
         </div>
@@ -221,9 +204,9 @@ export function ResourcesPage({
     >
       {rollup === null && !rollupLoading ? <p className="rd-v2-res-offline" role="status">Desk API unreachable — live capability cannot be verified.</p> : null}
       {initialLoading ? <p className="rd-v2-res-loading" role="status">Loading resources…</p> : mode === "spending" ? (
-        <CapabilityOverview panels={panels} selectedKey={selectedKey} onSelect={onSelectRow} />
+        <Overview rollup={viewRollup} panels={panels} catalogSummary={catalogSummary} selectedKey={selectedKey} onSelect={onSelectRow} />
       ) : (
-        <UsageView rollup={viewRollup} activityFilter={activityFilter} selectedKey={selectedKey} onSelectRow={onSelectRow} />
+        <ActivityView rollup={viewRollup} activityFilter={activityFilter} selectedKey={selectedKey} onSelectRow={onSelectRow} />
       )}
     </PageShell>
   );
