@@ -14,9 +14,31 @@ concurrency:
 jobs:
   capture-live-interfaces:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
+
+      - name: Wait for the expected RC3 generation
+        env:
+          RC3_URL: https://rc3.easycamp.tech/
+        run: |
+          set -Eeuo pipefail
+          mkdir -p artifacts/live-compare
+          expected="$(node --input-type=module -e "import fs from 'node:fs'; const row=JSON.parse(fs.readFileSync('public/rc3-generation.json','utf8')); process.stdout.write(row.generation)")"
+          echo "Expected generation: ${expected}" | tee artifacts/live-compare/deployment-wait.log
+          for attempt in $(seq 1 120); do
+            cache_buster="$(date +%s)-${attempt}"
+            body="$(curl --silent --show-error --fail --max-time 12 -H 'Cache-Control: no-cache' "${RC3_URL}rc3-generation.json?deploy_check=${cache_buster}" 2>/dev/null || true)"
+            observed="$(BODY="$body" node --input-type=module -e "try { const row=JSON.parse(process.env.BODY || '{}'); process.stdout.write(row.generation || '') } catch {}")"
+            if [ "$observed" = "$expected" ]; then
+              echo "Observed expected generation after ${attempt} checks." | tee -a artifacts/live-compare/deployment-wait.log
+              exit 0
+            fi
+            printf '%s attempt=%s observed=%s\n' "$(date -u +%FT%H:%M:%SZ)" "$attempt" "${observed:-missing}" | tee -a artifacts/live-compare/deployment-wait.log
+            sleep 10
+          done
+          echo "Timed out waiting for ${expected}." | tee -a artifacts/live-compare/deployment-wait.log
+          exit 1
 
       - uses: actions/setup-node@v4
         with:
@@ -42,6 +64,7 @@ jobs:
           import fs from 'node:fs';
           import path from 'node:path';
 
+          const generation = JSON.parse(fs.readFileSync('public/rc3-generation.json', 'utf8'));
           const targets = [
             { id: 'rc3', base: process.env.RC3_URL },
             { id: 'previous', base: process.env.PREVIOUS_URL },
@@ -60,7 +83,7 @@ jobs:
 
           const outDir = path.resolve('artifacts/live-compare');
           const browser = await chromium.launch({ headless: true });
-          const report = { captured_at: new Date().toISOString(), targets: {} };
+          const report = { captured_at: new Date().toISOString(), generation, targets: {} };
 
           for (const target of targets) {
             report.targets[target.id] = {};
@@ -150,7 +173,7 @@ jobs:
             console.error(failures.join('\n'));
             process.exit(1);
           }
-          console.log('Both public interfaces captured successfully.');
+          console.log(`Both public interfaces captured for ${report.generation.generation}.`);
           NODE
 
       - name: Upload live comparison
