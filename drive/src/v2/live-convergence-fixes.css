@@ -19,6 +19,25 @@
   color: var(--rd-converge-blue);
 }
 
+.rd-convergence-discover-intro {
+  margin: 0 0 14px;
+}
+
+.rd-convergence-discover-intro h2 {
+  margin: 0;
+  color: var(--rd-converge-ink);
+  font-size: 18px;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+}
+
+.rd-convergence-discover-intro p {
+  margin: 4px 0 0;
+  color: var(--rd-converge-muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
 /* The Synthesis reasoning surface is Composer, while preserving the shared rail contract. */
 .rd-v2-shell:has(.yzu-sidebar button[title="Synthesis"].active) .rd-v2-rail-toggle button:nth-child(2) {
   font-size: 0;
