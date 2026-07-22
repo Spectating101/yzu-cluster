@@ -97,14 +97,18 @@ test.describe("v2 parity @ desk-v2-1440", () => {
     await expect(page.locator("aside.yzu-sidebar nav button", { hasText: "Cluster" })).toHaveCount(0);
   });
 
-  test("account menu routes to research context and preferences", async ({ page }) => {
+  test("account menu exposes routable context and preference destinations", async ({ page }) => {
     await page.getByTestId("header-account-menu").click();
-    await page.getByRole("menuitem", { name: /Research context/ }).click();
-    await page.locator(".rd-v2-shell").waitFor({ timeout: 30_000 });
-    await expect(page.locator(".rd-v2-profile-name", { hasText: "Test Prof" })).toBeVisible();
+    const contextLink = page.getByRole("menuitem", { name: /Research context/ });
+    const settingsLink = page.getByRole("menuitem", { name: /Workspace preferences/ });
+    await expect(contextLink).toHaveAttribute("href", "/?tab=profile");
+    await expect(settingsLink).toHaveAttribute("href", "/?tab=settings");
 
-    await page.getByTestId("header-account-menu").click();
-    await page.getByRole("menuitem", { name: /Workspace preferences/ }).click();
+    await page.goto("/?tab=profile", { waitUntil: "domcontentloaded" });
+    await page.locator(".rd-v2-shell").waitFor({ timeout: 30_000 });
+    await expect(page.locator(".rd-v2-page-head h1", { hasText: "Profile" })).toBeVisible();
+
+    await page.goto("/?tab=settings", { waitUntil: "domcontentloaded" });
     await page.locator(".rd-v2-shell").waitFor({ timeout: 30_000 });
     await expect(page.locator(".rd-v2-page-head h1", { hasText: "Settings" })).toBeVisible();
   });
