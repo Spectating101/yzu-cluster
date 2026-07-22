@@ -62,7 +62,12 @@ export function DiscoverEmptyState({ onSuggest }) {
         <span>Suggested for your lab</span>
         <div>
           {suggestions.slice(0, 4).map((suggestion, index) => (
-            <button key={`${suggestion}-${index}`} type="button" onClick={() => onSuggest?.(suggestion)}>
+            <button
+              key={`${suggestion}-${index}`}
+              type="button"
+              aria-label={`Open suggested evidence ${index + 1}`}
+              onClick={() => onSuggest?.(suggestion)}
+            >
               <strong>{suggestion}</strong>
               <small>{index === 3 ? "In lab" : "External"}</small>
             </button>
