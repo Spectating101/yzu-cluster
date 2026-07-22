@@ -44,7 +44,7 @@ function capturePageErrors(page) {
 }
 
 test.describe("Research Drive interaction robustness", () => {
-  test("same-tick Ask activation submits once and survives navigation", async ({ page }) => {
+  test("same-tick Ask submits once and remains attached to its originating context", async ({ page }) => {
     const pageErrors = capturePageErrors(page);
     await mockV2Api(page);
     await page.unroute("**/api/library/chat/stream");
@@ -85,9 +85,18 @@ test.describe("Research Drive interaction robustness", () => {
     await expect(rail.getByTestId("interaction-progress")).toBeVisible();
     await v2Nav(page, "Synthesis");
     await expect(page.getByRole("heading", { name: "Synthesis" })).toBeVisible();
-    await expect(rail).toContainText("The single request completed after navigation.", { timeout: 10_000 });
+    await expect(rail).not.toContainText("The single request completed after navigation.");
+    await expect(
+      rail.locator(".rd-v2-ask-bubble", { hasText: "You: Explain the stability envelope." }),
+    ).toHaveCount(0);
 
+    await page.waitForTimeout(1000);
     expect(chatRequests).toBe(1);
+
+    await v2Nav(page, "Home");
+    await expect(page.getByRole("heading", { name: "Home" })).toBeVisible();
+    await openAsk(page);
+    await expect(rail).toContainText("The single request completed after navigation.", { timeout: 10_000 });
     await expect(
       rail.locator(".rd-v2-ask-bubble", { hasText: "You: Explain the stability envelope." }),
     ).toHaveCount(1);
