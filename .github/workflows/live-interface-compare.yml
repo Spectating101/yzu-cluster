@@ -35,8 +35,9 @@ jobs:
           PREVIOUS_URL: https://previous.easycamp.tech/
         run: |
           mkdir -p artifacts/live-compare
-          node <<'NODE'
-          const { chromium } = require('playwright');
+          echo "Starting live comparison" > artifacts/live-compare/capture.log
+          node <<'NODE' 2>&1 | tee -a artifacts/live-compare/capture.log
+          const { chromium } = require('@playwright/test');
           const fs = require('node:fs');
           const path = require('node:path');
 
