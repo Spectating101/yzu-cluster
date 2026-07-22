@@ -1,0 +1,37 @@
+.rd-v2-account-menu-panel--header > a {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 10px;
+  width: 100%;
+  padding: 11px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--rc3-text);
+  text-align: left;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+.rd-v2-account-menu-panel--header > a:hover,
+.rd-v2-account-menu-panel--header > a:focus-visible {
+  background: var(--rc3-soft);
+}
+
+.rd-v2-account-menu-panel--header > a > span:last-child,
+.rd-v2-account-menu-panel--header > a strong,
+.rd-v2-account-menu-panel--header > a small {
+  display: block;
+}
+
+.rd-v2-account-menu-panel--header > a strong {
+  color: var(--rc3-ink);
+  font-size: 12px;
+}
+
+.rd-v2-account-menu-panel--header > a small {
+  margin-top: 2px;
+  color: var(--rc3-muted);
+  font-size: 10px;
+  line-height: 1.35;
+}
