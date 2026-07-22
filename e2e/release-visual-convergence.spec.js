@@ -13,7 +13,7 @@ async function waitForHomeEvidence(page) {
   await expect(page.locator(".rd-v2-home-recent .rd-v2-catalog button.row").first()).toBeVisible();
 }
 
-test.describe("Research Drive release visual contract", () => {
+test.describe("Research Drive RC3 visual contract", () => {
   test.beforeEach(async ({ page }) => {
     await mockV2Api(page);
     await page.setViewportSize({ width: 1440, height: 900 });
@@ -22,7 +22,7 @@ test.describe("Research Drive release visual contract", () => {
     await waitForShell(page);
   });
 
-  test("desktop renders navigation, research workspace, and persistent Detail Ask rail", async ({ page }) => {
+  test("desktop preserves navigation, research workspace, and persistent Detail Ask rail", async ({ page }) => {
     const shell = page.locator(".rd-v2-shell");
     const header = page.locator("header.rd-v2-header");
     const sidebar = page.locator("aside.yzu-sidebar");
@@ -57,24 +57,25 @@ test.describe("Research Drive release visual contract", () => {
     expect(geometry.rail).toBeGreaterThanOrEqual(370);
   });
 
-  test("Home follows resume then entrances then attention then recent evidence", async ({ page }) => {
+  test("Home follows resume, research lifecycle, attention, then recent evidence", async ({ page }) => {
     const pageRoot = page.locator(".rd-v2-home-page");
     const continuation = page.getByTestId("home-continue");
-    const actions = page.locator(".rd-v2-home-actions");
+    const lifecycle = page.getByRole("region", { name: "Research lifecycle" });
     const attention = page.getByRole("region", { name: "Attention queue" });
     const recent = page.getByRole("region", { name: "Recent research assets" });
 
     await waitForHomeEvidence(page);
-    await expect(actions.getByRole("button", { name: /Search the lab/i })).toBeVisible();
-    await expect(actions.getByRole("button", { name: /Discover data/i })).toBeVisible();
-    await expect(actions.getByRole("button", { name: /Ask the assistant/i })).toBeVisible();
+    await expect(lifecycle.getByRole("button", { name: /Find/ })).toBeVisible();
+    await expect(lifecycle.getByRole("button", { name: /Verify/ })).toBeVisible();
+    await expect(lifecycle.getByRole("button", { name: /Acquire/ })).toBeVisible();
+    await expect(lifecycle.getByRole("button", { name: /Synthesize/ })).toBeVisible();
     await expect(attention).toBeVisible();
     await expect(recent).toBeVisible();
 
     const order = await pageRoot.evaluate((root) => {
       const selectors = [
         "[data-testid='home-continue']",
-        ".rd-v2-home-actions",
+        ".rd-rc3-lifecycle",
         ".rd-v2-home-attention",
         ".rd-v2-home-recent",
       ];
@@ -141,7 +142,7 @@ test.describe("Research Drive release visual contract", () => {
     expect(railBox?.width || 0).toBeGreaterThanOrEqual(370);
   });
 
-  test("capture every implemented release page for pixel review", async ({ page }) => {
+  test("capture every implemented RC3 page for pixel review", async ({ page }) => {
     await mkdir("artifacts/release-visual", { recursive: true });
     const pages = [
       ["Home", "home"],
@@ -168,8 +169,8 @@ test.describe("Research Drive release visual contract", () => {
   });
 });
 
-test.describe("Research Drive mobile composition", () => {
-  test("the complete resume object stays contained before the collapsible rail", async ({ page }) => {
+test.describe("Research Drive narrow-screen containment", () => {
+  test("the complete resume object remains contained before the collapsible rail", async ({ page }) => {
     await mockV2Api(page);
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/", { waitUntil: "domcontentloaded" });
@@ -180,20 +181,21 @@ test.describe("Research Drive mobile composition", () => {
     const continuation = page.getByTestId("home-continue");
     const continueButton = continuation.getByRole("button", { name: "Continue" });
     const libraryButton = continuation.getByRole("button", { name: "Open in Library" });
+    const lifecycle = page.getByRole("region", { name: "Research lifecycle" });
     await expect(continuation.locator("h2")).toBeVisible();
     await expect(continueButton).toBeVisible();
     await expect(libraryButton).toBeVisible();
-    await expect(page.locator(".rd-v2-home-actions").getByRole("button", { name: /Search the lab/i })).toBeVisible();
+    await expect(lifecycle.getByRole("button", { name: /Find/ })).toBeVisible();
 
     const boxes = await Promise.all([
       continuation.boundingBox(),
       libraryButton.boundingBox(),
-      page.locator(".rd-v2-home-actions").boundingBox(),
+      lifecycle.boundingBox(),
     ]);
-    const [cardBox, libraryBox, actionsBox] = boxes;
-    expect(cardBox && libraryBox && actionsBox).toBeTruthy();
+    const [cardBox, libraryBox, lifecycleBox] = boxes;
+    expect(cardBox && libraryBox && lifecycleBox).toBeTruthy();
     expect(libraryBox.y + libraryBox.height).toBeLessThanOrEqual(cardBox.y + cardBox.height + 1);
-    expect(cardBox.y + cardBox.height).toBeLessThanOrEqual(actionsBox.y + 1);
+    expect(cardBox.y + cardBox.height).toBeLessThanOrEqual(lifecycleBox.y + 1);
 
     const rail = page.locator("aside.rd-v2-rail");
     await expect(rail.getByRole("button", { name: /Show Detail · Ask|Hide panel/ })).toBeVisible();
