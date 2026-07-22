@@ -14,6 +14,7 @@ import "./interaction-feedback.css";
 import "./decoration-layer.css";
 import "./rc3-semantic.css";
 import "./rc3-visual-fixes.css";
+import "./rc3-recovery-links.css";
 import { InteractionProvider } from "./InteractionGuidance.jsx";
 import { V2App } from "./App.jsx";
 
