@@ -88,7 +88,9 @@ export function V2DeskHeader({
       ? `${datasetCount} datasets · ${workCount} pending`
       : `${datasetCount} datasets`;
   const fresh = freshnessLabel(refreshedAt);
-  const chips = Array.isArray(integrationChips) ? integrationChips : [];
+  const chips = (Array.isArray(integrationChips) ? integrationChips : [])
+    .filter((chip) => !(chip.id === "desk" && (deskStatus === "degraded" || deskStatus === "ok")))
+    .slice(0, 2);
 
   return (
     <header className="yzu-header rd-v2-header">
@@ -103,7 +105,7 @@ export function V2DeskHeader({
         <input
           value={searchQuery}
           onChange={(event) => onSearchChange(event.target.value)}
-          placeholder="Search data, sources, or ask…"
+          placeholder="Search catalog or ask…"
           aria-label="Search Research Drive"
           onKeyDown={(event) => {
             if (event.key === "Enter") {
@@ -125,19 +127,17 @@ export function V2DeskHeader({
           ) : deskStatus === "empty" ? (
             <span className="rd-v2-trust-badge warn">Empty registry</span>
           ) : usingSeed || deskStatus === "demo" ? (
-            <span className="rd-v2-trust-badge warn">Demo catalog</span>
+            <span className="rd-v2-trust-badge warn">Demo</span>
           ) : deskStatus === "degraded" ? (
             <span className="rd-v2-trust-badge warn">Desk degraded</span>
           ) : (
-            <span className="rd-v2-trust-badge warn">Desk API offline</span>
+            <span className="rd-v2-trust-badge warn">Desk offline</span>
           )}
-          {chips.map((chip) =>
-            chip.id === "desk" && (deskStatus === "degraded" || deskStatus === "ok") ? null : (
-              <span key={chip.id} className={`rd-v2-trust-badge ${chip.tone || "muted"}`} title={chip.label}>{chip.label}</span>
-            ),
-          )}
-          {dryRunProtected ? <span className="rd-v2-trust-badge">Dry-run protected</span> : null}
-          {fresh ? <span className="rd-v2-trust-badge muted">Updated {fresh}</span> : null}
+          {chips.map((chip) => (
+            <span key={chip.id} className={`rd-v2-trust-badge ${chip.tone || "muted"}`} title={chip.label}>{chip.label}</span>
+          ))}
+          {dryRunProtected ? <span className="rd-v2-trust-badge">Dry-run</span> : null}
+          {fresh ? <span className="rd-v2-trust-badge muted">{fresh}</span> : null}
         </div>
         <span className="rd-v2-header-meta-count">
           {workCount > 0 && onPendingClick ? (
