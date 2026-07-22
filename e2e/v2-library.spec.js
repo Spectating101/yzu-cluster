@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 
-test.describe("v2 Library directory", () => {
+test.describe("RC3 Library evidence estate", () => {
   test.beforeEach(async ({ page }) => {
     await mockV2Api(page);
     await page.setViewportSize({ width: 1440, height: 900 });
@@ -9,7 +9,7 @@ test.describe("v2 Library directory", () => {
     await waitForShell(page);
   });
 
-  test("Lab root renders as a folder-first directory", async ({ page }) => {
+  test("Lab root preserves folder-first exact browsing", async ({ page }) => {
     await expect(page.locator(".rd-v2-page-head h1", { hasText: "Library" })).toBeVisible();
     const estate = page.getByTestId("library-estate-browser");
     await expect(estate).toContainText("All holdings");
@@ -25,7 +25,18 @@ test.describe("v2 Library directory", () => {
     await expect(page.locator("aside.rd-v2-rail")).not.toContainText("Upload here");
   });
 
-  test("folders drill down to datasets and keep the rail as the selection anchor", async ({ page }) => {
+  test("Research fit groups held evidence without replacing the estate", async ({ page }) => {
+    await page.getByRole("tab", { name: "Research fit" }).click();
+    const research = page.getByTestId("library-research-view");
+    await expect(research).toContainText("Ask the estate");
+    await expect(research).toContainText("Directly useful");
+    await expect(research).toContainText("Supporting evidence");
+    await expect(research).toContainText("Estate gap");
+    await page.getByRole("tab", { name: "Estate" }).click();
+    await expect(page.getByTestId("library-estate-browser")).toBeVisible();
+  });
+
+  test("folders drill down and a selected dataset expands into a full evidence workspace", async ({ page }) => {
     await page.locator('[data-testid="library-collection"][data-kind="folder"]', { hasText: "Research panels" }).click();
     await expect(page.getByTestId("library-estate-browser")).toContainText("Research panels");
     await expect(page.locator(".rd-v2-rail-selection")).toHaveText("Research panels");
@@ -43,7 +54,15 @@ test.describe("v2 Library directory", () => {
     await expect(rail).toContainText("Coverage & grain");
     await expect(rail).toContainText("Join keys");
     await expect(rail.getByRole("button", { name: "Preview rows" })).toBeVisible();
-    await expect(page.getByTestId("library-estate-browser")).not.toContainText("Selected");
+
+    const workspace = page.getByTestId("library-asset-workspace");
+    await expect(workspace).toBeVisible();
+    await expect(workspace).toContainText("Asia daily news-risk panel");
+    await expect(workspace).toContainText("Observed from current registry response");
+    await expect(workspace).toContainText("Research interpretation");
+    await expect(workspace).toContainText("Field profile");
+    await expect(workspace).toContainText("Unknowns");
+    await expect(page.getByTestId("library-estate-browser")).toHaveCount(0);
   });
 
   test("New menu routes upload intake through the rail", async ({ page }) => {
@@ -87,7 +106,7 @@ test.describe("v2 Library directory", () => {
   });
 });
 
-test.describe("v2 Library navigation", () => {
+test.describe("RC3 Library navigation", () => {
   test("entering Library from Home lands on the branch rail", async ({ page }) => {
     await mockV2Api(page);
     await page.setViewportSize({ width: 1440, height: 900 });
