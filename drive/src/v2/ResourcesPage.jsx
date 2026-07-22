@@ -77,21 +77,52 @@ function ResourceGroup({ title, lead, rows, selectedKey, onSelect }) {
   );
 }
 
+function databankState(summary = {}, rollup = {}) {
+  const queryEngine = rollup?.hero?.query_engine || {};
+  const registryCount = summary.registry ?? summary.datasets ?? summary.total ?? queryEngine.datasets ?? null;
+  const instantCount = summary.instant ?? summary.query_ready ?? summary.ready ?? queryEngine.query_ready ?? null;
+
+  if (registryCount != null && instantCount != null) {
+    return {
+      heading: `${registryCount} registered · ${instantCount} query-ready`,
+      metric: `${registryCount} registered`,
+      detail: `${instantCount} query-ready`,
+    };
+  }
+  if (registryCount != null) {
+    return {
+      heading: `${registryCount} registered · readiness count pending`,
+      metric: `${registryCount} registered`,
+      detail: "Query-readiness count pending",
+    };
+  }
+  if (instantCount != null) {
+    return {
+      heading: `Registry count pending · ${instantCount} query-ready`,
+      metric: "Registry count pending",
+      detail: `${instantCount} query-ready`,
+    };
+  }
+  return {
+    heading: queryEngine.up ? "Registry connected · readiness counts pending" : "Registry status not reported",
+    metric: queryEngine.up ? "Registry connected" : "Status not reported",
+    detail: "Dataset and query-readiness counts pending",
+  };
+}
+
 function Overview({ rollup, panels, catalogSummary, selectedKey, onSelect }) {
   const storageRows = panels.usage || [];
   const accountRows = [...(panels.metered || []), ...(panels.ai || [])];
   const routeRows = [...(panels.providers || []), ...(panels.layers || []), ...(panels.compute || [])];
-  const summary = catalogSummary || {};
-  const registryCount = summary.registry ?? summary.datasets ?? summary.total ?? "—";
-  const instantCount = summary.instant ?? summary.query_ready ?? summary.ready ?? "—";
+  const databank = databankState(catalogSummary || {}, rollup);
 
   return (
     <div className="rd-recovery-resources-overview" data-testid="resources-overview">
       <OperationalStrip rollup={rollup} />
 
       <section className="rd-recovery-databank" aria-label="Databank status">
-        <div><span>Databank</span><h2>{registryCount} registered · {instantCount} query-ready</h2><p>Institutional evidence index and query service. Registration, possession, and analytical readiness remain separate claims.</p></div>
-        <button type="button" onClick={() => onSelect?.({ key: "databank", kind: "capacity", label: "Databank", metric: `${registryCount} registered`, detail: `${instantCount} query-ready`, section: "overview" })}>Inspect →</button>
+        <div><span>Databank</span><h2>{databank.heading}</h2><p>Institutional evidence index and query service. Registration, possession, and analytical readiness remain separate claims.</p></div>
+        <button type="button" onClick={() => onSelect?.({ key: "databank", kind: "capacity", label: "Databank", metric: databank.metric, detail: databank.detail, section: "overview" })}>Inspect →</button>
       </section>
 
       <div className="rd-recovery-resource-groups" role="region" aria-label="Key resources">
