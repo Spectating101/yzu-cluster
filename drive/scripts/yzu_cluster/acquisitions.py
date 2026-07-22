@@ -34,6 +34,36 @@ def remote_collect_script(repo_root: Path) -> Path:
     return candidates[0]
 
 
+def repo_relpath(path: Path, repo_root: Path) -> str:
+    """Return a path relative to repo_root, tolerating runtime bind symlinks.
+
+    Front-door checkouts symlink data_lake/procured and data_lake/yzu_cluster into
+    YZU_RUNTIME_DRIVE_ROOT. Path.resolve() jumps outside the checkout, so a naive
+    relative_to(repo_root) raises during materialize/promote.
+    """
+    path = Path(path)
+    repo_root = Path(repo_root)
+    try:
+        return str(path.relative_to(repo_root))
+    except ValueError:
+        pass
+    resolved = path.resolve()
+    try:
+        return str(resolved.relative_to(repo_root.resolve()))
+    except ValueError:
+        pass
+    for logical in ("data_lake/procured", "data_lake/yzu_cluster", "data_lake"):
+        bind = repo_root / logical
+        if not (bind.exists() or bind.is_symlink()):
+            continue
+        try:
+            rel = resolved.relative_to(bind.resolve())
+            return str(Path(logical) / rel)
+        except ValueError:
+            continue
+    return str(resolved)
+
+
 def acquisitions_root(repo_root: Path, cfg: dict[str, Any] | None = None) -> Path:
     cfg = cfg or {}
     storage = cfg.get("storage") or {}
@@ -149,13 +179,13 @@ def collect_local_manifest(
             {
                 "shard": 0,
                 "worker": "local",
-                "artifact": str(artifact.relative_to(repo_root)),
+                "artifact": repo_relpath(artifact, repo_root),
                 "bytes": artifact.stat().st_size,
                 "worker_exit": proc.returncode,
                 "collect_report": proc.stdout.strip()[-500:],
             }
         ],
-        "output_dir": str(job_dir.relative_to(repo_root)),
+        "output_dir": repo_relpath(job_dir, repo_root),
         "collect_mode": "local",
     }
 
@@ -215,7 +245,7 @@ def materialize_job(
             promoted_files.append(
                 {
                     "name": dst.name,
-                    "path": str(dst.relative_to(repo_root)),
+                    "path": repo_relpath(dst, repo_root),
                     "bytes": dst.stat().st_size,
                     "sha256": _sha256_file(dst),
                 }
@@ -230,8 +260,8 @@ def materialize_job(
             "url": plan.get("url"),
             "title": plan.get("title"),
         },
-        "staging_dir": str(staging.relative_to(repo_root)),
-        "canonical_dir": str(canonical.relative_to(repo_root)) if canonical.exists() else "",
+        "staging_dir": repo_relpath(staging, repo_root),
+        "canonical_dir": repo_relpath(canonical, repo_root) if canonical.exists() else "",
         "dataset_id": dataset_id_for_plan(plan, job_id),
         "files": promoted_files or staged_files,
         "validation": validation,
@@ -251,7 +281,7 @@ def materialize_job(
         manifest_path = canonical / "manifest.json"
         manifest_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         meta["manifest_id"] = manifest_id
-        meta["manifest_path"] = str(manifest_path.relative_to(repo_root))
+        meta["manifest_path"] = repo_relpath(manifest_path, repo_root)
     (staging / "meta.json").write_text(json.dumps(meta, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
     out = dict(result)

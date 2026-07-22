@@ -25,3 +25,16 @@ def test_remote_collect_script_prefers_monorepo_when_both_exist(tmp_path: Path):
     mono.write_text("mono\n", encoding="utf-8")
     drive.write_text("drive\n", encoding="utf-8")
     assert remote_collect_script(tmp_path) == mono
+
+from scripts.yzu_cluster.acquisitions import repo_relpath
+
+
+def test_repo_relpath_maps_runtime_bind(tmp_path: Path):
+    runtime = tmp_path / "runtime" / "data_lake" / "procured" / "ds1"
+    runtime.mkdir(parents=True)
+    target = runtime / "file.txt"
+    target.write_text("x", encoding="utf-8")
+    checkout = tmp_path / "front-door"
+    (checkout / "data_lake").mkdir(parents=True)
+    (checkout / "data_lake" / "procured").symlink_to(tmp_path / "runtime" / "data_lake" / "procured")
+    assert repo_relpath(target, checkout) == "data_lake/procured/ds1/file.txt"
