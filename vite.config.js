@@ -19,6 +19,13 @@ const proxy = buildDeskProxyMap(API_TARGET);
 // Playwright webServer startup and make http://127.0.0.1:PORT/ return 302
 // (not 2xx), timing out the mock e2e job at ~120s.
 const pagesBase = process.env.YZU_PAGES === "true" ? "/yzu-cluster/" : "/";
+const allowedHosts = (
+  process.env.YZU_ALLOWED_HOSTS ||
+  "optiplex.tail639327.ts.net,rc3.easycamp.tech,previous.easycamp.tech"
+)
+  .split(",")
+  .map((host) => host.trim())
+  .filter(Boolean);
 
 export default defineConfig({
   base: pagesBase,
@@ -31,11 +38,13 @@ export default defineConfig({
   server: {
     host: process.env.YZU_DESK_HOST || "127.0.0.1",
     port: Number(process.env.YZU_DESK_PORT || 5178),
+    allowedHosts,
     proxy,
   },
   preview: {
     host: process.env.YZU_DESK_HOST || "127.0.0.1",
     port: Number(process.env.YZU_PREVIEW_PORT || 4178),
+    allowedHosts,
     proxy,
   },
 });
