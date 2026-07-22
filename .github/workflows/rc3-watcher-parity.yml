@@ -1,0 +1,76 @@
+name: RC3 watcher parity
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: rc3-watcher-parity-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  exact-watcher-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Clean install exactly like local watcher
+        run: |
+          rm -rf node_modules
+          npm install --no-audit --no-fund
+
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium --with-deps
+
+      - name: Watcher production build
+        run: npm run build
+
+      - name: Watcher candidate identity
+        run: npm run test:candidate-key
+
+      - name: Watcher runtime contract
+        run: npm run test:runtime-contract
+
+      - name: Watcher aggregate mock suite
+        run: npm run test:v2-mock
+        env:
+          CI: "true"
+          YZU_PAGES: "false"
+
+      - name: Watcher smoke server
+        env:
+          YZU_API_URL: http://127.0.0.1:8765
+          __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS: optiplex.tail639327.ts.net,rc3.easycamp.tech,previous.easycamp.tech
+        run: |
+          set -Eeuo pipefail
+          ./node_modules/.bin/vite --host 127.0.0.1 --port 18767 --strictPort > /tmp/rc3-watcher-vite.log 2>&1 &
+          vite_pid=$!
+          trap 'kill "$vite_pid" 2>/dev/null || true' EXIT
+          for _ in $(seq 1 30); do
+            if curl --silent --show-error --fail --max-time 3 http://127.0.0.1:18767/ >/dev/null; then
+              echo "Watcher-equivalent smoke passed."
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/rc3-watcher-vite.log
+          exit 1
+
+      - name: Upload watcher diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rc3-watcher-parity-${{ github.sha }}
+          path: |
+            /tmp/rc3-watcher-vite.log
+            artifacts/release-visual
+            test-results
+          if-no-files-found: ignore
+          retention-days: 7
