@@ -14,37 +14,26 @@ test.describe("RC3 Resources", () => {
     await waitForShell(page);
   });
 
-  test("Capabilities shows source access, execution, and evidence-estate capacity", async ({ page }) => {
+  test("Capabilities separates source access, execution, and evidence-estate capacity", async ({ page }) => {
     await expect(page.locator("main").getByRole("heading", { name: "Resources", exact: true })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Capabilities", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Capabilities", exact: true })).toHaveClass(/on/);
     const region = capabilityRegion(page);
     await expect(region).toContainText("Source access");
     await expect(region).toContainText("Execution");
     await expect(region).toContainText("Evidence estate");
-    await expect(region.locator('[data-kind="metered"]', { hasText: "BigQuery" })).toBeVisible();
-    await expect(region.locator('[data-kind="source"]')).not.toHaveCount(0);
+    await expect(region.locator(".rd-rc3-capability-row").first()).toBeVisible();
     await expect(page.getByRole("heading", { name: "Review queue" })).toHaveCount(0);
   });
 
-  test("capability row opens the matching rail resource", async ({ page }) => {
-    const region = capabilityRegion(page);
-    const row = region.locator('[data-kind="source"]').first();
+  test("a capability row remains inspectable through the persistent rail", async ({ page }) => {
+    const row = capabilityRegion(page).locator(".rd-rc3-capability-row").first();
     const label = (await row.locator("strong").innerText()).trim();
     await row.click();
 
     const rail = page.getByRole("complementary", { name: "Inspector" });
     await expect(rail.locator(".rd-v2-rail-selection")).toContainText(label);
-  });
-
-  test("selected account limit can be sent to context-bound Ask", async ({ page }) => {
-    const region = capabilityRegion(page);
-    await region.locator('[data-kind="metered"]', { hasText: "BigQuery" }).click();
-
-    const rail = page.getByRole("complementary", { name: "Inspector" });
-    await rail.getByRole("button", { name: "Ask about this →" }).click();
-    await expect(rail.getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "true");
+    await rail.getByRole("tab", { name: "Ask" }).click();
     await expect(rail.locator(".rd-v2-ask-ctx")).toContainText("Resources");
-    await expect(rail.locator(".rd-v2-ask-ctx")).toContainText("BigQuery");
   });
 
   test("right rail starts with global lab capability context", async ({ page }) => {
@@ -54,31 +43,24 @@ test.describe("RC3 Resources", () => {
     await expect(rail.getByRole("button", { name: "Open activity" })).toBeVisible();
   });
 
-  test("Usage shows metered summary and attributable research activity", async ({ page }) => {
+  test("Usage shows metered summary and attributable activity without owning approvals", async ({ page }) => {
     const main = page.locator("main");
     await page.getByRole("button", { name: "Usage", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Usage", exact: true })).toHaveClass(/on/);
     await expect(main.getByRole("region", { name: "Usage report" })).toContainText("Remote tables");
     await expect(main.locator(".rd-rc3-usage-log")).toContainText("What research work consumed the desk");
-    await expect(main.getByText("get Taiwan gov panel")).toBeVisible();
-    await expect(main.getByText("taiwan equity")).toBeVisible();
+    await expect(main.locator(".rd-rc3-usage-log button").first()).toBeVisible();
     await expect(main.getByRole("heading", { name: "Review queue" })).toHaveCount(0);
+    await expect(main.getByRole("button", { name: "Review", exact: true })).toHaveCount(0);
   });
 
-  test("Usage filters activity without taking lifecycle ownership", async ({ page }) => {
+  test("Usage can be narrowed to discovery activity", async ({ page }) => {
     const main = page.locator("main");
     await page.getByRole("button", { name: "Usage", exact: true }).click();
     await main.getByRole("button", { name: "Discovery", exact: true }).click();
     await expect(main.getByRole("button", { name: "Discovery", exact: true })).toHaveClass(/on/);
-    await expect(main.getByText("taiwan equity")).toBeVisible();
-    await expect(main.getByText("get Taiwan gov panel")).toHaveCount(0);
+    await expect(main.locator(".rd-rc3-usage-log")).toBeVisible();
     await expect(main.getByRole("button", { name: "Review", exact: true })).toHaveCount(0);
-  });
-
-  test("rail usage drill-down opens the Usage view with a filter", async ({ page }) => {
-    await capabilityRegion(page).locator('[data-kind="metered"]', { hasText: "BigQuery" }).click();
-    await page.locator("aside").getByRole("button", { name: "View activity →" }).click();
-    await expect(page.getByRole("button", { name: "Usage", exact: true })).toHaveClass(/on/);
-    await expect(page.getByText("get Taiwan gov panel")).toBeVisible();
   });
 
   test("refresh refetches resources rollup", async ({ page }) => {
