@@ -41,7 +41,7 @@ export function DiscoverEmptyState({ onSuggest }) {
         </div>
       </form>
 
-      <div className="rd-recovery-discover-families" aria-label="Available evidence landscape">
+      <div className="rd-recovery-discover-families" role="region" aria-label="Available evidence landscape">
         {SOURCE_FAMILIES.map(([title, detail]) => (
           <article key={title}>
             <strong>{title}</strong>
