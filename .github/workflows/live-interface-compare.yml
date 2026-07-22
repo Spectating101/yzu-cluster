@@ -34,12 +34,13 @@ jobs:
           RC3_URL: https://rc3.easycamp.tech/
           PREVIOUS_URL: https://previous.easycamp.tech/
         run: |
+          set -o pipefail
           mkdir -p artifacts/live-compare
           echo "Starting live comparison" > artifacts/live-compare/capture.log
-          node <<'NODE' 2>&1 | tee -a artifacts/live-compare/capture.log
-          const { chromium } = require('@playwright/test');
-          const fs = require('node:fs');
-          const path = require('node:path');
+          node --input-type=module <<'NODE' 2>&1 | tee -a artifacts/live-compare/capture.log
+          import { chromium } from '@playwright/test';
+          import fs from 'node:fs';
+          import path from 'node:path';
 
           const targets = [
             { id: 'rc3', base: process.env.RC3_URL },
@@ -136,8 +137,9 @@ jobs:
 
       - name: Verify both origins were captured
         run: |
-          node <<'NODE'
-          const report = require('./artifacts/live-compare/report.json');
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const report = JSON.parse(fs.readFileSync('./artifacts/live-compare/report.json', 'utf8'));
           const failures = [];
           for (const [target, states] of Object.entries(report.targets)) {
             for (const [state, row] of Object.entries(states)) {
