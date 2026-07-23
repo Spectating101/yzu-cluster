@@ -271,7 +271,7 @@ export function SynthesisProxyCanvas({ view, selection, onSelectArea, onAsk, onF
             </button>
           ) : null}
           <button type="button" className="rd-v2-btn primary" onClick={view.primaryRecipe ? challengeRecipe : generateRecipes}>
-            {view.primaryRecipe ? "Challenge in Composer" : "Generate in Composer"}
+            {view.primaryRecipe ? "Challenge proxy design" : "Generate proxy recipes"}
           </button>
         </div>
       </footer>
