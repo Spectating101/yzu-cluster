@@ -1,0 +1,14 @@
+/* Narrow corrections discovered by the loop-2 acceptance gate. */
+
+@media (min-width: 761px) {
+  .rd-v2-rail {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .rd-v2-rail-stack {
+    width: 100%;
+    min-width: 0;
+  }
+}
