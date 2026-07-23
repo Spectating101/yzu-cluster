@@ -1,0 +1,63 @@
+name: Sol ceiling validation
+
+on:
+  push:
+    branches: [agent/sol-ceiling-research-instrument]
+  workflow_dispatch:
+
+concurrency:
+  group: sol-ceiling-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-visual-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium --with-deps
+
+      - name: Production build
+        run: npm run build
+        env:
+          YZU_PAGES: "false"
+
+      - name: Validate research value language
+        run: npm run test:research-value
+
+      - name: Validate flagship and page contracts
+        env:
+          CI: "true"
+          YZU_PAGES: "false"
+        run: |
+          mkdir -p .tmp-pw artifacts/sol-ceiling
+          TMPDIR=$PWD/.tmp-pw npx playwright test \
+            e2e/v2-home.spec.js \
+            e2e/v2-discover.spec.js \
+            e2e/v2-library.spec.js \
+            e2e/v2-synthesis.spec.js \
+            e2e/v2-resources.spec.js \
+            e2e/release-visual-convergence.spec.js \
+            --reporter=line
+
+      - name: Upload visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sol-ceiling-validation-${{ github.sha }}
+          path: |
+            artifacts
+            test-results
+            playwright-report
+          if-no-files-found: ignore
+          retention-days: 14
