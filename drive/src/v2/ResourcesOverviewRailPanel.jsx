@@ -29,11 +29,12 @@ function isActionableIssue(issue) {
   return /\b(?:critical|error|failed|failure|offline|blocked|expired|unreachable|saturated|quota exceeded|credential missing|access denied)\b/i.test(state);
 }
 
-function attentionSummary({ actionableIssues, jobs }) {
+function attentionSummary({ actionableIssues, jobs, observationCount }) {
   const parts = [];
   if (jobs.pending) parts.push(`${jobs.pending} approval${jobs.pending === 1 ? "" : "s"}`);
   if (jobs.failed) parts.push(`${jobs.failed} failed job${jobs.failed === 1 ? "" : "s"}`);
   if (actionableIssues) parts.push(`${actionableIssues} resource alert${actionableIssues === 1 ? "" : "s"}`);
+  if (observationCount) parts.push(`${observationCount} capacity observation${observationCount === 1 ? "" : "s"} logged`);
   return parts.join(" · ");
 }
 
@@ -72,7 +73,7 @@ export function ResourcesOverviewRailPanel({ rollup, onViewActivity }) {
   const postureDetail = query.up === false
     ? "Catalog and query service is offline."
     : attention > 0
-      ? attentionSummary({ actionableIssues, jobs })
+      ? attentionSummary({ actionableIssues, jobs, observationCount })
       : observationCount > 0
         ? observationSummary(observationCount)
         : sourceCount != null
