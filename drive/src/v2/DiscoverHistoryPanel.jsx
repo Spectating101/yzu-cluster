@@ -211,9 +211,15 @@ export function DiscoverHistoryPanel({
     ),
     [events],
   );
+  // The default trail is for durable research decisions. Raw search telemetry
+  // remains available under Search, but must not bury approvals and outcomes.
+  const durable = useMemo(
+    () => normalized.filter((event) => eventKind(event) !== "search"),
+    [normalized],
+  );
   const filtered = useMemo(
-    () => (filter === "all" ? normalized : normalized.filter((event) => eventKind(event) === filter)),
-    [filter, normalized],
+    () => (filter === "all" ? durable : normalized.filter((event) => eventKind(event) === filter)),
+    [durable, filter, normalized],
   );
   const groups = useMemo(() => groupEvents(filtered), [filtered]);
 
@@ -231,7 +237,10 @@ export function DiscoverHistoryPanel({
           <h2>Collected · Registered · Query-ready</h2>
           <p>Durable lifecycle only — collected does not imply registered, and registered does not imply query-ready.</p>
         </div>
-        <strong>{normalized.length} recorded event{normalized.length === 1 ? "" : "s"}</strong>
+        <strong>
+          {filter === "all" ? `${durable.length} durable` : filtered.length} event
+          {(filter === "all" ? durable.length : filtered.length) === 1 ? "" : "s"}
+        </strong>
       </div>
 
       <div className="rd-v2-toolbar inline rd-v2-history-filters" aria-label="History filters">
