@@ -266,15 +266,17 @@ test("render proxy-first Sol ceiling Synthesis flagship", async ({ page }) => {
   await expect(design.getByText("Market Response Validation", { exact: true })).toBeVisible();
   await expect(design.getByText("Snapshot interpolation proxy", { exact: true })).toBeVisible();
   await expect(design.getByText("Latent regime probability", { exact: true })).toBeVisible();
-  await expect(design.getByText("idn_ownership_regime_proxy_monthly", { exact: true })).toBeVisible();
+  await expect(design.getByRole("button", { name: /Constructed dataset idn_ownership_regime_proxy_monthly/ })).toBeVisible();
   await expect(design.getByRole("button", { name: "Challenge proxy design", exact: true })).toBeVisible();
   await expect(design.getByRole("button", { name: "Find additional evidence", exact: true })).toBeVisible();
 
   const rail = page.locator("aside.rd-v2-rail");
-  await expect(rail).toContainText("Proxy design authority");
+  await expect(rail).toContainText("Proxy authority");
   await expect(rail.getByText("Method", { exact: true })).toHaveCount(0);
   await expect(rail.getByText("Next decision", { exact: true })).toHaveCount(0);
   await expect(rail.getByText("Evidence gaps", { exact: true })).toHaveCount(0);
+  await expect(rail.getByText("Archive", { exact: true })).toHaveCount(0);
+  await expect(rail.getByText("Registry", { exact: true })).toHaveCount(0);
 
   await mkdir("artifacts/sol-ceiling-rebuild", { recursive: true });
   await page.screenshot({
@@ -291,6 +293,9 @@ test("render proxy-first Sol ceiling Synthesis flagship", async ({ page }) => {
       .filter((node) => node.scrollWidth > node.clientWidth + 1)
       .map((node) => node.textContent?.trim())
       .filter(Boolean);
+    const recipeLabels = [...document.querySelectorAll(".rd-proxy-recipe-flow strong")]
+      .map((node) => String(node.textContent || "").trim())
+      .filter(Boolean);
     return {
       shellHeight: Math.round(shell?.height || 0),
       canvasWidth: Math.round(canvas?.width || 0),
@@ -298,6 +303,8 @@ test("render proxy-first Sol ceiling Synthesis flagship", async ({ page }) => {
       nextBottom: Math.round(next?.bottom || 0),
       viewportHeight: window.innerHeight,
       overflow,
+      maxRecipeWords: Math.max(0, ...recipeLabels.map((label) => label.split(/\s+/).length)),
+      coreParagraphs: document.querySelectorAll(".rd-proxy-core p").length,
     };
   });
 
@@ -306,4 +313,6 @@ test("render proxy-first Sol ceiling Synthesis flagship", async ({ page }) => {
   expect(geometry.shellHeight).toBeGreaterThanOrEqual(620);
   expect(geometry.nextBottom).toBeLessThanOrEqual(geometry.viewportHeight - 4);
   expect(geometry.overflow).toEqual([]);
+  expect(geometry.maxRecipeWords).toBeLessThanOrEqual(3);
+  expect(geometry.coreParagraphs).toBe(0);
 });
