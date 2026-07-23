@@ -271,9 +271,16 @@ test("render proxy-first Sol ceiling Synthesis flagship", async ({ page }) => {
   await expect(design.getByRole("button", { name: "Find additional evidence", exact: true })).toBeVisible();
 
   const rail = page.locator("aside.rd-v2-rail");
-  await expect(rail).toContainText("Construction authority");
+  await expect(rail).toContainText("Proxy design authority");
   await expect(rail.getByText("Method", { exact: true })).toHaveCount(0);
   await expect(rail.getByText("Next decision", { exact: true })).toHaveCount(0);
+  await expect(rail.getByText("Evidence gaps", { exact: true })).toHaveCount(0);
+
+  await mkdir("artifacts/sol-ceiling-rebuild", { recursive: true });
+  await page.screenshot({
+    path: "artifacts/sol-ceiling-rebuild/synthesis-1440x900.png",
+    fullPage: false,
+  });
 
   const geometry = await page.evaluate(() => {
     const shell = document.querySelector(".rd-loop7-synthesis-shell")?.getBoundingClientRect();
@@ -299,10 +306,4 @@ test("render proxy-first Sol ceiling Synthesis flagship", async ({ page }) => {
   expect(geometry.shellHeight).toBeGreaterThanOrEqual(620);
   expect(geometry.nextBottom).toBeLessThanOrEqual(geometry.viewportHeight - 4);
   expect(geometry.overflow).toEqual([]);
-
-  await mkdir("artifacts/sol-ceiling-rebuild", { recursive: true });
-  await page.screenshot({
-    path: "artifacts/sol-ceiling-rebuild/synthesis-1440x900.png",
-    fullPage: false,
-  });
 });
