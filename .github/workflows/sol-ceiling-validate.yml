@@ -3,6 +3,8 @@ name: Sol ceiling validation
 on:
   push:
     branches: [agent/sol-ceiling-research-instrument]
+  pull_request:
+    branches: [agent/rc3-semantic-research-desk]
   workflow_dispatch:
 
 concurrency:
