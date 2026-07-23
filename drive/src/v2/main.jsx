@@ -22,6 +22,8 @@ import "./live-convergence-loop2-fixes.css";
 // Desktop workbench layers are the final visual authority at wide viewports.
 import "./desktop-workbench.css";
 import "./desktop-workbench-fixes.css";
+// Loop 7 turns Synthesis into a structured research construction.
+import "./synthesis-loop7.css";
 import { InteractionProvider } from "./InteractionGuidance.jsx";
 import { V2App } from "./App.jsx";
 
