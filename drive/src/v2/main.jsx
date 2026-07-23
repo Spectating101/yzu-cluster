@@ -17,6 +17,7 @@ import "./rc3-visual-fixes.css";
 import "./rc3-recovery-links.css";
 import "./live-convergence.css";
 import "./live-convergence-fixes.css";
+import "./live-convergence-loop2.css";
 import { InteractionProvider } from "./InteractionGuidance.jsx";
 import { V2App } from "./App.jsx";
 
