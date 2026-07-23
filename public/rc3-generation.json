@@ -1,4 +1,6 @@
 {
   "generation": "rc3-desktop-convergence-loop-5",
-  "purpose": "desktop research workbench geometry, stronger hierarchy, and two-column Synthesis"
+  "purpose": "desktop research workbench geometry, stronger hierarchy, and two-column Synthesis",
+  "desktop_shell": "196px / workspace / 336px",
+  "synthesis_columns": 2
 }
