@@ -9,17 +9,19 @@ test.describe("v2 Discover tab", () => {
     await waitForShell(page);
   });
 
-  test("start state exposes catalog search and the available evidence landscape", async ({ page }) => {
+  test("start state exposes a research-first evidence workflow", async ({ page }) => {
     const start = page.getByTestId("discover-empty");
     await expect(start).toBeVisible();
-    await expect(start.getByRole("heading", { name: "Find evidence beyond the current vault" })).toBeVisible();
-    await expect(start.getByRole("textbox", { name: "Research question or dataset" })).toBeVisible();
-    await expect(start.getByRole("region", { name: "Available evidence landscape" })).toContainText("Lab catalog");
-    await expect(start.getByRole("button", { name: /TWSE governance/ })).toBeVisible();
+    await expect(start.getByRole("heading", { name: "Search what the lab already holds—then widen the evidence space." })).toBeVisible();
+    await expect(start.getByRole("textbox", { name: "Research question or dataset" })).toHaveAttribute("placeholder", /holdings, registries/i);
+    await expect(start.getByRole("region", { name: "Evidence discovery workflow" })).toContainText("Held evidence");
+    await expect(start.getByRole("region", { name: "Evidence discovery workflow" })).toContainText("Controlled acquisition");
+    await expect(start.getByRole("button", { name: /Investigate TWSE governance/ })).toBeVisible();
+    await expect(start).toContainText(/External candidates remain prospective evidence/i);
   });
 
   test("suggestion fills header search and shows results", async ({ page }) => {
-    await page.getByRole("button", { name: /TWSE governance/ }).click();
+    await page.getByRole("button", { name: /Investigate TWSE governance/ }).click();
     await expect(page.locator(".rd-v2-search-pill input")).toHaveValue("TWSE governance");
     await expect(page.locator("button.rd-v2-discover-candidate").first()).toBeVisible({ timeout: 10_000 });
     await expect(page.locator("button.rd-v2-discover-candidate")).not.toHaveCount(0);
@@ -31,7 +33,7 @@ test.describe("v2 Discover tab", () => {
   test("direct catalog form starts a search", async ({ page }) => {
     const start = page.getByTestId("discover-empty");
     await start.getByRole("textbox", { name: "Research question or dataset" }).fill("MOPS amendments");
-    await start.getByRole("button", { name: "Search catalog" }).click();
+    await start.getByRole("button", { name: "Search evidence" }).click();
     await expect(page.locator(".rd-v2-search-pill input")).toHaveValue("MOPS amendments");
   });
 
