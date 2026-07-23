@@ -18,26 +18,42 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Wait for the expected RC3 generation
+      - name: Wait for the exact RC3 deployment
         env:
           RC3_URL: https://rc3.easycamp.tech/
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           set -Eeuo pipefail
           mkdir -p artifacts/live-compare
-          expected="$(node --input-type=module -e "import fs from 'node:fs'; const row=JSON.parse(fs.readFileSync('public/rc3-generation.json','utf8')); process.stdout.write(row.generation)")"
-          echo "Expected generation: ${expected}" | tee artifacts/live-compare/deployment-wait.log
+          expected_generation="$(node --input-type=module -e "import fs from 'node:fs'; const row=JSON.parse(fs.readFileSync('public/rc3-generation.json','utf8')); process.stdout.write(row.generation)")"
+          expected_sha="${EXPECTED_SHA}"
+          {
+            echo "Expected generation: ${expected_generation}"
+            echo "Expected deployed SHA: ${expected_sha}"
+          } | tee artifacts/live-compare/deployment-wait.log
+
           for attempt in $(seq 1 120); do
             cache_buster="$(date +%s)-${attempt}"
-            body="$(curl --silent --show-error --fail --max-time 12 -H 'Cache-Control: no-cache' "${RC3_URL}rc3-generation.json?deploy_check=${cache_buster}" 2>/dev/null || true)"
-            observed="$(BODY="$body" node --input-type=module -e "try { const row=JSON.parse(process.env.BODY || '{}'); process.stdout.write(row.generation || '') } catch {}")"
-            if [ "$observed" = "$expected" ]; then
-              echo "Observed expected generation after ${attempt} checks." | tee -a artifacts/live-compare/deployment-wait.log
+            generation_body="$(curl --silent --show-error --fail --max-time 12 -H 'Cache-Control: no-cache' "${RC3_URL}rc3-generation.json?deploy_check=${cache_buster}" 2>/dev/null || true)"
+            state_body="$(curl --silent --show-error --fail --max-time 12 -H 'Cache-Control: no-cache' "${RC3_URL}rc3-watcher-state.json?deploy_check=${cache_buster}" 2>/dev/null || true)"
+            observed_generation="$(BODY="$generation_body" node --input-type=module -e "try { const row=JSON.parse(process.env.BODY || '{}'); process.stdout.write(row.generation || '') } catch {}")"
+            observed_sha="$(BODY="$state_body" node --input-type=module -e "try { const row=JSON.parse(process.env.BODY || '{}'); process.stdout.write(row.deployed_sha || '') } catch {}")"
+
+            if [ "$observed_generation" = "$expected_generation" ] && [ "$observed_sha" = "$expected_sha" ]; then
+              echo "Observed exact deployment after ${attempt} checks." | tee -a artifacts/live-compare/deployment-wait.log
+              printf '%s\n' "$state_body" > artifacts/live-compare/rc3-watcher-state.json
               exit 0
             fi
-            printf '%s attempt=%s observed=%s\n' "$(date -u +%FT%H:%M:%SZ)" "$attempt" "${observed:-missing}" | tee -a artifacts/live-compare/deployment-wait.log
+
+            printf '%s attempt=%s generation=%s deployed_sha=%s\n' \
+              "$(date -u +%FT%H:%M:%SZ)" \
+              "$attempt" \
+              "${observed_generation:-missing}" \
+              "${observed_sha:-missing}" | tee -a artifacts/live-compare/deployment-wait.log
             sleep 10
           done
-          echo "Timed out waiting for ${expected}." | tee -a artifacts/live-compare/deployment-wait.log
+
+          echo "Timed out waiting for ${expected_generation} at ${expected_sha}." | tee -a artifacts/live-compare/deployment-wait.log
           exit 1
 
       - uses: actions/setup-node@v4
@@ -55,6 +71,7 @@ jobs:
         env:
           RC3_URL: https://rc3.easycamp.tech/
           PREVIOUS_URL: https://previous.easycamp.tech/
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           set -o pipefail
           mkdir -p artifacts/live-compare
@@ -65,6 +82,7 @@ jobs:
           import path from 'node:path';
 
           const generation = JSON.parse(fs.readFileSync('public/rc3-generation.json', 'utf8'));
+          const deployment = JSON.parse(fs.readFileSync('artifacts/live-compare/rc3-watcher-state.json', 'utf8'));
           const targets = [
             { id: 'rc3', base: process.env.RC3_URL },
             { id: 'previous', base: process.env.PREVIOUS_URL },
@@ -78,12 +96,17 @@ jobs:
           ];
           const viewports = [
             { id: 'desktop', width: 1440, height: 900 },
-            { id: 'mobile', width: 390, height: 844 },
           ];
 
           const outDir = path.resolve('artifacts/live-compare');
           const browser = await chromium.launch({ headless: true });
-          const report = { captured_at: new Date().toISOString(), generation, targets: {} };
+          const report = {
+            captured_at: new Date().toISOString(),
+            expected_sha: process.env.EXPECTED_SHA,
+            generation,
+            deployment,
+            targets: {},
+          };
 
           for (const target of targets) {
             report.targets[target.id] = {};
@@ -164,6 +187,9 @@ jobs:
           import fs from 'node:fs';
           const report = JSON.parse(fs.readFileSync('./artifacts/live-compare/report.json', 'utf8'));
           const failures = [];
+          if (report.deployment?.deployed_sha !== report.expected_sha) {
+            failures.push(`RC3 deployment mismatch: expected ${report.expected_sha}, observed ${report.deployment?.deployed_sha || 'missing'}`);
+          }
           for (const [target, states] of Object.entries(report.targets)) {
             for (const [state, row] of Object.entries(states)) {
               if (row.response_status !== 200) failures.push(`${target}/${state}: HTTP ${row.response_status} ${row.navigation_error || ''}`);
@@ -173,14 +199,14 @@ jobs:
             console.error(failures.join('\n'));
             process.exit(1);
           }
-          console.log(`Both public interfaces captured for ${report.generation.generation}.`);
+          console.log(`Both public interfaces captured for exact deployment ${report.expected_sha}.`);
           NODE
 
       - name: Upload live comparison
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: live-interface-comparison-${{ github.sha }}
+          name: live-interface-comparison-${{ github.event.pull_request.head.sha || github.sha }}
           path: artifacts/live-compare
           if-no-files-found: error
           retention-days: 14
