@@ -33,10 +33,13 @@ test.describe("Resources operational summary", () => {
     await expect(rail.locator(".rd-v2-ask-ctx")).toContainText("Resources");
   });
 
-  test("right rail starts with global lab capacity context", async ({ page }) => {
+  test("right rail separates actionable work from capacity observations", async ({ page }) => {
     const rail = page.getByRole("complementary", { name: "Inspector" });
     await expect(rail.locator(".rd-v2-rail-selection")).toHaveText("Resources");
     await expect(rail).toContainText("Lab capacity");
+    await expect(rail).toContainText("1 action needs review");
+    await expect(rail).toContainText("1 capacity observations");
+    await expect(rail).not.toContainText("2 items need attention");
     await expect(rail.getByRole("button", { name: "Open activity" })).toBeVisible();
   });
 
