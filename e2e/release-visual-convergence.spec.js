@@ -22,7 +22,7 @@ test.describe("Research Drive recovered visual contract", () => {
     await waitForShell(page);
   });
 
-  test("desktop preserves five research destinations, workspace, rail, and account context", async ({ page }) => {
+  test("desktop preserves five research destinations, dominant workspace, rail, and account context", async ({ page }) => {
     const shell = page.locator(".rd-v2-shell");
     const header = page.locator("header.rd-v2-header");
     const sidebar = page.locator("aside.yzu-sidebar");
@@ -57,9 +57,12 @@ test.describe("Research Drive recovered visual contract", () => {
     });
 
     expect(geometry.columns).toContain("px");
-    expect(geometry.sidebar).toBeGreaterThanOrEqual(210);
-    expect(geometry.main).toBeGreaterThan(geometry.rail);
-    expect(geometry.rail).toBeGreaterThanOrEqual(370);
+    expect(geometry.sidebar).toBeGreaterThanOrEqual(184);
+    expect(geometry.sidebar).toBeLessThanOrEqual(208);
+    expect(geometry.rail).toBeGreaterThanOrEqual(318);
+    expect(geometry.rail).toBeLessThanOrEqual(352);
+    expect(geometry.main).toBeGreaterThanOrEqual(880);
+    expect(geometry.main).toBeGreaterThan(geometry.rail * 2);
   });
 
   test("Home follows context, continuation, attention, recent work, and suggested gaps", async ({ page }) => {
@@ -104,6 +107,25 @@ test.describe("Research Drive recovered visual contract", () => {
     }
   });
 
+  test("Synthesis uses two internal columns and gives the construction the recovered space", async ({ page }) => {
+    await openTab(page, "Synthesis");
+    const studio = page.getByTestId("synthesis-studio");
+    await expect(studio).toBeVisible();
+    const geometry = await studio.evaluate((node) => {
+      const style = getComputedStyle(node);
+      const threads = node.querySelector(".s04-threads")?.getBoundingClientRect();
+      const workspace = node.querySelector(".s04-main")?.getBoundingClientRect();
+      return {
+        columns: style.gridTemplateColumns.split(" ").filter(Boolean).length,
+        threads: Math.round(threads?.width || 0),
+        workspace: Math.round(workspace?.width || 0),
+      };
+    });
+    expect(geometry.columns).toBe(2);
+    expect(geometry.threads).toBeLessThanOrEqual(205);
+    expect(geometry.workspace).toBeGreaterThanOrEqual(600);
+  });
+
   test("account destinations remain routable without entering primary navigation", async ({ page }) => {
     await page.goto("/?tab=profile", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
@@ -125,7 +147,7 @@ test.describe("Research Drive recovered visual contract", () => {
     await expect(detailPane).toBeVisible();
     const overflowing = await detailPane.evaluate((node) => node.scrollWidth > node.clientWidth + 2);
     expect(overflowing).toBe(false);
-    expect(railBox?.width || 0).toBeGreaterThanOrEqual(370);
+    expect(railBox?.width || 0).toBeGreaterThanOrEqual(318);
   });
 
   test("capture every implemented page for pixel review", async ({ page }) => {
