@@ -1,6 +1,8 @@
 {
-  "generation": "rc3-desktop-convergence-loop-5",
-  "purpose": "desktop research workbench geometry, stronger hierarchy, and two-column Synthesis",
+  "generation": "rc3-desktop-convergence-loop-7",
+  "purpose": "structured research construction, authority-aware states, field-bound Composer, and provenance-only rail",
   "desktop_shell": "196px / workspace / 336px",
-  "synthesis_columns": 2
+  "synthesis_columns": 2,
+  "canonical_objects": 5,
+  "synthesis_model": "ResearchConstructionViewModel"
 }
