@@ -1,12 +1,20 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   buildAccountSummaryRows,
   buildActionRows,
   buildActivityRows,
   spendingPeriodLabel,
 } from "@/v2/resourcesSpending";
-import { buildCapacityAccessPairs, groupSourceCapabilities } from "@/v2/resourcesCapacity";
+import {
+  buildCapacityAccessPairs,
+  groupSourceCapabilities,
+  providerIdentityMark,
+} from "@/v2/resourcesCapacity";
 import { buildResourcesPanels } from "@/v2/resourcesFromRollup";
+import {
+  readResourcesRollupCache,
+  writeResourcesRollupCache,
+} from "@/v2/resourcesRollupCache";
 import {
   formatWorkersToolbarStat,
   workersToolbarFieldsFromRollup,
@@ -155,7 +163,12 @@ function facultyOpsSub(label, key, sub) {
 function CapacityAccessGrid({ rollup, selectedKey, onSelect }) {
   const pairs = buildCapacityAccessPairs(rollup);
   return (
-    <div className="rd-v2-res-capacity-pairs" data-testid="resources-capacity-grid" aria-label="Capacity and access">
+    <div
+      className="rd-v2-res-capacity-pairs"
+      data-testid="resources-capacity-grid"
+      role="region"
+      aria-label="Capacity and access"
+    >
       {pairs.map((pair) => (
         <section key={pair.id} className="rd-v2-res-capacity-pair" aria-label={pair.title}>
           <header className="rd-v2-res-capacity-pair-head">
@@ -223,18 +236,32 @@ function SourceCapabilityLedger({ panels, selectedKey, onSelect }) {
       {families.map((family) => (
         <section key={family.id} className="rd-v2-res-source-family" aria-label={family.title}>
           <h3>{family.title}</h3>
-          {family.rows.map((row) => (
-            <button
-              key={row.id}
-              type="button"
-              className={`rd-v2-res-source-row${selectedKey === row.id || selectedKey === row.row?.key ? " on" : ""}`}
-              onClick={() => onSelect?.(row.row || row)}
-            >
-              <strong>{row.name}</strong>
-              <span>{row.access}</span>
-              <em data-authority={row.authority}>{row.authority}</em>
-            </button>
-          ))}
+          {family.rows.map((row) => {
+            const mark = providerIdentityMark(row.row || row);
+            return (
+              <button
+                key={row.id}
+                type="button"
+                className={`rd-v2-res-source-row${selectedKey === row.id || selectedKey === row.row?.key ? " on" : ""}`}
+                onClick={() => onSelect?.(row.row || row)}
+              >
+                <span className="rd-v2-res-source-name">
+                  {mark ? (
+                    <span
+                      className="rd-v2-res-provider-mark"
+                      title={mark.title}
+                      aria-label={mark.label}
+                    >
+                      {mark.text}
+                    </span>
+                  ) : null}
+                  <strong>{row.name}</strong>
+                </span>
+                <span>{row.access}</span>
+                <em data-authority={row.authority}>{row.authority}</em>
+              </button>
+            );
+          })}
         </section>
       ))}
     </div>
@@ -811,20 +838,33 @@ export function ResourcesPage({
   onSelectRow,
 }) {
   const [activityKind, setActivityKind] = useState("all");
-  const isInitialLoading = rollupLoading && rollup === undefined;
-  const viewRollup = isInitialLoading ? null : rollup || PLACEHOLDER_ROLLUP;
+  const [cachedRollup, setCachedRollup] = useState(() => readResourcesRollupCache());
+
+  useEffect(() => {
+    if (rollup && typeof rollup === "object") {
+      writeResourcesRollupCache(rollup);
+      setCachedRollup(rollup);
+    }
+  }, [rollup]);
+
+  // Cache-first: never block Sources on rollup fetch. Stable structure comes from
+  // desk_sources.json; last-known rollup hydrates meters without inventing numbers.
+  const syncing = Boolean(rollupLoading) || rollup === undefined;
+  const lastKnownRollup = rollup ?? cachedRollup ?? null;
+  const viewRollup =
+    rollup != null ? rollup : rollup === undefined ? cachedRollup || {} : PLACEHOLDER_ROLLUP;
   const panels = useMemo(
     () =>
       buildResourcesPanels({
-        rollup,
-        rollupLoading,
+        rollup: lastKnownRollup,
+        rollupLoading: syncing && !lastKnownRollup,
         health,
         ops,
         jobs,
         catalogSummary,
         cluster,
       }),
-    [rollup, rollupLoading, health, ops, jobs, catalogSummary, cluster],
+    [lastKnownRollup, syncing, health, ops, jobs, catalogSummary, cluster],
   );
   const effectiveActivityFilter = useMemo(() => {
     if (activityFilter) return activityFilter;
@@ -893,7 +933,11 @@ export function ResourcesPage({
               Updated {freshness}
             </span>
           ) : null}
-          {rollupLoading ? <span className="rd-v2-toolbar-meta">Syncing…</span> : null}
+          {syncing ? (
+            <span className="rd-v2-toolbar-meta" role="status" data-testid="resources-syncing">
+              Syncing…
+            </span>
+          ) : null}
           <Chip onClick={() => onRefresh?.()} aria-label="Refresh resources">
             Refresh
           </Chip>
@@ -907,36 +951,30 @@ export function ResourcesPage({
       ) : null}
 
       {mode === "sources" || mode === "spending" ? (
-        isInitialLoading ? (
-          <p className="rd-v2-res-loading" role="status">
-            Loading resources…
-          </p>
-        ) : (
-          <>
-            <section className="rd-v2-res-wire-band" aria-label="Sources overview">
-              <h2 className="rd-v2-res-wire-title">Capacity &amp; access</h2>
-              <CapacityAccessGrid
-                rollup={viewRollup}
-                selectedKey={selectedKey}
-                onSelect={onSelectRow}
-              />
-            </section>
-            <section className="rd-v2-res-wire-band" aria-label="Source capabilities">
-              <h2 className="rd-v2-res-wire-title">Source capabilities</h2>
-              <SourceCapabilityLedger
-                panels={panels}
-                selectedKey={selectedKey}
-                onSelect={onSelectRow}
-              />
-              <ResearchCapability
-                cluster={health?.cluster || cluster}
-                panels={panels}
-                rollup={viewRollup}
-                catalogSummary={catalogSummary}
-              />
-            </section>
-          </>
-        )
+        <>
+          <section className="rd-v2-res-wire-band" aria-label="Sources overview">
+            <h2 className="rd-v2-res-wire-title">Capacity &amp; access</h2>
+            <CapacityAccessGrid
+              rollup={viewRollup}
+              selectedKey={selectedKey}
+              onSelect={onSelectRow}
+            />
+          </section>
+          <section className="rd-v2-res-wire-band" aria-label="Source capabilities">
+            <h2 className="rd-v2-res-wire-title">Source capabilities</h2>
+            <SourceCapabilityLedger
+              panels={panels}
+              selectedKey={selectedKey}
+              onSelect={onSelectRow}
+            />
+            <ResearchCapability
+              cluster={health?.cluster || cluster}
+              panels={panels}
+              rollup={viewRollup}
+              catalogSummary={catalogSummary}
+            />
+          </section>
+        </>
       ) : mode === "method" ? (
         <section className="rd-v2-res-method-wire" data-testid="resources-method" aria-label="Evidence movement method">
           <h2 className="rd-v2-res-wire-title">Evidence movement</h2>

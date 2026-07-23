@@ -151,7 +151,7 @@ test.describe("v2 Resources tab", () => {
   });
 });
 
-test("v2 Resources loading state does not flash account summary", async ({ page }) => {
+test("v2 Resources cache-first Sources renders while rollup syncs", async ({ page }) => {
   let releaseResources;
   const resourcesGate = new Promise((resolve) => {
     releaseResources = resolve;
@@ -169,11 +169,17 @@ test("v2 Resources loading state does not flash account summary", async ({ page 
   await page.goto("/?tab=resources", { waitUntil: "domcontentloaded" });
 
   const main = page.locator("main");
-  await expect(main.getByRole("status")).toContainText("Loading resources");
+  await expect(page.getByTestId("resources-syncing")).toContainText("Syncing");
+  await expect(main.getByText("Loading resources")).toHaveCount(0);
+  await expect(main.getByRole("region", { name: "Capacity and access" })).toBeVisible();
+  await expect(main.getByTestId("resources-source-ledger")).toBeVisible();
+  await expect(main.getByTestId("resources-source-ledger")).toContainText("SEC EDGAR");
+  await expect(main.locator('.rd-v2-res-provider-mark[aria-label="Provider SEC EDGAR"]')).toBeVisible();
   await expect(main.getByText("Current status")).toHaveCount(0);
   await expect(main.getByText("Account summary")).toHaveCount(0);
 
   releaseResources();
   await waitForShell(page);
+  await expect(page.getByTestId("resources-syncing")).toHaveCount(0);
   await expect(main.getByRole("region", { name: "Capacity and access" })).toBeVisible();
 });

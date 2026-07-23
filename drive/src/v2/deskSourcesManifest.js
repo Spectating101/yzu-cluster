@@ -1,6 +1,6 @@
 /** Merge config/desk_sources.json with live desk telemetry (providers, not datasets). */
 
-import manifest from "../../config/desk_sources.json";
+import manifest from "../../config/desk_sources.json" with { type: "json" };
 
 export const DESK_SOURCE_MANIFEST = manifest;
 

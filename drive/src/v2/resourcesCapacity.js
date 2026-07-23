@@ -171,6 +171,43 @@ export function buildCapacityAccessPairs(rollup) {
   ];
 }
 
+/** Compact provider mark — deterministic initials when curated identity is known. */
+export function providerIdentityMark(row) {
+  if (!row || typeof row !== "object") return null;
+  if (row.kind === "layer") return null;
+  const manifestId = row.manifest?.id ? String(row.manifest.id) : "";
+  const key = String(row.key || row.id || "");
+  const sourceId = manifestId || (key.startsWith("source-") ? key.slice("source-".length) : "");
+  if (!sourceId) return null;
+  if (row.kind && row.kind !== "source") return null;
+
+  const name = String(row.manifest?.label || row.label || row.name || "").trim();
+  if (!name && !manifestId) return null;
+
+  const text = providerInitials(name || sourceId);
+  if (!text) return null;
+  const title = name || sourceId;
+  return {
+    text,
+    title,
+    label: `Provider ${title}`,
+  };
+}
+
+function providerInitials(label) {
+  const cleaned = String(label || "")
+    .replace(/\([^)]*\)/g, " ")
+    .replace(/[^\p{L}\p{N}\s/·.&-]+/gu, " ")
+    .trim();
+  if (!cleaned) return "";
+  const parts = cleaned.split(/[\s/·.&-]+/).filter(Boolean);
+  if (parts.length >= 2) {
+    return `${parts[0][0] || ""}${parts[1][0] || ""}`.toUpperCase();
+  }
+  const word = parts[0] || "";
+  return word.slice(0, 2).toUpperCase();
+}
+
 /** Freeze authority vocabulary for source capability rows. */
 export function sourceAuthorityLabel(row) {
   const status = String(row?.status || row?.authority || row?.access || "").toLowerCase();
@@ -200,7 +237,14 @@ export function groupSourceCapabilities(panels = []) {
       families[family].rows.push({
         id: row.key || row.id || label,
         name: label,
-        access: row.detail || row.sublabel || row.access || row.route || "Access not described",
+        // Prefer per-source route/access text over shared desk notes (e.g. queue totals).
+        access:
+          row.metric ||
+          row.route ||
+          row.access ||
+          row.sublabel ||
+          row.detail ||
+          "Access not described",
         authority: sourceAuthorityLabel(row),
         row,
       });
