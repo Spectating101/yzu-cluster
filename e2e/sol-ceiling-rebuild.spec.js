@@ -157,10 +157,11 @@ test("render populated Sol ceiling Synthesis flagship", async ({ page }) => {
   await page.goto("/?tab=synthesis", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
 
-  await expect(page.getByRole("heading", { name: "Ownership regimes and estimate revisions", exact: true })).toBeVisible();
-  await expect(page.getByText("Ownership-change history", { exact: true })).toBeVisible();
-  await expect(page.getByText("Resolve Ownership-change history", { exact: true })).toBeVisible();
-  await expect(page.getByText("Research decision required", { exact: true })).toBeVisible();
+  const construction = page.getByRole("region", { name: "Research construction" });
+  await expect(construction.getByRole("heading", { name: "Ownership regimes and estimate revisions", exact: true })).toBeVisible();
+  await expect(construction.getByText("Ownership-change history", { exact: true })).toBeVisible();
+  await expect(construction.getByRole("heading", { name: "Resolve Ownership-change history", exact: true })).toBeVisible();
+  await expect(construction.getByText("Research decision required", { exact: true })).toBeVisible();
   await expect(page.locator("aside.rd-v2-rail")).toContainText("Construction authority");
 
   const geometry = await page.evaluate(() => {
