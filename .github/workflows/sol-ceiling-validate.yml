@@ -8,8 +8,8 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: sol-ceiling-${{ github.ref }}
-  cancel-in-progress: true
+  group: sol-ceiling-${{ github.sha }}
+  cancel-in-progress: false
 
 jobs:
   build-and-visual-contracts:
