@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PageShell } from "@/v2/ui";
 import {
+  approveJob,
   createSynthesisThread,
   decideSynthesisProposal,
+  fetchJson,
   getSynthesisThread,
   listSynthesisThreads,
   requestSynthesisExecution,
@@ -134,13 +136,14 @@ function ProposalReview({ construction, busy, onDecide, onAsk }) {
   );
 }
 
-function ExecutionRecord({ construction, busy, onRequest, onAsk, onOpenDataset }) {
+function ExecutionRecord({ construction, busy, onRequest, onApprove, onAsk, onOpenDataset }) {
   const execution = construction.raw?.state?.execution || {};
   const spec = construction.raw?.state?.execution_spec || {};
   const rawStatus = text(execution.status, "not requested").replace(/_/g, " ");
   const queryReady = construction.mode === "query_ready";
   const registered = construction.mode === "registered" || queryReady;
   const failed = construction.mode === "failed";
+  const pendingApproval = String(execution.status || "").toLowerCase() === "pending_approval";
   const hasSpec = Boolean(spec.input_dataset_id && spec.output_dataset_id);
   const testId = queryReady ? "synthesis-query-ready-state" : registered ? "synthesis-registered-state" : failed ? "synthesis-failed-state" : "synthesis-execution-state";
 
@@ -179,7 +182,12 @@ function ExecutionRecord({ construction, busy, onRequest, onAsk, onOpenDataset }
             {RESEARCH_ACTIONS.inspectEvidence}
           </button>
         ) : null}
-        {!registered && hasSpec ? (
+        {pendingApproval && execution.job_id ? (
+          <button type="button" className="rd-v2-btn primary" aria-label="Approve build" disabled={busy} onClick={() => onApprove(execution.job_id)}>
+            Approve build
+          </button>
+        ) : null}
+        {!registered && !pendingApproval && hasSpec ? (
           <button type="button" className="rd-v2-btn primary" aria-label="Request execution" disabled={busy || Boolean(execution.status)} onClick={onRequest}>
             Build proxy dataset
           </button>
@@ -224,6 +232,7 @@ export function SynthesisPage({ datasets = [], onAskComposer, onOpenDataset, onS
   const [newMode, setNewMode] = useState(false);
   const [objective, setObjective] = useState("");
   const [selectedArea, setSelectedArea] = useState("proxy_design");
+  const [selection, setSelection] = useState(null);
   const notified = useRef("");
 
   const facultyThreads = useMemo(() => facultyFacingRecords(threads), [threads]);
@@ -292,6 +301,7 @@ export function SynthesisPage({ datasets = [], onAskComposer, onOpenDataset, onS
     setSelectedId(threadId);
     setNewMode(false);
     setSelectedArea("proxy_design");
+    setSelection(null);
     setError("");
     try {
       const next = await refreshThread(threadId);
@@ -299,6 +309,11 @@ export function SynthesisPage({ datasets = [], onAskComposer, onOpenDataset, onS
     } catch (cause) {
       setError(text(cause?.message, "This proxy dataset design could not be refreshed."));
     }
+  };
+
+  const selectArea = (area, item = {}) => {
+    setSelectedArea(area);
+    setSelection({ area, item: item || {} });
   };
 
   const ask = (prompt, area = selectedArea) => {
@@ -325,6 +340,7 @@ export function SynthesisPage({ datasets = [], onAskComposer, onOpenDataset, onS
       setSelectedId(created.id);
       setNewMode(false);
       setSelectedArea("target_construct");
+      setSelection(null);
       setObjective("");
       onSelectThread?.(created);
       const createdProxy = normalizeProxyDatasetDesign(created, visibleDatasets);
@@ -358,6 +374,29 @@ export function SynthesisPage({ datasets = [], onAskComposer, onOpenDataset, onS
     }
   };
 
+  const findAdditionalEvidence = async (limitation = {}) => {
+    if (!selected) return;
+    setBusy(true);
+    setError("");
+    try {
+      const handoff = await fetchJson(`/library/synthesis/threads/${encodeURIComponent(selected.id)}/discover-handoff`);
+      const objectiveText = text(handoff?.objective, proxy?.target?.label || "selected proxy construct");
+      const intents = Array.isArray(handoff?.collect_intents) ? handoff.collect_intents : [];
+      const identitySummary = intents.map((intent) => text(intent?.candidate_key || intent?.source_identity || intent?.label)).filter(Boolean).join(" · ");
+      onAskComposer?.({
+        prompt: `Use this durable Synthesis → Discover handoff to investigate additional evidence without discarding the current proxy design. Target: ${objectiveText}. Limitation: ${text(limitation?.label, "direct measure incomplete")}. Candidate identities: ${identitySummary || "none returned"}. The handoff does not prove collection, approval, registration, or query readiness.`,
+        displayText: `Find additional evidence for ${text(limitation?.label, objectiveText)}`,
+        construction_id: selected.id,
+        selected_field: "measurement_limitations",
+      });
+      onGoTab?.("browse");
+    } catch (cause) {
+      setError(text(cause?.message, "The Synthesis to Discover handoff could not be opened."));
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const requestExecution = async () => {
     if (!selected) return;
     setBusy(true);
@@ -374,7 +413,22 @@ export function SynthesisPage({ datasets = [], onAskComposer, onOpenDataset, onS
     }
   };
 
-  const startNew = () => { setNewMode(true); setObjective(""); setSelectedArea("target_construct"); };
+  const approveExecution = async (jobId) => {
+    if (!jobId) return;
+    setBusy(true);
+    setError("");
+    try {
+      await approveJob(jobId);
+      const next = await refreshThread(selected?.id);
+      if (next) onSelectThread?.(next);
+    } catch (cause) {
+      setError(text(cause?.message, "The proxy build could not be approved."));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const startNew = () => { setNewMode(true); setObjective(""); setSelectedArea("target_construct"); setSelection(null); };
   const showExecution = Boolean(construction && ["execution", "registered", "query_ready", "failed"].includes(construction.mode));
 
   return (
@@ -399,13 +453,14 @@ export function SynthesisPage({ datasets = [], onAskComposer, onOpenDataset, onS
             <>
               <SynthesisProxyCanvas
                 view={proxy}
-                onSelectArea={(area) => setSelectedArea(area)}
+                selection={selection}
+                onSelectArea={selectArea}
                 onAsk={ask}
-                onGoTab={onGoTab}
+                onFindEvidence={findAdditionalEvidence}
                 onOpenDataset={onOpenDataset}
               />
               {construction.mode === "proposal" ? <ProposalReview construction={construction} busy={busy} onDecide={decideProposal} onAsk={ask} /> : null}
-              {showExecution ? <ExecutionRecord construction={construction} busy={busy} onRequest={requestExecution} onAsk={ask} onOpenDataset={onOpenDataset} /> : null}
+              {showExecution ? <ExecutionRecord construction={construction} busy={busy} onRequest={requestExecution} onApprove={approveExecution} onAsk={ask} onOpenDataset={onOpenDataset} /> : null}
             </>
           ) : null}
         </main>
