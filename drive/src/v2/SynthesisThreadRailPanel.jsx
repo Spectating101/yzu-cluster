@@ -11,42 +11,41 @@ import { RESEARCH_ACTIONS } from "@/v2/researchValue";
 function ingredientAuthority(view) {
   const controlled = view.ingredients.filter((item) => !item.missing);
   const referenced = controlled.filter((item) => item.proofPending).length;
-  if (!controlled.length) return "No controlled ingredients established";
-  return referenced
-    ? `${controlled.length} controlled · ${referenced} awaiting proof mapping`
-    : `${controlled.length} controlled ingredients`;
+  if (!controlled.length) return "None mapped";
+  return referenced ? `${controlled.length} controlled · ${referenced} unverified` : `${controlled.length} controlled`;
 }
 
 function limitationAuthority(view) {
-  if (!view.idealEvidence.length) return "No direct-measure limitation recorded";
+  if (!view.idealEvidence.length) return "Not recorded";
   if (view.idealEvidence.length === 1) return view.idealEvidence[0].label;
-  return `${view.idealEvidence.length} direct-measure limitations recorded`;
+  return `${view.idealEvidence.length} limitations`;
 }
 
 export function SynthesisThreadRailPanel({ thread, onOpenInLibrary }) {
   const view = normalizeProxyDatasetDesign(thread);
   if (!view) return null;
   const outputId = view.outputContract.datasetId;
+  const registered = ["registered", "query_ready"].includes(view.mode);
+  const accepted = Boolean(view.capability?.acceptedConstruction);
 
   return (
     <RailFrame>
       <RailEntityHeader
-        title="Proxy design authority"
-        description={view.provenance.updatedAt ? `Updated ${view.provenance.updatedAt}` : "Authority attached to the selected proxy design"}
+        title="Proxy authority"
+        description={registered ? "Registered construction" : accepted ? "Accepted design" : "Design under review"}
       />
       <RailFieldGrid>
-        <RailField label="Target construct" value={view.target.label} />
-        <RailField label="Recommended proxy" value={view.primaryRecipe?.title || "Structured recommendation not generated"} />
-        <RailField label="Controlled ingredients" value={ingredientAuthority(view)} />
-        <RailField label="Direct-measure limitation" value={limitationAuthority(view)} />
-        <RailField label="Evidence authority" value={view.provenance.evidenceSource} />
-        <RailField label="Output contract" value={view.outputContract.label || "Not established"} />
-        <RailField label="Output readiness" value={view.outputContract.statusLabel} />
-        <RailField label="Archive proof" value={view.provenance.archiveVerified ? "Reported verified" : "Not established"} />
-        <RailField label="Registry proof" value={view.provenance.registryVerified ? "Indexed and traceable" : "Not established"} />
+        <RailField label="Target" value={view.target.label} />
+        <RailField label="Recipe" value={view.primaryRecipe?.title || "Not generated"} />
+        <RailField label="Inputs" value={ingredientAuthority(view)} />
+        <RailField label="Direct measure" value={limitationAuthority(view)} />
+        <RailField label="Output" value={view.outputContract.label || "Not established"} />
+        {registered ? <RailField label="Readiness" value={view.outputContract.statusLabel} /> : null}
+        {view.provenance.archiveVerified ? <RailField label="Archive" value="Verified" /> : null}
+        {view.provenance.registryVerified ? <RailField label="Registry" value="Verified" /> : null}
         {view.provenance.manifestId ? <RailField label="Manifest" value={view.provenance.manifestId} mono /> : null}
       </RailFieldGrid>
-      {outputId && ["registered", "query_ready"].includes(view.mode) ? (
+      {outputId && registered ? (
         <RailStickyFooter>
           <button
             type="button"
