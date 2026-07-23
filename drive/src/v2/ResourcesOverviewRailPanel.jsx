@@ -37,6 +37,10 @@ function attentionSummary({ actionableIssues, jobs }) {
   return parts.join(" · ");
 }
 
+function observationSummary(count) {
+  return `${count} capacity observation${count === 1 ? "" : "s"} ${count === 1 ? "is" : "are"} available; none is explicitly classified as actionable.`;
+}
+
 export function ResourcesOverviewRailPanel({ rollup, onViewActivity }) {
   const workers = rollup?.hero?.workers || {};
   const vault = rollup?.hero?.vault || {};
@@ -61,7 +65,7 @@ export function ResourcesOverviewRailPanel({ rollup, onViewActivity }) {
   const posture = query.up === false
     ? "Desk connection offline"
     : attention > 0
-      ? `${attention} action${attention === 1 ? "" : "s"} need review`
+      ? attention === 1 ? "1 action needs review" : `${attention} actions need review`
       : jobs.running > 0
         ? `${jobs.running} collection${jobs.running === 1 ? "" : "s"} running`
         : "Desk ready";
@@ -70,7 +74,7 @@ export function ResourcesOverviewRailPanel({ rollup, onViewActivity }) {
     : attention > 0
       ? attentionSummary({ actionableIssues, jobs })
       : observationCount > 0
-        ? `${observationCount} capacity observations are available; none is explicitly classified as actionable.`
+        ? observationSummary(observationCount)
         : sourceCount != null
           ? `${sourceCount} source routes are reachable through the desk.`
           : "Source routes and collection capacity are available for inspection.";
