@@ -1316,7 +1316,9 @@ export function V2App() {
       main = null;
   }
 
-  const hideRail = tab === "browse" && !browseTarget && !selectedHistoryEvent;
+  // Keep Detail/Ask rail on Discover Explore empty state — same shell as other pages.
+  // (Hiding it via no-rail made Explore look broken; BrowseRailPanel already owns the empty copy.)
+  const hideRail = false;
 
   const activeResearch = useMemo(() => {
     const source = profile && !profile.unknown ? profile : pilotProfile;
