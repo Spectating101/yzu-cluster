@@ -20,4 +20,4 @@ Accepted desktop convergence through this checkpoint:
 - Resources separates actionable failures and approvals from raw capacity observations;
 - the global header distinguishes raw registry records from faculty-facing holdings.
 
-Synchronization marker: `loop-4-resources-grammar-fixed`.
+Synchronization marker: `loop-4-final-validation`.
