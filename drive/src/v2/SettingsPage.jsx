@@ -30,6 +30,9 @@ function archiveStatus(desk) {
 }
 
 function assistantStatus(health) {
+  if (health == null) {
+    return { ready: false, known: false, label: "Syncing…", detail: "Waiting for /health" };
+  }
   const desk = health?.desk || {};
   const explicit = desk.composer_configured;
   const legacy = desk.legacy_llm_configured;
@@ -53,6 +56,9 @@ function assistantStatus(health) {
 }
 
 function jobsStatus(health) {
+  if (health == null) {
+    return { label: "Syncing…", detail: "Waiting for /health", warn: false };
+  }
   const jobs = health?.desk?.jobs || {};
   const actionable = jobs.actionable && typeof jobs.actionable === "object" ? jobs.actionable : {};
   const failed = Number(
@@ -159,17 +165,23 @@ export function SettingsPage({ health, resourcesRollup, onProfileRefresh, onToas
         <section className="rd-v2-settings-summary" aria-label="Research desk status">
           <SummaryCard
             label="Desk API"
-            value={healthOk ? "Live" : health?.status || "Unknown"}
-            detail={healthOk ? "Catalog · Ask · jobs reachable" : "Health payload missing or degraded"}
+            value={health == null ? "Syncing…" : healthOk ? "Live" : health?.status || "Unknown"}
+            detail={
+              health == null
+                ? "Waiting for /health"
+                : healthOk
+                  ? "Catalog · Ask · jobs reachable"
+                  : "Health payload missing or degraded"
+            }
             help="Truth from GET /health on the Tailscale desk."
-            warn={!healthOk}
+            warn={health != null && !healthOk}
           />
           <SummaryCard
             label="Research assistant"
             value={assistant.label}
             detail={assistant.detail}
             help="Composer / legacy assistant flags from /health.desk — never invents Ready."
-            warn={!assistant.ready}
+            warn={assistant.known && !assistant.ready}
           />
           <SummaryCard
             label="Jobs"
