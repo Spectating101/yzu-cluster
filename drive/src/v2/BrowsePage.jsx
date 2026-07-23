@@ -191,6 +191,7 @@ export function BrowsePage({
   usingSeed = false,
   probeSnapshots = {},
   onSuggestSearch,
+  onCraftUrl,
   onSearchWeb,
   discoverMode = "explore",
   onDiscoverModeChange,
@@ -474,7 +475,7 @@ export function BrowsePage({
     >
       <div className="rd-v2-discover-browse" data-testid="discover-browse-mode" data-mode="browse">
         {!q ? (
-          <DiscoverEmptyState onSuggest={onSuggestSearch} />
+          <DiscoverEmptyState onSuggest={onSuggestSearch} onCraftUrl={onCraftUrl} />
         ) : (
           <>
             <section

@@ -73,11 +73,13 @@
 .rd-v2-header {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: var(--rd-sidebar) minmax(0, min(52vw, 720px)) auto auto;
+  /* brand | context | search | meta | avatar */
+  grid-template-columns: var(--rd-sidebar) minmax(120px, 260px) minmax(0, 1fr) auto auto;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
   height: var(--rd-header);
   padding: 0 18px;
+  overflow: visible;
   background: var(--rd-surface);
   border-bottom: 1px solid var(--rd-border);
 }
@@ -3266,7 +3268,7 @@
 .rd-v2-res-status-cell em {
   display: block;
   color: var(--rd-muted);
-  font-size: 10px;
+  font-size: 11px;
   font-style: normal;
   font-weight: 650;
   letter-spacing: 0.04em;
@@ -4081,7 +4083,7 @@
 .rd-v2-res-filterbar {
   display: flex;
   gap: 6px;
-  padding: 0 14px 8px;
+  padding: 0 14px 6px;
   max-width: 100%;
   overflow-x: auto;
   scrollbar-width: none;
@@ -6734,9 +6736,12 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 
 .rd-v2-profile-lab-title {
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow: visible;
+  white-space: normal;
+  text-overflow: unset;
+  overflow-wrap: break-word;
+  word-break: normal;
+  line-height: 1.35;
 }
 
 .rd-v2-profile-lab-title em {

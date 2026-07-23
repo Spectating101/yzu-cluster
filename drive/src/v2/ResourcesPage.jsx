@@ -238,11 +238,12 @@ function SourceCapabilityLedger({ panels, selectedKey, onSelect }) {
 }
 
 function StatusStripCell({ label, value, sub, tone = "" }) {
+  const subId = sub ? `rd-res-cell-${label.replace(/\s+/g, "-").toLowerCase()}-sub` : undefined;
   return (
     <div className={`rd-v2-res-status-cell${tone ? ` ${tone}` : ""}`}>
       <span>{label}</span>
-      <strong>{value}</strong>
-      <em>{sub}</em>
+      <strong aria-describedby={subId}>{value}</strong>
+      {sub ? <em id={subId}>{sub}</em> : null}
     </div>
   );
 }
@@ -293,7 +294,11 @@ function ActivityUsageSummary({ rollup }) {
 
 function ActivityLog({ rows, selectedKey, onSelectRow }) {
   if (!rows.length) {
-    return <p className="rd-v2-res-idle">No log entries for this view.</p>;
+    return (
+      <p className="rd-v2-res-idle" role="status">
+        No runs in this filter. Switch filters above, or open Discover History to review collection decisions.
+      </p>
+    );
   }
   const sections = groupActivityRows(rows);
   return (
@@ -351,9 +356,14 @@ function ActivityFilterBar({ value, onChange }) {
     ["metered", "Metered"],
   ];
   return (
-    <div className="rd-v2-res-filterbar">
+    <div className="rd-v2-res-filterbar" role="tablist" aria-label="Usage activity filters">
       {filters.map(([id, label]) => (
-        <Chip key={id} active={value === id} onClick={() => onChange(id)}>
+        <Chip
+          key={id}
+          active={value === id}
+          onClick={() => onChange(id)}
+          aria-label={`Filter usage: ${label}`}
+        >
           {label}
         </Chip>
       ))}
@@ -362,17 +372,28 @@ function ActivityFilterBar({ value, onChange }) {
 }
 
 function WorkersToolbarStat({ workers }) {
+  const available = workers?.available;
   const online = workers?.online ?? workers?.joined;
+  const idle = workers?.idle;
   const busy = workers?.busy;
   const total = workers?.total;
-  if (online == null && busy == null && total == null) return null;
+  if (available == null && online == null && busy == null && total == null) return null;
 
-  const count = online ?? busy ?? total;
-  const qualifier = online != null ? "online" : busy != null ? "busy" : "configured";
+  const count = available ?? online ?? busy ?? total;
+  const qualifier =
+    available != null || online != null
+      ? "available"
+      : busy != null
+        ? "busy"
+        : "configured";
   const value = total != null && count !== total ? `${count}/${total} ${qualifier}` : `${count} ${qualifier}`;
+  const title =
+    online != null || idle != null
+      ? `online ${online ?? 0} · idle ${idle ?? 0}${busy != null ? ` · busy ${busy}` : ""}`
+      : undefined;
 
   return (
-    <span className="rd-v2-toolbar-stat" aria-label={`Collection workers ${value}`}>
+    <span className="rd-v2-toolbar-stat" aria-label={`Collection workers ${value}`} title={title}>
       <span>Collectors</span>
       <strong>{value}</strong>
     </span>
@@ -423,9 +444,9 @@ function buildPinnedSourceRows(providers = [], layers = []) {
       keys: ["source-sec_edgar", "source-twse", "source-mops", "source-yfinance", "source-coingecko"],
       key: "source-market-filings",
       label: "Market data & filings",
-      endpoint: "SEC · TWSE · MOPS · Yahoo · CoinGecko",
-      metric: "Official filings, market series, crypto prices",
-      detail: "Structured public finance routes",
+      endpoint: "SEC · TWSE · MOPS · Yahoo Finance · public crypto prices",
+      metric: "Official filings, market series, public price APIs",
+      detail: "Structured public finance routes — craft a URL when the connector is missing",
     }),
     sourceGroupRow({
       rows: providers,
@@ -449,10 +470,10 @@ function buildPinnedSourceRows(providers = [], layers = []) {
       rows: providers,
       keys: ["source-web_generic"],
       key: "source-public-web",
-      label: "Public web",
-      endpoint: "Public URL",
-      metric: "Probe, then collect",
-      detail: "One-off URLs and pages",
+      label: "Public web (craft)",
+      endpoint: "Any public URL → generic collect plan",
+      metric: "Probe, craft plan, approve, then collect",
+      detail: "AI identify + custom HTTP/scrape — not a named vendor downloader",
     }),
     sourceGroupRow({
       rows: providers,
@@ -644,12 +665,20 @@ function ResearchCapability({ cluster, panels, rollup, catalogSummary }) {
   const partitions = platform.professor_partitions ?? catalogSummary?.partitions;
   const routeCount = buildPinnedSourceRows(panels.providers || [], panels.layers || []).length;
   const workers = rollup?.hero?.workers || {};
-  const collectorCount = workers.online ?? workers.joined ?? workers.busy ?? workers.total;
-  const collectorLabel = workers.total != null && collectorCount != null
-    ? `${collectorCount}/${workers.total} collectors available`
-    : collectorCount != null
-      ? `${collectorCount} collectors available`
-      : "Collector state pending";
+  const collectorCount =
+    workers.available ?? workers.online ?? workers.joined ?? workers.busy ?? workers.total;
+  const collectorLabel =
+    workers.total != null && collectorCount != null
+      ? `${collectorCount}/${workers.total} collectors available`
+      : collectorCount != null
+        ? `${collectorCount} collectors available`
+        : "Collector state pending";
+  const collectorDetail =
+    workers.online != null || workers.idle != null
+      ? `Online ${workers.online ?? 0} · idle ${workers.idle ?? 0}${
+          workers.busy != null ? ` · busy ${workers.busy}` : ""
+        }. Discover can probe and collect within access rules.`
+      : "Discover can probe and collect within the available access rules.";
   const bigQuery = (panels.metered || []).find((row) => row.key === "bigquery");
 
   return (
@@ -667,12 +696,18 @@ function ResearchCapability({ cluster, panels, rollup, catalogSummary }) {
             {registry != null ? `${registry} registered assets` : "Registered estate available"}
             {instant != null ? ` · ${instant} query ready` : ""}
           </strong>
-          <em>{partitions != null ? `${partitions} organized collections available in Library.` : "Registered assets remain available in Library."}</em>
+          <em>
+            {partitions != null
+              ? `${partitions} organized collections available in Library.`
+              : "Registered assets remain available in Library."}
+          </em>
         </div>
         <div>
           <span>Evidence acquisition reach</span>
           <strong>{routeCount || "Configured"} source routes</strong>
-          <em>{collectorLabel}. Discover can probe and collect within the available access rules.</em>
+          <em>
+            {collectorLabel}. {collectorDetail}
+          </em>
         </div>
         <div>
           <span>Guarded remote analysis</span>
@@ -831,7 +866,7 @@ export function ResourcesPage({
   return (
     <PageShell
       title="Resources"
-      lead="Sources · usage · evidence-movement method."
+      lead="Capacity, licensed routes, and the usage ledger for this lab period."
       toolbar={
         <>
           <Chip
@@ -857,9 +892,15 @@ export function ResourcesPage({
               {filterLabel} ×
             </Chip>
           ) : null}
-          {freshness ? <span className="rd-v2-toolbar-meta">Updated {freshness}</span> : null}
+          {freshness ? (
+            <span className="rd-v2-toolbar-meta" data-testid="resources-refreshed-at">
+              Updated {freshness}
+            </span>
+          ) : null}
           {rollupLoading ? <span className="rd-v2-toolbar-meta">Syncing…</span> : null}
-          <Chip onClick={() => onRefresh?.()}>Refresh</Chip>
+          <Chip onClick={() => onRefresh?.()} aria-label="Refresh resources">
+            Refresh
+          </Chip>
         </>
       }
     >

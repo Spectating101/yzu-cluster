@@ -18,6 +18,8 @@ import {
   probePublicSource,
   procurementCatalogSummary,
   submitDiscoverCollect,
+  submitLibraryJob,
+  craftCollectPlan,
   yzuClusterStatus,
 } from "@/v2/api";
 import { AskRail } from "@/v2/AskRail";
@@ -50,7 +52,7 @@ import {
 import { Toast, useToast } from "@/v2/toast";
 import { V2Sidebar } from "@/v2/V2Sidebar";
 import { recentDatasets, touchRecent } from "@/v2/recent";
-import { displayName } from "@/v2/datasetMeta";
+import { displayName, isQueryReadyReadiness } from "@/v2/datasetMeta";
 import { buildLab, PILOT_PREVIEW_EMAIL } from "@/v2/profileViewModel";
 import { mergeHealth, resolveCatalog } from "@/v2/deskSeed";
 import { buildDeskIntegrationChips } from "@/v2/deskIntegration";
@@ -722,6 +724,56 @@ export function V2App() {
     [labIds, browseProbe, catalog, syncUrl, showToast, refreshBackend, collectSubmittingKey],
   );
 
+  const craftPublicUrlPlan = useCallback(
+    async (url) => {
+      const target = String(url || "").trim();
+      if (!target) return;
+      try {
+        const crafted = await craftCollectPlan({
+          researchNeed: `Craft a generic collect plan for ${target}`,
+          url: target,
+        });
+        const plan = crafted?.plan || crafted;
+        if (!plan || typeof plan !== "object") {
+          throw new Error("Craft returned no collect plan");
+        }
+        const out = await submitLibraryJob({
+          title: plan.title || `Craft collect · ${target}`,
+          plan,
+          autoApprove: false,
+          request: {
+            craft: true,
+            url: target,
+            rationale: crafted?.rationale,
+          },
+        });
+        const job = out?.job || out;
+        if (job?.id) {
+          setJobs((prev) => {
+            const others = (Array.isArray(prev) ? prev : []).filter((j) => j?.id !== job.id);
+            return [job, ...others];
+          });
+        }
+        refreshBackend({ preserveJob: job || null });
+        setDiscoverModeSafe("history");
+        goTab("browse");
+        showToast(
+          job?.status === "pending_approval"
+            ? "Crafted collect plan — approval required"
+            : "Crafted collect plan queued",
+        );
+      } catch (err) {
+        setRailTab("ask");
+        setPendingAsk({
+          prompt: `Craft a generic collect plan for this public URL (HTTP or scrape — not a named vendor module): ${target}`,
+          displayText: `Craft collect for ${target}`,
+        });
+        showToast(err?.message || "Craft failed — opened Ask instead");
+      }
+    },
+    [refreshBackend, showToast, setDiscoverModeSafe, goTab],
+  );
+
   const probeDiscoverCandidate = useCallback(async (target) => {
     const url = discoverCandidateUrl(target);
     const key = candidateKey(target);
@@ -1060,9 +1112,7 @@ export function V2App() {
   }, [catalog, searchQuery]);
 
   const headerDsCount = catalog.length || Number(health?.datasets) || 0;
-  const headerConnected = catalog.filter((d) =>
-    /instant|query/i.test(String(d.analysis_readiness || "")),
-  ).length;
+  const headerConnected = catalog.filter((d) => isQueryReadyReadiness(d.analysis_readiness)).length;
 
   let main;
   switch (tab) {
@@ -1145,6 +1195,7 @@ export function V2App() {
             setSearchQuery(q);
             goTab("browse");
           }}
+          onCraftUrl={craftPublicUrlPlan}
           onSearchWeb={askSearchWeb}
           onSelectRow={(row) => {
             const nextKey = candidateKey(row);

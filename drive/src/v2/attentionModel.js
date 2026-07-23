@@ -9,7 +9,11 @@
 export function countOpsAttention({ issues = [], jobs = {} } = {}) {
   const issueCount = Array.isArray(issues) ? issues.length : Number(issues) || 0;
   const pending = Number(jobs.pending_approval ?? jobs.pending ?? 0);
-  const failed = Number(jobs.failed ?? 0);
+  const actionable = jobs.actionable && typeof jobs.actionable === "object" ? jobs.actionable : {};
+  // Prefer faculty-actionable failures — lifetime / ops-canary noise stays out of posture.
+  const failed = Number(
+    jobs.failed_actionable ?? actionable.failed_actionable ?? jobs.failed_recent ?? jobs.failed ?? 0,
+  );
   const running = Number(jobs.running ?? 0);
   return {
     decisions: pending,

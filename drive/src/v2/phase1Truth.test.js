@@ -90,6 +90,20 @@ test("resources ops posture does not say need attention", () => {
   assert.equal(resourcesOpsPill(counts, true).label, "Ops");
 });
 
+test("ops attention prefers failed_actionable over lifetime failed", () => {
+  const counts = countOpsAttention({
+    issues: [],
+    jobs: {
+      failed: 11,
+      failed_recent: 11,
+      failed_actionable: 6,
+      pending_approval: 0,
+      running: 0,
+    },
+  });
+  assert.equal(counts.failedJobs, 6);
+});
+
 test("status ask intent strips Queue DOI / DESCRIBE_DATASET affordances", () => {
   assert.equal(classifyAskIntent("Status only: reply with OK"), "status");
   const shaped = shapeAskReplyForIntent("status", {

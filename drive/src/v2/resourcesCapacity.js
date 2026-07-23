@@ -50,12 +50,28 @@ export function buildCapacityAccessPairs(rollup) {
     cache.pct != null ? Number(cache.pct) : pctOf(cache.used_gb, cache.total_gb);
   const hotPct = hot.used_pct != null ? Number(hot.used_pct) : null;
 
-  const identitiesReady = Number(connect.identities_ready ?? connect.ready ?? workers.ready ?? 0);
-  const identitiesTotal = Number(connect.identities_total ?? connect.total ?? workers.total ?? 0);
-  const hostsJoined = Number(connect.hosts_joined ?? connect.joined ?? compute.hosts_joined ?? 0);
-  const hostsTotal = Number(connect.hosts_total ?? connect.total_hosts ?? compute.hosts_total ?? 0);
+  const availableWorkers = (() => {
+    if (workers.available != null) return Number(workers.available);
+    if (workers.online != null || workers.idle != null) {
+      return Number(workers.online || 0) + Number(workers.idle || 0);
+    }
+    return null;
+  })();
+  const identitiesReady = Number(
+    availableWorkers ?? connect.identities_ready ?? connect.ready ?? workers.ready ?? 0,
+  );
+  const identitiesTotal = Number(
+    workers.total ?? connect.identities_total ?? connect.total ?? 0,
+  );
+  const wl = compute.windows_lab || {};
+  const hostsJoined = Number(
+    workers.joined ?? wl.joined ?? connect.hosts_joined ?? connect.joined ?? compute.hosts_joined ?? 0,
+  );
+  const hostsTotal = Number(
+    workers.total ?? wl.total ?? connect.hosts_total ?? connect.total_hosts ?? compute.hosts_total ?? 0,
+  );
   const parallelActive = Number(workers.busy ?? compute.parallel_active ?? 0);
-  const parallelMax = Number(workers.total ?? compute.parallel_max ?? 0);
+  const parallelMax = Number(workers.total ?? wl.max_parallel ?? compute.parallel_max ?? 0);
 
   const storage = [
     meter({
@@ -113,14 +129,18 @@ export function buildCapacityAccessPairs(rollup) {
     }),
     meter({
       id: "identities",
-      name: "Collector identities",
+      name: "Collectors",
       metric:
         identitiesTotal > 0
-          ? `${identitiesReady} / ${identitiesTotal} ready`
+          ? `${identitiesReady} / ${identitiesTotal} available`
           : workers.total != null
             ? `${workers.busy ?? 0} / ${workers.total} busy`
             : "Not reported",
       pct: identitiesTotal > 0 ? pctOf(identitiesReady, identitiesTotal) : null,
+      available:
+        workers.online != null || workers.idle != null
+          ? `online ${workers.online ?? 0} · idle ${workers.idle ?? 0}`
+          : null,
     }),
   ];
 
@@ -128,7 +148,12 @@ export function buildCapacityAccessPairs(rollup) {
     meter({
       id: "hosts",
       name: "Connected hosts",
-      metric: hostsTotal > 0 ? `${hostsJoined} / ${hostsTotal} joined` : "Cluster pending",
+      metric:
+        hostsTotal > 0
+          ? `${hostsJoined} / ${hostsTotal} joined`
+          : availableWorkers != null
+            ? `${availableWorkers} available`
+            : "Cluster pending",
       pct: hostsTotal > 0 ? pctOf(hostsJoined, hostsTotal) : null,
     }),
     meter({

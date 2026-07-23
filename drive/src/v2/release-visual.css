@@ -1252,7 +1252,7 @@
   margin: 0;
   padding: 10px 12px;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px 14px;
   border: 1px solid #e4e8f0;
   background: #fbfcfe;
@@ -1273,6 +1273,14 @@
   color: #3a4558;
   font-size: 0.82rem;
   line-height: 1.35;
+}
+.rd-v2-discover-craft-form {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+}
+.rd-v2-discover-craft-form .rd-v2-discover-need-form {
+  margin: 0;
 }
 .rd-v2-discover-starter-list {
   display: grid;

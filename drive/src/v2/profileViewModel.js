@@ -55,8 +55,8 @@ function primaryTrack(tracks) {
 function shortTheme(title) {
   const raw = String(title || "").trim();
   if (!raw) return "";
-  const head = raw.split("—")[0].split("–")[0].trim();
-  return clipText(head || raw, 56);
+  // Prefer the pre-emdash head, but do not ellipsize — Profile chrome wraps.
+  return raw.split("—")[0].split("–")[0].trim() || raw;
 }
 
 /** Pull a readable title from a citation string when possible. */
@@ -72,9 +72,9 @@ export function workTitleFromHighlight(highlight) {
     rest = rest.replace(/\.\s*Pacific-Basin.*$/i, "").trim();
     rest = rest.replace(/\.\s*Forthcoming\.?$/i, "").trim();
     if (rest.endsWith(".")) rest = rest.slice(0, -1);
-  return clipText(rest, 140);
+  return clipText(rest, 180);
   }
-  return clipText(text, 90);
+  return clipText(text, 140);
 }
 
 function stackKeys(stack) {
@@ -189,7 +189,7 @@ export function buildLab(profile) {
     const inLab = IN_LAB_ROUTES.has(route);
     suggested.push({
       id: rec.dataset_id || key,
-      label: clipText(label, 64),
+      label,
       reason: inLab ? "in lab, not linked" : "not in lab yet",
       action: inLab ? "link" : "search",
       query: rec.search_query || rec.prompt || label,

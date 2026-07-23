@@ -134,7 +134,7 @@ export function V2DeskHeader({
             <span className="rd-v2-trust-badge warn">Desk API offline</span>
           )}
           {chips
-            .filter((chip) => chip.tone === "warn" || chip.tone === "error" || chip.tone === "danger")
+            .filter((chip) => ["warn", "error", "danger", "bad"].includes(chip.tone))
             .map((chip) => (
               <span
                 key={chip.id}

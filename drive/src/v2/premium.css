@@ -19,7 +19,7 @@
   --rd-border2: #cfd6e2;
   --rd-text: #111827;
   --rd-body: #344054;
-  --rd-muted: #667085;
+  --rd-muted: #475467;
   --rd-accent: #4656e8;
   --rd-link: #3f51d8;
   --rd-active-bg: #e9ebff;
@@ -95,8 +95,10 @@ summary:focus-visible {
 /* ── Header ──────────────────────────────────────────────────── */
 .rd-v2-header {
   padding: 0 18px 0 16px;
-  grid-template-columns: var(--rd-sidebar) minmax(320px, 720px) minmax(0, 1fr) auto;
-  gap: 18px;
+  /* brand | context | search | meta | avatar — five children, five tracks */
+  grid-template-columns: var(--rd-sidebar) minmax(120px, 260px) minmax(0, 1fr) auto auto;
+  gap: 14px;
+  overflow: visible;
   background: rgba(255, 255, 255, 0.86);
   border-bottom: 1px solid rgba(218, 223, 232, 0.84);
   backdrop-filter: blur(18px) saturate(150%);
@@ -195,6 +197,8 @@ summary:focus-visible {
 .rd-header-avatar {
   width: 34px;
   height: 34px;
+  flex-shrink: 0;
+  justify-self: end;
   background: #161b2b;
   border: 1px solid rgba(255,255,255,.18);
   box-shadow: 0 6px 16px rgba(17,24,39,.16);
@@ -272,7 +276,7 @@ summary:focus-visible {
 
 .rd-v2-lead {
   margin: 0;
-  color: #6b778c;
+  color: var(--rd-muted);
   font-size: 12.5px;
   line-height: 1.45;
 }
@@ -460,7 +464,7 @@ summary:focus-visible {
 }
 
 .rd-v2-home-continue-actions .rd-v2-btn {
-  min-height: 34px;
+  min-height: 44px;
 }
 
 .rd-v2-home-actions {
@@ -917,6 +921,89 @@ summary:focus-visible {
   line-height: 1.45;
 }
 
+.rd-v2-res-inventory-head {
+  align-items: start;
+}
+
+.rd-v2-res-inventory-head > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+
+
+.rd-v2-res-tech-ledger {
+  margin-top: 12px;
+  border-top: 1px solid #dfe5ee;
+}
+
+.rd-v2-res-tech-ledger > summary {
+  display: flex;
+  min-height: 54px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  color: #27364b;
+  cursor: pointer;
+  list-style: none;
+}
+
+.rd-v2-res-tech-ledger > summary::-webkit-details-marker { display: none; }
+
+.rd-v2-res-tech-ledger > summary span {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.rd-v2-res-tech-ledger > summary strong {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.rd-v2-res-tech-ledger > summary em {
+  color: #748196;
+  font-size: 11.5px;
+  font-style: normal;
+  line-height: 1.4;
+}
+
+.rd-v2-res-tech-ledger > summary b {
+  flex: 0 0 auto;
+  color: #4255cf;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+.rd-v2-res-tech-ledger[open] > summary b::after { content: " · Hide"; }
+
+.rd-v2-res-tech-ledger-body {
+  padding: 0 0 12px;
+  border-top: 1px solid #e4e9f0;
+}
+
+.rd-v2-res-section-lead {
+  margin: -4px 24px 14px;
+  padding: 0;
+  max-width: 42rem;
+  color: #748196;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+
+
+
+
+
+
+.rd-v2-res-activity-meter.warn {
+  color: #9a5b00;
+  font-weight: 750;
+}
+
 /* ── Profile — institutional research memory ─────────────────── */
 .rd-v2-profile-page .rd-v2-body-scroll {
   gap: 18px;
@@ -970,18 +1057,18 @@ summary:focus-visible {
 }
 
 .rd-v2-profile-memory {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 10px;
   padding: 16px;
 }
 
 .rd-v2-profile-memory-card {
-  min-height: 0;
+  min-height: auto;
   padding: 14px 16px;
   border: 1px solid #e0e4ed;
-  border-radius: 13px;
-  background: linear-gradient(145deg, #fff, #f8f9ff);
+  border-radius: 6px;
+  background: #fff;
   color: #344054;
   line-height: 1.48;
   overflow: visible;
@@ -995,9 +1082,20 @@ summary:focus-visible {
 
 .rd-v2-profile-lab-rows li,
 .rd-v2-profile-works li {
-  min-height: 0;
+  min-height: auto;
   align-items: start;
   overflow: visible;
+}
+
+.rd-v2-profile-works li {
+  grid-template-columns: 2rem minmax(0, 1fr) auto;
+}
+
+.rd-v2-profile-lab-title {
+  overflow: visible;
+  white-space: normal;
+  text-overflow: unset;
+  overflow-wrap: anywhere;
 }
 
 .rd-v2-profile-lab-action {
@@ -1070,7 +1168,11 @@ summary:focus-visible {
   }
 
   .rd-v2-header {
-    grid-template-columns: 78px minmax(240px, 1fr) auto;
+    grid-template-columns: 78px minmax(0, 1fr) auto auto;
+  }
+
+  .rd-v2-header-context {
+    display: none;
   }
 
   .rd-v2-header-meta {
@@ -1251,6 +1353,11 @@ summary:focus-visible {
     line-height: 1.1;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  .rd-v2-sidebar-context,
+  .rd-v2-sidebar-recent {
+    display: none !important;
   }
 
   .yzu-sidebar button.active {

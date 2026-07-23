@@ -54,7 +54,11 @@ function assistantStatus(health) {
 
 function jobsStatus(health) {
   const jobs = health?.desk?.jobs || {};
-  const failed = Number(jobs.failed_recent ?? jobs.failed ?? 0);
+  const actionable = jobs.actionable && typeof jobs.actionable === "object" ? jobs.actionable : {};
+  const failed = Number(
+    jobs.failed_actionable ?? actionable.failed_actionable ?? jobs.failed_recent ?? jobs.failed ?? 0,
+  );
+  const opsNoise = Number(jobs.failed_ops_noise ?? actionable.failed_ops_noise ?? 0);
   const pending = Number(jobs.pending_approval ?? 0);
   const running = Number(jobs.running ?? 0);
   if (!health?.desk?.jobs) {
@@ -62,7 +66,16 @@ function jobsStatus(health) {
   }
   if (pending > 0) return { label: `${pending} pending approval`, detail: "Discover owns approvals", warn: true };
   if (running > 0) return { label: `${running} running`, detail: "Active collection / execution", warn: false };
-  if (failed > 0) return { label: `${failed} failed (recent)`, detail: "See Discover History / Resources Usage", warn: true };
+  if (failed > 0) {
+    return {
+      label: `${failed} failed (actionable)`,
+      detail:
+        opsNoise > 0
+          ? `See Discover History · ${opsNoise} ops/canary quarantined`
+          : "See Discover History / Resources Usage",
+      warn: true,
+    };
+  }
   return { label: "Quiet", detail: "No pending or running jobs", warn: false };
 }
 
@@ -169,12 +182,17 @@ export function SettingsPage({ health, resourcesRollup, onProfileRefresh, onToas
 
         <StatementSection title="Research identity">
           <div className="rd-v2-settings-row stack">
+            <label className="rd-v2-settings-label" htmlFor="rd-settings-email">
+              Faculty email
+            </label>
             <input
+              id="rd-settings-email"
               type="email"
               className="rd-v2-input"
               placeholder="faculty@yzu.edu.tw"
               value={emailDraft}
               onChange={(e) => setEmailDraft(e.target.value)}
+              aria-describedby="rd-settings-email-hint"
             />
             <button type="button" className="rd-v2-btn sm primary" onClick={saveEmail}>
               Save identity
@@ -183,7 +201,7 @@ export function SettingsPage({ health, resourcesRollup, onProfileRefresh, onToas
               Use EXAMPLE (Kong)
             </button>
           </div>
-          <p className="rd-v2-settings-hint">
+          <p id="rd-settings-email-hint" className="rd-v2-settings-hint">
             Loads Memory / Works / Lab from the faculty registry. Unbound desks preview EXAMPLE only until an email is saved.
           </p>
         </StatementSection>
@@ -204,17 +222,22 @@ export function SettingsPage({ health, resourcesRollup, onProfileRefresh, onToas
               Disconnect
             </button>
           </div>
-          <p className="rd-v2-settings-hint">
+          <p id="rd-settings-access-hint" className="rd-v2-settings-hint">
             Authorized internal entry connects automatically. Fallback token is only for browsers that cannot mint a session cookie.
           </p>
           <div className="rd-v2-settings-row stack">
+            <label className="rd-v2-settings-label" htmlFor="rd-settings-token">
+              Fallback access token
+            </label>
             <input
+              id="rd-settings-token"
               type="password"
               className="rd-v2-input"
               placeholder="Fallback access token"
               value={tokenDraft}
               autoComplete="off"
               onChange={(e) => setTokenDraft(e.target.value)}
+              aria-describedby="rd-settings-access-hint"
             />
             <button type="button" className="rd-v2-btn sm" disabled={busy || !tokenDraft.trim()} onClick={saveToken}>
               Save fallback
@@ -254,8 +277,11 @@ export function SettingsPage({ health, resourcesRollup, onProfileRefresh, onToas
 
         <StatementSection title="Display">
           <div className="rd-v2-settings-row">
-            <span>Open Research Drive on</span>
+            <label className="rd-v2-settings-label" htmlFor="rd-settings-default-tab">
+              Open Research Drive on
+            </label>
             <select
+              id="rd-settings-default-tab"
               value={settings.defaultTab}
               onChange={(e) => patch({ defaultTab: e.target.value })}
               className="rd-v2-select"
@@ -268,8 +294,11 @@ export function SettingsPage({ health, resourcesRollup, onProfileRefresh, onToas
             </select>
           </div>
           <div className="rd-v2-settings-row">
-            <span>When an object is selected</span>
+            <label className="rd-v2-settings-label" htmlFor="rd-settings-on-select">
+              When an object is selected
+            </label>
             <select
+              id="rd-settings-on-select"
               value={settings.onSelect}
               onChange={(e) => patch({ onSelect: e.target.value })}
               className="rd-v2-select"

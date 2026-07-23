@@ -203,6 +203,22 @@ export function submitLibraryJob({ title, plan, autoApprove = false, request = {
   });
 }
 
+/** Craft a generic collect plan for a public URL (HTTP / scrape — not a named vendor module). */
+export function craftCollectPlan({ researchNeed = "", url = "", title = "", mode = "", datasetId = "" } = {}) {
+  return fetchJson("/library/craft/collect-plan", {
+    method: "POST",
+    headers: deskHeaders(),
+    body: JSON.stringify({
+      research_need: researchNeed || (url ? `Craft collect for ${url}` : ""),
+      url: url || undefined,
+      title: title || undefined,
+      mode: mode || undefined,
+      dataset_id: datasetId || undefined,
+    }),
+    timeoutMs: 20000,
+  });
+}
+
 export function unifiedSearch(query = "", limit = 12, email = "") {
   const params = new URLSearchParams({ q: query, limit: String(limit) });
   if (email) params.set("email", email);

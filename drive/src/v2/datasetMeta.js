@@ -1,5 +1,19 @@
 /** Map registry rows → frozen UI labels (Detail + StatusPill). */
 
+/** Exact readiness tokens that mean smoke-proven / instant local query — never fuzzy `/query|ready/`. */
+export function isQueryReadyReadiness(value) {
+  const readiness = String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
+  return (
+    readiness === "query_ready" ||
+    readiness === "instant" ||
+    readiness === "instant_or_minutes" ||
+    readiness === "queryable"
+  );
+}
+
 export function statusPillKind(dataset) {
   if (dataset?.live_identity_badge?.kind && dataset?.live_identity_badge?.label) {
     return dataset.live_identity_badge;
@@ -8,7 +22,7 @@ export function statusPillKind(dataset) {
   if (dataset?.external || dataset?.collect_via) {
     return { kind: "external", label: "External" };
   }
-  if (readiness === "query_ready" || readiness === "instant" || readiness === "instant_or_minutes") {
+  if (isQueryReadyReadiness(readiness)) {
     return { kind: "query-ready", label: "Query ready" };
   }
   if (readiness === "registered") {
