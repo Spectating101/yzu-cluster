@@ -20,6 +20,7 @@ import "./live-convergence-fixes.css";
 import "./live-convergence-loop2.css";
 import "./live-convergence-loop2-fixes.css";
 import "./desktop-workbench.css";
+import "./desktop-workbench-fixes.css";
 import { InteractionProvider } from "./InteractionGuidance.jsx";
 import { V2App } from "./App.jsx";
 
