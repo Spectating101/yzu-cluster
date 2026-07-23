@@ -30,6 +30,8 @@ import "./sol-ceiling-rebuild.css";
 import "./sol-ceiling-rebuild-corrections.css";
 // Proxy-first Synthesis: target construct, ingredients, recipes, tradeoffs, output.
 import "./synthesis-proxy.css";
+// Final centre authority: visual data construction rather than explanatory prose.
+import "./synthesis-proxy-instrument.css";
 import { InteractionProvider } from "./InteractionGuidance.jsx";
 import { V2App } from "./App.jsx";
 
