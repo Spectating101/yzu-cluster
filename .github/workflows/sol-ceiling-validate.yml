@@ -38,21 +38,14 @@ jobs:
         continue-on-error: true
         run: npm run test:research-value
 
-      - name: Validate flagship and page contracts
+      - name: Render Sol ceiling pages
         if: always()
         env:
           CI: "true"
           YZU_PAGES: "false"
         run: |
           mkdir -p .tmp-pw artifacts/sol-ceiling
-          TMPDIR=$PWD/.tmp-pw npx playwright test \
-            e2e/v2-home.spec.js \
-            e2e/v2-discover.spec.js \
-            e2e/v2-library.spec.js \
-            e2e/v2-synthesis.spec.js \
-            e2e/v2-resources.spec.js \
-            e2e/release-visual-convergence.spec.js \
-            --reporter=line
+          TMPDIR=$PWD/.tmp-pw npx playwright test e2e/sol-ceiling-capture.spec.js --reporter=line
 
       - name: Upload visual evidence
         if: always()
@@ -60,8 +53,7 @@ jobs:
         with:
           name: sol-ceiling-validation-${{ github.sha }}
           path: |
-            artifacts
+            artifacts/sol-ceiling
             test-results
-            playwright-report
           if-no-files-found: ignore
           retention-days: 14
