@@ -10,6 +10,7 @@ import { LibraryEstateBrowser } from "@/v2/LibraryEstateBrowser";
 import { collectionOrder, datasetBelongsToFolder, libraryAssetCounts } from "@/v2/libraryEstate";
 import { PageShell } from "@/v2/ui";
 import { displayName, statusPill } from "@/v2/datasetMeta";
+import { facultyFacingRecords, isInternalValidationRecord } from "@/v2/productVisibility";
 
 function datasetListItem(row) {
   return { kind: "dataset", id: row.dataset_id, name: row.name, row };
@@ -309,8 +310,16 @@ export function LibraryPage({
   const [filterMode, setFilterMode] = useState("all");
   const [newMenuOpen, setNewMenuOpen] = useState(false);
   const [viewMode, setViewMode] = useState("estate");
+  const [showTechnical, setShowTechnical] = useState(false);
 
-  const tree = useMemo(() => buildConsumerDriveTree(datasets, { scope: DRIVE_LAB }), [datasets]);
+  const facultyDatasets = useMemo(() => facultyFacingRecords(datasets), [datasets]);
+  const technicalCount = Math.max(0, datasets.length - facultyDatasets.length);
+  const rawSelected = useMemo(() => datasets.find((row) => row.dataset_id === selectedId) || null, [datasets, selectedId]);
+  const technicalSelection = Boolean(rawSelected && isInternalValidationRecord(rawSelected));
+  const technicalVisible = showTechnical || technicalSelection;
+  const estateDatasets = technicalVisible ? datasets : facultyDatasets;
+
+  const tree = useMemo(() => buildConsumerDriveTree(estateDatasets, { scope: DRIVE_LAB }), [estateDatasets]);
   const trail = useMemo(() => {
     const crumbs = breadcrumbTrail(tree, folderId);
     if (crumbs[0]) crumbs[0].name = "Lab";
@@ -319,18 +328,18 @@ export function LibraryPage({
   const destination = useMemo(() => folderDestination(trail, folderId), [trail, folderId]);
   const isRoot = !folderId;
   const items = useMemo(() => listFolderChildren(tree, folderId), [tree, folderId]);
-  const branchRows = useMemo(() => datasets.filter((row) => datasetBelongsToFolder(row, folderId)).map(datasetListItem), [datasets, folderId]);
+  const branchRows = useMemo(() => estateDatasets.filter((row) => datasetBelongsToFolder(row, folderId)).map(datasetListItem), [estateDatasets, folderId]);
   const displayRows = useMemo(() => items.length ? items : branchRows, [items, branchRows]);
   const visibleRows = useMemo(() => sortItems(displayRows.filter((item) => itemMatchesFilter(item, filterMode)), sortBy, isRoot), [displayRows, filterMode, sortBy, isRoot]);
   const currentFolderName = isRoot ? "Lab" : trail[trail.length - 1]?.name || "Lab";
   const showingBranchFallback = !items.length && branchRows.length > 0;
-  const branchDatasetRows = useMemo(() => isRoot ? datasets : branchRows.map(itemDataset), [branchRows, datasets, isRoot]);
+  const branchDatasetRows = useMemo(() => isRoot ? estateDatasets : branchRows.map(itemDataset), [branchRows, estateDatasets, isRoot]);
   const branchCounts = libraryAssetCounts(branchDatasetRows);
   const readyCount = branchCounts.queryReady;
   const folderCount = visibleRows.filter((item) => item.kind === "folder").length;
   const datasetCount = branchDatasetRows.length;
   const branchNote = branchStatusNote({ isRoot, items, showingBranchFallback, displayCount: displayRows.length, folderCount, datasetCount });
-  const selectedDataset = useMemo(() => datasets.find((row) => row.dataset_id === selectedId) || null, [datasets, selectedId]);
+  const selectedDataset = useMemo(() => estateDatasets.find((row) => row.dataset_id === selectedId) || null, [estateDatasets, selectedId]);
   const branchObject = useMemo(() => libraryFolderObject({
     folderId,
     trail,
@@ -377,6 +386,16 @@ export function LibraryPage({
         <div className="rd-rc3-library-modes" role="tablist" aria-label="Library view">
           <button type="button" role="tab" aria-selected={viewMode === "estate"} className={viewMode === "estate" ? "on" : ""} onClick={() => setViewMode("estate")}>Estate</button>
           <button type="button" role="tab" aria-selected={viewMode === "research"} className={viewMode === "research" ? "on" : ""} onClick={() => setViewMode("research")}>Research fit</button>
+          {technicalCount ? (
+            <button
+              type="button"
+              className={technicalVisible ? "on" : ""}
+              aria-pressed={technicalVisible}
+              onClick={() => setShowTechnical((visible) => !visible)}
+            >
+              {technicalVisible ? "Hide technical" : `Technical (${technicalCount})`}
+            </button>
+          ) : null}
           <span>{readyCount} query-ready · {datasetCount} holdings</span>
         </div>
       }
@@ -389,7 +408,7 @@ export function LibraryPage({
         />
       ) : viewMode === "research" ? (
         <LibraryResearchView
-          datasets={datasets}
+          datasets={estateDatasets}
           onSelectDataset={onSelectDataset}
           onPreviewDataset={onPreviewDataset}
           onProcure={handleProcureBranch}
@@ -397,7 +416,7 @@ export function LibraryPage({
       ) : (
         <LibraryEstateBrowser
           rows={visibleRows}
-          datasets={datasets}
+          datasets={estateDatasets}
           branchDatasets={branchDatasetRows}
           isRoot={isRoot}
           currentFolderName={currentFolderName}
