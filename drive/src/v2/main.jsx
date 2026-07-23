@@ -28,6 +28,8 @@ import "./synthesis-loop7-fixes.css";
 // Focused presentation rebuild, loaded last and judged from exact browser renders.
 import "./sol-ceiling-rebuild.css";
 import "./sol-ceiling-rebuild-corrections.css";
+// Proxy-first Synthesis: target construct, ingredients, recipes, tradeoffs, output.
+import "./synthesis-proxy.css";
 import { InteractionProvider } from "./InteractionGuidance.jsx";
 import { V2App } from "./App.jsx";
 
