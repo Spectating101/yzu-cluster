@@ -1,4 +1,4 @@
-/** v2 header — freeze shell: research context ▾ · page · search · resting status */
+/** v2 header — brand · research context · resting status (no global search/Ask pill) */
 
 function freshnessLabel(refreshedAt) {
   if (refreshedAt == null) return null;
@@ -19,10 +19,6 @@ const PAGE_LABELS = {
 };
 
 export function V2DeskHeader({
-  searchQuery,
-  onSearchChange,
-  onSearchSubmit,
-  onAskFromSearch,
   onBrandClick,
   onRetry,
   headerInitials = "YZ",
@@ -36,8 +32,6 @@ export function V2DeskHeader({
   integrationChips = [],
   activeResearchTitle = "Active research",
   currentPage = "home",
-  /** Discover owns page search — header becomes Ask-only so the two bars don't fight. */
-  discoverOwnsSearch = false,
 }) {
   const metaText = usingSeed
     ? `${datasetCount} datasets`
@@ -67,59 +61,6 @@ export function V2DeskHeader({
         </span>
       </div>
 
-      {discoverOwnsSearch ? (
-        <div className="rd-search rd-v2-search-pill rd-v2-search-pill--ask" data-testid="header-ask-only">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path
-              d="M12 3c4.4 0 8 3.1 8 7s-3.6 7-8 7c-.7 0-1.4-.1-2-.2L5 19l1.1-3.3C4.8 14.6 4 12.9 4 10c0-3.9 3.6-7 8-7Z"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinejoin="round"
-            />
-          </svg>
-          <button
-            type="button"
-            className="rd-v2-header-ask-trigger"
-            onClick={onAskFromSearch}
-            aria-label="Ask the desk"
-          >
-            Ask the desk…
-          </button>
-          <button type="button" className="rd-v2-search-kbd" onClick={onAskFromSearch} title="Ask">
-            ⌘K
-          </button>
-        </div>
-      ) : (
-        <div className="rd-search rd-v2-search-pill">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path
-              d="m21 21-4.2-4.2m1.2-5.3a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-          </svg>
-          <input
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search data, sources, or ask…"
-            aria-label="Search Research Drive"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                onSearchSubmit();
-              }
-              if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
-                e.preventDefault();
-                onAskFromSearch();
-              }
-            }}
-          />
-          <button type="button" className="rd-v2-search-kbd" onClick={onAskFromSearch} title="Ask">
-            ⌘K
-          </button>
-        </div>
-      )}
       <div className="rd-v2-header-meta">
         <div className="rd-v2-trust-strip" aria-label="Desk status" data-testid="desk-integration-strip">
           {deskStatus === "ok" ? (
@@ -146,7 +87,6 @@ export function V2DeskHeader({
                 {chip.label}
               </span>
             ))}
-          {/* Keep trust strip lean: Live registry + warn chips only (no dry-run / age dump). */}
           {fresh && deskStatus !== "ok" ? (
             <span className="rd-v2-trust-badge muted">Updated {fresh}</span>
           ) : null}

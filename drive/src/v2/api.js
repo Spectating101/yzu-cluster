@@ -240,8 +240,12 @@ export function libraryOverview() {
   return fetchJson("/library/overview");
 }
 
+export function listLibraryNav() {
+  return fetchJson("/library/partitions");
+}
+
 export function listPartitions() {
-  return fetchJson("/library/partitions").then((d) => d.partitions || []);
+  return listLibraryNav().then((d) => d.partitions || []);
 }
 
 export function procurementCatalogSummary() {
@@ -443,6 +447,56 @@ export async function sendChatMessage(
     if (event.type === "complete") state.result = event.result || null;
   };
 
+  const sendNonStream = async () => {
+    // Local progress — Cloudflare / proxies often hold NDJSON until nearly complete,
+    // so the Ask rail looks frozen if we only wait on stream events.
+    const started = Date.now();
+    const tick = setInterval(() => {
+      const elapsed = Math.round((Date.now() - started) / 1000);
+      const text =
+        elapsed < 4
+          ? "Understanding your request…"
+          : elapsed < 12
+            ? "Preparing the Composer research session…"
+            : "Composer is working with the research tools…";
+      onActivity?.({ text, elapsed_seconds: elapsed });
+    }, 1500);
+    try {
+      let fallback;
+      let payload = {};
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        fallback = await fetch(
+          `${API}/library/chat`,
+          deskFetchInit({
+            method: "POST",
+            body,
+          }),
+        );
+        payload = await fallback.json().catch(() => ({}));
+        if (fallback.ok) break;
+        // Transient proxy blips while Composer is busy / service restarts.
+        if (![502, 503, 504].includes(fallback.status) || attempt === 1) {
+          throw new Error(normalizeApiError(payload, fallback.status, "/library/chat"));
+        }
+        onActivity?.({ text: "Desk reconnecting…", elapsed_seconds: Math.round((Date.now() - started) / 1000) });
+        await new Promise((r) => setTimeout(r, 1200));
+      }
+      if (payload.session_id) saveChatSessionId(payload.session_id);
+      if (payload.reply) onDelta?.(String(payload.reply));
+      return payload;
+    } finally {
+      clearInterval(tick);
+    }
+  };
+
+  // Production previous.easycamp.tech sits behind Cloudflare, which buffers NDJSON
+  // (~20s TTFB). Prefer the reliable non-stream path unless explicitly opted in.
+  const preferStream =
+    Boolean(import.meta.env.DEV) || String(import.meta.env.VITE_ASK_STREAM || "").trim() === "1";
+  if (!preferStream) {
+    return sendNonStream();
+  }
+
   const streamRes = await fetch(`${API}/library/chat/stream`, deskFetchInit({
     method: "POST",
     body,
@@ -479,14 +533,7 @@ export async function sendChatMessage(
     throw new Error(normalizeApiError(streamError, streamRes.status, "/library/chat/stream"));
   }
 
-  const fallback = await fetch(`${API}/library/chat`, deskFetchInit({
-    method: "POST",
-    body,
-  }));
-  const payload = await fallback.json().catch(() => ({}));
-  if (!fallback.ok) throw new Error(normalizeApiError(payload, fallback.status, "/library/chat"));
-  if (payload.session_id) saveChatSessionId(payload.session_id);
-  return payload;
+  return sendNonStream();
 }
 
 export function openQueryInNewTab(datasetId, limit = 50) {

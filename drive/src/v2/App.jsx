@@ -14,7 +14,7 @@ import {
   listAcquisitions,
   listDatasets,
   listJobs,
-  listPartitions,
+  listLibraryNav,
   probePublicSource,
   procurementCatalogSummary,
   submitDiscoverCollect,
@@ -170,7 +170,10 @@ export function V2App() {
   const [pilotProfile, setPilotProfile] = useState(null);
   /** Bump when touchRecent runs so sidebar Recent recomputes (localStorage alone does not). */
   const [recentEpoch, setRecentEpoch] = useState(0);
-  const [searchQuery, setSearchQuery] = useState(() => readParams().q);
+  /** Library header filter only — never shared with Discover. */
+  const [librarySearchQuery, setLibrarySearchQuery] = useState("");
+  /** Discover page search only — never driven by the header catalog pill. */
+  const [discoverSearchQuery, setDiscoverSearchQuery] = useState(() => readParams().q);
   const [discoverMode, setDiscoverMode] = useState(() => readParams().discoverMode || "explore");
   const [discoverFocusAwaiting, setDiscoverFocusAwaiting] = useState(() => Boolean(readParams().discoverFocusAwaiting));
   const [historyEvents, setHistoryEvents] = useState([]);
@@ -180,6 +183,7 @@ export function V2App() {
   const [deskRefreshedAt, setDeskRefreshedAt] = useState(null);
   const [acquisitions, setAcquisitions] = useState([]);
   const [partitions, setPartitions] = useState([]);
+  const [shelves, setShelves] = useState([]);
   const [ops, setOps] = useState(null);
   const [jobs, setJobs] = useState([]);
   const [overview, setOverview] = useState(null);
@@ -279,9 +283,15 @@ export function V2App() {
     listAcquisitions(true)
       .then((d) => setAcquisitions(d.acquisitions || []))
       .catch(() => setAcquisitions([]));
-    listPartitions()
-      .then((rows) => setPartitions(Array.isArray(rows) ? rows : []))
-      .catch(() => setPartitions([]));
+    listLibraryNav()
+      .then((payload) => {
+        setPartitions(Array.isArray(payload?.partitions) ? payload.partitions : []);
+        setShelves(Array.isArray(payload?.shelves) ? payload.shelves : []);
+      })
+      .catch(() => {
+        setPartitions([]);
+        setShelves([]);
+      });
     libraryOps()
       .then(setOps)
       .catch(() => setOps(null));
@@ -371,7 +381,7 @@ export function V2App() {
         folder: folderId,
         dataset: selectedId,
         preview: previewOpen,
-        q: tab === "browse" ? searchQuery.trim() : "",
+        q: tab === "browse" ? discoverSearchQuery.trim() : "",
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot URL normalize on mount
@@ -388,6 +398,8 @@ export function V2App() {
   }, [datasets, selectedId, tab, folderId, previewOpen]);
 
   const catalog = datasets;
+
+  const pageSearchQuery = tab === "browse" ? discoverSearchQuery : tab === "library" ? librarySearchQuery : "";
 
   const labIds = useMemo(() => new Set(catalog.map((d) => d.dataset_id)), [catalog]);
 
@@ -454,12 +466,12 @@ export function V2App() {
         mode: railTab,
         dataset: detail,
         activeObject,
-        searchQuery,
+        searchQuery: pageSearchQuery,
         folderId,
         clusterContext,
         profileEmail: profile?.email || loadUserEmail(),
       }),
-    [tab, railTab, detail, activeObject, searchQuery, folderId, clusterContext, profile],
+    [tab, railTab, detail, activeObject, pageSearchQuery, folderId, clusterContext, profile],
   );
 
   const syncUrl = useCallback(
@@ -469,7 +481,7 @@ export function V2App() {
         patch.q !== undefined
           ? patch.q
           : nextTab === "browse"
-            ? searchQuery.trim()
+            ? discoverSearchQuery.trim()
             : "";
       const next = {
         tab: nextTab,
@@ -481,7 +493,7 @@ export function V2App() {
       };
       writeParams(next);
     },
-    [tab, folderId, selectedId, previewOpen, searchQuery, discoverMode],
+    [tab, folderId, selectedId, previewOpen, discoverSearchQuery, discoverMode],
   );
 
   const setDiscoverModeSafe = useCallback(
@@ -497,9 +509,9 @@ export function V2App() {
         setSelectedHistoryId("");
         setActiveObject((current) => (current?.kind === "discover_history" ? null : current));
       }
-      syncUrl({ tab: "browse", q: searchQuery.trim(), mode: nextState.mode });
+      syncUrl({ tab: "browse", q: discoverSearchQuery.trim(), mode: nextState.mode });
     },
-    [searchQuery, syncUrl],
+    [discoverSearchQuery, syncUrl],
   );
 
   const openDiscoverAwaiting = useCallback(
@@ -508,7 +520,7 @@ export function V2App() {
       setDiscoverFocusAwaiting(false);
       setTab("browse");
       setRailTab("detail");
-      syncUrl({ tab: "browse", q: searchQuery.trim(), mode: "history" });
+      syncUrl({ tab: "browse", q: discoverSearchQuery.trim(), mode: "history" });
       const targetJob =
         (job?.id ? jobs.find((j) => j.id === job.id) : null) ||
         job ||
@@ -524,7 +536,7 @@ export function V2App() {
         setActiveObject(null);
       }
     },
-    [jobs, syncUrl, searchQuery],
+    [jobs, syncUrl, discoverSearchQuery],
   );
 
   // Durable Discover History (optional endpoint — ignore failures).
@@ -634,20 +646,11 @@ export function V2App() {
     setRailTab("detail");
   }, []);
 
-  const askFromSearch = useCallback(() => {
-    const q = searchQuery.trim();
-    if (q) {
-      goTab("browse");
-      syncUrl({ tab: "browse", q });
-      setPendingAsk(`Find datasets for: ${q}`);
-    }
-    setRailTab("ask");
-  }, [searchQuery, goTab, syncUrl]);
-
   const askSearchWeb = useCallback(
     (query) => {
-      const q = String(query || searchQuery || "").trim();
+      const q = String(query || discoverSearchQuery || "").trim();
       if (!q) return;
+      setDiscoverSearchQuery(q);
       goTab("browse");
       syncUrl({ tab: "browse", q });
       setRailTab("ask");
@@ -655,7 +658,7 @@ export function V2App() {
         `Find external datasets for: ${q}. Start with open-web discovery, probe promising sources, and propose the safest acquisition plan for this lab.`,
       );
     },
-    [searchQuery, goTab, syncUrl],
+    [discoverSearchQuery, goTab, syncUrl],
   );
 
   const askAddToLab = useCallback(
@@ -1008,7 +1011,7 @@ export function V2App() {
     setProbeSnapshots({});
     setActiveObject((current) => (current?.kind === "external_candidate" ? null : current));
     dismissToastIf((t) => t.scope === "discover-probe");
-  }, [searchQuery, dismissToastIf]);
+  }, [discoverSearchQuery, dismissToastIf]);
 
   const focusLibraryFolder = useCallback((object) => {
     setActiveObject((current) => {
@@ -1120,13 +1123,13 @@ export function V2App() {
   );
 
   const filteredDatasets = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
+    const q = librarySearchQuery.trim().toLowerCase();
     if (!q) return catalog;
     return catalog.filter((d) => {
-      const text = `${d.dataset_id} ${d.name} ${d.grain} ${d.description || ""}`.toLowerCase();
+      const text = `${d.dataset_id} ${d.name} ${d.display_name || ""} ${d.grain} ${d.description || ""} ${d.one_line || ""}`.toLowerCase();
       return text.includes(q);
     });
-  }, [catalog, searchQuery]);
+  }, [catalog, librarySearchQuery]);
 
   const headerDsCount = catalog.length || Number(health?.datasets) || 0;
   const headerConnected = catalog.filter((d) => isQueryReadyReadiness(d.analysis_readiness)).length;
@@ -1152,7 +1155,7 @@ export function V2App() {
           onPreviewDataset={openPreview}
           onAskAttention={askHomeAttention}
           onSuggestSearch={(q) => {
-            setSearchQuery(q);
+            setDiscoverSearchQuery(q);
             goTab("browse");
           }}
         />
@@ -1163,6 +1166,7 @@ export function V2App() {
         <LibraryPage
           datasets={filteredDatasets}
           partitions={partitions}
+          shelves={shelves}
           cluster={health?.cluster}
           folderId={folderId}
           onFolderChange={changeLibraryFolder}
@@ -1174,6 +1178,8 @@ export function V2App() {
           onStartUpload={(folder) => startLibraryIntake("upload", folder)}
           onStartUrl={(folder) => startLibraryIntake("url", folder)}
           onStartProcure={(folder) => startLibraryIntake("procure", folder)}
+          searchQuery={librarySearchQuery}
+          onSearchChange={setLibrarySearchQuery}
         />
       );
       break;
@@ -1194,7 +1200,8 @@ export function V2App() {
           labIds={labIds}
           catalog={catalog}
           selectedId={browseSelectedId}
-          searchQuery={searchQuery}
+          searchQuery={discoverSearchQuery}
+          onSearchChange={setDiscoverSearchQuery}
           jobs={jobs}
           usingSeed={usingSeed}
           probeSnapshots={probeSnapshots}
@@ -1209,7 +1216,7 @@ export function V2App() {
             setRailTab("detail");
           }}
           onSuggestSearch={(q) => {
-            setSearchQuery(q);
+            setDiscoverSearchQuery(q);
             goTab("browse");
           }}
           onCraftUrl={craftPublicUrlPlan}
@@ -1352,10 +1359,6 @@ export function V2App() {
   return (
     <div className={`yzu-shell with-inspector rd-theme-light rd-v2-shell${hideRail ? " no-rail" : ""}`}>
       <V2DeskHeader
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        onSearchSubmit={askFromSearch}
-        onAskFromSearch={askFromSearch}
         onBrandClick={() => goTab("home")}
         onRetry={refreshBackend}
         headerInitials="YZ"
@@ -1383,7 +1386,6 @@ export function V2App() {
         integrationChips={usingSeed ? [] : buildDeskIntegrationChips(health)}
         activeResearchTitle={activeResearch.title}
         currentPage={tab}
-        discoverOwnsSearch={tab === "browse"}
       />
       <V2Sidebar
         tab={tab}
@@ -1489,7 +1491,7 @@ export function V2App() {
                 : detail
             }
             mainTab={tab}
-            searchQuery={searchQuery}
+            searchQuery={pageSearchQuery}
             pendingMessage={pendingAsk}
             onPendingConsumed={() => setPendingAsk("")}
             onCollected={refreshBackend}

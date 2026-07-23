@@ -1,22 +1,26 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  DRIVE_LAB,
-  buildConsumerDriveTree,
   breadcrumbTrail,
   listFolderChildren,
 } from "@/driveTree";
+import { buildProfessorVaultTree, datasetTitle, isOpsNoiseDataset } from "@/v2/professorVaultTree";
 import { libraryFolderObject } from "@/v2/activeObject";
-import { LibraryEstateBrowser } from "@/v2/LibraryEstateBrowser";
-import { collectionOrder, datasetBelongsToFolder, libraryAssetCounts } from "@/v2/libraryEstate";
-import { PageShell } from "@/v2/ui";
+import { CatalogList } from "@/v2/CatalogList";
+import { statusPillKind } from "@/v2/datasetMeta";
+import { Chip, PageShell } from "@/v2/ui";
 
 function datasetListItem(row) {
+  const name = datasetTitle(row);
   return {
     kind: "dataset",
     id: row.dataset_id,
-    name: row.name,
-    row,
+    name,
+    row: { ...row, name },
   };
+}
+
+function readinessCount(rows) {
+  return rows.filter((d) => statusPillKind(d).kind === "query-ready").length;
 }
 
 function itemDataset(item) {
@@ -39,21 +43,14 @@ function itemUpdatedTime(item) {
 
 function itemMatchesFilter(item, mode) {
   if (mode === "all" || item?.kind === "folder") return true;
-  const counts = libraryAssetCounts([itemDataset(item)]);
-  if (mode === "ready") return counts.queryReady === 1;
-  if (mode === "registered") return counts.registered === 1 && counts.metadataOnly === 0;
-  if (mode === "metadata") return counts.metadataOnly === 1;
-  return true;
+  const row = itemDataset(item);
+  return statusPillKind(row).kind === "query-ready";
 }
 
-function sortItems(rows, sortBy, isRoot) {
+function sortItems(rows, sortBy) {
   return [...rows].sort((a, b) => {
     if (a?.kind === "folder" && b?.kind !== "folder") return -1;
     if (a?.kind !== "folder" && b?.kind === "folder") return 1;
-    if (isRoot && a?.kind === "folder" && b?.kind === "folder") {
-      const delta = collectionOrder(a) - collectionOrder(b);
-      if (delta) return delta;
-    }
     if (sortBy === "updated") {
       const delta = itemUpdatedTime(b) - itemUpdatedTime(a);
       if (delta) return delta;
@@ -63,28 +60,27 @@ function sortItems(rows, sortBy, isRoot) {
 }
 
 function folderDestination(trail, folderId) {
-  if (!folderId) return "Lab";
+  if (!folderId) return "Lab root";
   return trail.map((c) => c.name).join(" / ");
 }
 
 function branchStatusNote({ isRoot, items, showingBranchFallback, displayCount, folderCount, datasetCount }) {
   if (!displayCount) {
-    return isRoot ? "No indexed collections yet" : "No holdings in this collection";
+    return isRoot ? "No indexed folders yet" : "No holdings in this branch";
   }
   if (showingBranchFallback) {
     return `${displayCount} dataset${displayCount === 1 ? "" : "s"} matched here`;
   }
   if (items.length) {
     const parts = [];
-    if (folderCount) parts.push(`${folderCount} collection${folderCount === 1 ? "" : "s"}`);
+    if (folderCount) parts.push(`${folderCount} folder${folderCount === 1 ? "" : "s"}`);
     if (datasetCount) parts.push(`${datasetCount} dataset${datasetCount === 1 ? "" : "s"}`);
     return parts.join(", ") || `${displayCount} item${displayCount === 1 ? "" : "s"}`;
   }
-  return `${displayCount} item${displayCount === 1 ? "" : "s"} in collection`;
+  return `${displayCount} item${displayCount === 1 ? "" : "s"} in branch`;
 }
 
 function LibraryBreadcrumb({ trail, onFolderChange }) {
-  if (trail.length <= 1) return null;
   return (
     <nav className="rd-v2-breadcrumb rd-v2-crumb" aria-label="Breadcrumb">
       {trail.map((c, i) => {
@@ -125,22 +121,24 @@ function LibraryNewMenu({ open, onToggle, onUploadFile, onAddUrl, onProcure, onC
         className="rd-v2-btn sm rd-v2-library-action-btn primary"
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label="Add evidence"
+        aria-label="Open new library item menu"
         onClick={onToggle}
       >
-        + Add evidence ▾
+        New ▾
       </button>
       {open ? (
-        <div className="rd-v2-library-action-menu" role="menu" aria-label="Add evidence">
+        <div className="rd-v2-library-action-menu" role="menu" aria-label="New library item">
           <button type="button" role="menuitem" className="rd-v2-library-menu-item" onClick={onUploadFile}>
-            Upload files…
+            Upload file...
           </button>
           <button type="button" role="menuitem" className="rd-v2-library-menu-item" onClick={onAddUrl}>
-            Add URL or DOI…
+            Add URL / DOI...
           </button>
-          <hr className="rd-v2-library-menu-sep" />
           <button type="button" role="menuitem" className="rd-v2-library-menu-item" onClick={onProcure}>
-            Find external evidence…
+            Procure missing data...
+          </button>
+          <button type="button" role="menuitem" className="rd-v2-library-menu-item" disabled>
+            New folder
           </button>
         </div>
       ) : null}
@@ -179,8 +177,15 @@ function LibraryHeadActions({
   );
 }
 
+function laneLabel(lane) {
+  return lane?.subtitle || lane?.name || lane?.id || "lane";
+}
+
 export function LibraryPage({
   datasets,
+  partitions = [],
+  shelves = [],
+  cluster,
   folderId,
   onFolderChange,
   selectedId,
@@ -191,15 +196,51 @@ export function LibraryPage({
   onStartUpload,
   onStartUrl,
   onStartProcure,
+  searchQuery = "",
+  onSearchChange,
 }) {
   const [sortBy, setSortBy] = useState("name");
   const [filterMode, setFilterMode] = useState("all");
+  const [partitionFilter, setPartitionFilter] = useState("");
   const [newMenuOpen, setNewMenuOpen] = useState(false);
-  const [estateQuery, setEstateQuery] = useState("");
+
+  const laneOptions = useMemo(() => {
+    const rows = partitions.length ? partitions : cluster?.lanes || [];
+    const priority = (lane) => {
+      const pid = String(lane.detail?.partition_id || lane.id || "").toLowerCase();
+      if (pid.includes("refinitiv")) return "0";
+      if (pid.includes("research-panels") || pid.includes("derived")) return "1";
+      if (pid.includes("gdelt")) return "2";
+      if (pid.includes("mops") || pid.includes("twse")) return "3";
+      return `9${laneLabel(lane)}`;
+    };
+    return rows
+      .filter((lane) => (lane.detail?.registry_dataset_ids || []).length > 0 || lane.registry_datasets > 0)
+      .slice()
+      .sort((a, b) => priority(a).localeCompare(priority(b)));
+  }, [cluster?.lanes, partitions]);
+
+  const scopedDatasets = useMemo(() => {
+    if (!partitionFilter) return datasets;
+    const lane = (partitions.length ? partitions : cluster?.lanes || []).find((row) => row.id === partitionFilter);
+    if (!lane) return datasets;
+    const ids = new Set(lane.detail?.registry_dataset_ids || []);
+    const partitionId = String((lane.detail || {}).partition_id || "").replace(/^partition_/, "").replace(/_/g, ".");
+    return datasets.filter((row) => {
+      if (ids.has(row.dataset_id)) return true;
+      const pid = String(row.partition_id || row.collection?.partition_id || "");
+      return partitionId && pid === partitionId;
+    });
+  }, [cluster?.lanes, datasets, partitionFilter, partitions]);
+
+  const vaultDatasets = useMemo(
+    () => (scopedDatasets || []).filter((row) => !isOpsNoiseDataset(row)),
+    [scopedDatasets],
+  );
 
   const tree = useMemo(
-    () => buildConsumerDriveTree(datasets, { scope: DRIVE_LAB }),
-    [datasets],
+    () => buildProfessorVaultTree(vaultDatasets, partitions.length ? partitions : (cluster?.lanes || []), shelves),
+    [vaultDatasets, partitions, shelves, cluster?.lanes],
   );
 
   const trail = useMemo(() => {
@@ -212,30 +253,22 @@ export function LibraryPage({
   const isRoot = !folderId;
 
   const items = useMemo(() => listFolderChildren(tree, folderId), [tree, folderId]);
-  const branchRows = useMemo(
-    () => datasets.filter((row) => datasetBelongsToFolder(row, folderId)).map(datasetListItem),
-    [datasets, folderId],
-  );
-  const displayRows = useMemo(() => {
-    if (items.length) return items;
-    return branchRows;
-  }, [items, branchRows]);
+  const branchRows = useMemo(() => {
+    if (!folderId) return [];
+    return listFolderChildren(tree, folderId).filter((item) => item?.kind === "dataset");
+  }, [tree, folderId]);
+  const displayRows = useMemo(() => items, [items]);
   const visibleRows = useMemo(
-    () => sortItems(displayRows.filter((item) => itemMatchesFilter(item, filterMode)), sortBy, isRoot),
-    [displayRows, filterMode, sortBy, isRoot],
+    () => sortItems(displayRows.filter((item) => itemMatchesFilter(item, filterMode)), sortBy),
+    [displayRows, filterMode, sortBy],
   );
-  const currentFolderName = isRoot ? "Lab" : trail[trail.length - 1]?.name || "Lab";
+  const currentFolderName = isRoot ? "Lab root" : trail[trail.length - 1]?.name || "Lab";
   const showingBranchFallback = !items.length && branchRows.length > 0;
   const branchDatasetRows = useMemo(
-    () => (isRoot ? datasets : branchRows.map(itemDataset)),
-    [branchRows, datasets, isRoot],
+    () => (isRoot ? vaultDatasets : branchRows.map(itemDataset)),
+    [branchRows, vaultDatasets, isRoot],
   );
-  const branchCounts = libraryAssetCounts(branchDatasetRows);
-  const readyCount = branchCounts.queryReady;
-  const rootCollectionFolders = useMemo(
-    () => listFolderChildren(tree, null).filter((item) => item?.kind === "folder"),
-    [tree],
-  );
+  const readyCount = readinessCount(branchDatasetRows);
   const folderCount = visibleRows.filter((item) => item.kind === "folder").length;
   const datasetCount = branchDatasetRows.length;
   const branchNote = branchStatusNote({
@@ -256,12 +289,9 @@ export function LibraryPage({
         folderCount,
         datasetCount,
         readyCount,
-        connectedCount: branchCounts.connected,
-        metadataOnlyCount: branchCounts.metadataOnly,
-        unknownCount: branchCounts.unknown,
         itemCount: visibleRows.length,
       }),
-    [branchCounts.connected, branchCounts.metadataOnly, branchCounts.unknown, branchNote, datasetCount, destination, folderCount, folderId, readyCount, trail, visibleRows.length],
+    [branchNote, datasetCount, destination, folderCount, folderId, readyCount, trail, visibleRows.length],
   );
 
   useEffect(() => {
@@ -294,7 +324,7 @@ export function LibraryPage({
     <PageShell
       className="rd-v2-library-page"
       title="Library"
-      lead="Browse the lab's owned research data and reusable assets."
+      lead="Open a shelf first — news, stocks, crypto, panels — then the datasets inside."
       headExtra={
         <div className="rd-v2-library-headline">
           <LibraryBreadcrumb trail={trail} onFolderChange={onFolderChange} />
@@ -309,27 +339,82 @@ export function LibraryPage({
           />
         </div>
       }
+      toolbar={
+        <>
+          <label className="rd-v2-library-toolbar-search" data-testid="library-toolbar-search">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="m21 21-4.2-4.2m1.2-5.3a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            </svg>
+            <input
+              value={searchQuery}
+              onChange={(e) => onSearchChange?.(e.target.value)}
+              placeholder="Search this library…"
+              aria-label="Search library holdings"
+            />
+          </label>
+          <Chip active={sortBy === "name"} onClick={() => setSortBy("name")}>
+            Name {sortBy === "name" ? "↑" : "↕"}
+          </Chip>
+          <Chip active={sortBy === "updated"} onClick={() => setSortBy("updated")}>
+            Last modified {sortBy === "updated" ? "↓" : "↕"}
+          </Chip>
+          <Chip
+            active={filterMode === "ready"}
+            onClick={() => setFilterMode((cur) => (cur === "ready" ? "all" : "ready"))}
+          >
+            Filter: {filterMode === "ready" ? "Query-ready" : "All"}
+          </Chip>
+          <span className="rd-v2-toolbar-spacer" />
+          <span className="rd-v2-toolbar-count">
+            {visibleRows.length} {visibleRows.length === 1 ? "item" : "items"}
+          </span>
+        </>
+      }
+      footer="double-click row → Preview"
     >
-      <LibraryEstateBrowser
-        rows={visibleRows}
-        datasets={datasets}
-        branchDatasets={branchDatasetRows}
-        collectionFolders={rootCollectionFolders}
-        isRoot={isRoot}
-        currentFolderId={folderId || ""}
-        currentFolderName={currentFolderName}
-        branchNote={branchNote}
-        selectedId={selectedId}
-        filterMode={filterMode}
-        sortBy={sortBy}
-        estateQuery={estateQuery}
-        onEstateQueryChange={setEstateQuery}
-        onFilterChange={setFilterMode}
-        onSortChange={setSortBy}
-        onOpenFolder={(folder) => onFolderChange(folder.id)}
-        onSelectDataset={onSelectDataset}
-        onPreviewDataset={onPreviewDataset}
-      />
+      <div className="rd-v2-library-branchline rd-v2-library-pathbar" aria-label="Library location status">
+        <div className="rd-v2-library-pathcopy">
+          <strong>{currentFolderName}</strong>
+          <p>
+            {isRoot
+              ? "Browse the lab’s working data vault. Select a dataset for readiness, provenance, preview, and Ask actions."
+              : branchNote}
+          </p>
+        </div>
+        <div className="rd-v2-library-pathstats">
+          <span>
+            {folderCount} folder{folderCount === 1 ? "" : "s"}
+          </span>
+          <span>
+            {datasetCount} dataset{datasetCount === 1 ? "" : "s"}
+          </span>
+          <span>
+            {readyCount} query-ready
+          </span>
+        </div>
+      </div>
+      <div className="rd-v2-catalog-list-wrap">
+        {visibleRows.length ? (
+          <CatalogList
+            rows={visibleRows}
+            selectedId={selectedId}
+            onOpenFolder={(folder) => onFolderChange(folder.id)}
+            onSelectDataset={onSelectDataset}
+            onDoubleClick={onPreviewDataset}
+            compact
+          />
+        ) : (
+          <div className="rd-v2-library-empty">
+            <strong>No holdings in this branch</strong>
+            <p>Clear the filter or open the Lab breadcrumb to return to indexed folders.</p>
+          </div>
+        )}
+      </div>
     </PageShell>
   );
 }
