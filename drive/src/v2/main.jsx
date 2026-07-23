@@ -27,6 +27,7 @@ import "./synthesis-loop7.css";
 import "./synthesis-loop7-fixes.css";
 // Focused presentation rebuild, loaded last and judged from exact browser renders.
 import "./sol-ceiling-rebuild.css";
+import "./sol-ceiling-rebuild-corrections.css";
 import { InteractionProvider } from "./InteractionGuidance.jsx";
 import { V2App } from "./App.jsx";
 
