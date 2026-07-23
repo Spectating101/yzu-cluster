@@ -1,5 +1,7 @@
 /** Frozen v2 sidebar — see docs/design/V2_FORWARD_FROZEN.md */
 
+import { SYNTHESIS_NAV_DEFERRED } from "@/v2/releaseVisibility.js";
+
 /* Inline SVG icons — 16×16 at 1.5 stroke. No external deps. */
 const HomeIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -60,15 +62,20 @@ export const CLUSTER_NAV_DEFERRED = true;
 
 export const V2_CLUSTER_TAB = { id: "cluster", label: "Cluster", Icon: ClusterIcon };
 
+/** Synthesis tab — parked behind SYNTHESIS_NAV_DEFERRED (default false for showcase). */
+export const V2_SYNTHESIS_TAB = { id: "synthesis", label: "Synthesis", Icon: SynthesisIcon };
+
 export const V2_SIDEBAR_TABS = [
   { id: "home",      label: "Home",      Icon: HomeIcon },
   { id: "library",   label: "Library",   Icon: LibraryIcon },
   { id: "browse",    label: "Discover",  Icon: BrowseIcon },
-  { id: "synthesis", label: "Synthesis", Icon: SynthesisIcon },
+  ...(SYNTHESIS_NAV_DEFERRED ? [] : [V2_SYNTHESIS_TAB]),
   { id: "resources", label: "Resources", Icon: ResourcesIcon },
   { id: "profile",   label: "Profile",   Icon: ProfileIcon },
   { id: "settings",  label: "Settings",  Icon: SettingsIcon },
 ];
+
+export { SYNTHESIS_NAV_DEFERRED };
 
 /** All routable tabs (includes deferred). */
 export const V2_TABS = CLUSTER_NAV_DEFERRED

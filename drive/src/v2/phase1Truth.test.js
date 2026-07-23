@@ -1,6 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { fenceHistoryEvents, isHistoryNoise } from "./historyNoiseFence.js";
+import {
+  fenceHistoryEvents,
+  isDeskSearchTelemetry,
+  isHistoryNoise,
+} from "./historyNoiseFence.js";
 import {
   countOpsAttention,
   resourcesOpsPosture,
@@ -55,6 +59,41 @@ test("history noise fence hides deploy smoke jobs", () => {
     isHistoryNoise({ title: "RFC 9110 HTTP Semantics", status: "completed" }),
     false,
   );
+});
+
+test("history fence keeps Ask/search telemetry off the default durable trail", () => {
+  const events = [
+    {
+      id: "ask-1",
+      action: "ask",
+      target: "Find USDT panels",
+      summary: "Ask turn",
+      ts: "2026-07-20T22:00:00Z",
+    },
+    {
+      id: "search-1",
+      action: "search",
+      target: "stablecoin",
+      summary: "Raw search",
+      ts: "2026-07-20T22:01:00Z",
+    },
+    {
+      id: "collect-1",
+      action: "collection_run",
+      durable: true,
+      target: "GDELT Asia panel",
+      summary: "Collecting",
+      status: "running",
+      ts: "2026-07-20T22:02:00Z",
+    },
+  ];
+  assert.equal(isDeskSearchTelemetry(events[0]), true);
+  assert.equal(isDeskSearchTelemetry(events[2]), false);
+  const fenced = fenceHistoryEvents(events);
+  assert.equal(fenced.visible.length, 1);
+  assert.equal(fenced.visible[0].id, "collect-1");
+  assert.equal(fenced.hiddenSearchTelemetry, 2);
+  assert.equal(fenced.searchTelemetry.length, 2);
 });
 
 test("history fence collapses duplicate durable rows", () => {

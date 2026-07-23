@@ -11,6 +11,10 @@ const NOISE_RE =
 
 const FIXTURE_TARGET_RE = /^(raw_usdt_history|fixture[_-]|probe[_-]?no[_-]?promotion)/i;
 
+/** Desk/Ask/search telemetry — useful audit, not durable procurement lifecycle. */
+const SEARCH_TELEMETRY_ACTIONS =
+  /^(ask|semantic_discover|discover|search|probe|query|preview|bq_)/i;
+
 function blob(event) {
   const meta = event?.meta || {};
   return [
@@ -40,6 +44,17 @@ export function isHistoryNoise(event) {
   return false;
 }
 
+/** Terra donor: Ask/search rows stay off the default durable trail. */
+export function isDeskSearchTelemetry(event) {
+  if (!event) return false;
+  if (event.durable === true || event.kind === "collection_run") return false;
+  const action = String(event.action || "").toLowerCase();
+  if (SEARCH_TELEMETRY_ACTIONS.test(action)) return true;
+  if (event.meta?.telemetry === true || event.telemetry === true) return true;
+  if (event.meta?.ask_telemetry === true) return true;
+  return false;
+}
+
 function collapseKey(event) {
   const target = String(event?.target || event?.title || "")
     .replace(/\s+/g, " ")
@@ -57,12 +72,26 @@ function collapseKey(event) {
 }
 
 /**
- * @returns {{ visible: object[], hiddenNoise: number, collapsedDuplicates: number }}
+ * @returns {{
+ *   visible: object[],
+ *   searchTelemetry: object[],
+ *   hiddenNoise: number,
+ *   hiddenSearchTelemetry: number,
+ *   collapsedDuplicates: number,
+ * }}
  */
-export function fenceHistoryEvents(events = [], { includeNoise = false } = {}) {
+export function fenceHistoryEvents(
+  events = [],
+  { includeNoise = false, includeSearchTelemetry = false } = {},
+) {
   const list = Array.isArray(events) ? events.filter(Boolean) : [];
-  const durable = includeNoise ? list : list.filter((event) => !isHistoryNoise(event));
-  const hiddenNoise = list.length - durable.length;
+  const withoutNoise = includeNoise ? list : list.filter((event) => !isHistoryNoise(event));
+  const hiddenNoise = list.length - withoutNoise.length;
+  const searchTelemetry = withoutNoise.filter((event) => isDeskSearchTelemetry(event));
+  const durable = includeSearchTelemetry
+    ? withoutNoise
+    : withoutNoise.filter((event) => !isDeskSearchTelemetry(event));
+  const hiddenSearchTelemetry = includeSearchTelemetry ? 0 : searchTelemetry.length;
 
   const seen = new Set();
   const visible = [];
@@ -77,5 +106,11 @@ export function fenceHistoryEvents(events = [], { includeNoise = false } = {}) {
     visible.push(event);
   }
 
-  return { visible, hiddenNoise, collapsedDuplicates };
+  return {
+    visible,
+    searchTelemetry,
+    hiddenNoise,
+    hiddenSearchTelemetry,
+    collapsedDuplicates,
+  };
 }

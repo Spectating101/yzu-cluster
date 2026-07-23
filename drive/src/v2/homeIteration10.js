@@ -2,7 +2,8 @@
  * Home Iteration 10 projection helpers — docs/HOME_FULL_SCALE_FREEZE_2026-07-16.md
  */
 
-import { displayName, statusPill } from "./datasetMeta.js";
+import { displayName, isReceiptOnlyAsset, statusPill } from "./datasetMeta.js";
+import { buildHomeBriefing } from "./homeBriefing.js";
 import { buildLab } from "./profileViewModel.js";
 import { recentDatasets } from "./recent.js";
 import { isHistoryNoise } from "./historyNoiseFence.js";
@@ -47,19 +48,28 @@ function formatHeadroom(pct) {
   return `${Math.max(0, Math.round(100 - pct))}% headroom`;
 }
 
-export function buildPickUp({ datasets = [], jobs = [], health } = {}) {
-  const recent = recentDatasets(datasets, 2);
+export function buildPickUp({ datasets = [], jobs = [], health, acquisitions = [], profile } = {}) {
+  // Terra donor: observed briefing for pending judgment / recovery before cosmetics.
+  const briefing = buildHomeBriefing({ datasets, jobs, acquisitions, health, profile });
+  const holdings = (datasets || []).filter((ds) => !isReceiptOnlyAsset(ds));
+  const recent = recentDatasets(holdings, 2);
   // Prefer touched recent IDs; fall back to first holdings so Pick Up is never empty when the vault has assets.
-  const primaryDs = recent[0] || datasets[0] || null;
+  const primaryDs = recent[0] || holdings[0] || datasets[0] || null;
   const secondaryDs =
     recent[1] ||
-    (primaryDs && datasets.find((ds) => ds?.dataset_id && ds.dataset_id !== primaryDs.dataset_id)) ||
+    (primaryDs && holdings.find((ds) => ds?.dataset_id && ds.dataset_id !== primaryDs.dataset_id)) ||
     null;
   const pendingJobs = jobs.filter((job) =>
     /pending|approval|hold/i.test(String(job.status || job.state || "")),
   );
-  const pending = health?.desk?.jobs?.pending_approval ?? pendingJobs.length;
-  const firstPending = pendingJobs[0];
+  const judgmentApprovals = (briefing?.needsJudgment || []).filter((item) => item.kind === "approval");
+  const pending =
+    judgmentApprovals.length ||
+    health?.desk?.jobs?.pending_approval ||
+    pendingJobs.length;
+  const firstPending =
+    (judgmentApprovals[0]?.job && pendingJobs.find((j) => j.id === judgmentApprovals[0].job.id)) ||
+    pendingJobs[0];
 
   const primary = primaryDs
     ? {

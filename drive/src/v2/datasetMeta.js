@@ -14,11 +14,29 @@ export function isQueryReadyReadiness(value) {
   );
 }
 
+/**
+ * Receipt-recovery catalog rows — registered in a receipt only, not a reusable query holding.
+ * Terra donor (6769b75 / datasetMeta honesty).
+ */
+export function isReceiptOnlyAsset(dataset) {
+  const state = String(dataset?.catalog_reconciliation?.state || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
+  return state === "receipt_only";
+}
+
 export function statusPillKind(dataset) {
   if (dataset?.live_identity_badge?.kind && dataset?.live_identity_badge?.label) {
     return dataset.live_identity_badge;
   }
-  const readiness = String(dataset?.analysis_readiness || "").toLowerCase();
+  if (isReceiptOnlyAsset(dataset)) {
+    return { kind: "registered", label: "Registered · reconciliation pending" };
+  }
+  const readiness = String(dataset?.analysis_readiness || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
   if (dataset?.external || dataset?.collect_via) {
     return { kind: "external", label: "External" };
   }

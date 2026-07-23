@@ -11,6 +11,7 @@ const HISTORY_FILTERS = [
   { id: "ready", label: "Ready" },
   { id: "needs_recovery", label: "Recovery" },
   { id: "scheduled", label: "Scheduled" },
+  { id: "search", label: "Search" },
 ];
 
 function cleanTarget(value) {
@@ -20,9 +21,16 @@ function cleanTarget(value) {
 }
 
 function eventKind(event) {
+  const action = String(event?.action || "").toLowerCase();
+  // Terra donor: Ask/search telemetry stays under Search, not the durable trail.
+  if (/^(ask|semantic_discover|discover|search|probe|query|preview|bq_)/.test(action)) {
+    return "search";
+  }
+  if (event?.meta?.ask_telemetry === true || event?.meta?.telemetry === true) {
+    return "search";
+  }
   const bucket = historyLifecycleBucket(event);
   if (bucket !== "all") return bucket;
-  const action = String(event?.action || "").toLowerCase();
   if (action === "intent") return "needs_approval";
   if (action === "collection_run") return "active";
   return "other";
@@ -156,22 +164,29 @@ export function DiscoverHistoryPanel({ events = [], selectedId = "", onSelectEve
       .sort((a, b) => String(b.ts || "").localeCompare(String(a.ts || "")));
     return fenceHistoryEvents(raw);
   }, [events]);
-  const normalized = fenced.visible;
+  // Default "All" = durable only. Raw Ask/search telemetry lives under Search.
+  const durable = fenced.visible;
+  const searchRows = fenced.searchTelemetry || [];
+  const normalized = filter === "search" ? searchRows : durable;
   const filtered = useMemo(
-    () => (filter === "all" ? normalized : normalized.filter((event) => eventKind(event) === filter)),
+    () =>
+      filter === "all" || filter === "search"
+        ? normalized
+        : normalized.filter((event) => eventKind(event) === filter),
     [filter, normalized],
   );
   const visible = filtered.slice(0, visibleCount);
   const needsYou = filter === "all" ? visible.filter((event) => eventKind(event) === "needs_approval") : [];
-  const lifecycle = filter === "all" ? visible.filter((event) => eventKind(event) !== "needs_approval") : visible;
+  const lifecycle =
+    filter === "all" ? visible.filter((event) => eventKind(event) !== "needs_approval") : visible;
   const filterCounts = useMemo(() => {
-    const counts = { all: normalized.length };
+    const counts = { all: durable.length, search: searchRows.length };
     for (const item of HISTORY_FILTERS) {
-      if (item.id === "all") continue;
-      counts[item.id] = normalized.filter((event) => eventKind(event) === item.id).length;
+      if (item.id === "all" || item.id === "search") continue;
+      counts[item.id] = durable.filter((event) => eventKind(event) === item.id).length;
     }
     return counts;
-  }, [normalized]);
+  }, [durable, searchRows]);
 
   useEffect(() => {
     setVisibleCount(8);
@@ -189,17 +204,30 @@ export function DiscoverHistoryPanel({ events = [], selectedId = "", onSelectEve
         <div>
           <span className="rd-v2-eyebrow">Research lifecycle</span>
           <h2>Durable evidence requests and results</h2>
-          <p>Researcher decisions come first. Collection, recovery, schedules, and reusable results remain linked.</p>
-          {fenced.hiddenNoise > 0 ? (
+          <p>
+            Durable lifecycle only by default — Ask and raw search telemetry stay under Search so they do not bury
+            approvals and outcomes.
+          </p>
+          {fenced.hiddenNoise > 0 || fenced.hiddenSearchTelemetry > 0 ? (
             <p className="rd-v2-history-noise-note muted small" data-testid="history-noise-fence">
-              {fenced.hiddenNoise} fixture/ops noise row{fenced.hiddenNoise === 1 ? "" : "s"} hidden
+              {fenced.hiddenNoise > 0
+                ? `${fenced.hiddenNoise} fixture/ops noise row${fenced.hiddenNoise === 1 ? "" : "s"} hidden`
+                : ""}
+              {fenced.hiddenNoise > 0 && fenced.hiddenSearchTelemetry > 0 ? " · " : ""}
+              {fenced.hiddenSearchTelemetry > 0
+                ? `${fenced.hiddenSearchTelemetry} Ask/search row${fenced.hiddenSearchTelemetry === 1 ? "" : "s"} under Search`
+                : ""}
               {fenced.collapsedDuplicates > 0
                 ? ` · ${fenced.collapsedDuplicates} duplicate${fenced.collapsedDuplicates === 1 ? "" : "s"} collapsed`
                 : ""}
             </p>
           ) : null}
         </div>
-        <strong>{normalized.length} item{normalized.length === 1 ? "" : "s"}</strong>
+        <strong>
+          {filter === "all"
+            ? `${durable.length} durable`
+            : `${normalized.length} item${normalized.length === 1 ? "" : "s"}`}
+        </strong>
       </div>
 
       <div className="rd-v2-toolbar inline rd-v2-history-filters" aria-label="History filters">

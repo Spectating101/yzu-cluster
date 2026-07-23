@@ -87,6 +87,7 @@ export function HomePage({
   health,
   jobs = [],
   profile,
+  acquisitions = [],
   resourcesRollup,
   onGoTab,
   onOpenAttention,
@@ -97,8 +98,8 @@ export function HomePage({
   const loading = health == null && datasets.length === 0;
   const headroomLoading = resourcesRollup === undefined;
   const pickUp = useMemo(
-    () => buildPickUp({ datasets, jobs, health }),
-    [datasets, jobs, health],
+    () => buildPickUp({ datasets, jobs, health, acquisitions, profile }),
+    [datasets, jobs, health, acquisitions, profile],
   );
   const headroom = useMemo(
     () => buildResourceHeadroom(resourcesRollup),

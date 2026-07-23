@@ -36,6 +36,7 @@ import { BrowsePage } from "@/v2/BrowsePage";
 import { ClusterPage } from "@/v2/ClusterPage";
 import { computeDatasetOverlap } from "@/v2/clusterOverlap";
 import { loadUserEmail } from "@/v2/deskSession";
+import { normalizeReleaseTab } from "@/v2/releaseVisibility";
 import { HomePage } from "@/v2/HomePage";
 import { InspectorRail } from "@/v2/InspectorRail";
 import { LibraryPage } from "@/v2/LibraryPage";
@@ -75,7 +76,7 @@ function readParams() {
   const rawTab = p.get("tab") || loadSettings().defaultTab || "home";
   const folder = p.get("folder") || "";
   const q = p.get("q") || "";
-  let tab = rawTab === "discover" ? "browse" : rawTab;
+  let tab = normalizeReleaseTab(rawTab === "discover" ? "browse" : rawTab);
   // Library deep links: folder+dataset without a Discover query belong on Library.
   if (tab === "browse" && folder && !q) {
     tab = "library";
@@ -559,11 +560,12 @@ export function V2App() {
 
   const goTab = useCallback(
     (id, opts = {}) => {
-      if (id === "library") {
-        setTab(id);
+      const next = normalizeReleaseTab(id);
+      if (next === "library") {
+        setTab(next);
         setRailTab("detail");
         if (opts.keepSelection) {
-          syncUrl({ tab: id, preview: false });
+          syncUrl({ tab: next, preview: false });
           return;
         }
         setSelectedId("");
@@ -571,11 +573,11 @@ export function V2App() {
         setPreviewOpen(false);
         setPreviewTarget(null);
         setActiveObject(null);
-        syncUrl({ tab: id, dataset: "", preview: false });
+        syncUrl({ tab: next, dataset: "", preview: false });
         return;
       }
-      setTab(id);
-      syncUrl({ tab: id });
+      setTab(next);
+      syncUrl({ tab: next });
     },
     [syncUrl],
   );

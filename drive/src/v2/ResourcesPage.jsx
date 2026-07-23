@@ -7,6 +7,10 @@ import {
 } from "@/v2/resourcesSpending";
 import { buildCapacityAccessPairs, groupSourceCapabilities } from "@/v2/resourcesCapacity";
 import { buildResourcesPanels } from "@/v2/resourcesFromRollup";
+import {
+  formatWorkersToolbarStat,
+  workersToolbarFieldsFromRollup,
+} from "@/v2/workersToolbarStat";
 import { Chip, PageShell, StatementRow, StatementSection } from "@/v2/ui";
 
 const PLACEHOLDER_ROLLUP = {
@@ -371,29 +375,21 @@ function ActivityFilterBar({ value, onChange }) {
   );
 }
 
-function WorkersToolbarStat({ workers }) {
-  const available = workers?.available;
-  const online = workers?.online ?? workers?.joined;
-  const idle = workers?.idle;
-  const busy = workers?.busy;
-  const total = workers?.total;
-  if (available == null && online == null && busy == null && total == null) return null;
-
-  const count = available ?? online ?? busy ?? total;
-  const qualifier =
-    available != null || online != null
-      ? "available"
-      : busy != null
-        ? "busy"
-        : "configured";
-  const value = total != null && count !== total ? `${count}/${total} ${qualifier}` : `${count} ${qualifier}`;
-  const title =
-    online != null || idle != null
-      ? `online ${online ?? 0} · idle ${idle ?? 0}${busy != null ? ` · busy ${busy}` : ""}`
-      : undefined;
+/** Terra donor: never invent schedulable capacity from joined/stale membership. */
+function WorkersToolbarStat({ rollup }) {
+  const fields = workersToolbarFieldsFromRollup(rollup);
+  const value = formatWorkersToolbarStat(fields);
+  if (!value) return null;
+  const title = [
+    fields.online != null ? `online ${fields.online}` : null,
+    fields.stale != null ? `stale ${fields.stale}` : null,
+    fields.busy != null ? `busy ${fields.busy}` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
   return (
-    <span className="rd-v2-toolbar-stat" aria-label={`Collection workers ${value}`} title={title}>
+    <span className="rd-v2-toolbar-stat" aria-label={`Collection workers ${value}`} title={title || undefined}>
       <span>Collectors</span>
       <strong>{value}</strong>
     </span>
@@ -884,7 +880,7 @@ export function ResourcesPage({
           <Chip active={mode === "method"} onClick={() => onModeChange?.("method")}>
             Method
           </Chip>
-          <WorkersToolbarStat workers={viewRollup?.hero?.workers} />
+          <WorkersToolbarStat rollup={viewRollup} />
           {(mode === "sources" || mode === "spending") && periodLabel ? (
             <span className="rd-v2-toolbar-meta">{periodLabel}</span>
           ) : filterLabel ? (

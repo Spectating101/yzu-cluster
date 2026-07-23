@@ -15,14 +15,21 @@ function usefulFor(dataset) {
 }
 
 function unknowns(dataset, fields) {
+  // Terra donor (33f7288): judgment caveats as short strings — no invented readiness scores.
   const out = [];
+  if (!dataset?.analysis_readiness) out.push("Readiness not reported by registry");
+  if (!fields.coverage && !dataset?.coverage && !dataset?.date_range) out.push("Coverage not reported");
+  if (!dataset?.grain) out.push("Grain not reported");
+  if (!fields.source && !dataset?.source && !dataset?.source_system && !dataset?.provenance) {
+    out.push("Provenance not reported beyond registry");
+  }
   if (!dataset?.updated_at && !dataset?.last_modified && !dataset?.as_of) {
     out.push("Freshness / last refresh not described");
   }
-  if (!dataset?.limitations && !dataset?.caveats) out.push("Known caveats not described");
   if (!fields.joinKeys?.length) out.push("Join keys / schema relationship not described");
-  if (!fields.coverage && !dataset?.coverage && !dataset?.date_range) out.push("Coverage not described");
-  if (!fields.source && !dataset?.source && !dataset?.source_system) out.push("Source provenance not described");
+  const limitations = dataset?.limitations || dataset?.caveats || fields.limitations;
+  if (limitations) out.push(String(limitations).slice(0, 160));
+  else out.push("Known caveats not described");
   return out;
 }
 
