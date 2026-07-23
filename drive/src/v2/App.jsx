@@ -9,6 +9,7 @@ import {
   ensureDeskSession,
   discoverHistory,
   facultyProfile,
+  getSynthesisDiscoverHandoff,
   libraryOps,
   libraryOverview,
   listAcquisitions,
@@ -28,6 +29,7 @@ import {
   homeAttentionObject,
   libraryIntakeObject,
   resourceObject,
+  synthesisDiscoverHandoffObject,
   synthesisThreadObject,
 } from "@/v2/activeObject";
 import { BrowsePage } from "@/v2/BrowsePage";
@@ -87,10 +89,12 @@ function readParams() {
     q,
     discoverMode: discoverState.mode,
     discoverFocusAwaiting: discoverState.focusAwaiting,
+    synthesisThreadId: p.get("synthesis_thread") || "",
+    synthesisEvidenceId: p.get("synthesis_evidence") || "",
   };
 }
 
-function writeParams({ tab, dataset, folder, preview, q, mode }) {
+function writeParams({ tab, dataset, folder, preview, q, mode, synthesisThreadId, synthesisEvidenceId }) {
   const p = new URLSearchParams();
   if (tab && tab !== "home") p.set("tab", tab);
   if (folder) p.set("folder", folder);
@@ -99,6 +103,8 @@ function writeParams({ tab, dataset, folder, preview, q, mode }) {
   if (q) p.set("q", q);
   const modeUrl = discoverModeToUrlState(mode || "explore");
   if (tab === "browse" && modeUrl) p.set("mode", modeUrl);
+  if (tab === "browse" && synthesisThreadId) p.set("synthesis_thread", synthesisThreadId);
+  if (tab === "browse" && synthesisEvidenceId) p.set("synthesis_evidence", synthesisEvidenceId);
   const qs = p.toString();
   const url = `${window.location.pathname}${qs ? `?${qs}` : ""}`;
   window.history.replaceState(null, "", url);
@@ -173,6 +179,7 @@ export function V2App() {
   const [discoverFocusAwaiting, setDiscoverFocusAwaiting] = useState(() => Boolean(readParams().discoverFocusAwaiting));
   const [historyEvents, setHistoryEvents] = useState([]);
   const [selectedHistoryId, setSelectedHistoryId] = useState("");
+  const [synthesisDiscoverHandoff, setSynthesisDiscoverHandoff] = useState(null);
   const [loadError, setLoadError] = useState("");
   const [health, setHealth] = useState(null);
   const [deskRefreshedAt, setDeskRefreshedAt] = useState(null);
@@ -308,8 +315,10 @@ export function V2App() {
         await approveJob(jobId);
         showToast(`Job approved · ${String(jobId).slice(0, 8)}…`);
         refreshBackend();
+        return true;
       } catch (err) {
         showToast(err.message || "Approve failed", "error");
+        return false;
       }
     },
     [refreshBackend, showToast],
@@ -459,6 +468,8 @@ export function V2App() {
         preview: patch.preview ?? previewOpen,
         q: nextQ,
         mode: patch.mode !== undefined ? patch.mode : discoverMode,
+      synthesisThreadId: patch.synthesisThreadId || "",
+      synthesisEvidenceId: patch.synthesisEvidenceId || "",
       };
       writeParams(next);
     },
@@ -548,6 +559,99 @@ export function V2App() {
     },
     [syncUrl],
   );
+
+  const routeSynthesisHandoff = useCallback(
+    ({ field, handoff, thread }) => {
+      const evidenceLabel = field?.label || field?.dataset_id || "selected evidence";
+      const objective = handoff?.objective || thread?.objective || "";
+      const grain = handoff?.required_grain || "";
+      const query = [evidenceLabel, grain].filter(Boolean).join(" ");
+      const durableHandoff = {
+        thread_id: thread?.id || handoff?.thread_id || "",
+        thread_title: thread?.title || "",
+        objective,
+        required_grain: grain,
+        selected_field: {
+          id: field?.id || field?.dataset_id || "",
+          label: evidenceLabel,
+          status: field?.status || "",
+          role: field?.role || field?.eyebrow || "",
+          grain: field?.grain || "",
+          coverage: field?.coverage || "",
+          interpretation: field?.interpretation || "",
+        },
+        held_evidence: handoff?.held_evidence || [],
+        missing_evidence: handoff?.missing_evidence || [],
+        collect_intents: handoff?.collect_intents || [],
+        fake_collection: false,
+      };
+      setSynthesisDiscoverHandoff(durableHandoff);
+      setSearchQuery(query);
+      setBrowseRow(null);
+      setBrowseProbe({ candidateKey: "", loading: false, result: null, error: "" });
+      setActiveObject(synthesisDiscoverHandoffObject(durableHandoff));
+      setRailTab("detail");
+      setTab("browse");
+      syncUrl({
+        tab: "browse",
+        q: query,
+        mode: "explore",
+        synthesisThreadId: durableHandoff.thread_id,
+        synthesisEvidenceId: durableHandoff.selected_field.id,
+      });
+    },
+    [syncUrl],
+  );
+
+  useEffect(() => {
+    const route = readParams();
+    if (
+      tab !== "browse" ||
+      !route.synthesisThreadId ||
+      !route.synthesisEvidenceId ||
+      synthesisDiscoverHandoff?.thread_id === route.synthesisThreadId &&
+        synthesisDiscoverHandoff?.selected_field?.id === route.synthesisEvidenceId
+    ) {
+      return;
+    }
+    let cancelled = false;
+    getSynthesisDiscoverHandoff(route.synthesisThreadId)
+      .then((handoff) => {
+        if (cancelled) return;
+        const field = (handoff?.missing_evidence || []).find(
+          (item) => String(item?.id || item?.evidence_id || item?.dataset_id || "") === route.synthesisEvidenceId,
+        );
+        if (!field) return;
+        const durableHandoff = {
+          thread_id: route.synthesisThreadId,
+          objective: handoff.objective || "",
+          required_grain: handoff.required_grain || "",
+          selected_field: {
+            id: route.synthesisEvidenceId,
+            label: field.label || field.dataset_id || "Selected evidence",
+            status: field.status || "missing",
+            role: field.role || "",
+            grain: field.grain || "",
+            coverage: field.coverage || "",
+            interpretation: field.interpretation || "",
+          },
+          held_evidence: handoff.held_evidence || [],
+          missing_evidence: (handoff.missing_evidence || []).filter(
+            (item) => String(item?.id || item?.evidence_id || item?.dataset_id || "") === route.synthesisEvidenceId,
+          ),
+          collect_intents: (handoff.collect_intents || []).filter(
+            (item) => String(item?.id || item?.evidence_id || item?.dataset_id || "") === route.synthesisEvidenceId,
+          ),
+          fake_collection: false,
+        };
+        setSynthesisDiscoverHandoff(durableHandoff);
+        setActiveObject(synthesisDiscoverHandoffObject(durableHandoff));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [tab, synthesisDiscoverHandoff]);
 
   const selectDataset = useCallback(
     (row) => {
@@ -1136,17 +1240,25 @@ export function V2App() {
           onDiscoverModeChange={setDiscoverModeSafe}
           historyEvents={historyItems}
           selectedHistoryId={selectedHistoryId}
+          synthesisHandoff={synthesisDiscoverHandoff}
+          onDismissSynthesisHandoff={() => {
+            setSynthesisDiscoverHandoff(null);
+            setActiveObject((current) => (current?.kind === "synthesis_discover_handoff" ? null : current));
+            syncUrl({ tab: "browse", q: searchQuery, mode: "explore" });
+          }}
           onSelectHistoryEvent={(event) => {
             setSelectedHistoryId(event?.id || "");
             setActiveObject(discoverHistoryObject(event));
             setRailTab("detail");
           }}
           onSuggestSearch={(q) => {
+            setSynthesisDiscoverHandoff(null);
             setSearchQuery(q);
             goTab("browse");
           }}
           onSearchWeb={askSearchWeb}
           onSelectRow={(row) => {
+            setSynthesisDiscoverHandoff(null);
             const nextKey = candidateKey(row);
             browseSelectedKeyRef.current = nextKey;
             dismissToastIf(
@@ -1177,6 +1289,8 @@ export function V2App() {
           compareIds={compareIds}
           onCompareChange={setCompareIds}
           onAskComposer={askFromPrompt}
+          onApproveJob={handleApproveJob}
+          onDiscoverHandoff={routeSynthesisHandoff}
           onGoTab={goTab}
           onOpenDataset={openInLibraryFromDiscover}
           onSelectThread={(thread) => {

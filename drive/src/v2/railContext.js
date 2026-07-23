@@ -173,6 +173,26 @@ export function buildRailContext({
     if (lifecycle.stage === "pending_approval") actions.push("review_execution");
     if (lifecycle.retryable && /failed|blocked/.test(lifecycle.stage)) actions.push("retry_execution");
     if (lifecycle.stage === "registered") actions.push("open_output", "refresh_output");
+  } else if (activeObject?.kind === "synthesis_discover_handoff") {
+    const handoff = activeObject.handoff || {};
+    const field = handoff.selected_field || {};
+    entity = {
+      kind: "synthesis_discover_handoff",
+      id: activeObject.id,
+      title: activeObject.title,
+      status: "evidence_gap",
+    };
+    selected = {
+      thread_id: handoff.thread_id || undefined,
+      objective: handoff.objective || undefined,
+      required_grain: handoff.required_grain || undefined,
+      evidence_id: field.id || undefined,
+      evidence_label: field.label || undefined,
+      evidence_status: field.status || undefined,
+      held_evidence_count: Array.isArray(handoff.held_evidence) ? handoff.held_evidence.length : undefined,
+      collect_intent_count: Array.isArray(handoff.collect_intents) ? handoff.collect_intents.length : undefined,
+    };
+    actions = ["ask_about"];
   } else if (dataset?.dataset_id) {
     const authority = assetAuthorityContext(dataset);
     entity = {

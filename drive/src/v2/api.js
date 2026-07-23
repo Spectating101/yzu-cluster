@@ -342,6 +342,10 @@ export function requestSynthesisExecution(threadId) {
   });
 }
 
+export function getSynthesisDiscoverHandoff(threadId) {
+  return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}/discover-handoff`);
+}
+
 export function synthesisMaterialisation(threadId) {
   return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}/materialisation`);
 }

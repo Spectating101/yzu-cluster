@@ -128,6 +128,17 @@ export function synthesisThreadObject(thread) {
   };
 }
 
+export function synthesisDiscoverHandoffObject(handoff) {
+  if (!handoff?.thread_id) return null;
+  const selected = handoff.selected_field || {};
+  return {
+    kind: "synthesis_discover_handoff",
+    id: `${handoff.thread_id}:${selected.id || selected.label || "gap"}`,
+    title: compactText(selected.label || selected.dataset_id, "Synthesis evidence gap"),
+    handoff,
+  };
+}
+
 export function pageObject(page) {
   return {
     kind: "page",

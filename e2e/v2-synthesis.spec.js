@@ -24,6 +24,7 @@ const EXPLORING_THREAD = {
       { id: "trends", type: "construct", layer: "evidence", label: "Search intent", role: "Core signal", status: "held", grain: "asset-week", coverage: "2021–2026" },
       { id: "reddit", type: "construct", layer: "evidence", label: "Community activity", role: "Core signal", status: "held", grain: "asset-week", coverage: "2021–2026" },
       { id: "gdelt", type: "source", layer: "evidence", label: "GDELT news", role: "Validation", status: "queryable", grain: "event-day", coverage: "2018–present" },
+      { id: "filings", type: "source", layer: "evidence", label: "Regulatory filings", role: "Direct measure gap", status: "missing", grain: "issuer-quarter", coverage: "Not held" },
     ],
     edges: [],
     proposal: null,
@@ -128,6 +129,21 @@ async function installSynthesisThreadMock(page) {
     [EXPLORING_THREAD, PROPOSAL_THREAD, REGISTERED_THREAD, QUERY_READY_THREAD].map((thread) => [thread.id, structuredClone(thread)]),
   );
 
+  await page.route("**/api/library/jobs/job-synthesis-pending/approve", async (route) => {
+    if (route.request().method() !== "POST") return route.fallback();
+    const thread = threads.get("thread-proposal");
+    thread.state.execution = {
+      ...thread.state.execution,
+      status: "queued",
+    };
+    thread.updated_at = "2026-07-19T09:03:00+00:00";
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ id: "job-synthesis-pending", status: "queued" }),
+    });
+  });
+
   await page.route("**/api/library/synthesis/threads**", async (route) => {
     const url = new URL(route.request().url());
     const parts = url.pathname.split("/").filter(Boolean);
@@ -157,6 +173,17 @@ async function installSynthesisThreadMock(page) {
     const thread = threads.get(threadId);
     if (!thread) return respond({ error: "not found" }, 404);
     if (!suffix && method === "GET") return respond(thread);
+    if (suffix === "discover-handoff" && method === "GET") {
+      return respond({
+        thread_id: "thread-attention",
+        objective: EXPLORING_THREAD.objective,
+        required_grain: "asset × week",
+        held_evidence: [{ id: "trends", label: "Search intent" }],
+        missing_evidence: [{ id: "filings", label: "Regulatory filings", source_identity: "regulatory filings" }],
+        collect_intents: [{ evidence_id: "filings", label: "Regulatory filings", source_identity: "regulatory filings", resolvable: false }],
+        fake_collection: false,
+      });
+    }
     if (suffix === "patches" && method === "POST") {
       const body = route.request().postDataJSON?.() || {};
       const proposal = thread.state.proposal;
@@ -207,7 +234,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await expect(page.getByTestId("synthesis-evidence-state")).toContainText("Historical stablecoin attention");
     await expect(page.getByTestId("synthesis-evidence-state")).toContainText("Search intent");
     await expect(page.locator("aside.rd-v2-rail")).toContainText("Historical stablecoin attention");
-    await expect(page.locator("aside.rd-v2-rail")).toContainText("3 mapped inputs");
+    await expect(page.locator("aside.rd-v2-rail")).toContainText("4 mapped inputs");
     await expect(page.getByText("Nothing registered", { exact: true })).toBeVisible();
     await capture(page, "01-durable-evidence-desktop");
   });
@@ -222,6 +249,42 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await expect(pending).toContainText("pending approval");
     await expect(pending.getByText("Query ready", { exact: true })).toHaveCount(0);
     await capture(page, "02-execution-request-desktop");
+  });
+
+  test("queues an approved synthesis build without fabricating a registered output", async ({ page }) => {
+    await page.getByTestId("synthesis-thread-item").filter({ hasText: "Weekly trust panel" }).click();
+    await page.getByRole("button", { name: "Accept proposal" }).click();
+    await page.getByRole("button", { name: "Request execution" }).click();
+
+    const pending = page.getByTestId("synthesis-execution-state");
+    await expect(pending).toContainText("pending approval");
+    await expect(pending.getByRole("button", { name: "Approve build" })).toBeVisible();
+
+    await pending.getByRole("button", { name: "Approve build" }).click();
+    const queued = page.getByTestId("synthesis-execution-state");
+    await expect(queued).toContainText("queued");
+    await expect(queued.getByRole("button", { name: "Open in Library" })).toHaveCount(0);
+  });
+
+  test("obtains a durable Discover handoff before routing a selected evidence gap to Discover", async ({ page }) => {
+    await page.getByRole("button", { name: /Regulatory filings/ }).click();
+    await expect(page.getByTestId("synthesis-selected-field")).toContainText("Regulatory filings");
+    await capture(page, "07-selected-evidence-handoff-desktop");
+    await page.getByRole("button", { name: "Route to Discover" }).click();
+    await expect(page).toHaveURL(/tab=browse/);
+    await expect(page.getByTestId("synthesis-discover-handoff")).toContainText("Regulatory filings");
+    await expect(page.getByTestId("synthesis-discover-handoff")).toContainText("asset × week");
+    await expect(page.locator("aside.rd-v2-rail")).not.toContainText("Continue Synthesis evidence search");
+    await capture(page, "08-discover-handoff-desktop");
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await expect(page.getByTestId("synthesis-discover-handoff")).toContainText("Regulatory filings");
+  });
+
+  test("keeps held evidence inspectable but does not route it as a missing-evidence handoff", async ({ page }) => {
+    await page.getByRole("button", { name: /Search intent/ }).click();
+    const selected = page.getByTestId("synthesis-selected-field");
+    await expect(selected).toContainText("Search intent");
+    await expect(selected.getByRole("button", { name: "Route to Discover" })).toHaveCount(0);
   });
 
   test("renders registered output only from thread registration evidence", async ({ page }) => {

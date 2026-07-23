@@ -5334,6 +5334,31 @@
   padding: 2px 18px 28px;
 }
 
+.rd-v2-synthesis-handoff {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 14px 0 4px;
+  padding: 12px 14px;
+  border: 1px solid #cfd5fb;
+  border-radius: 12px;
+  background: #f6f7ff;
+}
+
+.rd-v2-synthesis-handoff strong {
+  display: block;
+  margin-top: 3px;
+  color: #283044;
+  font-size: 12px;
+}
+
+.rd-v2-synthesis-handoff p {
+  margin: 4px 0 0;
+  color: #67718a;
+  font-size: 10px;
+}
+
 /* Discover is a working index, not a floating dashboard card. The shared
    page shell remains available to other surfaces with different needs. */
 .rd-v2-discover-page .rd-v2-body-scroll {

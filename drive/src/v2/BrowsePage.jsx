@@ -197,6 +197,8 @@ export function BrowsePage({
   discoverFocusAwaiting = false,
   historyEvents = [],
   selectedHistoryId = "",
+  synthesisHandoff = null,
+  onDismissSynthesisHandoff,
   onSelectHistoryEvent,
 }) {
   const [rows, setRows] = useState([]);
@@ -473,6 +475,23 @@ export function BrowsePage({
       toolbar={demoMode ? <Chip warn>Demo preview · static sample</Chip> : null}
     >
       <div className="rd-v2-discover-browse" data-testid="discover-browse-mode" data-mode="browse">
+        {synthesisHandoff ? (
+          <section className="rd-v2-synthesis-handoff" data-testid="synthesis-discover-handoff" aria-label="Synthesis evidence handoff">
+            <div>
+              <span className="rd-v2-eyebrow">Synthesis evidence gap</span>
+              <strong>{synthesisHandoff.selected_field?.label || "Selected evidence"}</strong>
+              <p>
+                {synthesisHandoff.selected_field?.role ? `${synthesisHandoff.selected_field.role}. ` : ""}
+                {synthesisHandoff.required_grain ? `Required grain: ${synthesisHandoff.required_grain}. ` : ""}
+                {synthesisHandoff.selected_field?.coverage ? `Coverage: ${synthesisHandoff.selected_field.coverage}. ` : ""}
+                This is a research handoff only; no collection has started.
+              </p>
+            </div>
+            <button type="button" className="rd-v2-btn sm" onClick={() => onDismissSynthesisHandoff?.()}>
+              Dismiss
+            </button>
+          </section>
+        ) : null}
         {!q ? (
           <DiscoverEmptyState onSuggest={onSuggestSearch} />
         ) : (

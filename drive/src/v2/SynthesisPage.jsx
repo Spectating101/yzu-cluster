@@ -3,6 +3,7 @@ import { PageShell } from "@/v2/ui";
 import {
   createSynthesisThread,
   decideSynthesisProposal,
+  getSynthesisDiscoverHandoff,
   getSynthesisThread,
   listSynthesisProfiles,
   listSynthesisThreads,
@@ -46,6 +47,10 @@ function evidenceNodes(thread) {
   return (thread?.state?.nodes || []).filter(
     (node) => node?.layer === "evidence" || node?.type === "source" || node?.type === "construct",
   );
+}
+
+function isEvidenceGap(node) {
+  return /missing|needs_access|sourceable/i.test(String(node?.status || ""));
 }
 
 function targetNode(thread) {
@@ -149,11 +154,11 @@ function ThreadHeader({ thread }) {
   );
 }
 
-function EvidenceMap({ thread, onAsk }) {
+function EvidenceMap({ thread, selectedField, onAsk, onRouteToDiscover, onSelectField }) {
   const target = targetNode(thread);
   const evidence = evidenceNodes(thread);
   const state = thread?.state || {};
-  const missing = evidence.filter((node) => /missing|needs_access|sourceable/i.test(String(node.status || "")));
+  const missing = evidence.filter(isEvidenceGap);
   return (
     <section className="s04-card" data-testid="synthesis-evidence-state">
       <header className="s04-title">
@@ -163,17 +168,23 @@ function EvidenceMap({ thread, onAsk }) {
         </div>
         <em className="neutral">{evidence.length ? `${evidence.length} mapped inputs` : "No inputs mapped"}</em>
       </header>
-      <div className="s04-map" role="img" aria-label="The current Synthesis evidence map">
+      <div className="s04-map" role="group" aria-label="The current Synthesis evidence map">
         <strong className="target">{text(target?.label, text(thread?.objective, "Research objective"))}</strong>
         <b>↓</b>
         <div className="sources">
           {evidence.length ? (
             evidence.slice(0, 6).map((node) => (
-              <article key={node.id || node.label}>
+              <button
+                type="button"
+                key={node.id || node.label}
+                className={`s04-map-node${selectedField?.id === node.id ? " selected" : ""}`}
+                onClick={() => onSelectField(node)}
+                aria-pressed={selectedField?.id === node.id}
+              >
                 <small>{text(node.role || node.eyebrow || node.status, "Evidence")}</small>
                 <strong>{text(node.label || node.dataset_id, "Unnamed evidence")}</strong>
                 <span>{[node.grain, node.coverage].filter(Boolean).join(" · ") || "Metadata not reported"}</span>
-              </article>
+              </button>
             ))
           ) : (
             <article className="s04-empty-evidence">
@@ -202,6 +213,29 @@ function EvidenceMap({ thread, onAsk }) {
           <p>{missing.length ? missing.map((node) => node.label || node.dataset_id).filter(Boolean).join(" · ") : "This is not a claim of complete coverage."}</p>
         </article>
       </div>
+      {selectedField ? (
+        <section className="s04-selected-field" data-testid="synthesis-selected-field">
+          <div>
+            <small>Selected evidence</small>
+            <strong>{text(selectedField.label || selectedField.dataset_id, "Unnamed evidence")}</strong>
+            <p>{text(selectedField.interpretation || selectedField.status, "No evidence interpretation has been recorded.")}</p>
+          </div>
+          <div>
+            <button
+              type="button"
+              className="rd-v2-btn"
+              onClick={() => onAsk(`Inspect ${text(selectedField.label || selectedField.dataset_id)} in this construction. State what it establishes, what remains unknown, and the valid next method decision.`)}
+            >
+              Inspect in Composer
+            </button>
+            {isEvidenceGap(selectedField) ? (
+              <button type="button" className="rd-v2-btn primary" onClick={() => onRouteToDiscover(selectedField)}>
+                Route to Discover
+              </button>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
       <footer className="s04-actions">
         <p>
           <small>Next</small>
@@ -264,7 +298,7 @@ function ProposalReview({ thread, busy, onDecide, onAsk }) {
   );
 }
 
-function ExecutionRecord({ thread, busy, onRequest, onAsk, onOpenDataset }) {
+function ExecutionRecord({ thread, busy, onRequest, onApprove, onAsk, onOpenDataset }) {
   const state = thread?.state || {};
   const execution = state.execution || {};
   const spec = state.execution_spec || {};
@@ -275,6 +309,7 @@ function ExecutionRecord({ thread, busy, onRequest, onAsk, onOpenDataset }) {
   const registered = mode === "registered" || queryReady;
   const failed = execution.status === "failed";
   const hasSpec = Boolean(spec.input_dataset_id && spec.output_dataset_id);
+  const awaitingApproval = execution.status === "pending_approval" && Boolean(execution.job_id);
 
   return (
     <section className="s04-card" data-testid={queryReady ? "synthesis-query-ready-state" : registered ? "synthesis-registered-state" : failed ? "synthesis-failed-state" : "synthesis-execution-state"}>
@@ -326,6 +361,7 @@ function ExecutionRecord({ thread, busy, onRequest, onAsk, onOpenDataset }) {
                 : "An accepted execution specification is required before this thread can request a build."}
         </p>
         {registered ? <button type="button" className="rd-v2-btn primary" onClick={() => onOpenDataset?.({ dataset_id: outputId, name: outputId, analysis_readiness: "instant" })}>Open in Library</button> : null}
+        {awaitingApproval ? <button type="button" className="rd-v2-btn primary" disabled={busy} onClick={() => onApprove?.(execution.job_id)}>Approve build</button> : null}
         {!registered && hasSpec ? <button type="button" className="rd-v2-btn primary" disabled={busy || Boolean(execution.status)} onClick={onRequest}>Request execution</button> : null}
         <button type="button" className="rd-v2-btn" onClick={() => onAsk("Explain the exact execution state and which evidence is still missing before this output can be trusted.")}>Ask about execution</button>
       </footer>
@@ -403,7 +439,7 @@ function EmptyWorkspace({ profiles, profilesLoading, profilesError, onStartBluep
   );
 }
 
-export function SynthesisPage({ onAskComposer, onOpenDataset, onSelectThread }) {
+export function SynthesisPage({ onAskComposer, onApproveJob, onDiscoverHandoff, onOpenDataset, onSelectThread }) {
   const [threads, setThreads] = useState([]);
   const [profiles, setProfiles] = useState([]);
   const [profilesLoading, setProfilesLoading] = useState(true);
@@ -414,6 +450,7 @@ export function SynthesisPage({ onAskComposer, onOpenDataset, onSelectThread }) 
   const [error, setError] = useState("");
   const [newMode, setNewMode] = useState(false);
   const [objective, setObjective] = useState("");
+  const [selectedField, setSelectedField] = useState(null);
   const notified = useRef("");
 
   const replaceThread = useCallback((next) => {
@@ -498,6 +535,7 @@ export function SynthesisPage({ onAskComposer, onOpenDataset, onSelectThread }) 
 
   const selectThread = async (threadId) => {
     setSelectedId(threadId);
+    setSelectedField(null);
     setNewMode(false);
     setError("");
     try {
@@ -513,6 +551,33 @@ export function SynthesisPage({ onAskComposer, onOpenDataset, onSelectThread }) 
       ? `\n\nSynthesis thread: ${titleFor(selected)}\nObjective: ${text(selected.objective || selected.state?.objective)}\nDurable status: ${stageLabel(selected)}.`
       : "\n\nSynthesis workspace context.";
     onAskComposer?.({ prompt: `${text(prompt)}${context}`, displayText: text(prompt, "Discuss this synthesis") });
+  };
+
+  const routeToDiscover = async (field) => {
+    if (!selected || !isEvidenceGap(field)) return;
+    setBusy(true);
+    setError("");
+    try {
+      const handoff = await getSynthesisDiscoverHandoff(selected.id);
+      const evidenceId = String(field.id || field.dataset_id || "");
+      const match = (item) => String(item?.id || item?.evidence_id || item?.dataset_id || "") === evidenceId;
+      const missingEvidence = (handoff?.missing_evidence || []).filter(match);
+      const collectIntents = (handoff?.collect_intents || []).filter(match);
+      if (!missingEvidence.length) throw new Error("This evidence gap is no longer part of the durable Discover handoff.");
+      onDiscoverHandoff?.({
+        field,
+        handoff: {
+          ...handoff,
+          missing_evidence: missingEvidence,
+          collect_intents: collectIntents,
+        },
+        thread: selected,
+      });
+    } catch (cause) {
+      setError(text(cause?.message, "The Discover handoff could not be prepared."));
+    } finally {
+      setBusy(false);
+    }
   };
 
   const createThread = async () => {
@@ -613,6 +678,22 @@ export function SynthesisPage({ onAskComposer, onOpenDataset, onSelectThread }) 
     }
   };
 
+  const approveExecution = async (jobId) => {
+    if (!jobId || !onApproveJob) return;
+    setBusy(true);
+    setError("");
+    try {
+      const approved = await onApproveJob(jobId);
+      if (!approved) throw new Error("The build was not approved. Review the error and try again.");
+      const next = await refreshThread(selected?.id);
+      if (next) onSelectThread?.(next);
+    } catch (cause) {
+      setError(text(cause?.message, "The execution build could not be approved."));
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const mode = stateFor(selected);
   const showExecution = Boolean(selected && (mode === "execution" || mode === "registered" || mode === "failed" || selected.state?.execution_spec));
 
@@ -642,8 +723,8 @@ export function SynthesisPage({ onAskComposer, onOpenDataset, onSelectThread }) 
             <>
               <ThreadHeader thread={selected} />
               {mode === "proposal" ? <ProposalReview thread={selected} busy={busy} onDecide={decideProposal} onAsk={ask} /> : null}
-              {showExecution ? <ExecutionRecord thread={selected} busy={busy} onRequest={requestExecution} onAsk={ask} onOpenDataset={onOpenDataset} /> : null}
-              {mode === "explore" ? <EvidenceMap thread={selected} onAsk={ask} /> : null}
+              {showExecution ? <ExecutionRecord thread={selected} busy={busy} onRequest={requestExecution} onApprove={approveExecution} onAsk={ask} onOpenDataset={onOpenDataset} /> : null}
+              {mode === "explore" ? <EvidenceMap thread={selected} selectedField={selectedField} onAsk={ask} onRouteToDiscover={routeToDiscover} onSelectField={setSelectedField} /> : null}
               {mode === "draft" ? (
                 <EmptyWorkspace
                   profiles={profiles}
