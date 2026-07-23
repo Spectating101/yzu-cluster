@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { LoaderCircle } from "lucide-react";
 import { GuidedState, ProgressSteps } from "@/v2/InteractionFeedback";
 import { useAskChat } from "@/v2/useAskChat";
+import { isInternalValidationRecord } from "@/v2/productVisibility";
 
 function pageLabel(mainTab) {
   const labels = {
@@ -27,8 +28,9 @@ export function AskRail({
   onToast,
   railContext,
 }) {
+  const scopedDataset = mainTab === "home" && isInternalValidationRecord(dataset) ? null : dataset;
   const { messages, input, setInput, busy, status, send, contextLabel } = useAskChat({
-    dataset,
+    dataset: scopedDataset,
     railContext,
     onCollected,
     onToast,
@@ -68,12 +70,12 @@ export function AskRail({
   const page = pageLabel(mainTab);
   const isProfile = mainTab === "profile";
   const isDiscover = mainTab === "browse";
-  const isDiscoverHistory = isDiscover && dataset?.kind === "discover_history";
+  const isDiscoverHistory = isDiscover && scopedDataset?.kind === "discover_history";
   const isSynthesis = mainTab === "synthesis";
-  const discoverTitle = dataset?.title || dataset?.dataset_id || "";
+  const discoverTitle = scopedDataset?.title || scopedDataset?.dataset_id || "";
   const synthesisContext =
-    dataset?.title && dataset.title !== "Synthesis studio"
-      ? dataset.title
+    scopedDataset?.title && scopedDataset.title !== "Synthesis studio"
+      ? scopedDataset.title
       : railContext?.entity?.title || "Current synthesis thread";
   const objectTitle =
     contextLabel ||
