@@ -1,4 +1,4 @@
-/* Narrow corrections discovered by the loop-2 acceptance gate. */
+/* Narrow corrections discovered by the live desktop acceptance loop. */
 
 @media (min-width: 761px) {
   .rd-v2-rail {
@@ -10,5 +10,37 @@
   .rd-v2-rail-stack {
     width: 100%;
     min-width: 0;
+  }
+
+  /* Keep the four faculty-state signals visible as a compact preface to work. */
+  .rd-v2-home-page .rd-recovery-home-context {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    min-height: 72px;
+    margin: 0 0 10px !important;
+    border: 1px solid var(--rd-converge-line);
+    border-radius: 14px;
+    overflow: visible;
+  }
+
+  .rd-v2-home-page .rd-recovery-home-context > article {
+    display: block !important;
+    min-width: 0;
+    min-height: 72px !important;
+    padding: 12px 14px !important;
+    border-right: 1px solid var(--rd-converge-line);
+  }
+
+  .rd-v2-home-page .rd-recovery-home-context > article:last-child {
+    border-right: 0;
+  }
+
+  .rd-v2-home-page .rd-recovery-home-continue {
+    margin-top: 0 !important;
+    border-radius: 14px 14px 0 0;
+  }
+
+  .rd-v2-home-page .rd-v2-home-attention {
+    border-radius: 0 0 14px 14px;
   }
 }
