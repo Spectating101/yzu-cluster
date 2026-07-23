@@ -12,10 +12,84 @@ function asArray(value) {
   return Array.isArray(value) ? value : [];
 }
 
-function evidenceNodes(thread) {
+function objectiveFor(thread) {
+  return first(thread?.objective, thread?.state?.objective);
+}
+
+function labeledSegment(source, label, stopLabels = []) {
+  const value = text(source);
+  if (!value) return "";
+  const lower = value.toLowerCase();
+  const marker = String(label || "").toLowerCase();
+  const startIndex = lower.indexOf(marker);
+  if (startIndex < 0) return "";
+  const start = startIndex + marker.length;
+  let end = value.length;
+  stopLabels.forEach((stopLabel) => {
+    const found = lower.indexOf(String(stopLabel).toLowerCase(), start);
+    if (found >= 0 && found < end) end = found;
+  });
+  return value.slice(start, end).replace(/^[\s:—-]+/, "").trim();
+}
+
+function slug(value) {
+  return text(value, "evidence")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "") || "evidence";
+}
+
+function humanizeDimension(value) {
+  const labels = {
+    ric: "RIC",
+    as_of_month: "month",
+    yahoo_symbol: "Yahoo symbol",
+    asset_id: "asset",
+    firm_id: "firm",
+    company_id: "firm",
+  };
+  const parts = text(value)
+    .split(/[,×|]+/)
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .map((part) => labels[part.toLowerCase()] || part.replace(/_/g, " "));
+  return parts.length ? parts.join(" × ") : "";
+}
+
+function populationFromQuestion(question) {
+  const match = text(question).match(/\bfor\s+([^?]+?)(?:\?|$)/i);
+  return match?.[1]?.trim() || "";
+}
+
+function declaredEvidenceNodes(thread) {
+  const objective = objectiveFor(thread);
+  const declared = labeledSegment(objective, "Registered inputs", ["Lead question", "Research question", "Question"]);
+  if (!declared) return [];
+  return declared
+    .split(/\s*;\s*/)
+    .map((value) => value.trim().replace(/[.;]+$/, ""))
+    .filter(Boolean)
+    .map((label) => ({
+      id: `declared-${slug(label)}`,
+      label,
+      layer: "evidence",
+      type: "construct",
+      status: "declared_registered",
+      declared: true,
+      role: "Thread-declared input",
+      provenance: "Research construction text",
+    }));
+}
+
+function explicitEvidenceNodes(thread) {
   return asArray(thread?.state?.nodes).filter(
     (node) => node?.layer === "evidence" || node?.type === "source" || node?.type === "construct",
   );
+}
+
+function evidenceNodes(thread) {
+  const explicit = explicitEvidenceNodes(thread);
+  return explicit.length ? explicit : declaredEvidenceNodes(thread);
 }
 
 function isMissingNode(node) {
@@ -34,16 +108,22 @@ function mappedDataset(node, datasets) {
 function normalizeEvidence(node, datasets, missing) {
   const dataset = mappedDataset(node, datasets);
   const rawState = first(node?.status, node?.state, dataset?.analysis_readiness, dataset?.readiness, dataset?.status);
+  const proofPending = Boolean(node?.declared && !dataset);
   return {
     id: first(node?.id, node?.dataset_id, dataset?.dataset_id, node?.label),
     label: first(node?.label, node?.title, node?.dataset_id, dataset?.name, dataset?.dataset_id, "Unnamed evidence"),
     role: first(node?.role, node?.eyebrow, missing ? "Evidence requirement" : "Mapped evidence"),
-    grain: first(node?.grain, dataset?.grain, "Grain not established"),
-    coverage: first(node?.coverage, dataset?.coverage, "Coverage not established"),
+    grain: first(node?.grain, dataset?.grain, proofPending ? "Grain not mapped" : "Grain not established"),
+    coverage: first(node?.coverage, dataset?.coverage, proofPending ? "Coverage not mapped" : "Coverage not established"),
     state: normalizeResearchState(rawState),
-    stateLabel: missing ? facultyStateLabel(rawState || "unknown") : facultyStateLabel(rawState || "held"),
+    stateLabel: proofPending
+      ? "Referenced as registered input; proof not mapped"
+      : missing
+        ? facultyStateLabel(rawState || "unknown")
+        : facultyStateLabel(rawState || "held"),
     datasetId: first(node?.dataset_id, dataset?.dataset_id),
     missing,
+    proofPending,
     provenance: first(node?.provenance, dataset?.provenance, dataset?.source),
   };
 }
@@ -186,11 +266,21 @@ export function normalizeResearchConstruction(thread, datasets = []) {
   const missing = evidence.filter(isMissingNode).map((node) => normalizeEvidence(node, datasets, true));
   const method = methodView(state);
   const output = outputView(thread, state);
-  const question = first(state.question, thread.question, thread.objective, state.objective, target?.interpretation, thread.title, state.title, "Research question not established");
-  const unitOfAnalysis = first(state.unit_of_analysis, state.required_grain, state.spec?.grain, output.grain, "Unit of analysis not established");
-  const population = first(state.population, state.spec?.population, state.context?.population, "Population not established");
-  const period = first(state.period, state.spec?.period, target?.coverage, held[0]?.coverage, "Period not established");
+  const objective = objectiveFor(thread);
+  const extractedQuestion = labeledSegment(objective, "Lead question", []);
+  const question = first(state.question, thread.question, extractedQuestion, objective, target?.interpretation, thread.title, state.title, "Research question not established");
+  const unitOfAnalysis = first(
+    humanizeDimension(state.unit_of_analysis),
+    humanizeDimension(state.required_grain),
+    humanizeDimension(state.spec?.grain),
+    humanizeDimension(output.grain),
+    "Unit of analysis not established",
+  );
+  const population = first(state.population, state.spec?.population, state.context?.population, populationFromQuestion(question), "Population not established");
+  const period = first(state.period, state.spec?.period, target?.coverage, held.find((item) => !item.proofPending)?.coverage, "Period not established");
   const nextDecision = nextDecisionView({ state, method, missing, output });
+  const referencedCount = held.filter((item) => item.proofPending).length;
+  const mappedCount = held.length - referencedCount;
 
   return {
     id: text(thread.id, "construction-unidentified"),
@@ -201,6 +291,15 @@ export function normalizeResearchConstruction(thread, datasets = []) {
     period,
     evidenceHeld: held,
     evidenceMissing: missing,
+    evidenceSummary: {
+      available: held.length,
+      mapped: mappedCount,
+      referenced: referencedCount,
+      missing: missing.length,
+      label: referencedCount
+        ? `${held.length} available · ${referencedCount} awaiting proof mapping · ${missing.length} missing`
+        : `${held.length} held · ${missing.length} missing`,
+    },
     method,
     outputContract: output,
     nextDecision,
@@ -210,6 +309,7 @@ export function normalizeResearchConstruction(thread, datasets = []) {
       archiveVerified: output.archiveVerified,
       registryVerified: output.registryVerified,
       manifestId: output.manifestId,
+      evidenceSource: referencedCount ? "Construction text; registry proof not mapped" : "Structured construction state",
     },
     relationships: {
       requires: missing.map((item) => item.id),
@@ -236,6 +336,7 @@ export function constructionComposerContext(view, selectedField = "construction"
     `accepted_method: ${view.method.acceptedDefinition}`,
     `evidence_held: ${view.evidenceHeld.map((item) => item.label).join(" | ") || "none mapped"}`,
     `evidence_missing: ${view.evidenceMissing.map((item) => item.label).join(" | ") || "none recorded"}`,
+    `evidence_authority: ${view.provenance.evidenceSource}`,
     `output_contract: ${view.outputContract.datasetId || view.outputContract.label}`,
     `next_decision: ${view.nextDecision.title}`,
   ].join("\n");
