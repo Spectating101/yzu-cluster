@@ -107,13 +107,13 @@ test.describe("v2 Discover loop anchor", () => {
     await expect(filters.getByRole("button", { name: "Collected" })).toBeVisible();
     await expect(filters.getByRole("button", { name: "Registered" })).toBeVisible();
     await expect(filters.getByRole("button", { name: "Query-ready" })).toBeVisible();
-    await expect(history).toContainText("TWSE governance");
+    await expect(history).toContainText("MOPS financial statements");
     await expect(history.locator(".rd-v2-history-row").first()).toHaveAttribute("aria-pressed", "true");
-    await history.getByRole("button", { name: /TWSE governance/ }).click();
+    await history.getByRole("button", { name: /MOPS financial statements/ }).click();
 
     const rail = page.locator("aside.rd-v2-rail");
     await expect(rail).toContainText("Procurement trail");
-    await expect(rail).toContainText("TWSE governance");
+    await expect(rail).toContainText("MOPS financial statements");
     await expect(rail).toContainText("Holding lifecycle");
     await expect(rail).toContainText("Collected");
     await expect(rail).toContainText("Registered");
