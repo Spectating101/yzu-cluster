@@ -156,14 +156,33 @@ assert_live_process_is_owned() {
   return 1
 }
 
+ensure_tailwind_oxide() {
+  # systemd user services often see /usr/bin/node (v18) first; optional native
+  # bindings for @tailwindcss/oxide then get omitted and Vite dies at mock E2E.
+  if node -e "require('@tailwindcss/oxide')" >/dev/null 2>&1; then
+    return 0
+  fi
+  local version
+  version="$(node -p "require('./node_modules/@tailwindcss/oxide/package.json').version" 2>/dev/null || true)"
+  if [ -z "$version" ]; then
+    log "oxide package missing after npm install"
+    return 1
+  fi
+  log "oxide native binding missing; forcing @tailwindcss/oxide-linux-x64-gnu@${version}"
+  npm install --no-save --no-audit --no-fund "@tailwindcss/oxide-linux-x64-gnu@${version}"
+  node -e "require('@tailwindcss/oxide')"
+}
+
 run_checks() {
   local release_dir="$1"
   (
     cd "$release_dir"
+    log "checks using node=$(command -v node) ($(node -v)) npm=$(command -v npm)"
     # A clean install avoids npm's optional-dependency/native-binding bug
     # which can make Vite/Tailwind fail after an otherwise successful npm ci.
     rm -rf node_modules
-    npm install --no-audit --no-fund
+    npm install --no-audit --no-fund --include=optional
+    ensure_tailwind_oxide
     npm run build
     npm run test:candidate-key
     npm run test:runtime-contract
