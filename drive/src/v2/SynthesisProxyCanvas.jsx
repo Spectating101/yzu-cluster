@@ -114,7 +114,7 @@ function RecipePanel({ recipe, outputContract, onSelect }) {
             <button
               type="button"
               key={`${step}-${index}`}
-              onClick={() => onSelect("synthesis_recipe", { label: step })}
+              onClick={() => onSelect("synthesis_recipe", { label: step, compactLabel: compactStep(step, index), index })}
               title={step}
               aria-label={step}
             >
@@ -132,7 +132,69 @@ function RecipePanel({ recipe, outputContract, onSelect }) {
   );
 }
 
-export function SynthesisProxyCanvas({ view, onSelectArea, onAsk, onGoTab, onOpenDataset }) {
+function selectionCopy(selection) {
+  const area = selection?.area || "";
+  const item = selection?.item || {};
+  if (area === "available_ingredients") {
+    return { eyebrow: item.role || "Source dataset", title: item.label || "Selected ingredient", meta: `${item.grain || "Grain unknown"} · ${item.coverage || "Coverage unknown"}` };
+  }
+  if (area === "synthesis_recipe") {
+    return { eyebrow: `Transformation ${Number(item.index || 0) + 1}`, title: item.compactLabel || item.label || "Selected transformation", meta: item.label || "Transformation detail not recorded" };
+  }
+  if (area === "proxy_recipes") {
+    return { eyebrow: "Candidate recipe", title: item.title || "Proxy recipe", meta: `Fidelity ${item.fidelity || "—"} · Coverage ${item.coverage || "—"} · Timing ${item.timing || "—"}` };
+  }
+  if (area === "measurement_limitations") {
+    return { eyebrow: "Measurement limitation", title: item.label || "Direct measure unavailable", meta: item.reason || "No limitation detail recorded" };
+  }
+  if (area === "output_contract") {
+    return { eyebrow: "Constructed output", title: item.label || item.datasetId || "Output dataset", meta: `${item.grain || "Grain unknown"} · ${item.coverage || "Coverage unknown"}` };
+  }
+  return null;
+}
+
+function SelectionActions({ selection, view, onAsk, onFindEvidence, onOpenDataset }) {
+  const copy = selectionCopy(selection);
+  if (!copy) {
+    return (
+      <div className="rd-proxy-selection rd-proxy-selection-idle" data-testid="synthesis-selection-actions">
+        <span>Select a source, transformation, recipe, limitation, or output to inspect and act on it.</span>
+      </div>
+    );
+  }
+  const registered = ["registered", "query_ready"].includes(view.mode);
+  const area = selection.area;
+  const item = selection.item || {};
+  const discuss = () => onAsk(
+    `Inspect the selected ${area.replace(/_/g, " ")}: ${copy.title}. Explain its exact role, assumptions, backend authority, and available next actions without changing durable state silently.`,
+    area,
+  );
+
+  return (
+    <aside className="rd-proxy-selection" data-testid="synthesis-selection-actions" aria-label="Selected synthesis object">
+      <div>
+        <small>{copy.eyebrow}</small>
+        <strong>{copy.title}</strong>
+        <span title={copy.meta}>{copy.meta}</span>
+      </div>
+      <div>
+        {area === "measurement_limitations" ? <button type="button" className="rd-v2-btn" onClick={() => onFindEvidence?.(item)}>Route to Discover</button> : null}
+        {area === "output_contract" && registered && view.outputContract.datasetId ? (
+          <button
+            type="button"
+            className="rd-v2-btn"
+            onClick={() => onOpenDataset?.({ dataset_id: view.outputContract.datasetId, name: view.outputContract.label, analysis_readiness: view.mode === "query_ready" ? "instant" : "registered" })}
+          >
+            {RESEARCH_ACTIONS.inspectEvidence}
+          </button>
+        ) : null}
+        <button type="button" className="rd-v2-btn primary" onClick={discuss}>Inspect in Composer</button>
+      </div>
+    </aside>
+  );
+}
+
+export function SynthesisProxyCanvas({ view, selection, onSelectArea, onAsk, onFindEvidence, onOpenDataset }) {
   const controlled = view.ingredients.filter((item) => !item.missing);
   const hasIdealLimitations = view.idealEvidence.length > 0;
   const registered = ["registered", "query_ready"].includes(view.mode);
@@ -147,14 +209,6 @@ export function SynthesisProxyCanvas({ view, onSelectArea, onAsk, onGoTab, onOpe
     "Challenge the recommended proxy design. Identify construct-validity threats, leakage risk, temporal assumptions, coverage compromises, and a stronger alternative when one exists. Return a structured proposal rather than changing accepted state silently.",
     "proxy_recipes",
   );
-
-  const investigateAdditionalEvidence = () => {
-    onAsk(
-      `Assess whether additional evidence would materially improve the proxy. Preserve the current proxy design and treat acquisition as an escalation path, not the default. Measurement limitation: ${primaryLimitation?.label || "No exact limitation selected"}.`,
-      "measurement_limitations",
-    );
-    onGoTab?.("browse");
-  };
 
   return (
     <section className="rd-proxy-canvas rd-proxy-instrument-view" data-testid="synthesis-proxy-design" aria-label="Proxy dataset design">
@@ -193,6 +247,8 @@ export function SynthesisProxyCanvas({ view, onSelectArea, onAsk, onGoTab, onOpe
         <RecipePanel recipe={view.primaryRecipe} outputContract={view.outputContract} onSelect={onSelectArea} />
       </div>
 
+      <SelectionActions selection={selection} view={view} onAsk={onAsk} onFindEvidence={onFindEvidence} onOpenDataset={onOpenDataset} />
+
       <section className="rd-proxy-alternatives" aria-label="Candidate proxy designs">
         <header>
           <div><span>Alternative recipes</span><strong>{view.alternatives.length || 0}</strong></div>
@@ -204,7 +260,7 @@ export function SynthesisProxyCanvas({ view, onSelectArea, onAsk, onGoTab, onOpe
       <footer className="rd-proxy-next" data-decision-type={view.nextDecision.type}>
         <div><small>Decision</small><h2>{view.nextDecision.title}</h2></div>
         <div>
-          {hasIdealLimitations ? <button type="button" className="rd-v2-btn" onClick={investigateAdditionalEvidence}>Find additional evidence</button> : null}
+          {hasIdealLimitations ? <button type="button" className="rd-v2-btn" onClick={() => onFindEvidence?.(primaryLimitation)}>Find additional evidence</button> : null}
           {registered && view.outputContract.datasetId ? (
             <button
               type="button"
@@ -215,7 +271,7 @@ export function SynthesisProxyCanvas({ view, onSelectArea, onAsk, onGoTab, onOpe
             </button>
           ) : null}
           <button type="button" className="rd-v2-btn primary" onClick={view.primaryRecipe ? challengeRecipe : generateRecipes}>
-            {view.primaryRecipe ? "Challenge proxy design" : "Generate proxy recipes"}
+            {view.primaryRecipe ? "Challenge in Composer" : "Generate in Composer"}
           </button>
         </div>
       </footer>
