@@ -9,8 +9,12 @@ import { normalizeResearchConstruction } from "@/v2/ResearchConstructionViewMode
 import { RESEARCH_ACTIONS } from "@/v2/researchValue";
 
 function evidenceCount(view) {
-  const total = view.evidenceHeld.length + view.evidenceMissing.length;
-  return total ? `${total} mapped inputs` : "No inputs mapped";
+  const summary = view.evidenceSummary;
+  if (!summary.available && !summary.missing) return "No inputs established";
+  if (summary.referenced) {
+    return `${summary.available} available · ${summary.referenced} awaiting proof mapping`;
+  }
+  return `${summary.mapped} mapped · ${summary.missing} missing`;
 }
 
 export function SynthesisThreadRailPanel({ thread, onAskAbout, onOpenInLibrary }) {
@@ -27,6 +31,7 @@ export function SynthesisThreadRailPanel({ thread, onAskAbout, onOpenInLibrary }
       <RailFieldGrid>
         <RailField label="Construction ID" value={view.provenance.threadId || "Not reported"} mono />
         <RailField label="Evidence" value={evidenceCount(view)} />
+        <RailField label="Evidence authority" value={view.provenance.evidenceSource} />
         <RailField label="Evidence gaps" value={String(view.evidenceMissing.length)} />
         <RailField label="Archive proof" value={view.provenance.archiveVerified ? "Reported verified" : "Not established"} />
         <RailField label="Registry proof" value={view.provenance.registryVerified ? "Indexed and traceable" : "Not established"} />
