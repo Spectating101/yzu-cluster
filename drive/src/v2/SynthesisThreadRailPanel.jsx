@@ -5,54 +5,62 @@ import {
   RailFrame,
   RailStickyFooter,
 } from "@/v2/RailFrame";
-import { normalizeResearchConstruction } from "@/v2/ResearchConstructionViewModel";
+import { normalizeProxyDatasetDesign } from "@/v2/ProxyDatasetDesignViewModel";
 import { RESEARCH_ACTIONS } from "@/v2/researchValue";
 
-function evidenceCount(view) {
-  const summary = view.evidenceSummary;
-  if (!summary.available && !summary.missing) return "No inputs established";
-  if (summary.referenced) {
-    return `${summary.available} available · ${summary.referenced} awaiting proof mapping`;
-  }
-  return `${summary.mapped} mapped · ${summary.missing} missing`;
+function ingredientAuthority(view) {
+  const controlled = view.ingredients.filter((item) => !item.missing);
+  const referenced = controlled.filter((item) => item.proofPending).length;
+  if (!controlled.length) return "None mapped";
+  return referenced ? `${controlled.length} controlled · ${referenced} unverified` : `${controlled.length} controlled`;
 }
 
-export function SynthesisThreadRailPanel({ thread, onAskAbout, onOpenInLibrary }) {
-  const view = normalizeResearchConstruction(thread);
+function limitationAuthority(view) {
+  if (!view.idealEvidence.length) return "Not recorded";
+  if (view.idealEvidence.length === 1) return view.idealEvidence[0].label;
+  return `${view.idealEvidence.length} limitations`;
+}
+
+export function SynthesisThreadRailPanel({ thread, onOpenInLibrary }) {
+  const view = normalizeProxyDatasetDesign(thread);
   if (!view) return null;
   const outputId = view.outputContract.datasetId;
+  const registered = ["registered", "query_ready"].includes(view.mode);
+  const accepted = Boolean(view.capability?.acceptedConstruction);
 
   return (
     <RailFrame>
       <RailEntityHeader
-        title="Construction provenance"
-        description={view.provenance.updatedAt ? `Updated ${view.provenance.updatedAt}` : "Authority attached to the selected construction"}
+        title="Proxy authority"
+        description={registered ? "Registered construction" : accepted ? "Accepted design" : "Design under review"}
       />
       <RailFieldGrid>
-        <RailField label="Construction ID" value={view.provenance.threadId || "Not reported"} mono />
-        <RailField label="Evidence" value={evidenceCount(view)} />
-        <RailField label="Evidence authority" value={view.provenance.evidenceSource} />
-        <RailField label="Evidence gaps" value={String(view.evidenceMissing.length)} />
-        <RailField label="Archive proof" value={view.provenance.archiveVerified ? "Reported verified" : "Not established"} />
-        <RailField label="Registry proof" value={view.provenance.registryVerified ? "Indexed and traceable" : "Not established"} />
-        <RailField label="Output asset" value={outputId || "Not established"} mono={Boolean(outputId)} />
-        <RailField label="Manifest" value={view.provenance.manifestId || "Not reported"} mono={Boolean(view.provenance.manifestId)} />
+        <RailField label="Target" value={view.target.label} />
+        <RailField label="Recipe" value={view.primaryRecipe?.title || "Not generated"} />
+        <RailField label="Inputs" value={ingredientAuthority(view)} />
+        <RailField label="Direct measure" value={limitationAuthority(view)} />
+        <RailField label="Output" value={view.outputContract.label || "Not established"} />
+        {registered ? <RailField label="Readiness" value={view.outputContract.statusLabel} /> : null}
+        {view.provenance.archiveVerified ? <RailField label="Archive" value="Verified" /> : null}
+        {view.provenance.registryVerified ? <RailField label="Registry" value="Verified" /> : null}
+        {view.provenance.manifestId ? <RailField label="Manifest" value={view.provenance.manifestId} mono /> : null}
       </RailFieldGrid>
-      <RailStickyFooter>
-        {outputId && ["registered", "query_ready"].includes(view.mode) ? (
+      {outputId && registered ? (
+        <RailStickyFooter>
           <button
             type="button"
             className="rd-v2-btn primary"
             aria-label="Open in Library"
-            onClick={() => onOpenInLibrary?.({ dataset_id: outputId, name: outputId, analysis_readiness: view.mode === "query_ready" ? "instant" : "registered" })}
+            onClick={() => onOpenInLibrary?.({
+              dataset_id: outputId,
+              name: view.outputContract.label || outputId,
+              analysis_readiness: view.mode === "query_ready" ? "instant" : "registered",
+            })}
           >
             {RESEARCH_ACTIONS.inspectEvidence}
           </button>
-        ) : null}
-        <button type="button" className="rd-v2-btn" onClick={onAskAbout}>
-          {RESEARCH_ACTIONS.askConstruction}
-        </button>
-      </RailStickyFooter>
+        </RailStickyFooter>
+      ) : null}
     </RailFrame>
   );
 }

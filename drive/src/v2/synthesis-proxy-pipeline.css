@@ -1,0 +1,82 @@
+/* Final recipe presentation: operation points on a pipeline, not text boxes. */
+
+@media (min-width: 1181px) {
+  .rd-proxy-instrument-view .rd-proxy-recipe-flow {
+    position: relative;
+    align-items: start;
+    gap: 0;
+    padding: 25px 5px 0;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-recipe-flow::before {
+    content: "";
+    position: absolute;
+    top: 39px;
+    left: 12.5%;
+    right: 12.5%;
+    border-top: 1px solid #b89782;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-recipe-flow button {
+    min-height: 105px;
+    display: grid;
+    grid-template-rows: 30px auto;
+    gap: 12px;
+    justify-items: center;
+    align-content: start;
+    padding: 0 5px;
+    border: 0;
+    background: transparent;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-recipe-flow button:not(:last-child)::after {
+    display: none;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-recipe-flow button:hover {
+    border: 0;
+    background: transparent;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-recipe-flow button:hover span {
+    border-color: var(--sol-accent);
+    background: #fff1e8;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-recipe-flow span {
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    border: 1px solid #b89782;
+    border-radius: 999px;
+    color: var(--sol-accent);
+    background: #fffdf8;
+    font-family: var(--sol-serif);
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+    position: relative;
+    z-index: 2;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-recipe-flow strong {
+    max-width: 76px;
+    color: var(--sol-ink);
+    font-family: var(--sol-serif);
+    font-size: 11.5px;
+    font-weight: 600;
+    line-height: 1.18;
+    text-align: center;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-target > span {
+    max-width: 180px;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+  }
+}

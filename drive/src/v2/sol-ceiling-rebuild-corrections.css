@@ -1,0 +1,357 @@
+/* PR57 correction — Synthesis is a live research construction, not a finished dossier.
+   This file stays intentionally narrow while the accepted visual direction is reviewed. */
+
+@media (min-width: 1181px) {
+  .rd-v2-shell:has(.rd-loop7-synthesis-page) {
+    --rd-sidebar: 168px;
+    --rd-rail: 248px;
+    grid-template-columns: var(--rd-sidebar) minmax(0, 1fr) var(--rd-rail) !important;
+  }
+
+  .rd-loop7-synthesis-page {
+    padding-top: 13px;
+  }
+
+  .rd-loop7-synthesis-page .rd-v2-page-head {
+    padding-right: 16px;
+    padding-bottom: 8px;
+  }
+
+  .rd-loop7-synthesis-page .rd-v2-page-head h1 {
+    font-size: 25px;
+  }
+
+  .rd-loop7-synthesis-page .rd-v2-lead {
+    font-size: 12.5px;
+  }
+
+  .rd-loop7-synthesis-page .rd-v2-body-scroll {
+    margin-right: 16px;
+    margin-bottom: 12px;
+  }
+
+  .rd-loop7-synthesis-shell {
+    height: calc(100vh - 112px);
+    min-height: 0;
+    grid-template-columns: 174px minmax(0, 1fr) !important;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .rd-loop7-thread-list {
+    padding: 11px 8px 9px;
+    border: 1px solid var(--sol-line);
+    border-right: 0;
+    background: #ebe8e0;
+  }
+
+  .rd-loop7-thread-list > header {
+    gap: 8px;
+    padding-bottom: 9px;
+  }
+
+  .rd-loop7-thread-list > header span,
+  .rd-loop7-thread-list > header small {
+    font-size: 9.5px;
+  }
+
+  .rd-loop7-thread-list .s04-thread-new {
+    min-height: 30px;
+    font-size: 10px;
+  }
+
+  .rd-loop7-thread-items > button {
+    grid-template-columns: 22px minmax(0, 1fr);
+    gap: 7px;
+    padding: 8px 6px;
+  }
+
+  .rd-loop7-thread-items > button > b {
+    width: 20px;
+    height: 20px;
+  }
+
+  .rd-loop7-thread-items > button strong {
+    display: block;
+    overflow: visible;
+    font-size: 10.5px;
+    line-height: 1.28;
+    -webkit-line-clamp: unset;
+  }
+
+  .rd-loop7-thread-items > button small {
+    margin-top: 3px;
+    font-size: 9px;
+  }
+
+  .rd-loop7-thread-list > footer:empty {
+    display: none;
+  }
+
+  .rd-loop7-main {
+    padding: 8px 14px 14px;
+    background: #f8f6f0;
+  }
+
+  .rd-loop7-construction {
+    border: 0;
+    border-top: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .rd-loop7-construction-header {
+    padding: 12px 4px 10px;
+    border-bottom: 1px solid var(--sol-line);
+    background: transparent;
+  }
+
+  .rd-loop7-construction-header small,
+  .rd-loop7-next-decision small,
+  .rd-loop7-field-focus {
+    font-size: 10px;
+    letter-spacing: 0.055em;
+  }
+
+  .rd-loop7-construction-header h1 {
+    max-width: none;
+    font-size: 25px;
+    line-height: 1.08;
+    letter-spacing: -0.025em;
+  }
+
+  .rd-loop7-construction-state {
+    max-width: 142px;
+    padding: 6px 9px;
+    border-color: var(--sol-line);
+    background: transparent;
+    font-size: 10.5px;
+  }
+
+  .rd-loop7-study-frame {
+    min-height: 0;
+    border-bottom: 1px solid var(--sol-line);
+    background: transparent;
+  }
+
+  .rd-loop7-study-frame > span {
+    min-height: 0;
+    padding: 8px 14px 9px 4px;
+    font-size: 11.5px;
+  }
+
+  .rd-loop7-study-frame > span + span {
+    padding-left: 16px;
+    border-left: 0;
+  }
+
+  .rd-loop7-study-frame b {
+    margin-bottom: 3px;
+    font-size: 9.5px;
+    letter-spacing: 0.035em;
+  }
+
+  .rd-loop7-field[data-field="question"],
+  .rd-loop7-next-decision {
+    min-height: 146px;
+  }
+
+  .rd-loop7-field[data-field="question"] {
+    padding: 15px 18px 16px 4px;
+    border-right: 0;
+    border-bottom: 1px solid var(--sol-line);
+    background: transparent;
+  }
+
+  .rd-loop7-field.selected {
+    background: #fff9f3;
+    box-shadow: inset 2px 0 0 var(--sol-accent);
+  }
+
+  .rd-loop7-field.editorial p {
+    max-width: 720px;
+    font-size: 21px;
+    line-height: 1.28;
+  }
+
+  .rd-loop7-next-decision {
+    gap: 9px;
+    padding: 15px 16px;
+    border-bottom: 1px solid var(--sol-line);
+    border-left: 3px solid var(--sol-accent);
+    color: var(--sol-ink);
+    background: #f4eee7;
+  }
+
+  .rd-loop7-next-decision small {
+    color: var(--sol-accent-dark);
+  }
+
+  .rd-loop7-next-decision h2 {
+    color: var(--sol-ink);
+    font-size: 18px;
+    line-height: 1.15;
+  }
+
+  .rd-loop7-next-decision p {
+    color: var(--sol-body);
+    font-size: 11.5px;
+    line-height: 1.4;
+  }
+
+  .rd-loop7-next-actions {
+    gap: 6px;
+  }
+
+  .rd-loop7-next-actions .rd-v2-btn {
+    min-height: 31px;
+    padding: 6px 8px;
+    font-size: 10.5px;
+  }
+
+  .rd-loop7-next-decision .rd-v2-btn:not(.primary) {
+    border-color: var(--sol-line-strong);
+    color: var(--sol-ink-soft);
+    background: transparent;
+  }
+
+  .rd-loop7-next-decision .rd-v2-btn.primary {
+    border-color: var(--sol-accent);
+    color: #fff9f1;
+    background: var(--sol-accent);
+  }
+
+  .rd-loop7-evidence {
+    padding: 12px 4px 11px;
+    border-bottom: 1px solid var(--sol-line);
+    background: transparent;
+  }
+
+  .rd-loop7-evidence > header {
+    margin-bottom: 8px;
+  }
+
+  .rd-loop7-evidence > header span,
+  .rd-loop7-evidence > header strong {
+    font-size: 10px;
+  }
+
+  .rd-loop7-evidence-columns {
+    grid-template-columns: minmax(0, 1.48fr) minmax(210px, 0.52fr);
+    gap: 20px;
+    border: 0;
+  }
+
+  .rd-loop7-evidence-columns > section,
+  .rd-loop7-evidence-columns > section:last-child {
+    border: 0;
+    background: transparent;
+  }
+
+  .rd-loop7-evidence-columns h2 {
+    padding: 0 0 7px;
+    border-bottom: 1px solid var(--sol-line);
+    background: transparent;
+    font-size: 10.5px;
+  }
+
+  .rd-loop7-evidence-row {
+    min-height: 0;
+    grid-template-columns: 22px minmax(0, 1fr) minmax(90px, auto);
+    gap: 8px;
+    padding: 8px 4px 8px 8px;
+    border-bottom: 1px solid #ddd8cc;
+    background: transparent;
+  }
+
+  .rd-loop7-evidence-row.held,
+  .rd-loop7-evidence-row.referenced,
+  .rd-loop7-evidence-row.gap {
+    box-shadow: inset 2px 0 0 var(--sol-positive);
+  }
+
+  .rd-loop7-evidence-row.referenced {
+    background: transparent;
+    box-shadow: inset 2px 0 0 #7d8898;
+  }
+
+  .rd-loop7-evidence-row.gap {
+    background: #fbf5e9;
+    box-shadow: inset 2px 0 0 var(--sol-warning);
+  }
+
+  .rd-loop7-evidence-copy strong {
+    overflow: visible;
+    color: var(--sol-ink-soft);
+    font-size: 11.5px;
+    line-height: 1.28;
+    text-overflow: clip;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .rd-loop7-evidence-copy small,
+  .rd-loop7-evidence-state {
+    font-size: 9.5px;
+    line-height: 1.3;
+  }
+
+  .rd-loop7-evidence-state {
+    max-width: 126px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .rd-loop7-contract-grid {
+    gap: 26px;
+    border-bottom: 0;
+  }
+
+  .rd-loop7-contract-grid .rd-loop7-field,
+  .rd-loop7-contract-grid .rd-loop7-field + .rd-loop7-field {
+    padding: 11px 4px 2px;
+    border: 0;
+    background: transparent;
+  }
+
+  .rd-loop7-method-state strong {
+    font-size: 12px;
+  }
+
+  .rd-loop7-method-state p,
+  .rd-loop7-method-state small,
+  .rd-loop7-output-contract dt,
+  .rd-loop7-output-contract dd {
+    font-size: 10px;
+    line-height: 1.35;
+  }
+
+  .rd-v2-shell:has(.rd-loop7-synthesis-page) .rd-v2-rail {
+    background: #f8f6f0;
+  }
+
+  .rd-v2-shell:has(.rd-loop7-synthesis-page) .rd-v2-rail-chrome {
+    padding: 9px 10px 8px;
+    background: #f8f6f0;
+  }
+
+  .rd-v2-shell:has(.rd-loop7-synthesis-page) .rd-v2-rail-selection {
+    margin-top: 7px;
+    font-size: 9.5px;
+    line-height: 1.35;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .rd-v2-shell:has(.rd-loop7-synthesis-page) .rd-v2-rail,
+  .rd-v2-shell:has(.rd-loop7-synthesis-page) .rd-v2-rail * {
+    min-width: 0;
+  }
+
+  .rd-v2-shell:has(.rd-loop7-synthesis-page) .mono,
+  .rd-loop7-output-contract dd {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+}

@@ -82,8 +82,9 @@ export function V2DeskHeader({
   dryRunProtected = true,
   integrationChips = [],
 }) {
-  const recordLabel = `${datasetCount} registry record${datasetCount === 1 ? "" : "s"}`;
-  const metaText = workCount > 0 ? `${recordLabel} · ${workCount} pending` : recordLabel;
+  const assetLabel = `${datasetCount} evidence asset${datasetCount === 1 ? "" : "s"}`;
+  const decisionLabel = `${workCount} decision${workCount === 1 ? "" : "s"} waiting`;
+  const metaText = workCount > 0 ? `${assetLabel} · ${decisionLabel}` : assetLabel;
   const fresh = freshnessLabel(refreshedAt);
   const chips = (Array.isArray(integrationChips) ? integrationChips : [])
     .filter((chip) => !(chip.id === "desk" && (deskStatus === "degraded" || deskStatus === "ok")))
@@ -102,7 +103,7 @@ export function V2DeskHeader({
         <input
           value={searchQuery}
           onChange={(event) => onSearchChange(event.target.value)}
-          placeholder="Search catalog or ask…"
+          placeholder="Search evidence or ask…"
           aria-label="Search Research Drive"
           onKeyDown={(event) => {
             if (event.key === "Enter") {
@@ -120,25 +121,25 @@ export function V2DeskHeader({
       <div className="rd-v2-header-meta">
         <div className="rd-v2-trust-strip" aria-label="Desk status" data-testid="desk-integration-strip">
           {deskStatus === "ok" ? (
-            <span className="rd-v2-trust-badge ok">Live registry</span>
+            <span className="rd-v2-trust-badge ok">Research estate live</span>
           ) : deskStatus === "empty" ? (
-            <span className="rd-v2-trust-badge warn">Empty registry</span>
+            <span className="rd-v2-trust-badge warn">No controlled evidence</span>
           ) : usingSeed || deskStatus === "demo" ? (
-            <span className="rd-v2-trust-badge warn">Demo</span>
+            <span className="rd-v2-trust-badge warn">Demonstration state</span>
           ) : deskStatus === "degraded" ? (
-            <span className="rd-v2-trust-badge warn">Desk degraded</span>
+            <span className="rd-v2-trust-badge warn">Research desk degraded</span>
           ) : (
-            <span className="rd-v2-trust-badge warn">Desk offline</span>
+            <span className="rd-v2-trust-badge warn">Research desk offline</span>
           )}
           {chips.map((chip) => (
             <span key={chip.id} className={`rd-v2-trust-badge ${chip.tone || "muted"}`} title={chip.label}>{chip.label}</span>
           ))}
-          {dryRunProtected ? <span className="rd-v2-trust-badge">Dry-run</span> : null}
-          {fresh ? <span className="rd-v2-trust-badge muted">{fresh}</span> : null}
+          {dryRunProtected ? <span className="rd-v2-trust-badge">Protected execution</span> : null}
+          {fresh ? <span className="rd-v2-trust-badge muted">Updated {fresh}</span> : null}
         </div>
         <span className="rd-v2-header-meta-count">
           {workCount > 0 && onPendingClick ? (
-            <>{`${recordLabel} · `}<button type="button" className="rd-v2-header-pending-link" data-testid="header-pending-link" onClick={onPendingClick}>{workCount} pending</button></>
+            <>{`${assetLabel} · `}<button type="button" className="rd-v2-header-pending-link" data-testid="header-pending-link" onClick={onPendingClick}>{decisionLabel}</button></>
           ) : metaText}
         </span>
         {usingSeed && onRetry ? <button type="button" className="rd-v2-header-retry" onClick={onRetry}>Retry</button> : null}

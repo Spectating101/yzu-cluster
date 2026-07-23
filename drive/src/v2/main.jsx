@@ -25,6 +25,16 @@ import "./desktop-workbench-fixes.css";
 // Loop 7 turns Synthesis into a structured research construction.
 import "./synthesis-loop7.css";
 import "./synthesis-loop7-fixes.css";
+// Focused presentation rebuild, loaded last and judged from exact browser renders.
+import "./sol-ceiling-rebuild.css";
+import "./sol-ceiling-rebuild-corrections.css";
+// Proxy-first Synthesis: target construct, ingredients, recipes, tradeoffs, output.
+import "./synthesis-proxy.css";
+// Final centre authority: visual data construction rather than explanatory prose.
+import "./synthesis-proxy-instrument.css";
+import "./synthesis-proxy-pipeline.css";
+// Operational layer: selected objects expose route-backed actions.
+import "./synthesis-proxy-actions.css";
 import { InteractionProvider } from "./InteractionGuidance.jsx";
 import { V2App } from "./App.jsx";
 
