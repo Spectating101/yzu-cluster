@@ -35,16 +35,16 @@ export function SynthesisThreadRailPanel({ thread, onOpenInLibrary }) {
         description={view.provenance.updatedAt ? `Updated ${view.provenance.updatedAt}` : "Authority attached to the selected proxy design"}
       />
       <RailFieldGrid>
-        <RailField label="Construction ID" value={view.provenance.threadId || "Not reported"} mono />
         <RailField label="Target construct" value={view.target.label} />
-        <RailField label="Recipe state" value={view.primaryRecipe?.title || "Structured recommendation not generated"} />
-        <RailField label="Controlled evidence" value={ingredientAuthority(view)} />
-        <RailField label="Measurement limitation" value={limitationAuthority(view)} />
+        <RailField label="Recommended proxy" value={view.primaryRecipe?.title || "Structured recommendation not generated"} />
+        <RailField label="Controlled ingredients" value={ingredientAuthority(view)} />
+        <RailField label="Direct-measure limitation" value={limitationAuthority(view)} />
         <RailField label="Evidence authority" value={view.provenance.evidenceSource} />
+        <RailField label="Output contract" value={view.outputContract.label || "Not established"} />
+        <RailField label="Output readiness" value={view.outputContract.statusLabel} />
         <RailField label="Archive proof" value={view.provenance.archiveVerified ? "Reported verified" : "Not established"} />
         <RailField label="Registry proof" value={view.provenance.registryVerified ? "Indexed and traceable" : "Not established"} />
-        <RailField label="Output dataset" value={outputId || "Not established"} mono={Boolean(outputId)} />
-        <RailField label="Manifest" value={view.provenance.manifestId || "Not reported"} mono={Boolean(view.provenance.manifestId)} />
+        {view.provenance.manifestId ? <RailField label="Manifest" value={view.provenance.manifestId} mono /> : null}
       </RailFieldGrid>
       {outputId && ["registered", "query_ready"].includes(view.mode) ? (
         <RailStickyFooter>
@@ -54,7 +54,7 @@ export function SynthesisThreadRailPanel({ thread, onOpenInLibrary }) {
             aria-label="Open in Library"
             onClick={() => onOpenInLibrary?.({
               dataset_id: outputId,
-              name: outputId,
+              name: view.outputContract.label || outputId,
               analysis_readiness: view.mode === "query_ready" ? "instant" : "registered",
             })}
           >
