@@ -8,6 +8,7 @@ import {
   requestSynthesisExecution,
 } from "@/v2/api";
 import { displayName, statusPill } from "@/v2/datasetMeta";
+import { facultyFacingRecords } from "@/v2/productVisibility";
 
 function text(value, fallback = "") {
   return String(value || "").trim() || fallback;
@@ -71,7 +72,26 @@ function isMissingNode(node) {
   return /missing|needs_access|sourceable|blocked|unknown/i.test(String(node?.status || node?.state || ""));
 }
 
-function ThreadList({ threads, selectedId, loading, onSelect, onNew }) {
+function preferredThread(threads) {
+  const substantive = threads.find((thread) => {
+    const title = titleFor(thread);
+    const objective = text(thread?.objective || thread?.state?.objective);
+    const generic = /^(?:new|untitled) synthesis$/i.test(title);
+    return !generic && (objective.length >= 24 || evidenceNodes(thread).length > 0);
+  });
+  return substantive || threads[0] || null;
+}
+
+function ThreadList({
+  threads,
+  selectedId,
+  loading,
+  technicalCount = 0,
+  showTechnical = false,
+  onToggleTechnical,
+  onSelect,
+  onNew,
+}) {
   const selectedRef = useRef(null);
   useEffect(() => {
     selectedRef.current?.scrollIntoView({ block: "nearest" });
@@ -80,7 +100,7 @@ function ThreadList({ threads, selectedId, loading, onSelect, onNew }) {
   return (
     <aside className="s04-threads rd-rc3-synthesis-threads" aria-label="Synthesis threads">
       <header>
-        <div><span>Research constructions</span><small>{loading ? "Loading" : `${threads.length} threads`}</small></div>
+        <div><span>Research constructions</span><small>{loading ? "Loading" : `${threads.length} visible`}</small></div>
         <button type="button" className="s04-thread-new" onClick={onNew}>+ New</button>
       </header>
       {threads.map((thread) => (
@@ -96,8 +116,16 @@ function ThreadList({ threads, selectedId, loading, onSelect, onNew }) {
           <span><strong>{titleFor(thread)}</strong><small>{threadStatus(thread)}</small></span>
         </button>
       ))}
-      {!loading && !threads.length ? <p className="s04-thread-empty">No Synthesis threads yet.</p> : null}
-      <footer><small>Durable thread memory</small><p>Evidence, decisions, sourcing branches, execution, and outputs remain attached to the construction.</p></footer>
+      {!loading && !threads.length ? <p className="s04-thread-empty">No faculty-facing Synthesis threads yet.</p> : null}
+      <footer>
+        <small>Durable thread memory</small>
+        <p>Evidence, decisions, sourcing branches, execution, and outputs remain attached to the construction.</p>
+        {technicalCount ? (
+          <button type="button" className="rd-v2-btn sm" onClick={onToggleTechnical}>
+            {showTechnical ? "Hide technical threads" : `Show technical threads (${technicalCount})`}
+          </button>
+        ) : null}
+      </footer>
     </aside>
   );
 }
@@ -303,12 +331,18 @@ function EmptyWorkspace({ onNew }) {
 export function SynthesisPage({ datasets = [], onAskComposer, onOpenDataset, onSelectThread, onGoTab }) {
   const [threads, setThreads] = useState([]);
   const [selectedId, setSelectedId] = useState("");
+  const [showTechnical, setShowTechnical] = useState(false);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [newMode, setNewMode] = useState(false);
   const [objective, setObjective] = useState("");
   const notified = useRef("");
+
+  const facultyThreads = useMemo(() => facultyFacingRecords(threads), [threads]);
+  const visibleThreads = showTechnical ? threads : facultyThreads;
+  const technicalCount = Math.max(0, threads.length - facultyThreads.length);
+  const visibleDatasets = useMemo(() => facultyFacingRecords(datasets), [datasets]);
 
   const replaceThread = useCallback((next) => {
     if (!next?.id) return;
@@ -321,8 +355,10 @@ export function SynthesisPage({ datasets = [], onAskComposer, onOpenDataset, onS
     try {
       const result = await listSynthesisThreads();
       const next = Array.isArray(result?.threads) ? result.threads : [];
+      const faculty = facultyFacingRecords(next);
+      const preferred = preferredThread(faculty);
       setThreads(next);
-      setSelectedId((current) => current && next.some((thread) => thread.id === current) ? current : next[0]?.id || "");
+      setSelectedId((current) => current && faculty.some((thread) => thread.id === current) ? current : preferred?.id || "");
     } catch (cause) {
       setError(text(cause?.message, "Synthesis threads could not be loaded."));
     } finally {
@@ -331,7 +367,13 @@ export function SynthesisPage({ datasets = [], onAskComposer, onOpenDataset, onS
   }, []);
 
   useEffect(() => { refreshThreads(); }, [refreshThreads]);
-  const selected = useMemo(() => threads.find((thread) => thread.id === selectedId) || null, [threads, selectedId]);
+
+  useEffect(() => {
+    if (selectedId && visibleThreads.some((thread) => thread.id === selectedId)) return;
+    setSelectedId(preferredThread(visibleThreads)?.id || "");
+  }, [selectedId, visibleThreads]);
+
+  const selected = useMemo(() => visibleThreads.find((thread) => thread.id === selectedId) || null, [visibleThreads, selectedId]);
 
   useEffect(() => {
     if (!selected) return;
@@ -429,9 +471,18 @@ export function SynthesisPage({ datasets = [], onAskComposer, onOpenDataset, onS
   const showExecution = Boolean(selected && (mode === "execution" || mode === "registered" || mode === "query_ready" || mode === "failed" || selected.state?.execution_spec));
 
   return (
-    <PageShell className="rd-v2-synthesis-page rd-rc3-synthesis-page" title="Synthesis" lead="Explore possible research constructions, expose missing evidence, formalize exact proposals, and preserve execution truth.">
+    <PageShell className="rd-v2-synthesis-page rd-rc3-synthesis-page" title="Synthesis" lead="Develop research constructions from held evidence, keep missing inputs visible, and formalize only exact reviewable proposals.">
       <div className="s04-shell rd-rc3-synthesis-shell" data-testid="synthesis-studio">
-        <ThreadList threads={threads} selectedId={selectedId} loading={loading} onSelect={selectThread} onNew={() => { setNewMode(true); setObjective(""); }} />
+        <ThreadList
+          threads={visibleThreads}
+          selectedId={selectedId}
+          loading={loading}
+          technicalCount={technicalCount}
+          showTechnical={showTechnical}
+          onToggleTechnical={() => setShowTechnical((visible) => !visible)}
+          onSelect={selectThread}
+          onNew={() => { setNewMode(true); setObjective(""); }}
+        />
         <main className="s04-main">
           {error ? <p className="s04-fixture" role="alert">{error}</p> : null}
           {newMode ? <NewThread objective={objective} setObjective={setObjective} busy={busy} onCreate={createThread} onAsk={ask} /> : null}
@@ -441,7 +492,7 @@ export function SynthesisPage({ datasets = [], onAskComposer, onOpenDataset, onS
               <ThreadHeader thread={selected} />
               {mode === "proposal" ? <ProposalReview thread={selected} busy={busy} onDecide={decideProposal} onAsk={ask} /> : null}
               {showExecution ? <ExecutionRecord thread={selected} busy={busy} onRequest={requestExecution} onAsk={ask} onOpenDataset={onOpenDataset} /> : null}
-              {mode === "explore" ? <ConstructionWorkspace thread={selected} datasets={datasets} onAsk={ask} onGoTab={onGoTab} /> : null}
+              {mode === "explore" ? <ConstructionWorkspace thread={selected} datasets={visibleDatasets} onAsk={ask} onGoTab={onGoTab} /> : null}
               {mode === "draft" ? <EmptyWorkspace onNew={() => setNewMode(true)} /> : null}
             </>
           ) : null}
