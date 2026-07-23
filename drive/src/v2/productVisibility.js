@@ -53,6 +53,10 @@ function labelText(row) {
   ]).join(" ");
 }
 
+function directTitle(row) {
+  return String(row?.title || row?.name || row?.state?.title || "").trim();
+}
+
 function metadataText(row) {
   return values(row, [
     "kind",
@@ -75,6 +79,8 @@ export function isInternalValidationRecord(row) {
   if (FACULTY_VISIBILITY.test(visibility)) return false;
   if (INTERNAL_VISIBILITY.test(visibility)) return true;
 
+  if (/^(?:test|testing|smoke|canary|fixture)$/i.test(directTitle(row))) return true;
+
   const identifier = identifierText(row);
   if (/(?:^|[._-])(?:canary|smoke|fixture|mock|e2e|playwright|validation)(?:[._-]|$)/i.test(identifier)) return true;
   if (/(?:^|[._-])(?:landing|final)[._-]*(?:prove|proof)(?:[._-]|$)/i.test(identifier)) return true;
@@ -84,7 +90,6 @@ export function isInternalValidationRecord(row) {
   if (/\b(?:landing|final)\s+(?:prove|proof)\b|\b(?:landing|final)\b.*\b(?:prove|proof)\b/i.test(label)) return true;
   if (/\b(?:agent|scheduled|deployment|windows|http|mcp|worker|integration|live)\b.*\bcanary\b|\bcanary\b.*\b(?:run|probe|test|validation)\b/i.test(label)) return true;
   if (/\b(?:live\s+)?smoke\s+(?:thread|run|test)\b|\bcomposer audit thread\b/i.test(label)) return true;
-  if (/^\s*(?:test|testing)\s*$/i.test(label)) return true;
   if (/\b(?:playwright|mock e2e|smoke test|validation fixture|deployment probe)\b/i.test(label)) return true;
 
   const metadata = metadataText(row);
