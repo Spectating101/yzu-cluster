@@ -1,6 +1,7 @@
 /**
  * Discover Detail rail presentation — factual inspector for a selected source candidate.
- * Reuses discoverCandidateState + assessDiscoverCandidate; never fabricates coverage or readiness.
+ * Reuses discoverCandidateState + assessDiscoverCandidate; never fabricates coverage,
+ * scores, costs, job progress, or readiness claims.
  */
 
 import { assessDiscoverCandidate } from "@/v2/discoverCompare";
@@ -55,39 +56,44 @@ export function buildDiscoverCandidateRailState({
   const coverage = meta(target.coverage || target.subtitle);
   const grain = meta(target.grain);
   const license = meta(target.license);
-  const access = meta(state.access);
-  const fit = meta(state.fit || compare.profile?.label);
+  const access =
+    state.key === "in_lab"
+      ? "Vaulted"
+      : meta(state.access);
   const probe = meta(state.probe);
-  const labCoverage =
-    compare.labMatch?.overlap?.pct != null
-      ? `${compare.labMatch.overlap.pct}% vs ${compare.labMatch.dataset?.name || compare.labMatch.dataset?.title || compare.labMatch.dataset?.dataset_id || "lab"} · ${compare.labMatch.reason || "overlap"}`
-      : "";
+
+  // Only confirm fit from explicit labels or profile recommendation — never keyword heuristics.
+  const explicitFit =
+    meta(target.fit_label) ||
+    (compare.profile?.status === "match" ? meta(compare.profile.label) : "");
+  const labRelation =
+    state.key === "in_lab"
+      ? "Already in lab"
+      : compare.labMatch?.reason
+        ? `${compare.labMatch.dataset?.name || compare.labMatch.dataset?.title || compare.labMatch.dataset?.dataset_id || "lab"} · ${compare.labMatch.reason}`
+        : "";
 
   const confirmed = [];
-  const fitKnown = Boolean(fit) && !/needs fit review/i.test(fit);
-  if (fitKnown) pushFact(confirmed, "Fit", fit);
-  if (labCoverage || state.key === "in_lab") {
-    pushFact(confirmed, "Local coverage", labCoverage || "Already in lab");
-  }
+  if (explicitFit) pushFact(confirmed, "Fit", explicitFit);
+  if (labRelation) pushFact(confirmed, "Lab relation", labRelation);
   pushFact(confirmed, "Source", source);
   pushFact(confirmed, "Access", access);
-  pushFact(confirmed, "Coverage", coverage);
-  pushFact(confirmed, "Grain", grain);
+  if (coverage) pushFact(confirmed, "Coverage", coverage);
+  if (grain) pushFact(confirmed, "Grain", grain);
   if (license) pushFact(confirmed, "License", license);
   const probeKnown = Boolean(probe) && !/probe needed|source link required/i.test(probe);
   if (probeKnown) pushFact(confirmed, "Probe", probe);
 
   const unknowns = [];
-  if (!fitKnown) pushFact(unknowns, "Fit", "Needs fit review against faculty stack");
-  if (!labCoverage && state.key !== "in_lab") {
-    pushFact(unknowns, "Local coverage", "No close lab match yet");
+  if (!explicitFit) pushFact(unknowns, "Fit", "Needs fit review against faculty stack");
+  if (!labRelation && state.key !== "in_lab") {
+    pushFact(unknowns, "Lab relation", "No close lab match yet");
   }
   if (!coverage) pushFact(unknowns, "Coverage", "Not reported by source");
   if (!grain) pushFact(unknowns, "Grain", "Not reported by source");
   if (!license) pushFact(unknowns, "License", "See source terms");
   if (!probeKnown && probe) pushFact(unknowns, "Probe", probe);
-
-  const unknownRows = unknowns;
+  if (/needs terms/i.test(access)) pushFact(unknowns, "Access terms", "Not verified from source metadata");
 
   const evidence = [];
   if (probeSummary) pushFact(evidence, "Probe summary", probeSummary);
@@ -119,11 +125,10 @@ export function buildDiscoverCandidateRailState({
     stateKey: state.key,
     judgment,
     confirmed,
-    unknowns: unknownRows,
+    unknowns,
     evidence,
     showCollectionPlan: state.key !== "in_lab",
     canProbe: Boolean(url) && state.key !== "in_lab",
     probeUrl: url || "",
   };
 }
-

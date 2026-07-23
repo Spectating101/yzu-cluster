@@ -29,8 +29,11 @@ test.describe("v2 Discover tab", () => {
     await expect(page.getByTestId("discover-suggested-card").first()).toBeVisible();
     await expect(page.getByTestId("discover-suggested-card")).toHaveCount(4);
     await expect(page.getByTestId("discover-suggested").locator(".rd-v2-discover-candidate")).toHaveCount(0);
+    await expect(page.getByTestId("discover-suggested").locator(".rd-v2-discover-suggest-row")).toHaveCount(4);
     await expect(page.getByRole("button", { name: "TWSE governance" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Discover external datasets" })).toHaveCount(0);
+    const emptyHeight = await page.getByTestId("discover-empty").evaluate((el) => el.getBoundingClientRect().height);
+    expect(emptyHeight).toBeLessThan(420);
   });
 
   test("suggestion chip fills Discover search and shows demo results", async ({ page }) => {
@@ -58,6 +61,16 @@ test.describe("v2 Discover tab", () => {
     await expect(page.getByTestId("discover-destination-select")).toBeVisible();
     await expect(page.locator("aside.rd-v2-rail")).toContainText("Collection plan");
     await expect(page.locator("aside.rd-v2-rail")).toContainText("MOPS");
+    await expect(page.getByTestId("rail-evidence-toggle")).toBeVisible();
+    await expect(page.getByTestId("rail-evidence-toggle")).toHaveAttribute("aria-expanded", "false");
+    await page.getByTestId("rail-evidence-toggle").click();
+    await expect(page.getByTestId("rail-evidence-toggle")).toHaveAttribute("aria-expanded", "true");
+    // Primary action stays sticky; Probe/Preview/Ask remain secondary hierarchy.
+    const sticky = page.locator("aside .rd-v2-rail-sticky");
+    await expect(sticky.getByRole("button", { name: "Add to lab" })).toBeVisible();
+    await expect(sticky.getByRole("button", { name: "Probe source" })).toBeVisible();
+    await expect(sticky.getByRole("button", { name: "Preview source" })).toBeVisible();
+    await expect(sticky.getByRole("button", { name: "Ask about this →" })).toBeVisible();
   });
 
   test("Discover empty Detail is a one-line source prompt", async ({ page }) => {
@@ -163,7 +176,60 @@ test.describe("v2 Discover tab", () => {
     await expect(rail.getByTestId("discover-compare")).toBeVisible();
     await expect(rail.getByTestId("discover-compare")).toContainText("How this compares");
     await expect(rail.getByTestId("discover-compare")).not.toContainText("Alternatives in this search");
+    await expect(rail.getByTestId("discover-compare")).not.toContainText(/% vs lab/i);
     await expect(rail.getByTestId("discover-compare-alt")).toHaveCount(0);
+  });
+
+  test("result shortlist distinguishes lab, external, and access-unknown sources", async ({ page }) => {
+    await mockV2Api(page, {
+      discoverBody: {
+        sections: [
+          {
+            title: "Registry",
+            rows: [
+              {
+                dataset_id: "gdelt_asia_daily_country_panel",
+                title: "Asia daily news-risk panel",
+                source: "GDELT GKG",
+                grain: "country-day",
+                local_root: "research_panels/gdelt",
+              },
+              {
+                dataset_id: "mops_financial_statements_ext",
+                title: "MOPS financial statements (Taiwan)",
+                source: "MOPS",
+                collect_via: "mops_tw",
+                url: "https://mops.twse.com.tw/example",
+                license: "Open Government",
+                grain: "issuer-quarter",
+              },
+              {
+                dataset_id: "opaque_vendor_feed",
+                title: "Opaque vendor feed",
+                source: "Vendor X",
+                collect_via: "http",
+                url: "https://example.com/vendor",
+                grain: "issuer-day",
+              },
+            ],
+          },
+        ],
+        total: 3,
+      },
+    });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await page.getByTestId("discover-search-input").fill("panel");
+    await page.getByTestId("discover-search-input").press("Enter");
+
+    const list = page.locator(".rd-v2-discover-list-panel");
+    await expect(list.locator('button.row[data-kind="lab"]').first()).toContainText("In lab");
+    await expect(list.locator('button.row[data-kind="external"]', { hasText: "MOPS" })).toContainText("External");
+    await expect(list.locator('button.row[data-kind="external"]', { hasText: "Opaque" })).toContainText(
+      "Access unknown",
+    );
+    await expect(list).not.toContainText("Ready to check");
+    await expect(list.locator(".rd-v2-discover-candidate").first()).toBeVisible();
   });
 
   // Sticky Detail approve is current; header pending opens Explore queue (not Activity).
@@ -320,7 +386,7 @@ test.describe("v2 Discover tab", () => {
     await expect(rail).toContainText("Source link required");
     await expect(rail.getByRole("button", { name: "Probe source" })).toHaveCount(0);
     await expect(rail.getByRole("button", { name: "Add to lab" })).toBeDisabled();
-    await expect(page.locator(".rd-v2-discover-candidate").first()).toContainText("External");
+    await expect(page.locator(".rd-v2-discover-candidate").first()).toContainText("Access unknown");
   });
 
   test.describe("v2 Discover API integration", () => {

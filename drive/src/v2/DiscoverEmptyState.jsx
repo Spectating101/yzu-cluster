@@ -2,8 +2,8 @@ import { discoverSuggestedQueries } from "@/v2/discoverPrompts";
 import { Chip, ChipRow } from "@/v2/ui";
 
 /**
- * GDS-first empty Discover: search owns the page; soft recs are a bottom card strip (children).
- * Approvals are interrupt-only (header pending) — no mid-page inbox banner.
+ * Compact GDS-first empty Discover: chips under the stable toolbar, then a dense suggest strip.
+ * Approvals stay interrupt-only (header pending) — no mid-page inbox banner.
  */
 export function DiscoverEmptyState({
   profile = null,
@@ -53,7 +53,7 @@ export function DiscoverEmptyState({
   );
 }
 
-/** Compact bottom recommendation cards — not the SERP. Single-click commits search. */
+/** Dense suggested shortlist — not SERP rows, not card chrome. Single-click commits search. */
 export function DiscoverSuggestedCards({
   rows = [],
   labIds,
@@ -64,20 +64,25 @@ export function DiscoverSuggestedCards({
   return (
     <div className="rd-v2-discover-suggested-cards" data-testid="discover-suggested">
       <p className="rd-v2-discover-empty-hint">Suggested for your lab</p>
-      <ul className="rd-v2-discover-card-strip" aria-label="Suggested datasets">
+      <ul className="rd-v2-discover-suggest-list" aria-label="Suggested datasets">
         {rows.map((row) => {
           const id = row.dataset_id || row.title || row.name;
           const title = row.title || row.name || id;
           const inLab = Boolean(row.dataset_id && labIds?.has?.(row.dataset_id)) || row.kind === "lab";
+          const source = row.source || row.publisher || row.backend || row.collect_via || "";
           return (
             <li key={String(id)}>
               <button
                 type="button"
-                className="rd-v2-discover-mini-card"
+                className="rd-v2-discover-suggest-row"
                 data-testid="discover-suggested-card"
+                data-kind={inLab ? "lab" : "external"}
                 onClick={() => onSearchTitle?.(title)}
               >
-                <strong>{title}</strong>
+                <span className="rd-v2-discover-suggest-main">
+                  <strong>{title}</strong>
+                  {source ? <span className="rd-v2-discover-suggest-meta">{source}</span> : null}
+                </span>
                 <span className={inLab ? "lab" : "ext"}>{inLab ? "In lab" : "External"}</span>
               </button>
             </li>

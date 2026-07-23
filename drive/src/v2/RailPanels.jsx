@@ -639,18 +639,12 @@ export function HistoryRailPanel({ object, onAskAbout, onOpenInLibrary }) {
           <RailField label="Holding" value={truth.label} />
           <RailField label="Outcome" value={outcome} />
         </RailFieldGrid>
-        <div className="rd-v2-history-rail-chain" aria-label="Provenance chain">
-          <p className="rd-v2-rail-section-label">Provenance chain</p>
+        <div className="rd-v2-history-rail-chain" aria-label="Holding lifecycle">
+          <p className="rd-v2-rail-section-label">Holding lifecycle</p>
           <ol>
-            <li className={/discover|search|ask/.test(String(event.action)) ? "on" : ""}>Search</li>
-            <li className={/probe/.test(String(event.action)) ? "on" : ""}>Verify</li>
-            <li className={truth.collected || /job|approve|procure|collect/.test(String(event.action)) ? "on" : ""}>
-              Acquire
-            </li>
-            <li className={/archive/.test(String(event.action)) ? "on" : ""}>Archive</li>
-            <li className={truth.stages.registered || /register|promote/.test(String(event.action)) ? "on" : ""}>
-              Register
-            </li>
+            <li className={truth.stages.collected ? "on" : ""}>Collected</li>
+            <li className={truth.stages.registered ? "on" : ""}>Registered</li>
+            <li className={truth.stages.queryReady ? "on" : ""}>Query-ready</li>
           </ol>
         </div>
       </div>
@@ -805,6 +799,7 @@ export function BrowseRailPanel({
     });
   }
 
+  // Hierarchy: primary Add/Open, then Probe → Preview, Ask last (accelerator).
   const secondary = [];
   if (rail.canProbe && onProbeSource) {
     secondary.push({
@@ -816,7 +811,6 @@ export function BrowseRailPanel({
       onClick: () => onProbeSource?.(target),
     });
   }
-  // Prefer Preview beside Probe (before Ask) so acquisition preview stays reachable.
   if (onPreviewExternal) {
     secondary.push({
       key: "preview",
@@ -890,7 +884,6 @@ export function BrowseRailPanel({
                   <RailField label="Connector" value={preflight.connector} mono />
                   <RailField label="On Add to lab" value={preflight.onAdd} />
                   <RailField label="Approval" value={preflight.approval} />
-                  <RailField label="Vault path" value={preflight.destination} />
                 </div>
               </>
             ) : null}

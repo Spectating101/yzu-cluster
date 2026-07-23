@@ -498,12 +498,16 @@ function candidateSnippet(row) {
   return shortText(row?.description || row?.recommended_use || row?.subtitle || "", 140);
 }
 
-/** Single provenance line under the snippet — publisher once, then grain/format. */
-function candidateMetaLine(row) {
+/** Provenance line: publisher · grain/type · access — not collect_via queue jargon. */
+function candidateMetaLine(row, state = null) {
+  const access =
+    state?.key === "in_lab"
+      ? "Vaulted"
+      : state?.access || row?.access_mode || row?.access || row?.license || null;
   return uniqueParts([
     formatMetaValue(row?.publisher || row?.source || row?.backend),
-    formatMetaValue(row?.grain),
-    formatMetaValue(row?.format || row?.collect_via || row?.source_route),
+    formatMetaValue(row?.grain || row?.format),
+    formatMetaValue(access),
   ]).join(" · ");
 }
 
@@ -747,27 +751,40 @@ function pickDefaultRow(rows, query, labIds) {
   return external || ranked[0] || null;
 }
 
+/** Shortlist status: source / lab / access / unknown — never fake readiness scores. */
 function stateLabel(state) {
-  if (state.key === "probe_ready") return "Ready to check";
   if (state.key === "in_lab") return "In lab";
   if (state.key === "awaiting") return "Awaiting you";
-  if (state.key === "queued") return state.label || "Running";
+  if (state.key === "queued") return state.label || "Queued";
+  if (state.key === "failed") return "Failed";
+  if (/needs terms|unknown/i.test(String(state.access || ""))) return "Access unknown";
   return "External";
+}
+
+function statePillClass(state) {
+  if (state.key === "in_lab") return "lab";
+  if (state.key === "awaiting" || state.key === "queued") return "queue";
+  if (state.key === "failed") return "fail";
+  if (/needs terms|unknown/i.test(String(state.access || ""))) return "warn";
+  return "ext";
 }
 
 function DiscoverCandidateRow({ row, labIds, jobs, selectedId, onSelectRow }) {
   const state = row.discover_state || discoverCandidateState(row, labIds, jobs);
   const selected = selectedId === candidateId(row);
+  const inLab = state.key === "in_lab";
   const ribbonSource = row.source || row.collect_via || row.source_route || row.publisher || row.backend;
-  const meta = candidateMetaLine(row);
+  const meta = candidateMetaLine(row, state);
+  const label = stateLabel(state);
 
   return (
     <li className={selected ? "rd-v2-row-on" : undefined}>
       <button
         type="button"
         className={`row rd-v2-discover-candidate rd-v2-discover-candidate--compact${selected ? " selected" : ""}`}
-        data-kind="external"
+        data-kind={inLab ? "lab" : "external"}
         data-state={state.key}
+        data-access={String(state.access || "").toLowerCase().replace(/\s+/g, "-") || "unknown"}
         aria-pressed={selected}
         onClick={() => onSelectRow(row)}
       >
@@ -780,7 +797,7 @@ function DiscoverCandidateRow({ row, labIds, jobs, selectedId, onSelectRow }) {
           </span>
           {meta ? <span className="rd-v2-discover-route">{meta}</span> : null}
         </span>
-        <span className={`rd-v2-pill ${state.className}`}>{stateLabel(state)}</span>
+        <span className={`rd-v2-pill ${statePillClass(state)}`}>{label}</span>
       </button>
     </li>
   );

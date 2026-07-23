@@ -4,14 +4,14 @@ import { Chip } from "@/v2/ui";
 
 const HISTORY_FILTERS = [
   { id: "all", label: "All" },
-  { id: "needs_approval", label: "Needs approval" },
+  { id: "needs_approval", label: "Needs you" },
   { id: "active", label: "Active" },
-  { id: "ready", label: "Ready" },
+  { id: "collected", label: "Collected" },
+  { id: "registered", label: "Registered" },
+  { id: "query_ready", label: "Query-ready" },
   { id: "needs_recovery", label: "Recovery" },
   { id: "scheduled", label: "Scheduled" },
   { id: "search", label: "Search" },
-  { id: "probe", label: "Probe" },
-  { id: "procure", label: "Procure" },
 ];
 
 const ACTION_LABELS = {
@@ -42,17 +42,37 @@ function cleanTarget(value) {
 
 function eventKind(event) {
   const action = String(event?.action || "").toLowerCase();
+  const status = String(event?.status || event?.meta?.status || "").toLowerCase();
+  const truth = historyHoldingTruth(event);
+
+  if (truth.queryReady) return "query_ready";
+  if (truth.stages.registered && !truth.queryReady) return "registered";
+
   if (event?.durable || event?.kind) {
     const bucket = historyLifecycleBucket(event);
-    if (bucket !== "all") return bucket;
+    if (bucket === "needs_approval" || bucket === "active" || bucket === "needs_recovery" || bucket === "scheduled") {
+      return bucket;
+    }
+    if (bucket === "ready") {
+      if (truth.queryReady) return "query_ready";
+      if (truth.stages.registered) return "registered";
+      if (truth.collected) return "collected";
+      return "collected";
+    }
     if (action === "intent") return "needs_approval";
-    if (action === "collection_run") return "active";
+    if (action === "collection_run" && truth.collected && !truth.stages.registered) return "collected";
+  }
+
+  if (truth.collected && !truth.stages.registered && !/pending_approval|queued|running|active|in_progress/.test(status)) {
+    return "collected";
   }
   if (/discover|search/.test(action)) return "search";
-  if (/probe/.test(action)) return "probe";
-  if (/query|preview|bq_/.test(action)) return "query";
-  if (/register|promote/.test(action)) return "ready";
-  if (/procure|job_|approve|archive|collect/.test(action)) return "procure";
+  if (/probe/.test(action)) return "search";
+  if (/query|preview|bq_/.test(action)) return "search";
+  if (/register|promote/.test(action)) return "registered";
+  if (/procure|job_|approve|archive|collect/.test(action)) {
+    return truth.stages.registered ? "registered" : "collected";
+  }
   return action || "other";
 }
 
@@ -98,8 +118,9 @@ function eventOutcome(event) {
   if (truth.datasetId) {
     if (truth.queryReady) return `Query-ready · ${truth.datasetId}`;
     if (truth.stages.registered) return `${truth.label} · ${truth.datasetId}`;
+    if (truth.collected) return `Collected · ${truth.datasetId}`;
   }
-  if (truth.jobId && !truth.datasetId) return `Job · ${truth.jobId}`;
+  if (truth.jobId && !truth.datasetId) return `Collected · job ${truth.jobId}`;
   if (meta.summary && !/query-?ready/i.test(String(meta.summary))) return String(meta.summary);
   if (event?.summary && !/query-?ready/i.test(String(event.summary))) return String(event.summary);
   if (meta.total != null) return `${meta.total} result${meta.total === 1 ? "" : "s"}`;
@@ -110,6 +131,27 @@ function eventOutcome(event) {
 
 function eventId(event, index = 0) {
   return event?.id || `${event?.ts || "event"}:${index}`;
+}
+
+function LifecycleStages({ event }) {
+  const truth = historyHoldingTruth(event);
+  const kind = eventKind(event);
+  if (kind === "search" && !truth.collected && !truth.stages.registered && !truth.queryReady) {
+    return <span className="rd-v2-history-stages rd-v2-history-stages--search">Search</span>;
+  }
+  return (
+    <span className="rd-v2-history-stages" aria-label="Lifecycle stages">
+      <span className={truth.stages.collected ? "on" : ""} title="Collected">
+        C
+      </span>
+      <span className={truth.stages.registered ? "on" : ""} title="Registered">
+        R
+      </span>
+      <span className={truth.stages.queryReady ? "on" : ""} title="Query-ready">
+        Q
+      </span>
+    </span>
+  );
 }
 
 function compactRepeatedSearches(events) {
@@ -186,8 +228,8 @@ export function DiscoverHistoryPanel({
       <div className="rd-v2-history-intro">
         <div>
           <span className="rd-v2-eyebrow">Research trail</span>
-          <h2>From question to registered evidence</h2>
-          <p>Intents, collection runs, approvals and prior searches stay linked so the lab can reuse prior work.</p>
+          <h2>Collected · Registered · Query-ready</h2>
+          <p>Durable lifecycle only — collected does not imply registered, and registered does not imply query-ready.</p>
         </div>
         <strong>{normalized.length} recorded event{normalized.length === 1 ? "" : "s"}</strong>
       </div>
@@ -218,6 +260,7 @@ export function DiscoverHistoryPanel({
                 {group.events.map((event, index) => {
                   const id = eventId(event, index);
                   const title = cleanTarget(event.target) || eventLabel(event);
+                  const kind = eventKind(event);
                   return (
                     <button
                       key={id}
@@ -225,14 +268,16 @@ export function DiscoverHistoryPanel({
                       className={`rd-v2-history-row${selectedId === id ? " on" : ""}`}
                       aria-label={`${eventLabel(event)} ${title}`}
                       aria-pressed={selectedId === id}
+                      data-lifecycle={kind}
                       onClick={() => onSelectEvent?.({ ...event, id })}
                     >
-                      <span className={`rd-v2-history-node ${eventKind(event)}`} aria-hidden />
+                      <span className={`rd-v2-history-node ${kind}`} aria-hidden />
                       <time>{eventTime(event)}</time>
                       <span className="rd-v2-history-main">
                         <strong>{eventLabel(event)}</strong>
                         <span>{title}</span>
                       </span>
+                      <LifecycleStages event={event} />
                       <em>{eventOutcome(event)}</em>
                     </button>
                   );
