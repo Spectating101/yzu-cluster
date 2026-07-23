@@ -32,8 +32,6 @@ export function SynthesisThreadRailPanel({ thread, onOpenInLibrary }) {
         <RailField label="Construction ID" value={view.provenance.threadId || "Not reported"} mono />
         <RailField label="Evidence state" value={evidenceCount(view)} />
         <RailField label="Evidence authority" value={view.provenance.evidenceSource} />
-        <RailField label="Method" value={view.method.label} />
-        <RailField label="Next decision" value={view.nextDecision.title} />
         <RailField label="Archive proof" value={view.provenance.archiveVerified ? "Reported verified" : "Not established"} />
         <RailField label="Registry proof" value={view.provenance.registryVerified ? "Indexed and traceable" : "Not established"} />
         <RailField label="Output asset" value={outputId || "Not established"} mono={Boolean(outputId)} />
