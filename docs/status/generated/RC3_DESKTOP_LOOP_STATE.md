@@ -19,3 +19,5 @@ Accepted desktop convergence through this checkpoint:
 - Discover starts from held evidence, then distinguishes supported source routes and controlled acquisition;
 - Resources separates actionable failures and approvals from raw capacity observations;
 - the global header distinguishes raw registry records from faculty-facing holdings.
+
+Synchronization marker: `loop-4-exact-head`.
