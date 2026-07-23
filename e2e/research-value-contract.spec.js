@@ -28,6 +28,16 @@ const THREAD = {
   },
 };
 
+const BLUEPRINT_THREAD = {
+  id: "construction-live-blueprint",
+  title: "JKSE PIT × IDN microstructure × estimate revisions",
+  objective: "Blueprint: JKSE PIT × IDN microstructure × estimate revisions. Registered inputs: Refinitiv JKSE PIT membership; IDN FRY daily cross-section; Refinitiv estimate revisions; Refinitiv entity spine. Lead question: Do bandar/chase regimes in IDN microstructure predict subsequent estimate revisions for JKSE large caps?",
+  state: {
+    required_grain: "ric, as_of_month, yahoo_symbol",
+    nodes: [],
+  },
+};
+
 test.describe("research-value authority contract", () => {
   test("maps only explicit approval state to a human decision", () => {
     expect(facultyStateLabel("pending_approval")).toBe("Waiting for your decision");
@@ -66,6 +76,22 @@ test.describe("research-value authority contract", () => {
     expect(view.relationships.holds).toEqual(["prices", "estimates"]);
     expect(view.relationships.requires).toEqual(["ownership"]);
     expect(view.nextDecision.type).toBe("evidence_gap");
+  });
+
+  test("extracts lead question and declared inputs without inventing proof", () => {
+    const view = normalizeResearchConstruction(BLUEPRINT_THREAD);
+    expect(view.question).toBe("Do bandar/chase regimes in IDN microstructure predict subsequent estimate revisions for JKSE large caps?");
+    expect(view.unitOfAnalysis).toBe("RIC × month × Yahoo symbol");
+    expect(view.population).toBe("JKSE large caps");
+    expect(view.evidenceHeld.map((item) => item.label)).toEqual([
+      "Refinitiv JKSE PIT membership",
+      "IDN FRY daily cross-section",
+      "Refinitiv estimate revisions",
+      "Refinitiv entity spine",
+    ]);
+    expect(view.evidenceHeld.every((item) => item.proofPending)).toBe(true);
+    expect(view.evidenceSummary.label).toBe("4 available · 4 awaiting proof mapping · 0 missing");
+    expect(view.provenance.evidenceSource).toBe("Construction text; registry proof not mapped");
   });
 
   test("binds Composer to one construction and selected field", () => {
