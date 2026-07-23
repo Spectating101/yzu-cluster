@@ -82,11 +82,8 @@ export function V2DeskHeader({
   dryRunProtected = true,
   integrationChips = [],
 }) {
-  const metaText = usingSeed
-    ? `${datasetCount} datasets`
-    : workCount > 0
-      ? `${datasetCount} datasets · ${workCount} pending`
-      : `${datasetCount} datasets`;
+  const recordLabel = `${datasetCount} registry record${datasetCount === 1 ? "" : "s"}`;
+  const metaText = workCount > 0 ? `${recordLabel} · ${workCount} pending` : recordLabel;
   const fresh = freshnessLabel(refreshedAt);
   const chips = (Array.isArray(integrationChips) ? integrationChips : [])
     .filter((chip) => !(chip.id === "desk" && (deskStatus === "degraded" || deskStatus === "ok")))
@@ -141,7 +138,7 @@ export function V2DeskHeader({
         </div>
         <span className="rd-v2-header-meta-count">
           {workCount > 0 && onPendingClick ? (
-            <>{`${datasetCount} datasets · `}<button type="button" className="rd-v2-header-pending-link" data-testid="header-pending-link" onClick={onPendingClick}>{workCount} pending</button></>
+            <>{`${recordLabel} · `}<button type="button" className="rd-v2-header-pending-link" data-testid="header-pending-link" onClick={onPendingClick}>{workCount} pending</button></>
           ) : metaText}
         </span>
         {usingSeed && onRetry ? <button type="button" className="rd-v2-header-retry" onClick={onRetry}>Retry</button> : null}
