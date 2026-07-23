@@ -38,6 +38,16 @@ function RecipeMetrics({ recipe }) {
   );
 }
 
+function compactStep(step, index) {
+  const source = String(step || "").trim();
+  if (/anchor|snapshot/i.test(source)) return "Anchor snapshots";
+  if (/extract|event|signal/i.test(source)) return "Extract events";
+  if (/resolve|conflict|conservative/i.test(source)) return "Resolve conflicts";
+  if (/emit|output|panel|field/i.test(source)) return "Emit monthly panel";
+  const words = source.split(/\s+/).filter(Boolean);
+  return words.slice(0, 3).join(" ") || `Transform ${index + 1}`;
+}
+
 function AlternativeCards({ alternatives, onSelect }) {
   if (!alternatives.length) {
     return <p className="rd-proxy-empty">No alternative recipes generated.</p>;
@@ -65,15 +75,17 @@ function AlternativeCards({ alternatives, onSelect }) {
 }
 
 function OutputNode({ outputContract, onSelect }) {
+  const outputName = outputContract.label || outputContract.datasetId;
   return (
     <button
       type="button"
       className="rd-proxy-output-node"
       onClick={() => onSelect("output_contract", outputContract)}
-      aria-label={`Constructed dataset ${outputContract.datasetId || outputContract.label}, ${outputContract.grain}, ${outputContract.coverage}`}
+      title={outputContract.datasetId || outputName}
+      aria-label={`Constructed dataset ${outputContract.datasetId || outputName}, ${outputContract.grain}, ${outputContract.coverage}`}
     >
       <small>Constructed output</small>
-      <strong>{outputContract.datasetId || outputContract.label}</strong>
+      <strong>{outputName}</strong>
       <span>{outputContract.grain} · {outputContract.coverage}</span>
     </button>
   );
@@ -104,9 +116,10 @@ function RecipePanel({ recipe, outputContract, onSelect }) {
               key={`${step}-${index}`}
               onClick={() => onSelect("synthesis_recipe", { label: step })}
               title={step}
+              aria-label={step}
             >
               <span>{String(index + 1).padStart(2, "0")}</span>
-              <strong>{step}</strong>
+              <strong>{compactStep(step, index)}</strong>
             </button>
           )) : <p className="rd-proxy-empty">No transformation steps recorded.</p>}
         </div>
