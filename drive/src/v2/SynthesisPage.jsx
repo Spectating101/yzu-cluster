@@ -95,14 +95,16 @@ function ThreadList({
 
 function EvidenceRow({ item, kind, onSelect }) {
   const gap = kind === "gap";
+  const referenced = !gap && item.proofPending;
+  const visualKind = gap ? "gap" : referenced ? "referenced" : "held";
   return (
     <button
       type="button"
-      className={`rd-loop7-evidence-row ${gap ? "gap" : "held"}`}
+      className={`rd-loop7-evidence-row ${visualKind}`}
       onClick={() => onSelect(gap ? "evidence_missing" : "evidence_held", item)}
-      data-evidence-kind={kind}
+      data-evidence-kind={visualKind}
     >
-      <span className="rd-loop7-evidence-mark" aria-hidden>{gap ? "!" : "✓"}</span>
+      <span className="rd-loop7-evidence-mark" aria-hidden>{gap ? "!" : referenced ? "○" : "✓"}</span>
       <span className="rd-loop7-evidence-copy">
         <strong>{item.label}</strong>
         <small>{item.grain} · {item.coverage}</small>
@@ -160,7 +162,7 @@ function ConstructionCanvas({ view, selectedField, onSelectField, onAsk, onGoTab
 
       <section className="rd-loop7-evidence" aria-label="Evidence state">
         <header>
-          <div><span>Evidence state</span><strong>{view.evidenceHeld.length} held · {view.evidenceMissing.length} missing</strong></div>
+          <div><span>Evidence state</span><strong>{view.evidenceSummary.label}</strong></div>
         </header>
         <div className="rd-loop7-evidence-columns">
           <section aria-label="Available evidence">
