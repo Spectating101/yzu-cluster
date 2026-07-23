@@ -1,0 +1,37 @@
+/* Loop 7 corrections from watcher pixel evidence. */
+
+@media (min-width: 1181px) {
+  .rd-loop7-synthesis-shell {
+    grid-template-columns: 196px minmax(0, 1fr) !important;
+  }
+
+  /* With no active construction the rail is only an entry to Detail/Composer,
+     not a permanent page manual. A selected construction restores the full rail. */
+  .rd-v2-shell:has(.rd-loop7-synthesis-page):has(.rd-v2-rail-selection[title="Synthesis"]) {
+    grid-template-columns: 196px minmax(0, 1fr) 72px !important;
+  }
+
+  .rd-v2-shell:has(.rd-loop7-synthesis-page):has(.rd-v2-rail-selection[title="Synthesis"]) .rd-v2-rail {
+    overflow: hidden;
+  }
+
+  .rd-v2-shell:has(.rd-loop7-synthesis-page):has(.rd-v2-rail-selection[title="Synthesis"]) .rd-v2-rail-chrome {
+    padding: 12px 8px;
+  }
+
+  .rd-v2-shell:has(.rd-loop7-synthesis-page):has(.rd-v2-rail-selection[title="Synthesis"]) .rd-v2-rail-toggle {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .rd-v2-shell:has(.rd-loop7-synthesis-page):has(.rd-v2-rail-selection[title="Synthesis"]) .rd-v2-rail-toggle button {
+    min-width: 0;
+    padding: 0 4px;
+    font-size: 9px;
+  }
+
+  .rd-v2-shell:has(.rd-loop7-synthesis-page):has(.rd-v2-rail-selection[title="Synthesis"]) .rd-v2-rail-selection,
+  .rd-v2-shell:has(.rd-loop7-synthesis-page):has(.rd-v2-rail-selection[title="Synthesis"]) .rd-v2-rail-pane {
+    display: none !important;
+  }
+}
