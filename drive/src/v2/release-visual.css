@@ -1582,6 +1582,100 @@
   background: #f2f6ff;
   box-shadow: inset 3px 0 0 #1a56a8;
 }
+
+/* The selected-source inspector is part of the desk, not a separate dark
+   operations console. Keep the full-canvas evaluation variant independent. */
+.rd-v2-eval-surface.rd-v2-eval-rail {
+  background: var(--rd-surface);
+  border-left: 0;
+  color: var(--rd-body);
+}
+
+.rd-v2-eval-rail .rd-v2-eval-identity,
+.rd-v2-eval-rail .rd-v2-eval-decision,
+.rd-v2-eval-rail .rd-v2-eval-lifecycle,
+.rd-v2-eval-rail .rd-v2-eval-sufficiency {
+  border-bottom-color: var(--rd-border);
+  background: var(--rd-surface);
+}
+
+.rd-v2-eval-rail .rd-v2-eval-identity {
+  background: linear-gradient(180deg, rgba(26, 115, 232, 0.05), rgba(26, 115, 232, 0)), var(--rd-surface);
+}
+
+.rd-v2-eval-rail .rd-v2-eval-kicker,
+.rd-v2-eval-rail .rd-v2-eval-section-label,
+.rd-v2-eval-rail .rd-v2-eval-source,
+.rd-v2-eval-rail .rd-v2-eval-prose.muted,
+.rd-v2-eval-rail .rd-v2-eval-sufficiency-dimension,
+.rd-v2-eval-rail .rd-v2-eval-sufficiency-side small,
+.rd-v2-eval-rail .rd-v2-eval-sufficiency-reference span,
+.rd-v2-eval-rail .rd-v2-eval-lifecycle-evidence b {
+  color: var(--rd-muted);
+}
+
+.rd-v2-eval-rail .rd-v2-eval-title,
+.rd-v2-eval-rail .rd-v2-eval-decision-headline,
+.rd-v2-eval-rail .rd-v2-eval-prose,
+.rd-v2-eval-rail .rd-v2-eval-list li,
+.rd-v2-eval-rail .rd-v2-eval-checklist li,
+.rd-v2-eval-rail .rd-v2-eval-lifecycle-evidence li,
+.rd-v2-eval-rail .rd-v2-eval-sufficiency-side strong,
+.rd-v2-eval-rail .rd-v2-eval-sufficiency-reference strong {
+  color: var(--rd-body);
+}
+
+.rd-v2-eval-rail .rd-v2-eval-decision-body {
+  color: #526174;
+}
+
+.rd-v2-eval-rail .rd-v2-eval-verified {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.rd-v2-eval-rail .rd-v2-eval-inferred {
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+
+.rd-v2-eval-rail .rd-v2-eval-unknown {
+  border-color: #fed7aa;
+  background: #fffaf5;
+}
+
+.rd-v2-eval-rail .rd-v2-eval-tech {
+  border-color: var(--rd-border);
+  background: #fbfdff;
+  color: var(--rd-muted);
+}
+
+.rd-v2-eval-rail .rd-v2-eval-tech > summary,
+.rd-v2-eval-rail .rd-v2-eval-tech > summary::before,
+.rd-v2-eval-rail .rd-v2-eval-sufficiency-arrow {
+  color: var(--rd-muted);
+}
+
+.rd-v2-eval-rail .rd-v2-eval-lifecycle-path li {
+  border-color: var(--rd-border2);
+  color: var(--rd-muted);
+}
+
+.rd-v2-eval-rail .rd-v2-eval-lifecycle-path li.on {
+  border-color: var(--rd-active-border);
+  background: var(--rd-active-bg);
+  color: var(--rd-active-fg);
+}
+
+.rd-v2-eval-rail .rd-v2-eval-lifecycle-path li.failed {
+  border-color: #f5b7ae;
+  background: #fff1ef;
+  color: #b42318;
+}
+
+.rd-v2-eval-rail .rd-v2-eval-sufficiency-compare-row {
+  border-top-color: var(--rd-border);
+}
 @media (max-width: 900px) {
   .rd-v2-res-capacity-pair-grid,
   .rd-v2-res-source-ledger-head,
