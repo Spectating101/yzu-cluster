@@ -209,8 +209,10 @@ test.describe("RC3 Synthesis durable construction studio", () => {
     await expect(workspace).toContainText("Search intent");
     await expect(workspace).toContainText("Available evidence");
     await expect(workspace).toContainText("Missing evidence");
-    await expect(page.locator("aside.rd-v2-rail")).toContainText("Historical stablecoin attention");
-    await expect(page.locator("aside.rd-v2-rail")).toContainText("3 mapped inputs");
+    const rail = page.locator("aside.rd-v2-rail");
+    await expect(rail).toContainText("Historical stablecoin attention");
+    await expect(rail).toContainText("3 mapped · 0 missing");
+    await expect(rail).toContainText("Structured construction state");
     await expect(page.getByText("No output claimed", { exact: true })).toBeVisible();
     await capture(page, "01-durable-evidence-desktop");
   });
