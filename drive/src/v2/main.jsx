@@ -28,6 +28,8 @@ import "./synthesis-loop7-fixes.css";
 // Isolated Sol-ceiling experiment. Desktop-only and presentation-only until
 // exact-SHA capture proves it materially improves the accepted workbench.
 import "./sol-ceiling.css";
+// Focused flagship authority; fold into the accepted layer after visual approval.
+import "./sol-ceiling-synthesis.css";
 import { InteractionProvider } from "./InteractionGuidance.jsx";
 import { V2App } from "./App.jsx";
 
