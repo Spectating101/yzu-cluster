@@ -99,3 +99,43 @@ export function isInternalValidationRecord(row) {
 export function facultyFacingRecords(rows) {
   return (Array.isArray(rows) ? rows : []).filter((row) => !isInternalValidationRecord(row));
 }
+
+function homeResearchScore(row) {
+  const title = directTitle(row);
+  const readiness = values(row, [
+    "analysis_readiness",
+    "readiness",
+    "query_status",
+    "status",
+    "authority.readiness",
+  ]).join(" ");
+  const grain = values(row, ["grain", "dataset_grain", "schema.grain"]).join(" ");
+  const coverage = values(row, ["coverage", "date_range", "temporal_coverage"]).join(" ");
+  const description = values(row, ["summary", "description", "purpose", "recommended_use"]).join(" ");
+  const source = values(row, ["source", "publisher", "provider", "source_route"]).join(" ");
+  let score = 0;
+
+  if (row?.query_ready === true || /query.?ready|instant|analysis.?ready/i.test(readiness)) score += 140;
+  else if (/connected|registered|available/i.test(readiness)) score += 28;
+
+  if (description.length >= 40) score += 26;
+  else if (description) score += 12;
+  if (coverage) score += 14;
+  if (source) score += 8;
+  if (grain && !/procured.?snapshot|raw.?snapshot|receipt/i.test(grain)) score += 20;
+  if (/panel|timeseries|time series|event|filing|market|governance|macro|microstructure|estimate|attention|news/i.test(`${title} ${description}`)) score += 18;
+
+  if (/^(?:collect|procure|refresh|discover refresh|download|ingest|harvest)\b/i.test(title)) score -= 105;
+  if (/\b(?:collect|procure|refresh)\b.*\b(?:receipt|snapshot|run)\b/i.test(`${title} ${description}`)) score -= 45;
+  if (/procured.?snapshot|receipt.?only|metadata.?only/i.test(`${grain} ${readiness}`)) score -= 38;
+  if (!title || /^(?:untitled|dataset)$/i.test(title)) score -= 25;
+
+  return score;
+}
+
+export function rankFacultyHomeRecords(rows) {
+  return facultyFacingRecords(rows)
+    .map((row, index) => ({ row, index, score: homeResearchScore(row) }))
+    .sort((a, b) => b.score - a.score || a.index - b.index)
+    .map(({ row }) => row);
+}
