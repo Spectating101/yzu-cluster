@@ -5,6 +5,7 @@ import { deskPipelineStrips } from "@/v2/deskSeed";
 import { recentDatasets } from "@/v2/recent";
 import { PageShell, SectionTitle } from "@/v2/ui";
 import { displayName, statusPillKind } from "@/v2/datasetMeta";
+import { facultyFacingRecords, isInternalValidationRecord } from "@/v2/productVisibility";
 
 function datasetListItem(row) {
   return { kind: "dataset", id: row.dataset_id, name: row.name, row };
@@ -41,10 +42,10 @@ function AttentionRow({ item, onOpen, onAsk }) {
 
 function ContextStrip({ holdings, queryReady, running, pending }) {
   const rows = [
-    ["Holdings", holdings, "Registered in the faculty vault"],
+    ["Holdings", holdings, "Faculty-facing assets in the vault"],
     ["Query ready", queryReady, "Available for analysis now"],
-    ["Running", running, "Worker or registration activity"],
-    ["Needs review", pending, "Consequential decisions waiting"],
+    ["Running", running, "Active collection or registration"],
+    ["Needs review", pending, "Material decisions waiting"],
   ];
   return (
     <section className="rd-recovery-home-context" aria-label="Research context summary">
@@ -73,17 +74,25 @@ export function HomePage({
   onPreviewDataset,
   onAskAttention,
 }) {
-  const recent = useMemo(() => recentDatasets(datasets, 5), [datasets]);
-  const continueDs = recent[0] || datasets[0] || null;
+  const visibleDatasets = useMemo(() => facultyFacingRecords(datasets), [datasets]);
+  const visibleJobs = useMemo(() => facultyFacingRecords(jobs), [jobs]);
+  const visibleAcquisitions = useMemo(() => facultyFacingRecords(acquisitions), [acquisitions]);
+  const recent = useMemo(() => recentDatasets(visibleDatasets, 5), [visibleDatasets]);
+  const continueDs = recent[0] || visibleDatasets[0] || null;
   const loading = health == null && datasets.length === 0;
-  const healthJobs = health?.desk?.jobs || {};
-  const pendingJobs = useMemo(() => jobs.filter((job) => /pending|approval|hold/i.test(String(job?.status || job?.state || ""))), [jobs]);
-  const runningJobs = useMemo(() => jobs.filter(isRunning), [jobs]);
-  const pipeline = useMemo(() => deskPipelineStrips(health, acquisitions), [health, acquisitions]);
-  const pending = Number(healthJobs.pending_approval ?? pendingJobs.length);
-  const running = Number(healthJobs.running ?? Math.max(runningJobs.length, pipeline.filter((row) => row?.stage === "running").length));
-  const queryReady = datasets.filter((row) => statusPillKind(row).kind === "query-ready").length;
-  const recentRows = recent.length ? recent : datasets.slice(0, 5);
+  const pendingJobs = useMemo(
+    () => visibleJobs.filter((job) => /pending|approval|hold/i.test(String(job?.status || job?.state || ""))),
+    [visibleJobs],
+  );
+  const runningJobs = useMemo(() => visibleJobs.filter(isRunning), [visibleJobs]);
+  const pipeline = useMemo(
+    () => deskPipelineStrips(health, visibleAcquisitions).filter((row) => !isInternalValidationRecord(row)),
+    [health, visibleAcquisitions],
+  );
+  const pending = pendingJobs.length;
+  const running = Math.max(runningJobs.length, pipeline.filter((row) => row?.stage === "running").length);
+  const queryReady = visibleDatasets.filter((row) => statusPillKind(row).kind === "query-ready").length;
+  const recentRows = recent.length ? recent : visibleDatasets.slice(0, 5);
 
   const attentionItems = useMemo(() => {
     const items = [];
@@ -135,10 +144,10 @@ export function HomePage({
       kind: "library",
       label: "Library",
       title: "Faculty vault",
-      metric: `${datasets.length} holdings`,
-      detail: `${queryReady} query-ready. Open the exact branch, upload evidence, or add a URL / DOI.`,
+      metric: `${visibleDatasets.length} holdings`,
+      detail: `${queryReady} query-ready. Inspect held evidence, open an exact branch, or add a source.`,
       tab: "library",
-      prompt: `Summarize Library readiness across ${datasets.length} holdings and identify the most material evidence gap.`,
+      prompt: `Summarize Library readiness across ${visibleDatasets.length} faculty-facing holdings and identify the most material evidence gap.`,
     });
 
     items.push({
@@ -147,12 +156,12 @@ export function HomePage({
       label: "Discover",
       title: "Find missing data",
       metric: "Search and probe",
-      detail: "Browse the catalog, search supported indexes, then let the agent investigate promising routes.",
+      detail: "Search held evidence first, then investigate realistic external routes without hiding uncertainty.",
       tab: "browse",
       prompt: "Find missing evidence for the current faculty workspace. Search the lab first, then compare supported external routes and preserve uncertainty.",
     });
     return items;
-  }, [datasets.length, pendingJobs, pending, pipeline, queryReady, running, runningJobs]);
+  }, [pendingJobs, pending, pipeline, queryReady, running, runningJobs, visibleDatasets.length]);
 
   const suggestedGaps = useMemo(() => {
     const fromProfile = (profile?.procurement_recommendations || [])
@@ -186,8 +195,8 @@ export function HomePage({
   };
 
   return (
-    <PageShell className="rd-v2-home-page rd-recovery-home-page" title="Home" lead="Continue · running · recent — not the full catalog">
-      <ContextStrip holdings={datasets.length} queryReady={queryReady} running={running} pending={pending} />
+    <PageShell className="rd-v2-home-page rd-recovery-home-page" title="Home" lead="Resume active research, review material decisions, and move directly into held evidence.">
+      <ContextStrip holdings={visibleDatasets.length} queryReady={queryReady} running={running} pending={pending} />
 
       <section className="rd-v2-home-continue-card rd-recovery-home-continue" aria-label="Continue working" aria-busy={loading} data-testid="home-continue">
         <div className="rd-v2-home-continue-copy">
@@ -195,23 +204,23 @@ export function HomePage({
             <><span>Restoring research context</span><Skeleton lines={3} label="Loading the most recent research asset" /></>
           ) : continueDs ? (
             <>
-              <span>{usingSeed ? "Offline sample" : "Continue"}</span>
+              <span>{usingSeed ? "Offline sample" : recent.length ? "Continue" : "Start from held evidence"}</span>
               <h2>{displayName(continueDs)}</h2>
               <p className="rd-v2-home-continue-purpose">{purposeLine(continueDs)}</p>
               <p className="rd-v2-home-continue-meta">
                 <span className="rd-v2-pill">{statusPillKind(continueDs).label}</span>
-                <span>{queryReady} query-ready · {datasets.length} holdings{pending ? ` · ${pending} awaiting approval` : ""}</span>
+                <span>{queryReady} query-ready · {visibleDatasets.length} holdings{pending ? ` · ${pending} awaiting approval` : ""}</span>
               </p>
               <p className="rd-v2-home-continue-id mono">{continueDs.dataset_id}</p>
             </>
           ) : (
-            <><span>Start</span><h2>Open the vault or find missing data</h2><p>No recent research asset is stored in this browser.</p></>
+            <><span>Start</span><h2>Open the vault or find missing data</h2><p>No faculty-facing research asset is ready to continue yet. Validation records remain available in technical views but do not define this workspace.</p></>
           )}
         </div>
         {!loading ? (
           <div className="rd-v2-home-continue-actions">
-            <button type="button" className="rd-v2-btn sm primary" onClick={continueWork}>Continue</button>
-            <button type="button" className="rd-v2-btn sm" onClick={openContinueInLibrary}>Open in Library</button>
+            <button type="button" className="rd-v2-btn sm primary" onClick={continueWork}>{continueDs ? "Continue" : "Open Library"}</button>
+            {continueDs ? <button type="button" className="rd-v2-btn sm" onClick={openContinueInLibrary}>Open in Library</button> : null}
           </div>
         ) : null}
       </section>
@@ -226,9 +235,9 @@ export function HomePage({
       <section className="rd-v2-home-recent" aria-label="Recent research assets">
         <SectionTitle title="Recent" actionLabel="See Library →" onAction={() => onGoTab?.("library")} />
         <div className="rd-v2-home-list-panel">
-          {loading ? <Skeleton lines={3} label="Loading recent research assets" /> : (
+          {loading ? <Skeleton lines={3} label="Loading recent research assets" /> : recentRows.length ? (
             <CatalogList rows={recentRows.slice(0, 4).map(datasetListItem)} onSelectDataset={onSelectDataset} onDoubleClick={onPreviewDataset} compact />
-          )}
+          ) : <p className="rd-v2-empty-inline">No faculty-facing asset has been opened yet.</p>}
         </div>
       </section>
 
