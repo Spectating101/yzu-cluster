@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { facultyFacingRecords, isInternalValidationRecord } from "./productVisibility.js";
+import { facultyFacingRecords, isInternalValidationRecord, rankFacultyHomeRecords } from "./productVisibility.js";
 
 test("filters deployment and canary residue from faculty-facing collections", () => {
   const rows = [
@@ -30,6 +30,29 @@ test("filters technical synthesis residue while preserving substantive work", ()
     facultyFacingRecords(threads).map((row) => row.id),
     ["jkse"],
   );
+});
+
+test("ranks analytically useful assets ahead of operational receipts", () => {
+  const ranked = rankFacultyHomeRecords([
+    {
+      dataset_id: "procured_sec_refresh",
+      name: "Collect Discover refresh sec_edgar",
+      grain: "procured_snapshot",
+      analysis_readiness: "registered",
+      summary: "Verified registered asset recovered from its durable registration receipt.",
+    },
+    {
+      dataset_id: "gdelt_asia_daily_country_panel",
+      name: "GDELT Asia Daily Country News Shock Panel",
+      grain: "country_day",
+      analysis_readiness: "query_ready",
+      coverage: "2018-present",
+      source: "GDELT",
+      summary: "Daily country-level news intensity and shock measures for event-study and macro-finance research.",
+    },
+  ]);
+
+  assert.equal(ranked[0].dataset_id, "gdelt_asia_daily_country_panel");
 });
 
 test("explicit faculty visibility overrides a suspicious technical label", () => {
