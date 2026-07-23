@@ -37,7 +37,7 @@ function RecipeMetrics({ recipe }) {
       <TradeoffValue label="Fidelity" value={recipe.fidelity} />
       <TradeoffValue label="Coverage" value={recipe.coverage} />
       <TradeoffValue label="Timing" value={recipe.timing} />
-      <TradeoffValue label="Repeatability" value={recipe.reproducibility} />
+      <TradeoffValue label="Repeatable" value={recipe.reproducibility} />
     </div>
   );
 }
