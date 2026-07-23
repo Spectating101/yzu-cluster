@@ -22,34 +22,43 @@ function IngredientRow({ item, onSelect }) {
   );
 }
 
-function TradeoffValue({ value }) {
+function TradeoffValue({ label, value }) {
   const tone = /high|strong/i.test(value) ? "strong" : /low|weak/i.test(value) ? "weak" : "neutral";
-  return <span className={`rd-proxy-tradeoff ${tone}`}>{value}</span>;
+  return (
+    <span className={`rd-proxy-tradeoff ${tone}`}>
+      <small>{label}</small><b>{value}</b>
+    </span>
+  );
 }
 
-function RecipeComparison({ recipes, onSelect }) {
-  if (!recipes.length) {
+function RecipeMetrics({ recipe }) {
+  return (
+    <div className="rd-proxy-recipe-metrics" aria-label="Proxy validity profile">
+      <TradeoffValue label="Fidelity" value={recipe.fidelity} />
+      <TradeoffValue label="Coverage" value={recipe.coverage} />
+      <TradeoffValue label="Timing" value={recipe.timing} />
+      <TradeoffValue label="Repeatability" value={recipe.reproducibility} />
+    </div>
+  );
+}
+
+function AlternativeStrip({ alternatives, onSelect }) {
+  if (!alternatives.length) {
     return <p className="rd-proxy-empty">Alternative proxy designs have not been generated in durable state.</p>;
   }
   return (
-    <div className="rd-proxy-comparison-table" role="table" aria-label="Proxy design comparison">
-      <div className="rd-proxy-comparison-head" role="row">
-        <span>Proxy design</span><span>Fidelity</span><span>Coverage</span><span>Timing</span><span>Reproducibility</span><span>Main compromise</span>
-      </div>
-      {recipes.map((recipe) => (
-        <button
-          type="button"
-          key={recipe.id}
-          className={recipe.recommended ? "recommended" : ""}
-          onClick={() => onSelect("proxy_recipes", recipe)}
-          role="row"
-        >
-          <span><strong>{recipe.title}</strong>{recipe.recommended ? <small>Recommended</small> : null}</span>
-          <TradeoffValue value={recipe.fidelity} />
-          <TradeoffValue value={recipe.coverage} />
-          <TradeoffValue value={recipe.timing} />
-          <TradeoffValue value={recipe.reproducibility} />
-          <span className="rd-proxy-compromise">{recipe.limitation}</span>
+    <div className="rd-proxy-alternative-strip" aria-label="Alternative proxy designs">
+      {alternatives.map((recipe) => (
+        <button type="button" key={recipe.id} onClick={() => onSelect("proxy_recipes", recipe)}>
+          <span>
+            <strong>{recipe.title}</strong>
+            <small>{recipe.limitation}</small>
+          </span>
+          <span className="rd-proxy-alternative-metrics">
+            <b>Fidelity {recipe.fidelity}</b>
+            <b>Coverage {recipe.coverage}</b>
+            <b>Timing {recipe.timing}</b>
+          </span>
         </button>
       ))}
     </div>
@@ -73,7 +82,10 @@ function RecipePanel({ recipe, outputContract, onSelect }) {
         <div><span>Recommended proxy design</span><h2>{recipe.title}</h2></div>
         <b>{recipe.supported === false ? "Unsupported" : recipe.supported === true ? "Executable" : "Design state"}</b>
       </header>
-      <p className="rd-proxy-recipe-summary">{recipe.summary}</p>
+      <div className="rd-proxy-recipe-intro">
+        <p>{recipe.summary}</p>
+        <RecipeMetrics recipe={recipe} />
+      </div>
       <div className="rd-proxy-recipe-flow" aria-label="Synthesis recipe">
         {recipe.steps.length ? recipe.steps.map((step, index) => (
           <button type="button" key={`${step}-${index}`} onClick={() => onSelect("synthesis_recipe", { label: step })}>
@@ -84,7 +96,7 @@ function RecipePanel({ recipe, outputContract, onSelect }) {
       <div className="rd-proxy-recipe-notes">
         <div>
           <span>Why this route</span>
-          {recipe.whyRecommended.length ? <ul>{recipe.whyRecommended.map((item) => <li key={item}>{item}</li>)}</ul> : <p>Recommendation rationale has not been recorded.</p>}
+          <p>{recipe.whyRecommended.slice(0, 3).join(" · ") || "Recommendation rationale has not been recorded."}</p>
         </div>
         <div>
           <span>Main limitation</span>
@@ -151,7 +163,7 @@ export function SynthesisProxyCanvas({ view, onSelectArea, onAsk, onGoTab, onOpe
           </div>
           <aside className="rd-proxy-limitation" aria-label="Measurement limitations">
             <div><span>Measurement limitations</span><strong>{hasIdealLimitations ? `${view.idealEvidence.length} recorded` : "Not recorded"}</strong></div>
-            {hasIdealLimitations ? view.idealEvidence.map((item) => (
+            {hasIdealLimitations ? view.idealEvidence.slice(0, 1).map((item) => (
               <button type="button" key={item.id} onClick={() => onSelectArea("measurement_limitations", item)}>
                 <strong>{item.label}</strong><small>{item.reason}</small>
               </button>
@@ -164,10 +176,10 @@ export function SynthesisProxyCanvas({ view, onSelectArea, onAsk, onGoTab, onOpe
 
       <section className="rd-proxy-alternatives" aria-label="Candidate proxy designs">
         <header>
-          <div><span>Candidate proxy designs</span><strong>{view.recipes.length ? `${view.recipes.length} designs` : "Not generated"}</strong></div>
-          <button type="button" onClick={generateRecipes}>Generate or refresh alternatives</button>
+          <div><span>Alternative proxy designs</span><strong>{view.alternatives.length ? `${view.alternatives.length} available` : "Not generated"}</strong></div>
+          <button type="button" onClick={generateRecipes}>Refresh alternatives</button>
         </header>
-        <RecipeComparison recipes={view.recipes} onSelect={onSelectArea} />
+        <AlternativeStrip alternatives={view.alternatives} onSelect={onSelectArea} />
       </section>
 
       <footer className="rd-proxy-next" data-decision-type={view.nextDecision.type}>
