@@ -45,6 +45,10 @@ function eventKind(event) {
   const status = String(event?.status || event?.meta?.status || "").toLowerCase();
   const truth = historyHoldingTruth(event);
 
+  // Desk/Ask telemetry is useful audit detail, but it is not a procurement
+  // lifecycle event. Keep it behind Search rather than crowding the trail.
+  if (/^(ask|semantic_discover|discover|search|probe|query|preview)$/.test(action)) return "search";
+
   if (truth.queryReady) return "query_ready";
   if (truth.stages.registered && !truth.queryReady) return "registered";
 
