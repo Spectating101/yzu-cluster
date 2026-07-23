@@ -40,7 +40,7 @@ function expectStableDialogBox(box) {
 }
 
 test.describe("Account cluster navigation", () => {
-  test("desktop sidebar is five workspace tabs + account cluster; menu has real actions", async ({
+  test("desktop sidebar is four workspace tabs + account cluster; menu has real actions", async ({
     page,
   }) => {
     await mockV2Api(page, { profileBody: PROFILE });
@@ -59,8 +59,8 @@ test.describe("Account cluster navigation", () => {
     await expect(nav.getByRole("button", { name: /^Home$/i })).toBeVisible();
     await expect(nav.getByRole("button", { name: /^Library$/i })).toBeVisible();
     await expect(nav.getByRole("button", { name: /^Discover$/i })).toBeVisible();
-    await expect(nav.getByRole("button", { name: /^Synthesis$/i })).toBeVisible();
     await expect(nav.getByRole("button", { name: /^Resources$/i })).toBeVisible();
+    await expect(nav.getByRole("button", { name: /^Synthesis$/i })).toHaveCount(0);
     await expect(nav.getByRole("button", { name: /^Profile$/i })).toHaveCount(0);
     await expect(nav.getByRole("button", { name: /^Settings$/i })).toHaveCount(0);
 
@@ -241,7 +241,7 @@ test.describe("Account cluster navigation", () => {
     });
   });
 
-  test("mobile keeps five nav items; header avatar opens sheet overlays", async ({
+  test("mobile keeps four nav items; header avatar opens sheet overlays", async ({
     page,
   }) => {
     await mockV2Api(page, { profileBody: PROFILE });
@@ -257,7 +257,8 @@ test.describe("Account cluster navigation", () => {
     await waitForShell(page);
 
     const nav = page.locator(".yzu-sidebar nav");
-    await expect(nav.getByRole("button")).toHaveCount(5);
+    await expect(nav.getByRole("button")).toHaveCount(4);
+    await expect(nav.getByRole("button", { name: /^Synthesis$/i })).toHaveCount(0);
     await expect(page.getByTestId("sidebar-account-cluster")).toBeHidden();
 
     await page.getByTestId("header-account-menu").click();

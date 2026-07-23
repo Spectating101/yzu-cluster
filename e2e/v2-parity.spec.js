@@ -152,7 +152,6 @@ test.describe("v2 parity @ desk-v2-1440", () => {
       ["Home", "Home"],
       ["Library", "Library"],
       ["Discover", "Discover"],
-      ["Synthesis", "Synthesis"],
       ["Resources", "Resources"],
     ];
     for (const [nav, heading] of tabs) {
@@ -160,8 +159,10 @@ test.describe("v2 parity @ desk-v2-1440", () => {
       await expect(page.locator(".rd-v2-page-head h1", { hasText: heading })).toBeVisible();
     }
     // Profile/Settings moved to account overlays — not primary sidebar destinations.
+    // Synthesis deferred from public Discover/Library release nav.
     await expect(page.locator("aside.yzu-sidebar nav").getByRole("button", { name: "Profile", exact: true })).toHaveCount(0);
     await expect(page.locator("aside.yzu-sidebar nav").getByRole("button", { name: "Settings", exact: true })).toHaveCount(0);
+    await expect(page.locator("aside.yzu-sidebar nav").getByRole("button", { name: "Synthesis", exact: true })).toHaveCount(0);
     await expect(page.locator("aside.yzu-sidebar nav button", { hasText: "Cluster" })).toHaveCount(0);
     await page.getByTestId("header-account-menu").click();
     await expect(page.getByTestId("account-menu").getByRole("menuitem", { name: /Research context/i })).toBeVisible();

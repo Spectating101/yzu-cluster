@@ -50,6 +50,7 @@ import { mergeHealth, resolveCatalog } from "@/v2/deskSeed";
 import { loadSettings, saveSettings } from "@/v2/settingsStore";
 import { buildProfileContextAskPrompt } from "@/v2/profilePresentation";
 import { CLUSTER_NAV_DEFERRED } from "@/v2/nav-config.jsx";
+import { SYNTHESIS_NAV_DEFERRED, normalizeReleaseTab } from "@/v2/releaseVisibility.js";
 import { browseTargetKey, discoverCandidateUrl } from "@/v2/discoverActions";
 import { durableHistoryToEvents, mergeHistoryEvents } from "@/v2/discoverAdapters";
 import { discoverModeFromLegacy, discoverModeToUrlState } from "@/v2/discoverMode";
@@ -74,6 +75,8 @@ function readParams() {
     accountOverlay = "workspace-prefs";
     tab = "home";
   }
+  // Public release: Synthesis deep links land on Library (components retained).
+  tab = normalizeReleaseTab(tab);
   // Library deep links: folder+dataset without a Discover query belong on Library.
   if (tab === "browse" && folder && !q) {
     tab = "library";
@@ -357,8 +360,10 @@ export function V2App() {
     const rawQ = p.get("q") || "";
     const needsLibraryRedirect =
       (rawTab === "browse" || rawTab === "discover") && rawFolder && !rawQ && tab === "library";
+    const needsSynthesisRedirect =
+      SYNTHESIS_NAV_DEFERRED && rawTab === "synthesis" && tab === "library";
     const datasetMismatch = Boolean(selectedId && p.get("dataset") !== selectedId);
-    if (needsLibraryRedirect || datasetMismatch) {
+    if (needsLibraryRedirect || needsSynthesisRedirect || datasetMismatch) {
       writeParams({
         tab,
         folder: folderId,
@@ -505,27 +510,28 @@ export function V2App() {
         setAccountDialogOpen(true);
         return;
       }
-      if (id !== "browse") {
+      const nextId = normalizeReleaseTab(id);
+      if (id !== "browse" && nextId !== "browse") {
         setDiscoverMode("explore");
         setDiscoverFocusAwaiting(false);
         setDiscoverActivityFilter("all");
         setDiscoverFilter("all");
       }
       setSelectedProfileWork(null);
-      if (id === "library") {
-        setTab(id);
+      if (nextId === "library") {
+        setTab(nextId);
         setSelectedId("");
         setDetail(null);
         setPreviewOpen(false);
         setPreviewTarget(null);
         setActiveObject(null);
         setRailTab("detail");
-        syncUrl({ tab: id, dataset: "", preview: false, mode: "explore" });
+        syncUrl({ tab: nextId, dataset: "", preview: false, mode: "explore" });
         return;
       }
-      setTab(id);
-      if (id === "synthesis") setRailTab("ask");
-      syncUrl({ tab: id });
+      setTab(nextId);
+      if (nextId === "synthesis") setRailTab("ask");
+      syncUrl({ tab: nextId });
     },
     [syncUrl],
   );

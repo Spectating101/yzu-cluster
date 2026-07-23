@@ -1,6 +1,7 @@
 import { mkdirSync } from "node:fs";
 import { test, expect } from "@playwright/test";
 import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
+import { SYNTHESIS_NAV_DEFERRED } from "../drive/src/v2/releaseVisibility.js";
 
 const renderDir = "docs/status/generated/synthesis-workbench-visual";
 
@@ -98,7 +99,8 @@ async function capture(page, name) {
   await page.screenshot({ path: `${renderDir}/${name}.png`, fullPage: false });
 }
 
-test.describe("v2 Synthesis durable Composer workbench", () => {
+// Retained for later re-enable; public release redirects tab=synthesis away.
+(SYNTHESIS_NAV_DEFERRED ? test.describe.skip : test.describe)("v2 Synthesis durable Composer workbench", () => {
   test("New synthesis opens durable thread with unformed Model and Composer rail", async ({ page }) => {
     const created = emptyThread();
     await mockV2Api(page, {
