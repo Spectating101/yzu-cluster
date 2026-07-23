@@ -5,6 +5,10 @@ import {
 import { buildResourcesPanels } from "@/v2/resourcesFromRollup";
 import { statusPillKind } from "@/v2/datasetMeta";
 import { Chip, PageShell } from "@/v2/ui";
+import {
+  formatWorkersToolbarStat,
+  workersToolbarFieldsFromRollup,
+} from "./workersToolbarStat.js";
 
 const PLACEHOLDER_ROLLUP = {
   hero: {
@@ -82,14 +86,8 @@ function ResourcesStatusStrip({ rollup }) {
 }
 
 function WorkersToolbarStat({ workers }) {
-  const online = workers?.online ?? workers?.joined;
-  const busy = workers?.busy;
-  const total = workers?.total;
-  if (online == null && busy == null && total == null) return null;
-
-  const count = online ?? busy ?? total;
-  const qualifier = online != null ? "online" : busy != null ? "busy" : "configured";
-  const value = total != null && count !== total ? `${count}/${total} ${qualifier}` : `${count} ${qualifier}`;
+  const value = formatWorkersToolbarStat(workers);
+  if (value == null) return null;
 
   return (
     <span className="rd-v2-toolbar-stat" aria-label={`Collection workers ${value}`}>
@@ -215,6 +213,9 @@ function resourceDetail(row) {
     if (row.key === "source-huggingface") return "Community datasets";
     if (row.key === "source-web_generic") return "Any public URL";
   }
+  if (row.key === "query-engine" || row.kind === "query") {
+    return row.detail || "Catalog and query service";
+  }
   return row.endpoint || row.detail || row.layers || row.collect_via || row.sublabel || row.section || "—";
 }
 
@@ -310,6 +311,7 @@ function resourceType(row, fallback) {
   if (row.key === "tavily") return "Search account";
   if (row.key === "huggingface") return "Dataset account";
   if (row.key === "collect-tokens") return "Credentials";
+  if (row.key === "query-engine" || row.kind === "query") return "Query service";
   if (row.kind === "source") return row.endpoint || fallback;
   return fallback;
 }
@@ -335,7 +337,7 @@ function buildCapabilityInventorySections(panels) {
   const storage = (panels.usage || []).filter((row) => PINNED_STORAGE_KEYS.has(row.key) || needsAttention(row));
   const metered = (panels.metered || []).filter((row) => PINNED_ACCOUNT_KEYS.has(row.key) || needsAttention(row));
   const workers = (panels.compute || []).filter((row) => row.key?.includes("worker") || row.label?.toLowerCase().includes("worker"));
-  const query = (panels.ai || []).filter((row) => row.key === "query-engine" || /query/i.test(row.label || ""));
+  const query = (panels.compute || []).filter((row) => row.key === "query-engine" || row.kind === "query");
   const sources = buildPinnedSourceRows(panels.providers || [], panels.layers || []).slice(0, 3);
   const sourceSummary = sources.length
     ? [
@@ -580,7 +582,7 @@ export function ResourcesPage({
           <Chip active={viewMode === "usage"} onClick={() => onModeChange?.("usage")}>
             Usage
           </Chip>
-          <WorkersToolbarStat workers={viewRollup?.hero?.workers} />
+          <WorkersToolbarStat workers={workersToolbarFieldsFromRollup(viewRollup)} />
           {freshness ? <span className="rd-v2-toolbar-meta">Updated {freshness}</span> : null}
           {rollupLoading ? <span className="rd-v2-toolbar-meta">Refreshing…</span> : null}
           <Chip onClick={() => onRefresh?.()}>Refresh</Chip>

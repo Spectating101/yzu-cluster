@@ -57,6 +57,44 @@ test.describe("v2 Resources Capabilities and Usage", () => {
     await expect(main.getByRole("heading", { name: "Run log" })).toHaveCount(0);
   });
 
+  test("inventory Query engine is Workers & query, not AI & tools", async ({ page }) => {
+    const inventory = page.getByRole("region", { name: "Key resources" });
+    await expect(inventory.locator(".rd-v2-res-inventory-section-title", { hasText: "Workers & query" })).toBeVisible();
+    const queryRow = inventory.locator('[data-kind="query"]', { hasText: "Query engine" });
+    await expect(queryRow).toBeVisible();
+    await expect(queryRow.locator("em")).toHaveText("Query service");
+    await expect(queryRow.locator(".rd-v2-res-inventory-source")).toHaveText("Catalog and query service");
+    await expect(queryRow).not.toContainText("AI & tools");
+    await queryRow.click();
+
+    const rail = page.getByRole("complementary", { name: "Inspector" });
+    await expect(rail.locator(".rd-v2-rail-selection")).toHaveText("Query engine");
+    await expect(rail).toContainText(/Query service/i);
+    await expect(rail).not.toContainText("AI & tools");
+  });
+
+  test("Collectors toolbar shows joined · stale when both are supplied", async ({ page }) => {
+    await page.route("**/library/desk/resources*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          ...MOCK_RESOURCES_ROLLUP,
+          hero: {
+            ...MOCK_RESOURCES_ROLLUP.hero,
+            workers: { online: 0, joined: 3, stale: 3, total: 4, busy: 0 },
+          },
+        }),
+      }),
+    );
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    const collectors = page.locator(".rd-v2-toolbar-stat", { hasText: "Collectors" });
+    await expect(collectors).toContainText("3 joined · 3 stale / 4");
+    await expect(collectors).not.toContainText("0/4 online");
+    await expect(collectors).not.toContainText(/online|available/i);
+  });
+
   test("inventory row still opens the matching rail resource", async ({ page }) => {
     const inventory = page.getByRole("region", { name: "Key resources" });
     await inventory.locator('[data-kind="source"]', { hasText: "Source routes" }).click();

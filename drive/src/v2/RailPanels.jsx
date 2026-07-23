@@ -70,6 +70,8 @@ function resourceRailDescription(row) {
   if (row.kind === "source") return "Source route";
   if (row.kind === "metered") return "Account limit";
   if (row.kind === "usage") return "Storage";
+  if (row.key === "query-engine" || row.kind === "query") return "Query service";
+  if (row.section === "Workers & query") return "Workers & query";
   return row.section || row.kind || "Resource";
 }
 
@@ -96,6 +98,9 @@ function resourceRailUse(row) {
   if (row.key === "source-datacite") return "Research datasets";
   if (row.key === "source-huggingface") return "Community datasets";
   if (row.key === "source-web_generic") return "Any public URL";
+  if (row.key === "query-engine" || row.kind === "query") {
+    return row.detail || "Catalog and query service";
+  }
   return row.detail || row.sublabel || row.section || "—";
 }
 
@@ -1155,11 +1160,17 @@ export function ResourcesRailPanel({
               ["Space", row.metric || "—"],
               ["Status", resourceRailStatus(row)],
             ]
-          : [
-              ["Kind", row.kind || row.section],
-              ["Route", row.routes || row.metric || row.detail || "—"],
-              ["Status", fallbackStatus],
-            ];
+          : row.key === "query-engine" || row.kind === "query"
+            ? [
+                ["Kind", "Query service"],
+                ["Route", row.routes || row.metric || row.detail || "—"],
+                ["Status", fallbackStatus],
+              ]
+            : [
+                ["Kind", row.kind || row.section],
+                ["Route", row.routes || row.metric || row.detail || "—"],
+                ["Status", fallbackStatus],
+              ];
   const isReviewQueue = row.key === "jobs-pending" || String(row.issue?.key || "").includes("jobs-pending");
   const meterActivityFilter =
     row.kind === "metered" && row.key === "bigquery"
@@ -1172,8 +1183,9 @@ export function ResourcesRailPanel({
     <RailFrame>
       <RailEntityHeader
         compact
-        id={row.job?.id || row.endpoint || row.section || row.key}
+        id={row.job?.id || row.endpoint || row.key}
         title={shortLabel}
+        description={resourceRailDescription(row)}
         pills={
           <span className={`rd-v2-pill${row.warn ? " warn" : row.ok === false ? " fail" : ""}`}>
             {pillLabel}

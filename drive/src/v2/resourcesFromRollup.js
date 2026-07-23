@@ -1,11 +1,11 @@
 /** Map GET /library/desk/resources rollup → Resources ledger rows. */
 
-import { buildLayerRows, buildProviderRows } from "@/v2/deskSourcesManifest";
+import { buildLayerRows, buildProviderRows } from "./deskSourcesManifest.js";
 import {
   buildRunningRows,
   buildStackRows,
   buildStorageRows,
-} from "@/v2/resourcesLedger";
+} from "./resourcesLedger.js";
 
 function rowBase(row) {
   return { ok: true, warn: false, showStatus: false, ...row };
@@ -71,15 +71,6 @@ export function buildAiRows(rollup) {
       metric: ai.mcp_tools?.total
         ? `${ai.mcp_tools.total} tools (${ai.mcp_tools.core} core · ${ai.mcp_tools.acquire} acquire · ${ai.mcp_tools.ops} ops)`
         : "—",
-    }),
-    rowBase({
-      section: "AI & tools",
-      kind: "ai",
-      key: "query-engine",
-      label: "Query engine",
-      metric: `:8765 ${rollup.hero?.query_engine?.up ? "up" : "down"}`,
-      ok: rollup.hero?.query_engine?.up,
-      showStatus: !rollup.hero?.query_engine?.up,
     }),
     rowBase({
       section: "AI & tools",
@@ -343,8 +334,30 @@ export function buildMotionRowsFromRollup(rollup, jobs = []) {
   );
 }
 
+function buildQueryEngineRow({ up, port = 8765 } = {}) {
+  const portLabel = port == null || port === "" ? 8765 : port;
+  return rowBase({
+    section: "Workers & query",
+    kind: "query",
+    key: "query-engine",
+    label: "Query engine",
+    metric: `:${portLabel} ${up ? "up" : "down"}`,
+    detail: "Catalog and query service",
+    ok: !!up,
+    showStatus: !up,
+  });
+}
+
 export function buildComputeRowsFromRollup(rollup) {
-  if (!rollup?.compute) return [];
+  const qe = rollup?.hero?.query_engine || {};
+  const rows = [
+    buildQueryEngineRow({
+      up: qe.up,
+      port: qe.port ?? 8765,
+    }),
+  ];
+  if (!rollup?.compute) return rows;
+
   const c = rollup.compute;
   const wl = c.windows_lab || {};
   const q = c.queue || {};
@@ -355,7 +368,7 @@ export function buildComputeRowsFromRollup(rollup) {
       ? Math.round((busy / total) * 100)
       : null;
 
-  return [
+  rows.push(
     rowBase({
       section: "Compute",
       kind: "compute",
@@ -384,7 +397,8 @@ export function buildComputeRowsFromRollup(rollup) {
             ? `${q.open} open`
             : "—",
     }),
-  ];
+  );
+  return rows;
 }
 
 export function buildFallbackPanels(ctx) {
@@ -446,25 +460,21 @@ export function buildFallbackPanels(ctx) {
     rowBase({
       section: "AI & tools",
       kind: "ai",
-      key: "query-engine",
-      label: "Query engine",
-      metric: `:8765 ${health?.status === "ok" ? "up" : "down"}`,
-      ok: health?.status === "ok" || health?.status === "demo",
-      showStatus: health?.status !== "ok" && health?.status !== "demo",
-    }),
-    rowBase({
-      section: "AI & tools",
-      kind: "ai",
       key: "desk-token",
       label: "Desk token",
       metric: desk.desk_token_required ? "required" : "open",
     }),
   ];
+  const queryEngine = buildQueryEngineRow({
+    up: health?.status === "ok" || health?.status === "demo",
+    port: 8765,
+  });
+  const computeWithQuery = [queryEngine, ...compute];
 
   const providers = buildProviderRows({ health, ops, catalogSummary });
   const layers = buildLayerRows({ health });
 
-  const allRows = [...ai, ...extraAi, ...metered, ...storageRows, ...motion, ...compute, ...providers, ...layers];
+  const allRows = [...ai, ...extraAi, ...metered, ...storageRows, ...motion, ...computeWithQuery, ...providers, ...layers];
 
   return {
     hero: null,
@@ -472,7 +482,7 @@ export function buildFallbackPanels(ctx) {
     metered,
     usage: storageRows,
     motion,
-    compute,
+    compute: computeWithQuery,
     providers,
     layers,
     connect: { source_count: providers.length, layer_count: layers.length },

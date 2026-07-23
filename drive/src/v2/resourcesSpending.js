@@ -1,6 +1,6 @@
 /** Resources — Spending | Activity model from desk rollup. */
 
-import { buildMotionRowsFromRollup } from "@/v2/resourcesFromRollup";
+import { buildMotionRowsFromRollup } from "./resourcesFromRollup.js";
 
 function rowBase(row) {
   return { ok: true, warn: false, ...row };

@@ -1,7 +1,12 @@
 /** Derive Home research-state briefing from observed jobs/assets/acquisitions only. */
 
 import { recentDatasets } from "./recent.js";
-import { displayName, statusPillKind } from "./datasetMeta.js";
+import {
+  displayName,
+  isQueryReadyReadiness,
+  isReceiptOnlyAsset,
+  statusPillKind,
+} from "./datasetMeta.js";
 
 function jobTitle(job) {
   return (
@@ -41,6 +46,47 @@ function sortByUpdated(rows) {
   return [...rows].sort((a, b) => assetUpdatedAt(b) - assetUpdatedAt(a));
 }
 
+function isAnalysisReadyAsset(row) {
+  return isQueryReadyReadiness(row?.analysis_readiness) && !isReceiptOnlyAsset(row);
+}
+
+function isOrdinaryHolding(row) {
+  return Boolean(row) && !isReceiptOnlyAsset(row);
+}
+
+function pickContinueDataset(datasets, recent) {
+  const ordered = [];
+  const seen = new Set();
+  for (const row of [...recent, ...datasets]) {
+    const id = row?.dataset_id || row;
+    if (!row || seen.has(id)) continue;
+    seen.add(id);
+    ordered.push(row);
+  }
+  return (
+    ordered.find(isAnalysisReadyAsset) ||
+    ordered.find((row) => isOrdinaryHolding(row) && statusPillKind(row).kind === "registered") ||
+    ordered.find(isOrdinaryHolding) ||
+    null
+  );
+}
+
+function evidenceItem(row, { freshnessUnknown = false, receipt = false } = {}) {
+  const pill = statusPillKind(row);
+  const previewAllowed = isAnalysisReadyAsset(row);
+  return {
+    id: row.dataset_id,
+    kind: receipt ? "receipt" : "asset",
+    title: displayName(row),
+    detail: row.dataset_id,
+    metric: pill.label,
+    dataset: row,
+    tab: "library",
+    previewAllowed,
+    freshnessUnknown: freshnessUnknown || undefined,
+  };
+}
+
 /**
  * @returns {{
  *   continueWork: object|null,
@@ -58,7 +104,7 @@ export function buildHomeBriefing({
   profile = null,
 } = {}) {
   const recent = recentDatasets(datasets, 5);
-  const continueDs = recent[0] || datasets[0] || null;
+  const continueDs = pickContinueDataset(datasets, recent);
   const pendingJobs = jobs.filter(isPendingJudgment);
   const recoveryJobs = jobs.filter(isFailedOrRecovery);
   const runningJobs = jobs.filter(isRunning);
@@ -74,6 +120,7 @@ export function buildHomeBriefing({
         readiness: statusPillKind(continueDs).label,
         dataset: continueDs,
         tab: "library",
+        previewAllowed: isAnalysisReadyAsset(continueDs),
       }
     : null;
 
@@ -143,31 +190,31 @@ export function buildHomeBriefing({
     });
   }
 
-  const datedAssets = sortByUpdated(datasets.filter((row) => assetUpdatedAt(row) > 0)).slice(0, 4);
+  const ordinaryHoldings = datasets.filter(isOrdinaryHolding);
+  const datedOrdinary = sortByUpdated(
+    ordinaryHoldings.filter((row) => assetUpdatedAt(row) > 0),
+  );
+  const readyFirst = [...datedOrdinary].sort((a, b) => {
+    const readyDelta = Number(isAnalysisReadyAsset(b)) - Number(isAnalysisReadyAsset(a));
+    if (readyDelta) return readyDelta;
+    return assetUpdatedAt(b) - assetUpdatedAt(a);
+  });
   const evidence = [];
-  for (const row of datedAssets) {
-    evidence.push({
-      id: row.dataset_id,
-      kind: "asset",
-      title: displayName(row),
-      detail: row.dataset_id,
-      metric: statusPillKind(row).label,
-      dataset: row,
-      tab: "library",
-    });
+  for (const row of readyFirst.slice(0, 4)) {
+    evidence.push(evidenceItem(row));
   }
-  if (!evidence.length && datasets.length) {
-    for (const row of (recent.length ? recent : datasets).slice(0, 4)) {
-      evidence.push({
-        id: row.dataset_id,
-        kind: "asset",
-        title: displayName(row),
-        detail: row.dataset_id,
-        metric: statusPillKind(row).label,
-        dataset: row,
-        tab: "library",
-        freshnessUnknown: true,
-      });
+  if (!evidence.length && ordinaryHoldings.length) {
+    for (const row of (recent.filter(isOrdinaryHolding).length
+      ? recent.filter(isOrdinaryHolding)
+      : ordinaryHoldings
+    ).slice(0, 4)) {
+      evidence.push(evidenceItem(row, { freshnessUnknown: true }));
+    }
+  }
+  if (!evidence.length) {
+    const receipts = sortByUpdated(datasets.filter(isReceiptOnlyAsset)).slice(0, 4);
+    for (const row of receipts) {
+      evidence.push(evidenceItem(row, { receipt: true, freshnessUnknown: assetUpdatedAt(row) <= 0 }));
     }
   }
 

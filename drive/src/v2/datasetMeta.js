@@ -67,12 +67,27 @@ export function isQueryReadyReadiness(value) {
 }
 
 /**
+ * Receipt-recovery catalog rows — registered in a receipt only, not a reusable query holding.
+ * Authoritative signal is catalog_reconciliation.state (never name heuristics).
+ */
+export function isReceiptOnlyAsset(dataset) {
+  const state = String(dataset?.catalog_reconciliation?.state || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
+  return state === "receipt_only";
+}
+
+/**
  * Map registry readiness to a faculty status.
  * completed ≠ registered ≠ query-ready; unknown/missing never promote to Query-ready.
  */
 export function statusPillKind(dataset) {
   if (dataset?.live_identity_badge?.kind && dataset?.live_identity_badge?.label) {
     return dataset.live_identity_badge;
+  }
+  if (isReceiptOnlyAsset(dataset)) {
+    return { kind: "registered", label: "Registered · reconciliation pending" };
   }
   const readiness = String(dataset?.analysis_readiness || "")
     .trim()

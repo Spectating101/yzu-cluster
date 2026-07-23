@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { isQueryReadyReadiness, statusPillKind } from "./datasetMeta.js";
+import { isQueryReadyReadiness, isReceiptOnlyAsset, statusPillKind } from "./datasetMeta.js";
 
 test("unknown readiness is never promoted to query ready", () => {
   assert.deepEqual(statusPillKind({ dataset_id: "unknown" }), {
@@ -49,4 +49,23 @@ test("dataset readiness labels preserve the explicit access contract", () => {
 
 test("external acquisition rows remain external regardless of readiness text", () => {
   assert.equal(statusPillKind({ collect_via: "web", analysis_readiness: "instant" }).kind, "external");
+});
+
+test("receipt_only reconciliation is classified as registered pending, not query-ready", () => {
+  const receipt = {
+    dataset_id: "any_registered_receipt",
+    analysis_readiness: "registered",
+    catalog_reconciliation: { state: "receipt_only", query_allowed: false },
+  };
+  assert.equal(isReceiptOnlyAsset(receipt), true);
+  assert.equal(statusPillKind(receipt).kind, "registered");
+  assert.match(statusPillKind(receipt).label, /reconciliation pending/i);
+  assert.equal(
+    isReceiptOnlyAsset({
+      analysis_readiness: "registered",
+      catalog_reconciliation: { state: "reconciled", query_allowed: true },
+    }),
+    false,
+  );
+  assert.equal(statusPillKind({ analysis_readiness: "registered" }).label, "Registered");
 });

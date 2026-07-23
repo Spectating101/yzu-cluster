@@ -126,13 +126,15 @@ export function HomePage({
               >
                 Open in Library
               </button>
-              <button
-                type="button"
-                className="rd-v2-btn sm primary"
-                onClick={() => onPreviewDataset?.(continueWork.dataset)}
-              >
-                Preview rows
-              </button>
+              {continueWork.previewAllowed ? (
+                <button
+                  type="button"
+                  className="rd-v2-btn sm primary"
+                  onClick={() => onPreviewDataset?.(continueWork.dataset)}
+                >
+                  Preview rows
+                </button>
+              ) : null}
             </div>
           </>
         ) : (
