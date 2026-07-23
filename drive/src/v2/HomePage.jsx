@@ -6,17 +6,18 @@ import { recentDatasets } from "@/v2/recent";
 import { PageShell, SectionTitle } from "@/v2/ui";
 import { displayName, statusPillKind } from "@/v2/datasetMeta";
 import { facultyFacingRecords, isInternalValidationRecord, rankFacultyHomeRecords } from "@/v2/productVisibility";
+import { RESEARCH_ACTIONS } from "@/v2/researchValue";
 
 function datasetListItem(row) {
   return { kind: "dataset", id: row.dataset_id, name: row.name, row };
 }
 
 function jobTitle(job) {
-  return job?.plan?.title || job?.title || job?.name || job?.dataset_id || job?.type || "Procurement job";
+  return job?.plan?.title || job?.title || job?.name || job?.dataset_id || job?.type || "Acquisition plan";
 }
 
 function purposeLine(dataset) {
-  return dataset?.summary || dataset?.description || dataset?.purpose || [dataset?.source, dataset?.coverage, dataset?.grain].filter(Boolean).join(" · ") || "Research dataset in the faculty vault";
+  return dataset?.summary || dataset?.description || dataset?.purpose || [dataset?.source, dataset?.coverage, dataset?.grain].filter(Boolean).join(" · ") || "Evidence asset in the faculty research estate";
 }
 
 function isRunning(job) {
@@ -33,8 +34,8 @@ function AttentionRow({ item, onOpen, onAsk }) {
       </div>
       <span className="rd-v2-home-attention-metric">{item.metric}</span>
       <div className="rd-v2-home-attention-actions">
-        {item.prompt ? <button type="button" className="rd-v2-btn sm" onClick={() => onAsk?.(item)}>Ask</button> : null}
-        <button type="button" className={`rd-v2-btn sm${item.warn ? " primary" : ""}`} onClick={() => onOpen?.(item)}>Open</button>
+        {item.prompt ? <button type="button" className="rd-v2-btn sm" onClick={() => onAsk?.(item)}>{item.askLabel || "Assess research state"}</button> : null}
+        <button type="button" className={`rd-v2-btn sm${item.warn ? " primary" : ""}`} onClick={() => onOpen?.(item)}>{item.actionLabel || "Inspect research object"}</button>
       </div>
     </article>
   );
@@ -42,13 +43,13 @@ function AttentionRow({ item, onOpen, onAsk }) {
 
 function ContextStrip({ holdings, queryReady, running, pending }) {
   const rows = [
-    ["Holdings", holdings, "Faculty-facing assets in the vault"],
-    ["Query ready", queryReady, "Available for analysis now"],
-    ["Running", running, "Active collection or registration"],
-    ["Needs review", pending, "Material decisions waiting"],
+    ["Research estate", holdings, "Faculty-facing evidence assets"],
+    ["Ready evidence", queryReady, "Available for analysis now"],
+    ["Active acquisitions", running, "Collection or registration progressing"],
+    ["Decisions waiting", pending, "Human review required"],
   ];
   return (
-    <section className="rd-recovery-home-context" aria-label="Research context summary">
+    <section className="rd-recovery-home-context" aria-label="Research estate pulse">
       {rows.map(([label, value, detail]) => (
         <article key={label}>
           <span>{label}</span>
@@ -98,32 +99,36 @@ export function HomePage({
     const items = [];
     const firstPending = pendingJobs[0];
     if (pending > 0) {
-      const title = firstPending ? jobTitle(firstPending) : "Procurement approval waiting";
+      const title = firstPending ? jobTitle(firstPending) : "Acquisition approval waiting";
       items.push({
         id: "approval",
         kind: "approval",
-        label: "Approval",
+        label: "Research decision",
         title,
-        metric: `${pending} pending`,
-        detail: "Review source, scope, cost, and destination before material work starts.",
+        metric: `${pending} waiting`,
+        detail: "Review source, coverage, access, cost, and destination before material work starts.",
         tab: "browse",
         warn: true,
-        prompt: `Review the pending procurement approval for ${title}. Check research fit, source authority, access, cost, destination, and whether it should proceed.`,
+        actionLabel: RESEARCH_ACTIONS.reviewAcquisition,
+        askLabel: "Assess decision",
+        prompt: `Review the pending acquisition plan for ${title}. Check research fit, source authority, access, cost, destination, and whether it should proceed.`,
       });
     }
 
     const firstPipeline = pipeline[0] || runningJobs[0];
     if (running > 0 || firstPipeline) {
       const title = firstPipeline?.name || firstPipeline?.title || jobTitle(firstPipeline);
-      const metric = firstPipeline?.amount || firstPipeline?.subtitle || `${running || 1} running`;
+      const metric = firstPipeline?.amount || firstPipeline?.subtitle || `${running || 1} active`;
       items.push({
         id: "procurement",
         kind: "procurement",
-        label: "Running",
+        label: "Acquisition",
         title,
         metric,
-        detail: "Live acquisition or registration remains attached to its durable lifecycle.",
+        detail: "Collection, verification, preservation, and registration remain attached to one durable lifecycle.",
         tab: "resources",
+        actionLabel: "Inspect acquisition state",
+        askLabel: "Explain acquisition",
         resourceRow: {
           kind: "active",
           key: firstPipeline?.id || "jobs-running",
@@ -135,30 +140,34 @@ export function HomePage({
           job: firstPipeline?.status ? firstPipeline : undefined,
           meta: firstPipeline,
         },
-        prompt: `Explain the current run ${title} (${metric}). Summarize progress, blockers, resource use, and the next safe action.`,
+        prompt: `Explain the active acquisition ${title} (${metric}). Summarize progress, blockers, resource use, verification state, and the next safe action.`,
       });
     }
 
     items.push({
       id: "library",
       kind: "library",
-      label: "Library",
-      title: "Faculty vault",
-      metric: `${visibleDatasets.length} holdings`,
-      detail: `${queryReady} query-ready. Inspect held evidence, open an exact branch, or add a source.`,
+      label: "Evidence estate",
+      title: "Faculty research estate",
+      metric: `${visibleDatasets.length} assets`,
+      detail: `${queryReady} ready for analysis. Inspect held evidence, verify research fit, or add a missing source.`,
       tab: "library",
-      prompt: `Summarize Library readiness across ${visibleDatasets.length} faculty-facing holdings and identify the most material evidence gap.`,
+      actionLabel: "Inspect evidence estate",
+      askLabel: "Assess evidence coverage",
+      prompt: `Summarize evidence readiness across ${visibleDatasets.length} faculty-facing assets and identify the most material evidence gap.`,
     });
 
     items.push({
       id: "discover",
       kind: "discover",
-      label: "Discover",
-      title: "Find missing data",
-      metric: "Search and probe",
-      detail: "Search held evidence first, then investigate realistic external routes without hiding uncertainty.",
+      label: "Evidence gap",
+      title: "Investigate missing evidence",
+      metric: "Held → connected → missing",
+      detail: "Search controlled evidence first, then compare realistic acquisition routes without hiding uncertainty.",
       tab: "browse",
-      prompt: "Find missing evidence for the current faculty workspace. Search the lab first, then compare supported external routes and preserve uncertainty.",
+      actionLabel: RESEARCH_ACTIONS.investigateGap,
+      askLabel: "Frame evidence need",
+      prompt: "Find missing evidence for the current faculty workspace. Search the research estate first, then compare supported external routes and preserve uncertainty.",
     });
     return items;
   }, [pendingJobs, pending, pipeline, queryReady, running, runningJobs, visibleDatasets.length]);
@@ -180,7 +189,7 @@ export function HomePage({
     else onGoTab?.(item?.tab || "home");
   };
 
-  const continueWork = () => {
+  const inspectCurrentEvidence = () => {
     if (!continueDs) {
       onGoTab?.("library");
       return;
@@ -195,65 +204,65 @@ export function HomePage({
   };
 
   return (
-    <PageShell className="rd-v2-home-page rd-recovery-home-page" title="Home" lead="Resume active research, review material decisions, and move directly into held evidence.">
+    <PageShell className="rd-v2-home-page rd-recovery-home-page" title="Research brief" lead="Continue research, review decisions, and move newly controlled evidence into active work.">
       <ContextStrip holdings={visibleDatasets.length} queryReady={queryReady} running={running} pending={pending} />
 
-      <section className="rd-v2-home-continue-card rd-recovery-home-continue" aria-label="Continue working" aria-busy={loading} data-testid="home-continue">
+      <section className="rd-v2-home-continue-card rd-recovery-home-continue" aria-label="Current evidence asset" aria-busy={loading} data-testid="home-continue">
         <div className="rd-v2-home-continue-copy">
           {loading ? (
-            <><span>Restoring research context</span><Skeleton lines={3} label="Loading the most recent research asset" /></>
+            <><span>Restoring research context</span><Skeleton lines={3} label="Loading the most recent evidence asset" /></>
           ) : continueDs ? (
             <>
-              <span>{usingSeed ? "Offline sample" : recent.length ? "Continue" : "Start from held evidence"}</span>
+              <span>{usingSeed ? "Offline sample" : recent.length ? "Continue from controlled evidence" : "Start from held evidence"}</span>
               <h2>{displayName(continueDs)}</h2>
               <p className="rd-v2-home-continue-purpose">{purposeLine(continueDs)}</p>
               <p className="rd-v2-home-continue-meta">
                 <span className="rd-v2-pill">{statusPillKind(continueDs).label}</span>
-                <span>{queryReady} query-ready · {visibleDatasets.length} holdings{pending ? ` · ${pending} awaiting approval` : ""}</span>
+                <span>{queryReady} ready for analysis · {visibleDatasets.length} controlled assets{pending ? ` · ${pending} research decision${pending === 1 ? "" : "s"} waiting` : ""}</span>
               </p>
               <p className="rd-v2-home-continue-id mono">{continueDs.dataset_id}</p>
             </>
           ) : (
-            <><span>Start</span><h2>Open the vault or find missing data</h2><p>No faculty-facing research asset is ready to continue yet. Validation records remain available in technical views but do not define this workspace.</p></>
+            <><span>Begin</span><h2>Inspect the research estate or investigate an evidence gap</h2><p>No faculty-facing evidence asset is ready to continue yet. Validation records remain available in technical views but do not define this workspace.</p></>
           )}
         </div>
         {!loading ? (
           <div className="rd-v2-home-continue-actions">
-            <button type="button" className="rd-v2-btn sm primary" onClick={continueWork}>{continueDs ? "Continue" : "Open Library"}</button>
-            {continueDs ? <button type="button" className="rd-v2-btn sm" onClick={openContinueInLibrary}>Open in Library</button> : null}
+            <button type="button" className="rd-v2-btn sm primary" onClick={inspectCurrentEvidence}>{continueDs ? RESEARCH_ACTIONS.inspectEvidence : "Open evidence estate"}</button>
+            {continueDs ? <button type="button" className="rd-v2-btn sm" onClick={openContinueInLibrary}>Locate in Library</button> : null}
           </div>
         ) : null}
       </section>
 
-      <section className="rd-v2-home-attention" aria-label="Attention queue">
-        <div className="rd-v2-home-attention-head"><h2>Needs attention</h2><span>{attentionItems.length} items</span></div>
+      <section className="rd-v2-home-attention" aria-label="Research decisions and active work">
+        <div className="rd-v2-home-attention-head"><h2>Decisions and active work</h2><span>{attentionItems.length} research objects</span></div>
         <div className="rd-v2-home-attention-body">
           {attentionItems.slice(0, 4).map((item) => <AttentionRow key={item.id} item={item} onOpen={openAttention} onAsk={onAskAttention} />)}
         </div>
       </section>
 
-      <section className="rd-v2-home-recent" aria-label="Recent research assets">
-        <SectionTitle title="Recent" actionLabel="See Library →" onAction={() => onGoTab?.("library")} />
+      <section className="rd-v2-home-recent" aria-label="Newly available evidence">
+        <SectionTitle title="Newly available evidence" actionLabel="Inspect estate →" onAction={() => onGoTab?.("library")} />
         <div className="rd-v2-home-list-panel">
-          {loading ? <Skeleton lines={3} label="Loading recent research assets" /> : recentRows.length ? (
+          {loading ? <Skeleton lines={3} label="Loading evidence assets" /> : recentRows.length ? (
             <CatalogList rows={recentRows.slice(0, 4).map(datasetListItem)} onSelectDataset={onSelectDataset} onDoubleClick={onPreviewDataset} compact />
-          ) : <p className="rd-v2-empty-inline">No faculty-facing asset has been opened yet.</p>}
+          ) : <p className="rd-v2-empty-inline">No faculty-facing evidence asset has been opened yet.</p>}
         </div>
       </section>
 
-      <section className="rd-v2-home-gaps rd-recovery-home-gaps" aria-label="Suggested gaps">
-        <div className="rd-v2-home-attention-head"><h2>Suggested gaps</h2><span>Agent-steerable</span></div>
+      <section className="rd-v2-home-gaps rd-recovery-home-gaps" aria-label="Evidence gaps to investigate">
+        <div className="rd-v2-home-attention-head"><h2>Evidence gaps to investigate</h2><span>Research Drive can frame routes</span></div>
         <div className="rd-recovery-gap-list">
           {suggestedGaps.map((gap) => (
             <button
               key={gap}
               type="button"
               onClick={() => onAskComposer?.({
-                prompt: `Investigate this possible research gap: ${gap}. Search held evidence first, then compare supported external sources and identify what remains unverified.`,
+                prompt: `Investigate this possible evidence gap: ${gap}. Search held evidence first, then compare supported external sources and identify what remains unverified.`,
                 displayText: gap,
               })}
             >
-              <strong>{gap}</strong><span>Investigate with Research Drive →</span>
+              <strong>{gap}</strong><span>{RESEARCH_ACTIONS.investigateGap} →</span>
             </button>
           ))}
         </div>
