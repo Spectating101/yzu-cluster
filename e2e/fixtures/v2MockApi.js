@@ -37,11 +37,87 @@ export const MOCK_DISCOVER_HIT = {
           license: "Open Government",
           grain: "issuer-quarter",
           description: "TW listed company filings",
+          candidate_key: "dataset:mops_financial_statements_ext",
         },
       ],
     },
   ],
   total: 1,
+};
+
+export const MOCK_SOURCES_HIT = {
+  results: [
+    {
+      kind: "source",
+      source_id: "gdelt",
+      connector_id: "gdelt",
+      desk_connector_id: "gdelt",
+      candidate_key: "source:gdelt_project:gdelt",
+      title: "GDELT news graph",
+      label: "GDELT news graph",
+      provider: "GDELT Project",
+      endpoint: "gdeltproject.org",
+      access_mode: "materialized_bulk",
+      preview_supported: true,
+      collect_via: ["pipeline", "queue"],
+      capabilities: ["country_news_shocks"],
+    },
+  ],
+  total: 1,
+  result_kind: "source",
+};
+
+export const MOCK_SEMANTIC_HIT = {
+  mode: "semantic",
+  query: "stablecoin transfer shocks",
+  sections: [
+    {
+      id: "semantic",
+      rows: [
+        {
+          kind: "local_registry",
+          id: "robust_llama_1784808768",
+          dataset_id: "robust_llama_1784808768",
+          title: "DeFiLlama Stablecoins Snapshot (Robust)",
+          candidate_key: "dataset:robust_llama_1784808768",
+          source: "lab",
+          analysis_readiness: "instant",
+          semantic_score: 0.91,
+        },
+      ],
+    },
+  ],
+  rows: [],
+  total: 1,
+  index_miss: false,
+};
+
+export const MOCK_HISTORY_ITEMS = {
+  items: [
+    {
+      id: "hist-job-pending-1",
+      title: "MOPS financial statements",
+      status: "pending_approval",
+      kind: "collection_run",
+      job_id: "job-pending-1",
+      candidate_key: "source:twse_mops:mops_taiwan",
+      summary: "Awaiting approval",
+      updated_at: "2026-06-30T12:00:00Z",
+      created_at: "2026-06-30T11:00:00Z",
+    },
+    {
+      id: "rev_live2_1784812800",
+      title: "rev_live2_1784812800",
+      status: "query_ready",
+      kind: "registered_asset",
+      job_id: "042816e2f8af",
+      dataset_id: "rev_live2_1784812800",
+      summary: "Query-ready holding",
+      updated_at: "2026-07-23T12:00:00Z",
+      created_at: "2026-07-23T11:00:00Z",
+    },
+  ],
+  total: 2,
 };
 
 export const MOCK_HEALTH = {
@@ -105,7 +181,19 @@ export const MOCK_JOBS = {
       id: "job-pending-1",
       status: "pending_approval",
       type: "procure",
-      plan: { title: "MOPS financial statements" },
+      candidate_key: "source:twse_mops:mops_taiwan",
+      connector_id: "src_mops_pending",
+      plan: {
+        title: "MOPS financial statements",
+        candidate_key: "source:twse_mops:mops_taiwan",
+        source_id: "mops_taiwan",
+        catalog_connector_id: "mops",
+        connector_id: "src_mops_pending",
+      },
+      request: {
+        candidate_key: "source:twse_mops:mops_taiwan",
+        connector_id: "src_mops_pending",
+      },
     },
   ],
 };
@@ -122,6 +210,9 @@ export const MOCK_PROBE_RESULT = {
     },
   },
   summary: "direct_file source; 1 downloadable links detected; recommendation: collect_manifest",
+  candidate_key: "url:https://mops.twse.com.tw/example",
+  connector_id: "example_com_data",
+  resolved_url: "https://mops.twse.com.tw/example",
 };
 
 export const MOCK_WEB_DISCOVER = {
@@ -137,6 +228,7 @@ export const MOCK_WEB_DISCOVER = {
           url: "https://example.com/dataset",
           source: "web",
           description: "Public CSV mirror",
+          candidate_key: "url:https://example.com/dataset",
         },
       ],
     },
@@ -149,6 +241,9 @@ export async function mockV2Api(
   page,
   {
     discoverBody = { sections: [], total: 0 },
+    sourcesBody = { results: [], total: 0 },
+    semanticBody = null,
+    historyBody = MOCK_HISTORY_ITEMS,
     jobsBody = MOCK_JOBS,
     chatComplete = null,
     synthesisProfiles = { profiles: [], latest: {}, count: 0 },
@@ -238,6 +333,12 @@ export async function mockV2Api(
     if (route.request().method() !== "POST") {
       return route.continue();
     }
+    let payload = {};
+    try {
+      payload = route.request().postDataJSON() || {};
+    } catch {
+      payload = {};
+    }
     return route.fulfill({
       status: 200,
       contentType: "application/json",
@@ -245,7 +346,20 @@ export async function mockV2Api(
         job: {
           id: "job-discover-collect-1",
           status: "pending_approval",
-          plan: { title: "MOPS financial statements" },
+          candidate_key: payload.candidate_key || null,
+          connector_id: payload.connector_id || null,
+          plan: {
+            title: "MOPS financial statements",
+            candidate_key: payload.candidate_key || null,
+            connector_id: payload.connector_id || null,
+            source_id: payload.source_id || null,
+          },
+          request: {
+            candidate_key: payload.candidate_key || null,
+            connector_id: payload.connector_id || null,
+            source_id: payload.source_id || null,
+            url: payload.url || null,
+          },
         },
       }),
     });
@@ -257,41 +371,57 @@ export async function mockV2Api(
       body: JSON.stringify(MOCK_WEB_DISCOVER),
     }),
   );
-  // Preferred Explore contract — empty so tests exercise legacy /library/discover mock
-  // bodies instead of leaking live desk proxy results into mock e2e.
-  await page.route("**/library/discover/sources/preview", (route) =>
-    route.fulfill({
+  // Preferred Explore contract — empty by default so legacy /library/discover mocks stay hermetic.
+  await page.route("**/library/discover/sources/preview", (route) => {
+    if (route.request().method() !== "POST") {
+      return route.continue();
+    }
+    let payload = {};
+    try {
+      payload = route.request().postDataJSON() || {};
+    } catch {
+      payload = {};
+    }
+    return route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ ok: true, preview: null, rows: [] }),
-    }),
-  );
+      body: JSON.stringify({
+        status: "schema_only",
+        source_id: payload.source_id || "gdelt",
+        connector_id: payload.connector_id || "gdelt",
+        candidate_key: payload.candidate_key || "source:gdelt_project:gdelt",
+        provider: "GDELT Project",
+        label: "GDELT news graph",
+        coverage: ["country_news_shocks"],
+        schema: { columns: [], access_mode: "materialized_bulk" },
+        sample_row_count: 0,
+        truncated: true,
+        notes: "Catalog schema/access facts only; no live sample claimed.",
+      }),
+    });
+  });
   await page.route("**/library/discover/sources*", (route) =>
     route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ results: [], total: 0 }),
+      body: JSON.stringify(sourcesBody),
     }),
   );
+  await page.route("**/library/discover/semantic", (route) => {
+    if (route.request().method() !== "POST") {
+      return route.continue();
+    }
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(semanticBody || { sections: [], rows: [], total: 0, index_miss: true }),
+    });
+  });
   await page.route("**/library/discover/history*", (route) =>
     route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({
-        items: [
-          {
-            id: "hist-job-pending-1",
-            title: "MOPS financial statements",
-            status: "pending_approval",
-            kind: "collection_run",
-            job_id: "job-pending-1",
-            summary: "Awaiting approval",
-            updated_at: "2026-06-30T12:00:00Z",
-            created_at: "2026-06-30T11:00:00Z",
-          },
-        ],
-        total: 1,
-      }),
+      body: JSON.stringify(historyBody),
     }),
   );
   await page.route("**/library/discover?*", (route) =>

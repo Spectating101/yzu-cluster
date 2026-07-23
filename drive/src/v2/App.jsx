@@ -52,7 +52,12 @@ import { buildProfileContextAskPrompt } from "@/v2/profilePresentation";
 import { CLUSTER_NAV_DEFERRED } from "@/v2/nav-config.jsx";
 import { SYNTHESIS_NAV_DEFERRED, normalizeReleaseTab } from "@/v2/releaseVisibility.js";
 import { browseTargetKey, discoverCandidateUrl } from "@/v2/discoverActions";
-import { durableHistoryToEvents, historyEventForJob, mergeHistoryEvents } from "@/v2/discoverAdapters";
+import {
+  durableHistoryToEvents,
+  enrichHistoryEventsFromJobs,
+  historyEventForJob,
+  mergeHistoryEvents,
+} from "@/v2/discoverAdapters";
 import { discoverModeFromLegacy, discoverModeToUrlState } from "@/v2/discoverMode";
 import { discoverCandidateState } from "@/v2/browseMeta";
 import { jobToCandidateRow, pendingApprovalJobs } from "@/v2/procurementJobs";
@@ -203,6 +208,14 @@ export function V2App() {
   const [resourcesRollup, setResourcesRollup] = useState(undefined);
 
   const [durableHistoryEvents, setDurableHistoryEvents] = useState([]);
+  const discoverHistoryEvents = useMemo(
+    () =>
+      enrichHistoryEventsFromJobs(
+        mergeHistoryEvents(durableHistoryEvents, resourcesRollup?.activity?.events || []),
+        jobs,
+      ),
+    [durableHistoryEvents, resourcesRollup, jobs],
+  );
   const [resourcesRefreshedAt, setResourcesRefreshedAt] = useState(null);
   const [resourceMode, setResourceMode] = useState("capabilities");
   const [activityFilter, setActivityFilter] = useState(null);
@@ -714,7 +727,7 @@ export function V2App() {
       const job = item?.resourceRow?.job || item?.job || null;
       setTab("browse");
       setDiscoverModeSafe("history");
-      const events = mergeHistoryEvents(durableHistoryEvents, resourcesRollup?.activity?.events || []);
+      const events = discoverHistoryEvents;
       const match = historyEventForJob(events, job);
       if (match) {
         setBrowseRow(null);
@@ -727,7 +740,7 @@ export function V2App() {
         mode: "history",
       });
     },
-    [durableHistoryEvents, resourcesRollup, searchQuery, setDiscoverModeSafe, syncUrl],
+    [discoverHistoryEvents, searchQuery, setDiscoverModeSafe, syncUrl],
   );
 
   const askAddToLab = useCallback(
@@ -1223,7 +1236,7 @@ export function V2App() {
           onSelectRow={selectBrowseRow}
           onMergedRowsChange={setBrowsePeerRows}
           onApproveSafeJobs={handleApproveSafeJobs}
-          historyEvents={mergeHistoryEvents(durableHistoryEvents, resourcesRollup?.activity?.events || [])}
+          historyEvents={discoverHistoryEvents}
           selectedHistoryId={activeObject?.kind === "history_event" ? activeObject.id : ""}
           onSelectHistoryEvent={selectHistoryEvent}
         />

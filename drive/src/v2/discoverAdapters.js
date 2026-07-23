@@ -49,6 +49,40 @@ export function sourcesResponseToRows(data) {
   return results.map(sourceResultToCandidate);
 }
 
+/**
+ * Normalize discover / semantic / unified search hits for Explore selection.
+ * Never invents URLs or readiness — only derives dataset: candidate_key when
+ * dataset_id is present and BE omitted candidate_key (unified search shape).
+ */
+export function searchHitToCandidate(row = {}) {
+  if (!row || typeof row !== "object") return null;
+  const datasetId =
+    row.dataset_id ||
+    (row.kind === "local_registry" || row.kind === "registry_dataset" ? row.id : "") ||
+    "";
+  const url = row.url || endpointToUrl(row.endpoint);
+  const candidateKey =
+    row.candidate_key || (datasetId ? `dataset:${datasetId}` : "") || "";
+  return {
+    ...row,
+    dataset_id: datasetId || row.dataset_id || "",
+    title: row.title || row.name || row.label || datasetId || url || "Untitled",
+    name: row.name || row.title || row.label || datasetId || "",
+    url: url || row.url || "",
+    candidate_key: candidateKey,
+    source_id: row.source_id || "",
+    connector_id: row.connector_id || row.desk_connector_id || "",
+  };
+}
+
+export function searchResponseToRows(data) {
+  const fromSections = (data?.sections || []).flatMap((section) => section.rows || []);
+  const flat = fromSections.length
+    ? fromSections
+    : data?.rows || data?.results || data?.hits || [];
+  return (Array.isArray(flat) ? flat : []).map(searchHitToCandidate).filter(Boolean);
+}
+
 function pickIdentity(item = {}, plan = {}) {
   return {
     job_id: item.job_id || plan.job_id || "",
@@ -65,6 +99,43 @@ function pickIdentity(item = {}, plan = {}) {
     dataset_id: item.dataset_id || plan.dataset_id || "",
     registry_id: item.registry_id || "",
   };
+}
+
+/**
+ * History ledger often omits source_id/connector_id; jobs carry them.
+ * Only fill empty identity fields from a matching job — never overwrite or invent.
+ */
+export function enrichHistoryEventsFromJobs(events = [], jobs = []) {
+  if (!events?.length || !jobs?.length) return events || [];
+  const byId = new Map();
+  for (const job of jobs) {
+    const id = String(job?.id || "").trim();
+    if (id) byId.set(id, job);
+  }
+  return events.map((event) => {
+    const jobId = String(event?.job_id || event?.meta?.job_id || "").trim();
+    const job = jobId ? byId.get(jobId) : null;
+    if (!job) return event;
+    const fromJob = pickIdentity(
+      {
+        job_id: jobId,
+        candidate_key: job.candidate_key,
+        source_id: job.source_id,
+        connector_id: job.connector_id || job.desk_connector_id,
+        dataset_id: job.registered_dataset_id || job.dataset_id,
+      },
+      { ...(job.request || {}), ...(job.plan || {}) },
+    );
+    const meta = { ...(event.meta || {}) };
+    const next = { ...event, meta };
+    for (const key of ["candidate_key", "source_id", "connector_id", "dataset_id", "job_id"]) {
+      const value = fromJob[key];
+      if (!value) continue;
+      if (!next[key]) next[key] = value;
+      if (!meta[key]) meta[key] = value;
+    }
+    return next;
+  });
 }
 
 export function durableHistoryToEvents(data) {

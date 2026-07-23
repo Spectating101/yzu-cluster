@@ -1,5 +1,7 @@
 /** Bind cluster jobs to Discover candidates and normalize procure state. */
 
+import { browseTargetKey } from "./discoverActions.js";
+
 export function normalizedTitle(value) {
   return String(value || "").trim().toLowerCase();
 }
@@ -12,6 +14,11 @@ export function jobMatchesCandidate(job, candidate) {
   if (!job || !candidate) return false;
   const boundId = candidate.bound_job_id || candidate.job_id;
   if (boundId && job.id === boundId) return true;
+  const candKey = String(candidate.candidate_key || "").trim();
+  const jobKey = String(
+    job.candidate_key || job.request?.candidate_key || job.plan?.candidate_key || "",
+  ).trim();
+  if (candKey && jobKey && candKey === jobKey) return true;
   const jt = normalizedTitle(jobTitle(job));
   const ct = normalizedTitle(candidate.title || candidate.name || candidate.dataset_id);
   if (!jt || !ct) return false;
@@ -34,22 +41,37 @@ export function findJobForCandidate(candidate, jobs = []) {
 export function jobToCandidateRow(job) {
   if (!job) return null;
   const title = jobTitle(job);
+  const plan = job.plan || {};
+  const request = job.request || {};
+  const candidateKey =
+    job.candidate_key || plan.candidate_key || request.candidate_key || "";
+  const sourceId = job.source_id || plan.source_id || request.source_id || "";
+  const connectorId =
+    job.connector_id ||
+    plan.connector_id ||
+    plan.catalog_connector_id ||
+    request.connector_id ||
+    "";
   return {
     kind: "job_pending",
     title,
     name: title,
-    dataset_id: `job:${job.id}`,
+    dataset_id: job.registered_dataset_id || plan.dataset_id || `job:${job.id}`,
     bound_job_id: job.id,
     bound_job: job,
-    source: job.plan?.source || job.type || "cluster",
+    source: plan.source || job.type || "cluster",
     description: `Pending approval · ${job.id}`,
     queued: true,
+    candidate_key: candidateKey,
+    source_id: sourceId,
+    connector_id: connectorId,
+    job_id: job.id,
   };
 }
 
 export function bindJobsToCandidates(rows, jobs = [], localBindings = {}) {
   return rows.map((row) => {
-    const key = row.dataset_id || row.doi || row.title || row.url || row.name;
+    const key = browseTargetKey(row) || row.dataset_id || row.doi || row.title || row.url || row.name;
     const localJobId = key ? localBindings[key] : "";
     const boundId = localJobId || row.bound_job_id;
     if (!boundId) return row;

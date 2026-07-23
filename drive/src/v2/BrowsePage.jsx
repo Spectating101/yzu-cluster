@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ListFilter } from "lucide-react";
 import { discoverSearch, discoverSources, semanticDiscover, unifiedSearch, webDiscover } from "@/v2/api";
-import { sourcesResponseToRows } from "@/v2/discoverAdapters";
+import { searchResponseToRows, sourcesResponseToRows } from "@/v2/discoverAdapters";
 import {
   discoverCandidateState,
   discoverStageCounts,
@@ -102,7 +102,9 @@ function DiscoverQueueStrip({ rows = [], selectedId, onSelectJob }) {
       </div>
       <div className="rd-v2-discover-queue-strip__rows">
         {rows.slice(0, 3).map((row) => {
-          const selected = String(selectedId || "") === String(row.dataset_id || row.id || "");
+          const selected = [row.candidate_key, row.dataset_id, row.id]
+            .filter(Boolean)
+            .some((identity) => String(selectedId || "") === String(identity));
           return (
             <button
               key={row.id || row.dataset_id || row.title}
@@ -1000,10 +1002,7 @@ export function BrowsePage({
     setIndexMiss(false);
     setShowExternal(false);
 
-    const flattenRows = (data) => {
-      const fromApi = (data.sections || []).flatMap((s) => s.rows || []);
-      return fromApi.length ? fromApi : data.results || data.hits || [];
-    };
+    const flattenRows = (data) => searchResponseToRows(data);
 
     const apply = (data, label) => {
       if (cancelled) return 0;
@@ -1154,7 +1153,7 @@ export function BrowsePage({
     const seen = new Set();
     const out = [];
     for (const r of rows) {
-      const key = r.dataset_id || r.doi || r.title || r.url;
+      const key = candidateId(r).toLowerCase();
       if (!key || seen.has(key)) continue;
       seen.add(key);
       out.push(r);
@@ -1252,8 +1251,7 @@ export function BrowsePage({
     if (discoverMode !== "explore" && discoverMode !== "search") onDiscoverModeChange?.("explore");
     try {
       const out = await semanticDiscover(goal, 12);
-      const semanticRows = (out.sections || []).flatMap((section) => section.rows || []);
-      const nextRows = semanticRows.length ? semanticRows : out.rows || [];
+      const nextRows = searchResponseToRows(out);
       setRows(nextRows);
       setSource("semantic");
       if (nextRows.length) onSelectRow?.(nextRows[0]);

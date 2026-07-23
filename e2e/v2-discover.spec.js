@@ -1,8 +1,9 @@
 import { test, expect } from "@playwright/test";
 import {
   MOCK_DISCOVER_HIT,
+  MOCK_SEMANTIC_HIT,
+  MOCK_SOURCES_HIT,
   mockV2Api,
-  v2Nav,
   waitForShell,
 } from "./fixtures/v2MockApi.js";
 
@@ -352,7 +353,8 @@ test.describe("v2 Discover tab", () => {
     const modal = page.locator(".rd-v2-preview-modal");
     await expect(modal).toBeVisible();
     await expect(modal).toContainText("Publisher");
-    await expect(modal).toContainText("Bounded sample unavailable; Detail explains the next valid action.");
+    // Live desk preview is schema_only for catalogue sources — never invent a sample.
+    await expect(modal).toContainText(/schema_only|Catalog schema|no live sample|Bounded sample unavailable/i);
     await expect(modal.locator(".rd-v2-preview-foot").getByRole("button", { name: "Close" })).toBeVisible();
   });
 
@@ -400,6 +402,112 @@ test.describe("v2 Discover tab", () => {
       await expect(page.locator(".rd-v2-discover-search-summary")).toContainText(/Discover API|1 result/);
       await expect(page.locator(".rd-v2-chip", { hasText: "Offline sample" })).toHaveCount(0);
       await expect(page.locator(".rd-v2-discover-list-panel")).toContainText("MOPS financial statements");
+    });
+
+    test("source catalogue search keeps candidate identity in Detail", async ({ page }) => {
+      await mockV2Api(page, { sourcesBody: MOCK_SOURCES_HIT, discoverBody: { sections: [], total: 0 } });
+      await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+      await waitForShell(page);
+      await page.getByTestId("discover-search-input").fill("gdelt");
+      await page.getByTestId("discover-search-input").press("Enter");
+      await expect(page.locator(".rd-v2-discover-search-summary")).toContainText(/Source catalogue|1 result/);
+      await expect(page.locator(".rd-v2-discover-candidate").first()).toContainText("GDELT news graph");
+      const rail = page.locator("aside.rd-v2-rail");
+      await expect(rail.locator(".rd-v2-rail-selection")).toContainText("GDELT news graph");
+      await expect(rail.locator(".rd-v2-detail-label", { hasText: "Source" })).toBeVisible();
+      await page.locator("aside .rd-v2-rail-sticky").getByRole("button", { name: "Preview source" }).click();
+      const modal = page.locator(".rd-v2-preview-modal");
+      await expect(modal).toBeVisible();
+      await expect(modal).toContainText(/GDELT|schema|materialized_bulk|Catalog schema/i);
+    });
+
+    test("semantic research search renders ranked lab evidence with dataset identity", async ({ page }) => {
+      await mockV2Api(page, { semanticBody: MOCK_SEMANTIC_HIT });
+      await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+      await waitForShell(page);
+      await page.getByTestId("discover-intent-research").click();
+      await page.getByTestId("discover-search-input").fill("stablecoin transfer shocks");
+      await page.getByTestId("discover-search-action").click();
+      await expect(page.locator(".rd-v2-discover-search-summary")).toContainText(/Semantic|1 result/);
+      await expect(page.locator(".rd-v2-discover-candidate").first()).toContainText("DeFiLlama Stablecoins");
+      const rail = page.locator("aside.rd-v2-rail");
+      await expect(rail.locator(".rd-v2-rail-selection")).toContainText("DeFiLlama Stablecoins");
+    });
+
+    test("History lifecycle shows job/dataset identity and Library handoff", async ({ page }) => {
+      await mockV2Api(page, {
+        jobsBody: {
+          jobs: [
+            {
+              id: "job-pending-1",
+              status: "pending_approval",
+              candidate_key: "source:twse_mops:mops_taiwan",
+              connector_id: "src_mops_pending",
+              plan: {
+                title: "MOPS financial statements",
+                candidate_key: "source:twse_mops:mops_taiwan",
+                source_id: "mops_taiwan",
+                catalog_connector_id: "mops",
+              },
+            },
+            {
+              id: "042816e2f8af",
+              status: "completed",
+              registered_dataset_id: "rev_live2_1784812800",
+              plan: { title: "rev_live2_1784812800", dataset_id: "rev_live2_1784812800" },
+            },
+          ],
+        },
+      });
+      await page.goto("/?tab=browse&mode=history", { waitUntil: "domcontentloaded" });
+      await waitForShell(page);
+      const history = page.getByTestId("discover-history");
+      await expect(history).toBeVisible();
+      await history.getByRole("button", { name: /rev_live2_1784812800/ }).click();
+      const rail = page.locator("aside.rd-v2-rail");
+      await expect(rail).toContainText("rev_live2_1784812800");
+      await expect(rail).toContainText(/Query-ready|Registered|Dataset/i);
+      await expect(rail.getByRole("button", { name: /Open resulting dataset|Open in Library|Open holding/i })).toBeVisible();
+      await history.getByRole("button", { name: /MOPS financial statements/ }).click();
+      await expect(rail).toContainText(/job-pending-1|Candidate|source:twse_mops:mops_taiwan|mops_taiwan/i);
+    });
+
+    test("Add to lab collect request carries candidate_key from selected row", async ({ page }) => {
+      let collectPayload = null;
+      await mockV2Api(page, { discoverBody: MOCK_DISCOVER_HIT });
+      await page.route("**/library/discover/collect", async (route) => {
+        if (route.request().method() === "POST") {
+          try {
+            collectPayload = route.request().postDataJSON();
+          } catch {
+            collectPayload = null;
+          }
+        }
+        return route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({
+            job: {
+              id: "job-discover-collect-1",
+              status: "pending_approval",
+              candidate_key: collectPayload?.candidate_key || null,
+              connector_id: collectPayload?.connector_id || "example_com_data",
+              plan: { title: "MOPS financial statements", candidate_key: collectPayload?.candidate_key },
+              request: collectPayload || {},
+            },
+          }),
+        });
+      });
+      await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+      await waitForShell(page);
+      await page.getByTestId("discover-search-input").fill("mops");
+      await page.getByTestId("discover-search-input").press("Enter");
+      await page.locator('.rd-v2-catalog button.row[data-kind="external"]', { hasText: "MOPS" }).click();
+      const rail = page.locator("aside.rd-v2-rail");
+      await rail.locator(".rd-v2-rail-sticky").getByRole("button", { name: "Probe source" }).click();
+      await expect(rail.locator(".rd-v2-discover-probe-result")).toBeVisible();
+      await rail.locator(".rd-v2-rail-sticky").getByRole("button", { name: "Add to lab" }).click();
+      await expect.poll(() => collectPayload?.candidate_key || "").toBe("dataset:mops_financial_statements_ext");
     });
   });
 
