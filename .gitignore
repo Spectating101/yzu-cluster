@@ -80,6 +80,13 @@ drive/docs/status/generated/
 docs/status/generated/
 drive/config/*.local.json
 
+# Frontend install and local test artifacts (never commit)
+node_modules/
+drive/node_modules/
+.tmp-pw/
+test-results/
+playwright-report/
+
 # OS/editor noise
 .DS_Store
 Thumbs.db

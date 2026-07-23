@@ -7,8 +7,13 @@ import {
   listFolderChildren,
 } from "@/driveTree";
 import { libraryFolderObject } from "@/v2/activeObject";
+import { AssetWorkspace } from "@/v2/AssetWorkspace";
 import { CatalogList } from "@/v2/CatalogList";
 import { statusPillKind } from "@/v2/datasetMeta";
+import {
+  libraryUploadCapability,
+  libraryUrlIntakeCapability,
+} from "@/v2/libraryIntakeCapability";
 import { Chip, PageShell } from "@/v2/ui";
 
 function datasetListItem(row) {
@@ -135,7 +140,17 @@ function LibraryBreadcrumb({ trail, onFolderChange }) {
   );
 }
 
-function LibraryNewMenu({ open, onToggle, onUploadFile, onAddUrl, onProcure, onClose }) {
+function LibraryNewMenu({
+  open,
+  onToggle,
+  onUploadFile,
+  onAddUrl,
+  onProcure,
+  onClose,
+  uploadAvailable,
+  uploadLabel,
+  urlLabel,
+}) {
   const menuRef = useRef(null);
 
   useEffect(() => {
@@ -161,11 +176,19 @@ function LibraryNewMenu({ open, onToggle, onUploadFile, onAddUrl, onProcure, onC
       </button>
       {open ? (
         <div className="rd-v2-library-action-menu" role="menu" aria-label="New library item">
-          <button type="button" role="menuitem" className="rd-v2-library-menu-item" onClick={onUploadFile}>
-            Upload file...
+          <button
+            type="button"
+            role="menuitem"
+            className="rd-v2-library-menu-item"
+            disabled={!uploadAvailable}
+            aria-disabled={!uploadAvailable}
+            title={uploadAvailable ? undefined : "Server staging not reported"}
+            onClick={uploadAvailable ? onUploadFile : undefined}
+          >
+            {uploadLabel}
           </button>
           <button type="button" role="menuitem" className="rd-v2-library-menu-item" onClick={onAddUrl}>
-            Add URL / DOI...
+            {urlLabel}
           </button>
           <button type="button" role="menuitem" className="rd-v2-library-menu-item" onClick={onProcure}>
             Procure missing data...
@@ -187,6 +210,9 @@ function LibraryHeadActions({
   onOpenUrlModal,
   onProcureBranch,
   onRefresh,
+  uploadAvailable,
+  uploadLabel,
+  urlLabel,
 }) {
   return (
     <div className="rd-v2-library-actions">
@@ -197,6 +223,9 @@ function LibraryHeadActions({
         onUploadFile={onOpenUpload}
         onAddUrl={onOpenUrlModal}
         onProcure={onProcureBranch}
+        uploadAvailable={uploadAvailable}
+        uploadLabel={uploadLabel}
+        urlLabel={urlLabel}
       />
       <button
         type="button"
@@ -210,10 +239,6 @@ function LibraryHeadActions({
   );
 }
 
-function laneLabel(lane) {
-  return lane?.subtitle || lane?.name || lane?.id || "lane";
-}
-
 export function LibraryPage({
   datasets,
   partitions = [],
@@ -221,34 +246,24 @@ export function LibraryPage({
   folderId,
   onFolderChange,
   selectedId,
+  selectedDataset = null,
   onSelectDataset,
+  onClearSelection,
   onPreviewDataset,
   onRefresh,
   onFocusFolder,
   onStartUpload,
   onStartUrl,
   onStartProcure,
+  resourcesRollup = null,
 }) {
   const [sortBy, setSortBy] = useState("name");
   const [filterMode, setFilterMode] = useState("all");
   const [partitionFilter, setPartitionFilter] = useState("");
   const [newMenuOpen, setNewMenuOpen] = useState(false);
 
-  const laneOptions = useMemo(() => {
-    const rows = partitions.length ? partitions : cluster?.lanes || [];
-    const priority = (lane) => {
-      const pid = String(lane.detail?.partition_id || lane.id || "").toLowerCase();
-      if (pid.includes("refinitiv")) return "0";
-      if (pid.includes("research-panels") || pid.includes("derived")) return "1";
-      if (pid.includes("gdelt")) return "2";
-      if (pid.includes("mops") || pid.includes("twse")) return "3";
-      return `9${laneLabel(lane)}`;
-    };
-    return rows
-      .filter((lane) => (lane.detail?.registry_dataset_ids || []).length > 0 || lane.registry_datasets > 0)
-      .slice()
-      .sort((a, b) => priority(a).localeCompare(priority(b)));
-  }, [cluster?.lanes, partitions]);
+  const uploadCap = useMemo(() => libraryUploadCapability(resourcesRollup), [resourcesRollup]);
+  const urlCap = useMemo(() => libraryUrlIntakeCapability(), []);
 
   const scopedDatasets = useMemo(() => {
     if (!partitionFilter) return datasets;
@@ -322,6 +337,15 @@ export function LibraryPage({
     [branchNote, datasetCount, destination, folderCount, folderId, readyCount, trail, visibleRows.length],
   );
 
+  const workspaceDataset = useMemo(() => {
+    if (!selectedId) return null;
+    return (
+      selectedDataset ||
+      datasets.find((row) => row.dataset_id === selectedId) ||
+      null
+    );
+  }, [datasets, selectedDataset, selectedId]);
+
   useEffect(() => {
     if (!selectedId) onFocusFolder?.(branchObject);
   }, [branchObject, onFocusFolder, selectedId]);
@@ -330,9 +354,10 @@ export function LibraryPage({
   const toggleNewMenu = useCallback(() => setNewMenuOpen((open) => !open), []);
 
   const openUploadRail = useCallback(() => {
+    if (!uploadCap.uploadAvailable) return;
     setNewMenuOpen(false);
     onStartUpload?.(branchObject);
-  }, [branchObject, onStartUpload]);
+  }, [branchObject, onStartUpload, uploadCap.uploadAvailable]);
 
   const openUrlRail = useCallback(() => {
     setNewMenuOpen(false);
@@ -347,6 +372,8 @@ export function LibraryPage({
     setNewMenuOpen(false);
     onStartProcure?.(branchObject);
   }, [branchObject, onStartProcure]);
+
+  const showWorkspace = Boolean(workspaceDataset);
 
   return (
     <PageShell
@@ -364,69 +391,89 @@ export function LibraryPage({
             onOpenUrlModal={openUrlRail}
             onProcureBranch={handleProcureBranch}
             onRefresh={onRefresh ? handleRefresh : undefined}
+            uploadAvailable={uploadCap.uploadAvailable}
+            uploadLabel={uploadCap.uploadLabel}
+            urlLabel={urlCap.label}
           />
         </div>
       }
       toolbar={
-        <>
-          <Chip active={sortBy === "name"} onClick={() => setSortBy("name")}>
-            Name {sortBy === "name" ? "↑" : "↕"}
-          </Chip>
-          <Chip active={sortBy === "updated"} onClick={() => setSortBy("updated")}>
-            Last modified {sortBy === "updated" ? "↓" : "↕"}
-          </Chip>
-          <Chip
-            active={filterMode === "ready"}
-            onClick={() => setFilterMode((cur) => (cur === "ready" ? "all" : "ready"))}
-          >
-            Filter: {filterMode === "ready" ? "Query-ready" : "All"}
-          </Chip>
-          <span className="rd-v2-toolbar-spacer" />
-          <span className="rd-v2-toolbar-count">
-            {visibleRows.length} {visibleRows.length === 1 ? "item" : "items"}
-          </span>
-        </>
+        showWorkspace ? null : (
+          <>
+            <Chip active={sortBy === "name"} onClick={() => setSortBy("name")}>
+              Name {sortBy === "name" ? "↑" : "↕"}
+            </Chip>
+            <Chip active={sortBy === "updated"} onClick={() => setSortBy("updated")}>
+              Last modified {sortBy === "updated" ? "↓" : "↕"}
+            </Chip>
+            <Chip
+              active={filterMode === "ready"}
+              onClick={() => setFilterMode((cur) => (cur === "ready" ? "all" : "ready"))}
+            >
+              Filter: {filterMode === "ready" ? "Query-ready" : "All"}
+            </Chip>
+            <span className="rd-v2-toolbar-spacer" />
+            <span className="rd-v2-toolbar-count">
+              {visibleRows.length} {visibleRows.length === 1 ? "item" : "items"}
+            </span>
+          </>
+        )
       }
-      footer="double-click row → Preview"
+      footer={showWorkspace ? null : "double-click row → Preview"}
     >
-      <div className="rd-v2-library-branchline rd-v2-library-pathbar" aria-label="Library location status">
-        <div className="rd-v2-library-pathcopy">
-          <strong>{currentFolderName}</strong>
-          <p>
-            {isRoot
-              ? "Browse the lab’s working data vault. Select a dataset for readiness, provenance, preview, and Ask actions."
-              : branchNote}
-          </p>
-        </div>
-        <div className="rd-v2-library-pathstats">
-          <span>
-            {folderCount} folder{folderCount === 1 ? "" : "s"}
-          </span>
-          <span>
-            {datasetCount} dataset{datasetCount === 1 ? "" : "s"}
-          </span>
-          <span>
-            {readyCount} query-ready
-          </span>
-        </div>
-      </div>
-      <div className="rd-v2-catalog-list-wrap">
-        {visibleRows.length ? (
-          <CatalogList
-            rows={visibleRows}
-            selectedId={selectedId}
-            onOpenFolder={(folder) => onFolderChange(folder.id)}
-            onSelectDataset={onSelectDataset}
-            onDoubleClick={onPreviewDataset}
-            compact
-          />
-        ) : (
-          <div className="rd-v2-library-empty">
-            <strong>No holdings in this branch</strong>
-            <p>Clear the filter or open the Lab breadcrumb to return to indexed folders.</p>
+      {showWorkspace ? (
+        <AssetWorkspace
+          dataset={workspaceDataset}
+          onClearSelection={onClearSelection}
+          onPreview={onPreviewDataset}
+        />
+      ) : (
+        <>
+          <div className="rd-v2-library-branchline rd-v2-library-pathbar" aria-label="Library location status">
+            <div className="rd-v2-library-pathcopy">
+              <strong>{currentFolderName}</strong>
+              <p>
+                {isRoot
+                  ? "Browse the lab’s working data vault. Select a dataset for the Asset Workspace; Detail stays on the rail."
+                  : branchNote}
+              </p>
+              {!uploadCap.uploadAvailable ? (
+                <p className="rd-v2-library-capability-note" role="status">
+                  {uploadCap.uploadHint}
+                </p>
+              ) : null}
+            </div>
+            <div className="rd-v2-library-pathstats">
+              <span>
+                {folderCount} folder{folderCount === 1 ? "" : "s"}
+              </span>
+              <span>
+                {datasetCount} dataset{datasetCount === 1 ? "" : "s"}
+              </span>
+              <span>
+                {readyCount} query-ready
+              </span>
+            </div>
           </div>
-        )}
-      </div>
+          <div className="rd-v2-catalog-list-wrap">
+            {visibleRows.length ? (
+              <CatalogList
+                rows={visibleRows}
+                selectedId={selectedId}
+                onOpenFolder={(folder) => onFolderChange(folder.id)}
+                onSelectDataset={onSelectDataset}
+                onDoubleClick={onPreviewDataset}
+                compact
+              />
+            ) : (
+              <div className="rd-v2-library-empty">
+                <strong>No holdings in this branch</strong>
+                <p>Clear the filter or open the Lab breadcrumb to return to indexed folders.</p>
+              </div>
+            )}
+          </div>
+        </>
+      )}
     </PageShell>
   );
 }

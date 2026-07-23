@@ -85,6 +85,30 @@ export function mergeHistoryEvents(durableEvents = [], deskEvents = []) {
   return out.sort((a, b) => String(b.ts || "").localeCompare(String(a.ts || "")));
 }
 
+/** Resolve the Discover History row that corresponds to a desk job, if any. */
+export function historyEventForJob(events = [], job = null) {
+  if (!job) return null;
+  const jobId = String(job.id || "").trim();
+  if (!jobId) return null;
+  const match = (events || []).find((event) => {
+    const metaId = String(event?.meta?.job_id || event?.job_id || "").trim();
+    const eventId = String(event?.id || "").trim();
+    return metaId === jobId || eventId === jobId || eventId === `job-${jobId}`;
+  });
+  if (match) return match;
+  const syntheticId = jobId.startsWith("job-") ? jobId : `job-${jobId}`;
+  return {
+    id: syntheticId,
+    ts: job.updated_at || job.created_at || "",
+    action: "collection_run",
+    target: job.plan?.title || job.title || job.name || jobId,
+    status: job.status || job.state || "",
+    durable: true,
+    meta: { job_id: jobId, status: job.status || job.state || "" },
+    summary: String(job.status || job.state || "collection").replace(/_/g, " "),
+  };
+}
+
 export function historyLifecycleBucket(event) {
   const status = String(event?.status || event?.meta?.status || "").toLowerCase();
   if (/pending_approval|ready_for_review|awaiting|needs_approval/.test(status)) return "needs_approval";

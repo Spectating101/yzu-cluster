@@ -6,7 +6,7 @@ export const PAGE_DETAIL_EMPTY = Object.freeze({
   browse: "Select a source to inspect.",
   library: "Select an asset or folder.",
   synthesis: "Select a construction node.",
-  resources: "Select an activity to inspect.",
+  resources: "Select a capability or usage row to inspect.",
   home: "Select an item to inspect.",
   cluster: "Select a compare pair.",
   settings: "Select a settings group.",

@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 
-test.describe("v2 Home attention", () => {
+test.describe("v2 Home research-state briefing", () => {
   test.beforeEach(async ({ page }) => {
     await mockV2Api(page);
     await page.setViewportSize({ width: 1440, height: 900 });
@@ -9,75 +9,69 @@ test.describe("v2 Home attention", () => {
     await waitForShell(page);
   });
 
-  test("attention queue shows actionable work objects", async ({ page }) => {
-    const queue = page.getByRole("region", { name: "Attention queue" });
-    await expect(queue).toContainText("3 of 4");
-    await expect(queue.locator('[data-kind="approval"]')).toContainText("MOPS financial statements");
-    await expect(queue.locator('[data-kind="approval"]')).toContainText("1 pending");
-    await expect(queue.locator('[data-kind="procurement"]')).toContainText("Procurement in progress");
-    await expect(queue.locator('[data-kind="procurement"]')).toContainText(/running/i);
-    await expect(queue.locator('[data-kind="library"]')).toContainText("Faculty vault");
-    await expect(queue.locator('[data-kind="discover"]')).toHaveCount(0);
-    await expect(queue.getByRole("button", { name: /^Open / })).toHaveCount(3);
-    await expect(queue.getByRole("button", { name: /^Ask about / })).toHaveCount(0);
+  test("briefing shows continue, judgment, evidence, and next actions", async ({ page }) => {
+    await expect(page.getByTestId("home-continue")).toBeVisible();
+    await expect(page.getByRole("region", { name: "Research Drive brief" })).toHaveCount(0);
+    await expect(page.getByRole("region", { name: "Suggested searches" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /Synthesiz/i })).toHaveCount(0);
+    await expect(page.locator("main")).not.toContainText(/Synthesiz/i);
+
+    const judgment = page.getByTestId("home-judgment");
+    await expect(judgment).toContainText("Needs judgment");
+    await expect(judgment.locator('[data-kind="approval"]')).toContainText("MOPS financial statements");
+    await expect(judgment.getByRole("button", { name: /^Open / })).toBeVisible();
+
+    await expect(page.getByTestId("home-evidence")).toBeVisible();
+    await expect(page.getByTestId("home-actions")).toContainText("Next valid actions");
+    await expect(page.getByTestId("home-actions")).not.toContainText("stablecoin incidents");
   });
 
-  test("Open on Library attention lands on branch rail", async ({ page }) => {
-    const queue = page.getByRole("region", { name: "Attention queue" });
-    await queue.locator('[data-kind="library"]').getByRole("button", { name: /^Open Library/ }).click();
+  test("Open on approval judgment lands on Discover Review queue", async ({ page }) => {
+    const judgment = page.getByTestId("home-judgment");
+    await judgment.locator('[data-kind="approval"]').getByRole("button", { name: /^Open / }).click();
 
     const rail = page.locator("aside.rd-v2-rail");
-    await expect(page.locator(".rd-v2-page-head h1", { hasText: "Library" })).toBeVisible();
-    await expect(page.locator(".rd-v2-library-pathbar")).toContainText("Lab root");
-    await expect(rail.locator(".rd-v2-rail-selection")).toHaveText("Lab root");
-    await expect(rail).toContainText("Upload here");
-  });
-
-  test("Open on approval attention lands on Discover Review queue", async ({ page }) => {
-    const queue = page.getByRole("region", { name: "Attention queue" });
-    await queue.locator('[data-kind="approval"]').getByRole("button", { name: /^Open Approval/ }).click();
-
-    const rail = page.locator("aside.rd-v2-rail");
-    // Explore queue strip replaces legacy mode=approvals|activity History panel.
     await expect(page).toHaveURL(/tab=browse/);
-    await expect(page).not.toHaveURL(/mode=(approvals|activity|history)/);
     await expect(page.getByRole("tab", { name: "Explore" })).toHaveAttribute("aria-selected", "true");
     const review = page.getByTestId("discover-queue-strip");
     await expect(review).toBeVisible();
     await expect(review).toContainText("Needs your review");
-    await expect(rail.locator(".rd-v2-rail-selection")).toContainText("MOPS financial statements");
     await expect(rail.getByTestId("procurement-decision-card")).toBeVisible();
-    await expect(rail).toContainText("job-pending-1");
-    await expect(rail.getByTestId("discover-approve-sticky")).toBeVisible();
   });
 
-  test("home continue card routes to Library and Preview", async ({ page }) => {
-    const cont = page.getByRole("region", { name: "Continue" });
-    await expect(cont).toBeVisible();
+  test("home continue routes into Library Asset Workspace", async ({ page }) => {
+    const cont = page.getByTestId("home-continue");
     await expect(cont.getByRole("button", { name: "Open in Library" })).toBeVisible();
-    await expect(cont.getByRole("button", { name: "Preview rows" })).toBeVisible();
-    const brief = page.getByRole("region", { name: "Research Drive brief" });
-    await expect(brief).toBeVisible();
-    await expect(brief).toContainText("Find");
-    await expect(brief).toContainText("Verify");
-    await expect(brief).toContainText("Acquire");
-    await expect(brief).toContainText("Synthesize");
-    await expect(page.getByRole("region", { name: "Recent datasets" })).toBeVisible();
-    await expect(page.getByRole("region", { name: "Suggested searches" })).toBeVisible();
-
     await cont.getByRole("button", { name: "Open in Library" }).click();
     await expect(page.locator(".rd-v2-page-head h1", { hasText: "Library" })).toBeVisible();
+    await expect(page.getByTestId("asset-workspace")).toBeVisible();
+    await expect(page.getByTestId("asset-overview-observed")).toBeVisible();
+    await expect(page.getByTestId("asset-workspace")).toContainText("Asia daily news-risk panel");
+    await expect(page).toHaveURL(/tab=library/);
+    await expect(page).toHaveURL(/dataset=gdelt_asia_daily_country_panel/);
   });
 
-  test("mobile Home reveals current work in the first viewport", async ({ page }) => {
+  test("Home has no Synthesize control or path to Synthesis", async ({ page }) => {
+    const main = page.locator("main");
+    await expect(main.getByRole("button", { name: /Synthesiz/i })).toHaveCount(0);
+    await expect(page.locator("aside.yzu-sidebar").getByRole("button", { name: /^Synthesis$/i })).toHaveCount(0);
+    await expect(main).not.toContainText(/Synthesiz/i);
+
+    await mockV2Api(page);
+    await page.goto("/?tab=synthesis", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await expect(page.locator(".rd-v2-page-head h1", { hasText: "Library" })).toBeVisible();
+    await expect(page.getByTestId("synthesis-workbench")).toHaveCount(0);
+    await expect.poll(() => new URL(page.url()).searchParams.get("tab")).toBe("library");
+  });
+
+  test("mobile Home keeps judgment in the first viewport", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
 
-    const brief = page.getByRole("region", { name: "Research Drive brief" });
-    const attention = page.getByRole("region", { name: "Attention queue" });
-    expect(await brief.evaluate((element) => element.clientHeight)).toBeLessThan(210);
-    const attentionTop = await attention.evaluate((element) => element.getBoundingClientRect().top);
-    expect(attentionTop).toBeLessThan(844);
+    const judgment = page.getByTestId("home-judgment");
+    const judgmentTop = await judgment.evaluate((element) => element.getBoundingClientRect().top);
+    expect(judgmentTop).toBeLessThan(844);
   });
 });

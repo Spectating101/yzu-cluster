@@ -277,7 +277,21 @@ export async function mockV2Api(
     route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ items: [], total: 0 }),
+      body: JSON.stringify({
+        items: [
+          {
+            id: "hist-job-pending-1",
+            title: "MOPS financial statements",
+            status: "pending_approval",
+            kind: "collection_run",
+            job_id: "job-pending-1",
+            summary: "Awaiting approval",
+            updated_at: "2026-06-30T12:00:00Z",
+            created_at: "2026-06-30T11:00:00Z",
+          },
+        ],
+        total: 1,
+      }),
     }),
   );
   await page.route("**/library/discover?*", (route) =>

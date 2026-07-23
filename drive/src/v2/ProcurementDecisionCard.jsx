@@ -39,7 +39,7 @@ export function ProcurementDecisionCard({
             </p>
           ) : job.status === "running" ? (
             <p className="rd-v2-procure-decision-hint">
-              Collection is running. Open Resources → Activity for progress.
+              Collection is running. Open Discover History for the durable job record.
             </p>
           ) : job.status === "queued" ? (
             <p className="rd-v2-procure-decision-hint">Approved — waiting for a worker slot.</p>

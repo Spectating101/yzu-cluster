@@ -52,25 +52,60 @@ export function formatMetaValue(value) {
     .join(" ");
 }
 
+/** Exact readiness tokens that mean smoke-proven local query — never fuzzy `/query|ready/`. */
+export function isQueryReadyReadiness(value) {
+  const readiness = String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
+  return (
+    readiness === "query_ready" ||
+    readiness === "instant" ||
+    readiness === "instant_or_minutes" ||
+    readiness === "queryable"
+  );
+}
+
+/**
+ * Map registry readiness to a faculty status.
+ * completed ≠ registered ≠ query-ready; unknown/missing never promote to Query-ready.
+ */
 export function statusPillKind(dataset) {
-  const readiness = String(dataset?.analysis_readiness || "").toLowerCase();
+  if (dataset?.live_identity_badge?.kind && dataset?.live_identity_badge?.label) {
+    return dataset.live_identity_badge;
+  }
+  const readiness = String(dataset?.analysis_readiness || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
   if (dataset?.external || dataset?.collect_via) {
     return { kind: "external", label: "External" };
   }
-  if (readiness === "instant" || readiness === "instant_or_minutes") {
+  if (!readiness) {
+    return { kind: "unknown", label: "Readiness unknown" };
+  }
+  if (isQueryReadyReadiness(readiness)) {
     return { kind: "query-ready", label: "Query-ready" };
   }
-  if (readiness === "dry_run_before_execution" || /bigquery/i.test(dataset?.backend || "")) {
+  if (readiness === "registered") {
+    return { kind: "registered", label: "Registered" };
+  }
+  if (readiness === "completed" || readiness === "complete") {
+    return { kind: "completed", label: "Completed" };
+  }
+  if (readiness === "dry_run_before_execution" || readiness === "dry_run" || /bigquery/i.test(dataset?.backend || "")) {
     return { kind: "connected", label: "Connected" };
   }
   if (readiness === "connected") return { kind: "connected", label: "Connected" };
   if (readiness === "metadata_search" || readiness === "metadata_only") {
-    return { kind: "remote", label: "Remote" };
+    return { kind: "remote", label: "Metadata only" };
   }
   if (readiness === "procurement_planning") return { kind: "queued", label: "Queued" };
-  if (readiness === "sample_now_full_later") return { kind: "warn", label: "Review" };
+  if (readiness === "sample_now_full_later" || readiness === "minutes_rate_limited") {
+    return { kind: "warn", label: "Review" };
+  }
   if (readiness === "failed") return { kind: "failed", label: "Failed" };
-  return { kind: "query-ready", label: "Query-ready" };
+  return { kind: "unknown", label: "Readiness unknown" };
 }
 
 export function statusPill(dataset) {

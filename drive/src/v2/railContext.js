@@ -1,10 +1,11 @@
-import { displayName } from "@/v2/datasetMeta";
+import { displayName, isQueryReadyReadiness, statusPillKind } from "@/v2/datasetMeta";
 
 function readinessLabel(dataset) {
   const raw = String(dataset?.analysis_readiness || "").trim();
   if (!raw) return "";
-  if (/instant|ready|query/i.test(raw)) return "Query-ready";
-  return raw.replace(/_/g, " ");
+  // Exact tokens only — `/ready|query/` falsely labels not_ready / metadata_search / registered.
+  if (isQueryReadyReadiness(raw)) return "Query-ready";
+  return statusPillKind(dataset).label;
 }
 
 function vaultPath(dataset) {

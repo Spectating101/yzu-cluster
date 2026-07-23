@@ -52,12 +52,14 @@ import { buildProfileContextAskPrompt } from "@/v2/profilePresentation";
 import { CLUSTER_NAV_DEFERRED } from "@/v2/nav-config.jsx";
 import { SYNTHESIS_NAV_DEFERRED, normalizeReleaseTab } from "@/v2/releaseVisibility.js";
 import { browseTargetKey, discoverCandidateUrl } from "@/v2/discoverActions";
-import { durableHistoryToEvents, mergeHistoryEvents } from "@/v2/discoverAdapters";
+import { durableHistoryToEvents, historyEventForJob, mergeHistoryEvents } from "@/v2/discoverAdapters";
 import { discoverModeFromLegacy, discoverModeToUrlState } from "@/v2/discoverMode";
 import { discoverCandidateState } from "@/v2/browseMeta";
 import { jobToCandidateRow, pendingApprovalJobs } from "@/v2/procurementJobs";
 import { buildRailContext } from "@/v2/railContext";
 import { DEFAULT_VAULT_DESTINATION, buildVaultDestinationOptions, touchRecentDestination } from "@/v2/vaultDestinations";
+import { DRIVE_LAB, consumerDatasetPath } from "@/driveTree";
+import { statusPillKind } from "@/v2/datasetMeta";
 
 function readParams() {
   const p = new URLSearchParams(window.location.search);
@@ -202,7 +204,7 @@ export function V2App() {
 
   const [durableHistoryEvents, setDurableHistoryEvents] = useState([]);
   const [resourcesRefreshedAt, setResourcesRefreshedAt] = useState(null);
-  const [resourceMode, setResourceMode] = useState("spending");
+  const [resourceMode, setResourceMode] = useState("capabilities");
   const [activityFilter, setActivityFilter] = useState(null);
   const [pendingAsk, setPendingAsk] = useState("");
   const [synthesisRefreshToken, setSynthesisRefreshToken] = useState(0);
@@ -706,6 +708,27 @@ export function V2App() {
     [searchQuery, syncUrl],
   );
 
+  const openDiscoverHistory = useCallback(
+    (item) => {
+      const job = item?.resourceRow?.job || item?.job || null;
+      setTab("browse");
+      setDiscoverModeSafe("history");
+      const events = mergeHistoryEvents(durableHistoryEvents, resourcesRollup?.activity?.events || []);
+      const match = historyEventForJob(events, job);
+      if (match) {
+        setBrowseRow(null);
+        setActiveObject(historyEventObject(match));
+        setRailTab("detail");
+      }
+      syncUrl({
+        tab: "browse",
+        q: searchQuery.trim(),
+        mode: "history",
+      });
+    },
+    [durableHistoryEvents, resourcesRollup, searchQuery, setDiscoverModeSafe, syncUrl],
+  );
+
   const askAddToLab = useCallback(
     async (target) => {
       if (!target) return;
@@ -822,13 +845,18 @@ export function V2App() {
     (target) => {
       const id = target?.dataset_id;
       if (!id) return;
-      setTab("library");
       const row = catalog.find((d) => d.dataset_id === id) || { dataset_id: id, ...target };
+      const pathParts = consumerDatasetPath(row, DRIVE_LAB);
+      const folderParts = pathParts.length > 1 ? pathParts.slice(0, -1) : [];
+      setTab("library");
+      setFolderId(folderParts.join("/"));
       setSelectedId(id);
+      setDetail(row);
       setActiveObject(datasetObject(row));
       touchRecent(id);
       setRailTab("detail");
-      syncUrl({ tab: "library", dataset: id, preview: false, q: "" });
+      setPreviewOpen(false);
+      syncUrl({ tab: "library", dataset: id, folder: folderParts.join("/"), preview: false, q: "" });
     },
     [catalog, syncUrl],
   );
@@ -970,7 +998,7 @@ export function V2App() {
       const destination = intake?.destination || "Lab root";
       const targets = String(value || "").trim().replace(/\s+/g, " ");
       queueLibraryAsk(
-        `Add URL or DOI to ${destination}. Targets: ${targets}. Probe source, collect metadata, and procure if missing.`,
+        `Queue a draft URL/DOI intake for ${destination} after a durable job id is assigned. Targets: ${targets}. Do not claim vault registration until the intake job completes.`,
       );
     },
     [queueLibraryAsk],
@@ -1002,8 +1030,12 @@ export function V2App() {
         openDiscoverAwaiting(item?.resourceRow?.job);
         return;
       }
+      if (item?.discoverMode === "history") {
+        openDiscoverHistory(item);
+        return;
+      }
       if (item?.tab === "resources" && item.resourceRow) {
-        setResourceMode("spending");
+        setResourceMode("capabilities");
         setActivityFilter(null);
         setResourceRow(item.resourceRow);
         setActiveObject(resourceObject(item.resourceRow));
@@ -1013,7 +1045,7 @@ export function V2App() {
       }
       goTab(item?.tab || "home");
     },
-    [goTab, openDiscoverAwaiting],
+    [goTab, openDiscoverAwaiting, openDiscoverHistory],
   );
 
   const selectBrowseRow = useCallback((row) => {
@@ -1069,9 +1101,7 @@ export function V2App() {
   }, [catalog, searchQuery]);
 
   const headerDsCount = catalog.length || Number(health?.datasets) || 0;
-  const headerConnected = catalog.filter((d) =>
-    /instant|query/i.test(String(d.analysis_readiness || "")),
-  ).length;
+  const headerConnected = catalog.filter((d) => statusPillKind(d).kind === "query-ready").length;
 
   let main;
   switch (tab) {
@@ -1097,6 +1127,8 @@ export function V2App() {
           }}
           onAskAttention={askHomeAttention}
           onApproveSafeJobs={handleApproveSafeJobs}
+          onOpenDiscoverHistory={openDiscoverHistory}
+          onOpenInLibrary={openInLibraryFromDiscover}
         />
       );
       break;
@@ -1109,13 +1141,16 @@ export function V2App() {
           folderId={folderId}
           onFolderChange={changeLibraryFolder}
           selectedId={selectedId}
+          selectedDataset={detail || selectedFromList}
           onSelectDataset={selectDataset}
+          onClearSelection={() => changeLibraryFolder(folderId)}
           onPreviewDataset={openPreview}
           onRefresh={refreshBackend}
           onFocusFolder={focusLibraryFolder}
           onStartUpload={(folder) => startLibraryIntake("upload", folder)}
           onStartUrl={(folder) => startLibraryIntake("url", folder)}
           onStartProcure={(folder) => startLibraryIntake("procure", folder)}
+          resourcesRollup={resourcesRollup}
         />
       );
       break;
@@ -1204,13 +1239,25 @@ export function V2App() {
           datasets={catalog}
           partitions={partitions}
           mode={resourceMode}
-          onModeChange={setResourceMode}
-          activityFilter={activityFilter}
-          onClearActivityFilter={() => setActivityFilter(null)}
+          onModeChange={(next) => {
+            const normalized =
+              next === "activity" || next === "spending"
+                ? next === "activity"
+                  ? "usage"
+                  : "capabilities"
+                : next;
+            setResourceMode(normalized === "usage" ? "usage" : "capabilities");
+            setActivityFilter(null);
+          }}
           selectedKey={resourceRow?.key}
           onRefresh={refreshBackend}
           refreshedAt={resourcesRefreshedAt}
+          onOpenDiscoverHistory={openDiscoverHistory}
           onSelectRow={(r) => {
+            if (r?.job || r?.kind === "active" || r?.kind === "motion") {
+              openDiscoverHistory({ job: r.job, resourceRow: r });
+              return;
+            }
             setResourceRow(r);
             setActiveObject(resourceObject(r));
             setRailTab("detail");
@@ -1374,10 +1421,8 @@ export function V2App() {
         activeObject={activeObject}
         onPreview={() => detail && openPreview(detail)}
         onAskAbout={askAboutSelection}
-        onViewActivity={(filter) => {
-          setResourceMode("activity");
-          setActivityFilter(filter);
-          setRailTab("detail");
+        onViewActivity={() => {
+          openDiscoverHistory();
         }}
         onSeeCluster={CLUSTER_NAV_DEFERRED ? undefined : () => goTab("cluster")}
         onAddToLab={askAddToLab}
@@ -1405,6 +1450,12 @@ export function V2App() {
         onSubmitLibraryUpload={submitLibraryUpload}
         onSubmitLibraryUrl={submitLibraryUrl}
         onSubmitLibraryProcure={submitLibraryProcure}
+        libraryUploadAvailable={Boolean(
+          resourcesRollup &&
+            !resourcesRollup._placeholder &&
+            resourcesRollup?.usage?.staging_disk_free_gb != null,
+        )}
+        libraryUploadHint="Local file upload stays unavailable until the desk reports controller staging."
         askPanel={
           <AskRail
             dataset={

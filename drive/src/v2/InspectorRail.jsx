@@ -119,8 +119,10 @@ export function InspectorRail({
   onSubmitLibraryUpload,
   onSubmitLibraryUrl,
   onSubmitLibraryProcure,
+  libraryUploadAvailable = true,
+  libraryUploadHint = "",
   askPanel,
-  resourceMode = "spending",
+  resourceMode = "capabilities",
 }) {
   let detailPanel;
   if (mainTab === "cluster") {
@@ -194,6 +196,8 @@ export function InspectorRail({
         onSubmitUpload={onSubmitLibraryUpload}
         onSubmitUrl={onSubmitLibraryUrl}
         onSubmitProcure={onSubmitLibraryProcure}
+        uploadAvailable={libraryUploadAvailable}
+        uploadHint={libraryUploadHint}
       />
     );
   } else if (mainTab === "library" && !dataset?.dataset_id) {
@@ -236,12 +240,7 @@ export function InspectorRail({
   const isMobileRail = useMobileRailViewport();
   const railCollapsed = isMobileRail && !mobileRailOpen;
   const composerLabel = mainTab === "synthesis" ? "Composer" : "Ask";
-  const hideMobileActivityRail =
-    isMobileRail &&
-    mainTab === "resources" &&
-    resourceMode === "activity" &&
-    !resourceRow &&
-    !mobileRailOpen;
+  const hideMobileActivityRail = false;
 
   return (
     <aside

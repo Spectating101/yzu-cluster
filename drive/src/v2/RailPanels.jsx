@@ -10,7 +10,7 @@ import {
 import { DiscoverComparePanel } from "@/v2/DiscoverComparePanel";
 import { DiscoverDestinationField } from "@/v2/DiscoverDestinationField";
 import { ProcurementDecisionCard } from "@/v2/ProcurementDecisionCard";
-import { displayName, formatMetaValue } from "@/v2/datasetMeta";
+import { displayName, formatMetaValue, statusPillKind } from "@/v2/datasetMeta";
 import { EmptyRailState } from "@/v2/EmptyRailState";
 import {
   RailActionFooter,
@@ -186,7 +186,14 @@ function pluralCount(value, singular, plural = `${singular}s`) {
   return `${count} ${count === 1 ? singular : plural}`;
 }
 
-function LibraryIntakeRailPanel({ object, onSubmitUpload, onSubmitUrl, onSubmitProcure }) {
+function LibraryIntakeRailPanel({
+  object,
+  onSubmitUpload,
+  onSubmitUrl,
+  onSubmitProcure,
+  uploadAvailable = true,
+  uploadHint = "",
+}) {
   const inputRef = useRef(null);
   const [files, setFiles] = useState([]);
   const [target, setTarget] = useState("");
@@ -203,13 +210,17 @@ function LibraryIntakeRailPanel({ object, onSubmitUpload, onSubmitUrl, onSubmitP
         <RailEntityHeader
           id={object.id}
           title="Add URL / DOI"
-          description="Probe a public source, collect metadata, and hand the acquisition plan to Ask."
-          pills={<span className="rd-v2-pill ext">Intake</span>}
+          description="Ask-assisted draft intake — a durable backend job id is required before any vault registration claim."
+          pills={<span className="rd-v2-pill ext">Draft intake</span>}
         />
         <div className="rd-v2-rail-scroll">
           <RailFieldGrid>
             <RailField label="Destination" value={destination} />
             <RailField label="Path" value={object.path} />
+            <RailField
+              label="Promise"
+              value="Ask-assisted draft until durable job id"
+            />
           </RailFieldGrid>
           <div className="rd-v2-rail-intake">
             <label htmlFor="rd-v2-rail-url-input">URLs or DOIs</label>
@@ -229,7 +240,7 @@ function LibraryIntakeRailPanel({ object, onSubmitUpload, onSubmitUrl, onSubmitP
             disabled={!target.trim()}
             onClick={() => onSubmitUrl?.(target.trim(), object)}
           >
-            Send to Ask
+            Queue draft intake
           </button>
         </RailStickyFooter>
       </RailFrame>
@@ -262,18 +273,39 @@ function LibraryIntakeRailPanel({ object, onSubmitUpload, onSubmitUrl, onSubmitP
     );
   }
 
+  if (!uploadAvailable) {
+    return (
+      <RailFrame>
+        <RailEntityHeader
+          id={object.id}
+          title="Upload unavailable"
+          description={uploadHint || "Local file upload stays unavailable until the desk reports controller staging."}
+          pills={<span className="rd-v2-pill">Unavailable</span>}
+        />
+        <div className="rd-v2-rail-scroll">
+          <RailFieldGrid>
+            <RailField label="Destination" value={destination} />
+            <RailField label="Path" value={object.path} />
+            <RailField label="Staging" value="Not reported by resources rollup" />
+          </RailFieldGrid>
+        </div>
+      </RailFrame>
+    );
+  }
+
   return (
     <RailFrame>
       <RailEntityHeader
         id={object.id}
         title="Upload files"
-        description="Stage local files against the current Library branch and hand ingestion to the vault via Ask."
+        description="Stage local files against controller staging for the current Library branch, then hand ingestion to Ask."
         pills={<span className="rd-v2-pill lab">Upload</span>}
       />
       <div className="rd-v2-rail-scroll">
         <RailFieldGrid>
           <RailField label="Destination" value={destination} />
           <RailField label="Path" value={object.path} />
+          <RailField label="Staging" value="Controller staging reported" />
         </RailFieldGrid>
         <div
           className="rd-v2-rail-upload-zone"
@@ -323,6 +355,8 @@ export function LibraryObjectRailPanel({
   onSubmitUpload,
   onSubmitUrl,
   onSubmitProcure,
+  uploadAvailable = true,
+  uploadHint = "",
 }) {
   if (object?.kind === "library_intake") {
     return (
@@ -331,6 +365,8 @@ export function LibraryObjectRailPanel({
         onSubmitUpload={onSubmitUpload}
         onSubmitUrl={onSubmitUrl}
         onSubmitProcure={onSubmitProcure}
+        uploadAvailable={uploadAvailable}
+        uploadHint={uploadHint}
       />
     );
   }
@@ -349,10 +385,12 @@ export function LibraryObjectRailPanel({
       />
       <RailJudgment>
         {counts.queryReady > 0
-          ? "Branch has query-ready holdings — select a dataset or upload more here."
+          ? "Branch has query-ready holdings — select a dataset or add evidence here."
           : counts.datasets > 0
             ? "Branch has registered datasets — none are query-ready yet."
-            : "Empty branch — upload, add URL / DOI, or procure missing data."}
+            : uploadAvailable
+              ? "Empty branch — upload, add URL / DOI, or procure missing data."
+              : "Empty branch — add URL / DOI or procure (local upload unavailable without staging)."}
       </RailJudgment>
       <div className="rd-v2-rail-scroll">
         <RailFactSection
@@ -363,12 +401,21 @@ export function LibraryObjectRailPanel({
             { label: "Folders", value: pluralCount(counts.folders, "folder") },
             { label: "Datasets", value: pluralCount(counts.datasets, "dataset") },
             { label: "Query-ready", value: String(counts.queryReady ?? 0) },
+            {
+              label: "Local upload",
+              value: uploadAvailable ? "Staging available" : "Unavailable — staging not reported",
+            },
           ].filter((row) => row.value != null && row.value !== "")}
         />
         <p className="rd-v2-rail-section-label">Branch actions</p>
         <div className="rd-v2-rail-branch-actions">
-          <button type="button" onClick={() => onStartUpload?.(folder)}>
-            Upload files
+          <button
+            type="button"
+            disabled={!uploadAvailable}
+            title={uploadAvailable ? undefined : uploadHint || "Server staging not reported"}
+            onClick={() => uploadAvailable && onStartUpload?.(folder)}
+          >
+            {uploadAvailable ? "Upload files" : "Upload unavailable"}
           </button>
           <button type="button" onClick={() => onStartUrl?.(folder)}>
             Add URL / DOI
@@ -379,11 +426,19 @@ export function LibraryObjectRailPanel({
         </div>
       </div>
       <RailActionFooter
-        primary={{
-          key: "upload",
-          label: "Upload here",
-          onClick: () => onStartUpload?.(folder),
-        }}
+        primary={
+          uploadAvailable
+            ? {
+                key: "upload",
+                label: "Upload here",
+                onClick: () => onStartUpload?.(folder),
+              }
+            : {
+                key: "url",
+                label: "Add URL / DOI",
+                onClick: () => onStartUrl?.(folder),
+              }
+        }
         secondary={[
           {
             key: "ask",
@@ -617,12 +672,13 @@ export function BrowseRailPanel({
 }) {
   if (!target) {
     if (contextDataset?.dataset_id) {
-      const ready = /instant|ready|query/i.test(String(contextDataset.analysis_readiness || ""));
+      const readiness = statusPillKind(contextDataset);
+      const ready = readiness.kind === "query-ready";
       const confirmed = [
         { label: "Source", value: railMeta(contextDataset.source || contextDataset.publisher || contextDataset.backend) },
         { label: "Grain", value: railMeta(contextDataset.grain) },
         { label: "Coverage", value: railMeta(contextDataset.coverage || contextDataset.date_range) },
-        { label: "Readiness", value: railMeta(contextDataset.analysis_readiness, "Registered") },
+        { label: "Readiness", value: readiness.label },
       ].filter((row) => row.value && row.value !== "—");
       return (
         <RailFrame>
@@ -634,8 +690,8 @@ export function BrowseRailPanel({
           />
           <RailJudgment>
             {ready
-              ? "Registered lab evidence — query-ready and reusable without re-collecting."
-              : "Registered lab evidence — use as Discover context for complementary sources."}
+              ? "Lab evidence — query-ready and reusable without re-collecting."
+              : `${readiness.label} lab evidence — use as Discover context for complementary sources.`}
           </RailJudgment>
           <div className="rd-v2-rail-scroll">
             <RailFactSection title="Confirmed" items={confirmed} testId="rail-confirmed" />
@@ -854,28 +910,41 @@ export function BrowseRailPanel({
 export function ResourcesRailPanel({
   row,
   rollup,
-  resourceMode = "spending",
+  resourceMode = "capabilities",
   onApproveJob,
   onRefresh,
   onViewActivity,
   onAskAbout,
   onOpenDiscoverAwaiting,
 }) {
-  const inActivity = resourceMode === "activity";
+  const routeToDiscover = () => {
+    if (onOpenDiscoverAwaiting) onOpenDiscoverAwaiting();
+    else onViewActivity?.(null);
+  };
   if (!row) {
     return (
       <RailFrame>
         <div className="rd-v2-rail-scroll">
-          <EmptyRailState title={PAGE_DETAIL_EMPTY.resources} minimal />
+          <EmptyRailState
+            title={
+              resourceMode === "usage"
+                ? "Select a usage row to inspect"
+                : "Select a capability to inspect"
+            }
+            minimal
+          />
         </div>
         <RailActionFooter
           secondary={
-            !inActivity && onViewActivity
+            onViewActivity || onOpenDiscoverAwaiting
               ? [
                   {
-                    key: "activity",
-                    label: "View activity →",
-                    onClick: () => onViewActivity?.(null),
+                    key: "history",
+                    label: "Open Discover History →",
+                    onClick: () =>
+                      onOpenDiscoverAwaiting
+                        ? onOpenDiscoverAwaiting?.()
+                        : onViewActivity?.(null),
                   },
                 ]
               : []
@@ -982,9 +1051,9 @@ export function ResourcesRailPanel({
               Open in Discover →
             </button>
           ) : null}
-          {row.section === "metered" && !inActivity ? (
-            <button type="button" className="rd-v2-btn sm primary" onClick={() => onViewActivity?.({ meterId: row.meterId })}>
-              View activity →
+          {row.section === "metered" ? (
+            <button type="button" className="rd-v2-btn sm primary" onClick={routeToDiscover}>
+              Open Discover History →
             </button>
           ) : null}
           <button type="button" className="rd-v2-btn sm" onClick={() => onAskAbout?.(row)}>
@@ -1025,11 +1094,9 @@ export function ResourcesRailPanel({
           ) : null}
         </div>
         <RailStickyFooter>
-          {!inActivity ? (
-            <button type="button" className="rd-v2-btn sm primary" onClick={() => onViewActivity?.({ meterId: row.meterId })}>
-              View activity →
-            </button>
-          ) : null}
+          <button type="button" className="rd-v2-btn sm primary" onClick={routeToDiscover}>
+            Open Discover History →
+          </button>
           <button type="button" className="rd-v2-btn sm" onClick={() => onAskAbout?.(row)}>
             Ask about spend →
           </button>
@@ -1159,11 +1226,11 @@ export function ResourcesRailPanel({
                   label: "Review in Discover →",
                   onClick: () => onOpenDiscoverAwaiting?.(row.job),
                 }
-              : meterActivityFilter && !inActivity
+              : meterActivityFilter
                 ? {
-                    key: "activity",
-                    label: "View activity →",
-                    onClick: () => onViewActivity?.(meterActivityFilter),
+                    key: "history",
+                    label: "Open Discover History →",
+                    onClick: routeToDiscover,
                   }
                 : row.job?.status === "pending_approval"
                   ? {
@@ -1191,7 +1258,7 @@ export function ResourcesRailPanel({
                   onClick: () => onAskAbout?.(row),
                 },
               ]
-            : primaryIsAskFallback(row, isReviewQueue, meterActivityFilter, inActivity)
+            : primaryIsAskFallback(row, isReviewQueue, meterActivityFilter)
               ? []
               : [
                   {
@@ -1206,10 +1273,10 @@ export function ResourcesRailPanel({
   );
 }
 
-function primaryIsAskFallback(row, isReviewQueue, meterActivityFilter, inActivity = false) {
+function primaryIsAskFallback(row, isReviewQueue, meterActivityFilter) {
   if (isReviewQueue) return false;
   if (row.job?.status === "pending_approval") return false;
-  if (meterActivityFilter && !inActivity) return false;
+  if (meterActivityFilter) return false;
   return true;
 }
 

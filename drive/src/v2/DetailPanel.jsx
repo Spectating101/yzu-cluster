@@ -1,4 +1,4 @@
-import { detailFields, displayName, formatMetaValue } from "@/v2/datasetMeta";
+import { detailFields, displayName, formatMetaValue, isQueryReadyReadiness, statusPillKind } from "@/v2/datasetMeta";
 import { PAGE_DETAIL_EMPTY } from "@/v2/discoverRailPresentation";
 import { EmptyRailState } from "@/v2/EmptyRailState";
 import {
@@ -30,10 +30,6 @@ function JoinKeyChips({ keys }) {
       ))}
     </span>
   );
-}
-
-function isDatasetReady(readiness) {
-  return /ready|query|instant|connected/i.test(String(readiness || ""));
 }
 
 function datasetFreshness(dataset) {
@@ -81,7 +77,8 @@ export function DetailPanel({
   }
 
   const fields = detailFields(dataset);
-  const ready = isDatasetReady(dataset.analysis_readiness);
+  const readinessState = statusPillKind(dataset);
+  const ready = isQueryReadyReadiness(dataset.analysis_readiness);
   const grainLine = [formatMetaValue(dataset.grain), fields.joinKeys?.length ? fields.joinKeys.join(" + ") : null]
     .filter(Boolean)
     .join(" · ");
@@ -90,7 +87,7 @@ export function DetailPanel({
   const freshness = datasetFreshness(dataset);
 
   const confirmed = [];
-  pushFact(confirmed, "Readiness", formatMetaValue(dataset.analysis_readiness) || (ready ? "Query-ready" : "Registered"));
+  pushFact(confirmed, "Readiness", readinessState.label);
   pushFact(confirmed, "Grain", grainLine || formatMetaValue(dataset.grain));
   pushFact(confirmed, "Coverage", formatMetaValue(coverage));
   pushFact(confirmed, "Source", fields.source);
@@ -111,10 +108,10 @@ export function DetailPanel({
   if (fields.limitations) pushFact(unknowns, "Limitations", fields.limitations);
 
   const judgment = ready
-    ? "Query-ready holding — open rows or reuse in Cluster / Synthesis."
+    ? "Query-ready holding — open rows or reuse as Discover context."
     : fields.limitations
-      ? `Registered holding — ${String(fields.limitations).slice(0, 120)}`
-      : "Registered holding — inspect readiness and provenance before analysis.";
+      ? `${readinessState.label} — ${String(fields.limitations).slice(0, 120)}`
+      : `${readinessState.label} — inspect readiness and provenance before analysis.`;
 
   const secondary = [];
   if (onAskAbout) {
