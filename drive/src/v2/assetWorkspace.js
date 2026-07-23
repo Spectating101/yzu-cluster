@@ -157,12 +157,12 @@ export function buildAssetDecisionInstrument(dataset) {
 
   const unknowns = [];
   if (!dataset.analysis_readiness) {
-    pushFact(unknowns, "Readiness", "Not reported by registry");
+    unknowns.push("Readiness not reported by registry");
   }
-  if (!coverage) pushFact(unknowns, "Coverage", "Not reported");
-  if (!dataset.grain) pushFact(unknowns, "Grain", "Not reported");
-  if (!provenance) pushFact(unknowns, "Provenance", "Not reported beyond registry");
-  if (fields.limitations) pushFact(unknowns, "Limitations", fields.limitations);
+  if (!coverage) unknowns.push("Coverage not reported");
+  if (!dataset.grain) unknowns.push("Grain not reported");
+  if (!provenance) unknowns.push("Provenance not reported beyond registry");
+  if (fields.limitations) unknowns.push(String(fields.limitations).slice(0, 160));
 
   let judgment;
   if (ready) {

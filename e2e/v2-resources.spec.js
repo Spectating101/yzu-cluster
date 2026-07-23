@@ -13,6 +13,7 @@ test.describe("v2 Resources Capabilities and Usage", () => {
   test("Capabilities is the default centre and omits activity ledger ownership", async ({ page }) => {
     await expect(page.locator("main").getByRole("heading", { name: "Resources", exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Capabilities", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Capabilities", exact: true })).toHaveClass(/on/);
     await expect(page.getByRole("button", { name: "Usage", exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Overview", exact: true })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Activity", exact: true })).toHaveCount(0);
@@ -24,6 +25,17 @@ test.describe("v2 Resources Capabilities and Usage", () => {
     await expect(main.getByRole("region", { name: "Key resources" })).not.toContainText("Procurement jobs");
     await expect(main.getByRole("heading", { name: "Run log" })).toHaveCount(0);
     await expect(main.getByTestId("resources-activity-controls")).toHaveCount(0);
+  });
+
+  test("Resources Capabilities remains primary mode on deep link", async ({ page }) => {
+    await page.getByRole("button", { name: "Usage", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Usage", exact: true })).toHaveClass(/on/);
+
+    await page.goto("/?tab=resources", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await expect(page.getByRole("button", { name: "Capabilities", exact: true })).toHaveClass(/on/);
+    await expect(page.getByRole("button", { name: "Activity", exact: true })).toHaveCount(0);
+    await expect(page.locator("main").getByRole("heading", { name: "Run log" })).toHaveCount(0);
   });
 
   test("job handoff routes approval recovery to Discover History", async ({ page }) => {

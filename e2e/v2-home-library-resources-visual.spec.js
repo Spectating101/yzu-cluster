@@ -8,7 +8,7 @@ const evidence =
   path.join(
     process.env.HOME,
     ".config/yzu-host-acceptance/evidence",
-    "fe_loop_home_library_resources",
+    `fe_loop_home_library_resources_${new Date().toISOString().replace(/[:.]/g, "").slice(0, 15)}Z`,
   );
 
 test.describe("visual capture Home Library Resources", () => {
@@ -27,17 +27,23 @@ test.describe("visual capture Home Library Resources", () => {
       await expect(page.getByTestId("home-continue")).toBeVisible();
       await page.screenshot({ path: path.join(evidence, `${tag}_home.png`), fullPage: false });
 
+      await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
+      await waitForShell(page);
+      await expect(page.locator(".rd-v2-library-pathbar")).toContainText("Lab root");
+      await page.screenshot({ path: path.join(evidence, `${tag}_library_root.png`), fullPage: false });
+
       await page.goto(
         "/?tab=library&dataset=gdelt_asia_daily_country_panel&folder=research_panels/gdelt",
         { waitUntil: "domcontentloaded" },
       );
       await waitForShell(page);
       await expect(page.getByTestId("asset-workspace")).toBeVisible({ timeout: 20_000 });
+      await expect(page.getByTestId("detail-panel")).toHaveAttribute("data-detail-mode", "decision");
       await page.screenshot({ path: path.join(evidence, `${tag}_library_asset.png`), fullPage: false });
 
       await page.goto("/?tab=resources", { waitUntil: "domcontentloaded" });
       await waitForShell(page);
-      await expect(page.getByRole("button", { name: "Capabilities", exact: true })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Capabilities", exact: true })).toHaveClass(/on/);
       await page.screenshot({
         path: path.join(evidence, `${tag}_resources_capabilities.png`),
         fullPage: false,

@@ -43,9 +43,9 @@ test("decision instrument is judgment + unknowns only — no registry fact dump"
   });
   assert.match(decision.judgment, /Query-ready/i);
   assert.equal(decision.nextActionLabel, "Preview rows");
-  assert.ok(decision.unknowns.some((row) => /Provenance/i.test(row.label)));
-  assert.ok(!decision.unknowns.some((row) => row.label === "Source"));
-  assert.ok(!decision.unknowns.some((row) => row.label === "Coverage"));
+  assert.ok(decision.unknowns.some((row) => /Provenance not reported/i.test(typeof row === "string" ? row : row.value || "")));
+  assert.ok(!decision.unknowns.some((row) => (typeof row === "string" ? row : row.label) === "Source"));
+  assert.ok(!decision.unknowns.some((row) => /Coverage not reported/i.test(typeof row === "string" ? row : "")));
 });
 
 test("decision instrument surfaces readiness unknown when registry omits it", () => {
@@ -54,7 +54,7 @@ test("decision instrument surfaces readiness unknown when registry omits it", ()
     name: "Sparse",
   });
   assert.match(decision.judgment, /Readiness unknown/i);
-  assert.ok(decision.unknowns.some((row) => row.label === "Readiness"));
+  assert.ok(decision.unknowns.some((row) => /Readiness not reported/i.test(typeof row === "string" ? row : row.label || "")));
 });
 
 test("upload capability requires observed staging_disk_free_gb", () => {

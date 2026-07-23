@@ -1668,6 +1668,15 @@
   padding-bottom: 8px;
 }
 
+.rd-v2-rail-decision-instrument .rd-v2-rail-fact-section {
+  margin-top: 4px;
+}
+
+.rd-v2-rail-decision-instrument .rd-v2-rail-fact-list > li {
+  color: var(--rd-muted);
+  font-size: 12px;
+}
+
 .rd-v2-rail-decision-clear {
   margin: 8px 12px 0;
   color: var(--rd-muted);
