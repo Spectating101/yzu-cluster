@@ -40,12 +40,12 @@ function RecipeMetrics({ recipe }) {
 
 function compactStep(step, index) {
   const source = String(step || "").trim();
-  if (/anchor|snapshot/i.test(source)) return "Anchor snapshots";
-  if (/extract|event|signal/i.test(source)) return "Extract events";
+  if (/anchor|snapshot/i.test(source)) return "Anchor";
   if (/resolve|conflict|conservative/i.test(source)) return "Resolve conflicts";
-  if (/emit|output|panel|field/i.test(source)) return "Emit monthly panel";
+  if (/extract|event|signal/i.test(source)) return "Extract events";
+  if (/emit|output|panel|field/i.test(source)) return "Emit panel";
   const words = source.split(/\s+/).filter(Boolean);
-  return words.slice(0, 3).join(" ") || `Transform ${index + 1}`;
+  return words.slice(0, 2).join(" ") || `Transform ${index + 1}`;
 }
 
 function AlternativeCards({ alternatives, onSelect }) {
@@ -163,7 +163,7 @@ export function SynthesisProxyCanvas({ view, onSelectArea, onAsk, onGoTab, onOpe
           <small>Target construct</small>
           <h1>{view.target.label}</h1>
         </div>
-        <span>{view.target.measurementStatus}</span>
+        <span title={view.target.measurementStatus}>{hasIdealLimitations ? "Direct measure incomplete" : "No limitation recorded"}</span>
         <dl>
           <div><dt>Grain</dt><dd>{view.target.grain}</dd></div>
           <div><dt>Population</dt><dd>{view.target.population}</dd></div>
