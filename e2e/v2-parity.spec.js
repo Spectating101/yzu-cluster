@@ -30,6 +30,7 @@ async function mockApi(page) {
   await page.route("**/library/search*", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ sections: [], total: 0 }) }));
   await page.route("**/library/ops*", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ collection_queue: { pending: 0 }, datacite_harvest: { running: 2 } }) }));
   await page.route("**/library/jobs*", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ jobs: [] }) }));
+  await page.route("**/library/synthesis/threads*", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ threads: [], total: 0 }) }));
   await page.route("**/yzu/acquisitions*", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ acquisitions: [] }) }));
   await page.route("**/library/faculty/profile*", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ found: true, profile: { name_en: "Test Prof", discipline: "YZU" } }) }));
   await page.route("**/query/*", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ rows: [{ date: "2026-04-30", country: "TW", score: 0.82 }] }) }));
@@ -55,7 +56,7 @@ test.describe("v2 parity @ desk-v2-1440", () => {
     await page.locator(".rd-v2-shell").waitFor({ timeout: 30_000 });
   });
 
-  test("shell grid keeps adaptive rail proportions without overflow", async ({ page }) => {
+  test("shell makes the research canvas dominant without overflow", async ({ page }) => {
     const shell = page.locator(".rd-v2-shell");
     const metrics = await shell.evaluate((element) => {
       const style = getComputedStyle(element);
@@ -75,14 +76,14 @@ test.describe("v2 parity @ desk-v2-1440", () => {
     expect(metrics.cols).toContain("px");
     expect(metrics.shellW).toBeGreaterThanOrEqual(1438);
     expect(metrics.shellW).toBeLessThanOrEqual(1442);
-    expect(metrics.headerH).toBeGreaterThanOrEqual(60);
-    expect(metrics.headerH).toBeLessThanOrEqual(66);
-    expect(metrics.sidebarW / metrics.shellW).toBeGreaterThanOrEqual(0.16);
-    expect(metrics.sidebarW / metrics.shellW).toBeLessThanOrEqual(0.2);
-    expect(metrics.railW / metrics.shellW).toBeGreaterThanOrEqual(0.28);
-    expect(metrics.railW / metrics.shellW).toBeLessThanOrEqual(0.32);
-    expect(metrics.mainW).toBeGreaterThan(metrics.railW);
-    expect(metrics.mainW).toBeGreaterThan(metrics.sidebarW);
+    expect(metrics.headerH).toBeGreaterThanOrEqual(58);
+    expect(metrics.headerH).toBeLessThanOrEqual(62);
+    expect(metrics.sidebarW).toBeGreaterThanOrEqual(192);
+    expect(metrics.sidebarW).toBeLessThanOrEqual(200);
+    expect(metrics.railW).toBeGreaterThanOrEqual(332);
+    expect(metrics.railW).toBeLessThanOrEqual(340);
+    expect(metrics.mainW).toBeGreaterThan(metrics.railW * 2);
+    expect(metrics.mainW).toBeGreaterThan(metrics.sidebarW * 4);
     expect(metrics.sidebarW + metrics.mainW + metrics.railW).toBeLessThanOrEqual(metrics.shellW + 2);
   });
 
