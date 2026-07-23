@@ -1733,6 +1733,36 @@
 .rd-v2-eval-rail .rd-v2-eval-sufficiency-compare-row {
   border-top-color: var(--rd-border);
 }
+
+/* Keep the Resources surface as one continuous workspace. Earlier freeze
+   rules added an outer margin as well as section padding, leaving a blank
+   band before the source ledger. */
+.rd-v2-res-wire-band {
+  margin: 0;
+  padding: 18px 20px 20px;
+}
+
+.rd-v2-res-wire-band + .rd-v2-res-wire-band {
+  border-top: 1px solid var(--rd-release-line);
+}
+
+.rd-v2-res-wire-title {
+  margin: 0 0 12px;
+}
+
+.rd-v2-res-source-ledger {
+  gap: 8px;
+  margin-bottom: 0;
+}
+
+.rd-v2-res-source-family h3 {
+  margin: 0 2px 6px;
+}
+
+.rd-v2-res-source-row {
+  margin-bottom: 5px;
+}
+
 @media (max-width: 900px) {
   .rd-v2-res-capacity-pair-grid,
   .rd-v2-res-source-ledger-head,
