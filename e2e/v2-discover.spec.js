@@ -191,7 +191,6 @@ test.describe("v2 Discover tab", () => {
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
     await expect(page.getByTestId("discover-empty")).toBeVisible();
-    await expect(page.getByRole("button", { name: /Review queue/ })).toBeVisible();
     await page.getByTestId("header-pending-link").click();
     await expect(page).toHaveURL(/tab=browse/);
     await expect(page).not.toHaveURL(/mode=(approvals|activity|history)/);
@@ -420,6 +419,47 @@ test.describe("v2 Discover tab", () => {
     await page.getByTestId("discover-intent-catalog").click();
     await expect(search).toHaveAttribute("data-intent", "catalog");
     await expect(action).toHaveText("Search catalog");
+  });
+
+  test("search chrome stays fixed when query state changes empty→results", async ({ page }) => {
+    const toolbar = page.getByTestId("discover-toolbar");
+    const search = page.getByTestId("discover-search-input");
+    await expect(page.getByTestId("discover-empty")).toBeVisible();
+
+    const before = await toolbar.evaluate((el) => {
+      const searchEl = el.querySelector('[data-testid="discover-search-input"]');
+      const box = el.getBoundingClientRect();
+      const searchBox = searchEl.getBoundingClientRect();
+      return {
+        height: Math.round(box.height),
+        top: Math.round(box.top),
+        searchTop: Math.round(searchBox.top),
+        searchWidth: Math.round(searchBox.width),
+      };
+    });
+
+    await search.fill("TWSE governance");
+    await search.press("Enter");
+    await expect(page.getByTestId("discover-empty")).toHaveCount(0);
+    await expect(page.locator(".rd-v2-discover-list-panel .rd-v2-discover-candidate").first()).toBeVisible({
+      timeout: 10_000,
+    });
+
+    const after = await toolbar.evaluate((el) => {
+      const searchEl = el.querySelector('[data-testid="discover-search-input"]');
+      const box = el.getBoundingClientRect();
+      const searchBox = searchEl.getBoundingClientRect();
+      return {
+        height: Math.round(box.height),
+        top: Math.round(box.top),
+        searchTop: Math.round(searchBox.top),
+        searchWidth: Math.round(searchBox.width),
+      };
+    });
+    expect(after.height).toBe(before.height);
+    expect(after.top).toBe(before.top);
+    expect(after.searchTop).toBe(before.searchTop);
+    expect(Math.abs(after.searchWidth - before.searchWidth)).toBeLessThanOrEqual(2);
   });
 
   test("filter popover applies and clears active access filter", async ({ page }) => {

@@ -846,7 +846,20 @@ export function V2App() {
     (target) => {
       const id = target?.dataset_id;
       if (!id) return;
-      const row = catalog.find((d) => d.dataset_id === id) || { dataset_id: id, ...target };
+      const row = catalog.find((d) => d.dataset_id === id) || {
+        dataset_id: id,
+        ...target,
+        // Prefer explicit handoff readiness; never invent query-ready.
+        analysis_readiness:
+          target.analysis_readiness ||
+          target.readiness ||
+          (target.catalog_reconciliation ? "registered" : undefined),
+        catalog_reconciliation: target.catalog_reconciliation,
+        candidate_key: target.candidate_key,
+        source_id: target.source_id,
+        connector_id: target.connector_id,
+        job_id: target.job_id || target.originating_job_id,
+      };
       const pathParts = consumerDatasetPath(row, DRIVE_LAB);
       const folderParts = pathParts.length > 1 ? pathParts.slice(0, -1) : [];
       setTab("library");

@@ -7,6 +7,7 @@ import {
   PAGE_DETAIL_EMPTY,
   buildDiscoverCandidateRailState,
 } from "@/v2/discoverRailPresentation";
+import { historyHoldingTruth, historyLibraryHandoff } from "@/v2/discoverAdapters";
 import { DiscoverComparePanel } from "@/v2/DiscoverComparePanel";
 import { DiscoverDestinationField } from "@/v2/DiscoverDestinationField";
 import { ProcurementDecisionCard } from "@/v2/ProcurementDecisionCard";
@@ -582,6 +583,8 @@ export function HistoryRailPanel({ object, onAskAbout, onOpenInLibrary }) {
   }
 
   const meta = event.meta || {};
+  const truth = historyHoldingTruth(event);
+  const handoff = historyLibraryHandoff(event);
   const action = String(event.action || "activity").replace(/_/g, " ");
   const target = cleanRailTarget(event.target) || action;
   const timestamp = event.ts
@@ -593,14 +596,20 @@ export function HistoryRailPanel({ object, onAskAbout, onOpenInLibrary }) {
         minute: "2-digit",
       })
     : "Time unavailable";
-  const outcome =
-    meta.dataset_id
-      ? `Registered dataset ${meta.dataset_id}`
-      : meta.job_id
-        ? `Collection job ${meta.job_id}`
+  const outcome = truth.queryReady && truth.datasetId
+    ? `Query-ready dataset ${truth.datasetId}`
+    : truth.stages.registered && truth.datasetId
+      ? `${truth.label} · ${truth.datasetId}`
+      : truth.jobId
+        ? `Collection job ${truth.jobId}`
         : meta.total != null
           ? `${meta.total} result${meta.total === 1 ? "" : "s"} recorded`
           : "Recorded in procurement memory";
+  const nextStep = truth.queryReady
+    ? "Open the query-ready holding in Library"
+    : truth.stages.registered
+      ? "Open registered evidence — reconciliation may still be pending"
+      : "Continue from this research context";
 
   return (
     <RailFrame>
@@ -608,13 +617,13 @@ export function HistoryRailPanel({ object, onAskAbout, onOpenInLibrary }) {
         id={event.id || event.ts || "history"}
         title={target}
         description="Procurement trail"
-        pills={<span className="rd-v2-pill lab">Recorded</span>}
+        pills={<span className="rd-v2-pill lab">{truth.label}</span>}
       />
       <RailDecisionSummary
         status={action}
         primary={outcome}
-        risk="Append-only record"
-        next={meta.dataset_id ? "Open the registered evidence" : "Continue from this research context"}
+        risk="Append-only record · collected ≠ registered ≠ query-ready"
+        next={nextStep}
       />
       <div className="rd-v2-rail-scroll">
         <p className="rd-v2-rail-section-label">Event evidence</p>
@@ -622,8 +631,12 @@ export function HistoryRailPanel({ object, onAskAbout, onOpenInLibrary }) {
           <RailField label="Action" value={action} />
           <RailField label="Time" value={timestamp} />
           <RailField label="Session" value={railMeta(event.session_id)} mono />
-          <RailField label="Job" value={railMeta(meta.job_id)} mono />
-          <RailField label="Dataset" value={railMeta(meta.dataset_id)} mono />
+          <RailField label="Job" value={railMeta(truth.jobId || meta.job_id)} mono />
+          <RailField label="Dataset" value={railMeta(truth.datasetId || meta.dataset_id)} mono />
+          <RailField label="Candidate" value={railMeta(truth.candidateKey || meta.candidate_key)} mono />
+          <RailField label="Source" value={railMeta(truth.sourceId || meta.source_id)} mono />
+          <RailField label="Connector" value={railMeta(truth.connectorId || meta.connector_id)} mono />
+          <RailField label="Holding" value={truth.label} />
           <RailField label="Outcome" value={outcome} />
         </RailFieldGrid>
         <div className="rd-v2-history-rail-chain" aria-label="Provenance chain">
@@ -631,18 +644,22 @@ export function HistoryRailPanel({ object, onAskAbout, onOpenInLibrary }) {
           <ol>
             <li className={/discover|search|ask/.test(String(event.action)) ? "on" : ""}>Search</li>
             <li className={/probe/.test(String(event.action)) ? "on" : ""}>Verify</li>
-            <li className={/job|approve|procure|collect/.test(String(event.action)) ? "on" : ""}>Acquire</li>
+            <li className={truth.collected || /job|approve|procure|collect/.test(String(event.action)) ? "on" : ""}>
+              Acquire
+            </li>
             <li className={/archive/.test(String(event.action)) ? "on" : ""}>Archive</li>
-            <li className={/register|promote/.test(String(event.action)) ? "on" : ""}>Register</li>
+            <li className={truth.stages.registered || /register|promote/.test(String(event.action)) ? "on" : ""}>
+              Register
+            </li>
           </ol>
         </div>
       </div>
       <RailStickyFooter>
-        {meta.dataset_id ? (
+        {handoff ? (
           <button
             type="button"
             className="rd-v2-btn primary sm"
-            onClick={() => onOpenInLibrary?.({ dataset_id: meta.dataset_id })}
+            onClick={() => onOpenInLibrary?.(handoff)}
           >
             Open resulting dataset
           </button>

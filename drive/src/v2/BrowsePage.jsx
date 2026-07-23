@@ -18,7 +18,7 @@ import { DiscoverHistoryPanel } from "@/v2/DiscoverHistoryPanel";
 import { DiscoverEmptyState, DiscoverSuggestedCards } from "@/v2/DiscoverEmptyState";
 import { discoverSuggestedRows } from "@/v2/discoverSuggested";
 import { displayName, formatMetaValue, isEmptyishMetaValue } from "@/v2/datasetMeta";
-import { Chip, PageShell, SourceRibbon } from "@/v2/ui";
+import { PageShell, SourceRibbon } from "@/v2/ui";
 
 const ACCESS_FILTERS = [
   { id: "all", label: "All" },
@@ -155,7 +155,6 @@ function DiscoverToolbar({
   onSemanticSearch,
   onClear,
   filterControl = null,
-  trailing = null,
 }) {
   const [intent, setIntent] = useState("catalog");
   const researchMode = intent === "research";
@@ -229,7 +228,11 @@ function DiscoverToolbar({
           >
             Clear
           </button>
-        ) : null}
+        ) : (
+          <span className="rd-v2-discover-search-clear rd-v2-discover-search-clear--spacer" aria-hidden="true">
+            Clear
+          </span>
+        )}
       </label>
       <div className="rd-v2-discover-toolbar-controls">
         {filterControl}
@@ -245,7 +248,6 @@ function DiscoverToolbar({
           </button>
         </div>
       </div>
-      {trailing}
     </div>
   );
 }
@@ -1154,7 +1156,9 @@ export function BrowsePage({
   const stageCounts = useMemo(() => discoverStageCounts(merged, labIds, jobs), [merged, labIds, jobs]);
 
   const sourceLabel =
-    source === "discover"
+    source === "explore"
+      ? "Source catalogue"
+      : source === "discover"
       ? "Discover API"
       : source === "catalog"
         ? "Lab index"
@@ -1269,42 +1273,15 @@ export function BrowsePage({
       ? "Search sources for this dataset…"
       : "Search external datasets…";
 
-  const toolbarTrailing = (
-    <>
-      {demoFallback || (usingSeed && source === "demo" && !loading && isExplore) ? (
-        <Chip warn>Offline sample</Chip>
-      ) : null}
-      {pendingRows.length ? (
-        <button
-          type="button"
-          className="rd-v2-discover-queue-btn"
-          onClick={() => {
-            if (onOpenReviewQueue) onOpenReviewQueue();
-            else if (pendingRows[0]) onSelectRow?.(pendingRows[0]);
-          }}
-        >
-          Review queue <strong>{pendingRows.length}</strong>
-        </button>
-      ) : null}
-      {showHistory || showSearchResults || pendingRows.length ? (
-        <span className="rd-v2-toolbar-count">
-          {showHistory
-            ? `${(historyEvents || []).length} recorded`
-            : showSearchResults
-              ? `${filtered.length} result${filtered.length === 1 ? "" : "s"}`
-              : `${pendingRows.length} awaiting approval`}
-        </span>
-      ) : null}
-    </>
-  );
-
   return (
     <PageShell
       className={[
         "rd-v2-discover-page",
         showQueueStrip ? "rd-v2-discover-page--queue" : "",
         showHistory ? "rd-v2-discover-page--history" : "",
-        hasContextDataset && showDefaultHome ? "rd-v2-discover-page--context" : "",
+        // Keep chrome geometry stable when query occupancy changes — context
+        // styling follows the bound dataset, not empty-vs-results body state.
+        hasContextDataset ? "rd-v2-discover-page--context" : "",
       ]
         .filter(Boolean)
         .join(" ")}
@@ -1327,7 +1304,6 @@ export function BrowsePage({
           onSemanticSearch={runSemanticSearch}
           onClear={clearSearch}
           filterControl={filterControl}
-          trailing={toolbarTrailing}
         />
       }
     >

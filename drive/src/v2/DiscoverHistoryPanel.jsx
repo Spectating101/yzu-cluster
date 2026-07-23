@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { historyHoldingTruth, historyLifecycleBucket } from "@/v2/discoverAdapters";
 import { Chip } from "@/v2/ui";
 
 const HISTORY_FILTERS = [
@@ -41,13 +42,9 @@ function cleanTarget(value) {
 
 function eventKind(event) {
   const action = String(event?.action || "").toLowerCase();
-  const status = String(event?.status || event?.meta?.status || "").toLowerCase();
   if (event?.durable || event?.kind) {
-    if (/pending_approval|ready_for_review|awaiting|needs_approval/.test(status)) return "needs_approval";
-    if (/queued|running|active|in_progress/.test(status)) return "active";
-    if (/failed|error|needs_recovery|blocked/.test(status)) return "needs_recovery";
-    if (action === "subscription" || /scheduled|paused/.test(status)) return "scheduled";
-    if (/completed|ready|registered|archived|done|succeeded/.test(status)) return "ready";
+    const bucket = historyLifecycleBucket(event);
+    if (bucket !== "all") return bucket;
     if (action === "intent") return "needs_approval";
     if (action === "collection_run") return "active";
   }
@@ -92,15 +89,21 @@ function eventDay(event) {
 
 function eventOutcome(event) {
   const meta = event?.meta || {};
+  const truth = historyHoldingTruth(event);
   if (meta.repeat_count > 1) {
     const latest = meta.total != null ? ` · ${meta.total} latest results` : "";
     return `${meta.repeat_count} repeated searches${latest}`;
   }
-  if (meta.summary) return String(meta.summary);
-  if (event?.summary) return String(event.summary);
-  if (meta.dataset_id) return `Dataset · ${meta.dataset_id}`;
-  if (meta.job_id) return `Job · ${meta.job_id}`;
+  // Prefer holding truth over BE summary that may claim query-ready on receipt_only rows.
+  if (truth.datasetId) {
+    if (truth.queryReady) return `Query-ready · ${truth.datasetId}`;
+    if (truth.stages.registered) return `${truth.label} · ${truth.datasetId}`;
+  }
+  if (truth.jobId && !truth.datasetId) return `Job · ${truth.jobId}`;
+  if (meta.summary && !/query-?ready/i.test(String(meta.summary))) return String(meta.summary);
+  if (event?.summary && !/query-?ready/i.test(String(event.summary))) return String(event.summary);
   if (meta.total != null) return `${meta.total} result${meta.total === 1 ? "" : "s"}`;
+  if (truth.label && truth.label !== "Recorded") return truth.label;
   if (meta.status || event?.status) return String(meta.status || event.status).replace(/_/g, " ");
   return eventKind(event) === "search" ? "Research discovery" : "Recorded by the desk";
 }

@@ -145,11 +145,20 @@ export function discoverSources(query = "", { limit = 12, live = false, prefer =
 }
 
 /** Durable Discover history (intents / subscriptions / collection runs). */
-export function discoverHistory({ limit = 50, kind = "", sessionId = "" } = {}) {
+export async function discoverHistory({ limit = 50, kind = "", sessionId = "" } = {}) {
   const params = new URLSearchParams({ limit: String(limit) });
   if (kind) params.set("kind", kind);
   if (sessionId) params.set("session_id", sessionId);
-  return fetchJson(`/library/discover/history?${params}`, { timeoutMs: 8000 });
+  try {
+    return await fetchJson(`/library/discover/history?${params}`, { timeoutMs: 8000 });
+  } catch (err) {
+    // Legacy alias on this desk — same item shape; do not invent alternate schemas.
+    try {
+      return await fetchJson(`/library/history?${params}`, { timeoutMs: 8000 });
+    } catch {
+      throw err;
+    }
+  }
 }
 
 /** Bounded Explore source preview. */

@@ -1,5 +1,7 @@
 /** Discover Explore/History adapters — map BE contracts to faculty UI rows. */
 
+import { isReceiptOnlyAsset, isQueryReadyReadiness, statusPillKind } from "./datasetMeta.js";
+
 export function normalizeDiscoverMode(raw = "") {
   const mode = String(raw || "").trim().toLowerCase();
   if (mode === "history") return "history";
@@ -47,29 +49,58 @@ export function sourcesResponseToRows(data) {
   return results.map(sourceResultToCandidate);
 }
 
+function pickIdentity(item = {}, plan = {}) {
+  return {
+    job_id: item.job_id || plan.job_id || "",
+    intent_id: item.intent_id || "",
+    candidate_key: item.candidate_key || plan.candidate_key || "",
+    source_id: item.source_id || plan.source_id || "",
+    connector_id:
+      item.connector_id ||
+      item.desk_connector_id ||
+      plan.connector_id ||
+      plan.catalog_connector_id ||
+      "",
+    subscription_id: item.subscription_id || "",
+    dataset_id: item.dataset_id || plan.dataset_id || "",
+    registry_id: item.registry_id || "",
+  };
+}
+
 export function durableHistoryToEvents(data) {
   const items = Array.isArray(data?.items) ? data.items : Array.isArray(data) ? data : [];
   return items
     .filter((item) => item && (item.id || item.title))
-    .map((item) => ({
-      id: item.id,
-      ts: item.updated_at || item.created_at || "",
-      action: item.kind || "discover",
-      target: item.title || item.summary || item.id,
-      meta: {
+    .map((item) => {
+      const identity = pickIdentity(item, item.plan || item.request || {});
+      return {
+        id: item.id,
+        ts: item.updated_at || item.created_at || "",
+        action: item.kind || "discover",
+        target: item.title || item.summary || item.id,
+        meta: {
+          status: item.status,
+          kind: item.kind,
+          summary: item.summary,
+          readiness: item.readiness || "",
+          query_ready: item.query_ready,
+          catalog_reconciliation: item.catalog_reconciliation || null,
+          registration_receipt: item.registration_receipt || null,
+          vault_path: item.vault_path || "",
+          usable: item.usable,
+          ...identity,
+        },
+        durable: true,
         status: item.status,
         kind: item.kind,
         summary: item.summary,
-        job_id: item.job_id,
-        intent_id: item.intent_id,
-        candidate_key: item.candidate_key,
-        subscription_id: item.subscription_id,
-      },
-      durable: true,
-      status: item.status,
-      kind: item.kind,
-      summary: item.summary,
-    }));
+        candidate_key: identity.candidate_key,
+        source_id: identity.source_id,
+        connector_id: identity.connector_id,
+        job_id: identity.job_id,
+        dataset_id: identity.dataset_id,
+      };
+    });
 }
 
 export function mergeHistoryEvents(durableEvents = [], deskEvents = []) {
@@ -96,20 +127,153 @@ export function historyEventForJob(events = [], job = null) {
     return metaId === jobId || eventId === jobId || eventId === `job-${jobId}`;
   });
   if (match) return match;
+  const plan = job.plan || {};
+  const identity = pickIdentity(
+    {
+      job_id: jobId,
+      candidate_key: plan.candidate_key || job.request?.candidate_key,
+      source_id: plan.source_id,
+      connector_id: plan.connector_id || plan.catalog_connector_id || job.request?.connector_id,
+      dataset_id: plan.dataset_id,
+    },
+    plan,
+  );
   const syntheticId = jobId.startsWith("job-") ? jobId : `job-${jobId}`;
   return {
     id: syntheticId,
     ts: job.updated_at || job.created_at || "",
     action: "collection_run",
-    target: job.plan?.title || job.title || job.name || jobId,
+    target: plan.title || job.title || job.name || jobId,
     status: job.status || job.state || "",
     durable: true,
-    meta: { job_id: jobId, status: job.status || job.state || "" },
+    kind: "collection_run",
+    meta: {
+      job_id: identity.job_id,
+      status: job.status || job.state || "",
+      candidate_key: identity.candidate_key,
+      source_id: identity.source_id,
+      connector_id: identity.connector_id,
+      dataset_id: identity.dataset_id,
+    },
     summary: String(job.status || job.state || "collection").replace(/_/g, " "),
+    candidate_key: identity.candidate_key,
+    source_id: identity.source_id,
+    connector_id: identity.connector_id,
+    job_id: identity.job_id,
+    dataset_id: identity.dataset_id,
+  };
+}
+
+/**
+ * Faculty holding truth for a History event.
+ * Never promotes receipt_only / query_allowed:false to query-ready.
+ * collected ≠ registered ≠ query-ready.
+ */
+export function historyHoldingTruth(event = null) {
+  const meta = event?.meta || {};
+  const datasetId = meta.dataset_id || event?.dataset_id || "";
+  const jobId = meta.job_id || event?.job_id || "";
+  const candidateKey = meta.candidate_key || event?.candidate_key || "";
+  const sourceId = meta.source_id || event?.source_id || "";
+  const connectorId = meta.connector_id || event?.connector_id || "";
+  const recon = meta.catalog_reconciliation || null;
+  const receiptOnly = isReceiptOnlyAsset({ catalog_reconciliation: recon });
+  const status = String(meta.status || event?.status || "").toLowerCase();
+  const readiness = String(meta.readiness || "").toLowerCase();
+  const collected = Boolean(
+    jobId ||
+      event?.kind === "collection_run" ||
+      event?.action === "collection_run" ||
+      /pending_approval|queued|running|completed|cancelled|failed/.test(status),
+  );
+
+  const asDataset = datasetId
+    ? {
+        dataset_id: datasetId,
+        analysis_readiness: readiness || status,
+        catalog_reconciliation: recon,
+      }
+    : null;
+  const pill = asDataset ? statusPillKind(asDataset) : null;
+  const queryReady = Boolean(pill && pill.kind === "query-ready");
+  const completedOnly = Boolean(
+    datasetId &&
+      !queryReady &&
+      !receiptOnly &&
+      (pill?.kind === "completed" || readiness === "completed" || readiness === "complete" || status === "completed"),
+  );
+  const registered = Boolean(
+    datasetId &&
+      !completedOnly &&
+      (receiptOnly ||
+        pill?.kind === "registered" ||
+        pill?.kind === "query-ready" ||
+        /register|registered|query_ready/.test(status) ||
+        meta.query_ready === true ||
+        isQueryReadyReadiness(readiness)),
+  );
+
+  let label = "Recorded";
+  if (queryReady) label = "Query-ready";
+  else if (receiptOnly) label = "Registered · reconciliation pending";
+  else if (registered) label = "Registered";
+  else if (completedOnly) label = "Completed";
+  else if (/pending_approval|ready_for_review|awaiting|needs_approval/.test(status)) {
+    label = "Needs approval";
+  } else if (/queued|running|active|in_progress/.test(status)) {
+    label = status === "running" ? "Collecting" : "Active";
+  } else if (/failed|error|needs_recovery|blocked/.test(status)) {
+    label = "Needs recovery";
+  } else if (collected) {
+    label = "Collected";
+  }
+
+  return {
+    collected,
+    registered: Boolean(registered || queryReady),
+    completed: completedOnly,
+    queryReady,
+    receiptOnly,
+    label,
+    datasetId,
+    jobId,
+    candidateKey,
+    sourceId,
+    connectorId,
+    /** Explicit triad — never collapse these in UI copy. */
+    stages: {
+      collected,
+      registered: Boolean(registered || queryReady || receiptOnly || completedOnly),
+      completed: completedOnly,
+      queryReady,
+    },
+  };
+}
+
+/** Library / Explore handoff payload — preserves identities without inventing readiness. */
+export function historyLibraryHandoff(event = null) {
+  const truth = historyHoldingTruth(event);
+  const meta = event?.meta || {};
+  if (!truth.datasetId) return null;
+  return {
+    dataset_id: truth.datasetId,
+    candidate_key: truth.candidateKey || undefined,
+    source_id: truth.sourceId || undefined,
+    connector_id: truth.connectorId || undefined,
+    job_id: truth.jobId || undefined,
+    catalog_reconciliation: meta.catalog_reconciliation || undefined,
+    analysis_readiness: truth.queryReady
+      ? "query_ready"
+      : truth.completed
+        ? "completed"
+        : truth.registered || truth.receiptOnly
+          ? "registered"
+          : meta.readiness || undefined,
   };
 }
 
 export function historyLifecycleBucket(event) {
+  const truth = historyHoldingTruth(event);
   const status = String(event?.status || event?.meta?.status || "").toLowerCase();
   if (/pending_approval|ready_for_review|awaiting|needs_approval/.test(status)) return "needs_approval";
   if (/queued|running|active|in_progress/.test(status)) return "active";
@@ -117,6 +281,13 @@ export function historyLifecycleBucket(event) {
   if (/scheduled|paused|subscription/.test(status) || event?.kind === "subscription" || event?.action === "subscription") {
     return "scheduled";
   }
-  if (/completed|ready|registered|archived|done|succeeded/.test(status)) return "ready";
+  // Lifecycle "ready" means acquisition finished — not necessarily query-ready.
+  if (
+    truth.stages.registered ||
+    truth.queryReady ||
+    /completed|ready|registered|archived|done|succeeded|query_ready/.test(status)
+  ) {
+    return "ready";
+  }
   return "all";
 }

@@ -6999,6 +6999,12 @@
   padding: 0 4px;
 }
 
+.rd-v2-discover-search-clear--spacer {
+  visibility: hidden;
+  pointer-events: none;
+  cursor: default;
+}
+
 .rd-v2-discover-search-clear:hover {
   color: var(--rd-accent);
 }
@@ -11561,7 +11567,32 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
   display: inline-flex;
   align-items: center;
   flex: 0 0 auto;
-  min-width: 148px;
+  /* Fit longest intent label ("Search by meaning") so Catalog ↔ Research does not reflow. */
+  min-width: 11.5rem;
+}
+
+.rd-v2-discover-toolbar-action .rd-v2-discover-action-btn {
+  width: 100%;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+/* Desktop Explore chrome has one stable row. Results must never push the
+ * search action below the input after the empty state is replaced. */
+@media (min-width: 900px) {
+  .rd-v2-discover-toolbar {
+    display: grid;
+    grid-template-columns: max-content minmax(160px, 1fr) max-content;
+    flex-wrap: nowrap;
+  }
+
+  .rd-v2-discover-toolbar > .rd-v2-discover-search {
+    min-width: 0;
+  }
+
+  .rd-v2-discover-toolbar-controls {
+    justify-self: end;
+  }
 }
 
 .rd-v2-discover-filter {

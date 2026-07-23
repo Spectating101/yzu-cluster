@@ -43,7 +43,6 @@ test.describe("v2 Discover loop anchor", () => {
     await page.getByTestId("discover-search-input").fill("TWSE");
     await page.getByTestId("discover-search-input").press("Enter");
     await expect(page.getByTestId("discover-search-input")).toHaveValue("TWSE");
-    await page.getByRole("button", { name: /Review queue/ }).click();
     await expect(page.getByTestId("discover-queue-strip")).toBeVisible();
     await expect(page.getByTestId("discover-search-input")).toHaveValue("TWSE");
     await expect(page.getByRole("tab", { name: "Explore" })).toHaveAttribute("aria-selected", "true");
@@ -55,9 +54,9 @@ test.describe("v2 Discover loop anchor", () => {
     await expect(page.locator("aside.rd-v2-rail .rd-v2-rail-sticky").getByRole("button", { name: "Add to lab" })).toBeVisible({
       timeout: 10_000,
     });
-    await page.getByRole("button", { name: /Review queue/ }).click();
     const queue = page.getByTestId("discover-queue-strip");
     await expect(queue).toBeVisible();
+    await queue.getByTestId("discover-queue-row").first().click();
     await expect(page.locator("aside.rd-v2-rail .rd-v2-rail-sticky").getByRole("button", { name: "Add to lab" })).toHaveCount(0);
     const row = page.getByTestId("discover-queue-row").first();
     await expect(row).toBeVisible();
@@ -122,10 +121,7 @@ test.describe("v2 Discover loop anchor", () => {
     await expect(page.getByTestId("discover-search-input")).toHaveValue("TWSE governance");
   });
 
-  // LEGACY EXPECTATION — superseded Activity dashboard.
-  // See docs/DISCOVER_E2E_AUTHORITY_AUDIT.md §6. Not a Slice 1 acceptance gate.
-  // Rewrite target: History lifecycle inbox and/or Explore queue strip + Detail.
-  test("Activity summarizes actionable acquisition states", async ({ page }) => {
+  test("History owns the lifecycle trail while Explore owns approval review", async ({ page }) => {
     await mockV2Api(page, {
       jobsBody: {
         jobs: [
@@ -135,15 +131,16 @@ test.describe("v2 Discover loop anchor", () => {
         ],
       },
     });
-    await page.goto("/?tab=browse&mode=activity", { waitUntil: "domcontentloaded" });
+    await page.goto("/?tab=browse&mode=history", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
 
-    const summary = page.getByTestId("discover-activity-summary");
-    await expect(summary).toContainText("Awaiting");
-    await expect(summary).toContainText("Running");
-    await expect(summary).toContainText("Queued");
-    await expect(summary).toContainText("Failed 7 days");
-    await expect(summary).toContainText("1");
+    await expect(page.getByTestId("discover-history")).toBeVisible();
+    await expect(page.getByTestId("discover-activity-summary")).toHaveCount(0);
+
+    await page.getByRole("tab", { name: "Explore" }).click();
+    const queue = page.getByTestId("discover-queue-strip");
+    await expect(queue).toBeVisible();
+    await expect(queue).toContainText("MOPS statements");
   });
 
   test("dataset-driven Discover reveals compact working-from context", async ({ page }) => {
@@ -160,10 +157,10 @@ test.describe("v2 Discover loop anchor", () => {
     await expect(page.getByTestId("discover-suggested")).toBeVisible();
 
     const rail = page.locator("aside.rd-v2-rail");
-    await expect(rail).toContainText("Why this matters");
-    await expect(rail).toContainText("Source confidence");
-    await expect(rail).toContainText("Vault state");
-    await expect(rail).toContainText("Next gap");
+    await expect(rail).toContainText("Lab evidence");
+    await expect(rail).toContainText("Confirmed");
+    await expect(rail).toContainText("Readiness");
+    await expect(rail).toContainText("Query-ready");
   });
 
   test("compact working-from context stays single-line dense at desktop widths", async ({ page }) => {
