@@ -1,6 +1,6 @@
 # RC3 desktop convergence loop
 
-Current generation: `rc3-desktop-convergence-loop-3`
+Current generation: `rc3-desktop-convergence-loop-4`
 
 Product authority for this loop:
 
@@ -13,8 +13,9 @@ Product authority for this loop:
 
 Accepted desktop convergence through this checkpoint:
 
-- Home ranks query-ready research assets above procurement receipts;
+- Home ranks query-ready research assets above procurement receipts and keeps its context signals readable;
 - Library defaults to the faculty-facing estate and exposes technical records explicitly;
 - Synthesis defaults to substantive durable threads and develops drafts in place;
 - Discover starts from held evidence, then distinguishes supported source routes and controlled acquisition;
+- Resources separates actionable failures and approvals from raw capacity observations;
 - the global header distinguishes raw registry records from faculty-facing holdings.
