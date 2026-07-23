@@ -38,7 +38,7 @@ test.describe("Resources operational summary", () => {
     await expect(rail.locator(".rd-v2-rail-selection")).toHaveText("Resources");
     await expect(rail).toContainText("Lab capacity");
     await expect(rail).toContainText("1 action needs review");
-    await expect(rail).toContainText("1 capacity observations");
+    await expect(rail).toContainText("1 capacity observation");
     await expect(rail).not.toContainText("2 items need attention");
     await expect(rail.getByRole("button", { name: "Open activity" })).toBeVisible();
   });
