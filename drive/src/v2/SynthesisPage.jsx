@@ -245,6 +245,55 @@ function ConstructionWorkspace({ thread, datasets, onAsk, onGoTab }) {
   );
 }
 
+function DraftThreadWorkspace({ thread, onAsk, onGoTab, onNew }) {
+  const objective = text(thread?.objective || thread?.state?.objective, "Clarify what this construction should produce and why it matters.");
+  const grain = text(thread?.state?.required_grain || thread?.state?.spec?.grain, "Not yet constrained");
+
+  const investigate = () => {
+    onAsk(`Map the held evidence that could support this construction, identify the missing inputs, and preserve this objective: ${objective}`);
+    onGoTab?.("browse");
+  };
+
+  return (
+    <section className="s04-card rd-rc3-construction rd-rc3-draft-thread" data-testid="synthesis-draft-state">
+      <header className="rd-rc3-construction-title">
+        <div>
+          <small>Thread ready for development</small>
+          <h2>Turn this objective into an evidence-backed construction</h2>
+          <p>{objective}</p>
+        </div>
+        <span>No method accepted</span>
+      </header>
+
+      <div className="rd-rc3-construction-grid">
+        <section>
+          <header><span>01</span><div><strong>Research objective</strong><small>The durable question already attached to this thread</small></div></header>
+          <div className="rd-rc3-method-questions"><p>{objective}</p></div>
+        </section>
+        <section className="rd-rc3-construction-method">
+          <header><span>02</span><div><strong>Current boundary</strong><small>What is known before evidence mapping begins</small></div></header>
+          <div className="rd-rc3-construction-flow">
+            <span>Objective</span><b>↓</b><strong>{grain}</strong><b>↓</b><span>Evidence and method unresolved</span><b>↓</b><strong>No output claimed</strong>
+          </div>
+        </section>
+        <section>
+          <header><span>03</span><div><strong>Next research move</strong><small>Develop the thread without fabricating evidence or method</small></div></header>
+          <div className="rd-rc3-method-questions">
+            <p>Use Composer to map held assets, challenge the framing, and identify the smallest defensible next proposal.</p>
+          </div>
+        </section>
+      </div>
+
+      <footer className="s04-actions">
+        <p><small>Preserved state</small>This thread already exists. These actions develop it rather than creating a duplicate construction.</p>
+        <button type="button" className="rd-v2-btn" onClick={investigate}>Find supporting evidence</button>
+        <button type="button" className="rd-v2-btn" onClick={onNew}>Start a separate thread</button>
+        <button type="button" className="rd-v2-btn primary" onClick={() => onAsk("Interpret this objective, map the most relevant held assets, identify material ambiguities, and propose the next defensible construction step.")}>Develop in Composer</button>
+      </footer>
+    </section>
+  );
+}
+
 function ProposalReview({ thread, busy, onDecide, onAsk }) {
   const proposal = thread?.state?.proposal || {};
   const operations = Array.isArray(proposal.operations) ? proposal.operations : [];
@@ -469,6 +518,7 @@ export function SynthesisPage({ datasets = [], onAskComposer, onOpenDataset, onS
 
   const mode = stateFor(selected);
   const showExecution = Boolean(selected && (mode === "execution" || mode === "registered" || mode === "query_ready" || mode === "failed" || selected.state?.execution_spec));
+  const startNew = () => { setNewMode(true); setObjective(""); };
 
   return (
     <PageShell className="rd-v2-synthesis-page rd-rc3-synthesis-page" title="Synthesis" lead="Develop research constructions from held evidence, keep missing inputs visible, and formalize only exact reviewable proposals.">
@@ -481,19 +531,19 @@ export function SynthesisPage({ datasets = [], onAskComposer, onOpenDataset, onS
           showTechnical={showTechnical}
           onToggleTechnical={() => setShowTechnical((visible) => !visible)}
           onSelect={selectThread}
-          onNew={() => { setNewMode(true); setObjective(""); }}
+          onNew={startNew}
         />
         <main className="s04-main">
           {error ? <p className="s04-fixture" role="alert">{error}</p> : null}
           {newMode ? <NewThread objective={objective} setObjective={setObjective} busy={busy} onCreate={createThread} onAsk={ask} /> : null}
-          {!newMode && !loading && !selected ? <EmptyWorkspace onNew={() => setNewMode(true)} /> : null}
+          {!newMode && !loading && !selected ? <EmptyWorkspace onNew={startNew} /> : null}
           {!newMode && selected ? (
             <>
               <ThreadHeader thread={selected} />
               {mode === "proposal" ? <ProposalReview thread={selected} busy={busy} onDecide={decideProposal} onAsk={ask} /> : null}
               {showExecution ? <ExecutionRecord thread={selected} busy={busy} onRequest={requestExecution} onAsk={ask} onOpenDataset={onOpenDataset} /> : null}
               {mode === "explore" ? <ConstructionWorkspace thread={selected} datasets={visibleDatasets} onAsk={ask} onGoTab={onGoTab} /> : null}
-              {mode === "draft" ? <EmptyWorkspace onNew={() => setNewMode(true)} /> : null}
+              {mode === "draft" ? <DraftThreadWorkspace thread={selected} onAsk={ask} onGoTab={onGoTab} onNew={startNew} /> : null}
             </>
           ) : null}
         </main>
