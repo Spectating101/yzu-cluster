@@ -3,6 +3,7 @@ import { candidateKey } from "@/v2/candidateKey";
 import { assetAuthorityContext } from "@/v2/assetAuthority";
 import { connectorContext } from "@/v2/connectorContract";
 import { normalizeSynthesisExecution } from "@/v2/executionLifecycle";
+import { isInternalValidationRecord } from "@/v2/productVisibility";
 
 function readinessLabel(dataset) {
   const raw = String(dataset?.analysis_readiness || "").trim();
@@ -173,7 +174,7 @@ export function buildRailContext({
     if (lifecycle.stage === "pending_approval") actions.push("review_execution");
     if (lifecycle.retryable && /failed|blocked/.test(lifecycle.stage)) actions.push("retry_execution");
     if (lifecycle.stage === "registered") actions.push("open_output", "refresh_output");
-  } else if (dataset?.dataset_id) {
+  } else if (dataset?.dataset_id && !(tab === "home" && isInternalValidationRecord(dataset))) {
     const authority = assetAuthorityContext(dataset);
     entity = {
       kind: "dataset",
@@ -213,8 +214,8 @@ export function buildRailContext({
     folder_id: folderId || undefined,
     search_query: searchQuery?.trim() || undefined,
     profile_email: profileEmail || undefined,
-    readiness: dataset ? readinessLabel(dataset) : undefined,
-    vault_path: dataset ? vaultPath(dataset) : undefined,
+    readiness: dataset && !isInternalValidationRecord(dataset) ? readinessLabel(dataset) : undefined,
+    vault_path: dataset && !isInternalValidationRecord(dataset) ? vaultPath(dataset) : undefined,
     compare: compare || undefined,
     actions: actions.length ? actions : undefined,
   };
