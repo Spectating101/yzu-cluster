@@ -1,4 +1,4 @@
-/** v2 header — stable research shell with contextual account access. */
+/** Research Drive header — product value first, implementation detail subordinate. */
 import { useEffect, useId, useRef, useState } from "react";
 
 function freshnessLabel(refreshedAt) {
@@ -7,6 +7,18 @@ function freshnessLabel(refreshedAt) {
   if (sec < 60) return `${sec}s ago`;
   const min = Math.round(sec / 60);
   return `${min}m ago`;
+}
+
+function facultyChip(chip) {
+  const label = String(chip?.label || "").trim();
+  const normalized = label.toLowerCase();
+  if (!label) return null;
+  if (/\btools?\b|\bmcp\b/.test(normalized)) return null;
+  if (/transcend|bulk cache|storage/.test(normalized)) return { ...chip, label: "Evidence storage online" };
+  if (/composer|assistant|model/.test(normalized)) return { ...chip, label: "Composer available" };
+  if (/worker|cluster|compute/.test(normalized)) return { ...chip, label: "Acquisition capacity available" };
+  if (/registry/.test(normalized)) return { ...chip, label: "Research estate indexed" };
+  return chip;
 }
 
 function AccountTrigger({ initials }) {
@@ -53,11 +65,11 @@ function AccountTrigger({ initials }) {
         <div id={menuId} className="rd-v2-account-menu-panel rd-v2-account-menu-panel--header" role="menu" aria-label="Account">
           <a href="/?tab=profile" role="menuitem" data-testid="account-menu-profile" onClick={() => setOpen(false)}>
             <span aria-hidden>◎</span>
-            <span><strong>Research context</strong><small>Identity, work, and lab context</small></span>
+            <span><strong>Research context</strong><small>Identity, work, and institutional research estate</small></span>
           </a>
           <a href="/?tab=settings" role="menuitem" data-testid="account-menu-workspace" onClick={() => setOpen(false)}>
             <span aria-hidden>⚙</span>
-            <span><strong>Workspace preferences</strong><small>Desk, access, and connection settings</small></span>
+            <span><strong>Workspace preferences</strong><small>Desk access, evidence routes, and connection settings</small></span>
           </a>
         </div>
       ) : null}
@@ -82,11 +94,15 @@ export function V2DeskHeader({
   dryRunProtected = true,
   integrationChips = [],
 }) {
-  const recordLabel = `${datasetCount} registry record${datasetCount === 1 ? "" : "s"}`;
-  const metaText = workCount > 0 ? `${recordLabel} · ${workCount} pending` : recordLabel;
+  const assetLabel = `${datasetCount} evidence asset${datasetCount === 1 ? "" : "s"}`;
+  const decisionLabel = `${workCount} decision${workCount === 1 ? "" : "s"} waiting`;
+  const metaText = workCount > 0 ? `${assetLabel} · ${decisionLabel}` : assetLabel;
   const fresh = freshnessLabel(refreshedAt);
   const chips = (Array.isArray(integrationChips) ? integrationChips : [])
     .filter((chip) => !(chip.id === "desk" && (deskStatus === "degraded" || deskStatus === "ok")))
+    .map(facultyChip)
+    .filter(Boolean)
+    .filter((chip, index, rows) => rows.findIndex((row) => row.label === chip.label) === index)
     .slice(0, 2);
 
   return (
@@ -102,8 +118,8 @@ export function V2DeskHeader({
         <input
           value={searchQuery}
           onChange={(event) => onSearchChange(event.target.value)}
-          placeholder="Search catalog or ask…"
-          aria-label="Search Research Drive"
+          placeholder="Search evidence or ask Research Drive…"
+          aria-label="Search evidence or ask Research Drive"
           onKeyDown={(event) => {
             if (event.key === "Enter") {
               event.preventDefault();
@@ -115,33 +131,33 @@ export function V2DeskHeader({
             }
           }}
         />
-        <button type="button" className="rd-v2-search-kbd" onClick={onAskFromSearch} title="Ask">⌘K</button>
+        <button type="button" className="rd-v2-search-kbd" onClick={onAskFromSearch} title="Ask Research Drive">⌘K</button>
       </div>
       <div className="rd-v2-header-meta">
-        <div className="rd-v2-trust-strip" aria-label="Desk status" data-testid="desk-integration-strip">
+        <div className="rd-v2-trust-strip" aria-label="Research desk status" data-testid="desk-integration-strip">
           {deskStatus === "ok" ? (
-            <span className="rd-v2-trust-badge ok">Live registry</span>
+            <span className="rd-v2-trust-badge ok">Research estate live</span>
           ) : deskStatus === "empty" ? (
-            <span className="rd-v2-trust-badge warn">Empty registry</span>
+            <span className="rd-v2-trust-badge warn">Research estate empty</span>
           ) : usingSeed || deskStatus === "demo" ? (
-            <span className="rd-v2-trust-badge warn">Demo</span>
+            <span className="rd-v2-trust-badge warn">Demonstration evidence</span>
           ) : deskStatus === "degraded" ? (
-            <span className="rd-v2-trust-badge warn">Desk degraded</span>
+            <span className="rd-v2-trust-badge warn">Research desk degraded</span>
           ) : (
-            <span className="rd-v2-trust-badge warn">Desk offline</span>
+            <span className="rd-v2-trust-badge warn">Research desk offline</span>
           )}
           {chips.map((chip) => (
-            <span key={chip.id} className={`rd-v2-trust-badge ${chip.tone || "muted"}`} title={chip.label}>{chip.label}</span>
+            <span key={chip.id || chip.label} className={`rd-v2-trust-badge ${chip.tone || "muted"}`} title={chip.label}>{chip.label}</span>
           ))}
-          {dryRunProtected ? <span className="rd-v2-trust-badge">Dry-run</span> : null}
-          {fresh ? <span className="rd-v2-trust-badge muted">{fresh}</span> : null}
+          {dryRunProtected ? <span className="rd-v2-trust-badge">Protected execution</span> : null}
+          {fresh ? <span className="rd-v2-trust-badge muted">Updated {fresh}</span> : null}
         </div>
         <span className="rd-v2-header-meta-count">
           {workCount > 0 && onPendingClick ? (
-            <>{`${recordLabel} · `}<button type="button" className="rd-v2-header-pending-link" data-testid="header-pending-link" onClick={onPendingClick}>{workCount} pending</button></>
+            <>{`${assetLabel} · `}<button type="button" className="rd-v2-header-pending-link" data-testid="header-pending-link" onClick={onPendingClick}>{decisionLabel}</button></>
           ) : metaText}
         </span>
-        {usingSeed && onRetry ? <button type="button" className="rd-v2-header-retry" onClick={onRetry}>Retry</button> : null}
+        {usingSeed && onRetry ? <button type="button" className="rd-v2-header-retry" onClick={onRetry}>Reconnect</button> : null}
       </div>
       <AccountTrigger initials={headerInitials} />
     </header>
