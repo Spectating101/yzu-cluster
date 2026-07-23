@@ -162,26 +162,47 @@ test("render populated Sol ceiling Synthesis flagship", async ({ page }) => {
   await expect(construction.getByText("Ownership-change history", { exact: true })).toBeVisible();
   await expect(construction.getByRole("heading", { name: "Resolve Ownership-change history", exact: true })).toBeVisible();
   await expect(construction.getByText("Research decision required", { exact: true })).toBeVisible();
-  await expect(page.locator("aside.rd-v2-rail")).toContainText("Construction authority");
+
+  const rail = page.locator("aside.rd-v2-rail");
+  await expect(rail).toContainText("Construction authority");
+  await expect(rail.getByText("Method", { exact: true })).toHaveCount(0);
+  await expect(rail.getByText("Next decision", { exact: true })).toHaveCount(0);
 
   const geometry = await page.evaluate(() => {
     const shell = document.querySelector(".rd-loop7-synthesis-shell")?.getBoundingClientRect();
     const canvas = document.querySelector(".rd-loop7-main")?.getBoundingClientRect();
     const rail = document.querySelector("aside.rd-v2-rail")?.getBoundingClientRect();
+    const construction = document.querySelector(".rd-loop7-construction")?.getBoundingClientRect();
     const evidence = document.querySelector(".rd-loop7-evidence")?.getBoundingClientRect();
+    const contracts = document.querySelector(".rd-loop7-contract-grid")?.getBoundingClientRect();
+    const evidenceTitles = [...document.querySelectorAll(".rd-loop7-evidence-copy strong")];
+    const clippedEvidenceTitles = evidenceTitles
+      .filter((element) => {
+        const style = getComputedStyle(element);
+        return element.scrollWidth > element.clientWidth + 1 || style.textOverflow === "ellipsis" || style.whiteSpace === "nowrap";
+      })
+      .map((element) => element.textContent?.trim());
+
     return {
       shellHeight: Math.round(shell?.height || 0),
       canvasWidth: Math.round(canvas?.width || 0),
+      canvasBottom: Math.round(canvas?.bottom || 0),
       railWidth: Math.round(rail?.width || 0),
+      constructionBottom: Math.round(construction?.bottom || 0),
       evidenceTop: Math.round(evidence?.top || 0),
+      contractsBottom: Math.round(contracts?.bottom || 0),
       viewportHeight: window.innerHeight,
+      clippedEvidenceTitles,
     };
   });
 
-  expect(geometry.canvasWidth).toBeGreaterThan(geometry.railWidth * 2);
-  expect(geometry.railWidth).toBeLessThanOrEqual(290);
-  expect(geometry.evidenceTop).toBeLessThan(geometry.viewportHeight - 90);
-  expect(geometry.shellHeight).toBeGreaterThanOrEqual(620);
+  expect(geometry.canvasWidth).toBeGreaterThan(geometry.railWidth * 3);
+  expect(geometry.railWidth).toBeLessThanOrEqual(260);
+  expect(geometry.evidenceTop).toBeLessThan(geometry.viewportHeight - 180);
+  expect(geometry.contractsBottom).toBeLessThanOrEqual(geometry.canvasBottom + 1);
+  expect(geometry.constructionBottom).toBeLessThanOrEqual(geometry.canvasBottom + 1);
+  expect(geometry.clippedEvidenceTitles).toEqual([]);
+  expect(geometry.shellHeight).toBeGreaterThanOrEqual(650);
 
   await mkdir("artifacts/sol-ceiling-rebuild", { recursive: true });
   await page.screenshot({
