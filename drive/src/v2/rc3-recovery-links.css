@@ -1,0 +1,65 @@
+.rd-v2-account-menu-panel--header > a {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 10px;
+  width: 100%;
+  padding: 11px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--rc3-text);
+  text-align: left;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+.rd-v2-account-menu-panel--header > a:hover,
+.rd-v2-account-menu-panel--header > a:focus-visible {
+  background: var(--rc3-soft);
+}
+
+.rd-v2-account-menu-panel--header > a > span:last-child,
+.rd-v2-account-menu-panel--header > a strong,
+.rd-v2-account-menu-panel--header > a small {
+  display: block;
+}
+
+.rd-v2-account-menu-panel--header > a strong {
+  color: var(--rc3-ink);
+  font-size: 12px;
+}
+
+.rd-v2-account-menu-panel--header > a small {
+  margin-top: 2px;
+  color: var(--rc3-muted);
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+/* The execution/source column carries longer identities than storage or accounts. */
+.rd-recovery-resource-groups {
+  grid-template-columns: minmax(175px, 0.82fr) minmax(205px, 1fr) minmax(285px, 1.35fr);
+}
+
+.rd-recovery-resource-group:last-child .rd-recovery-resource-row {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 3px;
+}
+
+.rd-recovery-resource-group:last-child .rd-recovery-resource-row em {
+  text-align: left;
+  white-space: normal;
+}
+
+.rd-recovery-resource-row strong,
+.rd-recovery-resource-row small,
+.rd-recovery-resource-row em {
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+
+@media (max-width: 980px) {
+  .rd-recovery-resource-groups {
+    grid-template-columns: 1fr;
+  }
+}

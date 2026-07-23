@@ -9,7 +9,7 @@ function ensureArtifactDir() {
 }
 
 test.describe("Research Drive interaction feedback convergence", () => {
-  test("Home preserves its layout while the desk context loads", async ({ page }) => {
+  test("Home preserves its working-brief layout while desk context loads", async ({ page }) => {
     await mockV2Api(page);
     await page.unroute("**/datasets");
     await page.unroute("**/health*");
@@ -26,32 +26,33 @@ test.describe("Research Drive interaction feedback convergence", () => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
 
-    await expect(page.getByTestId("home-loading-state")).toBeVisible();
-    await expect(page.getByTestId("interaction-skeleton").first()).toBeVisible();
-    await expect(page.getByTestId("home-continue")).toHaveAttribute("aria-busy", "true");
+    const continuation = page.getByTestId("home-continue");
+    await expect(continuation).toBeVisible();
+    await expect(continuation).toHaveAttribute("aria-busy", "true");
+    await expect(continuation.getByTestId("interaction-skeleton")).toBeVisible();
+    await expect(page.getByRole("region", { name: "Research context summary" })).toBeVisible();
     ensureArtifactDir();
     await page.screenshot({ path: `${ARTIFACT_DIR}/feedback-home-loading-1440x900.png` });
 
-    await expect(page.getByTestId("home-loading-state")).toHaveCount(0, { timeout: 10_000 });
-    await expect(page.getByTestId("home-continue").getByRole("button", { name: "Continue" })).toBeVisible();
+    await expect(continuation.getByRole("button", { name: "Continue", exact: true })).toBeVisible({ timeout: 10_000 });
+    await expect(continuation).toHaveAttribute("aria-busy", "false");
   });
 
-  test("readiness popover explains evidence and the safest next action", async ({ page }) => {
+  test("selected-object Detail explains readiness without nested interactive status controls", async ({ page }) => {
     await mockV2Api(page);
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
 
-    await page.getByRole("button", { name: /^Explain / }).first().click();
-    const popover = page.getByTestId("rich-context-popover");
-    await expect(popover).toBeVisible();
-    await expect(popover).toContainText("Research Drive state");
-    await expect(popover.locator("li")).toHaveCount(3);
-    await expect(popover).toContainText("Safest next step");
-    await page.waitForTimeout(260);
+    const row = page.locator(".rd-v2-home-recent button.row").first();
+    await expect(row.locator("button")).toHaveCount(0);
+    await row.click();
+    const rail = page.getByRole("complementary", { name: "Inspector" });
+    await expect(rail.getByRole("tab", { name: "Detail" })).toHaveAttribute("aria-selected", "true");
+    await expect(rail).toContainText(/Query ready|Registered|Connected/);
+    await expect(rail.getByRole("tab", { name: "Ask" })).toBeVisible();
     ensureArtifactDir();
-    await page.screenshot({ path: `${ARTIFACT_DIR}/feedback-readiness-popover-1440x900.png` });
-    await popover.screenshot({ path: `${ARTIFACT_DIR}/feedback-readiness-popover-card.png` });
+    await page.screenshot({ path: `${ARTIFACT_DIR}/feedback-selected-detail-1440x900.png` });
   });
 
   test("Ask exposes staged progress while retaining the conversation", async ({ page }) => {

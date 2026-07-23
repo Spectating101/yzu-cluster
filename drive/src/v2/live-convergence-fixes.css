@@ -1,0 +1,108 @@
+.rd-convergence-sidebar-context > a {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) 16px;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 8px 4px;
+  border: 0;
+  background: transparent;
+  color: var(--rd-converge-ink);
+  text-align: left;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+.rd-convergence-sidebar-context > a:hover,
+.rd-convergence-sidebar-context > a:focus-visible,
+.rd-convergence-sidebar-context > a.active {
+  color: var(--rd-converge-blue);
+}
+
+.rd-convergence-discover-intro {
+  margin: 0 0 14px;
+}
+
+.rd-convergence-discover-intro h2 {
+  margin: 0;
+  color: var(--rd-converge-ink);
+  font-size: 18px;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+}
+
+.rd-convergence-discover-intro p {
+  margin: 4px 0 0;
+  color: var(--rd-converge-muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+/* The Synthesis reasoning surface is Composer, while preserving the shared rail contract. */
+.rd-v2-shell:has(.yzu-sidebar button[title="Synthesis"].active) .rd-v2-rail-toggle button:nth-child(2) {
+  font-size: 0;
+}
+
+.rd-v2-shell:has(.yzu-sidebar button[title="Synthesis"].active) .rd-v2-rail-toggle button:nth-child(2)::after {
+  content: "Composer";
+  font-size: 11px;
+}
+
+/* Resource rows must remain readable at the live three-pane width. */
+.rd-recovery-resource-groups {
+  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+}
+
+.rd-recovery-resource-group:nth-child(3) {
+  grid-column: 1 / -1;
+}
+
+.rd-recovery-resource-row strong,
+.rd-recovery-resource-row small,
+.rd-recovery-resource-row em {
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
+}
+
+.rd-recovery-resource-group:nth-child(2) .rd-recovery-resource-row {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px;
+}
+
+.rd-recovery-resource-group:nth-child(2) .rd-recovery-resource-row em {
+  text-align: left;
+}
+
+.rd-recovery-resource-group:nth-child(3) > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 22px;
+  max-height: 310px;
+  overflow: auto;
+}
+
+.rd-recovery-resource-group:nth-child(3) .rd-recovery-resource-row {
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: 3px;
+}
+
+.rd-recovery-resource-group:nth-child(3) .rd-recovery-resource-row em {
+  text-align: left;
+}
+
+@media (max-width: 980px) {
+  .rd-recovery-resource-groups {
+    grid-template-columns: 1fr;
+  }
+
+  .rd-recovery-resource-group:nth-child(3) {
+    grid-column: auto;
+  }
+
+  .rd-recovery-resource-group:nth-child(3) > div {
+    grid-template-columns: 1fr;
+    max-height: 300px;
+  }
+}

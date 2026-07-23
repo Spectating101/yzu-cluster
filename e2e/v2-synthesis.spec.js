@@ -194,7 +194,7 @@ async function installSynthesisThreadMock(page) {
   });
 }
 
-test.describe("v2 Synthesis durable thread surface", () => {
+test.describe("RC3 Synthesis durable construction studio", () => {
   test.beforeEach(async ({ page }) => {
     await mockV2Api(page);
     await installSynthesisThreadMock(page);
@@ -203,12 +203,17 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await waitForShell(page);
   });
 
-  test("renders the selected durable thread in the workspace and Detail rail", async ({ page }) => {
-    await expect(page.getByTestId("synthesis-evidence-state")).toContainText("Historical stablecoin attention");
-    await expect(page.getByTestId("synthesis-evidence-state")).toContainText("Search intent");
-    await expect(page.locator("aside.rd-v2-rail")).toContainText("Historical stablecoin attention");
-    await expect(page.locator("aside.rd-v2-rail")).toContainText("3 mapped inputs");
-    await expect(page.getByText("Nothing registered", { exact: true })).toBeVisible();
+  test("renders the selected durable thread as evidence, construction, and missing-evidence state", async ({ page }) => {
+    const workspace = page.getByTestId("synthesis-evidence-state");
+    await expect(workspace).toContainText("Historical stablecoin attention");
+    await expect(workspace).toContainText("Search intent");
+    await expect(workspace).toContainText("Available evidence");
+    await expect(workspace).toContainText("Missing evidence");
+    const rail = page.locator("aside.rd-v2-rail");
+    await expect(rail).toContainText("Historical stablecoin attention");
+    await expect(rail).toContainText("3 mapped · 0 missing");
+    await expect(rail).toContainText("Structured construction state");
+    await expect(page.getByText("No output claimed", { exact: true })).toBeVisible();
     await capture(page, "01-durable-evidence-desktop");
   });
 
@@ -244,14 +249,14 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await expect(ready.getByRole("button", { name: "Open in Library" })).toBeVisible();
   });
 
-  test("sends the selected durable thread to the shared Ask rail", async ({ page }) => {
-    await page.getByRole("button", { name: "Discuss construction in Ask" }).click();
+  test("sends the selected durable construction to context-bound Ask", async ({ page }) => {
+    await page.getByRole("button", { name: "Develop in Ask" }).click();
     const rail = page.locator("aside.rd-v2-rail");
-    await expect(rail).toContainText("Ask · synthesis thread");
-    await expect(rail).toContainText("Synthesis thread context received for Historical stablecoin attention");
+    await expect(rail).toContainText("Ask · construction");
+    await expect(rail.locator(".rd-v2-ask-ctx")).toContainText("Historical stablecoin attention");
     await expect(rail.getByTestId("ask-composer")).toHaveAttribute(
       "placeholder",
-      "Correct the interpretation, add a constraint, or ask…",
+      "Challenge, revise, or investigate this construction…",
     );
     await capture(page, "04-shared-ask-desktop");
   });
@@ -262,11 +267,11 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await page.getByTestId("synthesis-intent-state").getByRole("textbox").fill(objective);
     await page.getByRole("button", { name: "Create thread & discuss" }).click();
     await expect(page.getByText(objective, { exact: true }).first()).toBeVisible();
-    await expect(page.locator("aside.rd-v2-rail")).toContainText("Ask · synthesis thread");
+    await expect(page.locator("aside.rd-v2-rail")).toContainText("Ask · construction");
     await capture(page, "05-new-thread-ask-desktop");
   });
 
-  test("keeps the right rail usable on mobile while the workspace remains source-backed", async ({ page }) => {
+  test("keeps the right rail usable on a narrow screen while the workspace remains source-backed", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 1200 });
     await page.reload({ waitUntil: "domcontentloaded" });
     await waitForShell(page);

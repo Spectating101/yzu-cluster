@@ -35,22 +35,6 @@ function plural(value, singular, pluralValue = `${singular}s`) {
   return `${value} ${value === 1 ? singular : pluralValue}`;
 }
 
-function resultScopeSummary(counts) {
-  const wider = Math.max(0, Number(counts?.external || 0) - Number(counts?.needsAccess || 0));
-  return [
-    counts?.inLab ? `${plural(counts.inLab, "result")} already in your lab` : null,
-    wider ? `${plural(wider, "source")} beyond your lab` : null,
-    counts?.needsAccess
-      ? counts.needsAccess === 1
-        ? "1 source needs access review"
-        : `${counts.needsAccess} sources need access review`
-      : null,
-  ]
-    .filter(Boolean)
-    .join(" · ");
-}
-
-
 function candidateTitle(row) {
   return row?.title || row?.name || row?.dataset_id || row?.doi || row?.url || "External dataset";
 }
@@ -62,6 +46,11 @@ function hostLabel(value) {
   } catch {
     return "";
   }
+}
+
+function short(value, max = 110) {
+  const text = String(value || "").trim();
+  return text.length > max ? `${text.slice(0, max - 1)}…` : text;
 }
 
 function DiscoverModeTabs({ mode = "explore", pendingCount = 0, onChange }) {
@@ -87,19 +76,137 @@ function DiscoverModeTabs({ mode = "explore", pendingCount = 0, onChange }) {
   );
 }
 
+function CandidateMini({ row, onSelect, selected }) {
+  const taxonomy = row.discover_taxonomy || {};
+  const description = descriptiveLine(row) || coverageLine(row) || "Metadata has not been described.";
+  return (
+    <button
+      type="button"
+      className={`rd-rc3-discover-mini${selected ? " selected" : ""}`}
+      onClick={() => onSelect?.(row)}
+    >
+      <span>
+        <SourceRibbon source={row.source || row.publisher || row.backend || hostLabel(row.url)} />
+        <em>{taxonomy.label || "Candidate"}</em>
+      </span>
+      <strong>{candidateTitle(row)}</strong>
+      <small>{short(description, 96)}</small>
+    </button>
+  );
+}
+
+function SemanticResearchState({ query, rows, labIds, selectedId, onSelectRow, onSearchWeb }) {
+  const held = rows.filter((row) => {
+    const tax = row.discover_taxonomy || classifyDiscoverResult(row, labIds);
+    return tax.key?.startsWith("local-") || Number(tax.group) <= 2;
+  });
+  const access = rows.filter((row) => {
+    const tax = row.discover_taxonomy || classifyDiscoverResult(row, labIds);
+    return tax.key === "needs-access" || /access|credential|license/i.test(String(row.access || row.status || ""));
+  });
+  const wider = rows.filter((row) => !held.includes(row) && !access.includes(row));
+  const incomplete = rows.filter((row) => {
+    const sufficiency = row.discover_sufficiency;
+    return sufficiency && !/sufficient|complete|strong/i.test(String(sufficiency.state || sufficiency.browseLine || ""));
+  });
+  const topHeld = held.slice(0, 3);
+  const topWider = wider.slice(0, 4);
+  const topAccess = access.slice(0, 2);
+  const unknowns = [
+    incomplete.length ? `${incomplete.length} candidate${incomplete.length === 1 ? "" : "s"} still need coverage or grain validation.` : null,
+    wider.length ? "External candidates are not owned evidence until collection, archive, and registration succeed." : null,
+    access.length ? `${access.length} route${access.length === 1 ? "" : "s"} require access review before acquisition.` : null,
+  ].filter(Boolean);
+
+  return (
+    <section className="rd-rc3-discover-state" aria-label="Semantic research state">
+      <header>
+        <div>
+          <span>Current exploration</span>
+          <h2>{query}</h2>
+          <p>
+            Research Drive is showing the evidence space around this question—not claiming that every relevant source is complete, accessible, or sufficient.
+          </p>
+        </div>
+        <div className="rd-rc3-discover-state-metrics">
+          <strong>{held.length}</strong><span>held</span>
+          <strong>{wider.length}</strong><span>wider</span>
+          <strong>{access.length}</strong><span>access review</span>
+        </div>
+      </header>
+
+      <div className="rd-rc3-discover-columns">
+        <section>
+          <div className="rd-rc3-discover-column-head">
+            <span>01</span>
+            <div><strong>Held evidence</strong><small>What the lab can already inspect or query</small></div>
+          </div>
+          <div className="rd-rc3-discover-column-body">
+            {topHeld.length ? topHeld.map((row) => (
+              <CandidateMini
+                key={candidateKey(row)}
+                row={row}
+                selected={selectedId === candidateKey(row)}
+                onSelect={onSelectRow}
+              />
+            )) : <p>No current holding explicitly matches this question.</p>}
+          </div>
+        </section>
+
+        <section>
+          <div className="rd-rc3-discover-column-head">
+            <span>02</span>
+            <div><strong>Source space</strong><small>What may broaden coverage or change the design</small></div>
+          </div>
+          <div className="rd-rc3-discover-column-body">
+            {topWider.length ? topWider.map((row) => (
+              <CandidateMini
+                key={candidateKey(row)}
+                row={row}
+                selected={selectedId === candidateKey(row)}
+                onSelect={onSelectRow}
+              />
+            )) : <p>No wider candidate is currently indexed.</p>}
+          </div>
+          {onSearchWeb ? (
+            <button type="button" className="rd-rc3-inline-command" onClick={() => onSearchWeb(query)}>
+              Search beyond the current source index →
+            </button>
+          ) : null}
+        </section>
+
+        <section>
+          <div className="rd-rc3-discover-column-head">
+            <span>03</span>
+            <div><strong>Research decisions</strong><small>What remains unresolved before evidence can be trusted</small></div>
+          </div>
+          <div className="rd-rc3-discover-unknowns">
+            {unknowns.length ? unknowns.map((item) => <p key={item}>{item}</p>) : <p>No material uncertainty has been classified yet.</p>}
+            {topAccess.map((row) => (
+              <CandidateMini
+                key={candidateKey(row)}
+                row={row}
+                selected={selectedId === candidateKey(row)}
+                onSelect={onSelectRow}
+              />
+            ))}
+          </div>
+        </section>
+      </div>
+    </section>
+  );
+}
+
 function DiscoverCandidateRow({ row, labIds, selectedId, onSelectRow }) {
   const taxonomy = row.discover_taxonomy || classifyDiscoverResult(row, labIds);
   const state = row.discover_state || discoverCandidateState(row, labIds);
   const selected = selectedId === candidateKey(row);
-  const ribbonSource =
-    row.source || row.collect_via || row.source_route || row.publisher || row.backend || hostLabel(row.url);
-  const taxonomyLine = taxonomy.label;
+  const ribbonSource = row.source || row.collect_via || row.source_route || row.publisher || row.backend || hostLabel(row.url);
   const exceptionPill = exceptionalRowPill(row, taxonomy, state);
   const showSufficiency = Number(taxonomy.group) >= 3 && row.discover_sufficiency?.browseLine;
-  const hasExplicitDescription = Boolean(
-    String(row?.description || row?.recommended_use || row?.subtitle || "").trim(),
-  );
-  const evidenceLine = hasExplicitDescription ? descriptiveLine(row) : "";
+  const evidenceLine = String(row?.description || row?.recommended_use || row?.subtitle || "").trim()
+    ? descriptiveLine(row)
+    : "";
   const coverage = coverageLine(row);
   const showCoverage = coverage && coverage !== "Coverage not described";
 
@@ -116,9 +223,7 @@ function DiscoverCandidateRow({ row, labIds, selectedId, onSelectRow }) {
       >
         <span className="rd-v2-discover-candidate-source">
           <SourceRibbon source={ribbonSource} />
-          {exceptionPill ? (
-            <span className={`rd-v2-pill ${exceptionPill.className}`}>{exceptionPill.label}</span>
-          ) : null}
+          {exceptionPill ? <span className={`rd-v2-pill ${exceptionPill.className}`}>{exceptionPill.label}</span> : null}
         </span>
         <span className="rd-v2-discover-candidate-main">
           <span className="rd-v2-discover-candidate-heading">
@@ -126,7 +231,7 @@ function DiscoverCandidateRow({ row, labIds, selectedId, onSelectRow }) {
               {selected ? <span className="rd-v2-discover-selected-mark" aria-hidden="true" /> : null}
               {candidateTitle(row)}
             </strong>
-            <em className="rd-v2-discover-possession">{taxonomyLine}</em>
+            <em className="rd-v2-discover-possession">{taxonomy.label}</em>
           </span>
           {evidenceLine ? <span className="rd-v2-discover-evidence">{evidenceLine}</span> : null}
           {showCoverage ? <span className="rd-v2-discover-coverage">{coverage}</span> : null}
@@ -173,7 +278,6 @@ function dedupeRows(rows) {
   return out;
 }
 
-
 export function BrowsePage({
   labIds,
   catalog = [],
@@ -208,10 +312,7 @@ export function BrowsePage({
   const showHistory = discoverMode === "history";
 
   useEffect(() => {
-    if (!isExplore) return;
-    if (!pendingRows.length) return;
-    if (selectedId) return;
-    if (!discoverFocusAwaiting) return;
+    if (!isExplore || !pendingRows.length || selectedId || !discoverFocusAwaiting) return;
     onSelectRow?.(pendingRows[0]);
   }, [isExplore, pendingRows, selectedId, onSelectRow, discoverFocusAwaiting]);
 
@@ -229,7 +330,7 @@ export function BrowsePage({
     setIndexMiss(false);
 
     const flattenRows = (data) => {
-      const fromApi = (data.sections || []).flatMap((s) => s.rows || []);
+      const fromApi = (data.sections || []).flatMap((section) => section.rows || []);
       return fromApi.length ? fromApi : data.results || data.hits || [];
     };
 
@@ -247,33 +348,29 @@ export function BrowsePage({
         if (discoverMode === "history") {
           setRows([]);
           setSource("");
-          setDemoFallback(false);
           setLoading(false);
           return;
         }
         if (!q) {
           setRows([]);
           setSource("");
-          setDemoFallback(false);
           return;
         }
-        // Prefer Explore sources contract; fall back to legacy discover/search path.
         try {
           const sources = await discoverSources(q, { limit: 12 });
           const sourceRows = sourcesResponseToRows(sources);
           if (sourceRows.length) {
             apply({ results: sourceRows }, sources.demo ? "demo" : "sources");
             if (sources.demo) setDemoFallback(true);
-            setIndexMiss(false);
             return;
           }
         } catch {
-          /* sources endpoint optional — continue */
+          // The sources contract is optional on older desks.
         }
+
         const discover = await discoverSearch(q, 12, email);
         const discoverRows = flattenRows(discover);
-        const needsUnified =
-          discoverRows.length === 0 || Boolean(discover.index_miss || discover.weak_match);
+        const needsUnified = discoverRows.length === 0 || Boolean(discover.index_miss || discover.weak_match);
         let mergedRows = discoverRows;
         let label = discoverRows.length ? "discover" : "";
         let miss = Boolean(discover.index_miss) && discoverRows.length === 0;
@@ -286,61 +383,45 @@ export function BrowsePage({
             label = discoverRows.length ? "discover" : "search";
           }
           if (!discoverRows.length) {
-            miss = Boolean(
-              discover.index_miss || search.index_miss || search.discover_index_miss || !searchRows.length,
-            );
+            miss = Boolean(discover.index_miss || search.index_miss || search.discover_index_miss || !searchRows.length);
           }
         }
 
-        const hasAcquireCandidate = mergedRows.some((r) => {
-          const tax = classifyDiscoverResult(r, labIds);
-          return !tax.key.startsWith("local-") && Boolean(discoverCandidateUrl(r));
+        const hasAcquireCandidate = mergedRows.some((row) => {
+          const tax = classifyDiscoverResult(row, labIds);
+          return !tax.key.startsWith("local-") && Boolean(discoverCandidateUrl(row));
         });
 
-        if (mergedRows.length && !hasAcquireCandidate && q) {
+        if (mergedRows.length && !hasAcquireCandidate) {
           const web = await webDiscover(q, 8);
-          const webRows = webHitsToRows(web);
-          if (webRows.length) {
-            mergedRows = dedupeRows([...mergedRows, ...webRows]);
-            if (!label) label = "web";
-          }
+          mergedRows = dedupeRows([...mergedRows, ...webHitsToRows(web)]);
         }
 
         if (mergedRows.length) {
-          apply({ sections: [{ id: label, rows: mergedRows }] }, label);
-          setIndexMiss(false);
+          apply({ sections: [{ id: label || "discover", rows: mergedRows }] }, label || "discover");
           return;
         }
-
         if (immediateDemo.length) {
           apply({ sections: [{ id: "demo", rows: immediateDemo }] }, "demo");
-          setIndexMiss(false);
           return;
         }
-
-        const web = await webDiscover(q, 8);
-        const webRows = webHitsToRows(web);
+        const webRows = webHitsToRows(await webDiscover(q, 8));
         if (webRows.length) {
           apply({ sections: [{ id: "web", rows: webRows }] }, "web");
-          setIndexMiss(false);
           return;
         }
-
         setIndexMiss(miss);
-        setRows([]);
-      } catch (err) {
+      } catch (cause) {
         if (cancelled) return;
         if (immediateDemo.length) {
           setRows(immediateDemo);
           setSource("demo");
           setDemoFallback(true);
-          setError("");
         } else {
-          setRows([]);
           setError("Catalog search unavailable. Check the query engine and retry.");
         }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
@@ -353,87 +434,48 @@ export function BrowsePage({
   const merged = useMemo(() => {
     const seen = new Set();
     const stampedRows = [];
-    for (const r of rows) {
-      const stamped = withCandidateKey(r);
+    for (const row of rows) {
+      const stamped = withCandidateKey(row);
       const key = candidateKey(stamped);
       if (!key || seen.has(key)) continue;
       seen.add(key);
       const queued = isCandidateQueued(stamped, jobs);
-      const withProbe =
-        probeSnapshots[key] && !stamped.probe_snapshot
-          ? {
-              ...stamped,
-              probe_snapshot: {
-                ...probeSnapshots[key],
-                candidate_key: probeSnapshots[key].candidate_key || key,
-              },
-            }
-          : stamped;
+      const withProbe = probeSnapshots[key] && !stamped.probe_snapshot
+        ? { ...stamped, probe_snapshot: { ...probeSnapshots[key], candidate_key: probeSnapshots[key].candidate_key || key } }
+        : stamped;
       const base = queued ? { ...withProbe, queued: true } : withProbe;
-      const life = buildDiscoverLifecycle({
-        row: base,
-        jobs,
-        catalog,
-        labIds,
-      });
-      const projected = projectDiscoverCandidateLifecycle(base, life);
+      const lifecycle = buildDiscoverLifecycle({ row: base, jobs, catalog, labIds });
+      const projected = projectDiscoverCandidateLifecycle(base, lifecycle);
       const taxonomy = projected.discover_taxonomy || classifyDiscoverResult(projected, labIds);
-      const sufficiency =
-        Number(taxonomy.group) >= 3 ? assessLocalSufficiency(projected, catalog) : null;
-      stampedRows.push({
-        ...projected,
-        discover_taxonomy: taxonomy,
-        discover_sufficiency: sufficiency,
-      });
+      const sufficiency = Number(taxonomy.group) >= 3 ? assessLocalSufficiency(projected, catalog) : null;
+      stampedRows.push({ ...projected, discover_taxonomy: taxonomy, discover_sufficiency: sufficiency });
     }
     return orderDiscoverResults(stampedRows, labIds);
   }, [rows, jobs, labIds, catalog, probeSnapshots]);
 
   const filtered = useMemo(() => {
     if (stateFilter === "all") return merged;
-    return merged.filter((r) => {
-      const tax = r.discover_taxonomy || classifyDiscoverResult(r, labIds);
-      return taxonomyMatchesFilter(tax, stateFilter);
-    });
+    return merged.filter((row) => taxonomyMatchesFilter(row.discover_taxonomy || classifyDiscoverResult(row, labIds), stateFilter));
   }, [merged, stateFilter, labIds]);
-
   const browseGroups = useMemo(() => groupDiscoverBrowseRows(filtered), [filtered]);
-
   const filterCounts = useMemo(
-    () =>
-      Object.fromEntries(
-        FILTERS.map((item) => [
-          item.id,
-          item.id === "all"
-            ? merged.length
-            : merged.filter((row) => {
-                const taxonomy = row.discover_taxonomy || classifyDiscoverResult(row, labIds);
-                return taxonomyMatchesFilter(taxonomy, item.id);
-              }).length,
-        ]),
-      ),
+    () => Object.fromEntries(FILTERS.map((item) => [
+      item.id,
+      item.id === "all"
+        ? merged.length
+        : merged.filter((row) => taxonomyMatchesFilter(row.discover_taxonomy || classifyDiscoverResult(row, labIds), item.id)).length,
+    ])),
     [merged, labIds],
   );
-
-  const stageCounts = useMemo(() => {
-    const tax = taxonomyStageCounts(merged, labIds);
-    return {
-      ...tax,
-      queued: merged.filter((r) => r.queued).length,
-      acquirable: tax.acquirable,
-    };
-  }, [merged, labIds]);
-
+  const stageCounts = useMemo(() => taxonomyStageCounts(merged, labIds), [merged, labIds]);
   const q = (searchQuery || "").trim();
-  const allInLab =
-    !loading && merged.length > 0 && stageCounts.inLab > 0 && stageCounts.inLab === merged.length;
   const demoMode = demoFallback || (usingSeed && source === "demo");
-  const scopeSummary = resultScopeSummary(stageCounts);
   const activeFilter = FILTERS.find((item) => item.id === stateFilter) || FILTERS[0];
-  const resultHeadline =
-    stateFilter === "all"
-      ? `${plural(merged.length, "result")} for “${q}”`
-      : `${plural(filtered.length, "result")} · ${activeFilter.label}`;
+  const scopeSummary = [
+    stageCounts.inLab ? `${plural(stageCounts.inLab, "holding")} in the lab` : null,
+    stageCounts.external ? `${plural(stageCounts.external, "candidate")} beyond it` : null,
+    stageCounts.needsAccess ? `${plural(stageCounts.needsAccess, "route")} need access review` : null,
+  ].filter(Boolean).join(" · ");
 
   const modeTabs = (
     <DiscoverModeTabs
@@ -446,9 +488,9 @@ export function BrowsePage({
   if (showHistory) {
     return (
       <PageShell
-        className="rd-v2-discover-page rd-v2-discover-page--history"
+        className="rd-v2-discover-page rd-v2-discover-page--history rd-rc3-discover-page"
         title="Discover"
-        lead="Trace research questions to reusable evidence"
+        lead="Trace exploration, sourcing decisions, collection, and registration without losing the originating research question."
         headExtra={modeTabs}
       >
         <DiscoverHistoryPanel
@@ -462,35 +504,49 @@ export function BrowsePage({
 
   return (
     <PageShell
-      className="rd-v2-discover-page"
+      className="rd-v2-discover-page rd-rc3-discover-page"
       title="Discover"
-      lead="Search the lab first, then evaluate sources beyond it before you collect"
+      lead="Browse freely, understand the evidence space, then formalize acquisition only when the research need becomes concrete."
       headExtra={modeTabs}
       toolbar={demoMode ? <Chip warn>Demo preview · static sample</Chip> : null}
     >
       <div className="rd-v2-discover-browse" data-testid="discover-browse-mode" data-mode="browse">
         {!q ? (
-          <DiscoverEmptyState onSuggest={onSuggestSearch} />
+          <div className="rd-rc3-discover-empty">
+            <section>
+              <span>Semantic source investigation</span>
+              <h2>Start with a research question, a half-formed idea, or a missing field.</h2>
+              <p>
+                Discover searches held evidence first, broadens into external source space, and keeps uncertainty visible. You do not need a finished specification to begin.
+              </p>
+            </section>
+            <DiscoverEmptyState onSuggest={onSuggestSearch} />
+          </div>
         ) : (
           <>
+            <SemanticResearchState
+              query={q}
+              rows={merged}
+              labIds={labIds}
+              selectedId={selectedId}
+              onSelectRow={onSelectRow}
+              onSearchWeb={onSearchWeb}
+            />
+
             <section
-              className="rd-v2-discover-result-summary"
+              className="rd-v2-discover-result-summary rd-rc3-source-index-head"
               aria-label="Discover result summary"
               data-testid="discover-result-summary"
             >
               <div className="rd-v2-discover-result-copy">
-                <p className="rd-v2-discover-result-eyebrow">Research index</p>
-                <h2 className="rd-v2-discover-result-title">{resultHeadline}</h2>
-                <p className="rd-v2-discover-result-scope">
-                  {scopeSummary || "No classified holdings or source candidates yet."}
-                </p>
+                <p className="rd-v2-discover-result-eyebrow">Source index</p>
+                <h2 className="rd-v2-discover-result-title">
+                  {stateFilter === "all" ? `${plural(merged.length, "result")} for “${q}”` : `${plural(filtered.length, "result")} · ${activeFilter.label}`}
+                </h2>
+                <p className="rd-v2-discover-result-scope">{scopeSummary || "No classified source or holding is available yet."}</p>
               </div>
-
               <details className="rd-v2-discover-filter-menu" data-testid="discover-filter-menu">
-                <summary>
-                  <span>Filter</span>
-                  {stateFilter !== "all" ? <strong>{activeFilter.label}</strong> : null}
-                </summary>
+                <summary><span>Filter</span>{stateFilter !== "all" ? <strong>{activeFilter.label}</strong> : null}</summary>
                 <div className="rd-v2-discover-filter-popover" role="group" aria-label="Filter Discover results">
                   {FILTERS.map((item) => (
                     <button
@@ -503,91 +559,35 @@ export function BrowsePage({
                         event.currentTarget.closest("details")?.removeAttribute("open");
                       }}
                     >
-                      <span>{item.label}</span>
-                      <b>{filterCounts[item.id] || 0}</b>
+                      <span>{item.label}</span><b>{filterCounts[item.id] || 0}</b>
                     </button>
                   ))}
                 </div>
               </details>
             </section>
 
-            {loading && filtered.length ? (
-              <p className="rd-v2-browse-loading">Showing current matches while wider sources refresh…</p>
-            ) : null}
-            {loading && !filtered.length ? (
-              <p className="rd-v2-browse-loading">Searching the lab and wider sources…</p>
-            ) : null}
-
-            {!loading && allInLab ? (
-              <div className="rd-v2-discover-expand-search">
-                <div>
-                  <strong>You already hold every current match.</strong>
-                  <span>Continue beyond the lab to look for alternatives or broader coverage.</span>
-                </div>
-                {onSearchWeb ? (
-                  <button type="button" className="rd-v2-btn sm" onClick={() => onSearchWeb(q)}>
-                    Search wider sources →
-                  </button>
-                ) : null}
-              </div>
-            ) : null}
-
-            {!loading && error ? (
-              <div className="rd-v2-discover-error">
-                <p>{error}</p>
-              </div>
-            ) : null}
-
+            {loading ? <p className="rd-v2-browse-loading">Searching the lab and wider sources…</p> : null}
+            {!loading && error ? <div className="rd-v2-discover-error"><p>{error}</p></div> : null}
             {!loading && !error && filtered.length === 0 ? (
               <div className="rd-v2-discover-miss">
-                <p className="rd-v2-empty-inline">
-                  No {stateFilter === "all" ? "" : `${activeFilter.label.toLowerCase()} `}matches for “{q}”
-                  {indexMiss ? " in the current research index." : "."}
-                </p>
-                {indexMiss && onSearchWeb ? (
-                  <button type="button" className="rd-v2-btn sm" onClick={() => onSearchWeb(q)}>
-                    Ask Research Drive to search wider →
-                  </button>
-                ) : null}
+                <p className="rd-v2-empty-inline">No {stateFilter === "all" ? "" : `${activeFilter.label.toLowerCase()} `}matches for “{q}”{indexMiss ? " in the current research index." : "."}</p>
+                {indexMiss && onSearchWeb ? <button type="button" className="rd-v2-btn sm" onClick={() => onSearchWeb(q)}>Ask Research Drive to search wider →</button> : null}
               </div>
             ) : null}
 
             {browseGroups.length ? (
-              <div className="rd-v2-discover-browse-groups">
+              <div className="rd-v2-discover-browse-groups rd-rc3-source-index">
                 {browseGroups.map((group) => (
-                  <section
-                    key={group.id}
-                    className="rd-v2-discover-group"
-                    data-group={group.id}
-                    aria-label={group.title}
-                  >
+                  <section key={group.id} className="rd-v2-discover-group" data-group={group.id} aria-label={group.title}>
                     <header className="rd-v2-discover-group-head">
-                      <div>
-                        <h3 className="rd-v2-discover-group-title">{group.title}</h3>
-                        <p className="rd-v2-discover-group-description">{group.description}</p>
-                      </div>
-                      <span className="rd-v2-discover-group-count" aria-label={`${group.rows.length} results`}>
-                        {group.rows.length}
-                      </span>
+                      <div><h3 className="rd-v2-discover-group-title">{group.title}</h3><p className="rd-v2-discover-group-description">{group.description}</p></div>
+                      <span className="rd-v2-discover-group-count" aria-label={`${group.rows.length} results`}>{group.rows.length}</span>
                     </header>
-                    <DiscoverCandidateList
-                      rows={group.rows}
-                      labIds={labIds}
-                      selectedId={selectedId}
-                      onSelectRow={onSelectRow}
-                    />
+                    <DiscoverCandidateList rows={group.rows} labIds={labIds} selectedId={selectedId} onSelectRow={onSelectRow} />
                   </section>
                 ))}
               </div>
             ) : null}
-
-            <details className="rd-v2-discover-process-disclosure">
-              <summary>How Discover handles a missing dataset</summary>
-              <p>
-                Discover checks lab holdings first, evaluates wider source candidates when the lab is insufficient,
-                and returns successful acquisitions to Library for reuse.
-              </p>
-            </details>
           </>
         )}
       </div>

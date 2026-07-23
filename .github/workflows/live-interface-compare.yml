@@ -1,0 +1,212 @@
+name: Live interface comparison
+
+on:
+  push:
+    branches: [agent/rc3-semantic-research-desk]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: live-interface-compare-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  capture-live-interfaces:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Wait for the exact RC3 deployment
+        env:
+          RC3_URL: https://rc3.easycamp.tech/
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -Eeuo pipefail
+          mkdir -p artifacts/live-compare
+          expected_generation="$(node --input-type=module -e "import fs from 'node:fs'; const row=JSON.parse(fs.readFileSync('public/rc3-generation.json','utf8')); process.stdout.write(row.generation)")"
+          expected_sha="${EXPECTED_SHA}"
+          {
+            echo "Expected generation: ${expected_generation}"
+            echo "Expected deployed SHA: ${expected_sha}"
+          } | tee artifacts/live-compare/deployment-wait.log
+
+          for attempt in $(seq 1 120); do
+            cache_buster="$(date +%s)-${attempt}"
+            generation_body="$(curl --silent --show-error --fail --max-time 12 -H 'Cache-Control: no-cache' "${RC3_URL}rc3-generation.json?deploy_check=${cache_buster}" 2>/dev/null || true)"
+            state_body="$(curl --silent --show-error --fail --max-time 12 -H 'Cache-Control: no-cache' "${RC3_URL}rc3-watcher-state.json?deploy_check=${cache_buster}" 2>/dev/null || true)"
+            observed_generation="$(BODY="$generation_body" node --input-type=module -e "try { const row=JSON.parse(process.env.BODY || '{}'); process.stdout.write(row.generation || '') } catch {}")"
+            observed_sha="$(BODY="$state_body" node --input-type=module -e "try { const row=JSON.parse(process.env.BODY || '{}'); process.stdout.write(row.deployed_sha || '') } catch {}")"
+
+            if [ "$observed_generation" = "$expected_generation" ] && [ "$observed_sha" = "$expected_sha" ]; then
+              echo "Observed exact deployment after ${attempt} checks." | tee -a artifacts/live-compare/deployment-wait.log
+              printf '%s\n' "$state_body" > artifacts/live-compare/rc3-watcher-state.json
+              exit 0
+            fi
+
+            printf '%s attempt=%s generation=%s deployed_sha=%s\n' \
+              "$(date -u +%FT%H:%M:%SZ)" \
+              "$attempt" \
+              "${observed_generation:-missing}" \
+              "${observed_sha:-missing}" | tee -a artifacts/live-compare/deployment-wait.log
+            sleep 10
+          done
+
+          echo "Timed out waiting for ${expected_generation} at ${expected_sha}." | tee -a artifacts/live-compare/deployment-wait.log
+          exit 1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium --with-deps
+
+      - name: Capture matching live states
+        env:
+          RC3_URL: https://rc3.easycamp.tech/
+          PREVIOUS_URL: https://previous.easycamp.tech/
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -o pipefail
+          mkdir -p artifacts/live-compare
+          echo "Starting live comparison" > artifacts/live-compare/capture.log
+          node --input-type=module <<'NODE' 2>&1 | tee -a artifacts/live-compare/capture.log
+          import { chromium } from '@playwright/test';
+          import fs from 'node:fs';
+          import path from 'node:path';
+
+          const generation = JSON.parse(fs.readFileSync('public/rc3-generation.json', 'utf8'));
+          const deployment = JSON.parse(fs.readFileSync('artifacts/live-compare/rc3-watcher-state.json', 'utf8'));
+          const targets = [
+            { id: 'rc3', base: process.env.RC3_URL },
+            { id: 'previous', base: process.env.PREVIOUS_URL },
+          ];
+          const routes = [
+            { id: 'home', suffix: '' },
+            { id: 'library', suffix: '?tab=library' },
+            { id: 'discover', suffix: '?tab=browse' },
+            { id: 'synthesis', suffix: '?tab=synthesis' },
+            { id: 'resources', suffix: '?tab=resources' },
+          ];
+          const viewports = [
+            { id: 'desktop', width: 1440, height: 900 },
+          ];
+
+          const outDir = path.resolve('artifacts/live-compare');
+          const browser = await chromium.launch({ headless: true });
+          const report = {
+            captured_at: new Date().toISOString(),
+            expected_sha: process.env.EXPECTED_SHA,
+            generation,
+            deployment,
+            targets: {},
+          };
+
+          for (const target of targets) {
+            report.targets[target.id] = {};
+            for (const viewport of viewports) {
+              const context = await browser.newContext({
+                viewport: { width: viewport.width, height: viewport.height },
+                ignoreHTTPSErrors: true,
+              });
+              for (const route of routes) {
+                const page = await context.newPage();
+                const consoleErrors = [];
+                const pageErrors = [];
+                page.on('console', (msg) => {
+                  if (msg.type() === 'error') consoleErrors.push(msg.text());
+                });
+                page.on('pageerror', (error) => pageErrors.push(String(error)));
+
+                const url = new URL(route.suffix, target.base).toString();
+                let responseStatus = null;
+                let navigationError = null;
+                try {
+                  const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45_000 });
+                  responseStatus = response?.status() ?? null;
+                  await page.waitForTimeout(4_000);
+                } catch (error) {
+                  navigationError = String(error);
+                }
+
+                const metrics = await page.evaluate(() => {
+                  const main = document.querySelector('main');
+                  const sidebar = document.querySelector('aside.yzu-sidebar');
+                  const rail = document.querySelector('aside.rd-v2-rail');
+                  const heading = document.querySelector('main h1, main h2');
+                  return {
+                    title: document.title,
+                    heading: heading?.textContent?.trim() || '',
+                    body_text: document.body?.innerText?.slice(0, 12000) || '',
+                    document_scroll_height: document.documentElement.scrollHeight,
+                    document_client_height: document.documentElement.clientHeight,
+                    document_scroll_width: document.documentElement.scrollWidth,
+                    document_client_width: document.documentElement.clientWidth,
+                    main_scroll_height: main?.scrollHeight ?? null,
+                    main_client_height: main?.clientHeight ?? null,
+                    sidebar_buttons: sidebar ? [...sidebar.querySelectorAll('button')].map((node) => node.textContent.trim()).filter(Boolean) : [],
+                    rail_visible: Boolean(rail && getComputedStyle(rail).display !== 'none'),
+                    buttons: [...document.querySelectorAll('button')].slice(0, 100).map((node) => node.textContent.trim()).filter(Boolean),
+                    links: [...document.querySelectorAll('a')].slice(0, 100).map((node) => ({ text: node.textContent.trim(), href: node.href })).filter((row) => row.text),
+                  };
+                });
+
+                const stem = `${target.id}-${route.id}-${viewport.id}`;
+                await page.screenshot({
+                  path: path.join(outDir, `${stem}.png`),
+                  fullPage: true,
+                });
+                fs.writeFileSync(path.join(outDir, `${stem}.html`), await page.content());
+                report.targets[target.id][`${route.id}-${viewport.id}`] = {
+                  url,
+                  response_status: responseStatus,
+                  navigation_error: navigationError,
+                  console_errors: consoleErrors,
+                  page_errors: pageErrors,
+                  ...metrics,
+                };
+                await page.close();
+              }
+              await context.close();
+            }
+          }
+
+          await browser.close();
+          fs.writeFileSync(path.join(outDir, 'report.json'), JSON.stringify(report, null, 2));
+          NODE
+
+      - name: Verify both origins were captured
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const report = JSON.parse(fs.readFileSync('./artifacts/live-compare/report.json', 'utf8'));
+          const failures = [];
+          if (report.deployment?.deployed_sha !== report.expected_sha) {
+            failures.push(`RC3 deployment mismatch: expected ${report.expected_sha}, observed ${report.deployment?.deployed_sha || 'missing'}`);
+          }
+          for (const [target, states] of Object.entries(report.targets)) {
+            for (const [state, row] of Object.entries(states)) {
+              if (row.response_status !== 200) failures.push(`${target}/${state}: HTTP ${row.response_status} ${row.navigation_error || ''}`);
+            }
+          }
+          if (failures.length) {
+            console.error(failures.join('\n'));
+            process.exit(1);
+          }
+          console.log(`Both public interfaces captured for exact deployment ${report.expected_sha}.`);
+          NODE
+
+      - name: Upload live comparison
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-interface-comparison-${{ github.event.pull_request.head.sha || github.sha }}
+          path: artifacts/live-compare
+          if-no-files-found: error
+          retention-days: 14

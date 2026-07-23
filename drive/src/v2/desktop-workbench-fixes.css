@@ -1,0 +1,37 @@
+/* Exact desktop geometry corrections discovered from the first live workbench render. */
+
+@media (min-width: 1181px) {
+  .rd-v2-shell {
+    grid-template-columns: 196px minmax(0, 1fr) 336px !important;
+  }
+
+  .rd-v2-shell.no-rail {
+    grid-template-columns: 196px minmax(0, 1fr) !important;
+  }
+
+  .rd-v2-shell > .yzu-main,
+  .rd-v2-shell > .yzu-sidebar,
+  .rd-v2-shell > .rd-v2-rail {
+    min-width: 0;
+  }
+
+  .rd-v2-header {
+    grid-template-columns: 196px minmax(380px, 760px) minmax(0, 1fr) auto !important;
+  }
+
+  .rd-v2-shell::before {
+    inset: var(--rd-header) 336px auto 196px;
+  }
+
+  .rd-v2-trust-strip .rd-v2-trust-badge.muted[title] {
+    display: none;
+  }
+
+  .rd-v2-header-meta {
+    gap: 6px;
+  }
+
+  .rd-v2-header-meta-count {
+    white-space: nowrap;
+  }
+}

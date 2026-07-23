@@ -1,0 +1,602 @@
+/* Research Drive — desktop research workbench
+   Loaded last. This is a desktop-only visual authority layer: reclaim the
+   canvas for research work, strengthen hierarchy, and reduce dashboard chrome. */
+
+@media (min-width: 1181px) {
+  :root {
+    --rd-sidebar-min: 188px;
+    --rd-sidebar-ideal: 13.5vw;
+    --rd-sidebar-max: 204px;
+    --rd-rail-min: 320px;
+    --rd-rail-ideal: 23vw;
+    --rd-rail-max: 348px;
+    --rd-header: 60px;
+    --rd-main-pad-x: 30px;
+    --rd-main-pad-y: 24px;
+    --rd-workbench-canvas: #f5f6f9;
+    --rd-workbench-surface: #ffffff;
+    --rd-workbench-ink: #172033;
+    --rd-workbench-body: #3f4b63;
+    --rd-workbench-muted: #6d7890;
+    --rd-workbench-line: #dfe4ed;
+    --rd-workbench-accent: #4354df;
+    --rd-workbench-soft-accent: #e9edff;
+  }
+
+  body {
+    background: var(--rd-workbench-canvas);
+  }
+
+  .rd-v2-shell {
+    font-size: 14px;
+    background:
+      radial-gradient(circle at 52% -18%, rgba(79, 94, 226, 0.07), transparent 34rem),
+      var(--rd-workbench-canvas);
+  }
+
+  .rd-v2-shell::before {
+    inset: var(--rd-header) var(--rd-rail) auto var(--rd-sidebar);
+    opacity: 0.55;
+  }
+
+  /* Header: product identity + one primary research entry point. */
+  .rd-v2-header {
+    grid-template-columns: var(--rd-sidebar) minmax(380px, 760px) minmax(0, 1fr) auto;
+    gap: 14px;
+    padding: 0 18px;
+    background: rgba(255, 255, 255, 0.96);
+    border-bottom-color: var(--rd-workbench-line);
+    backdrop-filter: blur(16px) saturate(125%);
+    box-shadow: 0 1px 0 rgba(17, 24, 39, 0.025);
+  }
+
+  .rd-brand-mark {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    box-shadow: none;
+  }
+
+  .yzu-brand-text strong {
+    font-size: 14px;
+    font-weight: 730;
+  }
+
+  .rd-v2-search-pill {
+    height: 40px;
+    border-radius: 12px;
+    background: #f7f8fb;
+    border-color: #dce1e9;
+    box-shadow: none;
+  }
+
+  .rd-v2-search-pill:hover {
+    border-color: #cbd2de;
+  }
+
+  .rd-v2-search-pill:focus-within {
+    transform: none;
+    box-shadow: 0 0 0 4px rgba(67, 84, 223, 0.08);
+  }
+
+  .rd-v2-trust-strip .rd-v2-trust-badge:not(.ok):not(.warn):not(.muted) {
+    display: none;
+  }
+
+  .rd-v2-trust-badge {
+    min-height: 22px;
+    padding: 0 7px;
+    font-size: 9px;
+  }
+
+  .rd-v2-header-meta-count {
+    font-size: 10px;
+  }
+
+  .rd-header-avatar {
+    width: 32px;
+    height: 32px;
+    background: #3151d4;
+    box-shadow: none;
+  }
+
+  /* Navigation: compact orientation, not a second content column. */
+  .yzu-sidebar {
+    padding: 18px 10px 14px;
+    background: rgba(245, 246, 249, 0.94);
+    border-right-color: var(--rd-workbench-line);
+    backdrop-filter: none;
+  }
+
+  .yzu-sidebar nav {
+    gap: 3px;
+  }
+
+  .yzu-sidebar button {
+    position: relative;
+    height: 42px;
+    padding: 0 12px;
+    border-radius: 9px;
+    color: #536078;
+    font-size: 13px;
+    gap: 11px;
+  }
+
+  .yzu-sidebar button:hover {
+    color: #202a3d;
+    background: #eef1f6;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .yzu-sidebar button.active {
+    color: #2f43c8;
+    background: var(--rd-workbench-soft-accent);
+    box-shadow: none;
+  }
+
+  .yzu-sidebar button.active::before {
+    content: "";
+    position: absolute;
+    left: -10px;
+    top: 10px;
+    bottom: 10px;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: var(--rd-workbench-accent);
+  }
+
+  .yzu-sidebar button.active::after {
+    display: none;
+  }
+
+  .rd-v2-sidebar-foot {
+    color: var(--rd-workbench-muted);
+  }
+
+  /* Shared page hierarchy. */
+  .rd-v2-page {
+    padding: 28px 0 0 var(--rd-main-pad-x);
+  }
+
+  .rd-v2-page-head {
+    max-width: none;
+    padding: 0 var(--rd-main-pad-x) 18px 0;
+  }
+
+  .rd-v2-page-head h1 {
+    color: var(--rd-workbench-ink);
+    font-size: 30px;
+    font-weight: 745;
+    line-height: 1.05;
+    letter-spacing: -0.04em;
+  }
+
+  .rd-v2-lead {
+    max-width: 860px;
+    color: var(--rd-workbench-muted);
+    font-size: 13.5px;
+    line-height: 1.5;
+  }
+
+  .rd-v2-toolbar {
+    padding-right: var(--rd-main-pad-x);
+    margin-bottom: 14px;
+  }
+
+  .rd-v2-body-scroll,
+  .rd-v2-library-page .rd-v2-body-scroll {
+    margin-right: var(--rd-main-pad-x);
+    margin-bottom: 20px;
+    border: 1px solid var(--rd-workbench-line);
+    border-radius: 16px;
+    background: var(--rd-workbench-surface);
+    box-shadow: 0 14px 36px rgba(17, 24, 39, 0.055);
+  }
+
+  .rd-v2-btn {
+    border-radius: 9px;
+    box-shadow: none;
+  }
+
+  .rd-v2-btn:hover:not(:disabled) {
+    transform: none;
+  }
+
+  .rd-v2-btn.primary,
+  .rd-v2-library-action-btn.primary {
+    border-color: #4354df;
+    background: #4354df;
+    box-shadow: 0 7px 16px rgba(67, 84, 223, 0.18);
+  }
+
+  /* Inspector: narrower, calmer, and clearly subordinate to the work surface. */
+  .rd-v2-rail {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    background: #fbfcfe;
+    border-left-color: var(--rd-workbench-line);
+    backdrop-filter: none;
+  }
+
+  .rd-v2-rail-stack {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .rd-v2-rail-chrome {
+    padding: 12px 14px 10px;
+    background: #fbfcfe;
+    border-bottom-color: #e4e8ef;
+  }
+
+  .rd-v2-rail-toggle {
+    gap: 3px;
+    padding: 3px;
+    border-radius: 10px;
+    background: #edf0f5;
+  }
+
+  .rd-v2-rail-toggle button {
+    min-height: 32px;
+    border-radius: 8px;
+    font-size: 11.5px;
+    font-weight: 720;
+  }
+
+  .rd-v2-rail-toggle button.on {
+    color: #ffffff;
+    background: #26385f;
+    box-shadow: none;
+  }
+
+  .rd-v2-rail-selection {
+    margin: 10px 2px 0;
+    color: #7a8498;
+    font-size: 10px;
+    line-height: 1.3;
+  }
+
+  .rd-v2-rail-field dt,
+  .rd-v2-rail-field-label {
+    color: #778298;
+    font-size: 9.5px;
+  }
+
+  .rd-v2-rail-field dd,
+  .rd-v2-rail-field-value {
+    color: #2f3a50;
+    font-size: 12.5px;
+    line-height: 1.45;
+  }
+
+  .rd-v2-rail-sticky {
+    padding: 12px 14px;
+    background: linear-gradient(180deg, rgba(251, 252, 254, 0), #fbfcfe 24%);
+  }
+
+  .rd-v2-rail-sticky .rd-v2-btn {
+    min-height: 40px;
+    border-radius: 10px;
+  }
+
+  /* Home: one continuation story, not a stack of unrelated widgets. */
+  .rd-v2-home-page {
+    padding-right: var(--rd-main-pad-x);
+  }
+
+  .rd-v2-home-page .rd-recovery-home-context {
+    min-height: 82px;
+    background: rgba(255, 255, 255, 0.78);
+    border-color: var(--rd-workbench-line);
+    border-radius: 15px;
+  }
+
+  .rd-v2-home-page .rd-recovery-home-context > article {
+    min-height: 82px !important;
+    padding: 13px 16px 12px !important;
+  }
+
+  .rd-v2-home-page .rd-recovery-home-context > article strong {
+    color: var(--rd-workbench-ink);
+    font-size: 22px;
+    line-height: 1;
+  }
+
+  .rd-v2-home-page .rd-recovery-home-context > article small {
+    color: #7a8498;
+    font-size: 10.5px;
+  }
+
+  .rd-v2-home-page .rd-recovery-home-continue {
+    min-height: 166px;
+    padding: 22px 24px;
+    border-radius: 16px 16px 0 0;
+    box-shadow: none;
+  }
+
+  .rd-v2-home-continue-copy h2 {
+    max-width: 640px;
+    font-size: 24px;
+    line-height: 1.08;
+  }
+
+  .rd-v2-home-continue-purpose {
+    max-width: 650px;
+    font-size: 13px;
+    line-height: 1.48;
+  }
+
+  .rd-v2-home-page .rd-v2-home-attention {
+    border-radius: 0 0 16px 16px;
+  }
+
+  .rd-v2-home-attention-row {
+    min-height: 58px;
+  }
+
+  .rd-v2-home-attention-row strong,
+  .rd-v2-home-recent strong {
+    font-size: 12.5px;
+  }
+
+  .rd-v2-home-attention-row p,
+  .rd-v2-home-recent small {
+    font-size: 10.5px;
+    line-height: 1.4;
+  }
+
+  /* Library: more legible estate, recognizable folder affordance. */
+  .rd-v2-library-page .rd-v2-body-scroll {
+    padding-top: 0;
+  }
+
+  .rd-recovery-library-location {
+    padding: 28px 28px 22px;
+  }
+
+  .rd-recovery-library-location h2 {
+    font-size: 25px;
+    letter-spacing: -0.025em;
+  }
+
+  .rd-recovery-library-location p {
+    font-size: 12.5px;
+  }
+
+  .rd-recovery-library-controls {
+    padding-right: 28px;
+    padding-left: 28px;
+  }
+
+  .rd-recovery-library-section {
+    padding-right: 28px;
+    padding-left: 28px;
+  }
+
+  .rd-recovery-library-folder {
+    min-height: 59px;
+  }
+
+  .rd-recovery-library-folder-icon {
+    position: relative;
+    width: 30px;
+    height: 30px;
+    display: inline-block;
+    color: transparent;
+    flex: 0 0 30px;
+  }
+
+  .rd-recovery-library-folder-icon::before {
+    content: "";
+    position: absolute;
+    left: 5px;
+    top: 9px;
+    width: 19px;
+    height: 13px;
+    border: 1.5px solid #6f7d97;
+    border-radius: 3px;
+    background: #f2f4ff;
+  }
+
+  .rd-recovery-library-folder-icon::after {
+    content: "";
+    position: absolute;
+    left: 7px;
+    top: 6px;
+    width: 9px;
+    height: 5px;
+    border: 1.5px solid #6f7d97;
+    border-bottom: 0;
+    border-radius: 3px 3px 0 0;
+    background: #f2f4ff;
+  }
+
+  .rd-recovery-library-folder strong {
+    color: var(--rd-workbench-ink);
+    font-size: 13px;
+  }
+
+  .rd-recovery-library-folder small {
+    font-size: 10.5px;
+  }
+
+  /* Discover: an evidence investigation canvas with a strong first move. */
+  .rd-v2-shell.no-rail {
+    grid-template-columns: var(--rd-sidebar) minmax(0, 1fr);
+  }
+
+  .rd-v2-discover-page .rd-convergence-discover-start {
+    max-width: 1160px;
+  }
+
+  .rd-convergence-discover-intro {
+    gap: 18px 48px;
+    padding-bottom: 24px;
+  }
+
+  .rd-convergence-discover-intro h2 {
+    max-width: 720px;
+    font-size: 30px;
+    line-height: 1.12;
+    letter-spacing: -0.035em;
+  }
+
+  .rd-convergence-discover-intro p {
+    font-size: 13px;
+    line-height: 1.58;
+  }
+
+  .rd-convergence-discover-toolbar {
+    gap: 16px;
+    margin-top: 24px;
+  }
+
+  .rd-convergence-discover-start .rd-recovery-discover-search input {
+    min-height: 48px;
+    font-size: 13px;
+  }
+
+  .rd-convergence-discover-try {
+    margin-top: 20px;
+  }
+
+  .rd-convergence-discover-suggestions {
+    margin-top: 26px;
+    padding-top: 22px;
+  }
+
+  .rd-convergence-discover-suggestions button {
+    min-height: 150px;
+    padding: 18px;
+    border-radius: 14px;
+  }
+
+  .rd-convergence-discover-suggestions strong {
+    font-size: 14px;
+  }
+
+  .rd-convergence-discover-suggestions small {
+    color: #637089;
+    font-size: 11.5px;
+    line-height: 1.5;
+  }
+
+  .rd-convergence-discover-suggestions em {
+    font-size: 10px;
+  }
+
+  .rd-convergence-discover-families {
+    margin-top: 20px;
+    border-radius: 14px;
+  }
+
+  .rd-convergence-discover-families article {
+    min-height: 84px;
+    padding: 15px 16px;
+  }
+
+  .rd-convergence-discover-families strong {
+    font-size: 11px;
+  }
+
+  .rd-convergence-discover-families span {
+    font-size: 10px;
+    line-height: 1.45;
+  }
+
+  /* Synthesis: remove the obsolete third internal column and let the
+     construction—not empty chrome—own the recovered space. */
+  .rd-v2-synthesis-page {
+    padding-right: var(--rd-main-pad-x);
+  }
+
+  .rd-v2-synthesis-page .rd-v2-body-scroll {
+    margin-right: 0;
+    border-radius: 16px;
+  }
+
+  .s04-shell {
+    grid-template-columns: 196px minmax(0, 1fr);
+  }
+
+  .s04-threads {
+    padding: 20px 12px 16px;
+  }
+
+  .s04-main {
+    padding: 24px 26px 22px;
+  }
+
+  .s04-head h1 {
+    font-size: clamp(26px, 2.2vw, 34px);
+    line-height: 1.04;
+  }
+
+  .s04-head p {
+    max-width: 760px;
+    font-size: 12.5px;
+    line-height: 1.5;
+  }
+
+  .s04-brief {
+    padding: 14px 16px;
+  }
+
+  .s04-brief > span {
+    font-size: 11.5px;
+  }
+
+  .s04-card,
+  .s04-intent {
+    padding: 22px;
+    border-radius: 16px;
+    box-shadow: none;
+  }
+
+  .rd-rc3-construction-title h2 {
+    font-size: 23px;
+    line-height: 1.12;
+  }
+
+  .rd-rc3-construction-title p,
+  .rd-rc3-method-questions p {
+    font-size: 12px;
+    line-height: 1.55;
+  }
+
+  .s04-actions p {
+    font-size: 11px;
+  }
+
+  /* Resources: capacity should read as a calm operating report. */
+  .rd-recovery-resources-strip article {
+    min-height: 82px;
+    padding: 14px 16px;
+  }
+
+  .rd-recovery-resources-strip article strong {
+    font-size: 17px;
+  }
+
+  .rd-recovery-databank {
+    padding: 20px 22px;
+  }
+
+  .rd-recovery-databank h2 {
+    font-size: 20px;
+  }
+
+  .rd-recovery-resource-group > header h2 {
+    font-size: 15px;
+  }
+
+  .rd-recovery-resource-row {
+    min-height: 62px;
+  }
+
+  .rd-recovery-resource-row strong {
+    font-size: 12.5px;
+  }
+}

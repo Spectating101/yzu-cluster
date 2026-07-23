@@ -1,0 +1,251 @@
+/* Loop 7 corrections from deployed pixel evidence. */
+
+@media (min-width: 1181px) {
+  .rd-v2-shell:has(.rd-loop7-synthesis-page) {
+    grid-template-columns: 196px minmax(0, 1fr) 304px !important;
+  }
+
+  .rd-loop7-synthesis-shell {
+    grid-template-columns: 196px minmax(0, 1fr) !important;
+  }
+
+  .rd-loop7-main {
+    padding: 22px 24px 32px;
+  }
+
+  /* Construction directory: quiet orientation, never a browser-default button stack. */
+  .rd-loop7-thread-list {
+    padding: 15px 10px 12px;
+  }
+
+  .rd-loop7-thread-list > header {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 0 2px 12px;
+  }
+
+  .rd-loop7-thread-list > header > div {
+    min-width: 0;
+  }
+
+  .rd-loop7-thread-list .s04-thread-new {
+    width: 100%;
+    min-height: 32px;
+    padding: 0 9px;
+    border: 1px solid #cfd5df;
+    border-radius: 5px;
+    background: #fff;
+    color: #3448c9;
+    font-size: 9.5px;
+    font-weight: 760;
+  }
+
+  .rd-loop7-thread-items {
+    gap: 5px;
+  }
+
+  .rd-loop7-thread-items > button {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 26px minmax(0, 1fr);
+    gap: 8px;
+    align-items: start;
+    margin: 0;
+    padding: 9px 8px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .rd-loop7-thread-items > button:hover {
+    border-color: #d9dde5;
+    background: rgba(255, 255, 255, 0.78);
+  }
+
+  .rd-loop7-thread-items > button.active {
+    border-color: #bdc7e6;
+    background: #fff;
+    box-shadow: inset 3px 0 0 #4354d8;
+  }
+
+  .rd-loop7-thread-items > button > b {
+    width: 24px;
+    height: 24px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: #e8ebf1;
+    color: #667085;
+    font-size: 9px;
+  }
+
+  .rd-loop7-thread-items > button.active > b {
+    background: #293a68;
+    color: #fff;
+  }
+
+  .rd-loop7-thread-items > button > span {
+    min-width: 0;
+    display: block;
+  }
+
+  .rd-loop7-thread-items > button strong {
+    display: -webkit-box;
+    overflow: hidden;
+    color: #263146;
+    font-size: 11px;
+    line-height: 1.32;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+
+  .rd-loop7-thread-items > button small {
+    display: block;
+    margin-top: 5px;
+    color: #7b8496;
+    font-size: 9px;
+    line-height: 1.3;
+  }
+
+  .rd-loop7-thread-list > footer .rd-v2-btn {
+    width: 100%;
+    min-height: 34px;
+    white-space: normal;
+  }
+
+  /* One authored construction: identity, frame, question/decision, evidence, contract. */
+  .rd-loop7-construction {
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(238px, 0.85fr);
+  }
+
+  .rd-loop7-construction-header {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .rd-loop7-study-frame {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .rd-loop7-field[data-field="question"] {
+    grid-column: 1;
+    grid-row: 3;
+    min-height: 190px;
+    border-right: 1px solid #e1e4e9;
+  }
+
+  .rd-loop7-next-decision {
+    grid-column: 2;
+    grid-row: 3;
+    min-width: 0;
+    min-height: 190px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 23px 22px;
+  }
+
+  .rd-loop7-next-decision h2 {
+    font-size: 19px;
+    line-height: 1.16;
+  }
+
+  .rd-loop7-next-decision p {
+    line-height: 1.45;
+  }
+
+  .rd-loop7-next-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+
+  .rd-loop7-next-actions .rd-v2-btn {
+    width: 100%;
+    min-height: 36px;
+    padding: 7px 9px;
+    white-space: normal;
+    line-height: 1.25;
+  }
+
+  .rd-loop7-evidence {
+    grid-column: 1 / -1;
+    grid-row: 4;
+  }
+
+  .rd-loop7-contract-grid {
+    grid-column: 1 / -1;
+    grid-row: 5;
+  }
+
+  .rd-loop7-field.editorial p {
+    max-width: 690px;
+    font-size: 21px;
+    line-height: 1.38;
+  }
+
+  .rd-loop7-evidence-columns {
+    grid-template-columns: minmax(0, 1.18fr) minmax(0, 0.82fr);
+  }
+
+  .rd-loop7-evidence-row.referenced {
+    background: #f7f8fa;
+    box-shadow: inset 3px 0 0 #78859a;
+  }
+
+  .rd-loop7-evidence-row.referenced .rd-loop7-evidence-mark {
+    border-color: #b9c1cd;
+    color: #657187;
+  }
+
+  .rd-loop7-evidence-row.referenced .rd-loop7-evidence-state {
+    max-width: 170px;
+    color: #59667c;
+  }
+
+  /* With no active construction the rail is only an entry to Detail/Composer,
+     not a permanent page manual. A selected construction restores the active rail. */
+  .rd-v2-shell:has(.rd-loop7-synthesis-page):has(.rd-v2-rail-selection[title="Synthesis"]) {
+    grid-template-columns: 196px minmax(0, 1fr) 72px !important;
+  }
+
+  .rd-v2-shell:has(.rd-loop7-synthesis-page):has(.rd-v2-rail-selection[title="Synthesis"]) .rd-v2-rail {
+    overflow: hidden;
+  }
+
+  .rd-v2-shell:has(.rd-loop7-synthesis-page):has(.rd-v2-rail-selection[title="Synthesis"]) .rd-v2-rail-chrome {
+    padding: 12px 8px;
+  }
+
+  .rd-v2-shell:has(.rd-loop7-synthesis-page):has(.rd-v2-rail-selection[title="Synthesis"]) .rd-v2-rail-toggle {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .rd-v2-shell:has(.rd-loop7-synthesis-page):has(.rd-v2-rail-selection[title="Synthesis"]) .rd-v2-rail-toggle button {
+    min-width: 0;
+    padding: 0 4px;
+    font-size: 9px;
+  }
+
+  .rd-v2-shell:has(.rd-loop7-synthesis-page):has(.rd-v2-rail-selection[title="Synthesis"]) .rd-v2-rail-selection,
+  .rd-v2-shell:has(.rd-loop7-synthesis-page):has(.rd-v2-rail-selection[title="Synthesis"]) .rd-v2-rail-pane {
+    display: none !important;
+  }
+}
+
+@media (max-width: 1180px) and (min-width: 761px) {
+  .rd-loop7-field[data-field="question"],
+  .rd-loop7-next-decision {
+    min-height: 0;
+  }
+}
