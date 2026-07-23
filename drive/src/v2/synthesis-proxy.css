@@ -16,7 +16,7 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) 210px;
     gap: 7px 18px;
-    padding: 11px 14px 9px;
+    padding: 12px 15px 10px;
     border: 1px solid var(--sol-line);
     background: rgba(255, 253, 247, 0.84);
   }
@@ -33,17 +33,17 @@
   .rd-proxy-limitation > div span {
     display: block;
     color: var(--sol-muted);
-    font-size: 9.5px;
+    font-size: 10px;
     font-weight: 720;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.035em;
     text-transform: uppercase;
   }
 
   .rd-proxy-target h1 {
-    margin: 3px 0 2px;
+    margin: 3px 0 3px;
     color: var(--sol-ink);
     font-family: var(--sol-serif);
-    font-size: 24px;
+    font-size: 25px;
     font-weight: 600;
     line-height: 1.06;
     letter-spacing: -0.026em;
@@ -53,19 +53,19 @@
     max-width: 760px;
     margin: 0;
     color: var(--sol-body);
-    font-size: 11.5px;
-    line-height: 1.34;
+    font-size: 12px;
+    line-height: 1.36;
   }
 
   .rd-proxy-target > span {
     align-self: start;
-    padding: 6px 8px;
+    padding: 7px 8px;
     border-left: 3px solid var(--sol-warning);
     color: #74531b;
     background: var(--sol-warning-soft);
-    font-size: 10px;
+    font-size: 10.5px;
     font-weight: 650;
-    line-height: 1.28;
+    line-height: 1.3;
   }
 
   .rd-proxy-target dl {
@@ -79,7 +79,7 @@
 
   .rd-proxy-target dl > div {
     min-width: 0;
-    padding: 6px 10px 0 0;
+    padding: 7px 10px 0 0;
   }
 
   .rd-proxy-target dl > div + div {
@@ -89,15 +89,15 @@
 
   .rd-proxy-target dt {
     color: var(--sol-muted);
-    font-size: 9px;
+    font-size: 9.5px;
   }
 
   .rd-proxy-target dd {
     margin: 1px 0 0;
     color: var(--sol-ink-soft);
-    font-size: 10.5px;
+    font-size: 11px;
     font-weight: 650;
-    line-height: 1.2;
+    line-height: 1.22;
     overflow-wrap: anywhere;
   }
 
@@ -119,7 +119,7 @@
   .rd-proxy-ingredients > header,
   .rd-proxy-recipe > header,
   .rd-proxy-alternatives > header {
-    min-height: 33px;
+    min-height: 34px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -132,7 +132,7 @@
   .rd-proxy-core header strong,
   .rd-proxy-alternatives header strong {
     color: var(--sol-ink-soft);
-    font-size: 9.5px;
+    font-size: 10px;
   }
 
   .rd-proxy-ingredient-list {
@@ -141,12 +141,12 @@
 
   .rd-proxy-ingredient {
     width: 100%;
-    min-height: 50px;
+    min-height: 52px;
     display: grid;
-    grid-template-columns: 96px minmax(0, 1fr) 74px;
+    grid-template-columns: 98px minmax(0, 1fr) 74px;
     gap: 7px;
     align-items: center;
-    padding: 6px 8px;
+    padding: 7px 8px;
     border: 0;
     border-bottom: 1px solid #e4dfd4;
     color: inherit;
@@ -169,9 +169,9 @@
 
   .rd-proxy-ingredient-role {
     color: var(--sol-accent-dark);
-    font-size: 9px;
+    font-size: 9.5px;
     font-weight: 720;
-    line-height: 1.22;
+    line-height: 1.24;
   }
 
   .rd-proxy-ingredient-copy,
@@ -188,33 +188,33 @@
 
   .rd-proxy-ingredient-copy strong {
     color: var(--sol-ink-soft);
-    font-size: 10.5px;
-    line-height: 1.2;
+    font-size: 11px;
+    line-height: 1.22;
     overflow-wrap: anywhere;
   }
 
   .rd-proxy-ingredient-copy small {
     margin-top: 1px;
     color: var(--sol-muted);
-    font-size: 8.8px;
-    line-height: 1.2;
+    font-size: 9.2px;
+    line-height: 1.22;
   }
 
   .rd-proxy-ingredient-meta {
     color: var(--sol-muted);
-    font-size: 8.5px;
+    font-size: 8.8px;
     line-height: 1.2;
     text-align: right;
   }
 
   .rd-proxy-ingredient-meta b {
     color: var(--sol-ink-soft);
-    font-size: 9px;
+    font-size: 9.3px;
     font-weight: 650;
   }
 
   .rd-proxy-limitation {
-    padding: 6px 8px 7px;
+    padding: 7px 8px 8px;
     background: #fff9ee;
   }
 
@@ -228,7 +228,7 @@
 
   .rd-proxy-limitation > div strong {
     color: #7b5719;
-    font-size: 9px;
+    font-size: 9.3px;
   }
 
   .rd-proxy-limitation button {
@@ -236,7 +236,7 @@
     display: grid;
     grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
     gap: 7px;
-    padding: 5px 6px;
+    padding: 6px;
     border: 0;
     border-left: 3px solid var(--sol-warning);
     color: inherit;
@@ -251,15 +251,15 @@
 
   .rd-proxy-limitation button strong {
     color: var(--sol-ink-soft);
-    font-size: 9.5px;
-    line-height: 1.2;
+    font-size: 10px;
+    line-height: 1.22;
   }
 
   .rd-proxy-limitation button small,
   .rd-proxy-limitation p {
     color: #81662f;
-    font-size: 8.6px;
-    line-height: 1.22;
+    font-size: 9px;
+    line-height: 1.24;
   }
 
   .rd-proxy-recipe > header > div {
@@ -270,7 +270,7 @@
     margin: 1px 0 0;
     color: var(--sol-ink);
     font-family: var(--sol-serif);
-    font-size: 17px;
+    font-size: 18px;
     font-weight: 600;
     line-height: 1.1;
   }
@@ -278,7 +278,7 @@
   .rd-proxy-recipe > header > b {
     flex: 0 0 auto;
     color: var(--sol-positive);
-    font-size: 9px;
+    font-size: 9.3px;
   }
 
   .rd-proxy-recipe-intro {
@@ -286,15 +286,15 @@
     grid-template-columns: minmax(0, 1.4fr) minmax(230px, 0.9fr);
     gap: 8px;
     align-items: center;
-    padding: 6px 9px;
+    padding: 7px 9px;
     border-bottom: 1px solid var(--sol-line);
   }
 
   .rd-proxy-recipe-intro > p {
     margin: 0;
     color: var(--sol-body);
-    font-size: 9.8px;
-    line-height: 1.26;
+    font-size: 10.3px;
+    line-height: 1.28;
   }
 
   .rd-proxy-recipe-metrics {
@@ -317,13 +317,13 @@
 
   .rd-proxy-tradeoff small {
     color: var(--sol-muted);
-    font-size: 7.5px;
+    font-size: 7.8px;
     line-height: 1.1;
   }
 
   .rd-proxy-tradeoff b {
     margin-top: 1px;
-    font-size: 8.5px;
+    font-size: 8.8px;
     line-height: 1.1;
   }
 
@@ -335,18 +335,18 @@
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 1px;
-    padding: 0 8px 6px;
+    padding: 0 8px 7px;
     background: var(--sol-line);
   }
 
   .rd-proxy-recipe-flow button {
     min-width: 0;
-    min-height: 43px;
+    min-height: 45px;
     display: grid;
     grid-template-columns: 18px minmax(0, 1fr);
     gap: 5px;
     align-items: center;
-    padding: 5px;
+    padding: 6px;
     border: 0;
     color: inherit;
     background: var(--sol-paper);
@@ -361,13 +361,13 @@
   .rd-proxy-recipe-flow span {
     color: var(--sol-accent);
     font-family: var(--sol-serif);
-    font-size: 12px;
+    font-size: 12.5px;
   }
 
   .rd-proxy-recipe-flow strong {
     color: var(--sol-ink-soft);
-    font-size: 8.8px;
-    line-height: 1.18;
+    font-size: 9.2px;
+    line-height: 1.2;
     overflow-wrap: anywhere;
   }
 
@@ -379,7 +379,7 @@
 
   .rd-proxy-recipe-notes > div {
     min-width: 0;
-    padding: 6px 8px;
+    padding: 7px 8px;
   }
 
   .rd-proxy-recipe-notes > div + div {
@@ -389,8 +389,8 @@
   .rd-proxy-recipe-notes p {
     margin: 2px 0 0;
     color: var(--sol-body);
-    font-size: 8.7px;
-    line-height: 1.22;
+    font-size: 9.2px;
+    line-height: 1.24;
   }
 
   .rd-proxy-output-contract {
@@ -404,7 +404,7 @@
 
   .rd-proxy-output-contract > div {
     min-width: 0;
-    padding: 5px 7px;
+    padding: 6px 7px;
   }
 
   .rd-proxy-output-contract > div + div {
@@ -413,15 +413,15 @@
 
   .rd-proxy-output-contract dt {
     color: var(--sol-muted);
-    font-size: 8px;
+    font-size: 8.3px;
   }
 
   .rd-proxy-output-contract dd {
     margin: 1px 0 0;
     color: var(--sol-ink-soft);
-    font-size: 8.8px;
+    font-size: 9.2px;
     font-weight: 650;
-    line-height: 1.18;
+    line-height: 1.2;
     overflow-wrap: anywhere;
   }
 
@@ -434,14 +434,14 @@
     margin: 12px 12px 4px;
     color: var(--sol-ink);
     font-family: var(--sol-serif);
-    font-size: 17px;
+    font-size: 18px;
   }
 
   .rd-proxy-recipe-empty > p {
     margin: 0 12px;
     color: var(--sol-body);
-    font-size: 10px;
-    line-height: 1.35;
+    font-size: 10.5px;
+    line-height: 1.36;
   }
 
   .rd-proxy-alternatives > header button {
@@ -449,7 +449,7 @@
     border: 0;
     color: var(--sol-accent-dark);
     background: transparent;
-    font-size: 9px;
+    font-size: 9.3px;
     font-weight: 700;
     cursor: pointer;
   }
@@ -466,7 +466,7 @@
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 8px;
     align-items: center;
-    padding: 6px 8px;
+    padding: 7px 8px;
     border: 0;
     color: inherit;
     background: transparent;
@@ -493,15 +493,15 @@
 
   .rd-proxy-alternative-strip strong {
     color: var(--sol-ink-soft);
-    font-size: 9.8px;
-    line-height: 1.18;
+    font-size: 10.2px;
+    line-height: 1.2;
   }
 
   .rd-proxy-alternative-strip small {
     margin-top: 1px;
     color: var(--sol-muted);
-    font-size: 8.2px;
-    line-height: 1.18;
+    font-size: 8.6px;
+    line-height: 1.2;
   }
 
   .rd-proxy-alternative-metrics {
@@ -512,7 +512,7 @@
 
   .rd-proxy-alternative-metrics b {
     color: var(--sol-body);
-    font-size: 7.8px;
+    font-size: 8px;
     font-weight: 650;
     white-space: nowrap;
   }
@@ -522,7 +522,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 18px;
-    padding: 8px 11px;
+    padding: 9px 11px;
     border: 1px solid var(--sol-line-strong);
     background: var(--sol-paper);
   }
@@ -531,7 +531,7 @@
     margin: 1px 0 0;
     color: var(--sol-ink);
     font-family: var(--sol-serif);
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 600;
     line-height: 1.14;
   }
@@ -539,8 +539,8 @@
   .rd-proxy-next p {
     margin: 1px 0 0;
     color: var(--sol-body);
-    font-size: 8.8px;
-    line-height: 1.22;
+    font-size: 9.2px;
+    line-height: 1.24;
   }
 
   .rd-proxy-next > div:last-child {
@@ -550,9 +550,9 @@
   }
 
   .rd-proxy-next .rd-v2-btn {
-    min-height: 28px;
+    min-height: 29px;
     padding: 4px 7px;
-    font-size: 9px;
+    font-size: 9.3px;
     white-space: nowrap;
   }
 
@@ -560,8 +560,8 @@
     margin: 0;
     padding: 8px;
     color: var(--sol-muted);
-    font-size: 9px;
-    line-height: 1.3;
+    font-size: 9.3px;
+    line-height: 1.32;
   }
 }
 
