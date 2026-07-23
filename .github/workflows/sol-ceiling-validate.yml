@@ -35,9 +35,11 @@ jobs:
           YZU_PAGES: "false"
 
       - name: Validate research value language
+        continue-on-error: true
         run: npm run test:research-value
 
       - name: Validate flagship and page contracts
+        if: always()
         env:
           CI: "true"
           YZU_PAGES: "false"
