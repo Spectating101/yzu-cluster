@@ -16,6 +16,22 @@ test("filters deployment and canary residue from faculty-facing collections", ()
   );
 });
 
+test("filters technical synthesis residue while preserving substantive work", () => {
+  const threads = [
+    { id: "agent_canary", title: "Agent canary 20260722_204056" },
+    { id: "live-sec-canary", title: "Live SEC ticker synthesis canary 2" },
+    { id: "smoke", title: "Live smoke thread" },
+    { id: "audit", title: "Composer audit thread" },
+    { id: "test", title: "test" },
+    { id: "jkse", title: "JKSE PIT × IDN microstructure × estimate revisions" },
+  ];
+
+  assert.deepEqual(
+    facultyFacingRecords(threads).map((row) => row.id),
+    ["jkse"],
+  );
+});
+
 test("explicit faculty visibility overrides a suspicious technical label", () => {
   assert.equal(
     isInternalValidationRecord({
