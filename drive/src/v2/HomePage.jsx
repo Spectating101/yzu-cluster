@@ -5,7 +5,7 @@ import { deskPipelineStrips } from "@/v2/deskSeed";
 import { recentDatasets } from "@/v2/recent";
 import { PageShell, SectionTitle } from "@/v2/ui";
 import { displayName, statusPillKind } from "@/v2/datasetMeta";
-import { facultyFacingRecords, isInternalValidationRecord } from "@/v2/productVisibility";
+import { facultyFacingRecords, isInternalValidationRecord, rankFacultyHomeRecords } from "@/v2/productVisibility";
 
 function datasetListItem(row) {
   return { kind: "dataset", id: row.dataset_id, name: row.name, row };
@@ -74,7 +74,7 @@ export function HomePage({
   onPreviewDataset,
   onAskAttention,
 }) {
-  const visibleDatasets = useMemo(() => facultyFacingRecords(datasets), [datasets]);
+  const visibleDatasets = useMemo(() => rankFacultyHomeRecords(datasets), [datasets]);
   const visibleJobs = useMemo(() => facultyFacingRecords(jobs), [jobs]);
   const visibleAcquisitions = useMemo(() => facultyFacingRecords(acquisitions), [acquisitions]);
   const recent = useMemo(() => recentDatasets(visibleDatasets, 5), [visibleDatasets]);
