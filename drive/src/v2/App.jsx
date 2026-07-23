@@ -377,16 +377,6 @@ export function V2App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot URL normalize on mount
   }, []);
 
-  useEffect(() => {
-    if (!datasets.length || selectedId || tab !== "home") return;
-    const first = datasets[0];
-    const pick = first.dataset_id;
-    setSelectedId(pick);
-    setActiveObject(datasetObject(first));
-    touchRecent(pick);
-    writeParams({ tab, folder: folderId, dataset: pick, preview: previewOpen });
-  }, [datasets, selectedId, tab, folderId, previewOpen]);
-
   const catalog = datasets;
 
   const labIds = useMemo(() => new Set(catalog.map((d) => d.dataset_id)), [catalog]);
@@ -529,6 +519,17 @@ export function V2App() {
         setActiveObject(null);
         setRailTab("detail");
         syncUrl({ tab: nextId, dataset: "", preview: false, mode: "explore" });
+        return;
+      }
+      if (nextId === "home") {
+        setTab(nextId);
+        setSelectedId("");
+        setDetail(null);
+        setPreviewOpen(false);
+        setPreviewTarget(null);
+        setActiveObject(null);
+        setRailTab("detail");
+        syncUrl({ tab: nextId, dataset: "", preview: false });
         return;
       }
       setTab(nextId);
