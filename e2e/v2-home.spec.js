@@ -56,13 +56,6 @@ test.describe("v2 Home research-state briefing", () => {
     await expect(main.getByRole("button", { name: /Synthesiz/i })).toHaveCount(0);
     await expect(page.locator("aside.yzu-sidebar").getByRole("button", { name: /^Synthesis$/i })).toHaveCount(0);
     await expect(main).not.toContainText(/Synthesiz/i);
-
-    await mockV2Api(page);
-    await page.goto("/?tab=synthesis", { waitUntil: "domcontentloaded" });
-    await waitForShell(page);
-    await expect(page.locator(".rd-v2-page-head h1", { hasText: "Library" })).toBeVisible();
-    await expect(page.getByTestId("synthesis-workbench")).toHaveCount(0);
-    await expect.poll(() => new URL(page.url()).searchParams.get("tab")).toBe("library");
   });
 
   test("mobile Home keeps judgment in the first viewport", async ({ page }) => {

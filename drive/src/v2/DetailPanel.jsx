@@ -1,3 +1,4 @@
+import { buildAssetDecisionInstrument } from "@/v2/assetWorkspace";
 import { detailFields, displayName, formatMetaValue, isQueryReadyReadiness, statusPillKind } from "@/v2/datasetMeta";
 import { PAGE_DETAIL_EMPTY } from "@/v2/discoverRailPresentation";
 import { EmptyRailState } from "@/v2/EmptyRailState";
@@ -58,7 +59,8 @@ function pushFact(list, label, value) {
   list.push({ label, value: text });
 }
 
-export function DetailPanel({
+/** Full registry Detail — used when centre canvas is not the Asset Workspace. */
+function FullDetailPanel({
   dataset,
   loading = false,
   onPreview,
@@ -66,16 +68,6 @@ export function DetailPanel({
   onSeeCluster,
   onAddToLab,
 }) {
-  if (!dataset) {
-    return (
-      <RailFrame>
-        <div className="rd-v2-rail-scroll">
-          <EmptyRailState title={PAGE_DETAIL_EMPTY.library} minimal />
-        </div>
-      </RailFrame>
-    );
-  }
-
   const fields = detailFields(dataset);
   const readinessState = statusPillKind(dataset);
   const ready = isQueryReadyReadiness(dataset.analysis_readiness);
@@ -122,7 +114,7 @@ export function DetailPanel({
   }
 
   return (
-    <RailFrame>
+    <RailFrame data-testid="detail-panel" data-detail-mode="full">
       <RailEntityHeader
         compact
         id={dataset.dataset_id}
@@ -169,5 +161,92 @@ export function DetailPanel({
         secondary={secondary}
       />
     </RailFrame>
+  );
+}
+
+/**
+ * Compact decision instrument beside Asset Workspace — no Overview/Fields/Quality/Provenance dump.
+ */
+function DecisionInstrumentPanel({
+  dataset,
+  onPreview,
+  onAskAbout,
+}) {
+  const decision = buildAssetDecisionInstrument(dataset);
+  const secondary = onAskAbout
+    ? [{ key: "ask", label: "Ask about this →", onClick: onAskAbout }]
+    : [];
+
+  return (
+    <RailFrame
+      className="rd-v2-rail-decision-instrument"
+      data-testid="detail-panel"
+      data-detail-mode="decision"
+    >
+      <RailEntityHeader
+        compact
+        id={decision.id}
+        title={decision.title}
+        pills={<StatusPill dataset={dataset} />}
+      />
+      <RailJudgment label="Research position">{decision.judgment}</RailJudgment>
+      <div className="rd-v2-rail-scroll">
+        <RailFactSection title="Unknown" items={decision.unknowns} testId="rail-unknown" />
+        {!decision.unknowns.length ? (
+          <p className="rd-v2-rail-decision-clear" role="status">
+            No blocking unknowns from supplied registry fields.
+          </p>
+        ) : null}
+      </div>
+      <RailActionFooter
+        primary={
+          onPreview
+            ? { key: "preview", label: decision.nextActionLabel || "Preview rows", onClick: onPreview }
+            : null
+        }
+        secondary={secondary}
+      />
+    </RailFrame>
+  );
+}
+
+export function DetailPanel({
+  dataset,
+  loading = false,
+  decisionInstrument = false,
+  onPreview,
+  onAskAbout,
+  onSeeCluster,
+  onAddToLab,
+}) {
+  if (!dataset) {
+    return (
+      <RailFrame>
+        <div className="rd-v2-rail-scroll">
+          <EmptyRailState title={PAGE_DETAIL_EMPTY.library} minimal />
+        </div>
+      </RailFrame>
+    );
+  }
+
+  if (decisionInstrument) {
+    return (
+      <DecisionInstrumentPanel
+        dataset={dataset}
+        onPreview={onPreview}
+        onAskAbout={onAskAbout}
+      />
+    );
+  }
+
+  return (
+    <FullDetailPanel
+      dataset={dataset}
+      loading={loading}
+      onPreview={onPreview}
+      onAskAbout={onAskAbout}
+      onSeeCluster={onSeeCluster}
+      onAddToLab={onAddToLab}
+    />
   );
 }

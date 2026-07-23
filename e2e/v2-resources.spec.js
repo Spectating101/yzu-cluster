@@ -26,6 +26,25 @@ test.describe("v2 Resources Capabilities and Usage", () => {
     await expect(main.getByTestId("resources-activity-controls")).toHaveCount(0);
   });
 
+  test("Resources primary mode is Capabilities on deep link and after Usage toggle", async ({ page }) => {
+    const capabilities = page.getByRole("button", { name: "Capabilities", exact: true });
+    const usage = page.getByRole("button", { name: "Usage", exact: true });
+    await expect(capabilities).toHaveClass(/on/);
+    await expect(page.locator("main").getByRole("region", { name: "Key resources" })).toContainText("Storage");
+
+    await usage.click();
+    await expect(usage).toHaveClass(/on/);
+    await expect(page.locator("main").getByRole("region", { name: "Key resources" })).toContainText(
+      /Storage usage|Metered usage/,
+    );
+
+    await page.goto("/?tab=resources", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await expect(page.getByRole("button", { name: "Capabilities", exact: true })).toHaveClass(/on/);
+    await expect(page.getByRole("button", { name: "Activity", exact: true })).toHaveCount(0);
+    await expect(page.locator("main").getByRole("heading", { name: "Run log" })).toHaveCount(0);
+  });
+
   test("job handoff routes approval recovery to Discover History", async ({ page }) => {
     const handoff = page.getByRole("region", { name: "Job handoff to Discover" });
     await expect(handoff).toBeVisible({ timeout: 15_000 });

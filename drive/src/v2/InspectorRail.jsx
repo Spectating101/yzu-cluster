@@ -218,6 +218,7 @@ export function InspectorRail({
       <DetailPanel
         dataset={dataset}
         loading={detailLoading}
+        decisionInstrument={mainTab === "library"}
         onPreview={onPreview}
         onAskAbout={onAskAbout}
         onSeeCluster={onSeeCluster}

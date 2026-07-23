@@ -36,8 +36,34 @@ test.describe("v2 Library directory and Asset Workspace", () => {
     await expect(page.getByTestId("asset-quality-unknown")).toContainText("Quality score");
 
     const rail = page.locator("aside.rd-v2-rail");
-    await expect(rail).toContainText("Asia daily news-risk panel");
+    const detail = rail.getByTestId("detail-panel");
+    await expect(detail).toHaveAttribute("data-detail-mode", "decision");
+    await expect(detail.getByTestId("rail-judgment")).toContainText(/Query-ready|holding/i);
+    await expect(detail.getByTestId("rail-confirmed")).toHaveCount(0);
+    await expect(detail).not.toContainText("Vault path");
+    await expect(detail).not.toContainText("Schema & join keys");
+    await expect(detail).not.toContainText("GDELT Gkg");
     await expect(rail.getByRole("button", { name: "Preview rows" })).toBeVisible();
+    await expect(rail.getByRole("button", { name: /Ask about this/i })).toBeVisible();
+  });
+
+  test("Library dataset deep link opens Asset Workspace with decision Detail", async ({ page }) => {
+    await page.goto(
+      "/?tab=library&folder=research_panels/gdelt&dataset=gdelt_asia_daily_country_panel",
+      { waitUntil: "domcontentloaded" },
+    );
+    await waitForShell(page);
+
+    const workspace = page.getByTestId("asset-workspace");
+    await expect(workspace).toBeVisible();
+    await expect(workspace).toContainText("Asia daily news-risk panel");
+    await expect(page.getByTestId("asset-overview-observed")).toBeVisible();
+
+    const detail = page.locator("aside.rd-v2-rail").getByTestId("detail-panel");
+    await expect(detail).toHaveAttribute("data-detail-mode", "decision");
+    await expect(detail.getByTestId("rail-confirmed")).toHaveCount(0);
+    await expect(detail.getByTestId("rail-judgment")).toBeVisible();
+    await expect(page).toHaveURL(/dataset=gdelt_asia_daily_country_panel/);
   });
 
   test("URL / DOI intake promises draft job after durable id", async ({ page }) => {

@@ -1661,6 +1661,18 @@
   font-size: 12.5px;
 }
 
+/* Library Detail beside Asset Workspace — compact decision, no registry dump */
+.rd-v2-rail-decision-instrument .rd-v2-rail-judgment {
+  padding-bottom: 8px;
+}
+
+.rd-v2-rail-decision-clear {
+  margin: 8px 12px 0;
+  color: var(--rd-muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
 .rd-v2-home-empty {
   padding: 14px 12px;
   color: var(--rd-muted);

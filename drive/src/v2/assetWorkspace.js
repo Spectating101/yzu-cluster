@@ -1,6 +1,12 @@
 /** Split registry-observed asset facts from unknown / unverified claims. */
 
-import { detailFields, displayName, formatMetaValue, statusPillKind } from "./datasetMeta.js";
+import {
+  detailFields,
+  displayName,
+  formatMetaValue,
+  isQueryReadyReadiness,
+  statusPillKind,
+} from "./datasetMeta.js";
 
 function pushFact(list, label, value) {
   const text = value == null || value === "" ? "" : String(value).trim();
@@ -123,5 +129,59 @@ export function buildAssetWorkspaceModel(dataset) {
     fields: { observed: fieldsObserved, unknown: fieldsUnknown },
     quality: { observed: qualityObserved, unknown: qualityUnknown },
     provenance: { observed: provenanceObserved, unknown: provenanceUnknown },
+  };
+}
+
+/**
+ * Compact Detail rail when Asset Workspace owns Overview/Fields/Quality/Provenance.
+ * Identity + research-position judgment + unknowns + one next action — no registry fact dump.
+ */
+export function buildAssetDecisionInstrument(dataset) {
+  if (!dataset) {
+    return {
+      title: "",
+      id: "",
+      readiness: null,
+      judgment: "",
+      unknowns: [],
+      nextActionKey: null,
+      nextActionLabel: "",
+    };
+  }
+
+  const fields = detailFields(dataset);
+  const pill = statusPillKind(dataset);
+  const ready = isQueryReadyReadiness(dataset.analysis_readiness);
+  const coverage = fields.coverage || dataset.coverage || dataset.date_range;
+  const provenance = datasetProvenance(dataset);
+
+  const unknowns = [];
+  if (!dataset.analysis_readiness) {
+    pushFact(unknowns, "Readiness", "Not reported by registry");
+  }
+  if (!coverage) pushFact(unknowns, "Coverage", "Not reported");
+  if (!dataset.grain) pushFact(unknowns, "Grain", "Not reported");
+  if (!provenance) pushFact(unknowns, "Provenance", "Not reported beyond registry");
+  if (fields.limitations) pushFact(unknowns, "Limitations", fields.limitations);
+
+  let judgment;
+  if (ready) {
+    judgment = "Query-ready holding — open rows or reuse as Discover context.";
+  } else if (fields.limitations) {
+    judgment = `${pill.label} — ${String(fields.limitations).slice(0, 120)}`;
+  } else if (!dataset.analysis_readiness) {
+    judgment = "Readiness unknown — inspect centre registry facts before analysis.";
+  } else {
+    judgment = `${pill.label} — inspect readiness and provenance before analysis.`;
+  }
+
+  return {
+    title: displayName(dataset),
+    id: dataset.dataset_id || "",
+    readiness: pill,
+    judgment,
+    unknowns,
+    nextActionKey: "preview",
+    nextActionLabel: "Preview rows",
   };
 }
