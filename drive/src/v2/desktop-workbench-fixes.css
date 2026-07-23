@@ -9,6 +9,12 @@
     grid-template-columns: 196px minmax(0, 1fr) !important;
   }
 
+  .rd-v2-shell > .yzu-main,
+  .rd-v2-shell > .yzu-sidebar,
+  .rd-v2-shell > .rd-v2-rail {
+    min-width: 0;
+  }
+
   .rd-v2-header {
     grid-template-columns: 196px minmax(380px, 760px) minmax(0, 1fr) auto !important;
   }
@@ -23,5 +29,9 @@
 
   .rd-v2-header-meta {
     gap: 6px;
+  }
+
+  .rd-v2-header-meta-count {
+    white-space: nowrap;
   }
 }
