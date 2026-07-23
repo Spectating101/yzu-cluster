@@ -82,7 +82,9 @@ export function isInternalValidationRecord(row) {
 
   const label = labelText(row);
   if (/\b(?:landing|final)\s+(?:prove|proof)\b|\b(?:landing|final)\b.*\b(?:prove|proof)\b/i.test(label)) return true;
-  if (/\b(?:agent|scheduled|deployment|windows|http|mcp|worker|integration)\b.*\bcanary\b|\bcanary\b.*\b(?:run|probe|test|validation)\b/i.test(label)) return true;
+  if (/\b(?:agent|scheduled|deployment|windows|http|mcp|worker|integration|live)\b.*\bcanary\b|\bcanary\b.*\b(?:run|probe|test|validation)\b/i.test(label)) return true;
+  if (/\b(?:live\s+)?smoke\s+(?:thread|run|test)\b|\bcomposer audit thread\b/i.test(label)) return true;
+  if (/^\s*(?:test|testing)\s*$/i.test(label)) return true;
   if (/\b(?:playwright|mock e2e|smoke test|validation fixture|deployment probe)\b/i.test(label)) return true;
 
   const metadata = metadataText(row);
