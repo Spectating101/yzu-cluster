@@ -25,6 +25,9 @@ import "./desktop-workbench-fixes.css";
 // Loop 7 turns Synthesis into a structured research construction.
 import "./synthesis-loop7.css";
 import "./synthesis-loop7-fixes.css";
+// Isolated Sol-ceiling experiment. Desktop-only and presentation-only until
+// exact-SHA capture proves it materially improves the accepted workbench.
+import "./sol-ceiling.css";
 import { InteractionProvider } from "./InteractionGuidance.jsx";
 import { V2App } from "./App.jsx";
 
