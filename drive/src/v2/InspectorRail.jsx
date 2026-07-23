@@ -16,6 +16,7 @@ import { LibraryDatasetRailPanel } from "@/v2/LibraryDatasetRailPanel";
 import { ResourcesOverviewRailPanel } from "@/v2/ResourcesOverviewRailPanel";
 import { DiscoverHistoryRailPanel } from "@/v2/DiscoverHistoryRailPanel";
 import { SynthesisThreadRailPanel } from "@/v2/SynthesisThreadRailPanel";
+import { isInternalValidationRecord } from "@/v2/productVisibility";
 
 function railSelectionHint(mainTab, dataset, browseTarget, historyEvent, resourceRow, clusterContext) {
   if (mainTab === "browse" && historyEvent) {
@@ -115,11 +116,18 @@ export function InspectorRail({
   askPanel,
   profile = null,
 }) {
+  const homeDatasetIsInternal = mainTab === "home" && isInternalValidationRecord(dataset);
+  const visibleDataset = homeDatasetIsInternal ? null : dataset;
+  const visibleActiveObject =
+    mainTab === "home" && activeObject?.kind === "dataset" && isInternalValidationRecord(activeObject.row || dataset)
+      ? null
+      : activeObject;
+
   let detailPanel;
-  if (mainTab === "synthesis" && activeObject?.kind === "synthesis_thread") {
+  if (mainTab === "synthesis" && visibleActiveObject?.kind === "synthesis_thread") {
     detailPanel = (
       <SynthesisThreadRailPanel
-        thread={activeObject.thread}
+        thread={visibleActiveObject.thread}
         onAskAbout={onAskAbout}
         onOpenInLibrary={onOpenInLibrary}
       />
@@ -171,11 +179,11 @@ export function InspectorRail({
     detailPanel = <PageRailPanel page="synthesis" onAskAbout={onAskAbout} />;
   } else if (
     mainTab === "library" &&
-    (activeObject?.kind === "library_folder" || activeObject?.kind === "library_intake")
+    (visibleActiveObject?.kind === "library_folder" || visibleActiveObject?.kind === "library_intake")
   ) {
     detailPanel = (
       <LibraryObjectRailPanel
-        object={activeObject}
+        object={visibleActiveObject}
         onAskAbout={onAskAbout}
         onStartUpload={onStartLibraryUpload}
         onStartUrl={onStartLibraryUrl}
@@ -185,22 +193,22 @@ export function InspectorRail({
         onSubmitProcure={onSubmitLibraryProcure}
       />
     );
-  } else if (mainTab === "library" && dataset?.dataset_id) {
+  } else if (mainTab === "library" && visibleDataset?.dataset_id) {
     detailPanel = (
       <LibraryDatasetRailPanel
-        dataset={dataset}
+        dataset={visibleDataset}
         onPreview={onPreview}
         onAskAbout={onAskAbout}
       />
     );
-  } else if (mainTab === "library" && !dataset?.dataset_id) {
+  } else if (mainTab === "library" && !visibleDataset?.dataset_id) {
     detailPanel = <PageRailPanel page="library" onAskAbout={onAskAbout} />;
-  } else if (mainTab === "home" && activeObject?.kind === "home_attention") {
-    detailPanel = <HomeAttentionRailPanel object={activeObject} onAskAbout={onAskAbout} />;
-  } else if (mainTab === "home" && dataset?.dataset_id) {
+  } else if (mainTab === "home" && visibleActiveObject?.kind === "home_attention") {
+    detailPanel = <HomeAttentionRailPanel object={visibleActiveObject} onAskAbout={onAskAbout} />;
+  } else if (mainTab === "home" && visibleDataset?.dataset_id) {
     detailPanel = (
       <LibraryDatasetRailPanel
-        dataset={dataset}
+        dataset={visibleDataset}
         onPreview={onPreview}
         onAskAbout={onAskAbout}
       />
@@ -210,7 +218,7 @@ export function InspectorRail({
   } else {
     detailPanel = (
       <DetailPanel
-        dataset={dataset}
+        dataset={visibleDataset}
         loading={detailLoading}
         onPreview={onPreview}
         onAskAbout={onAskAbout}
@@ -219,10 +227,10 @@ export function InspectorRail({
     );
   }
 
-  const allowActiveHint = activeHintBelongsToTab(mainTab, activeObject);
+  const allowActiveHint = activeHintBelongsToTab(mainTab, visibleActiveObject);
   const selectionHint =
-    (allowActiveHint ? activeObjectSelectionHint(activeObject) : "") ||
-    railSelectionHint(mainTab, dataset, browseTarget, historyEvent, resourceRow, clusterContext);
+    (allowActiveHint ? activeObjectSelectionHint(visibleActiveObject) : "") ||
+    railSelectionHint(mainTab, visibleDataset, browseTarget, historyEvent, resourceRow, clusterContext);
 
   const [mobileRailOpen, setMobileRailOpen] = useState(false);
 
@@ -239,7 +247,7 @@ export function InspectorRail({
       setMobileRailOpen(railTab === "ask");
       return;
     }
-    if (mainTab === "library" && activeObject?.kind === "library_folder") {
+    if (mainTab === "library" && visibleActiveObject?.kind === "library_folder") {
       setMobileRailOpen(false);
       return;
     }
@@ -248,7 +256,7 @@ export function InspectorRail({
       return;
     }
     setMobileRailOpen(true);
-  }, [selectionHint, mainTab, browseTarget, historyEvent, railTab, activeObject?.kind]);
+  }, [selectionHint, mainTab, browseTarget, historyEvent, railTab, visibleActiveObject?.kind]);
 
   return (
     <aside
