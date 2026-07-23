@@ -41,6 +41,8 @@ const FACULTY_STATE = Object.freeze({
   registering: "Evidence registration in progress",
   archiving: "Evidence preservation in progress",
   pending_approval: "Waiting for your decision",
+  not_materialised: "No output claimed",
+  not_materialized: "No output claimed",
   archive_verified: "Evidence preserved",
   registry_verified: "Evidence indexed and traceable",
   registered: "Indexed in the research estate",
