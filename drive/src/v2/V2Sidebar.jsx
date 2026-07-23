@@ -10,7 +10,7 @@ export function V2Sidebar({ tab, onTabChange }) {
 
   return (
     <aside className="yzu-sidebar">
-      <nav>
+      <nav aria-label="Research Drive destinations">
         {V2_SIDEBAR_TABS.map(({ id, label, Icon }) => (
           <button
             key={id}
@@ -29,12 +29,12 @@ export function V2Sidebar({ tab, onTabChange }) {
         <a
           href="/?tab=profile"
           className={tab === "profile" || tab === "settings" ? "active" : ""}
-          aria-label="Open research context"
+          aria-label="Open institutional research context"
         >
           <span className="rd-convergence-context-avatar">YZ</span>
           <span className="rd-convergence-context-copy">
             <strong>Research context</strong>
-            <small>Unbound workspace</small>
+            <small>Institutional workspace</small>
           </span>
           <span className="rd-convergence-context-chevron" aria-hidden>⌄</span>
         </a>
