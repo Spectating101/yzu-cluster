@@ -1,0 +1,423 @@
+/* Visual Synthesis instrument — evidence → transformations → constructed output. */
+
+@media (min-width: 1181px) {
+  .rd-proxy-instrument-view {
+    gap: 8px;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-target {
+    min-height: 78px;
+    grid-template-columns: minmax(0, 1fr) 190px;
+    gap: 6px 16px;
+    padding: 11px 14px 9px;
+    background:
+      linear-gradient(90deg, rgba(255, 253, 247, 0.98), rgba(250, 246, 237, 0.94));
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-target h1 {
+    margin: 3px 0 0;
+    font-size: 26px;
+    line-height: 1.04;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-target > span {
+    align-self: center;
+    padding: 6px 8px;
+    border: 1px solid #d8c59e;
+    border-left: 3px solid var(--sol-warning);
+    background: #fff7e7;
+    font-size: 10px;
+    line-height: 1.25;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-target dl {
+    display: flex;
+    gap: 0;
+    border-top: 0;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-target dl > div {
+    min-width: 0;
+    padding: 5px 14px 0 0;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-target dl > div + div {
+    padding-left: 14px;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-target dt {
+    font-size: 8.5px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-target dd {
+    margin-top: 1px;
+    font-size: 10.5px;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-core {
+    grid-template-columns: 292px minmax(0, 1fr);
+    min-height: 314px;
+    gap: 8px;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-ingredients,
+  .rd-proxy-instrument-view .rd-proxy-recipe,
+  .rd-proxy-instrument-view .rd-proxy-alternatives {
+    border-color: #d7d0c2;
+    box-shadow: 0 8px 20px rgba(41, 48, 58, 0.035);
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-ingredients > header,
+  .rd-proxy-instrument-view .rd-proxy-recipe > header,
+  .rd-proxy-instrument-view .rd-proxy-alternatives > header {
+    min-height: 38px;
+    padding: 7px 10px;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-ingredients > header strong,
+  .rd-proxy-instrument-view .rd-proxy-alternatives > header strong {
+    display: inline-grid;
+    place-items: center;
+    min-width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    background: #e9e4d8;
+    color: var(--sol-ink-soft);
+    font-size: 10px;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-ingredient-list {
+    display: grid;
+    grid-template-rows: repeat(3, minmax(0, 1fr));
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-ingredient {
+    min-height: 67px;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "role grain"
+      "name name";
+    gap: 3px 8px;
+    align-content: center;
+    padding: 9px 10px 9px 13px;
+    border-bottom-color: #e6e0d5;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-ingredient::after {
+    content: "→";
+    position: absolute;
+    right: -14px;
+    color: #a17b62;
+    font-family: var(--sol-serif);
+    font-size: 15px;
+    pointer-events: none;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-ingredient {
+    position: relative;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-ingredient-role {
+    grid-area: role;
+    font-size: 8.5px;
+    letter-spacing: 0.035em;
+    text-transform: uppercase;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-ingredient > strong {
+    grid-area: name;
+    color: var(--sol-ink);
+    font-family: var(--sol-serif);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.14;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-ingredient > small {
+    grid-area: grain;
+    color: var(--sol-muted);
+    font-size: 8.8px;
+    white-space: nowrap;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-limitation {
+    width: 100%;
+    min-height: 57px;
+    display: grid;
+    gap: 3px;
+    align-content: center;
+    padding: 8px 10px 8px 13px;
+    border: 0;
+    border-top: 1px solid #e0d4bd;
+    border-left: 3px solid var(--sol-warning);
+    color: inherit;
+    background: #fff8e9;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-limitation:hover {
+    background: #fff2d9;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-limitation span {
+    color: #886325;
+    font-size: 8.5px;
+    font-weight: 720;
+    letter-spacing: 0.035em;
+    text-transform: uppercase;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-limitation strong {
+    color: var(--sol-ink-soft);
+    font-size: 11px;
+    line-height: 1.25;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-recipe {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    background:
+      linear-gradient(180deg, rgba(255, 253, 247, 0.98), rgba(248, 244, 235, 0.96));
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-recipe > header h2 {
+    font-size: 20px;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-recipe > header > b {
+    padding: 4px 7px;
+    border: 1px solid #bfd2c2;
+    border-radius: 999px;
+    background: #edf5ee;
+    font-size: 8.8px;
+    text-transform: uppercase;
+  }
+
+  .rd-proxy-instrument {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 24px 182px;
+    gap: 0;
+    align-items: stretch;
+    padding: 13px 12px;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-recipe-flow {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 7px;
+    padding: 0;
+    background: transparent;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-recipe-flow button {
+    min-height: 118px;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    gap: 10px;
+    align-content: start;
+    padding: 11px 9px;
+    border: 1px solid #dcd4c7;
+    background: #fffdf7;
+    position: relative;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-recipe-flow button:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: -8px;
+    width: 8px;
+    border-top: 1px solid #b38d76;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-recipe-flow button:hover {
+    border-color: #b8947b;
+    background: #fff8ef;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-recipe-flow span {
+    color: var(--sol-accent);
+    font-size: 15px;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-recipe-flow strong {
+    color: var(--sol-ink);
+    font-family: var(--sol-serif);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.18;
+  }
+
+  .rd-proxy-flow-arrow {
+    display: grid;
+    place-items: center;
+    color: var(--sol-accent);
+    font-family: var(--sol-serif);
+    font-size: 23px;
+  }
+
+  .rd-proxy-output-node {
+    min-width: 0;
+    display: grid;
+    align-content: center;
+    gap: 8px;
+    padding: 15px 13px;
+    border: 1px solid #b88a70;
+    border-left: 4px solid var(--sol-accent);
+    color: inherit;
+    background: #fbefe8;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .rd-proxy-output-node:hover {
+    background: #f8e6dc;
+  }
+
+  .rd-proxy-output-node small {
+    color: var(--sol-accent-dark);
+    font-size: 8.5px;
+    font-weight: 720;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .rd-proxy-output-node strong {
+    color: var(--sol-ink);
+    font-family: var(--sol-serif);
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.12;
+    overflow-wrap: anywhere;
+  }
+
+  .rd-proxy-output-node span {
+    color: var(--sol-body);
+    font-size: 9.5px;
+    line-height: 1.3;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-recipe-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0;
+    border-top: 1px solid var(--sol-line);
+    background: #f1ede4;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-tradeoff {
+    min-height: 42px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border: 0;
+    background: transparent;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-tradeoff + .rd-proxy-tradeoff {
+    border-left: 1px solid #d8d1c4;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-tradeoff small {
+    font-size: 8.5px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-tradeoff b {
+    margin: 0;
+    font-size: 10px;
+    text-transform: uppercase;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-alternatives {
+    display: grid;
+    grid-template-columns: 172px minmax(0, 1fr);
+    min-height: 72px;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-alternatives > header {
+    border-right: 1px solid var(--sol-line);
+    border-bottom: 0;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-alternative-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-alternative-strip > button {
+    min-height: 70px;
+    padding: 10px 12px;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-alternative-strip strong {
+    font-family: var(--sol-serif);
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-alternative-metrics {
+    grid-auto-flow: column;
+    gap: 4px;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-alternative-metrics b {
+    min-width: 42px;
+    padding: 4px 5px;
+    border: 1px solid #ddd6ca;
+    background: #faf7f0;
+    font-size: 8px;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-next {
+    min-height: 54px;
+    padding: 8px 10px;
+    background: #fffdf8;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-next h2 {
+    font-size: 15px;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-next .rd-v2-btn {
+    min-height: 31px;
+    font-size: 9.5px;
+  }
+
+  .rd-proxy-instrument-view .rd-proxy-recipe-empty > button {
+    align-self: center;
+    justify-self: center;
+    padding: 10px 14px;
+    border: 1px solid var(--sol-accent);
+    color: var(--sol-accent-dark);
+    background: #fff9f5;
+    cursor: pointer;
+  }
+}
+
+@media (max-width: 1180px) {
+  .rd-proxy-instrument {
+    display: grid;
+    gap: 12px;
+  }
+
+  .rd-proxy-output-node {
+    display: grid;
+    gap: 6px;
+    padding: 12px;
+    border: 1px solid currentColor;
+  }
+
+  .rd-proxy-flow-arrow {
+    display: none;
+  }
+}
