@@ -1,6 +1,6 @@
 // Research Drive faculty-facing product language.
-// Technical truth remains available in Detail/operator surfaces; primary views
-// describe the governed research objects and outcomes users actually act on.
+// Primary views translate only specific authoritative backend states. Ambiguous
+// states remain visibly unestablished instead of being cosmetically upgraded.
 
 export const RESEARCH_OBJECTS = Object.freeze({
   construction: "Research construction",
@@ -8,6 +8,15 @@ export const RESEARCH_OBJECTS = Object.freeze({
   gap: "Evidence gap",
   acquisition: "Acquisition plan",
   decision: "Research decision",
+});
+
+export const RESEARCH_RELATIONSHIPS = Object.freeze({
+  constructionRequires: "requires",
+  constructionHolds: "holds",
+  constructionProposes: "proposes",
+  constructionWaitsFor: "waits for",
+  acquisitionProduces: "produces",
+  assetUnblocks: "unblocks",
 });
 
 export const RESEARCH_LIFECYCLE = Object.freeze([
@@ -23,45 +32,63 @@ export const RESEARCH_LIFECYCLE = Object.freeze([
 ]);
 
 const FACULTY_STATE = Object.freeze({
-  registered: "Safely held in the research estate",
+  held: "Held evidence",
+  queryable: "Connected and queryable",
   query_ready: "Ready for analysis",
-  "query-ready": "Ready for analysis",
-  claimed: "Collection started",
+  claimed: "Assigned to a collection worker",
+  queued: "Approved and awaiting execution",
   running: "Collection in progress",
-  queued: "Collection queued",
+  registering: "Evidence registration in progress",
+  archiving: "Evidence preservation in progress",
   pending_approval: "Waiting for your decision",
-  pending: "Waiting for your decision",
   archive_verified: "Evidence preserved",
   registry_verified: "Evidence indexed and traceable",
+  registered: "Indexed in the research estate",
+  sourceable: "Acquisition route available",
+  needs_access: "Access required",
   failed: "Needs recovery",
   blocked: "Blocked",
 });
 
-export function facultyStateLabel(value, fallback = "State not yet established") {
-  const normalized = String(value || "")
+export function normalizeResearchState(value) {
+  return String(value || "")
     .trim()
     .toLowerCase()
     .replace(/[\s-]+/g, "_");
-  return FACULTY_STATE[normalized] || fallback;
+}
+
+export function facultyStateLabel(value, authorityOrFallback = {}, fallback = "State not yet established") {
+  const authority = typeof authorityOrFallback === "object" && authorityOrFallback !== null ? authorityOrFallback : {};
+  const resolvedFallback = typeof authorityOrFallback === "string" ? authorityOrFallback : fallback;
+  const normalized = normalizeResearchState(value);
+
+  if (!normalized) return resolvedFallback;
+  if (normalized === "pending") return "Pending state; decision authority not established";
+  if (normalized === "unknown") return "State not established";
+  if (normalized === "registered" && authority.archiveVerified && authority.registryVerified) {
+    return "Verified and indexed in the research estate";
+  }
+  return FACULTY_STATE[normalized] || `${resolvedFallback}: ${normalized.replace(/_/g, " ")}`;
 }
 
 export const RESEARCH_ACTIONS = Object.freeze({
   continueConstruction: "Continue construction",
-  inspectEvidence: "Inspect evidence",
+  inspectEvidence: "Inspect evidence asset",
   startAcquisition: "Start acquisition",
   reviewAcquisition: "Review acquisition plan",
-  askAsset: "Ask about this asset",
-  askConstruction: "Ask about this construction",
-  addToConstruction: "Add to construction",
+  askAsset: "Ask about this evidence asset",
+  askConstruction: "Develop construction in Composer",
+  addToConstruction: "Add evidence to construction",
   chooseRoute: "Choose acquisition route",
   reviewDecision: "Review research decision",
+  investigateGap: "Investigate evidence gap",
+  requestExecution: "Request governed execution",
 });
 
 export function namedAction(verb, objectName) {
   const action = String(verb || "").trim();
   const object = String(objectName || "").trim();
-  if (!action) return object;
-  if (!object) return action;
+  if (!action || !object) return "Action unavailable";
   return `${action} ${object}`;
 }
 
