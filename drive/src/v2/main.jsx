@@ -25,6 +25,8 @@ import "./desktop-workbench-fixes.css";
 // Loop 7 turns Synthesis into a structured research construction.
 import "./synthesis-loop7.css";
 import "./synthesis-loop7-fixes.css";
+// Focused presentation rebuild, loaded last and judged from exact browser renders.
+import "./sol-ceiling-rebuild.css";
 import { InteractionProvider } from "./InteractionGuidance.jsx";
 import { V2App } from "./App.jsx";
 
