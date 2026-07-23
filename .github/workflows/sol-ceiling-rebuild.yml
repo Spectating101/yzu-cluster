@@ -1,0 +1,57 @@
+name: Sol ceiling rebuild
+
+on:
+  push:
+    branches: [agent/sol-ceiling-rebuild]
+  pull_request:
+    branches: [agent/rc3-semantic-research-desk]
+  workflow_dispatch:
+
+concurrency:
+  group: sol-ceiling-rebuild-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  build-and-render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium --with-deps
+
+      - name: Production build
+        run: npm run build
+        env:
+          YZU_PAGES: "false"
+
+      - name: Validate research-value contract
+        run: npm run test:research-value
+
+      - name: Render populated flagship
+        env:
+          CI: "true"
+          YZU_PAGES: "false"
+        run: |
+          mkdir -p .tmp-pw artifacts/sol-ceiling-rebuild
+          TMPDIR=$PWD/.tmp-pw npx playwright test e2e/sol-ceiling-rebuild.spec.js --reporter=line
+
+      - name: Upload flagship evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sol-ceiling-rebuild-${{ github.sha }}
+          path: |
+            artifacts/sol-ceiling-rebuild
+            test-results
+          if-no-files-found: ignore
+          retention-days: 14
