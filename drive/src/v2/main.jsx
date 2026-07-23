@@ -33,6 +33,8 @@ import "./synthesis-proxy.css";
 // Final centre authority: visual data construction rather than explanatory prose.
 import "./synthesis-proxy-instrument.css";
 import "./synthesis-proxy-pipeline.css";
+// Operational layer: selected objects expose route-backed actions.
+import "./synthesis-proxy-actions.css";
 import { InteractionProvider } from "./InteractionGuidance.jsx";
 import { V2App } from "./App.jsx";
 
