@@ -256,9 +256,26 @@ export function V2App() {
         }
         applyCatalog([], err.message);
       });
+    deskHealth(false)
+      .then((h) => {
+        setHealth(mergeHealth(h));
+        setDeskRefreshedAt(Date.now());
+      })
+      .catch(() =>
+        deskHealth(false)
+          .then((h) => {
+            setHealth(mergeHealth(h));
+            setDeskRefreshedAt(Date.now());
+          })
+          .catch(() => setHealth(mergeHealth(null))),
+      );
+    // Optional live probe — never blank the fast health if it times out.
     deskHealth(true)
-      .then((h) => setHealth(mergeHealth(h)))
-      .catch(() => deskHealth().then((h) => setHealth(mergeHealth(h))).catch(() => setHealth(mergeHealth(null))));
+      .then((h) => {
+        setHealth(mergeHealth(h));
+        setDeskRefreshedAt(Date.now());
+      })
+      .catch(() => {});
     listAcquisitions(true)
       .then((d) => setAcquisitions(d.acquisitions || []))
       .catch(() => setAcquisitions([]));
@@ -1350,15 +1367,17 @@ export function V2App() {
         )}
         onPendingClick={() => openDiscoverAwaiting()}
         deskStatus={
-          usingSeed
-            ? health?.status === "ok"
-              ? "empty"
-              : "demo"
-            : health?.status === "degraded"
-              ? "degraded"
-              : health?.status === "ok" || datasets.length > 0
-                ? "ok"
-                : health?.status || "unknown"
+          health == null
+            ? "syncing"
+            : usingSeed
+              ? health?.status === "ok"
+                ? "empty"
+                : "demo"
+              : health?.status === "degraded"
+                ? "degraded"
+                : health?.status === "ok" || datasets.length > 0
+                  ? "ok"
+                  : health?.status || "unknown"
         }
         refreshedAt={deskRefreshedAt}
         integrationChips={usingSeed ? [] : buildDeskIntegrationChips(health)}

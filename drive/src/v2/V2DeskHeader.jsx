@@ -124,6 +124,8 @@ export function V2DeskHeader({
         <div className="rd-v2-trust-strip" aria-label="Desk status" data-testid="desk-integration-strip">
           {deskStatus === "ok" ? (
             <span className="rd-v2-trust-badge ok">Live registry</span>
+          ) : deskStatus === "syncing" ? (
+            <span className="rd-v2-trust-badge muted">Syncing…</span>
           ) : deskStatus === "empty" ? (
             <span className="rd-v2-trust-badge warn">Empty registry</span>
           ) : usingSeed || deskStatus === "demo" ? (
