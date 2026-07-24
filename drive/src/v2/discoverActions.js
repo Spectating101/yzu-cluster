@@ -46,19 +46,32 @@ export function webHitsToRows(data) {
         kind: hit.kind || "web_hit",
         candidate_key: hit.candidate_key || (url ? `url:${url}` : ""),
         url,
+        confident_match: hit.confident_match,
+        relevance_score: hit.relevance_score,
+        relevance_reason: hit.relevance_reason,
+        query_match: hit.query_match,
+        source_kind: hit.source_kind,
+        route_state: hit.route_state,
       };
     });
   }
   return (data.results || []).map((hit) => {
     const url = hit.url || "";
     return {
-      kind: "web_hit",
+      ...hit,
+      kind: hit.kind || "web_hit",
       title: hit.title || hit.url || "Web source",
       url,
       source: hit.source || "web",
-      description: hit.snippet || hit.content || "",
-      publisher: hit.source || "web",
+      description: hit.snippet || hit.content || hit.description || "",
+      publisher: hit.source || hit.publisher || "web",
       candidate_key: hit.candidate_key || (url ? `url:${url}` : ""),
+      confident_match: hit.confident_match,
+      relevance_score: hit.relevance_score,
+      relevance_reason: hit.relevance_reason,
+      query_match: hit.query_match,
+      source_kind: hit.source_kind,
+      route_state: hit.route_state,
     };
   });
 }

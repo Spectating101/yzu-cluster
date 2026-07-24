@@ -50,6 +50,13 @@ export function sourceResultToCandidate(row = {}) {
     candidate_key: row.candidate_key || "",
     source_id: row.source_id || "",
     connector_id: row.connector_id || row.desk_connector_id || "",
+    // Optional BE relevance / route signals (pass-through; UI degrades when absent).
+    confident_match: row.confident_match,
+    relevance_score: row.relevance_score,
+    relevance_reason: row.relevance_reason,
+    query_match: row.query_match,
+    source_kind: row.source_kind,
+    route_state: row.route_state,
   };
 }
 

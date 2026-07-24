@@ -80,6 +80,27 @@ test("durableHistoryToEvents preserves verified registered asset identity", () =
   assert.equal(event.meta.catalog_reconciliation.query_allowed, false);
 });
 
+test("sourceResultToCandidate preserves optional relevance/route signals", () => {
+  const row = sourceResultToCandidate({
+    title: "Polling commons",
+    source_id: "polls",
+    candidate_key: "source:polls",
+    confident_match: true,
+    relevance_score: 0.88,
+    relevance_reason: "title and coverage match US polling",
+    query_match: true,
+    source_kind: "evidence_source",
+    route_state: "specific",
+  });
+  assert.equal(row.confident_match, true);
+  assert.equal(row.relevance_score, 0.88);
+  assert.equal(row.relevance_reason, "title and coverage match US polling");
+  assert.equal(row.query_match, true);
+  assert.equal(row.source_kind, "evidence_source");
+  assert.equal(row.route_state, "specific");
+  assert.equal(row.candidate_key, "source:polls");
+});
+
 test("normalizeDiscoverMode maps legacy Search/Activity to Explore/History", () => {
   assert.equal(normalizeDiscoverMode("search"), "explore");
   assert.equal(normalizeDiscoverMode("activity"), "explore");

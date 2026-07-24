@@ -8,10 +8,58 @@ import {
   loadUserEmail,
   markDeskSessionBootstrapped,
   saveChatSessionId,
-} from "@/v2/deskSession";
+} from "./deskSession.js";
 import { createRequestAbort, decodeNdjson, normalizeApiError } from "./transportContract.js";
 
-export const API = import.meta.env.DEV ? "/api" : "";
+const viteEnv = import.meta.env ?? {};
+export const API = viteEnv.DEV ? "/api" : "";
+
+/** In-flight session bootstrap shared by concurrent protected callers. */
+let deskSessionInflight = null;
+
+function deskPath(path) {
+  return String(path || "").split("?")[0];
+}
+
+function isDeskSessionPath(path) {
+  return deskPath(path) === "/library/desk/session";
+}
+
+/** Protected library routes require a desk session; the session route itself must not. */
+function requiresDeskSession(path) {
+  const bare = deskPath(path);
+  return (bare === "/library" || bare.startsWith("/library/")) && !isDeskSessionPath(bare);
+}
+
+function abortError(signal) {
+  const err = new Error(signal?.reason ? String(signal.reason) : "Aborted");
+  err.name = "AbortError";
+  return err;
+}
+
+function throwIfAborted(signal) {
+  if (signal?.aborted) throw abortError(signal);
+}
+
+/** Reject as soon as `signal` aborts; do not cancel the shared bootstrap promise. */
+function awaitWithAbort(promise, signal) {
+  if (!signal) return promise;
+  throwIfAborted(signal);
+  return new Promise((resolve, reject) => {
+    const onAbort = () => reject(abortError(signal));
+    signal.addEventListener("abort", onAbort, { once: true });
+    promise.then(
+      (value) => {
+        signal.removeEventListener("abort", onAbort);
+        resolve(value);
+      },
+      (error) => {
+        signal.removeEventListener("abort", onAbort);
+        reject(error);
+      },
+    );
+  });
+}
 
 export async function fetchJson(path, init = {}) {
   const options = deskFetchInit(init || {});
@@ -21,6 +69,18 @@ export async function fetchJson(path, init = {}) {
   if (requestAbort.signal) options.signal = requestAbort.signal;
 
   try {
+    if (requiresDeskSession(path)) {
+      throwIfAborted(options.signal);
+      const session = await awaitWithAbort(ensureDeskSession(), options.signal);
+      throwIfAborted(options.signal);
+      if (requestAbort.timedOut()) {
+        throw new Error(`Request timed out after ${timeoutMs}ms: ${path}`);
+      }
+      if (!session?.ok) {
+        throw new Error(session?.error || "Desk session bootstrap failed");
+      }
+    }
+
     const r = await fetch(`${API}${path}`, options);
     const raw = await r.text();
     let data = {};
@@ -46,22 +106,44 @@ export async function ensureDeskSession({ force = false } = {}) {
   if (!force && deskSessionBootstrapped()) {
     return { ok: true, bootstrapped: true, reused: true };
   }
+  if (!force && deskSessionInflight) {
+    return deskSessionInflight;
+  }
+
+  const run = (async () => {
+    try {
+      const data = await fetchJson("/library/desk/session", {
+        method: "POST",
+        body: JSON.stringify({}),
+      });
+      const ok = Boolean(data?.ok || data?.authorized);
+      markDeskSessionBootstrapped(ok);
+      if (!ok) {
+        return {
+          ok: false,
+          bootstrapped: false,
+          error: "Desk session bootstrap failed",
+          ...data,
+        };
+      }
+      return { ok: true, bootstrapped: true, ...data };
+    } catch (error) {
+      markDeskSessionBootstrapped(false);
+      return { ok: false, bootstrapped: false, error: String(error?.message || error) };
+    }
+  })();
+
+  deskSessionInflight = run;
   try {
-    const data = await fetchJson("/library/desk/session", {
-      method: "POST",
-      body: JSON.stringify({}),
-    });
-    const ok = Boolean(data?.ok || data?.authorized);
-    markDeskSessionBootstrapped(ok);
-    return { ok, bootstrapped: ok, ...data };
-  } catch (error) {
-    markDeskSessionBootstrapped(false);
-    return { ok: false, bootstrapped: false, error: String(error?.message || error) };
+    return await run;
+  } finally {
+    if (deskSessionInflight === run) deskSessionInflight = null;
   }
 }
 
 export async function clearDeskSession() {
   markDeskSessionBootstrapped(false);
+  deskSessionInflight = null;
   try {
     return await fetchJson("/library/desk/session", {
       method: "POST",

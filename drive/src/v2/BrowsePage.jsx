@@ -21,6 +21,12 @@ import {
   interpretEvidenceNeed,
   splitBestFitAndOthers,
 } from "@/v2/discoverComposition";
+import {
+  filterCredibleExternalRows,
+  hasRelevantSourceMatch,
+  presentDiscoverResultQuality,
+  rankExternalCatalogueRows,
+} from "@/v2/discoverResultQuality";
 import { assessLocalSufficiency } from "@/v2/discoverSufficiency";
 import { loadUserEmail } from "@/v2/deskSession";
 import { discoverDemoSearch } from "@/v2/deskSeed";
@@ -67,51 +73,6 @@ function hostLabel(value) {
   } catch {
     return "";
   }
-}
-
-function meaningfulQueryTerms(query) {
-  return interpretEvidenceNeed(query).tokens
-    .map((token) => String(token || "").toLowerCase())
-    .filter((token) => token.length >= 3);
-}
-
-function candidateSearchText(row) {
-  return [
-    row?.title,
-    row?.name,
-    row?.source,
-    row?.publisher,
-    row?.description,
-    row?.recommended_use,
-    ...(Array.isArray(row?.capabilities) ? row.capabilities : []),
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase();
-}
-
-function hasSpecificSourceRoute(rows, query) {
-  const terms = meaningfulQueryTerms(query);
-  if (!terms.length) return true;
-  return (rows || []).some((row) => {
-    const text = candidateSearchText(row);
-    return terms.some((term) => text.includes(term));
-  });
-}
-
-function rankExternalCatalogueRows(rows, query) {
-  const terms = meaningfulQueryTerms(query);
-  return [...(rows || [])].sort((left, right) => {
-    const score = (row) => {
-      const title = String(row?.title || "").toLowerCase();
-      const text = candidateSearchText(row);
-      return terms.reduce(
-        (total, term) => total + (title.includes(term) ? 8 : 0) + (text.includes(term) ? 2 : 0),
-        0,
-      );
-    };
-    return score(right) - score(left);
-  });
 }
 
 function DiscoverModeTabs({ mode = "explore", pendingCount = 0, onChange }) {
@@ -320,14 +281,18 @@ export function BrowsePage({
         }
         if (externalSearchActive) {
           const web = await webDiscover(q, 8);
-          const webRows = rankExternalCatalogueRows(webHitsToRows(web), q);
+          const webRows = rankExternalCatalogueRows(
+            filterCredibleExternalRows(webHitsToRows(web), q),
+            q,
+          );
           if (webRows.length) {
             apply({ sections: [{ id: "external_catalogues", rows: webRows }] }, "external_catalogues");
             setIndexMiss(Boolean(web.index_miss));
             return;
           }
+          // Keep raw weak hits out of the list; presentation layer shows empty/next-action.
+          apply({ sections: [{ id: "external_catalogues", rows: [] }] }, "external_catalogues");
           setIndexMiss(true);
-          setRows([]);
           return;
         }
         // Prefer Explore sources contract (semantic hybrid), escalate to live adapters
@@ -369,10 +334,13 @@ export function BrowsePage({
             // A capability route is not an evidence match. When the source
             // catalogue cannot name a route that actually matches the need,
             // consult the external catalogue before showing generic providers.
-            if (!hasSpecificSourceRoute(sourceRows, q)) {
+            if (!hasRelevantSourceMatch(sourceRows, q)) {
               try {
                 const web = await webDiscover(q, 8);
-                const webRows = rankExternalCatalogueRows(webHitsToRows(web), q);
+                const webRows = rankExternalCatalogueRows(
+                  filterCredibleExternalRows(webHitsToRows(web), q),
+                  q,
+                );
                 if (webRows.length) {
                   apply({ sections: [{ id: "external_catalogues", rows: webRows }] }, "external_catalogues");
                   setIndexMiss(Boolean(web.index_miss));
@@ -420,7 +388,7 @@ export function BrowsePage({
 
         if (mergedRows.length && !hasAcquireCandidate && q) {
           const web = await webDiscover(q, 8);
-          const webRows = webHitsToRows(web);
+          const webRows = filterCredibleExternalRows(webHitsToRows(web), q);
           if (webRows.length) {
             mergedRows = dedupeRows([...mergedRows, ...webRows]);
             if (!label) label = "web";
@@ -440,9 +408,12 @@ export function BrowsePage({
         }
 
         const web = await webDiscover(q, 8);
-        const webRows = webHitsToRows(web);
+        const webRows = rankExternalCatalogueRows(
+          filterCredibleExternalRows(webHitsToRows(web), q),
+          q,
+        );
         if (webRows.length) {
-          apply({ sections: [{ id: "web", rows: webRows }] }, "web");
+          apply({ sections: [{ id: "external_catalogues", rows: webRows }] }, "external_catalogues");
           setIndexMiss(false);
           return;
         }
@@ -518,8 +489,21 @@ export function BrowsePage({
     });
   }, [merged, stateFilter, labIds]);
 
-  const ranked = useMemo(() => splitBestFitAndOthers(filtered), [filtered]);
   const interpretation = useMemo(() => interpretEvidenceNeed(searchQuery), [searchQuery]);
+  const resultQuality = useMemo(
+    () =>
+      presentDiscoverResultQuality({
+        rows: filtered,
+        query: searchQuery,
+        source,
+        externalSearchActive: Boolean((searchQuery || "").trim() && externalSearchQuery === (searchQuery || "").trim()),
+      }),
+    [filtered, searchQuery, source, externalSearchQuery],
+  );
+  const qualityRanked = useMemo(
+    () => splitBestFitAndOthers(resultQuality.displayRows),
+    [resultQuality.displayRows],
+  );
 
   const filterCounts = useMemo(
     () =>
@@ -553,13 +537,13 @@ export function BrowsePage({
   const scopeSummary = resultScopeSummary(stageCounts);
   const activeFilter = FILTERS.find((item) => item.id === stateFilter) || FILTERS[0];
   const externalSearchActive = Boolean(q && externalSearchQuery === q);
-  const externalCatalogueActive = externalSearchActive || source === "external_catalogues";
-  const sourceRouteGap =
+  const externalCatalogueActive = resultQuality.kind === "external_catalogue_matches";
+  const sourceRouteGap = resultQuality.showRouteGapBanner && !loading;
+  const showCredibleEmpty =
     !loading &&
-    !externalSearchActive &&
-    source === "sources" &&
-    merged.length > 0 &&
-    !hasSpecificSourceRoute(merged, q);
+    !error &&
+    resultQuality.kind === "empty" &&
+    (externalSearchActive || source === "external_catalogues" || source === "web");
 
   const modeTabs = (
     <DiscoverModeTabs
@@ -723,7 +707,7 @@ export function BrowsePage({
             ) : null}
 
             {sourceRouteGap ? (
-              <section className="rd-v2-discover-route-gap" aria-label="No specific source route match">
+              <section className="rd-v2-discover-route-gap" aria-label="No specific source route match" data-testid="discover-route-gap">
                 <div>
                   <span className="rd-v2-eyebrow">No direct route match</span>
                   <strong>No current lab source route specifically matches “{q}”.</strong>
@@ -735,7 +719,35 @@ export function BrowsePage({
               </section>
             ) : null}
 
-            {!loading && !error && filtered.length === 0 ? (
+            {showCredibleEmpty ? (
+              <div className="rd-v2-discover-miss" data-testid="discover-credible-empty">
+                <p className="rd-v2-empty-inline">{resultQuality.emptyMessage}</p>
+                <div className="rd-v2-discover-expand-search">
+                  <div>
+                    <strong>Next step</strong>
+                    <span>Refine the evidence need, or return to available lab routes without treating them as matches.</span>
+                  </div>
+                  {onSuggestSearch ? (
+                    <button
+                      type="button"
+                      className="rd-v2-btn sm"
+                      onClick={() => {
+                        setExternalSearchQuery("");
+                        onSuggestSearch(q);
+                      }}
+                    >
+                      Back to lab routes
+                    </button>
+                  ) : (
+                    <button type="button" className="rd-v2-btn sm" onClick={() => setExternalSearchQuery("")}>
+                      Back to lab routes
+                    </button>
+                  )}
+                </div>
+              </div>
+            ) : null}
+
+            {!loading && !error && !showCredibleEmpty && filtered.length === 0 ? (
               <div className="rd-v2-discover-miss">
                 <p className="rd-v2-empty-inline">
                   No {stateFilter === "all" ? "" : `${activeFilter.label.toLowerCase()} `}matches for “{q}”
@@ -749,18 +761,25 @@ export function BrowsePage({
               </div>
             ) : null}
 
-            {ranked.bestFit ? (
-              <section className="rd-v2-discover-best-fit" aria-label="Best fit" data-testid="discover-best-fit">
+            {qualityRanked.bestFit ? (
+              <section
+                className="rd-v2-discover-best-fit"
+                aria-label={resultQuality.sectionTitle || "Relevant source matches"}
+                data-testid="discover-best-fit"
+                data-result-kind={resultQuality.kind}
+              >
                 <div className="rd-v2-home-section-head">
-                  <h3>{externalCatalogueActive ? "External catalogue matches" : sourceRouteGap ? "Available lab routes" : "Best fit"}</h3>
+                  <h3>{resultQuality.sectionTitle}</h3>
                   {externalCatalogueActive ? (
-                    <span className="muted">{plural(ranked.total, "external catalogue record")}</span>
-                  ) : scopeSummary ? (
+                    <span className="muted">{plural(qualityRanked.total, "external catalogue record")}</span>
+                  ) : scopeSummary && resultQuality.kind === "relevant_source_matches" ? (
                     <span className="muted">{scopeSummary}</span>
+                  ) : resultQuality.kind === "available_lab_routes" ? (
+                    <span className="muted">{plural(qualityRanked.total, "available lab route")}</span>
                   ) : null}
                 </div>
                 <DiscoverCandidateList
-                  rows={[ranked.bestFit]}
+                  rows={[qualityRanked.bestFit]}
                   labIds={labIds}
                   selectedId={selectedId}
                   onSelectRow={onSelectRow}
@@ -769,13 +788,13 @@ export function BrowsePage({
               </section>
             ) : null}
 
-            {ranked.others.length ? (
-              <section className="rd-v2-discover-other-matches" aria-label="Other matches" data-testid="discover-other-matches">
+            {qualityRanked.others.length ? (
+              <section className="rd-v2-discover-other-matches" aria-label={resultQuality.otherSectionTitle || "Other matches"} data-testid="discover-other-matches">
                 <div className="rd-v2-home-section-head">
-                  <h3>{externalCatalogueActive ? "Other catalogue records" : "Other matches"}</h3>
+                  <h3>{resultQuality.otherSectionTitle || "Other matches"}</h3>
                 </div>
                 <DiscoverCandidateList
-                  rows={ranked.others}
+                  rows={qualityRanked.others}
                   labIds={labIds}
                   selectedId={selectedId}
                   onSelectRow={onSelectRow}
@@ -784,16 +803,17 @@ export function BrowsePage({
               </section>
             ) : null}
 
-            {ranked.total ? (
+            {qualityRanked.total ? (
               <footer className="rd-v2-discover-rank-foot" data-testid="discover-rank-foot">
                 <span>
-                  {plural(ranked.total, "candidate")}
+                  {plural(qualityRanked.total, "candidate")}
                   {stateFilter !== "all" ? ` · ${activeFilter.label}` : ""}
                 </span>
                 <span className="muted">
-                  {externalCatalogueActive
-                    ? "Ordered by title and description match to this question"
-                    : "Ranked using active research + interpreted evidence need"}
+                  {resultQuality.footNote ||
+                    (externalCatalogueActive
+                      ? "Ordered by title and description match to this question"
+                      : "Ranked using active research + interpreted evidence need")}
                 </span>
               </footer>
             ) : null}
