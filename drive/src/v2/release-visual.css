@@ -391,13 +391,31 @@
 }
 
 .rd-v2-rail-toggle {
-  background: #f1f3f8;
+  background: #eef1ee;
+  border-radius: 999px;
+  padding: 3px;
+  gap: 2px;
 }
 
+.rd-v2-rail-toggle button {
+  border: 0;
+  background: transparent;
+  color: #6e7685;
+  box-shadow: none;
+}
+
+.rd-v2-rail-toggle button:hover {
+  background: rgba(16, 24, 32, 0.05);
+  color: #182033;
+}
+
+/* Active tab = ink pill (same whether Detail or Ask is selected) */
 .rd-v2-rail-toggle button.on {
-  color: #101820;
-  background: #fff;
-  box-shadow: 0 4px 14px rgba(35, 48, 128, 0.10);
+  color: #fff;
+  background: #101820;
+  border-color: #101820;
+  box-shadow: none;
+  font-weight: 650;
 }
 
 .rd-v2-rail-selection {
@@ -2112,4 +2130,140 @@ a.rd-v2-link {
 .rd-v2-chip.on {
   border-color: var(--rd-active-border, #c5d2cb);
   background: var(--rd-active-bg, #eef1ee);
+}
+
+/* ── Detail | Ask rail parity ───────────────────────────────────
+   Detail uses ehead + section cards + sticky CTAs.
+   Ask reused a shorter head + chat chrome, so the toggle felt like
+   two different products. Align Ask to the same desk rhythm. */
+.rd-v2-rail:has(.rd-v2-ask-rail.rd-v2-rail-pane-on) .rd-v2-rail-selection {
+  display: none;
+}
+
+.rd-v2-ask-head {
+  padding: 18px 18px 14px;
+  border-bottom: 1px solid var(--rd-border, #e2ddd2);
+  background: var(--rd-surface, #fcfcf0);
+}
+
+.rd-v2-ask-head-eyebrow {
+  margin: 0 0 6px;
+  color: var(--rd-muted, #6e7685);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.rd-v2-ask-head strong {
+  display: block;
+  margin: 0 0 6px;
+  color: var(--rd-text, #182033);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.rd-v2-ask-ctx {
+  margin: 0;
+  color: var(--rd-muted, #6e7685);
+  font-size: 11.5px;
+  line-height: 1.4;
+  font-family: var(--rd-font);
+  letter-spacing: 0;
+}
+
+.rd-v2-ask-messages {
+  padding: 14px 16px 18px;
+  gap: 12px;
+}
+
+.rd-v2-ask-guided-empty {
+  margin: 0;
+  padding: 14px 14px 12px;
+  border: 1px solid var(--rd-border, #e2ddd2);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.rd-v2-ask-input {
+  padding: 10px 14px 14px;
+  border-top: 1px solid var(--rd-border, #e2ddd2);
+  background: linear-gradient(180deg, rgba(252, 252, 240, 0), var(--rd-surface, #fcfcf0) 28%);
+}
+
+.rd-v2-rail .rd-v2-ask-input {
+  background: linear-gradient(180deg, rgba(252, 252, 240, 0), var(--rd-surface, #fcfcf0) 28%);
+  border-top-color: var(--rd-border, #e2ddd2);
+}
+
+.rd-v2-rail .rd-v2-ask-input textarea {
+  border-color: var(--rd-border2, #d2ccc0);
+  background: #fff;
+  color: var(--rd-text, #182033);
+  min-height: 64px;
+  border-radius: 12px;
+}
+
+.rd-v2-rail .rd-v2-ask-input textarea:focus {
+  border-color: #101820;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(16, 24, 32, 0.08);
+}
+
+.rd-v2-rail .rd-v2-ask-bubble:not(.agent):not(.error) {
+  background: #101820;
+  color: #fcfcf0;
+}
+
+.rd-v2-rail .rd-v2-ask-bubble.agent {
+  background: #fff;
+  border: 1px solid var(--rd-border, #e2ddd2);
+  color: var(--rd-body, #3e4759);
+}
+
+.rd-v2-ask-bubble {
+  display: grid;
+  gap: 6px;
+  max-width: 100%;
+}
+
+.rd-v2-ask-bubble-role {
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: inherit;
+  opacity: 0.62;
+}
+
+.rd-v2-ask-bubble-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}
+
+.rd-v2-ask-bubble-text strong {
+  color: var(--rd-text, #182033);
+  font-weight: 700;
+}
+
+.rd-v2-ask-bubble:not(.agent):not(.error) .rd-v2-ask-bubble-text strong {
+  color: #fcfcf0;
+}
+
+.rd-v2-ask-bubble-text code {
+  font-family: var(--rd-mono);
+  font-size: 0.92em;
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: rgba(16, 24, 32, 0.06);
+}
+
+.rd-v2-ask-phases {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(16, 24, 32, 0.04);
 }

@@ -3,6 +3,8 @@ import { LoaderCircle } from "lucide-react";
 import { GuidedState, ProgressSteps } from "@/v2/InteractionFeedback";
 import { useAskChat } from "@/v2/useAskChat";
 import { handleEnterToSubmit } from "@/v2/enterToSubmit";
+import { formatAskText } from "@/v2/askText.jsx";
+import { displayName } from "@/v2/datasetMeta";
 
 export function AskRail({
   dataset,
@@ -92,10 +94,17 @@ export function AskRail({
               ? ctxParts.join(" · ")
               : "Select a dataset for grounded answers";
 
+  const askEntityTitle =
+    (dataset?.dataset_id || dataset?.title
+      ? displayName(dataset) || dataset?.title || dataset?.dataset_id
+      : "") ||
+    (isProfile ? profileContext : isSynthesis ? synthesisContext : "");
+
   return (
     <div className="rd-v2-ask-shell">
       <header className="rd-v2-ask-head">
-        <strong>{railTitle}</strong>
+        <p className="rd-v2-ask-head-eyebrow">{railTitle}</p>
+        <strong>{askEntityTitle || "Ask"}</strong>
         <p className="rd-v2-ask-ctx">{railSubtitle}</p>
       </header>
       <div className="rd-v2-ask-messages" data-testid="ask-messages" aria-busy={busy}>
@@ -207,12 +216,17 @@ export function AskRail({
                 >
                   {m.role === "user" ? (
                     <>
-                      <strong>You:</strong> {m.text}
+                      <span className="rd-v2-ask-bubble-role">You</span>
+                      <div className="rd-v2-ask-bubble-text">{formatAskText(m.text)}</div>
                     </>
                   ) : m.role === "error" ? (
-                    m.text
+                    <>
+                      <span className="rd-v2-ask-bubble-role">Error</span>
+                      <div className="rd-v2-ask-bubble-text">{formatAskText(m.text)}</div>
+                    </>
                   ) : (
                     <>
+                      <span className="rd-v2-ask-bubble-role">Agent</span>
                       {!m.streaming && m.intent !== "status" && m.activityLog?.length ? (
                         <ol className="rd-v2-ask-phases" data-testid="ask-tool-phases" aria-label="Agent tool activity">
                           {m.activityLog
@@ -231,7 +245,7 @@ export function AskRail({
                       ) : !m.streaming && m.intent !== "status" && m.activity ? (
                         <p className="muted small">{m.activity}</p>
                       ) : null}
-                      <strong>Agent:</strong> {m.text}
+                      <div className="rd-v2-ask-bubble-text">{formatAskText(m.text)}</div>
                       {(() => {
                         if (m.intent === "status") return null;
                         const meta = [m.toolName, m.action]
