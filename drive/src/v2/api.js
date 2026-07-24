@@ -8,10 +8,13 @@ import {
   loadUserEmail,
   markDeskSessionBootstrapped,
   saveChatSessionId,
-} from "@/v2/deskSession";
+} from "./deskSession.js";
 import { createRequestAbort, decodeNdjson, normalizeApiError } from "./transportContract.js";
 
-export const API = import.meta.env.DEV ? "/api" : "";
+export const API = import.meta.env?.DEV ? "/api" : "";
+
+/** In-flight bootstrap shared by concurrent callers (App + useAskChat warm). */
+let ensureDeskSessionInflight = null;
 
 export async function fetchJson(path, init = {}) {
   const options = deskFetchInit(init || {});
@@ -41,11 +44,7 @@ export async function fetchJson(path, init = {}) {
   }
 }
 
-/** Same-origin HttpOnly desk session — no DevTools token injection required. */
-export async function ensureDeskSession({ force = false } = {}) {
-  if (!force && deskSessionBootstrapped()) {
-    return { ok: true, bootstrapped: true, reused: true };
-  }
+async function postDeskSessionBootstrap() {
   try {
     const data = await fetchJson("/library/desk/session", {
       method: "POST",
@@ -60,7 +59,28 @@ export async function ensureDeskSession({ force = false } = {}) {
   }
 }
 
+/** Same-origin HttpOnly desk session — no DevTools token injection required. */
+export async function ensureDeskSession({ force = false } = {}) {
+  if (!force && deskSessionBootstrapped()) {
+    return { ok: true, bootstrapped: true, reused: true };
+  }
+  if (!force && ensureDeskSessionInflight) {
+    return ensureDeskSessionInflight;
+  }
+
+  const task = postDeskSessionBootstrap();
+  ensureDeskSessionInflight = task;
+  try {
+    return await task;
+  } finally {
+    if (ensureDeskSessionInflight === task) {
+      ensureDeskSessionInflight = null;
+    }
+  }
+}
+
 export async function clearDeskSession() {
+  ensureDeskSessionInflight = null;
   markDeskSessionBootstrapped(false);
   try {
     return await fetchJson("/library/desk/session", {
@@ -303,7 +323,21 @@ export function approveJob(jobId) {
   });
 }
 
-export function deskWarm({ sessionId, userEmail, background = true } = {}) {
+/**
+ * Warm desk caches. Always waits for a deduplicated successful ensureDeskSession
+ * before POSTing /library/desk/warm — callers (App, useAskChat) must not race the cookie.
+ * Does not recurse: ensureDeskSession only hits /library/desk/session.
+ */
+export async function deskWarm({ sessionId, userEmail, background = true } = {}) {
+  const session = await ensureDeskSession();
+  if (!session?.ok) {
+    return {
+      ok: false,
+      skipped: true,
+      reason: "desk_session_unavailable",
+      error: session?.error || "desk session bootstrap failed",
+    };
+  }
   return fetchJson("/library/desk/warm", {
     method: "POST",
     headers: deskHeaders(),
