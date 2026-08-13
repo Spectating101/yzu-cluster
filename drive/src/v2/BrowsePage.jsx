@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { discoverSearch, discoverSources, webDiscover } from "@/v2/api";
+import { discoverCollectRoutes, discoverSearch, discoverSources, libraryPartitions, webDiscover } from "@/v2/api";
 import { sourcesResponseToRows } from "@/v2/discoverAdapters";
 import { DiscoverHistoryPanel } from "@/v2/DiscoverHistoryPanel";
 import { jobToCandidateRow, pendingApprovalJobs } from "@/v2/procurementJobs";
 import {
   classifyDiscoverResult,
   coverageLine,
+  routeDisplayName,
   descriptiveLine,
   discoverCandidateState,
   exceptionalRowPill,
@@ -14,13 +15,21 @@ import {
   taxonomyMatchesFilter,
   taxonomyStageCounts,
 } from "@/v2/browseMeta";
+import { isHeldRow, readinessMark } from "@/v2/readinessMark";
+import { SORTS, sortRows } from "@/v2/sortRows";
 import { discoverCandidateUrl, webHitsToRows } from "@/v2/discoverActions";
 import { candidateKey, isCandidateQueued, withCandidateKey } from "@/v2/candidateKey";
 import { buildDiscoverLifecycle, projectDiscoverCandidateLifecycle } from "@/v2/discoverLifecycle";
 import {
   interpretEvidenceNeed,
 } from "@/v2/discoverComposition";
-import { assessLocalSufficiency } from "@/v2/discoverSufficiency";
+import {
+  evidencePlacement,
+  evidenceWhy,
+  isMaterialLibraryRelation,
+  PLACEMENT,
+  placementLabel,
+} from "@/v2/evidencePlacement";
 import { loadUserEmail } from "@/v2/deskSession";
 import { discoverDemoSearch } from "@/v2/deskSeed";
 import { DiscoverIntentWorkspace } from "@/v2/DiscoverIntentWorkspace";
@@ -30,6 +39,7 @@ import {
   hasSpecificDiscoverRoute,
 } from "@/v2/discoverQuerySpecificity";
 import { Chip, PageShell, SourceRibbon } from "@/v2/ui";
+import { groupCatalogueVariants } from "@/v2/catalogueVariants";
 
 const FILTERS = [
   { id: "all", label: "All results" },
@@ -65,32 +75,71 @@ function offeringType(row, taxonomy) {
   return "Dataset";
 }
 
-function accessLabel(taxonomy) {
+/** The declared collection route, named.
+ *
+ * Every acquirable offering said "Collection route declared", so the phrase
+ * repeated down the whole list and distinguished nothing -- the generic
+ * per-source string the adaptive freeze §13 tells us not to reintroduce.
+ * `collect_via` already records which route, so name it. Only the rendering
+ * changes; the claim ("a route is declared") is the same one. */
+function routeLabel(row) {
+  const raw = Array.isArray(row?.collect_via) ? row.collect_via[0] : row?.collect_via;
+  const named = routeDisplayName(raw);
+  return named ? `Collect via ${named}` : "Collection route declared";
+}
+
+/** Bytes on disk, in the units a reader thinks in.
+ *
+ * Measured by dataset_scale_probe, never estimated. A row with no measurement
+ * renders no scale cell at all rather than a zero or a guess -- an unreachable
+ * or shared path is an absence of knowledge, not a size of nothing. */
+function formatSize(bytes) {
+  const n = Number(bytes);
+  if (!Number.isFinite(n) || n <= 0) return "";
+  if (n < 1024) return `${n} B`;
+  const units = ["KB", "MB", "GB", "TB"];
+  let value = n / 1024;
+  let unit = 0;
+  while (value >= 1024 && unit < units.length - 1) {
+    value /= 1024;
+    unit += 1;
+  }
+  return `${value >= 100 ? Math.round(value) : value.toFixed(1)} ${units[unit]}`;
+}
+
+function accessLabel(taxonomy, row, labIds) {
+  const placement = evidencePlacement(row, labIds);
+  if (placement === PLACEMENT.HELD) {
+    if (taxonomy?.key === "local-query-ready") return "In Library · Query-ready";
+    return placementLabel(PLACEMENT.HELD);
+  }
   switch (taxonomy?.key) {
-    case "local-query-ready":
-      return "In your Library · Query-ready declared";
     case "external-discoverable":
       return "Access not verified";
     case "external-probed":
       return "Probe observed";
     case "external-acquirable":
-      return "Collection route declared";
+      return routeLabel(row);
     case "external-unavailable":
       return "No supported route";
     case "licensed-manual":
       return "Access review required";
     default:
-      return taxonomy?.label || "State not recorded";
+      return placementLabel(placement) || taxonomy?.label || "";
   }
 }
 
 function libraryFacingSufficiency(value) {
-  return String(value || "")
+  // Never surface "no alternative" / comparison-unknown scaffolding — those
+  // were FE-invented judgments without a backend contract.
+  const raw = String(value || "");
+  if (/no local alternative|no library alternative|comparison unavailable/i.test(raw)) {
+    return "";
+  }
+  return raw
     .replaceAll("Exact local match", "Exact Library match")
     .replaceAll("Partial local coverage", "Partial Library coverage")
     .replaceAll("Related lab asset", "Related Library asset")
-    .replaceAll("No local alternative found", "No Library alternative found")
-    .replaceAll("Local comparison unavailable", "Library comparison unavailable")
     .replaceAll("In lab", "In Library");
 }
 
@@ -168,17 +217,28 @@ function DiscoverCandidateRow({
   const selected = selectedId === candidateKey(row);
   const ribbonSource =
     row.source || row.collect_via || row.source_route || row.publisher || row.backend || hostLabel(row.url);
-  const taxonomyLine = accessLabel(taxonomy);
+  const taxonomyLine = accessLabel(taxonomy, row, labIds);
   const exceptionPill = exceptionalRowPill(row, taxonomy, state);
+  const whyLine = evidenceWhy(row);
+  const materialSufficiencyLine = libraryFacingSufficiency(row.discover_sufficiency?.browseLine);
   const showSufficiency =
-    !externalCatalogue && Number(taxonomy.group) >= 3 && row.discover_sufficiency?.browseLine;
+    !externalCatalogue
+    && Number(taxonomy.group) >= 3
+    && isMaterialLibraryRelation(row.discover_sufficiency?.state)
+    && Boolean(materialSufficiencyLine);
+  // States that mean the lab already holds something relevant, so collecting
+  // may be unnecessary. These get a highlighted line; the rest stay inline.
+  const readinessBadge = readinessMark(row);
+  const recommendedUse = String(row?.recommended_use || "").trim().slice(0, 150);
+
   const hasExplicitDescription = Boolean(
-    String(row?.description || row?.recommended_use || row?.subtitle || "").trim(),
+    String(row?.description || row?.one_line || row?.recommended_use || row?.subtitle || "").trim(),
   );
   const evidenceLine = hasExplicitDescription ? humanizeDiscoverDescription(descriptiveLine(row)) : "";
   const coverage = coverageLine(row);
   const showCoverage = coverage && coverage !== "Coverage not described";
-  const canAdd = !taxonomy.key.startsWith("local-")
+  const canAdd = evidencePlacement(row, labIds) !== PLACEMENT.HELD
+    && !taxonomy.key.startsWith("local-")
     && !["Reference only", "Web context"].includes(offeringType(row, taxonomy))
     && typeof onAdd === "function";
 
@@ -188,45 +248,93 @@ function DiscoverCandidateRow({
         type="button"
         className={`row rd-v2-discover-candidate${selected ? " selected" : ""}${exceptionPill ? " has-exception" : ""}`}
         data-kind={taxonomy.key}
+        data-placement={evidencePlacement(row, labIds)}
         data-state={state.key}
         data-sufficiency={showSufficiency ? row.discover_sufficiency.state : undefined}
         aria-pressed={selected}
         onClick={() => onSelectRow(row)}
       >
-        <span className="rd-v2-discover-candidate-source">
-          <SourceRibbon source={ribbonSource} />
-          {exceptionPill ? (
-            <span className={`rd-v2-pill ${exceptionPill.className}`}>{exceptionPill.label}</span>
-          ) : null}
-        </span>
         <span className="rd-v2-discover-candidate-main">
           <span className="rd-v2-discover-candidate-heading">
+            <SourceRibbon source={ribbonSource} />
             <strong className="rd-v2-discover-candidate-title">
-              {selected ? (
-                <span className="rd-v2-discover-selected-mark" aria-hidden="true">
+              {selected || isHeldRow(row, labIds) ? (
+                <span
+                  className={`rd-v2-discover-selected-mark${
+                    isHeldRow(row, labIds) ? " is-held" : ""
+                  }`}
+                  aria-hidden="true"
+                >
                   ▌
                 </span>
               ) : null}
               {candidateTitle(row)}
             </strong>
-            <em className="rd-v2-discover-possession">{taxonomyLine}</em>
+            {exceptionPill ? (
+              <span className={`rd-v2-pill ${exceptionPill.className}`}>{exceptionPill.label}</span>
+            ) : null}
+            {readinessBadge ? (
+              <em className={`rd-v2-discover-readiness is-${readinessBadge.tone}`}>
+                {readinessBadge.label}
+              </em>
+            ) : null}
           </span>
-          {evidenceLine ? <span className="rd-v2-discover-evidence">{evidenceLine}</span> : null}
+          {/* Backend why only — catalog reader / author sentence. Never canned
+              semantic wallpaper ("matched on meaning, not wording"). */}
+          {whyLine ? (
+            <span className="rd-v2-discover-why" data-testid="discover-why">
+              <b>why</b> {whyLine}
+            </span>
+          ) : null}
+          {/* Every offering states what it contains (adaptive freeze §3, §12).
+              When the source map records no capability we say so rather than
+              rendering a blank line -- UI_PRODUCT_AUTHORITY §15 gives
+              "Description not recorded" as the authority-backed fallback. */}
+          <span className={`rd-v2-discover-evidence${evidenceLine ? "" : " is-missing"}`}>
+            {evidenceLine || "Description not recorded"}
+          </span>
+          {/* "Dataset · catalog_harvest" is the desk's own vocabulary and says
+              nothing a researcher can act on. Keep the offering type only when
+              it changes what you can do with the row (a reference or a
+              connector is not a downloadable dataset), and lead with coverage,
+              which is what the field shows. */}
+          {/* Adaptive freeze §3 row grammar: one facts line carrying
+              type · coverage · access/route state · local relationship.
+              The route state used to float right in green on every row
+              ("Collection route declared" three times over), and the local
+              relationship occupied a third line behind a "LIBRARY COMPARISON"
+              label. Neither is a heading; both are facts about this offering. */}
           <span className="rd-v2-discover-offering-facts">
             {[
-              offeringType(row, taxonomy),
+              ["Reference only", "Web context", "Connector"].includes(offeringType(row, taxonomy))
+                ? offeringType(row, taxonomy)
+                : null,
               showCoverage ? coverage : null,
               row?.refresh_frequency || row?.refresh || row?.update_frequency,
-              row?.probe_snapshot?.observed_at ? "Observed probe" : null,
+              taxonomyLine,
             ].filter(Boolean).join(" · ")}
           </span>
+          {/* Only material Library relationships (exact/partial/related). Never
+              invent "No Library alternative" — that was FE scaffolding. */}
           {showSufficiency ? (
             <span
               className={`rd-v2-discover-sufficiency rd-v2-discover-sufficiency-${row.discover_sufficiency.state}`}
               data-testid="discover-sufficiency-line"
             >
-              {libraryFacingSufficiency(row.discover_sufficiency.browseLine)}
+              {materialSufficiencyLine}
             </span>
+          ) : null}
+        </span>
+        {/* Scale column. How much of it there is -- the thing every comparable
+            product shows and this list did not, so a 412-byte probe snapshot
+            and a 181MB panel looked identical. Rendered only when measured. */}
+        <span className="rd-v2-discover-candidate-scale">
+          {formatSize(row?.size_bytes) ? (
+            <>
+              <b>{formatSize(row.size_bytes)}</b>
+              {row?.file_count > 1 ? <i>{row.file_count} files</i> : null}
+              {row?.size_partial ? <i>partial scan</i> : null}
+            </>
           ) : null}
         </span>
       </button>
@@ -239,7 +347,7 @@ function DiscoverCandidateRow({
             onAdd(row);
           }}
         >
-          Add to collection
+          {readinessBadge?.state === "route" ? "Request collection" : "Add to collection"}
         </button>
       ) : null}
     </li>
@@ -293,7 +401,10 @@ function DiscoverQueryComposer({
       <button type="submit" className="rd-v2-btn sm primary">
         Explore
       </button>
-      <p>
+      {/* Teaching copy earns its space before the first search and not after.
+          Once results are on screen it competes with them, and the researcher
+          has already demonstrated they know how to run a query. */}
+      <p hidden={!idle}>
         Keywords return fast results. A research question also starts a contextual Ask investigation automatically.
       </p>
       {/* VC-5: two compact examples teach the one-composer behaviour by
@@ -506,6 +617,106 @@ function DiscoverRouteComparison({
   );
 }
 
+const LIBRARY_PAGE = 7;
+
+/**
+ * Dense held-dataset list for the Library evidence chrome popover.
+ *
+ * Adaptive freeze (2026-07-28): held evidence is compact chrome, not the
+ * permanent centre canvas. External Available offerings stay primary; this
+ * list is the bounded popover preview behind `Library evidence · N`.
+ */
+function LibraryResultList({ rows, labIds, selectedId, onSelectRow }) {
+  const [expanded, setExpanded] = useState(false);
+  const [openKey, setOpenKey] = useState("");
+  const shown = expanded ? rows : rows.slice(0, LIBRARY_PAGE);
+  const rest = rows.length - shown.length;
+  return (
+    <>
+      <ul className="rd-v2-library-rows" aria-label="Datasets in your Library">
+        {shown.map((row) => {
+          const key = candidateKey(row);
+          const ready = Boolean(row.local_ready);
+          const geo = Number(row.geography_count || 0);
+          const open = openKey === key;
+            return (
+            <li key={key} className={selectedId === key ? "rd-v2-row-on" : undefined}>
+              <button
+                type="button"
+                className="rd-v2-library-row"
+                aria-expanded={open}
+                onClick={() => {
+                  setOpenKey(open ? "" : key);
+                  onSelectRow?.(row);
+                }}
+              >
+                {/* Title first, metadata as a byline beneath -- the row shape
+                    every dataset search converges on, because a reader scans
+                    names and only then checks whether the grain and period fit.
+                    A fixed column grid forced empty cells: time_range and
+                    geography are undeclared on most rows, so two of five
+                    columns rendered "—" on every line. A byline simply omits
+                    what is not known. */}
+                <span className={`rd-v2-library-mark${ready ? " on" : ""}`} aria-hidden="true">
+                  {ready ? "✓" : "○"}
+                </span>
+                <span className="rd-v2-library-main">
+                  <span className="rd-v2-library-title">
+                    {row.display_name || row.title || row.dataset_id}
+                  </span>
+                  {row.one_line ? (
+                    <span className="rd-v2-library-snippet">{row.one_line}</span>
+                  ) : null}
+                  <span className="rd-v2-library-byline">
+                    {[
+                      ready ? "query-ready" : "not query-ready",
+                      row.time_range,
+                      geo ? `${geo} countries` : null,
+                      row._variants?.length > 1 ? `${row._variants.length} scales` : null,
+                      (row.tags || []).slice(0, 3).join(" · ") || null,
+                      row.probed_at ? `checked ${String(row.probed_at).slice(0, 10)}` : null,
+                    ].filter(Boolean).join("  ·  ")}
+                  </span>
+                </span>
+                <span className="rd-v2-library-chev" aria-hidden="true">▸</span>
+              </button>
+              {open ? (
+                <span className="rd-v2-library-detail">
+                  {evidenceWhy(row) ? (
+                    <span className="rd-v2-discover-why">
+                      <b>why</b> {evidenceWhy(row)}
+                    </span>
+                  ) : null}
+                  {/* The id belongs here, not in the headline: it is what you
+                      copy into a query, needed once you have chosen the row. */}
+                  <code className="rd-v2-library-idcode">{row.dataset_id}</code>
+                </span>
+              ) : null}
+            </li>
+          );
+        })}
+      </ul>
+      {rest > 0 ? (
+        <button type="button" className="rd-v2-btn sm rd-v2-library-more" onClick={() => setExpanded(true)}>
+          … {rest} more — Show all
+        </button>
+      ) : null}
+    </>
+  );
+}
+
+/**
+ * The initial result budget.
+ *
+ * Rendering 20 ranked offerings as one unbroken column gave the researcher no
+ * sense of how much was below the fold and no way to act on it -- the same
+ * failure UI_IMPLEMENTATION_PROGRAM forbids for History: "Initial lifecycle
+ * viewport budget is 8-12 rows with explicit `Load more`; do not recreate an
+ * endless activity feed through infinite scrolling." The results list gets the
+ * same discipline, so the count is stated and expanding is a deliberate act.
+ */
+const RESULT_BUDGET = 8;
+
 function DiscoverCandidateList({
   rows,
   labIds,
@@ -514,20 +725,54 @@ function DiscoverCandidateList({
   onAdd,
   externalCatalogue = false,
 }) {
+  const [showAll, setShowAll] = useState(false);
+  // A selection below the fold must not be hidden by the budget.
+  const selectedBeyondBudget = rows
+    .slice(RESULT_BUDGET)
+    .some((row) => candidateKey(row) === selectedId);
+  const expanded = showAll || selectedBeyondBudget;
+  const visible = expanded ? rows : rows.slice(0, RESULT_BUDGET);
+  const hidden = rows.length - visible.length;
+
   return (
-    <ul className="rd-v2-catalog rd-v2-discover-candidates" aria-label="Discover candidates">
-      {rows.map((row) => (
-        <DiscoverCandidateRow
-          key={candidateKey(row) || candidateTitle(row)}
-          row={row}
-          labIds={labIds}
-          selectedId={selectedId}
-          onSelectRow={onSelectRow}
-          onAdd={onAdd}
-          externalCatalogue={externalCatalogue}
-        />
-      ))}
-    </ul>
+    <>
+      <ul className="rd-v2-catalog rd-v2-discover-candidates" aria-label="Discover candidates">
+        {visible.map((row) => (
+          <DiscoverCandidateRow
+            key={candidateKey(row) || candidateTitle(row)}
+            row={row}
+            labIds={labIds}
+            selectedId={selectedId}
+            onSelectRow={onSelectRow}
+            onAdd={onAdd}
+            externalCatalogue={externalCatalogue}
+          />
+        ))}
+      </ul>
+      {hidden > 0 ? (
+        <button
+          type="button"
+          className="rd-v2-discover-show-all"
+          data-testid="discover-show-all"
+          onClick={() => setShowAll(true)}
+        >
+          Show all {rows.length} — {hidden} more below
+        </button>
+      ) : null}
+      {expanded && rows.length > RESULT_BUDGET ? (
+        <button
+          type="button"
+          className="rd-v2-discover-show-all"
+          data-testid="discover-show-fewer"
+          onClick={() => setShowAll(false)}
+          disabled={selectedBeyondBudget}
+        >
+          {selectedBeyondBudget
+            ? `Showing all ${rows.length} — a selected offering is below the first ${RESULT_BUDGET}`
+            : `Show first ${RESULT_BUDGET}`}
+        </button>
+      ) : null}
+    </>
   );
 }
 
@@ -563,6 +808,7 @@ export function BrowsePage({
   onReviewAcquisition,
   discoverMode = "explore",
   onDiscoverModeChange,
+  onSearchSummary,
   discoverFocusAwaiting = false,
   historyEvents = [],
   selectedHistoryId = "",
@@ -585,7 +831,18 @@ export function BrowsePage({
   const [source, setSource] = useState("");
   const [demoFallback, setDemoFallback] = useState(false);
   const [stateFilter, setStateFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("relevance");
   const [indexMiss, setIndexMiss] = useState(false);
+  const [agentMeta, setAgentMeta] = useState({
+    summary: "",
+    summaryMeasured: false,
+    answer: null,
+    nextAction: "",
+    engine: "",
+    routeReason: "",
+    layers: null,
+    cacheHit: false,
+  });
   const [externalSearchQuery, setExternalSearchQuery] = useState("");
   const [routeComparisonOpen, setRouteComparisonOpen] = useState(false);
   const [queryDraft, setQueryDraft] = useState(searchQuery || "");
@@ -626,6 +883,14 @@ export function BrowsePage({
     setRows([]);
     setStateFilter("all");
     setIndexMiss(false);
+    setAgentMeta({
+      summary: "",
+      nextAction: "",
+      engine: "",
+      routeReason: "",
+      layers: null,
+      cacheHit: false,
+    });
     setLoadedQuery("");
 
     const flattenRows = (data) => {
@@ -678,103 +943,29 @@ export function BrowsePage({
           setRows([]);
           return;
         }
-        // Two tempos, deliberately separated. A plain keyword lookup consults the
-        // local holding index and the known-source route index in parallel. Neither
-        // call fans out to remote providers. Semantic hybrid search and live
-        // external adapters remain an explicit "Search wider" escalation.
-        if (preferLiveSources) {
-        try {
-          let sources = await discoverSources(q, {
-            limit: 12,
-            semantic: true,
-            live: true,
-          });
-          let sourceRows = sourcesResponseToRows(sources);
-          onLiveSourcesConsumed?.(false);
-          if (sourceRows.length) {
-            // A capability route is not an evidence match. When the source
-            // catalogue cannot name a route that actually matches the need,
-            // consult the external catalogue before showing generic providers.
-            if (!hasSpecificSourceRoute(sourceRows, q)) {
-              try {
-                const web = await webDiscover(q, 8);
-                const webRows = rankExternalCatalogueRows(webHitsToRows(web), q);
-                if (webRows.length) {
-                  apply({ sections: [{ id: "external_catalogues", rows: webRows }] }, "external_catalogues");
-                  setIndexMiss(Boolean(web.index_miss));
-                  return;
-                }
-              } catch {
-                // Catalogue availability is optional; retain known routes as a truthful fallback.
-              }
-            }
-            apply({ results: sourceRows }, sources.demo ? "demo" : "sources");
-            if (sources.demo) setDemoFallback(true);
-            setIndexMiss(false);
-            return;
-          }
-        } catch {
-          onLiveSourcesConsumed?.(false);
-          /* sources endpoint optional — fall through to the index path */
-        }
-        }
-        const [discoverResult, knownSourcesResult] = await Promise.allSettled([
-          discoverSearch(q, 12, email),
-          discoverSources(q, { limit: 8, semantic: false, live: false }),
-        ]);
-        if (discoverResult.status === "rejected" && knownSourcesResult.status === "rejected") {
-          throw discoverResult.reason;
-        }
-        const discover = discoverResult.status === "fulfilled" ? discoverResult.value : {};
+        // Best-practice stack: L0 hands (held/routes) → L1 desk-grounded Composer+MCP.
+        const discover = await discoverSearch(q, 12, email, { mode: "auto" });
         const discoverRows = flattenRows(discover);
-        const knownSourceRows =
-          knownSourcesResult.status === "fulfilled"
-            ? sourcesResponseToRows(knownSourcesResult.value)
-            : [];
-        let mergedRows = dedupeRows([...knownSourceRows, ...discoverRows]);
-        let label = mergedRows.length ? "index" : "";
-        let miss = Boolean(discover.index_miss || discover.weak_match) && discoverRows.length === 0;
-
-        const hasAcquireCandidate = mergedRows.some((r) => {
-          const tax = classifyDiscoverResult(r, labIds);
-          return !tax.key.startsWith("local-") && Boolean(discoverCandidateUrl(r));
-        });
-
-        // Open-web enrichment is another network hop. Keep it on the explicit
-        // "Search wider" escalation; an index hit that lacks an acquire route is
-        // still a truthful instant result, and the user can widen from there.
-        if (preferLiveSources && mergedRows.length && !hasAcquireCandidate && q) {
-          const web = await webDiscover(q, 8);
-          const webRows = webHitsToRows(web);
-          if (webRows.length) {
-            mergedRows = dedupeRows([...mergedRows, ...webRows]);
-            if (!label) label = "web";
-          }
-        }
-
-        if (mergedRows.length) {
-          apply({ sections: [{ id: label, rows: mergedRows }] }, label);
-          setIndexMiss(false);
+        const engine = String(discover.engine || discover.mode || "composer");
+        const meta = {
+          summary: discover.summary || "",
+          summaryMeasured: Boolean(discover.summary_measured),
+          answer: discover.answer && discover.answer.text ? discover.answer : null,
+          nextAction: discover.next_action || "",
+          engine,
+          routeReason: discover.route_reason || "",
+          layers: discover.layers || null,
+          cacheHit: Boolean(discover.cache_hit),
+        };
+        if (discoverRows.length) {
+          apply(discover, engine);
+          setIndexMiss(Boolean(discover.index_miss) && !discoverRows.some((r) => r.placement === "held" || r.local_ready));
+          setAgentMeta(meta);
           return;
         }
 
-        if (immediateDemo.length) {
-          apply({ sections: [{ id: "demo", rows: immediateDemo }] }, "demo");
-          setIndexMiss(false);
-          return;
-        }
-
-        if (preferLiveSources) {
-          const web = await webDiscover(q, 8);
-          const webRows = webHitsToRows(web);
-          if (webRows.length) {
-            apply({ sections: [{ id: "web", rows: webRows }] }, "web");
-            setIndexMiss(false);
-            return;
-          }
-        }
-
-        setIndexMiss(miss);
+        setAgentMeta({ ...meta, nextAction: discover.next_action || "paste_url" });
+        setIndexMiss(Boolean(discover.index_miss ?? true));
         setRows([]);
       } catch (err) {
         if (cancelled) return;
@@ -800,52 +991,10 @@ export function BrowsePage({
   }, [searchQuery, discoverMode, labIds, preferLiveSources, onLiveSourcesConsumed, externalSearchQuery]);
 
   useEffect(() => {
-    const q = String(searchQuery || "").trim();
-    if (
-      !isExplore
-      || !q
-      || loadedQuery !== q
-      || preferLiveSources
-      || externalSearchQuery === q
-      || !isDiscoverResearchQuestion(q)
-      || enrichedQuestion === q
-    ) return undefined;
-
-    let cancelled = false;
-    setEnrichedQuestion(q);
-    const enrich = async () => {
-      let extra = [];
-      try {
-        const sources = await discoverSources(q, { limit: 12, semantic: true, live: true });
-        extra = sourcesResponseToRows(sources);
-      } catch {
-        // The first result paint remains valid when optional enrichment is unavailable.
-      }
-      if (!extra.length || !hasSpecificSourceRoute(extra, q)) {
-        try {
-          const web = await webDiscover(q, 8);
-          extra = dedupeRows([...extra, ...rankExternalCatalogueRows(webHitsToRows(web), q)]);
-        } catch {
-          // Web context is optional and must never erase already-rendered evidence.
-        }
-      }
-      if (cancelled || !extra.length) return;
-      setRows((current) => dedupeRows([...current, ...extra]));
-      setSource((current) => current ? `${current}+progressive` : "progressive");
-      setIndexMiss(false);
-    };
-    enrich();
-    return () => {
-      cancelled = true;
-    };
-  }, [
-    searchQuery,
-    isExplore,
-    loadedQuery,
-    preferLiveSources,
-    externalSearchQuery,
-    enrichedQuestion,
-  ]);
+    // Optional live enrichment is retired — Composer turn continues past miss via MCP.
+    // Keep preferLiveSources / Search wider as an explicit user escalation only.
+    return undefined;
+  }, [searchQuery, isExplore, loadedQuery, preferLiveSources, externalSearchQuery, enrichedQuestion]);
 
   const merged = useMemo(() => {
     const seen = new Set();
@@ -874,13 +1023,15 @@ export function BrowsePage({
         labIds,
       });
       const projected = projectDiscoverCandidateLifecycle(base, life);
+      const placement = evidencePlacement(projected, labIds);
       const taxonomy = projected.discover_taxonomy || classifyDiscoverResult(projected, labIds);
-      const sufficiency =
-        Number(taxonomy.group) >= 3 ? assessLocalSufficiency(projected, catalog) : null;
+      // FE sufficiency taxonomy is not authority — placement/why from Composer/backend only.
       stampedRows.push({
         ...projected,
+        placement,
+        why: evidenceWhy(projected) || undefined,
         discover_taxonomy: taxonomy,
-        discover_sufficiency: sufficiency,
+        discover_sufficiency: null,
       });
     }
     return orderDiscoverResults(stampedRows, labIds);
@@ -902,21 +1053,38 @@ export function BrowsePage({
       external: [],
       held: [],
       context: [],
+      flat: [],
+      duplicates: 0,
     };
     for (const row of filtered) {
+      // An external row whose sufficiency is "exact local match" is a second
+      // listing of a dataset already shown under Library evidence.
+      if (row.discover_sufficiency?.state === "exact-local") {
+        groups.duplicates += 1;
+        continue;
+      }
+      const placement = evidencePlacement(row, labIds);
       const taxonomy = row.discover_taxonomy || classifyDiscoverResult(row, labIds);
-      const type = offeringType(row, taxonomy);
-      if (taxonomy.key.startsWith("local-")) groups.held.push(row);
-      else if (type === "Reference only" || type === "Web context") groups.context.push(row);
-      else if (["external-acquirable", "external-probed"].includes(taxonomy.key)) groups.available.push(row);
-      else groups.external.push(row);
+      if (placement === PLACEMENT.HELD || taxonomy.key.startsWith("local-")) {
+        groups.held.push(row);
+        groups.flat.push(row);
+      } else if (placement === PLACEMENT.CONTEXT || offeringType(row, taxonomy) === "Reference only" || offeringType(row, taxonomy) === "Web context") {
+        groups.context.push(row);
+      } else if (placement === PLACEMENT.ROUTE || ["external-acquirable", "external-probed"].includes(taxonomy.key)) {
+        groups.available.push(row);
+        groups.flat.push(row);
+      } else {
+        groups.external.push(row);
+        groups.flat.push(row);
+      }
     }
     return groups;
   }, [filtered, labIds]);
+
   const resultBreakdown = useMemo(
     () => [
       resultGroups.available.length
-        ? `${plural(resultGroups.available.length, "offering")} available to add`
+        ? `${plural(resultGroups.available.length, "route")} available`
         : null,
       resultGroups.external.length
         ? `${plural(resultGroups.external.length, "route")} to verify`
@@ -957,6 +1125,70 @@ export function BrowsePage({
   }, [merged, labIds]);
 
   const q = (searchQuery || "").trim();
+
+  /**
+   * What this search found, for the rail.
+   *
+   * With no candidate selected the rail was 9% ink in a 374x836 column -- a
+   * quarter of the viewport holding a folder icon and two lines. The authority
+   * allows a quiet rail but forbids a "permanent empty inspector" (§3), and
+   * during an active search there is a meaningful object: the search itself.
+   *
+   * Every number here is counted off rows already rendered in the centre.
+   * Nothing is inferred, so the panel cannot claim coverage the results do not
+   * show.
+   */
+  const searchSummary = useMemo(() => {
+    if (!q) return null;
+    const sufficiency = { exact: resultGroups.duplicates, partial: 0, related: 0, none: 0, unknown: 0 };
+    const routes = new Map();
+    for (const row of [...resultGroups.available, ...resultGroups.external]) {
+      const state = String(row?.discover_sufficiency?.state || "");
+      if (state === "partial-local") sufficiency.partial += 1;
+      else if (state === "related-local") sufficiency.related += 1;
+      else if (state === "no-local-alternative") sufficiency.none += 1;
+      else sufficiency.unknown += 1;
+
+      const via = Array.isArray(row?.collect_via) ? row.collect_via[0] : row?.collect_via;
+      const label = String(via || "").trim();
+      if (label) routes.set(label, (routes.get(label) || 0) + 1);
+    }
+    return {
+      query: q,
+      offerings: resultGroups.available.length + resultGroups.external.length,
+      held: resultGroups.held.length,
+      webContext: resultGroups.context.length,
+      queryReady: resultGroups.held.filter((r) => r.local_ready).length,
+      sufficiency,
+      routes: [...routes.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4),
+      engine: agentMeta.engine || undefined,
+      next_action: agentMeta.nextAction || undefined,
+      summary: agentMeta.summary || undefined,
+      cache_hit: Boolean(agentMeta.cacheHit),
+      held_titles: resultGroups.held.slice(0, 5).map((r) => ({
+        title: r.title || r.label || r.dataset_id || "",
+        dataset_id: r.dataset_id || undefined,
+      })).filter((r) => r.title),
+      route_titles: resultGroups.available
+        .filter((r) => r.kind === "declared_route" || r.placement === "route" || r.source_id)
+        .slice(0, 5)
+        .map((r) => ({
+          title: r.title || r.label || r.source_id || "",
+          source_id: r.source_id || undefined,
+        }))
+        .filter((r) => r.title),
+    };
+  }, [q, resultGroups, agentMeta]);
+
+  // Keyed on content, not identity. `searchSummary` is a fresh object on every
+  // render, so depending on it directly pushed new state into App, which
+  // re-rendered BrowsePage, which built another object -- an infinite loop that
+  // stalled the whole shell rather than failing loudly.
+  const searchSummaryKey = searchSummary ? JSON.stringify(searchSummary) : "";
+  useEffect(() => {
+    onSearchSummary?.(searchSummaryKey ? JSON.parse(searchSummaryKey) : null);
+     
+  }, [searchSummaryKey]);
   const allInLab =
     !loading && merged.length > 0 && stageCounts.inLab > 0 && stageCounts.inLab === merged.length;
   const demoMode = demoFallback || (usingSeed && source === "demo");
@@ -994,12 +1226,100 @@ export function BrowsePage({
     [merged, labIds],
   );
 
+  // The desk's declared collection routes, loaded independently of the query.
+  //
+  // idleRecommendations derives from `merged`, the search result set, so it is
+  // empty exactly when a search misses -- which is the moment the routes are
+  // worth showing. Fetching the unfiltered source list separately means a miss
+  // can still answer "we don't hold this, here is what we can collect from".
+  //
+  // Listing the desk's standing routes here was wrong: asked for US opinion
+  // polling, it offered CRSP MOVEit, a daily market-price archive. Calling it
+  // "not matched to your query" made that honest without making it useful.
+  // This asks which sources could actually supply the request and shows
+  // nothing when none can, because "this desk cannot get that" is the answer
+  // a procurement tool owes.
+  // Openable content on the landing, the way Kaggle and HuggingFace show
+  // trending datasets. An empty search box with no starting point forces the
+  // researcher to already know what the desk holds, which is exactly what they
+  // came here to find out.
+  const [shelves, setShelves] = useState([]);
+  useEffect(() => {
+    let cancelled = false;
+    libraryPartitions()
+      .then((res) => {
+        if (cancelled) return;
+        const rows = (res?.shelves || [])
+          .filter((sh) => (sh.dataset_count || 0) > 0)
+          .sort((a, b) => (b.query_ready_count || 0) - (a.query_ready_count || 0));
+        setShelves(rows);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const [missRouteState, setMissRouteState] = useState({ query: "", routes: [], reason: "" });
+  useEffect(() => {
+    const wanted = String(q || "").trim();
+    if (!wanted || loading || error || filtered.length > 0) return undefined;
+    let cancelled = false;
+    setMissRouteState({ query: wanted, routes: [], reason: "loading" });
+    discoverCollectRoutes(wanted)
+      .then((res) => {
+        if (!cancelled) {
+          setMissRouteState({
+            query: wanted,
+            routes: Array.isArray(res?.routes) ? res.routes : [],
+            reason: String(res?.reason || ""),
+          });
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setMissRouteState({ query: wanted, routes: [], reason: "unavailable" });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [q, loading, error, filtered.length]);
+
+  const missRoutes = missRouteState.query === String(q || "").trim() ? missRouteState.routes : [];
+  const missRouteReason = missRouteState.query === String(q || "").trim() ? missRouteState.reason : "";
+
   const modeTabs = (
     <DiscoverModeTabs
       mode={showHistory ? "history" : "explore"}
       pendingCount={pendingRows.length}
       onChange={onDiscoverModeChange}
     />
+  );
+
+  const sortMenu = (
+    <details className="rd-v2-discover-filter-menu" data-testid="discover-sort-menu">
+      <summary>
+        <span>Sort</span>
+        {sortBy !== "relevance" ? (
+          <strong>{(SORTS.find((s) => s.id === sortBy) || SORTS[0]).label}</strong>
+        ) : null}
+      </summary>
+      <div className="rd-v2-discover-filter-popover" role="group" aria-label="Sort Discover results">
+        {SORTS.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            className={sortBy === item.id ? "on" : ""}
+            aria-pressed={sortBy === item.id}
+            onClick={(event) => {
+              setSortBy(item.id);
+              event.currentTarget.closest("details")?.removeAttribute("open");
+            }}
+          >
+            <span>{item.label}</span>
+          </button>
+        ))}
+      </div>
+    </details>
   );
 
   const filterMenu = (
@@ -1028,19 +1348,115 @@ export function BrowsePage({
     </details>
   );
 
+  // Adaptive freeze (2026-07-28): held evidence is chrome, not a permanent
+  // centre section. Opus inverted that into "IN YOUR LIBRARY" as the primary
+  // canvas; restore the freeze chrome so Available offerings stay primary.
+  const offeringsCount = resultGroups.available.length + resultGroups.external.length;
+  const showLibraryChromeOpen = false;
   const libraryEvidenceMenu = resultGroups.held.length ? (
-    <details className="rd-v2-discover-library-evidence" data-testid="discover-library-evidence">
+    <details
+      className="rd-v2-discover-library-evidence"
+      data-testid="discover-library-evidence"
+      open={showLibraryChromeOpen || undefined}
+    >
       <summary>Library evidence · {resultGroups.held.length}</summary>
       <div className="rd-v2-discover-library-popover">
         <span className="rd-v2-eyebrow">Relevant Library evidence</span>
-        <DiscoverCandidateList
-          rows={resultGroups.held.slice(0, 4)}
+        <LibraryResultList
+          rows={groupCatalogueVariants(resultGroups.held).slice(0, 6)}
           labIds={labIds}
           selectedId={selectedId}
           onSelectRow={onSelectRow}
         />
+        {resultGroups.held.length > 6 ? (
+          <p className="muted">Showing 6 of {resultGroups.held.length}.</p>
+        ) : null}
+        <div className="rd-v2-discover-library-popover-actions">
+          <button
+            type="button"
+            className="rd-v2-btn sm"
+            onClick={() => onAskQuery?.(
+              q,
+              {
+                kind: "results",
+                rows: resultGroups.held,
+                prompt: `Compare coverage of the held Library evidence for: ${q}. Say what is covered, what remains unknown, and whether a wider source is still needed.`,
+              },
+            )}
+          >
+            Compare coverage
+          </button>
+          <a className="rd-v2-btn sm ghost" href={`?tab=library&q=${encodeURIComponent(q)}`}>
+            Open Library results
+          </a>
+        </div>
       </div>
     </details>
+  ) : null;
+
+  const stackEngineLabel =
+    agentMeta.engine === "composer_mcp_grounded" || agentMeta.engine === "hybrid_hands_composer"
+      ? "Desk + Composer"
+      : agentMeta.engine === "lexical_fast" || agentMeta.engine === "lexical"
+        ? "Library index"
+        : agentMeta.engine === "hands_routes"
+          ? "Declared routes"
+          : agentMeta.engine || "";
+
+  const exploreChrome = !loading && !error && q ? (
+    <div className="rd-v2-discover-explore-chrome" data-testid="discover-explore-chrome" role="toolbar" aria-label="Discover result scope">
+      <span className={offeringsCount ? "on" : ""}>
+        Available · {offeringsCount}
+      </span>
+      {libraryEvidenceMenu || <span className="muted">Library evidence · 0</span>}
+      {resultGroups.context.length ? (
+        <span>Web context · {resultGroups.context.length}</span>
+      ) : (
+        <span className="muted">Web context · 0</span>
+      )}
+      {stackEngineLabel ? (
+        <span className="muted" data-testid="discover-stack-meta">
+          {stackEngineLabel}
+          {agentMeta.cacheHit ? " · cached" : ""}
+          {agentMeta.layers?.total_ms != null
+            ? ` · ${Math.round(Number(agentMeta.layers.total_ms))}ms`
+            : ""}
+        </span>
+      ) : null}
+      {onSearchWeb ? (
+        <button type="button" onClick={() => onSearchWeb(q)}>
+          Search wider
+        </button>
+      ) : null}
+      {assessmentPending ? (
+        <button type="button" className="rd-v2-discover-strategy-trigger is-pending" disabled>
+          Assessing strategy…
+        </button>
+      ) : strategyNeedsContext ? (
+        <button
+          type="button"
+          className="rd-v2-discover-strategy-trigger"
+          onClick={() => onAskQuery?.(
+            q,
+            {
+              kind: "strategy_context",
+              rows: merged,
+              prompt: `Clarify the evidence requirement for: ${q}. Ask only for the missing context needed to judge coverage and prepare a custom dataset strategy. Do not submit procurement.`,
+            },
+          )}
+        >
+          Strategy needs context
+        </button>
+      ) : hasEvidenceGap ? (
+        <button
+          type="button"
+          className="rd-v2-discover-strategy-trigger is-ready"
+          onClick={() => setRouteComparisonOpen(true)}
+        >
+          Custom strategy ready
+        </button>
+      ) : null}
+    </div>
   ) : null;
 
   if (showHistory) {
@@ -1064,7 +1480,7 @@ export function BrowsePage({
     <PageShell
       className="rd-v2-discover-page"
       title="Discover"
-      lead="Search your Library first, then evaluate sources beyond it"
+      lead="Find held evidence and sources beyond it"
       headExtra={modeTabs}
       toolbar={demoMode ? <Chip warn>Demo preview · static sample</Chip> : null}
     >
@@ -1098,18 +1514,47 @@ export function BrowsePage({
               onAssess={onOpenAssessment}
               idle
             />
+            {shelves.length ? (
+              <div className="rd-v2-discover-shelves" aria-label="Browse the Library">
+                <div className="rd-v2-discover-shelves-head">
+                  <span className="rd-v2-eyebrow">Browse what the desk holds</span>
+                </div>
+                <ul>
+                  {shelves.map((sh) => (
+                    <li key={sh.id}>
+                      <a className="rd-v2-shelf-chip" href={`?tab=library&folder=${encodeURIComponent(sh.id)}`}>
+                        <span className="rd-v2-shelf-label">{sh.label}</span>
+                        <span className="rd-v2-shelf-count">
+                          {sh.dataset_count}
+                          {sh.query_ready_count ? ` · ${sh.query_ready_count} ready` : ""}
+                        </span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
             <div className="rd-v2-discover-idle-held">
               {/* VC-5: with no known routes this collapses to one quiet line
                   instead of an oversized empty section. */}
+              {/* These are sources, not results, and they sat above the fold as
+                  four full cards before the researcher had asked for anything.
+                  "OpenAlex — Add to collection" is not an action anyone can
+                  take: add what from OpenAlex? They also wore dataset labels
+                  ("Access not verified", "Related Library asset") that mean
+                  nothing about a connector.
+
+                  A search landing shows the box and, at most, openable content
+                  — which is what Kaggle and HuggingFace put here. Until this
+                  can show real holdings, the honest version is one quiet line
+                  naming what the desk can reach, opened on demand. */}
               {idleRecommendations.length ? (
-                <>
-                  <div className="rd-v2-home-section-head">
-                    <div>
-                      <span className="rd-v2-eyebrow">Curated beyond your Library</span>
-                      <h3>Sources the desk already knows how to investigate</h3>
-                    </div>
-                    <span className="muted">{plural(merged.length, "known source route")}</span>
-                  </div>
+                <details className="rd-v2-discover-routes-disclosure">
+                  <summary>
+                    <span className="muted">
+                      {plural(merged.length, "source")} this desk can collect from
+                    </span>
+                  </summary>
                   <DiscoverCandidateList
                     rows={idleRecommendations}
                     labIds={labIds}
@@ -1117,17 +1562,7 @@ export function BrowsePage({
                     onSelectRow={onSelectRow}
                     onAdd={onReviewAcquisition}
                   />
-                </>
-              ) : (
-                <p className="muted">
-                  No curated source routes yet — search above, or paste a URL or DOI below.
-                </p>
-              )}
-              {idleHoldings.length ? (
-                <div className="rd-v2-discover-idle-library-note">
-                  Library evidence · {plural(labIds.size, "asset")}{" "}
-                  {labIds.size === 1 ? "is" : "are"} checked automatically after a research question.
-                </div>
+                </details>
               ) : null}
             </div>
             {onCraftUrl ? (
@@ -1197,67 +1632,43 @@ export function BrowsePage({
                   </div>
                 ) : null}
                 {filterMenu}
+                {sortMenu}
               </div>
-              <div className="rd-v2-discover-result-actions" aria-label="Discover next actions">
-                <div>
-                  <strong>{plural(filtered.length, "result")}</strong>
-                  <span>
-                    {resultBreakdown || (preferLiveSources || source === "sources" || externalCatalogueActive
-                      ? "wider discovery"
-                      : "index lookup")}
-                  </span>
-                </div>
-                <div>
-                  {onSearchWeb ? (
-                    <button type="button" onClick={() => onSearchWeb(q)}>
-                      Search wider
-                    </button>
-                  ) : null}
-                  {libraryEvidenceMenu}
-                  {assessmentPending ? (
-                    <button type="button" className="rd-v2-discover-strategy-trigger is-pending" disabled>
-                      Assessing strategy…
-                    </button>
-                  ) : strategyNeedsContext ? (
-                    <button
-                      type="button"
-                      className="rd-v2-discover-strategy-trigger"
-                      onClick={() => onAskQuery?.(
-                        q,
-                        {
-                          kind: "strategy_context",
-                          rows: merged,
-                          prompt: `Clarify the evidence requirement for: ${q}. Ask only for the missing context needed to judge coverage and prepare a custom dataset strategy. Do not submit procurement.`,
-                        },
-                      )}
-                    >
-                      Strategy needs context
-                    </button>
-                  ) : hasEvidenceGap ? (
-                    <button
-                      type="button"
-                      className="rd-v2-discover-strategy-trigger is-ready"
-                      onClick={() => setRouteComparisonOpen(true)}
-                    >
-                      Custom strategy ready
-                    </button>
-                  ) : null}
-                </div>
-              </div>
+              {exploreChrome}
+              {/* Result counts and strategy chrome live in exploreChrome
+                  (Available / Library evidence / Web context). Keeping a second
+                  totals row restated the same numbers before the first offering. */}
             </section>
 
-            {resultGroups.available.length ? (
-              <section className="rd-v2-discover-best-fit" aria-label="Available to add" data-testid="discover-best-fit">
-                {/* VC-5: the result header already states the offering count;
-                    repeating it beside an identical heading is noise. */}
+            {agentMeta.answer ? (
+              <section className="rd-v2-discover-answer" data-testid="discover-answer">
+                <p className="rd-v2-discover-answer-text">{agentMeta.answer.text}</p>
+                <p className="rd-v2-discover-answer-provenance">
+                  Measured from{" "}
+                  {(agentMeta.answer.from || []).length
+                    ? agentMeta.answer.from.join(", ")
+                    : "held evidence"}
+                </p>
+              </section>
+            ) : null}
+
+            {/* Adaptive freeze: Available / external offerings are the primary
+                canvas. Held evidence is chrome above, not a permanent section. */}
+            {resultGroups.flat.length ? (
+              <section className="rd-v2-discover-best-fit" aria-label="Results" data-testid="discover-best-fit">
                 <div className="rd-v2-home-section-head">
-                  <div>
-                    <span className="rd-v2-eyebrow">Beyond your Library</span>
-                    <h3>Available to add</h3>
-                  </div>
+                  <h3>
+                    Results
+                    <span className="rd-v2-section-count">{resultGroups.flat.length}</span>
+                  </h3>
+                  {resultGroups.held.length ? (
+                    <p className="rd-v2-section-sub" data-testid="discover-held-count">
+                      {resultGroups.held.length} already in your Library
+                    </p>
+                  ) : null}
                 </div>
                 <DiscoverCandidateList
-                  rows={resultGroups.available}
+                  rows={sortRows(groupCatalogueVariants(resultGroups.flat), sortBy)}
                   labIds={labIds}
                   selectedId={selectedId}
                   onSelectRow={onSelectRow}
@@ -1265,6 +1676,14 @@ export function BrowsePage({
                   externalCatalogue={externalCatalogueActive}
                 />
               </section>
+            ) : null}
+
+            {!resultGroups.available.length && !resultGroups.external.length && resultGroups.duplicates ? (
+              <p className="muted rd-v2-discover-all-held" data-testid="discover-all-held">
+                {resultGroups.duplicates} external{" "}
+                {resultGroups.duplicates === 1 ? "match" : "matches"} already held in Library evidence above.
+                Open that chrome to review them, or search wider for alternatives.
+              </p>
             ) : null}
 
             {hasEvidenceGap && routeComparisonOpen ? (
@@ -1289,7 +1708,7 @@ export function BrowsePage({
               <p className="rd-v2-browse-loading">Searching your Library and wider sources…</p>
             ) : null}
 
-            {!loading && allInLab ? (
+            {!loading && allInLab && offeringsCount ? (
               <div className="rd-v2-discover-expand-search">
                 <div>
                   <strong>Every current match is already in your Library.</strong>
@@ -1320,13 +1739,70 @@ export function BrowsePage({
             {!loading && !error && filtered.length === 0 ? (
               <div className="rd-v2-discover-miss">
                 <p className="rd-v2-empty-inline">
-                  No {stateFilter === "all" ? "" : `${activeFilter.label.toLowerCase()} `}matches for “{q}”
-                  {indexMiss ? " in the current research index." : "."}
+                  {agentMeta.summary
+                    || `The desk holds no ${stateFilter === "all" ? "" : `${activeFilter.label.toLowerCase()} `}match for “${q}”${indexMiss ? " in the current research index." : "."}`}
                 </p>
-                {indexMiss && onSearchWeb ? (
+                {stackEngineLabel ? (
+                  <p className="muted rd-v2-discover-agent-meta" data-testid="discover-agent-meta">
+                    {stackEngineLabel}
+                    {agentMeta.nextAction ? ` · next: ${agentMeta.nextAction.replace(/_/g, " ")}` : ""}
+                    {agentMeta.cacheHit ? " · cached" : ""}
+                    {agentMeta.layers?.total_ms != null
+                      ? ` · ${Math.round(Number(agentMeta.layers.total_ms))}ms`
+                      : ""}
+                  </p>
+                ) : null}
+                {(indexMiss || agentMeta.nextAction === "search_wider" || agentMeta.nextAction === "paste_url") && onSearchWeb ? (
                   <button type="button" className="rd-v2-btn sm" onClick={() => onSearchWeb(q)}>
                     Search wider sources →
                   </button>
+                ) : null}
+                {missRoutes.length ? (
+                  <div className="rd-v2-discover-miss-routes">
+                    <div className="rd-v2-home-section-head">
+                      <div>
+                        <span className="rd-v2-eyebrow">Not held — routes to get it</span>
+                        <h3>Sources that could supply this</h3>
+                      </div>
+                      <span className="muted">{plural(missRoutes.length, "route")}</span>
+                    </div>
+                    <ul className="rd-v2-catalog rd-v2-miss-route-list">
+                      {missRoutes.map((route) => (
+                        <li key={route.source_id}>
+                          <div className="rd-v2-miss-route">
+                            <div>
+                              <strong>{route.label || route.source_id}</strong>
+                              {route.provider ? <span className="muted"> · {route.provider}</span> : null}
+                              <span className="rd-v2-discover-why">
+                                <b>why</b> {route.reason}
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              className="rd-v2-btn sm"
+                              onClick={() => onAskQuery?.(
+                                `Collect ${route.label || route.source_id} for: ${q}`,
+                                { kind: "investigation" },
+                              )}
+                            >
+                              {route.action === "collect" ? "Start collection" : "Request access"}
+                            </button>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : missRouteReason === "loading" && !agentMeta.summary ? (
+                  <p className="muted rd-v2-discover-no-route">Checking which sources could supply this…</p>
+                ) : (missRouteReason === "no_route_found" || agentMeta.routeReason === "no_route_found" || agentMeta.nextAction === "paste_url") ? (
+                  <p className="muted rd-v2-discover-no-route">
+                    No source on this desk carries this kind of data. Paste a URL or DOI below to
+                    have it assessed for collection.
+                  </p>
+                ) : missRouteReason === "unavailable" || String(missRouteReason).startsWith("backend_unavailable") ? (
+                  <p className="muted rd-v2-discover-no-route">
+                    Could not check collection routes right now. Try again, or paste a URL or DOI below.
+                  </p>
                 ) : null}
               </div>
             ) : null}
@@ -1337,16 +1813,24 @@ export function BrowsePage({
                 aria-label="Other external matches"
                 data-testid={resultGroups.available.length ? "discover-other-matches" : "discover-best-fit"}
               >
+                {/* "Other external matches" named the group by what it was not
+                    and gave no reason for the split. These rows are separated
+                    because the comparator found nothing equivalent in the
+                    Library -- say that, in the possession vocabulary the
+                    adaptive freeze §16 settled on. */}
                 <div className="rd-v2-home-section-head">
-                  <h3>{externalCatalogueActive ? "External catalogue matches" : "Other external matches"}</h3>
-                  {externalCatalogueActive ? (
-                    <span className="muted">{plural(resultGroups.external.length, "external catalogue record")}</span>
-                  ) : (
-                    <span className="muted">{plural(resultGroups.external.length, "result")}</span>
-                  )}
+                  <h3>
+                    {externalCatalogueActive ? "External catalogue matches" : "Beyond your Library"}
+                    <span className="rd-v2-section-count">{resultGroups.external.length}</span>
+                  </h3>
+                  <span className="muted">
+                    {externalCatalogueActive
+                      ? plural(resultGroups.external.length, "external catalogue record")
+                      : "no equivalent found in your Library"}
+                  </span>
                 </div>
                 <DiscoverCandidateList
-                  rows={resultGroups.external}
+                  rows={groupCatalogueVariants(resultGroups.external)}
                   labIds={labIds}
                   selectedId={selectedId}
                   onSelectRow={onSelectRow}

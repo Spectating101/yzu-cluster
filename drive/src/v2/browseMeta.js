@@ -86,6 +86,20 @@ export function discoverStageCounts(rows, labIds) {
   };
 }
 
+/** Desk identifiers read as jargon on a faculty-facing row.
+ *
+ * Values like `scrape_snapshot` and `catalog_harvest` reach the coverage slot
+ * straight from pipeline configuration and were rendering verbatim. Spacing
+ * and sentence-casing them keeps the recorded value truthful -- nothing is
+ * substituted or inferred -- while making it legible to a reader who does not
+ * work on this desk. */
+function humanizeDeskToken(value) {
+  const text = String(value || "").trim();
+  if (!/^[a-z0-9]+(?:_[a-z0-9]+)+$/.test(text)) return text;
+  const spaced = text.replaceAll("_", " ");
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+}
+
 export function coverageLine(row) {
   const parts = [
     row?.coverage,
@@ -94,7 +108,7 @@ export function coverageLine(row) {
     row?.geographic_coverage,
     row?.grain,
   ]
-    .map((p) => String(p || "").trim())
+    .map((p) => humanizeDeskToken(p))
     .filter(Boolean);
   const seen = new Set();
   const unique = [];
@@ -109,8 +123,12 @@ export function coverageLine(row) {
 }
 
 export function descriptiveLine(row) {
+  // `one_line` is what the registry actually calls its plain-language
+  // description, and it was missing from this list -- so registry-backed
+  // offerings rendered "Description not recorded" while the very same dataset
+  // showed a full description in Library evidence one section above.
   const text = String(
-    row?.description || row?.recommended_use || row?.subtitle || row?.grain || "",
+    row?.description || row?.one_line || row?.recommended_use || row?.subtitle || row?.grain || "",
   )
     .replace(/\s+/g, " ")
     .trim();
@@ -150,4 +168,37 @@ export function humanizeDiscoverDescription(value) {
 
 export function isLabOwned(row, labIds) {
   return isLocalHolding(row, labIds);
+}
+
+/** Human names for declared collection routes.
+ *
+ * Shared so the row ("Collect via BigQuery") and the rail's route tally use
+ * one vocabulary. They previously disagreed: the rail listed the raw config
+ * tokens `bigquery` / `datacite` / `http_manifest` beside rows that had
+ * already named them properly. */
+const ROUTE_NAMES = {
+  bigquery: "BigQuery",
+  datacite: "DataCite",
+  huggingface: "Hugging Face",
+  local_open: "the Library copy",
+  http_manifest: "a file manifest",
+  scrape_snapshot: "a page snapshot",
+  catalog_harvest: "a catalog harvest",
+  browser_extract: "browser extraction",
+  api_query: "an API query",
+};
+
+const ROUTE_ACRONYMS = new Set([
+  "api", "edp", "sec", "doi", "ftp", "sftp", "rpc", "csv", "lseg", "twse", "mops",
+]);
+
+export function routeDisplayName(value) {
+  const key = String(value || "").trim().toLowerCase();
+  if (!key) return "";
+  if (ROUTE_NAMES[key]) return ROUTE_NAMES[key];
+  return key
+    .split("_")
+    .filter(Boolean)
+    .map((word) => (ROUTE_ACRONYMS.has(word) ? word.toUpperCase() : word))
+    .join(" ");
 }
