@@ -26,7 +26,6 @@ import {
   yzuClusterStatus,
 } from "@/v2/api";
 import { AskRail } from "@/v2/AskRail";
-import { DeskAccessGate } from "@/v2/DeskAccessGate";
 import {
   datasetObject,
   discoverHistoryObject,
@@ -178,6 +177,7 @@ export function V2App() {
   const [folderId, setFolderId] = useState(() => readParams().folder);
   const [selectedId, setSelectedId] = useState(() => readParams().dataset);
   const [browseRow, setBrowseRow] = useState(null);
+  const [discoverRestingSummary, setDiscoverRestingSummary] = useState(null);
   const [browseProbe, setBrowseProbe] = useState({ candidateKey: "", loading: false, result: null, error: "" });
   const [collectSubmittingKey, setCollectSubmittingKey] = useState("");
   const [lifecycleRefreshFailed, setLifecycleRefreshFailed] = useState(false);
@@ -1111,6 +1111,11 @@ export function V2App() {
 
   const openInLibraryFromDiscover = useCallback(
     (target) => {
+      if (target?.library_search) {
+        setLibrarySearchQuery(String(target.query || "").trim());
+        goTab("library");
+        return;
+      }
       const id = target?.dataset_id;
       if (!id) return;
       setTab("library");
@@ -1123,8 +1128,16 @@ export function V2App() {
       setRailTab("detail");
       syncUrl({ tab: "library", dataset: id, preview: false, q: "" });
     },
-    [catalog, syncUrl],
+    [catalog, goTab, syncUrl],
   );
+
+  const handleDiscoverRestingSummary = useCallback((summary) => {
+    setDiscoverRestingSummary((prev) => {
+      const next = summary || null;
+      if (JSON.stringify(prev) === JSON.stringify(next)) return prev;
+      return next;
+    });
+  }, []);
 
   const askAboutSelection = useCallback(
     (target, promptOverride) => {
@@ -1438,6 +1451,8 @@ export function V2App() {
           onStartProcure={canSubmitCollection ? (folder) => startLibraryIntake("procure", folder) : undefined}
           searchQuery={librarySearchQuery}
           onSearchChange={setLibrarySearchQuery}
+          selectionHoldings={catalog}
+          selectionFallback={detail}
         />
       );
       break;
@@ -1515,6 +1530,7 @@ export function V2App() {
           assessmentActive={discoverAssessment.active}
           assessmentResult={discoverAssessment.result}
           onOpenAssessment={openDiscoverAssessment}
+          onRestingSummary={handleDiscoverRestingSummary}
           onSelectRow={(row) => {
             setDiscoverAssessment((current) => ({ ...current, active: false }));
             const nextKey = candidateKey(row);
@@ -1664,16 +1680,6 @@ export function V2App() {
     [datasets, recentEpoch],
   );
 
-  if (!deskAccess?.authenticated) {
-    return (
-      <DeskAccessGate
-        access={deskAccess}
-        busy={deskAccessBusy}
-        onRetry={({ force = true } = {}) => refreshDeskAccess({ force })}
-      />
-    );
-  }
-
   return (
     <div className={`yzu-shell with-inspector rd-theme-light rd-v2-shell${hideRail ? " no-rail" : ""}`}>
       <V2DeskHeader
@@ -1752,6 +1758,7 @@ export function V2App() {
         discoverIntentRecord={discoverIntentRecord}
         discoverAssessment={discoverAssessment}
         discoverCatalog={catalog}
+        discoverRestingSummary={discoverRestingSummary}
         onDiscoverAssessmentChange={(result) => {
           setDiscoverAssessment((current) => ({ ...current, active: true, result }));
         }}

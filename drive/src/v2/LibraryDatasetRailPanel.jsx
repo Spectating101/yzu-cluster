@@ -1,4 +1,4 @@
-import { canIUseDecision, detailFields, displayName, statusPillKind } from "@/v2/datasetMeta";
+import { canIUseDecision, demotionSentence, detailFields, displayName, hydrateRemedy, statusPillKind } from "@/v2/datasetMeta";
 import { assetTypeLabel } from "@/v2/libraryEstate";
 import { RailEntityHeader, RailFrame, RailStickyFooter } from "@/v2/RailFrame";
 import { StatusPill } from "@/v2/StatusPill";
@@ -17,6 +17,8 @@ function usefulFor(dataset) {
 function unknowns(dataset, fields) {
   // Terra donor (33f7288): judgment caveats as short strings — no invented readiness scores.
   const out = [];
+  const demotion = demotionSentence(dataset);
+  if (demotion) out.push(demotion);
   if (!dataset?.analysis_readiness) out.push("Readiness not reported by registry");
   if (!fields.coverage && !dataset?.coverage && !dataset?.date_range) out.push("Coverage not reported");
   if (!dataset?.grain) out.push("Grain not reported");
@@ -107,6 +109,8 @@ export function LibraryDatasetRailPanel({ dataset, onPreview, onAskAbout }) {
   const route = dataset.collect_via || dataset.backend;
   const canPreview = state.kind === "query-ready";
   const verification = verificationBlock(dataset);
+  const remedy = hydrateRemedy(dataset);
+  const archiveRef = String(dataset?.canonical_remote || dataset?.lineage?.canonical_remote || "").trim();
 
   return (
     <RailFrame>
@@ -116,11 +120,27 @@ export function LibraryDatasetRailPanel({ dataset, onPreview, onAskAbout }) {
         pills={<StatusPill dataset={dataset} />}
       />
 
-      <section className={`rd-v2-library-inspector-decision rd-v2-library-inspector-decision-${state.kind}`} aria-label="Can I use this?">
+      <section
+        className={`rd-v2-library-inspector-decision rd-v2-library-inspector-decision-${state.kind}`}
+        aria-label="Can I use this?"
+        data-testid={demotionSentence(dataset) ? "library-demotion-sentence" : undefined}
+      >
         <p className="rd-v2-rail-section-label">Can I use this?</p>
         <h3>{decision.headline}</h3>
         <p>{decision.body}</p>
       </section>
+
+      {remedy ? (
+        <section
+          className="rd-v2-library-inspector-decision"
+          aria-label="Restore from archive"
+          data-testid="library-hydrate-remedy"
+        >
+          <p className="rd-v2-rail-section-label">Restore from archive</p>
+          <p>{remedy}</p>
+          {archiveRef ? <p className="rd-v2-library-inspector-prose muted mono">{archiveRef}</p> : null}
+        </section>
+      ) : null}
 
       <div className="rd-v2-rail-scroll rd-v2-library-inspector-scroll">
         <section className="rd-v2-library-inspector-block" aria-label="Source" data-testid="library-rail-source">
@@ -193,6 +213,7 @@ export function LibraryDatasetRailPanel({ dataset, onPreview, onAskAbout }) {
             <Fact label="Registry readiness" value={dataset.analysis_readiness || "not declared"} mono />
             <Fact label="Backend" value={dataset.backend} mono />
             <Fact label="Vault path" value={fields.vault} mono />
+            <Fact label="Canonical archive" value={archiveRef || null} mono />
             <Fact label="Query path" value={dataset.dataset_id ? `/query/${dataset.dataset_id}?limit=50` : null} mono />
           </div>
         </details>

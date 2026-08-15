@@ -498,6 +498,8 @@ test.describe("v2 Synthesis durable thread surface", () => {
 
   test("creates a durable thread before handing the objective to Ask", async ({ page }) => {
     await page.getByRole("button", { name: "+ New" }).click();
+    await expect(page.locator(".s04-intent-contract")).toHaveCount(0);
+    await expect(page.getByText("No method exists yet.")).toBeVisible();
     await expect(page.locator("aside.rd-v2-rail")).toContainText("Synthesis studio");
     await expect(page.locator("aside.rd-v2-rail")).not.toContainText("Historical stablecoin attention");
     await expect(page.locator("aside.rd-v2-rail")).not.toContainText("Keep the primary horizon weekly.");

@@ -939,24 +939,6 @@
   background: transparent;
 }
 
-.rd-v2-discover-best-fit,
-.rd-v2-discover-other-matches {
-  display: grid;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.rd-v2-discover-best-fit .rd-v2-discover-candidates {
-  border: 1px solid #d5dced;
-  border-radius: 12px;
-  overflow: hidden;
-  background: #fff;
-}
-
-.rd-v2-discover-best-fit .rd-v2-discover-candidate {
-  border-left: 3px solid #3f6f5c;
-}
-
 .rd-v2-discover-rank-foot {
   display: flex;
   flex-wrap: wrap;

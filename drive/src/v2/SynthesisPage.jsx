@@ -10,7 +10,12 @@ import {
   requestSynthesisExecution,
 } from "@/v2/api";
 import { handleEnterToSubmit } from "@/v2/enterToSubmit";
-import { buildStageDetail, executionTrack } from "@/v2/synthesisLifecycle";
+import {
+  buildStageDetail,
+  executionTrack,
+  synthesisShowsEvidenceMap,
+  synthesisShowsStageStrip,
+} from "@/v2/synthesisLifecycle";
 
 function text(value, fallback = "") {
   return String(value || "").trim() || fallback;
@@ -169,7 +174,7 @@ function ThreadList({ threads, selectedId, loading, onSelect, onNew }) {
           </span>
         </button>
       ))}
-      {!loading && !threads.length ? <p className="s04-thread-empty">No Synthesis threads yet.</p> : null}
+      {!loading && !threads.length ? <p className="s04-thread-empty">No durable constructions yet.</p> : null}
       <footer>
         <small>Thread memory</small>
         <p>Methods, review decisions, execution state, and registered outputs stay attached to the research object.</p>
@@ -214,7 +219,7 @@ function ThreadHeader({ thread }) {
           {text(state.required_grain || state.spec?.grain, "Not specified")}
         </span>
       </div>
-      <SynthesisProgress thread={thread} />
+      {synthesisShowsStageStrip(thread) ? <SynthesisProgress thread={thread} /> : null}
     </>
   );
 }
@@ -578,15 +583,15 @@ function DraftCanvas({ thread, onAsk, stalled, onRetry }) {
         <b>↓</b>
         <div>
           <article>
-            <small>1 · Interpret</small>
+            <small>Interpret</small>
             <span>Define the latent construct</span>
           </article>
           <article>
-            <small>2 · Ground</small>
+            <small>Ground</small>
             <span>Map relevant Library evidence</span>
           </article>
           <article>
-            <small>3 · Challenge</small>
+            <small>Challenge</small>
             <span>Name the decisive validity risk</span>
           </article>
         </div>
@@ -619,9 +624,9 @@ function NewThread({ objective, setObjective, busy, profiles, onCreate, onStartB
   const startingPoints = (Array.isArray(profiles) ? profiles : []).slice(0, 3);
   return (
     <section className="s04-intent" data-testid="synthesis-intent-state">
-      <small>New Synthesis project</small>
-      <h2>Describe the dataset you wish existed.</h2>
-      <p>Give the research purpose in ordinary language. Ask will clarify the construct, ground it in your Library, and expose every proxy choice before a method can be reviewed.</p>
+      <small>Research object</small>
+      <h2>Describe the construction you need.</h2>
+      <p>State the research purpose in ordinary language. Ask returns a durable object, grounds it in Library evidence, and makes each proxy choice reviewable before a method can be accepted.</p>
       <textarea
         rows={7}
         value={objective}
@@ -633,12 +638,10 @@ function NewThread({ objective, setObjective, busy, profiles, onCreate, onStartB
           });
         }}
       />
-      <div className="s04-intent-contract" aria-label="What Synthesis does next">
-        <span><b>1</b> Interpret</span>
-        <span><b>2</b> Ground in Library</span>
-        <span><b>3</b> Challenge proxies</span>
-        <span><b>4</b> Review method</span>
-      </div>
+      <p className="s04-intent-boundary">
+        No method exists yet. Ask can return an evidence map, proxy choices, and one reviewable
+        decision; nothing executes or registers from this entry state.
+      </p>
       {startingPoints.length ? (
         <div className="s04-intent-starts">
           <small>Or start from a registered method</small>
@@ -682,20 +685,33 @@ function NewThread({ objective, setObjective, busy, profiles, onCreate, onStartB
 function EmptyWorkspace({ profiles, profilesLoading, profilesError, onStartBlueprint, onNew }) {
   const list = Array.isArray(profiles) ? profiles : [];
   return (
-    <section className="s04-intent s04-intent-quiet s04-exploration-ready" data-testid="synthesis-empty-state">
-      <small>Exploration ready</small>
-      <h2>Choose a blueprint or start a custom construction</h2>
+    <section className="s04-intent s04-empty-canvas" data-testid="synthesis-empty-state">
+      <small>Research construction</small>
+      <h2>Start one durable research object.</h2>
       <p>
-        Synthesis is blueprint/recipe oriented: owned Library inputs → defined method → verified output.
-        Blueprints below come from the lab registry — not invented UI copy.
+        A construction keeps the evidence map, method review, execution proof, and registered output on one thread.
+        No method or output is claimed until the desk records it.
       </p>
+      <div className="s04-empty-decisions">
+        <article>
+          <small>Start with</small>
+          <strong>Research purpose</strong>
+          <span>Ask turns it into a durable object and evidence map.</span>
+        </article>
+        <article>
+          <small>Or reuse</small>
+          <strong>Registered method</strong>
+          <span>Begin from a recorded construction, then review any change.</span>
+        </article>
+      </div>
       {profilesLoading ? <p className="s04-fixture">Loading registered blueprints…</p> : null}
       {profilesError ? <p className="s04-fixture">{profilesError}</p> : null}
       {!profilesLoading && !profilesError && !list.length ? (
-        <p className="s04-fixture">No synthesis blueprints are registered on this desk yet.</p>
+        <p className="s04-fixture">No registered method is reported on this desk yet.</p>
       ) : null}
       {list.length ? (
-        <ul className="s04-blueprint-recipes" aria-label="Registered synthesis blueprints" data-testid="synthesis-blueprints">
+        <ul className="s04-blueprint-recipes" aria-label="Registered synthesis methods" data-testid="synthesis-blueprints">
+          <li className="s04-blueprint-heading">Registered methods</li>
           {list.map((profile) => {
             const sources = Array.isArray(profile.sources) ? profile.sources : [];
             const joins = Array.isArray(profile.join_keys) ? profile.join_keys : [];
@@ -717,7 +733,7 @@ function EmptyWorkspace({ profiles, profilesLoading, profilesError, onStartBluep
                     {body}
                     {joins.length ? ` · join ${joins.join(", ")}` : ""}
                   </span>
-                  <em>Start →</em>
+                  <em>Open →</em>
                 </button>
               </li>
             );
@@ -725,8 +741,8 @@ function EmptyWorkspace({ profiles, profilesLoading, profilesError, onStartBluep
         </ul>
       ) : null}
       <footer>
-        <button type="button" className="rd-v2-btn" onClick={onNew}>
-          Custom objective…
+        <button type="button" className="rd-v2-btn primary" onClick={onNew}>
+          Start a construction
         </button>
       </footer>
     </section>
@@ -781,7 +797,7 @@ export function SynthesisPage({
         const familiar = next.find((thread) => /stablecoin attention/i.test(titleFor(thread)));
         return familiar?.id || next[0]?.id || "";
       });
-      if (!next.length) setNewMode(true);
+      if (!next.length) setNewMode(false);
     } catch (cause) {
       setError(text(cause?.message, "Synthesis threads could not be loaded."));
     } finally {
@@ -1127,6 +1143,16 @@ export function SynthesisPage({
           {!newMode && selected ? (
             <>
               <ThreadHeader thread={selected} />
+              {synthesisShowsEvidenceMap(selected) ? (
+                <EvidenceMap
+                  thread={selected}
+                  onAsk={ask}
+                  selectedField={selectedField}
+                  onSelectField={setSelectedField}
+                  onRouteToDiscover={routeToDiscover}
+                  missingIds={missingEvidenceIds}
+                />
+              ) : null}
               {mode === "proposal" ? <ProposalReview thread={selected} busy={busy} onDecide={decideProposal} onAsk={ask} /> : null}
               {showExecution ? (
                 <ExecutionRecord
@@ -1136,16 +1162,6 @@ export function SynthesisPage({
                   onReview={onReviewExecution}
                   onAsk={ask}
                   onOpenDataset={onOpenDataset}
-                />
-              ) : null}
-              {mode === "explore" ? (
-                <EvidenceMap
-                  thread={selected}
-                  onAsk={ask}
-                  selectedField={selectedField}
-                  onSelectField={setSelectedField}
-                  onRouteToDiscover={routeToDiscover}
-                  missingIds={missingEvidenceIds}
                 />
               ) : null}
               {mode === "draft" ? (

@@ -51,15 +51,15 @@ test.describe("Research Drive RC2.1 transient decoration layer", () => {
     await expect(progress).toBeVisible();
     await expect(rail.getByTestId("ask-agent-card")).toHaveCount(1);
     await expect(rail.getByTestId("ask-agent-card")).toContainText("Working");
-    await expect(progress.locator("li")).toHaveCount(4);
+    await expect(progress.locator("li")).toHaveCount(0);
     await expect(progress).toContainText(/Active · \d+s/);
     await expect(announcement).toHaveAttribute("role", "status");
     await expect(announcement).toHaveAttribute("aria-live", "polite");
-    await expect(announcement).toHaveText(/Preparing|Searching|Checking|Composing|Planning/);
+    await expect(announcement).toHaveText(/Working/);
     await expect(elapsedMeta).toHaveAttribute("aria-hidden", "true");
     await expect(activityBar).not.toHaveAttribute("aria-valuenow", /.+/);
     await expect(activityBar).not.toHaveAttribute("aria-valuemax", /.+/);
-    await expect(activityBar).toHaveAttribute("aria-valuetext", /Preparing|Searching|Checking|Composing|Planning/);
+    await expect(activityBar).toHaveAttribute("aria-valuetext", /Working/);
 
     const activityVisual = await progress.evaluate((node) => ({
       height: node.getBoundingClientRect().height,

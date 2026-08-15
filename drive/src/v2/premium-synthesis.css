@@ -36,3 +36,5 @@
 /* VC-6: registered-method titles wrap instead of truncating to an ellipsis.
    The description keeps its single-line clamp so the cards stay compact. */
 .s04-intent-starts strong{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.35}
+
+.s04-empty-canvas{max-width:820px}.s04-empty-canvas>p{max-width:660px;font-size:12px;line-height:1.55}.s04-empty-decisions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0}.s04-empty-decisions article{display:grid;gap:4px;padding:14px;border:1px solid #e0e4ed;border-radius:12px;background:#fbfcff}.s04-empty-decisions small{color:#778196;font-size:8px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}.s04-empty-decisions strong{color:#283044;font-size:11px}.s04-empty-decisions span{color:#788398;font-size:9.5px;line-height:1.45}.s04-blueprint-heading{margin:0 0 8px;color:#758095;font-size:8.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}

@@ -7,6 +7,7 @@ import { buildHomeBriefing } from "./homeBriefing.js";
 import { buildLab } from "./profileViewModel.js";
 import { recentDatasets } from "./recent.js";
 import { isHistoryNoise } from "./historyNoiseFence.js";
+import { measuredComposerLabel } from "./resourcesTruth.js";
 
 function purposeLine(ds) {
   return (
@@ -162,7 +163,7 @@ export function projectRollupFromHealth(health) {
     hero: {
       composer: {
         configured: Boolean(desk.composer_configured),
-        model: desk.composer_model || "default",
+        model: String(desk.composer_model || "").trim(),
       },
       vault:
         canonical.used_tb != null || canonical.quota_tb != null
@@ -175,7 +176,7 @@ export function projectRollupFromHealth(health) {
     },
     ai: {
       composer_configured: Boolean(desk.composer_configured),
-      composer_model: desk.composer_model || "default",
+      composer_model: String(desk.composer_model || "").trim(),
     },
   };
 }
@@ -263,7 +264,7 @@ export function buildResourceHeadroom(rollup) {
       pinned: false,
       metric: turnsToday > 0 ? `${turnsToday} turns today` : "Composer ready",
       pct: null,
-      headroom: `API key live · ${composer.model || ai.composer_model || "default"}`,
+      headroom: `Key configured · ${measuredComposerLabel(composer.model || ai.composer_model)}`,
       warn: false,
       action: "resources",
     });
