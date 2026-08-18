@@ -41,3 +41,14 @@
 .s04-coverage{display:inline-block;width:96px;height:6px;border-radius:3px;background:#e6e8ee;overflow:hidden;vertical-align:middle;margin:0 8px}
 .s04-coverage>b{display:block;height:100%;border-radius:3px;background:#4e7c67}
 .s04-resolved-list li>em{display:block;color:#68728a;font-size:10px;font-style:normal;margin-top:2px}
+.s04-band-summary{width:100%;display:flex;align-items:center;gap:10px;padding:8px 0;border:0;background:none;color:inherit;text-align:left;cursor:pointer;font-size:11px}
+.s04-bands{display:flex;flex:0 0 190px;height:10px;border-radius:5px;overflow:hidden;background:#e6e8ee}
+.s04-bands>b{display:flex;align-items:center;justify-content:center;height:100%;font-size:8px;color:#fff;overflow:hidden}
+.s04-bands>b[data-band=inUse],.s04-bands>b[data-band=both]{background:#3f6f5c}
+.s04-bands>b[data-band=lookahead]{background:#b4643c}
+.s04-bands>b[data-band=unit_twin]{background:#8a6fb0}
+.s04-bands>b[data-band=sparse],.s04-bands>b[data-band=leftOnly]{background:#9aa3b5}
+.s04-bands>b[data-band=score],.s04-bands>b[data-band=rightOnly]{background:#c2c8d4;color:#3d4457}
+.s04-bands>b[data-band=clean]{background:#dfe3ec;color:#68728a}
+.s04-intersection{margin:10px 0}
+.s04-intersection figcaption{color:#68728a;font-size:10px;margin-top:6px}

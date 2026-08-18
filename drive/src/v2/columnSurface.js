@@ -88,11 +88,30 @@ export function groupColumns(profiles, inUse = []) {
   };
 }
 
+/**
+ * A bare count gives no reason to expand. Leading with the largest group does:
+ * "9 excluded as forward-looking" tells a reader whether the rest is worth opening.
+ */
 export function surfaceSummary(grouped) {
   const total = Number(grouped?.total || 0);
   const inUse = (grouped?.inUse || []).length;
-  const resolved = Number(grouped?.resolved || 0);
-  const parts = [`using ${inUse} of ${total} columns`];
-  if (resolved) parts.push(`${resolved} resolved without asking you`);
+  const groups = grouped?.groups || [];
+  const parts = [`${inUse} of ${total} columns in use`];
+  if (groups.length) {
+    const largest = groups.reduce((a, b) => (b.columns.length > a.columns.length ? b : a));
+    parts.push(`${largest.columns.length} ${largest.heading}`);
+    const rest = Number(grouped.resolved || 0) - largest.columns.length;
+    if (rest > 0) parts.push(`${rest} more resolved`);
+  }
   return parts.join(" · ");
+}
+
+/** Segments for the stacked bar: in use, each group, then the unremarkable rest. */
+export function surfaceBands(grouped) {
+  const groups = grouped?.groups || [];
+  return [
+    { id: "inUse", label: "in use", count: (grouped?.inUse || []).length },
+    ...groups.map((group) => ({ id: group.flag, label: group.heading, count: group.columns.length })),
+    { id: "clean", label: "unremarkable", count: (grouped?.clean || []).length },
+  ];
 }

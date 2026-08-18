@@ -1,4 +1,5 @@
 import { collapseChoices, coverageVerdict, joinOutcomes, needsCollapse, rankCandidates } from "./joinCandidates.js";
+import { intersectionBands, intersectionCaption } from "./coverageBands.js";
 
 function CoverageBar({ value }) {
   const share = Math.max(0, Math.min(100, Number(value || 0)));
@@ -9,7 +10,7 @@ function CoverageBar({ value }) {
   );
 }
 
-export function JoinDecisionPanel({ leftLabel, rightLabel, coverage, onChooseKey, onChooseOutcome, onChooseCollapse }) {
+export function JoinDecisionPanel({ leftLabel, rightLabel, rightTotal, coverage, onChooseKey, onChooseOutcome, onChooseCollapse }) {
   const candidates = rankCandidates(coverage);
   if (!candidates.length) return null;
   const best = candidates[0];
@@ -26,6 +27,31 @@ export function JoinDecisionPanel({ leftLabel, rightLabel, coverage, onChooseKey
           {best.coverage == null ? "no usable key" : `${best.coverage}% of ${leftLabel || "the left side"}`}
         </em>
       </header>
+
+      {best.usable && best.total ? (
+        <figure className="s04-intersection" data-testid="synthesis-join-intersection">
+          <span className="s04-bands">
+            {intersectionBands({
+              leftTotal: best.total,
+              rightTotal: rightTotal || best.total,
+              both: best.matched,
+              leftLabel,
+              rightLabel,
+            }).bands.map((band) => (
+              <b key={band.id} data-band={band.id} style={{ width: `${band.percent}%` }}>
+                {band.count.toLocaleString()}
+              </b>
+            ))}
+          </span>
+          <figcaption>
+            {intersectionCaption(intersectionBands({
+              leftTotal: best.total,
+              rightTotal: rightTotal || best.total,
+              both: best.matched,
+            }))}
+          </figcaption>
+        </figure>
+      ) : null}
 
       <div className="s04-resolved-list">
         <small>Which key links them?</small>

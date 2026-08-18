@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { groupColumns, surfaceSummary } from "./columnSurface.js";
+import { groupColumns, surfaceBands, surfaceSummary } from "./columnSurface.js";
+import { groupBands } from "./coverageBands.js";
 
 export function MethodSurfacePanel({ dataset, profiles, inUse = [], onOpenColumn, onOverride }) {
   const [expanded, setExpanded] = useState(false);
@@ -13,8 +14,22 @@ export function MethodSurfacePanel({ dataset, profiles, inUse = [], onOpenColumn
           <small>Evidence</small>
           <h2>{dataset || "This dataset"}</h2>
         </div>
-        <em className="neutral">{surfaceSummary(grouped)}</em>
       </header>
+
+      <button
+        type="button"
+        className="s04-band-summary"
+        aria-expanded={expanded}
+        onClick={() => setExpanded((open) => !open)}
+      >
+        <span className="s04-bands" role="img" aria-label={surfaceSummary(grouped)}>
+          {groupBands(surfaceBands(grouped)).segments.map((segment) => (
+            <b key={segment.id} data-band={segment.id} style={{ width: `${segment.percent}%` }} />
+          ))}
+        </span>
+        <span>{surfaceSummary(grouped)}</span>
+        <em>{expanded ? "▾" : "▸"}</em>
+      </button>
 
       <dl className="s04-method">
         {grouped.inUse.map((column) => (
@@ -25,7 +40,7 @@ export function MethodSurfacePanel({ dataset, profiles, inUse = [], onOpenColumn
         ))}
       </dl>
 
-      {grouped.groups.length ? (
+      {expanded && grouped.groups.length ? (
         <div className="s04-resolved-list">
           <small>Resolved without asking you</small>
           <ul>
@@ -44,16 +59,6 @@ export function MethodSurfacePanel({ dataset, profiles, inUse = [], onOpenColumn
           </ul>
         </div>
       ) : null}
-
-      <footer className="s04-actions">
-        <p>
-          <small>Next</small>
-          Each exclusion is recorded with its reason and can be reversed.
-        </p>
-        <button type="button" className="rd-v2-btn" onClick={() => setExpanded((open) => !open)}>
-          {expanded ? "Hide the other columns" : `Review all ${grouped.total} columns`}
-        </button>
-      </footer>
 
       {expanded ? (
         <ul className="s04-blueprint-recipes" data-testid="synthesis-column-list">

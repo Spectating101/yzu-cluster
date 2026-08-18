@@ -5,6 +5,7 @@ import {
   blankSentence,
   describeColumn,
   groupColumns,
+  surfaceBands,
   surfaceSummary,
 } from "./columnSurface.js";
 
@@ -81,17 +82,44 @@ test("an unflagged column that is not in use is clean, not a warning", () => {
   assert.equal(grouped.groups.length, 0);
 });
 
-test("the summary leads with what is in use, not with the column count", () => {
+test("the summary names the largest group, so there is a reason to expand", () => {
   const grouped = groupColumns(
     [col({ column: "a" }), col({ column: "b" }), col({ column: "fwd_1d", flags: ["lookahead"] })],
     ["a"],
   );
-  assert.equal(surfaceSummary(grouped), "using 1 of 3 columns · 1 resolved without asking you");
+  assert.equal(
+    surfaceSummary(grouped),
+    "1 of 3 columns in use · 1 excluded — they tell you the future",
+  );
+});
+
+test("a second group is counted rather than listed, keeping the line one line", () => {
+  const grouped = groupColumns([
+    col({ column: "a" }),
+    col({ column: "f1", flags: ["lookahead"] }),
+    col({ column: "f2", flags: ["lookahead"] }),
+    col({ column: "s", flags: ["score"] }),
+  ], ["a"]);
+  assert.equal(
+    surfaceSummary(grouped),
+    "1 of 4 columns in use · 2 excluded — they tell you the future · 1 more resolved",
+  );
 });
 
 test("nothing resolved means the summary does not invent a second clause", () => {
   const grouped = groupColumns([col({ column: "a" })], ["a"]);
-  assert.equal(surfaceSummary(grouped), "using 1 of 1 columns");
+  assert.equal(surfaceSummary(grouped), "1 of 1 columns in use");
+});
+
+test("the stacked bar segments cover in-use, each group, and the rest", () => {
+  const grouped = groupColumns([
+    col({ column: "a" }), col({ column: "clean1" }),
+    col({ column: "f1", flags: ["lookahead"] }),
+  ], ["a"]);
+  assert.deepEqual(
+    surfaceBands(grouped).map((band) => [band.id, band.count]),
+    [["inUse", 1], ["lookahead", 1], ["clean", 1]],
+  );
 });
 
 test("an unknown kind is described rather than crashing", () => {
