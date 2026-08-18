@@ -22,7 +22,7 @@ export function ScopePanel({ block, onChoose, onAsk }) {
       <p className="s04-fixture">{scopeHeadline(scope)}</p>
 
       {canHelp ? (
-        <div className="s04-resolved-list">
+        <div className="s04-options">
           <small>Scope the input · smallest cut that clears, first</small>
           <ul>
             {scope.options.map((option) => (

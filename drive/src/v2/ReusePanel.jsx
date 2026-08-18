@@ -19,7 +19,7 @@ export function ReusePanel({ source, changes, onPreview, onChange }) {
         registered and citable — this is a revision, not an overwrite.
       </p>
 
-      <div className="s04-resolved-list">
+      <div className="s04-options">
         <small>What do you want different?</small>
         <ul>
           {diff.changes.map((change) => (

@@ -21,7 +21,7 @@ export function ProvenancePanel({ provenance, onViewCode, onDownload, onCite }) 
       </dl>
 
       {inputs.length ? (
-        <div className="s04-resolved-list">
+        <div className="s04-options">
           <small>Inputs — verify these fingerprints before trusting a reproduction</small>
           <ul>
             {inputs.map((input) => (

@@ -28,7 +28,7 @@ export function UnitConflictPanel({ conflict, onChoose, onAsk }) {
         </p>
       ) : null}
 
-      <div className="s04-resolved-list">
+      <div className="s04-options">
         <small>What the output becomes</small>
         <ul>
           {outcomes.map((outcome) => (

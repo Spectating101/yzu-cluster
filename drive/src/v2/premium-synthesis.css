@@ -63,3 +63,14 @@
 .s04-decision-list>li small{color:#68728a;font-size:10px}
 .s04-decision-list>li>em{color:#939bad;font-size:10px;font-style:normal;white-space:nowrap}
 .s04-code{margin:10px 0 0;padding:10px;border-radius:10px;background:#f5f6fa;color:#3d4457;font-size:10px;line-height:1.5;overflow-x:auto}
+/* A choice row is a control and its consequence, not a checklist item. Reusing
+   s04-resolved-list gave every option a tick it had not earned and ran the button
+   into the text beside it. */
+.s04-options{margin-top:12px;padding:13px;border:1px solid #e0e4ed;border-radius:13px;background:#fbfcff}
+.s04-options>small{color:#68728a;font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}
+.s04-options ul{margin:9px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:9px}
+.s04-options li{display:grid;grid-template-columns:minmax(132px,auto) minmax(0,1fr);gap:4px 12px;align-items:baseline}
+.s04-options li>span{color:#5c6578;font-size:10px;line-height:1.5}
+.s04-options li>em{grid-column:1/-1;color:#68728a;font-size:9.5px;font-style:normal}
+.s04-options li>b{color:#68728a;font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.s04-options li .rd-v2-btn{justify-self:start;white-space:nowrap}

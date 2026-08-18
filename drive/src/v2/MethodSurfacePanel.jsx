@@ -41,7 +41,7 @@ export function MethodSurfacePanel({ dataset, profiles, inUse = [], onOpenColumn
       </dl>
 
       {expanded && grouped.groups.length ? (
-        <div className="s04-resolved-list">
+        <div className="s04-options">
           <small>Resolved without asking you</small>
           <ul>
             {grouped.groups.map((group) => (

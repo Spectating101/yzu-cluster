@@ -53,7 +53,7 @@ export function JoinDecisionPanel({ leftLabel, rightLabel, rightTotal, coverage,
         </figure>
       ) : null}
 
-      <div className="s04-resolved-list">
+      <div className="s04-options">
         <small>Which key links them?</small>
         <ul>
           {candidates.map((candidate) => (
@@ -74,7 +74,7 @@ export function JoinDecisionPanel({ leftLabel, rightLabel, rightTotal, coverage,
         </ul>
       </div>
 
-      <div className="s04-resolved-list">
+      <div className="s04-options">
         <small>What each choice does to the study</small>
         <ul>
           {joinOutcomes(best).map((outcome) => (
@@ -93,7 +93,7 @@ export function JoinDecisionPanel({ leftLabel, rightLabel, rightTotal, coverage,
       </div>
 
       {needsCollapse(best) ? (
-        <div className="s04-resolved-list" data-testid="synthesis-collapse-choice">
+        <div className="s04-options" data-testid="synthesis-collapse-choice">
           <small>The right side repeats this key — which row should win?</small>
           <ul>
             {collapseChoices(best).map((choice) => (
