@@ -790,3 +790,220 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await capture(page, "11-proposal-review-mobile");
   });
 });
+
+// The two panels were written, tested in isolation, and imported by nothing — so
+// the desk rendered exactly what it did before. These assert they are reachable:
+// absent when the thread carries no profile, present the moment it does.
+test.describe("v2 Synthesis evidence panels", () => {
+  const withFields = (extra) => ({
+    id: "thread-fields",
+    created_at: "2026-07-19T09:00:00+00:00",
+    updated_at: "2026-07-19T09:00:00+00:00",
+    title: "IDN weekly factor exposure",
+    objective: "Weekly excess return per Indonesian listed equity",
+    materialisation: "not_materialised",
+    state: {
+      title: "IDN weekly factor exposure",
+      objective: "Weekly excess return per Indonesian listed equity",
+      maturity: "exploring", maturityLabel: "Exploring", lastActivity: "Thread created.",
+      nodes: [], edges: [], proposal: null,
+      spec: { input_dataset_id: "idn_fry_daily_cross_section" },
+      ...extra,
+    },
+  });
+
+  async function mount(page, thread) {
+    await page.route("**/api/library/synthesis/threads**", (route) =>
+      route.fulfill({
+        status: 200, contentType: "application/json",
+        body: JSON.stringify(route.request().url().includes("thread-fields")
+          ? thread : { threads: [thread], total: 1 }),
+      }));
+    await page.goto("/?tab=synthesis");
+    await page.getByTestId("synthesis-thread-item").first().click();
+  }
+
+  test("neither panel appears while the thread carries no profile", async ({ page }) => {
+    await mount(page, withFields({}));
+    await expect(page.getByTestId("synthesis-method-surface")).toHaveCount(0);
+    await expect(page.getByTestId("synthesis-join-decision")).toHaveCount(0);
+  });
+
+  test("the evidence panel appears and names what was resolved", async ({ page }) => {
+    await mount(page, withFields({
+      columns_in_use: ["date", "return_1d"],
+      column_profiles: [
+        { column: "date", kind: "date", rows: 100, blanks: 0, distinct: 90, flags: [] },
+        { column: "return_1d", kind: "measurement", rows: 100, blanks: 0, distinct: 90, flags: [] },
+        { column: "fwd_5d", kind: "measurement", rows: 100, blanks: 0, distinct: 90, flags: ["lookahead"] },
+      ],
+    }));
+    const panel = page.getByTestId("synthesis-method-surface");
+    await expect(panel).toBeVisible();
+    await expect(panel).toContainText("2 of 3 columns in use");
+    await expect(panel).toContainText("they tell you the future");
+  });
+
+  test("the join panel shows both sides of the intersection, not one bar", async ({ page }) => {
+    await mount(page, withFields({
+      join_candidate_dataset_id: "refinitiv_entity_market_spine_expanded",
+      join_candidate_rows: 570,
+      join_candidates: [
+        { left_key: "yahoo_symbol", right_key: "yahoo_symbol", matched: 50, left_distinct: 635,
+          match_rate_pct: 7.874, right_duplicate_rows: 0, usable: true, reason: null },
+        { left_key: "yahoo_symbol", right_key: "isin", matched: 0, left_distinct: 635,
+          match_rate_pct: 0, right_duplicate_rows: 0, usable: false,
+          reason: "the column is empty on the right side" },
+      ],
+    }));
+    const panel = page.getByTestId("synthesis-join-decision");
+    await expect(panel).toBeVisible();
+    await expect(page.getByTestId("synthesis-join-intersection")).toBeVisible();
+    await expect(panel).toContainText("520 on the right match nothing here");
+    await expect(panel).toContainText("a different population");
+    await expect(panel).toContainText("the column is empty on the right side");
+  });
+});
+
+// The remaining four panels, same contract: absent without their field, present
+// with it. Every payload here is the shape the desk will have to produce.
+test.describe("v2 Synthesis decision and record panels", () => {
+  const thread = (extra) => ({
+    id: "thread-panels",
+    created_at: "2026-07-19T09:00:00+00:00",
+    updated_at: "2026-07-19T09:00:00+00:00",
+    title: "IDN weekly factor exposure",
+    objective: "Weekly excess return per Indonesian listed equity",
+    materialisation: "not_materialised",
+    state: {
+      title: "IDN weekly factor exposure",
+      objective: "Weekly excess return per Indonesian listed equity",
+      maturity: "exploring", maturityLabel: "Exploring", lastActivity: "Thread created.",
+      nodes: [], edges: [], proposal: null, ...extra,
+    },
+  });
+
+  async function mount(page, payload) {
+    await page.route("**/api/library/synthesis/threads**", (route) =>
+      route.fulfill({
+        status: 200, contentType: "application/json",
+        body: JSON.stringify(route.request().url().includes("thread-panels")
+          ? payload : { threads: [payload], total: 1 }),
+      }));
+    await page.goto("/?tab=synthesis");
+    await page.getByTestId("synthesis-thread-item").first().click();
+  }
+
+  test("the scope block recommends the smallest cut that clears", async ({ page }) => {
+    await mount(page, thread({
+      scope_block: {
+        rows: 1043042, limit: 1000000,
+        options: [
+          { id: "2020", from: "2020-01-01", rows: 969392 },
+          { id: "2023", from: "2023-01-01", rows: 506163 },
+        ],
+      },
+    }));
+    const panel = page.getByTestId("synthesis-scope-block");
+    await expect(panel).toBeVisible();
+    await expect(panel).toContainText("1,043,042 rows");
+    await expect(panel).toContainText("least evidence discarded");
+    await expect(panel).toContainText("−7.1%");
+  });
+
+  test("a block no cut can clear says the join shape is wrong instead of offering slices", async ({ page }) => {
+    await mount(page, thread({
+      scope_block: {
+        rows: 206432820, limit: 1000000,
+        options: [{ id: "2020", from: "2020-01-01", rows: 191899616 }],
+      },
+    }));
+    await expect(page.getByTestId("synthesis-scope-block")).toContainText("join shape is the problem");
+  });
+
+  test("the unit conflict shows both answers, not the recommended one alone", async ({ page }) => {
+    await mount(page, thread({
+      unit_conflict: {
+        left: { column: "return_1d", typical: 0.0006 },
+        right: { column: "rf", typical: 0.012 },
+        outcomes: [
+          { id: "rescale", label: "rescale rf ÷100", result: -0.0002, recommended: true },
+          { id: "asis", label: "leave them as they are", result: -0.02 },
+        ],
+      },
+    }));
+    const panel = page.getByTestId("synthesis-unit-conflict");
+    await expect(panel).toContainText("20× apart");
+    await expect(panel).toContainText("-0.0002");
+    await expect(panel).toContainText("-0.02");
+    await expect(panel).toContainText("differ by 100×");
+  });
+
+  test("settled decisions separate what the data established from what the desk chose", async ({ page }) => {
+    await mount(page, thread({
+      settled_decisions: [
+        { id: "grain", authority: "observed", summary: "target grain asset × week" },
+        { id: "asof", authority: "desk", summary: "as-of backward 5D", evidence: "100.0% matched" },
+      ],
+    }));
+    const panel = page.getByTestId("synthesis-settled-decisions");
+    await expect(panel).toContainText("2 decisions · 1 you can reopen");
+    await expect(panel.getByRole("button", { name: "contest this" })).toHaveCount(1);
+  });
+
+  test("an excursion that found nothing is still recorded", async ({ page }) => {
+    await mount(page, thread({
+      excursions: [
+        { id: "e1", at: "2026-08-18", searched: "regulatory filings", found: 1,
+          verdict: "grain incompatible" },
+      ],
+    }));
+    const panel = page.getByTestId("synthesis-excursion-record");
+    await expect(panel).toContainText("1 searched · 1 still open");
+    await expect(panel).toContainText("grain incompatible");
+  });
+
+  test("provenance shows the method as something a reviewer could re-run", async ({ page }) => {
+    await mount(page, thread({
+      provenance: {
+        method_hash: "sha256:dd997b185c521d70e38557b", built_at: "2026-08-18 19:43 UTC",
+        job_id: "job-synthesis-42", archive_verified: true,
+        inputs: [{ dataset_id: "idn_fry_daily_cross_section", fingerprint: "aa312a7412", files: 1, bytes: 35388 }],
+        code_excerpt: "frame = pd.merge_asof(frame, ff, on='date', direction='backward')",
+      },
+    }));
+    const panel = page.getByTestId("synthesis-provenance");
+    await expect(panel).toContainText("sha256:dd997b18…");
+    await expect(panel).toContainText("archive verified");
+    await expect(page.getByTestId("synthesis-provenance-code")).toContainText("merge_asof");
+  });
+
+  test("reuse carries the settled decisions and only asks about the difference", async ({ page }) => {
+    await mount(page, thread({
+      reuse_from: {
+        method_hash: "sha256:dd997b185c521d70", output_dataset_id: "idn_weekly_factor_exposure",
+        decisions: [
+          { id: "grain", authority: "observed", summary: "asset × week" },
+          { id: "asof", authority: "desk", summary: "as-of backward 5D" },
+        ],
+      },
+      reuse_changes: [
+        { id: "metrics", label: "metrics", before: "5 defined", after: "7 defined" },
+        { id: "scope", label: "scope", before: "2020-01-01", after: "2020-01-01" },
+      ],
+    }));
+    const panel = page.getByTestId("synthesis-reuse");
+    await expect(panel).toContainText("revision, not an overwrite");
+    await expect(panel).toContainText("5 defined → 7 defined");
+    await expect(panel).toContainText("unchanged · 2020-01-01");
+  });
+
+  test("none of the six appear on a thread that carries none of their fields", async ({ page }) => {
+    await mount(page, thread({}));
+    for (const id of ["synthesis-scope-block", "synthesis-unit-conflict",
+                      "synthesis-settled-decisions", "synthesis-excursion-record",
+                      "synthesis-provenance", "synthesis-reuse"]) {
+      await expect(page.getByTestId(id)).toHaveCount(0);
+    }
+  });
+});

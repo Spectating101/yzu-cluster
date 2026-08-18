@@ -52,3 +52,14 @@
 .s04-bands>b[data-band=clean]{background:#dfe3ec;color:#68728a}
 .s04-intersection{margin:10px 0}
 .s04-intersection figcaption{color:#68728a;font-size:10px;margin-top:6px}
+.s04-decision-list{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.s04-decision-list>li{display:grid;grid-template-columns:112px minmax(0,1fr) auto;gap:10px;align-items:start;padding:8px;border:1px solid #e6e8ee;border-radius:10px;background:#fff}
+.s04-decision-list>li>b{color:#68728a;font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding-top:2px}
+.s04-decision-list>li[data-authority=observed]>b{color:#3f6f5c}
+.s04-decision-list>li[data-authority=desk]>b{color:#8a6fb0}
+.s04-decision-list>li[data-resolved=no]>b{color:#b4643c}
+.s04-decision-list>li>span{min-width:0;display:flex;flex-direction:column;gap:2px}
+.s04-decision-list>li strong{color:#252d40;font-size:11.5px}
+.s04-decision-list>li small{color:#68728a;font-size:10px}
+.s04-decision-list>li>em{color:#939bad;font-size:10px;font-style:normal;white-space:nowrap}
+.s04-code{margin:10px 0 0;padding:10px;border-radius:10px;background:#f5f6fa;color:#3d4457;font-size:10px;line-height:1.5;overflow-x:auto}
