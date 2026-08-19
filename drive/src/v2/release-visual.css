@@ -2423,3 +2423,106 @@ a.rd-v2-link {
   color: var(--rd-muted, #6e7685);
   font-size: 10.5px;
 }
+
+/* ── Library palette convergence ─────────────────────────────────
+   Library was built against the earlier blue/steel surface.  It belongs to
+   the same research desk as Home, Resources, Discover, and Synthesis, so
+   its surfaces now consume the shared paper / ink / sage roles.  These are
+   colour-only overrides: its density, selection model, and responsive
+   layout remain intentionally unchanged. */
+.rd-v2-library-pathbar,
+.rd-v2-library-assets,
+.rd-v2-library-collection,
+.rd-v2-library-control-popover,
+.rd-v2-library-inspector-tech {
+  border-color: var(--rd-border, #dbd4c5);
+  background: var(--rd-surface, #fffdf6);
+}
+
+.rd-v2-library-estate,
+.rd-v2-library-inspector-decision,
+.rd-v2-library-inspector-tech {
+  background: var(--rd-canvas, #eeeae0);
+}
+
+.rd-v2-library-estate-summary,
+.rd-v2-library-asset,
+.rd-v2-library-inspector-block,
+.rd-v2-library-folder-summary,
+.rd-v2-library-folder-add {
+  border-color: var(--rd-border, #dbd4c5);
+}
+
+.rd-v2-library-pathcopy > span,
+.rd-v2-library-pathcopy p,
+.rd-v2-library-pathstats,
+.rd-v2-library-estate-eyebrow,
+.rd-v2-library-estate-scope,
+.rd-v2-library-estate-note,
+.rd-v2-library-collection-copy span,
+.rd-v2-library-collection-copy em,
+.rd-v2-library-asset-purpose,
+.rd-v2-library-asset-meta em,
+.rd-v2-library-asset-type,
+.rd-v2-library-inspector-fact > span,
+.rd-v2-library-inspector-tech > summary,
+.rd-v2-library-folder-readiness span {
+  color: var(--rd-muted, #6e7685);
+}
+
+.rd-v2-library-pathcopy strong,
+.rd-v2-library-pathstats strong,
+.rd-v2-library-estate-summary h2,
+.rd-v2-library-estate-section-head p,
+.rd-v2-library-collection-copy strong,
+.rd-v2-library-asset-heading > strong,
+.rd-v2-library-inspector-decision h3,
+.rd-v2-library-inspector-fact > strong,
+.rd-v2-library-folder-summary h3,
+.rd-v2-library-folder-readiness b {
+  color: var(--rd-text, #182033);
+}
+
+.rd-v2-library-collection-mark,
+.rd-v2-library-collection-connected .rd-v2-library-collection-mark,
+.rd-v2-library-collection-pipeline .rd-v2-library-collection-mark {
+  border-color: var(--rd-active-border, #c5d2cb);
+  background: var(--rd-active-bg, #eef1ee);
+}
+
+.rd-v2-library-collection-mark span {
+  border-color: var(--rd-link, #3f6f5c);
+  background: var(--rd-surface, #fffdf6);
+  box-shadow: inset 0 4px 0 color-mix(in srgb, var(--rd-link, #3f6f5c) 16%, white);
+}
+
+.rd-v2-library-control-popover button.on,
+.rd-v2-library-control-popover button:hover,
+.rd-v2-library-asset:hover,
+.rd-v2-library-folder-add button:hover {
+  background: var(--rd-hover, #f5f2ea);
+  color: var(--rd-link, #3f6f5c);
+}
+
+.rd-v2-library-asset.selected,
+.rd-v2-library-tree-item.on {
+  background: var(--rd-active-bg, #eef1ee);
+  box-shadow: inset 3px 0 0 var(--rd-link, #3f6f5c);
+}
+
+.rd-v2-library-inspector-decision-query-ready,
+.rd-v2-library-inspector-decision-connected {
+  border-left-color: var(--rd-link, #3f6f5c);
+  background: color-mix(in srgb, var(--rd-ready-bg, #eaf4ef) 66%, var(--rd-surface, #fffdf6));
+}
+
+.rd-v2-library-inspector-decision-warn,
+.rd-v2-library-inspector-decision-queued {
+  border-left-color: var(--rd-review-fg, #9a650e);
+  background: var(--rd-review-bg, #fff6e4);
+}
+
+.rd-v2-library-inspector-decision-failed {
+  border-left-color: var(--rd-fail-fg, #a33b2d);
+  background: var(--rd-fail-bg, #fcecea);
+}
