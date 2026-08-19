@@ -1202,7 +1202,7 @@ export function SynthesisPage({
               {focus.subject === "join" ? (
                 <JoinDecisionPanel
                   leftLabel={selected.state?.spec?.input_dataset_id}
-                  rightLabel={selected.state?.join_candidate_dataset_id}
+                  rightLabel={softIdentifier(selected.state?.join_candidate_dataset_id, "A second dataset")}
                   rightTotal={selected.state?.join_candidate_rows}
                   coverage={selected.state?.join_candidates}
                   onChooseKey={(candidate) => ask(`Use ${candidate.leftKey} to ${candidate.rightKey} for this join.`)}
