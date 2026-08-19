@@ -28,6 +28,7 @@ function railSelectionHint(
   discoverAssessment,
   resourceRow,
   clusterContext,
+  restingSummary,
 ) {
   if (mainTab === "browse" && discoverIntentRecord) {
     return discoverIntentRecord.intent?.title || discoverIntentRecord.candidate?.title || "Acquisition review";
@@ -40,6 +41,9 @@ function railSelectionHint(
   }
   if (mainTab === "browse" && browseTarget) {
     return browseTarget.title || browseTarget.dataset_id || "Discover result";
+  }
+  if (mainTab === "browse" && restingSummary?.hasResults) {
+    return "Search summary";
   }
   if (mainTab === "browse") {
     return "No discover result";
@@ -112,6 +116,7 @@ export function InspectorRail({
   onDiscoverAssessmentActive,
   onCloseDiscoverAssessment,
   onSuggestDiscoverSearch,
+  discoverRestingSummary = null,
   resourceRow,
   resourcesRollup,
   activeObject,
@@ -178,6 +183,9 @@ export function InspectorRail({
       <BrowseRailPanel
         target={browseTarget}
         labIds={labIds}
+        catalog={discoverCatalog}
+        restingSummary={discoverRestingSummary}
+        intentRecord={discoverIntentRecord}
         onAskAbout={onAskAbout}
         onAddToLab={onAddToLab}
         onPreviewExternal={onPreviewExternal}
@@ -272,6 +280,7 @@ export function InspectorRail({
       discoverAssessment,
       resourceRow,
       clusterContext,
+      discoverRestingSummary,
     );
 
   const [mobileRailOpen, setMobileRailOpen] = useState(false);
@@ -280,7 +289,9 @@ export function InspectorRail({
     if (mainTab === "browse") {
       setMobileRailOpen(
         Boolean(discoverAssessment?.active) ||
-          (Boolean(browseTarget || historyEvent || discoverIntentRecord) && railTab === "ask"),
+          Boolean(historyEvent) ||
+          Boolean(discoverIntentRecord) ||
+          (Boolean(browseTarget) && railTab === "ask"),
       );
       return;
     }
@@ -311,6 +322,7 @@ export function InspectorRail({
     historyEvent,
     discoverIntentRecord,
     discoverAssessment?.active,
+    discoverRestingSummary?.hasResults,
     railTab,
     activeObject?.kind,
   ]);

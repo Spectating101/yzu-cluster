@@ -1713,3 +1713,9 @@ summary:focus-visible {
 
   .rd-v2-home-attention-actions .rd-v2-btn { width: 100%; }
 }
+
+@media (max-width: 720px) {
+  .rd-v2-shell:has(.rd-v2-rail:not(.rd-v2-rail-collapsed)) .rd-v2-body-scroll {
+    padding-bottom: calc(min(72dvh, 760px) + 32px);
+  }
+}

@@ -48,9 +48,16 @@ test.describe("v2 Discover tab", () => {
     await searchDiscover(page, "TWSE governance");
     await expect(page.locator('button.rd-v2-discover-candidate').first()).toBeVisible({ timeout: 10_000 });
     await expect(page.locator('button.rd-v2-discover-candidate')).not.toHaveCount(0);
-    await expect(page.getByTestId("discover-best-fit")).toContainText(/TWSE Open\s*API|TWSE|MOPS|candidate/i);
+    // BEST FIT was a ranking with no measured score behind it and is withdrawn;
+    // the candidates themselves carry the composition now.
+    await expect(page.locator(".rd-v2-catalog")).toContainText(/TWSE Open\s*API|TWSE|MOPS|candidate/i);
+    await expect(page.getByTestId("discover-best-fit")).toHaveCount(0);
     await expect(page.getByTestId("discover-interpreting")).toBeVisible();
-    await expect(page.getByLabel("Discover next actions")).toContainText(/\d+ result/i);
+    // "N results" was replaced by the chrome row plus an offering breakdown:
+    //   Available · N   Library evidence · N   Web context · N
+    await expect(page.getByTestId("discover-result-summary")).toContainText(/Available\s*·\s*\d+/i);
+    await expect(page.getByTestId("discover-result-summary")).toContainText(/Library evidence\s*·\s*\d+/i);
+    await expect(page.getByLabel("Discover next actions")).toContainText(/available to add|Search wider/i);
     await expect(page.getByTestId("discover-rank-foot")).toContainText(/Ranked using active research/i);
     await expect(page.getByTestId("discover-filter-menu")).toBeVisible();
     await expect(page.getByTestId("discover-browse-mode")).not.toContainText(/process overview/i);
@@ -201,9 +208,12 @@ test.describe("v2 Discover tab", () => {
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
     await searchDiscover(page, "market");
-    const section = page.locator('[aria-label="Other external matches"]');
-    await expect(section).toBeVisible();
-    await expect(section).not.toContainText("sources beyond your Library");
-    await expect(section).not.toContainText("results in your Library");
+    // This used to assert an "Other external matches" section did not restate the
+    // breakdown. That section is withdrawn along with BEST FIT, so the guarantee
+    // is now structural: neither ranking section may come back.
+    await expect(page.locator('[aria-label="Other external matches"]')).toHaveCount(0);
+    await expect(page.getByTestId("discover-other-matches")).toHaveCount(0);
+    await expect(page.getByTestId("discover-best-fit")).toHaveCount(0);
+    await expect(page.getByTestId("discover-result-summary")).toContainText(/Available\s*·\s*\d+/i);
   });
 });

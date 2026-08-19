@@ -1,6 +1,7 @@
 /** Map GET /library/desk/resources rollup → Resources ledger rows. */
 
 import { buildLayerRows, buildProviderRows } from "@/v2/deskSourcesManifest";
+import { measuredComposerLabel } from "./resourcesTruth.js";
 import {
   buildRunningRows,
   buildStackRows,
@@ -70,7 +71,7 @@ export function buildAiRows(rollup) {
       section: "AI & tools",
       kind: "ai",
       key: "composer",
-      label: `Ask · ${ai.composer_model || "composer-2.5"}`,
+      label: `Ask · ${measuredComposerLabel(ai.composer_model)}`,
       metric: ai.composer_configured ? "Composer + MCP" : "Composer not configured",
       ok: ai.composer_configured,
       warn: !ai.composer_configured,

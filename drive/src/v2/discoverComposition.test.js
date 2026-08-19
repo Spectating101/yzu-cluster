@@ -3,7 +3,6 @@ import { describe, it } from "node:test";
 import {
   groupDiscoverBrowseRows,
   interpretEvidenceNeed,
-  splitBestFitAndOthers,
 } from "./discoverComposition.js";
 import {
   hasSpecificDiscoverRoute,
@@ -62,17 +61,5 @@ describe("Discover query specificity", () => {
     assert.equal(hasSpecificDiscoverRoute([
       { title: "NOAA Mauna Loa atmospheric CO2", description: "Monthly Keeling Curve measurements" },
     ], tokens), true);
-  });
-});
-
-describe("splitBestFitAndOthers", () => {
-  it("promotes first ranked row as Best fit", () => {
-    const { bestFit, others, total } = splitBestFitAndOthers([{ title: "A" }, { title: "B" }, { title: "C" }]);
-    assert.equal(bestFit.title, "A");
-    assert.deepEqual(
-      others.map((r) => r.title),
-      ["B", "C"],
-    );
-    assert.equal(total, 3);
   });
 });

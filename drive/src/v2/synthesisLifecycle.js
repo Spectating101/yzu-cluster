@@ -45,6 +45,17 @@ export function buildStageDetail(thread) {
 }
 
 /**
+ * The frozen composition uses a numbered construction strip only after the
+ * researcher has accepted a method.  Evidence mapping and a draft proposal
+ * are useful work, but neither is permission to show a process as underway.
+ */
+export function synthesisShowsStageStrip(thread) {
+  const state = thread?.state || {};
+  const status = normalizeStatus(state.execution?.status);
+  return Boolean(state.execution_spec) || status === "pending_approval" || POST_APPROVAL_STATUSES.includes(status);
+}
+
+/**
  * The five-row execution track. `completed` advances the worker row only —
  * archive/registry remain unverified until an explicit registered or
  * query_ready state, and query readiness is never inferred from registration.
@@ -96,4 +107,16 @@ export function executionTrack(status, registered, queryReady = false) {
       state: registered ? "done" : "",
     },
   ];
+}
+
+/**
+ * Freeze frame 11 keeps the evidence map in registered/query-ready state.
+ * Show it from measured nodes only — never invent a Keeling diagram.
+ */
+export function synthesisShowsEvidenceMap(thread) {
+  const nodes = thread?.state?.nodes;
+  if (!Array.isArray(nodes) || !nodes.length) return false;
+  return nodes.some(
+    (node) => node?.layer === "evidence" || node?.type === "source" || node?.type === "construct",
+  );
 }
