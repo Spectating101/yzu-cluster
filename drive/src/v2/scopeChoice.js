@@ -54,3 +54,24 @@ export function scopeHeadline(scope) {
   }
   return `${scope.rows.toLocaleString()} rows · the engine stops at ${scope.limit.toLocaleString()}`;
 }
+
+/**
+ * The block is a length, not a subtraction. A bar with the limit marked shows how
+ * far over the input is, and where each cut would land, without the reader doing
+ * arithmetic across four list rows.
+ */
+export function limitBar(scope, width = 40) {
+  const rows = Number(scope?.rows || 0);
+  const limit = Number(scope?.limit || 0);
+  if (!rows || !limit) return null;
+  const span = Math.max(rows, limit);
+  const cells = (value) => Math.max(0, Math.min(width, Math.round((value / span) * width)));
+  return {
+    width,
+    inputCells: cells(rows),
+    limitCells: cells(limit),
+    marks: (scope.options || [])
+      .filter((option) => option.clears)
+      .map((option) => ({ id: option.id, label: option.label, cells: cells(option.rows) })),
+  };
+}

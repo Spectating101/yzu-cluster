@@ -11,6 +11,10 @@ import {
 } from "@/v2/api";
 import { handleEnterToSubmit } from "@/v2/enterToSubmit";
 import { ExcursionRecordPanel } from "./ExcursionRecordPanel.jsx";
+import { focusFor } from "./synthesisFocus.js";
+
+// The record renders whether or not it leads, so the strip must not offer it too.
+const RECORD_ALWAYS = ["columns", "excursions", "settled", "provenance", "reuse"];
 import { JoinDecisionPanel } from "./JoinDecisionPanel.jsx";
 import { MethodSurfacePanel } from "./MethodSurfacePanel.jsx";
 import { ProvenancePanel } from "./ProvenancePanel.jsx";
@@ -757,6 +761,24 @@ function EmptyWorkspace({ profiles, profilesLoading, profilesError, onStartBluep
   );
 }
 
+function ContextStrip({ items, onPromote, promoted, onClear }) {
+  if (!items.length && !promoted) return null;
+  return (
+    <nav className="s04-strip" aria-label="Everything else this thread knows" data-testid="synthesis-strip">
+      {promoted ? (
+        <button type="button" className="s04-strip-item" onClick={onClear}>
+          <b>back</b><span>to what needs you</span>
+        </button>
+      ) : null}
+      {items.map((item) => (
+        <button key={item.id} type="button" className="s04-strip-item" onClick={() => onPromote(item.id)}>
+          <b>{item.label}</b><span>{item.summary}</span>
+        </button>
+      ))}
+    </nav>
+  );
+}
+
 export function SynthesisPage({
   onAskComposer,
   onOpenDataset,
@@ -780,6 +802,7 @@ export function SynthesisPage({
   const [objective, setObjective] = useState("");
   const [interpretingStalled, setInterpretingStalled] = useState(false);
   const [selectedField, setSelectedField] = useState(null);
+  const [promoted, setPromoted] = useState("");
   const [missingEvidenceIds, setMissingEvidenceIds] = useState(() => new Set());
   const notified = useRef("");
   const interpretingSinceRef = useRef(null);
@@ -1115,6 +1138,7 @@ export function SynthesisPage({
   };
 
   const mode = stateFor(selected);
+  const focus = focusFor(selected?.state, promoted);
   const showExecution = Boolean(selected && (mode === "execution" || mode === "registered" || mode === "failed" || selected.state?.execution_spec));
 
   return (
@@ -1151,56 +1175,44 @@ export function SynthesisPage({
           {!newMode && selected ? (
             <>
               <ThreadHeader thread={selected} />
-              <ScopePanel
-                block={selected.state?.scope_block}
-                onChoose={(option) => ask(`Scope this construction ${option.label}. Say what that removes from my question.`)}
-                onAsk={ask}
-              />
-              <UnitConflictPanel
-                conflict={selected.state?.unit_conflict}
-                onChoose={(outcome) => ask(`Take the "${outcome.label}" reading for these two columns, and record why.`)}
-                onAsk={ask}
-              />
-              {/* Both render null until the thread carries the fields, so mounting
-                  them now costs nothing and needs no further frontend change when
-                  the desk starts reporting column profiles and join candidates. */}
-              <MethodSurfacePanel
-                dataset={selected.state?.evidence_dataset_id || selected.state?.spec?.input_dataset_id}
-                profiles={selected.state?.column_profiles}
-                inUse={selected.state?.columns_in_use}
-                onOpenColumn={(column) =>
-                  ask(`Inspect ${column.column} in this construction. State what it establishes and the valid next method decision.`)}
-                onOverride={(group) =>
-                  ask(`I want to include the ${group.heading} columns anyway. Ask me why before you do.`)}
-              />
-              <JoinDecisionPanel
-                leftLabel={selected.state?.spec?.input_dataset_id}
-                rightLabel={selected.state?.join_candidate_dataset_id}
-                rightTotal={selected.state?.join_candidate_rows}
-                coverage={selected.state?.join_candidates}
-                onChooseKey={(candidate) =>
-                  ask(`Use ${candidate.leftKey} to ${candidate.rightKey} for this join. Say what it costs first.`)}
-                onChooseOutcome={(outcome) =>
-                  ask(`Take the "${outcome.label}" option for this join, and record why.`)}
-                onChooseCollapse={(choice) =>
-                  ask(`Resolve the repeated key with "${choice.label}", and record the consequence.`)}
-              />
-              <ExcursionRecordPanel
-                excursions={selected.state?.excursions}
-                onResume={(entry) => ask(`Pick up the search for ${entry.searched} again — what changed since?`)}
-                onAsk={ask}
-              />
-              {synthesisShowsEvidenceMap(selected) ? (
-                <EvidenceMap
-                  thread={selected}
+              <ContextStrip items={focus.strip.filter((item) => !RECORD_ALWAYS.includes(item.id))}
+                            onPromote={setPromoted} promoted={focus.promoted}
+                            onClear={() => setPromoted("")} />
+              {focus.subject === "scope" ? (
+                <ScopePanel
+                  block={selected.state?.scope_block}
+                  onChoose={(option) => ask(`Scope this construction ${option.label}. Say what that removes from my question.`)}
                   onAsk={ask}
-                  selectedField={selectedField}
-                  onSelectField={setSelectedField}
-                  onRouteToDiscover={routeToDiscover}
-                  missingIds={missingEvidenceIds}
                 />
               ) : null}
-              {mode === "proposal" ? <ProposalReview thread={selected} busy={busy} onDecide={decideProposal} onAsk={ask} /> : null}
+              {focus.subject === "units" ? (
+                <UnitConflictPanel
+                  conflict={selected.state?.unit_conflict}
+                  onChoose={(outcome) => ask(`Take the "${outcome.label}" reading for these two columns, and record why.`)}
+                  onAsk={ask}
+                />
+              ) : null}
+              <MethodSurfacePanel
+                dataset={selected.state?.spec?.input_dataset_id}
+                profiles={selected.state?.column_profiles}
+                inUse={selected.state?.columns_in_use}
+                onOpenColumn={(column) => ask(`Inspect ${column.column} in this construction.`)}
+                onOverride={(group) => ask(`I want to include the ${group.heading} columns anyway.`)}
+              />
+              {focus.subject === "join" ? (
+                <JoinDecisionPanel
+                  leftLabel={selected.state?.spec?.input_dataset_id}
+                  rightLabel={selected.state?.join_candidate_dataset_id}
+                  rightTotal={selected.state?.join_candidate_rows}
+                  coverage={selected.state?.join_candidates}
+                  onChooseKey={(candidate) => ask(`Use ${candidate.leftKey} to ${candidate.rightKey} for this join.`)}
+                  onChooseOutcome={(outcome) => ask(`Take the "${outcome.label}" option for this join, and record why.`)}
+                  onChooseCollapse={(choice) => ask(`Resolve the repeated key with "${choice.label}".`)}
+                />
+              ) : null}
+              {mode === "proposal" ? (
+                <ProposalReview thread={selected} busy={busy} onDecide={decideProposal} onAsk={ask} />
+              ) : null}
               {showExecution ? (
                 <ExecutionRecord
                   thread={selected}
@@ -1211,9 +1223,24 @@ export function SynthesisPage({
                   onOpenDataset={onOpenDataset}
                 />
               ) : null}
+              {synthesisShowsEvidenceMap(selected) ? (
+                <EvidenceMap
+                  thread={selected}
+                  onAsk={ask}
+                  selectedField={selectedField}
+                  onSelectField={setSelectedField}
+                  onRouteToDiscover={routeToDiscover}
+                  missingIds={missingEvidenceIds}
+                />
+              ) : null}
+              <ExcursionRecordPanel
+                excursions={selected.state?.excursions}
+                onResume={(entry) => ask(`Pick up the search for ${entry.searched} again.`)}
+                onAsk={ask}
+              />
               <SettledDecisionsPanel
                 decisions={selected.state?.settled_decisions}
-                onContest={(decision) => ask(`Reopen this decision: ${decision.summary}. Show the alternatives with what each does to the output.`)}
+                onContest={(decision) => ask(`Reopen this decision: ${decision.summary}.`)}
               />
               <ProvenancePanel
                 provenance={selected.state?.provenance}
@@ -1227,7 +1254,7 @@ export function SynthesisPage({
                 onChange={(change) => ask(`For the revision, change ${change.label}.`)}
                 onPreview={() => ask("Preview this revision before building it.")}
               />
-              {mode === "draft" ? (
+              {mode === "draft" && !focus.blocking ? (
                 <DraftCanvas thread={selected} onAsk={ask} stalled={interpretingStalled} onRetry={retryInterpreting} />
               ) : null}
             </>

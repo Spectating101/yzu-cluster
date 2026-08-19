@@ -60,3 +60,23 @@ export function unitSpread(conflict) {
   if (low === 0) return null;
   return Number((high / low).toFixed(1));
 }
+
+/**
+ * Two bars, one twenty times the other, land before a sentence about it does.
+ * The panel exists because the wrong reading returns a plausible number, and a
+ * plausible number is exactly what prose fails to make alarming.
+ */
+export function magnitudeBars(conflict, width = 34) {
+  const a = Math.abs(Number(conflict?.left?.typical ?? NaN));
+  const b = Math.abs(Number(conflict?.right?.typical ?? NaN));
+  if (!Number.isFinite(a) || !Number.isFinite(b)) return null;
+  const span = Math.max(a, b) || 1;
+  const cell = (value) => Math.max(1, Math.round((value / span) * width));
+  return {
+    width,
+    bars: [
+      { column: String(conflict.left.column || ""), value: conflict.left.typical, cells: cell(a) },
+      { column: String(conflict.right.column || ""), value: conflict.right.typical, cells: cell(b) },
+    ],
+  };
+}

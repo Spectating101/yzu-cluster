@@ -74,3 +74,28 @@
 .s04-options li>em{grid-column:1/-1;color:#68728a;font-size:9.5px;font-style:normal}
 .s04-options li>b{color:#68728a;font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
 .s04-options li .rd-v2-btn{justify-self:start;white-space:nowrap}
+/* A panel that stops you should not look like one that informs you. */
+.s04-blocking{border-color:#d9b9a6;box-shadow:0 10px 26px rgba(180,100,60,.10)}
+.s04-blocking>.s04-title{border-bottom:2px solid #e8d3c6;padding-bottom:9px}
+.s04-blocking>.s04-title h2{color:#8a4a26}
+/* An eyebrow belongs above the sentence it labels, not after it. */
+.s04-note{margin:11px 0 0;color:#5c6578;font-size:10px;line-height:1.55}
+.s04-note>b{display:block;margin-bottom:3px;color:#68728a;font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}
+/* The overrun is a length. */
+.s04-limit{margin:12px 0 0}
+.s04-limit-track{position:relative;display:block;height:14px;border-radius:7px;background:#eef0f5;overflow:hidden}
+.s04-limit-track>b{display:block;height:100%;background:#b4643c}
+.s04-limit-track>i{position:absolute;top:-3px;width:2px;height:20px;background:#2d3549}
+.s04-limit figcaption{margin-top:6px;color:#68728a;font-size:10px}
+/* A twenty-fold gap is a picture. */
+.s04-magnitude{margin:12px 0 0;display:flex;flex-direction:column;gap:7px}
+.s04-magnitude>span{display:grid;grid-template-columns:104px minmax(0,1fr) auto;gap:9px;align-items:center}
+.s04-magnitude em{color:#2d3549;font-size:10px;font-style:normal;font-weight:650}
+.s04-magnitude b{height:10px;border-radius:5px;background:#8a6fb0;min-width:2px}
+.s04-magnitude small{color:#68728a;font-size:10px}
+/* Everything the screen is not about, as one line each. */
+.s04-strip{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 14px}
+.s04-strip-item{display:flex;align-items:baseline;gap:7px;padding:6px 10px;border:1px solid #e0e4ed;border-radius:999px;background:#fbfcff;color:inherit;cursor:pointer}
+.s04-strip-item:hover{border-color:#c5d2cb;background:#fff}
+.s04-strip-item>b{color:#68728a;font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.s04-strip-item>span{color:#5c6578;font-size:10px}

@@ -1,4 +1,4 @@
-import { scopeCanHelp, scopeHeadline, scopeOptions } from "./scopeChoice.js";
+import { limitBar, scopeCanHelp, scopeHeadline, scopeOptions } from "./scopeChoice.js";
 
 export function ScopePanel({ block, onChoose, onAsk }) {
   const scope = scopeOptions(block);
@@ -6,7 +6,7 @@ export function ScopePanel({ block, onChoose, onAsk }) {
   const canHelp = scopeCanHelp(scope);
 
   return (
-    <section className="s04-card" data-testid="synthesis-scope-block">
+    <section className="s04-card s04-blocking" data-testid="synthesis-scope-block">
       <header className="s04-title">
         <div>
           <small>Cannot build</small>
@@ -15,11 +15,27 @@ export function ScopePanel({ block, onChoose, onAsk }) {
         <em className="warn">{scope.overPct}% over</em>
       </header>
 
-      <dl className="s04-method">
-        <div><dt>Input</dt><dd>{scope.rows.toLocaleString()} rows</dd></div>
-        <div><dt>Engine limit</dt><dd>{scope.limit.toLocaleString()} rows per step</dd></div>
-      </dl>
-      <p className="s04-fixture">{scopeHeadline(scope)}</p>
+      {(() => {
+        const bar = limitBar(scope);
+        if (!bar) return null;
+        return (
+          <figure className="s04-limit" data-testid="synthesis-scope-bar">
+            <span className="s04-limit-track">
+              <b style={{ width: `${(bar.inputCells / bar.width) * 100}%` }} />
+              <i style={{ left: `${(bar.limitCells / bar.width) * 100}%` }} />
+            </span>
+            <figcaption>
+              {scope.rows.toLocaleString()} rows · the engine stops at {scope.limit.toLocaleString()}
+            </figcaption>
+          </figure>
+        );
+      })()}
+      <p className="s04-note">
+        <b>Why this stops here</b>
+        {canHelp
+          ? "The engine refuses to hold more than a million rows in one step. It fails loud rather than sampling silently."
+          : scopeHeadline(scope)}
+      </p>
 
       {canHelp ? (
         <div className="s04-options">
@@ -54,8 +70,8 @@ export function ScopePanel({ block, onChoose, onAsk }) {
       )}
 
       <footer className="s04-actions">
-        <p>
-          <small>Truth boundary</small>
+        <p className="s04-note">
+          <b>Truth boundary</b>
           Scope changes findings, so it is your choice and not a silent trim.
         </p>
         <button type="button" className="rd-v2-btn" onClick={() => onAsk?.("Explain what this scope removes from my question.")}>

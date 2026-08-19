@@ -1,4 +1,4 @@
-import { magnitudeGap, unitOutcomes, unitSpread } from "./unitConflict.js";
+import { magnitudeBars, magnitudeGap, unitOutcomes, unitSpread } from "./unitConflict.js";
 
 export function UnitConflictPanel({ conflict, onChoose, onAsk }) {
   if (!conflict?.left || !conflict?.right) return null;
@@ -7,7 +7,7 @@ export function UnitConflictPanel({ conflict, onChoose, onAsk }) {
   const spread = unitSpread(conflict);
 
   return (
-    <section className="s04-card" data-testid="synthesis-unit-conflict">
+    <section className="s04-card s04-blocking" data-testid="synthesis-unit-conflict">
       <header className="s04-title">
         <div>
           <small>Needs you</small>
@@ -16,13 +16,25 @@ export function UnitConflictPanel({ conflict, onChoose, onAsk }) {
         {gap ? <em className="warn">{gap.ratio}× apart</em> : null}
       </header>
 
-      <dl className="s04-method">
-        <div><dt>{conflict.left.column}</dt><dd>typically {conflict.left.typical}</dd></div>
-        <div><dt>{conflict.right.column}</dt><dd>typically {conflict.right.typical}</dd></div>
-      </dl>
+      {(() => {
+        const chart = magnitudeBars(conflict);
+        if (!chart) return null;
+        return (
+          <figure className="s04-magnitude" data-testid="synthesis-magnitude-bars">
+            {chart.bars.map((bar) => (
+              <span key={bar.column}>
+                <em>{bar.column}</em>
+                <b style={{ width: `${(bar.cells / chart.width) * 100}%` }} />
+                <small>{bar.value}</small>
+              </span>
+            ))}
+          </figure>
+        );
+      })()}
 
       {gap?.suspicious ? (
-        <p className="s04-fixture">
+        <p className="s04-note">
+          <b>Why this needs you</b>
           One of these is probably a percentage and the other a fraction. Both series
           are internally consistent, so only their documentation settles it.
         </p>
@@ -47,7 +59,8 @@ export function UnitConflictPanel({ conflict, onChoose, onAsk }) {
       </div>
 
       {spread ? (
-        <p className="s04-fixture">
+        <p className="s04-note">
+          <b>What it costs to get wrong</b>
           The two answers differ by {spread}×. Neither fails — the wrong one simply
           returns a plausible number.
         </p>
