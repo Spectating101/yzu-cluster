@@ -80,9 +80,74 @@ async function resetScroll(page) {
   await page.waitForTimeout(150);
 }
 
+// Discover reads /library/discover, not /datasets, and the shipped fixture stubs
+// it empty for every query while the web route returns one fixed DataCite row
+// about ocean temperature. Every Discover capture therefore said "your Library
+// holds nothing relevant" next to an unrelated external result — both the mock,
+// neither the product. The real handler runs gateway.discover_search(q).
+const TEXT = (r) => [
+  r.dataset_id, r.display_name, r.name, r.title, r.one_line,
+  r.description, (r.keywords || []).join(" "), (r.tags || []).join(" "), r.domain,
+].filter(Boolean).join(" ").toLowerCase();
+
+const STOP = new Set(["the", "for", "and", "a", "of", "to", "in", "on", "what", "data", "dataset", "use", "i", "can", "my"]);
+
+function searchRegistry(q, limit = 12) {
+  const terms = String(q || "").toLowerCase().split(/[^a-z0-9]+/)
+    .filter((t) => t.length > 2 && !STOP.has(t));
+  if (!terms.length) return [];
+  return rows
+    .map((r) => {
+      const text = TEXT(r);
+      return { row: r, score: terms.reduce((n, t) => n + (text.includes(t) ? 1 : 0), 0) };
+    })
+    .filter((m) => m.score > 0)
+    .sort((a, b) => b.score - a.score || String(a.row.dataset_id).localeCompare(String(b.row.dataset_id)))
+    .slice(0, limit)
+    .map((m) => ({
+      ...m.row,
+      candidate_key: `dataset:${m.row.dataset_id}`,
+      title: m.row.display_name || m.row.name || m.row.dataset_id,
+      coverage: m.row.coverage_metadata?.range || "",
+    }));
+}
+
 async function richMocks(page) {
   await mockV2Api(page);
   // Registered last, so it wins over the fixture's own /datasets route.
+  await page.route("**/library/discover?*", (route) => {
+    const q = new URL(route.request().url()).searchParams.get("q") || "";
+    const hits = searchRegistry(q);
+    route.fulfill({
+      status: 200, contentType: "application/json",
+      body: JSON.stringify({
+        query: q,
+        sections: hits.length ? [{ id: "registry", title: "Registry", rows: hits }] : [],
+        total: hits.length,
+      }),
+    });
+  });
+  // Topically bound to the query, so an external offering can never be an
+  // unrelated row the reviewer has to discount.
+  await page.route("**/library/discover/web*", (route) => {
+    const q = new URL(route.request().url()).searchParams.get("q")
+      || new URL(route.request().url()).searchParams.get("query") || "";
+    route.fulfill({
+      status: 200, contentType: "application/json",
+      body: JSON.stringify({
+        query: q,
+        sections: q ? [{ id: "web_discover", title: "Beyond the Library", rows: [{
+          candidate_key: `web:datacite:${q.slice(0, 40)}`,
+          title: `${q} — published dataset (DataCite)`,
+          source: "DataCite", collect_via: "datacite_doi",
+          url: "https://doi.org/10.5061/example",
+          grain: "unstated", coverage: "2019–2025",
+          description: "Published research dataset — inspect the DOI before deciding how to acquire.",
+        }] }] : [],
+        total: q ? 1 : 0,
+      }),
+    });
+  });
   await page.route("**/library/partitions**", (route) =>
     route.fulfill({ status: 200, contentType: "application/json",
       body: JSON.stringify({ partitions: PARTITIONS, shelves: SHELVES }) }));
@@ -165,5 +230,37 @@ test.describe("Desk tour", () => {
     }
     await resetScroll(page);
     await page.screenshot({ path: `${outDir}/discover-searched-desktop.png` });
+  });
+
+  test("Discover after searching wider", async ({ page }) => {
+    mkdirSync(outDir, { recursive: true });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await richMocks(page);
+    await page.goto("/?tab=discover");
+    await waitForShell(page);
+    const box = page.getByRole("textbox").first();
+    await box.fill("weekly attention signal for stablecoins");
+    await box.press("Enter");
+    await page.waitForTimeout(1400);
+    const wider = page.getByText("Search wider", { exact: false }).first();
+    if (await wider.count()) { await wider.click(); await page.waitForTimeout(1400); }
+    await resetScroll(page);
+    await page.screenshot({ path: `${outDir}/discover-wider-desktop.png` });
+  });
+
+  test("Discover held matches expand to the real registry rows", async ({ page }) => {
+    mkdirSync(outDir, { recursive: true });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await richMocks(page);
+    await page.goto("/?tab=discover");
+    await waitForShell(page);
+    const box = page.getByRole("textbox").first();
+    await box.fill("stablecoin");
+    await box.press("Enter");
+    await page.waitForTimeout(1400);
+    const held = page.locator("summary").filter({ hasText: "Library evidence" }).first();
+    if (await held.count()) { await held.click(); await page.waitForTimeout(600); }
+    await resetScroll(page);
+    await page.screenshot({ path: `${outDir}/discover-held-desktop.png` });
   });
 });
