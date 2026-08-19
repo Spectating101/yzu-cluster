@@ -84,6 +84,7 @@ import { jobToDiscoverHistoryEvent, pendingApprovalJobs } from "@/v2/procurement
 import { discoverCandidateState } from "@/v2/browseMeta";
 import { buildRailContext } from "@/v2/railContext";
 import { holdingIdsFromCatalog } from "@/v2/discoverTaxonomy";
+import { isOpsNoiseDataset } from "@/v2/professorVaultTree";
 
 function readParams() {
   const p = new URLSearchParams(window.location.search);
@@ -1398,7 +1399,12 @@ export function V2App() {
     });
   }, [catalog, libraryNavHaystack, librarySearchQuery, partitions, shelves]);
 
-  const headerDsCount = catalog.length || Number(health?.datasets) || 0;
+  // The Library shows the estate minus operator-only rows. The header counted
+  // the raw registry, so the chrome claimed 168 while the page showed 112.
+  const headerDsCount =
+    (catalog || []).filter((row) => !isOpsNoiseDataset(row)).length ||
+    Number(health?.datasets) ||
+    0;
   const headerConnected = catalog.filter((d) => isQueryReadyReadiness(d.analysis_readiness)).length;
 
   let main;

@@ -32,6 +32,7 @@ import {
   hasSpecificDiscoverRoute,
 } from "@/v2/discoverQuerySpecificity";
 import { Chip, PageShell, SourceRibbon } from "@/v2/ui";
+import { discoverTerritories } from "@/v2/discoverTerritories";
 
 const FILTERS = [
   { id: "all", label: "All results" },
@@ -1286,9 +1287,9 @@ export function BrowsePage({
                 </div>
               </div>
               <div className="rd-v2-discover-frozen-counts" aria-label="Discover result territories">
-                <span>Available · {resultGroups.available.length}</span>
-                <span>Library evidence · {resultGroups.held.length}</span>
-                <span>Web context · {resultGroups.context.length}</span>
+                {discoverTerritories(resultGroups).map((territory) => (
+                  <span key={territory.id}>{territory.label} · {territory.count}</span>
+                ))}
               </div>
               <div className="rd-v2-discover-result-actions" aria-label="Discover next actions">
                 <div>
