@@ -29,7 +29,14 @@ export function resolveCatalog(liveRows) {
   return { catalog: SEED_DATASETS, usingSeed: true };
 }
 
-const NEUTRAL_DESK = { ...UNMEASURED_DESK };
+// Live health is authoritative, including when a field is omitted. Do not let
+// the offline seed's composer_configured=false turn an observed model name
+// into a fabricated offline result after mergeHealth().
+const NEUTRAL_DESK = {
+  ...UNMEASURED_DESK,
+  composer_configured: undefined,
+  composer_model: undefined,
+};
 
 /** Live desk health — never blend demo job fiction when API reports live desk. */
 export function mergeHealth(live) {
