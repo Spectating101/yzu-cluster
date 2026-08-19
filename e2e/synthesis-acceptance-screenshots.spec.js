@@ -76,6 +76,26 @@ const threadFor = (extra) => ({
   },
 });
 
+const PANELS = [
+  ["synthesis-scope-block", "panel-scope"],
+  ["synthesis-unit-conflict", "panel-units"],
+  ["synthesis-join-decision", "panel-join"],
+  ["synthesis-method-surface", "panel-columns"],
+  ["synthesis-settled-decisions", "panel-settled"],
+  ["synthesis-provenance", "panel-provenance"],
+  ["synthesis-reuse", "panel-reuse"],
+  ["synthesis-excursion-record", "panel-excursions"],
+];
+
+async function resetScroll(page) {
+  await page.evaluate(() => {
+    for (const el of document.querySelectorAll("*")) {
+      if (el.scrollHeight > el.clientHeight + 8) el.scrollTop = 0;
+    }
+  });
+  await page.waitForTimeout(120);
+}
+
 async function mount(page, thread) {
   await page.route("**/api/library/synthesis/threads**", (route) =>
     route.fulfill({
@@ -96,7 +116,22 @@ test.describe("Synthesis acceptance screenshots", () => {
         await mount(page, threadFor(extra));
         await expect(page.getByTestId("synthesis-thread-item").first()).toBeVisible();
         await page.waitForTimeout(300);
-        await page.screenshot({ path: `${outDir}/${name}-${viewport.id}.png`, fullPage: true });
+        // The document is exactly viewport-height; the workspace scrolls inside
+        // .rd-v2-body-scroll. fullPage therefore captures whatever that inner
+        // scroller happened to be showing, which is how two unrelated states
+        // produced identical mobile images. Reset it, then capture what a
+        // researcher sees on arrival.
+        await resetScroll(page);
+        await page.screenshot({ path: `${outDir}/${name}-${viewport.id}.png` });
+
+        for (const [testid, suffix] of PANELS) {
+          const panel = page.getByTestId(testid);
+          if (await panel.count()) {
+            await panel.first().scrollIntoViewIfNeeded();
+            await panel.first().screenshot({ path: `${outDir}/${name}-${viewport.id}-${suffix}.png` });
+            await resetScroll(page);
+          }
+        }
 
         // A screenshot nobody has looked at still has to answer one question.
         const overflow = await page.evaluate(() =>
