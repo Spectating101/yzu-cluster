@@ -240,7 +240,7 @@ function ResearchBrief({ thread }) {
  * collapsed. Nothing writes a construction yet, so the absent case is the one
  * researchers will meet — it says so plainly rather than drawing an empty card.
  */
-function RecommendedConstruction({ thread }) {
+function RecommendedConstruction({ thread, onCompare }) {
   const rec = recommendedConstruction(thread);
   if (!rec.present) {
     return (
@@ -262,45 +262,57 @@ function RecommendedConstruction({ thread }) {
         <em>Recommended</em>
       </header>
       <h2>{rec.title}</h2>
-      <ul className="s04-metrics">
+      <ul className="s04-roles">
         {rec.nodes.map((node) => (
           <li key={node.id || node.source}>
-            <strong>{text(node.role, "role not stated")}</strong>
+            <strong>{text(node.role, "Role not stated")}</strong>
             <span>{node.source}</span>
             <em>{text(node.grain, "grain not stated")}</em>
           </li>
         ))}
       </ul>
-      {rec.validationRole ? <p>Validated against {rec.validationRole}.</p> : null}
-      {rec.idealDirectMeasure.label ? (
-        <p className="s04-use">
-          <small>Ideal direct measure</small>
-          {rec.idealDirectMeasure.label}
-          {rec.idealDirectMeasure.why ? ` — unavailable · ${rec.idealDirectMeasure.why}` : null}
-        </p>
+      {rec.validationRole ? (
+        <p className="s04-validated">Validated against {rec.validationRole}</p>
       ) : null}
-      {rec.expectedOutput.label ? (
-        <p className="s04-use">
-          <small>Expected output</small>
-          {rec.expectedOutput.label}
-          {rec.expectedOutput.grain ? ` · ${rec.expectedOutput.grain}` : null}
-          {rec.expectedOutput.period ? ` · ${rec.expectedOutput.period}` : null}
-        </p>
-      ) : null}
-      {rec.aiResolved.length ? (
-        <p className="s04-use">
-          <small>Already resolved</small>
-          {rec.aiResolved.join(" · ")}
-        </p>
-      ) : null}
-      {rec.methodWillResolve.length ? (
-        <p className="s04-use">
-          <small>Method design will resolve</small>
-          {rec.methodWillResolve.join(" · ")}
-        </p>
-      ) : null}
+      <dl className="s04-construction-facts">
+        {rec.idealDirectMeasure.label ? (
+          <>
+            <dt>Ideal direct measure</dt>
+            <dd>
+              {rec.idealDirectMeasure.label}
+              {rec.idealDirectMeasure.why ? (
+                <em> unavailable · {rec.idealDirectMeasure.why}</em>
+              ) : null}
+            </dd>
+          </>
+        ) : null}
+        {rec.expectedOutput.label ? (
+          <>
+            <dt>Expected output</dt>
+            <dd>
+              {rec.expectedOutput.label}
+              {rec.expectedOutput.grain ? <em> {rec.expectedOutput.grain}</em> : null}
+              {rec.expectedOutput.period ? <em> · {rec.expectedOutput.period}</em> : null}
+            </dd>
+          </>
+        ) : null}
+        {rec.aiResolved.length ? (
+          <>
+            <dt>Already resolved</dt>
+            <dd>{rec.aiResolved.join(" · ")}</dd>
+          </>
+        ) : null}
+        {rec.methodWillResolve.length ? (
+          <>
+            <dt>Method design will resolve</dt>
+            <dd>{rec.methodWillResolve.join(" · ")}</dd>
+          </>
+        ) : null}
+      </dl>
       {rec.alternatives ? (
-        <p className="s04-alts">{rec.alternatives} alternative constructions available</p>
+        <button type="button" className="s04-alternatives" onClick={() => onCompare?.()}>
+          {rec.alternatives} alternative constructions available <b>▸</b>
+        </button>
       ) : null}
     </section>
   );
@@ -1348,7 +1360,10 @@ export function SynthesisPage({
               <ThreadHeader thread={selected} />
               {isPreAcceptance(selected) ? (
                 <>
-                  <RecommendedConstruction thread={selected} />
+                  <RecommendedConstruction
+                    thread={selected}
+                    onCompare={() => ask("Compare the alternative constructions and say what each one costs.")}
+                  />
                   <WhatHappensNext
                     thread={selected}
                     onCompare={() => ask("Compare the alternative constructions and say what each one costs.")}
