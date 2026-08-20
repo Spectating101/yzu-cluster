@@ -1310,9 +1310,16 @@ export function BrowsePage({
                 </div>
               </div>
               <div className="rd-v2-discover-frozen-counts" aria-label="Discover result territories">
-                {discoverTerritories(resultGroups).map((territory) => (
-                  <span key={territory.id}>{territory.label} · {territory.count}</span>
-                ))}
+                {discoverTerritories(resultGroups).map((territory) =>
+                  // The freeze makes Library evidence an opener, not a label:
+                  // it reveals a bounded preview plus Compare coverage and Open
+                  // Library results. The popover existed and was never mounted.
+                  territory.id === "held" && libraryEvidenceMenu ? (
+                    <span key={territory.id}>{libraryEvidenceMenu}</span>
+                  ) : (
+                    <span key={territory.id}>{territory.label} · {territory.count}</span>
+                  ),
+                )}
               </div>
               <div className="rd-v2-discover-result-actions" aria-label="Discover next actions">
                 <div>

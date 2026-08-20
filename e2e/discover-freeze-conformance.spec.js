@@ -92,16 +92,40 @@ test("§12 — a keyword paints results without opening Ask", async ({ page }) =
 });
 
 test("§3 — the held-evidence popover carries a bounded preview and both actions", async ({ page }) => {
-  await mockV2Api(page, { discoverBody: MOCK_DISCOVER_HIT });
+  // A result only counts as held when the catalog also holds it, so the fixture
+  // has to agree with itself. The earlier version skipped instead, and that
+  // skip hid a popover that was defined and never mounted.
+  const HELD = {
+    dataset_id: "idn_fry_daily_cross_section",
+    name: "IDN daily cross-section",
+    analysis_readiness: "instant",
+    local_root: "data_lake/idn",
+    backend: "local_csv",
+    grain: "asset-day",
+  };
+  await mockV2Api(page);
+  await page.unroute("**/datasets**").catch(() => {});
+  await page.route("**/datasets**", (route) => route.fulfill({
+    status: 200, contentType: "application/json",
+    body: JSON.stringify({ datasets: [HELD], total: 1 }),
+  }));
+  await page.unroute("**/library/discover?*").catch(() => {});
+  await page.route("**/library/discover?*", (route) => route.fulfill({
+    status: 200, contentType: "application/json",
+    body: JSON.stringify({ sections: [{ id: "registry", title: "Registry", rows: [
+      { ...HELD, candidate_key: `dataset:${HELD.dataset_id}`, title: HELD.name },
+    ] }], total: 1 }),
+  }));
+
   await page.goto("/?tab=discover", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
   const box = page.getByRole("textbox").first();
-  await box.fill("mops");
+  await box.fill("idn daily");
   await box.press("Enter");
-  await page.waitForTimeout(1200);
+  await page.waitForTimeout(1400);
 
   const menu = page.getByTestId("discover-library-evidence");
-  test.skip(!(await menu.count()), "fixture produced no held evidence");
+  await expect(menu, "the held-evidence opener must be mounted, not merely defined").toHaveCount(1);
   await menu.locator("summary").click();
   await expect(menu.getByRole("button", { name: "Compare coverage" })).toHaveCount(1);
   await expect(menu.getByRole("button", { name: "Open Library results" })).toHaveCount(1);
