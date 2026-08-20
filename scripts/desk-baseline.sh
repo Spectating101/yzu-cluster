@@ -74,7 +74,8 @@ for d in "${parent}"/*release*/; do
   h="$(git -C "${d}" rev-parse --short HEAD 2>/dev/null)"
   mark="  "
   [[ "$(readlink -f "${d}")" == "$(readlink -f "${ui_tree}")" ]] && mark="→ "
-  printf '%s%-58s %-34s %s\n' "${mark}" "$(basename "${d}")" "${b:-detached}" "${h}"
+  role="$(head -1 "${d}/.desk-role" 2>/dev/null)"
+  printf '%s%-52s %-32s %-9s %s\n' "${mark}" "$(basename "${d}")" "${b:-detached}" "${h}" "${role%% —*}"
 done
 echo
 echo "→ marks the tree whose build is being served. Any other tree is a"
