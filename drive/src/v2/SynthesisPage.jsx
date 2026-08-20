@@ -30,6 +30,13 @@ import {
   synthesisShowsStageStrip,
 } from "@/v2/synthesisLifecycle";
 
+import {
+  EXPLORATION_READY,
+  isPreAcceptance,
+  recommendedConstruction,
+  researchBrief,
+} from "@/v2/synthesisBrief.js";
+
 function text(value, fallback = "") {
   return String(value || "").trim() || fallback;
 }
@@ -82,6 +89,8 @@ function stageLabel(thread) {
   const state = thread?.state || {};
   const execution = state.execution || {};
   const mode = stateFor(thread);
+  // Spec §5: before a construction is accepted the label stays restrained.
+  if (isPreAcceptance(thread)) return EXPLORATION_READY;
   if (mode === "query_ready") return "Query-ready output";
   if (mode === "registered") return "Registered output";
   if (mode === "failed") return "Execution failed";
@@ -196,6 +205,111 @@ function ThreadList({ threads, selectedId, loading, onSelect, onNew }) {
   );
 }
 
+/**
+ * Spec §6. The brief states the construct in the researcher's own terms and the
+ * three commitments a recommendation is answerable to. A commitment the desk has
+ * not been told reads "Not stated" — the spec's opening state claims the intent
+ * was understood, and a blank slot would claim that falsely.
+ */
+function ResearchBrief({ thread }) {
+  const brief = researchBrief(thread);
+  if (!brief.body && !brief.targetGrain && !brief.targetPeriod && !brief.intendedUse) return null;
+  return (
+    <section className="s04-intent-contract" aria-label="Research brief">
+      <header>
+        <small>Research brief</small>
+        {brief.editable ? <span className="s04-intent-quiet">Edit intent</span> : null}
+      </header>
+      {brief.body ? <p>{brief.body}</p> : null}
+      <dl>
+        <div>
+          <dt>Target grain</dt>
+          <dd>{text(brief.targetGrain, "Not stated")}</dd>
+        </div>
+        <div>
+          <dt>Target period</dt>
+          <dd>{text(brief.targetPeriod, "Not stated")}</dd>
+        </div>
+        <div>
+          <dt>Intended use</dt>
+          <dd>{text(brief.intendedUse, "Not stated")}</dd>
+        </div>
+      </dl>
+    </section>
+  );
+}
+
+/**
+ * Spec §6. One construction is recommended and the alternatives stay counted but
+ * collapsed. Nothing writes a construction yet, so the absent case is the one
+ * researchers will meet — it says so plainly rather than drawing an empty card.
+ */
+function RecommendedConstruction({ thread }) {
+  const rec = recommendedConstruction(thread);
+  if (!rec.present) {
+    return (
+      <section className="s04-choice" aria-label="Recommended construction">
+        <header>
+          <small>Recommended construction</small>
+        </header>
+        <p>
+          No construction has been recommended yet. The desk will not propose one until a
+          reasoning turn grounds it in evidence roles.
+        </p>
+      </section>
+    );
+  }
+  return (
+    <section className="s04-choice" aria-label="Recommended construction">
+      <header>
+        <small>Recommended construction</small>
+        <em>Recommended</em>
+      </header>
+      <h2>{rec.title}</h2>
+      <ul className="s04-metrics">
+        {rec.nodes.map((node) => (
+          <li key={node.id || node.source}>
+            <strong>{text(node.role, "role not stated")}</strong>
+            <span>{node.source}</span>
+            <em>{text(node.grain, "grain not stated")}</em>
+          </li>
+        ))}
+      </ul>
+      {rec.validationRole ? <p>Validated against {rec.validationRole}.</p> : null}
+      {rec.idealDirectMeasure.label ? (
+        <p className="s04-use">
+          <small>Ideal direct measure</small>
+          {rec.idealDirectMeasure.label}
+          {rec.idealDirectMeasure.why ? ` — unavailable · ${rec.idealDirectMeasure.why}` : null}
+        </p>
+      ) : null}
+      {rec.expectedOutput.label ? (
+        <p className="s04-use">
+          <small>Expected output</small>
+          {rec.expectedOutput.label}
+          {rec.expectedOutput.grain ? ` · ${rec.expectedOutput.grain}` : null}
+          {rec.expectedOutput.period ? ` · ${rec.expectedOutput.period}` : null}
+        </p>
+      ) : null}
+      {rec.aiResolved.length ? (
+        <p className="s04-use">
+          <small>Already resolved</small>
+          {rec.aiResolved.join(" · ")}
+        </p>
+      ) : null}
+      {rec.methodWillResolve.length ? (
+        <p className="s04-use">
+          <small>Method design will resolve</small>
+          {rec.methodWillResolve.join(" · ")}
+        </p>
+      ) : null}
+      {rec.alternatives ? (
+        <p className="s04-alts">{rec.alternatives} alternative constructions available</p>
+      ) : null}
+    </section>
+  );
+}
+
 function ThreadHeader({ thread }) {
   const state = thread?.state || {};
   const execution = state.execution || {};
@@ -222,6 +336,7 @@ function ThreadHeader({ thread }) {
                 : "Nothing registered"}
         </em>
       </header>
+      <ResearchBrief thread={thread} />
       <div className="s04-brief">
         <span>
           <small>Current record</small>
@@ -1176,6 +1291,7 @@ export function SynthesisPage({
           {!newMode && selected ? (
             <>
               <ThreadHeader thread={selected} />
+              {isPreAcceptance(selected) ? <RecommendedConstruction thread={selected} /> : null}
               <ContextStrip items={focus.strip.filter((item) => !RECORD_ALWAYS.includes(item.id))}
                             onPromote={setPromoted} promoted={focus.promoted}
                             onClear={() => setPromoted("")} />
