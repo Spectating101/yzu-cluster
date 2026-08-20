@@ -283,3 +283,107 @@
   .s04-research-brief > dl { grid-template-columns: 1fr; gap: 2px 0; }
   .s04-research-brief > dl > dd { margin-bottom: 8px; }
 }
+
+/* The construction panel's label sat in sentence case beside RESEARCH BRIEF and
+   AI CONSTRUCTION WORKSPACE, which both use the eyebrow. */
+.s04-recommend > header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.s04-recommend > header > small {
+  color: #7a8498;
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.s04-recommend > header > em {
+  flex: 0 0 auto;
+  color: #3f6f5c;
+  font-size: 8px;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.s04-recommend > p {
+  max-width: 62ch;
+  margin: 0;
+  color: #626d82;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+/* S-04 §6 WHAT HAPPENS NEXT. Closes the opening state by stating what
+   acceptance does not do, and keeps both actions inert until there is a
+   construction to act on. */
+.s04-next {
+  margin-top: 12px;
+  padding: 16px 20px;
+  border: 1px solid #e0e4ed;
+  border-radius: 16px;
+  background: #fbfcff;
+}
+.s04-next > header > small {
+  color: #7a8498;
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.s04-next > p {
+  max-width: 62ch;
+  margin: 9px 0 14px;
+  color: #626d82;
+  font-size: 11px;
+  line-height: 1.55;
+}
+.s04-next > footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.s04-next button {
+  padding: 9px 14px;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.s04-next-secondary {
+  border: 1px solid #d7dce7;
+  background: #fff;
+  color: #47526a;
+}
+.s04-next-primary {
+  border: 1px solid #3f6f5c;
+  background: #3f6f5c;
+  color: #fff;
+}
+.s04-next button:disabled {
+  cursor: not-allowed;
+  opacity: .45;
+}
+.s04-next-secondary:not(:disabled):hover { border-color: #aebfb6; background: #f7faf8; }
+.s04-next-primary:not(:disabled):hover { background: #35604f; }
+.s04-next > em {
+  display: block;
+  margin-top: 12px;
+  padding-top: 11px;
+  border-top: 1px solid #eef0f5;
+  color: #8790a2;
+  font-size: 9px;
+  font-style: normal;
+}
+@media (max-width: 720px) {
+  .s04-next > footer { flex-direction: column; align-items: stretch; }
+  .s04-next button { width: 100%; }
+}

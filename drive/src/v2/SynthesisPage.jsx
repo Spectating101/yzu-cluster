@@ -244,7 +244,7 @@ function RecommendedConstruction({ thread }) {
   const rec = recommendedConstruction(thread);
   if (!rec.present) {
     return (
-      <section className="s04-choice" aria-label="Recommended construction">
+      <section className="s04-choice s04-recommend" aria-label="Recommended construction">
         <header>
           <small>Recommended construction</small>
         </header>
@@ -256,7 +256,7 @@ function RecommendedConstruction({ thread }) {
     );
   }
   return (
-    <section className="s04-choice" aria-label="Recommended construction">
+    <section className="s04-choice s04-recommend" aria-label="Recommended construction">
       <header>
         <small>Recommended construction</small>
         <em>Recommended</em>
@@ -302,6 +302,52 @@ function RecommendedConstruction({ thread }) {
       {rec.alternatives ? (
         <p className="s04-alts">{rec.alternatives} alternative constructions available</p>
       ) : null}
+    </section>
+  );
+}
+
+/**
+ * Spec §6. The opening state closes by saying what accepting does — and, more
+ * importantly, what it does not do. The footer line is the spec's own: an AI
+ * recommendation is ready and nothing has been built or modified.
+ *
+ * Both actions stay disabled until a construction exists to act on. A button
+ * that looks live and does nothing is worse than one that says why it cannot.
+ */
+function WhatHappensNext({ thread, onCompare, onAccept }) {
+  const rec = recommendedConstruction(thread);
+  return (
+    <section className="s04-next" aria-label="What happens next">
+      <header>
+        <small>What happens next</small>
+      </header>
+      <p>
+        Accepting a construction will not build data. The desk will draft the detailed method and
+        surface only the choices that materially change the output.
+      </p>
+      <footer>
+        <button
+          type="button"
+          className="s04-next-secondary"
+          disabled={!rec.alternatives}
+          onClick={() => onCompare?.()}
+        >
+          Compare alternatives
+        </button>
+        <button
+          type="button"
+          className="s04-next-primary"
+          disabled={!rec.present}
+          onClick={() => onAccept?.()}
+        >
+          Accept &amp; design method
+        </button>
+      </footer>
+      <em>
+        {rec.present
+          ? "AI recommendation ready · nothing built or modified"
+          : "No recommendation yet · nothing built or modified"}
+      </em>
     </section>
   );
 }
@@ -713,9 +759,11 @@ function DraftCanvas({ thread, onAsk, stalled, onRetry }) {
         {/* The brief states the objective directly above; repeating it here made
             the same paragraph appear three times on one screen. */}
         {isPreAcceptance(thread) ? null : (
-          <strong>{text(thread?.objective || state.objective, "Research objective")}</strong>
+          <>
+            <strong>{text(thread?.objective || state.objective, "Research objective")}</strong>
+            <b>↓</b>
+          </>
         )}
-        <b>↓</b>
         <div>
           <article>
             <small>Interpret</small>
@@ -1298,7 +1346,16 @@ export function SynthesisPage({
           {!newMode && selected ? (
             <>
               <ThreadHeader thread={selected} />
-              {isPreAcceptance(selected) ? <RecommendedConstruction thread={selected} /> : null}
+              {isPreAcceptance(selected) ? (
+                <>
+                  <RecommendedConstruction thread={selected} />
+                  <WhatHappensNext
+                    thread={selected}
+                    onCompare={() => ask("Compare the alternative constructions and say what each one costs.")}
+                    onAccept={() => ask("Accept the recommended construction and draft the detailed method.")}
+                  />
+                </>
+              ) : null}
               <ContextStrip items={focus.strip.filter((item) => !RECORD_ALWAYS.includes(item.id))}
                             onPromote={setPromoted} promoted={focus.promoted}
                             onClear={() => setPromoted("")} />
