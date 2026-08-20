@@ -1096,6 +1096,15 @@ export function V2App() {
     };
   }, [tab, browseTarget, browseLifecycle]);
 
+  // DISCOVER_ADAPTIVE_FREEZE §3: the held-evidence popover offers Compare
+  // coverage and Open Library results. Both are transient — §13 forbids a
+  // permanent route-comparison panel, and the authority lists Cluster under
+  // "these are not destinations".
+  const openLibraryResultsFromDiscover = useCallback(() => {
+    setLibrarySearchQuery(discoverSearchQuery.trim());
+    goTab("library");
+  }, [discoverSearchQuery, goTab]);
+
   const openInLibraryFromDiscover = useCallback(
     (target) => {
       if (target?.library_search) {
@@ -1453,6 +1462,7 @@ export function V2App() {
           partitions={partitions}
           shelves={shelves}
           loadError={loadError}
+          onOpenLibraryResults={openLibraryResultsFromDiscover}
           catalog={catalog}
           selectedId={browseSelectedId}
           searchQuery={discoverSearchQuery}

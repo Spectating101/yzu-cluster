@@ -559,6 +559,7 @@ export function BrowsePage({
   partitions = [],
   shelves = [],
   loadError = "",
+  onOpenLibraryResults,
   catalog = [],
   selectedId,
   onSelectRow,
@@ -1129,6 +1130,20 @@ export function BrowsePage({
           selectedId={selectedId}
           onSelectRow={onSelectRow}
         />
+        <div className="rd-v2-discover-library-actions">
+          <button
+            type="button"
+            onClick={() => onAskQuery?.(
+              `Compare what my Library already covers against these offerings for "${(searchQuery || "").trim()}" — name the gap, not just the overlap.`,
+            )}
+            disabled={!onAskQuery}
+          >
+            Compare coverage
+          </button>
+          <button type="button" onClick={() => onOpenLibraryResults?.()} disabled={!onOpenLibraryResults}>
+            Open Library results
+          </button>
+        </div>
       </div>
     </details>
   ) : null;

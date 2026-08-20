@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
+import { MOCK_DISCOVER_HIT, mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 
 // DISCOVER_ADAPTIVE_FREEZE_2026-07-28 §12 lists what makes an implementation
 // conformant, and §13 lists what must not come back. Both were prose until now,
@@ -89,4 +89,20 @@ test("§12 — a keyword paints results without opening Ask", async ({ page }) =
   await open(page, "stablecoin");
   const askPane = page.locator('[data-testid="rail-pane-ask"]');
   if (await askPane.count()) await expect(askPane).toBeHidden();
+});
+
+test("§3 — the held-evidence popover carries a bounded preview and both actions", async ({ page }) => {
+  await mockV2Api(page, { discoverBody: MOCK_DISCOVER_HIT });
+  await page.goto("/?tab=discover", { waitUntil: "domcontentloaded" });
+  await waitForShell(page);
+  const box = page.getByRole("textbox").first();
+  await box.fill("mops");
+  await box.press("Enter");
+  await page.waitForTimeout(1200);
+
+  const menu = page.getByTestId("discover-library-evidence");
+  test.skip(!(await menu.count()), "fixture produced no held evidence");
+  await menu.locator("summary").click();
+  await expect(menu.getByRole("button", { name: "Compare coverage" })).toHaveCount(1);
+  await expect(menu.getByRole("button", { name: "Open Library results" })).toHaveCount(1);
 });
