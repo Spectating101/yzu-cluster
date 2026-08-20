@@ -282,7 +282,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await expect(pending.getByText("Query ready", { exact: true })).toHaveCount(0);
     await capture(page, "03-execution-request-desktop");
     await pending.getByRole("button", { name: "Review approval" }).click();
-    await expect(page).toHaveURL(/tab=browse/);
+    await expect(page).toHaveURL(/tab=discover/);
     await expect(page).toHaveURL(/mode=history/);
   });
 
@@ -673,7 +673,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await expect(page.getByTestId("synthesis-selected-field")).toContainText("Regulatory filings");
     await capture(page, "10-evidence-selected-desktop");
     await page.getByRole("button", { name: "Route to Discover" }).click();
-    await expect(page).toHaveURL(/tab=browse/);
+    await expect(page).toHaveURL(/tab=discover/);
     await expect(page.getByTestId("synthesis-discover-handoff")).toContainText("Regulatory filings");
     await capture(page, "11-discover-handoff-desktop");
 

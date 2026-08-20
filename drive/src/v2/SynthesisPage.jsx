@@ -10,6 +10,7 @@ import {
   requestSynthesisExecution,
 } from "@/v2/api";
 import { handleEnterToSubmit } from "@/v2/enterToSubmit";
+import { deskErrorCopy } from "@/v2/deskErrorCopy";
 import { ExcursionRecordPanel } from "./ExcursionRecordPanel.jsx";
 import { focusFor } from "./synthesisFocus.js";
 
@@ -694,6 +695,22 @@ function NewThread({ objective, setObjective, busy, profiles, onCreate, onStartB
   );
 }
 
+/** A transport failure, said in the reader's terms; the raw text stays as detail. */
+function DeskError({ raw, surface, alert = false }) {
+  const copy = deskErrorCopy(raw, { surface });
+  if (!copy) return null;
+  return (
+    <div className="s04-desk-error" role={alert ? "alert" : undefined} data-testid="desk-error">
+      <strong>{copy.headline}</strong>
+      <p>{copy.body}</p>
+      <details>
+        <summary>What the desk reported</summary>
+        <code>{copy.detail}</code>
+      </details>
+    </div>
+  );
+}
+
 function EmptyWorkspace({ profiles, profilesLoading, profilesError, onStartBlueprint, onNew }) {
   const list = Array.isArray(profiles) ? profiles : [];
   return (
@@ -717,7 +734,7 @@ function EmptyWorkspace({ profiles, profilesLoading, profilesError, onStartBluep
         </article>
       </div>
       {profilesLoading ? <p className="s04-fixture">Loading registered blueprints…</p> : null}
-      {profilesError ? <p className="s04-fixture">{profilesError}</p> : null}
+      {profilesError ? <DeskError raw={profilesError} surface="the registered methods" /> : null}
       {!profilesLoading && !profilesError && !list.length ? (
         <p className="s04-fixture">No registered method is reported on this desk yet.</p>
       ) : null}
@@ -1152,7 +1169,7 @@ export function SynthesisPage({
           onNew={beginNew}
         />
         <main className="s04-main">
-          {error ? <p className="s04-fixture" role="alert">{error}</p> : null}
+          {error ? <DeskError raw={error} surface="your constructions" alert /> : null}
           {newMode ? (
             <NewThread
               objective={objective}

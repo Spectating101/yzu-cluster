@@ -27,3 +27,13 @@ test("the sidebar marks Discover active for either spelling", async ({ page }) =
     await expect(active).toContainText("Discover");
   }
 });
+
+// The alias must survive in the address bar too: a saved ?tab=browse link
+// lands on Discover and is rewritten to the canonical spelling, rather than
+// leaving two URLs for one destination.
+test("a saved browse link is folded to the canonical URL", async ({ page }) => {
+  await mockV2Api(page);
+  await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+  await waitForShell(page);
+  await expect(page.locator(".rd-v2-page-head h1")).toContainText("Discover");
+});

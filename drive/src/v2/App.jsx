@@ -171,7 +171,14 @@ function resourceAskPrompt(row) {
 }
 
 export function V2App() {
-  const [tab, setTab] = useState(() => readParams().tab);
+  // Bind the canonical fold to the setter rather than to every caller. Seven
+  // call sites still write "browse"; after the rename the switch matches
+  // "discover", so a stray non-canonical write rendered nothing and dropped the
+  // rest of the URL with it.
+  const [tab, setTabRaw] = useState(() => canonicalTab(readParams().tab));
+  const setTab = useCallback((next) => {
+    setTabRaw((prev) => canonicalTab(typeof next === "function" ? next(prev) : next));
+  }, []);
   const [folderId, setFolderId] = useState(() => readParams().folder);
   const [selectedId, setSelectedId] = useState(() => readParams().dataset);
   const [browseRow, setBrowseRow] = useState(null);
@@ -579,7 +586,7 @@ export function V2App() {
 
   const syncUrl = useCallback(
     (patch) => {
-      const nextTab = patch.tab ?? tab;
+      const nextTab = canonicalTab(patch.tab ?? tab);
       const nextQ =
         patch.q !== undefined
           ? patch.q
