@@ -1533,8 +1533,6 @@ export function V2App() {
       main = (
         <SynthesisPage
           datasets={catalog}
-          compareIds={compareIds}
-          onCompareChange={setCompareIds}
           onAskComposer={askFromPrompt}
           onGoTab={goTab}
           onOpenDataset={openInLibraryFromDiscover}
