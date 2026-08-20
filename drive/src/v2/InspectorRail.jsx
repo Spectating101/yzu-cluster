@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import {
   BrowseRailPanel,
-  ClusterRailPanel,
   DetailPanel,
   EmptyRailPanel,
   HomeAttentionRailPanel,
@@ -27,7 +26,6 @@ function railSelectionHint(
   discoverIntentRecord,
   discoverAssessment,
   resourceRow,
-  clusterContext,
 ) {
   if (mainTab === "browse" && discoverIntentRecord) {
     return discoverIntentRecord.intent?.title || discoverIntentRecord.candidate?.title || "Acquisition review";
@@ -59,12 +57,6 @@ function railSelectionHint(
   if (mainTab === "synthesis") {
     return "Synthesis";
   }
-  if (mainTab === "cluster" && clusterContext?.a && clusterContext?.b) {
-    return `${displayName(clusterContext.a)} × ${displayName(clusterContext.b)}`;
-  }
-  if (mainTab === "cluster") {
-    return "No compare selected";
-  }
   if (dataset?.dataset_id) {
     return displayName(dataset);
   }
@@ -90,7 +82,6 @@ function activeHintBelongsToTab(mainTab, object) {
   }
   if (mainTab === "resources") return object.kind === "resource_row";
   if (mainTab === "home") return ["dataset", "home_attention"].includes(object.kind);
-  if (mainTab === "cluster") return object.kind === "comparison";
   if (mainTab === "synthesis") return object.kind === "synthesis_thread";
   return false;
 }
@@ -101,7 +92,6 @@ export function InspectorRail({
   onRailTabChange,
   dataset,
   detailLoading,
-  clusterContext,
   browseTarget,
   historyEvent,
   historyJob,
@@ -117,7 +107,6 @@ export function InspectorRail({
   activeObject,
   onPreview,
   onAskAbout,
-  onSeeCluster,
   onAddToLab,
   onPreviewExternal,
   onProbeSource,
@@ -150,8 +139,6 @@ export function InspectorRail({
         onOpenInLibrary={onOpenInLibrary}
       />
     );
-  } else if (mainTab === "cluster") {
-    detailPanel = <ClusterRailPanel compare={clusterContext} onAskAbout={onAskAbout} />;
   } else if (mainTab === "browse") {
     detailPanel = discoverIntentRecord ? (
       <DiscoverIntentRailPanel record={discoverIntentRecord} />
@@ -255,7 +242,6 @@ export function InspectorRail({
         loading={detailLoading}
         onPreview={onPreview}
         onAskAbout={onAskAbout}
-        onSeeCluster={onSeeCluster}
       />
     );
   }
@@ -271,8 +257,7 @@ export function InspectorRail({
       discoverIntentRecord,
       discoverAssessment,
       resourceRow,
-      clusterContext,
-    );
+        );
 
   const [mobileRailOpen, setMobileRailOpen] = useState(false);
 

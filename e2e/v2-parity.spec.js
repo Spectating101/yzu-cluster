@@ -184,9 +184,10 @@ test.describe("v2 parity @ desk-v2-1440", () => {
     await expect(page.locator("aside.yzu-sidebar nav button", { hasText: "Cluster" })).toHaveCount(0);
   });
 
-  test("cluster tab still reachable via URL while deferred", async ({ page }) => {
+  test("cluster is gone, including by deep link", async ({ page }) => {
     await page.goto("/?tab=cluster", { waitUntil: "domcontentloaded" });
-    await expect(page.locator(".rd-v2-page-head h1", { hasText: "Cluster" })).toBeVisible();
+    await expect(page.locator(".rd-v2-page-head h1", { hasText: "Cluster" })).toHaveCount(0);
+    await expect(page.locator("aside.yzu-sidebar nav button", { hasText: "Cluster" })).toHaveCount(0);
   });
 
   test("Detail rail has sticky CTAs and segmented toggle", async ({ page }) => {

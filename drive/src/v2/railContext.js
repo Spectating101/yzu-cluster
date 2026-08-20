@@ -53,7 +53,6 @@ export function buildRailContext({
   activeObject = null,
   searchQuery = "",
   folderId = "",
-  clusterContext = null,
   profileEmail = "",
 } = {}) {
   let entity = null;
@@ -193,11 +192,6 @@ export function buildRailContext({
   }
 
   const compare =
-    clusterContext?.a?.dataset_id && clusterContext?.b?.dataset_id
-      ? {
-          left: clusterContext.a.dataset_id,
-          right: clusterContext.b.dataset_id,
-          shared_keys: clusterContext.shared || [],
         }
       : null;
 

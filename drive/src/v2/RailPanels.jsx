@@ -460,64 +460,6 @@ export function HomeAttentionRailPanel({ object, onAskAbout }) {
   );
 }
 
-export function ClusterRailPanel({ compare, onAskAbout }) {
-  if (!compare?.a || !compare?.b) {
-    return (
-      <RailFrame>
-        <div className="rd-v2-rail-scroll">
-          <EmptyRailState
-            title="No compare selected"
-            hint="Pick two datasets in Cluster to inspect join-key overlap."
-          />
-        </div>
-      </RailFrame>
-    );
-  }
-
-  const titleA = displayName(compare.a);
-  const titleB = displayName(compare.b);
-  const overlapText = compare.shared?.length
-    ? `${compare.shared.join(" · ")}${compare.grainMatch ? " · matching grain" : ""}`
-    : "Unknown overlap — no shared join keys";
-
-  return (
-    <RailFrame>
-      <RailEntityHeader
-        id={`${compare.a.dataset_id} × ${compare.b.dataset_id}`}
-        title="Overlap"
-        description={`${titleA} compared with ${titleB}`}
-        pills={
-          compare.pct != null ? (
-            <span className={`rd-v2-pill${compare.pct >= 50 ? "" : compare.pct > 0 ? " warn" : " muted"}`}>
-              {compare.pct}% key overlap
-            </span>
-          ) : null
-        }
-      />
-      <div className="rd-v2-rail-scroll">
-        <RailFieldGrid>
-          <RailField label="Overlap" value={overlapText} />
-          <RailField label="Shared keys" value={(compare.shared || []).join(" · ") || "—"} />
-          <RailField
-            label="Only A"
-            value={(compare.onlyA || []).slice(0, 5).join(" · ") || "—"}
-          />
-          <RailField
-            label="Only B"
-            value={(compare.onlyB || []).slice(0, 5).join(" · ") || "—"}
-          />
-          {compare.join ? <RailField label="Join on" value={compare.join} mono /> : null}
-        </RailFieldGrid>
-      </div>
-      <RailStickyFooter>
-        <button type="button" className="rd-v2-btn sm" onClick={onAskAbout}>
-          Ask about overlap →
-        </button>
-      </RailStickyFooter>
-    </RailFrame>
-  );
-}
-
 export function BrowseRailPanel(props) {
   return <DiscoverEvaluationSurface {...props} variant="rail" />;
 }
