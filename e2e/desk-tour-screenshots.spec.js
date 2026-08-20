@@ -56,6 +56,7 @@ const SHELVES = [...new Set(PARTITIONS.map((l) => l.shelf_id))].map((id, i) => (
 const outDir = "artifacts/desk-tour";
 const WIDTHS = [
   { id: "desktop", width: 1440, height: 900 },
+  { id: "wide", width: 1960, height: 1600 },
   { id: "mobile", width: 390, height: 844 },
 ];
 
