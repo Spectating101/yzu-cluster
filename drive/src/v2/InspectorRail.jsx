@@ -66,7 +66,6 @@ function railSelectionHint(
 const MOBILE_RAIL_IDLE_HINTS = new Set([
   "No selection",
   "No discover result",
-  "No compare selected",
   "Resources",
   "Profile",
   "Desk setup",
