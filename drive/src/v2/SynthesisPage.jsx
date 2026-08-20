@@ -13,6 +13,7 @@ import { handleEnterToSubmit } from "@/v2/enterToSubmit";
 import { DeskError } from "@/v2/DeskError";
 import { ExcursionRecordPanel } from "./ExcursionRecordPanel.jsx";
 import { focusFor } from "./synthesisFocus.js";
+import "./s04-opening.css";
 
 // The record renders whether or not it leads, so the strip must not offer it too.
 const RECORD_ALWAYS = ["columns", "excursions", "settled", "provenance", "reuse"];
@@ -211,25 +212,31 @@ function ThreadList({ threads, selectedId, loading, onSelect, onNew }) {
  * not been told reads "Not stated" — the spec's opening state claims the intent
  * was understood, and a blank slot would claim that falsely.
  */
-function ResearchBrief({ thread }) {
+function ResearchBrief({ thread, onEditIntent }) {
   const brief = researchBrief(thread);
   if (!brief.body && !brief.targetGrain && !brief.targetPeriod && !brief.intendedUse) return null;
   return (
-    <section className="s04-research-brief" aria-label="Research brief">
+    <section className="s04-opening-brief" aria-label="Research brief">
       <header>
         <small>Research brief</small>
         {brief.editable ? (
-          <button type="button" className="s04-brief-edit">Edit intent</button>
+          <button type="button" onClick={() => onEditIntent?.()}>Edit intent</button>
         ) : null}
       </header>
       {brief.body ? <p>{brief.body}</p> : null}
       <dl>
-        <dt>Target grain</dt>
-        <dd className={brief.targetGrain ? "" : "unstated"}>{text(brief.targetGrain, "Not stated")}</dd>
-        <dt>Target period</dt>
-        <dd className={brief.targetPeriod ? "" : "unstated"}>{text(brief.targetPeriod, "Not stated")}</dd>
-        <dt>Intended use</dt>
-        <dd className={brief.intendedUse ? "" : "unstated"}>{text(brief.intendedUse, "Not stated")}</dd>
+        <div>
+          <dt>Target grain</dt>
+          <dd className={brief.targetGrain ? "" : "unstated"}>{text(brief.targetGrain, "Not stated")}</dd>
+        </div>
+        <div>
+          <dt>Target period</dt>
+          <dd className={brief.targetPeriod ? "" : "unstated"}>{text(brief.targetPeriod, "Not stated")}</dd>
+        </div>
+        <div>
+          <dt>Intended use</dt>
+          <dd className={brief.intendedUse ? "" : "unstated"}>{text(brief.intendedUse, "Not stated")}</dd>
+        </div>
       </dl>
     </section>
   );
@@ -240,11 +247,69 @@ function ResearchBrief({ thread }) {
  * collapsed. Nothing writes a construction yet, so the absent case is the one
  * researchers will meet — it says so plainly rather than drawing an empty card.
  */
-function RecommendedConstruction({ thread }) {
+function OpeningRoleMap({ recommendation }) {
+  const output = recommendation.expectedOutput.label || recommendation.title;
+  return (
+    <figure className="s04-opening-map" aria-label="Recommended construction evidence roles">
+      <figcaption>Evidence roles</figcaption>
+      <ol>
+        {recommendation.nodes.map((node) => (
+          <li key={node.id || node.source}>
+            <small>{text(node.role, "Role not stated")}</small>
+            <strong>{node.source}</strong>
+            <span>{text(node.grain, "Grain not stated")}</span>
+          </li>
+        ))}
+      </ol>
+      <div className="s04-opening-map-flow" aria-hidden="true">
+        <span />
+        <b>↓</b>
+        <span />
+      </div>
+      <div className="s04-opening-map-output">
+        <small>Expected output</small>
+        <strong>{output}</strong>
+        {recommendation.expectedOutput.grain || recommendation.expectedOutput.period ? (
+          <span>
+            {[recommendation.expectedOutput.grain, recommendation.expectedOutput.period].filter(Boolean).join(" · ")}
+          </span>
+        ) : null}
+      </div>
+      {recommendation.validationRole ? (
+        <p><b>Validate against</b>{recommendation.validationRole}</p>
+      ) : null}
+    </figure>
+  );
+}
+
+function ConstructionFacts({ recommendation }) {
+  const facts = [
+    recommendation.idealDirectMeasure.label ? [
+      "Ideal direct measure",
+      recommendation.idealDirectMeasure.label,
+      recommendation.idealDirectMeasure.why ? `Unavailable · ${recommendation.idealDirectMeasure.why}` : "",
+    ] : null,
+    recommendation.aiResolved.length ? ["AI has resolved", recommendation.aiResolved.join(" · "), ""] : null,
+    recommendation.methodWillResolve.length ? ["Method design will resolve", recommendation.methodWillResolve.join(" · "), ""] : null,
+  ].filter(Boolean);
+  if (!facts.length) return null;
+  return (
+    <dl className="s04-opening-facts">
+      {facts.map(([label, value, note]) => (
+        <div key={label}>
+          <dt>{label}</dt>
+          <dd>{value}{note ? <em>{note}</em> : null}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+function RecommendedConstruction({ thread, onCompare }) {
   const rec = recommendedConstruction(thread);
   if (!rec.present) {
     return (
-      <section className="s04-choice s04-recommend" aria-label="Recommended construction">
+      <section className="s04-opening-construction s04-opening-construction--empty" aria-label="Recommended construction">
         <header>
           <small>Recommended construction</small>
         </header>
@@ -256,51 +321,18 @@ function RecommendedConstruction({ thread }) {
     );
   }
   return (
-    <section className="s04-choice s04-recommend" aria-label="Recommended construction">
+    <section className="s04-opening-construction" aria-label="Recommended construction">
       <header>
         <small>Recommended construction</small>
         <em>Recommended</em>
       </header>
       <h2>{rec.title}</h2>
-      <ul className="s04-metrics">
-        {rec.nodes.map((node) => (
-          <li key={node.id || node.source}>
-            <strong>{text(node.role, "role not stated")}</strong>
-            <span>{node.source}</span>
-            <em>{text(node.grain, "grain not stated")}</em>
-          </li>
-        ))}
-      </ul>
-      {rec.validationRole ? <p>Validated against {rec.validationRole}.</p> : null}
-      {rec.idealDirectMeasure.label ? (
-        <p className="s04-use">
-          <small>Ideal direct measure</small>
-          {rec.idealDirectMeasure.label}
-          {rec.idealDirectMeasure.why ? ` — unavailable · ${rec.idealDirectMeasure.why}` : null}
-        </p>
-      ) : null}
-      {rec.expectedOutput.label ? (
-        <p className="s04-use">
-          <small>Expected output</small>
-          {rec.expectedOutput.label}
-          {rec.expectedOutput.grain ? ` · ${rec.expectedOutput.grain}` : null}
-          {rec.expectedOutput.period ? ` · ${rec.expectedOutput.period}` : null}
-        </p>
-      ) : null}
-      {rec.aiResolved.length ? (
-        <p className="s04-use">
-          <small>Already resolved</small>
-          {rec.aiResolved.join(" · ")}
-        </p>
-      ) : null}
-      {rec.methodWillResolve.length ? (
-        <p className="s04-use">
-          <small>Method design will resolve</small>
-          {rec.methodWillResolve.join(" · ")}
-        </p>
-      ) : null}
+      <OpeningRoleMap recommendation={rec} />
+      <ConstructionFacts recommendation={rec} />
       {rec.alternatives ? (
-        <p className="s04-alts">{rec.alternatives} alternative constructions available</p>
+        <button type="button" className="s04-opening-alternatives" onClick={() => onCompare?.()}>
+          {rec.alternatives} alternative constructions available <b>▸</b>
+        </button>
       ) : null}
     </section>
   );
@@ -317,7 +349,7 @@ function RecommendedConstruction({ thread }) {
 function WhatHappensNext({ thread, onCompare, onAccept }) {
   const rec = recommendedConstruction(thread);
   return (
-    <section className="s04-next" aria-label="What happens next">
+    <section className="s04-opening-next" aria-label="What happens next">
       <header>
         <small>What happens next</small>
       </header>
@@ -352,7 +384,7 @@ function WhatHappensNext({ thread, onCompare, onAccept }) {
   );
 }
 
-function ThreadHeader({ thread }) {
+function ThreadHeader({ thread, onEditIntent }) {
   const state = thread?.state || {};
   // Spec §6: the opening state is the brief. The objective paragraph and the
   // record strip both restate what the brief already says, so they wait.
@@ -383,7 +415,7 @@ function ThreadHeader({ thread }) {
                 : "Nothing registered"}
         </em>
       </header>
-      <ResearchBrief thread={thread} />
+      <ResearchBrief thread={thread} onEditIntent={onEditIntent} />
       {opening ? null : (
       <div className="s04-brief">
         <span>
@@ -1345,10 +1377,16 @@ export function SynthesisPage({
           ) : null}
           {!newMode && selected ? (
             <>
-              <ThreadHeader thread={selected} />
+              <ThreadHeader
+                thread={selected}
+                onEditIntent={() => ask("I want to revise this research intent. Show the change that would be recorded before applying it.")}
+              />
               {isPreAcceptance(selected) ? (
                 <>
-                  <RecommendedConstruction thread={selected} />
+                  <RecommendedConstruction
+                    thread={selected}
+                    onCompare={() => ask("Compare the alternative constructions and say what each one costs.")}
+                  />
                   <WhatHappensNext
                     thread={selected}
                     onCompare={() => ask("Compare the alternative constructions and say what each one costs.")}
