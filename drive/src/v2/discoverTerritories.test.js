@@ -11,10 +11,15 @@ test("every group resultGroups builds is named by a territory", () => {
   assert.deepEqual(unaccounted(groups), []);
 });
 
-test("the territory that was missing is counted", () => {
-  const external = discoverTerritories(groups).find((t) => t.id === "external");
-  assert.equal(external.count, 1);
-  assert.equal(external.label, "Not assessed");
+test("the row carries exactly the three counters the freeze binds", () => {
+  const shown = discoverTerritories(groups).map((t) => t.label);
+  assert.deepEqual(shown, ["Available", "Library evidence", "Web context"],
+    "DISCOVER_ADAPTIVE_FREEZE_2026-07-28 §3 binds this row to three counters");
+});
+
+test("the orphan group folds into Available rather than earning a label", () => {
+  const available = discoverTerritories(groups).find((t) => t.id === "available");
+  assert.equal(available.count, 1, "the external-discoverable row must be counted");
 });
 
 test("the centre count is the sum of the centre territories", () => {
@@ -38,10 +43,10 @@ test("a group added later without a territory is reported, not hidden", () => {
 
 test("held and context stay out of the centre count", () => {
   assert.equal(centreCount({ available: [], external: [], held: [1, 2], context: [3] }), 0);
-  assert.equal(TERRITORIES.filter((t) => t.inCentre).map((t) => t.id).join(), "available,external");
+  assert.equal(TERRITORIES.filter((t) => t.inCentre).map((t) => t.id).join(), "available");
 });
 
 test("an empty payload is valid and reads zero", () => {
   assert.equal(centreCount(undefined), 0);
-  assert.equal(discoverTerritories(undefined).length, 4);
+  assert.equal(discoverTerritories(undefined).length, 3);
 });
