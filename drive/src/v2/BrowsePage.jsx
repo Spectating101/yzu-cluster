@@ -558,6 +558,7 @@ export function BrowsePage({
   libraryEvidenceCount,
   partitions = [],
   shelves = [],
+  loadError = "",
   catalog = [],
   selectedId,
   onSelectRow,

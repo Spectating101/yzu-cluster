@@ -11,6 +11,7 @@ import { statusPillKind } from "@/v2/datasetMeta";
 import { LibraryAssetWorkspace } from "@/v2/LibraryAssetWorkspace";
 import { resolveLibrarySelection } from "@/v2/librarySelection";
 import { Chip, PageShell } from "@/v2/ui";
+import { DeskError } from "@/v2/DeskError";
 
 function datasetListItem(row) {
   const name = datasetTitle(row);
@@ -209,6 +210,7 @@ export function LibraryPage({
   datasets,
   partitions = [],
   shelves = [],
+  loadError = "",
   guide = null,
   cluster,
   folderId,
@@ -479,6 +481,7 @@ export function LibraryPage({
           <span>{readyCount} query-ready</span>
         </div>
       </div>
+      {loadError ? <DeskError raw={loadError} surface="your Library" /> : null}
       <div className="rd-v2-catalog-list-wrap" data-testid="library-directory">
         {visibleRows.length ? (
           <CatalogList

@@ -10,7 +10,7 @@ import {
   requestSynthesisExecution,
 } from "@/v2/api";
 import { handleEnterToSubmit } from "@/v2/enterToSubmit";
-import { deskErrorCopy } from "@/v2/deskErrorCopy";
+import { DeskError } from "@/v2/DeskError";
 import { ExcursionRecordPanel } from "./ExcursionRecordPanel.jsx";
 import { focusFor } from "./synthesisFocus.js";
 
@@ -692,22 +692,6 @@ function NewThread({ objective, setObjective, busy, profiles, onCreate, onStartB
         </button>
       </footer>
     </section>
-  );
-}
-
-/** A transport failure, said in the reader's terms; the raw text stays as detail. */
-function DeskError({ raw, surface, alert = false }) {
-  const copy = deskErrorCopy(raw, { surface });
-  if (!copy) return null;
-  return (
-    <div className="s04-desk-error" role={alert ? "alert" : undefined} data-testid="desk-error">
-      <strong>{copy.headline}</strong>
-      <p>{copy.body}</p>
-      <details>
-        <summary>What the desk reported</summary>
-        <code>{copy.detail}</code>
-      </details>
-    </div>
   );
 }
 

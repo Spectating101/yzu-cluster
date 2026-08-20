@@ -1422,6 +1422,7 @@ export function V2App() {
           datasets={filteredDatasets}
           partitions={partitions}
           shelves={shelves}
+          loadError={loadError}
           guide={libraryGuide}
           cluster={health?.cluster}
           folderId={folderId}
@@ -1451,6 +1452,7 @@ export function V2App() {
           libraryEvidenceCount={libraryEvidenceCount}
           partitions={partitions}
           shelves={shelves}
+          loadError={loadError}
           catalog={catalog}
           selectedId={browseSelectedId}
           searchQuery={discoverSearchQuery}
