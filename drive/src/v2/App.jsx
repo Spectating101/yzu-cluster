@@ -36,8 +36,6 @@ import {
   synthesisThreadObject,
 } from "@/v2/activeObject";
 import { BrowsePage } from "@/v2/BrowsePage";
-import { ClusterPage } from "@/v2/ClusterPage";
-import { computeDatasetOverlap } from "@/v2/clusterOverlap";
 import { loadUserEmail, saveUserEmail } from "@/v2/deskSession";
 import { readResourcesRollupCache, writeResourcesRollupCache } from "@/v2/resourcesRollupCache";
 import { normalizeReleaseTab } from "@/v2/releaseVisibility";
@@ -63,7 +61,6 @@ import { mergeHealth, resolveCatalog } from "@/v2/deskSeed";
 import { projectRollupFromHealth } from "@/v2/homeIteration10";
 import { buildDeskIntegrationChips } from "@/v2/deskIntegration";
 import { loadSettings } from "@/v2/settingsStore";
-import { CLUSTER_NAV_DEFERRED } from "@/v2/nav-config.jsx";
 import {
   buildAddToLabDisplayText,
   buildAddToLabPrompt,
@@ -110,7 +107,7 @@ function readParams() {
 
 /**
  * Only Home/Discover/Library read a selected dataset. Resources, Profile,
- * Synthesis, Settings and Cluster ignore it, so carrying it there produces a
+ * Synthesis and Settings ignore it, so carrying it there produces a
  * shareable deep link pinned to a dataset the page never uses — reopening it
  * restores a stale selection. Allow-list, so a tab added later does not
  * silently inherit the parameter.
@@ -139,7 +136,6 @@ function writeParams({ tab, dataset, folder, preview, q, mode }) {
   window.history.replaceState(null, "", url);
 }
 
-const DEFAULT_COMPARE = ["gdelt_asia_daily_country_panel", "ticker_week_country_broadcast_panel"];
 
 function resourceAskPrompt(row) {
   if (!row) return "";
@@ -190,7 +186,6 @@ export function V2App() {
   const browseSelectedKeyRef = useRef("");
   const [resourceRow, setResourceRow] = useState(null);
   const [activeObject, setActiveObject] = useState(null);
-  const [compareIds, setCompareIds] = useState(DEFAULT_COMPARE);
   const [previewOpen, setPreviewOpen] = useState(() => readParams().preview);
   const [previewMode, setPreviewMode] = useState("lab");
   const [previewTarget, setPreviewTarget] = useState(null);
@@ -335,14 +330,6 @@ export function V2App() {
     setDatasets(catalog);
     setUsingSeed(seed);
     setLoadError(seed ? errMsg : "");
-    const ids = catalog.map((d) => d.dataset_id);
-    setCompareIds((cur) => {
-      const valid = cur.every((id) => ids.includes(id));
-      if (valid && cur[0] && cur[1]) return cur;
-      const a = ids.find((id) => /gdelt.*asia/i.test(id)) || ids[0];
-      const b = ids.find((id) => /ticker.*week/i.test(id)) || ids[1] || ids[0];
-      return a && b ? [a, b] : cur;
-    });
   }, []);
 
   const refreshBackend = useCallback((opts = {}) => {
@@ -574,14 +561,6 @@ export function V2App() {
       ? browseProbe
       : { loading: false, result: null, error: "" };
 
-  const clusterContext = useMemo(() => {
-    const [aId, bId] = compareIds;
-    const a = catalog.find((d) => d.dataset_id === aId);
-    const b = catalog.find((d) => d.dataset_id === bId);
-    if (!a || !b) return { a, b };
-    const overlap = computeDatasetOverlap(a, b);
-    return { a, b, ...overlap };
-  }, [compareIds, catalog]);
 
   const railContext = useMemo(
     () =>
@@ -592,10 +571,9 @@ export function V2App() {
         activeObject,
         searchQuery: pageSearchQuery,
         folderId,
-        clusterContext,
         profileEmail: profile?.email || loadUserEmail(),
       }),
-    [tab, railTab, detail, activeObject, pageSearchQuery, folderId, clusterContext, profile],
+    [tab, railTab, detail, activeObject, pageSearchQuery, folderId, profile],
   );
 
   const syncUrl = useCallback(
@@ -1462,17 +1440,6 @@ export function V2App() {
         />
       );
       break;
-    case "cluster":
-      main = (
-        <ClusterPage
-          datasets={catalog}
-          compareIds={compareIds}
-          onCompareChange={setCompareIds}
-          onGoTab={goTab}
-          onAskComposer={askFromPrompt}
-        />
-      );
-      break;
     case "browse":
       main = (
         <BrowsePage
@@ -1757,7 +1724,6 @@ export function V2App() {
         onRailTabChange={setRailTab}
         dataset={detail}
         detailLoading={detailLoading}
-        clusterContext={clusterContext}
         browseTarget={browseTarget}
         historyEvent={selectedHistoryEvent}
         historyJob={selectedHistoryJob}
@@ -1789,7 +1755,6 @@ export function V2App() {
           setActivityFilter(filter);
           setRailTab("detail");
         }}
-        onSeeCluster={CLUSTER_NAV_DEFERRED ? undefined : () => goTab("cluster")}
         onAddToLab={canSubmitCollection ? askAddToLab : undefined}
         onProbeSource={probeDiscoverCandidate}
         probeState={browseProbeState}

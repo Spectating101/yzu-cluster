@@ -219,7 +219,6 @@ export function DetailPanel({
   loading = false,
   onPreview,
   onAskAbout,
-  onSeeCluster,
   onAddToLab,
 }) {
   const [liveIdentity, setLiveIdentity] = useState(null);
@@ -346,11 +345,6 @@ export function DetailPanel({
         <button type="button" className="rd-v2-btn sm" onClick={() => onAskAbout?.(view)}>
           Ask about this →
         </button>
-        {onSeeCluster ? (
-          <button type="button" className="rd-v2-btn sm" onClick={() => onSeeCluster(view)}>
-            See on Cluster →
-          </button>
-        ) : null}
         {onAddToLab ? (
           <button type="button" className="rd-v2-btn sm" onClick={() => onAddToLab(view)}>
             Add to lab

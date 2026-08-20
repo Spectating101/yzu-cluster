@@ -53,7 +53,6 @@ export function buildRailContext({
   activeObject = null,
   searchQuery = "",
   folderId = "",
-  clusterContext = null,
   profileEmail = "",
 } = {}) {
   let entity = null;
@@ -192,19 +191,6 @@ export function buildRailContext({
     if (authority.refresh_policy) actions.push("refresh_asset");
   }
 
-  const compare =
-    clusterContext?.a?.dataset_id && clusterContext?.b?.dataset_id
-      ? {
-          left: clusterContext.a.dataset_id,
-          right: clusterContext.b.dataset_id,
-          shared_keys: clusterContext.shared || [],
-        }
-      : null;
-
-  if (compare) {
-    actions = ["ask_about_overlap", "preview_rows"];
-  }
-
   return {
     tab,
     mode,
@@ -216,7 +202,6 @@ export function buildRailContext({
     profile_email: profileEmail || undefined,
     readiness: dataset ? readinessLabel(dataset) : undefined,
     vault_path: dataset ? vaultPath(dataset) : undefined,
-    compare: compare || undefined,
     actions: actions.length ? actions : undefined,
   };
 }
