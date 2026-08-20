@@ -1442,6 +1442,8 @@ export function V2App() {
         <BrowsePage
           labIds={labIds}
           libraryEvidenceCount={libraryEvidenceCount}
+          partitions={partitions}
+          shelves={shelves}
           catalog={catalog}
           selectedId={browseSelectedId}
           searchQuery={discoverSearchQuery}

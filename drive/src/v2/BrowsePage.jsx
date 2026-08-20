@@ -33,6 +33,7 @@ import {
 } from "@/v2/discoverQuerySpecificity";
 import { Chip, PageShell, SourceRibbon } from "@/v2/ui";
 import { discoverTerritories } from "@/v2/discoverTerritories";
+import { DiscoverCoveragePanel } from "@/v2/DiscoverCoveragePanel";
 
 const FILTERS = [
   { id: "all", label: "All results" },
@@ -555,6 +556,8 @@ function dedupeRows(rows) {
 export function BrowsePage({
   labIds,
   libraryEvidenceCount,
+  partitions = [],
+  shelves = [],
   catalog = [],
   selectedId,
   onSelectRow,
@@ -1209,6 +1212,9 @@ export function BrowsePage({
                   No curated source routes yet — search above, or paste a URL or DOI below.
                 </p>
               )}
+              <DiscoverCoveragePanel catalog={catalog} partitions={partitions} shelves={shelves} onSearchShelf={
+                onSuggestSearch ? (shelf) => onSuggestSearch(shelf.label.toLowerCase()) : undefined
+              } />
               {idleHoldings.length ? (
                 <div className="rd-v2-discover-idle-library-note">
                   Library evidence · {plural(libraryEvidenceCount ?? labIds.size, "asset")}{" "}
