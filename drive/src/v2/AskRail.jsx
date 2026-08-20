@@ -6,6 +6,7 @@ import { handleEnterToSubmit } from "@/v2/enterToSubmit";
 import { formatAskText } from "@/v2/askText.jsx";
 import { AskAgentCard } from "@/v2/AskAgentCard.jsx";
 import { displayName } from "@/v2/datasetMeta";
+import { DISCOVER_TAB } from "@/v2/tabIdentity";
 
 export function AskRail({
   dataset,
@@ -61,7 +62,7 @@ export function AskRail({
   const ctxParts = [contextLabel, mainTab, searchQuery ? `search: ${searchQuery}` : ""].filter(Boolean);
   const isProfile = mainTab === "profile";
   const isSettings = mainTab === "settings";
-  const isDiscover = mainTab === "browse";
+  const isDiscover = mainTab === DISCOVER_TAB;
   const isDiscoverHistory = isDiscover && dataset?.kind === "discover_history";
   const isDiscoverInvestigation = isDiscover && dataset?.kind === "discover_investigation";
   const isSynthesis = mainTab === "synthesis";

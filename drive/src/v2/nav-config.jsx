@@ -56,7 +56,7 @@ export const V2_SYNTHESIS_TAB = { id: "synthesis", label: "Synthesis", Icon: Syn
 export const V2_SIDEBAR_PRIMARY_TABS = [
   { id: "home",      label: "Home",      Icon: HomeIcon },
   { id: "library",   label: "Library",   Icon: LibraryIcon },
-  { id: "browse",    label: "Discover",  Icon: BrowseIcon },
+  { id: "discover",  label: "Discover",  Icon: BrowseIcon },
   ...(SYNTHESIS_NAV_DEFERRED ? [] : [V2_SYNTHESIS_TAB]),
   { id: "resources", label: "Resources", Icon: ResourcesIcon },
 ];

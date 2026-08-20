@@ -39,6 +39,7 @@ import { BrowsePage } from "@/v2/BrowsePage";
 import { loadUserEmail, saveUserEmail } from "@/v2/deskSession";
 import { readResourcesRollupCache, writeResourcesRollupCache } from "@/v2/resourcesRollupCache";
 import { normalizeReleaseTab } from "@/v2/releaseVisibility";
+import { DISCOVER_TAB, canonicalTab } from "@/v2/tabIdentity";
 import { HomePage } from "@/v2/HomePage";
 import { InspectorRail } from "@/v2/InspectorRail";
 import { LibraryPage } from "@/v2/LibraryPage";
@@ -88,9 +89,9 @@ function readParams() {
   const rawTab = p.get("tab") || loadSettings().defaultTab || "home";
   const folder = p.get("folder") || "";
   const q = p.get("q") || "";
-  let tab = normalizeReleaseTab(rawTab === "discover" ? "browse" : rawTab);
+  let tab = normalizeReleaseTab(canonicalTab(rawTab));
   // Library deep links: folder+dataset without a Discover query belong on Library.
-  if (tab === "browse" && folder && !q) {
+  if (tab === DISCOVER_TAB && folder && !q) {
     tab = "library";
   }
   const discoverState = discoverModeFromLegacy(p.get("mode") || "");
@@ -113,7 +114,7 @@ function readParams() {
  * silently inherit the parameter.
  */
 function tabOwnsDataset(tab) {
-  return tab === "home" || tab === "browse" || tab === "library";
+  return tab === "home" || tab === DISCOVER_TAB || tab === "library";
 }
 
 function tabOwnsFolder(tab) {
@@ -130,7 +131,7 @@ function writeParams({ tab, dataset, folder, preview, q, mode }) {
   if (preview) p.set("preview", "1");
   if (q) p.set("q", q);
   const modeUrl = discoverModeToUrlState(mode || "explore");
-  if (tab === "browse" && modeUrl) p.set("mode", modeUrl);
+  if (tab === DISCOVER_TAB && modeUrl) p.set("mode", modeUrl);
   const qs = p.toString();
   const url = `${window.location.pathname}${qs ? `?${qs}` : ""}`;
   window.history.replaceState(null, "", url);
@@ -481,7 +482,7 @@ export function V2App() {
     const rawFolder = p.get("folder") || "";
     const rawQ = p.get("q") || "";
     const needsLibraryRedirect =
-      (rawTab === "browse" || rawTab === "discover") && rawFolder && !rawQ && tab === "library";
+      canonicalTab(rawTab) === DISCOVER_TAB && rawFolder && !rawQ && tab === "library";
     const datasetMismatch = Boolean(selectedId && p.get("dataset") !== selectedId);
     if (needsLibraryRedirect || datasetMismatch) {
       writeParams({
@@ -489,7 +490,7 @@ export function V2App() {
         folder: folderId,
         dataset: selectedId,
         preview: previewOpen,
-        q: tab === "browse" ? discoverSearchQuery.trim() : "",
+        q: tab === DISCOVER_TAB ? discoverSearchQuery.trim() : "",
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot URL normalize on mount
@@ -507,7 +508,7 @@ export function V2App() {
 
   const catalog = datasets;
 
-  const pageSearchQuery = tab === "browse" ? discoverSearchQuery : tab === "library" ? librarySearchQuery : "";
+  const pageSearchQuery = tab === DISCOVER_TAB ? discoverSearchQuery : tab === "library" ? librarySearchQuery : "";
 
   // `/datasets` is the registry authority, not a possession list: it includes
   // held assets, catalogue references, connectors, and procurement candidates.
@@ -582,7 +583,7 @@ export function V2App() {
       const nextQ =
         patch.q !== undefined
           ? patch.q
-          : nextTab === "browse"
+          : nextTab === DISCOVER_TAB
             ? discoverSearchQuery.trim()
             : "";
       const next = {
@@ -644,7 +645,7 @@ export function V2App() {
 
   // Durable Discover History (optional endpoint — ignore failures).
   useEffect(() => {
-    if (tab !== "browse") return undefined;
+    if (tab !== DISCOVER_TAB) return undefined;
     let cancelled = false;
     discoverHistory({ limit: 50 })
       .then((data) => {
@@ -662,7 +663,7 @@ export function V2App() {
 
   const goTab = useCallback(
     (id, opts = {}) => {
-      const next = normalizeReleaseTab(id);
+      const next = normalizeReleaseTab(canonicalTab(id));
       if (next === "library") {
         setTab(next);
         setRailTab("detail");
@@ -1064,7 +1065,7 @@ export function V2App() {
 
   // Poll jobs while selected Discover candidate has a nonterminal exact job.
   useEffect(() => {
-    if (tab !== "browse" || !browseTarget || !isLifecycleActive(browseLifecycle)) {
+    if (tab !== DISCOVER_TAB || !browseTarget || !isLifecycleActive(browseLifecycle)) {
       if (jobsPollRef.current) {
         window.clearInterval(jobsPollRef.current);
         jobsPollRef.current = null;
@@ -1120,7 +1121,7 @@ export function V2App() {
 
   const askAboutSelection = useCallback(
     (target, promptOverride) => {
-      if (tab === "browse" && target) {
+      if (tab === DISCOVER_TAB && target) {
         const label = target.title || target.dataset_id || target.name || "this Discover candidate";
         if (target.kind === "discover_history") {
           setRailTab("ask");
@@ -1299,7 +1300,7 @@ export function V2App() {
 
   const openHomeAttention = useCallback(
     (item) => {
-      if (item?.tab === "browse" || item?.discoverMode === "history") {
+      if (item?.tab === DISCOVER_TAB || item?.discoverMode === "history") {
         setDiscoverModeSafe("history");
         goTab("browse");
         setRailTab("detail");
@@ -1436,7 +1437,7 @@ export function V2App() {
         />
       );
       break;
-    case "browse":
+    case DISCOVER_TAB:
       main = (
         <BrowsePage
           labIds={labIds}
@@ -1779,7 +1780,7 @@ export function V2App() {
                 ? {
                     title: `Resources · ${resourceRow.label}`,
                   }
-                : tab === "browse"
+                : tab === DISCOVER_TAB
                   ? discoverIntentRecord
                     ? {
                         title: discoverIntentRecord.intent?.title || discoverIntentRecord.candidate?.title || "Acquisition review",

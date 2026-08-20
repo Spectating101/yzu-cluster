@@ -25,7 +25,7 @@ test("no icon survives a removal without a reference", () => {
 });
 
 test("the sidebar still names every destination it is supposed to", () => {
-  for (const id of ["home", "library", "browse", "resources", "profile", "settings"]) {
+  for (const id of ["home", "library", "discover", "resources", "profile", "settings"]) {
     assert.ok(new RegExp(`id:\\s*"${id}"`).test(SOURCE), `${id} tab is missing`);
   }
 });

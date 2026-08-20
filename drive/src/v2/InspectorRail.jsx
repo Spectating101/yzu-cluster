@@ -17,6 +17,7 @@ import { DiscoverHistoryRailPanel } from "@/v2/DiscoverHistoryRailPanel";
 import { DiscoverIntentRailPanel } from "@/v2/DiscoverIntentRailPanel";
 import { SynthesisThreadRailPanel } from "@/v2/SynthesisThreadRailPanel";
 import { DiscoverEvidenceBrief } from "@/v2/DiscoverEvidenceBrief";
+import { DISCOVER_TAB } from "@/v2/tabIdentity";
 
 function railSelectionHint(
   mainTab,
@@ -28,22 +29,22 @@ function railSelectionHint(
   resourceRow,
   restingSummary,
 ) {
-  if (mainTab === "browse" && discoverIntentRecord) {
+  if (mainTab === DISCOVER_TAB && discoverIntentRecord) {
     return discoverIntentRecord.intent?.title || discoverIntentRecord.candidate?.title || "Acquisition review";
   }
-  if (mainTab === "browse" && historyEvent) {
+  if (mainTab === DISCOVER_TAB && historyEvent) {
     return historyEvent.target || historyEvent.title || historyEvent.id || "Discover lifecycle item";
   }
-  if (mainTab === "browse" && discoverAssessment?.active) {
+  if (mainTab === DISCOVER_TAB && discoverAssessment?.active) {
     return "Coverage assessment";
   }
-  if (mainTab === "browse" && browseTarget) {
+  if (mainTab === DISCOVER_TAB && browseTarget) {
     return browseTarget.title || browseTarget.dataset_id || "Discover result";
   }
-  if (mainTab === "browse" && restingSummary?.hasResults) {
+  if (mainTab === DISCOVER_TAB && restingSummary?.hasResults) {
     return "Search summary";
   }
-  if (mainTab === "browse") {
+  if (mainTab === DISCOVER_TAB) {
     return "No discover result";
   }
   if (mainTab === "resources" && resourceRow) {
@@ -80,7 +81,7 @@ function activeHintBelongsToTab(mainTab, object) {
   if (mainTab === "library") {
     return ["library_folder", "library_intake", "dataset"].includes(object.kind);
   }
-  if (mainTab === "browse") {
+  if (mainTab === DISCOVER_TAB) {
     return ["external_candidate", "discover_history", "discover_investigation"].includes(object.kind);
   }
   if (mainTab === "resources") return object.kind === "resource_row";
@@ -143,7 +144,7 @@ export function InspectorRail({
         onOpenInLibrary={onOpenInLibrary}
       />
     );
-  } else if (mainTab === "browse") {
+  } else if (mainTab === DISCOVER_TAB) {
     detailPanel = discoverIntentRecord ? (
       <DiscoverIntentRailPanel record={discoverIntentRecord} />
     ) : historyEvent ? (
@@ -270,7 +271,7 @@ export function InspectorRail({
   const [mobileRailOpen, setMobileRailOpen] = useState(false);
 
   useEffect(() => {
-    if (mainTab === "browse") {
+    if (mainTab === DISCOVER_TAB) {
       setMobileRailOpen(
         Boolean(discoverAssessment?.active) ||
           Boolean(historyEvent) ||

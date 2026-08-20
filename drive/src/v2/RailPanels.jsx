@@ -14,6 +14,7 @@ import {
 } from "@/v2/RailFrame";
 import { DetailPanel } from "@/v2/DetailPanel";
 import { handleEnterToSubmit } from "@/v2/enterToSubmit";
+import { DISCOVER_TAB } from "@/v2/tabIdentity";
 
 function fmtGiB(gib) {
   if (gib == null) return "—";
@@ -443,7 +444,7 @@ export function HomeAttentionRailPanel({ object, onAskAbout }) {
         <RailFieldGrid>
           <RailField label="Type" value={row.label || row.kind || object?.kind} />
           <RailField label="Next" value={row.next || "Review"} />
-          <RailField label="Surface" value={row.tab === "browse" ? "Discover" : row.tab || "home"} />
+          <RailField label="Surface" value={row.tab === DISCOVER_TAB ? "Discover" : row.tab || "home"} />
           {row.resourceRow?.job?.id ? <RailField label="Job ID" value={row.resourceRow.job.id} mono /> : null}
         </RailFieldGrid>
       </div>
