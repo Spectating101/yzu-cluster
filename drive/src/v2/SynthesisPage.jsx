@@ -312,6 +312,9 @@ function RecommendedConstruction({ thread }) {
 
 function ThreadHeader({ thread }) {
   const state = thread?.state || {};
+  // Spec §6: the opening state is the brief. The objective paragraph and the
+  // record strip both restate what the brief already says, so they wait.
+  const opening = isPreAcceptance(thread);
   const execution = state.execution || {};
   const mode = stateFor(thread);
   const queryReady = mode === "query_ready";
@@ -322,7 +325,9 @@ function ThreadHeader({ thread }) {
         <div>
           <small>{stageLabel(thread)}</small>
           <h1>{titleFor(thread)}</h1>
-          <p>{text(thread?.objective || state.objective, "A durable research-construction thread.")}</p>
+          {opening ? null : (
+            <p>{text(thread?.objective || state.objective, "A durable research-construction thread.")}</p>
+          )}
         </div>
         <em>
           {queryReady
@@ -337,6 +342,7 @@ function ThreadHeader({ thread }) {
         </em>
       </header>
       <ResearchBrief thread={thread} />
+      {opening ? null : (
       <div className="s04-brief">
         <span>
           <small>Current record</small>
@@ -347,6 +353,7 @@ function ThreadHeader({ thread }) {
           {text(state.required_grain || state.spec?.grain, "Not specified")}
         </span>
       </div>
+      )}
       {synthesisShowsStageStrip(thread) ? <SynthesisProgress thread={thread} /> : null}
     </>
   );
@@ -707,7 +714,11 @@ function DraftCanvas({ thread, onAsk, stalled, onRetry }) {
         <em className="neutral">{stalled ? "No response yet" : "Grounding Library evidence"}</em>
       </header>
       <div className="s04-draft-flow" role="img" aria-label="The first Synthesis reasoning steps">
-        <strong>{text(thread?.objective || state.objective, "Research objective")}</strong>
+        {/* The brief states the objective directly above; repeating it here made
+            the same paragraph appear three times on one screen. */}
+        {isPreAcceptance(thread) ? null : (
+          <strong>{text(thread?.objective || state.objective, "Research objective")}</strong>
+        )}
         <b>↓</b>
         <div>
           <article>
