@@ -149,6 +149,27 @@ async function richMocks(page) {
       }),
     });
   });
+  // "Search wider" is the deliberate escalation: semantic + live external
+  // adapters, which plain Explore never touches. The shipped fixture answers it
+  // from the same empty discoverBody as everything else, so the escalation was
+  // indistinguishable from not escalating.
+  await page.route("**/library/discover/sources?*", (route) => {
+    const q = new URL(route.request().url()).searchParams.get("q") || "";
+    const wider = q ? [
+      { candidate_key: `web:datacite:${q.slice(0, 30)}`,
+        title: `${q} — published dataset (DataCite)`, source: "DataCite",
+        collect_via: "datacite_doi", url: "https://doi.org/10.5061/example",
+        grain: "unstated", coverage: "2019–2025",
+        description: "Published research dataset — inspect the DOI before deciding how to acquire." },
+      { candidate_key: `web:hf:${q.slice(0, 30)}`,
+        title: `${q} — community corpus (Hugging Face)`, source: "Hugging Face",
+        collect_via: "huggingface_dataset", url: "https://huggingface.co/datasets/example",
+        grain: "unstated", coverage: "2021–2026",
+        description: "Community-maintained corpus; provenance is not institutional." },
+    ] : [];
+    route.fulfill({ status: 200, contentType: "application/json",
+      body: JSON.stringify({ results: wider, total: wider.length }) });
+  });
   await page.route("**/library/partitions**", (route) =>
     route.fulfill({ status: 200, contentType: "application/json",
       body: JSON.stringify({ partitions: PARTITIONS, shelves: SHELVES }) }));
@@ -243,8 +264,10 @@ test.describe("Desk tour", () => {
     await box.fill("weekly attention signal for stablecoins");
     await box.press("Enter");
     await page.waitForTimeout(1400);
-    const wider = page.getByText("Search wider", { exact: false }).first();
-    if (await wider.count()) { await wider.click(); await page.waitForTimeout(1400); }
+    const wider = page.getByRole("button", { name: /Search wider/ }).first();
+    await wider.waitFor({ state: "visible", timeout: 10_000 });
+    await wider.click();
+    await page.waitForTimeout(1800);
     await resetScroll(page);
     await page.screenshot({ path: `${outDir}/discover-wider-desktop.png` });
   });
