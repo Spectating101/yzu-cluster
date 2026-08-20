@@ -191,14 +191,6 @@ export function buildRailContext({
     if (authority.refresh_policy) actions.push("refresh_asset");
   }
 
-  const compare =
-        }
-      : null;
-
-  if (compare) {
-    actions = ["ask_about_overlap", "preview_rows"];
-  }
-
   return {
     tab,
     mode,
@@ -210,7 +202,6 @@ export function buildRailContext({
     profile_email: profileEmail || undefined,
     readiness: dataset ? readinessLabel(dataset) : undefined,
     vault_path: dataset ? vaultPath(dataset) : undefined,
-    compare: compare || undefined,
     actions: actions.length ? actions : undefined,
   };
 }
