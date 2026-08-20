@@ -215,25 +215,21 @@ function ResearchBrief({ thread }) {
   const brief = researchBrief(thread);
   if (!brief.body && !brief.targetGrain && !brief.targetPeriod && !brief.intendedUse) return null;
   return (
-    <section className="s04-intent-contract" aria-label="Research brief">
+    <section className="s04-research-brief" aria-label="Research brief">
       <header>
         <small>Research brief</small>
-        {brief.editable ? <span className="s04-intent-quiet">Edit intent</span> : null}
+        {brief.editable ? (
+          <button type="button" className="s04-brief-edit">Edit intent</button>
+        ) : null}
       </header>
       {brief.body ? <p>{brief.body}</p> : null}
       <dl>
-        <div>
-          <dt>Target grain</dt>
-          <dd>{text(brief.targetGrain, "Not stated")}</dd>
-        </div>
-        <div>
-          <dt>Target period</dt>
-          <dd>{text(brief.targetPeriod, "Not stated")}</dd>
-        </div>
-        <div>
-          <dt>Intended use</dt>
-          <dd>{text(brief.intendedUse, "Not stated")}</dd>
-        </div>
+        <dt>Target grain</dt>
+        <dd className={brief.targetGrain ? "" : "unstated"}>{text(brief.targetGrain, "Not stated")}</dd>
+        <dt>Target period</dt>
+        <dd className={brief.targetPeriod ? "" : "unstated"}>{text(brief.targetPeriod, "Not stated")}</dd>
+        <dt>Intended use</dt>
+        <dd className={brief.intendedUse ? "" : "unstated"}>{text(brief.intendedUse, "Not stated")}</dd>
       </dl>
     </section>
   );
