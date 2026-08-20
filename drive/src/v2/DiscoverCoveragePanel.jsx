@@ -1,5 +1,9 @@
-import { coverageSplit, coverageSummary, shelfBar } from "@/v2/discoverCoverage";
+import { coverageSplit, coverageSummary } from "@/v2/discoverCoverage";
 
+// Library already renders shelves as rows: title, count pill, one-line subtitle.
+// The first version of this drew bars and two number columns, which made one
+// taxonomy look like two — the same defect as two names for one destination.
+// It now borrows Library's own row classes rather than defining a second look.
 export function DiscoverCoveragePanel({ catalog = [], partitions = [], shelves = [], onSearchShelf }) {
   const summary = coverageSummary(catalog, partitions, shelves);
   if (!summary.total) return null;
@@ -13,25 +17,18 @@ export function DiscoverCoveragePanel({ catalog = [], partitions = [], shelves =
           {summary.held} held · {summary.queryReady} query-ready
         </span>
       </header>
-      <ul>
+      <ul className="rd-v2-catalog rd-v2-catalog-list">
         {listed.map((shelf) => (
-          <li key={shelf.id}>
-            <button
-              type="button"
-              onClick={() => onSearchShelf?.(shelf)}
-              disabled={!onSearchShelf}
-            >
-              {shelf.label}
+          <li key={shelf.id} className="rd-v2-catalog-row">
+            <button type="button" onClick={() => onSearchShelf?.(shelf)} disabled={!onSearchShelf}>
+              <span className="row-title">{shelf.label}</span>
+              <span className="row-sub">
+                {shelf.queryReady
+                  ? `${shelf.queryReady} of ${shelf.total} query-ready`
+                  : "catalogue only — no query path yet"}
+              </span>
             </button>
-            <span className="rd-v2-discover-coverage-count">{shelf.total}</span>
-            <span className="rd-v2-discover-coverage-bar" aria-hidden>
-              <i style={{ width: `${shelfBar(shelf, summary.shelves)}%` }} />
-            </span>
-            <span className="rd-v2-discover-coverage-ready">
-              {shelf.queryReady
-                ? `${shelf.queryReady} query-ready`
-                : "catalogue only — no query path yet"}
-            </span>
+            <span className="rd-v2-pill muted">{shelf.total}</span>
           </li>
         ))}
       </ul>

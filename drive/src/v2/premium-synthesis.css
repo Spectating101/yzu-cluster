@@ -100,7 +100,8 @@
 .s04-strip-item>b{color:#68728a;font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
 .s04-strip-item>span{color:#5c6578;font-size:10px}
 
-/* Discover resting state — the coverage the search claims to have. */
+/* Discover resting state — shelf rows reuse Library's catalog row styling, so
+   the two pages cannot render one taxonomy two ways. Only the frame is new. */
 .rd-v2-discover-coverage {
   margin: 14px 0 10px;
   border: 1px solid var(--rd-border, #dfe3ec);
@@ -113,7 +114,7 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 .rd-v2-discover-coverage-eyebrow {
   font-family: var(--rd-mono, ui-monospace, monospace);
@@ -128,54 +129,29 @@
   color: var(--rd-muted, #6b7280);
   font-variant-numeric: tabular-nums;
 }
-.rd-v2-discover-coverage ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 5px;
-}
-.rd-v2-discover-coverage li {
-  display: grid;
-  grid-template-columns: minmax(88px, 132px) 34px minmax(60px, 1fr) minmax(0, 210px);
+.rd-v2-discover-coverage .rd-v2-catalog-row {
+  display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between;
+  gap: 12px;
 }
-.rd-v2-discover-coverage li > button {
-  justify-self: start;
+.rd-v2-discover-coverage .rd-v2-catalog-row > button {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
   border: 0;
   background: none;
   padding: 0;
   font: inherit;
-  font-size: 12.5px;
-  font-weight: 600;
   color: inherit;
   text-align: left;
   cursor: pointer;
 }
-.rd-v2-discover-coverage li > button:disabled { cursor: default; }
-.rd-v2-discover-coverage li > button:hover:not(:disabled) { text-decoration: underline; }
-.rd-v2-discover-coverage-count {
-  font-family: var(--rd-mono, ui-monospace, monospace);
-  font-size: 11.5px;
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-  color: var(--rd-muted, #6b7280);
+.rd-v2-discover-coverage .rd-v2-catalog-row > button:disabled { cursor: default; }
+.rd-v2-discover-coverage .rd-v2-catalog-row > button:hover:not(:disabled) .row-title {
+  text-decoration: underline;
 }
-.rd-v2-discover-coverage-bar {
-  display: block;
-  height: 6px;
-  border-radius: 999px;
-  background: #eef1f6;
-  overflow: hidden;
-}
-.rd-v2-discover-coverage-bar > i {
-  display: block;
-  height: 100%;
-  border-radius: 999px;
-  background: #4ca56a;
-}
-.rd-v2-discover-coverage-ready,
 .rd-v2-discover-coverage-folded,
 .rd-v2-discover-coverage-gap {
   font-size: 11px;
