@@ -12,12 +12,12 @@ test.describe("Research Drive interaction feedback convergence", () => {
   test("Home preserves its layout while the desk context loads", async ({ page }) => {
     await mockV2Api(page);
     await page.unroute("**/datasets");
-    await page.unroute("**/health*");
+    await page.unroute("**/*health*");
     await page.route("**/datasets", async (route) => {
       await new Promise((resolve) => setTimeout(resolve, 1100));
       await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(MOCK_DATASETS) });
     });
-    await page.route("**/health*", async (route) => {
+    await page.route("**/*health*", async (route) => {
       await new Promise((resolve) => setTimeout(resolve, 1250));
       await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(MOCK_HEALTH) });
     });

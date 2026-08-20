@@ -52,7 +52,7 @@ async function mockApi(page) {
     const row = MOCK_DATASETS.datasets.find((d) => d.dataset_id === id) || MOCK_DATASETS.datasets[0];
     return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(row) });
   });
-  await page.route("**/health*", (route) =>
+  await page.route("**/*health*", (route) =>
     route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(MOCK_HEALTH) }),
   );
   await page.route("**/library/discover*", (route) =>

@@ -192,7 +192,7 @@ test("a confirmed-unreachable desk API shows honest unknown capacity, never fabr
   // failure with a healthy /health is correctly rendered as partial data, not
   // "unreachable." Only a fully-dark desk should hit the null/placeholder path.
   await mockV2Api(page);
-  await page.route("**/health*", (route) =>
+  await page.route("**/*health*", (route) =>
     route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ error: "desk unreachable" }) }),
   );
   await page.route("**/library/desk/resources*", (route) =>

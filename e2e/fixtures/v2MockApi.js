@@ -385,7 +385,7 @@ export async function mockV2Api(
       body: JSON.stringify(MOCK_RESOURCES_ROLLUP),
     }),
   );
-  await page.route("**/health*", (route) =>
+  await page.route("**/*health*", (route) =>
     route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(MOCK_HEALTH) }),
   );
   await page.route("**/library/discover/probe", (route) => {
