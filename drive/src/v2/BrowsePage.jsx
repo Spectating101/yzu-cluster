@@ -554,6 +554,7 @@ function dedupeRows(rows) {
 
 export function BrowsePage({
   labIds,
+  libraryEvidenceCount,
   catalog = [],
   selectedId,
   onSelectRow,
@@ -1210,8 +1211,8 @@ export function BrowsePage({
               )}
               {idleHoldings.length ? (
                 <div className="rd-v2-discover-idle-library-note">
-                  Library evidence · {plural(labIds.size, "asset")}{" "}
-                  {labIds.size === 1 ? "is" : "are"} checked automatically after a research question.
+                  Library evidence · {plural(libraryEvidenceCount ?? labIds.size, "asset")}{" "}
+                  {(libraryEvidenceCount ?? labIds.size) === 1 ? "is" : "are"} checked automatically after a research question.
                 </div>
               ) : null}
             </div>
