@@ -4,10 +4,12 @@ import { PageShell } from "@/v2/ui";
 import {
   createSynthesisThread,
   decideSynthesisProposal,
+  applySynthesisEvidenceMap,
   getSynthesisDiscoverHandoff,
   getSynthesisThread,
   listSynthesisProfiles,
   listSynthesisThreads,
+  proposeSynthesisEvidenceMap,
   requestSynthesisExecution,
 } from "@/v2/api";
 import { handleEnterToSubmit } from "@/v2/enterToSubmit";
@@ -520,11 +522,24 @@ function isEvidenceGap(node, missingIds) {
   return Boolean(id) && Boolean(missingIds?.has(id));
 }
 
-function EvidenceMap({ thread, onAsk, selectedField, onSelectField, onRouteToDiscover, missingIds }) {
+function EvidenceMap({
+  thread,
+  onAsk,
+  selectedField,
+  onSelectField,
+  onRouteToDiscover,
+  missingIds,
+  evidenceProposal,
+  mappingEvidence,
+  onFindEvidence,
+  onApplyEvidence,
+}) {
   const target = targetNode(thread);
   const evidence = evidenceNodes(thread);
   const state = thread?.state || {};
   const missing = evidence.filter((node) => isEvidenceGap(node, missingIds));
+  const proposed = Array.isArray(evidenceProposal?.nodes) ? evidenceProposal.nodes : [];
+  const proposalReason = text(evidenceProposal?.reason);
   return (
     <section className="s04-card" data-testid="synthesis-evidence-state">
       <header className="s04-title">
@@ -553,8 +568,8 @@ function EvidenceMap({ thread, onAsk, selectedField, onSelectField, onRouteToDis
           ) : (
             <article className="s04-empty-evidence">
               <small>Next</small>
-              <strong>Map evidence with Ask</strong>
-              <span>No source relationship has been persisted.</span>
+              <strong>Find held Library evidence</strong>
+              <span>Searches registered assets and lets you review them before this map changes.</span>
             </article>
           )}
         </div>
@@ -567,6 +582,38 @@ function EvidenceMap({ thread, onAsk, selectedField, onSelectField, onRouteToDis
         ) : null}
         <strong className="target">{text(target?.label, text(thread?.objective, "Research objective"))}</strong>
       </div>
+      {!evidence.length && evidenceProposal ? (
+        <section className="s04-evidence-proposal" data-testid="synthesis-evidence-proposal">
+          <header>
+            <div>
+              <small>Held inputs found</small>
+              <strong>{proposed.length ? `${proposed.length} inputs awaiting review` : "No new held inputs found"}</strong>
+            </div>
+            <em>{proposed.length ? "Not mapped yet" : "Nothing to add"}</em>
+          </header>
+          {proposed.length ? (
+            <ul>
+              {proposed.slice(0, 6).map((node) => (
+                <li key={node.dataset_id || node.id}>
+                  <strong>{text(node.label || node.dataset_id, "Unnamed evidence")}</strong>
+                  <span>{[node.grain, node.coverage, node.status].filter(Boolean).join(" · ") || "Registry metadata not reported"}</span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          {proposalReason ? <p>{proposalReason}</p> : null}
+          <footer>
+            <button type="button" className="rd-v2-btn" disabled={mappingEvidence} onClick={onFindEvidence}>
+              Search held evidence again
+            </button>
+            {proposed.length ? (
+              <button type="button" className="rd-v2-btn primary" disabled={mappingEvidence} onClick={onApplyEvidence}>
+                {mappingEvidence ? "Adding reviewed inputs…" : `Add ${proposed.length} reviewed input${proposed.length === 1 ? "" : "s"}`}
+              </button>
+            ) : null}
+          </footer>
+        </section>
+      ) : null}
       <div className="s04-pairs">
         <article>
           <small>Research object</small>
@@ -607,9 +654,15 @@ function EvidenceMap({ thread, onAsk, selectedField, onSelectField, onRouteToDis
           <small>Next</small>
           Ask proposes reviewable changes. It cannot silently accept a method or register an output.
         </p>
-        <button type="button" className="rd-v2-btn primary" onClick={() => onAsk("Explain the current evidence map and identify the next material research decision.")}>
-          Discuss construction in Ask
-        </button>
+        {evidence.length ? (
+          <button type="button" className="rd-v2-btn primary" onClick={() => onAsk("Explain the current evidence map and identify the next material research decision.")}>
+            Discuss construction in Ask
+          </button>
+        ) : (
+          <button type="button" className="rd-v2-btn primary" disabled={mappingEvidence} onClick={onFindEvidence}>
+            {mappingEvidence ? "Finding held evidence…" : "Find held Library evidence"}
+          </button>
+        )}
       </footer>
     </section>
   );
@@ -1079,6 +1132,8 @@ export function SynthesisPage({
   const [selectedField, setSelectedField] = useState(null);
   const [promoted, setPromoted] = useState("");
   const [missingEvidenceIds, setMissingEvidenceIds] = useState(() => new Set());
+  const [evidenceProposal, setEvidenceProposal] = useState(null);
+  const [mappingEvidence, setMappingEvidence] = useState(false);
   const notified = useRef("");
   const interpretingSinceRef = useRef(null);
   const interpretingThreadIdRef = useRef("");
@@ -1215,6 +1270,11 @@ export function SynthesisPage({
     refreshThread().catch(() => {});
   }, [refreshThread, selected?.id]);
 
+  useEffect(() => {
+    setEvidenceProposal(null);
+    setSelectedField(null);
+  }, [selected?.id]);
+
   const selectThread = async (threadId) => {
     setSelectedId(threadId);
     setNewMode(false);
@@ -1303,6 +1363,43 @@ export function SynthesisPage({
       "Ground this research brief in the recorded Library evidence and create one reviewable Synthesis proposal. State its evidence roles, target grain, direct-measure limitation, and the one unresolved choice that matters most. Record the proposal for review; do not accept it, collect evidence, execute work, or alter data.",
       thread,
     );
+  };
+
+  const findHeldEvidence = async () => {
+    if (!selected?.id) return;
+    setMappingEvidence(true);
+    setError("");
+    try {
+      setEvidenceProposal(await proposeSynthesisEvidenceMap(selected.id));
+    } catch (cause) {
+      setError(text(cause?.message, "Held evidence could not be searched for this construction."));
+    } finally {
+      setMappingEvidence(false);
+    }
+  };
+
+  const applyHeldEvidence = async () => {
+    if (!selected?.id) return;
+    const datasetIds = (evidenceProposal?.nodes || [])
+      .map((node) => String(node?.dataset_id || node?.id || "").trim())
+      .filter(Boolean);
+    if (!datasetIds.length) return;
+    setMappingEvidence(true);
+    setError("");
+    try {
+      const result = await applySynthesisEvidenceMap(selected.id, { datasetIds });
+      const next = result?.thread || (result?.state ? result : await refreshThread(selected.id));
+      if (next) {
+        replaceThread(next);
+        onSelectThread?.(next);
+      }
+      setEvidenceProposal(null);
+    } catch (cause) {
+      setError(text(cause?.message, "The reviewed evidence inputs could not be added to this construction."));
+      refreshThread(selected.id).catch(() => {});
+    } finally {
+      setMappingEvidence(false);
+    }
   };
 
   const beginNew = () => {
@@ -1542,7 +1639,7 @@ export function SynthesisPage({
                   onOpenDataset={onOpenDataset}
                 />
               ) : null}
-              {synthesisShowsEvidenceMap(selected) ? (
+              {synthesisShowsEvidenceMap(selected) || isPreAcceptance(selected) ? (
                 <EvidenceMap
                   thread={selected}
                   onAsk={ask}
@@ -1550,6 +1647,10 @@ export function SynthesisPage({
                   onSelectField={setSelectedField}
                   onRouteToDiscover={routeToDiscover}
                   missingIds={missingEvidenceIds}
+                  evidenceProposal={evidenceProposal}
+                  mappingEvidence={mappingEvidence}
+                  onFindEvidence={findHeldEvidence}
+                  onApplyEvidence={applyHeldEvidence}
                 />
               ) : null}
               <ExcursionRecordPanel

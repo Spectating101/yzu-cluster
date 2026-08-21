@@ -667,6 +667,119 @@
   overflow-wrap: anywhere;
 }
 
+/* A retrieval result is intentionally a review surface, not a second map.
+   It uses the same warm paper and type scale as the construction, while the
+   explicit action below makes the persistence boundary easy to see. */
+.rd-v2-synthesis-page .s04-evidence-proposal {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid #ccd8cc;
+  border-radius: 9px;
+  background: rgba(237, 242, 235, .68);
+}
+
+.rd-v2-synthesis-page .s04-evidence-proposal > header,
+.rd-v2-synthesis-page .s04-evidence-proposal > footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rd-v2-synthesis-page .s04-evidence-proposal header > div {
+  display: grid;
+  gap: 3px;
+}
+
+.rd-v2-synthesis-page .s04-evidence-proposal small,
+.rd-v2-synthesis-page .s04-evidence-proposal li > span {
+  color: var(--s04-muted);
+  font-size: 8.5px;
+  line-height: 1.35;
+}
+
+.rd-v2-synthesis-page .s04-evidence-proposal small {
+  font-weight: 800;
+  letter-spacing: .075em;
+  text-transform: uppercase;
+}
+
+.rd-v2-synthesis-page .s04-evidence-proposal header strong {
+  color: var(--s04-ink);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.rd-v2-synthesis-page .s04-evidence-proposal header > em {
+  flex: 0 0 auto;
+  padding: 4px 6px;
+  border: 1px solid #cbd5cc;
+  border-radius: 999px;
+  color: #5b7465;
+  background: rgba(250, 248, 242, .76);
+  font-size: 8px;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.rd-v2-synthesis-page .s04-evidence-proposal ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rd-v2-synthesis-page .s04-evidence-proposal li {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 8px 9px;
+  border: 1px solid #d5ddd3;
+  border-radius: 7px;
+  background: rgba(248, 245, 237, .72);
+}
+
+.rd-v2-synthesis-page .s04-evidence-proposal li > strong {
+  overflow: hidden;
+  color: #304051;
+  font-size: 10px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-v2-synthesis-page .s04-evidence-proposal > p {
+  margin: 0;
+  color: #677484;
+  font-size: 9.5px;
+  line-height: 1.45;
+}
+
+.rd-v2-synthesis-page .s04-evidence-proposal .rd-v2-btn {
+  min-height: 32px;
+  padding: 0 10px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .045em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 600px) {
+  .rd-v2-synthesis-page .s04-evidence-proposal > header,
+  .rd-v2-synthesis-page .s04-evidence-proposal > footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .rd-v2-synthesis-page .s04-evidence-proposal > footer > button { width: 100%; }
+}
+
 /* ── S-04 opening rail ─────────────────────────────────────────────────── */
 
 .s04-thread-rail {
@@ -921,6 +1034,47 @@
   border-style: solid;
   border-radius: 7px;
   background: rgba(248, 245, 237, .8);
+}
+
+/* Evidence and review cards sit on the same paper-toned desk. The inherited
+   premium styles used pure white, a cool grid, and a shadow here, which made
+   the map read as a pasted canvas instead of part of the work surface. */
+.rd-v2-synthesis-page .s04-card:not(.s04-draft) {
+  border-color: var(--s04-rule);
+  border-radius: 10px;
+  background: rgba(248, 245, 237, .82);
+  box-shadow: none;
+}
+
+.rd-v2-synthesis-page .s04-card .s04-map {
+  border-color: #d8d4c9;
+  border-radius: 9px;
+  background-color: #f0ede5;
+  background-image: linear-gradient(#e3dfd5 1px, transparent 1px), linear-gradient(90deg, #e3dfd5 1px, transparent 1px);
+  box-shadow: none;
+}
+
+.rd-v2-synthesis-page .s04-card .s04-map > .target,
+.rd-v2-synthesis-page .s04-card .s04-map > .output,
+.rd-v2-synthesis-page .s04-card .s04-map .sources > .s04-map-node {
+  border-color: #d8d3c7;
+  background: rgba(250, 248, 242, .92);
+  box-shadow: none;
+}
+
+.rd-v2-synthesis-page .s04-card .s04-map .sources > .s04-map-node:hover,
+.rd-v2-synthesis-page .s04-card .s04-map .sources > .s04-map-node.selected {
+  border-color: #a7bcae;
+  background: #f3f7f0;
+}
+
+.rd-v2-synthesis-page .s04-card .s04-pairs > article {
+  border-color: #ddd8ce;
+  background: rgba(250, 248, 242, .66);
+}
+
+.rd-v2-synthesis-page .s04-card > .s04-actions {
+  border-top-color: var(--s04-rule-soft);
 }
 
 /* The inspector is a continuation of the work surface. It may be slightly

@@ -4,6 +4,19 @@ import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 
 const renderDir = "artifacts/synthesis-renders";
 
+const EVIDENCE_MAP_NODE = {
+  id: "idn_fry_daily_cross_section",
+  dataset_id: "idn_fry_daily_cross_section",
+  type: "source",
+  layer: "evidence",
+  label: "Indonesia daily cross-section",
+  status: "query_ready",
+  query_ready: true,
+  grain: "ric-day",
+  coverage: "2020–2026",
+  proposed_by: "semantic_evidence_map",
+};
+
 const EXPLORING_THREAD = {
   id: "thread-attention",
   session_id: "synthesis-session-attention",
@@ -177,6 +190,31 @@ async function installSynthesisThreadMock(page) {
     const thread = threads.get(threadId);
     if (!thread) return respond({ error: "not found" }, 404);
     if (!suffix && method === "GET") return respond(thread);
+    if (suffix === "evidence-map" && method === "GET") {
+      const mappedIds = new Set((thread.state.nodes || []).map((node) => node.dataset_id || node.id));
+      return respond({
+        thread_id: thread.id,
+        objective: thread.objective,
+        nodes: mappedIds.has(EVIDENCE_MAP_NODE.dataset_id) ? [] : [structuredClone(EVIDENCE_MAP_NODE)],
+        reason: mappedIds.has(EVIDENCE_MAP_NODE.dataset_id) ? "all held matches are already mapped to this construction" : "",
+        review_required: true,
+        writes: false,
+      });
+    }
+    if (suffix === "evidence-map" && method === "POST") {
+      const body = route.request().postDataJSON?.() || {};
+      const ids = Array.isArray(body.dataset_ids) ? body.dataset_ids : [];
+      if (!ids.includes(EVIDENCE_MAP_NODE.dataset_id)) {
+        return respond({ error: "Only inputs in the current held-evidence proposal can be added to this map." }, 400);
+      }
+      const exists = (thread.state.nodes || []).some((node) => (node.dataset_id || node.id) === EVIDENCE_MAP_NODE.dataset_id);
+      if (!exists) thread.state.nodes = [...(thread.state.nodes || []), structuredClone(EVIDENCE_MAP_NODE)];
+      thread.state.maturity = "exploring";
+      thread.state.maturityLabel = "Evidence mapping";
+      thread.state.lastActivity = "Added 1 reviewed held input to the evidence map.";
+      thread.updated_at = "2026-07-19T09:00:30+00:00";
+      return respond({ thread, added: exists ? [] : [structuredClone(EVIDENCE_MAP_NODE)] });
+    }
     if (suffix === "patches" && method === "POST") {
       const body = route.request().postDataJSON?.() || {};
       const proposal = thread.state.proposal;
@@ -261,6 +299,36 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await expect(page.getByTestId("rail-pane-ask")).toBeHidden();
     await expect(page.getByText("Nothing registered", { exact: true })).toBeVisible();
     await capture(page, "01-durable-evidence-desktop");
+  });
+
+  test("researcher reviews held evidence before it becomes a durable map input", async ({ page }) => {
+    await page.route("**/api/library/chat/test-session", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ messages: [] }),
+      }),
+    );
+    await page.getByRole("button", { name: "+ New synthesis" }).click();
+    const objective = page.getByPlaceholder(/Build a weekly measure/i);
+    await objective.fill("Test whether Indonesian microstructure predicts later analyst revisions.");
+    await page.getByRole("button", { name: "Start project in Ask" }).click();
+
+    const evidence = page.getByTestId("synthesis-evidence-state");
+    await expect(evidence.getByRole("button", { name: "Find held Library evidence" })).toBeVisible();
+    await evidence.getByRole("button", { name: "Find held Library evidence" }).click();
+
+    const proposal = page.getByTestId("synthesis-evidence-proposal");
+    await expect(proposal).toContainText("Indonesia daily cross-section");
+    await expect(proposal).toContainText("Not mapped yet");
+    await expect(evidence).toContainText("No inputs mapped");
+    await capture(page, "02b-held-evidence-review-desktop");
+
+    await proposal.getByRole("button", { name: "Add 1 reviewed input" }).click();
+    await expect(evidence).toContainText("1 mapped inputs");
+    await expect(evidence).toContainText("Indonesia daily cross-section");
+    await expect(page.getByTestId("synthesis-evidence-proposal")).toHaveCount(0);
+    await capture(page, "02c-held-evidence-mapped-desktop");
   });
 
   test("accepts a revision-bound proposal, then requests but does not fabricate execution", async ({ page }) => {

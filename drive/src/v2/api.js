@@ -535,6 +535,20 @@ export function getSynthesisThread(threadId) {
   return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}`);
 }
 
+/** Read-only, held-only candidate inputs for a Synthesis thread. */
+export function proposeSynthesisEvidenceMap(threadId) {
+  return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}/evidence-map`);
+}
+
+/** Researcher-approved persistence of exact inputs from the current proposal. */
+export function applySynthesisEvidenceMap(threadId, { datasetIds = [] } = {}) {
+  return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}/evidence-map`, {
+    method: "POST",
+    headers: deskHeaders(),
+    body: JSON.stringify({ dataset_ids: datasetIds }),
+  });
+}
+
 export function linkSynthesisThreadConversation(threadId, { sessionId, conversationId = "" } = {}) {
   return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}/conversation`, {
     method: "POST",
