@@ -58,7 +58,7 @@ const thread = {
 
 test("the opening state renders its recommended construction", async ({ page }) => {
   mkdirSync(outDir, { recursive: true });
-  await page.setViewportSize({ width: 1440, height: 1400 });
+  await page.setViewportSize({ width: 1440, height: 900 });
   await page.route("**/api/library/synthesis/threads**", (route) =>
     route.fulfill({
       status: 200,
@@ -80,4 +80,7 @@ test("the opening state renders its recommended construction", async ({ page }) 
   await expect(centre.getByRole("button", { name: /Compare alternatives/i })).toBeEnabled();
 
   await page.screenshot({ path: `${outDir}/opening-populated.png`, scale: "css" });
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.waitForTimeout(250);
+  await page.screenshot({ path: `${outDir}/opening-populated-1920.png`, scale: "css" });
 });

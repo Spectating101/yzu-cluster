@@ -205,150 +205,14 @@
    The first build reused .s04-intent-contract, which is a four-column chip grid,
    so the header, body and commitments became cells in it and the brief rendered
    as two cramped columns of wrapped text. These are its own rules. */
-.s04-research-brief {
-  margin-top: 12px;
-  padding: 18px 20px;
-  border: 1px solid #e0e4ed;
-  border-radius: 16px;
-  background: #fff;
-  box-shadow: 0 7px 18px rgba(31, 43, 87, .04);
-}
-.s04-research-brief > header {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
-  padding-bottom: 11px;
-  border-bottom: 1px solid #eef0f5;
-}
-.s04-research-brief > header > small {
-  color: #7a8498;
-  font-size: 8.5px;
-  font-weight: 800;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-}
-.s04-brief-edit {
-  flex: 0 0 auto;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: #3f6f5c;
-  font: inherit;
-  font-size: 8.5px;
-  font-weight: 800;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  cursor: pointer;
-}
-.s04-brief-edit:hover { text-decoration: underline; }
-.s04-research-brief > p {
-  max-width: 62ch;
-  margin: 0 0 14px;
-  color: #3a4459;
-  font-size: 11.5px;
-  line-height: 1.6;
-}
 /* Label column sized to the longest label so the three values align. */
-.s04-research-brief > dl {
-  display: grid;
-  grid-template-columns: max-content minmax(0, 1fr);
-  gap: 7px 18px;
-  margin: 0;
-  padding-top: 13px;
-  border-top: 1px solid #eef0f5;
-}
-.s04-research-brief > dl > dt {
-  color: #7a8498;
-  font-size: 8.5px;
-  font-weight: 800;
-  letter-spacing: .07em;
-  text-transform: uppercase;
-  align-self: center;
-}
-.s04-research-brief > dl > dd {
-  margin: 0;
-  color: #232b3f;
-  font-size: 11px;
-  line-height: 1.45;
-}
 /* An unstated commitment must read as absent, not as a value. */
-.s04-research-brief > dl > dd.unstated {
-  color: #98a1b2;
-  font-style: italic;
-}
 @media (max-width: 720px) {
-  .s04-research-brief { padding: 14px; }
-  .s04-research-brief > dl { grid-template-columns: 1fr; gap: 2px 0; }
-  .s04-research-brief > dl > dd { margin-bottom: 8px; }
-}
-
-.s04-recommend > header > small {
-  color: #7a8498;
-  font-size: 8.5px;
-  font-weight: 800;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-}
-.s04-recommend > header > em {
-  flex: 0 0 auto;
-  color: #3f6f5c;
-  font-size: 8px;
-  font-style: normal;
-  font-weight: 800;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-}
-.s04-recommend > p {
-  max-width: 62ch;
-  margin: 0;
-  color: #626d82;
-  font-size: 11px;
-  line-height: 1.55;
 }
 
 /* S-04 §6 WHAT HAPPENS NEXT. Closes the opening state by stating what
    acceptance does not do, and keeps both actions inert until there is a
    construction to act on. */
-.s04-next {
-  margin-top: 12px;
-  padding: 16px 20px;
-  border: 1px solid #e0e4ed;
-  border-radius: 16px;
-  background: #fbfcff;
-}
-.s04-next > header > small {
-  color: #7a8498;
-  font-size: 8.5px;
-  font-weight: 800;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-}
-.s04-next > p {
-  max-width: 62ch;
-  margin: 9px 0 14px;
-  color: #626d82;
-  font-size: 11px;
-  line-height: 1.55;
-}
-.s04-next > footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.s04-next button {
-  padding: 9px 14px;
-  border-radius: 10px;
-  font: inherit;
-  font-size: 9.5px;
-  font-weight: 800;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-  cursor: pointer;
-}
 .s04-next-secondary {
   border: 1px solid #d7dce7;
   background: #fff;
@@ -359,107 +223,14 @@
   background: #3f6f5c;
   color: #fff;
 }
-.s04-next button:disabled {
-  cursor: not-allowed;
-  opacity: .45;
-}
 .s04-next-secondary:not(:disabled):hover { border-color: #aebfb6; background: #f7faf8; }
 .s04-next-primary:not(:disabled):hover { background: #35604f; }
-.s04-next > em {
-  display: block;
-  margin-top: 12px;
-  padding-top: 11px;
-  border-top: 1px solid #eef0f5;
-  color: #8790a2;
-  font-size: 9px;
-  font-style: normal;
-}
 @media (max-width: 720px) {
-  .s04-next > footer { flex-direction: column; align-items: stretch; }
-  .s04-next button { width: 100%; }
 }
 
 /* S-04 §6 recommended construction internals. The first pass borrowed
    .s04-metrics and .s04-use: the roles rendered as a bulleted list and every
    label ran into its value — "Ideal direct measureHistorical X follower growth". */
-.s04-recommend > h2 {
-  margin: 4px 0 14px;
-  color: #1f2739;
-  font-size: 17px;
-  line-height: 1.3;
-}
-.s04-roles {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  margin: 0 0 14px;
-  padding: 0;
-  list-style: none;
-}
-.s04-roles > li {
-  display: grid;
-  gap: 3px;
-  align-content: start;
-  padding: 11px 12px;
-  border: 1px solid #e4e8f0;
-  border-radius: 12px;
-  background: #fbfcff;
-}
-.s04-roles strong { color: #2b3448; font-size: 10.5px; }
-.s04-roles span { color: #626d82; font-size: 9.5px; }
-.s04-roles em {
-  color: #7a8498;
-  font-size: 8.5px;
-  font-style: normal;
-  font-weight: 700;
-  letter-spacing: .05em;
-  text-transform: uppercase;
-}
-.s04-validated {
-  margin: 0 0 14px;
-  color: #3f6f5c;
-  font-size: 9.5px;
-  font-weight: 700;
-}
-.s04-construction-facts {
-  display: grid;
-  grid-template-columns: max-content minmax(0, 1fr);
-  gap: 8px 18px;
-  margin: 0;
-  padding-top: 13px;
-  border-top: 1px solid #eef0f5;
-}
-.s04-construction-facts > dt {
-  color: #7a8498;
-  font-size: 8.5px;
-  font-weight: 800;
-  letter-spacing: .07em;
-  text-transform: uppercase;
-  align-self: baseline;
-}
-.s04-construction-facts > dd {
-  margin: 0;
-  color: #232b3f;
-  font-size: 10.5px;
-  line-height: 1.5;
-}
-.s04-alternatives {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 14px;
-  padding: 8px 12px;
-  border: 1px solid #d7dce7;
-  border-radius: 10px;
-  background: #fff;
-  color: #47526a;
-  font: inherit;
-  font-size: 9.5px;
-  font-weight: 700;
-  cursor: pointer;
-}
-.s04-alternatives:hover { border-color: #aebfb6; background: #f7faf8; }
-.s04-alternatives > b { color: #3f6f5c; }
 @media (max-width: 900px) {
 }
 
@@ -467,35 +238,6 @@
    The first build reused .s04-metrics (a bulleted list) and .s04-use, whose
    <small> sits inline — so labels ran into values: "Ideal direct
    measureHistorical X follower growth". These are its own rules. */
-.s04-recommend > h2 {
-  margin: 0 0 14px;
-  color: #1d2436;
-  font-size: 17px;
-  letter-spacing: -.01em;
-}
-.s04-roles > li {
-  display: grid;
-  gap: 3px;
-  padding: 11px 12px;
-  border: 1px solid #e0e4ed;
-  border-radius: 12px;
-  background: #fbfcff;
-}
-.s04-roles > li > strong {
-  color: #2b3448;
-  font-size: 10px;
-  font-weight: 700;
-}
-.s04-roles > li > span {
-  color: #626d82;
-  font-size: 9.5px;
-}
-.s04-roles > li > em {
-  color: #8790a2;
-  font-size: 8.5px;
-  font-style: normal;
-  font-variant-numeric: tabular-nums;
-}
 .s04-validation {
   margin: 0 0 13px;
   padding-bottom: 13px;
@@ -504,28 +246,6 @@
   font-size: 10px;
 }
 .s04-validation > b { color: #3f6f5c; font-weight: 700; }
-.s04-construction-facts > dt {
-  color: #7a8498;
-  font-size: 8.5px;
-  font-weight: 800;
-  letter-spacing: .07em;
-  text-transform: uppercase;
-}
-.s04-construction-facts > dd {
-  margin: 0;
-  color: #232b3f;
-  font-size: 10.5px;
-  line-height: 1.45;
-}
-.s04-alternatives {
-  margin: 14px 0 0;
-  padding-top: 12px;
-  border-top: 1px solid #eef0f5;
-  color: #7a8498;
-  font-size: 9.5px;
-}
-.s04-alternatives::before { content: "▸ "; color: #a8b0be; }
 @media (max-width: 720px) {
 }
 
-.s04-construction-facts > dd em { display: inline; }

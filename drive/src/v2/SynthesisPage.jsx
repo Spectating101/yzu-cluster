@@ -1473,7 +1473,11 @@ export function SynthesisPage({
                 onChange={(change) => ask(`For the revision, change ${change.label}.`)}
                 onPreview={() => ask("Preview this revision before building it.")}
               />
-              {mode === "draft" && !focus.blocking ? (
+              {/* Spec §6: the opening state ends on the recommendation and its two
+                  actions. The draft canvas restates the same interpretation below
+                  them, which pushed ACCEPT & DESIGN METHOD off a 900px screen. It
+                  returns once the opening state is over. */}
+              {mode === "draft" && !focus.blocking && !isPreAcceptance(selected) ? (
                 <DraftCanvas thread={selected} onAsk={ask} stalled={interpretingStalled} onRetry={retryInterpreting} />
               ) : null}
             </>
