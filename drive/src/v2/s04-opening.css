@@ -1,0 +1,413 @@
+/*
+ * S-04 canonical opening state.
+ *
+ * These rules intentionally do not reuse the older `.s04-intent-contract`,
+ * `.s04-metrics`, or `.s04-use` families. Those families describe different
+ * shapes elsewhere in Synthesis, and inheriting them turned this composition
+ * into chip grids and unlabeled inline facts.
+ */
+.s04-opening-brief,
+.s04-opening-construction,
+.s04-opening-next {
+  margin-top: 14px;
+  border: 1px solid #dce2eb;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 8px 20px rgba(30, 43, 72, .045);
+}
+
+.s04-opening-brief {
+  overflow: hidden;
+}
+
+.s04-opening-brief > header,
+.s04-opening-construction > header,
+.s04-opening-next > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.s04-opening-brief > header {
+  min-height: 42px;
+  padding: 0 18px;
+  border-bottom: 1px solid #e8ebf1;
+  background: #fbfcfe;
+}
+
+.s04-opening-brief > header > small,
+.s04-opening-construction > header > small,
+.s04-opening-next > header > small,
+.s04-opening-map figcaption,
+.s04-opening-map-output > small,
+.s04-opening-facts dt {
+  color: #68748a;
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+.s04-opening-brief > header > button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #285e8e;
+  font: inherit;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .075em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.s04-opening-brief > header > button:hover {
+  color: #17466d;
+  text-decoration: underline;
+}
+
+.s04-opening-brief > p {
+  max-width: 76ch;
+  margin: 0;
+  padding: 16px 18px 15px;
+  color: #334056;
+  font-size: 12px;
+  line-height: 1.62;
+}
+
+.s04-opening-brief > dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+  border-top: 1px solid #e8ebf1;
+}
+
+.s04-opening-brief > dl > div {
+  min-width: 0;
+  padding: 12px 18px 14px;
+}
+
+.s04-opening-brief > dl > div + div {
+  border-left: 1px solid #e8ebf1;
+}
+
+.s04-opening-brief dt,
+.s04-opening-brief dd {
+  margin: 0;
+}
+
+.s04-opening-brief dd {
+  margin-top: 5px;
+  color: #1f2a3d;
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.s04-opening-brief dd.unstated {
+  color: #8a94a6;
+  font-style: italic;
+  font-weight: 500;
+}
+
+.s04-opening-construction {
+  padding: 18px;
+}
+
+.s04-opening-construction > header > em {
+  padding: 4px 7px;
+  border: 1px solid #c9ddd2;
+  border-radius: 999px;
+  color: #36715b;
+  background: #f5fbf7;
+  font-size: 8px;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: .075em;
+  text-transform: uppercase;
+}
+
+.s04-opening-construction > h2 {
+  max-width: 34ch;
+  margin: 7px 0 16px;
+  color: #182236;
+  font-size: 18px;
+  font-weight: 680;
+  letter-spacing: -.018em;
+  line-height: 1.22;
+}
+
+.s04-opening-construction--empty > p {
+  max-width: 62ch;
+  margin: 11px 0 0;
+  color: #667287;
+  font-size: 11.5px;
+  line-height: 1.55;
+}
+
+.s04-opening-map {
+  position: relative;
+  margin: 0;
+  padding: 14px;
+  overflow: hidden;
+  border: 1px solid #e0e5ed;
+  border-radius: 12px;
+  background-color: #fafbfe;
+  background-image: linear-gradient(#edf0f5 1px, transparent 1px), linear-gradient(90deg, #edf0f5 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.s04-opening-map figcaption {
+  margin-bottom: 10px;
+}
+
+.s04-opening-map ol {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 9px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.s04-opening-map li {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid #d8e0ea;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .94);
+}
+
+.s04-opening-map li > small {
+  color: #4f6f84;
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.s04-opening-map li > strong {
+  overflow: hidden;
+  color: #273449;
+  font-size: 11px;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.s04-opening-map li > span,
+.s04-opening-map-output > span {
+  color: #7b879a;
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+}
+
+.s04-opening-map-flow {
+  display: grid;
+  grid-template-columns: 1fr max-content 1fr;
+  align-items: center;
+  gap: 8px;
+  margin: 9px auto;
+  color: #8d9aac;
+}
+
+.s04-opening-map-flow > span {
+  height: 1px;
+  background: #d4dce7;
+}
+
+.s04-opening-map-flow > b {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border: 1px solid #cbd7e4;
+  border-radius: 50%;
+  background: #fff;
+  color: #3b6789;
+  font-size: 12px;
+}
+
+.s04-opening-map-output {
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  width: min(100%, 440px);
+  margin: 0 auto;
+  padding: 11px 14px;
+  border: 1px solid #bed0df;
+  border-radius: 10px;
+  background: #fff;
+  text-align: center;
+}
+
+.s04-opening-map-output > strong {
+  color: #1e3148;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.s04-opening-map > p {
+  display: flex;
+  justify-content: center;
+  gap: 7px;
+  margin: 10px 0 0;
+  color: #667287;
+  font-size: 9.5px;
+}
+
+.s04-opening-map > p > b {
+  color: #3d725f;
+  font-size: 8.5px;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.s04-opening-facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 14px 0 0;
+  border-top: 1px solid #e8ebf1;
+}
+
+.s04-opening-facts > div {
+  min-width: 0;
+  padding: 13px 14px 0 0;
+}
+
+.s04-opening-facts > div + div {
+  padding-left: 14px;
+  border-left: 1px solid #e8ebf1;
+}
+
+.s04-opening-facts dt,
+.s04-opening-facts dd {
+  margin: 0;
+}
+
+.s04-opening-facts dd {
+  margin-top: 5px;
+  color: #39475c;
+  font-size: 10px;
+  line-height: 1.48;
+}
+
+.s04-opening-facts dd > em {
+  display: block;
+  margin-top: 4px;
+  color: #8a94a5;
+  font-size: 9px;
+  font-style: normal;
+}
+
+.s04-opening-alternatives {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 15px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #3c6282;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.s04-opening-alternatives:hover {
+  color: #234c70;
+  text-decoration: underline;
+}
+
+.s04-opening-alternatives > b {
+  color: #8092a6;
+}
+
+.s04-opening-next {
+  padding: 16px 18px;
+  background: #fbfcfe;
+}
+
+.s04-opening-next > p {
+  max-width: 68ch;
+  margin: 8px 0 13px;
+  color: #566278;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.s04-opening-next > footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.s04-opening-next button {
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: .055em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.s04-opening-next .s04-next-secondary {
+  border: 1px solid #ccd6e2;
+  background: #fff;
+  color: #40536c;
+}
+
+.s04-opening-next .s04-next-primary {
+  border: 1px solid #245b86;
+  background: #245b86;
+  color: #fff;
+}
+
+.s04-opening-next button:disabled {
+  cursor: not-allowed;
+  opacity: .48;
+}
+
+.s04-opening-next > em {
+  display: block;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #e8ebf1;
+  color: #8791a2;
+  font-size: 9px;
+  font-style: normal;
+}
+
+@media (max-width: 900px) {
+  .s04-opening-brief > dl,
+  .s04-opening-facts { grid-template-columns: 1fr; }
+  .s04-opening-brief > dl > div + div,
+  .s04-opening-facts > div + div {
+    border-top: 1px solid #e8ebf1;
+    border-left: 0;
+  }
+  .s04-opening-brief > dl > div,
+  .s04-opening-facts > div,
+  .s04-opening-facts > div + div { padding: 11px 14px; }
+}
+
+@media (max-width: 600px) {
+  .s04-opening-brief > header,
+  .s04-opening-brief > p,
+  .s04-opening-construction,
+  .s04-opening-next { padding-left: 14px; padding-right: 14px; }
+  .s04-opening-brief > header { padding-top: 11px; padding-bottom: 11px; }
+  .s04-opening-map { padding: 11px; }
+  .s04-opening-map ol { grid-template-columns: 1fr; }
+  .s04-opening-next > footer { align-items: stretch; flex-direction: column; }
+}

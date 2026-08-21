@@ -284,15 +284,6 @@
   .s04-research-brief > dl > dd { margin-bottom: 8px; }
 }
 
-/* The construction panel's label sat in sentence case beside RESEARCH BRIEF and
-   AI CONSTRUCTION WORKSPACE, which both use the eyebrow. */
-.s04-recommend > header {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 10px;
-}
 .s04-recommend > header > small {
   color: #7a8498;
   font-size: 8.5px;
@@ -452,11 +443,6 @@
   font-size: 10.5px;
   line-height: 1.5;
 }
-/* The qualifier is secondary to the thing it qualifies. */
-.s04-construction-facts > dd em {
-  color: #8790a2;
-  font-style: normal;
-}
 .s04-alternatives {
   display: inline-flex;
   align-items: center;
@@ -475,9 +461,6 @@
 .s04-alternatives:hover { border-color: #aebfb6; background: #f7faf8; }
 .s04-alternatives > b { color: #3f6f5c; }
 @media (max-width: 900px) {
-  .s04-roles { grid-template-columns: 1fr; }
-  .s04-construction-facts { grid-template-columns: 1fr; gap: 2px 0; }
-  .s04-construction-facts > dd { margin-bottom: 9px; }
 }
 
 /* S-04 §6 RECOMMENDED CONSTRUCTION body.
@@ -489,15 +472,6 @@
   color: #1d2436;
   font-size: 17px;
   letter-spacing: -.01em;
-}
-/* One column per evidence role: the role leads, source and grain support it. */
-.s04-roles {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 9px;
-  margin: 0 0 13px;
-  padding: 0;
-  list-style: none;
 }
 .s04-roles > li {
   display: grid;
@@ -530,13 +504,6 @@
   font-size: 10px;
 }
 .s04-validation > b { color: #3f6f5c; font-weight: 700; }
-/* Label column sized to the longest label so every value starts on one edge. */
-.s04-construction-facts {
-  display: grid;
-  grid-template-columns: max-content minmax(0, 1fr);
-  gap: 8px 18px;
-  margin: 0;
-}
 .s04-construction-facts > dt {
   color: #7a8498;
   font-size: 8.5px;
@@ -550,14 +517,6 @@
   font-size: 10.5px;
   line-height: 1.45;
 }
-/* A qualifier is not the value: it steps back rather than competing with it. */
-.s04-construction-facts > dd > em {
-  display: block;
-  margin-top: 2px;
-  color: #8790a2;
-  font-size: 9px;
-  font-style: normal;
-}
 .s04-alternatives {
   margin: 14px 0 0;
   padding-top: 12px;
@@ -567,12 +526,6 @@
 }
 .s04-alternatives::before { content: "▸ "; color: #a8b0be; }
 @media (max-width: 720px) {
-  .s04-roles { grid-template-columns: 1fr; }
-  .s04-construction-facts { grid-template-columns: 1fr; gap: 2px 0; }
-  .s04-construction-facts > dd { margin-bottom: 9px; }
 }
 
-/* An inherited rule prefixes this button with its own "▸ " and a global em rule
-   is display:block, which broke the expected-output qualifiers onto three lines. */
-.s04-alternatives::before { content: none; }
 .s04-construction-facts > dd em { display: inline; }

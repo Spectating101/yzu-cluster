@@ -27,6 +27,42 @@ const SPEC = {
 };
 
 const STATES = {
+  // S-04 §6's canonical opening state. This fixture deliberately contains only
+  // values the thread contract supports; it is the pixel-review target for the
+  // whole composition, rather than a hand-drawn mock that can drift from the
+  // API shape.
+  "00-opening-recommended": {
+    durable_state: "exploration_ready",
+    brief: "A reusable longitudinal measure of observable public attention to individual stablecoins, constructed from held and reachable evidence.",
+    required_grain: "asset × week",
+    target_period: "2021 onward",
+    intended_use: "Reusable input for later empirical studies",
+    constructions: [
+      {
+        recommended: true,
+        title: "Composite weekly attention index",
+        nodes: [
+          { id: "trends", role: "Search intent", source: "Google Trends", grain: "asset-week" },
+          { id: "community", role: "Community activity", source: "Reddit activity", grain: "asset-week" },
+          { id: "visibility", role: "Public visibility", source: "Wikipedia views", grain: "asset-day" },
+        ],
+        validation_role: "GDELT news",
+        ideal_direct_measure: {
+          label: "Historical X follower growth",
+          unavailable_because: "no verified history",
+        },
+        expected_output: {
+          label: "Stablecoin attention weekly panel",
+          grain: "asset-week",
+          period: "2021–2026",
+        },
+        ai_resolved: ["source roles", "target grain", "validation role"],
+        method_will_resolve: ["component weighting", "missing-component rule"],
+      },
+      { title: "Event-only attention panel" },
+      { title: "Single-source visibility proxy" },
+    ],
+  },
   "01-exploring": { nodes: NODES },
   "02-columns": { nodes: NODES, column_profiles: E.column_profiles, columns_in_use: E.columns_in_use },
   "03-scope-blocked": { nodes: NODES, scope_block: E.scope_block },
@@ -147,5 +183,19 @@ test.describe("Synthesis acceptance screenshots", () => {
     await expect(page.getByTestId("synthesis-registered-state")).toBeVisible();
     await expect(page.locator("body")).not.toContainText("Cannot build");
     await expect(page.getByTestId("synthesis-scope-block")).toHaveCount(0);
+  });
+
+  test("the S-04 opening is a complete, non-duplicated visual state", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await mount(page, threadFor(STATES["00-opening-recommended"]));
+
+    const main = page.locator(".s04-main");
+    await expect(main.getByText("Exploration ready", { exact: true })).toBeVisible();
+    await expect(main.getByRole("region", { name: "Research brief" })).toBeVisible();
+    await expect(main.getByRole("region", { name: "Recommended construction" })).toBeVisible();
+    await expect(main.getByRole("region", { name: "What happens next" })).toBeVisible();
+    await expect(main.getByText("asset × week", { exact: true })).toHaveCount(1);
+    await expect(main.getByText("Composite weekly attention index", { exact: true })).toHaveCount(1);
+    await expect(main.getByRole("button", { name: "Accept & design method" })).toBeEnabled();
   });
 });
