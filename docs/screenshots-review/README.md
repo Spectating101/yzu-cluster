@@ -23,10 +23,17 @@ Metadata: [manifest.json](manifest.json).
 ## Refresh
 
 ```bash
-# API :8765 + UI :5178 must be running
+# Development evidence: API :8765 + Vite UI :5178 must be running
 npm run desk:capture:live
+
+# Deployed same-origin acceptance: creates a temporary review set
+YZU_DESK_URL=http://100.127.141.44:8765 npm run desk:audit:deployed
 ```
 
 Zip for upload: `research-drive-screenshots.zip` at repo root.
+
+The committed set is development-capture evidence unless its manifest says it
+was produced by the deployed audit. Do not infer a deployed researcher session
+from a Vite capture.
 
 See [docs/CHATGPT_VISUAL_REVIEW.md](../CHATGPT_VISUAL_REVIEW.md) and [docs/DISCOVER_ACQUISITION.md](../DISCOVER_ACQUISITION.md).

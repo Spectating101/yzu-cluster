@@ -5,6 +5,7 @@
 | Doc | Purpose |
 |-----|---------|
 | **[`DESK_STATUS.md`](DESK_STATUS.md)** | **Start here** — two promises, flywheel, what to run |
+| **[`DESK_COMMANDS.md`](DESK_COMMANDS.md)** | **Runtime entry point** — deployed same-origin acceptance versus Vite development commands |
 | **[`UI_PRODUCT_AUTHORITY.md`](UI_PRODUCT_AUTHORITY.md)** | **Sole current UX authority** — current interface amendment, product grammar, surfaces, workflows, visual system, responsive rules, acceptance |
 | **[`DISCOVER_ADAPTIVE_FREEZE_2026-07-28.md`](DISCOVER_ADAPTIVE_FREEZE_2026-07-28.md)** | **Current frozen Discover composition** — automatic composer, compact evidence chrome, right-rail Ask, visual custom-strategy modal |
 | **[`UI_IMPLEMENTATION_PROGRAM.md`](UI_IMPLEMENTATION_PROGRAM.md)** | **Frontend execution packets** — supervised Foundation + Discover sequence and review gates |

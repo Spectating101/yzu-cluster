@@ -35,7 +35,23 @@ Browse on GitHub: `docs/screenshots-review/` folder.
 
 ## Generate / refresh screenshots
 
-**Prerequisite:** full desk running — API on `:8765` and UI on `:5178`. See [DESK_COMMANDS.md](../DESK_COMMANDS.md).
+**Choose the review surface first.** A Vite UI plus API is useful for
+implementation review; the deployed front door is the only evidence of the
+same-origin researcher session and static release. See
+[DESK_COMMANDS.md](../DESK_COMMANDS.md).
+
+**Deployed release review (required before calling a release usable):**
+
+```bash
+YZU_DESK_URL=http://100.127.141.44:8765 npm run desk:audit:deployed
+```
+
+This creates a temporary set of authenticated, read-only runtime captures at
+1440×900 and verifies 1280/390 containment. `1440×900` is the first desktop
+review ruler, not a browser-only deployment target.
+
+**Development capture:** full desk running — API on `:8765` and Vite UI on
+`:5178` / `:5179`.
 
 **Live capture (recommended — fails on demo/offline):**
 
@@ -75,7 +91,7 @@ Judge (desktop first):
 5. Header trust cues (demo vs live, dry-run protected)
 6. Does it feel like a serious faculty desk vs a student repo?
 
-Reference: docs/RESEARCH_DRIVE_UI_CANON.md
+Reference: docs/UI_PRODUCT_AUTHORITY.md
 ```
 
 ## Static GitHub Pages vs full desk
@@ -83,6 +99,8 @@ Reference: docs/RESEARCH_DRIVE_UI_CANON.md
 | URL | API | Chat |
 |-----|-----|------|
 | https://spectating101.github.io/yzu-cluster/ | Demo seed only | No |
-| Local `:5178` + `:8765` | Live registry | Yes |
+| Local `:5178` + `:8765` | Live registry through Vite | Yes |
+| Deployed same-origin front door | Live registry and browser session | Yes |
 
-Capture screenshots against **local full desk** when reviewing live data density.
+Use Vite captures for implementation comparison. Use the deployed front-door
+audit when reviewing the actual release, session handling, or live data density.

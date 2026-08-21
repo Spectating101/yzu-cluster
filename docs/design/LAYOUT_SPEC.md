@@ -1,6 +1,6 @@
 # Research Drive v2 — adaptive layout spec
 
-**Viewport reference:** 1440×900 desktop (design ruler), but production sizing is adaptive.  
+**Viewport reference:** 1440×900 desktop (design ruler and first visual-review target), but production sizing is adaptive. It is not a requirement to run Chrome at one fixed size, nor permission to skip the 1280, tablet, and mobile checks.
 **Canon:** [`RESEARCH_DRIVE_UI_CANON.md`](../RESEARCH_DRIVE_UI_CANON.md)  
 **Frozen wireframes:** [`WIREFRAME_V2_FROZEN.md`](WIREFRAME_V2_FROZEN.md)  
 **Visual tokens:** [`TOKENS.md`](TOKENS.md)  

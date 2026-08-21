@@ -208,6 +208,7 @@ function LibraryHeadActions({
 
 export function LibraryPage({
   datasets,
+  loading = false,
   partitions = [],
   shelves = [],
   loadError = "",
@@ -425,7 +426,7 @@ export function LibraryPage({
           </Chip>
           <span className="rd-v2-toolbar-spacer" />
           <span className="rd-v2-toolbar-count">
-            {toolbarCountLabel({
+            {loading && !vaultDatasets.length ? "Loading Library…" : toolbarCountLabel({
               searchActive,
               folderCount,
               datasetCount: browseDatasetCount,
@@ -460,7 +461,9 @@ export function LibraryPage({
           </p>
         </div>
         <div className="rd-v2-library-pathstats">
-          {searchActive ? null : isRoot ? (
+          {loading && !vaultDatasets.length ? (
+            <span>Loading holdings…</span>
+          ) : searchActive ? null : isRoot ? (
             <>
               <span>
                 {folderCount} {folderCount === 1 ? "shelf" : "shelves"}
@@ -483,7 +486,12 @@ export function LibraryPage({
       </div>
       {loadError ? <DeskError raw={loadError} surface="your Library" /> : null}
       <div className="rd-v2-catalog-list-wrap" data-testid="library-directory">
-        {visibleRows.length ? (
+        {loading && !vaultDatasets.length ? (
+          <div className="rd-v2-library-empty" role="status" aria-live="polite">
+            <strong>Loading Library holdings…</strong>
+            <p>Reading the registered evidence estate before showing its counts and shelves.</p>
+          </div>
+        ) : visibleRows.length ? (
           <CatalogList
             rows={visibleRows}
             selectedId={selectedId}

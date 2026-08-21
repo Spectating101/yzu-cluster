@@ -5,7 +5,6 @@ import {
   describeDataset,
   deskHealth,
   deskResources,
-  deskWarm,
   ensureDeskAccess,
   createDiscoverIntent,
   craftDiscoverIntentProposal,
@@ -200,6 +199,9 @@ export function V2App() {
   const [previewTarget, setPreviewTarget] = useState(null);
   const [railTab, setRailTab] = useState("detail");
   const [datasets, setDatasets] = useState([]);
+  // Until the registry has actually answered, an empty array is unmeasured —
+  // never a claim that the Library contains zero datasets.
+  const [catalogLoading, setCatalogLoading] = useState(false);
   const [usingSeed, setUsingSeed] = useState(false);
   const [detail, setDetail] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -317,7 +319,9 @@ export function V2App() {
 
   useEffect(() => {
     if (!deskAccess?.authenticated) return undefined;
-    if (profile && !profile.unknown) {
+    // reloadProfile owns the first request. Do not duplicate its pilot lookup
+    // while the single-threaded front door is loading the core desk state.
+    if (!profile?.unknown) {
       setPilotProfile(null);
       return undefined;
     }
@@ -338,11 +342,12 @@ export function V2App() {
   const applyCatalog = useCallback((rows, errMsg = "") => {
     const { catalog, usingSeed: seed } = resolveCatalog(rows);
     setDatasets(catalog);
+    setCatalogLoading(false);
     setUsingSeed(seed);
     setLoadError(seed ? errMsg : "");
   }, []);
 
-  const refreshBackend = useCallback((opts = {}) => {
+  const refreshBackend = useCallback(async (opts = {}) => {
     const preserveJob = opts?.preserveJob || null;
     if (healthRetryRef.current) {
       window.clearTimeout(healthRetryRef.current);
@@ -375,45 +380,48 @@ export function V2App() {
           });
       }, 5000);
     };
-    // The front door serves one request at a time. Establish the small,
-    // authenticated health read before fanning out to the fuller desk loads;
-    // otherwise it sits behind the queue, times out, and leaves the header
-    // saying “Syncing…” while the rest of the desk is visibly ready.
-    deskHealth(false)
-      .then(applyHealth)
-      .catch(() => {
+    const applyNavigation = (payload) => {
+      setPartitions(Array.isArray(payload?.partitions) ? payload.partitions : []);
+      setShelves(Array.isArray(payload?.shelves) ? payload.shelves : []);
+      setLibraryGuide(payload?.guide && typeof payload.guide === "object" ? payload.guide : null);
+    };
+    const clearNavigation = () => {
+      setPartitions([]);
+      setShelves([]);
+      setLibraryGuide(null);
+    };
+
+    // The front door deliberately handles one request at a time. The old
+    // startup burst sent health, registry, navigation, operations, history,
+    // resources, profile, and two cache warms together. The browser then
+    // painted “0 datasets” while the real 139-row registry waited its turn.
+    // Establish the two visible, research-critical surfaces first; defer
+    // operational enrichment until their facts are on screen.
+    setCatalogLoading(true);
+    try {
+      applyHealth(await deskHealth(false, { timeoutMs: 12_000 }));
+    } catch {
+      // Working data routes are not evidence of a health failure. Keep the
+      // absence explicit and retry once the primary requests have drained.
         markHealthUnmeasured();
-        retryHealthAfterQueue();
-      });
-    listDatasets()
-      .then((rows) => applyCatalog(rows))
-      .catch(async (err) => {
-        try {
-          const h = await deskHealth(true);
-          if (h?.status === "ok") {
-            const rows = await listDatasets();
-            applyCatalog(rows);
-            return;
-          }
-        } catch {
-          /* fall through to demo seed */
-        }
-        applyCatalog([], err.message);
-      });
-    listAcquisitions(true)
+      retryHealthAfterQueue();
+    }
+    try {
+      applyCatalog(await listDatasets());
+    } catch (err) {
+      applyCatalog([], err?.message || String(err));
+    }
+    try {
+      applyNavigation(await listLibraryNav());
+    } catch {
+      clearNavigation();
+    }
+
+    // These are useful operational enrichments, but none may delay the
+    // Library or Discover landing state. They may share the later queue.
+    listAcquisitions(false)
       .then((d) => setAcquisitions(d.acquisitions || []))
       .catch(() => setAcquisitions([]));
-    listLibraryNav()
-      .then((payload) => {
-        setPartitions(Array.isArray(payload?.partitions) ? payload.partitions : []);
-        setShelves(Array.isArray(payload?.shelves) ? payload.shelves : []);
-        setLibraryGuide(payload?.guide && typeof payload.guide === "object" ? payload.guide : null);
-      })
-      .catch(() => {
-        setPartitions([]);
-        setShelves([]);
-        setLibraryGuide(null);
-      });
     libraryOps()
       .then(setOps)
       .catch(() => setOps(null));
@@ -474,17 +482,6 @@ export function V2App() {
   useEffect(() => {
     if (deskAccess?.authenticated) refreshBackend();
   }, [refreshBackend, deskAccess?.authenticated]);
-
-  useEffect(() => {
-    if (!deskAccess?.authenticated) return undefined;
-    let cancelled = false;
-    (async () => {
-      deskWarm({ userEmail: authenticatedEmail || loadUserEmail(), background: true }).catch(() => {});
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [authenticatedEmail, deskAccess?.authenticated]);
 
   const askFromPrompt = useCallback((prompt) => {
     if (!prompt) return;
@@ -1450,6 +1447,7 @@ export function V2App() {
       main = (
         <LibraryPage
           datasets={filteredDatasets}
+          loading={catalogLoading}
           partitions={partitions}
           shelves={shelves}
           loadError={loadError}
@@ -1720,6 +1718,7 @@ export function V2App() {
         }
         principal={deskAccess?.principal || null}
         datasetCount={headerDsCount}
+        dataLoading={catalogLoading && catalog.length === 0}
         usingSeed={usingSeed}
         workCount={Math.max(
           Number(health?.desk?.jobs?.pending_approval ?? 0),

@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  deskWarm,
   getChatSession,
   linkSynthesisThreadConversation,
   sendChatMessage,
@@ -56,7 +55,6 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
   const generalSessionRef = useRef(loadChatSessionId());
   const sessionRef = useRef(generalSessionRef.current);
   const previousContextKindRef = useRef(dataset?.kind || "");
-  const warmStartedRef = useRef(false);
   const railRef = useRef(railContext);
   const busyRef = useRef(false);
   const intentRef = useRef("general");
@@ -68,16 +66,6 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
   useEffect(() => {
     railRef.current = railContext;
   }, [railContext]);
-
-  useEffect(() => {
-    if (warmStartedRef.current) return;
-    warmStartedRef.current = true;
-    deskWarm({
-      sessionId: sessionRef.current,
-      userEmail: loadUserEmail(),
-      background: true,
-    }).catch(() => {});
-  }, []);
 
   useEffect(() => {
     const contextKind = dataset?.kind || "";

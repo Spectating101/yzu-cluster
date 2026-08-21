@@ -26,6 +26,7 @@ export function V2DeskHeader({
   onRetry,
   headerInitials = "YZ",
   datasetCount = 0,
+  dataLoading = false,
   usingSeed = false,
   workCount = 0,
   onPendingClick,
@@ -41,7 +42,9 @@ export function V2DeskHeader({
   const [accountOpen, setAccountOpen] = useState(false);
   const accountRef = useRef(null);
   const pendingVisible = workCount > 0 && Boolean(onPendingClick);
-  const metaText = usingSeed
+  const metaText = dataLoading && !usingSeed
+    ? "Loading Library…"
+    : usingSeed
     ? `${datasetCount} datasets`
     : pendingVisible
       ? `${datasetCount} datasets · ${workCount} pending`
