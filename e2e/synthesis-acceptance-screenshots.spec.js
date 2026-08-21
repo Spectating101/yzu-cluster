@@ -140,7 +140,13 @@ async function mount(page, thread) {
         ? thread : { threads: [thread], total: 1 }),
     }));
   await page.goto("/?tab=synthesis");
-  await page.getByTestId("synthesis-thread-item").first().click();
+  const firstThread = page.getByTestId("synthesis-thread-item").first();
+  await expect(firstThread).toHaveCount(1);
+  // Desktop owns thread selection in the left work rail. On a phone that rail
+  // becomes a compact picker, while the page selects the first durable thread
+  // after loading. Do not require an off-screen desktop control to be clicked.
+  if (await firstThread.isVisible()) await firstThread.click();
+  else await expect(page.locator(".s04-main h1")).toBeVisible();
 }
 
 test.describe("Synthesis acceptance screenshots", () => {
@@ -150,7 +156,7 @@ test.describe("Synthesis acceptance screenshots", () => {
         mkdirSync(outDir, { recursive: true });
         await page.setViewportSize({ width: viewport.width, height: viewport.height });
         await mount(page, threadFor(extra));
-        await expect(page.getByTestId("synthesis-thread-item").first()).toBeVisible();
+        await expect(page.getByTestId("synthesis-thread-item").first()).toHaveCount(1);
         await page.waitForTimeout(300);
         // The document is exactly viewport-height; the workspace scrolls inside
         // .rd-v2-body-scroll. fullPage therefore captures whatever that inner
@@ -196,6 +202,19 @@ test.describe("Synthesis acceptance screenshots", () => {
     await expect(main.getByRole("region", { name: "What happens next" })).toBeVisible();
     await expect(main.getByText("asset × week", { exact: true })).toHaveCount(1);
     await expect(main.getByText("Composite weekly attention index", { exact: true })).toHaveCount(1);
-    await expect(main.getByRole("button", { name: "Accept & design method" })).toBeEnabled();
+    const accept = main.getByRole("button", { name: "Accept & design method" });
+    await expect(accept).toBeEnabled();
+    const acceptBox = await accept.boundingBox();
+    expect(acceptBox, "the opening decision must be reachable without a desktop scroll").not.toBeNull();
+    expect(acceptBox.y + acceptBox.height).toBeLessThanOrEqual(900);
+    await expect(page.getByTestId("synthesis-opening-rail")).toBeVisible();
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(page.locator(".s04-main h1")).toBeVisible();
+    const mobileGrip = page.getByRole("button", { name: "Show Detail · Ask" });
+    const mobileGripBox = await mobileGrip.boundingBox();
+    expect(mobileGripBox, "the compact inspector affordance should remain available").not.toBeNull();
+    expect(mobileGripBox.width).toBeLessThanOrEqual(68);
+    expect(mobileGripBox.height).toBeGreaterThanOrEqual(44);
   });
 });

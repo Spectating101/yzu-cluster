@@ -112,7 +112,7 @@
 }
 
 .s04-opening-construction {
-  padding: 18px;
+  padding: 14px;
 }
 
 .s04-opening-construction > header > em {
@@ -130,7 +130,7 @@
 
 .s04-opening-construction > h2 {
   max-width: 34ch;
-  margin: 5px 0 12px;
+  margin: 3px 0 8px;
   color: #182236;
   font-size: 18px;
   font-weight: 680;
@@ -149,7 +149,7 @@
 .s04-opening-map {
   position: relative;
   margin: 0;
-  padding: 12px;
+  padding: 9px;
   overflow: hidden;
   border: 1px solid #e0e5ed;
   border-radius: 12px;
@@ -159,7 +159,7 @@
 }
 
 .s04-opening-map figcaption {
-  margin-bottom: 10px;
+  margin-bottom: 7px;
 }
 
 .s04-opening-map ol {
@@ -175,9 +175,9 @@
   position: relative;
   z-index: 1;
   display: grid;
-  gap: 4px;
+  gap: 3px;
   min-width: 0;
-  padding: 9px 12px;
+  padding: 7px 10px;
   border: 1px solid #d8e0ea;
   border-radius: 10px;
   background: rgba(255, 255, 255, .94);
@@ -212,7 +212,7 @@
   grid-template-columns: 1fr max-content 1fr;
   align-items: center;
   gap: 8px;
-  margin: 7px auto;
+  margin: 4px auto;
   color: #8d9aac;
 }
 
@@ -236,10 +236,10 @@
 .s04-opening-map-output {
   display: grid;
   justify-items: center;
-  gap: 3px;
+  gap: 2px;
   width: min(100%, 440px);
   margin: 0 auto;
-  padding: 9px 14px;
+  padding: 7px 12px;
   border: 1px solid #bed0df;
   border-radius: 10px;
   background: #fff;
@@ -256,7 +256,7 @@
   display: flex;
   justify-content: center;
   gap: 7px;
-  margin: 8px 0 0;
+  margin: 5px 0 0;
   color: #667287;
   font-size: 9.5px;
 }
@@ -271,17 +271,17 @@
 .s04-opening-facts {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  margin: 14px 0 0;
+  margin: 10px 0 0;
   border-top: 1px solid #e8ebf1;
 }
 
 .s04-opening-facts > div {
   min-width: 0;
-  padding: 13px 14px 0 0;
+  padding: 9px 12px 0 0;
 }
 
 .s04-opening-facts > div + div {
-  padding-left: 14px;
+  padding-left: 12px;
   border-left: 1px solid #e8ebf1;
 }
 
@@ -291,7 +291,7 @@
 }
 
 .s04-opening-facts dd {
-  margin-top: 5px;
+  margin-top: 3px;
   color: #39475c;
   font-size: 10px;
   line-height: 1.48;
@@ -299,7 +299,7 @@
 
 .s04-opening-facts dd > em {
   display: block;
-  margin-top: 4px;
+  margin-top: 2px;
   color: #8a94a5;
   font-size: 9px;
   font-style: normal;
@@ -309,7 +309,7 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  margin-top: 15px;
+  margin-top: 10px;
   padding: 0;
   border: 0;
   background: transparent;
@@ -410,4 +410,352 @@
   .s04-opening-map { padding: 11px; }
   .s04-opening-map ol { grid-template-columns: 1fr; }
   .s04-opening-next > footer { align-items: stretch; flex-direction: column; }
+}
+
+/* ── S-04 shell: one desk, three surfaces ──────────────────────────────── */
+
+/* The opening owns its title. PageShell's generic "Synthesis / explanatory
+   lead" duplicated it and spent the first 80–100px of the desktop viewport. */
+.rd-v2-synthesis-page .rd-v2-body-scroll {
+  background: #f5f6fa;
+}
+
+/* The old page nested a second thread column inside the canvas, resulting in
+   nav → threads → work → rail. S-04's threads now live in the real left rail. */
+.rd-v2-shell .rd-v2-synthesis-page .s04-shell,
+.rd-v2-shell:not(.no-rail) .rd-v2-synthesis-page .s04-shell {
+  display: block;
+  min-height: 100%;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.rd-v2-synthesis-page .s04-main {
+  width: 100%;
+  max-width: 940px;
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding: 18px clamp(18px, 2.4vw, 34px) 28px;
+}
+
+.rd-v2-synthesis-page .s04-head {
+  padding: 2px 0 14px;
+}
+
+.s04-thread-picker { display: none; }
+
+/* The portal is owned by SynthesisPage but deliberately lands in the global
+   left rail: active work and registered outputs are navigation, not content. */
+.rd-v2-synthesis-sidebar-slot {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  margin-top: 8px;
+  border-top: 1px solid var(--rd-sidebar-line, rgba(252, 252, 240, .12));
+}
+
+.yzu-sidebar .s04-threads--sidebar {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  overflow: auto;
+  flex-direction: column;
+  padding: 13px 10px 10px;
+  border: 0;
+  background: transparent;
+  color: var(--rd-sidebar-fg, #b7c0cc);
+}
+
+.yzu-sidebar .s04-threads--sidebar > header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 2px 9px;
+}
+
+.yzu-sidebar .s04-threads--sidebar > header > div {
+  display: grid;
+  gap: 3px;
+}
+
+.yzu-sidebar .s04-threads--sidebar > header span,
+.yzu-sidebar .s04-thread-outputs > small {
+  color: #8e9aa8;
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+.yzu-sidebar .s04-threads--sidebar > header small {
+  color: #718091;
+  font-size: 9px;
+}
+
+.yzu-sidebar .s04-threads--sidebar .s04-thread-new {
+  display: inline-flex;
+  width: auto;
+  height: auto;
+  min-height: 0;
+  padding: 5px 7px;
+  border: 1px solid rgba(189, 216, 200, .35);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, .06);
+  color: #c7e0d0;
+  font-size: 8px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: .03em;
+}
+
+.yzu-sidebar .s04-threads--sidebar .s04-thread-new:hover {
+  background: rgba(116, 165, 136, .16);
+  color: #eef8f1;
+  transform: none;
+}
+
+.yzu-sidebar .s04-thread-list,
+.yzu-sidebar .s04-thread-outputs {
+  display: grid;
+  gap: 4px;
+}
+
+.yzu-sidebar .s04-thread-outputs {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rd-sidebar-line, rgba(252, 252, 240, .12));
+}
+
+.yzu-sidebar .s04-thread-outputs > small {
+  display: block;
+  margin-bottom: 3px;
+}
+
+.yzu-sidebar .s04-threads--sidebar .s04-thread-list > button,
+.yzu-sidebar .s04-threads--sidebar .s04-thread-outputs > button {
+  display: grid;
+  grid-template-columns: 25px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  padding: 8px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: #b7c0cc;
+  text-align: left;
+}
+
+.yzu-sidebar .s04-threads--sidebar .s04-thread-list > button:hover,
+.yzu-sidebar .s04-threads--sidebar .s04-thread-outputs > button:hover {
+  background: rgba(255, 255, 255, .06);
+  color: #f8fbf8;
+  transform: none;
+}
+
+.yzu-sidebar .s04-threads--sidebar .s04-thread-list > button.active,
+.yzu-sidebar .s04-threads--sidebar .s04-thread-outputs > button.active {
+  border-color: rgba(184, 218, 197, .38);
+  background: rgba(231, 236, 232, .15) !important;
+  color: #f4f8f5 !important;
+}
+
+.yzu-sidebar .s04-threads--sidebar button.active::after { content: none; }
+
+.yzu-sidebar .s04-threads--sidebar .s04-thread-list > button > b,
+.yzu-sidebar .s04-threads--sidebar .s04-thread-outputs > button > b {
+  display: grid;
+  width: 25px;
+  height: 25px;
+  place-items: center;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, .09);
+  color: #aeb9c7;
+  font-size: 9px;
+}
+
+.yzu-sidebar .s04-threads--sidebar button.active > b {
+  background: #dfe9e2;
+  color: #18231d;
+}
+
+.yzu-sidebar .s04-threads--sidebar button > span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.yzu-sidebar .s04-threads--sidebar button strong {
+  overflow: hidden;
+  color: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.yzu-sidebar .s04-threads--sidebar button small,
+.yzu-sidebar .s04-thread-empty,
+.yzu-sidebar .s04-thread-outputs > p {
+  margin: 0;
+  color: #7f8a99;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+/* ── S-04 opening rail ─────────────────────────────────────────────────── */
+
+.s04-thread-rail {
+  display: grid;
+  align-content: start;
+  gap: 0;
+  min-height: 100%;
+  padding: 14px 16px 20px;
+  color: #435067;
+}
+
+.s04-thread-rail-kicker,
+.s04-thread-rail-label {
+  margin: 0;
+  color: #6c7890;
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+.s04-thread-rail > section {
+  padding: 14px 0;
+  border-top: 1px solid #e5e9ef;
+}
+
+.s04-thread-rail > section:first-of-type { margin-top: 12px; }
+
+.s04-thread-rail > section > p:not(.s04-thread-rail-label) {
+  margin: 6px 0 0;
+  color: #4d5a70;
+  font-size: 10.5px;
+  line-height: 1.55;
+}
+
+.s04-thread-rail ul {
+  display: grid;
+  gap: 5px;
+  margin: 7px 0 0;
+  padding-left: 15px;
+  color: #4d5a70;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.s04-thread-rail-questions {
+  display: grid;
+  gap: 7px;
+}
+
+.s04-thread-rail-questions > button {
+  width: 100%;
+  padding: 8px 9px;
+  border: 1px solid #d9e0e9;
+  border-radius: 8px;
+  background: #fff;
+  color: #3d5f7c;
+  font: inherit;
+  font-size: 9.5px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.s04-thread-rail-questions > button:hover {
+  border-color: #a8bfce;
+  background: #f7fafc;
+}
+
+@media (max-width: 720px) {
+  .rd-v2-synthesis-sidebar-slot { display: none; }
+
+  .rd-v2-synthesis-page .s04-main {
+    padding: 14px 14px 102px;
+  }
+
+  .s04-thread-picker {
+    display: grid;
+    gap: 5px;
+    margin: -2px 0 12px;
+  }
+
+  .s04-thread-picker > span {
+    color: #6c7890;
+    font-size: 8.5px;
+    font-weight: 800;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+  }
+
+  .s04-thread-picker > select {
+    width: 100%;
+    min-height: 38px;
+    padding: 0 10px;
+    border: 1px solid #d8e0ea;
+    border-radius: 9px;
+    background: #fff;
+    color: #29364a;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  /* VC-2: a closed Synthesis inspector is a compact context affordance,
+     never a full-width dormant bar over the construction. */
+  .rd-v2-shell:has(.rd-v2-synthesis-page) .yzu-inspector.rd-v2-rail-collapsed {
+    left: auto !important;
+    right: 12px !important;
+    bottom: 82px !important;
+    width: 64px !important;
+    min-width: 64px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .rd-v2-shell:has(.rd-v2-synthesis-page) .rd-v2-rail-collapsed .rd-v2-rail-stack,
+  .rd-v2-shell:has(.rd-v2-synthesis-page) .rd-v2-rail-collapsed .rd-v2-rail-chrome {
+    width: 64px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .rd-v2-shell:has(.rd-v2-synthesis-page) .rd-v2-rail-collapsed .rd-v2-rail-mobile-grip {
+    width: 64px;
+    min-width: 64px;
+    height: 44px;
+    min-height: 44px;
+    padding: 0;
+    border-radius: 22px;
+    font-size: 0;
+  }
+
+  .rd-v2-shell:has(.rd-v2-synthesis-page) .rd-v2-rail-collapsed .rd-v2-rail-mobile-grip::after {
+    content: "Ask";
+    color: inherit;
+    font-size: 8.5px;
+    font-weight: 800;
+    letter-spacing: .04em;
+  }
+
+  .rd-v2-shell:has(.rd-v2-synthesis-page) .rd-v2-rail-collapsed .rd-v2-rail-toggle,
+  .rd-v2-shell:has(.rd-v2-synthesis-page) .rd-v2-rail-collapsed .rd-v2-rail-selection {
+    display: none !important;
+  }
 }

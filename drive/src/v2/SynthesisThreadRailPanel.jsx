@@ -6,6 +6,7 @@ import {
   RailFrame,
   RailStickyFooter,
 } from "@/v2/RailFrame";
+import { isPreAcceptance, recommendedConstruction, researchBrief } from "@/v2/synthesisBrief.js";
 
 function text(value, fallback = "Not reported") {
   return String(value || "").trim() || fallback;
@@ -64,6 +65,65 @@ function stateSummary(thread) {
   };
 }
 
+function OpeningThreadRail({ thread, onAsk }) {
+  const state = thread?.state || {};
+  const brief = researchBrief(thread);
+  const recommendation = recommendedConstruction(thread);
+  const sourceNodes = Array.isArray(recommendation.nodes) ? recommendation.nodes : [];
+  const sourceCount = sourceNodes.length;
+  const directMeasure = recommendation.idealDirectMeasure || {};
+  const recordedAssumption = text(
+    state.important_assumption || state.assumption || state.method_assumption,
+    "No material assumption has been recorded yet.",
+  );
+  const limitation = directMeasure.label
+    ? `${directMeasure.label} is unavailable${directMeasure.why ? ` · ${directMeasure.why}` : ""}.`
+    : "The recommendation is not yet grounded in a stated direct measure.";
+  const ask = (prompt) => onAsk?.(prompt);
+
+  return (
+    <div className="s04-thread-rail" data-testid="synthesis-opening-rail">
+      <p className="s04-thread-rail-kicker">Synthesis thread</p>
+      <section>
+        <p className="s04-thread-rail-label">Your intent</p>
+        <p>{text(brief.body || thread?.objective, "A durable research-construction thread.")}</p>
+      </section>
+      <section>
+        <p className="s04-thread-rail-label">AI interpretation</p>
+        <p>
+          {recommendation.present
+            ? `${recommendation.title} is the current evidence-grounded recommendation.`
+            : "No construction has been recommended yet."}
+        </p>
+      </section>
+      <section>
+        <p className="s04-thread-rail-label">Important assumption</p>
+        <p>{recordedAssumption}</p>
+      </section>
+      <section>
+        <p className="s04-thread-rail-label">Why this route</p>
+        {sourceCount ? (
+          <ul>
+            <li>{sourceCount} distinct evidence role{sourceCount === 1 ? "" : "s"} contribute to the construction.</li>
+            <li>Target grain: {text(brief.targetGrain, "not stated")}.</li>
+            {recommendation.validationRole ? <li>Validation route: {recommendation.validationRole}.</li> : null}
+          </ul>
+        ) : <p>No route rationale has been recorded yet.</p>}
+      </section>
+      <section>
+        <p className="s04-thread-rail-label">Main limitation</p>
+        <p>{limitation}</p>
+      </section>
+      <section className="s04-thread-rail-questions">
+        <p className="s04-thread-rail-label">Quick questions</p>
+        <button type="button" onClick={() => ask("Why is this validation route appropriate for the proposed construction?")}>Why this validation route?</button>
+        <button type="button" onClick={() => ask("Compare the alternative constructions and identify the decision trade-offs.")}>Compare alternatives</button>
+        <button type="button" onClick={() => ask("What decisions remain before a detailed method can be drafted?")}>What decisions come next?</button>
+      </section>
+    </div>
+  );
+}
+
 export function SynthesisThreadRailPanel({ thread, onAskAbout, onOpenInLibrary }) {
   const state = thread?.state || {};
   const execution = state.execution || {};
@@ -87,6 +147,16 @@ export function SynthesisThreadRailPanel({ thread, onAskAbout, onOpenInLibrary }
     : specInput
       ? `Declared input · ${state.execution_spec ? "accepted" : "proposed"}: ${specInput}`
       : "No inputs mapped";
+
+  if (isPreAcceptance(thread)) {
+    const target = {
+      kind: "synthesis_thread",
+      id: thread?.id,
+      title: thread?.title || state.title || "Synthesis thread",
+      thread,
+    };
+    return <OpeningThreadRail thread={thread} onAsk={(prompt) => onAskAbout?.(target, prompt)} />;
+  }
 
   return (
     <RailFrame>

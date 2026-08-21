@@ -1188,6 +1188,17 @@ export function V2App() {
         );
         return;
       }
+      if (target?.kind === "synthesis_thread") {
+        setActiveObject(target);
+        setRailTab("ask");
+        const override = typeof promptOverride === "string" && promptOverride.trim() ? promptOverride.trim() : "";
+        setPendingAsk(
+          override ||
+            `Help me reason through this Synthesis thread: ${target.title || "selected construction"}. ` +
+            "Distinguish the recorded intent, recommendation, assumptions, and the next decision. Do not claim a method has been accepted or built unless the thread proves it.",
+        );
+        return;
+      }
       if (tab === "resources" && target) {
         setRailTab("ask");
         setPendingAsk(resourceAskPrompt(target));

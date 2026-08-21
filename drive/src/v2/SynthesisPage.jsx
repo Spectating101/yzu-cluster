@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { PageShell } from "@/v2/ui";
 import {
   createSynthesisThread,
@@ -166,43 +167,95 @@ function SynthesisProgress({ thread }) {
   );
 }
 
+function SynthesisSidebarPortal({ children }) {
+  const [target, setTarget] = useState(null);
+
+  useEffect(() => {
+    let frame = 0;
+    let cancelled = false;
+    const findTarget = () => {
+      const next = document.getElementById("rd-v2-synthesis-sidebar-slot");
+      if (next) {
+        if (!cancelled) setTarget(next);
+        return;
+      }
+      frame = requestAnimationFrame(findTarget);
+    };
+    findTarget();
+    return () => {
+      cancelled = true;
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  return target ? createPortal(children, target) : null;
+}
+
 function ThreadList({ threads, selectedId, loading, onSelect, onNew }) {
   const selectedRef = useRef(null);
   useEffect(() => {
     selectedRef.current?.scrollIntoView({ block: "nearest" });
   }, [selectedId]);
 
+  const activeThreads = threads.filter((thread) => !["registered", "query_ready"].includes(stateFor(thread)));
+  const registeredThreads = threads.filter((thread) => ["registered", "query_ready"].includes(stateFor(thread)));
+
+  function renderThread(thread) {
+    return (
+      <button
+        type="button"
+        key={thread.id}
+        ref={thread.id === selectedId ? selectedRef : null}
+        className={thread.id === selectedId ? "active" : ""}
+        onClick={() => onSelect(thread.id)}
+        data-testid="synthesis-thread-item"
+      >
+        <b>{["registered", "query_ready"].includes(stateFor(thread)) ? "✓" : stateFor(thread) === "failed" ? "!" : "S"}</b>
+        <span>
+          <strong>{titleFor(thread)}</strong>
+          <small>{threadStatus(thread)}</small>
+        </span>
+      </button>
+    );
+  }
+
   return (
-    <aside className="s04-threads" aria-label="Synthesis threads">
+    <section className="s04-threads s04-threads--sidebar" aria-label="Synthesis threads">
       <header>
         <div>
-          <span>Research construction</span>
-          <small>{loading ? "Loading" : `${threads.length} threads`}</small>
+          <span>Active work</span>
+          <small>{loading ? "Loading" : `${activeThreads.length} active`}</small>
         </div>
-        <button type="button" className="s04-thread-new" onClick={onNew}>+ New</button>
+        <button type="button" className="s04-thread-new" onClick={onNew}>+ New synthesis</button>
       </header>
-      {threads.map((thread) => (
-        <button
-          type="button"
-          key={thread.id}
-          ref={thread.id === selectedId ? selectedRef : null}
-          className={thread.id === selectedId ? "active" : ""}
-          onClick={() => onSelect(thread.id)}
-          data-testid="synthesis-thread-item"
-        >
-          <b>{["registered", "query_ready"].includes(stateFor(thread)) ? "✓" : stateFor(thread) === "failed" ? "!" : "S"}</b>
-          <span>
-            <strong>{titleFor(thread)}</strong>
-            <small>{threadStatus(thread)}</small>
-          </span>
-        </button>
-      ))}
-      {!loading && !threads.length ? <p className="s04-thread-empty">No durable constructions yet.</p> : null}
-      <footer>
-        <small>Thread memory</small>
-        <p>Methods, review decisions, execution state, and registered outputs stay attached to the research object.</p>
-      </footer>
-    </aside>
+      <div className="s04-thread-list">
+        {activeThreads.map(renderThread)}
+        {!loading && !activeThreads.length ? <p className="s04-thread-empty">No active constructions.</p> : null}
+      </div>
+      <section className="s04-thread-outputs" aria-label="Registered outputs">
+        <small>Registered outputs</small>
+        {registeredThreads.map(renderThread)}
+        {!loading && !registeredThreads.length ? <p>No registered outputs.</p> : null}
+      </section>
+    </section>
+  );
+}
+
+function ThreadPicker({ threads, selectedId, onSelect }) {
+  if (threads.length < 2) return null;
+  return (
+    <label className="s04-thread-picker">
+      <span>Active work</span>
+      <select
+        aria-label="Choose Synthesis thread"
+        value={selectedId}
+        onChange={(event) => onSelect(event.target.value)}
+      >
+        {threads.map((thread) => (
+          <option key={thread.id} value={thread.id}>{titleFor(thread)}</option>
+        ))}
+      </select>
+    </label>
   );
 }
 
@@ -1345,8 +1398,8 @@ export function SynthesisPage({
   const showExecution = Boolean(selected && (mode === "execution" || mode === "registered" || mode === "failed" || selected.state?.execution_spec));
 
   return (
-    <PageShell className="rd-v2-synthesis-page" title="Synthesis" lead="Reason from Library evidence to a reviewable research construct, then preserve the method and its proof.">
-      <div className="s04-shell" data-testid="synthesis-studio">
+    <PageShell className="rd-v2-synthesis-page">
+      <SynthesisSidebarPortal>
         <ThreadList
           threads={threads}
           selectedId={selectedId}
@@ -1354,6 +1407,8 @@ export function SynthesisPage({
           onSelect={selectThread}
           onNew={beginNew}
         />
+      </SynthesisSidebarPortal>
+      <div className="s04-shell" data-testid="synthesis-studio">
         <main className="s04-main">
           {error ? <DeskError raw={error} surface="your constructions" alert /> : null}
           {newMode ? (
@@ -1381,6 +1436,7 @@ export function SynthesisPage({
                 thread={selected}
                 onEditIntent={() => ask("I want to revise this research intent. Show the change that would be recorded before applying it.")}
               />
+              <ThreadPicker threads={threads} selectedId={selectedId} onSelect={selectThread} />
               {isPreAcceptance(selected) ? (
                 <>
                   <RecommendedConstruction
