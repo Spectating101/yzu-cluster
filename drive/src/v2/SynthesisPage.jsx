@@ -222,7 +222,7 @@ function ThreadList({ threads, selectedId, loading, onSelect, onNew }) {
   return (
     <section className="s04-threads s04-threads--sidebar" aria-label="Synthesis threads">
       <header>
-        <div>
+        <div className="s04-thread-heading">
           <span>Active work</span>
           <small>{loading ? "Loading" : `${activeThreads.length} active`}</small>
         </div>

@@ -191,6 +191,46 @@ test.describe("Synthesis acceptance screenshots", () => {
     await expect(page.getByTestId("synthesis-scope-block")).toHaveCount(0);
   });
 
+  test("the Synthesis work header keeps its count and creation action legible", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await mount(page, threadFor(STATES["00-opening-recommended"]));
+
+    const heading = page.locator(".s04-thread-heading");
+    const label = heading.locator("span");
+    const count = heading.locator("small");
+    const create = page.getByRole("button", { name: "+ New synthesis" });
+    await expect(label).toBeVisible();
+    await expect(count).toBeVisible();
+    await expect(create).toBeVisible();
+    const [labelBox, countBox, createBox] = await Promise.all([
+      label.boundingBox(), count.boundingBox(), create.boundingBox(),
+    ]);
+    expect(labelBox).not.toBeNull();
+    expect(countBox).not.toBeNull();
+    expect(createBox).not.toBeNull();
+    expect(countBox.y).toBeGreaterThanOrEqual(labelBox.y + labelBox.height + 2);
+    expect(createBox.x).toBeGreaterThan(labelBox.x + labelBox.width);
+  });
+
+  test("interactive evidence nodes keep role, source, and coverage on separate lines", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await mount(page, threadFor(STATES["01-exploring"]));
+
+    const node = page.locator(".s04-map-node").first();
+    const role = node.locator("small");
+    const source = node.locator("strong");
+    const coverage = node.locator("span");
+    await expect(node).toBeVisible();
+    const [roleBox, sourceBox, coverageBox] = await Promise.all([
+      role.boundingBox(), source.boundingBox(), coverage.boundingBox(),
+    ]);
+    expect(roleBox).not.toBeNull();
+    expect(sourceBox).not.toBeNull();
+    expect(coverageBox).not.toBeNull();
+    expect(sourceBox.y).toBeGreaterThanOrEqual(roleBox.y + roleBox.height + 2);
+    expect(coverageBox.y).toBeGreaterThanOrEqual(sourceBox.y + sourceBox.height + 2);
+  });
+
   test("the S-04 opening is a complete, non-duplicated visual state", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await mount(page, threadFor(STATES["00-opening-recommended"]));

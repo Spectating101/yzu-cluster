@@ -467,16 +467,21 @@
 }
 
 .yzu-sidebar .s04-threads--sidebar > header {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: start;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 0 2px 9px;
+  column-gap: 8px;
+  min-height: 38px;
+  padding: 1px 2px 11px;
+  /* Do not inherit the old light S-04 panel header into the dark global
+     navigation rail. */
+  background: transparent;
 }
 
-.yzu-sidebar .s04-threads--sidebar > header > div {
+.yzu-sidebar .s04-threads--sidebar > header > .s04-thread-heading {
   display: grid;
-  gap: 3px;
+  min-width: 0;
+  gap: 4px;
 }
 
 .yzu-sidebar .s04-threads--sidebar > header span,
@@ -489,8 +494,10 @@
 }
 
 .yzu-sidebar .s04-threads--sidebar > header small {
+  display: block;
   color: #718091;
   font-size: 9px;
+  line-height: 1.2;
 }
 
 .yzu-sidebar .s04-threads--sidebar .s04-thread-new {
@@ -507,6 +514,7 @@
   font-weight: 800;
   line-height: 1.2;
   letter-spacing: .03em;
+  white-space: nowrap;
 }
 
 .yzu-sidebar .s04-threads--sidebar .s04-thread-new:hover {
@@ -604,6 +612,59 @@
   color: #7f8a99;
   font-size: 9px;
   line-height: 1.45;
+}
+
+/* EvidenceMap uses interactive source nodes.  The older map only styled
+   static <article>s, so the label, dataset and coverage became one run of
+   inline text when sources were rendered as buttons. */
+.s04-map .sources > .s04-map-node {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  padding: 11px;
+  border: 1px solid #dce1eb;
+  border-radius: 12px;
+  background: #fff;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.s04-map .sources > .s04-map-node:hover,
+.s04-map .sources > .s04-map-node.selected {
+  border-color: #9bb4c8;
+  background: #f8fbfe;
+}
+
+.s04-map .sources > .s04-map-node > small,
+.s04-map .sources > .s04-map-node > strong,
+.s04-map .sources > .s04-map-node > span {
+  display: block;
+  min-width: 0;
+}
+
+.s04-map .sources > .s04-map-node > small {
+  color: #667287;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+.s04-map .sources > .s04-map-node > strong {
+  color: #242c40;
+  font-size: 10.5px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.s04-map .sources > .s04-map-node > span {
+  color: #7d8799;
+  font-size: 8.5px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 /* ── S-04 opening rail ─────────────────────────────────────────────────── */
