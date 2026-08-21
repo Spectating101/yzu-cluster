@@ -736,6 +736,200 @@
   background: #f7fafc;
 }
 
+/* ── S-04 visual foundation: one working desk, not a stack of white cards ──
+ *
+ * Synthesis is the only page that keeps a long-lived construction in view.
+ * Its opening used the generic white-card body, then placed three more white
+ * cards inside it. Against the warm application shell that read as a canvas
+ * sitting on the desk rather than part of it. These rules deliberately keep
+ * hierarchy through paper tone, rules, and type—not drop shadows or pure
+ * white slabs.
+ */
+.rd-v2-synthesis-page {
+  --s04-desk: #f2eee6;
+  --s04-paper: #f8f5ed;
+  --s04-paper-quiet: #f4f0e7;
+  --s04-paper-action: #edf2eb;
+  --s04-rule: #d8d1c4;
+  --s04-rule-soft: #e5dfd4;
+  --s04-ink: #1d2a36;
+  --s04-muted: #637083;
+  --s04-accent: #3f6f5c;
+}
+
+/* The centre column belongs to the whole desk grid. Remove the inherited
+ * rounded card and let the work surface meet its rails directly. */
+.rd-v2-synthesis-page .rd-v2-body-scroll {
+  margin-right: 0;
+  margin-bottom: 0;
+  padding-top: 0;
+  border: 0;
+  border-radius: 0;
+  background: var(--s04-desk);
+  box-shadow: none;
+}
+
+.rd-v2-synthesis-page .s04-main {
+  max-width: 920px;
+  padding-top: 22px;
+}
+
+/* The thread title is a desk heading, not a fourth card. */
+.rd-v2-synthesis-page .s04-head {
+  align-items: flex-start;
+  padding: 5px 0 17px;
+  border: 0;
+  border-bottom: 1px solid var(--s04-rule);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.rd-v2-synthesis-page .s04-head > div > small,
+.rd-v2-synthesis-page .s04-opening-brief > header > small,
+.rd-v2-synthesis-page .s04-opening-construction > header > small,
+.rd-v2-synthesis-page .s04-opening-next > header > small,
+.rd-v2-synthesis-page .s04-opening-brief dt {
+  color: #607083;
+}
+
+.rd-v2-synthesis-page .s04-head h1 {
+  max-width: 26ch;
+  color: var(--s04-ink);
+  letter-spacing: -.03em;
+  line-height: 1.08;
+}
+
+.rd-v2-synthesis-page .s04-head > em {
+  border-color: #d5d1c5;
+  background: var(--s04-paper-quiet);
+  color: #617083;
+  box-shadow: none;
+}
+
+/* A brief is the one editable paper object. The remaining panels are quiet
+ * bands of the same work surface, so the visual weight stays with the intent. */
+.rd-v2-synthesis-page .s04-opening-brief,
+.rd-v2-synthesis-page .s04-opening-construction,
+.rd-v2-synthesis-page .s04-opening-next {
+  border-color: var(--s04-rule);
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+.rd-v2-synthesis-page .s04-opening-brief {
+  background: var(--s04-paper);
+}
+
+.rd-v2-synthesis-page .s04-opening-brief > header {
+  border-bottom-color: var(--s04-rule);
+  background: #f1ede3;
+}
+
+.rd-v2-synthesis-page .s04-opening-brief > header > button {
+  color: #315f51;
+}
+
+.rd-v2-synthesis-page .s04-opening-brief > header > button:hover {
+  color: #20463a;
+}
+
+.rd-v2-synthesis-page .s04-opening-brief > p {
+  color: #344353;
+}
+
+.rd-v2-synthesis-page .s04-opening-brief > dl,
+.rd-v2-synthesis-page .s04-opening-brief > dl > div + div {
+  border-color: var(--s04-rule-soft);
+}
+
+.rd-v2-synthesis-page .s04-opening-brief dd {
+  color: #273648;
+}
+
+.rd-v2-synthesis-page .s04-opening-brief dd.unstated {
+  color: #7e8792;
+}
+
+.rd-v2-synthesis-page .s04-opening-construction {
+  background: rgba(248, 245, 237, .72);
+}
+
+.rd-v2-synthesis-page .s04-opening-construction > h2 {
+  color: var(--s04-ink);
+}
+
+.rd-v2-synthesis-page .s04-opening-construction--empty > p {
+  color: var(--s04-muted);
+}
+
+.rd-v2-synthesis-page .s04-opening-next {
+  border-color: #ced8cc;
+  background: var(--s04-paper-action);
+}
+
+.rd-v2-synthesis-page .s04-opening-next > p {
+  color: #526373;
+}
+
+.rd-v2-synthesis-page .s04-opening-next > em {
+  border-top-color: #d7dfd4;
+  color: #768373;
+}
+
+.rd-v2-synthesis-page .s04-opening-next .s04-next-secondary {
+  border-color: #cdd5cf;
+  background: rgba(250, 248, 242, .76);
+  color: #52606d;
+}
+
+.rd-v2-synthesis-page .s04-opening-next .s04-next-primary {
+  border-color: #4b7766;
+  background: #4b7766;
+}
+
+.rd-v2-synthesis-page .s04-opening-next button:disabled {
+  border-color: #d8d9d1;
+  background: #e3e3dc;
+  color: #87909a;
+  opacity: 1;
+}
+
+/* The inspector is a continuation of the work surface. It may be slightly
+ * cooler than the centre to preserve scanning, but never stark white. */
+.rd-v2-shell:has(.rd-v2-synthesis-page) .yzu-inspector-stack {
+  background: #f5f2eb;
+  box-shadow: none;
+}
+
+.rd-v2-shell:has(.rd-v2-synthesis-page) .rd-v2-rail-pane {
+  background: #f5f2eb;
+}
+
+.rd-v2-shell:has(.rd-v2-synthesis-page) .s04-thread-rail {
+  color: #48586a;
+}
+
+.rd-v2-shell:has(.rd-v2-synthesis-page) .s04-thread-rail > section {
+  border-color: var(--s04-rule-soft);
+}
+
+.rd-v2-shell:has(.rd-v2-synthesis-page) .s04-thread-rail-kicker,
+.rd-v2-shell:has(.rd-v2-synthesis-page) .s04-thread-rail-label {
+  color: #627185;
+}
+
+.rd-v2-shell:has(.rd-v2-synthesis-page) .s04-thread-rail-questions > button {
+  border-color: #d6d4cb;
+  background: #faf8f2;
+  color: #365d74;
+}
+
+.rd-v2-shell:has(.rd-v2-synthesis-page) .s04-thread-rail-questions > button:hover {
+  border-color: #aebead;
+  background: #f0f4ee;
+}
+
 @media (max-width: 720px) {
   .rd-v2-synthesis-sidebar-slot { display: none; }
 
