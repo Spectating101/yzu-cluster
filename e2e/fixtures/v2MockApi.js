@@ -318,6 +318,9 @@ export async function mockV2Api(
   page,
   {
     discoverBody = { sections: [], total: 0 },
+    discoverSourcesBody = null,
+    discoverLiveSourcesBody = null,
+    discoverLiveSourcesDelayMs = 0,
     jobsBody = MOCK_JOBS,
     historyBody = { items: [] },
     profileBody = { found: true, profile: { name_en: "Test Prof", discipline: "YZU" } },
@@ -595,7 +598,22 @@ export async function mockV2Api(
       body: JSON.stringify(discoverBody),
     }),
   );
-  await page.route("**/library/discover/sources?*", (route) => {
+  await page.route("**/library/discover/sources?*", async (route) => {
+    const url = new URL(route.request().url());
+    const isLiveSourceSearch = url.searchParams.get("live") === "1" || url.searchParams.get("semantic") === "1";
+    const sourceBody = isLiveSourceSearch && discoverLiveSourcesBody
+      ? discoverLiveSourcesBody
+      : discoverSourcesBody;
+    if (sourceBody) {
+      if (isLiveSourceSearch && discoverLiveSourcesDelayMs > 0) {
+        await new Promise((resolve) => setTimeout(resolve, discoverLiveSourcesDelayMs));
+      }
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(sourceBody),
+      });
+    }
     const sections = Array.isArray(discoverBody?.sections) ? discoverBody.sections : [];
     const rows = sections.length
       ? sections.flatMap((section) => section?.rows || [])

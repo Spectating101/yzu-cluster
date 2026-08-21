@@ -63,6 +63,57 @@ test.describe("v2 Discover tab", () => {
     await expect(page.getByTestId("discover-browse-mode")).not.toContainText(/process overview/i);
   });
 
+  test("Search wider retains held evidence and trusts the federator's semantic relevance", async ({ page }) => {
+    const localBody = {
+      sections: [{
+        id: "discover",
+        rows: [{
+          kind: "registry_dataset",
+          dataset_id: "stablecoin_local",
+          candidate_key: "dataset:stablecoin_local",
+          title: "Stablecoin transfer event sample",
+          local_ready: true,
+          collect_via: "local_open",
+        }],
+      }],
+      total: 1,
+    };
+    const semanticSources = {
+      results: [{
+        kind: "source",
+        source_id: "bigquery_public",
+        candidate_key: "source:google_cloud:bigquery_public",
+        provider: "Google Cloud",
+        title: "Google BigQuery (public datasets)",
+        access_mode: "live_connector",
+        collect_via: ["bigquery"],
+        capabilities: ["onchain_crypto"],
+        query_relevance: 2,
+        relevance_evidence: [{ type: "preferred_source_capability", concept: "stablecoin_onchain_transactions" }],
+      }],
+      total: 1,
+    };
+    await mockV2Api(page, {
+      discoverBody: localBody,
+      discoverSourcesBody: { results: [] },
+      discoverLiveSourcesBody: semanticSources,
+      discoverLiveSourcesDelayMs: 1_000,
+    });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await searchDiscover(page, "stablecoin");
+
+    const summary = page.getByTestId("discover-result-summary");
+    await expect(summary).toContainText("Available · 0");
+    await expect(summary).toContainText("Library evidence · 1");
+    await page.getByRole("button", { name: "Search wider", exact: true }).click();
+    await expect(summary).toContainText("Searching wider sources…");
+    await expect(summary).toContainText("Available · 1");
+    await expect(summary).toContainText("Library evidence · 1");
+    await expect(summary).toContainText("Web context · 0");
+    await expect(page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidate")).toHaveCount(1);
+  });
+
   test("selecting a discover row keeps Explore visible and updates the Detail rail", async ({ page }) => {
     await searchDiscover(page);
     await page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate').first().click();
@@ -106,6 +157,23 @@ test.describe("v2 Discover tab", () => {
     await expect(shell).not.toHaveClass(/no-rail/);
     await expect(rail).toBeVisible();
     await expect(rail.getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "true");
+  });
+
+  test("mobile filter and sort controls remain fully reachable", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await mockV2Api(page, { discoverBody: MOCK_DISCOVER_HIT });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await searchDiscover(page, "stablecoin");
+
+    const filterBox = await page.getByTestId("discover-filter-menu").boundingBox();
+    const sortBox = await page.getByTestId("discover-sort-menu").boundingBox();
+    expect(filterBox).not.toBeNull();
+    expect(sortBox).not.toBeNull();
+    expect(filterBox.x).toBeGreaterThanOrEqual(0);
+    expect(filterBox.x + filterBox.width).toBeLessThanOrEqual(390);
+    expect(sortBox.x).toBeGreaterThanOrEqual(0);
+    expect(sortBox.x + sortBox.width).toBeLessThanOrEqual(390);
   });
 
   test("Discover candidate Ask actions carry candidate context", async ({ page }) => {

@@ -9665,6 +9665,11 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 }
 
 .rd-v2-discover-frozen-counts span:first-child { color: var(--rd-text); font-weight: 720; }
+.rd-v2-discover-frozen-counts .rd-v2-discover-counts-loading {
+  color: var(--rd-muted);
+  font-weight: 600;
+  font-variant-numeric: normal;
+}
 
 .rd-v2-discover-ranked-results {
   display: grid;
@@ -9729,7 +9734,13 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 }
 
 @media (max-width: 760px) {
-  .rd-v2-discover-frozen-controls { width: 100%; margin-left: 0; }
+  .rd-v2-discover-frozen-controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    margin-left: 0;
+  }
+  .rd-v2-discover-frozen-controls .rd-v2-discover-filter-menu { width: auto; min-width: 0; }
   .rd-v2-discover-frozen-counts { gap: 8px 12px; }
   .rd-v2-discover-ranked-results .rd-v2-discover-candidates button.row.rd-v2-discover-candidate { padding-right: 12px; }
 }

@@ -224,7 +224,7 @@ export function V2App() {
     question: "",
     result: null,
   });
-  /** One-shot: Explore should hit live source adapters (Search wider / Ask handoff). */
+  /** The current Explore query is using live source adapters after Search wider. */
   const [discoverPreferLive, setDiscoverPreferLive] = useState(false);
   /** A Synthesis evidence gap routed to Discover — cleared on Dismiss or Return. */
   const [synthesisDiscoverHandoff, setSynthesisDiscoverHandoff] = useState(null);
@@ -810,6 +810,7 @@ export function V2App() {
           ? `Continue this Discover investigation: ${q}. Current index candidates: ${resultNames.join("; ") || "none named"}. Help refine the evidence requirement, explain what is known versus unknown, and identify the next valid action. Do not submit procurement without explicit approval.`
           : `Investigate this evidence need: ${q}. Begin with held evidence, ask for missing requirement details when needed, and use wider discovery only when it adds value. Keep procurement approval-gated.`
       );
+      setDiscoverPreferLive(false);
       setDiscoverSearchQuery(q);
       setActiveObject({
         kind: "discover_investigation",
@@ -1437,6 +1438,7 @@ export function V2App() {
           onPreviewDataset={openPreview}
           onAskAttention={askHomeAttention}
           onSuggestSearch={(q) => {
+            setDiscoverPreferLive(false);
             setDiscoverSearchQuery(q);
             goTab("browse");
           }}
@@ -1487,7 +1489,6 @@ export function V2App() {
           searchQuery={discoverSearchQuery}
           onSearchChange={setDiscoverSearchQuery}
           preferLiveSources={discoverPreferLive}
-          onLiveSourcesConsumed={setDiscoverPreferLive}
           jobs={jobs}
           usingSeed={usingSeed}
           probeSnapshots={probeSnapshots}
@@ -1531,6 +1532,7 @@ export function V2App() {
           onSuggestSearch={(q) => {
             setDiscoverIntentRecord(null);
             setDiscoverAssessment({ active: false, question: "", result: null });
+            setDiscoverPreferLive(false);
             setDiscoverSearchQuery(q);
             goTab("browse");
           }}

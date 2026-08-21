@@ -118,7 +118,16 @@ function candidateSearchText(row) {
 }
 
 function hasSpecificSourceRoute(rows, query) {
-  return hasSpecificDiscoverRoute(rows || [], interpretEvidenceNeed(query).tokens);
+  const backendMatched = (rows || []).some((row) => {
+    // The federator may establish relevance semantically: a stablecoin query
+    // can match an on-chain capability without repeating the literal word in
+    // the provider name. Do not discard that measured backend verdict merely
+    // because the presentational text has no lexical token overlap.
+    if (Number(row?.query_relevance) > 0) return true;
+    if (Array.isArray(row?.relevance_evidence) && row.relevance_evidence.length) return true;
+    return Boolean(String(row?.match_mode || "").trim());
+  });
+  return backendMatched || hasSpecificDiscoverRoute(rows || [], interpretEvidenceNeed(query).tokens);
 }
 
 function rankExternalCatalogueRows(rows, query) {
@@ -565,7 +574,6 @@ export function BrowsePage({
   onSelectRow,
   searchQuery,
   preferLiveSources = false,
-  onLiveSourcesConsumed,
   jobs = [],
   usingSeed = false,
   probeSnapshots = {},
@@ -633,26 +641,30 @@ export function BrowsePage({
     let cancelled = false;
     const q = (searchQuery || "").trim();
     const externalSearchActive = Boolean(q && externalSearchQuery === q);
+    // Widening is a refinement of the result set the researcher is already
+    // reading. Preserve those measured rows while the live federation runs;
+    // clearing them made the frozen counters falsely claim zero evidence.
+    const isWidening = Boolean(preferLiveSources && q && loadedQuery === q);
     const email = loadUserEmail();
     const immediateDemo = discoverDemoSearch(q);
     setLoading(true);
     setError("");
     setSource("");
     setDemoFallback(false);
-    setRows([]);
+    if (!isWidening) setRows([]);
     setStateFilter("all");
     setIndexMiss(false);
-    setLoadedQuery("");
+    if (!isWidening) setLoadedQuery("");
 
     const flattenRows = (data) => {
       const fromApi = (data.sections || []).flatMap((s) => s.rows || []);
       return fromApi.length ? fromApi : data.results || data.hits || [];
     };
 
-    const apply = (data, label) => {
+    const apply = (data, label, { append = false } = {}) => {
       if (cancelled) return 0;
       const flat = flattenRows(data);
-      setRows(flat);
+      setRows((current) => (append ? dedupeRows([...(current || []), ...flat]) : flat));
       setSource(label);
       if (label !== "demo") setDemoFallback(false);
       return flat.length;
@@ -706,7 +718,6 @@ export function BrowsePage({
             live: true,
           });
           let sourceRows = sourcesResponseToRows(sources);
-          onLiveSourcesConsumed?.(false);
           if (sourceRows.length) {
             // A capability route is not an evidence match. When the source
             // catalogue cannot name a route that actually matches the need,
@@ -716,7 +727,11 @@ export function BrowsePage({
                 const web = await webDiscover(q, 8);
                 const webRows = rankExternalCatalogueRows(webHitsToRows(web), q);
                 if (webRows.length) {
-                  apply({ sections: [{ id: "external_catalogues", rows: webRows }] }, "external_catalogues");
+                  apply(
+                    { sections: [{ id: "external_catalogues", rows: webRows }] },
+                    "external_catalogues",
+                    { append: isWidening },
+                  );
                   setIndexMiss(Boolean(web.index_miss));
                   return;
                 }
@@ -724,13 +739,16 @@ export function BrowsePage({
                 // Catalogue availability is optional; retain known routes as a truthful fallback.
               }
             }
-            apply({ results: sourceRows }, sources.demo ? "demo" : "sources");
+            apply(
+              { results: sourceRows },
+              sources.demo ? "demo" : "sources",
+              { append: isWidening },
+            );
             if (sources.demo) setDemoFallback(true);
             setIndexMiss(false);
             return;
           }
         } catch {
-          onLiveSourcesConsumed?.(false);
           /* sources endpoint optional — fall through to the index path */
         }
         }
@@ -813,7 +831,7 @@ export function BrowsePage({
     return () => {
       cancelled = true;
     };
-  }, [searchQuery, discoverMode, labIds, preferLiveSources, onLiveSourcesConsumed, externalSearchQuery]);
+  }, [searchQuery, discoverMode, labIds, preferLiveSources, externalSearchQuery]);
 
   useEffect(() => {
     const q = String(searchQuery || "").trim();
@@ -1310,15 +1328,23 @@ export function BrowsePage({
                 </div>
               </div>
               <div className="rd-v2-discover-frozen-counts" aria-label="Discover result territories">
-                {discoverTerritories(resultGroups).map((territory) =>
-                  // The freeze makes Library evidence an opener, not a label:
-                  // it reveals a bounded preview plus Compare coverage and Open
-                  // Library results. The popover existed and was never mounted.
-                  territory.id === "held" && libraryEvidenceMenu ? (
-                    <span key={territory.id}>{libraryEvidenceMenu}</span>
-                  ) : (
-                    <span key={territory.id}>{territory.label} · {territory.count}</span>
-                  ),
+                {loading ? (
+                  <span className="rd-v2-discover-counts-loading" role="status">
+                    {preferLiveSources
+                      ? "Searching wider sources…"
+                      : "Searching your Library and known source routes…"}
+                  </span>
+                ) : (
+                  discoverTerritories(resultGroups).map((territory) =>
+                    // The freeze makes Library evidence an opener, not a label:
+                    // it reveals a bounded preview plus Compare coverage and Open
+                    // Library results. The popover existed and was never mounted.
+                    territory.id === "held" && libraryEvidenceMenu ? (
+                      <span key={territory.id}>{libraryEvidenceMenu}</span>
+                    ) : (
+                      <span key={territory.id}>{territory.label} · {territory.count}</span>
+                    ),
+                  )
                 )}
               </div>
               <div className="rd-v2-discover-result-actions" aria-label="Discover next actions">
