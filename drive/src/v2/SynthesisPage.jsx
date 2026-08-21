@@ -526,6 +526,15 @@ function evidenceNodeId(node) {
   return String(node?.id || node?.dataset_id || "");
 }
 
+function mapTitle(thread, target) {
+  const objective = text(thread?.objective || thread?.state?.objective);
+  const targetLabel = text(target?.label);
+  // An opening thread's target is often the verbatim brief. The brief already
+  // owns that long-form text; repeat the durable title in the map rather than
+  // turning the evidence review into a second copy of the same paragraph.
+  return !targetLabel || targetLabel === objective ? titleFor(thread) : targetLabel;
+}
+
 // A node's own `status` string is display text the backend chose, not a
 // judgment the UI should re-derive meaning from. Routability to Discover is
 // decided only by whether the durable discover-handoff endpoint explicitly
@@ -552,6 +561,7 @@ function EvidenceMap({
 }) {
   const proposalRef = useRef(null);
   const target = targetNode(thread);
+  const mapTarget = mapTitle(thread, target);
   const evidence = evidenceNodes(thread);
   const state = thread?.state || {};
   const missing = evidence.filter((node) => isEvidenceGap(node, missingIds));
@@ -607,7 +617,7 @@ function EvidenceMap({
             <b>↓</b>
           </>
         ) : null}
-        <strong className="target">{text(target?.label, text(thread?.objective, "Research objective"))}</strong>
+        <strong className="target">{mapTarget}</strong>
       </div>
       {!evidence.length && evidenceProposal ? (
         <section
@@ -650,8 +660,8 @@ function EvidenceMap({
       <div className="s04-pairs">
         <article>
           <small>Research object</small>
-          <strong>{text(thread?.objective || state.objective, "Not reported")}</strong>
-          <p>{text(target?.interpretation, "Ask can refine the object before a method proposal is accepted.")}</p>
+          <strong>{mapTarget}</strong>
+          <p>{text(target?.interpretation, "The research brief above remains the source of truth for this construction.")}</p>
         </article>
         <article>
           <small>Unresolved evidence</small>
@@ -682,21 +692,23 @@ function EvidenceMap({
           </div>
         </section>
       ) : null}
-      <footer className="s04-actions">
-        <p>
-          <small>Next</small>
-          Ask proposes reviewable changes. It cannot silently accept a method or register an output.
-        </p>
-        {evidence.length ? (
-          <button type="button" className="rd-v2-btn primary" onClick={() => onAsk("Explain the current evidence map and identify the next material research decision.")}>
-            Discuss construction in Ask
-          </button>
-        ) : (
-          <button type="button" className="rd-v2-btn primary" disabled={mappingEvidence} onClick={onFindEvidence}>
-            {mappingEvidence ? "Finding held evidence…" : "Find held Library evidence"}
-          </button>
-        )}
-      </footer>
+      {evidence.length || !evidenceProposal ? (
+        <footer className="s04-actions">
+          <p>
+            <small>Next</small>
+            Ask proposes reviewable changes. It cannot silently accept a method or register an output.
+          </p>
+          {evidence.length ? (
+            <button type="button" className="rd-v2-btn primary" onClick={() => onAsk("Explain the current evidence map and identify the next material research decision.")}>
+              Discuss construction in Ask
+            </button>
+          ) : (
+            <button type="button" className="rd-v2-btn primary" disabled={mappingEvidence} onClick={onFindEvidence}>
+              {mappingEvidence ? "Finding held evidence…" : "Find held Library evidence"}
+            </button>
+          )}
+        </footer>
+      ) : null}
     </section>
   );
 }
