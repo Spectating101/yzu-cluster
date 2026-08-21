@@ -87,6 +87,14 @@ function stateFor(thread) {
   return "draft";
 }
 
+function initialGroundingIsPending(thread) {
+  const state = thread?.state || {};
+  return (
+    stateFor(thread) === "draft"
+    && text(state.lastActivity).toLowerCase() === "thread created."
+  );
+}
+
 function stageLabel(thread) {
   const state = thread?.state || {};
   const execution = state.execution || {};
@@ -297,8 +305,8 @@ function ResearchBrief({ thread, onEditIntent }) {
 
 /**
  * Spec §6. One construction is recommended and the alternatives stay counted but
- * collapsed. Nothing writes a construction yet, so the absent case is the one
- * researchers will meet — it says so plainly rather than drawing an empty card.
+ * collapsed. Before the first reasoning turn, the canvas must offer a real
+ * transition into Ask rather than looking like a completed but inert demo.
  */
 function OpeningRoleMap({ recommendation }) {
   const output = recommendation.expectedOutput.label || recommendation.title;
@@ -367,8 +375,8 @@ function RecommendedConstruction({ thread, onCompare }) {
           <small>Recommended construction</small>
         </header>
         <p>
-          No construction has been recommended yet. The desk will not propose one until a
-          reasoning turn grounds it in evidence roles.
+          No construction has been recommended yet. Start a reasoning turn to ground one
+          reviewable proposal in this brief and the recorded Library evidence.
         </p>
       </section>
     );
@@ -399,16 +407,20 @@ function RecommendedConstruction({ thread, onCompare }) {
  * Both actions stay disabled until a construction exists to act on. A button
  * that looks live and does nothing is worse than one that says why it cannot.
  */
-function WhatHappensNext({ thread, onCompare, onAccept }) {
+function WhatHappensNext({ thread, onCompare, onAccept, onStartReasoning, reasoningPending = false }) {
   const rec = recommendedConstruction(thread);
+  const hasRecommendation = rec.present;
   return (
     <section className="s04-opening-next" aria-label="What happens next">
       <header>
         <small>What happens next</small>
       </header>
       <p>
-        Accepting a construction will not build data. The desk will draft the detailed method and
-        surface only the choices that materially change the output.
+        {hasRecommendation
+          ? "Accepting a construction will not build data. The desk will draft the detailed method and surface only the choices that materially change the output."
+          : reasoningPending
+            ? "Ask is grounding one reviewable construction in this brief and the recorded Library evidence. It will not collect, execute, or change data."
+            : "Start a reasoning turn to request one reviewable construction. It may clarify a decisive gap first; it will not collect, execute, or change data."}
       </p>
       <footer>
         <button
@@ -422,16 +434,22 @@ function WhatHappensNext({ thread, onCompare, onAccept }) {
         <button
           type="button"
           className="s04-next-primary"
-          disabled={!rec.present}
-          onClick={() => onAccept?.()}
-        >
-          Accept &amp; design method
+          disabled={hasRecommendation ? false : reasoningPending || !onStartReasoning}
+          onClick={() => (hasRecommendation ? onAccept?.() : onStartReasoning?.())}
+          >
+          {hasRecommendation
+            ? "Accept & design method"
+            : reasoningPending
+              ? "Method reasoning in Ask"
+              : "Start method reasoning"}
         </button>
       </footer>
       <em>
-        {rec.present
+        {hasRecommendation
           ? "AI recommendation ready · nothing built or modified"
-          : "No recommendation yet · nothing built or modified"}
+          : reasoningPending
+            ? "Waiting for a reviewable proposal · nothing built or modified"
+            : "A proposal will be reviewable before any method or data changes"}
       </em>
     </section>
   );
@@ -1057,6 +1075,7 @@ export function SynthesisPage({
   const [newMode, setNewMode] = useState(false);
   const [objective, setObjective] = useState("");
   const [interpretingStalled, setInterpretingStalled] = useState(false);
+  const [reasoningThreadId, setReasoningThreadId] = useState("");
   const [selectedField, setSelectedField] = useState(null);
   const [promoted, setPromoted] = useState("");
   const [missingEvidenceIds, setMissingEvidenceIds] = useState(() => new Set());
@@ -1120,6 +1139,9 @@ export function SynthesisPage({
   }, []);
 
   const selected = useMemo(() => threads.find((thread) => thread.id === selectedId) || null, [threads, selectedId]);
+  const reasoningPending = Boolean(
+    selected && (initialGroundingIsPending(selected) || reasoningThreadId === selected.id),
+  );
 
   useEffect(() => {
     if (!selected) return;
@@ -1145,7 +1167,7 @@ export function SynthesisPage({
     if (!selected) return undefined;
     const execution = selected?.state?.execution || {};
     const executing = /pending_approval|queued|running|registering|archiving/i.test(String(execution.status || ""));
-    const interpreting = stateFor(selected) === "draft";
+    const interpreting = reasoningPending;
 
     // Stalling belongs to one durable thread. Selecting a different new
     // thread must start a fresh wait window rather than inheriting the
@@ -1179,7 +1201,12 @@ export function SynthesisPage({
       }
     }, 4000);
     return () => window.clearInterval(timer);
-  }, [selected, refreshThread, interpretingStalled]);
+  }, [selected, refreshThread, interpretingStalled, reasoningPending]);
+
+  useEffect(() => {
+    if (!selected || stateFor(selected) === "draft") return;
+    setReasoningThreadId((current) => (current === selected.id ? "" : current));
+  }, [selected]);
 
   const retryInterpreting = useCallback(() => {
     interpretingThreadIdRef.current = selected?.id || "";
@@ -1266,8 +1293,21 @@ export function SynthesisPage({
     });
   };
 
+  const startMethodReasoning = (thread = selected) => {
+    if (!thread?.id) return;
+    setReasoningThreadId(thread.id);
+    setInterpretingStalled(false);
+    interpretingThreadIdRef.current = thread.id;
+    interpretingSinceRef.current = Date.now();
+    ask(
+      "Ground this research brief in the recorded Library evidence and create one reviewable Synthesis proposal. State its evidence roles, target grain, direct-measure limitation, and the one unresolved choice that matters most. Record the proposal for review; do not accept it, collect evidence, execute work, or alter data.",
+      thread,
+    );
+  };
+
   const beginNew = () => {
     setSelectedId("");
+    setReasoningThreadId("");
     setNewMode(true);
     setObjective("");
     setError("");
@@ -1290,6 +1330,7 @@ export function SynthesisPage({
       setNewMode(false);
       setObjective("");
       onSelectThread?.(created);
+      setReasoningThreadId(created.id);
       ask(
         `Interpret this research objective. Separate supported evidence, proposed proxy choices, and unresolved limitations, then ask the one highest-value clarification question: ${nextObjective}`,
         created,
@@ -1330,6 +1371,7 @@ export function SynthesisPage({
       setNewMode(false);
       setObjective("");
       onSelectThread?.(created);
+      setReasoningThreadId(created.id);
       ask(
         `Use registered blueprint ${profile.id} (${title}). Propose the smallest defensible construction from owned Library inputs. Do not invent missing sources.`,
         created,
@@ -1447,6 +1489,8 @@ export function SynthesisPage({
                     thread={selected}
                     onCompare={() => ask("Compare the alternative constructions and say what each one costs.")}
                     onAccept={() => ask("Accept the recommended construction and draft the detailed method.")}
+                    onStartReasoning={() => startMethodReasoning()}
+                    reasoningPending={reasoningPending}
                   />
                 </>
               ) : null}
@@ -1529,11 +1573,10 @@ export function SynthesisPage({
                 onChange={(change) => ask(`For the revision, change ${change.label}.`)}
                 onPreview={() => ask("Preview this revision before building it.")}
               />
-              {/* Spec §6: the opening state ends on the recommendation and its two
-                  actions. The draft canvas restates the same interpretation below
-                  them, which pushed ACCEPT & DESIGN METHOD off a 900px screen. It
-                  returns once the opening state is over. */}
-              {mode === "draft" && !focus.blocking && !isPreAcceptance(selected) ? (
+              {/* The opening remains compact until a researcher actually starts a
+                  reasoning turn. Then this is a transient, truthful progress
+                  record—not a second, decorative restatement of the brief. */}
+              {reasoningPending && !focus.blocking ? (
                 <DraftCanvas thread={selected} onAsk={ask} stalled={interpretingStalled} onRetry={retryInterpreting} />
               ) : null}
             </>

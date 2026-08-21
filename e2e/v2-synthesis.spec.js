@@ -455,6 +455,53 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await capture(page, "05-shared-ask-desktop");
   });
 
+  test("starts reviewable method reasoning from an empty construction", async ({ page }) => {
+    const updated = structuredClone(EXPLORING_THREAD);
+    updated.updated_at = "2026-07-19T09:03:00+00:00";
+    updated.state.maturity = "review";
+    updated.state.maturityLabel = "Method review";
+    updated.state.proposal = structuredClone(PROPOSAL_THREAD.state.proposal);
+
+    await page.route("**/api/library/synthesis/threads/thread-attention", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(updated),
+      }),
+    );
+    let prompt = "";
+    const proposalReply = (route) => {
+      prompt = String(route.request().postDataJSON?.()?.message || "");
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          session_id: "synthesis-session-attention",
+          reply: "A review proposal was recorded. Nothing was executed.",
+          artifacts: {
+            action: "synthesis_proposal_recorded_response_error",
+            proposal_recorded: true,
+            synthesis_thread_id: "thread-attention",
+            synthesis_proposal: updated.state.proposal,
+          },
+        }),
+      });
+    };
+    await page.route("**/api/library/chat/stream", proposalReply);
+    await page.route("**/api/library/chat", proposalReply);
+
+    await page.getByRole("button", { name: "Start method reasoning" }).click();
+
+    await expect.poll(() => prompt).toContain("create one reviewable Synthesis proposal");
+    await expect(page.locator("aside.rd-v2-rail")).toContainText("Ask · synthesis thread");
+    await expect(page.getByTestId("synthesis-proposal-state")).toContainText(
+      "Aggregate held weekly panel",
+    );
+    await expect(page.getByTestId("ask-agent-card").last()).toContainText(
+      "Nothing was executed",
+    );
+  });
+
   test("refreshes the canvas in the same Ask turn that records a proposal", async ({ page }) => {
     const updated = structuredClone(EXPLORING_THREAD);
     updated.updated_at = "2026-07-19T09:03:00+00:00";
@@ -515,6 +562,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await expect(page.getByText(objective, { exact: true }).first()).toBeVisible();
     await expect(page.getByRole("heading", { name: "Weekly issuer attention panel for Taiwan filings" })).toBeVisible();
     await expect(page.getByTestId("synthesis-draft-state")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Method reasoning in Ask" })).toBeDisabled();
     await expect(page.locator("aside.rd-v2-rail")).toContainText("Ask · synthesis thread");
     await expect(page.locator("aside.rd-v2-rail")).not.toContainText("Interpret this research objective");
     await expect(page.locator("aside.rd-v2-rail")).toContainText(
@@ -783,7 +831,12 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await page.setViewportSize({ width: 390, height: 1200 });
     await page.reload({ waitUntil: "domcontentloaded" });
     await waitForShell(page);
-    await page.getByTestId("synthesis-thread-item").filter({ hasText: "Weekly trust panel" }).click();
+    // The desktop thread list is intentionally hidden on a narrow screen;
+    // select the same durable thread through the mobile picker a researcher
+    // can actually use.
+    await page.getByRole("combobox", { name: "Choose Synthesis thread" }).selectOption({
+      label: "Weekly trust panel",
+    });
     const proposal = page.getByTestId("synthesis-proposal-state");
     await expect(proposal).toContainText("Held input");
     await expect(proposal).toContainText("Construction");
@@ -817,13 +870,18 @@ test.describe("v2 Synthesis evidence panels", () => {
   });
 
   async function mount(page, thread) {
+    // These panels exercise only a durable Synthesis payload. Keep the shell
+    // deterministic too: without the common desk mocks, a local Vite run
+    // silently proxies bootstrap requests to whatever happens to be on :8765.
+    await mockV2Api(page);
     await page.route("**/api/library/synthesis/threads**", (route) =>
       route.fulfill({
         status: 200, contentType: "application/json",
         body: JSON.stringify(route.request().url().includes("thread-fields")
           ? thread : { threads: [thread], total: 1 }),
       }));
-    await page.goto("/?tab=synthesis");
+    await page.goto("/?tab=synthesis", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
     await page.getByTestId("synthesis-thread-item").first().click();
   }
 
@@ -888,13 +946,15 @@ test.describe("v2 Synthesis decision and record panels", () => {
   });
 
   async function mount(page, payload) {
+    await mockV2Api(page);
     await page.route("**/api/library/synthesis/threads**", (route) =>
       route.fulfill({
         status: 200, contentType: "application/json",
         body: JSON.stringify(route.request().url().includes("thread-panels")
           ? payload : { threads: [payload], total: 1 }),
       }));
-    await page.goto("/?tab=synthesis");
+    await page.goto("/?tab=synthesis", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
     await page.getByTestId("synthesis-thread-item").first().click();
   }
 

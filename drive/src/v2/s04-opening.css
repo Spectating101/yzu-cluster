@@ -895,6 +895,34 @@
   opacity: 1;
 }
 
+/* A live reasoning turn needs a visible state, but not the old blueprint-like
+ * white canvas. This appears only after the researcher starts Ask, and folds
+ * away when the durable thread receives evidence or a review proposal. */
+.rd-v2-synthesis-page .s04-draft {
+  border-color: #ced8cc;
+  border-radius: 10px;
+  background: rgba(237, 242, 235, .76);
+  box-shadow: none;
+}
+
+.rd-v2-synthesis-page .s04-draft .s04-title {
+  border-bottom-color: #d7dfd4;
+}
+
+.rd-v2-synthesis-page .s04-draft-flow {
+  border-color: #d1dbcf;
+  border-radius: 8px;
+  background-color: rgba(248, 245, 237, .62);
+  background-image: none;
+}
+
+.rd-v2-synthesis-page .s04-draft-flow > div > article {
+  border-color: #d5ded2;
+  border-style: solid;
+  border-radius: 7px;
+  background: rgba(248, 245, 237, .8);
+}
+
 /* The inspector is a continuation of the work surface. It may be slightly
  * cooler than the centre to preserve scanning, but never stark white. */
 .rd-v2-shell:has(.rd-v2-synthesis-page) .yzu-inspector-stack {
