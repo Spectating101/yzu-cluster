@@ -89,14 +89,6 @@ function stateFor(thread) {
   return "draft";
 }
 
-function initialGroundingIsPending(thread) {
-  const state = thread?.state || {};
-  return (
-    stateFor(thread) === "draft"
-    && text(state.lastActivity).toLowerCase() === "thread created."
-  );
-}
-
 function stageLabel(thread) {
   const state = thread?.state || {};
   const execution = state.execution || {};
@@ -558,12 +550,23 @@ function EvidenceMap({
   onFindEvidence,
   onApplyEvidence,
 }) {
+  const proposalRef = useRef(null);
   const target = targetNode(thread);
   const evidence = evidenceNodes(thread);
   const state = thread?.state || {};
   const missing = evidence.filter((node) => isEvidenceGap(node, missingIds));
   const proposed = Array.isArray(evidenceProposal?.nodes) ? evidenceProposal.nodes : [];
   const proposalReason = text(evidenceProposal?.reason);
+
+  // Finding held evidence is an explicit transition. The review result lands
+  // below the opening fold, inside the evidence map, so leaving the viewport
+  // still makes a successful request look inert. Move the result into view
+  // only after the researcher asks for it; do not move them on initial load.
+  useEffect(() => {
+    if (evidence.length || !evidenceProposal || !proposalRef.current) return;
+    proposalRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [evidence.length, evidenceProposal]);
+
   return (
     <section className="s04-card" data-testid="synthesis-evidence-state">
       <header className="s04-title">
@@ -607,7 +610,13 @@ function EvidenceMap({
         <strong className="target">{text(target?.label, text(thread?.objective, "Research objective"))}</strong>
       </div>
       {!evidence.length && evidenceProposal ? (
-        <section className="s04-evidence-proposal" data-testid="synthesis-evidence-proposal">
+        <section
+          ref={proposalRef}
+          className="s04-evidence-proposal"
+          data-testid="synthesis-evidence-proposal"
+          tabIndex={-1}
+          aria-live="polite"
+        >
           <header>
             <div>
               <small>Held inputs found</small>
@@ -1218,9 +1227,11 @@ export function SynthesisPage({
   }, []);
 
   const selected = useMemo(() => threads.find((thread) => thread.id === selectedId) || null, [threads, selectedId]);
-  const reasoningPending = Boolean(
-    selected && (initialGroundingIsPending(selected) || reasoningThreadId === selected.id),
-  );
+  // A stored draft is not evidence that an Ask turn is running. Only the
+  // deliberate transition below may show the transient "in progress" state;
+  // otherwise a returned-to thread would look like a static demo that is
+  // silently working when no provider request was ever made.
+  const reasoningPending = Boolean(selected && reasoningThreadId === selected.id);
 
   useEffect(() => {
     if (!selected) return;

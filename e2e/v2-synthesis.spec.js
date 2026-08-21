@@ -325,6 +325,9 @@ test.describe("v2 Synthesis durable thread surface", () => {
     const proposal = page.getByTestId("synthesis-evidence-proposal");
     await expect(proposal).toContainText("Indonesia daily cross-section");
     await expect(proposal).toContainText("Not mapped yet");
+    // The result is below the opening fold. An explicit search should reveal
+    // its review result rather than leaving the successful request invisible.
+    await expect(proposal).toBeInViewport();
     await expect(evidence).toContainText("No inputs mapped");
     await capture(page, "02b-held-evidence-review-desktop");
 

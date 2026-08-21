@@ -52,7 +52,10 @@ export function buildDiscoverRestingSummary(rows = [], labIds = new Set(), query
       ? `${found} offering${found === 1 ? "" : "s"}`
       : "",
     heldCount,
-    heldLine: found ? `${heldCount} of ${found} already held` : "",
+    // This is the overlap within the visible result set, not the total held
+    // Library count shown in Discover chrome. Name that scope so the two
+    // truthful values cannot read as a contradiction in the right rail.
+    heldLine: found ? `${heldCount} of these ${found} already held` : "",
     heldBody: found
       ? heldCount
         ? ""
