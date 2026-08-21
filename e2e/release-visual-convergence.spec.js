@@ -104,7 +104,14 @@ test.describe("Research Drive release visual contract", () => {
 
     for (const destination of destinations) {
       await openTab(page, destination.tab);
-      await expect(page.locator(".rd-v2-page-head h1", { hasText: destination.title })).toBeVisible();
+      // Synthesis is deliberately not a generic PageShell: its S-04 opening
+      // starts with the durable-object decision, while every other surface
+      // retains the frozen page heading.
+      if (destination.tab === "Synthesis") {
+        await expect(page.getByRole("heading", { name: "Start one durable research object." })).toBeVisible();
+      } else {
+        await expect(page.locator(".rd-v2-page-head h1", { hasText: destination.title })).toBeVisible();
+      }
       const rail = page.locator("aside.rd-v2-rail");
       if (destination.rail) {
         await expect(rail.getByRole("tab", { name: "Ask" })).toBeVisible();

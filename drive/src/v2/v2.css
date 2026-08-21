@@ -74,7 +74,7 @@
   padding: 42px 44px 38px;
   border: 1px solid rgba(23, 32, 25, 0.24);
   background: #fffef8;
-  box-shadow: 0 24px 70px rgba(23, 32, 25, 0.1);
+  box-shadow: 0 24px 70px rgba(23, 32, 25, 0.1), 8px 8px 0 rgba(23, 32, 25, 0.035);
 }
 
 .rd-v2-access-kicker {
@@ -158,8 +158,8 @@
 .rd-v2-access-retry {
   width: 100%;
   margin-top: 10px;
-  border-color: transparent;
-  background: transparent;
+  border-color: rgba(23, 32, 25, 0.14);
+  background: #f4f2eb;
   color: #356b56;
 }
 

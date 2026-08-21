@@ -157,10 +157,10 @@ export function queryDataset(datasetId, limit = 50) {
   return fetchJson(`/query/${encodeURIComponent(datasetId)}?limit=${limit}`);
 }
 
-export function deskHealth(live = false) {
+export function deskHealth(live = false, { timeoutMs } = {}) {
   const q = live ? "?live=1" : "";
   // live=1 can stall ~30s on cluster probes — UI chrome must not wait.
-  return fetchJson(`/health${q}`, { timeoutMs: live ? 8000 : 6000 });
+  return fetchJson(`/health${q}`, { timeoutMs: timeoutMs ?? (live ? 8000 : 6000) });
 }
 
 export function deskResources(live = true) {

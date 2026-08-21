@@ -254,7 +254,10 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await expect(page.getByTestId("synthesis-evidence-state")).toContainText("Historical stablecoin attention");
     await expect(page.getByTestId("synthesis-evidence-state")).toContainText("Search intent");
     await expect(page.locator("aside.rd-v2-rail")).toContainText("Historical stablecoin attention");
-    await expect(page.locator("aside.rd-v2-rail")).toContainText("3 mapped inputs");
+    // S-04's rail leads with the thread's interpretation and unresolved
+    // questions; it no longer claims a fabricated aggregate input count.
+    await expect(page.locator("aside.rd-v2-rail")).toContainText("Your intent");
+    await expect(page.locator("aside.rd-v2-rail")).toContainText("Quick questions");
     await expect(page.getByTestId("rail-pane-ask")).toBeHidden();
     await expect(page.getByText("Nothing registered", { exact: true })).toBeVisible();
     await capture(page, "01-durable-evidence-desktop");
@@ -765,7 +768,8 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await expect(rail).toBeVisible();
     await expect.poll(async () => (await rail.boundingBox())?.height || 0).toBeGreaterThan(600);
     await expect(rail.getByTestId("rail-pane-detail")).toBeVisible();
-    await expect(rail).toContainText("3 mapped inputs");
+    await expect(rail).toContainText("Your intent");
+    await expect(rail).toContainText("Quick questions");
     await capture(page, "09-detail-sheet-mobile");
     await rail.getByRole("tab", { name: "Ask" }).click();
     await expect(rail.getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "true");

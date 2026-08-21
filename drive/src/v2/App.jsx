@@ -26,6 +26,7 @@ import {
   yzuClusterStatus,
 } from "@/v2/api";
 import { AskRail } from "@/v2/AskRail";
+import { DeskAccessGate } from "@/v2/DeskAccessGate";
 import {
   datasetObject,
   discoverHistoryObject,
@@ -251,6 +252,7 @@ export function V2App() {
   const [pendingAsk, setPendingAsk] = useState("");
   /** Ask can persist a review proposal; refresh the canvas in the same turn. */
   const [synthesisRefreshVersion, setSynthesisRefreshVersion] = useState(0);
+  const healthRetryRef = useRef(null);
   const { toast, show: showToast, dismissIf: dismissToastIf } = useToast();
   const authenticatedEmail = String(deskAccess?.principal?.email || "").trim();
   const canUseAsk = Boolean(deskAccess?.permissions?.use_ask);
@@ -342,6 +344,47 @@ export function V2App() {
 
   const refreshBackend = useCallback((opts = {}) => {
     const preserveJob = opts?.preserveJob || null;
+    if (healthRetryRef.current) {
+      window.clearTimeout(healthRetryRef.current);
+      healthRetryRef.current = null;
+    }
+    const applyHealth = (payload) => {
+      const merged = mergeHealth(payload);
+      setHealth(merged);
+      setDeskRefreshedAt(Date.now());
+      // Paint Home headroom from /health immediately; full /desk/resources hydrates after.
+      setResourcesRollup((cur) => {
+        if (cur && typeof cur === "object" && cur.status === "ok") return cur;
+        if (cur && cur.usage?.vault?.used_tb != null) return cur;
+        return projectRollupFromHealth(merged) || cur;
+      });
+    };
+    const markHealthUnmeasured = () => {
+      // An authenticated browser with working data routes is neither “demo”
+      // nor an assistant outage just because the aggregate /health read is
+      // still queued. Keep the absence explicit until the retry settles.
+      setHealth({ status: "unknown", desk: {} });
+    };
+    const retryHealthAfterQueue = () => {
+      healthRetryRef.current = window.setTimeout(() => {
+        deskHealth(false, { timeoutMs: 20000 })
+          .then(applyHealth)
+          .catch(markHealthUnmeasured)
+          .finally(() => {
+            healthRetryRef.current = null;
+          });
+      }, 5000);
+    };
+    // The front door serves one request at a time. Establish the small,
+    // authenticated health read before fanning out to the fuller desk loads;
+    // otherwise it sits behind the queue, times out, and leaves the header
+    // saying “Syncing…” while the rest of the desk is visibly ready.
+    deskHealth(false)
+      .then(applyHealth)
+      .catch(() => {
+        markHealthUnmeasured();
+        retryHealthAfterQueue();
+      });
     listDatasets()
       .then((rows) => applyCatalog(rows))
       .catch(async (err) => {
@@ -357,39 +400,6 @@ export function V2App() {
         }
         applyCatalog([], err.message);
       });
-    deskHealth(false)
-      .then((h) => {
-        const merged = mergeHealth(h);
-        setHealth(merged);
-        setDeskRefreshedAt(Date.now());
-        // Paint Home headroom from /health immediately; full /desk/resources hydrates after.
-        setResourcesRollup((cur) => {
-          if (cur && typeof cur === "object" && cur.status === "ok") return cur;
-          if (cur && cur.usage?.vault?.used_tb != null) return cur;
-          return projectRollupFromHealth(merged) || cur;
-        });
-      })
-      .catch(() =>
-        deskHealth(false)
-          .then((h) => {
-            const merged = mergeHealth(h);
-            setHealth(merged);
-            setDeskRefreshedAt(Date.now());
-            setResourcesRollup((cur) => {
-              if (cur && typeof cur === "object" && cur.status === "ok") return cur;
-              if (cur && cur.usage?.vault?.used_tb != null) return cur;
-              return projectRollupFromHealth(merged) || cur;
-            });
-          })
-          .catch(() => setHealth(mergeHealth(null))),
-      );
-    // Optional live probe — never blank the fast health if it times out.
-    deskHealth(true)
-      .then((h) => {
-        setHealth(mergeHealth(h));
-        setDeskRefreshedAt(Date.now());
-      })
-      .catch(() => {});
     listAcquisitions(true)
       .then((d) => setAcquisitions(d.acquisitions || []))
       .catch(() => setAcquisitions([]));
@@ -1680,6 +1690,20 @@ export function V2App() {
       })),
     [datasets, recentEpoch],
   );
+
+  // The API is deliberately private. Never let an unauthenticated response
+  // fall through as a zero, an empty state, or a permanently loading card.
+  // Capabilities and session bootstrap are the one public contract; every
+  // data surface becomes available only after that contract proves a session.
+  if (deskAccessBusy || !deskAccess?.authenticated) {
+    return (
+      <DeskAccessGate
+        access={deskAccess}
+        busy={deskAccessBusy}
+        onRetry={({ force = true } = {}) => refreshDeskAccess({ force })}
+      />
+    );
+  }
 
   return (
     <div className={`yzu-shell with-inspector rd-theme-light rd-v2-shell${hideRail ? " no-rail" : ""}`}>
