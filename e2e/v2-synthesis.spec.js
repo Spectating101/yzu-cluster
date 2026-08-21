@@ -315,8 +315,12 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await page.getByRole("button", { name: "Start project in Ask" }).click();
 
     const evidence = page.getByTestId("synthesis-evidence-state");
-    await expect(evidence.getByRole("button", { name: "Find held Library evidence" })).toBeVisible();
-    await evidence.getByRole("button", { name: "Find held Library evidence" }).click();
+    const next = page.getByLabel("What happens next");
+    const findHeldEvidence = next.getByRole("button", { name: "Find held evidence" });
+    await expect(findHeldEvidence).toBeVisible();
+    const findBox = await findHeldEvidence.boundingBox();
+    expect(findBox?.y || Infinity).toBeLessThan(900);
+    await findHeldEvidence.click();
 
     const proposal = page.getByTestId("synthesis-evidence-proposal");
     await expect(proposal).toContainText("Indonesia daily cross-section");

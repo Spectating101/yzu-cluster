@@ -349,6 +349,13 @@
   gap: 10px;
 }
 
+.s04-opening-next .s04-next-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 .s04-opening-next button {
   min-height: 32px;
   padding: 0 12px;
@@ -371,6 +378,12 @@
   border: 1px solid #245b86;
   background: #245b86;
   color: #fff;
+}
+
+.s04-opening-next .s04-next-map {
+  border: 1px solid #7ea493;
+  background: #edf4ef;
+  color: #315f4d;
 }
 
 .s04-opening-next button:disabled {
@@ -410,6 +423,8 @@
   .s04-opening-map { padding: 11px; }
   .s04-opening-map ol { grid-template-columns: 1fr; }
   .s04-opening-next > footer { align-items: stretch; flex-direction: column; }
+  .s04-opening-next .s04-next-actions { justify-content: stretch; }
+  .s04-opening-next .s04-next-actions > button { width: 100%; }
 }
 
 /* ── S-04 shell: one desk, three surfaces ──────────────────────────────── */
@@ -999,6 +1014,12 @@
 .rd-v2-synthesis-page .s04-opening-next .s04-next-primary {
   border-color: #4b7766;
   background: #4b7766;
+}
+
+.rd-v2-synthesis-page .s04-opening-next .s04-next-map {
+  border-color: #8eb39d;
+  background: #f5faf5;
+  color: #315f4d;
 }
 
 .rd-v2-synthesis-page .s04-opening-next button:disabled {

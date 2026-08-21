@@ -409,9 +409,19 @@ function RecommendedConstruction({ thread, onCompare }) {
  * Both actions stay disabled until a construction exists to act on. A button
  * that looks live and does nothing is worse than one that says why it cannot.
  */
-function WhatHappensNext({ thread, onCompare, onAccept, onStartReasoning, reasoningPending = false }) {
+function WhatHappensNext({
+  thread,
+  onCompare,
+  onAccept,
+  onStartReasoning,
+  onFindEvidence,
+  mappingEvidence = false,
+  reasoningPending = false,
+}) {
   const rec = recommendedConstruction(thread);
   const hasRecommendation = rec.present;
+  const hasMappedEvidence = evidenceNodes(thread).length > 0;
+  const needsEvidence = !hasRecommendation && !hasMappedEvidence;
   return (
     <section className="s04-opening-next" aria-label="What happens next">
       <header>
@@ -420,6 +430,8 @@ function WhatHappensNext({ thread, onCompare, onAccept, onStartReasoning, reason
       <p>
         {hasRecommendation
           ? "Accepting a construction will not build data. The desk will draft the detailed method and surface only the choices that materially change the output."
+          : needsEvidence
+            ? "First review held Library inputs. Then Ask can ground one reviewable construction in recorded evidence; neither step will collect, execute, or change data without your approval."
           : reasoningPending
             ? "Ask is grounding one reviewable construction in this brief and the recorded Library evidence. It will not collect, execute, or change data."
             : "Start a reasoning turn to request one reviewable construction. It may clarify a decisive gap first; it will not collect, execute, or change data."}
@@ -433,18 +445,30 @@ function WhatHappensNext({ thread, onCompare, onAccept, onStartReasoning, reason
         >
           Compare alternatives
         </button>
-        <button
-          type="button"
-          className="s04-next-primary"
-          disabled={hasRecommendation ? false : reasoningPending || !onStartReasoning}
-          onClick={() => (hasRecommendation ? onAccept?.() : onStartReasoning?.())}
+        <div className="s04-next-actions">
+          {needsEvidence ? (
+            <button
+              type="button"
+              className="s04-next-map"
+              disabled={mappingEvidence || !onFindEvidence}
+              onClick={() => onFindEvidence?.()}
+            >
+              {mappingEvidence ? "Finding held evidence" : "Find held evidence"}
+            </button>
+          ) : null}
+          <button
+            type="button"
+            className="s04-next-primary"
+            disabled={hasRecommendation ? false : reasoningPending || !onStartReasoning}
+            onClick={() => (hasRecommendation ? onAccept?.() : onStartReasoning?.())}
           >
-          {hasRecommendation
-            ? "Accept & design method"
-            : reasoningPending
-              ? "Method reasoning in Ask"
-              : "Start method reasoning"}
-        </button>
+            {hasRecommendation
+              ? "Accept & design method"
+              : reasoningPending
+                ? "Method reasoning in Ask"
+                : "Start method reasoning"}
+          </button>
+        </div>
       </footer>
       <em>
         {hasRecommendation
@@ -1587,6 +1611,8 @@ export function SynthesisPage({
                     onCompare={() => ask("Compare the alternative constructions and say what each one costs.")}
                     onAccept={() => ask("Accept the recommended construction and draft the detailed method.")}
                     onStartReasoning={() => startMethodReasoning()}
+                    onFindEvidence={findHeldEvidence}
+                    mappingEvidence={mappingEvidence}
                     reasoningPending={reasoningPending}
                   />
                 </>
