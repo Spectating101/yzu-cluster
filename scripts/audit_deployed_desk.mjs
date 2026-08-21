@@ -191,7 +191,7 @@ try {
     report.interactions.push({
       name: "Library query",
       query: await librarySearch.inputValue(),
-      result_rows: await page.locator(".rd-v2-library-row, .rd-v2-dataset-row, .rd-v2-catalog li").count(),
+      result_rows: await page.getByTestId("library-directory").locator("button.row").count(),
       horizontal_overflow: await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),
     });
     await page.screenshot({ path: path.join(outDir, "library-search-1440x900.png"), fullPage: false });
@@ -202,7 +202,11 @@ try {
     const composer = page.getByLabel("Search or describe a research need");
     await composer.fill("TWSE");
     await composer.press("Enter");
-    await page.waitForTimeout(6_000);
+    await page.waitForFunction(
+      () => document.querySelectorAll(".rd-v2-discover-candidate").length > 0,
+      null,
+      { timeout: 20_000 },
+    ).catch(() => {});
     report.interactions.push({
       name: "Discover keyword search",
       query: await composer.inputValue(),

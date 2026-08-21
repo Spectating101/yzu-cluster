@@ -114,6 +114,37 @@ test.describe("v2 Discover tab", () => {
     await expect(page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidate")).toHaveCount(1);
   });
 
+  test("does not report zero held evidence while the registry is still loading", async ({ page }) => {
+    let releaseCatalog;
+    const catalogReady = new Promise((resolve) => {
+      releaseCatalog = resolve;
+    });
+    await page.route("**/datasets", async (route) => {
+      await catalogReady;
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ datasets: [] }),
+      });
+    });
+
+    const catalogRequest = page.waitForRequest((request) =>
+      new URL(request.url()).pathname.endsWith("/datasets"),
+    );
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await catalogRequest;
+    await waitForShell(page);
+
+    try {
+      await searchDiscover(page, "stablecoin");
+      const summary = page.getByTestId("discover-result-summary");
+      await expect(summary).toContainText("Library evidence · Checking…");
+      await expect(summary).not.toContainText("Library evidence · 0");
+    } finally {
+      releaseCatalog();
+    }
+  });
+
   test("selecting a discover row keeps Explore visible and updates the Detail rail", async ({ page }) => {
     await searchDiscover(page);
     await page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate').first().click();

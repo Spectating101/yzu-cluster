@@ -1480,6 +1480,7 @@ export function V2App() {
         <BrowsePage
           labIds={labIds}
           libraryEvidenceCount={libraryEvidenceCount}
+          catalogLoading={catalogLoading}
           partitions={partitions}
           shelves={shelves}
           loadError={loadError}

@@ -565,6 +565,7 @@ function dedupeRows(rows) {
 export function BrowsePage({
   labIds,
   libraryEvidenceCount,
+  catalogLoading = false,
   partitions = [],
   shelves = [],
   loadError = "",
@@ -1033,6 +1034,7 @@ export function BrowsePage({
   }, [merged, labIds]);
 
   const q = (searchQuery || "").trim();
+  const wideningInProgress = Boolean(preferLiveSources && q && loadedQuery === q);
   const allInLab =
     !loading && merged.length > 0 && stageCounts.inLab > 0 && stageCounts.inLab === merged.length;
   const demoMode = demoFallback || (usingSeed && source === "demo");
@@ -1328,23 +1330,34 @@ export function BrowsePage({
                 </div>
               </div>
               <div className="rd-v2-discover-frozen-counts" aria-label="Discover result territories">
-                {loading ? (
+                {loading && !wideningInProgress ? (
                   <span className="rd-v2-discover-counts-loading" role="status">
                     {preferLiveSources
                       ? "Searching wider sources…"
                       : "Searching your Library and known source routes…"}
                   </span>
                 ) : (
-                  discoverTerritories(resultGroups).map((territory) =>
-                    // The freeze makes Library evidence an opener, not a label:
-                    // it reveals a bounded preview plus Compare coverage and Open
-                    // Library results. The popover existed and was never mounted.
-                    territory.id === "held" && libraryEvidenceMenu ? (
-                      <span key={territory.id}>{libraryEvidenceMenu}</span>
-                    ) : (
-                      <span key={territory.id}>{territory.label} · {territory.count}</span>
-                    ),
-                  )
+                  <>
+                    {discoverTerritories(resultGroups).map((territory) =>
+                      // A page reload can begin a query before /datasets has
+                      // answered. That is unmeasured, not zero held evidence.
+                      territory.id === "held" && catalogLoading ? (
+                        <span key={territory.id}>Library evidence · Checking…</span>
+                      // The freeze makes Library evidence an opener, not a label:
+                      // it reveals a bounded preview plus Compare coverage and Open
+                      // Library results. The popover existed and was never mounted.
+                      ) : territory.id === "held" && libraryEvidenceMenu ? (
+                        <span key={territory.id}>{libraryEvidenceMenu}</span>
+                      ) : (
+                        <span key={territory.id}>{territory.label} · {territory.count}</span>
+                      ),
+                    )}
+                    {loading && wideningInProgress ? (
+                      <span className="rd-v2-discover-counts-loading" role="status">
+                        Searching wider sources…
+                      </span>
+                    ) : null}
+                  </>
                 )}
               </div>
               <div className="rd-v2-discover-result-actions" aria-label="Discover next actions">
