@@ -87,7 +87,12 @@ import { composerRuntimeRead } from "@/v2/composerRuntimeStatus";
 
 function readParams() {
   const p = new URLSearchParams(window.location.search);
-  const rawTab = p.get("tab") || loadSettings().defaultTab || "home";
+  const dataset = p.get("dataset") || "";
+  // A bare dataset URL is a Library deep link. Home may still carry a
+  // selected dataset in its inspector, but writeParams makes that ownership
+  // explicit with tab=home so copied dataset-only URLs never open a split
+  // Home-canvas / Library-inspector state.
+  const rawTab = p.get("tab") || (dataset ? "library" : "") || loadSettings().defaultTab || "home";
   const folder = p.get("folder") || "";
   const q = p.get("q") || "";
   let tab = normalizeReleaseTab(canonicalTab(rawTab));
@@ -98,7 +103,7 @@ function readParams() {
   const discoverState = discoverModeFromLegacy(p.get("mode") || "");
   return {
     tab,
-    dataset: p.get("dataset") || "",
+    dataset,
     folder,
     preview: p.get("preview") === "1",
     q,
@@ -124,7 +129,10 @@ function tabOwnsFolder(tab) {
 
 function writeParams({ tab, dataset, folder, preview, q, mode }) {
   const p = new URLSearchParams();
-  if (tab && tab !== "home") p.set("tab", tab);
+  // Home normally owns the clean root URL. If its inspector is pinned to a
+  // dataset, retain tab=home so a reload does not reinterpret the URL as a
+  // Library deep link.
+  if (tab && (tab !== "home" || dataset)) p.set("tab", tab);
   if (folder && tabOwnsFolder(tab)) p.set("folder", folder);
   // Enforced here rather than at call sites: writeParams is the single writer,
   // so no caller can reintroduce the leak.
@@ -495,12 +503,14 @@ export function V2App() {
   useEffect(() => {
     const p = new URLSearchParams(window.location.search);
     const rawTab = p.get("tab") || "";
+    const rawDataset = p.get("dataset") || "";
     const rawFolder = p.get("folder") || "";
     const rawQ = p.get("q") || "";
     const needsLibraryRedirect =
       canonicalTab(rawTab) === DISCOVER_TAB && rawFolder && !rawQ && tab === "library";
+    const needsDatasetRedirect = !rawTab && rawDataset && tab === "library";
     const datasetMismatch = Boolean(selectedId && p.get("dataset") !== selectedId);
-    if (needsLibraryRedirect || datasetMismatch) {
+    if (needsLibraryRedirect || needsDatasetRedirect || datasetMismatch) {
       writeParams({
         tab,
         folder: folderId,

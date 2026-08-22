@@ -103,6 +103,18 @@ test.describe("v2 Library directory", () => {
 });
 
 test.describe("v2 Library navigation", () => {
+  test("a dataset-only deep link opens the Library workspace", async ({ page }) => {
+    await mockV2Api(page);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/?dataset=gdelt_asia_daily_country_panel", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+
+    await expect(page.getByRole("heading", { name: "Library", exact: true })).toBeVisible();
+    await expect(page.getByTestId("library-asset-workspace")).toBeVisible();
+    await expect(page.getByTestId("library-asset-workspace")).toContainText("Asia daily news-risk panel");
+    await expect(page).toHaveURL(/tab=library/);
+  });
+
   test("entering Library from Home lands on the branch rail", async ({ page }) => {
     await mockV2Api(page);
     await page.setViewportSize({ width: 1440, height: 900 });
