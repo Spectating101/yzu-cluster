@@ -57,6 +57,8 @@ const readOnlyApiPaths = [
   "/library/desk/capabilities",
   "/datasets",
   "/library/partitions",
+  "/library/jobs",
+  "/library/discover/history?limit=50",
   "/library/discover/sources?q=TWSE&limit=4",
   "/library/synthesis/threads?limit=4",
   "/library/desk/resources?live=0",
@@ -74,6 +76,7 @@ const report = {
   pages: [],
   interactions: [],
   network: [],
+  navigation_aborts: [],
   request_failures: [],
   console: [],
   page_errors: [],
@@ -113,6 +116,8 @@ function trackedRequestPath(requestUrl) {
   try {
     const pathname = new URL(requestUrl).pathname;
     return pathname === "/datasets"
+      || pathname === "/library/partitions"
+      || pathname === "/library/jobs"
       || pathname === "/library/discover"
       || pathname === "/library/discover/sources";
   } catch {
@@ -140,11 +145,19 @@ page.on("requestfailed", (request) => {
   if (!trackedRequestPath(request.url())) return;
   requestStarted.delete(request);
   const requestUrl = new URL(request.url());
-  report.request_failures.push({
+  const failure = {
     method: request.method(),
     path: `${requestUrl.pathname}${requestUrl.search}`,
     error: request.failure()?.errorText || "request failed",
-  });
+  };
+  if (failure.error === "net::ERR_ABORTED") {
+    // Page-to-page audit navigation intentionally cancels enrichment requests
+    // that are no longer relevant. Keep those observable without classifying
+    // them as transport failures.
+    report.navigation_aborts.push(failure);
+    return;
+  }
+  report.request_failures.push(failure);
 });
 
 page.on("console", (message) => {
@@ -161,16 +174,124 @@ async function waitForDesk() {
   await page.waitForTimeout(settleMs);
 }
 
+async function waitForPageTruth(label) {
+  if (label === "home") {
+    const pickUp = page.getByTestId("home-continue");
+    await pickUp.waitFor({ state: "attached", timeout: 20_000 });
+    await page.locator('[data-testid="home-continue"][aria-busy="true"]').waitFor({
+      state: "hidden",
+      timeout: 30_000,
+    }).catch(() => {});
+    return;
+  }
+  if (label === "library") {
+    await page.getByTestId("library-directory").waitFor({ state: "visible", timeout: 30_000 }).catch(() => {});
+    await page.getByTestId("library-directory").getByRole("status").waitFor({
+      state: "hidden",
+      timeout: 30_000,
+    }).catch(() => {});
+    return;
+  }
+  if (label === "discover") {
+    await page.getByLabel("Search or describe a research need").waitFor({ state: "visible", timeout: 20_000 });
+    return;
+  }
+  if (label === "synthesis") {
+    await page.getByTestId("synthesis-studio").waitFor({ state: "visible", timeout: 20_000 });
+    return;
+  }
+  if (label === "resources") {
+    await page.getByText("Syncing…", { exact: true }).first().waitFor({ state: "hidden", timeout: 30_000 }).catch(() => {});
+    await page.waitForFunction(
+      () => {
+        const rail = document.querySelector("aside.rd-v2-rail");
+        return rail && !/Checking research decisions|Decisions\s*Checking/.test(rail.textContent || "");
+      },
+      null,
+      { timeout: 30_000 },
+    ).catch(() => {});
+    return;
+  }
+  if (label === "settings") {
+    await page.waitForFunction(
+      () => {
+        const cards = Array.from(document.querySelectorAll(".rd-v2-settings-summary-card"));
+        const jobs = cards.find((card) => /\bJobs\b/.test(card.textContent || ""));
+        return jobs && !/Loading actionable jobs|Waiting for job inventory/.test(jobs.textContent || "");
+      },
+      null,
+      { timeout: 30_000 },
+    ).catch(() => {});
+  }
+}
+
 async function browserGet(url) {
   return page.evaluate(async (requestPath) => {
     const response = await fetch(requestPath, { credentials: "same-origin" });
     const body = await response.json().catch(() => ({}));
+    const jobs = Array.isArray(body?.jobs) ? body.jobs : [];
+    const partitions = Array.isArray(body?.partitions) ? body.partitions : [];
+    const shelves = Array.isArray(body?.shelves) ? body.shelves : [];
+    const history = Array.isArray(body?.items) && requestPath.startsWith("/library/discover/history")
+      ? body.items
+      : [];
     return {
       status: response.status,
       keys: Object.keys(body || {}),
       datasets: Array.isArray(body?.datasets) ? body.datasets.length : undefined,
-      partitions: Array.isArray(body?.partitions) ? body.partitions.length : undefined,
+      partitions: partitions.length || undefined,
+      nav_mode: requestPath === "/library/partitions" ? body?.nav_mode || null : undefined,
+      shelves: requestPath === "/library/partitions" ? shelves.length : undefined,
+      shelf_ids: requestPath === "/library/partitions"
+        ? shelves.map((shelf) => String(shelf?.id || "")).filter(Boolean)
+        : undefined,
+      surfaced_shelf_ids: requestPath === "/library/partitions"
+        ? shelves.filter((shelf) => Number(shelf?.surfaced_count || 0) > 0)
+          .map((shelf) => String(shelf?.id || "")).filter(Boolean)
+        : undefined,
+      unassigned_partition_ids: requestPath === "/library/partitions"
+        ? partitions.filter((lane) => !String(lane?.shelf_id || "").trim())
+          .map((lane) => String(lane?.partition_id || "")).filter(Boolean)
+        : undefined,
+      library_navigation: requestPath === "/library/partitions"
+        ? {
+            shelves: shelves.map((shelf) => ({
+              id: String(shelf?.id || ""),
+              label: String(shelf?.label || shelf?.id || ""),
+              partition_ids: Array.isArray(shelf?.partition_ids) ? shelf.partition_ids : [],
+              surfaced_partition_ids: Array.isArray(shelf?.surfaced_partition_ids)
+                ? shelf.surfaced_partition_ids
+                : [],
+            })),
+            partitions: partitions.map((lane) => ({
+              partition_id: String(lane?.partition_id || ""),
+              shelf_id: String(lane?.shelf_id || ""),
+              label: String(lane?.professor_label || lane?.name || lane?.partition_id || ""),
+              registry_dataset_count: Array.isArray(lane?.detail?.registry_dataset_ids)
+                ? lane.detail.registry_dataset_ids.length
+                : 0,
+            })),
+          }
+        : undefined,
       threads: Array.isArray(body?.threads) ? body.threads.length : undefined,
+      jobs: jobs.length || undefined,
+      job_statuses: jobs.reduce(
+        (counts, job) => {
+          const status = String(job?.status || "unknown");
+          counts[status] = (counts[status] || 0) + 1;
+          return counts;
+        },
+        {},
+      ),
+      pending_job_ids: jobs.filter((job) => job?.status === "pending_approval").map((job) => job.id).filter(Boolean),
+      history_items: history.length || undefined,
+      history_statuses: history.reduce((counts, item) => {
+        const status = String(item?.status || item?.readiness || "unknown");
+        counts[status] = (counts[status] || 0) + 1;
+        return counts;
+      }, {}),
+      history_job_ids: history.map((item) => item?.job_id || item?.meta?.job_id).filter(Boolean),
+      health_jobs: requestPath === "/health" ? body?.desk?.jobs || null : undefined,
     };
   }, url);
 }
@@ -178,6 +299,7 @@ async function browserGet(url) {
 async function inspectPage(label, url, { screenshot = true } = {}) {
   await page.goto(`${baseUrl}${url}`, { waitUntil: "load", timeout: 30_000 });
   await waitForDesk();
+  await waitForPageTruth(label);
   // `goto` may restore the prior scroll position for a same-origin tab. The
   // reference capture is the page landing state, not an accidental retained
   // position after a preceding interaction.
@@ -223,6 +345,7 @@ try {
   for (const [label, url] of pages) await inspectPage(label, url);
 
   if (includeInteractions) {
+    let auditedDatasetId = "";
     await page.goto(`${baseUrl}/?tab=library`, { waitUntil: "load", timeout: 30_000 });
     await waitForDesk();
     await page.evaluate(() => window.scrollTo(0, 0));
@@ -240,6 +363,107 @@ try {
       horizontal_overflow: await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),
     });
     await page.screenshot({ path: path.join(outDir, "library-search-1440x900.png"), fullPage: false });
+
+    const libraryIntakes = [];
+    for (const intake of [
+      { menu: "Upload file...", heading: "Upload files", required: "Choose files to upload" },
+      { menu: "Add URL / DOI...", heading: "Add URL / DOI", required: "rd-v2-rail-url-input" },
+    ]) {
+      await page.getByRole("button", { name: "Open new library item menu" }).click();
+      const menu = page.getByRole("menu", { name: "New library item" });
+      await menu.waitFor({ state: "visible", timeout: 5_000 });
+      const newFolderDisabled = await menu.getByRole("menuitem", { name: "New folder" }).isDisabled();
+      await menu.getByRole("menuitem", { name: intake.menu }).click();
+      const inspector = page.getByRole("complementary", { name: "Inspector" });
+      await inspector.getByText(intake.heading, { exact: true }).first().waitFor({ state: "visible", timeout: 5_000 });
+      const requiredControl = intake.required === "rd-v2-rail-url-input"
+        ? inspector.locator("#rd-v2-rail-url-input")
+        : inspector.getByLabel(intake.required);
+      libraryIntakes.push({
+        kind: intake.menu,
+        rail_visible: await inspector.getByText(intake.heading, { exact: true }).count() > 0,
+        required_control: await requiredControl.count() > 0,
+        send_disabled: await inspector.getByRole("button", { name: "Send to Ask" }).isDisabled(),
+        new_folder_disabled: newFolderDisabled,
+      });
+      await page.screenshot({
+        path: path.join(
+          outDir,
+          intake.menu.startsWith("Upload")
+            ? "library-intake-upload-1440x900.png"
+            : "library-intake-url-1440x900.png",
+        ),
+        fullPage: false,
+      });
+      // Selecting a real row restores the ordinary dataset Detail rail without
+      // submitting an intake or creating any external state.
+      const restoreRow = page.getByTestId("library-directory").locator('button.row[data-kind="dataset"]').first();
+      await restoreRow.click();
+      await page.getByTestId("library-asset-workspace").waitFor({ state: "visible", timeout: 15_000 });
+      await page.getByRole("button", { name: "← All Library assets" }).click();
+      await page.getByTestId("library-directory").waitFor({ state: "visible", timeout: 15_000 });
+      await librarySearch.fill("stablecoin");
+      await page.waitForFunction(
+        () => document.querySelectorAll("[data-testid='library-directory'] button.row").length > 0,
+        null,
+        { timeout: 20_000 },
+      ).catch(() => {});
+    }
+    report.interactions.push({ name: "Library bounded intake rails", states: libraryIntakes });
+
+    const libraryDatasetRows = page
+      .getByTestId("library-directory")
+      .locator('button.row[data-kind="dataset"]');
+    const libraryDatasetCount = await libraryDatasetRows.count();
+    if (libraryDatasetCount) {
+      await libraryDatasetRows.first().click();
+      await page.getByTestId("library-asset-workspace").waitFor({ state: "visible", timeout: 15_000 });
+      auditedDatasetId = new URL(page.url()).searchParams.get("dataset") || "";
+      const previewButton = page.getByTestId("library-asset-workspace").getByRole("button", { name: "Preview rows" });
+      const previewAvailable = await previewButton.count() > 0;
+      let preview = { opened: false, rows: 0, fields: 0, centre_scoped: null };
+      if (previewAvailable) {
+        await previewButton.click();
+        const dialog = page.getByRole("dialog", { name: /preview/i });
+        await dialog.waitFor({ state: "visible", timeout: 20_000 });
+        await dialog.getByRole("status").waitFor({ state: "hidden", timeout: 25_000 }).catch(() => {});
+        const scrimBox = await page.locator(".rd-preview-scrim").boundingBox();
+        const inspectorBox = await page.getByRole("complementary", { name: "Inspector" }).boundingBox();
+        preview = {
+          opened: true,
+          rows: await dialog.locator("tbody tr").count(),
+          fields: await dialog.locator("thead th").count(),
+          centre_scoped: Boolean(
+            scrimBox && inspectorBox && scrimBox.x + scrimBox.width <= inspectorBox.x + 1,
+          ),
+        };
+        await page.screenshot({ path: path.join(outDir, "library-preview-1440x900.png"), fullPage: false });
+        await dialog.getByRole("button", { name: "Close preview" }).click();
+      }
+      report.interactions.push({
+        name: "Library dataset workspace and preview",
+        dataset_id: auditedDatasetId,
+        workspace_visible: true,
+        preview_available: previewAvailable,
+        preview,
+        horizontal_overflow: await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),
+      });
+
+      if (auditedDatasetId) {
+        await page.goto(`${baseUrl}/?dataset=${encodeURIComponent(auditedDatasetId)}`, {
+          waitUntil: "load",
+          timeout: 30_000,
+        });
+        await waitForDesk();
+        report.interactions.push({
+          name: "Dataset-only deep link",
+          dataset_id: auditedDatasetId,
+          resolved_tab: new URL(page.url()).searchParams.get("tab"),
+          library_heading: await page.getByRole("heading", { name: "Library", exact: true }).count() > 0,
+          workspace_visible: await page.getByTestId("library-asset-workspace").count() > 0,
+        });
+      }
+    }
 
     await page.goto(`${baseUrl}/?tab=browse`, { waitUntil: "load", timeout: 30_000 });
     await waitForDesk();
@@ -287,6 +511,101 @@ try {
     });
     await page.screenshot({ path: path.join(outDir, "discover-TWSE-1440x900.png"), fullPage: false });
 
+    const heldEvidence = page.getByTestId("discover-library-evidence");
+    const heldEvidenceAvailable = await heldEvidence.count() > 0;
+    if (heldEvidenceAvailable) {
+      await heldEvidence.locator("summary").click();
+      report.interactions.push({
+        name: "Discover held-evidence popover",
+        preview_rows: await heldEvidence.locator(".rd-v2-discover-candidate").count(),
+        compare_action: await heldEvidence.getByRole("button", { name: "Compare coverage" }).count() > 0,
+        library_action: await heldEvidence.getByRole("button", { name: "Open Library results" }).count() > 0,
+      });
+      await page.screenshot({ path: path.join(outDir, "discover-held-evidence-1440x900.png"), fullPage: false });
+      await heldEvidence.locator("summary").click();
+    }
+
+    const widerButton = page.getByRole("button", { name: "Search wider", exact: true });
+    if (await widerButton.count()) {
+      const beforeWider = await rankedCandidates.count();
+      const widerResponse = page.waitForResponse(
+        (response) => {
+          const requestUrl = new URL(response.url());
+          return requestUrl.pathname === "/library/discover/sources" && requestUrl.searchParams.get("live") === "1";
+        },
+        { timeout: 30_000 },
+      ).catch(() => null);
+      await widerButton.click();
+      const widerStatus = page.getByText("Searching wider sources…", { exact: false });
+      await widerStatus.waitFor({ state: "visible", timeout: 5_000 }).catch(() => {});
+      const completedResponse = await widerResponse;
+      await widerStatus.waitFor({ state: "hidden", timeout: 5_000 }).catch(() => {});
+      await page.waitForTimeout(150);
+      report.interactions.push({
+        name: "Discover wider search",
+        response_status: completedResponse?.status() || null,
+        candidates_before: beforeWider,
+        candidates_after: await rankedCandidates.count(),
+        held_evidence_preserved: heldEvidenceAvailable
+          ? await page.getByTestId("discover-library-evidence").count() > 0
+          : null,
+      });
+      await page.screenshot({ path: path.join(outDir, "discover-wider-1440x900.png"), fullPage: false });
+    }
+
+    await page.getByRole("tab", { name: /History/ }).click();
+    const history = page.getByTestId("discover-history");
+    await history.waitFor({ state: "visible", timeout: 15_000 });
+    await page.waitForFunction(
+      () => document.querySelector("[data-testid='discover-history']")?.getAttribute("aria-busy") === "false",
+      null,
+      { timeout: 30_000 },
+    ).catch(() => {});
+    const historyRows = history.locator(".rd-v2-history-row");
+    const historyStates = [];
+    for (let index = 0; index < Math.min(await historyRows.count(), 6); index += 1) {
+      const row = historyRows.nth(index);
+      await row.click();
+      historyStates.push({
+        label: (await row.getAttribute("aria-label")) || "",
+        selected: await row.getAttribute("aria-pressed"),
+        rail: (await page.getByRole("complementary", { name: "Inspector" }).innerText())
+          .replace(/\s+/g, " ")
+          .slice(0, 280),
+      });
+    }
+    report.interactions.push({
+      name: "Discover History lifecycle",
+      durable_rows: await historyRows.count(),
+      filters: await history.locator(".rd-v2-history-filters button").allTextContents(),
+      jobs_settled: await history.getAttribute("aria-busy") === "false",
+      approval_rows: await historyRows.filter({ hasText: "Approval required" }).count(),
+      sampled_states: historyStates,
+      horizontal_overflow: await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),
+    });
+    await page.screenshot({ path: path.join(outDir, "discover-history-1440x900.png"), fullPage: false });
+
+    const registeredHistoryRow = historyRows.filter({ hasText: "Registered" }).first();
+    if (await registeredHistoryRow.count()) {
+      await registeredHistoryRow.click();
+      const libraryHandoff = page.getByRole("complementary", { name: "Inspector" })
+        .getByRole("link", { name: "Open in Library" });
+      const handoffAvailable = await libraryHandoff.count() > 0;
+      const handoffHref = handoffAvailable ? await libraryHandoff.getAttribute("href") : "";
+      if (handoffAvailable) {
+        await libraryHandoff.click();
+        await page.getByTestId("library-asset-workspace").waitFor({ state: "visible", timeout: 20_000 }).catch(() => {});
+      }
+      report.interactions.push({
+        name: "Discover History exact Library handoff",
+        available: handoffAvailable,
+        href: handoffHref,
+        resolved_tab: new URL(page.url()).searchParams.get("tab"),
+        dataset_id: new URL(page.url()).searchParams.get("dataset"),
+        workspace_visible: await page.getByTestId("library-asset-workspace").count() > 0,
+      });
+    }
+
     await page.goto(`${baseUrl}/?tab=synthesis`, { waitUntil: "load", timeout: 30_000 });
     await page.waitForSelector("[data-testid='synthesis-studio']", { timeout: 25_000 });
     await page.waitForTimeout(2_000);
@@ -302,8 +621,66 @@ try {
         ? await page.locator("[data-testid='synthesis-thread-item'].active, [data-testid='synthesis-thread-item'][aria-current='true'], [data-testid='synthesis-thread-item'].selected").count() > 0
         : null,
       horizontal_overflow: await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),
+      measurements: await page.getByTestId("synthesis-measurement-status").count()
+        ? (await page.getByTestId("synthesis-measurement-status").innerText()).replace(/\s+/g, " ").slice(0, 320)
+        : "",
+      reasoning_action: await page.getByRole("button", { name: /Start method reasoning|Accept & design method/i }).count(),
+      resources_escape: await page.getByRole("button", { name: "Check Resources" }).count(),
+      opening_rail: await page.getByTestId("synthesis-opening-rail").count() > 0,
     });
     await page.screenshot({ path: path.join(outDir, "synthesis-selected-1440x900.png"), fullPage: false });
+
+    await page.goto(`${baseUrl}/?tab=resources`, { waitUntil: "load", timeout: 30_000 });
+    await waitForDesk();
+    await page.getByText("Syncing…", { exact: true }).first().waitFor({ state: "hidden", timeout: 20_000 }).catch(() => {});
+    await page.waitForFunction(
+      () => {
+        const rail = document.querySelector("aside.rd-v2-rail");
+        return rail && !/Checking research decisions|Decisions\s*Checking/.test(rail.textContent || "");
+      },
+      null,
+      { timeout: 30_000 },
+    ).catch(() => {});
+    const resourceViews = {};
+    for (const label of ["Sources", "Usage", "Method"]) {
+      const control = page.getByRole("button", { name: label, exact: true });
+      if (await control.count()) {
+        await control.click();
+        await page.waitForTimeout(250);
+        resourceViews[label.toLowerCase()] = (await page.locator("main.yzu-main").innerText())
+          .replace(/\s+/g, " ")
+          .slice(0, 360);
+      }
+    }
+    report.interactions.push({
+      name: "Resources operational views",
+      views: resourceViews,
+      horizontal_overflow: await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),
+    });
+    await page.screenshot({ path: path.join(outDir, "resources-settled-1440x900.png"), fullPage: false });
+
+    await page.goto(`${baseUrl}/?tab=settings`, { waitUntil: "load", timeout: 30_000 });
+    await waitForDesk();
+    await page.getByText("Syncing…", { exact: true }).first().waitFor({ state: "hidden", timeout: 20_000 }).catch(() => {});
+    await page.waitForFunction(
+      () => {
+        const cards = Array.from(document.querySelectorAll(".rd-v2-settings-summary-card"));
+        const jobs = cards.find((card) => /\bJobs\b/.test(card.textContent || ""));
+        return jobs && !/Loading actionable jobs|Waiting for job inventory/.test(jobs.textContent || "");
+      },
+      null,
+      { timeout: 30_000 },
+    ).catch(() => {});
+    report.interactions.push({
+      name: "Settings runtime truth",
+      status_cards: await page.locator(".rd-v2-settings-summary-card").allTextContents(),
+      connected: await page.getByText("Connected", { exact: true }).count() > 0,
+      actionable_jobs_loaded: await page.locator(".rd-v2-settings-summary-card").nth(2).evaluate(
+        (node) => !/Loading actionable jobs|Waiting for job inventory/.test(node.textContent || ""),
+      ),
+      horizontal_overflow: await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),
+    });
+    await page.screenshot({ path: path.join(outDir, "settings-settled-1440x900.png"), fullPage: false });
   }
 
   // The release matrix covers the real 1920×961 Chrome content viewport, the
@@ -314,6 +691,7 @@ try {
     for (const [label, url] of pages) {
       await page.goto(`${baseUrl}${url}`, { waitUntil: "load", timeout: 30_000 });
       await waitForDesk();
+      await waitForPageTruth(label);
       report.pages.push({
         label: `${label}-${width}`,
         url,
@@ -345,6 +723,56 @@ const failures = [
     .filter((entry) => !/ERR_ABORTED/i.test(entry.error))
     .map((entry) => `request failed: ${entry.method} ${entry.path}: ${entry.error}`),
   ...report.page_errors.map((error) => `page error: ${error}`),
+  ...report.interactions.flatMap((entry) => {
+    if (entry.name === "Library dataset workspace and preview") {
+      return entry.workspace_visible && entry.preview?.opened && entry.preview?.rows > 0 && entry.preview?.centre_scoped
+        ? []
+        : ["workflow: Library workspace/preview"];
+    }
+    if (entry.name === "Dataset-only deep link") {
+      return entry.resolved_tab === "library" && entry.library_heading && entry.workspace_visible
+        ? []
+        : ["workflow: dataset-only Library deep link"];
+    }
+    if (entry.name === "Library bounded intake rails") {
+      return entry.states.length === 2 && entry.states.every(
+        (state) => state.rail_visible && state.required_control && state.send_disabled && state.new_folder_disabled,
+      )
+        ? []
+        : ["workflow: bounded Library intake rails"];
+    }
+    if (entry.name === "Discover wider search") {
+      return entry.response_status === 200 && entry.candidates_after >= entry.candidates_before
+        ? []
+        : ["workflow: Discover wider search failed or discarded results"];
+    }
+    if (entry.name === "Discover History lifecycle") {
+      const apiJobs = report.api.find((item) => item.path === "/library/jobs");
+      const needsApproval = Number(apiJobs?.job_statuses?.pending_approval || 0);
+      return entry.durable_rows > 0
+        && entry.jobs_settled
+        && (needsApproval === 0 || entry.approval_rows > 0)
+        && entry.sampled_states.every((state) => state.selected === "true")
+        ? []
+        : ["workflow: Discover History selection/approval hydration"];
+    }
+    if (entry.name === "Discover History exact Library handoff") {
+      return entry.available && entry.href && entry.resolved_tab === "library" && entry.dataset_id && entry.workspace_visible
+        ? []
+        : ["workflow: Discover History exact Library handoff"];
+    }
+    if (entry.name === "Synthesis thread selection") {
+      return entry.available_threads > 0 && entry.selection_visible && entry.measurements
+        ? []
+        : ["workflow: Synthesis measured thread"];
+    }
+    if (entry.name === "Settings runtime truth") {
+      return entry.status_cards.length === 3 && entry.actionable_jobs_loaded
+        ? []
+        : ["workflow: Settings runtime truth"];
+    }
+    return [];
+  }),
 ].filter(Boolean);
 
 console.log(JSON.stringify({
