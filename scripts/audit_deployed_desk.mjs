@@ -228,7 +228,11 @@ try {
     await page.evaluate(() => window.scrollTo(0, 0));
     const librarySearch = page.getByLabel("Search library holdings");
     await librarySearch.fill("stablecoin");
-    await page.waitForTimeout(1_000);
+    await page.waitForFunction(
+      () => document.querySelectorAll("[data-testid='library-directory'] button.row").length > 0,
+      null,
+      { timeout: 20_000 },
+    ).catch(() => {});
     report.interactions.push({
       name: "Library query",
       query: await librarySearch.inputValue(),
@@ -243,15 +247,41 @@ try {
     const composer = page.getByLabel("Search or describe a research need");
     await composer.fill("TWSE");
     await composer.press("Enter");
+    // The q transition briefly projects the idle recommendations into the
+    // result DOM before the lookup effect clears them. First prove that the
+    // new search cycle actually started; only then may ranked candidates
+    // satisfy the completion wait.
+    await page.waitForSelector("[data-testid='discover-lookup-progress']", { timeout: 5_000 });
     await page.waitForFunction(
-      () => document.querySelectorAll(".rd-v2-discover-candidate").length > 0,
+      () => document.querySelectorAll("[data-testid='discover-ranked-results'] .rd-v2-discover-candidate").length > 0,
       null,
       { timeout: 20_000 },
     ).catch(() => {});
+    const rankedCandidates = page
+      .getByTestId("discover-ranked-results")
+      .locator(".rd-v2-discover-candidate");
     report.interactions.push({
       name: "Discover keyword search",
       query: await composer.inputValue(),
-      candidates: await page.locator(".rd-v2-discover-candidate").count(),
+      candidates: await rankedCandidates.count(),
+      visible_candidates: await rankedCandidates.evaluateAll((nodes) =>
+        nodes.filter((node) => {
+          const box = node.getBoundingClientRect();
+          const style = getComputedStyle(node);
+          return box.width > 0 && box.height > 0 && style.visibility !== "hidden" && style.display !== "none";
+        }).length,
+      ),
+      candidate_bounds: await rankedCandidates.evaluateAll((nodes) =>
+        nodes.slice(0, 3).map((node) => {
+          const box = node.getBoundingClientRect();
+          return { top: Math.round(box.top), bottom: Math.round(box.bottom), width: Math.round(box.width) };
+        }),
+      ),
+      centre_scroll: await page.locator("main").evaluate((node) => ({
+        scroll_top: Math.round(node.scrollTop),
+        client_height: Math.round(node.clientHeight),
+        scroll_height: Math.round(node.scrollHeight),
+      })),
       search_wider_affordance: await page.getByText("Search wider", { exact: false }).count(),
       horizontal_overflow: await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),
     });
