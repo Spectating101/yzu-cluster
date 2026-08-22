@@ -1,4 +1,4 @@
-import { magnitudeBars, magnitudeGap, unitOutcomes, unitSpread } from "./unitConflict.js";
+import { formatResult, magnitudeBars, magnitudeGap, unitOutcomes, unitSpread } from "./unitConflict.js";
 
 export function UnitConflictPanel({ conflict, onChoose, onAsk }) {
   if (!conflict?.left || !conflict?.right) return null;
@@ -25,7 +25,7 @@ export function UnitConflictPanel({ conflict, onChoose, onAsk }) {
               <span key={bar.column}>
                 <em>{bar.column}</em>
                 <b style={{ width: `${(bar.cells / chart.width) * 100}%` }} />
-                <small>{bar.value}</small>
+                <small>{formatResult(bar.value)}</small>
               </span>
             ))}
           </figure>
