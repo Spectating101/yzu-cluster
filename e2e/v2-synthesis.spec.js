@@ -1,6 +1,6 @@
 import { mkdirSync } from "node:fs";
 import { test, expect } from "@playwright/test";
-import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
+import { MOCK_HEALTH, mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 
 const renderDir = "artifacts/synthesis-renders";
 
@@ -301,6 +301,47 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await capture(page, "01-durable-evidence-desktop");
   });
 
+  test("shows the four-step workflow and fails closed when assistant runtime is unverified", async ({ page }) => {
+    await page.route("**/*health*", (route) => route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        ...MOCK_HEALTH,
+        status: "degraded",
+        desk: {
+          ...MOCK_HEALTH.desk,
+          composer_runtime: {
+            status: "unverified",
+            configured: true,
+            verified: false,
+            checked_at: null,
+          },
+        },
+      }),
+    }));
+    await page.goto("/?tab=synthesis", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+
+    const workflow = page.getByRole("list", { name: "Synthesis workflow" });
+    await expect(workflow).toContainText("Define");
+    await expect(workflow).toContainText("Map evidence");
+    await expect(workflow).toContainText("Reason");
+    await expect(workflow).toContainText("Approve");
+    await expect(page.getByTestId("synthesis-workflow-next")).toContainText(
+      "Assistant unverified; review the evidence map or check Resources before reasoning.",
+    );
+
+    const next = page.getByLabel("What happens next");
+    await expect(next.getByRole("button", { name: "Start method reasoning" })).toBeDisabled();
+    await expect(next).toContainText("Assistant unverified");
+    await expect(next.getByRole("button", { name: "Check Resources" })).toBeVisible();
+    await capture(page, "workflow-unverified-1440x1000");
+    await page.setViewportSize({ width: 390, height: 844 });
+    await capture(page, "workflow-unverified-390x844");
+    await next.scrollIntoViewIfNeeded();
+    await capture(page, "workflow-unverified-action-390x844");
+  });
+
   test("researcher reviews held evidence before it becomes a durable map input", async ({ page }) => {
     await page.route("**/api/library/chat/test-session", (route) =>
       route.fulfill({
@@ -320,6 +361,13 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await expect(findHeldEvidence).toBeVisible();
     const findBox = await findHeldEvidence.boundingBox();
     expect(findBox?.y || Infinity).toBeLessThan(900);
+    await capture(page, "workflow-find-held-1440x1000");
+    await page.setViewportSize({ width: 390, height: 844 });
+    const hideRail = page.getByRole("button", { name: "Hide panel" });
+    if (await hideRail.isVisible().catch(() => false)) await hideRail.click();
+    await next.scrollIntoViewIfNeeded();
+    await capture(page, "workflow-find-held-390x844");
+    await page.setViewportSize({ width: 1440, height: 1000 });
     await findHeldEvidence.click();
 
     const proposal = page.getByTestId("synthesis-evidence-proposal");

@@ -65,6 +65,12 @@ export const MOCK_HEALTH = {
     jobs: { running: 1, pending_approval: 1, gdelt_progress: "18 / 99 mo" },
     composer_configured: true,
     composer_model: "composer-2.5",
+    composer_runtime: {
+      status: "ready",
+      configured: true,
+      verified: true,
+      checked_at: "2026-08-12T10:00:00Z",
+    },
     mcp_tools: { total: 62, core: 13, acquire: 28, ops: 21 },
     storage_tiers: {
       canonical: { label: "GDrive vault", quota_tb: 5, used_tb: 2.1, pool_tb: 5 },
@@ -320,7 +326,10 @@ export async function mockV2Api(
     discoverBody = { sections: [], total: 0 },
     discoverSourcesBody = null,
     discoverLiveSourcesBody = null,
+    discoverDelayMs = 0,
+    discoverSourcesDelayMs = 0,
     discoverLiveSourcesDelayMs = 0,
+    healthBody = MOCK_HEALTH,
     jobsBody = MOCK_JOBS,
     historyBody = { items: [] },
     profileBody = { found: true, profile: { name_en: "Test Prof", discipline: "YZU" } },
@@ -389,7 +398,7 @@ export async function mockV2Api(
     }),
   );
   await page.route("**/*health*", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(MOCK_HEALTH) }),
+    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(healthBody) }),
   );
   await page.route("**/library/discover/probe", (route) => {
     if (route.request().method() !== "POST") {
@@ -584,20 +593,22 @@ export async function mockV2Api(
   await page.route("**/library/discover/history?*", (route) =>
     route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(historyBody) }),
   );
-  await page.route("**/library/discover?*", (route) =>
-    route.fulfill({
+  await page.route("**/library/discover?*", async (route) => {
+    if (discoverDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, discoverDelayMs));
+    return route.fulfill({
       status: 200,
       contentType: "application/json",
       body: JSON.stringify(discoverBody),
-    }),
-  );
-  await page.route("**/library/discover", (route) =>
-    route.fulfill({
+    });
+  });
+  await page.route("**/library/discover", async (route) => {
+    if (discoverDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, discoverDelayMs));
+    return route.fulfill({
       status: 200,
       contentType: "application/json",
       body: JSON.stringify(discoverBody),
-    }),
-  );
+    });
+  });
   await page.route("**/library/discover/sources?*", async (route) => {
     const url = new URL(route.request().url());
     const isLiveSourceSearch = url.searchParams.get("live") === "1" || url.searchParams.get("semantic") === "1";
@@ -605,8 +616,9 @@ export async function mockV2Api(
       ? discoverLiveSourcesBody
       : discoverSourcesBody;
     if (sourceBody) {
-      if (isLiveSourceSearch && discoverLiveSourcesDelayMs > 0) {
-        await new Promise((resolve) => setTimeout(resolve, discoverLiveSourcesDelayMs));
+      const sourceDelay = isLiveSourceSearch ? discoverLiveSourcesDelayMs : discoverSourcesDelayMs;
+      if (sourceDelay > 0) {
+        await new Promise((resolve) => setTimeout(resolve, sourceDelay));
       }
       return route.fulfill({
         status: 200,

@@ -297,6 +297,43 @@ function ResearchBrief({ thread, onEditIntent }) {
   );
 }
 
+function OpeningWorkflow({ thread, reasoningAvailable, reasoningStatus }) {
+  const brief = researchBrief(thread);
+  const mapped = evidenceNodes(thread).length > 0;
+  const recommendation = recommendedConstruction(thread).present;
+  const active = recommendation ? 3 : mapped ? 2 : brief.body ? 1 : 0;
+  const steps = [
+    ["Define", "Research brief"],
+    ["Map evidence", "Held Library inputs"],
+    ["Reason", "Reviewable construction"],
+    ["Approve", "Explicit decision"],
+  ];
+  return (
+    <div className="s04-opening-workflow-wrap">
+      <ol className="s04-opening-workflow" aria-label="Synthesis workflow">
+        {steps.map(([label, detail], index) => (
+          <li key={label} className={index < active ? "done" : index === active ? "now" : ""}>
+            <span>{index < active ? "✓" : index + 1}</span>
+            <div><b>{label}</b><small>{detail}</small></div>
+          </li>
+        ))}
+      </ol>
+      <p className="s04-opening-workflow-note" data-testid="synthesis-workflow-next">
+        <b>Next</b>
+        <span>
+          {reasoningAvailable
+            ? mapped
+              ? "Review mapped evidence, then request one reviewable construction."
+              : "Find held evidence before method reasoning."
+            : mapped
+              ? `${reasoningStatus}; review the evidence map or check Resources before reasoning.`
+              : `Find held evidence now; ${reasoningStatus.toLowerCase()} blocks method reasoning.`}
+        </span>
+      </p>
+    </div>
+  );
+}
+
 /**
  * Spec §6. One construction is recommended and the alternatives stay counted but
  * collapsed. Before the first reasoning turn, the canvas must offer a real
@@ -409,6 +446,9 @@ function WhatHappensNext({
   onFindEvidence,
   mappingEvidence = false,
   reasoningPending = false,
+  reasoningAvailable = false,
+  reasoningStatus = "Assistant runtime not verified",
+  onOpenResources,
 }) {
   const rec = recommendedConstruction(thread);
   const hasRecommendation = rec.present;
@@ -448,11 +488,21 @@ function WhatHappensNext({
               {mappingEvidence ? "Finding held evidence" : "Find held evidence"}
             </button>
           ) : null}
+          {!reasoningAvailable ? (
+            <button type="button" className="s04-next-secondary" onClick={() => onOpenResources?.()}>
+              Check Resources
+            </button>
+          ) : null}
           <button
             type="button"
             className="s04-next-primary"
-            disabled={hasRecommendation ? false : reasoningPending || !onStartReasoning}
+            disabled={
+              reasoningPending ||
+              !reasoningAvailable ||
+              (hasRecommendation ? !onAccept : !onStartReasoning)
+            }
             onClick={() => (hasRecommendation ? onAccept?.() : onStartReasoning?.())}
+            title={!reasoningAvailable ? reasoningStatus : undefined}
           >
             {hasRecommendation
               ? "Accept & design method"
@@ -467,7 +517,9 @@ function WhatHappensNext({
           ? "AI recommendation ready · nothing built or modified"
           : reasoningPending
             ? "Waiting for a reviewable proposal · nothing built or modified"
-            : "A proposal will be reviewable before any method or data changes"}
+            : reasoningAvailable
+              ? "A proposal will be reviewable before any method or data changes"
+              : `${reasoningStatus}. Held-evidence mapping remains available.`}
       </em>
     </section>
   );
@@ -1004,13 +1056,23 @@ function DraftCanvas({ thread, onAsk, stalled, onRetry }) {
   );
 }
 
-function NewThread({ objective, setObjective, busy, profiles, onCreate, onStartBlueprint }) {
+function NewThread({
+  objective,
+  setObjective,
+  busy,
+  profiles,
+  onCreate,
+  onStartBlueprint,
+  reasoningAvailable,
+  reasoningStatus,
+  onOpenResources,
+}) {
   const startingPoints = (Array.isArray(profiles) ? profiles : []).slice(0, 3);
   return (
     <section className="s04-intent" data-testid="synthesis-intent-state">
       <small>Research object</small>
       <h2>Describe the construction you need.</h2>
-      <p>State the research purpose in ordinary language. Ask returns a durable object, grounds it in Library evidence, and makes each proxy choice reviewable before a method can be accepted.</p>
+      <p>State the research purpose in ordinary language. The desk records a durable object first, then maps held Library evidence before any method can be accepted.</p>
       <textarea
         rows={7}
         value={objective}
@@ -1023,8 +1085,10 @@ function NewThread({ objective, setObjective, busy, profiles, onCreate, onStartB
         }}
       />
       <p className="s04-intent-boundary">
-        No method exists yet. Ask can return an evidence map, proxy choices, and one reviewable
-        decision; nothing executes or registers from this entry state.
+        No method exists yet. {reasoningAvailable
+          ? "Ask can reason from the recorded brief after held evidence is reviewed."
+          : `${reasoningStatus}. Starting a new assistant-grounded construction is unavailable.`}
+        {" "}Nothing executes or registers from this entry state.
       </p>
       {startingPoints.length ? (
         <div className="s04-intent-starts">
@@ -1034,9 +1098,9 @@ function NewThread({ objective, setObjective, busy, profiles, onCreate, onStartB
               <button
                 type="button"
                 key={profile.id}
-                disabled={busy}
+                disabled={busy || !reasoningAvailable}
                 onClick={() => onStartBlueprint?.(profile)}
-                title={text(profile.title, profile.id)}
+                title={!reasoningAvailable ? reasoningStatus : text(profile.title, profile.id)}
               >
                 <strong>{text(profile.title, profile.id)}</strong>
                 <span>{text(profile.description, "Registered construction recipe")}</span>
@@ -1049,24 +1113,40 @@ function NewThread({ objective, setObjective, busy, profiles, onCreate, onStartB
         {/* VC-6: a disabled primary action must say why it is unavailable. */}
         <span>
           {objective.trim()
-            ? "Creates a durable project, then opens Ask with this exact objective attached."
-            : "Enter an objective to continue. Creates a durable project, then opens Ask with it attached."}
+            ? reasoningAvailable
+              ? "Creates a durable project, then opens Ask with this exact objective attached."
+              : "Assistant reasoning must be verified before this project can start."
+            : "Enter an objective to create a durable project."}
         </span>
+        {!reasoningAvailable ? (
+          <button type="button" className="rd-v2-btn" onClick={() => onOpenResources?.()}>
+            Check Resources
+          </button>
+        ) : null}
         <button
           type="button"
           className="rd-v2-btn primary"
-          disabled={busy || !objective.trim()}
+          disabled={busy || !objective.trim() || !reasoningAvailable}
           onClick={onCreate}
-          title={objective.trim() ? undefined : "Enter an objective to continue"}
+          title={!reasoningAvailable ? reasoningStatus : objective.trim() ? undefined : "Enter an objective to continue"}
         >
-          Start project in Ask
+          {reasoningAvailable ? "Start project in Ask" : "Assistant unavailable"}
         </button>
       </footer>
     </section>
   );
 }
 
-function EmptyWorkspace({ profiles, profilesLoading, profilesError, onStartBlueprint, onNew }) {
+function EmptyWorkspace({
+  profiles,
+  profilesLoading,
+  profilesError,
+  onStartBlueprint,
+  onNew,
+  reasoningAvailable,
+  reasoningStatus,
+  onOpenResources,
+}) {
   const list = Array.isArray(profiles) ? profiles : [];
   return (
     <section className="s04-intent s04-empty-canvas" data-testid="synthesis-empty-state">
@@ -1110,6 +1190,8 @@ function EmptyWorkspace({ profiles, profilesLoading, profilesError, onStartBluep
                   type="button"
                   className="s04-blueprint-recipe"
                   data-testid="synthesis-blueprint"
+                  disabled={!reasoningAvailable}
+                  title={!reasoningAvailable ? reasoningStatus : undefined}
                   onClick={() => onStartBlueprint?.(profile)}
                 >
                   <strong>{text(profile.title, profile.id)}</strong>
@@ -1125,8 +1207,13 @@ function EmptyWorkspace({ profiles, profilesLoading, profilesError, onStartBluep
         </ul>
       ) : null}
       <footer>
-        <button type="button" className="rd-v2-btn primary" onClick={onNew}>
-          Start a construction
+        {!reasoningAvailable ? (
+          <button type="button" className="rd-v2-btn" onClick={() => onOpenResources?.()}>
+            Check Resources
+          </button>
+        ) : null}
+        <button type="button" className="rd-v2-btn primary" onClick={onNew} disabled={!reasoningAvailable} title={!reasoningAvailable ? reasoningStatus : undefined}>
+          {reasoningAvailable ? "Start a construction" : "Assistant unavailable"}
         </button>
       </footer>
     </section>
@@ -1153,6 +1240,9 @@ function ContextStrip({ items, onPromote, promoted, onClear }) {
 
 export function SynthesisPage({
   onAskComposer,
+  assistantRuntime = null,
+  assistantAllowed = false,
+  onGoTab,
   onOpenDataset,
   onReviewExecution,
   onSelectThread,
@@ -1244,6 +1334,12 @@ export function SynthesisPage({
   // otherwise a returned-to thread would look like a static demo that is
   // silently working when no provider request was ever made.
   const reasoningPending = Boolean(selected && reasoningThreadId === selected.id);
+  const reasoningAvailable = Boolean(
+    assistantAllowed && assistantRuntime?.ready === true && onAskComposer,
+  );
+  const reasoningStatus = !assistantAllowed
+    ? "Ask is unavailable for this desk session"
+    : assistantRuntime?.label || "Assistant runtime not verified";
 
   useEffect(() => {
     if (!selected) return;
@@ -1401,7 +1497,7 @@ export function SynthesisPage({
   };
 
   const startMethodReasoning = (thread = selected) => {
-    if (!thread?.id) return;
+    if (!thread?.id || !reasoningAvailable) return;
     setReasoningThreadId(thread.id);
     setInterpretingStalled(false);
     interpretingThreadIdRef.current = thread.id;
@@ -1461,7 +1557,7 @@ export function SynthesisPage({
 
   const createThread = async () => {
     const nextObjective = objective.trim();
-    if (!nextObjective) return;
+    if (!nextObjective || !reasoningAvailable) return;
     setBusy(true);
     setError("");
     try {
@@ -1488,7 +1584,7 @@ export function SynthesisPage({
   };
 
   const startBlueprint = async (profile) => {
-    if (!profile?.id) return;
+    if (!profile?.id || !reasoningAvailable) return;
     const title = text(profile.title, profile.id);
     const sources = Array.isArray(profile.sources)
       ? profile.sources.map((s) => s.label || s.id).filter(Boolean).join("; ")
@@ -1605,6 +1701,9 @@ export function SynthesisPage({
               profiles={profiles}
               onCreate={createThread}
               onStartBlueprint={startBlueprint}
+              reasoningAvailable={reasoningAvailable}
+              reasoningStatus={reasoningStatus}
+              onOpenResources={() => onGoTab?.("resources")}
             />
           ) : null}
           {!newMode && !loading && !selected ? (
@@ -1614,6 +1713,9 @@ export function SynthesisPage({
               profilesError={profilesError}
               onStartBlueprint={startBlueprint}
               onNew={beginNew}
+              reasoningAvailable={reasoningAvailable}
+              reasoningStatus={reasoningStatus}
+              onOpenResources={() => onGoTab?.("resources")}
             />
           ) : null}
           {!newMode && selected ? (
@@ -1622,6 +1724,13 @@ export function SynthesisPage({
                 thread={selected}
                 onEditIntent={() => ask("I want to revise this research intent. Show the change that would be recorded before applying it.")}
               />
+              {isPreAcceptance(selected) ? (
+                <OpeningWorkflow
+                  thread={selected}
+                  reasoningAvailable={reasoningAvailable}
+                  reasoningStatus={reasoningStatus}
+                />
+              ) : null}
               <ThreadPicker threads={threads} selectedId={selectedId} onSelect={selectThread} />
               {isPreAcceptance(selected) ? (
                 <>
@@ -1637,6 +1746,9 @@ export function SynthesisPage({
                     onFindEvidence={findHeldEvidence}
                     mappingEvidence={mappingEvidence}
                     reasoningPending={reasoningPending}
+                    reasoningAvailable={reasoningAvailable}
+                    reasoningStatus={reasoningStatus}
+                    onOpenResources={() => onGoTab?.("resources")}
                   />
                 </>
               ) : null}

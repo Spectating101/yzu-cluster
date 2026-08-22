@@ -111,6 +111,95 @@
   font-weight: 500;
 }
 
+.s04-opening-workflow-wrap { margin-top: 10px; }
+
+.s04-opening-workflow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  border: 1px solid #d8d1c4;
+  border-radius: 9px;
+  background: #f4f0e7;
+  list-style: none;
+  overflow: hidden;
+}
+
+.s04-opening-workflow li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 8px 10px;
+  color: #7b8490;
+}
+
+.s04-opening-workflow li + li { border-left: 1px solid #ddd7ca; }
+
+.s04-opening-workflow li > span {
+  display: grid;
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border: 1px solid #c9c4b9;
+  border-radius: 50%;
+  color: #777f87;
+  background: #faf8f2;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.s04-opening-workflow li div { min-width: 0; }
+.s04-opening-workflow li b,
+.s04-opening-workflow li small { display: block; }
+.s04-opening-workflow li b {
+  color: #5d6670;
+  font-size: 9.5px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.s04-opening-workflow li small {
+  margin-top: 1px;
+  overflow: hidden;
+  color: #858d96;
+  font-size: 8.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.s04-opening-workflow li.done > span {
+  border-color: #90ae9e;
+  color: #315f4d;
+  background: #eef5ef;
+}
+.s04-opening-workflow li.now { background: #faf8f1; }
+.s04-opening-workflow li.now > span {
+  border-color: #4b7766;
+  color: #fff;
+  background: #4b7766;
+}
+.s04-opening-workflow li.now b { color: #294d40; }
+
+.s04-opening-workflow-note {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0;
+  padding: 6px 10px 0;
+  color: #66727d;
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.s04-opening-workflow-note b {
+  flex: 0 0 auto;
+  color: #315f4d;
+  font-size: 8px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
 .s04-opening-construction {
   padding: 14px;
 }
@@ -425,6 +514,10 @@
   .s04-opening-next > footer { align-items: stretch; flex-direction: column; }
   .s04-opening-next .s04-next-actions { justify-content: stretch; }
   .s04-opening-next .s04-next-actions > button { width: 100%; }
+  .s04-opening-workflow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .s04-opening-workflow li:nth-child(3) { border-left: 0; }
+  .s04-opening-workflow li:nth-child(n + 3) { border-top: 1px solid #ddd7ca; }
+  .s04-opening-workflow-note { padding: 7px 2px 0; }
 }
 
 /* ── S-04 shell: one desk, three surfaces ──────────────────────────────── */

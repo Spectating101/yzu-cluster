@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { mkdirSync } from "node:fs";
 import {
   MOCK_DISCOVER_HIT,
   mockV2Api,
@@ -15,6 +16,12 @@ async function searchDiscover(page, query = "MOPS") {
   await page.getByLabel("Search or describe a research need").fill(query);
   await page.getByRole("button", { name: "Explore", exact: true }).click();
   await expect(page.getByTestId("discover-result-summary")).toBeVisible();
+}
+
+async function captureWorkflow(page, name) {
+  const dir = "artifacts/frontend-workflow";
+  mkdirSync(dir, { recursive: true });
+  await page.screenshot({ path: `${dir}/${name}.png`, fullPage: true });
 }
 
 test.describe("v2 Discover tab", () => {
@@ -112,6 +119,55 @@ test.describe("v2 Discover tab", () => {
     await expect(summary).toContainText("Library evidence · 1");
     await expect(summary).toContainText("Web context · 0");
     await expect(page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidate")).toHaveCount(1);
+  });
+
+  test("paints held evidence while the slower source-route lookup continues", async ({ page }) => {
+    await mockV2Api(page, {
+      discoverBody: {
+        sections: [{
+          id: "library",
+          rows: [{
+            kind: "registry_dataset",
+            dataset_id: "issuer_weekly_panel",
+            candidate_key: "dataset:issuer_weekly_panel",
+            title: "Issuer weekly fundamentals",
+            local_ready: true,
+            collect_via: "local_open",
+          }],
+        }],
+        total: 1,
+      },
+      discoverSourcesBody: {
+        results: [{
+          kind: "source",
+          source_id: "mops_route",
+          candidate_key: "source:mops_route",
+          title: "MOPS filings route",
+          provider: "MOPS",
+          url: "https://mops.twse.com.tw/",
+          access_mode: "public",
+          collect_via: ["http_manifest"],
+        }],
+      },
+      discoverSourcesDelayMs: 5_000,
+    });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await searchDiscover(page, "issuer fundamentals");
+
+    const progress = page.getByTestId("discover-lookup-progress");
+    await expect(progress).toContainText("Current evidence is visible");
+    await expect(progress).toContainText("Library evidence · checked");
+    await expect(progress).toContainText("Known source routes · checking");
+    await expect(page.getByTestId("discover-result-summary")).toContainText("Library evidence · 1");
+    await captureWorkflow(page, "discover-progressive-1440x900");
+    await page.setViewportSize({ width: 390, height: 844 });
+    await captureWorkflow(page, "discover-progressive-390x844");
+    await page.getByTestId("discover-library-evidence").locator("summary").click();
+    await expect(page.getByText("Issuer weekly fundamentals", { exact: true })).toBeVisible();
+
+    await expect(page.getByText("MOPS filings route", { exact: true })).toBeVisible();
+    await expect(progress).toHaveCount(0);
   });
 
   test("does not report zero held evidence while the registry is still loading", async ({ page }) => {

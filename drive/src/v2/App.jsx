@@ -83,6 +83,7 @@ import { discoverCandidateState } from "@/v2/browseMeta";
 import { buildRailContext } from "@/v2/railContext";
 import { holdingIdsFromCatalog } from "@/v2/discoverTaxonomy";
 import { libraryEvidence, libraryVisible } from "@/v2/deskCounts";
+import { composerRuntimeRead } from "@/v2/composerRuntimeStatus";
 
 function readParams() {
   const p = new URLSearchParams(window.location.search);
@@ -258,6 +259,7 @@ export function V2App() {
   const { toast, show: showToast, dismissIf: dismissToastIf } = useToast();
   const authenticatedEmail = String(deskAccess?.principal?.email || "").trim();
   const canUseAsk = Boolean(deskAccess?.permissions?.use_ask);
+  const composerRuntime = composerRuntimeRead(health?.desk?.composer_runtime);
   const canSubmitCollection = Boolean(deskAccess?.permissions?.submit_collection);
   const canApproveJobs = Boolean(deskAccess?.permissions?.approve_jobs);
 
@@ -1575,6 +1577,8 @@ export function V2App() {
         <SynthesisPage
           datasets={catalog}
           onAskComposer={askFromPrompt}
+          assistantRuntime={composerRuntime}
+          assistantAllowed={canUseAsk}
           onGoTab={goTab}
           onOpenDataset={openInLibraryFromDiscover}
           onReviewExecution={(execution) => {
@@ -1586,7 +1590,7 @@ export function V2App() {
           }}
           onBeginNew={() => {
             setActiveObject(null);
-            setRailTab("ask");
+            setRailTab(canUseAsk && composerRuntime?.ready ? "ask" : "detail");
           }}
           onDiscoverHandoff={handleSynthesisDiscoverHandoff}
           focusThreadId={focusSynthesisThreadId}

@@ -331,6 +331,34 @@ function DiscoverQueryComposer({
   );
 }
 
+function DiscoverLookupProgress({ progress, hasResults = false }) {
+  const steps = [
+    ["library", "Library evidence"],
+    ["routes", "Known source routes"],
+  ];
+  return (
+    <div
+      className="rd-v2-discover-lookup-progress"
+      data-testid="discover-lookup-progress"
+      role="status"
+      aria-live="polite"
+    >
+      <span className="rd-v2-discover-lookup-lead">
+        {hasResults ? "Current evidence is visible" : "Building the evidence view"}
+      </span>
+      {steps.map(([id, label]) => {
+        const state = progress?.[id] || "waiting";
+        return (
+          <span key={id} className={`is-${state}`}>
+            <i aria-hidden="true">{state === "done" ? "✓" : state === "unavailable" ? "!" : ""}</i>
+            {label} · {state === "done" ? "checked" : state === "unavailable" ? "unavailable" : "checking"}
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
 function DiscoverRouteComparison({
   query,
   requirement,
@@ -615,6 +643,7 @@ export function BrowsePage({
   const [queryDraft, setQueryDraft] = useState(searchQuery || "");
   const [loadedQuery, setLoadedQuery] = useState("");
   const [enrichedQuestion, setEnrichedQuestion] = useState("");
+  const [lookupProgress, setLookupProgress] = useState({ library: "waiting", routes: "waiting" });
 
   const pendingRows = useMemo(
     () => pendingApprovalJobs(jobs).map((job) => jobToCandidateRow(job)).filter(Boolean),
@@ -652,6 +681,11 @@ export function BrowsePage({
     setError("");
     setSource("");
     setDemoFallback(false);
+    setLookupProgress(
+      q && !externalSearchActive && !preferLiveSources
+        ? { library: "checking", routes: "checking" }
+        : { library: "waiting", routes: "waiting" },
+    );
     if (!isWidening) setRows([]);
     setStateFilter("all");
     setIndexMiss(false);
@@ -753,19 +787,49 @@ export function BrowsePage({
           /* sources endpoint optional — fall through to the index path */
         }
         }
-        const [discoverResult, knownSourcesResult] = await Promise.allSettled([
-          discoverSearch(q, 12, email),
-          discoverSources(q, { limit: 8, semantic: false, live: false }),
+        // Paint each truthful source as soon as it answers. The Library index
+        // is usually fast; waiting for the source-route catalogue made a real
+        // local match disappear behind one generic spinner. Each partial paint
+        // is additive, and the settled merge below remains the final authority.
+        let discover = {};
+        let knownSources = {};
+        let discoverFailure = null;
+        let knownSourcesFailure = null;
+        await Promise.all([
+          discoverSearch(q, 12, email)
+            .then((data) => {
+              discover = data || {};
+              const partial = flattenRows(discover);
+              if (partial.length) apply({ results: partial }, "index_local", { append: true });
+              if (!cancelled) {
+                setLookupProgress((current) => ({ ...current, library: "done" }));
+              }
+            })
+            .catch((cause) => {
+              discoverFailure = cause;
+              if (!cancelled) {
+                setLookupProgress((current) => ({ ...current, library: "unavailable" }));
+              }
+            }),
+          discoverSources(q, { limit: 8, semantic: false, live: false })
+            .then((data) => {
+              knownSources = data || {};
+              const partial = sourcesResponseToRows(knownSources);
+              if (partial.length) apply({ results: partial }, "known_sources", { append: true });
+              if (!cancelled) {
+                setLookupProgress((current) => ({ ...current, routes: "done" }));
+              }
+            })
+            .catch((cause) => {
+              knownSourcesFailure = cause;
+              if (!cancelled) {
+                setLookupProgress((current) => ({ ...current, routes: "unavailable" }));
+              }
+            }),
         ]);
-        if (discoverResult.status === "rejected" && knownSourcesResult.status === "rejected") {
-          throw discoverResult.reason;
-        }
-        const discover = discoverResult.status === "fulfilled" ? discoverResult.value : {};
+        if (discoverFailure && knownSourcesFailure) throw discoverFailure;
         const discoverRows = flattenRows(discover);
-        const knownSourceRows =
-          knownSourcesResult.status === "fulfilled"
-            ? sourcesResponseToRows(knownSourcesResult.value)
-            : [];
+        const knownSourceRows = sourcesResponseToRows(knownSources);
         let mergedRows = dedupeRows([...knownSourceRows, ...discoverRows]);
         let label = mergedRows.length ? "index" : "";
         let miss = Boolean(discover.index_miss || discover.weak_match) && discoverRows.length === 0;
@@ -1330,35 +1394,30 @@ export function BrowsePage({
                 </div>
               </div>
               <div className="rd-v2-discover-frozen-counts" aria-label="Discover result territories">
+                {merged.length || !loading || wideningInProgress
+                  ? discoverTerritories(resultGroups).map((territory) =>
+                    // A page reload can begin a query before /datasets has
+                    // answered. That is unmeasured, not zero held evidence.
+                    territory.id === "held" && catalogLoading ? (
+                      <span key={territory.id}>Library evidence · Checking…</span>
+                    // The freeze makes Library evidence an opener, not a label:
+                    // it reveals a bounded preview plus Compare coverage and Open
+                    // Library results. The popover existed and was never mounted.
+                    ) : territory.id === "held" && libraryEvidenceMenu ? (
+                      <span key={territory.id}>{libraryEvidenceMenu}</span>
+                    ) : (
+                      <span key={territory.id}>{territory.label} · {territory.count}</span>
+                    ),
+                  )
+                  : null}
                 {loading && !wideningInProgress ? (
+                  <DiscoverLookupProgress progress={lookupProgress} hasResults={merged.length > 0} />
+                ) : null}
+                {loading && wideningInProgress ? (
                   <span className="rd-v2-discover-counts-loading" role="status">
-                    {preferLiveSources
-                      ? "Searching wider sources…"
-                      : "Searching your Library and known source routes…"}
+                    Searching wider sources…
                   </span>
-                ) : (
-                  <>
-                    {discoverTerritories(resultGroups).map((territory) =>
-                      // A page reload can begin a query before /datasets has
-                      // answered. That is unmeasured, not zero held evidence.
-                      territory.id === "held" && catalogLoading ? (
-                        <span key={territory.id}>Library evidence · Checking…</span>
-                      // The freeze makes Library evidence an opener, not a label:
-                      // it reveals a bounded preview plus Compare coverage and Open
-                      // Library results. The popover existed and was never mounted.
-                      ) : territory.id === "held" && libraryEvidenceMenu ? (
-                        <span key={territory.id}>{libraryEvidenceMenu}</span>
-                      ) : (
-                        <span key={territory.id}>{territory.label} · {territory.count}</span>
-                      ),
-                    )}
-                    {loading && wideningInProgress ? (
-                      <span className="rd-v2-discover-counts-loading" role="status">
-                        Searching wider sources…
-                      </span>
-                    ) : null}
-                  </>
-                )}
+                ) : null}
               </div>
               <div className="rd-v2-discover-result-actions" aria-label="Discover next actions">
                 <div>
@@ -1439,11 +1498,8 @@ export function BrowsePage({
               />
             ) : null}
 
-            {loading && filtered.length ? (
+            {loading && wideningInProgress && filtered.length ? (
               <p className="rd-v2-browse-loading">Showing current matches while wider sources refresh…</p>
-            ) : null}
-            {loading && !filtered.length ? (
-              <p className="rd-v2-browse-loading">Searching your Library and wider sources…</p>
             ) : null}
 
             {!loading && allInLab ? (

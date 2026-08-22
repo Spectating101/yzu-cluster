@@ -9671,6 +9671,74 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
   font-variant-numeric: normal;
 }
 
+.rd-v2-discover-lookup-progress {
+  display: flex;
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px 14px;
+  min-width: 0;
+  padding-top: 2px;
+  color: var(--rd-muted);
+  font-variant-numeric: normal;
+}
+
+.rd-v2-discover-lookup-progress > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  font-weight: 620;
+}
+
+.rd-v2-discover-lookup-progress .rd-v2-discover-lookup-lead {
+  color: var(--rd-text);
+  font-weight: 740;
+}
+
+.rd-v2-discover-lookup-progress i {
+  display: inline-grid;
+  width: 14px;
+  height: 14px;
+  place-items: center;
+  border: 1px solid #b9b3a7;
+  border-radius: 50%;
+  color: #fff;
+  background: #f7f3e9;
+  font-size: 8px;
+  font-style: normal;
+}
+
+.rd-v2-discover-lookup-progress .is-checking i {
+  border-color: #547763;
+  border-top-color: transparent;
+  animation: rd-discover-lookup-spin .8s linear infinite;
+}
+
+.rd-v2-discover-lookup-progress .is-done i {
+  border-color: #547763;
+  background: #547763;
+}
+
+.rd-v2-discover-lookup-progress .is-unavailable i {
+  border-color: #9b6d48;
+  background: #9b6d48;
+}
+
+@keyframes rd-discover-lookup-spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .rd-v2-discover-lookup-progress .is-checking i { animation: none; }
+}
+
+@media (max-width: 600px) {
+  .rd-v2-discover-lookup-progress {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+}
+
 .rd-v2-discover-ranked-results {
   display: grid;
   gap: 0;
