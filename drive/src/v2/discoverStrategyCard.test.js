@@ -197,6 +197,19 @@ test("source check access is proposed from declared metadata and observed only a
   assert.equal(probedRow.nextCheck, "Coverage verification");
 });
 
+test("source check translates registry access tokens into researcher-facing language", () => {
+  const built = card({
+    title: "TWSE Open API",
+    source: "Taiwan Stock Exchange",
+    source_access_mode: "materialized_instant",
+  });
+  const check = block(built, "source_check");
+
+  assert.equal(check.row.access, "proposed");
+  assert.equal(check.row.accessDetail, "Direct collection");
+  assert.doesNotMatch(check.row.accessDetail, /_/);
+});
+
 test("still unknown mirrors the measured unknowns and is never emptied for polish", () => {
   const built = card({ title: "GDELT offering", collect_via: "an API query" });
   const unknown = block(built, "still_unknown");

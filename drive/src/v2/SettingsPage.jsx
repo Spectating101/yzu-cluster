@@ -28,8 +28,15 @@ function isDemoMode() {
   }
 }
 
-function deskAccessStatus(health) {
+function deskAccessStatus(health, deskAccess) {
   const desk = health?.desk || {};
+  if (deskAccess?.authenticated) {
+    return {
+      ok: true,
+      label: "Connected",
+      detail: deskAccess?.session?.mode === "token" ? "Session fallback" : "Browser session",
+    };
+  }
   if (hasDeskToken()) return { ok: true, label: "Connected", detail: "Session fallback" };
   if (deskSessionBootstrapped() || desk.desk_session_cookie) {
     return { ok: true, label: "Connected", detail: "Browser session" };
@@ -83,9 +90,25 @@ function assistantStatus(health) {
   return { ready: false, known: false, label: "Not reported", detail: "No assistant signal on /health" };
 }
 
-function jobsStatus(health) {
+function jobsStatus(health, { jobs: loadedJobs = [], loaded = false, refreshFailed = false, decisions = 0 } = {}) {
+  const currentJobs = Array.isArray(loadedJobs) ? loadedJobs : [];
+  if (loaded && !refreshFailed) {
+    const pending = currentJobs.filter((job) => job?.status === "pending_approval").length;
+    const running = currentJobs.filter((job) => ["queued", "running"].includes(String(job?.status || ""))).length;
+    const failed = currentJobs.filter((job) => job?.status === "failed").length;
+    if (pending > 0) {
+      return {
+        label: `${pending} pending approval${pending === 1 ? "" : "s"}`,
+        detail: `${decisions} research decision${decisions === 1 ? "" : "s"} in Discover`,
+        warn: true,
+      };
+    }
+    if (running > 0) return { label: `${running} active`, detail: "Collection / execution jobs", warn: false };
+    if (failed > 0) return { label: `${failed} failed`, detail: "See Discover History", warn: true };
+    return { label: "Quiet", detail: "No pending or running jobs", warn: false };
+  }
   if (health == null) {
-    return { label: "Syncing…", detail: "Waiting for /health", warn: false };
+    return { label: "Syncing…", detail: "Waiting for job inventory", warn: false };
   }
   const jobs = health?.desk?.jobs || {};
   const actionable = jobs.actionable && typeof jobs.actionable === "object" ? jobs.actionable : {};
@@ -98,7 +121,13 @@ function jobsStatus(health) {
   if (!health?.desk?.jobs) {
     return { label: "Not reported", detail: "Job counters missing from /health", warn: false };
   }
-  if (pending > 0) return { label: `${pending} pending approval`, detail: "Discover owns approvals", warn: true };
+  if (pending > 0) {
+    return {
+      label: `${pending} reported pending`,
+      detail: refreshFailed ? "Job inventory could not refresh" : "Loading actionable jobs",
+      warn: true,
+    };
+  }
   if (running > 0) return { label: `${running} running`, detail: "Active collection / execution", warn: false };
   if (failed > 0) {
     return {
@@ -126,17 +155,32 @@ function SummaryCard({ label, value, detail, help, warn }) {
   );
 }
 
-export function SettingsPage({ health, resourcesRollup, onProfileRefresh, onToast }) {
+export function SettingsPage({
+  health,
+  deskAccess,
+  jobs: loadedJobs = [],
+  jobsLoaded = false,
+  jobsRefreshFailed = false,
+  pendingResearchDecisions = 0,
+  resourcesRollup,
+  onProfileRefresh,
+  onToast,
+}) {
   const [settings, setSettings] = useState(() => loadSettings());
   const [emailDraft, setEmailDraft] = useState(() => settings.email || "");
   const [tokenDraft, setTokenDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const desk = health?.desk || {};
   const demoMode = isDemoMode();
-  const access = deskAccessStatus(health);
+  const access = deskAccessStatus(health, deskAccess);
   const archive = archiveStatus(desk);
   const assistant = assistantStatus(health);
-  const jobs = jobsStatus(health);
+  const jobs = jobsStatus(health, {
+    jobs: loadedJobs,
+    loaded: jobsLoaded,
+    refreshFailed: jobsRefreshFailed,
+    decisions: pendingResearchDecisions,
+  });
   const mcpTools = resourcesRollup?.ai?.mcp_tools?.total ?? resourcesRollup?.hero?.mcp_tools ?? null;
   const healthOk = health?.status === "ok";
 
@@ -194,16 +238,16 @@ export function SettingsPage({ health, resourcesRollup, onProfileRefresh, onToas
         <section className="rd-v2-settings-summary" aria-label="Research desk status">
           <SummaryCard
             label="Desk API"
-            value={health == null ? "Syncing…" : healthOk ? "Live" : health?.status || "Unknown"}
+            value={health == null ? "Syncing…" : "Live"}
             detail={
               health == null
                 ? "Waiting for /health"
                 : healthOk
                   ? "Catalog · Ask · jobs reachable"
-                  : "Health payload missing or degraded"
+                  : `Connected · desk reports ${health?.status || "unknown"}`
             }
             help="Truth from GET /health on the Tailscale desk."
-            warn={health != null && !healthOk}
+            warn={false}
           />
           <SummaryCard
             label="Research assistant"

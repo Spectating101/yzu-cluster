@@ -84,7 +84,10 @@ test.describe("Research Drive interaction robustness", () => {
 
     await expect(rail.getByTestId("interaction-progress")).toBeVisible();
     await v2Nav(page, "Synthesis");
-    await expect(page.getByRole("heading", { name: "Synthesis" })).toBeVisible();
+    await expect(page.getByTestId("synthesis-studio")).toBeVisible();
+    await expect(
+      page.locator("aside.yzu-sidebar").getByRole("button", { name: "Synthesis", exact: true }),
+    ).toHaveClass(/active/);
     await expect(rail).toContainText("The single request completed after navigation.", { timeout: 10_000 });
 
     expect(chatRequests).toBe(1);

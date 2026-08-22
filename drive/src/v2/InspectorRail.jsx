@@ -85,7 +85,9 @@ function activeHintBelongsToTab(mainTab, object) {
     return ["external_candidate", "discover_history", "discover_investigation"].includes(object.kind);
   }
   if (mainTab === "resources") return object.kind === "resource_row";
-  if (mainTab === "home") return ["dataset", "home_attention"].includes(object.kind);
+  if (mainTab === "home") {
+    return object.kind === "home_attention" || (object.kind === "dataset" && object.owner === "home");
+  }
   if (mainTab === "synthesis") return object.kind === "synthesis_thread";
   return false;
 }
@@ -109,7 +111,9 @@ export function InspectorRail({
   discoverRestingSummary = null,
   resourceRow,
   resourcesRollup,
+  resourcesDecisionCount,
   activeObject,
+  previewOpen = false,
   onPreview,
   onAskAbout,
   onAddToLab,
@@ -196,7 +200,11 @@ export function InspectorRail({
         onAskAbout={onAskAbout}
       />
     ) : (
-      <ResourcesOverviewRailPanel rollup={resourcesRollup} onViewActivity={onViewActivity} />
+      <ResourcesOverviewRailPanel
+        rollup={resourcesRollup}
+        decisionCount={resourcesDecisionCount}
+        onViewActivity={onViewActivity}
+      />
     );
   } else if (mainTab === "profile") {
     detailPanel = <ProfileDetailPanel profile={profile} />;
@@ -209,6 +217,7 @@ export function InspectorRail({
     detailPanel = (
       <LibraryDatasetRailPanel
         dataset={dataset}
+        previewOpen={previewOpen}
         onPreview={onPreview}
         onAskAbout={onAskAbout}
       />
@@ -233,10 +242,16 @@ export function InspectorRail({
     detailPanel = <PageRailPanel page="library" onAskAbout={onAskAbout} />;
   } else if (mainTab === "home" && activeObject?.kind === "home_attention") {
     detailPanel = <HomeAttentionRailPanel object={activeObject} onAskAbout={onAskAbout} />;
-  } else if (mainTab === "home" && dataset?.dataset_id) {
+  } else if (
+    mainTab === "home" &&
+    dataset?.dataset_id &&
+    activeObject?.kind === "dataset" &&
+    activeObject?.owner === "home"
+  ) {
     detailPanel = (
       <LibraryDatasetRailPanel
         dataset={dataset}
+        previewOpen={previewOpen}
         onPreview={onPreview}
         onAskAbout={onAskAbout}
       />

@@ -743,7 +743,9 @@ test.describe("v2 Synthesis durable thread surface", () => {
     const objective = "Construct a weekly issuer attention panel for Taiwan filings.";
     await page.getByTestId("synthesis-intent-state").getByRole("textbox").fill(objective);
     await page.getByRole("button", { name: "Start project in Ask" }).click();
-    await expect(page.locator("main.s04-main").getByText(objective, { exact: true })).toBeVisible();
+    await expect(
+      page.getByRole("region", { name: "Research brief" }).getByRole("paragraph"),
+    ).toHaveText(objective);
     await expect(page.getByRole("heading", { name: "Weekly issuer attention panel for Taiwan filings" })).toBeVisible();
     await expect(page.getByTestId("synthesis-draft-state")).toBeVisible();
     await expect(page.getByRole("button", { name: "Method reasoning in Ask" })).toBeDisabled();

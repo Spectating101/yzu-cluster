@@ -127,8 +127,10 @@ test.describe("Research Drive release visual contract", () => {
 
     const summary = page.getByRole("region", { name: "Research desk status" });
     await expect(summary).toContainText("Desk API");
+    await expect(summary.locator(".rd-v2-settings-summary-card").filter({ hasText: "Desk API" })).toContainText("Live");
     await expect(summary).toContainText("Research assistant");
     await expect(summary).toContainText("Jobs");
+    await expect(page.getByText("This browser", { exact: true }).locator("..")).toContainText("Connected");
     await expect(page.getByText("Research services", { exact: true })).toBeVisible();
     await expect(page.getByText("Browser access", { exact: true })).toBeVisible();
     await expect(page.getByText("Research archive", { exact: true }).first()).toBeVisible();

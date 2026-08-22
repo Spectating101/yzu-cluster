@@ -303,8 +303,8 @@
 .rd-v2-profile-identity,
 .rd-v2-profile-section {
   border-color: var(--rd-release-line);
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 10px 28px rgba(17, 24, 39, 0.045);
+  background: color-mix(in srgb, var(--rd-surface, #fffdf6) 92%, #fff);
+  box-shadow: none;
 }
 
 .rd-v2-profile-name {
@@ -567,6 +567,52 @@
    internal rhythm stays readable. */
 .rd-v2-profile-page .rd-v2-body-scroll {
   gap: 12px;
+  background: color-mix(in srgb, var(--rd-canvas, #eeeae0) 46%, var(--rd-surface, #fffdf6));
+}
+
+/* A thin faculty record should not look like a small stack of cards dropped
+   onto a second, empty application canvas. Keep the grounded Memory → Lab
+   composition, but let its hairline sections belong directly to the desk.
+   Rich profiles retain the bounded editorial sheet used by the freeze. */
+.rd-v2-profile-page:has([data-testid="profile-memory-thin"]) .rd-v2-body-scroll {
+  gap: 0;
+  padding: 6px 0 20px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.rd-v2-profile-page:has([data-testid="profile-memory-thin"]) .rd-v2-profile-identity {
+  margin: 0;
+  padding: 12px 0 18px;
+  border: 0;
+  border-bottom: 1px solid var(--rd-border);
+  border-radius: 0;
+  background: transparent;
+}
+
+.rd-v2-profile-page:has([data-testid="profile-memory-thin"]) .rd-v2-profile-section {
+  margin: 0;
+  border-width: 0 0 1px;
+  border-radius: 0;
+  background: transparent;
+}
+
+.rd-v2-profile-page:has([data-testid="profile-memory-thin"]) .rd-v2-profile-section-head {
+  padding-inline: 0;
+  background: transparent;
+}
+
+.rd-v2-profile-page:has([data-testid="profile-memory-thin"]) .rd-v2-profile-section > :not(.rd-v2-profile-section-head) {
+  margin-inline: 0;
+}
+
+.rd-v2-profile-page:has([data-testid="profile-memory-thin"]) .rd-v2-profile-lab-grid .rd-v2-profile-lab-block:first-child {
+  padding-left: 0;
+}
+
+.rd-v2-profile-page:has([data-testid="profile-memory-thin"]) .rd-v2-profile-lab-grid .rd-v2-profile-lab-block:last-child {
+  padding-right: 0;
 }
 
 .rd-v2-profile-page .rd-v2-profile-identity {

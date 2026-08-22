@@ -39,6 +39,7 @@ test.describe("v2 Library directory", () => {
     await expect(workspace.locator(".rd-v2-library-evidence-facts")).toContainText("ScopeNot declared");
     await expect(workspace.getByRole("button", { name: "Open query" })).toBeVisible();
     await expect(workspace.getByRole("button", { name: "View fields" })).toBeVisible();
+    await expect(workspace.getByRole("button", { name: "Preview rows" })).toHaveCount(1);
 
     const rail = page.locator("aside.rd-v2-rail");
     await expect(rail).toContainText("Asia daily news-risk panel");
@@ -103,6 +104,49 @@ test.describe("v2 Library directory", () => {
 });
 
 test.describe("v2 Library navigation", () => {
+  test("waits for the research taxonomy instead of presenting cluster lanes as shelves", async ({ page }) => {
+    await mockV2Api(page, {
+      libraryNavDelayMs: 1_200,
+      libraryNavBody: {
+        nav_mode: "professor_shelves",
+        shelves: [
+          { id: "markets", label: "Markets", partition_ids: ["markets.asia"] },
+          { id: "news", label: "News", partition_ids: ["news.gdelt"] },
+        ],
+        partitions: [
+          {
+            partition_id: "markets.asia",
+            shelf_id: "markets",
+            professor_label: "Asian equities",
+            detail: { registry_dataset_ids: ["gdelt_asia_daily_country_panel"] },
+          },
+          {
+            partition_id: "news.gdelt",
+            shelf_id: "news",
+            professor_label: "News and events",
+            detail: { registry_dataset_ids: [] },
+          },
+        ],
+        guide: { start_here: ["markets", "news"] },
+      },
+    });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+
+    const location = page.getByLabel("Library location status");
+    await expect(location).toHaveAttribute("data-navigation-state", "loading");
+    await expect(page.getByRole("status")).toContainText("Organizing Library shelves");
+    await expect(page.getByText("ungrouped", { exact: true })).toHaveCount(0);
+
+    await expect(location).toHaveAttribute("data-navigation-state", "ready");
+    const directory = page.getByTestId("library-directory");
+    await expect(directory.getByText("Markets", { exact: true })).toBeVisible();
+    await expect(directory.getByText("News", { exact: true })).toBeVisible();
+    await expect(location).toContainText("3 shelves");
+    await expect(page.getByText("ungrouped", { exact: true })).toHaveCount(0);
+  });
+
   test("a dataset-only deep link opens the Library workspace", async ({ page }) => {
     await mockV2Api(page);
     await page.setViewportSize({ width: 1440, height: 900 });

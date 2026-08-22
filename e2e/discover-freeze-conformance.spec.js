@@ -7,7 +7,7 @@ import { MOCK_DISCOVER_HIT, mockV2Api, waitForShell } from "./fixtures/v2MockApi
 // freeze binds the row to three.
 
 const open = async (page, q = "") => {
-  await mockV2Api(page);
+  await mockV2Api(page, { discoverBody: MOCK_DISCOVER_HIT });
   await page.goto("/?tab=discover", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
   if (q) {
@@ -65,9 +65,9 @@ test("§3 — the chrome row carries exactly the three frozen counters", async (
 
 test("§3 — every visible offering carries a description and a row-level Add", async ({ page }) => {
   await open(page, "stablecoin");
-  const rows = page.locator("[data-testid=discover-result-row], .rd-v2-discover-result");
+  const rows = page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidates > li");
   const n = await rows.count();
-  test.skip(n === 0, "fixture returned no offerings");
+  expect(n).toBeGreaterThan(0);
   for (let i = 0; i < n; i += 1) {
     const row = rows.nth(i);
     expect((await row.innerText()).trim().length).toBeGreaterThan(40);
@@ -77,10 +77,10 @@ test("§3 — every visible offering carries a description and a row-level Add",
 
 test("§12 — selecting a row does not take over the centre", async ({ page }) => {
   await open(page, "stablecoin");
-  const rows = page.locator("[data-testid=discover-result-row], .rd-v2-discover-result");
+  const rows = page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidates > li");
   const before = await rows.count();
-  test.skip(before === 0, "fixture returned no offerings");
-  await rows.first().click();
+  expect(before).toBeGreaterThan(0);
+  await rows.first().locator(".rd-v2-discover-candidate").click();
   await page.waitForTimeout(400);
   await expect(rows).toHaveCount(before);
 });

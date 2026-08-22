@@ -457,7 +457,10 @@ export function historyLifecycleBucket(event) {
     return "scheduled";
   }
   if (/pending_approval|ready_for_review|awaiting|needs_approval/.test(status)) return "needs_approval";
-  if (/cancelled|canceled/.test(status)) return "ready";
+  // Cancelled is a durable terminal record, but it is not a ready output and
+  // it does not need recovery. Keep it in the unfiltered lifecycle without
+  // inflating either the Ready or Recovery territory.
+  if (/cancelled|canceled/.test(status)) return "cancelled";
   if (/queued|running|active|in_progress/.test(status)) return "active";
   if (/failed|error|needs_recovery|blocked/.test(status)) return "needs_recovery";
   // Lifecycle "ready" means acquisition finished — not necessarily query-ready.

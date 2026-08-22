@@ -97,7 +97,7 @@ function verificationBlock(dataset) {
   };
 }
 
-export function LibraryDatasetRailPanel({ dataset, onPreview, onAskAbout }) {
+export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onPreview, onAskAbout }) {
   if (!dataset) return null;
   const fields = detailFields(dataset);
   const state = statusPillKind(dataset);
@@ -222,7 +222,13 @@ export function LibraryDatasetRailPanel({ dataset, onPreview, onAskAbout }) {
       <RailStickyFooter>
         {canPreview ? (
           <>
-            <button type="button" className="rd-v2-btn primary sm" onClick={onPreview}>Preview rows</button>
+            {previewOpen ? (
+              <span className="rd-v2-library-preview-state" data-testid="library-preview-open-state">
+                Preview open in centre
+              </span>
+            ) : (
+              <button type="button" className="rd-v2-btn primary sm" onClick={onPreview}>Preview rows</button>
+            )}
             <button type="button" className="rd-v2-btn sm" onClick={onAskAbout}>Ask about this →</button>
           </>
         ) : (

@@ -21,8 +21,11 @@ test.describe("v2 adaptive Preview", () => {
     const [scrimBox, inspectorBox] = await Promise.all([scrim.boundingBox(), inspector.boundingBox()]);
     expect(scrimBox).not.toBeNull();
     expect(inspectorBox).not.toBeNull();
-    expect(scrimBox.x).toBeLessThanOrEqual(inspectorBox.x);
-    expect(scrimBox.x + scrimBox.width).toBeGreaterThanOrEqual(inspectorBox.x + inspectorBox.width);
+    // UI_PRODUCT_AUTHORITY §9: Preview is centre-scoped evidence. The active
+    // Detail / Ask interpretation remains visible beside it.
+    expect(scrimBox.x + scrimBox.width).toBeLessThanOrEqual(inspectorBox.x + 1);
+    await expect(inspector.getByTestId("library-preview-open-state")).toHaveText("Preview open in centre");
+    await expect(inspector.getByRole("button", { name: "Preview rows" })).toHaveCount(0);
     await expect(preview).toContainText("Dataset preview");
     await expect(preview.getByRole("button", { name: "Rows", exact: true })).toBeVisible();
     await expect(preview.getByRole("button", { name: "Fields", exact: true })).toBeVisible();

@@ -330,7 +330,11 @@ export async function mockV2Api(
     discoverSourcesDelayMs = 0,
     discoverLiveSourcesDelayMs = 0,
     healthBody = MOCK_HEALTH,
+    resourcesBody = MOCK_RESOURCES_ROLLUP,
     jobsBody = MOCK_JOBS,
+    jobsDelayMs = 0,
+    libraryNavBody = { partitions: [], shelves: [] },
+    libraryNavDelayMs = 0,
     historyBody = { items: [] },
     profileBody = { found: true, profile: { name_en: "Test Prof", discipline: "YZU" } },
     assessmentBody = null,
@@ -394,7 +398,7 @@ export async function mockV2Api(
     route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify(MOCK_RESOURCES_ROLLUP),
+      body: JSON.stringify(resourcesBody),
     }),
   );
   await page.route("**/*health*", (route) =>
@@ -657,12 +661,18 @@ export async function mockV2Api(
   await page.route("**/yzu/status*", (route) =>
     route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(MOCK_CLUSTER) }),
   );
-  await page.route("**/library/jobs*", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(liveJobs) }),
-  );
-  await page.route("**/library/partitions*", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ partitions: [] }) }),
-  );
+  await page.route("**/library/jobs*", async (route) => {
+    if (jobsDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, jobsDelayMs));
+    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(liveJobs) });
+  });
+  await page.route("**/library/partitions*", async (route) => {
+    if (libraryNavDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, libraryNavDelayMs));
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(libraryNavBody),
+    });
+  });
   await page.route("**/library/synthesis/profiles", (route) =>
     route.fulfill({
       status: 200,

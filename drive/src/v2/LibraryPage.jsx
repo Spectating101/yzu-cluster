@@ -209,11 +209,12 @@ function LibraryHeadActions({
 export function LibraryPage({
   datasets,
   loading = false,
+  navigationLoading = false,
+  navigationError = "",
   partitions = [],
   shelves = [],
   loadError = "",
   guide = null,
-  cluster,
   folderId,
   onFolderChange,
   selectedId,
@@ -251,8 +252,8 @@ export function LibraryPage({
   );
 
   const tree = useMemo(
-    () => buildProfessorVaultTree(vaultDatasets, partitions.length ? partitions : (cluster?.lanes || []), shelves),
-    [vaultDatasets, partitions, shelves, cluster?.lanes],
+    () => buildProfessorVaultTree(vaultDatasets, partitions, shelves),
+    [vaultDatasets, partitions, shelves],
   );
 
   const trail = useMemo(() => {
@@ -426,7 +427,9 @@ export function LibraryPage({
           </Chip>
           <span className="rd-v2-toolbar-spacer" />
           <span className="rd-v2-toolbar-count">
-            {loading && !vaultDatasets.length ? "Loading Library…" : toolbarCountLabel({
+            {navigationLoading && !searchActive
+              ? "Organizing Library…"
+              : loading && !vaultDatasets.length ? "Loading Library…" : toolbarCountLabel({
               searchActive,
               folderCount,
               datasetCount: browseDatasetCount,
@@ -437,7 +440,7 @@ export function LibraryPage({
       }
       footer="double-click row → Preview"
     >
-      {isRoot && !searchActive && startHereShelves.length ? (
+      {isRoot && !searchActive && !navigationLoading && !navigationError && startHereShelves.length ? (
         <div className="rd-v2-library-start-here" aria-label="Start here shelves">
           <span className="rd-v2-library-start-here-label">Start here</span>
           <div className="rd-v2-library-start-here-chips">
@@ -449,7 +452,11 @@ export function LibraryPage({
           </div>
         </div>
       ) : null}
-      <div className="rd-v2-library-branchline rd-v2-library-pathbar" aria-label="Library location status">
+      <div
+        className="rd-v2-library-branchline rd-v2-library-pathbar"
+        aria-label="Library location status"
+        data-navigation-state={navigationLoading ? "loading" : navigationError ? "error" : "ready"}
+      >
         <div className="rd-v2-library-pathcopy">
           <strong>{currentFolderName}</strong>
           <p>
@@ -461,7 +468,9 @@ export function LibraryPage({
           </p>
         </div>
         <div className="rd-v2-library-pathstats">
-          {loading && !vaultDatasets.length ? (
+          {navigationLoading && isRoot && !searchActive ? (
+            <span>Organizing shelves…</span>
+          ) : loading && !vaultDatasets.length ? (
             <span>Loading holdings…</span>
           ) : searchActive ? null : isRoot ? (
             <>
@@ -485,8 +494,16 @@ export function LibraryPage({
         </div>
       </div>
       {loadError ? <DeskError raw={loadError} surface="your Library" /> : null}
+      {navigationError ? <DeskError raw={navigationError} surface="Library shelves" /> : null}
       <div className="rd-v2-catalog-list-wrap" data-testid="library-directory">
-        {loading && !vaultDatasets.length ? (
+        {navigationLoading && isRoot && !searchActive ? (
+          <div className="rd-v2-library-empty" role="status" aria-live="polite">
+            <strong>Organizing Library shelves…</strong>
+            <p>{vaultDatasets.length
+              ? `Placing ${vaultDatasets.length} registered datasets into the desk’s research folders.`
+              : "Reading the Library taxonomy before showing its folders."}</p>
+          </div>
+        ) : loading && !vaultDatasets.length ? (
           <div className="rd-v2-library-empty" role="status" aria-live="polite">
             <strong>Loading Library holdings…</strong>
             <p>Reading the registered evidence estate before showing its counts and shelves.</p>

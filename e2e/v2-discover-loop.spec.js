@@ -46,6 +46,23 @@ test.describe("v2 Discover Explore|History (main converge)", () => {
     await expect(rail).toContainText("Approval required");
   });
 
+  test("History names the pending-approval hydration window instead of looking empty", async ({ page }) => {
+    await mockV2Api(page, {
+      jobsBody: {
+        jobs: [{ id: "pending-delayed", status: "pending_approval", plan: { title: "Delayed TWSE review" } }],
+      },
+      jobsDelayMs: 1_200,
+    });
+    await page.goto("/?tab=browse&mode=history", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+
+    const history = page.getByTestId("discover-history");
+    await expect(history.getByTestId("discover-history-jobs-sync")).toContainText("Checking pending approvals");
+    await expect(history.getByRole("heading", { name: "Needs you" })).toBeVisible({ timeout: 5_000 });
+    await expect(history.getByTestId("discover-history-jobs-sync")).toHaveCount(0);
+    await expect(page.getByTestId("header-pending-link")).toHaveText("1 pending");
+  });
+
   test("LEGACY: Activity workspace is not a Discover mode", async ({ page }) => {
     // LEGACY EXPECTATION guard — must stay red/absent, never revive Activity tab.
     await page.goto("/?tab=browse&mode=activity", { waitUntil: "domcontentloaded" });

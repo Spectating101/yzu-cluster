@@ -221,7 +221,14 @@ function SystemVerificationFold({ events, selectedId, onSelectEvent, startIndex 
   );
 }
 
-export function DiscoverHistoryPanel({ events = [], selectedId = "", onSelectEvent }) {
+export function DiscoverHistoryPanel({
+  events = [],
+  jobsLoaded = true,
+  jobsRefreshing = false,
+  jobsRefreshFailed = false,
+  selectedId = "",
+  onSelectEvent,
+}) {
   const [filter, setFilter] = useState("all");
   const [visibleCount, setVisibleCount] = useState(8);
   const fenced = useMemo(() => {
@@ -280,7 +287,12 @@ export function DiscoverHistoryPanel({ events = [], selectedId = "", onSelectEve
   }, [visible, onSelectEvent, selectedId, filter, systemRows]);
 
   return (
-    <section className="rd-v2-discover-history" data-testid="discover-history" aria-label="Research lifecycle">
+    <section
+      className="rd-v2-discover-history"
+      data-testid="discover-history"
+      aria-label="Research lifecycle"
+      aria-busy={!jobsLoaded || jobsRefreshing}
+    >
       <div className="rd-v2-history-intro">
         <div>
           <span className="rd-v2-eyebrow">Research lifecycle</span>
@@ -289,6 +301,15 @@ export function DiscoverHistoryPanel({ events = [], selectedId = "", onSelectEve
             Approvals, collection, and registered assets. Search activity and host checks remain available without burying
             research work.
           </p>
+          {!jobsLoaded ? (
+            <p className="rd-v2-history-sync" data-testid="discover-history-jobs-sync" role="status">
+              Checking pending approvals…
+            </p>
+          ) : jobsRefreshFailed ? (
+            <p className="rd-v2-history-sync is-warning" data-testid="discover-history-jobs-sync" role="status">
+              Pending approvals could not refresh; showing the latest durable lifecycle.
+            </p>
+          ) : null}
           {fenced.hiddenNoise > 0 ||
           fenced.hiddenSearchTelemetry > 0 ||
           fenced.hiddenSystemVerification > 0 ? (

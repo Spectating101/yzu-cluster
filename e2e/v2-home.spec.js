@@ -52,6 +52,27 @@ test.describe("v2 Home Iteration 10 freeze", () => {
     await expect(rail.locator(".rd-v2-ask-ctx")).toContainText(datasetId);
   });
 
+  test("Home replaces a Library selection with its exact Pick Up object", async ({ page }) => {
+    await page.getByRole("button", { name: "Library", exact: true }).click();
+    await page.getByRole("textbox", { name: "Search library holdings" }).fill("Ticker week");
+    const libraryRow = page.locator('.rd-v2-catalog-list button[data-kind="dataset"]', {
+      hasText: "Ticker week panel",
+    });
+    await expect(libraryRow).toBeVisible();
+    const libraryTitle = "Ticker week panel";
+    await libraryRow.click();
+    await expect(page.locator("aside.rd-v2-rail")).toContainText(libraryTitle);
+
+    await page.getByRole("button", { name: "Home", exact: true }).click();
+    const pick = page.getByTestId("home-continue");
+    const resumeTitle = (await pick.locator("h2").innerText()).trim();
+    const rail = page.locator("aside.rd-v2-rail");
+    await expect(rail.locator(".rd-v2-rail-selection")).toContainText(resumeTitle);
+    if (libraryTitle !== resumeTitle) {
+      await expect(rail.locator(".rd-v2-rail-selection")).not.toContainText(libraryTitle);
+    }
+  });
+
   test("decision secondary surfaces Review into Discover History when approval pending", async ({ page }) => {
     // MOCK_JOBS always carries one pending_approval job, so this card must
     // appear. The previous count-then-skip guard raced the jobs fetch: the

@@ -81,7 +81,7 @@ function AssetOverlay({ kind, dataset, fields, onClose }) {
   );
 }
 
-function DataGlimpse({ dataset, enabled, onPreview }) {
+function DataGlimpse({ dataset, enabled }) {
   const [state, setState] = useState({ loading: false, rows: [], error: "" });
   useEffect(() => {
     let cancelled = false;
@@ -106,7 +106,6 @@ function DataGlimpse({ dataset, enabled, onPreview }) {
     <section className="rd-v2-library-workspace-section" aria-label="Data glimpse">
       <div className="rd-v2-library-section-heading">
         <div><span className="rd-v2-eyebrow">Data glimpse</span><h2>Observed local sample</h2></div>
-        <button type="button" className="rd-v2-btn sm" onClick={onPreview}>Preview rows</button>
       </div>
       {state.loading ? <p className="rd-v2-library-muted">Loading a bounded local sample…</p> : null}
       {!state.loading && state.error ? <p className="rd-v2-library-muted">{state.error}</p> : null}
@@ -184,7 +183,7 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onAsk, onOpe
           </section>
         </div>
 
-        <DataGlimpse dataset={dataset} enabled={canQuery} onPreview={onPreview} />
+        <DataGlimpse dataset={dataset} enabled={canQuery} />
 
         <section className="rd-v2-library-workspace-section" aria-label="Fields and operations">
           <div className="rd-v2-library-section-heading">

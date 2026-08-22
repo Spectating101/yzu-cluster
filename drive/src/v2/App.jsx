@@ -75,8 +75,10 @@ import {
 import {
   durableHistoryToEvents,
   enrichHistoryEventsFromJobs,
+  historyLifecycleBucket,
   mergeHistoryEvents,
 } from "@/v2/discoverAdapters";
+import { fenceHistoryEvents } from "@/v2/historyNoiseFence";
 import { discoverModeFromLegacy, discoverModeToUrlState } from "@/v2/discoverMode";
 import { jobToDiscoverHistoryEvent, pendingApprovalJobs } from "@/v2/procurementJobs";
 import { discoverCandidateState } from "@/v2/browseMeta";
@@ -210,7 +212,7 @@ export function V2App() {
   const [datasets, setDatasets] = useState([]);
   // Until the registry has actually answered, an empty array is unmeasured —
   // never a claim that the Library contains zero datasets.
-  const [catalogLoading, setCatalogLoading] = useState(false);
+  const [catalogLoading, setCatalogLoading] = useState(true);
   const [usingSeed, setUsingSeed] = useState(false);
   const [detail, setDetail] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -250,8 +252,12 @@ export function V2App() {
   const [partitions, setPartitions] = useState([]);
   const [shelves, setShelves] = useState([]);
   const [libraryGuide, setLibraryGuide] = useState(null);
+  const [libraryNavLoading, setLibraryNavLoading] = useState(true);
+  const [libraryNavError, setLibraryNavError] = useState("");
   const [ops, setOps] = useState(null);
   const [jobs, setJobs] = useState([]);
+  const [jobsLoaded, setJobsLoaded] = useState(false);
+  const [jobsRefreshing, setJobsRefreshing] = useState(false);
   const [overview, setOverview] = useState(null);
   const [catalogSummary, setCatalogSummary] = useState(null);
   const [cluster, setCluster] = useState(null);
@@ -421,20 +427,23 @@ export function V2App() {
     } catch (err) {
       applyCatalog([], err?.message || String(err));
     }
+    setLibraryNavLoading(true);
+    setLibraryNavError("");
     try {
       applyNavigation(await listLibraryNav());
-    } catch {
+    } catch (error) {
       clearNavigation();
+      setLibraryNavError(error?.message || String(error));
+    } finally {
+      setLibraryNavLoading(false);
     }
 
     // These are useful operational enrichments, but none may delay the
     // Library or Discover landing state. They may share the later queue.
-    listAcquisitions(false)
-      .then((d) => setAcquisitions(d.acquisitions || []))
-      .catch(() => setAcquisitions([]));
-    libraryOps()
-      .then(setOps)
-      .catch(() => setOps(null));
+    // Approval decisions are faculty-visible research work. Hydrate them
+    // before slower operational enrichments so History never advertises a
+    // pending count while its Needs-you territory appears empty.
+    setJobsRefreshing(true);
     listJobs()
       .then((rows) => {
         const list = Array.isArray(rows) ? rows : [];
@@ -443,11 +452,20 @@ export function V2App() {
         } else {
           setJobs(list);
         }
+        setJobsLoaded(true);
         setLifecycleRefreshFailed(false);
       })
       .catch(() => {
+        setJobsLoaded(true);
         setLifecycleRefreshFailed(true);
-      });
+      })
+      .finally(() => setJobsRefreshing(false));
+    listAcquisitions(false)
+      .then((d) => setAcquisitions(d.acquisitions || []))
+      .catch(() => setAcquisitions([]));
+    libraryOps()
+      .then(setOps)
+      .catch(() => setOps(null));
     libraryOverview()
       .then(setOverview)
       .catch(() => setOverview(null));
@@ -522,16 +540,6 @@ export function V2App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot URL normalize on mount
   }, []);
 
-  useEffect(() => {
-    if (!datasets.length || selectedId || tab !== "home") return;
-    const first = datasets[0];
-    const pick = first.dataset_id;
-    setSelectedId(pick);
-    setActiveObject(datasetObject(first));
-    // Do not touchRecent here — Home auto-select must not rewrite recent history.
-    writeParams({ tab, folder: folderId, dataset: pick, preview: previewOpen });
-  }, [datasets, selectedId, tab, folderId, previewOpen]);
-
   const catalog = datasets;
 
   const pageSearchQuery = tab === DISCOVER_TAB ? discoverSearchQuery : tab === "library" ? librarySearchQuery : "";
@@ -575,6 +583,13 @@ export function V2App() {
       .filter(Boolean);
     return mergeHistoryEvents(enriched, jobEvents);
   }, [historyEvents, jobs]);
+  const pendingResearchDecisions = useMemo(
+    () =>
+      fenceHistoryEvents(historyItems).visible.filter(
+        (event) => historyLifecycleBucket(event) === "needs_approval",
+      ).length,
+    [historyItems],
+  );
   const selectedHistoryEvent = useMemo(
     () => historyItems.find((event) => event?.id === selectedHistoryId) || null,
     [historyItems, selectedHistoryId],
@@ -769,6 +784,31 @@ export function V2App() {
     [goTab, syncUrl],
   );
 
+  /** Keep Home's inspector bound to the exact primary Pick Up object. */
+  const activateHomeResume = useCallback(
+    (point) => {
+      if (tab !== "home") return;
+      const row = point?.dataset;
+      const id = row?.dataset_id || row?.id || "";
+      if (!id) {
+        setSelectedId((current) => (current ? "" : current));
+        setDetail((current) => (current ? null : current));
+        setActiveObject((current) => (current ? null : current));
+        writeParams({ tab: "home", dataset: "", folder: "", preview: false, q: "", mode: "" });
+        return;
+      }
+      setSelectedId((current) => (current === id ? current : id));
+      // The identity may stay stable while the backend hydrates richer
+      // coverage/readiness metadata. Rebind the exact row, not just its id.
+      setDetail(row);
+      setActiveObject(datasetObject(row, { owner: "home" }));
+      // Selecting the projected resume point is not a new user interaction;
+      // do not rewrite Recent merely because Home rendered.
+      writeParams({ tab: "home", dataset: id, folder: "", preview: false, q: "", mode: "" });
+    },
+    [tab],
+  );
+
   const openPreview = useCallback(
     (row) => {
       const id = row?.dataset_id || selectedId;
@@ -776,14 +816,18 @@ export function V2App() {
       setPreviewTarget(row || selectedFromList || { dataset_id: id });
       setPreviewMode("lab");
       setSelectedId(id);
-      setActiveObject(datasetObject(row || selectedFromList || { dataset_id: id }));
+      setActiveObject(
+        datasetObject(row || selectedFromList || { dataset_id: id }, {
+          owner: tab === "home" ? "home" : tab,
+        }),
+      );
       touchRecent(id);
       setRecentEpoch((n) => n + 1);
       setPreviewOpen(true);
       setRailTab("detail");
       syncUrl({ dataset: id, preview: true });
     },
-    [selectedId, selectedFromList, syncUrl],
+    [selectedId, selectedFromList, syncUrl, tab],
   );
 
   const openPreviewExternal = useCallback((row) => {
@@ -1082,12 +1126,18 @@ export function V2App() {
 
   const retryLifecycleRefresh = useCallback(() => {
     setLifecycleRefreshFailed(false);
+    setJobsRefreshing(true);
     listJobs()
       .then((rows) => {
         setJobs(Array.isArray(rows) ? rows : []);
+        setJobsLoaded(true);
         setLifecycleRefreshFailed(false);
       })
-      .catch(() => setLifecycleRefreshFailed(true));
+      .catch(() => {
+        setJobsLoaded(true);
+        setLifecycleRefreshFailed(true);
+      })
+      .finally(() => setJobsRefreshing(false));
   }, []);
 
   // Poll jobs while selected Discover candidate has a nonterminal exact job.
@@ -1103,9 +1153,13 @@ export function V2App() {
       listJobs()
         .then((rows) => {
           setJobs(Array.isArray(rows) ? rows : []);
+          setJobsLoaded(true);
           setLifecycleRefreshFailed(false);
         })
-        .catch(() => setLifecycleRefreshFailed(true));
+        .catch(() => {
+          setJobsLoaded(true);
+          setLifecycleRefreshFailed(true);
+        });
     };
     jobsPollRef.current = window.setInterval(tick, 4000);
     return () => {
@@ -1435,6 +1489,7 @@ export function V2App() {
       main = (
         <HomePage
           datasets={catalog}
+          catalogLoading={catalogLoading}
           health={health}
           cluster={health?.cluster}
           profile={profile && !profile.unknown ? profile : pilotProfile || profile}
@@ -1448,6 +1503,7 @@ export function V2App() {
           onOpenAttention={openHomeAttention}
           onSelectDataset={openLibraryDataset}
           onPreviewDataset={openPreview}
+          onPrimaryResume={activateHomeResume}
           onAskAttention={askHomeAttention}
           onSuggestSearch={(q) => {
             setDiscoverPreferLive(false);
@@ -1462,11 +1518,12 @@ export function V2App() {
         <LibraryPage
           datasets={filteredDatasets}
           loading={catalogLoading}
+          navigationLoading={libraryNavLoading}
+          navigationError={libraryNavError}
           partitions={partitions}
           shelves={shelves}
           loadError={loadError}
           guide={libraryGuide}
-          cluster={health?.cluster}
           folderId={folderId}
           onFolderChange={changeLibraryFolder}
           selectedId={selectedId}
@@ -1509,6 +1566,9 @@ export function V2App() {
           discoverFocusAwaiting={discoverFocusAwaiting}
           onDiscoverModeChange={setDiscoverModeSafe}
           historyEvents={historyItems}
+          historyJobsLoaded={jobsLoaded}
+          historyJobsRefreshing={jobsRefreshing}
+          historyJobsRefreshFailed={lifecycleRefreshFailed}
           selectedHistoryId={selectedHistoryId}
           intentRecord={discoverIntentRecord}
           onIntentChange={setDiscoverIntentRecord}
@@ -1652,6 +1712,11 @@ export function V2App() {
       main = (
         <SettingsPage
           health={health}
+          deskAccess={deskAccess}
+          jobs={jobs}
+          jobsLoaded={jobsLoaded}
+          jobsRefreshFailed={lifecycleRefreshFailed}
+          pendingResearchDecisions={pendingResearchDecisions}
           resourcesRollup={resourcesRollup}
           onProfileRefresh={reloadProfile}
           onToast={showToast}
@@ -1737,10 +1802,11 @@ export function V2App() {
         datasetCount={headerDsCount}
         dataLoading={catalogLoading && catalog.length === 0}
         usingSeed={usingSeed}
-        workCount={Math.max(
-          Number(health?.desk?.jobs?.pending_approval ?? 0),
-          pendingApprovalJobs(jobs).length,
-        )}
+        workCount={
+          jobsLoaded
+            ? pendingResearchDecisions
+            : Number(health?.desk?.jobs?.pending_approval ?? 0)
+        }
         onPendingClick={canApproveJobs ? () => openDiscoverAwaiting() : undefined}
         deskStatus={
           health == null
@@ -1815,8 +1881,10 @@ export function V2App() {
         }}
         resourceRow={resourceRow}
         resourcesRollup={resourcesRollup}
+        resourcesDecisionCount={jobsLoaded ? pendingResearchDecisions : null}
         activeObject={activeObject}
         profile={profile}
+        previewOpen={previewOpen}
         onPreview={() => detail && openPreview(detail)}
         onAskAbout={canUseAsk && composerRuntime?.ready ? askAboutSelection : undefined}
         onViewActivity={(filter) => {

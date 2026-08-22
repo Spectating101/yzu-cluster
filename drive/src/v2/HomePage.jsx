@@ -98,6 +98,7 @@ function PickUpCard({ point, loading, onContinue, onReview }) {
 
 export function HomePage({
   datasets = [],
+  catalogLoading = false,
   health,
   jobs = [],
   profile,
@@ -107,10 +108,11 @@ export function HomePage({
   onOpenAttention,
   onSelectDataset,
   onPreviewDataset,
+  onPrimaryResume,
   onSuggestSearch,
   onAskComposer,
 }) {
-  const loading = health == null && datasets.length === 0;
+  const loading = catalogLoading || (health == null && datasets.length === 0);
   // Mirror Resources cache-first: never block Home headroom on a cold /desk/resources round-trip.
   const [cachedRollup, setCachedRollup] = useState(() => readResourcesRollupCache());
   useEffect(() => {
@@ -129,6 +131,9 @@ export function HomePage({
     () => buildPickUp({ datasets, jobs, health, acquisitions, profile }),
     [datasets, jobs, health, acquisitions, profile],
   );
+  useEffect(() => {
+    if (!loading) onPrimaryResume?.(pickUp.primary || null);
+  }, [loading, onPrimaryResume, pickUp.primary]);
   const headroom = useMemo(
     () => buildResourceHeadroom(headroomRollup),
     [headroomRollup],

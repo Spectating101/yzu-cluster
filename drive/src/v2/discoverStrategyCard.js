@@ -14,6 +14,7 @@ import { coverageParts } from "./discoverEvaluation.js";
 import { discoverCandidateUrl } from "./candidateKey.js";
 import { collectRouteLabel } from "./collectRouteLabel.js";
 import { intentCollection, intentState } from "./discoverIntent.js";
+import { humanizeDiscoverDescription } from "./browseMeta.js";
 
 export const WITHDRAWN_STRATEGY_VOCABULARY = Object.freeze([
   "WHAT EVIDENCE ARE YOU LOOKING FOR",
@@ -59,7 +60,12 @@ function accessAssessment(row, evaluation) {
     return { access: ACCESS.OBSERVED, accessDetail: endpoint || verified[0] };
   }
   const declared = text(row?.access_mode || row?.source_access_mode || row?.access_state);
-  if (declared) return { access: ACCESS.PROPOSED, accessDetail: declared };
+  if (declared) {
+    return {
+      access: ACCESS.PROPOSED,
+      accessDetail: humanizeDiscoverDescription(declared),
+    };
+  }
   if (connectorId(row)) {
     return { access: ACCESS.PROPOSED, accessDetail: `Collection route declared · ${connectorId(row)}` };
   }

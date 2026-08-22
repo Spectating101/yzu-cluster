@@ -12,11 +12,20 @@ import {
 } from "@/v2/attentionModel";
 import { formatCollectorState, workersToolbarFieldsFromRollup } from "@/v2/workersToolbarStat";
 
-export function ResourcesOverviewRailPanel({ rollup, onViewActivity }) {
+export function ResourcesOverviewRailPanel({ rollup, decisionCount, onViewActivity }) {
   const workers = rollup?.hero?.workers || {};
   const vault = rollup?.hero?.vault || {};
   const query = rollup?.hero?.query_engine || {};
-  const jobs = rollup?.motion?.jobs || rollup?.hero?.jobs || {};
+  const reportedJobs = rollup?.motion?.jobs || rollup?.hero?.jobs || {};
+  // The rollup carries lifetime/coarse health counts. Once the faculty-visible
+  // job ledger has loaded, use the same deduplicated decision count as the
+  // header, Settings, and Discover History so four surfaces cannot disagree.
+  const decisionsLoading = decisionCount === null;
+  const jobs = Number.isFinite(decisionCount)
+    ? { ...reportedJobs, pending_approval: decisionCount }
+    : decisionsLoading
+      ? { ...reportedJobs, pending_approval: 0 }
+    : reportedJobs;
   const counts = countOpsAttention({
     issues: rollup?.issues || [],
     jobs,
@@ -29,8 +38,12 @@ export function ResourcesOverviewRailPanel({ rollup, onViewActivity }) {
     : vault.cap_tb != null
       ? `${vault.cap_tb} TB capacity`
       : "Usage pending";
-  const posture = resourcesOpsPosture(counts);
-  const pill = resourcesOpsPill(counts, query.up);
+  const posture = decisionsLoading && !counts.opsTotal && !counts.running
+    ? "Checking research decisions"
+    : resourcesOpsPosture(counts);
+  const pill = decisionsLoading && query.up !== false
+    ? { label: "Syncing", warn: false }
+    : resourcesOpsPill(counts, query.up);
 
   return (
     <RailFrame>
@@ -64,7 +77,7 @@ export function ResourcesOverviewRailPanel({ rollup, onViewActivity }) {
           />
           <RailField
             label="Decisions"
-            value={counts.decisions ? String(counts.decisions) : "None"}
+            value={decisionsLoading ? "Checking…" : counts.decisions ? String(counts.decisions) : "None"}
           />
           <RailField label="Running" value={counts.running ? String(counts.running) : "None"} />
           <RailField label="Collectors" value={collectorState} />

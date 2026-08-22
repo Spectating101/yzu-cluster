@@ -151,6 +151,44 @@ test.describe("v2 Resources tab", () => {
   });
 });
 
+test("Resources rail prefers loaded research decisions over a coarse rollup count", async ({ page }) => {
+  const jobsBody = {
+    jobs: [
+      { id: "decision-a", status: "pending_approval", type: "procure", plan: { title: "Decision A" } },
+      { id: "decision-b", status: "pending_approval", type: "procure", plan: { title: "Decision B" } },
+    ],
+  };
+  const resourcesBody = {
+    ...MOCK_RESOURCES_ROLLUP,
+    motion: {
+      ...MOCK_RESOURCES_ROLLUP.motion,
+      jobs: { ...MOCK_RESOURCES_ROLLUP.motion.jobs, pending_approval: 13 },
+    },
+  };
+  await mockV2Api(page, { jobsBody, resourcesBody });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/?tab=resources", { waitUntil: "domcontentloaded" });
+  await waitForShell(page);
+
+  const rail = page.getByRole("complementary", { name: "Inspector" });
+  await expect(rail).toContainText("2 awaiting your approval");
+  await expect(rail).toContainText("Decisions2");
+  await expect(rail).not.toContainText("13 awaiting your approval");
+});
+
+test("Resources rail admits that research decisions are still loading", async ({ page }) => {
+  await mockV2Api(page, { jobsDelayMs: 1_200 });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/?tab=resources", { waitUntil: "domcontentloaded" });
+
+  const rail = page.getByRole("complementary", { name: "Inspector" });
+  await expect(rail).toContainText("Checking research decisions");
+  await expect(rail).toContainText("DecisionsChecking…");
+  await expect(rail).not.toContainText("DecisionsNone");
+  await expect(rail).toContainText("1 awaiting your approval", { timeout: 5_000 });
+  await expect(rail).toContainText("Decisions1");
+});
+
 test("v2 Resources loading state does not flash account summary", async ({ page }) => {
   let releaseResources;
   const resourcesGate = new Promise((resolve) => {

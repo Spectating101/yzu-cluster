@@ -615,6 +615,9 @@ export function BrowsePage({
   onDiscoverModeChange,
   discoverFocusAwaiting = false,
   historyEvents = [],
+  historyJobsLoaded = false,
+  historyJobsRefreshing = false,
+  historyJobsRefreshFailed = false,
   selectedHistoryId = "",
   onSelectHistoryEvent,
   intentRecord = null,
@@ -1242,6 +1245,9 @@ export function BrowsePage({
       >
         <DiscoverHistoryPanel
           events={historyEvents}
+          jobsLoaded={historyJobsLoaded}
+          jobsRefreshing={historyJobsRefreshing}
+          jobsRefreshFailed={historyJobsRefreshFailed}
           selectedId={selectedHistoryId}
           onSelectEvent={onSelectHistoryEvent}
         />
