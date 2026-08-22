@@ -171,7 +171,10 @@ export function deskResources(live = true) {
 export function discoverSearch(query = "", limit = 12, email = "") {
   const params = new URLSearchParams({ q: query, limit: String(limit) });
   if (email) params.set("email", email);
-  return fetchJson(`/library/discover?${params}`);
+  // The known-route lookup paints independently. Bound the Library-index leg
+  // so one wedged profile/ranking request cannot leave the whole evidence view
+  // in a permanent “checking” state after useful routes are already visible.
+  return fetchJson(`/library/discover?${params}`, { timeoutMs: 15000 });
 }
 
 export function webDiscover(query = "", limit = 8, tavilyLive = true) {

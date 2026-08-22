@@ -73,6 +73,8 @@ const report = {
   api: [],
   pages: [],
   interactions: [],
+  network: [],
+  request_failures: [],
   console: [],
   page_errors: [],
 };
@@ -105,6 +107,45 @@ if (staticDir) {
   });
 }
 const page = await context.newPage();
+const requestStarted = new Map();
+
+function trackedRequestPath(requestUrl) {
+  try {
+    const pathname = new URL(requestUrl).pathname;
+    return pathname === "/datasets"
+      || pathname === "/library/discover"
+      || pathname === "/library/discover/sources";
+  } catch {
+    return false;
+  }
+}
+
+page.on("request", (request) => {
+  if (trackedRequestPath(request.url())) requestStarted.set(request, Date.now());
+});
+page.on("response", (response) => {
+  const request = response.request();
+  const startedAt = requestStarted.get(request);
+  if (startedAt == null) return;
+  requestStarted.delete(request);
+  const requestUrl = new URL(request.url());
+  report.network.push({
+    method: request.method(),
+    path: `${requestUrl.pathname}${requestUrl.search}`,
+    status: response.status(),
+    duration_ms: Date.now() - startedAt,
+  });
+});
+page.on("requestfailed", (request) => {
+  if (!trackedRequestPath(request.url())) return;
+  requestStarted.delete(request);
+  const requestUrl = new URL(request.url());
+  report.request_failures.push({
+    method: request.method(),
+    path: `${requestUrl.pathname}${requestUrl.search}`,
+    error: request.failure()?.errorText || "request failed",
+  });
+});
 
 page.on("console", (message) => {
   if (["warning", "error"].includes(message.type())) {
@@ -263,6 +304,12 @@ const failures = [
   ...report.api.filter((entry) => entry.status !== 200).map((entry) => `API ${entry.path}`),
   ...report.pages.filter((entry) => entry.gate).map((entry) => `access gate: ${entry.label}`),
   ...report.pages.filter((entry) => entry.horizontal_overflow).map((entry) => `horizontal overflow: ${entry.label}`),
+  // Same-origin SPA navigation intentionally aborts requests belonging to the
+  // page being left. Keep those in the report for timing diagnosis, but do not
+  // turn an expected Chromium cancellation into a release failure.
+  ...report.request_failures
+    .filter((entry) => !/ERR_ABORTED/i.test(entry.error))
+    .map((entry) => `request failed: ${entry.method} ${entry.path}: ${entry.error}`),
   ...report.page_errors.map((error) => `page error: ${error}`),
 ].filter(Boolean);
 
@@ -271,6 +318,8 @@ console.log(JSON.stringify({
   bootstrap: report.session,
   api: report.api,
   interactions: report.interactions,
+  network: report.network,
+  request_failures: report.request_failures,
   console: report.console,
   page_errors: report.page_errors,
   failures,
