@@ -270,6 +270,7 @@ function ThreadPicker({ threads, selectedId, onSelect }) {
 function ResearchBrief({ thread, onEditIntent }) {
   const brief = researchBrief(thread);
   if (!brief.body && !brief.targetGrain && !brief.targetPeriod && !brief.intendedUse) return null;
+  const mobileContext = [brief.targetGrain, brief.targetPeriod, brief.intendedUse].filter(Boolean);
   return (
     <section className="s04-opening-brief" aria-label="Research brief">
       <header>
@@ -278,6 +279,36 @@ function ResearchBrief({ thread, onEditIntent }) {
           <button type="button" onClick={() => onEditIntent?.()}>Edit intent</button>
         ) : null}
       </header>
+      <details className="s04-mobile-brief-disclosure" data-testid="synthesis-mobile-brief">
+        <summary>
+          <span>
+            <small>Brief summary</small>
+            <strong>{text(brief.body, "Research intent recorded")}</strong>
+            <em>{mobileContext.length ? mobileContext.join(" · ") : "Research commitments not stated"}</em>
+          </span>
+          <b>
+            <span className="when-closed">Show full brief</span>
+            <span className="when-open">Hide full brief</span>
+          </b>
+        </summary>
+        <div className="s04-mobile-brief-full" data-testid="synthesis-mobile-brief-full">
+          {brief.body ? <p>{brief.body}</p> : null}
+          <dl>
+            <div>
+              <dt>Target grain</dt>
+              <dd className={brief.targetGrain ? "" : "unstated"}>{text(brief.targetGrain, "Not stated")}</dd>
+            </div>
+            <div>
+              <dt>Target period</dt>
+              <dd className={brief.targetPeriod ? "" : "unstated"}>{text(brief.targetPeriod, "Not stated")}</dd>
+            </div>
+            <div>
+              <dt>Intended use</dt>
+              <dd className={brief.intendedUse ? "" : "unstated"}>{text(brief.intendedUse, "Not stated")}</dd>
+            </div>
+          </dl>
+        </div>
+      </details>
       {brief.body ? <p>{brief.body}</p> : null}
       <dl>
         <div>

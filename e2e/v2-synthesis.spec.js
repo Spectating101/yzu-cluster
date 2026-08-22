@@ -4,6 +4,9 @@ import { MOCK_HEALTH, mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 
 const renderDir = "artifacts/synthesis-renders";
 
+const LONG_LIVE_BRIEF =
+  "Build a point-in-time JKSE issuer-week research panel that tests whether accounting quality, analyst disagreement, and governance disclosures predict subsequent return reversals. Preserve publication timestamps, revision history, issuer identity, delisting coverage, and the exact evidence role of every held input. The output must support reproducible cross-sectional regressions without treating unavailable observations as zero or allowing future filings to leak into earlier weeks.";
+
 const EVIDENCE_MAP_NODE = {
   id: "idn_fry_daily_cross_section",
   dataset_id: "idn_fry_daily_cross_section",
@@ -340,6 +343,38 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await capture(page, "workflow-unverified-390x844");
     await next.scrollIntoViewIfNeeded();
     await capture(page, "workflow-unverified-action-390x844");
+  });
+
+  test("collapses a long live brief on mobile while keeping the full brief explicitly reachable", async ({ page }) => {
+    await page.getByRole("button", { name: "+ New synthesis" }).click();
+    await page.getByTestId("synthesis-intent-state").getByRole("textbox").fill(LONG_LIVE_BRIEF);
+    await page.getByRole("button", { name: "Start project in Ask" }).click();
+
+    const desktopBrief = page.locator(".s04-opening-brief > p");
+    await expect(desktopBrief).toContainText("future filings to leak into earlier weeks");
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    const hideRail = page.getByRole("button", { name: "Hide panel" });
+    if (await hideRail.isVisible().catch(() => false)) await hideRail.click();
+
+    const disclosure = page.getByTestId("synthesis-mobile-brief");
+    await expect(disclosure).toBeVisible();
+    await expect(disclosure).not.toHaveAttribute("open", "");
+    await expect(disclosure.getByText("Show full brief", { exact: true })).toBeVisible();
+    await expect(page.getByTestId("synthesis-mobile-brief-full")).toBeHidden();
+    await expect(page.getByRole("list", { name: "Synthesis workflow" })).toBeVisible();
+    const nextCue = page.getByTestId("synthesis-workflow-next");
+    await expect(nextCue).toBeVisible();
+    const nextBox = await nextCue.boundingBox();
+    expect((nextBox?.y || Infinity) + (nextBox?.height || Infinity)).toBeLessThan(760);
+    await capture(page, "workflow-long-brief-collapsed-390x844");
+
+    await disclosure.locator("summary").click();
+    await expect(page.getByTestId("synthesis-mobile-brief-full")).toBeVisible();
+    await expect(page.getByTestId("synthesis-mobile-brief-full")).toContainText(
+      "future filings to leak into earlier weeks",
+    );
+    await expect(disclosure.getByText("Hide full brief", { exact: true })).toBeVisible();
   });
 
   test("researcher reviews held evidence before it becomes a durable map input", async ({ page }) => {
