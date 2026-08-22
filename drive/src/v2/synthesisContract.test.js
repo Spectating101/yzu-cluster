@@ -87,6 +87,19 @@ test("two recommended unit outcomes is a contradiction", () => {
   assert.match(problems[0].problem, /at most one/);
 });
 
+test("a measured pre-method unit conflict may remain explicitly uncomputed", () => {
+  const conflict = {
+    left: { column: "return_1d", typical: 0.0006 },
+    right: { column: "return_pct", typical: 0.06 },
+    outcomes: [
+      { id: "as_is", label: "Combine as recorded", result: null, recommended: false },
+      { id: "rescale", label: "Rescale by 100x first", result: null, recommended: false },
+    ],
+    undecided_because: "documentation must settle which series is correctly scaled",
+  };
+  assert.deepEqual(validateThreadState({ unit_conflict: conflict }), []);
+});
+
 test("a reuse change must carry before and after even when they are equal", () => {
   const problems = validateThreadState({ reuse_changes: [{ id: "scope", label: "scope", before: "2020-01-01" }] });
   assert.equal(problems.length, 1);

@@ -969,6 +969,48 @@
   background: rgba(248, 245, 237, .72);
 }
 
+.rd-v2-synthesis-page .s04-evidence-proposal li.selected {
+  border-color: #9fb8a6;
+  background: rgba(235, 242, 234, .9);
+}
+
+.rd-v2-synthesis-page .s04-evidence-proposal li > label {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+  cursor: pointer;
+}
+
+.rd-v2-synthesis-page .s04-evidence-proposal li input {
+  width: 14px;
+  height: 14px;
+  margin: 1px 0 0;
+  accent-color: #3f6f5c;
+}
+
+.rd-v2-synthesis-page .s04-evidence-proposal li label > span {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.rd-v2-synthesis-page .s04-evidence-proposal li label strong {
+  overflow: hidden;
+  color: #304051;
+  font-size: 10px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-v2-synthesis-page .s04-evidence-proposal li label small {
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.35;
+  text-transform: none;
+}
+
 .rd-v2-synthesis-page .s04-evidence-proposal li > strong {
   overflow: hidden;
   color: #304051;
@@ -1305,6 +1347,188 @@
 
 .rd-v2-synthesis-page .s04-card > .s04-actions {
   border-top-color: var(--s04-rule-soft);
+}
+
+/* Measurements are a transition in the workflow, not another floating card.
+   Keep the progress/result on the desk surface as a compact ruled record. */
+.rd-v2-synthesis-page .s04-measurement-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 11px 0;
+  padding: 9px 2px 9px 10px;
+  border-left: 3px solid #8da798;
+  color: var(--s04-ink);
+}
+
+.rd-v2-synthesis-page .s04-measurement-status > span {
+  display: grid;
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border-radius: 50%;
+  background: #dce8df;
+  color: #315f4d;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.rd-v2-synthesis-page .s04-measurement-status.is-loading > span {
+  border: 2px solid #c4d3c9;
+  border-top-color: #416f5d;
+  background: transparent;
+  animation: s04-measurement-spin .85s linear infinite;
+}
+
+.rd-v2-synthesis-page .s04-measurement-status.is-error {
+  border-left-color: #b67b64;
+}
+
+.rd-v2-synthesis-page .s04-measurement-status > p,
+.rd-v2-synthesis-page .s04-measurement-status > div {
+  display: grid;
+  flex: 1 1 auto;
+  gap: 2px;
+  min-width: 0;
+  margin: 0;
+}
+
+.rd-v2-synthesis-page .s04-measurement-status details {
+  margin-top: 4px;
+  color: var(--s04-muted);
+  font-size: 8.5px;
+}
+
+.rd-v2-synthesis-page .s04-measurement-status summary {
+  width: fit-content;
+  cursor: pointer;
+  font-weight: 750;
+}
+
+.rd-v2-synthesis-page .s04-measurement-status ul {
+  display: grid;
+  gap: 4px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rd-v2-synthesis-page .s04-measurement-status li {
+  display: grid;
+  gap: 1px;
+}
+
+.rd-v2-synthesis-page .s04-measurement-status li b {
+  color: #465668;
+  overflow-wrap: anywhere;
+}
+
+.rd-v2-synthesis-page .s04-measurement-status strong {
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.rd-v2-synthesis-page .s04-measurement-status small {
+  color: var(--s04-muted);
+  font-size: 8.5px;
+  line-height: 1.4;
+}
+
+.rd-v2-synthesis-page .s04-measurement-status .rd-v2-btn {
+  flex: 0 0 auto;
+  min-height: 30px;
+}
+
+@keyframes s04-measurement-spin { to { transform: rotate(360deg); } }
+
+.rd-v2-synthesis-page .s04-measured-datasets {
+  display: grid;
+}
+
+.rd-v2-synthesis-page .s04-measured-dataset {
+  padding: 12px 14px;
+  border-top: 1px solid var(--s04-rule-soft);
+}
+
+.rd-v2-synthesis-page .s04-measured-dataset > header {
+  display: grid;
+  gap: 2px;
+}
+
+.rd-v2-synthesis-page .s04-measured-dataset > header small {
+  color: var(--s04-muted);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.rd-v2-synthesis-page .s04-measured-dataset > header strong {
+  color: #304051;
+  font-size: 10px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.rd-v2-synthesis-page .s04-measured-dataset .s04-method,
+.rd-v2-synthesis-page .s04-measured-dataset .s04-options {
+  border-color: #ddd8ce;
+  border-radius: 8px;
+  background: rgba(250, 248, 242, .62);
+}
+
+.rd-v2-synthesis-page .s04-blueprint-recipe.is-static {
+  cursor: default;
+}
+
+.rd-v2-synthesis-page .s04-blueprint-recipe.is-static:hover {
+  background: transparent;
+}
+
+.rd-v2-synthesis-page .s04-decision-label {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #445365;
+  font-size: 9px;
+  font-weight: 750;
+  line-height: 1.25;
+}
+
+.rd-v2-synthesis-page .s04-decision-label.recommended {
+  color: #315f4d;
+}
+
+@media (max-width: 600px) {
+  .rd-v2-synthesis-page .s04-measurement-status {
+    align-items: flex-start;
+    margin: 8px 0;
+  }
+
+  .rd-v2-synthesis-page .s04-measurement-status .rd-v2-btn {
+    align-self: center;
+  }
+
+  .rd-v2-synthesis-page .s04-measured-dataset .s04-band-summary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 7px 9px;
+    align-items: start;
+  }
+
+  .rd-v2-synthesis-page .s04-measured-dataset .s04-band-summary > .s04-bands {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .rd-v2-synthesis-page .s04-measured-dataset .s04-band-summary > span:not(.s04-bands) {
+    min-width: 0;
+    line-height: 1.45;
+  }
 }
 
 /* The inspector is a continuation of the work surface. It may be slightly

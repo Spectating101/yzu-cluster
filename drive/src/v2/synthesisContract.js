@@ -33,9 +33,13 @@ export const FIELDS = {
       v.outcomes.forEach((o, i) => {
         if (!str(o?.id)) p(`outcomes[${i}].id must be a non-empty string`);
         if (!str(o?.label)) p(`outcomes[${i}].label must read as a choice`);
-        if (!num(o?.result)) p(`outcomes[${i}].result must be the number that choice yields`);
+        if (o?.result !== null && !num(o?.result)) p(`outcomes[${i}].result must be a number or null before a method exists`);
       });
       if (v.outcomes.filter((o) => o?.recommended).length > 1) p("at most one outcome may be recommended");
+      if (v.outcomes.some((o) => o?.result === null)) {
+        if (!str(v.undecided_because)) p("undecided_because must explain why measured outcomes are not computed yet");
+        if (v.outcomes.some((o) => o?.recommended)) p("an uncomputed outcome cannot be recommended");
+      }
     },
   },
   column_profiles: {

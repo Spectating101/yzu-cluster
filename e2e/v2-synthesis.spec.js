@@ -193,6 +193,23 @@ async function installSynthesisThreadMock(page) {
     const thread = threads.get(threadId);
     if (!thread) return respond({ error: "not found" }, 404);
     if (!suffix && method === "GET") return respond(thread);
+    if (suffix === "measurements" && method === "GET") {
+      const mappedIds = (thread.state.nodes || []).map((node) => node.dataset_id).filter(Boolean);
+      return respond({
+        thread_id: thread.id,
+        writes: false,
+        measurement_basis: "mapped_evidence",
+        input_dataset_ids: mappedIds,
+        measured_inputs: mappedIds.length,
+        unmeasured: [],
+        column_profiles: mappedIds.includes(EVIDENCE_MAP_NODE.dataset_id)
+          ? [
+              { dataset_id: EVIDENCE_MAP_NODE.dataset_id, column: "ric", kind: "name", rows: 548460, blanks: 0, distinct: 635, flags: [] },
+              { dataset_id: EVIDENCE_MAP_NODE.dataset_id, column: "fwd_5d", kind: "measurement", rows: 548460, blanks: 0, distinct: 510000, flags: ["lookahead"] },
+            ]
+          : [],
+      });
+    }
     if (suffix === "evidence-map" && method === "GET") {
       const mappedIds = new Set((thread.state.nodes || []).map((node) => node.dataset_id || node.id));
       return respond({
@@ -407,14 +424,16 @@ test.describe("v2 Synthesis durable thread surface", () => {
 
     const proposal = page.getByTestId("synthesis-evidence-proposal");
     await expect(proposal).toContainText("Indonesia daily cross-section");
-    await expect(proposal).toContainText("Not mapped yet");
+    await expect(proposal).toContainText("0 selected");
+    await expect(proposal.getByRole("button", { name: "Select inputs to add" })).toBeDisabled();
     // The result is below the opening fold. An explicit search should reveal
     // its review result rather than leaving the successful request invisible.
     await expect(proposal).toBeInViewport();
     await expect(evidence).toContainText("No inputs mapped");
     await capture(page, "02b-held-evidence-review-desktop");
 
-    await proposal.getByRole("button", { name: "Add 1 reviewed input" }).click();
+    await proposal.getByRole("checkbox", { name: /Indonesia daily cross-section/ }).check();
+    await proposal.getByRole("button", { name: "Add 1 selected input" }).click();
     await expect(evidence).toContainText("1 mapped inputs");
     await expect(evidence).toContainText("Indonesia daily cross-section");
     await expect(page.getByTestId("synthesis-evidence-proposal")).toHaveCount(0);
@@ -717,7 +736,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
     const objective = "Construct a weekly issuer attention panel for Taiwan filings.";
     await page.getByTestId("synthesis-intent-state").getByRole("textbox").fill(objective);
     await page.getByRole("button", { name: "Start project in Ask" }).click();
-    await expect(page.getByText(objective, { exact: true }).first()).toBeVisible();
+    await expect(page.locator("main.s04-main").getByText(objective, { exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Weekly issuer attention panel for Taiwan filings" })).toBeVisible();
     await expect(page.getByTestId("synthesis-draft-state")).toBeVisible();
     await expect(page.getByRole("button", { name: "Method reasoning in Ask" })).toBeDisabled();
@@ -1227,5 +1246,126 @@ test.describe("v2 Synthesis decision and record panels", () => {
                       "synthesis-provenance", "synthesis-reuse"]) {
       await expect(page.getByTestId(id)).toHaveCount(0);
     }
+  });
+});
+
+test.describe("v2 Synthesis measured evidence integration", () => {
+  const measuredThread = {
+    id: "thread-measured",
+    created_at: "2026-08-22T10:00:00+00:00",
+    updated_at: "2026-08-22T10:02:00+00:00",
+    title: "JKSE revisions and microstructure",
+    objective: "Test whether Indonesian trading regimes predict later estimate revisions.",
+    materialisation: "not_materialised",
+    state: {
+      title: "JKSE revisions and microstructure",
+      objective: "Test whether Indonesian trading regimes predict later estimate revisions.",
+      maturity: "exploring",
+      nodes: [
+        { id: "target", type: "target", layer: "target", label: "JKSE revisions study" },
+        { id: "left", dataset_id: "jkse_monthly", type: "source", layer: "evidence", label: "JKSE monthly panel", grain: "instrument_month" },
+        { id: "right", dataset_id: "idn_daily", type: "source", layer: "evidence", label: "Indonesia daily panel", grain: "ticker_day" },
+      ],
+      proposal: null,
+    },
+  };
+
+  const measurements = {
+    thread_id: "thread-measured",
+    writes: false,
+    measurement_basis: "mapped_evidence",
+    input_dataset_ids: ["jkse_monthly", "idn_daily"],
+    measured_inputs: 2,
+    unmeasured: [],
+    column_profiles: [
+      { dataset_id: "jkse_monthly", column: "ric", kind: "name", rows: 180774, blanks: 0, distinct: 635, flags: [] },
+      { dataset_id: "jkse_monthly", column: "return_1d", kind: "measurement", rows: 180774, blanks: 0, distinct: 165211, flags: ["unit_twin"] },
+      { dataset_id: "jkse_monthly", column: "return_pct", kind: "measurement", rows: 180774, blanks: 0, distinct: 165211, flags: ["unit_twin"] },
+      { dataset_id: "idn_daily", column: "yahoo_symbol", kind: "name", rows: 548460, blanks: 0, distinct: 635, flags: [] },
+      { dataset_id: "idn_daily", column: "fwd_5d", kind: "measurement", rows: 548460, blanks: 0, distinct: 510000, flags: ["lookahead"] },
+    ],
+    unit_conflict: {
+      left: { column: "return_1d", typical: 0.0006 },
+      right: { column: "return_pct", typical: 0.06 },
+      outcomes: [
+        { id: "as_is", label: "Combine as recorded", result: null, recommended: false },
+        { id: "rescale", label: "Rescale by 100x first", result: null, recommended: false },
+      ],
+      undecided_because: "documentation must settle which series is correctly scaled",
+    },
+    join_candidates: [
+      { left_key: "ric", right_key: "yahoo_symbol", matched: 50, left_distinct: 635,
+        right_distinct: 570, match_rate_pct: 7.874, right_duplicate_rows: 0, usable: true, reason: null },
+    ],
+  };
+
+  test("mapped evidence becomes measured facts without an assistant turn", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    const unavailableHealth = {
+      ...MOCK_HEALTH,
+      desk: {
+        ...MOCK_HEALTH.desk,
+        composer_runtime: { status: "unavailable", configured: true, verified: false },
+      },
+    };
+    await mockV2Api(page, { healthBody: unavailableHealth });
+    await page.route("**/api/library/synthesis/threads**", async (route) => {
+      const url = route.request().url();
+      if (url.includes("/thread-measured/measurements")) {
+        await new Promise((resolve) => setTimeout(resolve, 120));
+        return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(measurements) });
+      }
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(url.match(/\/thread-measured(?:\?|$)/)
+          ? measuredThread
+          : { threads: [measuredThread], total: 1 }),
+      });
+    });
+
+    await page.goto("/?tab=synthesis", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await page.getByTestId("synthesis-thread-item").first().click();
+
+    await expect(page.getByTestId("synthesis-measurement-status")).toContainText("2 mapped inputs measured from held bytes");
+    await expect(page.getByTestId("synthesis-measurement-status")).toContainText("5 columns profiled");
+    await expect(page.getByTestId("synthesis-method-surface")).toContainText("2 mapped Library inputs");
+    await expect(page.getByTestId("synthesis-measured-dataset")).toHaveCount(2);
+    await expect(page.getByTestId("synthesis-unit-conflict")).toContainText("Measured warning");
+    await expect(page.getByRole("button", { name: "Ask which is which" })).toHaveCount(0);
+    await capture(page, "measured-evidence-1440x1000");
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.getByTestId("synthesis-measurement-status").scrollIntoViewIfNeeded();
+    await capture(page, "measured-evidence-390x844");
+
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.getByTestId("synthesis-method-surface").scrollIntoViewIfNeeded();
+    await capture(page, "measured-columns-1440x1000");
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.getByTestId("synthesis-method-surface").scrollIntoViewIfNeeded();
+    await capture(page, "measured-columns-390x844");
+  });
+
+  test("an unmapped thread does not request or imply measurements", async ({ page }) => {
+    const draft = { ...measuredThread, id: "thread-unmapped", state: { ...measuredThread.state, nodes: [] } };
+    let measurementCalls = 0;
+    await mockV2Api(page);
+    await page.route("**/api/library/synthesis/threads**", (route) => {
+      const url = route.request().url();
+      if (url.includes("/measurements")) measurementCalls += 1;
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(url.match(/\/thread-unmapped(?:\?|$)/) ? draft : { threads: [draft], total: 1 }),
+      });
+    });
+    await page.goto("/?tab=synthesis", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await page.waitForTimeout(250);
+    await expect(page.getByTestId("synthesis-measurement-status")).toHaveCount(0);
+    expect(measurementCalls).toBe(0);
   });
 });

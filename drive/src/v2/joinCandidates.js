@@ -22,6 +22,7 @@ export function rankCandidates(rows) {
       rightKey: String(row?.right_key || ""),
       matched: row?.matched ?? null,
       total: row?.left_distinct ?? null,
+      rightTotal: row?.right_distinct ?? null,
       coverage: row?.match_rate_pct ?? null,
       duplicates: row?.right_duplicate_rows ?? 0,
       usable: Boolean(row?.usable),

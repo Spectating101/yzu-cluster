@@ -10,8 +10,8 @@ export function UnitConflictPanel({ conflict, onChoose, onAsk }) {
     <section className="s04-card s04-blocking" data-testid="synthesis-unit-conflict">
       <header className="s04-title">
         <div>
-          <small>Needs you</small>
-          <h2>These two are about to be combined</h2>
+          <small>{onChoose ? "Needs you" : "Measured warning"}</small>
+          <h2>{onChoose ? "These two are about to be combined" : "Two mapped columns use incompatible scales"}</h2>
         </div>
         {gap ? <em className="warn">{gap.ratio}× apart</em> : null}
       </header>
@@ -41,18 +41,24 @@ export function UnitConflictPanel({ conflict, onChoose, onAsk }) {
       ) : null}
 
       <div className="s04-options">
-        <small>What the output becomes</small>
+        <small>{onChoose ? "What the output becomes" : "Possible method choices"}</small>
         <ul>
           {outcomes.map((outcome) => (
             <li key={outcome.id}>
-              <button
-                type="button"
-                className={outcome.recommended ? "rd-v2-btn primary" : "rd-v2-btn"}
-                onClick={() => onChoose?.(outcome)}
-              >
-                {outcome.label}
-              </button>
-              <span>{outcome.resultLabel}</span>
+              {onChoose ? (
+                <button
+                  type="button"
+                  className={outcome.recommended ? "rd-v2-btn primary" : "rd-v2-btn"}
+                  onClick={() => onChoose(outcome)}
+                >
+                  {outcome.label}
+                </button>
+              ) : (
+                <strong className={outcome.recommended ? "s04-decision-label recommended" : "s04-decision-label"}>
+                  {outcome.label}
+                </strong>
+              )}
+              <span>{!onChoose && outcome.result == null ? "awaiting method design" : outcome.resultLabel}</span>
             </li>
           ))}
         </ul>
@@ -66,11 +72,13 @@ export function UnitConflictPanel({ conflict, onChoose, onAsk }) {
         </p>
       ) : null}
 
-      <footer className="s04-actions">
-        <button type="button" className="rd-v2-btn" onClick={() => onAsk?.("Which of these two columns is published as a percentage?")}>
-          Ask which is which
-        </button>
-      </footer>
+      {onAsk ? (
+        <footer className="s04-actions">
+          <button type="button" className="rd-v2-btn" onClick={() => onAsk("Which of these two columns is published as a percentage?")}>
+            Ask which is which
+          </button>
+        </footer>
+      ) : null}
     </section>
   );
 }

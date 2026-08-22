@@ -10,6 +10,17 @@ function CoverageBar({ value }) {
   );
 }
 
+function DecisionLabel({ children, primary = false, onClick }) {
+  if (onClick) {
+    return (
+      <button type="button" className={primary ? "rd-v2-btn primary" : "rd-v2-btn"} onClick={onClick}>
+        {children}
+      </button>
+    );
+  }
+  return <strong className={primary ? "s04-decision-label recommended" : "s04-decision-label"}>{children}</strong>;
+}
+
 export function JoinDecisionPanel({ leftLabel, rightLabel, rightTotal, coverage, onChooseKey, onChooseOutcome, onChooseCollapse }) {
   const candidates = rankCandidates(coverage);
   if (!candidates.length) return null;
@@ -33,7 +44,7 @@ export function JoinDecisionPanel({ leftLabel, rightLabel, rightTotal, coverage,
           <span className="s04-bands">
             {intersectionBands({
               leftTotal: best.total,
-              rightTotal: rightTotal || best.total,
+              rightTotal: rightTotal || best.rightTotal || best.total,
               both: best.matched,
               leftLabel,
               rightLabel,
@@ -46,7 +57,7 @@ export function JoinDecisionPanel({ leftLabel, rightLabel, rightTotal, coverage,
           <figcaption>
             {intersectionCaption(intersectionBands({
               leftTotal: best.total,
-              rightTotal: rightTotal || best.total,
+              rightTotal: rightTotal || best.rightTotal || best.total,
               both: best.matched,
             }))}
           </figcaption>
@@ -58,11 +69,11 @@ export function JoinDecisionPanel({ leftLabel, rightLabel, rightTotal, coverage,
         <ul>
           {candidates.map((candidate) => (
             <li key={`${candidate.leftKey}-${candidate.rightKey}`}>
-              <button type="button" className="rd-v2-btn" onClick={() => onChooseKey?.(candidate)}>
+              <DecisionLabel onClick={onChooseKey ? () => onChooseKey(candidate) : null}>
                 {candidate.leftKey === candidate.rightKey
                   ? candidate.leftKey
                   : `${candidate.leftKey} → ${candidate.rightKey}`}
-              </button>
+              </DecisionLabel>
               <CoverageBar value={candidate.coverage} />
               <span>
                 {candidate.usable
@@ -79,13 +90,12 @@ export function JoinDecisionPanel({ leftLabel, rightLabel, rightTotal, coverage,
         <ul>
           {joinOutcomes(best).map((outcome) => (
             <li key={outcome.id}>
-              <button
-                type="button"
-                className={outcome.recommended ? "rd-v2-btn primary" : "rd-v2-btn"}
-                onClick={() => onChooseOutcome?.(outcome)}
+              <DecisionLabel
+                primary={outcome.recommended}
+                onClick={onChooseOutcome ? () => onChooseOutcome(outcome) : null}
               >
                 {outcome.label}
-              </button>
+              </DecisionLabel>
               <span>{outcome.consequence}</span>
             </li>
           ))}
@@ -98,13 +108,12 @@ export function JoinDecisionPanel({ leftLabel, rightLabel, rightTotal, coverage,
           <ul>
             {collapseChoices(best).map((choice) => (
               <li key={choice.id}>
-                <button
-                  type="button"
-                  className={choice.recommended ? "rd-v2-btn primary" : "rd-v2-btn"}
-                  onClick={() => onChooseCollapse?.(choice)}
+                <DecisionLabel
+                  primary={choice.recommended}
+                  onClick={onChooseCollapse ? () => onChooseCollapse(choice) : null}
                 >
                   {choice.label}
-                </button>
+                </DecisionLabel>
                 <span>{choice.detail}</span>
               </li>
             ))}

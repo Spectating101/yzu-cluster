@@ -535,6 +535,15 @@ export function getSynthesisThread(threadId) {
   return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}`);
 }
 
+/** Read-only facts measured directly from the thread's mapped Library bytes.
+ * This route never invokes the assistant and never mutates the construction. */
+export function getSynthesisMeasurements(threadId, { maxInputs = 4 } = {}) {
+  const params = new URLSearchParams({ max_inputs: String(maxInputs) });
+  return fetchJson(
+    `/library/synthesis/threads/${encodeURIComponent(threadId)}/measurements?${params}`,
+  );
+}
+
 /** Read-only, held-only candidate inputs for a Synthesis thread. */
 export function proposeSynthesisEvidenceMap(threadId) {
   return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}/evidence-map`);

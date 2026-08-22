@@ -6,6 +6,7 @@ import {
   decideSynthesisProposal,
   applySynthesisEvidenceMap,
   getSynthesisDiscoverHandoff,
+  getSynthesisMeasurements,
   getSynthesisThread,
   listSynthesisProfiles,
   listSynthesisThreads,
@@ -50,6 +51,30 @@ function text(value, fallback = "") {
 // in seconds) untouched while giving a genuine stall an honest fallback
 // instead of silent, indefinite optimism.
 const INTERPRETING_STALL_MS = 60000;
+
+const MEASURED_STATE_FIELDS = [
+  "column_profiles",
+  "unit_conflict",
+  "join_candidates",
+  "unmeasured",
+  "measured_inputs",
+  "join_unmeasured_because",
+  "input_dataset_ids",
+  "measurement_basis",
+];
+
+function threadWithMeasurements(thread, measurements) {
+  if (!thread || !measurements || !isPreAcceptance(thread)) return thread;
+  const measured = {};
+  MEASURED_STATE_FIELDS.forEach((field) => {
+    if (Object.prototype.hasOwnProperty.call(measurements, field)) measured[field] = measurements[field];
+  });
+  // An omitted conflict/join is a measured absence, not permission to retain a
+  // stale value that may have arrived in an older thread payload.
+  if (!Object.prototype.hasOwnProperty.call(measured, "unit_conflict")) measured.unit_conflict = null;
+  if (!Object.prototype.hasOwnProperty.call(measured, "join_candidates")) measured.join_candidates = [];
+  return { ...thread, state: { ...(thread.state || {}), ...measured } };
+}
 
 function titleFor(thread) {
   return text(thread?.title || thread?.state?.title, "Untitled synthesis");
@@ -643,6 +668,7 @@ function EvidenceMap({
   onApplyEvidence,
 }) {
   const proposalRef = useRef(null);
+  const [reviewedIds, setReviewedIds] = useState(() => new Set());
   const target = targetNode(thread);
   const mapTarget = mapTitle(thread, target);
   const evidence = evidenceNodes(thread);
@@ -650,6 +676,20 @@ function EvidenceMap({
   const missing = evidence.filter((node) => isEvidenceGap(node, missingIds));
   const proposed = Array.isArray(evidenceProposal?.nodes) ? evidenceProposal.nodes : [];
   const proposalReason = text(evidenceProposal?.reason);
+  const proposalKey = proposed.map((node) => evidenceNodeId(node)).filter(Boolean).join("|");
+
+  useEffect(() => {
+    setReviewedIds(new Set());
+  }, [proposalKey]);
+
+  const toggleReviewed = (id) => {
+    setReviewedIds((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   // Finding held evidence is an explicit transition. The review result lands
   // below the opening fold, inside the evidence map, so leaving the viewport
@@ -713,18 +753,35 @@ function EvidenceMap({
           <header>
             <div>
               <small>Held inputs found</small>
-              <strong>{proposed.length ? `${proposed.length} inputs awaiting review` : "No new held inputs found"}</strong>
+              <strong>{proposed.length ? `${proposed.length} inputs found · choose what belongs` : "No new held inputs found"}</strong>
             </div>
-            <em>{proposed.length ? "Not mapped yet" : "Nothing to add"}</em>
+            <em>{proposed.length ? `${reviewedIds.size} selected` : "Nothing to add"}</em>
           </header>
           {proposed.length ? (
             <ul>
-              {proposed.slice(0, 6).map((node) => (
-                <li key={node.dataset_id || node.id}>
-                  <strong>{text(node.label || node.dataset_id, "Unnamed evidence")}</strong>
-                  <span>{[node.grain, node.coverage, node.status].filter(Boolean).join(" · ") || "Registry metadata not reported"}</span>
-                </li>
-              ))}
+              {proposed.slice(0, 6).map((node) => {
+                const id = evidenceNodeId(node);
+                const selected = reviewedIds.has(id);
+                return (
+                  <li key={id} className={selected ? "selected" : ""}>
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={selected}
+                        onChange={() => toggleReviewed(id)}
+                      />
+                      <span>
+                        <strong>{text(node.label || node.dataset_id, "Unnamed evidence")}</strong>
+                        <small>
+                          {[node.grain, node.coverage, node.query_ready ? "Query-ready bytes" : "Bytes not verified"]
+                            .filter(Boolean)
+                            .join(" · ")}
+                        </small>
+                      </span>
+                    </label>
+                  </li>
+                );
+              })}
             </ul>
           ) : null}
           {proposalReason ? <p>{proposalReason}</p> : null}
@@ -733,8 +790,17 @@ function EvidenceMap({
               Search held evidence again
             </button>
             {proposed.length ? (
-              <button type="button" className="rd-v2-btn primary" disabled={mappingEvidence} onClick={onApplyEvidence}>
-                {mappingEvidence ? "Adding reviewed inputs…" : `Add ${proposed.length} reviewed input${proposed.length === 1 ? "" : "s"}`}
+              <button
+                type="button"
+                className="rd-v2-btn primary"
+                disabled={mappingEvidence || !reviewedIds.size}
+                onClick={() => onApplyEvidence([...reviewedIds])}
+              >
+                {mappingEvidence
+                  ? "Adding selected inputs…"
+                  : reviewedIds.size
+                    ? `Add ${reviewedIds.size} selected input${reviewedIds.size === 1 ? "" : "s"}`
+                    : "Select inputs to add"}
               </button>
             ) : null}
           </footer>
@@ -1269,6 +1335,56 @@ function ContextStrip({ items, onPromote, promoted, onClear }) {
   );
 }
 
+function MeasurementStatus({ phase, measurements, onRetry }) {
+  if (!phase || phase === "idle") return null;
+  const profiles = Array.isArray(measurements?.column_profiles)
+    ? measurements.column_profiles
+    : [];
+  const inputs = Number(measurements?.measured_inputs || 0);
+  const unmeasured = Array.isArray(measurements?.unmeasured)
+    ? measurements.unmeasured
+    : [];
+
+  if (phase === "loading") {
+    return (
+      <section className="s04-measurement-status is-loading" data-testid="synthesis-measurement-status" aria-live="polite">
+        <span aria-hidden="true" />
+        <p><strong>Measuring mapped evidence</strong><small>Reading held columns and testing join coverage. No assistant is involved.</small></p>
+      </section>
+    );
+  }
+  if (phase === "error") {
+    return (
+      <section className="s04-measurement-status is-error" data-testid="synthesis-measurement-status" role="status">
+        <p><strong>Mapped evidence could not be measured</strong><small>The evidence map is intact. No measurement has been inferred.</small></p>
+        <button type="button" className="rd-v2-btn" onClick={onRetry}>Try measurement again</button>
+      </section>
+    );
+  }
+  return (
+    <section className="s04-measurement-status is-ready" data-testid="synthesis-measurement-status" role="status">
+      <span aria-hidden="true">✓</span>
+      <div>
+        <strong>{inputs} mapped input{inputs === 1 ? "" : "s"} measured from held bytes</strong>
+        <small>
+          {profiles.length.toLocaleString()} columns profiled
+          {unmeasured.length ? ` · ${unmeasured.length} input${unmeasured.length === 1 ? "" : "s"} could not be read` : " · no assistant involved"}
+        </small>
+        {unmeasured.length ? (
+          <details>
+            <summary>Why some inputs were not measured</summary>
+            <ul>
+              {unmeasured.map((item) => (
+                <li key={item.dataset_id}><b>{item.dataset_id}</b><span>{item.reason}</span></li>
+              ))}
+            </ul>
+          </details>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
 export function SynthesisPage({
   onAskComposer,
   assistantRuntime = null,
@@ -1300,6 +1416,8 @@ export function SynthesisPage({
   const [missingEvidenceIds, setMissingEvidenceIds] = useState(() => new Set());
   const [evidenceProposal, setEvidenceProposal] = useState(null);
   const [mappingEvidence, setMappingEvidence] = useState(false);
+  const [measurementByThread, setMeasurementByThread] = useState({});
+  const [measurementPhaseByThread, setMeasurementPhaseByThread] = useState({});
   const notified = useRef("");
   const interpretingSinceRef = useRef(null);
   const interpretingThreadIdRef = useRef("");
@@ -1360,6 +1478,19 @@ export function SynthesisPage({
   }, []);
 
   const selected = useMemo(() => threads.find((thread) => thread.id === selectedId) || null, [threads, selectedId]);
+  const selectedMeasurement = selected?.id ? measurementByThread[selected.id]?.payload || null : null;
+  const displayedSelected = useMemo(
+    () => threadWithMeasurements(selected, selectedMeasurement),
+    [selected, selectedMeasurement],
+  );
+  const mappedInputKey = useMemo(
+    () => evidenceNodes(selected)
+      .map((node) => text(node?.dataset_id || node?.id))
+      .filter(Boolean)
+      .sort()
+      .join("|"),
+    [selected],
+  );
   // A stored draft is not evidence that an Ask turn is running. Only the
   // deliberate transition below may show the transient "in progress" state;
   // otherwise a returned-to thread would look like a static demo that is
@@ -1386,6 +1517,36 @@ export function SynthesisPage({
     replaceThread(next);
     return next;
   }, [replaceThread, selectedId]);
+
+  const measureThread = useCallback(async (thread = selected, inputKey = mappedInputKey) => {
+    if (!thread?.id || !inputKey || !isPreAcceptance(thread)) return null;
+    const threadId = thread.id;
+    setMeasurementPhaseByThread((current) => ({ ...current, [threadId]: "loading" }));
+    try {
+      const payload = await getSynthesisMeasurements(threadId);
+      setMeasurementByThread((current) => ({
+        ...current,
+        [threadId]: { inputKey, payload },
+      }));
+      setMeasurementPhaseByThread((current) => ({ ...current, [threadId]: "ready" }));
+      return payload;
+    } catch (cause) {
+      setMeasurementPhaseByThread((current) => ({ ...current, [threadId]: "error" }));
+      return null;
+    }
+  }, [mappedInputKey, selected]);
+
+  useEffect(() => {
+    if (!selected?.id || !mappedInputKey || !isPreAcceptance(selected)) return undefined;
+    const cached = measurementByThread[selected.id];
+    if (cached?.inputKey === mappedInputKey) return undefined;
+    let cancelled = false;
+    const run = async () => {
+      if (!cancelled) await measureThread(selected, mappedInputKey);
+    };
+    run();
+    return () => { cancelled = true; };
+  }, [mappedInputKey, measureThread, measurementByThread, selected]);
 
   useEffect(() => {
     if (!refreshVersion || !selectedId) return;
@@ -1552,10 +1713,10 @@ export function SynthesisPage({
     }
   };
 
-  const applyHeldEvidence = async () => {
+  const applyHeldEvidence = async (reviewedDatasetIds = []) => {
     if (!selected?.id) return;
-    const datasetIds = (evidenceProposal?.nodes || [])
-      .map((node) => String(node?.dataset_id || node?.id || "").trim())
+    const datasetIds = reviewedDatasetIds
+      .map((value) => String(value || "").trim())
       .filter(Boolean);
     if (!datasetIds.length) return;
     setMappingEvidence(true);
@@ -1707,7 +1868,7 @@ export function SynthesisPage({
   };
 
   const mode = stateFor(selected);
-  const focus = focusFor(selected?.state, promoted);
+  const focus = focusFor(displayedSelected?.state, promoted);
   const showExecution = Boolean(selected && (mode === "execution" || mode === "registered" || mode === "failed" || selected.state?.execution_spec));
 
   return (
@@ -1752,12 +1913,12 @@ export function SynthesisPage({
           {!newMode && selected ? (
             <>
               <ThreadHeader
-                thread={selected}
+                thread={displayedSelected}
                 onEditIntent={() => ask("I want to revise this research intent. Show the change that would be recorded before applying it.")}
               />
               {isPreAcceptance(selected) ? (
                 <OpeningWorkflow
-                  thread={selected}
+                  thread={displayedSelected}
                   reasoningAvailable={reasoningAvailable}
                   reasoningStatus={reasoningStatus}
                 />
@@ -1766,11 +1927,11 @@ export function SynthesisPage({
               {isPreAcceptance(selected) ? (
                 <>
                   <RecommendedConstruction
-                    thread={selected}
+                    thread={displayedSelected}
                     onCompare={() => ask("Compare the alternative constructions and say what each one costs.")}
                   />
                   <WhatHappensNext
-                    thread={selected}
+                    thread={displayedSelected}
                     onCompare={() => ask("Compare the alternative constructions and say what each one costs.")}
                     onAccept={() => ask("Accept the recommended construction and draft the detailed method.")}
                     onStartReasoning={() => startMethodReasoning()}
@@ -1786,44 +1947,52 @@ export function SynthesisPage({
               <ContextStrip items={focus.strip.filter((item) => !RECORD_ALWAYS.includes(item.id))}
                             onPromote={setPromoted} promoted={focus.promoted}
                             onClear={() => setPromoted("")} />
+              {mappedInputKey && isPreAcceptance(selected) ? (
+                <MeasurementStatus
+                  phase={measurementPhaseByThread[selected.id] || "idle"}
+                  measurements={selectedMeasurement}
+                  onRetry={() => measureThread(selected, mappedInputKey)}
+                />
+              ) : null}
               {focus.subject === "scope" ? (
                 <ScopePanel
-                  block={selected.state?.scope_block}
+                  block={displayedSelected.state?.scope_block}
                   onChoose={(option) => ask(`Scope this construction ${option.label}. Say what that removes from my question.`)}
                   onAsk={ask}
                 />
               ) : null}
               {focus.subject === "units" ? (
                 <UnitConflictPanel
-                  conflict={selected.state?.unit_conflict}
-                  onChoose={(outcome) => ask(`Take the "${outcome.label}" reading for these two columns, and record why.`)}
-                  onAsk={ask}
+                  conflict={displayedSelected.state?.unit_conflict}
+                  onChoose={reasoningAvailable ? (outcome) => ask(`Take the "${outcome.label}" reading for these two columns, and record why.`) : null}
+                  onAsk={reasoningAvailable ? ask : null}
                 />
               ) : null}
               <MethodSurfacePanel
-                dataset={selected.state?.spec?.input_dataset_id}
-                profiles={selected.state?.column_profiles}
-                inUse={selected.state?.columns_in_use}
-                onOpenColumn={(column) => ask(`Inspect ${column.column} in this construction.`)}
-                onOverride={(group) => ask(`I want to include the ${group.heading} columns anyway.`)}
+                dataset={displayedSelected.state?.spec?.input_dataset_id}
+                datasets={displayedSelected.state?.input_dataset_ids}
+                profiles={displayedSelected.state?.column_profiles}
+                inUse={displayedSelected.state?.columns_in_use}
+                onOpenColumn={reasoningAvailable ? (column) => ask(`Inspect ${column.column} in this construction.`) : null}
+                onOverride={reasoningAvailable ? (group) => ask(`I want to include the ${group.heading} columns anyway.`) : null}
               />
               {focus.subject === "join" ? (
                 <JoinDecisionPanel
-                  leftLabel={selected.state?.spec?.input_dataset_id}
-                  rightLabel={softIdentifier(selected.state?.join_candidate_dataset_id, "A second dataset")}
-                  rightTotal={selected.state?.join_candidate_rows}
-                  coverage={selected.state?.join_candidates}
-                  onChooseKey={(candidate) => ask(`Use ${candidate.leftKey} to ${candidate.rightKey} for this join.`)}
-                  onChooseOutcome={(outcome) => ask(`Take the "${outcome.label}" option for this join, and record why.`)}
-                  onChooseCollapse={(choice) => ask(`Resolve the repeated key with "${choice.label}".`)}
+                  leftLabel={displayedSelected.state?.spec?.input_dataset_id || displayedSelected.state?.input_dataset_ids?.[0]}
+                  rightLabel={softIdentifier(displayedSelected.state?.join_candidate_dataset_id || displayedSelected.state?.input_dataset_ids?.[1], "A second dataset")}
+                  rightTotal={displayedSelected.state?.join_candidate_rows}
+                  coverage={displayedSelected.state?.join_candidates}
+                  onChooseKey={reasoningAvailable ? (candidate) => ask(`Use ${candidate.leftKey} to ${candidate.rightKey} for this join.`) : null}
+                  onChooseOutcome={reasoningAvailable ? (outcome) => ask(`Take the "${outcome.label}" option for this join, and record why.`) : null}
+                  onChooseCollapse={reasoningAvailable ? (choice) => ask(`Resolve the repeated key with "${choice.label}".`) : null}
                 />
               ) : null}
               {mode === "proposal" ? (
-                <ProposalReview thread={selected} busy={busy} onDecide={decideProposal} onAsk={ask} />
+                <ProposalReview thread={displayedSelected} busy={busy} onDecide={decideProposal} onAsk={ask} />
               ) : null}
               {showExecution ? (
                 <ExecutionRecord
-                  thread={selected}
+                  thread={displayedSelected}
                   busy={busy}
                   onRequest={requestExecution}
                   onReview={onReviewExecution}
@@ -1831,9 +2000,9 @@ export function SynthesisPage({
                   onOpenDataset={onOpenDataset}
                 />
               ) : null}
-              {synthesisShowsEvidenceMap(selected) || isPreAcceptance(selected) ? (
+              {synthesisShowsEvidenceMap(displayedSelected) || isPreAcceptance(selected) ? (
                 <EvidenceMap
-                  thread={selected}
+                  thread={displayedSelected}
                   onAsk={ask}
                   selectedField={selectedField}
                   onSelectField={setSelectedField}
@@ -1846,23 +2015,23 @@ export function SynthesisPage({
                 />
               ) : null}
               <ExcursionRecordPanel
-                excursions={selected.state?.excursions}
+                excursions={displayedSelected.state?.excursions}
                 onResume={(entry) => ask(`Pick up the search for ${entry.searched} again.`)}
                 onAsk={ask}
               />
               <SettledDecisionsPanel
-                decisions={selected.state?.settled_decisions}
+                decisions={displayedSelected.state?.settled_decisions}
                 onContest={(decision) => ask(`Reopen this decision: ${decision.summary}.`)}
               />
               <ProvenancePanel
-                provenance={selected.state?.provenance}
+                provenance={displayedSelected.state?.provenance}
                 onViewCode={() => ask("Show me the exported method as code.")}
                 onDownload={() => ask("Give me the script for this method.")}
                 onCite={() => ask("Give me a citation line for this output.")}
               />
               <ReusePanel
-                source={selected.state?.reuse_from}
-                changes={selected.state?.reuse_changes}
+                source={displayedSelected.state?.reuse_from}
+                changes={displayedSelected.state?.reuse_changes}
                 onChange={(change) => ask(`For the revision, change ${change.label}.`)}
                 onPreview={() => ask("Preview this revision before building it.")}
               />
