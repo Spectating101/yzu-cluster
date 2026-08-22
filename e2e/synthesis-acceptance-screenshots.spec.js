@@ -1,6 +1,7 @@
 import { mkdirSync } from "node:fs";
 import { test, expect } from "@playwright/test";
 import { EXAMPLE_STATE } from "../drive/src/v2/synthesisContract.js";
+import { mockV2Api } from "./fixtures/v2MockApi.js";
 
 // Field payloads come from the contract module, so a screenshot can never show
 // a shape the desk is not being asked to produce.
@@ -134,6 +135,7 @@ async function resetScroll(page) {
 }
 
 async function mount(page, thread) {
+  await mockV2Api(page);
   await page.route("**/api/library/synthesis/threads**", (route) =>
     route.fulfill({
       status: 200, contentType: "application/json",
@@ -241,7 +243,9 @@ test.describe("Synthesis acceptance screenshots", () => {
     await expect(main.getByRole("region", { name: "Research brief" })).toBeVisible();
     await expect(main.getByRole("region", { name: "Recommended construction" })).toBeVisible();
     await expect(main.getByRole("region", { name: "What happens next" })).toBeVisible();
-    await expect(main.getByText("asset × week", { exact: true })).toHaveCount(1);
+    // The mobile disclosure retains the same source text in the DOM but is
+    // hidden on desktop. Guard visible duplication, not responsive markup.
+    await expect(main.locator(':text-is("asset × week"):visible')).toHaveCount(1);
     await expect(main.getByText("Composite weekly attention index", { exact: true })).toHaveCount(1);
     const accept = main.getByRole("button", { name: "Accept & design method" });
     await expect(accept).toBeEnabled();

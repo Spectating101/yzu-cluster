@@ -1168,13 +1168,13 @@
 
 .rd-v2-synthesis-page .s04-main {
   max-width: 920px;
-  padding-top: 22px;
+  padding-top: 12px;
 }
 
 /* The thread title is a desk heading, not a fourth card. */
 .rd-v2-synthesis-page .s04-head {
   align-items: flex-start;
-  padding: 5px 0 17px;
+  padding: 3px 0 10px;
   border: 0;
   border-bottom: 1px solid var(--s04-rule);
   border-radius: 0;
@@ -1209,6 +1209,7 @@
 .rd-v2-synthesis-page .s04-opening-brief,
 .rd-v2-synthesis-page .s04-opening-construction,
 .rd-v2-synthesis-page .s04-opening-next {
+  margin-top: 10px;
   border-color: var(--s04-rule);
   border-radius: 10px;
   box-shadow: none;
@@ -1219,6 +1220,8 @@
 }
 
 .rd-v2-synthesis-page .s04-opening-brief > header {
+  min-height: 36px;
+  padding: 0 14px;
   border-bottom-color: var(--s04-rule);
   background: #f1ede3;
 }
@@ -1232,7 +1235,17 @@
 }
 
 .rd-v2-synthesis-page .s04-opening-brief > p {
+  padding: 11px 14px 10px;
   color: #344353;
+  line-height: 1.5;
+}
+
+.rd-v2-synthesis-page .s04-opening-brief > dl > div {
+  padding: 9px 14px 10px;
+}
+
+.rd-v2-synthesis-page .s04-opening-workflow-wrap {
+  margin-top: 8px;
 }
 
 .rd-v2-synthesis-page .s04-opening-brief > dl,
@@ -1249,6 +1262,7 @@
 }
 
 .rd-v2-synthesis-page .s04-opening-construction {
+  padding: 12px 14px;
   background: rgba(248, 245, 237, .72);
 }
 
@@ -1261,6 +1275,8 @@
 }
 
 .rd-v2-synthesis-page .s04-opening-next {
+  margin-top: 6px;
+  padding: 11px 14px 12px;
   border-color: #ced8cc;
   background: var(--s04-paper-action);
 }
@@ -1288,6 +1304,7 @@
 }
 
 .rd-v2-synthesis-page .s04-opening-next > p {
+  margin: 5px 0 8px;
   color: #526373;
 }
 
