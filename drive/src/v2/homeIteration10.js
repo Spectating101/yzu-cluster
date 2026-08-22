@@ -8,6 +8,7 @@ import { buildLab } from "./profileViewModel.js";
 import { recentDatasets } from "./recent.js";
 import { isHistoryNoise } from "./historyNoiseFence.js";
 import { measuredComposerLabel } from "./resourcesTruth.js";
+import { composerRuntimeRead } from "./composerRuntimeStatus.js";
 
 function purposeLine(ds) {
   return (
@@ -164,6 +165,7 @@ export function projectRollupFromHealth(health) {
       composer: {
         configured: Boolean(desk.composer_configured),
         model: String(desk.composer_model || "").trim(),
+        runtime: desk.composer_runtime || null,
       },
       vault:
         canonical.used_tb != null || canonical.quota_tb != null
@@ -177,6 +179,7 @@ export function projectRollupFromHealth(health) {
     ai: {
       composer_configured: Boolean(desk.composer_configured),
       composer_model: String(desk.composer_model || "").trim(),
+      composer_runtime: desk.composer_runtime || null,
     },
   };
 }
@@ -257,15 +260,21 @@ export function buildResourceHeadroom(rollup) {
   const turnsToday = Number(ai.composer_turns_today ?? 0);
   const bq = metered.bigquery || {};
   if (composerOk) {
+    // A configured key is not a live probe. Settings and Resources render
+    // composer_runtime; Home must read the same field or it claims readiness
+    // the desk has not observed.
+    const runtime = composerRuntimeRead(composer.runtime ?? ai.composer_runtime);
     slots.push({
       id: "cursor",
       markId: "cursor",
       name: "Cursor Ask",
       pinned: false,
-      metric: turnsToday > 0 ? `${turnsToday} turns today` : "Composer ready",
+      metric: turnsToday > 0 ? `${turnsToday} turns today` : (runtime?.short ?? "Not yet probed"),
       pct: null,
-      headroom: `Key configured · ${measuredComposerLabel(composer.model || ai.composer_model)}`,
-      warn: false,
+      headroom: runtime
+        ? `${runtime.why} · ${measuredComposerLabel(composer.model || ai.composer_model)}`
+        : `Key configured · ${measuredComposerLabel(composer.model || ai.composer_model)}`,
+      warn: runtime ? Boolean(runtime.warn) : true,
       action: "resources",
     });
   } else if (bq.configured) {

@@ -1,7 +1,7 @@
 /* Synthesis S-04 — intent-first AI research construction. */
 .rd-v2-synthesis-page{padding-right:var(--rd-main-pad-x)}
 .rd-v2-synthesis-page .rd-v2-page-head{padding-right:0}
-.rd-v2-synthesis-page .rd-v2-body-scroll{margin-right:0;padding:0;overflow:hidden;background:#f5f6fa}
+.rd-v2-synthesis-page .rd-v2-body-scroll{margin-right:0;padding:0;overflow:auto;background:#f5f6fa}
 .s04-shell{min-height:100%;display:grid;grid-template-columns:216px minmax(0,1fr) 280px;color:#172033}
 .s04-threads,.s04-ask{min-width:0;background:rgba(248,249,253,.94)}
 .s04-threads{display:flex;min-height:0;overflow-y:auto;flex-direction:column;padding:18px 13px 15px;border-right:1px solid #dfe3ec}
