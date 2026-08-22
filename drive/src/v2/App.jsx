@@ -1750,6 +1750,7 @@ export function V2App() {
         activeResearchTitle={activeResearch.title}
         currentPage={tab}
         onAccountNavigate={goTab}
+        onDeskStatusNavigate={() => goTab("resources")}
       />
       <V2Sidebar
         tab={tab}

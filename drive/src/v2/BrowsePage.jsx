@@ -1421,12 +1421,21 @@ export function BrowsePage({
               </div>
               <div className="rd-v2-discover-result-actions" aria-label="Discover next actions">
                 <div>
-                  <strong>{plural(centreRows.length, "offering")}</strong>
-                  <span>
-                    {stateFilter === "all"
-                      ? "available to add"
-                      : activeFilter.label}
-                  </span>
+                  {loading && centreRows.length === 0 ? (
+                    <>
+                      <strong>Checking sources</strong>
+                      <span>{merged.length ? "Library evidence is already visible" : "Finding available routes"}</span>
+                    </>
+                  ) : (
+                    <>
+                      <strong>{plural(centreRows.length, "offering")}</strong>
+                      <span>
+                        {stateFilter === "all"
+                          ? "available to add"
+                          : activeFilter.label}
+                      </span>
+                    </>
+                  )}
                 </div>
                 <div>
                   {onSearchWeb ? (

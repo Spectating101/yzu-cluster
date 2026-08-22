@@ -160,6 +160,8 @@ test.describe("v2 Discover tab", () => {
     await expect(progress).toContainText("Library evidence · checked");
     await expect(progress).toContainText("Known source routes · checking");
     await expect(page.getByTestId("discover-result-summary")).toContainText("Library evidence · 1");
+    await expect(page.getByLabel("Discover next actions")).toContainText("Checking sources");
+    await expect(page.getByLabel("Discover next actions")).not.toContainText("0 offerings");
     await captureWorkflow(page, "discover-progressive-1440x900");
     await page.setViewportSize({ width: 390, height: 844 });
     await captureWorkflow(page, "discover-progressive-390x844");

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { deskStatusBadge, visibleIntegrationChips } from "@/v2/deskStatusBadge";
+import { deskStatusBadge, deskStatusSummary } from "@/v2/deskStatusBadge";
 
 /** v2 header — brand · research context · resting status (no global search/Ask pill) */
 
@@ -37,6 +37,7 @@ export function V2DeskHeader({
   activeResearchTitle = "Active research",
   currentPage = "home",
   onAccountNavigate,
+  onDeskStatusNavigate,
   principal = null,
 }) {
   const [accountOpen, setAccountOpen] = useState(false);
@@ -53,6 +54,12 @@ export function V2DeskHeader({
   const chips = Array.isArray(integrationChips) ? integrationChips : [];
 
   const statusBadge = deskStatusBadge(deskStatus, usingSeed);
+  const statusSummary = deskStatusSummary(statusBadge, chips);
+  const statusTitle = [
+    ...statusSummary.details,
+    fresh ? `Updated ${fresh}` : null,
+    onDeskStatusNavigate ? "Open Resources" : null,
+  ].filter(Boolean).join(" · ");
   const pageLabel = PAGE_LABELS[currentPage] || String(currentPage || "").toUpperCase();
 
   useEffect(() => {
@@ -97,20 +104,20 @@ export function V2DeskHeader({
 
       <div className="rd-v2-header-meta">
         <div className="rd-v2-trust-strip" aria-label="Desk status" data-testid="desk-integration-strip">
-          <span className={`rd-v2-trust-badge ${statusBadge.tone}`}>{statusBadge.label}</span>
-          {visibleIntegrationChips(chips, statusBadge.label)
-            .map((chip) => (
-              <span
-                key={chip.id}
-                className={`rd-v2-trust-badge ${chip.tone || "muted"}`}
-                title={chip.label}
-              >
-                {chip.label}
-              </span>
-            ))}
-          {fresh && deskStatus !== "ok" ? (
-            <span className="rd-v2-trust-badge muted">Updated {fresh}</span>
-          ) : null}
+          {onDeskStatusNavigate ? (
+            <button
+              type="button"
+              className={`rd-v2-trust-badge rd-v2-trust-summary ${statusSummary.tone}`}
+              title={statusTitle}
+              onClick={onDeskStatusNavigate}
+            >
+              {statusSummary.label}
+            </button>
+          ) : (
+            <span className={`rd-v2-trust-badge rd-v2-trust-summary ${statusSummary.tone}`} title={statusTitle}>
+              {statusSummary.label}
+            </span>
+          )}
         </div>
         <span className="rd-v2-header-meta-count" title={metaText}>
           {pendingVisible ? (
