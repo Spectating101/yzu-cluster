@@ -355,6 +355,13 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await expect(next.getByRole("button", { name: "Start method reasoning" })).toBeDisabled();
     await expect(next).toContainText("Assistant unverified");
     await expect(next.getByRole("button", { name: "Check Resources" })).toBeVisible();
+    await expect(page.getByTestId("synthesis-measurement-status")).toContainText(
+      "Mapped evidence could not be measured",
+    );
+    await expect(page.getByTestId("synthesis-measurement-status")).not.toContainText(
+      "0 mapped inputs measured",
+    );
+    await expect(page.getByTestId("synthesis-opening-rail")).not.toContainText("Quick questions");
     await capture(page, "workflow-unverified-1440x1000");
     await page.setViewportSize({ width: 390, height: 844 });
     await capture(page, "workflow-unverified-390x844");
@@ -1334,6 +1341,9 @@ test.describe("v2 Synthesis measured evidence integration", () => {
     await expect(page.getByTestId("synthesis-measured-dataset")).toHaveCount(2);
     await expect(page.getByTestId("synthesis-unit-conflict")).toContainText("Measured warning");
     await expect(page.getByRole("button", { name: "Ask which is which" })).toHaveCount(0);
+    const measurementBox = await page.getByTestId("synthesis-measurement-status").boundingBox();
+    const recommendationBox = await page.getByRole("region", { name: "Recommended construction" }).boundingBox();
+    expect(measurementBox?.y).toBeLessThan(recommendationBox?.y);
     await capture(page, "measured-evidence-1440x1000");
 
     await page.setViewportSize({ width: 390, height: 844 });

@@ -1808,7 +1808,7 @@ export function V2App() {
         activeObject={activeObject}
         profile={profile}
         onPreview={() => detail && openPreview(detail)}
-        onAskAbout={askAboutSelection}
+        onAskAbout={canUseAsk && composerRuntime?.ready ? askAboutSelection : undefined}
         onViewActivity={(filter) => {
           setResourceMode("usage");
           setActivityFilter(filter);

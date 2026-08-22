@@ -1524,6 +1524,16 @@ export function SynthesisPage({
     setMeasurementPhaseByThread((current) => ({ ...current, [threadId]: "loading" }));
     try {
       const payload = await getSynthesisMeasurements(threadId);
+      const measuredInputs = Number(payload?.measured_inputs);
+      const unmeasuredInputs = Array.isArray(payload?.unmeasured) ? payload.unmeasured : [];
+      if (
+        !Number.isFinite(measuredInputs)
+        || measuredInputs < 0
+        || !Array.isArray(payload?.column_profiles)
+        || (measuredInputs === 0 && unmeasuredInputs.length === 0)
+      ) {
+        throw new Error("The measurement endpoint returned no measured-state contract.");
+      }
       setMeasurementByThread((current) => ({
         ...current,
         [threadId]: { inputKey, payload },
@@ -1924,6 +1934,16 @@ export function SynthesisPage({
                 />
               ) : null}
               <ThreadPicker threads={threads} selectedId={selectedId} onSelect={selectThread} />
+              <ContextStrip items={focus.strip.filter((item) => !RECORD_ALWAYS.includes(item.id))}
+                            onPromote={setPromoted} promoted={focus.promoted}
+                            onClear={() => setPromoted("")} />
+              {mappedInputKey && isPreAcceptance(selected) ? (
+                <MeasurementStatus
+                  phase={measurementPhaseByThread[selected.id] || "idle"}
+                  measurements={selectedMeasurement}
+                  onRetry={() => measureThread(selected, mappedInputKey)}
+                />
+              ) : null}
               {isPreAcceptance(selected) ? (
                 <>
                   <RecommendedConstruction
@@ -1943,16 +1963,6 @@ export function SynthesisPage({
                     onOpenResources={() => onGoTab?.("resources")}
                   />
                 </>
-              ) : null}
-              <ContextStrip items={focus.strip.filter((item) => !RECORD_ALWAYS.includes(item.id))}
-                            onPromote={setPromoted} promoted={focus.promoted}
-                            onClear={() => setPromoted("")} />
-              {mappedInputKey && isPreAcceptance(selected) ? (
-                <MeasurementStatus
-                  phase={measurementPhaseByThread[selected.id] || "idle"}
-                  measurements={selectedMeasurement}
-                  onRetry={() => measureThread(selected, mappedInputKey)}
-                />
               ) : null}
               {focus.subject === "scope" ? (
                 <ScopePanel

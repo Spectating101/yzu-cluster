@@ -12,9 +12,8 @@ function text(value, fallback = "Not reported") {
   return String(value || "").trim() || fallback;
 }
 
-function compactObjective(value) {
+function compactObjective(value, limit = 300) {
   const full = text(value, "A durable research-construction thread.").replace(/\s+/g, " ");
-  const limit = 300;
   if (full.length <= limit) return full;
   const boundary = full.lastIndexOf(" ", limit - 1);
   return `${full.slice(0, boundary > 0 ? boundary : limit).trim()}…`;
@@ -80,13 +79,22 @@ function OpeningThreadRail({ thread, onAsk }) {
     ? `${directMeasure.label} is unavailable${directMeasure.why ? ` · ${directMeasure.why}` : ""}.`
     : "The recommendation is not yet grounded in a stated direct measure.";
   const ask = (prompt) => onAsk?.(prompt);
+  const fullIntent = text(brief.body || thread?.objective, "A durable research-construction thread.").replace(/\s+/g, " ");
+  const intentSummary = compactObjective(fullIntent, 160);
+  const intentIsCompact = intentSummary !== fullIntent;
 
   return (
     <div className="s04-thread-rail" data-testid="synthesis-opening-rail">
       <p className="s04-thread-rail-kicker">Synthesis thread</p>
       <section>
         <p className="s04-thread-rail-label">Your intent</p>
-        <p>{text(brief.body || thread?.objective, "A durable research-construction thread.")}</p>
+        <p>{intentSummary}</p>
+        {intentIsCompact ? (
+          <details className="s04-thread-rail-intent">
+            <summary>Full recorded intent</summary>
+            <p>{fullIntent}</p>
+          </details>
+        ) : null}
       </section>
       <section>
         <p className="s04-thread-rail-label">AI interpretation</p>
@@ -114,12 +122,14 @@ function OpeningThreadRail({ thread, onAsk }) {
         <p className="s04-thread-rail-label">Main limitation</p>
         <p>{limitation}</p>
       </section>
-      <section className="s04-thread-rail-questions">
-        <p className="s04-thread-rail-label">Quick questions</p>
-        <button type="button" onClick={() => ask("Why is this validation route appropriate for the proposed construction?")}>Why this validation route?</button>
-        <button type="button" onClick={() => ask("Compare the alternative constructions and identify the decision trade-offs.")}>Compare alternatives</button>
-        <button type="button" onClick={() => ask("What decisions remain before a detailed method can be drafted?")}>What decisions come next?</button>
-      </section>
+      {typeof onAsk === "function" ? (
+        <section className="s04-thread-rail-questions">
+          <p className="s04-thread-rail-label">Quick questions</p>
+          <button type="button" onClick={() => ask("Why is this validation route appropriate for the proposed construction?")}>Why this validation route?</button>
+          <button type="button" onClick={() => ask("Compare the alternative constructions and identify the decision trade-offs.")}>Compare alternatives</button>
+          <button type="button" onClick={() => ask("What decisions remain before a detailed method can be drafted?")}>What decisions come next?</button>
+        </section>
+      ) : null}
     </div>
   );
 }
@@ -155,7 +165,12 @@ export function SynthesisThreadRailPanel({ thread, onAskAbout, onOpenInLibrary }
       title: thread?.title || state.title || "Synthesis thread",
       thread,
     };
-    return <OpeningThreadRail thread={thread} onAsk={(prompt) => onAskAbout?.(target, prompt)} />;
+    return (
+      <OpeningThreadRail
+        thread={thread}
+        onAsk={onAskAbout ? (prompt) => onAskAbout(target, prompt) : null}
+      />
+    );
   }
 
   return (

@@ -1091,6 +1091,24 @@
   line-height: 1.45;
 }
 
+.s04-thread-rail-intent {
+  margin-top: 7px;
+  color: #657186;
+  font-size: 9px;
+}
+
+.s04-thread-rail-intent > summary {
+  width: fit-content;
+  cursor: pointer;
+  font-weight: 750;
+}
+
+.s04-thread-rail-intent > p {
+  margin: 7px 0 0;
+  color: #556277;
+  line-height: 1.55;
+}
+
 .s04-thread-rail-questions {
   display: grid;
   gap: 7px;
