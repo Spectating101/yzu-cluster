@@ -1,6 +1,6 @@
 # Research Drive v2 — adaptive layout spec
 
-**Viewport reference:** 1440×900 desktop (design ruler and first visual-review target), but production sizing is adaptive. It is not a requirement to run Chrome at one fixed size, nor permission to skip the 1280, tablet, and mobile checks.
+**Viewport matrix:** 1440×900 remains the stable design ruler; the measured workstation Chrome content viewport is 1920×961 at 100% zoom. Production sizing is adaptive, so neither is permission to skip the 1280, tablet, and mobile checks.
 **Canon:** [`RESEARCH_DRIVE_UI_CANON.md`](../RESEARCH_DRIVE_UI_CANON.md)  
 **Frozen wireframes:** [`WIREFRAME_V2_FROZEN.md`](WIREFRAME_V2_FROZEN.md)  
 **Visual tokens:** [`TOKENS.md`](TOKENS.md)  
@@ -16,22 +16,35 @@ The right rail remains the anchor. The sidebar and rail use bounded `clamp()` to
 
 | Zone | CSS variable | Size | Position |
 |------|--------------|------|----------|
-| **A** Header | `--rd-header` | **56px high** | `grid-row: 1; grid-column: 1 / -1` |
-| **B** Sidebar | `--rd-sidebar` | `clamp(224px, 18vw, 280px)` desktop | col 1, row 2 |
+| **A** Header | `--rd-header` | **64px high** | `grid-row: 1; grid-column: 1 / -1` |
+| **B** Sidebar | `--rd-sidebar` | `clamp(216px, 16.5vw, 252px)` desktop | col 1, row 2 |
 | **C** Main | flex remainder | no horizontal overflow | col 2, row 2 |
-| **D** Rail | `--rd-rail` | `clamp(360px, 30vw, 480px)` desktop | col 3, row 2 |
+| **D** Rail | `--rd-rail` | `clamp(380px, 29vw, 470px)` desktop | col 3, row 2 |
 
 At the 1440×900 reference viewport, the current CSS resolves to roughly:
 
 ```text
 1440 total width
-├─ 259  sidebar (B)
-├─ 749  main (C)
-└─ 432  rail (D)
+├─ 238  sidebar (B)
+├─ 784  main (C)
+└─ 418  rail (D)
 
 900 total height
-├─ 56   header (A)
-└─ 844  body row
+├─ 64   header (A)
+└─ 836  body row
+```
+
+At the measured 1920×961 Chrome content viewport the same rules resolve to:
+
+```text
+1920 total width
+├─ 252  sidebar (B)
+├─ 1198 main (C)
+└─ 470  rail (D)
+
+961 total height
+├─ 64   header (A)
+└─ 897  body row
 ```
 
 ```css

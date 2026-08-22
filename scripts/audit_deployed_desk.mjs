@@ -306,9 +306,10 @@ try {
     await page.screenshot({ path: path.join(outDir, "synthesis-selected-1440x900.png"), fullPage: false });
   }
 
-  // At smaller widths we gate against horizontal clipping on every faculty
-  // surface. The 1440 captures above remain the visual authority.
-  for (const [width, height] of includeCrossWidths ? [[1280, 800], [390, 844]] : []) {
+  // The release matrix covers the real 1920×961 Chrome content viewport, the
+  // compact desktop breakpoint, and mobile. The 1440 captures above remain a
+  // stable comparison fixture; they are not a claim about the user's display.
+  for (const [width, height] of includeCrossWidths ? [[1920, 961], [1280, 800], [390, 844]] : []) {
     await page.setViewportSize({ width, height });
     for (const [label, url] of pages) {
       await page.goto(`${baseUrl}${url}`, { waitUntil: "load", timeout: 30_000 });
@@ -321,6 +322,9 @@ try {
         horizontal_overflow: await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),
         visible_text: (await page.locator("body").innerText()).replace(/\s+/g, " ").slice(0, 240),
       });
+      if (width === 1920) {
+        await page.screenshot({ path: path.join(outDir, `${label}-1920x961.png`), fullPage: false });
+      }
     }
   }
 } finally {

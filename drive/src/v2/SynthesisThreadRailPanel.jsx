@@ -82,6 +82,24 @@ function OpeningThreadRail({ thread, onAsk }) {
   const fullIntent = text(brief.body || thread?.objective, "A durable research-construction thread.").replace(/\s+/g, " ");
   const intentSummary = compactObjective(fullIntent, 160);
   const intentIsCompact = intentSummary !== fullIntent;
+  const profiles = Array.isArray(state.column_profiles) ? state.column_profiles : [];
+  const flagged = profiles.filter((profile) => (profile.flags || []).length).length;
+  const lookahead = profiles.filter((profile) => (profile.flags || []).includes("lookahead")).length;
+  const mappedInputs = Array.isArray(state.input_dataset_ids)
+    ? state.input_dataset_ids.length
+    : (state.nodes || []).filter((node) => node?.layer === "evidence" || node?.type === "source").length;
+  const join = (state.join_candidates || [])[0] || null;
+  const matched = Number(join?.matched);
+  const leftDistinct = Number(join?.left_distinct ?? join?.total);
+  const fanout = Number(join?.fanout_multiplier);
+  const joinConsequence = Number.isFinite(fanout) && fanout > 1
+    ? ` · matched rows fan out ${fanout.toLocaleString()}×`
+    : Number(join?.right_duplicate_rows) > 0 ? " · repeated right key" : "";
+  const joinSummary = join
+    ? Number.isFinite(matched) && Number.isFinite(leftDistinct) && leftDistinct > 0
+      ? `${matched.toLocaleString()}/${leftDistinct.toLocaleString()} identifiers match${joinConsequence}.`
+      : `${join.match_rate_pct}% identifier coverage.`
+    : "";
 
   return (
     <div className="s04-thread-rail" data-testid="synthesis-opening-rail">
@@ -95,6 +113,20 @@ function OpeningThreadRail({ thread, onAsk }) {
             <p>{fullIntent}</p>
           </details>
         ) : null}
+      </section>
+      <section>
+        <p className="s04-thread-rail-label">Desk measurements</p>
+        {profiles.length ? (
+          <>
+            <p>{mappedInputs} mapped input{mappedInputs === 1 ? "" : "s"} · {profiles.length.toLocaleString()} columns profiled · no assistant involved.</p>
+            <ul>
+              <li>{flagged.toLocaleString()} column{flagged === 1 ? "" : "s"} flagged for review.</li>
+              {lookahead ? <li>{lookahead.toLocaleString()} look-ahead column{lookahead === 1 ? "" : "s"} could leak future information.</li> : null}
+              {state.unit_conflict ? <li>Incompatible measurement scales need a decision.</li> : null}
+              {joinSummary ? <li>{joinSummary}</li> : null}
+            </ul>
+          </>
+        ) : <p>No held-byte measurement has been recorded yet.</p>}
       </section>
       <section>
         <p className="s04-thread-rail-label">AI interpretation</p>

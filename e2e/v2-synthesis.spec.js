@@ -317,7 +317,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await expect(page.locator("aside.rd-v2-rail")).toContainText("Your intent");
     await expect(page.locator("aside.rd-v2-rail")).toContainText("Quick questions");
     await expect(page.getByTestId("rail-pane-ask")).toBeHidden();
-    await expect(page.getByText("Nothing registered", { exact: true })).toBeVisible();
+    await expect(page.getByText("No output registered", { exact: true })).toBeVisible();
     await capture(page, "01-durable-evidence-desktop");
   });
 
@@ -1337,13 +1337,26 @@ test.describe("v2 Synthesis measured evidence integration", () => {
 
     await expect(page.getByTestId("synthesis-measurement-status")).toContainText("2 mapped inputs measured from held bytes");
     await expect(page.getByTestId("synthesis-measurement-status")).toContainText("5 columns profiled");
+    await expect(page.getByRole("list", { name: "Measured risks" })).toContainText("3Flagged");
+    await expect(page.getByRole("list", { name: "Measured risks" })).toContainText("1Look-ahead");
+    await expect(page.getByRole("list", { name: "Measured risks" })).toContainText("2Scale twins");
+    await expect(page.getByTestId("synthesis-opening-rail")).toContainText(
+      "2 mapped inputs · 5 columns profiled · no assistant involved",
+    );
+    await expect(page.getByTestId("synthesis-opening-rail")).toContainText(
+      "1 look-ahead column could leak future information",
+    );
     await expect(page.getByTestId("synthesis-method-surface")).toContainText("2 mapped Library inputs");
     await expect(page.getByTestId("synthesis-measured-dataset")).toHaveCount(2);
     await expect(page.getByTestId("synthesis-unit-conflict")).toContainText("Measured warning");
     await expect(page.getByRole("button", { name: "Ask which is which" })).toHaveCount(0);
-    const measurementBox = await page.getByTestId("synthesis-measurement-status").boundingBox();
-    const recommendationBox = await page.getByRole("region", { name: "Recommended construction" }).boundingBox();
-    expect(measurementBox?.y).toBeLessThan(recommendationBox?.y);
+    const warningBox = await page.getByTestId("synthesis-unit-conflict").boundingBox();
+    const nextBox = await page.getByRole("region", { name: "What happens next" }).boundingBox();
+    expect(warningBox?.y).toBeLessThan(nextBox?.y);
+    await expect(page.getByRole("region", { name: "Recommended construction" })).toHaveCount(0);
+    await expect(page.getByRole("region", { name: "What happens next" })).toContainText(
+      "finished deterministic checks against held evidence",
+    );
     await capture(page, "measured-evidence-1440x1000");
 
     await page.setViewportSize({ width: 390, height: 844 });

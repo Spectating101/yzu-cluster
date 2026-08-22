@@ -4,12 +4,12 @@ import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 /**
  * Discover Explore | History gates for the main-converge tree.
  * Classification: docs/DISCOVER_E2E_AUTHORITY_AUDIT.md
- * Primary viewport 1920×1080.
+ * Workstation content viewport 1920×961 (measured at 100% Chrome zoom).
  */
 test.describe("v2 Discover Explore|History (main converge)", () => {
   test.beforeEach(async ({ page }) => {
     await mockV2Api(page);
-    await page.setViewportSize({ width: 1920, height: 1080 });
+    await page.setViewportSize({ width: 1920, height: 961 });
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
   });

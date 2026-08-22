@@ -510,10 +510,14 @@ function WhatHappensNext({
   const hasRecommendation = rec.present;
   const hasMappedEvidence = evidenceNodes(thread).length > 0;
   const needsEvidence = !hasRecommendation && !hasMappedEvidence;
+  const reasoningBlocked = !hasRecommendation && !reasoningAvailable;
   return (
-    <section className="s04-opening-next" aria-label="What happens next">
+    <section
+      className={`s04-opening-next${reasoningBlocked ? " s04-opening-next--blocked" : ""}`}
+      aria-label="What happens next"
+    >
       <header>
-        <small>What happens next</small>
+        <small>{reasoningBlocked && hasMappedEvidence ? "Reasoning checkpoint" : "What happens next"}</small>
       </header>
       <p>
         {hasRecommendation
@@ -522,17 +526,20 @@ function WhatHappensNext({
             ? "First review held Library inputs. Then Ask can ground one reviewable construction in recorded evidence; neither step will collect, execute, or change data without your approval."
           : reasoningPending
             ? "Ask is grounding one reviewable construction in this brief and the recorded Library evidence. It will not collect, execute, or change data."
-            : "Start a reasoning turn to request one reviewable construction. It may clarify a decisive gap first; it will not collect, execute, or change data."}
+            : reasoningBlocked
+              ? "The desk has finished deterministic checks against held evidence. Assistant reasoning is not verified, so no construction has been invented; review the measured risks or check Resources."
+              : "Start a reasoning turn to request one reviewable construction. It may clarify a decisive gap first; it will not collect, execute, or change data."}
       </p>
       <footer>
-        <button
-          type="button"
-          className="s04-next-secondary"
-          disabled={!rec.alternatives}
-          onClick={() => onCompare?.()}
-        >
-          Compare alternatives
-        </button>
+        {rec.alternatives ? (
+          <button
+            type="button"
+            className="s04-next-secondary"
+            onClick={() => onCompare?.()}
+          >
+            Compare alternatives
+          </button>
+        ) : <span aria-hidden="true" />}
         <div className="s04-next-actions">
           {needsEvidence ? (
             <button
@@ -609,7 +616,7 @@ function ThreadHeader({ thread, onEditIntent }) {
               ? "Durable execution state"
               : state.proposal
                 ? "Reviewable change"
-                : "Nothing registered"}
+                : "No output registered"}
         </em>
       </header>
       <ResearchBrief thread={thread} onEditIntent={onEditIntent} />
@@ -1344,6 +1351,14 @@ function MeasurementStatus({ phase, measurements, onRetry }) {
   const unmeasured = Array.isArray(measurements?.unmeasured)
     ? measurements.unmeasured
     : [];
+  const flagged = profiles.filter((profile) => (profile.flags || []).length).length;
+  const flagCount = (flag) => profiles.filter((profile) => (profile.flags || []).includes(flag)).length;
+  const measuredRisks = [
+    flagged ? ["Flagged", flagged] : null,
+    flagCount("lookahead") ? ["Look-ahead", flagCount("lookahead")] : null,
+    flagCount("sparse") ? ["Sparse", flagCount("sparse")] : null,
+    flagCount("unit_twin") ? ["Scale twins", flagCount("unit_twin")] : null,
+  ].filter(Boolean);
 
   if (phase === "loading") {
     return (
@@ -1370,6 +1385,13 @@ function MeasurementStatus({ phase, measurements, onRetry }) {
           {profiles.length.toLocaleString()} columns profiled
           {unmeasured.length ? ` · ${unmeasured.length} input${unmeasured.length === 1 ? "" : "s"} could not be read` : " · no assistant involved"}
         </small>
+        {measuredRisks.length ? (
+          <ul className="s04-measurement-facts" aria-label="Measured risks">
+            {measuredRisks.map(([label, count]) => (
+              <li key={label}><b>{count.toLocaleString()}</b><span>{label}</span></li>
+            ))}
+          </ul>
+        ) : null}
         {unmeasured.length ? (
           <details>
             <summary>Why some inputs were not measured</summary>
@@ -1510,6 +1532,15 @@ export function SynthesisPage({
     notified.current = key;
     onSelectThread?.(selected);
   }, [selected, onSelectThread]);
+
+  // Measurements are fetched independently from the durable thread record.
+  // Propagate the merged, read-only view to the inspector as soon as it lands;
+  // otherwise the centre can show 72 profiled columns while the rail still
+  // claims the desk has no interpretation of the evidence in front of it.
+  useEffect(() => {
+    if (!selectedMeasurement || !displayedSelected) return;
+    onSelectThread?.(displayedSelected);
+  }, [displayedSelected, onSelectThread, selectedMeasurement]);
 
   const refreshThread = useCallback(async (threadId = selectedId) => {
     if (!threadId) return null;
@@ -1880,6 +1911,9 @@ export function SynthesisPage({
   const mode = stateFor(selected);
   const focus = focusFor(displayedSelected?.state, promoted);
   const showExecution = Boolean(selected && (mode === "execution" || mode === "registered" || mode === "failed" || selected.state?.execution_spec));
+  const preAcceptance = Boolean(selected && isPreAcceptance(selected));
+  const hasRecommendation = Boolean(displayedSelected && recommendedConstruction(displayedSelected).present);
+  const hasMappedEvidence = Boolean(displayedSelected && evidenceNodes(displayedSelected).length);
 
   return (
     <PageShell className="rd-v2-synthesis-page">
@@ -1926,7 +1960,7 @@ export function SynthesisPage({
                 thread={displayedSelected}
                 onEditIntent={() => ask("I want to revise this research intent. Show the change that would be recorded before applying it.")}
               />
-              {isPreAcceptance(selected) ? (
+              {preAcceptance ? (
                 <OpeningWorkflow
                   thread={displayedSelected}
                   reasoningAvailable={reasoningAvailable}
@@ -1937,32 +1971,12 @@ export function SynthesisPage({
               <ContextStrip items={focus.strip.filter((item) => !RECORD_ALWAYS.includes(item.id))}
                             onPromote={setPromoted} promoted={focus.promoted}
                             onClear={() => setPromoted("")} />
-              {mappedInputKey && isPreAcceptance(selected) ? (
+              {mappedInputKey && preAcceptance ? (
                 <MeasurementStatus
                   phase={measurementPhaseByThread[selected.id] || "idle"}
                   measurements={selectedMeasurement}
                   onRetry={() => measureThread(selected, mappedInputKey)}
                 />
-              ) : null}
-              {isPreAcceptance(selected) ? (
-                <>
-                  <RecommendedConstruction
-                    thread={displayedSelected}
-                    onCompare={() => ask("Compare the alternative constructions and say what each one costs.")}
-                  />
-                  <WhatHappensNext
-                    thread={displayedSelected}
-                    onCompare={() => ask("Compare the alternative constructions and say what each one costs.")}
-                    onAccept={() => ask("Accept the recommended construction and draft the detailed method.")}
-                    onStartReasoning={() => startMethodReasoning()}
-                    onFindEvidence={findHeldEvidence}
-                    mappingEvidence={mappingEvidence}
-                    reasoningPending={reasoningPending}
-                    reasoningAvailable={reasoningAvailable}
-                    reasoningStatus={reasoningStatus}
-                    onOpenResources={() => onGoTab?.("resources")}
-                  />
-                </>
               ) : null}
               {focus.subject === "scope" ? (
                 <ScopePanel
@@ -1997,20 +2011,7 @@ export function SynthesisPage({
                   onChooseCollapse={reasoningAvailable ? (choice) => ask(`Resolve the repeated key with "${choice.label}".`) : null}
                 />
               ) : null}
-              {mode === "proposal" ? (
-                <ProposalReview thread={displayedSelected} busy={busy} onDecide={decideProposal} onAsk={ask} />
-              ) : null}
-              {showExecution ? (
-                <ExecutionRecord
-                  thread={displayedSelected}
-                  busy={busy}
-                  onRequest={requestExecution}
-                  onReview={onReviewExecution}
-                  onAsk={ask}
-                  onOpenDataset={onOpenDataset}
-                />
-              ) : null}
-              {synthesisShowsEvidenceMap(displayedSelected) || isPreAcceptance(selected) ? (
+              {synthesisShowsEvidenceMap(displayedSelected) || (preAcceptance && hasMappedEvidence) ? (
                 <EvidenceMap
                   thread={displayedSelected}
                   onAsk={ask}
@@ -2022,6 +2023,55 @@ export function SynthesisPage({
                   mappingEvidence={mappingEvidence}
                   onFindEvidence={findHeldEvidence}
                   onApplyEvidence={applyHeldEvidence}
+                />
+              ) : null}
+              {preAcceptance ? (
+                <>
+                  {hasRecommendation ? (
+                    <RecommendedConstruction
+                      thread={displayedSelected}
+                      onCompare={() => ask("Compare the alternative constructions and say what each one costs.")}
+                    />
+                  ) : null}
+                  <WhatHappensNext
+                    thread={displayedSelected}
+                    onCompare={() => ask("Compare the alternative constructions and say what each one costs.")}
+                    onAccept={() => ask("Accept the recommended construction and draft the detailed method.")}
+                    onStartReasoning={() => startMethodReasoning()}
+                    onFindEvidence={findHeldEvidence}
+                    mappingEvidence={mappingEvidence}
+                    reasoningPending={reasoningPending}
+                    reasoningAvailable={reasoningAvailable}
+                    reasoningStatus={reasoningStatus}
+                    onOpenResources={() => onGoTab?.("resources")}
+                  />
+                </>
+              ) : null}
+              {preAcceptance && !hasMappedEvidence ? (
+                <EvidenceMap
+                  thread={displayedSelected}
+                  onAsk={ask}
+                  selectedField={selectedField}
+                  onSelectField={setSelectedField}
+                  onRouteToDiscover={routeToDiscover}
+                  missingIds={missingEvidenceIds}
+                  evidenceProposal={evidenceProposal}
+                  mappingEvidence={mappingEvidence}
+                  onFindEvidence={findHeldEvidence}
+                  onApplyEvidence={applyHeldEvidence}
+                />
+              ) : null}
+              {mode === "proposal" ? (
+                <ProposalReview thread={displayedSelected} busy={busy} onDecide={decideProposal} onAsk={ask} />
+              ) : null}
+              {showExecution ? (
+                <ExecutionRecord
+                  thread={displayedSelected}
+                  busy={busy}
+                  onRequest={requestExecution}
+                  onReview={onReviewExecution}
+                  onAsk={ask}
+                  onOpenDataset={onOpenDataset}
                 />
               ) : null}
               <ExcursionRecordPanel

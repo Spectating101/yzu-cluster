@@ -16,6 +16,13 @@ test.describe("v2 adaptive Preview", () => {
 
     const preview = page.getByRole("dialog", { name: "Asia daily news-risk panel preview" });
     await expect(preview).toBeVisible();
+    const scrim = page.locator(".rd-preview-scrim");
+    const inspector = page.getByRole("complementary", { name: "Inspector" });
+    const [scrimBox, inspectorBox] = await Promise.all([scrim.boundingBox(), inspector.boundingBox()]);
+    expect(scrimBox).not.toBeNull();
+    expect(inspectorBox).not.toBeNull();
+    expect(scrimBox.x).toBeLessThanOrEqual(inspectorBox.x);
+    expect(scrimBox.x + scrimBox.width).toBeGreaterThanOrEqual(inspectorBox.x + inspectorBox.width);
     await expect(preview).toContainText("Dataset preview");
     await expect(preview.getByRole("button", { name: "Rows", exact: true })).toBeVisible();
     await expect(preview.getByRole("button", { name: "Fields", exact: true })).toBeVisible();

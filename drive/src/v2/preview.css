@@ -16,6 +16,17 @@
   backdrop-filter: blur(1px);
 }
 
+/* On the desktop shell the preview belongs above both the centre canvas and
+ * the inspector. Keeping the scrim absolutely scoped to `.rd-v2-shell-main`
+ * left the inspector bright and interactive-looking beside a modal. */
+@media (min-width: 961px) {
+  .rd-preview-scrim {
+    position: fixed;
+    inset: var(--rd-header, 64px) 0 0 var(--rd-sidebar, 252px);
+    grid-template-columns: minmax(34px, 1fr) minmax(0, 920px) minmax(34px, 1fr) var(--rd-rail, 470px);
+  }
+}
+
 .rd-preview-shell {
   grid-column: 2;
   justify-self: stretch;

@@ -9,7 +9,8 @@ const outDir = "artifacts/synthesis-acceptance";
 
 const WIDTHS = [
   { id: "desktop", width: 1440, height: 900 },
-  { id: "wide", width: 1960, height: 1600 },
+  // Measured from the user's Chrome content area at 100% zoom on the 1920×1080 display.
+  { id: "workstation", width: 1920, height: 961 },
   { id: "mobile", width: 390, height: 844 },
 ];
 

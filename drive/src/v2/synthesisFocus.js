@@ -45,7 +45,7 @@ export const SUBJECTS = [
     when: (s) => String(s?.execution?.status || "") === "failed" },
   { id: "proposal", panel: "proposal", label: "proposal to review",
     when: (s) => Boolean(s?.proposal) },
-  { id: "join", panel: "join", label: "a second dataset",
+  { id: "join", panel: "join", label: "join needs review",
     when: (s) => Boolean((s?.join_candidates || []).length) },
   { id: "building", panel: "execution", label: "building",
     when: (s) => ["queued", "running", "registering", "archiving"].includes(String(s?.execution?.status || "")) },
@@ -81,9 +81,20 @@ const STRIP = [
       const flagged = profiles.filter((p) => (p.flags || []).length).length;
       return `${(s.columns_in_use || []).length} of ${profiles.length} in use · ${flagged} resolved`;
     } },
-  { id: "join", label: "second dataset", summary: (s) => {
+  { id: "join", label: "join needs review", summary: (s) => {
       const best = (s.join_candidates || [])[0];
-      return best ? `${best.match_rate_pct}% of the left side` : "";
+      if (!best) return "";
+      const matched = Number(best.matched);
+      const total = Number(best.left_distinct ?? best.total);
+      const repeated = Number(best.right_duplicate_rows) > 0;
+      const fanout = Number(best.fanout_multiplier);
+      const coverage = Number.isFinite(matched) && Number.isFinite(total) && total > 0
+        ? `${matched.toLocaleString()}/${total.toLocaleString()} identifiers match`
+        : `${best.match_rate_pct}% identifier coverage`;
+      const consequence = Number.isFinite(fanout) && fanout > 1
+        ? ` · matched rows fan out ${fanout.toLocaleString()}×`
+        : repeated ? " · repeated right key" : "";
+      return `${coverage}${consequence}`;
     } },
   { id: "excursions", label: "went looking", summary: (s) =>
       (s.excursions || []).length ? `${s.excursions.length} searched` : "" },

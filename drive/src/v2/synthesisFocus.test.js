@@ -43,6 +43,22 @@ test("the subject never repeats itself in the strip", () => {
   assert.equal(focus.strip.find((s) => s.id === "scope"), undefined);
 });
 
+test("join context states identifier coverage and repeated-key risk without implying row loss", () => {
+  const focus = focusFor({
+    unit_conflict: units,
+    join_candidates: [{
+      matched: 634,
+      left_distinct: 913,
+      match_rate_pct: 69.441,
+      right_duplicate_rows: 1042407,
+      fanout_multiplier: 28.4,
+    }],
+  });
+  const join = focus.strip.find((item) => item.id === "join");
+  assert.equal(join.label, "join needs review");
+  assert.equal(join.summary, "634/913 identifiers match · matched rows fan out 28.4×");
+});
+
 test("a strip line with nothing to say is dropped, not shown empty", () => {
   const focus = focusFor({ nodes: [{ id: "n" }] });
   assert.deepEqual(focus.strip, []);

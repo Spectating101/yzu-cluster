@@ -1265,6 +1265,28 @@
   background: var(--s04-paper-action);
 }
 
+/* When deterministic evidence is already available but assistant reasoning is
+ * not, this is a compact checkpoint—not a second empty feature panel. */
+.rd-v2-synthesis-page .s04-opening-next--blocked {
+  padding: 12px 14px;
+  border-left: 3px solid #8da798;
+  background: rgba(237, 242, 235, .66);
+}
+
+.rd-v2-synthesis-page .s04-opening-next--blocked > p {
+  margin: 6px 0 10px;
+}
+
+.rd-v2-synthesis-page .s04-opening-next--blocked > footer {
+  padding-top: 9px;
+  border-top: 1px solid #d7dfd4;
+}
+
+.rd-v2-synthesis-page .s04-opening-next--blocked > em {
+  margin-top: 8px;
+  padding-top: 7px;
+}
+
 .rd-v2-synthesis-page .s04-opening-next > p {
   color: #526373;
 }
@@ -1451,6 +1473,39 @@
   color: var(--s04-muted);
   font-size: 8.5px;
   line-height: 1.4;
+}
+
+.rd-v2-synthesis-page .s04-measurement-status .s04-measurement-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 5px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rd-v2-synthesis-page .s04-measurement-status .s04-measurement-facts > li {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 3px 7px;
+  border: 1px solid #d8d1c4;
+  border-radius: 999px;
+  background: rgba(248, 245, 237, .72);
+  color: #657080;
+  font-size: 8px;
+  line-height: 1.1;
+}
+
+.rd-v2-synthesis-page .s04-measurement-status .s04-measurement-facts > li:first-child {
+  border-color: #d8bca9;
+  color: #87502f;
+  background: #f8eee5;
+}
+
+.rd-v2-synthesis-page .s04-measurement-status .s04-measurement-facts b {
+  color: inherit;
+  font-size: 8.5px;
 }
 
 .rd-v2-synthesis-page .s04-measurement-status .rd-v2-btn {
