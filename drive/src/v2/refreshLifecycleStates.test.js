@@ -57,3 +57,58 @@ test("an active schedule is still a scheduled refresh", () => {
 test("cancelled still wins over the refresh states", () => {
   assert.equal(historyLifecycleLabel({ kind: "subscription", status: "cancelled" }), "Cancelled");
 });
+
+/**
+ * The feed reports query_ready / usable / readiness on the event. The label
+ * keyed only off catalog_reconciliation, so a held usable asset and an archived
+ * unusable one both read "Registered" — 39 of 60 live history rows.
+ */
+const HELD_USABLE = {
+  kind: "registered_asset",
+  status: "query_ready",
+  dataset_id: "craft_openapi_twse_com_tw_b3852fe1a8",
+  query_ready: true,
+  usable: true,
+  readiness: "query_ready",
+  holding_status: "held",
+  catalog_reconciliation: { state: "receipt_only", registry_row_loaded: false },
+};
+const ARCHIVED_UNUSABLE = {
+  kind: "registered_asset",
+  status: "registered_not_queryable",
+  dataset_id: "craft_flex_http_usgs2_1784803696",
+  query_ready: false,
+  usable: false,
+  readiness: "registered",
+  holding_status: "archived",
+  catalog_reconciliation: { state: "receipt_only", registry_row_loaded: false },
+};
+
+test("a usable holding and an unusable one do not share a label", () => {
+  const a = historyLifecycleLabel(HELD_USABLE);
+  const b = historyLifecycleLabel(ARCHIVED_UNUSABLE);
+  assert.notEqual(a, b, `both rendered as "${a}"`);
+});
+
+test("an unusable holding says so", () => {
+  assert.equal(historyLifecycleLabel(ARCHIVED_UNUSABLE), "Not query-ready");
+  const x = historyLifecycleExplanation(ARCHIVED_UNUSABLE);
+  assert.match(x.explanation, /not queryable/i);
+  assert.ok(x.next);
+});
+
+test("a usable holding with an unread registry row is not over-claimed", () => {
+  const label = historyLifecycleLabel(HELD_USABLE);
+  assert.equal(label, "Registered · reconciliation pending");
+  assert.notEqual(label, "Query ready", "must not claim query-ready without registry read-back");
+  const x = historyLifecycleExplanation(HELD_USABLE);
+  assert.match(x.risk, /may not match/i);
+});
+
+test("a confirmed query-ready holding is still Query ready", () => {
+  const confirmed = {
+    ...HELD_USABLE,
+    catalog_reconciliation: { state: "reconciled", registry_row_loaded: true },
+  };
+  assert.equal(historyLifecycleLabel(confirmed), "Query ready");
+});

@@ -56,6 +56,21 @@ export function historyLifecycleLabel(event) {
   if (kind === "ready" || status === "registered" || action === "registered_asset") {
     // Never promote receipt_only / non-query holdings to Query ready from status text alone.
     if (truth.queryReady) return "Query ready";
+    // The feed reports query_ready / usable / readiness on the event itself.
+    // Keying only off catalog_reconciliation collapsed a held, usable asset and
+    // an archived, unusable one into the same "Registered" label.
+    if (
+      event?.query_ready === false ||
+      event?.usable === false ||
+      status === "registered_not_queryable"
+    ) {
+      return "Not query-ready";
+    }
+    if (truth.receiptOnly && (event?.query_ready === true || event?.usable === true)) {
+      // Held and reported usable, but the registry row could not be read back,
+      // so equivalence with the catalog stays unconfirmed.
+      return "Registered · reconciliation pending";
+    }
     if (truth.receiptOnly || truth.registered) return "Registered";
     if (status === "archived") return "Archived";
     if (truth.completed || /completed|ready|done|succeeded/.test(status)) return "Completed";
@@ -157,6 +172,21 @@ export function historyLifecycleExplanation(event) {
         explanation: "The latest execution did not complete. Existing request evidence is preserved.",
         risk: "Do not treat the output as registered or query-ready.",
         next: "Inspect the failure and create a revised request if the route changed.",
+      };
+    case "Not query-ready":
+      return {
+        label,
+        explanation: "The desk holds a registration receipt for this object, but it is not queryable.",
+        risk: "Nothing here can be read into an analysis; treat it as a record, not as data.",
+        next: "Re-collect the object, or open it in Library to see what the holding is missing.",
+      };
+    case "Registered · reconciliation pending":
+      return {
+        label,
+        explanation:
+          "The desk holds this object and reports it usable, but the registry row could not be read back, so catalog equivalence is unconfirmed.",
+        risk: "Query results may not match what the catalog claims about this object.",
+        next: "Open it in Library to confirm the schema before relying on it.",
       };
     case "Query ready":
       return {
