@@ -166,6 +166,15 @@ export function historyLifecycleExplanation(event) {
         next: "Track progress until archive and registry evidence are confirmed.",
       };
     case "Blocked — needs recovery":
+      // A gate refused this collection — licence or access scope — so it never
+      // executed. Telling the researcher to inspect a failure and revise the
+      // route sends them after the wrong thing.
+      return {
+        label,
+        explanation: "A licence or access gate refused this collection, so it never ran.",
+        risk: "No evidence was collected, and re-running the same request will be refused again.",
+        next: "Resolve the access condition on the source, or choose a route the desk is licensed for.",
+      };
     case "Failed — needs recovery":
       return {
         label,

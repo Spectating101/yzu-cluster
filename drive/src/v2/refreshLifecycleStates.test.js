@@ -112,3 +112,28 @@ test("a confirmed query-ready holding is still Query ready", () => {
   };
   assert.equal(historyLifecycleLabel(confirmed), "Query ready");
 });
+
+/**
+ * blocked and failed shared one explanation. They are different conditions:
+ * failed means execution threw, blocked means a licence or access gate refused
+ * the collection so it never ran. Sending a blocked researcher to "inspect the
+ * failure and revise the route" points at the wrong thing.
+ */
+test("blocked and failed do not share a remedy", () => {
+  const blocked = historyLifecycleExplanation({ kind: "collection_run", status: "blocked" });
+  const failed = historyLifecycleExplanation({ kind: "collection_run", status: "failed" });
+  assert.notEqual(blocked.next, failed.next);
+  assert.notEqual(blocked.explanation, failed.explanation);
+});
+
+test("blocked names the access gate", () => {
+  const x = historyLifecycleExplanation({ kind: "collection_run", status: "blocked" });
+  assert.match(x.explanation, /licence|license|access/i);
+  assert.match(x.next, /access|licens/i);
+  assert.doesNotMatch(x.next, /inspect the failure/i);
+});
+
+test("failed still points at the execution", () => {
+  const x = historyLifecycleExplanation({ kind: "collection_run", status: "failed" });
+  assert.match(x.next, /inspect the failure/i);
+});
