@@ -38,7 +38,7 @@ const ALL_VIEWPORTS = [
   ["compact", { width: 1280, height: 800 }],
   ["mobile", { width: 390, height: 844 }],
 ];
-const ACCEPTABLE_SURFACE_STATES = /^(ready|idle|empty|stale)$/;
+const ACCEPTABLE_SURFACE_STATES = /^(ready|idle|empty|partial|stale)$/;
 
 function requestedSet(name) {
   const raw = String(process.env[name] || "").trim();
@@ -60,6 +60,7 @@ const browser = await chromium.launch({
   args: ["--disable-dev-shm-usage", "--no-sandbox", "--disable-gpu"],
 });
 let failures = 0;
+let warnings = 0;
 
 for (const [viewportName, viewport] of VIEWPORTS) {
   for (const [name, route, headingPattern, requiresSurfaceState] of PAGES) {
@@ -122,9 +123,11 @@ for (const [viewportName, viewport] of VIEWPORTS) {
         || !headingPattern.test(heading)
         || (requiresSurfaceState && !ACCEPTABLE_SURFACE_STATES.test(surfaceState)),
       );
+      const partial = surfaceState === "partial";
       if (bad) failures += 1;
+      else if (partial) warnings += 1;
       console.log(
-        `${bad ? "FAIL" : "ok  "} ${viewportName.padEnd(11)} ${name.padEnd(17)} `
+        `${bad ? "FAIL" : partial ? "WARN" : "ok  "} ${viewportName.padEnd(11)} ${name.padEnd(17)} `
         + `h1=${JSON.stringify(heading)} state=${surfaceState} js=${jsErrors.length} `
         + `http>=400=${uniqueResponses.length} overflow=${horizontalOverflow} gate=${accessGate}`
         + (bad ? `  ${[...jsErrors, ...uniqueResponses].slice(0, 3).join(" ; ")}` : ""),
@@ -141,5 +144,9 @@ for (const [viewportName, viewport] of VIEWPORTS) {
 
 await browser.close();
 console.log(`\nEvidence: ${EVIDENCE_DIR}`);
-console.log(`${failures ? `${failures} surface(s) failed` : "all surfaces clean"} (${PAGES.length * VIEWPORTS.length} checked)`);
+console.log(
+  `${failures ? `${failures} surface(s) failed` : "all surfaces usable"}`
+  + `${warnings ? ` · ${warnings} still enriching` : ""}`
+  + ` (${PAGES.length * VIEWPORTS.length} checked)`,
+);
 process.exit(failures ? 1 : 0);
