@@ -88,16 +88,18 @@ export function buildPickUp({ datasets = [], jobs = [], health, acquisitions = [
 
   let secondary = null;
   if (pending > 0 && firstPending) {
+    const rawDecisionTitle = String(
+      firstPending?.plan?.title || firstPending?.title || firstPending?.name || "",
+    ).trim();
+    const decisionTitle = /^synth(?:esis)?[\s_-]*block$/i.test(rawDecisionTitle)
+      ? "Synthesis proposal awaiting review"
+      : rawDecisionTitle || "Procurement approval waiting";
     secondary = {
       kind: "decision",
       id: firstPending.id || "approval",
-      title:
-        firstPending?.plan?.title ||
-        firstPending?.title ||
-        firstPending?.name ||
-        "Procurement approval waiting",
+      title: decisionTitle,
       stateSummary: "Decision required before collection can continue.",
-      location: "RESOURCES / APPROVALS",
+      location: "DISCOVER / HISTORY",
       pill: `${pending} pending`,
       job: firstPending,
       action: "review",

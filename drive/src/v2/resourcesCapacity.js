@@ -222,7 +222,11 @@ export function buildCapacityAccessPairs(rollup, health) {
       id: "mcp",
       markId: "mcp",
       name: "Ask tools",
-      metric: mcpTotal > 0 ? `${mcpTotal} MCP tools` : composerOk ? "Composer ready" : "Not reported",
+      // The Composer runtime and the MCP tool inventory are independent
+      // observations. A configured Composer key cannot prove any tools were
+      // loaded, and calling it "Composer ready" here contradicted the
+      // adjacent runtime card whenever the provider was unverified.
+      metric: mcpTotal > 0 ? `${mcpTotal} MCP tools` : "Not reported",
       pct: null,
       available:
         mcpTotal > 0
@@ -233,10 +237,8 @@ export function buildCapacityAccessPairs(rollup, health) {
             ]
               .filter(Boolean)
               .join(" · ")
-          : composerOk
-            ? "Cursor Composer + desk MCP"
-            : "Wire desk MCP for Ask",
-      warn: mcpTotal <= 0 && !composerOk,
+          : "MCP inventory not reported",
+      warn: mcpTotal <= 0,
     }),
   ];
 

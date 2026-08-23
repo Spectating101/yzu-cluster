@@ -56,7 +56,7 @@ import {
 import { Toast, useToast } from "@/v2/toast";
 import { V2Sidebar } from "@/v2/V2Sidebar";
 import { recentDatasets, touchRecent } from "@/v2/recent";
-import { displayName, isQueryReadyReadiness } from "@/v2/datasetMeta";
+import { displayName } from "@/v2/datasetMeta";
 import { buildLab, PILOT_PREVIEW_EMAIL } from "@/v2/profileViewModel";
 import { mergeHealth, resolveCatalog } from "@/v2/deskSeed";
 import { projectRollupFromHealth } from "@/v2/homeIteration10";
@@ -83,8 +83,8 @@ import { discoverModeFromLegacy, discoverModeToUrlState } from "@/v2/discoverMod
 import { jobToDiscoverHistoryEvent, pendingApprovalJobs } from "@/v2/procurementJobs";
 import { discoverCandidateState } from "@/v2/browseMeta";
 import { buildRailContext } from "@/v2/railContext";
-import { holdingIdsFromCatalog } from "@/v2/discoverTaxonomy";
-import { libraryEvidence, libraryVisible } from "@/v2/deskCounts";
+import { holdingIdsFromCatalog, isLocalHolding } from "@/v2/discoverTaxonomy";
+import { libraryEvidence, libraryHoldings, libraryReferences } from "@/v2/deskCounts";
 import { composerRuntimeRead } from "@/v2/composerRuntimeStatus";
 
 function readParams() {
@@ -263,6 +263,7 @@ export function V2App() {
   const [cluster, setCluster] = useState(null);
   // Cache-first (same as Resources page) so Home headroom is not blocked on /desk/resources.
   const [resourcesRollup, setResourcesRollup] = useState(() => readResourcesRollupCache() ?? undefined);
+  const [resourcesError, setResourcesError] = useState("");
   const [resourcesRefreshedAt, setResourcesRefreshedAt] = useState(null);
   const [resourceMode, setResourceMode] = useState("sources");
   const [activityFilter, setActivityFilter] = useState(null);
@@ -356,7 +357,7 @@ export function V2App() {
   }, [profile, deskAccess?.authenticated]);
 
   const applyCatalog = useCallback((rows, errMsg = "") => {
-    const { catalog, usingSeed: seed } = resolveCatalog(rows);
+    const { catalog, usingSeed: seed } = resolveCatalog(rows, { fallbackToSeed: Boolean(errMsg) });
     setDatasets(catalog);
     setCatalogLoading(false);
     setUsingSeed(seed);
@@ -411,21 +412,33 @@ export function V2App() {
     // startup burst sent health, registry, navigation, operations, history,
     // resources, profile, and two cache warms together. The browser then
     // painted “0 datasets” while the real 139-row registry waited its turn.
-    // Establish the two visible, research-critical surfaces first; defer
-    // operational enrichment until their facts are on screen.
+    // Establish the visible research estate first; defer aggregate health and
+    // operational enrichment until those facts are on screen. /health may
+    // legitimately wait on probes for 12s, while /datasets is the Library and
+    // Discover truth researchers came to use.
     setCatalogLoading(true);
+    try {
+      applyCatalog(await listDatasets());
+    } catch (err) {
+      applyCatalog([], err?.message || String(err));
+    }
+    setResourcesError("");
+    try {
+      const payload = await deskResources(false);
+      writeResourcesRollupCache(payload);
+      setResourcesRollup(payload);
+      setResourcesRefreshedAt(Date.now());
+    } catch (error) {
+      setResourcesError(error?.message || String(error));
+      setResourcesRollup((cur) => (cur === undefined ? null : cur));
+    }
     try {
       applyHealth(await deskHealth(false, { timeoutMs: 12_000 }));
     } catch {
       // Working data routes are not evidence of a health failure. Keep the
       // absence explicit and retry once the primary requests have drained.
-        markHealthUnmeasured();
+      markHealthUnmeasured();
       retryHealthAfterQueue();
-    }
-    try {
-      applyCatalog(await listDatasets());
-    } catch (err) {
-      applyCatalog([], err?.message || String(err));
     }
     setLibraryNavLoading(true);
     setLibraryNavError("");
@@ -475,13 +488,6 @@ export function V2App() {
     yzuClusterStatus(false)
       .then(setCluster)
       .catch(() => setCluster(null));
-    deskResources(false)
-      .then((payload) => {
-        writeResourcesRollupCache(payload);
-        setResourcesRollup(payload);
-        setResourcesRefreshedAt(Date.now());
-      })
-      .catch(() => setResourcesRollup((cur) => (cur === undefined ? null : cur)));
     discoverHistory({ limit: 50 })
       .then((data) => setHistoryEvents(mergeHistoryEvents(durableHistoryToEvents(data), [])))
       .catch(() => {});
@@ -1450,9 +1456,10 @@ export function V2App() {
     return byDataset;
   }, [partitions, shelves]);
 
+  const heldLibraryRows = useMemo(() => libraryHoldings(catalog || []), [catalog]);
   const filteredDatasets = useMemo(() => {
     const q = librarySearchQuery.trim().toLowerCase();
-    if (!q) return catalog;
+    if (!q) return heldLibraryRows;
     const shelfHitIds = new Set();
     const laneByPid = new Map(
       (partitions || []).map((lane) => [
@@ -1470,18 +1477,17 @@ export function V2App() {
         }
       }
     }
-    return catalog.filter((d) => {
+    return heldLibraryRows.filter((d) => {
       const did = String(d.dataset_id || "");
       if (shelfHitIds.has(did)) return true;
       const nav = libraryNavHaystack.get(did) || "";
       const text = `${did} ${d.name} ${d.display_name || ""} ${d.grain} ${d.description || ""} ${d.one_line || ""} ${d.partition_id || ""} ${nav}`.toLowerCase();
       return text.includes(q);
     });
-  }, [catalog, libraryNavHaystack, librarySearchQuery, partitions, shelves]);
+  }, [heldLibraryRows, libraryNavHaystack, librarySearchQuery, partitions, shelves]);
 
-  const headerDsCount = libraryVisible(catalog || []) || Number(health?.datasets) || 0;
   const libraryEvidenceCount = libraryEvidence(catalog || []);
-  const headerConnected = catalog.filter((d) => isQueryReadyReadiness(d.analysis_readiness)).length;
+  const libraryReferenceCount = libraryReferences(catalog || []);
 
   let main;
   switch (tab) {
@@ -1498,6 +1504,7 @@ export function V2App() {
           partitions={partitions}
           jobs={jobs}
           usingSeed={usingSeed}
+          loadError={loadError}
           onAskComposer={canUseAsk ? askFromPrompt : undefined}
           onGoTab={goTab}
           onOpenAttention={openHomeAttention}
@@ -1539,8 +1546,9 @@ export function V2App() {
           onStartProcure={canSubmitCollection ? (folder) => startLibraryIntake("procure", folder) : undefined}
           searchQuery={librarySearchQuery}
           onSearchChange={setLibrarySearchQuery}
-          selectionHoldings={catalog}
-          selectionFallback={detail}
+          referenceCount={libraryReferenceCount}
+          selectionHoldings={heldLibraryRows}
+          selectionFallback={isLocalHolding(detail) ? detail : null}
         />
       );
       break;
@@ -1674,6 +1682,7 @@ export function V2App() {
         <ResourcesPage
           rollup={resourcesRollup}
           rollupLoading={resourcesRollup === undefined}
+          loadError={resourcesError}
           health={health}
           ops={ops}
           jobs={jobs}
@@ -1799,7 +1808,8 @@ export function V2App() {
             .join("") || "YZ"
         }
         principal={deskAccess?.principal || null}
-        datasetCount={headerDsCount}
+        datasetCount={libraryEvidenceCount}
+        datasetLabel={libraryEvidenceCount === 1 ? "Library asset" : "Library assets"}
         dataLoading={catalogLoading && catalog.length === 0}
         usingSeed={usingSeed}
         workCount={

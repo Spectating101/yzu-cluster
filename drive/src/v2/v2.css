@@ -1456,6 +1456,12 @@
 .rd-v2-library-folder-readiness { display: flex; flex-wrap: wrap; gap: 7px 12px; }
 .rd-v2-library-folder-readiness span { color: #66768a; font-size: 11.5px; }
 .rd-v2-library-folder-readiness b { color: #2f435b; font-weight: 750; }
+.rd-v2-library-folder-summary .rd-v2-rail-note {
+  margin: 10px 0 0;
+  color: #66768a;
+  font-size: 11.5px;
+  line-height: 1.45;
+}
 
 .rd-v2-library-folder-add { padding: 14px 0; border-bottom: 1px solid #e5eaf0; }
 .rd-v2-library-folder-add button {

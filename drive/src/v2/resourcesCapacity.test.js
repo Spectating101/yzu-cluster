@@ -139,4 +139,19 @@ describe("buildCapacityAccessPairs", () => {
     assert.equal(byId.cursor.warn, true);
     assert.doesNotMatch(byId.cursor.metric, /^Composer ready$/);
   });
+
+  it("does not use a configured Composer key as proof that MCP tools loaded", () => {
+    const rollup = {
+      ...sampleRollup,
+      hero: { ...sampleRollup.hero, mcp_tools: 0 },
+      ai: { ...sampleRollup.ai, mcp_tools: { total: 0 }, composer_turns_today: 0 },
+    };
+    const pairs = buildCapacityAccessPairs(rollup, {
+      desk: { composer_runtime: { status: "unverified", configured: true, verified: false } },
+    });
+    const byId = Object.fromEntries(pairs.flatMap((p) => p.meters.map((m) => [m.id, m])));
+    assert.equal(byId.cursor.metric, "Unverified");
+    assert.equal(byId.mcp.metric, "Not reported");
+    assert.equal(byId.mcp.warn, true);
+  });
 });

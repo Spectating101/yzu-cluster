@@ -23,9 +23,9 @@ export const FALLBACK_HEALTH = {
   desk: { ...UNMEASURED_DESK },
 };
 
-export function resolveCatalog(liveRows) {
+export function resolveCatalog(liveRows, { fallbackToSeed = false } = {}) {
   const live = Array.isArray(liveRows) ? liveRows : [];
-  if (live.length) return { catalog: live, usingSeed: false };
+  if (!fallbackToSeed) return { catalog: live, usingSeed: false };
   return { catalog: SEED_DATASETS, usingSeed: true };
 }
 

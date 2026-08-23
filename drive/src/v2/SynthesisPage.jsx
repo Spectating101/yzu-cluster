@@ -15,6 +15,7 @@ import {
 } from "@/v2/api";
 import { handleEnterToSubmit } from "@/v2/enterToSubmit";
 import { DeskError } from "@/v2/DeskError";
+import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
 import { ExcursionRecordPanel } from "./ExcursionRecordPanel.jsx";
 import { focusFor } from "./synthesisFocus.js";
 import "./s04-opening.css";
@@ -1441,6 +1442,7 @@ export function SynthesisPage({
   const [measurementByThread, setMeasurementByThread] = useState({});
   const [measurementPhaseByThread, setMeasurementPhaseByThread] = useState({});
   const notified = useRef("");
+  const measurementNotified = useRef("");
   const interpretingSinceRef = useRef(null);
   const interpretingThreadIdRef = useRef("");
 
@@ -1539,6 +1541,22 @@ export function SynthesisPage({
   // claims the desk has no interpretation of the evidence in front of it.
   useEffect(() => {
     if (!selectedMeasurement || !displayedSelected) return;
+    const inputIds = Array.isArray(selectedMeasurement.input_dataset_ids)
+      ? selectedMeasurement.input_dataset_ids.join("|")
+      : "";
+    const key = [
+      displayedSelected.id,
+      displayedSelected.updated_at || "",
+      inputIds,
+      selectedMeasurement.measured_inputs ?? "",
+      Array.isArray(selectedMeasurement.column_profiles) ? selectedMeasurement.column_profiles.length : "",
+    ].join(":");
+    // App supplies an inline selection callback. Calling it changes parent
+    // state, which creates a new callback identity; without a durable payload
+    // key this effect calls the new callback again forever. Real measured
+    // threads exposed the loop while static fixtures merely kept repainting.
+    if (measurementNotified.current === key) return;
+    measurementNotified.current = key;
     onSelectThread?.(displayedSelected);
   }, [displayedSelected, onSelectThread, selectedMeasurement]);
 
@@ -1914,9 +1932,14 @@ export function SynthesisPage({
   const preAcceptance = Boolean(selected && isPreAcceptance(selected));
   const hasRecommendation = Boolean(displayedSelected && recommendedConstruction(displayedSelected).present);
   const hasMappedEvidence = Boolean(displayedSelected && evidenceNodes(displayedSelected).length);
+  const surfaceState = resolveSurfaceLifecycle({
+    loading,
+    error,
+    count: threads.length,
+  });
 
   return (
-    <PageShell className="rd-v2-synthesis-page">
+    <PageShell className="rd-v2-synthesis-page" surfaceState={surfaceState}>
       <SynthesisSidebarPortal>
         <ThreadList
           threads={threads}

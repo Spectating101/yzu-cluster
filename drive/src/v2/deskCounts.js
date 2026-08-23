@@ -12,9 +12,19 @@ export function registryTotal(rows = []) {
   return rows.length;
 }
 
-/** What the Library shows a researcher — the estate minus operator-only rows. */
+/** Registry rows visible to a researcher, whether held or merely referenced. */
 export function libraryVisible(rows = []) {
   return rows.filter((row) => !isOpsNoiseDataset(row)).length;
+}
+
+/** The durable evidence estate rendered by Library. */
+export function libraryHoldings(rows = []) {
+  return rows.filter((row) => !isOpsNoiseDataset(row) && isLocalHolding(row));
+}
+
+/** Visible registry records that are not held. They remain Discover evidence. */
+export function libraryReferences(rows = []) {
+  return rows.filter((row) => !isOpsNoiseDataset(row) && !isLocalHolding(row)).length;
 }
 
 /** What the desk possesses, used to classify a Discover result as already held.
@@ -27,13 +37,14 @@ export function heldForClassification(rows = []) {
 /** Held AND shown in the Library. This is what "Library evidence" means to a
  *  researcher, and the only count a sentence using that phrase may report. */
 export function libraryEvidence(rows = []) {
-  return rows.filter((row) => !isOpsNoiseDataset(row) && isLocalHolding(row)).length;
+  return libraryHoldings(rows).length;
 }
 
 export function deskCounts(rows = []) {
   return {
     registry: registryTotal(rows),
     libraryVisible: libraryVisible(rows),
+    libraryReferences: libraryReferences(rows),
     heldForClassification: heldForClassification(rows),
     libraryEvidence: libraryEvidence(rows),
   };
