@@ -40,7 +40,14 @@ export function historyLifecycleLabel(event) {
   if (/cancelled|canceled/.test(status)) return "Cancelled";
   if (EXPLICIT_STAGE_LABELS[stage]) return EXPLICIT_STAGE_LABELS[stage];
   if (kind === "needs_approval") return "Approval required";
-  if (kind === "scheduled") return "Scheduled refresh";
+  if (kind === "scheduled" || /^(active|paused|stopped)$/.test(status)) {
+    // active, paused and stopped all read as "Scheduled refresh" before this:
+    // a stopped subscription will never run again and looked identical to a
+    // live one. The distinction is the whole point of the state.
+    if (status === "paused") return "Refresh paused";
+    if (status === "stopped") return "Refresh stopped";
+    if (kind === "scheduled") return "Scheduled refresh";
+  }
   if (kind === "active") return status === "queued" ? "Queued" : "Collecting";
   if (kind === "needs_recovery") {
     if (/blocked/.test(status)) return "Blocked — needs recovery";
@@ -79,6 +86,20 @@ export function historyLifecycleExplanation(event) {
             : "The refresh schedule is recorded for this evidence object.",
         risk: "Confirm execution mode before relying on automatic refresh.",
         next: "Review the schedule or ask about its scope.",
+      };
+    case "Refresh paused":
+      return {
+        label,
+        explanation: "This refresh is recorded but is not running. It resumes only when a researcher restarts it.",
+        risk: "The evidence object will drift from its source while the refresh is paused.",
+        next: "Resume the refresh, or accept the current snapshot as the working asset.",
+      };
+    case "Refresh stopped":
+      return {
+        label,
+        explanation: "This refresh was stopped. It will not run again and no further collection is scheduled.",
+        risk: "Nothing will update this evidence object; treat the last collection as final.",
+        next: "Start a new refresh request if the evidence need still stands.",
       };
     case "Approval required":
       return {
