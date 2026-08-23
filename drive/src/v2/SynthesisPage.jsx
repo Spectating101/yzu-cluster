@@ -1039,7 +1039,7 @@ function ExecutionRecord({ thread, busy, onRequest, onReview, onAsk, onOpenDatas
         <ol className="s04-exec-track" aria-label="Synthesis execution lifecycle">
           {track.map((step, index) => (
             <li key={step.label} className={step.state}>
-              <b>{step.state === "done" ? "✓" : index + 1}</b>
+              <b>{step.state === "done" ? "✓" : step.state === "failed" ? "×" : index + 1}</b>
               <span>
                 <strong>{step.label}</strong>
                 <small>{step.detail}</small>

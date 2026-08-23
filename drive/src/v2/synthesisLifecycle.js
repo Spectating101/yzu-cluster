@@ -84,7 +84,15 @@ export function executionTrack(status, registered, queryReady = false) {
             : normalized === "failed"
               ? "Failed"
               : "Waiting",
-      state: ["queued", "running", "failed"].includes(normalized) ? "now" : workerDone ? "done" : "",
+      // "failed" shared the "now" marker with queued and running, so a run
+      // that had stopped was styled as the step currently in progress.
+      state: normalized === "failed"
+        ? "failed"
+        : ["queued", "running"].includes(normalized)
+          ? "now"
+          : workerDone
+            ? "done"
+            : "",
     },
     {
       label: "Archive + registry",
