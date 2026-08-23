@@ -1685,7 +1685,13 @@ export function SynthesisPage({
     setError("");
     try {
       const next = await refreshThread(threadId);
-      if (next) onSelectThread?.(next);
+      if (next) {
+        // Selecting an already-measured thread must not replace the inspector's
+        // merged measured view with the older durable thread payload. The
+        // centre and rail are two views of the same evidence state.
+        const measurement = measurementByThread[threadId]?.payload || null;
+        onSelectThread?.(threadWithMeasurements(next, measurement));
+      }
     } catch (cause) {
       setError(text(cause?.message, "This Synthesis thread could not be refreshed."));
     }

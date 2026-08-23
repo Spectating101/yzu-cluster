@@ -9815,6 +9815,20 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
   bottom: 9px;
 }
 
+.rd-v2-discover-context-results {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rd-border);
+}
+
+.rd-v2-discover-context-results .rd-v2-discover-candidates {
+  background: color-mix(in srgb, var(--rd-paper, #fff) 88%, var(--rd-panel, #f3f1ea) 12%);
+}
+
+.rd-v2-discover-context-results .rd-v2-discover-candidate {
+  opacity: 0.9;
+}
+
 /* The History surface is a compact lifecycle ledger: researcher decisions
    remain first, while system traffic stays folded below durable work. */
 .rd-v2-discover-page--history .rd-v2-history-intro {

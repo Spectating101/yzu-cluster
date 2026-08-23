@@ -20,6 +20,7 @@ export const MOCK_DATASETS = {
       name: "Ticker week panel",
       grain: "country-week",
       analysis_readiness: "instant",
+      local_root: "research_panels/ticker_week",
       source_system: "In-house derived research panels",
       join_keys: ["ticker", "week", "country_iso3"],
     },
@@ -28,6 +29,7 @@ export const MOCK_DATASETS = {
       name: "Issuer weekly fundamentals",
       grain: "issuer_week",
       analysis_readiness: "instant",
+      local_root: "research_panels/issuer_weekly",
       source_system: "MOPS",
       source: "MOPS",
       join_keys: ["issuer_id", "week"],
@@ -330,7 +332,13 @@ export async function mockV2Api(
     discoverSourcesDelayMs = 0,
     discoverLiveSourcesDelayMs = 0,
     healthBody = MOCK_HEALTH,
+    healthDelayMs = 0,
+    datasetsBody = MOCK_DATASETS,
+    datasetsDelayMs = 0,
+    datasetsStatus = 200,
     resourcesBody = MOCK_RESOURCES_ROLLUP,
+    resourcesDelayMs = 0,
+    resourcesStatus = 200,
     jobsBody = MOCK_JOBS,
     jobsDelayMs = 0,
     libraryNavBody = { partitions: [], shelves: [] },
@@ -386,24 +394,32 @@ export async function mockV2Api(
       body: JSON.stringify({ ok: true, authorized: true }),
     }),
   );
-  await page.route("**/datasets", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(MOCK_DATASETS) }),
-  );
+  await page.route("**/datasets", async (route) => {
+    if (datasetsDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, datasetsDelayMs));
+    return route.fulfill({
+      status: datasetsStatus,
+      contentType: "application/json",
+      body: JSON.stringify(datasetsStatus >= 400 ? { error: "registry unavailable" } : datasetsBody),
+    });
+  });
   await page.route("**/datasets/*", (route) => {
     const id = decodeURIComponent(route.request().url().split("/datasets/")[1]?.split("?")[0] || "");
-    const row = MOCK_DATASETS.datasets.find((d) => d.dataset_id === id) || MOCK_DATASETS.datasets[0];
+    const rows = Array.isArray(datasetsBody?.datasets) ? datasetsBody.datasets : [];
+    const row = rows.find((d) => d.dataset_id === id) || rows[0] || { dataset_id: id };
     return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(row) });
   });
-  await page.route("**/library/desk/resources*", (route) =>
-    route.fulfill({
-      status: 200,
+  await page.route("**/library/desk/resources*", async (route) => {
+    if (resourcesDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, resourcesDelayMs));
+    return route.fulfill({
+      status: resourcesStatus,
       contentType: "application/json",
-      body: JSON.stringify(resourcesBody),
-    }),
-  );
-  await page.route("**/*health*", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(healthBody) }),
-  );
+      body: JSON.stringify(resourcesStatus >= 400 ? { error: "resources unavailable" } : resourcesBody),
+    });
+  });
+  await page.route("**/*health*", async (route) => {
+    if (healthDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, healthDelayMs));
+    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(healthBody) });
+  });
   await page.route("**/library/discover/probe", (route) => {
     if (route.request().method() !== "POST") {
       return route.continue();

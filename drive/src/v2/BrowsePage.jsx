@@ -61,7 +61,10 @@ function candidateTitle(row) {
 function offeringType(row, taxonomy) {
   const kind = String(row?.kind || row?.type || row?.artifact_type || "").toLowerCase();
   const url = String(row?.url || row?.source_url || row?.resolved_url || "").toLowerCase();
+  const accessMode = String(row?.access_mode || row?.source_access_mode || row?.access_shape || "").toLowerCase();
+  const status = String(row?.status || "").toLowerCase();
   if (taxonomy?.key?.startsWith("local-")) return "Library dataset";
+  if (accessMode === "catalog_reference" || status === "example_reference") return "Reference only";
   if (/paper|article|literature|publication|openalex/.test(kind)) return "Reference only";
   if (/web|page|context/.test(kind)) return "Web context";
   if (/connector|api|bigquery|warehouse/.test(kind) || row?.connector) return "Connector";
@@ -943,7 +946,15 @@ export function BrowsePage({
         if (cancelled || !extra.length) return;
         setRows((current) => dedupeRows([...current, ...extra]));
         setSource((current) => current ? `${current}+progressive` : "progressive");
-        setIndexMiss(false);
+        // A web/reference hit is useful context, but it does not repair an
+        // index miss or create a dataset offering. Preserve the miss until the
+        // wider pass returns at least one route the centre can actually show.
+        const hasOffering = extra.some((row) => {
+          const taxonomy = row.discover_taxonomy || classifyDiscoverResult(row, labIds);
+          const type = offeringType(row, taxonomy);
+          return type !== "Reference only" && type !== "Web context";
+        });
+        if (hasOffering) setIndexMiss(false);
       } finally {
         if (!cancelled) {
           // Mark completion only after the async pass settles. Setting this at
@@ -1053,6 +1064,13 @@ export function BrowsePage({
         const type = offeringType(row, taxonomy);
         return !taxonomy.key.startsWith("local-") && type !== "Reference only" && type !== "Web context";
       }),
+    [renderedRows, labIds],
+  );
+  const contextualRows = useMemo(
+    () => renderedRows.filter((row) => {
+      const taxonomy = row.discover_taxonomy || classifyDiscoverResult(row, labIds);
+      return ["Reference only", "Web context"].includes(offeringType(row, taxonomy));
+    }),
     [renderedRows, labIds],
   );
   const centreRows = stateFilter === "all" ? rankedOfferings : renderedRows;
@@ -1477,7 +1495,7 @@ export function BrowsePage({
                       <strong>Checking sources</strong>
                       <span>{merged.length ? "Library evidence is already visible" : "Finding available routes"}</span>
                     </>
-                  ) : !loading && filtered.length === 0 ? (
+                  ) : !loading && centreRows.length === 0 ? (
                     <>
                       <strong>No offering found yet</strong>
                       <span>Search wider or refine the evidence need</span>
@@ -1487,7 +1505,7 @@ export function BrowsePage({
                       <strong>{plural(centreRows.length, "offering")}</strong>
                       <span>
                         {stateFilter === "all"
-                          ? "available to add"
+                          ? resultBreakdown || "available to inspect"
                           : activeFilter.label}
                       </span>
                     </>
@@ -1548,6 +1566,26 @@ export function BrowsePage({
               </section>
             ) : null}
 
+            {stateFilter === "all" && contextualRows.length ? (
+              <section
+                className="rd-v2-discover-ranked-results rd-v2-discover-context-results"
+                aria-label="References and web context"
+                data-testid="discover-context-results"
+              >
+                <header className="rd-v2-discover-ranked-results-head">
+                  <span className="rd-v2-eyebrow">References &amp; web context</span>
+                  <strong>{plural(contextualRows.length, "item")} to inspect</strong>
+                </header>
+                <DiscoverCandidateList
+                  rows={contextualRows}
+                  labIds={labIds}
+                  selectedId={selectedId}
+                  onSelectRow={onSelectRow}
+                  externalCatalogue={externalCatalogueActive}
+                />
+              </section>
+            ) : null}
+
             {hasEvidenceGap && routeComparisonOpen ? (
               <DiscoverRouteComparison
                 query={q}
@@ -1595,7 +1633,7 @@ export function BrowsePage({
               </section>
             ) : null}
 
-            {!loading && !error && filtered.length === 0 ? (
+            {!loading && !error && centreRows.length === 0 ? (
               <div className="rd-v2-discover-miss">
                 <p className="rd-v2-empty-inline">
                   No {stateFilter === "all" ? "" : `${activeFilter.label.toLowerCase()} `}matches for “{q}”

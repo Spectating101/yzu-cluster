@@ -164,7 +164,7 @@ async function installSynthesisThreadMock(page) {
     [EXPLORING_THREAD, PROPOSAL_THREAD, REGISTERED_THREAD, QUERY_READY_THREAD].map((thread) => [thread.id, structuredClone(thread)]),
   );
 
-  await page.route("**/api/library/synthesis/threads**", async (route) => {
+  await page.route("**/library/synthesis/threads**", async (route) => {
     const url = new URL(route.request().url());
     const parts = url.pathname.split("/").filter(Boolean);
     const threadIndex = parts.lastIndexOf("threads");
@@ -480,7 +480,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
     // execution" from stale local state. Clicking it again must not create a
     // duplicate job — it must discover the durable state and self-correct.
     let executeCalls = 0;
-    await page.route("**/api/library/synthesis/threads/thread-proposal/execute", async (route) => {
+    await page.route("**/library/synthesis/threads/thread-proposal/execute", async (route) => {
       executeCalls += 1;
       return route.fulfill({
         status: 200,
@@ -506,7 +506,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
       },
     };
     let getCalls = 0;
-    await page.route("**/api/library/synthesis/threads/thread-proposal", async (route) => {
+    await page.route("**/library/synthesis/threads/thread-proposal", async (route) => {
       if (route.request().method() !== "GET") return route.fallback();
       getCalls += 1;
       // First load shows no execution yet, so "Request execution" renders.
@@ -557,7 +557,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
     // without ever populating state.nodes) — the same gap a freshly created
     // thread sits in. The rail must not say "No inputs mapped" beside an
     // execution record that names a specific accepted input.
-    await page.route("**/api/library/synthesis/threads/thread-proposal", async (route) => {
+    await page.route("**/library/synthesis/threads/thread-proposal", async (route) => {
       if (route.request().method() !== "GET") return route.fallback();
       return route.fulfill({
         status: 200,
@@ -646,7 +646,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
     updated.state.maturityLabel = "Method review";
     updated.state.proposal = structuredClone(PROPOSAL_THREAD.state.proposal);
 
-    await page.route("**/api/library/synthesis/threads/thread-attention", (route) =>
+    await page.route("**/library/synthesis/threads/thread-attention", (route) =>
       route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -693,7 +693,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
     updated.state.maturityLabel = "Method review";
     updated.state.proposal = structuredClone(PROPOSAL_THREAD.state.proposal);
 
-    await page.route("**/api/library/synthesis/threads/thread-attention", (route) =>
+    await page.route("**/library/synthesis/threads/thread-attention", (route) =>
       route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -777,7 +777,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
 
     // Simulate the agent's server-side turn landing: the next poll of this
     // thread now returns mapped evidence.
-    await page.route(`**/api/library/synthesis/threads/${threadId}`, async (route) => {
+    await page.route(`**/library/synthesis/threads/${threadId}`, async (route) => {
       if (route.request().method() !== "GET") return route.fallback();
       return route.fulfill({
         status: 200,
@@ -869,7 +869,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
         ],
       },
     };
-    await page.route("**/api/library/synthesis/threads**", async (route) => {
+    await page.route("**/library/synthesis/threads**", async (route) => {
       const url = new URL(route.request().url());
       const parts = url.pathname.split("/").filter(Boolean);
       const threadIndex = parts.lastIndexOf("threads");
@@ -945,7 +945,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
         ],
       },
     };
-    await page.route("**/api/library/synthesis/threads**", async (route) => {
+    await page.route("**/library/synthesis/threads**", async (route) => {
       const url = new URL(route.request().url());
       const parts = url.pathname.split("/").filter(Boolean);
       const threadIndex = parts.lastIndexOf("threads");
@@ -1060,7 +1060,7 @@ test.describe("v2 Synthesis evidence panels", () => {
     // deterministic too: without the common desk mocks, a local Vite run
     // silently proxies bootstrap requests to whatever happens to be on :8765.
     await mockV2Api(page);
-    await page.route("**/api/library/synthesis/threads**", (route) =>
+    await page.route("**/library/synthesis/threads**", (route) =>
       route.fulfill({
         status: 200, contentType: "application/json",
         body: JSON.stringify(route.request().url().includes("thread-fields")
@@ -1133,7 +1133,7 @@ test.describe("v2 Synthesis decision and record panels", () => {
 
   async function mount(page, payload) {
     await mockV2Api(page);
-    await page.route("**/api/library/synthesis/threads**", (route) =>
+    await page.route("**/library/synthesis/threads**", (route) =>
       route.fulfill({
         status: 200, contentType: "application/json",
         body: JSON.stringify(route.request().url().includes("thread-panels")
@@ -1309,6 +1309,12 @@ test.describe("v2 Synthesis measured evidence integration", () => {
   };
 
   test("mapped evidence becomes measured facts without an assistant turn", async ({ page }) => {
+    const renderErrors = [];
+    page.on("console", (message) => {
+      if (message.type() === "error" && /maximum update depth/i.test(message.text())) {
+        renderErrors.push(message.text());
+      }
+    });
     await page.setViewportSize({ width: 1440, height: 1000 });
     const unavailableHealth = {
       ...MOCK_HEALTH,
@@ -1318,7 +1324,7 @@ test.describe("v2 Synthesis measured evidence integration", () => {
       },
     };
     await mockV2Api(page, { healthBody: unavailableHealth });
-    await page.route("**/api/library/synthesis/threads**", async (route) => {
+    await page.route("**/library/synthesis/threads**", async (route) => {
       const url = route.request().url();
       if (url.includes("/thread-measured/measurements")) {
         await new Promise((resolve) => setTimeout(resolve, 120));
@@ -1345,6 +1351,7 @@ test.describe("v2 Synthesis measured evidence integration", () => {
     await expect(page.getByTestId("synthesis-opening-rail")).toContainText(
       "2 mapped inputs · 5 columns profiled · no assistant involved",
     );
+    expect(renderErrors, "measured state must not feed selection back into an infinite render loop").toEqual([]);
     await expect(page.getByTestId("synthesis-opening-rail")).toContainText(
       "1 look-ahead column could leak future information",
     );
@@ -1378,7 +1385,7 @@ test.describe("v2 Synthesis measured evidence integration", () => {
     const draft = { ...measuredThread, id: "thread-unmapped", state: { ...measuredThread.state, nodes: [] } };
     let measurementCalls = 0;
     await mockV2Api(page);
-    await page.route("**/api/library/synthesis/threads**", (route) => {
+    await page.route("**/library/synthesis/threads**", (route) => {
       const url = route.request().url();
       if (url.includes("/measurements")) measurementCalls += 1;
       return route.fulfill({

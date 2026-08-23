@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import {
+  MOCK_DATASETS,
   MOCK_DISCOVER_HIT,
   mockV2Api,
   waitForShell,
@@ -51,6 +52,40 @@ test.describe("v2 Discover tab", () => {
     await expect(page.getByText("No curated source routes yet")).toBeVisible();
   });
 
+  test("idle state leads with live coverage and does not invent a search summary", async ({ page }) => {
+    await mockV2Api(page, {
+      datasetsBody: {
+        datasets: [
+          ...MOCK_DATASETS.datasets,
+          {
+            dataset_id: "declared_stablecoin_catalogue",
+            name: "Declared stablecoin catalogue",
+            source_access_mode: "catalog_only",
+            access_shape: "catalog_reference",
+            registry_id: "declared-stablecoin-catalogue",
+          },
+        ],
+      },
+      libraryNavBody: {
+        partitions: [],
+        shelves: [{ id: "markets", label: "Markets", dataset_count: 4, query_ready_count: 3 }],
+      },
+    });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+
+    const coverage = page.getByTestId("discover-coverage");
+    const knownRoutes = page.getByText("No curated source routes yet");
+    await expect(coverage).toBeVisible();
+    await expect(knownRoutes).toBeVisible();
+    await expect(page.getByTestId("discover-resting-summary")).toHaveCount(0);
+    await expect(page.getByRole("status")).toContainText("No candidate selected");
+
+    const coverageBox = await coverage.boundingBox();
+    const routesBox = await knownRoutes.boundingBox();
+    expect(coverageBox?.y).toBeLessThan(routesBox?.y ?? Number.POSITIVE_INFINITY);
+  });
+
   test("keyword search renders the external result composition", async ({ page }) => {
     await searchDiscover(page, "TWSE governance");
     await expect(page.locator('button.rd-v2-discover-candidate').first()).toBeVisible({ timeout: 10_000 });
@@ -68,6 +103,76 @@ test.describe("v2 Discover tab", () => {
     await expect(page.getByTestId("discover-rank-foot")).toContainText(/Ranked using active research/i);
     await expect(page.getByTestId("discover-filter-menu")).toBeVisible();
     await expect(page.getByTestId("discover-browse-mode")).not.toContainText(/process overview/i);
+  });
+
+  test("a completed miss is honest, actionable, and offers Search wider only once", async ({ page }) => {
+    await mockV2Api(page, {
+      discoverBody: { sections: [], total: 0, index_miss: true, weak_match: true },
+      discoverSourcesBody: {
+        results: [],
+        total: 0,
+        index_miss: true,
+        weak_match: true,
+        no_supported_route: true,
+      },
+    });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await searchDiscover(page, "zzqvjjk plmxxc");
+
+    const summary = page.getByTestId("discover-result-summary");
+    await expect(summary).toContainText("Available · 0");
+    await expect(summary).toContainText("Library evidence · 0");
+    await expect(page.locator(".rd-v2-discover-miss")).toContainText(
+      "No matches for “zzqvjjk plmxxc” in the current research index.",
+    );
+    await expect(page.getByLabel("Discover next actions")).toContainText("No offering found yet");
+    await expect(page.getByRole("button", { name: "Search wider", exact: true })).toHaveCount(1);
+  });
+
+  test("reference-only routes can be inspected but never claim they can be added", async ({ page }, testInfo) => {
+    await mockV2Api(page, {
+      discoverBody: {
+        sections: [{
+          rows: [
+            {
+              kind: "source",
+              candidate_key: "source:coingecko:example",
+              title: "CoinGecko example route",
+              access_mode: "catalog_reference",
+              status: "example_reference",
+              collect_via: ["http_manifest"],
+            },
+            {
+              kind: "source",
+              candidate_key: "source:datacite:live",
+              title: "DataCite live catalogue",
+              access_mode: "procurement_catalog",
+              collect_via: "datacite",
+            },
+          ],
+        }],
+        total: 2,
+      },
+    });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await searchDiscover(page, "stablecoin");
+
+    await expect(page.getByLabel("Discover next actions")).toContainText("1 offering available to add");
+    await expect(page.getByLabel("Discover next actions")).toContainText("1 reference");
+    await expect(page.getByRole("button", { name: "Add to collection", exact: true })).toHaveCount(1);
+    const context = page.getByTestId("discover-context-results");
+    await expect(context.getByText("CoinGecko example route")).toBeVisible();
+    await expect(context.getByRole("button", { name: "Add to collection" })).toHaveCount(0);
+    await page.screenshot({ path: testInfo.outputPath("discover-reference-context-desktop.png"), fullPage: true });
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(context).toBeVisible();
+    const overflows = await page.locator("main.yzu-main").evaluate((node) => node.scrollWidth > node.clientWidth + 1);
+    expect(overflows, "reference context must not introduce horizontal overflow on mobile").toBe(false);
+    await context.scrollIntoViewIfNeeded();
+    await page.screenshot({ path: testInfo.outputPath("discover-reference-context-mobile.png"), fullPage: true });
   });
 
   test("Search wider retains held evidence and trusts the federator's semantic relevance", async ({ page }) => {

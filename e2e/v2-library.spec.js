@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
+import { MOCK_DATASETS, mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 
 test.describe("v2 Library directory", () => {
   test.beforeEach(async ({ page }) => {
@@ -104,6 +104,33 @@ test.describe("v2 Library directory", () => {
 });
 
 test.describe("v2 Library navigation", () => {
+  test("Library holds assets while registered references remain in Discover", async ({ page }) => {
+    await mockV2Api(page, {
+      datasetsBody: {
+        datasets: [
+          ...MOCK_DATASETS.datasets,
+          {
+            dataset_id: "registered_reference_only",
+            name: "Registered reference only",
+            source_access_mode: "catalog_reference",
+            registered: true,
+            registry_id: "registered_reference_only",
+            local_path: "data_lake/catalogue/registered_reference_only.json",
+          },
+        ],
+      },
+    });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+
+    await expect(page.locator(".rd-v2-header-meta-count")).toContainText("Library asset");
+    await expect(page.locator(".rd-v2-library-pathstats")).toContainText("1 registry reference in Discover");
+    await expect(page.locator("aside.rd-v2-rail")).toContainText("1 registry reference stays in Discover until acquired");
+    await page.getByRole("textbox", { name: "Search library holdings" }).fill("Registered reference only");
+    await expect(page.getByTestId("library-directory").getByText("No datasets match this search")).toBeVisible();
+  });
+
   test("waits for the research taxonomy instead of presenting cluster lanes as shelves", async ({ page }) => {
     await mockV2Api(page, {
       libraryNavDelayMs: 1_200,

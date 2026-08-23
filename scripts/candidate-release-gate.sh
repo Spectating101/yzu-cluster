@@ -62,9 +62,16 @@ YZU_DESK_URL="${candidate_url}" npx playwright test \
   e2e/history-lifecycle-states.spec.js \
   e2e/history-reconciliation-truth.spec.js \
   e2e/mobile-history-selection.spec.js \
+  e2e/v2-surface-lifecycle.spec.js \
   e2e/synthesis-execution-states.spec.js \
   e2e/discover-weak-match.spec.js \
   e2e/live-backend-readonly.spec.js
+
+YZU_DESK_URL="${candidate_url}" npx playwright test \
+  e2e/v2-discover.spec.js \
+  e2e/v2-library.spec.js \
+  e2e/v2-synthesis.spec.js \
+  --grep "idle state leads|completed miss is honest|reference-only routes|Library holds assets|mapped evidence becomes measured facts"
 
 python3 -m pytest tests/test_candidate_proxy_safety.py -q
 echo "candidate-release: passed"
