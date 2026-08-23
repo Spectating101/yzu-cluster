@@ -422,6 +422,20 @@ export function V2App() {
     } catch (err) {
       applyCatalog([], err?.message || String(err));
     }
+      // Navigation is the visible research estate. It ran after resources
+      // and health, so the Library waited ~11s for shelves the desk had
+      // already loaded — the two requests this comment says to defer.
+    setLibraryNavLoading(true);
+    setLibraryNavError("");
+    try {
+      applyNavigation(await listLibraryNav());
+    } catch (error) {
+      clearNavigation();
+      setLibraryNavError(error?.message || String(error));
+    } finally {
+      setLibraryNavLoading(false);
+    }
+
     setResourcesError("");
     try {
       const payload = await deskResources(false);
@@ -439,16 +453,6 @@ export function V2App() {
       // absence explicit and retry once the primary requests have drained.
       markHealthUnmeasured();
       retryHealthAfterQueue();
-    }
-    setLibraryNavLoading(true);
-    setLibraryNavError("");
-    try {
-      applyNavigation(await listLibraryNav());
-    } catch (error) {
-      clearNavigation();
-      setLibraryNavError(error?.message || String(error));
-    } finally {
-      setLibraryNavLoading(false);
     }
 
     // These are useful operational enrichments, but none may delay the
