@@ -121,10 +121,22 @@ describe("buildCapacityAccessPairs", () => {
     assert.equal(byId.cursor.warn, true);
   });
 
-  it("falls back to the prior configured-only behavior when no /health signal is available", () => {
+  it("keeps measured usage but does not infer live readiness while /health is loading", () => {
     const pairs = buildCapacityAccessPairs(sampleRollup);
     const byId = Object.fromEntries(pairs.flatMap((p) => p.meters.map((m) => [m.id, m])));
     assert.match(byId.cursor.metric, /50 turns/);
-    assert.equal(byId.cursor.warn, false);
+    assert.equal(byId.cursor.warn, true);
+  });
+
+  it("shows Unverified, never Composer ready, before the first /health observation", () => {
+    const rollup = {
+      ...sampleRollup,
+      ai: { ...sampleRollup.ai, composer_turns_today: 0 },
+    };
+    const pairs = buildCapacityAccessPairs(rollup);
+    const byId = Object.fromEntries(pairs.flatMap((p) => p.meters.map((m) => [m.id, m])));
+    assert.equal(byId.cursor.metric, "Unverified");
+    assert.equal(byId.cursor.warn, true);
+    assert.doesNotMatch(byId.cursor.metric, /^Composer ready$/);
   });
 });

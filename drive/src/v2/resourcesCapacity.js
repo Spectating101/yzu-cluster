@@ -139,7 +139,7 @@ export function buildCapacityAccessPairs(rollup, health) {
         : composerOk
           ? turnsToday > 0
             ? `${turnsToday} turns today`
-            : "Composer ready"
+            : "Unverified"
           : "Not configured",
       pct: null,
       available: runtimeRead
@@ -151,7 +151,10 @@ export function buildCapacityAccessPairs(rollup, health) {
         : composerOk
           ? `Key configured · runtime not verified · ${measuredComposerLabel(composer.model || ai.composer_model)}`
           : "Set CURSOR_API_KEY for Ask",
-      warn: runtimeRead ? !runtimeRead.ready : !composerOk,
+      // A configured key is not a live runtime observation. While /health is
+      // still loading, fail closed instead of briefly presenting "Ready" and
+      // then correcting the card to "Unverified" a few seconds later.
+      warn: runtimeRead ? !runtimeRead.ready : true,
       action: runtimeRead ? (runtimeRead.status === "unavailable" ? "NEED" : null) : composerOk ? null : "NEED",
     }),
     meter({
