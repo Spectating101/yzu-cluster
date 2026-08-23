@@ -1,5 +1,5 @@
 import { EmptyRailState } from "@/v2/EmptyRailState";
-import { historyHoldingTruth } from "@/v2/discoverAdapters";
+import { historyEvidenceSummary, historyHoldingTruth } from "@/v2/discoverAdapters";
 import { RailDecisionSummary, RailEntityHeader, RailField, RailFieldGrid, RailFrame, RailStickyFooter } from "@/v2/RailFrame";
 import { historyLifecycleExplanation } from "@/v2/historyLifecycleLabel";
 import { historyKnownUnknowns, NO_EVIDENCE_YET } from "@/v2/historyKnownUnknowns";
@@ -110,7 +110,7 @@ export function DiscoverHistoryRailPanel({ event, job, onAskAbout, onReviewReque
           <RailField label="Latest durable update" value={updatedAt(event)} />
           <RailField label="Holding truth" value={truth.label} />
           <RailField label="Recorded event" value={text(event.kind || event.action || "discover")} />
-          {meta.summary || event.summary ? <RailField label="Evidence" value={meta.summary || event.summary} /> : null}
+          {historyEvidenceSummary(event) ? <RailField label="Evidence" value={historyEvidenceSummary(event)} /> : null}
           {meta.cadence || event.cadence ? <RailField label="Schedule" value={meta.cadence || event.cadence} /> : null}
           {meta.requested_schedule || event.requested_schedule ? (
             <RailField label="Requested cadence" value={meta.requested_schedule || event.requested_schedule} />

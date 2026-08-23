@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Chip } from "@/v2/ui";
 import { fenceHistoryEvents, systemVerificationClassification } from "@/v2/historyNoiseFence";
-import { historyLifecycleBucket } from "@/v2/discoverAdapters";
+import { historyEvidenceSummary, historyLifecycleBucket } from "@/v2/discoverAdapters";
 import { historyLifecycleLabel } from "@/v2/historyLifecycleLabel";
 
 const HISTORY_FILTERS = [
@@ -62,7 +62,7 @@ function eventTime(event) {
 
 function eventSummary(event) {
   const meta = event?.meta || {};
-  const summary = meta.summary || event?.summary;
+  const summary = historyEvidenceSummary(event);
   // Keep low-level collector diagnostics in Detail rather than making an
   // allow-list error read like the primary description of a research record.
   if (opaqueRunReference(event) && /script_key\s+not\s+allowlisted/i.test(String(summary || ""))) {

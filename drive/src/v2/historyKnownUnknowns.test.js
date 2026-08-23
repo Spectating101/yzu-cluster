@@ -66,9 +66,13 @@ describe("historyKnownUnknowns", () => {
   });
 
   it("carries registered and receipt-only from holding truth", () => {
-    const result = historyKnownUnknowns({ meta: {} }, { registered: true, receiptOnly: true });
-    assert.ok(result.known.includes("Registered in catalog"));
-    assert.ok(result.unknowns.includes("Holding is receipt-only"));
+    const result = historyKnownUnknowns(
+      { meta: { registry_readback: true } },
+      { registered: true, receiptOnly: true },
+    );
+    assert.ok(result.known.includes("Registration receipt retains read-back proof"));
+    assert.ok(!result.known.includes("Registered in catalog"));
+    assert.ok(result.unknowns.includes("Current catalog row is not loaded"));
   });
 
   it("does not invent a holding claim when truth is absent", () => {

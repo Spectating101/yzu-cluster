@@ -1,0 +1,33 @@
+{
+  "items": [
+    {
+      "kind": "registered_asset",
+      "id": "craft_openapi_twse_com_tw_b3852fe1a8",
+      "title": "Route prove · TWSE BWIBBU_ALL",
+      "status": "query_ready",
+      "updated_at": "2026-08-13T09:22:43.830622+00:00",
+      "dataset_id": "craft_openapi_twse_com_tw_b3852fe1a8",
+      "registry_id": "craft_openapi_twse_com_tw_b3852fe1a8",
+      "readiness": "query_ready",
+      "holding_status": "held",
+      "usable": true,
+      "query_ready": true,
+      "archive_verified": true,
+      "registry_readback": true,
+      "summary": "Archive verified · registry verified · query-ready on desk",
+      "registration_receipt": {
+        "dataset_id": "craft_openapi_twse_com_tw_b3852fe1a8",
+        "registry_id": "craft_openapi_twse_com_tw_b3852fe1a8",
+        "archive_verified": true,
+        "registry_readback": true,
+        "readiness": "query_ready"
+      },
+      "catalog_reconciliation": {
+        "state": "receipt_only",
+        "registry_row_loaded": false,
+        "query_allowed": false
+      }
+    }
+  ],
+  "total": 1
+}

@@ -18,7 +18,9 @@ export function historyKnownUnknowns(event, truth) {
   else if (archive === false) unknowns.push("Archive not verified");
 
   const readback = pick(meta.registry_readback, event?.registry_readback);
-  if (readback === true) known.push("Registry read-back confirmed");
+  if (readback === true && truth?.receiptOnly === true) {
+    known.push("Registration receipt retains read-back proof");
+  } else if (readback === true) known.push("Registry read-back confirmed");
   else if (readback === false) unknowns.push("Registry read-back not confirmed");
 
   const catalog = text(
@@ -29,8 +31,8 @@ export function historyKnownUnknowns(event, truth) {
     else unknowns.push(`Catalog reconciliation ${catalog}`);
   }
 
-  if (truth?.registered === true) known.push("Registered in catalog");
-  if (truth?.receiptOnly === true) unknowns.push("Holding is receipt-only");
+  if (truth?.registered === true && truth?.receiptOnly !== true) known.push("Registered in catalog");
+  if (truth?.receiptOnly === true) unknowns.push("Current catalog row is not loaded");
 
   const preview = pick(meta.preview_supported, event?.preview_supported);
   if (preview === true) known.push("Bounded preview retained");
