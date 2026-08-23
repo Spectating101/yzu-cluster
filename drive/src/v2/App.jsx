@@ -424,7 +424,10 @@ export function V2App() {
     }
       // Navigation is the visible research estate. It ran after resources
       // and health, so the Library waited ~11s for shelves the desk had
-      // already loaded — the two requests this comment says to defer.
+      // already loaded. The server is threaded, but its data endpoints are
+      // GIL-bound: measured 4x concurrent, /library/desk/capabilities gains
+      // 2.95x while /library/partitions gains 1.32x. Ordering is therefore the
+      // lever, not parallelism — this move was worth 4.3x, concurrency ~1.3x.
     setLibraryNavLoading(true);
     setLibraryNavError("");
     try {
