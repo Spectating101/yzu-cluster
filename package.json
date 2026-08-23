@@ -34,7 +34,8 @@
     "test:lifecycle-states": "mkdir -p .tmp-pw && TMPDIR=$PWD/.tmp-pw playwright test e2e/history-lifecycle-states.spec.js",
     "serve:candidate": "python3 scripts/serve_candidate.py",
     "test:synthesis-states": "mkdir -p .tmp-pw && TMPDIR=$PWD/.tmp-pw playwright test e2e/synthesis-execution-states.spec.js",
-    "test:boot-recovery": "mkdir -p .tmp-pw && TMPDIR=$PWD/.tmp-pw playwright test e2e/boot-recovery.spec.js"
+    "test:boot-recovery": "mkdir -p .tmp-pw && TMPDIR=$PWD/.tmp-pw playwright test e2e/boot-recovery.spec.js",
+    "test:candidate-release": "bash scripts/candidate-release-gate.sh"
   },
   "dependencies": {
     "@radix-ui/react-separator": "^1.1.10",

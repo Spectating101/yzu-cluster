@@ -648,6 +648,7 @@ export function BrowsePage({
   const [queryDraft, setQueryDraft] = useState(searchQuery || "");
   const [loadedQuery, setLoadedQuery] = useState("");
   const [enrichedQuestion, setEnrichedQuestion] = useState("");
+  const [autoWidening, setAutoWidening] = useState(false);
   const [lookupProgress, setLookupProgress] = useState({ library: "waiting", routes: "waiting" });
 
   const pendingRows = useMemo(
@@ -694,6 +695,7 @@ export function BrowsePage({
     if (!isWidening) setRows([]);
     setStateFilter("all");
     setIndexMiss(false);
+    setAutoWidening(false);
     if (!isWidening) setLoadedQuery("");
 
     const flattenRows = (data) => {
@@ -837,7 +839,7 @@ export function BrowsePage({
         const knownSourceRows = sourcesResponseToRows(knownSources);
         let mergedRows = dedupeRows([...knownSourceRows, ...discoverRows]);
         let label = mergedRows.length ? "index" : "";
-        let miss = Boolean(discover.index_miss || discover.weak_match) && discoverRows.length === 0;
+        const weakOrMissingLibraryMatch = Boolean(discover.index_miss || discover.weak_match);
 
         const hasAcquireCandidate = mergedRows.some((r) => {
           const tax = classifyDiscoverResult(r, labIds);
@@ -858,7 +860,11 @@ export function BrowsePage({
 
         if (mergedRows.length) {
           apply({ sections: [{ id: label, rows: mergedRows }] }, label);
-          setIndexMiss(false);
+          // Semantic neighbours can be useful context without establishing that
+          // the Library answers the request. Preserve those rows, but retain the
+          // backend's weak-match signal so the progressive pass continues to
+          // specific source routes instead of treating similarity as completion.
+          setIndexMiss(weakOrMissingLibraryMatch);
           return;
         }
 
@@ -878,7 +884,7 @@ export function BrowsePage({
           }
         }
 
-        setIndexMiss(miss);
+        setIndexMiss(weakOrMissingLibraryMatch);
         setRows([]);
       } catch (err) {
         if (cancelled) return;
@@ -911,32 +917,42 @@ export function BrowsePage({
       || loadedQuery !== q
       || preferLiveSources
       || externalSearchQuery === q
-      || !isDiscoverResearchQuestion(q)
+      || (!isDiscoverResearchQuestion(q) && !indexMiss)
       || enrichedQuestion === q
     ) return undefined;
 
     let cancelled = false;
-    setEnrichedQuestion(q);
+    setAutoWidening(true);
     const enrich = async () => {
-      let extra = [];
       try {
-        const sources = await discoverSources(q, { limit: 12, semantic: true, live: true });
-        extra = sourcesResponseToRows(sources);
-      } catch {
-        // The first result paint remains valid when optional enrichment is unavailable.
-      }
-      if (!extra.length || !hasSpecificSourceRoute(extra, q)) {
+        let extra = [];
         try {
-          const web = await webDiscover(q, 8);
-          extra = dedupeRows([...extra, ...rankExternalCatalogueRows(webHitsToRows(web), q)]);
+          const sources = await discoverSources(q, { limit: 12, semantic: true, live: true });
+          extra = sourcesResponseToRows(sources);
         } catch {
-          // Web context is optional and must never erase already-rendered evidence.
+          // The first result paint remains valid when optional enrichment is unavailable.
+        }
+        if (!extra.length || !hasSpecificSourceRoute(extra, q)) {
+          try {
+            const web = await webDiscover(q, 8);
+            extra = dedupeRows([...extra, ...rankExternalCatalogueRows(webHitsToRows(web), q)]);
+          } catch {
+            // Web context is optional and must never erase already-rendered evidence.
+          }
+        }
+        if (cancelled || !extra.length) return;
+        setRows((current) => dedupeRows([...current, ...extra]));
+        setSource((current) => current ? `${current}+progressive` : "progressive");
+        setIndexMiss(false);
+      } finally {
+        if (!cancelled) {
+          // Mark completion only after the async pass settles. Setting this at
+          // effect start changes a dependency, runs the cleanup immediately and
+          // causes every eventual source result to be discarded as cancelled.
+          setEnrichedQuestion(q);
+          setAutoWidening(false);
         }
       }
-      if (cancelled || !extra.length) return;
-      setRows((current) => dedupeRows([...current, ...extra]));
-      setSource((current) => current ? `${current}+progressive` : "progressive");
-      setIndexMiss(false);
     };
     enrich();
     return () => {
@@ -949,6 +965,7 @@ export function BrowsePage({
     preferLiveSources,
     externalSearchQuery,
     enrichedQuestion,
+    indexMiss,
   ]);
 
   const merged = useMemo(() => {
@@ -1105,13 +1122,14 @@ export function BrowsePage({
   const q = (searchQuery || "").trim();
   const wideningInProgress = Boolean(preferLiveSources && q && loadedQuery === q);
   const allInLab =
-    !loading && merged.length > 0 && stageCounts.inLab > 0 && stageCounts.inLab === merged.length;
+    !loading && !autoWidening && merged.length > 0 && stageCounts.inLab > 0 && stageCounts.inLab === merged.length;
   const demoMode = demoFallback || (usingSeed && source === "demo");
   const activeFilter = FILTERS.find((item) => item.id === stateFilter) || FILTERS[0];
   const externalSearchActive = Boolean(q && externalSearchQuery === q);
   const externalCatalogueActive = externalSearchActive || source === "external_catalogues";
   const sourceRouteGap =
     !loading &&
+    !autoWidening &&
     !externalSearchActive &&
     source === "sources" &&
     merged.length > 0 &&
@@ -1441,10 +1459,20 @@ export function BrowsePage({
                     Searching wider sources…
                   </span>
                 ) : null}
+                {!loading && autoWidening ? (
+                  <span className="rd-v2-discover-counts-loading" role="status">
+                    Checking broader sources…
+                  </span>
+                ) : null}
               </div>
               <div className="rd-v2-discover-result-actions" aria-label="Discover next actions">
                 <div>
-                  {loading && centreRows.length === 0 ? (
+                  {autoWidening ? (
+                    <>
+                      <strong>Checking broader sources</strong>
+                      <span>Related Library evidence remains visible while the desk looks for a direct route</span>
+                    </>
+                  ) : loading && centreRows.length === 0 ? (
                     <>
                       <strong>Checking sources</strong>
                       <span>{merged.length ? "Library evidence is already visible" : "Finding available routes"}</span>

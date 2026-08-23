@@ -12,9 +12,20 @@ server-side, so the browser never bootstraps.
 --fail    return 503 for chosen API prefixes (degraded-state coverage)
 --fixture PATH=file.json — serve a fixture instead of proxying (state coverage)
 """
-import argparse, os, sys, urllib.error, urllib.request
+import argparse, urllib.error, urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+
+SAFE_LIVE_POST_PATHS = frozenset({"/library/desk/session"})
+
+
+def live_proxy_allowed(method, path, *, allow_writes=False):
+    """Fail closed before a candidate browser can mutate the live desk."""
+    method = str(method or "GET").upper()
+    base = str(path or "").split("?", 1)[0]
+    return method in {"GET", "HEAD"} or bool(allow_writes) or (
+        method == "POST" and base in SAFE_LIVE_POST_PATHS
+    )
 
 class H(BaseHTTPRequestHandler):
     def log_message(self, *a): pass
@@ -45,6 +56,12 @@ class H(BaseHTTPRequestHandler):
         if fx is not None:
             body = fx.encode()
             self.send_response(200); self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body))); self.end_headers()
+            self.wfile.write(body); return
+        if not live_proxy_allowed(method, path, allow_writes=self.server.allow_writes):
+            body = b'{"error":"candidate_proxy_read_only","message":"Candidate tests may not mutate the live desk"}'
+            self.send_response(405); self.send_header("Content-Type", "application/json")
+            self.send_header("Allow", "GET, HEAD, POST /library/desk/session")
             self.send_header("Content-Length", str(len(body))); self.end_headers()
             self.wfile.write(body); return
         if self._fail(path):
@@ -88,14 +105,24 @@ if __name__ == "__main__":
     ap.add_argument("--fixture", action="append", default=[],
                     help="PATH=file.json — serve this file instead of proxying")
     ap.add_argument("--token-file", default=str(Path.home() / ".config/research-drive/front-door.desk-token"))
+    ap.add_argument(
+        "--allow-writes",
+        action="store_true",
+        help="explicitly permit non-session writes to the live API (off by default)",
+    )
     a = ap.parse_args()
     srv = ThreadingHTTPServer(("127.0.0.1", a.port), H)
     srv.root, srv.api = a.dir, a.api.rstrip("/")
     srv.token = Path(a.token_file).read_text().strip()
+    srv.allow_writes = bool(a.allow_writes)
     srv.fail_paths = [p for p in a.fail.split(",") if p]
     srv.fixtures = {}
     for item in a.fixture:
         route, _, f = item.partition("=")
         srv.fixtures[route] = Path(f).read_text()
-    print(f"partial-proxy :{a.port} dir={a.dir} failing={srv.fail_paths} fixtures={list(srv.fixtures)}", flush=True)
+    print(
+        f"partial-proxy :{a.port} dir={a.dir} failing={srv.fail_paths} "
+        f"fixtures={list(srv.fixtures)} writes={'enabled' if srv.allow_writes else 'blocked'}",
+        flush=True,
+    )
     srv.serve_forever()
