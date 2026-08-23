@@ -8,7 +8,11 @@ import { dirname, join } from "node:path";
  * The front door is a ThreadingHTTPServer, but its data endpoints are
  * GIL-bound: measured over 4 concurrent requests, /library/desk/capabilities
  * gains 2.95x while /library/partitions gains 1.32x. Boot order is therefore
- * the lever rather than concurrency. App.jsx already documents the policy — establish the visible research
+ * the lever rather than concurrency.
+ *
+ * This reads source order, which cannot tell you the desk behaves. It is a
+ * fast guard; e2e/boot-recovery.spec.js is the real coverage — it hangs
+ * /health and the resources rollup and proves the estate still arrives. App.jsx already documents the policy — establish the visible research
  * estate first, defer aggregate health and operational enrichment — but the
  * navigation fetch ran third, and the Library waited ~13s for shelves the desk
  * had already loaded. Reordering it took time-to-shelves to ~2.6s.
