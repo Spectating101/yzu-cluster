@@ -47,8 +47,10 @@ YZU_DESK_URL=http://100.127.141.44:8765 npm run desk:audit:deployed
 ```
 
 This creates a temporary set of authenticated, read-only runtime captures at
-1440×900 and verifies 1280/390 containment. `1440×900` is the first desktop
-review ruler, not a browser-only deployment target.
+the stable 1440×900 design ruler and the measured 1920×961 workstation Chrome
+content viewport, then verifies 1280×800 and 390×844 containment. `1440×900`
+is a comparison fixture, not a browser-only deployment target or a reason to
+resize the user's real Chrome window.
 
 **Development capture:** full desk running — API on `:8765` and Vite UI on
 `:5178` / `:5179`.

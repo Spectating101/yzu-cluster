@@ -57,7 +57,7 @@ export function jobToDiscoverHistoryEvent(job) {
     job.message ||
     job.plan?.summary ||
     (status === "pending_approval"
-      ? "Researcher approval is required before collection begins"
+      ? "Researcher approval is required before this request can continue"
       : `${source} · ${status.replace(/_/g, " ")}`);
   return {
     id: `job:${job.id}`,
