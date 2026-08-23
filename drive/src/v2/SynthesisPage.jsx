@@ -182,11 +182,20 @@ function synthesisStageIndex(thread) {
 function SynthesisProgress({ thread }) {
   const active = synthesisStageIndex(thread);
   const buildDetail = buildStageDetail(thread);
+  // A failed run sits on the Build stage. Marking it "now" read as work still
+  // under way, which is the one thing it is not.
+  const buildFailed =
+    String(thread?.state?.execution?.status || "").toLowerCase().replace(/-/g, "_") === "failed";
+  const stageState = (index) => {
+    if (index < active) return "done";
+    if (index !== active) return "";
+    return buildFailed && SYNTHESIS_STAGES[index]?.[0] === "Build" ? "failed" : "now";
+  };
   return (
     <ol className="s04-steps" aria-label="Synthesis project stages">
       {SYNTHESIS_STAGES.map(([label, detail], index) => (
-        <li key={label} className={index < active ? "done" : index === active ? "now" : ""}>
-          <span>{index < active ? "✓" : index + 1}</span>
+        <li key={label} className={stageState(index)}>
+          <span>{index < active ? "✓" : stageState(index) === "failed" ? "×" : index + 1}</span>
           <b>{label}</b>
           <small>{label === "Build" ? buildDetail : detail}</small>
         </li>

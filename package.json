@@ -32,7 +32,8 @@
     "release:stage": "bash scripts/release-guard.sh",
     "test:freeze": "mkdir -p .tmp-pw && TMPDIR=$PWD/.tmp-pw playwright test e2e/discover-freeze-conformance.spec.js e2e/frozen-composition-guard.spec.js",
     "test:lifecycle-states": "mkdir -p .tmp-pw && TMPDIR=$PWD/.tmp-pw playwright test e2e/history-lifecycle-states.spec.js",
-    "serve:candidate": "python3 scripts/serve_candidate.py"
+    "serve:candidate": "python3 scripts/serve_candidate.py",
+    "test:synthesis-states": "mkdir -p .tmp-pw && TMPDIR=$PWD/.tmp-pw playwright test e2e/synthesis-execution-states.spec.js"
   },
   "dependencies": {
     "@radix-ui/react-separator": "^1.1.10",

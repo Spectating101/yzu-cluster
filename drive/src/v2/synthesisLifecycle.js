@@ -39,6 +39,9 @@ export function buildStageDetail(thread) {
   const state = thread?.state || {};
   const status = normalizeStatus(state.execution?.status);
   if (status === "pending_approval") return "Approval required";
+  // "failed" is a post-approval status, so the Build stage described a stopped
+  // run as "Approved execution" — identical to one still under way.
+  if (status === "failed") return "Execution failed";
   if (POST_APPROVAL_STATUSES.includes(status)) return "Approved execution";
   if (state.execution_spec) return "Execution specified";
   return "Execution record";

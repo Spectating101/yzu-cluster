@@ -1,0 +1,632 @@
+{
+  "threads": [
+    {
+      "id": "thr_001",
+      "created_at": "2026-08-20T17:04:19+00:00",
+      "updated_at": "2026-08-22T16:12:06+00:00",
+      "title": "Execution state \u2014 pending approval",
+      "objective": "Blueprint: JKSE PIT \u00d7 IDN microstructure \u00d7 estimate revisions\nRegional Indonesia proof: JKSE PIT + IDN FRY microstructure + Refinitiv revisions. One regional depth lane, not the cluster center.\nRegistered inputs: Refinitiv JKSE PIT membership; IDN FRY daily cross-section; Refinitiv estimate revisions; Refinitiv entity spine\nLead question: Do bandar/chase regimes in IDN microstructure predict subsequent estimate revisions for JKSE large caps?",
+      "session_id": "ab0d7aedc3164a51",
+      "conversation_id": "",
+      "materialisation": "not_materialised",
+      "owner_id": "pilot-member",
+      "state": {
+        "title": "JKSE PIT \u00d7 IDN microstructure \u00d7 estimate revisions",
+        "objective": "Blueprint: JKSE PIT \u00d7 IDN microstructure \u00d7 estimate revisions\nRegional Indonesia proof: JKSE PIT + IDN FRY microstructure + Refinitiv revisions. One regional depth lane, not the cluster center.\nRegistered inputs: Refinitiv JKSE PIT membership; IDN FRY daily cross-section; Refinitiv estimate revisions; Refinitiv entity spine\nLead question: Do bandar/chase regimes in IDN microstructure predict subsequent estimate revisions for JKSE large caps?",
+        "required_grain": "ric, as_of_month, yahoo_symbol",
+        "maturity": "exploring",
+        "maturityLabel": "Exploring",
+        "lastActivity": "Accepted synthesis patch applied.",
+        "materialisation": "not_materialised",
+        "nodes": [
+          {
+            "id": "jkse_pit_idn_microstructure_revisions",
+            "dataset_id": "jkse_pit_idn_microstructure_revisions",
+            "type": "source",
+            "layer": "evidence",
+            "label": "JKSE monthly panel: prices, trading frictions, and estimate revisions",
+            "status": "registered",
+            "query_ready": true,
+            "proposed_by": "semantic_evidence_map",
+            "grain": "instrument_month"
+          },
+          {
+            "id": "idn_fry_daily_cross_section",
+            "dataset_id": "idn_fry_daily_cross_section",
+            "type": "source",
+            "layer": "evidence",
+            "label": "Indonesia FRY daily stock panel",
+            "status": "registered",
+            "query_ready": true,
+            "proposed_by": "semantic_evidence_map",
+            "grain": "ticker_day"
+          }
+        ],
+        "edges": [],
+        "proposal": null,
+        "decisions": [],
+        "activity": [
+          {
+            "time": "Now",
+            "kind": "create",
+            "message": "Synthesis thread created."
+          },
+          {
+            "time": "Now",
+            "kind": "change",
+            "message": "Added 2 reviewed held inputs to the evidence map."
+          }
+        ],
+        "spec": {
+          "purpose": "Blueprint: JKSE PIT \u00d7 IDN microstructure \u00d7 estimate revisions\nRegional Indonesia proof: JKSE PIT + IDN FRY microstructure + Refinitiv revisions. One regional depth lane, not the cluster center.\nRegistered inputs: Refinitiv JKSE PIT membership; IDN FRY daily cross-section; Refinitiv estimate revisions; Refinitiv entity spine\nLead question: Do bandar/chase regimes in IDN microstructure predict subsequent estimate revisions for JKSE large caps?",
+          "grain": "ric, as_of_month, yahoo_symbol",
+          "coreEvidence": [],
+          "validation": [],
+          "unavailable": [],
+          "construction": [],
+          "limitations": []
+        },
+        "plannedColumns": [],
+        "chartIdeas": [],
+        "execution": {
+          "status": "pending_approval"
+        },
+        "execution_spec": {
+          "input_dataset_id": "gdelt_asia_daily_country_panel",
+          "output_dataset_id": "synth_out_001"
+        }
+      },
+      "execution_recorded": false
+    },
+    {
+      "id": "thr_002",
+      "created_at": "2026-08-20T17:04:19+00:00",
+      "updated_at": "2026-08-22T16:12:06+00:00",
+      "title": "Execution state \u2014 queued",
+      "objective": "Blueprint: JKSE PIT \u00d7 IDN microstructure \u00d7 estimate revisions\nRegional Indonesia proof: JKSE PIT + IDN FRY microstructure + Refinitiv revisions. One regional depth lane, not the cluster center.\nRegistered inputs: Refinitiv JKSE PIT membership; IDN FRY daily cross-section; Refinitiv estimate revisions; Refinitiv entity spine\nLead question: Do bandar/chase regimes in IDN microstructure predict subsequent estimate revisions for JKSE large caps?",
+      "session_id": "ab0d7aedc3164a51",
+      "conversation_id": "",
+      "materialisation": "not_materialised",
+      "owner_id": "pilot-member",
+      "state": {
+        "title": "JKSE PIT \u00d7 IDN microstructure \u00d7 estimate revisions",
+        "objective": "Blueprint: JKSE PIT \u00d7 IDN microstructure \u00d7 estimate revisions\nRegional Indonesia proof: JKSE PIT + IDN FRY microstructure + Refinitiv revisions. One regional depth lane, not the cluster center.\nRegistered inputs: Refinitiv JKSE PIT membership; IDN FRY daily cross-section; Refinitiv estimate revisions; Refinitiv entity spine\nLead question: Do bandar/chase regimes in IDN microstructure predict subsequent estimate revisions for JKSE large caps?",
+        "required_grain": "ric, as_of_month, yahoo_symbol",
+        "maturity": "exploring",
+        "maturityLabel": "Exploring",
+        "lastActivity": "Accepted synthesis patch applied.",
+        "materialisation": "not_materialised",
+        "nodes": [
+          {
+            "id": "jkse_pit_idn_microstructure_revisions",
+            "dataset_id": "jkse_pit_idn_microstructure_revisions",
+            "type": "source",
+            "layer": "evidence",
+            "label": "JKSE monthly panel: prices, trading frictions, and estimate revisions",
+            "status": "registered",
+            "query_ready": true,
+            "proposed_by": "semantic_evidence_map",
+            "grain": "instrument_month"
+          },
+          {
+            "id": "idn_fry_daily_cross_section",
+            "dataset_id": "idn_fry_daily_cross_section",
+            "type": "source",
+            "layer": "evidence",
+            "label": "Indonesia FRY daily stock panel",
+            "status": "registered",
+            "query_ready": true,
+            "proposed_by": "semantic_evidence_map",
+            "grain": "ticker_day"
+          }
+        ],
+        "edges": [],
+        "proposal": null,
+        "decisions": [],
+        "activity": [
+          {
+            "time": "Now",
+            "kind": "create",
+            "message": "Synthesis thread created."
+          },
+          {
+            "time": "Now",
+            "kind": "change",
+            "message": "Added 2 reviewed held inputs to the evidence map."
+          }
+        ],
+        "spec": {
+          "purpose": "Blueprint: JKSE PIT \u00d7 IDN microstructure \u00d7 estimate revisions\nRegional Indonesia proof: JKSE PIT + IDN FRY microstructure + Refinitiv revisions. One regional depth lane, not the cluster center.\nRegistered inputs: Refinitiv JKSE PIT membership; IDN FRY daily cross-section; Refinitiv estimate revisions; Refinitiv entity spine\nLead question: Do bandar/chase regimes in IDN microstructure predict subsequent estimate revisions for JKSE large caps?",
+          "grain": "ric, as_of_month, yahoo_symbol",
+          "coreEvidence": [],
+          "validation": [],
+          "unavailable": [],
+          "construction": [],
+          "limitations": []
+        },
+        "plannedColumns": [],
+        "chartIdeas": [],
+        "execution": {
+          "status": "queued"
+        },
+        "execution_spec": {
+          "input_dataset_id": "gdelt_asia_daily_country_panel",
+          "output_dataset_id": "synth_out_002"
+        }
+      },
+      "execution_recorded": false
+    },
+    {
+      "id": "thr_003",
+      "created_at": "2026-08-20T17:04:19+00:00",
+      "updated_at": "2026-08-22T16:12:06+00:00",
+      "title": "Execution state \u2014 running",
+      "objective": "Blueprint: JKSE PIT \u00d7 IDN microstructure \u00d7 estimate revisions\nRegional Indonesia proof: JKSE PIT + IDN FRY microstructure + Refinitiv revisions. One regional depth lane, not the cluster center.\nRegistered inputs: Refinitiv JKSE PIT membership; IDN FRY daily cross-section; Refinitiv estimate revisions; Refinitiv entity spine\nLead question: Do bandar/chase regimes in IDN microstructure predict subsequent estimate revisions for JKSE large caps?",
+      "session_id": "ab0d7aedc3164a51",
+      "conversation_id": "",
+      "materialisation": "not_materialised",
+      "owner_id": "pilot-member",
+      "state": {
+        "title": "JKSE PIT \u00d7 IDN microstructure \u00d7 estimate revisions",
+        "objective": "Blueprint: JKSE PIT \u00d7 IDN microstructure \u00d7 estimate revisions\nRegional Indonesia proof: JKSE PIT + IDN FRY microstructure + Refinitiv revisions. One regional depth lane, not the cluster center.\nRegistered inputs: Refinitiv JKSE PIT membership; IDN FRY daily cross-section; Refinitiv estimate revisions; Refinitiv entity spine\nLead question: Do bandar/chase regimes in IDN microstructure predict subsequent estimate revisions for JKSE large caps?",
+        "required_grain": "ric, as_of_month, yahoo_symbol",
+        "maturity": "exploring",
+        "maturityLabel": "Exploring",
+        "lastActivity": "Accepted synthesis patch applied.",
+        "materialisation": "not_materialised",
+        "nodes": [
+          {
+            "id": "jkse_pit_idn_microstructure_revisions",
+            "dataset_id": "jkse_pit_idn_microstructure_revisions",
+            "type": "source",
+            "layer": "evidence",
+            "label": "JKSE monthly panel: prices, trading frictions, and estimate revisions",
+            "status": "registered",
+            "query_ready": true,
+            "proposed_by": "semantic_evidence_map",
+            "grain": "instrument_month"
+          },
+          {
+            "id": "idn_fry_daily_cross_section",
+            "dataset_id": "idn_fry_daily_cross_section",
+            "type": "source",
+            "layer": "evidence",
+            "label": "Indonesia FRY daily stock panel",
+            "status": "registered",
+            "query_ready": true,
+            "proposed_by": "semantic_evidence_map",
+            "grain": "ticker_day"
+          }
+        ],
+        "edges": [],
+        "proposal": null,
+        "decisions": [],
+        "activity": [
+          {
+            "time": "Now",
+            "kind": "create",
+            "message": "Synthesis thread created."
+          },
+          {
+            "time": "Now",
+            "kind": "change",
+            "message": "Added 2 reviewed held inputs to the evidence map."
+          }
+        ],
+        "spec": {
+          "purpose": "Blueprint: JKSE PIT \u00d7 IDN microstructure \u00d7 estimate revisions\nRegional Indonesia proof: JKSE PIT + IDN FRY microstructure + Refinitiv revisions. One regional depth lane, not the cluster center.\nRegistered inputs: Refinitiv JKSE PIT membership; IDN FRY daily cross-section; Refinitiv estimate revisions; Refinitiv entity spine\nLead question: Do bandar/chase regimes in IDN microstructure predict subsequent estimate revisions for JKSE large caps?",
+          "grain": "ric, as_of_month, yahoo_symbol",
+          "coreEvidence": [],
+          "validation": [],
+          "unavailable": [],
+          "construction": [],
+          "limitations": []
+        },
+        "plannedColumns": [],
+        "chartIdeas": [],
+        "execution": {
+          "status": "running"
+        },
+        "execution_spec": {
+          "input_dataset_id": "gdelt_asia_daily_country_panel",
+          "output_dataset_id": "synth_out_003"
+        }
+      },
+      "execution_recorded": false
+    },
+    {
+      "id": "thr_004",
+      "created_at": "2026-08-20T17:04:19+00:00",
+      "updated_at": "2026-08-22T16:12:06+00:00",
+      "title": "Execution state \u2014 registering",
+      "objective": "Blueprint: JKSE PIT \u00d7 IDN microstructure \u00d7 estimate revisions\nRegional Indonesia proof: JKSE PIT + IDN FRY microstructure + Refinitiv revisions. One regional depth lane, not the cluster center.\nRegistered inputs: Refinitiv JKSE PIT membership; IDN FRY daily cross-section; Refinitiv estimate revisions; Refinitiv entity spine\nLead question: Do bandar/chase regimes in IDN microstructure predict subsequent estimate revisions for JKSE large caps?",
+      "session_id": "ab0d7aedc3164a51",
+      "conversation_id": "",
+      "materialisation": "not_materialised",
+      "owner_id": "pilot-member",
+      "state": {
+        "title": "JKSE PIT \u00d7 IDN microstructure \u00d7 estimate revisions",
+        "objective": "Blueprint: JKSE PIT \u00d7 IDN microstructure \u00d7 estimate revisions\nRegional Indonesia proof: JKSE PIT + IDN FRY microstructure + Refinitiv revisions. One regional depth lane, not the cluster center.\nRegistered inputs: Refinitiv JKSE PIT membership; IDN FRY daily cross-section; Refinitiv estimate revisions; Refinitiv entity spine\nLead question: Do bandar/chase regimes in IDN microstructure predict subsequent estimate revisions for JKSE large caps?",
+        "required_grain": "ric, as_of_month, yahoo_symbol",
+        "maturity": "exploring",
+        "maturityLabel": "Exploring",
+        "lastActivity": "Accepted synthesis patch applied.",
+        "materialisation": "not_materialised",
+        "nodes": [
+          {
+            "id": "jkse_pit_idn_microstructure_revisions",
+            "dataset_id": "jkse_pit_idn_microstructure_revisions",
+            "type": "source",
+            "layer": "evidence",
+            "label": "JKSE monthly panel: prices, trading frictions, and estimate revisions",
+            "status": "registered",
+            "query_ready": true,
+            "proposed_by": "semantic_evidence_map",
+            "grain": "instrument_month"
+          },
+          {
+            "id": "idn_fry_daily_cross_section",
+            "dataset_id": "idn_fry_daily_cross_section",
+            "type": "source",
+            "layer": "evidence",
+            "label": "Indonesia FRY daily stock panel",
+            "status": "registered",
+            "query_ready": true,
+            "proposed_by": "semantic_evidence_map",
+            "grain": "ticker_day"
+          }
+        ],
+        "edges": [],
+        "proposal": null,
+        "decisions": [],
+        "activity": [
+          {
+            "time": "Now",
+            "kind": "create",
+            "message": "Synthesis thread created."
+          },
+          {
+            "time": "Now",
+            "kind": "change",
+            "message": "Added 2 reviewed held inputs to the evidence map."
+          }
+        ],
+        "spec": {
+          "purpose": "Blueprint: JKSE PIT \u00d7 IDN microstructure \u00d7 estimate revisions\nRegional Indonesia proof: JKSE PIT + IDN FRY microstructure + Refinitiv revisions. One regional depth lane, not the cluster center.\nRegistered inputs: Refinitiv JKSE PIT membership; IDN FRY daily cross-section; Refinitiv estimate revisions; Refinitiv entity spine\nLead question: Do bandar/chase regimes in IDN microstructure predict subsequent estimate revisions for JKSE large caps?",
+          "grain": "ric, as_of_month, yahoo_symbol",
+          "coreEvidence": [],
+          "validation": [],
+          "unavailable": [],
+          "construction": [],
+          "limitations": []
+        },
+        "plannedColumns": [],
+        "chartIdeas": [],
+        "execution": {
+          "status": "registering"
+        },
+        "execution_spec": {
+          "input_dataset_id": "gdelt_asia_daily_country_panel",
+          "output_dataset_id": "synth_out_004"
+        }
+      },
+      "execution_recorded": false
+    },
+    {
+      "id": "thr_005",
+      "created_at": "2026-08-20T17:04:19+00:00",
+      "updated_at": "2026-08-22T16:12:06+00:00",
+      "title": "Execution state \u2014 archiving",
+      "objective": "Blueprint: JKSE PIT \u00d7 IDN microstructure \u00d7 estimate revisions\nRegional Indonesia proof: JKSE PIT + IDN FRY microstructure + Refinitiv revisions. One regional depth lane, not the cluster center.\nRegistered inputs: Refinitiv JKSE PIT membership; IDN FRY daily cross-section; Refinitiv estimate revisions; Refinitiv entity spine\nLead question: Do bandar/chase regimes in IDN microstructure predict subsequent estimate revisions for JKSE large caps?",
+      "session_id": "ab0d7aedc3164a51",
+      "conversation_id": "",
+      "materialisation": "not_materialised",
+      "owner_id": "pilot-member",
+      "state": {
+        "title": "JKSE PIT \u00d7 IDN microstructure \u00d7 estimate revisions",
+        "objective": "Blueprint: JKSE PIT \u00d7 IDN microstructure \u00d7 estimate revisions\nRegional Indonesia proof: JKSE PIT + IDN FRY microstructure + Refinitiv revisions. One regional depth lane, not the cluster center.\nRegistered inputs: Refinitiv JKSE PIT membership; IDN FRY daily cross-section; Refinitiv estimate revisions; Refinitiv entity spine\nLead question: Do bandar/chase regimes in IDN microstructure predict subsequent estimate revisions for JKSE large caps?",
+        "required_grain": "ric, as_of_month, yahoo_symbol",
+        "maturity": "exploring",
+        "maturityLabel": "Exploring",
+        "lastActivity": "Accepted synthesis patch applied.",
+        "materialisation": "not_materialised",
+        "nodes": [
+          {
+            "id": "jkse_pit_idn_microstructure_revisions",
+            "dataset_id": "jkse_pit_idn_microstructure_revisions",
+            "type": "source",
+            "layer": "evidence",
+            "label": "JKSE monthly panel: prices, trading frictions, and estimate revisions",
+            "status": "registered",
+            "query_ready": true,
+            "proposed_by": "semantic_evidence_map",
+            "grain": "instrument_month"
+          },
+          {
+            "id": "idn_fry_daily_cross_section",
+            "dataset_id": "idn_fry_daily_cross_section",
+            "type": "source",
+            "layer": "evidence",
+            "label": "Indonesia FRY daily stock panel",
+            "status": "registered",
+            "query_ready": true,
+            "proposed_by": "semantic_evidence_map",
+            "grain": "ticker_day"
+          }
+        ],
+        "edges": [],
+        "proposal": null,
+        "decisions": [],
+        "activity": [
+          {
+            "time": "Now",
+            "kind": "create",
+            "message": "Synthesis thread created."
+          },
+          {
+            "time": "Now",
+            "kind": "change",
+            "message": "Added 2 reviewed held inputs to the evidence map."
+          }
+        ],
+        "spec": {
+          "purpose": "Blueprint: JKSE PIT \u00d7 IDN microstructure \u00d7 estimate revisions\nRegional Indonesia proof: JKSE PIT + IDN FRY microstructure + Refinitiv revisions. One regional depth lane, not the cluster center.\nRegistered inputs: Refinitiv JKSE PIT membership; IDN FRY daily cross-section; Refinitiv estimate revisions; Refinitiv entity spine\nLead question: Do bandar/chase regimes in IDN microstructure predict subsequent estimate revisions for JKSE large caps?",
+          "grain": "ric, as_of_month, yahoo_symbol",
+          "coreEvidence": [],
+          "validation": [],
+          "unavailable": [],
+          "construction": [],
+          "limitations": []
+        },
+        "plannedColumns": [],
+        "chartIdeas": [],
+        "execution": {
+          "status": "archiving"
+        },
+        "execution_spec": {
+          "input_dataset_id": "gdelt_asia_daily_country_panel",
+          "output_dataset_id": "synth_out_005"
+        }
+      },
+      "execution_recorded": false
+    },
+    {
+      "id": "thr_006",
+      "created_at": "2026-08-20T17:04:19+00:00",
+      "updated_at": "2026-08-22T16:12:06+00:00",
+      "title": "Execution state \u2014 registered",
+      "objective": "Blueprint: JKSE PIT \u00d7 IDN microstructure \u00d7 estimate revisions\nRegional Indonesia proof: JKSE PIT + IDN FRY microstructure + Refinitiv revisions. One regional depth lane, not the cluster center.\nRegistered inputs: Refinitiv JKSE PIT membership; IDN FRY daily cross-section; Refinitiv estimate revisions; Refinitiv entity spine\nLead question: Do bandar/chase regimes in IDN microstructure predict subsequent estimate revisions for JKSE large caps?",
+      "session_id": "ab0d7aedc3164a51",
+      "conversation_id": "",
+      "materialisation": "not_materialised",
+      "owner_id": "pilot-member",
+      "state": {
+        "title": "JKSE PIT \u00d7 IDN microstructure \u00d7 estimate revisions",
+        "objective": "Blueprint: JKSE PIT \u00d7 IDN microstructure \u00d7 estimate revisions\nRegional Indonesia proof: JKSE PIT + IDN FRY microstructure + Refinitiv revisions. One regional depth lane, not the cluster center.\nRegistered inputs: Refinitiv JKSE PIT membership; IDN FRY daily cross-section; Refinitiv estimate revisions; Refinitiv entity spine\nLead question: Do bandar/chase regimes in IDN microstructure predict subsequent estimate revisions for JKSE large caps?",
+        "required_grain": "ric, as_of_month, yahoo_symbol",
+        "maturity": "exploring",
+        "maturityLabel": "Exploring",
+        "lastActivity": "Accepted synthesis patch applied.",
+        "materialisation": "not_materialised",
+        "nodes": [
+          {
+            "id": "jkse_pit_idn_microstructure_revisions",
+            "dataset_id": "jkse_pit_idn_microstructure_revisions",
+            "type": "source",
+            "layer": "evidence",
+            "label": "JKSE monthly panel: prices, trading frictions, and estimate revisions",
+            "status": "registered",
+            "query_ready": true,
+            "proposed_by": "semantic_evidence_map",
+            "grain": "instrument_month"
+          },
+          {
+            "id": "idn_fry_daily_cross_section",
+            "dataset_id": "idn_fry_daily_cross_section",
+            "type": "source",
+            "layer": "evidence",
+            "label": "Indonesia FRY daily stock panel",
+            "status": "registered",
+            "query_ready": true,
+            "proposed_by": "semantic_evidence_map",
+            "grain": "ticker_day"
+          }
+        ],
+        "edges": [],
+        "proposal": null,
+        "decisions": [],
+        "activity": [
+          {
+            "time": "Now",
+            "kind": "create",
+            "message": "Synthesis thread created."
+          },
+          {
+            "time": "Now",
+            "kind": "change",
+            "message": "Added 2 reviewed held inputs to the evidence map."
+          }
+        ],
+        "spec": {
+          "purpose": "Blueprint: JKSE PIT \u00d7 IDN microstructure \u00d7 estimate revisions\nRegional Indonesia proof: JKSE PIT + IDN FRY microstructure + Refinitiv revisions. One regional depth lane, not the cluster center.\nRegistered inputs: Refinitiv JKSE PIT membership; IDN FRY daily cross-section; Refinitiv estimate revisions; Refinitiv entity spine\nLead question: Do bandar/chase regimes in IDN microstructure predict subsequent estimate revisions for JKSE large caps?",
+          "grain": "ric, as_of_month, yahoo_symbol",
+          "coreEvidence": [],
+          "validation": [],
+          "unavailable": [],
+          "construction": [],
+          "limitations": []
+        },
+        "plannedColumns": [],
+        "chartIdeas": [],
+        "execution": {
+          "status": "registered"
+        },
+        "execution_spec": {
+          "input_dataset_id": "gdelt_asia_daily_country_panel",
+          "output_dataset_id": "synth_out_006"
+        }
+      },
+      "execution_recorded": true
+    },
+    {
+      "id": "thr_007",
+      "created_at": "2026-08-20T17:04:19+00:00",
+      "updated_at": "2026-08-22T16:12:06+00:00",
+      "title": "Execution state \u2014 query ready",
+      "objective": "Blueprint: JKSE PIT \u00d7 IDN microstructure \u00d7 estimate revisions\nRegional Indonesia proof: JKSE PIT + IDN FRY microstructure + Refinitiv revisions. One regional depth lane, not the cluster center.\nRegistered inputs: Refinitiv JKSE PIT membership; IDN FRY daily cross-section; Refinitiv estimate revisions; Refinitiv entity spine\nLead question: Do bandar/chase regimes in IDN microstructure predict subsequent estimate revisions for JKSE large caps?",
+      "session_id": "ab0d7aedc3164a51",
+      "conversation_id": "",
+      "materialisation": "not_materialised",
+      "owner_id": "pilot-member",
+      "state": {
+        "title": "JKSE PIT \u00d7 IDN microstructure \u00d7 estimate revisions",
+        "objective": "Blueprint: JKSE PIT \u00d7 IDN microstructure \u00d7 estimate revisions\nRegional Indonesia proof: JKSE PIT + IDN FRY microstructure + Refinitiv revisions. One regional depth lane, not the cluster center.\nRegistered inputs: Refinitiv JKSE PIT membership; IDN FRY daily cross-section; Refinitiv estimate revisions; Refinitiv entity spine\nLead question: Do bandar/chase regimes in IDN microstructure predict subsequent estimate revisions for JKSE large caps?",
+        "required_grain": "ric, as_of_month, yahoo_symbol",
+        "maturity": "exploring",
+        "maturityLabel": "Exploring",
+        "lastActivity": "Accepted synthesis patch applied.",
+        "materialisation": "not_materialised",
+        "nodes": [
+          {
+            "id": "jkse_pit_idn_microstructure_revisions",
+            "dataset_id": "jkse_pit_idn_microstructure_revisions",
+            "type": "source",
+            "layer": "evidence",
+            "label": "JKSE monthly panel: prices, trading frictions, and estimate revisions",
+            "status": "registered",
+            "query_ready": true,
+            "proposed_by": "semantic_evidence_map",
+            "grain": "instrument_month"
+          },
+          {
+            "id": "idn_fry_daily_cross_section",
+            "dataset_id": "idn_fry_daily_cross_section",
+            "type": "source",
+            "layer": "evidence",
+            "label": "Indonesia FRY daily stock panel",
+            "status": "registered",
+            "query_ready": true,
+            "proposed_by": "semantic_evidence_map",
+            "grain": "ticker_day"
+          }
+        ],
+        "edges": [],
+        "proposal": null,
+        "decisions": [],
+        "activity": [
+          {
+            "time": "Now",
+            "kind": "create",
+            "message": "Synthesis thread created."
+          },
+          {
+            "time": "Now",
+            "kind": "change",
+            "message": "Added 2 reviewed held inputs to the evidence map."
+          }
+        ],
+        "spec": {
+          "purpose": "Blueprint: JKSE PIT \u00d7 IDN microstructure \u00d7 estimate revisions\nRegional Indonesia proof: JKSE PIT + IDN FRY microstructure + Refinitiv revisions. One regional depth lane, not the cluster center.\nRegistered inputs: Refinitiv JKSE PIT membership; IDN FRY daily cross-section; Refinitiv estimate revisions; Refinitiv entity spine\nLead question: Do bandar/chase regimes in IDN microstructure predict subsequent estimate revisions for JKSE large caps?",
+          "grain": "ric, as_of_month, yahoo_symbol",
+          "coreEvidence": [],
+          "validation": [],
+          "unavailable": [],
+          "construction": [],
+          "limitations": []
+        },
+        "plannedColumns": [],
+        "chartIdeas": [],
+        "execution": {
+          "status": "query_ready"
+        },
+        "execution_spec": {
+          "input_dataset_id": "gdelt_asia_daily_country_panel",
+          "output_dataset_id": "synth_out_007"
+        }
+      },
+      "execution_recorded": true
+    },
+    {
+      "id": "thr_008",
+      "created_at": "2026-08-20T17:04:19+00:00",
+      "updated_at": "2026-08-22T16:12:06+00:00",
+      "title": "Execution state \u2014 failed",
+      "objective": "Blueprint: JKSE PIT \u00d7 IDN microstructure \u00d7 estimate revisions\nRegional Indonesia proof: JKSE PIT + IDN FRY microstructure + Refinitiv revisions. One regional depth lane, not the cluster center.\nRegistered inputs: Refinitiv JKSE PIT membership; IDN FRY daily cross-section; Refinitiv estimate revisions; Refinitiv entity spine\nLead question: Do bandar/chase regimes in IDN microstructure predict subsequent estimate revisions for JKSE large caps?",
+      "session_id": "ab0d7aedc3164a51",
+      "conversation_id": "",
+      "materialisation": "not_materialised",
+      "owner_id": "pilot-member",
+      "state": {
+        "title": "JKSE PIT \u00d7 IDN microstructure \u00d7 estimate revisions",
+        "objective": "Blueprint: JKSE PIT \u00d7 IDN microstructure \u00d7 estimate revisions\nRegional Indonesia proof: JKSE PIT + IDN FRY microstructure + Refinitiv revisions. One regional depth lane, not the cluster center.\nRegistered inputs: Refinitiv JKSE PIT membership; IDN FRY daily cross-section; Refinitiv estimate revisions; Refinitiv entity spine\nLead question: Do bandar/chase regimes in IDN microstructure predict subsequent estimate revisions for JKSE large caps?",
+        "required_grain": "ric, as_of_month, yahoo_symbol",
+        "maturity": "exploring",
+        "maturityLabel": "Exploring",
+        "lastActivity": "Accepted synthesis patch applied.",
+        "materialisation": "not_materialised",
+        "nodes": [
+          {
+            "id": "jkse_pit_idn_microstructure_revisions",
+            "dataset_id": "jkse_pit_idn_microstructure_revisions",
+            "type": "source",
+            "layer": "evidence",
+            "label": "JKSE monthly panel: prices, trading frictions, and estimate revisions",
+            "status": "registered",
+            "query_ready": true,
+            "proposed_by": "semantic_evidence_map",
+            "grain": "instrument_month"
+          },
+          {
+            "id": "idn_fry_daily_cross_section",
+            "dataset_id": "idn_fry_daily_cross_section",
+            "type": "source",
+            "layer": "evidence",
+            "label": "Indonesia FRY daily stock panel",
+            "status": "registered",
+            "query_ready": true,
+            "proposed_by": "semantic_evidence_map",
+            "grain": "ticker_day"
+          }
+        ],
+        "edges": [],
+        "proposal": null,
+        "decisions": [],
+        "activity": [
+          {
+            "time": "Now",
+            "kind": "create",
+            "message": "Synthesis thread created."
+          },
+          {
+            "time": "Now",
+            "kind": "change",
+            "message": "Added 2 reviewed held inputs to the evidence map."
+          }
+        ],
+        "spec": {
+          "purpose": "Blueprint: JKSE PIT \u00d7 IDN microstructure \u00d7 estimate revisions\nRegional Indonesia proof: JKSE PIT + IDN FRY microstructure + Refinitiv revisions. One regional depth lane, not the cluster center.\nRegistered inputs: Refinitiv JKSE PIT membership; IDN FRY daily cross-section; Refinitiv estimate revisions; Refinitiv entity spine\nLead question: Do bandar/chase regimes in IDN microstructure predict subsequent estimate revisions for JKSE large caps?",
+          "grain": "ric, as_of_month, yahoo_symbol",
+          "coreEvidence": [],
+          "validation": [],
+          "unavailable": [],
+          "construction": [],
+          "limitations": []
+        },
+        "plannedColumns": [],
+        "chartIdeas": [],
+        "execution": {
+          "status": "failed",
+          "error": "Worker exited non-zero while building the panel."
+        },
+        "execution_spec": {
+          "input_dataset_id": "gdelt_asia_daily_country_panel",
+          "output_dataset_id": "synth_out_008"
+        }
+      },
+      "execution_recorded": false
+    }
+  ],
+  "total": 8,
+  "include_ops": false,
+  "ops_threads_hidden": 0
+}
