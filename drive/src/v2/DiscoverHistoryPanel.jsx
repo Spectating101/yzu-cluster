@@ -279,6 +279,11 @@ export function DiscoverHistoryPanel({
     if (!visible.length || !onSelectEvent) return;
     const hasVisibleSelection = visible.some((event, index) => eventId(event, index) === selectedId);
     if (hasVisibleSelection) return;
+    // Desktop benefits from a populated inspector beside the ledger. On a
+    // phone that same automatic selection opens the inspector sheet over the
+    // entire list before the researcher has touched a row. Keep the mobile
+    // ledger primary and open Detail only after an explicit tap.
+    if (!selectedId && window.matchMedia?.("(max-width: 760px)").matches) return;
     // Prefer researcher trail selection; only fall through to system rows on System filter.
     if (filter === "all" && systemRows.some((event, index) => eventId(event, index) === selectedId)) {
       return;
