@@ -373,13 +373,18 @@ export function LibraryObjectRailPanel({
       <div className="rd-v2-rail-scroll rd-v2-library-folder-inspector">
         <section className="rd-v2-library-folder-summary">
           <p className="rd-v2-rail-section-label">{root ? "In this library" : "In this collection"}</p>
-          <h3>{pluralCount(counts.datasets, "dataset")}</h3>
+          <h3>{pluralCount(counts.datasets, root ? "asset" : "dataset")}</h3>
           <div className="rd-v2-library-folder-readiness">
             {counts.queryReady > 0 ? <span><b>{counts.queryReady}</b> query ready</span> : null}
             {counts.connected > 0 ? <span><b>{counts.connected}</b> connected</span> : null}
             {counts.metadataOnly > 0 ? <span><b>{counts.metadataOnly}</b> metadata only</span> : null}
             {counts.unknown > 0 ? <span><b>{counts.unknown}</b> readiness unknown</span> : null}
           </div>
+          {root && counts.references > 0 ? (
+            <p className="rd-v2-rail-note">
+              {pluralCount(counts.references, "registry reference")} {counts.references === 1 ? "stays" : "stay"} in Discover until acquired.
+            </p>
+          ) : null}
         </section>
 
         <section className="rd-v2-library-folder-add">

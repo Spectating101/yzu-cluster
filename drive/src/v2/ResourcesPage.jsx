@@ -15,6 +15,8 @@ import {
   workersToolbarFieldsFromRollup,
 } from "@/v2/workersToolbarStat";
 import { Chip, PageShell, StatementRow, StatementSection } from "@/v2/ui";
+import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
+import { DeskError } from "@/v2/DeskError";
 
 function shortText(value, max = 92) {
   const text = String(value || "");
@@ -133,8 +135,19 @@ function facultyOpsSub(label, key, sub) {
   return sub;
 }
 
-function CapacityAccessGrid({ rollup, health, selectedKey, onSelect }) {
-  const pairs = buildCapacityAccessPairs(rollup, health);
+function CapacityAccessGrid({ rollup, health, loading = false, selectedKey, onSelect }) {
+  const pairs = buildCapacityAccessPairs(rollup, health).map((pair) => ({
+    ...pair,
+    meters: loading
+      ? pair.meters.map((meter) => ({
+          ...meter,
+          metric: "Checking…",
+          available: "Waiting for live desk telemetry",
+          pct: null,
+          warn: false,
+        }))
+      : pair.meters,
+  }));
   return (
     <div className="rd-v2-res-capacity-pairs" data-testid="resources-capacity-grid" aria-label="Capacity and access">
       {pairs.map((pair) => (
@@ -795,6 +808,7 @@ function ResourceInventory({ sections, selectedKey, onSelect }) {
 export function ResourcesPage({
   rollup,
   rollupLoading = false,
+  loadError = "",
   health,
   ops,
   jobs = [],
@@ -864,6 +878,11 @@ export function ResourcesPage({
 
   const freshness =
     refreshedAt != null ? `${Math.max(0, Math.round((Date.now() - refreshedAt) / 1000))}s ago` : null;
+  const surfaceState = resolveSurfaceLifecycle({
+    loading: syncing,
+    error: loadError || (rollup === null ? "Desk API unreachable" : ""),
+    hasData: Boolean(lastKnownRollup),
+  });
 
   const filterLabel =
     activityFilter?.meterId === "bigquery"
@@ -878,6 +897,7 @@ export function ResourcesPage({
     <PageShell
       title="Resources"
       lead="Capacity, licensed routes, and the usage ledger for this period."
+      surfaceState={surfaceState}
       toolbar={
         <>
           <Chip
@@ -919,7 +939,8 @@ export function ResourcesPage({
         </>
       }
     >
-      {rollup === null && !rollupLoading ? (
+      {loadError ? <DeskError raw={loadError} surface="resource telemetry" /> : null}
+      {rollup === null && !rollupLoading && !loadError ? (
         <p className="rd-v2-res-offline" role="status">
           Desk API unreachable — start <code>python -m scripts.research_query_engine.server</code> on :8765.
         </p>
@@ -932,6 +953,7 @@ export function ResourcesPage({
             <CapacityAccessGrid
               rollup={lastKnownRollup}
               health={health}
+              loading={syncing && !lastKnownRollup && !health}
               selectedKey={selectedKey}
               onSelect={onSelectRow}
             />

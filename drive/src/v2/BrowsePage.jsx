@@ -34,6 +34,8 @@ import {
 import { Chip, PageShell, SourceRibbon } from "@/v2/ui";
 import { discoverTerritories } from "@/v2/discoverTerritories";
 import { DiscoverCoveragePanel } from "@/v2/DiscoverCoveragePanel";
+import { DeskError } from "@/v2/DeskError";
+import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
 
 const FILTERS = [
   { id: "all", label: "All results" },
@@ -191,7 +193,7 @@ function DiscoverCandidateRow({
   const evidenceLine = hasExplicitDescription ? humanizeDiscoverDescription(descriptiveLine(row)) : "";
   const coverage = coverageLine(row);
   const showCoverage = coverage && coverage !== "Coverage not described";
-  const canAdd = !taxonomy.key.startsWith("local-")
+  const canAdd = taxonomy.key === "external-acquirable"
     && !["Reference only", "Web context"].includes(offeringType(row, taxonomy))
     && typeof onAdd === "function";
 
@@ -1017,7 +1019,7 @@ export function BrowsePage({
       const type = offeringType(row, taxonomy);
       if (taxonomy.key.startsWith("local-")) groups.held.push(row);
       else if (type === "Reference only" || type === "Web context") groups.context.push(row);
-      else if (["external-acquirable", "external-probed"].includes(taxonomy.key)) groups.available.push(row);
+      else if (taxonomy.key === "external-acquirable") groups.available.push(row);
       else groups.external.push(row);
     }
     return groups;
@@ -1048,7 +1050,7 @@ export function BrowsePage({
   }, [isExplore, selectedId, centreRows, onSelectRow]);
 
   useEffect(() => {
-    if (!isExplore) {
+    if (!isExplore || !searchQuery.trim()) {
       onRestingSummary?.(null);
       return undefined;
     }
@@ -1138,6 +1140,18 @@ export function BrowsePage({
       .slice(0, 4),
     [merged, labIds],
   );
+
+  const exploreSurfaceState = resolveSurfaceLifecycle({
+    idle: !q && !catalogLoading && !loadError,
+    loading: q ? loading : catalogLoading,
+    error: q ? error : loadError,
+    count: q ? merged.length : catalog.length,
+  });
+  const historySurfaceState = resolveSurfaceLifecycle({
+    loading: !historyJobsLoaded || historyJobsRefreshing,
+    error: historyJobsRefreshFailed ? "History refresh failed" : "",
+    count: historyEvents.length,
+  });
 
   const modeTabs = (
     <DiscoverModeTabs
@@ -1242,6 +1256,7 @@ export function BrowsePage({
         title="Discover"
         lead="Trace research questions to reusable evidence"
         headExtra={modeTabs}
+        surfaceState={historySurfaceState}
       >
         <DiscoverHistoryPanel
           events={historyEvents}
@@ -1262,7 +1277,9 @@ export function BrowsePage({
       lead="Search your Library first, then evaluate sources beyond it"
       headExtra={modeTabs}
       toolbar={demoMode ? <Chip warn>Demo preview · static sample</Chip> : null}
+      surfaceState={exploreSurfaceState}
     >
+      {!q && loadError ? <DeskError raw={loadError} surface="Discover's Library index" /> : null}
       <div className="rd-v2-discover-browse" data-testid="discover-browse-mode" data-mode="browse">
         {synthesisHandoff ? (
           <section className="rd-v2-synthesis-handoff" data-testid="synthesis-discover-handoff" aria-label="Synthesis evidence handoff">
@@ -1294,6 +1311,9 @@ export function BrowsePage({
               idle
             />
             <div className="rd-v2-discover-idle-held">
+              <DiscoverCoveragePanel catalog={catalog} partitions={partitions} shelves={shelves} onSearchShelf={
+                onSuggestSearch ? (shelf) => onSuggestSearch(shelf.label.toLowerCase()) : undefined
+              } />
               {/* VC-5: with no known routes this collapses to one quiet line
                   instead of an oversized empty section. */}
               {idleRecommendations.length ? (
@@ -1318,9 +1338,6 @@ export function BrowsePage({
                   No curated source routes yet — search above, or paste a URL or DOI below.
                 </p>
               )}
-              <DiscoverCoveragePanel catalog={catalog} partitions={partitions} shelves={shelves} onSearchShelf={
-                onSuggestSearch ? (shelf) => onSuggestSearch(shelf.label.toLowerCase()) : undefined
-              } />
               {idleHoldings.length ? (
                 <div className="rd-v2-discover-idle-library-note">
                   Library evidence · {plural(libraryEvidenceCount ?? labIds.size, "asset")}{" "}
@@ -1431,6 +1448,11 @@ export function BrowsePage({
                     <>
                       <strong>Checking sources</strong>
                       <span>{merged.length ? "Library evidence is already visible" : "Finding available routes"}</span>
+                    </>
+                  ) : !loading && filtered.length === 0 ? (
+                    <>
+                      <strong>No offering found yet</strong>
+                      <span>Search wider or refine the evidence need</span>
                     </>
                   ) : (
                     <>
@@ -1551,11 +1573,6 @@ export function BrowsePage({
                   No {stateFilter === "all" ? "" : `${activeFilter.label.toLowerCase()} `}matches for “{q}”
                   {indexMiss ? " in the current research index." : "."}
                 </p>
-                {indexMiss && onSearchWeb ? (
-                  <button type="button" className="rd-v2-btn sm" onClick={() => onSearchWeb(q)}>
-                    Search wider sources →
-                  </button>
-                ) : null}
               </div>
             ) : null}
 

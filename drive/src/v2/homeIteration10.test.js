@@ -91,6 +91,16 @@ test("pending approval becomes secondary decision, not a separate Attention page
   assert.equal(secondary.kind, "decision");
   assert.equal(secondary.action, "review");
   assert.match(secondary.title, /MOPS/);
+  assert.equal(secondary.location, "DISCOVER / HISTORY");
+});
+
+test("an internal synthesis-block marker becomes a researcher-facing decision", () => {
+  const { secondary } = buildPickUp({
+    datasets: [{ dataset_id: "a", name: "Alpha" }],
+    jobs: [{ id: "j1", status: "pending_approval", title: "synth block" }],
+    health: { desk: { jobs: { pending_approval: 1 } } },
+  });
+  assert.equal(secondary.title, "Synthesis proposal awaiting review");
 });
 
 test("resource headroom caps at three showcase slots", () => {

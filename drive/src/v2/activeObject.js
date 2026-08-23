@@ -66,6 +66,7 @@ export function libraryFolderObject({
   metadataOnlyCount = 0,
   unknownCount = 0,
   itemCount = 0,
+  referenceCount = 0,
 } = {}) {
   const root = !folderId;
   const title = root ? "Library" : compactText(trail[trail.length - 1]?.name, "Library collection");
@@ -85,6 +86,7 @@ export function libraryFolderObject({
       metadataOnly: metadataOnlyCount,
       unknown: unknownCount,
       items: itemCount,
+      references: referenceCount,
     },
   };
 }

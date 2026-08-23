@@ -12,6 +12,7 @@ import { LibraryAssetWorkspace } from "@/v2/LibraryAssetWorkspace";
 import { resolveLibrarySelection } from "@/v2/librarySelection";
 import { Chip, PageShell } from "@/v2/ui";
 import { DeskError } from "@/v2/DeskError";
+import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
 
 function datasetListItem(row) {
   const name = datasetTitle(row);
@@ -104,13 +105,13 @@ function branchStatusNote({
   return "No holdings in this branch";
 }
 
-function toolbarCountLabel({ searchActive, folderCount, datasetCount, visibleCount }) {
+function toolbarCountLabel({ searchActive, isRoot, folderCount, datasetCount, visibleCount }) {
   if (searchActive) {
     return `${visibleCount} dataset${visibleCount === 1 ? "" : "s"}`;
   }
   const parts = [];
-  if (folderCount) parts.push(`${folderCount} folder${folderCount === 1 ? "" : "s"}`);
-  if (datasetCount) parts.push(`${datasetCount} dataset${datasetCount === 1 ? "" : "s"}`);
+  if (folderCount) parts.push(`${folderCount} ${isRoot ? (folderCount === 1 ? "shelf" : "shelves") : (folderCount === 1 ? "folder" : "folders")}`);
+  if (datasetCount) parts.push(`${datasetCount} ${isRoot ? (datasetCount === 1 ? "asset" : "assets") : (datasetCount === 1 ? "dataset" : "datasets")}`);
   return parts.join(" · ") || `${visibleCount} row${visibleCount === 1 ? "" : "s"}`;
 }
 
@@ -232,6 +233,7 @@ export function LibraryPage({
   onSearchChange,
   selectionHoldings,
   selectionFallback,
+  referenceCount = 0,
 }) {
   const [sortBy, setSortBy] = useState("name");
   const [filterMode, setFilterMode] = useState("all");
@@ -241,14 +243,20 @@ export function LibraryPage({
     () => (datasets || []).filter((row) => !isOpsNoiseDataset(row)),
     [datasets],
   );
+  const surfaceState = resolveSurfaceLifecycle({
+    loading: loading || navigationLoading,
+    error: loadError || navigationError,
+    count: vaultDatasets.length,
+  });
   const selectedDataset = useMemo(
     () =>
       resolveLibrarySelection({
         selectedId,
         holdings: selectionHoldings || vaultDatasets,
         fallback: selectionFallback,
+        allowUnknown: loading,
       }),
-    [selectedId, selectionHoldings, selectionFallback, vaultDatasets],
+    [loading, selectedId, selectionHoldings, selectionFallback, vaultDatasets],
   );
 
   const tree = useMemo(
@@ -330,8 +338,9 @@ export function LibraryPage({
         datasetCount: browseDatasetCount,
         readyCount,
         itemCount: visibleRows.length,
+        referenceCount: isRoot ? referenceCount : 0,
       }),
-    [branchNote, browseDatasetCount, destination, folderCount, folderId, readyCount, trail, visibleRows.length],
+    [branchNote, browseDatasetCount, destination, folderCount, folderId, isRoot, readyCount, referenceCount, trail, visibleRows.length],
   );
 
   useEffect(() => {
@@ -431,6 +440,7 @@ export function LibraryPage({
               ? "Organizing Library…"
               : loading && !vaultDatasets.length ? "Loading Library…" : toolbarCountLabel({
               searchActive,
+              isRoot,
               folderCount,
               datasetCount: browseDatasetCount,
               visibleCount: visibleRows.length,
@@ -439,6 +449,7 @@ export function LibraryPage({
         </>
       }
       footer="double-click row → Preview"
+      surfaceState={surfaceState}
     >
       {isRoot && !searchActive && !navigationLoading && !navigationError && startHereShelves.length ? (
         <div className="rd-v2-library-start-here" aria-label="Start here shelves">
@@ -487,10 +498,13 @@ export function LibraryPage({
             </span>
           )}
           <span>
-            {browseDatasetCount} dataset{browseDatasetCount === 1 ? "" : "s"}
+            {browseDatasetCount} asset{browseDatasetCount === 1 ? "" : "s"}
             {searchActive ? " matched" : ""}
           </span>
           <span>{readyCount} query-ready</span>
+          {isRoot && !searchActive && referenceCount > 0 ? (
+            <span>{referenceCount} registry reference{referenceCount === 1 ? "" : "s"} in Discover</span>
+          ) : null}
         </div>
       </div>
       {loadError ? <DeskError raw={loadError} surface="your Library" /> : null}

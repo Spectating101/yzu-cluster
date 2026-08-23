@@ -4,6 +4,8 @@ import { GuidedState, Skeleton } from "@/v2/InteractionFeedback";
 import { HomeSuggestedAsks } from "@/v2/HomeSuggestedAsks";
 import { readResourcesRollupCache, writeResourcesRollupCache } from "@/v2/resourcesRollupCache";
 import { PageShell } from "@/v2/ui";
+import { DeskError } from "@/v2/DeskError";
+import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
 import {
   buildPickUp,
   buildRecentTrail,
@@ -104,6 +106,7 @@ export function HomePage({
   profile,
   acquisitions = [],
   resourcesRollup,
+  loadError = "",
   onGoTab,
   onOpenAttention,
   onSelectDataset,
@@ -113,6 +116,7 @@ export function HomePage({
   onAskComposer,
 }) {
   const loading = catalogLoading || (health == null && datasets.length === 0);
+  const surfaceState = resolveSurfaceLifecycle({ loading, error: loadError, count: datasets.length });
   // Mirror Resources cache-first: never block Home headroom on a cold /desk/resources round-trip.
   const [cachedRollup, setCachedRollup] = useState(() => readResourcesRollupCache());
   useEffect(() => {
@@ -192,7 +196,9 @@ export function HomePage({
       title="Home"
       lead="Resume · headroom · durable consequences"
       footer={null}
+      surfaceState={surfaceState}
     >
+      {loadError ? <DeskError raw={loadError} surface="Home's Library briefing" /> : null}
       <div className="rd-v2-home-topband">
         <section className="rd-v2-home-pickup" aria-label="Pick up">
           <PickUpCard

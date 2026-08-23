@@ -39,17 +39,19 @@ export function V2DeskHeader({
   onAccountNavigate,
   onDeskStatusNavigate,
   principal = null,
+  datasetLabel = "datasets",
 }) {
   const [accountOpen, setAccountOpen] = useState(false);
   const accountRef = useRef(null);
   const pendingVisible = workCount > 0 && Boolean(onPendingClick);
+  const countText = `${datasetCount} ${datasetLabel}`;
   const metaText = dataLoading && !usingSeed
     ? "Loading Library…"
     : usingSeed
-    ? `${datasetCount} datasets`
+    ? countText
     : pendingVisible
-      ? `${datasetCount} datasets · ${workCount} pending`
-      : `${datasetCount} datasets`;
+      ? `${countText} · ${workCount} pending`
+      : countText;
   const fresh = freshnessLabel(refreshedAt);
   const chips = Array.isArray(integrationChips) ? integrationChips : [];
 
@@ -120,9 +122,11 @@ export function V2DeskHeader({
           )}
         </div>
         <span className="rd-v2-header-meta-count" title={metaText}>
-          {pendingVisible ? (
+          {dataLoading && !usingSeed ? (
+            metaText
+          ) : pendingVisible ? (
             <>
-              {`${datasetCount} datasets · `}
+              {`${countText} · `}
               <button
                 type="button"
                 className="rd-v2-header-pending-link"
