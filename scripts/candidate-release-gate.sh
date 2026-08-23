@@ -58,6 +58,7 @@ fi
 echo "candidate-release: browser contract at ${candidate_url}"
 YZU_DESK_URL="${candidate_url}" npx playwright test \
   e2e/app-mounts.spec.js \
+  e2e/boot-recovery.spec.js \
   e2e/history-lifecycle-states.spec.js \
   e2e/history-reconciliation-truth.spec.js \
   e2e/mobile-history-selection.spec.js \
