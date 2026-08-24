@@ -84,7 +84,14 @@ const PROPOSAL_THREAD = {
       execution_preflight: { ok: true },
       operations: [
         { op: "add_node" },
-        { op: "update_spec", summary: "Use weekly aggregation and bounded metrics." },
+        {
+          op: "update_spec",
+          summary: "Use weekly aggregation and bounded metrics.",
+          patch: {
+            limitations: ["Pending proposal limitation from the exact change set."],
+            unavailable: ["Direct investor belief is not observed."],
+          },
+        },
       ],
       execution_spec: {
         input_dataset_id: "stablecoin_trust_engagement_weekly",
@@ -504,7 +511,8 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await expect(proposal).toContainText("Proposed output");
     await expect(proposal).toContainText("Nothing is materialised yet");
     await expect(proposal).toContainText("Still not established");
-    await expect(proposal).toContainText("Add evidence or a derived construct");
+    await expect(proposal).toContainText("Pending proposal limitation from the exact change set");
+    await expect(proposal).toContainText("Direct investor belief is not observed");
     const nextBox = await next.boundingBox();
     const proposalBox = await proposal.boundingBox();
     expect(nextBox && proposalBox && proposalBox.y > nextBox.y).toBeTruthy();

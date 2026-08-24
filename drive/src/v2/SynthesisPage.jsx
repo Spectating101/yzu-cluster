@@ -922,17 +922,22 @@ function ProposalReview({ thread, busy, onDecide, onAsk, reviewRef }) {
   const proposal = state.proposal || {};
   const spec = proposal.execution_spec || {};
   const operations = Array.isArray(proposal.operations) ? proposal.operations : [];
+  const proposedSpec = operations.find((operation) => operation?.op === "update_spec")?.patch || {};
   const metrics = Array.isArray(spec.metrics) ? spec.metrics : [];
   const groupBy = Array.isArray(spec.group_by) ? spec.group_by : [];
   const limitations = (
-    Array.isArray(state.spec?.limitations)
+    Array.isArray(proposedSpec.limitations)
+      ? proposedSpec.limitations
+      : Array.isArray(state.spec?.limitations)
       ? state.spec.limitations
       : Array.isArray(state.limitations)
         ? state.limitations
         : []
   ).filter(Boolean);
   const unknowns = (
-    Array.isArray(state.spec?.unavailable)
+    Array.isArray(proposedSpec.unavailable)
+      ? proposedSpec.unavailable
+      : Array.isArray(state.spec?.unavailable)
       ? state.spec.unavailable
       : Array.isArray(state.unavailable)
         ? state.unavailable
