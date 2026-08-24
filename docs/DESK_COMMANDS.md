@@ -18,12 +18,13 @@ Vite host at the API and calling the result a deployed-session check.
 Use this after a promotion or whenever judging the desk a researcher can
 actually use. It bootstraps the normal browser session, performs only read-only
 API/page interactions, captures all faculty pages at the stable 1440×900 design
-ruler and the measured 1920×905 Chrome content viewport, checks a synthetic
-1920×1600 tall-evidence mode plus 1280×800 and 390×844 containment, and writes
-screenshots to a temporary directory. The 1920×905 size is the workstation
-observation measured from the connected Chrome on 2026-08-24 at 100% zoom;
-remeasure after browser-chrome or display changes. 1440×900 remains a comparison
-fixture, not a command to resize the user's browser.
+ruler and the currently measured 1920×961 Chrome content viewport, retains a
+1920×905 short-height regression, checks a synthetic 1920×1600 tall-evidence
+mode plus 1280×800 and 390×844 containment, and writes screenshots to a
+temporary directory. The 1920×961 observation came from the connected Chrome
+after its 2026-08-24 reinstall at 100% zoom; remeasure after browser-chrome or
+display changes. 1440×900 remains a comparison fixture, not a command to resize
+the user's browser.
 
 ```bash
 YZU_DESK_URL=http://100.127.141.44:8765 npm run desk:audit:deployed

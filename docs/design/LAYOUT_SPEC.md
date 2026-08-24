@@ -1,6 +1,6 @@
 # Research Drive v2 — adaptive layout spec
 
-**Viewport matrix:** 1440×900 remains the stable design ruler; the connected workstation Chrome content viewport measured 1920×905 at 100% zoom on 2026-08-24. A synthetic 1920×1600 case verifies tall-evidence expansion. Production sizing is adaptive, so none is permission to skip the 1280, tablet, and mobile checks; remeasure Chrome after browser-chrome or display changes.
+**Viewport matrix:** 1440×900 remains the stable design ruler. The connected workstation Chrome content viewport measured 1920×961 at 100% zoom after the browser reinstall on 2026-08-24; an earlier browser session measured 1920×905, which remains a useful short-height regression case rather than a canonical screen size. A synthetic 1920×1600 case verifies tall-evidence expansion. Production sizing is adaptive, so none is permission to skip the 1280, tablet, and mobile checks; remeasure Chrome after browser-chrome or display changes.
 **Navigation amendment (2026-08-20):** Cluster is not a faculty destination. References to the backend worker cluster do not authorize a Cluster page; [`UI_PRODUCT_AUTHORITY.md`](../UI_PRODUCT_AUTHORITY.md) owns the seven current destinations.
 **Canon:** [`RESEARCH_DRIVE_UI_CANON.md`](../RESEARCH_DRIVE_UI_CANON.md)  
 **Frozen wireframes:** [`WIREFRAME_V2_FROZEN.md`](WIREFRAME_V2_FROZEN.md)  
@@ -35,7 +35,7 @@ At the 1440×900 reference viewport, the current CSS resolves to roughly:
 └─ 836  body row
 ```
 
-At the measured 1920×905 Chrome content viewport the same rules resolve to:
+At the currently measured 1920×961 Chrome content viewport the same rules resolve to:
 
 ```text
 1920 total width
@@ -43,9 +43,9 @@ At the measured 1920×905 Chrome content viewport the same rules resolve to:
 ├─ 1198 main (C)
 └─ 470  rail (D)
 
-905 total height
+961 total height
 ├─ 64   header (A)
-└─ 841  body row
+└─ 897  body row
 ```
 
 ```css

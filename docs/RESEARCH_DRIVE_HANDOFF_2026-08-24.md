@@ -13,8 +13,14 @@ the release machinery; several of them cost hours today.
     env backup     ~/.config/research-drive/front-door.env.before-e99ea1c-20260824
 
 Verified green: restartability probe ready, 139 datasets and registry
-fingerprint preserved across restart, cold Discover 1.58s, live smoke 32/32
-surface × viewport combinations usable, no console errors or overflow.
+fingerprint preserved across restart, cold Discover approximately 1.5–3 seconds,
+and the authenticated surface/viewport gate passed with no console errors or
+horizontal overflow. A live Chrome sweep after release covered every faculty
+destination at the browser's actual 1920×961 content viewport.
+
+The development commit `6e081c6` and released commit `e99ea1c0` have the same
+Git tree (`7a1553385df5501ad0b63ecdeb54ddf06f2c28c9`). The former is not an
+unshipped UI change; the release process replayed it under the latter identity.
 
 ## The serving tree moved
 
@@ -35,17 +41,19 @@ the other agent had stopped working when it had six commits. The project notes
 already warn about this for `git` and `du`. Use absolute paths for anything you
 reason from.
 
-**`$HOME` is not the user's home in an agent shell.** `Path.home()` and
-`$HOME/.config/...` resolve into a sandbox home, which breaks
-`promote_front_door.sh`, `serve_candidate.py` and `candidate-release-gate.sh`.
-Run those with `HOME=/home/phyrexian`. Do not reach for
-`PROMOTE_SKIP_PREFLIGHT=1` — the preflight is not the problem.
+**Do not assume an agent shell's `$HOME` is the user's home.** Some agent
+environments replace it and some do not. Pass the explicit `FRONT_DOOR_ENV`
+expected by the release scripts (or validate `HOME=/home/phyrexian`) before
+running `promote_front_door.sh`, `serve_candidate.py`, or
+`candidate-release-gate.sh`. Do not reach for `PROMOTE_SKIP_PREFLIGHT=1` — the
+preflight is not the problem.
 
-**Never commit to the serving tree.** The front door refuses to start unless the
-UI checkout SHA equals `YZU_PUBLIC_SHA` and the built identity matches. A commit
-to the serving tree makes the desk un-restartable. This caused a real outage
-today, which was only visible because someone stopped the service; it had been
-latently true for hours.
+**Never leave the serving tree HEAD inconsistent with the env pin and built
+identity.** The front door refuses to start unless the UI checkout SHA equals
+`YZU_PUBLIC_SHA` and the build stamp matches. An ordinary development commit in
+that tree makes the desk un-restartable. The controlled release workflow is the
+exception: it advances the release identity, updates the pin, runs preflight,
+and only then restarts. Skipping that sequence caused a real outage today.
 
 **A build in the serving clone overwrites the live release in place.** `dist` is
 a symlink into the release directory. `npm run build` there writes through it.
@@ -79,8 +87,8 @@ something and did not say it:
   track and the visible stage strip.
 
 Cold Discover search went from ~13s (client timeout, rendered as a false zero
-result) to under 2s: the embedding model and corpus vectors are warmed at
-startup and a request never loads them.
+result) to roughly 1.5–3s: the embedding model and corpus vectors are warmed at
+startup and a request no longer pays their full lazy-load cost.
 
 The Library estate went from 13.3s to ~3s by loading navigation before the
 resources rollup and aggregate health, which the boot comment already said to

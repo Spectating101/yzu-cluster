@@ -688,11 +688,12 @@ try {
     await page.screenshot({ path: path.join(outDir, "settings-settled-1440x900.png"), fullPage: false });
   }
 
-  // The release matrix covers the measured 1920×905 Chrome content viewport,
-  // a synthetic tall-evidence desktop, the compact desktop breakpoint, and
-  // mobile. The 1440 captures above remain a stable comparison fixture; they
-  // are not a claim about the user's display.
-  for (const [width, height] of includeCrossWidths ? [[1920, 905], [1920, 1600], [1280, 800], [390, 844]] : []) {
+  // The release matrix covers the currently measured 1920×961 Chrome content
+  // viewport, the earlier 1920×905 short-height observation, a synthetic
+  // tall-evidence desktop, the compact desktop breakpoint, and mobile. The
+  // 1440 captures above remain a stable comparison fixture; none of these is a
+  // universal claim about the user's display.
+  for (const [width, height] of includeCrossWidths ? [[1920, 961], [1920, 905], [1920, 1600], [1280, 800], [390, 844]] : []) {
     await page.setViewportSize({ width, height });
     for (const [label, url] of pages) {
       await page.goto(`${baseUrl}${url}`, { waitUntil: "load", timeout: 30_000 });
