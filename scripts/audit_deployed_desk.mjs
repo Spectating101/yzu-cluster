@@ -346,11 +346,16 @@ try {
 
   if (includeInteractions) {
     let auditedDatasetId = "";
+    // The live Library is folder-first at rest. Use a durable, query-ready held
+    // asset for the workspace/preview contract instead of assuming the first
+    // topical match must expose row preview. Derived holdings may truthfully be
+    // registered without a query route.
+    const libraryAuditQuery = "gdelt_asia_daily_country_panel";
     await page.goto(`${baseUrl}/?tab=library`, { waitUntil: "load", timeout: 30_000 });
     await waitForDesk();
     await page.evaluate(() => window.scrollTo(0, 0));
     const librarySearch = page.getByLabel("Search library holdings");
-    await librarySearch.fill("stablecoin");
+    await librarySearch.fill(libraryAuditQuery);
     await page.waitForFunction(
       () => document.querySelectorAll("[data-testid='library-directory'] button.row").length > 0,
       null,
@@ -402,7 +407,7 @@ try {
       await page.getByTestId("library-asset-workspace").waitFor({ state: "visible", timeout: 15_000 });
       await page.getByRole("button", { name: "← All Library assets" }).click();
       await page.getByTestId("library-directory").waitFor({ state: "visible", timeout: 15_000 });
-      await librarySearch.fill("stablecoin");
+      await librarySearch.fill(libraryAuditQuery);
       await page.waitForFunction(
         () => document.querySelectorAll("[data-testid='library-directory'] button.row").length > 0,
         null,
@@ -683,10 +688,11 @@ try {
     await page.screenshot({ path: path.join(outDir, "settings-settled-1440x900.png"), fullPage: false });
   }
 
-  // The release matrix covers the real 1920×961 Chrome content viewport, the
-  // compact desktop breakpoint, and mobile. The 1440 captures above remain a
-  // stable comparison fixture; they are not a claim about the user's display.
-  for (const [width, height] of includeCrossWidths ? [[1920, 961], [1280, 800], [390, 844]] : []) {
+  // The release matrix covers the measured 1920×905 Chrome content viewport,
+  // a synthetic tall-evidence desktop, the compact desktop breakpoint, and
+  // mobile. The 1440 captures above remain a stable comparison fixture; they
+  // are not a claim about the user's display.
+  for (const [width, height] of includeCrossWidths ? [[1920, 905], [1920, 1600], [1280, 800], [390, 844]] : []) {
     await page.setViewportSize({ width, height });
     for (const [label, url] of pages) {
       await page.goto(`${baseUrl}${url}`, { waitUntil: "load", timeout: 30_000 });
@@ -701,7 +707,7 @@ try {
         visible_text: (await page.locator("body").innerText()).replace(/\s+/g, " ").slice(0, 240),
       });
       if (width === 1920) {
-        await page.screenshot({ path: path.join(outDir, `${label}-1920x961.png`), fullPage: false });
+        await page.screenshot({ path: path.join(outDir, `${label}-${width}x${height}.png`), fullPage: false });
       }
     }
   }

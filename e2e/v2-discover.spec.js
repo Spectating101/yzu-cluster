@@ -308,6 +308,32 @@ test.describe("v2 Discover tab", () => {
     }
   });
 
+  test("does not report zero held evidence while the Library search is still running", async ({ page }) => {
+    await mockV2Api(page, {
+      discoverBody: { sections: [], total: 0 },
+      discoverDelayMs: 2_000,
+      discoverSourcesBody: {
+        results: [{
+          kind: "source",
+          source_id: "fast-known-route",
+          candidate_key: "source:fast-known-route",
+          title: "Fast known route",
+          provider: "Known source",
+          access_mode: "public",
+          collect_via: ["http_manifest"],
+        }],
+      },
+    });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await searchDiscover(page, "stablecoin");
+
+    const summary = page.getByTestId("discover-result-summary");
+    await expect(summary).toContainText("Library evidence · Checking…");
+    await expect(summary).not.toContainText("Library evidence · 0");
+    await expect(summary).toContainText("Library evidence · 0", { timeout: 4_000 });
+  });
+
   test("selecting a discover row keeps Explore visible and updates the Detail rail", async ({ page }) => {
     await searchDiscover(page);
     await page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate').first().click();
@@ -368,6 +394,53 @@ test.describe("v2 Discover tab", () => {
     expect(filterBox.x + filterBox.width).toBeLessThanOrEqual(390);
     expect(sortBox.x).toBeGreaterThanOrEqual(0);
     expect(sortBox.x + sortBox.width).toBeLessThanOrEqual(390);
+  });
+
+  test("usable height expands evidence detail and the bounded History ledger", async ({ page }) => {
+    const historyItems = Array.from({ length: 13 }, (_, index) => ({
+      id: `run_height_${String(index + 1).padStart(2, "0")}`,
+      kind: "collection_run",
+      status: "query_ready",
+      title: `Registered research asset ${index + 1}`,
+      summary: `Registry read-back confirmed for asset ${index + 1}.`,
+      created_at: `2026-08-${String(index + 1).padStart(2, "0")}T02:00:00Z`,
+      updated_at: `2026-08-${String(index + 1).padStart(2, "0")}T03:00:00Z`,
+      dataset_id: `registered_asset_${index + 1}`,
+      query_ready: true,
+      usable: true,
+      readiness: "query_ready",
+      holding_status: "held",
+      registry_readback: true,
+      archive_verified: true,
+    }));
+    await mockV2Api(page, {
+      discoverBody: MOCK_DISCOVER_HIT,
+      historyBody: { items: historyItems },
+      jobsBody: { jobs: [] },
+    });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await searchDiscover(page, "governance filings");
+
+    const evidence = page.locator(".rd-v2-discover-evidence").first();
+    const offeringFacts = page.locator(".rd-v2-discover-offering-facts").first();
+    await expect(evidence).toBeVisible();
+    await expect(offeringFacts).toContainText("Dataset");
+    expect(await evidence.evaluate((node) => getComputedStyle(node).webkitLineClamp)).toBe("1");
+    expect(await offeringFacts.locator("b").first().evaluate((node) => getComputedStyle(node).display)).toBe("none");
+
+    await page.getByRole("tab", { name: "History" }).click();
+    await expect(page.locator(".rd-v2-history-row")).toHaveCount(8);
+
+    await page.setViewportSize({ width: 1920, height: 1600 });
+    await expect(page.locator(".rd-v2-history-row")).toHaveCount(12);
+    await page.getByRole("tab", { name: "Explore" }).click();
+    expect(await evidence.evaluate((node) => getComputedStyle(node).webkitLineClamp)).toBe("3");
+    expect(await offeringFacts.locator("b").first().evaluate((node) => getComputedStyle(node).display)).toBe("block");
+    expect(await page.locator(".rd-v2-discover-candidate-title").first().evaluate(
+      (node) => getComputedStyle(node).whiteSpace,
+    )).toBe("normal");
   });
 
   test("Discover candidate Ask actions carry candidate context", async ({ page }) => {

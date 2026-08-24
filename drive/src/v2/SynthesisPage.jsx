@@ -2016,6 +2016,28 @@ export function SynthesisPage({
                   onRetry={() => measureThread(selected, mappedInputKey)}
                 />
               ) : null}
+              {preAcceptance ? (
+                <>
+                  {hasRecommendation ? (
+                    <RecommendedConstruction
+                      thread={displayedSelected}
+                      onCompare={() => ask("Compare the alternative constructions and say what each one costs.")}
+                    />
+                  ) : null}
+                  <WhatHappensNext
+                    thread={displayedSelected}
+                    onCompare={() => ask("Compare the alternative constructions and say what each one costs.")}
+                    onAccept={() => ask("Accept the recommended construction and draft the detailed method.")}
+                    onStartReasoning={() => startMethodReasoning()}
+                    onFindEvidence={findHeldEvidence}
+                    mappingEvidence={mappingEvidence}
+                    reasoningPending={reasoningPending}
+                    reasoningAvailable={reasoningAvailable}
+                    reasoningStatus={reasoningStatus}
+                    onOpenResources={() => onGoTab?.("resources")}
+                  />
+                </>
+              ) : null}
               {focus.subject === "scope" ? (
                 <ScopePanel
                   block={displayedSelected.state?.scope_block}
@@ -2062,28 +2084,6 @@ export function SynthesisPage({
                   onFindEvidence={findHeldEvidence}
                   onApplyEvidence={applyHeldEvidence}
                 />
-              ) : null}
-              {preAcceptance ? (
-                <>
-                  {hasRecommendation ? (
-                    <RecommendedConstruction
-                      thread={displayedSelected}
-                      onCompare={() => ask("Compare the alternative constructions and say what each one costs.")}
-                    />
-                  ) : null}
-                  <WhatHappensNext
-                    thread={displayedSelected}
-                    onCompare={() => ask("Compare the alternative constructions and say what each one costs.")}
-                    onAccept={() => ask("Accept the recommended construction and draft the detailed method.")}
-                    onStartReasoning={() => startMethodReasoning()}
-                    onFindEvidence={findHeldEvidence}
-                    mappingEvidence={mappingEvidence}
-                    reasoningPending={reasoningPending}
-                    reasoningAvailable={reasoningAvailable}
-                    reasoningStatus={reasoningStatus}
-                    onOpenResources={() => onGoTab?.("resources")}
-                  />
-                </>
               ) : null}
               {preAcceptance && !hasMappedEvidence ? (
                 <EvidenceMap

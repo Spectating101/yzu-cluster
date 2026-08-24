@@ -34,3 +34,27 @@ def test_writes_require_an_explicit_override() -> None:
         "/library/jobs",
         allow_writes=True,
     )
+
+
+def test_candidate_get_routes_cover_the_built_ui_api_without_swallowing_spa_assets() -> None:
+    for path in (
+        "/library/discover?q=stablecoin",
+        "/datasets",
+        "/datasets/gdelt_asia_daily_country_panel",
+        "/query/gdelt_asia_daily_country_panel?limit=10",
+        "/yzu/status",
+        "/health?live=true",
+        "/research-drive-build.json",
+        "/api/library/overview",
+    ):
+        assert MODULE.live_get_route(path), path
+
+    for path in (
+        "/",
+        "/index.html",
+        "/assets/index.js",
+        "/datasetsevil",
+        "/library-card",
+        "/health-report.html",
+    ):
+        assert not MODULE.live_get_route(path), path

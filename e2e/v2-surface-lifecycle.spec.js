@@ -120,4 +120,29 @@ test.describe("primary surface lifecycle contract", () => {
     await expect(surface(page)).toHaveAttribute("data-surface-state", "error");
     await expect(page.getByTestId("desk-error")).toBeVisible();
   });
+
+  test("Profile and Settings expose lifecycle state on compact screens", async ({ page }) => {
+    await mockV2Api(page, {
+      healthDelayMs: 700,
+      jobsDelayMs: 1_100,
+      jobsBody: { jobs: [] },
+    });
+    await page.route("**/library/faculty/profile*", async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 650));
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ found: true, profile: { name_en: "Test Prof", discipline: "YZU" } }),
+      });
+    });
+    await page.setViewportSize({ width: 390, height: 844 });
+
+    await page.goto("/?tab=profile", { waitUntil: "domcontentloaded" });
+    await expect(surface(page)).toHaveAttribute("data-surface-state", "loading");
+    await expect(surface(page)).toHaveAttribute("data-surface-state", "ready", { timeout: 4_000 });
+
+    await page.goto("/?tab=settings", { waitUntil: "domcontentloaded" });
+    await expect(surface(page)).toHaveAttribute("data-surface-state", /loading|partial/);
+    await expect(surface(page)).toHaveAttribute("data-surface-state", "ready", { timeout: 4_000 });
+  });
 });

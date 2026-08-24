@@ -8,6 +8,7 @@ import {
   buildMemoryCards,
   buildWorks,
 } from "@/v2/profileViewModel";
+import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
 import { PageShell } from "@/v2/ui";
 
 function memoryText(card, prefix) {
@@ -58,6 +59,11 @@ export function ProfilePage({ profile, onGoTab, onSuggestSearch, onProfileRefres
 
   const previewing = !bound && Boolean(pilot);
   const active = bound ? profile : pilot;
+  const surfaceState = resolveSurfaceLifecycle({
+    idle: !bound && !pilotLoading && Boolean(pilot),
+    loading: !bound && pilotLoading,
+    count: active ? 1 : 0,
+  });
   const name = active?.name_en || active?.name || "Research profile";
   const paperCount = active?.paper_count_parsed || active?.paper_count || null;
   const orgLine = [active?.title, active?.discipline].filter(Boolean).join(" · ");
@@ -83,6 +89,7 @@ export function ProfilePage({ profile, onGoTab, onSuggestSearch, onProfileRefres
       className={`rd-v2-profile-page rd-v2-profile-grounded${previewing ? " is-preview" : ""}`}
       title="Profile"
       lead="Research memory carried into Discover and Ask"
+      surfaceState={surfaceState}
     >
       <section className="rd-v2-profile-identity" aria-label="Faculty identity">
         <div className="rd-v2-profile-ident">

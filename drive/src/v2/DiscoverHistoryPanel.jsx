@@ -13,6 +13,11 @@ const HISTORY_FILTERS = [
   { id: "scheduled", label: "Scheduled" },
 ];
 
+function historyViewportBudget() {
+  if (typeof window === "undefined" || !window.matchMedia) return 8;
+  return window.matchMedia("(min-width: 1280px) and (min-height: 1200px)").matches ? 12 : 8;
+}
+
 function cleanTarget(value) {
   const valueText = String(value || "").replace(/\s+/g, " ").trim();
   if (!valueText.startsWith("[context:") || !valueText.includes("]")) return valueText;
@@ -230,7 +235,8 @@ export function DiscoverHistoryPanel({
   onSelectEvent,
 }) {
   const [filter, setFilter] = useState("all");
-  const [visibleCount, setVisibleCount] = useState(8);
+  const [viewportBudget, setViewportBudget] = useState(historyViewportBudget);
+  const [visibleCount, setVisibleCount] = useState(historyViewportBudget);
   const fenced = useMemo(() => {
     const raw = [...events]
       .filter((event) => event && (event.id || event.ts || event.target))
@@ -272,8 +278,17 @@ export function DiscoverHistoryPanel({
   );
 
   useEffect(() => {
-    setVisibleCount(8);
-  }, [filter]);
+    if (!window.matchMedia) return undefined;
+    const query = window.matchMedia("(min-width: 1280px) and (min-height: 1200px)");
+    const update = () => setViewportBudget(query.matches ? 12 : 8);
+    update();
+    query.addEventListener?.("change", update);
+    return () => query.removeEventListener?.("change", update);
+  }, []);
+
+  useEffect(() => {
+    setVisibleCount(viewportBudget);
+  }, [filter, viewportBudget]);
 
   useEffect(() => {
     if (!visible.length || !onSelectEvent) return;

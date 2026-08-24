@@ -17,6 +17,21 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 SAFE_LIVE_POST_PATHS = frozenset({"/library/desk/session"})
+SAFE_LIVE_GET_PREFIXES = (
+    "/library",
+    "/datasets",
+    "/query",
+    "/yzu",
+    "/health",
+    "/research-drive-build.json",
+    "/api",
+)
+
+
+def live_get_route(path):
+    """Return whether a built-UI GET belongs to the desk API, not the SPA."""
+    base = "/" + str(path or "").split("?", 1)[0].lstrip("/")
+    return any(base == prefix or base.startswith(f"{prefix}/") for prefix in SAFE_LIVE_GET_PREFIXES)
 
 
 def live_proxy_allowed(method, path, *, allow_writes=False):
@@ -29,6 +44,15 @@ def live_proxy_allowed(method, path, *, allow_writes=False):
 
 class H(BaseHTTPRequestHandler):
     def log_message(self, *a): pass
+
+    def _write_body(self, body):
+        try:
+            self.wfile.write(body)
+        except (BrokenPipeError, ConnectionResetError):
+            # Browser navigation can cancel a slow read-only request after the
+            # live API has answered. That is expected audit behaviour, not a
+            # candidate-server failure worth flooding the release log with.
+            pass
 
     def _fail(self, path):
         return any(path.startswith(p) for p in self.server.fail_paths)
@@ -44,7 +68,7 @@ class H(BaseHTTPRequestHandler):
                  "text/css" if f.suffix == ".css" else "application/octet-stream")
         self.send_response(200); self.send_header("Content-Type", ctype)
         self.send_header("Content-Length", str(len(body))); self.end_headers()
-        self.wfile.write(body)
+        self._write_body(body)
 
     def _fixture_for(self, path):
         base = path.split("?")[0]
@@ -57,18 +81,18 @@ class H(BaseHTTPRequestHandler):
             body = fx.encode()
             self.send_response(200); self.send_header("Content-Type", "application/json")
             self.send_header("Content-Length", str(len(body))); self.end_headers()
-            self.wfile.write(body); return
+            self._write_body(body); return
         if not live_proxy_allowed(method, path, allow_writes=self.server.allow_writes):
             body = b'{"error":"candidate_proxy_read_only","message":"Candidate tests may not mutate the live desk"}'
             self.send_response(405); self.send_header("Content-Type", "application/json")
             self.send_header("Allow", "GET, HEAD, POST /library/desk/session")
             self.send_header("Content-Length", str(len(body))); self.end_headers()
-            self.wfile.write(body); return
+            self._write_body(body); return
         if self._fail(path):
             msg = b'{"error":"Service Unavailable","message":"injected partial failure"}'
             self.send_response(503); self.send_header("Content-Type", "application/json")
             self.send_header("Content-Length", str(len(msg))); self.end_headers()
-            self.wfile.write(msg); return
+            self._write_body(msg); return
         length = int(self.headers.get("Content-Length") or 0)
         payload = self.rfile.read(length) if length else None
         req = urllib.request.Request(self.server.api + path, data=payload, method=method)
@@ -85,11 +109,10 @@ class H(BaseHTTPRequestHandler):
             body, code, ctype = str(e).encode(), 502, "text/plain"
         self.send_response(code); self.send_header("Content-Type", ctype)
         self.send_header("Content-Length", str(len(body))); self.end_headers()
-        self.wfile.write(body)
+        self._write_body(body)
 
     def do_GET(self):
-        p = self.path.split("?")[0]
-        if p.startswith(("/library", "/health", "/research-drive-build.json", "/api")):
+        if live_get_route(self.path):
             self._proxy("GET")
         else:
             self._serve_static(self.path)

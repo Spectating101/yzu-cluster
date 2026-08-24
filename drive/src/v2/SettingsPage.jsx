@@ -11,6 +11,7 @@ import { composerRuntimeRead } from "@/v2/composerRuntimeStatus";
 import { ContextHelp } from "@/v2/InteractionGuidance";
 import { loadSettings, saveSettings } from "@/v2/settingsStore";
 import { PILOT_PREVIEW_EMAIL } from "@/v2/profileViewModel";
+import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
 import { PageShell, StatementRow, StatementSection } from "@/v2/ui";
 import { V2_TABS } from "@/v2/nav-config.jsx";
 import { handleEnterToSubmit } from "@/v2/enterToSubmit";
@@ -183,6 +184,11 @@ export function SettingsPage({
   });
   const mcpTools = resourcesRollup?.ai?.mcp_tools?.total ?? resourcesRollup?.hero?.mcp_tools ?? null;
   const healthOk = health?.status === "ok";
+  const surfaceState = resolveSurfaceLifecycle({
+    loading: health == null || !jobsLoaded,
+    error: jobsRefreshFailed ? "Job inventory could not refresh" : "",
+    hasData: health != null,
+  });
 
   const patch = (p) => setSettings(saveSettings(p));
 
@@ -233,7 +239,11 @@ export function SettingsPage({
   };
 
   return (
-    <PageShell title="Settings" lead="Identity, access, and research-desk preferences — status from live /health only">
+    <PageShell
+      title="Settings"
+      lead="Identity, access, and research-desk preferences — status from live /health only"
+      surfaceState={surfaceState}
+    >
       <div className="rd-v2-settings-statement">
         <section className="rd-v2-settings-summary" aria-label="Research desk status">
           <SummaryCard

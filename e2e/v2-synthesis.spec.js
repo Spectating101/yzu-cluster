@@ -1361,7 +1361,11 @@ test.describe("v2 Synthesis measured evidence integration", () => {
     await expect(page.getByRole("button", { name: "Ask which is which" })).toHaveCount(0);
     const warningBox = await page.getByTestId("synthesis-unit-conflict").boundingBox();
     const nextBox = await page.getByRole("region", { name: "What happens next" }).boundingBox();
-    expect(warningBox?.y).toBeLessThan(nextBox?.y);
+    expect(nextBox?.y).toBeLessThan(warningBox?.y);
+    expect(
+      (nextBox?.y || Infinity) + (nextBox?.height || Infinity),
+      "the one consequential action should be visible before the deep evidence record",
+    ).toBeLessThanOrEqual(1000);
     await expect(page.getByRole("region", { name: "Recommended construction" })).toHaveCount(0);
     await expect(page.getByRole("region", { name: "What happens next" })).toContainText(
       "finished deterministic checks against held evidence",

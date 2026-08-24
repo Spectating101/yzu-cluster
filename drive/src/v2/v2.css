@@ -6055,7 +6055,31 @@
   color: var(--rd-muted);
   cursor: progress;
 }
-.rd-v2-discover-offering-facts { color: var(--rd-muted); font-size: 10.5px; letter-spacing: .01em; }
+.rd-v2-discover-offering-facts {
+  display: flex;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--rd-muted);
+  font-size: 10.5px;
+  letter-spacing: .01em;
+  white-space: nowrap;
+}
+.rd-v2-discover-offering-facts > span {
+  display: inline-flex;
+  min-width: 0;
+  align-items: baseline;
+}
+.rd-v2-discover-offering-facts > span + span::before {
+  content: "·";
+  margin: 0 5px;
+  color: #a4acb7;
+}
+.rd-v2-discover-offering-facts b { display: none; }
+.rd-v2-discover-offering-facts em {
+  overflow: hidden;
+  font-style: normal;
+  text-overflow: ellipsis;
+}
 
 .rd-v2-discover-library-evidence {
   position: relative;
@@ -9827,6 +9851,99 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 
 .rd-v2-discover-context-results .rd-v2-discover-candidate {
   opacity: 0.9;
+}
+
+/* Discover adapts to usable evidence height, not desktop width alone. A
+   standard-height desk keeps the frozen compact rows; a genuinely tall desk
+   spends its additional vertical budget on readable evidence rather than
+   empty canvas. The row fields and order remain the frozen authority. */
+@media (min-width: 761px) and (max-height: 1000px) {
+  .rd-v2-discover-ranked-results {
+    margin-top: 13px;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-candidates button.row.rd-v2-discover-candidate {
+    gap: 10px;
+    padding-top: 11px;
+    padding-bottom: 11px;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-candidates li:has(.rd-v2-discover-row-add) button.row.rd-v2-discover-candidate {
+    padding-bottom: 34px;
+  }
+
+  .rd-v2-discover-candidate-main {
+    gap: 3px;
+  }
+
+  .rd-v2-discover-evidence {
+    -webkit-line-clamp: 1;
+  }
+
+  .rd-v2-discover-sufficiency {
+    margin-top: 3px;
+  }
+}
+
+@media (min-width: 1600px) and (min-height: 1200px) {
+  .rd-v2-discover-ranked-results .rd-v2-discover-candidates button.row.rd-v2-discover-candidate {
+    padding-top: 18px;
+    padding-bottom: 18px;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-candidates li:has(.rd-v2-discover-row-add) button.row.rd-v2-discover-candidate {
+    padding-bottom: 46px;
+  }
+
+  .rd-v2-discover-candidate-main {
+    gap: 7px;
+  }
+
+  .rd-v2-discover-candidate-title,
+  .rd-v2-discover-offering-facts {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+  }
+
+  .rd-v2-discover-evidence {
+    font-size: 13.5px;
+    -webkit-line-clamp: 3;
+  }
+
+  .rd-v2-discover-offering-facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+    gap: 8px 18px;
+    margin-top: 2px;
+    padding: 10px 0 2px;
+    border-top: 1px solid var(--rd-border);
+    line-height: 1.35;
+  }
+
+  .rd-v2-discover-offering-facts > span {
+    display: grid;
+    gap: 2px;
+  }
+
+  .rd-v2-discover-offering-facts > span + span::before {
+    content: none;
+  }
+
+  .rd-v2-discover-offering-facts b {
+    display: block;
+    color: #7b8390;
+    font-size: 8.5px;
+    font-weight: 760;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+  }
+
+  .rd-v2-discover-offering-facts em {
+    color: #4d5968;
+    font-size: 11px;
+    white-space: normal;
+  }
 }
 
 /* The History surface is a compact lifecycle ledger: researcher decisions

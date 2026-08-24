@@ -196,6 +196,16 @@ function DiscoverCandidateRow({
   const evidenceLine = hasExplicitDescription ? humanizeDiscoverDescription(descriptiveLine(row)) : "";
   const coverage = coverageLine(row);
   const showCoverage = coverage && coverage !== "Coverage not described";
+  const offeringFacts = [
+    ["Type", offeringType(row, taxonomy)],
+    ["Coverage", showCoverage ? coverage : null],
+    ["Refresh", row?.refresh_frequency || row?.refresh || row?.update_frequency],
+    ["Route", collectRouteLabel(row?.collect_via)
+      ? `Collect via ${collectRouteLabel(row.collect_via)}`
+      : null],
+    ["Files", row?.file_summary || null],
+    ["Observation", row?.probe_snapshot?.observed_at ? "Observed probe" : null],
+  ].filter(([, value]) => Boolean(value));
   const canAdd = taxonomy.key === "external-acquirable"
     && !["Reference only", "Web context"].includes(offeringType(row, taxonomy))
     && typeof onAdd === "function";
@@ -230,17 +240,13 @@ function DiscoverCandidateRow({
             <em className="rd-v2-discover-possession">{taxonomyLine}</em>
           </span>
           {evidenceLine ? <span className="rd-v2-discover-evidence">{evidenceLine}</span> : null}
-          <span className="rd-v2-discover-offering-facts">
-            {[
-              offeringType(row, taxonomy),
-              showCoverage ? coverage : null,
-              row?.refresh_frequency || row?.refresh || row?.update_frequency,
-              collectRouteLabel(row?.collect_via)
-                ? `Collect via ${collectRouteLabel(row.collect_via)}`
-                : null,
-              row?.file_summary || null,
-              row?.probe_snapshot?.observed_at ? "Observed probe" : null,
-            ].filter(Boolean).join(" · ")}
+          <span className="rd-v2-discover-offering-facts" aria-label="Offering facts">
+            {offeringFacts.map(([label, value]) => (
+              <span key={`${label}:${value}`}>
+                <b>{label}</b>
+                <em>{value}</em>
+              </span>
+            ))}
           </span>
           {showSufficiency ? (
             <span
@@ -1457,7 +1463,7 @@ export function BrowsePage({
                   ? discoverTerritories(resultGroups).map((territory) =>
                     // A page reload can begin a query before /datasets has
                     // answered. That is unmeasured, not zero held evidence.
-                    territory.id === "held" && catalogLoading ? (
+                    territory.id === "held" && (catalogLoading || lookupProgress.library === "checking") ? (
                       <span key={territory.id}>Library evidence · Checking…</span>
                     // The freeze makes Library evidence an opener, not a label:
                     // it reveals a bounded preview plus Compare coverage and Open
