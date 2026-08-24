@@ -87,6 +87,9 @@ import { holdingIdsFromCatalog, isLocalHolding } from "@/v2/discoverTaxonomy";
 import { libraryEvidence, libraryHoldings, libraryReferences } from "@/v2/deskCounts";
 import { composerRuntimeRead } from "@/v2/composerRuntimeStatus";
 
+const DESK_HEALTH_READY_POLL_MS = 60_000;
+const DESK_HEALTH_RECHECK_MS = 10_000;
+
 function readParams() {
   const p = new URLSearchParams(window.location.search);
   const dataset = p.get("dataset") || "";
@@ -523,6 +526,37 @@ export function V2App() {
   useEffect(() => {
     if (deskAccess?.authenticated) refreshBackend();
   }, [refreshBackend, deskAccess?.authenticated]);
+
+  useEffect(() => {
+    if (!deskAccess?.authenticated) return undefined;
+    let cancelled = false;
+    const pollHealth = () => {
+      if (document.visibilityState === "hidden") return;
+      deskHealth(false, { timeoutMs: 12_000 })
+        .then((payload) => {
+          if (cancelled) return;
+          setHealth(mergeHealth(payload));
+          setDeskRefreshedAt(Date.now());
+        })
+        .catch(() => {
+          // Preserve the last measured truth. The main boot/recovery path owns
+          // the explicit unknown state when no health read has ever succeeded.
+        });
+    };
+    const intervalMs = composerRuntime?.ready
+      ? DESK_HEALTH_READY_POLL_MS
+      : DESK_HEALTH_RECHECK_MS;
+    const handle = window.setInterval(pollHealth, intervalMs);
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") pollHealth();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      cancelled = true;
+      window.clearInterval(handle);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [composerRuntime?.ready, deskAccess?.authenticated]);
 
   const askFromPrompt = useCallback((prompt) => {
     if (!prompt) return;

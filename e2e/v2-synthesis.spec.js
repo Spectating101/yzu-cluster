@@ -369,6 +369,49 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await capture(page, "workflow-unverified-action-390x844");
   });
 
+  test("an open Synthesis page enables reasoning after a fresh runtime observation", async ({ page }) => {
+    let providerReady = false;
+    await page.route("**/*health*", (route) => route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        ...MOCK_HEALTH,
+        status: providerReady ? "ok" : "degraded",
+        desk: {
+          ...MOCK_HEALTH.desk,
+          composer_runtime: providerReady
+            ? {
+                status: "ready",
+                configured: true,
+                verified: true,
+                checked_at: "2026-08-25T00:00:00Z",
+              }
+            : {
+                status: "stale",
+                configured: true,
+                verified: false,
+                checked_at: "2026-08-24T15:57:30Z",
+              },
+        },
+      }),
+    }));
+    await page.goto("/?tab=synthesis", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+
+    const action = page
+      .getByLabel("What happens next")
+      .getByRole("button", { name: "Start method reasoning" });
+    await expect(action).toBeDisabled();
+
+    providerReady = true;
+    await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+
+    await expect(action).toBeEnabled();
+    await expect(page.getByTestId("synthesis-workflow-next")).toContainText(
+      "Review mapped evidence, then request one reviewable construction.",
+    );
+  });
+
   test("collapses a long live brief on mobile while keeping the full brief explicitly reachable", async ({ page }) => {
     await page.getByRole("button", { name: "+ New synthesis" }).click();
     await page.getByTestId("synthesis-intent-state").getByRole("textbox").fill(LONG_LIVE_BRIEF);
