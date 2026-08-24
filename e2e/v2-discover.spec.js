@@ -430,6 +430,12 @@ test.describe("v2 Discover tab", () => {
     expect(await evidence.evaluate((node) => getComputedStyle(node).webkitLineClamp)).toBe("1");
     expect(await offeringFacts.locator("b").first().evaluate((node) => getComputedStyle(node).display)).toBe("none");
 
+    await page.setViewportSize({ width: 1920, height: 961 });
+    // The label is an inline declaration, then blockified by its inline-flex
+    // fact container; the material contract is that it is no longer hidden.
+    expect(await offeringFacts.locator("b").first().evaluate((node) => getComputedStyle(node).display)).toBe("block");
+    expect(await offeringFacts.evaluate((node) => getComputedStyle(node).display)).toBe("flex");
+
     await page.getByRole("tab", { name: "History" }).click();
     await expect(page.locator(".rd-v2-history-row")).toHaveCount(8);
 
