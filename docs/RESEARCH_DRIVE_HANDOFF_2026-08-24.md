@@ -5,12 +5,12 @@ the release machinery; several of them cost hours today.
 
 ## Live state
 
-    UI       e99ea1c0
-    backend  53726def
+    UI       7af5c38b
+    backend  39915476
     serving tree   research-drive-…-ui-r5-build   ← this moved today
     backend tree   research-drive-…-r2
-    rollback       e874b39 -- 53726def
-    env backup     ~/.config/research-drive/front-door.env.before-e99ea1c-20260824
+    rollback       7af5c38b -- 795dae61
+    env backup     ~/.config/research-drive/front-door.env.before-7af5c38-20260824
 
 Verified green: restartability probe ready, 139 datasets and registry
 fingerprint preserved across restart, cold Discover approximately 1.5–3 seconds,
@@ -21,6 +21,64 @@ destination at the browser's actual 1920×961 content viewport.
 The development commit `6e081c6` and released commit `e99ea1c0` have the same
 Git tree (`7a1553385df5501ad0b63ecdeb54ddf06f2c28c9`). The former is not an
 unshipped UI change; the release process replayed it under the latter identity.
+
+The final adaptive-density release is `7af5c38b--39915476`. Its candidate gate
+passed 37 browser contracts, 5 focused page integrations, and 4 proxy-safety
+tests. Backend verification passed 155 drive tests and 1,230 root tests (eight
+environment-dependent skips). The post-restart exercise preserved 139 served
+datasets and registry fingerprint `006a0276b94ee64c`, with the first
+authenticated Discover query completing in 0.820s. The expanded deployed audit
+(including 1920×961 and the 1920×905 short-height regression) completed with no
+request, console, page-error, gate, or overflow failure.
+
+Seven Refinitiv registry rows now resolve bytes that were already present in
+the July backfill. The repair is reproducible through
+`scripts.research_data_mcp.registry_relink`: report-only by default, apply only
+when the row lacks `local_path` and the file exists, and idempotent on a second
+run. All seven returned rows through the live authenticated `/query/{id}` path.
+
+Direct `status` turns now describe the files produced by completed collection
+jobs. A production-only symlink boundary found during release verification was
+fixed: artifact links retain their logical `data_lake/procured/...` namespace
+even when the physical runtime drive is outside the backend checkout. A real
+completed TWSE job returned two artifacts, their sizes, and its promoted
+dataset id after the fix.
+
+## Live page and workflow sweep
+
+The following was observed in the authenticated Chrome, not inferred from
+fixtures or source strings:
+
+- **Home:** a query-ready pickup, a second evidence continuation, storage and
+  assistant headroom, and the recent trail all project real desk state. The
+  lower canvas stays deliberately quiet once those decisions are exhausted.
+- **Library:** shelf root → selected dataset workspace → 12-row/8-field preview
+  works against the live query endpoint. Evidence shape, intended use,
+  boundary, sample rows, queryability, and verification remain visually
+  distinct.
+- **Discover Explore:** idle estate → named staged lookup → ranked offerings →
+  selected-source inspector works. A live `stablecoin` search preserved 18
+  Library matches while returning 3 offerings and 2 references. Wide
+  workstations name compact facts (`TYPE`, `ROUTE`); 1440 stays terse and the
+  synthetic tall view expands descriptions and facts.
+- **Discover History:** researcher decisions, ready outcomes, recovery cases,
+  and system checks are separate territories. Selecting a row projects status,
+  use-now truth, risk, evidence, and next action into the rail.
+- **Synthesis:** Define and Map Evidence are complete for the selected thread;
+  2 held inputs and 72 columns are measured without an assistant. The decision
+  checkpoint is above the fold. Reason and Approve remain honestly blocked by
+  the unverified assistant rather than behaving like demo actions.
+- **Resources:** Sources reports capacity/access, Usage shows the live activity
+  ledger, and Method explains Find → Acquire → Execute → Promote. The page also
+  exposes the real operational weakness: 5 collectors registered, none
+  connected, and 3 stale.
+- **Profile:** research memory, works, methods, direction, and suggestions are
+  coherent, but the visible identity is still the labelled EXAMPLE until the
+  faculty identity is deliberately bound.
+- **Settings:** session/access, identity, services, and display controls work;
+  cold aggregate truth takes roughly 7–12s to settle. It stays `Syncing…` and
+  then resolves to live/degraded, assistant unverified, and the current approval
+  count rather than inventing readiness.
 
 ## The serving tree moved
 
@@ -110,10 +168,12 @@ provider. Not a defect; needs a provider.
 
 **Operational backlog now visible because the interface stopped hiding it:**
 7 pending approvals, 4 failed jobs, 39 registered-but-not-queryable records.
-The last is the most interesting — data the desk holds and cannot use.
+The last count includes receipt-only records that are intentionally not
+queryable; do not treat it as 39 missing datasets. Nine Refinitiv registry rows
+still have no matching local backfill file and remain genuine acquisition work.
 
 **Housekeeping.** The serving tree now retains exactly two releases: live
-`e99ea1c0--53726def` and rollback `e874b39--53726def`. Twenty-four older release
+`7af5c38b--39915476` and rollback `7af5c38b--795dae61`. Older release
 directories were moved intact to
 `Molina-Optiplex/research-drive-release-archive-20260824/`; nothing was deleted.
 Five clean `/tmp` worktrees were removed after their branch refs were verified,
@@ -121,11 +181,12 @@ reducing this repository from 19 to 14 registered worktrees. The remaining
 trees include dirty or non-ancestor work and require explicit disposition; do
 not remove them as a batch.
 
-**Backend capability sweep.** ~45 candidates identified as public functions not
-reachable from any entry point. Triage each into: real gap, redundant duplicate,
-or deliberately held — all three categories exist, and wiring a redundant one
-would double-queue archive jobs. `apply_probe_catalog_hints` is the best
-remaining candidate and needs probe results threaded into plan construction.
+**Backend capability sweep.** The original lead list was reduced substantially
+by reachability and manual triage; unused does not mean missing. Continue to
+classify remaining candidates as real gap, redundant duplicate, or deliberately
+held — all three categories exist, and wiring a redundant one would double-queue
+archive jobs. `apply_probe_catalog_hints` remains the best candidate and needs
+probe results threaded into plan construction.
 
 ## Regression gates worth knowing about
 
@@ -135,7 +196,17 @@ remaining candidate and needs probe results threaded into plan construction.
     npm run test:synthesis-states   rendered execution track, needs a candidate
     npm run test:boot-recovery      hangs /health and the rollup, proves the estate still arrives
     scripts/candidate-release-gate.sh   the whole browser contract against a built candidate
+    scripts/audit_deployed_desk.mjs     read-only live pages, workflows, widths, console, network
 
 The rendered specs use fixtures because live data never produces failed,
 blocked, pending_approval, paused or stopped. Every defect found in those states
 existed precisely because nobody could see them.
+
+The deployed audit must wait for a terminal preview outcome (rows or the
+explicit unavailable panel), not merely for a loading status to be hidden. The
+modal becomes visible one frame before React mounts its spinner; the old wait
+could therefore capture a healthy 344ms query as a zero-row failure.
+The destination sweep and workflow exercise also run on separate pages. Rapid
+cross-page capture intentionally cancels enrichment calls and can otherwise
+fill Chromium's per-origin connection pool, making the following workflow test
+measure audit-created backlog instead of the workflow itself.

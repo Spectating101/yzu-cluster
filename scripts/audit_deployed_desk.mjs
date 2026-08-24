@@ -109,7 +109,6 @@ if (staticDir) {
     await route.fulfill({ path: candidate });
   });
 }
-const page = await context.newPage();
 const requestStarted = new Map();
 
 function trackedRequestPath(requestUrl) {
@@ -119,53 +118,59 @@ function trackedRequestPath(requestUrl) {
       || pathname === "/library/partitions"
       || pathname === "/library/jobs"
       || pathname === "/library/discover"
-      || pathname === "/library/discover/sources";
+      || pathname === "/library/discover/sources"
+      || pathname.startsWith("/query/");
   } catch {
     return false;
   }
 }
 
-page.on("request", (request) => {
-  if (trackedRequestPath(request.url())) requestStarted.set(request, Date.now());
-});
-page.on("response", (response) => {
-  const request = response.request();
-  const startedAt = requestStarted.get(request);
-  if (startedAt == null) return;
-  requestStarted.delete(request);
-  const requestUrl = new URL(request.url());
-  report.network.push({
-    method: request.method(),
-    path: `${requestUrl.pathname}${requestUrl.search}`,
-    status: response.status(),
-    duration_ms: Date.now() - startedAt,
+function observePage(target) {
+  target.on("request", (request) => {
+    if (trackedRequestPath(request.url())) requestStarted.set(request, Date.now());
   });
-});
-page.on("requestfailed", (request) => {
-  if (!trackedRequestPath(request.url())) return;
-  requestStarted.delete(request);
-  const requestUrl = new URL(request.url());
-  const failure = {
-    method: request.method(),
-    path: `${requestUrl.pathname}${requestUrl.search}`,
-    error: request.failure()?.errorText || "request failed",
-  };
-  if (failure.error === "net::ERR_ABORTED") {
-    // Page-to-page audit navigation intentionally cancels enrichment requests
-    // that are no longer relevant. Keep those observable without classifying
-    // them as transport failures.
-    report.navigation_aborts.push(failure);
-    return;
-  }
-  report.request_failures.push(failure);
-});
+  target.on("response", (response) => {
+    const request = response.request();
+    const startedAt = requestStarted.get(request);
+    if (startedAt == null) return;
+    requestStarted.delete(request);
+    const requestUrl = new URL(request.url());
+    report.network.push({
+      method: request.method(),
+      path: `${requestUrl.pathname}${requestUrl.search}`,
+      status: response.status(),
+      duration_ms: Date.now() - startedAt,
+    });
+  });
+  target.on("requestfailed", (request) => {
+    if (!trackedRequestPath(request.url())) return;
+    requestStarted.delete(request);
+    const requestUrl = new URL(request.url());
+    const failure = {
+      method: request.method(),
+      path: `${requestUrl.pathname}${requestUrl.search}`,
+      error: request.failure()?.errorText || "request failed",
+    };
+    if (failure.error === "net::ERR_ABORTED") {
+      // Page-to-page audit navigation intentionally cancels enrichment requests
+      // that are no longer relevant. Keep those observable without classifying
+      // them as transport failures.
+      report.navigation_aborts.push(failure);
+      return;
+    }
+    report.request_failures.push(failure);
+  });
 
-page.on("console", (message) => {
-  if (["warning", "error"].includes(message.type())) {
-    report.console.push({ type: message.type(), text: message.text() });
-  }
-});
-page.on("pageerror", (error) => report.page_errors.push(String(error)));
+  target.on("console", (message) => {
+    if (["warning", "error"].includes(message.type())) {
+      report.console.push({ type: message.type(), text: message.text() });
+    }
+  });
+  target.on("pageerror", (error) => report.page_errors.push(String(error)));
+}
+
+let page = await context.newPage();
+observePage(page);
 
 async function waitForDesk() {
   await page.waitForSelector(".rd-v2-shell, .yzu-shell", { timeout: 25_000 });
@@ -345,6 +350,14 @@ try {
   for (const [label, url] of pages) await inspectPage(label, url);
 
   if (includeInteractions) {
+    // The destination sweep deliberately navigates faster than a researcher and
+    // leaves cancelled enrichment calls in Chromium's per-origin connection
+    // pool. Start workflows on a fresh page so a preview is judged on its own
+    // request, not on synthetic backlog created by the preceding audit phase.
+    await page.close();
+    requestStarted.clear();
+    page = await context.newPage();
+    observePage(page);
     let auditedDatasetId = "";
     // The live Library is folder-first at rest. Use a durable, query-ready held
     // asset for the workspace/preview contract instead of assuming the first
@@ -431,13 +444,23 @@ try {
         await previewButton.click();
         const dialog = page.getByRole("dialog", { name: /preview/i });
         await dialog.waitFor({ state: "visible", timeout: 20_000 });
-        await dialog.getByRole("status").waitFor({ state: "hidden", timeout: 25_000 }).catch(() => {});
+        // The dialog becomes visible one frame before the effect mounts its
+        // loading status. Waiting only for "status hidden" can therefore pass
+        // before the request starts and capture a spinner as a zero-row result.
+        // Wait for a terminal preview state instead: observed rows or the
+        // explicit unavailable panel.
+        await Promise.race([
+          dialog.locator("tbody tr").first().waitFor({ state: "visible", timeout: 25_000 }),
+          dialog.locator(".rd-preview-unavailable").waitFor({ state: "visible", timeout: 25_000 }),
+        ]).catch(() => {});
         const scrimBox = await page.locator(".rd-preview-scrim").boundingBox();
         const inspectorBox = await page.getByRole("complementary", { name: "Inspector" }).boundingBox();
         preview = {
           opened: true,
           rows: await dialog.locator("tbody tr").count(),
           fields: await dialog.locator("thead th").count(),
+          loading: await dialog.getByRole("status").count() > 0,
+          unavailable: await dialog.locator(".rd-preview-unavailable").count() > 0,
           centre_scoped: Boolean(
             scrimBox && inspectorBox && scrimBox.x + scrimBox.width <= inspectorBox.x + 1,
           ),
@@ -732,7 +755,12 @@ const failures = [
   ...report.page_errors.map((error) => `page error: ${error}`),
   ...report.interactions.flatMap((entry) => {
     if (entry.name === "Library dataset workspace and preview") {
-      return entry.workspace_visible && entry.preview?.opened && entry.preview?.rows > 0 && entry.preview?.centre_scoped
+      return entry.workspace_visible
+        && entry.preview?.opened
+        && !entry.preview?.loading
+        && !entry.preview?.unavailable
+        && entry.preview?.rows > 0
+        && entry.preview?.centre_scoped
         ? []
         : ["workflow: Library workspace/preview"];
     }
