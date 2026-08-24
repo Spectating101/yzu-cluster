@@ -100,6 +100,10 @@ test.describe("v2 Discover tab", () => {
     await expect(page.getByTestId("discover-result-summary")).toContainText(/Available\s*·\s*\d+/i);
     await expect(page.getByTestId("discover-result-summary")).toContainText(/Library evidence\s*·\s*\d+/i);
     await expect(page.getByLabel("Discover next actions")).toContainText(/available to add|Search wider/i);
+    await expect(page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-ranked-results-head strong")).toHaveCount(0);
+    await expect(page.getByTestId("discover-resting-summary")).toContainText(/External/i);
+    await expect(page.getByTestId("discover-resting-summary")).toContainText(/In Library/i);
+    await expect(page.getByTestId("discover-resting-summary")).toContainText(/Named routes/i);
     await expect(page.getByTestId("discover-rank-foot")).toContainText(/Ranked using active research/i);
     await expect(page.getByTestId("discover-filter-menu")).toBeVisible();
     await expect(page.getByTestId("discover-browse-mode")).not.toContainText(/process overview/i);

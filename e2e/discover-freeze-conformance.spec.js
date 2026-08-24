@@ -129,4 +129,11 @@ test("§3 — the held-evidence popover carries a bounded preview and both actio
   await menu.locator("summary").click();
   await expect(menu.getByRole("button", { name: "Compare coverage" })).toHaveCount(1);
   await expect(menu.getByRole("button", { name: "Open Library results" })).toHaveCount(1);
+  const popover = menu.locator(".rd-v2-discover-library-popover");
+  const canvas = page.locator(".rd-v2-body-scroll");
+  const [popoverBox, canvasBox] = await Promise.all([popover.boundingBox(), canvas.boundingBox()]);
+  expect(popoverBox?.x).toBeGreaterThanOrEqual((canvasBox?.x ?? 0) - 1);
+  expect((popoverBox?.x ?? 0) + (popoverBox?.width ?? 0)).toBeLessThanOrEqual(
+    (canvasBox?.x ?? 0) + (canvasBox?.width ?? Number.POSITIVE_INFINITY) + 1,
+  );
 });

@@ -3,7 +3,7 @@ import { discoverSearch, discoverSources, webDiscover } from "@/v2/api";
 import { sourcesResponseToRows } from "@/v2/discoverAdapters";
 import { collectRouteLabel } from "@/v2/collectRouteLabel";
 import { DiscoverHistoryPanel } from "@/v2/DiscoverHistoryPanel";
-import { jobToCandidateRow, pendingApprovalJobs } from "@/v2/procurementJobs";
+import { isDiscoverHistoryJob, jobToCandidateRow, pendingApprovalJobs } from "@/v2/procurementJobs";
 import {
   classifyDiscoverResult,
   coverageLine,
@@ -668,7 +668,7 @@ export function BrowsePage({
   const [lookupProgress, setLookupProgress] = useState({ library: "waiting", routes: "waiting" });
 
   const pendingRows = useMemo(
-    () => pendingApprovalJobs(jobs).map((job) => jobToCandidateRow(job)).filter(Boolean),
+    () => pendingApprovalJobs(jobs).filter(isDiscoverHistoryJob).map((job) => jobToCandidateRow(job)).filter(Boolean),
     [jobs],
   );
   const isExplore = discoverMode === "explore" || discoverMode === "search";
@@ -1102,9 +1102,14 @@ export function BrowsePage({
       onRestingSummary?.(null);
       return undefined;
     }
-    onRestingSummary?.(buildDiscoverRestingSummary(rankedOfferings, labIds, searchQuery));
+    onRestingSummary?.(
+      buildDiscoverRestingSummary(rankedOfferings, labIds, searchQuery, {
+        libraryEvidenceCount: resultGroups.held.length,
+        contextCount: resultGroups.context.length,
+      }),
+    );
     return undefined;
-  }, [isExplore, rankedOfferings, labIds, searchQuery, onRestingSummary]);
+  }, [isExplore, rankedOfferings, resultGroups.held.length, resultGroups.context.length, labIds, searchQuery, onRestingSummary]);
 
   useEffect(() => () => onRestingSummary?.(null), [onRestingSummary]);
   const resultBreakdown = useMemo(
@@ -1566,7 +1571,6 @@ export function BrowsePage({
               <section className="rd-v2-discover-ranked-results" aria-label="Ranked Discover results" data-testid="discover-ranked-results">
                 <header className="rd-v2-discover-ranked-results-head">
                   <span className="rd-v2-eyebrow">Results</span>
-                  <strong>{plural(centreRows.length, "offering")}</strong>
                 </header>
                 <DiscoverCandidateList
                   rows={centreRows}

@@ -6098,8 +6098,10 @@
   position: absolute;
   z-index: 40;
   top: calc(100% + 8px);
-  right: 0;
+  right: auto;
+  left: 0;
   width: min(520px, 72vw);
+  max-width: calc(100vw - 32px);
   padding: 12px;
   border: 1px solid var(--rd-border);
   border-radius: 4px;

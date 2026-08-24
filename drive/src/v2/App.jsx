@@ -80,7 +80,7 @@ import {
 } from "@/v2/discoverAdapters";
 import { fenceHistoryEvents } from "@/v2/historyNoiseFence";
 import { discoverModeFromLegacy, discoverModeToUrlState } from "@/v2/discoverMode";
-import { jobToDiscoverHistoryEvent, pendingApprovalJobs } from "@/v2/procurementJobs";
+import { isDiscoverHistoryJob, jobToDiscoverHistoryEvent, pendingApprovalJobs } from "@/v2/procurementJobs";
 import { discoverCandidateState } from "@/v2/browseMeta";
 import { buildRailContext } from "@/v2/railContext";
 import { holdingIdsFromCatalog, isLocalHolding } from "@/v2/discoverTaxonomy";
@@ -625,6 +625,7 @@ export function V2App() {
         .filter(Boolean),
     );
     const jobEvents = jobs
+      .filter(isDiscoverHistoryJob)
       .filter((job) => job?.id && !durableJobIds.has(job.id))
       .map(jobToDiscoverHistoryEvent)
       .filter(Boolean);
@@ -716,7 +717,7 @@ export function V2App() {
       const targetJob =
         (job?.id ? jobs.find((j) => j.id === job.id) : null) ||
         job ||
-        (focusAwaiting ? pendingApprovalJobs(jobs)[0] : null);
+        (focusAwaiting ? pendingApprovalJobs(jobs).find(isDiscoverHistoryJob) : null);
       if (targetJob) {
         const event = jobToDiscoverHistoryEvent(targetJob);
         setBrowseRow(null);

@@ -19,11 +19,17 @@ function rowUnknowns(row, labIds) {
   return deriveUnknowns(row, taxonomy, { verified: [] }, hasProbe);
 }
 
-export function buildDiscoverRestingSummary(rows = [], labIds = new Set(), query = "") {
+export function buildDiscoverRestingSummary(rows = [], labIds = new Set(), query = "", territoryCounts = {}) {
   const list = Array.isArray(rows) ? rows.filter(Boolean) : [];
   const found = list.length;
   const heldCount = list.filter((row) => rowIsHeld(row, labIds)).length;
   const q = String(query || "").trim();
+  const libraryEvidenceCount = Number.isFinite(Number(territoryCounts.libraryEvidenceCount))
+    ? Math.max(0, Number(territoryCounts.libraryEvidenceCount))
+    : heldCount;
+  const contextCount = Number.isFinite(Number(territoryCounts.contextCount))
+    ? Math.max(0, Number(territoryCounts.contextCount))
+    : 0;
 
   const routeCounts = new Map();
   for (const row of list) {
@@ -61,6 +67,13 @@ export function buildDiscoverRestingSummary(rows = [], labIds = new Set(), query
         ? ""
         : "No offering here matched something the lab already holds."
       : "",
+    libraryEvidenceCount,
+    contextCount,
+    landscapeLine: [
+      `${found} external offering${found === 1 ? "" : "s"}`,
+      `${libraryEvidenceCount} Library result${libraryEvidenceCount === 1 ? "" : "s"}`,
+      contextCount ? `${contextCount} reference${contextCount === 1 ? "" : "s"}` : "",
+    ].filter(Boolean).join(" · "),
     routes,
     unknowns,
     query: q,

@@ -66,3 +66,18 @@ test("unknowns come from deriveUnknowns on unprobed rows, unique", () => {
   assert.equal(new Set(summary.unknowns).size, summary.unknowns.length);
   assert.equal(summary.query, "stablecoin");
 });
+
+test("the search rail carries external, Library, and reference territories without comparing unlike sets", () => {
+  const rows = [
+    { title: "BigQuery route", collect_via: "BigQuery", url: "https://example.test/query" },
+    { title: "WRDS route" },
+  ];
+  const summary = buildDiscoverRestingSummary(rows, new Set(), "stablecoin", {
+    libraryEvidenceCount: 18,
+    contextCount: 2,
+  });
+  assert.equal(summary.found, 2);
+  assert.equal(summary.libraryEvidenceCount, 18);
+  assert.equal(summary.contextCount, 2);
+  assert.equal(summary.landscapeLine, "2 external offerings · 18 Library results · 2 references");
+});
