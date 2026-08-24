@@ -5,12 +5,12 @@ the release machinery; several of them cost hours today.
 
 ## Live state
 
-    UI       7af5c38b
+    UI       this handoff's commit; verify with scripts/desk-baseline.sh
     backend  39915476
     serving tree   research-drive-…-ui-r5-build   ← this moved today
     backend tree   research-drive-…-r2
-    rollback       7af5c38b -- 795dae61
-    env backup     ~/.config/research-drive/front-door.env.before-7af5c38-20260824
+    rollback       the other complete pair in releases/; verify before use
+    env backups    ~/.config/research-drive/front-door.env.before-*-20260824
 
 Verified green: restartability probe ready, 139 datasets and registry
 fingerprint preserved across restart, cold Discover approximately 1.5–3 seconds,
@@ -22,7 +22,9 @@ The development commit `6e081c6` and released commit `e99ea1c0` have the same
 Git tree (`7a1553385df5501ad0b63ecdeb54ddf06f2c28c9`). The former is not an
 unshipped UI change; the release process replayed it under the latter identity.
 
-The final adaptive-density release is `7af5c38b--39915476`. Its candidate gate
+The final adaptive-density product content is paired with backend `39915476`;
+the exact serving identity is intentionally read from `desk-baseline.sh` or
+`/research-drive-build.json`, not copied into this self-modifying handoff. Its candidate gate
 passed 37 browser contracts, 5 focused page integrations, and 4 proxy-safety
 tests. Backend verification passed 155 drive tests and 1,230 root tests (eight
 environment-dependent skips). The post-restart exercise preserved 139 served
@@ -172,9 +174,10 @@ The last count includes receipt-only records that are intentionally not
 queryable; do not treat it as 39 missing datasets. Nine Refinitiv registry rows
 still have no matching local backfill file and remain genuine acquisition work.
 
-**Housekeeping.** The serving tree now retains exactly two releases: live
-`7af5c38b--39915476` and rollback `7af5c38b--795dae61`. Older release
-directories were moved intact to
+**Housekeeping.** The serving tree retains exactly two complete releases: the
+live pair and its immediate rollback. Resolve their identities from `dist` and
+`releases/` before acting; do not let this document become a second identity
+authority. Older release directories were moved intact to
 `Molina-Optiplex/research-drive-release-archive-20260824/`; nothing was deleted.
 Five clean `/tmp` worktrees were removed after their branch refs were verified,
 reducing this repository from 19 to 14 registered worktrees. The remaining
