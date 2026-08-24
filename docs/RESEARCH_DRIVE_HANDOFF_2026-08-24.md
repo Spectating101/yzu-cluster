@@ -29,9 +29,9 @@ development mirror one release behind. Both `.desk-role` files were updated, so
 they currently tell the truth — but the labels have lied before. Always run
 `scripts/desk-baseline.sh`; never trust the label.
 
-`ui-r4/dist` still dangles at the ancient `22ff7c8` release. Harmless while the
-service reads `ui-r5-build/dist`, but it is exactly the symlink trap the top
-level CLAUDE.md warns about.
+`ui-r4/dist` previously dangled at the ancient `22ff7c8` release. The stale
+symlink was removed during the consolidation pass; `ui-r5-build/dist` remains
+the only release symlink used by the service.
 
 ## Traps that cost real time today
 
@@ -112,10 +112,14 @@ provider. Not a defect; needs a provider.
 7 pending approvals, 4 failed jobs, 39 registered-but-not-queryable records.
 The last is the most interesting — data the desk holds and cannot use.
 
-**Housekeeping.** ~25 staged releases and 29 git checkouts under
-Molina-Optiplex. Tree sprawl has already cost this project a day once, and cost
-a wrong conclusion today. Prune with an explicit keep-list; keep the live
-release and its rollback.
+**Housekeeping.** The serving tree now retains exactly two releases: live
+`e99ea1c0--53726def` and rollback `e874b39--53726def`. Twenty-four older release
+directories were moved intact to
+`Molina-Optiplex/research-drive-release-archive-20260824/`; nothing was deleted.
+Five clean `/tmp` worktrees were removed after their branch refs were verified,
+reducing this repository from 19 to 14 registered worktrees. The remaining
+trees include dirty or non-ancestor work and require explicit disposition; do
+not remove them as a batch.
 
 **Backend capability sweep.** ~45 candidates identified as public functions not
 reachable from any entry point. Triage each into: real gap, redundant duplicate,
