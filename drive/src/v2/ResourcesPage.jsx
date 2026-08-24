@@ -694,7 +694,7 @@ function ResearchCapability({ cluster, panels, rollup, catalogSummary }) {
       <header>
         <div>
           <p>What this enables</p>
-          <span>Verified capability available to the lab today.</span>
+          <span>Capabilities and their latest observations, kept distinct.</span>
         </div>
       </header>
       <div className="rd-v2-res-capability-lines">
@@ -711,8 +711,8 @@ function ResearchCapability({ cluster, panels, rollup, catalogSummary }) {
           </em>
         </div>
         <div>
-          <span>Evidence acquisition reach</span>
-          <strong>{routeCount || "Configured"} source routes</strong>
+          <span>Evidence acquisition snapshot</span>
+          <strong>{routeCount ? `${routeCount} priority routes shown` : "No priority routes shown"}</strong>
           <em>
             {collectorLabel}. {collectorDetail}
           </em>

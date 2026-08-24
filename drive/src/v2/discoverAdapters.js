@@ -64,6 +64,8 @@ export function sourceResultToCandidate(row = {}) {
     publisher: row.provider || row.publisher || row.source,
     description:
       cleanDescription(row.description) ||
+      cleanDescription(row.public_summary) ||
+      cleanDescription(row.notes) ||
       [row.access_mode, ...caps.slice(0, 3)].filter(Boolean).join(" · "),
     access_mode: row.access_mode || row.access || "",
     collect_via: collect[0] || row.collect_via || "",

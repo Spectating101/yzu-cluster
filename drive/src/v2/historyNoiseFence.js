@@ -31,7 +31,7 @@ const EXPLICIT_SYSTEM_VERIFICATION_RE =
  * Transparent fallback only when explicit metadata is absent.
  */
 const LEGACY_SYSTEM_VERIFICATION_NAME_RE =
-  /\b(harden_|aa_prove|hostile_|rev_live|autoblock_|host_auto_|ssrf\d*_|revision[-_]?prove|canary_|robust[_-]?gate)/i;
+  /\b(harden_|aa_prove|hostile_|rev_live|autoblock_|host_auto_|ssrf\d*_|revision[-_]?prove|canary_|robust[_-]?gate|disposable\s+worker\s+verification\s+probe)/i;
 
 function blob(event) {
   const meta = event?.meta || {};

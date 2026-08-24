@@ -3,8 +3,11 @@
  * Storage (vault/cache) · Services (Cursor Ask / BigQuery) · Desk (query engine / Tavily)
  */
 
-import { composerRuntimeRead } from "./composerRuntimeStatus.js";
-import { measuredComposerLabel } from "./resourcesTruth.js";
+import {
+  assistantProviderRead,
+  assistantRuntimeDetail,
+  composerRuntimeRead,
+} from "./composerRuntimeStatus.js";
 import { identifyProviderMarkId } from "./providerMarkIds.js";
 import { formatCollectorState, workersToolbarFieldsFromRollup } from "./workersToolbarStat.js";
 
@@ -55,6 +58,7 @@ export function buildCapacityAccessPairs(rollup, health) {
   // Reuse it here (same read as Settings/header) instead of re-deriving a
   // weaker signal from the rollup.
   const runtimeRead = composerRuntimeRead(health?.desk?.composer_runtime);
+  const provider = assistantProviderRead(health?.desk || {});
 
   const vaultPctRaw =
     vault.pct != null ? Number(vault.pct) : pctOf(vault.used_tb, vault.cap_tb);
@@ -128,8 +132,8 @@ export function buildCapacityAccessPairs(rollup, health) {
   const services = [
     meter({
       id: "cursor",
-      markId: "cursor",
-      name: "Cursor Ask",
+      markId: provider.id === "cursor" ? "cursor" : "assistant",
+      name: provider.label,
       metric: runtimeRead
         ? runtimeRead.ready
           ? turnsToday > 0
@@ -144,13 +148,25 @@ export function buildCapacityAccessPairs(rollup, health) {
       pct: null,
       available: runtimeRead
         ? runtimeRead.ready
-          ? `API key live · ${measuredComposerLabel(composer.model || ai.composer_model)}`
+          ? assistantRuntimeDetail(
+              {
+                ...health?.desk,
+                composer_model: composer.model || ai.composer_model,
+              },
+              runtimeRead,
+            )
           : runtimeRead.status === "unavailable"
-            ? "Set CURSOR_API_KEY for Ask"
-            : `Key set · ${measuredComposerLabel(composer.model || ai.composer_model)} · ${runtimeRead.why}`
+            ? "Configure a supported Ask provider"
+            : assistantRuntimeDetail(
+                {
+                  ...health?.desk,
+                  composer_model: composer.model || ai.composer_model,
+                },
+                runtimeRead,
+              )
         : composerOk
-          ? `Key configured · runtime not verified · ${measuredComposerLabel(composer.model || ai.composer_model)}`
-          : "Set CURSOR_API_KEY for Ask",
+          ? `${provider.runtimeLabel} · runtime not verified`
+          : "Configure a supported Ask provider",
       // A configured key is not a live runtime observation. While /health is
       // still loading, fail closed instead of briefly presenting "Ready" and
       // then correcting the card to "Unverified" a few seconds later.

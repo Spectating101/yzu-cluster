@@ -139,8 +139,8 @@ export function HomePage({
     if (!loading) onPrimaryResume?.(pickUp.primary || null);
   }, [loading, onPrimaryResume, pickUp.primary]);
   const headroom = useMemo(
-    () => buildResourceHeadroom(headroomRollup),
-    [headroomRollup],
+    () => buildResourceHeadroom(headroomRollup, health),
+    [headroomRollup, health],
   );
   const recommended = useMemo(
     () => buildRecommendedEvidence(profile, { limit: 2 }),

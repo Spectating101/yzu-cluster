@@ -65,7 +65,7 @@ export function ResourcesOverviewRailPanel({ rollup, decisionCount, onViewActivi
             {query.up === false
               ? "Catalog and query service is offline."
               : sourceCount != null
-                ? `${sourceCount} source routes are reachable through the desk.`
+                ? `${sourceCount} source routes are configured; authority is reported per route.`
                 : "Source routes and collection capacity are available for inspection."}
           </p>
         </section>
@@ -82,7 +82,7 @@ export function ResourcesOverviewRailPanel({ rollup, decisionCount, onViewActivi
           <RailField label="Running" value={counts.running ? String(counts.running) : "None"} />
           <RailField label="Collectors" value={collectorState} />
           <RailField label="Vault" value={vaultState} />
-          <RailField label="Source reach" value={sourceCount != null ? `${sourceCount} routes` : "Configured routes"} />
+          <RailField label="Source inventory" value={sourceCount != null ? `${sourceCount} configured` : "Configured routes"} />
           <RailField label="Desk connection" value={query.up === false ? "Offline" : "Connected"} />
         </RailFieldGrid>
       </div>

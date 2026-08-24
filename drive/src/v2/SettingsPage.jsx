@@ -7,7 +7,10 @@ import {
   saveUserEmail,
 } from "@/v2/deskSession";
 import { clearDeskSession, ensureDeskSession } from "@/v2/api";
-import { composerRuntimeRead } from "@/v2/composerRuntimeStatus";
+import {
+  assistantRuntimeDetail,
+  composerRuntimeRead,
+} from "@/v2/composerRuntimeStatus";
 import { ContextHelp } from "@/v2/InteractionGuidance";
 import { loadSettings, saveSettings } from "@/v2/settingsStore";
 import { PILOT_PREVIEW_EMAIL } from "@/v2/profileViewModel";
@@ -59,7 +62,7 @@ function assistantStatus(health) {
   const desk = health?.desk || {};
   const explicit = desk.composer_configured;
   const legacy = desk.legacy_llm_configured;
-  const model = String(desk.composer_model || desk.brain || "").trim();
+  const model = String(desk.composer_model || "").trim();
 
   // composer_runtime is the backend's own ready/degraded/stale/unverified/
   // unavailable state machine (desk_composer_health.py) — read it exactly,
@@ -70,7 +73,7 @@ function assistantStatus(health) {
       ready: runtimeRead.ready,
       known: true,
       label: runtimeRead.short,
-      detail: model ? `${model} · ${runtimeRead.why}` : runtimeRead.why,
+      detail: assistantRuntimeDetail(desk, runtimeRead),
     };
   }
 

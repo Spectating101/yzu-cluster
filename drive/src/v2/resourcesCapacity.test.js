@@ -85,6 +85,8 @@ describe("buildCapacityAccessPairs", () => {
   it("keeps Composer ready when /health confirms a live-verified probe", () => {
     const health = {
       desk: {
+        brain: "copilot_composer",
+        composer_model: "gpt-5-mini",
         composer_runtime: { status: "ready", configured: true, verified: true, checked_at: "2026-08-12T10:00:00Z" },
       },
     };
@@ -92,6 +94,9 @@ describe("buildCapacityAccessPairs", () => {
     const byId = Object.fromEntries(pairs.flatMap((p) => p.meters.map((m) => [m.id, m])));
     assert.match(byId.cursor.metric, /50 turns/);
     assert.equal(byId.cursor.warn, false);
+    assert.equal(byId.cursor.name, "Copilot Ask");
+    assert.match(byId.cursor.available, /Copilot pool · confirmed live/);
+    assert.doesNotMatch(byId.cursor.available, /gpt-5-mini/);
   });
 
   it("shows Degraded rather than Ready for a failed probe, even though verified is true", () => {

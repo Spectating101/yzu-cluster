@@ -6,9 +6,12 @@ import { displayName, isReceiptOnlyAsset, statusPill } from "./datasetMeta.js";
 import { buildHomeBriefing } from "./homeBriefing.js";
 import { buildLab } from "./profileViewModel.js";
 import { recentDatasets } from "./recent.js";
-import { isHistoryNoise } from "./historyNoiseFence.js";
-import { measuredComposerLabel } from "./resourcesTruth.js";
-import { composerRuntimeRead } from "./composerRuntimeStatus.js";
+import { isHistoryNoise, isSystemVerificationTraffic } from "./historyNoiseFence.js";
+import {
+  assistantProviderRead,
+  assistantRuntimeDetail,
+  composerRuntimeRead,
+} from "./composerRuntimeStatus.js";
 
 function purposeLine(ds) {
   return (
@@ -167,6 +170,7 @@ export function projectRollupFromHealth(health) {
       composer: {
         configured: Boolean(desk.composer_configured),
         model: String(desk.composer_model || "").trim(),
+        provider: String(desk.brain || "").trim(),
         runtime: desk.composer_runtime || null,
       },
       vault:
@@ -181,6 +185,7 @@ export function projectRollupFromHealth(health) {
     ai: {
       composer_configured: Boolean(desk.composer_configured),
       composer_model: String(desk.composer_model || "").trim(),
+      composer_provider: String(desk.brain || "").trim(),
       composer_runtime: desk.composer_runtime || null,
     },
   };
@@ -191,7 +196,7 @@ export function projectRollupFromHealth(health) {
  * Prefer vault + bulk cache + one live service (Cursor Ask / BigQuery).
  * NVMe / collectors stay on Resources Desk, not the Home teaser.
  */
-export function buildResourceHeadroom(rollup) {
+export function buildResourceHeadroom(rollup, health = null) {
   const usage = rollup?.usage || {};
   const hero = rollup?.hero || {};
   const ai = rollup?.ai || {};
@@ -256,26 +261,44 @@ export function buildResourceHeadroom(rollup) {
     });
   }
 
-  // Third teaser: Cursor Ask when Composer is live, else BigQuery quota.
+  // Third teaser: the currently selected research assistant when live, else
+  // BigQuery quota. Provider identity comes from /health.desk.brain; never
+  // leave a retired provider name hard-coded on Home.
   const composer = hero.composer || {};
-  const composerOk = Boolean(composer.configured ?? ai.composer_configured);
+  const liveDesk = health?.desk || {};
+  const composerOk = Boolean(
+    liveDesk.composer_configured ?? composer.configured ?? ai.composer_configured,
+  );
   const turnsToday = Number(ai.composer_turns_today ?? 0);
   const bq = metered.bigquery || {};
   if (composerOk) {
     // A configured key is not a live probe. Settings and Resources render
     // composer_runtime; Home must read the same field or it claims readiness
     // the desk has not observed.
-    const runtime = composerRuntimeRead(composer.runtime ?? ai.composer_runtime);
+    const runtime = composerRuntimeRead(
+      liveDesk.composer_runtime ?? composer.runtime ?? ai.composer_runtime,
+    );
+    const provider = assistantProviderRead({
+      brain: liveDesk.brain || composer.provider || ai.composer_provider,
+    });
+    const providerDesk = {
+      brain: liveDesk.brain || composer.provider || ai.composer_provider,
+      composer_model:
+        liveDesk.composer_model || composer.model || ai.composer_model,
+    };
     slots.push({
       id: "cursor",
-      markId: "cursor",
-      name: "Cursor Ask",
+      markId: provider.id === "cursor" ? "cursor" : "assistant",
+      name: provider.label,
       pinned: false,
       metric: turnsToday > 0 ? `${turnsToday} turns today` : (runtime?.short ?? "Not yet probed"),
       pct: null,
       headroom: runtime
-        ? `${runtime.why} · ${measuredComposerLabel(composer.model || ai.composer_model)}`
-        : `Key configured · ${measuredComposerLabel(composer.model || ai.composer_model)}`,
+        ? assistantRuntimeDetail(
+            providerDesk,
+            runtime,
+          )
+        : `${provider.runtimeLabel} · runtime not verified`,
       warn: runtime ? Boolean(runtime.warn) : true,
       action: "resources",
     });
@@ -326,7 +349,7 @@ export function buildRecentTrail({ jobs = [], datasets = [], limit = 3 } = {}) {
       // Home trail is resume surface — keep cancelled out of the first viewport.
       if (/cancelled|canceled/i.test(status)) return false;
       if (!/completed|registered|failed|running|queued/i.test(status)) return false;
-      return !isHistoryNoise({
+      const event = {
         id: job.id,
         target: job?.plan?.title || job?.title || job?.name || job?.dataset_id,
         title: job?.plan?.title || job?.title || job?.name,
@@ -334,7 +357,8 @@ export function buildRecentTrail({ jobs = [], datasets = [], limit = 3 } = {}) {
         status,
         error: job.error,
         meta: { summary: job.error || job.result?.summary, status },
-      });
+      };
+      return !isHistoryNoise(event) && !isSystemVerificationTraffic(event);
     })
     .sort((a, b) => {
       const rank = (job) => {

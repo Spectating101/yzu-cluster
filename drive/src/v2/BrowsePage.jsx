@@ -191,7 +191,14 @@ function DiscoverCandidateRow({
   const showSufficiency =
     !externalCatalogue && Number(taxonomy.group) >= 3 && row.discover_sufficiency?.browseLine;
   const hasExplicitDescription = Boolean(
-    String(row?.description || row?.recommended_use || row?.subtitle || "").trim(),
+    String(
+      row?.description ||
+        row?.recommended_use ||
+        row?.subtitle ||
+        row?.public_summary ||
+        row?.notes ||
+        "",
+    ).trim(),
   );
   const evidenceLine = hasExplicitDescription ? humanizeDiscoverDescription(descriptiveLine(row)) : "";
   const coverage = coverageLine(row);

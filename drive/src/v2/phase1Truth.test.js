@@ -160,6 +160,13 @@ test("history fence demotes system verification traffic without deleting records
       ts: "2026-07-20T22:01:00Z",
     },
     {
+      id: "worker-probe-1",
+      title: "Disposable worker verification probe",
+      action: "collection_run",
+      status: "completed",
+      ts: "2026-07-20T22:00:30Z",
+    },
+    {
       id: "real-1",
       target: "GDELT Asia panel refresh",
       action: "collection_run",
@@ -176,13 +183,13 @@ test("history fence demotes system verification traffic without deleting records
   const fenced = fenceHistoryEvents(events);
   assert.equal(fenced.visible.length, 1);
   assert.equal(fenced.visible[0].id, "real-1");
-  assert.equal(fenced.systemVerification.length, 5);
-  assert.equal(fenced.hiddenSystemVerification, 5);
+  assert.equal(fenced.systemVerification.length, 6);
+  assert.equal(fenced.hiddenSystemVerification, 6);
   // Records remain; lifecycle labels are unchanged by the fence.
   assert.equal(historyLifecycleLabel(events[0]), "Cancelled");
   assert.equal(
     fenceHistoryEvents(events, { includeSystemVerification: true }).visible.length,
-    6,
+    7,
   );
 });
 

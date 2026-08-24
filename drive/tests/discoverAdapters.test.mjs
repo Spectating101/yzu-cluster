@@ -6,6 +6,7 @@ import {
   durableHistoryToEvents,
   normalizeDiscoverMode,
 } from "../src/v2/discoverAdapters.js";
+import { descriptiveLine } from "../src/v2/browseMeta.js";
 
 test("sourceResultToCandidate maps Explore source rows for Discover UI", () => {
   const row = sourceResultToCandidate({
@@ -109,6 +110,32 @@ test("sourceResultToCandidate falls back when description is markup-only", () =>
   // Stripping must not manufacture an empty description — the access/capability
   // summary is the documented fallback.
   assert.equal(row.description, "open_api · bulk");
+});
+
+test("sourceResultToCandidate preserves recorded connector notes for result rows", () => {
+  const row = sourceResultToCandidate({
+    title: "Google BigQuery (public datasets)",
+    access_mode: "live_connector",
+    capabilities: ["onchain_crypto"],
+    notes: "Live remote SQL; USDT Ethereum flow pack is already materialized.",
+  });
+
+  assert.match(row.description, /Live remote SQL/);
+  assert.doesNotMatch(row.description, /^live_connector/);
+});
+
+test("Discover prefers a researcher description, then connector notes", () => {
+  assert.match(
+    descriptiveLine({ notes: "Live remote SQL; USDT Ethereum flow pack is available." }),
+    /USDT Ethereum flow pack/,
+  );
+  assert.equal(
+    descriptiveLine({
+      description: "Daily market and fundamentals panel.",
+      notes: "internal route id=bulk_42",
+    }),
+    "Daily market and fundamentals panel.",
+  );
 });
 
 test("sourcesResponseToRows collapses duplicate sources on identity", () => {
