@@ -68,16 +68,21 @@ function OpeningThreadRail({ thread, onAsk }) {
   const state = thread?.state || {};
   const brief = researchBrief(thread);
   const recommendation = recommendedConstruction(thread);
+  const proposal = state.proposal || null;
+  const proposalPatch = (proposal?.operations || []).find((operation) => operation?.op === "update_spec")?.patch || {};
+  const proposalEvidence = Array.isArray(proposalPatch.coreEvidence) ? proposalPatch.coreEvidence.filter(Boolean) : [];
+  const proposalLimitations = Array.isArray(proposalPatch.limitations) ? proposalPatch.limitations.filter(Boolean) : [];
   const sourceNodes = Array.isArray(recommendation.nodes) ? recommendation.nodes : [];
-  const sourceCount = sourceNodes.length;
+  const sourceCount = sourceNodes.length || proposalEvidence.length;
   const directMeasure = recommendation.idealDirectMeasure || {};
   const recordedAssumption = text(
     state.important_assumption || state.assumption || state.method_assumption,
     "No material assumption has been recorded yet.",
   );
-  const limitation = directMeasure.label
-    ? `${directMeasure.label} is unavailable${directMeasure.why ? ` · ${directMeasure.why}` : ""}.`
-    : "The recommendation is not yet grounded in a stated direct measure.";
+  const limitation = proposalLimitations[0]
+    || (directMeasure.label
+      ? `${directMeasure.label} is unavailable${directMeasure.why ? ` · ${directMeasure.why}` : ""}.`
+      : "The recommendation is not yet grounded in a stated direct measure.");
   const ask = (prompt) => onAsk?.(prompt);
   const fullIntent = text(brief.body || thread?.objective, "A durable research-construction thread.").replace(/\s+/g, " ");
   const intentSummary = compactObjective(fullIntent, 160);
@@ -131,7 +136,9 @@ function OpeningThreadRail({ thread, onAsk }) {
       <section>
         <p className="s04-thread-rail-label">AI interpretation</p>
         <p>
-          {recommendation.present
+          {proposal
+            ? `${text(proposal.title, "A review-only construction")} is recorded for review. It is not accepted or executed.`
+            : recommendation.present
             ? `${recommendation.title} is the current evidence-grounded recommendation.`
             : "No construction has been recommended yet."}
         </p>

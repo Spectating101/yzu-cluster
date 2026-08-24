@@ -492,13 +492,23 @@ test.describe("v2 Synthesis durable thread surface", () => {
 
   test("accepts a revision-bound proposal, then requests but does not fabricate execution", async ({ page }) => {
     await page.getByTestId("synthesis-thread-item").filter({ hasText: "Weekly trust panel" }).click();
+    const next = page.getByRole("region", { name: "What happens next" });
     const proposal = page.getByTestId("synthesis-proposal-state");
+    await expect(next).toContainText("Review checkpoint");
+    await expect(next).toContainText("nothing has run");
+    await expect(next.getByRole("button", { name: "Review proposal" })).toBeEnabled();
+    await expect(page.locator("aside.rd-v2-rail")).toContainText("recorded for review");
+    await expect(page.locator("aside.rd-v2-rail")).not.toContainText("No construction has been recommended yet");
     await expect(proposal).toContainText("Aggregate held weekly panel");
     await expect(proposal).toContainText("Held input");
     await expect(proposal).toContainText("Proposed output");
     await expect(proposal).toContainText("Nothing is materialised yet");
     await expect(proposal).toContainText("Still not established");
     await expect(proposal).toContainText("Add evidence or a derived construct");
+    const nextBox = await next.boundingBox();
+    const proposalBox = await proposal.boundingBox();
+    expect(nextBox && proposalBox && proposalBox.y > nextBox.y).toBeTruthy();
+    expect((proposalBox?.y || Infinity) - ((nextBox?.y || 0) + (nextBox?.height || 0))).toBeLessThan(40);
     await capture(page, "02-proposal-review-desktop");
     await page.getByRole("button", { name: "Accept proposal" }).click();
     await expect(page.getByTestId("synthesis-execution-state")).toContainText("stablecoin_attention_weekly");

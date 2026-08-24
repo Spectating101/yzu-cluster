@@ -515,22 +515,26 @@ function WhatHappensNext({
   reasoningAvailable = false,
   reasoningStatus = "Assistant runtime not verified",
   onOpenResources,
+  onReviewProposal,
 }) {
   const rec = recommendedConstruction(thread);
+  const hasProposal = Boolean(thread?.state?.proposal);
   const hasRecommendation = rec.present;
   const hasMappedEvidence = evidenceNodes(thread).length > 0;
-  const needsEvidence = !hasRecommendation && !hasMappedEvidence;
-  const reasoningBlocked = !hasRecommendation && !reasoningAvailable;
+  const needsEvidence = !hasProposal && !hasRecommendation && !hasMappedEvidence;
+  const reasoningBlocked = !hasProposal && !hasRecommendation && !reasoningAvailable;
   return (
     <section
       className={`s04-opening-next${reasoningBlocked ? " s04-opening-next--blocked" : ""}`}
       aria-label="What happens next"
     >
       <header>
-        <small>{reasoningBlocked && hasMappedEvidence ? "Reasoning checkpoint" : "What happens next"}</small>
+        <small>{hasProposal ? "Review checkpoint" : reasoningBlocked && hasMappedEvidence ? "Reasoning checkpoint" : "What happens next"}</small>
       </header>
       <p>
-        {hasRecommendation
+        {hasProposal
+          ? "Copilot recorded one review-only construction from the held evidence. Inspect the exact change set before accepting or rejecting it; nothing has run."
+          : hasRecommendation
           ? "Accepting a construction will not build data. The desk will draft the detailed method and surface only the choices that materially change the output."
           : needsEvidence
             ? "First review held Library inputs. Then Ask can ground one reviewable construction in recorded evidence; neither step will collect, execute, or change data without your approval."
@@ -561,7 +565,7 @@ function WhatHappensNext({
               {mappingEvidence ? "Finding held evidence" : "Find held evidence"}
             </button>
           ) : null}
-          {!reasoningAvailable ? (
+          {!hasProposal && !reasoningAvailable ? (
             <button type="button" className="s04-next-secondary" onClick={() => onOpenResources?.()}>
               Check Resources
             </button>
@@ -571,13 +575,16 @@ function WhatHappensNext({
             className="s04-next-primary"
             disabled={
               reasoningPending ||
-              !reasoningAvailable ||
-              (hasRecommendation ? !onAccept : !onStartReasoning)
+              (hasProposal
+                ? !onReviewProposal
+                : !reasoningAvailable || (hasRecommendation ? !onAccept : !onStartReasoning))
             }
-            onClick={() => (hasRecommendation ? onAccept?.() : onStartReasoning?.())}
-            title={!reasoningAvailable ? reasoningStatus : undefined}
+            onClick={() => (hasProposal ? onReviewProposal?.() : hasRecommendation ? onAccept?.() : onStartReasoning?.())}
+            title={!hasProposal && !reasoningAvailable ? reasoningStatus : undefined}
           >
-            {hasRecommendation
+            {hasProposal
+              ? "Review proposal"
+              : hasRecommendation
               ? "Accept & design method"
               : reasoningPending
                 ? "Method reasoning in Ask"
@@ -586,7 +593,9 @@ function WhatHappensNext({
         </div>
       </footer>
       <em>
-        {hasRecommendation
+        {hasProposal
+          ? "Review required · nothing accepted, built, or modified"
+          : hasRecommendation
           ? "AI recommendation ready · nothing built or modified"
           : reasoningPending
             ? "Waiting for a reviewable proposal · nothing built or modified"
@@ -908,7 +917,7 @@ function proposalOperationLabel(operation) {
   );
 }
 
-function ProposalReview({ thread, busy, onDecide, onAsk }) {
+function ProposalReview({ thread, busy, onDecide, onAsk, reviewRef }) {
   const state = thread?.state || {};
   const proposal = state.proposal || {};
   const spec = proposal.execution_spec || {};
@@ -931,7 +940,7 @@ function ProposalReview({ thread, busy, onDecide, onAsk }) {
   ).filter(Boolean);
   const canDecide = Boolean(proposal.id && proposal.proposal_hash);
   return (
-    <section className="s04-card s04-proposal-card" data-testid="synthesis-proposal-state">
+    <section ref={reviewRef} className="s04-card s04-proposal-card" data-testid="synthesis-proposal-state">
       <header className="s04-title">
         <div>
           <small>Review proposed change</small>
@@ -1454,6 +1463,7 @@ export function SynthesisPage({
   const measurementNotified = useRef("");
   const interpretingSinceRef = useRef(null);
   const interpretingThreadIdRef = useRef("");
+  const proposalReviewRef = useRef(null);
 
   const replaceThread = useCallback((next) => {
     if (!next?.id) return;
@@ -2035,7 +2045,17 @@ export function SynthesisPage({
                     reasoningAvailable={reasoningAvailable}
                     reasoningStatus={reasoningStatus}
                     onOpenResources={() => onGoTab?.("resources")}
+                    onReviewProposal={() => proposalReviewRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
                   />
+                  {mode === "proposal" ? (
+                    <ProposalReview
+                      thread={displayedSelected}
+                      busy={busy}
+                      onDecide={decideProposal}
+                      onAsk={ask}
+                      reviewRef={proposalReviewRef}
+                    />
+                  ) : null}
                 </>
               ) : null}
               {focus.subject === "scope" ? (
@@ -2098,9 +2118,6 @@ export function SynthesisPage({
                   onFindEvidence={findHeldEvidence}
                   onApplyEvidence={applyHeldEvidence}
                 />
-              ) : null}
-              {mode === "proposal" ? (
-                <ProposalReview thread={displayedSelected} busy={busy} onDecide={decideProposal} onAsk={ask} />
               ) : null}
               {showExecution ? (
                 <ExecutionRecord
