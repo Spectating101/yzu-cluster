@@ -40,16 +40,6 @@ function surfaceLabel(mainTab) {
   return "Research desk";
 }
 
-function synthesisState(activeObject) {
-  const thread = activeObject?.thread || {};
-  return humanize(
-    thread.status ||
-      thread.lifecycle_status ||
-      thread.state?.status ||
-      activeObject?.statusText,
-  );
-}
-
 function synthesisPhaseLabel(thread) {
   const stage = synthesisJourneyStage(thread);
   if (stage === "specification") return "Method";
@@ -208,27 +198,27 @@ function buildSituation(props) {
     const thread = activeObject.thread || {};
     if (thread.ephemeral || thread.state?.ephemeral) {
       return {
-        status: "Draft entry",
+        status: "Draft",
         facts: ["Not saved"],
-        next: "Choose a starting point. Describe a research purpose or use a registered method; select any existing construction in Active work to leave this entry.",
+        next: "",
       };
     }
     const nodes = Array.isArray(thread?.state?.nodes) ? thread.state.nodes : [];
+    const profiles = Array.isArray(thread?.state?.column_profiles) ? thread.state.column_profiles : [];
     const evidenceCount = nodes.filter((node) => node?.layer === "evidence" || node?.type === "source" || node?.type === "construct").length;
     const facts = [
-      synthesisPhaseLabel(thread),
       evidenceCount ? `${evidenceCount} mapped evidence` : "",
-      text(thread.objective),
+      profiles.length ? `${profiles.length} measured` : "",
     ];
     return {
-      status: synthesisState(activeObject) || synthesisPhaseLabel(thread) || "Synthesis thread",
+      status: synthesisPhaseLabel(thread) || "Thread",
       facts,
-      next: synthesisNext(activeObject),
+      next: "",
     };
   }
   if (mainTab === "synthesis") {
     return {
-      status: "Synthesis workspace",
+      status: "Workspace",
       facts: [],
       next: "Open an existing construction or start a new one from the Active work rail.",
     };
