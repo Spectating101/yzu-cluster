@@ -17,6 +17,7 @@ import { handleEnterToSubmit } from "@/v2/enterToSubmit";
 import { DeskError } from "@/v2/DeskError";
 import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
 import { ExcursionRecordPanel } from "./ExcursionRecordPanel.jsx";
+import { SynthesisHome } from "./SynthesisHome.jsx";
 import { focusFor } from "./synthesisFocus.js";
 import "./s04-opening.css";
 
@@ -228,7 +229,7 @@ function SynthesisSidebarPortal({ children }) {
   return target ? createPortal(children, target) : null;
 }
 
-function ThreadList({ threads, selectedId, loading, onSelect, onNew, creating = false }) {
+function ThreadList({ threads, selectedId, loading, onSelect, onHome, onNew, creating = false }) {
   const selectedRef = useRef(null);
   useEffect(() => {
     selectedRef.current?.scrollIntoView({ block: "nearest" });
@@ -258,6 +259,15 @@ function ThreadList({ threads, selectedId, loading, onSelect, onNew, creating = 
 
   return (
     <section className="s04-threads s04-threads--sidebar" aria-label="Synthesis threads">
+      <button
+        type="button"
+        className={`s04-thread-home${!selectedId && !creating ? " active" : ""}`}
+        aria-current={!selectedId && !creating ? "page" : undefined}
+        onClick={onHome}
+      >
+        <b>⌂</b>
+        <span><strong>Synthesis workspace</strong><small>All constructions</small></span>
+      </button>
       <header>
         <div className="s04-thread-heading">
           <span>Active work</span>
@@ -1501,11 +1511,11 @@ export function SynthesisPage({
       const result = await listSynthesisThreads();
       const next = Array.isArray(result?.threads) ? result.threads : [];
       setThreads(next);
-      setSelectedId((current) => {
-        if (current && next.some((thread) => thread.id === current)) return current;
-        const familiar = next.find((thread) => /stablecoin attention/i.test(titleFor(thread)));
-        return familiar?.id || next[0]?.id || "";
-      });
+      // The Synthesis tab is a workspace, not an implicit first-thread route.
+      // Preserve an explicit selection if it still exists; otherwise remain on
+      // the workspace home until a researcher opens a construction or a deep
+      // link supplies focusThreadId.
+      setSelectedId((current) => current && next.some((thread) => thread.id === current) ? current : "");
       if (!next.length) setNewMode(false);
     } catch (cause) {
       setError(text(cause?.message, "Synthesis threads could not be loaded."));
@@ -1570,6 +1580,11 @@ export function SynthesisPage({
     notified.current = key;
     onSelectThread?.(selected);
   }, [selected, onSelectThread]);
+
+  useEffect(() => {
+    if (loading || selected || newMode) return;
+    onSelectThread?.(null);
+  }, [loading, newMode, onSelectThread, selected]);
 
   useEffect(() => {
     if (!selectedMeasurement || !displayedSelected) return;
@@ -1818,13 +1833,26 @@ export function SynthesisPage({
     }
   };
 
+  const goHome = () => {
+    returnThreadIdRef.current = "";
+    setSelectedId("");
+    setReasoningThreadId("");
+    setNewMode(false);
+    setObjective("");
+    setSelectedField(null);
+    setPromoted("");
+    setError("");
+    onSelectThread?.(null);
+  };
+
   const beginNew = () => {
-    returnThreadIdRef.current = selectedId || returnThreadIdRef.current || threads[0]?.id || "";
+    returnThreadIdRef.current = selectedId || "";
     setSelectedId("");
     setReasoningThreadId("");
     setNewMode(true);
     setObjective("");
     setError("");
+    onBeginNew?.();
     onSelectThread?.({
       id: "__new__",
       title: "New construction",
@@ -1834,19 +1862,7 @@ export function SynthesisPage({
   };
 
   const cancelNew = () => {
-    const requested = returnThreadIdRef.current;
-    const target = requested && threads.some((thread) => thread.id === requested)
-      ? requested
-      : threads[0]?.id || "";
-    setObjective("");
-    setError("");
-    if (target) {
-      selectThread(target);
-      return;
-    }
-    setNewMode(false);
-    setSelectedId("");
-    onSelectThread?.(null);
+    goHome();
   };
 
   const createThread = async () => {
@@ -1972,7 +1988,6 @@ export function SynthesisPage({
   const preAcceptance = Boolean(selected && isPreAcceptance(selected));
   const hasRecommendation = Boolean(displayedSelected && recommendedConstruction(displayedSelected).present);
   const hasMappedEvidence = Boolean(displayedSelected && evidenceNodes(displayedSelected).length);
-  const returnThread = threads.find((thread) => thread.id === returnThreadIdRef.current) || null;
   const surfaceState = resolveSurfaceLifecycle({
     loading,
     error,
@@ -1987,6 +2002,7 @@ export function SynthesisPage({
           selectedId={selectedId}
           loading={loading}
           onSelect={selectThread}
+          onHome={goHome}
           onNew={beginNew}
           creating={newMode}
         />
@@ -2003,19 +2019,22 @@ export function SynthesisPage({
               onCreate={createThread}
               onStartBlueprint={startBlueprint}
               onCancel={cancelNew}
-              returnLabel={returnThread ? titleFor(returnThread) : "Synthesis"}
+              returnLabel="Synthesis home"
               reasoningAvailable={reasoningAvailable}
               reasoningStatus={reasoningStatus}
               onOpenResources={() => onGoTab?.("resources")}
             />
           ) : null}
           {!newMode && !loading && !selected ? (
-            <EmptyWorkspace
+            <SynthesisHome
+              threads={threads}
+              loading={loading}
               profiles={profiles}
               profilesLoading={profilesLoading}
               profilesError={profilesError}
-              onStartBlueprint={startBlueprint}
+              onOpenThread={selectThread}
               onNew={beginNew}
+              onStartBlueprint={startBlueprint}
               reasoningAvailable={reasoningAvailable}
               reasoningStatus={reasoningStatus}
               onOpenResources={() => onGoTab?.("resources")}
