@@ -16,9 +16,9 @@ async function waitForHomeEvidence(page) {
 async function selectFirstLibraryDataset(page) {
   await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
-  await page.getByTestId("library-directory").waitFor({ state: "visible" });
+  await page.getByTestId("library-evidence-estate").waitFor({ state: "visible" });
   await page.getByRole("textbox", { name: "Search library holdings" }).fill("Asia");
-  const row = page.locator('.rd-v2-catalog-list button[data-kind="dataset"]').first();
+  const row = page.getByTestId("library-evidence-row").first();
   await expect(row).toBeVisible();
   await row.click();
 }
@@ -104,9 +104,6 @@ test.describe("Research Drive release visual contract", () => {
 
     for (const destination of destinations) {
       await openTab(page, destination.tab);
-      // Synthesis is deliberately not a generic PageShell: its S-04 opening
-      // starts with the durable-object decision, while every other surface
-      // retains the frozen page heading.
       if (destination.tab === "Synthesis") {
         await expect(page.getByRole("heading", { name: "Start one durable research object." })).toBeVisible();
       } else {
