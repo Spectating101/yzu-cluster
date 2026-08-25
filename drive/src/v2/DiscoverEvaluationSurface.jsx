@@ -8,7 +8,6 @@ import { useEffect, useMemo, useState } from "react";
 import { applyLifecycleToEvaluation, LIFECYCLE } from "@/v2/discoverLifecycle";
 import { buildDiscoverEvaluation } from "@/v2/discoverEvaluation";
 import {
-  assessLocalSufficiency,
   applySufficiencyToActions,
   buildSufficiencyAskContext,
   sufficiencyAskPrompts,
@@ -18,9 +17,11 @@ import {
   RailField,
   RailFieldGrid,
   RailFrame,
+  RailStickyFooter,
 } from "@/v2/RailFrame";
 import { EmptyRailState } from "@/v2/EmptyRailState";
 import { buildObjectEstateCrumb } from "@/v2/deskIntegration";
+import { routeDisplayName } from "@/v2/browseMeta";
 
 const PATH_STAGES = [
   { id: "submitted", label: "Submitted" },
@@ -51,6 +52,8 @@ function sufficiencyLocalTitle(sufficiency) {
 
 export function DiscoverEvaluationSurface({
   target,
+  searchQuery = "",
+  searchSummary = null,
   labIds,
   catalog = [],
   onAskAbout,
@@ -70,13 +73,10 @@ export function DiscoverEvaluationSurface({
     : null;
   const sufficiency = useMemo(() => {
     if (!target) return null;
+    // FE sufficiency taxonomy is demoted — only honor backend-stamped placement.
     if (target?.discover_sufficiency?.state) return target.discover_sufficiency;
-    const taxonomy = target.discover_taxonomy;
-    const group = Number(taxonomy?.group);
-    // Lab holdings do not need local-alternative comparison against themselves.
-    if (Number.isFinite(group) && group <= 2) return null;
-    return assessLocalSufficiency(target, catalog);
-  }, [target, catalog]);
+    return null;
+  }, [target]);
   const exactLocalEvaluation = useMemo(() => {
     if (lifecycle || sufficiency?.state !== SUFFICIENCY.EXACT_LOCAL || !sufficiency?.bestLocal) {
       return null;
@@ -91,14 +91,132 @@ export function DiscoverEvaluationSurface({
 
   if (!target || !evaluation) {
     if (variant === "workspace") return null;
+    // UI_PRODUCT_AUTHORITY §3: the rail may be quiet, but it "must never be a
+    // permanent empty inspector". During an active search it is scoped to that
+    // search, so say which one and what the next action is, rather than
+    // showing a folder icon and "No candidate selected" beside a full result
+    // list.
+    const q = String(searchQuery || "").trim();
+    if (!q || !searchSummary) {
+      return (
+        <RailFrame>
+          <div className="rd-v2-rail-scroll">
+            <EmptyRailState
+              title="No candidate selected"
+              hint="Search, then select a candidate to evaluate what you can use and what remains unknown."
+            />
+          </div>
+        </RailFrame>
+      );
+    }
+    const s = searchSummary;
+    const compared = s.sufficiency.exact + s.sufficiency.partial + s.sufficiency.related;
     return (
       <RailFrame>
-        <div className="rd-v2-rail-scroll">
-          <EmptyRailState
-            title="No candidate selected"
-            hint="Search, then select a candidate to evaluate what you can use and what remains unknown."
-          />
+        <div className="rd-v2-rail-scroll rd-v2-search-summary" data-testid="discover-search-summary">
+          {/* One glance answer at the top of the rail: how much of what this
+              search surfaced the lab already owns. A count, not a score.
+
+              Deliberately NOT labelled "Coverage" -- UI_PRODUCT_AUTHORITY §15
+              reserves that word for provider/observed evidence coverage
+              (period, geography, grain). This bar is possession, and reusing
+              the term would quietly claim something it has not established. */}
+          <section className="rd-v2-eval-block rd-v2-summary-coverage">
+            <p className="rd-v2-eval-section-label">Already in your Library</p>
+            <div
+              className="rd-v2-coverage-bar"
+              role="img"
+              aria-label={`${s.held} of ${s.held + s.offerings} results already in your Library`}
+            >
+              {Array.from({ length: 10 }, (_, i) => (
+                <span
+                  key={i}
+                  className={
+                    i < Math.round((s.held / Math.max(1, s.held + s.offerings)) * 10) ? "on" : ""
+                  }
+                />
+              ))}
+            </div>
+            <p className="rd-v2-coverage-caption">
+              <b>{s.held}</b> of {s.held + s.offerings} already held
+            </p>
+          </section>
+
+          <section className="rd-v2-eval-block">
+            <p className="rd-v2-eval-section-label">What this search found</p>
+            <ul className="rd-v2-summary-counts">
+              <li>
+                <b>{s.offerings}</b> offering{s.offerings === 1 ? "" : "s"} you can add
+              </li>
+              <li>
+                <b>{s.held}</b> already in your Library
+                {s.held ? <span className="muted"> · {s.queryReady} query-ready</span> : null}
+              </li>
+              {s.webContext ? (
+                <li>
+                  <b>{s.webContext}</b> web context result{s.webContext === 1 ? "" : "s"}
+                </li>
+              ) : null}
+            </ul>
+          </section>
+
+          <section className="rd-v2-eval-block">
+            <p className="rd-v2-eval-section-label">Library comparison</p>
+            {compared ? (
+              <ul className="rd-v2-summary-suff">
+                {s.sufficiency.exact ? <li><i className="ok">✓</i>{s.sufficiency.exact} already held exactly</li> : null}
+                {s.sufficiency.partial ? <li><i className="part">◐</i>{s.sufficiency.partial} partially covered</li> : null}
+                {s.sufficiency.related ? <li><i className="part">≈</i>{s.sufficiency.related} related, equivalence unproven</li> : null}
+                {s.sufficiency.none ? <li><i className="none">—</i>{s.sufficiency.none} with no Library alternative</li> : null}
+                {s.sufficiency.unknown ? <li><i className="none">?</i>{s.sufficiency.unknown} comparison unknown</li> : null}
+              </ul>
+            ) : (
+              <p className="rd-v2-eval-prose muted">
+                No offering here matched something the lab already holds.
+              </p>
+            )}
+          </section>
+
+          {s.routes.length ? (
+            <section className="rd-v2-eval-block">
+              <p className="rd-v2-eval-section-label">Collection routes offered</p>
+              <ul className="rd-v2-summary-routes">
+                {s.routes.map(([route, n]) => (
+                  <li key={route}>
+                    {routeDisplayName(route)}
+                    <b>{n}</b>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
+          <section className="rd-v2-eval-block">
+            <p className="rd-v2-eval-section-label">Not yet established</p>
+            <p className="rd-v2-eval-prose muted">
+              Nothing here has been probed. Select an offering to see its coverage, its
+              route, and what remains unknown before collecting.
+            </p>
+          </section>
         </div>
+        {/* The rail's actions belong in the sticky footer, like every other
+            rail state, rather than scrolling away inside the body. */}
+        <RailStickyFooter>
+          <button
+            type="button"
+            className="rd-v2-btn sm"
+            onClick={() => onAskAbout?.({
+              kind: "results",
+              question: s.query,
+              prompt: `Compare coverage of the evidence found for: ${s.query}. Say what is covered, what remains unknown, and whether a wider source is still needed.`,
+            })}
+          >
+            Compare coverage
+          </button>
+          <a className="rd-v2-btn sm ghost" href={`?tab=library&q=${encodeURIComponent(s.query)}`}>
+            Open Library results
+          </a>
+        </RailStickyFooter>
       </RailFrame>
     );
   }
@@ -402,26 +520,31 @@ export function DiscoverEvaluationSurface({
         ) : null}
 
         <div className="rd-v2-rail-scroll rd-v2-eval-scroll">
-          <section className="rd-v2-eval-block" aria-label="Useful for">
-            <p className="rd-v2-eval-section-label">Useful for</p>
-            <p className="rd-v2-eval-prose">{evaluation.usefulFor}</p>
-          </section>
+          {/* One evidence module, not two.
+              `Useful for` restated the row's own description verbatim -- the
+              researcher just selected that row -- and `Coverage` rendered as a
+              separate headed module even when its whole content was
+              "Coverage not described". Together they pushed the rail to six
+              modules against the five the bounded Detail/Ask slice allows, and
+              UI_IMPLEMENTATION_PROGRAM says plainly: "Remove duplicate
+              semantic modules when they repeat current state."
 
-          {evaluation.coverage.length ? (
-            <section className="rd-v2-eval-block" aria-label="Coverage">
-              <p className="rd-v2-eval-section-label">Coverage</p>
+              Coverage is a fact about what this evidence is, so it belongs
+              with it. When nothing is recorded the absence is one muted line,
+              not a heading of its own. */}
+          <section className="rd-v2-eval-block" aria-label="Evidence">
+            <p className="rd-v2-eval-section-label">Evidence</p>
+            <p className="rd-v2-eval-prose">{evaluation.usefulFor}</p>
+            {evaluation.coverage.length ? (
               <ul className="rd-v2-eval-list">
                 {evaluation.coverage.map((line) => (
                   <li key={line}>{line}</li>
                 ))}
               </ul>
-            </section>
-          ) : (
-            <section className="rd-v2-eval-block" aria-label="Coverage">
-              <p className="rd-v2-eval-section-label">Coverage</p>
+            ) : (
               <p className="rd-v2-eval-prose muted">Coverage not described</p>
-            </section>
-          )}
+            )}
+          </section>
 
           <div className="rd-v2-eval-evidence-grid">
             {evaluation.hasProbe && evaluation.verified.length ? (

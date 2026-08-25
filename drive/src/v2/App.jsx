@@ -3,6 +3,7 @@ import { V2DeskHeader } from "@/v2/V2DeskHeader";
 import {
   approveJob,
   describeDataset,
+  hydrateDataset,
   deskHealth,
   deskResources,
   deskWarm,
@@ -178,6 +179,7 @@ export function V2App() {
   const [folderId, setFolderId] = useState(() => readParams().folder);
   const [selectedId, setSelectedId] = useState(() => readParams().dataset);
   const [browseRow, setBrowseRow] = useState(null);
+  const [discoverSearchSummary, setDiscoverSearchSummary] = useState(null);
   const [browseProbe, setBrowseProbe] = useState({ candidateKey: "", loading: false, result: null, error: "" });
   const [collectSubmittingKey, setCollectSubmittingKey] = useState("");
   const [lifecycleRefreshFailed, setLifecycleRefreshFailed] = useState(false);
@@ -504,7 +506,7 @@ export function V2App() {
         q: tab === "browse" ? discoverSearchQuery.trim() : "",
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot URL normalize on mount
+     
   }, []);
 
   useEffect(() => {
@@ -593,8 +595,10 @@ export function V2App() {
         folderId,
         clusterContext,
         profileEmail: profile?.email || loadUserEmail(),
+        discoverMode,
+        discoverSummary: tab === "browse" ? discoverSearchSummary : null,
       }),
-    [tab, railTab, detail, activeObject, pageSearchQuery, folderId, clusterContext, profile],
+    [tab, railTab, detail, activeObject, pageSearchQuery, folderId, clusterContext, profile, discoverMode, discoverSearchSummary],
   );
 
   const syncUrl = useCallback(
@@ -697,6 +701,25 @@ export function V2App() {
         setPreviewTarget(null);
         setActiveObject(null);
         syncUrl({ tab: next, dataset: "", preview: false });
+        return;
+      }
+      // Opt-in, and only the sidebar opts in. Running a search also navigates
+      // to browse, so resetting on every arrival wiped the query the search had
+      // just set and dropped the user back on the idle screen.
+      if (next === "browse" && opts.resetDiscover) {
+        // Clicking Discover in the sidebar returns to the Discover home, the
+        // way clicking Library returns to the Library root. Without this the
+        // nav item was inert once a search had run -- the results stayed, the
+        // query stayed in the box, and there was no way back to the starting
+        // screen short of editing the URL.
+        setTab(next);
+        setDiscoverSearchQuery("");
+        setBrowseRow(null);
+        setSelectedId("");
+        setActiveObject(null);
+        setRailTab("detail");
+        setDiscoverAssessment((current) => ({ ...current, active: false }));
+        syncUrl({ tab: next, q: "", dataset: "", preview: false });
         return;
       }
       setTab(next);
@@ -831,6 +854,14 @@ export function V2App() {
     [discoverSearchQuery, goTab, syncUrl],
   );
 
+  const suggestDiscoverSearch = useCallback((query) => {
+    const q = String(query || "").trim();
+    if (!q) return;
+    setDiscoverSearchQuery(q);
+    goTab("browse");
+    syncUrl({ tab: "browse", q });
+  }, [goTab, syncUrl]);
+
   const openDiscoverAssessment = useCallback((query) => {
     const q = String(query || discoverSearchQuery || "").trim();
     if (!q) return;
@@ -905,12 +936,21 @@ export function V2App() {
         goTab("browse");
         showToast("Acquisition review opened — collection has not started");
       } catch (err) {
-        setRailTab("ask");
-        setPendingAsk({
-          prompt: buildAddToLabPrompt(target, probeResult),
-          displayText: buildAddToLabDisplayText(target, probeResult),
-        });
-        showToast(err?.message || "Intent creation failed — opened Ask instead");
+        // A read-only mirror rejects every write, so "Add to collection" used to
+        // land the researcher in Ask with no explanation -- an unrelated surface
+        // appearing in place of the action they asked for. Say what happened
+        // instead of quietly substituting a different feature.
+        const status = Number(err?.status || err?.response?.status || 0);
+        if (status === 403 || status === 405) {
+          showToast("This is a read-only view — collection is disabled here");
+        } else {
+          setRailTab("ask");
+          setPendingAsk({
+            prompt: buildAddToLabPrompt(target, probeResult),
+            displayText: buildAddToLabDisplayText(target, probeResult),
+          });
+          showToast(err?.message || "Intent creation failed — opened Ask instead");
+        }
       } finally {
         setCollectSubmittingKey("");
       }
@@ -1380,7 +1420,9 @@ export function V2App() {
       const did = String(d.dataset_id || "");
       if (shelfHitIds.has(did)) return true;
       const nav = libraryNavHaystack.get(did) || "";
-      const text = `${did} ${d.name} ${d.display_name || ""} ${d.grain} ${d.description || ""} ${d.one_line || ""} ${d.partition_id || ""} ${nav}`.toLowerCase();
+      const aliases = Array.isArray(d.aliases) ? d.aliases.join(" ") : "";
+      const keywords = Array.isArray(d.keywords) ? d.keywords.join(" ") : "";
+      const text = `${did} ${d.name || ""} ${d.title || ""} ${d.display_name || ""} ${d.grain || ""} ${d.description || ""} ${d.one_line || ""} ${d.recommended_use || ""} ${d.meaning_about || ""} ${aliases} ${keywords} ${d.partition_id || ""} ${d.source_dataset_id || ""} ${nav}`.toLowerCase();
       return text.includes(q);
     });
   }, [catalog, libraryNavHaystack, librarySearchQuery, partitions, shelves]);
@@ -1468,6 +1510,7 @@ export function V2App() {
           discoverMode={discoverMode}
           discoverFocusAwaiting={discoverFocusAwaiting}
           onDiscoverModeChange={setDiscoverModeSafe}
+          onSearchSummary={setDiscoverSearchSummary}
           historyEvents={historyItems}
           selectedHistoryId={selectedHistoryId}
           intentRecord={discoverIntentRecord}
@@ -1495,7 +1538,7 @@ export function V2App() {
           onOpenIntentHistory={(record) => {
             const job = record?.job || record?.intent?.job || null;
             setDiscoverIntentRecord(null);
-            openDiscoverHistory(job, { focusAwaiting: job?.status === "pending_approval" });
+            openDiscoverAwaiting({ job, focusAwaiting: job?.status === "pending_approval" });
           }}
           onSelectHistoryEvent={(event) => {
             setSelectedHistoryId(event?.id || "");
@@ -1598,11 +1641,7 @@ export function V2App() {
           profile={profile}
           onGoTab={goTab}
           onProfileRefresh={reloadProfile}
-          onSuggestSearch={(q) => {
-            setSearchQuery(q);
-            setTab("browse");
-            syncUrl({ tab: "browse", q });
-          }}
+          onSuggestSearch={suggestDiscoverSearch}
         />
       );
       break;
@@ -1620,8 +1659,18 @@ export function V2App() {
       main = null;
   }
 
-  // Keep Detail/Ask rail on Discover Explore empty state — same shell as other pages.
-  // (Hiding it via no-rail made Explore look broken; BrowseRailPanel already owns the empty copy.)
+  // The rail is a quarter of the viewport. On the Discover idle screen it earns
+  // that by telling a first-time user what selecting a candidate will do -- an
+  // earlier attempt to hide it there did make Explore look broken, and that
+  // note stands.
+  //
+  // It was previously hidden after any Discover search without a selection.
+  // The comment said "a search that returned nothing", but the condition never
+  // tested the result count, so the rail also vanished on successful searches
+  // -- and the adaptive freeze §11 makes the desktop composition
+  // "left navigation | Explore results | Detail / Ask rail". A missing third
+  // column reads as a broken page, not as a quiet one. The rail stays; keeping
+  // it worth its width is a content problem, not a layout one.
   const hideRail = false;
 
   const activeResearch = useMemo(() => {
@@ -1665,6 +1714,14 @@ export function V2App() {
   );
 
   if (!deskAccess?.authenticated) {
+    // deskAccess starts null while the session check is in flight, and "not yet
+    // known" is not the same as "denied". Rendering the gate on that first tick
+    // flashed "Research data stays inside the desk." on every single load,
+    // including for already-authorised users who were never denied anything.
+    // Hold a neutral shell until the check actually answers.
+    if (deskAccessBusy && deskAccess === null) {
+      return <main className="rd-v2-access-gate" aria-busy="true" aria-label="Checking desk access" />;
+    }
     return (
       <DeskAccessGate
         access={deskAccess}
@@ -1716,7 +1773,7 @@ export function V2App() {
       />
       <V2Sidebar
         tab={tab}
-        onTabChange={goTab}
+        onTabChange={(id) => goTab(id, { resetDiscover: true })}
         activeResearch={activeResearch}
         recentItems={sidebarRecent}
         onOpenRecent={(item) => {
@@ -1746,6 +1803,8 @@ export function V2App() {
         dataset={detail}
         detailLoading={detailLoading}
         clusterContext={clusterContext}
+        discoverSearchQuery={discoverSearchQuery}
+        discoverSearchSummary={discoverSearchSummary}
         browseTarget={browseTarget}
         historyEvent={selectedHistoryEvent}
         historyJob={selectedHistoryJob}
@@ -1761,16 +1820,24 @@ export function V2App() {
         onCloseDiscoverAssessment={() => {
           setDiscoverAssessment({ active: false, question: "", result: null });
         }}
-        onSuggestDiscoverSearch={(query) => {
-          setDiscoverSearchQuery(query);
-          goTab("browse");
-        }}
+        onSuggestDiscoverSearch={suggestDiscoverSearch}
         resourceRow={resourceRow}
         resourcesRollup={resourcesRollup}
         activeObject={activeObject}
         profile={profile}
         onPreview={() => detail && openPreview(detail)}
         onAskAbout={askAboutSelection}
+        onHydrate={async (row) => {
+          const id = row?.dataset_id || detail?.dataset_id;
+          if (!id) throw new Error("No dataset to hydrate");
+          const next = await hydrateDataset(id);
+          setDetail((cur) => ({ ...(cur || {}), ...next }));
+          setDatasets((rows) =>
+            (rows || []).map((d) => (d.dataset_id === id ? { ...d, ...next } : d)),
+          );
+          showToast(next?.hydrated || next?.local_ready ? "Hydrated — ready to preview" : "Hydrate finished");
+          return next;
+        }}
         onViewActivity={(filter) => {
           setResourceMode("usage");
           setActivityFilter(filter);
@@ -1823,7 +1890,9 @@ export function V2App() {
                     }
                 : activeObject?.kind === "library_folder" || activeObject?.kind === "library_intake"
                   ? {
-                      title: `Library · ${activeObject.title}`,
+                      title: /^library\b/i.test(String(activeObject.title || ""))
+                        ? activeObject.title
+                        : `Library · ${activeObject.title}`,
                     }
                 : tab === "synthesis"
                   ? activeObject?.kind === "synthesis_thread"
