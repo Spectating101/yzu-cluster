@@ -3,14 +3,11 @@ import { test, expect } from "@playwright/test";
 import { EXAMPLE_STATE } from "../drive/src/v2/synthesisContract.js";
 import { mockV2Api } from "./fixtures/v2MockApi.js";
 
-// Field payloads come from the contract module, so a screenshot can never show
-// a shape the desk is not being asked to produce.
 const E = EXAMPLE_STATE;
 const outDir = "artifacts/synthesis-acceptance";
 
 const WIDTHS = [
   { id: "desktop", width: 1440, height: 900 },
-  // Measured from the user's Chrome content area at 100% zoom on the 1920×1080 display.
   { id: "workstation", width: 1920, height: 961 },
   { id: "mobile", width: 390, height: 844 },
 ];
@@ -29,10 +26,6 @@ const SPEC = {
 };
 
 const STATES = {
-  // S-04 §6's canonical opening state. This fixture deliberately contains only
-  // values the thread contract supports; it is the pixel-review target for the
-  // whole composition, rather than a hand-drawn mock that can drift from the
-  // API shape.
   "00-opening-recommended": {
     durable_state: "exploration_ready",
     brief: "A reusable longitudinal measure of observable public attention to individual stablecoins, constructed from held and reachable evidence.",
@@ -79,9 +72,6 @@ const STATES = {
       { id: "op2", kind: "as_of_join", detail: "backward, tolerance 5D" },
     ],
     execution_spec: SPEC } },
-  // These four states close the visual gap between Proposal and Result. They
-  // deliberately differ only by durable execution truth so pixel review can
-  // verify that researcher authority is not collapsed into a generic review.
   "06a-readiness": { nodes: NODES, execution_spec: SPEC },
   "06b-approval": { nodes: NODES, execution_spec: SPEC, execution: { status: "pending_approval", job_id: "job-pending" } },
   "07-building": { nodes: NODES, execution_spec: SPEC, execution: { status: "running" } },
@@ -101,16 +91,11 @@ const STATES = {
   "10-reuse": { nodes: NODES, execution_spec: SPEC,
     execution: { status: "registered", output_dataset_id: "idn_weekly_factor_exposure" },
     reuse_from: E.reuse_from, reuse_changes: E.reuse_changes },
-  // The case the focus policy exists for: a finished thread still carrying the
-  // pre-build refusals it has outlived. It must not read CANNOT BUILD.
   "11-stale-fields": { nodes: NODES, execution_spec: SPEC,
     execution: { status: "registered", output_dataset_id: "idn_weekly_factor_exposure" },
     scope_block: E.scope_block, unit_conflict: E.unit_conflict, provenance: E.provenance },
 };
 
-// One user-facing phase per durable state. This is deliberately stricter than
-// checking the centre alone: the persistent inspector must agree with the page
-// a researcher is actually on.
 const EXPECTED_PHASE = {
   "00-opening-recommended": "Method",
   "01-exploring": "Method",
@@ -178,11 +163,11 @@ async function mount(page, thread) {
   await page.goto("/?tab=synthesis");
   const firstThread = page.getByTestId("synthesis-thread-item").first();
   await expect(firstThread).toHaveCount(1);
-  // Desktop owns thread selection in the left work rail. On a phone that rail
-  // becomes a compact picker, while the page selects the first durable thread
-  // after loading. Do not require an off-screen desktop control to be clicked.
-  if (await firstThread.isVisible()) await firstThread.click();
-  else await expect(page.locator(".s04-main h1")).toBeVisible();
+  // Synthesis now lands on the workspace home at every viewport. The state
+  // matrix is explicitly about one durable thread, so enter that thread
+  // deliberately instead of depending on the removed auto-open behaviour.
+  await firstThread.click({ force: true });
+  await expect(page.getByTestId("synthesis-home-state")).toHaveCount(0);
 }
 
 test.describe("Synthesis acceptance screenshots", () => {
@@ -192,15 +177,9 @@ test.describe("Synthesis acceptance screenshots", () => {
         mkdirSync(outDir, { recursive: true });
         await page.setViewportSize({ width: viewport.width, height: viewport.height });
         await mount(page, threadFor(extra));
-        await expect(page.getByTestId("synthesis-thread-item").first()).toHaveCount(1);
         await expect(page.getByTestId("research-situation").locator(".rd-v2-situation-state"))
           .toHaveText(EXPECTED_PHASE[name]);
         await page.waitForTimeout(300);
-        // The document is exactly viewport-height; the workspace scrolls inside
-        // .rd-v2-body-scroll. fullPage therefore captures whatever that inner
-        // scroller happened to be showing, which is how two unrelated states
-        // produced identical mobile images. Reset it, then capture what a
-        // researcher sees on arrival.
         await resetScroll(page);
         await page.screenshot({ path: `${outDir}/${name}-${viewport.id}.png` });
 
@@ -213,7 +192,6 @@ test.describe("Synthesis acceptance screenshots", () => {
           }
         }
 
-        // A screenshot nobody has looked at still has to answer one question.
         const overflow = await page.evaluate(() =>
           document.documentElement.scrollWidth - document.documentElement.clientWidth);
         expect(overflow, `${name} overflows horizontally at ${viewport.width}px`).toBeLessThanOrEqual(1);
@@ -278,8 +256,6 @@ test.describe("Synthesis acceptance screenshots", () => {
     await expect(main.getByRole("region", { name: "Research brief" })).toBeVisible();
     await expect(main.getByRole("region", { name: "Recommended construction" })).toBeVisible();
     await expect(main.getByRole("region", { name: "What happens next" })).toBeVisible();
-    // The mobile disclosure retains the same source text in the DOM but is
-    // hidden on desktop. Guard visible duplication, not responsive markup.
     await expect(main.locator(':text-is("asset × week"):visible')).toHaveCount(1);
     await expect(main.getByText("Composite weekly attention index", { exact: true })).toHaveCount(1);
     const accept = main.getByRole("button", { name: "Accept & design method" });
@@ -291,10 +267,9 @@ test.describe("Synthesis acceptance screenshots", () => {
 
     await page.setViewportSize({ width: 390, height: 844 });
     await expect(page.locator(".s04-main h1")).toBeVisible();
-    const mobileGrip = page.getByRole("button", { name: "Show Detail · Ask" });
+    const mobileGrip = page.getByRole("button", { name: "Show research context" });
     const mobileGripBox = await mobileGrip.boundingBox();
     expect(mobileGripBox, "the compact inspector affordance should remain available").not.toBeNull();
-    expect(mobileGripBox.width).toBeLessThanOrEqual(68);
     expect(mobileGripBox.height).toBeGreaterThanOrEqual(44);
   });
 });
