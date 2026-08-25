@@ -54,6 +54,11 @@ test.describe("v2 Home Iteration 10 freeze", () => {
 
   test("Home replaces a Library selection with its exact Pick Up object", async ({ page }) => {
     await page.getByRole("button", { name: "Library", exact: true }).click();
+    // Home's exact Pick Up object now follows the researcher into Library as a
+    // selected-asset workspace. Return to the estate before choosing a different
+    // Library object; the old test assumed navigation always opened the root.
+    const allAssets = page.getByRole("button", { name: "← All Library assets" });
+    if (await allAssets.isVisible().catch(() => false)) await allAssets.click();
     await page.getByRole("textbox", { name: "Search library holdings" }).fill("Ticker week");
     const libraryRow = page.locator('.rd-v2-catalog-list button[data-kind="dataset"]', {
       hasText: "Ticker week panel",
