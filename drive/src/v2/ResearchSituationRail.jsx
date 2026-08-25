@@ -42,25 +42,11 @@ function surfaceLabel(mainTab) {
 
 function synthesisPhaseLabel(thread) {
   const stage = synthesisJourneyStage(thread);
+  // "Method" is the researcher-facing name for Specification. Every later
+  // state keeps its own journey identity: Proposal, Readiness, Approval,
+  // Build, and Result are not interchangeable flavours of "Review".
   if (stage === "specification") return "Method";
-  if (["proposal", "readiness", "approval"].includes(stage)) return "Review";
   return humanize(stage);
-}
-
-function synthesisNext(activeObject) {
-  const thread = activeObject?.thread || {};
-  const stage = synthesisJourneyStage(thread);
-  const state = text(thread.status || thread.lifecycle_status || thread.state?.status).toLowerCase();
-  if (stage === "evidence") return "Attach held evidence that legitimately bears on the objective, or route a named gap to Discover.";
-  if (stage === "specification") return "Resolve the measured construction choices that still require researcher judgement.";
-  if (stage === "proposal") return "Review the exact proposed revision before accepting a method.";
-  if (stage === "readiness") return "Verify the accepted execution specification before requesting execution authority.";
-  if (stage === "approval") return "A researcher decision is required before execution can advance.";
-  if (stage === "build") return /fail|block/.test(state)
-    ? "Resolve the recorded failure before treating the construction as usable evidence."
-    : "Execution is in flight; keep worker completion separate from archive and registry proof.";
-  if (stage === "result") return "Inspect the registered output and its evidence chain before reuse.";
-  return "Keep the evidence, method, and researcher decision bound to this synthesis thread.";
 }
 
 function discoverSituation({ browseTarget, browseLifecycle, historyEvent, discoverIntentRecord, discoverAssessment, restingSummary }) {
