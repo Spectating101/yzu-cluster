@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { canIUseDecision, libraryAssetPresentation, statusPillKind } from "@/v2/datasetMeta";
 import { DISCOVER_TAB } from "@/v2/tabIdentity";
 import { synthesisJourneyStage } from "@/v2/synthesisLifecycle";
@@ -279,6 +280,15 @@ export function ResearchSituationRail({
   resourceRow,
   resourcesDecisionCount = 0,
 }) {
+  const draftSynthesisEntry =
+    mainTab === "synthesis" &&
+    activeObject?.kind === "synthesis_thread" &&
+    Boolean(activeObject?.thread?.ephemeral || activeObject?.thread?.state?.ephemeral);
+
+  useEffect(() => {
+    if (draftSynthesisEntry && railTab !== "detail") onRailTabChange("detail");
+  }, [draftSynthesisEntry, onRailTabChange, railTab]);
+
   const situation = buildSituation({
     mainTab,
     activeObject,
