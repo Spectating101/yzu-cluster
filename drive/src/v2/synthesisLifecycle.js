@@ -57,8 +57,19 @@ function hasEvidenceNodes(thread) {
 }
 
 function hasRecommendedConstruction(thread) {
-  const constructions = thread?.state?.constructions;
-  return Array.isArray(constructions) && constructions.some((construction) => construction?.recommended === true);
+  const state = thread?.state || {};
+  const constructions = Array.isArray(state.constructions) ? state.constructions : [];
+  const chosen =
+    constructions.find((construction) => construction?.recommended === true) ||
+    (state.recommended_construction && typeof state.recommended_construction === "object"
+      ? state.recommended_construction
+      : null);
+  if (!chosen) return false;
+  const nodes = Array.isArray(chosen.nodes) ? chosen.nodes : [];
+  // Match the centre's recommendation threshold: a recommendation becomes a
+  // real construction only when it is grounded in at least one identifiable
+  // evidence/source node. A bare flag or title cannot advance authority.
+  return nodes.some((node) => text(node?.id || node?.dataset_id || node?.source || node?.label));
 }
 
 /**
@@ -68,11 +79,11 @@ function hasRecommendedConstruction(thread) {
  * no execution request has been submitted. `completed` remains Build because a
  * finished worker has not yet established archive / registry promotion.
  *
- * A persisted recommended construction is Specification work even before it is
- * accepted. The centre already exposes that recommendation as a material method
- * decision, so the shared lifecycle authority must not leave the rail behind on
- * Evidence merely because the recommendation has not yet been copied into the
- * evidence map or proposal record.
+ * A persisted, grounded recommended construction is Specification work even
+ * before it is accepted. The centre already exposes that recommendation as a
+ * material method decision, so the shared lifecycle authority must not leave
+ * the rail behind on Evidence merely because the recommendation has not yet
+ * been copied into the evidence map or proposal record.
  */
 export function synthesisJourneyStage(thread) {
   if (!thread?.id) return "objective";
