@@ -7,6 +7,7 @@ import {
   RailStickyFooter,
 } from "@/v2/RailFrame";
 import { isPreAcceptance, recommendedConstruction, researchBrief } from "@/v2/synthesisBrief.js";
+import "./synthesis-convergence.css";
 
 function text(value, fallback = "Not reported") {
   return String(value || "").trim() || fallback;
@@ -186,6 +187,43 @@ function openingDecision(thread) {
   };
 }
 
+function NewEntryRail({ thread, onAsk }) {
+  return (
+    <RailFrame>
+      <RailEntityHeader
+        title="New construction"
+        description="Unsaved Synthesis entry. A durable thread does not exist until you choose a starting point and create it."
+      />
+      <RailDecisionSummary
+        status="Draft entry"
+        primary="Choose a starting point"
+        risk="Nothing is saved yet"
+        next="Describe a research purpose or start from a registered method. Select any existing construction in Active work to leave this entry."
+        labels={{ primary: "Needs you" }}
+      />
+      <div className="rd-v2-rail-scroll">
+        <RailFieldGrid>
+          <RailField label="State" value="Not saved" />
+          <RailField label="Evidence" value="None selected" />
+          <RailField label="Method" value="None proposed" />
+          <RailField label="Execution" value="Not available before later approval" />
+        </RailFieldGrid>
+      </div>
+      <RailStickyFooter>
+        {typeof onAsk === "function" ? (
+          <button
+            type="button"
+            className="rd-v2-btn"
+            onClick={() => onAsk("Help me frame a Synthesis research purpose without choosing evidence or a method for me yet.")}
+          >
+            Ask about framing the objective
+          </button>
+        ) : null}
+      </RailStickyFooter>
+    </RailFrame>
+  );
+}
+
 function OpeningThreadRail({ thread, onAsk }) {
   const state = thread?.state || {};
   const brief = researchBrief(thread);
@@ -202,12 +240,6 @@ function OpeningThreadRail({ thread, onAsk }) {
       : "Not measured";
   const interpretation = proposal?.title
     || (recommendation.present ? recommendation.title : "No construction recommended yet");
-  const target = {
-    kind: "synthesis_thread",
-    id: thread?.id,
-    title: thread?.title || state.title || "Synthesis thread",
-    thread,
-  };
 
   return (
     <div data-testid="synthesis-opening-rail">
@@ -264,20 +296,20 @@ export function SynthesisThreadRailPanel({ thread, onAskAbout, onOpenInLibrary }
     : specInput
       ? `Declared input · ${state.execution_spec ? "accepted" : "proposed"}: ${specInput}`
       : "No inputs mapped";
+  const target = {
+    kind: "synthesis_thread",
+    id: thread?.id,
+    title: thread?.title || state.title || "Synthesis thread",
+    thread,
+  };
+  const ask = onAskAbout ? (prompt) => onAskAbout(target, prompt) : null;
+
+  if (thread?.ephemeral || state.ephemeral) {
+    return <NewEntryRail thread={thread} onAsk={ask} />;
+  }
 
   if (isPreAcceptance(thread)) {
-    const target = {
-      kind: "synthesis_thread",
-      id: thread?.id,
-      title: thread?.title || state.title || "Synthesis thread",
-      thread,
-    };
-    return (
-      <OpeningThreadRail
-        thread={thread}
-        onAsk={onAskAbout ? (prompt) => onAskAbout(target, prompt) : null}
-      />
-    );
+    return <OpeningThreadRail thread={thread} onAsk={ask} />;
   }
 
   return (
