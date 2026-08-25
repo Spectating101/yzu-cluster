@@ -38,19 +38,48 @@ test("mapped held evidence earns Specification but not Proposal", () => {
   assert.equal(synthesisStageLockReason(thread, "proposal"), "Resolve the current construction choices before a proposal can be reviewed.");
 });
 
-test("a persisted recommended construction is Specification work even before evidence-map adoption", () => {
+test("a grounded persisted recommendation is Specification work even before evidence-map adoption", () => {
   const thread = {
     id: "thread-1",
     state: {
       nodes: [],
       constructions: [
-        { recommended: true, title: "Composite weekly attention index" },
+        {
+          recommended: true,
+          title: "Composite weekly attention index",
+          nodes: [{ id: "trends", source: "Google Trends" }],
+        },
         { title: "Single-source visibility proxy" },
       ],
     },
   };
   assert.equal(synthesisJourneyStage(thread), "specification");
   assert.equal(synthesisStageLockReason(thread, "proposal"), "Resolve the current construction choices before a proposal can be reviewed.");
+});
+
+test("the alternate recommended_construction shape earns Specification only when grounded", () => {
+  const thread = {
+    id: "thread-1",
+    state: {
+      nodes: [],
+      recommended_construction: {
+        title: "Composite weekly attention index",
+        nodes: [{ source: "Wikipedia views" }],
+      },
+    },
+  };
+  assert.equal(synthesisJourneyStage(thread), "specification");
+});
+
+test("a bare recommendation flag without grounded nodes does not advance authority", () => {
+  const thread = {
+    id: "thread-1",
+    state: {
+      nodes: [],
+      constructions: [{ recommended: true, title: "Candidate A" }],
+    },
+  };
+  assert.equal(synthesisJourneyStage(thread), "evidence");
 });
 
 test("an unranked construction list does not advance a new thread by itself", () => {
