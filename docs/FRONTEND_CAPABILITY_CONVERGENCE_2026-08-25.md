@@ -6,7 +6,7 @@
 
 ## 1. Problem statement
 
-Research Drive now has a backend that is materially more capable than the resting frontend communicates. The remaining frontend problem is not primarily API integration and it is not a reason to rebuild the shell. It is a capability-conversion problem:
+Research Drive now has a backend that is materially more capable than the resting frontend communicates. The remaining frontend problem is not primarily API integration and it is not a reason to rebuild the shell. It is a capability-conversion and workflow-composition problem:
 
 ```text
 backend capability
@@ -15,6 +15,7 @@ backend capability
 → legitimate action
 → durable consequence
 → visible changed state
+→ next research surface preserves the same object and authority
 ```
 
 A capability may be intentionally hidden, but it may not disappear accidentally.
@@ -24,13 +25,13 @@ The current shell remains authoritative:
 ```text
 Navigation = where am I?
 Centre = what evidence / research object am I working with?
-Detail = what does it mean / what decision exists?
+Rail = what is true about it, what remains unresolved, what can legitimately happen next?
 Ask = intelligence + supported operation on the exact object
 Backend = durable consequence
-Centre = consequence becomes visible
+Centre / rail = consequence becomes visible
 ```
 
-Synthesis is the internal quality benchmark because it already converts measured backend state into a researcher-facing decision surface without exposing implementation plumbing.
+No individual page is the design benchmark. The benchmark is the complete research loop: a durable research object should remain coherent while the researcher moves through evidence ownership, sourcing, construction, decision, execution, and reuse.
 
 ## 2. Two-pronged review
 
@@ -47,8 +48,9 @@ For each backend capability, ask:
 - Can they invoke the legitimate next action?
 - Does the durable consequence become visible in the same research workflow?
 - Can provenance / authority be recovered later?
+- Does moving to another surface preserve the research object and the reason for the handoff?
 
-The Insider rejects interfaces that make Research Drive look like a generic Drive clone, dataset search page, chat sidebar, or worker dashboard when the backend can do materially more.
+The Insider rejects interfaces that make Research Drive look like a generic Drive clone, dataset search page, chat sidebar, wizard, or worker dashboard when the backend can do materially more.
 
 ### Designer
 
@@ -62,8 +64,9 @@ For each Insider demand, ask:
 - What belongs only after selection?
 - What belongs behind disclosure?
 - What implementation machinery should never be visible?
+- Is the user seeing a research workspace, or merely a backend state machine made visible?
 
-The Designer rejects capability dumps, dashboard inflation, duplicate panes, metadata soup, and administrative navigation.
+The Designer rejects capability dumps, dashboard inflation, duplicate panes, metadata soup, rigid wizard chrome, and administrative navigation.
 
 ### Disposition
 
@@ -78,22 +81,20 @@ HIDDEN       implementation machinery whose researcher outcome is represented el
 
 `HIDDEN` is allowed. `LOST` is not.
 
-## 3. What the current UI already gets right
-
-Do not regress these gains.
+## 3. Current strengths that must survive
 
 ### Global shell
 
 - Quiet paper centre + dark navigation + interpretive rail.
 - Seven stable faculty destinations.
 - Active research context remains visible without becoming a second navigation tree.
-- Detail / Ask remains one rail, not duplicated centre workspaces.
 - Same-origin runtime and object-grounded backend contracts.
+- Page families already share a recognizable material grammar; convergence must strengthen it rather than embed page-local mini-apps.
 
 ### Library selected asset
 
 - Real query-ready preview / query actions.
-- Readiness remains distinct from possession and registration.
+- Readiness remains distinct from possession, registration, and verification.
 - Scholarly works no longer pretend to have tabular join keys / fields.
 - Source/provenance inspection is bounded rather than always expanded.
 - Object-scoped Ask isolation.
@@ -105,140 +106,215 @@ Do not regress these gains.
 - Candidate lifecycle, probe, review, acquisition and History are real backend consequences.
 - Synthesis evidence-gap handoff preserves the research requirement.
 
-### Synthesis
-
-- Best current capability conversion.
-- Measurements, evidence, conflicts, decisions, execution and registration are composed around a research construction rather than backend modules.
-
 ### Resources / Home
 
 - Infrastructure is translated into research capacity / attention rather than exposed as worker-console plumbing.
 - Home remains a resume / needs-attention surface instead of a metrics dashboard.
 
+### Synthesis substrate
+
+- Durable thread identity, held-evidence mapping, measured state, proposal hashes, researcher acceptance, approval, execution, registration, and Library handoff are real backend authorities.
+- The frontend may reorganize these authorities, but must never collapse distinctions such as proposal ≠ accepted method, worker complete ≠ registered, or registered ≠ query-ready.
+
 ## 4. Current failure pattern
 
-The current frontend sometimes compresses backend capability into an overly small metaphor.
+The frontend sometimes compresses backend capability into an overly small metaphor, or exposes backend authority too literally.
 
 ```text
 backend: evidence estate + provenance + acquisition + verification + readiness + reuse
-frontend resting Library: shelves / folders / datasets
+frontend failure: shelf / folder / dataset
 
 backend: held evidence + federated discovery + qualification + acquisition engineering + lifecycle
-frontend resting Discover: search box / source list
+frontend failure: search box / source list
+
+backend: durable construction + evidence + measured choices + proposal + approval + execution + registration
+frontend failure A: one static everything-at-once canvas
+frontend failure B: rigid numbered wizard mirroring internal state
 ```
 
-The answer is not to restore an old UI. The answer is to retain current truth and interaction semantics while increasing capability legibility in the existing composition.
+The answer is not to restore an old UI and not to invent a new shell. Retain current truth and interaction semantics while increasing capability legibility and workflow continuity.
 
-## 5. Library target composition
+## 5. Cross-page composition rule
 
-### Current baseline to preserve
-
-- Current header / toolbar / `New` intake menu.
-- Current selected-asset workspace.
-- Current professor taxonomy / shelves as useful research organisation.
-- Current readiness truth, asset typing and Ask behaviour.
-
-### Change in centre priority
-
-A shelf must no longer be a gate that hides the evidence estate.
-
-At Library root:
+The desk has one consistent grammar:
 
 ```text
-Library
+LEFT
+location + durable research objects
 
-Research evidence estate                          N assets · Q query-ready
-[All evidence] [research collection / shelf] [collection / shelf] ...
+CENTRE
+current research work / evidence landscape
 
-EVIDENCE                              TYPE          SOURCE          STATE
-plain-language description
-────────────────────────────────────────────────────────────────────────
-...
+RIGHT
+current truth + consequence + unresolved decision + next legitimate action + scoped Ask
 ```
 
-Rules:
-
-1. Registered Library assets are visible immediately at root.
-2. Shelves / collections remain useful, but behave as research context / narrowing controls rather than the only path to evidence.
-3. Selection still opens the current asset workspace; do not recreate the old rail-heavy asset inspector.
-4. Search still searches the current Library estate.
-5. Current `New` intake remains the single intake surface.
-6. Do not infer verification from query readiness. If explicit verification authority is absent, show no verification claim or show `Not recorded` only where useful.
-7. Asset kind may scan as `Dataset`, `Scholarly work`, `Metadata index`, `Live source`, or `Operational` when that helps distinguish evidence.
-8. The centre must remain useful at both 3 assets and 128+ assets. Avoid dashboard modules above the estate.
-
-The desired mental model is:
-
-```text
-research context
-→ evidence estate is immediately visible
-→ narrow by collection / shelf if useful
-→ select evidence
-→ understand / preview / query / source / Ask
-```
-
-not:
-
-```text
-shelf
-→ folder
-→ dataset
-```
-
-### Why this is not an old-interface restoration
-
-Historical estate-ledger iterations are useful evidence that the information architecture can work, but their semantics are not authoritative. In particular, old code that equated `query-ready` with `Verified` must never return. The target combines current truth / asset handling with stronger estate visibility.
-
-## 6. Discover target composition
-
-Preserve the current one-composer Explore page and current active result workflow.
-
-The resting state must communicate the sourcing promise without becoming a dashboard:
-
-```text
-[ Search datasets or describe the evidence you need                         ]
-
-Evidence scope
-[ Library evidence · N ]  [ Known sources ]  [ Web context when useful ]
-
-Research Drive checks what you already hold, then qualified sources, then widens
-when the question requires it. Acquisition remains review-gated.
-
-examples / source families / URL-DOI intake
-```
-
-After search, the existing active composition remains primary:
-
-```text
-research need
-→ available offerings
-→ Library comparison
-→ web/reference context
-→ selected-candidate meaning / unknowns
-→ probe / review / acquire
-→ History
-→ Library
-```
-
-Do not add permanent procurement panels, source dashboards, workflow diagrams, or backend module navigation.
-
-## 7. Rail rule
-
-The rail interprets a meaningful centre object. It must not compensate for a weak / empty centre.
+The rail must not compensate for a weak centre, and the centre must not repeat a vertical report already present in the rail.
 
 A useful test:
 
 > If the rail were collapsed, would the researcher still understand what object/state they are working with and why Research Drive is useful?
 
-If the answer is no, improve the centre before adding more rail content.
+A second test:
 
-## 8. Capability disposition examples
+> If the centre were hidden, would the rail still identify the exact research object, its authority state, and the next legitimate action?
+
+Both should be true.
+
+## 6. Library target
+
+Preserve the current header, toolbar, intake menu, selected-asset workspace, taxonomy/collections, readiness truth, asset typing, Preview, and Ask.
+
+At Library root, evidence remains immediately visible. Collections narrow the same durable estate rather than gate it.
+
+```text
+Library
+
+research collections / context
+
+EVIDENCE                              SOURCE        VERIFY        STATE
+plain-language meaning
+──────────────────────────────────────────────────────────────────────
+...
+```
+
+Rules:
+
+1. Registered assets paint immediately; collection taxonomy may hydrate progressively.
+2. Search operates over the evidence estate.
+3. Source, verification, and readiness remain distinct when authority exists.
+4. Asset type is visible only when heterogeneity makes it useful.
+5. Missing prose may degrade to truth-backed evidence shape; never fabricate a semantic description.
+6. The root remains useful at 3 assets and 128+ assets.
+7. Selection opens the current asset workspace; do not recreate a second inspector-led Library.
+8. Known limitations should be able to create an exact Discover handoff rather than a generic search.
+
+## 7. Discover target
+
+Preserve the one-composer Explore page and the current active result workflow.
+
+The resting state must communicate the layered sourcing promise without becoming a dashboard:
+
+```text
+research need
+→ what Library already covers
+→ qualified external offerings
+→ useful web/reference context when needed
+→ fit / unknowns
+→ review-gated acquisition
+→ durable History
+```
+
+The entry page should make this promise legible in compact form. The active state should preserve ranked offerings while selection/Preview/Ask deepen one candidate. Do not add permanent procurement modules or source dashboards.
+
+History should increasingly read as a research acquisition notebook: need, source, method where authoritative, durable consequence, resulting Library asset, and recovery decision. Frontend must not invent method provenance the backend did not record.
+
+## 8. Synthesis target: adaptive workspace over strict authority
+
+The backend authority remains strict. The visible researcher experience must not become an eight-step checkout flow.
+
+Internal authority may distinguish:
+
+```text
+objective recorded
+→ evidence attached
+→ specification valid
+→ proposal persisted
+→ proposal accepted
+→ execution ready
+→ approval granted
+→ execution
+→ archive / registry proof
+→ registered / query-ready result
+```
+
+The visible research grammar is simpler and adaptive:
+
+```text
+Objective → Evidence → Method → Review → Build → Result
+```
+
+`Proposal` and `Readiness / Approval` are meaningful authority states inside Review. The UI may expose them as sub-states or current decisions, not necessarily permanent top-level pages.
+
+Research entry is not always identical:
+
+```text
+new question
+Objective → Evidence → Method → Review → Build
+
+start from Library evidence
+Evidence → research use / objective → Method → Review
+
+reuse registered method
+Method → check evidence fit → Review adaptation → Build
+
+missing evidence
+current construction → Discover handoff → evidence acquired → return to same construction
+```
+
+Hard rules:
+
+1. Browser navigation never earns future authority.
+2. Past earned work is inspectable from durable records.
+3. The centre shows the work that can legitimately be done now, not every possible construction panel.
+4. Earlier work remains visibly accumulated instead of disappearing like completed checkout steps.
+5. Ask advises inside the construction but is not the only way to advance deterministic workflow state.
+6. The material grammar remains Research Drive: quiet paper workspace, hairline divisions, evidence objects, bounded decision surfaces. Do not wrap the whole Synthesis page in an unrelated white SaaS card.
+7. Internal lifecycle distinctions remain honest even when multiple backend states map to one visible research phase.
+
+## 9. Rail target
+
+The right rail is the workflow continuity layer, not a generic metadata inspector or chat replacement.
+
+It answers:
+
+```text
+What exact object is active?
+What is established now?
+What materially matters?
+What remains unresolved?
+What is the next legitimate action?
+What can Ask do inside this exact context?
+```
+
+The rail should keep a compact situation header persistent across Detail and Ask. Domain-specific panels supply evidence/provenance/decision detail. Sparse pages should not leave hundreds of pixels of meaningless blank rail; however, extra content must be grounded in current state rather than filler.
+
+Ask remains object/session scoped. Switching contexts must never leak prior conversational authority.
+
+## 10. Page-specific effort
+
+### Home
+
+Keep quiet. Improve only where resume/attention items fail to reveal durable research consequences. Do not turn Home into a capability dashboard.
+
+### Library
+
+High-priority convergence surface. Evidence estate, source/verification/readiness, intake, limitations, provenance, reuse, and Discover handoff must feel like one workspace.
+
+### Discover
+
+High-priority convergence surface. Resting state must communicate sourcing power; active state must preserve evidence comparison and acquisition logic without becoming a procurement console.
+
+### Synthesis
+
+High-priority workflow surface. Validate a real sequential durable journey before granting visual maturity credit. The UI must remain adaptive and integrated with the rest of the desk.
+
+### Resources
+
+Mostly preserve. Translate only research-relevant capacity/access constraints; hide worker-console machinery.
+
+### Profile / Settings
+
+Preserve low visual weight. They support the research loop rather than compete with it.
+
+## 11. Capability disposition examples
 
 | Backend capability | Disposition | Researcher expression |
 |---|---|---|
 | readiness | PRIMARY | Query-ready / Registered / Metadata only / unavailable |
 | asset kind | PRIMARY when heterogeneous | Dataset / Scholarly work / etc. |
 | source identity | PRIMARY for owned evidence | source scan line / cell |
+| explicit verification relationship | PRIMARY / CONTEXTUAL | Verified / Matched / Partial / Unverified / Not checked |
 | complete provenance | DISCLOSURE | Source record / provenance |
 | archive manifest | DISCLOSURE | preserved acquisition proof |
 | procurement route | CONTEXTUAL | acquisition review / current route |
@@ -246,11 +322,12 @@ If the answer is no, improve the centre before adding more rail content.
 | recurring subscription | CONTEXTUAL | Keep this evidence current |
 | credential profile | HIDDEN / CONTEXTUAL | Access required when relevant |
 | measured synthesis conflicts | PRIMARY when active | measured conflict decision surface |
+| proposal hash / immutable revision | CONTEXTUAL / DISCLOSURE | exact review revision / audit proof |
 | registry internals | HIDDEN | readiness / durable Library consequence |
 
-## 9. Acceptance loop
+## 12. Acceptance loop
 
-Do not accept a composition from JSX alone.
+Do not accept composition from JSX or one flattering screenshot.
 
 ```text
 current branch
@@ -258,8 +335,10 @@ current branch
 → Insider review: what real capability is stranded?
 → Designer review: what is noisy / confusing / overexposed?
 → reconcile
-→ browser workflow tests
-→ compare current vs candidate pixels
+→ browser workflow test
+→ render sparse + active + inventory-scale states
+→ cross-page handoff test
+→ repeat until remaining defects are marginal
 ```
 
 For every changed surface, record:
@@ -269,12 +348,15 @@ KEEP     current strengths preserved
 SURFACE  backend value newly made legible
 HIDE     implementation detail intentionally withheld
 REMOVE   UI that duplicated / obscured the real research object
+PROVE    durable state transition / reload behavior that validates the composition
 ```
 
-## 10. Immediate implementation order
+## 13. Immediate convergence order
 
-1. Library root: evidence estate visible immediately; shelves become contextual narrowing, not a gate.
-2. Render and judge Library at 3 holdings and inventory-scale fixture.
-3. Discover resting state: communicate layered sourcing promise using existing chrome, not a new dashboard.
-4. Re-render Discover idle + active research question + Synthesis handoff states.
-5. Only then consider Home / Resources refinements. Synthesis remains the benchmark and should not be redesigned without a demonstrated defect.
+1. Correct Synthesis visual grammar: keep strict authority underneath, collapse the visible workflow to adaptive phases, remove wizard/card detachment, and keep accumulated construction state visible.
+2. Re-render Objective, Evidence, Method, Review, Build, and Result states from one sequential workflow fixture rather than isolated finished-state mocks.
+3. Finish Library root + selected-asset capability conversion, including verification only where authoritative and scale behavior.
+4. Improve Discover resting promise and active evidence-fit composition; preserve ranked results through candidate inspection.
+5. Finish rail continuity across Home, Library, Discover, Synthesis, and Resources.
+6. Review Home / Resources / Profile / Settings for cross-page grammar only; resist feature inflation.
+7. Run the paired frontend/backend integration gauntlet and exact cross-surface workflow proof before external researcher testing.
