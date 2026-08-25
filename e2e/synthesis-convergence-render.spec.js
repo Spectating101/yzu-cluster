@@ -32,6 +32,55 @@ const THREAD = {
   },
 };
 
+const RECOMMENDED_THREAD = {
+  id: "thread-recommended",
+  created_at: "2026-08-25T00:00:00Z",
+  updated_at: "2026-08-25T00:00:00Z",
+  title: "Historical stablecoin attention",
+  objective: "Construct a defensible longitudinal attention signal for stablecoins from held and reachable evidence.",
+  materialisation: "not_materialised",
+  state: {
+    title: "Historical stablecoin attention",
+    objective: "Construct a defensible longitudinal attention signal for stablecoins from held and reachable evidence.",
+    durable_state: "exploration_ready",
+    brief: "A reusable longitudinal measure of observable public attention to individual stablecoins, constructed from held and reachable evidence.",
+    required_grain: "asset × week",
+    target_period: "2021 onward",
+    intended_use: "Reusable input for later empirical studies",
+    maturity: "exploring",
+    maturityLabel: "Exploring",
+    lastActivity: "A reviewable construction is available.",
+    nodes: [],
+    edges: [],
+    proposal: null,
+    constructions: [
+      {
+        recommended: true,
+        title: "Composite weekly attention index",
+        nodes: [
+          { id: "trends", role: "Search intent", source: "Google Trends", grain: "asset-week" },
+          { id: "community", role: "Community activity", source: "Reddit activity", grain: "asset-week" },
+          { id: "visibility", role: "Public visibility", source: "Wikipedia views", grain: "asset-day" },
+        ],
+        validation_role: "GDELT news",
+        ideal_direct_measure: {
+          label: "Historical X follower growth",
+          unavailable_because: "no verified history",
+        },
+        expected_output: {
+          label: "Stablecoin attention weekly panel",
+          grain: "asset-week",
+          period: "2021–2026",
+        },
+        ai_resolved: ["source roles", "target grain", "validation role"],
+        method_will_resolve: ["component weighting", "missing-component rule"],
+      },
+      { title: "Event-only attention panel" },
+      { title: "Single-source visibility proxy" },
+    ],
+  },
+};
+
 const PROFILES = [
   {
     id: "event-study-panel",
@@ -49,8 +98,8 @@ const PROFILES = [
   },
 ];
 
-async function installSynthesisMocks(page) {
-  const threads = new Map([[THREAD.id, structuredClone(THREAD)]]);
+async function installSynthesisMocks(page, initialThread = THREAD) {
+  const threads = new Map([[initialThread.id, structuredClone(initialThread)]]);
 
   await page.route("**/library/synthesis/profiles**", (route) => route.fulfill({
     status: 200,
@@ -97,6 +146,17 @@ async function installSynthesisMocks(page) {
     if (!thread) return respond({ error: "not found" }, 404);
     if (!suffix && method === "GET") return respond(thread);
     if (suffix === "measurements" && method === "GET") {
+      if (thread.id === RECOMMENDED_THREAD.id) {
+        return respond({
+          thread_id: thread.id,
+          writes: false,
+          measurement_basis: "mapped_evidence",
+          input_dataset_ids: [],
+          measured_inputs: 0,
+          unmeasured: [],
+          column_profiles: [],
+        });
+      }
       return respond({
         thread_id: thread.id,
         writes: false,
@@ -195,4 +255,35 @@ test("captures the converged Synthesis thread and integrated new-entry state", a
   await expect(mobileRail.getByTestId("ask-composer")).toBeVisible();
   await expect(mobileRail.getByTestId("research-situation")).toContainText("Historical stablecoin attention");
   await capture(page, "07-thread-ask-390x844");
+});
+
+test("keeps the current recommended opening complete and reachable", async ({ page }) => {
+  await mockV2Api(page);
+  await installSynthesisMocks(page, RECOMMENDED_THREAD);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/?tab=synthesis", { waitUntil: "domcontentloaded" });
+  await waitForShell(page);
+
+  const main = page.locator(".s04-main");
+  await expect(main.getByText("Exploration ready", { exact: true })).toBeVisible();
+  await expect(main.getByRole("region", { name: "Research brief" })).toBeVisible();
+  await expect(main.getByRole("region", { name: "Recommended construction" })).toBeVisible();
+  await expect(main.getByRole("region", { name: "What happens next" })).toBeVisible();
+  await expect(main.locator(':text-is("asset × week"):visible')).toHaveCount(1);
+  await expect(main.getByText("Composite weekly attention index", { exact: true })).toHaveCount(1);
+  const accept = main.getByRole("button", { name: "Accept & design method" });
+  await expect(accept).toBeEnabled();
+  const acceptBox = await accept.boundingBox();
+  expect(acceptBox, "the opening decision must be reachable without desktop scroll").not.toBeNull();
+  expect(acceptBox.y + acceptBox.height).toBeLessThanOrEqual(900);
+  await expect(page.getByTestId("synthesis-opening-rail")).toBeVisible();
+  await capture(page, "08-opening-recommended-1440x900");
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator(".s04-main h1")).toBeVisible();
+  const mobileGrip = page.getByRole("button", { name: "Show research context" });
+  const mobileGripBox = await mobileGrip.boundingBox();
+  expect(mobileGripBox, "the compact inspector affordance should remain available").not.toBeNull();
+  expect(mobileGripBox.height).toBeGreaterThanOrEqual(44);
+  await capture(page, "09-opening-recommended-390x844");
 });
