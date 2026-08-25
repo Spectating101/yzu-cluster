@@ -79,9 +79,20 @@ const STATES = {
       { id: "op2", kind: "as_of_join", detail: "backward, tolerance 5D" },
     ],
     execution_spec: SPEC } },
+  // These four states close the visual gap between Proposal and Result. They
+  // deliberately differ only by durable execution truth so pixel review can
+  // verify that researcher authority is not collapsed into a generic review.
+  "06a-readiness": { nodes: NODES, execution_spec: SPEC },
+  "06b-approval": { nodes: NODES, execution_spec: SPEC, execution: { status: "pending_approval", job_id: "job-pending" } },
   "07-building": { nodes: NODES, execution_spec: SPEC, execution: { status: "running" } },
+  "07a-completed-awaiting-registry": { nodes: NODES, execution_spec: SPEC, execution: { status: "completed", rows: 969392 } },
   "08-registered": { nodes: NODES, execution_spec: SPEC,
     execution: { status: "registered", output_dataset_id: "idn_weekly_factor_exposure",
+                 manifest_id: "man-8842", rows: 969392 },
+    provenance: E.provenance, settled_decisions: E.settled_decisions, excursions: E.excursions,
+    column_profiles: E.column_profiles, columns_in_use: E.columns_in_use },
+  "08a-query-ready": { nodes: NODES, execution_spec: SPEC,
+    execution: { status: "query_ready", output_dataset_id: "idn_weekly_factor_exposure",
                  manifest_id: "man-8842", rows: 969392 },
     provenance: E.provenance, settled_decisions: E.settled_decisions, excursions: E.excursions,
     column_profiles: E.column_profiles, columns_in_use: E.columns_in_use },
