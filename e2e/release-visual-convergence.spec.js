@@ -204,7 +204,7 @@ test.describe("Research Drive mobile composition", () => {
     expect(continueBox.y + continueBox.height).toBeLessThanOrEqual(cardBox.y + cardBox.height + 2);
 
     const rail = page.locator("aside.rd-v2-rail");
-    await expect(rail.getByRole("button", { name: /Show Detail · Ask|Hide panel/ })).toBeVisible();
+    await expect(rail.getByRole("button", { name: /Show research context|Hide panel/ })).toBeVisible();
 
     const viewportOverflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 2);
     expect(viewportOverflow).toBe(false);
