@@ -23,6 +23,44 @@ const SPEC = {
   input_dataset_id: "idn_fry_daily_cross_section",
   output_dataset_id: "idn_weekly_factor_exposure",
   grain: "asset × week",
+  group_by: ["asset", "week"],
+  metrics: [{ function: "mean", column: "excess_return", as: "weekly_excess_return" }],
+};
+
+const ACCEPTED_HASH = "2d6ed4f1c316e30b2a5d8d0698e50f98";
+const PREVIEW = {
+  status: "succeeded",
+  created_at: "2026-08-19T09:10:00+00:00",
+  spec_hash: ACCEPTED_HASH,
+  bounded: true,
+  materialised: false,
+  registered: false,
+  review_required: true,
+  sampling: {
+    strategy: "first_rows",
+    input_row_limit: 5000,
+    source_rows: 969392,
+    previewed_rows: 5000,
+    source_truncated: true,
+  },
+  preflight: { warnings: [], join_probes: [] },
+  rows: { source: 969392, preview_input: 5000, after_transforms: 4988, output: 71, by_step: [] },
+  output: {
+    dataset_id: "idn_weekly_factor_exposure",
+    columns: ["asset", "week", "weekly_excess_return"],
+    dtypes: { asset: "object", week: "object", weekly_excess_return: "float64" },
+    rows_returned: 3,
+    rows: [
+      { asset: "BBCA", week: "2026-W01", weekly_excess_return: 0.0124 },
+      { asset: "TLKM", week: "2026-W01", weekly_excess_return: -0.0041 },
+      { asset: "ASII", week: "2026-W01", weekly_excess_return: 0.0087 },
+    ],
+  },
+};
+
+const previewed = {
+  accepted_spec_hash: ACCEPTED_HASH,
+  preview: PREVIEW,
 };
 
 const STATES = {
@@ -58,8 +96,6 @@ const STATES = {
       { title: "Single-source visibility proxy" },
     ],
   },
-  // Earliest durable state after the unsaved New Construction form. The
-  // research object exists, but no Library evidence has been mapped yet.
   "00a-defined": {},
   "01-exploring": { nodes: NODES },
   "02-columns": { nodes: NODES, column_profiles: E.column_profiles, columns_in_use: E.columns_in_use },
@@ -75,30 +111,47 @@ const STATES = {
       { id: "op2", kind: "as_of_join", detail: "backward, tolerance 5D" },
     ],
     execution_spec: SPEC } },
-  "06a-readiness": { nodes: NODES, execution_spec: SPEC },
-  "06b-approval": { nodes: NODES, execution_spec: SPEC, execution: { status: "pending_approval", job_id: "job-pending" } },
-  "07-building": { nodes: NODES, execution_spec: SPEC, execution: { status: "running", job_id: "job-running" } },
-  "07a-completed-awaiting-registry": { nodes: NODES, execution_spec: SPEC,
-    execution: { status: "completed", job_id: "job-completed", rows: 969392 } },
-  "08-registered": { nodes: NODES, execution_spec: SPEC,
-    execution: { status: "registered", job_id: "job-8842", output_dataset_id: "idn_weekly_factor_exposure",
+  "06a-preview-required": {
+    nodes: NODES,
+    execution_spec: SPEC,
+    accepted_spec_hash: ACCEPTED_HASH,
+    execution: { status: "spec_accepted", spec_hash: ACCEPTED_HASH, output_dataset_id: SPEC.output_dataset_id },
+  },
+  "06b-preview-passed": {
+    nodes: NODES,
+    execution_spec: SPEC,
+    ...previewed,
+    execution: { status: "spec_accepted", spec_hash: ACCEPTED_HASH, output_dataset_id: SPEC.output_dataset_id },
+  },
+  "06c-approval": {
+    nodes: NODES,
+    execution_spec: SPEC,
+    ...previewed,
+    execution: { status: "pending_approval", job_id: "job-pending", spec_hash: ACCEPTED_HASH, output_dataset_id: SPEC.output_dataset_id },
+  },
+  "07-building": { nodes: NODES, execution_spec: SPEC, ...previewed,
+    execution: { status: "running", job_id: "job-running", spec_hash: ACCEPTED_HASH, output_dataset_id: SPEC.output_dataset_id } },
+  "07a-completed-awaiting-registry": { nodes: NODES, execution_spec: SPEC, ...previewed,
+    execution: { status: "completed", job_id: "job-completed", spec_hash: ACCEPTED_HASH, output_dataset_id: SPEC.output_dataset_id, rows: 969392 } },
+  "08-registered": { nodes: NODES, execution_spec: SPEC, ...previewed,
+    execution: { status: "registered", job_id: "job-8842", spec_hash: ACCEPTED_HASH, output_dataset_id: "idn_weekly_factor_exposure",
                  manifest_id: "man-8842", rows: 969392, drive_verified: true },
     provenance: E.provenance, settled_decisions: E.settled_decisions, excursions: E.excursions,
     column_profiles: E.column_profiles, columns_in_use: E.columns_in_use },
-  "08a-query-ready": { nodes: NODES, execution_spec: SPEC,
-    execution: { status: "query_ready", job_id: "job-8842", output_dataset_id: "idn_weekly_factor_exposure",
+  "08a-query-ready": { nodes: NODES, execution_spec: SPEC, ...previewed,
+    execution: { status: "query_ready", job_id: "job-8842", spec_hash: ACCEPTED_HASH, output_dataset_id: "idn_weekly_factor_exposure",
                  manifest_id: "man-8842", rows: 969392, drive_verified: true },
     provenance: E.provenance, settled_decisions: E.settled_decisions, excursions: E.excursions,
     column_profiles: E.column_profiles, columns_in_use: E.columns_in_use },
-  "09-failed": { nodes: NODES, execution_spec: SPEC,
-    execution: { status: "failed", job_id: "job-failed",
+  "09-failed": { nodes: NODES, execution_spec: SPEC, ...previewed,
+    execution: { status: "failed", job_id: "job-failed", spec_hash: ACCEPTED_HASH, output_dataset_id: SPEC.output_dataset_id,
       error: "as-of join produced 206,432,820 rows, over the 1,000,000 limit" } },
-  "10-reuse": { nodes: NODES, execution_spec: SPEC,
-    execution: { status: "registered", job_id: "job-reuse", output_dataset_id: "idn_weekly_factor_exposure",
+  "10-reuse": { nodes: NODES, execution_spec: SPEC, ...previewed,
+    execution: { status: "registered", job_id: "job-reuse", spec_hash: ACCEPTED_HASH, output_dataset_id: "idn_weekly_factor_exposure",
       drive_verified: true },
     reuse_from: E.reuse_from, reuse_changes: E.reuse_changes },
-  "11-stale-fields": { nodes: NODES, execution_spec: SPEC,
-    execution: { status: "registered", job_id: "job-stale", output_dataset_id: "idn_weekly_factor_exposure",
+  "11-stale-fields": { nodes: NODES, execution_spec: SPEC, ...previewed,
+    execution: { status: "registered", job_id: "job-stale", spec_hash: ACCEPTED_HASH, output_dataset_id: "idn_weekly_factor_exposure",
       drive_verified: true },
     scope_block: E.scope_block, unit_conflict: E.unit_conflict, provenance: E.provenance },
 };
@@ -112,8 +165,9 @@ const EXPECTED_PHASE = {
   "04-unit-conflict": "Method",
   "05-join": "Method",
   "06-proposal": "Proposal",
-  "06a-readiness": "Readiness",
-  "06b-approval": "Approval",
+  "06a-preview-required": "Preview",
+  "06b-preview-passed": "Preview",
+  "06c-approval": "Approval",
   "07-building": "Build",
   "07a-completed-awaiting-registry": "Build",
   "08-registered": "Result",
@@ -124,8 +178,9 @@ const EXPECTED_PHASE = {
 };
 
 const EXECUTION_FIRST = new Set([
-  "06a-readiness",
-  "06b-approval",
+  "06a-preview-required",
+  "06b-preview-passed",
+  "06c-approval",
   "07-building",
   "07a-completed-awaiting-registry",
   "08-registered",
@@ -185,9 +240,6 @@ async function mount(page, thread) {
   await page.goto("/?tab=synthesis");
   const firstThread = page.getByTestId("synthesis-thread-item").first();
   await expect(firstThread).toHaveCount(1);
-  // Synthesis now lands on the workspace home at every viewport. The state
-  // matrix is explicitly about one durable thread, so enter that thread
-  // deliberately instead of depending on the removed auto-open behaviour.
   await firstThread.click({ force: true });
   await expect(page.getByTestId("synthesis-home-state")).toHaveCount(0);
 }
@@ -206,6 +258,28 @@ test.describe("Synthesis acceptance screenshots", () => {
           await expect(page.getByTestId("synthesis-workflow-next")).toContainText("Find held evidence");
           await expect(page.getByTestId("synthesis-evidence-state")).toBeVisible();
           await expect(page.getByTestId("synthesis-evidence-state")).toContainText("No inputs mapped");
+        }
+
+        if (name === "06a-preview-required") {
+          const preview = page.getByTestId("synthesis-preview-state");
+          await expect(preview).toBeVisible();
+          await expect(preview).toContainText("Test this accepted recipe before full execution");
+          await expect(page.getByRole("button", { name: "Run bounded preview" })).toBeVisible();
+        }
+
+        if (name === "06b-preview-passed") {
+          const preview = page.getByTestId("synthesis-preview-state");
+          await expect(preview).toBeVisible();
+          await expect(preview).toContainText("This accepted recipe completed on bounded bytes");
+          await expect(preview).toContainText("5,000");
+          await expect(page.getByRole("button", { name: "Request execution approval" })).toBeVisible();
+        }
+
+        if (name === "06c-approval") {
+          await expect(page.getByTestId("synthesis-preview-state")).toHaveCount(0);
+          await expect(page.getByRole("button", { name: "Review approval" })).toBeVisible();
+          await expect(page.getByText("Bounded preview", { exact: true })).toBeVisible();
+          await expect(page.getByText("Passed", { exact: true })).toBeVisible();
         }
 
         if (viewport.id === "desktop" && EXECUTION_FIRST.has(name)) {
