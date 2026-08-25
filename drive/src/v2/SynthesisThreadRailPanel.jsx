@@ -1,6 +1,5 @@
 import {
   RailDecisionSummary,
-  RailEntityHeader,
   RailField,
   RailFieldGrid,
   RailFrame,
@@ -11,13 +10,6 @@ import "./synthesis-convergence.css";
 
 function text(value, fallback = "Not reported") {
   return String(value || "").trim() || fallback;
-}
-
-function compactObjective(value, limit = 300) {
-  const full = text(value, "A durable research-construction thread.").replace(/\s+/g, " ");
-  if (full.length <= limit) return full;
-  const boundary = full.lastIndexOf(" ", limit - 1);
-  return `${full.slice(0, boundary > 0 ? boundary : limit).trim()}…`;
 }
 
 function normalizedExecutionStatus(thread) {
@@ -190,10 +182,6 @@ function openingDecision(thread) {
 function NewEntryRail({ thread, onAsk }) {
   return (
     <RailFrame>
-      <RailEntityHeader
-        title="New construction"
-        description="Unsaved Synthesis entry. A durable thread does not exist until you choose a starting point and create it."
-      />
       <RailDecisionSummary
         status="Draft entry"
         primary="Choose a starting point"
@@ -227,28 +215,20 @@ function NewEntryRail({ thread, onAsk }) {
 function OpeningThreadRail({ thread, onAsk }) {
   const state = thread?.state || {};
   const brief = researchBrief(thread);
-  const recommendation = recommendedConstruction(thread);
   const nodes = evidenceNodes(thread);
   const profiles = Array.isArray(state.column_profiles) ? state.column_profiles : [];
   const flagged = profiles.filter((profile) => (profile.flags || []).length).length;
   const proposal = state.proposal || null;
   const summary = openingDecision(thread);
   const measurement = profiles.length
-    ? `${profiles.length.toLocaleString()} columns · ${flagged.toLocaleString()} flagged`
+    ? `${profiles.length.toLocaleString()} column${profiles.length === 1 ? "" : "s"}${flagged ? ` · ${flagged.toLocaleString()} flagged` : ""}`
     : nodes.length
       ? "Measurement pending"
       : "Not measured";
-  const interpretation = proposal?.title
-    || (recommendation.present ? recommendation.title : "No construction recommended yet");
 
   return (
     <div data-testid="synthesis-opening-rail">
       <RailFrame>
-        <RailEntityHeader
-          id={thread?.id}
-          title={thread?.title || state.title || "Synthesis thread"}
-          description={compactObjective(brief.body || thread?.objective, 220)}
-        />
         <RailDecisionSummary
           {...summary}
           labels={{ primary: "Needs you" }}
@@ -258,7 +238,6 @@ function OpeningThreadRail({ thread, onAsk }) {
             <RailField label="Target grain" value={brief.targetGrain || state.required_grain || "Not stated"} />
             <RailField label="Evidence" value={nodes.length ? `${nodes.length} mapped input${nodes.length === 1 ? "" : "s"}` : "None mapped"} />
             <RailField label="Measured" value={measurement} />
-            <RailField label="Interpretation" value={interpretation} />
             <RailField label="Method" value={proposal ? "Proposal awaiting review" : "Not accepted"} />
             <RailField label="Output" value="Not registered" />
           </RailFieldGrid>
@@ -314,11 +293,6 @@ export function SynthesisThreadRailPanel({ thread, onAskAbout, onOpenInLibrary }
 
   return (
     <RailFrame>
-      <RailEntityHeader
-        id={thread?.id}
-        title={thread?.title || state.title || "Synthesis thread"}
-        description={compactObjective(thread?.objective || state.objective)}
-      />
       <RailDecisionSummary {...summary} labels={{ primary: "Needs you" }} />
       <div className="rd-v2-rail-scroll">
         <RailFieldGrid>
