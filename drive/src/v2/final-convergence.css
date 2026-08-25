@@ -30,6 +30,33 @@
   display: none;
 }
 
+/* Scope, unit, and join conflicts are blocking method decisions. They must own
+ * the centre instead of appearing below the generic pre-acceptance wizard and
+ * "start method reasoning" card. The durable decision panels remain visible;
+ * only generic guidance that would ask the researcher to move past the blocker
+ * is suppressed. */
+.rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-scope-block"]) .s04-opening-workflow-wrap,
+.rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-scope-block"]) .s04-opening-next,
+.rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-unit-conflict"]) .s04-opening-workflow-wrap,
+.rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-unit-conflict"]) .s04-opening-next,
+.rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-join-decision"]) .s04-opening-workflow-wrap,
+.rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-join-decision"]) .s04-opening-next {
+  display: none;
+}
+
+/* Join is itself the unresolved method choice. Hiding the generic column
+ * surface while that blocker is active keeps the actual join decision above
+ * supporting evidence instead of burying it underneath a second method panel. */
+.rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-join-decision"]) [data-testid="synthesis-method-surface"] {
+  display: none;
+}
+
+/* Proposal review already has an exact revision and its own review checkpoint;
+ * the four-step opening strip is obsolete once that durable proposal exists. */
+.rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-proposal-state"]) .s04-opening-workflow-wrap {
+  display: none;
+}
+
 .rd-v2-synthesis-page .sj-shell {
   width: 100%;
   max-width: none;
