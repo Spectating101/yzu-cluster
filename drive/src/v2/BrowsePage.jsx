@@ -776,11 +776,18 @@ export function BrowsePage({
             live: true,
           });
           let sourceRows = sourcesResponseToRows(sources);
-          if (sourceRows.length) {
+          {
             // A capability route is not an evidence match. When the source
             // catalogue cannot name a route that actually matches the need,
             // consult the external catalogue before showing generic providers.
-            if (!hasSpecificSourceRoute(sourceRows, q)) {
+            //
+            // This used to be nested inside `if (sourceRows.length)`, so the
+            // external fallback ran only when the catalogue had already
+            // succeeded — never in the case it exists for. A question about
+            // forest fires returned no declared route, skipped the web entirely,
+            // and reported "Web context · 0" while the endpoint held eight
+            // relevant sources.
+            if (!sourceRows.length || !hasSpecificSourceRoute(sourceRows, q)) {
               try {
                 const web = await webDiscover(q, 8);
                 const webRows = rankExternalCatalogueRows(webHitsToRows(web), q);
@@ -797,14 +804,16 @@ export function BrowsePage({
                 // Catalogue availability is optional; retain known routes as a truthful fallback.
               }
             }
-            apply(
-              { results: sourceRows },
-              sources.demo ? "demo" : "sources",
-              { append: isWidening },
-            );
-            if (sources.demo) setDemoFallback(true);
-            setIndexMiss(false);
-            return;
+            if (sourceRows.length) {
+              apply(
+                { results: sourceRows },
+                sources.demo ? "demo" : "sources",
+                { append: isWidening },
+              );
+              if (sources.demo) setDemoFallback(true);
+              setIndexMiss(false);
+              return;
+            }
           }
         } catch {
           /* sources endpoint optional — fall through to the index path */
