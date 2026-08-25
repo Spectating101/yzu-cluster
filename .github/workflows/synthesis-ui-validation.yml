@@ -22,7 +22,21 @@ jobs:
         env:
           YZU_PAGES: "true"
       - name: Run Synthesis interaction suite
-        run: mkdir -p .tmp-pw artifacts/synthesis-renders && TMPDIR=$PWD/.tmp-pw npx playwright test e2e/v2-synthesis.spec.js --reporter=line
+        # Two inspector assertions in the historical S-04 suite describe the
+        # retired "Your intent / Quick questions" rail. Their desktop/mobile
+        # coverage now lives in synthesis-convergence-render.spec.js below;
+        # keep every other interaction case active while that legacy file is
+        # eventually pruned in a normal local patching pass.
+        run: >-
+          mkdir -p .tmp-pw artifacts/synthesis-renders &&
+          TMPDIR=$PWD/.tmp-pw npx playwright test e2e/v2-synthesis.spec.js
+          --grep-invert "renders the selected durable thread in the workspace and Detail rail|keeps the right rail usable on mobile while the workspace remains source-backed"
+          --reporter=line
+        env:
+          CI: "true"
+          YZU_PAGES: "false"
+      - name: Run converged Synthesis inspector contract
+        run: mkdir -p artifacts/synthesis-convergence && TMPDIR=$PWD/.tmp-pw npx playwright test e2e/synthesis-convergence-render.spec.js --reporter=line
         env:
           CI: "true"
           YZU_PAGES: "false"
@@ -37,6 +51,7 @@ jobs:
           name: synthesis-s04-render-evidence
           path: |
             artifacts/synthesis-renders
+            artifacts/synthesis-convergence
             artifacts/synthesis-acceptance
             test-results
           if-no-files-found: warn
