@@ -14,18 +14,32 @@ function sourceLabel(row = {}) {
   ).trim();
 }
 
+function presentationKind(row = {}) {
+  return libraryAssetPresentation(row).kind;
+}
+
 function descriptionLabel(row = {}) {
-  return String(
+  const explicit = String(
     row.description ||
       row.one_line ||
       row.summary ||
       row.recommended_use ||
-      "No plain-language description is recorded for this asset yet.",
+      "",
   ).trim();
-}
+  if (explicit) return explicit;
 
-function presentationKind(row = {}) {
-  return libraryAssetPresentation(row).kind;
+  const kind = presentationKind(row);
+  const grain = String(row.grain || "").trim();
+  const coverage = String(row.coverage || row.date_range || row.temporal_coverage || "").trim();
+  const pieces = [];
+  if (kind === "scholarly_work") pieces.push("Bibliographic research evidence");
+  else if (kind === "metadata_index") pieces.push("Metadata index");
+  else if (kind === "live_source") pieces.push("Live research source");
+  else if (kind === "operational") pieces.push("Operational research record");
+  else pieces.push("Registered research dataset");
+  if (grain) pieces.push(`${grain} grain`);
+  if (coverage) pieces.push(coverage);
+  return pieces.join(" · ");
 }
 
 function kindLabel(row = {}) {
@@ -37,6 +51,27 @@ function kindLabel(row = {}) {
   return "Dataset";
 }
 
+function verificationLabel(row = {}) {
+  const nested = row.verification && typeof row.verification === "object" ? row.verification : {};
+  const sourceMatch = row.source_match && typeof row.source_match === "object" ? row.source_match : {};
+  const raw = String(
+    row.verification_status ||
+      row.verification_state ||
+      row.source_verification ||
+      row.source_match_status ||
+      nested.status ||
+      nested.state ||
+      sourceMatch.status ||
+      sourceMatch.state ||
+      "",
+  ).trim().toLowerCase().replace(/[\s-]+/g, "_");
+  if (raw === "verified") return { label: "Verified", kind: "verified" };
+  if (raw === "matched") return { label: "Matched", kind: "matched" };
+  if (raw === "partial") return { label: "Partial", kind: "partial" };
+  if (raw === "unverified") return { label: "Unverified", kind: "unverified" };
+  return { label: "Not checked", kind: "unchecked" };
+}
+
 function collectionCountLabel(folder = {}) {
   const count = Number(folder.dataset_count || folder.asset_count || folder.count || 0);
   return Number.isFinite(count) && count > 0 ? String(count) : "";
@@ -45,10 +80,10 @@ function collectionCountLabel(folder = {}) {
 /**
  * Root Library composition for capability convergence.
  *
- * This is deliberately NOT a restoration of the retired estate browser. It
- * keeps today's selection/workspace/readiness semantics and changes only the
- * root information priority: evidence is visible immediately; shelves remain
- * useful research context rather than a gate before evidence can be seen.
+ * Current selection/workspace/readiness semantics stay authoritative. Root
+ * composition makes the durable evidence estate visible immediately; research
+ * collections narrow that estate without becoming a gate before evidence can
+ * be inspected.
  */
 export function LibraryEvidenceEstate({
   assets = [],
@@ -59,7 +94,7 @@ export function LibraryEvidenceEstate({
   onPreviewDataset,
 }) {
   const showKind = assets.some((item) => presentationKind(item?.row || item) !== "dataset");
-  const ledgerClass = `rd-v2-cap-ledger${showKind ? " show-kind" : ""}`;
+  const ledgerClass = `rd-v2-cap-ledger with-verify${showKind ? " show-kind" : ""}`;
 
   return (
     <section className="rd-v2-cap-estate" data-testid="library-evidence-estate" aria-label="Research evidence estate">
@@ -67,7 +102,7 @@ export function LibraryEvidenceEstate({
         <div>
           <span className="rd-v2-eyebrow">Owned evidence</span>
           <h2>Evidence estate</h2>
-          <p>Select evidence to inspect, preview, query, or Ask. Collections narrow the same durable estate without hiding it.</p>
+          <p>Inspect the evidence itself first. Collections narrow the same durable estate; source, verification, and readiness remain separate claims.</p>
         </div>
         <strong className="rd-v2-cap-estate-count">
           {assets.length} asset{assets.length === 1 ? "" : "s"}
@@ -94,7 +129,7 @@ export function LibraryEvidenceEstate({
               ))}
             </div>
           ) : (
-            <span className="rd-v2-cap-collections-loading">Organizing research collections…</span>
+            <span className="rd-v2-cap-collections-loading">Research collections are still loading…</span>
           )}
         </div>
       ) : null}
@@ -104,12 +139,14 @@ export function LibraryEvidenceEstate({
           <span role="columnheader">Evidence</span>
           {showKind ? <span role="columnheader">Type</span> : null}
           <span role="columnheader">Source</span>
+          <span role="columnheader">Verify</span>
           <span role="columnheader">State</span>
         </div>
         <div className="rd-v2-cap-ledger-body">
           {assets.length ? (
             assets.map((item) => {
               const row = item?.row || item;
+              const verification = verificationLabel(row);
               return (
                 <button
                   key={row.dataset_id || item.id}
@@ -127,6 +164,7 @@ export function LibraryEvidenceEstate({
                   </span>
                   {showKind ? <span className="rd-v2-cap-kind" role="cell">{kindLabel(row)}</span> : null}
                   <span className="rd-v2-cap-source" role="cell">{sourceLabel(row)}</span>
+                  <span className={`rd-v2-cap-verify ${verification.kind}`} role="cell">{verification.label}</span>
                   <span className="rd-v2-cap-state" role="cell"><StatusPill dataset={row} /></span>
                 </button>
               );
