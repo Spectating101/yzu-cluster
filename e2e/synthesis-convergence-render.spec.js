@@ -175,4 +175,24 @@ test("captures the converged Synthesis thread and integrated new-entry state", a
   await expect(page.getByTestId("research-situation")).toContainText("Historical stablecoin attention");
   await expect(page.getByTestId("research-situation")).toContainText("2 measured");
   await capture(page, "05-returned-thread-1440x1000");
+
+  // Replace the two legacy S-04 rail tests with the actual converged mobile
+  // contract: the sheet opens on decision intelligence, then Ask takes over
+  // without losing the scoped thread identity above it.
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole("button", { name: "Show research context" }).click();
+  const mobileRail = page.locator("aside.rd-v2-rail");
+  await expect(mobileRail.getByTestId("rail-pane-detail")).toBeVisible();
+  await expect(mobileRail.getByTestId("research-situation")).toContainText("Historical stablecoin attention");
+  await expect(mobileRail.getByTestId("synthesis-opening-rail")).toContainText("Evidence measured");
+  await expect(mobileRail.getByTestId("synthesis-opening-rail")).toContainText("Review measured evidence");
+  await capture(page, "06-thread-detail-390x844");
+
+  await mobileRail.getByRole("tab", { name: "Ask" }).click();
+  await expect(mobileRail.getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "true");
+  await expect(mobileRail.getByTestId("rail-pane-detail")).toBeHidden();
+  await expect(mobileRail.getByTestId("rail-pane-ask")).toBeVisible();
+  await expect(mobileRail.getByTestId("ask-composer")).toBeVisible();
+  await expect(mobileRail.getByTestId("research-situation")).toContainText("Historical stablecoin attention");
+  await capture(page, "07-thread-ask-390x844");
 });
