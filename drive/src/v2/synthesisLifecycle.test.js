@@ -38,6 +38,32 @@ test("mapped held evidence earns Specification but not Proposal", () => {
   assert.equal(synthesisStageLockReason(thread, "proposal"), "Resolve the current construction choices before a proposal can be reviewed.");
 });
 
+test("a persisted recommended construction is Specification work even before evidence-map adoption", () => {
+  const thread = {
+    id: "thread-1",
+    state: {
+      nodes: [],
+      constructions: [
+        { recommended: true, title: "Composite weekly attention index" },
+        { title: "Single-source visibility proxy" },
+      ],
+    },
+  };
+  assert.equal(synthesisJourneyStage(thread), "specification");
+  assert.equal(synthesisStageLockReason(thread, "proposal"), "Resolve the current construction choices before a proposal can be reviewed.");
+});
+
+test("an unranked construction list does not advance a new thread by itself", () => {
+  const thread = {
+    id: "thread-1",
+    state: {
+      nodes: [],
+      constructions: [{ title: "Candidate A" }, { title: "Candidate B" }],
+    },
+  };
+  assert.equal(synthesisJourneyStage(thread), "evidence");
+});
+
 test("a persisted proposal earns Proposal review", () => {
   const thread = {
     id: "thread-1",
