@@ -1,0 +1,253 @@
+/*
+ * Final frontend convergence overrides.
+ *
+ * This file intentionally scopes refinements to the current v2 composition.
+ * It does not revive historical layouts. The goal is to preserve current
+ * truth/interaction contracts while making each surface feel like one Research
+ * Drive rather than a set of page-local mini applications.
+ */
+
+/* -------------------------------------------------------------------------- */
+/* Synthesis — adaptive research workspace, not an embedded wizard            */
+/* -------------------------------------------------------------------------- */
+
+.rd-v2-synthesis-page .sj-shell {
+  width: 100%;
+  max-width: none;
+  gap: 14px;
+  margin: 0;
+  padding: 0 0 40px;
+}
+
+.rd-v2-synthesis-page .sj-stage-page {
+  gap: 16px;
+  padding: 2px 2px 28px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.rd-v2-synthesis-page .sj-stage-header {
+  padding: 2px 0 15px;
+  border-bottom-color: color-mix(in srgb, var(--rd-v2-border, #d8dee8) 78%, transparent);
+}
+
+/* Internal stage numbering remains an authority concern, not the primary
+ * visual metaphor. The phase track carries the researcher-facing orientation. */
+.rd-v2-synthesis-page .sj-stage-header > div > small {
+  display: none;
+}
+
+.rd-v2-synthesis-page .sj-stage-header h2 {
+  max-width: 820px;
+  margin-top: 0;
+  font-size: clamp(21px, 1.85vw, 27px);
+  letter-spacing: -0.022em;
+}
+
+.rd-v2-synthesis-page .sj-stage-header p {
+  max-width: 800px;
+}
+
+.rd-v2-synthesis-page .sj-state-chip {
+  border: 1px solid color-mix(in srgb, var(--rd-v2-border, #d8dee8) 78%, transparent);
+  background: color-mix(in srgb, var(--rd-v2-paper, #f5f1e7) 72%, transparent);
+}
+
+.rd-v2-synthesis-page .sj-state-chip.ready {
+  border-color: color-mix(in srgb, #77a98d 48%, var(--rd-v2-border, #d8dee8));
+  background: color-mix(in srgb, #e8f3ec 62%, transparent);
+}
+
+.rd-v2-synthesis-page .sj-object-header {
+  padding: 1px 2px 2px;
+}
+
+.rd-v2-synthesis-page .sj-object-header > div:first-child > small {
+  color: var(--rd-v2-muted, #697386);
+  text-transform: uppercase;
+  letter-spacing: .09em;
+  font-size: 9px;
+  font-weight: 720;
+}
+
+.rd-v2-synthesis-page .sj-object-header h1 {
+  font-size: clamp(23px, 2vw, 31px);
+}
+
+/* Six visible research phases. Proposal/readiness/approval remain distinct
+ * durable states inside Review but no longer become three giant destinations. */
+.rd-v2-synthesis-page .sj-journey {
+  position: relative;
+  overflow-x: auto;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  scrollbar-width: thin;
+}
+
+.rd-v2-synthesis-page .sj-journey ol {
+  grid-template-columns: repeat(6, minmax(98px, 1fr));
+  min-width: 640px;
+  border-top: 1px solid color-mix(in srgb, var(--rd-v2-border, #d8dee8) 78%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-v2-border, #d8dee8) 78%, transparent);
+}
+
+.rd-v2-synthesis-page .sj-journey li:not(:last-child)::after {
+  top: 22px;
+  right: -8px;
+  width: 16px;
+  background: color-mix(in srgb, var(--rd-v2-border, #d8dee8) 72%, transparent);
+}
+
+.rd-v2-synthesis-page .sj-journey button {
+  min-height: 55px;
+  padding: 10px 9px;
+  border-right: 0;
+}
+
+.rd-v2-synthesis-page .sj-journey li.selected button {
+  background: color-mix(in srgb, var(--rd-v2-accent, #4b6f65) 5%, transparent);
+}
+
+.rd-v2-synthesis-page .sj-journey li.current button,
+.rd-v2-synthesis-page .sj-journey li.earned-current button {
+  box-shadow: inset 0 -2px color-mix(in srgb, var(--rd-v2-accent, #4b6f65) 88%, transparent);
+}
+
+.rd-v2-synthesis-page .sj-journey-index {
+  width: 10px;
+  height: 10px;
+  flex: 0 0 10px;
+  margin-top: 4px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--rd-v2-muted, #697386) 48%, transparent);
+  border-radius: 50%;
+  background: transparent;
+  color: transparent;
+  font-size: 0;
+}
+
+.rd-v2-synthesis-page .sj-journey li.done .sj-journey-index {
+  border-color: color-mix(in srgb, #4d8068 70%, transparent);
+  background: #4d8068;
+}
+
+.rd-v2-synthesis-page .sj-journey li.current .sj-journey-index,
+.rd-v2-synthesis-page .sj-journey li.earned-current .sj-journey-index {
+  border-color: color-mix(in srgb, var(--rd-v2-accent, #4b6f65) 85%, transparent);
+  background: color-mix(in srgb, var(--rd-v2-accent, #4b6f65) 72%, transparent);
+}
+
+.rd-v2-synthesis-page .sj-journey-copy strong {
+  font-size: 11px;
+}
+
+.rd-v2-synthesis-page .sj-journey-copy small {
+  font-size: 9px;
+}
+
+.rd-v2-synthesis-page .sj-inspection-note {
+  padding: 8px 10px;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--rd-v2-accent, #4b6f65) 4%, transparent);
+}
+
+/* Objective is a workspace, not a form card. */
+.rd-v2-synthesis-page .sj-objective-form {
+  gap: 13px;
+}
+
+.rd-v2-synthesis-page .sj-objective-form textarea,
+.rd-v2-synthesis-page .sj-objective-form input,
+.rd-v2-synthesis-page .sj-field input,
+.rd-v2-synthesis-page .sj-field select {
+  background: color-mix(in srgb, #fff 64%, var(--rd-v2-paper, #f5f1e7));
+}
+
+.rd-v2-synthesis-page .sj-objective-form textarea {
+  min-height: 132px;
+}
+
+.rd-v2-synthesis-page .sj-objective-grid {
+  grid-template-columns: minmax(220px, 420px);
+  align-items: start;
+}
+
+/* The rail now carries the authority consequence. Keeping the duplicate block
+ * in the centre would make the page feel like a wizard again. */
+.rd-v2-synthesis-page .sj-objective-grid > .sj-inline-alert.neutral {
+  display: none;
+}
+
+.rd-v2-synthesis-page .sj-objective-submit {
+  justify-content: flex-start;
+}
+
+.rd-v2-synthesis-page .sj-method-starters {
+  margin-top: 4px;
+  padding-top: 16px;
+  border-top: 1px solid color-mix(in srgb, var(--rd-v2-border, #d8dee8) 78%, transparent);
+}
+
+.rd-v2-synthesis-page .sj-method-card,
+.rd-v2-synthesis-page .sj-choice-grid button,
+.rd-v2-synthesis-page .sj-join-candidates button,
+.rd-v2-synthesis-page .sj-segmented button,
+.rd-v2-synthesis-page .sj-column-picker label,
+.rd-v2-synthesis-page .sj-metric-row,
+.rd-v2-synthesis-page .sj-proposal-fact,
+.rd-v2-synthesis-page .sj-result-fact {
+  background: color-mix(in srgb, #fff 58%, var(--rd-v2-paper, #f5f1e7));
+  box-shadow: none;
+}
+
+.rd-v2-synthesis-page .sj-decision-block {
+  padding: 14px 0 16px;
+}
+
+.rd-v2-synthesis-page .sj-decision-block > header > span {
+  background: color-mix(in srgb, var(--rd-v2-accent, #4b6f65) 7%, transparent);
+}
+
+.rd-v2-synthesis-page .sj-inline-alert {
+  border-radius: 8px;
+  background: color-mix(in srgb, #fff 46%, var(--rd-v2-paper, #f5f1e7));
+}
+
+.rd-v2-synthesis-page .sj-code-block {
+  border-radius: 8px;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Shared rail — keep the research situation compact enough to leave room for */
+/* meaningful domain detail while making current truth/next action persistent. */
+/* -------------------------------------------------------------------------- */
+
+.rd-v2-situation {
+  padding-bottom: 10px;
+}
+
+.rd-v2-situation h2 {
+  margin-bottom: 5px;
+}
+
+.rd-v2-situation-facts {
+  gap: 4px 7px;
+}
+
+.rd-v2-situation-next {
+  margin-top: 7px;
+  line-height: 1.38;
+}
+
+@media (max-width: 920px) {
+  .rd-v2-synthesis-page .sj-objective-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rd-v2-synthesis-page .sj-journey ol {
+    min-width: 590px;
+  }
+}
