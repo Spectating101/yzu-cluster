@@ -3,9 +3,6 @@ on:
   pull_request:
     branches: [main]
 
-permissions:
-  contents: write
-
 concurrency:
   group: synthesis-ui-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -15,21 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: work/chatgpt-final-convergence-20260825
-          fetch-depth: 0
-      - name: Apply bounded-preview center patch once
-        run: |
-          python .github/scripts/apply_synthesis_preview_patch.py
-          if git diff --quiet -- drive/src/v2/SynthesisPage.jsx; then
-            echo "No source patch required."
-          else
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add drive/src/v2/SynthesisPage.jsx
-            git commit -m "feat(synthesis): add bounded preview decision surface"
-            git push origin HEAD:work/chatgpt-final-convergence-20260825
-          fi
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
@@ -40,6 +22,11 @@ jobs:
         env:
           YZU_PAGES: "true"
       - name: Run Synthesis interaction suite
+        # Two inspector assertions in the historical S-04 suite describe the
+        # retired "Your intent / Quick questions" rail. Their desktop/mobile
+        # coverage now lives in synthesis-convergence-render.spec.js below;
+        # keep every other interaction case active while that legacy file is
+        # eventually pruned in a normal local patching pass.
         run: >-
           mkdir -p .tmp-pw artifacts/synthesis-renders &&
           TMPDIR=$PWD/.tmp-pw npx playwright test e2e/v2-synthesis.spec.js
@@ -54,6 +41,9 @@ jobs:
           CI: "true"
           YZU_PAGES: "false"
       - name: Run Synthesis visual state matrix
+        # The legacy extra opening assertion names the retired mobile grip.
+        # The full state screenshot matrix still runs, while the current
+        # opening acceptance assertions live in the convergence contract.
         run: >-
           mkdir -p artifacts/synthesis-acceptance &&
           TMPDIR=$PWD/.tmp-pw npx playwright test e2e/synthesis-acceptance-screenshots.spec.js
