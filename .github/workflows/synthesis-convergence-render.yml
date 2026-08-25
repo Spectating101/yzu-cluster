@@ -21,12 +21,20 @@ jobs:
       - run: npm ci
       - run: npx playwright install chromium --with-deps
       - run: npm run build
-      - run: mkdir -p .tmp-pw artifacts/synthesis-convergence && TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/synthesis-convergence-render.spec.js --reporter=line
+      - name: Render converged Synthesis frames
+        run: mkdir -p .tmp-pw artifacts/synthesis-convergence && TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/synthesis-convergence-render.spec.js --reporter=line
+      - name: Render desktop Synthesis workflow states
+        run: >-
+          mkdir -p artifacts/synthesis-acceptance &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/synthesis-acceptance-screenshots.spec.js
+          --grep " at desktop 1440px"
+          --reporter=line
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: synthesis-convergence-pngs
           path: |
             artifacts/synthesis-convergence
+            artifacts/synthesis-acceptance
             test-results
           if-no-files-found: warn
