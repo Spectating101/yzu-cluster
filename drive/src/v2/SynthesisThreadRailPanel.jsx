@@ -19,11 +19,17 @@ function compactObjective(value, limit = 300) {
   return `${full.slice(0, boundary > 0 ? boundary : limit).trim()}…`;
 }
 
+function normalizedExecutionStatus(thread) {
+  return String(thread?.state?.execution?.status || "").trim().toLowerCase().replace(/-/g, "_");
+}
+
 function stateSummary(thread) {
   const state = thread?.state || {};
   const execution = state.execution || {};
-  const queryReady = execution.status === "query_ready" || thread?.materialisation === "query_ready";
-  const registered = queryReady || execution.status === "registered" || thread?.materialisation === "registered";
+  const status = normalizedExecutionStatus(thread);
+  const queryReady = status === "query_ready" || thread?.materialisation === "query_ready";
+  const registered = queryReady || status === "registered" || thread?.materialisation === "registered";
+
   if (registered) {
     return {
       status: queryReady ? "Query-ready output" : "Registered output",
@@ -32,7 +38,7 @@ function stateSummary(thread) {
       next: queryReady ? "Query or inspect the asset in Library" : "Inspect readiness in Library",
     };
   }
-  if (execution.status === "failed") {
+  if (status === "failed") {
     return {
       status: "Execution failed",
       primary: "Inspect the recorded failure",
@@ -40,12 +46,36 @@ function stateSummary(thread) {
       next: "Revise or retry the accepted specification",
     };
   }
-  if (execution.status) {
+  if (status === "pending_approval") {
     return {
-      status: execution.status.replace(/_/g, " "),
+      status: "Approval required",
+      primary: "Review the exact execution request",
+      risk: "No worker is authorized to run yet",
+      next: "Approve or reject this revision-bound request",
+    };
+  }
+  if (["queued", "running"].includes(status)) {
+    return {
+      status: status === "running" ? "Execution running" : "Execution queued",
       primary: "Follow the execution record",
       risk: "No registered output is claimed yet",
-      next: "Wait for durable execution evidence",
+      next: "Wait for durable worker evidence",
+    };
+  }
+  if (["registering", "archiving", "completed"].includes(status)) {
+    return {
+      status: status === "completed" ? "Worker completed" : "Registration in progress",
+      primary: "Verify archive and registry proof",
+      risk: "Worker completion is not registration",
+      next: "Wait for explicit registered-output evidence",
+    };
+  }
+  if (state.execution_spec) {
+    return {
+      status: "Accepted method",
+      primary: "Request execution",
+      risk: "No execution has been requested yet",
+      next: "Submit the exact specification for researcher approval",
     };
   }
   if (state.proposal) {
@@ -176,7 +206,9 @@ function OpeningThreadRail({ thread, onAsk }) {
 export function SynthesisThreadRailPanel({ thread, onAskAbout, onOpenInLibrary }) {
   const state = thread?.state || {};
   const execution = state.execution || {};
-  const queryReady = execution.status === "query_ready" || thread?.materialisation === "query_ready";
+  const status = normalizedExecutionStatus(thread);
+  const queryReady = status === "query_ready" || thread?.materialisation === "query_ready";
+  const registered = queryReady || status === "registered" || thread?.materialisation === "registered";
   const outputId = execution.output_dataset_id || state.execution_spec?.output_dataset_id || "";
   const summary = stateSummary(thread);
   const sources = (state.nodes || [])
@@ -228,7 +260,7 @@ export function SynthesisThreadRailPanel({ thread, onAskAbout, onOpenInLibrary }
         <RailField label="Manifest" value={execution.manifest_id || "Not reported"} mono={Boolean(execution.manifest_id)} />
       </RailFieldGrid>
       <RailStickyFooter>
-        {outputId && (execution.status === "registered" || thread?.materialisation === "registered") ? (
+        {outputId && registered ? (
           <button
             type="button"
             className="rd-v2-btn primary"
