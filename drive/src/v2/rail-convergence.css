@@ -213,6 +213,232 @@
   display: none !important;
 }
 
+/* -------------------------------------------------------------------------- */
+/* Synthesis visual audit — whole workflow hierarchy                           */
+/* -------------------------------------------------------------------------- */
+
+/* The workspace is a control room. At desktop width, independent durable
+   states should scan beside each other instead of becoming one long feed that
+   pushes Build and Results below the first fold. */
+@media (min-width: 1121px) {
+  .rd-v2-synthesis-page .s04-home {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 14px;
+    row-gap: 14px;
+  }
+
+  .rd-v2-synthesis-page .s04-home > .s04-home-hero,
+  .rd-v2-synthesis-page .s04-home > .s04-home-entry,
+  .rd-v2-synthesis-page .s04-home > .s04-home-runtime,
+  .rd-v2-synthesis-page .s04-home > .s04-home-first,
+  .rd-v2-synthesis-page .s04-home > .s04-home-methods {
+    grid-column: 1 / -1;
+  }
+
+  .rd-v2-synthesis-page .s04-home-hero {
+    gap: 22px;
+    padding: 17px 19px;
+  }
+
+  .rd-v2-synthesis-page .s04-home-hero h1 {
+    max-width: 720px;
+    margin-top: 5px;
+    font-size: clamp(23px, 1.85vw, 29px);
+  }
+
+  .rd-v2-synthesis-page .s04-home-entry {
+    gap: 9px;
+  }
+
+  .rd-v2-synthesis-page .s04-home-entry-card {
+    min-height: 132px;
+    padding: 15px 16px;
+  }
+
+  .rd-v2-synthesis-page .s04-home-section {
+    align-content: start;
+    gap: 8px;
+    padding-top: 2px;
+  }
+
+  .rd-v2-synthesis-page .s04-home-section:not(.s04-home-methods) .s04-home-thread-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rd-v2-synthesis-page .s04-home-thread {
+    padding: 12px 13px 11px;
+  }
+}
+
+/* Once an exact proposal exists, the proposal itself owns the centre decision.
+   A second green 'Review checkpoint' card above it only delays the real review. */
+.rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]) > .s04-opening-next {
+  display: none;
+}
+
+/* After method acceptance the dominant object is execution/result truth, not
+   the pre-build evidence map. Keep the research brief for orientation, retire
+   the coarse five-stage strip, then visually lead with the execution record.
+   Evidence and provenance remain below as inspectable supporting context. */
+.rd-v2-synthesis-page .s04-main:has(> :is(
+  [data-testid="synthesis-execution-state"],
+  [data-testid="synthesis-failed-state"],
+  [data-testid="synthesis-registered-state"],
+  [data-testid="synthesis-query-ready-state"]
+)) {
+  display: flex;
+  flex-direction: column;
+}
+
+.rd-v2-synthesis-page .s04-main:has(> :is(
+  [data-testid="synthesis-execution-state"],
+  [data-testid="synthesis-failed-state"],
+  [data-testid="synthesis-registered-state"],
+  [data-testid="synthesis-query-ready-state"]
+)) > * {
+  order: 20;
+}
+
+.rd-v2-synthesis-page .s04-main:has(> :is(
+  [data-testid="synthesis-execution-state"],
+  [data-testid="synthesis-failed-state"],
+  [data-testid="synthesis-registered-state"],
+  [data-testid="synthesis-query-ready-state"]
+)) > .s04-head { order: 0; }
+
+.rd-v2-synthesis-page .s04-main:has(> :is(
+  [data-testid="synthesis-execution-state"],
+  [data-testid="synthesis-failed-state"],
+  [data-testid="synthesis-registered-state"],
+  [data-testid="synthesis-query-ready-state"]
+)) > .s04-opening-brief { order: 1; }
+
+.rd-v2-synthesis-page .s04-main:has(> :is(
+  [data-testid="synthesis-execution-state"],
+  [data-testid="synthesis-failed-state"],
+  [data-testid="synthesis-registered-state"],
+  [data-testid="synthesis-query-ready-state"]
+)) > .s04-brief { order: 2; }
+
+.rd-v2-synthesis-page .s04-main:has(> :is(
+  [data-testid="synthesis-execution-state"],
+  [data-testid="synthesis-failed-state"],
+  [data-testid="synthesis-registered-state"],
+  [data-testid="synthesis-query-ready-state"]
+)) > .s04-thread-picker { order: 3; }
+
+.rd-v2-synthesis-page .s04-main:has(> :is(
+  [data-testid="synthesis-execution-state"],
+  [data-testid="synthesis-failed-state"],
+  [data-testid="synthesis-registered-state"],
+  [data-testid="synthesis-query-ready-state"]
+)) > .s04-strip { order: 4; }
+
+.rd-v2-synthesis-page .s04-main:has(> :is(
+  [data-testid="synthesis-execution-state"],
+  [data-testid="synthesis-failed-state"],
+  [data-testid="synthesis-registered-state"],
+  [data-testid="synthesis-query-ready-state"]
+)) > .s04-steps {
+  display: none;
+}
+
+.rd-v2-synthesis-page .s04-main > :is(
+  [data-testid="synthesis-execution-state"],
+  [data-testid="synthesis-failed-state"],
+  [data-testid="synthesis-registered-state"],
+  [data-testid="synthesis-query-ready-state"]
+) {
+  order: 5;
+  margin-top: 12px;
+}
+
+.rd-v2-synthesis-page .s04-main:has(> :is(
+  [data-testid="synthesis-execution-state"],
+  [data-testid="synthesis-failed-state"],
+  [data-testid="synthesis-registered-state"],
+  [data-testid="synthesis-query-ready-state"]
+)) > .s04-measurement-status { order: 6; }
+
+.rd-v2-synthesis-page .s04-main:has(> :is(
+  [data-testid="synthesis-execution-state"],
+  [data-testid="synthesis-failed-state"],
+  [data-testid="synthesis-registered-state"],
+  [data-testid="synthesis-query-ready-state"]
+)) > [data-testid="synthesis-method-surface"] { order: 7; }
+
+.rd-v2-synthesis-page .s04-main:has(> :is(
+  [data-testid="synthesis-execution-state"],
+  [data-testid="synthesis-failed-state"],
+  [data-testid="synthesis-registered-state"],
+  [data-testid="synthesis-query-ready-state"]
+)) > [data-testid="synthesis-evidence-state"] { order: 8; }
+
+/* Mobile canonical opening: preserve all three evidence roles but stop their
+   cards from consuming nearly an entire viewport before the acceptance choice. */
+@media (max-width: 600px) {
+  .rd-v2-synthesis-page .s04-opening-construction {
+    padding: 12px;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-construction > h2 {
+    margin-bottom: 7px;
+    font-size: 17px;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-map {
+    padding: 8px;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-map ol {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-map li {
+    gap: 2px;
+    padding: 7px 6px;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-map li > small {
+    font-size: 6.5px;
+    line-height: 1.25;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-map li > strong {
+    overflow: visible;
+    font-size: 8.5px;
+    line-height: 1.25;
+    text-overflow: clip;
+    white-space: normal;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-map li > span {
+    display: none;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-map-flow {
+    margin: 3px auto;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-map-output {
+    padding: 6px 9px;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-facts {
+    margin-top: 7px;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-facts > div,
+  .rd-v2-synthesis-page .s04-opening-facts > div + div {
+    padding: 7px 9px;
+  }
+
+  .rd-v2-synthesis-page .s04-new-entry-purpose textarea {
+    min-height: 132px;
+  }
+}
+
 @media (max-width: 900px) {
   .rd-v2-situation {
     padding-top: 9px;
