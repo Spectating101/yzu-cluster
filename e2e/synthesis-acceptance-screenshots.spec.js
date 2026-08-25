@@ -108,6 +108,28 @@ const STATES = {
     scope_block: E.scope_block, unit_conflict: E.unit_conflict, provenance: E.provenance },
 };
 
+// One user-facing phase per durable state. This is deliberately stricter than
+// checking the centre alone: the persistent inspector must agree with the page
+// a researcher is actually on.
+const EXPECTED_PHASE = {
+  "00-opening-recommended": "Method",
+  "01-exploring": "Method",
+  "02-columns": "Method",
+  "03-scope-blocked": "Method",
+  "04-unit-conflict": "Method",
+  "05-join": "Method",
+  "06-proposal": "Proposal",
+  "06a-readiness": "Readiness",
+  "06b-approval": "Approval",
+  "07-building": "Build",
+  "07a-completed-awaiting-registry": "Build",
+  "08-registered": "Result",
+  "08a-query-ready": "Result",
+  "09-failed": "Build",
+  "10-reuse": "Result",
+  "11-stale-fields": "Result",
+};
+
 const threadFor = (extra) => ({
   id: "thread-acceptance",
   created_at: "2026-08-19T09:00:00+00:00",
@@ -171,6 +193,8 @@ test.describe("Synthesis acceptance screenshots", () => {
         await page.setViewportSize({ width: viewport.width, height: viewport.height });
         await mount(page, threadFor(extra));
         await expect(page.getByTestId("synthesis-thread-item").first()).toHaveCount(1);
+        await expect(page.getByTestId("research-situation").locator(".rd-v2-situation-state"))
+          .toHaveText(EXPECTED_PHASE[name]);
         await page.waitForTimeout(300);
         // The document is exactly viewport-height; the workspace scrolls inside
         // .rd-v2-body-scroll. fullPage therefore captures whatever that inner
