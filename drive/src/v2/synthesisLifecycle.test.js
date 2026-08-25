@@ -7,6 +7,7 @@ import {
   resolveSynthesisJourneyStage,
   synthesisJourney,
   synthesisJourneyStage,
+  synthesisPreviewTruth,
   synthesisShowsEvidenceMap,
   synthesisShowsStageStrip,
   synthesisStageLockReason,
@@ -104,7 +105,7 @@ test("a persisted proposal earns Proposal review", () => {
   assert.equal(synthesisJourneyStage(thread), "proposal");
 });
 
-test("an accepted spec earns Readiness, not Approval or Build", () => {
+test("an accepted spec earns Preview, not Approval or Build", () => {
   for (const execution of [undefined, { status: "spec_accepted" }]) {
     const thread = {
       id: "thread-1",
@@ -113,8 +114,28 @@ test("an accepted spec earns Readiness, not Approval or Build", () => {
         ...(execution ? { execution } : {}),
       },
     };
-    assert.equal(synthesisJourneyStage(thread), "readiness");
+    assert.equal(synthesisJourneyStage(thread), "preview");
   }
+});
+
+test("preview truth is revision-bound and never accepts a stale receipt", () => {
+  const current = synthesisPreviewTruth({
+    state: {
+      accepted_spec_hash: "hash-a",
+      preview: { status: "succeeded", spec_hash: "hash-a" },
+    },
+  });
+  assert.equal(current.succeeded, true);
+  assert.equal(current.stale, false);
+
+  const stale = synthesisPreviewTruth({
+    state: {
+      accepted_spec_hash: "hash-b",
+      preview: { status: "succeeded", spec_hash: "hash-a" },
+    },
+  });
+  assert.equal(stale.succeeded, false);
+  assert.equal(stale.stale, true);
 });
 
 test("pending approval is its own researcher page", () => {
@@ -153,11 +174,36 @@ test("a deep link cannot jump beyond the durable current page", () => {
   assert.equal(resolveSynthesisJourneyStage(thread, "unknown"), "specification");
 });
 
-/* ── Build stage: a specification is not approval ─────────────────────── */
+/* ── Build/Preview truth: a specification is not approval ─────────────── */
 
-test("an accepted specification without approval is not called approved", () => {
+test("an accepted specification without preview is explicitly Preview required", () => {
   const thread = { state: { execution_spec: { input_dataset_id: "a", output_dataset_id: "b" } } };
-  assert.equal(buildStageDetail(thread), "Execution specified");
+  assert.equal(buildStageDetail(thread), "Bounded preview required");
+});
+
+test("a successful current preview is distinct from approval", () => {
+  const thread = {
+    state: {
+      execution_spec: { input_dataset_id: "a", output_dataset_id: "b" },
+      accepted_spec_hash: "hash-a",
+      preview: { status: "succeeded", spec_hash: "hash-a" },
+      execution: { status: "spec_accepted" },
+    },
+  };
+  assert.equal(buildStageDetail(thread), "Bounded preview passed");
+  assert.equal(synthesisJourneyStage({ id: "t", ...thread }), "preview");
+});
+
+test("a failed current preview stays on Preview and names the failure", () => {
+  const thread = {
+    state: {
+      execution_spec: { input_dataset_id: "a", output_dataset_id: "b" },
+      accepted_spec_hash: "hash-a",
+      preview: { status: "failed", spec_hash: "hash-a" },
+      execution: { status: "spec_accepted" },
+    },
+  };
+  assert.equal(buildStageDetail(thread), "Bounded preview failed");
 });
 
 test("pending approval asks for a decision instead of claiming approval", () => {
@@ -190,10 +236,31 @@ test("numbered construction stages stay hidden until a method is accepted", () =
   assert.equal(synthesisShowsStageStrip({ state: { execution: { status: "registered" } } }), true);
 });
 
-/* ── Execution track: completed != archived != registered != query-ready ─ */
+/* ── Execution track: preview != approval != build != registered ──────── */
+
+test("accepted method marks bounded preview as the current required step", () => {
+  const track = executionTrack("spec_accepted", false, false, {});
+  assert.equal(row(track, "Bounded preview").detail, "Required");
+  assert.equal(row(track, "Bounded preview").state, "now");
+  assert.equal(row(track, "Researcher approval").detail, "Not requested");
+});
+
+test("successful preview completes Preview without inventing approval", () => {
+  const track = executionTrack("spec_accepted", false, false, { status: "succeeded" });
+  assert.equal(row(track, "Bounded preview").detail, "Passed");
+  assert.equal(row(track, "Bounded preview").state, "done");
+  assert.equal(row(track, "Researcher approval").detail, "Not requested");
+});
+
+test("failed preview is visible and does not advance approval", () => {
+  const track = executionTrack("spec_accepted", false, false, { status: "failed" });
+  assert.equal(row(track, "Bounded preview").detail, "Failed");
+  assert.equal(row(track, "Bounded preview").state, "failed");
+  assert.equal(row(track, "Researcher approval").state, "");
+});
 
 test("completed worker leaves archive and registry unverified", () => {
-  const track = executionTrack("completed", false, false);
+  const track = executionTrack("completed", false, false, { status: "succeeded" });
   assert.equal(row(track, "Worker build").detail, "Completed");
   assert.equal(row(track, "Archive + registry").detail, "Awaiting verification");
   assert.notEqual(row(track, "Archive + registry").state, "done");
@@ -201,27 +268,29 @@ test("completed worker leaves archive and registry unverified", () => {
 });
 
 test("pending approval does not advance the worker or archive rows", () => {
-  const track = executionTrack("pending_approval", false, false);
+  const track = executionTrack("pending_approval", false, false, { status: "succeeded" });
+  assert.equal(row(track, "Bounded preview").detail, "Passed");
   assert.equal(row(track, "Researcher approval").detail, "Decision required");
   assert.equal(row(track, "Worker build").detail, "Waiting");
   assert.equal(row(track, "Archive + registry").detail, "Waiting");
 });
 
 test("registered verifies archive but does not imply query readiness", () => {
-  const track = executionTrack("registered", true, false);
+  const track = executionTrack("registered", true, false, { status: "succeeded" });
   assert.equal(row(track, "Archive + registry").detail, "Verified");
   assert.equal(row(track, "Archive + registry").state, "done");
   assert.equal(row(track, "Library handoff").detail, "Registered · query readiness unverified");
 });
 
 test("query readiness requires the explicit query_ready lifecycle", () => {
-  const track = executionTrack("query_ready", true, true);
+  const track = executionTrack("query_ready", true, true, { status: "succeeded" });
   assert.equal(row(track, "Archive + registry").detail, "Verified");
   assert.equal(row(track, "Library handoff").detail, "Query-ready asset");
 });
 
-test("an unrequested execution claims nothing", () => {
-  const track = executionTrack("", false, false);
+test("an unrequested execution claims nothing beyond Preview", () => {
+  const track = executionTrack("", false, false, {});
+  assert.equal(row(track, "Bounded preview").detail, "Required");
   assert.equal(row(track, "Researcher approval").detail, "Not requested");
   assert.equal(row(track, "Worker build").detail, "Waiting");
   assert.equal(row(track, "Archive + registry").detail, "Waiting");
@@ -229,7 +298,7 @@ test("an unrequested execution claims nothing", () => {
 });
 
 test("hyphenated and mixed-case statuses normalize", () => {
-  const track = executionTrack("Query-Ready", true, true);
+  const track = executionTrack("Query-Ready", true, true, { status: "succeeded" });
   assert.equal(row(track, "Archive + registry").detail, "Verified");
 });
 
