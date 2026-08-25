@@ -206,7 +206,7 @@ function buildSituation(props) {
     return {
       status: "Workspace",
       facts: [],
-      next: "Open an existing construction or start a new one from the Active work rail.",
+      next: "Choose a durable construction, start from a research question, or reuse a registered method.",
     };
   }
   if (mainTab === "resources") return resourceSituation(props.resourceRow, resourcesDecisionCount);
