@@ -770,6 +770,7 @@ export function BrowsePage({
         // external adapters remain an explicit "Search wider" escalation.
         if (preferLiveSources) {
         try {
+          const webPending = webDiscover(q, 8).catch(() => null);
           let sources = await discoverSources(q, {
             limit: 12,
             semantic: true,
@@ -777,41 +778,28 @@ export function BrowsePage({
           });
           let sourceRows = sourcesResponseToRows(sources);
           {
-            // A capability route is not an evidence match. When the source
-            // catalogue cannot name a route that actually matches the need,
-            // consult the external catalogue before showing generic providers.
-            //
-            // This used to be nested inside `if (sourceRows.length)`, so the
-            // external fallback ran only when the catalogue had already
-            // succeeded — never in the case it exists for. A question about
-            // forest fires returned no declared route, skipped the web entirely,
-            // and reported "Web context · 0" while the endpoint held eight
-            // relevant sources.
-            if (!sourceRows.length || !hasSpecificSourceRoute(sourceRows, q)) {
-              try {
-                const web = await webDiscover(q, 8);
-                const webRows = rankExternalCatalogueRows(webHitsToRows(web), q);
-                if (webRows.length) {
-                  apply(
-                    { sections: [{ id: "external_catalogues", rows: webRows }] },
-                    "external_catalogues",
-                    { append: isWidening },
-                  );
-                  setIndexMiss(Boolean(web.index_miss));
-                  return;
-                }
-              } catch {
-                // Catalogue availability is optional; retain known routes as a truthful fallback.
-              }
-            }
-            if (sourceRows.length) {
-              apply(
-                { results: sourceRows },
-                sources.demo ? "demo" : "sources",
-                { append: isWidening },
-              );
+            // Web context is additive, not a fallback. It renders in its own
+            // rail and is excluded from the ranked centre list, so fetching it
+            // only when the route catalogue came up empty discarded the reading
+            // a researcher wants alongside a real match. Both legs are in flight
+            // together, so context costs no latency the route lookup was not
+            // already spending.
+            const web = await webPending;
+            const webRows = web
+              ? rankExternalCatalogueRows(webHitsToRows(web), q)
+              : [];
+            const merged = dedupeRows([...sourceRows, ...webRows]);
+            if (merged.length) {
+              const label = sources.demo
+                ? "demo"
+                : sourceRows.length
+                  ? "sources"
+                  : "external_catalogues";
+              apply({ results: merged }, label, { append: isWidening });
               if (sources.demo) setDemoFallback(true);
-              setIndexMiss(false);
+              setIndexMiss(
+                sourceRows.length ? false : Boolean(web && web.index_miss),
+              );
               return;
             }
           }
@@ -957,13 +945,18 @@ export function BrowsePage({
         } catch {
           // The first result paint remains valid when optional enrichment is unavailable.
         }
-        if (!extra.length || !hasSpecificSourceRoute(extra, q)) {
-          try {
-            const web = await webDiscover(q, 8);
-            extra = dedupeRows([...extra, ...rankExternalCatalogueRows(webHitsToRows(web), q)]);
-          } catch {
-            // Web context is optional and must never erase already-rendered evidence.
-          }
+        // Web context is fetched for every question, not only when the route
+        // catalogue came up short. It renders in its own rail and is excluded
+        // from the ranked centre list, so it competes with nothing; gating it
+        // on "no specific route" meant a query that did match a route showed
+        // "Web context - 0" while the endpoint held eight relevant sources.
+        // The index-miss logic below already refuses to let a web hit stand in
+        // for an offering, which is the property that gate was really guarding.
+        try {
+          const web = await webDiscover(q, 8);
+          extra = dedupeRows([...extra, ...rankExternalCatalogueRows(webHitsToRows(web), q)]);
+        } catch {
+          // Web context is optional and must never erase already-rendered evidence.
         }
         if (cancelled || !extra.length) return;
         setRows((current) => dedupeRows([...current, ...extra]));

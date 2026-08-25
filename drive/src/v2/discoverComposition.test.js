@@ -63,3 +63,25 @@ describe("Discover query specificity", () => {
     ], tokens), true);
   });
 });
+
+it("a research brief names the subject, not the request framing", () => {
+  // "Regarding" was rendered as the leading research-object chip for
+  // "i need dataset regarding forest fire and economic changes", which is also
+  // how a paper about knowledge transfer scored as a forest-fire match.
+  const brief = interpretEvidenceNeed(
+    "i need dataset regarding forest fire and economic changes",
+  );
+  assert.deepEqual(brief.chips, ["Forest", "Fire", "Economic", "Changes"]);
+  assert.equal(brief.overflow, 0);
+});
+
+it("framing verbs never survive into the interpreted tokens", () => {
+  const brief = interpretEvidenceNeed(
+    "please show me any datasets concerning wildfire smoke exposure",
+  );
+  const lowered = brief.tokens.map((t) => t.toLowerCase());
+  for (const word of ["please", "show", "any", "concerning"]) {
+    assert.ok(!lowered.includes(word), `${word} leaked into the brief`);
+  }
+  assert.ok(lowered.includes("wildfire"), "subject token dropped");
+});
