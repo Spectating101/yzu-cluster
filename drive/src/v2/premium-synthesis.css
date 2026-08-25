@@ -36,3 +36,66 @@
 /* VC-6: registered-method titles wrap instead of truncating to an ellipsis.
    The description keeps its single-line clamp so the cards stay compact. */
 .s04-intent-starts strong{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.35}
+
+.s04-empty-canvas{max-width:820px}.s04-empty-canvas>p{max-width:660px;font-size:12px;line-height:1.55}.s04-empty-decisions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0}.s04-empty-decisions article{display:grid;gap:4px;padding:14px;border:1px solid #e0e4ed;border-radius:12px;background:#fbfcff}.s04-empty-decisions small{color:#778196;font-size:8px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}.s04-empty-decisions strong{color:#283044;font-size:11px}.s04-empty-decisions span{color:#788398;font-size:9.5px;line-height:1.45}.s04-blueprint-heading{margin:0 0 8px;color:#758095;font-size:8.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.s04-coverage{display:inline-block;width:96px;height:6px;border-radius:3px;background:#e6e8ee;overflow:hidden;vertical-align:middle;margin:0 8px}
+.s04-coverage>b{display:block;height:100%;border-radius:3px;background:#4e7c67}
+.s04-resolved-list li>em{display:block;color:#68728a;font-size:10px;font-style:normal;margin-top:2px}
+.s04-band-summary{width:100%;display:flex;align-items:center;gap:10px;padding:8px 0;border:0;background:none;color:inherit;text-align:left;cursor:pointer;font-size:11px}
+.s04-bands{display:flex;flex:0 0 190px;height:10px;border-radius:5px;overflow:hidden;background:#e6e8ee}
+.s04-bands>b{display:flex;align-items:center;justify-content:center;height:100%;font-size:8px;color:#fff;overflow:hidden}
+.s04-bands>b[data-band=inUse],.s04-bands>b[data-band=both]{background:#3f6f5c}
+.s04-bands>b[data-band=lookahead]{background:#b4643c}
+.s04-bands>b[data-band=unit_twin]{background:#8a6fb0}
+.s04-bands>b[data-band=sparse],.s04-bands>b[data-band=leftOnly]{background:#9aa3b5}
+.s04-bands>b[data-band=score],.s04-bands>b[data-band=rightOnly]{background:#c2c8d4;color:#3d4457}
+.s04-bands>b[data-band=clean]{background:#dfe3ec;color:#68728a}
+.s04-intersection{margin:10px 0}
+.s04-intersection figcaption{color:#68728a;font-size:10px;margin-top:6px}
+.s04-decision-list{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.s04-decision-list>li{display:grid;grid-template-columns:112px minmax(0,1fr) auto;gap:10px;align-items:start;padding:8px;border:1px solid #e6e8ee;border-radius:10px;background:#fff}
+.s04-decision-list>li>b{color:#68728a;font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding-top:2px}
+.s04-decision-list>li[data-authority=observed]>b{color:#3f6f5c}
+.s04-decision-list>li[data-authority=desk]>b{color:#8a6fb0}
+.s04-decision-list>li[data-resolved=no]>b{color:#b4643c}
+.s04-decision-list>li>span{min-width:0;display:flex;flex-direction:column;gap:2px}
+.s04-decision-list>li strong{color:#252d40;font-size:11.5px}
+.s04-decision-list>li small{color:#68728a;font-size:10px}
+.s04-decision-list>li>em{color:#939bad;font-size:10px;font-style:normal;white-space:nowrap}
+.s04-code{margin:10px 0 0;padding:10px;border-radius:10px;background:#f5f6fa;color:#3d4457;font-size:10px;line-height:1.5;overflow-x:auto}
+/* A choice row is a control and its consequence, not a checklist item. Reusing
+   s04-resolved-list gave every option a tick it had not earned and ran the button
+   into the text beside it. */
+.s04-options{margin-top:12px;padding:13px;border:1px solid #e0e4ed;border-radius:13px;background:#fbfcff}
+.s04-options>small{color:#68728a;font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}
+.s04-options ul{margin:9px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:9px}
+.s04-options li{display:grid;grid-template-columns:minmax(132px,auto) minmax(0,1fr);gap:4px 12px;align-items:baseline}
+.s04-options li>span{color:#5c6578;font-size:10px;line-height:1.5}
+.s04-options li>em{grid-column:1/-1;color:#68728a;font-size:9.5px;font-style:normal}
+.s04-options li>b{color:#68728a;font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.s04-options li .rd-v2-btn{justify-self:start;white-space:nowrap}
+/* A panel that stops you should not look like one that informs you. */
+.s04-blocking{border-color:#d9b9a6;box-shadow:0 10px 26px rgba(180,100,60,.10)}
+.s04-blocking>.s04-title{border-bottom:2px solid #e8d3c6;padding-bottom:9px}
+.s04-blocking>.s04-title h2{color:#8a4a26}
+/* An eyebrow belongs above the sentence it labels, not after it. */
+.s04-note{margin:11px 0 0;color:#5c6578;font-size:10px;line-height:1.55}
+.s04-note>b{display:block;margin-bottom:3px;color:#68728a;font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}
+/* The overrun is a length. */
+.s04-limit{margin:12px 0 0}
+.s04-limit-track{position:relative;display:block;height:14px;border-radius:7px;background:#eef0f5;overflow:hidden}
+.s04-limit-track>b{display:block;height:100%;background:#b4643c}
+.s04-limit-track>i{position:absolute;top:-3px;width:2px;height:20px;background:#2d3549}
+.s04-limit figcaption{margin-top:6px;color:#68728a;font-size:10px}
+/* A twenty-fold gap is a picture. */
+.s04-magnitude{margin:12px 0 0;display:flex;flex-direction:column;gap:7px}
+.s04-magnitude>span{display:grid;grid-template-columns:104px minmax(0,1fr) auto;gap:9px;align-items:center}
+.s04-magnitude em{color:#2d3549;font-size:10px;font-style:normal;font-weight:650}
+.s04-magnitude b{height:10px;border-radius:5px;background:#8a6fb0;min-width:2px}
+.s04-magnitude small{color:#68728a;font-size:10px}
+/* Everything the screen is not about, as one line each. */
+.s04-strip{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 14px}
+.s04-strip-item{display:flex;align-items:baseline;gap:7px;padding:6px 10px;border:1px solid #e0e4ed;border-radius:999px;background:#fbfcff;color:inherit;cursor:pointer}
+.s04-strip-item:hover{border-color:#c5d2cb;background:#fff}
+.s04-strip-item>b{color:#68728a;font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.s04-strip-item>span{color:#5c6578;font-size:10px}

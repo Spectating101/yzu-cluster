@@ -9,6 +9,7 @@ import { libraryFolderObject } from "@/v2/activeObject";
 import { CatalogList } from "@/v2/CatalogList";
 import { statusPillKind } from "@/v2/datasetMeta";
 import { LibraryAssetWorkspace } from "@/v2/LibraryAssetWorkspace";
+import { resolveLibrarySelection } from "@/v2/librarySelection";
 import { Chip, PageShell } from "@/v2/ui";
 
 function datasetListItem(row) {
@@ -225,6 +226,8 @@ export function LibraryPage({
   onAskDataset,
   searchQuery = "",
   onSearchChange,
+  selectionHoldings,
+  selectionFallback,
 }) {
   const [sortBy, setSortBy] = useState("name");
   const [filterMode, setFilterMode] = useState("all");
@@ -235,8 +238,13 @@ export function LibraryPage({
     [datasets],
   );
   const selectedDataset = useMemo(
-    () => vaultDatasets.find((row) => row.dataset_id === selectedId) || null,
-    [selectedId, vaultDatasets],
+    () =>
+      resolveLibrarySelection({
+        selectedId,
+        holdings: selectionHoldings || vaultDatasets,
+        fallback: selectionFallback,
+      }),
+    [selectedId, selectionHoldings, selectionFallback, vaultDatasets],
   );
 
   const tree = useMemo(

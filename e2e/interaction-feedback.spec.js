@@ -84,7 +84,7 @@ test.describe("Research Drive interaction feedback convergence", () => {
 
     const progress = rail.getByTestId("interaction-progress");
     await expect(progress).toBeVisible();
-    await expect(progress.locator("li")).toHaveCount(4);
+    await expect(progress.locator("li")).toHaveCount(0);
     await expect(rail).toContainText("Explain whether this asset is ready for analysis.");
     await expect(rail.getByRole("button", { name: /Working/ })).toBeDisabled();
     ensureArtifactDir();

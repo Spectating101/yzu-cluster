@@ -26,7 +26,33 @@ export function isReceiptOnlyAsset(dataset) {
   return state === "receipt_only";
 }
 
+const RUNTIME_DEMOTION = {
+  local_panel_missing: "Declared queryable; local panel is missing.",
+  local_bytes_missing: "Declared queryable; local bytes are missing.",
+  csv_schema_mismatch: "Declared queryable; schema does not match the registered panel.",
+};
+
+export function runtimeReadinessReason(dataset) {
+  return String(dataset?.runtime_readiness_reason || "").trim();
+}
+
+export function demotionSentence(dataset) {
+  const reason = runtimeReadinessReason(dataset);
+  if (!reason) return "";
+  return RUNTIME_DEMOTION[reason] || "Declared queryable; runtime readiness is not confirmed.";
+}
+
+/** Engine already computed this. UI must not drop it. */
+export function hydrateRemedy(dataset) {
+  if (dataset?.hydrate_required !== true) return "";
+  return "A vault archive is available to restore local bytes.";
+}
+
 export function statusPillKind(dataset) {
+  const reason = runtimeReadinessReason(dataset);
+  if (reason) {
+    return { kind: "warn", label: "Not query-ready" };
+  }
   if (dataset?.live_identity_badge?.kind && dataset?.live_identity_badge?.label) {
     return dataset.live_identity_badge;
   }
@@ -65,6 +91,14 @@ export function statusPill(dataset) {
 
 /** Faculty-facing "Can I use this?" copy — keeps Registered distinct from Query ready. */
 export function canIUseDecision(dataset) {
+  const demotion = demotionSentence(dataset);
+  if (demotion) {
+    const remedy = hydrateRemedy(dataset);
+    return {
+      headline: "Not query-ready",
+      body: remedy ? `${demotion} ${remedy}` : demotion,
+    };
+  }
   const state = statusPillKind(dataset);
   if (state.kind === "query-ready") {
     return {
