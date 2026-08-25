@@ -32,6 +32,92 @@ const THREAD = {
   },
 };
 
+const REVIEW_THREAD = {
+  id: "thread-trust",
+  created_at: "2026-08-24T04:00:00Z",
+  updated_at: "2026-08-25T02:00:00Z",
+  title: "Stablecoin trust deterioration",
+  objective: "Separate security incidents, liquidity stress, and attention into one reviewable trust-deterioration panel.",
+  materialisation: "not_materialised",
+  state: {
+    title: "Stablecoin trust deterioration",
+    objective: "Separate security incidents, liquidity stress, and attention into one reviewable trust-deterioration panel.",
+    required_grain: "asset × week",
+    maturity: "exploring",
+    maturityLabel: "Exploring",
+    lastActivity: "A method proposal needs review.",
+    nodes: [
+      { id: "market", dataset_id: "market", type: "source", layer: "evidence", label: "Market stress", status: "held" },
+    ],
+    proposal: {
+      id: "proposal-trust",
+      proposal_hash: "sha256:trust",
+      title: "Weekly trust deterioration index",
+      summary: "Combine held stress and incident evidence at asset-week grain.",
+      operations: [{ op: "append_activity", message: "Review trust construction." }],
+    },
+  },
+};
+
+const BUILD_THREAD = {
+  id: "thread-flow",
+  created_at: "2026-08-23T04:00:00Z",
+  updated_at: "2026-08-25T03:00:00Z",
+  title: "Exchange flow stress panel",
+  objective: "Construct weekly exchange-flow stress features from registered transaction evidence.",
+  materialisation: "planned",
+  state: {
+    title: "Exchange flow stress panel",
+    objective: "Construct weekly exchange-flow stress features from registered transaction evidence.",
+    required_grain: "exchange × week",
+    maturity: "accepted",
+    maturityLabel: "Accepted method",
+    nodes: [],
+    execution_spec: {
+      input_dataset_id: "exchange_flows_daily",
+      output_dataset_id: "exchange_flow_stress_weekly",
+      group_by: ["exchange_id", "week"],
+      metrics: [{ function: "mean", column: "net_flow", as: "net_flow_mean" }],
+    },
+    execution: {
+      status: "running",
+      job_id: "job-flow-7",
+      output_dataset_id: "exchange_flow_stress_weekly",
+    },
+  },
+};
+
+const RESULT_THREAD = {
+  id: "thread-result",
+  created_at: "2026-08-20T04:00:00Z",
+  updated_at: "2026-08-25T01:00:00Z",
+  title: "Issuer liquidity weekly panel",
+  objective: "Build an issuer-week liquidity panel from registered market evidence.",
+  materialisation: "query_ready",
+  state: {
+    title: "Issuer liquidity weekly panel",
+    objective: "Build an issuer-week liquidity panel from registered market evidence.",
+    required_grain: "issuer × week",
+    maturity: "registered",
+    maturityLabel: "Registered",
+    nodes: [],
+    execution_spec: {
+      input_dataset_id: "issuer_liquidity_daily",
+      output_dataset_id: "issuer_liquidity_weekly",
+      group_by: ["issuer_id", "week"],
+      metrics: [{ function: "mean", column: "spread", as: "spread_mean" }],
+    },
+    execution: {
+      status: "query_ready",
+      job_id: "job-liquidity-2",
+      output_dataset_id: "issuer_liquidity_weekly",
+      rows: 18240,
+      manifest_id: "manifest-liquidity",
+      drive_verified: true,
+    },
+  },
+};
+
 const RECOMMENDED_THREAD = {
   id: "thread-recommended",
   created_at: "2026-08-25T00:00:00Z",
@@ -98,8 +184,9 @@ const PROFILES = [
   },
 ];
 
-async function installSynthesisMocks(page, initialThread = THREAD) {
-  const threads = new Map([[initialThread.id, structuredClone(initialThread)]]);
+async function installSynthesisMocks(page, initialThreads = [THREAD, REVIEW_THREAD, BUILD_THREAD, RESULT_THREAD]) {
+  const seed = Array.isArray(initialThreads) ? initialThreads : [initialThreads];
+  const threads = new Map(seed.map((thread) => [thread.id, structuredClone(thread)]));
 
   await page.route("**/library/synthesis/profiles**", (route) => route.fulfill({
     status: 200,
@@ -157,13 +244,26 @@ async function installSynthesisMocks(page, initialThread = THREAD) {
           column_profiles: [],
         });
       }
+      if (thread.id !== THREAD.id) {
+        return respond({
+          thread_id: thread.id,
+          writes: false,
+          measurement_basis: "mapped_evidence",
+          input_dataset_ids: [],
+          measured_inputs: 0,
+          unmeasured: [],
+          column_profiles: [],
+        });
+      }
       return respond({
         thread_id: thread.id,
         writes: false,
         measurement_basis: "mapped_evidence",
         input_dataset_ids: ["trends", "reddit", "gdelt"],
-        measured_inputs: 3,
-        unmeasured: [],
+        measured_inputs: 2,
+        unmeasured: [
+          { dataset_id: "gdelt", reason: "Queryable validation source; held bytes were not measured." },
+        ],
         column_profiles: [
           { dataset_id: "trends", column: "attention", kind: "measurement", rows: 12000, blanks: 0, distinct: 5000, flags: [] },
           { dataset_id: "reddit", column: "posts", kind: "measurement", rows: 12000, blanks: 30, distinct: 2400, flags: ["sparse"] },
@@ -182,7 +282,11 @@ async function capture(page, name) {
   await page.screenshot({ path: `${renderDir}/${name}.png`, fullPage: true });
 }
 
-test("captures the converged Synthesis thread and integrated new-entry state", async ({ page }) => {
+function threadItem(page, title) {
+  return page.getByTestId("synthesis-thread-item").filter({ hasText: title }).first();
+}
+
+test("captures Synthesis home, thread work, and new-entry navigation", async ({ page }) => {
   await mockV2Api(page);
   await installSynthesisMocks(page);
   await page.setViewportSize({ width: 1440, height: 1000 });
@@ -190,6 +294,18 @@ test("captures the converged Synthesis thread and integrated new-entry state", a
   await waitForShell(page);
 
   await expect(page.getByTestId("synthesis-studio")).toBeVisible();
+  const home = page.getByTestId("synthesis-home-state");
+  await expect(home).toBeVisible();
+  await expect(home).toContainText("Synthesis workspace");
+  await expect(home).toContainText("Stablecoin trust deterioration");
+  await expect(home).toContainText("Exchange flow stress panel");
+  await expect(home).toContainText("Issuer liquidity weekly panel");
+  await expect(home).toContainText("Event-study panel");
+  await expect(page.getByRole("button", { name: /Synthesis workspace All constructions/ })).toHaveAttribute("aria-current", "page");
+  await expect(page.getByTestId("research-situation").locator(".rd-v2-situation-state")).toHaveText("Workspace");
+  await capture(page, "00-home-multi-workflow-1440x1000");
+
+  await threadItem(page, "Historical stablecoin attention").click();
   const situation = page.getByTestId("research-situation");
   const openingRail = page.getByTestId("synthesis-opening-rail");
   await expect(situation).toContainText("Synthesis");
@@ -216,7 +332,7 @@ test("captures the converged Synthesis thread and integrated new-entry state", a
   const entry = page.getByTestId("synthesis-intent-state");
   await expect(entry).toBeVisible();
   await expect(page.getByRole("button", { name: "+ New synthesis" })).toHaveAttribute("aria-pressed", "true");
-  await expect(entry.getByRole("button", { name: /Back to Historical stablecoin attention/ })).toBeVisible();
+  await expect(entry.getByRole("button", { name: /Back to Synthesis home/ })).toBeVisible();
   await expect(page.getByTestId("research-situation").locator(".rd-v2-situation-state")).toHaveText("Draft");
   await expect(page.getByTestId("research-situation")).toContainText("Not saved");
   await expect(page.getByTestId("rail-pane-detail")).toContainText("Draft entry");
@@ -231,14 +347,17 @@ test("captures the converged Synthesis thread and integrated new-entry state", a
   await capture(page, "04-new-entry-390x844");
 
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await entry.getByRole("button", { name: /Back to Historical stablecoin attention/ }).click();
+  await entry.getByRole("button", { name: /Back to Synthesis home/ }).click();
+  await expect(home).toBeVisible();
+  await expect(page.getByTestId("research-situation").locator(".rd-v2-situation-state")).toHaveText("Workspace");
+  await capture(page, "05-returned-home-1440x1000");
+
+  await threadItem(page, "Historical stablecoin attention").click();
   await expect(page.getByTestId("research-situation")).toContainText("Historical stablecoin attention");
   await expect(page.getByTestId("research-situation")).toContainText("2 measured");
-  await capture(page, "05-returned-thread-1440x1000");
 
-  // Replace the two legacy S-04 rail tests with the actual converged mobile
-  // contract: the sheet opens on decision intelligence, then Ask takes over
-  // without losing the scoped thread identity above it.
+  // The compact inspector opens on decision intelligence, then Ask takes over
+  // without losing the explicitly selected durable thread identity above it.
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole("button", { name: "Show research context" }).click();
   const mobileRail = page.locator("aside.rd-v2-rail");
@@ -257,12 +376,15 @@ test("captures the converged Synthesis thread and integrated new-entry state", a
   await capture(page, "07-thread-ask-390x844");
 });
 
-test("keeps the current recommended opening complete and reachable", async ({ page }) => {
+test("keeps the current recommended opening complete and reachable after explicit selection", async ({ page }) => {
   await mockV2Api(page);
   await installSynthesisMocks(page, RECOMMENDED_THREAD);
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/?tab=synthesis", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
+
+  await expect(page.getByTestId("synthesis-home-state")).toBeVisible();
+  await threadItem(page, "Historical stablecoin attention").click();
 
   const situation = page.getByTestId("research-situation");
   await expect(situation.locator(".rd-v2-situation-state")).toHaveText("Method");
@@ -270,12 +392,17 @@ test("keeps the current recommended opening complete and reachable", async ({ pa
   const openingRail = page.getByTestId("synthesis-opening-rail");
   await expect(openingRail).toContainText("Construction recommended");
   await expect(openingRail).toContainText("Review the recommendation");
+  await expect(openingRail).toContainText("3 evidence roles");
+  await expect(openingRail).toContainText("Not measured");
+  await expect(openingRail).toContainText("Recommended · not accepted");
 
   const main = page.locator(".s04-main");
   await expect(main.getByText("Exploration ready", { exact: true })).toBeVisible();
   await expect(main.getByRole("region", { name: "Research brief" })).toBeVisible();
   await expect(main.getByRole("region", { name: "Recommended construction" })).toBeVisible();
   await expect(main.getByRole("region", { name: "What happens next" })).toBeVisible();
+  await expect(main.getByTestId("synthesis-workflow-next")).toHaveCount(0);
+  await expect(main.getByTestId("synthesis-evidence-state")).not.toBeVisible();
   await expect(main.locator(':text-is("asset × week"):visible')).toHaveCount(1);
   await expect(main.getByText("Composite weekly attention index", { exact: true })).toHaveCount(1);
   const accept = main.getByRole("button", { name: "Accept & design method" });
