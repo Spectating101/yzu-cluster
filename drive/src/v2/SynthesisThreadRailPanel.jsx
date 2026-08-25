@@ -23,6 +23,12 @@ function normalizedExecutionStatus(thread) {
   return String(thread?.state?.execution?.status || "").trim().toLowerCase().replace(/-/g, "_");
 }
 
+function evidenceNodes(thread) {
+  return (thread?.state?.nodes || []).filter(
+    (node) => node?.layer === "evidence" || node?.type === "source" || node?.type === "construct",
+  );
+}
+
 function stateSummary(thread) {
   const state = thread?.state || {};
   const execution = state.execution || {};
@@ -94,111 +100,149 @@ function stateSummary(thread) {
   };
 }
 
+function openingDecision(thread) {
+  const state = thread?.state || {};
+  const proposal = state.proposal || null;
+  const recommendation = recommendedConstruction(thread);
+  const nodes = evidenceNodes(thread);
+  const profiles = Array.isArray(state.column_profiles) ? state.column_profiles : [];
+  const flagged = profiles.filter((profile) => (profile.flags || []).length).length;
+  const lookahead = profiles.filter((profile) => (profile.flags || []).includes("lookahead")).length;
+  const join = (state.join_candidates || [])[0] || null;
+  const fanout = Number(join?.fanout_multiplier);
+  const rightDuplicates = Number(join?.right_duplicate_rows);
+  const directMeasure = recommendation.idealDirectMeasure || {};
+  const proposalPatch = (proposal?.operations || []).find((operation) => operation?.op === "update_spec")?.patch || {};
+  const limitations = Array.isArray(proposalPatch.limitations) ? proposalPatch.limitations.filter(Boolean) : [];
+
+  if (proposal) {
+    return {
+      status: "Proposal needs review",
+      primary: "Review the exact proposal",
+      risk: limitations[0] || "No method change is accepted yet",
+      next: "Accept or reject this revision-bound proposal in the centre workspace.",
+    };
+  }
+
+  if (state.scope_block) {
+    return {
+      status: "Scope decision needed",
+      primary: "Resolve the supported scope",
+      risk: text(state.scope_block.summary || state.scope_block.reason, "The requested scope is not fully supported by held evidence"),
+      next: "Choose a defensible scope before method design continues.",
+    };
+  }
+
+  if (state.unit_conflict) {
+    return {
+      status: "Measurement decision needed",
+      primary: "Resolve the unit conflict",
+      risk: text(state.unit_conflict.summary || state.unit_conflict.reason, "The mapped evidence contains incompatible measurement scales"),
+      next: "Choose the defensible scale interpretation before the construction advances.",
+    };
+  }
+
+  if (join && ((Number.isFinite(fanout) && fanout > 1) || rightDuplicates > 0)) {
+    return {
+      status: "Join decision needed",
+      primary: "Review the join consequence",
+      risk: Number.isFinite(fanout) && fanout > 1
+        ? `Matched rows fan out ${fanout.toLocaleString()}×`
+        : "The candidate key repeats on the right side",
+      next: "Resolve key choice or duplicate handling before accepting a method.",
+    };
+  }
+
+  if (recommendation.present) {
+    return {
+      status: "Construction recommended",
+      primary: "Review the recommendation",
+      risk: directMeasure.label
+        ? `${directMeasure.label} is unavailable${directMeasure.why ? ` · ${directMeasure.why}` : ""}`
+        : "The recommendation remains a proxy construction until accepted",
+      next: "Accept it to begin detailed method design, or challenge it in Ask.",
+    };
+  }
+
+  if (nodes.length) {
+    const measuredRisk = lookahead
+      ? `${lookahead} look-ahead column${lookahead === 1 ? "" : "s"} could leak future information`
+      : flagged
+        ? `${flagged} measured column${flagged === 1 ? "" : "s"} need review`
+        : "No construction has been accepted yet";
+    return {
+      status: profiles.length ? "Evidence measured" : "Evidence mapped",
+      primary: profiles.length ? "Review measured evidence" : "Review mapped evidence",
+      risk: measuredRisk,
+      next: "Request one reviewable construction grounded in these held inputs.",
+    };
+  }
+
+  return {
+    status: "Exploration ready",
+    primary: "Find held evidence",
+    risk: "No evidence is mapped yet",
+    next: "Map held Library evidence before method reasoning.",
+  };
+}
+
 function OpeningThreadRail({ thread, onAsk }) {
   const state = thread?.state || {};
   const brief = researchBrief(thread);
   const recommendation = recommendedConstruction(thread);
-  const proposal = state.proposal || null;
-  const proposalPatch = (proposal?.operations || []).find((operation) => operation?.op === "update_spec")?.patch || {};
-  const proposalEvidence = Array.isArray(proposalPatch.coreEvidence) ? proposalPatch.coreEvidence.filter(Boolean) : [];
-  const proposalLimitations = Array.isArray(proposalPatch.limitations) ? proposalPatch.limitations.filter(Boolean) : [];
-  const sourceNodes = Array.isArray(recommendation.nodes) ? recommendation.nodes : [];
-  const sourceCount = sourceNodes.length || proposalEvidence.length;
-  const directMeasure = recommendation.idealDirectMeasure || {};
-  const recordedAssumption = text(
-    state.important_assumption || state.assumption || state.method_assumption,
-    "No material assumption has been recorded yet.",
-  );
-  const limitation = proposalLimitations[0]
-    || (directMeasure.label
-      ? `${directMeasure.label} is unavailable${directMeasure.why ? ` · ${directMeasure.why}` : ""}.`
-      : "The recommendation is not yet grounded in a stated direct measure.");
-  const ask = (prompt) => onAsk?.(prompt);
-  const fullIntent = text(brief.body || thread?.objective, "A durable research-construction thread.").replace(/\s+/g, " ");
-  const intentSummary = compactObjective(fullIntent, 160);
-  const intentIsCompact = intentSummary !== fullIntent;
+  const nodes = evidenceNodes(thread);
   const profiles = Array.isArray(state.column_profiles) ? state.column_profiles : [];
   const flagged = profiles.filter((profile) => (profile.flags || []).length).length;
-  const lookahead = profiles.filter((profile) => (profile.flags || []).includes("lookahead")).length;
-  const mappedInputs = Array.isArray(state.input_dataset_ids)
-    ? state.input_dataset_ids.length
-    : (state.nodes || []).filter((node) => node?.layer === "evidence" || node?.type === "source").length;
-  const join = (state.join_candidates || [])[0] || null;
-  const matched = Number(join?.matched);
-  const leftDistinct = Number(join?.left_distinct ?? join?.total);
-  const fanout = Number(join?.fanout_multiplier);
-  const joinConsequence = Number.isFinite(fanout) && fanout > 1
-    ? ` · matched rows fan out ${fanout.toLocaleString()}×`
-    : Number(join?.right_duplicate_rows) > 0 ? " · repeated right key" : "";
-  const joinSummary = join
-    ? Number.isFinite(matched) && Number.isFinite(leftDistinct) && leftDistinct > 0
-      ? `${matched.toLocaleString()}/${leftDistinct.toLocaleString()} identifiers match${joinConsequence}.`
-      : `${join.match_rate_pct}% identifier coverage.`
-    : "";
+  const proposal = state.proposal || null;
+  const summary = openingDecision(thread);
+  const measurement = profiles.length
+    ? `${profiles.length.toLocaleString()} columns · ${flagged.toLocaleString()} flagged`
+    : nodes.length
+      ? "Measurement pending"
+      : "Not measured";
+  const interpretation = proposal?.title
+    || (recommendation.present ? recommendation.title : "No construction recommended yet");
+  const target = {
+    kind: "synthesis_thread",
+    id: thread?.id,
+    title: thread?.title || state.title || "Synthesis thread",
+    thread,
+  };
 
   return (
-    <div className="s04-thread-rail" data-testid="synthesis-opening-rail">
-      <p className="s04-thread-rail-kicker">Synthesis thread</p>
-      <section>
-        <p className="s04-thread-rail-label">Your intent</p>
-        <p>{intentSummary}</p>
-        {intentIsCompact ? (
-          <details className="s04-thread-rail-intent">
-            <summary>Full recorded intent</summary>
-            <p>{fullIntent}</p>
-          </details>
-        ) : null}
-      </section>
-      <section>
-        <p className="s04-thread-rail-label">Desk measurements</p>
-        {profiles.length ? (
-          <>
-            <p>{mappedInputs} mapped input{mappedInputs === 1 ? "" : "s"} · {profiles.length.toLocaleString()} columns profiled · no assistant involved.</p>
-            <ul>
-              <li>{flagged.toLocaleString()} column{flagged === 1 ? "" : "s"} flagged for review.</li>
-              {lookahead ? <li>{lookahead.toLocaleString()} look-ahead column{lookahead === 1 ? "" : "s"} could leak future information.</li> : null}
-              {state.unit_conflict ? <li>Incompatible measurement scales need a decision.</li> : null}
-              {joinSummary ? <li>{joinSummary}</li> : null}
-            </ul>
-          </>
-        ) : <p>No held-byte measurement has been recorded yet.</p>}
-      </section>
-      <section>
-        <p className="s04-thread-rail-label">AI interpretation</p>
-        <p>
-          {proposal
-            ? `${text(proposal.title, "A review-only construction")} is recorded for review. It is not accepted or executed.`
-            : recommendation.present
-            ? `${recommendation.title} is the current evidence-grounded recommendation.`
-            : "No construction has been recommended yet."}
-        </p>
-      </section>
-      <section>
-        <p className="s04-thread-rail-label">Important assumption</p>
-        <p>{recordedAssumption}</p>
-      </section>
-      <section>
-        <p className="s04-thread-rail-label">Why this route</p>
-        {sourceCount ? (
-          <ul>
-            <li>{sourceCount} distinct evidence role{sourceCount === 1 ? "" : "s"} contribute to the construction.</li>
-            <li>Target grain: {text(brief.targetGrain, "not stated")}.</li>
-            {recommendation.validationRole ? <li>Validation route: {recommendation.validationRole}.</li> : null}
-          </ul>
-        ) : <p>No route rationale has been recorded yet.</p>}
-      </section>
-      <section>
-        <p className="s04-thread-rail-label">Main limitation</p>
-        <p>{limitation}</p>
-      </section>
-      {typeof onAsk === "function" ? (
-        <section className="s04-thread-rail-questions">
-          <p className="s04-thread-rail-label">Quick questions</p>
-          <button type="button" onClick={() => ask("Why is this validation route appropriate for the proposed construction?")}>Why this validation route?</button>
-          <button type="button" onClick={() => ask("Compare the alternative constructions and identify the decision trade-offs.")}>Compare alternatives</button>
-          <button type="button" onClick={() => ask("What decisions remain before a detailed method can be drafted?")}>What decisions come next?</button>
-        </section>
-      ) : null}
+    <div data-testid="synthesis-opening-rail">
+      <RailFrame>
+        <RailEntityHeader
+          id={thread?.id}
+          title={thread?.title || state.title || "Synthesis thread"}
+          description={compactObjective(brief.body || thread?.objective, 220)}
+        />
+        <RailDecisionSummary
+          {...summary}
+          labels={{ primary: "Needs you" }}
+        />
+        <div className="rd-v2-rail-scroll">
+          <RailFieldGrid>
+            <RailField label="Target grain" value={brief.targetGrain || state.required_grain || "Not stated"} />
+            <RailField label="Evidence" value={nodes.length ? `${nodes.length} mapped input${nodes.length === 1 ? "" : "s"}` : "None mapped"} />
+            <RailField label="Measured" value={measurement} />
+            <RailField label="Interpretation" value={interpretation} />
+            <RailField label="Method" value={proposal ? "Proposal awaiting review" : "Not accepted"} />
+            <RailField label="Output" value="Not registered" />
+          </RailFieldGrid>
+        </div>
+        <RailStickyFooter>
+          {typeof onAsk === "function" ? (
+            <button
+              type="button"
+              className="rd-v2-btn"
+              onClick={() => onAsk("Challenge the current Synthesis decision. Separate what is measured, what is AI interpretation, and what still requires researcher judgement.")}
+            >
+              Ask about this decision
+            </button>
+          ) : null}
+        </RailStickyFooter>
+      </RailFrame>
     </div>
   );
 }
@@ -211,17 +255,9 @@ export function SynthesisThreadRailPanel({ thread, onAskAbout, onOpenInLibrary }
   const registered = queryReady || status === "registered" || thread?.materialisation === "registered";
   const outputId = execution.output_dataset_id || state.execution_spec?.output_dataset_id || "";
   const summary = stateSummary(thread);
-  const sources = (state.nodes || [])
-    .filter((node) => node?.layer === "evidence" || node?.type === "source" || node?.type === "construct")
+  const sources = evidenceNodes(thread)
     .map((node) => node.label || node.dataset_id)
     .filter(Boolean);
-  // A method can be proposed or accepted before its input ever becomes a
-  // mapped evidence node (state.nodes stays empty through that whole path).
-  // "No inputs mapped" would then sit next to a proposal/execution record
-  // that names a specific input dataset — a real, verified contradiction,
-  // not just a missing-data default. Distinguish declared-but-unmapped from
-  // genuinely nothing yet, and keep "accepted" vs "proposed" honest rather
-  // than folding either into the verified "mapped inputs" count.
   const specInput = state.execution_spec?.input_dataset_id || state.proposal?.execution_spec?.input_dataset_id || "";
   const evidenceValue = sources.length
     ? `${sources.length} mapped inputs`
@@ -247,18 +283,21 @@ export function SynthesisThreadRailPanel({ thread, onAskAbout, onOpenInLibrary }
   return (
     <RailFrame>
       <RailEntityHeader
+        id={thread?.id}
         title={thread?.title || state.title || "Synthesis thread"}
         description={compactObjective(thread?.objective || state.objective)}
       />
-      <RailDecisionSummary {...summary} />
-      <RailFieldGrid>
-        <RailField label="Grain" value={state.required_grain || state.spec?.grain} />
-        <RailField label="Evidence" value={evidenceValue} />
-        <RailField label="Proposal" value={state.proposal?.title || "No proposal awaiting review"} />
-        <RailField label="Execution" value={execution.status || "Not requested"} />
-        <RailField label="Output" value={outputId || "Not registered"} mono={Boolean(outputId)} />
-        <RailField label="Manifest" value={execution.manifest_id || "Not reported"} mono={Boolean(execution.manifest_id)} />
-      </RailFieldGrid>
+      <RailDecisionSummary {...summary} labels={{ primary: "Needs you" }} />
+      <div className="rd-v2-rail-scroll">
+        <RailFieldGrid>
+          <RailField label="Grain" value={state.required_grain || state.spec?.grain} />
+          <RailField label="Evidence" value={evidenceValue} />
+          <RailField label="Proposal" value={state.proposal?.title || "No proposal awaiting review"} />
+          <RailField label="Execution" value={execution.status || (state.execution_spec ? "Not requested" : "Not specified")} />
+          <RailField label="Output" value={outputId || "Not registered"} mono={Boolean(outputId)} />
+          <RailField label="Manifest" value={execution.manifest_id || "Not reported"} mono={Boolean(execution.manifest_id)} />
+        </RailFieldGrid>
+      </div>
       <RailStickyFooter>
         {outputId && registered ? (
           <button
@@ -274,7 +313,7 @@ export function SynthesisThreadRailPanel({ thread, onAskAbout, onOpenInLibrary }
           </button>
         ) : null}
         <button type="button" className="rd-v2-btn" onClick={onAskAbout}>
-          Ask about this thread
+          Ask about this decision
         </button>
       </RailStickyFooter>
     </RailFrame>
