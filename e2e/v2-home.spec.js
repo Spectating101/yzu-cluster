@@ -22,7 +22,6 @@ test.describe("v2 Home Iteration 10 freeze", () => {
     await expect(page.getByRole("region", { name: "Resource headroom" })).toBeVisible();
     await expect(page.getByRole("region", { name: "Recent trail" })).toBeVisible();
     const recommended = page.getByRole("region", { name: "Recommended evidence" });
-    // Freeze: no grounded authority → section disappears (count 0), else ≤2 rows.
     if ((await recommended.count()) > 0) {
       expect(await recommended.locator(".rd-v2-home-recommended-row").count()).toBeGreaterThan(0);
     }
@@ -54,15 +53,10 @@ test.describe("v2 Home Iteration 10 freeze", () => {
 
   test("Home replaces a Library selection with its exact Pick Up object", async ({ page }) => {
     await page.getByRole("button", { name: "Library", exact: true }).click();
-    // Home's exact Pick Up object now follows the researcher into Library as a
-    // selected-asset workspace. Return to the estate before choosing a different
-    // Library object; the old test assumed navigation always opened the root.
     const allAssets = page.getByRole("button", { name: "← All Library assets" });
     if (await allAssets.isVisible().catch(() => false)) await allAssets.click();
     await page.getByRole("textbox", { name: "Search library holdings" }).fill("Ticker week");
-    const libraryRow = page.locator('.rd-v2-catalog-list button[data-kind="dataset"]', {
-      hasText: "Ticker week panel",
-    });
+    const libraryRow = page.getByTestId("library-evidence-row").filter({ hasText: "Ticker week panel" });
     await expect(libraryRow).toBeVisible();
     const libraryTitle = "Ticker week panel";
     await libraryRow.click();
@@ -79,12 +73,6 @@ test.describe("v2 Home Iteration 10 freeze", () => {
   });
 
   test("decision secondary surfaces Review into Discover History when approval pending", async ({ page }) => {
-    // MOCK_JOBS always carries one pending_approval job, so this card must
-    // appear. The previous count-then-skip guard raced the jobs fetch: the
-    // test silently skipped when jobs had not landed yet and only exercised
-    // the assertion when they had, which is why it alternated between pass
-    // and skip across runs. Waiting for the card makes the outcome mean
-    // something either way.
     const secondary = page.locator(".rd-v2-home-pickup-secondary.warn");
     await expect(secondary).toBeVisible();
     await secondary.click();
