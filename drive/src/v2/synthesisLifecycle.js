@@ -56,12 +56,23 @@ function hasEvidenceNodes(thread) {
   );
 }
 
+function hasRecommendedConstruction(thread) {
+  const constructions = thread?.state?.constructions;
+  return Array.isArray(constructions) && constructions.some((construction) => construction?.recommended === true);
+}
+
 /**
  * The current working page is earned only by persisted thread truth.
  *
  * `spec_accepted` is intentionally Readiness: the method revision exists, but
  * no execution request has been submitted. `completed` remains Build because a
  * finished worker has not yet established archive / registry promotion.
+ *
+ * A persisted recommended construction is Specification work even before it is
+ * accepted. The centre already exposes that recommendation as a material method
+ * decision, so the shared lifecycle authority must not leave the rail behind on
+ * Evidence merely because the recommendation has not yet been copied into the
+ * evidence map or proposal record.
  */
 export function synthesisJourneyStage(thread) {
   if (!thread?.id) return "objective";
@@ -73,7 +84,7 @@ export function synthesisJourneyStage(thread) {
   if (status === "pending_approval") return "approval";
   if (status === "spec_accepted" || (state.execution_spec && !status)) return "readiness";
   if (state.proposal) return "proposal";
-  if (hasEvidenceNodes(thread)) return "specification";
+  if (hasRecommendedConstruction(thread) || hasEvidenceNodes(thread)) return "specification";
   return "evidence";
 }
 
