@@ -11,6 +11,16 @@
 /* Synthesis — adaptive research workspace, not an embedded wizard            */
 /* -------------------------------------------------------------------------- */
 
+/* S-04's canonical recommended opening is brief → recommendation → explicit
+ * consequence/action. Once a grounded recommendation is on screen, the local
+ * four-step opening strip adds a second lifecycle and can contradict the real
+ * durable state (for example, claiming held evidence is mapped when only the
+ * recommendation's evidence roles are established). Keep the strip only while
+ * the desk is still moving toward a recommendation. */
+.rd-v2-synthesis-page .s04-main:has(.s04-opening-construction:not(.s04-opening-construction--empty)) .s04-opening-workflow-wrap {
+  display: none;
+}
+
 .rd-v2-synthesis-page .sj-shell {
   width: 100%;
   max-width: none;
