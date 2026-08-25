@@ -1,0 +1,31 @@
+name: Synthesis convergence render
+
+on:
+  push:
+    branches:
+      - work/chatgpt-final-convergence-20260825
+  workflow_dispatch:
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: drive
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: drive/package-lock.json
+      - run: npm ci
+      - run: npx playwright install chromium --with-deps
+      - run: npm run build
+      - run: CI=true YZU_PAGES=false npx playwright test ../e2e/synthesis-convergence-render.spec.js --reporter=line
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: synthesis-convergence-pngs
+          path: drive/artifacts/synthesis-convergence
+          if-no-files-found: warn
