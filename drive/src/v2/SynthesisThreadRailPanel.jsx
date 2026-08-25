@@ -33,6 +33,7 @@ function stateSummary(thread) {
     return {
       status: queryReady ? "Query-ready output" : "Registered output",
       primary: "Open the reusable asset",
+      primaryLabel: "Next",
       risk: execution.drive_verified ? "Drive verification reported" : "Verification detail not reported",
       next: queryReady ? "Query or inspect the asset in Library" : "Inspect readiness in Library",
     };
@@ -41,6 +42,7 @@ function stateSummary(thread) {
     return {
       status: "Execution failed",
       primary: "Inspect the recorded failure",
+      primaryLabel: "Needs you",
       risk: text(execution.error, "Failure detail not reported"),
       next: "Revise or retry the accepted specification",
     };
@@ -49,6 +51,7 @@ function stateSummary(thread) {
     return {
       status: "Approval required",
       primary: "Review the exact execution request",
+      primaryLabel: "Needs you",
       risk: "No worker is authorized to run yet",
       next: "Approve or reject this revision-bound request",
     };
@@ -56,7 +59,8 @@ function stateSummary(thread) {
   if (["queued", "running"].includes(status)) {
     return {
       status: status === "running" ? "Execution running" : "Execution queued",
-      primary: "Follow the execution record",
+      primary: status === "running" ? "Worker execution is in progress" : "Worker is waiting to start",
+      primaryLabel: "Now",
       risk: "No registered output is claimed yet",
       next: "Wait for durable worker evidence",
     };
@@ -64,7 +68,8 @@ function stateSummary(thread) {
   if (["registering", "archiving", "completed"].includes(status)) {
     return {
       status: status === "completed" ? "Worker completed" : "Registration in progress",
-      primary: "Verify archive and registry proof",
+      primary: status === "completed" ? "Registration evidence pending" : "Archive / registry verification in progress",
+      primaryLabel: "Now",
       risk: "Worker completion is not registration",
       next: "Wait for explicit registered-output evidence",
     };
@@ -73,6 +78,7 @@ function stateSummary(thread) {
     return {
       status: "Accepted method",
       primary: "Request execution",
+      primaryLabel: "Needs you",
       risk: "No execution has been requested yet",
       next: "Submit the exact specification for researcher approval",
     };
@@ -81,6 +87,7 @@ function stateSummary(thread) {
     return {
       status: "Proposal needs review",
       primary: "Inspect the proposed change",
+      primaryLabel: "Needs you",
       risk: "No method change is accepted yet",
       next: "Accept or reject the exact proposal",
     };
@@ -88,6 +95,7 @@ function stateSummary(thread) {
   return {
     status: text(state.maturityLabel || state.maturity, "Exploring"),
     primary: "Continue the research construction",
+    primaryLabel: "Next",
     risk: "No output is registered",
     next: "Use Ask to constrain or propose the next method change",
   };
@@ -307,7 +315,7 @@ export function SynthesisThreadRailPanel({ thread, onAskAbout, onOpenInLibrary }
 
   return (
     <RailFrame>
-      <RailDecisionSummary {...summary} labels={{ primary: "Needs you" }} />
+      <RailDecisionSummary {...summary} labels={{ primary: summary.primaryLabel || "Next" }} />
       <div className="rd-v2-rail-scroll">
         <RailFieldGrid>
           <RailField label="Grain" value={state.required_grain || state.spec?.grain} />
