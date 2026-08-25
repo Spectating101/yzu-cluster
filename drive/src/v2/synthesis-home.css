@@ -437,3 +437,59 @@
   .s04-home-runtime { align-items: flex-start; flex-direction: column; }
   .s04-home-section > header { align-items: flex-start; }
 }
+
+/* The exact execution/result state is already expressed in the persistent rail
+   and the execution record. Once that authority exists, the old thread eyebrow
+   can contradict it (most visibly Readiness inheriting the stale word
+   "Exploring"). Keep the title and durable-state pill; remove only the duplicate
+   lifecycle word. */
+.rd-v2-synthesis-page .s04-main:has(> :is(
+  [data-testid="synthesis-execution-state"],
+  [data-testid="synthesis-failed-state"],
+  [data-testid="synthesis-registered-state"],
+  [data-testid="synthesis-query-ready-state"]
+)) > .s04-head > div > small {
+  display: none;
+}
+
+/* Mobile keeps the methodological facts, but makes them a compact comparison
+   row. The acceptance decision should follow the recommendation instead of
+   sitting another full viewport below three vertically repeated fact blocks. */
+@media (max-width: 600px) {
+  .rd-v2-synthesis-page .s04-opening-facts {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0;
+    border-top: 1px solid #e8ebf1;
+    border-bottom: 1px solid #e8ebf1;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-facts > div,
+  .rd-v2-synthesis-page .s04-opening-facts > div + div {
+    min-width: 0;
+    padding: 7px 7px 8px;
+    border: 0;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-facts > div + div {
+    border-left: 1px solid #e8ebf1;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-facts dt {
+    font-size: 6.5px;
+    line-height: 1.25;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-facts dd {
+    display: -webkit-box;
+    margin-top: 3px;
+    overflow: hidden;
+    font-size: 8px;
+    line-height: 1.3;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-facts dd em {
+    display: none;
+  }
+}
