@@ -44,7 +44,7 @@ function capturePageErrors(page) {
 }
 
 test.describe("Research Drive interaction robustness", () => {
-  test("same-tick Ask activation submits once and resolves after navigation", async ({ page }) => {
+  test("same-tick Ask activation submits once without leaking into a new research context", async ({ page }) => {
     const pageErrors = capturePageErrors(page);
     await mockV2Api(page);
     await page.unroute("**/api/library/chat/stream");
@@ -88,15 +88,17 @@ test.describe("Research Drive interaction robustness", () => {
     await expect(
       page.locator("aside.yzu-sidebar").getByRole("button", { name: "Synthesis", exact: true }),
     ).toHaveClass(/active/);
-    await expect(rail).toContainText("The single request completed after navigation.", { timeout: 10_000 });
 
+    // The request still completes exactly once, but its old-context reply must
+    // not be written into the newly active Synthesis conversation. Context
+    // isolation is the stronger invariant than cross-page chat continuity.
+    await page.waitForTimeout(1200);
     expect(chatRequests).toBe(1);
-    await expect(rail.getByTestId("ask-agent-card")).toHaveCount(1);
-    await expect(rail.getByTestId("ask-agent-card")).toContainText(
-      "The single request completed after navigation.",
-    );
+    await expect(rail).not.toContainText("The single request completed after navigation.");
+    await expect(rail.getByTestId("ask-agent-card")).toHaveCount(0);
     await expect(rail.getByTestId("interaction-progress")).toHaveCount(0);
     await expect(rail.getByTestId("ask-composer")).toBeEnabled();
+    await expect(rail).toContainText(/Synthesis studio|synthesis thread/i);
     expect(pageErrors).toEqual([]);
   });
 
