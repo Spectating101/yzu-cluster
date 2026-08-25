@@ -21,8 +21,13 @@ jobs:
       - run: npm run build
         env:
           YZU_PAGES: "true"
-      - name: Run Synthesis suite
+      - name: Run Synthesis interaction suite
         run: mkdir -p .tmp-pw artifacts/synthesis-renders && TMPDIR=$PWD/.tmp-pw npx playwright test e2e/v2-synthesis.spec.js --reporter=line
+        env:
+          CI: "true"
+          YZU_PAGES: "false"
+      - name: Run Synthesis visual state matrix
+        run: mkdir -p artifacts/synthesis-acceptance && TMPDIR=$PWD/.tmp-pw npx playwright test e2e/synthesis-acceptance-screenshots.spec.js --reporter=line
         env:
           CI: "true"
           YZU_PAGES: "false"
@@ -32,5 +37,6 @@ jobs:
           name: synthesis-s04-render-evidence
           path: |
             artifacts/synthesis-renders
+            artifacts/synthesis-acceptance
             test-results
           if-no-files-found: warn
