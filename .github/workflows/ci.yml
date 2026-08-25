@@ -95,7 +95,17 @@ jobs:
         env: *mock-env
 
       - name: Mock e2e — Synthesis
-        run: TMPDIR=$PWD/.tmp-pw npx playwright test e2e/v2-synthesis.spec.js --reporter=dot
+        # The two retired inspector assertions are replaced by the convergence
+        # contract immediately below; every other historical Synthesis case
+        # remains active here.
+        run: >-
+          TMPDIR=$PWD/.tmp-pw npx playwright test e2e/v2-synthesis.spec.js
+          --grep-invert "renders the selected durable thread in the workspace and Detail rail|keeps the right rail usable on mobile while the workspace remains source-backed"
+          --reporter=dot
+        env: *mock-env
+
+      - name: Mock e2e — Synthesis inspector convergence
+        run: TMPDIR=$PWD/.tmp-pw npx playwright test e2e/synthesis-convergence-render.spec.js --reporter=dot
         env: *mock-env
 
       - name: Mock e2e — Resources
