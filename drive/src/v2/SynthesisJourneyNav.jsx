@@ -1,4 +1,5 @@
 import { synthesisJourney, synthesisStageLockReason } from "./synthesisLifecycle.js";
+import "./synthesis-production.css";
 
 const VISIBLE_PHASES = [
   {
