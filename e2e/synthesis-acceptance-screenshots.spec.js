@@ -58,6 +58,9 @@ const STATES = {
       { title: "Single-source visibility proxy" },
     ],
   },
+  // Earliest durable state after the unsaved New Construction form. The
+  // research object exists, but no Library evidence has been mapped yet.
+  "00a-defined": {},
   "01-exploring": { nodes: NODES },
   "02-columns": { nodes: NODES, column_profiles: E.column_profiles, columns_in_use: E.columns_in_use },
   "03-scope-blocked": { nodes: NODES, scope_block: E.scope_block },
@@ -74,30 +77,35 @@ const STATES = {
     execution_spec: SPEC } },
   "06a-readiness": { nodes: NODES, execution_spec: SPEC },
   "06b-approval": { nodes: NODES, execution_spec: SPEC, execution: { status: "pending_approval", job_id: "job-pending" } },
-  "07-building": { nodes: NODES, execution_spec: SPEC, execution: { status: "running" } },
-  "07a-completed-awaiting-registry": { nodes: NODES, execution_spec: SPEC, execution: { status: "completed", rows: 969392 } },
+  "07-building": { nodes: NODES, execution_spec: SPEC, execution: { status: "running", job_id: "job-running" } },
+  "07a-completed-awaiting-registry": { nodes: NODES, execution_spec: SPEC,
+    execution: { status: "completed", job_id: "job-completed", rows: 969392 } },
   "08-registered": { nodes: NODES, execution_spec: SPEC,
-    execution: { status: "registered", output_dataset_id: "idn_weekly_factor_exposure",
-                 manifest_id: "man-8842", rows: 969392 },
+    execution: { status: "registered", job_id: "job-8842", output_dataset_id: "idn_weekly_factor_exposure",
+                 manifest_id: "man-8842", rows: 969392, drive_verified: true },
     provenance: E.provenance, settled_decisions: E.settled_decisions, excursions: E.excursions,
     column_profiles: E.column_profiles, columns_in_use: E.columns_in_use },
   "08a-query-ready": { nodes: NODES, execution_spec: SPEC,
-    execution: { status: "query_ready", output_dataset_id: "idn_weekly_factor_exposure",
-                 manifest_id: "man-8842", rows: 969392 },
+    execution: { status: "query_ready", job_id: "job-8842", output_dataset_id: "idn_weekly_factor_exposure",
+                 manifest_id: "man-8842", rows: 969392, drive_verified: true },
     provenance: E.provenance, settled_decisions: E.settled_decisions, excursions: E.excursions,
     column_profiles: E.column_profiles, columns_in_use: E.columns_in_use },
   "09-failed": { nodes: NODES, execution_spec: SPEC,
-    execution: { status: "failed", error: "as-of join produced 206,432,820 rows, over the 1,000,000 limit" } },
+    execution: { status: "failed", job_id: "job-failed",
+      error: "as-of join produced 206,432,820 rows, over the 1,000,000 limit" } },
   "10-reuse": { nodes: NODES, execution_spec: SPEC,
-    execution: { status: "registered", output_dataset_id: "idn_weekly_factor_exposure" },
+    execution: { status: "registered", job_id: "job-reuse", output_dataset_id: "idn_weekly_factor_exposure",
+      drive_verified: true },
     reuse_from: E.reuse_from, reuse_changes: E.reuse_changes },
   "11-stale-fields": { nodes: NODES, execution_spec: SPEC,
-    execution: { status: "registered", output_dataset_id: "idn_weekly_factor_exposure" },
+    execution: { status: "registered", job_id: "job-stale", output_dataset_id: "idn_weekly_factor_exposure",
+      drive_verified: true },
     scope_block: E.scope_block, unit_conflict: E.unit_conflict, provenance: E.provenance },
 };
 
 const EXPECTED_PHASE = {
   "00-opening-recommended": "Method",
+  "00a-defined": "Evidence",
   "01-exploring": "Method",
   "02-columns": "Method",
   "03-scope-blocked": "Method",
@@ -115,13 +123,27 @@ const EXPECTED_PHASE = {
   "11-stale-fields": "Result",
 };
 
+const EXECUTION_FIRST = new Set([
+  "06a-readiness",
+  "06b-approval",
+  "07-building",
+  "07a-completed-awaiting-registry",
+  "08-registered",
+  "08a-query-ready",
+  "09-failed",
+  "10-reuse",
+  "11-stale-fields",
+]);
+
 const threadFor = (extra) => ({
   id: "thread-acceptance",
   created_at: "2026-08-19T09:00:00+00:00",
   updated_at: "2026-08-19T09:00:00+00:00",
   title: "IDN weekly factor exposure",
   objective: "Weekly excess return per Indonesian listed equity, against Fama-French factors.",
-  materialisation: extra.execution?.status === "registered" ? "registered" : "not_materialised",
+  materialisation: ["registered", "query_ready"].includes(extra.execution?.status)
+    ? extra.execution.status
+    : "not_materialised",
   state: {
     title: "IDN weekly factor exposure",
     objective: "Weekly excess return per Indonesian listed equity, against Fama-French factors.",
@@ -179,6 +201,28 @@ test.describe("Synthesis acceptance screenshots", () => {
         await mount(page, threadFor(extra));
         await expect(page.getByTestId("research-situation").locator(".rd-v2-situation-state"))
           .toHaveText(EXPECTED_PHASE[name]);
+
+        if (name === "00a-defined") {
+          await expect(page.getByTestId("synthesis-workflow-next")).toContainText("Find held evidence");
+          await expect(page.getByTestId("synthesis-evidence-state")).toBeVisible();
+          await expect(page.getByTestId("synthesis-evidence-state")).toContainText("No inputs mapped");
+        }
+
+        if (viewport.id === "desktop" && EXECUTION_FIRST.has(name)) {
+          const execution = page.locator(
+            '[data-testid="synthesis-execution-state"], [data-testid="synthesis-failed-state"], [data-testid="synthesis-registered-state"], [data-testid="synthesis-query-ready-state"]',
+          ).first();
+          const evidence = page.getByTestId("synthesis-evidence-state").first();
+          await expect(execution).toBeVisible();
+          if (await evidence.count()) {
+            const [executionBox, evidenceBox] = await Promise.all([execution.boundingBox(), evidence.boundingBox()]);
+            expect(executionBox).not.toBeNull();
+            expect(evidenceBox).not.toBeNull();
+            expect(executionBox.y, `${name} should foreground execution/result truth`).toBeLessThan(evidenceBox.y);
+          }
+          await expect(page.locator(".s04-steps")).not.toBeVisible();
+        }
+
         await page.waitForTimeout(300);
         await resetScroll(page);
         await page.screenshot({ path: `${outDir}/${name}-${viewport.id}.png` });
