@@ -24,8 +24,12 @@ function descriptionLabel(row = {}) {
   ).trim();
 }
 
+function presentationKind(row = {}) {
+  return libraryAssetPresentation(row).kind;
+}
+
 function kindLabel(row = {}) {
-  const kind = libraryAssetPresentation(row).kind;
+  const kind = presentationKind(row);
   if (kind === "scholarly_work") return "Scholarly work";
   if (kind === "metadata_index") return "Metadata index";
   if (kind === "live_source") return "Live source";
@@ -49,50 +53,56 @@ function collectionCountLabel(folder = {}) {
 export function LibraryEvidenceEstate({
   assets = [],
   collections = [],
+  collectionsLoading = false,
   onOpenCollection,
   onSelectDataset,
   onPreviewDataset,
 }) {
+  const showKind = assets.some((item) => presentationKind(item?.row || item) !== "dataset");
+  const ledgerClass = `rd-v2-cap-ledger${showKind ? " show-kind" : ""}`;
+
   return (
     <section className="rd-v2-cap-estate" data-testid="library-evidence-estate" aria-label="Research evidence estate">
       <header className="rd-v2-cap-estate-head">
         <div>
           <span className="rd-v2-eyebrow">Owned evidence</span>
-          <h2>Research evidence estate</h2>
-          <p>
-            Your registered evidence is visible here first. Narrow by research collection when useful, then select an asset to inspect, preview, query, or Ask.
-          </p>
+          <h2>Evidence estate</h2>
+          <p>Select evidence to inspect, preview, query, or Ask. Collections narrow the same durable estate without hiding it.</p>
         </div>
         <strong className="rd-v2-cap-estate-count">
           {assets.length} asset{assets.length === 1 ? "" : "s"}
         </strong>
       </header>
 
-      {collections.length ? (
+      {collections.length || collectionsLoading ? (
         <div className="rd-v2-cap-collections" aria-label="Research collections">
           <span className="rd-v2-cap-collections-label">Research collections</span>
-          <div className="rd-v2-cap-collection-list">
-            {collections.map((collection) => (
-              <button
-                key={collection.id}
-                type="button"
-                className="rd-v2-cap-collection"
-                data-testid="library-collection-filter"
-                onClick={() => onOpenCollection?.(collection)}
-              >
-                <span>{collection.name || collection.label || collection.id}</span>
-                {collectionCountLabel(collection) ? <b>{collectionCountLabel(collection)}</b> : null}
-                <span aria-hidden="true">→</span>
-              </button>
-            ))}
-          </div>
+          {collections.length ? (
+            <div className="rd-v2-cap-collection-list">
+              {collections.map((collection) => (
+                <button
+                  key={collection.id}
+                  type="button"
+                  className="rd-v2-cap-collection"
+                  data-testid="library-collection-filter"
+                  onClick={() => onOpenCollection?.(collection)}
+                >
+                  <span>{collection.name || collection.label || collection.id}</span>
+                  {collectionCountLabel(collection) ? <b>{collectionCountLabel(collection)}</b> : null}
+                  <span aria-hidden="true">→</span>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <span className="rd-v2-cap-collections-loading">Organizing research collections…</span>
+          )}
         </div>
       ) : null}
 
-      <div className="rd-v2-cap-ledger" role="table" aria-label="Library evidence">
+      <div className={ledgerClass} role="table" aria-label="Library evidence">
         <div className="rd-v2-cap-ledger-head" role="row">
           <span role="columnheader">Evidence</span>
-          <span role="columnheader">Type</span>
+          {showKind ? <span role="columnheader">Type</span> : null}
           <span role="columnheader">Source</span>
           <span role="columnheader">State</span>
         </div>
@@ -115,7 +125,7 @@ export function LibraryEvidenceEstate({
                     <strong>{displayName(row)}</strong>
                     <em>{descriptionLabel(row)}</em>
                   </span>
-                  <span className="rd-v2-cap-kind" role="cell">{kindLabel(row)}</span>
+                  {showKind ? <span className="rd-v2-cap-kind" role="cell">{kindLabel(row)}</span> : null}
                   <span className="rd-v2-cap-source" role="cell">{sourceLabel(row)}</span>
                   <span className="rd-v2-cap-state" role="cell"><StatusPill dataset={row} /></span>
                 </button>
