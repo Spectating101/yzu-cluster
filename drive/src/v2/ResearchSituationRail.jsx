@@ -1,5 +1,6 @@
 import { canIUseDecision, libraryAssetPresentation, statusPillKind } from "@/v2/datasetMeta";
 import { DISCOVER_TAB } from "@/v2/tabIdentity";
+import { synthesisJourneyStage } from "@/v2/synthesisLifecycle";
 import "@/v2/rail-convergence.css";
 
 function text(value) {
@@ -47,16 +48,27 @@ function synthesisState(activeObject) {
   );
 }
 
+function synthesisPhaseLabel(thread) {
+  const stage = synthesisJourneyStage(thread);
+  if (stage === "specification") return "Method";
+  if (["proposal", "readiness", "approval"].includes(stage)) return "Review";
+  return humanize(stage);
+}
+
 function synthesisNext(activeObject) {
   const thread = activeObject?.thread || {};
+  const stage = synthesisJourneyStage(thread);
   const state = text(thread.status || thread.lifecycle_status || thread.state?.status).toLowerCase();
-  if (!state) return "Keep the evidence, method, and researcher decision bound to this synthesis thread.";
-  if (/pending.?approval/.test(state)) return "A researcher decision is required before execution can advance.";
-  if (/proposal|review/.test(state)) return "Review the proposed construction before accepting a method.";
-  if (/running|execut/.test(state)) return "Execution is in flight; keep the accepted method and resulting evidence together.";
-  if (/registered|query.?ready|complete/.test(state)) return "Inspect the registered output and its evidence chain before reuse.";
-  if (/fail|block/.test(state)) return "Resolve the recorded failure before treating the construction as usable evidence.";
-  return "Ground the construction in Library evidence before advancing authority.";
+  if (stage === "evidence") return "Attach held evidence that legitimately bears on the objective, or route a named gap to Discover.";
+  if (stage === "specification") return "Resolve the measured construction choices that still require researcher judgement.";
+  if (stage === "proposal") return "Review the exact proposed revision before accepting a method.";
+  if (stage === "readiness") return "Verify the accepted execution specification before requesting execution authority.";
+  if (stage === "approval") return "A researcher decision is required before execution can advance.";
+  if (stage === "build") return /fail|block/.test(state)
+    ? "Resolve the recorded failure before treating the construction as usable evidence."
+    : "Execution is in flight; keep worker completion separate from archive and registry proof.";
+  if (stage === "result") return "Inspect the registered output and its evidence chain before reuse.";
+  return "Keep the evidence, method, and researcher decision bound to this synthesis thread.";
 }
 
 function discoverSituation({ browseTarget, browseLifecycle, historyEvent, discoverIntentRecord, discoverAssessment, restingSummary }) {
@@ -192,10 +204,24 @@ function buildSituation(props) {
   if (mainTab === DISCOVER_TAB) return discoverSituation(props);
   if (mainTab === "synthesis" && activeObject?.kind === "synthesis_thread") {
     const thread = activeObject.thread || {};
+    const nodes = Array.isArray(thread?.state?.nodes) ? thread.state.nodes : [];
+    const evidenceCount = nodes.filter((node) => node?.layer === "evidence" || node?.type === "source" || node?.type === "construct").length;
+    const facts = [
+      synthesisPhaseLabel(thread),
+      evidenceCount ? `${evidenceCount} mapped evidence` : "",
+      text(thread.objective),
+    ];
     return {
-      status: synthesisState(activeObject) || "Synthesis thread",
-      facts: [text(thread.objective), text(thread.output?.grain || thread.materialization?.grain)],
+      status: synthesisState(activeObject) || synthesisPhaseLabel(thread) || "Synthesis thread",
+      facts,
       next: synthesisNext(activeObject),
+    };
+  }
+  if (mainTab === "synthesis") {
+    return {
+      status: "New construction",
+      facts: ["Objective not recorded"],
+      next: "Record the research objective first. Evidence, method, approval, execution, and registration remain separate authorities.",
     };
   }
   if (mainTab === "resources") return resourceSituation(props.resourceRow, resourcesDecisionCount);
