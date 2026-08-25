@@ -264,6 +264,13 @@ test("keeps the current recommended opening complete and reachable", async ({ pa
   await page.goto("/?tab=synthesis", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
 
+  const situation = page.getByTestId("research-situation");
+  await expect(situation.locator(".rd-v2-situation-state")).toHaveText("Method");
+  await expect(situation).toContainText("Historical stablecoin attention");
+  const openingRail = page.getByTestId("synthesis-opening-rail");
+  await expect(openingRail).toContainText("Construction recommended");
+  await expect(openingRail).toContainText("Review the recommendation");
+
   const main = page.locator(".s04-main");
   await expect(main.getByText("Exploration ready", { exact: true })).toBeVisible();
   await expect(main.getByRole("region", { name: "Research brief" })).toBeVisible();
@@ -276,7 +283,7 @@ test("keeps the current recommended opening complete and reachable", async ({ pa
   const acceptBox = await accept.boundingBox();
   expect(acceptBox, "the opening decision must be reachable without desktop scroll").not.toBeNull();
   expect(acceptBox.y + acceptBox.height).toBeLessThanOrEqual(900);
-  await expect(page.getByTestId("synthesis-opening-rail")).toBeVisible();
+  await expect(openingRail).toBeVisible();
   await capture(page, "08-opening-recommended-1440x900");
 
   await page.setViewportSize({ width: 390, height: 844 });
