@@ -105,7 +105,7 @@ test.describe("Research Drive release visual contract", () => {
     for (const destination of destinations) {
       await openTab(page, destination.tab);
       if (destination.tab === "Synthesis") {
-        await expect(page.getByRole("heading", { name: "Start one durable research object." })).toBeVisible();
+        await expect(page.getByTestId("synthesis-home-state")).toBeVisible();
       } else {
         await expect(page.locator(".rd-v2-page-head h1", { hasText: destination.title })).toBeVisible();
       }
