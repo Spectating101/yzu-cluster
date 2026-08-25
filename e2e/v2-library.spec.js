@@ -16,7 +16,7 @@ test.describe("v2 Library evidence estate", () => {
     await expect(estate).toContainText("Research evidence estate");
     await expect(page.getByTestId("library-evidence-row").first()).toBeVisible();
     await expect(page.getByTestId("library-collection-filter").first()).toBeVisible();
-    await expect(page.locator(".rd-v2-rail-selection")).toHaveText("Library");
+    await expect(page.getByTestId("research-situation")).toContainText("Library");
     await expect(page.locator("aside.rd-v2-rail")).toContainText("In this library");
     await expect(page.locator("aside.rd-v2-rail")).toContainText("Add data");
     await expect(page.locator("aside.rd-v2-rail")).not.toContainText("Branch actions");
@@ -42,7 +42,7 @@ test.describe("v2 Library evidence estate", () => {
     await expect(workspace.getByRole("button", { name: "Preview rows" })).toHaveCount(1);
 
     const rail = page.locator("aside.rd-v2-rail");
-    await expect(rail).toContainText("Asia daily news-risk panel");
+    await expect(page.getByTestId("research-situation")).toContainText("Asia daily news-risk panel");
     await expect(rail).toContainText("Can I use this?");
     await expect(rail).toContainText("Query ready");
     await expect(rail).toContainText("Useful for");
@@ -82,7 +82,7 @@ test.describe("v2 Library evidence estate", () => {
     });
     await expect(rail).toContainText("faculty-panel.csv");
     await rail.getByRole("button", { name: "Send to Ask" }).click();
-    await expect(page.locator(".rd-v2-rail-toggle button.on", { hasText: "Ask" })).toBeVisible();
+    await expect(page.getByTestId("research-situation").getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "true");
     await expect(page.getByTestId("ask-messages")).toContainText("Upload files to Library");
     await expect(page.getByTestId("ask-messages")).toContainText("faculty-panel.csv");
   });
@@ -98,7 +98,7 @@ test.describe("v2 Library evidence estate", () => {
 
     await rail.locator("#rd-v2-rail-url-input").fill("https://doi.org/10.1234/example");
     await rail.getByRole("button", { name: "Send to Ask" }).click();
-    await expect(page.locator(".rd-v2-rail-toggle button.on", { hasText: "Ask" })).toBeVisible();
+    await expect(page.getByTestId("research-situation").getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "true");
     await expect(page.getByTestId("ask-messages")).toContainText("https://doi.org/10.1234/example");
   });
 });
@@ -191,7 +191,7 @@ test.describe("v2 Library navigation", () => {
     await expect(page.locator("aside.rd-v2-rail")).toContainText("Asia daily news-risk panel");
 
     await page.locator("aside.yzu-sidebar").getByRole("button", { name: "Library", exact: true }).click();
-    await expect(page.locator(".rd-v2-rail-selection")).toHaveText("Library");
+    await expect(page.getByTestId("research-situation")).toContainText("Library");
     await expect(page.locator("aside.rd-v2-rail")).toContainText("In this library");
     await expect(page.locator("aside.rd-v2-rail")).toContainText("Add data");
     await expect(page.locator("aside.rd-v2-rail")).not.toContainText("Upload here");
