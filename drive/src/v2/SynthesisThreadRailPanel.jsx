@@ -220,6 +220,7 @@ function OpeningThreadRail({ thread, onAsk }) {
   const state = thread?.state || {};
   const brief = researchBrief(thread);
   const nodes = evidenceNodes(thread);
+  const recommendation = recommendedConstruction(thread);
   const profiles = Array.isArray(state.column_profiles) ? state.column_profiles : [];
   const proposal = state.proposal || null;
   const summary = openingDecision(thread);
@@ -228,6 +229,16 @@ function OpeningThreadRail({ thread, onAsk }) {
     : nodes.length
       ? "Measurement pending"
       : "Not measured";
+  const evidence = nodes.length
+    ? `${nodes.length} mapped`
+    : recommendation.present
+      ? `${recommendation.nodes.length} evidence role${recommendation.nodes.length === 1 ? "" : "s"}`
+      : "None mapped";
+  const method = proposal
+    ? "Proposal awaiting review"
+    : recommendation.present
+      ? "Recommended · not accepted"
+      : "Not accepted";
 
   return (
     <div data-testid="synthesis-opening-rail">
@@ -239,9 +250,9 @@ function OpeningThreadRail({ thread, onAsk }) {
         <div className="rd-v2-rail-scroll">
           <RailFieldGrid>
             <RailField label="Target grain" value={brief.targetGrain || state.required_grain || "Not stated"} />
-            <RailField label="Evidence" value={nodes.length ? `${nodes.length} mapped` : "None mapped"} />
+            <RailField label="Evidence" value={evidence} />
             <RailField label="Measured" value={measurement} />
-            <RailField label="Method" value={proposal ? "Proposal awaiting review" : "Not accepted"} />
+            <RailField label="Method" value={method} />
             <RailField label="Output" value="Not registered" />
           </RailFieldGrid>
         </div>
