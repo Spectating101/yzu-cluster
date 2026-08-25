@@ -205,6 +205,13 @@ function buildSituation(props) {
   if (mainTab === DISCOVER_TAB) return discoverSituation(props);
   if (mainTab === "synthesis" && activeObject?.kind === "synthesis_thread") {
     const thread = activeObject.thread || {};
+    if (thread.ephemeral || thread.state?.ephemeral) {
+      return {
+        status: "Draft entry",
+        facts: ["Not saved"],
+        next: "Choose a starting point. Describe a research purpose or use a registered method; select any existing construction in Active work to leave this entry.",
+      };
+    }
     const nodes = Array.isArray(thread?.state?.nodes) ? thread.state.nodes : [];
     const evidenceCount = nodes.filter((node) => node?.layer === "evidence" || node?.type === "source" || node?.type === "construct").length;
     const facts = [
@@ -220,9 +227,9 @@ function buildSituation(props) {
   }
   if (mainTab === "synthesis") {
     return {
-      status: "New construction",
-      facts: ["Objective not recorded"],
-      next: "Record the research objective first. Evidence, method, approval, execution, and registration remain separate authorities.",
+      status: "Synthesis workspace",
+      facts: [],
+      next: "Open an existing construction or start a new one from the Active work rail.",
     };
   }
   if (mainTab === "resources") return resourceSituation(props.resourceRow, resourcesDecisionCount);
