@@ -43,12 +43,14 @@ test.describe("v2 Home Iteration 10 freeze", () => {
     await expect(preview).toHaveCount(0);
 
     const rail = page.locator("aside.rd-v2-rail");
-    await expect(rail.locator(".rd-v2-rail-selection")).toContainText(title);
-    await expect(rail.getByRole("tab", { name: "Detail" })).toBeVisible();
-    await expect(rail.getByRole("tab", { name: "Ask" })).toBeVisible();
-    await rail.getByRole("tab", { name: "Ask" }).click();
-    await expect(rail.getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "true");
+    const situation = rail.getByTestId("research-situation");
+    await expect(situation).toContainText(title);
+    await expect(situation.getByRole("tab", { name: "Detail" })).toBeVisible();
+    await expect(situation.getByRole("tab", { name: "Ask" })).toBeVisible();
+    await situation.getByRole("tab", { name: "Ask" }).click();
+    await expect(situation.getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "true");
     await expect(rail.locator(".rd-v2-ask-ctx")).toContainText(datasetId);
+    await expect(situation).toContainText(title);
   });
 
   test("Home replaces a Library selection with its exact Pick Up object", async ({ page }) => {
@@ -65,10 +67,10 @@ test.describe("v2 Home Iteration 10 freeze", () => {
     await page.getByRole("button", { name: "Home", exact: true }).click();
     const pick = page.getByTestId("home-continue");
     const resumeTitle = (await pick.locator("h2").innerText()).trim();
-    const rail = page.locator("aside.rd-v2-rail");
-    await expect(rail.locator(".rd-v2-rail-selection")).toContainText(resumeTitle);
+    const situation = page.getByTestId("research-situation");
+    await expect(situation).toContainText(resumeTitle);
     if (libraryTitle !== resumeTitle) {
-      await expect(rail.locator(".rd-v2-rail-selection")).not.toContainText(libraryTitle);
+      await expect(situation).not.toContainText(libraryTitle);
     }
   });
 
