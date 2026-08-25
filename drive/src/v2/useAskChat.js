@@ -97,6 +97,7 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
   const railRef = useRef(railContext);
   const contextRef = useRef(askContextKey(dataset, railContext));
   const busyRef = useRef(false);
+  const requestEpochRef = useRef(0);
   const synthesisThreadId =
     dataset?.kind === "synthesis_thread" ? String(dataset.thread_id || "") : "";
   const synthesisSessionId =
@@ -110,6 +111,12 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
   useEffect(() => {
     let cancelled = false;
     contextRef.current = contextKey;
+    // Changing research object logically cancels the old rail request. The HTTP
+    // turn may still finish, but its epoch can no longer write into this view or
+    // release a newer request's busy lock.
+    requestEpochRef.current += 1;
+    busyRef.current = false;
+    setBusy(false);
     setMessages([]);
     setInput("");
     setStatus("");
@@ -152,6 +159,10 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
       const sendContextKey = contextKey;
       const sendSynthesisThreadId = synthesisThreadId;
       const sendSynthesisSessionId = synthesisSessionId;
+      const requestEpoch = requestEpochRef.current + 1;
+      requestEpochRef.current = requestEpoch;
+      const isCurrentRequest = () =>
+        contextRef.current === sendContextKey && requestEpochRef.current === requestEpoch;
       busyRef.current = true;
       const intent = classifyAskIntent(outgoing.displayText || prompt);
       const full =
@@ -184,7 +195,7 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
           userEmail: loadUserEmail(),
           railContext: railRef.current,
           onDelta: (chunk) => {
-            if (contextRef.current !== sendContextKey) return;
+            if (!isCurrentRequest()) return;
             setStatus("");
             setMessages((m) =>
               m.map((item) =>
@@ -193,7 +204,7 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
             );
           },
           onActivity: (event) => {
-            if (contextRef.current !== sendContextKey) return;
+            if (!isCurrentRequest()) return;
             if (intent === "status") {
               setStatus("Checking status…");
               return;
@@ -225,7 +236,7 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
           } else {
             saveChatSessionId(out.session_id, sendContextKey);
           }
-          if (contextRef.current === sendContextKey) {
+          if (isCurrentRequest()) {
             sessionRef.current = out.session_id;
           }
         }
@@ -252,7 +263,7 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
           );
         if (composerBroken && !sendSynthesisThreadId) {
           clearChatSessionId(sendContextKey);
-          if (contextRef.current === sendContextKey) sessionRef.current = "";
+          if (isCurrentRequest()) sessionRef.current = "";
         }
         const pendingJobId =
           artifacts.job?.id || statePatch.pending_job_id || out.pending_job_id || null;
@@ -273,7 +284,7 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
           jobStatus,
         });
 
-        if (contextRef.current === sendContextKey) {
+        if (isCurrentRequest()) {
           setMessages((m) => {
             const trimmed = m.filter((x) => !x.streaming);
             return [
@@ -334,9 +345,9 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
         const readOnlyReview = /review endpoint does not allow desk mutations|read[- ]only.*review/i.test(msg);
         if (/composer|internal:\s*internal error|could not complete/i.test(msg) && !sendSynthesisThreadId) {
           clearChatSessionId(sendContextKey);
-          if (contextRef.current === sendContextKey) sessionRef.current = "";
+          if (isCurrentRequest()) sessionRef.current = "";
         }
-        if (contextRef.current === sendContextKey) {
+        if (isCurrentRequest()) {
           setMessages((m) => [
             ...m.filter((x) => !x.streaming),
             {
@@ -349,8 +360,10 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
           setStatus(readOnlyReview ? "Read-only review" : (msg || "Chat failed"));
         }
       } finally {
-        busyRef.current = false;
-        if (contextRef.current === sendContextKey) setBusy(false);
+        if (isCurrentRequest()) {
+          busyRef.current = false;
+          setBusy(false);
+        }
       }
     },
     [
