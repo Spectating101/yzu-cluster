@@ -5,6 +5,7 @@ import {
   RailFrame,
   RailStickyFooter,
 } from "@/v2/RailFrame";
+import { synthesisPreviewTruth } from "@/v2/synthesisLifecycle";
 import { isPreAcceptance, recommendedConstruction, researchBrief } from "@/v2/synthesisBrief.js";
 import "./synthesis-convergence.css";
 
@@ -26,6 +27,7 @@ function stateSummary(thread) {
   const state = thread?.state || {};
   const execution = state.execution || {};
   const status = normalizedExecutionStatus(thread);
+  const preview = synthesisPreviewTruth(thread);
   const queryReady = status === "query_ready" || thread?.materialisation === "query_ready";
   const registered = queryReady || status === "registered" || thread?.materialisation === "registered";
 
@@ -75,12 +77,30 @@ function stateSummary(thread) {
     };
   }
   if (state.execution_spec) {
+    if (preview.failed) {
+      return {
+        status: "Preview failed",
+        primary: "Inspect or rerun the bounded preview",
+        primaryLabel: "Needs you",
+        risk: text(preview.preview?.error, "The accepted recipe did not complete on bounded bytes"),
+        next: "No execution approval can be requested until this revision previews successfully",
+      };
+    }
+    if (preview.succeeded) {
+      return {
+        status: "Preview passed",
+        primary: "Request execution approval",
+        primaryLabel: "Needs you",
+        risk: "The receipt covers bounded rows, not the full population",
+        next: "Submit this exact previewed revision for researcher approval",
+      };
+    }
     return {
-      status: "Accepted method",
-      primary: "Request execution",
+      status: "Preview required",
+      primary: "Run bounded preview",
       primaryLabel: "Needs you",
-      risk: "No execution has been requested yet",
-      next: "Submit the exact specification for researcher approval",
+      risk: preview.stale ? "The saved preview belongs to an older method revision" : "The accepted recipe has not been executed on bounded bytes",
+      next: "Inspect row effects and diagnostics before requesting a full build",
     };
   }
   if (state.proposal) {
@@ -284,6 +304,7 @@ export function SynthesisThreadRailPanel({ thread, onAskAbout, onOpenInLibrary }
   const state = thread?.state || {};
   const execution = state.execution || {};
   const status = normalizedExecutionStatus(thread);
+  const preview = synthesisPreviewTruth(thread);
   const queryReady = status === "query_ready" || thread?.materialisation === "query_ready";
   const registered = queryReady || status === "registered" || thread?.materialisation === "registered";
   const outputId = execution.output_dataset_id || state.execution_spec?.output_dataset_id || "";
@@ -297,6 +318,19 @@ export function SynthesisThreadRailPanel({ thread, onAskAbout, onOpenInLibrary }
     : specInput
       ? `Declared input · ${state.execution_spec ? "accepted" : "proposed"}: ${specInput}`
       : "No inputs mapped";
+  const previewRows = Number(preview.preview?.sampling?.previewed_rows);
+  const previewValue = !state.execution_spec
+    ? "Not available"
+    : preview.succeeded
+      ? Number.isFinite(previewRows) ? `Passed · ${previewRows.toLocaleString()} rows` : "Passed"
+      : preview.failed
+        ? "Failed"
+        : preview.stale
+          ? "Stale · rerun required"
+          : "Required";
+  const executionValue = status === "spec_accepted"
+    ? "Not requested"
+    : execution.status || (state.execution_spec ? "Not requested" : "Not specified");
   const target = {
     kind: "synthesis_thread",
     id: thread?.id,
@@ -321,7 +355,8 @@ export function SynthesisThreadRailPanel({ thread, onAskAbout, onOpenInLibrary }
           <RailField label="Grain" value={state.required_grain || state.spec?.grain} />
           <RailField label="Evidence" value={evidenceValue} />
           <RailField label="Proposal" value={state.proposal?.title || "No proposal awaiting review"} />
-          <RailField label="Execution" value={execution.status || (state.execution_spec ? "Not requested" : "Not specified")} />
+          <RailField label="Preview" value={previewValue} />
+          <RailField label="Execution" value={executionValue} />
           <RailField label="Output" value={outputId || "Not registered"} mono={Boolean(outputId)} />
           <RailField label="Manifest" value={execution.manifest_id || "Not reported"} mono={Boolean(execution.manifest_id)} />
         </RailFieldGrid>
@@ -344,7 +379,7 @@ export function SynthesisThreadRailPanel({ thread, onAskAbout, onOpenInLibrary }
           <button
             type="button"
             className="rd-v2-btn"
-            onClick={() => ask("Challenge the current Synthesis decision. Separate registered facts, measured evidence, and researcher judgement.")}
+            onClick={() => ask("Challenge the current Synthesis decision. Separate registered facts, measured evidence, bounded preview evidence, and researcher judgement.")}
           >
             Ask about this decision
           </button>
