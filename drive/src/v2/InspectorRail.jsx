@@ -15,6 +15,7 @@ import { ResourcesOverviewRailPanel } from "@/v2/ResourcesOverviewRailPanel";
 import { DiscoverHistoryRailPanel } from "@/v2/DiscoverHistoryRailPanel";
 import { DiscoverIntentRailPanel } from "@/v2/DiscoverIntentRailPanel";
 import { SynthesisThreadRailPanel } from "@/v2/SynthesisThreadRailPanel";
+import { SynthesisIdleRailPanel } from "@/v2/SynthesisIdleRailPanel";
 import { DiscoverEvidenceBrief } from "@/v2/DiscoverEvidenceBrief";
 import { ResearchSituationRail } from "@/v2/ResearchSituationRail";
 import { DISCOVER_TAB } from "@/v2/tabIdentity";
@@ -211,7 +212,7 @@ export function InspectorRail({
   } else if (mainTab === "settings") {
     detailPanel = <PageRailPanel page="settings" onAskAbout={onAskAbout} />;
   } else if (mainTab === "synthesis") {
-    detailPanel = <PageRailPanel page="synthesis" onAskAbout={onAskAbout} />;
+    detailPanel = <SynthesisIdleRailPanel onAskAbout={onAskAbout} />;
   } else if (mainTab === "library" && dataset?.dataset_id) {
     // Dataset selection wins over folder/page guide (Continue / row click must show SOURCE+VERIFY).
     detailPanel = (
