@@ -99,7 +99,9 @@ function openingDecision(thread) {
   const recommendation = recommendedConstruction(thread);
   const nodes = evidenceNodes(thread);
   const profiles = Array.isArray(state.column_profiles) ? state.column_profiles : [];
-  const flagged = profiles.filter((profile) => (profile.flags || []).length).length;
+  const flaggedProfiles = profiles.filter((profile) => (profile.flags || []).length);
+  const flagged = flaggedProfiles.length;
+  const flaggedKinds = [...new Set(flaggedProfiles.flatMap((profile) => (profile.flags || []).filter(Boolean)))];
   const lookahead = profiles.filter((profile) => (profile.flags || []).includes("lookahead")).length;
   const join = (state.join_candidates || [])[0] || null;
   const fanout = Number(join?.fanout_multiplier);
@@ -161,13 +163,15 @@ function openingDecision(thread) {
     const measuredRisk = lookahead
       ? `${lookahead} look-ahead column${lookahead === 1 ? "" : "s"} could leak future information`
       : flagged
-        ? `${flagged} measured column${flagged === 1 ? "" : "s"} need review`
+        ? flagged === 1 && flaggedKinds.length === 1
+          ? `1 ${String(flaggedKinds[0]).replace(/[_-]+/g, " ")} / flagged column`
+          : `${flagged} flagged column${flagged === 1 ? "" : "s"}`
         : "No construction has been accepted yet";
     return {
       status: profiles.length ? "Evidence measured" : "Evidence mapped",
       primary: profiles.length ? "Review measured evidence" : "Review mapped evidence",
       risk: measuredRisk,
-      next: "Request one reviewable construction grounded in these held inputs.",
+      next: "Request one reviewable construction.",
     };
   }
 
@@ -179,7 +183,7 @@ function openingDecision(thread) {
   };
 }
 
-function NewEntryRail({ thread, onAsk }) {
+function NewEntryRail({ onAsk }) {
   return (
     <RailFrame>
       <RailDecisionSummary
@@ -217,11 +221,10 @@ function OpeningThreadRail({ thread, onAsk }) {
   const brief = researchBrief(thread);
   const nodes = evidenceNodes(thread);
   const profiles = Array.isArray(state.column_profiles) ? state.column_profiles : [];
-  const flagged = profiles.filter((profile) => (profile.flags || []).length).length;
   const proposal = state.proposal || null;
   const summary = openingDecision(thread);
   const measurement = profiles.length
-    ? `${profiles.length.toLocaleString()} column${profiles.length === 1 ? "" : "s"}${flagged ? ` · ${flagged.toLocaleString()} flagged` : ""}`
+    ? `${profiles.length.toLocaleString()} column${profiles.length === 1 ? "" : "s"}`
     : nodes.length
       ? "Measurement pending"
       : "Not measured";
@@ -236,7 +239,7 @@ function OpeningThreadRail({ thread, onAsk }) {
         <div className="rd-v2-rail-scroll">
           <RailFieldGrid>
             <RailField label="Target grain" value={brief.targetGrain || state.required_grain || "Not stated"} />
-            <RailField label="Evidence" value={nodes.length ? `${nodes.length} mapped input${nodes.length === 1 ? "" : "s"}` : "None mapped"} />
+            <RailField label="Evidence" value={nodes.length ? `${nodes.length} mapped` : "None mapped"} />
             <RailField label="Measured" value={measurement} />
             <RailField label="Method" value={proposal ? "Proposal awaiting review" : "Not accepted"} />
             <RailField label="Output" value="Not registered" />
@@ -284,7 +287,7 @@ export function SynthesisThreadRailPanel({ thread, onAskAbout, onOpenInLibrary }
   const ask = onAskAbout ? (prompt) => onAskAbout(target, prompt) : null;
 
   if (thread?.ephemeral || state.ephemeral) {
-    return <NewEntryRail thread={thread} onAsk={ask} />;
+    return <NewEntryRail onAsk={ask} />;
   }
 
   if (isPreAcceptance(thread)) {
@@ -318,9 +321,15 @@ export function SynthesisThreadRailPanel({ thread, onAskAbout, onOpenInLibrary }
             Open in Library
           </button>
         ) : null}
-        <button type="button" className="rd-v2-btn" onClick={onAskAbout}>
-          Ask about this decision
-        </button>
+        {typeof ask === "function" ? (
+          <button
+            type="button"
+            className="rd-v2-btn"
+            onClick={() => ask("Challenge the current Synthesis decision. Separate registered facts, measured evidence, and researcher judgement.")}
+          >
+            Ask about this decision
+          </button>
+        ) : null}
       </RailStickyFooter>
     </RailFrame>
   );
