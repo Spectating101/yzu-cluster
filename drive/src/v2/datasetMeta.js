@@ -154,6 +154,130 @@ export function canIUseDecision(dataset) {
   };
 }
 
+function normalizedAssetType(value) {
+  return String(value || "").trim().toLowerCase().replace(/[\s-]+/g, "_");
+}
+
+function textCorpus(dataset = {}) {
+  return [
+    dataset?.name,
+    dataset?.title,
+    dataset?.display_name,
+    dataset?.one_line,
+    dataset?.description,
+    dataset?.recommended_use,
+    ...(Array.isArray(dataset?.tags) ? dataset.tags : []),
+    ...(Array.isArray(dataset?.keywords) ? dataset.keywords : []),
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+}
+
+/**
+ * Library holds more than rectangular datasets. Prefer explicit backend type
+ * metadata when available, then use conservative structural evidence. This is
+ * presentation typing only; it never upgrades readiness or invents access.
+ */
+export function libraryAssetKind(dataset = {}) {
+  const explicit = normalizedAssetType(
+    dataset?.research_asset_kind || dataset?.asset_kind || dataset?.asset_type || dataset?.record_type,
+  );
+  if (["scholarly_work", "paper", "article", "publication", "literature"].includes(explicit)) {
+    return "scholarly_work";
+  }
+  if (["metadata_index", "catalog", "catalogue", "dataset_catalog"].includes(explicit)) {
+    return "metadata_index";
+  }
+  if (["operational", "status", "status_endpoint", "manifest"].includes(explicit)) {
+    return "operational";
+  }
+  if (["live_source", "api", "remote_queryable"].includes(explicit)) {
+    return "live_source";
+  }
+  if (["dataset", "table", "panel", "tabular"].includes(explicit)) return "dataset";
+
+  const accessShape = normalizedAssetType(dataset?.access_shape);
+  const backend = normalizedAssetType(dataset?.backend);
+  const grain = normalizedAssetType(dataset?.grain);
+  const corpus = textCorpus(dataset);
+  const hasBibliographicIdentity = Boolean(dataset?.doi || /\bdoi\b/.test(corpus));
+  const scholarlyLanguage = /\b(paper|article|scholarly|publication|literature|citation)\b/.test(corpus);
+
+  if (
+    scholarlyLanguage &&
+    (hasBibliographicIdentity || accessShape === "local_file" || grain === "procured_snapshot")
+  ) {
+    return "scholarly_work";
+  }
+  if (accessShape === "metadata_index" || /catalog|catalogue/.test(backend)) return "metadata_index";
+  if (/status|manifest|operational/.test(`${accessShape} ${backend}`)) return "operational";
+  if (/api/.test(backend) && !dataset?.local_root && !dataset?.local_path) return "live_source";
+  return "dataset";
+}
+
+export function libraryAssetPresentation(dataset = {}) {
+  const kind = libraryAssetKind(dataset);
+  if (kind === "scholarly_work") {
+    return {
+      kind,
+      noun: "scholarly work",
+      eyebrow: "Selected scholarly work",
+      shapeTitle: "Bibliographic record",
+      structureTitle: "Record details",
+      structureAction: "Inspect record",
+      askLabel: "Ask about this work",
+      previewRows: false,
+    };
+  }
+  if (kind === "metadata_index") {
+    return {
+      kind,
+      noun: "metadata index",
+      eyebrow: "Selected metadata index",
+      shapeTitle: "Index scope",
+      structureTitle: "Record structure",
+      structureAction: "Inspect fields",
+      askLabel: "Ask about this index",
+      previewRows: true,
+    };
+  }
+  if (kind === "live_source") {
+    return {
+      kind,
+      noun: "live source",
+      eyebrow: "Selected live source",
+      shapeTitle: "Source contract",
+      structureTitle: "Declared response shape",
+      structureAction: "Inspect fields",
+      askLabel: "Ask about this source",
+      previewRows: true,
+    };
+  }
+  if (kind === "operational") {
+    return {
+      kind,
+      noun: "operational resource",
+      eyebrow: "Selected operational resource",
+      shapeTitle: "Operational record",
+      structureTitle: "Recorded state",
+      structureAction: "Inspect record",
+      askLabel: "Ask about this resource",
+      previewRows: false,
+    };
+  }
+  return {
+    kind: "dataset",
+    noun: "dataset",
+    eyebrow: "Selected Library asset",
+    shapeTitle: "Declared evidence shape",
+    structureTitle: "Declared structure",
+    structureAction: "Inspect fields",
+    askLabel: "Ask about access",
+    previewRows: true,
+  };
+}
+
 export function displayName(dataset) {
   return dataset?.name || dataset?.title || dataset?.dataset_id || "Dataset";
 }
