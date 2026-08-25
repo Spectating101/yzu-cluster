@@ -221,6 +221,58 @@
 }
 
 /* -------------------------------------------------------------------------- */
+/* Library — evidence, source relationship, and usability must scan together  */
+/* -------------------------------------------------------------------------- */
+
+.rd-v2-cap-estate-head {
+  padding-top: 12px;
+  padding-bottom: 10px;
+}
+
+.rd-v2-cap-estate-head p {
+  max-width: 720px;
+}
+
+.rd-v2-cap-ledger.with-verify .rd-v2-cap-ledger-head,
+.rd-v2-cap-ledger.with-verify .rd-v2-cap-ledger-row {
+  grid-template-columns: minmax(300px, 1fr) minmax(105px, .27fr) minmax(95px, .22fr) minmax(105px, .24fr);
+  gap: 15px;
+}
+
+.rd-v2-cap-ledger.with-verify.show-kind .rd-v2-cap-ledger-head,
+.rd-v2-cap-ledger.with-verify.show-kind .rd-v2-cap-ledger-row {
+  grid-template-columns: minmax(260px, 1fr) minmax(90px, .20fr) minmax(100px, .25fr) minmax(92px, .21fr) minmax(102px, .23fr);
+  gap: 13px;
+}
+
+.rd-v2-cap-verify {
+  overflow: hidden;
+  color: var(--rd-muted);
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-v2-cap-verify.verified,
+.rd-v2-cap-verify.matched {
+  color: #356a55;
+}
+
+.rd-v2-cap-verify.partial {
+  color: #8a651e;
+}
+
+.rd-v2-cap-verify.unverified {
+  color: #8a4545;
+}
+
+.rd-v2-cap-verify.unchecked {
+  color: var(--rd-muted);
+}
+
+/* -------------------------------------------------------------------------- */
 /* Shared rail — keep the research situation compact enough to leave room for */
 /* meaningful domain detail while making current truth/next action persistent. */
 /* -------------------------------------------------------------------------- */
@@ -240,6 +292,20 @@
 .rd-v2-situation-next {
   margin-top: 7px;
   line-height: 1.38;
+}
+
+@media (max-width: 1120px) {
+  .rd-v2-cap-ledger.with-verify .rd-v2-cap-ledger-head,
+  .rd-v2-cap-ledger.with-verify .rd-v2-cap-ledger-row,
+  .rd-v2-cap-ledger.with-verify.show-kind .rd-v2-cap-ledger-head,
+  .rd-v2-cap-ledger.with-verify.show-kind .rd-v2-cap-ledger-row {
+    grid-template-columns: minmax(240px, 1fr) minmax(96px, .27fr) minmax(88px, .22fr) minmax(98px, .24fr);
+  }
+
+  .rd-v2-cap-ledger.with-verify.show-kind .rd-v2-cap-kind,
+  .rd-v2-cap-ledger.with-verify.show-kind .rd-v2-cap-ledger-head > span:nth-child(2) {
+    display: none;
+  }
 }
 
 @media (max-width: 920px) {
