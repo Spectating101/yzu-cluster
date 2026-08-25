@@ -228,7 +228,7 @@ function SynthesisSidebarPortal({ children }) {
   return target ? createPortal(children, target) : null;
 }
 
-function ThreadList({ threads, selectedId, loading, onSelect, onNew }) {
+function ThreadList({ threads, selectedId, loading, onSelect, onNew, creating = false }) {
   const selectedRef = useRef(null);
   useEffect(() => {
     selectedRef.current?.scrollIntoView({ block: "nearest" });
@@ -263,7 +263,14 @@ function ThreadList({ threads, selectedId, loading, onSelect, onNew }) {
           <span>Active work</span>
           <small>{loading ? "Loading" : `${activeThreads.length} active`}</small>
         </div>
-        <button type="button" className="s04-thread-new" onClick={onNew}>+ New synthesis</button>
+        <button
+          type="button"
+          className={`s04-thread-new${creating ? " is-active" : ""}`}
+          aria-pressed={creating}
+          onClick={onNew}
+        >
+          + New synthesis
+        </button>
       </header>
       <div className="s04-thread-list">
         {activeThreads.map(renderThread)}
@@ -1160,75 +1167,115 @@ function NewThread({
   profiles,
   onCreate,
   onStartBlueprint,
+  onCancel,
+  returnLabel,
   reasoningAvailable,
   reasoningStatus,
   onOpenResources,
 }) {
   const startingPoints = (Array.isArray(profiles) ? profiles : []).slice(0, 3);
   return (
-    <section className="s04-intent" data-testid="synthesis-intent-state">
-      <small>Research object</small>
-      <h2>Describe the construction you need.</h2>
-      <p>State the research purpose in ordinary language. The desk records a durable object first, then maps held Library evidence before any method can be accepted.</p>
-      <textarea
-        rows={7}
-        value={objective}
-        onChange={(event) => setObjective(event.target.value)}
-        placeholder="Example: Build a weekly measure of stablecoin trust deterioration that separates security incidents, liquidity stress, and public attention…"
-        onKeyDown={(event) => {
-          handleEnterToSubmit(event, () => {
-            if (!busy && objective.trim()) onCreate();
-          });
-        }}
-      />
-      <p className="s04-intent-boundary">
-        No method exists yet. {reasoningAvailable
-          ? "Ask can reason from the recorded brief after held evidence is reviewed."
-          : `${reasoningStatus}. Starting a new assistant-grounded construction is unavailable.`}
-        {" "}Nothing executes or registers from this entry state.
-      </p>
-      {startingPoints.length ? (
-        <div className="s04-intent-starts">
-          <small>Or start from a registered method</small>
-          <div>
-            {startingPoints.map((profile) => (
-              <button
-                type="button"
-                key={profile.id}
-                disabled={busy || !reasoningAvailable}
-                onClick={() => onStartBlueprint?.(profile)}
-                title={!reasoningAvailable ? reasoningStatus : text(profile.title, profile.id)}
-              >
-                <strong>{text(profile.title, profile.id)}</strong>
-                <span>{text(profile.description, "Registered construction recipe")}</span>
-              </button>
-            ))}
-          </div>
+    <section className="s04-intent s04-new-entry" data-testid="synthesis-intent-state">
+      <header className="s04-new-entry-head">
+        <div>
+          <small>New construction</small>
+          <h1>Start from the research object, not the machinery.</h1>
+          <p>
+            This is an unsaved entry into the same Synthesis workspace. Record a research purpose or reuse a registered method;
+            the durable thread begins only after you choose one.
+          </p>
         </div>
-      ) : null}
-      <footer>
-        <span>
-          {objective.trim()
-            ? reasoningAvailable
-              ? "Creates a durable project, then opens Ask with this exact objective attached."
-              : "Assistant reasoning must be verified before this project can start."
-            : "Enter an objective to create a durable project."}
-        </span>
-        {!reasoningAvailable ? (
-          <button type="button" className="rd-v2-btn" onClick={() => onOpenResources?.()}>
-            Check Resources
-          </button>
-        ) : null}
-        <button
-          type="button"
-          className="rd-v2-btn primary"
-          disabled={busy || !objective.trim() || !reasoningAvailable}
-          onClick={onCreate}
-          title={!reasoningAvailable ? reasoningStatus : objective.trim() ? undefined : "Enter an objective to continue"}
-        >
-          {reasoningAvailable ? "Start project in Ask" : "Assistant unavailable"}
+        <button type="button" className="s04-new-entry-back" onClick={onCancel}>
+          ← Back to {text(returnLabel, "Synthesis")}
         </button>
-      </footer>
+      </header>
+
+      <div className="s04-new-entry-grid">
+        <section className="s04-new-entry-section s04-new-entry-purpose">
+          <small>Research purpose</small>
+          <h2>Describe the construction you need.</h2>
+          <p>Use ordinary research language. Evidence and method remain separate decisions after the object is recorded.</p>
+          <textarea
+            rows={7}
+            value={objective}
+            onChange={(event) => setObjective(event.target.value)}
+            placeholder="Example: Build a weekly measure of stablecoin trust deterioration that separates security incidents, liquidity stress, and public attention…"
+            onKeyDown={(event) => {
+              handleEnterToSubmit(event, () => {
+                if (!busy && objective.trim()) onCreate();
+              });
+            }}
+          />
+          <p className="s04-new-entry-boundary">
+            Nothing is built here. {reasoningAvailable
+              ? "After creation, the desk can review held Library evidence and Ask can help reason from that durable context."
+              : `${reasoningStatus}. You can inspect existing constructions, but assistant-grounded creation is unavailable.`}
+          </p>
+          <footer>
+            <span>
+              {objective.trim()
+                ? reasoningAvailable
+                  ? "Creates one durable Synthesis thread from this exact purpose."
+                  : "Assistant reasoning must be verified before this entry can create a thread."
+                : "Enter a purpose to create a durable thread."}
+            </span>
+            {!reasoningAvailable ? (
+              <button type="button" className="rd-v2-btn" onClick={() => onOpenResources?.()}>
+                Check Resources
+              </button>
+            ) : null}
+            <button
+              type="button"
+              className="rd-v2-btn primary"
+              disabled={busy || !objective.trim() || !reasoningAvailable}
+              onClick={onCreate}
+              title={!reasoningAvailable ? reasoningStatus : objective.trim() ? undefined : "Enter an objective to continue"}
+            >
+              {reasoningAvailable ? "Create construction" : "Assistant unavailable"}
+            </button>
+          </footer>
+        </section>
+
+        <section className="s04-new-entry-section s04-new-entry-methods">
+          <small>Registered methods</small>
+          <h2>Reuse a construction that already exists.</h2>
+          <p>Start from a recorded method, then review how its inputs and assumptions change for this new thread.</p>
+          {startingPoints.length ? (
+            <div className="s04-new-entry-method-list">
+              {startingPoints.map((profile) => (
+                <button
+                  type="button"
+                  key={profile.id}
+                  disabled={busy || !reasoningAvailable}
+                  onClick={() => onStartBlueprint?.(profile)}
+                  title={!reasoningAvailable ? reasoningStatus : text(profile.title, profile.id)}
+                >
+                  <strong>{text(profile.title, profile.id)}</strong>
+                  <em>Use →</em>
+                  <span>{text(profile.description, "Registered construction recipe")}</span>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p className="s04-new-entry-method-empty">No registered method is reported on this desk yet.</p>
+          )}
+        </section>
+      </div>
+
+      <dl className="s04-new-entry-contract" aria-label="New Synthesis entry contract">
+        <div>
+          <dt>Creates</dt>
+          <dd>A durable research-construction thread</dd>
+        </div>
+        <div>
+          <dt>Then</dt>
+          <dd>Held evidence is reviewed before method acceptance</dd>
+        </div>
+        <div>
+          <dt>Does not</dt>
+          <dd>Execute, register, or silently choose consequential methodology</dd>
+        </div>
+      </dl>
     </section>
   );
 }
@@ -1437,6 +1484,7 @@ export function SynthesisPage({
   const interpretingSinceRef = useRef(null);
   const interpretingThreadIdRef = useRef("");
   const proposalReviewRef = useRef(null);
+  const returnThreadIdRef = useRef("");
 
   const replaceThread = useCallback((next) => {
     if (!next?.id) return;
@@ -1644,6 +1692,7 @@ export function SynthesisPage({
   }, [selected?.id]);
 
   const selectThread = async (threadId) => {
+    returnThreadIdRef.current = threadId;
     setSelectedId(threadId);
     setNewMode(false);
     setSelectedField(null);
@@ -1770,13 +1819,34 @@ export function SynthesisPage({
   };
 
   const beginNew = () => {
+    returnThreadIdRef.current = selectedId || returnThreadIdRef.current || threads[0]?.id || "";
     setSelectedId("");
     setReasoningThreadId("");
     setNewMode(true);
     setObjective("");
     setError("");
+    onSelectThread?.({
+      id: "__new__",
+      title: "New construction",
+      ephemeral: true,
+      state: { ephemeral: true, entry_mode: "new" },
+    });
+  };
+
+  const cancelNew = () => {
+    const requested = returnThreadIdRef.current;
+    const target = requested && threads.some((thread) => thread.id === requested)
+      ? requested
+      : threads[0]?.id || "";
+    setObjective("");
+    setError("");
+    if (target) {
+      selectThread(target);
+      return;
+    }
+    setNewMode(false);
+    setSelectedId("");
     onSelectThread?.(null);
-    onBeginNew?.();
   };
 
   const createThread = async () => {
@@ -1790,6 +1860,7 @@ export function SynthesisPage({
         title: titleFromObjective(nextObjective),
       });
       replaceThread(created);
+      returnThreadIdRef.current = created.id;
       setSelectedId(created.id);
       setNewMode(false);
       setObjective("");
@@ -1831,6 +1902,7 @@ export function SynthesisPage({
         requiredGrain: Array.isArray(profile.join_keys) ? profile.join_keys.join(", ") : "",
       });
       replaceThread(created);
+      returnThreadIdRef.current = created.id;
       setSelectedId(created.id);
       setNewMode(false);
       setObjective("");
@@ -1900,6 +1972,7 @@ export function SynthesisPage({
   const preAcceptance = Boolean(selected && isPreAcceptance(selected));
   const hasRecommendation = Boolean(displayedSelected && recommendedConstruction(displayedSelected).present);
   const hasMappedEvidence = Boolean(displayedSelected && evidenceNodes(displayedSelected).length);
+  const returnThread = threads.find((thread) => thread.id === returnThreadIdRef.current) || null;
   const surfaceState = resolveSurfaceLifecycle({
     loading,
     error,
@@ -1915,6 +1988,7 @@ export function SynthesisPage({
           loading={loading}
           onSelect={selectThread}
           onNew={beginNew}
+          creating={newMode}
         />
       </SynthesisSidebarPortal>
       <div className="s04-shell" data-testid="synthesis-studio">
@@ -1928,6 +2002,8 @@ export function SynthesisPage({
               profiles={profiles}
               onCreate={createThread}
               onStartBlueprint={startBlueprint}
+              onCancel={cancelNew}
+              returnLabel={returnThread ? titleFor(returnThread) : "Synthesis"}
               reasoningAvailable={reasoningAvailable}
               reasoningStatus={reasoningStatus}
               onOpenResources={() => onGoTab?.("resources")}
