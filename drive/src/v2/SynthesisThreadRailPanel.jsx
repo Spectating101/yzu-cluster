@@ -33,7 +33,7 @@ function stateSummary(thread) {
     return {
       status: queryReady ? "Query-ready output" : "Registered output",
       primary: "Open the reusable asset",
-      primaryLabel: "Next",
+      primaryLabel: "Action",
       risk: execution.drive_verified ? "Drive verification reported" : "Verification detail not reported",
       next: queryReady ? "Query or inspect the asset in Library" : "Inspect readiness in Library",
     };
