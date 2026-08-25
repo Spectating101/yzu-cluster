@@ -249,6 +249,28 @@
   line-height: 1.4;
 }
 
+/* Earliest durable state: if the page is offering the evidence-map action, it
+ * has not earned method reasoning yet. Keep one unambiguous forward action
+ * instead of simultaneously telling the researcher to map evidence and reason. */
+.rd-v2-synthesis-page .s04-opening-next:has(.s04-next-map) .s04-next-primary {
+  display: none;
+}
+
+/* The left rail is deliberately terse, but the selected Readiness thread must
+ * not keep the stale pre-acceptance word “Exploring”. Readiness is the unique
+ * execution surface whose lifecycle track has no current worker/approval step
+ * yet; replace only that selected secondary label. */
+body:has(.rd-v2-synthesis-page [data-testid="synthesis-execution-state"] .s04-exec-track):not(:has(.rd-v2-synthesis-page [data-testid="synthesis-execution-state"] .s04-exec-track .now))
+  .s04-thread-list button.active small {
+  font-size: 0;
+}
+
+body:has(.rd-v2-synthesis-page [data-testid="synthesis-execution-state"] .s04-exec-track):not(:has(.rd-v2-synthesis-page [data-testid="synthesis-execution-state"] .s04-exec-track .now))
+  .s04-thread-list button.active small::after {
+  content: "Method accepted";
+  font-size: 8.5px;
+}
+
 @media (max-width: 860px) {
   .rd-v2-synthesis-page .s04-new-entry-grid {
     grid-template-columns: 1fr;
