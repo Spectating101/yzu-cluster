@@ -1,0 +1,222 @@
+/* Whole-product rail convergence.
+   The existing page-specific rail panels remain authoritative. This layer makes
+   current context persistent and turns Detail / Ask into two views of the same
+   research object instead of two unrelated rail personalities. */
+
+.rd-v2-situation {
+  padding: 12px 14px 0;
+  border-bottom: 1px solid var(--rd-border);
+  background: linear-gradient(180deg, rgba(250, 249, 245, 0.98), rgba(247, 246, 241, 0.9));
+}
+
+.rd-v2-situation-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--rd-muted);
+  font-size: 8.5px;
+  font-weight: 780;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.rd-v2-situation-state {
+  max-width: 58%;
+  overflow: hidden;
+  color: var(--rd-body);
+  font-size: 9px;
+  font-weight: 720;
+  letter-spacing: 0.02em;
+  text-align: right;
+  text-overflow: ellipsis;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.rd-v2-situation-state.state-query-ready {
+  color: var(--rd-success-fg, #346b57);
+}
+
+.rd-v2-situation-state.state-warn,
+.rd-v2-situation-state.state-failed {
+  color: var(--rd-danger-fg, #9d3c36);
+}
+
+.rd-v2-situation h2 {
+  margin: 7px 0 0;
+  overflow: hidden;
+  color: var(--rd-text);
+  font-size: 14px;
+  font-weight: 740;
+  line-height: 1.28;
+  letter-spacing: -0.015em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-v2-situation-facts {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 5px 8px;
+  margin-top: 7px;
+}
+
+.rd-v2-situation-facts span {
+  position: relative;
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--rd-muted);
+  font-size: 9.5px;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-v2-situation-facts span + span::before {
+  content: "·";
+  margin-right: 8px;
+  color: var(--rd-border2);
+}
+
+.rd-v2-situation-next {
+  margin: 8px 0 0;
+  color: var(--rd-body);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.rd-v2-situation-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  margin-top: 11px;
+  padding: 3px;
+  border: 1px solid var(--rd-border);
+  border-radius: 10px;
+  background: rgba(230, 233, 229, 0.72);
+}
+
+.rd-v2-situation-tabs button {
+  min-height: 30px;
+  padding: 5px 10px;
+  border: 0;
+  border-radius: 7px;
+  color: var(--rd-muted);
+  background: transparent;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 720;
+  transition: color 120ms ease, background 120ms ease, box-shadow 120ms ease;
+}
+
+.rd-v2-situation-tabs button:hover {
+  color: var(--rd-text);
+}
+
+.rd-v2-situation-tabs button.on {
+  color: var(--rd-text);
+  background: var(--rd-surface);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+.rd-v2-rail-detail-workspace {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
+.rd-v2-rail-detail-content {
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+}
+
+.rd-v2-rail-ask-handoff {
+  flex: none;
+  padding: 9px 12px 12px;
+  border-top: 1px solid var(--rd-border);
+  background: linear-gradient(180deg, rgba(250, 249, 245, 0.9), var(--rd-surface));
+}
+
+.rd-v2-rail-ask-handoff button {
+  display: flex;
+  width: 100%;
+  min-height: 38px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 11px;
+  border: 1px solid var(--rd-text);
+  border-radius: 10px;
+  color: #fff;
+  background: var(--rd-text);
+  cursor: pointer;
+  font-size: 10.5px;
+  font-weight: 720;
+  text-align: left;
+}
+
+.rd-v2-rail-ask-handoff button:hover {
+  opacity: 0.92;
+}
+
+.rd-v2-rail-ask-handoff span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-v2-rail-ask-handoff b {
+  flex: none;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Ask already receives strict object-scoped context. The persistent situation
+   header now owns repeated identity, so the embedded Ask header can stay in the
+   accessibility tree without consuming another large visual block. */
+.rd-v2-rail-pane[data-testid="rail-pane-ask"] .rd-v2-ask-head {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.rd-v2-rail-pane[data-testid="rail-pane-ask"] .rd-v2-ask-rail {
+  min-height: 0;
+  flex: 1;
+}
+
+/* Retire the old binary chrome only inside the converged inspector. Existing
+   selectors/tests can continue to target the tab roles in the situation unit. */
+.rd-v2-rail-chrome > .rd-v2-rail-toggle,
+.rd-v2-rail-chrome > .rd-v2-rail-selection {
+  display: none !important;
+}
+
+@media (max-width: 900px) {
+  .rd-v2-situation {
+    padding-top: 9px;
+  }
+
+  .rd-v2-situation-next,
+  .rd-v2-situation-facts {
+    display: none;
+  }
+
+  .rd-v2-situation-tabs {
+    margin-top: 8px;
+  }
+
+  .yzu-inspector.rd-v2-rail-collapsed .rd-v2-situation {
+    display: none;
+  }
+}
