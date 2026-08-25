@@ -143,11 +143,11 @@ test("captures the converged Synthesis thread and integrated new-entry state", a
   await expect(openingRail).not.toContainText(THREAD.objective);
   await expect(openingRail).toContainText("Evidence measured");
   await expect(openingRail).toContainText("Review measured evidence");
-  await expect(openingRail).toContainText("1 measured column needs review");
-  await expect(openingRail).toContainText("Request one reviewable construction grounded in these held inputs");
+  await expect(openingRail).toContainText("1 sparse / flagged column");
+  await expect(openingRail).toContainText("Request one reviewable construction");
   await expect(openingRail).toContainText("asset × week");
-  await expect(openingRail).toContainText("3 mapped inputs");
-  await expect(openingRail).toContainText("2 columns · 1 flagged");
+  await expect(openingRail).toContainText("3 mapped");
+  await expect(openingRail).toContainText("2 columns");
   await expect(openingRail).toContainText("Not accepted");
   await expect(openingRail).toContainText("Not registered");
   await capture(page, "01-thread-detail-1440x1000");
