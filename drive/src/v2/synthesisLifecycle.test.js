@@ -4,11 +4,99 @@ import assert from "node:assert/strict";
 import {
   buildStageDetail,
   executionTrack,
+  resolveSynthesisJourneyStage,
+  synthesisJourney,
+  synthesisJourneyStage,
   synthesisShowsEvidenceMap,
   synthesisShowsStageStrip,
+  synthesisStageLockReason,
 } from "./synthesisLifecycle.js";
 
 const row = (track, label) => track.find((entry) => entry.label === label);
+
+/* ── Research journey: every page is earned from durable state ────────── */
+
+test("no selected thread stays on Objective", () => {
+  assert.equal(synthesisJourneyStage(null), "objective");
+});
+
+test("a newly-created durable thread earns Evidence, not later pages", () => {
+  const thread = { id: "thread-1", objective: "Build a panel", state: { nodes: [] } };
+  const journey = synthesisJourney(thread);
+  assert.equal(journey.current, "evidence");
+  assert.equal(journey.stages.find((stage) => stage.id === "objective").state, "done");
+  assert.equal(journey.stages.find((stage) => stage.id === "evidence").state, "current");
+  assert.equal(journey.stages.find((stage) => stage.id === "proposal").state, "locked");
+});
+
+test("mapped held evidence earns Specification but not Proposal", () => {
+  const thread = {
+    id: "thread-1",
+    state: { nodes: [{ id: "a", type: "source", layer: "evidence", status: "query_ready" }] },
+  };
+  assert.equal(synthesisJourneyStage(thread), "specification");
+  assert.equal(synthesisStageLockReason(thread, "proposal"), "Resolve the current construction choices before a proposal can be reviewed.");
+});
+
+test("a persisted proposal earns Proposal review", () => {
+  const thread = {
+    id: "thread-1",
+    state: {
+      nodes: [{ id: "a", type: "source" }],
+      proposal: { id: "p1", proposal_hash: "hash" },
+    },
+  };
+  assert.equal(synthesisJourneyStage(thread), "proposal");
+});
+
+test("an accepted spec earns Readiness, not Approval or Build", () => {
+  for (const execution of [undefined, { status: "spec_accepted" }]) {
+    const thread = {
+      id: "thread-1",
+      state: {
+        execution_spec: { input_dataset_id: "a", output_dataset_id: "b" },
+        ...(execution ? { execution } : {}),
+      },
+    };
+    assert.equal(synthesisJourneyStage(thread), "readiness");
+  }
+});
+
+test("pending approval is its own researcher page", () => {
+  const thread = {
+    id: "thread-1",
+    state: {
+      execution_spec: { output_dataset_id: "b" },
+      execution: { status: "pending_approval", job_id: "job-1" },
+    },
+  };
+  assert.equal(synthesisJourneyStage(thread), "approval");
+});
+
+test("approved worker lifecycle stays on Build until registry proof exists", () => {
+  for (const status of ["queued", "running", "registering", "archiving", "completed", "failed"]) {
+    const thread = { id: "thread-1", state: { execution: { status } } };
+    assert.equal(synthesisJourneyStage(thread), "build", status);
+  }
+});
+
+test("only registered or query-ready output earns Result", () => {
+  for (const status of ["registered", "query_ready"]) {
+    const thread = { id: "thread-1", state: { execution: { status, output_dataset_id: "out" } } };
+    assert.equal(synthesisJourneyStage(thread), "result", status);
+  }
+});
+
+test("a deep link cannot jump beyond the durable current page", () => {
+  const thread = {
+    id: "thread-1",
+    state: { nodes: [{ id: "a", type: "source" }] },
+  };
+  assert.equal(resolveSynthesisJourneyStage(thread, "result"), "specification");
+  assert.equal(resolveSynthesisJourneyStage(thread, "approval"), "specification");
+  assert.equal(resolveSynthesisJourneyStage(thread, "evidence"), "evidence");
+  assert.equal(resolveSynthesisJourneyStage(thread, "unknown"), "specification");
+});
 
 /* ── Build stage: a specification is not approval ─────────────────────── */
 
