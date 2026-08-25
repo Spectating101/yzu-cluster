@@ -21,6 +21,15 @@
   display: none;
 }
 
+/* A grounded recommendation already exposes its evidence architecture. If the
+ * durable evidence map is still empty, showing the pre-recommendation intake
+ * card underneath the acceptance decision makes the page tell the researcher
+ * to go backwards. Keep a real mapped-evidence panel when nodes exist; suppress
+ * only the empty intake state after a recommendation is available. */
+.rd-v2-synthesis-page .s04-main:has(.s04-opening-construction:not(.s04-opening-construction--empty)) [data-testid="synthesis-evidence-state"]:has(.s04-empty-evidence) {
+  display: none;
+}
+
 .rd-v2-synthesis-page .sj-shell {
   width: 100%;
   max-width: none;
