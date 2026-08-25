@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import {
   BrowseRailPanel,
   DetailPanel,
-  EmptyRailPanel,
   HomeAttentionRailPanel,
   LibraryObjectRailPanel,
   PageRailPanel,
@@ -17,6 +16,7 @@ import { DiscoverHistoryRailPanel } from "@/v2/DiscoverHistoryRailPanel";
 import { DiscoverIntentRailPanel } from "@/v2/DiscoverIntentRailPanel";
 import { SynthesisThreadRailPanel } from "@/v2/SynthesisThreadRailPanel";
 import { DiscoverEvidenceBrief } from "@/v2/DiscoverEvidenceBrief";
+import { ResearchSituationRail } from "@/v2/ResearchSituationRail";
 import { DISCOVER_TAB } from "@/v2/tabIdentity";
 
 function railSelectionHint(
@@ -340,32 +340,25 @@ export function InspectorRail({
             aria-expanded={mobileRailOpen}
             onClick={() => setMobileRailOpen((open) => !open)}
           >
-            {mobileRailOpen ? "Hide panel" : "Show Detail · Ask"}
+            {mobileRailOpen ? "Hide panel" : "Show research context"}
           </button>
-          <div className="rd-v2-rail-toggle" role="tablist" aria-label="Inspector mode">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={railTab === "detail"}
-              className={railTab === "detail" ? "on" : ""}
-              onClick={() => onRailTabChange("detail")}
-            >
-              Detail
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={railTab === "ask"}
-              className={railTab === "ask" ? "on" : ""}
-              onClick={() => onRailTabChange("ask")}
-            >
-              Ask
-            </button>
-          </div>
-          <p className="rd-v2-rail-selection" title={selectionHint}>
-            {selectionHint}
-          </p>
         </div>
+        <ResearchSituationRail
+          mainTab={mainTab}
+          railTab={railTab}
+          onRailTabChange={onRailTabChange}
+          selectionHint={selectionHint}
+          activeObject={activeObject}
+          dataset={dataset}
+          browseTarget={browseTarget}
+          browseLifecycle={browseLifecycle}
+          historyEvent={historyEvent}
+          discoverIntentRecord={discoverIntentRecord}
+          discoverAssessment={discoverAssessment}
+          restingSummary={discoverRestingSummary}
+          resourceRow={resourceRow}
+          resourcesDecisionCount={resourcesDecisionCount}
+        />
         <div
           className={`rd-v2-rail-pane${railTab === "detail" ? " rd-v2-rail-pane-on" : ""}`}
           aria-hidden={railTab !== "detail"}
