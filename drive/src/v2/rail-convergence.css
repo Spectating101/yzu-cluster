@@ -3,6 +3,17 @@
    current context persistent and turns Detail / Ask into two views of the same
    research object instead of two unrelated rail personalities. */
 
+/* The legacy inspector chrome used to own an 80px desktop header. Its controls
+   are retired inside the converged rail, so keeping that reservation creates a
+   blank band above the actual research context. Mobile keeps its own visible
+   grip height through .rd-v2-rail-mobile-grip. */
+.rd-v2-rail-chrome {
+  min-height: 0;
+  padding: 0;
+  border-bottom: 0;
+  background: transparent;
+}
+
 .rd-v2-situation {
   padding: 12px 14px 0;
   border-bottom: 1px solid var(--rd-border);
