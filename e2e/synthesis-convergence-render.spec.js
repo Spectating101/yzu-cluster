@@ -130,8 +130,26 @@ test("captures the converged Synthesis thread and integrated new-entry state", a
   await waitForShell(page);
 
   await expect(page.getByTestId("synthesis-studio")).toBeVisible();
-  await expect(page.getByTestId("research-situation")).toContainText("Historical stablecoin attention");
-  await expect(page.locator("aside.rd-v2-rail")).toContainText("Needs you");
+  const situation = page.getByTestId("research-situation");
+  const openingRail = page.getByTestId("synthesis-opening-rail");
+  await expect(situation).toContainText("Synthesis");
+  await expect(situation).toContainText("Method");
+  await expect(situation).toContainText("Historical stablecoin attention");
+  await expect(situation).toContainText("3 mapped evidence");
+  await expect(situation).toContainText("2 measured");
+  await expect(openingRail).toBeVisible();
+  await expect(openingRail.locator(".rd-v2-rail-ehead")).toHaveCount(0);
+  await expect(openingRail).not.toContainText("Historical stablecoin attention");
+  await expect(openingRail).not.toContainText(THREAD.objective);
+  await expect(openingRail).toContainText("Evidence measured");
+  await expect(openingRail).toContainText("Review measured evidence");
+  await expect(openingRail).toContainText("1 measured column needs review");
+  await expect(openingRail).toContainText("Request one reviewable construction grounded in these held inputs");
+  await expect(openingRail).toContainText("asset × week");
+  await expect(openingRail).toContainText("3 mapped inputs");
+  await expect(openingRail).toContainText("2 columns · 1 flagged");
+  await expect(openingRail).toContainText("Not accepted");
+  await expect(openingRail).toContainText("Not registered");
   await capture(page, "01-thread-detail-1440x1000");
 
   await page.getByRole("button", { name: "+ New synthesis" }).click();
@@ -139,8 +157,11 @@ test("captures the converged Synthesis thread and integrated new-entry state", a
   await expect(entry).toBeVisible();
   await expect(page.getByRole("button", { name: "+ New synthesis" })).toHaveAttribute("aria-pressed", "true");
   await expect(entry.getByRole("button", { name: /Back to Historical stablecoin attention/ })).toBeVisible();
-  await expect(page.getByTestId("research-situation")).toContainText("Draft entry");
-  await expect(page.locator("aside.rd-v2-rail")).toContainText("Nothing is saved yet");
+  await expect(page.getByTestId("research-situation").locator(".rd-v2-situation-state")).toHaveText("Draft");
+  await expect(page.getByTestId("research-situation")).toContainText("Not saved");
+  await expect(page.getByTestId("rail-pane-detail")).toContainText("Draft entry");
+  await expect(page.getByTestId("rail-pane-detail")).toContainText("Nothing is saved yet");
+  await expect(page.getByTestId("rail-pane-detail").locator(".rd-v2-rail-ehead")).toHaveCount(0);
   await capture(page, "02-new-entry-1440x1000");
 
   await page.setViewportSize({ width: 1920, height: 961 });
@@ -152,5 +173,6 @@ test("captures the converged Synthesis thread and integrated new-entry state", a
   await page.setViewportSize({ width: 1440, height: 1000 });
   await entry.getByRole("button", { name: /Back to Historical stablecoin attention/ }).click();
   await expect(page.getByTestId("research-situation")).toContainText("Historical stablecoin attention");
+  await expect(page.getByTestId("research-situation")).toContainText("2 measured");
   await capture(page, "05-returned-thread-1440x1000");
 });
