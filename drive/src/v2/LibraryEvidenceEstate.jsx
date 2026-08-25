@@ -77,6 +77,7 @@ export function LibraryEvidenceEstate({
                 key={collection.id}
                 type="button"
                 className="rd-v2-cap-collection"
+                data-testid="library-collection-filter"
                 onClick={() => onOpenCollection?.(collection)}
               >
                 <span>{collection.name || collection.label || collection.id}</span>
@@ -104,6 +105,8 @@ export function LibraryEvidenceEstate({
                   key={row.dataset_id || item.id}
                   type="button"
                   className="rd-v2-cap-ledger-row"
+                  data-testid="library-evidence-row"
+                  data-kind="evidence"
                   role="row"
                   onClick={() => onSelectDataset?.(row)}
                   onDoubleClick={() => onPreviewDataset?.(row)}
