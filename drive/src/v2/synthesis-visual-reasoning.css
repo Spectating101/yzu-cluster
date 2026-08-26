@@ -1,0 +1,438 @@
+/* Synthesis analytical visual layer.
+ *
+ * These visuals encode research consequences that are slower to understand in
+ * prose: set overlap, retained population, scale mismatch, row flow, and durable
+ * execution lineage. They intentionally avoid decorative dashboard charts. */
+
+.s04-viz {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0 14px;
+  padding: 12px 13px;
+  border: 1px solid #d8d4ca;
+  border-radius: 10px;
+  background: rgba(250, 248, 242, .72);
+}
+
+.s04-viz > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.s04-viz > header > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.s04-viz > header small,
+.s04-viz section > small,
+.s04-viz-facts small,
+.s04-viz-overlap-facts small,
+.s04-viz-scope-facts small {
+  color: #6d7984;
+  font-size: 8px;
+  font-weight: 820;
+  letter-spacing: .075em;
+  text-transform: uppercase;
+}
+
+.s04-viz > header strong {
+  color: #2d3d49;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.s04-viz > header > span {
+  flex: 0 0 auto;
+  padding: 4px 7px;
+  border-radius: 999px;
+  background: #edf2ed;
+  color: #486454;
+  font-size: 8.5px;
+  font-weight: 800;
+}
+
+.s04-viz figcaption {
+  margin: 0;
+  color: #7b858d;
+  font-size: 7.5px;
+  line-height: 1.45;
+}
+
+/* JOIN — the circles explain membership; the strip carries proportional
+ * magnitude so the visual never asks circle area to do quantitative work. */
+.s04-viz-overlap-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 132px;
+  gap: 12px;
+  align-items: center;
+}
+
+.s04-viz-overlap svg {
+  width: 100%;
+  min-height: 190px;
+  overflow: visible;
+}
+
+.s04-viz-overlap circle {
+  stroke-width: 2;
+}
+
+.s04-viz-overlap .set-left {
+  fill: rgba(74, 111, 126, .11);
+  stroke: #6f8996;
+}
+
+.s04-viz-overlap .set-right {
+  fill: rgba(94, 119, 91, .12);
+  stroke: #748a6f;
+}
+
+.s04-viz-overlap .set-label {
+  fill: #536371;
+  font-size: 12px;
+  font-weight: 760;
+}
+
+.s04-viz-overlap .set-label.left { text-anchor: middle; }
+.s04-viz-overlap .set-label.right { text-anchor: middle; }
+
+.s04-viz-overlap .region-count {
+  fill: #263744;
+  font-size: 21px;
+  font-weight: 760;
+  text-anchor: middle;
+}
+
+.s04-viz-overlap .region-count.shared {
+  fill: #284d3f;
+  font-size: 24px;
+}
+
+.s04-viz-overlap .region-note {
+  fill: #78838c;
+  font-size: 8px;
+  font-weight: 760;
+  letter-spacing: .06em;
+  text-anchor: middle;
+  text-transform: uppercase;
+}
+
+.s04-viz-overlap-facts {
+  display: grid;
+  gap: 7px;
+}
+
+.s04-viz-overlap-facts > span,
+.s04-viz-scope-facts > span {
+  display: grid;
+  gap: 2px;
+  padding: 8px 9px;
+  border: 1px solid #e0ddd4;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .58);
+}
+
+.s04-viz-overlap-facts strong,
+.s04-viz-scope-facts strong {
+  color: #30414d;
+  font-size: 12px;
+}
+
+.s04-viz-population-strip {
+  display: flex;
+  width: 100%;
+  height: 24px;
+  overflow: hidden;
+  border: 1px solid #d7d4ca;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.s04-viz-population-strip > span {
+  display: grid;
+  place-items: center;
+  min-width: 2px;
+  overflow: hidden;
+  color: #33444f;
+  font-size: 8px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.s04-viz-population-strip .leftOnly { background: rgba(92, 127, 142, .18); }
+.s04-viz-population-strip .shared { background: rgba(72, 116, 92, .32); }
+.s04-viz-population-strip .rightOnly { background: rgba(112, 137, 103, .17); }
+
+/* SCOPE — one axis carries the full input, execution boundary, and candidate
+ * scopes. This lets the researcher see whether a proposed cut is marginal or
+ * substantively redefines the study. */
+.s04-viz-scope-track {
+  position: relative;
+  height: 58px;
+  margin: 4px 8px 0 0;
+}
+
+.s04-viz-scope-track .input,
+.s04-viz-scope-track .kept {
+  position: absolute;
+  top: 25px;
+  left: 0;
+  height: 14px;
+  border-radius: 4px;
+}
+
+.s04-viz-scope-track .input {
+  width: 100%;
+  background: #e7dfd2;
+}
+
+.s04-viz-scope-track .kept {
+  z-index: 1;
+  background: #9db8a7;
+}
+
+.s04-viz-scope-track i {
+  position: absolute;
+  z-index: 2;
+  top: 15px;
+  width: 1px;
+  height: 34px;
+  background: #7f8a90;
+  transform: translateX(-.5px);
+}
+
+.s04-viz-scope-track i.option {
+  top: 30px;
+  height: 15px;
+  background: #929aa0;
+}
+
+.s04-viz-scope-track i.option.clears { background: #5f7d69; }
+.s04-viz-scope-track i.option.recommended {
+  width: 3px;
+  background: #315f4c;
+}
+
+.s04-viz-scope-track i.limit {
+  background: #9a6847;
+}
+
+.s04-viz-scope-track i.limit > b {
+  position: absolute;
+  top: -14px;
+  left: 5px;
+  color: #7f5c45;
+  font-size: 7.5px;
+  font-style: normal;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.s04-viz-scope-facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+/* UNITS — both inputs and possible downstream answers use a shared magnitude
+ * scale inside their section; value labels retain sign so magnitude does not
+ * erase the statistical interpretation. */
+.s04-viz-unit section {
+  display: grid;
+  gap: 6px;
+}
+
+.s04-viz-unit section + section {
+  padding-top: 10px;
+  border-top: 1px solid #e4e0d7;
+}
+
+.s04-viz-magnitude-rows {
+  display: grid;
+  gap: 6px;
+}
+
+.s04-viz-magnitude-rows > div {
+  display: grid;
+  grid-template-columns: minmax(110px, .7fr) minmax(160px, 2fr) minmax(70px, auto);
+  gap: 9px;
+  align-items: center;
+}
+
+.s04-viz-magnitude-rows .label {
+  overflow: hidden;
+  color: #4f5e6a;
+  font-size: 8.5px;
+  font-weight: 740;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.s04-viz-magnitude-rows .meter {
+  position: relative;
+  display: block;
+  height: 11px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e7e4dd;
+}
+
+.s04-viz-magnitude-rows .meter > b {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #879daa;
+}
+
+.s04-viz-magnitude-rows > div.recommended .meter > b { background: #6f947d; }
+
+.s04-viz-magnitude-rows > div > strong {
+  color: #30404c;
+  font-size: 9px;
+  text-align: right;
+}
+
+/* PREVIEW — the existing exact metrics become a row-flow diagram instead of
+ * four unrelated telemetry cells. No data or authority semantics change. */
+@media (min-width: 1121px) {
+  .rd-v2-synthesis-page .s04-preview-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+    overflow: visible;
+    border: 0;
+    background: transparent;
+  }
+
+  .rd-v2-synthesis-page .s04-preview-metrics > div {
+    position: relative;
+    min-width: 0;
+    padding: 9px 10px;
+    border: 1px solid #dfe4df;
+    border-radius: 8px;
+    background: #fff;
+  }
+
+  .rd-v2-synthesis-page .s04-preview-metrics > div + div {
+    border-left: 1px solid #dfe4df;
+  }
+
+  .rd-v2-synthesis-page .s04-preview-metrics > div + div::before {
+    content: "→";
+    position: absolute;
+    top: 50%;
+    left: -14px;
+    color: #8b948f;
+    font-size: 12px;
+    font-weight: 800;
+    transform: translate(-50%, -50%);
+  }
+
+  /* EXECUTION / RESULT — the existing durable lifecycle is rendered as a
+   * compact lineage path on workstation screens, preserving every state label. */
+  .rd-v2-synthesis-page .s04-exec-track {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin: 12px 0;
+    padding: 0;
+    overflow: visible;
+    list-style: none;
+  }
+
+  .rd-v2-synthesis-page .s04-exec-track > li {
+    position: relative;
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr);
+    gap: 6px;
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 8px 9px 8px 0;
+    border: 0;
+    background: transparent;
+  }
+
+  .rd-v2-synthesis-page .s04-exec-track > li + li::before {
+    content: "";
+    position: absolute;
+    top: 19px;
+    left: -10px;
+    width: 18px;
+    height: 1px;
+    background: #cfd5d0;
+  }
+
+  .rd-v2-synthesis-page .s04-exec-track > li > b {
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border: 1px solid #cfd5d0;
+    border-radius: 999px;
+    background: #f8f8f4;
+    color: #718078;
+    font-size: 8px;
+  }
+
+  .rd-v2-synthesis-page .s04-exec-track > li.done > b {
+    border-color: #93aa9a;
+    background: #e7f0e9;
+    color: #3c6850;
+  }
+
+  .rd-v2-synthesis-page .s04-exec-track > li.now > b {
+    border-color: #7d9b8a;
+    background: #dfece3;
+    color: #315d47;
+    box-shadow: 0 0 0 3px rgba(86, 123, 101, .08);
+  }
+
+  .rd-v2-synthesis-page .s04-exec-track > li.failed > b {
+    border-color: #c9a092;
+    background: #f6e9e4;
+    color: #8b4e3d;
+  }
+
+  .rd-v2-synthesis-page .s04-exec-track > li > span {
+    display: grid;
+    align-content: start;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .rd-v2-synthesis-page .s04-exec-track > li strong {
+    color: #40505b;
+    font-size: 8.5px;
+    line-height: 1.25;
+  }
+
+  .rd-v2-synthesis-page .s04-exec-track > li small {
+    color: #808a90;
+    font-size: 7.5px;
+    line-height: 1.3;
+  }
+}
+
+@media (min-width: 1600px) {
+  .s04-viz {
+    padding: 14px 15px;
+  }
+
+  .s04-viz-overlap-body {
+    grid-template-columns: minmax(0, 1fr) 150px;
+  }
+
+  .s04-viz-overlap svg { min-height: 205px; }
+}
+
+@media (max-width: 860px) {
+  .s04-viz-overlap-body { grid-template-columns: 1fr; }
+  .s04-viz-overlap-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .s04-viz-scope-facts { grid-template-columns: 1fr; }
+  .s04-viz-magnitude-rows > div { grid-template-columns: minmax(90px, .7fr) 1.6fr minmax(58px, auto); }
+}
