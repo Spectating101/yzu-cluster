@@ -2,6 +2,7 @@ import { DeskError } from "@/v2/DeskError";
 import {
   partitionSynthesisWorkspace,
   synthesisWorkspaceActionLabel,
+  synthesisWorkspaceDecisionSummary,
   synthesisWorkspacePhaseLabel,
 } from "@/v2/synthesisWorkspace.js";
 import "./synthesis-home.css";
@@ -35,6 +36,9 @@ function updatedLabel(thread) {
 function ThreadCard({ thread, onOpen, priority = false }) {
   const output = outputFor(thread);
   const projectKey = text(thread?.project_key || thread?.state?.project_key);
+  const summary = priority
+    ? synthesisWorkspaceDecisionSummary(thread) || objectiveFor(thread)
+    : output || objectiveFor(thread);
   return (
     <button
       type="button"
@@ -47,7 +51,7 @@ function ThreadCard({ thread, onOpen, priority = false }) {
         <small>{updatedLabel(thread)}</small>
       </span>
       <strong>{titleFor(thread)}</strong>
-      <p>{output || objectiveFor(thread)}</p>
+      <p>{summary}</p>
       <span className="s04-home-thread-foot">
         <small>{projectKey ? `Project · ${projectKey}` : output ? "Library-bound output" : "Durable construction"}</small>
         <em>{synthesisWorkspaceActionLabel(thread)} →</em>
