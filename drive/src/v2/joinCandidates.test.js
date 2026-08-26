@@ -23,6 +23,34 @@ test("candidates are ranked by coverage, best first", () => {
   assert.deepEqual(ranked.map((r) => r.rightKey), ["good", "ric", "isin"]);
 });
 
+test("a complete entity-period key outranks a higher-coverage partial identity key", () => {
+  const ranked = rankCandidates([
+    row({
+      left_key: "entity_id",
+      right_key: "entity_id",
+      key_parts: ["entity_id"],
+      complete_identity_domain: false,
+      matched: 100,
+      left_distinct: 100,
+      match_rate_pct: 100,
+    }),
+    row({
+      left_key: "entity_id + week",
+      right_key: "entity_id + week",
+      key_parts: ["entity_id", "week"],
+      complete_identity_domain: true,
+      matched: 50,
+      left_distinct: 100,
+      match_rate_pct: 50,
+    }),
+  ]);
+
+  assert.equal(ranked[0].leftKey, "entity_id + week");
+  assert.deepEqual(ranked[0].keyParts, ["entity_id", "week"]);
+  assert.equal(ranked[0].coverage, 50);
+  assert.equal(ranked[1].coverage, 100);
+});
+
 test("coverage decides the verdict, not duplication", () => {
   assert.equal(coverageVerdict(rankCandidates([row({ match_rate_pct: 99.8 })])[0]), "strong");
   assert.equal(coverageVerdict(rankCandidates([row({ match_rate_pct: 70 })])[0]), "partial");
