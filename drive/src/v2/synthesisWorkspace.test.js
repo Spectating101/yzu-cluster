@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   partitionSynthesisWorkspace,
   synthesisWorkspaceActionLabel,
+  synthesisWorkspaceDecisionSummary,
   synthesisWorkspaceNeedsDecision,
   synthesisWorkspacePhaseLabel,
 } from "./synthesisWorkspace.js";
@@ -133,4 +134,12 @@ test("workspace resume labels describe the actual next researcher action", () =>
   assert.equal(synthesisWorkspaceActionLabel(awaitingRegistration), "View registration");
   assert.equal(synthesisWorkspacePhaseLabel(result), "Query-ready result");
   assert.equal(synthesisWorkspaceActionLabel(result), "Open result");
+});
+
+test("decision queue summaries surface the blocker instead of repeating project prose", () => {
+  assert.equal(synthesisWorkspaceDecisionSummary(scope), "Input exceeds supported row limit");
+  assert.match(synthesisWorkspaceDecisionSummary(join), /42% of the left-side entities match/);
+  assert.match(synthesisWorkspaceDecisionSummary(previewPassed), /5,000 bounded input rows/);
+  assert.equal(synthesisWorkspaceDecisionSummary(approval), "No worker is authorized to run until this approval is granted");
+  assert.equal(synthesisWorkspaceDecisionSummary(building), "");
 });
