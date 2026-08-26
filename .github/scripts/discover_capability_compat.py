@@ -47,4 +47,31 @@ replace_once(
 )
 
 path.write_text(text, encoding="utf-8")
-print("Aligned Discover evidence tests to the single-authority center workspace and actionable CTAs")
+
+# The idle visual gate should defend the research sequence, not historical copy.
+# The candidate deliberately upgrades the path to start from the evidence need,
+# then establish Library position, then source only the unresolved gap, then
+# require reviewed acquisition. Keep all four semantics explicit and ordered.
+visual_path = Path("e2e/discover-visual-convergence.spec.js")
+visual = visual_path.read_text(encoding="utf-8")
+old = '''    await expect(page.getByText("Library first", { exact: true })).toBeVisible();
+    await expect(page.getByText("Reviewed acquisition", { exact: true })).toBeVisible();
+
+    const path = coverage.locator(".rd-v2-discover-evidence-path");'''
+new = '''    const path = coverage.locator(".rd-v2-discover-evidence-path");
+    const stages = path.locator("li");
+    await expect(stages).toHaveCount(4);
+    await expect(stages.nth(0)).toContainText("Evidence need");
+    await expect(stages.nth(0)).toContainText("reviewable evidence contract");
+    await expect(stages.nth(1)).toContainText("Library position");
+    await expect(stages.nth(1)).toContainText("before new acquisition");
+    await expect(stages.nth(2)).toContainText("Sourcing strategy");
+    await expect(stages.nth(2)).toContainText("unresolved evidence gaps");
+    await expect(stages.nth(3)).toContainText("Reviewed acquisition");
+    await expect(stages.nth(3)).toContainText("approval before collection");'''
+count = visual.count(old)
+if count != 1:
+    raise SystemExit(f"idle evidence path semantic gate: expected one match, found {count}")
+visual_path.write_text(visual.replace(old, new, 1), encoding="utf-8")
+
+print("Aligned Discover evidence tests and bound idle visual acceptance to the four-stage research semantics")
