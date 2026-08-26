@@ -9,76 +9,11 @@ on:
       - main
   workflow_dispatch:
 
-permissions:
-  contents: write
-
 jobs:
   render:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Apply New Construction guidance convergence
-        shell: bash
-        run: |
-          git fetch origin work/chatgpt-final-convergence-20260825:refs/remotes/origin/work/chatgpt-final-convergence-20260825
-          git checkout -B synthesis-new-entry-guidance origin/work/chatgpt-final-convergence-20260825
-          python - <<'PY'
-          from pathlib import Path
-
-          page = Path("drive/src/v2/SynthesisPage.jsx")
-          text = page.read_text(encoding="utf-8")
-          text = text.replace(
-              'import { synthesisAssist } from "@/v2/synthesisAssist.js";\n',
-              'import { synthesisAssist } from "@/v2/synthesisAssist.js";\nimport { synthesisDraftBrief, synthesisDraftPrompt } from "@/v2/synthesisDraft.js";\n',
-              1,
-          )
-          text = text.replace(
-              '  reasoningStatus,\n  onOpenResources,\n}) {\n  const startingPoints = (Array.isArray(profiles) ? profiles : []).slice(0, 3);\n',
-              '  reasoningStatus,\n  onOpenResources,\n  onFrameInAsk,\n}) {\n  const startingPoints = (Array.isArray(profiles) ? profiles : []).slice(0, 3);\n  const draft = synthesisDraftBrief(objective);\n',
-              1,
-          )
-          framing = '''          <div className="s04-new-entry-framing" aria-label="Research brief framing checklist">\n            <header>\n              <div>\n                <small>Strong brief checklist</small>\n                <strong>{draft.complete}/4 framing cues</strong>\n              </div>\n              <button type="button" onClick={() => onFrameInAsk?.(objective)} disabled={!reasoningAvailable}>\n                Frame this in Ask →\n              </button>\n            </header>\n            <ul>\n              {draft.cues.map((cue) => (\n                <li key={cue.id} className={cue.ready ? "is-ready" : ""}>\n                  <b aria-hidden="true">{cue.ready ? "✓" : "·"}</b>\n                  <span>\n                    <strong>{cue.label}</strong>\n                    <small>{cue.ready ? "Mentioned" : cue.help}</small>\n                    {!cue.ready ? <em>e.g. {cue.example}</em> : null}\n                  </span>\n                </li>\n              ))}\n            </ul>\n            <p>This checklist is guidance only. It does not infer evidence, methodology, or research validity.</p>\n          </div>\n'''
-          anchor = '          <p className="s04-new-entry-boundary">\n'
-          if framing not in text:
-              if anchor not in text:
-                  raise SystemExit("new-entry framing anchor not found")
-              text = text.replace(anchor, framing + anchor, 1)
-          text = text.replace(
-              '              onOpenResources={() => onGoTab?.("resources")}\n            />',
-              '              onOpenResources={() => onGoTab?.("resources")}\n              onFrameInAsk={(purpose) => onAskComposer?.({\n                prompt: synthesisDraftPrompt(purpose),\n                displayText: purpose ? "Help me sharpen this research object" : "Help me frame a research object",\n              })}\n            />',
-              1,
-          )
-          status_anchor = '''  const reasoningStatus = !assistantAllowed\n    ? "Ask is unavailable for this desk session"\n    : assistantRuntime?.label || "Assistant runtime not verified";\n'''
-          live_effect = '''\n  useEffect(() => {\n    if (!newMode) return;\n    onSelectThread?.({\n      id: "__new__",\n      title: "New construction",\n      objective,\n      ephemeral: true,\n      state: { ephemeral: true, entry_mode: "new", objective },\n    });\n  }, [newMode, objective, onSelectThread]);\n'''
-          if live_effect not in text:
-              if status_anchor not in text:
-                  raise SystemExit("draft rail live-effect anchor not found")
-              text = text.replace(status_anchor, status_anchor + live_effect, 1)
-          page.write_text(text, encoding="utf-8")
-
-          css = Path("drive/src/v2/synthesis-convergence.css")
-          styles = '''\n\n/* New Construction is a research-brief composer, not a blank textarea. The\n   cues are advisory only: they help the researcher state the object before any\n   evidence or method authority exists. */\n.rd-v2-synthesis-page .s04-new-entry-framing {\n  margin-top: 10px;\n  padding: 10px 11px 9px;\n  border: 1px solid #d8d4c9;\n  border-radius: 9px;\n  background: rgba(251, 249, 243, .66);\n}\n\n.rd-v2-synthesis-page .s04-new-entry-framing > header {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  gap: 12px;\n}\n\n.rd-v2-synthesis-page .s04-new-entry-framing > header > div {\n  display: grid;\n  gap: 2px;\n}\n\n.rd-v2-synthesis-page .s04-new-entry-framing > header small {\n  color: #687687;\n  font-size: 8px;\n  font-weight: 800;\n  letter-spacing: .08em;\n  text-transform: uppercase;\n}\n\n.rd-v2-synthesis-page .s04-new-entry-framing > header strong {\n  color: #334454;\n  font-size: 10px;\n}\n\n.rd-v2-synthesis-page .s04-new-entry-framing > header button {\n  border: 0;\n  background: transparent;\n  color: #386554;\n  font: inherit;\n  font-size: 8.5px;\n  font-weight: 800;\n  cursor: pointer;\n}\n\n.rd-v2-synthesis-page .s04-new-entry-framing > header button:disabled {\n  cursor: not-allowed;\n  opacity: .45;\n}\n\n.rd-v2-synthesis-page .s04-new-entry-framing > ul {\n  display: grid;\n  grid-template-columns: repeat(4, minmax(0, 1fr));\n  gap: 6px;\n  margin: 9px 0 0;\n  padding: 0;\n  list-style: none;\n}\n\n.rd-v2-synthesis-page .s04-new-entry-framing li {\n  display: grid;\n  grid-template-columns: 18px minmax(0, 1fr);\n  gap: 6px;\n  min-width: 0;\n  padding: 7px 8px;\n  border: 1px solid #e0ddd3;\n  border-radius: 7px;\n  background: rgba(255, 255, 255, .48);\n}\n\n.rd-v2-synthesis-page .s04-new-entry-framing li > b {\n  display: grid;\n  place-items: center;\n  width: 18px;\n  height: 18px;\n  border-radius: 999px;\n  background: #ece9e1;\n  color: #8a8f91;\n  font-size: 9px;\n}\n\n.rd-v2-synthesis-page .s04-new-entry-framing li.is-ready > b {\n  background: #e2eee6;\n  color: #396a53;\n}\n\n.rd-v2-synthesis-page .s04-new-entry-framing li > span {\n  display: grid;\n  gap: 2px;\n  min-width: 0;\n}\n\n.rd-v2-synthesis-page .s04-new-entry-framing li strong {\n  color: #394958;\n  font-size: 8.5px;\n}\n\n.rd-v2-synthesis-page .s04-new-entry-framing li small,\n.rd-v2-synthesis-page .s04-new-entry-framing li em {\n  color: #7b8790;\n  font-size: 7.5px;\n  font-style: normal;\n  line-height: 1.3;\n}\n\n.rd-v2-synthesis-page .s04-new-entry-framing > p {\n  margin: 7px 0 0;\n  color: #8a939a;\n  font-size: 7.5px;\n}\n\n.s04-draft-rail-brief {\n  margin: 0 0 12px;\n  padding: 11px;\n  border: 1px solid #e2ded5;\n  border-radius: 9px;\n  background: rgba(250, 248, 242, .58);\n}\n\n.s04-draft-rail-brief > header {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  gap: 8px;\n}\n\n.s04-draft-rail-brief > header span {\n  color: #718091;\n  font-size: 8px;\n  font-weight: 800;\n  letter-spacing: .08em;\n  text-transform: uppercase;\n}\n\n.s04-draft-rail-brief > header strong {\n  color: #426654;\n  font-size: 8.5px;\n}\n\n.s04-draft-rail-brief > p {\n  display: -webkit-box;\n  margin: 8px 0 9px;\n  overflow: hidden;\n  color: #4f5e6c;\n  font-size: 9px;\n  line-height: 1.45;\n  -webkit-box-orient: vertical;\n  -webkit-line-clamp: 4;\n}\n\n.s04-draft-rail-brief > p.is-empty { color: #90989f; }\n\n.s04-draft-rail-brief > ul {\n  display: grid;\n  gap: 5px;\n  margin: 0;\n  padding: 0;\n  list-style: none;\n}\n\n.s04-draft-rail-brief li {\n  display: grid;\n  grid-template-columns: 17px minmax(0, 1fr);\n  gap: 6px;\n  align-items: start;\n  padding-top: 5px;\n  border-top: 1px solid #ece8df;\n}\n\n.s04-draft-rail-brief li > b {\n  display: grid;\n  place-items: center;\n  width: 17px;\n  height: 17px;\n  border-radius: 999px;\n  background: #eeece6;\n  color: #9a9ea0;\n  font-size: 8px;\n}\n\n.s04-draft-rail-brief li.is-ready > b {\n  background: #e2eee6;\n  color: #386850;\n}\n\n.s04-draft-rail-brief li > span { display: grid; gap: 1px; }\n.s04-draft-rail-brief li strong { color: #445363; font-size: 8.5px; }\n.s04-draft-rail-brief li small { color: #7d8892; font-size: 7.5px; line-height: 1.35; }\n\n@media (max-width: 760px) {\n  .rd-v2-synthesis-page .s04-new-entry-framing > ul { grid-template-columns: repeat(2, minmax(0, 1fr)); }\n}\n\n@media (max-width: 480px) {\n  .rd-v2-synthesis-page .s04-new-entry-framing > header { align-items: flex-start; }\n  .rd-v2-synthesis-page .s04-new-entry-framing > ul { grid-template-columns: 1fr; }\n}\n'''
-          existing = css.read_text(encoding="utf-8")
-          if "s04-draft-rail-brief" not in existing:
-              css.write_text(existing + styles, encoding="utf-8")
-
-          test = Path("e2e/synthesis-convergence-render.spec.js")
-          t = test.read_text(encoding="utf-8")
-          anchor = '''  await expect(page.getByTestId("rail-pane-detail")).toContainText("Draft entry");\n  await capture(page, "02-new-entry-1440x1000");\n'''
-          replacement = '''  await expect(page.getByTestId("rail-pane-detail")).toContainText("Draft entry");\n  const draftPurpose = "Build a weekly asset × week stablecoin trust measure from 2021–2026 as a reusable input to an event-study analysis.";\n  await entry.getByRole("textbox").fill(draftPurpose);\n  await expect(entry.getByLabel("Research brief framing checklist")).toContainText("4/4 framing cues");\n  await expect(page.getByLabel("Draft research brief checklist")).toContainText("4/4 framed");\n  await expect(page.getByTestId("rail-pane-detail")).toContainText("Ready to create");\n  await capture(page, "02-new-entry-1440x1000");\n'''
-          if replacement not in t:
-              if anchor not in t:
-                  raise SystemExit("new-entry convergence test anchor not found")
-              t = t.replace(anchor, replacement, 1)
-          test.write_text(t, encoding="utf-8")
-          PY
-          if ! git diff --quiet -- drive/src/v2/SynthesisPage.jsx drive/src/v2/synthesis-convergence.css e2e/synthesis-convergence-render.spec.js; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add drive/src/v2/SynthesisPage.jsx drive/src/v2/synthesis-convergence.css e2e/synthesis-convergence-render.spec.js
-            git commit -m "feat(synthesis): turn new entry into a guided research brief"
-            git push origin HEAD:work/chatgpt-final-convergence-20260825
-          fi
       - uses: actions/setup-node@v4
         with:
           node-version: 20
