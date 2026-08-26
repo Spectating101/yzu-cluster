@@ -149,42 +149,49 @@ test("Preview and approval remain separate visible and network intentions", asyn
   await openFixture(page);
 
   const execution = page.getByTestId("synthesis-execution-state");
-  const runPreview = execution.getByRole("button", { name: "Run bounded preview" });
+  const runPreview = execution.getByRole("button", { name: "Run bounded test" });
   await expect(runPreview).toBeVisible();
   await expect(execution).toContainText("Bounded preview required");
+  await expect(execution.getByRole("button", { name: "Review execution approval" })).toHaveCount(0);
   await runPreview.click();
 
+  // The bounded test is its own network intention. It may not create an
+  // approval request, worker job, materialised asset, or registration.
   await expect.poll(() => observed.actions()).toEqual(["preview"]);
   await expect(execution).toContainText("Bounded preview passed");
   await expect(execution).toContainText("100");
-  await expect(execution.getByRole("button", { name: "Request execution approval" })).toBeVisible();
+  const reviewApproval = execution.getByRole("button", { name: "Review execution approval" });
+  await expect(reviewApproval).toBeVisible();
+  await expect.poll(() => observed.actions()).toEqual(["preview"]);
 
   const rail = page.locator("aside.rd-v2-rail");
   await rail.getByRole("tab", { name: "Ask" }).click();
   await expect(rail.getByRole("button", { name: /What does this bounded Preview fail to cover/ })).toBeVisible();
 
-  await execution.getByRole("button", { name: "Request execution approval" }).click();
+  // One explicit review action may create/reuse the pending approval record
+  // and immediately open that durable record. It still does not approve or run
+  // the worker; the only execution endpoint intentions seen here are Preview
+  // followed by request_approval.
+  await reviewApproval.click();
   await expect.poll(() => observed.actions()).toEqual(["preview", "request_approval"]);
-  await expect(execution.getByRole("button", { name: "Review approval" })).toBeVisible();
-  await expect(page.getByTestId("research-situation")).toContainText("Approval");
-
-  await rail.getByRole("tab", { name: "Detail" }).click();
-  await rail.getByRole("tab", { name: "Ask" }).click();
-  await expect(rail.getByRole("button", { name: /Tell me exactly what I would authorize/ })).toBeVisible();
+  await expect(page).toHaveURL(/tab=discover/);
+  await expect(page).toHaveURL(/mode=history/);
 });
 
-test("a stale Preview can only rerun Preview from the browser", async ({ page }) => {
+test("a stale Preview can only rerun the bounded test from the browser", async ({ page }) => {
   await mockV2Api(page);
   const observed = await installAuthorityMocks(page, { stale: true });
   await openFixture(page);
 
   const execution = page.getByTestId("synthesis-execution-state");
   await expect(execution).toContainText("Stale");
-  const rerun = execution.getByRole("button", { name: "Run bounded preview" });
+  const rerun = execution.getByRole("button", { name: "Run bounded test" });
   await expect(rerun).toBeVisible();
-  await expect(execution.getByRole("button", { name: "Request execution approval" })).toHaveCount(0);
+  await expect(execution.getByRole("button", { name: "Review execution approval" })).toHaveCount(0);
   await rerun.click();
 
   await expect.poll(() => observed.actions()).toEqual(["preview"]);
-  await expect(execution.getByRole("button", { name: "Request execution approval" })).toBeVisible();
+  await expect(execution).toContainText("Bounded preview passed");
+  await expect(execution.getByRole("button", { name: "Review execution approval" })).toBeVisible();
+  await expect.poll(() => observed.actions()).toEqual(["preview"]);
 });
