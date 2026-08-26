@@ -2,9 +2,9 @@
 
 This is a non-functional audit marker for the final frontend hardening proof.
 
-Product and browser-contract tree immediately below this marker: `e06d1b96441ed477c795ba5f0447e9e20afa7ad5`.
+Product and browser-contract tree immediately below this marker: `0ed4cc6c235fb6944b65997e4c4f0970047ceeba`.
 
-Final sequencing contract now pinned in product code and browser tests:
+Final sequencing and interaction contract now pinned in product code and browser tests:
 
 - durable construction creation does not implicitly launch Ask reasoning;
 - registered-method seeding does not implicitly launch Ask reasoning;
@@ -16,8 +16,11 @@ Final sequencing contract now pinned in product code and browser tests:
 - assistant availability gates reasoning, not deterministic construction/evidence setup;
 - browser contracts explicitly enter the durable thread they intend to exercise because Synthesis now opens at workspace home;
 - proposal-recording fixtures preserve the pre-proposal state until the researcher actually starts or uses Ask;
-- the current five-stage project grammar is Define → Ground → Review → Build → Reuse;
-- pairwise overlap tests assert the current population-overlap visual rather than an obsolete intersection test id;
+- the pre-acceptance opening retains its deliberate four-step grammar: Define → Map evidence → Reason → Approve;
+- the durable project lifecycle remains Define → Ground → Review → Build → Reuse;
+- Ask assertions follow the actual phase-aware rail: Research objective, Method design, and Proposal review;
+- pairwise overlap contracts assert explicit current-only / usable-overlap / added-only populations;
+- measured unit conflicts are asserted as the authoritative consequential decision surface ahead of deep method evidence;
 - the opening rail is asserted as structured Evidence / Measured / Method / Output state instead of superseded summary prose.
 
 Freeze requires Runtime contracts, Synthesis convergence render, and Synthesis UI Validation to pass on this exact checkpoint SHA, followed by artifact/pixel and PR-residue inspection.
