@@ -39,7 +39,6 @@ export function synthesisWorkspacePhaseLabel(thread) {
   const assist = synthesisAssist(thread);
   const phase = synthesisWorkspacePhase(thread);
   if (phase === "failed") return "Needs recovery";
-  if (phase === "build") return text(thread?.state?.execution?.status, "Build in progress").replace(/_/g, " ");
   if (phase === "result") {
     return synthesisWorkspaceExecutionStatus(thread) === "query_ready" ? "Query-ready result" : "Registered result";
   }
