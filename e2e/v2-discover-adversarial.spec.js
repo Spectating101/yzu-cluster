@@ -179,4 +179,47 @@ test.describe("Discover adversarial lifecycle", () => {
     await expect(workspace).toContainText("Not established");
     await expect(workspace).not.toContainText("Collection can be requested for review");
   });
+
+  test("capacity stays explicit while measurement is delayed, then converges to measured capability", async ({ page }) => {
+    await mockV2Api(page, {
+      discoverBody: MOCK_DISCOVER_HIT,
+      assessmentBody: MOCK_DISCOVER_ASSESSMENT,
+      resourcesDelayMs: 2500,
+    });
+
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await search(page, "What data covers Taiwan issuer-quarter governance?");
+
+    const capacity = page.locator('[aria-label="Execution capacity"]');
+    await expect(capacity).toBeVisible();
+    await expect(capacity).toHaveAttribute("data-state", "checking");
+    await expect(capacity).toContainText("Checking measured desk capacity…");
+    await expect(capacity).toContainText("No worker or quota is assigned here.");
+    await expect(capacity).not.toContainText(/assigned worker|assigned quota/i);
+
+    await expect(capacity).toHaveAttribute("data-state", "measured", { timeout: 6000 });
+    await expect(capacity).toContainText(/Collector fleet|BigQuery|GDrive vault/);
+    await expect(capacity).not.toContainText(/assigned worker|assigned quota/i);
+  });
+
+  test("capacity failure is explicit and never converted into an availability claim", async ({ page }) => {
+    await mockV2Api(page, {
+      discoverBody: MOCK_DISCOVER_HIT,
+      assessmentBody: MOCK_DISCOVER_ASSESSMENT,
+      resourcesStatus: 503,
+    });
+
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await search(page, "What data covers Taiwan issuer-quarter governance?");
+
+    const capacity = page.locator('[aria-label="Execution capacity"]');
+    await expect(capacity).toBeVisible();
+    await expect(capacity).toHaveAttribute("data-state", "unavailable");
+    await expect(capacity).toContainText("Measured capacity is unavailable");
+    await expect(capacity).toContainText("Do not assume compute, storage, or quota");
+    await expect(capacity).toContainText("No worker or quota is assigned here.");
+    await expect(capacity).not.toContainText(/Collector fleet|BigQuery|GDrive vault/);
+  });
 });
