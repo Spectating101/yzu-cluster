@@ -112,7 +112,7 @@ export function SynthesisHome({
         <dl aria-label="Synthesis workspace status">
           <div><dt>Active</dt><dd>{active.length}</dd></div>
           <div className={needsYou.length ? "needs" : ""}><dt>Needs you</dt><dd>{needsYou.length}</dd></div>
-          <div><dt>Building</dt><dd>{building.length}</dd></div>
+          <div><dt>In flight</dt><dd>{building.length}</dd></div>
           <div><dt>Results</dt><dd>{results.length}</dd></div>
         </dl>
       </header>
@@ -194,9 +194,9 @@ export function SynthesisHome({
 
       {building.length ? (
         <ThreadSection
-          eyebrow="Execution"
-          title="Building now"
-          description="These jobs have crossed the execution boundary. Their thread remains the source of truth for progress and proof."
+          eyebrow="Execution & registration"
+          title="Running or verifying"
+          description="Worker execution, completion, and registry verification stay in flight until durable result evidence exists."
           rows={building}
           onOpen={onOpenThread}
         />
