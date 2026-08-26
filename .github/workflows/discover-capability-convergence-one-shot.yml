@@ -23,7 +23,7 @@ jobs:
           cache: npm
       - name: Rehydrate workflow baseline for idempotent patch
         run: >-
-          git show origin/work/chatgpt-final-convergence-20260825:.github/workflows/discover-visual-validation.yml
+          git show 6260232d1cc3668660c7fab2d47397d2a1fd90bb^:.github/workflows/discover-visual-validation.yml
           > .github/workflows/discover-visual-validation.yml
       - name: Apply guarded patch
         run: |
