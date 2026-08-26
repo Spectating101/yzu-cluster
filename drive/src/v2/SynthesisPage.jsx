@@ -2031,11 +2031,13 @@ export function SynthesisPage({
     }
   }, [selected?.id]);
 
-  // Held-evidence discovery is read-only and deterministic. Run it once when a
-  // pre-acceptance thread first needs evidence; the researcher still decides
-  // which inputs are actually added to the durable construction.
+  // Held-evidence discovery is read-only and deterministic. Run it once only
+  // while the thread genuinely needs Grounding. Once a recommendation or
+  // proposal exists, re-running discovery is out-of-sequence and can obscure
+  // the method decision the researcher is already being asked to make.
   useEffect(() => {
-    if (!selected?.id || !isPreAcceptance(selected) || evidenceNodes(selected).length) return;
+    const hasMethodShape = Boolean(selected?.state?.proposal) || recommendedConstruction(selected).present;
+    if (!selected?.id || !isPreAcceptance(selected) || evidenceNodes(selected).length || hasMethodShape) return;
     if (evidenceProposal || mappingEvidence || autoEvidenceSearchRef.current === selected.id) return;
     autoEvidenceSearchRef.current = selected.id;
     findHeldEvidence();
