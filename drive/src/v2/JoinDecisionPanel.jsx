@@ -22,6 +22,20 @@ function DecisionLabel({ children, primary = false, onClick }) {
   return <strong className={primary ? "s04-decision-label recommended" : "s04-decision-label"}>{children}</strong>;
 }
 
+function canonicalDatasetId(value) {
+  // softIdentifier() inserts zero-width break opportunities for presentation.
+  // Strip only those display characters before comparing durable identities.
+  return String(value || "").replace(/\u200b/g, "").trim();
+}
+
+function sourceLabelFor(overlap, datasetId, fallback = "") {
+  const wanted = canonicalDatasetId(datasetId);
+  const source = (overlap?.sources || []).find(
+    (row) => canonicalDatasetId(row?.dataset_id) === wanted,
+  );
+  return String(source?.label || fallback || datasetId || "").trim();
+}
+
 export function JoinDecisionPanel({
   leftLabel,
   rightLabel,
@@ -37,30 +51,41 @@ export function JoinDecisionPanel({
   if (!candidates.length) return null;
   const best = candidates[0];
   const verdict = coverageVerdict(best);
+  const measuredMultiOverlap = multiOverlap || null;
+  const leftFallback = best.leftLabel || leftLabel;
+  const rightFallback = best.rightLabel || rightLabel;
   const hasMeasuredMultiOverlap = Boolean(
-    multiOverlap?.applicable && Number(multiOverlap?.source_count || multiOverlap?.sources?.length || 0) >= 3,
+    measuredMultiOverlap?.applicable
+      && Number(measuredMultiOverlap?.source_count || measuredMultiOverlap?.sources?.length || 0) >= 3,
   );
+  const leftDisplayLabel = sourceLabelFor(measuredMultiOverlap, leftLabel, leftFallback);
+  const rightDisplayLabel = sourceLabelFor(measuredMultiOverlap, rightLabel, rightFallback) || "A second dataset";
+  const coverageSubject = leftDisplayLabel && leftDisplayLabel.length <= 42
+    ? leftDisplayLabel
+    : "current input";
 
   return (
     <section className="s04-card s04-blocking" data-testid="synthesis-join-decision">
       <header className="s04-title">
         <div>
           <small>Join decision</small>
-          <h2>{rightLabel || "A second dataset"}</h2>
+          <h2>{rightDisplayLabel}</h2>
         </div>
         <em className={verdict === "strong" ? "success" : "warn"}>
-          {best.coverage == null ? "no usable key" : `${best.coverage}% of ${leftLabel || "the left side"}`}
+          {best.coverage == null ? "no usable key" : `${best.coverage}% of ${coverageSubject}`}
         </em>
       </header>
 
       {hasMeasuredMultiOverlap ? (
-        <MultiOverlapVisual overlap={multiOverlap} />
+        <MultiOverlapVisual overlap={measuredMultiOverlap} />
       ) : best.usable && best.total ? (
         <JoinOverlapVisual
-          leftLabel={leftLabel}
-          rightLabel={rightLabel}
+          leftLabel={leftDisplayLabel || leftLabel}
+          rightLabel={rightDisplayLabel}
           leftTotal={best.total}
-          rightTotal={rightTotal || best.rightTotal || best.total}
+          // Set overlap is defined over distinct keys. A raw row count on a
+          // duplicated right side would inflate the Venn/union population.
+          rightTotal={best.rightTotal || rightTotal || best.total}
           shared={best.matched}
         />
       ) : null}

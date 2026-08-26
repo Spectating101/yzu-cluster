@@ -7,7 +7,9 @@ import {
   applySynthesisEvidenceMap,
   getSynthesisDiscoverHandoff,
   getSynthesisMeasurements,
+  getSynthesisMethodExport,
   getSynthesisThread,
+  downloadText,
   listSynthesisProfiles,
   listSynthesisThreads,
   proposeSynthesisEvidenceMap,
@@ -60,10 +62,17 @@ const INTERPRETING_STALL_MS = 60000;
 
 const MEASURED_STATE_FIELDS = [
   "column_profiles",
+  "column_profiles_by_dataset",
+  "input_measurements",
   "unit_conflict",
   "join_candidates",
+  "join_candidate_dataset_id",
+  "join_candidate_rows",
+  "multi_overlap",
   "unmeasured",
   "measured_inputs",
+  "truncated_inputs",
+  "max_inputs",
   "join_unmeasured_because",
   "input_dataset_ids",
   "measurement_basis",
@@ -79,6 +88,9 @@ function threadWithMeasurements(thread, measurements) {
   // stale value that may have arrived in an older thread payload.
   if (!Object.prototype.hasOwnProperty.call(measured, "unit_conflict")) measured.unit_conflict = null;
   if (!Object.prototype.hasOwnProperty.call(measured, "join_candidates")) measured.join_candidates = [];
+  if (!Object.prototype.hasOwnProperty.call(measured, "join_candidate_dataset_id")) measured.join_candidate_dataset_id = null;
+  if (!Object.prototype.hasOwnProperty.call(measured, "join_candidate_rows")) measured.join_candidate_rows = null;
+  if (!Object.prototype.hasOwnProperty.call(measured, "multi_overlap")) measured.multi_overlap = null;
   return { ...thread, state: { ...(thread.state || {}), ...measured } };
 }
 
@@ -118,6 +130,11 @@ function stateFor(thread) {
   if (state.proposal) return "proposal";
   if ((state.nodes || []).length) return "explore";
   return "draft";
+}
+
+function reasoningTurnResolved(thread) {
+  const mode = stateFor(thread);
+  return ["proposal", "execution", "registered", "query_ready", "failed"].includes(mode);
 }
 
 function stageLabel(thread) {
@@ -497,11 +514,11 @@ function WhatHappensNext({
   onStartReasoning,
   onFindEvidence,
   mappingEvidence = false,
+  evidenceProposalAvailable = false,
   reasoningPending = false,
   reasoningAvailable = false,
   reasoningStatus = "Assistant runtime not verified",
   onOpenResources,
-  onReviewProposal,
 }) {
   const rec = recommendedConstruction(thread);
   const hasProposal = Boolean(thread?.state?.proposal);
@@ -541,14 +558,15 @@ function WhatHappensNext({
           </button>
         ) : <span aria-hidden="true" />}
         <div className="s04-next-actions">
-          {needsEvidence ? (
+          {needsEvidence && !mappingEvidence && !evidenceProposalAvailable ? (
             <button
               type="button"
               className="s04-next-map"
-              disabled={mappingEvidence || !onFindEvidence}
+              disabled={!onFindEvidence}
               onClick={() => onFindEvidence?.()}
+              title="Retry held-evidence discovery"
             >
-              {mappingEvidence ? "Finding held evidence" : "Find held evidence"}
+              Retry held evidence
             </button>
           ) : null}
           {!hasProposal && !reasoningAvailable ? (
@@ -556,26 +574,21 @@ function WhatHappensNext({
               Check Resources
             </button>
           ) : null}
-          <button
-            type="button"
-            className="s04-next-primary"
-            disabled={
-              reasoningPending ||
-              (hasProposal
-                ? !onReviewProposal
-                : !reasoningAvailable || (hasRecommendation ? !onAccept : !onStartReasoning))
-            }
-            onClick={() => (hasProposal ? onReviewProposal?.() : hasRecommendation ? onAccept?.() : onStartReasoning?.())}
-            title={!hasProposal && !reasoningAvailable ? reasoningStatus : undefined}
-          >
-            {hasProposal
-              ? "Review proposal"
-              : hasRecommendation
-              ? "Accept & design method"
-              : reasoningPending
-                ? "Method reasoning in Ask"
-                : "Start method reasoning"}
-          </button>
+          {!hasProposal ? (
+            <button
+              type="button"
+              className="s04-next-primary"
+              disabled={needsEvidence || reasoningPending || !reasoningAvailable || (hasRecommendation ? !onAccept : !onStartReasoning)}
+              onClick={() => (hasRecommendation ? onAccept?.() : onStartReasoning?.())}
+              title={needsEvidence ? "Review and map held evidence before method reasoning." : !reasoningAvailable ? reasoningStatus : undefined}
+            >
+              {hasRecommendation
+                ? "Accept & design method"
+                : reasoningPending
+                  ? "Method reasoning in Ask"
+                  : "Start method reasoning"}
+            </button>
+          ) : null}
         </div>
       </footer>
       <em>
@@ -887,7 +900,7 @@ function proposalOperationLabel(operation) {
   );
 }
 
-function ProposalReview({ thread, busy, onDecide, onAsk, reviewRef }) {
+function ProposalReview({ thread, busy, onDecide, onAsk }) {
   const state = thread?.state || {};
   const proposal = state.proposal || {};
   const spec = proposal.execution_spec || {};
@@ -915,7 +928,7 @@ function ProposalReview({ thread, busy, onDecide, onAsk, reviewRef }) {
   ).filter(Boolean);
   const canDecide = Boolean(proposal.id && proposal.proposal_hash);
   return (
-    <section ref={reviewRef} className="s04-card s04-proposal-card" data-testid="synthesis-proposal-state">
+    <section className="s04-card s04-proposal-card" data-testid="synthesis-proposal-state">
       <header className="s04-title">
         <div>
           <small>Review proposed change</small>
@@ -989,8 +1002,109 @@ function ProposalReview({ thread, busy, onDecide, onAsk, reviewRef }) {
         </p>
         <button type="button" className="rd-v2-btn" onClick={() => onAsk("Challenge this Synthesis proposal and explain every methodological consequence.")}>Challenge in Ask</button>
         <button type="button" className="rd-v2-btn" disabled={busy || !canDecide} onClick={() => onDecide("reject")}>Reject</button>
-        <button type="button" className="rd-v2-btn primary" disabled={busy || !canDecide} onClick={() => onDecide("accept")}>Accept proposal</button>
+        <button type="button" className="rd-v2-btn primary" disabled={busy || !canDecide} onClick={() => onDecide("accept")}>Accept & test method</button>
       </footer>
+    </section>
+  );
+}
+
+
+function MethodExportActions({ thread }) {
+  const [method, setMethod] = useState(null);
+  const [loadingMethod, setLoadingMethod] = useState(false);
+  const [methodError, setMethodError] = useState("");
+  const [showCode, setShowCode] = useState(false);
+
+  const loadMethod = useCallback(async () => {
+    if (method?.script) return method;
+    if (!thread?.id) throw new Error("No finalized Synthesis thread is selected.");
+    setLoadingMethod(true);
+    setMethodError("");
+    try {
+      const payload = await getSynthesisMethodExport(thread.id);
+      if (!payload?.script || !payload?.sha256) {
+        throw new Error("The completed execution did not return a verified method artifact.");
+      }
+      if (payload.deterministic_export !== true || payload.generated_by_llm !== false) {
+        throw new Error("The method endpoint did not prove deterministic export semantics.");
+      }
+      setMethod(payload);
+      return payload;
+    } catch (cause) {
+      setMethodError(text(cause?.message, "The exact method artifact could not be loaded."));
+      throw cause;
+    } finally {
+      setLoadingMethod(false);
+    }
+  }, [method, thread?.id]);
+
+  const viewMethod = useCallback(async () => {
+    if (showCode && method?.script) {
+      setShowCode(false);
+      return;
+    }
+    try {
+      await loadMethod();
+      setShowCode(true);
+    } catch {
+      // Error is rendered in the finalized record; do not fall back to Ask.
+    }
+  }, [loadMethod, method?.script, showCode]);
+
+  const downloadMethod = useCallback(async () => {
+    try {
+      const payload = await loadMethod();
+      downloadText(payload.filename || "method.py", payload.script, "text/x-python;charset=utf-8");
+    } catch {
+      // Same honest error surface as View; never synthesize replacement code.
+    }
+  }, [loadMethod]);
+
+  const origin = method?.method_origin || {};
+  const composerOrigin = origin.authority === "composer" && origin.tool === "research_synthesis_propose_state";
+
+  return (
+    <section className="s04-reproduce" data-testid="synthesis-method-export">
+      <header>
+        <div>
+          <small>Reproduce</small>
+          <strong>Exact method artifact</strong>
+        </div>
+        <em>Frozen with execution</em>
+      </header>
+      <p>
+        The method is reviewable as runnable Python, not reconstructed from prose. The script is the exact
+        deterministic artifact archived with this execution.
+      </p>
+      <div className="s04-reproduce-chain" aria-label="Method provenance chain">
+        <span>{composerOrigin ? "Composer proposal" : method ? "Proposal origin not recorded" : "Proposal"}</span>
+        <b aria-hidden="true">→</b>
+        <span>Researcher accepted</span>
+        <b aria-hidden="true">→</b>
+        <span>Deterministic script</span>
+      </div>
+      {method ? (
+        <dl>
+          <div><dt>Method SHA-256</dt><dd>{softIdentifier(method.sha256)}</dd></div>
+          <div><dt>Accepted spec</dt><dd>{softIdentifier(method.spec_hash)}</dd></div>
+          <div><dt>Code generation</dt><dd>No LLM regeneration</dd></div>
+        </dl>
+      ) : null}
+      {methodError ? <p className="s04-fixture">{methodError}</p> : null}
+      <div className="s04-reproduce-actions">
+        <button type="button" className="rd-v2-btn" disabled={loadingMethod} onClick={viewMethod}>
+          {showCode ? "Hide exact method.py" : loadingMethod ? "Loading method…" : "View exact method.py"}
+        </button>
+        <button type="button" className="rd-v2-btn" disabled={loadingMethod} onClick={downloadMethod}>
+          Download Python script
+        </button>
+      </div>
+      {showCode && method?.script ? (
+        <details open className="s04-reproduce-code">
+          <summary>{method.filename || "method.py"} · SHA-256 verified</summary>
+          <pre className="s04-code" data-testid="synthesis-method-export-code">{method.script}</pre>
+        </details>
+      ) : null}
     </section>
   );
 }
@@ -1139,6 +1253,7 @@ function ExecutionRecord({ thread, busy, onRequest, onReview, onAsk, onOpenDatas
         </div>
       ) : null}
       {failed ? <p className="s04-fixture">{text(execution.error, "The execution failed without a recorded error detail.")}</p> : null}
+      {registered ? <MethodExportActions thread={thread} /> : null}
       <footer className="s04-actions">
         <p>
           <small>Truth boundary</small>
@@ -1171,10 +1286,10 @@ function ExecutionRecord({ thread, busy, onRequest, onReview, onAsk, onOpenDatas
         ) : null}
         {previewEligible ? (
           <button type="button" className="rd-v2-btn primary" disabled={busy} onClick={onRequest}>
-            {previewTruth.succeeded ? "Request execution approval" : previewTruth.failed ? "Rerun bounded preview" : "Run bounded preview"}
+            {previewTruth.succeeded ? "Review execution approval" : previewTruth.failed ? "Rerun bounded test" : "Run bounded test"}
           </button>
         ) : null}
-        {pendingApproval ? <button type="button" className="rd-v2-btn primary" onClick={() => onReview?.(execution)}>Review approval</button> : null}
+        {pendingApproval ? <button type="button" className="rd-v2-btn primary" onClick={() => onReview?.(execution)}>Review execution approval</button> : null}
         {active ? <span className="s04-live-note">This thread refreshes automatically.</span> : null}
         <button type="button" className="rd-v2-btn" onClick={() => onAsk("Explain the exact Preview/Test or execution state and which evidence is still missing before this output can be trusted.")}>Ask about this state</button>
       </footer>
@@ -1312,16 +1427,12 @@ function NewThread({
             <p>This checklist is guidance only. It does not infer evidence, methodology, or research validity.</p>
           </div>
           <p className="s04-new-entry-boundary">
-            Nothing is built here. {reasoningAvailable
-              ? "After creation, the desk can review held Library evidence and Ask can help reason from that durable context."
-              : `${reasoningStatus}. You can inspect existing constructions, but assistant-grounded creation is unavailable.`}
+            Nothing is built here. After creation, the desk reviews held Library evidence; Ask reasoning remains a separate step and waits if the assistant is unavailable.
           </p>
           <footer>
             <span>
               {objective.trim()
-                ? reasoningAvailable
-                  ? "Creates one durable Synthesis thread from this exact purpose."
-                  : "Assistant reasoning must be verified before this entry can create a thread."
+                ? "Creates one durable Synthesis thread from this exact purpose."
                 : "Enter a purpose to create a durable thread."}
             </span>
             {!reasoningAvailable ? (
@@ -1332,11 +1443,11 @@ function NewThread({
             <button
               type="button"
               className="rd-v2-btn primary"
-              disabled={busy || !objective.trim() || !reasoningAvailable}
+              disabled={busy || !objective.trim()}
               onClick={onCreate}
-              title={!reasoningAvailable ? reasoningStatus : objective.trim() ? undefined : "Enter an objective to continue"}
+              title={objective.trim() ? undefined : "Enter an objective to continue"}
             >
-              {reasoningAvailable ? "Create construction" : "Assistant unavailable"}
+              Create construction
             </button>
           </footer>
         </section>
@@ -1351,9 +1462,9 @@ function NewThread({
                 <button
                   type="button"
                   key={profile.id}
-                  disabled={busy || !reasoningAvailable}
+                  disabled={busy}
                   onClick={() => onStartBlueprint?.(profile)}
-                  title={!reasoningAvailable ? reasoningStatus : text(profile.title, profile.id)}
+                  title={text(profile.title, profile.id)}
                 >
                   <strong>{text(profile.title, profile.id)}</strong>
                   <em>Use →</em>
@@ -1438,9 +1549,8 @@ function EmptyWorkspace({
                   type="button"
                   className="s04-blueprint-recipe"
                   data-testid="synthesis-blueprint"
-                  disabled={!reasoningAvailable}
-                  title={!reasoningAvailable ? reasoningStatus : undefined}
                   onClick={() => onStartBlueprint?.(profile)}
+                  title={text(profile.title, profile.id)}
                 >
                   <strong>{text(profile.title, profile.id)}</strong>
                   <span>
@@ -1460,8 +1570,8 @@ function EmptyWorkspace({
             Check Resources
           </button>
         ) : null}
-        <button type="button" className="rd-v2-btn primary" onClick={onNew} disabled={!reasoningAvailable} title={!reasoningAvailable ? reasoningStatus : undefined}>
-          {reasoningAvailable ? "Start a construction" : "Assistant unavailable"}
+        <button type="button" className="rd-v2-btn primary" onClick={onNew}>
+          Start a construction
         </button>
       </footer>
     </section>
@@ -1588,7 +1698,7 @@ export function SynthesisPage({
   const measurementNotified = useRef("");
   const interpretingSinceRef = useRef(null);
   const interpretingThreadIdRef = useRef("");
-  const proposalReviewRef = useRef(null);
+  const autoEvidenceSearchRef = useRef("");
   const returnThreadIdRef = useRef("");
 
   const replaceThread = useCallback((next) => {
@@ -1783,7 +1893,7 @@ export function SynthesisPage({
 
     const timer = window.setInterval(async () => {
       const next = await refreshThread().catch(() => null);
-      const stillInterpreting = next ? stateFor(next) === "draft" : interpreting;
+      const stillInterpreting = next ? !reasoningTurnResolved(next) : interpreting;
       if (
         stillInterpreting &&
         interpretingSinceRef.current &&
@@ -1796,9 +1906,10 @@ export function SynthesisPage({
   }, [selected, refreshThread, interpretingStalled, reasoningPending]);
 
   useEffect(() => {
-    if (!selected || stateFor(selected) === "draft") return;
+    if (!selected || !reasoningPending || !reasoningTurnResolved(selected)) return;
     setReasoningThreadId((current) => (current === selected.id ? "" : current));
-  }, [selected]);
+    setInterpretingStalled(false);
+  }, [reasoningPending, selected]);
 
   const retryInterpreting = useCallback(() => {
     interpretingThreadIdRef.current = selected?.id || "";
@@ -1810,6 +1921,10 @@ export function SynthesisPage({
   useEffect(() => {
     setEvidenceProposal(null);
     setSelectedField(null);
+    // Auto-discovery is once per visit, not once forever per thread id. Leaving
+    // and reopening an unmapped construction should restore its read-only held
+    // evidence proposal without requiring an obsolete manual search control.
+    autoEvidenceSearchRef.current = "";
   }, [selected?.id]);
 
   const selectThread = async (threadId) => {
@@ -1903,7 +2018,7 @@ export function SynthesisPage({
     );
   };
 
-  const findHeldEvidence = async () => {
+  const findHeldEvidence = useCallback(async () => {
     if (!selected?.id) return;
     setMappingEvidence(true);
     setError("");
@@ -1914,7 +2029,19 @@ export function SynthesisPage({
     } finally {
       setMappingEvidence(false);
     }
-  };
+  }, [selected?.id]);
+
+  // Held-evidence discovery is read-only and deterministic. Run it once only
+  // while the thread genuinely needs Grounding. Once a recommendation or
+  // proposal exists, re-running discovery is out-of-sequence and can obscure
+  // the method decision the researcher is already being asked to make.
+  useEffect(() => {
+    const hasMethodShape = Boolean(selected?.state?.proposal) || recommendedConstruction(selected).present;
+    if (!selected?.id || !isPreAcceptance(selected) || evidenceNodes(selected).length || hasMethodShape) return;
+    if (evidenceProposal || mappingEvidence || autoEvidenceSearchRef.current === selected.id) return;
+    autoEvidenceSearchRef.current = selected.id;
+    findHeldEvidence();
+  }, [evidenceProposal, findHeldEvidence, mappingEvidence, selected]);
 
   const applyHeldEvidence = async (reviewedDatasetIds = []) => {
     if (!selected?.id) return;
@@ -1974,7 +2101,7 @@ export function SynthesisPage({
 
   const createThread = async () => {
     const nextObjective = objective.trim();
-    if (!nextObjective || !reasoningAvailable) return;
+    if (!nextObjective) return;
     setBusy(true);
     setError("");
     try {
@@ -1988,12 +2115,6 @@ export function SynthesisPage({
       setNewMode(false);
       setObjective("");
       onSelectThread?.(created);
-      setReasoningThreadId(created.id);
-      ask(
-        `Interpret this research objective. Separate supported evidence, proposed proxy choices, and unresolved limitations, then ask the one highest-value clarification question: ${nextObjective}`,
-        created,
-        nextObjective,
-      );
     } catch (cause) {
       setError(text(cause?.message, "The Synthesis thread could not be created."));
     } finally {
@@ -2002,7 +2123,7 @@ export function SynthesisPage({
   };
 
   const startBlueprint = async (profile) => {
-    if (!profile?.id || !reasoningAvailable) return;
+    if (!profile?.id) return;
     const title = text(profile.title, profile.id);
     const sources = Array.isArray(profile.sources)
       ? profile.sources.map((s) => s.label || s.id).filter(Boolean).join("; ")
@@ -2030,12 +2151,6 @@ export function SynthesisPage({
       setNewMode(false);
       setObjective("");
       onSelectThread?.(created);
-      setReasoningThreadId(created.id);
-      ask(
-        `Use registered blueprint ${profile.id} (${title}). Propose the smallest defensible construction from owned Library inputs. Do not invent missing sources.`,
-        created,
-        `Start from the registered blueprint: ${title}`,
-      );
     } catch (cause) {
       setError(text(cause?.message, "Could not start this blueprint as a Synthesis thread."));
     } finally {
@@ -2056,6 +2171,19 @@ export function SynthesisPage({
       });
       replaceThread(next);
       onSelectThread?.(next);
+      if (decision === "accept" && next?.state?.execution_spec) {
+        try {
+          const previewResult = await requestSynthesisExecution(next.id, { action: "preview" });
+          const previewThread = previewResult?.thread || (previewResult?.state ? previewResult : await refreshThread(next.id));
+          if (previewThread) {
+            replaceThread(previewThread);
+            onSelectThread?.(previewThread);
+          }
+        } catch (previewCause) {
+          setError(text(previewCause?.message, "The method was accepted, but its bounded test could not be completed."));
+          refreshThread(next.id).catch(() => {});
+        }
+      }
     } catch (cause) {
       setError(text(cause?.message, "The proposal changed before this decision could be saved."));
       refreshThread().catch(() => {});
@@ -2076,6 +2204,10 @@ export function SynthesisPage({
         onSelectThread?.(current);
       }
       const currentStatus = text(authoritative?.state?.execution?.status).toLowerCase().replace(/-/g, "_");
+      if (currentStatus === "pending_approval") {
+        onReviewExecution?.(authoritative.state.execution);
+        return;
+      }
       if (currentStatus && currentStatus !== "spec_accepted") return;
       const preview = synthesisPreviewTruth(authoritative);
       const action = preview.succeeded ? "request_approval" : "preview";
@@ -2084,6 +2216,10 @@ export function SynthesisPage({
       if (next) {
         replaceThread(next);
         onSelectThread?.(next);
+        const nextStatus = text(next?.state?.execution?.status).toLowerCase().replace(/-/g, "_");
+        if (action === "request_approval" && nextStatus === "pending_approval") {
+          onReviewExecution?.(next.state.execution);
+        }
       }
     } catch (cause) {
       setError(text(cause?.message, "The bounded preview or execution request could not be completed."));
@@ -2198,11 +2334,11 @@ export function SynthesisPage({
                     onStartReasoning={() => startMethodReasoning()}
                     onFindEvidence={findHeldEvidence}
                     mappingEvidence={mappingEvidence}
+                    evidenceProposalAvailable={Boolean(evidenceProposal)}
                     reasoningPending={reasoningPending}
                     reasoningAvailable={reasoningAvailable}
                     reasoningStatus={reasoningStatus}
                     onOpenResources={() => onGoTab?.("resources")}
-                    onReviewProposal={() => proposalReviewRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
                   />
                   {mode === "proposal" ? (
                     <ProposalReview
@@ -2210,7 +2346,6 @@ export function SynthesisPage({
                       busy={busy}
                       onDecide={decideProposal}
                       onAsk={ask}
-                      reviewRef={proposalReviewRef}
                     />
                   ) : null}
                 </>
@@ -2243,6 +2378,7 @@ export function SynthesisPage({
                   rightLabel={softIdentifier(displayedSelected.state?.join_candidate_dataset_id || displayedSelected.state?.input_dataset_ids?.[1], "A second dataset")}
                   rightTotal={displayedSelected.state?.join_candidate_rows}
                   coverage={displayedSelected.state?.join_candidates}
+                  multiOverlap={displayedSelected.state?.multi_overlap}
                   onChooseKey={reasoningAvailable ? (candidate) => ask(`Use ${candidate.leftKey} to ${candidate.rightKey} for this join.`) : null}
                   onChooseOutcome={reasoningAvailable ? (outcome) => ask(`Take the "${outcome.label}" option for this join, and record why.`) : null}
                   onChooseCollapse={reasoningAvailable ? (choice) => ask(`Resolve the repeated key with "${choice.label}".`) : null}

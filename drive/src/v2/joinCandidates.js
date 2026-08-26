@@ -2,10 +2,11 @@
  * What a join would do to the study, before it is added.
  *
  * Cardinality is the question people ask about a join. Coverage is the one that
- * decides the result. Joining the Indonesian panel to the Refinitiv spine
- * duplicates almost nothing and reaches 50 of 635 symbols, so an inner join turns a
- * 635-stock panel into a 50-large-cap panel — a different research question rather
- * than a smaller one, and nothing in the join itself says so.
+ * decides the result only after the candidate identifies the intended grain. A
+ * constant identifier can have 100% overlap and still identify almost nothing.
+ * Complete entity-period grain therefore wins first, then entity-bearing identity,
+ * then non-degenerate alternatives, then measured coverage. Cardinality breaks ties
+ * after that; it does not replace coverage as the research consequence.
  *
  * A collapse strategy is only offered when the right side actually duplicates the
  * key. Offering it otherwise asks the researcher to rule on a situation that does
@@ -15,20 +16,62 @@
 export const WEAK_COVERAGE = 60;
 export const STRONG_COVERAGE = 95;
 
+const ENTITY_KEY = /(?:^|_)(?:id|entity|symbol|ticker|ric|isin|cusip|permno|gvkey)(?:_|$)/i;
+
 export function rankCandidates(rows) {
   return (Array.isArray(rows) ? rows : [])
-    .map((row) => ({
-      leftKey: String(row?.left_key || ""),
-      rightKey: String(row?.right_key || ""),
-      matched: row?.matched ?? null,
-      total: row?.left_distinct ?? null,
-      rightTotal: row?.right_distinct ?? null,
-      coverage: row?.match_rate_pct ?? null,
-      duplicates: row?.right_duplicate_rows ?? 0,
-      usable: Boolean(row?.usable),
-      reason: row?.reason || null,
-    }))
-    .sort((a, b) => (b.coverage ?? -1) - (a.coverage ?? -1));
+    .map((row) => {
+      const total = row?.left_distinct ?? null;
+      const rightTotal = row?.right_distinct ?? null;
+      const derivedCapacity = total == null || rightTotal == null
+        ? 0
+        : Math.min(Number(total || 0), Number(rightTotal || 0));
+      const identityCapacity = Number(row?.identity_capacity ?? derivedCapacity);
+      const keyParts = Array.isArray(row?.key_parts) ? row.key_parts.map((part) => String(part)) : [];
+      const degenerateIdentity = row?.degenerate_identity == null
+        ? identityCapacity <= 1
+        : Boolean(row.degenerate_identity);
+      const entityIdentityDomain = row?.entity_identity_domain == null
+        ? keyParts.some((part) => ENTITY_KEY.test(part))
+        : Boolean(row.entity_identity_domain);
+      return {
+        leftKey: String(row?.left_key || ""),
+        rightKey: String(row?.right_key || ""),
+        keyParts,
+        completeIdentityDomain: Boolean(row?.complete_identity_domain),
+        entityIdentityDomain,
+        identityCapacity,
+        degenerateIdentity,
+        leftDatasetId: String(row?.left_dataset_id || ""),
+        rightDatasetId: String(row?.right_dataset_id || ""),
+        leftLabel: String(row?.left_label || ""),
+        rightLabel: String(row?.right_label || ""),
+        matched: row?.matched ?? null,
+        total,
+        rightTotal,
+        coverage: row?.match_rate_pct ?? null,
+        duplicates: row?.right_duplicate_rows ?? 0,
+        usable: Boolean(row?.usable),
+        reason: row?.reason || null,
+      };
+    })
+    .sort((a, b) => {
+      if (a.usable !== b.usable) return a.usable ? -1 : 1;
+      if (a.completeIdentityDomain !== b.completeIdentityDomain) {
+        return a.completeIdentityDomain ? -1 : 1;
+      }
+      if (a.entityIdentityDomain !== b.entityIdentityDomain) {
+        return a.entityIdentityDomain ? -1 : 1;
+      }
+      if (a.degenerateIdentity !== b.degenerateIdentity) {
+        return a.degenerateIdentity ? 1 : -1;
+      }
+      const coverageDelta = (b.coverage ?? -1) - (a.coverage ?? -1);
+      if (coverageDelta) return coverageDelta;
+      const capacityDelta = b.identityCapacity - a.identityCapacity;
+      if (capacityDelta) return capacityDelta;
+      return a.leftKey.localeCompare(b.leftKey);
+    });
 }
 
 export function coverageVerdict(candidate) {

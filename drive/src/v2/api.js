@@ -540,7 +540,7 @@ export function getSynthesisThread(threadId) {
 
 /** Read-only facts measured directly from the thread's mapped Library bytes.
  * This route never invokes the assistant and never mutates the construction. */
-export function getSynthesisMeasurements(threadId, { maxInputs = 4 } = {}) {
+export function getSynthesisMeasurements(threadId, { maxInputs = 8 } = {}) {
   const params = new URLSearchParams({ max_inputs: String(maxInputs) });
   return fetchJson(
     `/library/synthesis/threads/${encodeURIComponent(threadId)}/measurements?${params}`,
@@ -613,6 +613,12 @@ export function requestSynthesisExecution(threadId, { action = "request_approval
 
 export function synthesisMaterialisation(threadId) {
   return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}/materialisation`);
+}
+
+/** Exact immutable method artifact written by the completed Synthesis execution.
+ * This endpoint never asks the assistant to regenerate code. */
+export function getSynthesisMethodExport(threadId) {
+  return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}/method`);
 }
 
 /** Durable, backend-declared missing-evidence identities for one thread — the

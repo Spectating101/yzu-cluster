@@ -1,5 +1,6 @@
 .s04-viz-multi-overlap {
   min-width: 0;
+  container-type: inline-size;
 }
 
 .s04-multi-venn-body {
@@ -104,9 +105,10 @@
 
 .s04-upset {
   display: grid;
-  grid-template-columns: minmax(220px, .75fr) minmax(420px, 1.6fr);
-  gap: 16px;
+  grid-template-columns: minmax(190px, .72fr) minmax(0, 1.6fr);
+  gap: 14px;
   align-items: start;
+  min-width: 0;
 }
 
 .s04-upset-table {
@@ -117,24 +119,26 @@
 
 .s04-upset-row {
   display: grid;
-  grid-template-columns: minmax(150px, auto) minmax(180px, 1fr) 72px 78px;
-  gap: 9px;
+  grid-template-columns: minmax(116px, auto) minmax(90px, 1fr) 64px 68px;
+  gap: 7px;
   align-items: center;
+  min-width: 0;
   min-height: 25px;
 }
 
 .s04-upset-row .matrix {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: 18px;
-  gap: 4px;
+  grid-auto-columns: 14px;
+  gap: 3px;
   align-items: center;
+  min-width: 0;
 }
 
 .s04-upset-row .matrix i {
   display: block;
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   margin: auto;
   border: 1px solid #c5cbc6;
   border-radius: 999px;
@@ -142,14 +146,15 @@
 }
 
 .s04-upset-row .matrix i.on {
-  width: 10px;
-  height: 10px;
+  width: 9px;
+  height: 9px;
   border-color: #65806e;
   background: #65806e;
 }
 
 .s04-upset-row .bar {
   display: block;
+  min-width: 0;
   height: 12px;
   overflow: hidden;
   border-radius: 999px;
@@ -164,12 +169,15 @@
 }
 
 .s04-upset-row > strong {
+  min-width: 0;
   color: #33444f;
   font-size: 10.5px;
   text-align: right;
+  white-space: nowrap;
 }
 
 .s04-upset-row > small {
+  min-width: 0;
   color: #77838b;
   font-size: 9.5px;
   white-space: nowrap;
@@ -182,21 +190,61 @@
   font-size: 9.5px;
 }
 
+@container (max-width: 620px) {
+  .s04-viz-multi-overlap > header {
+    display: grid;
+    justify-content: stretch;
+  }
+
+  .s04-viz-multi-overlap > header > span {
+    justify-self: start;
+  }
+
+  .s04-upset {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .s04-upset > p {
+    grid-column: 1;
+  }
+
+  .s04-upset-legend {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .s04-upset-row {
+    grid-template-columns: minmax(108px, auto) minmax(70px, 1fr) 58px 62px;
+    gap: 6px;
+  }
+
+  .s04-upset-row .matrix {
+    grid-auto-columns: 13px;
+    gap: 2px;
+  }
+}
+
+@container (max-width: 430px) {
+  .s04-upset-legend {
+    grid-template-columns: 1fr;
+  }
+
+  .s04-upset-row {
+    grid-template-columns: minmax(96px, auto) minmax(56px, 1fr) 54px;
+    gap: 5px;
+  }
+
+  .s04-upset-row > small {
+    display: none;
+  }
+}
+
 @media (min-width: 1600px) {
   .s04-multi-venn-body { grid-template-columns: minmax(0, 1fr) 250px; }
   .s04-multi-venn-body svg { min-height: 315px; }
 }
 
-@media (max-width: 1200px) {
-  .s04-upset { grid-template-columns: 1fr; }
-  .s04-upset > p { grid-column: 1; }
-  .s04-upset-legend { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-
 @media (max-width: 860px) {
   .s04-multi-venn-body { grid-template-columns: 1fr; }
   .s04-multi-source-legend { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .s04-upset-legend { grid-template-columns: 1fr; }
-  .s04-upset-row { grid-template-columns: minmax(120px, auto) minmax(100px, 1fr) 58px; }
-  .s04-upset-row > small { display: none; }
 }

@@ -61,6 +61,12 @@ function measurementFor(thread, overrides = {}) {
   };
 }
 
+async function expectNoHorizontalOverflow(locator) {
+  await expect(locator).toBeVisible();
+  const fits = await locator.evaluate((element) => element.scrollWidth <= element.clientWidth + 1);
+  expect(fits).toBeTruthy();
+}
+
 function threeWayOverlap() {
   return {
     applicable: true,
@@ -101,19 +107,22 @@ function eightWayOverlap() {
     "Macroeconomic surprise and monetary-policy event calendar",
     "News-risk entity exposure and event intensity panel",
   ];
-  const datasets = labels.map((label, index) => ({
-    index,
-    dataset_id: `production_source_${index + 1}_with_a_long_registered_identifier`,
-    label,
-    rows_read: 500000,
-    distinct: 620000 - index * 35000,
-    truncated: true,
-  }));
   const raw = [
     [255, 1200], [127, 2200], [63, 5000], [31, 8000], [15, 12000], [7, 20000], [3, 30000],
     [1, 100000], [2, 80000], [4, 70000], [8, 60000], [16, 50000], [32, 40000], [64, 30000], [128, 20000], [85, 15000],
   ];
   const union = raw.reduce((sum, [, count]) => sum + count, 0);
+  const distinctBySource = Array.from({ length: 8 }, (_, sourceIndex) =>
+    raw.reduce((sum, [mask, count]) => sum + (mask & (1 << sourceIndex) ? count : 0), 0),
+  );
+  const datasets = labels.map((label, index) => ({
+    index,
+    dataset_id: `production_source_${index + 1}_with_a_long_registered_identifier`,
+    label,
+    rows_read: 500000,
+    distinct: distinctBySource[index],
+    truncated: true,
+  }));
   return {
     applicable: true,
     key: "entity_id",
@@ -134,7 +143,7 @@ function eightWayOverlap() {
     })),
     pairwise: [],
     exact_for_read_window: true,
-    note: "Bounded key-overlap sample; sources reached the read cap.",
+    note: "Bounded key-overlap window; sources reached the deterministic read cap.",
   };
 }
 
@@ -143,8 +152,20 @@ const THREE_NODES = [
   node("regulatory_filing_signals", "Regulatory filing disclosure signals", 1),
   node("market_microstructure_weekly", "Market microstructure weekly observations", 2),
 ];
+const PANEL_NODES = [
+  node("issuer_week_panel", "Issuer-week research panel", 0),
+  node("market_week_panel", "Weekly market evidence", 1),
+];
+const INFORMATIVE_NODES = [
+  node("issuer_identity_panel", "Issuer identity panel", 0),
+  node("reference_identity_panel", "Reference identity panel", 1),
+];
 const EIGHT_OVERLAP = eightWayOverlap();
 const EIGHT_NODES = EIGHT_OVERLAP.sources.map((source, index) => node(source.dataset_id, source.label, index));
+const EIGHT_PAIR_SHARED = EIGHT_OVERLAP.intersections.reduce(
+  (sum, row) => sum + (row.mask & 1 && row.mask & 2 ? row.count : 0),
+  0,
+);
 
 const CASES = [
   {
@@ -163,20 +184,154 @@ const CASES = [
     },
   },
   {
+    id: "pairwise-panel-grain",
+    thread: thread("scale-panel-grain", PANEL_NODES, { title: "Entity-week panel join" }),
+    measurement: (t) => measurementFor(t, {
+      join_candidates: [
+        {
+          left_key: "entity_id",
+          right_key: "entity_id",
+          key_parts: ["entity_id"],
+          complete_identity_domain: false,
+          identity_capacity: 2,
+          left_dataset_id: PANEL_NODES[0].dataset_id,
+          right_dataset_id: PANEL_NODES[1].dataset_id,
+          left_label: PANEL_NODES[0].label,
+          right_label: PANEL_NODES[1].label,
+          matched: 2,
+          left_distinct: 2,
+          right_distinct: 2,
+          right_duplicate_rows: 2,
+          match_rate_pct: 100,
+          usable: true,
+          reason: null,
+        },
+        {
+          left_key: "entity_id + week",
+          right_key: "entity_id + week",
+          key_parts: ["entity_id", "week"],
+          complete_identity_domain: true,
+          identity_capacity: 4,
+          left_dataset_id: PANEL_NODES[0].dataset_id,
+          right_dataset_id: PANEL_NODES[1].dataset_id,
+          left_label: PANEL_NODES[0].label,
+          right_label: PANEL_NODES[1].label,
+          matched: 2,
+          left_distinct: 4,
+          right_distinct: 4,
+          right_duplicate_rows: 0,
+          match_rate_pct: 50,
+          usable: true,
+          reason: null,
+        },
+      ],
+      join_candidate_dataset_id: PANEL_NODES[1].dataset_id,
+      join_candidate_rows: 4,
+      multi_overlap: null,
+    }),
+    assert: async (page) => {
+      const decision = page.getByTestId("synthesis-join-decision");
+      await expect(decision.locator("header.s04-title h2")).toHaveText(PANEL_NODES[1].label);
+      await expect(decision.locator("header.s04-title em")).toContainText("50%");
+      const firstKey = decision.locator(".s04-options").first().locator("li").first();
+      await expect(firstKey).toContainText("entity_id + week");
+      await expect(firstKey).toContainText("2 of 4");
+      await expect(page.getByTestId("synthesis-join-overlap-visual")).toBeVisible();
+    },
+  },
+  {
+    id: "pairwise-informative-identity",
+    thread: thread("scale-informative-identity", INFORMATIVE_NODES, { title: "Competing identity domains" }),
+    measurement: (t) => measurementFor(t, {
+      join_candidates: [
+        {
+          left_key: "cusip",
+          right_key: "cusip",
+          key_parts: ["cusip"],
+          complete_identity_domain: false,
+          identity_capacity: 1,
+          left_dataset_id: INFORMATIVE_NODES[0].dataset_id,
+          right_dataset_id: INFORMATIVE_NODES[1].dataset_id,
+          left_label: INFORMATIVE_NODES[0].label,
+          right_label: INFORMATIVE_NODES[1].label,
+          matched: 1,
+          left_distinct: 1,
+          right_distinct: 1,
+          right_duplicate_rows: 99,
+          match_rate_pct: 100,
+          usable: true,
+          reason: null,
+        },
+        {
+          left_key: "entity_id",
+          right_key: "entity_id",
+          key_parts: ["entity_id"],
+          complete_identity_domain: false,
+          identity_capacity: 90,
+          left_dataset_id: INFORMATIVE_NODES[0].dataset_id,
+          right_dataset_id: INFORMATIVE_NODES[1].dataset_id,
+          left_label: INFORMATIVE_NODES[0].label,
+          right_label: INFORMATIVE_NODES[1].label,
+          matched: 45,
+          left_distinct: 100,
+          right_distinct: 90,
+          right_duplicate_rows: 10,
+          match_rate_pct: 45,
+          usable: true,
+          reason: null,
+        },
+      ],
+      join_candidate_dataset_id: INFORMATIVE_NODES[1].dataset_id,
+      join_candidate_rows: 100,
+      multi_overlap: null,
+    }),
+    assert: async (page) => {
+      const decision = page.getByTestId("synthesis-join-decision");
+      await expect(decision.locator("header.s04-title em")).toContainText("45%");
+      const firstKey = decision.locator(".s04-options").first().locator("li").first();
+      await expect(firstKey).toContainText("entity_id");
+      await expect(firstKey).toContainText("45 of 100");
+    },
+  },
+  {
     id: "eight-source-bounded",
     thread: thread("scale-eight", EIGHT_NODES, { title: "Eight-source empirical research estate" }),
     measurement: (t) => measurementFor(t, {
-      join_candidates: [{ left_key: "entity_id", right_key: "entity_id", matched: 410000, left_distinct: 620000, right_distinct: 585000, right_duplicate_rows: 14000, match_rate_pct: 66.129, usable: true, reason: null }],
+      join_candidates: [{
+        left_key: "entity_id",
+        right_key: "entity_id",
+        left_dataset_id: EIGHT_NODES[0].dataset_id,
+        right_dataset_id: EIGHT_NODES[1].dataset_id,
+        left_label: EIGHT_NODES[0].label,
+        right_label: EIGHT_NODES[1].label,
+        matched: EIGHT_PAIR_SHARED,
+        left_distinct: EIGHT_OVERLAP.sources[0].distinct,
+        right_distinct: EIGHT_OVERLAP.sources[1].distinct,
+        right_duplicate_rows: 341600,
+        match_rate_pct: Number((100 * EIGHT_PAIR_SHARED / EIGHT_OVERLAP.sources[0].distinct).toFixed(3)),
+        usable: true,
+        reason: null,
+      }],
       join_candidate_dataset_id: EIGHT_NODES[1].dataset_id,
-      join_candidate_rows: 2500000,
+      join_candidate_rows: 500000,
       multi_overlap: EIGHT_OVERLAP,
       truncated_inputs: 0,
       max_inputs: 8,
     }),
     assert: async (page) => {
-      await expect(page.getByTestId("synthesis-upset-visual")).toBeVisible();
-      await expect(page.getByTestId("synthesis-multi-overlap-visual")).toContainText("Bounded overlap sample");
+      const decision = page.getByTestId("synthesis-join-decision");
+      const upset = page.getByTestId("synthesis-upset-visual");
+      await expect(upset).toBeVisible();
+      await expect(page.locator(".s04-upset-legend > span")).toHaveCount(8);
+      await expect(decision.locator("header.s04-title h2")).toHaveText(EIGHT_OVERLAP.sources[1].label);
+      await expect(page.getByTestId("synthesis-multi-overlap-visual")).toContainText("Bounded overlap window");
+      await expect(page.getByTestId("synthesis-multi-overlap-visual")).toContainText("representative-sample claim");
       await expect(page.getByTestId("synthesis-multi-overlap-visual")).toContainText("smaller exclusive intersections");
+      await expectNoHorizontalOverflow(upset);
+      const rowsFit = await page.locator(".s04-upset-row").evaluateAll(
+        (rows) => rows.every((row) => row.scrollWidth <= row.clientWidth + 1),
+      );
+      expect(rowsFit).toBeTruthy();
     },
   },
   {
@@ -216,7 +371,11 @@ const CASES = [
         },
       },
     }),
-    measurement: (t) => measurementFor(t, { measured_inputs: 2, input_dataset_ids: t.state.nodes.map((row) => row.dataset_id) }),
+    measurement: (t) => measurementFor(t, {
+      measured_inputs: 2,
+      input_dataset_ids: t.state.nodes.map((row) => row.dataset_id),
+      unit_conflict: t.state.unit_conflict,
+    }),
     assert: async (page) => {
       await expect(page.getByTestId("synthesis-unit-scale-visual")).toBeVisible();
       await expect(page.getByTestId("synthesis-unit-conflict")).toContainText("20");
@@ -230,6 +389,7 @@ async function mount(page, item) {
   await page.route("**/api/library/synthesis/threads**", async (route) => {
     const url = new URL(route.request().url());
     if (url.pathname.endsWith("/measurements")) {
+      expect(url.searchParams.get("max_inputs")).toBe("8");
       return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(measurement) });
     }
     const body = url.pathname.endsWith(`/${item.thread.id}`)

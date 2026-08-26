@@ -1,17 +1,31 @@
 name: Synthesis convergence render
 
+# Hardening branch pushes intentionally exercise the complete rendered and
+# interaction contract before any merge or deployment. A visually convincing
+# frame is not enough for freeze: the researcher must be able to move through
+# grounding, review, approval, execution, and reversible excursions without
+# losing the durable thread or being shown fabricated state.
 on:
   push:
     branches:
       - work/chatgpt-final-convergence-20260825
+      - hardening/synthesis-analytical-verification-20260826
   pull_request:
     branches:
       - main
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: synthesis-convergence-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   render:
     runs-on: ubuntu-latest
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -19,28 +33,64 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - name: Verify Synthesis join-ranking freeze contract
+        run: node --test drive/src/v2/joinCandidates.test.js
       - run: npx playwright install chromium --with-deps
       - run: npm run build
+      - name: Fast gate evidence rediscovery on revisit
+        run: >-
+          mkdir -p .tmp-pw artifacts/synthesis-renders &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/synthesis-revisit-evidence.spec.js
+          --timeout=30000
+          --retries=0
+          --reporter=line
+      - name: Fast gate streamlined Synthesis authority flow
+        run: >-
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/v2-synthesis.spec.js
+          --grep "researcher reviews held evidence|accepts a revision-bound proposal|does not create a second approval request"
+          --timeout=30000
+          --retries=0
+          --reporter=line
+      - name: Exercise remaining Synthesis researcher workflow
+        run: >-
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/v2-synthesis.spec.js
+          --grep-invert "researcher reviews held evidence|accepts a revision-bound proposal|does not create a second approval request|renders the selected durable thread in the workspace and Detail rail|keeps the right rail usable on mobile while the workspace remains source-backed"
+          --timeout=60000
+          --retries=0
+          --reporter=line
       - name: Render converged Synthesis frames
-        run: mkdir -p .tmp-pw artifacts/synthesis-convergence && TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/synthesis-convergence-render.spec.js --reporter=line
+        run: mkdir -p .tmp-pw artifacts/synthesis-convergence && TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/synthesis-convergence-render.spec.js --timeout=60000 --retries=0 --reporter=line
       - name: Render desktop Synthesis workflow states
         run: >-
           mkdir -p artifacts/synthesis-acceptance &&
           TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/synthesis-acceptance-screenshots.spec.js
           --grep " at desktop 1440px"
+          --timeout=60000
+          --retries=0
           --reporter=line
       - name: Render workstation Synthesis workflow states
         run: >-
           mkdir -p artifacts/synthesis-acceptance &&
           TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/synthesis-acceptance-screenshots.spec.js
           --grep " at workstation 1920px"
+          --timeout=60000
+          --retries=0
+          --reporter=line
+      - name: Render production-scale Synthesis analytical states
+        run: >-
+          mkdir -p artifacts/synthesis-scale &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/synthesis-production-scale-render.spec.js
+          --timeout=60000
+          --retries=0
           --reporter=line
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: synthesis-convergence-pngs
           path: |
+            artifacts/synthesis-renders
             artifacts/synthesis-convergence
             artifacts/synthesis-acceptance
+            artifacts/synthesis-scale
             test-results
           if-no-files-found: warn

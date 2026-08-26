@@ -1,7 +1,13 @@
 name: Synthesis UI Validation
 on:
+  push:
+    branches:
+      - hardening/synthesis-analytical-verification-20260826
   pull_request:
     branches: [main]
+
+permissions:
+  contents: read
 
 concurrency:
   group: synthesis-ui-${{ github.workflow }}-${{ github.ref }}
@@ -10,6 +16,7 @@ concurrency:
 jobs:
   synthesis-ui:
     runs-on: ubuntu-latest
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -23,22 +30,42 @@ jobs:
           YZU_PAGES: "true"
       - name: Run Synthesis workspace and visual reasoning contracts
         run: node --test drive/src/v2/synthesisWorkspace.test.js drive/src/v2/synthesisVisualReasoning.test.js
-      - name: Run Synthesis interaction suite
+      - name: Fast gate evidence rediscovery on revisit
         run: >-
           mkdir -p .tmp-pw artifacts/synthesis-renders &&
+          TMPDIR=$PWD/.tmp-pw npx playwright test e2e/synthesis-revisit-evidence.spec.js
+          --timeout=30000
+          --retries=0
+          --reporter=line
+        env:
+          CI: "true"
+          YZU_PAGES: "false"
+      - name: Run Synthesis interaction suite
+        run: >-
           TMPDIR=$PWD/.tmp-pw npx playwright test e2e/v2-synthesis.spec.js
           --grep-invert "renders the selected durable thread in the workspace and Detail rail|keeps the right rail usable on mobile while the workspace remains source-backed"
+          --timeout=60000
+          --retries=0
           --reporter=line
         env:
           CI: "true"
           YZU_PAGES: "false"
       - name: Run Synthesis Preview authority contract
-        run: TMPDIR=$PWD/.tmp-pw npx playwright test e2e/synthesis-preview-authority.spec.js --reporter=line
+        run: >-
+          TMPDIR=$PWD/.tmp-pw npx playwright test e2e/synthesis-preview-authority.spec.js
+          --timeout=60000
+          --retries=0
+          --reporter=line
         env:
           CI: "true"
           YZU_PAGES: "false"
       - name: Run converged Synthesis inspector contract
-        run: mkdir -p artifacts/synthesis-convergence && TMPDIR=$PWD/.tmp-pw npx playwright test e2e/synthesis-convergence-render.spec.js --reporter=line
+        run: >-
+          mkdir -p artifacts/synthesis-convergence &&
+          TMPDIR=$PWD/.tmp-pw npx playwright test e2e/synthesis-convergence-render.spec.js
+          --timeout=60000
+          --retries=0
+          --reporter=line
         env:
           CI: "true"
           YZU_PAGES: "false"
@@ -47,6 +74,18 @@ jobs:
           mkdir -p artifacts/synthesis-acceptance &&
           TMPDIR=$PWD/.tmp-pw npx playwright test e2e/synthesis-acceptance-screenshots.spec.js
           --grep-invert "the S-04 opening is a complete, non-duplicated visual state"
+          --timeout=60000
+          --retries=0
+          --reporter=line
+        env:
+          CI: "true"
+          YZU_PAGES: "false"
+      - name: Run Synthesis production-scale analytical render
+        run: >-
+          mkdir -p artifacts/synthesis-scale &&
+          TMPDIR=$PWD/.tmp-pw npx playwright test e2e/synthesis-production-scale-render.spec.js
+          --timeout=60000
+          --retries=0
           --reporter=line
         env:
           CI: "true"
@@ -59,5 +98,6 @@ jobs:
             artifacts/synthesis-renders
             artifacts/synthesis-convergence
             artifacts/synthesis-acceptance
+            artifacts/synthesis-scale
             test-results
           if-no-files-found: warn

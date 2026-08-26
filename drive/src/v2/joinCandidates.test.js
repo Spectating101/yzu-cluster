@@ -11,16 +11,142 @@ import {
 
 const row = (over = {}) => ({
   left_key: "sym", right_key: "sym", matched: 50, left_distinct: 635,
-  match_rate_pct: 7.874, right_duplicate_rows: 0, usable: true, reason: null, ...over,
+  right_distinct: 635, match_rate_pct: 7.874, right_duplicate_rows: 0,
+  usable: true, reason: null, ...over,
 });
 
-test("candidates are ranked by coverage, best first", () => {
+test("candidates are ranked by coverage when identity class and capacity are otherwise equal", () => {
   const ranked = rankCandidates([
-    row({ right_key: "isin", match_rate_pct: 0, usable: false }),
-    row({ right_key: "ric", match_rate_pct: 7.874 }),
+    row({ right_key: "bad", match_rate_pct: 0, usable: false }),
+    row({ right_key: "partial", match_rate_pct: 7.874 }),
     row({ right_key: "good", match_rate_pct: 99.8 }),
   ]);
-  assert.deepEqual(ranked.map((r) => r.rightKey), ["good", "ric", "isin"]);
+  assert.deepEqual(ranked.map((r) => r.rightKey), ["good", "partial", "bad"]);
+});
+
+test("an informative entity identity outranks a constant identifier with cosmetic 100% coverage", () => {
+  const ranked = rankCandidates([
+    row({
+      left_key: "cusip",
+      right_key: "cusip",
+      key_parts: ["cusip"],
+      left_distinct: 1,
+      right_distinct: 1,
+      matched: 1,
+      match_rate_pct: 100,
+    }),
+    row({
+      left_key: "entity_id",
+      right_key: "entity_id",
+      key_parts: ["entity_id"],
+      left_distinct: 100,
+      right_distinct: 90,
+      matched: 45,
+      match_rate_pct: 45,
+    }),
+  ]);
+
+  assert.equal(ranked[0].leftKey, "entity_id");
+  assert.equal(ranked[0].entityIdentityDomain, true);
+  assert.equal(ranked[0].degenerateIdentity, false);
+  assert.equal(ranked[0].identityCapacity, 90);
+  assert.equal(ranked[0].coverage, 45);
+  assert.equal(ranked[1].leftKey, "cusip");
+  assert.equal(ranked[1].degenerateIdentity, true);
+  assert.equal(ranked[1].coverage, 100);
+});
+
+test("entity identity outranks a time-only key even when the time values overlap perfectly", () => {
+  const ranked = rankCandidates([
+    row({
+      left_key: "report_year",
+      right_key: "report_year",
+      key_parts: ["report_year"],
+      left_distinct: 4,
+      right_distinct: 4,
+      matched: 4,
+      match_rate_pct: 100,
+    }),
+    row({
+      left_key: "entity_id",
+      right_key: "entity_id",
+      key_parts: ["entity_id"],
+      left_distinct: 4,
+      right_distinct: 4,
+      matched: 2,
+      match_rate_pct: 50,
+    }),
+  ]);
+
+  assert.equal(ranked[0].leftKey, "entity_id");
+  assert.equal(ranked[0].entityIdentityDomain, true);
+  assert.equal(ranked[0].coverage, 50);
+  assert.equal(ranked[1].leftKey, "report_year");
+  assert.equal(ranked[1].entityIdentityDomain, false);
+  assert.equal(ranked[1].coverage, 100);
+});
+
+test("coverage still outranks raw cardinality among non-degenerate entity keys", () => {
+  const ranked = rankCandidates([
+    row({
+      left_key: "large_sparse_id",
+      right_key: "large_sparse_id",
+      key_parts: ["large_sparse_id"],
+      left_distinct: 1000,
+      right_distinct: 1000,
+      matched: 100,
+      match_rate_pct: 10,
+    }),
+    row({
+      left_key: "slightly_smaller_good_id",
+      right_key: "slightly_smaller_good_id",
+      key_parts: ["slightly_smaller_good_id"],
+      left_distinct: 900,
+      right_distinct: 900,
+      matched: 891,
+      match_rate_pct: 99,
+    }),
+  ]);
+
+  assert.equal(ranked[0].leftKey, "slightly_smaller_good_id");
+  assert.equal(ranked[0].coverage, 99);
+  assert.equal(ranked[1].identityCapacity, 1000);
+});
+
+test("a complete entity-period key outranks a higher-coverage partial identity key", () => {
+  const ranked = rankCandidates([
+    row({
+      left_key: "entity_id",
+      right_key: "entity_id",
+      key_parts: ["entity_id"],
+      complete_identity_domain: false,
+      matched: 100,
+      left_distinct: 100,
+      right_distinct: 100,
+      match_rate_pct: 100,
+    }),
+    row({
+      left_key: "entity_id + week",
+      right_key: "entity_id + week",
+      key_parts: ["entity_id", "week"],
+      complete_identity_domain: true,
+      left_dataset_id: "left_panel",
+      right_dataset_id: "right_panel",
+      left_label: "Issuer-week research panel",
+      right_label: "Weekly market evidence",
+      matched: 50,
+      left_distinct: 100,
+      right_distinct: 100,
+      match_rate_pct: 50,
+    }),
+  ]);
+
+  assert.equal(ranked[0].leftKey, "entity_id + week");
+  assert.deepEqual(ranked[0].keyParts, ["entity_id", "week"]);
+  assert.equal(ranked[0].coverage, 50);
+  assert.equal(ranked[0].leftLabel, "Issuer-week research panel");
+  assert.equal(ranked[0].rightLabel, "Weekly market evidence");
+  assert.equal(ranked[1].coverage, 100);
 });
 
 test("coverage decides the verdict, not duplication", () => {
@@ -46,7 +172,7 @@ test("a weak inner join is described as a different population, not a smaller on
 });
 
 test("a strong join recommends the inner join", () => {
-  const [candidate] = rankCandidates([row({ matched: 634, left_distinct: 635, match_rate_pct: 99.8 })]);
+  const [candidate] = rankCandidates([row({ matched: 634, left_distinct: 635, right_distinct: 635, match_rate_pct: 99.8 })]);
   const outcomes = joinOutcomes(candidate);
   assert.equal(outcomes.find((o) => o.id === "inner").recommended, true);
   assert.equal(outcomes.find((o) => o.id === "skip").recommended, false);

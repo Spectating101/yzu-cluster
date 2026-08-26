@@ -33,7 +33,7 @@
 .s04-viz-overlap-facts small,
 .s04-viz-scope-facts small {
   color: #6d7984;
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 820;
   letter-spacing: .075em;
   text-transform: uppercase;
@@ -41,7 +41,7 @@
 
 .s04-viz > header strong {
   color: #2d3d49;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.4;
 }
 
@@ -51,14 +51,14 @@
   border-radius: 999px;
   background: #edf2ed;
   color: #486454;
-  font-size: 8.5px;
+  font-size: 10px;
   font-weight: 800;
 }
 
 .s04-viz figcaption {
   margin: 0;
   color: #7b858d;
-  font-size: 7.5px;
+  font-size: 9.5px;
   line-height: 1.45;
 }
 
@@ -114,7 +114,7 @@
 
 .s04-viz-overlap .region-note {
   fill: #78838c;
-  font-size: 8px;
+  font-size: 9.5px;
   font-weight: 760;
   letter-spacing: .06em;
   text-anchor: middle;
@@ -158,7 +158,7 @@
   min-width: 2px;
   overflow: hidden;
   color: #33444f;
-  font-size: 8px;
+  font-size: 9.5px;
   font-weight: 800;
   white-space: nowrap;
 }
@@ -226,7 +226,7 @@
   top: -14px;
   left: 5px;
   color: #7f5c45;
-  font-size: 7.5px;
+  font-size: 9.5px;
   font-style: normal;
   font-weight: 800;
   white-space: nowrap;
@@ -266,7 +266,7 @@
 .s04-viz-magnitude-rows .label {
   overflow: hidden;
   color: #4f5e6a;
-  font-size: 8.5px;
+  font-size: 10px;
   font-weight: 740;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -292,7 +292,7 @@
 
 .s04-viz-magnitude-rows > div > strong {
   color: #30404c;
-  font-size: 9px;
+  font-size: 10px;
   text-align: right;
 }
 
@@ -378,7 +378,7 @@
     border-radius: 999px;
     background: #f8f8f4;
     color: #718078;
-    font-size: 8px;
+    font-size: 9.5px;
   }
 
   .rd-v2-synthesis-page .s04-exec-track > li.done {
@@ -424,13 +424,13 @@
 
   .rd-v2-synthesis-page .s04-exec-track > li strong {
     color: #40505b;
-    font-size: 8.5px;
+    font-size: 10px;
     line-height: 1.25;
   }
 
   .rd-v2-synthesis-page .s04-exec-track > li small {
     color: #808a90;
-    font-size: 7.5px;
+    font-size: 9.5px;
     line-height: 1.3;
   }
 }
