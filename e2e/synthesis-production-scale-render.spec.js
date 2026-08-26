@@ -61,6 +61,12 @@ function measurementFor(thread, overrides = {}) {
   };
 }
 
+async function expectNoHorizontalOverflow(locator) {
+  await expect(locator).toBeVisible();
+  const fits = await locator.evaluate((element) => element.scrollWidth <= element.clientWidth + 1);
+  expect(fits).toBeTruthy();
+}
+
 function threeWayOverlap() {
   return {
     applicable: true,
@@ -191,10 +197,18 @@ const CASES = [
       max_inputs: 8,
     }),
     assert: async (page) => {
-      await expect(page.getByTestId("synthesis-upset-visual")).toBeVisible();
+      const decision = page.getByTestId("synthesis-join-decision");
+      const upset = page.getByTestId("synthesis-upset-visual");
+      await expect(upset).toBeVisible();
       await expect(page.locator(".s04-upset-legend > span")).toHaveCount(8);
+      await expect(decision.locator("header.s04-title h2")).toHaveText(EIGHT_OVERLAP.sources[1].label);
       await expect(page.getByTestId("synthesis-multi-overlap-visual")).toContainText("Bounded overlap sample");
       await expect(page.getByTestId("synthesis-multi-overlap-visual")).toContainText("smaller exclusive intersections");
+      await expectNoHorizontalOverflow(upset);
+      const rowsFit = await page.locator(".s04-upset-row").evaluateAll(
+        (rows) => rows.every((row) => row.scrollWidth <= row.clientWidth + 1),
+      );
+      expect(rowsFit).toBeTruthy();
     },
   },
   {
