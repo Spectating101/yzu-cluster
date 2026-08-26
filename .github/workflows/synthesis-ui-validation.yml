@@ -51,6 +51,14 @@ jobs:
         env:
           CI: "true"
           YZU_PAGES: "false"
+      - name: Run Synthesis production-scale analytical render
+        run: >-
+          mkdir -p artifacts/synthesis-scale &&
+          TMPDIR=$PWD/.tmp-pw npx playwright test e2e/synthesis-production-scale-render.spec.js
+          --reporter=line
+        env:
+          CI: "true"
+          YZU_PAGES: "false"
       - if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -59,5 +67,6 @@ jobs:
             artifacts/synthesis-renders
             artifacts/synthesis-convergence
             artifacts/synthesis-acceptance
+            artifacts/synthesis-scale
             test-results
           if-no-files-found: warn
