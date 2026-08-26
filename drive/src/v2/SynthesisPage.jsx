@@ -507,6 +507,7 @@ function WhatHappensNext({
   onStartReasoning,
   onFindEvidence,
   mappingEvidence = false,
+  evidenceProposalAvailable = false,
   reasoningPending = false,
   reasoningAvailable = false,
   reasoningStatus = "Assistant runtime not verified",
@@ -550,14 +551,15 @@ function WhatHappensNext({
           </button>
         ) : <span aria-hidden="true" />}
         <div className="s04-next-actions">
-          {needsEvidence ? (
+          {needsEvidence && !mappingEvidence && !evidenceProposalAvailable ? (
             <button
               type="button"
               className="s04-next-map"
-              disabled={mappingEvidence || !onFindEvidence}
+              disabled={!onFindEvidence}
               onClick={() => onFindEvidence?.()}
+              title="Retry held-evidence discovery"
             >
-              {mappingEvidence ? "Finding held evidence" : "Find held evidence"}
+              Retry held evidence
             </button>
           ) : null}
           {!hasProposal && !reasoningAvailable ? (
@@ -569,9 +571,9 @@ function WhatHappensNext({
             <button
               type="button"
               className="s04-next-primary"
-              disabled={reasoningPending || !reasoningAvailable || (hasRecommendation ? !onAccept : !onStartReasoning)}
+              disabled={needsEvidence || reasoningPending || !reasoningAvailable || (hasRecommendation ? !onAccept : !onStartReasoning)}
               onClick={() => (hasRecommendation ? onAccept?.() : onStartReasoning?.())}
-              title={!reasoningAvailable ? reasoningStatus : undefined}
+              title={needsEvidence ? "Review and map held evidence before method reasoning." : !reasoningAvailable ? reasoningStatus : undefined}
             >
               {hasRecommendation
                 ? "Accept & design method"
@@ -2237,6 +2239,7 @@ export function SynthesisPage({
                     onStartReasoning={() => startMethodReasoning()}
                     onFindEvidence={findHeldEvidence}
                     mappingEvidence={mappingEvidence}
+                    evidenceProposalAvailable={Boolean(evidenceProposal)}
                     reasoningPending={reasoningPending}
                     reasoningAvailable={reasoningAvailable}
                     reasoningStatus={reasoningStatus}

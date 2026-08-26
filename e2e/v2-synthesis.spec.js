@@ -511,7 +511,8 @@ test.describe("v2 Synthesis durable thread surface", () => {
 
     const evidence = page.getByTestId("synthesis-evidence-state");
     const next = page.getByLabel("What happens next");
-    await expect(next.getByRole("button", { name: "Find held evidence" })).toHaveCount(0);
+    await expect(next.getByRole("button", { name: /held evidence/i })).toHaveCount(0);
+    await expect(next.getByRole("button", { name: "Start method reasoning" })).toBeDisabled();
 
     // Discovery of already-held Library evidence is read-only and automatic.
     // The durable map must remain unchanged until the researcher explicitly
@@ -535,6 +536,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await expect(evidence).toContainText("1 mapped inputs");
     await expect(evidence).toContainText("Indonesia daily cross-section");
     await expect(page.getByTestId("synthesis-evidence-proposal")).toHaveCount(0);
+    await expect(next.getByRole("button", { name: "Start method reasoning" })).toBeEnabled();
     await capture(page, "02c-held-evidence-mapped-desktop");
   });
 
@@ -544,7 +546,8 @@ test.describe("v2 Synthesis durable thread surface", () => {
     // Proposal review is now the authoritative decision surface itself. The
     // redundant navigation/checkpoint card must stay absent.
     await expect(page.getByRole("region", { name: "What happens next" })).toHaveCount(0);
-    await expect(page.locator("aside.rd-v2-rail")).toContainText("recorded for review");
+    await expect(page.locator("aside.rd-v2-rail")).toContainText("Proposal needs review");
+    await expect(page.locator("aside.rd-v2-rail")).toContainText("Accept or reject this exact revision-bound proposal");
     await expect(page.locator("aside.rd-v2-rail")).not.toContainText("No construction has been recommended yet");
     await expect(proposal).toBeVisible();
     await expect(proposal.getByRole("button", { name: "Accept & test method" })).toBeVisible();
