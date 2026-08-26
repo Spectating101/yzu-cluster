@@ -37,92 +37,73 @@ jobs:
           page = 'drive/src/v2/SynthesisPage.jsx'
           test = 'e2e/v2-synthesis.spec.js'
 
-          replace_once(page,
-          '''  onFindEvidence,
-            mappingEvidence = false,
-            reasoningPending = false,''',
-          '''  onFindEvidence,
-            mappingEvidence = false,
-            evidenceProposalAvailable = false,
-            reasoningPending = false,''',
-          'WhatHappensNext evidence proposal argument')
+          replace_once(
+              page,
+              '  mappingEvidence = false,\n  reasoningPending = false,',
+              '  mappingEvidence = false,\n  evidenceProposalAvailable = false,\n  reasoningPending = false,',
+              'WhatHappensNext evidence proposal argument',
+          )
+          replace_once(
+              page,
+              '{needsEvidence ? (',
+              '{needsEvidence && !mappingEvidence && !evidenceProposalAvailable ? (',
+              'retry-only held evidence condition',
+          )
+          replace_once(
+              page,
+              'disabled={mappingEvidence || !onFindEvidence}',
+              'disabled={!onFindEvidence}',
+              'retry button disabled state',
+          )
+          replace_once(
+              page,
+              'onClick={() => onFindEvidence?.()}\n            >',
+              'onClick={() => onFindEvidence?.()}\n              title="Retry held-evidence discovery"\n            >',
+              'retry button title',
+          )
+          replace_once(
+              page,
+              '{mappingEvidence ? "Finding held evidence" : "Find held evidence"}',
+              'Retry held evidence',
+              'retry button label',
+          )
+          replace_once(
+              page,
+              'disabled={reasoningPending || !reasoningAvailable || (hasRecommendation ? !onAccept : !onStartReasoning)}',
+              'disabled={needsEvidence || reasoningPending || !reasoningAvailable || (hasRecommendation ? !onAccept : !onStartReasoning)}',
+              'reasoning waits for mapped evidence',
+          )
+          replace_once(
+              page,
+              'title={!reasoningAvailable ? reasoningStatus : undefined}',
+              'title={needsEvidence ? "Review and map held evidence before method reasoning." : !reasoningAvailable ? reasoningStatus : undefined}',
+              'reasoning disabled explanation',
+          )
+          replace_once(
+              page,
+              '                    mappingEvidence={mappingEvidence}\n                    reasoningPending={reasoningPending}',
+              '                    mappingEvidence={mappingEvidence}\n                    evidenceProposalAvailable={Boolean(evidenceProposal)}\n                    reasoningPending={reasoningPending}',
+              'pass evidence proposal availability',
+          )
 
-          replace_once(page,
-          '''          {needsEvidence ? (
-                    <button
-                      type="button"
-                      className="s04-next-map"
-                      disabled={mappingEvidence || !onFindEvidence}
-                      onClick={() => onFindEvidence?.()}
-                    >
-                      {mappingEvidence ? "Finding held evidence" : "Find held evidence"}
-                    </button>
-                  ) : null}''',
-          '''          {needsEvidence && !mappingEvidence && !evidenceProposalAvailable ? (
-                    <button
-                      type="button"
-                      className="s04-next-map"
-                      disabled={!onFindEvidence}
-                      onClick={() => onFindEvidence?.()}
-                      title="Retry held-evidence discovery"
-                    >
-                      Retry held evidence
-                    </button>
-                  ) : null}''',
-          'retry-only held evidence control')
-
-          replace_once(page,
-          '''              disabled={reasoningPending || !reasoningAvailable || (hasRecommendation ? !onAccept : !onStartReasoning)}
-                      onClick={() => (hasRecommendation ? onAccept?.() : onStartReasoning?.())}
-                      title={!reasoningAvailable ? reasoningStatus : undefined}''',
-          '''              disabled={needsEvidence || reasoningPending || !reasoningAvailable || (hasRecommendation ? !onAccept : !onStartReasoning)}
-                      onClick={() => (hasRecommendation ? onAccept?.() : onStartReasoning?.())}
-                      title={needsEvidence ? "Review and map held evidence before method reasoning." : !reasoningAvailable ? reasoningStatus : undefined}''',
-          'reasoning waits for mapped evidence')
-
-          replace_once(page,
-          '''                    onFindEvidence={findHeldEvidence}
-                        mappingEvidence={mappingEvidence}
-                        reasoningPending={reasoningPending}''',
-          '''                    onFindEvidence={findHeldEvidence}
-                        mappingEvidence={mappingEvidence}
-                        evidenceProposalAvailable={Boolean(evidenceProposal)}
-                        reasoningPending={reasoningPending}''',
-          'pass evidence proposal availability')
-
-          replace_once(test,
-          '''    const evidence = page.getByTestId("synthesis-evidence-state");
-              const next = page.getByLabel("What happens next");
-              await expect(next.getByRole("button", { name: "Find held evidence" })).toHaveCount(0);
-
-              // Discovery of already-held Library evidence is read-only and automatic.''',
-          '''    const evidence = page.getByTestId("synthesis-evidence-state");
-              const next = page.getByLabel("What happens next");
-              await expect(next.getByRole("button", { name: /held evidence/i })).toHaveCount(0);
-              await expect(next.getByRole("button", { name: "Start method reasoning" })).toBeDisabled();
-
-              // Discovery of already-held Library evidence is read-only and automatic.''',
-          'pin automatic evidence discovery controls')
-
-          replace_once(test,
-          '''    await expect(evidence).toContainText("1 mapped inputs");
-              await expect(evidence).toContainText("Indonesia daily cross-section");
-              await expect(page.getByTestId("synthesis-evidence-proposal")).toHaveCount(0);
-              await capture(page, "02c-held-evidence-mapped-desktop");''',
-          '''    await expect(evidence).toContainText("1 mapped inputs");
-              await expect(evidence).toContainText("Indonesia daily cross-section");
-              await expect(page.getByTestId("synthesis-evidence-proposal")).toHaveCount(0);
-              await expect(next.getByRole("button", { name: "Start method reasoning" })).toBeEnabled();
-              await capture(page, "02c-held-evidence-mapped-desktop");''',
-          'pin reasoning unlock after mapping')
-
-          replace_once(test,
-          '''    await expect(page.locator("aside.rd-v2-rail")).toContainText("recorded for review");
-              await expect(page.locator("aside.rd-v2-rail")).not.toContainText("No construction has been recommended yet");''',
-          '''    await expect(page.locator("aside.rd-v2-rail")).toContainText("Proposal needs review");
-              await expect(page.locator("aside.rd-v2-rail")).toContainText("Accept or reject this exact revision-bound proposal");
-              await expect(page.locator("aside.rd-v2-rail")).not.toContainText("No construction has been recommended yet");''',
-          'align proposal rail authority wording')
+          replace_once(
+              test,
+              '    await expect(next.getByRole("button", { name: "Find held evidence" })).toHaveCount(0);',
+              '    await expect(next.getByRole("button", { name: /held evidence/i })).toHaveCount(0);\n    await expect(next.getByRole("button", { name: "Start method reasoning" })).toBeDisabled();',
+              'pin automatic evidence controls',
+          )
+          replace_once(
+              test,
+              '    await expect(page.getByTestId("synthesis-evidence-proposal")).toHaveCount(0);\n    await capture(page, "02c-held-evidence-mapped-desktop");',
+              '    await expect(page.getByTestId("synthesis-evidence-proposal")).toHaveCount(0);\n    await expect(next.getByRole("button", { name: "Start method reasoning" })).toBeEnabled();\n    await capture(page, "02c-held-evidence-mapped-desktop");',
+              'pin reasoning unlock after mapping',
+          )
+          replace_once(
+              test,
+              '    await expect(page.locator("aside.rd-v2-rail")).toContainText("recorded for review");',
+              '    await expect(page.locator("aside.rd-v2-rail")).toContainText("Proposal needs review");\n    await expect(page.locator("aside.rd-v2-rail")).toContainText("Accept or reject this exact revision-bound proposal");',
+              'align proposal rail authority wording',
+          )
           PY
           git diff --check
           git diff -- drive/src/v2/SynthesisPage.jsx e2e/v2-synthesis.spec.js
