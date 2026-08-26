@@ -30,16 +30,22 @@ export function JoinOverlapVisual({ leftLabel, rightLabel, leftTotal, rightTotal
 
       <div className="s04-viz-overlap-body">
         <svg viewBox="0 0 560 226" role="img" aria-label={`${count(model.shared)} entities overlap between ${leftName} and ${rightName}`}>
-          <circle className="set-left" cx="218" cy="111" r="92" />
-          <circle className="set-right" cx="342" cy="111" r="92" />
-          <text className="set-label left" x="146" y="38">{leftName}</text>
-          <text className="set-label right" x="414" y="38">{rightName}</text>
+          <g>
+            <title>{leftName}</title>
+            <circle className="set-left" cx="218" cy="111" r="92" />
+          </g>
+          <g>
+            <title>{rightName}</title>
+            <circle className="set-right" cx="342" cy="111" r="92" />
+          </g>
+          <text className="set-label left" x="174" y="38">current population</text>
+          <text className="set-label right" x="386" y="38">added dataset</text>
           <text className="region-count left" x="182" y="108">{count(model.leftOnly)}</text>
-          <text className="region-note left" x="182" y="126">only here</text>
+          <text className="region-note left" x="182" y="126">current only</text>
           <text className="region-count shared" x="280" y="104">{count(model.shared)}</text>
-          <text className="region-note shared" x="280" y="122">overlap</text>
+          <text className="region-note shared" x="280" y="122">usable overlap</text>
           <text className="region-count right" x="378" y="108">{count(model.rightOnly)}</text>
-          <text className="region-note right" x="378" y="126">only there</text>
+          <text className="region-note right" x="378" y="126">added only</text>
         </svg>
 
         <div className="s04-viz-overlap-facts" aria-label="Join reach">
