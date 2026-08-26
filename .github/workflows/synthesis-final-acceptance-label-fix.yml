@@ -24,7 +24,7 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-      - name: Align rendered-state assertions with frozen interaction labels
+      - name: Align rendered-state assertions with frozen interaction contract
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -40,6 +40,11 @@ jobs:
               if count != 1:
                   raise SystemExit(f'{old}: expected 1 match, got {count}')
               text = text.replace(old, new, 1)
+          old_mount = '''  const firstThread = page.getByTestId("synthesis-thread-item").first();\n  await expect(firstThread).toHaveCount(1);\n  await firstThread.click({ force: true });\n'''
+          new_mount = '''  const firstThread = page.locator("button:visible").filter({ hasText: thread.title }).first();\n  await expect(firstThread).toBeVisible();\n  await firstThread.click();\n'''
+          if text.count(old_mount) != 1:
+              raise SystemExit(f'mobile-safe mount anchor: expected 1 match, got {text.count(old_mount)}')
+          text = text.replace(old_mount, new_mount, 1)
           path.write_text(text, encoding='utf-8')
           PY
       - name: Install dependencies
@@ -48,17 +53,17 @@ jobs:
         run: npm run build
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
-      - name: Prove Preview and approval acceptance states at every frozen viewport
+      - name: Prove full Synthesis acceptance matrix at every frozen viewport
         env:
           CI: '1'
           YZU_PAGES: 'false'
         run: |
-          npx playwright test e2e/synthesis-acceptance-screenshots.spec.js --grep "06a-preview-required|06b-preview-passed|06c-approval" --workers=1 --retries=0 --timeout=60000 --reporter=line
+          npx playwright test e2e/synthesis-acceptance-screenshots.spec.js --workers=1 --retries=0 --timeout=60000 --reporter=line
       - name: Commit only the verified acceptance contract
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add e2e/synthesis-acceptance-screenshots.spec.js
           git diff --cached --quiet && exit 0
-          git commit -m "test(synthesis): align frozen acceptance labels"
+          git commit -m "test(synthesis): align frozen acceptance matrix"
           git push origin HEAD:hardening/synthesis-analytical-verification-20260826
