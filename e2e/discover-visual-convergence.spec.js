@@ -89,12 +89,17 @@ test.describe("Discover visual convergence", () => {
     await expect(page.getByText("Reviewed acquisition", { exact: true })).toBeVisible();
 
     const path = coverage.locator(".rd-v2-discover-evidence-path");
-    const overflows = await path.locator("li").evaluateAll((nodes) =>
-      nodes.map((node) => node.scrollWidth > node.clientWidth + 2),
-    );
-    expect(overflows.some(Boolean)).toBe(false);
-    await assertNoHorizontalOverflow(page);
     await page.screenshot({ path: `${OUT}/discover-idle-1440x900.png`, fullPage: false });
+    const offenders = await path.locator("li").evaluateAll((nodes) =>
+      nodes.map((node, index) => ({
+        index,
+        text: node.textContent?.replace(/\s+/g, " ").trim(),
+        clientWidth: node.clientWidth,
+        scrollWidth: node.scrollWidth,
+      })).filter((item) => item.scrollWidth > item.clientWidth + 2),
+    );
+    expect(offenders, `evidence-path overflow: ${JSON.stringify(offenders)}`).toEqual([]);
+    await assertNoHorizontalOverflow(page);
 
     await page.setViewportSize({ width: 1920, height: 1080 });
     await assertNoHorizontalOverflow(page);
