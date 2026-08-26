@@ -602,11 +602,12 @@ export function decideSynthesisProposal(threadId, { decision, proposalId, propos
   });
 }
 
-export function requestSynthesisExecution(threadId) {
+export function requestSynthesisExecution(threadId, { action = "request_approval" } = {}) {
+  const intent = String(action || "request_approval").trim();
   return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}/execute`, {
     method: "POST",
     headers: deskHeaders(),
-    body: JSON.stringify({}),
+    body: JSON.stringify({ action: intent }),
   });
 }
 

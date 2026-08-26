@@ -71,6 +71,14 @@ export function AskRail({
     dataset?.title && dataset.title !== "Synthesis studio"
       ? dataset.title
       : "Synthesis studio";
+  const synthesisSelected = isSynthesis ? railContext?.selected || {} : {};
+  const synthesisStageLabel = String(
+    synthesisSelected.synthesis_stage_label || synthesisSelected.synthesis_stage || "",
+  ).trim();
+  const synthesisDecision = String(synthesisSelected.current_decision || "").trim();
+  const synthesisPrompts = Array.isArray(synthesisSelected.synthesis_ask_prompts)
+    ? synthesisSelected.synthesis_ask_prompts.filter(Boolean).slice(0, 4)
+    : [];
   const hasThread = messages.length > 0;
   const discoverTitle = dataset?.title || dataset?.dataset_id || "";
   const railTitle = isProfile
@@ -84,7 +92,9 @@ export function AskRail({
       : isDiscover
         ? "Ask · selected source"
         : isSynthesis
-          ? "Ask · synthesis thread"
+          ? synthesisStageLabel
+            ? `Ask · ${synthesisStageLabel}`
+            : "Ask · synthesis thread"
           : "Procurement chat";
   const railSubtitle = isProfile
     ? hasThread
@@ -104,8 +114,8 @@ export function AskRail({
           ? `Evaluating · ${discoverTitle}`
           : isSynthesis
             ? hasThread
-              ? `Continuing · thread → ${synthesisContext}`
-              : `Thread context · ${synthesisContext}`
+              ? `Continuing · ${synthesisStageLabel || "thread"} → ${synthesisContext}`
+              : `${synthesisStageLabel || "Thread context"} · ${synthesisContext}`
             : ctxParts.length
               ? ctxParts.join(" · ")
               : "Select a dataset for grounded answers";
@@ -205,25 +215,29 @@ export function AskRail({
               </div>
             </div>
           ) : isSynthesis ? (
-            <div className="rd-v2-ask-placeholder">
+            <div className="rd-v2-ask-placeholder" data-testid="synthesis-ask-guidance">
               <p>
-                This conversation shares the active Synthesis thread. Challenge the interpretation, add a constraint,
-                compare constructions, or ask how a proposal changes the durable method.
+                {synthesisDecision
+                  ? `Current decision: ${synthesisDecision}. Ask stays bound to this durable thread and cannot silently advance its authority state.`
+                  : "This conversation shares the active Synthesis thread. Ask can interpret, challenge, or propose a reviewable next step without silently advancing the construction."}
               </p>
               <div className="rd-v2-chips-row rd-v2-ask-chips">
-                {[
-                  "Explain the current construction.",
-                  "Challenge the main assumption.",
-                  "Compare the alternatives.",
-                ].map((p) => (
+                {(synthesisPrompts.length
+                  ? synthesisPrompts
+                  : [
+                      "Explain the current construction.",
+                      "Challenge the main assumption.",
+                      "What is the next defensible research decision?",
+                    ]).map((p) => (
                   <button
                     key={p}
                     type="button"
                     className="rd-v2-chip clickable"
                     disabled={busy}
                     onClick={() => send(p)}
+                    title={p}
                   >
-                    {p}
+                    {String(p).length > 54 ? `${String(p).slice(0, 51)}…` : p}
                   </button>
                 ))}
               </div>
@@ -253,7 +267,7 @@ export function AskRail({
               </p>
             ) : isSynthesis ? (
               <p className="rd-v2-ask-context-notice" data-testid="ask-context-notice">
-                New messages use this Synthesis thread and its current accepted state.
+                New messages use this Synthesis thread{ synthesisStageLabel ? ` at ${synthesisStageLabel}` : "" } and its current accepted state.
               </p>
             ) : null}
             {messages.map((m, i) => {
@@ -307,7 +321,9 @@ export function AskRail({
               : isSettings
                 ? "Ask about desk behavior, access, or approvals…"
               : isSynthesis
-                ? "Correct the interpretation, add a constraint, or ask…"
+                ? synthesisDecision
+                  ? `Ask about ${synthesisDecision.toLowerCase()}…`
+                  : "Correct the interpretation, add a constraint, or ask…"
                 : isDiscoverHistory
                   ? "Ask about this lifecycle record…"
                   : "Ask about coverage, overlaps, or procurement…"

@@ -11,7 +11,7 @@ test.describe("v2 adaptive Preview", () => {
 
   test("owned datasets open as a bounded rows and fields viewer", async ({ page }) => {
     await page.getByRole("textbox", { name: "Search library holdings" }).fill("Asia");
-    await page.locator('.rd-v2-catalog-list button[data-kind="dataset"]', { hasText: "Asia daily news-risk panel" }).click();
+    await page.getByTestId("library-evidence-row").filter({ hasText: "Asia daily news-risk panel" }).click();
     await page.locator("aside.rd-v2-rail").getByRole("button", { name: "Preview rows" }).click();
 
     const preview = page.getByRole("dialog", { name: "Asia daily news-risk panel preview" });
@@ -21,8 +21,6 @@ test.describe("v2 adaptive Preview", () => {
     const [scrimBox, inspectorBox] = await Promise.all([scrim.boundingBox(), inspector.boundingBox()]);
     expect(scrimBox).not.toBeNull();
     expect(inspectorBox).not.toBeNull();
-    // UI_PRODUCT_AUTHORITY §9: Preview is centre-scoped evidence. The active
-    // Detail / Ask interpretation remains visible beside it.
     expect(scrimBox.x + scrimBox.width).toBeLessThanOrEqual(inspectorBox.x + 1);
     await expect(inspector.getByTestId("library-preview-open-state")).toHaveText("Preview open in centre");
     await expect(inspector.getByRole("button", { name: "Preview rows" })).toHaveCount(0);

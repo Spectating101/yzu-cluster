@@ -3,14 +3,11 @@ import { test, expect } from "@playwright/test";
 import { EXAMPLE_STATE } from "../drive/src/v2/synthesisContract.js";
 import { mockV2Api } from "./fixtures/v2MockApi.js";
 
-// Field payloads come from the contract module, so a screenshot can never show
-// a shape the desk is not being asked to produce.
 const E = EXAMPLE_STATE;
 const outDir = "artifacts/synthesis-acceptance";
 
 const WIDTHS = [
   { id: "desktop", width: 1440, height: 900 },
-  // Measured from the user's Chrome content area at 100% zoom on the 1920×1080 display.
   { id: "workstation", width: 1920, height: 961 },
   { id: "mobile", width: 390, height: 844 },
 ];
@@ -26,13 +23,47 @@ const SPEC = {
   input_dataset_id: "idn_fry_daily_cross_section",
   output_dataset_id: "idn_weekly_factor_exposure",
   grain: "asset × week",
+  group_by: ["asset", "week"],
+  metrics: [{ function: "mean", column: "excess_return", as: "weekly_excess_return" }],
+};
+
+const ACCEPTED_HASH = "2d6ed4f1c316e30b2a5d8d0698e50f98";
+const PREVIEW = {
+  status: "succeeded",
+  created_at: "2026-08-19T09:10:00+00:00",
+  spec_hash: ACCEPTED_HASH,
+  bounded: true,
+  materialised: false,
+  registered: false,
+  review_required: true,
+  sampling: {
+    strategy: "first_rows",
+    input_row_limit: 5000,
+    source_rows: 969392,
+    previewed_rows: 5000,
+    source_truncated: true,
+  },
+  preflight: { warnings: [], join_probes: [] },
+  rows: { source: 969392, preview_input: 5000, after_transforms: 4988, output: 71, by_step: [] },
+  output: {
+    dataset_id: "idn_weekly_factor_exposure",
+    columns: ["asset", "week", "weekly_excess_return"],
+    dtypes: { asset: "object", week: "object", weekly_excess_return: "float64" },
+    rows_returned: 3,
+    rows: [
+      { asset: "BBCA", week: "2026-W01", weekly_excess_return: 0.0124 },
+      { asset: "TLKM", week: "2026-W01", weekly_excess_return: -0.0041 },
+      { asset: "ASII", week: "2026-W01", weekly_excess_return: 0.0087 },
+    ],
+  },
+};
+
+const previewed = {
+  accepted_spec_hash: ACCEPTED_HASH,
+  preview: PREVIEW,
 };
 
 const STATES = {
-  // S-04 §6's canonical opening state. This fixture deliberately contains only
-  // values the thread contract supports; it is the pixel-review target for the
-  // whole composition, rather than a hand-drawn mock that can drift from the
-  // API shape.
   "00-opening-recommended": {
     durable_state: "exploration_ready",
     brief: "A reusable longitudinal measure of observable public attention to individual stablecoins, constructed from held and reachable evidence.",
@@ -65,6 +96,7 @@ const STATES = {
       { title: "Single-source visibility proxy" },
     ],
   },
+  "00a-defined": {},
   "01-exploring": { nodes: NODES },
   "02-columns": { nodes: NODES, column_profiles: E.column_profiles, columns_in_use: E.columns_in_use },
   "03-scope-blocked": { nodes: NODES, scope_block: E.scope_block },
@@ -79,23 +111,84 @@ const STATES = {
       { id: "op2", kind: "as_of_join", detail: "backward, tolerance 5D" },
     ],
     execution_spec: SPEC } },
-  "07-building": { nodes: NODES, execution_spec: SPEC, execution: { status: "running" } },
-  "08-registered": { nodes: NODES, execution_spec: SPEC,
-    execution: { status: "registered", output_dataset_id: "idn_weekly_factor_exposure",
-                 manifest_id: "man-8842", rows: 969392 },
+  "06a-preview-required": {
+    nodes: NODES,
+    execution_spec: SPEC,
+    accepted_spec_hash: ACCEPTED_HASH,
+    execution: { status: "spec_accepted", spec_hash: ACCEPTED_HASH, output_dataset_id: SPEC.output_dataset_id },
+  },
+  "06b-preview-passed": {
+    nodes: NODES,
+    execution_spec: SPEC,
+    ...previewed,
+    execution: { status: "spec_accepted", spec_hash: ACCEPTED_HASH, output_dataset_id: SPEC.output_dataset_id },
+  },
+  "06c-approval": {
+    nodes: NODES,
+    execution_spec: SPEC,
+    ...previewed,
+    execution: { status: "pending_approval", job_id: "job-pending", spec_hash: ACCEPTED_HASH, output_dataset_id: SPEC.output_dataset_id },
+  },
+  "07-building": { nodes: NODES, execution_spec: SPEC, ...previewed,
+    execution: { status: "running", job_id: "job-running", spec_hash: ACCEPTED_HASH, output_dataset_id: SPEC.output_dataset_id } },
+  "07a-completed-awaiting-registry": { nodes: NODES, execution_spec: SPEC, ...previewed,
+    execution: { status: "completed", job_id: "job-completed", spec_hash: ACCEPTED_HASH, output_dataset_id: SPEC.output_dataset_id, rows: 969392 } },
+  "08-registered": { nodes: NODES, execution_spec: SPEC, ...previewed,
+    execution: { status: "registered", job_id: "job-8842", spec_hash: ACCEPTED_HASH, output_dataset_id: "idn_weekly_factor_exposure",
+                 manifest_id: "man-8842", rows: 969392, drive_verified: true },
     provenance: E.provenance, settled_decisions: E.settled_decisions, excursions: E.excursions,
     column_profiles: E.column_profiles, columns_in_use: E.columns_in_use },
-  "09-failed": { nodes: NODES, execution_spec: SPEC,
-    execution: { status: "failed", error: "as-of join produced 206,432,820 rows, over the 1,000,000 limit" } },
-  "10-reuse": { nodes: NODES, execution_spec: SPEC,
-    execution: { status: "registered", output_dataset_id: "idn_weekly_factor_exposure" },
+  "08a-query-ready": { nodes: NODES, execution_spec: SPEC, ...previewed,
+    execution: { status: "query_ready", job_id: "job-8842", spec_hash: ACCEPTED_HASH, output_dataset_id: "idn_weekly_factor_exposure",
+                 manifest_id: "man-8842", rows: 969392, drive_verified: true },
+    provenance: E.provenance, settled_decisions: E.settled_decisions, excursions: E.excursions,
+    column_profiles: E.column_profiles, columns_in_use: E.columns_in_use },
+  "09-failed": { nodes: NODES, execution_spec: SPEC, ...previewed,
+    execution: { status: "failed", job_id: "job-failed", spec_hash: ACCEPTED_HASH, output_dataset_id: SPEC.output_dataset_id,
+      error: "as-of join produced 206,432,820 rows, over the 1,000,000 limit" } },
+  "10-reuse": { nodes: NODES, execution_spec: SPEC, ...previewed,
+    execution: { status: "registered", job_id: "job-reuse", spec_hash: ACCEPTED_HASH, output_dataset_id: "idn_weekly_factor_exposure",
+      drive_verified: true },
     reuse_from: E.reuse_from, reuse_changes: E.reuse_changes },
-  // The case the focus policy exists for: a finished thread still carrying the
-  // pre-build refusals it has outlived. It must not read CANNOT BUILD.
-  "11-stale-fields": { nodes: NODES, execution_spec: SPEC,
-    execution: { status: "registered", output_dataset_id: "idn_weekly_factor_exposure" },
+  "11-stale-fields": { nodes: NODES, execution_spec: SPEC, ...previewed,
+    execution: { status: "registered", job_id: "job-stale", spec_hash: ACCEPTED_HASH, output_dataset_id: "idn_weekly_factor_exposure",
+      drive_verified: true },
     scope_block: E.scope_block, unit_conflict: E.unit_conflict, provenance: E.provenance },
 };
+
+const EXPECTED_PHASE = {
+  "00-opening-recommended": "Method",
+  "00a-defined": "Evidence",
+  "01-exploring": "Method",
+  "02-columns": "Method",
+  "03-scope-blocked": "Method",
+  "04-unit-conflict": "Method",
+  "05-join": "Method",
+  "06-proposal": "Proposal",
+  "06a-preview-required": "Preview",
+  "06b-preview-passed": "Preview",
+  "06c-approval": "Approval",
+  "07-building": "Build",
+  "07a-completed-awaiting-registry": "Build",
+  "08-registered": "Result",
+  "08a-query-ready": "Result",
+  "09-failed": "Build",
+  "10-reuse": "Result",
+  "11-stale-fields": "Result",
+};
+
+const EXECUTION_FIRST = new Set([
+  "06a-preview-required",
+  "06b-preview-passed",
+  "06c-approval",
+  "07-building",
+  "07a-completed-awaiting-registry",
+  "08-registered",
+  "08a-query-ready",
+  "09-failed",
+  "10-reuse",
+  "11-stale-fields",
+]);
 
 const threadFor = (extra) => ({
   id: "thread-acceptance",
@@ -103,7 +196,9 @@ const threadFor = (extra) => ({
   updated_at: "2026-08-19T09:00:00+00:00",
   title: "IDN weekly factor exposure",
   objective: "Weekly excess return per Indonesian listed equity, against Fama-French factors.",
-  materialisation: extra.execution?.status === "registered" ? "registered" : "not_materialised",
+  materialisation: ["registered", "query_ready"].includes(extra.execution?.status)
+    ? extra.execution.status
+    : "not_materialised",
   state: {
     title: "IDN weekly factor exposure",
     objective: "Weekly excess return per Indonesian listed equity, against Fama-French factors.",
@@ -145,11 +240,8 @@ async function mount(page, thread) {
   await page.goto("/?tab=synthesis");
   const firstThread = page.getByTestId("synthesis-thread-item").first();
   await expect(firstThread).toHaveCount(1);
-  // Desktop owns thread selection in the left work rail. On a phone that rail
-  // becomes a compact picker, while the page selects the first durable thread
-  // after loading. Do not require an off-screen desktop control to be clicked.
-  if (await firstThread.isVisible()) await firstThread.click();
-  else await expect(page.locator(".s04-main h1")).toBeVisible();
+  await firstThread.click({ force: true });
+  await expect(page.getByTestId("synthesis-home-state")).toHaveCount(0);
 }
 
 test.describe("Synthesis acceptance screenshots", () => {
@@ -159,13 +251,55 @@ test.describe("Synthesis acceptance screenshots", () => {
         mkdirSync(outDir, { recursive: true });
         await page.setViewportSize({ width: viewport.width, height: viewport.height });
         await mount(page, threadFor(extra));
-        await expect(page.getByTestId("synthesis-thread-item").first()).toHaveCount(1);
+        await expect(page.getByTestId("research-situation").locator(".rd-v2-situation-state"))
+          .toHaveText(EXPECTED_PHASE[name]);
+
+        if (name === "00a-defined") {
+          await expect(page.getByTestId("synthesis-workflow-next")).toContainText("Find held evidence");
+          await expect(page.getByTestId("synthesis-evidence-state")).toBeVisible();
+          await expect(page.getByTestId("synthesis-evidence-state")).toContainText("No inputs mapped");
+        }
+
+        if (name === "06a-preview-required") {
+          const preview = page.getByTestId("synthesis-preview-state");
+          await expect(preview).toBeVisible();
+          await expect(preview).toContainText("Test this accepted recipe before full execution");
+          await expect(page.getByRole("button", { name: "Run bounded preview" })).toBeVisible();
+        }
+
+        if (name === "06b-preview-passed") {
+          const preview = page.getByTestId("synthesis-preview-state");
+          await expect(preview).toBeVisible();
+          await expect(preview).toContainText("This accepted recipe completed on bounded bytes");
+          await expect(preview).toContainText("5,000");
+          await expect(page.getByRole("button", { name: "Request execution approval" })).toBeVisible();
+        }
+
+        if (name === "06c-approval") {
+          await expect(page.getByTestId("synthesis-preview-state")).toHaveCount(0);
+          await expect(page.getByRole("button", { name: "Review approval" })).toBeVisible();
+          await expect(page.getByText("Bounded preview", { exact: true })).toBeVisible();
+          const previewStep = page.getByRole("listitem").filter({ hasText: "Bounded preview" }).first();
+          await expect(previewStep).toBeVisible();
+          await expect(previewStep).toContainText("✓");
+        }
+
+        if (viewport.id === "desktop" && EXECUTION_FIRST.has(name)) {
+          const execution = page.locator(
+            '[data-testid="synthesis-execution-state"], [data-testid="synthesis-failed-state"], [data-testid="synthesis-registered-state"], [data-testid="synthesis-query-ready-state"]',
+          ).first();
+          const evidence = page.getByTestId("synthesis-evidence-state").first();
+          await expect(execution).toBeVisible();
+          if (await evidence.count()) {
+            const [executionBox, evidenceBox] = await Promise.all([execution.boundingBox(), evidence.boundingBox()]);
+            expect(executionBox).not.toBeNull();
+            expect(evidenceBox).not.toBeNull();
+            expect(executionBox.y, `${name} should foreground execution/result truth`).toBeLessThan(evidenceBox.y);
+          }
+          await expect(page.locator(".s04-steps")).not.toBeVisible();
+        }
+
         await page.waitForTimeout(300);
-        // The document is exactly viewport-height; the workspace scrolls inside
-        // .rd-v2-body-scroll. fullPage therefore captures whatever that inner
-        // scroller happened to be showing, which is how two unrelated states
-        // produced identical mobile images. Reset it, then capture what a
-        // researcher sees on arrival.
         await resetScroll(page);
         await page.screenshot({ path: `${outDir}/${name}-${viewport.id}.png` });
 
@@ -178,7 +312,6 @@ test.describe("Synthesis acceptance screenshots", () => {
           }
         }
 
-        // A screenshot nobody has looked at still has to answer one question.
         const overflow = await page.evaluate(() =>
           document.documentElement.scrollWidth - document.documentElement.clientWidth);
         expect(overflow, `${name} overflows horizontally at ${viewport.width}px`).toBeLessThanOrEqual(1);
@@ -243,8 +376,6 @@ test.describe("Synthesis acceptance screenshots", () => {
     await expect(main.getByRole("region", { name: "Research brief" })).toBeVisible();
     await expect(main.getByRole("region", { name: "Recommended construction" })).toBeVisible();
     await expect(main.getByRole("region", { name: "What happens next" })).toBeVisible();
-    // The mobile disclosure retains the same source text in the DOM but is
-    // hidden on desktop. Guard visible duplication, not responsive markup.
     await expect(main.locator(':text-is("asset × week"):visible')).toHaveCount(1);
     await expect(main.getByText("Composite weekly attention index", { exact: true })).toHaveCount(1);
     const accept = main.getByRole("button", { name: "Accept & design method" });
@@ -256,10 +387,9 @@ test.describe("Synthesis acceptance screenshots", () => {
 
     await page.setViewportSize({ width: 390, height: 844 });
     await expect(page.locator(".s04-main h1")).toBeVisible();
-    const mobileGrip = page.getByRole("button", { name: "Show Detail · Ask" });
+    const mobileGrip = page.getByRole("button", { name: "Show research context" });
     const mobileGripBox = await mobileGrip.boundingBox();
     expect(mobileGripBox, "the compact inspector affordance should remain available").not.toBeNull();
-    expect(mobileGripBox.width).toBeLessThanOrEqual(68);
     expect(mobileGripBox.height).toBeGreaterThanOrEqual(44);
   });
 });

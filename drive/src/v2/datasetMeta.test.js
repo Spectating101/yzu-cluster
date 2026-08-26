@@ -1,6 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { demotionSentence, hydrateRemedy, isQueryReadyReadiness, statusPillKind, canIUseDecision } from "./datasetMeta.js";
+import {
+  canIUseDecision,
+  demotionSentence,
+  hydrateRemedy,
+  isQueryReadyReadiness,
+  libraryAssetKind,
+  libraryAssetPresentation,
+  statusPillKind,
+} from "./datasetMeta.js";
 
 test("unknown readiness is never promoted to query ready", () => {
   assert.deepEqual(statusPillKind({ dataset_id: "unknown" }), {
@@ -99,4 +107,44 @@ test("Can I use this keeps the demotion and does not drop the hydrate remedy", (
   assert.equal(decision.headline, "Not query-ready");
   assert.match(decision.body, /local bytes are missing/);
   assert.match(decision.body, /vault archive is available to restore local bytes/);
+});
+
+test("a procured paper is presented as a scholarly work, not a tabular dataset", () => {
+  const paper = {
+    dataset_id: "datacite_10.5281_zenodo.58938",
+    name: "Arbitrage Pricing and Efficient Markets Paper",
+    backend: "local_file",
+    access_shape: "local_file",
+    analysis_readiness: "metadata_search",
+    grain: "procured_snapshot",
+    one_line: "A research work useful for finance literature grounding and citation.",
+  };
+  assert.equal(libraryAssetKind(paper), "scholarly_work");
+  assert.deepEqual(libraryAssetPresentation(paper), {
+    kind: "scholarly_work",
+    noun: "scholarly work",
+    eyebrow: "Selected scholarly work",
+    shapeTitle: "Bibliographic record",
+    structureTitle: "Record details",
+    structureAction: "Inspect record",
+    askLabel: "Ask about this work",
+    previewRows: false,
+  });
+});
+
+test("metadata catalogues and normal panels keep distinct Library projections", () => {
+  assert.equal(
+    libraryAssetKind({ access_shape: "metadata_index", backend: "local_jsonl_catalog" }),
+    "metadata_index",
+  );
+  assert.equal(
+    libraryAssetKind({
+      name: "Daily market panel",
+      backend: "local_csv",
+      access_shape: "local_derived_tables",
+      grain: "firm_day",
+      analysis_readiness: "instant",
+    }),
+    "dataset",
+  );
 });

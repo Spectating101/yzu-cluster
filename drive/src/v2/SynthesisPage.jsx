@@ -17,8 +17,12 @@ import { handleEnterToSubmit } from "@/v2/enterToSubmit";
 import { DeskError } from "@/v2/DeskError";
 import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
 import { ExcursionRecordPanel } from "./ExcursionRecordPanel.jsx";
+import { SynthesisHome } from "./SynthesisHome.jsx";
 import { focusFor } from "./synthesisFocus.js";
+import { synthesisAssist } from "@/v2/synthesisAssist.js";
+import { synthesisDraftBrief, synthesisDraftPrompt } from "@/v2/synthesisDraft.js";
 import "./s04-opening.css";
+import "./synthesis-preview.css";
 
 // The record renders whether or not it leads, so the strip must not offer it too.
 const RECORD_ALWAYS = ["columns", "excursions", "settled", "provenance", "reuse"];
@@ -32,6 +36,7 @@ import { UnitConflictPanel } from "./UnitConflictPanel.jsx";
 import {
   buildStageDetail,
   executionTrack,
+  synthesisPreviewTruth,
   synthesisShowsEvidenceMap,
   synthesisShowsStageStrip,
 } from "@/v2/synthesisLifecycle";
@@ -116,21 +121,7 @@ function stateFor(thread) {
 }
 
 function stageLabel(thread) {
-  const state = thread?.state || {};
-  const execution = state.execution || {};
-  const mode = stateFor(thread);
-  // Spec §5: before a construction is accepted the label stays restrained.
-  if (isPreAcceptance(thread)) return EXPLORATION_READY;
-  if (mode === "query_ready") return "Query-ready output";
-  if (mode === "registered") return "Registered output";
-  if (mode === "failed") return "Execution failed";
-  if (mode === "execution") {
-    return execution.status
-      ? text(execution.status).replace(/_/g, " ")
-      : text(state.maturityLabel || state.maturity, "Accepted method");
-  }
-  if (mode === "proposal") return "Proposal needs review";
-  return text(state.maturityLabel || state.maturity, mode === "draft" ? "New thread" : "Evidence mapping");
+  return synthesisAssist(thread).label;
 }
 
 function evidenceNodes(thread) {
@@ -144,15 +135,7 @@ function targetNode(thread) {
 }
 
 function threadStatus(thread) {
-  const state = thread?.state || {};
-  const execution = state.execution || {};
-  const mode = stateFor(thread);
-  if (mode === "query_ready") return "Query ready";
-  if (mode === "registered") return "Registered";
-  if (mode === "failed") return "Needs recovery";
-  if (execution.status) return text(execution.status).replace(/_/g, " ");
-  if (state.proposal) return "Review proposal";
-  return text(state.maturityLabel || state.maturity, "Exploring");
+  return synthesisAssist(thread).status;
 }
 
 function threadOutput(thread) {
@@ -228,7 +211,7 @@ function SynthesisSidebarPortal({ children }) {
   return target ? createPortal(children, target) : null;
 }
 
-function ThreadList({ threads, selectedId, loading, onSelect, onNew }) {
+function ThreadList({ threads, selectedId, loading, onSelect, onHome, onNew, creating = false }) {
   const selectedRef = useRef(null);
   useEffect(() => {
     selectedRef.current?.scrollIntoView({ block: "nearest" });
@@ -258,12 +241,28 @@ function ThreadList({ threads, selectedId, loading, onSelect, onNew }) {
 
   return (
     <section className="s04-threads s04-threads--sidebar" aria-label="Synthesis threads">
+      <button
+        type="button"
+        className={`s04-thread-home${!selectedId && !creating ? " active" : ""}`}
+        aria-current={!selectedId && !creating ? "page" : undefined}
+        onClick={onHome}
+      >
+        <b>⌂</b>
+        <span><strong>Synthesis workspace</strong><small>All constructions</small></span>
+      </button>
       <header>
         <div className="s04-thread-heading">
           <span>Active work</span>
           <small>{loading ? "Loading" : `${activeThreads.length} active`}</small>
         </div>
-        <button type="button" className="s04-thread-new" onClick={onNew}>+ New synthesis</button>
+        <button
+          type="button"
+          className={`s04-thread-new${creating ? " is-active" : ""}`}
+          aria-pressed={creating}
+          onClick={onNew}
+        >
+          + New synthesis
+        </button>
       </header>
       <div className="s04-thread-list">
         {activeThreads.map(renderThread)}
@@ -400,11 +399,6 @@ function OpeningWorkflow({ thread, reasoningAvailable, reasoningStatus }) {
   );
 }
 
-/**
- * Spec §6. One construction is recommended and the alternatives stay counted but
- * collapsed. Before the first reasoning turn, the canvas must offer a real
- * transition into Ask rather than looking like a completed but inert demo.
- */
 function OpeningRoleMap({ recommendation }) {
   const output = recommendation.expectedOutput.label || recommendation.title;
   return (
@@ -496,14 +490,6 @@ function RecommendedConstruction({ thread, onCompare }) {
   );
 }
 
-/**
- * Spec §6. The opening state closes by saying what accepting does — and, more
- * importantly, what it does not do. The footer line is the spec's own: an AI
- * recommendation is ready and nothing has been built or modified.
- *
- * Both actions stay disabled until a construction exists to act on. A button
- * that looks live and does nothing is worse than one that says why it cannot.
- */
 function WhatHappensNext({
   thread,
   onCompare,
@@ -609,8 +595,6 @@ function WhatHappensNext({
 
 function ThreadHeader({ thread, onEditIntent }) {
   const state = thread?.state || {};
-  // Spec §6: the opening state is the brief. The objective paragraph and the
-  // record strip both restate what the brief already says, so they wait.
   const opening = isPreAcceptance(thread);
   const execution = state.execution || {};
   const mode = stateFor(thread);
@@ -663,19 +647,9 @@ function evidenceNodeId(node) {
 function mapTitle(thread, target) {
   const objective = text(thread?.objective || thread?.state?.objective);
   const targetLabel = text(target?.label);
-  // An opening thread's target is often the verbatim brief. The brief already
-  // owns that long-form text; repeat the durable title in the map rather than
-  // turning the evidence review into a second copy of the same paragraph.
   return !targetLabel || targetLabel === objective ? titleFor(thread) : targetLabel;
 }
 
-// A node's own `status` string is display text the backend chose, not a
-// judgment the UI should re-derive meaning from. Routability to Discover is
-// decided only by whether the durable discover-handoff endpoint explicitly
-// names this node's identity as missing evidence (the backend's own
-// HELD_STATUSES/MISSING_STATUSES classification) — never by pattern-matching
-// that status locally. No handoff yet, or a failed fetch, means no routing
-// affordance, not a guessed gap.
 function isEvidenceGap(node, missingIds) {
   const id = evidenceNodeId(node);
   return Boolean(id) && Boolean(missingIds?.has(id));
@@ -717,10 +691,6 @@ function EvidenceMap({
     });
   };
 
-  // Finding held evidence is an explicit transition. The review result lands
-  // below the opening fold, inside the evidence map, so leaving the viewport
-  // still makes a successful request look inert. Move the result into view
-  // only after the researcher asks for it; do not move them on initial load.
   useEffect(() => {
     if (evidence.length || !evidenceProposal || !proposalRef.current) return;
     proposalRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -1039,16 +1009,41 @@ function ExecutionRecord({ thread, busy, onRequest, onReview, onAsk, onOpenDatas
   const pendingApproval = rawStatus === "pending_approval";
   const active = ["queued", "running", "registering", "archiving"].includes(rawStatus);
   const hasSpec = Boolean(spec.input_dataset_id && spec.output_dataset_id);
-  const track = executionTrack(rawStatus, registered, queryReady);
+  const previewTruth = synthesisPreviewTruth(thread);
+  const preview = previewTruth.preview || {};
+  const previewEligible = Boolean(hasSpec && !registered && !failed && !pendingApproval && !active && (!rawStatus || rawStatus === "spec_accepted"));
+  const previewStatus = previewTruth.failed ? "Failed" : previewTruth.succeeded ? "Passed" : previewTruth.stale ? "Stale" : "Required";
+  const track = executionTrack(rawStatus, registered, queryReady, previewTruth.current ? preview : {});
+  const previewRows = preview.rows || {};
+  const sampling = preview.sampling || {};
+  const previewOutput = preview.output || {};
+  const sampleRows = Array.isArray(previewOutput.rows) ? previewOutput.rows : [];
+  const sampleColumns = Array.isArray(previewOutput.columns) ? previewOutput.columns : Object.keys(sampleRows[0] || {});
+  const warningCount = Array.isArray(preview.preflight?.warnings) ? preview.preflight.warnings.length : 0;
+  const showExecutionProof = Boolean(execution.job_id || registered || failed || pendingApproval || active);
+  const headline = previewEligible
+    ? previewTruth.failed
+      ? "Bounded preview failed"
+      : previewTruth.succeeded
+        ? "Bounded preview passed"
+        : "Bounded preview required"
+    : queryReady
+      ? "Query-ready research asset"
+      : registered
+        ? "Registered research asset"
+        : failed
+          ? "Execution failed"
+          : "Execution record";
+  const badge = previewEligible ? previewStatus : queryReady ? "Query ready" : registered ? "Registered" : status;
 
   return (
     <section className="s04-card" data-testid={queryReady ? "synthesis-query-ready-state" : registered ? "synthesis-registered-state" : failed ? "synthesis-failed-state" : "synthesis-execution-state"}>
       <header className="s04-title">
         <div>
-          <small>{queryReady ? "Query-ready research asset" : registered ? "Registered research asset" : failed ? "Execution failed" : "Execution record"}</small>
+          <small>{headline}</small>
           <h2>{registered ? softIdentifier(outputId, "Registered output") : softIdentifier(spec.output_dataset_id, "No execution requested")}</h2>
         </div>
-        <em className={registered ? "success" : failed ? "warn" : "neutral"}>{queryReady ? "Query ready" : registered ? "Registered" : status}</em>
+        <em className={registered || previewTruth.succeeded ? "success" : failed || previewTruth.failed ? "warn" : "neutral"}>{badge}</em>
       </header>
       {hasSpec ? (
         <dl className="s04-method">
@@ -1071,24 +1066,78 @@ function ExecutionRecord({ thread, busy, onRequest, onReview, onAsk, onOpenDatas
           ))}
         </ol>
       ) : null}
-      <div className="s04-proof">
-        <section>
-          <small>Execution evidence</small>
-          <dl>
-            <div><dt>Job</dt><dd>{text(execution.job_id, "Not requested")}</dd></div>
-            <div><dt>Rows</dt><dd>{execution.rows == null ? "Not reported" : Number(execution.rows).toLocaleString()}</dd></div>
-            <div><dt>Manifest</dt><dd>{text(execution.manifest_id, "Not reported")}</dd></div>
-          </dl>
+      {previewEligible ? (
+        <section
+          className={`s04-preview-receipt ${previewTruth.failed ? "is-failed" : previewTruth.succeeded ? "is-passed" : "is-required"}`}
+          data-testid="synthesis-preview-state"
+        >
+          <header className="s04-preview-head">
+            <div>
+              <small>Preview/Test</small>
+              <strong>{previewTruth.succeeded ? "This accepted recipe completed on bounded bytes." : previewTruth.failed ? "The bounded recipe did not complete." : "Test this accepted recipe before full execution."}</strong>
+            </div>
+            <em>{previewStatus}</em>
+          </header>
+          {!previewTruth.current ? (
+            <p className="s04-preview-copy">
+              The desk will run the production transform, join, and aggregation semantics against a bounded input window. It will not create a worker job or research asset.
+            </p>
+          ) : null}
+          {previewTruth.succeeded ? (
+            <>
+              <dl className="s04-preview-metrics">
+                <div><dt>Source rows</dt><dd>{sampling.source_rows == null ? "—" : Number(sampling.source_rows).toLocaleString()}</dd></div>
+                <div><dt>Previewed</dt><dd>{sampling.previewed_rows == null ? "—" : Number(sampling.previewed_rows).toLocaleString()}</dd></div>
+                <div><dt>After transforms</dt><dd>{previewRows.after_transforms == null ? "—" : Number(previewRows.after_transforms).toLocaleString()}</dd></div>
+                <div><dt>Output rows</dt><dd>{previewRows.output == null ? "—" : Number(previewRows.output).toLocaleString()}</dd></div>
+              </dl>
+              <p className="s04-preview-copy">
+                {warningCount ? `${warningCount} preflight warning${warningCount === 1 ? "" : "s"} recorded. ` : "No preflight warnings recorded. "}
+                Sampling: {text(sampling.strategy, "bounded window").replace(/_/g, " ")}.
+              </p>
+              {sampleRows.length && sampleColumns.length ? (
+                <div className="s04-preview-sample">
+                  <small>Output sample · {sampleRows.length} row{sampleRows.length === 1 ? "" : "s"}</small>
+                  <div className="s04-preview-table-wrap">
+                    <table className="s04-preview-table">
+                      <thead><tr>{sampleColumns.slice(0, 8).map((column) => <th key={column}>{column}</th>)}</tr></thead>
+                      <tbody>
+                        {sampleRows.slice(0, 5).map((row, rowIndex) => (
+                          <tr key={rowIndex}>{sampleColumns.slice(0, 8).map((column) => <td key={`${rowIndex}-${column}`}>{String(row?.[column] ?? "")}</td>)}</tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ) : null}
+            </>
+          ) : null}
+          {previewTruth.failed ? <p className="s04-preview-error">{text(preview.error, "The preview failed without a recorded error detail.")}</p> : null}
+          <p className="s04-preview-boundary">
+            Preview is bounded evidence about this exact method revision. It materialises nothing, registers nothing, and does not prove full-population results.
+          </p>
         </section>
-        <section>
-          <small>Registration evidence</small>
-          <dl>
-            <div><dt>Archive</dt><dd>{execution.drive_verified ? "Reported verified" : "Not reported"}</dd></div>
-            <div><dt>Registry</dt><dd>{queryReady ? "Query-ready output reported" : registered ? "Registered output reported" : "Not claimed"}</dd></div>
-            <div><dt>Output</dt><dd>{softIdentifier(outputId, "Not registered")}</dd></div>
-          </dl>
-        </section>
-      </div>
+      ) : null}
+      {showExecutionProof ? (
+        <div className="s04-proof">
+          <section>
+            <small>Execution evidence</small>
+            <dl>
+              <div><dt>Job</dt><dd>{text(execution.job_id, "Not requested")}</dd></div>
+              <div><dt>Rows</dt><dd>{execution.rows == null ? "Not reported" : Number(execution.rows).toLocaleString()}</dd></div>
+              <div><dt>Manifest</dt><dd>{text(execution.manifest_id, "Not reported")}</dd></div>
+            </dl>
+          </section>
+          <section>
+            <small>Registration evidence</small>
+            <dl>
+              <div><dt>Archive</dt><dd>{execution.drive_verified ? "Reported verified" : "Not reported"}</dd></div>
+              <div><dt>Registry</dt><dd>{queryReady ? "Query-ready output reported" : registered ? "Registered output reported" : "Not claimed"}</dd></div>
+              <div><dt>Output</dt><dd>{softIdentifier(outputId, "Not registered")}</dd></div>
+            </dl>
+          </section>
+        </div>
+      ) : null}
       {failed ? <p className="s04-fixture">{text(execution.error, "The execution failed without a recorded error detail.")}</p> : null}
       <footer className="s04-actions">
         <p>
@@ -1098,10 +1147,14 @@ function ExecutionRecord({ thread, busy, onRequest, onReview, onAsk, onOpenDatas
             : registered
               ? "This asset is shown because the thread reports a registered output; query readiness is not implied."
               : failed
-              ? "The accepted specification remains inspectable; no output is claimed registered."
-              : hasSpec
-                ? "Requesting execution creates a durable job. Registration remains a separate verified outcome."
-                : "An accepted execution specification is required before this thread can request a build."}
+                ? "The accepted specification remains inspectable; no output is claimed registered."
+                : previewEligible
+                  ? previewTruth.succeeded
+                    ? "The bounded preview passed. Requesting execution now creates a separate revision-bound approval job; it still does not authorize the worker."
+                    : "A successful bounded preview is required before this accepted revision may request execution approval."
+                  : hasSpec
+                    ? "A previewed execution request remains separate from worker approval and registration."
+                    : "An accepted execution specification is required before this thread can be tested or built."}
         </p>
         {registered ? (
           <button
@@ -1116,10 +1169,14 @@ function ExecutionRecord({ thread, busy, onRequest, onReview, onAsk, onOpenDatas
             Open in Library
           </button>
         ) : null}
-        {!registered && hasSpec && !rawStatus ? <button type="button" className="rd-v2-btn primary" disabled={busy} onClick={onRequest}>Request execution</button> : null}
+        {previewEligible ? (
+          <button type="button" className="rd-v2-btn primary" disabled={busy} onClick={onRequest}>
+            {previewTruth.succeeded ? "Request execution approval" : previewTruth.failed ? "Rerun bounded preview" : "Run bounded preview"}
+          </button>
+        ) : null}
         {pendingApproval ? <button type="button" className="rd-v2-btn primary" onClick={() => onReview?.(execution)}>Review approval</button> : null}
         {active ? <span className="s04-live-note">This thread refreshes automatically.</span> : null}
-        <button type="button" className="rd-v2-btn" onClick={() => onAsk("Explain the exact execution state and which evidence is still missing before this output can be trusted.")}>Ask about execution</button>
+        <button type="button" className="rd-v2-btn" onClick={() => onAsk("Explain the exact Preview/Test or execution state and which evidence is still missing before this output can be trusted.")}>Ask about this state</button>
       </footer>
     </section>
   );
@@ -1137,8 +1194,6 @@ function DraftCanvas({ thread, onAsk, stalled, onRetry }) {
         <em className="neutral">{stalled ? "No response yet" : "Grounding Library evidence"}</em>
       </header>
       <div className="s04-draft-flow" role="img" aria-label="The first Synthesis reasoning steps">
-        {/* The brief states the objective directly above; repeating it here made
-            the same paragraph appear three times on one screen. */}
         {isPreAcceptance(thread) ? null : (
           <>
             <strong>{text(thread?.objective || state.objective, "Research objective")}</strong>
@@ -1191,76 +1246,141 @@ function NewThread({
   profiles,
   onCreate,
   onStartBlueprint,
+  onCancel,
+  returnLabel,
   reasoningAvailable,
   reasoningStatus,
   onOpenResources,
+  onFrameInAsk,
 }) {
   const startingPoints = (Array.isArray(profiles) ? profiles : []).slice(0, 3);
+  const draft = synthesisDraftBrief(objective);
   return (
-    <section className="s04-intent" data-testid="synthesis-intent-state">
-      <small>Research object</small>
-      <h2>Describe the construction you need.</h2>
-      <p>State the research purpose in ordinary language. The desk records a durable object first, then maps held Library evidence before any method can be accepted.</p>
-      <textarea
-        rows={7}
-        value={objective}
-        onChange={(event) => setObjective(event.target.value)}
-        placeholder="Example: Build a weekly measure of stablecoin trust deterioration that separates security incidents, liquidity stress, and public attention…"
-        onKeyDown={(event) => {
-          handleEnterToSubmit(event, () => {
-            if (!busy && objective.trim()) onCreate();
-          });
-        }}
-      />
-      <p className="s04-intent-boundary">
-        No method exists yet. {reasoningAvailable
-          ? "Ask can reason from the recorded brief after held evidence is reviewed."
-          : `${reasoningStatus}. Starting a new assistant-grounded construction is unavailable.`}
-        {" "}Nothing executes or registers from this entry state.
-      </p>
-      {startingPoints.length ? (
-        <div className="s04-intent-starts">
-          <small>Or start from a registered method</small>
-          <div>
-            {startingPoints.map((profile) => (
-              <button
-                type="button"
-                key={profile.id}
-                disabled={busy || !reasoningAvailable}
-                onClick={() => onStartBlueprint?.(profile)}
-                title={!reasoningAvailable ? reasoningStatus : text(profile.title, profile.id)}
-              >
-                <strong>{text(profile.title, profile.id)}</strong>
-                <span>{text(profile.description, "Registered construction recipe")}</span>
-              </button>
-            ))}
-          </div>
+    <section className="s04-intent s04-new-entry" data-testid="synthesis-intent-state">
+      <header className="s04-new-entry-head">
+        <div>
+          <small>New construction</small>
+          <h1>Start from the research object, not the machinery.</h1>
+          <p>
+            This is an unsaved entry into the same Synthesis workspace. Record a research purpose or reuse a registered method;
+            the durable thread begins only after you choose one.
+          </p>
         </div>
-      ) : null}
-      <footer>
-        {/* VC-6: a disabled primary action must say why it is unavailable. */}
-        <span>
-          {objective.trim()
-            ? reasoningAvailable
-              ? "Creates a durable project, then opens Ask with this exact objective attached."
-              : "Assistant reasoning must be verified before this project can start."
-            : "Enter an objective to create a durable project."}
-        </span>
-        {!reasoningAvailable ? (
-          <button type="button" className="rd-v2-btn" onClick={() => onOpenResources?.()}>
-            Check Resources
-          </button>
-        ) : null}
-        <button
-          type="button"
-          className="rd-v2-btn primary"
-          disabled={busy || !objective.trim() || !reasoningAvailable}
-          onClick={onCreate}
-          title={!reasoningAvailable ? reasoningStatus : objective.trim() ? undefined : "Enter an objective to continue"}
-        >
-          {reasoningAvailable ? "Start project in Ask" : "Assistant unavailable"}
+        <button type="button" className="s04-new-entry-back" onClick={onCancel}>
+          ← Back to {text(returnLabel, "Synthesis")}
         </button>
-      </footer>
+      </header>
+
+      <div className="s04-new-entry-grid">
+        <section className="s04-new-entry-section s04-new-entry-purpose">
+          <small>Research purpose</small>
+          <h2>Describe the construction you need.</h2>
+          <p>Use ordinary research language. Evidence and method remain separate decisions after the object is recorded.</p>
+          <textarea
+            rows={7}
+            value={objective}
+            onChange={(event) => setObjective(event.target.value)}
+            placeholder="Example: Build a weekly measure of stablecoin trust deterioration that separates security incidents, liquidity stress, and public attention…"
+            onKeyDown={(event) => {
+              handleEnterToSubmit(event, () => {
+                if (!busy && objective.trim()) onCreate();
+              });
+            }}
+          />
+          <div className="s04-new-entry-framing" aria-label="Research brief framing checklist">
+            <header>
+              <div>
+                <small>Strong brief checklist</small>
+                <strong>{draft.complete}/4 framing cues</strong>
+              </div>
+              <button type="button" onClick={() => onFrameInAsk?.(objective)} disabled={!reasoningAvailable}>
+                Frame this in Ask →
+              </button>
+            </header>
+            <ul>
+              {draft.cues.map((cue) => (
+                <li key={cue.id} className={cue.ready ? "is-ready" : ""}>
+                  <b aria-hidden="true">{cue.ready ? "✓" : "·"}</b>
+                  <span>
+                    <strong>{cue.label}</strong>
+                    <small>{cue.ready ? "Mentioned" : cue.help}</small>
+                    {!cue.ready ? <em>e.g. {cue.example}</em> : null}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <p>This checklist is guidance only. It does not infer evidence, methodology, or research validity.</p>
+          </div>
+          <p className="s04-new-entry-boundary">
+            Nothing is built here. {reasoningAvailable
+              ? "After creation, the desk can review held Library evidence and Ask can help reason from that durable context."
+              : `${reasoningStatus}. You can inspect existing constructions, but assistant-grounded creation is unavailable.`}
+          </p>
+          <footer>
+            <span>
+              {objective.trim()
+                ? reasoningAvailable
+                  ? "Creates one durable Synthesis thread from this exact purpose."
+                  : "Assistant reasoning must be verified before this entry can create a thread."
+                : "Enter a purpose to create a durable thread."}
+            </span>
+            {!reasoningAvailable ? (
+              <button type="button" className="rd-v2-btn" onClick={() => onOpenResources?.()}>
+                Check Resources
+              </button>
+            ) : null}
+            <button
+              type="button"
+              className="rd-v2-btn primary"
+              disabled={busy || !objective.trim() || !reasoningAvailable}
+              onClick={onCreate}
+              title={!reasoningAvailable ? reasoningStatus : objective.trim() ? undefined : "Enter an objective to continue"}
+            >
+              {reasoningAvailable ? "Create construction" : "Assistant unavailable"}
+            </button>
+          </footer>
+        </section>
+
+        <section className="s04-new-entry-section s04-new-entry-methods">
+          <small>Registered methods</small>
+          <h2>Reuse a construction that already exists.</h2>
+          <p>Start from a recorded method, then review how its inputs and assumptions change for this new thread.</p>
+          {startingPoints.length ? (
+            <div className="s04-new-entry-method-list">
+              {startingPoints.map((profile) => (
+                <button
+                  type="button"
+                  key={profile.id}
+                  disabled={busy || !reasoningAvailable}
+                  onClick={() => onStartBlueprint?.(profile)}
+                  title={!reasoningAvailable ? reasoningStatus : text(profile.title, profile.id)}
+                >
+                  <strong>{text(profile.title, profile.id)}</strong>
+                  <em>Use →</em>
+                  <span>{text(profile.description, "Registered construction recipe")}</span>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p className="s04-new-entry-method-empty">No registered method is reported on this desk yet.</p>
+          )}
+        </section>
+      </div>
+
+      <dl className="s04-new-entry-contract" aria-label="New Synthesis entry contract">
+        <div>
+          <dt>Creates</dt>
+          <dd>A durable research-construction thread</dd>
+        </div>
+        <div>
+          <dt>Then</dt>
+          <dd>Held evidence is reviewed before method acceptance</dd>
+        </div>
+        <div>
+          <dt>Does not</dt>
+          <dd>Execute, register, or silently choose consequential methodology</dd>
+        </div>
+      </dl>
     </section>
   );
 }
@@ -1469,6 +1589,7 @@ export function SynthesisPage({
   const interpretingSinceRef = useRef(null);
   const interpretingThreadIdRef = useRef("");
   const proposalReviewRef = useRef(null);
+  const returnThreadIdRef = useRef("");
 
   const replaceThread = useCallback((next) => {
     if (!next?.id) return;
@@ -1485,11 +1606,11 @@ export function SynthesisPage({
       const result = await listSynthesisThreads();
       const next = Array.isArray(result?.threads) ? result.threads : [];
       setThreads(next);
-      setSelectedId((current) => {
-        if (current && next.some((thread) => thread.id === current)) return current;
-        const familiar = next.find((thread) => /stablecoin attention/i.test(titleFor(thread)));
-        return familiar?.id || next[0]?.id || "";
-      });
+      // The Synthesis tab is a workspace, not an implicit first-thread route.
+      // Preserve an explicit selection if it still exists; otherwise remain on
+      // the workspace home until a researcher opens a construction or a deep
+      // link supplies focusThreadId.
+      setSelectedId((current) => current && next.some((thread) => thread.id === current) ? current : "");
       if (!next.length) setNewMode(false);
     } catch (cause) {
       setError(text(cause?.message, "Synthesis threads could not be loaded."));
@@ -1539,10 +1660,6 @@ export function SynthesisPage({
       .join("|"),
     [selected],
   );
-  // A stored draft is not evidence that an Ask turn is running. Only the
-  // deliberate transition below may show the transient "in progress" state;
-  // otherwise a returned-to thread would look like a static demo that is
-  // silently working when no provider request was ever made.
   const reasoningPending = Boolean(selected && reasoningThreadId === selected.id);
   const reasoningAvailable = Boolean(
     assistantAllowed && assistantRuntime?.ready === true && onAskComposer,
@@ -1552,6 +1669,17 @@ export function SynthesisPage({
     : assistantRuntime?.label || "Assistant runtime not verified";
 
   useEffect(() => {
+    if (!newMode) return;
+    onSelectThread?.({
+      id: "__new__",
+      title: "New construction",
+      objective,
+      ephemeral: true,
+      state: { ephemeral: true, entry_mode: "new", objective },
+    });
+  }, [newMode, objective, onSelectThread]);
+
+  useEffect(() => {
     if (!selected) return;
     const key = `${selected.id}:${selected.updated_at || ""}:${selected.state?.execution?.status || ""}`;
     if (notified.current === key) return;
@@ -1559,10 +1687,11 @@ export function SynthesisPage({
     onSelectThread?.(selected);
   }, [selected, onSelectThread]);
 
-  // Measurements are fetched independently from the durable thread record.
-  // Propagate the merged, read-only view to the inspector as soon as it lands;
-  // otherwise the centre can show 72 profiled columns while the rail still
-  // claims the desk has no interpretation of the evidence in front of it.
+  useEffect(() => {
+    if (loading || selected || newMode) return;
+    onSelectThread?.(null);
+  }, [loading, newMode, onSelectThread, selected]);
+
   useEffect(() => {
     if (!selectedMeasurement || !displayedSelected) return;
     const inputIds = Array.isArray(selectedMeasurement.input_dataset_ids)
@@ -1575,10 +1704,6 @@ export function SynthesisPage({
       selectedMeasurement.measured_inputs ?? "",
       Array.isArray(selectedMeasurement.column_profiles) ? selectedMeasurement.column_profiles.length : "",
     ].join(":");
-    // App supplies an inline selection callback. Calling it changes parent
-    // state, which creates a new callback identity; without a durable payload
-    // key this effect calls the new callback again forever. Real measured
-    // threads exposed the loop while static fixtures merely kept repainting.
     if (measurementNotified.current === key) return;
     measurementNotified.current = key;
     onSelectThread?.(displayedSelected);
@@ -1642,9 +1767,6 @@ export function SynthesisPage({
     const executing = /pending_approval|queued|running|registering|archiving/i.test(String(execution.status || ""));
     const interpreting = reasoningPending;
 
-    // Stalling belongs to one durable thread. Selecting a different new
-    // thread must start a fresh wait window rather than inheriting the
-    // previous thread's "agent hasn't responded" state.
     const interpretingThreadId = selected?.id || "";
     if (!interpreting) {
       interpretingSinceRef.current = null;
@@ -1657,9 +1779,6 @@ export function SynthesisPage({
     }
 
     if (!executing && !interpreting) return undefined;
-    // Once truly stalled, stop polling in the background — continuing to
-    // poll silently would undercut the honest "this stalled" signal now
-    // showing. A manual "Check again" click (retryInterpreting) re-arms it.
     if (interpreting && interpretingStalled) return undefined;
 
     const timer = window.setInterval(async () => {
@@ -1694,6 +1813,7 @@ export function SynthesisPage({
   }, [selected?.id]);
 
   const selectThread = async (threadId) => {
+    returnThreadIdRef.current = threadId;
     setSelectedId(threadId);
     setNewMode(false);
     setSelectedField(null);
@@ -1701,9 +1821,6 @@ export function SynthesisPage({
     try {
       const next = await refreshThread(threadId);
       if (next) {
-        // Selecting an already-measured thread must not replace the inspector's
-        // merged measured view with the older durable thread payload. The
-        // centre and rail are two views of the same evidence state.
         const measurement = measurementByThread[threadId]?.payload || null;
         onSelectThread?.(threadWithMeasurements(next, measurement));
       }
@@ -1727,8 +1844,6 @@ export function SynthesisPage({
         setMissingEvidenceIds(new Set(ids));
       })
       .catch(() => {
-        // Unavailable or incomplete handoff means no routing affordance,
-        // not a guessed gap — clear rather than leave a stale set.
         if (!cancelled) setMissingEvidenceIds(new Set());
       });
     return () => {
@@ -1738,10 +1853,8 @@ export function SynthesisPage({
 
   useEffect(() => {
     if (!focusThreadId) return;
-    // Returning from a Discover handoff: select the exact originating
-    // thread directly rather than leaving whatever was selected before.
     selectThread(focusThreadId).finally(() => onFocusThreadConsumed?.());
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot per focusThreadId change
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot per focusThreadId change
   }, [focusThreadId]);
 
   const routeToDiscover = async (field) => {
@@ -1768,8 +1881,9 @@ export function SynthesisPage({
   };
 
   const ask = (prompt, thread = selected, displayText = prompt) => {
+    const assist = thread ? synthesisAssist(threadWithMeasurements(thread, measurementByThread[thread.id]?.payload || null)) : null;
     const context = thread
-      ? `\n\nSynthesis thread: ${titleFor(thread)}\nObjective: ${text(thread.objective || thread.state?.objective)}\nDurable status: ${stageLabel(thread)}.`
+      ? `\n\nSynthesis thread: ${titleFor(thread)}\nObjective: ${text(thread.objective || thread.state?.objective)}\nCurrent stage: ${assist?.label || stageLabel(thread)}.\nCurrent researcher decision: ${assist?.decision || "Inspect the durable construction"}.\nRecorded risk: ${assist?.risk || "No additional risk summary recorded"}.`
       : "\n\nSynthesis workspace context.";
     onAskComposer?.({
       prompt: `${text(prompt)}${context}`,
@@ -1826,14 +1940,36 @@ export function SynthesisPage({
     }
   };
 
+  const goHome = () => {
+    returnThreadIdRef.current = "";
+    setSelectedId("");
+    setReasoningThreadId("");
+    setNewMode(false);
+    setObjective("");
+    setSelectedField(null);
+    setPromoted("");
+    setError("");
+    onSelectThread?.(null);
+  };
+
   const beginNew = () => {
+    returnThreadIdRef.current = selectedId || "";
     setSelectedId("");
     setReasoningThreadId("");
     setNewMode(true);
     setObjective("");
     setError("");
-    onSelectThread?.(null);
     onBeginNew?.();
+    onSelectThread?.({
+      id: "__new__",
+      title: "New construction",
+      ephemeral: true,
+      state: { ephemeral: true, entry_mode: "new" },
+    });
+  };
+
+  const cancelNew = () => {
+    goHome();
   };
 
   const createThread = async () => {
@@ -1847,6 +1983,7 @@ export function SynthesisPage({
         title: titleFromObjective(nextObjective),
       });
       replaceThread(created);
+      returnThreadIdRef.current = created.id;
       setSelectedId(created.id);
       setNewMode(false);
       setObjective("");
@@ -1888,6 +2025,7 @@ export function SynthesisPage({
         requiredGrain: Array.isArray(profile.join_keys) ? profile.join_keys.join(", ") : "",
       });
       replaceThread(created);
+      returnThreadIdRef.current = created.id;
       setSelectedId(created.id);
       setNewMode(false);
       setObjective("");
@@ -1931,25 +2069,24 @@ export function SynthesisPage({
     setBusy(true);
     setError("");
     try {
-      // Idempotency guard: a prior click's response can be lost even though
-      // the server successfully created the job (slow network, tab backgrounded,
-      // the researcher navigating away and back). Re-check durable state before
-      // requesting again, so a retry after a dropped response cannot create a
-      // second job against the same accepted specification.
       const current = await refreshThread(selected.id).catch(() => null);
+      const authoritative = current || selected;
       if (current) {
         replaceThread(current);
         onSelectThread?.(current);
-        if (text(current?.state?.execution?.status)) return;
       }
-      const result = await requestSynthesisExecution(selected.id);
+      const currentStatus = text(authoritative?.state?.execution?.status).toLowerCase().replace(/-/g, "_");
+      if (currentStatus && currentStatus !== "spec_accepted") return;
+      const preview = synthesisPreviewTruth(authoritative);
+      const action = preview.succeeded ? "request_approval" : "preview";
+      const result = await requestSynthesisExecution(selected.id, { action });
       const next = result?.thread || (result?.state ? result : await refreshThread(selected.id));
       if (next) {
         replaceThread(next);
         onSelectThread?.(next);
       }
     } catch (cause) {
-      setError(text(cause?.message, "The execution request could not be created."));
+      setError(text(cause?.message, "The bounded preview or execution request could not be completed."));
       refreshThread().catch(() => {});
     } finally {
       setBusy(false);
@@ -1976,7 +2113,9 @@ export function SynthesisPage({
           selectedId={selectedId}
           loading={loading}
           onSelect={selectThread}
+          onHome={goHome}
           onNew={beginNew}
+          creating={newMode}
         />
       </SynthesisSidebarPortal>
       <div className="s04-shell" data-testid="synthesis-studio">
@@ -1990,21 +2129,34 @@ export function SynthesisPage({
               profiles={profiles}
               onCreate={createThread}
               onStartBlueprint={startBlueprint}
+              onCancel={cancelNew}
+              returnLabel="Synthesis home"
               reasoningAvailable={reasoningAvailable}
               reasoningStatus={reasoningStatus}
               onOpenResources={() => onGoTab?.("resources")}
+              onFrameInAsk={(purpose) => onAskComposer?.({
+                prompt: synthesisDraftPrompt(purpose),
+                displayText: purpose ? "Help me sharpen this research object" : "Help me frame a research object",
+              })}
             />
           ) : null}
           {!newMode && !loading && !selected ? (
-            <EmptyWorkspace
+            <SynthesisHome
+              threads={threads}
+              loading={loading}
               profiles={profiles}
               profilesLoading={profilesLoading}
               profilesError={profilesError}
-              onStartBlueprint={startBlueprint}
+              onOpenThread={selectThread}
               onNew={beginNew}
+              onStartBlueprint={startBlueprint}
               reasoningAvailable={reasoningAvailable}
               reasoningStatus={reasoningStatus}
               onOpenResources={() => onGoTab?.("resources")}
+              onFrameInAsk={(purpose) => onAskComposer?.({
+                prompt: synthesisDraftPrompt(purpose),
+                displayText: purpose ? "Help me sharpen this research object" : "Help me frame a research object",
+              })}
             />
           ) : null}
           {!newMode && selected ? (
@@ -2094,6 +2246,7 @@ export function SynthesisPage({
                   onChooseKey={reasoningAvailable ? (candidate) => ask(`Use ${candidate.leftKey} to ${candidate.rightKey} for this join.`) : null}
                   onChooseOutcome={reasoningAvailable ? (outcome) => ask(`Take the "${outcome.label}" option for this join, and record why.`) : null}
                   onChooseCollapse={reasoningAvailable ? (choice) => ask(`Resolve the repeated key with "${choice.label}".`) : null}
+                  onAsk={reasoningAvailable ? ask : null}
                 />
               ) : null}
               {synthesisShowsEvidenceMap(displayedSelected) || (preAcceptance && hasMappedEvidence) ? (
@@ -2155,9 +2308,6 @@ export function SynthesisPage({
                 onChange={(change) => ask(`For the revision, change ${change.label}.`)}
                 onPreview={() => ask("Preview this revision before building it.")}
               />
-              {/* The opening remains compact until a researcher actually starts a
-                  reasoning turn. Then this is a transient, truthful progress
-                  record—not a second, decorative restatement of the brief. */}
               {reasoningPending && !focus.blocking ? (
                 <DraftCanvas thread={selected} onAsk={ask} stalled={interpretingStalled} onRetry={retryInterpreting} />
               ) : null}

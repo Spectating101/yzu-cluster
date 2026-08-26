@@ -37,7 +37,6 @@ test.describe("v2 Resources tab", () => {
     await expect(sourceLedger(page)).toContainText("Licensed / institutional");
     await expect(sourceLedger(page)).toContainText("Public market & filings");
     await expect(sourceLedger(page)).toContainText("Research & open data");
-    // VC-4: one collector vocabulary and denominator across toolbar, card, and rail.
     await expect(main).toContainText("12 registered · 3 connected · 2 running");
     await expect(main).not.toContainText("joined");
     await expect(main).not.toContainText("collectors available");
@@ -52,7 +51,7 @@ test.describe("v2 Resources tab", () => {
     await sourceLedger(page).getByRole("button", { name: /DataCite/ }).first().click();
 
     const rail = page.getByRole("complementary", { name: "Inspector" });
-    await expect(rail.locator(".rd-v2-rail-selection")).toContainText("DataCite");
+    await expect(page.getByTestId("research-situation")).toContainText("DataCite");
     await expect(rail).toContainText("DataCite");
     await expect(rail).toContainText(/metadata|dataset|DOI|harvest/i);
   });
@@ -62,14 +61,15 @@ test.describe("v2 Resources tab", () => {
 
     const rail = page.getByRole("complementary", { name: "Inspector" });
     await rail.getByRole("button", { name: "Ask about this →" }).click();
-    await expect(rail.getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "true");
+    await expect(page.getByTestId("research-situation").getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "true");
+    await expect(page.getByTestId("research-situation")).toContainText("BigQuery");
     await expect(rail).toContainText("Resources · BigQuery");
     await expect(page.getByTestId("ask-messages")).toContainText(/Explain this Resources .*BigQuery/);
   });
 
   test("right rail starts with Library capacity context", async ({ page }) => {
     const rail = page.getByRole("complementary", { name: "Inspector" });
-    await expect(rail.locator(".rd-v2-rail-selection")).toHaveText("Resources");
+    await expect(page.getByTestId("research-situation")).toContainText("Resources");
     await expect(rail).toContainText("Library capacity");
     await expect(rail).toContainText("Current capacity");
     await expect(rail).toContainText(/awaiting your approval|capacity warning|source routes/i);
@@ -122,7 +122,8 @@ test.describe("v2 Resources tab", () => {
     await capacityGrid(page).getByRole("button", { name: /BigQuery/ }).click();
     const rail = page.getByRole("complementary", { name: "Inspector" });
     await rail.getByRole("button", { name: "Ask about this →" }).click();
-    await expect(rail.getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "true");
+    await expect(page.getByTestId("research-situation").getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "true");
+    await expect(page.getByTestId("research-situation")).toContainText("BigQuery");
     await expect(rail).toContainText("Resources · BigQuery");
     await expect(rail).toContainText(/Explain this Resources .*BigQuery/);
   });
@@ -217,18 +218,6 @@ test("v2 Resources loading state does not flash account summary", async ({ page 
 });
 
 test("a confirmed-unreachable desk API shows honest unknown capacity, never fabricated healthy claims", async ({ page }) => {
-  // Regression: viewRollup previously fell back to a hardcoded PLACEHOLDER_ROLLUP
-  // (composer configured, BigQuery configured, query engine up) whenever the
-  // rollup fetch definitively failed (rollup === null) — the "Desk API
-  // unreachable" warning and a fully healthy-looking capacity grid rendered
-  // side by side. The grid must now read its real absence as "Not configured" /
-  // "not reported," matching the warning next to it, not contradicting it.
-  //
-  // Both /health and /library/desk/resources must fail here: /health alone
-  // legitimately seeds a partial rollup via projectRollupFromHealth (an honest
-  // projection of real /health fields, not fabrication) so a resources-only
-  // failure with a healthy /health is correctly rendered as partial data, not
-  // "unreachable." Only a fully-dark desk should hit the null/placeholder path.
   await mockV2Api(page);
   await page.route("**/*health*", (route) =>
     route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ error: "desk unreachable" }) }),

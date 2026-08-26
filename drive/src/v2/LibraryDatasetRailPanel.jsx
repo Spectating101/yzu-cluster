@@ -15,7 +15,6 @@ function usefulFor(dataset) {
 }
 
 function unknowns(dataset, fields) {
-  // Terra donor (33f7288): judgment caveats as short strings — no invented readiness scores.
   const out = [];
   const demotion = demotionSentence(dataset);
   if (demotion) out.push(demotion);
@@ -63,37 +62,71 @@ function sourceAuthorityLine(dataset, fields) {
   return "Source authority absent";
 }
 
+function normalizedVerification(value) {
+  return String(value || "").trim().toLowerCase().replace(/[\s-]+/g, "_");
+}
+
+function explicitVerificationRecord(dataset = {}) {
+  const nested = dataset.verification && typeof dataset.verification === "object" ? dataset.verification : {};
+  const sourceMatch = dataset.source_match && typeof dataset.source_match === "object" ? dataset.source_match : {};
+  const raw =
+    dataset.verification_status ||
+    dataset.verification_state ||
+    dataset.source_verification ||
+    dataset.source_match_status ||
+    nested.status ||
+    nested.state ||
+    sourceMatch.status ||
+    sourceMatch.state ||
+    "";
+  const normalized = normalizedVerification(raw);
+  const checks = [
+    ...(Array.isArray(nested.checks) ? nested.checks : []),
+    ...(Array.isArray(nested.established) ? nested.established : []),
+    ...(Array.isArray(sourceMatch.checks) ? sourceMatch.checks : []),
+  ].map((value) => String(value || "").trim()).filter(Boolean).slice(0, 4);
+  const unknowns = [
+    ...(Array.isArray(nested.unknowns) ? nested.unknowns : []),
+    ...(Array.isArray(sourceMatch.unknowns) ? sourceMatch.unknowns : []),
+  ].map((value) => String(value || "").trim()).filter(Boolean).slice(0, 4);
+  const note = String(
+    nested.summary || nested.reason || sourceMatch.summary || sourceMatch.reason || dataset.verification_summary || "",
+  ).trim();
+  return { normalized, checks, unknowns, note };
+}
+
 function verificationBlock(dataset) {
-  const kind = statusPillKind(dataset).kind;
-  if (kind === "query-ready") {
+  const record = explicitVerificationRecord(dataset);
+  const canonical = {
+    verified: "Verified",
+    matched: "Matched",
+    partial: "Partial",
+    unverified: "Unverified",
+    not_checked: "Not checked",
+    unchecked: "Not checked",
+  }[record.normalized];
+
+  if (canonical) {
+    const defaultBody = {
+      Verified: "A durable verification record is attached to this owned evidence.",
+      Matched: "A durable comparison records correspondence with sourcable evidence.",
+      Partial: "A durable comparison records only partial correspondence; inspect the remaining differences before reuse.",
+      Unverified: "A verification attempt did not establish correspondence with authoritative or sourcable evidence.",
+      "Not checked": "No durable source-comparison claim has been established for this asset.",
+    }[canonical];
     return {
-      headline: "Matched",
-      body: "Archive and registry correspondence supports query use.",
-      checks: ["Identifiers present", "Registry readiness declared", "Local query path available"],
-      unknowns: [],
+      headline: canonical,
+      body: record.note || defaultBody,
+      checks: record.checks,
+      unknowns: record.unknowns,
     };
   }
-  if (dataset?.archive_verified === true) {
-    return {
-      headline: "Archived",
-      body: "Vault archive confirmed. Query readiness may still be pending.",
-      checks: ["Archive verified"],
-      unknowns: ["Query readiness not confirmed"],
-    };
-  }
-  if (kind === "connected") {
-    return {
-      headline: "Connected",
-      body: "Source route is connected. Full verification is not complete.",
-      checks: ["Route connected"],
-      unknowns: ["Row-level correspondence not established"],
-    };
-  }
+
   return {
-    headline: "Unverified",
-    body: "Verification record is not established for this asset.",
+    headline: "Not checked",
+    body: "No explicit verification relationship is recorded. Query readiness, archive presence, and source verification are separate claims.",
     checks: [],
-    unknowns: ["Source match", "Coverage correspondence", "Query readiness"],
+    unknowns: ["Source correspondence not established"],
   };
 }
 

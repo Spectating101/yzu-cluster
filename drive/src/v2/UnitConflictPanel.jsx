@@ -1,4 +1,5 @@
-import { formatResult, magnitudeBars, magnitudeGap, unitOutcomes, unitSpread } from "./unitConflict.js";
+import { magnitudeGap, unitOutcomes, unitSpread } from "./unitConflict.js";
+import { UnitScaleVisual } from "./SynthesisVisualReasoning.jsx";
 
 export function UnitConflictPanel({ conflict, onChoose, onAsk }) {
   if (!conflict?.left || !conflict?.right) return null;
@@ -16,21 +17,7 @@ export function UnitConflictPanel({ conflict, onChoose, onAsk }) {
         {gap ? <em className="warn">{gap.ratio}× apart</em> : null}
       </header>
 
-      {(() => {
-        const chart = magnitudeBars(conflict);
-        if (!chart) return null;
-        return (
-          <figure className="s04-magnitude" data-testid="synthesis-magnitude-bars">
-            {chart.bars.map((bar) => (
-              <span key={bar.column}>
-                <em>{bar.column}</em>
-                <b style={{ width: `${(bar.cells / chart.width) * 100}%` }} />
-                <small>{formatResult(bar.value)}</small>
-              </span>
-            ))}
-          </figure>
-        );
-      })()}
+      <UnitScaleVisual conflict={conflict} outcomes={outcomes} />
 
       {gap?.suspicious ? (
         <p className="s04-note">

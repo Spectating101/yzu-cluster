@@ -57,5 +57,8 @@ jobs:
       - name: Verify frontend runtime contracts
         run: npm run test:runtime-contract
 
+      - name: Verify candidate UI contracts
+        run: npm run test:candidate-key
+
       - name: Build Research Drive
         run: npm run build
