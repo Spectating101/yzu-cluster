@@ -17,6 +17,9 @@ test.describe("v2 Library evidence estate", () => {
     await expect(estate).toHaveAttribute("aria-label", "Research evidence estate");
     await expect(page.getByTestId("library-evidence-row").first()).toBeVisible();
     await expect(page.getByTestId("library-collection-filter").first()).toBeVisible();
+    await expect(page.getByRole("button", { name: /^All$/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^Query ready / })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^Not query-ready / })).toBeVisible();
     await expect(page.getByTestId("research-situation")).toContainText("Library");
     await expect(page.locator("aside.rd-v2-rail")).toContainText("In this library");
     await expect(page.locator("aside.rd-v2-rail")).toContainText("Add data");
@@ -36,11 +39,14 @@ test.describe("v2 Library evidence estate", () => {
     await expect(workspace).toContainText("What you have");
     await expect(workspace).toContainText("What this supports");
     await expect(workspace).toContainText("What this does not establish");
-    await expect(workspace).toContainText("Observed local sample");
+    await expect(workspace).toContainText("Bounded local sample");
+    await expect(workspace.getByLabel("Evidence claims")).toContainText("Readiness");
+    await expect(workspace.getByLabel("Evidence claims")).toContainText("Verification");
     await expect(workspace.locator(".rd-v2-library-evidence-facts")).toContainText("ScopeNot declared");
     await expect(workspace.getByRole("button", { name: "Open query" })).toBeVisible();
-    await expect(workspace.getByRole("button", { name: "Inspect fields" })).toBeVisible();
+    await expect(workspace.getByRole("button", { name: "Inspect fields" })).toHaveCount(1);
     await expect(workspace.getByRole("button", { name: "Preview rows" })).toHaveCount(1);
+    await expect(page.getByTestId("library-observation-receipt")).toContainText("row observed");
 
     const rail = page.locator("aside.rd-v2-rail");
     await expect(page.getByTestId("research-situation")).toContainText("Asia daily news-risk panel");
@@ -58,6 +64,13 @@ test.describe("v2 Library evidence estate", () => {
     await expect(fields).toContainText("country_iso3");
     await fields.getByRole("button", { name: "Close inspection" }).click();
     await expect(fields).toHaveCount(0);
+
+    await workspace.getByRole("button", { name: "Source record" }).click();
+    const provenance = page.getByRole("dialog", { name: "Source and provenance" });
+    await expect(provenance).toBeVisible();
+    await expect(page.getByTestId("library-source-verification")).toContainText("Not checked");
+    await expect(page.getByTestId("library-source-readiness")).toContainText("Query ready");
+    await provenance.getByRole("button", { name: "Close inspection" }).click();
 
     await page.getByRole("button", { name: "← All Library assets" }).click();
     await expect(page.getByTestId("library-evidence-estate")).toBeVisible();
@@ -131,7 +144,7 @@ test.describe("v2 Library navigation", () => {
     await expect(page.getByTestId("library-evidence-estate")).toContainText("No evidence matches the current Library view");
   });
 
-  test("waits for research taxonomy without hiding the evidence estate behind it", async ({ page }) => {
+  test("shows owned evidence while research taxonomy is still organizing", async ({ page }) => {
     await mockV2Api(page, {
       libraryNavDelayMs: 1_200,
       libraryNavBody: {
@@ -161,14 +174,15 @@ test.describe("v2 Library navigation", () => {
     await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
 
-    await expect(page.getByRole("status")).toContainText("Organizing Library context");
-    await expect(page.getByText("ungrouped", { exact: true })).toHaveCount(0);
-
     const estate = page.getByTestId("library-evidence-estate");
     await expect(estate).toBeVisible();
     await expect(page.getByTestId("library-evidence-row").filter({ hasText: "Asia daily news-risk panel" })).toBeVisible();
+    await expect(page.getByTestId("library-collections-loading")).toContainText("Research collections are still loading");
+    await expect(page.getByText("ungrouped", { exact: true })).toHaveCount(0);
+
     await expect(page.getByTestId("library-collection-filter").filter({ hasText: "Markets" })).toBeVisible();
     await expect(page.getByTestId("library-collection-filter").filter({ hasText: "News" })).toBeVisible();
+    await expect(page.getByTestId("library-collections-loading")).toHaveCount(0);
     await expect(page.getByText("ungrouped", { exact: true })).toHaveCount(0);
   });
 
