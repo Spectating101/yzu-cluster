@@ -250,6 +250,13 @@ async function installSynthesisThreadMock(page) {
       }
       if (body.decision === "accept") {
         thread.state.execution_spec = proposal.execution_spec;
+        thread.state.accepted_spec_hash = "sha256:accepted-weekly-v1";
+        thread.state.preview = null;
+        thread.state.execution = {
+          status: "spec_accepted",
+          spec_hash: thread.state.accepted_spec_hash,
+          output_dataset_id: proposal.execution_spec?.output_dataset_id || "",
+        };
         thread.state.proposal = null;
         thread.state.maturity = "planned";
         thread.state.maturityLabel = "Accepted method";
@@ -267,14 +274,52 @@ async function installSynthesisThreadMock(page) {
       return respond(thread);
     }
     if (suffix === "execute" && method === "POST") {
-      thread.state.execution = {
-        status: "pending_approval",
-        job_id: "job-synthesis-pending",
-        output_dataset_id: thread.state.execution_spec?.output_dataset_id || "",
-      };
-      thread.state.lastActivity = "Execution request is awaiting approval.";
-      thread.updated_at = "2026-07-19T09:02:00+00:00";
-      return respond({ job: { id: "job-synthesis-pending", status: "pending_approval" }, thread });
+      const body = route.request().postDataJSON?.() || {};
+      const action = String(body.action || "");
+      if (action === "preview") {
+        thread.state.preview = {
+          status: "succeeded",
+          spec_hash: thread.state.accepted_spec_hash,
+          authority_hash: "sha256:fixture-authority",
+          bounded: true,
+          materialised: false,
+          registered: false,
+          sampling: { source_rows: 1000, previewed_rows: 100, source_truncated: true },
+          rows: { preview_input: 100, after_transforms: 100, output: 10 },
+          output: { columns: ["asset_id", "week", "row_count"], rows: [] },
+          preflight: { warnings: [] },
+        };
+        thread.state.lastActivity = "Bounded synthesis preview succeeded; review it before requesting execution.";
+        thread.updated_at = "2026-07-19T09:01:30+00:00";
+        return respond({
+          thread,
+          preview: thread.state.preview,
+          preview_only: true,
+          execution_submitted: false,
+          review_required: true,
+        });
+      }
+      if (action === "request_approval") {
+        const currentPreview = thread.state.preview?.status === "succeeded"
+          && thread.state.preview?.spec_hash === thread.state.accepted_spec_hash;
+        if (!currentPreview) return respond({ error: "current Preview required before approval" }, 409);
+        thread.state.execution = {
+          status: "pending_approval",
+          job_id: "job-synthesis-pending",
+          spec_hash: thread.state.accepted_spec_hash,
+          output_dataset_id: thread.state.execution_spec?.output_dataset_id || "",
+        };
+        thread.state.lastActivity = "Execution request is awaiting approval.";
+        thread.updated_at = "2026-07-19T09:02:00+00:00";
+        return respond({
+          job: { id: "job-synthesis-pending", status: "pending_approval" },
+          thread,
+          preview: thread.state.preview,
+          preview_only: false,
+          execution_submitted: true,
+        });
+      }
+      return respond({ error: `unexpected execution action: ${action}` }, 400);
     }
     if (suffix === "materialisation" && method === "GET") {
       const execution = thread.state.execution || {};
@@ -519,12 +564,17 @@ test.describe("v2 Synthesis durable thread surface", () => {
     expect((proposalBox?.y || Infinity) - ((nextBox?.y || 0) + (nextBox?.height || 0))).toBeLessThan(40);
     await capture(page, "02-proposal-review-desktop");
     await page.getByRole("button", { name: "Accept proposal" }).click();
-    await expect(page.getByTestId("synthesis-execution-state")).toContainText("stablecoin_attention_weekly");
-    await page.getByRole("button", { name: "Request execution" }).click();
+    const execution = page.getByTestId("synthesis-execution-state");
+    await expect(execution).toContainText("stablecoin_attention_weekly");
+    await expect(execution).toContainText("Bounded preview required");
+    await execution.getByRole("button", { name: "Run bounded preview" }).click();
+    await expect(execution).toContainText("Bounded preview passed");
+    await expect(execution.getByRole("button", { name: "Request execution approval" })).toBeVisible();
+    await execution.getByRole("button", { name: "Request execution approval" }).click();
     const pending = page.getByTestId("synthesis-execution-state");
     await expect(pending).toContainText("pending approval");
     await expect(pending.getByRole("button", { name: "Review approval" })).toBeVisible();
-    await expect(pending.getByRole("button", { name: "Request execution" })).toHaveCount(0);
+    await expect(pending.getByRole("button", { name: "Request execution approval" })).toHaveCount(0);
     await expect(pending).toContainText("Researcher approval");
     await expect(pending).toContainText("Archive + registry");
     await expect(pending.getByText("Query ready", { exact: true })).toHaveCount(0);
@@ -534,7 +584,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await expect(page).toHaveURL(/mode=history/);
   });
 
-  test("does not create a second execution job when a prior request's response was lost", async ({ page }) => {
+  test("does not create a second approval request when a prior approval response was lost", async ({ page }) => {
     // Simulate: a first "Request execution" click reached the server and
     // created a job, but the response never reached this client (dropped
     // connection, backgrounded tab). The button is still showing "Request
@@ -564,6 +614,18 @@ test.describe("v2 Synthesis durable thread surface", () => {
         output_dataset_id: "stablecoin_attention_weekly",
         group_by: ["asset_id", "week"],
         metrics: [{ field: "attention", aggregate: "mean" }],
+      },
+      accepted_spec_hash: "sha256:accepted-lost-response",
+      preview: {
+        status: "succeeded",
+        spec_hash: "sha256:accepted-lost-response",
+        authority_hash: "sha256:authority-lost-response",
+        sampling: { source_rows: 1000, previewed_rows: 100 },
+      },
+      execution: {
+        status: "spec_accepted",
+        spec_hash: "sha256:accepted-lost-response",
+        output_dataset_id: "stablecoin_attention_weekly",
       },
     };
     let getCalls = 0;
@@ -602,12 +664,12 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await page.getByTestId("synthesis-thread-item").filter({ hasText: "Weekly trust panel" }).click();
     const execution = page.getByTestId("synthesis-execution-state");
     await expect(execution).toContainText("stablecoin_attention_weekly");
-    await expect(execution.getByRole("button", { name: "Request execution" })).toBeVisible();
+    await expect(execution.getByRole("button", { name: "Request execution approval" })).toBeVisible();
 
-    await execution.getByRole("button", { name: "Request execution" }).click();
+    await execution.getByRole("button", { name: "Request execution approval" }).click();
 
     await expect(execution.getByRole("button", { name: "Review approval" })).toBeVisible();
-    await expect(execution.getByRole("button", { name: "Request execution" })).toHaveCount(0);
+    await expect(execution.getByRole("button", { name: "Request execution approval" })).toHaveCount(0);
     expect(executeCalls).toBe(0);
     expect(getCalls).toBeGreaterThanOrEqual(2);
   });
