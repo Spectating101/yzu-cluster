@@ -1,0 +1,148 @@
+/* Library evidence rigor layer.
+   The ledger exposes four independent claims (five when Type is present):
+   evidence identity, source, verification, and readiness. Keep the CSS grid in
+   lock-step with that semantic contract rather than letting implicit grid rows
+   rearrange the last claim. */
+
+.rd-v2-cap-ledger.with-verify .rd-v2-cap-ledger-head,
+.rd-v2-cap-ledger.with-verify .rd-v2-cap-ledger-row {
+  grid-template-columns: minmax(280px, 1fr) minmax(120px, 0.34fr) minmax(96px, 0.24fr) minmax(105px, 0.26fr);
+  grid-template-areas: "evidence source verify state";
+  gap: 16px;
+}
+
+.rd-v2-cap-ledger.with-verify.show-kind .rd-v2-cap-ledger-head,
+.rd-v2-cap-ledger.with-verify.show-kind .rd-v2-cap-ledger-row {
+  grid-template-columns: minmax(250px, 1fr) minmax(92px, 0.24fr) minmax(112px, 0.3fr) minmax(94px, 0.22fr) minmax(104px, 0.24fr);
+  grid-template-areas: "evidence kind source verify state";
+  gap: 14px;
+}
+
+.rd-v2-cap-ledger-head > span:first-child,
+.rd-v2-cap-evidence { grid-area: evidence; }
+.rd-v2-cap-ledger.show-kind .rd-v2-cap-ledger-head > span:nth-child(2),
+.rd-v2-cap-kind { grid-area: kind; }
+.rd-v2-cap-ledger:not(.show-kind) .rd-v2-cap-ledger-head > span:nth-child(2),
+.rd-v2-cap-ledger.show-kind .rd-v2-cap-ledger-head > span:nth-child(3),
+.rd-v2-cap-source { grid-area: source; }
+.rd-v2-cap-ledger:not(.show-kind) .rd-v2-cap-ledger-head > span:nth-child(3),
+.rd-v2-cap-ledger.show-kind .rd-v2-cap-ledger-head > span:nth-child(4),
+.rd-v2-cap-verify { grid-area: verify; }
+.rd-v2-cap-ledger:not(.show-kind) .rd-v2-cap-ledger-head > span:nth-child(4),
+.rd-v2-cap-ledger.show-kind .rd-v2-cap-ledger-head > span:nth-child(5),
+.rd-v2-cap-state { grid-area: state; }
+
+.rd-v2-cap-verify {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  align-items: center;
+  min-height: 22px;
+  padding: 3px 7px;
+  border: 1px solid var(--rd-border2);
+  border-radius: 999px;
+  color: var(--rd-muted);
+  background: rgba(255, 255, 255, 0.55);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.rd-v2-cap-verify.verified,
+.rd-v2-cap-verify.matched {
+  border-color: #c7dacf;
+  color: #315b45;
+  background: #f2f8f4;
+}
+
+.rd-v2-cap-verify.partial {
+  border-color: #e3d3ad;
+  color: #765f2e;
+  background: #fffaf0;
+}
+
+.rd-v2-cap-verify.unverified {
+  border-color: #e2c4c0;
+  color: #7a433c;
+  background: #fff6f4;
+}
+
+@media (max-width: 1120px) {
+  .rd-v2-cap-ledger.with-verify .rd-v2-cap-ledger-head,
+  .rd-v2-cap-ledger.with-verify .rd-v2-cap-ledger-row,
+  .rd-v2-cap-ledger.with-verify.show-kind .rd-v2-cap-ledger-head,
+  .rd-v2-cap-ledger.with-verify.show-kind .rd-v2-cap-ledger-row {
+    grid-template-columns: minmax(230px, 1fr) minmax(105px, 0.32fr) minmax(92px, 0.24fr) minmax(100px, 0.26fr);
+    grid-template-areas: "evidence source verify state";
+    gap: 12px;
+  }
+
+  .rd-v2-cap-ledger.with-verify.show-kind .rd-v2-cap-kind,
+  .rd-v2-cap-ledger.with-verify.show-kind .rd-v2-cap-ledger-head > span:nth-child(2) {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .rd-v2-cap-estate-head {
+    gap: 12px;
+    padding: 13px 14px 11px;
+  }
+
+  .rd-v2-cap-estate-head p {
+    font-size: 11px;
+  }
+
+  .rd-v2-cap-collections {
+    grid-template-columns: 1fr;
+    gap: 6px;
+    padding: 8px 14px 10px;
+  }
+
+  .rd-v2-cap-collection-list {
+    margin-inline: -2px;
+    padding: 2px;
+  }
+
+  .rd-v2-cap-ledger-head {
+    display: none;
+  }
+
+  .rd-v2-cap-ledger.with-verify .rd-v2-cap-ledger-row,
+  .rd-v2-cap-ledger.with-verify.show-kind .rd-v2-cap-ledger-row {
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "evidence state"
+      "source verify";
+    gap: 8px 12px;
+    align-items: start;
+    padding: 12px 14px;
+  }
+
+  .rd-v2-cap-ledger.with-verify.show-kind .rd-v2-cap-kind {
+    display: none;
+  }
+
+  .rd-v2-cap-evidence strong {
+    white-space: normal;
+  }
+
+  .rd-v2-cap-evidence em {
+    display: -webkit-box;
+    white-space: normal;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .rd-v2-cap-source {
+    align-self: center;
+    white-space: normal;
+  }
+
+  .rd-v2-cap-state,
+  .rd-v2-cap-verify {
+    justify-self: end;
+  }
+}
