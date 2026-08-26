@@ -22,6 +22,8 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - name: Verify Synthesis join-ranking freeze contract
+        run: node --test drive/src/v2/joinCandidates.test.js
       - run: npx playwright install chromium --with-deps
       - run: npm run build
       - name: Render converged Synthesis frames
