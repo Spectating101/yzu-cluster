@@ -1,0 +1,53 @@
+name: Synthesis finalized method export UI patch
+
+on:
+  push:
+    branches:
+      - hardening/synthesis-analytical-verification-20260826
+    paths:
+      - tools/_tmp_synthesis_method_export_ui_patch.py
+      - .github/workflows/synthesis-method-export-ui-patch.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: hardening/synthesis-analytical-verification-20260826
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: drive/package-lock.json
+      - name: Apply guarded patch
+        run: python tools/_tmp_synthesis_method_export_ui_patch.py
+      - name: Install frontend dependencies
+        working-directory: drive
+        run: npm ci
+      - name: Static and unit contracts
+        working-directory: drive
+        run: |
+          npm run build
+          node --check ../e2e/v2-synthesis.spec.js
+      - name: Install Chromium
+        working-directory: drive
+        run: npx playwright install --with-deps chromium
+      - name: Test finalized method export in browser
+        working-directory: drive
+        env:
+          CI: '1'
+        run: npx playwright test ../e2e/v2-synthesis.spec.js --grep "finalized output exposes the exact frozen method" --workers=1 --retries=0 --timeout=30000 --reporter=line
+      - name: Commit verified product changes and self-clean
+        run: |
+          rm -f tools/_tmp_synthesis_method_export_ui_patch.py .github/workflows/synthesis-method-export-ui-patch.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "feat(synthesis): expose frozen method on finalized output"
+          git push origin HEAD:hardening/synthesis-analytical-verification-20260826
