@@ -2,10 +2,10 @@
  * What a join would do to the study, before it is added.
  *
  * Cardinality is the question people ask about a join. Coverage is the one that
- * decides the result. Joining the Indonesian panel to the Refinitiv spine
- * duplicates almost nothing and reaches 50 of 635 symbols, so an inner join turns a
- * 635-stock panel into a 50-large-cap panel — a different research question rather
- * than a smaller one, and nothing in the join itself says so.
+ * decides the result only after the candidate identifies the intended grain. A
+ * constant identifier can have 100% overlap and still identify almost nothing.
+ * Complete entity-period grain therefore wins first, then the candidate that
+ * distinguishes the most observations across both sides, then coverage.
  *
  * A collapse strategy is only offered when the right side actually duplicates the
  * key. Offering it otherwise asks the researcher to rule on a situation that does
@@ -17,28 +17,38 @@ export const STRONG_COVERAGE = 95;
 
 export function rankCandidates(rows) {
   return (Array.isArray(rows) ? rows : [])
-    .map((row) => ({
-      leftKey: String(row?.left_key || ""),
-      rightKey: String(row?.right_key || ""),
-      keyParts: Array.isArray(row?.key_parts) ? row.key_parts.map((part) => String(part)) : [],
-      completeIdentityDomain: Boolean(row?.complete_identity_domain),
-      leftDatasetId: String(row?.left_dataset_id || ""),
-      rightDatasetId: String(row?.right_dataset_id || ""),
-      leftLabel: String(row?.left_label || ""),
-      rightLabel: String(row?.right_label || ""),
-      matched: row?.matched ?? null,
-      total: row?.left_distinct ?? null,
-      rightTotal: row?.right_distinct ?? null,
-      coverage: row?.match_rate_pct ?? null,
-      duplicates: row?.right_duplicate_rows ?? 0,
-      usable: Boolean(row?.usable),
-      reason: row?.reason || null,
-    }))
+    .map((row) => {
+      const total = row?.left_distinct ?? null;
+      const rightTotal = row?.right_distinct ?? null;
+      const derivedCapacity = total == null || rightTotal == null
+        ? 0
+        : Math.min(Number(total || 0), Number(rightTotal || 0));
+      return {
+        leftKey: String(row?.left_key || ""),
+        rightKey: String(row?.right_key || ""),
+        keyParts: Array.isArray(row?.key_parts) ? row.key_parts.map((part) => String(part)) : [],
+        completeIdentityDomain: Boolean(row?.complete_identity_domain),
+        identityCapacity: Number(row?.identity_capacity ?? derivedCapacity),
+        leftDatasetId: String(row?.left_dataset_id || ""),
+        rightDatasetId: String(row?.right_dataset_id || ""),
+        leftLabel: String(row?.left_label || ""),
+        rightLabel: String(row?.right_label || ""),
+        matched: row?.matched ?? null,
+        total,
+        rightTotal,
+        coverage: row?.match_rate_pct ?? null,
+        duplicates: row?.right_duplicate_rows ?? 0,
+        usable: Boolean(row?.usable),
+        reason: row?.reason || null,
+      };
+    })
     .sort((a, b) => {
       if (a.usable !== b.usable) return a.usable ? -1 : 1;
       if (a.completeIdentityDomain !== b.completeIdentityDomain) {
         return a.completeIdentityDomain ? -1 : 1;
       }
+      const capacityDelta = b.identityCapacity - a.identityCapacity;
+      if (capacityDelta) return capacityDelta;
       const coverageDelta = (b.coverage ?? -1) - (a.coverage ?? -1);
       if (coverageDelta) return coverageDelta;
       return a.leftKey.localeCompare(b.leftKey);
