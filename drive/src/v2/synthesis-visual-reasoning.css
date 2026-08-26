@@ -332,12 +332,13 @@
     transform: translate(-50%, -50%);
   }
 
-  /* EXECUTION / RESULT — the existing durable lifecycle is rendered as a
-   * compact lineage path on workstation screens, preserving every state label. */
+  /* EXECUTION / RESULT — the existing durable lifecycle becomes a compact
+   * 3×2 lineage map. Six stages in one row were technically complete but too
+   * small inside the workstation's paired execution/evidence composition. */
   .rd-v2-synthesis-page .s04-exec-track {
-    display: flex;
-    align-items: stretch;
-    gap: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px 12px;
     margin: 12px 0;
     padding: 0;
     overflow: visible;
@@ -348,22 +349,23 @@
     position: relative;
     display: grid;
     grid-template-columns: 24px minmax(0, 1fr);
-    gap: 6px;
-    flex: 1 1 0;
+    gap: 7px;
     min-width: 0;
-    padding: 8px 9px 8px 0;
-    border: 0;
-    background: transparent;
+    padding: 8px 9px;
+    border: 1px solid #e0e4df;
+    border-radius: 8px;
+    background: rgba(250, 250, 247, .78);
   }
 
-  .rd-v2-synthesis-page .s04-exec-track > li + li::before {
-    content: "";
+  .rd-v2-synthesis-page .s04-exec-track > li:not(:nth-child(3n + 1))::before {
+    content: "→";
     position: absolute;
-    top: 19px;
-    left: -10px;
-    width: 18px;
-    height: 1px;
-    background: #cfd5d0;
+    top: 50%;
+    left: -8px;
+    color: #a0a8a2;
+    font-size: 10px;
+    font-weight: 800;
+    transform: translate(-50%, -50%);
   }
 
   .rd-v2-synthesis-page .s04-exec-track > li > b {
@@ -379,10 +381,20 @@
     font-size: 8px;
   }
 
+  .rd-v2-synthesis-page .s04-exec-track > li.done {
+    border-color: #d5dfd7;
+    background: rgba(242, 247, 242, .78);
+  }
+
   .rd-v2-synthesis-page .s04-exec-track > li.done > b {
     border-color: #93aa9a;
     background: #e7f0e9;
     color: #3c6850;
+  }
+
+  .rd-v2-synthesis-page .s04-exec-track > li.now {
+    border-color: #b8cbbb;
+    background: rgba(237, 245, 239, .92);
   }
 
   .rd-v2-synthesis-page .s04-exec-track > li.now > b {
@@ -390,6 +402,11 @@
     background: #dfece3;
     color: #315d47;
     box-shadow: 0 0 0 3px rgba(86, 123, 101, .08);
+  }
+
+  .rd-v2-synthesis-page .s04-exec-track > li.failed {
+    border-color: #ddc4ba;
+    background: rgba(251, 242, 238, .82);
   }
 
   .rd-v2-synthesis-page .s04-exec-track > li.failed > b {
