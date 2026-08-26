@@ -1,6 +1,8 @@
 import { displayName, libraryAssetPresentation } from "@/v2/datasetMeta";
+import { libraryVerification } from "@/v2/libraryVerification";
 import { StatusPill } from "@/v2/StatusPill";
 import "@/v2/capability-convergence.css";
+import "@/v2/library-evidence-rigor.css";
 
 function sourceLabel(row = {}) {
   return String(
@@ -49,27 +51,6 @@ function kindLabel(row = {}) {
   if (kind === "live_source") return "Live source";
   if (kind === "operational") return "Operational";
   return "Dataset";
-}
-
-function verificationLabel(row = {}) {
-  const nested = row.verification && typeof row.verification === "object" ? row.verification : {};
-  const sourceMatch = row.source_match && typeof row.source_match === "object" ? row.source_match : {};
-  const raw = String(
-    row.verification_status ||
-      row.verification_state ||
-      row.source_verification ||
-      row.source_match_status ||
-      nested.status ||
-      nested.state ||
-      sourceMatch.status ||
-      sourceMatch.state ||
-      "",
-  ).trim().toLowerCase().replace(/[\s-]+/g, "_");
-  if (raw === "verified") return { label: "Verified", kind: "verified" };
-  if (raw === "matched") return { label: "Matched", kind: "matched" };
-  if (raw === "partial") return { label: "Partial", kind: "partial" };
-  if (raw === "unverified") return { label: "Unverified", kind: "unverified" };
-  return { label: "Not checked", kind: "unchecked" };
 }
 
 function collectionCountLabel(folder = {}) {
@@ -146,7 +127,7 @@ export function LibraryEvidenceEstate({
           {assets.length ? (
             assets.map((item) => {
               const row = item?.row || item;
-              const verification = verificationLabel(row);
+              const verification = libraryVerification(row);
               return (
                 <button
                   key={row.dataset_id || item.id}
@@ -164,8 +145,16 @@ export function LibraryEvidenceEstate({
                   </span>
                   {showKind ? <span className="rd-v2-cap-kind" role="cell">{kindLabel(row)}</span> : null}
                   <span className="rd-v2-cap-source" role="cell">{sourceLabel(row)}</span>
-                  <span className={`rd-v2-cap-verify ${verification.kind}`} role="cell">{verification.label}</span>
-                  <span className="rd-v2-cap-state" role="cell"><StatusPill dataset={row} /></span>
+                  <span
+                    className={`rd-v2-cap-verify ${verification.kind}`}
+                    data-testid="library-evidence-verification"
+                    role="cell"
+                  >
+                    {verification.label}
+                  </span>
+                  <span className="rd-v2-cap-state" data-testid="library-evidence-readiness" role="cell">
+                    <StatusPill dataset={row} />
+                  </span>
                 </button>
               );
             })
