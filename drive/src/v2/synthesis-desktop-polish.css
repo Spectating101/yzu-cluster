@@ -7,19 +7,31 @@
 
 .s04-workflow-guide {
   margin: 0 0 14px;
-  padding: 12px;
   border: 1px solid #ddd8cd;
   border-radius: 10px;
   background: linear-gradient(180deg, rgba(250, 248, 242, .84), rgba(247, 245, 238, .54));
+  overflow: hidden;
 }
 
-.s04-workflow-guide > header {
+.s04-workflow-guide > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 11px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.s04-workflow-guide > summary::-webkit-details-marker { display: none; }
+
+.s04-workflow-guide > summary > span {
   display: grid;
-  gap: 3px;
-  margin-bottom: 9px;
+  gap: 2px;
+  min-width: 0;
 }
 
-.s04-workflow-guide > header span {
+.s04-workflow-guide > summary small {
   color: #647586;
   font-size: 8px;
   font-weight: 820;
@@ -27,13 +39,59 @@
   text-transform: uppercase;
 }
 
-.s04-workflow-guide > header strong {
+.s04-workflow-guide > summary strong {
+  overflow: hidden;
   color: #2d3d4b;
-  font-size: 10.5px;
+  font-size: 9px;
+  font-weight: 730;
   line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.s04-workflow-guide > ol {
+.s04-workflow-guide > summary em {
+  flex: none;
+  color: #687687;
+  font-size: 8px;
+  font-style: normal;
+  font-weight: 780;
+}
+
+.s04-workflow-guide > summary em::after {
+  content: "  ▾";
+}
+
+.s04-workflow-guide[open] > summary {
+  border-bottom: 1px solid #e7e2d9;
+}
+
+.s04-workflow-guide[open] > summary em::after {
+  content: "  ▴";
+}
+
+.s04-workflow-guide-body {
+  padding: 9px 11px 10px;
+}
+
+.s04-workflow-guide-body > p {
+  margin: 0;
+  color: #7a858d;
+  font-size: 7.5px;
+  line-height: 1.45;
+}
+
+.s04-workflow-guide-body > p:first-child {
+  margin-bottom: 6px;
+  color: #5e6c78;
+}
+
+.s04-workflow-guide-body > p:last-child {
+  margin-top: 7px;
+  padding-top: 7px;
+  border-top: 1px solid #e7e2d9;
+}
+
+.s04-workflow-guide-body > ol {
   display: grid;
   gap: 0;
   margin: 0;
@@ -42,17 +100,17 @@
   counter-reset: synthesis-guide;
 }
 
-.s04-workflow-guide > ol > li {
+.s04-workflow-guide-body > ol > li {
   counter-increment: synthesis-guide;
   position: relative;
   display: grid;
   grid-template-columns: 21px minmax(0, 1fr);
   gap: 7px;
   min-width: 0;
-  padding: 5px 0;
+  padding: 4px 0;
 }
 
-.s04-workflow-guide > ol > li::before {
+.s04-workflow-guide-body > ol > li::before {
   content: counter(synthesis-guide);
   display: grid;
   place-items: center;
@@ -66,41 +124,32 @@
   font-weight: 820;
 }
 
-.s04-workflow-guide > ol > li + li::after {
+.s04-workflow-guide-body > ol > li + li::after {
   content: "";
   position: absolute;
   top: -3px;
   left: 9px;
   width: 1px;
-  height: 8px;
+  height: 7px;
   background: #ddd8cf;
 }
 
-.s04-workflow-guide li > span {
+.s04-workflow-guide-body li > span {
   display: grid;
   gap: 1px;
   min-width: 0;
 }
 
-.s04-workflow-guide li strong {
+.s04-workflow-guide-body li strong {
   color: #374957;
   font-size: 9px;
   line-height: 1.25;
 }
 
-.s04-workflow-guide li small {
+.s04-workflow-guide-body li small {
   color: #7a8690;
   font-size: 7.5px;
   line-height: 1.35;
-}
-
-.s04-workflow-guide > p {
-  margin: 9px 0 0;
-  padding-top: 8px;
-  border-top: 1px solid #e7e2d9;
-  color: #7a858d;
-  font-size: 7.5px;
-  line-height: 1.45;
 }
 
 @media (min-width: 1121px) {
@@ -130,8 +179,8 @@
     line-height: 1.52;
   }
 
-  /* The current decision owns the first visual layer. These are the surfaces
-     where researcher judgement or execution authority actually changes. */
+  /* The current decision owns the first visual layer. These are the live
+     surfaces where researcher judgement or execution authority actually changes. */
   .rd-v2-synthesis-page :is(
     [data-testid="synthesis-proposal-state"],
     [data-testid="synthesis-execution-state"],
@@ -190,7 +239,6 @@
      be read as guidance while retaining compact uppercase field labels. */
   .yzu-inspector .s04-rail-context > p,
   .yzu-inspector .s04-draft-rail-brief > p,
-  .yzu-inspector .s04-rail-assist button,
   .yzu-inspector .s04-rail-proof strong {
     font-size: 9px;
     line-height: 1.45;
@@ -198,14 +246,8 @@
 
   .yzu-inspector .s04-rail-context,
   .yzu-inspector .s04-rail-proof,
-  .yzu-inspector .s04-rail-assist,
   .yzu-inspector .s04-draft-rail-brief {
     border-radius: 10px;
-  }
-
-  .yzu-inspector .s04-rail-assist button {
-    padding-top: 7px;
-    padding-bottom: 7px;
   }
 }
 
@@ -232,8 +274,7 @@
 
   .yzu-inspector .s04-workflow-guide,
   .yzu-inspector .s04-rail-context,
-  .yzu-inspector .s04-rail-proof,
-  .yzu-inspector .s04-rail-assist {
+  .yzu-inspector .s04-rail-proof {
     margin-bottom: 13px;
   }
 }
