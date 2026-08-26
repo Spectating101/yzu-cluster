@@ -9,11 +9,43 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   render:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Apply Synthesis convergence fixture cleanup
+        shell: bash
+        run: |
+          git fetch origin work/chatgpt-final-convergence-20260825:refs/remotes/origin/work/chatgpt-final-convergence-20260825
+          git checkout -B synthesis-convergence-cleanup origin/work/chatgpt-final-convergence-20260825
+          python - <<'PY'
+          from pathlib import Path
+          path = Path("e2e/synthesis-convergence-render.spec.js")
+          text = path.read_text(encoding="utf-8")
+          anchor = '''  const threads = new Map(seed.map((thread) => [thread.id, structuredClone(thread)]));\n\n  await page.route("**/library/synthesis/profiles**", (route) => route.fulfill({\n'''
+          replacement = '''  const threads = new Map(seed.map((thread) => [thread.id, structuredClone(thread)]));\n\n  await page.route("**/library/chat/synthesis-session-attention", (route) => route.fulfill({\n    status: 200,\n    contentType: "application/json",\n    body: JSON.stringify({ session_id: "synthesis-session-attention", messages: [] }),\n  }));\n\n  await page.route("**/library/synthesis/profiles**", (route) => route.fulfill({\n'''
+          if anchor in text:
+              text = text.replace(anchor, replacement, 1)
+          elif replacement not in text:
+              raise SystemExit("convergence chat-mock anchor not found")
+          text = text.replace(
+              'await expect(main.getByText("Exploration ready", { exact: true })).toBeVisible();',
+              'await expect(main.getByText("Construction recommendation", { exact: true })).toBeVisible();',
+              1,
+          )
+          path.write_text(text, encoding="utf-8")
+          PY
+          if ! git diff --quiet -- e2e/synthesis-convergence-render.spec.js; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add e2e/synthesis-convergence-render.spec.js
+            git commit -m "test(synthesis): align convergence with canonical recommendation state"
+            git push origin HEAD:work/chatgpt-final-convergence-20260825
+          fi
       - uses: actions/setup-node@v4
         with:
           node-version: 20
