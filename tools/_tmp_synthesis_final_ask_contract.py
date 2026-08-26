@@ -18,6 +18,11 @@ replacements = [
         '    await expect(page.getByRole("region", { name: "Research brief", exact: true }).first().getByRole("paragraph")).toHaveText(objective);\n',
         "scope duplicated research brief to workspace-first instance",
     ),
+    (
+        '    await expect(page.getByRole("heading", { name: "Weekly issuer attention panel for Taiwan filings" })).toBeVisible();\n',
+        '    await expect(page.getByTestId("synthesis-studio").getByRole("heading", { name: "Weekly issuer attention panel for Taiwan filings" })).toBeVisible();\n',
+        "scope duplicated construction heading to synthesis studio",
+    ),
 ]
 for old, new, label in replacements:
     count = text.count(old)
