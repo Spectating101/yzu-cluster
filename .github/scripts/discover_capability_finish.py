@@ -37,6 +37,29 @@ replace_once(
     "workspace duplicate idle suggestions",
 )
 
+# Once the backend assessment is active, it owns the evidence requirement. The
+# lightweight lexical interpretation is useful for keyword search, but keeping
+# a second surface labelled Research brief beside an assessed requirement makes
+# the researcher reconcile two authorities. Hide it while assessment is active.
+replace_once(
+    "drive/src/v2/BrowsePage.jsx",
+    '                {interpretation.chips.length ? (',
+    '                {interpretation.chips.length && !assessmentActive ? (',
+    "single authoritative research brief",
+)
+replace_once(
+    "drive/src/v2/BrowsePage.jsx",
+    '                      Strategy needs context',
+    '                      Clarify evidence need',
+    "actionable context CTA",
+)
+replace_once(
+    "drive/src/v2/BrowsePage.jsx",
+    '                      Custom strategy ready',
+    '                      Review sourcing strategy',
+    "actionable sourcing CTA",
+)
+
 # The dedicated Discover freeze stylesheet is the late-stage visual authority
 # for this surface. It must be loaded by the real application, not merely exist
 # in the repository or in screenshot tooling.
@@ -93,25 +116,17 @@ css += r'''
     white-space: nowrap;
   }
 }
-
-@media (max-width: 420px) {
-  .rd-v2-discover-page .rd-v2-discover-frozen-controls {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
-  }
-}
 '''
 css_path.write_text(css, encoding="utf-8")
 
 # Temporary diagnostic only. This test file is deliberately NOT staged by the
-# one-shot commit. It prints the browser's actual grid tracks and computed
-# geometry before the unchanged reachability assertion, so a green result also
-# proves the fix acts on the rendered controls rather than hiding overflow.
+# one-shot commit. It proves the fix acts on the rendered controls rather than
+# hiding overflow.
 replace_once(
     "e2e/v2-discover.spec.js",
     '''    const sortBox = await page.getByTestId("discover-sort-menu").boundingBox();\n    expect(filterBox).not.toBeNull();''',
-    '''    const sortBox = await page.getByTestId("discover-sort-menu").boundingBox();\n    const mobileGeometry = await page.evaluate(() => {\n      const read = (selector) => {\n        const node = document.querySelector(selector);\n        if (!node) return null;\n        const rect = node.getBoundingClientRect();\n        const style = getComputedStyle(node);\n        return {\n          selector,\n          rect: { x: rect.x, y: rect.y, width: rect.width, right: rect.right },\n          display: style.display,\n          width: style.width,\n          minWidth: style.minWidth,\n          maxWidth: style.maxWidth,\n          flex: style.flex,\n          gridTemplateColumns: style.gridTemplateColumns,\n          overflowX: style.overflowX,
-        };\n      };\n      return {\n        viewport: window.innerWidth,\n        bodyScrollWidth: document.body.scrollWidth,\n        documentScrollWidth: document.documentElement.scrollWidth,\n        controls: read(".rd-v2-discover-frozen-controls"),\n        filter: read('[data-testid="discover-filter-menu"]'),\n        sort: read('[data-testid="discover-sort-menu"]'),\n        filterSummary: read('[data-testid="discover-filter-menu"] > summary'),\n        sortSummary: read('[data-testid="discover-sort-menu"] > summary'),\n      };\n    });\n    console.log("DISCOVER_MOBILE_GEOMETRY", JSON.stringify(mobileGeometry));\n    expect(filterBox).not.toBeNull();''',
+    '''    const sortBox = await page.getByTestId("discover-sort-menu").boundingBox();\n    const mobileGeometry = await page.evaluate(() => {\n      const read = (selector) => {\n        const node = document.querySelector(selector);\n        if (!node) return null;\n        const rect = node.getBoundingClientRect();\n        const style = getComputedStyle(node);\n        return { selector, rect: { x: rect.x, width: rect.width, right: rect.right }, display: style.display, width: style.width, minWidth: style.minWidth, maxWidth: style.maxWidth, flex: style.flex, gridTemplateColumns: style.gridTemplateColumns };\n      };\n      return { viewport: window.innerWidth, controls: read(".rd-v2-discover-frozen-controls"), filter: read('[data-testid="discover-filter-menu"]'), sort: read('[data-testid="discover-sort-menu"]') };\n    });\n    console.log("DISCOVER_MOBILE_GEOMETRY", JSON.stringify(mobileGeometry));\n    expect(filterBox).not.toBeNull();''',
     "mobile geometry diagnostic",
 )
 
-print("Applied Discover one-entrance workspace, reversibility, live freeze-layer import, actual mobile control grid fix, and temporary geometry diagnostic")
+print("Applied Discover single-authority workspace, reversibility, actionable CTAs, live freeze layer, and mobile control fix")
