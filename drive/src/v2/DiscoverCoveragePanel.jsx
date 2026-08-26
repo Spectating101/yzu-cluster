@@ -1,5 +1,6 @@
 import { coverageSplit, coverageSummary } from "@/v2/discoverCoverage";
 import "./discover-production.css";
+import "./discover-visual-freeze.css";
 
 // Library already renders shelves as rows: title, count pill, one-line subtitle.
 // The first version of this drew bars and two number columns, which made one
