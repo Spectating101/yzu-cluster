@@ -110,7 +110,7 @@ export function MultiOverlapVisual({ overlap }) {
     <figure className="s04-viz s04-viz-multi-overlap" data-testid="synthesis-multi-overlap-visual">
       <header>
         <div>
-          <small>{bounded ? "Bounded overlap sample" : "Measured multi-source overlap"}</small>
+          <small>{bounded ? "Bounded overlap window" : "Measured multi-source overlap"}</small>
           <strong>{n(overlap.all_shared_distinct)} keys survive across all {sourceCount} measured inputs</strong>
         </div>
         <span>{n(overlap.union_distinct)} union · {overlap.key_parts?.join(" + ") || overlap.key}</span>
@@ -120,7 +120,7 @@ export function MultiOverlapVisual({ overlap }) {
 
       <figcaption>
         {bounded
-          ? `At least one source reached the ${n(overlap.row_cap_per_source)}-row read cap. Intersections are exact for the measured window, not a full-population claim.`
+          ? `At least one source reached the ${n(overlap.row_cap_per_source)}-row read cap. Intersections are exact for this deterministic read window, not a full-population or representative-sample claim.`
           : "Exclusive intersection counts are measured directly from the resolved key bytes; higher-order overlap is not inferred from pairwise rates."}
       </figcaption>
     </figure>
