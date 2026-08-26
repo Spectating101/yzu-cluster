@@ -1,14 +1,14 @@
 const SUBJECT_SELECTORS = [
   '[data-testid="synthesis-scope-block"]',
   '[data-testid="synthesis-unit-conflict"]',
+  '[data-testid="synthesis-failed-state"]',
   '[data-testid="synthesis-proposal-state"]',
   '[data-testid="synthesis-join-decision"]',
   '[data-testid="synthesis-execution-state"]',
-  '[data-testid="synthesis-failed-state"]',
   '[data-testid="synthesis-registered-state"]',
   '[data-testid="synthesis-query-ready-state"]',
   '[data-testid="synthesis-evidence-proposal"]',
-].join(",");
+];
 
 const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
 const USER_SCROLL_GRACE_MS = 900;
@@ -22,8 +22,19 @@ function visibleEnough(element) {
   return rect.top >= topGuard && Math.min(rect.bottom, viewport) >= Math.min(rect.top + 96, rect.bottom) && rect.top < viewport - bottomGuard;
 }
 
-function surfaceKey(element) {
-  return element?.getAttribute("data-testid") || element?.className || "";
+function surfaceKey(element, root) {
+  const identity = element?.getAttribute("data-testid") || element?.className || "";
+  const thread = root?.querySelector(".s04-head h1")?.textContent?.trim() || "";
+  const subject = element?.querySelector("h2")?.textContent?.trim() || "";
+  return [thread, identity, subject].filter(Boolean).join(":");
+}
+
+function authoritativeSurface(root) {
+  for (const selector of SUBJECT_SELECTORS) {
+    const surface = root.querySelector(selector);
+    if (surface) return surface;
+  }
+  return null;
 }
 
 /**
@@ -32,6 +43,8 @@ function surfaceKey(element) {
  * This deliberately does not make research decisions, click controls, or move
  * keyboard focus. React remains authoritative for state. The observer only
  * helps a newly-authoritative surface land in view after that state changes.
+ * Selector priority mirrors the workspace's blocking/decision hierarchy rather
+ * than DOM order, so polish can never visually outrank a stronger subject.
  */
 export function installSynthesisInteractionPolish() {
   if (typeof window === "undefined" || typeof document === "undefined") return () => {};
@@ -47,9 +60,9 @@ export function installSynthesisInteractionPolish() {
     lastUserScrollAt = performance.now();
   };
 
-  const land = (surface) => {
+  const land = (surface, root) => {
     if (!surface || document.visibilityState !== "visible") return;
-    const key = surfaceKey(surface);
+    const key = surfaceKey(surface, root);
     if (!key || key === lastSurface) return;
     lastSurface = key;
 
@@ -70,7 +83,7 @@ export function installSynthesisInteractionPolish() {
     frame = 0;
     const root = document.querySelector(".rd-v2-synthesis-page");
     if (!root) return;
-    land(root.querySelector(SUBJECT_SELECTORS));
+    land(authoritativeSurface(root), root);
   };
 
   const scheduleInspect = () => {
@@ -78,7 +91,12 @@ export function installSynthesisInteractionPolish() {
   };
 
   const observer = new MutationObserver(scheduleInspect);
-  observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ["data-testid", "class"] });
+  observer.observe(document.documentElement, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: ["data-testid", "class"],
+  });
   window.addEventListener("scroll", noteUserScroll, { passive: true, capture: true });
   document.addEventListener("visibilitychange", scheduleInspect);
   scheduleInspect();
