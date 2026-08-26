@@ -23,18 +23,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Apply guarded Synthesis structural freeze cleanup
+      - name: Apply guarded Synthesis freeze cleanup
         if: github.event_name == 'push' && github.ref_name == 'hardening/synthesis-analytical-verification-20260826'
         shell: bash
         run: |
           python scripts/synthesis_freeze_structural_patch.py
+          python scripts/synthesis_freeze_e2e_patch.py
           git diff --check
           if git diff --quiet; then
-            echo 'Structural cleanup already applied.'
+            echo 'Freeze cleanup already applied.'
           else
             git config user.name 'synthesis-freeze-bot'
             git config user.email 'synthesis-freeze-bot@users.noreply.github.com'
-            git add drive/src/v2/SynthesisPage.jsx drive/src/v2/api.js drive/src/v2/JoinDecisionPanel.jsx
+            git add drive/src/v2/SynthesisPage.jsx drive/src/v2/api.js drive/src/v2/JoinDecisionPanel.jsx e2e/v2-synthesis.spec.js
             git commit -m 'refactor(synthesis): make freeze interactions first-class'
             git push origin HEAD:hardening/synthesis-analytical-verification-20260826
           fi
