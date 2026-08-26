@@ -154,3 +154,19 @@
   .s04-preview-metrics > div:nth-child(3) { border-top: 1px solid #e8ece8; border-left: 0; }
   .s04-preview-metrics > div:nth-child(4) { border-top: 1px solid #e8ece8; }
 }
+
+/* A supporting evidence map must not advertise its own generic next step when
+ * the thread already has a stronger decision or execution state. The map stays
+ * visible and inspectable; only its competing footer yields authority. */
+.rd-v2-synthesis-page:has(:is(
+  [data-testid="synthesis-scope-block"],
+  [data-testid="synthesis-unit-conflict"],
+  [data-testid="synthesis-join-decision"],
+  [data-testid="synthesis-proposal-state"],
+  [data-testid="synthesis-execution-state"],
+  [data-testid="synthesis-failed-state"],
+  [data-testid="synthesis-registered-state"],
+  [data-testid="synthesis-query-ready-state"]
+)) [data-testid="synthesis-evidence-state"] > .s04-actions {
+  display: none;
+}
