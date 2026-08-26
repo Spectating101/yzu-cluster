@@ -1,0 +1,52 @@
+name: Synthesis final Ask contract cleanup
+
+on:
+  push:
+    branches:
+      - hardening/synthesis-analytical-verification-20260826
+    paths:
+      - tools/_tmp_synthesis_final_ask_contract.py
+      - .github/workflows/synthesis-final-ask-contract.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: hardening/synthesis-analytical-verification-20260826
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Apply guarded test cleanup
+        run: python tools/_tmp_synthesis_final_ask_contract.py
+      - name: Install frontend dependencies
+        run: npm ci
+      - name: Build and parse browser suite
+        run: |
+          npm run build
+          node --check e2e/v2-synthesis.spec.js
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run the two corrected Ask contracts plus frozen-method proof
+        env:
+          CI: '1'
+          YZU_PAGES: 'false'
+        run: >-
+          npx playwright test e2e/v2-synthesis.spec.js
+          --grep "sends the selected durable thread to the shared Ask rail|creates a durable thread quietly|finalized output exposes the exact frozen method"
+          --workers=1 --retries=0 --timeout=30000 --reporter=line
+      - name: Commit verified test cleanup and self-clean
+        run: |
+          rm -f tools/_tmp_synthesis_final_ask_contract.py .github/workflows/synthesis-final-ask-contract.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "test(synthesis): align final Ask authority contract"
+          git push origin HEAD:hardening/synthesis-analytical-verification-20260826
