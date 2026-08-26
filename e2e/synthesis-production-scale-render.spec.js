@@ -152,6 +152,10 @@ const THREE_NODES = [
   node("regulatory_filing_signals", "Regulatory filing disclosure signals", 1),
   node("market_microstructure_weekly", "Market microstructure weekly observations", 2),
 ];
+const PANEL_NODES = [
+  node("issuer_week_panel", "Issuer-week research panel", 0),
+  node("market_week_panel", "Weekly market evidence", 1),
+];
 const EIGHT_OVERLAP = eightWayOverlap();
 const EIGHT_NODES = EIGHT_OVERLAP.sources.map((source, index) => node(source.dataset_id, source.label, index));
 const EIGHT_PAIR_SHARED = EIGHT_OVERLAP.intersections.reduce(
@@ -176,12 +180,70 @@ const CASES = [
     },
   },
   {
+    id: "pairwise-panel-grain",
+    thread: thread("scale-panel-grain", PANEL_NODES, { title: "Entity-week panel join" }),
+    measurement: (t) => measurementFor(t, {
+      join_candidates: [
+        {
+          left_key: "entity_id",
+          right_key: "entity_id",
+          key_parts: ["entity_id"],
+          complete_identity_domain: false,
+          left_dataset_id: PANEL_NODES[0].dataset_id,
+          right_dataset_id: PANEL_NODES[1].dataset_id,
+          left_label: PANEL_NODES[0].label,
+          right_label: PANEL_NODES[1].label,
+          matched: 2,
+          left_distinct: 2,
+          right_distinct: 2,
+          right_duplicate_rows: 2,
+          match_rate_pct: 100,
+          usable: true,
+          reason: null,
+        },
+        {
+          left_key: "entity_id + week",
+          right_key: "entity_id + week",
+          key_parts: ["entity_id", "week"],
+          complete_identity_domain: true,
+          left_dataset_id: PANEL_NODES[0].dataset_id,
+          right_dataset_id: PANEL_NODES[1].dataset_id,
+          left_label: PANEL_NODES[0].label,
+          right_label: PANEL_NODES[1].label,
+          matched: 2,
+          left_distinct: 4,
+          right_distinct: 4,
+          right_duplicate_rows: 0,
+          match_rate_pct: 50,
+          usable: true,
+          reason: null,
+        },
+      ],
+      join_candidate_dataset_id: PANEL_NODES[1].dataset_id,
+      join_candidate_rows: 4,
+      multi_overlap: null,
+    }),
+    assert: async (page) => {
+      const decision = page.getByTestId("synthesis-join-decision");
+      await expect(decision.locator("header.s04-title h2")).toHaveText(PANEL_NODES[1].label);
+      await expect(decision.locator("header.s04-title em")).toContainText("50%");
+      const firstKey = decision.locator(".s04-options").first().locator("li").first();
+      await expect(firstKey).toContainText("entity_id + week");
+      await expect(firstKey).toContainText("2 of 4");
+      await expect(page.getByTestId("synthesis-join-overlap-visual")).toBeVisible();
+    },
+  },
+  {
     id: "eight-source-bounded",
     thread: thread("scale-eight", EIGHT_NODES, { title: "Eight-source empirical research estate" }),
     measurement: (t) => measurementFor(t, {
       join_candidates: [{
         left_key: "entity_id",
         right_key: "entity_id",
+        left_dataset_id: EIGHT_NODES[0].dataset_id,
+        right_dataset_id: EIGHT_NODES[1].dataset_id,
+        left_label: EIGHT_NODES[0].label,
+        right_label: EIGHT_NODES[1].label,
         matched: EIGHT_PAIR_SHARED,
         left_distinct: EIGHT_OVERLAP.sources[0].distinct,
         right_distinct: EIGHT_OVERLAP.sources[1].distinct,
