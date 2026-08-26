@@ -20,6 +20,16 @@ replace_once(
     "workspace compact editable brief",
 )
 
+# The dedicated Discover freeze stylesheet is the late-stage visual authority
+# for this surface. It must be loaded by the real application, not merely exist
+# in the repository or in screenshot tooling.
+replace_once(
+    "drive/src/v2/main.jsx",
+    'import "./library-workspace.css";\nimport "./synthesis-workstation.css";',
+    'import "./library-workspace.css";\nimport "./discover-visual-freeze.css"; /* Discover evidence investigation freeze */\nimport "./synthesis-workstation.css";',
+    "Discover freeze stylesheet application import",
+)
+
 # Mobile reachability is a product invariant. The base mobile layout already
 # turns the controls into two columns; force both controls and the native select
 # to shrink inside those columns rather than honoring an overflowing min-content
@@ -61,4 +71,4 @@ css += r'''
 '''
 css_path.write_text(css, encoding="utf-8")
 
-print("Applied Discover reversibility and mobile reachability finish guards")
+print("Applied Discover reversibility, live freeze-layer import, and mobile reachability guards")
