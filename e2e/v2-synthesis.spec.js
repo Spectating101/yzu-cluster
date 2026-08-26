@@ -399,12 +399,11 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await waitForShell(page);
     await selectThread(page, "Historical stablecoin attention");
 
-    const workflow = page.getByRole("list", { name: "Synthesis project stages" });
+    const workflow = page.getByRole("list", { name: "Synthesis workflow" });
     await expect(workflow).toContainText("Define");
-    await expect(workflow).toContainText("Ground");
-    await expect(workflow).toContainText("Review");
-    await expect(workflow).toContainText("Build");
-    await expect(workflow).toContainText("Reuse");
+    await expect(workflow).toContainText("Map evidence");
+    await expect(workflow).toContainText("Reason");
+    await expect(workflow).toContainText("Approve");
     await expect(page.getByTestId("synthesis-workflow-next")).toContainText(
       "Assistant unverified; review the evidence map or check Resources before reasoning.",
     );
@@ -749,7 +748,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await selectThread(page, "Historical stablecoin attention");
     await page.getByRole("button", { name: "Discuss construction in Ask" }).click();
     const rail = page.locator("aside.rd-v2-rail");
-    await expect(rail).toContainText("Ask · synthesis thread");
+    await expect(rail).toContainText("Ask · Method design");
     await expect(rail).toContainText("Keep the primary horizon weekly.");
     await expect(rail).not.toContainText("[context:");
     await expect(rail).not.toContainText("Durable status:");
@@ -803,7 +802,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await page.getByRole("button", { name: "Start method reasoning" }).click();
 
     await expect.poll(() => prompt).toContain("create one reviewable Synthesis proposal");
-    await expect(page.locator("aside.rd-v2-rail")).toContainText("Ask · synthesis thread");
+    await expect(page.locator("aside.rd-v2-rail")).toContainText("Ask · Proposal review");
     await expect(page.getByTestId("synthesis-proposal-state")).toContainText(
       "Aggregate held weekly panel",
     );
@@ -861,7 +860,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await page.getByRole("button", { name: "+ New" }).click();
     await expect(page.locator(".s04-intent-contract")).toHaveCount(0);
     await expect(page.getByText(/Nothing is built here\./)).toBeVisible();
-    await expect(page.locator("aside.rd-v2-rail")).toContainText("Synthesis studio");
+    await expect(page.locator("aside.rd-v2-rail")).toContainText("Ask · Research objective");
     await expect(page.getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "true");
     await capture(page, "06-new-project-entry-desktop");
 
@@ -1264,8 +1263,14 @@ test.describe("v2 Synthesis evidence panels", () => {
     }));
     const panel = page.getByTestId("synthesis-join-decision");
     await expect(panel).toBeVisible();
-    await expect(page.getByTestId("synthesis-join-overlap-visual")).toBeVisible();
-    await expect(panel).toContainText("520 on the right match nothing here");
+    const overlap = page.getByTestId("synthesis-join-overlap-visual");
+    await expect(overlap).toBeVisible();
+    await expect(overlap).toContainText("585");
+    await expect(overlap).toContainText("current only");
+    await expect(overlap).toContainText("50");
+    await expect(overlap).toContainText("usable overlap");
+    await expect(overlap).toContainText("520");
+    await expect(overlap).toContainText("added only");
     await expect(panel).toContainText("a different population");
     await expect(panel).toContainText("the column is empty on the right side");
   });
@@ -1518,19 +1523,19 @@ test.describe("v2 Synthesis measured evidence integration", () => {
     expect(renderErrors, "measured state must not feed selection back into an infinite render loop").toEqual([]);
     await expect(page.getByTestId("synthesis-method-surface")).toContainText("2 mapped Library inputs");
     await expect(page.getByTestId("synthesis-measured-dataset")).toHaveCount(2);
-    await expect(page.getByTestId("synthesis-unit-conflict")).toContainText("Measured warning");
+    const unitConflict = page.getByTestId("synthesis-unit-conflict");
+    await expect(unitConflict).toContainText("Measured warning");
     await expect(page.getByRole("button", { name: "Ask which is which" })).toHaveCount(0);
-    const warningBox = await page.getByTestId("synthesis-unit-conflict").boundingBox();
-    const nextBox = await page.getByRole("region", { name: "What happens next" }).boundingBox();
-    expect(nextBox?.y).toBeLessThan(warningBox?.y);
+    await expect(openingRail).toContainText("Measurement decision needed");
+    await expect(openingRail).toContainText("Resolve the incompatible measurement scales");
+    const warningBox = await unitConflict.boundingBox();
+    const methodBox = await page.getByTestId("synthesis-method-surface").boundingBox();
+    expect(warningBox?.y).toBeLessThan(methodBox?.y);
     expect(
-      (nextBox?.y || Infinity) + (nextBox?.height || Infinity),
-      "the one consequential action should be visible before the deep evidence record",
+      (warningBox?.y || Infinity) + (warningBox?.height || Infinity),
+      "the authoritative measurement decision should be visible before the deep evidence record",
     ).toBeLessThanOrEqual(1000);
     await expect(page.getByRole("region", { name: "Recommended construction" })).toHaveCount(0);
-    await expect(page.getByRole("region", { name: "What happens next" })).toContainText(
-      "finished deterministic checks against held evidence",
-    );
     await capture(page, "measured-evidence-1440x1000");
 
     await page.setViewportSize({ width: 390, height: 844 });
