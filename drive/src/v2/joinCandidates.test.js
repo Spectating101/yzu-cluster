@@ -15,20 +15,21 @@ const row = (over = {}) => ({
   usable: true, reason: null, ...over,
 });
 
-test("candidates are ranked by coverage when identity capacity is otherwise equal", () => {
+test("candidates are ranked by coverage when identity class and capacity are otherwise equal", () => {
   const ranked = rankCandidates([
-    row({ right_key: "isin", match_rate_pct: 0, usable: false }),
-    row({ right_key: "ric", match_rate_pct: 7.874 }),
+    row({ right_key: "bad", match_rate_pct: 0, usable: false }),
+    row({ right_key: "partial", match_rate_pct: 7.874 }),
     row({ right_key: "good", match_rate_pct: 99.8 }),
   ]);
-  assert.deepEqual(ranked.map((r) => r.rightKey), ["good", "ric", "isin"]);
+  assert.deepEqual(ranked.map((r) => r.rightKey), ["good", "partial", "bad"]);
 });
 
-test("an informative identity outranks a constant identifier with cosmetic 100% coverage", () => {
+test("an informative entity identity outranks a constant identifier with cosmetic 100% coverage", () => {
   const ranked = rankCandidates([
     row({
       left_key: "cusip",
       right_key: "cusip",
+      key_parts: ["cusip"],
       left_distinct: 1,
       right_distinct: 1,
       matched: 1,
@@ -37,6 +38,7 @@ test("an informative identity outranks a constant identifier with cosmetic 100% 
     row({
       left_key: "entity_id",
       right_key: "entity_id",
+      key_parts: ["entity_id"],
       left_distinct: 100,
       right_distinct: 90,
       matched: 45,
@@ -45,6 +47,7 @@ test("an informative identity outranks a constant identifier with cosmetic 100% 
   ]);
 
   assert.equal(ranked[0].leftKey, "entity_id");
+  assert.equal(ranked[0].entityIdentityDomain, true);
   assert.equal(ranked[0].degenerateIdentity, false);
   assert.equal(ranked[0].identityCapacity, 90);
   assert.equal(ranked[0].coverage, 45);
@@ -53,11 +56,42 @@ test("an informative identity outranks a constant identifier with cosmetic 100% 
   assert.equal(ranked[1].coverage, 100);
 });
 
-test("coverage still outranks raw cardinality among non-degenerate identity keys", () => {
+test("entity identity outranks a time-only key even when the time values overlap perfectly", () => {
+  const ranked = rankCandidates([
+    row({
+      left_key: "report_year",
+      right_key: "report_year",
+      key_parts: ["report_year"],
+      left_distinct: 4,
+      right_distinct: 4,
+      matched: 4,
+      match_rate_pct: 100,
+    }),
+    row({
+      left_key: "entity_id",
+      right_key: "entity_id",
+      key_parts: ["entity_id"],
+      left_distinct: 4,
+      right_distinct: 4,
+      matched: 2,
+      match_rate_pct: 50,
+    }),
+  ]);
+
+  assert.equal(ranked[0].leftKey, "entity_id");
+  assert.equal(ranked[0].entityIdentityDomain, true);
+  assert.equal(ranked[0].coverage, 50);
+  assert.equal(ranked[1].leftKey, "report_year");
+  assert.equal(ranked[1].entityIdentityDomain, false);
+  assert.equal(ranked[1].coverage, 100);
+});
+
+test("coverage still outranks raw cardinality among non-degenerate entity keys", () => {
   const ranked = rankCandidates([
     row({
       left_key: "large_sparse_id",
       right_key: "large_sparse_id",
+      key_parts: ["large_sparse_id"],
       left_distinct: 1000,
       right_distinct: 1000,
       matched: 100,
@@ -66,6 +100,7 @@ test("coverage still outranks raw cardinality among non-degenerate identity keys
     row({
       left_key: "slightly_smaller_good_id",
       right_key: "slightly_smaller_good_id",
+      key_parts: ["slightly_smaller_good_id"],
       left_distinct: 900,
       right_distinct: 900,
       matched: 891,
