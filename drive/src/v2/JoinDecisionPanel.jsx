@@ -1,5 +1,6 @@
 import { collapseChoices, coverageVerdict, joinOutcomes, needsCollapse, rankCandidates } from "./joinCandidates.js";
 import { JoinOverlapVisual } from "./SynthesisVisualReasoning.jsx";
+import { MultiOverlapVisual } from "./MultiOverlapVisual.jsx";
 
 function CoverageBar({ value }) {
   const share = Math.max(0, Math.min(100, Number(value || 0)));
@@ -26,6 +27,7 @@ export function JoinDecisionPanel({
   rightLabel,
   rightTotal,
   coverage,
+  multiOverlap,
   onChooseKey,
   onChooseOutcome,
   onChooseCollapse,
@@ -35,6 +37,9 @@ export function JoinDecisionPanel({
   if (!candidates.length) return null;
   const best = candidates[0];
   const verdict = coverageVerdict(best);
+  const hasMeasuredMultiOverlap = Boolean(
+    multiOverlap?.applicable && Number(multiOverlap?.source_count || multiOverlap?.sources?.length || 0) >= 3,
+  );
 
   return (
     <section className="s04-card s04-blocking" data-testid="synthesis-join-decision">
@@ -48,7 +53,9 @@ export function JoinDecisionPanel({
         </em>
       </header>
 
-      {best.usable && best.total ? (
+      {hasMeasuredMultiOverlap ? (
+        <MultiOverlapVisual overlap={multiOverlap} />
+      ) : best.usable && best.total ? (
         <JoinOverlapVisual
           leftLabel={leftLabel}
           rightLabel={rightLabel}
