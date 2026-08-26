@@ -1,0 +1,281 @@
+from pathlib import Path
+
+
+def replace_once(path: str, old: str, new: str) -> None:
+    p = Path(path)
+    text = p.read_text(encoding="utf-8")
+    count = text.count(old)
+    if count == 0 and new in text:
+        print(f"already patched: {path}")
+        return
+    if count != 1:
+        raise SystemExit(f"{path}: expected exactly one match, found {count}")
+    p.write_text(text.replace(old, new, 1), encoding="utf-8")
+
+
+page = "drive/src/v2/SynthesisPage.jsx"
+api = "drive/src/v2/api.js"
+join = "drive/src/v2/JoinDecisionPanel.jsx"
+
+replace_once(page,
+'''const MEASURED_STATE_FIELDS = [
+  "column_profiles",
+  "unit_conflict",
+  "join_candidates",
+  "unmeasured",
+  "measured_inputs",
+  "join_unmeasured_because",
+  "input_dataset_ids",
+  "measurement_basis",
+];''',
+'''const MEASURED_STATE_FIELDS = [
+  "column_profiles",
+  "column_profiles_by_dataset",
+  "input_measurements",
+  "unit_conflict",
+  "join_candidates",
+  "join_candidate_dataset_id",
+  "join_candidate_rows",
+  "multi_overlap",
+  "unmeasured",
+  "measured_inputs",
+  "truncated_inputs",
+  "max_inputs",
+  "join_unmeasured_because",
+  "input_dataset_ids",
+  "measurement_basis",
+];''')
+
+replace_once(page,
+'''  if (!Object.prototype.hasOwnProperty.call(measured, "unit_conflict")) measured.unit_conflict = null;
+  if (!Object.prototype.hasOwnProperty.call(measured, "join_candidates")) measured.join_candidates = [];
+  return { ...thread, state: { ...(thread.state || {}), ...measured } };''',
+'''  if (!Object.prototype.hasOwnProperty.call(measured, "unit_conflict")) measured.unit_conflict = null;
+  if (!Object.prototype.hasOwnProperty.call(measured, "join_candidates")) measured.join_candidates = [];
+  if (!Object.prototype.hasOwnProperty.call(measured, "join_candidate_dataset_id")) measured.join_candidate_dataset_id = null;
+  if (!Object.prototype.hasOwnProperty.call(measured, "join_candidate_rows")) measured.join_candidate_rows = null;
+  if (!Object.prototype.hasOwnProperty.call(measured, "multi_overlap")) measured.multi_overlap = null;
+  return { ...thread, state: { ...(thread.state || {}), ...measured } };''')
+
+replace_once(api,
+'''export function getSynthesisMeasurements(threadId, { maxInputs = 8 } = {}) {
+  const params = new URLSearchParams({ max_inputs: String(maxInputs) });
+  return fetchJson(
+    `/library/synthesis/threads/${encodeURIComponent(threadId)}/measurements?${params}`,
+  ).then((payload) => {
+    const joinCandidates = Array.isArray(payload?.join_candidates)
+      ? [...payload.join_candidates]
+      : [];
+    // SynthesisPage currently copies join_candidates but not the newly widened
+    // multi_overlap field. Preserve that read-only measurement alongside the
+    // array object so JoinDecisionPanel can render the production measurement
+    // without inventing higher-order intersections or widening durable thread state.
+    if (payload?.multi_overlap) {
+      Object.defineProperty(joinCandidates, "multiOverlap", {
+        value: payload.multi_overlap,
+        enumerable: false,
+        configurable: false,
+        writable: false,
+      });
+    }
+    return { ...payload, join_candidates: joinCandidates };
+  });
+}''',
+'''export function getSynthesisMeasurements(threadId, { maxInputs = 8 } = {}) {
+  const params = new URLSearchParams({ max_inputs: String(maxInputs) });
+  return fetchJson(
+    `/library/synthesis/threads/${encodeURIComponent(threadId)}/measurements?${params}`,
+  );
+}''')
+
+replace_once(join,
+'''  // SynthesisPage intentionally copies only measured state fields it already
+  // understands. The API client therefore carries higher-order overlap as
+  // non-enumerable metadata on the join-candidate array until the page contract
+  // itself is widened. Keep the explicit prop as the preferred path.
+  const measuredMultiOverlap = multiOverlap || coverage?.multiOverlap || null;''',
+'''  const measuredMultiOverlap = multiOverlap || null;''')
+
+replace_once(page,
+'''  const proposalReviewRef = useRef(null);
+  const returnThreadIdRef = useRef("");''',
+'''  const autoEvidenceSearchRef = useRef("");
+  const returnThreadIdRef = useRef("");''')
+
+replace_once(page,
+'''function ProposalReview({ thread, busy, onDecide, onAsk, reviewRef }) {''',
+'''function ProposalReview({ thread, busy, onDecide, onAsk }) {''')
+replace_once(page,
+'''    <section ref={reviewRef} className="s04-card s04-proposal-card" data-testid="synthesis-proposal-state">''',
+'''    <section className="s04-card s04-proposal-card" data-testid="synthesis-proposal-state">''')
+replace_once(page,
+'''        <button type="button" className="rd-v2-btn primary" disabled={busy || !canDecide} onClick={() => onDecide("accept")}>Accept proposal</button>''',
+'''        <button type="button" className="rd-v2-btn primary" disabled={busy || !canDecide} onClick={() => onDecide("accept")}>Accept & test method</button>''')
+
+replace_once(page,
+'''  onOpenResources,
+  onReviewProposal,
+}) {''',
+'''  onOpenResources,
+}) {''')
+
+replace_once(page,
+'''          <button
+            type="button"
+            className="s04-next-primary"
+            disabled={
+              reasoningPending ||
+              (hasProposal
+                ? !onReviewProposal
+                : !reasoningAvailable || (hasRecommendation ? !onAccept : !onStartReasoning))
+            }
+            onClick={() => (hasProposal ? onReviewProposal?.() : hasRecommendation ? onAccept?.() : onStartReasoning?.())}
+            title={!hasProposal && !reasoningAvailable ? reasoningStatus : undefined}
+          >
+            {hasProposal
+              ? "Review proposal"
+              : hasRecommendation
+              ? "Accept & design method"
+              : reasoningPending
+                ? "Method reasoning in Ask"
+                : "Start method reasoning"}
+          </button>''',
+'''          {!hasProposal ? (
+            <button
+              type="button"
+              className="s04-next-primary"
+              disabled={reasoningPending || !reasoningAvailable || (hasRecommendation ? !onAccept : !onStartReasoning)}
+              onClick={() => (hasRecommendation ? onAccept?.() : onStartReasoning?.())}
+              title={!reasoningAvailable ? reasoningStatus : undefined}
+            >
+              {hasRecommendation
+                ? "Accept & design method"
+                : reasoningPending
+                  ? "Method reasoning in Ask"
+                  : "Start method reasoning"}
+            </button>
+          ) : null}''')
+
+replace_once(page,
+'''  const findHeldEvidence = async () => {
+    if (!selected?.id) return;
+    setMappingEvidence(true);
+    setError("");
+    try {
+      setEvidenceProposal(await proposeSynthesisEvidenceMap(selected.id));
+    } catch (cause) {
+      setError(text(cause?.message, "Held evidence could not be searched for this construction."));
+    } finally {
+      setMappingEvidence(false);
+    }
+  };''',
+'''  const findHeldEvidence = useCallback(async () => {
+    if (!selected?.id) return;
+    setMappingEvidence(true);
+    setError("");
+    try {
+      setEvidenceProposal(await proposeSynthesisEvidenceMap(selected.id));
+    } catch (cause) {
+      setError(text(cause?.message, "Held evidence could not be searched for this construction."));
+    } finally {
+      setMappingEvidence(false);
+    }
+  }, [selected?.id]);
+
+  // Held-evidence discovery is read-only and deterministic. Run it once when a
+  // pre-acceptance thread first needs evidence; the researcher still decides
+  // which inputs are actually added to the durable construction.
+  useEffect(() => {
+    if (!selected?.id || !isPreAcceptance(selected) || evidenceNodes(selected).length) return;
+    if (evidenceProposal || mappingEvidence || autoEvidenceSearchRef.current === selected.id) return;
+    autoEvidenceSearchRef.current = selected.id;
+    findHeldEvidence();
+  }, [evidenceProposal, findHeldEvidence, mappingEvidence, selected]);''')
+
+replace_once(page,
+'''      const next = await decideSynthesisProposal(selected.id, {
+        decision,
+        proposalId: proposal.id,
+        proposalHash: proposal.proposal_hash,
+      });
+      replaceThread(next);
+      onSelectThread?.(next);''',
+'''      const next = await decideSynthesisProposal(selected.id, {
+        decision,
+        proposalId: proposal.id,
+        proposalHash: proposal.proposal_hash,
+      });
+      replaceThread(next);
+      onSelectThread?.(next);
+      if (decision === "accept" && next?.state?.execution_spec) {
+        try {
+          const previewResult = await requestSynthesisExecution(next.id, { action: "preview" });
+          const previewThread = previewResult?.thread || (previewResult?.state ? previewResult : await refreshThread(next.id));
+          if (previewThread) {
+            replaceThread(previewThread);
+            onSelectThread?.(previewThread);
+          }
+        } catch (previewCause) {
+          setError(text(previewCause?.message, "The method was accepted, but its bounded test could not be completed."));
+          refreshThread(next.id).catch(() => {});
+        }
+      }''')
+
+replace_once(page,
+'''      const currentStatus = text(authoritative?.state?.execution?.status).toLowerCase().replace(/-/g, "_");
+      if (currentStatus && currentStatus !== "spec_accepted") return;
+      const preview = synthesisPreviewTruth(authoritative);
+      const action = preview.succeeded ? "request_approval" : "preview";
+      const result = await requestSynthesisExecution(selected.id, { action });
+      const next = result?.thread || (result?.state ? result : await refreshThread(selected.id));
+      if (next) {
+        replaceThread(next);
+        onSelectThread?.(next);
+      }''',
+'''      const currentStatus = text(authoritative?.state?.execution?.status).toLowerCase().replace(/-/g, "_");
+      if (currentStatus === "pending_approval") {
+        onReviewExecution?.(authoritative.state.execution);
+        return;
+      }
+      if (currentStatus && currentStatus !== "spec_accepted") return;
+      const preview = synthesisPreviewTruth(authoritative);
+      const action = preview.succeeded ? "request_approval" : "preview";
+      const result = await requestSynthesisExecution(selected.id, { action });
+      const next = result?.thread || (result?.state ? result : await refreshThread(selected.id));
+      if (next) {
+        replaceThread(next);
+        onSelectThread?.(next);
+        const nextStatus = text(next?.state?.execution?.status).toLowerCase().replace(/-/g, "_");
+        if (action === "request_approval" && nextStatus === "pending_approval") {
+          onReviewExecution?.(next.state.execution);
+        }
+      }''')
+
+replace_once(page,
+'''            {previewTruth.succeeded ? "Request execution approval" : previewTruth.failed ? "Rerun bounded preview" : "Run bounded preview"}''',
+'''            {previewTruth.succeeded ? "Review execution approval" : previewTruth.failed ? "Rerun bounded test" : "Run bounded test"}''')
+replace_once(page,
+'''        {pendingApproval ? <button type="button" className="rd-v2-btn primary" onClick={() => onReview?.(execution)}>Review approval</button> : null}''',
+'''        {pendingApproval ? <button type="button" className="rd-v2-btn primary" onClick={() => onReview?.(execution)}>Review execution approval</button> : null}''')
+
+replace_once(page,
+'''                    onOpenResources={() => onGoTab?.("resources")}
+                    onReviewProposal={() => proposalReviewRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                  />''',
+'''                    onOpenResources={() => onGoTab?.("resources")}
+                  />''')
+replace_once(page,
+'''                      onAsk={ask}
+                      reviewRef={proposalReviewRef}
+                    />''',
+'''                      onAsk={ask}
+                    />''')
+
+replace_once(page,
+'''                  coverage={displayedSelected.state?.join_candidates}
+                  onChooseKey={reasoningAvailable ? (candidate) => ask(`Use ${candidate.leftKey} to ${candidate.rightKey} for this join.`) : null}''',
+'''                  coverage={displayedSelected.state?.join_candidates}
+                  multiOverlap={displayedSelected.state?.multi_overlap}
+                  onChooseKey={reasoningAvailable ? (candidate) => ask(`Use ${candidate.leftKey} to ${candidate.rightKey} for this join.`) : null}''')
+
+print("Synthesis freeze structural patch applied cleanly.")
