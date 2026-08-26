@@ -127,6 +127,14 @@ test("reopening an unmapped thread restores its read-only held-evidence proposal
   await page.goto("/?tab=synthesis", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
 
+  // Do not couple the regression to whatever default-selection heuristic the
+  // workspace uses. Select the subject explicitly so the first assertion tests
+  // evidence discovery, and the second selection tests the revisit lifecycle.
+  await page
+    .getByTestId("synthesis-thread-item")
+    .filter({ hasText: state.target.title })
+    .click();
+
   const proposal = page.getByTestId("synthesis-evidence-proposal");
   await expect(proposal).toContainText("Indonesia daily cross-section");
   await expect(page.getByTestId("synthesis-evidence-state")).toContainText("No inputs mapped");
