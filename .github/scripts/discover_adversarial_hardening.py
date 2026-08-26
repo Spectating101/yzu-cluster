@@ -139,6 +139,85 @@ replace_once(
     "assessment and route request fencing",
 )
 
+# Capacity authority: App intentionally distinguishes undefined (still checking),
+# object (measured), and null (unavailable). Do not erase that distinction with
+# a default value, and never make decision-relevant capacity silently disappear.
+replace_once(
+    "drive/src/v2/DiscoverEvidenceBrief.jsx",
+    '''  assessmentValue = null,
+  resourcesRollup = null,
+  deskHealth = null,
+''',
+    '''  assessmentValue = null,
+  resourcesRollup,
+  deskHealth = null,
+''',
+    "preserve resources rollup tri-state",
+)
+replace_once(
+    "drive/src/v2/DiscoverEvidenceBrief.jsx",
+    '''  const capacityRows = useMemo(
+    () => buildDiscoverDecisionCapacity(resourcesRollup, deskHealth, { routes: routeRows }),
+    [resourcesRollup, deskHealth, routeResult],
+  );
+''',
+    '''  const capacityRows = useMemo(
+    () => buildDiscoverDecisionCapacity(resourcesRollup, deskHealth, { routes: routeRows }),
+    [resourcesRollup, deskHealth, routeResult],
+  );
+  const capacityState = resourcesRollup === undefined
+    ? "checking"
+    : resourcesRollup === null
+      ? "unavailable"
+      : capacityRows.length
+        ? "measured"
+        : "unreported";
+''',
+    "capacity truth state",
+)
+replace_once(
+    "drive/src/v2/DiscoverEvidenceBrief.jsx",
+    '''          {variant === "workspace" && capacityRows.length ? (
+            <section className="rd-v2-evidence-capacity" aria-label="Execution capacity">
+              <div className="rd-v2-evidence-section-head">
+                <div><span className="rd-v2-eyebrow">Execution capacity</span><p>Measured desk capability that can change the sourcing decision. No worker or quota is assigned here.</p></div>
+              </div>
+              <div className="rd-v2-evidence-capacity-grid">
+                {capacityRows.map((row) => (
+                  <div key={row.id} className={row.attention ? "needs-attention" : ""}>
+                    <span>{row.label}</span><strong>{row.metric}</strong>{row.detail ? <em>{row.detail}</em> : null}
+                  </div>
+                ))}
+              </div>
+            </section>
+          ) : null}
+''',
+    '''          {variant === "workspace" ? (
+            <section className="rd-v2-evidence-capacity" aria-label="Execution capacity" data-state={capacityState}>
+              <div className="rd-v2-evidence-section-head">
+                <div><span className="rd-v2-eyebrow">Execution capacity</span><p>Measured desk capability that can change the sourcing decision. No worker or quota is assigned here.</p></div>
+              </div>
+              {capacityState === "checking" ? (
+                <p className="muted" role="status">Checking measured desk capacity…</p>
+              ) : capacityState === "unavailable" ? (
+                <p className="muted">Measured capacity is unavailable. Do not assume compute, storage, or quota from this sourcing view.</p>
+              ) : capacityRows.length ? (
+                <div className="rd-v2-evidence-capacity-grid">
+                  {capacityRows.map((row) => (
+                    <div key={row.id} className={row.attention ? "needs-attention" : ""}>
+                      <span>{row.label}</span><strong>{row.metric}</strong>{row.detail ? <em>{row.detail}</em> : null}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="muted">No decision-relevant measured capacity was reported.</p>
+              )}
+            </section>
+          ) : null}
+''',
+    "stable execution capacity surface",
+)
+
 # Acquisition authority: React busy state is presentational and may not commit
 # before a second activation in the same task. A synchronous ref is the actual
 # client-side idempotency lock for review, route choice, and approval submission.
@@ -242,4 +321,4 @@ replace_once(
     "submit unlock",
 )
 
-print("Applied Discover stale-route fencing and synchronous acquisition idempotency locks")
+print("Applied Discover stale-route fencing, stable capacity truth states, and synchronous acquisition idempotency locks")
