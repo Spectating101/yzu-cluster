@@ -16,29 +16,14 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   render:
     runs-on: ubuntu-latest
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
-      - name: Apply guarded Synthesis freeze cleanup
-        if: github.event_name == 'push' && github.ref_name == 'hardening/synthesis-analytical-verification-20260826'
-        shell: bash
-        run: |
-          python scripts/synthesis_freeze_structural_patch.py
-          python scripts/synthesis_freeze_e2e_patch.py
-          git diff --check
-          if git diff --quiet; then
-            echo 'Freeze cleanup already applied.'
-          else
-            git config user.name 'synthesis-freeze-bot'
-            git config user.email 'synthesis-freeze-bot@users.noreply.github.com'
-            git add drive/src/v2/SynthesisPage.jsx drive/src/v2/api.js drive/src/v2/JoinDecisionPanel.jsx e2e/v2-synthesis.spec.js
-            git commit -m 'refactor(synthesis): make freeze interactions first-class'
-            git push origin HEAD:hardening/synthesis-analytical-verification-20260826
-          fi
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -48,30 +33,45 @@ jobs:
         run: node --test drive/src/v2/joinCandidates.test.js
       - run: npx playwright install chromium --with-deps
       - run: npm run build
-      - name: Exercise Synthesis researcher workflow
+      - name: Fast gate streamlined Synthesis authority flow
         run: >-
           mkdir -p .tmp-pw artifacts/synthesis-renders &&
           TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/v2-synthesis.spec.js
-          --grep-invert "renders the selected durable thread in the workspace and Detail rail|keeps the right rail usable on mobile while the workspace remains source-backed"
+          --grep "researcher reviews held evidence|accepts a revision-bound proposal|does not create a second approval request"
+          --timeout=30000
+          --retries=0
+          --reporter=line
+      - name: Exercise remaining Synthesis researcher workflow
+        run: >-
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/v2-synthesis.spec.js
+          --grep-invert "researcher reviews held evidence|accepts a revision-bound proposal|does not create a second approval request|renders the selected durable thread in the workspace and Detail rail|keeps the right rail usable on mobile while the workspace remains source-backed"
+          --timeout=60000
+          --retries=0
           --reporter=line
       - name: Render converged Synthesis frames
-        run: mkdir -p .tmp-pw artifacts/synthesis-convergence && TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/synthesis-convergence-render.spec.js --reporter=line
+        run: mkdir -p .tmp-pw artifacts/synthesis-convergence && TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/synthesis-convergence-render.spec.js --timeout=60000 --retries=0 --reporter=line
       - name: Render desktop Synthesis workflow states
         run: >-
           mkdir -p artifacts/synthesis-acceptance &&
           TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/synthesis-acceptance-screenshots.spec.js
           --grep " at desktop 1440px"
+          --timeout=60000
+          --retries=0
           --reporter=line
       - name: Render workstation Synthesis workflow states
         run: >-
           mkdir -p artifacts/synthesis-acceptance &&
           TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/synthesis-acceptance-screenshots.spec.js
           --grep " at workstation 1920px"
+          --timeout=60000
+          --retries=0
           --reporter=line
       - name: Render production-scale Synthesis analytical states
         run: >-
           mkdir -p artifacts/synthesis-scale &&
           TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/synthesis-production-scale-render.spec.js
+          --timeout=60000
+          --retries=0
           --reporter=line
       - uses: actions/upload-artifact@v4
         if: always()
