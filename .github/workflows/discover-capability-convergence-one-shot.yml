@@ -1,0 +1,575 @@
+name: Discover capability convergence one-shot
+
+on:
+  push:
+    branches:
+      - polish/discover-visual-freeze-20260827
+
+permissions:
+  contents: write
+
+jobs:
+  converge:
+    if: contains(github.event.head_commit.message, '[discover-capability-converge]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: polish/discover-visual-freeze-20260827
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Apply guarded Discover capability convergence
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path, old, new, label):
+              p = Path(path)
+              text = p.read_text(encoding="utf-8")
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"{label}: expected one match in {path}, found {count}")
+              p.write_text(text.replace(old, new, 1), encoding="utf-8")
+
+          # Shared decision-relevant capacity projection. This deliberately exposes
+          # capability posture, never worker assignment or execution authority.
+          capacity_path = Path("drive/src/v2/discoverDecisionCapacity.js")
+          capacity_path.write_text('''import { buildCapacityAccessPairs } from "./resourcesCapacity.js";
+
+function text(value) {
+  return String(value ?? "").trim();
+}
+
+function routeText(routes = []) {
+  return routes
+    .map((route) => [route?.source_id, route?.label, route?.provider, route?.access_mode, route?.reason].filter(Boolean).join(" "))
+    .join(" ")
+    .toLowerCase();
+}
+
+/**
+ * Project Resources telemetry into the few facts that can change a Discover
+ * sourcing decision. These rows are capability context only: they never imply
+ * that a worker, quota, or storage tier has been assigned to an acquisition.
+ */
+export function buildDiscoverDecisionCapacity(rollup, health, { routes = [] } = {}) {
+  if (!rollup || typeof rollup !== "object") return [];
+  const pairs = buildCapacityAccessPairs(rollup, health);
+  const meters = new Map(
+    pairs.flatMap((pair) => pair.meters || []).map((meter) => [meter.id, meter]),
+  );
+  const routeBlob = routeText(routes);
+  const ids = ["fleet", "vault"];
+  const bigquery = meters.get("bigquery");
+  if (bigquery && (/bigquery|warehouse|remote table/.test(routeBlob) || !/not configured/i.test(text(bigquery.metric)))) {
+    ids.splice(1, 0, "bigquery");
+  }
+  const cache = meters.get("cache");
+  if (cache?.warn) ids.push("cache");
+
+  return ids
+    .map((id) => meters.get(id))
+    .filter(Boolean)
+    .map((meter) => ({
+      id: meter.id,
+      label: meter.name,
+      metric: text(meter.metric) || "Not reported",
+      detail: text(meter.available),
+      attention: Boolean(meter.warn),
+    }));
+}
+''', encoding="utf-8")
+
+          # DiscoverEvidenceBrief: promote the existing assessment contract into a
+          # centre-workspace variant, auto-load declared routes, and show measured
+          # execution capacity without inventing route assignment.
+          replace_once(
+              "drive/src/v2/DiscoverEvidenceBrief.jsx",
+              'import { handleEnterToRequestSubmit } from "@/v2/enterToSubmit";\n',
+              'import { handleEnterToRequestSubmit } from "@/v2/enterToSubmit";\nimport { buildDiscoverDecisionCapacity } from "@/v2/discoverDecisionCapacity";\n',
+              "evidence brief capacity import",
+          )
+          replace_once(
+              "drive/src/v2/DiscoverEvidenceBrief.jsx",
+              '  autoAssess = false,\n  variant = "standalone",\n}) {\n  const [draft, setDraft] = useState(initialQuestion);\n  const [assessment, setAssessment] = useState(null);',
+              '  autoAssess = false,\n  variant = "standalone",\n  assessmentValue = null,\n  resourcesRollup = null,\n  deskHealth = null,\n}) {\n  const [draft, setDraft] = useState(initialQuestion);\n  const [assessment, setAssessment] = useState(assessmentValue);',
+              "evidence brief external assessment props",
+          )
+          replace_once(
+              "drive/src/v2/DiscoverEvidenceBrief.jsx",
+              '  const autoStartedRef = useRef("");\n',
+              '  const autoStartedRef = useRef("");\n  const routeAutoKeyRef = useRef("");\n',
+              "evidence brief route ref",
+          )
+          replace_once(
+              "drive/src/v2/DiscoverEvidenceBrief.jsx",
+              '  useEffect(() => {\n    if (initialQuestion) setDraft(initialQuestion);\n  }, [initialQuestion]);\n\n  const suggestions = useMemo(() => localSuggestions(catalog, draft), [catalog, draft]);',
+              '  useEffect(() => {\n    if (initialQuestion) setDraft(initialQuestion);\n  }, [initialQuestion]);\n\n  useEffect(() => {\n    if (!assessmentValue) return;\n    setAssessment(assessmentValue);\n    setRouteResult(null);\n    setRouteError("");\n    routeAutoKeyRef.current = "";\n  }, [assessmentValue]);\n\n  const suggestions = useMemo(() => localSuggestions(catalog, draft), [catalog, draft]);',
+              "evidence brief external assessment sync",
+          )
+          replace_once(
+              "drive/src/v2/DiscoverEvidenceBrief.jsx",
+              '  const verdictTone = assessmentStatus || verdictKey || "unknown";\n\n  const requestAssessment = async ({ requirement, questionOverride } = {}) => {',
+              '  const verdictTone = assessmentStatus || verdictKey || "unknown";\n  const establishedDimensions = dimensions.filter((item) => item.value && item.value !== "Unknown");\n  const routeRows = Array.isArray(routeResult?.routes) ? routeResult.routes : [];\n  const capacityRows = useMemo(\n    () => buildDiscoverDecisionCapacity(resourcesRollup, deskHealth, { routes: routeRows }),\n    [resourcesRollup, deskHealth, routeResult],\n  );\n\n  const requestAssessment = async ({ requirement, questionOverride } = {}) => {',
+              "evidence brief position facts",
+          )
+          replace_once(
+              "drive/src/v2/DiscoverEvidenceBrief.jsx",
+              '  useEffect(() => {\n    const question = String(initialQuestion || "").trim();\n    if (!autoAssess || !question || autoStartedRef.current === question) return;',
+              '  useEffect(() => {\n    const autoRouteKey = [assessment?.assessment_status, assessment?.question, assessment?.gap?.statement].filter(Boolean).join("|");\n    if (variant !== "workspace" || assessment?.assessment_status !== "assessed" || !assessment?.gap || !autoRouteKey) return;\n    if (routeAutoKeyRef.current === autoRouteKey) return;\n    routeAutoKeyRef.current = autoRouteKey;\n    requestRoutes();\n    // One bounded route comparison per assessment identity; refresh remains explicit.\n    // eslint-disable-next-line react-hooks/exhaustive-deps\n  }, [variant, assessment?.assessment_status, assessment?.question, assessment?.gap?.statement]);\n\n  useEffect(() => {\n    const question = String(initialQuestion || "").trim();\n    if (!autoAssess || !question || autoStartedRef.current === question) return;',
+              "evidence brief auto declared routes",
+          )
+          replace_once(
+              "drive/src/v2/DiscoverEvidenceBrief.jsx",
+              '<section className={`rd-v2-evidence-brief ${variant === "layered" ? "is-layered" : ""}`} aria-label="Evidence assessment" data-testid="discover-evidence-brief">',
+              '<section className={`rd-v2-evidence-brief is-${variant}`} aria-label="Evidence assessment" data-testid="discover-evidence-brief">\n      {variant === "workspace" && !assessment ? (\n        <div className="rd-v2-evidence-workspace-pending" role="status">\n          <span className="rd-v2-eyebrow">Evidence position</span>\n          <strong>Checking the research need against held evidence…</strong>\n          <p>Search results stay available while coverage, gaps, and sourcing options are established.</p>\n        </div>\n      ) : null}',
+              "evidence brief workspace root",
+          )
+          replace_once(
+              "drive/src/v2/DiscoverEvidenceBrief.jsx",
+              '          <p className="rd-v2-evidence-because">{text(assessment.because, "Reasoning was not provided.")}</p>\n\n          {variant === "layered" ? (',
+              '          <p className="rd-v2-evidence-because">{text(assessment.because, "Reasoning was not provided.")}</p>\n\n          {variant === "workspace" ? (\n            <section className="rd-v2-evidence-position-grid" aria-label="Evidence position summary">\n              <div><span>Requirement</span><strong>{establishedDimensions.length}/{dimensions.length || 0}</strong><em>dimensions established</em></div>\n              <div><span>Library support</span><strong>{heldEvidence.length}</strong><em>held evidence record{heldEvidence.length === 1 ? "" : "s"}</em></div>\n              <div><span>Evidence gap</span><strong>{assessment.gap ? "Open" : "None reported"}</strong><em>{assessment.gap ? text(assessment.gap.statement, "Gap recorded") : "Assessment reported no remaining gap"}</em></div>\n              <div><span>Sourcing</span><strong>{routeLoading ? "Checking" : routeRows.length ? `${routeRows.length} declared` : "Not established"}</strong><em>{routeRows.length ? "source options for the recorded gap" : "no route claim without a backend comparison"}</em></div>\n            </section>\n          ) : null}\n\n          {variant === "layered" ? (',
+              "evidence brief position grid",
+          )
+          replace_once(
+              "drive/src/v2/DiscoverEvidenceBrief.jsx",
+              '{routeLoading ? "Comparing declared sources…" : "Find declared routes"}',
+              '{routeLoading ? "Comparing declared sources…" : routeResult ? "Refresh declared routes" : "Find declared routes"}',
+              "evidence route refresh label",
+          )
+          replace_once(
+              "drive/src/v2/DiscoverEvidenceBrief.jsx",
+              '<em>{route.action === "collect" ? "Collection can be requested for review" : "Access review is required"}</em>',
+              '<em>{[route.provider, text(route.access_mode, "").replaceAll("_", " "), route.action === "collect" ? "Collection can be requested for review" : "Access review is required"].filter(Boolean).join(" · ")}</em>',
+              "evidence route metadata",
+          )
+          replace_once(
+              "drive/src/v2/DiscoverEvidenceBrief.jsx",
+              '          {assessment.assessment_basis ? <p className="rd-v2-evidence-basis">Basis: {assessmentBasisSummary(assessment.assessment_basis)}</p> : null}',
+              '          {variant === "workspace" && capacityRows.length ? (\n            <section className="rd-v2-evidence-capacity" aria-label="Execution capacity">\n              <div className="rd-v2-evidence-section-head">\n                <div><span className="rd-v2-eyebrow">Execution capacity</span><p>Measured desk capability that can change the sourcing decision. No worker or quota is assigned here.</p></div>\n              </div>\n              <div className="rd-v2-evidence-capacity-grid">\n                {capacityRows.map((row) => (\n                  <div key={row.id} className={row.attention ? "needs-attention" : ""}>\n                    <span>{row.label}</span><strong>{row.metric}</strong>{row.detail ? <em>{row.detail}</em> : null}\n                  </div>\n                ))}\n              </div>\n            </section>\n          ) : null}\n          {assessment.assessment_basis ? <p className="rd-v2-evidence-basis">Basis: {assessmentBasisSummary(assessment.assessment_basis)}</p> : null}',
+              "evidence execution capacity",
+          )
+
+          # BrowsePage: place the real assessment surface in the centre before the
+          # result ledger. Search remains available but no longer owns the product.
+          replace_once(
+              "drive/src/v2/BrowsePage.jsx",
+              'import { DiscoverIntentWorkspace } from "@/v2/DiscoverIntentWorkspace";\n',
+              'import { DiscoverIntentWorkspace } from "@/v2/DiscoverIntentWorkspace";\nimport { DiscoverEvidenceBrief } from "@/v2/DiscoverEvidenceBrief";\n',
+              "browse evidence import",
+          )
+          replace_once(
+              "drive/src/v2/BrowsePage.jsx",
+              '  assessmentActive = false,\n  assessmentResult = null,\n  onOpenAssessment,\n',
+              '  assessmentActive = false,\n  assessmentResult = null,\n  onOpenAssessment,\n  onAssessmentChange,\n  onAssessmentActive,\n  resourcesRollup = null,\n  deskHealth = null,\n',
+              "browse evidence props",
+          )
+          replace_once(
+              "drive/src/v2/BrowsePage.jsx",
+              '              </div>\n              <div className="rd-v2-discover-frozen-counts" aria-label="Discover result territories">',
+              '              </div>\n              {assessmentActive ? (\n                <DiscoverEvidenceBrief\n                  key={`assessment-workspace:${q}`}\n                  variant="workspace"\n                  initialQuestion={q}\n                  assessmentValue={assessmentResult}\n                  catalog={catalog}\n                  onSelectRow={onSelectRow}\n                  onLegacySearch={onSuggestSearch}\n                  onCraftUrl={onCraftUrl}\n                  onAssessmentChange={onAssessmentChange}\n                  onAssessmentActive={onAssessmentActive}\n                  resourcesRollup={resourcesRollup}\n                  deskHealth={deskHealth}\n                />\n              ) : null}\n              <div className="rd-v2-discover-frozen-counts" aria-label="Discover result territories">',
+              "browse centre evidence workspace",
+          )
+          replace_once(
+              "drive/src/v2/BrowsePage.jsx",
+              '              onOpenHistory={onOpenIntentHistory}\n            />',
+              '              onOpenHistory={onOpenIntentHistory}\n              resourcesRollup={resourcesRollup}\n              deskHealth={deskHealth}\n            />',
+              "browse intent capacity props",
+          )
+
+          # App: pass the existing assessment and Resources state into BrowsePage.
+          replace_once(
+              "drive/src/v2/App.jsx",
+              '          assessmentResult={discoverAssessment.result}\n          onOpenAssessment={openDiscoverAssessment}\n          onRestingSummary={handleDiscoverRestingSummary}',
+              '          assessmentResult={discoverAssessment.result}\n          onOpenAssessment={openDiscoverAssessment}\n          onAssessmentChange={(result) => {\n            setDiscoverAssessment((current) => ({ ...current, active: true, result }));\n          }}\n          onAssessmentActive={(active) => {\n            setDiscoverAssessment((current) => ({ ...current, active }));\n          }}\n          resourcesRollup={resourcesRollup}\n          deskHealth={health}\n          onRestingSummary={handleDiscoverRestingSummary}',
+              "app browse capability props",
+          )
+
+          # Inspector: once the centre has an assessment result, the rail becomes a
+          # concise decision summary instead of duplicating the whole assessment.
+          inspector_insert = '''\nfunction DiscoverAssessmentRailSummary({ state, onClose }) {\n  const result = state?.result || {};\n  const status = String(result?.verdict || result?.assessment_status || "Coverage assessment")\n    .replaceAll("_", " ")\n    .replace(/^./, (letter) => letter.toUpperCase());\n  const gap = String(result?.gap?.statement || "").trim();\n  const held = Array.isArray(result?.held_evidence) ? result.held_evidence.length : 0;\n  return (\n    <section className="rd-v2-discover-assessment-rail-summary" aria-label="Evidence assessment summary">\n      <span className="rd-v2-eyebrow">Evidence position</span>\n      <strong>{status}</strong>\n      <p>{gap || "No remaining gap was reported by the current assessment."}</p>\n      <dl>\n        <div><dt>Held evidence</dt><dd>{held}</dd></div>\n        <div><dt>Centre</dt><dd>Full assessment + sourcing routes</dd></div>\n      </dl>\n      <p className="muted">Use Detail for the decision summary or Ask to reason within this exact evidence need.</p>\n      {onClose ? <button type="button" className="rd-v2-btn sm" onClick={onClose}>Hide assessment</button> : null}\n    </section>\n  );\n}\n'''
+          replace_once(
+              "drive/src/v2/InspectorRail.jsx",
+              '\nexport function InspectorRail({\n',
+              inspector_insert + '\nexport function InspectorRail({\n',
+              "inspector assessment summary component",
+          )
+          replace_once(
+              "drive/src/v2/InspectorRail.jsx",
+              '    ) : discoverAssessment?.active ? (\n      <DiscoverEvidenceBrief\n        key={`assessment-rail:${discoverAssessment.question}`}\n        initialQuestion={discoverAssessment.question}\n        autoAssess\n        variant="layered"\n        catalog={discoverCatalog}\n        onLegacySearch={onSuggestDiscoverSearch}\n        onAssessmentActive={onDiscoverAssessmentActive}\n        onAssessmentChange={onDiscoverAssessmentChange}\n        onClose={onCloseDiscoverAssessment}\n      />\n    ) : (',
+              '    ) : discoverAssessment?.active ? (\n      discoverAssessment.result ? (\n        <DiscoverAssessmentRailSummary state={discoverAssessment} onClose={onCloseDiscoverAssessment} />\n      ) : (\n        <DiscoverEvidenceBrief\n          key={`assessment-rail:${discoverAssessment.question}`}\n          initialQuestion={discoverAssessment.question}\n          autoAssess\n          variant="layered"\n          catalog={discoverCatalog}\n          onLegacySearch={onSuggestDiscoverSearch}\n          onAssessmentActive={onDiscoverAssessmentActive}\n          onAssessmentChange={onDiscoverAssessmentChange}\n          onClose={onCloseDiscoverAssessment}\n        />\n      )\n    ) : (',
+              "inspector collapse assessment after result",
+          )
+
+          # ResearchSituationRail was reading the wrapper rather than result, so a
+          # real verdict/gap never became the rail status. Fix that authority path.
+          replace_once(
+              "drive/src/v2/ResearchSituationRail.jsx",
+              '  if (discoverAssessment?.active) {\n    const verdict = humanize(discoverAssessment.verdict || discoverAssessment.status);\n    return {\n      status: verdict || "Coverage assessment",\n      facts: [text(discoverAssessment.question), text(discoverAssessment.gap?.statement)],\n      next: "Use the coverage assessment to decide whether held evidence is sufficient or wider sourcing is justified.",\n    };\n  }',
+              '  if (discoverAssessment?.active) {\n    const result = discoverAssessment.result || discoverAssessment;\n    const verdict = humanize(result.verdict || result.assessment_status || result.status);\n    const gap = text(result.gap?.statement);\n    return {\n      status: verdict || "Coverage assessment",\n      facts: [text(discoverAssessment.question || result.question), gap],\n      next: gap\n        ? "Review the evidence gap and declared sourcing routes before requesting new data."\n        : "Confirm whether held evidence is sufficient before widening the sourcing search.",\n    };\n  }',
+              "research situation assessment result",
+          )
+
+          # Acquisition review: bring measured cluster/resource posture into the
+          # final human decision while preserving the explicit approval boundary.
+          replace_once(
+              "drive/src/v2/DiscoverIntentWorkspace.jsx",
+              'import {\n  canSubmitDiscoverIntent,\n  intentCollection,\n  intentState,\n  selectedIntentRoute,\n} from "@/v2/discoverIntent";\n',
+              'import {\n  canSubmitDiscoverIntent,\n  intentCollection,\n  intentState,\n  selectedIntentRoute,\n} from "@/v2/discoverIntent";\nimport { buildDiscoverDecisionCapacity } from "@/v2/discoverDecisionCapacity";\n',
+              "intent capacity import",
+          )
+          replace_once(
+              "drive/src/v2/DiscoverIntentWorkspace.jsx",
+              '  onSubmitted,\n  onOpenHistory,\n}) {',
+              '  onSubmitted,\n  onOpenHistory,\n  resourcesRollup = null,\n  deskHealth = null,\n}) {',
+              "intent capacity props",
+          )
+          replace_once(
+              "drive/src/v2/DiscoverIntentWorkspace.jsx",
+              '  const proposalRoutes = useMemo(() => proposal?.routes || [], [proposal]);\n',
+              '  const proposalRoutes = useMemo(() => proposal?.routes || [], [proposal]);\n  const capacityRows = useMemo(\n    () => buildDiscoverDecisionCapacity(resourcesRollup, deskHealth, { routes: proposalRoutes.length ? proposalRoutes : routes }),\n    [resourcesRollup, deskHealth, proposalRoutes, routes],\n  );\n',
+              "intent capacity rows",
+          )
+          replace_once(
+              "drive/src/v2/DiscoverIntentWorkspace.jsx",
+              '      <section className="rd-v2-intent-need">\n        <span className="rd-v2-eyebrow">Research need</span>\n        <p>{text(intent?.research_need || record?.researchNeed, "Research need not recorded")}</p>\n      </section>\n\n      {error ? <p className="rd-v2-intent-error">{error}</p> : null}',
+              '      <section className="rd-v2-intent-need">\n        <span className="rd-v2-eyebrow">Research need</span>\n        <p>{text(intent?.research_need || record?.researchNeed, "Research need not recorded")}</p>\n      </section>\n\n      {capacityRows.length ? (\n        <section className="rd-v2-intent-capacity" aria-label="Execution capacity">\n          <header><div><span className="rd-v2-eyebrow">Execution capacity</span><h3>Can the desk support this acquisition path?</h3></div></header>\n          <div>\n            {capacityRows.map((row) => (\n              <article key={row.id} className={row.attention ? "needs-attention" : ""}>\n                <span>{row.label}</span><strong>{row.metric}</strong>{row.detail ? <em>{row.detail}</em> : null}\n              </article>\n            ))}\n          </div>\n          <p>Capacity is context only. No worker, quota, or storage tier is assigned until a reviewed route becomes an approved job.</p>\n        </section>\n      ) : null}\n\n      {error ? <p className="rd-v2-intent-error">{error}</p> : null}',
+              "intent execution capacity block",
+          )
+
+          # Idle copy: describe the actual intelligence loop rather than a generic
+          # source-search sequence.
+          replace_once(
+              "drive/src/v2/DiscoverCoveragePanel.jsx",
+              '        <li>\n          <strong>Library first</strong>\n          <span>Held evidence is checked before new acquisition.</span>\n        </li>\n        <li>\n          <strong>Source routes</strong>\n          <span>Known APIs and catalogues are tested for fit.</span>\n        </li>\n        <li>\n          <strong>Context stays separate</strong>\n          <span>References inform the search without becoming dataset offerings.</span>\n        </li>\n        <li>\n          <strong>Reviewed acquisition</strong>\n          <span>Collection starts only from an explicit route.</span>\n        </li>',
+              '        <li>\n          <strong>Evidence need</strong>\n          <span>A research question becomes a reviewable evidence contract.</span>\n        </li>\n        <li>\n          <strong>Library position</strong>\n          <span>Held evidence is checked dimension by dimension before new acquisition.</span>\n        </li>\n        <li>\n          <strong>Sourcing strategy</strong>\n          <span>Declared external routes are compared only for unresolved evidence gaps.</span>\n        </li>\n        <li>\n          <strong>Reviewed acquisition</strong>\n          <span>A human-selected route enters approval before collection can start.</span>\n        </li>',
+              "idle evidence intelligence copy",
+          )
+
+          # Mock route contract so the capability surface is exercised rather than
+          # silently falling into the unavailable branch.
+          replace_once(
+              "e2e/fixtures/v2MockApi.js",
+              '    assessmentBody = null,\n    chatReply = "",\n',
+              '    assessmentBody = null,\n    gapRoutesBody = {\n      gaps: ["fields"],\n      routes: [{\n        dimension: "fields",\n        source_id: "mops_taiwan",\n        label: "MOPS governance disclosures",\n        provider: "TWSE / MOPS",\n        access_mode: "live_connector",\n        reason: "Official governance disclosures can close the missing board fields.",\n        actionable: true,\n        action: "collect",\n      }],\n      reason: "ok",\n    },\n    chatReply = "",\n',
+              "mock gap route option",
+          )
+          replace_once(
+              "e2e/fixtures/v2MockApi.js",
+              '  await page.route("**/library/discover/collect", (route) => {',
+              '  await page.route("**/library/discover/routes", (route) => {\n    if (route.request().method() !== "POST") return route.continue();\n    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(gapRoutesBody) });\n  });\n  await page.route("**/library/discover/collect", (route) => {',
+              "mock gap route endpoint",
+          )
+
+          # Visual matrix: add the state that was previously missing entirely — a
+          # research question with held-evidence reasoning, sourcing, and capacity.
+          replace_once(
+              "e2e/discover-visual-convergence.spec.js",
+              'import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";\n',
+              'import { MOCK_DISCOVER_ASSESSMENT, mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";\n',
+              "visual assessment fixture import",
+          )
+          visual_test = r'''
+
+  test("research question promotes evidence position, sourcing strategy, and capacity above search results", async ({ page }) => {
+    await mockV2Api(page, { ...resultFixture(), assessmentBody: MOCK_DISCOVER_ASSESSMENT });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await openDiscover(page);
+    await search(page, "Do we hold issuer-quarter governance data for Taiwan?");
+
+    const workspace = page.locator(".rd-v2-evidence-brief.is-workspace");
+    await expect(workspace).toBeVisible();
+    await expect(workspace).toContainText("Partially covered");
+    await expect(workspace).toContainText("Library support");
+    await expect(workspace).toContainText("One precise gap");
+    await expect(workspace).toContainText("MOPS governance disclosures");
+    await expect(workspace).toContainText("Execution capacity");
+    await expect(workspace).toContainText(/Collector fleet|BigQuery|GDrive vault/);
+    await expect(workspace).toContainText("No worker or quota is assigned here");
+
+    const workspaceBox = await workspace.boundingBox();
+    const resultsBox = await page.getByTestId("discover-ranked-results").boundingBox();
+    expect(workspaceBox && resultsBox).toBeTruthy();
+    expect(workspaceBox.y).toBeLessThan(resultsBox.y);
+    await assertNoHorizontalOverflow(page);
+    await page.screenshot({ path: `${OUT}/discover-investigation-1440x900.png`, fullPage: false });
+
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await assertNoHorizontalOverflow(page);
+    await page.screenshot({ path: `${OUT}/discover-investigation-1920x1080.png`, fullPage: false });
+  });
+'''
+          replace_once(
+              "e2e/discover-visual-convergence.spec.js",
+              '\n  test("selected offering turns the rail into a bounded decision surface", async ({ page }) => {',
+              visual_test + '\n  test("selected offering turns the rail into a bounded decision surface", async ({ page }) => {',
+              "visual investigation state",
+          )
+
+          # Make the durable branch gate exercise both the new visual state and the
+          # existing evidence-assessment behavioral contract.
+          replace_once(
+              ".github/workflows/discover-visual-validation.yml",
+              '      - name: Render Discover convergence states\n        run: >-\n          mkdir -p .tmp-pw artifacts/discover-convergence &&\n          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test\n          e2e/discover-visual-convergence.spec.js --reporter=line\n',
+              '      - name: Validate Discover evidence investigation\n        run: >-\n          mkdir -p .tmp-pw &&\n          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test\n          e2e/v2-discover-evidence.spec.js --reporter=line\n      - name: Render Discover convergence states\n        run: >-\n          mkdir -p .tmp-pw artifacts/discover-convergence &&\n          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test\n          e2e/discover-visual-convergence.spec.js --reporter=line\n',
+              "visual workflow evidence gate",
+          )
+
+          # Last-mile layout: the evidence position is an instrument inside Explore,
+          # not a second page or an oversized dashboard.
+          css_path = Path("drive/src/v2/discover-visual-freeze.css")
+          css = css_path.read_text(encoding="utf-8")
+          marker = "/* Discover capability convergence: evidence investigation workspace. */"
+          if marker in css:
+              raise SystemExit("discover capability CSS marker already exists")
+          css += r'''
+
+/* Discover capability convergence: evidence investigation workspace. */
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace {
+  max-width: none;
+  margin: 0 16px 14px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--rd-border2, #d2ccc0) 78%, #698b7b 22%);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--rd-surface, #fffdf6) 96%, #edf3ef 4%);
+  box-shadow: 0 8px 24px rgba(15, 23, 28, .045);
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace > .rd-v2-evidence-question,
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace > .rd-v2-evidence-suggestions {
+  display: none;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-workspace-pending {
+  display: grid;
+  gap: 5px;
+  padding: 16px 18px;
+  border-left: 3px solid #6f8f80;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-workspace-pending strong {
+  color: var(--rd-text, #182033);
+  font-size: 13px;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-workspace-pending p {
+  margin: 0;
+  color: var(--rd-muted, #6e7685);
+  font-size: 10.5px;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-assessment {
+  display: grid;
+  gap: 13px;
+  padding: 17px 18px 18px;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-assessment-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+  padding-bottom: 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 74%, transparent);
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-assessment-head h2 {
+  margin-top: 4px;
+  max-width: 780px;
+  font-size: 16px;
+  line-height: 1.25;
+  letter-spacing: -.015em;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-verdict {
+  min-width: 116px;
+  justify-content: center;
+  padding: 7px 9px;
+  font-size: 11px;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-position-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 80%, transparent);
+  border-radius: 7px;
+  background: rgba(255,255,255,.34);
+}
+
+.rd-v2-discover-page .rd-v2-evidence-position-grid > div {
+  display: grid;
+  align-content: start;
+  gap: 3px;
+  min-width: 0;
+  padding: 10px 11px;
+  border-right: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 66%, transparent);
+}
+
+.rd-v2-discover-page .rd-v2-evidence-position-grid > div:last-child { border-right: 0; }
+.rd-v2-discover-page .rd-v2-evidence-position-grid span,
+.rd-v2-discover-page .rd-v2-evidence-capacity-grid span,
+.rd-v2-intent-capacity article span {
+  color: #718197;
+  font: 720 8.5px/1.2 var(--rd-mono, ui-monospace, monospace);
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+.rd-v2-discover-page .rd-v2-evidence-position-grid strong { color: var(--rd-text, #182033); font-size: 12px; }
+.rd-v2-discover-page .rd-v2-evidence-position-grid em {
+  min-width: 0;
+  color: var(--rd-muted, #6e7685);
+  font-size: 9.5px;
+  font-style: normal;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-held,
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-gap,
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes,
+.rd-v2-discover-page .rd-v2-evidence-capacity {
+  padding: 12px 13px;
+  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 76%, transparent);
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--rd-surface, #fffdf6) 72%, transparent);
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-gap {
+  border-left: 3px solid #b1843c;
+  background: #fffaf0;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes {
+  border-left: 3px solid #668574;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-routes-list li {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-capacity-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+  gap: 0;
+  overflow: hidden;
+  margin-top: 8px;
+  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, transparent);
+  border-radius: 6px;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-capacity-grid > div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 9px 10px;
+  border-right: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 64%, transparent);
+}
+.rd-v2-discover-page .rd-v2-evidence-capacity-grid > div:last-child { border-right: 0; }
+.rd-v2-discover-page .rd-v2-evidence-capacity-grid > div.needs-attention { background: #fff7ea; }
+.rd-v2-discover-page .rd-v2-evidence-capacity-grid strong { color: var(--rd-text, #182033); font-size: 11px; }
+.rd-v2-discover-page .rd-v2-evidence-capacity-grid em {
+  color: var(--rd-muted, #6e7685);
+  font-size: 9px;
+  font-style: normal;
+  line-height: 1.35;
+}
+
+.rd-v2-discover-assessment-rail-summary {
+  display: grid;
+  gap: 9px;
+  padding: 15px 13px 24px;
+}
+.rd-v2-discover-assessment-rail-summary > strong { color: var(--rd-text, #182033); font-size: 16px; }
+.rd-v2-discover-assessment-rail-summary > p { margin: 0; color: var(--rd-body, #3e4759); font-size: 11px; line-height: 1.5; }
+.rd-v2-discover-assessment-rail-summary dl {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin: 2px 0 0;
+  border-block: 1px solid var(--rd-border, #dbd4c5);
+}
+.rd-v2-discover-assessment-rail-summary dl > div { padding: 9px 7px; }
+.rd-v2-discover-assessment-rail-summary dt { color: var(--rd-muted, #6e7685); font-size: 8.5px; text-transform: uppercase; letter-spacing: .06em; }
+.rd-v2-discover-assessment-rail-summary dd { margin: 3px 0 0; color: var(--rd-text, #182033); font-size: 10.5px; font-weight: 650; }
+
+.rd-v2-intent-capacity {
+  display: grid;
+  gap: 9px;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, #6f8f80 28%);
+  border-radius: 8px;
+  background: #f7faf7;
+}
+.rd-v2-intent-capacity header h3 { margin: 3px 0 0; color: var(--rd-text, #182033); font-size: 12.5px; }
+.rd-v2-intent-capacity > div { display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 7px; }
+.rd-v2-intent-capacity article {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 8px 9px;
+  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 68%, transparent);
+  border-radius: 6px;
+  background: rgba(255,255,255,.48);
+}
+.rd-v2-intent-capacity article.needs-attention { background: #fff7ea; }
+.rd-v2-intent-capacity article strong { color: var(--rd-text, #182033); font-size: 10.5px; }
+.rd-v2-intent-capacity article em { color: var(--rd-muted, #6e7685); font-size: 9px; font-style: normal; line-height: 1.3; }
+.rd-v2-intent-capacity > p { margin: 0; color: var(--rd-muted, #6e7685); font-size: 9.5px; line-height: 1.4; }
+
+@media (max-width: 1180px) {
+  .rd-v2-discover-page .rd-v2-evidence-position-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .rd-v2-discover-page .rd-v2-evidence-position-grid > div:nth-child(2) { border-right: 0; }
+  .rd-v2-discover-page .rd-v2-evidence-position-grid > div:nth-child(-n + 2) { border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 66%, transparent); }
+}
+'''
+          css_path.write_text(css, encoding="utf-8")
+
+          print("Discover capability convergence patch applied successfully")
+          PY
+
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Chromium
+        run: npx playwright install chromium --with-deps
+      - name: Unit and build contracts
+        run: |
+          npm run test:candidate-key
+          npm run build
+      - name: Discover evidence behavior
+        run: >-
+          mkdir -p .tmp-pw &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/v2-discover-evidence.spec.js --reporter=line
+      - name: Discover rendered capability matrix
+        run: >-
+          mkdir -p .tmp-pw artifacts/discover-convergence &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/discover-visual-convergence.spec.js --reporter=line
+      - name: Commit converged Discover frontend
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git config user.name "discover-convergence-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add drive/src/v2/DiscoverEvidenceBrief.jsx \
+                  drive/src/v2/BrowsePage.jsx \
+                  drive/src/v2/InspectorRail.jsx \
+                  drive/src/v2/ResearchSituationRail.jsx \
+                  drive/src/v2/DiscoverIntentWorkspace.jsx \
+                  drive/src/v2/DiscoverCoveragePanel.jsx \
+                  drive/src/v2/discoverDecisionCapacity.js \
+                  drive/src/v2/discover-visual-freeze.css \
+                  e2e/fixtures/v2MockApi.js \
+                  e2e/discover-visual-convergence.spec.js \
+                  .github/workflows/discover-visual-validation.yml
+          git commit -m "feat(discover): surface evidence investigation and procurement capacity"
+          git push origin HEAD:polish/discover-visual-freeze-20260827
