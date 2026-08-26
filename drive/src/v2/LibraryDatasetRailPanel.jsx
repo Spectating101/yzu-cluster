@@ -1,5 +1,6 @@
 import { canIUseDecision, demotionSentence, detailFields, displayName, hydrateRemedy, statusPillKind } from "@/v2/datasetMeta";
 import { assetTypeLabel } from "@/v2/libraryEstate";
+import { libraryVerification } from "@/v2/libraryVerification";
 import { RailEntityHeader, RailFrame, RailStickyFooter } from "@/v2/RailFrame";
 import { StatusPill } from "@/v2/StatusPill";
 
@@ -62,74 +63,6 @@ function sourceAuthorityLine(dataset, fields) {
   return "Source authority absent";
 }
 
-function normalizedVerification(value) {
-  return String(value || "").trim().toLowerCase().replace(/[\s-]+/g, "_");
-}
-
-function explicitVerificationRecord(dataset = {}) {
-  const nested = dataset.verification && typeof dataset.verification === "object" ? dataset.verification : {};
-  const sourceMatch = dataset.source_match && typeof dataset.source_match === "object" ? dataset.source_match : {};
-  const raw =
-    dataset.verification_status ||
-    dataset.verification_state ||
-    dataset.source_verification ||
-    dataset.source_match_status ||
-    nested.status ||
-    nested.state ||
-    sourceMatch.status ||
-    sourceMatch.state ||
-    "";
-  const normalized = normalizedVerification(raw);
-  const checks = [
-    ...(Array.isArray(nested.checks) ? nested.checks : []),
-    ...(Array.isArray(nested.established) ? nested.established : []),
-    ...(Array.isArray(sourceMatch.checks) ? sourceMatch.checks : []),
-  ].map((value) => String(value || "").trim()).filter(Boolean).slice(0, 4);
-  const unknowns = [
-    ...(Array.isArray(nested.unknowns) ? nested.unknowns : []),
-    ...(Array.isArray(sourceMatch.unknowns) ? sourceMatch.unknowns : []),
-  ].map((value) => String(value || "").trim()).filter(Boolean).slice(0, 4);
-  const note = String(
-    nested.summary || nested.reason || sourceMatch.summary || sourceMatch.reason || dataset.verification_summary || "",
-  ).trim();
-  return { normalized, checks, unknowns, note };
-}
-
-function verificationBlock(dataset) {
-  const record = explicitVerificationRecord(dataset);
-  const canonical = {
-    verified: "Verified",
-    matched: "Matched",
-    partial: "Partial",
-    unverified: "Unverified",
-    not_checked: "Not checked",
-    unchecked: "Not checked",
-  }[record.normalized];
-
-  if (canonical) {
-    const defaultBody = {
-      Verified: "A durable verification record is attached to this owned evidence.",
-      Matched: "A durable comparison records correspondence with sourcable evidence.",
-      Partial: "A durable comparison records only partial correspondence; inspect the remaining differences before reuse.",
-      Unverified: "A verification attempt did not establish correspondence with authoritative or sourcable evidence.",
-      "Not checked": "No durable source-comparison claim has been established for this asset.",
-    }[canonical];
-    return {
-      headline: canonical,
-      body: record.note || defaultBody,
-      checks: record.checks,
-      unknowns: record.unknowns,
-    };
-  }
-
-  return {
-    headline: "Not checked",
-    body: "No explicit verification relationship is recorded. Query readiness, archive presence, and source verification are separate claims.",
-    checks: [],
-    unknowns: ["Source correspondence not established"],
-  };
-}
-
 export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onPreview, onAskAbout }) {
   if (!dataset) return null;
   const fields = detailFields(dataset);
@@ -141,7 +74,7 @@ export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onPrevie
   const updated = dataset.updated_at || dataset.last_modified || dataset.as_of;
   const route = dataset.collect_via || dataset.backend;
   const canPreview = state.kind === "query-ready";
-  const verification = verificationBlock(dataset);
+  const verification = libraryVerification(dataset);
   const remedy = hydrateRemedy(dataset);
   const archiveRef = String(dataset?.canonical_remote || dataset?.lineage?.canonical_remote || "").trim();
 
@@ -188,7 +121,7 @@ export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onPrevie
 
         <section className="rd-v2-library-inspector-block" aria-label="Verification" data-testid="library-rail-verification">
           <p className="rd-v2-rail-section-label">Verification</p>
-          <h3 className="rd-v2-library-rail-module-title">{verification.headline}</h3>
+          <h3 className="rd-v2-library-rail-module-title">{verification.label}</h3>
           <p className="rd-v2-library-inspector-prose">{verification.body}</p>
           {verification.checks.length ? (
             <ul className="rd-v2-library-verify-list known">
