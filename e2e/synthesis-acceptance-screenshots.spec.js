@@ -238,9 +238,9 @@ async function mount(page, thread) {
         ? thread : { threads: [thread], total: 1 }),
     }));
   await page.goto("/?tab=synthesis");
-  const firstThread = page.getByTestId("synthesis-thread-item").first();
-  await expect(firstThread).toHaveCount(1);
-  await firstThread.click({ force: true });
+  const firstThread = page.locator("button:visible").filter({ hasText: thread.title }).first();
+  await expect(firstThread).toBeVisible();
+  await firstThread.click();
   await expect(page.getByTestId("synthesis-home-state")).toHaveCount(0);
 }
 
@@ -264,7 +264,7 @@ test.describe("Synthesis acceptance screenshots", () => {
           const preview = page.getByTestId("synthesis-preview-state");
           await expect(preview).toBeVisible();
           await expect(preview).toContainText("Test this accepted recipe before full execution");
-          await expect(page.getByRole("button", { name: "Run bounded preview" })).toBeVisible();
+          await expect(page.getByRole("button", { name: "Run bounded test" })).toBeVisible();
         }
 
         if (name === "06b-preview-passed") {
@@ -272,12 +272,12 @@ test.describe("Synthesis acceptance screenshots", () => {
           await expect(preview).toBeVisible();
           await expect(preview).toContainText("This accepted recipe completed on bounded bytes");
           await expect(preview).toContainText("5,000");
-          await expect(page.getByRole("button", { name: "Request execution approval" })).toBeVisible();
+          await expect(page.getByRole("button", { name: "Review execution approval" })).toBeVisible();
         }
 
         if (name === "06c-approval") {
           await expect(page.getByTestId("synthesis-preview-state")).toHaveCount(0);
-          await expect(page.getByRole("button", { name: "Review approval" })).toBeVisible();
+          await expect(page.getByRole("button", { name: "Review execution approval" })).toBeVisible();
           await expect(page.getByText("Bounded preview", { exact: true })).toBeVisible();
           const previewStep = page.getByRole("listitem").filter({ hasText: "Bounded preview" }).first();
           await expect(previewStep).toBeVisible();
@@ -372,7 +372,7 @@ test.describe("Synthesis acceptance screenshots", () => {
     await mount(page, threadFor(STATES["00-opening-recommended"]));
 
     const main = page.locator(".s04-main");
-    await expect(main.getByText("Exploration ready", { exact: true })).toBeVisible();
+    await expect(main.getByText("Construction recommendation", { exact: true })).toBeVisible();
     await expect(main.getByRole("region", { name: "Research brief" })).toBeVisible();
     await expect(main.getByRole("region", { name: "Recommended construction" })).toBeVisible();
     await expect(main.getByRole("region", { name: "What happens next" })).toBeVisible();
