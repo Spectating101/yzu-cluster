@@ -6,6 +6,7 @@ import {
   RailStickyFooter,
 } from "@/v2/RailFrame";
 import { synthesisAssist } from "@/v2/synthesisAssist.js";
+import { synthesisDraftBrief, synthesisDraftPrompt } from "@/v2/synthesisDraft.js";
 import { synthesisPreviewTruth } from "@/v2/synthesisLifecycle";
 import { isPreAcceptance, recommendedConstruction, researchBrief } from "@/v2/synthesisBrief.js";
 import "./synthesis-convergence.css";
@@ -37,30 +38,80 @@ function railSummary(thread) {
   };
 }
 
-function NewEntryRail({ onAsk }) {
-  const assist = synthesisAssist({ ephemeral: true, state: { ephemeral: true } });
+function NewEntryRail({ thread, onAsk }) {
+  const draft = synthesisDraftBrief(thread?.objective || thread?.state?.objective || "");
+  const status = !draft.objective ? "Draft entry" : draft.readyToCreate ? "Ready to create" : "Draft brief";
+  const primary = !draft.objective
+    ? "Describe the research object"
+    : draft.readyToCreate
+      ? "Review the brief before making it durable"
+      : `Clarify ${draft.missing[0]?.label?.toLowerCase() || "the missing framing"}`;
+  const risk = !draft.objective
+    ? "A blank objective gives Ask nothing durable to ground"
+    : draft.missing.length
+      ? `${draft.missing.length} framing commitment${draft.missing.length === 1 ? " is" : "s are"} still unstated`
+      : "No evidence or methodology has been chosen yet";
+  const next = !draft.objective
+    ? "State the research purpose or reuse a registered method"
+    : draft.readyToCreate
+      ? "Create the construction, then review held Library evidence"
+      : "Complete the brief yourself or use Ask to sharpen it";
+
   return (
     <RailFrame>
       <RailDecisionSummary
-        status={assist.status}
-        primary={assist.decision}
-        risk={assist.risk}
-        next={assist.next}
+        status={status}
+        primary={primary}
+        risk={risk}
+        next={next}
         labels={{ primary: "Needs you" }}
       />
       <div className="rd-v2-rail-scroll">
+        <section className="s04-draft-rail-brief" aria-label="Draft research brief checklist">
+          <header>
+            <span>Research brief</span>
+            <strong>{draft.complete}/4 framed</strong>
+          </header>
+          {draft.objective ? (
+            <p>{draft.objective}</p>
+          ) : (
+            <p className="is-empty">Your purpose will appear here while you write. Nothing is saved yet.</p>
+          )}
+          <ul>
+            {draft.cues.map((cue) => (
+              <li key={cue.id} className={cue.ready ? "is-ready" : ""}>
+                <b aria-hidden="true">{cue.ready ? "✓" : "·"}</b>
+                <span>
+                  <strong>{cue.label}</strong>
+                  <small>{cue.ready ? "Mentioned in draft" : `${cue.help} · e.g. ${cue.example}`}</small>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
         <RailFieldGrid>
           <RailField label="State" value="Not saved" />
           <RailField label="Evidence" value="None selected" />
           <RailField label="Method" value="None proposed" />
-          <RailField label="Execution" value="Not available before later approval" />
+          <RailField label="Execution" value="Unavailable before later approval" />
         </RailFieldGrid>
       </div>
       <RailStickyFooter>
         {typeof onAsk === "function" ? (
-          <button type="button" className="rd-v2-btn" onClick={() => onAsk(assist.prompts[0])}>
-            Ask about framing the objective
-          </button>
+          <>
+            <button type="button" className="rd-v2-btn primary" onClick={() => onAsk(synthesisDraftPrompt(draft.objective))}>
+              Help frame this in Ask
+            </button>
+            {draft.objective ? (
+              <button
+                type="button"
+                className="rd-v2-btn"
+                onClick={() => onAsk(`Challenge this unsaved research-object framing before it becomes durable: ${draft.objective}. Identify the single most consequential ambiguity in construct, unit, period, or intended use. Do not choose evidence or methodology.`)}
+              >
+                Challenge the framing
+              </button>
+            ) : null}
+          </>
         ) : null}
       </RailStickyFooter>
     </RailFrame>
@@ -163,7 +214,7 @@ export function SynthesisThreadRailPanel({ thread, onAskAbout, onOpenInLibrary }
   const ask = onAskAbout ? (prompt) => onAskAbout(target, prompt) : null;
 
   if (thread?.ephemeral || state.ephemeral) {
-    return <NewEntryRail onAsk={ask} />;
+    return <NewEntryRail thread={thread} onAsk={ask} />;
   }
 
   if (isPreAcceptance(thread)) {
