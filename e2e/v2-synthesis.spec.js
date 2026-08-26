@@ -467,7 +467,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
   test("collapses a long live brief on mobile while keeping the full brief explicitly reachable", async ({ page }) => {
     await page.getByRole("button", { name: "+ New synthesis" }).click();
     await page.getByTestId("synthesis-intent-state").getByRole("textbox").fill(LONG_LIVE_BRIEF);
-    await page.getByRole("button", { name: "Start project in Ask" }).click();
+    await page.getByRole("button", { name: "Create construction" }).click();
 
     const desktopBrief = page.locator(".s04-opening-brief > p");
     await expect(desktopBrief).toContainText("future filings to leak into earlier weeks");
@@ -507,7 +507,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await page.getByRole("button", { name: "+ New synthesis" }).click();
     const objective = page.getByPlaceholder(/Build a weekly measure/i);
     await objective.fill("Test whether Indonesian microstructure predicts later analyst revisions.");
-    await page.getByRole("button", { name: "Start project in Ask" }).click();
+    await page.getByRole("button", { name: "Create construction" }).click();
 
     const evidence = page.getByTestId("synthesis-evidence-state");
     const next = page.getByLabel("What happens next");
@@ -540,13 +540,14 @@ test.describe("v2 Synthesis durable thread surface", () => {
 
   test("accepts a revision-bound proposal, then requests but does not fabricate execution", async ({ page }) => {
     await page.getByTestId("synthesis-thread-item").filter({ hasText: "Weekly trust panel" }).click();
-    const next = page.getByRole("region", { name: "What happens next" });
     const proposal = page.getByTestId("synthesis-proposal-state");
-    await expect(next).toContainText("Review checkpoint");
-    await expect(next).toContainText("nothing has run");
-    await expect(next.getByRole("button", { name: "Review proposal" })).toHaveCount(0);
+    // Proposal review is now the authoritative decision surface itself. The
+    // redundant navigation/checkpoint card must stay absent.
+    await expect(page.getByRole("region", { name: "What happens next" })).toHaveCount(0);
     await expect(page.locator("aside.rd-v2-rail")).toContainText("recorded for review");
     await expect(page.locator("aside.rd-v2-rail")).not.toContainText("No construction has been recommended yet");
+    await expect(proposal).toBeVisible();
+    await expect(proposal.getByRole("button", { name: "Accept & test method" })).toBeVisible();
     await expect(proposal).toContainText("Aggregate held weekly panel");
     await expect(proposal).toContainText("Held input");
     await expect(proposal).toContainText("Proposed output");
@@ -554,10 +555,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await expect(proposal).toContainText("Still not established");
     await expect(proposal).toContainText("Pending proposal limitation from the exact change set");
     await expect(proposal).toContainText("Direct investor belief is not observed");
-    const nextBox = await next.boundingBox();
-    const proposalBox = await proposal.boundingBox();
-    expect(nextBox && proposalBox && proposalBox.y > nextBox.y).toBeTruthy();
-    expect((proposalBox?.y || Infinity) - ((nextBox?.y || 0) + (nextBox?.height || 0))).toBeLessThan(40);
+    await expect(proposal).toBeInViewport();
     await capture(page, "02-proposal-review-desktop");
     await page.getByRole("button", { name: "Accept & test method" }).click();
     const execution = page.getByTestId("synthesis-execution-state");
@@ -854,7 +852,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await capture(page, "06-new-project-entry-desktop");
     const objective = "Construct a weekly issuer attention panel for Taiwan filings.";
     await page.getByTestId("synthesis-intent-state").getByRole("textbox").fill(objective);
-    await page.getByRole("button", { name: "Start project in Ask" }).click();
+    await page.getByRole("button", { name: "Create construction" }).click();
     await expect(
       page.getByRole("region", { name: "Research brief" }).getByRole("paragraph"),
     ).toHaveText(objective);
@@ -880,7 +878,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
       page.waitForResponse(
         (res) => res.url().includes("/api/library/synthesis/threads") && res.request().method() === "POST",
       ),
-      page.getByRole("button", { name: "Start project in Ask" }).click(),
+      page.getByRole("button", { name: "Create construction" }).click(),
     ]);
     const created = await createResponse.json();
     const threadId = created.id;
@@ -920,7 +918,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
 
     await page.getByRole("button", { name: "+ New" }).click();
     await page.getByTestId("synthesis-intent-state").getByRole("textbox").fill("Unresolved objective for stall coverage.");
-    await page.getByRole("button", { name: "Start project in Ask" }).click();
+    await page.getByRole("button", { name: "Create construction" }).click();
 
     const card = page.getByTestId("synthesis-draft-state");
     await expect(card).toBeVisible();
@@ -946,7 +944,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
 
     await page.getByRole("button", { name: "+ New" }).click();
     await page.getByTestId("synthesis-intent-state").getByRole("textbox").fill("First unresolved objective.");
-    await page.getByRole("button", { name: "Start project in Ask" }).click();
+    await page.getByRole("button", { name: "Create construction" }).click();
     await expect(page.getByTestId("synthesis-draft-state")).toBeVisible();
     await page.clock.fastForward(65000);
     await expect(page.getByTestId("synthesis-draft-state")).toContainText("Taking longer than expected");
@@ -954,7 +952,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await page.getByRole("button", { name: "+ New" }).click();
     const secondObjective = "Second unresolved objective.";
     await page.getByTestId("synthesis-intent-state").getByRole("textbox").fill(secondObjective);
-    await page.getByRole("button", { name: "Start project in Ask" }).click();
+    await page.getByRole("button", { name: "Create construction" }).click();
 
     const card = page.getByTestId("synthesis-draft-state");
     await expect(card).toContainText("Interpretation in progress");
