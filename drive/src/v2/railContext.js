@@ -3,6 +3,7 @@ import { candidateKey } from "@/v2/candidateKey";
 import { assetAuthorityContext } from "@/v2/assetAuthority";
 import { connectorContext } from "@/v2/connectorContract";
 import { normalizeSynthesisExecution } from "@/v2/executionLifecycle";
+import { synthesisAssist } from "@/v2/synthesisAssist.js";
 
 function readinessLabel(dataset) {
   const raw = String(dataset?.analysis_readiness || "").trim();
@@ -151,12 +152,18 @@ export function buildRailContext({
     const thread = activeObject.thread || {};
     const state = thread.state || {};
     const lifecycle = normalizeSynthesisExecution(thread);
+    const assist = synthesisAssist(thread);
+    const preview = state.preview || {};
     const outputId = lifecycle.proof?.outputs?.[0] || state.execution?.output_dataset_id || state.execution_spec?.output_dataset_id;
+    const previewRows = Number(preview?.sampling?.previewed_rows);
+    const unmeasured = Array.isArray(state.unmeasured) ? state.unmeasured : [];
     entity = {
       kind: "synthesis_thread",
       id: activeObject.id,
       title: activeObject.title,
-      status: lifecycle.stage !== "unknown" ? lifecycle.stage : state.maturity || undefined,
+      status: assist.status || (lifecycle.stage !== "unknown" ? lifecycle.stage : state.maturity || undefined),
+      synthesis_stage: assist.stage,
+      decision_kind: assist.decisionKind,
     };
     selected = {
       thread_id: activeObject.id,
@@ -164,15 +171,39 @@ export function buildRailContext({
       objective: thread.objective || state.objective || undefined,
       required_grain: state.required_grain || state.spec?.grain || undefined,
       maturity: state.maturity || state.maturityLabel || undefined,
+      synthesis_stage: assist.stage,
+      synthesis_stage_label: assist.label,
+      decision_kind: assist.decisionKind,
+      current_decision: assist.decision,
+      decision_risk: assist.risk,
+      decision_next: assist.next,
+      synthesis_ask_prompts: assist.prompts,
+      active_blocker: ["resolve_scope", "resolve_units", "resolve_join"].includes(assist.decisionKind)
+        ? assist.decisionKind
+        : undefined,
+      measured_inputs: Number.isFinite(Number(state.measured_inputs)) ? Number(state.measured_inputs) : undefined,
+      unmeasured_inputs: unmeasured.length ? unmeasured : undefined,
       proposal_id: state.proposal?.id || undefined,
       proposal_hash: state.proposal?.proposal_hash || undefined,
+      accepted_spec_hash: state.accepted_spec_hash || undefined,
+      preview_status: preview.status || undefined,
+      preview_spec_hash: preview.spec_hash || undefined,
+      preview_authority_hash: preview.authority_hash || undefined,
+      preview_created_at: preview.created_at || undefined,
+      preview_rows: Number.isFinite(previewRows) ? previewRows : undefined,
+      preview_bounded: preview.bounded === true ? true : undefined,
       output_dataset_id: outputId || undefined,
       ...lifecycleSelection(lifecycle),
     };
-    actions = ["ask_about", "challenge_method", "review_proposal"];
-    if (lifecycle.stage === "pending_approval") actions.push("review_execution");
+    actions = ["ask_about"];
+    if (["design_method", "review_recommendation"].includes(assist.decisionKind)) actions.push("challenge_method");
+    if (assist.decisionKind === "review_proposal") actions.push("review_proposal");
+    if (["run_preview", "recover_preview"].includes(assist.decisionKind)) actions.push("run_preview");
+    if (assist.decisionKind === "review_preview") actions.push("request_execution_approval");
+    if (assist.decisionKind === "approve_execution") actions.push("review_execution");
     if (lifecycle.retryable && /failed|blocked/.test(lifecycle.stage)) actions.push("retry_execution");
-    if (lifecycle.stage === "registered") actions.push("open_output", "refresh_output");
+    if (assist.stage === "result") actions.push("open_output");
+    if (lifecycle.stage === "registered") actions.push("refresh_output");
   } else if (dataset?.dataset_id) {
     const authority = assetAuthorityContext(dataset);
     entity = {
