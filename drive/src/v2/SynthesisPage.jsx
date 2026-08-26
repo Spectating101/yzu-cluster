@@ -21,6 +21,7 @@ import { SynthesisHome } from "./SynthesisHome.jsx";
 import { focusFor } from "./synthesisFocus.js";
 import { synthesisAssist } from "@/v2/synthesisAssist.js";
 import { synthesisDraftBrief, synthesisDraftPrompt } from "@/v2/synthesisDraft.js";
+import { synthesisDraftBrief, synthesisDraftPrompt } from "@/v2/synthesisDraft.js";
 import "./s04-opening.css";
 import "./synthesis-preview.css";
 
@@ -2153,6 +2154,10 @@ export function SynthesisPage({
               reasoningAvailable={reasoningAvailable}
               reasoningStatus={reasoningStatus}
               onOpenResources={() => onGoTab?.("resources")}
+              onFrameInAsk={(purpose) => onAskComposer?.({
+                prompt: synthesisDraftPrompt(purpose),
+                displayText: purpose ? "Help me sharpen this research object" : "Help me frame a research object",
+              })}
             />
           ) : null}
           {!newMode && selected ? (
