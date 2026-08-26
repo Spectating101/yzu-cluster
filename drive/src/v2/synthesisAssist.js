@@ -1,5 +1,5 @@
-import { rankCandidates } from "@/v2/joinCandidates.js";
-import { synthesisJourneyStage, synthesisPreviewTruth } from "@/v2/synthesisLifecycle.js";
+import { rankCandidates } from "./joinCandidates.js";
+import { synthesisJourneyStage, synthesisPreviewTruth } from "./synthesisLifecycle.js";
 
 function text(value, fallback = "") {
   return String(value || "").trim() || fallback;
@@ -37,6 +37,19 @@ function joinRisk(candidate) {
     return `${coverage.toFixed(coverage % 1 ? 1 : 0)}% of the left-side entities match the strongest measured key`;
   }
   return "Join coverage has not been established";
+}
+
+function measuredEvidenceRisk(state) {
+  const profiles = Array.isArray(state?.column_profiles) ? state.column_profiles : [];
+  const flaggedProfiles = profiles.filter((profile) => (profile?.flags || []).length);
+  if (!flaggedProfiles.length) {
+    return "No measured column risk is flagged, but construct validity still requires researcher judgement";
+  }
+  const flaggedKinds = [...new Set(flaggedProfiles.flatMap((profile) => profile?.flags || []).filter(Boolean))];
+  if (flaggedProfiles.length === 1 && flaggedKinds.length === 1) {
+    return `1 ${String(flaggedKinds[0]).replace(/[_-]+/g, " ")} / flagged column`;
+  }
+  return `${flaggedProfiles.length} flagged column${flaggedProfiles.length === 1 ? "" : "s"}`;
 }
 
 function previewStatus(preview) {
@@ -163,7 +176,7 @@ export function synthesisAssist(thread) {
         label: "Construction recommendation",
         decisionKind: "review_recommendation",
         status: "Construction recommended",
-        decision: "Decide whether this is the right construction to design",
+        decision: "Review the recommendation and decide whether this is the right construction to design",
         risk: "A recommendation remains a proxy design until the researcher accepts and specifies it",
         next: "Accept the recommendation for detailed method design or challenge it in Ask",
         prompts: [
@@ -180,9 +193,9 @@ export function synthesisAssist(thread) {
       label: "Method design",
       decisionKind: "design_method",
       status: "Evidence measured",
-      decision: "Turn measured evidence into one reviewable construction",
-      risk: "A plausible method can still encode an unsupported research assumption",
-      next: "Use Ask to propose the smallest defensible method change for review",
+      decision: "Review measured evidence and turn it into one reviewable construction",
+      risk: measuredEvidenceRisk(state),
+      next: "Request one reviewable construction for explicit method review",
       prompts: [
         "What is the next material method decision in this construction?",
         "Separate measured facts from methodological assumptions here.",
