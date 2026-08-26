@@ -819,7 +819,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await expect(page.getByTestId("rail-pane-detail")).toBeHidden();
     await expect(rail.getByTestId("ask-composer")).toHaveAttribute(
       "placeholder",
-      "Correct the interpretation, add a constraint, or ask…",
+      "Ask about review measured evidence and turn it into one reviewable construction…",
     );
     await capture(page, "05-shared-ask-desktop");
   });
@@ -922,14 +922,15 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await expect(page.locator(".s04-intent-contract")).toHaveCount(0);
     await expect(page.getByText(/Nothing is built here\./)).toBeVisible();
     await expect(page.locator("aside.rd-v2-rail")).toContainText("Ask · Research objective");
-    await expect(page.getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "true");
+    await expect(page.getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "false");
+    await expect(page.getByTestId("rail-pane-detail")).toBeVisible();
     await capture(page, "06-new-project-entry-desktop");
 
     const objective = "Construct a weekly issuer attention panel for Taiwan filings.";
     await page.getByTestId("synthesis-intent-state").getByRole("textbox").fill(objective);
     await page.getByRole("button", { name: "Create construction" }).click();
-    await expect(page.getByRole("region", { name: "Research brief" }).getByRole("paragraph")).toHaveText(objective);
-    await expect(page.getByRole("heading", { name: "Weekly issuer attention panel for Taiwan filings" })).toBeVisible();
+    await expect(page.getByRole("region", { name: "Research brief", exact: true }).first().getByRole("paragraph")).toHaveText(objective);
+    await expect(page.getByTestId("synthesis-studio").getByRole("heading", { name: "Weekly issuer attention panel for Taiwan filings" })).toBeVisible();
     await expect(page.getByTestId("synthesis-draft-state")).toHaveCount(0);
     await expect(page.getByText("Grounded answer", { exact: true })).toHaveCount(0);
 
@@ -946,7 +947,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
 
     await expect(page.getByTestId("synthesis-draft-state")).toBeVisible();
     await expect(next.getByRole("button", { name: "Method reasoning in Ask" })).toBeDisabled();
-    await expect(page.locator("aside.rd-v2-rail")).toContainText("Ask · synthesis thread");
+    await expect(page.locator("aside.rd-v2-rail")).toContainText("Ask · Method design");
     await expect(page.locator("aside.rd-v2-rail")).not.toContainText("Interpret this research objective");
     await expect(page.getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "true");
     await capture(page, "07-explicit-method-reasoning-desktop");
