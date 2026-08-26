@@ -1,22 +1,13 @@
 import { DeskError } from "@/v2/DeskError";
-import { synthesisAssist } from "@/v2/synthesisAssist.js";
-import { synthesisJourneyStage } from "@/v2/synthesisLifecycle";
+import {
+  partitionSynthesisWorkspace,
+  synthesisWorkspaceActionLabel,
+  synthesisWorkspacePhaseLabel,
+} from "@/v2/synthesisWorkspace.js";
 import "./synthesis-home.css";
 
 function text(value, fallback = "") {
   return String(value || "").trim() || fallback;
-}
-
-function normalizeStatus(value) {
-  return text(value).toLowerCase().replace(/[ -]+/g, "_");
-}
-
-function executionStatus(thread) {
-  return normalizeStatus(thread?.state?.execution?.status);
-}
-
-function isFailed(thread) {
-  return executionStatus(thread) === "failed";
 }
 
 function titleFor(thread) {
@@ -33,79 +24,12 @@ function outputFor(thread) {
   );
 }
 
-function phaseFor(thread) {
-  if (isFailed(thread)) return "failed";
-  return synthesisJourneyStage(thread);
-}
-
-const DECISION_KINDS = new Set([
-  "resolve_scope",
-  "resolve_units",
-  "resolve_join",
-  "review_recommendation",
-  "review_proposal",
-  "run_preview",
-  "recover_preview",
-  "review_preview",
-  "approve_execution",
-  "recover_build",
-]);
-
-function needsResearcherDecision(thread) {
-  return DECISION_KINDS.has(synthesisAssist(thread).decisionKind);
-}
-
-function phaseLabel(thread) {
-  const assist = synthesisAssist(thread);
-  const phase = phaseFor(thread);
-  if (phase === "failed") return "Needs recovery";
-  if (phase === "build") return text(thread?.state?.execution?.status, "Build in progress").replace(/_/g, " ");
-  if (phase === "result") {
-    return executionStatus(thread) === "query_ready" ? "Query-ready result" : "Registered result";
-  }
-  return assist.status || assist.label || "Durable construction";
-}
-
-function actionLabel(thread) {
-  const assist = synthesisAssist(thread);
-  switch (assist.decisionKind) {
-    case "resolve_scope": return "Resolve scope";
-    case "resolve_units": return "Resolve units";
-    case "resolve_join": return "Resolve join";
-    case "review_recommendation": return "Review recommendation";
-    case "review_proposal": return "Review proposal";
-    case "run_preview": return assist.status === "Preview stale" ? "Rerun Preview" : "Run Preview";
-    case "recover_preview": return "Inspect Preview";
-    case "review_preview": return "Review Preview";
-    case "approve_execution": return "Review approval";
-    case "recover_build": return "Inspect failure";
-    case "await_registration": return "View registration";
-    case "open_result": return "Open result";
-    case "map_evidence": return "Continue evidence";
-    case "design_method": return "Continue method";
-    default: break;
-  }
-  const phase = phaseFor(thread);
-  if (phase === "failed") return "Inspect failure";
-  if (phase === "build") return "View build";
-  if (phase === "result") return "Open result";
-  return "Continue";
-}
-
 function updatedLabel(thread) {
   const raw = thread?.updated_at || thread?.created_at;
   if (!raw) return "Durable thread";
   const date = new Date(raw);
   if (Number.isNaN(date.getTime())) return "Durable thread";
   return `Updated ${date.toLocaleDateString(undefined, { month: "short", day: "numeric" })}`;
-}
-
-function sortNewest(rows) {
-  return [...rows].sort((a, b) => {
-    const left = new Date(a?.updated_at || a?.created_at || 0).getTime() || 0;
-    const right = new Date(b?.updated_at || b?.created_at || 0).getTime() || 0;
-    return right - left;
-  });
 }
 
 function ThreadCard({ thread, onOpen, priority = false }) {
@@ -119,14 +43,14 @@ function ThreadCard({ thread, onOpen, priority = false }) {
       data-testid="synthesis-home-thread"
     >
       <span className="s04-home-thread-state">
-        <b>{phaseLabel(thread)}</b>
+        <b>{synthesisWorkspacePhaseLabel(thread)}</b>
         <small>{updatedLabel(thread)}</small>
       </span>
       <strong>{titleFor(thread)}</strong>
       <p>{output || objectiveFor(thread)}</p>
       <span className="s04-home-thread-foot">
         <small>{projectKey ? `Project · ${projectKey}` : output ? "Library-bound output" : "Durable construction"}</small>
-        <em>{actionLabel(thread)} →</em>
+        <em>{synthesisWorkspaceActionLabel(thread)} →</em>
       </span>
     </button>
   );
@@ -169,15 +93,7 @@ export function SynthesisHome({
 }) {
   const allThreads = Array.isArray(threads) ? threads : [];
   const methods = Array.isArray(profiles) ? profiles : [];
-  const needsYou = sortNewest(allThreads.filter((thread) => needsResearcherDecision(thread)));
-  const building = sortNewest(allThreads.filter((thread) => phaseFor(thread) === "build" && !isFailed(thread)));
-  const results = sortNewest(allThreads.filter((thread) => phaseFor(thread) === "result"));
-  const active = sortNewest(allThreads.filter((thread) => {
-    if (needsResearcherDecision(thread)) return false;
-    const phase = phaseFor(thread);
-    return !["build", "result"].includes(phase);
-  }));
-  const continueThread = needsYou[0] || active[0] || building[0] || results[0] || null;
+  const { needsYou, active, building, results, continueThread } = partitionSynthesisWorkspace(allThreads);
 
   const scrollToMethods = () => {
     document.getElementById("synthesis-home-methods")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -234,7 +150,7 @@ export function SynthesisHome({
           <small>Durable work</small>
           <strong>{needsYou.length ? "Return to what needs you" : "Continue a construction"}</strong>
           <span>{continueThread ? titleFor(continueThread) : "No saved construction exists yet."}</span>
-          <em>{continueThread ? `${actionLabel(continueThread)} →` : "Nothing saved"}</em>
+          <em>{continueThread ? `${synthesisWorkspaceActionLabel(continueThread)} →` : "Nothing saved"}</em>
         </button>
       </section>
 
