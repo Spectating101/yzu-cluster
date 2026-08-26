@@ -21,8 +21,8 @@ jobs:
       - run: npm run build
         env:
           YZU_PAGES: "true"
-      - name: Run Synthesis workspace operating queue
-        run: node --test drive/src/v2/synthesisWorkspace.test.js
+      - name: Run Synthesis workspace and visual reasoning contracts
+        run: node --test drive/src/v2/synthesisWorkspace.test.js drive/src/v2/synthesisVisualReasoning.test.js
       - name: Run Synthesis interaction suite
         run: >-
           mkdir -p .tmp-pw artifacts/synthesis-renders &&
