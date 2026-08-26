@@ -25,89 +25,114 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
+          import re
 
           def replace_once(path, old, new, label):
               p = Path(path)
               text = p.read_text(encoding='utf-8')
               count = text.count(old)
               if count != 1:
-                  raise SystemExit(f'{label}: expected exactly one match, found {count}')
+                  raise SystemExit(f'{label}: expected exactly one literal match, found {count}')
               p.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          def sub_once(path, pattern, replacement, label, flags=0):
+              p = Path(path)
+              text = p.read_text(encoding='utf-8')
+              new_text, count = re.subn(pattern, replacement, text, count=1, flags=flags)
+              if count != 1:
+                  raise SystemExit(f'{label}: expected exactly one regex match, found {count}')
+              p.write_text(new_text, encoding='utf-8')
 
           page = 'drive/src/v2/SynthesisPage.jsx'
           home = 'drive/src/v2/SynthesisHome.jsx'
           test = 'e2e/v2-synthesis.spec.js'
 
-          # Durable object creation is deterministic; Ask reasoning is a later explicit step.
+          # Durable object creation and registered-method seeding are deterministic.
+          # Assistant reasoning is a later explicit researcher action.
           replace_once(page, '    if (!nextObjective || !reasoningAvailable) return;', '    if (!nextObjective) return;', 'create thread assistant guard')
-          replace_once(page, '''      onSelectThread?.(created);
-              setReasoningThreadId(created.id);
-              ask(
-                `Interpret this research objective. Separate supported evidence, proposed proxy choices, and unresolved limitations, then ask the one highest-value clarification question: ${nextObjective}`,
-                created,
-                nextObjective,
-              );''', '''      onSelectThread?.(created);''', 'create thread hidden reasoning')
+          sub_once(
+              page,
+              r'\n      setReasoningThreadId\(created\.id\);\n      ask\(\n        `Interpret this research objective\.[\s\S]*?\n      \);',
+              '',
+              'create thread hidden reasoning',
+          )
           replace_once(page, '    if (!profile?.id || !reasoningAvailable) return;', '    if (!profile?.id) return;', 'blueprint assistant guard')
-          replace_once(page, '''      onSelectThread?.(created);
-              setReasoningThreadId(created.id);
-              ask(
-                `Use registered blueprint ${profile.id} (${title}). Propose the smallest defensible construction from owned Library inputs. Do not invent missing sources.`,
-                created,
-                `Start from the registered blueprint: ${title}`,
-              );''', '''      onSelectThread?.(created);''', 'blueprint hidden reasoning')
+          sub_once(
+              page,
+              r'\n      setReasoningThreadId\(created\.id\);\n      ask\(\n        `Use registered blueprint \$\{profile\.id\} \(\$\{title\}\)\.[\s\S]*?\n      \);',
+              '',
+              'blueprint hidden reasoning',
+          )
 
-          # New-thread UI no longer treats assistant availability as a prerequisite for durable setup.
-          replace_once(page, '''          <p className="s04-new-entry-boundary">
-                    Nothing is built here. {reasoningAvailable
-                      ? "After creation, the desk can review held Library evidence and Ask can help reason from that durable context."
-                      : `${reasoningStatus}. You can inspect existing constructions, but assistant-grounded creation is unavailable.`}
-                  </p>''', '''          <p className="s04-new-entry-boundary">
-                    Nothing is built here. After creation, the desk reviews held Library evidence; Ask reasoning remains a separate step and waits if the assistant is unavailable.
-                  </p>''', 'new entry boundary')
-          replace_once(page, '''              {objective.trim()
-                        ? reasoningAvailable
-                          ? "Creates one durable Synthesis thread from this exact purpose."
-                          : "Assistant reasoning must be verified before this entry can create a thread."
-                        : "Enter a purpose to create a durable thread."}''', '''              {objective.trim()
-                        ? "Creates one durable Synthesis thread from this exact purpose."
-                        : "Enter a purpose to create a durable thread."}''', 'new entry footer')
-          replace_once(page, '              disabled={busy || !objective.trim() || !reasoningAvailable}', '              disabled={busy || !objective.trim()}', 'create button disabled')
-          replace_once(page, '              title={!reasoningAvailable ? reasoningStatus : objective.trim() ? undefined : "Enter an objective to continue"}', '              title={objective.trim() ? undefined : "Enter an objective to continue"}', 'create button title')
-          replace_once(page, '              {reasoningAvailable ? "Create construction" : "Assistant unavailable"}', '              Create construction', 'create button label')
-          replace_once(page, '''                  disabled={busy || !reasoningAvailable}
-                          onClick={() => onStartBlueprint?.(profile)}
-                          title={!reasoningAvailable ? reasoningStatus : text(profile.title, profile.id)}''', '''                  disabled={busy}
-                          onClick={() => onStartBlueprint?.(profile)}
-                          title={text(profile.title, profile.id)}''', 'new entry blueprint availability')
+          # New construction UI: creation/evidence setup stays available even if Ask is not.
+          sub_once(
+              page,
+              r'<p className="s04-new-entry-boundary">\s*Nothing is built here\. \{reasoningAvailable[\s\S]*?</p>',
+              '<p className="s04-new-entry-boundary">\n            Nothing is built here. After creation, the desk reviews held Library evidence; Ask reasoning remains a separate step and waits if the assistant is unavailable.\n          </p>',
+              'new entry boundary',
+          )
+          sub_once(
+              page,
+              r'\{objective\.trim\(\)\s*\? reasoningAvailable\s*\? "Creates one durable Synthesis thread from this exact purpose\."\s*: "Assistant reasoning must be verified before this entry can create a thread\."\s*: "Enter a purpose to create a durable thread\."\}',
+              '{objective.trim()\n                ? "Creates one durable Synthesis thread from this exact purpose."\n                : "Enter a purpose to create a durable thread."}',
+              'new entry footer',
+          )
+          replace_once(page, 'disabled={busy || !objective.trim() || !reasoningAvailable}', 'disabled={busy || !objective.trim()}', 'create button disabled')
+          replace_once(page, 'title={!reasoningAvailable ? reasoningStatus : objective.trim() ? undefined : "Enter an objective to continue"}', 'title={objective.trim() ? undefined : "Enter an objective to continue"}', 'create button title')
+          replace_once(page, '{reasoningAvailable ? "Create construction" : "Assistant unavailable"}', 'Create construction', 'create button label')
+          sub_once(
+              page,
+              r'disabled=\{busy \|\| !reasoningAvailable\}\s*\n\s*onClick=\{\(\) => onStartBlueprint\?\.\(profile\)\}\s*\n\s*title=\{!reasoningAvailable \? reasoningStatus : text\(profile\.title, profile\.id\)\}',
+              'disabled={busy}\n                  onClick={() => onStartBlueprint?.(profile)}\n                  title={text(profile.title, profile.id)}',
+              'new entry blueprint availability',
+          )
 
-          # Keep the dormant/alternate empty-workspace path aligned with the same authority contract.
-          replace_once(page, '                  disabled={!reasoningAvailable}\n                  title={!reasoningAvailable ? reasoningStatus : undefined}\n                  onClick={() => onStartBlueprint?.(profile)}', '                  onClick={() => onStartBlueprint?.(profile)}\n                  title={text(profile.title, profile.id)}', 'empty workspace blueprint availability')
-          replace_once(page, '        <button type="button" className="rd-v2-btn primary" onClick={onNew} disabled={!reasoningAvailable} title={!reasoningAvailable ? reasoningStatus : undefined}>\n          {reasoningAvailable ? "Start a construction" : "Assistant unavailable"}\n        </button>', '        <button type="button" className="rd-v2-btn primary" onClick={onNew}>\n          Start a construction\n        </button>', 'empty workspace new availability')
+          # Keep the alternate EmptyWorkspace path on the same deterministic-start contract.
+          sub_once(
+              page,
+              r'disabled=\{!reasoningAvailable\}\s*\n\s*title=\{!reasoningAvailable \? reasoningStatus : undefined\}\s*\n\s*onClick=\{\(\) => onStartBlueprint\?\.\(profile\)\}',
+              'onClick={() => onStartBlueprint?.(profile)}\n                  title={text(profile.title, profile.id)}',
+              'empty workspace blueprint availability',
+          )
+          sub_once(
+              page,
+              r'<button type="button" className="rd-v2-btn primary" onClick=\{onNew\} disabled=\{!reasoningAvailable\} title=\{!reasoningAvailable \? reasoningStatus : undefined\}>\s*\{reasoningAvailable \? "Start a construction" : "Assistant unavailable"\}\s*</button>',
+              '<button type="button" className="rd-v2-btn primary" onClick={onNew}>\n          Start a construction\n        </button>',
+              'empty workspace new availability',
+          )
 
-          # Home can always start deterministic durable work; runtime status only gates reasoning.
-          replace_once(home, '''          onClick={onNew}
-                  disabled={!reasoningAvailable}
-                  title={!reasoningAvailable ? reasoningStatus : undefined}''', '''          onClick={onNew}''', 'home new card availability')
-          replace_once(home, '          <em>{reasoningAvailable ? "Start →" : "Assistant unavailable"}</em>', '          <em>Start →</em>', 'home new card label')
-          replace_once(home, '''          <span><strong>Creation is paused.</strong> {reasoningStatus}. Existing durable work remains inspectable.</span>''', '''          <span><strong>Assistant reasoning is paused.</strong> {reasoningStatus}. You can still create constructions and review or map held evidence.</span>''', 'home runtime copy')
-          replace_once(home, '          <button type="button" className="rd-v2-btn primary" onClick={onNew} disabled={!reasoningAvailable}>Start the first construction</button>', '          <button type="button" className="rd-v2-btn primary" onClick={onNew}>Start the first construction</button>', 'home first construction availability')
-          replace_once(home, '''                onClick={() => onStartBlueprint?.(profile)}
-                        disabled={!reasoningAvailable}
-                        title={!reasoningAvailable ? reasoningStatus : text(profile.title, profile.id)}''', '''                onClick={() => onStartBlueprint?.(profile)}
-                        title={text(profile.title, profile.id)}''', 'home blueprint availability')
+          # Home can start deterministic work without Ask; the status banner now gates reasoning only.
+          sub_once(
+              home,
+              r'onClick=\{onNew\}\s*\n\s*disabled=\{!reasoningAvailable\}\s*\n\s*title=\{!reasoningAvailable \? reasoningStatus : undefined\}',
+              'onClick={onNew}',
+              'home new card availability',
+          )
+          replace_once(home, '<em>{reasoningAvailable ? "Start →" : "Assistant unavailable"}</em>', '<em>Start →</em>', 'home new card label')
+          replace_once(home, '<span><strong>Creation is paused.</strong> {reasoningStatus}. Existing durable work remains inspectable.</span>', '<span><strong>Assistant reasoning is paused.</strong> {reasoningStatus}. You can still create constructions and review or map held evidence.</span>', 'home runtime copy')
+          replace_once(home, '<button type="button" className="rd-v2-btn primary" onClick={onNew} disabled={!reasoningAvailable}>Start the first construction</button>', '<button type="button" className="rd-v2-btn primary" onClick={onNew}>Start the first construction</button>', 'home first construction availability')
+          sub_once(
+              home,
+              r'onClick=\{\(\) => onStartBlueprint\?\.\(profile\)\}\s*\n\s*disabled=\{!reasoningAvailable\}\s*\n\s*title=\{!reasoningAvailable \? reasoningStatus : text\(profile\.title, profile\.id\)\}',
+              'onClick={() => onStartBlueprint?.(profile)}\n                title={text(profile.title, profile.id)}',
+              'home blueprint availability',
+          )
 
-          # Pin the sequencing in the real browser flow.
-          replace_once(test, '''    await expect(next.getByRole("button", { name: /held evidence/i })).toHaveCount(0);
-              await expect(next.getByRole("button", { name: "Start method reasoning" })).toBeDisabled();''', '''    await expect(next.getByRole("button", { name: /held evidence/i })).toHaveCount(0);
-              await expect(next.getByRole("button", { name: "Start method reasoning" })).toBeDisabled();
-              await expect(page.getByTestId("synthesis-draft-state")).toHaveCount(0);
-              await expect(page.getByText("Grounded answer", { exact: true })).toHaveCount(0);''', 'pre-map no hidden reasoning')
-          replace_once(test, '''    await expect(next.getByRole("button", { name: "Start method reasoning" })).toBeEnabled();
-              await capture(page, "02c-held-evidence-mapped-desktop");''', '''    await expect(next.getByRole("button", { name: "Start method reasoning" })).toBeEnabled();
-              await expect(page.getByTestId("synthesis-draft-state")).toHaveCount(0);
-              await expect(page.getByText("Grounded answer", { exact: true })).toHaveCount(0);
-              await capture(page, "02c-held-evidence-mapped-desktop");''', 'post-map reasoning remains explicit')
+          # Browser contract: evidence review/mapping cannot silently launch Ask reasoning.
+          replace_once(
+              test,
+              '    await expect(next.getByRole("button", { name: "Start method reasoning" })).toBeDisabled();',
+              '    await expect(next.getByRole("button", { name: "Start method reasoning" })).toBeDisabled();\n    await expect(page.getByTestId("synthesis-draft-state")).toHaveCount(0);\n    await expect(page.getByText("Grounded answer", { exact: true })).toHaveCount(0);',
+              'pre-map no hidden reasoning',
+          )
+          replace_once(
+              test,
+              '    await expect(next.getByRole("button", { name: "Start method reasoning" })).toBeEnabled();\n    await capture(page, "02c-held-evidence-mapped-desktop");',
+              '    await expect(next.getByRole("button", { name: "Start method reasoning" })).toBeEnabled();\n    await expect(page.getByTestId("synthesis-draft-state")).toHaveCount(0);\n    await expect(page.getByText("Grounded answer", { exact: true })).toHaveCount(0);\n    await capture(page, "02c-held-evidence-mapped-desktop");',
+              'post-map reasoning remains explicit',
+          )
           PY
+
           git diff --check
           git diff -- drive/src/v2/SynthesisPage.jsx drive/src/v2/SynthesisHome.jsx e2e/v2-synthesis.spec.js
           git config user.name 'synthesis-sequencing-bot'
