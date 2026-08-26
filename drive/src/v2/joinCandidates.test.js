@@ -39,6 +39,10 @@ test("a complete entity-period key outranks a higher-coverage partial identity k
       right_key: "entity_id + week",
       key_parts: ["entity_id", "week"],
       complete_identity_domain: true,
+      left_dataset_id: "left_panel",
+      right_dataset_id: "right_panel",
+      left_label: "Issuer-week research panel",
+      right_label: "Weekly market evidence",
       matched: 50,
       left_distinct: 100,
       match_rate_pct: 50,
@@ -48,6 +52,8 @@ test("a complete entity-period key outranks a higher-coverage partial identity k
   assert.equal(ranked[0].leftKey, "entity_id + week");
   assert.deepEqual(ranked[0].keyParts, ["entity_id", "week"]);
   assert.equal(ranked[0].coverage, 50);
+  assert.equal(ranked[0].leftLabel, "Issuer-week research panel");
+  assert.equal(ranked[0].rightLabel, "Weekly market evidence");
   assert.equal(ranked[1].coverage, 100);
 });
 
