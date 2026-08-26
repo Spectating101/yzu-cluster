@@ -615,6 +615,12 @@ export function synthesisMaterialisation(threadId) {
   return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}/materialisation`);
 }
 
+/** Exact immutable method artifact written by the completed Synthesis execution.
+ * This endpoint never asks the assistant to regenerate code. */
+export function getSynthesisMethodExport(threadId) {
+  return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}/method`);
+}
+
 /** Durable, backend-declared missing-evidence identities for one thread — the
  * only source of truth for whether a mapped evidence node is Discover-routable. */
 export function getSynthesisDiscoverHandoff(threadId) {

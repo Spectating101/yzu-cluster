@@ -325,6 +325,35 @@ async function installSynthesisThreadMock(page) {
       }
       return respond({ error: `unexpected execution action: ${action}` }, 400);
     }
+    if (suffix === "method" && method === "GET") {
+      const execution = thread.state.execution || {};
+      if (!['registered', 'query_ready'].includes(String(execution.status || ''))) {
+        return respond({ error: "method export requires completed execution" }, 409);
+      }
+      return respond({
+        thread_id: thread.id,
+        job_id: execution.job_id,
+        filename: "method.py",
+        script: `"""Reproduces the exact accepted Synthesis method."""
+# execution_spec sha256: sha256:accepted-weekly-v1
+import pandas as pd
+frame = pd.DataFrame({ value: [1, 2] })
+result = frame.groupby(lambda _x: 0).size().rename('n').to_frame().reset_index(drop=True)
+result.to_parquet('stablecoin_attention_weekly.parquet', index=False)
+`,
+        sha256: "89b58e264fed4df14ef399432b446ccc7977f4bdfe02b13b221a0ff3cc3f51a1",
+        spec_hash: "sha256:accepted-weekly-v1",
+        method_origin: {
+          kind: "llm_tool_call",
+          authority: "composer",
+          tool: "research_synthesis_propose_state",
+          proposal_id: "proposal-weekly-v1",
+          proposal_hash: "sha256:proposal-weekly-v1",
+        },
+        deterministic_export: true,
+        generated_by_llm: false,
+      });
+    }
     if (suffix === "materialisation" && method === "GET") {
       const execution = thread.state.execution || {};
       return respond({ thread_id: thread.id, materialisation: thread.materialisation, output_registered: execution.status === "registered", output_dataset_id: execution.output_dataset_id || "" });
@@ -734,6 +763,38 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await expect(registered).toContainText("Library handoff");
     await expect(registered).toContainText("Registered");
     await capture(page, "04-registered-desktop");
+  });
+
+  test("finalized output exposes the exact frozen method without asking the LLM to regenerate code", async ({ page }) => {
+    let chatCalls = 0;
+    page.on("request", (request) => {
+      const path = new URL(request.url()).pathname;
+      if (path.endsWith("/library/chat") || path.endsWith("/library/chat/stream")) chatCalls += 1;
+    });
+
+    await page.getByTestId("synthesis-thread-item").filter({ hasText: "Stablecoin attention weekly panel" }).click();
+    const registered = page.getByTestId("synthesis-registered-state");
+    const reproduce = registered.getByTestId("synthesis-method-export");
+    await expect(reproduce).toBeVisible();
+    await expect(reproduce).toContainText("Exact method artifact");
+    await expect(reproduce).toContainText("Frozen with execution");
+
+    await reproduce.getByRole("button", { name: "View exact method.py" }).click();
+    await expect(reproduce).toContainText("Composer proposal");
+    await expect(reproduce).toContainText("Researcher accepted");
+    await expect(reproduce).toContainText("Deterministic script");
+    await expect(reproduce).toContainText("No LLM regeneration");
+    const code = reproduce.getByTestId("synthesis-method-export-code");
+    await expect(code).toContainText("execution_spec sha256");
+    await expect(code).toContainText("result.to_parquet");
+    expect(chatCalls, "viewing the authoritative script must not call Ask/LLM").toBe(0);
+
+    const downloadPromise = page.waitForEvent("download");
+    await reproduce.getByRole("button", { name: "Download Python script" }).click();
+    const download = await downloadPromise;
+    expect(download.suggestedFilename()).toBe("method.py");
+    expect(chatCalls, "downloading the authoritative script must not call Ask/LLM").toBe(0);
+    await capture(page, "04b-registered-method-export-desktop");
   });
 
   test("renders query-ready only from an explicit query-ready lifecycle", async ({ page }) => {

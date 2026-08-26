@@ -7,7 +7,9 @@ import {
   applySynthesisEvidenceMap,
   getSynthesisDiscoverHandoff,
   getSynthesisMeasurements,
+  getSynthesisMethodExport,
   getSynthesisThread,
+  downloadText,
   listSynthesisProfiles,
   listSynthesisThreads,
   proposeSynthesisEvidenceMap,
@@ -1006,6 +1008,107 @@ function ProposalReview({ thread, busy, onDecide, onAsk }) {
   );
 }
 
+
+function MethodExportActions({ thread }) {
+  const [method, setMethod] = useState(null);
+  const [loadingMethod, setLoadingMethod] = useState(false);
+  const [methodError, setMethodError] = useState("");
+  const [showCode, setShowCode] = useState(false);
+
+  const loadMethod = useCallback(async () => {
+    if (method?.script) return method;
+    if (!thread?.id) throw new Error("No finalized Synthesis thread is selected.");
+    setLoadingMethod(true);
+    setMethodError("");
+    try {
+      const payload = await getSynthesisMethodExport(thread.id);
+      if (!payload?.script || !payload?.sha256) {
+        throw new Error("The completed execution did not return a verified method artifact.");
+      }
+      if (payload.deterministic_export !== true || payload.generated_by_llm !== false) {
+        throw new Error("The method endpoint did not prove deterministic export semantics.");
+      }
+      setMethod(payload);
+      return payload;
+    } catch (cause) {
+      setMethodError(text(cause?.message, "The exact method artifact could not be loaded."));
+      throw cause;
+    } finally {
+      setLoadingMethod(false);
+    }
+  }, [method, thread?.id]);
+
+  const viewMethod = useCallback(async () => {
+    if (showCode && method?.script) {
+      setShowCode(false);
+      return;
+    }
+    try {
+      await loadMethod();
+      setShowCode(true);
+    } catch {
+      // Error is rendered in the finalized record; do not fall back to Ask.
+    }
+  }, [loadMethod, method?.script, showCode]);
+
+  const downloadMethod = useCallback(async () => {
+    try {
+      const payload = await loadMethod();
+      downloadText(payload.filename || "method.py", payload.script, "text/x-python;charset=utf-8");
+    } catch {
+      // Same honest error surface as View; never synthesize replacement code.
+    }
+  }, [loadMethod]);
+
+  const origin = method?.method_origin || {};
+  const composerOrigin = origin.authority === "composer" && origin.tool === "research_synthesis_propose_state";
+
+  return (
+    <section className="s04-reproduce" data-testid="synthesis-method-export">
+      <header>
+        <div>
+          <small>Reproduce</small>
+          <strong>Exact method artifact</strong>
+        </div>
+        <em>Frozen with execution</em>
+      </header>
+      <p>
+        The method is reviewable as runnable Python, not reconstructed from prose. The script is the exact
+        deterministic artifact archived with this execution.
+      </p>
+      <div className="s04-reproduce-chain" aria-label="Method provenance chain">
+        <span>{composerOrigin ? "Composer proposal" : method ? "Proposal origin not recorded" : "Proposal"}</span>
+        <b aria-hidden="true">→</b>
+        <span>Researcher accepted</span>
+        <b aria-hidden="true">→</b>
+        <span>Deterministic script</span>
+      </div>
+      {method ? (
+        <dl>
+          <div><dt>Method SHA-256</dt><dd>{softIdentifier(method.sha256)}</dd></div>
+          <div><dt>Accepted spec</dt><dd>{softIdentifier(method.spec_hash)}</dd></div>
+          <div><dt>Code generation</dt><dd>No LLM regeneration</dd></div>
+        </dl>
+      ) : null}
+      {methodError ? <p className="s04-fixture">{methodError}</p> : null}
+      <div className="s04-reproduce-actions">
+        <button type="button" className="rd-v2-btn" disabled={loadingMethod} onClick={viewMethod}>
+          {showCode ? "Hide exact method.py" : loadingMethod ? "Loading method…" : "View exact method.py"}
+        </button>
+        <button type="button" className="rd-v2-btn" disabled={loadingMethod} onClick={downloadMethod}>
+          Download Python script
+        </button>
+      </div>
+      {showCode && method?.script ? (
+        <details open className="s04-reproduce-code">
+          <summary>{method.filename || "method.py"} · SHA-256 verified</summary>
+          <pre className="s04-code" data-testid="synthesis-method-export-code">{method.script}</pre>
+        </details>
+      ) : null}
+    </section>
+  );
+}
+
 function ExecutionRecord({ thread, busy, onRequest, onReview, onAsk, onOpenDataset }) {
   const state = thread?.state || {};
   const execution = state.execution || {};
@@ -1150,6 +1253,7 @@ function ExecutionRecord({ thread, busy, onRequest, onReview, onAsk, onOpenDatas
         </div>
       ) : null}
       {failed ? <p className="s04-fixture">{text(execution.error, "The execution failed without a recorded error detail.")}</p> : null}
+      {registered ? <MethodExportActions thread={thread} /> : null}
       <footer className="s04-actions">
         <p>
           <small>Truth boundary</small>
