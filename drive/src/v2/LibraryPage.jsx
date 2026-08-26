@@ -50,7 +50,10 @@ function itemUpdatedTime(item) {
 function itemMatchesFilter(item, mode) {
   if (mode === "all" || item?.kind === "folder") return true;
   const row = itemDataset(item);
-  return statusPillKind(row).kind === "query-ready";
+  const ready = statusPillKind(row).kind === "query-ready";
+  if (mode === "ready") return ready;
+  if (mode === "not_ready") return !ready;
+  return true;
 }
 
 function sortItems(rows, sortBy) {
@@ -325,6 +328,7 @@ export function LibraryPage({
     [folderRows, tree],
   );
   const readyCount = readinessCount(branchDatasetRows);
+  const nonReadyCount = Math.max(0, branchDatasetRows.length - readyCount);
   const browseDatasetCount = branchDatasetRows.length;
   const branchNote = branchStatusNote({
     isRoot,
@@ -440,16 +444,19 @@ export function LibraryPage({
           <Chip active={sortBy === "updated"} onClick={() => setSortBy("updated")}>
             Modified {sortBy === "updated" ? "↓" : "↕"}
           </Chip>
-          <Chip
-            active={filterMode === "ready"}
-            onClick={() => setFilterMode((cur) => (cur === "ready" ? "all" : "ready"))}
-          >
-            {filterMode === "ready" ? "Query-ready" : "All"}
+          <Chip active={filterMode === "all"} onClick={() => setFilterMode("all")}>
+            All
+          </Chip>
+          <Chip active={filterMode === "ready"} onClick={() => setFilterMode("ready")}>
+            Query ready {readyCount}
+          </Chip>
+          <Chip active={filterMode === "not_ready"} onClick={() => setFilterMode("not_ready")}>
+            Not query-ready {nonReadyCount}
           </Chip>
           <span className="rd-v2-toolbar-spacer" />
           <span className="rd-v2-toolbar-count">
             {navigationLoading && !searchActive
-              ? "Organizing Library…"
+              ? "Organizing collections…"
               : loading && !vaultDatasets.length ? "Loading Library…" : toolbarCountLabel({
               searchActive,
               isRoot,
@@ -460,7 +467,7 @@ export function LibraryPage({
           </span>
         </>
       }
-      footer="double-click asset → Preview"
+      footer="select asset → inspect · preview only when query-ready"
       surfaceState={surfaceState}
     >
       {!isRoot ? (
@@ -491,14 +498,7 @@ export function LibraryPage({
       {navigationError ? <DeskError raw={navigationError} surface="Library collections" /> : null}
 
       {isRoot ? (
-        navigationLoading && !searchActive ? (
-          <div className="rd-v2-library-empty" role="status" aria-live="polite">
-            <strong>Organizing Library context…</strong>
-            <p>{vaultDatasets.length
-              ? `Reading collection context for ${vaultDatasets.length} registered evidence assets.`
-              : "Reading the Library taxonomy before showing the evidence estate."}</p>
-          </div>
-        ) : loading && !vaultDatasets.length ? (
+        loading && !vaultDatasets.length ? (
           <div className="rd-v2-library-empty" role="status" aria-live="polite">
             <strong>Loading Library holdings…</strong>
             <p>Reading the registered evidence estate before showing its current assets.</p>
@@ -507,9 +507,9 @@ export function LibraryPage({
           <LibraryEvidenceEstate
             assets={estateRows}
             collections={searchActive ? [] : rootCollections}
+            collectionsLoading={navigationLoading && !searchActive}
             onOpenCollection={(collection) => onFolderChange(collection.id)}
             onSelectDataset={onSelectDataset}
-            onPreviewDataset={onPreviewDataset}
           />
         )
       ) : (
@@ -530,7 +530,6 @@ export function LibraryPage({
               selectedId={selectedId}
               onOpenFolder={(folder) => onFolderChange(folder.id)}
               onSelectDataset={onSelectDataset}
-              onDoubleClick={onPreviewDataset}
               compact
             />
           ) : (
