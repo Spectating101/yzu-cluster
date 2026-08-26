@@ -19,6 +19,7 @@ import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
 import { ExcursionRecordPanel } from "./ExcursionRecordPanel.jsx";
 import { SynthesisHome } from "./SynthesisHome.jsx";
 import { focusFor } from "./synthesisFocus.js";
+import { synthesisAssist } from "@/v2/synthesisAssist.js";
 import "./s04-opening.css";
 import "./synthesis-preview.css";
 
@@ -119,27 +120,7 @@ function stateFor(thread) {
 }
 
 function stageLabel(thread) {
-  const state = thread?.state || {};
-  const execution = state.execution || {};
-  const mode = stateFor(thread);
-  if (isPreAcceptance(thread)) return EXPLORATION_READY;
-  if (mode === "query_ready") return "Query-ready output";
-  if (mode === "registered") return "Registered output";
-  if (mode === "failed") return "Execution failed";
-  if (mode === "execution") {
-    const normalized = text(execution.status).toLowerCase().replace(/-/g, "_");
-    if (state.execution_spec && (!normalized || normalized === "spec_accepted")) {
-      const preview = synthesisPreviewTruth(thread);
-      if (preview.failed) return "Preview failed";
-      if (preview.succeeded) return "Preview passed";
-      return "Preview required";
-    }
-    return execution.status
-      ? text(execution.status).replace(/_/g, " ")
-      : text(state.maturityLabel || state.maturity, "Accepted method");
-  }
-  if (mode === "proposal") return "Proposal needs review";
-  return text(state.maturityLabel || state.maturity, mode === "draft" ? "New thread" : "Evidence mapping");
+  return synthesisAssist(thread).label;
 }
 
 function evidenceNodes(thread) {
@@ -153,22 +134,7 @@ function targetNode(thread) {
 }
 
 function threadStatus(thread) {
-  const state = thread?.state || {};
-  const execution = state.execution || {};
-  const mode = stateFor(thread);
-  if (mode === "query_ready") return "Query ready";
-  if (mode === "registered") return "Registered";
-  if (mode === "failed") return "Needs recovery";
-  const normalized = text(execution.status).toLowerCase().replace(/-/g, "_");
-  if (state.execution_spec && (!normalized || normalized === "spec_accepted")) {
-    const preview = synthesisPreviewTruth(thread);
-    if (preview.failed) return "Preview failed";
-    if (preview.succeeded) return "Preview passed";
-    return "Preview required";
-  }
-  if (execution.status) return text(execution.status).replace(/_/g, " ");
-  if (state.proposal) return "Review proposal";
-  return text(state.maturityLabel || state.maturity, "Exploring");
+  return synthesisAssist(thread).status;
 }
 
 function threadOutput(thread) {
@@ -1877,8 +1843,9 @@ export function SynthesisPage({
   };
 
   const ask = (prompt, thread = selected, displayText = prompt) => {
+    const assist = thread ? synthesisAssist(threadWithMeasurements(thread, measurementByThread[thread.id]?.payload || null)) : null;
     const context = thread
-      ? `\n\nSynthesis thread: ${titleFor(thread)}\nObjective: ${text(thread.objective || thread.state?.objective)}\nDurable status: ${stageLabel(thread)}.`
+      ? `\n\nSynthesis thread: ${titleFor(thread)}\nObjective: ${text(thread.objective || thread.state?.objective)}\nCurrent stage: ${assist?.label || stageLabel(thread)}.\nCurrent researcher decision: ${assist?.decision || "Inspect the durable construction"}.\nRecorded risk: ${assist?.risk || "No additional risk summary recorded"}.`
       : "\n\nSynthesis workspace context.";
     onAskComposer?.({
       prompt: `${text(prompt)}${context}`,
@@ -2065,13 +2032,16 @@ export function SynthesisPage({
     setError("");
     try {
       const current = await refreshThread(selected.id).catch(() => null);
+      const authoritative = current || selected;
       if (current) {
         replaceThread(current);
         onSelectThread?.(current);
-        const currentStatus = text(current?.state?.execution?.status).toLowerCase().replace(/-/g, "_");
-        if (currentStatus && currentStatus !== "spec_accepted") return;
       }
-      const result = await requestSynthesisExecution(selected.id);
+      const currentStatus = text(authoritative?.state?.execution?.status).toLowerCase().replace(/-/g, "_");
+      if (currentStatus && currentStatus !== "spec_accepted") return;
+      const preview = synthesisPreviewTruth(authoritative);
+      const action = preview.succeeded ? "request_approval" : "preview";
+      const result = await requestSynthesisExecution(selected.id, { action });
       const next = result?.thread || (result?.state ? result : await refreshThread(selected.id));
       if (next) {
         replaceThread(next);
@@ -2230,6 +2200,7 @@ export function SynthesisPage({
                   onChooseKey={reasoningAvailable ? (candidate) => ask(`Use ${candidate.leftKey} to ${candidate.rightKey} for this join.`) : null}
                   onChooseOutcome={reasoningAvailable ? (outcome) => ask(`Take the "${outcome.label}" option for this join, and record why.`) : null}
                   onChooseCollapse={reasoningAvailable ? (choice) => ask(`Resolve the repeated key with "${choice.label}".`) : null}
+                  onAsk={reasoningAvailable ? ask : null}
                 />
               ) : null}
               {synthesisShowsEvidenceMap(displayedSelected) || (preAcceptance && hasMappedEvidence) ? (
