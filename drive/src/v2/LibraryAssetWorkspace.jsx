@@ -269,7 +269,6 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onAsk, onOpe
         <div className="rd-v2-library-workspace-actions" aria-label="Asset actions">
           {canPreviewRows ? <button type="button" className="rd-v2-btn primary" onClick={onOpenQuery}>Open query</button> : null}
           {canPreviewRows ? <button type="button" className="rd-v2-btn" onClick={onPreview}>Preview rows</button> : null}
-          <button type="button" className="rd-v2-btn" onClick={() => setOverlay("fields")}>{presentation.structureAction}</button>
           <button type="button" className="rd-v2-btn" onClick={() => setOverlay("provenance")}>Source record</button>
           {!canQuery && state.kind === "registered" && onPrepare ? (
             <button type="button" className="rd-v2-btn primary" onClick={onPrepare}>Prepare local copy</button>
