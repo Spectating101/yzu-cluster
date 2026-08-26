@@ -25,6 +25,7 @@ jobs:
         run: |
           python3 .github/scripts/discover_capability_converge.py
           python3 .github/scripts/discover_capability_compat.py
+          python3 .github/scripts/discover_capability_finish.py
       - name: Install dependencies
         run: npm ci
       - name: Install Chromium
@@ -37,6 +38,7 @@ jobs:
         run: |
           mkdir -p .tmp-pw
           TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/v2-discover-evidence.spec.js --reporter=line
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/v2-discover.spec.js --grep "filter and sort controls remain fully reachable" --workers=1 --reporter=line
       - name: Discover rendered capability matrix
         run: |
           mkdir -p .tmp-pw artifacts/discover-convergence
