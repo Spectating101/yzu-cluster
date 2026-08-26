@@ -1,0 +1,48 @@
+/* Final Discover visual hardening overrides.
+   Keep this file small and adversarial: it exists for production-scale layout
+   defects found by rendered validation, not to redefine Discover semantics. */
+
+.rd-v2-discover-page .rd-v2-discover-evidence-path,
+.rd-v2-discover-page .rd-v2-discover-evidence-path li,
+.rd-v2-discover-page .rd-v2-discover-evidence-path strong,
+.rd-v2-discover-page .rd-v2-discover-evidence-path span {
+  min-width: 0;
+}
+
+.rd-v2-discover-page .rd-v2-discover-evidence-path li {
+  overflow: hidden;
+}
+
+.rd-v2-discover-page .rd-v2-discover-evidence-path strong,
+.rd-v2-discover-page .rd-v2-discover-evidence-path span {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.rd-v2-discover-page .rd-v2-discover-evidence-path span {
+  max-width: none;
+  padding-right: 4px;
+}
+
+/* Keep the arrow inside the content box even under inherited list metrics. */
+.rd-v2-discover-page .rd-v2-discover-evidence-path li:not(:last-child)::after {
+  right: 7px;
+}
+
+/* Long source titles and status strings must not turn one result into a page-wide scroller. */
+.rd-v2-discover-page .rd-v2-discover-candidate-heading,
+.rd-v2-discover-page .rd-v2-discover-candidate-title,
+.rd-v2-discover-page .rd-v2-discover-evidence,
+.rd-v2-discover-page .rd-v2-discover-possession,
+.rd-v2-discover-page .rd-v2-discover-offering-facts {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* The held-evidence popover is a local scroller if an upstream identifier is pathological;
+   it must never expand the full Research Drive canvas. */
+.rd-v2-discover-page .rd-v2-discover-library-popover {
+  max-width: calc(100vw - 48px);
+  overflow-x: auto;
+}
