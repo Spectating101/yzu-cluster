@@ -1,4 +1,5 @@
 import { DeskError } from "@/v2/DeskError";
+import { synthesisAssist } from "@/v2/synthesisAssist.js";
 import { synthesisJourneyStage } from "@/v2/synthesisLifecycle";
 import "./synthesis-home.css";
 
@@ -37,28 +38,55 @@ function phaseFor(thread) {
   return synthesisJourneyStage(thread);
 }
 
+const DECISION_KINDS = new Set([
+  "resolve_scope",
+  "resolve_units",
+  "resolve_join",
+  "review_recommendation",
+  "review_proposal",
+  "run_preview",
+  "recover_preview",
+  "review_preview",
+  "approve_execution",
+  "recover_build",
+]);
+
+function needsResearcherDecision(thread) {
+  return DECISION_KINDS.has(synthesisAssist(thread).decisionKind);
+}
+
 function phaseLabel(thread) {
+  const assist = synthesisAssist(thread);
   const phase = phaseFor(thread);
   if (phase === "failed") return "Needs recovery";
-  if (phase === "objective") return "Define research object";
-  if (phase === "evidence") return "Map Library evidence";
-  if (phase === "specification") return "Resolve construction method";
-  if (phase === "proposal") return "Review proposal";
-  if (phase === "readiness") return "Method accepted";
-  if (phase === "approval") return "Approval required";
   if (phase === "build") return text(thread?.state?.execution?.status, "Build in progress").replace(/_/g, " ");
   if (phase === "result") {
     return executionStatus(thread) === "query_ready" ? "Query-ready result" : "Registered result";
   }
-  return "Durable construction";
+  return assist.status || assist.label || "Durable construction";
 }
 
 function actionLabel(thread) {
+  const assist = synthesisAssist(thread);
+  switch (assist.decisionKind) {
+    case "resolve_scope": return "Resolve scope";
+    case "resolve_units": return "Resolve units";
+    case "resolve_join": return "Resolve join";
+    case "review_recommendation": return "Review recommendation";
+    case "review_proposal": return "Review proposal";
+    case "run_preview": return assist.status === "Preview stale" ? "Rerun Preview" : "Run Preview";
+    case "recover_preview": return "Inspect Preview";
+    case "review_preview": return "Review Preview";
+    case "approve_execution": return "Review approval";
+    case "recover_build": return "Inspect failure";
+    case "await_registration": return "View registration";
+    case "open_result": return "Open result";
+    case "map_evidence": return "Continue evidence";
+    case "design_method": return "Continue method";
+    default: break;
+  }
   const phase = phaseFor(thread);
   if (phase === "failed") return "Inspect failure";
-  if (phase === "proposal") return "Review proposal";
-  if (phase === "readiness") return "Review method";
-  if (phase === "approval") return "Review approval";
   if (phase === "build") return "View build";
   if (phase === "result") return "Open result";
   return "Continue";
@@ -141,15 +169,13 @@ export function SynthesisHome({
 }) {
   const allThreads = Array.isArray(threads) ? threads : [];
   const methods = Array.isArray(profiles) ? profiles : [];
-  const needsYou = sortNewest(allThreads.filter((thread) => {
-    const phase = phaseFor(thread);
-    return phase === "failed" || ["proposal", "readiness", "approval"].includes(phase);
-  }));
+  const needsYou = sortNewest(allThreads.filter((thread) => needsResearcherDecision(thread)));
   const building = sortNewest(allThreads.filter((thread) => phaseFor(thread) === "build" && !isFailed(thread)));
   const results = sortNewest(allThreads.filter((thread) => phaseFor(thread) === "result"));
   const active = sortNewest(allThreads.filter((thread) => {
+    if (needsResearcherDecision(thread)) return false;
     const phase = phaseFor(thread);
-    return !["failed", "proposal", "readiness", "approval", "build", "result"].includes(phase);
+    return !["build", "result"].includes(phase);
   }));
   const continueThread = needsYou[0] || active[0] || building[0] || results[0] || null;
 
@@ -234,7 +260,7 @@ export function SynthesisHome({
         <ThreadSection
           eyebrow="Decision queue"
           title="Needs your decision"
-          description="These constructions are blocked on a review, approval, or recovery decision."
+          description="Consequential construction choices, proposal reviews, Preview checks, approvals, and recoveries surface here instead of hiding in active work."
           rows={needsYou}
           onOpen={onOpenThread}
           priority
@@ -244,7 +270,7 @@ export function SynthesisHome({
       <ThreadSection
         eyebrow="Active constructions"
         title="Research objects in progress"
-        description="Interpretation, evidence mapping, and construction design remain independently resumable."
+        description="Evidence mapping and method design remain independently resumable when no explicit researcher decision is blocking them."
         rows={active}
         onOpen={onOpenThread}
         empty={!loading && allThreads.length ? "No construction is currently in research or method design." : ""}
