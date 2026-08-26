@@ -38,19 +38,6 @@ function railSummary(thread) {
   };
 }
 
-function AssistPrompts({ prompts, onAsk }) {
-  const useful = Array.isArray(prompts) ? prompts.filter(Boolean).slice(0, 3) : [];
-  if (typeof onAsk !== "function" || !useful.length) return null;
-  return (
-    <section className="s04-rail-assist" aria-label="Contextual Synthesis assistance">
-      <header><span>Ask can help now</span></header>
-      {useful.map((prompt) => (
-        <button type="button" key={prompt} onClick={() => onAsk(prompt)}>{prompt}</button>
-      ))}
-    </section>
-  );
-}
-
 function NewEntryRail({ thread, onAsk }) {
   const draft = synthesisDraftBrief(thread?.objective || thread?.state?.objective || "");
   const status = !draft.objective ? "Draft entry" : draft.readyToCreate ? "Ready to create" : "Draft brief";
@@ -185,7 +172,6 @@ function OpeningThreadRail({ thread, onAsk }) {
             <RailField label="Method" value={method} />
             <RailField label="Output" value="Not registered" />
           </RailFieldGrid>
-          <AssistPrompts prompts={assist.prompts} onAsk={onAsk} />
         </div>
         <RailStickyFooter>
           {typeof onAsk === "function" ? (
@@ -225,7 +211,11 @@ function AuthorityProof({ state, status, preview, outputId, registered, queryRea
         ? "Declared · not registered"
         : "Not registered";
   return (
-    <section className="s04-rail-proof" aria-label="Synthesis authority proof">
+    <section
+      className="s04-rail-proof"
+      aria-label="Synthesis authority proof"
+      title="Method acceptance, bounded Preview, execution authority, and registered result are recorded separately."
+    >
       <header><span>Authority proof</span></header>
       <ul>
         <li className={hasMethod ? "is-done" : ""}><span>Method</span><strong>{hasMethod ? "Accepted revision" : "Not accepted"}</strong></li>
@@ -307,7 +297,6 @@ export function SynthesisThreadRailPanel({ thread, onAskAbout, onOpenInLibrary }
           <RailField label="Output" value={outputId || "Not registered"} mono={Boolean(outputId)} />
           <RailField label="Manifest" value={execution.manifest_id || "Not reported"} mono={Boolean(execution.manifest_id)} />
         </RailFieldGrid>
-        <AssistPrompts prompts={assist.prompts} onAsk={ask} />
       </div>
       <RailStickyFooter>
         {outputId && registered ? (
