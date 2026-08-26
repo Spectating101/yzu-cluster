@@ -13,7 +13,8 @@ test.describe("v2 Library evidence estate", () => {
     await expect(page.locator(".rd-v2-page-head h1", { hasText: "Library" })).toBeVisible();
     const estate = page.getByTestId("library-evidence-estate");
     await expect(estate).toBeVisible();
-    await expect(estate).toContainText("Research evidence estate");
+    await expect(estate.getByRole("heading", { name: "Evidence estate", exact: true })).toBeVisible();
+    await expect(estate).toHaveAttribute("aria-label", "Research evidence estate");
     await expect(page.getByTestId("library-evidence-row").first()).toBeVisible();
     await expect(page.getByTestId("library-collection-filter").first()).toBeVisible();
     await expect(page.getByTestId("research-situation")).toContainText("Library");
@@ -38,7 +39,7 @@ test.describe("v2 Library evidence estate", () => {
     await expect(workspace).toContainText("Observed local sample");
     await expect(workspace.locator(".rd-v2-library-evidence-facts")).toContainText("ScopeNot declared");
     await expect(workspace.getByRole("button", { name: "Open query" })).toBeVisible();
-    await expect(workspace.getByRole("button", { name: "View fields" })).toBeVisible();
+    await expect(workspace.getByRole("button", { name: "Inspect fields" })).toBeVisible();
     await expect(workspace.getByRole("button", { name: "Preview rows" })).toHaveCount(1);
 
     const rail = page.locator("aside.rd-v2-rail");
@@ -51,8 +52,8 @@ test.describe("v2 Library evidence estate", () => {
     await expect(rail.getByRole("button", { name: "Preview rows" })).toBeVisible();
     await expect(page.getByTestId("library-evidence-estate")).toHaveCount(0);
 
-    await workspace.getByRole("button", { name: "View fields" }).click();
-    const fields = page.getByRole("dialog", { name: "Fields and operations" });
+    await workspace.getByRole("button", { name: "Inspect fields" }).click();
+    const fields = page.getByRole("dialog", { name: "Declared structure" });
     await expect(fields).toBeVisible();
     await expect(fields).toContainText("country_iso3");
     await fields.getByRole("button", { name: "Close inspection" }).click();
