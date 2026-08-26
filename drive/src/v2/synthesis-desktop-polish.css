@@ -1,0 +1,242 @@
+/* Desktop/workstation Synthesis closeout.
+ *
+ * This layer is intentionally about comprehension, not extra features. It
+ * gives the current decision more visual authority than supporting evidence,
+ * makes the workstation typography easier to scan, and strengthens the rail as
+ * an interpretive guide. Mobile keeps the existing compact composition. */
+
+.s04-workflow-guide {
+  margin: 0 0 14px;
+  padding: 12px;
+  border: 1px solid #ddd8cd;
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(250, 248, 242, .84), rgba(247, 245, 238, .54));
+}
+
+.s04-workflow-guide > header {
+  display: grid;
+  gap: 3px;
+  margin-bottom: 9px;
+}
+
+.s04-workflow-guide > header span {
+  color: #647586;
+  font-size: 8px;
+  font-weight: 820;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+.s04-workflow-guide > header strong {
+  color: #2d3d4b;
+  font-size: 10.5px;
+  line-height: 1.35;
+}
+
+.s04-workflow-guide > ol {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: synthesis-guide;
+}
+
+.s04-workflow-guide > ol > li {
+  counter-increment: synthesis-guide;
+  position: relative;
+  display: grid;
+  grid-template-columns: 21px minmax(0, 1fr);
+  gap: 7px;
+  min-width: 0;
+  padding: 5px 0;
+}
+
+.s04-workflow-guide > ol > li::before {
+  content: counter(synthesis-guide);
+  display: grid;
+  place-items: center;
+  width: 19px;
+  height: 19px;
+  border: 1px solid #d6d2c8;
+  border-radius: 999px;
+  background: rgba(255,255,255,.68);
+  color: #697785;
+  font-size: 7.5px;
+  font-weight: 820;
+}
+
+.s04-workflow-guide > ol > li + li::after {
+  content: "";
+  position: absolute;
+  top: -3px;
+  left: 9px;
+  width: 1px;
+  height: 8px;
+  background: #ddd8cf;
+}
+
+.s04-workflow-guide li > span {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.s04-workflow-guide li strong {
+  color: #374957;
+  font-size: 9px;
+  line-height: 1.25;
+}
+
+.s04-workflow-guide li small {
+  color: #7a8690;
+  font-size: 7.5px;
+  line-height: 1.35;
+}
+
+.s04-workflow-guide > p {
+  margin: 9px 0 0;
+  padding-top: 8px;
+  border-top: 1px solid #e7e2d9;
+  color: #7a858d;
+  font-size: 7.5px;
+  line-height: 1.45;
+}
+
+@media (min-width: 1121px) {
+  /* Workstation typography: labels stay compact, but research prose and
+     decision content should not read like dense telemetry. */
+  .rd-v2-synthesis-page .s04-head h1,
+  .rd-v2-synthesis-page .s04-new-entry-head h1 {
+    letter-spacing: -.03em;
+  }
+
+  .rd-v2-synthesis-page :is(
+    .s04-opening-brief,
+    .s04-brief,
+    .s04-card,
+    .s04-opening-construction,
+    [data-testid="synthesis-evidence-state"],
+    [data-testid="synthesis-method-surface"]
+  ) p,
+  .rd-v2-synthesis-page :is(
+    .s04-opening-brief,
+    .s04-brief,
+    .s04-card,
+    .s04-opening-construction,
+    [data-testid="synthesis-evidence-state"],
+    [data-testid="synthesis-method-surface"]
+  ) li {
+    line-height: 1.52;
+  }
+
+  /* The current decision owns the first visual layer. These are the surfaces
+     where researcher judgement or execution authority actually changes. */
+  .rd-v2-synthesis-page :is(
+    [data-testid="synthesis-proposal-state"],
+    [data-testid="synthesis-execution-state"],
+    [data-testid="synthesis-failed-state"],
+    [data-testid="synthesis-registered-state"],
+    [data-testid="synthesis-query-ready-state"],
+    .s04-scope,
+    .s04-units,
+    .s04-join
+  ) {
+    border-color: #cbc6ba;
+    box-shadow: 0 9px 24px rgba(42, 52, 58, .055), 0 1px 2px rgba(42, 52, 58, .04);
+  }
+
+  /* Supporting evidence remains inspectable but visually recedes. */
+  .rd-v2-synthesis-page :is(
+    [data-testid="synthesis-evidence-state"],
+    [data-testid="synthesis-method-surface"],
+    .s04-opening-brief,
+    .s04-brief
+  ) {
+    border-color: #e1ddd4;
+    box-shadow: none;
+  }
+
+  .rd-v2-synthesis-page :is(
+    [data-testid="synthesis-proposal-state"],
+    [data-testid="synthesis-execution-state"],
+    [data-testid="synthesis-failed-state"],
+    [data-testid="synthesis-registered-state"],
+    [data-testid="synthesis-query-ready-state"],
+    .s04-scope,
+    .s04-units,
+    .s04-join
+  ) h2 {
+    font-size: 17px;
+    letter-spacing: -.018em;
+  }
+
+  /* Make dense evidence facts readable without making metadata labels loud. */
+  .rd-v2-synthesis-page :is(
+    .s04-opening-construction,
+    [data-testid="synthesis-evidence-state"],
+    [data-testid="synthesis-method-surface"],
+    [data-testid="synthesis-execution-state"]
+  ) :is(p, dd, td, li span) {
+    font-size: max(9.5px, 0.53vw);
+  }
+
+  .rd-v2-synthesis-page .s04-new-entry-section > p,
+  .rd-v2-synthesis-page .s04-new-entry-purpose textarea {
+    font-size: 11px;
+  }
+
+  /* The rail is interpretation, not telemetry: give its prose enough room to
+     be read as guidance while retaining compact uppercase field labels. */
+  .yzu-inspector .s04-rail-context > p,
+  .yzu-inspector .s04-draft-rail-brief > p,
+  .yzu-inspector .s04-rail-assist button,
+  .yzu-inspector .s04-rail-proof strong {
+    font-size: 9px;
+    line-height: 1.45;
+  }
+
+  .yzu-inspector .s04-rail-context,
+  .yzu-inspector .s04-rail-proof,
+  .yzu-inspector .s04-rail-assist,
+  .yzu-inspector .s04-draft-rail-brief {
+    border-radius: 10px;
+  }
+
+  .yzu-inspector .s04-rail-assist button {
+    padding-top: 7px;
+    padding-bottom: 7px;
+  }
+}
+
+@media (min-width: 1600px) {
+  /* On a real workstation, make hierarchy visible through spacing and type,
+     not through larger empty gutters. */
+  .rd-v2-synthesis-page .s04-head h1 {
+    font-size: 27px;
+  }
+
+  .rd-v2-synthesis-page .s04-head {
+    padding-bottom: 12px;
+  }
+
+  .rd-v2-synthesis-page .s04-main > :is(
+    [data-testid="synthesis-proposal-state"],
+    [data-testid="synthesis-execution-state"],
+    [data-testid="synthesis-failed-state"],
+    [data-testid="synthesis-registered-state"],
+    [data-testid="synthesis-query-ready-state"]
+  ) {
+    border-radius: 12px;
+  }
+
+  .yzu-inspector .s04-workflow-guide,
+  .yzu-inspector .s04-rail-context,
+  .yzu-inspector .s04-rail-proof,
+  .yzu-inspector .s04-rail-assist {
+    margin-bottom: 13px;
+  }
+}
+
+/* The product is workstation-first. Existing responsive rules remain intact;
+ * no new mobile composition is introduced by this closeout layer. */
