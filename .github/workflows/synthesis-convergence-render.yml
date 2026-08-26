@@ -9,38 +9,11 @@ on:
       - main
   workflow_dispatch:
 
-permissions:
-  contents: write
-
 jobs:
   render:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Scope Approval preview assertion to execution track
-        shell: bash
-        run: |
-          git fetch origin work/chatgpt-final-convergence-20260825:refs/remotes/origin/work/chatgpt-final-convergence-20260825
-          git checkout -B synthesis-approval-selector-fix origin/work/chatgpt-final-convergence-20260825
-          python - <<'PY'
-          from pathlib import Path
-          path = Path("e2e/synthesis-acceptance-screenshots.spec.js")
-          text = path.read_text(encoding="utf-8")
-          old = '          await expect(page.getByText("Passed", { exact: true })).toBeVisible();\n'
-          new = '''          const previewStep = page.getByRole("listitem").filter({ hasText: "Bounded preview" }).first();\n          await expect(previewStep).toBeVisible();\n          await expect(previewStep).toContainText("✓");\n'''
-          if old in text:
-              text = text.replace(old, new, 1)
-          elif new not in text:
-              raise SystemExit("approval preview assertion anchor not found")
-          path.write_text(text, encoding="utf-8")
-          PY
-          if ! git diff --quiet -- e2e/synthesis-acceptance-screenshots.spec.js; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add e2e/synthesis-acceptance-screenshots.spec.js
-            git commit -m "test(synthesis): scope Approval preview assertion"
-            git push origin HEAD:work/chatgpt-final-convergence-20260825
-          fi
       - uses: actions/setup-node@v4
         with:
           node-version: 20
