@@ -29,12 +29,13 @@ const join = thread("join", {
   nodes: evidence,
   join_candidates: [{
     usable: true,
-    leftKey: "asset_id",
-    rightKey: "asset_id",
-    coverage: 42,
+    left_key: "asset_id",
+    right_key: "asset_id",
+    match_rate_pct: 42,
     matched: 42,
-    total: 100,
-    duplicates: 0,
+    left_distinct: 100,
+    right_distinct: 48,
+    right_duplicate_rows: 0,
   }],
 });
 
