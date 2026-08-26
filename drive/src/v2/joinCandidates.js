@@ -4,9 +4,9 @@
  * Cardinality is the question people ask about a join. Coverage is the one that
  * decides the result only after the candidate identifies the intended grain. A
  * constant identifier can have 100% overlap and still identify almost nothing.
- * Complete entity-period grain therefore wins first, then non-degenerate identity,
- * then measured coverage. Cardinality breaks ties after that; it does not replace
- * coverage as the research consequence.
+ * Complete entity-period grain therefore wins first, then entity-bearing identity,
+ * then non-degenerate alternatives, then measured coverage. Cardinality breaks ties
+ * after that; it does not replace coverage as the research consequence.
  *
  * A collapse strategy is only offered when the right side actually duplicates the
  * key. Offering it otherwise asks the researcher to rule on a situation that does
@@ -15,6 +15,8 @@
 
 export const WEAK_COVERAGE = 60;
 export const STRONG_COVERAGE = 95;
+
+const ENTITY_KEY = /(?:^|_)(?:id|entity|symbol|ticker|ric|isin|cusip|permno|gvkey)(?:_|$)/i;
 
 export function rankCandidates(rows) {
   return (Array.isArray(rows) ? rows : [])
@@ -25,14 +27,19 @@ export function rankCandidates(rows) {
         ? 0
         : Math.min(Number(total || 0), Number(rightTotal || 0));
       const identityCapacity = Number(row?.identity_capacity ?? derivedCapacity);
+      const keyParts = Array.isArray(row?.key_parts) ? row.key_parts.map((part) => String(part)) : [];
       const degenerateIdentity = row?.degenerate_identity == null
         ? identityCapacity <= 1
         : Boolean(row.degenerate_identity);
+      const entityIdentityDomain = row?.entity_identity_domain == null
+        ? keyParts.some((part) => ENTITY_KEY.test(part))
+        : Boolean(row.entity_identity_domain);
       return {
         leftKey: String(row?.left_key || ""),
         rightKey: String(row?.right_key || ""),
-        keyParts: Array.isArray(row?.key_parts) ? row.key_parts.map((part) => String(part)) : [],
+        keyParts,
         completeIdentityDomain: Boolean(row?.complete_identity_domain),
+        entityIdentityDomain,
         identityCapacity,
         degenerateIdentity,
         leftDatasetId: String(row?.left_dataset_id || ""),
@@ -52,6 +59,9 @@ export function rankCandidates(rows) {
       if (a.usable !== b.usable) return a.usable ? -1 : 1;
       if (a.completeIdentityDomain !== b.completeIdentityDomain) {
         return a.completeIdentityDomain ? -1 : 1;
+      }
+      if (a.entityIdentityDomain !== b.entityIdentityDomain) {
+        return a.entityIdentityDomain ? -1 : 1;
       }
       if (a.degenerateIdentity !== b.degenerateIdentity) {
         return a.degenerateIdentity ? 1 : -1;
