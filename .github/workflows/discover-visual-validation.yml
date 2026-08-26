@@ -25,6 +25,12 @@ jobs:
       - run: npm ci
       - run: npx playwright install chromium --with-deps
       - run: npm run build
+      - name: Preserve the convergence parent's green Discover behaviors
+        run: >-
+          mkdir -p .tmp-pw &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/v2-discover.spec.js --reporter=line
+          --grep-invert "Search wider retains held evidence and trusts the federator's semantic relevance|mobile selection preserves Explore and opens Ask deliberately"
       - name: Render Discover convergence states
         run: >-
           mkdir -p .tmp-pw artifacts/discover-convergence &&
