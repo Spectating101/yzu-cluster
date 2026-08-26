@@ -13,6 +13,11 @@ replacements = [
         '    await expect(page.getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "false");\n    await expect(page.getByTestId("rail-pane-detail")).toBeVisible();\n    await capture(page, "06-new-project-entry-desktop");\n',
         "quiet creation keeps Detail authoritative",
     ),
+    (
+        '    await expect(page.getByRole("region", { name: "Research brief" }).getByRole("paragraph")).toHaveText(objective);\n',
+        '    await expect(page.getByRole("region", { name: "Research brief", exact: true }).first().getByRole("paragraph")).toHaveText(objective);\n',
+        "scope duplicated research brief to workspace-first instance",
+    ),
 ]
 for old, new, label in replacements:
     count = text.count(old)
