@@ -1,6 +1,7 @@
 /* Final Discover visual hardening overrides.
-   Keep this file small and adversarial: it exists for production-scale layout
-   defects found by rendered validation, not to redefine Discover semantics. */
+   Keep this file adversarial: it exists for production-scale layout defects and
+   last-mile visual hierarchy found by rendered validation, not to redefine
+   Discover semantics. */
 
 .rd-v2-discover-page .rd-v2-discover-evidence-path,
 .rd-v2-discover-page .rd-v2-discover-evidence-path li,
@@ -40,9 +41,131 @@
   overflow-wrap: anywhere;
 }
 
+/* The result landscape is a compact evidence ledger, not a stack of dashboard cards. */
+.rd-v2-discover-page .rd-v2-discover-candidates {
+  gap: 0;
+  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 88%, transparent);
+}
+
+.rd-v2-discover-page .rd-v2-discover-candidates > li,
+.rd-v2-discover-page .rd-v2-discover-candidates > li:hover {
+  min-height: 0;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 88%, transparent);
+  border-radius: 0;
+  background: color-mix(in srgb, var(--rd-surface, #fffdf6) 97%, white 3%);
+}
+
+.rd-v2-discover-page .rd-v2-discover-candidates > li.rd-v2-row-on {
+  border-bottom-color: #a8bbb2;
+  background: #f4f8f6;
+  box-shadow: inset 3px 0 0 #4b7563;
+}
+
+.rd-v2-discover-page .rd-v2-discover-candidate {
+  min-height: 0;
+  grid-template-columns: 76px minmax(0, 1fr);
+  gap: 12px;
+  padding: 10px 12px 11px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-candidate-main {
+  gap: 4px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-candidate-title {
+  font-size: 12.5px;
+  line-height: 1.28;
+}
+
+.rd-v2-discover-page .rd-v2-discover-evidence {
+  font-size: 10.5px;
+  line-height: 1.4;
+}
+
+.rd-v2-discover-page .rd-v2-discover-offering-facts > span {
+  font-size: 9px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-row-add {
+  right: 11px;
+  bottom: 9px;
+  min-height: 25px;
+  padding-inline: 8px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-candidates > li:has(.rd-v2-discover-row-add) .rd-v2-discover-candidate-main {
+  padding-bottom: 20px;
+}
+
+/* Reference/web context is intentionally quieter than obtainable evidence. */
+.rd-v2-discover-page .rd-v2-discover-context-results .rd-v2-discover-candidates {
+  border-top-color: color-mix(in srgb, var(--rd-border, #dbd4c5) 65%, transparent);
+}
+
+.rd-v2-discover-page .rd-v2-discover-context-results .rd-v2-discover-candidates > li {
+  background: color-mix(in srgb, var(--rd-canvas, #eeeae0) 28%, var(--rd-surface, #fffdf6));
+}
+
+/* Search-summary rail facts should scan as a compact judgment grid, not four
+   unrelated metadata lines. */
+body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-rail-fieldgrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 88%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--rd-surface, #fffdf6) 68%, transparent);
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-rail-fieldgrid .rd-v2-detail-row {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 9px 10px;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 66%, transparent);
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-rail-fieldgrid .rd-v2-detail-row:nth-child(odd) {
+  border-right: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 66%, transparent);
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-rail-fieldgrid .rd-v2-detail-row:nth-last-child(-n + 2) {
+  border-bottom: 0;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-rail-fieldgrid .rd-v2-detail-label {
+  color: #718197;
+  font-size: 8.5px;
+  letter-spacing: .07em;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-rail-fieldgrid .rd-v2-detail-val {
+  color: var(--rd-text, #182033);
+  font-size: 12px;
+  font-weight: 760;
+}
+
 /* The held-evidence popover is a local scroller if an upstream identifier is pathological;
    it must never expand the full Research Drive canvas. */
 .rd-v2-discover-page .rd-v2-discover-library-popover {
   max-width: calc(100vw - 48px);
   overflow-x: auto;
+}
+
+@media (max-width: 760px) {
+  body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-rail-fieldgrid {
+    grid-template-columns: 1fr;
+  }
+
+  body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-rail-fieldgrid .rd-v2-detail-row,
+  body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-rail-fieldgrid .rd-v2-detail-row:nth-child(odd) {
+    border-right: 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 66%, transparent);
+  }
+
+  body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-rail-fieldgrid .rd-v2-detail-row:last-child {
+    border-bottom: 0;
+  }
 }
