@@ -38,6 +38,19 @@ function railSummary(thread) {
   };
 }
 
+function AssistPrompts({ prompts, onAsk }) {
+  const useful = Array.isArray(prompts) ? prompts.filter(Boolean).slice(0, 3) : [];
+  if (typeof onAsk !== "function" || !useful.length) return null;
+  return (
+    <section className="s04-rail-assist" aria-label="Contextual Synthesis assistance">
+      <header><span>Ask can help now</span></header>
+      {useful.map((prompt) => (
+        <button type="button" key={prompt} onClick={() => onAsk(prompt)}>{prompt}</button>
+      ))}
+    </section>
+  );
+}
+
 function NewEntryRail({ thread, onAsk }) {
   const draft = synthesisDraftBrief(thread?.objective || thread?.state?.objective || "");
   const status = !draft.objective ? "Draft entry" : draft.readyToCreate ? "Ready to create" : "Draft brief";
@@ -141,6 +154,9 @@ function OpeningThreadRail({ thread, onAsk }) {
     : recommendation.present
       ? "Recommended · not accepted"
       : "Not accepted";
+  const objective = String(thread?.objective || state.objective || brief.purpose || "").trim();
+  const period = brief.targetPeriod || state.target_period || state.spec?.period || "Not stated";
+  const intendedUse = brief.intendedUse || state.intended_use || state.spec?.intended_use || "Not stated";
 
   return (
     <div data-testid="synthesis-opening-rail">
@@ -153,6 +169,15 @@ function OpeningThreadRail({ thread, onAsk }) {
           labels={{ primary: "Needs you" }}
         />
         <div className="rd-v2-rail-scroll">
+          <section className="s04-rail-context" aria-label="Recorded research object">
+            <header><span>Research object</span></header>
+            <p>{objective || "No durable objective recorded."}</p>
+            <dl>
+              <div><dt>Grain</dt><dd>{brief.targetGrain || state.required_grain || "Not stated"}</dd></div>
+              <div><dt>Period</dt><dd>{period}</dd></div>
+              <div><dt>Intended use</dt><dd>{intendedUse}</dd></div>
+            </dl>
+          </section>
           <RailFieldGrid>
             <RailField label="Target grain" value={brief.targetGrain || state.required_grain || "Not stated"} />
             <RailField label="Evidence" value={evidence} />
@@ -160,6 +185,7 @@ function OpeningThreadRail({ thread, onAsk }) {
             <RailField label="Method" value={method} />
             <RailField label="Output" value="Not registered" />
           </RailFieldGrid>
+          <AssistPrompts prompts={assist.prompts} onAsk={onAsk} />
         </div>
         <RailStickyFooter>
           {typeof onAsk === "function" ? (
@@ -170,6 +196,44 @@ function OpeningThreadRail({ thread, onAsk }) {
         </RailStickyFooter>
       </RailFrame>
     </div>
+  );
+}
+
+function AuthorityProof({ state, status, preview, outputId, registered, queryReady }) {
+  const hasMethod = Boolean(state.execution_spec);
+  const executionStarted = !["", "spec_accepted", "pending_approval"].includes(status);
+  const resultRecorded = registered || Boolean(state.execution?.manifest_id);
+  const previewText = preview.succeeded
+    ? "Passed for current revision"
+    : preview.failed
+      ? "Failed"
+      : preview.stale
+        ? "Stale · rerun required"
+        : "Required";
+  const executionText = status === "spec_accepted"
+    ? "Not requested"
+    : status === "pending_approval"
+      ? "Awaiting researcher approval"
+      : executionStarted
+        ? `Recorded · ${status || "execution"}`
+        : "Not recorded";
+  const resultText = queryReady
+    ? "Query-ready in Library"
+    : registered
+      ? "Registered in Library"
+      : outputId
+        ? "Declared · not registered"
+        : "Not registered";
+  return (
+    <section className="s04-rail-proof" aria-label="Synthesis authority proof">
+      <header><span>Authority proof</span></header>
+      <ul>
+        <li className={hasMethod ? "is-done" : ""}><span>Method</span><strong>{hasMethod ? "Accepted revision" : "Not accepted"}</strong></li>
+        <li className={preview.succeeded ? "is-done" : "is-current"}><span>Preview</span><strong>{previewText}</strong></li>
+        <li className={executionStarted ? "is-done" : "is-current"}><span>Execution</span><strong>{executionText}</strong></li>
+        <li className={resultRecorded ? "is-done" : ""}><span>Result</span><strong>{resultText}</strong></li>
+      </ul>
+    </section>
   );
 }
 
@@ -225,6 +289,14 @@ export function SynthesisThreadRailPanel({ thread, onAskAbout, onOpenInLibrary }
     <RailFrame>
       <RailDecisionSummary {...summary} labels={{ primary: summary.primaryLabel }} />
       <div className="rd-v2-rail-scroll">
+        <AuthorityProof
+          state={state}
+          status={status}
+          preview={preview}
+          outputId={outputId}
+          registered={registered}
+          queryReady={queryReady}
+        />
         <RailFieldGrid>
           <RailField label="Stage" value={assist.label} />
           <RailField label="Grain" value={state.required_grain || state.spec?.grain} />
@@ -235,6 +307,7 @@ export function SynthesisThreadRailPanel({ thread, onAskAbout, onOpenInLibrary }
           <RailField label="Output" value={outputId || "Not registered"} mono={Boolean(outputId)} />
           <RailField label="Manifest" value={execution.manifest_id || "Not reported"} mono={Boolean(execution.manifest_id)} />
         </RailFieldGrid>
+        <AssistPrompts prompts={assist.prompts} onAsk={ask} />
       </div>
       <RailStickyFooter>
         {outputId && registered ? (
