@@ -21,6 +21,10 @@ jobs:
         with:
           node-version: 20
           cache: npm
+      - name: Rehydrate workflow baseline for idempotent patch
+        run: >-
+          git show origin/work/chatgpt-final-convergence-20260825:.github/workflows/discover-visual-validation.yml
+          > .github/workflows/discover-visual-validation.yml
       - name: Apply guarded patch
         run: |
           python3 .github/scripts/discover_capability_converge.py
@@ -58,7 +62,6 @@ jobs:
                   drive/src/v2/discover-visual-freeze.css \
                   e2e/fixtures/v2MockApi.js \
                   e2e/v2-discover-evidence.spec.js \
-                  e2e/discover-visual-convergence.spec.js \
-                  .github/workflows/discover-visual-validation.yml
+                  e2e/discover-visual-convergence.spec.js
           git commit -m "feat(discover): surface evidence investigation and procurement capacity"
           git push origin HEAD:polish/discover-visual-freeze-20260827
