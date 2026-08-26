@@ -29,6 +29,12 @@ jobs:
           TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/synthesis-acceptance-screenshots.spec.js
           --grep " at desktop 1440px"
           --reporter=line
+      - name: Render workstation Synthesis workflow states
+        run: >-
+          mkdir -p artifacts/synthesis-acceptance &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/synthesis-acceptance-screenshots.spec.js
+          --grep " at workstation 1920px"
+          --reporter=line
       - uses: actions/upload-artifact@v4
         if: always()
         with:
