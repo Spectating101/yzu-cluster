@@ -1,0 +1,64 @@
+name: Synthesis final acceptance label fix
+
+on:
+  push:
+    branches:
+      - hardening/synthesis-analytical-verification-20260826
+    paths:
+      - .github/workflows/synthesis-final-acceptance-label-fix.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-prove:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: hardening/synthesis-analytical-verification-20260826
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Align rendered-state assertions with frozen interaction labels
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('e2e/synthesis-acceptance-screenshots.spec.js')
+          text = path.read_text(encoding='utf-8')
+          replacements = {
+              'name: "Run bounded preview"': 'name: "Run bounded test"',
+              'name: "Request execution approval"': 'name: "Review execution approval"',
+              'name: "Review approval"': 'name: "Review execution approval"',
+          }
+          for old, new in replacements.items():
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{old}: expected 1 match, got {count}')
+              text = text.replace(old, new, 1)
+          path.write_text(text, encoding='utf-8')
+          PY
+      - name: Install dependencies
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Prove Preview and approval acceptance states at every frozen viewport
+        env:
+          CI: '1'
+          YZU_PAGES: 'false'
+        run: |
+          npx playwright test e2e/synthesis-acceptance-screenshots.spec.js --grep "06a-preview-required|06b-preview-passed|06c-approval" --workers=1 --retries=0 --timeout=60000 --reporter=line
+      - name: Commit only the verified acceptance contract
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add e2e/synthesis-acceptance-screenshots.spec.js
+          git diff --cached --quiet && exit 0
+          git commit -m "test(synthesis): align frozen acceptance labels"
+          git push origin HEAD:hardening/synthesis-analytical-verification-20260826
