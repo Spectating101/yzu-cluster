@@ -71,6 +71,11 @@ const building = thread("building", {
   execution: { status: "running", job_id: "job-d" },
 });
 
+const awaitingRegistration = thread("awaiting-registration", {
+  execution_spec: { input_dataset_id: "input-f", output_dataset_id: "output-f" },
+  execution: { status: "completed", job_id: "job-f", output_dataset_id: "output-f" },
+}, "2026-08-26T01:00:00Z");
+
 const result = thread("result", {
   execution_spec: { input_dataset_id: "input-e", output_dataset_id: "output-e" },
   execution: { status: "query_ready", output_dataset_id: "output-e", manifest_id: "manifest-e" },
@@ -84,12 +89,14 @@ test("workspace promotes consequential researcher decisions instead of burying t
     assert.equal(synthesisWorkspaceNeedsDecision(item), true, item.id);
   }
   assert.equal(synthesisWorkspaceNeedsDecision(building), false);
+  assert.equal(synthesisWorkspaceNeedsDecision(awaitingRegistration), false);
   assert.equal(synthesisWorkspaceNeedsDecision(result), false);
   assert.equal(synthesisWorkspaceNeedsDecision(activeEvidence), false);
 
   const buckets = partitionSynthesisWorkspace([
     activeEvidence,
     building,
+    awaitingRegistration,
     result,
     scope,
     join,
@@ -104,7 +111,7 @@ test("workspace promotes consequential researcher decisions instead of burying t
     ["preview-passed", "preview-required", "approval", "scope", "join", "proposal"],
   );
   assert.deepEqual(buckets.active.map((item) => item.id), ["evidence"]);
-  assert.deepEqual(buckets.building.map((item) => item.id), ["building"]);
+  assert.deepEqual(buckets.building.map((item) => item.id), ["awaiting-registration", "building"]);
   assert.deepEqual(buckets.results.map((item) => item.id), ["result"]);
   assert.equal(buckets.continueThread.id, "preview-passed");
 });
@@ -120,8 +127,10 @@ test("workspace resume labels describe the actual next researcher action", () =>
   assert.equal(synthesisWorkspaceActionLabel(previewPassed), "Review Preview");
   assert.equal(synthesisWorkspacePhaseLabel(approval), "Approval required");
   assert.equal(synthesisWorkspaceActionLabel(approval), "Review approval");
-  assert.equal(synthesisWorkspacePhaseLabel(building), "running");
+  assert.equal(synthesisWorkspacePhaseLabel(building), "Execution running");
   assert.equal(synthesisWorkspaceActionLabel(building), "View build");
+  assert.equal(synthesisWorkspacePhaseLabel(awaitingRegistration), "Worker completed");
+  assert.equal(synthesisWorkspaceActionLabel(awaitingRegistration), "View registration");
   assert.equal(synthesisWorkspacePhaseLabel(result), "Query-ready result");
   assert.equal(synthesisWorkspaceActionLabel(result), "Open result");
 });
