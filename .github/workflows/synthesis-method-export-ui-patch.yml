@@ -24,25 +24,21 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-          cache-dependency-path: drive/package-lock.json
       - name: Apply guarded patch
         run: python tools/_tmp_synthesis_method_export_ui_patch.py
       - name: Install frontend dependencies
-        working-directory: drive
         run: npm ci
       - name: Static and unit contracts
-        working-directory: drive
         run: |
           npm run build
-          node --check ../e2e/v2-synthesis.spec.js
+          node --check e2e/v2-synthesis.spec.js
       - name: Install Chromium
-        working-directory: drive
         run: npx playwright install --with-deps chromium
       - name: Test finalized method export in browser
-        working-directory: drive
         env:
           CI: '1'
-        run: npx playwright test ../e2e/v2-synthesis.spec.js --grep "finalized output exposes the exact frozen method" --workers=1 --retries=0 --timeout=30000 --reporter=line
+          YZU_PAGES: 'false'
+        run: npx playwright test e2e/v2-synthesis.spec.js --grep "finalized output exposes the exact frozen method" --workers=1 --retries=0 --timeout=30000 --reporter=line
       - name: Commit verified product changes and self-clean
         run: |
           rm -f tools/_tmp_synthesis_method_export_ui_patch.py .github/workflows/synthesis-method-export-ui-patch.yml
