@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { fetchLiveIdentity } from "@/v2/api";
-import { detailFields, displayName } from "@/v2/datasetMeta";
+import { demotionSentence, detailFields, displayName, statusPillKind } from "@/v2/datasetMeta";
 import { EmptyRailState } from "@/v2/EmptyRailState";
 import { buildObjectEstateCrumb } from "@/v2/deskIntegration";
 import { applyLiveIdentity, identityLookupFromRow } from "@/v2/liveIdentity";
@@ -175,17 +175,21 @@ function ProvenanceBlock({ dataset, fields }) {
   );
 }
 
-function isDatasetReady(readiness) {
-  return /ready|query|instant|connected/i.test(String(readiness || ""));
+function isDatasetReady(dataset) {
+  return statusPillKind(dataset).kind === "query-ready";
 }
 
 function datasetUseStatus(dataset, fields) {
-  if (isDatasetReady(dataset.analysis_readiness)) return "Ready";
+  const demotion = demotionSentence(dataset);
+  if (demotion) return "Not query-ready";
+  if (isDatasetReady(dataset)) return "Ready";
   return "Needs review";
 }
 
 function datasetPrimary(dataset, fields) {
-  const ready = isDatasetReady(dataset.analysis_readiness);
+  const demotion = demotionSentence(dataset);
+  if (demotion) return demotion;
+  const ready = isDatasetReady(dataset);
   let line = ready ? "Yes — preview rows or ask questions" : "Not yet confirmed";
   if (fields.vault || fields.access) {
     line = ready ? `${line} · registered in vault` : `${line} · vault path pending review`;
@@ -194,15 +198,17 @@ function datasetPrimary(dataset, fields) {
 }
 
 function datasetRisk(dataset, fields) {
-  if (isDatasetReady(dataset.analysis_readiness)) return "Low";
+  if (demotionSentence(dataset)) return "Runtime readiness is not confirmed";
+  if (isDatasetReady(dataset)) return "Low";
   return "Schema or access pending";
 }
 
 function datasetNextAction(dataset, fields) {
+  if (demotionSentence(dataset)) return "Restore the local panel or confirm runtime readiness before analysis";
   if (fields.joinKeys?.length) {
     return "Preview rows, compare/join, or ask about coverage";
   }
-  if (isDatasetReady(dataset.analysis_readiness)) {
+  if (isDatasetReady(dataset)) {
     return "Preview rows or ask for schema/coverage";
   }
   return "Confirm schema and access before analysis";
@@ -213,7 +219,6 @@ export function DetailPanel({
   loading = false,
   onPreview,
   onAskAbout,
-  onSeeCluster,
   onAddToLab,
 }) {
   const [liveIdentity, setLiveIdentity] = useState(null);
@@ -340,11 +345,6 @@ export function DetailPanel({
         <button type="button" className="rd-v2-btn sm" onClick={() => onAskAbout?.(view)}>
           Ask about this →
         </button>
-        {onSeeCluster ? (
-          <button type="button" className="rd-v2-btn sm" onClick={() => onSeeCluster(view)}>
-            See on Cluster →
-          </button>
-        ) : null}
         {onAddToLab ? (
           <button type="button" className="rd-v2-btn sm" onClick={() => onAddToLab(view)}>
             Add to lab

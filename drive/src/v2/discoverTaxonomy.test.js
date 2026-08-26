@@ -73,6 +73,18 @@ describe("discover taxonomy (D1 / D1.1)", () => {
     assert.equal(classifyDiscoverResult(rows[0], lab).key, "external-discoverable");
   });
 
+  it("keeps a registered catalogue card out of Library even when it has a local metadata path", () => {
+    const row = {
+      dataset_id: "registered_reference",
+      source_access_mode: "catalog_reference",
+      registered: true,
+      registry_id: "registered_reference",
+      local_path: "data_lake/catalogue/registered_reference.json",
+    };
+    assert.deepEqual([...holdingIdsFromCatalog([row])], []);
+    assert.equal(classifyDiscoverResult(row).key, "external-discoverable");
+  });
+
   it("marks registry metadata-only when no connection or query path", () => {
     const lab = new Set(["meta_only"]);
     const c = classifyDiscoverResult({ dataset_id: "meta_only", title: "Card only" }, lab);

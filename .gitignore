@@ -11,3 +11,8 @@ artifacts/
 !docs/screenshots-review/
 !docs/screenshots-review/**
 !research-drive-screenshots.zip
+
+# Per-tree role marker. Must stay untracked: these checkouts are worktrees of
+# one repository, so a committed file would carry identical content into every
+# tree and could not distinguish them — which is the whole point of it.
+.desk-role

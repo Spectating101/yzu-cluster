@@ -3,7 +3,11 @@
  * Storage (vault/cache) · Services (Cursor Ask / BigQuery) · Desk (query engine / Tavily)
  */
 
-import { composerRuntimeRead } from "./composerRuntimeStatus.js";
+import {
+  assistantProviderRead,
+  assistantRuntimeDetail,
+  composerRuntimeRead,
+} from "./composerRuntimeStatus.js";
 import { identifyProviderMarkId } from "./providerMarkIds.js";
 import { formatCollectorState, workersToolbarFieldsFromRollup } from "./workersToolbarStat.js";
 
@@ -54,6 +58,7 @@ export function buildCapacityAccessPairs(rollup, health) {
   // Reuse it here (same read as Settings/header) instead of re-deriving a
   // weaker signal from the rollup.
   const runtimeRead = composerRuntimeRead(health?.desk?.composer_runtime);
+  const provider = assistantProviderRead(health?.desk || {});
 
   const vaultPctRaw =
     vault.pct != null ? Number(vault.pct) : pctOf(vault.used_tb, vault.cap_tb);
@@ -127,8 +132,8 @@ export function buildCapacityAccessPairs(rollup, health) {
   const services = [
     meter({
       id: "cursor",
-      markId: "cursor",
-      name: "Cursor Ask",
+      markId: provider.id === "cursor" ? "cursor" : "assistant",
+      name: provider.label,
       metric: runtimeRead
         ? runtimeRead.ready
           ? turnsToday > 0
@@ -138,19 +143,34 @@ export function buildCapacityAccessPairs(rollup, health) {
         : composerOk
           ? turnsToday > 0
             ? `${turnsToday} turns today`
-            : "Composer ready"
+            : "Unverified"
           : "Not configured",
       pct: null,
       available: runtimeRead
         ? runtimeRead.ready
-          ? `API key live · ${composer.model || ai.composer_model || "default"}`
+          ? assistantRuntimeDetail(
+              {
+                ...health?.desk,
+                composer_model: composer.model || ai.composer_model,
+              },
+              runtimeRead,
+            )
           : runtimeRead.status === "unavailable"
-            ? "Set CURSOR_API_KEY for Ask"
-            : `Key set · ${composer.model || ai.composer_model || "default"} · ${runtimeRead.why}`
+            ? "Configure a supported Ask provider"
+            : assistantRuntimeDetail(
+                {
+                  ...health?.desk,
+                  composer_model: composer.model || ai.composer_model,
+                },
+                runtimeRead,
+              )
         : composerOk
-          ? `API key live · ${composer.model || ai.composer_model || "default"}`
-          : "Set CURSOR_API_KEY for Ask",
-      warn: runtimeRead ? !runtimeRead.ready : !composerOk,
+          ? `${provider.runtimeLabel} · runtime not verified`
+          : "Configure a supported Ask provider",
+      // A configured key is not a live runtime observation. While /health is
+      // still loading, fail closed instead of briefly presenting "Ready" and
+      // then correcting the card to "Unverified" a few seconds later.
+      warn: runtimeRead ? !runtimeRead.ready : true,
       action: runtimeRead ? (runtimeRead.status === "unavailable" ? "NEED" : null) : composerOk ? null : "NEED",
     }),
     meter({
@@ -218,7 +238,11 @@ export function buildCapacityAccessPairs(rollup, health) {
       id: "mcp",
       markId: "mcp",
       name: "Ask tools",
-      metric: mcpTotal > 0 ? `${mcpTotal} MCP tools` : composerOk ? "Composer ready" : "Not reported",
+      // The Composer runtime and the MCP tool inventory are independent
+      // observations. A configured Composer key cannot prove any tools were
+      // loaded, and calling it "Composer ready" here contradicted the
+      // adjacent runtime card whenever the provider was unverified.
+      metric: mcpTotal > 0 ? `${mcpTotal} MCP tools` : "Not reported",
       pct: null,
       available:
         mcpTotal > 0
@@ -229,10 +253,8 @@ export function buildCapacityAccessPairs(rollup, health) {
             ]
               .filter(Boolean)
               .join(" · ")
-          : composerOk
-            ? "Cursor Composer + desk MCP"
-            : "Wire desk MCP for Ask",
-      warn: mcpTotal <= 0 && !composerOk,
+          : "MCP inventory not reported",
+      warn: mcpTotal <= 0,
     }),
   ];
 

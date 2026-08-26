@@ -1,0 +1,172 @@
+.s04-preview-receipt {
+  display: grid;
+  gap: 11px;
+  margin: 14px 0 0;
+  padding: 14px 15px;
+  border: 1px solid #d8ded8;
+  border-radius: 10px;
+  background: #f8faf7;
+}
+
+.s04-preview-receipt.is-required {
+  border-style: dashed;
+  background: #faf9f5;
+}
+
+.s04-preview-receipt.is-failed {
+  border-color: #e1c8bf;
+  background: #fff8f5;
+}
+
+.s04-preview-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.s04-preview-head small,
+.s04-preview-metrics dt,
+.s04-preview-sample > small {
+  display: block;
+  color: #697687;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .085em;
+  text-transform: uppercase;
+}
+
+.s04-preview-head strong {
+  display: block;
+  margin-top: 3px;
+  color: #273747;
+  font-size: 12px;
+}
+
+.s04-preview-head em {
+  flex: 0 0 auto;
+  padding: 4px 7px;
+  border-radius: 999px;
+  background: #e8f0e9;
+  color: #40634f;
+  font-size: 8.5px;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.s04-preview-receipt.is-required .s04-preview-head em {
+  background: #f1ede2;
+  color: #746547;
+}
+
+.s04-preview-receipt.is-failed .s04-preview-head em {
+  background: #f5e4dd;
+  color: #8a4e3c;
+}
+
+.s04-preview-copy,
+.s04-preview-boundary,
+.s04-preview-error {
+  margin: 0;
+  color: #5f6d7b;
+  font-size: 9.5px;
+  line-height: 1.5;
+}
+
+.s04-preview-error { color: #814d3d; }
+
+.s04-preview-boundary {
+  padding-top: 9px;
+  border-top: 1px solid #e2e7e1;
+  color: #58685f;
+}
+
+.s04-preview-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+  border: 1px solid #e0e5e0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.s04-preview-metrics > div {
+  min-width: 0;
+  padding: 9px 10px;
+}
+
+.s04-preview-metrics > div + div { border-left: 1px solid #e8ece8; }
+.s04-preview-metrics dd {
+  margin: 3px 0 0;
+  overflow: hidden;
+  color: #2c3b49;
+  font-size: 11px;
+  font-weight: 760;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.s04-preview-sample {
+  display: grid;
+  gap: 6px;
+}
+
+.s04-preview-table-wrap {
+  overflow-x: auto;
+  border: 1px solid #e0e5e0;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.s04-preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 8.5px;
+}
+
+.s04-preview-table th,
+.s04-preview-table td {
+  max-width: 190px;
+  padding: 6px 8px;
+  overflow: hidden;
+  border-bottom: 1px solid #eef1ee;
+  color: #536171;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.s04-preview-table th {
+  background: #f6f8f5;
+  color: #43515f;
+  font-size: 7.5px;
+  font-weight: 800;
+  letter-spacing: .04em;
+}
+
+.s04-preview-table tr:last-child td { border-bottom: 0; }
+
+@media (max-width: 600px) {
+  .s04-preview-receipt { padding: 12px; }
+  .s04-preview-head { gap: 8px; }
+  .s04-preview-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .s04-preview-metrics > div:nth-child(3) { border-top: 1px solid #e8ece8; border-left: 0; }
+  .s04-preview-metrics > div:nth-child(4) { border-top: 1px solid #e8ece8; }
+}
+
+/* A supporting evidence map must not advertise its own generic next step when
+ * the thread already has a stronger decision or execution state. The map stays
+ * visible and inspectable; only its competing footer yields authority. */
+.rd-v2-synthesis-page:has(:is(
+  [data-testid="synthesis-scope-block"],
+  [data-testid="synthesis-unit-conflict"],
+  [data-testid="synthesis-join-decision"],
+  [data-testid="synthesis-proposal-state"],
+  [data-testid="synthesis-execution-state"],
+  [data-testid="synthesis-failed-state"],
+  [data-testid="synthesis-registered-state"],
+  [data-testid="synthesis-query-ready-state"]
+)) [data-testid="synthesis-evidence-state"] > .s04-actions {
+  display: none;
+}

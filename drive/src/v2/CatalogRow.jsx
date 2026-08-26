@@ -1,4 +1,4 @@
-import { statusPill, displayName, rowSubtitle } from "@/v2/datasetMeta";
+import { statusPill, displayName, libraryAssetKind, rowSubtitle } from "@/v2/datasetMeta";
 import { datasetBrowsePathLabel, folderBrowseSummary } from "@/v2/folderBrowseSummary";
 import { StatusPill } from "@/v2/StatusPill";
 import { SourceRibbon } from "@/v2/ui";
@@ -8,6 +8,13 @@ const DatasetIcon = () => (
     <ellipse cx="12" cy="5" rx="9" ry="3"/>
     <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
     <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+  </svg>
+);
+const ScholarlyWorkIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M6 2h8l4 4v16H6z"/>
+    <path d="M14 2v5h5"/>
+    <path d="M9 12h6M9 16h6"/>
   </svg>
 );
 const FolderRowIcon = () => (
@@ -23,6 +30,13 @@ function datasetDescription(dataset) {
     || null;
 }
 
+function scholarlySubtitle(dataset) {
+  return [
+    dataset?.doi || dataset?.url || dataset?.source_system,
+    dataset?.publisher || dataset?.source,
+  ].filter(Boolean).join(" · ");
+}
+
 export function CatalogRow({
   item,
   selected,
@@ -35,17 +49,23 @@ export function CatalogRow({
 }) {
   const isFolder = item.kind === "folder";
   const dataset = item.row || item;
+  const assetKind = isFolder ? "folder" : libraryAssetKind(dataset);
+  const isScholarly = assetKind === "scholarly_work";
   const title = isFolder ? item.name : displayName(dataset);
   const folderSummary = isFolder ? folderBrowseSummary(item) : null;
   const pathLabel = !isFolder ? datasetBrowsePathLabel(item) : "";
-  const sub = isFolder ? folderSummary.sub : rowSubtitle(dataset);
+  const sub = isFolder
+    ? folderSummary.sub
+    : isScholarly
+      ? scholarlySubtitle(dataset)
+      : rowSubtitle(dataset);
   const desc = isFolder
     ? folderSummary.desc
     : compact
       ? null
       : datasetDescription(dataset);
   const state = !isFolder && rowState ? rowState(dataset) : null;
-  const kind = isFolder ? "folder" : external ? "external" : "dataset";
+  const kind = isFolder ? "folder" : external ? "external" : assetKind.replace(/_/g, "-");
 
   return (
     <li className={selected ? "rd-v2-row-on" : undefined}>
@@ -63,6 +83,8 @@ export function CatalogRow({
             <SourceRibbon source={dataset.source || dataset.collect_via || dataset.source_route} />
           ) : isFolder ? (
             <FolderRowIcon />
+          ) : isScholarly ? (
+            <ScholarlyWorkIcon />
           ) : (
             <DatasetIcon />
           )}
@@ -78,7 +100,7 @@ export function CatalogRow({
         ) : null}
         {!isFolder && !state ? <StatusPill dataset={dataset} label={statusPill(dataset)} /> : null}
         {isFolder ? (
-          <span className="rd-v2-pill muted" title="Datasets in this branch">
+          <span className="rd-v2-pill muted" title="Assets in this branch">
             {folderSummary.pill}
           </span>
         ) : null}

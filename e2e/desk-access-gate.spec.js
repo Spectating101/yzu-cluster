@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { mockV2Api } from "./fixtures/v2MockApi.js";
 
-test("anonymous browser stays locked until a valid desk token is presented", async ({ page }) => {
+test("an unavailable desk session fails closed behind one honest access boundary", async ({ page }) => {
   await mockV2Api(page);
 
   await page.route("**/library/desk/capabilities", (route) => {
@@ -33,13 +33,13 @@ test("anonymous browser stays locked until a valid desk token is presented", asy
   });
 
   await page.goto("/", { waitUntil: "domcontentloaded" });
+  await expect(page.getByTestId("desk-access-gate")).toBeVisible();
+  await expect(page.locator(".rd-v2-shell")).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Research data stays inside the desk." })).toBeVisible();
-  await expect(page.locator("aside.yzu-sidebar")).toHaveCount(0);
-  await expect(page.getByText("faculty memory, credentials, jobs, and worker details")).toBeVisible();
-
-  await page.getByLabel("Desk access token").fill("review-token-for-test");
-  await page.getByRole("button", { name: "Connect" }).click();
-
-  await expect(page.locator(".rd-v2-shell")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Research data stays inside the desk." })).toHaveCount(0);
+  const boundary = page.getByLabel("Access boundary");
+  await expect(boundary).toContainText("Interface shell");
+  await expect(boundary).toContainText("Research data");
+  await expect(boundary).toContainText("Ask and collection");
+  await expect(boundary).toContainText("Operations");
+  await expect(page.getByRole("heading", { name: "Opening your desk…" })).toHaveCount(0);
 });

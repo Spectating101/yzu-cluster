@@ -56,6 +56,45 @@ function sourceIdentity(row) {
   return lower(row?.source_system || row?.source_id || row?.source || row?.publisher || row?.collect_via);
 }
 
+/**
+ * Every identity a row carries, not the first one that happens to be set.
+ *
+ * Discover candidates arrive as sources (source_id only); Library rows carry a
+ * display source_system as well. Picking one field by precedence compared a
+ * stable id on one side against a human label on the other, so a dataset the
+ * desk already held read as "no Library alternative" despite an identical
+ * source_id.
+ */
+function sourceIdentitySet(row) {
+  const out = new Set();
+  for (const value of [
+    row?.source_id,
+    row?.connector_id,
+    row?.desk_connector_id,
+    row?.source_system,
+    row?.source,
+    row?.publisher,
+    row?.provider,
+    row?.collect_via,
+  ]) {
+    const text = lower(value);
+    if (text) out.add(text);
+  }
+  return out;
+}
+
+function sharedSourceIdentity(a, b) {
+  const left = sourceIdentitySet(a);
+  if (!left.size) return "";
+  for (const value of sourceIdentitySet(b)) {
+    if (left.has(value)) return value;
+    for (const candidate of left) {
+      if (candidate.includes(value) || value.includes(candidate)) return value;
+    }
+  }
+  return "";
+}
+
 function joinKeySet(row) {
   const keys = row?.join_keys || row?.entity_fields || [];
   if (!Array.isArray(keys)) return new Set();
@@ -81,7 +120,7 @@ export function candidateComparableSignals(candidate) {
   if (Array.isArray(candidate?.related_dataset_ids) && candidate.related_dataset_ids.length) {
     signals.push("related_dataset_ids");
   }
-  if (sourceIdentity(candidate)) signals.push("source_identity");
+  if (sourceIdentitySet(candidate).size) signals.push("source_identity");
   if (joinKeySet(candidate).size) signals.push("join_keys");
   if (normalizeGrain(candidate?.grain)) signals.push("grain");
   if (coverageText(candidate)) signals.push("temporal_coverage");
@@ -260,9 +299,7 @@ function relationBasis(candidate, lab) {
     });
   }
 
-  const candSrc = sourceIdentity(candidate);
-  const labSrc = sourceIdentity(lab);
-  if (candSrc && labSrc && (candSrc === labSrc || labSrc.includes(candSrc) || candSrc.includes(labSrc))) {
+  if (sharedSourceIdentity(candidate, lab)) {
     basis.push({
       dimension: "source_identity",
       relation: "same",

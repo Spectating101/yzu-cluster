@@ -33,6 +33,27 @@ test("durableHistoryToEvents preserves candidate/source/connector/job identities
   assert.equal(event.job_id, "job-abc");
 });
 
+test("durable History preserves holding flags at the event boundary", () => {
+  const [event] = durableHistoryToEvents({
+    items: [
+      {
+        kind: "registered_asset",
+        id: "receipt-row",
+        title: "Receipt row",
+        status: "query_ready",
+        readiness: "query_ready",
+        holding_status: "held",
+        usable: true,
+        query_ready: true,
+      },
+    ],
+  });
+  assert.equal(event.readiness, "query_ready");
+  assert.equal(event.holding_status, "held");
+  assert.equal(event.usable, true);
+  assert.equal(event.query_ready, true);
+});
+
 test("historyHoldingTruth never promotes receipt_only to query-ready", () => {
   const [event] = durableHistoryToEvents({
     items: [

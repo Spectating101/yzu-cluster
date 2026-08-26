@@ -26,7 +26,33 @@ export function isReceiptOnlyAsset(dataset) {
   return state === "receipt_only";
 }
 
+const RUNTIME_DEMOTION = {
+  local_panel_missing: "Declared queryable; local panel is missing.",
+  local_bytes_missing: "Declared queryable; local bytes are missing.",
+  csv_schema_mismatch: "Declared queryable; schema does not match the registered panel.",
+};
+
+export function runtimeReadinessReason(dataset) {
+  return String(dataset?.runtime_readiness_reason || "").trim();
+}
+
+export function demotionSentence(dataset) {
+  const reason = runtimeReadinessReason(dataset);
+  if (!reason) return "";
+  return RUNTIME_DEMOTION[reason] || "Declared queryable; runtime readiness is not confirmed.";
+}
+
+/** Engine already computed this. UI must not drop it. */
+export function hydrateRemedy(dataset) {
+  if (dataset?.hydrate_required !== true) return "";
+  return "A vault archive is available to restore local bytes.";
+}
+
 export function statusPillKind(dataset) {
+  const reason = runtimeReadinessReason(dataset);
+  if (reason) {
+    return { kind: "warn", label: "Not query-ready" };
+  }
   if (dataset?.live_identity_badge?.kind && dataset?.live_identity_badge?.label) {
     return dataset.live_identity_badge;
   }
@@ -65,6 +91,14 @@ export function statusPill(dataset) {
 
 /** Faculty-facing "Can I use this?" copy — keeps Registered distinct from Query ready. */
 export function canIUseDecision(dataset) {
+  const demotion = demotionSentence(dataset);
+  if (demotion) {
+    const remedy = hydrateRemedy(dataset);
+    return {
+      headline: "Not query-ready",
+      body: remedy ? `${demotion} ${remedy}` : demotion,
+    };
+  }
   const state = statusPillKind(dataset);
   if (state.kind === "query-ready") {
     return {
@@ -117,6 +151,130 @@ export function canIUseDecision(dataset) {
   return {
     headline: "Readiness unknown",
     body: "Current metadata does not establish a usable query path.",
+  };
+}
+
+function normalizedAssetType(value) {
+  return String(value || "").trim().toLowerCase().replace(/[\s-]+/g, "_");
+}
+
+function textCorpus(dataset = {}) {
+  return [
+    dataset?.name,
+    dataset?.title,
+    dataset?.display_name,
+    dataset?.one_line,
+    dataset?.description,
+    dataset?.recommended_use,
+    ...(Array.isArray(dataset?.tags) ? dataset.tags : []),
+    ...(Array.isArray(dataset?.keywords) ? dataset.keywords : []),
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+}
+
+/**
+ * Library holds more than rectangular datasets. Prefer explicit backend type
+ * metadata when available, then use conservative structural evidence. This is
+ * presentation typing only; it never upgrades readiness or invents access.
+ */
+export function libraryAssetKind(dataset = {}) {
+  const explicit = normalizedAssetType(
+    dataset?.research_asset_kind || dataset?.asset_kind || dataset?.asset_type || dataset?.record_type,
+  );
+  if (["scholarly_work", "paper", "article", "publication", "literature"].includes(explicit)) {
+    return "scholarly_work";
+  }
+  if (["metadata_index", "catalog", "catalogue", "dataset_catalog"].includes(explicit)) {
+    return "metadata_index";
+  }
+  if (["operational", "status", "status_endpoint", "manifest"].includes(explicit)) {
+    return "operational";
+  }
+  if (["live_source", "api", "remote_queryable"].includes(explicit)) {
+    return "live_source";
+  }
+  if (["dataset", "table", "panel", "tabular"].includes(explicit)) return "dataset";
+
+  const accessShape = normalizedAssetType(dataset?.access_shape);
+  const backend = normalizedAssetType(dataset?.backend);
+  const grain = normalizedAssetType(dataset?.grain);
+  const corpus = textCorpus(dataset);
+  const hasBibliographicIdentity = Boolean(dataset?.doi || /\bdoi\b/.test(corpus));
+  const scholarlyLanguage = /\b(paper|article|scholarly|publication|literature|citation)\b/.test(corpus);
+
+  if (
+    scholarlyLanguage &&
+    (hasBibliographicIdentity || accessShape === "local_file" || grain === "procured_snapshot")
+  ) {
+    return "scholarly_work";
+  }
+  if (accessShape === "metadata_index" || /catalog|catalogue/.test(backend)) return "metadata_index";
+  if (/status|manifest|operational/.test(`${accessShape} ${backend}`)) return "operational";
+  if (/api/.test(backend) && !dataset?.local_root && !dataset?.local_path) return "live_source";
+  return "dataset";
+}
+
+export function libraryAssetPresentation(dataset = {}) {
+  const kind = libraryAssetKind(dataset);
+  if (kind === "scholarly_work") {
+    return {
+      kind,
+      noun: "scholarly work",
+      eyebrow: "Selected scholarly work",
+      shapeTitle: "Bibliographic record",
+      structureTitle: "Record details",
+      structureAction: "Inspect record",
+      askLabel: "Ask about this work",
+      previewRows: false,
+    };
+  }
+  if (kind === "metadata_index") {
+    return {
+      kind,
+      noun: "metadata index",
+      eyebrow: "Selected metadata index",
+      shapeTitle: "Index scope",
+      structureTitle: "Record structure",
+      structureAction: "Inspect fields",
+      askLabel: "Ask about this index",
+      previewRows: true,
+    };
+  }
+  if (kind === "live_source") {
+    return {
+      kind,
+      noun: "live source",
+      eyebrow: "Selected live source",
+      shapeTitle: "Source contract",
+      structureTitle: "Declared response shape",
+      structureAction: "Inspect fields",
+      askLabel: "Ask about this source",
+      previewRows: true,
+    };
+  }
+  if (kind === "operational") {
+    return {
+      kind,
+      noun: "operational resource",
+      eyebrow: "Selected operational resource",
+      shapeTitle: "Operational record",
+      structureTitle: "Recorded state",
+      structureAction: "Inspect record",
+      askLabel: "Ask about this resource",
+      previewRows: false,
+    };
+  }
+  return {
+    kind: "dataset",
+    noun: "dataset",
+    eyebrow: "Selected Library asset",
+    shapeTitle: "Declared evidence shape",
+    structureTitle: "Declared structure",
+    structureAction: "Inspect fields",
+    askLabel: "Ask about access",
+    previewRows: true,
   };
 }
 

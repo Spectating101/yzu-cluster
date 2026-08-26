@@ -1,12 +1,16 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  chatSessionStorageKey,
+  clearChatSessionId,
   clearDeskToken,
   deskFetchInit,
   deskHeaders,
   deskSessionBootstrapped,
   hasDeskToken,
+  loadChatSessionId,
   markDeskSessionBootstrapped,
+  saveChatSessionId,
   saveDeskToken,
 } from "./deskSession.js";
 
@@ -23,7 +27,21 @@ function installMemorySessionStorage() {
   };
 }
 
+function installMemoryLocalStorage() {
+  const store = new Map();
+  globalThis.localStorage = {
+    getItem: (k) => (store.has(k) ? store.get(k) : null),
+    setItem: (k, v) => {
+      store.set(String(k), String(v));
+    },
+    removeItem: (k) => {
+      store.delete(String(k));
+    },
+  };
+}
+
 installMemorySessionStorage();
+installMemoryLocalStorage();
 
 test("saveDeskToken persists for deskHeaders without exposing empty tokens", () => {
   clearDeskToken();
@@ -49,4 +67,30 @@ test("markDeskSessionBootstrapped tracks cookie bootstrap state", () => {
   assert.equal(deskSessionBootstrapped(), true);
   markDeskSessionBootstrapped(false);
   assert.equal(deskSessionBootstrapped(), false);
+});
+
+test("Ask chat sessions stay isolated by research context", () => {
+  clearChatSessionId("discover:jkse");
+  clearChatSessionId("discover:forest-fire");
+  saveChatSessionId("session-jkse", "discover:jkse");
+  saveChatSessionId("session-fire", "discover:forest-fire");
+
+  assert.equal(loadChatSessionId("discover:jkse"), "session-jkse");
+  assert.equal(loadChatSessionId("discover:forest-fire"), "session-fire");
+  assert.notEqual(chatSessionStorageKey("discover:jkse"), chatSessionStorageKey("discover:forest-fire"));
+});
+
+test("clearing one Ask context never clears another", () => {
+  saveChatSessionId("session-a", "dataset:a");
+  saveChatSessionId("session-b", "dataset:b");
+  clearChatSessionId("dataset:a");
+
+  assert.equal(loadChatSessionId("dataset:a"), "");
+  assert.equal(loadChatSessionId("dataset:b"), "session-b");
+});
+
+test("legacy unscoped chat storage remains available only to unscoped callers", () => {
+  saveChatSessionId("legacy-session");
+  assert.equal(loadChatSessionId(), "legacy-session");
+  assert.equal(loadChatSessionId("discover:new-question"), "");
 });

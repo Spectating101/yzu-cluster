@@ -157,10 +157,10 @@ export function queryDataset(datasetId, limit = 50) {
   return fetchJson(`/query/${encodeURIComponent(datasetId)}?limit=${limit}`);
 }
 
-export function deskHealth(live = false) {
+export function deskHealth(live = false, { timeoutMs } = {}) {
   const q = live ? "?live=1" : "";
   // live=1 can stall ~30s on cluster probes — UI chrome must not wait.
-  return fetchJson(`/health${q}`, { timeoutMs: live ? 8000 : 6000 });
+  return fetchJson(`/health${q}`, { timeoutMs: timeoutMs ?? (live ? 8000 : 6000) });
 }
 
 export function deskResources(live = true) {
@@ -171,7 +171,10 @@ export function deskResources(live = true) {
 export function discoverSearch(query = "", limit = 12, email = "") {
   const params = new URLSearchParams({ q: query, limit: String(limit) });
   if (email) params.set("email", email);
-  return fetchJson(`/library/discover?${params}`);
+  // The known-route lookup paints independently. Bound the Library-index leg
+  // so one wedged profile/ranking request cannot leave the whole evidence view
+  // in a permanent “checking” state after useful routes are already visible.
+  return fetchJson(`/library/discover?${params}`, { timeoutMs: 15000 });
 }
 
 export function webDiscover(query = "", limit = 8, tavilyLive = true) {
@@ -535,6 +538,29 @@ export function getSynthesisThread(threadId) {
   return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}`);
 }
 
+/** Read-only facts measured directly from the thread's mapped Library bytes.
+ * This route never invokes the assistant and never mutates the construction. */
+export function getSynthesisMeasurements(threadId, { maxInputs = 4 } = {}) {
+  const params = new URLSearchParams({ max_inputs: String(maxInputs) });
+  return fetchJson(
+    `/library/synthesis/threads/${encodeURIComponent(threadId)}/measurements?${params}`,
+  );
+}
+
+/** Read-only, held-only candidate inputs for a Synthesis thread. */
+export function proposeSynthesisEvidenceMap(threadId) {
+  return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}/evidence-map`);
+}
+
+/** Researcher-approved persistence of exact inputs from the current proposal. */
+export function applySynthesisEvidenceMap(threadId, { datasetIds = [] } = {}) {
+  return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}/evidence-map`, {
+    method: "POST",
+    headers: deskHeaders(),
+    body: JSON.stringify({ dataset_ids: datasetIds }),
+  });
+}
+
 export function linkSynthesisThreadConversation(threadId, { sessionId, conversationId = "" } = {}) {
   return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}/conversation`, {
     method: "POST",
@@ -576,11 +602,12 @@ export function decideSynthesisProposal(threadId, { decision, proposalId, propos
   });
 }
 
-export function requestSynthesisExecution(threadId) {
+export function requestSynthesisExecution(threadId, { action = "request_approval" } = {}) {
+  const intent = String(action || "request_approval").trim();
   return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}/execute`, {
     method: "POST",
     headers: deskHeaders(),
-    body: JSON.stringify({}),
+    body: JSON.stringify({ action: intent }),
   });
 }
 
@@ -680,13 +707,7 @@ export async function sendChatMessage(
     const started = Date.now();
     const tick = setInterval(() => {
       const elapsed = Math.round((Date.now() - started) / 1000);
-      const text =
-        elapsed < 4
-          ? "Understanding your request…"
-          : elapsed < 12
-            ? "Preparing the Composer research session…"
-            : "Composer is working with the research tools…";
-      onActivity?.({ text, elapsed_seconds: elapsed });
+      onActivity?.({ text: "Working…", elapsed_seconds: elapsed });
     }, 1500);
     try {
       let fallback;

@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   BrowseRailPanel,
-  ClusterRailPanel,
   DetailPanel,
-  EmptyRailPanel,
   HomeAttentionRailPanel,
   LibraryObjectRailPanel,
   PageRailPanel,
@@ -17,7 +15,10 @@ import { ResourcesOverviewRailPanel } from "@/v2/ResourcesOverviewRailPanel";
 import { DiscoverHistoryRailPanel } from "@/v2/DiscoverHistoryRailPanel";
 import { DiscoverIntentRailPanel } from "@/v2/DiscoverIntentRailPanel";
 import { SynthesisThreadRailPanel } from "@/v2/SynthesisThreadRailPanel";
+import { SynthesisIdleRailPanel } from "@/v2/SynthesisIdleRailPanel";
 import { DiscoverEvidenceBrief } from "@/v2/DiscoverEvidenceBrief";
+import { ResearchSituationRail } from "@/v2/ResearchSituationRail";
+import { DISCOVER_TAB } from "@/v2/tabIdentity";
 
 function railSelectionHint(
   mainTab,
@@ -27,21 +28,24 @@ function railSelectionHint(
   discoverIntentRecord,
   discoverAssessment,
   resourceRow,
-  clusterContext,
+  restingSummary,
 ) {
-  if (mainTab === "browse" && discoverIntentRecord) {
+  if (mainTab === DISCOVER_TAB && discoverIntentRecord) {
     return discoverIntentRecord.intent?.title || discoverIntentRecord.candidate?.title || "Acquisition review";
   }
-  if (mainTab === "browse" && historyEvent) {
+  if (mainTab === DISCOVER_TAB && historyEvent) {
     return historyEvent.target || historyEvent.title || historyEvent.id || "Discover lifecycle item";
   }
-  if (mainTab === "browse" && discoverAssessment?.active) {
+  if (mainTab === DISCOVER_TAB && discoverAssessment?.active) {
     return "Coverage assessment";
   }
-  if (mainTab === "browse" && browseTarget) {
+  if (mainTab === DISCOVER_TAB && browseTarget) {
     return browseTarget.title || browseTarget.dataset_id || "Discover result";
   }
-  if (mainTab === "browse") {
+  if (mainTab === DISCOVER_TAB && restingSummary?.hasResults) {
+    return "Search summary";
+  }
+  if (mainTab === DISCOVER_TAB) {
     return "No discover result";
   }
   if (mainTab === "resources" && resourceRow) {
@@ -59,12 +63,6 @@ function railSelectionHint(
   if (mainTab === "synthesis") {
     return "Synthesis";
   }
-  if (mainTab === "cluster" && clusterContext?.a && clusterContext?.b) {
-    return `${displayName(clusterContext.a)} × ${displayName(clusterContext.b)}`;
-  }
-  if (mainTab === "cluster") {
-    return "No compare selected";
-  }
   if (dataset?.dataset_id) {
     return displayName(dataset);
   }
@@ -74,7 +72,6 @@ function railSelectionHint(
 const MOBILE_RAIL_IDLE_HINTS = new Set([
   "No selection",
   "No discover result",
-  "No compare selected",
   "Resources",
   "Profile",
   "Desk setup",
@@ -85,12 +82,13 @@ function activeHintBelongsToTab(mainTab, object) {
   if (mainTab === "library") {
     return ["library_folder", "library_intake", "dataset"].includes(object.kind);
   }
-  if (mainTab === "browse") {
+  if (mainTab === DISCOVER_TAB) {
     return ["external_candidate", "discover_history", "discover_investigation"].includes(object.kind);
   }
   if (mainTab === "resources") return object.kind === "resource_row";
-  if (mainTab === "home") return ["dataset", "home_attention"].includes(object.kind);
-  if (mainTab === "cluster") return object.kind === "comparison";
+  if (mainTab === "home") {
+    return object.kind === "home_attention" || (object.kind === "dataset" && object.owner === "home");
+  }
   if (mainTab === "synthesis") return object.kind === "synthesis_thread";
   return false;
 }
@@ -101,7 +99,6 @@ export function InspectorRail({
   onRailTabChange,
   dataset,
   detailLoading,
-  clusterContext,
   browseTarget,
   historyEvent,
   historyJob,
@@ -112,12 +109,14 @@ export function InspectorRail({
   onDiscoverAssessmentActive,
   onCloseDiscoverAssessment,
   onSuggestDiscoverSearch,
+  discoverRestingSummary = null,
   resourceRow,
   resourcesRollup,
+  resourcesDecisionCount,
   activeObject,
+  previewOpen = false,
   onPreview,
   onAskAbout,
-  onSeeCluster,
   onAddToLab,
   onPreviewExternal,
   onProbeSource,
@@ -150,9 +149,7 @@ export function InspectorRail({
         onOpenInLibrary={onOpenInLibrary}
       />
     );
-  } else if (mainTab === "cluster") {
-    detailPanel = <ClusterRailPanel compare={clusterContext} onAskAbout={onAskAbout} />;
-  } else if (mainTab === "browse") {
+  } else if (mainTab === DISCOVER_TAB) {
     detailPanel = discoverIntentRecord ? (
       <DiscoverIntentRailPanel record={discoverIntentRecord} />
     ) : historyEvent ? (
@@ -178,6 +175,9 @@ export function InspectorRail({
       <BrowseRailPanel
         target={browseTarget}
         labIds={labIds}
+        catalog={discoverCatalog}
+        restingSummary={discoverRestingSummary}
+        intentRecord={discoverIntentRecord}
         onAskAbout={onAskAbout}
         onAddToLab={onAddToLab}
         onPreviewExternal={onPreviewExternal}
@@ -201,19 +201,24 @@ export function InspectorRail({
         onAskAbout={onAskAbout}
       />
     ) : (
-      <ResourcesOverviewRailPanel rollup={resourcesRollup} onViewActivity={onViewActivity} />
+      <ResourcesOverviewRailPanel
+        rollup={resourcesRollup}
+        decisionCount={resourcesDecisionCount}
+        onViewActivity={onViewActivity}
+      />
     );
   } else if (mainTab === "profile") {
     detailPanel = <ProfileDetailPanel profile={profile} />;
   } else if (mainTab === "settings") {
     detailPanel = <PageRailPanel page="settings" onAskAbout={onAskAbout} />;
   } else if (mainTab === "synthesis") {
-    detailPanel = <PageRailPanel page="synthesis" onAskAbout={onAskAbout} />;
+    detailPanel = <SynthesisIdleRailPanel onAskAbout={onAskAbout} />;
   } else if (mainTab === "library" && dataset?.dataset_id) {
     // Dataset selection wins over folder/page guide (Continue / row click must show SOURCE+VERIFY).
     detailPanel = (
       <LibraryDatasetRailPanel
         dataset={dataset}
+        previewOpen={previewOpen}
         onPreview={onPreview}
         onAskAbout={onAskAbout}
       />
@@ -238,10 +243,16 @@ export function InspectorRail({
     detailPanel = <PageRailPanel page="library" onAskAbout={onAskAbout} />;
   } else if (mainTab === "home" && activeObject?.kind === "home_attention") {
     detailPanel = <HomeAttentionRailPanel object={activeObject} onAskAbout={onAskAbout} />;
-  } else if (mainTab === "home" && dataset?.dataset_id) {
+  } else if (
+    mainTab === "home" &&
+    dataset?.dataset_id &&
+    activeObject?.kind === "dataset" &&
+    activeObject?.owner === "home"
+  ) {
     detailPanel = (
       <LibraryDatasetRailPanel
         dataset={dataset}
+        previewOpen={previewOpen}
         onPreview={onPreview}
         onAskAbout={onAskAbout}
       />
@@ -255,7 +266,6 @@ export function InspectorRail({
         loading={detailLoading}
         onPreview={onPreview}
         onAskAbout={onAskAbout}
-        onSeeCluster={onSeeCluster}
       />
     );
   }
@@ -271,16 +281,18 @@ export function InspectorRail({
       discoverIntentRecord,
       discoverAssessment,
       resourceRow,
-      clusterContext,
+      discoverRestingSummary,
     );
 
   const [mobileRailOpen, setMobileRailOpen] = useState(false);
 
   useEffect(() => {
-    if (mainTab === "browse") {
+    if (mainTab === DISCOVER_TAB) {
       setMobileRailOpen(
         Boolean(discoverAssessment?.active) ||
-          (Boolean(browseTarget || historyEvent || discoverIntentRecord) && railTab === "ask"),
+          Boolean(historyEvent) ||
+          Boolean(discoverIntentRecord) ||
+          (Boolean(browseTarget) && railTab === "ask"),
       );
       return;
     }
@@ -311,6 +323,7 @@ export function InspectorRail({
     historyEvent,
     discoverIntentRecord,
     discoverAssessment?.active,
+    discoverRestingSummary?.hasResults,
     railTab,
     activeObject?.kind,
   ]);
@@ -328,32 +341,25 @@ export function InspectorRail({
             aria-expanded={mobileRailOpen}
             onClick={() => setMobileRailOpen((open) => !open)}
           >
-            {mobileRailOpen ? "Hide panel" : "Show Detail · Ask"}
+            {mobileRailOpen ? "Hide panel" : "Show research context"}
           </button>
-          <div className="rd-v2-rail-toggle" role="tablist" aria-label="Inspector mode">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={railTab === "detail"}
-              className={railTab === "detail" ? "on" : ""}
-              onClick={() => onRailTabChange("detail")}
-            >
-              Detail
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={railTab === "ask"}
-              className={railTab === "ask" ? "on" : ""}
-              onClick={() => onRailTabChange("ask")}
-            >
-              Ask
-            </button>
-          </div>
-          <p className="rd-v2-rail-selection" title={selectionHint}>
-            {selectionHint}
-          </p>
         </div>
+        <ResearchSituationRail
+          mainTab={mainTab}
+          railTab={railTab}
+          onRailTabChange={onRailTabChange}
+          selectionHint={selectionHint}
+          activeObject={activeObject}
+          dataset={dataset}
+          browseTarget={browseTarget}
+          browseLifecycle={browseLifecycle}
+          historyEvent={historyEvent}
+          discoverIntentRecord={discoverIntentRecord}
+          discoverAssessment={discoverAssessment}
+          restingSummary={discoverRestingSummary}
+          resourceRow={resourceRow}
+          resourcesDecisionCount={resourcesDecisionCount}
+        />
         <div
           className={`rd-v2-rail-pane${railTab === "detail" ? " rd-v2-rail-pane-on" : ""}`}
           aria-hidden={railTab !== "detail"}

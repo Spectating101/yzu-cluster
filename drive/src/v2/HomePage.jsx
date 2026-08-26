@@ -4,6 +4,8 @@ import { GuidedState, Skeleton } from "@/v2/InteractionFeedback";
 import { HomeSuggestedAsks } from "@/v2/HomeSuggestedAsks";
 import { readResourcesRollupCache, writeResourcesRollupCache } from "@/v2/resourcesRollupCache";
 import { PageShell } from "@/v2/ui";
+import { DeskError } from "@/v2/DeskError";
+import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
 import {
   buildPickUp,
   buildRecentTrail,
@@ -98,19 +100,23 @@ function PickUpCard({ point, loading, onContinue, onReview }) {
 
 export function HomePage({
   datasets = [],
+  catalogLoading = false,
   health,
   jobs = [],
   profile,
   acquisitions = [],
   resourcesRollup,
+  loadError = "",
   onGoTab,
   onOpenAttention,
   onSelectDataset,
   onPreviewDataset,
+  onPrimaryResume,
   onSuggestSearch,
   onAskComposer,
 }) {
-  const loading = health == null && datasets.length === 0;
+  const loading = catalogLoading || (health == null && datasets.length === 0);
+  const surfaceState = resolveSurfaceLifecycle({ loading, error: loadError, count: datasets.length });
   // Mirror Resources cache-first: never block Home headroom on a cold /desk/resources round-trip.
   const [cachedRollup, setCachedRollup] = useState(() => readResourcesRollupCache());
   useEffect(() => {
@@ -129,9 +135,12 @@ export function HomePage({
     () => buildPickUp({ datasets, jobs, health, acquisitions, profile }),
     [datasets, jobs, health, acquisitions, profile],
   );
+  useEffect(() => {
+    if (!loading) onPrimaryResume?.(pickUp.primary || null);
+  }, [loading, onPrimaryResume, pickUp.primary]);
   const headroom = useMemo(
-    () => buildResourceHeadroom(headroomRollup),
-    [headroomRollup],
+    () => buildResourceHeadroom(headroomRollup, health),
+    [headroomRollup, health],
   );
   const recommended = useMemo(
     () => buildRecommendedEvidence(profile, { limit: 2 }),
@@ -187,7 +196,9 @@ export function HomePage({
       title="Home"
       lead="Resume · headroom · durable consequences"
       footer={null}
+      surfaceState={surfaceState}
     >
+      {loadError ? <DeskError raw={loadError} surface="Home's Library briefing" /> : null}
       <div className="rd-v2-home-topband">
         <section className="rd-v2-home-pickup" aria-label="Pick up">
           <PickUpCard

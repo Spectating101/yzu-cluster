@@ -58,8 +58,8 @@ test.describe("Research Drive interaction guidance", () => {
         composer_model: "composer-2.5",
       },
     };
-    await page.unroute("**/health*");
-    await page.route("**/health*", (route) =>
+    await page.unroute("**/*health*");
+    await page.route("**/*health*", (route) =>
       route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(health) }),
     );
     await page.reload({ waitUntil: "domcontentloaded" });
@@ -95,8 +95,8 @@ test.describe("Research Drive interaction guidance", () => {
         },
       },
     };
-    await page.unroute("**/health*");
-    await page.route("**/health*", (route) =>
+    await page.unroute("**/*health*");
+    await page.route("**/*health*", (route) =>
       route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(health) }),
     );
     await page.reload({ waitUntil: "domcontentloaded" });
@@ -125,8 +125,8 @@ test.describe("Research Drive interaction guidance", () => {
         },
       },
     };
-    await page.unroute("**/health*");
-    await page.route("**/health*", (route) =>
+    await page.unroute("**/*health*");
+    await page.route("**/*health*", (route) =>
       route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(health) }),
     );
     await page.reload({ waitUntil: "domcontentloaded" });
@@ -137,6 +137,38 @@ test.describe("Research Drive interaction guidance", () => {
     const assistant = summary.locator(".rd-v2-settings-summary-card").filter({ hasText: "Research assistant" });
     await expect(assistant).toContainText("Ready");
     await expect(assistant).toContainText("confirmed live");
+  });
+
+  test("Settings names the active Copilot pool without pinning an auto-resolved probe model", async ({ page }) => {
+    const health = {
+      ...MOCK_HEALTH,
+      desk: {
+        ...MOCK_HEALTH.desk,
+        brain: "copilot_composer",
+        composer_configured: true,
+        composer_model: "gpt-5-mini",
+        composer_runtime: {
+          status: "ready",
+          configured: true,
+          verified: true,
+          checked_at: "2026-08-25T10:00:00Z",
+          model: "gpt-5-mini",
+        },
+      },
+    };
+    await page.unroute("**/*health*");
+    await page.route("**/*health*", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(health) }),
+    );
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await openTab(page, "Settings");
+
+    const summary = page.getByRole("region", { name: "Research desk status" });
+    const assistant = summary.locator(".rd-v2-settings-summary-card").filter({ hasText: "Research assistant" });
+    await expect(assistant).toContainText("Ready");
+    await expect(assistant).toContainText("Copilot pool · confirmed live");
+    await expect(assistant).not.toContainText("gpt-5-mini");
   });
 
   test("Settings does not claim Ready for a degraded (failed-probe) runtime, even though verified is true", async ({ page }) => {
@@ -159,8 +191,8 @@ test.describe("Research Drive interaction guidance", () => {
         },
       },
     };
-    await page.unroute("**/health*");
-    await page.route("**/health*", (route) =>
+    await page.unroute("**/*health*");
+    await page.route("**/*health*", (route) =>
       route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(health) }),
     );
     await page.reload({ waitUntil: "domcontentloaded" });
@@ -190,8 +222,8 @@ test.describe("Research Drive interaction guidance", () => {
         },
       },
     };
-    await page.unroute("**/health*");
-    await page.route("**/health*", (route) =>
+    await page.unroute("**/*health*");
+    await page.route("**/*health*", (route) =>
       route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(health) }),
     );
     await page.reload({ waitUntil: "domcontentloaded" });

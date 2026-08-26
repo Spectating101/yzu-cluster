@@ -1,79 +1,152 @@
 /**
- * Live smoke against a running front door.
+ * Authenticated, read-only smoke against a running front door.
  *
- * Loads every destination at desktop and mobile and fails on any JS error,
- * any 4xx/5xx, or horizontal overflow. Written after a deploy where the only
- * verification available was "the page returned 200", which says nothing about
- * whether the app actually rendered.
- *
- * Usage:
- *   YZU_DESK_URL=http://127.0.0.1:8765 \
- *   YZU_DESK_ACCESS_TOKEN=... \
- *   node scripts/live_smoke.mjs
- *
- * Exits non-zero if any page has an issue, so it can gate a promotion.
+ * Mounts every current destination at the workstation, reference, compact and
+ * mobile viewports. Fails on JS errors, bad HTTP responses, a stuck lifecycle,
+ * missing shell/heading, or horizontal document overflow. Screenshots are
+ * retained as visual-review evidence; this script never submits a mutation.
  */
+import { mkdirSync } from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { chromium } from "@playwright/test";
 
-const BASE = process.env.YZU_DESK_URL || "http://127.0.0.1:8765";
+const BASE = String(process.env.YZU_DESK_URL || "http://100.127.141.44:8765").replace(/\/$/, "");
 const TOKEN = process.env.YZU_DESK_ACCESS_TOKEN || "";
+const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+const EVIDENCE_DIR = process.env.YZU_SMOKE_EVIDENCE_DIR || path.join(
+  os.homedir(),
+  ".config/yzu-host-acceptance/evidence",
+  `fe_loop_live_smoke_${stamp}`,
+);
 
-const PAGES = [
-  ["home", "/?tab=home"],
-  ["library", "/?tab=library"],
-  ["discover", "/?tab=browse"],
-  ["discover-history", "/?tab=browse&mode=history"],
-  ["synthesis", "/?tab=synthesis"],
-  ["resources", "/?tab=resources"],
-  ["profile", "/?tab=profile"],
-  ["settings", "/?tab=settings"],
-  ["cluster", "/?tab=cluster"],
+const ALL_PAGES = [
+  ["home", "/?tab=home", /home/i, true],
+  ["library", "/?tab=library", /library/i, true],
+  ["discover", "/?tab=browse", /discover/i, true],
+  ["discover-history", "/?tab=browse&mode=history", /discover/i, true],
+  // Synthesis leads with the active thread title by design.
+  ["synthesis", "/?tab=synthesis", /.+/, true],
+  ["resources", "/?tab=resources", /resources|research estate/i, true],
+  // Profile and Settings are static account surfaces rather than data loaders.
+  ["profile", "/?tab=profile", /profile/i, false],
+  ["settings", "/?tab=settings", /settings/i, false],
 ];
-const VIEWPORTS = [
-  ["desktop", { width: 1440, height: 900 }],
+const ALL_VIEWPORTS = [
+  ["workstation", { width: 1920, height: 961 }],
+  ["reference", { width: 1440, height: 900 }],
+  ["compact", { width: 1280, height: 800 }],
   ["mobile", { width: 390, height: 844 }],
 ];
+const ACCEPTABLE_SURFACE_STATES = /^(ready|idle|empty|partial|stale)$/;
 
-const browser = await chromium.launch();
+function requestedSet(name) {
+  const raw = String(process.env[name] || "").trim();
+  return raw ? new Set(raw.split(",").map((item) => item.trim()).filter(Boolean)) : null;
+}
+
+const requestedPages = requestedSet("YZU_SMOKE_PAGES");
+const requestedViewports = requestedSet("YZU_SMOKE_VIEWPORTS");
+const PAGES = requestedPages
+  ? ALL_PAGES.filter(([name]) => requestedPages.has(name))
+  : ALL_PAGES;
+const VIEWPORTS = requestedViewports
+  ? ALL_VIEWPORTS.filter(([name]) => requestedViewports.has(name))
+  : ALL_VIEWPORTS;
+
+mkdirSync(EVIDENCE_DIR, { recursive: true });
+const browser = await chromium.launch({
+  headless: true,
+  args: ["--disable-dev-shm-usage", "--no-sandbox", "--disable-gpu"],
+});
 let failures = 0;
+let warnings = 0;
 
-for (const [vpName, viewport] of VIEWPORTS) {
-  for (const [name, path] of PAGES) {
-    const ctx = await browser.newContext({
+for (const [viewportName, viewport] of VIEWPORTS) {
+  for (const [name, route, headingPattern, requiresSurfaceState] of PAGES) {
+    const context = await browser.newContext({
       viewport,
-      extraHTTPHeaders: TOKEN ? { "X-Desk-Token": TOKEN } : {},
+      extraHTTPHeaders: TOKEN
+        ? { Authorization: `Bearer ${TOKEN}`, "X-Desk-Token": TOKEN }
+        : {},
     });
-    const page = await ctx.newPage();
+    const page = await context.newPage();
     const jsErrors = [];
-    const badResponses = [];
-    page.on("pageerror", (e) => jsErrors.push(e.message.slice(0, 120)));
-    page.on("response", (r) => {
-      if (r.status() >= 400) badResponses.push(`${r.status()} ${r.url().replace(BASE, "").split("?")[0]}`);
+    const responseStatus = new Map();
+    page.on("pageerror", (error) => jsErrors.push(error.message.slice(0, 180)));
+    page.on("response", (response) => {
+      const request = response.request();
+      const requestPath = response.url().replace(BASE, "").split("?")[0];
+      responseStatus.set(`${request.method()} ${requestPath}`, response.status());
     });
 
+    let heading = "";
+    let surfaceState = "missing";
+    let horizontalOverflow = false;
+    let accessGate = false;
     try {
-      await page.goto(BASE + path, { waitUntil: "domcontentloaded", timeout: 30000 });
-      await page.waitForTimeout(4000);
-      const heading = (await page.locator("h1").first().innerText().catch(() => "—")).trim();
-      const overflows = await page.evaluate(
+      await page.goto(BASE + route, { waitUntil: "domcontentloaded", timeout: 45_000 });
+      await page.locator(".rd-v2-shell").waitFor({ state: "visible", timeout: 30_000 });
+      const surface = page.locator("main.yzu-main .rd-v2-page").first();
+      await surface.waitFor({ state: "visible", timeout: 30_000 });
+      await page.waitForFunction(
+        () => {
+          const state = document.querySelector("main.yzu-main .rd-v2-page")?.getAttribute("data-surface-state") || "";
+          return state !== "loading" && state !== "partial";
+        },
+        null,
+        { timeout: 20_000 },
+      ).catch(() => {});
+
+      heading = (await page.locator("h1").first().innerText().catch(() => "")).trim();
+      surfaceState = await surface.getAttribute("data-surface-state") || "missing";
+      horizontalOverflow = await page.evaluate(
         () => document.documentElement.scrollWidth > window.innerWidth + 1,
       );
-      const unique = [...new Set(badResponses)];
-      const bad = jsErrors.length || unique.length || overflows;
+      accessGate = await page.getByText(/Desk access required|Check access again/i).isVisible().catch(() => false);
+      await page.screenshot({
+        path: path.join(EVIDENCE_DIR, `${viewportName}-${name}.png`),
+        fullPage: false,
+      });
+
+      // fetchJson deliberately retries a protected request after session
+      // bootstrap. Judge the final response per method/path, not the expected
+      // first 401 that established the need to mint a session.
+      const uniqueResponses = [...responseStatus.entries()]
+        .filter(([, status]) => status >= 400)
+        .map(([key, status]) => `${status} ${key}`);
+      const bad = Boolean(
+        jsErrors.length
+        || uniqueResponses.length
+        || horizontalOverflow
+        || accessGate
+        || !headingPattern.test(heading)
+        || (requiresSurfaceState && !ACCEPTABLE_SURFACE_STATES.test(surfaceState)),
+      );
+      const partial = surfaceState === "partial";
       if (bad) failures += 1;
+      else if (partial) warnings += 1;
       console.log(
-        `${bad ? "FAIL" : "ok  "} ${vpName.padEnd(7)} ${name.padEnd(17)} h1="${heading}" ` +
-          `js=${jsErrors.length} http>=400=${unique.length} overflow=${overflows}` +
-          (bad ? `  ${[...jsErrors, ...unique].slice(0, 3).join(" ; ")}` : ""),
+        `${bad ? "FAIL" : partial ? "WARN" : "ok  "} ${viewportName.padEnd(11)} ${name.padEnd(17)} `
+        + `h1=${JSON.stringify(heading)} state=${surfaceState} js=${jsErrors.length} `
+        + `http>=400=${uniqueResponses.length} overflow=${horizontalOverflow} gate=${accessGate}`
+        + (bad ? `  ${[...jsErrors, ...uniqueResponses].slice(0, 3).join(" ; ")}` : ""),
       );
     } catch (error) {
       failures += 1;
-      console.log(`FAIL ${vpName.padEnd(7)} ${name.padEnd(17)} load failed: ${String(error).slice(0, 90)}`);
+      console.log(
+        `FAIL ${viewportName.padEnd(11)} ${name.padEnd(17)} load failed: ${String(error).slice(0, 160)}`,
+      );
     }
-    await ctx.close();
+    await context.close();
   }
 }
 
 await browser.close();
-console.log(`\n${failures ? `${failures} page(s) with issues` : "all pages clean"} (${PAGES.length * VIEWPORTS.length} checked)`);
+console.log(`\nEvidence: ${EVIDENCE_DIR}`);
+console.log(
+  `${failures ? `${failures} surface(s) failed` : "all surfaces usable"}`
+  + `${warnings ? ` · ${warnings} still enriching` : ""}`
+  + ` (${PAGES.length * VIEWPORTS.length} checked)`,
+);
 process.exit(failures ? 1 : 0);

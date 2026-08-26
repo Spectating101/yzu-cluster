@@ -7,6 +7,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { applyLifecycleToEvaluation, LIFECYCLE } from "@/v2/discoverLifecycle";
 import { buildDiscoverEvaluation } from "@/v2/discoverEvaluation";
+import { buildDiscoverStrategyCard } from "@/v2/discoverStrategyCard";
 import {
   assessLocalSufficiency,
   applySufficiencyToActions,
@@ -18,6 +19,7 @@ import {
   RailField,
   RailFieldGrid,
   RailFrame,
+  RailStickyFooter,
 } from "@/v2/RailFrame";
 import { EmptyRailState } from "@/v2/EmptyRailState";
 import { buildObjectEstateCrumb } from "@/v2/deskIntegration";
@@ -49,10 +51,162 @@ function sufficiencyLocalTitle(sufficiency) {
   return String(local?.title || local?.name || local?.dataset_id || "").trim();
 }
 
+function RestingSearchRail({ summary, onOpenInLibrary }) {
+  const namedRouteCount = (summary.routes || []).reduce((total, route) => total + Number(route.count || 0), 0);
+  const routeLine = (summary.routes || [])
+    .slice(0, 3)
+    .map((route) => `${route.label}${route.count > 1 ? ` · ${route.count}` : ""}`)
+    .join(" · ");
+  const unknownLine = (summary.unknowns || []).slice(0, 2).join(" · ");
+  return (
+    <RailFrame>
+      <div className="rd-v2-rail-scroll rd-v2-resting-rail" data-testid="discover-resting-summary">
+        <section className="rd-v2-eval-block" aria-label="Discover search summary">
+          <p className="rd-v2-eval-section-label">Search · {summary.query || "Discover"}</p>
+          <p className="rd-v2-eval-prose">{summary.landscapeLine || summary.heldLine || summary.foundLine}</p>
+          <RailFieldGrid>
+            <RailField label="External" value={String(summary.found || 0)} />
+            <RailField label="In Library" value={String(summary.libraryEvidenceCount ?? summary.heldCount ?? 0)} />
+            <RailField label="References" value={String(summary.contextCount || 0)} />
+            <RailField label="Named routes" value={String(namedRouteCount)} />
+          </RailFieldGrid>
+          {routeLine ? (
+            <p className="rd-v2-eval-prose">
+              <b>Declared routes</b><br />{routeLine}
+            </p>
+          ) : null}
+          {unknownLine ? (
+            <p className="rd-v2-eval-prose muted">
+              <b>Still unverified</b><br />{unknownLine}
+            </p>
+          ) : null}
+          <p className="rd-v2-eval-prose muted">
+            Select an offering to see its coverage, collection route, and what remains unknown before collecting.
+          </p>
+        </section>
+      </div>
+      <RailStickyFooter>
+        <button
+          type="button"
+          className="rd-v2-btn"
+          data-testid="discover-resting-open-library"
+          onClick={() => onOpenInLibrary?.({ library_search: true, query: summary.query || "" })}
+        >
+          Open Library results
+        </button>
+      </RailStickyFooter>
+    </RailFrame>
+  );
+}
+
+// The card renders only the blocks the surface does not already own: "Still
+// unknown" and the next valid action stay in the evidence grid and the footer.
+const STRATEGY_CARD_BLOCK_IDS = new Set([
+  "what_you_will_get",
+  "how_it_answers",
+  "how_we_build",
+  "source_check",
+]);
+
+function StrategyBlockBody({ block }) {
+  if (block.id === "what_you_will_get") {
+    return (
+      <>
+        {block.line ? <p className="rd-v2-eval-prose">{block.line}</p> : null}
+        {block.fields.length ? (
+          <ul className="rd-v2-strategy-fields">
+            {block.fields.map((field) => (
+              <li key={field}>{field}</li>
+            ))}
+          </ul>
+        ) : (
+          <p className="rd-v2-eval-prose muted">Field shape not recorded.</p>
+        )}
+      </>
+    );
+  }
+  if (block.id === "how_it_answers") {
+    return <p className="rd-v2-eval-prose">{block.need}</p>;
+  }
+  if (block.id === "how_we_build") {
+    return (
+      <>
+        <ol className="rd-v2-strategy-chain">
+          {block.steps.map((step) => (
+            <li key={step.label} data-evidence={step.evidence}>
+              {step.label}
+            </li>
+          ))}
+        </ol>
+        {block.boundary ? <p className="rd-v2-eval-prose muted">{block.boundary}</p> : null}
+      </>
+    );
+  }
+  return (
+    <dl className="rd-v2-strategy-check">
+      <div>
+        <dt>Source</dt>
+        <dd>{block.row.source}</dd>
+      </div>
+      <div>
+        <dt>Access</dt>
+        <dd>
+          <span className="rd-v2-strategy-access" data-access={block.row.access}>
+            {block.row.access}
+          </span>
+          {block.row.accessDetail ? <small>{block.row.accessDetail}</small> : null}
+        </dd>
+      </div>
+      <div>
+        <dt>Coverage</dt>
+        <dd>{block.row.coverage}</dd>
+      </div>
+      <div>
+        <dt>Next check</dt>
+        <dd>{block.row.nextCheck}</dd>
+      </div>
+    </dl>
+  );
+}
+
+function StrategyCard({ card }) {
+  const blocks = (card?.blocks || []).filter((b) => STRATEGY_CARD_BLOCK_IDS.has(b.id));
+  if (!blocks.length) return null;
+  const gaps = (card.omitted || []).filter((b) => STRATEGY_CARD_BLOCK_IDS.has(b.id));
+
+  return (
+    <section
+      className="rd-v2-eval-block rd-v2-strategy-card"
+      aria-label="Strategy"
+      data-testid="discover-strategy-card"
+      data-has-strategy={card.hasStrategy ? "true" : "false"}
+    >
+      <p className="rd-v2-eval-section-label">{card.kicker}</p>
+      {blocks.map((block) => (
+        <div key={block.id} className="rd-v2-strategy-block" data-block={block.id}>
+          <p className="rd-v2-strategy-label">{block.label}</p>
+          <StrategyBlockBody block={block} />
+        </div>
+      ))}
+      {gaps.length ? (
+        <ul className="rd-v2-strategy-gaps" aria-label="Not recorded">
+          {gaps.map((gap) => (
+            <li key={gap.id}>
+              <b>{gap.label}</b> {gap.reason}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </section>
+  );
+}
+
 export function DiscoverEvaluationSurface({
   target,
   labIds,
   catalog = [],
+  restingSummary = null,
+  intentRecord = null,
   onAskAbout,
   onAddToLab,
   onPreviewExternal,
@@ -91,6 +245,9 @@ export function DiscoverEvaluationSurface({
 
   if (!target || !evaluation) {
     if (variant === "workspace") return null;
+    if (restingSummary?.hasResults) {
+      return <RestingSearchRail summary={restingSummary} onOpenInLibrary={onOpenInLibrary} />;
+    }
     return (
       <RailFrame>
         <div className="rd-v2-rail-scroll">
@@ -172,6 +329,10 @@ export function DiscoverEvaluationSurface({
   const secondary = lifecycle?.primaryAction
     ? lifecycle.secondaryActions || []
     : actions.secondary;
+  const strategyCard = buildDiscoverStrategyCard(target, evaluation, {
+    intent: intentRecord,
+    primaryAction: primary,
+  });
   // Ask has its own persistent rail tab. Keep the footer about the next
   // research action, rather than duplicating chat as a competing CTA.
   const footerSecondary = secondary.filter((action) => action.id !== "ask").slice(0, 2);
@@ -422,6 +583,8 @@ export function DiscoverEvaluationSurface({
               <p className="rd-v2-eval-prose muted">Coverage not described</p>
             </section>
           )}
+
+          <StrategyCard card={strategyCard} />
 
           <div className="rd-v2-eval-evidence-grid">
             {evaluation.hasProbe && evaluation.verified.length ? (

@@ -36,13 +36,13 @@ test.describe("converged platform shell", () => {
     await preview.getByRole("button", { name: "Close preview" }).click();
 
     await page.getByRole("button", { name: "Library", exact: true }).click();
-    await expect(page.getByTestId("library-directory")).toBeVisible();
+    await expect(page.getByTestId("library-evidence-estate")).toBeVisible();
     await page.getByRole("textbox", { name: "Search library holdings" }).fill("Asia");
-    const firstDataset = page.locator('.rd-v2-catalog-list button[data-kind="dataset"]').first();
+    const firstDataset = page.getByTestId("library-evidence-row").first();
     await expect(firstDataset).toBeVisible();
     await firstDataset.click();
     await expect(page.locator("aside.rd-v2-rail")).toContainText("Can I use this?");
-    await capture(page, "02-library-directory-desktop");
+    await capture(page, "02-library-evidence-desktop");
 
     await page.getByRole("button", { name: "Resources", exact: true }).click();
     await expect(page.getByRole("region", { name: "Sources overview" })).toBeVisible();

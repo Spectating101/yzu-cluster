@@ -91,8 +91,11 @@ export function buildObjectEstateCrumb(object, { probeState = null, searchMeta =
 
   let location = null;
   if (vault) location = `Vault · ${String(vault).slice(0, 64)}`;
-  else if (endpoint) location = `Remote · ${String(endpoint).replace(/^https?:\/\//, "").slice(0, 48)}`;
   else if (provider) location = `Provider · ${String(provider).slice(0, 40)}`;
+  // Product chrome names the source; its raw endpoint remains available under
+  // Technical evidence. A URL is an implementation reference, not research
+  // context a reader should have to parse at selection time.
+  else if (endpoint) location = "Remote source";
   else if (object.dataset_id) location = `Registry · ${object.dataset_id}`;
 
   const stamp =

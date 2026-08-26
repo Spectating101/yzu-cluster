@@ -112,6 +112,18 @@ const CATALOG_ONLY_ACCESS = new Set([
 /** Lab-owned / registry-local possession. */
 export function isLocalHolding(row, labIds) {
   if (!row || typeof row !== "object") return false;
+  // Access shape is authoritative about possession. Registry references and
+  // live/catalogue connectors frequently carry registry_id/registered and a
+  // local metadata-card path; none of those fields mean the evidence bytes are
+  // held. Check this before the generic registry signals below.
+  const access = lower(row.source_access_mode || row.access_shape || "");
+  const hasMaterializedEvidence = Boolean(
+    row.local_ready ||
+    row.in_vault ||
+    row.materialization?.query_ready === true ||
+    row.materialization?.resolved_path,
+  );
+  if (CATALOG_ONLY_ACCESS.has(access) && !hasMaterializedEvidence) return false;
   const id = row.dataset_id || row.id;
   if (id && labIds?.has?.(id)) return true;
   if (row.local_ready || row.in_vault) return true;
@@ -125,8 +137,6 @@ export function isLocalHolding(row, labIds) {
   // A registry row is not automatically a Library holding. The registry also
   // contains catalogue references, procurement candidates, and live connectors
   // whose local_path points to their metadata card rather than acquired evidence.
-  const access = lower(row.source_access_mode || row.access_shape || "");
-  if (CATALOG_ONLY_ACCESS.has(access)) return false;
   const hasLocalPath = Boolean(row.local_root || row.local_path);
   if (!hasLocalPath) return false;
   if (["derived_internal", "materialized_bulk", "materialized_instant"].includes(access)) {

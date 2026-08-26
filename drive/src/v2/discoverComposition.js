@@ -66,6 +66,43 @@ const STOP = new Set([
   "evidence",
   "source",
   "sources",
+  "regarding",
+  "about",
+  "concerning",
+  "related",
+  "relating",
+  "involving",
+  "based",
+  "give",
+  "show",
+  "please",
+  "provide",
+  "help",
+  "kindly",
+  "seeking",
+  "searching",
+  "any",
+  "some",
+  "all",
+  "much",
+  "many",
+  "more",
+  "most",
+  "was",
+  "were",
+  "has",
+  "had",
+  "will",
+  "may",
+  "might",
+  "must",
+  "who",
+  "whose",
+  "their",
+  "them",
+  "they",
+  "its",
+  "your",
 ]);
 
 /**
@@ -90,18 +127,6 @@ export function interpretEvidenceNeed(query = "") {
   const visible = tokens.slice(0, visibleBudget);
   const overflow = Math.max(0, tokens.length - visibleBudget);
   return { chips: visible, overflow, tokens };
-}
-
-/**
- * Freeze Explore ranking: first ordered row = Best fit; remainder = Other matches.
- */
-export function splitBestFitAndOthers(rows = []) {
-  const list = Array.isArray(rows) ? rows : [];
-  return {
-    bestFit: list[0] || null,
-    others: list.slice(1),
-    total: list.length,
-  };
 }
 
 /**

@@ -9,7 +9,7 @@ function folderPath(trail = []) {
   return trail.map((crumb) => crumb.name).filter(Boolean).join(" / ") || "Library";
 }
 
-export function datasetObject(row) {
+export function datasetObject(row, { owner = "" } = {}) {
   if (!row) return null;
   const id = row.dataset_id || row.id || row.title || row.name || "dataset";
   return {
@@ -17,6 +17,7 @@ export function datasetObject(row) {
     id,
     title: displayName(row),
     row,
+    ...(owner ? { owner } : {}),
   };
 }
 
@@ -65,6 +66,7 @@ export function libraryFolderObject({
   metadataOnlyCount = 0,
   unknownCount = 0,
   itemCount = 0,
+  referenceCount = 0,
 } = {}) {
   const root = !folderId;
   const title = root ? "Library" : compactText(trail[trail.length - 1]?.name, "Library collection");
@@ -84,6 +86,7 @@ export function libraryFolderObject({
       metadataOnly: metadataOnlyCount,
       unknown: unknownCount,
       items: itemCount,
+      references: referenceCount,
     },
   };
 }

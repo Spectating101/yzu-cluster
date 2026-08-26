@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  deskWarm,
   getChatSession,
   linkSynthesisThreadConversation,
   sendChatMessage,
@@ -48,72 +47,103 @@ function restoreMessage(row) {
   };
 }
 
+function contextPart(value) {
+  return String(value || "").trim().replace(/\s+/g, " ").slice(0, 240);
+}
+
+/**
+ * Durable Ask identity. The visible rail can change without changing React
+ * component identity, so conversation ownership must be explicit rather than
+ * inferred from whether the component remounted.
+ */
+export function askContextKey(dataset = null, railContext = null) {
+  const kind = contextPart(dataset?.kind || railContext?.entity?.kind || "general") || "general";
+  if (kind === "synthesis_thread") {
+    return `synthesis:${contextPart(dataset?.thread_id || railContext?.entity?.id || dataset?.id || dataset?.title) || "thread"}`;
+  }
+
+  const candidate = contextPart(
+    dataset?.candidate_key ||
+      dataset?.row?.candidate_key ||
+      railContext?.selected?.candidate_key,
+  );
+  if (candidate) return `candidate:${candidate}`;
+
+  const datasetId = contextPart(dataset?.dataset_id || railContext?.dataset_id);
+  if (datasetId) return `dataset:${datasetId}`;
+
+  const entityId = contextPart(railContext?.entity?.id || dataset?.id);
+  if (entityId) return `${kind}:${entityId}`;
+
+  const investigation = contextPart(
+    dataset?.search_query ||
+      dataset?.question ||
+      (kind === "discover_investigation" ? dataset?.title : "") ||
+      railContext?.search_query,
+  );
+  if (investigation) return `${kind}:${investigation}`;
+
+  const title = contextPart(dataset?.title || railContext?.entity?.title);
+  if (title) return `${kind}:${title}`;
+  return "general";
+}
+
 export function useAskChat({ dataset, railContext, onCollected, onSynthesisChanged, onToast } = {}) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState("");
-  const generalSessionRef = useRef(loadChatSessionId());
-  const sessionRef = useRef(generalSessionRef.current);
-  const previousContextKindRef = useRef(dataset?.kind || "");
-  const warmStartedRef = useRef(false);
+  const sessionRef = useRef("");
   const railRef = useRef(railContext);
+  const contextRef = useRef(askContextKey(dataset, railContext));
   const busyRef = useRef(false);
-  const intentRef = useRef("general");
+  const requestEpochRef = useRef(0);
   const synthesisThreadId =
     dataset?.kind === "synthesis_thread" ? String(dataset.thread_id || "") : "";
   const synthesisSessionId =
     dataset?.kind === "synthesis_thread" ? String(dataset.session_id || "") : "";
+  const contextKey = askContextKey(dataset, railContext);
 
   useEffect(() => {
     railRef.current = railContext;
   }, [railContext]);
 
   useEffect(() => {
-    if (warmStartedRef.current) return;
-    warmStartedRef.current = true;
-    deskWarm({
-      sessionId: sessionRef.current,
-      userEmail: loadUserEmail(),
-      background: true,
-    }).catch(() => {});
-  }, []);
-
-  useEffect(() => {
-    const contextKind = dataset?.kind || "";
-    const leavingSynthesis =
-      previousContextKindRef.current === "synthesis_thread" && contextKind !== "synthesis_thread";
-    previousContextKindRef.current = contextKind;
-    if (contextKind !== "synthesis_thread" && !leavingSynthesis) return undefined;
-
     let cancelled = false;
+    contextRef.current = contextKey;
+    // Changing research object logically cancels the old rail request. The HTTP
+    // turn may still finish, but its epoch can no longer write into this view or
+    // release a newer request's busy lock.
+    requestEpochRef.current += 1;
+    busyRef.current = false;
+    setBusy(false);
     setMessages([]);
     setInput("");
     setStatus("");
 
-    const targetSessionId =
-      contextKind === "synthesis_thread" ? synthesisSessionId : generalSessionRef.current;
+    const targetSessionId = synthesisThreadId
+      ? synthesisSessionId
+      : loadChatSessionId(contextKey);
+    sessionRef.current = targetSessionId;
     if (!targetSessionId) {
-      sessionRef.current = "";
       return () => {
         cancelled = true;
       };
     }
 
-    sessionRef.current = targetSessionId;
     getChatSession(targetSessionId)
       .then((session) => {
-        if (cancelled) return;
+        if (cancelled || contextRef.current !== contextKey) return;
         const rows = Array.isArray(session?.messages) ? session.messages : [];
         setMessages(rows.map(restoreMessage));
       })
       .catch(() => {
-        if (!cancelled) setMessages([]);
+        if (!cancelled && contextRef.current === contextKey) setMessages([]);
       });
     return () => {
       cancelled = true;
     };
-  }, [dataset?.kind, synthesisThreadId, synthesisSessionId]);
+  }, [contextKey, synthesisThreadId, synthesisSessionId]);
 
   const contextPrefix = dataset?.dataset_id
     ? `[context: ${dataset.dataset_id}] `
@@ -126,9 +156,15 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
       const outgoing = normalizeOutgoingMessage(text, input);
       const prompt = outgoing.prompt;
       if (!prompt || busyRef.current) return;
+      const sendContextKey = contextKey;
+      const sendSynthesisThreadId = synthesisThreadId;
+      const sendSynthesisSessionId = synthesisSessionId;
+      const requestEpoch = requestEpochRef.current + 1;
+      requestEpochRef.current = requestEpoch;
+      const isCurrentRequest = () =>
+        contextRef.current === sendContextKey && requestEpochRef.current === requestEpoch;
       busyRef.current = true;
       const intent = classifyAskIntent(outgoing.displayText || prompt);
-      intentRef.current = intent;
       const full =
         contextPrefix && !prompt.startsWith("[context:")
           ? `${contextPrefix}${prompt}`
@@ -159,6 +195,7 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
           userEmail: loadUserEmail(),
           railContext: railRef.current,
           onDelta: (chunk) => {
+            if (!isCurrentRequest()) return;
             setStatus("");
             setMessages((m) =>
               m.map((item) =>
@@ -167,7 +204,8 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
             );
           },
           onActivity: (event) => {
-            if (intentRef.current === "status") {
+            if (!isCurrentRequest()) return;
+            if (intent === "status") {
               setStatus("Checking status…");
               return;
             }
@@ -189,16 +227,17 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
         });
 
         if (out.session_id) {
-          sessionRef.current = out.session_id;
-          if (synthesisThreadId) {
-            if (out.session_id !== synthesisSessionId) {
-              linkSynthesisThreadConversation(synthesisThreadId, {
+          if (sendSynthesisThreadId) {
+            if (out.session_id !== sendSynthesisSessionId) {
+              linkSynthesisThreadConversation(sendSynthesisThreadId, {
                 sessionId: out.session_id,
               }).catch(() => {});
             }
           } else {
-            generalSessionRef.current = out.session_id;
-            saveChatSessionId(out.session_id);
+            saveChatSessionId(out.session_id, sendContextKey);
+          }
+          if (isCurrentRequest()) {
+            sessionRef.current = out.session_id;
           }
         }
         const reply = out.reply || out.message || "Done.";
@@ -207,26 +246,24 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
           artifacts.synthesis_proposal ||
           out.synthesis_proposal ||
           (artifacts.proposal_recorded ? { recorded: true } : null);
-        if (synthesisThreadId && recordedProposal) {
+        if (sendSynthesisThreadId && recordedProposal) {
           onSynthesisChanged?.({
-            threadId: artifacts.synthesis_thread_id || synthesisThreadId,
+            threadId: artifacts.synthesis_thread_id || sendSynthesisThreadId,
             proposal: recordedProposal,
           });
         }
         const statePatch = artifacts.state_patch || out.state_patch || {};
-        // Stuck Composer resume targets poison the browser session — start fresh next send.
+        // Stuck Composer resume targets poison only the context that produced
+        // them. Never clear another research object's resumable conversation.
         const composerBroken =
           out.action === "composer_error" ||
           artifacts.action === "composer_error" ||
           /could not complete that turn|composer session expired|internal:\s*internal error/i.test(
             String(reply || ""),
           );
-        if (composerBroken) {
-          sessionRef.current = "";
-          if (!synthesisThreadId) {
-            generalSessionRef.current = "";
-            clearChatSessionId();
-          }
+        if (composerBroken && !sendSynthesisThreadId) {
+          clearChatSessionId(sendContextKey);
+          if (isCurrentRequest()) sessionRef.current = "";
         }
         const pendingJobId =
           artifacts.job?.id || statePatch.pending_job_id || out.pending_job_id || null;
@@ -247,33 +284,35 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
           jobStatus,
         });
 
-        setMessages((m) => {
-          const trimmed = m.filter((x) => !x.streaming);
-          return [
-            ...trimmed,
-            {
-              role: "assistant",
-              text: reply,
-              intent,
-              action: shaped.action,
-              toolName: shaped.toolName,
-              // Completed turns should not keep "Planning…" chrome in the card.
-              activityLog: [],
-              candidates: shaped.candidates || [],
-              suggestedPrompts: shaped.suggestedPrompts || [],
-              nextSteps: shaped.nextSteps || nextSteps || [],
-              pendingJobId: shaped.pendingJobId,
-              jobStatus: shaped.jobStatus,
-            },
-          ];
-        });
-        setStatus(
-          intent === "status"
-            ? ""
-            : out.campaign_id
-              ? `Campaign ${String(out.campaign_id).slice(0, 8)}…`
-              : "",
-        );
+        if (isCurrentRequest()) {
+          setMessages((m) => {
+            const trimmed = m.filter((x) => !x.streaming);
+            return [
+              ...trimmed,
+              {
+                role: "assistant",
+                text: reply,
+                intent,
+                action: shaped.action,
+                toolName: shaped.toolName,
+                // Completed turns should not keep "Planning…" chrome in the card.
+                activityLog: [],
+                candidates: shaped.candidates || [],
+                suggestedPrompts: shaped.suggestedPrompts || [],
+                nextSteps: shaped.nextSteps || nextSteps || [],
+                pendingJobId: shaped.pendingJobId,
+                jobStatus: shaped.jobStatus,
+              },
+            ];
+          });
+          setStatus(
+            intent === "status"
+              ? ""
+              : out.campaign_id
+                ? `Campaign ${String(out.campaign_id).slice(0, 8)}…`
+                : "",
+          );
+        }
         if (
           intent !== "status" &&
           ["collect", "acquire", "collect_doi", "approve_collect", "queue", "schedule_refresh"].includes(
@@ -304,27 +343,31 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
       } catch (err) {
         const msg = err.message || String(err);
         const readOnlyReview = /review endpoint does not allow desk mutations|read[- ]only.*review/i.test(msg);
-        if (/composer|internal:\s*internal error|could not complete/i.test(msg)) {
-          sessionRef.current = "";
-          clearChatSessionId();
+        if (/composer|internal:\s*internal error|could not complete/i.test(msg) && !sendSynthesisThreadId) {
+          clearChatSessionId(sendContextKey);
+          if (isCurrentRequest()) sessionRef.current = "";
         }
-        setMessages((m) => [
-          ...m.filter((x) => !x.streaming),
-          {
-            role: readOnlyReview ? "notice" : "error",
-            text: readOnlyReview
-              ? "Ask is unavailable on this read-only review build. The question and visible results remain intact."
-              : msg,
-          },
-        ]);
-        setStatus(readOnlyReview ? "Read-only review" : (msg || "Chat failed"));
+        if (isCurrentRequest()) {
+          setMessages((m) => [
+            ...m.filter((x) => !x.streaming),
+            {
+              role: readOnlyReview ? "notice" : "error",
+              text: readOnlyReview
+                ? "Ask is unavailable on this read-only review build. The question and visible results remain intact."
+                : msg,
+            },
+          ]);
+          setStatus(readOnlyReview ? "Read-only review" : (msg || "Chat failed"));
+        }
       } finally {
-        busyRef.current = false;
-        setBusy(false);
-        intentRef.current = "general";
+        if (isCurrentRequest()) {
+          busyRef.current = false;
+          setBusy(false);
+        }
       }
     },
     [
+      contextKey,
       contextPrefix,
       input,
       onCollected,

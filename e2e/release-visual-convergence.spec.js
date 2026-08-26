@@ -16,9 +16,9 @@ async function waitForHomeEvidence(page) {
 async function selectFirstLibraryDataset(page) {
   await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
-  await page.getByTestId("library-directory").waitFor({ state: "visible" });
+  await page.getByTestId("library-evidence-estate").waitFor({ state: "visible" });
   await page.getByRole("textbox", { name: "Search library holdings" }).fill("Asia");
-  const row = page.locator('.rd-v2-catalog-list button[data-kind="dataset"]').first();
+  const row = page.getByTestId("library-evidence-row").first();
   await expect(row).toBeVisible();
   await row.click();
 }
@@ -104,7 +104,11 @@ test.describe("Research Drive release visual contract", () => {
 
     for (const destination of destinations) {
       await openTab(page, destination.tab);
-      await expect(page.locator(".rd-v2-page-head h1", { hasText: destination.title })).toBeVisible();
+      if (destination.tab === "Synthesis") {
+        await expect(page.getByTestId("synthesis-home-state")).toBeVisible();
+      } else {
+        await expect(page.locator(".rd-v2-page-head h1", { hasText: destination.title })).toBeVisible();
+      }
       const rail = page.locator("aside.rd-v2-rail");
       if (destination.rail) {
         await expect(rail.getByRole("tab", { name: "Ask" })).toBeVisible();
@@ -120,8 +124,10 @@ test.describe("Research Drive release visual contract", () => {
 
     const summary = page.getByRole("region", { name: "Research desk status" });
     await expect(summary).toContainText("Desk API");
+    await expect(summary.locator(".rd-v2-settings-summary-card").filter({ hasText: "Desk API" })).toContainText("Live");
     await expect(summary).toContainText("Research assistant");
     await expect(summary).toContainText("Jobs");
+    await expect(page.getByText("This browser", { exact: true }).locator("..")).toContainText("Connected");
     await expect(page.getByText("Research services", { exact: true })).toBeVisible();
     await expect(page.getByText("Browser access", { exact: true })).toBeVisible();
     await expect(page.getByText("Research archive", { exact: true }).first()).toBeVisible();
@@ -198,7 +204,7 @@ test.describe("Research Drive mobile composition", () => {
     expect(continueBox.y + continueBox.height).toBeLessThanOrEqual(cardBox.y + cardBox.height + 2);
 
     const rail = page.locator("aside.rd-v2-rail");
-    await expect(rail.getByRole("button", { name: /Show Detail · Ask|Hide panel/ })).toBeVisible();
+    await expect(rail.getByRole("button", { name: /Show research context|Hide panel/ })).toBeVisible();
 
     const viewportOverflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 2);
     expect(viewportOverflow).toBe(false);

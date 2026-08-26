@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { queryDataset } from "@/v2/api";
-import { detailFields, displayName, statusPillKind } from "@/v2/datasetMeta";
+import {
+  detailFields,
+  displayName,
+  libraryAssetPresentation,
+  statusPillKind,
+} from "@/v2/datasetMeta";
 import { StatusPill } from "@/v2/StatusPill";
 import { PageShell } from "@/v2/ui";
 
@@ -17,6 +22,13 @@ function fieldNames(dataset, fields) {
   return [...new Set([...(fields.joinKeys || []), ...declared].filter(Boolean))].slice(0, 12);
 }
 
+function recordTerms(dataset) {
+  return [...new Set([
+    ...(Array.isArray(dataset?.tags) ? dataset.tags : []),
+    ...(Array.isArray(dataset?.keywords) ? dataset.keywords : []),
+  ].map((item) => String(item || "").trim()).filter(Boolean))].slice(0, 10);
+}
+
 function limitation(dataset, fields) {
   return value(
     dataset?.limitations,
@@ -28,10 +40,12 @@ function limitation(dataset, fields) {
   );
 }
 
-function AssetOverlay({ kind, dataset, fields, onClose }) {
+function AssetOverlay({ kind, dataset, fields, presentation, onClose }) {
   if (!kind) return null;
-  const title = kind === "fields" ? "Fields and operations" : "Source and provenance";
+  const scholarly = presentation.kind === "scholarly_work";
+  const title = kind === "fields" ? presentation.structureTitle : "Source and provenance";
   const names = fieldNames(dataset, fields);
+  const terms = recordTerms(dataset);
   return (
     <div className="rd-v2-library-overlay-scrim" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <section className="rd-v2-library-overlay" role="dialog" aria-modal="true" aria-label={title}>
@@ -43,21 +57,40 @@ function AssetOverlay({ kind, dataset, fields, onClose }) {
           <button type="button" className="rd-v2-btn sm" onClick={onClose} aria-label="Close inspection">Close</button>
         </header>
         {kind === "fields" ? (
-          <>
-            <p>Declared fields and operations for {displayName(dataset)}. They are registry metadata until a local preview is observed.</p>
-            {names.length ? (
-              <div className="rd-v2-library-field-list">
-                {names.map((name) => <code key={name}>{name}</code>)}
-              </div>
-            ) : (
-              <p className="rd-v2-library-muted">No declared fields are available in the current registry record.</p>
-            )}
-            <dl className="rd-v2-library-overlay-facts">
-              <div><dt>Grain</dt><dd>{value(dataset?.grain)}</dd></div>
-              <div><dt>Coverage</dt><dd>{value(fields.coverage, dataset?.coverage)}</dd></div>
-              <div><dt>Join keys</dt><dd>{names.filter((name) => (fields.joinKeys || []).includes(name)).join(" · ") || "Not declared"}</dd></div>
-            </dl>
-          </>
+          scholarly ? (
+            <>
+              <p>
+                Bibliographic and holding metadata for {displayName(dataset)}. This describes the research object; it does not pretend a paper has tabular fields or join keys.
+              </p>
+              <dl className="rd-v2-library-overlay-facts">
+                <div><dt>Object type</dt><dd>Scholarly work</dd></div>
+                <div><dt>Identifier</dt><dd>{value(dataset?.doi, dataset?.url, dataset?.dataset_id)}</dd></div>
+                <div><dt>Source</dt><dd>{value(fields.source, dataset?.source_system, dataset?.publisher)}</dd></div>
+                <div><dt>Access record</dt><dd>{value(dataset?.access_mode, dataset?.access_shape, dataset?.backend)}</dd></div>
+              </dl>
+              {terms.length ? (
+                <div className="rd-v2-library-field-list" aria-label="Research terms">
+                  {terms.map((name) => <code key={name}>{name}</code>)}
+                </div>
+              ) : null}
+            </>
+          ) : (
+            <>
+              <p>Declared fields and operations for {displayName(dataset)}. They are registry metadata until a local preview is observed.</p>
+              {names.length ? (
+                <div className="rd-v2-library-field-list">
+                  {names.map((name) => <code key={name}>{name}</code>)}
+                </div>
+              ) : (
+                <p className="rd-v2-library-muted">No declared fields are available in the current registry record.</p>
+              )}
+              <dl className="rd-v2-library-overlay-facts">
+                <div><dt>Grain</dt><dd>{value(dataset?.grain)}</dd></div>
+                <div><dt>Coverage</dt><dd>{value(fields.coverage, dataset?.coverage)}</dd></div>
+                <div><dt>Join keys</dt><dd>{names.filter((name) => (fields.joinKeys || []).includes(name)).join(" · ") || "Not declared"}</dd></div>
+              </dl>
+            </>
+          )
         ) : (
           <>
             <p>Recorded provenance for this Library asset. This does not add verification beyond the declared state.</p>
@@ -70,7 +103,7 @@ function AssetOverlay({ kind, dataset, fields, onClose }) {
             <details className="rd-v2-library-tech-disclosure">
               <summary>Technical details</summary>
               <dl className="rd-v2-library-overlay-facts compact">
-                <div><dt>Dataset ID</dt><dd><code>{dataset?.dataset_id || "Not declared"}</code></dd></div>
+                <div><dt>Library ID</dt><dd><code>{dataset?.dataset_id || "Not declared"}</code></dd></div>
                 <div><dt>Vault path</dt><dd><code>{fields.vault || "Not declared"}</code></dd></div>
               </dl>
             </details>
@@ -81,7 +114,7 @@ function AssetOverlay({ kind, dataset, fields, onClose }) {
   );
 }
 
-function DataGlimpse({ dataset, enabled, onPreview }) {
+function DataGlimpse({ dataset, enabled }) {
   const [state, setState] = useState({ loading: false, rows: [], error: "" });
   useEffect(() => {
     let cancelled = false;
@@ -106,7 +139,6 @@ function DataGlimpse({ dataset, enabled, onPreview }) {
     <section className="rd-v2-library-workspace-section" aria-label="Data glimpse">
       <div className="rd-v2-library-section-heading">
         <div><span className="rd-v2-eyebrow">Data glimpse</span><h2>Observed local sample</h2></div>
-        <button type="button" className="rd-v2-btn sm" onClick={onPreview}>Preview rows</button>
       </div>
       {state.loading ? <p className="rd-v2-library-muted">Loading a bounded local sample…</p> : null}
       {!state.loading && state.error ? <p className="rd-v2-library-muted">{state.error}</p> : null}
@@ -123,11 +155,76 @@ function DataGlimpse({ dataset, enabled, onPreview }) {
   );
 }
 
+function EvidenceShape({ dataset, fields, presentation, rowCount, state }) {
+  if (presentation.kind === "scholarly_work") {
+    return (
+      <dl className="rd-v2-library-evidence-facts">
+        <div><dt>Object type</dt><dd>Scholarly work</dd></div>
+        <div><dt>Identifier</dt><dd>{value(dataset?.doi, dataset?.url, dataset?.dataset_id)}</dd></div>
+        <div><dt>Source</dt><dd>{value(fields.source, dataset?.source_system, dataset?.publisher)}</dd></div>
+        <div><dt>Access</dt><dd>{value(dataset?.access_mode, dataset?.access_shape, dataset?.backend)}</dd></div>
+        <div><dt>Library state</dt><dd>{state.label}</dd></div>
+      </dl>
+    );
+  }
+  if (presentation.kind === "operational") {
+    return (
+      <dl className="rd-v2-library-evidence-facts">
+        <div><dt>Object type</dt><dd>Operational resource</dd></div>
+        <div><dt>Source</dt><dd>{value(fields.source, dataset?.source_system)}</dd></div>
+        <div><dt>Access</dt><dd>{value(dataset?.access_mode, dataset?.backend, fields.access)}</dd></div>
+        <div><dt>State</dt><dd>{state.label}</dd></div>
+        <div><dt>Coverage</dt><dd>{value(fields.coverage, dataset?.coverage)}</dd></div>
+      </dl>
+    );
+  }
+  return (
+    <dl className="rd-v2-library-evidence-facts">
+      <div><dt>Unit / grain</dt><dd>{value(dataset?.grain)}</dd></div>
+      <div><dt>Period</dt><dd>{value(fields.coverage, dataset?.date_range, dataset?.temporal_coverage)}</dd></div>
+      <div><dt>Scope</dt><dd>{value(dataset?.scope, dataset?.universe, dataset?.geography, dataset?.entity_universe)}</dd></div>
+      <div><dt>Meaningful keys</dt><dd>{(fields.joinKeys || []).join(" · ") || "Not declared"}</dd></div>
+      <div><dt>Declared scale</dt><dd>{rowCount ? `${rowCount} rows` : "Not declared"}</dd></div>
+    </dl>
+  );
+}
+
+function StructureSummary({ dataset, fields, presentation, names, onInspect }) {
+  const scholarly = presentation.kind === "scholarly_work";
+  const terms = recordTerms(dataset);
+  return (
+    <section className="rd-v2-library-workspace-section" aria-label={presentation.structureTitle}>
+      <div className="rd-v2-library-section-heading">
+        <div>
+          <span className="rd-v2-eyebrow">{scholarly ? "Record" : "Fields / operations"}</span>
+          <h2>{presentation.structureTitle}</h2>
+        </div>
+        <button type="button" className="rd-v2-btn sm" onClick={onInspect}>{presentation.structureAction}</button>
+      </div>
+      {scholarly ? (
+        terms.length ? (
+          <div className="rd-v2-library-field-list">{terms.slice(0, 8).map((name) => <code key={name}>{name}</code>)}</div>
+        ) : (
+          <p className="rd-v2-library-muted">
+            Bibliographic metadata is available through the source record; no tabular field schema is expected for this work.
+          </p>
+        )
+      ) : names.length ? (
+        <div className="rd-v2-library-field-list">{names.slice(0, 8).map((name) => <code key={name}>{name}</code>)}</div>
+      ) : (
+        <p className="rd-v2-library-muted">No declared field list is available yet.</p>
+      )}
+    </section>
+  );
+}
+
 export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onAsk, onOpenQuery, onPrepare }) {
   const [overlay, setOverlay] = useState("");
   const fields = useMemo(() => detailFields(dataset), [dataset]);
+  const presentation = useMemo(() => libraryAssetPresentation(dataset), [dataset]);
   const state = statusPillKind(dataset);
   const canQuery = state.kind === "query-ready";
+  const canPreviewRows = canQuery && presentation.previewRows;
   const names = useMemo(() => fieldNames(dataset, fields), [dataset, fields]);
   const rowCount = dataset?.rows || dataset?.row_count || dataset?.num_rows || dataset?.records;
   const purpose = value(dataset?.recommended_use, dataset?.description, fields.use, "Research use is not described in the current registry metadata.");
@@ -139,36 +236,32 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onAsk, onOpe
       lead="Understand and use evidence the Library owns or is actively preparing."
       headExtra={<button type="button" className="rd-v2-btn sm" onClick={onBack}>← All Library assets</button>}
     >
-      <article className="rd-v2-library-asset-canvas" data-testid="library-asset-workspace">
+      <article className="rd-v2-library-asset-canvas" data-testid="library-asset-workspace" data-asset-kind={presentation.kind}>
         <header className="rd-v2-library-asset-header">
           <div>
-            <span className="rd-v2-eyebrow">Selected Library asset</span>
+            <span className="rd-v2-eyebrow">{presentation.eyebrow}</span>
             <h1>{displayName(dataset)}</h1>
-            <p>{value(dataset?.description, dataset?.summary, dataset?.recommended_use, "This asset has no plain-language description in the current registry.")}</p>
+            <p>{value(dataset?.description, dataset?.summary, dataset?.recommended_use, `This ${presentation.noun} has no plain-language description in the current registry.`)}</p>
           </div>
           <StatusPill dataset={dataset} />
         </header>
 
         <div className="rd-v2-library-workspace-actions" aria-label="Asset actions">
-          {canQuery ? <button type="button" className="rd-v2-btn primary" onClick={onOpenQuery}>Open query</button> : null}
-          {canQuery ? <button type="button" className="rd-v2-btn" onClick={onPreview}>Preview rows</button> : null}
-          <button type="button" className="rd-v2-btn" onClick={() => setOverlay("fields")}>View fields</button>
+          {canPreviewRows ? <button type="button" className="rd-v2-btn primary" onClick={onOpenQuery}>Open query</button> : null}
+          {canPreviewRows ? <button type="button" className="rd-v2-btn" onClick={onPreview}>Preview rows</button> : null}
+          <button type="button" className="rd-v2-btn" onClick={() => setOverlay("fields")}>{presentation.structureAction}</button>
           <button type="button" className="rd-v2-btn" onClick={() => setOverlay("provenance")}>Source record</button>
           {!canQuery && state.kind === "registered" && onPrepare ? (
             <button type="button" className="rd-v2-btn primary" onClick={onPrepare}>Prepare local copy</button>
           ) : null}
-          {!canQuery && onAsk ? <button type="button" className="rd-v2-btn" onClick={onAsk}>Ask about access</button> : null}
+          {!canQuery && onAsk ? <button type="button" className="rd-v2-btn" onClick={onAsk}>{presentation.askLabel}</button> : null}
         </div>
 
         <section className="rd-v2-library-workspace-section" aria-label="What you have">
-          <div className="rd-v2-library-section-heading"><div><span className="rd-v2-eyebrow">What you have</span><h2>Declared evidence shape</h2></div></div>
-          <dl className="rd-v2-library-evidence-facts">
-            <div><dt>Unit / grain</dt><dd>{value(dataset?.grain)}</dd></div>
-            <div><dt>Period</dt><dd>{value(fields.coverage, dataset?.date_range, dataset?.temporal_coverage)}</dd></div>
-            <div><dt>Scope</dt><dd>{value(dataset?.scope, dataset?.universe, dataset?.geography, dataset?.entity_universe)}</dd></div>
-            <div><dt>Meaningful keys</dt><dd>{(fields.joinKeys || []).join(" · ") || "Not declared"}</dd></div>
-            <div><dt>Declared scale</dt><dd>{rowCount ? `${rowCount} rows` : "Not declared"}</dd></div>
-          </dl>
+          <div className="rd-v2-library-section-heading">
+            <div><span className="rd-v2-eyebrow">What you have</span><h2>{presentation.shapeTitle}</h2></div>
+          </div>
+          <EvidenceShape dataset={dataset} fields={fields} presentation={presentation} rowCount={rowCount} state={state} />
         </section>
 
         <div className="rd-v2-library-workspace-duo">
@@ -184,17 +277,23 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onAsk, onOpe
           </section>
         </div>
 
-        <DataGlimpse dataset={dataset} enabled={canQuery} onPreview={onPreview} />
+        <DataGlimpse dataset={dataset} enabled={canPreviewRows} />
 
-        <section className="rd-v2-library-workspace-section" aria-label="Fields and operations">
-          <div className="rd-v2-library-section-heading">
-            <div><span className="rd-v2-eyebrow">Fields / operations</span><h2>Declared structure</h2></div>
-            <button type="button" className="rd-v2-btn sm" onClick={() => setOverlay("fields")}>Inspect fields</button>
-          </div>
-          {names.length ? <div className="rd-v2-library-field-list">{names.slice(0, 8).map((name) => <code key={name}>{name}</code>)}</div> : <p className="rd-v2-library-muted">No declared field list is available yet.</p>}
-        </section>
+        <StructureSummary
+          dataset={dataset}
+          fields={fields}
+          presentation={presentation}
+          names={names}
+          onInspect={() => setOverlay("fields")}
+        />
       </article>
-      <AssetOverlay kind={overlay} dataset={dataset} fields={fields} onClose={() => setOverlay("")} />
+      <AssetOverlay
+        kind={overlay}
+        dataset={dataset}
+        fields={fields}
+        presentation={presentation}
+        onClose={() => setOverlay("")}
+      />
     </PageShell>
   );
 }

@@ -42,8 +42,10 @@ test("folder location never stringifies objects as [object Object]", () => {
 test("health projection lets Home paint headroom before desk/resources", () => {
   const projected = projectRollupFromHealth({
     desk: {
+      brain: "copilot_composer",
       composer_configured: true,
-      composer_model: "default",
+      composer_model: "gpt-5-mini",
+      composer_runtime: { status: "ready", configured: true, verified: true },
       storage_tiers: {
         canonical: { label: "Google Drive vault", quota_tb: 3, used_tb: 0.75, pct: 25 },
         cache: { label: "Transcend bulk cache", used_gb: 100, total_gb: 200, pct: 50, mounted: true },
@@ -54,6 +56,9 @@ test("health projection lets Home paint headroom before desk/resources", () => {
   assert.equal(slots[0].id, "vault");
   assert.equal(slots[1].id, "cache");
   assert.equal(slots[2].id, "cursor");
+  assert.equal(slots[2].name, "Copilot Ask");
+  assert.match(slots[2].headroom, /Copilot pool · confirmed live/);
+  assert.doesNotMatch(slots[2].headroom, /gpt-5-mini/);
 });
 
 test("resource headroom prefers cache + Cursor Ask over NVMe", () => {
@@ -81,6 +86,30 @@ test("resource headroom prefers cache + Cursor Ask over NVMe", () => {
   assert.ok(!slots.some((s) => s.id === "hot"));
 });
 
+test("live health keeps Home on Copilot when the slower resources rollup lacks provider identity", () => {
+  const slots = buildResourceHeadroom(
+    {
+      usage: {
+        vault: { cap_tb: 3, observed: false },
+        cache: { used_gb: 100, total_gb: 200, pct: 50 },
+      },
+      hero: { composer: { configured: true, model: "gpt-5-mini" } },
+      ai: { composer_configured: true, composer_turns_today: 6, composer_model: "gpt-5-mini" },
+    },
+    {
+      desk: {
+        brain: "copilot_composer",
+        composer_configured: true,
+        composer_model: "gpt-5-mini",
+        composer_runtime: { status: "ready", configured: true, verified: true },
+      },
+    },
+  );
+  assert.equal(slots[2].name, "Copilot Ask");
+  assert.match(slots[2].headroom, /Copilot pool · confirmed live/);
+  assert.doesNotMatch(slots[2].headroom, /gpt-5-mini/);
+});
+
 test("pending approval becomes secondary decision, not a separate Attention page", () => {
   const { secondary, pending } = buildPickUp({
     datasets: [{ dataset_id: "a", name: "Alpha" }],
@@ -91,6 +120,16 @@ test("pending approval becomes secondary decision, not a separate Attention page
   assert.equal(secondary.kind, "decision");
   assert.equal(secondary.action, "review");
   assert.match(secondary.title, /MOPS/);
+  assert.equal(secondary.location, "DISCOVER / HISTORY");
+});
+
+test("an internal synthesis-block marker becomes a researcher-facing decision", () => {
+  const { secondary } = buildPickUp({
+    datasets: [{ dataset_id: "a", name: "Alpha" }],
+    jobs: [{ id: "j1", status: "pending_approval", title: "synth block" }],
+    health: { desk: { jobs: { pending_approval: 1 } } },
+  });
+  assert.equal(secondary.title, "Synthesis proposal awaiting review");
 });
 
 test("resource headroom caps at three showcase slots", () => {
@@ -161,4 +200,26 @@ test("recent trail fences triage fixture noise and collapses duplicates", () => 
   assert.equal(trail.length, 1);
   assert.match(trail[0].title, /TWSE/);
   assert.equal(trail[0].kind, "COLLECTION COMPLETED");
+});
+
+test("recent trail keeps host verification probes out of researcher work", () => {
+  const trail = buildRecentTrail({
+    jobs: [
+      {
+        id: "probe-1",
+        status: "completed",
+        title: "Disposable worker verification probe",
+        updated_at: "2026-08-24T16:05:00Z",
+      },
+      {
+        id: "research-1",
+        status: "completed",
+        title: "BAYC OpenSea sales and floor history",
+        updated_at: "2026-08-24T16:00:00Z",
+      },
+    ],
+    datasets: [],
+  });
+  assert.equal(trail.length, 1);
+  assert.match(trail[0].title, /BAYC/);
 });

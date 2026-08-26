@@ -1,4 +1,4 @@
-import { canIUseDecision, detailFields, displayName, statusPillKind } from "@/v2/datasetMeta";
+import { canIUseDecision, demotionSentence, detailFields, displayName, hydrateRemedy, statusPillKind } from "@/v2/datasetMeta";
 import { assetTypeLabel } from "@/v2/libraryEstate";
 import { RailEntityHeader, RailFrame, RailStickyFooter } from "@/v2/RailFrame";
 import { StatusPill } from "@/v2/StatusPill";
@@ -15,8 +15,9 @@ function usefulFor(dataset) {
 }
 
 function unknowns(dataset, fields) {
-  // Terra donor (33f7288): judgment caveats as short strings — no invented readiness scores.
   const out = [];
+  const demotion = demotionSentence(dataset);
+  if (demotion) out.push(demotion);
   if (!dataset?.analysis_readiness) out.push("Readiness not reported by registry");
   if (!fields.coverage && !dataset?.coverage && !dataset?.date_range) out.push("Coverage not reported");
   if (!dataset?.grain) out.push("Grain not reported");
@@ -61,41 +62,75 @@ function sourceAuthorityLine(dataset, fields) {
   return "Source authority absent";
 }
 
+function normalizedVerification(value) {
+  return String(value || "").trim().toLowerCase().replace(/[\s-]+/g, "_");
+}
+
+function explicitVerificationRecord(dataset = {}) {
+  const nested = dataset.verification && typeof dataset.verification === "object" ? dataset.verification : {};
+  const sourceMatch = dataset.source_match && typeof dataset.source_match === "object" ? dataset.source_match : {};
+  const raw =
+    dataset.verification_status ||
+    dataset.verification_state ||
+    dataset.source_verification ||
+    dataset.source_match_status ||
+    nested.status ||
+    nested.state ||
+    sourceMatch.status ||
+    sourceMatch.state ||
+    "";
+  const normalized = normalizedVerification(raw);
+  const checks = [
+    ...(Array.isArray(nested.checks) ? nested.checks : []),
+    ...(Array.isArray(nested.established) ? nested.established : []),
+    ...(Array.isArray(sourceMatch.checks) ? sourceMatch.checks : []),
+  ].map((value) => String(value || "").trim()).filter(Boolean).slice(0, 4);
+  const unknowns = [
+    ...(Array.isArray(nested.unknowns) ? nested.unknowns : []),
+    ...(Array.isArray(sourceMatch.unknowns) ? sourceMatch.unknowns : []),
+  ].map((value) => String(value || "").trim()).filter(Boolean).slice(0, 4);
+  const note = String(
+    nested.summary || nested.reason || sourceMatch.summary || sourceMatch.reason || dataset.verification_summary || "",
+  ).trim();
+  return { normalized, checks, unknowns, note };
+}
+
 function verificationBlock(dataset) {
-  const kind = statusPillKind(dataset).kind;
-  if (kind === "query-ready") {
+  const record = explicitVerificationRecord(dataset);
+  const canonical = {
+    verified: "Verified",
+    matched: "Matched",
+    partial: "Partial",
+    unverified: "Unverified",
+    not_checked: "Not checked",
+    unchecked: "Not checked",
+  }[record.normalized];
+
+  if (canonical) {
+    const defaultBody = {
+      Verified: "A durable verification record is attached to this owned evidence.",
+      Matched: "A durable comparison records correspondence with sourcable evidence.",
+      Partial: "A durable comparison records only partial correspondence; inspect the remaining differences before reuse.",
+      Unverified: "A verification attempt did not establish correspondence with authoritative or sourcable evidence.",
+      "Not checked": "No durable source-comparison claim has been established for this asset.",
+    }[canonical];
     return {
-      headline: "Matched",
-      body: "Archive and registry correspondence supports query use.",
-      checks: ["Identifiers present", "Registry readiness declared", "Local query path available"],
-      unknowns: [],
+      headline: canonical,
+      body: record.note || defaultBody,
+      checks: record.checks,
+      unknowns: record.unknowns,
     };
   }
-  if (dataset?.archive_verified === true) {
-    return {
-      headline: "Archived",
-      body: "Vault archive confirmed. Query readiness may still be pending.",
-      checks: ["Archive verified"],
-      unknowns: ["Query readiness not confirmed"],
-    };
-  }
-  if (kind === "connected") {
-    return {
-      headline: "Connected",
-      body: "Source route is connected. Full verification is not complete.",
-      checks: ["Route connected"],
-      unknowns: ["Row-level correspondence not established"],
-    };
-  }
+
   return {
-    headline: "Unverified",
-    body: "Verification record is not established for this asset.",
+    headline: "Not checked",
+    body: "No explicit verification relationship is recorded. Query readiness, archive presence, and source verification are separate claims.",
     checks: [],
-    unknowns: ["Source match", "Coverage correspondence", "Query readiness"],
+    unknowns: ["Source correspondence not established"],
   };
 }
 
-export function LibraryDatasetRailPanel({ dataset, onPreview, onAskAbout }) {
+export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onPreview, onAskAbout }) {
   if (!dataset) return null;
   const fields = detailFields(dataset);
   const state = statusPillKind(dataset);
@@ -107,6 +142,8 @@ export function LibraryDatasetRailPanel({ dataset, onPreview, onAskAbout }) {
   const route = dataset.collect_via || dataset.backend;
   const canPreview = state.kind === "query-ready";
   const verification = verificationBlock(dataset);
+  const remedy = hydrateRemedy(dataset);
+  const archiveRef = String(dataset?.canonical_remote || dataset?.lineage?.canonical_remote || "").trim();
 
   return (
     <RailFrame>
@@ -116,11 +153,27 @@ export function LibraryDatasetRailPanel({ dataset, onPreview, onAskAbout }) {
         pills={<StatusPill dataset={dataset} />}
       />
 
-      <section className={`rd-v2-library-inspector-decision rd-v2-library-inspector-decision-${state.kind}`} aria-label="Can I use this?">
+      <section
+        className={`rd-v2-library-inspector-decision rd-v2-library-inspector-decision-${state.kind}`}
+        aria-label="Can I use this?"
+        data-testid={demotionSentence(dataset) ? "library-demotion-sentence" : undefined}
+      >
         <p className="rd-v2-rail-section-label">Can I use this?</p>
         <h3>{decision.headline}</h3>
         <p>{decision.body}</p>
       </section>
+
+      {remedy ? (
+        <section
+          className="rd-v2-library-inspector-decision"
+          aria-label="Restore from archive"
+          data-testid="library-hydrate-remedy"
+        >
+          <p className="rd-v2-rail-section-label">Restore from archive</p>
+          <p>{remedy}</p>
+          {archiveRef ? <p className="rd-v2-library-inspector-prose muted mono">{archiveRef}</p> : null}
+        </section>
+      ) : null}
 
       <div className="rd-v2-rail-scroll rd-v2-library-inspector-scroll">
         <section className="rd-v2-library-inspector-block" aria-label="Source" data-testid="library-rail-source">
@@ -193,6 +246,7 @@ export function LibraryDatasetRailPanel({ dataset, onPreview, onAskAbout }) {
             <Fact label="Registry readiness" value={dataset.analysis_readiness || "not declared"} mono />
             <Fact label="Backend" value={dataset.backend} mono />
             <Fact label="Vault path" value={fields.vault} mono />
+            <Fact label="Canonical archive" value={archiveRef || null} mono />
             <Fact label="Query path" value={dataset.dataset_id ? `/query/${dataset.dataset_id}?limit=50` : null} mono />
           </div>
         </details>
@@ -201,7 +255,13 @@ export function LibraryDatasetRailPanel({ dataset, onPreview, onAskAbout }) {
       <RailStickyFooter>
         {canPreview ? (
           <>
-            <button type="button" className="rd-v2-btn primary sm" onClick={onPreview}>Preview rows</button>
+            {previewOpen ? (
+              <span className="rd-v2-library-preview-state" data-testid="library-preview-open-state">
+                Preview open in centre
+              </span>
+            ) : (
+              <button type="button" className="rd-v2-btn primary sm" onClick={onPreview}>Preview rows</button>
+            )}
             <button type="button" className="rd-v2-btn sm" onClick={onAskAbout}>Ask about this →</button>
           </>
         ) : (

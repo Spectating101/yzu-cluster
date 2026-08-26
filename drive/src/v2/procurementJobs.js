@@ -5,7 +5,24 @@ export function normalizedTitle(value) {
 }
 
 export function jobTitle(job) {
-  return job?.plan?.title || job?.plan?.dataset_id || job?.type || job?.id || "Collection job";
+  const plan = job?.plan || {};
+  const explicit = plan.title || job?.title || job?.name || plan.dataset_id;
+  if (explicit && !/^(synth block|collection run)$/i.test(String(explicit).trim())) return explicit;
+  const kind = String(plan.job_type || job?.type || "").trim().toLowerCase();
+  const kindLabels = {
+    synthesis_execute: "Synthesis execution",
+    scraper_run: "Evidence collection",
+    source_probe: "Source probe",
+    collection_queue_batch: "Scheduled collection",
+  };
+  return kindLabels[kind] || explicit || job?.id || "Collection job";
+}
+
+/** Internal ops schedules belong in Resources/System checks, not Discover's researcher lifecycle. */
+export function isDiscoverHistoryJob(job) {
+  const plan = job?.plan || {};
+  const request = job?.request || {};
+  return request._ops_internal !== true && plan.execution_policy?.scope !== "ops";
 }
 
 export function jobMatchesCandidate(job, candidate) {
@@ -57,7 +74,7 @@ export function jobToDiscoverHistoryEvent(job) {
     job.message ||
     job.plan?.summary ||
     (status === "pending_approval"
-      ? "Researcher approval is required before collection begins"
+      ? "Researcher approval is required before this request can continue"
       : `${source} · ${status.replace(/_/g, " ")}`);
   return {
     id: `job:${job.id}`,

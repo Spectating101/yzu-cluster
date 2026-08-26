@@ -1,6 +1,7 @@
 # Research Drive v2 — adaptive layout spec
 
-**Viewport reference:** 1440×900 desktop (design ruler), but production sizing is adaptive.  
+**Viewport matrix:** 1440×900 remains the stable design ruler. The connected workstation Chrome content viewport measured 1920×961 at 100% zoom after the browser reinstall on 2026-08-24; an earlier browser session measured 1920×905, which remains a useful short-height regression case rather than a canonical screen size. A synthetic 1920×1600 case verifies tall-evidence expansion. Production sizing is adaptive, so none is permission to skip the 1280, tablet, and mobile checks; remeasure Chrome after browser-chrome or display changes.
+**Navigation amendment (2026-08-20):** Cluster is not a faculty destination. References to the backend worker cluster do not authorize a Cluster page; [`UI_PRODUCT_AUTHORITY.md`](../UI_PRODUCT_AUTHORITY.md) owns the seven current destinations.
 **Canon:** [`RESEARCH_DRIVE_UI_CANON.md`](../RESEARCH_DRIVE_UI_CANON.md)  
 **Frozen wireframes:** [`WIREFRAME_V2_FROZEN.md`](WIREFRAME_V2_FROZEN.md)  
 **Visual tokens:** [`TOKENS.md`](TOKENS.md)  
@@ -16,22 +17,35 @@ The right rail remains the anchor. The sidebar and rail use bounded `clamp()` to
 
 | Zone | CSS variable | Size | Position |
 |------|--------------|------|----------|
-| **A** Header | `--rd-header` | **56px high** | `grid-row: 1; grid-column: 1 / -1` |
-| **B** Sidebar | `--rd-sidebar` | `clamp(224px, 18vw, 280px)` desktop | col 1, row 2 |
+| **A** Header | `--rd-header` | **64px high** | `grid-row: 1; grid-column: 1 / -1` |
+| **B** Sidebar | `--rd-sidebar` | `clamp(216px, 16.5vw, 252px)` desktop | col 1, row 2 |
 | **C** Main | flex remainder | no horizontal overflow | col 2, row 2 |
-| **D** Rail | `--rd-rail` | `clamp(360px, 30vw, 480px)` desktop | col 3, row 2 |
+| **D** Rail | `--rd-rail` | `clamp(380px, 29vw, 470px)` desktop | col 3, row 2 |
 
 At the 1440×900 reference viewport, the current CSS resolves to roughly:
 
 ```text
 1440 total width
-├─ 259  sidebar (B)
-├─ 749  main (C)
-└─ 432  rail (D)
+├─ 238  sidebar (B)
+├─ 784  main (C)
+└─ 418  rail (D)
 
 900 total height
-├─ 56   header (A)
-└─ 844  body row
+├─ 64   header (A)
+└─ 836  body row
+```
+
+At the currently measured 1920×961 Chrome content viewport the same rules resolve to:
+
+```text
+1920 total width
+├─ 252  sidebar (B)
+├─ 1198 main (C)
+└─ 470  rail (D)
+
+961 total height
+├─ 64   header (A)
+└─ 897  body row
 ```
 
 ```css
@@ -46,15 +60,15 @@ At the 1440×900 reference viewport, the current CSS resolves to roughly:
 
 ---
 
-## Zone A — Header (56px)
+## Zone A — Header (64px at full desktop)
 
 | Element | x | y | w | h | Notes |
 |---------|---|---|---|---|-------|
-| Brand block | 18 | 0 | 200 | 56 | logo 34 + title |
-| Search bar | 238 | 8 | min(520, 860−40) | 40 | centered in main column align: starts after sidebar |
-| Account | 1404 | 10 | 34 | 34 | avatar circle, 18px from right |
+| Brand block | 18 | 0 | 200 | 64 | logo + title |
+| Research context | sidebar edge | 0 | adaptive | 64 | active research and page identity |
+| Desk state / account | right edge | 0 | content-adaptive | 64 | live truth, pending work, principal |
 
-Header grid: `sidebar token | adaptive search | meta | avatar`.
+Header grid: `sidebar token | active research + page | desk truth + counts | avatar`.
 
 Padding: **0 18px** horizontal.
 
@@ -69,11 +83,11 @@ Padding: **0 18px** horizontal.
 | Side padding | **12px** | left/right |
 | Section label | 10px caps, margin-top **18px** |
 
-7 items + Settings last. No Ask item.
+Seven destinations in total, with Settings last. No Ask or Cluster item.
 
 ---
 
-## Zone C — Main (860px wide)
+## Zone C — Main (adaptive remainder)
 
 ### Shared anatomy
 
@@ -86,7 +100,7 @@ Padding: **0 18px** horizontal.
 
 PageHeader: title **28px** / 600, subtitle **14px** muted, actions right **32px** buttons.
 
-### Library — column widths (table inside 804px content = 860 − 56 pad)
+### Library — column widths (adaptive table inside Zone C)
 
 **Navigation (frozen):** Drive grammar — breadcrumb + folders in list + drill-down. See [`WIREFRAME_V2_FROZEN.md`](WIREFRAME_V2_FROZEN.md). No partition chip row; no Location column duplicating breadcrumb.
 
@@ -114,21 +128,6 @@ Table card: border-radius **18px**, border 1px `#edf1f6`.
 | Recent Drive list | after head | 2–5 rows |
 | Running strips | after recent | compact status rows |
 | Remaining | — | flex whitespace |
-
-### Cluster — no table
-
-| Section | h |
-|---------|---|
-| PageHeader | 72 |
-| Domain filters | 40 |
-| Timeline (coverage bars) | **~200** |
-| **Venn overlap** (2–3 selected sets) | **~280** |
-| Gap chips row | 48 |
-
-**Venn panel** = set intersection (shared dates, countries, keys) + only-A / only-B columns.  
-Computed from registry grain + partition manifests — not a decorative force graph.
-
----
 
 ## Zone D — Rail
 
@@ -177,8 +176,7 @@ Ruler file is **1440 only** — measure at 100% zoom, but do not freeze producti
 |------|---------------|-------------|
 | Library | Drive list with folders + datasets | Yes, primary |
 | Home | Command band + attention rows + recent Drive list | Partial |
-| Browse | Source/status search results | Yes |
-| Cluster | Canvas | No |
+| Discover | Source/status search results and durable History | Yes |
 | Resources | Section blocks | No |
 | Profile | Sections | No |
 | Settings | Forms | No |

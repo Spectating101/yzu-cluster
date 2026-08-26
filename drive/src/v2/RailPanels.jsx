@@ -14,6 +14,7 @@ import {
 } from "@/v2/RailFrame";
 import { DetailPanel } from "@/v2/DetailPanel";
 import { handleEnterToSubmit } from "@/v2/enterToSubmit";
+import { DISCOVER_TAB } from "@/v2/tabIdentity";
 
 function fmtGiB(gib) {
   if (gib == null) return "—";
@@ -167,15 +168,11 @@ const PAGE_RAIL_COPY = {
   },
   synthesis: {
     title: "Synthesis studio",
-    desc: "Build a reusable research output from owned Library assets.",
-    // VC-6: the rail describes the objective-first construction lifecycle, not
-    // the retired blueprint/custom-pair picker.
+    desc: "Select a construction to inspect its evidence, review state, and registered proof.",
     fields: [
-      ["Start", "Describe the construct you need"],
-      ["Ask", "Clarifies meaning and required evidence"],
-      ["Ground", "Checks Library inputs and defensible proxies"],
-      ["Review", "You approve the method before execution"],
-      ["Output", "Archive, registration, and readiness remain separate"],
+      ["Current state", "No construction selected"],
+      ["Next", "Start a durable construction or open a registered method"],
+      ["Boundary", "Methods, execution, archive, registration, and readiness are separate records"],
     ],
   },
   profile: {
@@ -376,13 +373,18 @@ export function LibraryObjectRailPanel({
       <div className="rd-v2-rail-scroll rd-v2-library-folder-inspector">
         <section className="rd-v2-library-folder-summary">
           <p className="rd-v2-rail-section-label">{root ? "In this library" : "In this collection"}</p>
-          <h3>{pluralCount(counts.datasets, "dataset")}</h3>
+          <h3>{pluralCount(counts.datasets, root ? "asset" : "dataset")}</h3>
           <div className="rd-v2-library-folder-readiness">
             {counts.queryReady > 0 ? <span><b>{counts.queryReady}</b> query ready</span> : null}
             {counts.connected > 0 ? <span><b>{counts.connected}</b> connected</span> : null}
             {counts.metadataOnly > 0 ? <span><b>{counts.metadataOnly}</b> metadata only</span> : null}
             {counts.unknown > 0 ? <span><b>{counts.unknown}</b> readiness unknown</span> : null}
           </div>
+          {root && counts.references > 0 ? (
+            <p className="rd-v2-rail-note">
+              {pluralCount(counts.references, "registry reference")} {counts.references === 1 ? "stays" : "stay"} in Discover until acquired.
+            </p>
+          ) : null}
         </section>
 
         <section className="rd-v2-library-folder-add">
@@ -447,71 +449,13 @@ export function HomeAttentionRailPanel({ object, onAskAbout }) {
         <RailFieldGrid>
           <RailField label="Type" value={row.label || row.kind || object?.kind} />
           <RailField label="Next" value={row.next || "Review"} />
-          <RailField label="Surface" value={row.tab === "browse" ? "Discover" : row.tab || "home"} />
+          <RailField label="Surface" value={row.tab === DISCOVER_TAB ? "Discover" : row.tab || "home"} />
           {row.resourceRow?.job?.id ? <RailField label="Job ID" value={row.resourceRow.job.id} mono /> : null}
         </RailFieldGrid>
       </div>
       <RailStickyFooter>
         <button type="button" className="rd-v2-btn sm" onClick={() => onAskAbout?.(object)}>
           Ask about this →
-        </button>
-      </RailStickyFooter>
-    </RailFrame>
-  );
-}
-
-export function ClusterRailPanel({ compare, onAskAbout }) {
-  if (!compare?.a || !compare?.b) {
-    return (
-      <RailFrame>
-        <div className="rd-v2-rail-scroll">
-          <EmptyRailState
-            title="No compare selected"
-            hint="Pick two datasets in Cluster to inspect join-key overlap."
-          />
-        </div>
-      </RailFrame>
-    );
-  }
-
-  const titleA = displayName(compare.a);
-  const titleB = displayName(compare.b);
-  const overlapText = compare.shared?.length
-    ? `${compare.shared.join(" · ")}${compare.grainMatch ? " · matching grain" : ""}`
-    : "Unknown overlap — no shared join keys";
-
-  return (
-    <RailFrame>
-      <RailEntityHeader
-        id={`${compare.a.dataset_id} × ${compare.b.dataset_id}`}
-        title="Overlap"
-        description={`${titleA} compared with ${titleB}`}
-        pills={
-          compare.pct != null ? (
-            <span className={`rd-v2-pill${compare.pct >= 50 ? "" : compare.pct > 0 ? " warn" : " muted"}`}>
-              {compare.pct}% key overlap
-            </span>
-          ) : null
-        }
-      />
-      <div className="rd-v2-rail-scroll">
-        <RailFieldGrid>
-          <RailField label="Overlap" value={overlapText} />
-          <RailField label="Shared keys" value={(compare.shared || []).join(" · ") || "—"} />
-          <RailField
-            label="Only A"
-            value={(compare.onlyA || []).slice(0, 5).join(" · ") || "—"}
-          />
-          <RailField
-            label="Only B"
-            value={(compare.onlyB || []).slice(0, 5).join(" · ") || "—"}
-          />
-          {compare.join ? <RailField label="Join on" value={compare.join} mono /> : null}
-        </RailFieldGrid>
-      </div>
-      <RailStickyFooter>
-        <button type="button" className="rd-v2-btn sm" onClick={onAskAbout}>
-          Ask about overlap →
         </button>
       </RailStickyFooter>
     </RailFrame>

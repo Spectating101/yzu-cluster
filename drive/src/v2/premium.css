@@ -212,6 +212,18 @@ summary:focus-visible {
   background: #eff9f3;
 }
 
+.rd-v2-trust-summary:is(button) {
+  appearance: none;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.rd-v2-trust-summary:is(button):hover,
+.rd-v2-trust-summary:is(button):focus-visible {
+  border-color: #b8c8bf;
+  box-shadow: 0 0 0 3px rgba(63, 111, 92, 0.09);
+}
+
 .rd-v2-header-meta-count {
   padding-left: 3px;
   font-size: 10.5px;
@@ -1712,4 +1724,10 @@ summary:focus-visible {
   }
 
   .rd-v2-home-attention-actions .rd-v2-btn { width: 100%; }
+}
+
+@media (max-width: 720px) {
+  .rd-v2-shell:has(.rd-v2-rail:not(.rd-v2-rail-collapsed)) .rd-v2-body-scroll {
+    padding-bottom: calc(min(72dvh, 760px) + 32px);
+  }
 }
