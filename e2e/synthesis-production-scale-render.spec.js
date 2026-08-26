@@ -101,19 +101,22 @@ function eightWayOverlap() {
     "Macroeconomic surprise and monetary-policy event calendar",
     "News-risk entity exposure and event intensity panel",
   ];
-  const datasets = labels.map((label, index) => ({
-    index,
-    dataset_id: `production_source_${index + 1}_with_a_long_registered_identifier`,
-    label,
-    rows_read: 500000,
-    distinct: 620000 - index * 35000,
-    truncated: true,
-  }));
   const raw = [
     [255, 1200], [127, 2200], [63, 5000], [31, 8000], [15, 12000], [7, 20000], [3, 30000],
     [1, 100000], [2, 80000], [4, 70000], [8, 60000], [16, 50000], [32, 40000], [64, 30000], [128, 20000], [85, 15000],
   ];
   const union = raw.reduce((sum, [, count]) => sum + count, 0);
+  const distinctBySource = Array.from({ length: 8 }, (_, sourceIndex) =>
+    raw.reduce((sum, [mask, count]) => sum + (mask & (1 << sourceIndex) ? count : 0), 0),
+  );
+  const datasets = labels.map((label, index) => ({
+    index,
+    dataset_id: `production_source_${index + 1}_with_a_long_registered_identifier`,
+    label,
+    rows_read: 500000,
+    distinct: distinctBySource[index],
+    truncated: true,
+  }));
   return {
     applicable: true,
     key: "entity_id",
@@ -145,6 +148,10 @@ const THREE_NODES = [
 ];
 const EIGHT_OVERLAP = eightWayOverlap();
 const EIGHT_NODES = EIGHT_OVERLAP.sources.map((source, index) => node(source.dataset_id, source.label, index));
+const EIGHT_PAIR_SHARED = EIGHT_OVERLAP.intersections.reduce(
+  (sum, row) => sum + (row.mask & 1 && row.mask & 2 ? row.count : 0),
+  0,
+);
 
 const CASES = [
   {
@@ -166,15 +173,26 @@ const CASES = [
     id: "eight-source-bounded",
     thread: thread("scale-eight", EIGHT_NODES, { title: "Eight-source empirical research estate" }),
     measurement: (t) => measurementFor(t, {
-      join_candidates: [{ left_key: "entity_id", right_key: "entity_id", matched: 410000, left_distinct: 620000, right_distinct: 585000, right_duplicate_rows: 14000, match_rate_pct: 66.129, usable: true, reason: null }],
+      join_candidates: [{
+        left_key: "entity_id",
+        right_key: "entity_id",
+        matched: EIGHT_PAIR_SHARED,
+        left_distinct: EIGHT_OVERLAP.sources[0].distinct,
+        right_distinct: EIGHT_OVERLAP.sources[1].distinct,
+        right_duplicate_rows: 341600,
+        match_rate_pct: Number((100 * EIGHT_PAIR_SHARED / EIGHT_OVERLAP.sources[0].distinct).toFixed(3)),
+        usable: true,
+        reason: null,
+      }],
       join_candidate_dataset_id: EIGHT_NODES[1].dataset_id,
-      join_candidate_rows: 2500000,
+      join_candidate_rows: 500000,
       multi_overlap: EIGHT_OVERLAP,
       truncated_inputs: 0,
       max_inputs: 8,
     }),
     assert: async (page) => {
       await expect(page.getByTestId("synthesis-upset-visual")).toBeVisible();
+      await expect(page.locator(".s04-upset-legend > span")).toHaveCount(8);
       await expect(page.getByTestId("synthesis-multi-overlap-visual")).toContainText("Bounded overlap sample");
       await expect(page.getByTestId("synthesis-multi-overlap-visual")).toContainText("smaller exclusive intersections");
     },
@@ -230,6 +248,7 @@ async function mount(page, item) {
   await page.route("**/api/library/synthesis/threads**", async (route) => {
     const url = new URL(route.request().url());
     if (url.pathname.endsWith("/measurements")) {
+      expect(url.searchParams.get("max_inputs")).toBe("8");
       return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(measurement) });
     }
     const body = url.pathname.endsWith(`/${item.thread.id}`)
