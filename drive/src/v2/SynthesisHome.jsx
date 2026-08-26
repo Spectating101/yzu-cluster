@@ -126,13 +126,11 @@ export function SynthesisHome({
           type="button"
           className="s04-home-entry-card primary"
           onClick={onNew}
-          disabled={!reasoningAvailable}
-          title={!reasoningAvailable ? reasoningStatus : undefined}
         >
           <small>New construction</small>
           <strong>Start from a research question</strong>
           <span>Describe the object you need. Evidence and method become explicit decisions after creation.</span>
-          <em>{reasoningAvailable ? "Start →" : "Assistant unavailable"}</em>
+          <em>Start →</em>
         </button>
         <button
           type="button"
@@ -160,7 +158,7 @@ export function SynthesisHome({
 
       {!reasoningAvailable ? (
         <aside className="s04-home-runtime">
-          <span><strong>Creation is paused.</strong> {reasoningStatus}. Existing durable work remains inspectable.</span>
+          <span><strong>Assistant reasoning is paused.</strong> {reasoningStatus}. You can still create constructions and review or map held evidence.</span>
           <button type="button" className="rd-v2-btn" onClick={() => onOpenResources?.()}>Check Resources</button>
         </aside>
       ) : null}
@@ -172,7 +170,7 @@ export function SynthesisHome({
           <small>Empty workspace</small>
           <h2>No Synthesis construction has been recorded yet.</h2>
           <p>The first durable object can begin from a research question or a registered method. Nothing is executed merely by starting one.</p>
-          <button type="button" className="rd-v2-btn primary" onClick={onNew} disabled={!reasoningAvailable}>Start the first construction</button>
+          <button type="button" className="rd-v2-btn primary" onClick={onNew}>Start the first construction</button>
         </section>
       ) : null}
 
@@ -234,8 +232,7 @@ export function SynthesisHome({
                 type="button"
                 key={profile.id}
                 onClick={() => onStartBlueprint?.(profile)}
-                disabled={!reasoningAvailable}
-                title={!reasoningAvailable ? reasoningStatus : text(profile.title, profile.id)}
+                title={text(profile.title, profile.id)}
               >
                 <small>Registered method</small>
                 <strong>{text(profile.title, profile.id)}</strong>

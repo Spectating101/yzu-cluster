@@ -1318,16 +1318,12 @@ function NewThread({
             <p>This checklist is guidance only. It does not infer evidence, methodology, or research validity.</p>
           </div>
           <p className="s04-new-entry-boundary">
-            Nothing is built here. {reasoningAvailable
-              ? "After creation, the desk can review held Library evidence and Ask can help reason from that durable context."
-              : `${reasoningStatus}. You can inspect existing constructions, but assistant-grounded creation is unavailable.`}
+            Nothing is built here. After creation, the desk reviews held Library evidence; Ask reasoning remains a separate step and waits if the assistant is unavailable.
           </p>
           <footer>
             <span>
               {objective.trim()
-                ? reasoningAvailable
-                  ? "Creates one durable Synthesis thread from this exact purpose."
-                  : "Assistant reasoning must be verified before this entry can create a thread."
+                ? "Creates one durable Synthesis thread from this exact purpose."
                 : "Enter a purpose to create a durable thread."}
             </span>
             {!reasoningAvailable ? (
@@ -1338,11 +1334,11 @@ function NewThread({
             <button
               type="button"
               className="rd-v2-btn primary"
-              disabled={busy || !objective.trim() || !reasoningAvailable}
+              disabled={busy || !objective.trim()}
               onClick={onCreate}
-              title={!reasoningAvailable ? reasoningStatus : objective.trim() ? undefined : "Enter an objective to continue"}
+              title={objective.trim() ? undefined : "Enter an objective to continue"}
             >
-              {reasoningAvailable ? "Create construction" : "Assistant unavailable"}
+              Create construction
             </button>
           </footer>
         </section>
@@ -1357,9 +1353,9 @@ function NewThread({
                 <button
                   type="button"
                   key={profile.id}
-                  disabled={busy || !reasoningAvailable}
+                  disabled={busy}
                   onClick={() => onStartBlueprint?.(profile)}
-                  title={!reasoningAvailable ? reasoningStatus : text(profile.title, profile.id)}
+                  title={text(profile.title, profile.id)}
                 >
                   <strong>{text(profile.title, profile.id)}</strong>
                   <em>Use →</em>
@@ -1444,9 +1440,8 @@ function EmptyWorkspace({
                   type="button"
                   className="s04-blueprint-recipe"
                   data-testid="synthesis-blueprint"
-                  disabled={!reasoningAvailable}
-                  title={!reasoningAvailable ? reasoningStatus : undefined}
                   onClick={() => onStartBlueprint?.(profile)}
+                  title={text(profile.title, profile.id)}
                 >
                   <strong>{text(profile.title, profile.id)}</strong>
                   <span>
@@ -1466,8 +1461,8 @@ function EmptyWorkspace({
             Check Resources
           </button>
         ) : null}
-        <button type="button" className="rd-v2-btn primary" onClick={onNew} disabled={!reasoningAvailable} title={!reasoningAvailable ? reasoningStatus : undefined}>
-          {reasoningAvailable ? "Start a construction" : "Assistant unavailable"}
+        <button type="button" className="rd-v2-btn primary" onClick={onNew}>
+          Start a construction
         </button>
       </footer>
     </section>
@@ -1994,7 +1989,7 @@ export function SynthesisPage({
 
   const createThread = async () => {
     const nextObjective = objective.trim();
-    if (!nextObjective || !reasoningAvailable) return;
+    if (!nextObjective) return;
     setBusy(true);
     setError("");
     try {
@@ -2008,12 +2003,6 @@ export function SynthesisPage({
       setNewMode(false);
       setObjective("");
       onSelectThread?.(created);
-      setReasoningThreadId(created.id);
-      ask(
-        `Interpret this research objective. Separate supported evidence, proposed proxy choices, and unresolved limitations, then ask the one highest-value clarification question: ${nextObjective}`,
-        created,
-        nextObjective,
-      );
     } catch (cause) {
       setError(text(cause?.message, "The Synthesis thread could not be created."));
     } finally {
@@ -2022,7 +2011,7 @@ export function SynthesisPage({
   };
 
   const startBlueprint = async (profile) => {
-    if (!profile?.id || !reasoningAvailable) return;
+    if (!profile?.id) return;
     const title = text(profile.title, profile.id);
     const sources = Array.isArray(profile.sources)
       ? profile.sources.map((s) => s.label || s.id).filter(Boolean).join("; ")
@@ -2050,12 +2039,6 @@ export function SynthesisPage({
       setNewMode(false);
       setObjective("");
       onSelectThread?.(created);
-      setReasoningThreadId(created.id);
-      ask(
-        `Use registered blueprint ${profile.id} (${title}). Propose the smallest defensible construction from owned Library inputs. Do not invent missing sources.`,
-        created,
-        `Start from the registered blueprint: ${title}`,
-      );
     } catch (cause) {
       setError(text(cause?.message, "Could not start this blueprint as a Synthesis thread."));
     } finally {

@@ -513,6 +513,8 @@ test.describe("v2 Synthesis durable thread surface", () => {
     const next = page.getByLabel("What happens next");
     await expect(next.getByRole("button", { name: /held evidence/i })).toHaveCount(0);
     await expect(next.getByRole("button", { name: "Start method reasoning" })).toBeDisabled();
+    await expect(page.getByTestId("synthesis-draft-state")).toHaveCount(0);
+    await expect(page.getByText("Grounded answer", { exact: true })).toHaveCount(0);
 
     // Discovery of already-held Library evidence is read-only and automatic.
     // The durable map must remain unchanged until the researcher explicitly
@@ -537,6 +539,8 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await expect(evidence).toContainText("Indonesia daily cross-section");
     await expect(page.getByTestId("synthesis-evidence-proposal")).toHaveCount(0);
     await expect(next.getByRole("button", { name: "Start method reasoning" })).toBeEnabled();
+    await expect(page.getByTestId("synthesis-draft-state")).toHaveCount(0);
+    await expect(page.getByText("Grounded answer", { exact: true })).toHaveCount(0);
     await capture(page, "02c-held-evidence-mapped-desktop");
   });
 
