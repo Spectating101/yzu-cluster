@@ -20,23 +20,29 @@ const JOURNEY = [
 
 function WorkflowGuide() {
   return (
-    <section className="s04-workflow-guide" aria-label="How one Synthesis construction moves">
-      <header>
-        <span>How one construction moves</span>
-        <strong>Recommendation and execution are deliberately separate authority boundaries.</strong>
-      </header>
-      <ol>
-        {JOURNEY.map(([label, description]) => (
-          <li key={label}>
-            <span>
-              <strong>{label}</strong>
-              <small>{description}</small>
-            </span>
-          </li>
-        ))}
-      </ol>
-      <p>This is a map, not a progress score. Later stages remain unavailable until the durable thread earns them.</p>
-    </section>
+    <details className="s04-workflow-guide">
+      <summary>
+        <span>
+          <small>How one construction moves</small>
+          <strong>Objective → Evidence → Method → … → Result</strong>
+        </span>
+        <em>8 stages</em>
+      </summary>
+      <div className="s04-workflow-guide-body" aria-label="How one Synthesis construction moves">
+        <p>Recommendation and execution are separate authority boundaries.</p>
+        <ol>
+          {JOURNEY.map(([label, description]) => (
+            <li key={label}>
+              <span>
+                <strong>{label}</strong>
+                <small>{description}</small>
+              </span>
+            </li>
+          ))}
+        </ol>
+        <p>This is a map, not a progress score. Later stages remain unavailable until the durable thread earns them.</p>
+      </div>
+    </details>
   );
 }
 
