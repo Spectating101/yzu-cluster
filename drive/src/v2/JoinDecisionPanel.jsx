@@ -37,8 +37,14 @@ export function JoinDecisionPanel({
   if (!candidates.length) return null;
   const best = candidates[0];
   const verdict = coverageVerdict(best);
+  // SynthesisPage intentionally copies only measured state fields it already
+  // understands. The API client therefore carries higher-order overlap as
+  // non-enumerable metadata on the join-candidate array until the page contract
+  // itself is widened. Keep the explicit prop as the preferred path.
+  const measuredMultiOverlap = multiOverlap || coverage?.multiOverlap || null;
   const hasMeasuredMultiOverlap = Boolean(
-    multiOverlap?.applicable && Number(multiOverlap?.source_count || multiOverlap?.sources?.length || 0) >= 3,
+    measuredMultiOverlap?.applicable
+      && Number(measuredMultiOverlap?.source_count || measuredMultiOverlap?.sources?.length || 0) >= 3,
   );
 
   return (
@@ -54,13 +60,15 @@ export function JoinDecisionPanel({
       </header>
 
       {hasMeasuredMultiOverlap ? (
-        <MultiOverlapVisual overlap={multiOverlap} />
+        <MultiOverlapVisual overlap={measuredMultiOverlap} />
       ) : best.usable && best.total ? (
         <JoinOverlapVisual
           leftLabel={leftLabel}
           rightLabel={rightLabel}
           leftTotal={best.total}
-          rightTotal={rightTotal || best.rightTotal || best.total}
+          // Set overlap is defined over distinct keys. A raw row count on a
+          // duplicated right side would inflate the Venn/union population.
+          rightTotal={best.rightTotal || rightTotal || best.total}
           shared={best.matched}
         />
       ) : null}
