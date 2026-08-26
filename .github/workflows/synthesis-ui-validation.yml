@@ -35,6 +35,11 @@ jobs:
         env:
           CI: "true"
           YZU_PAGES: "false"
+      - name: Run Synthesis Preview authority contract
+        run: TMPDIR=$PWD/.tmp-pw npx playwright test e2e/synthesis-preview-authority.spec.js --reporter=line
+        env:
+          CI: "true"
+          YZU_PAGES: "false"
       - name: Run converged Synthesis inspector contract
         run: mkdir -p artifacts/synthesis-convergence && TMPDIR=$PWD/.tmp-pw npx playwright test e2e/synthesis-convergence-render.spec.js --reporter=line
         env:
