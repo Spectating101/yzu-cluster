@@ -540,7 +540,7 @@ export function getSynthesisThread(threadId) {
 
 /** Read-only facts measured directly from the thread's mapped Library bytes.
  * This route never invokes the assistant and never mutates the construction. */
-export function getSynthesisMeasurements(threadId, { maxInputs = 4 } = {}) {
+export function getSynthesisMeasurements(threadId, { maxInputs = 8 } = {}) {
   const params = new URLSearchParams({ max_inputs: String(maxInputs) });
   return fetchJson(
     `/library/synthesis/threads/${encodeURIComponent(threadId)}/measurements?${params}`,
