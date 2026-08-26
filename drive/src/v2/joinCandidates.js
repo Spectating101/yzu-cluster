@@ -4,8 +4,9 @@
  * Cardinality is the question people ask about a join. Coverage is the one that
  * decides the result only after the candidate identifies the intended grain. A
  * constant identifier can have 100% overlap and still identify almost nothing.
- * Complete entity-period grain therefore wins first, then the candidate that
- * distinguishes the most observations across both sides, then coverage.
+ * Complete entity-period grain therefore wins first, then non-degenerate identity,
+ * then measured coverage. Cardinality breaks ties after that; it does not replace
+ * coverage as the research consequence.
  *
  * A collapse strategy is only offered when the right side actually duplicates the
  * key. Offering it otherwise asks the researcher to rule on a situation that does
@@ -23,12 +24,17 @@ export function rankCandidates(rows) {
       const derivedCapacity = total == null || rightTotal == null
         ? 0
         : Math.min(Number(total || 0), Number(rightTotal || 0));
+      const identityCapacity = Number(row?.identity_capacity ?? derivedCapacity);
+      const degenerateIdentity = row?.degenerate_identity == null
+        ? identityCapacity <= 1
+        : Boolean(row.degenerate_identity);
       return {
         leftKey: String(row?.left_key || ""),
         rightKey: String(row?.right_key || ""),
         keyParts: Array.isArray(row?.key_parts) ? row.key_parts.map((part) => String(part)) : [],
         completeIdentityDomain: Boolean(row?.complete_identity_domain),
-        identityCapacity: Number(row?.identity_capacity ?? derivedCapacity),
+        identityCapacity,
+        degenerateIdentity,
         leftDatasetId: String(row?.left_dataset_id || ""),
         rightDatasetId: String(row?.right_dataset_id || ""),
         leftLabel: String(row?.left_label || ""),
@@ -47,10 +53,13 @@ export function rankCandidates(rows) {
       if (a.completeIdentityDomain !== b.completeIdentityDomain) {
         return a.completeIdentityDomain ? -1 : 1;
       }
-      const capacityDelta = b.identityCapacity - a.identityCapacity;
-      if (capacityDelta) return capacityDelta;
+      if (a.degenerateIdentity !== b.degenerateIdentity) {
+        return a.degenerateIdentity ? 1 : -1;
+      }
       const coverageDelta = (b.coverage ?? -1) - (a.coverage ?? -1);
       if (coverageDelta) return coverageDelta;
+      const capacityDelta = b.identityCapacity - a.identityCapacity;
+      if (capacityDelta) return capacityDelta;
       return a.leftKey.localeCompare(b.leftKey);
     });
 }
