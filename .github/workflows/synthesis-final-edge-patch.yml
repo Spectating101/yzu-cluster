@@ -26,90 +26,101 @@ jobs:
           python - <<'PY'
           from pathlib import Path
 
-          def replace_once(path, old, new, label):
-              p = Path(path)
-              text = p.read_text(encoding='utf-8')
+          page_path = Path('drive/src/v2/SynthesisPage.jsx')
+          test_path = Path('e2e/v2-synthesis.spec.js')
+          page = page_path.read_text(encoding='utf-8')
+          test = test_path.read_text(encoding='utf-8')
+
+          def replace_once(text, old, new, label):
               count = text.count(old)
               if count != 1:
                   raise SystemExit(f'{label}: expected exactly one match, found {count}')
-              p.write_text(text.replace(old, new, 1), encoding='utf-8')
+              return text.replace(old, new, 1)
 
-          page = 'drive/src/v2/SynthesisPage.jsx'
-          test = 'e2e/v2-synthesis.spec.js'
-
-          replace_once(
+          page = replace_once(
               page,
               '  mappingEvidence = false,\n  reasoningPending = false,',
               '  mappingEvidence = false,\n  evidenceProposalAvailable = false,\n  reasoningPending = false,',
               'WhatHappensNext evidence proposal argument',
           )
-          replace_once(
+          page = replace_once(
               page,
               '{needsEvidence ? (',
               '{needsEvidence && !mappingEvidence && !evidenceProposalAvailable ? (',
               'retry-only held evidence condition',
           )
-          replace_once(
+          page = replace_once(
               page,
               'disabled={mappingEvidence || !onFindEvidence}',
               'disabled={!onFindEvidence}',
               'retry button disabled state',
           )
-          replace_once(
+          page = replace_once(
               page,
               'onClick={() => onFindEvidence?.()}\n            >',
               'onClick={() => onFindEvidence?.()}\n              title="Retry held-evidence discovery"\n            >',
               'retry button title',
           )
-          replace_once(
+          page = replace_once(
               page,
               '{mappingEvidence ? "Finding held evidence" : "Find held evidence"}',
               'Retry held evidence',
               'retry button label',
           )
-          replace_once(
-              page,
-              '''            <button
-              type="button"
-              className="s04-next-primary"
-              disabled={reasoningPending || !reasoningAvailable || (hasRecommendation ? !onAccept : !onStartReasoning)}
-              onClick={() => (hasRecommendation ? onAccept?.() : onStartReasoning?.())}
-              title={!reasoningAvailable ? reasoningStatus : undefined}
-            >''',
-              '''            <button
-              type="button"
-              className="s04-next-primary"
-              disabled={needsEvidence || reasoningPending || !reasoningAvailable || (hasRecommendation ? !onAccept : !onStartReasoning)}
-              onClick={() => (hasRecommendation ? onAccept?.() : onStartReasoning?.())}
-              title={needsEvidence ? "Review and map held evidence before method reasoning." : !reasoningAvailable ? reasoningStatus : undefined}
-            >''',
-              'reasoning waits for mapped evidence',
-          )
-          replace_once(
-              page,
-              '                    mappingEvidence={mappingEvidence}\n                    reasoningPending={reasoningPending}',
-              '                    mappingEvidence={mappingEvidence}\n                    evidenceProposalAvailable={Boolean(evidenceProposal)}\n                    reasoningPending={reasoningPending}',
-              'pass evidence proposal availability',
-          )
 
-          replace_once(
+          reasoning_anchor = 'onClick={() => (hasRecommendation ? onAccept?.() : onStartReasoning?.())}'
+          if page.count(reasoning_anchor) != 1:
+              raise SystemExit(f'reasoning anchor: expected one match, found {page.count(reasoning_anchor)}')
+          anchor_at = page.index(reasoning_anchor)
+          start = max(0, anchor_at - 500)
+          end = min(len(page), anchor_at + 500)
+          window = page[start:end]
+          old_disabled = 'disabled={reasoningPending || !reasoningAvailable || (hasRecommendation ? !onAccept : !onStartReasoning)}'
+          new_disabled = 'disabled={needsEvidence || reasoningPending || !reasoningAvailable || (hasRecommendation ? !onAccept : !onStartReasoning)}'
+          old_title = 'title={!reasoningAvailable ? reasoningStatus : undefined}'
+          new_title = 'title={needsEvidence ? "Review and map held evidence before method reasoning." : !reasoningAvailable ? reasoningStatus : undefined}'
+          if window.count(old_disabled) != 1 or window.count(old_title) != 1:
+              raise SystemExit(
+                  f'reasoning window drift: disabled={window.count(old_disabled)} title={window.count(old_title)}'
+              )
+          window = window.replace(old_disabled, new_disabled, 1).replace(old_title, new_title, 1)
+          page = page[:start] + window + page[end:]
+
+          call_anchor = '<WhatHappensNext'
+          if page.count(call_anchor) != 1:
+              raise SystemExit(f'WhatHappensNext call anchor: expected one match, found {page.count(call_anchor)}')
+          call_at = page.index(call_anchor)
+          call_end = min(len(page), call_at + 900)
+          call_window = page[call_at:call_end]
+          old_props = 'mappingEvidence={mappingEvidence}\n                    reasoningPending={reasoningPending}'
+          new_props = 'mappingEvidence={mappingEvidence}\n                    evidenceProposalAvailable={Boolean(evidenceProposal)}\n                    reasoningPending={reasoningPending}'
+          if call_window.count(old_props) != 1:
+              raise SystemExit(f'WhatHappensNext props drift: expected one match, found {call_window.count(old_props)}')
+          call_window = call_window.replace(old_props, new_props, 1)
+          page = page[:call_at] + call_window + page[call_end:]
+
+          test = replace_once(
               test,
               '    await expect(next.getByRole("button", { name: "Find held evidence" })).toHaveCount(0);',
               '    await expect(next.getByRole("button", { name: /held evidence/i })).toHaveCount(0);\n    await expect(next.getByRole("button", { name: "Start method reasoning" })).toBeDisabled();',
               'pin automatic evidence controls',
           )
-          replace_once(
+          test = replace_once(
               test,
               '    await expect(page.getByTestId("synthesis-evidence-proposal")).toHaveCount(0);\n    await capture(page, "02c-held-evidence-mapped-desktop");',
               '    await expect(page.getByTestId("synthesis-evidence-proposal")).toHaveCount(0);\n    await expect(next.getByRole("button", { name: "Start method reasoning" })).toBeEnabled();\n    await capture(page, "02c-held-evidence-mapped-desktop");',
               'pin reasoning unlock after mapping',
           )
-          replace_once(
+          test = replace_once(
               test,
               '    await expect(page.locator("aside.rd-v2-rail")).toContainText("recorded for review");',
               '    await expect(page.locator("aside.rd-v2-rail")).toContainText("Proposal needs review");\n    await expect(page.locator("aside.rd-v2-rail")).toContainText("Accept or reject this exact revision-bound proposal");',
               'align proposal rail authority wording',
           )
+
+          # Only write after every source/test assertion above has succeeded.
+          page_path.write_text(page, encoding='utf-8')
+          test_path.write_text(test, encoding='utf-8')
           PY
           git diff --check
           git diff -- drive/src/v2/SynthesisPage.jsx e2e/v2-synthesis.spec.js
