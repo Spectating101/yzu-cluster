@@ -130,6 +130,11 @@ function stateFor(thread) {
   return "draft";
 }
 
+function reasoningTurnResolved(thread) {
+  const mode = stateFor(thread);
+  return ["proposal", "execution", "registered", "query_ready", "failed"].includes(mode);
+}
+
 function stageLabel(thread) {
   return synthesisAssist(thread).label;
 }
@@ -1784,7 +1789,7 @@ export function SynthesisPage({
 
     const timer = window.setInterval(async () => {
       const next = await refreshThread().catch(() => null);
-      const stillInterpreting = next ? stateFor(next) === "draft" : interpreting;
+      const stillInterpreting = next ? !reasoningTurnResolved(next) : interpreting;
       if (
         stillInterpreting &&
         interpretingSinceRef.current &&
@@ -1797,9 +1802,10 @@ export function SynthesisPage({
   }, [selected, refreshThread, interpretingStalled, reasoningPending]);
 
   useEffect(() => {
-    if (!selected || stateFor(selected) === "draft") return;
+    if (!selected || !reasoningPending || !reasoningTurnResolved(selected)) return;
     setReasoningThreadId((current) => (current === selected.id ? "" : current));
-  }, [selected]);
+    setInterpretingStalled(false);
+  }, [reasoningPending, selected]);
 
   const retryInterpreting = useCallback(() => {
     interpretingThreadIdRef.current = selected?.id || "";
