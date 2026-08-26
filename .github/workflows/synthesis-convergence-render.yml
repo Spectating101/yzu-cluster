@@ -1,5 +1,7 @@
 name: Synthesis convergence render
 
+# Hardening branch pushes intentionally exercise the complete rendered contract,
+# including adversarial production-scale cases, before any merge or deployment.
 on:
   push:
     branches:
