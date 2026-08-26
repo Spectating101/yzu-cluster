@@ -234,7 +234,11 @@ const CASES = [
         },
       },
     }),
-    measurement: (t) => measurementFor(t, { measured_inputs: 2, input_dataset_ids: t.state.nodes.map((row) => row.dataset_id) }),
+    measurement: (t) => measurementFor(t, {
+      measured_inputs: 2,
+      input_dataset_ids: t.state.nodes.map((row) => row.dataset_id),
+      unit_conflict: t.state.unit_conflict,
+    }),
     assert: async (page) => {
       await expect(page.getByTestId("synthesis-unit-scale-visual")).toBeVisible();
       await expect(page.getByTestId("synthesis-unit-conflict")).toContainText("20");
