@@ -279,7 +279,9 @@ test.describe("Synthesis acceptance screenshots", () => {
           await expect(page.getByTestId("synthesis-preview-state")).toHaveCount(0);
           await expect(page.getByRole("button", { name: "Review approval" })).toBeVisible();
           await expect(page.getByText("Bounded preview", { exact: true })).toBeVisible();
-          await expect(page.getByText("Passed", { exact: true })).toBeVisible();
+          const previewStep = page.getByRole("listitem").filter({ hasText: "Bounded preview" }).first();
+          await expect(previewStep).toBeVisible();
+          await expect(previewStep).toContainText("✓");
         }
 
         if (viewport.id === "desktop" && EXECUTION_FIRST.has(name)) {
