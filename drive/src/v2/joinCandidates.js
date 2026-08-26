@@ -20,6 +20,8 @@ export function rankCandidates(rows) {
     .map((row) => ({
       leftKey: String(row?.left_key || ""),
       rightKey: String(row?.right_key || ""),
+      keyParts: Array.isArray(row?.key_parts) ? row.key_parts.map((part) => String(part)) : [],
+      completeIdentityDomain: Boolean(row?.complete_identity_domain),
       matched: row?.matched ?? null,
       total: row?.left_distinct ?? null,
       rightTotal: row?.right_distinct ?? null,
@@ -28,7 +30,15 @@ export function rankCandidates(rows) {
       usable: Boolean(row?.usable),
       reason: row?.reason || null,
     }))
-    .sort((a, b) => (b.coverage ?? -1) - (a.coverage ?? -1));
+    .sort((a, b) => {
+      if (a.usable !== b.usable) return a.usable ? -1 : 1;
+      if (a.completeIdentityDomain !== b.completeIdentityDomain) {
+        return a.completeIdentityDomain ? -1 : 1;
+      }
+      const coverageDelta = (b.coverage ?? -1) - (a.coverage ?? -1);
+      if (coverageDelta) return coverageDelta;
+      return a.leftKey.localeCompare(b.leftKey);
+    });
 }
 
 export function coverageVerdict(candidate) {
