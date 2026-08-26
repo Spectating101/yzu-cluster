@@ -1,4 +1,5 @@
-import { limitBar, scopeCanHelp, scopeHeadline, scopeOptions } from "./scopeChoice.js";
+import { scopeCanHelp, scopeHeadline, scopeOptions } from "./scopeChoice.js";
+import { ScopeRetentionVisual } from "./SynthesisVisualReasoning.jsx";
 
 export function ScopePanel({ block, onChoose, onAsk }) {
   const scope = scopeOptions(block);
@@ -15,21 +16,8 @@ export function ScopePanel({ block, onChoose, onAsk }) {
         <em className="warn">{scope.overPct}% over</em>
       </header>
 
-      {(() => {
-        const bar = limitBar(scope);
-        if (!bar) return null;
-        return (
-          <figure className="s04-limit" data-testid="synthesis-scope-bar">
-            <span className="s04-limit-track">
-              <b style={{ width: `${(bar.inputCells / bar.width) * 100}%` }} />
-              <i style={{ left: `${(bar.limitCells / bar.width) * 100}%` }} />
-            </span>
-            <figcaption>
-              {scope.rows.toLocaleString()} rows · the engine stops at {scope.limit.toLocaleString()}
-            </figcaption>
-          </figure>
-        );
-      })()}
+      <ScopeRetentionVisual scope={scope} />
+
       <p className="s04-note">
         <b>Why this stops here</b>
         {canHelp
