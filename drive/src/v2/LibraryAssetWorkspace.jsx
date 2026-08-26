@@ -6,6 +6,7 @@ import {
   libraryAssetPresentation,
   statusPillKind,
 } from "@/v2/datasetMeta";
+import { libraryVerification } from "@/v2/libraryVerification";
 import { StatusPill } from "@/v2/StatusPill";
 import { PageShell } from "@/v2/ui";
 
@@ -46,6 +47,8 @@ function AssetOverlay({ kind, dataset, fields, presentation, onClose }) {
   const title = kind === "fields" ? presentation.structureTitle : "Source and provenance";
   const names = fieldNames(dataset, fields);
   const terms = recordTerms(dataset);
+  const verification = libraryVerification(dataset);
+  const readiness = statusPillKind(dataset);
   return (
     <div className="rd-v2-library-overlay-scrim" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <section className="rd-v2-library-overlay" role="dialog" aria-modal="true" aria-label={title}>
@@ -93,13 +96,15 @@ function AssetOverlay({ kind, dataset, fields, presentation, onClose }) {
           )
         ) : (
           <>
-            <p>Recorded provenance for this Library asset. This does not add verification beyond the declared state.</p>
+            <p>Recorded provenance for this Library asset. Readiness and verification are independent claims; neither is promoted by opening this record.</p>
             <dl className="rd-v2-library-overlay-facts">
               <div><dt>Source</dt><dd>{value(fields.source, dataset?.source, dataset?.publisher)}</dd></div>
-              <div><dt>Verification state</dt><dd>{statusPillKind(dataset).label}</dd></div>
+              <div data-testid="library-source-verification"><dt>Verification</dt><dd>{verification.label}</dd></div>
+              <div data-testid="library-source-readiness"><dt>Use readiness</dt><dd>{readiness.label}</dd></div>
               <div><dt>Access route</dt><dd>{value(dataset?.collect_via, dataset?.backend, fields.access)}</dd></div>
               <div><dt>Coverage</dt><dd>{value(fields.coverage, dataset?.coverage)}</dd></div>
             </dl>
+            <p className="rd-v2-library-verification-note">{verification.body}</p>
             <details className="rd-v2-library-tech-disclosure">
               <summary>Technical details</summary>
               <dl className="rd-v2-library-overlay-facts compact">
@@ -138,9 +143,17 @@ function DataGlimpse({ dataset, enabled }) {
   return (
     <section className="rd-v2-library-workspace-section" aria-label="Data glimpse">
       <div className="rd-v2-library-section-heading">
-        <div><span className="rd-v2-eyebrow">Data glimpse</span><h2>Observed local sample</h2></div>
+        <div>
+          <span className="rd-v2-eyebrow">Observed evidence</span>
+          <h2>Bounded local sample</h2>
+        </div>
+        {!state.loading && !state.error && state.rows.length ? (
+          <span className="rd-v2-library-observation-receipt" data-testid="library-observation-receipt">
+            {state.rows.length} row{state.rows.length === 1 ? "" : "s"} observed
+          </span>
+        ) : null}
       </div>
-      {state.loading ? <p className="rd-v2-library-muted">Loading a bounded local sample…</p> : null}
+      {state.loading ? <p className="rd-v2-library-muted">Reading up to 3 rows from the current local query path…</p> : null}
       {!state.loading && state.error ? <p className="rd-v2-library-muted">{state.error}</p> : null}
       {!state.loading && !state.error && !state.rows.length ? <p className="rd-v2-library-muted">No sample rows were returned by the local query path.</p> : null}
       {columns.length ? (
@@ -223,6 +236,7 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onAsk, onOpe
   const fields = useMemo(() => detailFields(dataset), [dataset]);
   const presentation = useMemo(() => libraryAssetPresentation(dataset), [dataset]);
   const state = statusPillKind(dataset);
+  const verification = useMemo(() => libraryVerification(dataset), [dataset]);
   const canQuery = state.kind === "query-ready";
   const canPreviewRows = canQuery && presentation.previewRows;
   const names = useMemo(() => fieldNames(dataset, fields), [dataset, fields]);
@@ -245,6 +259,12 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onAsk, onOpe
           </div>
           <StatusPill dataset={dataset} />
         </header>
+
+        <div className="rd-v2-library-claim-strip" aria-label="Evidence claims">
+          <div><span>Readiness</span><strong>{state.label}</strong></div>
+          <div><span>Verification</span><strong>{verification.label}</strong></div>
+          <div><span>Source</span><strong>{value(fields.source, dataset?.source, dataset?.publisher)}</strong></div>
+        </div>
 
         <div className="rd-v2-library-workspace-actions" aria-label="Asset actions">
           {canPreviewRows ? <button type="button" className="rd-v2-btn primary" onClick={onOpenQuery}>Open query</button> : null}
