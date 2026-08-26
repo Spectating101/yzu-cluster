@@ -47,7 +47,8 @@ jobs:
         run: |
           git config user.name "discover-convergence-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add drive/src/v2/DiscoverEvidenceBrief.jsx \
+          git add drive/src/v2/main.jsx \
+                  drive/src/v2/DiscoverEvidenceBrief.jsx \
                   drive/src/v2/BrowsePage.jsx \
                   drive/src/v2/InspectorRail.jsx \
                   drive/src/v2/ResearchSituationRail.jsx \
