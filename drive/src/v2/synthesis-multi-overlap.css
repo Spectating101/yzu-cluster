@@ -1,0 +1,202 @@
+.s04-viz-multi-overlap {
+  min-width: 0;
+}
+
+.s04-multi-venn-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  gap: 16px;
+  align-items: center;
+}
+
+.s04-multi-venn-body svg {
+  width: 100%;
+  min-height: 290px;
+  overflow: visible;
+}
+
+.s04-multi-venn-body circle {
+  stroke-width: 2;
+}
+
+.s04-multi-venn-body .set-a { fill: rgba(71, 107, 124, .12); stroke: #6f8996; }
+.s04-multi-venn-body .set-b { fill: rgba(94, 119, 91, .12); stroke: #748a6f; }
+.s04-multi-venn-body .set-c { fill: rgba(137, 112, 77, .10); stroke: #9b8465; }
+
+.s04-multi-venn-body .source-label {
+  fill: #536371;
+  font-size: 15px;
+  font-weight: 820;
+  text-anchor: middle;
+}
+
+.s04-multi-venn-body .region-count {
+  fill: #34444f;
+  font-size: 17px;
+  font-weight: 760;
+  text-anchor: middle;
+}
+
+.s04-multi-venn-body .region-count.pair { font-size: 18px; }
+.s04-multi-venn-body .region-count.all {
+  fill: #284d3f;
+  font-size: 25px;
+}
+
+.s04-multi-venn-body .region-note {
+  fill: #61756a;
+  font-size: 9.5px;
+  font-weight: 820;
+  letter-spacing: .06em;
+  text-anchor: middle;
+  text-transform: uppercase;
+}
+
+.s04-multi-source-legend,
+.s04-upset-legend {
+  display: grid;
+  gap: 7px;
+}
+
+.s04-multi-source-legend > span,
+.s04-upset-legend > span {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+  padding: 8px 9px;
+  border: 1px solid #e0ddd4;
+  border-radius: 8px;
+  background: rgba(255,255,255,.58);
+}
+
+.s04-multi-source-legend b,
+.s04-upset-legend b {
+  display: grid;
+  place-items: center;
+  width: 23px;
+  height: 23px;
+  border-radius: 999px;
+  background: #eef0eb;
+  color: #42545e;
+  font-size: 10px;
+}
+
+.s04-multi-source-legend em,
+.s04-upset-legend em {
+  min-width: 0;
+  overflow: hidden;
+  color: #52616d;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 720;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.s04-multi-source-legend strong,
+.s04-upset-legend strong {
+  color: #344650;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.s04-upset {
+  display: grid;
+  grid-template-columns: minmax(220px, .75fr) minmax(420px, 1.6fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.s04-upset-table {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.s04-upset-row {
+  display: grid;
+  grid-template-columns: minmax(150px, auto) minmax(180px, 1fr) 72px 78px;
+  gap: 9px;
+  align-items: center;
+  min-height: 25px;
+}
+
+.s04-upset-row .matrix {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 18px;
+  gap: 4px;
+  align-items: center;
+}
+
+.s04-upset-row .matrix i {
+  display: block;
+  width: 8px;
+  height: 8px;
+  margin: auto;
+  border: 1px solid #c5cbc6;
+  border-radius: 999px;
+  background: #f4f4f0;
+}
+
+.s04-upset-row .matrix i.on {
+  width: 10px;
+  height: 10px;
+  border-color: #65806e;
+  background: #65806e;
+}
+
+.s04-upset-row .bar {
+  display: block;
+  height: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e9e6df;
+}
+
+.s04-upset-row .bar b {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #7d9a88;
+}
+
+.s04-upset-row > strong {
+  color: #33444f;
+  font-size: 10.5px;
+  text-align: right;
+}
+
+.s04-upset-row > small {
+  color: #77838b;
+  font-size: 9.5px;
+  white-space: nowrap;
+}
+
+.s04-upset > p {
+  grid-column: 2;
+  margin: 2px 0 0;
+  color: #7c868d;
+  font-size: 9.5px;
+}
+
+@media (min-width: 1600px) {
+  .s04-multi-venn-body { grid-template-columns: minmax(0, 1fr) 250px; }
+  .s04-multi-venn-body svg { min-height: 315px; }
+}
+
+@media (max-width: 1200px) {
+  .s04-upset { grid-template-columns: 1fr; }
+  .s04-upset > p { grid-column: 1; }
+  .s04-upset-legend { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 860px) {
+  .s04-multi-venn-body { grid-template-columns: 1fr; }
+  .s04-multi-source-legend { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .s04-upset-legend { grid-template-columns: 1fr; }
+  .s04-upset-row { grid-template-columns: minmax(120px, auto) minmax(100px, 1fr) 58px; }
+  .s04-upset-row > small { display: none; }
+}
