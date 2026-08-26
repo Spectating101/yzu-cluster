@@ -71,4 +71,15 @@ css += r'''
 '''
 css_path.write_text(css, encoding="utf-8")
 
-print("Applied Discover reversibility, live freeze-layer import, and mobile reachability guards")
+# Temporary diagnostic only. This test file is deliberately NOT staged by the
+# one-shot commit. It prints the browser's actual grid tracks and computed
+# geometry before the unchanged reachability assertion, so the CSS fix is based
+# on rendered truth rather than another guess.
+replace_once(
+    "e2e/v2-discover.spec.js",
+    '''    const sortBox = await page.getByTestId("discover-sort-menu").boundingBox();\n    expect(filterBox).not.toBeNull();''',
+    '''    const sortBox = await page.getByTestId("discover-sort-menu").boundingBox();\n    const mobileGeometry = await page.evaluate(() => {\n      const read = (selector) => {\n        const node = document.querySelector(selector);\n        if (!node) return null;\n        const rect = node.getBoundingClientRect();\n        const style = getComputedStyle(node);\n        return {\n          selector,\n          rect: { x: rect.x, y: rect.y, width: rect.width, right: rect.right },\n          display: style.display,\n          width: style.width,\n          minWidth: style.minWidth,\n          maxWidth: style.maxWidth,\n          gridTemplateColumns: style.gridTemplateColumns,\n          gridColumn: style.gridColumn,\n          overflowX: style.overflowX,\n          position: style.position,\n        };\n      };\n      return {\n        viewport: window.innerWidth,\n        bodyScrollWidth: document.body.scrollWidth,\n        documentScrollWidth: document.documentElement.scrollWidth,\n        page: read(".rd-v2-discover-page"),\n        workspace: read(".rd-v2-discover-explore-workspace"),\n        tools: read(".rd-v2-discover-query-tools"),\n        controls: read(".rd-v2-discover-frozen-controls"),\n        filter: read(".rd-v2-discover-filter-wrap"),\n        sort: read(".rd-v2-discover-sort"),\n        select: read(".rd-v2-discover-sort select"),\n      };\n    });\n    console.log("DISCOVER_MOBILE_GEOMETRY", JSON.stringify(mobileGeometry));\n    expect(filterBox).not.toBeNull();''',
+    "mobile geometry diagnostic",
+)
+
+print("Applied Discover reversibility, live freeze-layer import, mobile reachability guards, and temporary geometry diagnostic")
