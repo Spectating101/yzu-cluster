@@ -1,5 +1,8 @@
 name: Synthesis UI Validation
 on:
+  push:
+    branches:
+      - hardening/synthesis-analytical-verification-20260826
   pull_request:
     branches: [main]
 
