@@ -305,6 +305,11 @@ test("captures Synthesis home, thread work, and new-entry navigation", async ({ 
   await expect(entry.getByRole("button", { name: /Back to Synthesis home/ })).toBeVisible();
   await expect(page.getByTestId("research-situation").locator(".rd-v2-situation-state")).toHaveText("Draft");
   await expect(page.getByTestId("rail-pane-detail")).toContainText("Draft entry");
+  const draftPurpose = "Build a weekly asset × week stablecoin trust measure from 2021–2026 as a reusable input to an event-study analysis.";
+  await entry.getByRole("textbox").fill(draftPurpose);
+  await expect(entry.getByLabel("Research brief framing checklist")).toContainText("4/4 framing cues");
+  await expect(page.getByLabel("Draft research brief checklist")).toContainText("4/4 framed");
+  await expect(page.getByTestId("rail-pane-detail")).toContainText("Ready to create");
   await capture(page, "02-new-entry-1440x1000");
 
   await page.setViewportSize({ width: 1920, height: 961 });

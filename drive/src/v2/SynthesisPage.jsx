@@ -20,6 +20,7 @@ import { ExcursionRecordPanel } from "./ExcursionRecordPanel.jsx";
 import { SynthesisHome } from "./SynthesisHome.jsx";
 import { focusFor } from "./synthesisFocus.js";
 import { synthesisAssist } from "@/v2/synthesisAssist.js";
+import { synthesisDraftBrief, synthesisDraftPrompt } from "@/v2/synthesisDraft.js";
 import "./s04-opening.css";
 import "./synthesis-preview.css";
 
@@ -1250,8 +1251,10 @@ function NewThread({
   reasoningAvailable,
   reasoningStatus,
   onOpenResources,
+  onFrameInAsk,
 }) {
   const startingPoints = (Array.isArray(profiles) ? profiles : []).slice(0, 3);
+  const draft = synthesisDraftBrief(objective);
   return (
     <section className="s04-intent s04-new-entry" data-testid="synthesis-intent-state">
       <header className="s04-new-entry-head">
@@ -1284,6 +1287,30 @@ function NewThread({
               });
             }}
           />
+          <div className="s04-new-entry-framing" aria-label="Research brief framing checklist">
+            <header>
+              <div>
+                <small>Strong brief checklist</small>
+                <strong>{draft.complete}/4 framing cues</strong>
+              </div>
+              <button type="button" onClick={() => onFrameInAsk?.(objective)} disabled={!reasoningAvailable}>
+                Frame this in Ask →
+              </button>
+            </header>
+            <ul>
+              {draft.cues.map((cue) => (
+                <li key={cue.id} className={cue.ready ? "is-ready" : ""}>
+                  <b aria-hidden="true">{cue.ready ? "✓" : "·"}</b>
+                  <span>
+                    <strong>{cue.label}</strong>
+                    <small>{cue.ready ? "Mentioned" : cue.help}</small>
+                    {!cue.ready ? <em>e.g. {cue.example}</em> : null}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <p>This checklist is guidance only. It does not infer evidence, methodology, or research validity.</p>
+          </div>
           <p className="s04-new-entry-boundary">
             Nothing is built here. {reasoningAvailable
               ? "After creation, the desk can review held Library evidence and Ask can help reason from that durable context."
@@ -1640,6 +1667,17 @@ export function SynthesisPage({
   const reasoningStatus = !assistantAllowed
     ? "Ask is unavailable for this desk session"
     : assistantRuntime?.label || "Assistant runtime not verified";
+
+  useEffect(() => {
+    if (!newMode) return;
+    onSelectThread?.({
+      id: "__new__",
+      title: "New construction",
+      objective,
+      ephemeral: true,
+      state: { ephemeral: true, entry_mode: "new", objective },
+    });
+  }, [newMode, objective, onSelectThread]);
 
   useEffect(() => {
     if (!selected) return;
@@ -2096,6 +2134,10 @@ export function SynthesisPage({
               reasoningAvailable={reasoningAvailable}
               reasoningStatus={reasoningStatus}
               onOpenResources={() => onGoTab?.("resources")}
+              onFrameInAsk={(purpose) => onAskComposer?.({
+                prompt: synthesisDraftPrompt(purpose),
+                displayText: purpose ? "Help me sharpen this research object" : "Help me frame a research object",
+              })}
             />
           ) : null}
           {!newMode && !loading && !selected ? (
