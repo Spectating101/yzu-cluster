@@ -42,11 +42,10 @@ jobs:
           npx playwright test e2e/v2-synthesis.spec.js
           --grep "sends the selected durable thread to the shared Ask rail|creates a durable thread quietly|finalized output exposes the exact frozen method"
           --workers=1 --retries=0 --timeout=30000 --reporter=line
-      - name: Commit verified test cleanup and self-clean
+      - name: Commit only the verified browser contract cleanup
         run: |
-          rm -f tools/_tmp_synthesis_final_ask_contract.py .github/workflows/synthesis-final-ask-contract.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
+          git add e2e/v2-synthesis.spec.js
           git commit -m "test(synthesis): align final Ask authority contract"
           git push origin HEAD:hardening/synthesis-analytical-verification-20260826
