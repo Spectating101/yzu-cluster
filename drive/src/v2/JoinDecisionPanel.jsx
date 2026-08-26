@@ -21,17 +21,26 @@ function DecisionLabel({ children, primary = false, onClick }) {
   return <strong className={primary ? "s04-decision-label recommended" : "s04-decision-label"}>{children}</strong>;
 }
 
-export function JoinDecisionPanel({ leftLabel, rightLabel, rightTotal, coverage, onChooseKey, onChooseOutcome, onChooseCollapse }) {
+export function JoinDecisionPanel({
+  leftLabel,
+  rightLabel,
+  rightTotal,
+  coverage,
+  onChooseKey,
+  onChooseOutcome,
+  onChooseCollapse,
+  onAsk,
+}) {
   const candidates = rankCandidates(coverage);
   if (!candidates.length) return null;
   const best = candidates[0];
   const verdict = coverageVerdict(best);
 
   return (
-    <section className="s04-card" data-testid="synthesis-join-decision">
+    <section className="s04-card s04-blocking" data-testid="synthesis-join-decision">
       <header className="s04-title">
         <div>
-          <small>Adding evidence</small>
+          <small>Join decision</small>
           <h2>{rightLabel || "A second dataset"}</h2>
         </div>
         <em className={verdict === "strong" ? "success" : "warn"}>
@@ -124,6 +133,22 @@ export function JoinDecisionPanel({ leftLabel, rightLabel, rightTotal, coverage,
           No key duplicates, so no collapse strategy is needed. Coverage is the question here.
         </p>
       )}
+
+      {onAsk ? (
+        <footer className="s04-actions">
+          <p className="s04-note">
+            <b>Research boundary</b>
+            A technically valid key can still redefine the study population. Treat coverage as a research decision, not plumbing.
+          </p>
+          <button
+            type="button"
+            className="rd-v2-btn"
+            onClick={() => onAsk("Explain the unmatched population in this join and compare the research consequence of inner versus left join for the measured coverage.")}
+          >
+            Ask about this join
+          </button>
+        </footer>
+      ) : null}
     </section>
   );
 }
