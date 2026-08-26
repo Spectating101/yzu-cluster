@@ -71,6 +71,12 @@ export function synthesisWorkspaceActionLabel(thread) {
   return "Continue";
 }
 
+export function synthesisWorkspaceDecisionSummary(thread) {
+  if (!synthesisWorkspaceNeedsDecision(thread)) return "";
+  const assist = synthesisAssist(thread);
+  return text(assist.risk || assist.decision || assist.next);
+}
+
 function sortNewest(rows) {
   return [...rows].sort((a, b) => {
     const left = new Date(a?.updated_at || a?.created_at || 0).getTime() || 0;
