@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - work/chatgpt-final-convergence-20260825
+      - hardening/synthesis-analytical-verification-20260826
   pull_request:
     branches:
       - main
@@ -35,6 +36,11 @@ jobs:
           TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/synthesis-acceptance-screenshots.spec.js
           --grep " at workstation 1920px"
           --reporter=line
+      - name: Render production-scale Synthesis analytical states
+        run: >-
+          mkdir -p artifacts/synthesis-scale &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/synthesis-production-scale-render.spec.js
+          --reporter=line
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -42,5 +48,6 @@ jobs:
           path: |
             artifacts/synthesis-convergence
             artifacts/synthesis-acceptance
+            artifacts/synthesis-scale
             test-results
           if-no-files-found: warn
