@@ -22,10 +22,16 @@ function DecisionLabel({ children, primary = false, onClick }) {
   return <strong className={primary ? "s04-decision-label recommended" : "s04-decision-label"}>{children}</strong>;
 }
 
+function canonicalDatasetId(value) {
+  // softIdentifier() inserts zero-width break opportunities for presentation.
+  // Strip only those display characters before comparing durable identities.
+  return String(value || "").replace(/\u200b/g, "").trim();
+}
+
 function sourceLabelFor(overlap, datasetId, fallback = "") {
-  const wanted = String(datasetId || "").trim();
+  const wanted = canonicalDatasetId(datasetId);
   const source = (overlap?.sources || []).find(
-    (row) => String(row?.dataset_id || "").trim() === wanted,
+    (row) => canonicalDatasetId(row?.dataset_id) === wanted,
   );
   return String(source?.label || fallback || datasetId || "").trim();
 }
