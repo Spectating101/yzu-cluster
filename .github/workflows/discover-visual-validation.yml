@@ -1,0 +1,40 @@
+name: Discover visual validation
+
+on:
+  push:
+    branches:
+      - polish/discover-visual-freeze-20260827
+  pull_request:
+    branches:
+      - work/chatgpt-final-convergence-20260825
+    paths:
+      - "drive/src/v2/**"
+      - "e2e/discover-visual-convergence.spec.js"
+      - ".github/workflows/discover-visual-validation.yml"
+  workflow_dispatch:
+
+jobs:
+  discover-visual:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install chromium --with-deps
+      - run: npm run build
+      - name: Render Discover convergence states
+        run: >-
+          mkdir -p .tmp-pw artifacts/discover-convergence &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/discover-visual-convergence.spec.js --reporter=line
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: discover-visual-convergence
+          path: |
+            artifacts/discover-convergence
+            test-results
+          if-no-files-found: warn
