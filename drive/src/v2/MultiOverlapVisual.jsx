@@ -120,7 +120,7 @@ export function MultiOverlapVisual({ overlap }) {
 
       <figcaption>
         {bounded
-          ? `At least one source reached the ${n(overlap.row_cap_per_source)}-row read cap. Intersections are exact for this deterministic read window, not a full-population or representative-sample claim.`
+          ? `At least one source reached the ${n(overlap.row_cap_per_source)} key-row measurement cap. Intersections are exact for this deterministic read window, not a full-population or representative-sample claim.`
           : "Exclusive intersection counts are measured directly from the resolved key bytes; higher-order overlap is not inferred from pairwise rates."}
       </figcaption>
     </figure>
