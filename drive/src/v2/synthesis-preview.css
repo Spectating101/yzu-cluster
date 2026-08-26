@@ -207,15 +207,6 @@
   outline-offset: 2px;
 }
 
-/* The proposal is already the authoritative card immediately below the cue.
- * Requiring a second "Review proposal" navigation click adds ceremony but no
- * research decision. Keep the cue copy; let the proposal's own Accept/Reject
- * controls carry the decision. */
-.rd-v2-synthesis-page:has([data-testid="synthesis-proposal-state"])
-  [aria-label="What happens next"] .s04-next-primary {
-  display: none;
-}
-
 @keyframes s04-subject-land {
   0% {
     box-shadow: 0 0 0 0 rgba(44, 111, 159, .18);
