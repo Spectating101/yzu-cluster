@@ -48,6 +48,19 @@ export function hydrateRemedy(dataset) {
   return "A vault archive is available to restore local bytes.";
 }
 
+function acquisitionOnlyRow(dataset = {}) {
+  if (dataset.external === true) return true;
+  if (!dataset.collect_via) return false;
+  return !(
+    dataset.registered === true ||
+    dataset.registry_id ||
+    dataset.local_root ||
+    dataset.local_path ||
+    dataset.vault_path ||
+    dataset.canonical_remote
+  );
+}
+
 export function statusPillKind(dataset) {
   const reason = runtimeReadinessReason(dataset);
   if (reason) {
@@ -63,7 +76,7 @@ export function statusPillKind(dataset) {
     .trim()
     .toLowerCase()
     .replace(/[\s-]+/g, "_");
-  if (dataset?.external || dataset?.collect_via) {
+  if (acquisitionOnlyRow(dataset)) {
     return { kind: "external", label: "External" };
   }
   if (isQueryReadyReadiness(readiness)) {
