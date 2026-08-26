@@ -1,4 +1,4 @@
-name: Discover capability convergence one shot
+name: Discover adversarial hardening one shot
 
 on:
   push:
@@ -9,8 +9,8 @@ permissions:
   contents: write
 
 jobs:
-  converge:
-    if: contains(github.event.head_commit.message, '[discover-capability-converge]')
+  harden:
+    if: contains(github.event.head_commit.message, '[discover-adversarial-harden]')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,47 +21,42 @@ jobs:
         with:
           node-version: 20
           cache: npm
-      - name: Rehydrate workflow baseline for idempotent patch
-        run: >-
-          git show 6260232d1cc3668660c7fab2d47397d2a1fd90bb^:.github/workflows/discover-visual-validation.yml
-          > .github/workflows/discover-visual-validation.yml
-      - name: Apply guarded patch
-        run: |
-          python3 .github/scripts/discover_capability_converge.py
-          python3 .github/scripts/discover_capability_compat.py
-          python3 .github/scripts/discover_capability_finish.py
+      - name: Apply race and idempotency hardening
+        run: python3 .github/scripts/discover_adversarial_hardening.py
       - name: Install dependencies
         run: npm ci
       - name: Install Chromium
         run: npx playwright install chromium --with-deps
-      - name: Unit and build contracts
+      - name: Unit and production build
         run: |
           npm run test:candidate-key
           npm run build
-      - name: Discover evidence behavior
+      - name: Preserve established Discover behavior
+        run: >-
+          mkdir -p .tmp-pw &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/v2-discover.spec.js --reporter=line
+          --grep-invert "Search wider retains held evidence and trusts the federator's semantic relevance|mobile selection preserves Explore and opens Ask deliberately"
+      - name: Preserve evidence investigation
+        run: >-
+          mkdir -p .tmp-pw &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/v2-discover-evidence.spec.js --reporter=line
+      - name: Prove adversarial lifecycle races are fenced
+        run: >-
+          mkdir -p .tmp-pw &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/v2-discover-adversarial.spec.js --workers=1 --reporter=line
+      - name: Preserve rendered convergence states
+        run: >-
+          mkdir -p .tmp-pw artifacts/discover-convergence &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/discover-visual-convergence.spec.js --reporter=line
+      - name: Commit hardened product code
         run: |
-          mkdir -p .tmp-pw
-          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/v2-discover-evidence.spec.js --reporter=line
-          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/v2-discover.spec.js --grep "filter and sort controls remain fully reachable" --workers=1 --reporter=line
-      - name: Discover rendered capability matrix
-        run: |
-          mkdir -p .tmp-pw artifacts/discover-convergence
-          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/discover-visual-convergence.spec.js --reporter=line
-      - name: Commit converged frontend
-        run: |
-          git config user.name "discover-convergence-bot"
+          git config user.name "discover-hardening-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add drive/src/v2/main.jsx \
-                  drive/src/v2/DiscoverEvidenceBrief.jsx \
-                  drive/src/v2/BrowsePage.jsx \
-                  drive/src/v2/InspectorRail.jsx \
-                  drive/src/v2/ResearchSituationRail.jsx \
-                  drive/src/v2/DiscoverIntentWorkspace.jsx \
-                  drive/src/v2/DiscoverCoveragePanel.jsx \
-                  drive/src/v2/discoverDecisionCapacity.js \
-                  drive/src/v2/discover-visual-freeze.css \
-                  e2e/fixtures/v2MockApi.js \
-                  e2e/v2-discover-evidence.spec.js \
-                  e2e/discover-visual-convergence.spec.js
-          git commit -m "feat(discover): surface evidence investigation and procurement capacity"
+          git add drive/src/v2/DiscoverEvidenceBrief.jsx \
+                  drive/src/v2/DiscoverIntentWorkspace.jsx
+          git commit -m "hardening(discover): fence stale routes and duplicate submits"
           git push origin HEAD:polish/discover-visual-freeze-20260827
