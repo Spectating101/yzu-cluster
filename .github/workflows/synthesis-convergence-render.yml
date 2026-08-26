@@ -33,9 +33,15 @@ jobs:
         run: node --test drive/src/v2/joinCandidates.test.js
       - run: npx playwright install chromium --with-deps
       - run: npm run build
-      - name: Fast gate streamlined Synthesis authority flow
+      - name: Fast gate evidence rediscovery on revisit
         run: >-
           mkdir -p .tmp-pw artifacts/synthesis-renders &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/synthesis-revisit-evidence.spec.js
+          --timeout=30000
+          --retries=0
+          --reporter=line
+      - name: Fast gate streamlined Synthesis authority flow
+        run: >-
           TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/v2-synthesis.spec.js
           --grep "researcher reviews held evidence|accepts a revision-bound proposal|does not create a second approval request"
           --timeout=30000
