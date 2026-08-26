@@ -56,12 +56,14 @@ export function JoinDecisionPanel({
   // non-enumerable metadata on the join-candidate array until the page contract
   // itself is widened. Keep the explicit prop as the preferred path.
   const measuredMultiOverlap = multiOverlap || coverage?.multiOverlap || null;
+  const leftFallback = best.leftLabel || leftLabel;
+  const rightFallback = best.rightLabel || rightLabel;
   const hasMeasuredMultiOverlap = Boolean(
     measuredMultiOverlap?.applicable
       && Number(measuredMultiOverlap?.source_count || measuredMultiOverlap?.sources?.length || 0) >= 3,
   );
-  const leftDisplayLabel = sourceLabelFor(measuredMultiOverlap, leftLabel, leftLabel);
-  const rightDisplayLabel = sourceLabelFor(measuredMultiOverlap, rightLabel, rightLabel) || "A second dataset";
+  const leftDisplayLabel = sourceLabelFor(measuredMultiOverlap, leftLabel, leftFallback);
+  const rightDisplayLabel = sourceLabelFor(measuredMultiOverlap, rightLabel, rightFallback) || "A second dataset";
   const coverageSubject = leftDisplayLabel && leftDisplayLabel.length <= 42
     ? leftDisplayLabel
     : "current input";
