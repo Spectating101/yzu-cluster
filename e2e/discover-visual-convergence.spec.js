@@ -133,4 +133,53 @@ test.describe("Discover visual convergence", () => {
     await assertNoHorizontalOverflow(page);
     await page.screenshot({ path: `${OUT}/discover-results-1920x1080.png`, fullPage: false });
   });
+
+  test("selected offering turns the rail into a bounded decision surface", async ({ page }) => {
+    await mockV2Api(page, resultFixture());
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await openDiscover(page);
+    await search(page, "stablecoin market evidence");
+
+    await page.locator("button.rd-v2-discover-candidate").first().click();
+    const evaluation = page.getByTestId("discover-eval-surface");
+    await expect(evaluation).toBeVisible();
+    await expect(evaluation).toContainText("DataCite live catalogue");
+    await expect(evaluation).toContainText("Can I use this?");
+    await expect(evaluation).toContainText("Still unknown");
+    await assertNoHorizontalOverflow(page);
+    await page.screenshot({ path: `${OUT}/discover-selected-1440x900.png`, fullPage: false });
+
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await assertNoHorizontalOverflow(page);
+    await page.screenshot({ path: `${OUT}/discover-selected-1920x1080.png`, fullPage: false });
+  });
+
+  test("acquisition review remains a deliberate overlay over preserved results", async ({ page }) => {
+    await mockV2Api(page, resultFixture());
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await openDiscover(page);
+    await search(page, "stablecoin market evidence");
+
+    await page.getByRole("button", { name: "Add to collection", exact: true }).click();
+    const dialog = page.getByRole("dialog", { name: "Review acquisition" });
+    await expect(dialog).toBeVisible();
+    await expect(page.getByTestId("discover-intent-workspace")).toContainText("Acquisition review");
+    await expect(page.getByTestId("discover-ranked-results")).toBeVisible();
+    await assertNoHorizontalOverflow(page);
+    await page.screenshot({ path: `${OUT}/discover-acquisition-1440x900.png`, fullPage: false });
+  });
+
+  test("History reads as a research lifecycle ledger, not an operations queue", async ({ page }) => {
+    await mockV2Api(page);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await openDiscover(page);
+
+    await page.getByRole("tab", { name: /History/ }).click();
+    const history = page.getByTestId("discover-history");
+    await expect(history).toBeVisible();
+    await expect(history).toContainText("Research requests and outcomes");
+    await expect(history).toContainText(/Needs you|pending approval/i);
+    await assertNoHorizontalOverflow(page);
+    await page.screenshot({ path: `${OUT}/discover-history-1440x900.png`, fullPage: false });
+  });
 });
