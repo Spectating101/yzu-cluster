@@ -771,6 +771,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
     updated.state.maturityLabel = "Method review";
     updated.state.proposal = structuredClone(PROPOSAL_THREAD.state.proposal);
 
+    await selectThread(page, "Historical stablecoin attention");
     await page.route("**/library/synthesis/threads/thread-attention", (route) =>
       route.fulfill({
         status: 200,
@@ -799,7 +800,6 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await page.route("**/api/library/chat/stream", proposalReply);
     await page.route("**/api/library/chat", proposalReply);
 
-    await selectThread(page, "Historical stablecoin attention");
     await page.getByRole("button", { name: "Start method reasoning" }).click();
 
     await expect.poll(() => prompt).toContain("create one reviewable Synthesis proposal");
@@ -819,6 +819,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
     updated.state.maturityLabel = "Method review";
     updated.state.proposal = structuredClone(PROPOSAL_THREAD.state.proposal);
 
+    await selectThread(page, "Historical stablecoin attention");
     await page.route("**/library/synthesis/threads/thread-attention", (route) =>
       route.fulfill({
         status: 200,
@@ -844,7 +845,6 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await page.route("**/api/library/chat/stream", proposalReply);
     await page.route("**/api/library/chat", proposalReply);
 
-    await selectThread(page, "Historical stablecoin attention");
     await page.getByRole("button", { name: "Discuss construction in Ask" }).click();
     await page.getByTestId("ask-composer").fill("Persist the review proposal.");
     await page.getByRole("button", { name: "Send", exact: true }).click();
