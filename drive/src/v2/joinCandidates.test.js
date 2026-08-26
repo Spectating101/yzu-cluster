@@ -11,7 +11,8 @@ import {
 
 const row = (over = {}) => ({
   left_key: "sym", right_key: "sym", matched: 50, left_distinct: 635,
-  match_rate_pct: 7.874, right_duplicate_rows: 0, usable: true, reason: null, ...over,
+  right_distinct: 635, match_rate_pct: 7.874, right_duplicate_rows: 0,
+  usable: true, reason: null, ...over,
 });
 
 test("candidates are ranked by coverage when identity capacity is otherwise equal", () => {
@@ -44,11 +45,37 @@ test("an informative identity outranks a constant identifier with cosmetic 100% 
   ]);
 
   assert.equal(ranked[0].leftKey, "entity_id");
+  assert.equal(ranked[0].degenerateIdentity, false);
   assert.equal(ranked[0].identityCapacity, 90);
   assert.equal(ranked[0].coverage, 45);
   assert.equal(ranked[1].leftKey, "cusip");
-  assert.equal(ranked[1].identityCapacity, 1);
+  assert.equal(ranked[1].degenerateIdentity, true);
   assert.equal(ranked[1].coverage, 100);
+});
+
+test("coverage still outranks raw cardinality among non-degenerate identity keys", () => {
+  const ranked = rankCandidates([
+    row({
+      left_key: "large_sparse_id",
+      right_key: "large_sparse_id",
+      left_distinct: 1000,
+      right_distinct: 1000,
+      matched: 100,
+      match_rate_pct: 10,
+    }),
+    row({
+      left_key: "slightly_smaller_good_id",
+      right_key: "slightly_smaller_good_id",
+      left_distinct: 900,
+      right_distinct: 900,
+      matched: 891,
+      match_rate_pct: 99,
+    }),
+  ]);
+
+  assert.equal(ranked[0].leftKey, "slightly_smaller_good_id");
+  assert.equal(ranked[0].coverage, 99);
+  assert.equal(ranked[1].identityCapacity, 1000);
 });
 
 test("a complete entity-period key outranks a higher-coverage partial identity key", () => {
@@ -60,6 +87,7 @@ test("a complete entity-period key outranks a higher-coverage partial identity k
       complete_identity_domain: false,
       matched: 100,
       left_distinct: 100,
+      right_distinct: 100,
       match_rate_pct: 100,
     }),
     row({
@@ -73,6 +101,7 @@ test("a complete entity-period key outranks a higher-coverage partial identity k
       right_label: "Weekly market evidence",
       matched: 50,
       left_distinct: 100,
+      right_distinct: 100,
       match_rate_pct: 50,
     }),
   ]);
@@ -108,7 +137,7 @@ test("a weak inner join is described as a different population, not a smaller on
 });
 
 test("a strong join recommends the inner join", () => {
-  const [candidate] = rankCandidates([row({ matched: 634, left_distinct: 635, match_rate_pct: 99.8 })]);
+  const [candidate] = rankCandidates([row({ matched: 634, left_distinct: 635, right_distinct: 635, match_rate_pct: 99.8 })]);
   const outcomes = joinOutcomes(candidate);
   assert.equal(outcomes.find((o) => o.id === "inner").recommended, true);
   assert.equal(outcomes.find((o) => o.id === "skip").recommended, false);
