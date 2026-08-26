@@ -170,3 +170,71 @@
 )) [data-testid="synthesis-evidence-state"] > .s04-actions {
   display: none;
 }
+
+/* Freeze polish: state should feel continuous, not animated for its own sake.
+ * The JS observer marks only a genuinely new authoritative surface and never
+ * clicks controls or moves keyboard focus. */
+.rd-v2-synthesis-page :where(
+  [data-testid="synthesis-scope-block"],
+  [data-testid="synthesis-unit-conflict"],
+  [data-testid="synthesis-proposal-state"],
+  [data-testid="synthesis-join-decision"],
+  [data-testid="synthesis-execution-state"],
+  [data-testid="synthesis-failed-state"],
+  [data-testid="synthesis-registered-state"],
+  [data-testid="synthesis-query-ready-state"],
+  [data-testid="synthesis-evidence-proposal"]
+) {
+  scroll-margin-block: 96px 72px;
+  transition: border-color 160ms ease, box-shadow 180ms ease, background-color 180ms ease;
+}
+
+.rd-v2-synthesis-page [data-synthesis-landed="true"] {
+  animation: s04-subject-land 520ms cubic-bezier(.2, .72, .25, 1) both;
+}
+
+.rd-v2-synthesis-page :is(button, [role="button"]):not(:disabled) {
+  transition: transform 90ms ease, box-shadow 140ms ease, border-color 140ms ease, background-color 140ms ease, color 140ms ease;
+}
+
+.rd-v2-synthesis-page :is(button, [role="button"]):not(:disabled):active {
+  transform: translateY(1px) scale(.992);
+}
+
+.rd-v2-synthesis-page :is(button, [role="button"]):focus-visible,
+.rd-v2-synthesis-page :is(input, textarea, select, summary):focus-visible {
+  outline: 2px solid #2c6f9f;
+  outline-offset: 2px;
+}
+
+/* The proposal is already the authoritative card immediately below the cue.
+ * Requiring a second "Review proposal" navigation click adds ceremony but no
+ * research decision. Keep the cue copy; let the proposal's own Accept/Reject
+ * controls carry the decision. */
+.rd-v2-synthesis-page:has([data-testid="synthesis-proposal-state"])
+  [aria-label="What happens next"] .s04-next-primary {
+  display: none;
+}
+
+@keyframes s04-subject-land {
+  0% {
+    box-shadow: 0 0 0 0 rgba(44, 111, 159, .18);
+  }
+  55% {
+    box-shadow: 0 0 0 4px rgba(44, 111, 159, .08), 0 12px 28px rgba(30, 43, 72, .055);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(44, 111, 159, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rd-v2-synthesis-page *,
+  .rd-v2-synthesis-page *::before,
+  .rd-v2-synthesis-page *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
