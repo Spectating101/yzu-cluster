@@ -14,13 +14,41 @@ const row = (over = {}) => ({
   match_rate_pct: 7.874, right_duplicate_rows: 0, usable: true, reason: null, ...over,
 });
 
-test("candidates are ranked by coverage, best first", () => {
+test("candidates are ranked by coverage when identity capacity is otherwise equal", () => {
   const ranked = rankCandidates([
     row({ right_key: "isin", match_rate_pct: 0, usable: false }),
     row({ right_key: "ric", match_rate_pct: 7.874 }),
     row({ right_key: "good", match_rate_pct: 99.8 }),
   ]);
   assert.deepEqual(ranked.map((r) => r.rightKey), ["good", "ric", "isin"]);
+});
+
+test("an informative identity outranks a constant identifier with cosmetic 100% coverage", () => {
+  const ranked = rankCandidates([
+    row({
+      left_key: "cusip",
+      right_key: "cusip",
+      left_distinct: 1,
+      right_distinct: 1,
+      matched: 1,
+      match_rate_pct: 100,
+    }),
+    row({
+      left_key: "entity_id",
+      right_key: "entity_id",
+      left_distinct: 100,
+      right_distinct: 90,
+      matched: 45,
+      match_rate_pct: 45,
+    }),
+  ]);
+
+  assert.equal(ranked[0].leftKey, "entity_id");
+  assert.equal(ranked[0].identityCapacity, 90);
+  assert.equal(ranked[0].coverage, 45);
+  assert.equal(ranked[1].leftKey, "cusip");
+  assert.equal(ranked[1].identityCapacity, 1);
+  assert.equal(ranked[1].coverage, 100);
 });
 
 test("a complete entity-period key outranks a higher-coverage partial identity key", () => {
