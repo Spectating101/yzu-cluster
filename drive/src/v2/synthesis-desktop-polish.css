@@ -138,9 +138,9 @@
     [data-testid="synthesis-failed-state"],
     [data-testid="synthesis-registered-state"],
     [data-testid="synthesis-query-ready-state"],
-    .s04-scope,
-    .s04-units,
-    .s04-join
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
   ) {
     border-color: #cbc6ba;
     box-shadow: 0 9px 24px rgba(42, 52, 58, .055), 0 1px 2px rgba(42, 52, 58, .04);
@@ -163,9 +163,9 @@
     [data-testid="synthesis-failed-state"],
     [data-testid="synthesis-registered-state"],
     [data-testid="synthesis-query-ready-state"],
-    .s04-scope,
-    .s04-units,
-    .s04-join
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
   ) h2 {
     font-size: 17px;
     letter-spacing: -.018em;
