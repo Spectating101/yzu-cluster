@@ -175,6 +175,12 @@ async function installSynthesisMocks(page, initialThreads = [THREAD, REVIEW_THRE
   const seed = Array.isArray(initialThreads) ? initialThreads : [initialThreads];
   const threads = new Map(seed.map((thread) => [thread.id, structuredClone(thread)]));
 
+  await page.route("**/library/chat/synthesis-session-attention", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({ session_id: "synthesis-session-attention", messages: [] }),
+  }));
+
   await page.route("**/library/synthesis/profiles**", (route) => route.fulfill({
     status: 200,
     contentType: "application/json",
@@ -348,7 +354,7 @@ test("keeps the current recommended opening complete after explicit selection", 
   await expect(openingRail).toContainText("Recommended · not accepted");
 
   const main = page.locator(".s04-main");
-  await expect(main.getByText("Exploration ready", { exact: true })).toBeVisible();
+  await expect(main.getByText("Construction recommendation", { exact: true })).toBeVisible();
   await expect(main.getByRole("region", { name: "Research brief" })).toBeVisible();
   await expect(main.getByRole("region", { name: "Recommended construction" })).toBeVisible();
   await expect(main.getByRole("region", { name: "What happens next" })).toBeVisible();
