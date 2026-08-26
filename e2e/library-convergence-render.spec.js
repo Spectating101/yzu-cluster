@@ -30,13 +30,13 @@ const LIBRARY_DATASETS = {
       limitations: "News intensity is an observational proxy and does not establish causal exposure.",
     },
     {
-      dataset_id: "refinitiv_estimate_revision_panel",
+      dataset_id: "refinitiv_estimate_revision_panel_with_point_in_time_archive_lineage",
       name: "Estimate revision panel",
       description: "Point-in-time analyst estimate revision history with issuer and timestamp lineage.",
       grain: "ric_day",
       analysis_readiness: "instant",
       local_root: "research_panels/refinitiv",
-      source: "Refinitiv",
+      source: "London Stock Exchange Group / Refinitiv point-in-time archive",
       join_keys: ["ric", "date"],
       coverage: "2017–2026",
       rows: 2540310,
@@ -72,12 +72,12 @@ const LIBRARY_DATASETS = {
       dataset_id: "stablecoin_governance_work",
       name: "Stablecoin governance evidence review",
       description: "A scholarly evidence record retained alongside the lab's empirical datasets.",
+      asset_kind: "scholarly_work",
       doi: "10.1234/stablecoin.governance.2026",
       source: "Journal of Digital Finance",
       publisher: "Research Press",
-      source_access_mode: "scholarly_work",
-      object_type: "scholarly_work",
       analysis_readiness: "registered",
+      registered: true,
       verification_status: "unverified",
       verification: {
         status: "unverified",
@@ -90,9 +90,11 @@ const LIBRARY_DATASETS = {
       name: "Public blockchain query source",
       description: "Connected query-time source; usable only through its declared remote access route.",
       analysis_readiness: "dry_run_before_execution",
+      registered: true,
+      registry_id: "connected_bigquery_catalogue",
       backend: "bigquery_public_dataset",
       collect_via: "BigQuery",
-      source: "Google BigQuery",
+      source: "Google BigQuery public blockchain datasets",
       coverage: "Live remote source",
       verification_status: "not_checked",
     },
@@ -111,7 +113,7 @@ const LIBRARY_NAV = {
       partition_id: "panels.market",
       shelf_id: "panels",
       professor_label: "Market & attention panels",
-      detail: { registry_dataset_ids: ["gdelt_asia_daily_country_panel", "refinitiv_estimate_revision_panel"] },
+      detail: { registry_dataset_ids: ["gdelt_asia_daily_country_panel", "refinitiv_estimate_revision_panel_with_point_in_time_archive_lineage"] },
     },
     {
       partition_id: "panels.fundamentals",
@@ -143,6 +145,7 @@ async function setup(page, viewport) {
   await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
   await expect(page.getByTestId("library-evidence-estate")).toBeVisible();
+  await expect(page.getByTestId("library-evidence-row")).toHaveCount(5);
 }
 
 async function assertNoPageOverflow(page) {
@@ -169,10 +172,23 @@ test("render current Library evidence and decision states", async ({ page }) => 
   mkdirSync(OUT, { recursive: true });
 
   await setup(page, { width: 1440, height: 900 });
+  const gdeltRow = page.getByTestId("library-evidence-row").filter({ hasText: "Asia daily news-risk panel" });
+  await expect(gdeltRow.getByTestId("library-evidence-verification")).toHaveText("Verified");
+  await expect(gdeltRow.getByTestId("library-evidence-readiness")).toContainText("Query ready");
+  const connectedRow = page.getByTestId("library-evidence-row").filter({ hasText: "Public blockchain query source" });
+  await expect(connectedRow.getByTestId("library-evidence-readiness")).toContainText("Connected");
   await assertNoPageOverflow(page);
   await page.screenshot({ path: `${OUT}/01-root-1440.png`, fullPage: false });
 
+  await page.getByRole("button", { name: /^Not query-ready / }).click();
+  await expect(page.getByTestId("library-evidence-row").filter({ hasText: "MOPS financial statements" })).toBeVisible();
+  await expect(page.getByTestId("library-evidence-row").filter({ hasText: "Asia daily news-risk panel" })).toHaveCount(0);
+  await page.getByRole("button", { name: /^All$/ }).click();
+
   await openAsset(page, "Asia daily news-risk panel");
+  await expect(page.getByLabel("Evidence claims")).toContainText("Query ready");
+  await expect(page.getByLabel("Evidence claims")).toContainText("Verified");
+  await expect(page.getByTestId("library-observation-receipt")).toContainText("row observed");
   await expect(page.locator("aside.rd-v2-rail")).toContainText("Can I use this?");
   await expect(page.locator("aside.rd-v2-rail")).toContainText("Verified");
   await assertNoPageOverflow(page);
@@ -180,13 +196,18 @@ test("render current Library evidence and decision states", async ({ page }) => 
 
   await page.getByRole("button", { name: "Source record" }).click();
   await expect(page.getByRole("dialog", { name: "Source and provenance" })).toBeVisible();
+  await expect(page.getByTestId("library-source-verification")).toContainText("Verified");
+  await expect(page.getByTestId("library-source-readiness")).toContainText("Query ready");
   await page.screenshot({ path: `${OUT}/03-source-record-1440.png`, fullPage: false });
   await page.getByRole("button", { name: "Close inspection" }).click();
 
   await backToRoot(page);
   await page.getByRole("textbox", { name: "Search library holdings" }).fill("MOPS");
   await openAsset(page, "MOPS financial statements");
+  await expect(page.getByLabel("Evidence claims")).toContainText("Metadata only");
+  await expect(page.getByLabel("Evidence claims")).toContainText("Partial");
   await expect(page.locator("aside.rd-v2-rail")).toContainText("Partial");
+  await assertNoPageOverflow(page);
   await page.screenshot({ path: `${OUT}/04-not-query-ready-1440.png`, fullPage: false });
 
   await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
