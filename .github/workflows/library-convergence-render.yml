@@ -24,6 +24,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Verify Library evidence truth contracts
+        run: >-
+          node --test
+          drive/src/v2/libraryVerification.test.js
+          drive/src/v2/libraryReadinessOwnership.test.js
+          drive/src/v2/datasetMeta.test.js
+          drive/src/v2/LibraryDatasetRailPanel.test.js
+
       - name: Install Chromium
         run: npx playwright install chromium --with-deps
 
