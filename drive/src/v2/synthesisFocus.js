@@ -1,3 +1,5 @@
+import "./synthesisInteractionPolish.js";
+
 /**
  * One screen, one subject.
  *
