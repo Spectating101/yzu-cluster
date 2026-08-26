@@ -1,0 +1,35 @@
+name: Synthesis reasoning state patch v2
+
+on:
+  push:
+    branches:
+      - hardening/synthesis-analytical-verification-20260826
+    paths:
+      - .github/workflows/synthesis-reasoning-state-final-patch-v2.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: hardening/synthesis-analytical-verification-20260826
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Apply guarded reasoning state patch
+        run: python scripts/synthesis_reasoning_state_patch.py
+      - name: Validate and commit
+        shell: bash
+        run: |
+          git diff --check
+          git diff -- drive/src/v2/SynthesisPage.jsx e2e/v2-synthesis.spec.js
+          git config user.name 'synthesis-reasoning-state-bot'
+          git config user.email 'synthesis-reasoning-state-bot@users.noreply.github.com'
+          git rm .github/workflows/synthesis-reasoning-state-final-patch.yml .github/workflows/synthesis-reasoning-state-final-patch-v2.yml scripts/synthesis_reasoning_state_patch.py
+          git add drive/src/v2/SynthesisPage.jsx e2e/v2-synthesis.spec.js
+          git commit -m 'fix(synthesis): keep explicit reasoning pending across mapped evidence'
+          git push origin HEAD:hardening/synthesis-analytical-verification-20260826
