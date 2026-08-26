@@ -69,15 +69,21 @@ jobs:
           )
           replace_once(
               page,
-              'disabled={reasoningPending || !reasoningAvailable || (hasRecommendation ? !onAccept : !onStartReasoning)}',
-              'disabled={needsEvidence || reasoningPending || !reasoningAvailable || (hasRecommendation ? !onAccept : !onStartReasoning)}',
+              '''            <button
+              type="button"
+              className="s04-next-primary"
+              disabled={reasoningPending || !reasoningAvailable || (hasRecommendation ? !onAccept : !onStartReasoning)}
+              onClick={() => (hasRecommendation ? onAccept?.() : onStartReasoning?.())}
+              title={!reasoningAvailable ? reasoningStatus : undefined}
+            >''',
+              '''            <button
+              type="button"
+              className="s04-next-primary"
+              disabled={needsEvidence || reasoningPending || !reasoningAvailable || (hasRecommendation ? !onAccept : !onStartReasoning)}
+              onClick={() => (hasRecommendation ? onAccept?.() : onStartReasoning?.())}
+              title={needsEvidence ? "Review and map held evidence before method reasoning." : !reasoningAvailable ? reasoningStatus : undefined}
+            >''',
               'reasoning waits for mapped evidence',
-          )
-          replace_once(
-              page,
-              'title={!reasoningAvailable ? reasoningStatus : undefined}',
-              'title={needsEvidence ? "Review and map held evidence before method reasoning." : !reasoningAvailable ? reasoningStatus : undefined}',
-              'reasoning disabled explanation',
           )
           replace_once(
               page,
