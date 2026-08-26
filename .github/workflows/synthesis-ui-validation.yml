@@ -7,72 +7,11 @@ concurrency:
   group: synthesis-ui-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: write
-
 jobs:
   synthesis-ui:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Migrate legacy Synthesis execution fixture to Preview authority
-        shell: bash
-        run: |
-          git fetch origin "${GITHUB_HEAD_REF}:refs/remotes/origin/${GITHUB_HEAD_REF}"
-          git checkout -B synthesis-preview-test-migration "origin/${GITHUB_HEAD_REF}"
-          python - <<'PY'
-          from pathlib import Path
-          path = Path("e2e/v2-synthesis.spec.js")
-          text = path.read_text(encoding="utf-8")
-
-          old = '''      if (body.decision === "accept") {\n        thread.state.execution_spec = proposal.execution_spec;\n        thread.state.proposal = null;\n        thread.state.maturity = "planned";\n        thread.state.maturityLabel = "Accepted method";\n        thread.state.lastActivity = "Accepted proposal: Aggregate held weekly panel.";\n'''
-          new = '''      if (body.decision === "accept") {\n        thread.state.execution_spec = proposal.execution_spec;\n        thread.state.accepted_spec_hash = "sha256:accepted-weekly-v1";\n        thread.state.preview = null;\n        thread.state.execution = {\n          status: "spec_accepted",\n          spec_hash: thread.state.accepted_spec_hash,\n          output_dataset_id: proposal.execution_spec?.output_dataset_id || "",\n        };\n        thread.state.proposal = null;\n        thread.state.maturity = "planned";\n        thread.state.maturityLabel = "Accepted method";\n        thread.state.lastActivity = "Accepted proposal: Aggregate held weekly panel.";\n'''
-          if old in text:
-              text = text.replace(old, new, 1)
-          elif new not in text:
-              raise SystemExit("proposal acceptance fixture anchor not found")
-
-          old = '''    if (suffix === "execute" && method === "POST") {\n      thread.state.execution = {\n        status: "pending_approval",\n        job_id: "job-synthesis-pending",\n        output_dataset_id: thread.state.execution_spec?.output_dataset_id || "",\n      };\n      thread.state.lastActivity = "Execution request is awaiting approval.";\n      thread.updated_at = "2026-07-19T09:02:00+00:00";\n      return respond({ job: { id: "job-synthesis-pending", status: "pending_approval" }, thread });\n    }\n'''
-          new = '''    if (suffix === "execute" && method === "POST") {\n      const body = route.request().postDataJSON?.() || {};\n      const action = String(body.action || "");\n      if (action === "preview") {\n        thread.state.preview = {\n          status: "succeeded",\n          spec_hash: thread.state.accepted_spec_hash,\n          authority_hash: "sha256:fixture-authority",\n          bounded: true,\n          materialised: false,\n          registered: false,\n          sampling: { source_rows: 1000, previewed_rows: 100, source_truncated: true },\n          rows: { preview_input: 100, after_transforms: 100, output: 10 },\n          output: { columns: ["asset_id", "week", "row_count"], rows: [] },\n          preflight: { warnings: [] },\n        };\n        thread.state.lastActivity = "Bounded synthesis preview succeeded; review it before requesting execution.";\n        thread.updated_at = "2026-07-19T09:01:30+00:00";\n        return respond({\n          thread,\n          preview: thread.state.preview,\n          preview_only: true,\n          execution_submitted: false,\n          review_required: true,\n        });\n      }\n      if (action === "request_approval") {\n        const currentPreview = thread.state.preview?.status === "succeeded"\n          && thread.state.preview?.spec_hash === thread.state.accepted_spec_hash;\n        if (!currentPreview) return respond({ error: "current Preview required before approval" }, 409);\n        thread.state.execution = {\n          status: "pending_approval",\n          job_id: "job-synthesis-pending",\n          spec_hash: thread.state.accepted_spec_hash,\n          output_dataset_id: thread.state.execution_spec?.output_dataset_id || "",\n        };\n        thread.state.lastActivity = "Execution request is awaiting approval.";\n        thread.updated_at = "2026-07-19T09:02:00+00:00";\n        return respond({\n          job: { id: "job-synthesis-pending", status: "pending_approval" },\n          thread,\n          preview: thread.state.preview,\n          preview_only: false,\n          execution_submitted: true,\n        });\n      }\n      return respond({ error: `unexpected execution action: ${action}` }, 400);\n    }\n'''
-          if old in text:
-              text = text.replace(old, new, 1)
-          elif new not in text:
-              raise SystemExit("legacy execute fixture anchor not found")
-
-          old = '''    await expect(page.getByTestId("synthesis-execution-state")).toContainText("stablecoin_attention_weekly");\n    await page.getByRole("button", { name: "Request execution" }).click();\n    const pending = page.getByTestId("synthesis-execution-state");\n    await expect(pending).toContainText("pending approval");\n    await expect(pending.getByRole("button", { name: "Review approval" })).toBeVisible();\n    await expect(pending.getByRole("button", { name: "Request execution" })).toHaveCount(0);\n'''
-          new = '''    const execution = page.getByTestId("synthesis-execution-state");\n    await expect(execution).toContainText("stablecoin_attention_weekly");\n    await expect(execution).toContainText("Bounded preview required");\n    await execution.getByRole("button", { name: "Run bounded preview" }).click();\n    await expect(execution).toContainText("Bounded preview passed");\n    await expect(execution.getByRole("button", { name: "Request execution approval" })).toBeVisible();\n    await execution.getByRole("button", { name: "Request execution approval" }).click();\n    const pending = page.getByTestId("synthesis-execution-state");\n    await expect(pending).toContainText("pending approval");\n    await expect(pending.getByRole("button", { name: "Review approval" })).toBeVisible();\n    await expect(pending.getByRole("button", { name: "Request execution approval" })).toHaveCount(0);\n'''
-          if old in text:
-              text = text.replace(old, new, 1)
-          elif new not in text:
-              raise SystemExit("proposal-to-execution test anchor not found")
-
-          text = text.replace(
-              'test("does not create a second execution job when a prior request\'s response was lost", async ({ page }) => {',
-              'test("does not create a second approval request when a prior approval response was lost", async ({ page }) => {',
-              1,
-          )
-          base_anchor = '''      execution_spec: {\n        input_dataset_id: "stablecoin_trust_engagement_weekly",\n        output_dataset_id: "stablecoin_attention_weekly",\n        group_by: ["asset_id", "week"],\n        metrics: [{ field: "attention", aggregate: "mean" }],\n      },\n    };\n'''
-          base_replacement = '''      execution_spec: {\n        input_dataset_id: "stablecoin_trust_engagement_weekly",\n        output_dataset_id: "stablecoin_attention_weekly",\n        group_by: ["asset_id", "week"],\n        metrics: [{ field: "attention", aggregate: "mean" }],\n      },\n      accepted_spec_hash: "sha256:accepted-lost-response",\n      preview: {\n        status: "succeeded",\n        spec_hash: "sha256:accepted-lost-response",\n        authority_hash: "sha256:authority-lost-response",\n        sampling: { source_rows: 1000, previewed_rows: 100 },\n      },\n      execution: {\n        status: "spec_accepted",\n        spec_hash: "sha256:accepted-lost-response",\n        output_dataset_id: "stablecoin_attention_weekly",\n      },\n    };\n'''
-          marker = 'test("does not create a second approval request when a prior approval response was lost"'
-          before, sep, after = text.partition(marker)
-          if not sep:
-              raise SystemExit("lost-approval test marker not found")
-          if base_anchor in after:
-              after = after.replace(base_anchor, base_replacement, 1)
-          elif base_replacement not in after:
-              raise SystemExit("lost-approval base state anchor not found")
-          after = after.replace('getByRole("button", { name: "Request execution" })', 'getByRole("button", { name: "Request execution approval" })', 3)
-          text = before + sep + after
-
-          path.write_text(text, encoding="utf-8")
-          PY
-          if ! git diff --quiet -- e2e/v2-synthesis.spec.js; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add e2e/v2-synthesis.spec.js
-            git commit -m "test(synthesis): migrate legacy execution cases through Preview"
-            git push origin HEAD:"${GITHUB_HEAD_REF}"
-          fi
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
