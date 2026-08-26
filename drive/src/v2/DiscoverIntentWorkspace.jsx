@@ -10,6 +10,7 @@ import {
   intentState,
   selectedIntentRoute,
 } from "@/v2/discoverIntent";
+import { buildDiscoverDecisionCapacity } from "@/v2/discoverDecisionCapacity";
 
 function text(value, fallback = "") {
   return String(value || "").trim() || fallback;
@@ -68,6 +69,8 @@ export function DiscoverIntentWorkspace({
   onAsk,
   onSubmitted,
   onOpenHistory,
+  resourcesRollup = null,
+  deskHealth = null,
 }) {
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
@@ -87,6 +90,10 @@ export function DiscoverIntentWorkspace({
   const registeredId = text(collection.registered_dataset_id);
   const jobStatus = text(record?.job?.status || intent?.job?.status || collection.status);
   const proposalRoutes = useMemo(() => proposal?.routes || [], [proposal]);
+  const capacityRows = useMemo(
+    () => buildDiscoverDecisionCapacity(resourcesRollup, deskHealth, { routes: proposalRoutes.length ? proposalRoutes : routes }),
+    [resourcesRollup, deskHealth, proposalRoutes, routes],
+  );
 
   const review = async (decision) => {
     if (!proposal?.id || !proposal?.proposal_hash || !intent?.id) return;
@@ -159,6 +166,20 @@ export function DiscoverIntentWorkspace({
         <span className="rd-v2-eyebrow">Research need</span>
         <p>{text(intent?.research_need || record?.researchNeed, "Research need not recorded")}</p>
       </section>
+
+      {capacityRows.length ? (
+        <section className="rd-v2-intent-capacity" aria-label="Execution capacity">
+          <header><div><span className="rd-v2-eyebrow">Execution capacity</span><h3>Can the desk support this acquisition path?</h3></div></header>
+          <div>
+            {capacityRows.map((row) => (
+              <article key={row.id} className={row.attention ? "needs-attention" : ""}>
+                <span>{row.label}</span><strong>{row.metric}</strong>{row.detail ? <em>{row.detail}</em> : null}
+              </article>
+            ))}
+          </div>
+          <p>Capacity is context only. No worker, quota, or storage tier is assigned until a reviewed route becomes an approved job.</p>
+        </section>
+      ) : null}
 
       {error ? <p className="rd-v2-intent-error">{error}</p> : null}
 

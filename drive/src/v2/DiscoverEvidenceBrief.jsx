@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { assessDiscoverEvidence, listDiscoverGapRoutes } from "@/v2/api";
 import { DISCOVER_SUGGESTIONS } from "@/v2/deskSeed";
 import { handleEnterToRequestSubmit } from "@/v2/enterToSubmit";
+import { buildDiscoverDecisionCapacity } from "@/v2/discoverDecisionCapacity";
 
 const VERDICT_LABELS = {
   covered: "Covered",
@@ -172,9 +173,12 @@ export function DiscoverEvidenceBrief({
   initialQuestion = "",
   autoAssess = false,
   variant = "standalone",
+  assessmentValue = null,
+  resourcesRollup = null,
+  deskHealth = null,
 }) {
   const [draft, setDraft] = useState(initialQuestion);
-  const [assessment, setAssessment] = useState(null);
+  const [assessment, setAssessment] = useState(assessmentValue);
   const [dimensions, setDimensions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -182,6 +186,7 @@ export function DiscoverEvidenceBrief({
   const [routeLoading, setRouteLoading] = useState(false);
   const [routeError, setRouteError] = useState("");
   const autoStartedRef = useRef("");
+  const routeAutoKeyRef = useRef("");
 
   useEffect(() => {
     setDimensions(normalizeRequirement(assessment?.requirement));
@@ -191,6 +196,14 @@ export function DiscoverEvidenceBrief({
     if (initialQuestion) setDraft(initialQuestion);
   }, [initialQuestion]);
 
+  useEffect(() => {
+    if (!assessmentValue) return;
+    setAssessment(assessmentValue);
+    setRouteResult(null);
+    setRouteError("");
+    routeAutoKeyRef.current = "";
+  }, [assessmentValue]);
+
   const suggestions = useMemo(() => localSuggestions(catalog, draft), [catalog, draft]);
   const heldEvidence = Array.isArray(assessment?.held_evidence) ? assessment.held_evidence : [];
   const verdictKey = String(assessment?.verdict || "").trim().toLowerCase().replace(/[ -]/g, "_");
@@ -199,6 +212,12 @@ export function DiscoverEvidenceBrief({
     || VERDICT_LABELS[verdictKey]
     || text(assessment?.verdict, "Assessment pending");
   const verdictTone = assessmentStatus || verdictKey || "unknown";
+  const establishedDimensions = dimensions.filter((item) => item.value && item.value !== "Unknown");
+  const routeRows = Array.isArray(routeResult?.routes) ? routeResult.routes : [];
+  const capacityRows = useMemo(
+    () => buildDiscoverDecisionCapacity(resourcesRollup, deskHealth, { routes: routeRows }),
+    [resourcesRollup, deskHealth, routeResult],
+  );
 
   const requestAssessment = async ({ requirement, questionOverride } = {}) => {
     const question = String(questionOverride || draft).trim();
@@ -239,6 +258,16 @@ export function DiscoverEvidenceBrief({
   };
 
   useEffect(() => {
+    const autoRouteKey = [assessment?.assessment_status, assessment?.question, assessment?.gap?.statement].filter(Boolean).join("|");
+    if (variant !== "workspace" || assessment?.assessment_status !== "assessed" || !assessment?.gap || !autoRouteKey) return;
+    if (routeAutoKeyRef.current === autoRouteKey) return;
+    routeAutoKeyRef.current = autoRouteKey;
+    requestRoutes();
+    // One bounded route comparison per assessment identity; refresh remains explicit.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [variant, assessment?.assessment_status, assessment?.question, assessment?.gap?.statement]);
+
+  useEffect(() => {
     const question = String(initialQuestion || "").trim();
     if (!autoAssess || !question || autoStartedRef.current === question) return;
     autoStartedRef.current = question;
@@ -271,8 +300,15 @@ export function DiscoverEvidenceBrief({
   );
 
   return (
-    <section className={`rd-v2-evidence-brief ${variant === "layered" ? "is-layered" : ""}`} aria-label="Evidence assessment" data-testid="discover-evidence-brief">
-      {variant !== "layered" ? <form
+    <section className={`rd-v2-evidence-brief is-${variant}`} aria-label="Evidence assessment" data-testid="discover-evidence-brief">
+      {variant === "workspace" && !assessment ? (
+        <div className="rd-v2-evidence-workspace-pending" role="status">
+          <span className="rd-v2-eyebrow">Evidence position</span>
+          <strong>Checking the research need against held evidence…</strong>
+          <p>Search results stay available while coverage, gaps, and sourcing options are established.</p>
+        </div>
+      ) : null}
+      {variant === "standalone" ? <form
         className={`rd-v2-evidence-question${assessment ? " is-assessed" : ""}`}
         onSubmit={(event) => {
           event.preventDefault();
@@ -298,7 +334,7 @@ export function DiscoverEvidenceBrief({
       </form> : null}
 
       {!assessment ? (
-        variant === "layered" ? null : <div className="rd-v2-evidence-suggestions" data-testid="discover-empty">
+        variant !== "standalone" ? null : <div className="rd-v2-evidence-suggestions" data-testid="discover-empty">
           <span className="rd-v2-eyebrow">Held locally</span>
           <h2>What evidence are you looking for?</h2>
           <p data-testid="discover-evidence-suggestions">Local context only while you type. An assessment runs when you submit.</p>
@@ -357,7 +393,16 @@ export function DiscoverEvidenceBrief({
           </header>
           <p className="rd-v2-evidence-because">{text(assessment.because, "Reasoning was not provided.")}</p>
 
-          {variant === "layered" ? (
+          {variant === "workspace" ? (
+            <section className="rd-v2-evidence-position-grid" aria-label="Evidence position summary">
+              <div><span>Requirement</span><strong>{establishedDimensions.length}/{dimensions.length || 0}</strong><em>dimensions established</em></div>
+              <div><span>Library support</span><strong>{heldEvidence.length}</strong><em>held evidence record{heldEvidence.length === 1 ? "" : "s"}</em></div>
+              <div><span>Evidence gap</span><strong>{assessment.gap ? "Open" : "None reported"}</strong><em>{assessment.gap ? text(assessment.gap.statement, "Gap recorded") : "Assessment reported no remaining gap"}</em></div>
+              <div><span>Sourcing</span><strong>{routeLoading ? "Checking" : routeRows.length ? `${routeRows.length} declared` : "Not established"}</strong><em>{routeRows.length ? "source options for the recorded gap" : "no route claim without a backend comparison"}</em></div>
+            </section>
+          ) : null}
+
+          {(variant === "layered" || variant === "workspace") ? (
             <details className="rd-v2-evidence-edit">
               <summary>
                 <span>{dimensions.filter((item) => item.value !== "Unknown").map((item) => `${item.label}: ${item.value}`).slice(0, 3).join(" · ") || "Requirement not yet specified"}</span>
@@ -399,7 +444,7 @@ export function DiscoverEvidenceBrief({
                   <p>Suggestions are source options, not a promise of collection or delivery.</p>
                 </div>
                 <button type="button" className="rd-v2-btn sm" disabled={routeLoading} onClick={requestRoutes}>
-                  {routeLoading ? "Comparing declared sources…" : "Find declared routes"}
+                  {routeLoading ? "Comparing declared sources…" : routeResult ? "Refresh declared routes" : "Find declared routes"}
                 </button>
               </div>
               {routeError ? <p className="rd-v2-discover-error" role="status">{routeError}</p> : null}
@@ -410,12 +455,26 @@ export function DiscoverEvidenceBrief({
                       <li key={`${route.dimension || "gap"}-${route.source_id || index}`}>
                         <strong>{text(route.label, "Declared source")}</strong>
                         <span>{text(route.reason, "May address the recorded gap.")}</span>
-                        <em>{route.action === "collect" ? "Collection can be requested for review" : "Access review is required"}</em>
+                        <em>{[route.provider, text(route.access_mode, "").replaceAll("_", " "), route.action === "collect" ? "Collection can be requested for review" : "Access review is required"].filter(Boolean).join(" · ")}</em>
                       </li>
                     ))}
                   </ul>
                 ) : <p className="muted">No declared route was found. This does not establish that no source exists.</p>
               ) : null}
+            </section>
+          ) : null}
+          {variant === "workspace" && capacityRows.length ? (
+            <section className="rd-v2-evidence-capacity" aria-label="Execution capacity">
+              <div className="rd-v2-evidence-section-head">
+                <div><span className="rd-v2-eyebrow">Execution capacity</span><p>Measured desk capability that can change the sourcing decision. No worker or quota is assigned here.</p></div>
+              </div>
+              <div className="rd-v2-evidence-capacity-grid">
+                {capacityRows.map((row) => (
+                  <div key={row.id} className={row.attention ? "needs-attention" : ""}>
+                    <span>{row.label}</span><strong>{row.metric}</strong>{row.detail ? <em>{row.detail}</em> : null}
+                  </div>
+                ))}
+              </div>
             </section>
           ) : null}
           {assessment.assessment_basis ? <p className="rd-v2-evidence-basis">Basis: {assessmentBasisSummary(assessment.assessment_basis)}</p> : null}

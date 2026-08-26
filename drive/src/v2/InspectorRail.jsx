@@ -93,6 +93,28 @@ function activeHintBelongsToTab(mainTab, object) {
   return false;
 }
 
+function DiscoverAssessmentRailSummary({ state, onClose }) {
+  const result = state?.result || {};
+  const status = String(result?.verdict || result?.assessment_status || "Coverage assessment")
+    .replaceAll("_", " ")
+    .replace(/^./, (letter) => letter.toUpperCase());
+  const gap = String(result?.gap?.statement || "").trim();
+  const held = Array.isArray(result?.held_evidence) ? result.held_evidence.length : 0;
+  return (
+    <section className="rd-v2-discover-assessment-rail-summary" aria-label="Evidence assessment summary">
+      <span className="rd-v2-eyebrow">Evidence position</span>
+      <strong>{status}</strong>
+      <p>{gap || "No remaining gap was reported by the current assessment."}</p>
+      <dl>
+        <div><dt>Held evidence</dt><dd>{held}</dd></div>
+        <div><dt>Centre</dt><dd>Full assessment + sourcing routes</dd></div>
+      </dl>
+      <p className="muted">Use Detail for the decision summary or Ask to reason within this exact evidence need.</p>
+      {onClose ? <button type="button" className="rd-v2-btn sm" onClick={onClose}>Hide assessment</button> : null}
+    </section>
+  );
+}
+
 export function InspectorRail({
   mainTab,
   railTab,
@@ -160,17 +182,21 @@ export function InspectorRail({
         onReviewRequest={onReviewHistoryRequest}
       />
     ) : discoverAssessment?.active ? (
-      <DiscoverEvidenceBrief
-        key={`assessment-rail:${discoverAssessment.question}`}
-        initialQuestion={discoverAssessment.question}
-        autoAssess
-        variant="layered"
-        catalog={discoverCatalog}
-        onLegacySearch={onSuggestDiscoverSearch}
-        onAssessmentActive={onDiscoverAssessmentActive}
-        onAssessmentChange={onDiscoverAssessmentChange}
-        onClose={onCloseDiscoverAssessment}
-      />
+      discoverAssessment.result ? (
+        <DiscoverAssessmentRailSummary state={discoverAssessment} onClose={onCloseDiscoverAssessment} />
+      ) : (
+        <DiscoverEvidenceBrief
+          key={`assessment-rail:${discoverAssessment.question}`}
+          initialQuestion={discoverAssessment.question}
+          autoAssess
+          variant="layered"
+          catalog={discoverCatalog}
+          onLegacySearch={onSuggestDiscoverSearch}
+          onAssessmentActive={onDiscoverAssessmentActive}
+          onAssessmentChange={onDiscoverAssessmentChange}
+          onClose={onCloseDiscoverAssessment}
+        />
+      )
     ) : (
       <BrowseRailPanel
         target={browseTarget}

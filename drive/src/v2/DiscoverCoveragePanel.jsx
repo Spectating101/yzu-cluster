@@ -21,20 +21,20 @@ export function DiscoverCoveragePanel({ catalog = [], partitions = [], shelves =
       </header>
       <ol className="rd-v2-discover-evidence-path" aria-label="Discover evidence path">
         <li>
-          <strong>Library first</strong>
-          <span>Held evidence is checked before new acquisition.</span>
+          <strong>Evidence need</strong>
+          <span>A research question becomes a reviewable evidence contract.</span>
         </li>
         <li>
-          <strong>Source routes</strong>
-          <span>Known APIs and catalogues are tested for fit.</span>
+          <strong>Library position</strong>
+          <span>Held evidence is checked dimension by dimension before new acquisition.</span>
         </li>
         <li>
-          <strong>Context stays separate</strong>
-          <span>References inform the search without becoming dataset offerings.</span>
+          <strong>Sourcing strategy</strong>
+          <span>Declared external routes are compared only for unresolved evidence gaps.</span>
         </li>
         <li>
           <strong>Reviewed acquisition</strong>
-          <span>Collection starts only from an explicit route.</span>
+          <span>A human-selected route enters approval before collection can start.</span>
         </li>
       </ol>
       <ul className="rd-v2-catalog rd-v2-catalog-list">

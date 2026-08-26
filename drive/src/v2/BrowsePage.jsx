@@ -26,6 +26,7 @@ import { buildDiscoverRestingSummary } from "@/v2/discoverRestingSummary";
 import { loadUserEmail } from "@/v2/deskSession";
 import { discoverDemoSearch } from "@/v2/deskSeed";
 import { DiscoverIntentWorkspace } from "@/v2/DiscoverIntentWorkspace";
+import { DiscoverEvidenceBrief } from "@/v2/DiscoverEvidenceBrief";
 import { handleEnterToRequestSubmit } from "@/v2/enterToSubmit";
 import {
   candidateSpecificityText,
@@ -646,6 +647,10 @@ export function BrowsePage({
   assessmentActive = false,
   assessmentResult = null,
   onOpenAssessment,
+  onAssessmentChange,
+  onAssessmentActive,
+  resourcesRollup = null,
+  deskHealth = null,
   synthesisHandoff = null,
   onReturnToSynthesis,
   onDismissSynthesisHandoff,
@@ -1436,7 +1441,7 @@ export function BrowsePage({
               </header>
 
               <div className="rd-v2-discover-query-tools">
-                {interpretation.chips.length ? (
+                {interpretation.chips.length && !assessmentActive ? (
                   <div className="rd-v2-discover-interpreting" data-testid="discover-interpreting">
                     <span className="rd-v2-eyebrow">Research brief</span>
                   <div className="rd-v2-discover-interpreting-chips" role="list" aria-label="Interpreted evidence need">
@@ -1472,6 +1477,22 @@ export function BrowsePage({
                   {sortMenu}
                 </div>
               </div>
+              {assessmentActive ? (
+                <DiscoverEvidenceBrief
+                  key={`assessment-workspace:${q}`}
+                  variant="workspace"
+                  initialQuestion={q}
+                  assessmentValue={assessmentResult}
+                  catalog={catalog}
+                  onSelectRow={onSelectRow}
+                  onLegacySearch={onSuggestSearch}
+                  onCraftUrl={onCraftUrl}
+                  onAssessmentChange={onAssessmentChange}
+                  onAssessmentActive={onAssessmentActive}
+                  resourcesRollup={resourcesRollup}
+                  deskHealth={deskHealth}
+                />
+              ) : null}
               <div className="rd-v2-discover-frozen-counts" aria-label="Discover result territories">
                 {merged.length || !loading || wideningInProgress
                   ? discoverTerritories(resultGroups).map((territory) =>
@@ -1554,7 +1575,7 @@ export function BrowsePage({
                         },
                       )}
                     >
-                      Strategy needs context
+                      Clarify evidence need
                     </button>
                   ) : hasEvidenceGap ? (
                     <button
@@ -1562,7 +1583,7 @@ export function BrowsePage({
                       className="rd-v2-discover-strategy-trigger is-ready"
                       onClick={() => setRouteComparisonOpen(true)}
                     >
-                      Custom strategy ready
+                      Review sourcing strategy
                     </button>
                   ) : null}
                 </div>
@@ -1704,6 +1725,8 @@ export function BrowsePage({
               )}
               onSubmitted={onIntentSubmitted}
               onOpenHistory={onOpenIntentHistory}
+              resourcesRollup={resourcesRollup}
+              deskHealth={deskHealth}
             />
           </div>
         </div>

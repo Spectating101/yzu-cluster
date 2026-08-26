@@ -1,6 +1,6 @@
 import { mkdir } from "node:fs/promises";
 import { test, expect } from "@playwright/test";
-import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
+import { MOCK_DISCOVER_ASSESSMENT, mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 
 const OUT = "artifacts/discover-convergence";
 
@@ -85,10 +85,17 @@ test.describe("Discover visual convergence", () => {
     const coverage = page.getByTestId("discover-coverage");
     await expect(coverage).toBeVisible();
     await expect(page.getByTestId("discover-query-composer")).toBeVisible();
-    await expect(page.getByText("Library first", { exact: true })).toBeVisible();
-    await expect(page.getByText("Reviewed acquisition", { exact: true })).toBeVisible();
-
     const path = coverage.locator(".rd-v2-discover-evidence-path");
+    const stages = path.locator("li");
+    await expect(stages).toHaveCount(4);
+    await expect(stages.nth(0)).toContainText("Evidence need");
+    await expect(stages.nth(0)).toContainText("reviewable evidence contract");
+    await expect(stages.nth(1)).toContainText("Library position");
+    await expect(stages.nth(1)).toContainText("before new acquisition");
+    await expect(stages.nth(2)).toContainText("Sourcing strategy");
+    await expect(stages.nth(2)).toContainText("unresolved evidence gaps");
+    await expect(stages.nth(3)).toContainText("Reviewed acquisition");
+    await expect(stages.nth(3)).toContainText("approval before collection");
     await page.screenshot({ path: `${OUT}/discover-idle-1440x900.png`, fullPage: false });
     const offenders = await path.locator("li").evaluateAll((nodes) =>
       nodes.map((node, index) => ({
@@ -132,6 +139,35 @@ test.describe("Discover visual convergence", () => {
     await page.setViewportSize({ width: 1920, height: 1080 });
     await assertNoHorizontalOverflow(page);
     await page.screenshot({ path: `${OUT}/discover-results-1920x1080.png`, fullPage: false });
+  });
+
+
+  test("research question promotes evidence position, sourcing strategy, and capacity above search results", async ({ page }) => {
+    await mockV2Api(page, { ...resultFixture(), assessmentBody: MOCK_DISCOVER_ASSESSMENT });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await openDiscover(page);
+    await search(page, "Do we hold issuer-quarter governance data for Taiwan?");
+
+    const workspace = page.locator(".rd-v2-evidence-brief.is-workspace");
+    await expect(workspace).toBeVisible();
+    await expect(workspace).toContainText("Partially covered");
+    await expect(workspace).toContainText("Library support");
+    await expect(workspace).toContainText("One precise gap");
+    await expect(workspace).toContainText("MOPS governance disclosures");
+    await expect(workspace).toContainText("Execution capacity");
+    await expect(workspace).toContainText(/Collector fleet|BigQuery|GDrive vault/);
+    await expect(workspace).toContainText("No worker or quota is assigned here");
+
+    const workspaceBox = await workspace.boundingBox();
+    const resultsBox = await page.getByTestId("discover-ranked-results").boundingBox();
+    expect(workspaceBox && resultsBox).toBeTruthy();
+    expect(workspaceBox.y).toBeLessThan(resultsBox.y);
+    await assertNoHorizontalOverflow(page);
+    await page.screenshot({ path: `${OUT}/discover-investigation-1440x900.png`, fullPage: false });
+
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await assertNoHorizontalOverflow(page);
+    await page.screenshot({ path: `${OUT}/discover-investigation-1920x1080.png`, fullPage: false });
   });
 
   test("selected offering turns the rail into a bounded decision surface", async ({ page }) => {

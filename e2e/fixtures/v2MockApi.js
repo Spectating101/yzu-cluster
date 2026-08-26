@@ -346,6 +346,20 @@ export async function mockV2Api(
     historyBody = { items: [] },
     profileBody = { found: true, profile: { name_en: "Test Prof", discipline: "YZU" } },
     assessmentBody = null,
+    gapRoutesBody = {
+      gaps: ["fields"],
+      routes: [{
+        dimension: "fields",
+        source_id: "mops_taiwan",
+        label: "MOPS governance disclosures",
+        provider: "TWSE / MOPS",
+        access_mode: "live_connector",
+        reason: "Official governance disclosures can close the missing board fields.",
+        actionable: true,
+        action: "collect",
+      }],
+      reason: "ok",
+    },
     chatReply = "",
   } = {},
 ) {
@@ -451,6 +465,10 @@ export async function mockV2Api(
       });
     });
   }
+  await page.route("**/library/discover/routes", (route) => {
+    if (route.request().method() !== "POST") return route.continue();
+    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(gapRoutesBody) });
+  });
   await page.route("**/library/discover/collect", (route) => {
     if (route.request().method() !== "POST") {
       return route.continue();

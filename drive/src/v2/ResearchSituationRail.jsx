@@ -80,11 +80,15 @@ function discoverSituation({ browseTarget, browseLifecycle, historyEvent, discov
   }
 
   if (discoverAssessment?.active) {
-    const verdict = humanize(discoverAssessment.verdict || discoverAssessment.status);
+    const result = discoverAssessment.result || discoverAssessment;
+    const verdict = humanize(result.verdict || result.assessment_status || result.status);
+    const gap = text(result.gap?.statement);
     return {
       status: verdict || "Coverage assessment",
-      facts: [text(discoverAssessment.question), text(discoverAssessment.gap?.statement)],
-      next: "Use the coverage assessment to decide whether held evidence is sufficient or wider sourcing is justified.",
+      facts: [text(discoverAssessment.question || result.question), gap],
+      next: gap
+        ? "Review the evidence gap and declared sourcing routes before requesting new data."
+        : "Confirm whether held evidence is sufficient before widening the sourcing search.",
     };
   }
 

@@ -14,6 +14,7 @@ import "./interaction-feedback.css";
 import "./decoration-layer.css";
 import "./release-scale.css"; /* laptop/desktop resolution ladder + rail collapse */
 import "./library-workspace.css";
+import "./discover-visual-freeze.css"; /* Discover evidence investigation freeze */
 import "./synthesis-workstation.css"; /* >=1600px Synthesis density and proof layout */
 import { InteractionProvider } from "./InteractionGuidance.jsx";
 import { V2App } from "./App.jsx";

@@ -83,8 +83,11 @@ test.describe("Discover adaptive Explore", () => {
       "Do we hold issuer-quarter governance data for Taiwan?",
     );
     await rail.getByRole("tab", { name: "Detail" }).click();
-    const result = page.getByTestId("discover-assessment-result");
+    const result = page.locator(".rd-v2-evidence-brief.is-workspace").getByTestId("discover-assessment-result");
     await expect(result).toBeVisible();
+    await expect(page.getByTestId("discover-query-composer")).toHaveCount(1);
+    await expect(page.getByLabel("Explore question")).toHaveCount(0);
+    await expect(page.getByTestId("discover-interpreting")).toHaveCount(0);
     await expect(page.getByTestId("discover-verdict")).toHaveText("Partially covered");
     await expect(page.getByTestId("discover-ranked-results")).toContainText("MOPS financial statements");
     await expect(rail.getByRole("tab", { name: "Detail" })).toHaveAttribute("aria-selected", "true");
@@ -117,7 +120,7 @@ test.describe("Discover adaptive Explore", () => {
 
     await expect(page.getByTestId("discover-verdict")).toHaveText("Not yet recorded");
     await expect(page.getByTestId("discover-verdict")).toHaveClass(/insufficient_metadata/);
-    await expect(page.getByRole("button", { name: "Strategy needs context" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Clarify evidence need" })).toBeVisible();
     await expect(page.getByTestId("discover-route-comparison")).toHaveCount(0);
   });
 
@@ -130,7 +133,7 @@ test.describe("Discover adaptive Explore", () => {
     await waitForShell(page);
     await search(page, "What data covers Taiwan issuer-quarter governance?");
 
-    await page.getByRole("button", { name: "Custom strategy ready" }).click();
+    await page.getByRole("button", { name: "Review sourcing strategy" }).click();
     const comparison = page.getByTestId("discover-route-comparison");
     await expect(comparison).toBeVisible();
     await expect(comparison).toContainText("How it answers the question");
@@ -197,11 +200,11 @@ test.describe("Discover adaptive Explore", () => {
     const grip = page.locator(".rd-v2-rail-mobile-grip");
     if (await grip.getAttribute("aria-expanded") === "true") await grip.click();
 
-    const briefBox = await page.getByTestId("discover-interpreting").boundingBox();
     const filterBox = await page.getByTestId("discover-filter-menu").boundingBox();
-    expect(briefBox).not.toBeNull();
+    const workspaceBox = await page.locator(".rd-v2-evidence-brief.is-workspace").boundingBox();
     expect(filterBox).not.toBeNull();
-    expect(filterBox.y).toBeGreaterThanOrEqual(briefBox.y + briefBox.height - 1);
+    expect(workspaceBox).not.toBeNull();
+    expect(workspaceBox.y).toBeGreaterThanOrEqual(filterBox.y + filterBox.height - 1);
 
     const rowBox = await page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidate").first().boundingBox();
     expect(rowBox).not.toBeNull();
