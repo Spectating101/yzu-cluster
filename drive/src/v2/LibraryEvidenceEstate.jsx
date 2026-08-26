@@ -72,7 +72,6 @@ export function LibraryEvidenceEstate({
   collectionsLoading = false,
   onOpenCollection,
   onSelectDataset,
-  onPreviewDataset,
 }) {
   const showKind = assets.some((item) => presentationKind(item?.row || item) !== "dataset");
   const ledgerClass = `rd-v2-cap-ledger with-verify${showKind ? " show-kind" : ""}`;
@@ -110,7 +109,9 @@ export function LibraryEvidenceEstate({
               ))}
             </div>
           ) : (
-            <span className="rd-v2-cap-collections-loading">Research collections are still loading…</span>
+            <span className="rd-v2-cap-collections-loading" role="status" data-testid="library-collections-loading">
+              Research collections are still loading…
+            </span>
           )}
         </div>
       ) : null}
@@ -137,7 +138,6 @@ export function LibraryEvidenceEstate({
                   data-kind="evidence"
                   role="row"
                   onClick={() => onSelectDataset?.(row)}
-                  onDoubleClick={() => onPreviewDataset?.(row)}
                 >
                   <span className="rd-v2-cap-evidence" role="cell">
                     <strong>{displayName(row)}</strong>
