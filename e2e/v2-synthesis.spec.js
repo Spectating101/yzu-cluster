@@ -166,6 +166,10 @@ async function capture(page, name) {
   await page.screenshot({ path: `${renderDir}/${name}.png`, fullPage: true });
 }
 
+async function selectThread(page, label) {
+  await page.getByTestId("synthesis-thread-item").filter({ hasText: label }).click();
+}
+
 async function installSynthesisThreadMock(page) {
   const threads = new Map(
     [EXPLORING_THREAD, PROPOSAL_THREAD, REGISTERED_THREAD, QUERY_READY_THREAD].map((thread) => [thread.id, structuredClone(thread)]),
@@ -393,12 +397,14 @@ test.describe("v2 Synthesis durable thread surface", () => {
     }));
     await page.goto("/?tab=synthesis", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
+    await selectThread(page, "Historical stablecoin attention");
 
-    const workflow = page.getByRole("list", { name: "Synthesis workflow" });
+    const workflow = page.getByRole("list", { name: "Synthesis project stages" });
     await expect(workflow).toContainText("Define");
-    await expect(workflow).toContainText("Map evidence");
-    await expect(workflow).toContainText("Reason");
-    await expect(workflow).toContainText("Approve");
+    await expect(workflow).toContainText("Ground");
+    await expect(workflow).toContainText("Review");
+    await expect(workflow).toContainText("Build");
+    await expect(workflow).toContainText("Reuse");
     await expect(page.getByTestId("synthesis-workflow-next")).toContainText(
       "Assistant unverified; review the evidence map or check Resources before reasoning.",
     );
@@ -449,6 +455,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
     }));
     await page.goto("/?tab=synthesis", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
+    await selectThread(page, "Historical stablecoin attention");
 
     const action = page
       .getByLabel("What happens next")
@@ -739,6 +746,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
   });
 
   test("sends the selected durable thread to the shared Ask rail", async ({ page }) => {
+    await selectThread(page, "Historical stablecoin attention");
     await page.getByRole("button", { name: "Discuss construction in Ask" }).click();
     const rail = page.locator("aside.rd-v2-rail");
     await expect(rail).toContainText("Ask · synthesis thread");
@@ -756,7 +764,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await capture(page, "05-shared-ask-desktop");
   });
 
-  test("starts reviewable method reasoning from an empty construction", async ({ page }) => {
+  test("starts reviewable method reasoning from a grounded construction", async ({ page }) => {
     const updated = structuredClone(EXPLORING_THREAD);
     updated.updated_at = "2026-07-19T09:03:00+00:00";
     updated.state.maturity = "review";
@@ -791,6 +799,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await page.route("**/api/library/chat/stream", proposalReply);
     await page.route("**/api/library/chat", proposalReply);
 
+    await selectThread(page, "Historical stablecoin attention");
     await page.getByRole("button", { name: "Start method reasoning" }).click();
 
     await expect.poll(() => prompt).toContain("create one reviewable Synthesis proposal");
@@ -835,6 +844,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await page.route("**/api/library/chat/stream", proposalReply);
     await page.route("**/api/library/chat", proposalReply);
 
+    await selectThread(page, "Historical stablecoin attention");
     await page.getByRole("button", { name: "Discuss construction in Ask" }).click();
     await page.getByTestId("ask-composer").fill("Persist the review proposal.");
     await page.getByRole("button", { name: "Send", exact: true }).click();
@@ -850,7 +860,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
   test("creates a durable thread quietly, then hands mapped evidence to Ask only on explicit reasoning", async ({ page }) => {
     await page.getByRole("button", { name: "+ New" }).click();
     await expect(page.locator(".s04-intent-contract")).toHaveCount(0);
-    await expect(page.getByText("No method exists yet.")).toBeVisible();
+    await expect(page.getByText(/Nothing is built here\./)).toBeVisible();
     await expect(page.locator("aside.rd-v2-rail")).toContainText("Synthesis studio");
     await expect(page.getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "true");
     await capture(page, "06-new-project-entry-desktop");
@@ -1053,6 +1063,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
     });
     await page.reload({ waitUntil: "domcontentloaded" });
     await waitForShell(page);
+    await selectThread(page, "Historical stablecoin attention");
 
     await page.getByRole("button", { name: /Regulatory filings/ }).click();
     await expect(page.getByTestId("synthesis-selected-field")).toContainText("Regulatory filings");
@@ -1129,6 +1140,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
     });
     await page.reload({ waitUntil: "domcontentloaded" });
     await waitForShell(page);
+    await selectThread(page, "Historical stablecoin attention");
 
     await page.getByRole("button", { name: /Restricted vendor API/ }).click();
     await expect(page.getByTestId("synthesis-selected-field")).toContainText("Restricted vendor API");
@@ -1165,12 +1177,10 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await page.setViewportSize({ width: 390, height: 1200 });
     await page.reload({ waitUntil: "domcontentloaded" });
     await waitForShell(page);
-    // The desktop thread list is intentionally hidden on a narrow screen;
-    // select the same durable thread through the mobile picker a researcher
-    // can actually use.
-    await page.getByRole("combobox", { name: "Choose Synthesis thread" }).selectOption({
-      label: "Weekly trust panel",
-    });
+    // Mobile enters the proposal from the same workspace-home decision card a
+    // researcher sees; once selected, the compact thread picker becomes available.
+    await page.getByRole("button", { name: /Weekly trust panel.*Review proposal/ }).first().click();
+    await expect(page.getByRole("combobox", { name: "Choose Synthesis thread" })).toHaveValue("thread-proposal");
     const proposal = page.getByTestId("synthesis-proposal-state");
     await expect(proposal).toContainText("Held input");
     await expect(proposal).toContainText("Construction");
@@ -1254,7 +1264,7 @@ test.describe("v2 Synthesis evidence panels", () => {
     }));
     const panel = page.getByTestId("synthesis-join-decision");
     await expect(panel).toBeVisible();
-    await expect(page.getByTestId("synthesis-join-intersection")).toBeVisible();
+    await expect(page.getByTestId("synthesis-join-overlap-visual")).toBeVisible();
     await expect(panel).toContainText("520 on the right match nothing here");
     await expect(panel).toContainText("a different population");
     await expect(panel).toContainText("the column is empty on the right side");
@@ -1496,13 +1506,16 @@ test.describe("v2 Synthesis measured evidence integration", () => {
     await expect(page.getByRole("list", { name: "Measured risks" })).toContainText("3Flagged");
     await expect(page.getByRole("list", { name: "Measured risks" })).toContainText("1Look-ahead");
     await expect(page.getByRole("list", { name: "Measured risks" })).toContainText("2Scale twins");
-    await expect(page.getByTestId("synthesis-opening-rail")).toContainText(
-      "2 mapped inputs · 5 columns profiled · no assistant involved",
-    );
+    const openingRail = page.getByTestId("synthesis-opening-rail");
+    await expect(openingRail).toContainText("Evidence");
+    await expect(openingRail).toContainText("2 mapped");
+    await expect(openingRail).toContainText("Measured");
+    await expect(openingRail).toContainText("5 columns");
+    await expect(openingRail).toContainText("Method");
+    await expect(openingRail).toContainText("Not accepted");
+    await expect(openingRail).toContainText("Output");
+    await expect(openingRail).toContainText("Not registered");
     expect(renderErrors, "measured state must not feed selection back into an infinite render loop").toEqual([]);
-    await expect(page.getByTestId("synthesis-opening-rail")).toContainText(
-      "1 look-ahead column could leak future information",
-    );
     await expect(page.getByTestId("synthesis-method-surface")).toContainText("2 mapped Library inputs");
     await expect(page.getByTestId("synthesis-measured-dataset")).toHaveCount(2);
     await expect(page.getByTestId("synthesis-unit-conflict")).toContainText("Measured warning");
