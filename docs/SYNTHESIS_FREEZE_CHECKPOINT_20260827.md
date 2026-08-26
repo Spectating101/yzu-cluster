@@ -8,6 +8,8 @@ Freeze boundary under review:
 - bounded Preview authority and reversible state transitions;
 - finalized reproducibility surface (`method.py` View/Download);
 - LLM-proposed method provenance with deterministic accepted-spec export;
+- Ground-only automatic held-evidence discovery, which stops once a recommendation or proposal exists;
+- decision-complete recommended opening at 1440×900 without requiring desktop scroll;
 - 1440/1920 and production-scale render contracts.
 
 This checkpoint does not merge or deploy the hardening branch. Production promotion remains a separate decision.
