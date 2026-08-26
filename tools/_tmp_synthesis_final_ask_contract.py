@@ -23,6 +23,11 @@ replacements = [
         '    await expect(page.getByTestId("synthesis-studio").getByRole("heading", { name: "Weekly issuer attention panel for Taiwan filings" })).toBeVisible();\n',
         "scope duplicated construction heading to synthesis studio",
     ),
+    (
+        '    await expect(page.locator("aside.rd-v2-rail")).toContainText("Ask · synthesis thread");\n',
+        '    await expect(page.locator("aside.rd-v2-rail")).toContainText("Ask · Method design");\n',
+        "explicit reasoning uses the authoritative Method design phase",
+    ),
 ]
 for old, new, label in replacements:
     count = text.count(old)
