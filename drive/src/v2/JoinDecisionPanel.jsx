@@ -51,11 +51,7 @@ export function JoinDecisionPanel({
   if (!candidates.length) return null;
   const best = candidates[0];
   const verdict = coverageVerdict(best);
-  // SynthesisPage intentionally copies only measured state fields it already
-  // understands. The API client therefore carries higher-order overlap as
-  // non-enumerable metadata on the join-candidate array until the page contract
-  // itself is widened. Keep the explicit prop as the preferred path.
-  const measuredMultiOverlap = multiOverlap || coverage?.multiOverlap || null;
+  const measuredMultiOverlap = multiOverlap || null;
   const leftFallback = best.leftLabel || leftLabel;
   const rightFallback = best.rightLabel || rightLabel;
   const hasMeasuredMultiOverlap = Boolean(

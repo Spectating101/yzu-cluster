@@ -544,24 +544,7 @@ export function getSynthesisMeasurements(threadId, { maxInputs = 8 } = {}) {
   const params = new URLSearchParams({ max_inputs: String(maxInputs) });
   return fetchJson(
     `/library/synthesis/threads/${encodeURIComponent(threadId)}/measurements?${params}`,
-  ).then((payload) => {
-    const joinCandidates = Array.isArray(payload?.join_candidates)
-      ? [...payload.join_candidates]
-      : [];
-    // SynthesisPage currently copies join_candidates but not the newly widened
-    // multi_overlap field. Preserve that read-only measurement alongside the
-    // array object so JoinDecisionPanel can render the production measurement
-    // without inventing higher-order intersections or widening durable thread state.
-    if (payload?.multi_overlap) {
-      Object.defineProperty(joinCandidates, "multiOverlap", {
-        value: payload.multi_overlap,
-        enumerable: false,
-        configurable: false,
-        writable: false,
-      });
-    }
-    return { ...payload, join_candidates: joinCandidates };
-  });
+  );
 }
 
 /** Read-only, held-only candidate inputs for a Synthesis thread. */

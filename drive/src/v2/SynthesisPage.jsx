@@ -60,10 +60,17 @@ const INTERPRETING_STALL_MS = 60000;
 
 const MEASURED_STATE_FIELDS = [
   "column_profiles",
+  "column_profiles_by_dataset",
+  "input_measurements",
   "unit_conflict",
   "join_candidates",
+  "join_candidate_dataset_id",
+  "join_candidate_rows",
+  "multi_overlap",
   "unmeasured",
   "measured_inputs",
+  "truncated_inputs",
+  "max_inputs",
   "join_unmeasured_because",
   "input_dataset_ids",
   "measurement_basis",
@@ -79,6 +86,9 @@ function threadWithMeasurements(thread, measurements) {
   // stale value that may have arrived in an older thread payload.
   if (!Object.prototype.hasOwnProperty.call(measured, "unit_conflict")) measured.unit_conflict = null;
   if (!Object.prototype.hasOwnProperty.call(measured, "join_candidates")) measured.join_candidates = [];
+  if (!Object.prototype.hasOwnProperty.call(measured, "join_candidate_dataset_id")) measured.join_candidate_dataset_id = null;
+  if (!Object.prototype.hasOwnProperty.call(measured, "join_candidate_rows")) measured.join_candidate_rows = null;
+  if (!Object.prototype.hasOwnProperty.call(measured, "multi_overlap")) measured.multi_overlap = null;
   return { ...thread, state: { ...(thread.state || {}), ...measured } };
 }
 
@@ -501,7 +511,6 @@ function WhatHappensNext({
   reasoningAvailable = false,
   reasoningStatus = "Assistant runtime not verified",
   onOpenResources,
-  onReviewProposal,
 }) {
   const rec = recommendedConstruction(thread);
   const hasProposal = Boolean(thread?.state?.proposal);
@@ -556,26 +565,21 @@ function WhatHappensNext({
               Check Resources
             </button>
           ) : null}
-          <button
-            type="button"
-            className="s04-next-primary"
-            disabled={
-              reasoningPending ||
-              (hasProposal
-                ? !onReviewProposal
-                : !reasoningAvailable || (hasRecommendation ? !onAccept : !onStartReasoning))
-            }
-            onClick={() => (hasProposal ? onReviewProposal?.() : hasRecommendation ? onAccept?.() : onStartReasoning?.())}
-            title={!hasProposal && !reasoningAvailable ? reasoningStatus : undefined}
-          >
-            {hasProposal
-              ? "Review proposal"
-              : hasRecommendation
-              ? "Accept & design method"
-              : reasoningPending
-                ? "Method reasoning in Ask"
-                : "Start method reasoning"}
-          </button>
+          {!hasProposal ? (
+            <button
+              type="button"
+              className="s04-next-primary"
+              disabled={reasoningPending || !reasoningAvailable || (hasRecommendation ? !onAccept : !onStartReasoning)}
+              onClick={() => (hasRecommendation ? onAccept?.() : onStartReasoning?.())}
+              title={!reasoningAvailable ? reasoningStatus : undefined}
+            >
+              {hasRecommendation
+                ? "Accept & design method"
+                : reasoningPending
+                  ? "Method reasoning in Ask"
+                  : "Start method reasoning"}
+            </button>
+          ) : null}
         </div>
       </footer>
       <em>
@@ -887,7 +891,7 @@ function proposalOperationLabel(operation) {
   );
 }
 
-function ProposalReview({ thread, busy, onDecide, onAsk, reviewRef }) {
+function ProposalReview({ thread, busy, onDecide, onAsk }) {
   const state = thread?.state || {};
   const proposal = state.proposal || {};
   const spec = proposal.execution_spec || {};
@@ -915,7 +919,7 @@ function ProposalReview({ thread, busy, onDecide, onAsk, reviewRef }) {
   ).filter(Boolean);
   const canDecide = Boolean(proposal.id && proposal.proposal_hash);
   return (
-    <section ref={reviewRef} className="s04-card s04-proposal-card" data-testid="synthesis-proposal-state">
+    <section className="s04-card s04-proposal-card" data-testid="synthesis-proposal-state">
       <header className="s04-title">
         <div>
           <small>Review proposed change</small>
@@ -989,7 +993,7 @@ function ProposalReview({ thread, busy, onDecide, onAsk, reviewRef }) {
         </p>
         <button type="button" className="rd-v2-btn" onClick={() => onAsk("Challenge this Synthesis proposal and explain every methodological consequence.")}>Challenge in Ask</button>
         <button type="button" className="rd-v2-btn" disabled={busy || !canDecide} onClick={() => onDecide("reject")}>Reject</button>
-        <button type="button" className="rd-v2-btn primary" disabled={busy || !canDecide} onClick={() => onDecide("accept")}>Accept proposal</button>
+        <button type="button" className="rd-v2-btn primary" disabled={busy || !canDecide} onClick={() => onDecide("accept")}>Accept & test method</button>
       </footer>
     </section>
   );
@@ -1171,10 +1175,10 @@ function ExecutionRecord({ thread, busy, onRequest, onReview, onAsk, onOpenDatas
         ) : null}
         {previewEligible ? (
           <button type="button" className="rd-v2-btn primary" disabled={busy} onClick={onRequest}>
-            {previewTruth.succeeded ? "Request execution approval" : previewTruth.failed ? "Rerun bounded preview" : "Run bounded preview"}
+            {previewTruth.succeeded ? "Review execution approval" : previewTruth.failed ? "Rerun bounded test" : "Run bounded test"}
           </button>
         ) : null}
-        {pendingApproval ? <button type="button" className="rd-v2-btn primary" onClick={() => onReview?.(execution)}>Review approval</button> : null}
+        {pendingApproval ? <button type="button" className="rd-v2-btn primary" onClick={() => onReview?.(execution)}>Review execution approval</button> : null}
         {active ? <span className="s04-live-note">This thread refreshes automatically.</span> : null}
         <button type="button" className="rd-v2-btn" onClick={() => onAsk("Explain the exact Preview/Test or execution state and which evidence is still missing before this output can be trusted.")}>Ask about this state</button>
       </footer>
@@ -1588,7 +1592,7 @@ export function SynthesisPage({
   const measurementNotified = useRef("");
   const interpretingSinceRef = useRef(null);
   const interpretingThreadIdRef = useRef("");
-  const proposalReviewRef = useRef(null);
+  const autoEvidenceSearchRef = useRef("");
   const returnThreadIdRef = useRef("");
 
   const replaceThread = useCallback((next) => {
@@ -1903,7 +1907,7 @@ export function SynthesisPage({
     );
   };
 
-  const findHeldEvidence = async () => {
+  const findHeldEvidence = useCallback(async () => {
     if (!selected?.id) return;
     setMappingEvidence(true);
     setError("");
@@ -1914,7 +1918,17 @@ export function SynthesisPage({
     } finally {
       setMappingEvidence(false);
     }
-  };
+  }, [selected?.id]);
+
+  // Held-evidence discovery is read-only and deterministic. Run it once when a
+  // pre-acceptance thread first needs evidence; the researcher still decides
+  // which inputs are actually added to the durable construction.
+  useEffect(() => {
+    if (!selected?.id || !isPreAcceptance(selected) || evidenceNodes(selected).length) return;
+    if (evidenceProposal || mappingEvidence || autoEvidenceSearchRef.current === selected.id) return;
+    autoEvidenceSearchRef.current = selected.id;
+    findHeldEvidence();
+  }, [evidenceProposal, findHeldEvidence, mappingEvidence, selected]);
 
   const applyHeldEvidence = async (reviewedDatasetIds = []) => {
     if (!selected?.id) return;
@@ -2056,6 +2070,19 @@ export function SynthesisPage({
       });
       replaceThread(next);
       onSelectThread?.(next);
+      if (decision === "accept" && next?.state?.execution_spec) {
+        try {
+          const previewResult = await requestSynthesisExecution(next.id, { action: "preview" });
+          const previewThread = previewResult?.thread || (previewResult?.state ? previewResult : await refreshThread(next.id));
+          if (previewThread) {
+            replaceThread(previewThread);
+            onSelectThread?.(previewThread);
+          }
+        } catch (previewCause) {
+          setError(text(previewCause?.message, "The method was accepted, but its bounded test could not be completed."));
+          refreshThread(next.id).catch(() => {});
+        }
+      }
     } catch (cause) {
       setError(text(cause?.message, "The proposal changed before this decision could be saved."));
       refreshThread().catch(() => {});
@@ -2076,6 +2103,10 @@ export function SynthesisPage({
         onSelectThread?.(current);
       }
       const currentStatus = text(authoritative?.state?.execution?.status).toLowerCase().replace(/-/g, "_");
+      if (currentStatus === "pending_approval") {
+        onReviewExecution?.(authoritative.state.execution);
+        return;
+      }
       if (currentStatus && currentStatus !== "spec_accepted") return;
       const preview = synthesisPreviewTruth(authoritative);
       const action = preview.succeeded ? "request_approval" : "preview";
@@ -2084,6 +2115,10 @@ export function SynthesisPage({
       if (next) {
         replaceThread(next);
         onSelectThread?.(next);
+        const nextStatus = text(next?.state?.execution?.status).toLowerCase().replace(/-/g, "_");
+        if (action === "request_approval" && nextStatus === "pending_approval") {
+          onReviewExecution?.(next.state.execution);
+        }
       }
     } catch (cause) {
       setError(text(cause?.message, "The bounded preview or execution request could not be completed."));
@@ -2202,7 +2237,6 @@ export function SynthesisPage({
                     reasoningAvailable={reasoningAvailable}
                     reasoningStatus={reasoningStatus}
                     onOpenResources={() => onGoTab?.("resources")}
-                    onReviewProposal={() => proposalReviewRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
                   />
                   {mode === "proposal" ? (
                     <ProposalReview
@@ -2210,7 +2244,6 @@ export function SynthesisPage({
                       busy={busy}
                       onDecide={decideProposal}
                       onAsk={ask}
-                      reviewRef={proposalReviewRef}
                     />
                   ) : null}
                 </>
@@ -2243,6 +2276,7 @@ export function SynthesisPage({
                   rightLabel={softIdentifier(displayedSelected.state?.join_candidate_dataset_id || displayedSelected.state?.input_dataset_ids?.[1], "A second dataset")}
                   rightTotal={displayedSelected.state?.join_candidate_rows}
                   coverage={displayedSelected.state?.join_candidates}
+                  multiOverlap={displayedSelected.state?.multi_overlap}
                   onChooseKey={reasoningAvailable ? (candidate) => ask(`Use ${candidate.leftKey} to ${candidate.rightKey} for this join.`) : null}
                   onChooseOutcome={reasoningAvailable ? (outcome) => ask(`Take the "${outcome.label}" option for this join, and record why.`) : null}
                   onChooseCollapse={reasoningAvailable ? (choice) => ask(`Resolve the repeated key with "${choice.label}".`) : null}
