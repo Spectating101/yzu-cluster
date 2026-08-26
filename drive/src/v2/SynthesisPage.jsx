@@ -1814,6 +1814,10 @@ export function SynthesisPage({
   useEffect(() => {
     setEvidenceProposal(null);
     setSelectedField(null);
+    // Auto-discovery is once per visit, not once forever per thread id. Leaving
+    // and reopening an unmapped construction should restore its read-only held
+    // evidence proposal without requiring an obsolete manual search control.
+    autoEvidenceSearchRef.current = "";
   }, [selected?.id]);
 
   const selectThread = async (threadId) => {
