@@ -1,0 +1,35 @@
+name: Synthesis revisit evidence patch
+
+on:
+  push:
+    branches:
+      - hardening/synthesis-analytical-verification-20260826
+    paths:
+      - scripts/synthesis_revisit_evidence_patch.py
+      - .github/workflows/synthesis-revisit-evidence-patch.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Apply exact selection-lifecycle reset
+        run: |
+          python scripts/synthesis_revisit_evidence_patch.py
+          git diff --check
+          if git diff --quiet; then
+            echo 'Already applied.'
+          else
+            git config user.name 'synthesis-freeze-bot'
+            git config user.email 'synthesis-freeze-bot@users.noreply.github.com'
+            git add drive/src/v2/SynthesisPage.jsx
+            git commit -m 'fix(synthesis): restore evidence discovery on revisit'
+            git push origin HEAD:hardening/synthesis-analytical-verification-20260826
+          fi
