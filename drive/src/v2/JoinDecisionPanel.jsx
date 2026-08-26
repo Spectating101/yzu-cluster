@@ -1,5 +1,5 @@
 import { collapseChoices, coverageVerdict, joinOutcomes, needsCollapse, rankCandidates } from "./joinCandidates.js";
-import { intersectionBands, intersectionCaption } from "./coverageBands.js";
+import { JoinOverlapVisual } from "./SynthesisVisualReasoning.jsx";
 
 function CoverageBar({ value }) {
   const share = Math.max(0, Math.min(100, Number(value || 0)));
@@ -49,28 +49,13 @@ export function JoinDecisionPanel({
       </header>
 
       {best.usable && best.total ? (
-        <figure className="s04-intersection" data-testid="synthesis-join-intersection">
-          <span className="s04-bands">
-            {intersectionBands({
-              leftTotal: best.total,
-              rightTotal: rightTotal || best.rightTotal || best.total,
-              both: best.matched,
-              leftLabel,
-              rightLabel,
-            }).bands.map((band) => (
-              <b key={band.id} data-band={band.id} style={{ width: `${band.percent}%` }}>
-                {band.count.toLocaleString()}
-              </b>
-            ))}
-          </span>
-          <figcaption>
-            {intersectionCaption(intersectionBands({
-              leftTotal: best.total,
-              rightTotal: rightTotal || best.rightTotal || best.total,
-              both: best.matched,
-            }))}
-          </figcaption>
-        </figure>
+        <JoinOverlapVisual
+          leftLabel={leftLabel}
+          rightLabel={rightLabel}
+          leftTotal={best.total}
+          rightTotal={rightTotal || best.rightTotal || best.total}
+          shared={best.matched}
+        />
       ) : null}
 
       <div className="s04-options">
