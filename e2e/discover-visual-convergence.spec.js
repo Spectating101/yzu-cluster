@@ -140,7 +140,12 @@ test.describe("Discover visual convergence", () => {
     await openDiscover(page);
     await search(page, "stablecoin market evidence");
 
-    await page.locator("button.rd-v2-discover-candidate").first().click();
+    const visibleOffering = page
+      .getByTestId("discover-ranked-results")
+      .locator("button.rd-v2-discover-candidate")
+      .first();
+    await expect(visibleOffering).toBeVisible();
+    await visibleOffering.click();
     const evaluation = page.getByTestId("discover-eval-surface");
     await expect(evaluation).toBeVisible();
     await expect(evaluation).toContainText("DataCite live catalogue");
