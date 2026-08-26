@@ -143,7 +143,7 @@ function eightWayOverlap() {
     })),
     pairwise: [],
     exact_for_read_window: true,
-    note: "Bounded key-overlap sample; sources reached the read cap.",
+    note: "Bounded key-overlap window; sources reached the deterministic read cap.",
   };
 }
 
@@ -155,6 +155,10 @@ const THREE_NODES = [
 const PANEL_NODES = [
   node("issuer_week_panel", "Issuer-week research panel", 0),
   node("market_week_panel", "Weekly market evidence", 1),
+];
+const INFORMATIVE_NODES = [
+  node("issuer_identity_panel", "Issuer identity panel", 0),
+  node("reference_identity_panel", "Reference identity panel", 1),
 ];
 const EIGHT_OVERLAP = eightWayOverlap();
 const EIGHT_NODES = EIGHT_OVERLAP.sources.map((source, index) => node(source.dataset_id, source.label, index));
@@ -189,6 +193,7 @@ const CASES = [
           right_key: "entity_id",
           key_parts: ["entity_id"],
           complete_identity_domain: false,
+          identity_capacity: 2,
           left_dataset_id: PANEL_NODES[0].dataset_id,
           right_dataset_id: PANEL_NODES[1].dataset_id,
           left_label: PANEL_NODES[0].label,
@@ -206,6 +211,7 @@ const CASES = [
           right_key: "entity_id + week",
           key_parts: ["entity_id", "week"],
           complete_identity_domain: true,
+          identity_capacity: 4,
           left_dataset_id: PANEL_NODES[0].dataset_id,
           right_dataset_id: PANEL_NODES[1].dataset_id,
           left_label: PANEL_NODES[0].label,
@@ -231,6 +237,60 @@ const CASES = [
       await expect(firstKey).toContainText("entity_id + week");
       await expect(firstKey).toContainText("2 of 4");
       await expect(page.getByTestId("synthesis-join-overlap-visual")).toBeVisible();
+    },
+  },
+  {
+    id: "pairwise-informative-identity",
+    thread: thread("scale-informative-identity", INFORMATIVE_NODES, { title: "Competing identity domains" }),
+    measurement: (t) => measurementFor(t, {
+      join_candidates: [
+        {
+          left_key: "cusip",
+          right_key: "cusip",
+          key_parts: ["cusip"],
+          complete_identity_domain: false,
+          identity_capacity: 1,
+          left_dataset_id: INFORMATIVE_NODES[0].dataset_id,
+          right_dataset_id: INFORMATIVE_NODES[1].dataset_id,
+          left_label: INFORMATIVE_NODES[0].label,
+          right_label: INFORMATIVE_NODES[1].label,
+          matched: 1,
+          left_distinct: 1,
+          right_distinct: 1,
+          right_duplicate_rows: 99,
+          match_rate_pct: 100,
+          usable: true,
+          reason: null,
+        },
+        {
+          left_key: "entity_id",
+          right_key: "entity_id",
+          key_parts: ["entity_id"],
+          complete_identity_domain: false,
+          identity_capacity: 90,
+          left_dataset_id: INFORMATIVE_NODES[0].dataset_id,
+          right_dataset_id: INFORMATIVE_NODES[1].dataset_id,
+          left_label: INFORMATIVE_NODES[0].label,
+          right_label: INFORMATIVE_NODES[1].label,
+          matched: 45,
+          left_distinct: 100,
+          right_distinct: 90,
+          right_duplicate_rows: 10,
+          match_rate_pct: 45,
+          usable: true,
+          reason: null,
+        },
+      ],
+      join_candidate_dataset_id: INFORMATIVE_NODES[1].dataset_id,
+      join_candidate_rows: 100,
+      multi_overlap: null,
+    }),
+    assert: async (page) => {
+      const decision = page.getByTestId("synthesis-join-decision");
+      await expect(decision.locator("header.s04-title em")).toContainText("45%");
+      const firstKey = decision.locator(".s04-options").first().locator("li").first();
+      await expect(firstKey).toContainText("entity_id");
+      await expect(firstKey).toContainText("45 of 100");
     },
   },
   {
@@ -264,7 +324,8 @@ const CASES = [
       await expect(upset).toBeVisible();
       await expect(page.locator(".s04-upset-legend > span")).toHaveCount(8);
       await expect(decision.locator("header.s04-title h2")).toHaveText(EIGHT_OVERLAP.sources[1].label);
-      await expect(page.getByTestId("synthesis-multi-overlap-visual")).toContainText("Bounded overlap sample");
+      await expect(page.getByTestId("synthesis-multi-overlap-visual")).toContainText("Bounded overlap window");
+      await expect(page.getByTestId("synthesis-multi-overlap-visual")).toContainText("representative-sample claim");
       await expect(page.getByTestId("synthesis-multi-overlap-visual")).toContainText("smaller exclusive intersections");
       await expectNoHorizontalOverflow(upset);
       const rowsFit = await page.locator(".s04-upset-row").evaluateAll(
