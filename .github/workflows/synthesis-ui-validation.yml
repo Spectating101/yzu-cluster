@@ -3,9 +3,6 @@ on:
   pull_request:
     branches: [main]
 
-permissions:
-  contents: write
-
 concurrency:
   group: synthesis-ui-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -15,85 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Patch Synthesis centre and API authority wiring
-        shell: bash
-        run: |
-          git fetch origin "${GITHUB_HEAD_REF}:refs/remotes/origin/${GITHUB_HEAD_REF}"
-          git checkout -B synthesis-patch "origin/${GITHUB_HEAD_REF}"
-          python - <<'PY'
-          from pathlib import Path
-          import re
-
-          api = Path("drive/src/v2/api.js")
-          text = api.read_text(encoding="utf-8")
-          old = '''export function requestSynthesisExecution(threadId) {\n  return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}/execute`, {\n    method: "POST",\n    headers: deskHeaders(),\n    body: JSON.stringify({}),\n  });\n}'''
-          new = '''export function requestSynthesisExecution(threadId, { action = "request_approval" } = {}) {\n  const intent = String(action || "request_approval").trim();\n  return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}/execute`, {\n    method: "POST",\n    headers: deskHeaders(),\n    body: JSON.stringify({ action: intent }),\n  });\n}'''
-          if old in text:
-              text = text.replace(old, new, 1)
-          elif new not in text:
-              raise SystemExit("requestSynthesisExecution contract not found")
-          api.write_text(text, encoding="utf-8")
-
-          page = Path("drive/src/v2/SynthesisPage.jsx")
-          text = page.read_text(encoding="utf-8")
-
-          import_anchor = 'import { focusFor } from "./synthesisFocus.js";\n'
-          assist_import = 'import { synthesisAssist } from "@/v2/synthesisAssist.js";\n'
-          if assist_import not in text:
-              if import_anchor not in text:
-                  raise SystemExit("SynthesisPage import anchor not found")
-              text = text.replace(import_anchor, import_anchor + assist_import, 1)
-
-          text, n = re.subn(
-              r'function stageLabel\(thread\) \{.*?\n\}\n\nfunction evidenceNodes',
-              'function stageLabel(thread) {\n  return synthesisAssist(thread).label;\n}\n\nfunction evidenceNodes',
-              text,
-              count=1,
-              flags=re.S,
-          )
-          if n != 1 and 'return synthesisAssist(thread).label;' not in text:
-              raise SystemExit("stageLabel replacement failed")
-
-          text, n = re.subn(
-              r'function threadStatus\(thread\) \{.*?\n\}\n\nfunction threadOutput',
-              'function threadStatus(thread) {\n  return synthesisAssist(thread).status;\n}\n\nfunction threadOutput',
-              text,
-              count=1,
-              flags=re.S,
-          )
-          if n != 1 and 'return synthesisAssist(thread).status;' not in text:
-              raise SystemExit("threadStatus replacement failed")
-
-          old_ask = '''  const ask = (prompt, thread = selected, displayText = prompt) => {\n    const context = thread\n      ? `\\n\\nSynthesis thread: ${titleFor(thread)}\\nObjective: ${text(thread.objective || thread.state?.objective)}\\nDurable status: ${stageLabel(thread)}.`\n      : "\\n\\nSynthesis workspace context.";\n    onAskComposer?.({\n      prompt: `${text(prompt)}${context}`,\n      displayText: text(displayText, "Discuss this synthesis"),\n    });\n  };'''
-          new_ask = '''  const ask = (prompt, thread = selected, displayText = prompt) => {\n    const assist = thread ? synthesisAssist(threadWithMeasurements(thread, measurementByThread[thread.id]?.payload || null)) : null;\n    const context = thread\n      ? `\\n\\nSynthesis thread: ${titleFor(thread)}\\nObjective: ${text(thread.objective || thread.state?.objective)}\\nCurrent stage: ${assist?.label || stageLabel(thread)}.\\nCurrent researcher decision: ${assist?.decision || "Inspect the durable construction"}.\\nRecorded risk: ${assist?.risk || "No additional risk summary recorded"}.`\n      : "\\n\\nSynthesis workspace context.";\n    onAskComposer?.({\n      prompt: `${text(prompt)}${context}`,\n      displayText: text(displayText, "Discuss this synthesis"),\n    });\n  };'''
-          if old_ask in text:
-              text = text.replace(old_ask, new_ask, 1)
-          elif new_ask not in text:
-              raise SystemExit("Ask context replacement failed")
-
-          old_request = '''  const requestExecution = async () => {\n    if (!selected) return;\n    setBusy(true);\n    setError("");\n    try {\n      const current = await refreshThread(selected.id).catch(() => null);\n      if (current) {\n        replaceThread(current);\n        onSelectThread?.(current);\n        const currentStatus = text(current?.state?.execution?.status).toLowerCase().replace(/-/g, "_");\n        if (currentStatus && currentStatus !== "spec_accepted") return;\n      }\n      const result = await requestSynthesisExecution(selected.id);\n      const next = result?.thread || (result?.state ? result : await refreshThread(selected.id));\n      if (next) {\n        replaceThread(next);\n        onSelectThread?.(next);\n      }\n    } catch (cause) {\n      setError(text(cause?.message, "The bounded preview or execution request could not be completed."));\n      refreshThread().catch(() => {});\n    } finally {\n      setBusy(false);\n    }\n  };'''
-          new_request = '''  const requestExecution = async () => {\n    if (!selected) return;\n    setBusy(true);\n    setError("");\n    try {\n      const current = await refreshThread(selected.id).catch(() => null);\n      const authoritative = current || selected;\n      if (current) {\n        replaceThread(current);\n        onSelectThread?.(current);\n      }\n      const currentStatus = text(authoritative?.state?.execution?.status).toLowerCase().replace(/-/g, "_");\n      if (currentStatus && currentStatus !== "spec_accepted") return;\n      const preview = synthesisPreviewTruth(authoritative);\n      const action = preview.succeeded ? "request_approval" : "preview";\n      const result = await requestSynthesisExecution(selected.id, { action });\n      const next = result?.thread || (result?.state ? result : await refreshThread(selected.id));\n      if (next) {\n        replaceThread(next);\n        onSelectThread?.(next);\n      }\n    } catch (cause) {\n      setError(text(cause?.message, "The bounded preview or execution request could not be completed."));\n      refreshThread().catch(() => {});\n    } finally {\n      setBusy(false);\n    }\n  };'''
-          if old_request in text:
-              text = text.replace(old_request, new_request, 1)
-          elif new_request not in text:
-              raise SystemExit("requestExecution replacement failed")
-
-          collapse_anchor = '''                  onChooseCollapse={reasoningAvailable ? (choice) => ask(`Resolve the repeated key with "${choice.label}".`) : null}\n                />'''
-          collapse_new = '''                  onChooseCollapse={reasoningAvailable ? (choice) => ask(`Resolve the repeated key with "${choice.label}".`) : null}\n                  onAsk={reasoningAvailable ? ask : null}\n                />'''
-          if collapse_anchor in text:
-              text = text.replace(collapse_anchor, collapse_new, 1)
-          elif collapse_new not in text:
-              raise SystemExit("Join Ask wiring anchor not found")
-
-          page.write_text(text, encoding="utf-8")
-          PY
-          if ! git diff --quiet -- drive/src/v2/api.js drive/src/v2/SynthesisPage.jsx; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add drive/src/v2/api.js drive/src/v2/SynthesisPage.jsx
-            git commit -m "fix(synthesis): align centre with explicit authority states"
-            git push origin HEAD:"${GITHUB_HEAD_REF}"
-          fi
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
@@ -104,6 +22,11 @@ jobs:
         env:
           YZU_PAGES: "true"
       - name: Run Synthesis interaction suite
+        # Two inspector assertions in the historical S-04 suite describe the
+        # retired "Your intent / Quick questions" rail. Their desktop/mobile
+        # coverage now lives in synthesis-convergence-render.spec.js below;
+        # keep every other interaction case active while that legacy file is
+        # eventually pruned in a normal local patching pass.
         run: >-
           mkdir -p .tmp-pw artifacts/synthesis-renders &&
           TMPDIR=$PWD/.tmp-pw npx playwright test e2e/v2-synthesis.spec.js
@@ -118,6 +41,9 @@ jobs:
           CI: "true"
           YZU_PAGES: "false"
       - name: Run Synthesis visual state matrix
+        # The legacy extra opening assertion names the retired mobile grip.
+        # The full state screenshot matrix still runs, while the current
+        # opening acceptance assertions live in the convergence contract.
         run: >-
           mkdir -p artifacts/synthesis-acceptance &&
           TMPDIR=$PWD/.tmp-pw npx playwright test e2e/synthesis-acceptance-screenshots.spec.js
