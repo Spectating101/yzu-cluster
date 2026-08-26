@@ -22,6 +22,14 @@ function DecisionLabel({ children, primary = false, onClick }) {
   return <strong className={primary ? "s04-decision-label recommended" : "s04-decision-label"}>{children}</strong>;
 }
 
+function sourceLabelFor(overlap, datasetId, fallback = "") {
+  const wanted = String(datasetId || "").trim();
+  const source = (overlap?.sources || []).find(
+    (row) => String(row?.dataset_id || "").trim() === wanted,
+  );
+  return String(source?.label || fallback || datasetId || "").trim();
+}
+
 export function JoinDecisionPanel({
   leftLabel,
   rightLabel,
@@ -46,16 +54,21 @@ export function JoinDecisionPanel({
     measuredMultiOverlap?.applicable
       && Number(measuredMultiOverlap?.source_count || measuredMultiOverlap?.sources?.length || 0) >= 3,
   );
+  const leftDisplayLabel = sourceLabelFor(measuredMultiOverlap, leftLabel, leftLabel);
+  const rightDisplayLabel = sourceLabelFor(measuredMultiOverlap, rightLabel, rightLabel) || "A second dataset";
+  const coverageSubject = leftDisplayLabel && leftDisplayLabel.length <= 42
+    ? leftDisplayLabel
+    : "current input";
 
   return (
     <section className="s04-card s04-blocking" data-testid="synthesis-join-decision">
       <header className="s04-title">
         <div>
           <small>Join decision</small>
-          <h2>{rightLabel || "A second dataset"}</h2>
+          <h2>{rightDisplayLabel}</h2>
         </div>
         <em className={verdict === "strong" ? "success" : "warn"}>
-          {best.coverage == null ? "no usable key" : `${best.coverage}% of ${leftLabel || "the left side"}`}
+          {best.coverage == null ? "no usable key" : `${best.coverage}% of ${coverageSubject}`}
         </em>
       </header>
 
@@ -63,8 +76,8 @@ export function JoinDecisionPanel({
         <MultiOverlapVisual overlap={measuredMultiOverlap} />
       ) : best.usable && best.total ? (
         <JoinOverlapVisual
-          leftLabel={leftLabel}
-          rightLabel={rightLabel}
+          leftLabel={leftDisplayLabel || leftLabel}
+          rightLabel={rightDisplayLabel}
           leftTotal={best.total}
           // Set overlap is defined over distinct keys. A raw row count on a
           // duplicated right side would inflate the Venn/union population.
