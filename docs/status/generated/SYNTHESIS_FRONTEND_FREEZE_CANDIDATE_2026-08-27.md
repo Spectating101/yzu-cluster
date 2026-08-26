@@ -2,7 +2,7 @@
 
 This is a non-functional audit marker for the final frontend hardening proof.
 
-Product and browser-contract tree immediately below this marker: `0eccbbd589940a327afea061117c51f3b061ce5e`.
+Product and browser-contract tree immediately below this marker: `e06d1b96441ed477c795ba5f0447e9e20afa7ad5`.
 
 Final sequencing contract now pinned in product code and browser tests:
 
@@ -15,6 +15,7 @@ Final sequencing contract now pinned in product code and browser tests:
 - an explicit reasoning turn remains pending across evidence-mapped `explore` state until a proposal, execution state, registration/query-ready state, or failure resolves it;
 - assistant availability gates reasoning, not deterministic construction/evidence setup;
 - browser contracts explicitly enter the durable thread they intend to exercise because Synthesis now opens at workspace home;
+- proposal-recording fixtures preserve the pre-proposal state until the researcher actually starts or uses Ask;
 - the current five-stage project grammar is Define → Ground → Review → Build → Reuse;
 - pairwise overlap tests assert the current population-overlap visual rather than an obsolete intersection test id;
 - the opening rail is asserted as structured Evidence / Measured / Method / Output state instead of superseded summary prose.
