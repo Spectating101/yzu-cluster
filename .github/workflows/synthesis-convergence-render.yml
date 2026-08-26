@@ -1,7 +1,10 @@
 name: Synthesis convergence render
 
-# Hardening branch pushes intentionally exercise the complete rendered contract,
-# including adversarial production-scale cases, before any merge or deployment.
+# Hardening branch pushes intentionally exercise the complete rendered and
+# interaction contract before any merge or deployment. A visually convincing
+# frame is not enough for freeze: the researcher must be able to move through
+# grounding, review, approval, execution, and reversible excursions without
+# losing the durable thread or being shown fabricated state.
 on:
   push:
     branches:
@@ -26,6 +29,12 @@ jobs:
         run: node --test drive/src/v2/joinCandidates.test.js
       - run: npx playwright install chromium --with-deps
       - run: npm run build
+      - name: Exercise Synthesis researcher workflow
+        run: >-
+          mkdir -p .tmp-pw artifacts/synthesis-renders &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/v2-synthesis.spec.js
+          --grep-invert "renders the selected durable thread in the workspace and Detail rail|keeps the right rail usable on mobile while the workspace remains source-backed"
+          --reporter=line
       - name: Render converged Synthesis frames
         run: mkdir -p .tmp-pw artifacts/synthesis-convergence && TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/synthesis-convergence-render.spec.js --reporter=line
       - name: Render desktop Synthesis workflow states
@@ -50,6 +59,7 @@ jobs:
         with:
           name: synthesis-convergence-pngs
           path: |
+            artifacts/synthesis-renders
             artifacts/synthesis-convergence
             artifacts/synthesis-acceptance
             artifacts/synthesis-scale
