@@ -166,7 +166,6 @@ function OpeningThreadRail({ thread, onAsk }) {
             </dl>
           </section>
           <RailFieldGrid>
-            <RailField label="Target grain" value={brief.targetGrain || state.required_grain || "Not stated"} />
             <RailField label="Evidence" value={evidence} />
             <RailField label="Measured" value={measurement} />
             <RailField label="Method" value={method} />
@@ -246,19 +245,6 @@ export function SynthesisThreadRailPanel({ thread, onAskAbout, onOpenInLibrary }
     : specInput
       ? `Declared input · ${state.execution_spec ? "accepted" : "proposed"}: ${specInput}`
       : "No inputs mapped";
-  const previewRows = Number(preview.preview?.sampling?.previewed_rows);
-  const previewValue = !state.execution_spec
-    ? "Not available"
-    : preview.succeeded
-      ? Number.isFinite(previewRows) ? `Passed · ${previewRows.toLocaleString()} rows` : "Passed"
-      : preview.failed
-        ? "Failed"
-        : preview.stale
-          ? "Stale · rerun required"
-          : "Required";
-  const executionValue = status === "spec_accepted"
-    ? "Not requested"
-    : execution.status || (state.execution_spec ? "Not requested" : "Not specified");
   const target = {
     kind: "synthesis_thread",
     id: thread?.id,
@@ -288,12 +274,9 @@ export function SynthesisThreadRailPanel({ thread, onAskAbout, onOpenInLibrary }
           queryReady={queryReady}
         />
         <RailFieldGrid>
-          <RailField label="Stage" value={assist.label} />
           <RailField label="Grain" value={state.required_grain || state.spec?.grain} />
           <RailField label="Evidence" value={evidenceValue} />
           <RailField label="Proposal" value={state.proposal?.title || "No proposal awaiting review"} />
-          <RailField label="Preview" value={previewValue} />
-          <RailField label="Execution" value={executionValue} />
           <RailField label="Output" value={outputId || "Not registered"} mono={Boolean(outputId)} />
           <RailField label="Manifest" value={execution.manifest_id || "Not reported"} mono={Boolean(execution.manifest_id)} />
         </RailFieldGrid>
