@@ -217,7 +217,7 @@ test("render current Library evidence and decision states", async ({ page }) => 
   mkdirSync(OUT, { recursive: true });
 
   await setup(page, { width: 1440, height: 900 });
-  await expect(page.getByTestId("library-auto-catalog")).toContainText("Auto catalogue");
+  await expect(page.getByTestId("library-auto-catalog")).toContainText("View");
   await expect(page.getByTestId("library-available-evidence")).toContainText("1 additional catalogue record");
   await expect(page.getByTestId("library-available-evidence")).toContainText("not held in this Library");
 
@@ -260,13 +260,19 @@ test("render current Library evidence and decision states", async ({ page }) => 
   await expect(dataPreview.getByRole("columnheader", { name: "news_risk" })).toBeVisible();
   await expect(dataPreview.locator("tbody tr")).toHaveCount(GDELT_PREVIEW_ROWS.length);
   await expect(page.getByTestId("library-observation-receipt")).toContainText("6 rows");
+  await expect(dataPreview).toContainText("Coverage: 2018–2024 · 13 Asian economies");
+  await expect(assetFacts.getByText("Research details", { exact: true })).toBeVisible();
+  expect(await assetFacts.evaluate((element) => element.open)).toBe(false);
   const selectedOrder = await Promise.all([dataPreview.boundingBox(), assetFacts.boundingBox()]);
   expect(selectedOrder[0]).not.toBeNull();
   expect(selectedOrder[1]).not.toBeNull();
   expect(selectedOrder[0].y).toBeLessThan(selectedOrder[1].y);
   expect(selectedOrder[0].y).toBeLessThan(500);
-  await expect(page.locator("aside.rd-v2-rail")).toContainText("Can I use this?");
-  await expect(page.locator("aside.rd-v2-rail")).toContainText("Verified");
+  const rail = page.locator("aside.rd-v2-rail");
+  await expect(rail).toContainText("Can I use this?");
+  await expect(rail).toContainText("Verified");
+  await expect(rail).not.toContainText("Coverage & grain");
+  await expect(rail).not.toContainText("Join keys");
   await assertNoPageOverflow(page);
   await settleVisualState(page);
   await page.screenshot({ path: `${OUT}/02-query-ready-1440.png`, fullPage: false });
@@ -301,6 +307,7 @@ test("render current Library evidence and decision states", async ({ page }) => 
   await openAsset(page, "Estimate revision panel");
   await expect(page.getByTestId("library-data-preview")).toContainText("Observed table");
   await expect(page.getByTestId("library-data-preview").getByRole("columnheader", { name: "eps_revision_30d" })).toBeVisible();
+  await expect(page.getByTestId("library-asset-facts").getByText("Research details", { exact: true })).toBeVisible();
   await assertNoPageOverflow(page);
   await settleVisualState(page);
   await page.screenshot({ path: `${OUT}/06-query-ready-1920.png`, fullPage: false });
