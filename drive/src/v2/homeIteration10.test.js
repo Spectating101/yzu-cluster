@@ -110,26 +110,29 @@ test("live health keeps Home on Copilot when the slower resources rollup lacks p
   assert.doesNotMatch(slots[2].headroom, /gpt-5-mini/);
 });
 
-test("pending approval becomes secondary decision, not a separate Attention page", () => {
-  const { secondary, pending } = buildPickUp({
+test("pending approval becomes the primary decision, not a separate Attention page", () => {
+  const { primary, secondary, pending } = buildPickUp({
     datasets: [{ dataset_id: "a", name: "Alpha" }],
     jobs: [{ id: "j1", status: "pending_approval", plan: { title: "MOPS statements" } }],
     health: { desk: { jobs: { pending_approval: 1 } } },
   });
   assert.equal(pending, 1);
-  assert.equal(secondary.kind, "decision");
-  assert.equal(secondary.action, "review");
-  assert.match(secondary.title, /MOPS/);
-  assert.equal(secondary.location, "DISCOVER / HISTORY");
+  assert.equal(primary.kind, "decision");
+  assert.equal(primary.action, "review");
+  assert.match(primary.title, /MOPS/);
+  assert.equal(primary.location, "DISCOVER / HISTORY");
+  assert.equal(secondary.kind, "library_asset");
 });
 
-test("an internal synthesis-block marker becomes a researcher-facing decision", () => {
-  const { secondary } = buildPickUp({
+test("an internal synthesis-block marker becomes a researcher-facing primary decision", () => {
+  const { primary, secondary } = buildPickUp({
     datasets: [{ dataset_id: "a", name: "Alpha" }],
     jobs: [{ id: "j1", status: "pending_approval", title: "synth block" }],
     health: { desk: { jobs: { pending_approval: 1 } } },
   });
-  assert.equal(secondary.title, "Synthesis proposal awaiting review");
+  assert.equal(primary.kind, "decision");
+  assert.equal(primary.title, "Synthesis proposal awaiting review");
+  assert.equal(secondary.kind, "library_asset");
 });
 
 test("resource headroom caps at three showcase slots", () => {
