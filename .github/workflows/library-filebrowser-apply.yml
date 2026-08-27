@@ -25,6 +25,7 @@ jobs:
         run: |
           python scripts/apply_library_filebrowser_ergonomics.py
           python scripts/apply_library_filebrowser_styles.py
+          python scripts/fix_library_retrieval_ergonomics.py
       - name: Run retrieval unit contract
         run: node --test drive/src/v2/librarySearch.test.js
       - name: Install dependencies
@@ -42,7 +43,7 @@ jobs:
         run: |
           git config user.name spectating101
           git config user.email s1133958@mail.yzu.edu.tw
-          git add drive/src/v2/LibraryPage.jsx drive/src/v2/App.jsx drive/src/v2/library-evidence-rigor.css e2e/v2-library.spec.js .github/workflows/library-convergence-render.yml
+          git add drive/src/v2/LibraryPage.jsx drive/src/v2/App.jsx drive/src/v2/library-evidence-rigor.css drive/src/v2/librarySearch.js drive/src/v2/librarySearch.test.js e2e/v2-library.spec.js .github/workflows/library-convergence-render.yml
           if git diff --cached --quiet; then exit 0; fi
           git commit -m 'feat(library): converge on file-browser ergonomics [filebrowser-applied]'
           git push origin HEAD:hardening/library-retrieval-excellence-20260828
