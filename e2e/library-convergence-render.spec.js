@@ -4,6 +4,23 @@ import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 
 const OUT = "artifacts/library-renders";
 
+const GDELT_PREVIEW_ROWS = [
+  { date: "2026-04-30", country_iso3: "TWN", article_count: 1842, news_risk: 0.82, market_return: -0.0041, source_count: 317, event_flag: 1, coverage_pct: 0.96 },
+  { date: "2026-04-30", country_iso3: "JPN", article_count: 3921, news_risk: 0.44, market_return: 0.0038, source_count: 684, event_flag: 0, coverage_pct: 0.98 },
+  { date: "2026-04-30", country_iso3: "KOR", article_count: 2274, news_risk: 0.61, market_return: -0.0013, source_count: 401, event_flag: 1, coverage_pct: 0.95 },
+  { date: "2026-04-30", country_iso3: "SGP", article_count: 886, news_risk: 0.29, market_return: 0.0019, source_count: 176, event_flag: 0, coverage_pct: 0.93 },
+  { date: "2026-04-30", country_iso3: "IDN", article_count: 1433, news_risk: 0.53, market_return: -0.0027, source_count: 248, event_flag: 0, coverage_pct: 0.91 },
+  { date: "2026-04-30", country_iso3: "MYS", article_count: 1109, news_risk: 0.35, market_return: 0.0022, source_count: 209, event_flag: 0, coverage_pct: 0.94 },
+];
+
+const REFINITIV_PREVIEW_ROWS = [
+  { ric: "2330.TW", date: "2026-04-30", analyst_count: 34, eps_mean: 12.61, eps_revision_30d: 0.084, target_price: 1280, currency: "TWD" },
+  { ric: "2454.TW", date: "2026-04-30", analyst_count: 29, eps_mean: 21.44, eps_revision_30d: -0.019, target_price: 1725, currency: "TWD" },
+  { ric: "2317.TW", date: "2026-04-30", analyst_count: 31, eps_mean: 11.08, eps_revision_30d: 0.026, target_price: 226, currency: "TWD" },
+  { ric: "2308.TW", date: "2026-04-30", analyst_count: 22, eps_mean: 18.73, eps_revision_30d: 0.041, target_price: 472, currency: "TWD" },
+  { ric: "2881.TW", date: "2026-04-30", analyst_count: 18, eps_mean: 6.92, eps_revision_30d: -0.007, target_price: 91, currency: "TWD" },
+];
+
 const LIBRARY_DATASETS = {
   datasets: [
     {
@@ -16,9 +33,9 @@ const LIBRARY_DATASETS = {
       source: "GDELT GKG",
       source_system: "GDELT news graph",
       join_keys: ["date", "country_iso3"],
+      columns: ["date", "country_iso3", "article_count", "news_risk", "market_return", "source_count", "event_flag", "coverage_pct"],
       coverage: "2018–2024 · 13 Asian economies",
       rows: 188422,
-      columns: 24,
       updated_at: "2026-08-25T11:14:00Z",
       verification_status: "verified",
       verification: {
@@ -38,6 +55,7 @@ const LIBRARY_DATASETS = {
       local_root: "research_panels/refinitiv",
       source: "London Stock Exchange Group / Refinitiv point-in-time archive",
       join_keys: ["ric", "date"],
+      columns: ["ric", "date", "analyst_count", "eps_mean", "eps_revision_30d", "target_price", "currency"],
       coverage: "2017–2026",
       rows: 2540310,
       updated_at: "2026-08-24T18:30:00Z",
@@ -59,6 +77,8 @@ const LIBRARY_DATASETS = {
       local_path: "data_lake/procured/mops_financials.csv",
       registered: true,
       source: "MOPS",
+      join_keys: ["issuer_id", "fiscal_quarter"],
+      columns: ["issuer_id", "fiscal_quarter", "revenue", "net_income", "total_assets", "equity"],
       coverage: "2015–2026",
       verification_status: "partial",
       verification: {
@@ -96,6 +116,7 @@ const LIBRARY_DATASETS = {
       backend: "bigquery_public_dataset",
       collect_via: "BigQuery",
       source: "Google BigQuery public blockchain datasets",
+      columns: ["block_timestamp", "tx_hash", "from_address", "to_address", "value", "token_address"],
       coverage: "Live remote source",
       verification_status: "not_checked",
     },
@@ -154,6 +175,12 @@ async function setup(page, viewport) {
     datasetsBody: LIBRARY_DATASETS,
     libraryNavBody: LIBRARY_NAV,
   });
+  await page.unroute("**/query/*");
+  await page.route("**/query/*", (route) => {
+    const id = decodeURIComponent(route.request().url().split("/query/")[1]?.split("?")[0] || "");
+    const rows = id.includes("refinitiv") ? REFINITIV_PREVIEW_ROWS : GDELT_PREVIEW_ROWS;
+    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ rows }) });
+  });
   await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
   await expect(page.getByTestId("library-evidence-estate")).toBeVisible();
@@ -206,6 +233,14 @@ test("render current Library evidence and decision states", async ({ page }) => 
   await expect(gdeltRow.getByTestId("library-evidence-readiness")).toContainText("Query ready");
   const connectedRow = page.getByTestId("library-evidence-row").filter({ hasText: "Public blockchain query source" });
   await expect(connectedRow.getByTestId("library-evidence-readiness")).toContainText("Connected");
+
+  const lastRootRow = page.getByTestId("library-evidence-row").last();
+  const available = page.getByTestId("library-available-evidence");
+  const rootGap = await Promise.all([lastRootRow.boundingBox(), available.boundingBox()]);
+  expect(rootGap[0]).not.toBeNull();
+  expect(rootGap[1]).not.toBeNull();
+  expect(rootGap[1].y - (rootGap[0].y + rootGap[0].height)).toBeLessThan(28);
+
   await assertNoPageOverflow(page);
   await settleVisualState(page);
   await page.screenshot({ path: `${OUT}/01-root-1440.png`, fullPage: false });
@@ -218,7 +253,18 @@ test("render current Library evidence and decision states", async ({ page }) => 
   await openAsset(page, "Asia daily news-risk panel");
   await expect(page.getByLabel("Evidence claims")).toContainText("Query ready");
   await expect(page.getByLabel("Evidence claims")).toContainText("Verified");
-  await expect(page.getByTestId("library-observation-receipt")).toContainText("row observed");
+  const dataPreview = page.getByTestId("library-data-preview");
+  const assetFacts = page.getByTestId("library-asset-facts");
+  await expect(dataPreview).toBeVisible();
+  await expect(dataPreview).toContainText("Observed table");
+  await expect(dataPreview.getByRole("columnheader", { name: "news_risk" })).toBeVisible();
+  await expect(dataPreview.locator("tbody tr")).toHaveCount(GDELT_PREVIEW_ROWS.length);
+  await expect(page.getByTestId("library-observation-receipt")).toContainText("6 rows");
+  const selectedOrder = await Promise.all([dataPreview.boundingBox(), assetFacts.boundingBox()]);
+  expect(selectedOrder[0]).not.toBeNull();
+  expect(selectedOrder[1]).not.toBeNull();
+  expect(selectedOrder[0].y).toBeLessThan(selectedOrder[1].y);
+  expect(selectedOrder[0].y).toBeLessThan(500);
   await expect(page.locator("aside.rd-v2-rail")).toContainText("Can I use this?");
   await expect(page.locator("aside.rd-v2-rail")).toContainText("Verified");
   await assertNoPageOverflow(page);
@@ -238,6 +284,8 @@ test("render current Library evidence and decision states", async ({ page }) => 
   await openAsset(page, "MOPS financial statements");
   await expect(page.getByLabel("Evidence claims")).toContainText("Metadata only");
   await expect(page.getByLabel("Evidence claims")).toContainText("Partial");
+  await expect(page.getByTestId("library-data-preview")).toContainText("Table structure");
+  await expect(page.getByTestId("library-data-preview")).toContainText("issuer_id");
   await expect(page.locator("aside.rd-v2-rail")).toContainText("Partial");
   await assertNoPageOverflow(page);
   await settleVisualState(page);
@@ -251,6 +299,8 @@ test("render current Library evidence and decision states", async ({ page }) => 
   await settleVisualState(page);
   await page.screenshot({ path: `${OUT}/05-root-1920.png`, fullPage: false });
   await openAsset(page, "Estimate revision panel");
+  await expect(page.getByTestId("library-data-preview")).toContainText("Observed table");
+  await expect(page.getByTestId("library-data-preview").getByRole("columnheader", { name: "eps_revision_30d" })).toBeVisible();
   await assertNoPageOverflow(page);
   await settleVisualState(page);
   await page.screenshot({ path: `${OUT}/06-query-ready-1920.png`, fullPage: false });
