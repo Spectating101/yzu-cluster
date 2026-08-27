@@ -1,0 +1,29 @@
+name: HPS Source Bundle
+
+on:
+  push:
+    branches:
+      - hardening/hps-shell-convergence-20260827
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hps-source-bundle
+  cancel-in-progress: true
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bundle working tree
+        run: |
+          tar --exclude=.git --exclude=node_modules --exclude=dist -czf /tmp/hps-source.tgz .
+          mkdir -p artifacts
+          mv /tmp/hps-source.tgz artifacts/hps-source.tgz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hps-source
+          path: artifacts/hps-source.tgz
+          retention-days: 1
