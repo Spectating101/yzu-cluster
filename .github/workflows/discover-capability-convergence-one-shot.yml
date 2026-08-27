@@ -56,9 +56,10 @@ jobs:
         run: |
           git config user.name "discover-hardening-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add drive/src/v2/DiscoverEvidenceBrief.jsx \
+          git add drive/src/v2/BrowsePage.jsx \
+                  drive/src/v2/DiscoverEvidenceBrief.jsx \
                   drive/src/v2/DiscoverIntentWorkspace.jsx
           git commit -m "hardening(discover): fence stale routes and duplicate submits"
           git push origin HEAD:polish/discover-visual-freeze-20260827
 
-# Exact-head closure trigger: run the reviewed hardening patch through every Discover gate before landing product code.
+# Exact-head closure trigger: preserve capacity loading authority through BrowsePage and land only after every Discover gate is green.
