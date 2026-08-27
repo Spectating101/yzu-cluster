@@ -226,7 +226,9 @@ export function LibraryEvidenceEstate({
       {referenceCount > 0 ? (
         <aside className="rd-v2-library-available compact" aria-label="Available evidence outside your Library" data-testid="library-available-evidence">
           <p>
-            <strong>{referenceCount} known record{referenceCount === 1 ? "" : "s"} sit outside your Library.</strong>{" "}
+            <strong>
+              {referenceCount} known record{referenceCount === 1 ? "" : "s"} {referenceCount === 1 ? "sits" : "sit"} outside your Library.
+            </strong>{" "}
             They remain Discover evidence until explicitly added.
           </p>
           {onReviewAvailable ? (
