@@ -84,11 +84,11 @@ fixture = replace_once(
     const proposal = {
       id: "craft_example_e2e",
       summary: `Custom acquisition plan for ${body.title || "public source"}.`,
-      reason: "A concrete public URL can be compiled into a bounded generic acquisition.",
+      reason: "A concrete public artifact can be compiled into a bounded generic acquisition.",
       routes: [{
         id: "craft_primary",
         title: "Custom HTTP acquisition",
-        summary: "Bounded HTTP manifest for the selected public source.",
+        summary: "Bounded HTTP manifest for the selected public artifact.",
         access: "http_manifest",
         destination: "data_lake/procured/example_public",
         cost: "cluster worker · researcher approval",
@@ -145,13 +145,14 @@ spec = replace_once(
       discoverBody: { sections: [], total: 0 },
       discoverSourcesBody: {
         results: [{
-          kind: "source",
+          kind: "artifact",
           source_id: "example_public",
           candidate_key: "source:example_public",
           title: "Example public research files",
-          description: "Public CSV files for a concrete research source.",
+          description: "Public CSV files from a source that explicitly advertises acquisition availability.",
           url: "https://example.com/data.csv",
           access_mode: "public_http",
+          acquisition_available: true,
           query_relevance: 2,
         }],
         total: 1,
@@ -161,7 +162,9 @@ spec = replace_once(
     await waitForShell(page);
     await search(page, "example public research files");
 
-    await page.getByTestId("discover-ranked-results").getByRole("button", { name: "Add to collection" }).click();
+    const result = page.getByTestId("discover-ranked-results");
+    await expect(result).toContainText("Collection route declared");
+    await result.getByRole("button", { name: "Add to collection" }).click();
     const workspace = page.getByTestId("discover-intent-workspace");
     await expect(workspace).toBeVisible();
     const engineering = workspace.getByTestId("discover-procurement-engineering");
