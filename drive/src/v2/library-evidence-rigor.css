@@ -228,4 +228,22 @@
   .rd-v2-library-claim-strip strong {
     white-space: normal;
   }
+
+  /* Library's phone hierarchy keeps the evidence canvas primary. The global
+     shell owns the bottom navigation; a collapsed Library rail should therefore
+     be only the contextual affordance itself, not a second full-width bar. */
+  .rd-v2-shell:has(.rd-v2-library-page) .yzu-inspector.rd-v2-rail-collapsed,
+  .rd-v2-shell:has(.rd-v2-library-workspace) .yzu-inspector.rd-v2-rail-collapsed {
+    left: auto !important;
+    right: 8px !important;
+    width: max-content !important;
+    max-width: calc(100vw - 16px) !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .rd-v2-library-page .rd-v2-scroll-foot {
+    display: none;
+  }
 }
