@@ -187,16 +187,18 @@ test.describe("v2 parity @ desk-v2-1440", () => {
     await expect(page.locator("aside.yzu-sidebar nav button", { hasText: "Cluster" })).toHaveCount(0);
   });
 
-  test("Detail rail keeps research context while exposing sticky evidence actions", async ({ page }) => {
+  test("Detail rail keeps decision context without duplicating the centre dossier", async ({ page }) => {
     await selectFirstDataset(page);
     const situation = page.getByTestId("research-situation");
+    const rail = page.locator("aside.rd-v2-rail");
     await expect(situation).toContainText("Asia daily news-risk panel");
     await expect(situation).toContainText("Query ready");
     await expect(situation.getByRole("tab", { name: "Detail" })).toHaveAttribute("aria-selected", "true");
     await expect(page.locator('[data-testid="rail-pane-ask"]')).toBeHidden();
-    await expect(
-      page.locator("aside .rd-v2-rail-sticky .rd-v2-btn.primary", { hasText: "Preview rows" }),
-    ).toBeVisible();
+    await expect(rail.getByRole("button", { name: "Preview rows" })).toHaveCount(0);
+    await expect(rail.getByRole("button", { name: "Ask about this →" })).toBeVisible();
+    await expect(rail).not.toContainText("Coverage & grain");
+    await expect(rail).not.toContainText("Join keys");
     await expect(page.locator('aside.rd-v2-rail [aria-label="Can I use this?"]')).toContainText("Query ready");
     await situation.getByRole("tab", { name: "Ask" }).click();
     await expect(page.getByTestId("ask-composer")).toBeVisible();
@@ -204,9 +206,9 @@ test.describe("v2 parity @ desk-v2-1440", () => {
     await expect(page.locator('[data-testid="rail-pane-detail"] .rd-v2-rail-sticky')).not.toBeVisible();
   });
 
-  test("adaptive Preview overlays the main surface without losing rail context", async ({ page }) => {
+  test("Full preview expands from the primary inspection surface without losing rail context", async ({ page }) => {
     await selectFirstDataset(page);
-    await page.locator("aside .rd-v2-rail-sticky").getByRole("button", { name: "Preview rows" }).click();
+    await page.getByTestId("library-data-preview").getByRole("button", { name: "Full preview" }).click();
     const preview = page.getByRole("dialog", { name: "Asia daily news-risk panel preview" });
     await expect(preview).toBeVisible();
     await expect(preview.getByRole("button", { name: "Rows", exact: true })).toBeVisible();
@@ -214,6 +216,7 @@ test.describe("v2 parity @ desk-v2-1440", () => {
     await expect(preview.getByRole("button", { name: "Export sample" })).toBeVisible();
     await expect(preview.getByRole("button", { name: "Open query" })).toBeVisible();
     await expect(page.getByTestId("research-situation")).toContainText("Asia daily news-risk panel");
+    await expect(page.getByTestId("library-preview-open-state")).toContainText("Preview open in centre");
     await page.keyboard.press("Escape");
     await expect(preview).toHaveCount(0);
   });
