@@ -1,4 +1,4 @@
-import { loadUserEmail } from "@/v2/deskSession";
+import { loadUserEmail } from "./deskSession.js";
 
 const KEY = "rd_v2_settings";
 const LAST_RESEARCH_SURFACE_KEY = "rd_v2_last_research_surface";
