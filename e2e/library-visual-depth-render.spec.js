@@ -181,14 +181,18 @@ test("render Library depth states on desktop", async ({ page }) => {
   // Root location is already established by the page title. A one-item
   // breadcrumb would only repeat "Library" and weaken the action hierarchy.
   await expect(page.locator(".rd-v2-library-page .rd-v2-crumb")).toBeHidden();
+  await expect(page.locator("aside.rd-v2-rail")).toContainText("In this library");
 
   await openAsset(page, "Stablecoin governance evidence review");
   const scholarly = page.getByTestId("library-asset-workspace");
+  const scholarlyRail = page.locator("aside.rd-v2-rail");
   await expect(scholarly).toHaveAttribute("data-asset-kind", "scholarly_work");
   await expect(scholarly.getByLabel("Evidence claims")).toContainText("Registered");
   await expect(scholarly.getByLabel("Evidence claims")).toContainText("Unverified");
   await expect(scholarly.getByRole("button", { name: "Preview rows" })).toHaveCount(0);
   await expect(scholarly.getByRole("button", { name: "Open query" })).toHaveCount(0);
+  await expect(scholarlyRail).toContainText("Scholarly work");
+  await expect(scholarlyRail).not.toContainText("Library dataset");
   await assertNoPageOverflow(page);
   await page.screenshot({ path: `${OUT}/09-scholarly-work-1440.png`, fullPage: false });
 
@@ -207,6 +211,7 @@ test("render Library depth states on desktop", async ({ page }) => {
   await expect(page.locator(".rd-v2-library-pathbar")).toContainText("Research panels");
   await expect(page.locator(".rd-v2-library-page .rd-v2-crumb")).toBeVisible();
   await expect(page.locator(".rd-v2-library-page .rd-v2-crumb")).toContainText("Research panels");
+  await expect(page.locator("aside.rd-v2-rail")).toContainText("In this collection");
   await settleVisualState(page);
   await assertNoPageOverflow(page);
   await page.screenshot({ path: `${OUT}/11-collection-context-1440.png`, fullPage: false });
@@ -227,6 +232,9 @@ test("render Library depth states on desktop", async ({ page }) => {
   await expect(page.getByTestId("library-evidence-estate")).toBeVisible();
   await page.getByRole("textbox", { name: "Search library holdings" }).fill("definitely-no-such-library-asset");
   await expect(page.getByTestId("library-evidence-estate")).toContainText("No evidence matches the current Library view");
+  const filteredRail = page.locator("aside.rd-v2-rail");
+  await expect(filteredRail).toContainText("In this view");
+  await expect(filteredRail).not.toContainText("In this library");
   await settleVisualState(page);
   await assertNoPageOverflow(page);
   await page.screenshot({ path: `${OUT}/13-search-empty-1440.png`, fullPage: false });
