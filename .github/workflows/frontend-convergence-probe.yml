@@ -1,0 +1,93 @@
+name: Frontend convergence probe
+
+on:
+  push:
+    branches:
+      - integration/frontend-convergence-20260828
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: frontend-convergence-probe-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  converge:
+    if: ${{ !contains(github.event.head_commit.message, '[converged]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Configure git
+        run: |
+          git config user.name frontend-convergence-bot
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git fetch origin --prune
+      - name: Reproduce tested Library ergonomics without workflow mutation
+        run: |
+          python scripts/apply_library_filebrowser_ergonomics.py
+          python scripts/apply_library_filebrowser_styles.py
+          python scripts/fix_library_retrieval_ergonomics.py
+          git restore .github/workflows/library-convergence-render.yml
+          git add drive/src/v2/LibraryPage.jsx drive/src/v2/App.jsx drive/src/v2/library-evidence-rigor.css drive/src/v2/librarySearch.js drive/src/v2/librarySearch.test.js e2e/v2-library.spec.js
+          if ! git diff --cached --quiet; then
+            git commit -m 'feat(library): retain tested file-browser ergonomics'
+          fi
+      - name: Merge exact Discover freeze head
+        run: |
+          set +e
+          git merge --no-ff --no-commit 4f7f414779292ae26e789a0a36003a03c347b8a9
+          rc=$?
+          if [ $rc -ne 0 ]; then
+            echo 'DISCOVER_CONFLICTS_BEGIN'
+            git diff --name-only --diff-filter=U
+            echo 'DISCOVER_CONFLICTS_END'
+            exit $rc
+          fi
+          # Keep convergence/release workflow ownership on the integration lineage.
+          git restore --source=HEAD --staged --worktree .github/workflows
+          git add -A
+          git commit -m 'merge: converge certified Discover surface'
+      - name: Apply durable HPS slice three-way
+        run: |
+          HPS_BASE=ac09d9bc29b3e4af05c9854d32947cb071217eac
+          HPS_HEAD=b0d8ee8631ad2692ffd4c5c94bf7b0fb2d4dcf66
+          git diff --binary "$HPS_BASE" "$HPS_HEAD" -- \
+            drive/src/v2/App.jsx \
+            drive/src/v2/HomePage.jsx \
+            drive/src/v2/ProfilePage.jsx \
+            drive/src/v2/RailPanels.jsx \
+            drive/src/v2/SettingsPage.jsx \
+            drive/src/v2/homeIteration10.js \
+            drive/src/v2/hps-responsive-fixes.css \
+            drive/src/v2/hps-shell-convergence.css \
+            drive/src/v2/hpsHomeContinuity.test.js \
+            drive/src/v2/main.jsx \
+            drive/src/v2/settingsStore.js \
+            drive/src/v2/settingsStore.test.js \
+            e2e/hps-functional-convergence.spec.js \
+            e2e/hps-inner-containment.spec.js \
+            > /tmp/hps-durable.patch
+          set +e
+          git apply --3way --index /tmp/hps-durable.patch
+          rc=$?
+          if [ $rc -ne 0 ]; then
+            echo 'HPS_CONFLICTS_BEGIN'
+            git diff --name-only --diff-filter=U
+            echo 'HPS_CONFLICTS_END'
+            exit $rc
+          fi
+          git commit -m 'feat(hps): forward-port certified shell and continuity'
+      - name: Fast structural gate
+        run: |
+          npm ci
+          node --test drive/src/v2/settingsStore.test.js drive/src/v2/hpsHomeContinuity.test.js drive/src/v2/librarySearch.test.js
+          npm run build
+      - name: Push converged candidate
+        run: |
+          git commit --allow-empty -m 'chore: mark frontend convergence candidate [converged]'
+          git push origin HEAD:integration/frontend-convergence-20260828
