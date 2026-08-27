@@ -14,6 +14,7 @@ import "./interaction-feedback.css";
 import "./decoration-layer.css";
 import "./release-scale.css"; /* laptop/desktop resolution ladder + rail collapse */
 import "./library-workspace.css";
+import "./hps-shell-convergence.css";
 import { InteractionProvider } from "./InteractionGuidance.jsx";
 import { V2App } from "./App.jsx";
 
