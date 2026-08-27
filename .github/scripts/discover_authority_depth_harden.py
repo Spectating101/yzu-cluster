@@ -19,7 +19,7 @@ replace_once(
 replace_once(
     evidence,
     '''    } catch (requestError) {\n      if (assessmentRequestId !== assessmentRequestSeqRef.current) return;\n      setError("Assessment is unavailable. Showing the catalogue instead.");\n      onAssessmentChange?.(null);\n      onAssessmentActive?.(false);\n      // Existing catalogue search is retained only as a graceful fallback.\n      onLegacySearch?.(question);\n''',
-    '''    } catch (requestError) {\n      if (assessmentRequestId !== assessmentRequestSeqRef.current) return;\n      // Failure establishes *absence of a current assessment*, not permission to\n      // resurrect the previous verdict or collapse the investigation workspace.\n      setAssessment(null);\n      setDimensions([]);\n      setError("Assessment is unavailable. Showing the catalogue instead.");\n      onAssessmentChange?.(null);\n      onAssessmentActive?.(true);\n      // Existing catalogue search is retained only as a graceful fallback.\n      onLegacySearch?.(question);\n''',
+    '''    } catch (requestError) {\n      if (assessmentRequestId !== assessmentRequestSeqRef.current) return;\n      // Failure establishes *absence of a current assessment*, not permission to\n      // resurrect the previous verdict or collapse the investigation workspace.\n      setAssessment(null);\n      setDimensions([]);\n      setError("Assessment is unavailable. Showing the catalogue instead.");\n      onAssessmentChange?.(null);\n      onAssessmentActive?.(true);\n      // The workspace already retains the catalogue beneath the investigation.\n      // Re-running the legacy search here would tear down the evidence position\n      // and turn an assessment failure into a navigation/state-authority change.\n      if (variant !== "workspace") onLegacySearch?.(question);\n''',
 )
 
 replace_once(
@@ -39,6 +39,12 @@ replace_once(
     app,
     '''            openDiscoverHistory(job, { focusAwaiting: job?.status === "pending_approval" });\n''',
     '''            openDiscoverAwaiting({ job, focusAwaiting: job?.status === "pending_approval" });\n''',
+)
+
+replace_once(
+    app,
+    '''          assessmentActive={discoverAssessment.active}\n          assessmentResult={discoverAssessment.result}\n          onOpenAssessment={openDiscoverAssessment}\n          onRestingSummary={handleDiscoverRestingSummary}\n''',
+    '''          assessmentActive={discoverAssessment.active}\n          assessmentResult={discoverAssessment.result}\n          onOpenAssessment={openDiscoverAssessment}\n          onAssessmentChange={(result) => {\n            setDiscoverAssessment((current) => ({ ...current, active: true, result }));\n          }}\n          onAssessmentActive={(active) => {\n            setDiscoverAssessment((current) => ({ ...current, active }));\n          }}\n          onRestingSummary={handleDiscoverRestingSummary}\n''',
 )
 
 print("Applied Discover authority-depth hardening")
