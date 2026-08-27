@@ -99,7 +99,7 @@ test.describe("v2 Discover tab", () => {
     //   Available · N   Library evidence · N   Web context · N
     await expect(page.getByTestId("discover-result-summary")).toContainText(/Available\s*·\s*\d+/i);
     await expect(page.getByTestId("discover-result-summary")).toContainText(/Library evidence\s*·\s*\d+/i);
-    await expect(page.getByLabel("Discover next actions")).toContainText(/available to add|Search wider/i);
+    await expect(page.getByLabel("Discover next actions")).toContainText(/with a declared route|Search wider/i);
     await expect(page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-ranked-results-head strong")).toHaveCount(0);
     await expect(page.getByTestId("discover-resting-summary")).toContainText(/External/i);
     await expect(page.getByTestId("discover-resting-summary")).toContainText(/In Library/i);
@@ -134,7 +134,7 @@ test.describe("v2 Discover tab", () => {
     await expect(page.getByRole("button", { name: "Search wider", exact: true })).toHaveCount(1);
   });
 
-  test("reference-only routes can be inspected but never claim they can be added", async ({ page }, testInfo) => {
+  test("reference-only routes can be inspected but never claim an acquisition review route", async ({ page }, testInfo) => {
     await mockV2Api(page, {
       discoverBody: {
         sections: [{
@@ -163,12 +163,12 @@ test.describe("v2 Discover tab", () => {
     await waitForShell(page);
     await searchDiscover(page, "stablecoin");
 
-    await expect(page.getByLabel("Discover next actions")).toContainText("1 offering available to add");
+    await expect(page.getByLabel("Discover next actions")).toContainText("1 offering with a declared route");
     await expect(page.getByLabel("Discover next actions")).toContainText("1 reference");
-    await expect(page.getByRole("button", { name: "Add to collection", exact: true })).toHaveCount(1);
+    await expect(page.getByRole("button", { name: "Review acquisition route", exact: true })).toHaveCount(1);
     const context = page.getByTestId("discover-context-results");
     await expect(context.getByText("CoinGecko example route")).toBeVisible();
-    await expect(context.getByRole("button", { name: "Add to collection" })).toHaveCount(0);
+    await expect(context.getByRole("button", { name: "Review acquisition route" })).toHaveCount(0);
     await page.screenshot({ path: testInfo.outputPath("discover-reference-context-desktop.png"), fullPage: true });
 
     await page.setViewportSize({ width: 390, height: 844 });

@@ -1,13 +1,10 @@
 /**
- * Discover selected-row strategy card (FROZEN_RENDERS frame 10, block 14).
+ * Discover selected-row offering profile.
  *
- * Every block is emitted from measured assessment or recorded intent only.
- * Absent measurement produces an `omitted` reason instead of placeholder copy,
- * and the build chain stops at the durable-request boundary rather than
- * promising verification or registration that no job records.
- *
- * Frames 2–3 (WHAT EVIDENCE ARE YOU LOOKING FOR / BEST FIT / OTHER MATCHES)
- * are withdrawn; `WITHDRAWN_STRATEGY_VOCABULARY` guards against reintroducing them.
+ * This remains an evidence-bound presentation model: every field is emitted
+ * from candidate metadata, a bound probe snapshot, or the durable intent.
+ * Missing structure stays missing; a successful endpoint response never
+ * becomes invented schema, legal clearance, preview rows, or acquisition.
  */
 
 import { coverageParts } from "./discoverEvaluation.js";
@@ -38,6 +35,11 @@ function firstOf(value) {
   return text(value);
 }
 
+function humanToken(value) {
+  const raw = text(value);
+  return raw ? humanizeDiscoverDescription(raw) : "";
+}
+
 function connectorId(row) {
   const connector = row?.connector || row?.probe_snapshot?.connector || {};
   return text(
@@ -45,25 +47,96 @@ function connectorId(row) {
   );
 }
 
+function schemaArray(raw) {
+  if (Array.isArray(raw)) return raw;
+  if (!raw || typeof raw !== "object") return [];
+  if (Array.isArray(raw.fields)) return raw.fields;
+  if (Array.isArray(raw.columns)) return raw.columns;
+  if (raw.properties && typeof raw.properties === "object") {
+    return Object.keys(raw.properties);
+  }
+  return [];
+}
+
 function measuredFields(row) {
-  const raw = row?.columns || row?.schema || row?.variables || row?.fields;
-  if (!Array.isArray(raw)) return [];
-  return raw
-    .map((entry) => (typeof entry === "string" ? text(entry) : text(entry?.name || entry?.column)))
-    .filter(Boolean);
+  const candidates = [row?.columns, row?.schema, row?.variables, row?.fields];
+  for (const raw of candidates) {
+    const entries = schemaArray(raw);
+    if (!entries.length) continue;
+    return [...new Set(entries
+      .map((entry) => (typeof entry === "string" ? text(entry) : text(entry?.name || entry?.column || entry?.field)))
+      .filter(Boolean))]
+      .slice(0, 12);
+  }
+  return [];
+}
+
+function probeSpec(row) {
+  return row?.probe_snapshot?.connector?.spec || row?.probe_result?.connector?.spec || {};
+}
+
+function observedFiles(row) {
+  const files = probeSpec(row)?.discovered_files;
+  if (!Array.isArray(files)) return [];
+  return files
+    .map((entry) => {
+      if (typeof entry === "string") return text(entry);
+      return text(entry?.name || entry?.filename || entry?.url);
+    })
+    .filter(Boolean)
+    .slice(0, 8);
+}
+
+function formatLabel(row) {
+  const spec = probeSpec(row);
+  return humanToken(
+    row?.file_format ||
+    row?.format ||
+    row?.media_type ||
+    row?.content_type ||
+    spec?.content_type,
+  );
+}
+
+function scaleLabel(row) {
+  const count = row?.row_count ?? row?.rows ?? row?.num_rows ?? row?.records;
+  if (count != null && count !== "" && Number.isFinite(Number(count))) {
+    return `${Number(count).toLocaleString()} rows declared`;
+  }
+  const size = text(row?.size || row?.dataset_size || row?.file_size || row?.bytes);
+  return size ? `Scale ${size}` : "";
+}
+
+function providerLabel(row) {
+  const direct = text(
+    row?.provider ||
+    row?.publisher ||
+    row?.organization ||
+    row?.source ||
+    firstOf(row?.collect_via),
+  );
+  if (direct) return direct;
+  try {
+    return new URL(discoverCandidateUrl(row)).hostname.replace(/^www\./, "");
+  } catch {
+    return "Not described";
+  }
 }
 
 function accessAssessment(row, evaluation) {
   const verified = Array.isArray(evaluation?.verified) ? evaluation.verified : [];
   if (evaluation?.hasProbe && verified.length) {
-    const endpoint = verified.find((label) => /endpoint/i.test(label));
+    const endpoint =
+      verified.find((label) => /http endpoint|response/i.test(label)) ||
+      verified.find((label) => /endpoint/i.test(label)) ||
+      verified.find((label) => /domain/i.test(label));
     return { access: ACCESS.OBSERVED, accessDetail: endpoint || verified[0] };
   }
   const declared = text(row?.access_mode || row?.source_access_mode || row?.access_state);
   if (declared) {
     return {
       access: ACCESS.PROPOSED,
-      accessDetail: humanizeDiscoverDescription(declared),
+      accessDetail: humanToken(declared),
     };
   }
   if (connectorId(row)) {
@@ -93,10 +166,21 @@ function recordedNeed({ intent, researchNeed }) {
   return { need: "", source: "" };
 }
 
-function nextCheck(row, evaluation) {
-  if (evaluation?.hasProbe) return "Coverage verification";
-  if (discoverCandidateUrl(row)) return "Probe endpoint";
-  return "Not recorded";
+function nextCheck(row, evaluation, fields, files) {
+  if (!evaluation?.hasProbe && discoverCandidateUrl(row)) return "Probe source endpoint";
+  if (!fields.length) return "Inspect schema / fields";
+  if (!files.length && evaluation?.hasProbe) return "Inspect downloadable artifacts";
+  return "Verify coverage completeness";
+}
+
+function productLine(row, grain, coverage, files) {
+  return [
+    grain,
+    ...coverage,
+    formatLabel(row),
+    scaleLabel(row),
+    files.length ? `${files.length} file${files.length === 1 ? "" : "s"} observed` : "",
+  ].filter(Boolean).join(" · ");
 }
 
 /**
@@ -114,20 +198,24 @@ export function buildDiscoverStrategyCard(row, evaluation, options = {}) {
   const grain = text(row?.grain || row?.unit_of_observation);
   const coverage = coverageParts(row).filter((part) => part !== grain);
   const fields = measuredFields(row);
-  if (grain || coverage.length || fields.length) {
+  const files = observedFiles(row);
+  const productSummary = productLine(row, grain, coverage, files);
+
+  if (grain || coverage.length || fields.length || files.length || formatLabel(row) || scaleLabel(row)) {
     blocks.push({
       id: "what_you_will_get",
-      label: "What you will get",
+      label: "Data product",
       grain,
       coverage,
       fields,
-      line: [grain, ...coverage].filter(Boolean).join(" · "),
+      files,
+      line: productSummary,
     });
   } else {
     omitted.push({
       id: "what_you_will_get",
-      label: "What you will get",
-      reason: "No grain, coverage, or field shape is recorded on this candidate.",
+      label: "Data product",
+      reason: "No grain, coverage, field shape, file inventory, format, or scale is recorded on this offering.",
     });
   }
 
@@ -135,15 +223,15 @@ export function buildDiscoverStrategyCard(row, evaluation, options = {}) {
   if (need) {
     blocks.push({
       id: "how_it_answers",
-      label: "How it answers the question",
+      label: "Research fit",
       need,
       source: needSource,
     });
   } else {
     omitted.push({
       id: "how_it_answers",
-      label: "How it answers the question",
-      reason: "No evidence need is recorded for this candidate.",
+      label: "Research fit",
+      reason: "No evidence need is recorded for this offering.",
     });
   }
 
@@ -160,28 +248,28 @@ export function buildDiscoverStrategyCard(row, evaluation, options = {}) {
     if (jobId) steps.push({ label: "Verify + register", evidence: "measured", detail: jobId });
     blocks.push({
       id: "how_we_build",
-      label: "How we build it",
+      label: "Acquisition path",
       steps,
-      boundary: jobId ? "" : "Source selected · no durable procurement request exists yet.",
+      boundary: jobId ? "" : "No acquisition request has been created yet.",
     });
   } else {
     omitted.push({
       id: "how_we_build",
-      label: "How we build it",
-      reason: "No collection route is declared, so no build chain is recorded.",
+      label: "Acquisition path",
+      reason: "No collection route is declared for this offering.",
     });
   }
 
   const { access, accessDetail } = accessAssessment(row, evaluation);
   blocks.push({
     id: "source_check",
-    label: "Source check",
+    label: "Access & source",
     row: {
-      source: text(row?.source || row?.publisher || firstOf(row?.collect_via)) || "Not described",
+      source: providerLabel(row),
       access,
       accessDetail,
       coverage: coverageParts(row).join(" · ") || ACCESS.UNKNOWN,
-      nextCheck: nextCheck(row, evaluation),
+      nextCheck: nextCheck(row, evaluation, fields, files),
     },
   });
 
@@ -192,15 +280,15 @@ export function buildDiscoverStrategyCard(row, evaluation, options = {}) {
     omitted.push({
       id: "still_unknown",
       label: "Still unknown",
-      reason: "No remaining unknown is recorded for this candidate.",
+      reason: "No remaining unknown is recorded for this offering.",
     });
   }
 
   const planned = new Set(["what_you_will_get", "how_it_answers", "how_we_build"]);
 
   return {
-    title: text(evaluation?.title) || text(row?.title) || "Custom strategy",
-    kicker: "Custom strategy",
+    title: text(evaluation?.title) || text(row?.title) || "Offering profile",
+    kicker: "Offering profile",
     blocks,
     omitted,
     nextValidAction: primaryAction || evaluation?.actions?.primary || null,

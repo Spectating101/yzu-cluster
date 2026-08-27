@@ -1,0 +1,213 @@
+/* Discover evidence-investigation compression after rendered 1440x900 review.
+   Capability stays visible; repeated instructions and backend-step chrome lose
+   vertical weight so the researcher can see verdict -> gap -> way forward ->
+   feasibility in one workstation scan. */
+
+/* Once a query is active, the composer has already taught its keyword/question
+   behavior. Keep the single input, but do not repeat idle onboarding copy. */
+.rd-v2-discover-page .rd-v2-discover-explore-need .rd-v2-discover-composer > p {
+  display: none;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace {
+  margin-bottom: 10px;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-assessment {
+  gap: 7px 10px;
+  padding: 11px 13px 12px;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-assessment-head {
+  gap: 9px;
+  padding-bottom: 6px;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-assessment-head h2 {
+  margin-top: 2px;
+  font-size: 14.5px;
+  line-height: 1.2;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-verdict {
+  min-width: 108px;
+  padding: 5px 8px;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-because {
+  margin: 0;
+  font-size: 10.5px;
+  line-height: 1.3;
+}
+
+/* The summary is a status strip, not another explanatory section. */
+.rd-v2-discover-page .rd-v2-evidence-position-grid > div {
+  gap: 1px;
+  padding: 6px 8px;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-position-grid strong {
+  font-size: 11px;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-position-grid em {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 8.8px;
+  line-height: 1.2;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+/* Edit brief remains immediately available but visually subordinate to the
+   verdict. The details disclose the full requirement only when correction is
+   needed. */
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-edit > summary {
+  min-height: 0;
+  padding-block: 4px;
+  font-size: 9.5px;
+}
+
+/* Held support and precise gap are one decision row. Their detailed record and
+   provenance remain reachable through Detail/Ask rather than consuming the
+   whole first viewport. */
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-held,
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-gap {
+  padding: 7px 9px;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-held .rd-v2-evidence-section-head p {
+  display: none;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-held ul {
+  margin-top: 3px;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-held li button {
+  padding-block: 4px;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-held li button > span,
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-held li button > em {
+  line-height: 1.25;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-gap p {
+  margin: 3px 0 0;
+  font-size: 9.8px;
+  line-height: 1.3;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-gap strong {
+  font-size: 11.5px;
+  line-height: 1.25;
+}
+
+/* Sourcing options are actionable evidence rows, not mini cards. One route uses
+   the full width; two routes stack as compact comparison rows rather than
+   leaving an empty half-panel. */
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes {
+  padding: 7px 9px 8px;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes .rd-v2-evidence-section-head {
+  margin-bottom: 3px;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes .rd-v2-evidence-section-head p {
+  margin-top: 2px;
+  font-size: 9px;
+  line-height: 1.25;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes-list {
+  grid-template-columns: 1fr;
+  margin-top: 4px;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes-list li {
+  display: grid;
+  grid-template-columns: minmax(150px, .8fr) minmax(0, 1.35fr) minmax(180px, auto);
+  gap: 6px 10px;
+  align-items: baseline;
+  padding: 6px 8px;
+  border-right: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 60%, transparent);
+  list-style: none;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes-list li:last-child {
+  border-bottom: 0;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes-list li::marker {
+  content: "";
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes-list strong {
+  font-size: 10.8px;
+  line-height: 1.25;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes-list span {
+  font-size: 9.8px;
+  line-height: 1.3;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes-list em {
+  font-size: 9px;
+  line-height: 1.25;
+  text-align: right;
+}
+
+/* Capacity is the final feasibility strip in the scan. Keep all measured facts,
+   but give the strip less height than the evidence/gap decision itself. */
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity {
+  gap: 7px 10px;
+  padding: 6px 8px;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity .rd-v2-evidence-section-head p {
+  margin-top: 2px;
+  line-height: 1.2;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity-grid > div {
+  gap: 1px;
+  padding: 6px 7px;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity-grid strong {
+  font-size: 10px;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity-grid em {
+  font-size: 8.4px;
+  line-height: 1.2;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-basis-details {
+  line-height: 1.2;
+}
+
+@media (max-width: 1100px) {
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes-list li {
+    grid-template-columns: minmax(130px, .85fr) minmax(0, 1.15fr);
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes-list em {
+    grid-column: 1 / -1;
+    text-align: left;
+  }
+}
+
+@media (max-width: 640px) {
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes-list li {
+    grid-template-columns: 1fr;
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes-list em {
+    grid-column: auto;
+  }
+}

@@ -83,8 +83,11 @@ test.describe("Discover adaptive Explore", () => {
       "Do we hold issuer-quarter governance data for Taiwan?",
     );
     await rail.getByRole("tab", { name: "Detail" }).click();
-    const result = page.getByTestId("discover-assessment-result");
+    const result = page.locator(".rd-v2-evidence-brief.is-workspace").getByTestId("discover-assessment-result");
     await expect(result).toBeVisible();
+    await expect(page.getByTestId("discover-query-composer")).toHaveCount(1);
+    await expect(page.getByLabel("Explore question")).toHaveCount(0);
+    await expect(page.getByTestId("discover-interpreting")).toHaveCount(0);
     await expect(page.getByTestId("discover-verdict")).toHaveText("Partially covered");
     await expect(page.getByTestId("discover-ranked-results")).toContainText("MOPS financial statements");
     await expect(rail.getByRole("tab", { name: "Detail" })).toHaveAttribute("aria-selected", "true");
@@ -117,7 +120,7 @@ test.describe("Discover adaptive Explore", () => {
 
     await expect(page.getByTestId("discover-verdict")).toHaveText("Not yet recorded");
     await expect(page.getByTestId("discover-verdict")).toHaveClass(/insufficient_metadata/);
-    await expect(page.getByRole("button", { name: "Strategy needs context" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Clarify evidence need" })).toBeVisible();
     await expect(page.getByTestId("discover-route-comparison")).toHaveCount(0);
   });
 
@@ -130,7 +133,7 @@ test.describe("Discover adaptive Explore", () => {
     await waitForShell(page);
     await search(page, "What data covers Taiwan issuer-quarter governance?");
 
-    await page.getByRole("button", { name: "Custom strategy ready" }).click();
+    await page.getByRole("button", { name: "Review sourcing strategy" }).click();
     const comparison = page.getByTestId("discover-route-comparison");
     await expect(comparison).toBeVisible();
     await expect(comparison).toContainText("How it answers the question");
@@ -157,7 +160,7 @@ test.describe("Discover adaptive Explore", () => {
     await waitForShell(page);
     await search(page, "MOPS filings");
 
-    await page.getByTestId("discover-ranked-results").getByRole("button", { name: "Add to collection" }).click();
+    await page.getByTestId("discover-ranked-results").getByRole("button", { name: "Review acquisition route" }).click();
 
     const workspace = page.getByTestId("discover-intent-workspace");
     await expect(workspace).toBeVisible();
@@ -184,6 +187,48 @@ test.describe("Discover adaptive Explore", () => {
     );
   });
 
+  test("compiled procurement engineering stays brief, truthful, and approval-gated", async ({ page }) => {
+    await mockV2Api(page, {
+      discoverBody: { sections: [], total: 0 },
+      discoverSourcesBody: {
+        results: [{
+          kind: "artifact",
+          source_id: "example_public",
+          candidate_key: "source:example_public",
+          title: "Example public research files",
+          description: "Public CSV files from a source that explicitly advertises acquisition availability.",
+          url: "https://example.com/data.csv",
+          access_mode: "public_http",
+          acquisition_available: true,
+          query_relevance: 2,
+        }],
+        total: 1,
+      },
+    });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await search(page, "example public research files");
+
+    const result = page.getByTestId("discover-ranked-results");
+    await expect(result).toContainText("Collection route declared");
+    await result.getByRole("button", { name: "Review acquisition route" }).click();
+    const workspace = page.getByTestId("discover-intent-workspace");
+    await expect(workspace).toBeVisible();
+    const engineering = workspace.getByTestId("discover-procurement-engineering");
+    await expect(engineering).toBeVisible();
+    await expect(engineering).toContainText("Procurement engineering");
+    await expect(engineering).toContainText("Compiled · HTTP acquisition");
+    await expect(engineering).toContainText("http · runtime placement · baseline sizing");
+    await expect(engineering).toContainText("preflight recommended · single claim");
+    await expect(engineering).toContainText("Evidence fit will be rechecked after collection");
+    await expect(engineering).not.toContainText(/worker-[0-9]|assigned worker|contract hash/i);
+    await expect(workspace.getByRole("button", { name: "Submit for approval" })).toHaveCount(0);
+
+    await workspace.getByRole("button", { name: "Continue to route selection" }).click();
+    await expect(workspace.getByTestId("discover-procurement-engineering")).toBeVisible();
+    await expect(workspace.getByRole("button", { name: "Submit for approval" })).toBeEnabled();
+  });
+
   test("mobile research brief, results, and bottom navigation do not collide", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await mockV2Api(page, {
@@ -197,11 +242,11 @@ test.describe("Discover adaptive Explore", () => {
     const grip = page.locator(".rd-v2-rail-mobile-grip");
     if (await grip.getAttribute("aria-expanded") === "true") await grip.click();
 
-    const briefBox = await page.getByTestId("discover-interpreting").boundingBox();
     const filterBox = await page.getByTestId("discover-filter-menu").boundingBox();
-    expect(briefBox).not.toBeNull();
+    const workspaceBox = await page.locator(".rd-v2-evidence-brief.is-workspace").boundingBox();
     expect(filterBox).not.toBeNull();
-    expect(filterBox.y).toBeGreaterThanOrEqual(briefBox.y + briefBox.height - 1);
+    expect(workspaceBox).not.toBeNull();
+    expect(workspaceBox.y).toBeGreaterThanOrEqual(filterBox.y + filterBox.height - 1);
 
     const rowBox = await page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidate").first().boundingBox();
     expect(rowBox).not.toBeNull();

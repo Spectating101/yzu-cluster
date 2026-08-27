@@ -5,17 +5,50 @@
 
 import {
   classifyDiscoverResult,
+  exceptionalRowPill,
   isLocalHolding,
+  orderDiscoverResults as orderByTaxonomy,
+  taxonomyMatchesFilter,
   taxonomyStageCounts,
 } from "./discoverTaxonomy.js";
 
 export {
   classifyDiscoverResult,
   exceptionalRowPill,
-  orderDiscoverResults,
   taxonomyMatchesFilter,
   taxonomyStageCounts,
-} from "./discoverTaxonomy.js";
+};
+
+/**
+ * Preserve taxonomy authority first, then use only an explicit backend
+ * query_relevance measurement to order peers inside the same taxonomy group.
+ * Unmeasured peers and ties preserve backend/API order. This is intentionally
+ * not a frontend fit heuristic.
+ */
+export function orderDiscoverResults(rows, labIds) {
+  const ordered = orderByTaxonomy(rows, labIds);
+  return ordered
+    .map((row, index) => ({ row, index }))
+    .sort((left, right) => {
+      const leftGroup = Number(left.row?.discover_taxonomy?.group ?? 99);
+      const rightGroup = Number(right.row?.discover_taxonomy?.group ?? 99);
+      if (leftGroup !== rightGroup) return leftGroup - rightGroup;
+
+      const leftRaw = left.row?.query_relevance;
+      const rightRaw = right.row?.query_relevance;
+      const leftMeasured = leftRaw !== null && leftRaw !== undefined && leftRaw !== "" && Number.isFinite(Number(leftRaw));
+      const rightMeasured = rightRaw !== null && rightRaw !== undefined && rightRaw !== "" && Number.isFinite(Number(rightRaw));
+
+      if (leftMeasured && rightMeasured) {
+        const delta = Number(rightRaw) - Number(leftRaw);
+        if (delta !== 0) return delta;
+      } else if (leftMeasured !== rightMeasured) {
+        return leftMeasured ? -1 : 1;
+      }
+      return left.index - right.index;
+    })
+    .map(({ row }) => row);
+}
 
 /**
  * Presentation state for pills and rail actions.
@@ -133,6 +166,7 @@ const DISCOVER_TERM_LABELS = Object.freeze({
   materialized_bulk: "Bulk archive route",
   procurement_catalog: "Procurement route",
   live_connector: "Connected route",
+  public_http: "Public HTTP",
   governance_regulatory: "governance and regulatory records",
   daily_prices: "daily market prices",
   index_pit_survivorship: "point-in-time index membership",
