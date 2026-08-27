@@ -23,7 +23,7 @@ test.describe("v2 Library evidence estate", () => {
     await expect(page.getByTestId("library-sort-filter")).toHaveValue("name");
     await expect(page.getByTestId("research-situation")).toContainText("Library");
     await expect(page.locator("aside.rd-v2-rail")).toContainText("In this library");
-    await expect(page.locator("aside.rd-v2-rail .rd-v2-rail-ehead")).toHaveCount(1);
+    await expect(page.locator("aside.rd-v2-rail .rd-v2-rail-ehead")).toHaveCount(0);
     await expect(page.locator("aside.rd-v2-rail")).toContainText("Add evidence");
     await expect(page.locator("aside.rd-v2-rail")).not.toContainText("Branch actions");
     await expect(page.locator("aside.rd-v2-rail")).not.toContainText("Upload here");
@@ -261,6 +261,8 @@ test.describe("v2 Library navigation", () => {
     const collection = page.getByTestId("library-collection-filter").first();
     await collection.click();
     await expect(page).toHaveURL(/folder=/);
+    await expect(page.locator("aside.rd-v2-rail")).toContainText("In this collection");
+    await expect(page.locator("aside.rd-v2-rail .rd-v2-rail-ehead")).toHaveCount(0);
 
     await page.locator("aside.yzu-sidebar").getByRole("button", { name: "Discover", exact: true }).click();
     await expect(page.getByRole("heading", { name: "Discover", exact: true })).toBeVisible();
