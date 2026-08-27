@@ -11,6 +11,7 @@ import { ProfileDetailPanel } from "@/v2/ProfilePage";
 import { activeObjectSelectionHint } from "@/v2/activeObject";
 import { displayName } from "@/v2/datasetMeta";
 import { LibraryDatasetRailPanel } from "@/v2/LibraryDatasetRailPanel";
+import { LibraryFolderRailPanel } from "@/v2/LibraryFolderRailPanel";
 import { ResourcesOverviewRailPanel } from "@/v2/ResourcesOverviewRailPanel";
 import { DiscoverHistoryRailPanel } from "@/v2/DiscoverHistoryRailPanel";
 import { DiscoverIntentRailPanel } from "@/v2/DiscoverIntentRailPanel";
@@ -223,10 +224,17 @@ export function InspectorRail({
         onAskAbout={onAskAbout}
       />
     );
-  } else if (
-    mainTab === "library" &&
-    (activeObject?.kind === "library_folder" || activeObject?.kind === "library_intake")
-  ) {
+  } else if (mainTab === "library" && activeObject?.kind === "library_folder") {
+    detailPanel = (
+      <LibraryFolderRailPanel
+        object={activeObject}
+        onAskAbout={onAskAbout}
+        onStartUpload={onStartLibraryUpload}
+        onStartUrl={onStartLibraryUrl}
+        onStartProcure={onStartLibraryProcure}
+      />
+    );
+  } else if (mainTab === "library" && activeObject?.kind === "library_intake") {
     detailPanel = (
       <LibraryObjectRailPanel
         object={activeObject}
