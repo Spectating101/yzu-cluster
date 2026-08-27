@@ -305,9 +305,20 @@
 
 
 /* Library file-browser ergonomics */
+.rd-v2-library-page .rd-v2-toolbar {
+  gap: 7px;
+}
+
 .rd-v2-library-toolbar-search {
-  flex: 1 1 300px;
-  min-width: 230px;
+  flex: 1 1 330px;
+  min-width: 300px;
+  max-width: 460px;
+}
+
+.rd-v2-library-toolbar-search input {
+  width: 100%;
+  min-width: 0;
+  text-overflow: ellipsis;
 }
 
 .rd-v2-library-toolbar-search kbd {
@@ -403,7 +414,17 @@
   outline-offset: -2px;
 }
 
+@media (min-width: 1500px) {
+  .rd-v2-library-toolbar-search {
+    max-width: 520px;
+  }
+}
+
 @media (max-width: 1180px) {
+  .rd-v2-library-toolbar-search {
+    min-width: 270px;
+  }
+
   .rd-v2-library-toolbar-filters {
     flex-wrap: wrap;
   }
