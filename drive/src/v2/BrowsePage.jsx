@@ -649,7 +649,8 @@ export function BrowsePage({
   onOpenAssessment,
   onAssessmentChange,
   onAssessmentActive,
-  resourcesRollup = null,
+  resourcesRollup,
+  resourcesError = "",
   deskHealth = null,
   synthesisHandoff = null,
   onReturnToSynthesis,
@@ -1490,6 +1491,7 @@ export function BrowsePage({
                   onAssessmentChange={onAssessmentChange}
                   onAssessmentActive={onAssessmentActive}
                   resourcesRollup={resourcesRollup}
+                  resourcesError={resourcesError}
                   deskHealth={deskHealth}
                 />
               ) : null}

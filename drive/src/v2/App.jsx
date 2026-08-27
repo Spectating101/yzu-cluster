@@ -1605,6 +1605,9 @@ export function V2App() {
           loadError={loadError}
           onOpenLibraryResults={openLibraryResultsFromDiscover}
           catalog={catalog}
+          resourcesRollup={resourcesRollup}
+          resourcesError={resourcesError}
+          deskHealth={health}
           selectedId={browseSelectedId}
           searchQuery={discoverSearchQuery}
           onSearchChange={setDiscoverSearchQuery}

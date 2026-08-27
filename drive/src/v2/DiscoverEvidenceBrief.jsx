@@ -174,7 +174,8 @@ export function DiscoverEvidenceBrief({
   autoAssess = false,
   variant = "standalone",
   assessmentValue = null,
-  resourcesRollup = null,
+  resourcesRollup,
+  resourcesError = "",
   deskHealth = null,
 }) {
   const [draft, setDraft] = useState(initialQuestion);
@@ -187,6 +188,8 @@ export function DiscoverEvidenceBrief({
   const [routeError, setRouteError] = useState("");
   const autoStartedRef = useRef("");
   const routeAutoKeyRef = useRef("");
+  const assessmentRequestSeqRef = useRef(0);
+  const routeRequestSeqRef = useRef(0);
 
   useEffect(() => {
     setDimensions(normalizeRequirement(assessment?.requirement));
@@ -198,6 +201,8 @@ export function DiscoverEvidenceBrief({
 
   useEffect(() => {
     if (!assessmentValue) return;
+    routeRequestSeqRef.current += 1;
+    setRouteLoading(false);
     setAssessment(assessmentValue);
     setRouteResult(null);
     setRouteError("");
@@ -218,42 +223,84 @@ export function DiscoverEvidenceBrief({
     () => buildDiscoverDecisionCapacity(resourcesRollup, deskHealth, { routes: routeRows }),
     [resourcesRollup, deskHealth, routeResult],
   );
+  const resourcesRefreshFailed = Boolean(String(resourcesError || "").trim());
+  // A failed /desk/resources read may still leave a thin /health projection in
+  // App. Only surface rows whose underlying fields are actually present in that
+  // surviving rollup; never turn omitted fleet/BigQuery telemetry into a false
+  // "not configured" or generic availability claim.
+  const partialCapacityRows = useMemo(() => {
+    if (!resourcesRefreshFailed || !resourcesRollup || typeof resourcesRollup !== "object") return [];
+    const usage = resourcesRollup.usage || {};
+    const hero = resourcesRollup.hero || {};
+    const metered = resourcesRollup.metered || {};
+    const workers = hero.workers || {};
+    const hasWorkers = [workers.available, workers.online, workers.idle, workers.ready, workers.total, workers.joined]
+      .some((value) => value !== undefined && value !== null && value !== "");
+    return capacityRows.filter((row) => {
+      if (row.id === "vault") return Boolean(usage.vault || hero.vault);
+      if (row.id === "cache") return Boolean(usage.cache);
+      if (row.id === "bigquery") return Boolean(metered.bigquery);
+      if (row.id === "fleet") return hasWorkers;
+      return false;
+    });
+  }, [capacityRows, resourcesRefreshFailed, resourcesRollup]);
+  const visibleCapacityRows = resourcesRefreshFailed ? partialCapacityRows : capacityRows;
+  const capacityState = resourcesRollup === undefined
+    ? "checking"
+    : resourcesRefreshFailed
+      ? (visibleCapacityRows.length ? "partial" : "unavailable")
+      : resourcesRollup === null
+        ? "unavailable"
+        : visibleCapacityRows.length
+          ? "measured"
+          : "unreported";
 
   const requestAssessment = async ({ requirement, questionOverride } = {}) => {
     const question = String(questionOverride || draft).trim();
     if (!question) return;
+    const assessmentRequestId = ++assessmentRequestSeqRef.current;
+    // Any sourcing result belongs to the assessment that produced it. Retire
+    // that authority synchronously before model work for a corrected brief.
+    routeRequestSeqRef.current += 1;
+    routeAutoKeyRef.current = "";
+    setRouteResult(null);
+    setRouteError("");
+    setRouteLoading(false);
     setLoading(true);
     setError("");
     try {
       const next = await assessDiscoverEvidence({ question, requirement });
+      if (assessmentRequestId !== assessmentRequestSeqRef.current) return;
       setAssessment(next);
-      setRouteResult(null);
-      setRouteError("");
       onAssessmentChange?.(next);
       onAssessmentActive?.(true);
     } catch (requestError) {
+      if (assessmentRequestId !== assessmentRequestSeqRef.current) return;
       setError("Assessment is unavailable. Showing the catalogue instead.");
       onAssessmentChange?.(null);
       onAssessmentActive?.(false);
       // Existing catalogue search is retained only as a graceful fallback.
       onLegacySearch?.(question);
     } finally {
-      setLoading(false);
+      if (assessmentRequestId === assessmentRequestSeqRef.current) setLoading(false);
     }
   };
 
   const requestRoutes = async () => {
     if (!assessment?.gap || assessment?.assessment_status !== "assessed" || routeLoading) return;
+    const routeRequestId = ++routeRequestSeqRef.current;
     setRouteLoading(true);
     setRouteError("");
     try {
       const next = await listDiscoverGapRoutes({ question: assessment.question || draft, assessment });
+      if (routeRequestId !== routeRequestSeqRef.current) return;
       setRouteResult(next || {});
     } catch (requestError) {
+      if (routeRequestId !== routeRequestSeqRef.current) return;
       setRouteResult(null);
       setRouteError("Declared routes are unavailable. The gap remains unresolved.");
     } finally {
-      setRouteLoading(false);
+      if (routeRequestId === routeRequestSeqRef.current) setRouteLoading(false);
     }
   };
 
@@ -463,21 +510,45 @@ export function DiscoverEvidenceBrief({
               ) : null}
             </section>
           ) : null}
-          {variant === "workspace" && capacityRows.length ? (
-            <section className="rd-v2-evidence-capacity" aria-label="Execution capacity">
+          {variant === "workspace" ? (
+            <section className="rd-v2-evidence-capacity" aria-label="Execution capacity" data-state={capacityState}>
               <div className="rd-v2-evidence-section-head">
                 <div><span className="rd-v2-eyebrow">Execution capacity</span><p>Measured desk capability that can change the sourcing decision. No worker or quota is assigned here.</p></div>
               </div>
-              <div className="rd-v2-evidence-capacity-grid">
-                {capacityRows.map((row) => (
-                  <div key={row.id} className={row.attention ? "needs-attention" : ""}>
-                    <span>{row.label}</span><strong>{row.metric}</strong>{row.detail ? <em>{row.detail}</em> : null}
+              {capacityState === "checking" ? (
+                <p className="muted" role="status">Checking measured desk capacity…</p>
+              ) : capacityState === "partial" ? (
+                <>
+                  <p className="muted">Full resource refresh failed. Showing only capacity facts still measured by the desk; do not infer missing compute, storage, or quota.</p>
+                  <div className="rd-v2-evidence-capacity-grid">
+                    {visibleCapacityRows.map((row) => (
+                      <div key={row.id} className={row.attention ? "needs-attention" : ""}>
+                        <span>{row.label}</span><strong>{row.metric}</strong>{row.detail ? <em>{row.detail}</em> : null}
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </>
+              ) : capacityState === "unavailable" ? (
+                <p className="muted">Measured capacity is unavailable. Do not assume compute, storage, or quota from this sourcing view.</p>
+              ) : visibleCapacityRows.length ? (
+                <div className="rd-v2-evidence-capacity-grid">
+                  {visibleCapacityRows.map((row) => (
+                    <div key={row.id} className={row.attention ? "needs-attention" : ""}>
+                      <span>{row.label}</span><strong>{row.metric}</strong>{row.detail ? <em>{row.detail}</em> : null}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="muted">No decision-relevant measured capacity was reported.</p>
+              )}
             </section>
           ) : null}
-          {assessment.assessment_basis ? <p className="rd-v2-evidence-basis">Basis: {assessmentBasisSummary(assessment.assessment_basis)}</p> : null}
+          {assessment.assessment_basis ? (
+            <details className="rd-v2-evidence-basis-details">
+              <summary>Assessment basis</summary>
+              <p className="rd-v2-evidence-basis">{assessmentBasisSummary(assessment.assessment_basis)}</p>
+            </details>
+          ) : null}
         </div>
       )}
       {loading ? <p className="rd-v2-browse-loading" data-testid="discover-assessment-loading">Checking Library evidence against the brief…</p> : null}

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   reviewDiscoverIntentProposal,
   selectDiscoverIntentRoute,
@@ -74,6 +74,7 @@ export function DiscoverIntentWorkspace({
 }) {
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
+  const operationLockRef = useRef(false);
   const intent = record?.intent || null;
   const state = intentState(intent);
   const candidate = state.candidate || record?.candidate || {};
@@ -96,7 +97,8 @@ export function DiscoverIntentWorkspace({
   );
 
   const review = async (decision) => {
-    if (!proposal?.id || !proposal?.proposal_hash || !intent?.id) return;
+    if (!proposal?.id || !proposal?.proposal_hash || !intent?.id || operationLockRef.current) return;
+    operationLockRef.current = true;
     setBusy(`review:${decision}`);
     setError("");
     try {
@@ -109,12 +111,14 @@ export function DiscoverIntentWorkspace({
     } catch (failure) {
       setError(failure?.message || "Could not review this route proposal.");
     } finally {
+      operationLockRef.current = false;
       setBusy("");
     }
   };
 
   const selectRoute = async (routeId) => {
-    if (!intent?.id) return;
+    if (!intent?.id || operationLockRef.current) return;
+    operationLockRef.current = true;
     setBusy(`route:${routeId}`);
     setError("");
     try {
@@ -123,12 +127,14 @@ export function DiscoverIntentWorkspace({
     } catch (failure) {
       setError(failure?.message || "Could not select this route.");
     } finally {
+      operationLockRef.current = false;
       setBusy("");
     }
   };
 
   const submit = async () => {
-    if (!intent?.id || !canSubmitDiscoverIntent(intent)) return;
+    if (!intent?.id || !canSubmitDiscoverIntent(intent) || operationLockRef.current) return;
+    operationLockRef.current = true;
     setBusy("submit");
     setError("");
     try {
@@ -143,6 +149,7 @@ export function DiscoverIntentWorkspace({
     } catch (failure) {
       setError(failure?.message || "Could not submit this route for approval.");
     } finally {
+      operationLockRef.current = false;
       setBusy("");
     }
   };
