@@ -13,12 +13,13 @@ test.describe("v2 Library evidence estate", () => {
     await expect(page.locator(".rd-v2-page-head h1", { hasText: "Library" })).toBeVisible();
     const estate = page.getByTestId("library-evidence-estate");
     await expect(estate).toBeVisible();
-    await expect(estate.getByRole("heading", { name: "Research evidence estate", exact: true })).toBeVisible();
     await expect(estate).toHaveAttribute("aria-label", "Research evidence estate");
-    await expect(page.getByTestId("library-auto-catalog")).toBeVisible();
-    await expect(page.getByTestId("library-auto-catalog")).toContainText("Generated from the evidence itself");
+    const catalogue = page.getByTestId("library-auto-catalog");
+    await expect(catalogue).toBeVisible();
+    await expect(catalogue.getByText("View", { exact: true })).toBeVisible();
     await expect(page.getByTestId("library-evidence-row").first()).toBeVisible();
     await expect(page.getByTestId("library-collection-filter").first()).toBeVisible();
+    await expect(estate.getByText("Collections", { exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: /^All$/ })).toBeVisible();
     await expect(page.getByRole("button", { name: /^Query ready / })).toBeVisible();
     await expect(page.getByRole("button", { name: /^Not query-ready / })).toBeVisible();
@@ -29,7 +30,7 @@ test.describe("v2 Library evidence estate", () => {
     await expect(page.locator("aside.rd-v2-rail")).not.toContainText("Upload here");
   });
 
-  test("selecting evidence opens a table-first Library workspace while the rail remains contextual", async ({ page }) => {
+  test("selecting evidence keeps substance primary while deeper dossier detail stays progressive", async ({ page }) => {
     await page.getByRole("textbox", { name: "Search library holdings" }).fill("Asia");
     const row = page.getByTestId("library-evidence-row").filter({ hasText: "Asia daily news-risk panel" });
     await expect(row).toBeVisible();
@@ -43,12 +44,13 @@ test.describe("v2 Library evidence estate", () => {
     await expect(preview).toBeVisible();
     await expect(preview).toContainText("Dataset inspection");
     await expect(preview).toContainText("Observed table");
-    await expect(facts).toContainText("Asset facts");
-    await expect(facts).toContainText("Research use");
-    await expect(facts).toContainText("Boundary");
+    await expect(preview).toContainText("Coverage:");
+    await expect(preview).toContainText("Grain:");
+    await expect(preview).toContainText("Keys:");
+    await expect(facts.getByText("Research details", { exact: true })).toBeVisible();
+    expect(await facts.evaluate((element) => element.open)).toBe(false);
     await expect(workspace.getByLabel("Evidence claims")).toContainText("Readiness");
     await expect(workspace.getByLabel("Evidence claims")).toContainText("Verification");
-    await expect(workspace.locator(".rd-v2-library-evidence-facts")).toContainText("ScopeNot declared");
     await expect(workspace.getByRole("button", { name: "Open query" })).toBeVisible();
     await expect(workspace.getByRole("button", { name: "Inspect schema" })).toHaveCount(1);
     await expect(workspace.getByRole("button", { name: "Full preview" })).toHaveCount(1);
@@ -63,11 +65,21 @@ test.describe("v2 Library evidence estate", () => {
     await expect(page.getByTestId("research-situation")).toContainText("Asia daily news-risk panel");
     await expect(rail).toContainText("Can I use this?");
     await expect(rail).toContainText("Query ready");
-    await expect(rail).toContainText("Useful for");
-    await expect(rail).toContainText("Coverage & grain");
-    await expect(rail).toContainText("Join keys");
-    await expect(rail.getByRole("button", { name: "Preview rows" })).toBeVisible();
+    await expect(rail).toContainText("Source authority");
+    await expect(rail).toContainText("Verification");
+    await expect(rail).not.toContainText("Useful for");
+    await expect(rail).not.toContainText("Coverage & grain");
+    await expect(rail).not.toContainText("Join keys");
+    await expect(rail.getByRole("button", { name: "Preview rows" })).toHaveCount(0);
+    await expect(rail.getByRole("button", { name: "Ask about this →" })).toBeVisible();
     await expect(page.getByTestId("library-evidence-estate")).toHaveCount(0);
+
+    await facts.getByText("Research details", { exact: true }).click();
+    expect(await facts.evaluate((element) => element.open)).toBe(true);
+    await expect(facts).toContainText("Asset facts");
+    await expect(facts).toContainText("Research use");
+    await expect(facts).toContainText("Boundary");
+    await expect(workspace.locator(".rd-v2-library-evidence-facts")).toContainText("ScopeNot declared");
 
     await workspace.getByRole("button", { name: "Inspect schema" }).click();
     const fields = page.getByRole("dialog", { name: "Declared structure" });
