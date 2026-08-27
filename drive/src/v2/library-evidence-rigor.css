@@ -4,6 +4,12 @@
    lock-step with that semantic contract rather than letting implicit grid rows
    rearrange the last claim. */
 
+/* A breadcrumb earns its space only after the researcher has entered a
+   collection. At Library root the one-item trail merely repeats the page title. */
+.rd-v2-library-page .rd-v2-crumb:has(.rd-v2-crumb-item:only-child) {
+  display: none;
+}
+
 .rd-v2-cap-ledger.with-verify .rd-v2-cap-ledger-head,
 .rd-v2-cap-ledger.with-verify .rd-v2-cap-ledger-row {
   grid-template-columns: minmax(270px, 1fr) minmax(150px, 0.46fr) minmax(96px, 0.24fr) minmax(105px, 0.26fr);
