@@ -19,6 +19,7 @@ import "./discover-workspace-compression.css"; /* rendered 1440/1920 investigati
 import "./discover-marketplace-convergence.css"; /* mature data-product scan + acquisition hierarchy */
 import "./discover-marketplace-detail.css"; /* live ranked offerings + selected-candidate product sheet */
 import "./discover-marketplace-breakpoints.css"; /* compact laptop / labelled wide offering facts */
+import "./discover-product-inspector.css"; /* evidence-bound inspect-before-acquire profile */
 import "./synthesis-workstation.css"; /* >=1600px Synthesis density and proof layout */
 import { InteractionProvider } from "./InteractionGuidance.jsx";
 import { V2App } from "./App.jsx";
