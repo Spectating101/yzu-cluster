@@ -16,6 +16,7 @@ import "./release-scale.css"; /* laptop/desktop resolution ladder + rail collaps
 import "./library-workspace.css";
 import "./discover-visual-freeze.css"; /* Discover evidence investigation freeze */
 import "./discover-workspace-compression.css"; /* rendered 1440/1920 investigation density */
+import "./discover-marketplace-convergence.css"; /* mature data-product scan + acquisition hierarchy */
 import "./synthesis-workstation.css"; /* >=1600px Synthesis density and proof layout */
 import { InteractionProvider } from "./InteractionGuidance.jsx";
 import { V2App } from "./App.jsx";
