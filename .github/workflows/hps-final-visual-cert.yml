@@ -1,0 +1,47 @@
+name: HPS final visual certification
+
+on:
+  push:
+    branches:
+      - hardening/hps-final-visual-cert-20260828
+  workflow_dispatch:
+
+concurrency:
+  group: hps-final-visual-cert-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  render-and-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium --with-deps
+      - name: Production build
+        run: npm run build
+      - name: Run final HPS visual certification
+        run: |
+          mkdir -p .tmp-pw artifacts/hps-final-visual
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false \
+            npx playwright test e2e/hps-final-visual-cert.spec.js e2e/hps-inner-containment.spec.js --project=chromium --workers=1 --reporter=line
+      - name: Record production ancestor
+        run: |
+          echo "production_ancestor=b0d8ee8631ad2692ffd4c5c94bf7b0fb2d4dcf66" > artifacts/hps-final-visual/certification.txt
+          echo "qa_head=${GITHUB_SHA}" >> artifacts/hps-final-visual/certification.txt
+      - name: Upload final HPS renders and metrics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hps-final-visual-cert
+          path: |
+            artifacts/hps-final-visual
+            test-results
+          if-no-files-found: warn
+          retention-days: 7
