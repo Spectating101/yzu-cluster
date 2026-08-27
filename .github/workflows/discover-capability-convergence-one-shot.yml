@@ -68,4 +68,4 @@ jobs:
           git commit -m "hardening(discover): fence races and compress capability surface"
           git push origin HEAD:polish/discover-visual-freeze-20260827
 
-# Exact-head closure trigger: preserve capacity loading authority through BrowsePage and land only after every Discover gate is green.
+# Exact-head closure trigger: degraded capacity authority + visual compression + hostile lifecycle proof.
