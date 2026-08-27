@@ -28,7 +28,29 @@ const PROPOSAL_THREAD = {
   },
 };
 
-async function installSynthesisMock(page, threads = [PROPOSAL_THREAD]) {
+const GAP_THREAD = {
+  id: "thread-evidence-gap",
+  created_at: "2026-08-27T13:00:00Z",
+  updated_at: "2026-08-27T13:10:00Z",
+  title: "Stablecoin sentiment gap",
+  objective: "Construct a weekly stablecoin sentiment signal while preserving the missing-source boundary.",
+  materialisation: "not_materialised",
+  state: {
+    title: "Stablecoin sentiment gap",
+    objective: "Construct a weekly stablecoin sentiment signal while preserving the missing-source boundary.",
+    required_grain: "asset × week",
+    nodes: [
+      { id: "target", type: "target", layer: "target", label: "Stablecoin sentiment signal", interpretation: "Weekly research target" },
+      { id: "missing-source", dataset_id: "missing-source", type: "source", layer: "evidence", label: "Missing weekly sentiment", role: "Needed evidence", status: "missing", grain: "asset-week" },
+    ],
+    edges: [],
+    proposal: null,
+    execution_spec: null,
+    execution: null,
+  },
+};
+
+async function installSynthesisMock(page, threads = [PROPOSAL_THREAD], handoffs = {}) {
   const byId = new Map(threads.map((thread) => [thread.id, structuredClone(thread)]));
   await page.route("**/library/synthesis/threads**", async (route) => {
     const url = new URL(route.request().url());
@@ -43,7 +65,9 @@ async function installSynthesisMock(page, threads = [PROPOSAL_THREAD]) {
     if (!suffix) return respond(thread);
     if (suffix === "measurements") return respond({ thread_id: id, writes: false, measured_inputs: 0, input_dataset_ids: [], unmeasured: [], column_profiles: [] });
     if (suffix === "evidence-map") return respond({ thread_id: id, nodes: [], reason: "No additional held evidence proposed", review_required: true, writes: false });
-    if (suffix === "discover-handoff") return respond({ thread_id: id, fields: [] });
+    if (suffix === "discover-handoff") {
+      return respond(handoffs[id] || { thread_id: id, missing_evidence: [], collect_intents: [] });
+    }
     if (suffix === "materialisation") return respond({ thread_id: id, status: "not_materialised" });
     return respond({});
   });
@@ -82,8 +106,10 @@ test("Home chooses reviewable Synthesis ahead of passive Library recency and res
   await expect(pick).toContainText(/Proposal review/i);
   await pick.getByRole("button", { name: "Continue" }).click();
 
-  await expect(page.locator(".rd-v2-page-head h1", { hasText: "Synthesis" })).toBeVisible();
-  await expect(page.getByTestId("synthesis-thread-item").filter({ hasText: "Weekly trust panel" })).toHaveClass(/selected|active|on/);
+  await expect(page.getByTestId("synthesis-studio")).toBeVisible();
+  const exactThread = page.getByTestId("synthesis-thread-item").filter({ hasText: "Weekly trust panel" });
+  await expect(exactThread).toHaveClass(/active/);
+  await expect(page.locator(".s04-head h1")).toHaveText("Weekly trust panel");
 });
 
 test("explicit researcher decision still outranks active Synthesis", async ({ page }) => {
@@ -126,13 +152,14 @@ test("Settings evidence policy changes Library selection and Keep current preser
   const row = page.getByTestId("library-evidence-row").first();
   await expect(row).toBeVisible();
   await row.click();
-  await expect(page.locator(".rd-v2-rail-toggle").getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "true");
+  const situation = page.getByTestId("research-situation");
+  await expect(situation.getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "true");
 
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page.getByLabel("When evidence is selected").selectOption("keep");
   await page.getByRole("button", { name: "Library", exact: true }).click();
   await page.getByTestId("library-evidence-row").nth(1).click();
-  await expect(page.locator(".rd-v2-rail-toggle").getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByTestId("research-situation").getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "true");
 });
 
 test("Settings wide Discover policy starts live semantic federation immediately", async ({ page }) => {
@@ -147,23 +174,44 @@ test("Settings wide Discover policy starts live semantic federation immediately"
   await page.getByLabel("Discover search").selectOption("wide");
 
   await page.getByRole("button", { name: "Discover", exact: true }).click();
-  const search = page.locator(".rd-v2-search-pill input");
+  const search = page.getByRole("textbox", { name: "Search or describe a research need" });
+  await expect(search).toBeVisible();
   await search.fill("stablecoin depeg evidence");
   await search.press("Enter");
   await expect.poll(() => seen.some((url) => url.includes("live=1") && url.includes("semantic=1"))).toBeTruthy();
 });
 
 test("Synthesis evidence-gap handoff overrides wide preference and begins known-first", async ({ page }) => {
-  await mockV2Api(page, { jobsBody: { jobs: [] } });
+  const seen = [];
+  await mockV2Api(page, { jobsBody: { jobs: [] }, discoverBody: { sections: [], total: 0 } });
+  await page.route("**/library/discover/sources?*", async (route) => {
+    seen.push(route.request().url());
+    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ results: [] }) });
+  });
   await page.addInitScript(() => {
     localStorage.setItem("rd_v2_settings", JSON.stringify({ startup: "home", onSelect: "detail", discoverScope: "wide", email: "" }));
   });
-  await installSynthesisMock(page);
-  // This test pins the policy helper at the App boundary through navigation: ordinary Discover is wide,
-  // while the dedicated Synthesis handoff code explicitly sets preferLive=false before switching tabs.
-  // The full handoff mechanics are already frozen in v2-synthesis.spec.js; here we assert the preference
-  // is not allowed to redefine that evidence-discipline boundary by source inspection in the production code.
+  await installSynthesisMock(page, [GAP_THREAD], {
+    [GAP_THREAD.id]: {
+      thread_id: GAP_THREAD.id,
+      required_grain: "asset-week",
+      missing_evidence: [{ id: "missing-source", dataset_id: "missing-source", label: "Missing weekly sentiment" }],
+      collect_intents: [{ id: "missing-source", query: "Missing weekly sentiment" }],
+    },
+  });
+
   await page.goto("/?tab=synthesis", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
-  await expect(page.locator(".rd-v2-page-head h1", { hasText: "Synthesis" })).toBeVisible();
+  await expect(page.getByTestId("synthesis-studio")).toBeVisible();
+  await page.getByTestId("synthesis-thread-item").filter({ hasText: "Stablecoin sentiment gap" }).click();
+  await expect(page.getByTestId("synthesis-evidence-state")).toBeVisible();
+  await page.locator(".s04-map-node").filter({ hasText: "Missing weekly sentiment" }).click();
+  const routeToDiscover = page.getByRole("button", { name: "Route to Discover" });
+  await expect(routeToDiscover).toBeVisible();
+  await routeToDiscover.click();
+
+  await expect(page.getByTestId("synthesis-discover-handoff")).toBeVisible();
+  await expect(page.locator(".rd-v2-page-head h1", { hasText: "Discover" })).toBeVisible();
+  await expect.poll(() => seen.some((url) => url.includes("semantic=0") && url.includes("live=0"))).toBeTruthy();
+  expect(seen.some((url) => url.includes("semantic=1") && url.includes("live=1"))).toBeFalsy();
 });
