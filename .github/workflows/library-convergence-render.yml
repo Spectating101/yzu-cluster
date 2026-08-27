@@ -44,8 +44,12 @@ jobs:
           CI: "true"
           YZU_PAGES: "false"
 
-      - name: Render Library convergence states
-        run: npx playwright test e2e/library-convergence-render.spec.js --reporter=line
+      - name: Render Library convergence and depth states
+        run: >-
+          npx playwright test
+          e2e/library-convergence-render.spec.js
+          e2e/library-visual-depth-render.spec.js
+          --reporter=line
         env:
           CI: "true"
           YZU_PAGES: "false"
