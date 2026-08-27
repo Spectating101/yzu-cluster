@@ -1,0 +1,31 @@
+name: Library convergence contract apply
+
+on:
+  push:
+    branches:
+      - hardening/library-retrieval-excellence-20260828
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: ${{ !contains(github.event.head_commit.message, '[library-convergence-contract-applied]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Update convergence assertions
+        run: python scripts/update_library_convergence_contract.py
+      - name: Syntax-check convergence spec
+        run: node --check e2e/library-convergence-render.spec.js
+      - name: Commit convergence contract
+        run: |
+          git config user.name spectating101
+          git config user.email s1133958@mail.yzu.edu.tw
+          git add e2e/library-convergence-render.spec.js
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'test(library): pin file-browser convergence contract [library-convergence-contract-applied]'
+          git push origin HEAD:hardening/library-retrieval-excellence-20260828
