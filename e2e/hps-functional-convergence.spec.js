@@ -1,5 +1,17 @@
 import { test, expect } from "@playwright/test";
-import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
+import { MOCK_HEALTH, mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
+
+const QUIET_HEALTH = {
+  ...MOCK_HEALTH,
+  desk: {
+    ...MOCK_HEALTH.desk,
+    jobs: {
+      ...MOCK_HEALTH.desk.jobs,
+      running: 0,
+      pending_approval: 0,
+    },
+  },
+};
 
 const PROPOSAL_THREAD = {
   id: "thread-home-proposal",
@@ -95,7 +107,7 @@ const PROFILE = {
 };
 
 test("Home chooses reviewable Synthesis ahead of passive Library recency and resumes the exact thread", async ({ page }) => {
-  await mockV2Api(page, { jobsBody: { jobs: [] } });
+  await mockV2Api(page, { jobsBody: { jobs: [] }, healthBody: QUIET_HEALTH });
   await installSynthesisMock(page);
   await page.goto("/?tab=home", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
