@@ -14,6 +14,7 @@ on:
       - "e2e/v2-discover-authority-depth.spec.js"
       - "e2e/v2-discover-submit-recovery.spec.js"
       - "e2e/discover-visual-convergence.spec.js"
+      - "e2e/discover-procurement-engineering-visual.spec.js"
       - ".github/workflows/discover-visual-validation.yml"
   workflow_dispatch:
 
@@ -59,7 +60,8 @@ jobs:
         run: >-
           mkdir -p .tmp-pw artifacts/discover-convergence &&
           TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
-          e2e/discover-visual-convergence.spec.js --reporter=line
+          e2e/discover-visual-convergence.spec.js
+          e2e/discover-procurement-engineering-visual.spec.js --reporter=line
       - uses: actions/upload-artifact@v4
         if: always()
         with:
