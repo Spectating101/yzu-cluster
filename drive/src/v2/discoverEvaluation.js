@@ -108,6 +108,9 @@ export function coverageParts(row) {
 
 /**
  * Primary + secondary actions for the evaluation footer.
+ * `preview` remains the stable action id because callers route it to the
+ * external-source opener. The researcher-facing label is intentionally
+ * "Open source" until a bounded row/sample preview is actually observed.
  * @returns {{ primary: { id: string, label: string }, secondary: { id: string, label: string }[] }}
  */
 export function evaluationActions(row, taxonomy, { queued = false, hasProbeUrl = false, probed = false } = {}) {
@@ -144,7 +147,7 @@ export function evaluationActions(row, taxonomy, { queued = false, hasProbeUrl =
       secondary: [
         hasProbeUrl ? { id: "probe", label: "Probe source" } : null,
         { id: "ask", label: "Ask about this source" },
-        { id: "preview", label: "Preview source" },
+        { id: "preview", label: "Open source" },
       ].filter(Boolean),
     };
   }
@@ -153,7 +156,7 @@ export function evaluationActions(row, taxonomy, { queued = false, hasProbeUrl =
       primary: { id: "ask", label: "Ask about this source" },
       secondary: [
         hasProbeUrl ? { id: "probe", label: "Probe source" } : null,
-        { id: "preview", label: "Preview source" },
+        { id: "preview", label: "Open source" },
       ].filter(Boolean),
     };
   }
@@ -162,14 +165,14 @@ export function evaluationActions(row, taxonomy, { queued = false, hasProbeUrl =
       primary: { id: "add_lab", label: "Request this evidence" },
       secondary: [
         hasProbeUrl && !probed ? { id: "probe", label: "Probe source" } : null,
-        { id: "preview", label: "Preview source" },
+        { id: "preview", label: "Open source" },
         { id: "ask", label: "Ask about this source" },
       ].filter(Boolean),
     };
   }
   if (key === "external-probed") {
     return {
-      primary: { id: "preview", label: "Preview source" },
+      primary: { id: "preview", label: "Open source" },
       secondary: [
         { id: "add_lab", label: "Request this evidence" },
         hasProbeUrl ? { id: "probe", label: "Probe again" } : null,
@@ -181,11 +184,11 @@ export function evaluationActions(row, taxonomy, { queued = false, hasProbeUrl =
   return {
     primary: hasProbeUrl
       ? { id: "probe", label: "Probe source" }
-      : { id: "preview", label: "Preview source" },
+      : { id: "preview", label: "Open source" },
     secondary: [
       { id: "add_lab", label: "Request this evidence" },
       { id: "ask", label: "Ask about this source" },
-      hasProbeUrl ? { id: "preview", label: "Preview source" } : null,
+      hasProbeUrl ? { id: "preview", label: "Open source" } : null,
     ].filter(Boolean),
   };
 }
