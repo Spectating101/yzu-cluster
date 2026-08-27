@@ -176,21 +176,21 @@ const PAGE_RAIL_COPY = {
     ],
   },
   profile: {
-    title: "Profile context",
-    desc: "Faculty profile controls ranking, procurement hints, and research-area context.",
+    title: "Researcher record",
+    desc: "Registry-backed identity, research context, works, and recorded evidence relationships.",
     fields: [
-      ["Used for", "Discover ranking"],
-      ["Also affects", "Procurement chat"],
-      ["Next", "Update email in Settings"],
+      ["Source", "Faculty registry"],
+      ["Evidence authority", "Library confirms what is actually held"],
+      ["Boundary", "Suggestions are not researcher facts"],
     ],
   },
   settings: {
-    title: "Desk setup",
-    desc: "Credentials and display preferences for the research drive.",
+    title: "Workspace policy",
+    desc: "Behavior, identity binding, and browser access for this Research Drive.",
     fields: [
-      ["Account", "Faculty email"],
-      ["Credentials", "BQ, GDrive, DataCite"],
-      ["Display", "Default tab and rail mode"],
+      ["Behavior", "Startup, evidence Inspector, Discover breadth"],
+      ["Identity", "Faculty email binding"],
+      ["System status", "Available under technical details"],
     ],
   },
 };

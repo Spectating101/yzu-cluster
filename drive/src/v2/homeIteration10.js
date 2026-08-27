@@ -7,6 +7,7 @@ import { buildHomeBriefing } from "./homeBriefing.js";
 import { buildLab } from "./profileViewModel.js";
 import { recentDatasets } from "./recent.js";
 import { isHistoryNoise, isSystemVerificationTraffic } from "./historyNoiseFence.js";
+import { synthesisJourneyStage } from "./synthesisLifecycle.js";
 import {
   assistantProviderRead,
   assistantRuntimeDetail,
@@ -53,75 +54,174 @@ function formatHeadroom(pct) {
   return `${Math.max(0, Math.round(100 - pct))}% headroom`;
 }
 
-export function buildPickUp({ datasets = [], jobs = [], health, acquisitions = [], profile } = {}) {
-  // Terra donor: observed briefing for pending judgment / recovery before cosmetics.
+export function buildPickUp({
+  datasets = [],
+  jobs = [],
+  health,
+  acquisitions = [],
+  profile,
+  synthesisThreads = [],
+} = {}) {
   const briefing = buildHomeBriefing({ datasets, jobs, acquisitions, health, profile });
   const holdings = (datasets || []).filter((ds) => !isReceiptOnlyAsset(ds));
   const recent = recentDatasets(holdings, 2);
-  // Prefer touched recent IDs; fall back to first holdings so Pick Up is never empty when the vault has assets.
   const primaryDs = recent[0] || holdings[0] || datasets[0] || null;
   const secondaryDs =
     recent[1] ||
     (primaryDs && holdings.find((ds) => ds?.dataset_id && ds.dataset_id !== primaryDs.dataset_id)) ||
     null;
-  const pendingJobs = jobs.filter((job) =>
-    /pending|approval|hold/i.test(String(job.status || job.state || "")),
+
+  const candidates = [];
+  const pendingJobs = (jobs || []).filter((job) =>
+    /pending|approval|hold/i.test(String(job?.status || job?.state || "")),
   );
   const judgmentApprovals = (briefing?.needsJudgment || []).filter((item) => item.kind === "approval");
-  const pending =
-    judgmentApprovals.length ||
-    health?.desk?.jobs?.pending_approval ||
-    pendingJobs.length;
+  const pendingCount = Number(
+    judgmentApprovals.length || health?.desk?.jobs?.pending_approval || pendingJobs.length || 0,
+  );
   const firstPending =
-    (judgmentApprovals[0]?.job && pendingJobs.find((j) => j.id === judgmentApprovals[0].job.id)) ||
-    pendingJobs[0];
+    (judgmentApprovals[0]?.job && pendingJobs.find((job) => job.id === judgmentApprovals[0].job.id)) ||
+    judgmentApprovals[0]?.job ||
+    pendingJobs[0] ||
+    null;
 
-  const primary = primaryDs
-    ? {
-        kind: "library_asset",
-        id: primaryDs.dataset_id,
-        title: displayName(primaryDs),
-        stateSummary: purposeLine(primaryDs),
-        location: folderLocation(primaryDs),
-        pill: statusPill(primaryDs),
-        dataset: primaryDs,
-        action: "continue",
-      }
-    : null;
-
-  let secondary = null;
-  if (pending > 0 && firstPending) {
-    const rawDecisionTitle = String(
+  if (pendingCount > 0) {
+    const rawTitle = String(
       firstPending?.plan?.title || firstPending?.title || firstPending?.name || "",
     ).trim();
-    const decisionTitle = /^synth(?:esis)?[\s_-]*block$/i.test(rawDecisionTitle)
-      ? "Synthesis proposal awaiting review"
-      : rawDecisionTitle || "Procurement approval waiting";
-    secondary = {
-      kind: "decision",
-      id: firstPending.id || "approval",
-      title: decisionTitle,
-      stateSummary: "Decision required before collection can continue.",
-      location: "DISCOVER / HISTORY",
-      pill: `${pending} pending`,
-      job: firstPending,
-      action: "review",
-      warn: true,
-    };
-  } else if (secondaryDs) {
-    secondary = {
-      kind: "library_asset",
-      id: secondaryDs.dataset_id,
-      title: displayName(secondaryDs),
-      stateSummary: purposeLine(secondaryDs),
-      location: folderLocation(secondaryDs),
-      pill: statusPill(secondaryDs),
-      dataset: secondaryDs,
-      action: "continue",
-    };
+    candidates.push({
+      rank: 0,
+      updated: String(firstPending?.updated_at || firstPending?.created_at || ""),
+      point: {
+        kind: "decision",
+        id: firstPending?.id || "approval",
+        title: /^synth(?:esis)?[\s_-]*block$/i.test(rawTitle)
+          ? "Synthesis proposal awaiting review"
+          : rawTitle || "Research decision waiting",
+        stateSummary: "A researcher decision is required before this work can continue.",
+        location: "DISCOVER / HISTORY",
+        pill: `${pendingCount} pending`,
+        job: firstPending,
+        tab: "browse",
+        action: "review",
+        warn: true,
+      },
+    });
   }
 
-  return { primary, secondary, pending };
+  const stageRank = {
+    approval: 2,
+    proposal: 3,
+    preview: 4,
+    specification: 5,
+    evidence: 6,
+    build: 7,
+    objective: 8,
+  };
+  const stageLabel = {
+    approval: "Approval",
+    proposal: "Proposal review",
+    preview: "Bounded preview",
+    specification: "Specification",
+    evidence: "Evidence",
+    build: "Build",
+    objective: "Objective",
+  };
+
+  for (const thread of synthesisThreads || []) {
+    if (!thread?.id) continue;
+    const status = String(thread?.state?.execution?.status || "").toLowerCase().replace(/-/g, "_");
+    const stage = synthesisJourneyStage(thread);
+    if (["registered", "query_ready"].includes(status) || stage === "result") continue;
+    const failed = status === "failed";
+    const summary = failed
+      ? "Execution failed; inspect the durable construction before retrying."
+      : stage === "approval"
+        ? "A bounded preview has reached the execution-approval boundary."
+        : stage === "proposal"
+          ? "An exact Synthesis proposal is ready for researcher review."
+          : stage === "preview"
+            ? "The accepted method is at bounded-preview validation."
+            : stage === "specification"
+              ? "Held evidence is mapped; material construction choices remain."
+              : stage === "evidence"
+                ? "This durable construction is waiting on evidence decisions."
+                : stage === "build"
+                  ? `Execution is ${status || "in progress"}; inspect its durable build and registration state.`
+                  : "A durable Synthesis construction is ready to continue.";
+    candidates.push({
+      rank: failed ? 1 : (stageRank[stage] ?? 8),
+      updated: String(thread.updated_at || thread.created_at || ""),
+      point: {
+        kind: "synthesis_thread",
+        id: thread.id,
+        title: String(thread.title || thread?.state?.title || thread?.state?.objective || thread.objective || "Synthesis construction"),
+        stateSummary: summary,
+        location: `SYNTHESIS / ${(stageLabel[stage] || stage || "THREAD").toUpperCase()}`,
+        pill: failed ? "Needs recovery" : stageLabel[stage] || "Active",
+        thread,
+        tab: "synthesis",
+        action: "continue",
+        warn: failed || stage === "approval",
+      },
+    });
+  }
+
+  for (const job of jobs || []) {
+    const status = String(job?.status || job?.state || "").toLowerCase();
+    if (!/failed|queued|running/.test(status)) continue;
+    if (isHistoryNoise({ id: job.id, title: job?.plan?.title || job.title, status })) continue;
+    const failed = status === "failed";
+    candidates.push({
+      rank: failed ? 9 : 10,
+      updated: String(job.updated_at || job.created_at || ""),
+      point: {
+        kind: "discover_work",
+        id: job.id || `discover-${status}`,
+        title: String(job?.plan?.title || job.title || job.name || "Discover acquisition"),
+        stateSummary: failed
+          ? "Acquisition failed; inspect the durable History record before retrying."
+          : `Acquisition is ${status}; History holds the durable lifecycle record.`,
+        location: "DISCOVER / HISTORY",
+        pill: failed ? "Needs recovery" : status,
+        job,
+        tab: "browse",
+        action: "review",
+        warn: failed,
+      },
+    });
+  }
+
+  const libraryPoint = (ds, rank) => ds ? {
+    rank,
+    updated: String(ds.updated_at || ds.created_at || ""),
+    point: {
+      kind: "library_asset",
+      id: ds.dataset_id,
+      title: displayName(ds),
+      stateSummary: purposeLine(ds),
+      location: folderLocation(ds),
+      pill: statusPill(ds),
+      dataset: ds,
+      tab: "library",
+      action: "continue",
+    },
+  } : null;
+  const firstLibrary = libraryPoint(primaryDs, 20);
+  const secondLibrary = libraryPoint(secondaryDs, 21);
+  if (firstLibrary) candidates.push(firstLibrary);
+  if (secondLibrary) candidates.push(secondLibrary);
+
+  candidates.sort((left, right) => {
+    if (left.rank !== right.rank) return left.rank - right.rank;
+    return String(right.updated).localeCompare(String(left.updated));
+  });
+
+  return {
+    primary: candidates[0]?.point || null,
+    secondary: candidates[1]?.point || null,
+    pending: pendingCount,
+  };
 }
 
 function headroomPct(used, cap) {

@@ -176,7 +176,7 @@ export function HomePage({
       // binds the exact durable Synthesis object. Keeping these authorities
       // separate prevents Home from inventing a second navigation path.
       onResumeSynthesisThread?.(point.thread);
-      onGoTab?.(point.tab || "synthesis");
+      onGoTab?.("synthesis");
       return;
     }
     if (!point?.dataset) {
