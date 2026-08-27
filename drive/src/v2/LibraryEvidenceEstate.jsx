@@ -88,10 +88,9 @@ function buildCatalogViews(assets = []) {
 /**
  * Root Library composition for capability convergence.
  *
- * The estate is deliberately not a filesystem. Evidence identity is canonical;
- * automatic catalogue views are projections over that evidence, while
- * collections remain an optional project/context curation layer. Neither view
- * changes possession, provenance, verification, or readiness.
+ * Evidence is the primary object. Catalogue views and collections are compact
+ * projections over that evidence rather than explanatory destinations of their
+ * own, so a researcher reaches the holdings immediately.
  */
 export function LibraryEvidenceEstate({
   assets = [],
@@ -114,22 +113,8 @@ export function LibraryEvidenceEstate({
 
   return (
     <section className="rd-v2-cap-estate" data-testid="library-evidence-estate" aria-label="Research evidence estate">
-      <header className="rd-v2-cap-estate-head">
-        <div>
-          <span className="rd-v2-eyebrow">Your Library</span>
-          <h2>Research evidence estate</h2>
-          <p>See what you actually have. Library derives useful views from evidence metadata; those views never move or redefine the underlying asset.</p>
-        </div>
-        <strong className="rd-v2-cap-estate-count">
-          {assets.length} asset{assets.length === 1 ? "" : "s"}
-        </strong>
-      </header>
-
       <div className="rd-v2-library-auto-catalog" aria-label="Automatic catalogue views" data-testid="library-auto-catalog">
-        <div className="rd-v2-library-auto-catalog-copy">
-          <span className="rd-v2-cap-collections-label">Auto catalogue</span>
-          <p>Generated from the evidence itself. Change views without filing anything into a directory.</p>
-        </div>
+        <span className="rd-v2-cap-collections-label">View</span>
         <div className="rd-v2-library-auto-view-list">
           {catalogViews.map((view) => (
             <button
@@ -149,10 +134,7 @@ export function LibraryEvidenceEstate({
 
       {collections.length || collectionsLoading ? (
         <div className="rd-v2-cap-collections" aria-label="Curated research collections">
-          <div className="rd-v2-library-curation-copy">
-            <span className="rd-v2-cap-collections-label">Curated collections</span>
-            <small>Optional project or context organization; collections do not determine where evidence lives.</small>
-          </div>
+          <span className="rd-v2-cap-collections-label">Collections</span>
           {collections.length ? (
             <div className="rd-v2-cap-collection-list">
               {collections.map((collection) => (
@@ -171,7 +153,7 @@ export function LibraryEvidenceEstate({
             </div>
           ) : (
             <span className="rd-v2-cap-collections-loading" role="status" data-testid="library-collections-loading">
-              Curated collections are still loading…
+              Organizing collections…
             </span>
           )}
         </div>
