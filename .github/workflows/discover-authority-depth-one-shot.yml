@@ -1,0 +1,63 @@
+name: Discover authority depth one shot
+
+on:
+  push:
+    branches:
+      - polish/discover-visual-freeze-20260827
+
+permissions:
+  contents: write
+
+jobs:
+  harden:
+    if: contains(github.event.head_commit.message, '[discover-authority-depth]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: polish/discover-visual-freeze-20260827
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install chromium --with-deps
+      - name: Apply authority-depth hardening
+        run: python .github/scripts/discover_authority_depth_harden.py
+      - name: Build
+        run: npm run build
+      - name: Preserve established Discover behavior
+        run: >-
+          mkdir -p .tmp-pw &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/v2-discover.spec.js --reporter=line
+          --grep-invert "Search wider retains held evidence and trusts the federator's semantic relevance|mobile selection preserves Explore and opens Ask deliberately"
+      - name: Preserve evidence investigation
+        run: >-
+          mkdir -p .tmp-pw &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/v2-discover-evidence.spec.js --reporter=line
+      - name: Preserve adversarial lifecycle
+        run: >-
+          mkdir -p .tmp-pw &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/v2-discover-adversarial.spec.js --workers=1 --reporter=line
+      - name: Prove authority depth
+        run: >-
+          mkdir -p .tmp-pw &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/v2-discover-authority-depth.spec.js --workers=1 --reporter=line
+      - name: Preserve convergence renders
+        run: >-
+          mkdir -p .tmp-pw artifacts/discover-convergence &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/discover-visual-convergence.spec.js --reporter=line
+      - name: Commit product hardening
+        run: |
+          git config user.name "discover-hardening-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add drive/src/v2/DiscoverEvidenceBrief.jsx drive/src/v2/App.jsx
+          git commit -m "hardening(discover): preserve current evidence authority"
+          git push origin HEAD:polish/discover-visual-freeze-20260827
