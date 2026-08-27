@@ -29,26 +29,35 @@ test.describe("v2 Library evidence estate", () => {
     await expect(page.locator("aside.rd-v2-rail")).not.toContainText("Upload here");
   });
 
-  test("selecting evidence opens the current Library workspace while the rail remains contextual", async ({ page }) => {
+  test("selecting evidence opens a table-first Library workspace while the rail remains contextual", async ({ page }) => {
     await page.getByRole("textbox", { name: "Search library holdings" }).fill("Asia");
     const row = page.getByTestId("library-evidence-row").filter({ hasText: "Asia daily news-risk panel" });
     await expect(row).toBeVisible();
     await row.click();
 
     const workspace = page.getByTestId("library-asset-workspace");
+    const preview = page.getByTestId("library-data-preview");
+    const facts = page.getByTestId("library-asset-facts");
     await expect(workspace).toBeVisible();
     await expect(workspace).toContainText("Selected Library asset");
-    await expect(workspace).toContainText("What you have");
-    await expect(workspace).toContainText("What this supports");
-    await expect(workspace).toContainText("What this does not establish");
-    await expect(workspace).toContainText("Bounded local sample");
+    await expect(preview).toBeVisible();
+    await expect(preview).toContainText("Dataset inspection");
+    await expect(preview).toContainText("Observed table");
+    await expect(facts).toContainText("Asset facts");
+    await expect(facts).toContainText("Research use");
+    await expect(facts).toContainText("Boundary");
     await expect(workspace.getByLabel("Evidence claims")).toContainText("Readiness");
     await expect(workspace.getByLabel("Evidence claims")).toContainText("Verification");
     await expect(workspace.locator(".rd-v2-library-evidence-facts")).toContainText("ScopeNot declared");
     await expect(workspace.getByRole("button", { name: "Open query" })).toBeVisible();
-    await expect(workspace.getByRole("button", { name: "Inspect fields" })).toHaveCount(1);
-    await expect(workspace.getByRole("button", { name: "Preview rows" })).toHaveCount(1);
-    await expect(page.getByTestId("library-observation-receipt")).toContainText("row observed");
+    await expect(workspace.getByRole("button", { name: "Inspect schema" })).toHaveCount(1);
+    await expect(workspace.getByRole("button", { name: "Full preview" })).toHaveCount(1);
+    await expect(page.getByTestId("library-observation-receipt")).toContainText("1 row");
+
+    const order = await Promise.all([preview.boundingBox(), facts.boundingBox()]);
+    expect(order[0]).not.toBeNull();
+    expect(order[1]).not.toBeNull();
+    expect(order[0].y).toBeLessThan(order[1].y);
 
     const rail = page.locator("aside.rd-v2-rail");
     await expect(page.getByTestId("research-situation")).toContainText("Asia daily news-risk panel");
@@ -60,7 +69,7 @@ test.describe("v2 Library evidence estate", () => {
     await expect(rail.getByRole("button", { name: "Preview rows" })).toBeVisible();
     await expect(page.getByTestId("library-evidence-estate")).toHaveCount(0);
 
-    await workspace.getByRole("button", { name: "Inspect fields" }).click();
+    await workspace.getByRole("button", { name: "Inspect schema" }).click();
     const fields = page.getByRole("dialog", { name: "Declared structure" });
     await expect(fields).toBeVisible();
     await expect(fields).toContainText("country_iso3");
