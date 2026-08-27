@@ -212,6 +212,9 @@ test("Synthesis evidence-gap handoff overrides wide preference and begins known-
 
   await expect(page.getByTestId("synthesis-discover-handoff")).toBeVisible();
   await expect(page.locator(".rd-v2-page-head h1", { hasText: "Discover" })).toBeVisible();
-  await expect.poll(() => seen.some((url) => url.includes("semantic=0") && url.includes("live=0"))).toBeTruthy();
+  await expect.poll(() => seen.some((url) => {
+    const params = new URL(url).searchParams;
+    return !params.has("semantic") && !params.has("live");
+  })).toBeTruthy();
   expect(seen.some((url) => url.includes("semantic=1") && url.includes("live=1"))).toBeFalsy();
 });
