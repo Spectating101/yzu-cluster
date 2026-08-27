@@ -32,8 +32,8 @@ export function LibraryFolderRailPanel({
   const description = filteredRoot
     ? object.note || "This is the current filtered Library view."
     : root
-      ? "Your owned data estate and acquisition memory."
-      : object.note || "Datasets and research assets organized in this collection.";
+      ? "Your owned research evidence estate and acquisition memory."
+      : object.note || "Research assets organized in this collection.";
   const summaryLabel = filteredRoot
     ? "In this view"
     : root
@@ -52,7 +52,7 @@ export function LibraryFolderRailPanel({
       <div className="rd-v2-rail-scroll rd-v2-library-folder-inspector">
         <section className="rd-v2-library-folder-summary">
           <p className="rd-v2-rail-section-label">{summaryLabel}</p>
-          <h3>{pluralCount(counts.datasets, root ? "asset" : "dataset")}</h3>
+          <h3>{pluralCount(counts.datasets, "asset")}</h3>
           <div className="rd-v2-library-folder-readiness">
             {counts.queryReady > 0 ? <span><b>{counts.queryReady}</b> query ready</span> : null}
             {counts.connected > 0 ? <span><b>{counts.connected}</b> connected</span> : null}
@@ -66,10 +66,10 @@ export function LibraryFolderRailPanel({
         </section>
 
         <section className="rd-v2-library-folder-add">
-          <p className="rd-v2-rail-section-label">Add data</p>
+          <p className="rd-v2-rail-section-label">Add evidence</p>
           {onStartUpload ? <button type="button" onClick={() => onStartUpload(object)}>Upload file</button> : null}
           {onStartUrl ? <button type="button" onClick={() => onStartUrl(object)}>Add URL / DOI</button> : null}
-          {onStartProcure ? <button type="button" onClick={() => onStartProcure(object)}>Find missing data</button> : null}
+          {onStartProcure ? <button type="button" onClick={() => onStartProcure(object)}>Find missing evidence</button> : null}
         </section>
 
         <details className="rd-v2-library-inspector-tech rd-v2-library-folder-tech">
