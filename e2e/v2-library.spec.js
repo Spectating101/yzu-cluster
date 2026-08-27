@@ -30,15 +30,17 @@ test.describe("v2 Library evidence estate", () => {
     await expect(page.locator("aside.rd-v2-rail")).not.toContainText("Upload here");
   });
 
-  test("selecting evidence keeps substance primary while deeper dossier detail stays progressive", async ({ page }) => {
+  test("selecting evidence inspects in place while deeper dossier detail stays progressive", async ({ page }) => {
     await page.getByRole("textbox", { name: "Search library holdings" }).fill("Asia");
     const row = page.getByTestId("library-evidence-row").filter({ hasText: "Asia daily news-risk panel" });
     await expect(row).toBeVisible();
     await row.click();
 
+    const inspector = page.getByTestId("library-asset-inspector");
     const workspace = page.getByTestId("library-asset-workspace");
     const preview = page.getByTestId("library-data-preview");
     const facts = page.getByTestId("library-asset-facts");
+    await expect(inspector).toBeVisible();
     await expect(workspace).toBeVisible();
     await expect(workspace).toContainText("Selected Library asset");
     await expect(preview).toBeVisible();
@@ -72,7 +74,7 @@ test.describe("v2 Library evidence estate", () => {
     await expect(rail).not.toContainText("Join keys");
     await expect(rail.getByRole("button", { name: "Preview rows" })).toHaveCount(0);
     await expect(rail.getByRole("button", { name: "Ask about this →" })).toBeVisible();
-    await expect(page.getByTestId("library-evidence-estate")).toHaveCount(0);
+    await expect(page.getByTestId("library-evidence-estate")).toBeVisible();
 
     await facts.getByText("Research details", { exact: true }).click();
     expect(await facts.evaluate((element) => element.open)).toBe(true);
@@ -96,6 +98,7 @@ test.describe("v2 Library evidence estate", () => {
     await provenance.getByRole("button", { name: "Close inspection" }).click();
 
     await page.getByRole("button", { name: "← All Library assets" }).click();
+    await expect(inspector).toHaveCount(0);
     await expect(page.getByTestId("library-evidence-estate")).toBeVisible();
   });
 
@@ -211,13 +214,15 @@ test.describe("v2 Library navigation", () => {
     await expect(page.getByText("ungrouped", { exact: true })).toHaveCount(0);
   });
 
-  test("a dataset-only deep link opens the Library workspace", async ({ page }) => {
+  test("a dataset-only deep link opens the Library inspector over the estate", async ({ page }) => {
     await mockV2Api(page);
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/?dataset=gdelt_asia_daily_country_panel", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
 
-    await expect(page.getByRole("heading", { name: "Library", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Library", exact: true }).first()).toBeVisible();
+    await expect(page.getByTestId("library-evidence-estate")).toBeVisible();
+    await expect(page.getByTestId("library-asset-inspector")).toBeVisible();
     await expect(page.getByTestId("library-asset-workspace")).toBeVisible();
     await expect(page.getByTestId("library-asset-workspace")).toContainText("Asia daily news-risk panel");
     await expect(page).toHaveURL(/tab=library/);
