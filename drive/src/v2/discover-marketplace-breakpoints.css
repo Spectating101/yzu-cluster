@@ -1,0 +1,30 @@
+/* Marketplace convergence breakpoint contract.
+   Preserve the established 1440x900 compact mode while keeping the new
+   structured offering sheet. Wider/taller desks expose field labels. */
+
+@media (min-width: 761px) and (max-width: 1599px) and (max-height: 1000px) {
+  .rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-offering-facts b {
+    display: none;
+  }
+}
+
+@media (min-width: 1600px) {
+  .rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-offering-facts {
+    display: flex;
+    width: min(100%, 760px);
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-offering-facts > span {
+    flex: 1 1 0;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-offering-facts b {
+    display: block;
+  }
+}
+
+@media (min-height: 1200px) {
+  .rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-offering-facts b {
+    display: block;
+  }
+}

@@ -15,6 +15,11 @@ import "./decoration-layer.css";
 import "./release-scale.css"; /* laptop/desktop resolution ladder + rail collapse */
 import "./library-workspace.css";
 import "./library-inspector-density.css";
+import "./discover-visual-freeze.css";
+import "./discover-workspace-compression.css";
+import "./discover-marketplace-convergence.css";
+import "./discover-marketplace-detail.css";
+import "./discover-marketplace-breakpoints.css";
 import "./synthesis-workstation.css"; /* >=1600px Synthesis density and proof layout */
 import { InteractionProvider } from "./InteractionGuidance.jsx";
 import { V2App } from "./App.jsx";

@@ -1,0 +1,367 @@
+/* Discover marketplace detail pass.
+   This file targets the live ranked-results wrapper and selected-candidate rail.
+   It remains presentation-only: backend taxonomy, evidence, lifecycle, and action
+   authority are unchanged. */
+
+/* ── Ranked external offerings: real data-product scan surface. ── */
+.rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-candidates {
+  display: grid;
+  gap: 8px;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-candidates > li {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 82%, #859a90 18%);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--rd-surface, #fffdf6) 98%, white 2%);
+  box-shadow: 0 4px 14px rgba(15, 23, 28, .025);
+  transition: border-color .12s ease, box-shadow .12s ease, background .12s ease;
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-candidates > li:hover {
+  border-color: #aebdb5;
+  background: #fffefa;
+  box-shadow: 0 8px 20px rgba(15, 23, 28, .05);
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-candidates > li.rd-v2-row-on {
+  border-color: #88a697;
+  background: #f5f9f7;
+  box-shadow: inset 3px 0 0 #4d7865, 0 6px 18px rgba(15, 23, 28, .04);
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) button.row.rd-v2-discover-candidate {
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 11px;
+  min-height: 0;
+  padding: 11px 12px 12px;
+  border: 0;
+  background: transparent;
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-candidates li:has(.rd-v2-discover-row-add) button.row.rd-v2-discover-candidate {
+  padding-right: 128px;
+  padding-bottom: 12px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-candidate-main {
+  gap: 5px;
+  padding: 0;
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-candidate-heading {
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-candidate-title {
+  color: var(--rd-text, #182033);
+  font-size: 13.5px;
+  font-weight: 720;
+  line-height: 1.24;
+  letter-spacing: -.012em;
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-possession {
+  flex: 0 0 auto;
+  max-width: 190px;
+  padding: 3px 7px;
+  border: 1px solid color-mix(in srgb, #6f9582 45%, var(--rd-border, #dbd4c5));
+  border-radius: 999px;
+  background: #f1f7f3;
+  color: #3f6f5c;
+  font-size: 8.7px;
+  font-style: normal;
+  font-weight: 730;
+  line-height: 1.2;
+  text-align: right;
+  white-space: normal;
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-evidence {
+  max-width: 760px;
+  color: #596676;
+  font-size: 10.8px;
+  line-height: 1.4;
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-offering-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
+  gap: 0;
+  overflow: hidden;
+  width: min(100%, 720px);
+  margin-top: 2px;
+  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 70%, transparent);
+  border-radius: 6px;
+  background: rgba(255,255,255,.44);
+  white-space: normal;
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-offering-facts > span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding: 6px 7px;
+  border-right: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 62%, transparent);
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-offering-facts > span:last-child {
+  border-right: 0;
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-offering-facts > span + span::before {
+  content: none;
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-offering-facts b {
+  display: block;
+  color: #7b8794;
+  font: 720 7.7px/1.15 var(--rd-mono, ui-monospace, monospace);
+  letter-spacing: .065em;
+  text-transform: uppercase;
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-offering-facts em {
+  overflow: visible;
+  color: #465364;
+  font-size: 9.6px;
+  line-height: 1.28;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-row-add {
+  top: 11px;
+  right: 11px;
+  bottom: auto;
+  min-height: 28px;
+  padding: 0 9px;
+  border: 1px solid #9db4a8;
+  border-radius: 6px;
+  background: #fbfdfb;
+  color: #376b56;
+  font-size: 9px;
+  font-weight: 720;
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-row-add:hover {
+  border-color: #658b78;
+  background: #eef6f1;
+}
+
+/* Context/reference results remain search references, not fake data products. */
+.rd-v2-discover-page .rd-v2-discover-context-results .rd-v2-discover-candidates {
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 68%, transparent);
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--rd-canvas, #eeeae0) 25%, var(--rd-surface, #fffdf6));
+}
+
+.rd-v2-discover-page .rd-v2-discover-context-results .rd-v2-discover-candidates > li {
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 68%, transparent);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.rd-v2-discover-page .rd-v2-discover-context-results .rd-v2-discover-candidates > li:last-child { border-bottom: 0; }
+
+/* ── Selected candidate: compact offering sheet, not an audit transcript. ── */
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-identity {
+  padding: 13px 14px 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 82%, transparent);
+  background: linear-gradient(180deg, rgba(248,250,249,.94), rgba(255,255,255,.5));
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-kicker {
+  margin-bottom: 5px;
+  color: #718197;
+  font-size: 8px;
+  letter-spacing: .075em;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-title {
+  margin: 0;
+  color: var(--rd-text, #182033);
+  font-size: 16px;
+  line-height: 1.2;
+  letter-spacing: -.018em;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-source {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  margin: 6px 0 0;
+  color: #5e6b79;
+  font-size: 9.5px;
+  line-height: 1.3;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-estate-crumb {
+  margin-top: 5px;
+  color: #7a8591;
+  font-size: 8.5px;
+  line-height: 1.3;
+}
+
+/* Access/use decision is the first consequential fact, visually equivalent to
+   marketplace availability rather than another generic section. */
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-decision {
+  margin: 10px 12px 0;
+  padding: 10px 11px;
+  border: 1px solid #c9ded2;
+  border-left: 3px solid #4f7d66;
+  border-radius: 7px;
+  background: #f2f8f4;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-decision .rd-v2-eval-section-label {
+  color: #557765;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-decision-headline {
+  margin-top: 4px;
+  color: var(--rd-text, #182033);
+  font-size: 12.5px;
+  line-height: 1.3;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-decision-body {
+  margin-top: 3px;
+  color: #596676;
+  font-size: 9.8px;
+  line-height: 1.4;
+}
+
+/* Library comparison stays prominent but shorter than access state. */
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-sufficiency {
+  margin: 8px 12px 0;
+  padding: 9px 10px;
+  border-radius: 7px;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-sufficiency-copy .rd-v2-eval-decision-headline {
+  font-size: 11.5px;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-scroll {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+  align-content: start;
+  padding: 9px 12px 14px;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-scroll > .rd-v2-eval-block[aria-label="Useful for"],
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-scroll > .rd-v2-eval-block[aria-label="Coverage"] {
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, transparent);
+  border-radius: 7px;
+  background: rgba(255,255,255,.5);
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-scroll > .rd-v2-eval-block[aria-label="Useful for"] .rd-v2-eval-prose,
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-scroll > .rd-v2-eval-block[aria-label="Coverage"] .rd-v2-eval-prose,
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-scroll > .rd-v2-eval-block[aria-label="Coverage"] .rd-v2-eval-list {
+  margin-top: 4px;
+  color: #4f5d6d;
+  font-size: 9.5px;
+  line-height: 1.4;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-card,
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-evidence-grid,
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-inferred,
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-discover-probe-error,
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-tech,
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-ask-chips {
+  grid-column: 1 / -1;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-card {
+  padding: 10px 11px;
+  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 76%, transparent);
+  border-radius: 7px;
+  background: #fbfaf5;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-block {
+  padding-block: 7px;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-block:first-of-type { padding-top: 4px; }
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-block:last-of-type { padding-bottom: 3px; }
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-chain {
+  margin-block: 5px;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-check {
+  margin-top: 5px;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-gaps {
+  margin-top: 7px;
+  padding-top: 7px;
+  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 70%, transparent);
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-evidence-grid {
+  gap: 8px;
+  margin: 0;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-unknown,
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-verified {
+  padding: 9px 10px;
+  border-radius: 7px;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-tech {
+  margin-top: 0;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-ask-chips {
+  padding-top: 2px;
+}
+
+/* Consequential action remains the fixed endpoint of the scan. */
+body:has(.rd-v2-discover-page) .rd-v2-eval-actions {
+  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 80%, transparent);
+  background: rgba(255,254,249,.96);
+  box-shadow: 0 -10px 26px rgba(15, 23, 28, .035);
+}
+
+@media (max-width: 1180px) {
+  .rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-candidates li:has(.rd-v2-discover-row-add) button.row.rd-v2-discover-candidate {
+    padding-right: 12px;
+    padding-bottom: 42px;
+  }
+  .rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-row-add {
+    top: auto;
+    bottom: 9px;
+  }
+}
+
+@media (max-width: 760px) {
+  .rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) button.row.rd-v2-discover-candidate {
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+  body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-scroll {
+    grid-template-columns: 1fr;
+  }
+  body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-scroll > * {
+    grid-column: 1;
+  }
+}

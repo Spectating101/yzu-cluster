@@ -17,7 +17,6 @@ import { DiscoverHistoryRailPanel } from "@/v2/DiscoverHistoryRailPanel";
 import { DiscoverIntentRailPanel } from "@/v2/DiscoverIntentRailPanel";
 import { SynthesisThreadRailPanel } from "@/v2/SynthesisThreadRailPanel";
 import { SynthesisIdleRailPanel } from "@/v2/SynthesisIdleRailPanel";
-import { DiscoverEvidenceBrief } from "@/v2/DiscoverEvidenceBrief";
 import { ResearchSituationRail } from "@/v2/ResearchSituationRail";
 import { DISCOVER_TAB } from "@/v2/tabIdentity";
 
@@ -94,6 +93,31 @@ function activeHintBelongsToTab(mainTab, object) {
   return false;
 }
 
+function DiscoverAssessmentRailSummary({ state, onClose }) {
+  const result = state?.result || null;
+  const pending = !result;
+  const status = pending
+    ? "Assessment in progress"
+    : String(result?.verdict || result?.assessment_status || "Coverage assessment")
+      .replaceAll("_", " ")
+      .replace(/^./, (letter) => letter.toUpperCase());
+  const gap = String(result?.gap?.statement || "").trim();
+  const held = Array.isArray(result?.held_evidence) ? result.held_evidence.length : 0;
+  return (
+    <section className="rd-v2-discover-assessment-rail-summary" aria-label="Evidence assessment summary">
+      <span className="rd-v2-eyebrow">Evidence position</span>
+      <strong>{status}</strong>
+      <p>{pending ? "The central Evidence Position is establishing the current verdict. Previous assessment authority is not reused while this is pending." : gap || "No remaining gap was reported by the current assessment."}</p>
+      <dl>
+        <div><dt>Held evidence</dt><dd>{pending ? "—" : held}</dd></div>
+        <div><dt>Centre</dt><dd>{pending ? "Assessment authority" : "Full assessment + sourcing routes"}</dd></div>
+      </dl>
+      <p className="muted">{pending ? "The rail mirrors state only; it does not run a second assessment." : "Use Detail for the decision summary or Ask to reason within this exact evidence need."}</p>
+      {onClose ? <button type="button" className="rd-v2-btn sm" onClick={onClose}>Hide assessment</button> : null}
+    </section>
+  );
+}
+
 export function InspectorRail({
   mainTab,
   railTab,
@@ -161,17 +185,7 @@ export function InspectorRail({
         onReviewRequest={onReviewHistoryRequest}
       />
     ) : discoverAssessment?.active ? (
-      <DiscoverEvidenceBrief
-        key={`assessment-rail:${discoverAssessment.question}`}
-        initialQuestion={discoverAssessment.question}
-        autoAssess
-        variant="layered"
-        catalog={discoverCatalog}
-        onLegacySearch={onSuggestDiscoverSearch}
-        onAssessmentActive={onDiscoverAssessmentActive}
-        onAssessmentChange={onDiscoverAssessmentChange}
-        onClose={onCloseDiscoverAssessment}
-      />
+      <DiscoverAssessmentRailSummary state={discoverAssessment} onClose={onCloseDiscoverAssessment} />
     ) : (
       <BrowseRailPanel
         target={browseTarget}

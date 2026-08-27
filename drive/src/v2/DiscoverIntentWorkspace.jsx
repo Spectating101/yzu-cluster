@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
+  getDiscoverIntent,
   reviewDiscoverIntentProposal,
   selectDiscoverIntentRoute,
   submitDiscoverIntent,
@@ -8,8 +9,10 @@ import {
   canSubmitDiscoverIntent,
   intentCollection,
   intentState,
+  procurementEngineeringSummary,
   selectedIntentRoute,
 } from "@/v2/discoverIntent";
+import { buildDiscoverDecisionCapacity } from "@/v2/discoverDecisionCapacity";
 
 function text(value, fallback = "") {
   return String(value || "").trim() || fallback;
@@ -34,6 +37,7 @@ function routeTitle(route, sourceTitle = "") {
 
 function RouteCard({ route, sourceTitle, selected, recommended = false, disabled, onSelect }) {
   const highlighted = selected || recommended;
+  const engineering = procurementEngineeringSummary(route);
   return (
     <article className={`rd-v2-intent-route${highlighted ? " is-selected" : ""}`}>
       <header>
@@ -48,6 +52,18 @@ function RouteCard({ route, sourceTitle, selected, recommended = false, disabled
         ) : null}
       </header>
       {route.summary ? <p>{route.summary}</p> : null}
+      {engineering ? (
+        <div
+          className={`rd-v2-intent-engineering${engineering.preflight === "required" ? " needs-review" : ""}`}
+          data-testid="discover-procurement-engineering"
+        >
+          <span>Procurement engineering</span>
+          <strong>Compiled · {engineering.primitiveLabel}</strong>
+          <p>{engineering.capabilityLabel} · {engineering.placementLabel} · {engineering.sizingLabel}</p>
+          <em>{engineering.preflightLabel} · {engineering.parallelismLabel}</em>
+          {engineering.postAcquisitionReassessment ? <small>Evidence fit will be rechecked after collection.</small> : null}
+        </div>
+      ) : null}
       <dl>
         <Fact label="Coverage" value={route.coverage} />
         <Fact label="Grain" value={route.grain} />
@@ -68,9 +84,14 @@ export function DiscoverIntentWorkspace({
   onAsk,
   onSubmitted,
   onOpenHistory,
+  resourcesRollup = null,
+  deskHealth = null,
 }) {
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
+  const [submissionNotice, setSubmissionNotice] = useState("");
+  const [submissionUncertain, setSubmissionUncertain] = useState(false);
+  const operationLockRef = useRef(false);
   const intent = record?.intent || null;
   const state = intentState(intent);
   const candidate = state.candidate || record?.candidate || {};
@@ -87,11 +108,17 @@ export function DiscoverIntentWorkspace({
   const registeredId = text(collection.registered_dataset_id);
   const jobStatus = text(record?.job?.status || intent?.job?.status || collection.status);
   const proposalRoutes = useMemo(() => proposal?.routes || [], [proposal]);
+  const capacityRows = useMemo(
+    () => buildDiscoverDecisionCapacity(resourcesRollup, deskHealth, { routes: proposalRoutes.length ? proposalRoutes : routes }),
+    [resourcesRollup, deskHealth, proposalRoutes, routes],
+  );
 
   const review = async (decision) => {
-    if (!proposal?.id || !proposal?.proposal_hash || !intent?.id) return;
+    if (!proposal?.id || !proposal?.proposal_hash || !intent?.id || operationLockRef.current) return;
+    operationLockRef.current = true;
     setBusy(`review:${decision}`);
     setError("");
+    setSubmissionNotice("");
     try {
       const next = await reviewDiscoverIntentProposal(intent.id, {
         decision,
@@ -102,28 +129,101 @@ export function DiscoverIntentWorkspace({
     } catch (failure) {
       setError(failure?.message || "Could not review this route proposal.");
     } finally {
+      operationLockRef.current = false;
       setBusy("");
     }
   };
 
   const selectRoute = async (routeId) => {
-    if (!intent?.id) return;
+    if (!intent?.id || submissionUncertain || operationLockRef.current) return;
+    operationLockRef.current = true;
     setBusy(`route:${routeId}`);
     setError("");
+    setSubmissionNotice("");
     try {
       const next = await selectDiscoverIntentRoute(intent.id, routeId);
       onChange?.({ ...record, intent: next });
     } catch (failure) {
       setError(failure?.message || "Could not select this route.");
     } finally {
+      operationLockRef.current = false;
+      setBusy("");
+    }
+  };
+
+  const reconcileSubmissionStatus = async () => {
+    if (!intent?.id) throw new Error("No Discover intent is available to reconcile.");
+    const durableIntent = await getDiscoverIntent(intent.id);
+    const durableState = intentState(durableIntent);
+    const durableCollection = intentCollection(durableIntent);
+    const durableRoute = selectedIntentRoute(durableIntent);
+
+    if (durableCollection.job_id) {
+      const recoveredJob = {
+        id: durableCollection.job_id,
+        status: durableCollection.status || durableState.status || "pending_approval",
+        candidate_key: durableState.candidate?.candidate_key || null,
+        connector_id: durableRoute?.connector_id || null,
+        registered_dataset_id: durableCollection.registered_dataset_id || null,
+        output_manifest_id: null,
+        plan: { title: text(durableIntent?.title || title, "Discover acquisition") },
+      };
+      const nextRecord = {
+        ...record,
+        intent: durableIntent,
+        job: recoveredJob,
+      };
+      setSubmissionUncertain(false);
+      setSubmissionNotice("");
+      setError("");
+      onChange?.(nextRecord);
+      onSubmitted?.(recoveredJob, nextRecord);
+      return "committed";
+    }
+
+    const nextRecord = {
+      ...record,
+      intent: durableIntent,
+      job: null,
+    };
+    onChange?.(nextRecord);
+    setSubmissionUncertain(false);
+    if (canSubmitDiscoverIntent(durableIntent)) {
+      setError("");
+      setSubmissionNotice("Durable status confirms no approval job was created. You can retry.");
+      return "not_committed";
+    }
+
+    setSubmissionNotice("");
+    setError("Durable status changed before an approval job was established. Review the current route state before continuing.");
+    return "changed";
+  };
+
+  const checkSubmissionStatus = async () => {
+    if (!intent?.id || operationLockRef.current) return;
+    operationLockRef.current = true;
+    setBusy("reconcile");
+    setError("");
+    try {
+      await reconcileSubmissionStatus();
+    } catch {
+      // The durable intent is the only authority after an ambiguous transport
+      // failure. If it cannot be read, keep consequential controls fail-closed.
+      setSubmissionUncertain(true);
+      setSubmissionNotice("");
+      setError("");
+    } finally {
+      operationLockRef.current = false;
       setBusy("");
     }
   };
 
   const submit = async () => {
-    if (!intent?.id || !canSubmitDiscoverIntent(intent)) return;
+    if (!intent?.id || submissionUncertain || !canSubmitDiscoverIntent(intent) || operationLockRef.current) return;
+    operationLockRef.current = true;
     setBusy("submit");
     setError("");
+    setSubmissionNotice("");
     try {
       const out = await submitDiscoverIntent(intent.id, { limit: 200 });
       const nextRecord = {
@@ -131,11 +231,23 @@ export function DiscoverIntentWorkspace({
         intent: out?.intent || intent,
         job: out?.job || null,
       };
+      setSubmissionUncertain(false);
       onChange?.(nextRecord);
       onSubmitted?.(out?.job || null, nextRecord);
-    } catch (failure) {
-      setError(failure?.message || "Could not submit this route for approval.");
+    } catch {
+      // A failed transport does not prove the submit failed. The server may
+      // already have committed a pending-approval job, so reconcile the durable
+      // intent before allowing any further consequential action.
+      setBusy("reconcile");
+      try {
+        await reconcileSubmissionStatus();
+      } catch {
+        setSubmissionUncertain(true);
+        setSubmissionNotice("");
+        setError("");
+      }
     } finally {
+      operationLockRef.current = false;
       setBusy("");
     }
   };
@@ -160,6 +272,35 @@ export function DiscoverIntentWorkspace({
         <p>{text(intent?.research_need || record?.researchNeed, "Research need not recorded")}</p>
       </section>
 
+      {capacityRows.length ? (
+        <section className="rd-v2-intent-capacity" aria-label="Execution capacity">
+          <header><div><span className="rd-v2-eyebrow">Execution capacity</span><h3>Can the desk support this acquisition path?</h3></div></header>
+          <div>
+            {capacityRows.map((row) => (
+              <article key={row.id} className={row.attention ? "needs-attention" : ""}>
+                <span>{row.label}</span><strong>{row.metric}</strong>{row.detail ? <em>{row.detail}</em> : null}
+              </article>
+            ))}
+          </div>
+          <p>Capacity is context only. No worker, quota, or storage tier is assigned until a reviewed route becomes an approved job.</p>
+        </section>
+      ) : null}
+
+      {submissionUncertain ? (
+        <section className="rd-v2-intent-error" data-testid="discover-submit-unconfirmed" role="status">
+          <strong>Submission status is unconfirmed</strong>
+          <p>Do not resubmit until the durable intent can be read. The approval job may already exist even though the response was lost.</p>
+          <button
+            type="button"
+            className="rd-v2-btn"
+            disabled={Boolean(busy)}
+            onClick={checkSubmissionStatus}
+          >
+            {busy === "reconcile" ? "Checking submission status…" : "Check submission status"}
+          </button>
+        </section>
+      ) : null}
+      {submissionNotice ? <p className="rd-v2-intent-use" role="status">{submissionNotice}</p> : null}
       {error ? <p className="rd-v2-intent-error">{error}</p> : null}
 
       {proposal ? (
@@ -205,7 +346,7 @@ export function DiscoverIntentWorkspace({
                 route={route}
                 sourceTitle={title}
                 selected={route.id === state.selected_route_id}
-                disabled={Boolean(busy) || Boolean(collection.job_id)}
+                disabled={Boolean(busy) || submissionUncertain || Boolean(collection.job_id)}
                 onSelect={() => selectRoute(route.id)}
               />
             ))}
@@ -219,10 +360,10 @@ export function DiscoverIntentWorkspace({
               <button
                 type="button"
                 className="rd-v2-btn primary"
-                disabled={Boolean(busy) || !canSubmitDiscoverIntent(intent)}
+                disabled={Boolean(busy) || submissionUncertain || !canSubmitDiscoverIntent(intent)}
                 onClick={submit}
               >
-                {busy === "submit" ? "Submitting…" : "Submit for approval"}
+                {busy === "submit" ? "Submitting…" : busy === "reconcile" ? "Checking status…" : "Submit for approval"}
               </button>
             </div>
           ) : null}

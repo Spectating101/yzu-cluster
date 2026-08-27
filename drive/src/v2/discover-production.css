@@ -1,80 +1,823 @@
-/* Discover idle-state convergence: explain the sourcing pipeline without a dashboard. */
+/* Discover visual convergence.
+   This layer is presentation-only: React/backend remain authoritative for sourcing,
+   lifecycle, sufficiency, and acquisition decisions.  The goal is to give those
+   existing truths the same visual discipline as the Synthesis workspace. */
 
-.rd-v2-discover-coverage {
-  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 76%, transparent);
-  padding-top: 14px;
+/* ── Idle composition ─────────────────────────────────────────────────── */
+.rd-v2-discover-page .rd-v2-discover-browse {
+  min-width: 0;
 }
 
-.rd-v2-discover-coverage > header {
-  align-items: baseline;
+.rd-v2-discover-page .rd-v2-discover-idle {
+  display: grid;
+  gap: 18px;
+  align-content: start;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 18px 16px 40px;
 }
 
-.rd-v2-discover-coverage-eyebrow {
+.rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px 12px;
+  padding: 24px 26px 22px;
+  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 84%, #91a7bd 16%);
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--rd-surface, #fffdf6) 95%, #eef3f7 5%), var(--rd-surface, #fffdf6));
+  box-shadow: 0 10px 30px rgba(15, 23, 28, 0.045);
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer::before {
+  content: "FIND EVIDENCE";
+  grid-column: 1 / -1;
+  color: #66788c;
+  font: 720 10px/1.2 var(--rd-mono, ui-monospace, monospace);
+  letter-spacing: .12em;
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer textarea {
+  min-height: 52px;
+  padding: 14px 15px;
+  resize: none;
+  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 82%, #7389a0 18%);
+  border-radius: 8px;
+  background: #fffefa;
   color: var(--rd-text, #182033);
-  font-size: 10px;
+  font-size: 14px;
+  line-height: 1.45;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer textarea:focus {
+  outline: 2px solid color-mix(in srgb, var(--rd-link, #3f6f5c) 34%, transparent);
+  outline-offset: 1px;
+  border-color: color-mix(in srgb, var(--rd-link, #3f6f5c) 48%, var(--rd-border, #dbd4c5));
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer > .rd-v2-btn {
+  min-width: 96px;
+  min-height: 52px;
+  align-self: start;
+  border-radius: 8px;
   font-weight: 720;
-  letter-spacing: .075em;
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer > p {
+  grid-column: 1 / -1;
+  max-width: 720px;
+  margin: -2px 0 0;
+  color: var(--rd-muted, #6e7685);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+.rd-v2-discover-page .rd-v2-discover-composer-examples {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-composer-examples button {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 9px 12px;
+  border: 1px solid var(--rd-border, #dbd4c5);
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--rd-surface, #fffdf6) 88%, transparent);
+  text-align: left;
+}
+
+.rd-v2-discover-page .rd-v2-discover-composer-examples button:hover {
+  border-color: var(--rd-active-border, #c5d2cb);
+  background: var(--rd-hover, #f5f2ea);
+}
+
+.rd-v2-discover-page .rd-v2-discover-composer-examples span {
+  color: #748091;
+  font: 680 9.5px/1.2 var(--rd-mono, ui-monospace, monospace);
+  letter-spacing: .08em;
   text-transform: uppercase;
 }
 
-.rd-v2-discover-evidence-path {
-  display: flex;
-  align-items: stretch;
-  width: 100%;
-  margin: 9px 0 14px;
-  padding: 0;
-  overflow-x: auto;
-  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 74%, transparent);
-  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 74%, transparent);
-  list-style: none;
-  scrollbar-width: thin;
+.rd-v2-discover-page .rd-v2-discover-composer-examples em {
+  color: var(--rd-text, #182033);
+  font-size: 12px;
+  font-style: normal;
+  line-height: 1.35;
 }
 
-.rd-v2-discover-evidence-path li {
+.rd-v2-discover-page .rd-v2-discover-idle-held {
+  display: grid;
+  gap: 14px;
+  padding: 0;
+}
+
+/* ── Library coverage: calm evidence map, never a squeezed dashboard ─── */
+.rd-v2-discover-page .rd-v2-discover-coverage {
+  overflow: hidden;
+  padding: 18px 20px 16px;
+  border: 1px solid var(--rd-border, #dbd4c5);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--rd-surface, #fffdf6) 97%, #edf2f0 3%);
+}
+
+.rd-v2-discover-page .rd-v2-discover-coverage > header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 82%, transparent);
+}
+
+.rd-v2-discover-page .rd-v2-discover-coverage-eyebrow {
+  color: #52667a;
+  font: 760 10px/1.2 var(--rd-mono, ui-monospace, monospace);
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+.rd-v2-discover-page .rd-v2-discover-coverage-totals {
+  color: var(--rd-muted, #6e7685);
+  font-size: 11px;
+  font-weight: 620;
+}
+
+.rd-v2-discover-page .rd-v2-discover-evidence-path {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  width: 100%;
+  margin: 0 0 14px;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  list-style: none;
+}
+
+.rd-v2-discover-page .rd-v2-discover-evidence-path li {
   position: relative;
   display: grid;
-  flex: 1 0 150px;
-  gap: 2px;
+  grid-template-rows: auto 1fr;
+  gap: 5px;
   min-width: 0;
-  padding: 10px 18px 10px 0;
+  padding: 13px 18px 12px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 76%, transparent);
 }
 
-.rd-v2-discover-evidence-path li + li {
+.rd-v2-discover-page .rd-v2-discover-evidence-path li + li {
   padding-left: 18px;
+  border-left: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 66%, transparent);
 }
 
-.rd-v2-discover-evidence-path li:not(:last-child)::after {
+.rd-v2-discover-page .rd-v2-discover-evidence-path li:not(:last-child)::after {
   content: "→";
   position: absolute;
-  top: 17px;
+  top: 15px;
   right: 5px;
   color: color-mix(in srgb, var(--rd-muted, #6e7685) 62%, transparent);
   font-size: 10px;
 }
 
-.rd-v2-discover-evidence-path strong {
+.rd-v2-discover-page .rd-v2-discover-evidence-path strong {
   color: var(--rd-text, #182033);
+  font-size: 10.5px;
+  font-weight: 720;
+  line-height: 1.25;
+}
+
+.rd-v2-discover-page .rd-v2-discover-evidence-path span {
+  display: block;
+  max-width: 18ch;
+  color: var(--rd-muted, #6e7685);
+  font-size: 9.5px;
+  line-height: 1.45;
+}
+
+.rd-v2-discover-page .rd-v2-discover-coverage .rd-v2-catalog-list {
+  margin: 2px 0 0;
+  border-top: 0;
+}
+
+.rd-v2-discover-page .rd-v2-discover-coverage .rd-v2-catalog-row {
+  min-height: 52px;
+  border-bottom-color: color-mix(in srgb, var(--rd-border, #dbd4c5) 76%, transparent);
+}
+
+.rd-v2-discover-page .rd-v2-discover-coverage .rd-v2-catalog-row button {
+  min-width: 0;
+  padding-block: 9px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-coverage-folded,
+.rd-v2-discover-page .rd-v2-discover-coverage-gap {
+  margin: 8px 0 0;
+  color: var(--rd-muted, #6e7685);
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle-library-note {
+  padding: 0 2px;
+  color: var(--rd-muted, #6e7685);
+  font-size: 10.5px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle-intake {
+  display: grid;
+  grid-template-columns: auto minmax(180px, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  max-width: 720px;
+  padding: 13px 0 0;
+  border-top: 1px solid var(--rd-border, #dbd4c5);
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle-intake label {
+  color: var(--rd-muted, #6e7685);
   font-size: 10.5px;
   font-weight: 680;
 }
 
-.rd-v2-discover-evidence-path span {
+.rd-v2-discover-page .rd-v2-discover-idle-intake input {
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--rd-border, #dbd4c5);
+  border-radius: 6px;
+  background: rgba(255,255,255,.48);
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle-intake button {
+  min-height: 34px;
+  padding: 0 10px;
+  color: var(--rd-link, #3f6f5c);
+  font-weight: 720;
+}
+
+/* ── Active query: make the evidence need the anchor ─────────────────── */
+.rd-v2-discover-page .rd-v2-discover-explore-workspace {
+  display: grid;
+  gap: 0;
+  margin: 0 0 18px;
+  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 80%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--rd-surface, #fffdf6) 86%, transparent);
+  overflow: visible;
+}
+
+.rd-v2-discover-page .rd-v2-discover-explore-need {
+  padding: 14px 16px 10px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-explore-need .rd-v2-discover-composer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 10px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-explore-need textarea {
+  min-height: 42px;
+  padding: 10px 12px;
+  border-radius: 7px;
+  border: 1px solid var(--rd-border, #dbd4c5);
+  background: #fffefa;
+  color: var(--rd-text, #182033);
+  font-size: 13px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-explore-need .rd-v2-btn {
+  min-width: 76px;
+  min-height: 42px;
+  border-radius: 7px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-explore-need .rd-v2-discover-composer > p {
+  grid-column: 1 / -1;
+  margin: -1px 0 0;
   color: var(--rd-muted, #6e7685);
+  font-size: 10px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-query-tools {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+  padding: 10px 16px 12px;
+  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 64%, transparent);
+}
+
+.rd-v2-discover-page .rd-v2-discover-interpreting {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px 10px;
+  min-width: 0;
+}
+
+.rd-v2-discover-page .rd-v2-discover-interpreting > .rd-v2-eyebrow {
+  margin-right: 2px;
+  color: #60758a;
+}
+
+.rd-v2-discover-page .rd-v2-discover-interpreting-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-chip {
+  padding: 4px 8px;
+  border: 1px solid color-mix(in srgb, var(--rd-active-border, #c5d2cb) 74%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--rd-active-bg, #eef1ee) 76%, transparent);
+  color: var(--rd-active-fg, #1a3030);
+  font-size: 10.5px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-refine {
+  flex-basis: 100%;
+  margin-top: 1px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-refine summary {
+  width: fit-content;
+  color: var(--rd-body, #3e4759);
+  font-size: 10.5px;
+  font-weight: 650;
+}
+
+.rd-v2-discover-page .rd-v2-discover-refine-body {
+  display: grid;
+  gap: 5px;
+  max-width: 680px;
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-left: 2px solid var(--rd-active-border, #c5d2cb);
+  background: rgba(255,255,255,.34);
+}
+
+.rd-v2-discover-page .rd-v2-discover-refine-body p {
+  margin: 0;
+  color: var(--rd-muted, #6e7685);
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+
+.rd-v2-discover-page .rd-v2-discover-frozen-controls {
+  display: flex;
+  gap: 7px;
+}
+
+/* Territories become the evidence ledger headline. */
+.rd-v2-discover-page .rd-v2-discover-frozen-counts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0;
+  padding: 0 16px;
+  min-height: 42px;
+  border-top: 1px solid var(--rd-border, #dbd4c5);
+  border-bottom: 1px solid var(--rd-border, #dbd4c5);
+  background: color-mix(in srgb, var(--rd-canvas, #eeeae0) 48%, transparent);
+}
+
+.rd-v2-discover-page .rd-v2-discover-frozen-counts > span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 11px;
+  color: var(--rd-muted, #6e7685);
+  font-size: 10.5px;
+  font-weight: 610;
+  white-space: nowrap;
+}
+
+.rd-v2-discover-page .rd-v2-discover-frozen-counts > span:first-child {
+  padding-left: 0;
+  color: var(--rd-text, #182033);
+  font-weight: 740;
+}
+
+.rd-v2-discover-page .rd-v2-discover-frozen-counts > span + span {
+  border-left: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 78%, transparent);
+}
+
+.rd-v2-discover-page .rd-v2-discover-library-evidence > summary {
+  color: var(--rd-text, #182033);
+  font-weight: 700;
+}
+
+.rd-v2-discover-page .rd-v2-discover-library-popover {
+  width: min(620px, calc(100vw - 40px));
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px solid var(--rd-border2, #d2ccc0);
+  background: #fffefa;
+  box-shadow: 0 18px 50px rgba(15, 23, 28, .12);
+}
+
+/* One decision band: what we found + what can happen next. */
+.rd-v2-discover-page .rd-v2-discover-result-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 12px 16px 13px;
+  background: #152027;
+  color: #f7f7ef;
+}
+
+.rd-v2-discover-page .rd-v2-discover-result-actions > div:first-child {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rd-v2-discover-page .rd-v2-discover-result-actions strong {
+  color: #fffef7;
+  font-size: 12px;
+  font-weight: 760;
+}
+
+.rd-v2-discover-page .rd-v2-discover-result-actions span {
+  color: #bcc7cc;
+  font-size: 10.5px;
+  line-height: 1.4;
+}
+
+.rd-v2-discover-page .rd-v2-discover-result-actions > div:last-child {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-result-actions button {
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid rgba(255,255,255,.24);
+  border-radius: 6px;
+  background: rgba(255,255,255,.07);
+  color: #fffef7;
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.rd-v2-discover-page .rd-v2-discover-result-actions button:hover:not(:disabled) {
+  background: rgba(255,255,255,.13);
+}
+
+.rd-v2-discover-page .rd-v2-discover-result-actions .is-ready {
+  border-color: #b8d1c4;
+  background: #eaf4ef;
+  color: #244f40;
+}
+
+/* ── Evidence rows: scan like an instrument, not a generic card list ───── */
+.rd-v2-discover-page .rd-v2-discover-ranked-results {
+  margin: 14px 0 0;
+  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 76%, transparent);
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 0 7px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results-head .rd-v2-eyebrow {
+  color: #5f7388;
+  letter-spacing: .12em;
+}
+
+.rd-v2-discover-page .rd-v2-discover-candidates {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+}
+
+.rd-v2-discover-page .rd-v2-discover-candidates > li {
+  position: relative;
+  overflow: visible;
+  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 90%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--rd-surface, #fffdf6) 96%, white 4%);
+  transition: border-color .14s ease, background-color .14s ease, transform .14s ease;
+}
+
+.rd-v2-discover-page .rd-v2-discover-candidates > li:hover {
+  border-color: var(--rd-active-border, #c5d2cb);
+  background: #fffefa;
+}
+
+.rd-v2-discover-page .rd-v2-discover-candidates > li.rd-v2-row-on {
+  border-color: #94afa2;
+  box-shadow: inset 3px 0 0 #4b7563;
+  background: #fbfdf9;
+}
+
+.rd-v2-discover-page .rd-v2-discover-candidate {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: 14px;
+  width: 100%;
+  min-width: 0;
+  padding: 12px 14px 13px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+
+.rd-v2-discover-page .rd-v2-discover-candidate-source {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+}
+
+.rd-v2-discover-page .rd-v2-discover-candidate-main {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.rd-v2-discover-page .rd-v2-discover-candidate-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  min-width: 0;
+}
+
+.rd-v2-discover-page .rd-v2-discover-candidate-title {
+  min-width: 0;
+  color: var(--rd-text, #182033);
+  font-size: 13.5px;
+  font-weight: 750;
+  line-height: 1.3;
+}
+
+.rd-v2-discover-page .rd-v2-discover-possession {
+  flex: 0 0 auto;
+  max-width: 190px;
+  color: #5b7283;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 650;
+  line-height: 1.3;
+  text-align: right;
+}
+
+.rd-v2-discover-page .rd-v2-discover-evidence {
+  max-width: 78ch;
+  color: var(--rd-body, #3e4759);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.rd-v2-discover-page .rd-v2-discover-offering-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 0;
+  color: var(--rd-muted, #6e7685);
+}
+
+.rd-v2-discover-page .rd-v2-discover-offering-facts > span {
+  display: inline-flex;
+  gap: 4px;
+  padding: 0 9px;
+  border-left: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 80%, transparent);
   font-size: 9.5px;
   line-height: 1.35;
 }
 
-.rd-v2-discover-coverage .rd-v2-catalog-list {
-  margin-top: 4px;
+.rd-v2-discover-page .rd-v2-discover-offering-facts > span:first-child {
+  padding-left: 0;
+  border-left: 0;
 }
 
-.rd-v2-discover-coverage-folded,
-.rd-v2-discover-coverage-gap {
-  line-height: 1.45;
+.rd-v2-discover-page .rd-v2-discover-offering-facts b {
+  color: #687586;
+  font-weight: 690;
 }
 
-@media (max-width: 900px) {
-  .rd-v2-discover-evidence-path li {
-    flex-basis: 165px;
+.rd-v2-discover-page .rd-v2-discover-offering-facts em {
+  color: var(--rd-muted, #6e7685);
+  font-style: normal;
+}
+
+.rd-v2-discover-page .rd-v2-discover-sufficiency {
+  width: fit-content;
+  padding-left: 9px;
+  border-left: 2px solid #a8bcb1;
+  color: #53695f;
+  font-size: 9.5px;
+  font-weight: 640;
+}
+
+.rd-v2-discover-page .rd-v2-discover-row-add {
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+  min-height: 28px;
+  padding: 0 9px;
+  border: 1px solid #a9bba7;
+  border-radius: 5px;
+  background: #fffef7;
+  color: #356147;
+  font-size: 9.5px;
+  font-weight: 740;
+}
+
+.rd-v2-discover-page .rd-v2-discover-candidates > li:has(.rd-v2-discover-row-add) .rd-v2-discover-candidate-main {
+  padding-bottom: 24px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-context-results {
+  margin-top: 16px;
+  opacity: .92;
+}
+
+.rd-v2-discover-page .rd-v2-discover-context-results .rd-v2-discover-candidates > li {
+  background: color-mix(in srgb, var(--rd-canvas, #eeeae0) 36%, var(--rd-surface, #fffdf6));
+}
+
+.rd-v2-discover-page .rd-v2-discover-rank-foot {
+  padding: 9px 1px 0;
+  font-size: 9.5px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-process-disclosure {
+  margin-top: 18px;
+  padding-top: 10px;
+  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 68%, transparent);
+  color: var(--rd-muted, #6e7685);
+  font-size: 10px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-process-disclosure summary {
+  width: fit-content;
+  font-weight: 680;
+}
+
+.rd-v2-discover-page .rd-v2-discover-process-disclosure p {
+  max-width: 78ch;
+  line-height: 1.5;
+}
+
+/* ── Decision rail: same judgement discipline as Synthesis ───────────── */
+body:has(.rd-v2-discover-page) .rd-v2-resting-rail {
+  padding: 14px 16px 18px;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-block {
+  display: grid;
+  gap: 12px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-section-label {
+  margin: 0;
+  color: #687d91;
+  font: 730 10px/1.25 var(--rd-mono, ui-monospace, monospace);
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose {
+  margin: 0;
+  color: var(--rd-body, #3e4759);
+  font-size: 11px;
+  line-height: 1.52;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
+  color: var(--rd-text, #182033);
+  font-size: 10px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+/* ── Strategy/acquisition overlays ───────────────────────────────────── */
+.rd-v2-discover-page .rd-v2-discover-route-compare,
+.rd-v2-discover-page .rd-v2-discover-intent-modal {
+  border-radius: 14px;
+  border-color: color-mix(in srgb, var(--rd-border2, #d2ccc0) 80%, #8297a8 20%);
+  box-shadow: 0 24px 80px rgba(15, 23, 28, .2);
+}
+
+.rd-v2-discover-page .rd-v2-discover-strategy-answer,
+.rd-v2-discover-page .rd-v2-discover-strategy-next {
+  border-radius: 8px;
+}
+
+/* ── Responsive safeguards ───────────────────────────────────────────── */
+@media (max-width: 1050px) {
+  .rd-v2-discover-page .rd-v2-discover-evidence-path {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-evidence-path li:nth-child(3) {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-evidence-path li:nth-child(2)::after {
+    content: "";
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-candidate {
+    grid-template-columns: 76px minmax(0, 1fr);
+    gap: 11px;
+  }
+}
+
+@media (max-width: 720px) {
+  .rd-v2-discover-page .rd-v2-discover-idle {
+    padding-inline: 0;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer,
+  .rd-v2-discover-page .rd-v2-discover-explore-need .rd-v2-discover-composer,
+  .rd-v2-discover-page .rd-v2-discover-result-actions,
+  .rd-v2-discover-page .rd-v2-discover-query-tools {
+    grid-template-columns: 1fr;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer {
+    padding: 18px;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer > .rd-v2-btn,
+  .rd-v2-discover-page .rd-v2-discover-explore-need .rd-v2-btn {
+    width: 100%;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-evidence-path {
+    grid-template-columns: 1fr;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-evidence-path li,
+  .rd-v2-discover-page .rd-v2-discover-evidence-path li + li {
+    padding: 10px 0;
+    border-left: 0;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-evidence-path li::after {
+    display: none;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-intake {
+    grid-template-columns: 1fr;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-frozen-counts {
+    padding: 7px 10px;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-frozen-counts > span,
+  .rd-v2-discover-page .rd-v2-discover-frozen-counts > span:first-child {
+    min-height: 24px;
+    padding: 0 8px;
+    border-left: 0;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-result-actions > div:last-child {
+    justify-content: flex-start;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-candidate {
+    grid-template-columns: 1fr;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-candidate-source {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-candidate-heading {
+    display: grid;
+    gap: 4px;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-possession {
+    max-width: none;
+    text-align: left;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rd-v2-discover-page .rd-v2-discover-candidates > li {
+    transition: none;
   }
 }
