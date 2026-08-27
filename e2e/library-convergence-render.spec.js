@@ -262,7 +262,14 @@ test("render current Library evidence and decision states", async ({ page }) => 
   await assertNoPageOverflow(page);
   await settleVisualState(page);
   await page.screenshot({ path: `${OUT}/07-root-mobile.png`, fullPage: false });
-  await openAsset(page, "Asia daily news-risk panel");
+
+  // Mobile is a visual smoke state, not the interaction acceptance bar. The
+  // desktop workflow above already proves row selection. Use the canonical
+  // deep link here so a long mobile root never turns screenshot capture into a
+  // scroll/pointer-interception test for secondary catalogue sections.
+  await page.goto("/?tab=library&dataset=gdelt_asia_daily_country_panel", { waitUntil: "domcontentloaded" });
+  await waitForShell(page);
+  await expect(page.getByTestId("library-asset-workspace")).toContainText("Asia daily news-risk panel");
   await expect(page.locator("aside.rd-v2-rail")).toHaveClass(/rd-v2-rail-collapsed/);
   await expect(page.locator(".rd-v2-rail-mobile-grip")).toHaveText("Show research context");
   await assertNoPageOverflow(page);
