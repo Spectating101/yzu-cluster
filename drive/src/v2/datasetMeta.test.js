@@ -139,6 +139,29 @@ test("a procured paper is presented as a scholarly work, not a tabular dataset",
   });
 });
 
+test("connected remote holdings present as live sources without becoming query ready", () => {
+  const source = {
+    dataset_id: "connected_bigquery_catalogue",
+    analysis_readiness: "dry_run_before_execution",
+    registered: true,
+    registry_id: "connected_bigquery_catalogue",
+    backend: "bigquery_public_dataset",
+    collect_via: "BigQuery",
+  };
+  assert.equal(statusPillKind(source).kind, "connected");
+  assert.equal(libraryAssetKind(source), "live_source");
+  assert.deepEqual(libraryAssetPresentation(source), {
+    kind: "live_source",
+    noun: "live source",
+    eyebrow: "Selected live source",
+    shapeTitle: "Source contract",
+    structureTitle: "Declared response shape",
+    structureAction: "Inspect fields",
+    askLabel: "Ask about this source",
+    previewRows: true,
+  });
+});
+
 test("metadata catalogues and normal panels keep distinct Library projections", () => {
   assert.equal(
     libraryAssetKind({ access_shape: "metadata_index", backend: "local_jsonl_catalog" }),
