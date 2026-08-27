@@ -264,3 +264,41 @@
     display: none;
   }
 }
+
+
+/* Library retrieval evidence */
+.rd-v2-library-match {
+  display: flex;
+  min-width: 0;
+  gap: 6px;
+  align-items: center;
+  margin-top: 3px;
+  font-size: 10.5px;
+  line-height: 1.25;
+  color: var(--text-muted, #667085);
+  overflow: hidden;
+}
+
+.rd-v2-library-match > b {
+  flex: 0 0 auto;
+  font-weight: 700;
+  color: var(--text-secondary, #475467);
+}
+
+.rd-v2-library-match > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-v2-library-match > span + span::before {
+  content: "·";
+  margin-right: 6px;
+  color: var(--text-subtle, #98a2b3);
+}
+
+.rd-v2-library-search-ask {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}

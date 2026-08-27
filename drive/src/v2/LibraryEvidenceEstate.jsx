@@ -100,6 +100,7 @@ export function LibraryEvidenceEstate({
   onOpenCollection,
   onReviewAvailable,
   onSelectDataset,
+  searchQuery = "",
 }) {
   const [catalogView, setCatalogView] = useState("all");
   const catalogViews = useMemo(() => buildCatalogViews(assets), [assets]);
@@ -185,6 +186,16 @@ export function LibraryEvidenceEstate({
                   <span className="rd-v2-cap-evidence" role="cell">
                     <strong>{displayName(row)}</strong>
                     <em>{descriptionLabel(row)}</em>
+                    {searchQuery && row.search_match?.reasons?.length ? (
+                      <span className="rd-v2-library-match" data-testid="library-search-match">
+                        <b>Matched</b>
+                        {row.search_match.reasons.slice(0, 3).map((reason) => (
+                          <span key={`${reason.kind}-${reason.value}`}>
+                            {reason.label} · {reason.value}
+                          </span>
+                        ))}
+                      </span>
+                    ) : null}
                   </span>
                   {showKind ? <span className="rd-v2-cap-kind" role="cell">{kindLabel(row)}</span> : null}
                   <span className="rd-v2-cap-source" role="cell">{sourceLabel(row)}</span>

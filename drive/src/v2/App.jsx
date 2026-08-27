@@ -1581,6 +1581,7 @@ export function V2App() {
           onOpenQuery={openQueryInNewTab}
           onClearSelection={clearLibrarySelection}
           onAskDataset={canUseAsk ? askAboutLibraryDataset : undefined}
+          onAskSearch={canUseAsk ? queueLibraryAsk : undefined}
           onRefresh={refreshBackend}
           onFocusFolder={focusLibraryFolder}
           onStartUpload={canSubmitCollection ? (folder) => startLibraryIntake("upload", folder) : undefined}

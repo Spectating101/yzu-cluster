@@ -11,6 +11,7 @@ import { statusPillKind } from "@/v2/datasetMeta";
 import { LibraryAssetWorkspace } from "@/v2/LibraryAssetWorkspace";
 import { LibraryEvidenceEstate } from "@/v2/LibraryEvidenceEstate";
 import { resolveLibrarySelection } from "@/v2/librarySelection";
+import { buildLibrarySearchAskPrompt, rankLibraryHoldings } from "@/v2/librarySearch";
 import { Chip, PageShell } from "@/v2/ui";
 import { DeskError } from "@/v2/DeskError";
 import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
@@ -60,6 +61,10 @@ function sortItems(rows, sortBy) {
   return [...rows].sort((a, b) => {
     if (a?.kind === "folder" && b?.kind !== "folder") return -1;
     if (a?.kind !== "folder" && b?.kind === "folder") return 1;
+    if (sortBy === "relevance") {
+      const delta = Number(itemDataset(b).search_match?.score || 0) - Number(itemDataset(a).search_match?.score || 0);
+      if (delta) return delta;
+    }
     if (sortBy === "updated") {
       const delta = itemUpdatedTime(b) - itemUpdatedTime(a);
       if (delta) return delta;
@@ -283,6 +288,7 @@ export function LibraryPage({
   onStartProcure,
   onClearSelection,
   onAskDataset,
+  onAskSearch,
   searchQuery = "",
   onSearchChange,
   selectionHoldings,
@@ -292,11 +298,56 @@ export function LibraryPage({
   const [sortBy, setSortBy] = useState("name");
   const [filterMode, setFilterMode] = useState("all");
   const [newMenuOpen, setNewMenuOpen] = useState(false);
+  const searchActive = Boolean(String(searchQuery || "").trim());
 
-  const vaultDatasets = useMemo(
-    () => (datasets || []).filter((row) => !isOpsNoiseDataset(row)),
-    [datasets],
+  const librarySearchNav = useMemo(() => {
+    const byDataset = new Map();
+    const shelfById = new Map((shelves || []).map((shelf) => [String(shelf.id || ""), shelf]));
+    for (const lane of partitions || []) {
+      const shelf = shelfById.get(String(lane.shelf_id || ""));
+      const nav = [
+        shelf?.label,
+        shelf?.blurb,
+        lane.professor_label,
+        lane.subtitle,
+        lane.name,
+        lane.professor_blurb,
+        lane.scope,
+        lane.partition_id,
+        lane.detail?.partition_id,
+      ]
+        .filter(Boolean)
+        .join(" ");
+      const ids = lane.detail?.registry_dataset_ids || lane.registry_dataset_ids || [];
+      for (const id of ids) {
+        const key = String(id || "");
+        if (!key) continue;
+        byDataset.set(key, `${byDataset.get(key) || ""} ${nav}`.trim());
+      }
+    }
+    return byDataset;
+  }, [partitions, shelves]);
+
+  const allHeldDatasets = useMemo(
+    () => (selectionHoldings || datasets || []).filter((row) => !isOpsNoiseDataset(row)),
+    [datasets, selectionHoldings],
   );
+  const rankedSearchDatasets = useMemo(
+    () => (searchActive ? rankLibraryHoldings(allHeldDatasets, searchQuery, librarySearchNav) : []),
+    [allHeldDatasets, librarySearchNav, searchActive, searchQuery],
+  );
+  const vaultDatasets = useMemo(
+    () => (searchActive ? rankedSearchDatasets : (datasets || []).filter((row) => !isOpsNoiseDataset(row))),
+    [datasets, rankedSearchDatasets, searchActive],
+  );
+
+  useEffect(() => {
+    if (searchActive) {
+      setSortBy((current) => (current === "name" ? "relevance" : current));
+    } else {
+      setSortBy((current) => (current === "relevance" ? "name" : current));
+    }
+  }, [searchActive]);
   const surfaceState = resolveSurfaceLifecycle({
     loading: loading || navigationLoading,
     error: loadError || navigationError,
@@ -328,7 +379,6 @@ export function LibraryPage({
   const isRoot = !folderId;
 
   const items = useMemo(() => listFolderChildren(tree, folderId), [tree, folderId]);
-  const searchActive = Boolean(String(searchQuery || "").trim());
   // Search already filters the catalog upstream; without flattening, Library root
   // would expose only ancestor shelves instead of the matching evidence itself.
   const displayRows = useMemo(() => {
@@ -429,6 +479,13 @@ export function LibraryPage({
     onStartProcure?.(branchObject);
   }, [branchObject, onStartProcure]);
 
+  const askCurrentSearch = useCallback(() => {
+    const query = String(searchQuery || "").trim();
+    if (!query || !onAskSearch) return;
+    onClearSelection?.();
+    onAskSearch(buildLibrarySearchAskPrompt(query, branchDatasetRows));
+  }, [branchDatasetRows, onAskSearch, onClearSelection, searchQuery]);
+
   return (
     <>
       <PageShell
@@ -463,7 +520,7 @@ export function LibraryPage({
               <input
                 value={searchQuery}
                 onChange={(e) => onSearchChange?.(e.target.value)}
-                placeholder="Search this library…"
+                placeholder="Search title, field, source, coverage…"
                 aria-label="Search library holdings"
                 onKeyDown={(e) => {
                   // Live filter; Enter just commits focus so results stay visible.
@@ -471,6 +528,21 @@ export function LibraryPage({
                 }}
               />
             </label>
+            {searchActive && onAskSearch ? (
+              <button
+                type="button"
+                className="rd-v2-btn sm rd-v2-library-search-ask"
+                data-testid="library-search-ask"
+                onClick={askCurrentSearch}
+              >
+                Ask Library
+              </button>
+            ) : null}
+            {searchActive ? (
+              <Chip active={sortBy === "relevance"} onClick={() => setSortBy("relevance")}>
+                Relevance
+              </Chip>
+            ) : null}
             <Chip active={sortBy === "name"} onClick={() => setSortBy("name")}>
               Name {sortBy === "name" ? "↑" : "↕"}
             </Chip>
@@ -545,6 +617,7 @@ export function LibraryPage({
               onOpenCollection={(collection) => onFolderChange(collection.id)}
               onReviewAvailable={onStartProcure ? handleProcureBranch : undefined}
               onSelectDataset={onSelectDataset}
+              searchQuery={searchQuery}
             />
           )
         ) : (

@@ -34,6 +34,9 @@ test.describe("v2 Library evidence estate", () => {
     await page.getByRole("textbox", { name: "Search library holdings" }).fill("Asia");
     const row = page.getByTestId("library-evidence-row").filter({ hasText: "Asia daily news-risk panel" });
     await expect(row).toBeVisible();
+    await expect(row).toContainText("Matched");
+    await expect(row.getByTestId("library-search-match")).toContainText(/name|topic|collection/i);
+    await expect(page.getByTestId("library-search-ask")).toBeVisible();
     await row.click();
 
     const inspector = page.getByTestId("library-asset-inspector");
