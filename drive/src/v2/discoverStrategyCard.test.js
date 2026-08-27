@@ -64,6 +64,19 @@ test("declared schema columns become measured fields, never a planned field list
   ]);
 });
 
+test("nested schema properties become declared product fields without inventing rows", () => {
+  const built = card({
+    title: "Governance panel",
+    schema: { properties: { issuer_id: {}, quarter: {}, governance_score: {} } },
+    row_count: 18420,
+    format: "parquet",
+  });
+  const shape = block(built, "what_you_will_get");
+  assert.deepEqual(shape.fields, ["issuer_id", "quarter", "governance_score"]);
+  assert.match(shape.line, /parquet/i);
+  assert.match(shape.line, /18,420 rows declared/i);
+});
+
 test("how it answers the question exists only when an evidence need is recorded", () => {
   const row = { title: "BigQuery public blockchain datasets", collect_via: "BigQuery" };
 
@@ -123,7 +136,7 @@ test("offering marketing copy never becomes the researcher question", () => {
   assert.equal(block(built, "how_it_answers"), null);
 });
 
-test("build chain is the declared route and stops at the durable-request boundary", () => {
+test("acquisition path is the declared route and stops at the request boundary", () => {
   const built = card({
     title: "Taiwan governance archive",
     collect_via: "mops_tw",
@@ -137,10 +150,10 @@ test("build chain is the declared route and stops at the durable-request boundar
     ["Collection route declared", "Normalize to entity-date"],
   );
   assert.equal(build.steps.every((s) => s.evidence === "declared"), true);
-  assert.match(build.boundary, /no durable procurement request exists yet/i);
+  assert.match(build.boundary, /no acquisition request has been created yet/i);
 });
 
-test("verify and register enter the chain only when a collection job is recorded", () => {
+test("verify and register enter the path only when a collection job is recorded", () => {
   const built = card(
     { title: "Taiwan governance archive", collect_via: "mops_tw", grain: "entity-date" },
     { intent: { state: { collection: { job_id: "job_123" } } } },
@@ -164,10 +177,10 @@ test("source check access is unknown when nothing declares or observes a route",
   assert.equal(check.row.source, "Not described");
   assert.equal(check.row.access, "unknown");
   assert.equal(check.row.coverage, "unknown");
-  assert.equal(check.row.nextCheck, "Not recorded");
+  assert.equal(check.row.nextCheck, "Inspect schema / fields");
 });
 
-test("source check access is proposed from declared metadata and observed only after probe", () => {
+test("source inspection probes a reachable endpoint before asking for missing schema", () => {
   const row = {
     title: "Taiwan governance archive",
     candidate_key: "source:taiwan-gov",
@@ -180,7 +193,7 @@ test("source check access is proposed from declared metadata and observed only a
   const declared = card(row);
   assert.equal(block(declared, "source_check").row.access, "proposed");
   assert.equal(block(declared, "source_check").row.coverage, "2015–2026");
-  assert.equal(block(declared, "source_check").row.nextCheck, "Probe endpoint");
+  assert.equal(block(declared, "source_check").row.nextCheck, "Probe source endpoint");
 
   const probed = card(row, {
     probeState: {
@@ -194,7 +207,7 @@ test("source check access is proposed from declared metadata and observed only a
   const probedRow = block(probed, "source_check").row;
   assert.equal(probedRow.access, "observed");
   assert.match(probedRow.accessDetail, /HTTP endpoint responded \(200\)/);
-  assert.equal(probedRow.nextCheck, "Coverage verification");
+  assert.equal(probedRow.nextCheck, "Inspect schema / fields");
 });
 
 test("source check translates registry access tokens into researcher-facing language", () => {
