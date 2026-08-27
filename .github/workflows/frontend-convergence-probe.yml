@@ -51,8 +51,6 @@ jobs:
               printf '%s\n' "$conflicts"
               exit 1
             fi
-            # main.jsx is a purely additive stylesheet spine conflict. Preserve the
-            # Library lineage and add every certified Discover presentation layer.
             git checkout --ours drive/src/v2/main.jsx
             python - <<'PY'
           from pathlib import Path
@@ -74,7 +72,6 @@ jobs:
           PY
             git add drive/src/v2/main.jsx
           fi
-          # Integration/release workflow ownership stays on this lineage.
           git restore --source=HEAD --staged --worktree .github/workflows
           git add -A
           git commit -m 'merge: converge certified Discover surface'
@@ -107,21 +104,19 @@ jobs:
             echo 'HPS_CONFLICTS_END'
             exit $rc
           fi
-          # HPS styles are deliberately late-loaded and scoped. Add them explicitly
-          # instead of making main.jsx participate in a second three-way merge.
           python - <<'PY'
           from pathlib import Path
           p = Path('drive/src/v2/main.jsx')
           s = p.read_text()
-          anchor = 'import "./synthesis-workstation.css";\n'
+          marker = 'import { InteractionProvider } from "./InteractionGuidance.jsx";'
           imports = (
               'import "./hps-shell-convergence.css";\n'
               'import "./hps-responsive-fixes.css";\n'
           )
-          if anchor not in s:
-              raise SystemExit('Synthesis workstation import anchor missing')
+          if marker not in s:
+              raise SystemExit('First component import marker missing')
           if 'hps-shell-convergence.css' not in s:
-              s = s.replace(anchor, imports + anchor)
+              s = s.replace(marker, imports + marker)
           p.write_text(s)
           PY
           git add drive/src/v2/main.jsx
