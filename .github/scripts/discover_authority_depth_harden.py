@@ -52,6 +52,39 @@ replace_once(
     '''      {error && variant !== "workspace" ? <p className="rd-v2-discover-error" role="status">{error}</p> : null}\n''',
 )
 
+# One executor only: the central Evidence Position owns assessment work. The
+# Inspector rail mirrors state and must never launch a second model request when
+# App temporarily has active=true/result=null during first assessment or a
+# corrected reassessment.
+browse = Path("drive/src/v2/BrowsePage.jsx")
+replace_once(
+    browse,
+    '''                  variant="workspace"\n                  initialQuestion={q}\n                  assessmentValue={assessmentResult}\n''',
+    '''                  variant="workspace"\n                  initialQuestion={q}\n                  autoAssess\n                  assessmentValue={assessmentResult}\n''',
+)
+
+inspector = Path("drive/src/v2/InspectorRail.jsx")
+replace_once(
+    inspector,
+    '''import { DiscoverEvidenceBrief } from "@/v2/DiscoverEvidenceBrief";\n''',
+    '''''',
+)
+replace_once(
+    inspector,
+    '''  const result = state?.result || {};\n  const status = String(result?.verdict || result?.assessment_status || "Coverage assessment")\n    .replaceAll("_", " ")\n    .replace(/^./, (letter) => letter.toUpperCase());\n  const gap = String(result?.gap?.statement || "").trim();\n  const held = Array.isArray(result?.held_evidence) ? result.held_evidence.length : 0;\n''',
+    '''  const result = state?.result || null;\n  const pending = !result;\n  const status = pending\n    ? "Assessment in progress"\n    : String(result?.verdict || result?.assessment_status || "Coverage assessment")\n      .replaceAll("_", " ")\n      .replace(/^./, (letter) => letter.toUpperCase());\n  const gap = String(result?.gap?.statement || "").trim();\n  const held = Array.isArray(result?.held_evidence) ? result.held_evidence.length : 0;\n''',
+)
+replace_once(
+    inspector,
+    '''      <p>{gap || "No remaining gap was reported by the current assessment."}</p>\n      <dl>\n        <div><dt>Held evidence</dt><dd>{held}</dd></div>\n        <div><dt>Centre</dt><dd>Full assessment + sourcing routes</dd></div>\n      </dl>\n      <p className="muted">Use Detail for the decision summary or Ask to reason within this exact evidence need.</p>\n''',
+    '''      <p>{pending ? "The central Evidence Position is establishing the current verdict. Previous assessment authority is not reused while this is pending." : gap || "No remaining gap was reported by the current assessment."}</p>\n      <dl>\n        <div><dt>Held evidence</dt><dd>{pending ? "—" : held}</dd></div>\n        <div><dt>Centre</dt><dd>{pending ? "Assessment authority" : "Full assessment + sourcing routes"}</dd></div>\n      </dl>\n      <p className="muted">{pending ? "The rail mirrors state only; it does not run a second assessment." : "Use Detail for the decision summary or Ask to reason within this exact evidence need."}</p>\n''',
+)
+replace_once(
+    inspector,
+    '''    ) : discoverAssessment?.active ? (\n      discoverAssessment.result ? (\n        <DiscoverAssessmentRailSummary state={discoverAssessment} onClose={onCloseDiscoverAssessment} />\n      ) : (\n        <DiscoverEvidenceBrief\n          key={`assessment-rail:${discoverAssessment.question}`}\n          initialQuestion={discoverAssessment.question}\n          autoAssess\n          variant="layered"\n          catalog={discoverCatalog}\n          onLegacySearch={onSuggestDiscoverSearch}\n          onAssessmentActive={onDiscoverAssessmentActive}\n          onAssessmentChange={onDiscoverAssessmentChange}\n          onClose={onCloseDiscoverAssessment}\n        />\n      )\n    ) : (\n''',
+    '''    ) : discoverAssessment?.active ? (\n      <DiscoverAssessmentRailSummary state={discoverAssessment} onClose={onCloseDiscoverAssessment} />\n    ) : (\n''',
+)
+
 app = Path("drive/src/v2/App.jsx")
 replace_once(
     app,
