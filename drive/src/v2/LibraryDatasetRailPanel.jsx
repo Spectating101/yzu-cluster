@@ -1,4 +1,12 @@
-import { canIUseDecision, demotionSentence, detailFields, displayName, hydrateRemedy, statusPillKind } from "@/v2/datasetMeta";
+import {
+  canIUseDecision,
+  demotionSentence,
+  detailFields,
+  displayName,
+  hydrateRemedy,
+  libraryAssetPresentation,
+  statusPillKind,
+} from "@/v2/datasetMeta";
 import { assetTypeLabel } from "@/v2/libraryEstate";
 import { libraryVerification } from "@/v2/libraryVerification";
 import { RailEntityHeader, RailFrame, RailStickyFooter } from "@/v2/RailFrame";
@@ -8,16 +16,35 @@ export function decisionFor(dataset) {
   return canIUseDecision(dataset);
 }
 
-function unknowns(dataset, fields) {
+function unknowns(dataset, fields, presentation) {
   const out = [];
   const demotion = demotionSentence(dataset);
   if (demotion) out.push(demotion);
-  if (!dataset?.analysis_readiness) out.push("Readiness not reported by registry");
-  if (!fields.coverage && !dataset?.coverage && !dataset?.date_range) out.push("Coverage not reported");
-  if (!dataset?.grain) out.push("Grain not reported");
+
   if (!fields.source && !dataset?.source && !dataset?.source_system && !dataset?.provenance) {
     out.push("Provenance not reported beyond registry");
   }
+
+  if (presentation.kind === "scholarly_work") {
+    if (!dataset?.doi && !dataset?.url) out.push("Stable identifier / source URL not reported");
+    return out;
+  }
+
+  if (presentation.kind === "live_source") {
+    if (!dataset?.collect_via && !dataset?.backend && !fields.access) out.push("Access route not reported");
+    if (!Array.isArray(dataset?.columns) && !Array.isArray(dataset?.fields)) out.push("Declared response shape not reported");
+    if (!dataset?.updated_at && !dataset?.last_modified && !dataset?.as_of) out.push("Connection freshness not described");
+    return out;
+  }
+
+  if (presentation.kind === "operational") {
+    if (!dataset?.updated_at && !dataset?.last_modified && !dataset?.as_of) out.push("Recorded state freshness not described");
+    return out;
+  }
+
+  if (!dataset?.analysis_readiness) out.push("Readiness not reported by registry");
+  if (!fields.coverage && !dataset?.coverage && !dataset?.date_range) out.push("Coverage not reported");
+  if (!dataset?.grain) out.push("Grain not reported");
   if (!dataset?.updated_at && !dataset?.last_modified && !dataset?.as_of) {
     out.push("Freshness / last refresh not described");
   }
@@ -47,17 +74,26 @@ function sourceAuthorityLine(dataset, fields) {
   return "Source authority absent";
 }
 
+function askLabel(presentation, state) {
+  if (state.kind === "query-ready") return "Ask about this →";
+  if (presentation.kind === "scholarly_work") return "Ask about this work →";
+  if (presentation.kind === "operational") return "Ask about this record →";
+  return "Ask about access →";
+}
+
 /**
  * The centre workspace owns asset substance (table/schema, coverage, grain,
  * research use). The rail stays complementary: decision, provenance authority,
- * verification, unresolved facts, and Ask.
+ * verification, unresolved facts, and Ask. Unresolved facts are type-aware so
+ * papers are never scolded for lacking dataframe concepts such as grain/keys.
  */
 export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onAskAbout }) {
   if (!dataset) return null;
   const fields = detailFields(dataset);
+  const presentation = libraryAssetPresentation(dataset);
   const state = statusPillKind(dataset);
   const decision = decisionFor(dataset);
-  const missing = unknowns(dataset, fields);
+  const missing = unknowns(dataset, fields, presentation);
   const updated = dataset.updated_at || dataset.last_modified || dataset.as_of;
   const route = dataset.collect_via || dataset.backend;
   const verification = libraryVerification(dataset);
@@ -137,12 +173,12 @@ export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onAskAbo
         <details className="rd-v2-library-inspector-tech">
           <summary>Technical details</summary>
           <div className="rd-v2-library-inspector-tech-body">
-            <Fact label="Dataset ID" value={dataset.dataset_id} mono />
+            <Fact label="Library ID" value={dataset.dataset_id} mono />
             <Fact label="Registry readiness" value={dataset.analysis_readiness || "not declared"} mono />
             <Fact label="Backend" value={dataset.backend} mono />
             <Fact label="Vault path" value={fields.vault} mono />
             <Fact label="Canonical archive" value={archiveRef || null} mono />
-            <Fact label="Query path" value={dataset.dataset_id ? `/query/${dataset.dataset_id}?limit=50` : null} mono />
+            {state.kind === "query-ready" ? <Fact label="Query path" value={dataset.dataset_id ? `/query/${dataset.dataset_id}?limit=50` : null} mono /> : null}
           </div>
         </details>
       </div>
@@ -154,7 +190,7 @@ export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onAskAbo
           </span>
         ) : null}
         <button type="button" className="rd-v2-btn primary sm" onClick={onAskAbout}>
-          {state.kind === "query-ready" ? "Ask about this →" : "Ask about access →"}
+          {askLabel(presentation, state)}
         </button>
       </RailStickyFooter>
     </RailFrame>
