@@ -164,8 +164,8 @@ function recordedNeed({ intent, researchNeed }) {
 }
 
 function nextCheck(row, evaluation, fields, files) {
-  if (!fields.length) return "Inspect schema / fields";
   if (!evaluation?.hasProbe && discoverCandidateUrl(row)) return "Probe source endpoint";
+  if (!fields.length) return "Inspect schema / fields";
   if (!files.length && evaluation?.hasProbe) return "Inspect downloadable artifacts";
   return "Verify coverage completeness";
 }
