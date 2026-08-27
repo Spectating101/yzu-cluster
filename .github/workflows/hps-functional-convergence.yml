@@ -37,7 +37,6 @@ jobs:
           python .github/scripts/hps_functional_patch_prepare.py
           python .github/scripts/hps_functional_convergence.py
           python .github/scripts/hps_functional_convergence_fix.py
-          python .github/scripts/hps_home_handoff_debug.py
 
       - name: Check patch integrity
         run: git diff --check
@@ -54,37 +53,31 @@ jobs:
       - name: Install Chromium
         run: npx playwright install chromium --with-deps
 
-      - name: Diagnose Home Synthesis handoff
-        id: home_diag
-        run: |
-          set +e
-          npx playwright test \
-            e2e/hps-functional-convergence.spec.js \
-            --project=chromium \
-            --workers=1 \
-            --grep "Home chooses reviewable Synthesis" 2>&1 | tee /tmp/hps-home-diagnostic.log
-          status=${PIPESTATUS[0]}
-          {
-            echo "status=${status}"
-            grep -E "HPS_HOME_(POST_CLICK|PAGEERROR)" /tmp/hps-home-diagnostic.log || true
-            grep -E "Expected:|Received:|pageErrors|synthesis-studio|Timeout" /tmp/hps-home-diagnostic.log | tail -20 || true
-          } > .hps-home-diagnostic-result
-          exit ${status}
+      - name: Prove HPS cross-platform consequences
+        run: >-
+          npx playwright test
+          e2e/hps-functional-convergence.spec.js
+          e2e/hps-inner-containment.spec.js
+          e2e/v2-library.spec.js
+          --project=chromium
+          --workers=1
         env:
           CI: "true"
           YZU_PAGES: "false"
 
-      - name: Persist Home diagnostic result
-        if: always()
+      - name: Commit only verified functional integration
         run: |
-          git config user.name "hps-diagnostic-bot"
+          git config user.name "hps-convergence-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git reset --hard HEAD
-          if [ ! -f .hps-home-diagnostic-result ]; then
-            echo "status=diagnostic-step-did-not-produce-result" > .hps-home-diagnostic-result
+          git add \
+            drive/src/v2/homeIteration10.js \
+            drive/src/v2/HomePage.jsx \
+            drive/src/v2/App.jsx \
+            drive/src/v2/RailPanels.jsx
+          git diff --cached --check
+          if git diff --cached --quiet; then
+            echo "No convergence changes to commit"
+            exit 0
           fi
-          git add .hps-home-diagnostic-result
-          if ! git diff --cached --quiet; then
-            git commit -m "chore(hps): record Home synthesis diagnostic"
-            git push origin HEAD:hardening/hps-functional-convergence-20260827
-          fi
+          git commit -m "feat(hps): close platform continuity and policy loops"
+          git push origin HEAD:hardening/hps-functional-convergence-20260827
