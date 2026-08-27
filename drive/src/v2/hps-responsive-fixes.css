@@ -1,0 +1,22 @@
+/* HPS responsive corrections discovered by multi-viewport Chromium QA. */
+
+/* With the persistent Detail/Ask rail open, viewport width is not equivalent
+   to Home workspace width. Between ~900 and 1280px the main column falls below
+   the width required by the two-column Pick Up / Headroom composition. Stack
+   before either column turns into a poster-width sliver. */
+@media (min-width: 881px) and (max-width: 1280px) {
+  .rd-v2-home-topband {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .rd-v2-home-headroom {
+    padding: 20px 0 0;
+    border-top: 1px solid var(--rd-hps-line);
+    border-left: 0;
+  }
+
+  .rd-v2-home-pickup-card {
+    min-height: 210px;
+  }
+}
