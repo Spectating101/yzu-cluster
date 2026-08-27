@@ -95,6 +95,7 @@ const LIBRARY_DATASETS = {
       backend: "bigquery_public_dataset",
       collect_via: "BigQuery",
       source: "Google BigQuery public blockchain datasets",
+      columns: ["block_timestamp", "tx_hash", "from_address", "to_address", "value", "token_address"],
       coverage: "Live remote source",
       verification_status: "not_checked",
     },
@@ -202,6 +203,9 @@ test("render Library depth states on desktop", async ({ page }) => {
   await expect(connected.getByLabel("Evidence claims")).toContainText("Connected");
   await expect(connected.getByLabel("Evidence claims")).toContainText("Not checked");
   await expect(connected.getByRole("button", { name: "Open query" })).toHaveCount(0);
+  await expect(connected.getByTestId("library-data-preview")).toContainText("Table structure");
+  await expect(connected.getByTestId("library-data-preview").getByRole("columnheader", { name: "block_timestamp" })).toBeVisible();
+  await expect(connected.getByTestId("library-data-preview")).toContainText("Declared structure only");
   await assertNoPageOverflow(page);
   await page.screenshot({ path: `${OUT}/10-connected-source-1440.png`, fullPage: false });
 
