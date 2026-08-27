@@ -116,4 +116,45 @@ test.describe("Discover offering inspector", () => {
     await expect(page.locator("aside.rd-v2-rail")).toContainText(/Schema not fully inspected|Schema details not shown/i);
     await expect(page.locator("aside.rd-v2-rail")).not.toContainText(/legal clearance confirmed|schema verified|preview rows observed/i);
   });
+
+  test("orders taxonomy peers by measured backend relevance and keeps the signal non-fictional", async ({ page }) => {
+    const low = {
+      kind: "source",
+      source_id: "low_relevance",
+      candidate_key: "source:low_relevance",
+      title: "Broad governance archive",
+      description: "A broad governance archive.",
+      url: "https://example.com/broad.csv",
+      acquisition_available: true,
+      collect_via: ["http_manifest"],
+      query_relevance: 1,
+    };
+    const high = {
+      kind: "source",
+      source_id: "high_relevance",
+      candidate_key: "source:high_relevance",
+      title: "Issuer governance panel",
+      description: "An issuer governance panel.",
+      url: "https://example.com/issuer.csv",
+      acquisition_available: true,
+      collect_via: ["http_manifest"],
+      query_relevance: 7,
+      relevance_evidence: [{ type: "backend_semantic_match", concept: "issuer_governance" }],
+    };
+
+    await mockV2Api(page, {
+      discoverBody: { sections: [], total: 0 },
+      discoverSourcesBody: { results: [low, high], total: 2 },
+    });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await search(page, "governance");
+
+    const titles = page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidate-title");
+    await expect(titles).toHaveCount(2);
+    await expect(titles.nth(0)).toContainText("Issuer governance panel");
+    await expect(titles.nth(1)).toContainText("Broad governance archive");
+    await expect(page.getByTestId("discover-rank-foot")).toContainText("Ranked using active research");
+  });
 });
