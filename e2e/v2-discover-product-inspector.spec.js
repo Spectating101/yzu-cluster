@@ -212,6 +212,8 @@ test.describe("Discover offering inspector", () => {
     await expect(dialog).toBeVisible();
     await expect(dialog).toContainText("External data inspector");
     await expect(dialog).toContainText("Observed sample available");
+    await expect(dialog).toContainText("Public HTTP");
+    await expect(dialog).not.toContainText("public_http");
     await expect.poll(() => previewRequest?.limit).toBe(5);
     expect(previewRequest?.candidate_key).toBe("source:preview_ready");
 
