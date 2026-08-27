@@ -21,6 +21,13 @@ test("unknown readiness is never promoted to query ready", () => {
   });
 });
 
+test("readiness projection stays null-safe before a dataset is selected", () => {
+  assert.deepEqual(statusPillKind(null), {
+    kind: "unknown",
+    label: "Readiness unknown",
+  });
+});
+
 test("fuzzy readiness substrings must not claim query ready", () => {
   assert.equal(isQueryReadyReadiness("not_ready"), false);
   assert.equal(isQueryReadyReadiness("metadata_search"), false);
