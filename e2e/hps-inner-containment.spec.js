@@ -70,18 +70,23 @@ test.describe("HPS inner containment", () => {
     }
   });
 
-  test("Profile edit action stays a normal control at compact widths", async ({ page }) => {
+  test("Profile researcher record stays contained at compact widths without fake edit controls", async ({ page }) => {
     await mockV2Api(page);
     for (const width of [900, 768]) {
       await page.setViewportSize({ width, height: 820 });
       await page.goto("/?tab=profile", { waitUntil: "domcontentloaded" });
       await waitForShell(page);
-      const edit = page.getByRole("button", { name: "Edit research memory" });
-      if (await edit.count()) {
-        await expect(edit).toBeVisible();
-        const box = await edit.boundingBox();
-        expect(box?.height || 0, `Profile ${width}: edit action wrapped vertically`).toBeLessThanOrEqual(48);
-      }
+      await expect(page.getByRole("button", { name: /Edit research memory|Add research focus/i })).toHaveCount(0);
+      const containment = await page.evaluate(() => {
+        const body = document.querySelector(".rd-v2-body-scroll");
+        const pageRoot = document.querySelector(".rd-v2-profile-page");
+        return {
+          bodyOverflow: body ? body.scrollWidth - body.clientWidth : 0,
+          pageOverflow: pageRoot ? pageRoot.scrollWidth - pageRoot.clientWidth : 0,
+        };
+      });
+      expect(containment.bodyOverflow, `Profile ${width}: body scrolls horizontally`).toBeLessThanOrEqual(2);
+      expect(containment.pageOverflow, `Profile ${width}: researcher record overflows horizontally`).toBeLessThanOrEqual(2);
     }
   });
 });
