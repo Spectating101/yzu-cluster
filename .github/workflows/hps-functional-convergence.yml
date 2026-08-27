@@ -55,16 +55,36 @@ jobs:
         run: npx playwright install chromium --with-deps
 
       - name: Diagnose Home Synthesis handoff
-        run: >-
-          npx playwright test
-          e2e/hps-functional-convergence.spec.js
-          --project=chromium
-          --workers=1
-          --grep "Home chooses reviewable Synthesis"
+        id: home_diag
+        run: |
+          set +e
+          npx playwright test \
+            e2e/hps-functional-convergence.spec.js \
+            --project=chromium \
+            --workers=1 \
+            --grep "Home chooses reviewable Synthesis" 2>&1 | tee /tmp/hps-home-diagnostic.log
+          status=${PIPESTATUS[0]}
+          {
+            echo "status=${status}"
+            grep -E "HPS_HOME_(POST_CLICK|PAGEERROR)" /tmp/hps-home-diagnostic.log || true
+            grep -E "Expected:|Received:|pageErrors|synthesis-studio|Timeout" /tmp/hps-home-diagnostic.log | tail -20 || true
+          } > .hps-home-diagnostic-result
+          exit ${status}
         env:
           CI: "true"
           YZU_PAGES: "false"
 
-      - name: Commit only verified functional integration
-        if: ${{ false }}
-        run: echo "Diagnostic run never commits"
+      - name: Persist Home diagnostic result
+        if: always()
+        run: |
+          git config user.name "hps-diagnostic-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git reset --hard HEAD
+          if [ ! -f .hps-home-diagnostic-result ]; then
+            echo "status=diagnostic-step-did-not-produce-result" > .hps-home-diagnostic-result
+          fi
+          git add .hps-home-diagnostic-result
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(hps): record Home synthesis diagnostic"
+            git push origin HEAD:hardening/hps-functional-convergence-20260827
+          fi
