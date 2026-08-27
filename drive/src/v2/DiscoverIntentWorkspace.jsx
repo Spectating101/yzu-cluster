@@ -9,6 +9,7 @@ import {
   canSubmitDiscoverIntent,
   intentCollection,
   intentState,
+  procurementEngineeringSummary,
   selectedIntentRoute,
 } from "@/v2/discoverIntent";
 import { buildDiscoverDecisionCapacity } from "@/v2/discoverDecisionCapacity";
@@ -36,6 +37,7 @@ function routeTitle(route, sourceTitle = "") {
 
 function RouteCard({ route, sourceTitle, selected, recommended = false, disabled, onSelect }) {
   const highlighted = selected || recommended;
+  const engineering = procurementEngineeringSummary(route);
   return (
     <article className={`rd-v2-intent-route${highlighted ? " is-selected" : ""}`}>
       <header>
@@ -50,6 +52,18 @@ function RouteCard({ route, sourceTitle, selected, recommended = false, disabled
         ) : null}
       </header>
       {route.summary ? <p>{route.summary}</p> : null}
+      {engineering ? (
+        <div
+          className={`rd-v2-intent-engineering${engineering.preflight === "required" ? " needs-review" : ""}`}
+          data-testid="discover-procurement-engineering"
+        >
+          <span>Procurement engineering</span>
+          <strong>Compiled · {engineering.primitiveLabel}</strong>
+          <p>{engineering.capabilityLabel} · {engineering.placementLabel} · {engineering.sizingLabel}</p>
+          <em>{engineering.preflightLabel} · {engineering.parallelismLabel}</em>
+          {engineering.postAcquisitionReassessment ? <small>Evidence fit will be rechecked after collection.</small> : null}
+        </div>
+      ) : null}
       <dl>
         <Fact label="Coverage" value={route.coverage} />
         <Fact label="Grain" value={route.grain} />

@@ -187,6 +187,48 @@ test.describe("Discover adaptive Explore", () => {
     );
   });
 
+  test("compiled procurement engineering stays brief, truthful, and approval-gated", async ({ page }) => {
+    await mockV2Api(page, {
+      discoverBody: { sections: [], total: 0 },
+      discoverSourcesBody: {
+        results: [{
+          kind: "artifact",
+          source_id: "example_public",
+          candidate_key: "source:example_public",
+          title: "Example public research files",
+          description: "Public CSV files from a source that explicitly advertises acquisition availability.",
+          url: "https://example.com/data.csv",
+          access_mode: "public_http",
+          acquisition_available: true,
+          query_relevance: 2,
+        }],
+        total: 1,
+      },
+    });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await search(page, "example public research files");
+
+    const result = page.getByTestId("discover-ranked-results");
+    await expect(result).toContainText("Collection route declared");
+    await result.getByRole("button", { name: "Add to collection" }).click();
+    const workspace = page.getByTestId("discover-intent-workspace");
+    await expect(workspace).toBeVisible();
+    const engineering = workspace.getByTestId("discover-procurement-engineering");
+    await expect(engineering).toBeVisible();
+    await expect(engineering).toContainText("Procurement engineering");
+    await expect(engineering).toContainText("Compiled · HTTP acquisition");
+    await expect(engineering).toContainText("http · runtime placement · baseline sizing");
+    await expect(engineering).toContainText("preflight recommended · single claim");
+    await expect(engineering).toContainText("Evidence fit will be rechecked after collection");
+    await expect(engineering).not.toContainText(/worker-[0-9]|assigned worker|contract hash/i);
+    await expect(workspace.getByRole("button", { name: "Submit for approval" })).toHaveCount(0);
+
+    await workspace.getByRole("button", { name: "Continue to route selection" }).click();
+    await expect(workspace.getByTestId("discover-procurement-engineering")).toBeVisible();
+    await expect(workspace.getByRole("button", { name: "Submit for approval" })).toBeEnabled();
+  });
+
   test("mobile research brief, results, and bottom navigation do not collide", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await mockV2Api(page, {

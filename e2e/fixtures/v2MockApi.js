@@ -621,6 +621,67 @@ export async function mockV2Api(
   };
   await page.route("**/library/discover/intents", handleDiscoverIntent);
   await page.route("**/library/discover/intents/**", handleDiscoverIntent);
+  await page.route("**/library/craft/discover-proposal", (route) => {
+    if (route.request().method() !== "POST") return route.continue();
+    let body = {};
+    try {
+      body = route.request().postDataJSON?.() || JSON.parse(route.request().postData() || "{}");
+    } catch {
+      body = {};
+    }
+    const current = liveIntents.get(body.intent_id || "");
+    if (!current) {
+      return route.fulfill({ status: 404, contentType: "application/json", body: JSON.stringify({ error: "intent not found" }) });
+    }
+    const proposal = {
+      id: "craft_example_e2e",
+      summary: `Custom acquisition plan for ${body.title || "public source"}.`,
+      reason: "A concrete public artifact can be compiled into a bounded generic acquisition.",
+      routes: [{
+        id: "craft_primary",
+        title: "Custom HTTP acquisition",
+        summary: "Bounded HTTP manifest for the selected public artifact.",
+        access: "http_manifest",
+        destination: "data_lake/procured/example_public",
+        cost: "cluster worker · researcher approval",
+        limitation: "Transfer size is not measured yet.",
+        url: body.url || "https://example.com/data.csv",
+        pipeline: "custom",
+        crafted: true,
+        collect_plan: {
+          job_type: "http_manifest",
+          required_capabilities: ["http"],
+          resource_requirements: { cpu_cores: 0.5, memory_mb: 256 },
+          cluster_execution: {
+            contract_hash: "compiled-contract-e2e",
+            engineering_summary: {
+              status: "compiled",
+              primitive: "http_manifest",
+              required_capabilities: ["http"],
+              capability_count: 1,
+              resource_basis: "baseline_only",
+              placement: "runtime",
+              parallelism_hint: 1,
+              preflight: "recommended",
+              post_acquisition_reassessment: true,
+            },
+          },
+        },
+      }],
+      recommended_route_id: "craft_primary",
+      proposal_hash: "proposal-hash-crafted-e2e",
+    };
+    const next = {
+      ...current,
+      state: { ...current.state, status: "proposal_ready", proposal },
+    };
+    liveIntents.set(current.id, next);
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ intent: next, proposal }),
+    });
+  });
   await page.route("**/library/discover/web*", (route) =>
     route.fulfill({
       status: 200,
