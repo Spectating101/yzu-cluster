@@ -151,6 +151,13 @@ export function assetTypeLabel(row) {
   const readiness = statusPillKind(row).kind;
   const path = String(row?.local_path || row?.local_root || "").toLowerCase();
   const domain = String(row?.domain || "").toLowerCase();
+  const assetKind = String(row?.asset_kind || row?.object_kind || row?.kind || "").toLowerCase();
+  if (["scholarly_work", "scholarly-work", "paper", "article", "publication"].includes(assetKind)) {
+    return "Scholarly work";
+  }
+  if (["operational", "operational_resource", "pipeline", "service"].includes(assetKind)) {
+    return "Operational resource";
+  }
   if (readiness === "connected") return "Connected source";
   if (domain === "procured" || path.includes("procured")) return "Acquired asset";
   if (path.includes("research_panels") || domain === "derived") return "Derived panel";

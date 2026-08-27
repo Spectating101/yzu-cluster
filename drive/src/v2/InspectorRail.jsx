@@ -11,6 +11,7 @@ import { ProfileDetailPanel } from "@/v2/ProfilePage";
 import { activeObjectSelectionHint } from "@/v2/activeObject";
 import { displayName } from "@/v2/datasetMeta";
 import { LibraryDatasetRailPanel } from "@/v2/LibraryDatasetRailPanel";
+import { LibraryFolderRailPanel } from "@/v2/LibraryFolderRailPanel";
 import { ResourcesOverviewRailPanel } from "@/v2/ResourcesOverviewRailPanel";
 import { DiscoverHistoryRailPanel } from "@/v2/DiscoverHistoryRailPanel";
 import { DiscoverIntentRailPanel } from "@/v2/DiscoverIntentRailPanel";
@@ -223,10 +224,17 @@ export function InspectorRail({
         onAskAbout={onAskAbout}
       />
     );
-  } else if (
-    mainTab === "library" &&
-    (activeObject?.kind === "library_folder" || activeObject?.kind === "library_intake")
-  ) {
+  } else if (mainTab === "library" && activeObject?.kind === "library_folder") {
+    detailPanel = (
+      <LibraryFolderRailPanel
+        object={activeObject}
+        onAskAbout={onAskAbout}
+        onStartUpload={onStartLibraryUpload}
+        onStartUrl={onStartLibraryUrl}
+        onStartProcure={onStartLibraryProcure}
+      />
+    );
+  } else if (mainTab === "library" && activeObject?.kind === "library_intake") {
     detailPanel = (
       <LibraryObjectRailPanel
         object={activeObject}
@@ -307,6 +315,13 @@ export function InspectorRail({
       setMobileRailOpen(false);
       return;
     }
+    // A selected Library asset is already a full evidence dossier. On phones,
+    // keep that dossier primary and leave the contextual rail one tap away;
+    // desktop ignores the collapsed geometry and still renders the full rail.
+    if (mainTab === "library" && dataset?.dataset_id && railTab === "detail") {
+      setMobileRailOpen(false);
+      return;
+    }
     if (mainTab === "library" && activeObject?.kind === "library_folder") {
       setMobileRailOpen(false);
       return;
@@ -319,6 +334,7 @@ export function InspectorRail({
   }, [
     selectionHint,
     mainTab,
+    dataset?.dataset_id,
     browseTarget,
     historyEvent,
     discoverIntentRecord,

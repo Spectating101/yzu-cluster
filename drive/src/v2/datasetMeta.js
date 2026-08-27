@@ -48,6 +48,20 @@ export function hydrateRemedy(dataset) {
   return "A vault archive is available to restore local bytes.";
 }
 
+function acquisitionOnlyRow(dataset = {}) {
+  if (!dataset) return false;
+  if (dataset.external === true) return true;
+  if (!dataset.collect_via) return false;
+  return !(
+    dataset.registered === true ||
+    dataset.registry_id ||
+    dataset.local_root ||
+    dataset.local_path ||
+    dataset.vault_path ||
+    dataset.canonical_remote
+  );
+}
+
 export function statusPillKind(dataset) {
   const reason = runtimeReadinessReason(dataset);
   if (reason) {
@@ -63,7 +77,7 @@ export function statusPillKind(dataset) {
     .trim()
     .toLowerCase()
     .replace(/[\s-]+/g, "_");
-  if (dataset?.external || dataset?.collect_via) {
+  if (acquisitionOnlyRow(dataset)) {
     return { kind: "external", label: "External" };
   }
   if (isQueryReadyReadiness(readiness)) {
@@ -100,6 +114,7 @@ export function canIUseDecision(dataset) {
     };
   }
   const state = statusPillKind(dataset);
+  const assetKind = libraryAssetKind(dataset);
   if (state.kind === "query-ready") {
     return {
       headline: "Query ready",
@@ -140,6 +155,18 @@ export function canIUseDecision(dataset) {
     return {
       headline: "External source",
       body: "This source is not confirmed as a usable Library asset.",
+    };
+  }
+  if (state.kind === "registered" && assetKind === "scholarly_work") {
+    return {
+      headline: "Registered",
+      body: "Retained as a reusable scholarly work in this Library. Source verification remains a separate claim.",
+    };
+  }
+  if (state.kind === "registered" && assetKind === "operational") {
+    return {
+      headline: "Registered",
+      body: "Retained as a reusable operational record; its current state must be judged from the recorded evidence.",
     };
   }
   if (state.kind === "registered") {
@@ -209,6 +236,17 @@ export function libraryAssetKind(dataset = {}) {
     (hasBibliographicIdentity || accessShape === "local_file" || grain === "procured_snapshot")
   ) {
     return "scholarly_work";
+  }
+  // A registered remote holding with an explicit live connection is a source
+  // contract, not a rectangular dataset. This is presentation typing only:
+  // Connected remains distinct from Query ready and no access is promoted.
+  if (
+    statusPillKind(dataset).kind === "connected" &&
+    !dataset?.local_root &&
+    !dataset?.local_path &&
+    !dataset?.vault_path
+  ) {
+    return "live_source";
   }
   if (accessShape === "metadata_index" || /catalog|catalogue/.test(backend)) return "metadata_index";
   if (/status|manifest|operational/.test(`${accessShape} ${backend}`)) return "operational";

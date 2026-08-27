@@ -21,6 +21,13 @@ test("unknown readiness is never promoted to query ready", () => {
   });
 });
 
+test("readiness projection stays null-safe before a dataset is selected", () => {
+  assert.deepEqual(statusPillKind(null), {
+    kind: "unknown",
+    label: "Readiness unknown",
+  });
+});
+
 test("fuzzy readiness substrings must not claim query ready", () => {
   assert.equal(isQueryReadyReadiness("not_ready"), false);
   assert.equal(isQueryReadyReadiness("metadata_search"), false);
@@ -129,6 +136,29 @@ test("a procured paper is presented as a scholarly work, not a tabular dataset",
     structureAction: "Inspect record",
     askLabel: "Ask about this work",
     previewRows: false,
+  });
+});
+
+test("connected remote holdings present as live sources without becoming query ready", () => {
+  const source = {
+    dataset_id: "connected_bigquery_catalogue",
+    analysis_readiness: "dry_run_before_execution",
+    registered: true,
+    registry_id: "connected_bigquery_catalogue",
+    backend: "bigquery_public_dataset",
+    collect_via: "BigQuery",
+  };
+  assert.equal(statusPillKind(source).kind, "connected");
+  assert.equal(libraryAssetKind(source), "live_source");
+  assert.deepEqual(libraryAssetPresentation(source), {
+    kind: "live_source",
+    noun: "live source",
+    eyebrow: "Selected live source",
+    shapeTitle: "Source contract",
+    structureTitle: "Declared response shape",
+    structureAction: "Inspect fields",
+    askLabel: "Ask about this source",
+    previewRows: true,
   });
 });
 

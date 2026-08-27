@@ -13,59 +13,104 @@ test.describe("v2 Library evidence estate", () => {
     await expect(page.locator(".rd-v2-page-head h1", { hasText: "Library" })).toBeVisible();
     const estate = page.getByTestId("library-evidence-estate");
     await expect(estate).toBeVisible();
-    await expect(estate).toContainText("Research evidence estate");
+    await expect(estate).toHaveAttribute("aria-label", "Research evidence estate");
+    const catalogue = page.getByTestId("library-auto-catalog");
+    await expect(catalogue).toBeVisible();
+    await expect(catalogue.getByText("View", { exact: true })).toBeVisible();
     await expect(page.getByTestId("library-evidence-row").first()).toBeVisible();
     await expect(page.getByTestId("library-collection-filter").first()).toBeVisible();
+    await expect(estate.getByText("Collections", { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^All$/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^Query ready / })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^Not query-ready / })).toBeVisible();
     await expect(page.getByTestId("research-situation")).toContainText("Library");
     await expect(page.locator("aside.rd-v2-rail")).toContainText("In this library");
-    await expect(page.locator("aside.rd-v2-rail")).toContainText("Add data");
+    await expect(page.locator("aside.rd-v2-rail")).toContainText("Add evidence");
     await expect(page.locator("aside.rd-v2-rail")).not.toContainText("Branch actions");
     await expect(page.locator("aside.rd-v2-rail")).not.toContainText("Upload here");
   });
 
-  test("selecting evidence opens the current Library workspace while the rail remains contextual", async ({ page }) => {
+  test("selecting evidence inspects in place while deeper dossier detail stays progressive", async ({ page }) => {
     await page.getByRole("textbox", { name: "Search library holdings" }).fill("Asia");
     const row = page.getByTestId("library-evidence-row").filter({ hasText: "Asia daily news-risk panel" });
     await expect(row).toBeVisible();
     await row.click();
 
+    const inspector = page.getByTestId("library-asset-inspector");
     const workspace = page.getByTestId("library-asset-workspace");
+    const preview = page.getByTestId("library-data-preview");
+    const facts = page.getByTestId("library-asset-facts");
+    await expect(inspector).toBeVisible();
     await expect(workspace).toBeVisible();
     await expect(workspace).toContainText("Selected Library asset");
-    await expect(workspace).toContainText("What you have");
-    await expect(workspace).toContainText("What this supports");
-    await expect(workspace).toContainText("What this does not establish");
-    await expect(workspace).toContainText("Observed local sample");
-    await expect(workspace.locator(".rd-v2-library-evidence-facts")).toContainText("ScopeNot declared");
+    await expect(preview).toBeVisible();
+    await expect(preview).toContainText("Dataset inspection");
+    await expect(preview).toContainText("Observed table");
+    await expect(preview).toContainText("Coverage:");
+    await expect(preview).toContainText("Grain:");
+    await expect(preview).toContainText("Keys:");
+    await expect(facts.getByText("Research details", { exact: true })).toBeVisible();
+    expect(await facts.evaluate((element) => element.open)).toBe(false);
+    await expect(workspace.getByLabel("Evidence claims")).toContainText("Readiness");
+    await expect(workspace.getByLabel("Evidence claims")).toContainText("Verification");
     await expect(workspace.getByRole("button", { name: "Open query" })).toBeVisible();
-    await expect(workspace.getByRole("button", { name: "View fields" })).toBeVisible();
-    await expect(workspace.getByRole("button", { name: "Preview rows" })).toHaveCount(1);
+    await expect(workspace.getByRole("button", { name: "Inspect schema" })).toHaveCount(1);
+    await expect(workspace.getByRole("button", { name: "Full preview" })).toHaveCount(1);
+    await expect(page.getByTestId("library-observation-receipt")).toContainText("1 row");
+
+    const order = await Promise.all([preview.boundingBox(), facts.boundingBox()]);
+    expect(order[0]).not.toBeNull();
+    expect(order[1]).not.toBeNull();
+    expect(order[0].y).toBeLessThan(order[1].y);
 
     const rail = page.locator("aside.rd-v2-rail");
     await expect(page.getByTestId("research-situation")).toContainText("Asia daily news-risk panel");
     await expect(rail).toContainText("Can I use this?");
     await expect(rail).toContainText("Query ready");
-    await expect(rail).toContainText("Useful for");
-    await expect(rail).toContainText("Coverage & grain");
-    await expect(rail).toContainText("Join keys");
-    await expect(rail.getByRole("button", { name: "Preview rows" })).toBeVisible();
-    await expect(page.getByTestId("library-evidence-estate")).toHaveCount(0);
+    await expect(rail).toContainText("Source & reproduce");
+    await expect(rail).toContainText("Exact source URL not recorded");
+    await expect(rail).toContainText("Reproduction method not recorded");
+    await expect(rail).toContainText("Verification");
+    await expect(rail).not.toContainText("Useful for");
+    await expect(rail).not.toContainText("Coverage & grain");
+    await expect(rail).not.toContainText("Join keys");
+    await expect(rail.getByRole("button", { name: "Preview rows" })).toHaveCount(0);
+    await expect(rail.getByRole("button", { name: "Ask about this →" })).toBeVisible();
+    await expect(page.getByTestId("library-evidence-estate")).toBeVisible();
 
-    await workspace.getByRole("button", { name: "View fields" }).click();
-    const fields = page.getByRole("dialog", { name: "Fields and operations" });
+    await facts.getByText("Research details", { exact: true }).click();
+    expect(await facts.evaluate((element) => element.open)).toBe(true);
+    await expect(facts).toContainText("Asset facts");
+    await expect(facts).toContainText("Research use");
+    await expect(facts).toContainText("Boundary");
+    await expect(workspace.locator(".rd-v2-library-evidence-facts")).toContainText("ScopeNot declared");
+
+    await workspace.getByRole("button", { name: "Inspect schema" }).click();
+    const fields = page.getByRole("dialog", { name: "Declared structure" });
     await expect(fields).toBeVisible();
     await expect(fields).toContainText("country_iso3");
     await fields.getByRole("button", { name: "Close inspection" }).click();
     await expect(fields).toHaveCount(0);
 
+    await workspace.getByRole("button", { name: "Source record" }).click();
+    const provenance = page.getByRole("dialog", { name: "Source and provenance" });
+    await expect(provenance).toBeVisible();
+    await expect(provenance).toContainText("Exact source URL");
+    await expect(provenance).toContainText("Acquisition method");
+    await expect(provenance.getByText("Not recorded", { exact: true })).toHaveCount(2);
+    await expect(page.getByTestId("library-source-verification")).toContainText("Not checked");
+    await expect(page.getByTestId("library-source-readiness")).toContainText("Query ready");
+    await provenance.getByRole("button", { name: "Close inspection" }).click();
+
     await page.getByRole("button", { name: "← All Library assets" }).click();
+    await expect(inspector).toHaveCount(0);
     await expect(page.getByTestId("library-evidence-estate")).toBeVisible();
   });
 
   test("New menu routes upload intake through the rail", async ({ page }) => {
     await page.getByRole("button", { name: "Open new library item menu" }).click();
     await expect(page.getByRole("menu", { name: "New library item" })).toBeVisible();
-    await expect(page.getByRole("menuitem", { name: "New folder" })).toBeDisabled();
+    await expect(page.getByRole("menuitem", { name: "New collection" })).toBeDisabled();
 
     await page.getByRole("menuitem", { name: "Upload file..." }).click();
     const rail = page.locator("aside.rd-v2-rail");
@@ -126,13 +171,15 @@ test.describe("v2 Library navigation", () => {
 
     await expect(page.locator(".rd-v2-header-meta-count")).toContainText("Library asset");
     await expect(page.locator("aside.rd-v2-rail")).toContainText("1 registry reference stays in Discover until acquired");
+    await expect(page.getByTestId("library-available-evidence")).toContainText("Available, not in your Library");
+    await expect(page.getByTestId("library-available-evidence")).toContainText("1 additional catalogue record");
     await page.getByRole("textbox", { name: "Search library holdings" }).fill("Registered reference only");
     await expect(page.getByTestId("library-evidence-estate")).toContainText("No evidence matches the current Library view");
   });
 
-  test("waits for research taxonomy without hiding the evidence estate behind it", async ({ page }) => {
+  test("shows owned evidence while research taxonomy is still organizing", async ({ page }) => {
     await mockV2Api(page, {
-      libraryNavDelayMs: 1_200,
+      libraryNavDelayMs: 5_000,
       libraryNavBody: {
         nav_mode: "professor_shelves",
         shelves: [
@@ -160,24 +207,27 @@ test.describe("v2 Library navigation", () => {
     await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
 
-    await expect(page.getByRole("status")).toContainText("Organizing Library context");
-    await expect(page.getByText("ungrouped", { exact: true })).toHaveCount(0);
-
     const estate = page.getByTestId("library-evidence-estate");
     await expect(estate).toBeVisible();
     await expect(page.getByTestId("library-evidence-row").filter({ hasText: "Asia daily news-risk panel" })).toBeVisible();
+    await expect(page.locator(".rd-v2-toolbar-count")).toContainText("Organizing collections");
+    await expect(page.getByText("ungrouped", { exact: true })).toHaveCount(0);
+
     await expect(page.getByTestId("library-collection-filter").filter({ hasText: "Markets" })).toBeVisible();
     await expect(page.getByTestId("library-collection-filter").filter({ hasText: "News" })).toBeVisible();
+    await expect(page.locator(".rd-v2-toolbar-count")).not.toContainText("Organizing collections");
     await expect(page.getByText("ungrouped", { exact: true })).toHaveCount(0);
   });
 
-  test("a dataset-only deep link opens the Library workspace", async ({ page }) => {
+  test("a dataset-only deep link opens the Library inspector over the estate", async ({ page }) => {
     await mockV2Api(page);
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/?dataset=gdelt_asia_daily_country_panel", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
 
-    await expect(page.getByRole("heading", { name: "Library", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Library", exact: true }).first()).toBeVisible();
+    await expect(page.getByTestId("library-evidence-estate")).toBeVisible();
+    await expect(page.getByTestId("library-asset-inspector")).toBeVisible();
     await expect(page.getByTestId("library-asset-workspace")).toBeVisible();
     await expect(page.getByTestId("library-asset-workspace")).toContainText("Asia daily news-risk panel");
     await expect(page).toHaveURL(/tab=library/);
@@ -193,7 +243,7 @@ test.describe("v2 Library navigation", () => {
     await page.locator("aside.yzu-sidebar").getByRole("button", { name: "Library", exact: true }).click();
     await expect(page.getByTestId("research-situation")).toContainText("Library");
     await expect(page.locator("aside.rd-v2-rail")).toContainText("In this library");
-    await expect(page.locator("aside.rd-v2-rail")).toContainText("Add data");
+    await expect(page.locator("aside.rd-v2-rail")).toContainText("Add evidence");
     await expect(page.locator("aside.rd-v2-rail")).not.toContainText("Upload here");
   });
 

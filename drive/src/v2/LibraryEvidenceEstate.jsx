@@ -1,6 +1,10 @@
-import { displayName, libraryAssetPresentation } from "@/v2/datasetMeta";
+import { useMemo, useState } from "react";
+import { displayName, libraryAssetPresentation, statusPillKind } from "@/v2/datasetMeta";
+import { libraryVerification } from "@/v2/libraryVerification";
 import { StatusPill } from "@/v2/StatusPill";
 import "@/v2/capability-convergence.css";
+import "@/v2/library-evidence-rigor.css";
+import "@/v2/library-auto-catalog.css";
 
 function sourceLabel(row = {}) {
   return String(
@@ -51,67 +55,86 @@ function kindLabel(row = {}) {
   return "Dataset";
 }
 
-function verificationLabel(row = {}) {
-  const nested = row.verification && typeof row.verification === "object" ? row.verification : {};
-  const sourceMatch = row.source_match && typeof row.source_match === "object" ? row.source_match : {};
-  const raw = String(
-    row.verification_status ||
-      row.verification_state ||
-      row.source_verification ||
-      row.source_match_status ||
-      nested.status ||
-      nested.state ||
-      sourceMatch.status ||
-      sourceMatch.state ||
-      "",
-  ).trim().toLowerCase().replace(/[\s-]+/g, "_");
-  if (raw === "verified") return { label: "Verified", kind: "verified" };
-  if (raw === "matched") return { label: "Matched", kind: "matched" };
-  if (raw === "partial") return { label: "Partial", kind: "partial" };
-  if (raw === "unverified") return { label: "Unverified", kind: "unverified" };
-  return { label: "Not checked", kind: "unchecked" };
-}
-
 function collectionCountLabel(folder = {}) {
   const count = Number(folder.dataset_count || folder.asset_count || folder.count || 0);
   return Number.isFinite(count) && count > 0 ? String(count) : "";
 }
 
+function catalogViewMatches(row = {}, view) {
+  const kind = presentationKind(row);
+  if (view === "data") return kind === "dataset" || kind === "metadata_index";
+  if (view === "literature") return kind === "scholarly_work";
+  if (view === "sources") return kind === "live_source";
+  if (view === "attention") {
+    const readiness = statusPillKind(row).kind;
+    const verification = libraryVerification(row).kind;
+    return readiness !== "query-ready" || !["verified", "matched"].includes(verification);
+  }
+  return true;
+}
+
+function buildCatalogViews(assets = []) {
+  const rows = assets.map((item) => item?.row || item);
+  const candidates = [
+    { key: "all", label: "Everything", count: rows.length },
+    { key: "data", label: "Data", count: rows.filter((row) => catalogViewMatches(row, "data")).length },
+    { key: "literature", label: "Literature", count: rows.filter((row) => catalogViewMatches(row, "literature")).length },
+    { key: "sources", label: "Live sources", count: rows.filter((row) => catalogViewMatches(row, "sources")).length },
+    { key: "attention", label: "Needs attention", count: rows.filter((row) => catalogViewMatches(row, "attention")).length },
+  ];
+  return candidates.filter((view) => view.key === "all" || view.count > 0);
+}
+
 /**
  * Root Library composition for capability convergence.
  *
- * Current selection/workspace/readiness semantics stay authoritative. Root
- * composition makes the durable evidence estate visible immediately; research
- * collections narrow that estate without becoming a gate before evidence can
- * be inspected.
+ * Evidence is the primary object. Catalogue views and collections are compact
+ * projections over that evidence rather than explanatory destinations of their
+ * own, so a researcher reaches the holdings immediately.
  */
 export function LibraryEvidenceEstate({
   assets = [],
   collections = [],
   collectionsLoading = false,
+  referenceCount = 0,
   onOpenCollection,
+  onReviewAvailable,
   onSelectDataset,
-  onPreviewDataset,
 }) {
-  const showKind = assets.some((item) => presentationKind(item?.row || item) !== "dataset");
+  const [catalogView, setCatalogView] = useState("all");
+  const catalogViews = useMemo(() => buildCatalogViews(assets), [assets]);
+  const activeView = catalogViews.some((view) => view.key === catalogView) ? catalogView : "all";
+  const visibleAssets = useMemo(
+    () => assets.filter((item) => catalogViewMatches(item?.row || item, activeView)),
+    [activeView, assets],
+  );
+  const showKind = visibleAssets.some((item) => presentationKind(item?.row || item) !== "dataset");
   const ledgerClass = `rd-v2-cap-ledger with-verify${showKind ? " show-kind" : ""}`;
 
   return (
     <section className="rd-v2-cap-estate" data-testid="library-evidence-estate" aria-label="Research evidence estate">
-      <header className="rd-v2-cap-estate-head">
-        <div>
-          <span className="rd-v2-eyebrow">Owned evidence</span>
-          <h2>Evidence estate</h2>
-          <p>Inspect the evidence itself first. Collections narrow the same durable estate; source, verification, and readiness remain separate claims.</p>
+      <div className="rd-v2-library-auto-catalog" aria-label="Automatic catalogue views" data-testid="library-auto-catalog">
+        <span className="rd-v2-cap-collections-label">View</span>
+        <div className="rd-v2-library-auto-view-list">
+          {catalogViews.map((view) => (
+            <button
+              key={view.key}
+              type="button"
+              className={`rd-v2-library-auto-view${activeView === view.key ? " active" : ""}`}
+              aria-pressed={activeView === view.key}
+              data-testid={`library-auto-view-${view.key}`}
+              onClick={() => setCatalogView(view.key)}
+            >
+              <span>{view.label}</span>
+              <b>{view.count}</b>
+            </button>
+          ))}
         </div>
-        <strong className="rd-v2-cap-estate-count">
-          {assets.length} asset{assets.length === 1 ? "" : "s"}
-        </strong>
-      </header>
+      </div>
 
       {collections.length || collectionsLoading ? (
-        <div className="rd-v2-cap-collections" aria-label="Research collections">
-          <span className="rd-v2-cap-collections-label">Research collections</span>
+        <div className="rd-v2-cap-collections" aria-label="Curated research collections">
+          <span className="rd-v2-cap-collections-label">Collections</span>
           {collections.length ? (
             <div className="rd-v2-cap-collection-list">
               {collections.map((collection) => (
@@ -129,7 +152,9 @@ export function LibraryEvidenceEstate({
               ))}
             </div>
           ) : (
-            <span className="rd-v2-cap-collections-loading">Research collections are still loading…</span>
+            <span className="rd-v2-cap-collections-loading" role="status" data-testid="library-collections-loading">
+              Organizing collections…
+            </span>
           )}
         </div>
       ) : null}
@@ -143,10 +168,10 @@ export function LibraryEvidenceEstate({
           <span role="columnheader">State</span>
         </div>
         <div className="rd-v2-cap-ledger-body">
-          {assets.length ? (
-            assets.map((item) => {
+          {visibleAssets.length ? (
+            visibleAssets.map((item) => {
               const row = item?.row || item;
-              const verification = verificationLabel(row);
+              const verification = libraryVerification(row);
               return (
                 <button
                   key={row.dataset_id || item.id}
@@ -156,7 +181,6 @@ export function LibraryEvidenceEstate({
                   data-kind="evidence"
                   role="row"
                   onClick={() => onSelectDataset?.(row)}
-                  onDoubleClick={() => onPreviewDataset?.(row)}
                 >
                   <span className="rd-v2-cap-evidence" role="cell">
                     <strong>{displayName(row)}</strong>
@@ -164,19 +188,46 @@ export function LibraryEvidenceEstate({
                   </span>
                   {showKind ? <span className="rd-v2-cap-kind" role="cell">{kindLabel(row)}</span> : null}
                   <span className="rd-v2-cap-source" role="cell">{sourceLabel(row)}</span>
-                  <span className={`rd-v2-cap-verify ${verification.kind}`} role="cell">{verification.label}</span>
-                  <span className="rd-v2-cap-state" role="cell"><StatusPill dataset={row} /></span>
+                  <span
+                    className={`rd-v2-cap-verify ${verification.kind}`}
+                    data-testid="library-evidence-verification"
+                    role="cell"
+                  >
+                    {verification.label}
+                  </span>
+                  <span className="rd-v2-cap-state" data-testid="library-evidence-readiness" role="cell">
+                    <StatusPill dataset={row} />
+                  </span>
                 </button>
               );
             })
           ) : (
             <div className="rd-v2-cap-ledger-empty">
               <strong>No evidence matches the current Library view.</strong>
-              <p>Clear the filter or search, add evidence, or use Discover for evidence that is not yet in the Library.</p>
+              <p>Choose another catalogue view, clear the filter or search, add evidence, or use Discover for evidence that is not yet in the Library.</p>
             </div>
           )}
         </div>
       </div>
+
+      {referenceCount > 0 ? (
+        <aside className="rd-v2-library-available" aria-label="Available evidence outside your Library" data-testid="library-available-evidence">
+          <div>
+            <span className="rd-v2-eyebrow">Wider Research Drive</span>
+            <h3>Available, not in your Library</h3>
+            <p>
+              Research Drive knows {referenceCount} additional catalogue record{referenceCount === 1 ? "" : "s"} that are not held in this Library. They remain outside your evidence estate until explicitly added.
+            </p>
+          </div>
+          {onReviewAvailable ? (
+            <button type="button" className="rd-v2-btn sm" onClick={onReviewAvailable}>
+              Find missing evidence
+            </button>
+          ) : (
+            <span className="rd-v2-library-available-note">Use Discover to evaluate them before acquisition.</span>
+          )}
+        </aside>
+      ) : null}
     </section>
   );
 }
