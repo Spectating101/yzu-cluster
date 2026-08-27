@@ -1,5 +1,6 @@
-/* Library asset workspace — selected assets stay in Library; details that need
-   more room open as small overlays rather than becoming a second destination. */
+/* Library asset workspace — inspect the evidence itself before explanatory
+   chrome. Selected assets stay in Library; provenance and deep metadata open as
+   overlays instead of consuming the primary inspection viewport. */
 .rd-v2-library-workspace {
   padding-right: var(--rd-main-pad-x);
 }
@@ -23,9 +24,9 @@
 }
 
 .rd-v2-library-asset-canvas {
-  width: min(100%, 1040px);
+  width: min(100%, 1160px);
   margin: 0 auto;
-  padding: 30px clamp(20px, 4vw, 50px) 52px;
+  padding: 18px clamp(16px, 2.4vw, 34px) 34px;
 }
 
 .rd-v2-library-asset-header {
@@ -33,48 +34,44 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 18px;
-  padding-bottom: 22px;
+  padding-bottom: 12px;
   border-bottom: 1px solid var(--rd-release-line, var(--rd-border));
 }
 
 .rd-v2-library-asset-header > div { min-width: 0; }
 
 .rd-v2-library-asset-header h1 {
-  max-width: 26ch;
-  margin: 6px 0 8px;
+  max-width: 34ch;
+  margin: 4px 0 5px;
   color: var(--rd-release-ink, var(--rd-text));
-  font-size: clamp(25px, 3vw, 38px);
-  font-weight: 650;
-  line-height: 1.1;
-  letter-spacing: -0.035em;
+  font-size: clamp(23px, 2.3vw, 31px);
+  font-weight: 660;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
 }
 
 .rd-v2-library-asset-header p {
-  max-width: 70ch;
+  display: -webkit-box;
+  max-width: 82ch;
   margin: 0;
+  overflow: hidden;
   color: var(--rd-muted);
-  font-size: 14px;
-  line-height: 1.55;
+  font-size: 12.5px;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .rd-v2-library-asset-header .rd-v2-status-pill {
   flex: 0 0 auto;
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 .rd-v2-library-workspace-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  padding: 18px 0;
-}
-
-.rd-v2-library-workspace-section {
-  margin-top: 18px;
-  padding: 20px;
-  border: 1px solid var(--rd-release-line, var(--rd-border));
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.64);
+  gap: 7px;
+  padding: 10px 0 12px;
 }
 
 .rd-v2-library-section-heading {
@@ -82,24 +79,133 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
 }
 
-.rd-v2-library-section-heading h2,
-.rd-v2-library-workspace-section h2 {
-  margin: 5px 0 0;
+.rd-v2-library-section-heading h2 {
+  margin: 3px 0 0;
   color: var(--rd-release-ink, var(--rd-text));
-  font-size: 16px;
-  font-weight: 650;
-  letter-spacing: -0.015em;
+  font-size: 15px;
+  font-weight: 670;
+  letter-spacing: -0.012em;
 }
 
-.rd-v2-library-workspace-section > p {
-  max-width: 66ch;
-  margin: 10px 0 0;
+/* The table is the primary body for anything that presents as tabular data or
+   a tabular source contract. It intentionally has less card chrome and more
+   usable viewport than the explanatory metadata that follows it. */
+.rd-v2-library-data-preview {
+  margin-top: 1px;
+  padding: 14px 0 15px;
+  border-block: 1px solid var(--rd-release-line, var(--rd-border));
+}
+
+.rd-v2-library-preview-tools {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.rd-v2-library-muted {
+  margin: 8px 0;
   color: var(--rd-muted);
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: 12px;
+}
+
+.rd-v2-library-glimpse-table-wrap {
+  width: 100%;
+  max-height: 330px;
+  overflow: auto;
+  border: 1px solid var(--rd-release-line, var(--rd-border));
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.rd-v2-library-glimpse-table {
+  width: 100%;
+  min-width: max-content;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 11.5px;
+}
+
+.rd-v2-library-glimpse-table th,
+.rd-v2-library-glimpse-table td {
+  min-width: 108px;
+  max-width: 250px;
+  padding: 7px 9px;
+  overflow: hidden;
+  border-right: 1px solid rgba(219, 212, 197, 0.72);
+  border-bottom: 1px solid rgba(219, 212, 197, 0.78);
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-v2-library-glimpse-table th:last-child,
+.rd-v2-library-glimpse-table td:last-child {
+  border-right: 0;
+}
+
+.rd-v2-library-glimpse-table th {
+  position: sticky;
+  z-index: 1;
+  top: 0;
+  background: #f4f5f0;
+  color: var(--rd-muted);
+  font-family: var(--rd-mono);
+  font-size: 9.5px;
+  font-weight: 760;
+  letter-spacing: .02em;
+}
+
+.rd-v2-library-glimpse-table tr:last-child td { border-bottom: 0; }
+
+.rd-v2-library-schema-only-row td {
+  max-width: none;
+  padding: 16px 10px;
+  color: var(--rd-muted);
+  font-size: 11px;
+  font-style: italic;
+  white-space: normal;
+}
+
+.rd-v2-library-preview-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 14px 12px;
+  border: 1px dashed var(--rd-border2);
+  border-radius: 7px;
+  color: var(--rd-muted);
+  font-size: 11px;
+}
+
+.rd-v2-library-preview-empty strong {
+  color: var(--rd-text);
+  font-size: 12px;
+}
+
+.rd-v2-library-preview-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  padding-top: 8px;
+  color: var(--rd-muted);
+  font-size: 10px;
+}
+
+.rd-v2-library-preview-foot span:first-child {
+  color: var(--rd-body);
+  font-weight: 650;
+}
+
+/* Secondary facts are one continuous evidence contract, not a card deck. */
+.rd-v2-library-asset-facts {
+  margin-top: 13px;
+  padding-top: 13px;
 }
 
 .rd-v2-library-evidence-facts {
@@ -112,11 +218,11 @@
 
 .rd-v2-library-evidence-facts > div {
   min-width: 0;
-  padding: 13px 14px 0 0;
+  padding: 10px 12px 0 0;
 }
 
 .rd-v2-library-evidence-facts > div + div {
-  padding-left: 14px;
+  padding-left: 12px;
   border-left: 1px solid var(--rd-release-line, var(--rd-border));
 }
 
@@ -124,7 +230,7 @@
 .rd-v2-library-overlay-facts dt {
   color: var(--rd-muted);
   font-family: var(--rd-mono);
-  font-size: 9px;
+  font-size: 8.5px;
   font-weight: 800;
   letter-spacing: .08em;
   text-transform: uppercase;
@@ -132,78 +238,75 @@
 
 .rd-v2-library-evidence-facts dd,
 .rd-v2-library-overlay-facts dd {
-  margin: 5px 0 0;
+  margin: 4px 0 0;
   color: var(--rd-release-ink, var(--rd-text));
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 600;
-  line-height: 1.4;
+  line-height: 1.35;
   overflow-wrap: anywhere;
 }
 
-.rd-v2-library-workspace-duo {
+.rd-v2-library-evidence-notes {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  gap: 0;
+  margin-top: 12px;
+  padding-top: 11px;
+  border-top: 1px solid var(--rd-release-line, var(--rd-border));
 }
 
-.rd-v2-library-workspace-duo .limitation {
-  border-color: #e3d3ad;
-  background: #fffaf0;
+.rd-v2-library-evidence-notes > div {
+  min-width: 0;
+  padding-right: 18px;
+}
+
+.rd-v2-library-evidence-notes > div + div {
+  padding-left: 18px;
+  border-left: 1px solid var(--rd-release-line, var(--rd-border));
+}
+
+.rd-v2-library-evidence-notes p {
+  max-width: 72ch;
+  margin: 4px 0 0;
+  color: var(--rd-muted);
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.rd-v2-library-record-terms {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 11px;
+  border-top: 1px solid var(--rd-release-line, var(--rd-border));
+}
+
+.rd-v2-library-record-terms strong {
+  display: block;
+  margin-top: 3px;
+  color: var(--rd-text);
+  font-size: 11.5px;
 }
 
 .rd-v2-library-field-list {
   display: flex;
+  min-width: 0;
   flex-wrap: wrap;
-  gap: 7px;
+  gap: 5px;
 }
 
 .rd-v2-library-field-list code {
   max-width: 100%;
-  padding: 5px 8px;
+  padding: 4px 7px;
   overflow-wrap: anywhere;
   border: 1px solid #dce4df;
   border-radius: 5px;
   background: #f6f8f5;
   color: #365447;
-  font-size: 11px;
+  font-size: 10.5px;
 }
-
-.rd-v2-library-muted {
-  margin: 0;
-  color: var(--rd-muted);
-  font-size: 12.5px;
-}
-
-.rd-v2-library-glimpse-table-wrap {
-  overflow-x: auto;
-  border: 1px solid var(--rd-release-line, var(--rd-border));
-  border-radius: 8px;
-}
-
-.rd-v2-library-glimpse-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 12px;
-}
-
-.rd-v2-library-glimpse-table th,
-.rd-v2-library-glimpse-table td {
-  min-width: 120px;
-  padding: 9px 11px;
-  border-bottom: 1px solid var(--rd-release-line, var(--rd-border));
-  text-align: left;
-  white-space: nowrap;
-}
-
-.rd-v2-library-glimpse-table th {
-  background: #f6f7f2;
-  color: var(--rd-muted);
-  font-family: var(--rd-mono);
-  font-size: 10px;
-  font-weight: 700;
-}
-
-.rd-v2-library-glimpse-table tr:last-child td { border-bottom: 0; }
 
 .rd-v2-library-overlay-scrim {
   position: fixed;
@@ -276,9 +379,6 @@
 @media (max-width: 760px) {
   .rd-v2-library-workspace { padding-right: var(--rd-main-pad-x); }
 
-  /* The dossier already explains the selected asset. Keep the phone page chrome
-     to one clear navigation row instead of squeezing generic lead copy between
-     the Library title and the back action. */
   .rd-v2-library-workspace .rd-v2-page-head {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
@@ -286,9 +386,7 @@
     gap: 10px;
   }
 
-  .rd-v2-library-workspace .rd-v2-page-head .rd-v2-lead {
-    display: none;
-  }
+  .rd-v2-library-workspace .rd-v2-page-head .rd-v2-lead { display: none; }
 
   .rd-v2-library-workspace .rd-v2-page-head > :last-child {
     grid-column: 2;
@@ -296,14 +394,18 @@
     margin-top: 0;
   }
 
-  .rd-v2-library-asset-canvas { padding: 22px 16px 36px; }
-  .rd-v2-library-asset-header { flex-direction: column; gap: 10px; }
-  .rd-v2-library-asset-header h1 { font-size: 27px; }
+  .rd-v2-library-asset-canvas { padding: 15px 13px 28px; }
+  .rd-v2-library-asset-header { flex-direction: column; gap: 8px; }
+  .rd-v2-library-asset-header h1 { font-size: 24px; }
+  .rd-v2-library-preview-tools { justify-content: flex-start; }
+  .rd-v2-library-glimpse-table-wrap { max-height: 300px; }
   .rd-v2-library-evidence-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .rd-v2-library-evidence-facts > div:nth-child(odd) { padding-left: 0; border-left: 0; }
-  .rd-v2-library-evidence-facts > div:nth-child(n + 3) { padding-top: 14px; }
-  .rd-v2-library-workspace-duo { grid-template-columns: 1fr; gap: 0; }
-  .rd-v2-library-workspace-duo .rd-v2-library-workspace-section + .rd-v2-library-workspace-section { margin-top: 12px; }
+  .rd-v2-library-evidence-facts > div:nth-child(n + 3) { padding-top: 12px; }
+  .rd-v2-library-evidence-notes { grid-template-columns: 1fr; }
+  .rd-v2-library-evidence-notes > div { padding-right: 0; }
+  .rd-v2-library-evidence-notes > div + div { margin-top: 10px; padding: 10px 0 0; border-top: 1px solid var(--rd-border); border-left: 0; }
+  .rd-v2-library-record-terms { grid-template-columns: 1fr; }
   .rd-v2-library-overlay-scrim { align-items: end; padding: 10px; }
   .rd-v2-library-overlay { max-height: 86vh; border-radius: 14px 14px 8px 8px; }
 }
