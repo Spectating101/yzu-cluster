@@ -6,6 +6,7 @@ on:
       - hardening/library-retrieval-excellence-20260828
     paths:
       - scripts/apply_library_visual_freeze.py
+      - scripts/apply_library_visual_freeze_v2.py
       - .github/workflows/apply-library-visual-freeze.yml
 
 permissions:
@@ -24,7 +25,7 @@ jobs:
           node-version: 20
           cache: npm
       - name: Apply visual freeze patch
-        run: python scripts/apply_library_visual_freeze.py
+        run: python scripts/apply_library_visual_freeze_v2.py
       - name: Install dependencies
         run: npm ci
       - name: Verify production build
