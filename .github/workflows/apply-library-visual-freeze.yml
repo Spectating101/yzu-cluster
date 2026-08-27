@@ -1,0 +1,49 @@
+name: Apply Library visual freeze
+
+on:
+  push:
+    branches:
+      - hardening/library-retrieval-excellence-20260828
+    paths:
+      - scripts/apply_library_visual_freeze.py
+      - .github/workflows/apply-library-visual-freeze.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: hardening/library-retrieval-excellence-20260828
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Apply visual freeze patch
+        run: python scripts/apply_library_visual_freeze.py
+      - name: Install dependencies
+        run: npm ci
+      - name: Verify production build
+        run: npm run build
+      - name: Install Chromium
+        run: npx playwright install chromium --with-deps
+      - name: Verify Library browser contracts
+        env:
+          CI: true
+          YZU_PAGES: false
+        run: npx playwright test e2e/v2-library.spec.js e2e/library-retrieval-excellence-render.spec.js --reporter=line
+      - name: Commit product and durable tests
+        run: |
+          git config user.name "spectating101"
+          git config user.email "s1133958@mail.yzu.edu.tw"
+          git add drive/src/v2/RailPanels.jsx drive/src/v2/LibraryEvidenceEstate.jsx drive/src/v2/LibraryAssetWorkspace.jsx drive/src/v2/library-evidence-rigor.css drive/src/v2/library-workspace.css e2e/*.js
+          if git diff --cached --quiet; then
+            echo "No product changes to commit."
+            exit 0
+          fi
+          git commit -m "polish(library): freeze file-browser visual hierarchy"
+          git push origin HEAD:hardening/library-retrieval-excellence-20260828
