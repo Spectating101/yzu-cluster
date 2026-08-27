@@ -20,7 +20,7 @@ function fieldNames(dataset, fields) {
     : Array.isArray(dataset?.columns)
       ? dataset.columns.map((item) => (typeof item === "string" ? item : item?.name))
       : [];
-  return [...new Set([...(fields.joinKeys || []), ...declared].filter(Boolean))].slice(0, 12);
+  return [...new Set([...(fields.joinKeys || []), ...declared].filter(Boolean))].slice(0, 16);
 }
 
 function recordTerms(dataset) {
@@ -142,51 +142,111 @@ function AssetOverlay({ kind, dataset, fields, presentation, onClose }) {
   );
 }
 
-function DataGlimpse({ dataset, enabled }) {
-  const [state, setState] = useState({ loading: false, rows: [], error: "" });
+function observedColumns(rows = []) {
+  const ordered = [];
+  for (const row of rows) {
+    for (const key of Object.keys(row || {})) {
+      if (!ordered.includes(key)) ordered.push(key);
+      if (ordered.length >= 12) return ordered;
+    }
+  }
+  return ordered;
+}
+
+function DatasetPreview({ dataset, canQuery, names, fields, state, onInspect, onOpenFullPreview }) {
+  const [preview, setPreview] = useState({ loading: false, rows: [], error: "" });
+
   useEffect(() => {
     let cancelled = false;
-    if (!enabled || !dataset?.dataset_id) {
-      setState({ loading: false, rows: [], error: "" });
+    if (!canQuery || !dataset?.dataset_id) {
+      setPreview({ loading: false, rows: [], error: "" });
       return undefined;
     }
-    setState({ loading: true, rows: [], error: "" });
-    queryDataset(dataset.dataset_id, 3)
+    setPreview({ loading: true, rows: [], error: "" });
+    queryDataset(dataset.dataset_id, 8)
       .then((payload) => {
-        if (!cancelled) setState({ loading: false, rows: Array.isArray(payload?.rows) ? payload.rows : [], error: "" });
+        if (!cancelled) {
+          setPreview({
+            loading: false,
+            rows: Array.isArray(payload?.rows) ? payload.rows.slice(0, 8) : [],
+            error: "",
+          });
+        }
       })
       .catch(() => {
-        if (!cancelled) setState({ loading: false, rows: [], error: "Preview is not available right now." });
+        if (!cancelled) setPreview({ loading: false, rows: [], error: "Preview is not available right now." });
       });
     return () => { cancelled = true; };
-  }, [dataset?.dataset_id, enabled]);
+  }, [canQuery, dataset?.dataset_id]);
 
-  if (!enabled) return null;
-  const columns = state.rows[0] ? Object.keys(state.rows[0]).slice(0, 5) : [];
+  const columns = observedColumns(preview.rows);
+  const schemaColumns = columns.length ? columns : names.slice(0, 12);
+  const observed = columns.length > 0 && preview.rows.length > 0;
+  const joinKeys = fields.joinKeys || [];
+
   return (
-    <section className="rd-v2-library-workspace-section" aria-label="Data glimpse">
+    <section className="rd-v2-library-data-preview" aria-label="Dataset table and structure" data-testid="library-data-preview">
       <div className="rd-v2-library-section-heading">
         <div>
-          <span className="rd-v2-eyebrow">Observed evidence</span>
-          <h2>Bounded local sample</h2>
+          <span className="rd-v2-eyebrow">Dataset inspection</span>
+          <h2>{observed ? "Observed table" : "Table structure"}</h2>
         </div>
-        {!state.loading && !state.error && state.rows.length ? (
-          <span className="rd-v2-library-observation-receipt" data-testid="library-observation-receipt">
-            {state.rows.length} row{state.rows.length === 1 ? "" : "s"} observed
-          </span>
-        ) : null}
+        <div className="rd-v2-library-preview-tools">
+          {observed ? (
+            <span className="rd-v2-library-observation-receipt" data-testid="library-observation-receipt">
+              {preview.rows.length} row{preview.rows.length === 1 ? "" : "s"} · {columns.length} column{columns.length === 1 ? "" : "s"}
+            </span>
+          ) : null}
+          <button type="button" className="rd-v2-btn sm" onClick={onInspect}>Inspect schema</button>
+          {canQuery && onOpenFullPreview ? (
+            <button type="button" className="rd-v2-btn sm" onClick={onOpenFullPreview}>Full preview</button>
+          ) : null}
+        </div>
       </div>
-      {state.loading ? <p className="rd-v2-library-muted">Reading up to 3 rows from the current local query path…</p> : null}
-      {!state.loading && state.error ? <p className="rd-v2-library-muted">{state.error}</p> : null}
-      {!state.loading && !state.error && !state.rows.length ? <p className="rd-v2-library-muted">No sample rows were returned by the local query path.</p> : null}
-      {columns.length ? (
+
+      {preview.loading ? <p className="rd-v2-library-muted">Reading a bounded local sample…</p> : null}
+      {!preview.loading && preview.error ? <p className="rd-v2-library-muted">{preview.error}</p> : null}
+      {!preview.loading && !preview.error && canQuery && !preview.rows.length ? (
+        <p className="rd-v2-library-muted">The current query path returned no sample rows.</p>
+      ) : null}
+
+      {schemaColumns.length ? (
         <div className="rd-v2-library-glimpse-table-wrap">
           <table className="rd-v2-library-glimpse-table">
-            <thead><tr>{columns.map((column) => <th key={column}>{column}</th>)}</tr></thead>
-            <tbody>{state.rows.map((row, index) => <tr key={index}>{columns.map((column) => <td key={column}>{String(row[column] ?? "—")}</td>)}</tr>)}</tbody>
+            <thead>
+              <tr>{schemaColumns.map((column) => <th key={column}>{column}</th>)}</tr>
+            </thead>
+            <tbody>
+              {observed ? (
+                preview.rows.map((row, index) => (
+                  <tr key={index}>
+                    {schemaColumns.map((column) => <td key={column}>{String(row[column] ?? "—")}</td>)}
+                  </tr>
+                ))
+              ) : (
+                <tr className="rd-v2-library-schema-only-row">
+                  <td colSpan={Math.max(schemaColumns.length, 1)}>
+                    {canQuery
+                      ? "Observed rows are not available in this sample."
+                      : `${state.label} does not establish an observed row preview; the columns above are declared structure only.`}
+                  </td>
+                </tr>
+              )}
+            </tbody>
           </table>
         </div>
-      ) : null}
+      ) : (
+        <div className="rd-v2-library-preview-empty">
+          <strong>No table structure is available yet.</strong>
+          <span>{state.label} does not currently expose observed columns or a declared field list.</span>
+        </div>
+      )}
+
+      <div className="rd-v2-library-preview-foot">
+        <span>{observed ? "Observed values from the current query path" : "Declared structure only"}</span>
+        <span>Grain: {value(dataset?.grain)}</span>
+        <span>Keys: {joinKeys.length ? joinKeys.join(" · ") : "Not declared"}</span>
+      </div>
     </section>
   );
 }
@@ -236,32 +296,18 @@ function EvidenceShape({ dataset, fields, presentation, rowCount, state }) {
   );
 }
 
-function StructureSummary({ dataset, fields, presentation, names, onInspect }) {
-  const scholarly = presentation.kind === "scholarly_work";
+function StructureSummary({ dataset, presentation, onInspect }) {
   const terms = recordTerms(dataset);
+  if (presentation.kind !== "scholarly_work") return null;
   return (
-    <section className="rd-v2-library-workspace-section" aria-label={presentation.structureTitle}>
-      <div className="rd-v2-library-section-heading">
-        <div>
-          <span className="rd-v2-eyebrow">{scholarly ? "Record" : "Fields / operations"}</span>
-          <h2>{presentation.structureTitle}</h2>
-        </div>
-        <button type="button" className="rd-v2-btn sm" onClick={onInspect}>{presentation.structureAction}</button>
+    <div className="rd-v2-library-record-terms">
+      <div>
+        <span className="rd-v2-eyebrow">Record details</span>
+        <strong>{terms.length ? `${terms.length} research term${terms.length === 1 ? "" : "s"}` : "Bibliographic metadata"}</strong>
       </div>
-      {scholarly ? (
-        terms.length ? (
-          <div className="rd-v2-library-field-list">{terms.slice(0, 8).map((name) => <code key={name}>{name}</code>)}</div>
-        ) : (
-          <p className="rd-v2-library-muted">
-            Bibliographic metadata is available through the source record; no tabular field schema is expected for this work.
-          </p>
-        )
-      ) : names.length ? (
-        <div className="rd-v2-library-field-list">{names.slice(0, 8).map((name) => <code key={name}>{name}</code>)}</div>
-      ) : (
-        <p className="rd-v2-library-muted">No declared field list is available yet.</p>
-      )}
-    </section>
+      {terms.length ? <div className="rd-v2-library-field-list">{terms.slice(0, 8).map((name) => <code key={name}>{name}</code>)}</div> : null}
+      <button type="button" className="rd-v2-btn sm" onClick={onInspect}>{presentation.structureAction}</button>
+    </div>
   );
 }
 
@@ -272,7 +318,7 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onAsk, onOpe
   const state = statusPillKind(dataset);
   const verification = useMemo(() => libraryVerification(dataset), [dataset]);
   const canQuery = state.kind === "query-ready";
-  const canPreviewRows = canQuery && presentation.previewRows;
+  const hasTableSurface = presentation.previewRows;
   const names = useMemo(() => fieldNames(dataset, fields), [dataset, fields]);
   const rowCount = dataset?.rows || dataset?.row_count || dataset?.num_rows || dataset?.records;
   const purpose = value(dataset?.recommended_use, dataset?.description, fields.use, "Research use is not described in the current registry metadata.");
@@ -281,7 +327,7 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onAsk, onOpe
     <PageShell
       className="rd-v2-library-workspace"
       title="Library"
-      lead="Understand and use evidence the Library owns or is actively preparing."
+      lead="Inspect the evidence itself first; provenance and research boundaries stay attached without taking over the workspace."
       headExtra={<button type="button" className="rd-v2-btn sm" onClick={onBack}>← All Library assets</button>}
     >
       <article className="rd-v2-library-asset-canvas" data-testid="library-asset-workspace" data-asset-kind={presentation.kind}>
@@ -301,8 +347,7 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onAsk, onOpe
         </div>
 
         <div className="rd-v2-library-workspace-actions" aria-label="Asset actions">
-          {canPreviewRows ? <button type="button" className="rd-v2-btn primary" onClick={onOpenQuery}>Open query</button> : null}
-          {canPreviewRows ? <button type="button" className="rd-v2-btn" onClick={onPreview}>Preview rows</button> : null}
+          {canQuery ? <button type="button" className="rd-v2-btn primary" onClick={onOpenQuery}>Open query</button> : null}
           <button type="button" className="rd-v2-btn" onClick={() => setOverlay("provenance")}>Source record</button>
           {!canQuery && state.kind === "registered" && onPrepare ? (
             <button type="button" className="rd-v2-btn primary" onClick={onPrepare}>Prepare local copy</button>
@@ -310,35 +355,38 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onAsk, onOpe
           {!canQuery && onAsk ? <button type="button" className="rd-v2-btn" onClick={onAsk}>{presentation.askLabel}</button> : null}
         </div>
 
-        <section className="rd-v2-library-workspace-section" aria-label="What you have">
+        {hasTableSurface ? (
+          <DatasetPreview
+            dataset={dataset}
+            canQuery={canQuery}
+            names={names}
+            fields={fields}
+            state={state}
+            onInspect={() => setOverlay("fields")}
+            onOpenFullPreview={onPreview}
+          />
+        ) : null}
+
+        <section className="rd-v2-library-asset-facts" aria-label="Asset facts" data-testid="library-asset-facts">
           <div className="rd-v2-library-section-heading">
-            <div><span className="rd-v2-eyebrow">What you have</span><h2>{presentation.shapeTitle}</h2></div>
+            <div><span className="rd-v2-eyebrow">Asset facts</span><h2>{presentation.shapeTitle}</h2></div>
+            {!hasTableSurface && presentation.kind !== "operational" ? (
+              <button type="button" className="rd-v2-btn sm" onClick={() => setOverlay("fields")}>{presentation.structureAction}</button>
+            ) : null}
           </div>
           <EvidenceShape dataset={dataset} fields={fields} presentation={presentation} rowCount={rowCount} state={state} />
+          <div className="rd-v2-library-evidence-notes">
+            <div>
+              <span className="rd-v2-eyebrow">Research use</span>
+              <p>{purpose}</p>
+            </div>
+            <div>
+              <span className="rd-v2-eyebrow">Boundary</span>
+              <p>{limitation(dataset, fields)}</p>
+            </div>
+          </div>
+          <StructureSummary dataset={dataset} presentation={presentation} onInspect={() => setOverlay("fields")} />
         </section>
-
-        <div className="rd-v2-library-workspace-duo">
-          <section className="rd-v2-library-workspace-section" aria-label="What this supports">
-            <span className="rd-v2-eyebrow">What this supports</span>
-            <h2>Research use</h2>
-            <p>{purpose}</p>
-          </section>
-          <section className="rd-v2-library-workspace-section limitation" aria-label="What this does not establish">
-            <span className="rd-v2-eyebrow">What this does not establish</span>
-            <h2>Boundary</h2>
-            <p>{limitation(dataset, fields)}</p>
-          </section>
-        </div>
-
-        <DataGlimpse dataset={dataset} enabled={canPreviewRows} />
-
-        <StructureSummary
-          dataset={dataset}
-          fields={fields}
-          presentation={presentation}
-          names={names}
-          onInspect={() => setOverlay("fields")}
-        />
       </article>
       <AssetOverlay
         kind={overlay}
