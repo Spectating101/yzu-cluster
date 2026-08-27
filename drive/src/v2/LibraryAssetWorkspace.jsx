@@ -7,7 +7,6 @@ import {
   statusPillKind,
 } from "@/v2/datasetMeta";
 import { libraryVerification } from "@/v2/libraryVerification";
-import { StatusPill } from "@/v2/StatusPill";
 import { PageShell } from "@/v2/ui";
 
 function value(...candidates) {
@@ -183,6 +182,7 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, onInspect, on
   const schemaColumns = columns.length ? columns : names.slice(0, 12);
   const observed = columns.length > 0 && preview.rows.length > 0;
   const joinKeys = fields.joinKeys || [];
+  const rowCount = dataset?.rows || dataset?.row_count || dataset?.num_rows || dataset?.records;
 
   return (
     <section className="rd-v2-library-data-preview" aria-label="Dataset table and structure" data-testid="library-data-preview">
@@ -244,7 +244,9 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, onInspect, on
 
       <div className="rd-v2-library-preview-foot">
         <span>{observed ? "Observed values from the current query path" : "Declared structure only"}</span>
+        <span>Coverage: {value(fields.coverage, dataset?.coverage)}</span>
         <span>Grain: {value(dataset?.grain)}</span>
+        <span>Scale: {rowCount ? `${rowCount} rows` : "Not declared"}</span>
         <span>Keys: {joinKeys.length ? joinKeys.join(" · ") : "Not declared"}</span>
       </div>
     </section>
@@ -323,11 +325,34 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onAsk, onOpe
   const rowCount = dataset?.rows || dataset?.row_count || dataset?.num_rows || dataset?.records;
   const purpose = value(dataset?.recommended_use, dataset?.description, fields.use, "Research use is not described in the current registry metadata.");
 
+  const factContent = (
+    <>
+      <div className="rd-v2-library-section-heading">
+        <div><span className="rd-v2-eyebrow">Asset facts</span><h2>{presentation.shapeTitle}</h2></div>
+        {!hasTableSurface && presentation.kind !== "operational" ? (
+          <button type="button" className="rd-v2-btn sm" onClick={() => setOverlay("fields")}>{presentation.structureAction}</button>
+        ) : null}
+      </div>
+      <EvidenceShape dataset={dataset} fields={fields} presentation={presentation} rowCount={rowCount} state={state} />
+      <div className="rd-v2-library-evidence-notes">
+        <div>
+          <span className="rd-v2-eyebrow">Research use</span>
+          <p>{purpose}</p>
+        </div>
+        <div>
+          <span className="rd-v2-eyebrow">Boundary</span>
+          <p>{limitation(dataset, fields)}</p>
+        </div>
+      </div>
+      <StructureSummary dataset={dataset} presentation={presentation} onInspect={() => setOverlay("fields")} />
+    </>
+  );
+
   return (
     <PageShell
       className="rd-v2-library-workspace"
       title="Library"
-      lead="Inspect the evidence itself first; provenance and research boundaries stay attached without taking over the workspace."
+      lead="Inspect held evidence."
       headExtra={<button type="button" className="rd-v2-btn sm" onClick={onBack}>← All Library assets</button>}
     >
       <article className="rd-v2-library-asset-canvas" data-testid="library-asset-workspace" data-asset-kind={presentation.kind}>
@@ -337,7 +362,6 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onAsk, onOpe
             <h1>{displayName(dataset)}</h1>
             <p>{value(dataset?.description, dataset?.summary, dataset?.recommended_use, `This ${presentation.noun} has no plain-language description in the current registry.`)}</p>
           </div>
-          <StatusPill dataset={dataset} />
         </header>
 
         <div className="rd-v2-library-claim-strip" aria-label="Evidence claims">
@@ -367,26 +391,16 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onAsk, onOpe
           />
         ) : null}
 
-        <section className="rd-v2-library-asset-facts" aria-label="Asset facts" data-testid="library-asset-facts">
-          <div className="rd-v2-library-section-heading">
-            <div><span className="rd-v2-eyebrow">Asset facts</span><h2>{presentation.shapeTitle}</h2></div>
-            {!hasTableSurface && presentation.kind !== "operational" ? (
-              <button type="button" className="rd-v2-btn sm" onClick={() => setOverlay("fields")}>{presentation.structureAction}</button>
-            ) : null}
-          </div>
-          <EvidenceShape dataset={dataset} fields={fields} presentation={presentation} rowCount={rowCount} state={state} />
-          <div className="rd-v2-library-evidence-notes">
-            <div>
-              <span className="rd-v2-eyebrow">Research use</span>
-              <p>{purpose}</p>
-            </div>
-            <div>
-              <span className="rd-v2-eyebrow">Boundary</span>
-              <p>{limitation(dataset, fields)}</p>
-            </div>
-          </div>
-          <StructureSummary dataset={dataset} presentation={presentation} onInspect={() => setOverlay("fields")} />
-        </section>
+        {hasTableSurface ? (
+          <details className="rd-v2-library-asset-facts rd-v2-library-asset-facts-collapsible" data-testid="library-asset-facts">
+            <summary>Research details</summary>
+            <div className="rd-v2-library-asset-facts-body">{factContent}</div>
+          </details>
+        ) : (
+          <section className="rd-v2-library-asset-facts" aria-label="Asset facts" data-testid="library-asset-facts">
+            {factContent}
+          </section>
+        )}
       </article>
       <AssetOverlay
         kind={overlay}
