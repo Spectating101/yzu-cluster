@@ -16,41 +16,16 @@
   overflow: visible;
 }
 
-.rd-v2-library-page .rd-v2-cap-estate-head {
-  padding: 11px 16px 10px;
-}
-
-.rd-v2-library-page .rd-v2-cap-estate-head h2 {
-  margin-top: 1px;
-  font-size: 15px;
-}
-
-.rd-v2-library-page .rd-v2-cap-estate-head p {
-  max-width: 760px;
-  font-size: 10px;
-}
-
+/* View and collection controls are operating chrome, not destinations. Keep
+   them compact so the evidence ledger begins immediately under the page tools. */
 .rd-v2-library-auto-catalog {
   display: grid;
-  grid-template-columns: minmax(155px, 0.29fr) minmax(0, 1fr);
+  grid-template-columns: 78px minmax(0, 1fr);
   align-items: center;
-  gap: 14px;
-  padding: 8px 16px;
+  gap: 10px;
+  padding: 6px 16px;
   border-bottom: 1px solid var(--rd-border);
   background: rgba(255, 253, 246, 0.9);
-}
-
-.rd-v2-library-auto-catalog-copy p,
-.rd-v2-library-curation-copy small {
-  display: block;
-  max-width: 500px;
-  margin: 2px 0 0;
-  color: var(--rd-muted);
-  font-size: 9px;
-  font-weight: 450;
-  line-height: 1.35;
-  letter-spacing: 0;
-  text-transform: none;
 }
 
 .rd-v2-library-auto-view-list {
@@ -67,8 +42,8 @@
   flex: none;
   align-items: center;
   gap: 7px;
-  min-height: 28px;
-  padding: 5px 9px;
+  min-height: 27px;
+  padding: 4px 9px;
   border: 1px solid var(--rd-border2);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.62);
@@ -98,20 +73,16 @@
   font-weight: 760;
 }
 
-.rd-v2-library-curation-copy {
-  min-width: 0;
-}
-
 .rd-v2-library-page .rd-v2-cap-collections {
-  grid-template-columns: minmax(155px, 0.29fr) minmax(0, 1fr);
+  grid-template-columns: 78px minmax(0, 1fr);
   align-items: center;
-  gap: 14px;
-  padding: 7px 16px;
+  gap: 10px;
+  padding: 5px 16px;
   background: rgba(247, 244, 236, 0.46);
 }
 
 .rd-v2-library-page .rd-v2-cap-collection {
-  padding-block: 5px;
+  padding-block: 4px;
   background: rgba(255, 253, 246, 0.72);
 }
 
@@ -169,19 +140,14 @@
   .rd-v2-library-auto-catalog,
   .rd-v2-library-page .rd-v2-cap-collections {
     grid-template-columns: 1fr;
-    gap: 7px;
-    padding: 9px 14px;
+    gap: 5px;
+    padding: 7px 14px;
   }
 
   .rd-v2-library-auto-view-list,
   .rd-v2-cap-collection-list {
     margin-inline: -2px;
     padding: 2px;
-  }
-
-  .rd-v2-library-auto-catalog-copy p,
-  .rd-v2-library-curation-copy small {
-    max-width: none;
   }
 
   .rd-v2-library-available {
