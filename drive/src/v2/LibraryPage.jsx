@@ -222,16 +222,9 @@ function LibraryAssetInspector({ dataset, onClose, onPreview, onOpenQuery, onAsk
 
   useEffect(() => {
     if (!dataset) return undefined;
-    const onKeyDown = (event) => {
-      if (event.key === "Escape") onClose?.();
-    };
-    document.addEventListener("keydown", onKeyDown);
     const frame = window.requestAnimationFrame(() => inspectorRef.current?.focus());
-    return () => {
-      document.removeEventListener("keydown", onKeyDown);
-      window.cancelAnimationFrame(frame);
-    };
-  }, [dataset, onClose]);
+    return () => window.cancelAnimationFrame(frame);
+  }, [dataset]);
 
   if (!dataset) return null;
 
@@ -239,6 +232,12 @@ function LibraryAssetInspector({ dataset, onClose, onPreview, onOpenQuery, onAsk
     <div
       className="rd-v2-library-inspector-scrim"
       data-testid="library-asset-inspector"
+      onKeyDown={(event) => {
+        if (event.key !== "Escape") return;
+        if (event.target.closest?.(".rd-v2-library-overlay")) return;
+        event.stopPropagation();
+        onClose?.();
+      }}
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose?.();
       }}
