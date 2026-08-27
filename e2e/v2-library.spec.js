@@ -95,8 +95,9 @@ test.describe("v2 Library evidence estate", () => {
     await workspace.getByRole("button", { name: "Source record" }).click();
     const provenance = page.getByRole("dialog", { name: "Source and provenance" });
     await expect(provenance).toBeVisible();
-    await expect(provenance).toContainText("Exact source URL not recorded");
-    await expect(provenance).toContainText("Reproduction method not recorded");
+    await expect(provenance).toContainText("Exact source URL");
+    await expect(provenance).toContainText("Acquisition method");
+    await expect(provenance.getByText("Not recorded", { exact: true })).toHaveCount(2);
     await expect(page.getByTestId("library-source-verification")).toContainText("Not checked");
     await expect(page.getByTestId("library-source-readiness")).toContainText("Query ready");
     await provenance.getByRole("button", { name: "Close inspection" }).click();
