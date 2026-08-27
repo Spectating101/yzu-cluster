@@ -23,6 +23,8 @@ jobs:
           cache: npm
       - name: Apply race and idempotency hardening
         run: python3 .github/scripts/discover_adversarial_hardening.py
+      - name: Apply visual capability compression
+        run: python3 .github/scripts/discover_visual_compression.py
       - name: Install dependencies
         run: npm ci
       - name: Install Chromium
@@ -56,10 +58,12 @@ jobs:
         run: |
           git config user.name "discover-hardening-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add drive/src/v2/BrowsePage.jsx \
+          git add drive/src/v2/App.jsx \
+                  drive/src/v2/BrowsePage.jsx \
                   drive/src/v2/DiscoverEvidenceBrief.jsx \
-                  drive/src/v2/DiscoverIntentWorkspace.jsx
-          git commit -m "hardening(discover): fence stale routes and duplicate submits"
+                  drive/src/v2/DiscoverIntentWorkspace.jsx \
+                  drive/src/v2/discover-visual-freeze.css
+          git commit -m "hardening(discover): fence races and compress capability surface"
           git push origin HEAD:polish/discover-visual-freeze-20260827
 
 # Exact-head closure trigger: preserve capacity loading authority through BrowsePage and land only after every Discover gate is green.
