@@ -1,6 +1,8 @@
 import { test, expect } from "@playwright/test";
 import { MOCK_DATASETS, mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 
+test.use({ trace: "retain-on-failure", screenshot: "only-on-failure" });
+
 test.describe("v2 Library evidence estate", () => {
   test.beforeEach(async ({ page }) => {
     await mockV2Api(page);
@@ -9,7 +11,7 @@ test.describe("v2 Library evidence estate", () => {
     await waitForShell(page);
   });
 
-  test("Library root exposes evidence immediately while collections remain narrowing context", async ({ page }) => {
+  test.only("Library root exposes evidence immediately while collections remain narrowing context", async ({ page }) => {
     await expect(page.locator(".rd-v2-page-head h1", { hasText: "Library" })).toBeVisible();
     const estate = page.getByTestId("library-evidence-estate");
     await expect(estate).toBeVisible();
