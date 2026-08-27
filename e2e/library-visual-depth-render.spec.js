@@ -162,12 +162,15 @@ async function openAsset(page, title) {
   const row = page.getByTestId("library-evidence-row").filter({ hasText: title });
   await expect(row).toBeVisible();
   await row.click();
+  await expect(page.getByTestId("library-asset-inspector")).toBeVisible();
+  await expect(page.getByTestId("library-evidence-estate")).toBeVisible();
   await expect(page.getByTestId("library-asset-workspace")).toContainText(title);
   await settleVisualState(page);
 }
 
 async function backToRoot(page) {
   await page.getByRole("button", { name: "← All Library assets" }).click();
+  await expect(page.getByTestId("library-asset-inspector")).toHaveCount(0);
   await expect(page.getByTestId("library-evidence-estate")).toBeVisible();
   await settleVisualState(page);
 }
@@ -190,7 +193,9 @@ test("render Library depth states on desktop", async ({ page }) => {
   await expect(scholarly.getByRole("button", { name: "Ask about this work" })).toHaveCount(0);
   await expect(scholarly.getByRole("button", { name: "Inspect record" })).toHaveCount(1);
   await expect(scholarly).toContainText("does not establish source verification or methodological fitness");
-  await expect(scholarlyRail).toContainText("Scholarly work");
+  await expect(page.getByTestId("research-situation")).toContainText("scholarly work");
+  await expect(page.getByTestId("research-situation")).toContainText("Retained as a reusable scholarly work");
+  await expect(page.getByTestId("research-situation")).not.toContainText("querying has not yet been proven");
   await expect(scholarlyRail).toContainText("Retained as a reusable scholarly work");
   await expect(scholarlyRail).not.toContainText("Grain not reported");
   await expect(scholarlyRail).not.toContainText("Join keys / schema relationship not described");
