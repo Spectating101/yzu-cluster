@@ -13,6 +13,20 @@ import { RailEntityHeader, RailFrame, RailStickyFooter } from "@/v2/RailFrame";
 import { StatusPill } from "@/v2/StatusPill";
 
 export function decisionFor(dataset) {
+  const presentation = libraryAssetPresentation(dataset);
+  const state = statusPillKind(dataset);
+  if (presentation.kind === "scholarly_work" && state.kind === "registered") {
+    return {
+      headline: "Registered",
+      body: "Retained as a reusable scholarly work in this Library. Source verification remains a separate claim.",
+    };
+  }
+  if (presentation.kind === "operational" && state.kind === "registered") {
+    return {
+      headline: "Registered",
+      body: "Retained as a reusable operational record; its current state must be judged from the recorded evidence.",
+    };
+  }
   return canIUseDecision(dataset);
 }
 
@@ -84,8 +98,8 @@ function askLabel(presentation, state) {
 /**
  * The centre workspace owns asset substance (table/schema, coverage, grain,
  * research use). The rail stays complementary: decision, provenance authority,
- * verification, unresolved facts, and Ask. Unresolved facts are type-aware so
- * papers are never scolded for lacking dataframe concepts such as grain/keys.
+ * verification, unresolved facts, and Ask. Both decisions and unresolved facts
+ * are type-aware so non-tabular assets never inherit dataframe assumptions.
  */
 export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onAskAbout }) {
   if (!dataset) return null;
