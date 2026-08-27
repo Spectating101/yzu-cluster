@@ -76,7 +76,7 @@ function catalogViewMatches(row = {}, view) {
 function buildCatalogViews(assets = []) {
   const rows = assets.map((item) => item?.row || item);
   const candidates = [
-    { key: "all", label: "All", count: rows.length },
+    { key: "all", label: "Everything", count: rows.length },
     { key: "data", label: "Data", count: rows.filter((row) => catalogViewMatches(row, "data")).length },
     { key: "literature", label: "Literature", count: rows.filter((row) => catalogViewMatches(row, "literature")).length },
     { key: "sources", label: "Live sources", count: rows.filter((row) => catalogViewMatches(row, "sources")).length },
@@ -135,7 +135,7 @@ export function LibraryEvidenceEstate({
             <button
               key={view.key}
               type="button"
-              className={`rd-v2-library-auto-view${activeView === view.key ? " active" : ""}`}
+              className={`rd-v2-library-auto-view${activeView === view.key ? " active" : ""}`
               aria-pressed={activeView === view.key}
               data-testid={`library-auto-view-${view.key}`}
               onClick={() => setCatalogView(view.key)}
