@@ -76,6 +76,8 @@ const LIBRARY_DATASETS = {
       doi: "10.1234/stablecoin.governance.2026",
       source: "Journal of Digital Finance",
       publisher: "Research Press",
+      collection_method: "datacite",
+      source_route: "collect_doi",
       analysis_readiness: "registered",
       registered: true,
       verification_status: "unverified",
@@ -95,6 +97,8 @@ const LIBRARY_DATASETS = {
       backend: "bigquery_public_dataset",
       collect_via: "BigQuery",
       source: "Google BigQuery public blockchain datasets",
+      source_endpoint: "https://bigquery.googleapis.com/",
+      source_route: "bigquery_dry_run · bigquery_read_query",
       columns: ["block_timestamp", "tx_hash", "from_address", "to_address", "value", "token_address"],
       coverage: "Live remote source",
       verification_status: "not_checked",
@@ -197,6 +201,11 @@ test("render Library depth states on desktop", async ({ page }) => {
   await expect(page.getByTestId("research-situation")).toContainText("Retained as a reusable scholarly work");
   await expect(page.getByTestId("research-situation")).not.toContainText("querying has not yet been proven");
   await expect(scholarlyRail).toContainText("Retained as a reusable scholarly work");
+  await expect(scholarlyRail).toContainText("DOI resolver");
+  await expect(scholarlyRail).toContainText("https://doi.org/10.1234/stablecoin.governance.2026");
+  await expect(scholarlyRail).toContainText("datacite");
+  await expect(scholarlyRail).toContainText("collect_doi");
+  await expect(scholarlyRail).not.toContainText("Exact source URL not recorded");
   await expect(scholarlyRail).not.toContainText("Grain not reported");
   await expect(scholarlyRail).not.toContainText("Join keys / schema relationship not described");
   await expect(scholarlyRail.getByRole("button", { name: "Ask about this work →" })).toBeVisible();
@@ -218,6 +227,9 @@ test("render Library depth states on desktop", async ({ page }) => {
   await expect(connectedPreview).not.toContainText("Grain: Not declared");
   await expect(connectedPreview).not.toContainText("Scale: Not declared");
   await expect(connectedPreview).not.toContainText("Keys: Not declared");
+  await expect(connectedRail).toContainText("BigQuery");
+  await expect(connectedRail).toContainText("bigquery_dry_run · bigquery_read_query");
+  await expect(connectedRail).toContainText("Exact source URL not recorded");
   await expect(connectedRail.getByRole("button", { name: "Ask about access →" })).toBeVisible();
   await assertNoPageOverflow(page);
   await page.screenshot({ path: `${OUT}/10-connected-source-1440.png`, fullPage: false });
