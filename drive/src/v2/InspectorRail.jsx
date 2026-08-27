@@ -307,6 +307,13 @@ export function InspectorRail({
       setMobileRailOpen(false);
       return;
     }
+    // A selected Library asset is already a full evidence dossier. On phones,
+    // keep that dossier primary and leave the contextual rail one tap away;
+    // desktop ignores the collapsed geometry and still renders the full rail.
+    if (mainTab === "library" && dataset?.dataset_id && railTab === "detail") {
+      setMobileRailOpen(false);
+      return;
+    }
     if (mainTab === "library" && activeObject?.kind === "library_folder") {
       setMobileRailOpen(false);
       return;
@@ -319,6 +326,7 @@ export function InspectorRail({
   }, [
     selectionHint,
     mainTab,
+    dataset?.dataset_id,
     browseTarget,
     historyEvent,
     discoverIntentRecord,
