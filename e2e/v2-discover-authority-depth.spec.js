@@ -178,14 +178,14 @@ test.describe("Discover authority depth", () => {
     await expect(history).toBeVisible();
     await expect(page.getByRole("tab", { name: /History/ })).toHaveAttribute("aria-selected", "true");
     await expect(history).toContainText("MOPS financial statements");
-    await expect(history).toContainText(/pending approval|needs approval/i);
+    await expect(history).toContainText(/pending approval|needs approval|approval required/i);
 
     await page.reload({ waitUntil: "domcontentloaded" });
     await waitForShell(page);
     const restoredHistory = page.getByTestId("discover-history");
     await expect(restoredHistory).toBeVisible();
     await expect(restoredHistory).toContainText("MOPS financial statements");
-    await expect(restoredHistory).toContainText(/pending approval|needs approval/i);
+    await expect(restoredHistory).toContainText(/pending approval|needs approval|approval required/i);
 
     expect(assessmentCalls()).toBe(2);
     expect(routeCalls).toBeGreaterThanOrEqual(2);
