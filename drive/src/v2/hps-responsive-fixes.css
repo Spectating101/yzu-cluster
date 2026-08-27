@@ -19,4 +19,44 @@
   .rd-v2-home-pickup-card {
     min-height: 210px;
   }
+
+  /* Settings had the same viewport/workspace mismatch: its outer two-column
+     section left too little width for identity actions and service metadata,
+     which then clipped inside the scroll pane without creating document-level
+     overflow. Put the section heading above its controls in this regime. */
+  .rd-v2-settings-statement > .rd-v2-statement-section {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  /* Keep every service truth visible instead of silently clipping the
+     sublabel/detail columns when the pane is narrow. */
+  .rd-v2-settings-statement .rd-v2-statement-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px 12px;
+    align-items: start;
+  }
+
+  .rd-v2-settings-statement .rd-v2-statement-sub {
+    grid-column: 1 / -1;
+  }
+
+  .rd-v2-settings-statement .rd-v2-statement-detail {
+    grid-column: 2;
+    grid-row: 1;
+  }
+}
+
+/* Around compact desktop/tablet widths, the Profile section action should not
+   compete horizontally with the explanatory paragraph. Give it its own row
+   before it collapses into a three-line button. */
+@media (max-width: 1024px) {
+  .rd-v2-profile-section-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .rd-v2-profile-section-head .rd-v2-btn {
+    align-self: flex-start;
+  }
 }
