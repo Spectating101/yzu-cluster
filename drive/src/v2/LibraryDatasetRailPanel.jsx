@@ -10,20 +10,6 @@ import { libraryVerification } from "@/v2/libraryVerification";
 import { RailFrame, RailStickyFooter } from "@/v2/RailFrame";
 
 export function decisionFor(dataset) {
-  const presentation = libraryAssetPresentation(dataset);
-  const state = statusPillKind(dataset);
-  if (presentation.kind === "scholarly_work" && state.kind === "registered") {
-    return {
-      headline: "Registered",
-      body: "Retained as a reusable scholarly work in this Library. Source verification remains a separate claim.",
-    };
-  }
-  if (presentation.kind === "operational" && state.kind === "registered") {
-    return {
-      headline: "Registered",
-      body: "Retained as a reusable operational record; its current state must be judged from the recorded evidence.",
-    };
-  }
   return canIUseDecision(dataset);
 }
 
