@@ -15,7 +15,7 @@ async function readyForSubmit(page) {
   await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
   await search(page, "MOPS filings");
-  await page.getByTestId("discover-ranked-results").getByRole("button", { name: "Add to collection" }).click();
+  await page.getByTestId("discover-ranked-results").getByRole("button", { name: "Review acquisition route" }).click();
 
   const workspace = page.getByTestId("discover-intent-workspace");
   await expect(workspace).toContainText("Proposed routes · review required");
