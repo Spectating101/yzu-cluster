@@ -1,0 +1,78 @@
+/* Library selected-asset inspector density.
+   The shell follows evidence height instead of reserving a tall modal viewport.
+   Deep content still scrolls at a bounded ceiling; observed table rows are not cut. */
+@media (min-width: 761px) {
+  .rd-v2-library-inspector-scrim {
+    padding: 14px clamp(12px, 1.6vw, 22px);
+  }
+
+  .rd-v2-library-inspector-shell {
+    width: min(calc(100% - 8px), 1120px);
+    height: auto;
+    max-height: min(calc(100% - 8px), 760px);
+  }
+
+  .rd-v2-library-inspector-shell .rd-v2-library-workspace {
+    height: auto;
+    max-height: min(calc(100vh - var(--rd-header) - 32px), 760px);
+  }
+
+  .rd-v2-library-inspector-shell .rd-v2-library-workspace .rd-v2-body-scroll {
+    flex: 0 1 auto;
+    max-height: min(70vh, 690px);
+  }
+
+  .rd-v2-library-inspector-shell .rd-v2-library-asset-canvas {
+    padding: 13px clamp(17px, 2vw, 26px) 18px;
+  }
+
+  .rd-v2-library-inspector-shell .rd-v2-library-asset-header {
+    padding-bottom: 9px;
+  }
+
+  .rd-v2-library-inspector-shell .rd-v2-library-asset-header h1 {
+    margin-top: 3px;
+    font-size: clamp(22px, 2vw, 28px);
+  }
+
+  .rd-v2-library-inspector-shell .rd-v2-library-workspace-actions {
+    padding: 7px 0 9px;
+  }
+
+  .rd-v2-library-inspector-shell .rd-v2-library-data-preview {
+    padding: 10px 0 11px;
+  }
+
+  .rd-v2-library-inspector-shell .rd-v2-library-section-heading {
+    margin-bottom: 7px;
+  }
+
+  .rd-v2-library-inspector-shell .rd-v2-library-glimpse-table th,
+  .rd-v2-library-inspector-shell .rd-v2-library-glimpse-table td {
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+
+  .rd-v2-library-inspector-shell .rd-v2-library-preview-foot {
+    padding-top: 6px;
+  }
+
+  .rd-v2-library-inspector-shell .rd-v2-library-asset-facts-collapsible > summary {
+    padding: 7px 0;
+  }
+}
+
+.rd-v2-library-provenance-facts strong,
+.rd-v2-library-provenance-facts a,
+.rd-v2-library-overlay-facts a {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.rd-v2-library-provenance-facts a,
+.rd-v2-library-overlay-facts a {
+  color: var(--rd-link);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
