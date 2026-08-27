@@ -4,6 +4,7 @@ import { libraryVerification } from "@/v2/libraryVerification";
 import { StatusPill } from "@/v2/StatusPill";
 import "@/v2/capability-convergence.css";
 import "@/v2/library-evidence-rigor.css";
+import "@/v2/library-auto-catalog.css";
 
 function sourceLabel(row = {}) {
   return String(
