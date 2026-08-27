@@ -34,6 +34,7 @@ jobs:
 
       - name: Apply HPS functional convergence patch
         run: |
+          python .github/scripts/hps_functional_patch_prepare.py
           python .github/scripts/hps_functional_convergence.py
           python .github/scripts/hps_functional_convergence_fix.py
 
