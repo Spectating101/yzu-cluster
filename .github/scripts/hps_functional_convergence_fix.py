@@ -27,9 +27,9 @@ replace_once(
         if (opts.keepSelection) {''',
 )
 
-# Home's Synthesis resume is not generic navigation: it is an exact durable
-# thread handoff. Bind the exact tab + URL + rail state in one callback so no
-# shell policy or stale dataset ownership can reinterpret the destination.
+# Home owns shell navigation through onGoTab. This callback binds only the
+# durable Synthesis identity so route authority and object-focus authority stay
+# separate and testable.
 replace_once(
     "drive/src/v2/App.jsx",
     '''          onResumeSynthesisThread={(thread) => {
@@ -42,13 +42,6 @@ replace_once(
             if (!thread?.id) return;
             setFocusSynthesisThreadId(thread.id);
             setActiveObject(synthesisThreadObject(thread));
-            setSelectedId("");
-            setDetail(null);
-            setPreviewOpen(false);
-            setPreviewTarget(null);
-            setRailTab("detail");
-            setTab("synthesis");
-            syncUrl({ tab: "synthesis", dataset: "", preview: false, q: "" });
           }}''',
 )
 
