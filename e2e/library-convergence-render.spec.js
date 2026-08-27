@@ -57,6 +57,7 @@ const LIBRARY_DATASETS = {
       analysis_readiness: "metadata_search",
       domain: "procured",
       local_path: "data_lake/procured/mops_financials.csv",
+      registered: true,
       source: "MOPS",
       coverage: "2015–2026",
       verification_status: "partial",
