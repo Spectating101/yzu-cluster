@@ -172,11 +172,15 @@ export function HomePage({
 
   const continuePrimary = (point) => {
     if (point?.thread?.id) {
+      // Navigation remains a shell responsibility; the typed callback only
+      // binds the exact durable Synthesis object. Keeping these authorities
+      // separate prevents Home from inventing a second navigation path.
       onResumeSynthesisThread?.(point.thread);
+      onGoTab?.(point.tab || "synthesis");
       return;
     }
     if (!point?.dataset) {
-      onGoTab(point?.tab || "library");
+      onGoTab?.(point?.tab || "library");
       return;
     }
     if (onPreviewDataset) {
@@ -190,7 +194,7 @@ export function HomePage({
     if (onOpenAttention) {
       onOpenAttention({
         id: point.id,
-        kind: "approval",
+        kind: point.kind || "attention",
         tab: "browse",
         discoverMode: "history",
         title: point.title,
@@ -207,7 +211,7 @@ export function HomePage({
       });
       return;
     }
-    onGoTab("browse");
+    onGoTab?.("browse");
   };
 
   return (
@@ -221,13 +225,21 @@ export function HomePage({
       {loadError ? <DeskError raw={loadError} surface="Home's Library briefing" /> : null}
       <div className="rd-v2-home-topband">
         <section className="rd-v2-home-pickup" aria-label="Pick up">
-          <PickUpCard point={pickUp.primary} loading={loading} onContinue={continuePrimary} onReview={reviewDecision} />
+          <PickUpCard
+            point={pickUp.primary}
+            loading={loading}
+            onContinue={continuePrimary}
+            onReview={reviewDecision}
+          />
           {pickUp.secondary ? (
             <button
               type="button"
               className={`rd-v2-home-pickup-secondary${pickUp.secondary.warn ? " warn" : ""}`}
-              data-kind={pickUp.secondary.kind}
-              onClick={() => pickUp.secondary.action === "review" ? reviewDecision(pickUp.secondary) : continuePrimary(pickUp.secondary)}
+              onClick={() =>
+                pickUp.secondary.action === "review"
+                  ? reviewDecision(pickUp.secondary)
+                  : continuePrimary(pickUp.secondary)
+              }
             >
               <strong>{pickUp.secondary.title}</strong>
               <span>{pickUp.secondary.stateSummary}</span>
@@ -242,7 +254,7 @@ export function HomePage({
         <section className="rd-v2-home-headroom" aria-label="Resource headroom">
           <div className="rd-v2-home-headroom-head">
             <span className="rd-v2-home-eyebrow">Resource headroom</span>
-            <button type="button" className="rd-v2-linkish" onClick={() => onGoTab("resources")}>
+            <button type="button" className="rd-v2-linkish" onClick={() => onGoTab?.("resources")}>
               Resources →
             </button>
           </div>
@@ -262,7 +274,11 @@ export function HomePage({
                   <HeadroomBar pct={slot.pct} warn={slot.warn} />
                   <div className="rd-v2-home-headroom-meta">
                     <span>{slot.headroom}</span>
-                    <button type="button" className="rd-v2-linkish" onClick={() => onGoTab("resources")}>
+                    <button
+                      type="button"
+                      className="rd-v2-linkish"
+                      onClick={() => onGoTab?.("resources")}
+                    >
                       {slot.action === "check" ? "Check →" : "Resources →"}
                     </button>
                   </div>
@@ -277,7 +293,9 @@ export function HomePage({
 
       {recommended.length ? (
         <section className="rd-v2-home-recommended" aria-label="Recommended evidence">
-          <div className="rd-v2-home-section-head"><h2>Recommended evidence</h2></div>
+          <div className="rd-v2-home-section-head">
+            <h2>Recommended evidence</h2>
+          </div>
           <ul className="rd-v2-home-recommended-list">
             {recommended.map((item) => (
               <li key={item.id}>
@@ -286,19 +304,24 @@ export function HomePage({
                   className="rd-v2-home-recommended-row"
                   onClick={() => {
                     if (item.action === "library" && item.datasetId) {
-                      onGoTab("library");
+                      onGoTab?.("library");
                       return;
                     }
                     if (item.query && onSuggestSearch) {
                       onSuggestSearch(item.query);
                       return;
                     }
-                    onGoTab("browse");
+                    onGoTab?.("browse");
                   }}
                 >
-                  <div><strong>{item.title}</strong><span>{item.reason}</span></div>
+                  <div>
+                    <strong>{item.title}</strong>
+                    <span>{item.reason}</span>
+                  </div>
                   <em>{item.badge}</em>
-                  <span className="rd-v2-home-recommended-go">{item.action === "library" ? "Library →" : "Explore →"}</span>
+                  <span className="rd-v2-home-recommended-go">
+                    {item.action === "library" ? "Library →" : "Explore →"}
+                  </span>
                 </button>
               </li>
             ))}
@@ -309,7 +332,13 @@ export function HomePage({
       <section className="rd-v2-home-trail" aria-label="Recent trail">
         <div className="rd-v2-home-section-head">
           <h2>Recent trail</h2>
-          <button type="button" className="rd-v2-linkish" onClick={() => onGoTab("browse")}>View all →</button>
+          <button
+            type="button"
+            className="rd-v2-linkish"
+            onClick={() => onGoTab?.("browse")}
+          >
+            View all →
+          </button>
         </div>
         {trail.length ? (
           <ul className="rd-v2-home-trail-list">
@@ -324,10 +353,10 @@ export function HomePage({
                       return;
                     }
                     if (item.dest === "history") {
-                      onGoTab("browse");
+                      onGoTab?.("browse");
                       return;
                     }
-                    onGoTab(item.dest === "library" ? "library" : "browse");
+                    onGoTab?.(item.dest === "library" ? "library" : "browse");
                   }}
                 >
                   <span className="rd-v2-home-trail-kind">{item.kind}</span>
@@ -340,7 +369,9 @@ export function HomePage({
           </ul>
         ) : (
           <div className="rd-v2-home-section-empty-actions">
-            <p className="rd-v2-home-section-empty">Nothing durable yet — recent work will collect here.</p>
+            <p className="rd-v2-home-section-empty">
+              Nothing durable yet — recent work will collect here.
+            </p>
             <HomeSuggestedAsks profile={profile} onAskComposer={onAskComposer || onSuggestSearch} />
           </div>
         )}
