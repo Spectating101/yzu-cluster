@@ -37,6 +37,7 @@ jobs:
           python .github/scripts/hps_functional_patch_prepare.py
           python .github/scripts/hps_functional_convergence.py
           python .github/scripts/hps_functional_convergence_fix.py
+          python .github/scripts/hps_home_handoff_debug.py
 
       - name: Check patch integrity
         run: git diff --check
@@ -53,31 +54,17 @@ jobs:
       - name: Install Chromium
         run: npx playwright install chromium --with-deps
 
-      - name: Prove HPS cross-platform consequences
+      - name: Diagnose Home Synthesis handoff
         run: >-
           npx playwright test
           e2e/hps-functional-convergence.spec.js
-          e2e/hps-inner-containment.spec.js
-          e2e/v2-library.spec.js
           --project=chromium
           --workers=1
+          --grep "Home chooses reviewable Synthesis"
         env:
           CI: "true"
           YZU_PAGES: "false"
 
       - name: Commit only verified functional integration
-        run: |
-          git config user.name "hps-convergence-bot"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add \
-            drive/src/v2/homeIteration10.js \
-            drive/src/v2/HomePage.jsx \
-            drive/src/v2/App.jsx \
-            drive/src/v2/RailPanels.jsx
-          git diff --cached --check
-          if git diff --cached --quiet; then
-            echo "No convergence changes to commit"
-            exit 0
-          fi
-          git commit -m "feat(hps): close platform continuity and policy loops"
-          git push origin HEAD:hardening/hps-functional-convergence-20260827
+        if: ${{ false }}
+        run: echo "Diagnostic run never commits"
