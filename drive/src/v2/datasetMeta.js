@@ -49,6 +49,7 @@ export function hydrateRemedy(dataset) {
 }
 
 function acquisitionOnlyRow(dataset = {}) {
+  if (!dataset) return false;
   if (dataset.external === true) return true;
   if (!dataset.collect_via) return false;
   return !(
