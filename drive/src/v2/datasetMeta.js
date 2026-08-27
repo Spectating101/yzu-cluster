@@ -114,6 +114,7 @@ export function canIUseDecision(dataset) {
     };
   }
   const state = statusPillKind(dataset);
+  const assetKind = libraryAssetKind(dataset);
   if (state.kind === "query-ready") {
     return {
       headline: "Query ready",
@@ -154,6 +155,18 @@ export function canIUseDecision(dataset) {
     return {
       headline: "External source",
       body: "This source is not confirmed as a usable Library asset.",
+    };
+  }
+  if (state.kind === "registered" && assetKind === "scholarly_work") {
+    return {
+      headline: "Registered",
+      body: "Retained as a reusable scholarly work in this Library. Source verification remains a separate claim.",
+    };
+  }
+  if (state.kind === "registered" && assetKind === "operational") {
+    return {
+      headline: "Registered",
+      body: "Retained as a reusable operational record; its current state must be judged from the recorded evidence.",
     };
   }
   if (state.kind === "registered") {
