@@ -1648,7 +1648,7 @@ export function V2App() {
           onOpenIntentHistory={(record) => {
             const job = record?.job || record?.intent?.job || null;
             setDiscoverIntentRecord(null);
-            openDiscoverHistory(job, { focusAwaiting: job?.status === "pending_approval" });
+            openDiscoverAwaiting({ job, focusAwaiting: job?.status === "pending_approval" });
           }}
           onSelectHistoryEvent={(event) => {
             setSelectedHistoryId(event?.id || "");
@@ -1669,6 +1669,12 @@ export function V2App() {
           assessmentActive={discoverAssessment.active}
           assessmentResult={discoverAssessment.result}
           onOpenAssessment={openDiscoverAssessment}
+          onAssessmentChange={(result) => {
+            setDiscoverAssessment((current) => ({ ...current, active: true, result }));
+          }}
+          onAssessmentActive={(active) => {
+            setDiscoverAssessment((current) => ({ ...current, active }));
+          }}
           onRestingSummary={handleDiscoverRestingSummary}
           onSelectRow={(row) => {
             setDiscoverAssessment((current) => ({ ...current, active: false }));

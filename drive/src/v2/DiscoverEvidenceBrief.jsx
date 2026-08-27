@@ -190,6 +190,12 @@ export function DiscoverEvidenceBrief({
   const routeAutoKeyRef = useRef("");
   const assessmentRequestSeqRef = useRef(0);
   const routeRequestSeqRef = useRef(0);
+  // The workspace emits a fresh assessment to App so downstream decisions use
+  // one authority. App then mirrors that exact object back as assessmentValue.
+  // Distinguish that parent echo from a genuinely external replacement: an echo
+  // must not invalidate the corrected route request that the same assessment
+  // just started.
+  const emittedAssessmentRef = useRef(null);
 
   useEffect(() => {
     setDimensions(normalizeRequirement(assessment?.requirement));
@@ -201,6 +207,10 @@ export function DiscoverEvidenceBrief({
 
   useEffect(() => {
     if (!assessmentValue) return;
+    if (assessmentValue === emittedAssessmentRef.current) {
+      emittedAssessmentRef.current = null;
+      return;
+    }
     routeRequestSeqRef.current += 1;
     setRouteLoading(false);
     setAssessment(assessmentValue);
@@ -266,21 +276,38 @@ export function DiscoverEvidenceBrief({
     setRouteResult(null);
     setRouteError("");
     setRouteLoading(false);
+    emittedAssessmentRef.current = null;
+    // A corrected brief immediately retires the prior evidence verdict. While
+    // reassessment is running, the previous held-evidence judgment is historical
+    // context, not current authority. Keep the investigation mounted but blank
+    // its consequential assessment state until a fresh response establishes it.
+    setAssessment(null);
+    setDimensions([]);
+    onAssessmentChange?.(null);
+    onAssessmentActive?.(true);
     setLoading(true);
     setError("");
     try {
       const next = await assessDiscoverEvidence({ question, requirement });
       if (assessmentRequestId !== assessmentRequestSeqRef.current) return;
+      emittedAssessmentRef.current = next;
       setAssessment(next);
       onAssessmentChange?.(next);
       onAssessmentActive?.(true);
     } catch (requestError) {
       if (assessmentRequestId !== assessmentRequestSeqRef.current) return;
+      emittedAssessmentRef.current = null;
+      // Failure establishes *absence of a current assessment*, not permission to
+      // resurrect the previous verdict or collapse the investigation workspace.
+      setAssessment(null);
+      setDimensions([]);
       setError("Assessment is unavailable. Showing the catalogue instead.");
       onAssessmentChange?.(null);
-      onAssessmentActive?.(false);
-      // Existing catalogue search is retained only as a graceful fallback.
-      onLegacySearch?.(question);
+      onAssessmentActive?.(true);
+      // The workspace already retains the catalogue beneath the investigation.
+      // Re-running the legacy search here would tear down the evidence position
+      // and turn an assessment failure into a navigation/state-authority change.
+      if (variant !== "workspace") onLegacySearch?.(question);
     } finally {
       if (assessmentRequestId === assessmentRequestSeqRef.current) setLoading(false);
     }
@@ -349,10 +376,18 @@ export function DiscoverEvidenceBrief({
   return (
     <section className={`rd-v2-evidence-brief is-${variant}`} aria-label="Evidence assessment" data-testid="discover-evidence-brief">
       {variant === "workspace" && !assessment ? (
-        <div className="rd-v2-evidence-workspace-pending" role="status">
+        <div
+          className={`rd-v2-evidence-workspace-pending${error ? " is-unavailable" : ""}`}
+          data-state={error ? "unavailable" : loading ? "checking" : "unmeasured"}
+          role="status"
+        >
           <span className="rd-v2-eyebrow">Evidence position</span>
-          <strong>Checking the research need against held evidence…</strong>
-          <p>Search results stay available while coverage, gaps, and sourcing options are established.</p>
+          <strong>{error ? "Assessment is unavailable" : "Checking the research need against held evidence…"}</strong>
+          <p>
+            {error
+              ? "No current evidence verdict is established. Catalogue results remain visible; reassess before relying on held-evidence or sourcing claims."
+              : "Search results stay available while coverage, gaps, and sourcing options are established."}
+          </p>
         </div>
       ) : null}
       {variant === "standalone" ? <form
@@ -552,7 +587,7 @@ export function DiscoverEvidenceBrief({
         </div>
       )}
       {loading ? <p className="rd-v2-browse-loading" data-testid="discover-assessment-loading">Checking Library evidence against the brief…</p> : null}
-      {error ? <p className="rd-v2-discover-error" role="status">{error}</p> : null}
+      {error && variant !== "workspace" ? <p className="rd-v2-discover-error" role="status">{error}</p> : null}
     </section>
   );
 }
