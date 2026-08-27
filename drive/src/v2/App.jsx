@@ -1582,6 +1582,12 @@ export function V2App() {
           onClearSelection={clearLibrarySelection}
           onAskDataset={canUseAsk ? askAboutLibraryDataset : undefined}
           onAskSearch={canUseAsk ? queueLibraryAsk : undefined}
+          onReviewAvailable={() => {
+            setDiscoverSearchQuery("");
+            setDiscoverPreferLive(false);
+            goTab("browse");
+          }}
+          onSearchWider={searchDiscoverWider}
           onRefresh={refreshBackend}
           onFocusFolder={focusLibraryFolder}
           onStartUpload={canSubmitCollection ? (folder) => startLibraryIntake("upload", folder) : undefined}

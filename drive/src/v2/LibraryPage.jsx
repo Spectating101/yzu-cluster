@@ -7,12 +7,13 @@ import {
 import { buildProfessorVaultTree, datasetTitle, isOpsNoiseDataset } from "@/v2/professorVaultTree";
 import { libraryFolderObject } from "@/v2/activeObject";
 import { CatalogList } from "@/v2/CatalogList";
-import { statusPillKind } from "@/v2/datasetMeta";
+import { libraryAssetPresentation, statusPillKind } from "@/v2/datasetMeta";
+import { libraryVerification } from "@/v2/libraryVerification";
 import { LibraryAssetWorkspace } from "@/v2/LibraryAssetWorkspace";
 import { LibraryEvidenceEstate } from "@/v2/LibraryEvidenceEstate";
 import { resolveLibrarySelection } from "@/v2/librarySelection";
 import { buildLibrarySearchAskPrompt, rankLibraryHoldings } from "@/v2/librarySearch";
-import { Chip, PageShell } from "@/v2/ui";
+import { PageShell } from "@/v2/ui";
 import { DeskError } from "@/v2/DeskError";
 import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
 
@@ -48,12 +49,35 @@ function itemUpdatedTime(item) {
   return Number.isNaN(time) ? 0 : time;
 }
 
+function itemPresentationKind(item) {
+  if (item?.kind === "folder") return "folder";
+  return libraryAssetPresentation(itemDataset(item)).kind;
+}
+
+function itemMatchesType(item, mode) {
+  if (mode === "all" || item?.kind === "folder") return true;
+  const kind = itemPresentationKind(item);
+  if (mode === "data") return kind === "dataset" || kind === "metadata_index";
+  if (mode === "literature") return kind === "scholarly_work";
+  if (mode === "sources") return kind === "live_source";
+  return true;
+}
+
+function itemNeedsAttention(item) {
+  if (item?.kind === "folder") return false;
+  const row = itemDataset(item);
+  const readiness = statusPillKind(row).kind;
+  const verification = libraryVerification(row).kind;
+  return readiness !== "query-ready" || !["verified", "matched"].includes(verification);
+}
+
 function itemMatchesFilter(item, mode) {
   if (mode === "all" || item?.kind === "folder") return true;
   const row = itemDataset(item);
   const ready = statusPillKind(row).kind === "query-ready";
   if (mode === "ready") return ready;
   if (mode === "not_ready") return !ready;
+  if (mode === "attention") return itemNeedsAttention(item);
   return true;
 }
 
@@ -289,6 +313,8 @@ export function LibraryPage({
   onClearSelection,
   onAskDataset,
   onAskSearch,
+  onReviewAvailable,
+  onSearchWider,
   searchQuery = "",
   onSearchChange,
   selectionHoldings,
@@ -296,8 +322,10 @@ export function LibraryPage({
   referenceCount = 0,
 }) {
   const [sortBy, setSortBy] = useState("name");
+  const [typeMode, setTypeMode] = useState("all");
   const [filterMode, setFilterMode] = useState("all");
   const [newMenuOpen, setNewMenuOpen] = useState(false);
+  const searchInputRef = useRef(null);
   const searchActive = Boolean(String(searchQuery || "").trim());
 
   const librarySearchNav = useMemo(() => {
@@ -348,6 +376,18 @@ export function LibraryPage({
       setSortBy((current) => (current === "relevance" ? "name" : current));
     }
   }, [searchActive]);
+
+  useEffect(() => {
+    const focusLibrarySearch = (event) => {
+      if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) return;
+      const target = event.target;
+      if (target?.closest?.('input, textarea, select, [contenteditable="true"]')) return;
+      event.preventDefault();
+      searchInputRef.current?.focus();
+    };
+    window.addEventListener("keydown", focusLibrarySearch);
+    return () => window.removeEventListener("keydown", focusLibrarySearch);
+  }, []);
   const surfaceState = resolveSurfaceLifecycle({
     loading: loading || navigationLoading,
     error: loadError || navigationError,
@@ -386,8 +426,14 @@ export function LibraryPage({
     return collectDatasetDescendants(tree, folderId);
   }, [folderId, items, searchActive, tree]);
   const visibleRows = useMemo(
-    () => sortItems(displayRows.filter((item) => itemMatchesFilter(item, filterMode)), sortBy),
-    [displayRows, filterMode, sortBy],
+    () =>
+      sortItems(
+        displayRows.filter(
+          (item) => itemMatchesType(item, typeMode) && itemMatchesFilter(item, filterMode),
+        ),
+        sortBy,
+      ),
+    [displayRows, filterMode, sortBy, typeMode],
   );
   const currentFolderName = isRoot ? "Library root" : trail[trail.length - 1]?.name || "Library";
   const showingBranchFallback = false;
@@ -411,8 +457,14 @@ export function LibraryPage({
     return collectDatasetDescendants(tree, folderId).map(itemDataset);
   }, [displayRows, folderId, isRoot, searchActive, tree, vaultDatasets]);
   const estateRows = useMemo(
-    () => sortItems(branchDatasetRows.map(datasetListItem).filter((item) => itemMatchesFilter(item, filterMode)), sortBy),
-    [branchDatasetRows, filterMode, sortBy],
+    () =>
+      sortItems(
+        branchDatasetRows
+          .map(datasetListItem)
+          .filter((item) => itemMatchesType(item, typeMode) && itemMatchesFilter(item, filterMode)),
+        sortBy,
+      ),
+    [branchDatasetRows, filterMode, sortBy, typeMode],
   );
   const rootCollections = useMemo(
     () => folderRows.map((folder) => ({
@@ -423,6 +475,7 @@ export function LibraryPage({
   );
   const readyCount = readinessCount(branchDatasetRows);
   const nonReadyCount = Math.max(0, branchDatasetRows.length - readyCount);
+  const attentionCount = branchDatasetRows.filter((row) => itemNeedsAttention(datasetListItem(row))).length;
   const browseDatasetCount = branchDatasetRows.length;
   const branchNote = branchStatusNote({
     isRoot,
@@ -486,6 +539,11 @@ export function LibraryPage({
     onAskSearch(buildLibrarySearchAskPrompt(query, branchDatasetRows));
   }, [branchDatasetRows, onAskSearch, onClearSelection, searchQuery]);
 
+  const resetFilters = useCallback(() => {
+    setTypeMode("all");
+    setFilterMode("all");
+  }, []);
+
   return (
     <>
       <PageShell
@@ -518,15 +576,18 @@ export function LibraryPage({
                 />
               </svg>
               <input
+                ref={searchInputRef}
                 value={searchQuery}
                 onChange={(e) => onSearchChange?.(e.target.value)}
                 placeholder="Search title, field, source, coverage…"
                 aria-label="Search library holdings"
+                aria-keyshortcuts="/"
                 onKeyDown={(e) => {
-                  // Live filter; Enter just commits focus so results stay visible.
+                  // Live filter; Enter commits focus so arrow navigation can take over.
                   if (e.key === "Enter") e.currentTarget.blur();
                 }}
               />
+              <kbd aria-hidden="true">/</kbd>
             </label>
             {searchActive && onAskSearch ? (
               <button
@@ -538,26 +599,49 @@ export function LibraryPage({
                 Ask Library
               </button>
             ) : null}
-            {searchActive ? (
-              <Chip active={sortBy === "relevance"} onClick={() => setSortBy("relevance")}>
-                Relevance
-              </Chip>
-            ) : null}
-            <Chip active={sortBy === "name"} onClick={() => setSortBy("name")}>
-              Name {sortBy === "name" ? "↑" : "↕"}
-            </Chip>
-            <Chip active={sortBy === "updated"} onClick={() => setSortBy("updated")}>
-              Modified {sortBy === "updated" ? "↓" : "↕"}
-            </Chip>
-            <Chip active={filterMode === "all"} onClick={() => setFilterMode("all")}>
-              All
-            </Chip>
-            <Chip active={filterMode === "ready"} onClick={() => setFilterMode("ready")}>
-              Query ready {readyCount}
-            </Chip>
-            <Chip active={filterMode === "not_ready"} onClick={() => setFilterMode("not_ready")}>
-              Not query-ready {nonReadyCount}
-            </Chip>
+            <div className="rd-v2-library-toolbar-filters" aria-label="Library filters">
+              <label className="rd-v2-library-filter-control">
+                <span>Type</span>
+                <select
+                  data-testid="library-type-filter"
+                  aria-label="Filter Library by type"
+                  value={typeMode}
+                  onChange={(event) => setTypeMode(event.target.value)}
+                >
+                  <option value="all">Everything</option>
+                  <option value="data">Data</option>
+                  <option value="literature">Literature</option>
+                  <option value="sources">Live sources</option>
+                </select>
+              </label>
+              <label className="rd-v2-library-filter-control">
+                <span>State</span>
+                <select
+                  data-testid="library-state-filter"
+                  aria-label="Filter Library by state"
+                  value={filterMode}
+                  onChange={(event) => setFilterMode(event.target.value)}
+                >
+                  <option value="all">Any</option>
+                  <option value="ready">Query ready · {readyCount}</option>
+                  <option value="attention">Needs attention · {attentionCount}</option>
+                  <option value="not_ready">Not query-ready · {nonReadyCount}</option>
+                </select>
+              </label>
+              <label className="rd-v2-library-filter-control">
+                <span>Sort</span>
+                <select
+                  data-testid="library-sort-filter"
+                  aria-label="Sort Library"
+                  value={sortBy}
+                  onChange={(event) => setSortBy(event.target.value)}
+                >
+                  {searchActive ? <option value="relevance">Relevance</option> : null}
+                  <option value="name">Name</option>
+                  <option value="updated">Modified</option>
+                </select>
+              </label>
+            </div>
             <span className="rd-v2-toolbar-spacer" />
             <span className="rd-v2-toolbar-count">
               {navigationLoading && !searchActive
@@ -615,9 +699,13 @@ export function LibraryPage({
               collectionsLoading={navigationLoading && !searchActive}
               referenceCount={searchActive ? 0 : referenceCount}
               onOpenCollection={(collection) => onFolderChange(collection.id)}
-              onReviewAvailable={onStartProcure ? handleProcureBranch : undefined}
+              onReviewAvailable={onReviewAvailable}
               onSelectDataset={onSelectDataset}
               searchQuery={searchQuery}
+              searchMatchCount={rankedSearchDatasets.length}
+              onAskCurrentSearch={onAskSearch ? askCurrentSearch : undefined}
+              onSearchWider={onSearchWider}
+              onResetFilters={resetFilters}
             />
           )
         ) : (
