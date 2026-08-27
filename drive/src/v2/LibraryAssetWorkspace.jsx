@@ -29,11 +29,15 @@ function recordTerms(dataset) {
   ].map((item) => String(item || "").trim()).filter(Boolean))].slice(0, 10);
 }
 
-function limitation(dataset, fields) {
+function limitation(dataset, fields, presentation) {
   const explicit = [dataset?.limitations, dataset?.caveats, fields.limitations]
     .map((item) => String(item || "").trim())
     .find(Boolean);
   if (explicit) return explicit;
+
+  if (presentation.kind === "scholarly_work") {
+    return "Library registration confirms the work is retained; it does not establish source verification or methodological fitness.";
+  }
 
   const state = statusPillKind(dataset).kind;
   if (state === "connected") {
@@ -66,6 +70,7 @@ function limitation(dataset, fields) {
 function AssetOverlay({ kind, dataset, fields, presentation, onClose }) {
   if (!kind) return null;
   const scholarly = presentation.kind === "scholarly_work";
+  const liveSource = presentation.kind === "live_source";
   const title = kind === "fields" ? presentation.structureTitle : "Source and provenance";
   const names = fieldNames(dataset, fields);
   const terms = recordTerms(dataset);
@@ -99,6 +104,21 @@ function AssetOverlay({ kind, dataset, fields, presentation, onClose }) {
                 </div>
               ) : null}
             </>
+          ) : liveSource ? (
+            <>
+              <p>Declared response fields for {displayName(dataset)}. These describe the connected source contract; they are not an observed local row sample.</p>
+              {names.length ? (
+                <div className="rd-v2-library-field-list">
+                  {names.map((name) => <code key={name}>{name}</code>)}
+                </div>
+              ) : (
+                <p className="rd-v2-library-muted">No declared response fields are available in the current registry record.</p>
+              )}
+              <dl className="rd-v2-library-overlay-facts">
+                <div><dt>Access route</dt><dd>{value(dataset?.collect_via, dataset?.backend, fields.access)}</dd></div>
+                <div><dt>Coverage</dt><dd>{value(fields.coverage, dataset?.coverage)}</dd></div>
+              </dl>
+            </>
           ) : (
             <>
               <p>Declared fields and operations for {displayName(dataset)}. They are registry metadata until a local preview is observed.</p>
@@ -124,7 +144,7 @@ function AssetOverlay({ kind, dataset, fields, presentation, onClose }) {
               <div data-testid="library-source-verification"><dt>Verification</dt><dd>{verification.label}</dd></div>
               <div data-testid="library-source-readiness"><dt>Use readiness</dt><dd>{readiness.label}</dd></div>
               <div><dt>Access route</dt><dd>{value(dataset?.collect_via, dataset?.backend, fields.access)}</dd></div>
-              <div><dt>Coverage</dt><dd>{value(fields.coverage, dataset?.coverage)}</dd></div>
+              {!scholarly ? <div><dt>Coverage</dt><dd>{value(fields.coverage, dataset?.coverage)}</dd></div> : null}
             </dl>
             <p className="rd-v2-library-verification-note">{verification.body}</p>
             <details className="rd-v2-library-tech-disclosure">
@@ -152,7 +172,7 @@ function observedColumns(rows = []) {
   return ordered;
 }
 
-function DatasetPreview({ dataset, canQuery, names, fields, state, onInspect, onOpenFullPreview }) {
+function DatasetPreview({ dataset, canQuery, names, fields, state, presentation, onInspect, onOpenFullPreview }) {
   const [preview, setPreview] = useState({ loading: false, rows: [], error: "" });
 
   useEffect(() => {
@@ -183,13 +203,16 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, onInspect, on
   const observed = columns.length > 0 && preview.rows.length > 0;
   const joinKeys = fields.joinKeys || [];
   const rowCount = dataset?.rows || dataset?.row_count || dataset?.num_rows || dataset?.records;
+  const liveSource = presentation.kind === "live_source";
+  const coverage = String(fields.coverage || dataset?.coverage || "").trim();
+  const grain = String(dataset?.grain || "").trim();
 
   return (
     <section className="rd-v2-library-data-preview" aria-label="Dataset table and structure" data-testid="library-data-preview">
       <div className="rd-v2-library-section-heading">
         <div>
-          <span className="rd-v2-eyebrow">Dataset inspection</span>
-          <h2>{observed ? "Observed table" : "Table structure"}</h2>
+          <span className="rd-v2-eyebrow">{liveSource ? "Source inspection" : "Dataset inspection"}</span>
+          <h2>{observed ? (liveSource ? "Observed response sample" : "Observed table") : (liveSource ? "Declared response shape" : "Table structure")}</h2>
         </div>
         <div className="rd-v2-library-preview-tools">
           {observed ? (
@@ -228,7 +251,9 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, onInspect, on
                   <td colSpan={Math.max(schemaColumns.length, 1)}>
                     {canQuery
                       ? "Observed rows are not available in this sample."
-                      : `${state.label} does not establish an observed row preview; the columns above are declared structure only.`}
+                      : liveSource
+                        ? `${state.label} does not establish an observed response sample; the fields above are declared structure only.`
+                        : `${state.label} does not establish an observed row preview; the columns above are declared structure only.`}
                   </td>
                 </tr>
               )}
@@ -237,17 +262,17 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, onInspect, on
         </div>
       ) : (
         <div className="rd-v2-library-preview-empty">
-          <strong>No table structure is available yet.</strong>
-          <span>{state.label} does not currently expose observed columns or a declared field list.</span>
+          <strong>{liveSource ? "No response structure is available yet." : "No table structure is available yet."}</strong>
+          <span>{state.label} does not currently expose {liveSource ? "declared response fields" : "observed columns or a declared field list"}.</span>
         </div>
       )}
 
       <div className="rd-v2-library-preview-foot">
         <span>{observed ? "Observed values from the current query path" : "Declared structure only"}</span>
-        <span>Coverage: {value(fields.coverage, dataset?.coverage)}</span>
-        <span>Grain: {value(dataset?.grain)}</span>
-        <span>Scale: {rowCount ? `${rowCount} rows` : "Not declared"}</span>
-        <span>Keys: {joinKeys.length ? joinKeys.join(" · ") : "Not declared"}</span>
+        {coverage ? <span>Coverage: {coverage}</span> : !liveSource ? <span>Coverage: Not declared</span> : null}
+        {liveSource ? null : <span>Grain: {grain || "Not declared"}</span>}
+        {liveSource ? null : <span>Scale: {rowCount ? `${rowCount} rows` : "Not declared"}</span>}
+        {liveSource ? (joinKeys.length ? <span>Keys: {joinKeys.join(" · ")}</span> : null) : <span>Keys: {joinKeys.length ? joinKeys.join(" · ") : "Not declared"}</span>}
       </div>
     </section>
   );
@@ -298,7 +323,7 @@ function EvidenceShape({ dataset, fields, presentation, rowCount, state }) {
   );
 }
 
-function StructureSummary({ dataset, presentation, onInspect }) {
+function StructureSummary({ dataset, presentation }) {
   const terms = recordTerms(dataset);
   if (presentation.kind !== "scholarly_work") return null;
   return (
@@ -308,12 +333,11 @@ function StructureSummary({ dataset, presentation, onInspect }) {
         <strong>{terms.length ? `${terms.length} research term${terms.length === 1 ? "" : "s"}` : "Bibliographic metadata"}</strong>
       </div>
       {terms.length ? <div className="rd-v2-library-field-list">{terms.slice(0, 8).map((name) => <code key={name}>{name}</code>)}</div> : null}
-      <button type="button" className="rd-v2-btn sm" onClick={onInspect}>{presentation.structureAction}</button>
     </div>
   );
 }
 
-export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onAsk, onOpenQuery, onPrepare }) {
+export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onOpenQuery, onPrepare }) {
   const [overlay, setOverlay] = useState("");
   const fields = useMemo(() => detailFields(dataset), [dataset]);
   const presentation = useMemo(() => libraryAssetPresentation(dataset), [dataset]);
@@ -341,10 +365,10 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onAsk, onOpe
         </div>
         <div>
           <span className="rd-v2-eyebrow">Boundary</span>
-          <p>{limitation(dataset, fields)}</p>
+          <p>{limitation(dataset, fields, presentation)}</p>
         </div>
       </div>
-      <StructureSummary dataset={dataset} presentation={presentation} onInspect={() => setOverlay("fields")} />
+      <StructureSummary dataset={dataset} presentation={presentation} />
     </>
   );
 
@@ -376,7 +400,6 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onAsk, onOpe
           {!canQuery && state.kind === "registered" && onPrepare ? (
             <button type="button" className="rd-v2-btn primary" onClick={onPrepare}>Prepare local copy</button>
           ) : null}
-          {!canQuery && onAsk ? <button type="button" className="rd-v2-btn" onClick={onAsk}>{presentation.askLabel}</button> : null}
         </div>
 
         {hasTableSurface ? (
@@ -386,6 +409,7 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onAsk, onOpe
             names={names}
             fields={fields}
             state={state}
+            presentation={presentation}
             onInspect={() => setOverlay("fields")}
             onOpenFullPreview={onPreview}
           />
