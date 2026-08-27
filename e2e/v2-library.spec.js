@@ -146,7 +146,7 @@ test.describe("v2 Library navigation", () => {
 
   test("shows owned evidence while research taxonomy is still organizing", async ({ page }) => {
     await mockV2Api(page, {
-      libraryNavDelayMs: 1_200,
+      libraryNavDelayMs: 5_000,
       libraryNavBody: {
         nav_mode: "professor_shelves",
         shelves: [
