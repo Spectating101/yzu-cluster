@@ -1,0 +1,90 @@
+name: Frontend convergence clean certification
+
+on:
+  push:
+    branches:
+      - integration/frontend-convergence-cert-clean-20260828
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-convergence-cert-clean-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Backend orchestration contracts
+        run: python -m unittest discover -s tests -p "test_yzu_interop_*.py" -v
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - name: Frontend runtime contracts
+        run: npm run test:runtime-contract
+      - name: Candidate and analytical contracts
+        run: npm run test:candidate-key
+      - name: Integrated HPS and Library contracts
+        run: |
+          node --test \
+            drive/src/v2/settingsStore.test.js \
+            drive/src/v2/hpsHomeContinuity.test.js \
+            drive/src/v2/librarySearch.test.js \
+            drive/src/v2/libraryVerification.test.js \
+            drive/src/v2/libraryReadinessOwnership.test.js \
+            drive/src/v2/discoverEvaluation.test.js \
+            drive/src/v2/discoverStrategyCard.test.js
+      - name: Production build
+        run: npm run build
+
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install chromium --with-deps
+      - name: Cross-surface browser acceptance
+        run: |
+          mkdir -p .tmp-pw artifacts/frontend-convergence
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false \
+            npx playwright test \
+              e2e/hps-functional-convergence.spec.js \
+              e2e/hps-inner-containment.spec.js \
+              e2e/v2-discover.spec.js \
+              e2e/v2-discover-product-inspector.spec.js \
+              e2e/v2-library.spec.js \
+              e2e/v2-synthesis.spec.js \
+              e2e/v2-profile-freeze.spec.js \
+              e2e/release-visual-convergence.spec.js \
+              e2e/library-convergence-render.spec.js \
+              e2e/synthesis-convergence-render.spec.js \
+              --project=chromium --workers=1 --reporter=line
+      - name: Record certified production ancestor
+        if: always()
+        run: |
+          echo "production_candidate=51dc6ec57508778eb25387f1017e2fad2c2a962d" > artifacts/frontend-convergence/certification.txt
+          echo "cert_head=${GITHUB_SHA}" >> artifacts/frontend-convergence/certification.txt
+      - name: Upload convergence evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-convergence-cert-clean
+          path: |
+            artifacts
+            test-results
+          if-no-files-found: warn
+          retention-days: 7
