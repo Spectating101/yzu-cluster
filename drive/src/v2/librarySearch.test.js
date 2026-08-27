@@ -49,7 +49,9 @@ test("natural-language retrieval ranks evidence by multiple recorded dimensions"
 test("field-name lookup reaches join keys even when the title never mentions them", () => {
   const ranked = rankLibraryHoldings(rows, "country_iso3");
   assert.equal(ranked[0].dataset_id, "gdelt_asia_daily_country_panel");
-  assert.ok(ranked[0].search_match.reasons.some((reason) => reason.kind === "structure"));
+  const structure = ranked[0].search_match.reasons.find((reason) => reason.kind === "structure");
+  assert.equal(structure?.value, "country_iso3");
+  assert.deepEqual(ranked[0].search_match.matched_terms, ["country_iso3"]);
 });
 
 test("coverage and source are first-class retrieval evidence", () => {

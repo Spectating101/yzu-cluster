@@ -82,6 +82,11 @@ function singular(token) {
 }
 
 function queryConcepts(query) {
+  const raw = String(query || "").trim().toLowerCase();
+  if (raw.includes("_") && /^[a-z0-9_]+$/.test(raw)) {
+    return [{ token: raw, variants: new Set([raw, normalize(raw)]) }];
+  }
+
   const tokens = normalize(query)
     .split(" ")
     .filter(Boolean)

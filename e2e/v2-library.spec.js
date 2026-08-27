@@ -14,15 +14,13 @@ test.describe("v2 Library evidence estate", () => {
     const estate = page.getByTestId("library-evidence-estate");
     await expect(estate).toBeVisible();
     await expect(estate).toHaveAttribute("aria-label", "Research evidence estate");
-    const catalogue = page.getByTestId("library-auto-catalog");
-    await expect(catalogue).toBeVisible();
-    await expect(catalogue.getByText("View", { exact: true })).toBeVisible();
+    await expect(page.getByTestId("library-auto-catalog")).toHaveCount(0);
     await expect(page.getByTestId("library-evidence-row").first()).toBeVisible();
     await expect(page.getByTestId("library-collection-filter").first()).toBeVisible();
     await expect(estate.getByText("Collections", { exact: true })).toBeVisible();
-    await expect(page.getByRole("button", { name: /^All$/ })).toBeVisible();
-    await expect(page.getByRole("button", { name: /^Query ready / })).toBeVisible();
-    await expect(page.getByRole("button", { name: /^Not query-ready / })).toBeVisible();
+    await expect(page.getByTestId("library-type-filter")).toHaveValue("all");
+    await expect(page.getByTestId("library-state-filter")).toHaveValue("all");
+    await expect(page.getByTestId("library-sort-filter")).toHaveValue("name");
     await expect(page.getByTestId("research-situation")).toContainText("Library");
     await expect(page.locator("aside.rd-v2-rail")).toContainText("In this library");
     await expect(page.locator("aside.rd-v2-rail")).toContainText("Add evidence");
@@ -174,10 +172,13 @@ test.describe("v2 Library navigation", () => {
 
     await expect(page.locator(".rd-v2-header-meta-count")).toContainText("Library asset");
     await expect(page.locator("aside.rd-v2-rail")).toContainText("1 registry reference stays in Discover until acquired");
-    await expect(page.getByTestId("library-available-evidence")).toContainText("Available, not in your Library");
-    await expect(page.getByTestId("library-available-evidence")).toContainText("1 additional catalogue record");
+    const outside = page.getByTestId("library-available-evidence");
+    await expect(outside).toContainText("1 known record");
+    await expect(outside).toContainText("outside your Library");
+    await expect(outside.getByRole("button", { name: "Review in Discover" })).toBeVisible();
     await page.getByRole("textbox", { name: "Search library holdings" }).fill("Registered reference only");
-    await expect(page.getByTestId("library-evidence-estate")).toContainText("No evidence matches the current Library view");
+    await expect(page.getByTestId("library-evidence-estate")).toContainText("No held evidence matches");
+    await expect(page.getByRole("button", { name: "Search wider in Discover" })).toBeVisible();
   });
 
   test("shows owned evidence while research taxonomy is still organizing", async ({ page }) => {
