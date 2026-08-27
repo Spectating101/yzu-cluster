@@ -57,7 +57,11 @@ export function LibraryFolderRailPanel({
             {counts.queryReady > 0 ? <span><b>{counts.queryReady}</b> query ready</span> : null}
             {counts.connected > 0 ? <span><b>{counts.connected}</b> connected</span> : null}
             {counts.metadataOnly > 0 ? <span><b>{counts.metadataOnly}</b> metadata only</span> : null}
-            {counts.references > 0 ? <span><b>{counts.references}</b> registry reference{counts.references === 1 ? "" : "s"} stay in Discover until acquired</span> : null}
+            {counts.references > 0 ? (
+              <span>
+                <b>{counts.references}</b> registry reference{counts.references === 1 ? "" : "s"} {counts.references === 1 ? "stays" : "stay"} in Discover until acquired
+              </span>
+            ) : null}
           </div>
         </section>
 
