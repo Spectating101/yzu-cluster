@@ -1483,6 +1483,7 @@ export function BrowsePage({
                   key={`assessment-workspace:${q}`}
                   variant="workspace"
                   initialQuestion={q}
+                  autoAssess
                   assessmentValue={assessmentResult}
                   catalog={catalog}
                   onSelectRow={onSelectRow}
