@@ -12,6 +12,7 @@ on:
       - "e2e/v2-discover-evidence.spec.js"
       - "e2e/v2-discover-adversarial.spec.js"
       - "e2e/v2-discover-authority-depth.spec.js"
+      - "e2e/v2-discover-submit-recovery.spec.js"
       - "e2e/discover-visual-convergence.spec.js"
       - ".github/workflows/discover-visual-validation.yml"
   workflow_dispatch:
@@ -49,6 +50,11 @@ jobs:
           mkdir -p .tmp-pw &&
           TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
           e2e/v2-discover-authority-depth.spec.js --workers=1 --reporter=line
+      - name: Prove submit transport recovery
+        run: >-
+          mkdir -p .tmp-pw &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/v2-discover-submit-recovery.spec.js --workers=1 --reporter=line
       - name: Render Discover convergence states
         run: >-
           mkdir -p .tmp-pw artifacts/discover-convergence &&
