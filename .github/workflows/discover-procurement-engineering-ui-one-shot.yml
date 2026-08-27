@@ -13,9 +13,6 @@ jobs:
     if: contains(github.event.head_commit.message, '[discover-engineering-ui]')
     runs-on: ubuntu-latest
     timeout-minutes: 25
-    defaults:
-      run:
-        working-directory: drive
     steps:
       - uses: actions/checkout@v4
         with:
@@ -23,26 +20,32 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 20
           cache: npm
-          cache-dependency-path: drive/package-lock.json
       - run: npm ci
       - run: npx playwright install chromium --with-deps
       - name: Apply procurement engineering UI
-        working-directory: .
         run: python .github/scripts/discover_procurement_engineering_ui.py
       - name: Prove normalized backend engineering truth
-        run: node --test src/v2/discoverIntent.test.js
+        run: node --test drive/src/v2/discoverIntent.test.js
       - name: Build
         run: npm run build
       - name: Prove Discover evidence and procurement engineering flow
-        run: npx playwright test e2e/v2-discover-evidence.spec.js --project=chromium --workers=1
+        run: >-
+          mkdir -p .tmp-pw &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/v2-discover-evidence.spec.js --workers=1 --reporter=line
       - name: Preserve adversarial authority boundaries
-        run: npx playwright test e2e/v2-discover-adversarial.spec.js --project=chromium --workers=1
+        run: >-
+          mkdir -p .tmp-pw &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/v2-discover-adversarial.spec.js --workers=1 --reporter=line
       - name: Render convergence states
-        run: npx playwright test e2e/discover-visual-convergence.spec.js --project=chromium --workers=1
+        run: >-
+          mkdir -p .tmp-pw artifacts/discover-convergence &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/discover-visual-convergence.spec.js --workers=1 --reporter=line
       - name: Commit verified UI
-        working-directory: .
         run: |
           git config user.name "discover-hardening-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -52,5 +55,9 @@ jobs:
             e2e/fixtures/v2MockApi.js \
             e2e/v2-discover-evidence.spec.js
           git diff --cached --check
+          if git diff --cached --quiet; then
+            echo "verified UI already committed"
+            exit 0
+          fi
           git commit -m "feat(discover): surface compiled procurement engineering"
           git push origin HEAD:polish/discover-visual-freeze-20260827
