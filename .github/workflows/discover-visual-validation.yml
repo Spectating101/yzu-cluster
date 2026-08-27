@@ -13,6 +13,7 @@ on:
       - "e2e/v2-discover-adversarial.spec.js"
       - "e2e/v2-discover-authority-depth.spec.js"
       - "e2e/v2-discover-submit-recovery.spec.js"
+      - "e2e/v2-discover-hostile-journey.spec.js"
       - "e2e/discover-visual-convergence.spec.js"
       - "e2e/discover-procurement-engineering-visual.spec.js"
       - ".github/workflows/discover-visual-validation.yml"
@@ -56,6 +57,11 @@ jobs:
           mkdir -p .tmp-pw &&
           TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
           e2e/v2-discover-submit-recovery.spec.js --workers=1 --reporter=line
+      - name: Prove continuous hostile researcher journey
+        run: >-
+          mkdir -p .tmp-pw &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/v2-discover-hostile-journey.spec.js --workers=1 --reporter=line
       - name: Render Discover convergence states
         run: >-
           mkdir -p .tmp-pw artifacts/discover-convergence &&
