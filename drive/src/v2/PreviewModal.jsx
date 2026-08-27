@@ -7,6 +7,7 @@ import {
   rowsToCsv,
 } from "@/v2/api";
 import { candidateKey } from "@/v2/candidateKey";
+import { humanizeDiscoverDescription } from "@/v2/browseMeta";
 import { buildSchemaRows, displayName, statusPill } from "@/v2/datasetMeta";
 import { previewSampleRows } from "@/v2/deskSeed";
 import "@/v2/preview.css";
@@ -116,7 +117,7 @@ function SourceRecord({ dataset, preview }) {
     ["Publisher", preview?.provider || dataset?.source || dataset?.publisher || dataset?.domain || "Not specified"],
     ["Coverage", dataset?.coverage || dataset?.date_range || dataset?.temporal_coverage || "Not specified"],
     ["Grain", dataset?.grain || dataset?.format || "Not specified"],
-    ["Access", dataset?.access_mode || dataset?.collect_via || "Source-specific"],
+    ["Access", humanizeDiscoverDescription(dataset?.access_mode || dataset?.collect_via || "Source-specific")],
     ["License", dataset?.license || "See source terms"],
   ];
   const boundary = externalPreviewBoundary(preview);
