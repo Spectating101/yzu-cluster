@@ -62,7 +62,7 @@ test.describe("Discover offering inspector", () => {
     await expect(rail.getByTestId("discover-strategy-card")).toContainText("Acquisition path");
 
     // Declared schema is not an observed data preview. Discover must keep that
-    // boundary explicit until a real preview/sample route exists.
+    // boundary explicit until the bounded preview endpoint actually returns rows.
     await expect(rail).toContainText(/Schema not inspected|Schema not fully inspected|source endpoint not probed/i);
     await expect(rail).not.toContainText(/sample row observed|preview rows observed/i);
   });
@@ -156,5 +156,75 @@ test.describe("Discover offering inspector", () => {
     await expect(titles.nth(0)).toContainText("Issuer governance panel");
     await expect(titles.nth(1)).toContainText("Broad governance archive");
     await expect(page.getByTestId("discover-rank-foot")).toContainText("Ranked using active research");
+  });
+
+  test("renders only the bounded rows and fields returned by the source-preview contract", async ({ page }) => {
+    const candidate = {
+      kind: "artifact",
+      source_id: "preview_ready",
+      candidate_key: "source:preview_ready",
+      title: "Observed governance sample",
+      description: "A source with a bounded preview contract.",
+      provider: "Example Data Provider",
+      url: "https://example.com/governance.csv",
+      access_mode: "public_http",
+      acquisition_available: true,
+      collect_via: ["http_manifest"],
+      query_relevance: 4,
+    };
+    let previewRequest = null;
+
+    await mockV2Api(page, {
+      discoverBody: { sections: [], total: 0 },
+      discoverSourcesBody: { results: [candidate], total: 1 },
+    });
+    await page.route("**/library/discover/sources/preview", async (route) => {
+      previewRequest = route.request().postDataJSON();
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          status: "ready",
+          source_id: "preview_ready",
+          candidate_key: "source:preview_ready",
+          provider: "Example Data Provider",
+          schema: { columns: ["issuer_id", "quarter", "governance_score"], field_count: 3 },
+          sample_rows: [
+            { issuer_id: "2330", quarter: "2026Q1", governance_score: 87.5 },
+            { issuer_id: "2317", quarter: "2026Q1", governance_score: 82.1 },
+          ],
+          sample_row_count: 2,
+          truncated: true,
+        }),
+      });
+    });
+
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await search(page, "governance sample");
+    await page.getByTestId("discover-ranked-results").locator("button.rd-v2-discover-candidate").click();
+
+    const rail = page.locator("aside.rd-v2-rail");
+    await rail.getByRole("button", { name: "Open source", exact: true }).click();
+    const dialog = page.getByRole("dialog", { name: /Observed governance sample preview/i });
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toContainText("External data inspector");
+    await expect(dialog).toContainText("Observed sample available");
+    await expect.poll(() => previewRequest?.limit).toBe(5);
+    expect(previewRequest?.candidate_key).toBe("source:preview_ready");
+
+    await dialog.getByRole("button", { name: "Rows", exact: true }).click();
+    const rows = dialog.getByTestId("discover-external-preview-rows");
+    await expect(rows).toContainText("2330");
+    await expect(rows).toContainText("2317");
+    await expect(rows).toContainText("87.5");
+
+    await dialog.getByRole("button", { name: "Fields", exact: true }).click();
+    await expect(dialog).toContainText("Observed structure");
+    await expect(dialog).toContainText("issuer_id");
+    await expect(dialog).toContainText("governance_score");
+    await expect(dialog).toContainText("Source preview");
+    await expect(dialog).not.toContainText(/schema verified|legal clearance confirmed/i);
   });
 });
