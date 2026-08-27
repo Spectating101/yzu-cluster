@@ -217,6 +217,51 @@ function LibraryHeadActions({
   );
 }
 
+function LibraryAssetInspector({ dataset, onClose, onPreview, onOpenQuery, onAsk }) {
+  const inspectorRef = useRef(null);
+
+  useEffect(() => {
+    if (!dataset) return undefined;
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") onClose?.();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    const frame = window.requestAnimationFrame(() => inspectorRef.current?.focus());
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      window.cancelAnimationFrame(frame);
+    };
+  }, [dataset, onClose]);
+
+  if (!dataset) return null;
+
+  return (
+    <div
+      className="rd-v2-library-inspector-scrim"
+      data-testid="library-asset-inspector"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose?.();
+      }}
+    >
+      <section
+        ref={inspectorRef}
+        className="rd-v2-library-inspector-shell"
+        role="dialog"
+        aria-label={`Inspect ${datasetTitle(dataset)}`}
+        tabIndex={-1}
+      >
+        <LibraryAssetWorkspace
+          dataset={dataset}
+          onBack={onClose}
+          onPreview={onPreview}
+          onAsk={onAsk}
+          onOpenQuery={onOpenQuery}
+        />
+      </section>
+    </div>
+  );
+}
+
 export function LibraryPage({
   datasets,
   loading = false,
@@ -385,174 +430,171 @@ export function LibraryPage({
     onStartProcure?.(branchObject);
   }, [branchObject, onStartProcure]);
 
-  if (selectedDataset) {
-    return (
-      <LibraryAssetWorkspace
-        dataset={selectedDataset}
-        onBack={onClearSelection}
-        onPreview={() => onPreviewDataset?.(selectedDataset)}
-        onAsk={() => onAskDataset?.(selectedDataset)}
-        onOpenQuery={() => onOpenQuery?.(selectedDataset.dataset_id)}
-      />
-    );
-  }
-
   return (
-    <PageShell
-      className="rd-v2-library-page"
-      title="Library"
-      lead="See what you have; Library organizes the evidence without making you maintain a filing cabinet."
-      headExtra={
-        <div className="rd-v2-library-headline">
-          <LibraryBreadcrumb trail={trail} onFolderChange={onFolderChange} />
-          <LibraryHeadActions
-            newMenuOpen={newMenuOpen}
-            onToggleNewMenu={toggleNewMenu}
-            onCloseNewMenu={closeNewMenu}
-            onOpenUpload={openUploadRail}
-            onOpenUrlModal={openUrlRail}
-            onProcureBranch={handleProcureBranch}
-            onRefresh={onRefresh ? handleRefresh : undefined}
-          />
-        </div>
-      }
-      toolbar={
-        <>
-          <label className="rd-v2-library-toolbar-search" data-testid="library-toolbar-search">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path
-                d="m21 21-4.2-4.2m1.2-5.3a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
-            <input
-              value={searchQuery}
-              onChange={(e) => onSearchChange?.(e.target.value)}
-              placeholder="Search this library…"
-              aria-label="Search library holdings"
-              onKeyDown={(e) => {
-                // Live filter; Enter just commits focus so results stay visible.
-                if (e.key === "Enter") e.currentTarget.blur();
-              }}
+    <>
+      <PageShell
+        className="rd-v2-library-page"
+        title="Library"
+        lead="See what you have; Library organizes the evidence without making you maintain a filing cabinet."
+        headExtra={
+          <div className="rd-v2-library-headline">
+            <LibraryBreadcrumb trail={trail} onFolderChange={onFolderChange} />
+            <LibraryHeadActions
+              newMenuOpen={newMenuOpen}
+              onToggleNewMenu={toggleNewMenu}
+              onCloseNewMenu={closeNewMenu}
+              onOpenUpload={openUploadRail}
+              onOpenUrlModal={openUrlRail}
+              onProcureBranch={handleProcureBranch}
+              onRefresh={onRefresh ? handleRefresh : undefined}
             />
-          </label>
-          <Chip active={sortBy === "name"} onClick={() => setSortBy("name")}>
-            Name {sortBy === "name" ? "↑" : "↕"}
-          </Chip>
-          <Chip active={sortBy === "updated"} onClick={() => setSortBy("updated")}>
-            Modified {sortBy === "updated" ? "↓" : "↕"}
-          </Chip>
-          <Chip active={filterMode === "all"} onClick={() => setFilterMode("all")}>
-            All
-          </Chip>
-          <Chip active={filterMode === "ready"} onClick={() => setFilterMode("ready")}>
-            Query ready {readyCount}
-          </Chip>
-          <Chip active={filterMode === "not_ready"} onClick={() => setFilterMode("not_ready")}>
-            Not query-ready {nonReadyCount}
-          </Chip>
-          <span className="rd-v2-toolbar-spacer" />
-          <span className="rd-v2-toolbar-count">
-            {navigationLoading && !searchActive
-              ? "Organizing collections…"
-              : loading && !vaultDatasets.length ? "Loading Library…" : toolbarCountLabel({
-              searchActive,
-              isRoot,
-              folderCount,
-              datasetCount: browseDatasetCount,
-              visibleCount: isRoot ? estateRows.length : visibleRows.length,
-            })}
-          </span>
-        </>
-      }
-      footer="select asset → inspect · preview only when query-ready"
-      surfaceState={surfaceState}
-    >
-      {!isRoot ? (
-        <div
-          className="rd-v2-library-branchline rd-v2-library-pathbar"
-          aria-label="Library location status"
-          data-navigation-state={navigationLoading ? "loading" : navigationError ? "error" : "ready"}
-        >
-          <div className="rd-v2-library-pathcopy">
-            <strong>{currentFolderName}</strong>
-            <p>{branchNote}</p>
           </div>
-          <div className="rd-v2-library-pathstats">
-            {navigationLoading && !searchActive ? (
-              <span>Organizing collection…</span>
-            ) : (
-              <span>{folderCount} folder{folderCount === 1 ? "" : "s"}</span>
-            )}
-            <span>
-              {browseDatasetCount} asset{browseDatasetCount === 1 ? "" : "s"}
-              {searchActive ? " matched" : ""}
+        }
+        toolbar={
+          <>
+            <label className="rd-v2-library-toolbar-search" data-testid="library-toolbar-search">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="m21 21-4.2-4.2m1.2-5.3a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </svg>
+              <input
+                value={searchQuery}
+                onChange={(e) => onSearchChange?.(e.target.value)}
+                placeholder="Search this library…"
+                aria-label="Search library holdings"
+                onKeyDown={(e) => {
+                  // Live filter; Enter just commits focus so results stay visible.
+                  if (e.key === "Enter") e.currentTarget.blur();
+                }}
+              />
+            </label>
+            <Chip active={sortBy === "name"} onClick={() => setSortBy("name")}>
+              Name {sortBy === "name" ? "↑" : "↕"}
+            </Chip>
+            <Chip active={sortBy === "updated"} onClick={() => setSortBy("updated")}>
+              Modified {sortBy === "updated" ? "↓" : "↕"}
+            </Chip>
+            <Chip active={filterMode === "all"} onClick={() => setFilterMode("all")}>
+              All
+            </Chip>
+            <Chip active={filterMode === "ready"} onClick={() => setFilterMode("ready")}>
+              Query ready {readyCount}
+            </Chip>
+            <Chip active={filterMode === "not_ready"} onClick={() => setFilterMode("not_ready")}>
+              Not query-ready {nonReadyCount}
+            </Chip>
+            <span className="rd-v2-toolbar-spacer" />
+            <span className="rd-v2-toolbar-count">
+              {navigationLoading && !searchActive
+                ? "Organizing collections…"
+                : loading && !vaultDatasets.length ? "Loading Library…" : toolbarCountLabel({
+                searchActive,
+                isRoot,
+                folderCount,
+                datasetCount: browseDatasetCount,
+                visibleCount: isRoot ? estateRows.length : visibleRows.length,
+              })}
             </span>
-            <span>{readyCount} query-ready</span>
-          </div>
-        </div>
-      ) : null}
-      {loadError ? <DeskError raw={loadError} surface="your Library" /> : null}
-      {navigationError ? <DeskError raw={navigationError} surface="Library collections" /> : null}
-
-      {isRoot ? (
-        loading && !vaultDatasets.length ? (
-          <div className="rd-v2-library-empty" role="status" aria-live="polite">
-            <strong>Loading Library holdings…</strong>
-            <p>Reading the registered evidence estate before showing its current assets.</p>
-          </div>
-        ) : (
-          <LibraryEvidenceEstate
-            assets={estateRows}
-            collections={searchActive ? [] : rootCollections}
-            collectionsLoading={navigationLoading && !searchActive}
-            referenceCount={searchActive ? 0 : referenceCount}
-            onOpenCollection={(collection) => onFolderChange(collection.id)}
-            onReviewAvailable={onStartProcure ? handleProcureBranch : undefined}
-            onSelectDataset={onSelectDataset}
-          />
-        )
-      ) : (
-        <div className="rd-v2-catalog-list-wrap" data-testid="library-directory">
-          {navigationLoading && !searchActive ? (
-            <div className="rd-v2-library-empty" role="status" aria-live="polite">
-              <strong>Organizing collection…</strong>
-              <p>Reading the current research context before showing its holdings.</p>
+          </>
+        }
+        footer="select asset → inspect · preview only when query-ready"
+        surfaceState={surfaceState}
+      >
+        {!isRoot ? (
+          <div
+            className="rd-v2-library-branchline rd-v2-library-pathbar"
+            aria-label="Library location status"
+            data-navigation-state={navigationLoading ? "loading" : navigationError ? "error" : "ready"}
+          >
+            <div className="rd-v2-library-pathcopy">
+              <strong>{currentFolderName}</strong>
+              <p>{branchNote}</p>
             </div>
-          ) : loading && !vaultDatasets.length ? (
+            <div className="rd-v2-library-pathstats">
+              {navigationLoading && !searchActive ? (
+                <span>Organizing collection…</span>
+              ) : (
+                <span>{folderCount} folder{folderCount === 1 ? "" : "s"}</span>
+              )}
+              <span>
+                {browseDatasetCount} asset{browseDatasetCount === 1 ? "" : "s"}
+                {searchActive ? " matched" : ""}
+              </span>
+              <span>{readyCount} query-ready</span>
+            </div>
+          </div>
+        ) : null}
+        {loadError ? <DeskError raw={loadError} surface="your Library" /> : null}
+        {navigationError ? <DeskError raw={navigationError} surface="Library collections" /> : null}
+
+        {isRoot ? (
+          loading && !vaultDatasets.length ? (
             <div className="rd-v2-library-empty" role="status" aria-live="polite">
               <strong>Loading Library holdings…</strong>
-              <p>Reading the registered evidence estate before showing this collection.</p>
+              <p>Reading the registered evidence estate before showing its current assets.</p>
             </div>
-          ) : visibleRows.length ? (
-            <CatalogList
-              rows={visibleRows}
-              selectedId={selectedId}
-              onOpenFolder={(folder) => onFolderChange(folder.id)}
-              onSelectDataset={onSelectDataset}
-              compact
-            />
           ) : (
-            <div className="rd-v2-library-empty">
-              <strong>{searchActive ? "No assets match this search" : "Nothing else in this collection"}</strong>
-              <p>
-                {searchActive
-                  ? "Try a broader keyword, or clear the search to see the current collection again."
-                  : "Clear the filter or use the breadcrumb to return to Library."}
-              </p>
-              {!searchActive && (onStartUpload || onStartUrl || onStartProcure) ? (
-                <div className="rd-v2-library-empty-actions">
-                  {onStartUpload ? <button type="button" className="rd-v2-btn sm" onClick={() => onStartUpload?.()}>Add files</button> : null}
-                  {onStartUrl ? <button type="button" className="rd-v2-btn sm" onClick={() => onStartUrl?.()}>Add URL</button> : null}
-                  {onStartProcure ? <button type="button" className="rd-v2-btn sm" onClick={() => onStartProcure?.()}>Find missing data</button> : null}
-                </div>
-              ) : null}
-            </div>
-          )}
-        </div>
-      )}
-    </PageShell>
+            <LibraryEvidenceEstate
+              assets={estateRows}
+              collections={searchActive ? [] : rootCollections}
+              collectionsLoading={navigationLoading && !searchActive}
+              referenceCount={searchActive ? 0 : referenceCount}
+              onOpenCollection={(collection) => onFolderChange(collection.id)}
+              onReviewAvailable={onStartProcure ? handleProcureBranch : undefined}
+              onSelectDataset={onSelectDataset}
+            />
+          )
+        ) : (
+          <div className="rd-v2-catalog-list-wrap" data-testid="library-directory">
+            {navigationLoading && !searchActive ? (
+              <div className="rd-v2-library-empty" role="status" aria-live="polite">
+                <strong>Organizing collection…</strong>
+                <p>Reading the current research context before showing its holdings.</p>
+              </div>
+            ) : loading && !vaultDatasets.length ? (
+              <div className="rd-v2-library-empty" role="status" aria-live="polite">
+                <strong>Loading Library holdings…</strong>
+                <p>Reading the registered evidence estate before showing this collection.</p>
+              </div>
+            ) : visibleRows.length ? (
+              <CatalogList
+                rows={visibleRows}
+                selectedId={selectedId}
+                onOpenFolder={(folder) => onFolderChange(folder.id)}
+                onSelectDataset={onSelectDataset}
+                compact
+              />
+            ) : (
+              <div className="rd-v2-library-empty">
+                <strong>{searchActive ? "No assets match this search" : "Nothing else in this collection"}</strong>
+                <p>
+                  {searchActive
+                    ? "Try a broader keyword, or clear the search to see the current collection again."
+                    : "Clear the filter or use the breadcrumb to return to Library."}
+                </p>
+                {!searchActive && (onStartUpload || onStartUrl || onStartProcure) ? (
+                  <div className="rd-v2-library-empty-actions">
+                    {onStartUpload ? <button type="button" className="rd-v2-btn sm" onClick={() => onStartUpload?.()}>Add files</button> : null}
+                    {onStartUrl ? <button type="button" className="rd-v2-btn sm" onClick={() => onStartUrl?.()}>Add URL</button> : null}
+                    {onStartProcure ? <button type="button" className="rd-v2-btn sm" onClick={() => onStartProcure?.()}>Find missing data</button> : null}
+                  </div>
+                ) : null}
+              </div>
+            )}
+          </div>
+        )}
+      </PageShell>
+      <LibraryAssetInspector
+        dataset={selectedDataset}
+        onClose={onClearSelection}
+        onPreview={() => selectedDataset && onPreviewDataset?.(selectedDataset)}
+        onAsk={() => selectedDataset && onAskDataset?.(selectedDataset)}
+        onOpenQuery={() => selectedDataset && onOpenQuery?.(selectedDataset.dataset_id)}
+      />
+    </>
   );
 }
