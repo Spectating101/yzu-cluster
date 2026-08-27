@@ -13,6 +13,7 @@ permissions:
 jobs:
   verify-and-apply:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
@@ -22,11 +23,12 @@ jobs:
         with:
           node-version: 20
           cache: npm
-      - name: Decode and check functional patch
+      - name: Decode and check corrected functional patch
         run: |
-          base64 -d .github/hps-functional.patch.gz.b64 | gzip -dc > /tmp/hps-functional.patch
+          cat .github/hps-functional.part0* | base64 -d | gzip -dc > /tmp/hps-functional.patch
           git apply --check /tmp/hps-functional.patch
           git apply /tmp/hps-functional.patch
+          git diff --check
       - name: Install dependencies
         run: npm ci
       - name: Home continuity unit contracts
@@ -47,7 +49,7 @@ jobs:
               --reporter=line
       - name: Commit verified functional closure
         run: |
-          rm -f .github/hps-functional.patch.gz.b64 .github/workflows/hps-apply-functional.yml
+          rm -f .github/hps-functional.patch.gz.b64 .github/hps-functional.part0* .github/workflows/hps-apply-functional.yml
           git config user.name "hps-closure-bot"
           git config user.email "hps-closure-bot@users.noreply.github.com"
           git add -A
