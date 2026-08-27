@@ -19,18 +19,17 @@
   .rd-v2-home-pickup-card {
     min-height: 210px;
   }
+}
 
-  /* Settings had the same viewport/workspace mismatch: its outer two-column
-     section left too little width for identity actions and service metadata,
-     which then clipped inside the scroll pane without creating document-level
-     overflow. Put the section heading above its controls in this regime. */
+/* Settings service rows need their compact truth-preserving composition as
+   soon as the persistent rail materially narrows the workspace, not only at
+   phone widths. This keeps label, metric, sublabel and status all visible. */
+@media (max-width: 1280px) {
   .rd-v2-settings-statement > .rd-v2-statement-section {
     grid-template-columns: 1fr;
     gap: 12px;
   }
 
-  /* Keep every service truth visible instead of silently clipping the
-     sublabel/detail columns when the pane is narrow. */
   .rd-v2-settings-statement .rd-v2-statement-row {
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 4px 12px;
@@ -44,6 +43,38 @@
   .rd-v2-settings-statement .rd-v2-statement-detail {
     grid-column: 2;
     grid-row: 1;
+  }
+}
+
+/* 641–880px was a breakpoint hole: the outer Settings section had already
+   collapsed, but its form rows still retained desktop min-width columns. That
+   let Display selects and access controls extend under the Detail/Ask rail. */
+@media (min-width: 641px) and (max-width: 880px) {
+  .rd-v2-settings-row:not(.stack) {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .rd-v2-settings-row:not(.stack) .rd-v2-settings-label,
+  .rd-v2-settings-row:not(.stack) .rd-v2-select,
+  .rd-v2-settings-row:not(.stack) .rd-v2-input {
+    grid-column: 1;
+  }
+
+  /* Stack rows keep compact side-by-side actions when they fit, but every
+     flexible field is allowed to shrink to the actual content column. */
+  .rd-v2-settings-row.stack {
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 10px;
+  }
+
+  .rd-v2-settings-row.stack .rd-v2-settings-label {
+    grid-column: 1 / -1;
+  }
+
+  .rd-v2-settings-row.stack .rd-v2-input {
+    grid-column: 1;
+    min-width: 0;
   }
 }
 
