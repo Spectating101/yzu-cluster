@@ -37,7 +37,7 @@ function firstOf(value) {
 
 function humanToken(value) {
   const raw = text(value);
-  return raw ? humanizeDiscoverDescription(raw.replaceAll("_", " ")) : "";
+  return raw ? humanizeDiscoverDescription(raw) : "";
 }
 
 function connectorId(row) {
@@ -126,7 +126,10 @@ function providerLabel(row) {
 function accessAssessment(row, evaluation) {
   const verified = Array.isArray(evaluation?.verified) ? evaluation.verified : [];
   if (evaluation?.hasProbe && verified.length) {
-    const endpoint = verified.find((label) => /endpoint|domain|response/i.test(label));
+    const endpoint =
+      verified.find((label) => /http endpoint|response/i.test(label)) ||
+      verified.find((label) => /endpoint/i.test(label)) ||
+      verified.find((label) => /domain/i.test(label));
     return { access: ACCESS.OBSERVED, accessDetail: endpoint || verified[0] };
   }
   const declared = text(row?.access_mode || row?.source_access_mode || row?.access_state);
