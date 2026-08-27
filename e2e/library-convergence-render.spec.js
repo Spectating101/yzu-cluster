@@ -157,6 +157,12 @@ async function assertNoPageOverflow(page) {
   expect(overflow.scrollWidth).toBeLessThanOrEqual(overflow.clientWidth + 1);
 }
 
+async function settleVisualState(page) {
+  // Research Drive deliberately fades newly mounted page content for 110ms.
+  // Screenshot acceptance must capture the stable state, not a transition frame.
+  await page.waitForTimeout(180);
+}
+
 async function openAsset(page, title) {
   const row = page.getByTestId("library-evidence-row").filter({ hasText: title });
   await expect(row).toBeVisible();
@@ -179,6 +185,7 @@ test("render current Library evidence and decision states", async ({ page }) => 
   const connectedRow = page.getByTestId("library-evidence-row").filter({ hasText: "Public blockchain query source" });
   await expect(connectedRow.getByTestId("library-evidence-readiness")).toContainText("Connected");
   await assertNoPageOverflow(page);
+  await settleVisualState(page);
   await page.screenshot({ path: `${OUT}/01-root-1440.png`, fullPage: false });
 
   await page.getByRole("button", { name: /^Not query-ready / }).click();
@@ -193,12 +200,14 @@ test("render current Library evidence and decision states", async ({ page }) => 
   await expect(page.locator("aside.rd-v2-rail")).toContainText("Can I use this?");
   await expect(page.locator("aside.rd-v2-rail")).toContainText("Verified");
   await assertNoPageOverflow(page);
+  await settleVisualState(page);
   await page.screenshot({ path: `${OUT}/02-query-ready-1440.png`, fullPage: false });
 
   await page.getByRole("button", { name: "Source record" }).click();
   await expect(page.getByRole("dialog", { name: "Source and provenance" })).toBeVisible();
   await expect(page.getByTestId("library-source-verification")).toContainText("Verified");
   await expect(page.getByTestId("library-source-readiness")).toContainText("Query ready");
+  await settleVisualState(page);
   await page.screenshot({ path: `${OUT}/03-source-record-1440.png`, fullPage: false });
   await page.getByRole("button", { name: "Close inspection" }).click();
 
@@ -209,6 +218,7 @@ test("render current Library evidence and decision states", async ({ page }) => 
   await expect(page.getByLabel("Evidence claims")).toContainText("Partial");
   await expect(page.locator("aside.rd-v2-rail")).toContainText("Partial");
   await assertNoPageOverflow(page);
+  await settleVisualState(page);
   await page.screenshot({ path: `${OUT}/04-not-query-ready-1440.png`, fullPage: false });
 
   await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
@@ -216,9 +226,11 @@ test("render current Library evidence and decision states", async ({ page }) => 
   await page.setViewportSize({ width: 1920, height: 1080 });
   await expect(page.getByTestId("library-evidence-estate")).toBeVisible();
   await assertNoPageOverflow(page);
+  await settleVisualState(page);
   await page.screenshot({ path: `${OUT}/05-root-1920.png`, fullPage: false });
   await openAsset(page, "Estimate revision panel");
   await assertNoPageOverflow(page);
+  await settleVisualState(page);
   await page.screenshot({ path: `${OUT}/06-query-ready-1920.png`, fullPage: false });
 
   await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
@@ -226,8 +238,12 @@ test("render current Library evidence and decision states", async ({ page }) => 
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.getByTestId("library-evidence-estate")).toBeVisible();
   await assertNoPageOverflow(page);
+  await settleVisualState(page);
   await page.screenshot({ path: `${OUT}/07-root-mobile.png`, fullPage: false });
   await openAsset(page, "Asia daily news-risk panel");
+  await expect(page.locator("aside.rd-v2-rail")).toHaveClass(/rd-v2-rail-collapsed/);
+  await expect(page.locator(".rd-v2-rail-mobile-grip")).toHaveText("Show research context");
   await assertNoPageOverflow(page);
+  await settleVisualState(page);
   await page.screenshot({ path: `${OUT}/08-query-ready-mobile.png`, fullPage: false });
 });
