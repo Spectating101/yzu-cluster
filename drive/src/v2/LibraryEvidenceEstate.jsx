@@ -1,4 +1,3 @@
-import { useMemo, useState } from "react";
 import { displayName, libraryAssetPresentation, statusPillKind } from "@/v2/datasetMeta";
 import { libraryVerification } from "@/v2/libraryVerification";
 import { StatusPill } from "@/v2/StatusPill";
@@ -60,37 +59,29 @@ function collectionCountLabel(folder = {}) {
   return Number.isFinite(count) && count > 0 ? String(count) : "";
 }
 
-function catalogViewMatches(row = {}, view) {
-  const kind = presentationKind(row);
-  if (view === "data") return kind === "dataset" || kind === "metadata_index";
-  if (view === "literature") return kind === "scholarly_work";
-  if (view === "sources") return kind === "live_source";
-  if (view === "attention") {
-    const readiness = statusPillKind(row).kind;
-    const verification = libraryVerification(row).kind;
-    return readiness !== "query-ready" || !["verified", "matched"].includes(verification);
-  }
-  return true;
-}
-
-function buildCatalogViews(assets = []) {
-  const rows = assets.map((item) => item?.row || item);
-  const candidates = [
-    { key: "all", label: "Everything", count: rows.length },
-    { key: "data", label: "Data", count: rows.filter((row) => catalogViewMatches(row, "data")).length },
-    { key: "literature", label: "Literature", count: rows.filter((row) => catalogViewMatches(row, "literature")).length },
-    { key: "sources", label: "Live sources", count: rows.filter((row) => catalogViewMatches(row, "sources")).length },
-    { key: "attention", label: "Needs attention", count: rows.filter((row) => catalogViewMatches(row, "attention")).length },
-  ];
-  return candidates.filter((view) => view.key === "all" || view.count > 0);
+function moveLedgerFocus(event) {
+  if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
+  const table = event.currentTarget.closest('[role="table"]');
+  if (!table) return;
+  const rows = [...table.querySelectorAll('[data-testid="library-evidence-row"]')];
+  if (!rows.length) return;
+  const current = rows.indexOf(event.currentTarget);
+  let next = current;
+  if (event.key === "ArrowDown") next = Math.min(rows.length - 1, current + 1);
+  if (event.key === "ArrowUp") next = Math.max(0, current - 1);
+  if (event.key === "Home") next = 0;
+  if (event.key === "End") next = rows.length - 1;
+  event.preventDefault();
+  rows[next]?.focus();
 }
 
 /**
- * Root Library composition for capability convergence.
+ * Root Library composition.
  *
- * Evidence is the primary object. Catalogue views and collections are compact
- * projections over that evidence rather than explanatory destinations of their
- * own, so a researcher reaches the holdings immediately.
+ * The Library behaves like a serious file browser: collections narrow context,
+ * the ledger remains the primary object, and keyboard navigation never requires
+ * opening a second interaction mode. Research Drive adds evidence authority to
+ * that familiar grammar rather than replacing it with bespoke dashboard chrome.
  */
 export function LibraryEvidenceEstate({
   assets = [],
@@ -100,38 +91,21 @@ export function LibraryEvidenceEstate({
   onOpenCollection,
   onReviewAvailable,
   onSelectDataset,
+  searchQuery = "",
+  searchMatchCount = 0,
+  onAskCurrentSearch,
+  onSearchWider,
+  onResetFilters,
 }) {
-  const [catalogView, setCatalogView] = useState("all");
-  const catalogViews = useMemo(() => buildCatalogViews(assets), [assets]);
-  const activeView = catalogViews.some((view) => view.key === catalogView) ? catalogView : "all";
-  const visibleAssets = useMemo(
-    () => assets.filter((item) => catalogViewMatches(item?.row || item, activeView)),
-    [activeView, assets],
-  );
-  const showKind = visibleAssets.some((item) => presentationKind(item?.row || item) !== "dataset");
-  const ledgerClass = `rd-v2-cap-ledger with-verify${showKind ? " show-kind" : ""}`;
+  const visibleAssets = assets;
+  const showKind = true;
+  const ledgerClass = "rd-v2-cap-ledger with-verify show-kind";
+  const query = String(searchQuery || "").trim();
+  const filteredSearchMiss = Boolean(query && searchMatchCount > 0 && !visibleAssets.length);
+  const trueSearchMiss = Boolean(query && searchMatchCount === 0);
 
   return (
     <section className="rd-v2-cap-estate" data-testid="library-evidence-estate" aria-label="Research evidence estate">
-      <div className="rd-v2-library-auto-catalog" aria-label="Automatic catalogue views" data-testid="library-auto-catalog">
-        <span className="rd-v2-cap-collections-label">View</span>
-        <div className="rd-v2-library-auto-view-list">
-          {catalogViews.map((view) => (
-            <button
-              key={view.key}
-              type="button"
-              className={`rd-v2-library-auto-view${activeView === view.key ? " active" : ""}`}
-              aria-pressed={activeView === view.key}
-              data-testid={`library-auto-view-${view.key}`}
-              onClick={() => setCatalogView(view.key)}
-            >
-              <span>{view.label}</span>
-              <b>{view.count}</b>
-            </button>
-          ))}
-        </div>
-      </div>
-
       {collections.length || collectionsLoading ? (
         <div className="rd-v2-cap-collections" aria-label="Curated research collections">
           <span className="rd-v2-cap-collections-label">Collections</span>
@@ -180,11 +154,23 @@ export function LibraryEvidenceEstate({
                   data-testid="library-evidence-row"
                   data-kind="evidence"
                   role="row"
+                  aria-keyshortcuts="ArrowUp ArrowDown Home End Enter"
+                  onKeyDown={moveLedgerFocus}
                   onClick={() => onSelectDataset?.(row)}
                 >
                   <span className="rd-v2-cap-evidence" role="cell">
                     <strong>{displayName(row)}</strong>
                     <em>{descriptionLabel(row)}</em>
+                    {query && row.search_match?.reasons?.length ? (
+                      <span className="rd-v2-library-match" data-testid="library-search-match">
+                        <b>Matched</b>
+                        {row.search_match.reasons.slice(0, 2).map((reason) => (
+                          <span key={`${reason.kind}-${reason.value}`}>
+                            {reason.label} · {reason.value}
+                          </span>
+                        ))}
+                      </span>
+                    ) : null}
                   </span>
                   {showKind ? <span className="rd-v2-cap-kind" role="cell">{kindLabel(row)}</span> : null}
                   <span className="rd-v2-cap-source" role="cell">{sourceLabel(row)}</span>
@@ -202,30 +188,54 @@ export function LibraryEvidenceEstate({
               );
             })
           ) : (
-            <div className="rd-v2-cap-ledger-empty">
-              <strong>No evidence matches the current Library view.</strong>
-              <p>Choose another catalogue view, clear the filter or search, add evidence, or use Discover for evidence that is not yet in the Library.</p>
+            <div className="rd-v2-cap-ledger-empty" data-testid="library-evidence-empty">
+              <strong>
+                {trueSearchMiss
+                  ? `No held evidence matches “${query}”.`
+                  : filteredSearchMiss
+                    ? "Matching evidence is hidden by the current filters."
+                    : "No evidence matches the current Library filters."}
+              </strong>
+              <p>
+                {trueSearchMiss
+                  ? "Library searched the evidence you actually hold. Ask can interpret the need, or Discover can search beyond your estate."
+                  : "Reset the filters to return to the full held-evidence view."}
+              </p>
+              <div className="rd-v2-library-empty-actions">
+                {trueSearchMiss && onAskCurrentSearch ? (
+                  <button type="button" className="rd-v2-btn sm" onClick={onAskCurrentSearch}>
+                    Ask Library
+                  </button>
+                ) : null}
+                {trueSearchMiss && onSearchWider ? (
+                  <button type="button" className="rd-v2-btn sm" onClick={() => onSearchWider(query)}>
+                    Search wider in Discover
+                  </button>
+                ) : null}
+                {!trueSearchMiss && onResetFilters ? (
+                  <button type="button" className="rd-v2-btn sm" onClick={onResetFilters}>
+                    Clear filters
+                  </button>
+                ) : null}
+              </div>
             </div>
           )}
         </div>
       </div>
 
       {referenceCount > 0 ? (
-        <aside className="rd-v2-library-available" aria-label="Available evidence outside your Library" data-testid="library-available-evidence">
-          <div>
-            <span className="rd-v2-eyebrow">Wider Research Drive</span>
-            <h3>Available, not in your Library</h3>
-            <p>
-              Research Drive knows {referenceCount} additional catalogue record{referenceCount === 1 ? "" : "s"} that are not held in this Library. They remain outside your evidence estate until explicitly added.
-            </p>
-          </div>
+        <aside className="rd-v2-library-available compact" aria-label="Available evidence outside your Library" data-testid="library-available-evidence">
+          <p>
+            <strong>
+              {referenceCount} known record{referenceCount === 1 ? "" : "s"} {referenceCount === 1 ? "sits" : "sit"} outside your Library.
+            </strong>{" "}
+            They remain Discover evidence until explicitly added.
+          </p>
           {onReviewAvailable ? (
             <button type="button" className="rd-v2-btn sm" onClick={onReviewAvailable}>
-              Find missing evidence
+              Review in Discover
             </button>
-          ) : (
-            <span className="rd-v2-library-available-note">Use Discover to evaluate them before acquisition.</span>
-          )}
+          ) : null}
         </aside>
       ) : null}
     </section>

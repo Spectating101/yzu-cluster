@@ -63,6 +63,7 @@ export function AskRail({
   const isProfile = mainTab === "profile";
   const isSettings = mainTab === "settings";
   const isDiscover = mainTab === DISCOVER_TAB;
+  const isLibrary = mainTab === "library";
   const isDiscoverHistory = isDiscover && dataset?.kind === "discover_history";
   const isDiscoverInvestigation = isDiscover && dataset?.kind === "discover_investigation";
   const isSynthesis = mainTab === "synthesis";
@@ -95,7 +96,9 @@ export function AskRail({
           ? synthesisStageLabel
             ? `Ask · ${synthesisStageLabel}`
             : "Ask · synthesis thread"
-          : "Procurement chat";
+          : isLibrary
+            ? "Ask · Library"
+            : "Procurement chat";
   const railSubtitle = isProfile
     ? hasThread
       ? `Continuing · context → ${profileContext}`
@@ -116,9 +119,13 @@ export function AskRail({
             ? hasThread
               ? `Continuing · ${synthesisStageLabel || "thread"} → ${synthesisContext}`
               : `${synthesisStageLabel || "Thread context"} · ${synthesisContext}`
-            : ctxParts.length
-              ? ctxParts.join(" · ")
-              : "Select a dataset for grounded answers";
+            : isLibrary
+              ? searchQuery
+                ? `Search context · ${searchQuery}`
+                : "Context · held research evidence"
+              : ctxParts.length
+                ? ctxParts.join(" · ")
+                : "Select a dataset for grounded answers";
 
   const askEntityTitle =
     (dataset?.dataset_id || dataset?.title
@@ -210,6 +217,23 @@ export function AskRail({
                     onClick={() => send(p)}
                   >
                     {String(p).slice(0, 42)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : isLibrary ? (
+            <div className="rd-v2-ask-placeholder" data-testid="library-ask-guidance">
+              <p>
+                Ask what evidence you already hold, why a result matches, how holdings compare, or what is genuinely missing. Library answers must keep held evidence separate from Discover candidates.
+              </p>
+              <div className="rd-v2-chips-row rd-v2-ask-chips">
+                {[
+                  searchQuery ? `Explain the best matches for ${searchQuery}` : "What evidence do I have?",
+                  "Which held assets overlap?",
+                  "What evidence is still missing?",
+                ].map((p) => (
+                  <button key={p} type="button" className="rd-v2-chip clickable" disabled={busy} onClick={() => send(p)}>
+                    {String(p).length > 48 ? `${String(p).slice(0, 45)}…` : p}
                   </button>
                 ))}
               </div>

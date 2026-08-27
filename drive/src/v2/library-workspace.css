@@ -43,28 +43,47 @@
 }
 
 .rd-v2-library-inspector-shell .rd-v2-library-workspace .rd-v2-page-head {
-  min-height: 44px;
+  display: flex;
+  min-height: 38px;
   align-items: center;
-  gap: 12px;
-  padding: 7px 14px;
+  gap: 8px;
+  padding: 5px 10px;
   border-bottom: 1px solid var(--rd-release-line, var(--rd-border));
   background: rgba(250, 249, 243, 0.92);
 }
 
-.rd-v2-library-inspector-shell .rd-v2-library-workspace .rd-v2-page-head h1 {
-  margin: 0;
-  color: var(--rd-muted);
-  font-size: 11.5px;
-  font-weight: 700;
-  letter-spacing: 0.01em;
+.rd-v2-library-inspector-bar {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
 
-.rd-v2-library-inspector-shell .rd-v2-library-workspace .rd-v2-page-head .rd-v2-lead {
-  display: none;
+.rd-v2-library-inspector-context {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  color: var(--rd-muted);
+  font-size: 10.5px;
+  line-height: 1;
+}
+
+.rd-v2-library-inspector-context b {
+  color: var(--rd-text);
+  font-weight: 700;
+}
+
+.rd-v2-library-inspector-bar .rd-v2-btn {
+  min-height: 28px;
+  padding: 5px 10px;
 }
 
 .rd-v2-library-inspector-shell .rd-v2-library-workspace .rd-v2-page-head > :last-child {
-  margin: 0 0 0 auto;
+  width: 100%;
+  margin: 0;
 }
 
 .rd-v2-library-inspector-shell .rd-v2-library-workspace .rd-v2-body-scroll {

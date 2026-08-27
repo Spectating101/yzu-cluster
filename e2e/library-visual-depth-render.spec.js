@@ -173,7 +173,7 @@ async function openAsset(page, title) {
 }
 
 async function backToRoot(page) {
-  await page.getByRole("button", { name: "← All Library assets" }).click();
+  await page.getByRole("button", { name: "Close asset inspector" }).click();
   await expect(page.getByTestId("library-asset-inspector")).toHaveCount(0);
   await expect(page.getByTestId("library-evidence-estate")).toBeVisible();
   await settleVisualState(page);
@@ -260,7 +260,10 @@ test("render Library depth states on desktop", async ({ page }) => {
   await waitForShell(page);
   await expect(page.getByTestId("library-evidence-estate")).toBeVisible();
   await page.getByRole("textbox", { name: "Search library holdings" }).fill("definitely-no-such-library-asset");
-  await expect(page.getByTestId("library-evidence-estate")).toContainText("No evidence matches the current Library view");
+  const empty = page.getByTestId("library-evidence-empty");
+  await expect(empty).toContainText("No held evidence matches");
+  await expect(empty.getByRole("button", { name: "Ask Library" })).toBeVisible();
+  await expect(empty.getByRole("button", { name: "Search wider in Discover" })).toBeVisible();
   const filteredRail = page.locator("aside.rd-v2-rail");
   await expect(filteredRail).toContainText("In this view");
   await expect(filteredRail).not.toContainText("In this library");

@@ -413,9 +413,12 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onOpenQuery,
   return (
     <PageShell
       className="rd-v2-library-workspace"
-      title="Library"
-      lead="Inspect held evidence."
-      headExtra={<button type="button" className="rd-v2-btn sm" onClick={onBack}>← All Library assets</button>}
+      headExtra={
+        <div className="rd-v2-library-inspector-bar">
+          <span className="rd-v2-library-inspector-context"><b>Library</b><span aria-hidden="true">·</span> Inspect</span>
+          <button type="button" className="rd-v2-btn sm" onClick={onBack} aria-label="Close asset inspector">Close</button>
+        </div>
+      }
     >
       <article className="rd-v2-library-asset-canvas" data-testid="library-asset-workspace" data-asset-kind={presentation.kind}>
         <header className="rd-v2-library-asset-header">
