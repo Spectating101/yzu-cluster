@@ -48,7 +48,7 @@ test("compiled procurement engineering stays visually subordinate to route revie
   await page.setViewportSize({ width: 1440, height: 900 });
   await openDiscover(page);
   await search(page, "example public research files");
-  await page.getByTestId("discover-ranked-results").getByRole("button", { name: "Add to collection" }).click();
+  await page.getByTestId("discover-ranked-results").getByRole("button", { name: "Review acquisition route" }).click();
 
   const dialog = page.getByRole("dialog", { name: "Review acquisition" });
   const workspace = page.getByTestId("discover-intent-workspace");
