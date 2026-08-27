@@ -14,30 +14,47 @@ test.describe("HPS inner containment", () => {
 
       const containment = await page.evaluate(() => {
         const body = document.querySelector(".rd-v2-body-scroll");
-        const bodyRect = body?.getBoundingClientRect();
         const candidates = Array.from(document.querySelectorAll(
           ".rd-v2-settings-statement input, .rd-v2-settings-statement select, .rd-v2-settings-statement button, .rd-v2-settings-statement .rd-v2-statement-row"
         ));
+        const clipping = [];
+        for (const node of candidates) {
+          const rect = node.getBoundingClientRect();
+          let ancestor = node.parentElement;
+          while (ancestor && ancestor !== document.body) {
+            const style = getComputedStyle(ancestor);
+            const clipsX = ["hidden", "clip", "auto", "scroll"].includes(style.overflowX);
+            if (clipsX) {
+              const a = ancestor.getBoundingClientRect();
+              if (rect.left < a.left - 2 || rect.right > a.right + 2) {
+                clipping.push({
+                  text: (node.textContent || node.getAttribute("aria-label") || node.id || node.tagName).trim().slice(0, 80),
+                  nodeLeft: Math.round(rect.left),
+                  nodeRight: Math.round(rect.right),
+                  ancestor: ancestor.className || ancestor.tagName,
+                  ancestorLeft: Math.round(a.left),
+                  ancestorRight: Math.round(a.right),
+                });
+                break;
+              }
+            }
+            ancestor = ancestor.parentElement;
+          }
+        }
         return {
-          bodyRight: bodyRect?.right ?? 0,
           bodyOverflow: body ? body.scrollWidth - body.clientWidth : 0,
-          bad: candidates.map((node) => {
-            const r = node.getBoundingClientRect();
-            return {
-              text: (node.textContent || node.getAttribute("aria-label") || node.id || node.tagName).trim().slice(0, 80),
-              right: r.right,
-              width: r.width,
-            };
-          }).filter((item) => item.right > (bodyRect?.right ?? 0) + 2),
-          innerOverflow: Array.from(document.querySelectorAll(".rd-v2-settings-statement .rd-v2-statement-body, .rd-v2-settings-statement .rd-v2-settings-row"))
-            .map((node) => node.scrollWidth - node.clientWidth)
-            .filter((delta) => delta > 2),
+          clipping,
+          innerOverflow: Array.from(document.querySelectorAll(
+            ".rd-v2-settings-statement, .rd-v2-settings-statement .rd-v2-statement-body, .rd-v2-settings-statement .rd-v2-settings-row"
+          ))
+            .map((node) => ({ cls: node.className, delta: node.scrollWidth - node.clientWidth }))
+            .filter((item) => item.delta > 2),
         };
       });
 
-      expect(containment.bodyOverflow, `Settings ${width}: body clips horizontally`).toBeLessThanOrEqual(2);
-      expect(containment.bad, `Settings ${width}: descendants escape body`).toEqual([]);
-      expect(containment.innerOverflow, `Settings ${width}: inner rows clip content`).toEqual([]);
+      expect(containment.bodyOverflow, `Settings ${width}: body scrolls horizontally`).toBeLessThanOrEqual(2);
+      expect(containment.clipping, `Settings ${width}: controls are clipped by an overflow ancestor`).toEqual([]);
+      expect(containment.innerOverflow, `Settings ${width}: inner rows overflow horizontally`).toEqual([]);
     }
   });
 
