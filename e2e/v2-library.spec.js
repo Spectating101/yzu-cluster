@@ -67,7 +67,9 @@ test.describe("v2 Library evidence estate", () => {
     await expect(page.getByTestId("research-situation")).toContainText("Asia daily news-risk panel");
     await expect(rail).toContainText("Can I use this?");
     await expect(rail).toContainText("Query ready");
-    await expect(rail).toContainText("Source authority");
+    await expect(rail).toContainText("Source & reproduce");
+    await expect(rail).toContainText("Exact source URL not recorded");
+    await expect(rail).toContainText("Reproduction method not recorded");
     await expect(rail).toContainText("Verification");
     await expect(rail).not.toContainText("Useful for");
     await expect(rail).not.toContainText("Coverage & grain");
@@ -93,6 +95,8 @@ test.describe("v2 Library evidence estate", () => {
     await workspace.getByRole("button", { name: "Source record" }).click();
     const provenance = page.getByRole("dialog", { name: "Source and provenance" });
     await expect(provenance).toBeVisible();
+    await expect(provenance).toContainText("Exact source URL not recorded");
+    await expect(provenance).toContainText("Reproduction method not recorded");
     await expect(page.getByTestId("library-source-verification")).toContainText("Not checked");
     await expect(page.getByTestId("library-source-readiness")).toContainText("Query ready");
     await provenance.getByRole("button", { name: "Close inspection" }).click();
