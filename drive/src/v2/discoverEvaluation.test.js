@@ -52,11 +52,11 @@ describe("evaluationActions", () => {
     assert.equal(actions.primary.label, "Request this evidence");
   });
 
-  it("external-probed primary is Preview, not Ask-as-review", () => {
+  it("external-probed primary opens the bounded source inspector, not Ask-as-review", () => {
     const taxonomy = { key: "external-probed", label: "External · Probed" };
     const actions = evaluationActions({}, taxonomy, { hasProbeUrl: true, probed: true });
     assert.equal(actions.primary.id, "preview");
-    assert.equal(actions.primary.label, "Preview source");
+    assert.equal(actions.primary.label, "Inspect source");
     assert.ok(actions.secondary.some((a) => a.id === "ask" && a.label === "Ask about this source"));
     assert.equal(actions.secondary.some((a) => /Review evidence/i.test(a.label)), false);
   });

@@ -1,0 +1,201 @@
+/* Discover offering inspector — inspect before acquire.
+   This layer only reorganizes facts already carried by the selected offering,
+   bound probe evidence, or durable intent. Missing schema/preview remains missing. */
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+  border-color: color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, #789386 28%);
+  background: #fffef9;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-card > .rd-v2-eval-section-label {
+  margin: 0;
+  padding: 8px 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, transparent);
+  background: linear-gradient(180deg, #f4f8f5, #fafbf8);
+  color: #557565;
+  font-size: 8px;
+  letter-spacing: .08em;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-block {
+  min-width: 0;
+  padding: 9px 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 64%, transparent);
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-block:last-of-type {
+  border-bottom: 0;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-block[data-block="what_you_will_get"] {
+  padding: 10px;
+  background: #fbfdfb;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-block[data-block="what_you_will_get"] .rd-v2-strategy-label {
+  color: #355f4d;
+  font-size: 9px;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-block[data-block="what_you_will_get"] .rd-v2-eval-prose {
+  margin: 4px 0 0;
+  color: #344251;
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 7px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-fields li {
+  max-width: 100%;
+  padding: 3px 6px;
+  overflow: hidden;
+  border: 1px solid #d8e2dc;
+  border-radius: 4px;
+  background: #f5f8f6;
+  color: #455866;
+  font: 650 8.5px/1.25 var(--rd-mono, ui-monospace, monospace);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-block[data-block="how_it_answers"] {
+  background: #fffdf8;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-block[data-block="how_it_answers"] .rd-v2-eval-prose {
+  margin: 4px 0 0;
+  color: #4b5868;
+  font-size: 9.6px;
+  line-height: 1.42;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-check {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  overflow: hidden;
+  margin: 6px 0 0;
+  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 68%, transparent);
+  border-radius: 5px;
+  background: rgba(255,255,255,.52);
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-check > div {
+  min-width: 0;
+  padding: 6px 7px;
+  border-right: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 58%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 58%, transparent);
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-check > div:nth-child(2n) {
+  border-right: 0;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-check > div:nth-last-child(-n + 2) {
+  border-bottom: 0;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-check dt {
+  color: #7a8592;
+  font: 720 7.5px/1.15 var(--rd-mono, ui-monospace, monospace);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-check dd {
+  margin: 3px 0 0;
+  color: #40505f;
+  font-size: 9px;
+  line-height: 1.32;
+  overflow-wrap: anywhere;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-access {
+  font-weight: 730;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-access[data-access="observed"] {
+  color: #2f6a50;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-access[data-access="proposed"] {
+  color: #8a681f;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-chain {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-items: center;
+  margin: 6px 0 4px;
+  padding: 0;
+  list-style: none;
+  counter-reset: none;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-chain li {
+  position: relative;
+  min-width: 0;
+  padding: 4px 7px;
+  border: 1px solid #dde3df;
+  border-radius: 999px;
+  background: #fafbf9;
+  color: #4c5967;
+  font-size: 8.5px;
+  line-height: 1.25;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-chain li + li::before {
+  content: "→";
+  position: absolute;
+  left: -6px;
+  top: 50%;
+  color: #9aa49e;
+  transform: translate(-50%, -50%);
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-block[data-block="how_we_build"] > .rd-v2-eval-prose.muted {
+  margin: 4px 0 0;
+  font-size: 8.8px;
+  line-height: 1.35;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-gaps {
+  margin: 0;
+  padding: 7px 10px 8px 24px;
+  border-top: 1px dashed color-mix(in srgb, var(--rd-border, #dbd4c5) 70%, transparent);
+  background: #fcfbf7;
+  color: #77808a;
+  font-size: 8.5px;
+  line-height: 1.35;
+}
+
+@media (max-width: 760px) {
+  body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-check {
+    grid-template-columns: 1fr;
+  }
+
+  body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-check > div,
+  body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-check > div:nth-child(2n) {
+    border-right: 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 58%, transparent);
+  }
+
+  body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-check > div:last-child {
+    border-bottom: 0;
+  }
+}
