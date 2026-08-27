@@ -139,10 +139,7 @@ const LIBRARY_NAV = {
 
 async function setup(page, viewport = { width: 1440, height: 900 }) {
   await page.setViewportSize(viewport);
-  await mockV2Api(page, {
-    datasetsBody: LIBRARY_DATASETS,
-    libraryNavBody: LIBRARY_NAV,
-  });
+  await mockV2Api(page, { datasetsBody: LIBRARY_DATASETS, libraryNavBody: LIBRARY_NAV });
   await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
   await expect(page.getByTestId("library-evidence-estate")).toBeVisible();
@@ -179,8 +176,6 @@ test("render Library depth states on desktop", async ({ page }) => {
   mkdirSync(OUT, { recursive: true });
   await setup(page);
 
-  // Root location is already established by the page title. A one-item
-  // breadcrumb would only repeat "Library" and weaken the action hierarchy.
   await expect(page.locator(".rd-v2-library-page .rd-v2-crumb")).toBeHidden();
   await expect(page.locator("aside.rd-v2-rail")).toContainText("In this library");
 
@@ -192,22 +187,33 @@ test("render Library depth states on desktop", async ({ page }) => {
   await expect(scholarly.getByLabel("Evidence claims")).toContainText("Unverified");
   await expect(scholarly.getByRole("button", { name: "Preview rows" })).toHaveCount(0);
   await expect(scholarly.getByRole("button", { name: "Open query" })).toHaveCount(0);
+  await expect(scholarly.getByRole("button", { name: "Ask about this work" })).toHaveCount(0);
+  await expect(scholarly.getByRole("button", { name: "Inspect record" })).toHaveCount(1);
+  await expect(scholarly).toContainText("does not establish source verification or methodological fitness");
   await expect(scholarlyRail).toContainText("Scholarly work");
-  await expect(scholarlyRail).not.toContainText("Library dataset");
+  await expect(scholarlyRail).toContainText("Retained as a reusable scholarly work");
+  await expect(scholarlyRail).not.toContainText("Grain not reported");
+  await expect(scholarlyRail).not.toContainText("Join keys / schema relationship not described");
+  await expect(scholarlyRail.getByRole("button", { name: "Ask about this work →" })).toBeVisible();
   await assertNoPageOverflow(page);
   await page.screenshot({ path: `${OUT}/09-scholarly-work-1440.png`, fullPage: false });
 
   await backToRoot(page);
   await openAsset(page, "Public blockchain query source");
   const connected = page.getByTestId("library-asset-workspace");
+  const connectedRail = page.locator("aside.rd-v2-rail");
   await expect(connected.getByLabel("Evidence claims")).toContainText("Connected");
   await expect(connected.getByLabel("Evidence claims")).toContainText("Not checked");
   await expect(connected.getByRole("button", { name: "Open query" })).toHaveCount(0);
-  // Connected sources may expose a declared response shape, but that structure
-  // must remain visibly distinct from an observed/materialized row sample.
-  await expect(connected.getByTestId("library-data-preview")).toContainText("Table structure");
-  await expect(connected.getByTestId("library-data-preview").getByRole("columnheader", { name: "block_timestamp" })).toBeVisible();
-  await expect(connected.getByTestId("library-data-preview")).toContainText("Declared structure only");
+  await expect(connected.getByRole("button", { name: "Ask about this source" })).toHaveCount(0);
+  const connectedPreview = connected.getByTestId("library-data-preview");
+  await expect(connectedPreview).toContainText("Declared response shape");
+  await expect(connectedPreview.getByRole("columnheader", { name: "block_timestamp" })).toBeVisible();
+  await expect(connectedPreview).toContainText("Declared structure only");
+  await expect(connectedPreview).not.toContainText("Grain: Not declared");
+  await expect(connectedPreview).not.toContainText("Scale: Not declared");
+  await expect(connectedPreview).not.toContainText("Keys: Not declared");
+  await expect(connectedRail.getByRole("button", { name: "Ask about access →" })).toBeVisible();
   await assertNoPageOverflow(page);
   await page.screenshot({ path: `${OUT}/10-connected-source-1440.png`, fullPage: false });
 
