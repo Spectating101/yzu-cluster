@@ -60,3 +60,5 @@ jobs:
                   drive/src/v2/DiscoverIntentWorkspace.jsx
           git commit -m "hardening(discover): fence stale routes and duplicate submits"
           git push origin HEAD:polish/discover-visual-freeze-20260827
+
+# Exact-head closure trigger: run the reviewed hardening patch through every Discover gate before landing product code.
