@@ -224,6 +224,17 @@ export function libraryAssetKind(dataset = {}) {
   ) {
     return "scholarly_work";
   }
+  // A registered remote holding with an explicit live connection is a source
+  // contract, not a rectangular dataset. This is presentation typing only:
+  // Connected remains distinct from Query ready and no access is promoted.
+  if (
+    statusPillKind(dataset).kind === "connected" &&
+    !dataset?.local_root &&
+    !dataset?.local_path &&
+    !dataset?.vault_path
+  ) {
+    return "live_source";
+  }
   if (accessShape === "metadata_index" || /catalog|catalogue/.test(backend)) return "metadata_index";
   if (/status|manifest|operational/.test(`${accessShape} ${backend}`)) return "operational";
   if (/api/.test(backend) && !dataset?.local_root && !dataset?.local_path) return "live_source";
