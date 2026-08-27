@@ -166,6 +166,7 @@ const DISCOVER_TERM_LABELS = Object.freeze({
   materialized_bulk: "Bulk archive route",
   procurement_catalog: "Procurement route",
   live_connector: "Connected route",
+  public_http: "Public HTTP",
   governance_regulatory: "governance and regulatory records",
   daily_prices: "daily market prices",
   index_pit_survivorship: "point-in-time index membership",

@@ -1,3 +1,4 @@
+import { mkdir } from "node:fs/promises";
 import { test, expect } from "@playwright/test";
 import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 
@@ -206,19 +207,31 @@ test.describe("Discover offering inspector", () => {
     await page.getByTestId("discover-ranked-results").locator("button.rd-v2-discover-candidate").click();
 
     const rail = page.locator("aside.rd-v2-rail");
+    await expect(rail).toContainText("Access · Public HTTP");
+    await expect(rail).not.toContainText("Access · public http");
     await rail.getByRole("button", { name: "Inspect source", exact: true }).click();
     const dialog = page.getByRole("dialog", { name: /Observed governance sample preview/i });
     await expect(dialog).toBeVisible();
     await expect(dialog).toContainText("External data inspector");
     await expect(dialog).toContainText("Observed sample available");
+    await expect(dialog).toContainText("Public HTTP");
+    await expect(dialog).not.toContainText("public_http");
     await expect.poll(() => previewRequest?.limit).toBe(5);
     expect(previewRequest?.candidate_key).toBe("source:preview_ready");
+
+    await mkdir("artifacts/discover-convergence", { recursive: true });
+    await page.screenshot({
+      path: "artifacts/discover-convergence/discover-inspector-overview-1440x900.png",
+    });
 
     await dialog.getByRole("button", { name: "Rows", exact: true }).click();
     const rows = dialog.getByTestId("discover-external-preview-rows");
     await expect(rows).toContainText("2330");
     await expect(rows).toContainText("2317");
     await expect(rows).toContainText("87.5");
+    await page.screenshot({
+      path: "artifacts/discover-convergence/discover-inspector-rows-1440x900.png",
+    });
 
     await dialog.getByRole("button", { name: "Fields", exact: true }).click();
     await expect(dialog).toContainText("Observed structure");
@@ -226,5 +239,8 @@ test.describe("Discover offering inspector", () => {
     await expect(dialog).toContainText("governance_score");
     await expect(dialog).toContainText("Source preview");
     await expect(dialog).not.toContainText(/schema verified|legal clearance confirmed/i);
+    await page.screenshot({
+      path: "artifacts/discover-convergence/discover-inspector-fields-1440x900.png",
+    });
   });
 });

@@ -275,7 +275,7 @@ function DiscoverCandidateRow({
             onAdd(row);
           }}
         >
-          Add to collection
+          Review acquisition route
         </button>
       ) : null}
     </li>
@@ -1123,7 +1123,7 @@ export function BrowsePage({
   const resultBreakdown = useMemo(
     () => [
       resultGroups.available.length
-        ? `${plural(resultGroups.available.length, "offering")} available to add`
+        ? `${plural(resultGroups.available.length, "offering")} with a declared route`
         : null,
       resultGroups.external.length
         ? `${plural(resultGroups.external.length, "route")} to verify`

@@ -122,9 +122,10 @@ test.describe("Discover visual convergence", () => {
     const summary = page.getByTestId("discover-result-summary");
     await expect(summary).toContainText(/Available\s*·\s*1/i);
     await expect(summary).toContainText(/Library evidence\s*·\s*1/i);
+    await expect(summary).toContainText("1 offering with a declared route");
     await expect(page.getByTestId("discover-ranked-results")).toBeVisible();
     await expect(page.getByTestId("discover-context-results")).toBeVisible();
-    await expect(page.getByRole("button", { name: "Add to collection", exact: true })).toHaveCount(1);
+    await expect(page.getByRole("button", { name: "Review acquisition route", exact: true })).toHaveCount(1);
     await assertNoHorizontalOverflow(page);
 
     const decisionBand = page.getByLabel("Discover next actions");
@@ -212,7 +213,7 @@ test.describe("Discover visual convergence", () => {
     await openDiscover(page);
     await search(page, "stablecoin market evidence");
 
-    await page.getByRole("button", { name: "Add to collection", exact: true }).click();
+    await page.getByRole("button", { name: "Review acquisition route", exact: true }).click();
     const dialog = page.getByRole("dialog", { name: "Review acquisition" });
     await expect(dialog).toBeVisible();
     await expect(page.getByTestId("discover-intent-workspace")).toContainText("Acquisition review");
