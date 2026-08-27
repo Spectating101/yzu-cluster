@@ -37,18 +37,44 @@ jobs:
           if ! git diff --cached --quiet; then
             git commit -m 'feat(library): retain tested file-browser ergonomics'
           fi
-      - name: Merge exact Discover freeze head
+      - name: Merge last fully green Discover head
         run: |
+          DISCOVER_HEAD=4f7f414779292ae26e789a0a36003a03c347b8a9
           set +e
-          git merge --no-ff --no-commit 4f7f414779292ae26e789a0a36003a03c347b8a9
+          git merge --no-ff --no-commit "$DISCOVER_HEAD"
           rc=$?
+          set -e
           if [ $rc -ne 0 ]; then
-            echo 'DISCOVER_CONFLICTS_BEGIN'
-            git diff --name-only --diff-filter=U
-            echo 'DISCOVER_CONFLICTS_END'
-            exit $rc
+            conflicts="$(git diff --name-only --diff-filter=U)"
+            if [ "$conflicts" != "drive/src/v2/main.jsx" ]; then
+              echo 'Unexpected Discover conflicts:'
+              printf '%s\n' "$conflicts"
+              exit 1
+            fi
+            # main.jsx is a purely additive stylesheet spine conflict. Preserve the
+            # Library lineage and add every certified Discover presentation layer.
+            git checkout --ours drive/src/v2/main.jsx
+            python - <<'PY'
+          from pathlib import Path
+          p = Path('drive/src/v2/main.jsx')
+          s = p.read_text()
+          anchor = 'import "./library-inspector-density.css";\n'
+          imports = (
+              'import "./discover-visual-freeze.css";\n'
+              'import "./discover-workspace-compression.css";\n'
+              'import "./discover-marketplace-convergence.css";\n'
+              'import "./discover-marketplace-detail.css";\n'
+              'import "./discover-marketplace-breakpoints.css";\n'
+          )
+          if anchor not in s:
+              raise SystemExit('Library import anchor missing')
+          if 'discover-visual-freeze.css' not in s:
+              s = s.replace(anchor, anchor + imports)
+          p.write_text(s)
+          PY
+            git add drive/src/v2/main.jsx
           fi
-          # Keep convergence/release workflow ownership on the integration lineage.
+          # Integration/release workflow ownership stays on this lineage.
           git restore --source=HEAD --staged --worktree .github/workflows
           git add -A
           git commit -m 'merge: converge certified Discover surface'
@@ -66,7 +92,6 @@ jobs:
             drive/src/v2/hps-responsive-fixes.css \
             drive/src/v2/hps-shell-convergence.css \
             drive/src/v2/hpsHomeContinuity.test.js \
-            drive/src/v2/main.jsx \
             drive/src/v2/settingsStore.js \
             drive/src/v2/settingsStore.test.js \
             e2e/hps-functional-convergence.spec.js \
@@ -75,17 +100,40 @@ jobs:
           set +e
           git apply --3way --index /tmp/hps-durable.patch
           rc=$?
+          set -e
           if [ $rc -ne 0 ]; then
             echo 'HPS_CONFLICTS_BEGIN'
             git diff --name-only --diff-filter=U
             echo 'HPS_CONFLICTS_END'
             exit $rc
           fi
+          # HPS styles are deliberately late-loaded and scoped. Add them explicitly
+          # instead of making main.jsx participate in a second three-way merge.
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('drive/src/v2/main.jsx')
+          s = p.read_text()
+          anchor = 'import "./synthesis-workstation.css";\n'
+          imports = (
+              'import "./hps-shell-convergence.css";\n'
+              'import "./hps-responsive-fixes.css";\n'
+          )
+          if anchor not in s:
+              raise SystemExit('Synthesis workstation import anchor missing')
+          if 'hps-shell-convergence.css' not in s:
+              s = s.replace(anchor, imports + anchor)
+          p.write_text(s)
+          PY
+          git add drive/src/v2/main.jsx
           git commit -m 'feat(hps): forward-port certified shell and continuity'
       - name: Fast structural gate
         run: |
           npm ci
-          node --test drive/src/v2/settingsStore.test.js drive/src/v2/hpsHomeContinuity.test.js drive/src/v2/librarySearch.test.js
+          node --test \
+            drive/src/v2/settingsStore.test.js \
+            drive/src/v2/hpsHomeContinuity.test.js \
+            drive/src/v2/librarySearch.test.js \
+            drive/src/v2/discoverStrategyCard.test.js
           npm run build
       - name: Push converged candidate
         run: |
