@@ -13,8 +13,10 @@ test.describe("v2 Library evidence estate", () => {
     await expect(page.locator(".rd-v2-page-head h1", { hasText: "Library" })).toBeVisible();
     const estate = page.getByTestId("library-evidence-estate");
     await expect(estate).toBeVisible();
-    await expect(estate.getByRole("heading", { name: "Evidence estate", exact: true })).toBeVisible();
+    await expect(estate.getByRole("heading", { name: "Research evidence estate", exact: true })).toBeVisible();
     await expect(estate).toHaveAttribute("aria-label", "Research evidence estate");
+    await expect(page.getByTestId("library-auto-catalog")).toBeVisible();
+    await expect(page.getByTestId("library-auto-catalog")).toContainText("Generated from the evidence itself");
     await expect(page.getByTestId("library-evidence-row").first()).toBeVisible();
     await expect(page.getByTestId("library-collection-filter").first()).toBeVisible();
     await expect(page.getByRole("button", { name: /^All$/ })).toBeVisible();
@@ -79,7 +81,7 @@ test.describe("v2 Library evidence estate", () => {
   test("New menu routes upload intake through the rail", async ({ page }) => {
     await page.getByRole("button", { name: "Open new library item menu" }).click();
     await expect(page.getByRole("menu", { name: "New library item" })).toBeVisible();
-    await expect(page.getByRole("menuitem", { name: "New folder" })).toBeDisabled();
+    await expect(page.getByRole("menuitem", { name: "New collection" })).toBeDisabled();
 
     await page.getByRole("menuitem", { name: "Upload file..." }).click();
     const rail = page.locator("aside.rd-v2-rail");
@@ -140,6 +142,8 @@ test.describe("v2 Library navigation", () => {
 
     await expect(page.locator(".rd-v2-header-meta-count")).toContainText("Library asset");
     await expect(page.locator("aside.rd-v2-rail")).toContainText("1 registry reference stays in Discover until acquired");
+    await expect(page.getByTestId("library-available-evidence")).toContainText("Available, not in your Library");
+    await expect(page.getByTestId("library-available-evidence")).toContainText("1 additional catalogue record");
     await page.getByRole("textbox", { name: "Search library holdings" }).fill("Registered reference only");
     await expect(page.getByTestId("library-evidence-estate")).toContainText("No evidence matches the current Library view");
   });
