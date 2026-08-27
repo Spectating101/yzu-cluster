@@ -1,0 +1,49 @@
+name: Frontend convergence integrated visual matrix
+
+on:
+  push:
+    branches:
+      - integration/frontend-convergence-visual-20260828
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install chromium --with-deps
+      - name: Materialize certified HPS visual harness
+        run: |
+          git fetch origin hardening/hps-final-visual-cert-20260828
+          git show origin/hardening/hps-final-visual-cert-20260828:e2e/hps-final-visual-cert.spec.js > e2e/hps-final-visual-cert.spec.js
+          sed -i 's/await advanced\.locator("summary")\.click();/await advanced.locator("summary").first().click();/' e2e/hps-final-visual-cert.spec.js
+      - name: Production build
+        run: npm run build
+      - name: Integrated HPS six-width visual matrix
+        run: |
+          mkdir -p .tmp-pw artifacts/frontend-convergence
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false \
+            npx playwright test e2e/hps-final-visual-cert.spec.js e2e/hps-inner-containment.spec.js --project=chromium --workers=1 --reporter=line
+          echo "production_candidate=51dc6ec57508778eb25387f1017e2fad2c2a962d" > artifacts/frontend-convergence/certification.txt
+          echo "visual_head=${GITHUB_SHA}" >> artifacts/frontend-convergence/certification.txt
+      - name: Upload integrated visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-convergence-hps-visual
+          path: |
+            artifacts
+            test-results
+          if-no-files-found: warn
+          retention-days: 7
