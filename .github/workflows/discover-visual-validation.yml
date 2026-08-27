@@ -56,3 +56,5 @@ jobs:
             artifacts/discover-convergence
             test-results
           if-no-files-found: warn
+
+# Exact-head visual inspection trigger after capability compression hardening.
