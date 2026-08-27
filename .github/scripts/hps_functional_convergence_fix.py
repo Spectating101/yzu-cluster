@@ -45,4 +45,12 @@ replace_once(
           }}''',
 )
 
+# A durable Synthesis thread has one valid workspace destination. Do not let a
+# generic point.tab value reinterpret that typed handoff as Discover or Library.
+replace_once(
+    "drive/src/v2/HomePage.jsx",
+    '      onGoTab?.(point.tab || "synthesis");',
+    '      onGoTab?.("synthesis");',
+)
+
 print("HPS functional convergence follow-up fixes applied")
