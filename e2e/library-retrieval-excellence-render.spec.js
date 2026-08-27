@@ -36,6 +36,7 @@ test.describe("Library retrieval excellence", () => {
     const rows = page.getByTestId("library-evidence-row");
     await expect(rows.first()).toBeVisible();
     await expect(rows.first().getByTestId("library-search-match")).toContainText("field · country_iso3");
+    await expect(page.getByRole("columnheader", { name: "Type" })).toBeVisible();
     await expect(page.getByTestId("library-sort-filter")).toHaveValue("relevance");
 
     await rows.first().focus();
@@ -47,7 +48,7 @@ test.describe("Library retrieval excellence", () => {
     }
     await page.keyboard.press("Enter");
     await expect(page.getByTestId("library-asset-inspector")).toBeVisible();
-    await page.getByRole("button", { name: "← All Library assets" }).click();
+    await page.getByRole("button", { name: "Close asset inspector" }).click();
 
     await page.screenshot({ path: `${OUT}/18-retrieval-field-1440.png`, fullPage: true });
   });

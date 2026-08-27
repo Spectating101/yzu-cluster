@@ -98,8 +98,8 @@ export function LibraryEvidenceEstate({
   onResetFilters,
 }) {
   const visibleAssets = assets;
-  const showKind = visibleAssets.some((item) => presentationKind(item?.row || item) !== "dataset");
-  const ledgerClass = `rd-v2-cap-ledger with-verify${showKind ? " show-kind" : ""}`;
+  const showKind = true;
+  const ledgerClass = "rd-v2-cap-ledger with-verify show-kind";
   const query = String(searchQuery || "").trim();
   const filteredSearchMiss = Boolean(query && searchMatchCount > 0 && !visibleAssets.length);
   const trueSearchMiss = Boolean(query && searchMatchCount === 0);

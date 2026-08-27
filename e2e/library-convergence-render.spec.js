@@ -209,7 +209,7 @@ async function openAsset(page, title) {
 }
 
 async function backToRoot(page) {
-  await page.getByRole("button", { name: "← All Library assets" }).click();
+  await page.getByRole("button", { name: "Close asset inspector" }).click();
   await expect(page.getByTestId("library-evidence-estate")).toBeVisible();
 }
 

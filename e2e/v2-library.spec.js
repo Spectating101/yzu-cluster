@@ -23,6 +23,7 @@ test.describe("v2 Library evidence estate", () => {
     await expect(page.getByTestId("library-sort-filter")).toHaveValue("name");
     await expect(page.getByTestId("research-situation")).toContainText("Library");
     await expect(page.locator("aside.rd-v2-rail")).toContainText("In this library");
+    await expect(page.locator("aside.rd-v2-rail .rd-v2-rail-ehead")).toHaveCount(1);
     await expect(page.locator("aside.rd-v2-rail")).toContainText("Add evidence");
     await expect(page.locator("aside.rd-v2-rail")).not.toContainText("Branch actions");
     await expect(page.locator("aside.rd-v2-rail")).not.toContainText("Upload here");
@@ -103,7 +104,7 @@ test.describe("v2 Library evidence estate", () => {
     await expect(page.getByTestId("library-source-readiness")).toContainText("Query ready");
     await provenance.getByRole("button", { name: "Close inspection" }).click();
 
-    await page.getByRole("button", { name: "← All Library assets" }).click();
+    await page.getByRole("button", { name: "Close asset inspector" }).click();
     await expect(inspector).toHaveCount(0);
     await expect(page.getByTestId("library-evidence-estate")).toBeVisible();
   });
