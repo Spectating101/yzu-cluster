@@ -177,12 +177,12 @@ test.describe("v2 Library navigation", () => {
     const estate = page.getByTestId("library-evidence-estate");
     await expect(estate).toBeVisible();
     await expect(page.getByTestId("library-evidence-row").filter({ hasText: "Asia daily news-risk panel" })).toBeVisible();
-    await expect(page.getByTestId("library-collections-loading")).toContainText("Research collections are still loading");
+    await expect(page.locator(".rd-v2-toolbar-count")).toContainText("Organizing collections");
     await expect(page.getByText("ungrouped", { exact: true })).toHaveCount(0);
 
     await expect(page.getByTestId("library-collection-filter").filter({ hasText: "Markets" })).toBeVisible();
     await expect(page.getByTestId("library-collection-filter").filter({ hasText: "News" })).toBeVisible();
-    await expect(page.getByTestId("library-collections-loading")).toHaveCount(0);
+    await expect(page.locator(".rd-v2-toolbar-count")).not.toContainText("Organizing collections");
     await expect(page.getByText("ungrouped", { exact: true })).toHaveCount(0);
   });
 
