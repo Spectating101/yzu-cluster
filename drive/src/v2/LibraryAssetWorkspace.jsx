@@ -31,14 +31,37 @@ function recordTerms(dataset) {
 }
 
 function limitation(dataset, fields) {
-  return value(
-    dataset?.limitations,
-    dataset?.caveats,
-    fields.limitations,
-    statusPillKind(dataset).kind === "registered"
-      ? "Registration does not establish a verified local query path."
-      : "The registry does not declare a material limitation for this asset.",
-  );
+  const explicit = [dataset?.limitations, dataset?.caveats, fields.limitations]
+    .map((item) => String(item || "").trim())
+    .find(Boolean);
+  if (explicit) return explicit;
+
+  const state = statusPillKind(dataset).kind;
+  if (state === "connected") {
+    return "A live source connection does not establish instant local query access or a materialized local copy.";
+  }
+  if (state === "remote") {
+    return "Metadata availability does not establish a queryable local asset.";
+  }
+  if (state === "registered") {
+    return "Registration does not establish a verified local query path.";
+  }
+  if (state === "queued") {
+    return "Queued acquisition does not establish that the requested evidence has been obtained.";
+  }
+  if (state === "failed") {
+    return "A failed asset path does not establish usable evidence until the failure is resolved.";
+  }
+  if (state === "warn") {
+    return "The current readiness warning prevents this asset from establishing analysis-ready evidence.";
+  }
+  if (state === "unknown") {
+    return "Current metadata does not establish a usable query path or complete evidence boundary.";
+  }
+  if (state === "query-ready") {
+    return "Query readiness establishes access, not field completeness or fitness for every research design.";
+  }
+  return "The current registry record does not establish this asset's full research boundary.";
 }
 
 function AssetOverlay({ kind, dataset, fields, presentation, onClose }) {
@@ -177,6 +200,17 @@ function EvidenceShape({ dataset, fields, presentation, rowCount, state }) {
         <div><dt>Source</dt><dd>{value(fields.source, dataset?.source_system, dataset?.publisher)}</dd></div>
         <div><dt>Access</dt><dd>{value(dataset?.access_mode, dataset?.access_shape, dataset?.backend)}</dd></div>
         <div><dt>Library state</dt><dd>{state.label}</dd></div>
+      </dl>
+    );
+  }
+  if (presentation.kind === "live_source") {
+    return (
+      <dl className="rd-v2-library-evidence-facts">
+        <div><dt>Object type</dt><dd>{state.kind === "connected" ? "Connected source" : "Live source"}</dd></div>
+        <div><dt>Source</dt><dd>{value(fields.source, dataset?.source_system)}</dd></div>
+        <div><dt>Access route</dt><dd>{value(dataset?.collect_via, dataset?.backend, fields.access)}</dd></div>
+        <div><dt>Coverage</dt><dd>{value(fields.coverage, dataset?.coverage)}</dd></div>
+        <div><dt>Use state</dt><dd>{state.label}</dd></div>
       </dl>
     );
   }
