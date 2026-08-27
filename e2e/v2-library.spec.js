@@ -24,7 +24,7 @@ test.describe("v2 Library evidence estate", () => {
     await expect(page.getByRole("button", { name: /^Not query-ready / })).toBeVisible();
     await expect(page.getByTestId("research-situation")).toContainText("Library");
     await expect(page.locator("aside.rd-v2-rail")).toContainText("In this library");
-    await expect(page.locator("aside.rd-v2-rail")).toContainText("Add data");
+    await expect(page.locator("aside.rd-v2-rail")).toContainText("Add evidence");
     await expect(page.locator("aside.rd-v2-rail")).not.toContainText("Branch actions");
     await expect(page.locator("aside.rd-v2-rail")).not.toContainText("Upload here");
   });
@@ -212,7 +212,7 @@ test.describe("v2 Library navigation", () => {
     await page.locator("aside.yzu-sidebar").getByRole("button", { name: "Library", exact: true }).click();
     await expect(page.getByTestId("research-situation")).toContainText("Library");
     await expect(page.locator("aside.rd-v2-rail")).toContainText("In this library");
-    await expect(page.locator("aside.rd-v2-rail")).toContainText("Add data");
+    await expect(page.locator("aside.rd-v2-rail")).toContainText("Add evidence");
     await expect(page.locator("aside.rd-v2-rail")).not.toContainText("Upload here");
   });
 
