@@ -206,7 +206,7 @@ test.describe("Discover offering inspector", () => {
     await page.getByTestId("discover-ranked-results").locator("button.rd-v2-discover-candidate").click();
 
     const rail = page.locator("aside.rd-v2-rail");
-    await rail.getByRole("button", { name: "Open source", exact: true }).click();
+    await rail.getByRole("button", { name: "Inspect source", exact: true }).click();
     const dialog = page.getByRole("dialog", { name: /Observed governance sample preview/i });
     await expect(dialog).toBeVisible();
     await expect(dialog).toContainText("External data inspector");
