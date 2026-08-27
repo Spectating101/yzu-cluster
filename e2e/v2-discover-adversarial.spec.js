@@ -203,7 +203,7 @@ test.describe("Discover adversarial lifecycle", () => {
     await expect(capacity).not.toContainText(/assigned worker|assigned quota/i);
   });
 
-  test("capacity failure is explicit and never converted into an availability claim", async ({ page }) => {
+  test("failed full capacity refresh exposes only surviving measured facts", async ({ page }) => {
     await mockV2Api(page, {
       discoverBody: MOCK_DISCOVER_HIT,
       assessmentBody: MOCK_DISCOVER_ASSESSMENT,
@@ -216,10 +216,14 @@ test.describe("Discover adversarial lifecycle", () => {
 
     const capacity = page.locator('[aria-label="Execution capacity"]');
     await expect(capacity).toBeVisible();
-    await expect(capacity).toHaveAttribute("data-state", "unavailable");
-    await expect(capacity).toContainText("Measured capacity is unavailable");
-    await expect(capacity).toContainText("Do not assume compute, storage, or quota");
+    await expect(capacity).toHaveAttribute("data-state", "partial");
+    await expect(capacity).toContainText("Full resource refresh failed");
+    await expect(capacity).toContainText("do not infer missing compute, storage, or quota");
+    // /health independently measures the vault in this fixture, so it may be
+    // retained. Fleet and BigQuery belong to the failed full rollup and must not
+    // be invented from their absence.
+    await expect(capacity).toContainText("GDrive vault");
+    await expect(capacity).not.toContainText(/Collector fleet|BigQuery/);
     await expect(capacity).toContainText("No worker or quota is assigned here.");
-    await expect(capacity).not.toContainText(/Collector fleet|BigQuery|GDrive vault/);
   });
 });
