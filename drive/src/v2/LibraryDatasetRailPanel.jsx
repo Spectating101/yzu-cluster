@@ -2,15 +2,12 @@ import {
   canIUseDecision,
   demotionSentence,
   detailFields,
-  displayName,
   hydrateRemedy,
   libraryAssetPresentation,
   statusPillKind,
 } from "@/v2/datasetMeta";
-import { assetTypeLabel } from "@/v2/libraryEstate";
 import { libraryVerification } from "@/v2/libraryVerification";
-import { RailEntityHeader, RailFrame, RailStickyFooter } from "@/v2/RailFrame";
-import { StatusPill } from "@/v2/StatusPill";
+import { RailFrame, RailStickyFooter } from "@/v2/RailFrame";
 
 export function decisionFor(dataset) {
   const presentation = libraryAssetPresentation(dataset);
@@ -63,10 +60,15 @@ function unknowns(dataset, fields, presentation) {
     out.push("Freshness / last refresh not described");
   }
   if (!fields.joinKeys?.length) out.push("Join keys / schema relationship not described");
-  const limitations = dataset?.limitations || dataset?.caveats || fields.limitations;
-  if (limitations) out.push(String(limitations).slice(0, 160));
-  else out.push("Known caveats not described");
+  if (!(dataset?.limitations || dataset?.caveats || fields.limitations)) out.push("Known caveats not described");
   return out;
+}
+
+function knownBoundaries(dataset, fields) {
+  const raw = dataset?.limitations || dataset?.caveats || fields.limitations;
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw.map((item) => String(item).trim()).filter(Boolean);
+  return [String(raw).trim()].filter(Boolean);
 }
 
 function Fact({ label, value, mono = false }) {
@@ -97,9 +99,9 @@ function askLabel(presentation, state) {
 
 /**
  * The centre workspace owns asset substance (table/schema, coverage, grain,
- * research use). The rail stays complementary: decision, provenance authority,
- * verification, unresolved facts, and Ask. Both decisions and unresolved facts
- * are type-aware so non-tabular assets never inherit dataframe assumptions.
+ * research use). The global situation strip owns selected-asset identity. The
+ * rail is therefore purely decisional: usability, provenance authority,
+ * verification, known boundaries, unresolved facts, and Ask.
  */
 export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onAskAbout }) {
   if (!dataset) return null;
@@ -108,6 +110,7 @@ export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onAskAbo
   const state = statusPillKind(dataset);
   const decision = decisionFor(dataset);
   const missing = unknowns(dataset, fields, presentation);
+  const boundaries = knownBoundaries(dataset, fields);
   const updated = dataset.updated_at || dataset.last_modified || dataset.as_of;
   const route = dataset.collect_via || dataset.backend;
   const verification = libraryVerification(dataset);
@@ -116,12 +119,6 @@ export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onAskAbo
 
   return (
     <RailFrame>
-      <RailEntityHeader
-        title={displayName(dataset)}
-        description={assetTypeLabel(dataset)}
-        pills={<StatusPill dataset={dataset} />}
-      />
-
       <section
         className={`rd-v2-library-inspector-decision rd-v2-library-inspector-decision-${state.kind}`}
         aria-label="Can I use this?"
@@ -174,6 +171,15 @@ export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onAskAbo
             </ul>
           ) : null}
         </section>
+
+        {boundaries.length ? (
+          <section className="rd-v2-library-inspector-block" aria-label="Known boundary" data-testid="library-known-boundary">
+            <p className="rd-v2-rail-section-label">Known boundary</p>
+            <ul className="rd-v2-library-verify-list known">
+              {boundaries.map((item) => <li key={item}><span aria-hidden>•</span>{item}</li>)}
+            </ul>
+          </section>
+        ) : null}
 
         {missing.length ? (
           <section className="rd-v2-library-inspector-block rd-v2-library-inspector-unknown" aria-label="Still unknown">
