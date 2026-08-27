@@ -29,7 +29,7 @@ jobs:
         run: |
           mkdir -p .tmp-pw artifacts/hps-visual
           TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false \
-            npx playwright test e2e/hps-visual-qa.spec.js --reporter=line
+            npx playwright test e2e/hps-visual-qa.spec.js e2e/hps-inner-containment.spec.js --reporter=line
       - name: Upload HPS renders and metrics
         if: always()
         uses: actions/upload-artifact@v4
