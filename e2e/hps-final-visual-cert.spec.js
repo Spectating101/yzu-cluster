@@ -239,7 +239,7 @@ test.describe("HPS final visual certification", () => {
         });
 
         if (surface.tab === "settings") {
-          const advanced = page.locator("details.rd-v2-settings-advanced");
+          const advanced = page.locator("details.rd-v2-settings-advanced").filter({ hasText: "System status and technical details" }).first();
           await expect(advanced).toBeVisible();
           await expect(advanced).not.toHaveAttribute("open", "");
           await advanced.locator("summary").click();
