@@ -140,8 +140,18 @@ replace_once(
 )
 
 # Capacity authority: App intentionally distinguishes undefined (still checking),
-# object (measured), and null (unavailable). Do not erase that distinction with
-# a default value, and never make decision-relevant capacity silently disappear.
+# object (measured), and null (unavailable). Preserve that tri-state through every
+# component boundary and never make decision-relevant capacity silently disappear.
+replace_once(
+    "drive/src/v2/BrowsePage.jsx",
+    '''  resourcesRollup = null,
+  deskHealth = null,
+''',
+    '''  resourcesRollup,
+  deskHealth = null,
+''',
+    "BrowsePage preserves resources rollup tri-state",
+)
 replace_once(
     "drive/src/v2/DiscoverEvidenceBrief.jsx",
     '''  assessmentValue = null,
@@ -152,7 +162,7 @@ replace_once(
   resourcesRollup,
   deskHealth = null,
 ''',
-    "preserve resources rollup tri-state",
+    "EvidenceBrief preserves resources rollup tri-state",
 )
 replace_once(
     "drive/src/v2/DiscoverEvidenceBrief.jsx",
