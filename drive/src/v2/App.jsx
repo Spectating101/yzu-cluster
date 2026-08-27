@@ -61,7 +61,13 @@ import { buildLab, PILOT_PREVIEW_EMAIL } from "@/v2/profileViewModel";
 import { mergeHealth, resolveCatalog } from "@/v2/deskSeed";
 import { projectRollupFromHealth } from "@/v2/homeIteration10";
 import { buildDeskIntegrationChips } from "@/v2/deskIntegration";
-import { loadSettings } from "@/v2/settingsStore";
+import {
+  discoverScopeIsWide,
+  loadSettings,
+  rememberResearchSurface,
+  selectionRailTab,
+  startupTab,
+} from "@/v2/settingsStore";
 import {
   buildAddToLabDisplayText,
   buildAddToLabPrompt,
@@ -97,7 +103,7 @@ function readParams() {
   // selected dataset in its inspector, but writeParams makes that ownership
   // explicit with tab=home so copied dataset-only URLs never open a split
   // Home-canvas / Library-inspector state.
-  const rawTab = p.get("tab") || (dataset ? "library" : "") || loadSettings().defaultTab || "home";
+  const rawTab = p.get("tab") || (dataset ? "library" : "") || startupTab() || "home";
   const folder = p.get("folder") || "";
   const q = p.get("q") || "";
   let tab = normalizeReleaseTab(canonicalTab(rawTab));
@@ -193,6 +199,9 @@ export function V2App() {
   const setTab = useCallback((next) => {
     setTabRaw((prev) => canonicalTab(typeof next === "function" ? next(prev) : next));
   }, []);
+  useEffect(() => {
+    rememberResearchSurface(tab);
+  }, [tab]);
   const [folderId, setFolderId] = useState(() => readParams().folder);
   const [selectedId, setSelectedId] = useState(() => readParams().dataset);
   const [browseRow, setBrowseRow] = useState(null);
@@ -239,7 +248,7 @@ export function V2App() {
     result: null,
   });
   /** The current Explore query is using live source adapters after Search wider. */
-  const [discoverPreferLive, setDiscoverPreferLive] = useState(false);
+  const [discoverPreferLive, setDiscoverPreferLive] = useState(() => discoverScopeIsWide());
   /** A Synthesis evidence gap routed to Discover — cleared on Dismiss or Return. */
   const [synthesisDiscoverHandoff, setSynthesisDiscoverHandoff] = useState(null);
   /** One-shot: Synthesis should reselect this exact thread after a Discover return. */
@@ -753,9 +762,12 @@ export function V2App() {
   const goTab = useCallback(
     (id, opts = {}) => {
       const next = normalizeReleaseTab(canonicalTab(id));
+      if (next === DISCOVER_TAB && !opts.preserveDiscoverScope) {
+        setDiscoverPreferLive(discoverScopeIsWide());
+      }
       if (next === "library") {
         setTab(next);
-        setRailTab("detail");
+        setRailTab((current) => loadSettings().onSelect === "keep" ? current : "detail");
         if (opts.keepSelection) {
           syncUrl({ tab: next, preview: false });
           return;
@@ -781,7 +793,9 @@ export function V2App() {
       setDiscoverIntentRecord(null);
       setDiscoverAssessment({ active: false, question: "", result: null });
       setDiscoverSearchQuery(String(field.label || field.dataset_id || "").trim());
-      goTab("browse");
+      // Synthesis evidence gaps always begin with held/known evidence before federation.
+      setDiscoverPreferLive(false);
+      goTab("browse", { preserveDiscoverScope: true });
     },
     [goTab],
   );
@@ -803,7 +817,7 @@ export function V2App() {
       setActiveObject(datasetObject(row));
       touchRecent(id);
       setRecentEpoch((n) => n + 1);
-      setRailTab(loadSettings().onSelect === "ask" ? "ask" : "detail");
+      setRailTab((current) => selectionRailTab(current));
       syncUrl({ dataset: id, preview: false });
       setPreviewOpen(false);
     },
@@ -826,7 +840,7 @@ export function V2App() {
       setPreviewTarget(null);
       touchRecent(id);
       setRecentEpoch((n) => n + 1);
-      setRailTab(loadSettings().onSelect === "ask" ? "ask" : "detail");
+      setRailTab((current) => selectionRailTab(current));
       syncUrl({ tab: "library", dataset: id, preview: false });
     },
     [goTab, syncUrl],
@@ -841,7 +855,7 @@ export function V2App() {
       if (!id) {
         setSelectedId((current) => (current ? "" : current));
         setDetail((current) => (current ? null : current));
-        setActiveObject((current) => (current ? null : current));
+        setActiveObject(point ? homeAttentionObject(point) : null);
         writeParams({ tab: "home", dataset: "", folder: "", preview: false, q: "", mode: "" });
         return;
       }
@@ -896,7 +910,7 @@ export function V2App() {
       // Wider discovery is deliberate. It does not silently start an Ask turn.
       setDiscoverPreferLive(true);
       setDiscoverSearchQuery(q);
-      goTab("browse");
+      goTab("browse", { preserveDiscoverScope: true });
       syncUrl({ tab: "browse", q });
     },
     [discoverSearchQuery, goTab, syncUrl],
@@ -922,7 +936,7 @@ export function V2App() {
         question: q,
         search_query: q,
       });
-      goTab("browse");
+      goTab("browse", { preserveDiscoverScope: true });
       syncUrl({ tab: "browse", q });
       setRailTab("ask");
       setPendingAsk({ prompt, displayText: q });
@@ -1553,9 +1567,13 @@ export function V2App() {
           onSelectDataset={openLibraryDataset}
           onPreviewDataset={openPreview}
           onPrimaryResume={activateHomeResume}
+          onResumeSynthesisThread={(thread) => {
+            if (!thread?.id) return;
+            setFocusSynthesisThreadId(thread.id);
+            setActiveObject(synthesisThreadObject(thread));
+          }}
           onAskAttention={askHomeAttention}
           onSuggestSearch={(q) => {
-            setDiscoverPreferLive(false);
             setDiscoverSearchQuery(q);
             goTab("browse");
           }}
@@ -1703,7 +1721,7 @@ export function V2App() {
                   : { candidateKey: "", loading: false, result: null, error: "" },
             );
             setActiveObject(externalCandidateObject(stamped));
-            setRailTab("detail");
+            setRailTab((current) => selectionRailTab(current));
           }}
         />
       );
@@ -1765,13 +1783,9 @@ export function V2App() {
       main = (
         <ProfilePage
           profile={profile}
+          libraryHoldings={heldLibraryRows}
           onGoTab={goTab}
           onProfileRefresh={reloadProfile}
-          onSuggestSearch={(q) => {
-            setSearchQuery(q);
-            setTab("browse");
-            syncUrl({ tab: "browse", q });
-          }}
         />
       );
       break;
@@ -1787,6 +1801,11 @@ export function V2App() {
           resourcesRollup={resourcesRollup}
           onProfileRefresh={reloadProfile}
           onToast={showToast}
+          onSettingsChange={(next, change) => {
+            if (Object.prototype.hasOwnProperty.call(change || {}, "discoverScope")) {
+              setDiscoverPreferLive(next.discoverScope === "wide");
+            }
+          }}
         />
       );
       break;

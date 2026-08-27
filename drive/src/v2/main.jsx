@@ -21,6 +21,8 @@ import "./discover-marketplace-convergence.css";
 import "./discover-marketplace-detail.css";
 import "./discover-marketplace-breakpoints.css";
 import "./synthesis-workstation.css"; /* >=1600px Synthesis density and proof layout */
+import "./hps-shell-convergence.css";
+import "./hps-responsive-fixes.css";
 import { InteractionProvider } from "./InteractionGuidance.jsx";
 import { V2App } from "./App.jsx";
 

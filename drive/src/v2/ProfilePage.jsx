@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { facultyProfile } from "@/v2/api";
 import { saveUserEmail } from "@/v2/deskSession";
 import {
@@ -20,14 +20,34 @@ function memoryLabel(card) {
   if (card?.id === "methods") return "Methods";
   if (card?.id === "also") return "Research context";
   if (card?.id === "current") return "Current research direction";
-  return "Research memory";
+  return "Research context";
+}
+
+function holdingIds(rows = []) {
+  const ids = new Set();
+  for (const row of rows || []) {
+    const id = String(row?.dataset_id || row?.id || "").trim();
+    if (id) ids.add(id);
+  }
+  return ids;
+}
+
+function evidenceRelationship(row, heldIds) {
+  const ids = (row?.datasetIds || []).map((id) => String(id || "").trim()).filter(Boolean);
+  const held = ids.some((id) => heldIds.has(id));
+  return {
+    ...row,
+    held,
+    status: held ? "Held in Library" : "Recorded link · holding not confirmed",
+  };
 }
 
 /**
- * Profile — Memory · Works · Lab (PROFILE_GROUNDED_FREEZE).
- * Unbound desk shows labelled EXAMPLE pilot from faculty registry.
+ * Profile is an epistemic record, not a routing dashboard. It reports registry
+ * facts and recorded research relationships, while Library remains possession
+ * authority for whether evidence is actually held.
  */
-export function ProfilePage({ profile, onGoTab, onSuggestSearch, onProfileRefresh }) {
+export function ProfilePage({ profile, libraryHoldings = [], onGoTab, onProfileRefresh }) {
   const bound = Boolean(profile && !profile.unknown);
   const [pilot, setPilot] = useState(null);
   const [pilotLoading, setPilotLoading] = useState(!bound);
@@ -73,47 +93,50 @@ export function ProfilePage({ profile, onGoTab, onSuggestSearch, onProfileRefres
   const lab = buildLab(active);
   const currentMemory = memory.find((card) => card.id === "current") || null;
   const savedMemory = memory.filter((card) => card.id !== "current");
-  const savedCount = memory.length;
-
-  const runQuery = (q) => {
-    const query = String(q || "").trim();
-    if (query && onSuggestSearch) {
-      onSuggestSearch(query);
-      return;
-    }
-    onGoTab?.("browse");
-  };
+  const heldIds = useMemo(() => holdingIds(libraryHoldings), [libraryHoldings]);
+  const relationships = useMemo(
+    () => (lab.linked || []).map((row) => evidenceRelationship(row, heldIds)),
+    [lab.linked, heldIds],
+  );
+  const heldRelationships = relationships.filter((row) => row.held).length;
 
   return (
     <PageShell
       className={`rd-v2-profile-page rd-v2-profile-grounded${previewing ? " is-preview" : ""}`}
       title="Profile"
-      lead="Research memory carried into Discover and Ask"
+      lead="What Research Drive currently knows about this researcher"
       surfaceState={surfaceState}
     >
-      <section className="rd-v2-profile-identity" aria-label="Faculty identity">
+      <section className="rd-v2-profile-identity" aria-label="Researcher identity">
         <div className="rd-v2-profile-ident">
-          <span className="rd-v2-profile-kicker">Research memory</span>
+          <span className="rd-v2-profile-kicker">Researcher record</span>
           {previewing ? <span className="rd-v2-profile-badge">Example</span> : null}
           <h2 className="rd-v2-profile-name">{name}</h2>
           {orgLine ? <p className="rd-v2-profile-org">{orgLine}</p> : null}
           <p className="rd-v2-profile-hint">
             {email || "—"}
             {previewing ? " · Example · pilot faculty" : ""}
+            {active ? " · Source · faculty registry" : ""}
           </p>
         </div>
         <div className="rd-v2-profile-identity-side">
-          <div className="rd-v2-profile-identity-metrics" aria-label="Research memory summary">
+          <div className="rd-v2-profile-identity-metrics" aria-label="Researcher record summary">
             {paperCount ? (
               <span>
                 <strong>{paperCount}</strong>
                 <em>indexed works</em>
               </span>
             ) : null}
-            {savedCount ? (
+            {memory.length ? (
               <span>
-                <strong>{savedCount}</strong>
-                <em>saved contexts</em>
+                <strong>{memory.length}</strong>
+                <em>context fields</em>
+              </span>
+            ) : null}
+            {relationships.length ? (
+              <span>
+                <strong>{heldRelationships}/{relationships.length}</strong>
+                <em>links held</em>
               </span>
             ) : null}
           </div>
@@ -148,19 +171,14 @@ export function ProfilePage({ profile, onGoTab, onSuggestSearch, onProfileRefres
           data-testid="profile-memory"
           aria-labelledby="profile-memory-title"
         >
-          {/* VC-1: research memory stays editable — it drives Discover ranking,
-              Ask context, and Synthesis constraints. No completion score. */}
           <header className="rd-v2-profile-section-head">
             <div>
-              <h2 id="profile-memory-title">Research memory</h2>
+              <h2 id="profile-memory-title">Research context on record</h2>
               <p>
-                Context Research Drive should remember while finding and evaluating evidence.
-                It shapes Discover ranking, Ask context, and Synthesis constraints.
+                Specialties, methods, and research tracks recorded by the faculty registry. Displaying them here does not claim that every workflow currently personalizes itself from them.
               </p>
             </div>
-            <button type="button" className="rd-v2-btn sm" onClick={() => onGoTab?.("settings")}>
-              Edit research memory
-            </button>
+            <span>Registry-backed</span>
           </header>
           <div className="rd-v2-profile-memory-layout">
             <ul className="rd-v2-profile-memory">
@@ -180,32 +198,21 @@ export function ProfilePage({ profile, onGoTab, onSuggestSearch, onProfileRefres
               <article className="rd-v2-profile-memory-anchor" data-memory="current">
                 <span>Current research direction</span>
                 <strong>{memoryText(currentMemory, "Current")}</strong>
-                <p>Used when finding and evaluating evidence.</p>
+                <p>Recorded in the faculty registry.</p>
               </article>
             ) : null}
           </div>
         </section>
-      ) : (bound || previewing) && !memory.length ? (
-        <section className="rd-v2-profile-section" data-testid="profile-memory-thin" aria-label="Research memory">
-          {/* VC-1: an empty research memory must offer a way to improve it —
-              it changes Discover ranking, Ask context, and Synthesis
-              constraints, so a dead read-only record is not enough. */}
+      ) : (bound || previewing) ? (
+        <section className="rd-v2-profile-section" data-testid="profile-memory-thin" aria-label="Research context on record">
           <header className="rd-v2-profile-section-head">
             <div>
-              <h2>Research memory</h2>
-              <p>Thin faculty profiles keep this empty rather than inventing research context.</p>
+              <h2>Research context on record</h2>
+              <p>Thin faculty profiles stay thin rather than inventing researcher context.</p>
             </div>
+            <span>Registry-backed</span>
           </header>
-          <p className="rd-v2-empty-inline">No research direction saved.</p>
-          <p className="rd-v2-profile-memory-effect">
-            Research memory shapes Discover ranking, the context Ask carries, and the
-            constraints Synthesis applies.
-          </p>
-          <div className="rd-v2-profile-memory-actions">
-            <button type="button" className="rd-v2-btn sm primary" onClick={() => onGoTab?.("settings")}>
-              Add research focus
-            </button>
-          </div>
+          <p className="rd-v2-empty-inline">No specialties, methods, or current research direction are recorded.</p>
         </section>
       ) : null}
 
@@ -218,7 +225,7 @@ export function ProfilePage({ profile, onGoTab, onSuggestSearch, onProfileRefres
           <header className="rd-v2-profile-section-head">
             <div>
               <h2 id="profile-works-title">Works</h2>
-              <p>Research output that helps ground recurring evidence needs.</p>
+              <p>Indexed publication information retained in the faculty record.</p>
             </div>
             {works.paperCount ? <span>{works.paperCount} indexed</span> : null}
           </header>
@@ -228,7 +235,6 @@ export function ProfilePage({ profile, onGoTab, onSuggestSearch, onProfileRefres
                 <li key={work.raw}>
                   <span>{String(index + 1).padStart(2, "0")}</span>
                   <strong>{work.title}</strong>
-                  <em aria-hidden>→</em>
                 </li>
               ))}
             </ol>
@@ -246,84 +252,46 @@ export function ProfilePage({ profile, onGoTab, onSuggestSearch, onProfileRefres
         >
           <header className="rd-v2-profile-section-head">
             <div>
-              <h2 id="profile-lab-title">Library connections</h2>
-              <p>Library evidence already attached to this research context, and useful next connections.</p>
+              <h2 id="profile-lab-title">Research evidence relationships</h2>
+              <p>
+                Evidence relationships recorded in the faculty registry, reconciled against the current Library. Library—not Profile—is the authority for whether an asset is actually held.
+              </p>
             </div>
-            <span>Linked · next</span>
+            <span>{heldRelationships} held · {relationships.length} recorded</span>
           </header>
 
-          <div className="rd-v2-profile-lab-grid">
-            <div className="rd-v2-profile-lab-block">
-              <h3 className="rd-v2-profile-lab-label">Linked to you</h3>
-              {lab.linked.length ? (
-                <ul className="rd-v2-profile-lab-rows">
-                  {lab.linked.map((row) => (
-                    <li key={row.id}>
-                      <span className="rd-v2-profile-lab-title" title={row.label}>
-                        {row.label}
-                      </span>
-                      <button
-                        type="button"
-                        className="rd-v2-profile-lab-action"
-                        onClick={() => runQuery(row.label)}
-                      >
-                        {row.routeLabel} · Open →
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <div data-testid="profile-lab-linked-empty">
-                  <p className="rd-v2-empty-inline">No evidence linked to this profile.</p>
-                  <button
-                    type="button"
-                    className="rd-v2-btn sm"
-                    onClick={() => onGoTab?.("library")}
-                  >
-                    Find relevant Library assets
-                  </button>
-                </div>
-              )}
-            </div>
+          {relationships.length ? (
+            <ul className="rd-v2-profile-lab-rows">
+              {relationships.map((row) => (
+                <li key={row.id}>
+                  <span className="rd-v2-profile-lab-title" title={row.label}>
+                    {row.label}
+                    <em> — {row.routeLabel}</em>
+                  </span>
+                  <span className="rd-v2-profile-lab-action" data-held={row.held ? "true" : "false"}>
+                    {row.status}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="rd-v2-empty-inline">No evidence relationships are recorded for this researcher.</p>
+          )}
 
-            <div className="rd-v2-profile-lab-block rd-v2-profile-lab-suggested">
-              <h3 className="rd-v2-profile-lab-label">Suggested</h3>
-              {lab.suggested.length ? (
-                <ul className="rd-v2-profile-lab-rows">
-                  {lab.suggested.map((row) => (
-                    <li key={row.id}>
-                      <span className="rd-v2-profile-lab-title" title={row.label}>
-                        {row.label}
-                        <em> — {row.reason}</em>
-                      </span>
-                      <button
-                        type="button"
-                        className="rd-v2-profile-lab-action"
-                        onClick={() => runQuery(row.query)}
-                      >
-                        {row.action === "link" ? "Link →" : "Search →"}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="rd-v2-empty-inline">
-                  Suggestions appear after a research focus is saved.
-                </p>
-              )}
-            </div>
-          </div>
+          <p className="rd-v2-profile-memory-effect" data-testid="profile-suggestion-boundary">
+            Suggested evidence belongs to Home and Discover. A recommendation is not a researcher fact and is not part of this profile.
+          </p>
         </section>
       ) : !pilotLoading ? (
         <p className="rd-v2-profile-loading" data-testid="profile-know-empty">
-          Bind a YZU faculty email in Settings, or load the example research memory.
+          Bind a YZU faculty email in Settings, or load the example researcher record.
         </p>
       ) : null}
     </PageShell>
   );
 }
 
-/** DETAIL rail content for Profile — Scholar / Strengths / Desk. */
+/** DETAIL rail for Profile: registry identity, curated strengths, and source boundary. */
 export function ProfileDetailPanel({ profile }) {
   const bound = Boolean(profile && !profile.unknown);
   const [pilot, setPilot] = useState(null);
@@ -366,20 +334,20 @@ export function ProfileDetailPanel({ profile }) {
       </section>
       {read.strengths.length ? (
         <section className="rd-v2-profile-rail-block">
-          <h3>Strengths</h3>
+          <h3>Registry strengths</h3>
           <ul>
-            {read.strengths.map((s) => (
-              <li key={s}>{s}</li>
+            {read.strengths.map((strength) => (
+              <li key={strength}>{strength}</li>
             ))}
           </ul>
         </section>
       ) : null}
-      {read.desk ? (
-        <section className="rd-v2-profile-rail-block">
-          <h3>Desk</h3>
-          <p>{read.desk}</p>
-        </section>
-      ) : null}
+      <section className="rd-v2-profile-rail-block">
+        <h3>Record source</h3>
+        <p>
+          Faculty registry{active.email ? ` · ${active.email}` : ""}. Library separately confirms evidence possession.
+        </p>
+      </section>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { listSynthesisThreads } from "@/v2/api";
 import { resolveCapacityMark } from "@/v2/capacityMarks";
 import { GuidedState, Skeleton } from "@/v2/InteractionFeedback";
 import { HomeSuggestedAsks } from "@/v2/HomeSuggestedAsks";
@@ -13,16 +14,6 @@ import {
   buildResourceHeadroom,
   projectRollupFromHealth,
 } from "@/v2/homeIteration10";
-
-/**
- * Home — Iteration 10 freeze
- * docs/HOME_FULL_SCALE_FREEZE_2026-07-16.md
- *
- * TOP: Pick Up (~65%) | Resource Headroom (~35%)
- * MIDDLE: Recommended Evidence (≤2)
- * BOTTOM: Recent Trail (≤3)
- * No desktop page scroll. No three-lane action strip.
- */
 
 function HeadroomBar({ pct, warn }) {
   if (pct == null || !Number.isFinite(pct)) return null;
@@ -59,9 +50,9 @@ function PickUpCard({ point, loading, onContinue, onReview }) {
         <span className="rd-v2-home-eyebrow">Pick up</span>
         <GuidedState
           eyebrow="No resume point"
-          title="Open the vault or find missing evidence"
-          detail="Home has no typed resume object in this session yet."
-          checks={["Library holds registered assets", "Discover searches beyond holdings"]}
+          title="Open the Library or find missing evidence"
+          detail="No durable research work currently needs resumption."
+          checks={["Library holds registered evidence", "Discover searches beyond holdings", "Synthesis holds durable constructions"]}
         />
       </div>
     );
@@ -71,6 +62,7 @@ function PickUpCard({ point, loading, onContinue, onReview }) {
       className={`rd-v2-home-pickup-card${point.warn ? " warn" : ""}`}
       data-testid="home-continue"
       data-kind={point.kind}
+      data-resume-id={point.id || ""}
       aria-label={`Pick up: ${point.title}`}
     >
       <span className="rd-v2-home-eyebrow">Pick up</span>
@@ -93,9 +85,18 @@ function PickUpCard({ point, loading, onContinue, onReview }) {
       </div>
       {point.dataset?.dataset_id ? (
         <p className="rd-v2-home-continue-id mono">{point.dataset.dataset_id}</p>
+      ) : point.thread?.id ? (
+        <p className="rd-v2-home-continue-id mono">{point.thread.id}</p>
       ) : null}
     </article>
   );
+}
+
+function threadRows(payload) {
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.threads)) return payload.threads;
+  if (Array.isArray(payload?.items)) return payload.items;
+  return [];
 }
 
 export function HomePage({
@@ -112,12 +113,30 @@ export function HomePage({
   onSelectDataset,
   onPreviewDataset,
   onPrimaryResume,
+  onResumeSynthesisThread,
   onSuggestSearch,
   onAskComposer,
 }) {
   const loading = catalogLoading || (health == null && datasets.length === 0);
   const surfaceState = resolveSurfaceLifecycle({ loading, error: loadError, count: datasets.length });
-  // Mirror Resources cache-first: never block Home headroom on a cold /desk/resources round-trip.
+  const [synthesisThreads, setSynthesisThreads] = useState([]);
+
+  // Home consumes the durable Synthesis authority directly. Failure is soft:
+  // Library/Discover continuity remains truthful even if Synthesis is temporarily unavailable.
+  useEffect(() => {
+    let cancelled = false;
+    listSynthesisThreads({ limit: 20 })
+      .then((payload) => {
+        if (!cancelled) setSynthesisThreads(threadRows(payload));
+      })
+      .catch(() => {
+        if (!cancelled) setSynthesisThreads([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const [cachedRollup, setCachedRollup] = useState(() => readResourcesRollupCache());
   useEffect(() => {
     if (resourcesRollup && typeof resourcesRollup === "object") {
@@ -132,8 +151,8 @@ export function HomePage({
   }, [resourcesRollup, cachedRollup, health]);
   const headroomLoading = headroomRollup == null && resourcesRollup === undefined && health == null;
   const pickUp = useMemo(
-    () => buildPickUp({ datasets, jobs, health, acquisitions, profile }),
-    [datasets, jobs, health, acquisitions, profile],
+    () => buildPickUp({ datasets, jobs, health, acquisitions, profile, synthesisThreads }),
+    [datasets, jobs, health, acquisitions, profile, synthesisThreads],
   );
   useEffect(() => {
     if (!loading) onPrimaryResume?.(pickUp.primary || null);
@@ -152,12 +171,18 @@ export function HomePage({
   );
 
   const continuePrimary = (point) => {
-    if (!point?.dataset) {
-      onGoTab(point?.tab || "library");
+    if (point?.thread?.id) {
+      // Navigation remains a shell responsibility; the typed callback only
+      // binds the exact durable Synthesis object. Keeping these authorities
+      // separate prevents Home from inventing a second navigation path.
+      onResumeSynthesisThread?.(point.thread);
+      onGoTab?.("synthesis");
       return;
     }
-    // Home is a resume surface, not a second Library. Keep the researcher
-    // oriented here while exposing the dataset preview and grounded rail.
+    if (!point?.dataset) {
+      onGoTab?.(point?.tab || "library");
+      return;
+    }
     if (onPreviewDataset) {
       onPreviewDataset(point.dataset);
       return;
@@ -166,11 +191,10 @@ export function HomePage({
   };
 
   const reviewDecision = (point) => {
-    // Freeze: approvals / Needs you live on Discover History, not Resources Usage.
     if (onOpenAttention) {
       onOpenAttention({
         id: point.id,
-        kind: "approval",
+        kind: point.kind || "attention",
         tab: "browse",
         discoverMode: "history",
         title: point.title,
@@ -187,7 +211,7 @@ export function HomePage({
       });
       return;
     }
-    onGoTab("browse");
+    onGoTab?.("browse");
   };
 
   return (
@@ -230,7 +254,7 @@ export function HomePage({
         <section className="rd-v2-home-headroom" aria-label="Resource headroom">
           <div className="rd-v2-home-headroom-head">
             <span className="rd-v2-home-eyebrow">Resource headroom</span>
-            <button type="button" className="rd-v2-linkish" onClick={() => onGoTab("resources")}>
+            <button type="button" className="rd-v2-linkish" onClick={() => onGoTab?.("resources")}>
               Resources →
             </button>
           </div>
@@ -253,7 +277,7 @@ export function HomePage({
                     <button
                       type="button"
                       className="rd-v2-linkish"
-                      onClick={() => onGoTab("resources")}
+                      onClick={() => onGoTab?.("resources")}
                     >
                       {slot.action === "check" ? "Check →" : "Resources →"}
                     </button>
@@ -280,14 +304,14 @@ export function HomePage({
                   className="rd-v2-home-recommended-row"
                   onClick={() => {
                     if (item.action === "library" && item.datasetId) {
-                      onGoTab("library");
+                      onGoTab?.("library");
                       return;
                     }
                     if (item.query && onSuggestSearch) {
                       onSuggestSearch(item.query);
                       return;
                     }
-                    onGoTab("browse");
+                    onGoTab?.("browse");
                   }}
                 >
                   <div>
@@ -311,7 +335,7 @@ export function HomePage({
           <button
             type="button"
             className="rd-v2-linkish"
-            onClick={() => onGoTab("browse")}
+            onClick={() => onGoTab?.("browse")}
           >
             View all →
           </button>
@@ -329,10 +353,10 @@ export function HomePage({
                       return;
                     }
                     if (item.dest === "history") {
-                      onGoTab("browse");
+                      onGoTab?.("browse");
                       return;
                     }
-                    onGoTab(item.dest === "library" ? "library" : "browse");
+                    onGoTab?.(item.dest === "library" ? "library" : "browse");
                   }}
                 >
                   <span className="rd-v2-home-trail-kind">{item.kind}</span>
@@ -344,8 +368,6 @@ export function HomePage({
             ))}
           </ul>
         ) : (
-          // VC-8: a sparse trail offers the existing profile-aware suggested
-          // questions rather than a dead line of system language.
           <div className="rd-v2-home-section-empty-actions">
             <p className="rd-v2-home-section-empty">
               Nothing durable yet — recent work will collect here.
