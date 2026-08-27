@@ -124,6 +124,16 @@
   white-space: nowrap;
 }
 
+/* Readiness and verification are short controlled vocabularies. Source is not;
+   it may be a long institutional authority and should remain legible here. */
+.rd-v2-library-claim-strip > div:last-child strong {
+  display: -webkit-box;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
 .rd-v2-library-observation-receipt {
   flex: 0 0 auto;
   padding-top: 5px;
