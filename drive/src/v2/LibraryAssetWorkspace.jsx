@@ -153,7 +153,7 @@ function observedColumns(rows = []) {
   return ordered;
 }
 
-function DatasetPreview({ dataset, canQuery, names, fields, state, presentation, onInspect, onOpenFullPreview }) {
+function DatasetPreview({ dataset, canQuery, names, fields, state, onInspect, onOpenFullPreview }) {
   const [preview, setPreview] = useState({ loading: false, rows: [], error: "" });
 
   useEffect(() => {
@@ -183,14 +183,13 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
   const schemaColumns = columns.length ? columns : names.slice(0, 12);
   const observed = columns.length > 0 && preview.rows.length > 0;
   const joinKeys = fields.joinKeys || [];
-  const structureTitle = presentation.kind === "live_source" && !observed ? "Declared response shape" : observed ? "Observed table" : "Table structure";
 
   return (
     <section className="rd-v2-library-data-preview" aria-label="Dataset table and structure" data-testid="library-data-preview">
       <div className="rd-v2-library-section-heading">
         <div>
           <span className="rd-v2-eyebrow">Dataset inspection</span>
-          <h2>{structureTitle}</h2>
+          <h2>{observed ? "Observed table" : "Table structure"}</h2>
         </div>
         <div className="rd-v2-library-preview-tools">
           {observed ? (
@@ -227,11 +226,9 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
               ) : (
                 <tr className="rd-v2-library-schema-only-row">
                   <td colSpan={Math.max(schemaColumns.length, 1)}>
-                    {presentation.kind === "live_source"
-                      ? "A connected source does not establish an observed local row preview; the columns above are the declared response shape only."
-                      : canQuery
-                        ? "Observed rows are not available in this sample."
-                        : `${state.label} does not establish an observed row preview; the columns above are declared structure only.`}
+                    {canQuery
+                      ? "Observed rows are not available in this sample."
+                      : `${state.label} does not establish an observed row preview; the columns above are declared structure only.`}
                   </td>
                 </tr>
               )}
@@ -246,7 +243,7 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
       )}
 
       <div className="rd-v2-library-preview-foot">
-        <span>{observed ? "Observed values from the current query path" : presentation.kind === "live_source" ? "Declared response shape only" : "Declared structure only"}</span>
+        <span>{observed ? "Observed values from the current query path" : "Declared structure only"}</span>
         <span>Grain: {value(dataset?.grain)}</span>
         <span>Keys: {joinKeys.length ? joinKeys.join(" · ") : "Not declared"}</span>
       </div>
@@ -365,7 +362,6 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onAsk, onOpe
             names={names}
             fields={fields}
             state={state}
-            presentation={presentation}
             onInspect={() => setOverlay("fields")}
             onOpenFullPreview={onPreview}
           />
