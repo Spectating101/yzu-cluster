@@ -33,7 +33,9 @@ jobs:
         run: npm ci
 
       - name: Apply HPS functional convergence patch
-        run: python .github/scripts/hps_functional_convergence.py
+        run: |
+          python .github/scripts/hps_functional_convergence.py
+          python .github/scripts/hps_functional_convergence_fix.py
 
       - name: Check patch integrity
         run: git diff --check
