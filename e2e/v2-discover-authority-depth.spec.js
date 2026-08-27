@@ -151,6 +151,11 @@ test.describe("Discover authority depth", () => {
     await expect(comparison).toContainText("Proposed");
     await expect(comparison).toContainText("Unknown");
     await expect(comparison).toContainText("cannot submit procurement");
+    // The downstream decision surface must use the corrected App-level assessment,
+    // not the original question assessment that happened to mount the workspace.
+    await expect(comparison).toContainText("director_tenure");
+    await expect(comparison).toContainText("independent_director_ratio");
+    await expect(comparison).not.toContainText("board_composition, governance_score");
 
     await comparison.getByRole("button", { name: /MOPS financial statements/ }).click();
     const acquisition = page.getByTestId("discover-intent-workspace");
