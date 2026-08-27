@@ -85,17 +85,18 @@
   background: #fff6f4;
 }
 
+/* Selected-asset claims are a compact trust strip, not another card. */
 .rd-v2-library-claim-strip {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  margin-top: 18px;
+  margin-top: 8px;
   border-block: 1px solid var(--rd-release-line, var(--rd-border));
-  background: rgba(250, 249, 244, 0.55);
+  background: rgba(250, 249, 244, 0.42);
 }
 
 .rd-v2-library-claim-strip > div {
   min-width: 0;
-  padding: 11px 14px;
+  padding: 7px 10px;
 }
 
 .rd-v2-library-claim-strip > div + div {
@@ -106,20 +107,20 @@
 .rd-v2-library-observation-receipt {
   color: var(--rd-muted);
   font-family: var(--rd-mono);
-  font-size: 9px;
+  font-size: 8.5px;
   font-weight: 800;
-  letter-spacing: .07em;
+  letter-spacing: .06em;
   text-transform: uppercase;
 }
 
 .rd-v2-library-claim-strip strong {
   display: block;
-  margin-top: 5px;
+  margin-top: 2px;
   overflow: hidden;
   color: var(--rd-release-ink, var(--rd-text));
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 650;
-  line-height: 1.4;
+  line-height: 1.3;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -136,7 +137,7 @@
 
 .rd-v2-library-observation-receipt {
   flex: 0 0 auto;
-  padding-top: 5px;
+  padding-top: 2px;
 }
 
 .rd-v2-library-verification-note {
@@ -229,11 +230,11 @@
 
   .rd-v2-library-claim-strip {
     grid-template-columns: 1fr;
-    margin-top: 14px;
+    margin-top: 8px;
   }
 
   .rd-v2-library-claim-strip > div {
-    padding: 9px 0;
+    padding: 7px 0;
   }
 
   .rd-v2-library-claim-strip > div + div {
