@@ -28,6 +28,9 @@ jobs:
         run: npm run build
       - name: Run final HPS visual certification
         run: |
+          # The system-status details contains a nested fallback-access details.
+          # Click only the parent summary; this changes QA code, never production.
+          sed -i 's/await advanced\.locator("summary")\.click();/await advanced.locator("summary").first().click();/' e2e/hps-final-visual-cert.spec.js
           mkdir -p .tmp-pw artifacts/hps-final-visual
           TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false \
             npx playwright test e2e/hps-final-visual-cert.spec.js e2e/hps-inner-containment.spec.js --project=chromium --workers=1 --reporter=line
