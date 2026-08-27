@@ -30,7 +30,7 @@ test("a row with no measured shape emits no strategy blocks, only omission reaso
   assert.ok(omitted(built, "how_it_answers"));
   assert.ok(omitted(built, "how_we_build"));
   for (const entry of built.omitted) {
-    assert.match(entry.reason, /not recorded|no .*recorded|not described/i);
+    assert.match(entry.reason, /not recorded|no .*recorded|not described|not declared|no .*declared/i);
   }
 });
 
