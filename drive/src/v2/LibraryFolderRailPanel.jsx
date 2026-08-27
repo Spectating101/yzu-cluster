@@ -1,5 +1,4 @@
 import {
-  RailEntityHeader,
   RailField,
   RailFieldGrid,
   RailFrame,
@@ -29,11 +28,6 @@ export function LibraryFolderRailPanel({
   const counts = object.counts || {};
   const root = !object.folderId;
   const filteredRoot = isFilteredRoot(object);
-  const description = filteredRoot
-    ? object.note || "This is the current filtered Library view."
-    : root
-      ? "Your owned research evidence estate and acquisition memory."
-      : object.note || "Research assets organized in this collection.";
   const summaryLabel = filteredRoot
     ? "In this view"
     : root
@@ -42,13 +36,6 @@ export function LibraryFolderRailPanel({
 
   return (
     <RailFrame>
-      <RailEntityHeader
-        id={object.id}
-        title={object.title || (root ? "Library" : "Library collection")}
-        description={description}
-        pills={<span className="rd-v2-pill lab">{filteredRoot ? "Filtered view" : root ? "Library" : "Collection"}</span>}
-      />
-
       <div className="rd-v2-rail-scroll rd-v2-library-folder-inspector">
         <section className="rd-v2-library-folder-summary">
           <p className="rd-v2-rail-section-label">{summaryLabel}</p>
