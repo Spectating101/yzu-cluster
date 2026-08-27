@@ -90,7 +90,7 @@ function buildCatalogViews(assets = []) {
  *
  * The estate is deliberately not a filesystem. Evidence identity is canonical;
  * automatic catalogue views are projections over that evidence, while
- * collections remain an optional human/project curation layer. Neither view
+ * collections remain an optional project/context curation layer. Neither view
  * changes possession, provenance, verification, or readiness.
  */
 export function LibraryEvidenceEstate({
@@ -135,7 +135,7 @@ export function LibraryEvidenceEstate({
             <button
               key={view.key}
               type="button"
-              className={`rd-v2-library-auto-view${activeView === view.key ? " active" : ""}`
+              className={`rd-v2-library-auto-view${activeView === view.key ? " active" : ""}`}
               aria-pressed={activeView === view.key}
               data-testid={`library-auto-view-${view.key}`}
               onClick={() => setCatalogView(view.key)}
@@ -151,7 +151,7 @@ export function LibraryEvidenceEstate({
         <div className="rd-v2-cap-collections" aria-label="Curated research collections">
           <div className="rd-v2-library-curation-copy">
             <span className="rd-v2-cap-collections-label">Curated collections</span>
-            <small>Optional human or project organization; collections do not determine where evidence lives.</small>
+            <small>Optional project or context organization; collections do not determine where evidence lives.</small>
           </div>
           {collections.length ? (
             <div className="rd-v2-cap-collection-list">
