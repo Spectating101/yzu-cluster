@@ -12,14 +12,32 @@ evidence = Path("drive/src/v2/DiscoverEvidenceBrief.jsx")
 
 replace_once(
     evidence,
+    '''  const assessmentRequestSeqRef = useRef(0);\n  const routeRequestSeqRef = useRef(0);\n''',
+    '''  const assessmentRequestSeqRef = useRef(0);\n  const routeRequestSeqRef = useRef(0);\n  // The workspace emits a fresh assessment to App so downstream decisions use\n  // one authority. App then mirrors that exact object back as assessmentValue.\n  // Distinguish that parent echo from a genuinely external replacement: an echo\n  // must not invalidate the corrected route request that the same assessment\n  // just started.\n  const emittedAssessmentRef = useRef(null);\n''',
+)
+
+replace_once(
+    evidence,
+    '''  useEffect(() => {\n    if (!assessmentValue) return;\n    routeRequestSeqRef.current += 1;\n    setRouteLoading(false);\n    setAssessment(assessmentValue);\n    setRouteResult(null);\n    setRouteError("");\n    routeAutoKeyRef.current = "";\n  }, [assessmentValue]);\n''',
+    '''  useEffect(() => {\n    if (!assessmentValue) return;\n    if (assessmentValue === emittedAssessmentRef.current) {\n      emittedAssessmentRef.current = null;\n      return;\n    }\n    routeRequestSeqRef.current += 1;\n    setRouteLoading(false);\n    setAssessment(assessmentValue);\n    setRouteResult(null);\n    setRouteError("");\n    routeAutoKeyRef.current = "";\n  }, [assessmentValue]);\n''',
+)
+
+replace_once(
+    evidence,
     '''    setRouteResult(null);\n    setRouteError("");\n    setRouteLoading(false);\n    setLoading(true);\n    setError("");\n''',
-    '''    setRouteResult(null);\n    setRouteError("");\n    setRouteLoading(false);\n    // A corrected brief immediately retires the prior evidence verdict. While\n    // reassessment is running, the previous held-evidence judgment is historical\n    // context, not current authority. Keep the investigation mounted but blank\n    // its consequential assessment state until a fresh response establishes it.\n    setAssessment(null);\n    setDimensions([]);\n    onAssessmentChange?.(null);\n    onAssessmentActive?.(true);\n    setLoading(true);\n    setError("");\n''',
+    '''    setRouteResult(null);\n    setRouteError("");\n    setRouteLoading(false);\n    emittedAssessmentRef.current = null;\n    // A corrected brief immediately retires the prior evidence verdict. While\n    // reassessment is running, the previous held-evidence judgment is historical\n    // context, not current authority. Keep the investigation mounted but blank\n    // its consequential assessment state until a fresh response establishes it.\n    setAssessment(null);\n    setDimensions([]);\n    onAssessmentChange?.(null);\n    onAssessmentActive?.(true);\n    setLoading(true);\n    setError("");\n''',
+)
+
+replace_once(
+    evidence,
+    '''      const next = await assessDiscoverEvidence({ question, requirement });\n      if (assessmentRequestId !== assessmentRequestSeqRef.current) return;\n      setAssessment(next);\n      onAssessmentChange?.(next);\n      onAssessmentActive?.(true);\n''',
+    '''      const next = await assessDiscoverEvidence({ question, requirement });\n      if (assessmentRequestId !== assessmentRequestSeqRef.current) return;\n      emittedAssessmentRef.current = next;\n      setAssessment(next);\n      onAssessmentChange?.(next);\n      onAssessmentActive?.(true);\n''',
 )
 
 replace_once(
     evidence,
     '''    } catch (requestError) {\n      if (assessmentRequestId !== assessmentRequestSeqRef.current) return;\n      setError("Assessment is unavailable. Showing the catalogue instead.");\n      onAssessmentChange?.(null);\n      onAssessmentActive?.(false);\n      // Existing catalogue search is retained only as a graceful fallback.\n      onLegacySearch?.(question);\n''',
-    '''    } catch (requestError) {\n      if (assessmentRequestId !== assessmentRequestSeqRef.current) return;\n      // Failure establishes *absence of a current assessment*, not permission to\n      // resurrect the previous verdict or collapse the investigation workspace.\n      setAssessment(null);\n      setDimensions([]);\n      setError("Assessment is unavailable. Showing the catalogue instead.");\n      onAssessmentChange?.(null);\n      onAssessmentActive?.(true);\n      // The workspace already retains the catalogue beneath the investigation.\n      // Re-running the legacy search here would tear down the evidence position\n      // and turn an assessment failure into a navigation/state-authority change.\n      if (variant !== "workspace") onLegacySearch?.(question);\n''',
+    '''    } catch (requestError) {\n      if (assessmentRequestId !== assessmentRequestSeqRef.current) return;\n      emittedAssessmentRef.current = null;\n      // Failure establishes *absence of a current assessment*, not permission to\n      // resurrect the previous verdict or collapse the investigation workspace.\n      setAssessment(null);\n      setDimensions([]);\n      setError("Assessment is unavailable. Showing the catalogue instead.");\n      onAssessmentChange?.(null);\n      onAssessmentActive?.(true);\n      // The workspace already retains the catalogue beneath the investigation.\n      // Re-running the legacy search here would tear down the evidence position\n      // and turn an assessment failure into a navigation/state-authority change.\n      if (variant !== "workspace") onLegacySearch?.(question);\n''',
 )
 
 replace_once(
