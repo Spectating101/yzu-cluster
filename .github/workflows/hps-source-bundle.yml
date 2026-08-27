@@ -4,12 +4,15 @@ on:
   push:
     branches:
       - hardening/hps-shell-convergence-20260827
+  pull_request:
+    branches:
+      - live/deployed-ui-20260825
 
 permissions:
   contents: read
 
 concurrency:
-  group: hps-source-bundle
+  group: hps-source-bundle-${{ github.event_name }}
   cancel-in-progress: true
 
 jobs:
