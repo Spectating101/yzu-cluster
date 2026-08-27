@@ -203,6 +203,8 @@ test("render Library depth states on desktop", async ({ page }) => {
   await expect(connected.getByLabel("Evidence claims")).toContainText("Connected");
   await expect(connected.getByLabel("Evidence claims")).toContainText("Not checked");
   await expect(connected.getByRole("button", { name: "Open query" })).toHaveCount(0);
+  // Connected sources may expose a declared response shape, but that structure
+  // must remain visibly distinct from an observed/materialized row sample.
   await expect(connected.getByTestId("library-data-preview")).toContainText("Table structure");
   await expect(connected.getByTestId("library-data-preview").getByRole("columnheader", { name: "block_timestamp" })).toBeVisible();
   await expect(connected.getByTestId("library-data-preview")).toContainText("Declared structure only");
