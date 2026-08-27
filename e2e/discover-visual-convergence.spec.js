@@ -158,6 +158,17 @@ test.describe("Discover visual convergence", () => {
     await expect(workspace).toContainText(/Collector fleet|BigQuery|GDrive vault/);
     await expect(workspace).toContainText("No worker or quota is assigned here");
 
+    const capacityCards = workspace.locator(".rd-v2-evidence-capacity-grid > div");
+    const capacityCardBoxes = await capacityCards.evaluateAll((nodes) => nodes.map((node) => ({
+      width: node.getBoundingClientRect().width,
+      height: node.getBoundingClientRect().height,
+      clientWidth: node.clientWidth,
+      scrollWidth: node.scrollWidth,
+    })));
+    expect(capacityCardBoxes.length).toBeGreaterThan(0);
+    expect(Math.min(...capacityCardBoxes.map((box) => box.width))).toBeGreaterThanOrEqual(220);
+    expect(capacityCardBoxes.filter((box) => box.scrollWidth > box.clientWidth + 2)).toEqual([]);
+
     const workspaceBox = await workspace.boundingBox();
     const resultsBox = await page.getByTestId("discover-ranked-results").boundingBox();
     expect(workspaceBox && resultsBox).toBeTruthy();
