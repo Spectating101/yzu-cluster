@@ -177,7 +177,7 @@ function LibraryNewMenu({ open, onToggle, onUploadFile, onAddUrl, onProcure, onC
           {onAddUrl ? <button type="button" role="menuitem" className="rd-v2-library-menu-item" onClick={onAddUrl}>Add URL / DOI...</button> : null}
           {onProcure ? <button type="button" role="menuitem" className="rd-v2-library-menu-item" onClick={onProcure}>Procure missing data...</button> : null}
           <button type="button" role="menuitem" className="rd-v2-library-menu-item" disabled>
-            New folder
+            New collection
           </button>
         </div>
       ) : null}
@@ -401,7 +401,7 @@ export function LibraryPage({
     <PageShell
       className="rd-v2-library-page"
       title="Library"
-      lead="Own, inspect, and reuse the lab’s durable research evidence."
+      lead="See what you have; Library organizes the evidence without making you maintain a filing cabinet."
       headExtra={
         <div className="rd-v2-library-headline">
           <LibraryBreadcrumb trail={trail} onFolderChange={onFolderChange} />
@@ -508,7 +508,9 @@ export function LibraryPage({
             assets={estateRows}
             collections={searchActive ? [] : rootCollections}
             collectionsLoading={navigationLoading && !searchActive}
+            referenceCount={searchActive ? 0 : referenceCount}
             onOpenCollection={(collection) => onFolderChange(collection.id)}
+            onReviewAvailable={onStartProcure ? handleProcureBranch : undefined}
             onSelectDataset={onSelectDataset}
           />
         )
