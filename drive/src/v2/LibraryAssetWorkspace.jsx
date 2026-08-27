@@ -6,6 +6,7 @@ import {
   libraryAssetPresentation,
   statusPillKind,
 } from "@/v2/datasetMeta";
+import { librarySourceReceipt } from "@/v2/libraryProvenance";
 import { libraryVerification } from "@/v2/libraryVerification";
 import { PageShell } from "@/v2/ui";
 
@@ -67,6 +68,18 @@ function limitation(dataset, fields, presentation) {
   return "The current registry record does not establish this asset's full research boundary.";
 }
 
+function ReceiptFact({ label, value: factValue, href = "", mono = false, testId = undefined }) {
+  if (!factValue) return null;
+  return (
+    <div data-testid={testId}>
+      <dt>{label}</dt>
+      <dd className={mono ? "mono" : undefined}>
+        {href ? <a href={href} target="_blank" rel="noreferrer">{factValue}</a> : factValue}
+      </dd>
+    </div>
+  );
+}
+
 function AssetOverlay({ kind, dataset, fields, presentation, onClose }) {
   if (!kind) return null;
   const scholarly = presentation.kind === "scholarly_work";
@@ -76,6 +89,7 @@ function AssetOverlay({ kind, dataset, fields, presentation, onClose }) {
   const terms = recordTerms(dataset);
   const verification = libraryVerification(dataset);
   const readiness = statusPillKind(dataset);
+  const receipt = librarySourceReceipt(dataset);
   return (
     <div className="rd-v2-library-overlay-scrim" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <section className="rd-v2-library-overlay" role="dialog" aria-modal="true" aria-label={title}>
@@ -138,20 +152,44 @@ function AssetOverlay({ kind, dataset, fields, presentation, onClose }) {
           )
         ) : (
           <>
-            <p>Recorded provenance for this Library asset. Readiness and verification are independent claims; neither is promoted by opening this record.</p>
-            <dl className="rd-v2-library-overlay-facts">
-              <div><dt>Source</dt><dd>{value(fields.source, dataset?.source, dataset?.publisher)}</dd></div>
+            <p>
+              Reproducibility receipt for this Library asset. Provider identity, source location, acquisition method, verification, and use readiness remain separate claims.
+            </p>
+            <dl className="rd-v2-library-overlay-facts" data-testid="library-provenance-receipt">
+              <div><dt>Source authority</dt><dd>{value(fields.source, dataset?.source, dataset?.publisher)}</dd></div>
+              <ReceiptFact
+                label={receipt.sourceUrlKind || "Exact source URL"}
+                value={receipt.sourceUrl || "Not recorded"}
+                href={receipt.sourceUrl}
+                mono
+                testId="library-source-url"
+              />
+              <ReceiptFact label="Acquisition method" value={receipt.method || "Not recorded"} testId="library-source-method" />
+              <ReceiptFact label="Reproduce command" value={receipt.command} mono testId="library-source-command" />
+              <ReceiptFact label="Script" value={receipt.script} mono testId="library-source-script" />
+              <ReceiptFact label="Source route" value={receipt.route} mono testId="library-source-route" />
+              <ReceiptFact label="Upstream assets" value={receipt.upstream} mono />
               <div data-testid="library-source-verification"><dt>Verification</dt><dd>{verification.label}</dd></div>
               <div data-testid="library-source-readiness"><dt>Use readiness</dt><dd>{readiness.label}</dd></div>
-              <div><dt>Access route</dt><dd>{value(dataset?.collect_via, dataset?.backend, fields.access)}</dd></div>
               {!scholarly ? <div><dt>Coverage</dt><dd>{value(fields.coverage, dataset?.coverage)}</dd></div> : null}
             </dl>
             <p className="rd-v2-library-verification-note">{verification.body}</p>
+            {!receipt.sourceUrl || !(receipt.command || receipt.script || receipt.route || receipt.method) ? (
+              <p className="rd-v2-library-verification-note">
+                Reproduction is incomplete because the registry does not yet retain {[
+                  !receipt.sourceUrl ? "an exact source URL" : "",
+                  !(receipt.command || receipt.script || receipt.route || receipt.method) ? "a collection method or runnable route" : "",
+                ].filter(Boolean).join(" and ")} for this asset.
+              </p>
+            ) : null}
             <details className="rd-v2-library-tech-disclosure">
               <summary>Technical details</summary>
               <dl className="rd-v2-library-overlay-facts compact">
                 <div><dt>Library ID</dt><dd><code>{dataset?.dataset_id || "Not declared"}</code></dd></div>
+                <ReceiptFact label="Source endpoint" value={receipt.sourceEndpoint} mono />
                 <div><dt>Vault path</dt><dd><code>{fields.vault || "Not declared"}</code></dd></div>
+                <ReceiptFact label="Fetched at" value={receipt.fetchedAt} />
+                <ReceiptFact label="Content SHA-256" value={receipt.contentSha256} mono />
               </dl>
             </details>
           </>
