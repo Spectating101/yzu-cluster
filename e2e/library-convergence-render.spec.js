@@ -99,6 +99,17 @@ const LIBRARY_DATASETS = {
       coverage: "Live remote source",
       verification_status: "not_checked",
     },
+    {
+      dataset_id: "tej_governance_catalog_reference",
+      name: "TEJ corporate governance reference",
+      description: "Known registry reference for a potentially useful governance dataset that has not been added to this Library.",
+      source: "Taiwan Economic Journal",
+      source_access_mode: "catalog_reference",
+      registry_id: "tej_governance_catalog_reference",
+      registered: true,
+      analysis_readiness: "metadata_search",
+      verification_status: "not_checked",
+    },
   ],
 };
 
@@ -179,6 +190,17 @@ test("render current Library evidence and decision states", async ({ page }) => 
   mkdirSync(OUT, { recursive: true });
 
   await setup(page, { width: 1440, height: 900 });
+  await expect(page.getByTestId("library-auto-catalog")).toContainText("Auto catalogue");
+  await expect(page.getByTestId("library-available-evidence")).toContainText("1 additional catalogue record");
+  await expect(page.getByTestId("library-available-evidence")).toContainText("not held in this Library");
+
+  await page.getByTestId("library-auto-view-literature").click();
+  await expect(page.getByTestId("library-evidence-row")).toHaveCount(1);
+  await expect(page.getByTestId("library-evidence-row")).toContainText("Stablecoin governance evidence review");
+  await expect(page.getByTestId("library-evidence-row")).not.toContainText("Asia daily news-risk panel");
+  await page.getByTestId("library-auto-view-all").click();
+  await expect(page.getByTestId("library-evidence-row")).toHaveCount(5);
+
   const gdeltRow = page.getByTestId("library-evidence-row").filter({ hasText: "Asia daily news-risk panel" });
   await expect(gdeltRow.getByTestId("library-evidence-verification")).toHaveText("Verified");
   await expect(gdeltRow.getByTestId("library-evidence-readiness")).toContainText("Query ready");
