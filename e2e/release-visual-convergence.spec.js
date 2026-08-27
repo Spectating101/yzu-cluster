@@ -132,10 +132,13 @@ test.describe("Research Drive release visual contract", () => {
     await expect(page.getByText("Browser access", { exact: true })).toBeVisible();
     await expect(page.getByText("Research archive", { exact: true }).first()).toBeVisible();
 
-    const advanced = page.locator("details.rd-v2-settings-advanced");
+    const advanced = page
+      .locator("details.rd-v2-settings-advanced")
+      .filter({ hasText: "System status and technical details" })
+      .first();
     await expect(advanced).not.toHaveAttribute("open", "");
     await expect(page.getByText(":8765", { exact: true })).not.toBeVisible();
-    await advanced.locator("summary").click();
+    await advanced.locator("summary").first().click();
     await expect(page.getByText(":8765", { exact: true })).toBeVisible();
     await expect(page.getByText("Assistant runtime", { exact: true })).toBeVisible();
   });
