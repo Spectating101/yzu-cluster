@@ -8,13 +8,6 @@ export function decisionFor(dataset) {
   return canIUseDecision(dataset);
 }
 
-function usefulFor(dataset) {
-  const explicit = String(dataset?.recommended_use || dataset?.description || dataset?.subtitle || "").trim();
-  if (explicit) return explicit;
-  if (dataset?.grain) return `Research at ${dataset.grain} grain.`;
-  return "Research purpose is not described in the current registry metadata.";
-}
-
 function unknowns(dataset, fields) {
   const out = [];
   const demotion = demotionSentence(dataset);
@@ -45,15 +38,6 @@ function Fact({ label, value, mono = false }) {
   );
 }
 
-function JoinKeys({ keys }) {
-  if (!keys?.length) return null;
-  return (
-    <div className="rd-v2-library-inspector-joins">
-      {keys.map((key) => <code key={key}>{key}</code>)}
-    </div>
-  );
-}
-
 function sourceAuthorityLine(dataset, fields) {
   if (dataset?.self_provided || dataset?.upload) return "Self-provided";
   if (fields.source || dataset?.source || dataset?.source_system) {
@@ -63,17 +47,19 @@ function sourceAuthorityLine(dataset, fields) {
   return "Source authority absent";
 }
 
-export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onPreview, onAskAbout }) {
+/**
+ * The centre workspace owns asset substance (table/schema, coverage, grain,
+ * research use). The rail stays complementary: decision, provenance authority,
+ * verification, unresolved facts, and Ask.
+ */
+export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onAskAbout }) {
   if (!dataset) return null;
   const fields = detailFields(dataset);
   const state = statusPillKind(dataset);
   const decision = decisionFor(dataset);
   const missing = unknowns(dataset, fields);
-  const rowCount = dataset.rows || dataset.row_count || dataset.num_rows || dataset.records;
-  const columnCount = dataset.columns || dataset.column_count || dataset.num_columns;
   const updated = dataset.updated_at || dataset.last_modified || dataset.as_of;
   const route = dataset.collect_via || dataset.backend;
-  const canPreview = state.kind === "query-ready";
   const verification = libraryVerification(dataset);
   const remedy = hydrateRemedy(dataset);
   const archiveRef = String(dataset?.canonical_remote || dataset?.lineage?.canonical_remote || "").trim();
@@ -110,7 +96,7 @@ export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onPrevie
 
       <div className="rd-v2-rail-scroll rd-v2-library-inspector-scroll">
         <section className="rd-v2-library-inspector-block" aria-label="Source" data-testid="library-rail-source">
-          <p className="rd-v2-rail-section-label">Source</p>
+          <p className="rd-v2-rail-section-label">Source authority</p>
           <h3 className="rd-v2-library-rail-module-title">{sourceAuthorityLine(dataset, fields)}</h3>
           <div className="rd-v2-library-inspector-facts">
             <Fact label="Route" value={route} />
@@ -139,30 +125,6 @@ export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onPrevie
           ) : null}
         </section>
 
-        <section className="rd-v2-library-inspector-block" aria-label="Useful for">
-          <p className="rd-v2-rail-section-label">Useful for</p>
-          <p className="rd-v2-library-inspector-prose">{usefulFor(dataset)}</p>
-        </section>
-
-        {(fields.coverage || dataset.grain || rowCount || columnCount) ? (
-          <section className="rd-v2-library-inspector-block" aria-label="Coverage and grain">
-            <p className="rd-v2-rail-section-label">Coverage & grain</p>
-            <div className="rd-v2-library-inspector-facts">
-              <Fact label="Coverage" value={fields.coverage || dataset.coverage || dataset.date_range} />
-              <Fact label="Grain" value={dataset.grain} />
-              <Fact label="Rows" value={rowCount} />
-              <Fact label="Columns" value={columnCount} />
-            </div>
-          </section>
-        ) : null}
-
-        {fields.joinKeys?.length ? (
-          <section className="rd-v2-library-inspector-block" aria-label="Join keys">
-            <p className="rd-v2-rail-section-label">Join keys</p>
-            <JoinKeys keys={fields.joinKeys} />
-          </section>
-        ) : null}
-
         {missing.length ? (
           <section className="rd-v2-library-inspector-block rd-v2-library-inspector-unknown" aria-label="Still unknown">
             <p className="rd-v2-rail-section-label">Still unknown</p>
@@ -186,20 +148,14 @@ export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onPrevie
       </div>
 
       <RailStickyFooter>
-        {canPreview ? (
-          <>
-            {previewOpen ? (
-              <span className="rd-v2-library-preview-state" data-testid="library-preview-open-state">
-                Preview open in centre
-              </span>
-            ) : (
-              <button type="button" className="rd-v2-btn primary sm" onClick={onPreview}>Preview rows</button>
-            )}
-            <button type="button" className="rd-v2-btn sm" onClick={onAskAbout}>Ask about this →</button>
-          </>
-        ) : (
-          <button type="button" className="rd-v2-btn primary sm" onClick={onAskAbout}>Ask about access →</button>
-        )}
+        {previewOpen ? (
+          <span className="rd-v2-library-preview-state" data-testid="library-preview-open-state">
+            Preview open in centre
+          </span>
+        ) : null}
+        <button type="button" className="rd-v2-btn primary sm" onClick={onAskAbout}>
+          {state.kind === "query-ready" ? "Ask about this →" : "Ask about access →"}
+        </button>
       </RailStickyFooter>
     </RailFrame>
   );
