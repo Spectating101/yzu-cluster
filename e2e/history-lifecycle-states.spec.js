@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 
 /**
  * Live data only ever produces a few history states, so failed, blocked,
@@ -9,12 +10,14 @@ import { dirname, join } from "node:path";
  * hid there: stopped read as an active schedule, and blocked was sent after an
  * execution failure when a licence gate had refused the collection.
  *
- * Route interception rather than a proxy: the fixture is the desk's own row
- * shape, and the assertions are on what a researcher can read on screen.
+ * The shared v2 fixture establishes the same authorized desk boundary as the
+ * rest of the browser contracts, while this fixture supplies the lifecycle rows.
  */
-const FIXTURE = readFileSync(
-  join(dirname(fileURLToPath(import.meta.url)), "fixtures/history-lifecycle.json"),
-  "utf8",
+const FIXTURE = JSON.parse(
+  readFileSync(
+    join(dirname(fileURLToPath(import.meta.url)), "fixtures/history-lifecycle.json"),
+    "utf8",
+  ),
 );
 
 const EXPECTED = [
@@ -28,13 +31,11 @@ const EXPECTED = [
 ];
 
 async function openHistory(page) {
-  await page.route("**/library/discover/history*", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: FIXTURE }),
-  );
-  await page.goto("/?tab=discover");
-  await page.waitForTimeout(3500);
+  await mockV2Api(page, { historyBody: FIXTURE });
+  await page.goto("/?tab=discover", { waitUntil: "domcontentloaded" });
+  await waitForShell(page);
   await page.getByRole("tab", { name: "History" }).click();
-  await page.waitForTimeout(7000);
+  await expect(page.getByText("TWSE daily quotes", { exact: false }).first()).toBeVisible();
 }
 
 test.use({ viewport: { width: 1920, height: 961 } });
