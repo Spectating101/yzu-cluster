@@ -9,40 +9,11 @@ permissions:
   contents: read
 
 jobs:
-  convergence:
+  library-768-diagnostic:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-
-      - name: Apply locator-only convergence repair in disposable checkout
-        shell: bash
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-
-          path = Path("e2e/v2-platform-convergence.spec.js")
-          text = path.read_text()
-
-          old = 'await expect(page.getByText("Synthesis workspace", { exact: true })).toBeVisible();'
-          new = 'await expect(page.getByTestId("synthesis-home-state").getByText("Synthesis workspace", { exact: true })).toBeVisible();'
-          count = text.count(old)
-          if count != 2:
-              raise SystemExit(f"expected 2 ambiguous Synthesis workspace assertions, found {count}")
-          text = text.replace(old, new)
-
-          for heading in ("Profile", "Settings"):
-              old = f'await expect(page.getByRole("heading", {{ name: "{heading}", exact: true }})).toBeVisible();'
-              new = f'await expect(page.locator("main.yzu-main").getByRole("heading", {{ name: "{heading}", exact: true }})).toBeVisible();'
-              count = text.count(old)
-              if count != 2:
-                  raise SystemExit(f"expected 2 ambiguous {heading} heading assertions, found {count}")
-              text = text.replace(old, new)
-
-          path.write_text(text)
-          PY
-          git diff --check
-          git diff -- e2e/v2-platform-convergence.spec.js
 
       - uses: actions/setup-node@v5
         with:
@@ -53,17 +24,96 @@ jobs:
       - run: npm run build
       - run: npx playwright install chromium --with-deps
 
-      - name: Verify all integrated convergence contracts
+      - name: Create focused Library overflow diagnostic
+        shell: bash
+        run: |
+          cat > e2e/rc88-library-overflow-diagnostic.spec.js <<'EOF'
+          import { mkdirSync, writeFileSync } from "node:fs";
+          import { test, expect } from "@playwright/test";
+          import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
+
+          test("diagnoses Library main overflow at 768px", async ({ page }) => {
+            await mockV2Api(page);
+            await page.setViewportSize({ width: 768, height: 1024 });
+            await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
+            await waitForShell(page);
+            await expect(page.getByTestId("library-evidence-estate")).toBeVisible();
+
+            const report = await page.evaluate(() => {
+              const main = document.querySelector("main.yzu-main");
+              if (!main) throw new Error("main.yzu-main missing");
+              const mainRect = main.getBoundingClientRect();
+              const describe = (el) => {
+                const rect = el.getBoundingClientRect();
+                const style = getComputedStyle(el);
+                return {
+                  tag: el.tagName.toLowerCase(),
+                  id: el.id || null,
+                  className: typeof el.className === "string" ? el.className : null,
+                  testId: el.getAttribute("data-testid"),
+                  role: el.getAttribute("role"),
+                  text: (el.textContent || "").replace(/\s+/g, " ").trim().slice(0, 120),
+                  left: Math.round(rect.left * 10) / 10,
+                  right: Math.round(rect.right * 10) / 10,
+                  width: Math.round(rect.width * 10) / 10,
+                  clientWidth: el.clientWidth,
+                  scrollWidth: el.scrollWidth,
+                  overflowRight: Math.round(Math.max(0, rect.right - mainRect.right) * 10) / 10,
+                  overflowLeft: Math.round(Math.max(0, mainRect.left - rect.left) * 10) / 10,
+                  display: style.display,
+                  position: style.position,
+                  widthCss: style.width,
+                  minWidth: style.minWidth,
+                  maxWidth: style.maxWidth,
+                  overflowX: style.overflowX,
+                  whiteSpace: style.whiteSpace,
+                  gridTemplateColumns: style.gridTemplateColumns,
+                  gap: style.gap,
+                  paddingLeft: style.paddingLeft,
+                  paddingRight: style.paddingRight,
+                };
+              };
+
+              const descendants = Array.from(main.querySelectorAll("*")).map(describe);
+              const offenders = descendants
+                .filter((x) => x.overflowRight > 1 || x.overflowLeft > 1 || x.scrollWidth > x.clientWidth + 1)
+                .sort((a, b) => (b.overflowRight + b.overflowLeft + (b.scrollWidth - b.clientWidth)) - (a.overflowRight + a.overflowLeft + (a.scrollWidth - a.clientWidth)))
+                .slice(0, 80);
+
+              return {
+                viewport: { width: innerWidth, height: innerHeight },
+                document: { clientWidth: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth },
+                main: {
+                  left: mainRect.left,
+                  right: mainRect.right,
+                  width: mainRect.width,
+                  clientWidth: main.clientWidth,
+                  scrollWidth: main.scrollWidth,
+                  overflow: Math.max(0, main.scrollWidth - main.clientWidth),
+                },
+                offenders,
+              };
+            });
+
+            mkdirSync("artifacts/platform-convergence", { recursive: true });
+            writeFileSync("artifacts/platform-convergence/library-768-diagnostics.json", JSON.stringify(report, null, 2));
+            await page.screenshot({ path: "artifacts/platform-convergence/library-768.png", fullPage: true });
+            console.log(JSON.stringify(report, null, 2));
+            expect(report.main.overflow).toBeGreaterThan(1);
+          });
+          EOF
+
+      - name: Run focused diagnostic
         run: >-
           mkdir -p .tmp-pw artifacts/platform-convergence &&
           TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
-          e2e/v2-platform-convergence.spec.js --workers=1 --reporter=line
+          e2e/rc88-library-overflow-diagnostic.spec.js --workers=1 --reporter=line
 
-      - name: Preserve convergence renders
+      - name: Preserve diagnostic
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: rc88-platform-convergence-proof
+          name: rc88-library-768-diagnostic
           path: |
             artifacts/platform-convergence
             test-results
