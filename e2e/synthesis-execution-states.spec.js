@@ -32,7 +32,7 @@ async function openThread(page, status) {
     .first();
   await expect(item).toBeVisible();
   await item.click();
-  await expect(page.locator(".s04-steps li").first()).toBeVisible();
+  await expect(page.getByRole("list", { name: "Synthesis execution lifecycle" })).toBeVisible();
   return thread;
 }
 
