@@ -1,0 +1,37 @@
+name: RC88 targeted acceptance contracts
+
+on:
+  push:
+    branches:
+      - "verify/rc88-stale-contracts-20260828"
+
+permissions:
+  contents: read
+
+jobs:
+  targeted-browser-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npx playwright install chromium --with-deps
+      - name: Re-run repaired acceptance contracts
+        run: >-
+          CI=true YZU_PAGES=false npx playwright test
+          e2e/interaction-feedback.spec.js
+          e2e/release-visual-convergence.spec.js
+          e2e/v2-home.spec.js
+          e2e/v2-discover.spec.js
+          e2e/v2-library.spec.js
+          e2e/v2-parity.spec.js
+          e2e/v2-resources.spec.js
+          e2e/v2-synthesis.spec.js
+          --workers=2
+          --reporter=line
+          --grep "readiness popover|Settings keeps browser connection|mobile composition contains the complete resume object|Search wider retains held evidence|mobile selection preserves Explore|Pick Up is the primary resume object|Continue opens dataset preview|selecting evidence inspects in place|Detail rail keeps decision context|confirmed-unreachable desk API|renders the selected durable thread|keeps the right rail usable on mobile"
