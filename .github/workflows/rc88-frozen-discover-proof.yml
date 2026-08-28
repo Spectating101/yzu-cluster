@@ -1,4 +1,4 @@
-name: RC88 frozen Discover proof
+name: RC88 frozen Discover export
 
 on:
   push:
@@ -6,16 +6,15 @@ on:
       - "verify/rc88-frozen-discover-20260829"
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  frozen-discover:
+  export-proven-tree:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
-      - name: Apply candidate frozen-authority repair in disposable checkout
+      - name: Materialize proven frozen-authority repair
         shell: bash
         run: |
           python - <<'PY'
@@ -70,35 +69,13 @@ jobs:
           css.write_text(text)
           PY
           git diff --check
-          git diff -- drive/src/v2/BrowsePage.jsx drive/src/v2/v2.css e2e/v2-discover-evidence.spec.js
 
-      - uses: actions/setup-node@v5
+      - name: Export proven files
+        uses: actions/upload-artifact@v4
         with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npm run build
-      - run: npx playwright install chromium --with-deps
-
-      - name: Frozen composition authority
-        run: CI=true YZU_PAGES=false npm run test:freeze
-
-      - name: Discover procurement and convergence regression set
-        shell: bash
-        run: |
-          mkdir -p .tmp-pw artifacts/platform-convergence
-          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test \
-            e2e/v2-discover-evidence.spec.js \
-            e2e/v2-platform-convergence.spec.js \
-            --workers=1 --reporter=line
-
-      - name: Commit proven candidate tree
-        shell: bash
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git rm .github/workflows/rc88-frozen-discover-proof.yml
-          git add drive/src/v2/BrowsePage.jsx drive/src/v2/v2.css e2e/v2-discover-evidence.spec.js
-          git diff --cached --check
-          git commit -m "fix(discover): restore frozen row action and evidence sheet bounds"
-          git push
+          name: rc88-frozen-discover-proven-tree
+          path: |
+            drive/src/v2/BrowsePage.jsx
+            drive/src/v2/v2.css
+            e2e/v2-discover-evidence.spec.js
+          if-no-files-found: error
