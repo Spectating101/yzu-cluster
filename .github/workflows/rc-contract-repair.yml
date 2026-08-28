@@ -25,39 +25,32 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
+          import re
 
           def replace(path, old, new, expected=1):
               p = Path(path)
               text = p.read_text()
               count = text.count(old)
               if count != expected:
-                  raise SystemExit(f"{path}: expected {expected} occurrence(s), found {count}: {old[:120]!r}")
-              p.write_text(text.replace(old, new, expected))
+                  raise SystemExit(f"{path}: expected {expected} literal occurrence(s), found {count}: {old[:120]!r}")
+              p.write_text(text.replace(old, new))
 
-          # The readiness explainer belongs to evidence status, not Home's
-          # continuation authority. Exercise the same RichContextHelp contract
-          # on the Library evidence estate where StatusPill owns it.
-          replace(
+          def sub(path, pattern, replacement, expected=1):
+              p = Path(path)
+              text = p.read_text()
+              updated, count = re.subn(pattern, replacement, text, flags=re.S)
+              if count != expected:
+                  raise SystemExit(f"{path}: expected {expected} regex occurrence(s), found {count}: {pattern[:120]!r}")
+              p.write_text(updated)
+
+          # Readiness help is evidence authority, not Home continuation authority.
+          sub(
               "e2e/interaction-feedback.spec.js",
-              '''  test("readiness popover explains evidence and the safest next action", async ({ page }) => {
-            await mockV2Api(page);
-            await page.setViewportSize({ width: 1440, height: 900 });
-            await page.goto("/", { waitUntil: "domcontentloaded" });
-            await waitForShell(page);
-
-            await page.getByRole("button", { name: /^Explain / }).first().click();''',
-              '''  test("readiness popover explains evidence and the safest next action", async ({ page }) => {
-            await mockV2Api(page);
-            await page.setViewportSize({ width: 1440, height: 900 });
-            await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
-            await waitForShell(page);
-
-            await page.getByRole("button", { name: /^Explain / }).first().click();''',
+              r'(test\("readiness popover explains evidence and the safest next action".*?await page\.goto\()"/"',
+              r'\1"/?tab=library"',
           )
 
-          # Home's primary authority can truthfully be Continue or Review. The
-          # visual containment contract is about the complete action object,
-          # not one stale CTA label.
+          # Home's primary authority can be a continuation or a decision review.
           replace(
               "e2e/release-visual-convergence.spec.js",
               'continuation.getByRole("button", { name: "Continue" })',
@@ -65,30 +58,8 @@ jobs:
               expected=2,
           )
 
-          old_settings = '''  test("Settings keeps faculty status visible and technical endpoints collapsed", async ({ page }) => {
-            await openTab(page, "Settings");
-
-            const summary = page.getByRole("region", { name: "Research desk status" });
-            await expect(summary).toContainText("Desk API");
-            await expect(summary.locator(".rd-v2-settings-summary-card").filter({ hasText: "Desk API" })).toContainText("Live");
-            await expect(summary).toContainText("Research assistant");
-            await expect(summary).toContainText("Jobs");
-            await expect(page.getByText("This browser", { exact: true }).locator("..")).toContainText("Connected");
-            await expect(page.getByText("Research services", { exact: true })).toBeVisible();
-            await expect(page.getByText("Browser access", { exact: true })).toBeVisible();
-            await expect(page.getByText("Research archive", { exact: true }).first()).toBeVisible();
-
-            const advanced = page
-              .locator("details.rd-v2-settings-advanced")
-              .filter({ hasText: "System status and technical details" })
-              .first();
-            await expect(advanced).not.toHaveAttribute("open", "");
-            await expect(page.getByText(":8765", { exact: true })).not.toBeVisible();
-            await advanced.locator("summary").first().click();
-            await expect(page.getByText(":8765", { exact: true })).toBeVisible();
-            await expect(page.getByText("Assistant runtime", { exact: true })).toBeVisible();
-          });'''
-          new_settings = '''  test("Settings keeps browser connection visible and operational status subordinate", async ({ page }) => {
+          # HPS intentionally moved operational telemetry under one subordinate disclosure.
+          settings_block = '''  test("Settings keeps browser connection visible and operational status subordinate", async ({ page }) => {
             await openTab(page, "Settings");
 
             await expect(page.getByText("This browser", { exact: true }).locator("..")).toContainText("Connected");
@@ -104,11 +75,16 @@ jobs:
             await expect(page.getByText("Assistant runtime", { exact: true })).toBeVisible();
             await expect(page.getByText("Research archive", { exact: true })).toBeVisible();
             await expect(page.getByText("Desk equipment", { exact: true })).toBeVisible();
-          });'''
-          replace("e2e/release-visual-convergence.spec.js", old_settings, new_settings)
+          });
 
-          # Library is now the possession authority, so Home resumes a typed
-          # library_asset rather than the old dataset alias.
+          test("long research identities'''
+          sub(
+              "e2e/release-visual-convergence.spec.js",
+              r'  test\("Settings keeps faculty status visible and technical endpoints collapsed".*?\n  test\("long research identities',
+              settings_block,
+          )
+
+          # Library owns possession, so Home's typed durable object is library_asset.
           replace(
               "e2e/v2-home.spec.js",
               'toHaveAttribute("data-kind", /dataset|synthesis_thread/)',
@@ -120,16 +96,11 @@ jobs:
               'toHaveAttribute("data-kind", "library_asset")',
           )
 
-          # Search wider keeps the held result and now truthfully counts the
-          # semantically relevant federated source as web context as well.
+          # A semantically relevant federated source is now truthfully counted as web context.
           replace(
               "e2e/v2-discover.spec.js",
-              '''    await expect(summary).toContainText("Available · 1");
-            await expect(summary).toContainText("Library evidence · 1");
-            await expect(summary).toContainText("Web context · 0");''',
-              '''    await expect(summary).toContainText("Available · 1");
-            await expect(summary).toContainText("Library evidence · 1");
-            await expect(summary).toContainText("Web context · 1");''',
+              'await expect(summary).toContainText("Web context · 0");',
+              'await expect(summary).toContainText("Web context · 1");',
           )
           replace(
               "e2e/v2-discover.spec.js",
@@ -137,60 +108,41 @@ jobs:
               'rail.getByRole("button", { name: /Show research context|Show Detail/ })',
           )
 
-          # Library selection is route-backed and persistent in the estate;
-          # closing the asset inspector was removed intentionally.
-          replace(
+          # Library selection is a persistent route-backed inspector over the estate.
+          sub(
               "e2e/v2-library.spec.js",
-              '''    await page.getByRole("button", { name: "Close asset inspector" }).click();
-            await expect(inspector).toHaveCount(0);
-            await expect(page.getByTestId("library-evidence-estate")).toBeVisible();''',
-              '''    await expect(page.getByRole("button", { name: "Close asset inspector" })).toHaveCount(0);
+              r'\s*await page\.getByRole\("button", \{ name: "Close asset inspector" \}\)\.click\(\);\s*await expect\(inspector\)\.toHaveCount\(0\);\s*await expect\(page\.getByTestId\("library-evidence-estate"\)\)\.toBeVisible\(\);',
+              '''
+            await expect(page.getByRole("button", { name: "Close asset inspector" })).toHaveCount(0);
             await expect(inspector).toBeVisible();
             await expect(page.getByTestId("library-evidence-estate")).toBeVisible();''',
           )
 
-          # "Join keys / schema relationship not described" is a legitimate
-          # unresolved-source warning in Detail. Guard against duplicated centre
-          # dossier markup instead of banning those words from the rail.
+          # Preserve the real unresolved join warning; prevent structural dossier duplication instead.
           replace(
               "e2e/v2-parity.spec.js",
-              '    await expect(rail).not.toContainText("Join keys");',
-              '    await expect(rail.locator(".rd-v2-library-evidence-facts")).toHaveCount(0);',
+              'await expect(rail).not.toContainText("Join keys");',
+              'await expect(rail.locator(".rd-v2-library-evidence-facts")).toHaveCount(0);',
           )
 
-          # Resources deliberately uses the generic fail-closed surface while
-          # retaining unknown/not-configured capacity rather than fabricating health.
+          # Resources uses the generic fail-closed surface while capacity remains unknown.
           replace(
               "e2e/v2-resources.spec.js",
-              '  await expect(main.getByText("Desk API unreachable", { exact: false })).toBeVisible();',
-              '''  await expect(main.getByText("That did not load", { exact: true })).toBeVisible();
+              'await expect(main.getByText("Desk API unreachable", { exact: false })).toBeVisible();',
+              '''await expect(main.getByText("That did not load", { exact: true })).toBeVisible();
             await expect(main).toContainText("Resource telemetry could not be loaded.");''',
           )
 
-          # Synthesis now opens on its workspace home by design. Tests that need
-          # a durable thread must select it explicitly rather than relying on an
-          # obsolete implicit-first-thread side effect.
-          replace(
+          # Synthesis opens on workspace home by design; thread-specific tests select explicitly.
+          sub(
               "e2e/v2-synthesis.spec.js",
-              '''  test("renders the selected durable thread in the workspace and Detail rail", async ({ page }) => {
-            await expect(page.getByTestId("synthesis-evidence-state")).toContainText("Historical stablecoin attention");''',
-              '''  test("renders the selected durable thread in the workspace and Detail rail", async ({ page }) => {
-            await selectThread(page, "Historical stablecoin attention");
-            await expect(page.getByTestId("synthesis-evidence-state")).toContainText("Historical stablecoin attention");''',
+              r'(test\("renders the selected durable thread in the workspace and Detail rail", async \(\{ page \}\) => \{\s*)',
+              r'\1await selectThread(page, "Historical stablecoin attention");\n    ',
           )
-          replace(
+          sub(
               "e2e/v2-synthesis.spec.js",
-              '''  test("keeps the right rail usable on mobile while the workspace remains source-backed", async ({ page }) => {
-            await page.setViewportSize({ width: 390, height: 1200 });
-            await page.reload({ waitUntil: "domcontentloaded" });
-            await waitForShell(page);
-            await expect(page.getByTestId("synthesis-evidence-state")).toBeVisible();''',
-              '''  test("keeps the right rail usable on mobile while the workspace remains source-backed", async ({ page }) => {
-            await page.setViewportSize({ width: 390, height: 1200 });
-            await page.reload({ waitUntil: "domcontentloaded" });
-            await waitForShell(page);
-            await selectThread(page, "Historical stablecoin attention");
-            await expect(page.getByTestId("synthesis-evidence-state")).toBeVisible();''',
+              r'(test\("keeps the right rail usable on mobile while the workspace remains source-backed", async \(\{ page \}\) => \{.*?await waitForShell\(page\);\s*)',
+              r'\1await selectThread(page, "Historical stablecoin attention");\n    ',
           )
           PY
 
