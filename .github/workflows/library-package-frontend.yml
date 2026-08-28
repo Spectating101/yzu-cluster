@@ -1,0 +1,56 @@
+name: Library package frontend
+
+on:
+  push:
+    branches:
+      - integration/research-drive-final-convergence-20260828
+    paths:
+      - "drive/src/v2/LibraryEvidenceEstate.jsx"
+      - "drive/src/v2/LibraryPackagePanel.jsx"
+      - "drive/src/v2/libraryPackageApi.js"
+      - "drive/src/v2/library-package.css"
+      - "e2e/v2-library-package.spec.js"
+      - ".github/workflows/library-package-frontend.yml"
+  pull_request:
+    paths:
+      - "drive/src/v2/LibraryEvidenceEstate.jsx"
+      - "drive/src/v2/LibraryPackagePanel.jsx"
+      - "drive/src/v2/libraryPackageApi.js"
+      - "drive/src/v2/library-package.css"
+      - "e2e/v2-library-package.spec.js"
+      - ".github/workflows/library-package-frontend.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  library-package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Build Research Drive
+        run: npm run build
+      - name: Install Chromium
+        run: npx playwright install chromium --with-deps
+      - name: Prove Library package workflow
+        run: >-
+          mkdir -p .tmp-pw artifacts/library-package &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/v2-library-package.spec.js --workers=1 --reporter=line
+      - name: Preserve package renders and failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: library-package-frontend
+          path: |
+            artifacts/library-package
+            test-results
+          if-no-files-found: warn
