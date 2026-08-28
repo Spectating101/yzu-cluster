@@ -230,7 +230,8 @@ test("a confirmed-unreachable desk API shows honest unknown capacity, never fabr
   await waitForShell(page);
 
   const main = page.locator("main");
-  await expect(main.getByText("Desk API unreachable", { exact: false })).toBeVisible();
+  await expect(main.getByText("That did not load", { exact: true })).toBeVisible();
+  await expect(main).toContainText("Resource telemetry could not be loaded.");
 
   const grid = capacityGrid(page);
   await expect(grid).toBeVisible();

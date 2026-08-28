@@ -30,7 +30,7 @@ test.describe("v2 Home Iteration 10 freeze", () => {
     const pick = page.getByTestId("home-continue");
     await expect(pick).toBeVisible();
     await expect(pick).toContainText(/Pick up/i);
-    await expect(pick).toHaveAttribute("data-kind", /dataset|synthesis_thread/);
+    await expect(pick).toHaveAttribute("data-kind", /library_asset|synthesis_thread/);
     await expect(pick.getByRole("button", { name: "Continue" })).toBeVisible();
     await expect(page.locator(".rd-v2-home-actions")).toHaveCount(0);
     await expect(page.getByRole("region", { name: "Attention queue" })).toHaveCount(0);
@@ -49,7 +49,7 @@ test.describe("v2 Home Iteration 10 freeze", () => {
   test("Continue opens dataset preview and keeps rail grounded", async ({ page }) => {
     await openHome(page);
     const pick = page.getByTestId("home-continue");
-    await expect(pick).toHaveAttribute("data-kind", "dataset");
+    await expect(pick).toHaveAttribute("data-kind", "library_asset");
     await expect(pick.locator(".rd-v2-home-continue-id")).toBeAttached();
     const title = (await pick.locator("h2").innerText()).trim();
     const datasetId = (await pick.locator(".rd-v2-home-continue-id").innerText()).trim();

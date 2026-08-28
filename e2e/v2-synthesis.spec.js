@@ -394,6 +394,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
   });
 
   test("renders the selected durable thread in the workspace and Detail rail", async ({ page }) => {
+    await selectThread(page, "Historical stablecoin attention");
     await expect(page.getByTestId("synthesis-evidence-state")).toContainText("Historical stablecoin attention");
     await expect(page.getByTestId("synthesis-evidence-state")).toContainText("Search intent");
     await expect(page.locator("aside.rd-v2-rail")).toContainText("Historical stablecoin attention");
@@ -1212,6 +1213,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await page.setViewportSize({ width: 390, height: 1200 });
     await page.reload({ waitUntil: "domcontentloaded" });
     await waitForShell(page);
+    await selectThread(page, "Historical stablecoin attention");
     await expect(page.getByTestId("synthesis-evidence-state")).toBeVisible();
     await expect(page.locator(".rd-v2-sidebar-foot-nav")).toBeHidden();
     await expect

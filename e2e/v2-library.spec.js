@@ -103,10 +103,9 @@ test.describe("v2 Library evidence estate", () => {
     await expect(page.getByTestId("library-source-verification")).toContainText("Not checked");
     await expect(page.getByTestId("library-source-readiness")).toContainText("Query ready");
     await provenance.getByRole("button", { name: "Close inspection" }).click();
-
-    await page.getByRole("button", { name: "Close asset inspector" }).click();
-    await expect(inspector).toHaveCount(0);
-    await expect(page.getByTestId("library-evidence-estate")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Close asset inspector" })).toHaveCount(0);
+  await expect(inspector).toBeVisible();
+  await expect(page.getByTestId("library-evidence-estate")).toBeVisible();
   });
 
   test("New menu routes upload intake through the rail", async ({ page }) => {

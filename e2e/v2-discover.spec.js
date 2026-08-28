@@ -226,7 +226,7 @@ test.describe("v2 Discover tab", () => {
     await expect(summary).toContainText("Searching wider sources…");
     await expect(summary).toContainText("Available · 1");
     await expect(summary).toContainText("Library evidence · 1");
-    await expect(summary).toContainText("Web context · 0");
+    await expect(summary).toContainText("Web context · 1");
     await expect(page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidate")).toHaveCount(1);
   });
 
@@ -375,7 +375,7 @@ test.describe("v2 Discover tab", () => {
     await expect(page.locator(".rd-v2-discover-candidate.selected")).toHaveCount(1);
     await expect(shell).not.toHaveClass(/no-rail/);
     await expect(rail).toHaveClass(/rd-v2-rail-collapsed/);
-    await rail.getByRole("button", { name: /Show Detail/ }).click();
+    await rail.getByRole("button", { name: /Show research context|Show Detail/ }).click();
     await expect(rail).not.toHaveClass(/rd-v2-rail-collapsed/);
     await rail.getByRole("tab", { name: "Ask" }).click();
     await expect(shell).not.toHaveClass(/no-rail/);

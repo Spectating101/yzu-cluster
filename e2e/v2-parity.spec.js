@@ -198,7 +198,7 @@ test.describe("v2 parity @ desk-v2-1440", () => {
     await expect(rail.getByRole("button", { name: "Preview rows" })).toHaveCount(0);
     await expect(rail.getByRole("button", { name: "Ask about this →" })).toBeVisible();
     await expect(rail).not.toContainText("Coverage & grain");
-    await expect(rail).not.toContainText("Join keys");
+    await expect(rail.locator(".rd-v2-library-evidence-facts")).toHaveCount(0);
     await expect(page.locator('aside.rd-v2-rail [aria-label="Can I use this?"]')).toContainText("Query ready");
     await situation.getByRole("tab", { name: "Ask" }).click();
     await expect(page.getByTestId("ask-composer")).toBeVisible();
