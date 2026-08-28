@@ -34,7 +34,7 @@ concurrency:
 jobs:
   contract-and-build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -73,6 +73,15 @@ jobs:
           mkdir -p .tmp-pw artifacts/platform-convergence &&
           TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
           e2e/v2-platform-convergence.spec.js --workers=1 --reporter=line
+
+      - name: Re-run the full mocked Research Drive surface
+        run: CI=true YZU_PAGES=false npm run test:v2-mock
+
+      - name: Re-run frozen authority and lifecycle suites
+        run: >-
+          CI=true YZU_PAGES=false npm run test:freeze &&
+          CI=true YZU_PAGES=false npm run test:lifecycle-states &&
+          CI=true YZU_PAGES=false npm run test:synthesis-states
 
       - name: Preserve convergence renders
         if: always()
