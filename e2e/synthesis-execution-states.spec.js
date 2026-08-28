@@ -91,6 +91,9 @@ async function openThread(page, status) {
     .first();
   await expect(item).toBeVisible();
   await item.click();
+  // The stage strip can already be visible for the previous/default thread.
+  // Wait until this exact thread owns the active detail before reading states.
+  await expect(item).toHaveClass(/\bactive\b/);
   // Synthesis mounts a hidden companion surface as well as the active detail.
   // The state assertions belong to the researcher-visible project stage strip.
   await expect(visibleStageStrip(page)).toHaveCount(1);
