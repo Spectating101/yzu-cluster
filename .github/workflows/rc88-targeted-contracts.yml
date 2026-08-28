@@ -14,6 +14,80 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+      - name: Apply remaining Synthesis contract repair in disposable checkout
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path("e2e/v2-synthesis.spec.js")
+          text = path.read_text()
+
+          def replace(old, new, expected=1):
+              global text
+              count = text.count(old)
+              if count != expected:
+                  raise SystemExit(f"expected {expected} occurrence(s), found {count}: {old[:120]!r}")
+              text = text.replace(old, new)
+
+          # The frozen opening rail now mirrors the durable research object and
+          # evidence/method/output state rather than the retired intent/questions copy.
+          replace(
+              '''    // S-04's rail leads with the thread's interpretation and unresolved
+              // questions; it no longer claims a fabricated aggregate input count.
+              await expect(page.locator("aside.rd-v2-rail")).toContainText("Your intent");
+              await expect(page.locator("aside.rd-v2-rail")).toContainText("Quick questions");''',
+              '''    // S-04's opening rail mirrors the durable research object and current
+              // evidence/method/output state without duplicating the centre dossier.
+              const openingRail = page.getByTestId("synthesis-opening-rail");
+              await expect(openingRail).toContainText("Research object");
+              await expect(openingRail).toContainText(EXPLORING_THREAD.objective);
+              await expect(openingRail).toContainText("3 mapped");
+              await expect(openingRail).toContainText("Measurement pending");
+              await expect(openingRail).toContainText("Not accepted");
+              await expect(openingRail).toContainText("Not registered");''',
+          )
+
+          # Mobile Synthesis intentionally hides the desktop thread sidebar. Enter
+          # the durable object through the workspace card, then use the compact picker.
+          pattern = re.compile(
+              r'(test\("keeps the right rail usable on mobile while the workspace remains source-backed", async \(\{ page \}\) => \{\s*'
+              r'await page\.setViewportSize\(\{ width: 390, height: 1200 \}\);\s*'
+              r'await page\.reload\(\{ waitUntil: "domcontentloaded" \}\);\s*'
+              r'await waitForShell\(page\);\s*)'
+              r'await selectThread\(page, "Historical stablecoin attention"\);',
+              re.S,
+          )
+          text, count = pattern.subn(
+              r'\1await page.getByTestId("synthesis-home-thread").filter({ hasText: "Historical stablecoin attention" }).click();\n'
+              r'    await expect(page.getByRole("combobox", { name: "Choose Synthesis thread" })).toHaveValue("thread-attention");',
+              text,
+          )
+          if count != 1:
+              raise SystemExit(f"expected 1 mobile thread-selection repair, found {count}")
+
+          replace(
+              '    await page.getByRole("button", { name: /Show Detail.*Ask|Hide panel/ }).click();',
+              '    await page.getByRole("button", { name: /Show research context|Hide panel/ }).click();',
+          )
+
+          replace(
+              '''    await expect(rail).toContainText("Your intent");
+              await expect(rail).toContainText("Quick questions");''',
+              '''    const openingRail = rail.getByTestId("synthesis-opening-rail");
+              await expect(openingRail).toContainText("Research object");
+              await expect(openingRail).toContainText(EXPLORING_THREAD.objective);
+              await expect(openingRail).toContainText("3 mapped");
+              await expect(openingRail).toContainText("Measurement pending");
+              await expect(openingRail).toContainText("Not accepted");
+              await expect(openingRail).toContainText("Not registered");''',
+          )
+
+          path.write_text(text)
+          PY
+          git diff --check
+          git diff -- e2e/v2-synthesis.spec.js
       - uses: actions/setup-node@v5
         with:
           node-version: 22
