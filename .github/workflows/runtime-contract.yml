@@ -68,14 +68,14 @@ jobs:
       - name: Install convergence browser
         run: npx playwright install chromium --with-deps
 
+      - name: Re-run the full mocked Research Drive surface
+        run: CI=true YZU_PAGES=false npm run test:v2-mock
+
       - name: Verify integrated Research Drive convergence
         run: >-
           mkdir -p .tmp-pw artifacts/platform-convergence &&
           TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
           e2e/v2-platform-convergence.spec.js --workers=1 --reporter=line
-
-      - name: Re-run the full mocked Research Drive surface
-        run: CI=true YZU_PAGES=false npm run test:v2-mock
 
       - name: Re-run frozen authority and lifecycle suites
         run: >-
