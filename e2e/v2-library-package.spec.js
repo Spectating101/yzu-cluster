@@ -30,6 +30,18 @@ async function openLibrarySearch(page, query) {
   await page.getByRole("textbox", { name: "Search library holdings" }).fill(query);
 }
 
+async function assertContained(page) {
+  const geometry = await page.evaluate(() => ({
+    documentWidth: document.documentElement.scrollWidth,
+    viewportWidth: window.innerWidth,
+    panelLeft: document.querySelector('[data-testid="library-package-panel"]')?.getBoundingClientRect().left || 0,
+    panelRight: document.querySelector('[data-testid="library-package-panel"]')?.getBoundingClientRect().right || 0,
+  }));
+  expect(geometry.documentWidth).toBeLessThanOrEqual(geometry.viewportWidth + 1);
+  expect(geometry.panelLeft).toBeGreaterThanOrEqual(-1);
+  expect(geometry.panelRight).toBeLessThanOrEqual(geometry.viewportWidth + 1);
+}
+
 test.describe("Library research packages", () => {
   test("matched held evidence can be reviewed, prepared, and downloaded without claiming sufficiency", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
@@ -80,6 +92,8 @@ test.describe("Library research packages", () => {
     await expect(page.getByTestId("library-package-research-need")).toContainText("Asia");
     await expect(panel.getByRole("checkbox").first()).toBeChecked();
     expect(prepareCount).toBe(0);
+    await assertContained(page);
+    await page.screenshot({ path: "artifacts/library-package/package-review-1440.png" });
 
     await page.getByTestId("library-package-prepare").click();
     await expect(page.getByTestId("library-package-ready")).toBeVisible();
@@ -94,6 +108,8 @@ test.describe("Library research packages", () => {
     const download = page.getByTestId("library-package-download");
     await expect(download).toHaveAttribute("href", "/api/library/packages/pkg-us-fire-polling/download");
     await expect(download).toHaveAttribute("download", "");
+    await assertContained(page);
+    await page.screenshot({ path: "artifacts/library-package/package-ready-1440.png" });
   });
 
   test("no held match never offers a fake package action", async ({ page }) => {
@@ -104,6 +120,17 @@ test.describe("Library research packages", () => {
     await expect(page.getByRole("button", { name: "Search wider in Discover" })).toBeVisible();
   });
 
+  test("package review stays composed at the tight inspector breakpoint", async ({ page }) => {
+    await page.setViewportSize({ width: 768, height: 900 });
+    await openLibrarySearch(page, "Asia");
+    await page.getByTestId("library-package-open").click();
+    const panel = page.getByTestId("library-package-panel");
+    await expect(panel).toBeVisible();
+    await expect(panel.getByRole("button", { name: "Prepare package" })).toBeVisible();
+    await assertContained(page);
+    await page.screenshot({ path: "artifacts/library-package/package-review-768.png" });
+  });
+
   test("package review stays contained on phone geometry", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await openLibrarySearch(page, "Asia");
@@ -111,12 +138,7 @@ test.describe("Library research packages", () => {
     const panel = page.getByTestId("library-package-panel");
     await expect(panel).toBeVisible();
     await expect(panel.getByRole("button", { name: "Prepare package" })).toBeVisible();
-    const geometry = await page.evaluate(() => ({
-      documentWidth: document.documentElement.scrollWidth,
-      viewportWidth: window.innerWidth,
-      panelRight: document.querySelector('[data-testid="library-package-panel"]')?.getBoundingClientRect().right || 0,
-    }));
-    expect(geometry.documentWidth).toBeLessThanOrEqual(geometry.viewportWidth + 1);
-    expect(geometry.panelRight).toBeLessThanOrEqual(geometry.viewportWidth + 1);
+    await assertContained(page);
+    await page.screenshot({ path: "artifacts/library-package/package-review-390.png" });
   });
 });
