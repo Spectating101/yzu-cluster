@@ -6,12 +6,12 @@ on:
       - "verify/rc88-frozen-discover-20260829"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   frozen-discover:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
@@ -23,8 +23,10 @@ jobs:
 
           browse = Path("drive/src/v2/BrowsePage.jsx")
           text = browse.read_text()
-          old = "          Review acquisition route\n        </button>"
-          new = "          Add to collection\n        </button>"
+          old = '''          Review acquisition route
+        </button>'''
+          new = '''          Add to collection
+        </button>'''
           if text.count(old) != 1:
               raise SystemExit(f"expected one ranked-row action label, found {text.count(old)}")
           browse.write_text(text.replace(old, new))
@@ -39,23 +41,33 @@ jobs:
 
           css = Path("drive/src/v2/v2.css")
           text = css.read_text()
-          old_counts = ".rd-v2-discover-frozen-counts {\n  display: flex;"
-          new_counts = ".rd-v2-discover-frozen-counts {\n  position: relative;\n  display: flex;"
+          old_counts = '''.rd-v2-discover-frozen-counts {
+  display: flex;'''
+          new_counts = '''.rd-v2-discover-frozen-counts {
+  position: relative;
+  display: flex;'''
           if text.count(old_counts) != 1:
               raise SystemExit(f"unexpected frozen-counts declaration count: {text.count(old_counts)}")
           text = text.replace(old_counts, new_counts)
 
-          old_evidence = ".rd-v2-discover-library-evidence {\n  position: relative;\n}"
-          new_evidence = ".rd-v2-discover-library-evidence {\n  position: static;\n}"
+          old_evidence = '''.rd-v2-discover-library-evidence {
+  position: relative;
+}'''
+          new_evidence = '''.rd-v2-discover-library-evidence {
+  position: static;
+}'''
           if text.count(old_evidence) != 1:
               raise SystemExit(f"unexpected library-evidence declaration count: {text.count(old_evidence)}")
           text = text.replace(old_evidence, new_evidence)
 
-          old_popover = "  width: min(520px, 72vw);\n  max-width: calc(100vw - 32px);"
-          new_popover = "  width: min(520px, 100%);\n  max-width: 100%;"
+          old_popover = '''  width: min(520px, 72vw);
+  max-width: calc(100vw - 32px);'''
+          new_popover = '''  width: min(520px, 100%);
+  max-width: 100%;'''
           if text.count(old_popover) != 1:
               raise SystemExit(f"unexpected popover width declaration count: {text.count(old_popover)}")
-          css.write_text(text.replace(old_popover, new_popover))
+          text = text.replace(old_popover, new_popover)
+          css.write_text(text)
           PY
           git diff --check
           git diff -- drive/src/v2/BrowsePage.jsx drive/src/v2/v2.css e2e/v2-discover-evidence.spec.js
@@ -72,19 +84,21 @@ jobs:
         run: CI=true YZU_PAGES=false npm run test:freeze
 
       - name: Discover procurement and convergence regression set
-        run: >-
-          mkdir -p .tmp-pw artifacts/platform-convergence &&
-          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
-          e2e/v2-discover-evidence.spec.js
-          e2e/v2-platform-convergence.spec.js
-          --workers=1 --reporter=line
+        shell: bash
+        run: |
+          mkdir -p .tmp-pw artifacts/platform-convergence
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test \
+            e2e/v2-discover-evidence.spec.js \
+            e2e/v2-platform-convergence.spec.js \
+            --workers=1 --reporter=line
 
-      - name: Preserve proof context
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: rc88-frozen-discover-proof
-          path: |
-            artifacts/platform-convergence
-            test-results
-          if-no-files-found: warn
+      - name: Commit proven candidate tree
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/rc88-frozen-discover-proof.yml
+          git add drive/src/v2/BrowsePage.jsx drive/src/v2/v2.css e2e/v2-discover-evidence.spec.js
+          git diff --cached --check
+          git commit -m "fix(discover): restore frozen row action and evidence sheet bounds"
+          git push
