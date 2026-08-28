@@ -37,7 +37,7 @@ const MATRIX_VIEWPORTS = [
 
 async function expectDestinationReady(page, destination) {
   if (destination.synthesis) {
-    await expect(page.getByText("Synthesis workspace", { exact: true })).toBeVisible();
+    await expect(page.getByTestId("synthesis-home-state").getByText("Synthesis workspace", { exact: true })).toBeVisible();
     await expect(page.getByRole("region", { name: "Start or continue Synthesis work" })).toBeVisible();
     return;
   }
@@ -72,12 +72,12 @@ test.describe("converged platform shell", () => {
     await capture(page, "03-resources-sources-desktop");
 
     await openAccountDestination(page, "Profile");
-    await expect(page.getByRole("heading", { name: "Profile", exact: true })).toBeVisible();
+    await expect(page.locator("main.yzu-main").getByRole("heading", { name: "Profile", exact: true })).toBeVisible();
     await expect(page.getByTestId("profile-detail-rail")).toBeVisible();
     await capture(page, "04-profile-memory-desktop");
 
     await openAccountDestination(page, "Settings");
-    await expect(page.getByRole("heading", { name: "Settings", exact: true })).toBeVisible();
+    await expect(page.locator("main.yzu-main").getByRole("heading", { name: "Settings", exact: true })).toBeVisible();
     await expect(page.locator("aside.rd-v2-rail")).toContainText("Desk setup");
     await capture(page, "05-settings-desktop");
   });
@@ -96,7 +96,7 @@ test.describe("converged platform shell", () => {
     await capture(page, "06-home-mobile-shell");
 
     await openAccountDestination(page, "Profile");
-    await expect(page.getByRole("heading", { name: "Profile", exact: true })).toBeVisible();
+    await expect(page.locator("main.yzu-main").getByRole("heading", { name: "Profile", exact: true })).toBeVisible();
     await page.getByRole("button", { name: "Show research context", exact: true }).click();
     const rail = page.locator("aside.rd-v2-rail");
     await expect(rail).toBeVisible();
@@ -110,7 +110,7 @@ test.describe("converged platform shell", () => {
 
     await page.getByRole("button", { name: "Hide panel", exact: true }).click();
     await openAccountDestination(page, "Settings");
-    await expect(page.getByRole("heading", { name: "Settings", exact: true })).toBeVisible();
+    await expect(page.locator("main.yzu-main").getByRole("heading", { name: "Settings", exact: true })).toBeVisible();
     await capture(page, "08-settings-mobile");
   });
 
@@ -141,14 +141,14 @@ test.describe("converged platform shell", () => {
     await capture(page, "09-library-to-discover-desktop");
 
     await page.locator("aside.yzu-sidebar").getByRole("button", { name: "Synthesis", exact: true }).click();
-    await expect(page.getByText("Synthesis workspace", { exact: true })).toBeVisible();
+    await expect(page.getByTestId("synthesis-home-state").getByText("Synthesis workspace", { exact: true })).toBeVisible();
     await expect(page.getByRole("region", { name: "Start or continue Synthesis work" })).toBeVisible();
     await expect(page.getByTestId("research-situation")).toContainText("Synthesis");
     await expect(page.getByTestId("research-situation")).not.toContainText("In this collection");
     await capture(page, "10-discover-to-synthesis-desktop");
 
     await page.locator("aside.yzu-sidebar").getByRole("button", { name: "Resources", exact: true }).click();
-    await expect(page.getByRole("heading", { name: "Resources", exact: true })).toBeVisible();
+    await expect(page.locator("main.yzu-main").getByRole("heading", { name: "Resources", exact: true })).toBeVisible();
     await expect(page.getByRole("region", { name: "Sources overview" })).toBeVisible();
     await expect(page.getByTestId("research-situation")).toContainText("Resources");
     const rail = page.getByRole("complementary", { name: "Inspector" });

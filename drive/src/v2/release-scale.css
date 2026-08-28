@@ -594,3 +594,14 @@ body,
     padding-bottom: 132px;
   }
 }
+
+
+/* Library filters must wrap before the phone layout takes authority. */
+@media (min-width: 721px) and (max-width: 820px) {
+  .rd-v2-library-toolbar-filters {
+    flex: 1 1 100%;
+    min-width: 0;
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
+}
