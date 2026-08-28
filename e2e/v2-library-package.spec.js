@@ -102,8 +102,11 @@ test.describe("Library research packages", () => {
     expect(preparedBody.dataset_ids.length).toBeGreaterThan(0);
 
     const ready = page.getByTestId("library-package-ready");
+    const metadataCount = Math.min(1, Math.max(0, preparedBody.dataset_ids.length - 1));
     await expect(ready).toContainText("included as data");
-    await expect(ready).toContainText("metadata/access only");
+    await expect(ready).toContainText(`${metadataCount} metadata/access record${metadataCount === 1 ? "" : "s"}`);
+    if (metadataCount) await expect(ready).toContainText("metadata/access only");
+    else await expect(ready).not.toContainText("metadata/access only");
     await expect(ready).toContainText("does not by itself establish analytical sufficiency");
     const download = page.getByTestId("library-package-download");
     await expect(download).toHaveAttribute("href", "/api/library/packages/pkg-us-fire-polling/download");
