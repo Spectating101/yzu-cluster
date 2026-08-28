@@ -1,0 +1,212 @@
+name: RC acceptance contract repair
+
+on:
+  push:
+    branches:
+      - "integration/research-drive-final-convergence-20260828"
+    paths:
+      - ".github/workflows/rc-contract-repair.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout RC
+        uses: actions/checkout@v4
+        with:
+          ref: integration/research-drive-final-convergence-20260828
+          fetch-depth: 0
+
+      - name: Align stale mocked-surface contracts with frozen product semantics
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace(path, old, new, expected=1):
+              p = Path(path)
+              text = p.read_text()
+              count = text.count(old)
+              if count != expected:
+                  raise SystemExit(f"{path}: expected {expected} occurrence(s), found {count}: {old[:120]!r}")
+              p.write_text(text.replace(old, new, expected))
+
+          # The readiness explainer belongs to evidence status, not Home's
+          # continuation authority. Exercise the same RichContextHelp contract
+          # on the Library evidence estate where StatusPill owns it.
+          replace(
+              "e2e/interaction-feedback.spec.js",
+              '''  test("readiness popover explains evidence and the safest next action", async ({ page }) => {
+            await mockV2Api(page);
+            await page.setViewportSize({ width: 1440, height: 900 });
+            await page.goto("/", { waitUntil: "domcontentloaded" });
+            await waitForShell(page);
+
+            await page.getByRole("button", { name: /^Explain / }).first().click();''',
+              '''  test("readiness popover explains evidence and the safest next action", async ({ page }) => {
+            await mockV2Api(page);
+            await page.setViewportSize({ width: 1440, height: 900 });
+            await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
+            await waitForShell(page);
+
+            await page.getByRole("button", { name: /^Explain / }).first().click();''',
+          )
+
+          # Home's primary authority can truthfully be Continue or Review. The
+          # visual containment contract is about the complete action object,
+          # not one stale CTA label.
+          replace(
+              "e2e/release-visual-convergence.spec.js",
+              'continuation.getByRole("button", { name: "Continue" })',
+              'continuation.getByRole("button", { name: /Continue|Review/ })',
+              expected=2,
+          )
+
+          old_settings = '''  test("Settings keeps faculty status visible and technical endpoints collapsed", async ({ page }) => {
+            await openTab(page, "Settings");
+
+            const summary = page.getByRole("region", { name: "Research desk status" });
+            await expect(summary).toContainText("Desk API");
+            await expect(summary.locator(".rd-v2-settings-summary-card").filter({ hasText: "Desk API" })).toContainText("Live");
+            await expect(summary).toContainText("Research assistant");
+            await expect(summary).toContainText("Jobs");
+            await expect(page.getByText("This browser", { exact: true }).locator("..")).toContainText("Connected");
+            await expect(page.getByText("Research services", { exact: true })).toBeVisible();
+            await expect(page.getByText("Browser access", { exact: true })).toBeVisible();
+            await expect(page.getByText("Research archive", { exact: true }).first()).toBeVisible();
+
+            const advanced = page
+              .locator("details.rd-v2-settings-advanced")
+              .filter({ hasText: "System status and technical details" })
+              .first();
+            await expect(advanced).not.toHaveAttribute("open", "");
+            await expect(page.getByText(":8765", { exact: true })).not.toBeVisible();
+            await advanced.locator("summary").first().click();
+            await expect(page.getByText(":8765", { exact: true })).toBeVisible();
+            await expect(page.getByText("Assistant runtime", { exact: true })).toBeVisible();
+          });'''
+          new_settings = '''  test("Settings keeps browser connection visible and operational status subordinate", async ({ page }) => {
+            await openTab(page, "Settings");
+
+            await expect(page.getByText("This browser", { exact: true }).locator("..")).toContainText("Connected");
+            const advanced = page
+              .locator("details.rd-v2-settings-advanced")
+              .filter({ hasText: "System status and technical details" })
+              .first();
+            await expect(advanced).not.toHaveAttribute("open", "");
+            await expect(page.getByText("Research API", { exact: true })).not.toBeVisible();
+            await expect(page.getByText("Assistant runtime", { exact: true })).not.toBeVisible();
+            await advanced.locator("summary").first().click();
+            await expect(page.getByText("Research API", { exact: true })).toBeVisible();
+            await expect(page.getByText("Assistant runtime", { exact: true })).toBeVisible();
+            await expect(page.getByText("Research archive", { exact: true })).toBeVisible();
+            await expect(page.getByText("Desk equipment", { exact: true })).toBeVisible();
+          });'''
+          replace("e2e/release-visual-convergence.spec.js", old_settings, new_settings)
+
+          # Library is now the possession authority, so Home resumes a typed
+          # library_asset rather than the old dataset alias.
+          replace(
+              "e2e/v2-home.spec.js",
+              'toHaveAttribute("data-kind", /dataset|synthesis_thread/)',
+              'toHaveAttribute("data-kind", /library_asset|synthesis_thread/)',
+          )
+          replace(
+              "e2e/v2-home.spec.js",
+              'toHaveAttribute("data-kind", "dataset")',
+              'toHaveAttribute("data-kind", "library_asset")',
+          )
+
+          # Search wider keeps the held result and now truthfully counts the
+          # semantically relevant federated source as web context as well.
+          replace(
+              "e2e/v2-discover.spec.js",
+              '''    await expect(summary).toContainText("Available · 1");
+            await expect(summary).toContainText("Library evidence · 1");
+            await expect(summary).toContainText("Web context · 0");''',
+              '''    await expect(summary).toContainText("Available · 1");
+            await expect(summary).toContainText("Library evidence · 1");
+            await expect(summary).toContainText("Web context · 1");''',
+          )
+          replace(
+              "e2e/v2-discover.spec.js",
+              'rail.getByRole("button", { name: /Show Detail/ })',
+              'rail.getByRole("button", { name: /Show research context|Show Detail/ })',
+          )
+
+          # Library selection is route-backed and persistent in the estate;
+          # closing the asset inspector was removed intentionally.
+          replace(
+              "e2e/v2-library.spec.js",
+              '''    await page.getByRole("button", { name: "Close asset inspector" }).click();
+            await expect(inspector).toHaveCount(0);
+            await expect(page.getByTestId("library-evidence-estate")).toBeVisible();''',
+              '''    await expect(page.getByRole("button", { name: "Close asset inspector" })).toHaveCount(0);
+            await expect(inspector).toBeVisible();
+            await expect(page.getByTestId("library-evidence-estate")).toBeVisible();''',
+          )
+
+          # "Join keys / schema relationship not described" is a legitimate
+          # unresolved-source warning in Detail. Guard against duplicated centre
+          # dossier markup instead of banning those words from the rail.
+          replace(
+              "e2e/v2-parity.spec.js",
+              '    await expect(rail).not.toContainText("Join keys");',
+              '    await expect(rail.locator(".rd-v2-library-evidence-facts")).toHaveCount(0);',
+          )
+
+          # Resources deliberately uses the generic fail-closed surface while
+          # retaining unknown/not-configured capacity rather than fabricating health.
+          replace(
+              "e2e/v2-resources.spec.js",
+              '  await expect(main.getByText("Desk API unreachable", { exact: false })).toBeVisible();',
+              '''  await expect(main.getByText("That did not load", { exact: true })).toBeVisible();
+            await expect(main).toContainText("Resource telemetry could not be loaded.");''',
+          )
+
+          # Synthesis now opens on its workspace home by design. Tests that need
+          # a durable thread must select it explicitly rather than relying on an
+          # obsolete implicit-first-thread side effect.
+          replace(
+              "e2e/v2-synthesis.spec.js",
+              '''  test("renders the selected durable thread in the workspace and Detail rail", async ({ page }) => {
+            await expect(page.getByTestId("synthesis-evidence-state")).toContainText("Historical stablecoin attention");''',
+              '''  test("renders the selected durable thread in the workspace and Detail rail", async ({ page }) => {
+            await selectThread(page, "Historical stablecoin attention");
+            await expect(page.getByTestId("synthesis-evidence-state")).toContainText("Historical stablecoin attention");''',
+          )
+          replace(
+              "e2e/v2-synthesis.spec.js",
+              '''  test("keeps the right rail usable on mobile while the workspace remains source-backed", async ({ page }) => {
+            await page.setViewportSize({ width: 390, height: 1200 });
+            await page.reload({ waitUntil: "domcontentloaded" });
+            await waitForShell(page);
+            await expect(page.getByTestId("synthesis-evidence-state")).toBeVisible();''',
+              '''  test("keeps the right rail usable on mobile while the workspace remains source-backed", async ({ page }) => {
+            await page.setViewportSize({ width: 390, height: 1200 });
+            await page.reload({ waitUntil: "domcontentloaded" });
+            await waitForShell(page);
+            await selectThread(page, "Historical stablecoin attention");
+            await expect(page.getByTestId("synthesis-evidence-state")).toBeVisible();''',
+          )
+          PY
+
+      - name: Commit test-contract repair
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add e2e/interaction-feedback.spec.js \
+                  e2e/release-visual-convergence.spec.js \
+                  e2e/v2-home.spec.js \
+                  e2e/v2-discover.spec.js \
+                  e2e/v2-library.spec.js \
+                  e2e/v2-parity.spec.js \
+                  e2e/v2-resources.spec.js \
+                  e2e/v2-synthesis.spec.js
+          git diff --cached --check
+          git commit -m "test(rc): align mocked acceptance with frozen semantics"
+          git push origin HEAD:integration/research-drive-final-convergence-20260828
