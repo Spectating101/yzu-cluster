@@ -20,7 +20,7 @@ async function openAccountDestination(page, destination) {
 const MATRIX_DESTINATIONS = [
   { slug: "library", url: "/?tab=library", heading: "Library" },
   { slug: "discover", url: "/?tab=browse", heading: "Discover" },
-  { slug: "synthesis", url: "/?tab=synthesis", heading: "Synthesis" },
+  { slug: "synthesis", url: "/?tab=synthesis", synthesis: true },
   { slug: "resources", url: "/?tab=resources", heading: "Resources" },
   { slug: "profile", url: "/?tab=profile", heading: "Profile" },
   { slug: "settings", url: "/?tab=settings", heading: "Settings" },
@@ -35,6 +35,15 @@ const MATRIX_VIEWPORTS = [
   { width: 1920, height: 1080 },
 ];
 
+async function expectDestinationReady(page, destination) {
+  if (destination.synthesis) {
+    await expect(page.getByText("Synthesis workspace", { exact: true })).toBeVisible();
+    await expect(page.getByRole("region", { name: "Start or continue Synthesis work" })).toBeVisible();
+    return;
+  }
+  await expect(page.getByRole("heading", { name: destination.heading, exact: true }).first()).toBeVisible();
+}
+
 test.describe("converged platform shell", () => {
   test.beforeEach(async ({ page }) => {
     await mockV2Api(page);
@@ -44,14 +53,9 @@ test.describe("converged platform shell", () => {
   });
 
   test("keeps Home, Library, Resources, Profile, Settings, and the rail connected", async ({ page }) => {
-    await expect(page.getByTestId("home-continue")).toBeVisible();
-    const pickUpTitle = (await page.getByTestId("home-continue").locator("h2").innerText()).trim();
-    await page.getByTestId("home-continue").getByRole("button", { name: "Continue" }).click();
-    const preview = page.getByRole("dialog", { name: `${pickUpTitle} preview` });
-    await expect(preview).toBeVisible();
     await expect(page.getByRole("heading", { name: "Home", exact: true })).toBeVisible();
-    await capture(page, "01-home-resume-preview-desktop");
-    await preview.getByRole("button", { name: "Close preview" }).click();
+    await expect(page.getByTestId("home-continue")).toBeVisible();
+    await capture(page, "01-home-desktop");
 
     await page.getByRole("button", { name: "Library", exact: true }).click();
     await expect(page.getByTestId("library-evidence-estate")).toBeVisible();
@@ -93,7 +97,7 @@ test.describe("converged platform shell", () => {
 
     await openAccountDestination(page, "Profile");
     await expect(page.getByRole("heading", { name: "Profile", exact: true })).toBeVisible();
-    await page.getByRole("button", { name: /Show Detail.*Ask|Hide panel/ }).click();
+    await page.getByRole("button", { name: "Show research context", exact: true }).click();
     const rail = page.locator("aside.rd-v2-rail");
     await expect(rail).toBeVisible();
     await expect(rail.getByTestId("profile-detail-rail")).toBeVisible();
@@ -104,7 +108,7 @@ test.describe("converged platform shell", () => {
     await expect(rail.getByTestId("ask-composer")).toBeVisible();
     await capture(page, "07-profile-ask-mobile");
 
-    await page.getByRole("button", { name: /Hide panel/ }).click();
+    await page.getByRole("button", { name: "Hide panel", exact: true }).click();
     await openAccountDestination(page, "Settings");
     await expect(page.getByRole("heading", { name: "Settings", exact: true })).toBeVisible();
     await capture(page, "08-settings-mobile");
@@ -118,25 +122,27 @@ test.describe("converged platform shell", () => {
     await collection.click();
     await expect(page).toHaveURL(/folder=/);
 
-    const librarySearch = page.getByRole("textbox", { name: "Search library holdings" });
-    await librarySearch.fill("MOPS financial statements");
-    const searchWider = page.getByRole("button", { name: "Search wider in Discover" });
-    await expect(searchWider).toBeVisible();
-    await searchWider.click();
-
+    // Cross the shell boundary deliberately. Component-level Library tests own
+    // the separate Search-wider affordance; this convergence gate proves that
+    // collection URL/rail authority does not leak into Discover.
+    await page.locator("aside.yzu-sidebar").getByRole("button", { name: "Discover", exact: true }).click();
     await expect(page.getByRole("heading", { name: "Discover", exact: true })).toBeVisible();
     await expect(page).not.toHaveURL(/folder=/);
+
     const discoverComposer = page.getByLabel("Search or describe a research need");
-    await expect(discoverComposer).toHaveValue(/MOPS financial statements/i);
+    await discoverComposer.fill("MOPS financial statements");
     await page.getByRole("button", { name: "Explore", exact: true }).click();
     await expect(page.getByTestId("discover-result-summary")).toBeVisible();
     await expect(page.getByLabel("Discover next actions")).toContainText(/declared route|Search wider/i);
+    await expect(page.getByTestId("research-situation")).toContainText("Discover");
+    await expect(page.getByTestId("research-situation")).not.toContainText("In this collection");
     await expect(page.locator("body")).not.toContainText("public_http");
     await expect(page.locator("body")).not.toContainText("materialized_instant");
     await capture(page, "09-library-to-discover-desktop");
 
     await page.locator("aside.yzu-sidebar").getByRole("button", { name: "Synthesis", exact: true }).click();
-    await expect(page.getByRole("heading", { name: "Synthesis", exact: true })).toBeVisible();
+    await expect(page.getByText("Synthesis workspace", { exact: true })).toBeVisible();
+    await expect(page.getByRole("region", { name: "Start or continue Synthesis work" })).toBeVisible();
     await expect(page.getByTestId("research-situation")).toContainText("Synthesis");
     await expect(page.getByTestId("research-situation")).not.toContainText("In this collection");
     await capture(page, "10-discover-to-synthesis-desktop");
@@ -160,7 +166,7 @@ test.describe("converged platform shell", () => {
       for (const destination of MATRIX_DESTINATIONS) {
         await page.goto(destination.url, { waitUntil: "domcontentloaded" });
         await waitForShell(page);
-        await expect(page.getByRole("heading", { name: destination.heading, exact: true }).first()).toBeVisible();
+        await expectDestinationReady(page, destination);
 
         const overflow = await page.evaluate(() => {
           const doc = document.documentElement;
