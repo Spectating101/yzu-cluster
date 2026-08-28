@@ -1,90 +1,87 @@
-name: Publish Research Drive RC2
+name: RC88 trusted promotion bridge
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - "verify/rc88-frozen-discover-20260829"
 
 permissions:
   contents: write
 
-concurrency:
-  group: research-drive-rc2-publish
-  cancel-in-progress: false
-
 jobs:
-  publish:
+  materialize-proven-tree:
     if: github.repository == 'Spectating101/yzu-cluster'
     runs-on: ubuntu-latest
     steps:
-      - name: Check out complete release history
+      - name: Check out disposable branch with full history
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Verify frozen release ancestry and boundary
-        run: npm run release:verify
-        env:
-          YZU_REQUIRE_RELEASE_ANCESTRY: "1"
-
-      - name: Build and checksum release package
-        run: npm run release:package
-        env:
-          YZU_REQUIRE_RELEASE_ANCESTRY: "1"
-          YZU_REUSE_RELEASE_VERIFICATION: "1"
-
-      - name: Create immutable RC2 tag
-        env:
-          TAG: research-drive-rc2
+      - name: Apply already-proven Discover repair
+        shell: bash
         run: |
-          if git rev-parse "refs/tags/${TAG}" >/dev/null 2>&1; then
-            existing="$(git rev-list -n 1 "${TAG}")"
-            if [[ "${existing}" != "${GITHUB_SHA}" ]]; then
-              echo "Tag ${TAG} already points to ${existing}, not ${GITHUB_SHA}" >&2
-              exit 1
-            fi
-            echo "Tag ${TAG} already points to this release commit."
-          else
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git tag -a "${TAG}" "${GITHUB_SHA}" -m "Research Drive RC2 — accepted release"
-            git push origin "refs/tags/${TAG}"
-          fi
+          python - <<'PY'
+          from pathlib import Path
 
-      - name: Publish GitHub Release and verified assets
-        env:
-          GH_TOKEN: ${{ github.token }}
-          TAG: research-drive-rc2
-        run: |
-          assets=(
-            artifacts/research-drive-rc2-public.tar.gz
-            artifacts/research-drive-rc2-public.tar.gz.sha256
-            artifacts/rc2-release-verification.json
-            release/research-drive-rc2.json
-          )
-          if gh release view "${TAG}" >/dev/null 2>&1; then
-            gh release upload "${TAG}" "${assets[@]}" --clobber
-            gh release edit "${TAG}" \
-              --title "Research Drive RC2" \
-              --notes-file docs/releases/RESEARCH_DRIVE_RC2.md
-          else
-            gh release create "${TAG}" "${assets[@]}" \
-              --title "Research Drive RC2" \
-              --notes-file docs/releases/RESEARCH_DRIVE_RC2.md \
-              --verify-tag
-          fi
+          browse = Path("drive/src/v2/BrowsePage.jsx")
+          text = browse.read_text()
+          old = '''          Review acquisition route
+        </button>'''
+          new = '''          Add to collection
+        </button>'''
+          if text.count(old) != 1:
+              raise SystemExit(f"expected one ranked-row action label, found {text.count(old)}")
+          browse.write_text(text.replace(old, new))
 
-      - name: Record release identity
-        env:
-          GH_TOKEN: ${{ github.token }}
-          TAG: research-drive-rc2
+          evidence = Path("e2e/v2-discover-evidence.spec.js")
+          text = evidence.read_text()
+          old = 'getByRole("button", { name: "Review acquisition route" })'
+          new = 'getByRole("button", { name: "Add to collection" })'
+          if text.count(old) != 2:
+              raise SystemExit(f"expected two ranked-row selectors, found {text.count(old)}")
+          evidence.write_text(text.replace(old, new))
+
+          css = Path("drive/src/v2/v2.css")
+          text = css.read_text()
+          old_counts = '''.rd-v2-discover-frozen-counts {
+  display: flex;'''
+          new_counts = '''.rd-v2-discover-frozen-counts {
+  position: relative;
+  display: flex;'''
+          if text.count(old_counts) != 1:
+              raise SystemExit(f"unexpected frozen-counts declaration count: {text.count(old_counts)}")
+          text = text.replace(old_counts, new_counts)
+
+          old_evidence = '''.rd-v2-discover-library-evidence {
+  position: relative;
+}'''
+          new_evidence = '''.rd-v2-discover-library-evidence {
+  position: static;
+}'''
+          if text.count(old_evidence) != 1:
+              raise SystemExit(f"unexpected library-evidence declaration count: {text.count(old_evidence)}")
+          text = text.replace(old_evidence, new_evidence)
+
+          old_popover = '''  width: min(520px, 72vw);
+  max-width: calc(100vw - 32px);'''
+          new_popover = '''  width: min(520px, 100%);
+  max-width: 100%;'''
+          if text.count(old_popover) != 1:
+              raise SystemExit(f"unexpected popover width declaration count: {text.count(old_popover)}")
+          text = text.replace(old_popover, new_popover)
+          css.write_text(text)
+          PY
+          git diff --check
+
+      - name: Restore workflow authority and commit only proven files
+        shell: bash
         run: |
-          git rev-parse "${TAG}"
-          gh release view "${TAG}" --json tagName,name,isDraft,isPrerelease,publishedAt,url
+          git show 510b9b6395d7a635800356d87dc422b238dba2ff:.github/workflows/rc2-publish.yml > .github/workflows/rc2-publish.yml
+          git rm .github/workflows/rc88-frozen-discover-proof.yml
+          git add .github/workflows/rc2-publish.yml drive/src/v2/BrowsePage.jsx drive/src/v2/v2.css e2e/v2-discover-evidence.spec.js
+          git diff --cached --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "fix(discover): restore frozen action and evidence bounds"
+          git push origin HEAD:verify/rc88-frozen-discover-20260829
