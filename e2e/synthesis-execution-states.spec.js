@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 
 /**
  * No live thread carries an execution status, so the whole post-approval track
@@ -20,19 +21,18 @@ const FIXTURE = readFileSync(
 const THREADS = JSON.parse(FIXTURE).threads;
 
 async function openThread(page, status) {
-  await page.route("**/library/synthesis/threads*", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: FIXTURE }),
-  );
   const thread = THREADS.find((t) => t.state.execution.status === status);
-  await page.goto("/?tab=synthesis");
-  await page.waitForTimeout(4000);
+  await page.goto("/?tab=synthesis", { waitUntil: "domcontentloaded" });
+  await waitForShell(page);
   // The thread item leads with a status glyph, not the title, so select on the
   // item that contains the title rather than on its first line.
   const item = page
     .locator('[data-testid="synthesis-thread-item"]')
-    .filter({ hasText: thread.title });
-  await item.first().click();
-  await page.waitForTimeout(3500);
+    .filter({ hasText: thread.title })
+    .first();
+  await expect(item).toBeVisible();
+  await item.click();
+  await expect(page.locator(".s04-steps li").first()).toBeVisible();
   return thread;
 }
 
@@ -47,6 +47,13 @@ const steps = (page) =>
 
 test.use({ viewport: { width: 1920, height: 961 } });
 test.describe.configure({ mode: "serial" });
+
+test.beforeEach(async ({ page }) => {
+  await mockV2Api(page);
+  await page.route("**/library/synthesis/threads*", (route) =>
+    route.fulfill({ status: 200, contentType: "application/json", body: FIXTURE }),
+  );
+});
 
 test("every post-approval state renders its track", async ({ page }) => {
   const missing = [];
