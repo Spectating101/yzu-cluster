@@ -1,1 +1,1 @@
-Disposable CI trigger for lifecycle and synthesis-state test repairs, now honoring synthesis thread list/detail contracts and semantic stage labels. Not for promotion.
+Disposable CI trigger for lifecycle and synthesis-state test repairs, now waiting for the selected thread before reading project-stage state. Not for promotion.
