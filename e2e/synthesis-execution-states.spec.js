@@ -14,13 +14,70 @@ import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
  *   python3 scripts/serve_candidate.py --port 8790 --dir <build>
  *   YZU_DESK_URL=http://127.0.0.1:8790 npm run test:synthesis-states
  */
-const FIXTURE = readFileSync(
-  join(dirname(fileURLToPath(import.meta.url)), "fixtures/synthesis-execution.json"),
-  "utf8",
+const FIXTURE = JSON.parse(
+  readFileSync(
+    join(dirname(fileURLToPath(import.meta.url)), "fixtures/synthesis-execution.json"),
+    "utf8",
+  ),
 );
-const THREADS = JSON.parse(FIXTURE).threads;
+const THREADS = FIXTURE.threads;
 
 const visibleStageStrip = (page) => page.locator("ol.s04-steps:visible");
+
+async function installExecutionStateMock(page) {
+  const threads = new Map(THREADS.map((thread) => [thread.id, structuredClone(thread)]));
+  await page.route("**/library/synthesis/threads**", (route) => {
+    const url = new URL(route.request().url());
+    const parts = url.pathname.split("/").filter(Boolean);
+    const threadIndex = parts.lastIndexOf("threads");
+    const threadId = parts[threadIndex + 1] || "";
+    const suffix = parts.slice(threadIndex + 2).join("/");
+    const method = route.request().method();
+    const respond = (body, status = 200) =>
+      route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
+
+    if (!threadId && method === "GET") {
+      return respond({ threads: [...threads.values()], total: threads.size });
+    }
+
+    const thread = threads.get(threadId);
+    if (!thread) return respond({ error: "not found" }, 404);
+    if (!suffix && method === "GET") return respond(thread);
+
+    // Keep read-only companion requests well-formed if this surface asks for
+    // them while selecting a fixture thread. The state test does not invent
+    // evidence or materialisation beyond what the thread itself declares.
+    if (suffix === "measurements" && method === "GET") {
+      const inputDatasetIds = (thread.state?.nodes || [])
+        .map((node) => node.dataset_id)
+        .filter(Boolean);
+      return respond({
+        thread_id: thread.id,
+        writes: false,
+        measurement_basis: "mapped_evidence",
+        input_dataset_ids: inputDatasetIds,
+        measured_inputs: inputDatasetIds.length,
+        unmeasured: [],
+        column_profiles: [],
+      });
+    }
+    if (suffix === "evidence-map" && method === "GET") {
+      return respond({
+        thread_id: thread.id,
+        objective: thread.objective,
+        nodes: [],
+        reason: "all held matches are already mapped to this construction",
+        review_required: true,
+        writes: false,
+      });
+    }
+    if (suffix === "discover-handoff" && method === "GET") {
+      return respond({ thread_id: thread.id, missing_evidence: [], collect_intents: [] });
+    }
+
+    return respond({ error: `unexpected synthesis fixture route: ${suffix || method}` }, 404);
+  });
+}
 
 async function openThread(page, status) {
   const thread = THREADS.find((t) => t.state.execution.status === status);
@@ -45,11 +102,11 @@ const steps = (page) =>
   visibleStageStrip(page)
     .locator("li")
     .evaluateAll((items) =>
-      items.map((li) => {
-        // each item reads: glyph / stage label / stage detail
-        const lines = (li.innerText || "").split("\n").map((x) => x.trim());
-        return { label: lines[1] || lines[0] || "", detail: lines[2] || "", state: li.className.trim() };
-      }),
+      items.map((li) => ({
+        label: li.querySelector("b")?.textContent?.trim() || "",
+        detail: li.querySelector("small")?.textContent?.trim() || "",
+        state: li.className.trim(),
+      })),
     );
 
 test.use({ viewport: { width: 1920, height: 961 } });
@@ -57,9 +114,7 @@ test.describe.configure({ mode: "serial" });
 
 test.beforeEach(async ({ page }) => {
   await mockV2Api(page);
-  await page.route("**/library/synthesis/threads*", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: FIXTURE }),
-  );
+  await installExecutionStateMock(page);
 });
 
 test("every post-approval state renders its track", async ({ page }) => {
