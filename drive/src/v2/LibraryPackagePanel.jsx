@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { displayName } from "@/v2/datasetMeta";
 import { libraryPackageDownloadHref, prepareLibraryPackage } from "@/v2/libraryPackageApi";
 import "@/v2/library-package.css";
@@ -77,7 +78,7 @@ export function LibraryPackagePanel({ open, onClose, researchNeed = "", assets =
     setError("");
   }, [candidateIds, open, researchNeed]);
 
-  if (!open) return null;
+  if (!open || typeof document === "undefined") return null;
   const selectedRows = candidates.filter((row) => selectedIds.includes(assetId(row)));
 
   const toggle = (id) => {
@@ -101,7 +102,7 @@ export function LibraryPackagePanel({ open, onClose, researchNeed = "", assets =
     }
   };
 
-  return (
+  return createPortal(
     <div className="rd-v2-library-package-scrim" role="presentation" onMouseDown={(event) => {
       if (event.target === event.currentTarget) onClose?.();
     }}>
@@ -157,6 +158,7 @@ export function LibraryPackagePanel({ open, onClose, researchNeed = "", assets =
         {error ? <div className="rd-v2-library-package-error" role="alert">{error}</div> : null}
         <ResultSummary result={result} />
       </section>
-    </div>
+    </div>,
+    document.body,
   );
 }
