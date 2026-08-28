@@ -9,11 +9,60 @@ permissions:
   contents: read
 
 jobs:
-  library-768-diagnostic:
+  convergence:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+
+      - name: Apply candidate convergence repair in disposable checkout
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          spec = Path("e2e/v2-platform-convergence.spec.js")
+          text = spec.read_text()
+
+          old = 'await expect(page.getByText("Synthesis workspace", { exact: true })).toBeVisible();'
+          new = 'await expect(page.getByTestId("synthesis-home-state").getByText("Synthesis workspace", { exact: true })).toBeVisible();'
+          if text.count(old) != 2:
+              raise SystemExit(f"unexpected Synthesis assertion count: {text.count(old)}")
+          text = text.replace(old, new)
+
+          for heading, expected in (("Profile", 2), ("Settings", 2), ("Resources", 1)):
+              old = f'await expect(page.getByRole("heading", {{ name: "{heading}", exact: true }})).toBeVisible();'
+              new = f'await expect(page.locator("main.yzu-main").getByRole("heading", {{ name: "{heading}", exact: true }})).toBeVisible();'
+              if text.count(old) != expected:
+                  raise SystemExit(f"unexpected {heading} assertion count: {text.count(old)}")
+              text = text.replace(old, new)
+
+          # Preserve an intermediate-width render in the disposable proof.
+          text = text.replace(
+              'if (viewport.width === 390 || viewport.width === 1920) {',
+              'if (viewport.width === 390 || viewport.width === 768 || viewport.width === 1920) {',
+          )
+          spec.write_text(text)
+
+          css = Path("drive/src/v2/release-scale.css")
+          css_text = css.read_text()
+          marker = "/* RC88 Library tablet toolbar convergence */"
+          if marker in css_text:
+              raise SystemExit("candidate tablet rule already present")
+          css_text += '''\n\n/* RC88 Library tablet toolbar convergence */
+          @media (min-width: 721px) and (max-width: 820px) {
+            .rd-v2-library-toolbar-filters {
+              flex: 1 1 100%;
+              min-width: 0;
+              max-width: 100%;
+              flex-wrap: wrap;
+            }
+          }
+          '''
+          css.write_text(css_text)
+          PY
+          git diff --check
+          git diff -- e2e/v2-platform-convergence.spec.js drive/src/v2/release-scale.css
 
       - uses: actions/setup-node@v5
         with:
@@ -24,96 +73,17 @@ jobs:
       - run: npm run build
       - run: npx playwright install chromium --with-deps
 
-      - name: Create focused Library overflow diagnostic
-        shell: bash
-        run: |
-          cat > e2e/rc88-library-overflow-diagnostic.spec.js <<'EOF'
-          import { mkdirSync, writeFileSync } from "node:fs";
-          import { test, expect } from "@playwright/test";
-          import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
-
-          test("diagnoses Library main overflow at 768px", async ({ page }) => {
-            await mockV2Api(page);
-            await page.setViewportSize({ width: 768, height: 1024 });
-            await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
-            await waitForShell(page);
-            await expect(page.getByTestId("library-evidence-estate")).toBeVisible();
-
-            const report = await page.evaluate(() => {
-              const main = document.querySelector("main.yzu-main");
-              if (!main) throw new Error("main.yzu-main missing");
-              const mainRect = main.getBoundingClientRect();
-              const describe = (el) => {
-                const rect = el.getBoundingClientRect();
-                const style = getComputedStyle(el);
-                return {
-                  tag: el.tagName.toLowerCase(),
-                  id: el.id || null,
-                  className: typeof el.className === "string" ? el.className : null,
-                  testId: el.getAttribute("data-testid"),
-                  role: el.getAttribute("role"),
-                  text: (el.textContent || "").replace(/\s+/g, " ").trim().slice(0, 120),
-                  left: Math.round(rect.left * 10) / 10,
-                  right: Math.round(rect.right * 10) / 10,
-                  width: Math.round(rect.width * 10) / 10,
-                  clientWidth: el.clientWidth,
-                  scrollWidth: el.scrollWidth,
-                  overflowRight: Math.round(Math.max(0, rect.right - mainRect.right) * 10) / 10,
-                  overflowLeft: Math.round(Math.max(0, mainRect.left - rect.left) * 10) / 10,
-                  display: style.display,
-                  position: style.position,
-                  widthCss: style.width,
-                  minWidth: style.minWidth,
-                  maxWidth: style.maxWidth,
-                  overflowX: style.overflowX,
-                  whiteSpace: style.whiteSpace,
-                  gridTemplateColumns: style.gridTemplateColumns,
-                  gap: style.gap,
-                  paddingLeft: style.paddingLeft,
-                  paddingRight: style.paddingRight,
-                };
-              };
-
-              const descendants = Array.from(main.querySelectorAll("*")).map(describe);
-              const offenders = descendants
-                .filter((x) => x.overflowRight > 1 || x.overflowLeft > 1 || x.scrollWidth > x.clientWidth + 1)
-                .sort((a, b) => (b.overflowRight + b.overflowLeft + (b.scrollWidth - b.clientWidth)) - (a.overflowRight + a.overflowLeft + (a.scrollWidth - a.clientWidth)))
-                .slice(0, 80);
-
-              return {
-                viewport: { width: innerWidth, height: innerHeight },
-                document: { clientWidth: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth },
-                main: {
-                  left: mainRect.left,
-                  right: mainRect.right,
-                  width: mainRect.width,
-                  clientWidth: main.clientWidth,
-                  scrollWidth: main.scrollWidth,
-                  overflow: Math.max(0, main.scrollWidth - main.clientWidth),
-                },
-                offenders,
-              };
-            });
-
-            mkdirSync("artifacts/platform-convergence", { recursive: true });
-            writeFileSync("artifacts/platform-convergence/library-768-diagnostics.json", JSON.stringify(report, null, 2));
-            await page.screenshot({ path: "artifacts/platform-convergence/library-768.png", fullPage: true });
-            console.log(JSON.stringify(report, null, 2));
-            expect(report.main.overflow).toBeGreaterThan(1);
-          });
-          EOF
-
-      - name: Run focused diagnostic
+      - name: Verify all integrated convergence contracts
         run: >-
           mkdir -p .tmp-pw artifacts/platform-convergence &&
           TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
-          e2e/rc88-library-overflow-diagnostic.spec.js --workers=1 --reporter=line
+          e2e/v2-platform-convergence.spec.js --workers=1 --reporter=line
 
-      - name: Preserve diagnostic
+      - name: Preserve convergence renders
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: rc88-library-768-diagnostic
+          name: rc88-platform-convergence-candidate
           path: |
             artifacts/platform-convergence
             test-results
