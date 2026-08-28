@@ -17,6 +17,24 @@ async function openAccountDestination(page, destination) {
   await menu.getByRole("menuitem", { name: new RegExp(destination, "i") }).click();
 }
 
+const MATRIX_DESTINATIONS = [
+  { slug: "library", url: "/?tab=library", heading: "Library" },
+  { slug: "discover", url: "/?tab=browse", heading: "Discover" },
+  { slug: "synthesis", url: "/?tab=synthesis", heading: "Synthesis" },
+  { slug: "resources", url: "/?tab=resources", heading: "Resources" },
+  { slug: "profile", url: "/?tab=profile", heading: "Profile" },
+  { slug: "settings", url: "/?tab=settings", heading: "Settings" },
+];
+
+const MATRIX_VIEWPORTS = [
+  { width: 390, height: 844 },
+  { width: 768, height: 1024 },
+  { width: 1024, height: 900 },
+  { width: 1280, height: 900 },
+  { width: 1440, height: 900 },
+  { width: 1920, height: 1080 },
+];
+
 test.describe("converged platform shell", () => {
   test.beforeEach(async ({ page }) => {
     await mockV2Api(page);
@@ -90,5 +108,83 @@ test.describe("converged platform shell", () => {
     await openAccountDestination(page, "Settings");
     await expect(page.getByRole("heading", { name: "Settings", exact: true })).toBeVisible();
     await capture(page, "08-settings-mobile");
+  });
+
+  test("carries one researcher session from Library through Discover, Synthesis, and Resources without stale authority", async ({ page }) => {
+    await page.getByRole("button", { name: "Library", exact: true }).click();
+    await expect(page.getByTestId("library-evidence-estate")).toBeVisible();
+
+    const collection = page.getByTestId("library-collection-filter").first();
+    await collection.click();
+    await expect(page).toHaveURL(/folder=/);
+
+    const librarySearch = page.getByRole("textbox", { name: "Search library holdings" });
+    await librarySearch.fill("MOPS financial statements");
+    const searchWider = page.getByRole("button", { name: "Search wider in Discover" });
+    await expect(searchWider).toBeVisible();
+    await searchWider.click();
+
+    await expect(page.getByRole("heading", { name: "Discover", exact: true })).toBeVisible();
+    await expect(page).not.toHaveURL(/folder=/);
+    const discoverComposer = page.getByLabel("Search or describe a research need");
+    await expect(discoverComposer).toHaveValue(/MOPS financial statements/i);
+    await page.getByRole("button", { name: "Explore", exact: true }).click();
+    await expect(page.getByTestId("discover-result-summary")).toBeVisible();
+    await expect(page.getByLabel("Discover next actions")).toContainText(/declared route|Search wider/i);
+    await expect(page.locator("body")).not.toContainText("public_http");
+    await expect(page.locator("body")).not.toContainText("materialized_instant");
+    await capture(page, "09-library-to-discover-desktop");
+
+    await page.locator("aside.yzu-sidebar").getByRole("button", { name: "Synthesis", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Synthesis", exact: true })).toBeVisible();
+    await expect(page.getByTestId("research-situation")).toContainText("Synthesis");
+    await expect(page.getByTestId("research-situation")).not.toContainText("In this collection");
+    await capture(page, "10-discover-to-synthesis-desktop");
+
+    await page.locator("aside.yzu-sidebar").getByRole("button", { name: "Resources", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Resources", exact: true })).toBeVisible();
+    await expect(page.getByRole("region", { name: "Sources overview" })).toBeVisible();
+    await expect(page.getByTestId("research-situation")).toContainText("Resources");
+    const rail = page.getByRole("complementary", { name: "Inspector" });
+    await expect(rail).toContainText("Library capacity");
+    await expect(rail).not.toContainText("MOPS financial statements");
+    await capture(page, "11-synthesis-to-resources-desktop");
+  });
+
+  test("holds the combined product to a six-width cross-page overflow and vocabulary matrix", async ({ page }) => {
+    test.setTimeout(240_000);
+
+    for (const viewport of MATRIX_VIEWPORTS) {
+      await page.setViewportSize(viewport);
+
+      for (const destination of MATRIX_DESTINATIONS) {
+        await page.goto(destination.url, { waitUntil: "domcontentloaded" });
+        await waitForShell(page);
+        await expect(page.getByRole("heading", { name: destination.heading, exact: true }).first()).toBeVisible();
+
+        const overflow = await page.evaluate(() => {
+          const doc = document.documentElement;
+          const shell = document.querySelector(".rd-v2-shell");
+          const main = document.querySelector("main.yzu-main");
+          return {
+            document: Math.max(0, doc.scrollWidth - doc.clientWidth),
+            shell: shell ? Math.max(0, shell.scrollWidth - shell.clientWidth) : 0,
+            main: main ? Math.max(0, main.scrollWidth - main.clientWidth) : 0,
+          };
+        });
+        expect(overflow.document, `${destination.slug} document overflow at ${viewport.width}px`).toBeLessThanOrEqual(1);
+        expect(overflow.shell, `${destination.slug} shell overflow at ${viewport.width}px`).toBeLessThanOrEqual(1);
+        expect(overflow.main, `${destination.slug} main overflow at ${viewport.width}px`).toBeLessThanOrEqual(1);
+
+        const bodyText = await page.locator("body").innerText();
+        expect(bodyText, `${destination.slug} leaked an object string at ${viewport.width}px`).not.toContain("[object Object]");
+        expect(bodyText, `${destination.slug} leaked public_http at ${viewport.width}px`).not.toContain("public_http");
+        expect(bodyText, `${destination.slug} leaked materialized_instant at ${viewport.width}px`).not.toContain("materialized_instant");
+
+        if (viewport.width === 390 || viewport.width === 1920) {
+          await capture(page, `matrix-${viewport.width}-${destination.slug}`);
+        }
+      }
+    }
   });
 });
