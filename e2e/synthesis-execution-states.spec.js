@@ -20,6 +20,8 @@ const FIXTURE = readFileSync(
 );
 const THREADS = JSON.parse(FIXTURE).threads;
 
+const visibleStageStrip = (page) => page.locator("ol.s04-steps:visible");
+
 async function openThread(page, status) {
   const thread = THREADS.find((t) => t.state.execution.status === status);
   await page.goto("/?tab=synthesis", { waitUntil: "domcontentloaded" });
@@ -32,18 +34,23 @@ async function openThread(page, status) {
     .first();
   await expect(item).toBeVisible();
   await item.click();
-  await expect(page.getByRole("list", { name: "Synthesis execution lifecycle" })).toBeVisible();
+  // Synthesis mounts a hidden companion surface as well as the active detail.
+  // The state assertions belong to the researcher-visible project stage strip.
+  await expect(visibleStageStrip(page)).toHaveCount(1);
+  await expect(visibleStageStrip(page)).toBeVisible();
   return thread;
 }
 
 const steps = (page) =>
-  page.evaluate(() =>
-    [...document.querySelectorAll(".s04-steps li")].map((li) => {
-      // each item reads: glyph / stage label / stage detail
-      const lines = (li.innerText || "").split("\n").map((x) => x.trim());
-      return { label: lines[1] || lines[0] || "", detail: lines[2] || "", state: li.className.trim() };
-    }),
-  );
+  visibleStageStrip(page)
+    .locator("li")
+    .evaluateAll((items) =>
+      items.map((li) => {
+        // each item reads: glyph / stage label / stage detail
+        const lines = (li.innerText || "").split("\n").map((x) => x.trim());
+        return { label: lines[1] || lines[0] || "", detail: lines[2] || "", state: li.className.trim() };
+      }),
+    );
 
 test.use({ viewport: { width: 1920, height: 961 } });
 test.describe.configure({ mode: "serial" });
