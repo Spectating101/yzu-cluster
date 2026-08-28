@@ -1,3 +1,19 @@
+.rd-v2-library-package-context {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin: 2px 0 14px;
+  padding: 13px 14px;
+  border: 1px solid color-mix(in srgb, var(--rd-accent, #315efb) 15%, #d8dee8);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--rd-accent, #315efb) 3%, white);
+}
+.rd-v2-library-package-context > div:first-child { display: grid; gap: 3px; min-width: 0; }
+.rd-v2-library-package-context strong { font-size: 14px; }
+.rd-v2-library-package-context p { margin: 0; color: var(--rd-muted, #647087); font-size: 12px; }
+.rd-v2-library-package-context-actions { display: flex; gap: 8px; flex: 0 0 auto; }
+
 .rd-v2-library-package-trigger {
   display: inline-flex;
   align-items: center;
@@ -119,6 +135,9 @@
 .rd-v2-library-package-boundary { margin-top: 12px !important; font-size: 12px; }
 
 @media (max-width: 700px) {
+  .rd-v2-library-package-context { align-items: stretch; flex-direction: column; }
+  .rd-v2-library-package-context-actions { width: 100%; }
+  .rd-v2-library-package-context-actions > * { flex: 1; justify-content: center; }
   .rd-v2-library-package-scrim { padding: 0; place-items: end center; }
   .rd-v2-library-package-panel { width: 100%; max-height: 88vh; border-radius: 18px 18px 0 0; padding: 18px; }
   .rd-v2-library-package-head,
