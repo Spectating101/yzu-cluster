@@ -165,10 +165,10 @@ test.describe("v2 Discover tab", () => {
 
     await expect(page.getByLabel("Discover next actions")).toContainText("1 offering with a declared route");
     await expect(page.getByLabel("Discover next actions")).toContainText("1 reference");
-    await expect(page.getByRole("button", { name: "Review acquisition route", exact: true })).toHaveCount(1);
+    await expect(page.getByRole("button", { name: "Add to collection", exact: true })).toHaveCount(1);
     const context = page.getByTestId("discover-context-results");
     await expect(context.getByText("CoinGecko example route")).toBeVisible();
-    await expect(context.getByRole("button", { name: "Review acquisition route" })).toHaveCount(0);
+    await expect(context.getByRole("button", { name: "Add to collection" })).toHaveCount(0);
     await page.screenshot({ path: testInfo.outputPath("discover-reference-context-desktop.png"), fullPage: true });
 
     await page.setViewportSize({ width: 390, height: 844 });

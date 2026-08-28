@@ -275,7 +275,7 @@ function DiscoverCandidateRow({
             onAdd(row);
           }}
         >
-          Review acquisition route
+          Add to collection
         </button>
       ) : null}
     </li>

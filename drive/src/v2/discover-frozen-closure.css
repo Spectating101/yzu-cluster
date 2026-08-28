@@ -1,0 +1,15 @@
+/* RC88 frozen Discover closure.
+ * Keep the held-Library preview bounded by the Discover centre surface.
+ */
+.rd-v2-discover-frozen-counts {
+  position: relative;
+}
+
+.rd-v2-discover-library-evidence {
+  position: static;
+}
+
+.rd-v2-discover-library-popover {
+  width: min(520px, 100%);
+  max-width: 100%;
+}

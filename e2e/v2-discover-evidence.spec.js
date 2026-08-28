@@ -160,7 +160,7 @@ test.describe("Discover adaptive Explore", () => {
     await waitForShell(page);
     await search(page, "MOPS filings");
 
-    await page.getByTestId("discover-ranked-results").getByRole("button", { name: "Review acquisition route" }).click();
+    await page.getByTestId("discover-ranked-results").getByRole("button", { name: "Add to collection" }).click();
 
     const workspace = page.getByTestId("discover-intent-workspace");
     await expect(workspace).toBeVisible();
@@ -211,7 +211,7 @@ test.describe("Discover adaptive Explore", () => {
 
     const result = page.getByTestId("discover-ranked-results");
     await expect(result).toContainText("Collection route declared");
-    await result.getByRole("button", { name: "Review acquisition route" }).click();
+    await result.getByRole("button", { name: "Add to collection" }).click();
     const workspace = page.getByTestId("discover-intent-workspace");
     await expect(workspace).toBeVisible();
     const engineering = workspace.getByTestId("discover-procurement-engineering");
