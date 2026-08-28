@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "drive/src/v2/**"
+      - "e2e/v2-platform-convergence.spec.js"
       - "scripts/yzu_cluster/**"
       - "tests/test_yzu_interop_*.py"
       - "docs/product/CLUSTER_RUNTIME_INTEROP_CONTRACT.md"
@@ -15,6 +16,7 @@ on:
       - "agent/**"
     paths:
       - "drive/src/v2/**"
+      - "e2e/v2-platform-convergence.spec.js"
       - "scripts/yzu_cluster/**"
       - "tests/test_yzu_interop_*.py"
       - "docs/product/CLUSTER_RUNTIME_INTEROP_CONTRACT.md"
@@ -32,7 +34,7 @@ concurrency:
 jobs:
   contract-and-build:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -62,3 +64,22 @@ jobs:
 
       - name: Build Research Drive
         run: npm run build
+
+      - name: Install convergence browser
+        run: npx playwright install chromium --with-deps
+
+      - name: Verify integrated Research Drive convergence
+        run: >-
+          mkdir -p .tmp-pw artifacts/platform-convergence &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/v2-platform-convergence.spec.js --workers=1 --reporter=line
+
+      - name: Preserve convergence renders
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: research-drive-platform-convergence
+          path: |
+            artifacts/platform-convergence
+            test-results
+          if-no-files-found: warn
