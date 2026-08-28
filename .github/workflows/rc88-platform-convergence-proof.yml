@@ -1,0 +1,70 @@
+name: RC88 platform convergence proof
+
+on:
+  push:
+    branches:
+      - "verify/rc88-platform-convergence-20260829"
+
+permissions:
+  contents: read
+
+jobs:
+  convergence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Apply locator-only convergence repair in disposable checkout
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("e2e/v2-platform-convergence.spec.js")
+          text = path.read_text()
+
+          old = 'await expect(page.getByText("Synthesis workspace", { exact: true })).toBeVisible();'
+          new = 'await expect(page.getByTestId("synthesis-home-state").getByText("Synthesis workspace", { exact: true })).toBeVisible();'
+          count = text.count(old)
+          if count != 2:
+              raise SystemExit(f"expected 2 ambiguous Synthesis workspace assertions, found {count}")
+          text = text.replace(old, new)
+
+          for heading in ("Profile", "Settings"):
+              old = f'await expect(page.getByRole("heading", {{ name: "{heading}", exact: true }})).toBeVisible();'
+              new = f'await expect(page.locator("main.yzu-main").getByRole("heading", {{ name: "{heading}", exact: true }})).toBeVisible();'
+              count = text.count(old)
+              if count != 2:
+                  raise SystemExit(f"expected 2 ambiguous {heading} heading assertions, found {count}")
+              text = text.replace(old, new)
+
+          path.write_text(text)
+          PY
+          git diff --check
+          git diff -- e2e/v2-platform-convergence.spec.js
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build
+      - run: npx playwright install chromium --with-deps
+
+      - name: Verify all integrated convergence contracts
+        run: >-
+          mkdir -p .tmp-pw artifacts/platform-convergence &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/v2-platform-convergence.spec.js --workers=1 --reporter=line
+
+      - name: Preserve convergence renders
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rc88-platform-convergence-proof
+          path: |
+            artifacts/platform-convergence
+            test-results
+          if-no-files-found: warn
