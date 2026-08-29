@@ -90,9 +90,12 @@ test.describe("Connected storage accounts", () => {
     await expect(page.getByText("Researcher One", { exact: true })).toBeVisible();
     await expect(page.getByText("Personal Drive", { exact: true })).toBeVisible();
     await expect(page.getByText("Lab Drive", { exact: true })).toBeVisible();
+    await expect(page.getByText(/Library indexing and materialisation remain separate/i)).toBeVisible();
+    await expect(page.getByText(/Lab Drive · Metadata/i)).toBeVisible();
 
     const google = page.locator('[data-provider="google_drive"]');
     await expect(google).toContainText("2 connected");
+    await expect(google.getByRole("option", { name: "Metadata only" })).toHaveCount(1);
     await expect(google.getByRole("button", { name: "Connect another" })).toBeEnabled();
 
     const oneDrive = page.locator('[data-provider="onedrive"]');
