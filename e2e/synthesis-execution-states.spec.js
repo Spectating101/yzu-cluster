@@ -5,10 +5,9 @@ import { dirname, join } from "node:path";
 import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 
 /**
- * No live thread carries an execution status, so the whole post-approval track
- * — queued, running, registering, archiving, registered, query_ready, failed —
- * had never been seen rendered. A failed build was styled with the same marker
- * as a running one for exactly that reason.
+ * No live thread carries every execution status, so this fixture proves the
+ * researcher-visible post-approval lifecycle across queued, running,
+ * registering, archiving, registered, query_ready, and failed states.
  *
  * Run against a candidate build:
  *   python3 scripts/serve_candidate.py --port 8790 --dir <build>
@@ -22,7 +21,8 @@ const FIXTURE = JSON.parse(
 );
 const THREADS = FIXTURE.threads;
 
-const visibleStageStrip = (page) => page.locator("ol.s04-steps:visible");
+const visibleExecutionTrack = (page) =>
+  page.locator('ol.s04-exec-track[aria-label="Synthesis execution lifecycle"]:visible');
 
 async function installExecutionStateMock(page) {
   const threads = new Map(THREADS.map((thread) => [thread.id, structuredClone(thread)]));
@@ -91,22 +91,21 @@ async function openThread(page, status) {
     .first();
   await expect(item).toBeVisible();
   await item.click();
-  // The stage strip can already be visible for the previous/default thread.
-  // Wait until this exact thread owns the active detail before reading states.
+  // Wait until this exact thread owns the active detail before sampling the
+  // durable execution lifecycle. A previous/default thread may already have
+  // rendered while React is switching the selected construction.
   await expect(item).toHaveClass(/\bactive\b/);
-  // Synthesis mounts a hidden companion surface as well as the active detail.
-  // The state assertions belong to the researcher-visible project stage strip.
-  await expect(visibleStageStrip(page)).toHaveCount(1);
-  await expect(visibleStageStrip(page)).toBeVisible();
+  await expect(visibleExecutionTrack(page)).toHaveCount(1);
+  await expect(visibleExecutionTrack(page)).toBeVisible();
   return thread;
 }
 
 const steps = (page) =>
-  visibleStageStrip(page)
+  visibleExecutionTrack(page)
     .locator("li")
     .evaluateAll((items) =>
       items.map((li) => ({
-        label: li.querySelector("b")?.textContent?.trim() || "",
+        label: li.querySelector("strong")?.textContent?.trim() || "",
         detail: li.querySelector("small")?.textContent?.trim() || "",
         state: li.className.trim(),
       })),
@@ -120,44 +119,48 @@ test.beforeEach(async ({ page }) => {
   await installExecutionStateMock(page);
 });
 
-test("every post-approval state renders its track", async ({ page }) => {
+test("every post-approval state renders its execution lifecycle", async ({ page }) => {
   const missing = [];
   for (const status of ["queued", "running", "registering", "archiving", "registered", "query_ready", "failed"]) {
     await openThread(page, status);
     const track = await steps(page);
     if (!track.length) missing.push(status);
   }
-  expect(missing, `no execution track rendered for: ${missing.join(", ")}`).toEqual([]);
+  expect(missing, `no execution lifecycle rendered for: ${missing.join(", ")}`).toEqual([]);
 });
 
-test("a failed build is not marked as the step in progress", async ({ page }) => {
+test("a failed worker build is not marked as in progress", async ({ page }) => {
   await openThread(page, "failed");
   const failedTrack = await steps(page);
   await openThread(page, "running");
   const runningTrack = await steps(page);
-  const build = (t) => t.find((s) => /^build/i.test(s.label));
-  expect(build(failedTrack), "no worker-build step rendered").toBeTruthy();
+  const build = (track) => track.find((step) => /^worker build/i.test(step.label));
+  expect(build(failedTrack), "no worker-build lifecycle step rendered").toBeTruthy();
+  expect(build(runningTrack), "no running worker-build lifecycle step rendered").toBeTruthy();
   expect(build(failedTrack).state).not.toEqual(build(runningTrack).state);
   expect(build(failedTrack).state).toContain("failed");
+  expect(build(runningTrack).state).toContain("now");
 });
 
-test("a failure does not advance the stages after it", async ({ page }) => {
+test("a failure does not advance archive or Library handoff", async ({ page }) => {
   await openThread(page, "failed");
   const track = await steps(page);
-  for (const label of ["Reuse"]) {
-    const step = track.find((s) => s.label.startsWith(label));
+  for (const label of ["Archive + registry", "Library handoff"]) {
+    const step = track.find((candidate) => candidate.label === label);
     expect(step, `${label} missing`).toBeTruthy();
     expect(step.state, `${label} advanced despite a failure`).not.toContain("done");
   }
 });
 
-test("registered and query-ready complete the archive stage", async ({ page }) => {
+test("registered and query-ready complete archive and Library handoff", async ({ page }) => {
   for (const status of ["registered", "query_ready"]) {
     await openThread(page, status);
     const track = await steps(page);
-    const archive = track.find((s) => s.label.startsWith("Reuse"));
-    expect(archive, `${status}: reuse step missing`).toBeTruthy();
-    expect(archive.state, `${status}: reuse stage not reached`).not.toEqual("");
+    for (const label of ["Archive + registry", "Library handoff"]) {
+      const step = track.find((candidate) => candidate.label === label);
+      expect(step, `${status}: ${label} missing`).toBeTruthy();
+      expect(step.state, `${status}: ${label} not completed`).toContain("done");
+    }
   }
 });
 
