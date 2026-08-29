@@ -40,7 +40,7 @@ function connectionLabel(account) {
 }
 
 function accessLabel(mode) {
-  if (mode === "index") return "Index";
+  if (mode === "index") return "Metadata";
   if (mode === "write") return "Read + write";
   return "Read";
 }
@@ -218,7 +218,7 @@ export function ConnectedAccountsSection({ deskAccess, onToast }) {
       <StatementSection title="Connected storage">
         <div className="rd-v2-connected-intro">
           <p>
-            Bring external storage into one evidence estate without copying everything into Research Drive. Multiple accounts from the same provider are supported.
+            Connect external storage accounts without migrating their files into Research Drive. This release establishes provider authority and verification; Library indexing and materialisation remain separate, explicit operations.
           </p>
           <span>Credentials stay server-side</span>
         </div>
@@ -254,7 +254,7 @@ export function ConnectedAccountsSection({ deskAccess, onToast }) {
                         }
                       >
                         <option value="index">
-                          {provider.supports_index_only ? "Index only" : "Index (read-only)"}
+                          {provider.supports_index_only ? "Metadata only" : "Metadata (read-only)"}
                         </option>
                         <option value="read">Read files</option>
                         <option value="write">Read + write</option>
@@ -316,7 +316,7 @@ export function ConnectedAccountsSection({ deskAccess, onToast }) {
                     </p>
                   ) : provider.id === "onedrive" && selectedMode === "index" ? (
                     <p className="rd-v2-connected-provider-note">
-                      Microsoft does not expose delegated metadata-only file access; OneDrive indexing therefore uses read-only Files.Read.
+                      Microsoft does not expose delegated metadata-only file access; OneDrive metadata authority therefore uses read-only Files.Read.
                     </p>
                   ) : selectedMode === "write" ? (
                     <p className="rd-v2-connected-provider-note">
