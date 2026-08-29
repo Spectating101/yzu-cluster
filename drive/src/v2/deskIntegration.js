@@ -4,6 +4,7 @@
  */
 
 import { composerRuntimeRead } from "./composerRuntimeStatus.js";
+import { humanizeDiscoverDescription } from "./browseMeta.js";
 
 function formatAge(ts) {
   if (!ts) return null;
@@ -119,7 +120,7 @@ export function buildObjectEstateCrumb(object, { probeState = null, searchMeta =
           ? "Live search"
           : `Search · ${mode}`;
   } else if (!freshness && object.access_mode) {
-    freshness = `Access · ${String(object.access_mode).replace(/_/g, " ")}`;
+    freshness = `Access · ${humanizeDiscoverDescription(object.access_mode)}`;
   }
 
   let authority = null;

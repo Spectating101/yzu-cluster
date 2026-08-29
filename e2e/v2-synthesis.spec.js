@@ -394,13 +394,19 @@ test.describe("v2 Synthesis durable thread surface", () => {
   });
 
   test("renders the selected durable thread in the workspace and Detail rail", async ({ page }) => {
+    await selectThread(page, "Historical stablecoin attention");
     await expect(page.getByTestId("synthesis-evidence-state")).toContainText("Historical stablecoin attention");
     await expect(page.getByTestId("synthesis-evidence-state")).toContainText("Search intent");
     await expect(page.locator("aside.rd-v2-rail")).toContainText("Historical stablecoin attention");
-    // S-04's rail leads with the thread's interpretation and unresolved
-    // questions; it no longer claims a fabricated aggregate input count.
-    await expect(page.locator("aside.rd-v2-rail")).toContainText("Your intent");
-    await expect(page.locator("aside.rd-v2-rail")).toContainText("Quick questions");
+    // S-04's opening rail mirrors the durable research object and current
+    // evidence/method/output state without duplicating the centre dossier.
+    const openingRail = page.getByTestId("synthesis-opening-rail");
+    await expect(openingRail).toContainText("Research object");
+    await expect(openingRail).toContainText(EXPLORING_THREAD.objective);
+    await expect(openingRail).toContainText("3 mapped");
+    await expect(openingRail).toContainText("Measurement pending");
+    await expect(openingRail).toContainText("Not accepted");
+    await expect(openingRail).toContainText("Not registered");
     await expect(page.getByTestId("rail-pane-ask")).toBeHidden();
     await expect(page.getByText("No output registered", { exact: true })).toBeVisible();
     await capture(page, "01-durable-evidence-desktop");
@@ -1212,19 +1218,26 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await page.setViewportSize({ width: 390, height: 1200 });
     await page.reload({ waitUntil: "domcontentloaded" });
     await waitForShell(page);
+    await page.getByTestId("synthesis-home-thread").filter({ hasText: "Historical stablecoin attention" }).click();
+    await expect(page.getByRole("combobox", { name: "Choose Synthesis thread" })).toHaveValue("thread-attention");
     await expect(page.getByTestId("synthesis-evidence-state")).toBeVisible();
     await expect(page.locator(".rd-v2-sidebar-foot-nav")).toBeHidden();
     await expect
       .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth))
       .toBe(true);
     await capture(page, "08-durable-evidence-mobile");
-    await page.getByRole("button", { name: /Show Detail.*Ask|Hide panel/ }).click();
+    await page.getByRole("button", { name: /Show research context|Hide panel/ }).click();
     const rail = page.locator("aside.rd-v2-rail");
     await expect(rail).toBeVisible();
     await expect.poll(async () => (await rail.boundingBox())?.height || 0).toBeGreaterThan(600);
     await expect(rail.getByTestId("rail-pane-detail")).toBeVisible();
-    await expect(rail).toContainText("Your intent");
-    await expect(rail).toContainText("Quick questions");
+    const openingRail = rail.getByTestId("synthesis-opening-rail");
+    await expect(openingRail).toContainText("Research object");
+    await expect(openingRail).toContainText(EXPLORING_THREAD.objective);
+    await expect(openingRail).toContainText("3 mapped");
+    await expect(openingRail).toContainText("Measurement pending");
+    await expect(openingRail).toContainText("Not accepted");
+    await expect(openingRail).toContainText("Not registered");
     await capture(page, "09-detail-sheet-mobile");
     await rail.getByRole("tab", { name: "Ask" }).click();
     await expect(rail.getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "true");

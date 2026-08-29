@@ -7,6 +7,7 @@ import {
   saveUserEmail,
 } from "@/v2/deskSession";
 import { clearDeskSession, ensureDeskSession } from "@/v2/api";
+import { ConnectedAccountsSection } from "@/v2/ConnectedAccountsSection";
 import { assistantRuntimeDetail, composerRuntimeRead } from "@/v2/composerRuntimeStatus";
 import { loadSettings, saveSettings } from "@/v2/settingsStore";
 import { PILOT_PREVIEW_EMAIL } from "@/v2/profileViewModel";
@@ -41,7 +42,14 @@ function deskAccessStatus(health, deskAccess) {
 }
 
 function assistantStatus(health) {
-  if (health == null) return { ready: false, known: false, label: "Not checked", detail: "Open system status to inspect runtime health" };
+  if (health == null) {
+    return {
+      ready: false,
+      known: false,
+      label: "Not checked",
+      detail: "Open system status to inspect runtime health",
+    };
+  }
   const desk = health?.desk || {};
   const runtime = composerRuntimeRead(desk.composer_runtime);
   if (runtime) {
@@ -61,9 +69,19 @@ function assistantStatus(health) {
     };
   }
   if (desk.composer_configured === false) {
-    return { ready: false, known: true, label: "Needs setup", detail: "Assistant reports offline" };
+    return {
+      ready: false,
+      known: true,
+      label: "Needs setup",
+      detail: "Assistant reports offline",
+    };
   }
-  return { ready: false, known: false, label: "Not reported", detail: "No assistant runtime signal" };
+  return {
+    ready: false,
+    known: false,
+    label: "Not reported",
+    detail: "No assistant runtime signal",
+  };
 }
 
 export function SettingsPage({
@@ -82,8 +100,14 @@ export function SettingsPage({
   const assistant = assistantStatus(health);
   const demoMode = isDemoMode();
   const desk = health?.desk || {};
-  const archive = desk?.gdrive?.ok === true ? "Connected" : desk?.gdrive?.ok === false ? "Needs review" : "Not reported";
-  const mcpTools = resourcesRollup?.ai?.mcp_tools?.total ?? resourcesRollup?.hero?.mcp_tools ?? null;
+  const archive =
+    desk?.gdrive?.ok === true
+      ? "Connected"
+      : desk?.gdrive?.ok === false
+        ? "Needs review"
+        : "Not reported";
+  const mcpTools =
+    resourcesRollup?.ai?.mcp_tools?.total ?? resourcesRollup?.hero?.mcp_tools ?? null;
 
   const patch = (change) => {
     const next = saveSettings(change);
@@ -95,7 +119,9 @@ export function SettingsPage({
     const email = saveUserEmail(emailDraft);
     patch({ email });
     onProfileRefresh?.();
-    onToast?.(email ? `Research profile loaded for ${email}` : "Research profile email cleared");
+    onToast?.(
+      email ? `Research profile loaded for ${email}` : "Research profile email cleared",
+    );
   };
 
   const bindPilot = () => {
@@ -110,7 +136,11 @@ export function SettingsPage({
     setBusy(true);
     try {
       const out = await ensureDeskSession({ force: true });
-      onToast?.(out.ok ? "Research desk connected for this browser" : out.error || "Desk connection failed");
+      onToast?.(
+        out.ok
+          ? "Research desk connected for this browser"
+          : out.error || "Desk connection failed",
+      );
       onProfileRefresh?.();
     } finally {
       setBusy(false);
@@ -120,7 +150,11 @@ export function SettingsPage({
   const saveToken = () => {
     const saved = saveDeskToken(tokenDraft);
     setTokenDraft("");
-    onToast?.(saved ? "Fallback access saved for this browser session" : "Fallback access cleared");
+    onToast?.(
+      saved
+        ? "Fallback access saved for this browser session"
+        : "Fallback access cleared",
+    );
     onProfileRefresh?.();
   };
 
@@ -159,7 +193,8 @@ export function SettingsPage({
             </select>
           </div>
           <p className="rd-v2-settings-hint">
-            Continue remembers only Library, Discover, or Synthesis. Profile, Settings, and Resources never become a resume destination.
+            Continue remembers only Library, Discover, or Synthesis. Profile, Settings, and
+            Resources never become a resume destination.
           </p>
 
           <div className="rd-v2-settings-row">
@@ -178,11 +213,15 @@ export function SettingsPage({
             </select>
           </div>
           <p className="rd-v2-settings-hint">
-            Applies to evidence selection in Library and Discover. Approval, Resources, and Synthesis decision states keep their task-specific Inspector behavior.
+            Applies to evidence selection in Library and Discover. Approval, Resources, and
+            Synthesis decision states keep their task-specific Inspector behavior.
           </p>
 
           <div className="rd-v2-settings-row">
-            <label className="rd-v2-settings-label" htmlFor="rd-settings-discover-scope">
+            <label
+              className="rd-v2-settings-label"
+              htmlFor="rd-settings-discover-scope"
+            >
               Discover search
             </label>
             <select
@@ -196,9 +235,13 @@ export function SettingsPage({
             </select>
           </div>
           <p className="rd-v2-settings-hint">
-            Known-first paints Library and declared routes before progressive enrichment. Wide starts semantic/live federation immediately. Synthesis evidence-gap handoffs always begin known-first.
+            Known-first paints Library and declared routes before progressive enrichment. Wide
+            starts semantic/live federation immediately. Synthesis evidence-gap handoffs always
+            begin known-first.
           </p>
         </StatementSection>
+
+        <ConnectedAccountsSection deskAccess={deskAccess} onToast={onToast} />
 
         <StatementSection title="Research identity">
           <div className="rd-v2-settings-row stack">
@@ -225,7 +268,8 @@ export function SettingsPage({
             ) : null}
           </div>
           <p id="rd-settings-email-hint" className="rd-v2-settings-hint">
-            Binds the faculty-registry record shown in Profile. This does not edit registry research facts.
+            Binds the faculty-registry record shown in Profile. This does not edit registry
+            research facts.
           </p>
         </StatementSection>
 
@@ -240,15 +284,30 @@ export function SettingsPage({
           <div className="rd-v2-settings-row stack">
             {access.ok ? (
               <>
-                <button type="button" className="rd-v2-btn sm ghost" disabled={busy} onClick={connectSession}>
+                <button
+                  type="button"
+                  className="rd-v2-btn sm ghost"
+                  disabled={busy}
+                  onClick={connectSession}
+                >
                   Reconnect
                 </button>
-                <button type="button" className="rd-v2-btn sm danger" disabled={busy} onClick={disconnect}>
+                <button
+                  type="button"
+                  className="rd-v2-btn sm danger"
+                  disabled={busy}
+                  onClick={disconnect}
+                >
                   Disconnect
                 </button>
               </>
             ) : (
-              <button type="button" className="rd-v2-btn sm primary" disabled={busy} onClick={connectSession}>
+              <button
+                type="button"
+                className="rd-v2-btn sm primary"
+                disabled={busy}
+                onClick={connectSession}
+              >
                 Connect browser
               </button>
             )}
@@ -262,21 +321,35 @@ export function SettingsPage({
               label="Research API"
               metric={health == null ? "Not checked" : health?.status || "Reported"}
               sublabel="Catalog, Ask, jobs, query, and research-workspace service"
-              detail={health?.status === "ok" ? "OK" : health == null ? "UNKNOWN" : "CHECK"}
+              detail={
+                health?.status === "ok"
+                  ? "OK"
+                  : health == null
+                    ? "UNKNOWN"
+                    : "CHECK"
+              }
               warn={health != null && health?.status !== "ok"}
             />
             <StatementRow
               label="Assistant runtime"
               metric={assistant.label}
               sublabel={assistant.detail}
-              detail={assistant.ready ? "READY" : assistant.known ? "CHECK" : "UNKNOWN"}
+              detail={
+                assistant.ready ? "READY" : assistant.known ? "CHECK" : "UNKNOWN"
+              }
               warn={assistant.known && !assistant.ready}
             />
             <StatementRow
               label="Research archive"
               metric={archive}
               sublabel="Archive health reported by the desk"
-              detail={desk?.gdrive?.ok === true ? "OK" : desk?.gdrive?.ok === false ? "CHECK" : "UNKNOWN"}
+              detail={
+                desk?.gdrive?.ok === true
+                  ? "OK"
+                  : desk?.gdrive?.ok === false
+                    ? "CHECK"
+                    : "UNKNOWN"
+              }
               warn={desk?.gdrive?.ok === false}
             />
             <StatementRow
@@ -310,7 +383,12 @@ export function SettingsPage({
                       });
                     }}
                   />
-                  <button type="button" className="rd-v2-btn sm" disabled={busy || !tokenDraft.trim()} onClick={saveToken}>
+                  <button
+                    type="button"
+                    className="rd-v2-btn sm"
+                    disabled={busy || !tokenDraft.trim()}
+                    onClick={saveToken}
+                  >
                     Save fallback
                   </button>
                 </div>

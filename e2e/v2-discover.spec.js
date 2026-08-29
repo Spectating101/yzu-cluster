@@ -99,7 +99,7 @@ test.describe("v2 Discover tab", () => {
     //   Available · N   Library evidence · N   Web context · N
     await expect(page.getByTestId("discover-result-summary")).toContainText(/Available\s*·\s*\d+/i);
     await expect(page.getByTestId("discover-result-summary")).toContainText(/Library evidence\s*·\s*\d+/i);
-    await expect(page.getByLabel("Discover next actions")).toContainText(/available to add|Search wider/i);
+    await expect(page.getByLabel("Discover next actions")).toContainText(/with a declared route|Search wider/i);
     await expect(page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-ranked-results-head strong")).toHaveCount(0);
     await expect(page.getByTestId("discover-resting-summary")).toContainText(/External/i);
     await expect(page.getByTestId("discover-resting-summary")).toContainText(/In Library/i);
@@ -134,7 +134,7 @@ test.describe("v2 Discover tab", () => {
     await expect(page.getByRole("button", { name: "Search wider", exact: true })).toHaveCount(1);
   });
 
-  test("reference-only routes can be inspected but never claim they can be added", async ({ page }, testInfo) => {
+  test("reference-only routes can be inspected but never claim an acquisition review route", async ({ page }, testInfo) => {
     await mockV2Api(page, {
       discoverBody: {
         sections: [{
@@ -163,7 +163,7 @@ test.describe("v2 Discover tab", () => {
     await waitForShell(page);
     await searchDiscover(page, "stablecoin");
 
-    await expect(page.getByLabel("Discover next actions")).toContainText("1 offering available to add");
+    await expect(page.getByLabel("Discover next actions")).toContainText("1 offering with a declared route");
     await expect(page.getByLabel("Discover next actions")).toContainText("1 reference");
     await expect(page.getByRole("button", { name: "Add to collection", exact: true })).toHaveCount(1);
     const context = page.getByTestId("discover-context-results");
@@ -226,7 +226,7 @@ test.describe("v2 Discover tab", () => {
     await expect(summary).toContainText("Searching wider sources…");
     await expect(summary).toContainText("Available · 1");
     await expect(summary).toContainText("Library evidence · 1");
-    await expect(summary).toContainText("Web context · 0");
+    await expect(summary).toContainText("Web context · 1");
     await expect(page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidate")).toHaveCount(1);
   });
 
@@ -375,7 +375,7 @@ test.describe("v2 Discover tab", () => {
     await expect(page.locator(".rd-v2-discover-candidate.selected")).toHaveCount(1);
     await expect(shell).not.toHaveClass(/no-rail/);
     await expect(rail).toHaveClass(/rd-v2-rail-collapsed/);
-    await rail.getByRole("button", { name: /Show Detail/ }).click();
+    await rail.getByRole("button", { name: /Show research context|Show Detail/ }).click();
     await expect(rail).not.toHaveClass(/rd-v2-rail-collapsed/);
     await rail.getByRole("tab", { name: "Ask" }).click();
     await expect(shell).not.toHaveClass(/no-rail/);

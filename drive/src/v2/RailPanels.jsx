@@ -359,17 +359,9 @@ export function LibraryObjectRailPanel({
   if (!folder) return null;
   const counts = folder.counts || {};
   const root = !folder.folderId;
-  const desc = root
-    ? "Your owned data estate and acquisition memory."
-    : folder.note || "Datasets and research assets organized in this collection.";
 
   return (
     <RailFrame>
-      <RailEntityHeader
-        title={folder.title}
-        description={desc}
-        pills={<span className="rd-v2-pill lab">{root ? "Library" : "Collection"}</span>}
-      />
       <div className="rd-v2-rail-scroll rd-v2-library-folder-inspector">
         <section className="rd-v2-library-folder-summary">
           <p className="rd-v2-rail-section-label">{root ? "In this library" : "In this collection"}</p>
@@ -416,6 +408,32 @@ export function LibraryObjectRailPanel({
 
 export function PageRailPanel({ page = "home", onAskAbout }) {
   const copy = PAGE_RAIL_COPY[page] || PAGE_RAIL_COPY.home;
+
+  if (page === "library") {
+    return (
+      <RailFrame>
+        <div className="rd-v2-rail-scroll rd-v2-library-page-guide">
+          <section className="rd-v2-library-folder-summary">
+            <p className="rd-v2-rail-section-label">Find held evidence</p>
+            <p className="rd-v2-rail-note">
+              Search by title, field, source, coverage, or research context, then inspect the result in place.
+            </p>
+          </section>
+          <RailFieldGrid>
+            <RailField label="Search" value="Title · field · source · coverage · context" />
+            <RailField label="Inspect" value="Preview, readiness, provenance, and Ask stay one selection away" />
+            <RailField label="Missing" value="Ask Library or widen the search in Discover" />
+          </RailFieldGrid>
+        </div>
+        <RailStickyFooter>
+          <button type="button" className="rd-v2-btn sm" onClick={() => onAskAbout?.()}>
+            Ask Library →
+          </button>
+        </RailStickyFooter>
+      </RailFrame>
+    );
+  }
+
   return (
     <RailFrame>
       <RailEntityHeader id={page} title={copy.title} description={copy.desc} />

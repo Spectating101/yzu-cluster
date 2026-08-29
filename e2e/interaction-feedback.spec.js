@@ -38,7 +38,7 @@ test.describe("Research Drive interaction feedback convergence", () => {
   test("readiness popover explains evidence and the safest next action", async ({ page }) => {
     await mockV2Api(page);
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
 
     await page.getByRole("button", { name: /^Explain / }).first().click();

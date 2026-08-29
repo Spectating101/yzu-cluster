@@ -137,7 +137,7 @@ test.describe("Discover adversarial lifecycle", () => {
     await waitForShell(page);
     await search(page, "MOPS filings");
 
-    await page.getByTestId("discover-ranked-results").getByRole("button", { name: "Add to collection" }).click();
+    await page.getByTestId("discover-ranked-results").getByRole("button", { name: "Review acquisition route" }).click();
     const workspace = page.getByTestId("discover-intent-workspace");
     await expect(workspace.getByRole("button", { name: "Submit for approval" })).toHaveCount(0);
 

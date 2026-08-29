@@ -1,0 +1,86 @@
+name: Discover visual validation
+
+on:
+  push:
+    branches:
+      - polish/discover-visual-freeze-20260827
+  pull_request:
+    branches:
+      - work/chatgpt-final-convergence-20260825
+    paths:
+      - "drive/src/v2/**"
+      - "e2e/v2-discover-evidence.spec.js"
+      - "e2e/v2-discover-product-inspector.spec.js"
+      - "e2e/v2-discover-adversarial.spec.js"
+      - "e2e/v2-discover-authority-depth.spec.js"
+      - "e2e/v2-discover-submit-recovery.spec.js"
+      - "e2e/v2-discover-hostile-journey.spec.js"
+      - "e2e/discover-visual-convergence.spec.js"
+      - "e2e/discover-procurement-engineering-visual.spec.js"
+      - ".github/workflows/discover-visual-validation.yml"
+  workflow_dispatch:
+
+jobs:
+  discover-visual:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install chromium --with-deps
+      - run: npm run build
+      - name: Preserve the convergence parent's green Discover behaviors
+        run: >-
+          mkdir -p .tmp-pw &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/v2-discover.spec.js --reporter=line
+          --grep-invert "Search wider retains held evidence and trusts the federator's semantic relevance|mobile selection preserves Explore and opens Ask deliberately"
+      - name: Validate Discover evidence investigation
+        run: >-
+          mkdir -p .tmp-pw &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/v2-discover-evidence.spec.js --reporter=line
+      - name: Prove inspect-before-acquire offering profile
+        run: >-
+          mkdir -p .tmp-pw &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/v2-discover-product-inspector.spec.js --workers=1 --reporter=line
+      - name: Attack Discover lifecycle races
+        run: >-
+          mkdir -p .tmp-pw &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/v2-discover-adversarial.spec.js --workers=1 --reporter=line
+      - name: Prove Discover authority depth
+        run: >-
+          mkdir -p .tmp-pw &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/v2-discover-authority-depth.spec.js --workers=1 --reporter=line
+      - name: Prove submit transport recovery
+        run: >-
+          mkdir -p .tmp-pw &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/v2-discover-submit-recovery.spec.js --workers=1 --reporter=line
+      - name: Prove continuous hostile researcher journey
+        run: >-
+          mkdir -p .tmp-pw &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/v2-discover-hostile-journey.spec.js --workers=1 --reporter=line
+      - name: Render Discover convergence states
+        run: >-
+          mkdir -p .tmp-pw artifacts/discover-convergence &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/discover-visual-convergence.spec.js
+          e2e/discover-procurement-engineering-visual.spec.js --reporter=line
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: discover-visual-convergence
+          path: |
+            artifacts/discover-convergence
+            test-results
+          if-no-files-found: warn
+
+# Exact-head visual inspection trigger after capability compression hardening.

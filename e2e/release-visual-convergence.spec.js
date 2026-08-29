@@ -9,7 +9,7 @@ async function openTab(page, label) {
 async function waitForHomeEvidence(page) {
   const continuation = page.getByTestId("home-continue");
   await expect(continuation.locator("h2")).toBeVisible();
-  await expect(continuation.getByRole("button", { name: "Continue" })).toBeVisible();
+  await expect(continuation.getByRole("button", { name: /Continue|Review/ })).toBeVisible();
   await expect(page.getByRole("region", { name: "Recent trail" })).toBeVisible();
 }
 
@@ -119,31 +119,25 @@ test.describe("Research Drive release visual contract", () => {
     }
   });
 
-  test("Settings keeps faculty status visible and technical endpoints collapsed", async ({ page }) => {
-    await openTab(page, "Settings");
+  test("Settings keeps browser connection visible and operational status subordinate", async ({ page }) => {
+  await openTab(page, "Settings");
 
-    const summary = page.getByRole("region", { name: "Research desk status" });
-    await expect(summary).toContainText("Desk API");
-    await expect(summary.locator(".rd-v2-settings-summary-card").filter({ hasText: "Desk API" })).toContainText("Live");
-    await expect(summary).toContainText("Research assistant");
-    await expect(summary).toContainText("Jobs");
-    await expect(page.getByText("This browser", { exact: true }).locator("..")).toContainText("Connected");
-    await expect(page.getByText("Research services", { exact: true })).toBeVisible();
-    await expect(page.getByText("Browser access", { exact: true })).toBeVisible();
-    await expect(page.getByText("Research archive", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("This browser", { exact: true }).locator("..")).toContainText("Connected");
+  const advanced = page
+    .locator("details.rd-v2-settings-advanced")
+    .filter({ hasText: "System status and technical details" })
+    .first();
+  await expect(advanced).not.toHaveAttribute("open", "");
+  await expect(page.getByText("Research API", { exact: true })).not.toBeVisible();
+  await expect(page.getByText("Assistant runtime", { exact: true })).not.toBeVisible();
+  await advanced.locator("summary").first().click();
+  await expect(page.getByText("Research API", { exact: true })).toBeVisible();
+  await expect(page.getByText("Assistant runtime", { exact: true })).toBeVisible();
+  await expect(page.getByText("Research archive", { exact: true })).toBeVisible();
+  await expect(page.getByText("Desk equipment", { exact: true })).toBeVisible();
+});
 
-    const advanced = page
-      .locator("details.rd-v2-settings-advanced")
-      .filter({ hasText: "System status and technical details" })
-      .first();
-    await expect(advanced).not.toHaveAttribute("open", "");
-    await expect(page.getByText(":8765", { exact: true })).not.toBeVisible();
-    await advanced.locator("summary").first().click();
-    await expect(page.getByText(":8765", { exact: true })).toBeVisible();
-    await expect(page.getByText("Assistant runtime", { exact: true })).toBeVisible();
-  });
-
-  test("long research identities wrap instead of breaking the visible Detail pane", async ({ page }) => {
+test("long research identities wrap instead of breaking the visible Detail pane", async ({ page }) => {
     await selectFirstLibraryDataset(page);
 
     const rail = page.locator("aside.rd-v2-rail");
@@ -192,7 +186,7 @@ test.describe("Research Drive mobile composition", () => {
 
     await expect(page.locator("main.yzu-main")).toBeVisible();
     const continuation = page.getByTestId("home-continue");
-    const continueButton = continuation.getByRole("button", { name: "Continue" });
+    const continueButton = continuation.getByRole("button", { name: /Continue|Review/ });
     await expect(continuation.locator("h2")).toBeVisible();
     await expect(continueButton).toBeVisible();
     await expect(page.locator(".rd-v2-home-actions")).toHaveCount(0);

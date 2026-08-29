@@ -224,7 +224,7 @@ test.describe("Discover continuous hostile researcher journey", () => {
     // Sourcing found an explicitly acquirable artifact. Opening it must yield
     // backend-authored procurement engineering, not an operator dashboard.
     const ranked = page.getByTestId("discover-ranked-results");
-    await ranked.getByRole("button", { name: "Add to collection" }).click();
+    await ranked.getByRole("button", { name: "Review acquisition route" }).click();
     const workspace = page.getByTestId("discover-intent-workspace");
     await expect(workspace).toBeVisible();
     const engineering = workspace.getByTestId("discover-procurement-engineering");

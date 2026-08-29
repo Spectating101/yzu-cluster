@@ -1,24 +1,43 @@
 import { test, expect } from "@playwright/test";
-import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
+import { MOCK_HEALTH, mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
+
+const QUIET_HEALTH = {
+  ...MOCK_HEALTH,
+  desk: {
+    ...MOCK_HEALTH.desk,
+    jobs: {
+      ...MOCK_HEALTH.desk.jobs,
+      running: 0,
+      pending_approval: 0,
+    },
+  },
+};
+
+async function openHome(page, { pendingDecision = false } = {}) {
+  if (pendingDecision) {
+    await mockV2Api(page);
+  } else {
+    await mockV2Api(page, { jobsBody: { jobs: [] }, healthBody: QUIET_HEALTH });
+  }
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await waitForShell(page);
+}
 
 test.describe("v2 Home Iteration 10 freeze", () => {
-  test.beforeEach(async ({ page }) => {
-    await mockV2Api(page);
-    await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto("/", { waitUntil: "domcontentloaded" });
-    await waitForShell(page);
-  });
-
   test("Pick Up is the primary resume object", async ({ page }) => {
+    await openHome(page);
     const pick = page.getByTestId("home-continue");
     await expect(pick).toBeVisible();
     await expect(pick).toContainText(/Pick up/i);
+    await expect(pick).toHaveAttribute("data-kind", /library_asset|synthesis_thread/);
     await expect(pick.getByRole("button", { name: "Continue" })).toBeVisible();
     await expect(page.locator(".rd-v2-home-actions")).toHaveCount(0);
     await expect(page.getByRole("region", { name: "Attention queue" })).toHaveCount(0);
   });
 
   test("Resource headroom and trail bands exist; recommended only when grounded", async ({ page }) => {
+    await openHome(page);
     await expect(page.getByRole("region", { name: "Resource headroom" })).toBeVisible();
     await expect(page.getByRole("region", { name: "Recent trail" })).toBeVisible();
     const recommended = page.getByRole("region", { name: "Recommended evidence" });
@@ -28,7 +47,9 @@ test.describe("v2 Home Iteration 10 freeze", () => {
   });
 
   test("Continue opens dataset preview and keeps rail grounded", async ({ page }) => {
+    await openHome(page);
     const pick = page.getByTestId("home-continue");
+    await expect(pick).toHaveAttribute("data-kind", "library_asset");
     await expect(pick.locator(".rd-v2-home-continue-id")).toBeAttached();
     const title = (await pick.locator("h2").innerText()).trim();
     const datasetId = (await pick.locator(".rd-v2-home-continue-id").innerText()).trim();
@@ -54,6 +75,7 @@ test.describe("v2 Home Iteration 10 freeze", () => {
   });
 
   test("Home replaces a Library selection with its exact Pick Up object", async ({ page }) => {
+    await openHome(page);
     await page.getByRole("button", { name: "Library", exact: true }).click();
     const allAssets = page.getByRole("button", { name: "← All Library assets" });
     if (await allAssets.isVisible().catch(() => false)) await allAssets.click();
@@ -74,10 +96,12 @@ test.describe("v2 Home Iteration 10 freeze", () => {
     }
   });
 
-  test("decision secondary surfaces Review into Discover History when approval pending", async ({ page }) => {
-    const secondary = page.locator(".rd-v2-home-pickup-secondary.warn");
-    await expect(secondary).toBeVisible();
-    await secondary.click();
+  test("explicit researcher decision is primary and reviews into Discover History", async ({ page }) => {
+    await openHome(page, { pendingDecision: true });
+    const pick = page.getByTestId("home-continue");
+    await expect(pick).toHaveAttribute("data-kind", "decision");
+    await expect(pick).toContainText("MOPS financial statements");
+    await pick.getByRole("button", { name: "Review" }).click();
     await expect(page.locator(".rd-v2-page-head h1", { hasText: "Discover" })).toBeVisible();
     await expect(page.getByRole("tab", { name: /^History/ })).toHaveAttribute("aria-selected", "true");
   });
