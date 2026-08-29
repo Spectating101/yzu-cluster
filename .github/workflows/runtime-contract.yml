@@ -5,6 +5,7 @@ on:
     paths:
       - "drive/src/v2/**"
       - "e2e/v2-platform-convergence.spec.js"
+      - "e2e/research-seed-convergence.spec.js"
       - "scripts/yzu_cluster/**"
       - "tests/test_yzu_interop_*.py"
       - "docs/product/CLUSTER_RUNTIME_INTEROP_CONTRACT.md"
@@ -17,6 +18,7 @@ on:
     paths:
       - "drive/src/v2/**"
       - "e2e/v2-platform-convergence.spec.js"
+      - "e2e/research-seed-convergence.spec.js"
       - "scripts/yzu_cluster/**"
       - "tests/test_yzu_interop_*.py"
       - "docs/product/CLUSTER_RUNTIME_INTEROP_CONTRACT.md"
@@ -70,6 +72,12 @@ jobs:
 
       - name: Re-run the full mocked Research Drive surface
         run: CI=true YZU_PAGES=false npm run test:v2-mock
+
+      - name: Verify principal research seed cold-start
+        run: >-
+          mkdir -p .tmp-pw &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/research-seed-convergence.spec.js --workers=1 --reporter=line
 
       - name: Verify integrated Research Drive convergence
         run: >-
