@@ -91,7 +91,10 @@ test.describe("Connected storage accounts", () => {
     await expect(page.getByText("Personal Drive", { exact: true })).toBeVisible();
     await expect(page.getByText("Lab Drive", { exact: true })).toBeVisible();
     await expect(page.getByText(/Library indexing and materialisation remain separate/i)).toBeVisible();
-    await expect(page.getByText(/Lab Drive · Metadata/i)).toBeVisible();
+    const labDrive = page.getByTestId("connected-account-g-lab");
+    await expect(labDrive).toContainText("Lab Drive");
+    await expect(labDrive).toContainText("lab@example.test · Metadata");
+    await expect(labDrive).toContainText("Connected · verification not run yet");
 
     const google = page.locator('[data-provider="google_drive"]');
     await expect(google).toContainText("2 connected");
