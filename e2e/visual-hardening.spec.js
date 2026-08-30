@@ -4,6 +4,7 @@ import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 
 const OUT = "artifacts/visual-hardening";
 const DESKTOP = { width: 1920, height: 961 };
+const COMPACT_DESKTOP = { width: 1180, height: 800 };
 const MOBILE = { width: 390, height: 844 };
 const SURFACES = [
   ["home", "home"],
@@ -58,6 +59,23 @@ test.describe("Research Drive visual hardening", () => {
         });
       });
     }
+  }
+
+  for (const [tab, name] of [["home", "home"], ["library", "library"]]) {
+    test(`${name} keeps a real work canvas at small-desktop width`, async ({ page }) => {
+      mkdirSync(OUT, { recursive: true });
+      await page.setViewportSize(COMPACT_DESKTOP);
+      await mockV2Api(page);
+      await page.goto(`/?tab=${tab}`);
+      await settle(page);
+      await assertResearcherFacing(page);
+
+      const main = await page.locator(".yzu-main").boundingBox();
+      const inspector = await page.locator(".yzu-inspector").boundingBox();
+      expect(main?.width || 0).toBeGreaterThan(560);
+      expect(inspector?.width || 0).toBeLessThanOrEqual(330);
+      await page.screenshot({ path: `${OUT}/${name}-compact-desktop.png` });
+    });
   }
 
   test("stale pilot browser identity is purged and never becomes research truth", async ({ page }) => {
