@@ -11,6 +11,14 @@ import {
 import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
 import { PageShell } from "@/v2/ui";
 
+function isDemoMode() {
+  try {
+    return new URLSearchParams(window.location.search).get("demo") === "1";
+  } catch {
+    return false;
+  }
+}
+
 function memoryText(card, prefix) {
   return String(card?.text || "").replace(new RegExp(`^${prefix}:\\s*`, "i"), "");
 }
@@ -49,11 +57,12 @@ function evidenceRelationship(row, heldIds) {
  */
 export function ProfilePage({ profile, libraryHoldings = [], onGoTab, onProfileRefresh }) {
   const bound = Boolean(profile && !profile.unknown);
+  const demoMode = isDemoMode();
   const [pilot, setPilot] = useState(null);
-  const [pilotLoading, setPilotLoading] = useState(!bound);
+  const [pilotLoading, setPilotLoading] = useState(!bound && demoMode);
 
   useEffect(() => {
-    if (bound) {
+    if (bound || !demoMode) {
       setPilot(null);
       setPilotLoading(false);
       return undefined;
@@ -75,13 +84,12 @@ export function ProfilePage({ profile, libraryHoldings = [], onGoTab, onProfileR
     return () => {
       cancelled = true;
     };
-  }, [bound]);
+  }, [bound, demoMode]);
 
-  const previewing = !bound && Boolean(pilot);
-  const active = bound ? profile : pilot;
+  const previewing = demoMode && !bound && Boolean(pilot);
+  const active = bound ? profile : previewing ? pilot : null;
   const surfaceState = resolveSurfaceLifecycle({
-    idle: !bound && !pilotLoading && Boolean(pilot),
-    loading: !bound && pilotLoading,
+    loading: !bound && demoMode && pilotLoading,
     count: active ? 1 : 0,
   });
   const name = active?.name_en || active?.name || "Research profile";
@@ -114,7 +122,7 @@ export function ProfilePage({ profile, libraryHoldings = [], onGoTab, onProfileR
           <h2 className="rd-v2-profile-name">{name}</h2>
           {orgLine ? <p className="rd-v2-profile-org">{orgLine}</p> : null}
           <p className="rd-v2-profile-hint">
-            {email || "—"}
+            {email || "No faculty identity is bound to this desk yet."}
             {previewing ? " · Example · pilot faculty" : ""}
             {active ? " · Source · faculty registry" : ""}
           </p>
@@ -159,7 +167,7 @@ export function ProfilePage({ profile, libraryHoldings = [], onGoTab, onProfileR
         </div>
       </section>
 
-      {pilotLoading && !bound ? (
+      {pilotLoading && !bound && demoMode ? (
         <p className="rd-v2-profile-loading" data-testid="profile-know-empty">
           Loading example profile…
         </p>
@@ -283,9 +291,17 @@ export function ProfilePage({ profile, libraryHoldings = [], onGoTab, onProfileR
           </p>
         </section>
       ) : !pilotLoading ? (
-        <p className="rd-v2-profile-loading" data-testid="profile-know-empty">
-          Bind a YZU faculty email in Settings, or load the example researcher record.
-        </p>
+        <section className="rd-v2-profile-section rd-v2-profile-unbound" data-testid="profile-know-empty" aria-label="Research profile setup">
+          <header className="rd-v2-profile-section-head">
+            <div>
+              <h2>No faculty profile is bound yet</h2>
+              <p>Research Drive remains usable without a faculty record. Bind your email in Settings when you want profile-ranked context and evidence suggestions.</p>
+            </div>
+          </header>
+          <button type="button" className="rd-v2-btn sm primary" onClick={() => onGoTab?.("settings")}>
+            Open Settings
+          </button>
+        </section>
       ) : null}
     </PageShell>
   );
@@ -294,10 +310,11 @@ export function ProfilePage({ profile, libraryHoldings = [], onGoTab, onProfileR
 /** DETAIL rail for Profile: registry identity, curated strengths, and source boundary. */
 export function ProfileDetailPanel({ profile }) {
   const bound = Boolean(profile && !profile.unknown);
+  const demoMode = isDemoMode();
   const [pilot, setPilot] = useState(null);
 
   useEffect(() => {
-    if (bound) {
+    if (bound || !demoMode) {
       setPilot(null);
       return undefined;
     }
@@ -312,16 +329,19 @@ export function ProfileDetailPanel({ profile }) {
     return () => {
       cancelled = true;
     };
-  }, [bound]);
+  }, [bound, demoMode]);
 
-  const previewing = !bound && Boolean(pilot);
-  const active = bound ? profile : pilot;
+  const previewing = demoMode && !bound && Boolean(pilot);
+  const active = bound ? profile : previewing ? pilot : null;
   const read = buildDeskRead(active, { previewing });
 
   if (!active) {
     return (
       <div className="rd-v2-profile-rail" data-testid="profile-detail-rail">
-        <p className="rd-v2-empty-inline">Loading…</p>
+        <section className="rd-v2-profile-rail-block">
+          <h3>Research context</h3>
+          <p>No faculty record is bound. Library and Discover remain available without one.</p>
+        </section>
       </div>
     );
   }
