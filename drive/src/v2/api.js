@@ -177,10 +177,19 @@ export function discoverSearch(query = "", limit = 12, email = "") {
   return fetchJson(`/library/discover?${params}`, { timeoutMs: 15000 });
 }
 
-export function webDiscover(query = "", limit = 8, tavilyLive = true) {
+// Open-web context is additive: a slow provider must never keep a completed
+// Library/source result in the “checking broader sources” state indefinitely.
+export const WEB_DISCOVER_TIMEOUT_MS = 15_000;
+
+export function webDiscover(
+  query = "",
+  limit = 8,
+  tavilyLive = true,
+  timeoutMs = WEB_DISCOVER_TIMEOUT_MS,
+) {
   const params = new URLSearchParams({ q: query, limit: String(limit) });
   if (!tavilyLive) params.set("tavily", "0");
-  return fetchJson(`/library/discover/web?${params}`);
+  return fetchJson(`/library/discover/web?${params}`, { timeoutMs });
 }
 
 /** Explore source catalogue — preferred Discover search contract when backend supports it. */

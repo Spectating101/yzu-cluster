@@ -8,6 +8,7 @@ import {
   ensureDeskAccess,
   ensureDeskSession,
   fetchJson,
+  webDiscover,
 } from "./api.js";
 import { deskSessionBootstrapped, markDeskSessionBootstrapped } from "./deskSession.js";
 
@@ -231,6 +232,17 @@ test("protected GET retries once after transparent session bootstrap", async () 
     ["/datasets", "/session", "/datasets"],
   );
   assert.equal(deskSessionBootstrapped(), true);
+});
+
+test("web context lookup is bounded so a slow optional provider cannot hold Discover open", async () => {
+  globalThis.fetch = async (_url, init = {}) => new Promise((_resolve, reject) => {
+    init.signal?.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError")));
+  });
+
+  await assert.rejects(
+    () => webDiscover("forest fire economic changes", 8, true, 1),
+    /Request timed out after 1ms: \/library\/discover\/web/,
+  );
 });
 
 test("capability document stays public and reports a locked browser", async () => {
