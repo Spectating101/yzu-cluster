@@ -3,13 +3,22 @@ const TOKEN_KEY = "desk_access_token";
 const SESSION_KEY = "rd_v2_chat_session";
 const SESSION_CONTEXT_PREFIX = `${SESSION_KEY}:context:`;
 const DESK_SESSION_BOOTSTRAPPED_KEY = "rd_desk_session_bootstrapped";
-const LEGACY_PILOT_EMAILS = new Set([
-  "drkong@saturn.yzu.edu.tw",
-  "__pilot-preview-disabled__@invalid",
-]);
+const LEGACY_PILOT_EMAIL = "drkong@saturn.yzu.edu.tw";
+const DISABLED_PILOT_EMAIL = "__pilot-preview-disabled__@invalid";
 
-function isLegacyPilotEmail(value) {
-  return LEGACY_PILOT_EMAILS.has(String(value || "").trim().toLowerCase());
+function explicitDemoMode() {
+  try {
+    return typeof window !== "undefined"
+      && new URLSearchParams(window.location.search).get("demo") === "1";
+  } catch {
+    return false;
+  }
+}
+
+function shouldRejectPilotEmail(value) {
+  const normalized = String(value || "").trim().toLowerCase();
+  if (normalized === DISABLED_PILOT_EMAIL) return true;
+  return normalized === LEGACY_PILOT_EMAIL && !explicitDemoMode();
 }
 
 /** Fetch/Headers-compatible: header names are always lowercase in our maps. */
@@ -126,9 +135,9 @@ export function loadUserEmail() {
   try {
     const value = localStorage.getItem(EMAIL_KEY) || "";
     // Older showcase builds persisted the pilot professor as browser identity.
-    // Treat either legacy value as invalid so a returning researcher cannot
-    // silently inherit someone else's faculty context.
-    if (isLegacyPilotEmail(value)) {
+    // Normal researcher routes purge it; explicit ?demo=1 is the only place
+    // where the historical showcase identity remains a valid browser choice.
+    if (shouldRejectPilotEmail(value)) {
       localStorage.removeItem(EMAIL_KEY);
       return "";
     }
@@ -141,7 +150,7 @@ export function loadUserEmail() {
 export function saveUserEmail(email) {
   const v = String(email || "").trim();
   try {
-    if (isLegacyPilotEmail(v)) {
+    if (shouldRejectPilotEmail(v)) {
       localStorage.removeItem(EMAIL_KEY);
       return "";
     }
