@@ -1,0 +1,236 @@
+/* Research Drive — post-launch visual hardening
+   Loaded last. This layer is deliberately compositional: it does not change
+   evidence authority, lifecycle state, or research actions. */
+
+/* Structured preview values should read as data, never JavaScript coercion. */
+.rd-v2-library-structured-value {
+  display: inline-block;
+  max-width: min(38ch, 34vw);
+  overflow: hidden;
+  padding: 1px 5px;
+  border: 1px solid color-mix(in srgb, var(--rd-link) 18%, var(--rd-border));
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--rd-ready-bg) 45%, var(--rd-surface));
+  color: #315d4a;
+  font-size: 10.5px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
+  white-space: nowrap;
+}
+
+/* Profile and Settings are quiet record/configuration surfaces. A permanent
+   inspector beside them duplicates context and turns them into admin screens.
+   Synthesis Home is a directory/entry surface; Detail becomes valuable only
+   once a durable construction is opened. */
+@media (min-width: 761px) {
+  .rd-v2-shell:has(.rd-v2-profile-page),
+  .rd-v2-shell:has(.rd-v2-settings-page),
+  .rd-v2-shell:has(.s04-home) {
+    grid-template-columns: var(--rd-sidebar) minmax(0, 1fr);
+  }
+
+  .rd-v2-shell:has(.rd-v2-profile-page) > .yzu-inspector,
+  .rd-v2-shell:has(.rd-v2-settings-page) > .yzu-inspector,
+  .rd-v2-shell:has(.s04-home) > .yzu-inspector {
+    display: none;
+  }
+
+  /* Home keeps Ask/Detail available, but its rail should not consume a quarter
+     of a workstation before the researcher has done anything. */
+  .rd-v2-shell:has(.rd-v2-home-page) {
+    --rd-rail: 360px;
+  }
+
+  /* Asset inspection already has a substantial centre workspace. Preserve the
+     inspector without letting two detail surfaces split the desk evenly. */
+  .rd-v2-shell:has(.rd-v2-library-page),
+  .rd-v2-shell:has(.rd-v2-library-workspace) {
+    --rd-rail: 390px;
+  }
+}
+
+/* Unbound Profile should look intentionally empty, not unfinished. */
+.rd-v2-profile-unbound {
+  width: min(720px, 100%);
+  margin-top: 12px;
+  padding: 22px 24px;
+  border: 1px solid var(--rd-border);
+  border-radius: 12px;
+  background: color-mix(in srgb, #fff 82%, var(--rd-canvas));
+}
+
+.rd-v2-profile-unbound .rd-v2-profile-section-head {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.rd-v2-profile-unbound .rd-v2-profile-section-head h2 {
+  color: var(--rd-text);
+  font-family: var(--rd-font);
+  font-size: 17px;
+  letter-spacing: -0.015em;
+  text-transform: none;
+}
+
+.rd-v2-profile-unbound .rd-v2-profile-section-head p {
+  max-width: 62ch;
+  margin: 0;
+  color: var(--rd-muted);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+/* Settings is now ordered around evidence connections and identity. Constrain
+   the composition so a wide desk does not turn simple controls into an empty
+   field of paper. */
+.rd-v2-settings-page .rd-v2-settings-statement {
+  width: min(100%, 1040px);
+  margin-inline: auto;
+  padding-bottom: 28px;
+}
+
+.rd-v2-settings-page .rd-v2-statement-section {
+  margin-right: 16px;
+  margin-left: 16px;
+}
+
+.rd-v2-settings-page .rd-v2-settings-hint {
+  max-width: 78ch;
+  line-height: 1.5;
+}
+
+/* Standard workstation height: make Home's resume object important without
+   allowing it to swallow the first viewport. */
+@media (min-width: 1100px) and (max-height: 1050px) {
+  .rd-v2-home-pickup-card {
+    min-height: 202px;
+    padding: 22px 26px;
+  }
+
+  .rd-v2-home-pickup-card > h2 {
+    margin-top: 12px;
+    font-size: clamp(23px, 2vw, 30px);
+  }
+
+  .rd-v2-home-pickup-state {
+    line-height: 1.48;
+  }
+
+  .rd-v2-home-pickup-foot {
+    margin-top: 18px;
+    padding-top: 12px;
+  }
+
+  .rd-v2-home-topband {
+    margin-bottom: 24px;
+  }
+}
+
+/* Discover already has the right hierarchy; standard-height desks need more
+   evidence per viewport, not another redesign. Keep relevance and possession
+   statements intact while trimming repeated chrome. */
+@media (min-width: 761px) and (max-height: 1050px) {
+  .rd-v2-discover-ranked-results {
+    margin-top: 11px;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-candidates button.row.rd-v2-discover-candidate {
+    gap: 9px;
+    padding-top: 9px;
+    padding-bottom: 9px;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-candidates li:has(.rd-v2-discover-row-add) button.row.rd-v2-discover-candidate {
+    padding-bottom: 31px;
+  }
+
+  .rd-v2-discover-candidate-main {
+    gap: 2px;
+  }
+
+  .rd-v2-discover-candidate-title {
+    font-size: 14.5px;
+  }
+
+  .rd-v2-discover-evidence {
+    font-size: 12.5px;
+    line-height: 1.38;
+    -webkit-line-clamp: 1;
+  }
+
+  .rd-v2-discover-sufficiency {
+    margin-top: 2px;
+    font-size: 11.5px;
+    line-height: 1.32;
+  }
+
+  .rd-v2-discover-sufficiency::before {
+    margin-right: 6px;
+    font-size: 8.5px;
+  }
+
+  /* History is a lifecycle ledger, not a ticketing console. */
+  .rd-v2-history-territories {
+    gap: 18px;
+  }
+
+  .rd-v2-history-row {
+    min-height: 60px;
+    padding: 8px 0;
+  }
+
+  .rd-v2-history-main {
+    gap: 2px;
+  }
+
+  .rd-v2-history-main strong {
+    font-size: 13px;
+  }
+
+  .rd-v2-history-main span {
+    font-size: 11.5px;
+  }
+}
+
+/* Mobile keeps the explicit research-context sheet but spends less vertical
+   space on quiet chrome and lets structured values stay inspectable. */
+@media (max-width: 760px) {
+  .rd-v2-library-structured-value {
+    max-width: min(28ch, 64vw);
+    font-size: 10px;
+  }
+
+  .rd-v2-profile-unbound {
+    width: auto;
+    margin: 8px 0 0;
+    padding: 18px;
+  }
+
+  .rd-v2-settings-page .rd-v2-settings-statement {
+    width: 100%;
+    margin: 0;
+    padding-bottom: 18px;
+  }
+
+  .rd-v2-settings-page .rd-v2-statement-section {
+    margin-right: 10px;
+    margin-left: 10px;
+  }
+
+  .rd-v2-history-row {
+    min-height: 68px;
+    padding-top: 9px;
+    padding-bottom: 9px;
+  }
+
+  .rd-v2-history-territories {
+    gap: 18px;
+  }
+
+  .rd-v2-rail-mobile-grip {
+    padding-top: 7px;
+    padding-bottom: 7px;
+  }
+}
