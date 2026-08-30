@@ -8,6 +8,7 @@ import {
 } from "@/v2/datasetMeta";
 import { librarySourceReceipt } from "@/v2/libraryProvenance";
 import { libraryVerification } from "@/v2/libraryVerification";
+import { formatPreviewValue, fullPreviewValue, isStructuredPreviewValue } from "@/v2/previewValue";
 import { PageShell } from "@/v2/ui";
 
 function value(...candidates) {
@@ -210,6 +211,17 @@ function observedColumns(rows = []) {
   return ordered;
 }
 
+function PreviewCell({ value: cellValue }) {
+  const structured = isStructuredPreviewValue(cellValue);
+  const rendered = formatPreviewValue(cellValue);
+  if (!structured) return rendered;
+  return (
+    <code className="rd-v2-library-structured-value" title={fullPreviewValue(cellValue)}>
+      {rendered}
+    </code>
+  );
+}
+
 function DatasetPreview({ dataset, canQuery, names, fields, state, presentation, onInspect, onOpenFullPreview }) {
   const [preview, setPreview] = useState({ loading: false, rows: [], error: "" });
 
@@ -281,7 +293,7 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
               {observed ? (
                 preview.rows.map((row, index) => (
                   <tr key={index}>
-                    {schemaColumns.map((column) => <td key={column}>{String(row[column] ?? "—")}</td>)}
+                    {schemaColumns.map((column) => <td key={column}><PreviewCell value={row[column]} /></td>)}
                   </tr>
                 ))
               ) : (
