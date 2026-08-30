@@ -12,7 +12,7 @@ const TONE_VISIBLE = ["warn", "error", "danger", "bad"];
 
 export function deskStatusBadge(deskStatus, usingSeed = false) {
   if (deskStatus === "ok") return { label: "Live registry", tone: "ok" };
-  if (deskStatus === "syncing") return { label: "Syncing…", tone: "muted" };
+  if (deskStatus === "syncing") return { label: "Checking desk status…", tone: "muted" };
   if (deskStatus === "empty") return { label: "Empty registry", tone: "warn" };
   if (usingSeed || deskStatus === "demo") return { label: "Demo catalog", tone: "warn" };
   if (deskStatus === "degraded") return { label: "Desk degraded", tone: "warn" };
