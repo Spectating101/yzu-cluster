@@ -16,6 +16,60 @@ const SURFACES = [
   ["settings", "settings"],
 ];
 
+const PROFILE_BODY = {
+  found: true,
+  profile: {
+    email: "researcher@example.test",
+    name_en: "Researcher One",
+    discipline: "Finance",
+    specialties: ["FinTech", "digital assets", "market microstructure"],
+    method_tags: ["panel regression", "event study", "network analysis"],
+    domain_tags: ["fintech", "crypto", "on_chain"],
+    paper_count_parsed: 18,
+    research_tracks: [
+      {
+        id: "digital-asset-market-quality",
+        title: "Digital-asset market quality and information transmission",
+        phase: "active_grant",
+        weight: 1,
+      },
+      {
+        id: "financial-data-infrastructure",
+        title: "Reusable financial research data infrastructure",
+        phase: "active",
+        weight: 0.8,
+      },
+    ],
+    publication_highlights: [
+      "Researcher One (2026). Digital-asset market quality and information transmission.",
+      "Researcher One (2025). Evidence infrastructure for empirical finance.",
+      "Researcher One (2024). Network signals in financial markets.",
+    ],
+    lab_fintech_stack: [
+      {
+        id: "issuer_weekly_panel",
+        label: "Issuer weekly fundamentals",
+        route: "vault",
+        registry_dataset_ids: ["issuer_weekly_panel"],
+      },
+      {
+        id: "stablecoin_activity",
+        label: "Stablecoin on-chain activity",
+        route: "bigquery",
+        registry_dataset_ids: ["stablecoin_activity"],
+      },
+    ],
+    procurement_recommendations: [
+      {
+        dataset_id: "exchange_stablecoin_volume",
+        dataset: "Exchange-level stablecoin volume",
+        source_route: "datacite_doi",
+        search_query: "stablecoin exchange volume depeg",
+      },
+    ],
+  },
+};
+
 const CONNECTED_ACCOUNTS = {
   accounts: [
     {
@@ -56,6 +110,116 @@ const CONNECTED_ACCOUNTS = {
   ],
 };
 
+const RICH_JOBS = {
+  jobs: [
+    {
+      id: "job-governance-review",
+      status: "pending_approval",
+      type: "procure",
+      candidate_key: "url:https://example.test/mops-governance.csv",
+      created_at: "2026-08-30T14:30:00Z",
+      updated_at: "2026-08-30T14:35:00Z",
+      plan: {
+        title: "Taiwan issuer governance disclosures",
+        source: "TWSE / MOPS",
+        summary: "Issuer-quarter governance fields are ready for researcher review before collection.",
+      },
+    },
+    {
+      id: "job-stablecoin-running",
+      status: "running",
+      type: "procure",
+      candidate_key: "url:https://example.test/stablecoin-market.csv",
+      created_at: "2026-08-30T13:10:00Z",
+      updated_at: "2026-08-30T14:20:00Z",
+      plan: {
+        title: "Stablecoin market activity",
+        source: "DataCite route",
+        summary: "Collecting the approved market-activity evidence package.",
+      },
+      message: "18 of 24 files received",
+    },
+    {
+      id: "job-security-complete",
+      status: "completed",
+      type: "procure",
+      registered_dataset_id: "stablecoin_security_panel",
+      created_at: "2026-08-29T11:00:00Z",
+      updated_at: "2026-08-30T11:42:00Z",
+      plan: {
+        title: "Stablecoin security panel",
+        source: "Registered Library asset",
+        summary: "Collection completed and the resulting evidence is registered.",
+      },
+    },
+  ],
+};
+
+const POPULATED_DISCOVER = {
+  sections: [{
+    id: "external",
+    title: "Available sources",
+    rows: [
+      {
+        candidate_key: "url:https://data.example.test/depeg-events.csv",
+        title: "Stablecoin de-peg event catalogue",
+        source: "DataCite",
+        collect_via: "datacite_doi",
+        url: "https://data.example.test/depeg-events.csv",
+        kind: "dataset",
+        coverage: "2019–2026",
+        refresh_frequency: "Monthly",
+        description: "Dated de-peg events with asset identity, event window, and observed price deviation.",
+      },
+      {
+        candidate_key: "url:https://data.example.test/exchange-volume.parquet",
+        title: "Exchange-level stablecoin volume panel",
+        source: "Public research archive",
+        collect_via: "http_manifest",
+        url: "https://data.example.test/exchange-volume.parquet",
+        kind: "artifact",
+        coverage: "2021–2026",
+        refresh_frequency: "Quarterly",
+        description: "Daily exchange-by-asset trading volume suitable for event-window activity comparisons.",
+      },
+      {
+        candidate_key: "url:https://data.example.test/reserves.json",
+        title: "Stablecoin reserve attestations",
+        source: "Issuer disclosures",
+        collect_via: "http_manifest",
+        url: "https://data.example.test/reserves.json",
+        kind: "artifact",
+        coverage: "2020–2026",
+        refresh_frequency: "Monthly",
+        description: "Issuer reserve composition and attestation dates for collateral-quality controls.",
+      },
+      {
+        candidate_key: "url:https://data.example.test/onchain.csv",
+        title: "Stablecoin on-chain transfer activity",
+        source: "Public blockchain dataset",
+        collect_via: "http_manifest",
+        url: "https://data.example.test/onchain.csv",
+        kind: "dataset",
+        coverage: "2020–2026",
+        refresh_frequency: "Daily",
+        description: "Daily transfer counts, value, and active-address measures across major stablecoins.",
+      },
+      {
+        candidate_key: "url:https://data.example.test/liquidity.csv",
+        title: "Stablecoin market-liquidity indicators",
+        source: "Open market archive",
+        collect_via: "http_manifest",
+        url: "https://data.example.test/liquidity.csv",
+        kind: "dataset",
+        coverage: "2022–2026",
+        refresh_frequency: "Daily",
+        description: "Bid-ask, depth, and turnover indicators for market-quality analysis around de-peg episodes.",
+      },
+    ],
+  }],
+  total: 5,
+};
+
 const RESEARCH_SEED = {
   version: 1,
   principal: {
@@ -64,8 +228,8 @@ const RESEARCH_SEED = {
   },
   bootstrap_mode: "faculty_profile",
   research_context: {
-    title: "Test Prof",
-    discipline: "YZU",
+    title: "Researcher One",
+    discipline: "Finance",
   },
   starter_prompts: [
     "What evidence in my Library is useful for the current research direction?",
@@ -93,7 +257,11 @@ const RESEARCH_SEED = {
 };
 
 async function visualMocks(page, options = {}) {
-  await mockV2Api(page, options);
+  await mockV2Api(page, {
+    profileBody: PROFILE_BODY,
+    jobsBody: RICH_JOBS,
+    ...options,
+  });
   // These routes were added after the long-lived v2 fixture. Keep this visual
   // gate representative of the current desk instead of letting Vite proxy them
   // to a backend that is intentionally absent in mocked CI.
@@ -111,6 +279,20 @@ async function visualMocks(page, options = {}) {
       body: JSON.stringify(CONNECTED_ACCOUNTS),
     }),
   );
+}
+
+async function openSurface(page, tab) {
+  if (tab !== "history") {
+    await page.goto(`/?tab=${tab}`);
+    return;
+  }
+  // History is a Discover mode, not a standalone route. Enter it through the
+  // same control a researcher uses so the capture cannot accidentally certify
+  // a blank deep-link state.
+  await page.goto("/?tab=discover");
+  await waitForShell(page);
+  await page.getByRole("tab", { name: /^History/ }).click();
+  await expect(page.getByTestId("discover-history")).toBeVisible();
 }
 
 async function settle(page, ms = 900) {
@@ -147,9 +329,12 @@ test.describe("Research Drive visual hardening", () => {
         mkdirSync(OUT, { recursive: true });
         await page.setViewportSize(size);
         await visualMocks(page);
-        await page.goto(`/?tab=${tab}`);
+        await openSurface(page, tab);
         await settle(page);
         await assertResearcherFacing(page);
+        if (tab === "history") {
+          await expect(page.getByText("Taiwan issuer governance disclosures", { exact: true })).toBeVisible();
+        }
         await page.screenshot({
           path: `${OUT}/${name}-${viewportName}.png`,
           fullPage: false,
@@ -158,12 +343,30 @@ test.describe("Research Drive visual hardening", () => {
     }
   }
 
+  test("populated Discover keeps evidence density without losing evaluation truth", async ({ page }) => {
+    mkdirSync(OUT, { recursive: true });
+    await page.setViewportSize(DESKTOP);
+    await visualMocks(page, { discoverBody: POPULATED_DISCOVER });
+    await page.goto("/?tab=discover&q=stablecoin");
+    await settle(page, 1600);
+
+    const candidates = page.locator(".rd-v2-discover-candidate");
+    await expect(candidates).toHaveCount(5);
+    await candidates.first().click();
+    await page.waitForTimeout(250);
+    await expect(page.getByText("Stablecoin de-peg event catalogue", { exact: true }).first()).toBeVisible();
+    const fourth = await candidates.nth(3).boundingBox();
+    expect(fourth?.y ?? DESKTOP.height + 1).toBeLessThan(DESKTOP.height);
+    await assertResearcherFacing(page);
+    await page.screenshot({ path: `${OUT}/discover-populated-desktop.png`, fullPage: false });
+  });
+
   for (const [tab, name] of [["home", "home"], ["library", "library"]]) {
     test(`${name} keeps a real work canvas at small-desktop width`, async ({ page }) => {
       mkdirSync(OUT, { recursive: true });
       await page.setViewportSize(COMPACT_DESKTOP);
       await visualMocks(page);
-      await page.goto(`/?tab=${tab}`);
+      await openSurface(page, tab);
       await settle(page);
       await assertResearcherFacing(page);
 
@@ -179,7 +382,7 @@ test.describe("Research Drive visual hardening", () => {
     await page.setViewportSize(DESKTOP);
     await visualMocks(page);
     for (const tab of ["profile", "settings", "synthesis"]) {
-      await page.goto(`/?tab=${tab}`);
+      await openSurface(page, tab);
       await settle(page, 500);
       await expect(page.locator(".yzu-inspector")).toBeHidden();
       const main = await page.locator(".yzu-main").boundingBox();
@@ -245,8 +448,7 @@ test.describe("Research Drive visual hardening", () => {
     mkdirSync(OUT, { recursive: true });
     await page.setViewportSize(DESKTOP);
     await visualMocks(page, { jobsDelayMs: 4200 });
-    await page.goto("/?tab=history");
-    await waitForShell(page);
+    await openSurface(page, "history");
 
     await expect(page.getByText(/Research history is ready/i)).toBeVisible({ timeout: 3500 });
     await page.screenshot({ path: `${OUT}/history-staged-loading-desktop.png` });
