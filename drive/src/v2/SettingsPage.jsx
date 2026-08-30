@@ -134,7 +134,7 @@ export function SettingsPage({
     const email = saveUserEmail(PILOT_PREVIEW_EMAIL);
     patch({ email });
     onProfileRefresh?.();
-    onToast?.(`Bound EXAMPLE identity ${email}`);
+    onToast?.(`Bound example identity ${email}`);
   };
 
   const connectSession = async () => {
@@ -179,74 +179,10 @@ export function SettingsPage({
     <PageShell
       className="rd-v2-settings-page"
       title="Settings"
-      lead="Choose how Research Drive behaves for this browser. Operational health lives under system status, not in the preference hierarchy."
+      lead="Connect the evidence sources and research identity this browser should use, then tune workspace behavior. Operational health lives under system status."
       surfaceState={SETTINGS_SURFACE_STATE}
     >
       <div className="rd-v2-settings-statement">
-        <StatementSection title="Workspace behavior">
-          <div className="rd-v2-settings-row">
-            <label className="rd-v2-settings-label" htmlFor="rd-settings-startup">
-              When Research Drive opens
-            </label>
-            <select
-              id="rd-settings-startup"
-              value={settings.startup}
-              onChange={(event) => patch({ startup: event.target.value })}
-              className="rd-v2-select"
-            >
-              <option value="home">Home — show what needs attention</option>
-              <option value="resume">Continue where I left off</option>
-            </select>
-          </div>
-          <p className="rd-v2-settings-hint">
-            Continue remembers only Library, Discover, or Synthesis. Profile, Settings, and
-            Resources never become a resume destination.
-          </p>
-
-          <div className="rd-v2-settings-row">
-            <label className="rd-v2-settings-label" htmlFor="rd-settings-on-select">
-              When evidence is selected
-            </label>
-            <select
-              id="rd-settings-on-select"
-              value={settings.onSelect}
-              onChange={(event) => patch({ onSelect: event.target.value })}
-              className="rd-v2-select"
-            >
-              <option value="detail">Show Detail</option>
-              <option value="ask">Open Ask</option>
-              <option value="keep">Keep current Inspector mode</option>
-            </select>
-          </div>
-          <p className="rd-v2-settings-hint">
-            Applies to evidence selection in Library and Discover. Approval, Resources, and
-            Synthesis decision states keep their task-specific Inspector behavior.
-          </p>
-
-          <div className="rd-v2-settings-row">
-            <label
-              className="rd-v2-settings-label"
-              htmlFor="rd-settings-discover-scope"
-            >
-              Discover search
-            </label>
-            <select
-              id="rd-settings-discover-scope"
-              value={settings.discoverScope}
-              onChange={(event) => patch({ discoverScope: event.target.value })}
-              className="rd-v2-select"
-            >
-              <option value="known">Known evidence first</option>
-              <option value="wide">Search wider immediately</option>
-            </select>
-          </div>
-          <p className="rd-v2-settings-hint">
-            Known-first paints Library and declared routes before progressive enrichment. Wide
-            starts semantic/live federation immediately. Synthesis evidence-gap handoffs always
-            begin known-first.
-          </p>
-        </StatementSection>
-
         <ConnectedAccountsSection deskAccess={deskAccess} onToast={onToast} />
 
         <StatementSection title="Research identity">
@@ -269,13 +205,69 @@ export function SettingsPage({
             </button>
             {demoMode ? (
               <button type="button" className="rd-v2-btn sm ghost" onClick={bindPilot}>
-                Use EXAMPLE (Kong)
+                Use example profile
               </button>
             ) : null}
           </div>
           <p id="rd-settings-email-hint" className="rd-v2-settings-hint">
-            Binds the faculty-registry record shown in Profile. This does not edit registry
-            research facts.
+            Binds the faculty-registry record shown in Profile. Research Drive remains usable without one, and this does not edit registry research facts.
+          </p>
+        </StatementSection>
+
+        <StatementSection title="Workspace behavior">
+          <div className="rd-v2-settings-row">
+            <label className="rd-v2-settings-label" htmlFor="rd-settings-startup">
+              When Research Drive opens
+            </label>
+            <select
+              id="rd-settings-startup"
+              value={settings.startup}
+              onChange={(event) => patch({ startup: event.target.value })}
+              className="rd-v2-select"
+            >
+              <option value="home">Home — show what needs attention</option>
+              <option value="resume">Continue where I left off</option>
+            </select>
+          </div>
+          <p className="rd-v2-settings-hint">
+            Continue remembers only Library, Discover, or Synthesis. Profile, Settings, and Resources never become a resume destination.
+          </p>
+
+          <div className="rd-v2-settings-row">
+            <label className="rd-v2-settings-label" htmlFor="rd-settings-on-select">
+              When evidence is selected
+            </label>
+            <select
+              id="rd-settings-on-select"
+              value={settings.onSelect}
+              onChange={(event) => patch({ onSelect: event.target.value })}
+              className="rd-v2-select"
+            >
+              <option value="detail">Show Detail</option>
+              <option value="ask">Open Ask</option>
+              <option value="keep">Keep current Inspector mode</option>
+            </select>
+          </div>
+          <p className="rd-v2-settings-hint">
+            Applies to evidence selection in Library and Discover. Approval, Resources, and Synthesis decision states keep their task-specific Inspector behavior.
+          </p>
+
+          <div className="rd-v2-settings-row">
+            <label className="rd-v2-settings-label" htmlFor="rd-settings-discover-scope">
+              Discover search
+            </label>
+            <select
+              id="rd-settings-discover-scope"
+              value={settings.discoverScope}
+              onChange={(event) => patch({ discoverScope: event.target.value })}
+              className="rd-v2-select"
+            >
+              <option value="known">Known evidence first</option>
+              <option value="wide">Search wider immediately</option>
+            </select>
+          </div>
+          <p className="rd-v2-settings-hint">
+            Known-first paints Library and declared routes before progressive enrichment. Wide starts semantic/live federation immediately. Synthesis evidence-gap handoffs always begin known-first.
           </p>
         </StatementSection>
 
@@ -290,30 +282,15 @@ export function SettingsPage({
           <div className="rd-v2-settings-row stack">
             {access.ok ? (
               <>
-                <button
-                  type="button"
-                  className="rd-v2-btn sm ghost"
-                  disabled={busy}
-                  onClick={connectSession}
-                >
+                <button type="button" className="rd-v2-btn sm ghost" disabled={busy} onClick={connectSession}>
                   Reconnect
                 </button>
-                <button
-                  type="button"
-                  className="rd-v2-btn sm danger"
-                  disabled={busy}
-                  onClick={disconnect}
-                >
+                <button type="button" className="rd-v2-btn sm danger" disabled={busy} onClick={disconnect}>
                   Disconnect
                 </button>
               </>
             ) : (
-              <button
-                type="button"
-                className="rd-v2-btn sm primary"
-                disabled={busy}
-                onClick={connectSession}
-              >
+              <button type="button" className="rd-v2-btn sm primary" disabled={busy} onClick={connectSession}>
                 Connect browser
               </button>
             )}
@@ -327,35 +304,21 @@ export function SettingsPage({
               label="Research API"
               metric={health == null ? "Not checked" : health?.status || "Reported"}
               sublabel="Catalog, Ask, jobs, query, and research-workspace service"
-              detail={
-                health?.status === "ok"
-                  ? "OK"
-                  : health == null
-                    ? "UNKNOWN"
-                    : "CHECK"
-              }
+              detail={health?.status === "ok" ? "OK" : health == null ? "UNKNOWN" : "CHECK"}
               warn={health != null && health?.status !== "ok"}
             />
             <StatementRow
               label="Assistant runtime"
               metric={assistant.label}
               sublabel={assistant.detail}
-              detail={
-                assistant.ready ? "READY" : assistant.known ? "CHECK" : "UNKNOWN"
-              }
+              detail={assistant.ready ? "READY" : assistant.known ? "CHECK" : "UNKNOWN"}
               warn={assistant.known && !assistant.ready}
             />
             <StatementRow
               label="Research archive"
               metric={archive}
               sublabel="Archive health reported by the desk"
-              detail={
-                desk?.gdrive?.ok === true
-                  ? "OK"
-                  : desk?.gdrive?.ok === false
-                    ? "CHECK"
-                    : "UNKNOWN"
-              }
+              detail={desk?.gdrive?.ok === true ? "OK" : desk?.gdrive?.ok === false ? "CHECK" : "UNKNOWN"}
               warn={desk?.gdrive?.ok === false}
             />
             <StatementRow
@@ -389,12 +352,7 @@ export function SettingsPage({
                       });
                     }}
                   />
-                  <button
-                    type="button"
-                    className="rd-v2-btn sm"
-                    disabled={busy || !tokenDraft.trim()}
-                    onClick={saveToken}
-                  >
+                  <button type="button" className="rd-v2-btn sm" disabled={busy || !tokenDraft.trim()} onClick={saveToken}>
                     Save fallback
                   </button>
                 </div>
