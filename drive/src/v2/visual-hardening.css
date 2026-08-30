@@ -100,6 +100,13 @@
   line-height: 1.5;
 }
 
+/* Feed-cleanup mechanics are not research lifecycle information. The History
+   intro already explains that search activity and system checks are grouped;
+   do not make duplicate/hidden-row counts part of the researcher-facing UI. */
+.rd-v2-discover-page--history .rd-v2-history-noise-note {
+  display: none;
+}
+
 /* Standard workstation height: make Home's resume object important without
    allowing it to swallow the first viewport. */
 @media (min-width: 1100px) and (max-height: 1050px) {
