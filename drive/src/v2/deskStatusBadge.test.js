@@ -5,7 +5,7 @@ import { deskStatusBadge, deskStatusSummary, visibleIntegrationChips } from "./d
 describe("deskStatusBadge", () => {
   it("maps each desk state to one label", () => {
     assert.deepEqual(deskStatusBadge("ok"), { label: "Live registry", tone: "ok" });
-    assert.deepEqual(deskStatusBadge("syncing"), { label: "Syncing…", tone: "muted" });
+    assert.deepEqual(deskStatusBadge("syncing"), { label: "Checking desk status…", tone: "muted" });
     assert.deepEqual(deskStatusBadge("empty"), { label: "Empty registry", tone: "warn" });
     assert.deepEqual(deskStatusBadge("degraded"), { label: "Desk degraded", tone: "warn" });
     assert.deepEqual(deskStatusBadge("demo"), { label: "Demo catalog", tone: "warn" });
