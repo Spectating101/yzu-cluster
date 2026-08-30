@@ -36,17 +36,16 @@
     display: none;
   }
 
-  /* Home keeps Ask/Detail available, but its rail should not consume a quarter
-     of a workstation before the researcher has done anything. */
+  /* Keep quiet rails subordinate without forcing workstation widths onto
+     smaller desktops. These clamps stay below the base shell rail until the
+     viewport has enough horizontal budget. */
   .rd-v2-shell:has(.rd-v2-home-page) {
-    --rd-rail: 360px;
+    --rd-rail: clamp(300px, 22vw, 360px);
   }
 
-  /* Asset inspection already has a substantial centre workspace. Preserve the
-     inspector without letting two detail surfaces split the desk evenly. */
   .rd-v2-shell:has(.rd-v2-library-page),
   .rd-v2-shell:has(.rd-v2-library-workspace) {
-    --rd-rail: 390px;
+    --rd-rail: clamp(320px, 24vw, 390px);
   }
 }
 
