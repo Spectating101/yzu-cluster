@@ -3,7 +3,11 @@
  * No hardcoded Kong copy; thin profiles simply yield fewer blocks.
  */
 
-export const PILOT_PREVIEW_EMAIL = "drkong@saturn.yzu.edu.tw";
+// Legacy shell code still asks for a pilot fallback when a faculty record is
+// unresolved. Keep that compatibility import non-routable so production never
+// substitutes another researcher's profile. Explicit demos should use fixtures,
+// not the authenticated research-memory path.
+export const PILOT_PREVIEW_EMAIL = "__pilot-preview-disabled__@invalid";
 
 const IN_LAB_ROUTES = new Set(["vault", "bigquery"]);
 const FINTECH_DOMAIN_TAGS = ["fintech", "crypto", "nft", "on_chain"];
