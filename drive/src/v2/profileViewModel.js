@@ -3,11 +3,22 @@
  * No hardcoded Kong copy; thin profiles simply yield fewer blocks.
  */
 
-// Legacy shell code still asks for a pilot fallback when a faculty record is
-// unresolved. Keep that compatibility import non-routable so production never
-// substitutes another researcher's profile. Explicit demos should use fixtures,
-// not the authenticated research-memory path.
-export const PILOT_PREVIEW_EMAIL = "__pilot-preview-disabled__@invalid";
+function explicitDemoMode() {
+  try {
+    return typeof window !== "undefined"
+      && new URLSearchParams(window.location.search).get("demo") === "1";
+  } catch {
+    return false;
+  }
+}
+
+// Legacy shell code still imports this fallback. In a normal authenticated desk
+// it is deliberately non-routable so another researcher's profile can never be
+// substituted. The historical pilot remains available only behind explicit
+// ?demo=1 showcase mode, where Example labeling is intentional.
+export const PILOT_PREVIEW_EMAIL = explicitDemoMode()
+  ? "drkong@saturn.yzu.edu.tw"
+  : "__pilot-preview-disabled__@invalid";
 
 const IN_LAB_ROUTES = new Set(["vault", "bigquery"]);
 const FINTECH_DOMAIN_TAGS = ["fintech", "crypto", "nft", "on_chain"];
