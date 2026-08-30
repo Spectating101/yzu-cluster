@@ -14,6 +14,11 @@ import { PILOT_PREVIEW_EMAIL } from "@/v2/profileViewModel";
 import { PageShell, StatementRow, StatementSection } from "@/v2/ui";
 import { handleEnterToSubmit } from "@/v2/enterToSubmit";
 
+// Settings is immediately usable browser-local configuration. Runtime facts
+// inside its optional technical disclosure may still be unmeasured, but they
+// cannot make the settings surface itself a loading or fabricated empty state.
+const SETTINGS_SURFACE_STATE = "ready";
+
 function isDemoMode() {
   try {
     return new URLSearchParams(window.location.search).get("demo") === "1";
@@ -175,6 +180,7 @@ export function SettingsPage({
       className="rd-v2-settings-page"
       title="Settings"
       lead="Choose how Research Drive behaves for this browser. Operational health lives under system status, not in the preference hierarchy."
+      surfaceState={SETTINGS_SURFACE_STATE}
     >
       <div className="rd-v2-settings-statement">
         <StatementSection title="Workspace behavior">

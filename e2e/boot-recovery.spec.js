@@ -16,11 +16,12 @@ import { expect, test } from "@playwright/test";
 test.use({ viewport: { width: 1920, height: 961 } });
 test.describe.configure({ mode: "serial" });
 
-// Absence of "Organizing" is also true before the surface has rendered at all,
-// so wait for the shelf count the estate actually publishes.
-const shelvesReady = (page) =>
+// Absence of "Organizing" is also true before the surface has rendered at all.
+// The current Library authority publishes the estate as assets plus curated
+// collections (not the retired "shelves" wording), so wait for both facts.
+const estateReady = (page) =>
   page.waitForFunction(
-    () => /\d+\s+shel(f|ves)/i.test((document.querySelector("main") || document.body).innerText || ""),
+    () => /\d+\s+assets\s+·\s+\d+\s+collections/i.test((document.querySelector("main") || document.body).innerText || ""),
     null,
     { timeout: 60_000 },
   );
@@ -30,12 +31,12 @@ test("the library estate does not wait on aggregate health", async ({ page }) =>
   await page.route("**/health*", () => {});
   const started = Date.now();
   await page.goto("/?tab=library");
-  await shelvesReady(page);
+  await estateReady(page);
   const elapsed = Date.now() - started;
   const shown = await page.evaluate(
     () => (document.querySelector("main") || document.body).innerText || "",
   );
-  expect(shown).toMatch(/\d+\s+shel(f|ves)/i);
+  expect(shown).toMatch(/\d+\s+assets\s+·\s+\d+\s+collections/i);
   expect(elapsed, `estate took ${elapsed}ms with health hung`).toBeLessThan(20_000);
 });
 
@@ -43,7 +44,7 @@ test("the library estate does not wait on the resources rollup", async ({ page }
   await page.route("**/library/desk/resources*", () => {});
   const started = Date.now();
   await page.goto("/?tab=library");
-  await shelvesReady(page);
+  await estateReady(page);
   expect(Date.now() - started).toBeLessThan(20_000);
 });
 

@@ -142,7 +142,10 @@ test.describe("primary surface lifecycle contract", () => {
     await expect(surface(page)).toHaveAttribute("data-surface-state", "ready", { timeout: 4_000 });
 
     await page.goto("/?tab=settings", { waitUntil: "domcontentloaded" });
-    await expect(surface(page)).toHaveAttribute("data-surface-state", /loading|partial/);
+    // Settings is browser-local and immediately usable; its optional runtime
+    // disclosure may still say "Not checked" without turning Preferences into
+    // a misleading loading surface.
+    await expect(surface(page)).toHaveAttribute("data-surface-state", "ready");
     await expect(surface(page)).toHaveAttribute("data-surface-state", "ready", { timeout: 4_000 });
   });
 });

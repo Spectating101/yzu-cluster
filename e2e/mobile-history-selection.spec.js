@@ -21,7 +21,7 @@ test("mobile History keeps the ledger visible until a researcher selects a row",
   await expect(row).toBeVisible({ timeout: 30_000 });
   await expect(row).toBeInViewport();
   await expect(inspector).toHaveClass(/rd-v2-rail-collapsed/);
-  await expect(page.getByRole("button", { name: "Show Detail · Ask" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Show research context" })).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("mobile-history-ledger.png"), fullPage: false });
 
   await row.click();

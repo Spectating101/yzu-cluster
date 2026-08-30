@@ -166,7 +166,7 @@ export function SynthesisHome({
       {loading ? <p className="s04-home-loading">Loading durable constructions…</p> : null}
 
       {!loading && !allThreads.length ? (
-        <section className="s04-home-first">
+        <section className="s04-home-first" data-testid="synthesis-empty-state">
           <small>Empty workspace</small>
           <h2>No Synthesis construction has been recorded yet.</h2>
           <p>The first durable object can begin from a research question or a registered method. Nothing is executed merely by starting one.</p>
