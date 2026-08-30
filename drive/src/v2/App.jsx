@@ -1556,6 +1556,7 @@ export function V2App() {
           cluster={health?.cluster}
           profile={profile && !profile.unknown ? profile : pilotProfile || profile}
           resourcesRollup={resourcesRollup}
+          pendingDecisionCount={jobsLoaded ? pendingResearchDecisions : null}
           acquisitions={acquisitions}
           partitions={partitions}
           jobs={jobs}

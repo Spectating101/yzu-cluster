@@ -61,6 +61,7 @@ export function buildPickUp({
   acquisitions = [],
   profile,
   synthesisThreads = [],
+  pendingDecisionCount = null,
 } = {}) {
   const briefing = buildHomeBriefing({ datasets, jobs, acquisitions, health, profile });
   const holdings = (datasets || []).filter((ds) => !isReceiptOnlyAsset(ds));
@@ -76,9 +77,16 @@ export function buildPickUp({
     /pending|approval|hold/i.test(String(job?.status || job?.state || "")),
   );
   const judgmentApprovals = (briefing?.needsJudgment || []).filter((item) => item.kind === "approval");
-  const pendingCount = Number(
+  // Home and the header must describe the same researcher-visible decision
+  // queue. The raw jobs feed includes fenced operator/fixture work; App passes
+  // its lifecycle-filtered count when it has one. Keep the local derivation as
+  // a fallback for standalone/unit use.
+  const derivedPendingCount = Number(
     judgmentApprovals.length || health?.desk?.jobs?.pending_approval || pendingJobs.length || 0,
   );
+  const pendingCount = pendingDecisionCount != null && Number.isFinite(Number(pendingDecisionCount))
+    ? Math.max(0, Number(pendingDecisionCount))
+    : derivedPendingCount;
   const firstPending =
     (judgmentApprovals[0]?.job && pendingJobs.find((job) => job.id === judgmentApprovals[0].job.id)) ||
     judgmentApprovals[0]?.job ||

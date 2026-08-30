@@ -125,6 +125,19 @@ test("pending approval becomes the primary decision, not a separate Attention pa
   assert.equal(secondary.kind, "library_asset");
 });
 
+test("Home uses the lifecycle-filtered decision count shown in the header", () => {
+  const { primary, pending } = buildPickUp({
+    datasets: [{ dataset_id: "a", name: "Alpha" }],
+    jobs: [
+      { id: "visible", status: "pending_approval", plan: { title: "Visible approval" } },
+      { id: "fenced", status: "pending_approval", plan: { title: "Operator fixture" } },
+    ],
+    pendingDecisionCount: 1,
+  });
+  assert.equal(pending, 1);
+  assert.equal(primary.pill, "1 awaiting review");
+});
+
 test("an internal synthesis-block marker becomes a researcher-facing primary decision", () => {
   const { primary, secondary } = buildPickUp({
     datasets: [{ dataset_id: "a", name: "Alpha" }],

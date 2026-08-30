@@ -107,6 +107,7 @@ export function HomePage({
   profile,
   acquisitions = [],
   resourcesRollup,
+  pendingDecisionCount = null,
   loadError = "",
   onGoTab,
   onOpenAttention,
@@ -164,8 +165,16 @@ export function HomePage({
   }, [resourcesRollup, cachedRollup, health]);
   const headroomLoading = headroomRollup == null && resourcesRollup === undefined && health == null;
   const pickUp = useMemo(
-    () => buildPickUp({ datasets, jobs, health, acquisitions, profile, synthesisThreads }),
-    [datasets, jobs, health, acquisitions, profile, synthesisThreads],
+    () => buildPickUp({
+      datasets,
+      jobs,
+      health,
+      acquisitions,
+      profile,
+      synthesisThreads,
+      pendingDecisionCount,
+    }),
+    [datasets, jobs, health, acquisitions, profile, synthesisThreads, pendingDecisionCount],
   );
   useEffect(() => {
     if (!loading) onPrimaryResume?.(pickUp.primary || null);
