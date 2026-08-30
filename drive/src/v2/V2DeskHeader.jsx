@@ -42,6 +42,7 @@ export function V2DeskHeader({
   datasetLabel = "datasets",
 }) {
   const [accountOpen, setAccountOpen] = useState(false);
+  const [slowStatusSync, setSlowStatusSync] = useState(false);
   const accountRef = useRef(null);
   const pendingVisible = workCount > 0 && Boolean(onPendingClick);
   const countText = `${datasetCount} ${datasetLabel}`;
@@ -55,14 +56,29 @@ export function V2DeskHeader({
   const fresh = freshnessLabel(refreshedAt);
   const chips = Array.isArray(integrationChips) ? integrationChips : [];
 
-  const statusBadge = deskStatusBadge(deskStatus, usingSeed);
+  const baseStatusBadge = deskStatusBadge(deskStatus, usingSeed);
+  const statusBadge = deskStatus === "syncing" && slowStatusSync
+    ? { label: "Desk open · status still loading", tone: "muted" }
+    : baseStatusBadge;
   const statusSummary = deskStatusSummary(statusBadge, chips);
   const statusTitle = [
     ...statusSummary.details,
+    deskStatus === "syncing" && slowStatusSync
+      ? "Core research views remain usable while operational status finishes loading"
+      : null,
     fresh ? `Updated ${fresh}` : null,
     onDeskStatusNavigate ? "Open Resources" : null,
   ].filter(Boolean).join(" · ");
   const pageLabel = PAGE_LABELS[currentPage] || String(currentPage || "").toUpperCase();
+
+  useEffect(() => {
+    if (deskStatus !== "syncing") {
+      setSlowStatusSync(false);
+      return undefined;
+    }
+    const timer = window.setTimeout(() => setSlowStatusSync(true), 1500);
+    return () => window.clearTimeout(timer);
+  }, [deskStatus]);
 
   useEffect(() => {
     if (!accountOpen) return undefined;
