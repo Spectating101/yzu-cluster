@@ -100,7 +100,9 @@ export function buildPickUp({
           : rawTitle || "Research decision waiting",
         stateSummary: "A researcher decision is required before this work can continue.",
         location: "DISCOVER / HISTORY",
-        pill: `${pendingCount} pending`,
+        // This is the Home attention queue, not the header's job-only count.
+        // Name the scope so two truthful counts do not look contradictory.
+        pill: `${pendingCount} awaiting review`,
         job: firstPending,
         tab: "browse",
         action: "review",

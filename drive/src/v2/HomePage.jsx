@@ -125,15 +125,28 @@ export function HomePage({
   // Library/Discover continuity remains truthful even if Synthesis is temporarily unavailable.
   useEffect(() => {
     let cancelled = false;
-    listSynthesisThreads({ limit: 20 })
-      .then((payload) => {
-        if (!cancelled) setSynthesisThreads(threadRows(payload));
-      })
-      .catch(() => {
-        if (!cancelled) setSynthesisThreads([]);
-      });
+    let retryTimer = null;
+    let attempts = 0;
+    const loadThreads = () => {
+      listSynthesisThreads({ limit: 20 })
+        .then((payload) => {
+          if (!cancelled) setSynthesisThreads(threadRows(payload));
+        })
+        .catch(() => {
+          // Home is allowed to remain useful when Synthesis is down, but a
+          // transient front-door failure must not permanently demote an
+          // existing proposal behind passive Library recency. Retry once;
+          // ongoing polling belongs to the Synthesis workspace itself.
+          if (!cancelled && attempts < 1) {
+            attempts += 1;
+            retryTimer = window.setTimeout(loadThreads, 800);
+          }
+        });
+    };
+    loadThreads();
     return () => {
       cancelled = true;
+      if (retryTimer != null) window.clearTimeout(retryTimer);
     };
   }, []);
 

@@ -62,8 +62,9 @@ const GAP_THREAD = {
   },
 };
 
-async function installSynthesisMock(page, threads = [PROPOSAL_THREAD], handoffs = {}) {
+async function installSynthesisMock(page, threads = [PROPOSAL_THREAD], handoffs = {}, { failFirstList = false } = {}) {
   const byId = new Map(threads.map((thread) => [thread.id, structuredClone(thread)]));
+  let listReads = 0;
   await page.route("**/library/synthesis/threads**", async (route) => {
     const url = new URL(route.request().url());
     const parts = url.pathname.split("/").filter(Boolean);
@@ -71,7 +72,11 @@ async function installSynthesisMock(page, threads = [PROPOSAL_THREAD], handoffs 
     const id = parts[index + 1] || "";
     const suffix = parts.slice(index + 2).join("/");
     const respond = (body, status = 200) => route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
-    if (!id && route.request().method() === "GET") return respond({ threads: [...byId.values()], total: byId.size });
+    if (!id && route.request().method() === "GET") {
+      listReads += 1;
+      if (failFirstList && listReads === 1) return respond({ error: "temporary thread-store outage" }, 503);
+      return respond({ threads: [...byId.values()], total: byId.size });
+    }
     const thread = byId.get(id);
     if (!thread) return respond({ error: "not found" }, 404);
     if (!suffix) return respond(thread);
@@ -122,6 +127,17 @@ test("Home chooses reviewable Synthesis ahead of passive Library recency and res
   const exactThread = page.getByTestId("synthesis-thread-item").filter({ hasText: "Weekly trust panel" });
   await expect(exactThread).toHaveClass(/active/);
   await expect(page.locator(".s04-head h1")).toHaveText("Weekly trust panel");
+});
+
+test("Home retries one transient Synthesis read so a durable review is not lost behind Library recency", async ({ page }) => {
+  await mockV2Api(page, { jobsBody: { jobs: [] }, healthBody: QUIET_HEALTH });
+  await installSynthesisMock(page, [PROPOSAL_THREAD], {}, { failFirstList: true });
+  await page.goto("/?tab=home", { waitUntil: "domcontentloaded" });
+  await waitForShell(page);
+
+  const pick = page.getByTestId("home-continue");
+  await expect(pick).toHaveAttribute("data-kind", "synthesis_thread", { timeout: 5000 });
+  await expect(pick).toContainText("Weekly trust panel");
 });
 
 test("explicit researcher decision still outranks active Synthesis", async ({ page }) => {
