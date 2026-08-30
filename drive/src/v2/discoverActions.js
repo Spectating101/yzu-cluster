@@ -1,6 +1,7 @@
-import { candidateKey, discoverCandidateUrl } from "@/v2/candidateKey";
+import { candidateKey, discoverCandidateUrl } from "./candidateKey.js";
+import { cleanDescription } from "./discoverAdapters.js";
 
-export { discoverCandidateUrl } from "@/v2/candidateKey";
+export { discoverCandidateUrl } from "./candidateKey.js";
 
 export function buildAddToLabPrompt(target, probeResult) {
   const label = target?.title || target?.dataset_id || target?.name || "this dataset";
@@ -46,6 +47,7 @@ export function webHitsToRows(data) {
         kind: hit.kind || "web_hit",
         candidate_key: hit.candidate_key || (url ? `url:${url}` : ""),
         url,
+        description: cleanDescription(hit.description || hit.snippet || hit.content),
       };
     });
   }
@@ -56,7 +58,7 @@ export function webHitsToRows(data) {
       title: hit.title || hit.url || "Web source",
       url,
       source: hit.source || "web",
-      description: hit.snippet || hit.content || "",
+      description: cleanDescription(hit.snippet || hit.content),
       publisher: hit.source || "web",
       candidate_key: hit.candidate_key || (url ? `url:${url}` : ""),
     };
