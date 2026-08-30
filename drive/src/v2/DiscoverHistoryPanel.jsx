@@ -237,6 +237,7 @@ export function DiscoverHistoryPanel({
   const [filter, setFilter] = useState("all");
   const [viewportBudget, setViewportBudget] = useState(historyViewportBudget);
   const [visibleCount, setVisibleCount] = useState(historyViewportBudget);
+  const [slowApprovalSync, setSlowApprovalSync] = useState(false);
   const fenced = useMemo(() => {
     const raw = [...events]
       .filter((event) => event && (event.id || event.ts || event.target))
@@ -291,6 +292,15 @@ export function DiscoverHistoryPanel({
   }, [filter, viewportBudget]);
 
   useEffect(() => {
+    if (jobsLoaded) {
+      setSlowApprovalSync(false);
+      return undefined;
+    }
+    const timer = window.setTimeout(() => setSlowApprovalSync(true), 1500);
+    return () => window.clearTimeout(timer);
+  }, [jobsLoaded]);
+
+  useEffect(() => {
     if (!visible.length || !onSelectEvent) return;
     const hasVisibleSelection = visible.some((event, index) => eventId(event, index) === selectedId);
     if (hasVisibleSelection) return;
@@ -323,7 +333,9 @@ export function DiscoverHistoryPanel({
           </p>
           {!jobsLoaded ? (
             <p className="rd-v2-history-sync" data-testid="discover-history-jobs-sync" role="status">
-              Checking pending approvals…
+              {slowApprovalSync
+                ? "Research history is ready. Current approval status is still syncing in the background…"
+                : "Checking current approval status…"}
             </p>
           ) : jobsRefreshFailed ? (
             <p className="rd-v2-history-sync is-warning" data-testid="discover-history-jobs-sync" role="status">
@@ -335,11 +347,11 @@ export function DiscoverHistoryPanel({
           fenced.hiddenSystemVerification > 0 ? (
             <p className="rd-v2-history-noise-note muted small" data-testid="history-noise-fence">
               {fenced.hiddenNoise > 0
-                ? `${fenced.hiddenNoise} fixture/ops noise row${fenced.hiddenNoise === 1 ? "" : "s"} hidden`
+                ? `${fenced.hiddenNoise} non-research system row${fenced.hiddenNoise === 1 ? "" : "s"} omitted`
                 : ""}
               {fenced.hiddenNoise > 0 && fenced.hiddenSearchTelemetry > 0 ? " · " : ""}
               {fenced.hiddenSearchTelemetry > 0
-                ? `${fenced.hiddenSearchTelemetry} Ask/search row${fenced.hiddenSearchTelemetry === 1 ? "" : "s"} under Search`
+                ? `${fenced.hiddenSearchTelemetry} search event${fenced.hiddenSearchTelemetry === 1 ? "" : "s"} grouped separately`
                 : ""}
               {(fenced.hiddenNoise > 0 || fenced.hiddenSearchTelemetry > 0) &&
               fenced.hiddenSystemVerification > 0
