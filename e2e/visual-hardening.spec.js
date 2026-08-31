@@ -333,7 +333,11 @@ test.describe("Research Drive visual hardening", () => {
         await settle(page);
         await assertResearcherFacing(page);
         if (tab === "history") {
-          await expect(page.getByText("Taiwan issuer governance disclosures", { exact: true })).toBeVisible();
+          // The selected record and inspector legitimately repeat the title.
+          // Assert the lifecycle row rather than making page-wide text unique.
+          await expect(
+            page.getByRole("button", { name: /Taiwan issuer governance disclosures/i }).first(),
+          ).toBeVisible();
         }
         await page.screenshot({
           path: `${OUT}/${name}-${viewportName}.png`,

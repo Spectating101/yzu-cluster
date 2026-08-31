@@ -146,6 +146,13 @@
   gap: 10px;
 }
 
+/* A new desk has two genuine choices: start from a question or from a recorded
+   method. Do not spend a third card telling the researcher that there is no
+   work to continue; the concise empty-state below already establishes that. */
+.s04-home-entry.is-starting {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .s04-home-entry-card,
 .s04-home-thread,
 .s04-home-method-grid button {

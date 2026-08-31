@@ -26,6 +26,9 @@ import "./hps-responsive-fixes.css";
 import "./synthesis-workstation.css";
 import "./discover-frozen-closure.css";
 import "./connected-accounts.css";
+// DiscoverCoveragePanel imports this component stylesheet as well, but loading
+// it here establishes one deterministic root order for the final overrides.
+import "./discover-production.css";
 import "./visual-hardening.css";
 import { V2App } from "./App";
 import { InteractionProvider } from "./InteractionGuidance";

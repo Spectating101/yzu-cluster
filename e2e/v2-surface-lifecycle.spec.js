@@ -1,7 +1,9 @@
 import { test, expect } from "@playwright/test";
 import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 
-const surface = (page) => page.locator("main.yzu-main .rd-v2-page");
+// Library can render its selected-asset workspace as a nested page-shaped
+// element. The lifecycle authority belongs to the outer current surface.
+const surface = (page) => page.locator("main.yzu-main > .rd-v2-page").first();
 
 test.describe("primary surface lifecycle contract", () => {
   test("loading, partial, ready, idle, and empty stay distinguishable", async ({ page }) => {
@@ -110,6 +112,8 @@ test.describe("primary surface lifecycle contract", () => {
     await waitForShell(page);
     await expect(surface(page)).toHaveAttribute("data-surface-state", "empty");
     await expect(page.getByTestId("synthesis-empty-state")).toBeVisible();
+    await expect(page.getByTestId("synthesis-home-state")).not.toContainText("No saved construction exists yet.");
+    await expect(page.locator(".s04-home-entry.is-starting .s04-home-entry-card")).toHaveCount(2);
 
     await page.unroute("**/library/synthesis/threads**");
     await page.route("**/library/synthesis/threads**", (route) =>
@@ -138,7 +142,9 @@ test.describe("primary surface lifecycle contract", () => {
     await page.setViewportSize({ width: 390, height: 844 });
 
     await page.goto("/?tab=profile", { waitUntil: "domcontentloaded" });
-    await expect(surface(page)).toHaveAttribute("data-surface-state", "loading");
+    // The profile fetch can settle before this assertion because the browser
+    // shell is already known. Loading coverage belongs to the primary matrix;
+    // this compact-screen contract proves truthful completion instead.
     await expect(surface(page)).toHaveAttribute("data-surface-state", "ready", { timeout: 4_000 });
 
     await page.goto("/?tab=settings", { waitUntil: "domcontentloaded" });
