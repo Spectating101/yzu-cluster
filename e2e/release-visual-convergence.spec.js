@@ -32,7 +32,7 @@ test.describe("Research Drive release visual contract", () => {
     await waitForShell(page);
   });
 
-  test("desktop renders navigation, research workspace, and persistent Detail Ask rail", async ({ page }) => {
+  test("desktop renders navigation, a research workspace, and a compact contextual rail", async ({ page }) => {
     const shell = page.locator(".rd-v2-shell");
     const header = page.locator("header.rd-v2-header");
     const sidebar = page.locator("aside.yzu-sidebar");
@@ -65,7 +65,10 @@ test.describe("Research Drive release visual contract", () => {
     expect(geometry.columns).toContain("px");
     expect(geometry.sidebar).toBeGreaterThanOrEqual(210);
     expect(geometry.main).toBeGreaterThan(geometry.rail);
-    expect(geometry.rail).toBeGreaterThanOrEqual(370);
+    // Home carries an active decision in the inspector, but on a 1440px desk
+    // it intentionally stays compact so the work canvas keeps its useful
+    // measure. Library may widen it when a selected record needs more detail.
+    expect(geometry.rail).toBeGreaterThanOrEqual(300);
   });
 
   test("Home follows Iteration 10: Pick Up · Headroom · Trail (Recommended when grounded)", async ({ page }) => {
@@ -96,10 +99,10 @@ test.describe("Research Drive release visual contract", () => {
     const destinations = [
       { tab: "Library", title: "Library", rail: true },
       { tab: "Discover", title: "Discover", rail: true },
-      { tab: "Synthesis", title: "Synthesis", rail: true },
+      { tab: "Synthesis", title: "Synthesis", rail: false },
       { tab: "Resources", title: "Resources", rail: true },
-      { tab: "Profile", title: "Profile", rail: true },
-      { tab: "Settings", title: "Settings", rail: true },
+      { tab: "Profile", title: "Profile", rail: false },
+      { tab: "Settings", title: "Settings", rail: false },
     ];
 
     for (const destination of destinations) {
@@ -113,8 +116,11 @@ test.describe("Research Drive release visual contract", () => {
       if (destination.rail) {
         await expect(rail.getByRole("tab", { name: "Ask" })).toBeVisible();
       } else {
-        await expect(page.locator(".rd-v2-shell.no-rail")).toBeVisible();
-        await expect(rail).not.toBeVisible();
+        // Quiet record/configuration surfaces reclaim the unused inspector
+        // rather than leaving an admin-like third column beside the page.
+        await expect(rail).toBeHidden();
+        const mainBox = await page.locator("main.yzu-main").boundingBox();
+        expect(mainBox?.width || 0).toBeGreaterThan(900);
       }
     }
   });
@@ -146,7 +152,9 @@ test("long research identities wrap instead of breaking the visible Detail pane"
     await expect(detailPane).toBeVisible();
     const overflowing = await detailPane.evaluate((node) => node.scrollWidth > node.clientWidth + 2);
     expect(overflowing).toBe(false);
-    expect(railBox?.width || 0).toBeGreaterThanOrEqual(370);
+    // Library earns a wider rail than Home, but it must not consume a third of
+    // a normal workstation simply to repeat detail already in the workspace.
+    expect(railBox?.width || 0).toBeGreaterThanOrEqual(320);
   });
 
   test("capture every implemented release page for pixel review", async ({ page }) => {

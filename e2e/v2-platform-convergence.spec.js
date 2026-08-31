@@ -52,7 +52,7 @@ test.describe("converged platform shell", () => {
     await waitForShell(page);
   });
 
-  test("keeps Home, Library, Resources, Profile, Settings, and the rail connected", async ({ page }) => {
+  test("keeps Home, Library, Resources, Profile, and Settings connected without wasting quiet-page rail space", async ({ page }) => {
     await expect(page.getByRole("heading", { name: "Home", exact: true })).toBeVisible();
     await expect(page.getByTestId("home-continue")).toBeVisible();
     await capture(page, "01-home-desktop");
@@ -73,12 +73,17 @@ test.describe("converged platform shell", () => {
 
     await openAccountDestination(page, "Profile");
     await expect(page.locator("main.yzu-main").getByRole("heading", { name: "Profile", exact: true })).toBeVisible();
-    await expect(page.getByTestId("profile-detail-rail")).toBeVisible();
+    // Profile is a quiet record surface: the context panel remains available on
+    // mobile, but desktop returns the otherwise idle inspector width to the
+    // profile itself.
+    await expect(page.locator("aside.rd-v2-rail")).toBeHidden();
+    expect((await page.locator("main.yzu-main").boundingBox())?.width || 0).toBeGreaterThan(900);
     await capture(page, "04-profile-memory-desktop");
 
     await openAccountDestination(page, "Settings");
     await expect(page.locator("main.yzu-main").getByRole("heading", { name: "Settings", exact: true })).toBeVisible();
-    await expect(page.locator("aside.rd-v2-rail")).toContainText("Desk setup");
+    await expect(page.locator("aside.rd-v2-rail")).toBeHidden();
+    expect((await page.locator("main.yzu-main").boundingBox())?.width || 0).toBeGreaterThan(900);
     await capture(page, "05-settings-desktop");
   });
 

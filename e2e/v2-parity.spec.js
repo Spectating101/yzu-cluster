@@ -154,8 +154,11 @@ test.describe("v2 parity @ desk-v2-1440", () => {
     expect(metrics.headerH).toBeLessThanOrEqual(66);
     expect(metrics.sidebarW / metrics.shellW).toBeGreaterThanOrEqual(0.14);
     expect(metrics.sidebarW / metrics.shellW).toBeLessThanOrEqual(0.18);
-    expect(metrics.railW / metrics.shellW).toBeGreaterThanOrEqual(0.24);
-    expect(metrics.railW / metrics.shellW).toBeLessThanOrEqual(0.28);
+    // Home's contextual rail stays readable without reserving a legacy-wide
+    // third column. Record-detail surfaces may claim more width when they
+    // genuinely need it; this shell check covers the Home default.
+    expect(metrics.railW / metrics.shellW).toBeGreaterThanOrEqual(0.21);
+    expect(metrics.railW / metrics.shellW).toBeLessThanOrEqual(0.26);
     expect(metrics.mainW).toBeGreaterThan(metrics.railW);
     expect(metrics.mainW).toBeGreaterThan(metrics.sidebarW);
     expect(metrics.sidebarW + metrics.mainW + metrics.railW).toBeLessThanOrEqual(metrics.shellW + 2);
