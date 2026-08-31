@@ -5,6 +5,7 @@ import {
   describeDataset,
   deskHealth,
   deskResources,
+  deskWarm,
   ensureDeskAccess,
   createDiscoverIntent,
   craftDiscoverIntentProposal,
@@ -281,6 +282,10 @@ export function V2App() {
   /** Ask can persist a review proposal; refresh the canvas in the same turn. */
   const [synthesisRefreshVersion, setSynthesisRefreshVersion] = useState(0);
   const healthRetryRef = useRef(null);
+  // Prime Copilot once after trusted desk access. This is deliberately kept
+  // out of refreshBackend: warmup is an optional, background request and may
+  // never delay the visible Library / Discover estate.
+  const deskWarmKeyRef = useRef("");
   const { toast, show: showToast, dismissIf: dismissToastIf } = useToast();
   const authenticatedEmail = String(deskAccess?.principal?.email || "").trim();
   const canUseAsk = Boolean(deskAccess?.permissions?.use_ask);
@@ -492,6 +497,26 @@ export function V2App() {
   useEffect(() => {
     if (deskAccess?.authenticated) refreshBackend();
   }, [refreshBackend, deskAccess?.authenticated]);
+
+  useEffect(() => {
+    if (!deskAccess?.authenticated || !canUseAsk) return undefined;
+    const email = authenticatedEmail || loadUserEmail();
+    const key = String(deskAccess?.principal?.id || email || "authenticated");
+    if (deskWarmKeyRef.current === key) return undefined;
+
+    // Let the visible estate begin first. /library/desk/warm answers quickly
+    // and primes the provider in the backend, so the first substantive Ask
+    // does not spend the user's turn on vault/model startup.
+    const timer = window.setTimeout(() => {
+      deskWarmKeyRef.current = key;
+      void deskWarm({ userEmail: email || undefined, background: true }).catch(() => {
+        // Warmup is best-effort. A provider/session issue remains visible only
+        // when a researcher actually asks; it must never turn Home into an
+        // error state or trigger a boot retry loop.
+      });
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [authenticatedEmail, canUseAsk, deskAccess?.authenticated, deskAccess?.principal?.id]);
 
   useEffect(() => {
     if (!deskAccess?.authenticated) return undefined;

@@ -55,3 +55,12 @@ test("deferred enrichment is still fetched, not dropped", () => {
   at("applyHealth(await deskHealth(false");
   at("listJobs()");
 });
+
+test("Copilot priming is optional background work, never boot work", () => {
+  const warm = at("void deskWarm({ userEmail: email || undefined, background: true })");
+  const backend = at("const refreshBackend = useCallback");
+  const visibleEstate = at("applyCatalog(await listDatasets())");
+  assert.ok(warm > backend, "warmup must not be folded into refreshBackend");
+  assert.ok(warm > visibleEstate, "the visible estate must remain ahead of optional priming");
+  at("Warmup is best-effort");
+});
