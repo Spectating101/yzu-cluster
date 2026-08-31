@@ -373,6 +373,38 @@ export function DiscoverEvidenceBrief({
     </section>
   );
 
+  // A natural-language Explore query is useful for source discovery even when
+  // it has not yet been turned into a structured evidence brief.  Do not let
+  // that honest limitation consume the first workstation viewport with an
+  // empty coverage grid, a fabricated gap, and operational capacity that is
+  // irrelevant until the researcher states the dimensions that matter.
+  if (variant === "workspace" && assessmentStatus === "insufficient_requirement") {
+    return (
+      <section className="rd-v2-evidence-brief is-workspace" aria-label="Evidence assessment" data-testid="discover-evidence-brief">
+        <div className="rd-v2-evidence-assessment rd-v2-evidence-assessment--brief-needed" data-testid="discover-assessment-result">
+          <header className="rd-v2-evidence-assessment-head">
+            <div>
+              <span className="rd-v2-eyebrow">Evidence brief needed</span>
+              <h2>{text(assessment?.question, draft)}</h2>
+            </div>
+            <span className={`rd-v2-evidence-verdict ${verdictTone}`} data-testid="discover-verdict">
+              {verdictLabel}
+            </span>
+            {onClose ? <button type="button" className="rd-v2-evidence-close" onClick={onClose}>Hide assessment</button> : null}
+          </header>
+          <p className="rd-v2-evidence-because">
+            {text(assessment?.because, "Discover can search this need, but needs explicit evidence dimensions before it can claim Library coverage or a sourcing gap.")}
+          </p>
+          <details className="rd-v2-evidence-edit">
+            <summary><span>State the dimensions that matter</span><b>Edit brief</b></summary>
+            {requirementEditor}
+          </details>
+        </div>
+        {loading ? <p className="rd-v2-browse-loading" data-testid="discover-assessment-loading">Checking Library evidence against the brief…</p> : null}
+      </section>
+    );
+  }
+
   return (
     <section className={`rd-v2-evidence-brief is-${variant}`} aria-label="Evidence assessment" data-testid="discover-evidence-brief">
       {variant === "workspace" && !assessment ? (

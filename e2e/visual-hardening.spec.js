@@ -365,6 +365,33 @@ test.describe("Research Drive visual hardening", () => {
     await page.screenshot({ path: `${OUT}/discover-populated-desktop.png`, fullPage: false });
   });
 
+  test("an unstructured need stays compact while Discover finds sources", async ({ page }) => {
+    await page.setViewportSize(DESKTOP);
+    await visualMocks(page, {
+      assessmentBody: {
+        question: "I need dataset regarding forest fire and economic changes",
+        assessment_status: "insufficient_requirement",
+        because: "No explicit research requirement dimensions were supplied, so held coverage cannot be established.",
+        requirement: { dimensions: [] },
+        held_evidence: [],
+      },
+    });
+    await page.goto("/?tab=discover&q=I%20need%20dataset%20regarding%20forest%20fire%20and%20economic%20changes");
+    await settle(page);
+    // The workspace assesses only when the researcher submits the need; a
+    // query-string prefill must not itself write an assessment.
+    await page.getByRole("button", { name: "Explore", exact: true }).click();
+    await settle(page, 1200);
+
+    const brief = page.getByTestId("discover-assessment-result");
+    await expect(brief.getByText("Evidence brief needed", { exact: true })).toBeVisible();
+    await expect(brief.getByText("State the dimensions that matter", { exact: true })).toBeVisible();
+    await expect(brief.getByText("Execution capacity", { exact: true })).toHaveCount(0);
+    await expect(page.getByTestId("discover-evidence-gap")).toHaveCount(0);
+    const box = await brief.boundingBox();
+    expect(box?.height || 10_000).toBeLessThan(230);
+  });
+
   for (const [tab, name] of [["home", "home"], ["library", "library"]]) {
     test(`${name} keeps a real work canvas at small-desktop width`, async ({ page }) => {
       mkdirSync(OUT, { recursive: true });
