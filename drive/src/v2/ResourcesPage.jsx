@@ -17,6 +17,7 @@ import {
 import { Chip, PageShell, StatementRow, StatementSection } from "@/v2/ui";
 import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
 import { DeskError } from "@/v2/DeskError";
+import { researchEstateSummary } from "@/v2/resourcesInventoryTruth";
 
 function shortText(value, max = 92) {
   const text = String(value || "");
@@ -673,10 +674,10 @@ function buildResourceInventorySections(panels) {
 }
 
 function ResearchCapability({ cluster, panels, rollup, catalogSummary }) {
-  const platform = cluster?.platform_state || cluster || {};
-  const registry = platform.registry_datasets ?? catalogSummary?.registry_datasets;
-  const instant = platform.instant_datasets ?? catalogSummary?.instant_datasets;
-  const partitions = platform.professor_partitions ?? catalogSummary?.partitions;
+  const estate = researchEstateSummary(rollup, cluster, catalogSummary);
+  const registry = estate.registered;
+  const queryReady = estate.queryReady;
+  const partitions = estate.partitions;
   const routeCount = buildPinnedSourceRows(panels.providers || [], panels.layers || []).length;
   const workers = rollup?.hero?.workers || {};
   // VC-4: one shared collector field set and vocabulary across toolbar, card, and rail.
@@ -701,12 +702,14 @@ function ResearchCapability({ cluster, panels, rollup, catalogSummary }) {
         <div>
           <span>Reusable research estate</span>
           <strong>
-            {registry != null ? `${registry} registered assets` : "Registered estate available"}
-            {instant != null ? ` · ${instant} query ready` : ""}
+            {registry != null
+              ? `${registry} ${estate.inventoryBacked ? "desk-visible" : "registered"} assets`
+              : "Registered estate available"}
+            {queryReady != null ? ` · ${queryReady} query ready` : ""}
           </strong>
           <em>
             {partitions != null
-              ? `${partitions} organized collections available in Library.`
+              ? `${partitions} evidence partitions configured for the desk.`
               : "Registered assets remain available in Library."}
           </em>
         </div>
