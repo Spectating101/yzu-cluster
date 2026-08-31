@@ -64,3 +64,10 @@ test("Copilot priming is optional background work, never boot work", () => {
   assert.ok(warm > visibleEstate, "the visible estate must remain ahead of optional priming");
   at("Warmup is best-effort");
 });
+
+test("Ask permission gates both Copilot priming and the Ask rail", () => {
+  at("const canUseAsk = Boolean(deskAccess?.permissions?.use_ask)");
+  at("if (!deskAccess?.authenticated || !canUseAsk) return undefined;");
+  at("canUseAsk ? <AskRail");
+  at("assistantAllowed={canUseAsk}");
+});
