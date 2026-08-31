@@ -40,6 +40,12 @@ test("the visible research estate loads before aggregate health", () => {
   assert.ok(nav < health, "navigation must not wait behind /health, which may probe for 12s");
 });
 
+test("health paints Home before the slower operational rollup", () => {
+  const health = at("applyHealth(await deskHealth(false");
+  const resources = at("await deskResources(false)");
+  assert.ok(health < resources, "Home status must not wait behind /desk/resources");
+});
+
 test("the catalog still leads the boot sequence", () => {
   assert.ok(at("applyCatalog(await listDatasets())") < at("applyNavigation(await listLibraryNav())"));
 });
