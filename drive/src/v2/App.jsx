@@ -57,7 +57,7 @@ import { Toast, useToast } from "@/v2/toast";
 import { V2Sidebar } from "@/v2/V2Sidebar";
 import { recentDatasets, touchRecent } from "@/v2/recent";
 import { displayName } from "@/v2/datasetMeta";
-import { buildLab, PILOT_PREVIEW_EMAIL } from "@/v2/profileViewModel";
+import { buildLab } from "@/v2/profileViewModel";
 import { mergeHealth, resolveCatalog } from "@/v2/deskSeed";
 import { projectRollupFromHealth } from "@/v2/homeIteration10";
 import { buildDeskIntegrationChips } from "@/v2/deskIntegration";
@@ -229,8 +229,6 @@ export function V2App() {
   const [detail, setDetail] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [profile, setProfile] = useState(null);
-  /** Unbound desk still binds sidebar Active research from EXAMPLE pilot (same as Profile). */
-  const [pilotProfile, setPilotProfile] = useState(null);
   /** Bump when touchRecent runs so sidebar Recent recomputes (localStorage alone does not). */
   const [recentEpoch, setRecentEpoch] = useState(0);
   /** Library header filter only — never shared with Discover. */
@@ -302,71 +300,24 @@ export function V2App() {
   }, []);
 
   const reloadProfile = useCallback(() => {
-    // Showcase soft-default: keep Kong bound when the browser has no faculty email yet
-    // (or after a desk outage wiped the visible identity).
-    let email = authenticatedEmail || loadUserEmail();
-    if (!email) email = saveUserEmail(PILOT_PREVIEW_EMAIL);
+    // The authenticated principal and an explicitly saved faculty email are
+    // the only profile authorities.  An absent record is a valid thin state;
+    // never substitute a showcase faculty member to make the desk look full.
+    const email = authenticatedEmail || loadUserEmail();
+    if (!email) {
+      setProfile({ email: "", unknown: true });
+      return;
+    }
     facultyProfile(email)
       .then((data) => {
         if (!data?.found || !data.profile || data.profile.unknown) {
-          // Fall back to pilot bind rather than leaving the desk looking empty.
-          if (email !== PILOT_PREVIEW_EMAIL) {
-            saveUserEmail(PILOT_PREVIEW_EMAIL);
-            facultyProfile(PILOT_PREVIEW_EMAIL)
-              .then((pilot) => {
-                if (pilot?.found && pilot.profile && !pilot.profile.unknown) {
-                  setProfile(pilot.profile);
-                } else {
-                  setProfile({ email: PILOT_PREVIEW_EMAIL, unknown: true });
-                }
-              })
-              .catch(() => setProfile({ email: PILOT_PREVIEW_EMAIL, unknown: true }));
-            return;
-          }
           setProfile({ email, unknown: true });
           return;
         }
         setProfile(data.profile);
       })
-      .catch(() => {
-        if (email !== PILOT_PREVIEW_EMAIL) {
-          saveUserEmail(PILOT_PREVIEW_EMAIL);
-          facultyProfile(PILOT_PREVIEW_EMAIL)
-            .then((pilot) => {
-              if (pilot?.found && pilot.profile && !pilot.profile.unknown) {
-                setProfile(pilot.profile);
-              } else {
-                setProfile({ email: PILOT_PREVIEW_EMAIL, unknown: true });
-              }
-            })
-            .catch(() => setProfile({ email: PILOT_PREVIEW_EMAIL, unknown: true }));
-          return;
-        }
-        setProfile({ email, unknown: true });
-      });
+      .catch(() => setProfile({ email, unknown: true }));
   }, [authenticatedEmail]);
-
-  useEffect(() => {
-    if (!deskAccess?.authenticated) return undefined;
-    // reloadProfile owns the first request. Do not duplicate its pilot lookup
-    // while the single-threaded front door is loading the core desk state.
-    if (!profile?.unknown) {
-      setPilotProfile(null);
-      return undefined;
-    }
-    let cancelled = false;
-    facultyProfile(PILOT_PREVIEW_EMAIL)
-      .then((data) => {
-        if (cancelled) return;
-        if (data?.found && data.profile && !data.profile.unknown) setPilotProfile(data.profile);
-      })
-      .catch(() => {
-        if (!cancelled) setPilotProfile(null);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [profile, deskAccess?.authenticated]);
 
   const applyCatalog = useCallback((rows, errMsg = "") => {
     const { catalog, usingSeed: seed } = resolveCatalog(rows, { fallbackToSeed: Boolean(errMsg) });
@@ -1560,7 +1511,7 @@ export function V2App() {
           catalogLoading={catalogLoading}
           health={health}
           cluster={health?.cluster}
-          profile={profile && !profile.unknown ? profile : pilotProfile || profile}
+          profile={profile}
           resourcesRollup={resourcesRollup}
           pendingDecisionCount={jobsLoaded ? pendingResearchDecisions : null}
           acquisitions={acquisitions}
@@ -1825,7 +1776,7 @@ export function V2App() {
   const hideRail = false;
 
   const activeResearch = useMemo(() => {
-    const source = profile && !profile.unknown ? profile : pilotProfile;
+    const source = profile && !profile.unknown ? profile : null;
     const lab = buildLab(source || null);
     const primaryTrack =
       Array.isArray(source?.research_tracks) && source.research_tracks.length
@@ -1852,7 +1803,7 @@ export function V2App() {
       .filter(Boolean)
       .slice(0, 3);
     return { title: String(title).slice(0, 96), emphases };
-  }, [profile, pilotProfile]);
+  }, [profile]);
 
   const sidebarRecent = useMemo(
     () =>
