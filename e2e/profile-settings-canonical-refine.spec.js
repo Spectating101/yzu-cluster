@@ -29,12 +29,13 @@ const REGISTRY_PREVIEW = {
   },
 };
 
-async function setup(page, viewport, profileBody) {
+async function setup(page, viewport, profileBody, boundEmail = "") {
   await page.setViewportSize(viewport);
-  await page.addInitScript(() => {
+  await page.addInitScript((email) => {
     window.localStorage.clear();
     window.sessionStorage.clear();
-  });
+    if (email) window.localStorage.setItem("procure_user_email", email);
+  }, boundEmail);
   await mockV2Api(page, { profileBody, historyBody: { items: [] } });
   await page.route("**/library/accounts", (route) => route.fulfill({
     status: 200,
@@ -72,18 +73,20 @@ for (const [name, viewport] of VIEWPORTS) {
 
   test(`canonical thin Profile remains stable ${name}`, async ({ page }) => {
     mkdirSync(OUT, { recursive: true });
-    await setup(page, viewport, {
-      found: true,
-      profile: {
-        name_en: "Test Prof",
-        title: "Faculty researcher",
-        discipline: "YZU",
-        email: "researcher@example.test",
+    await setup(
+      page,
+      viewport,
+      {
+        found: true,
+        profile: {
+          name_en: "Test Prof",
+          title: "Faculty researcher",
+          discipline: "YZU",
+          email: "researcher@example.test",
+        },
       },
-    });
-    await page.addInitScript(() => {
-      window.localStorage.setItem("procure_user_email", "researcher@example.test");
-    });
+      "researcher@example.test",
+    );
     await page.goto("/?tab=profile", { waitUntil: "domcontentloaded" });
     await settle(page);
     await expect(page.getByText("Test Prof", { exact: true }).first()).toBeVisible();
