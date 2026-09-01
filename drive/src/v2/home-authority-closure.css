@@ -1,0 +1,63 @@
+/* Canonical Home visual closure.
+ * These rules exist to protect HOME-DESKTOP-V1 from content bleed after the
+ * authority composition has been applied. Keep them scoped to Home only.
+ */
+
+.rd-v2-home-authority-card.next {
+  overflow: hidden;
+}
+
+.rd-v2-home-authority-card.next .rd-v2-home-suggested {
+  min-width: 0;
+  width: 100%;
+  margin-top: 14px;
+}
+
+.rd-v2-home-authority-card.next .rd-v2-home-suggested p {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.rd-v2-home-authority-card.next .rd-v2-chips-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  width: 100%;
+  min-width: 0;
+  margin-top: 8px;
+}
+
+/* Suggested next steps are research actions, not a pill cloud.  Render the
+ * existing grounded prompts as bounded editorial rows inside their card. */
+.rd-v2-home-authority-card.next .rd-v2-chip {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 9px 0;
+  overflow: hidden;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--home-line) 74%, transparent);
+  border-radius: 0;
+  background: transparent;
+  color: var(--home-ink);
+  font-size: 10.5px;
+  font-weight: 650;
+  line-height: 1.35;
+  text-align: left;
+  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.rd-v2-home-authority-card.next .rd-v2-chip:last-child {
+  border-bottom: 0;
+}
+
+.rd-v2-home-authority-card.next .rd-v2-chip:hover,
+.rd-v2-home-authority-card.next .rd-v2-chip:focus-visible {
+  background: transparent;
+  color: #315d4a;
+}
