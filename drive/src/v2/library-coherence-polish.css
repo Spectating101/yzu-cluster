@@ -7,6 +7,24 @@
   display: none;
 }
 
+/* The visible product vocabulary is Readiness everywhere. Keep the existing
+   filter contract underneath, but stop presenting a competing State label. */
+.rd-v2-library-filter-control:has(select[data-testid="library-state-filter"]) > span {
+  font-size: 0;
+}
+
+.rd-v2-library-filter-control:has(select[data-testid="library-state-filter"]) > span::after {
+  content: "Readiness";
+  font-size: 9px;
+}
+
+/* Root counts already live beside the directory itself. A second toolbar count
+   was both redundant and semantically misleading (research areas != nested
+   collections), so suppress it only while the directory is visible. */
+.rd-v2-library-page:has(.rd-v2-library-directory-home) .rd-v2-toolbar-count {
+  display: none;
+}
+
 /* Wide Library root — use the extra width for a complete directory rather than
    reserving an idle inspector or stretching a five-row ledger into a white void. */
 @media (min-width: 1680px) and (min-height: 850px) {
@@ -15,6 +33,42 @@
   }
 
   .rd-v2-shell:has(.rd-v2-library-page .rd-v2-library-directory-home) > .rd-v2-rail {
+    display: none;
+  }
+
+  /* Root header becomes one compact band. There is no reason for the root
+     breadcrumb to consume a second line when the page title already says
+     Library. */
+  .rd-v2-library-page:has(.rd-v2-library-directory-home) .rd-v2-page-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "title actions"
+      "lead actions";
+    align-items: center;
+    column-gap: 24px;
+    row-gap: 2px;
+    padding-bottom: 9px;
+  }
+
+  .rd-v2-library-page:has(.rd-v2-library-directory-home) .rd-v2-page-head > h1 {
+    grid-area: title;
+    margin-bottom: 0;
+  }
+
+  .rd-v2-library-page:has(.rd-v2-library-directory-home) .rd-v2-page-head > .rd-v2-lead {
+    grid-area: lead;
+    margin: 0;
+  }
+
+  .rd-v2-library-page:has(.rd-v2-library-directory-home) .rd-v2-library-headline {
+    grid-area: actions;
+    justify-self: end;
+    align-self: center;
+    width: auto;
+  }
+
+  .rd-v2-library-page:has(.rd-v2-library-directory-home) .rd-v2-library-headline .rd-v2-breadcrumb {
     display: none;
   }
 
