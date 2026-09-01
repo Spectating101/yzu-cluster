@@ -105,7 +105,6 @@ export function SettingsPage({
   const access = deskAccessStatus(health, deskAccess);
   const assistant = assistantStatus(health);
   const demoMode = isDemoMode();
-  const desk = health?.desk || {};
   const archive = archiveRuntimeStatus(health);
   const mcpTools =
     resourcesRollup?.ai?.mcp_tools?.total ?? resourcesRollup?.hero?.mcp_tools ?? null;
@@ -175,41 +174,10 @@ export function SettingsPage({
     <PageShell
       className="rd-v2-settings-page"
       title="Settings"
-      lead="Connect the evidence sources and research identity this browser should use, then tune workspace behavior. Operational health lives under system status."
+      lead="Choose how Research Drive behaves for this browser. Operational health lives under system status, not in the preference hierarchy."
       surfaceState={SETTINGS_SURFACE_STATE}
     >
       <div className="rd-v2-settings-statement">
-        <ConnectedAccountsSection deskAccess={deskAccess} onToast={onToast} />
-
-        <StatementSection title="Research identity">
-          <div className="rd-v2-settings-row stack">
-            <label className="rd-v2-settings-label" htmlFor="rd-settings-email">
-              Faculty email
-            </label>
-            <input
-              id="rd-settings-email"
-              type="email"
-              className="rd-v2-input"
-              placeholder="faculty@yzu.edu.tw"
-              value={emailDraft}
-              onChange={(event) => setEmailDraft(event.target.value)}
-              aria-describedby="rd-settings-email-hint"
-              onKeyDown={(event) => handleEnterToSubmit(event, saveEmail)}
-            />
-            <button type="button" className="rd-v2-btn sm primary" onClick={saveEmail}>
-              Save identity
-            </button>
-            {demoMode ? (
-              <button type="button" className="rd-v2-btn sm ghost" onClick={bindPilot}>
-                Use example profile
-              </button>
-            ) : null}
-          </div>
-          <p id="rd-settings-email-hint" className="rd-v2-settings-hint">
-            Binds the faculty-registry record shown in Profile. Research Drive remains usable without one, and this does not edit registry research facts.
-          </p>
-        </StatementSection>
-
         <StatementSection title="Workspace behavior">
           <div className="rd-v2-settings-row">
             <label className="rd-v2-settings-label" htmlFor="rd-settings-startup">
@@ -264,6 +232,37 @@ export function SettingsPage({
           </div>
           <p className="rd-v2-settings-hint">
             Known-first paints Library and declared routes before progressive enrichment. Wide starts semantic/live federation immediately. Synthesis evidence-gap handoffs always begin known-first.
+          </p>
+        </StatementSection>
+
+        <ConnectedAccountsSection deskAccess={deskAccess} onToast={onToast} />
+
+        <StatementSection title="Research identity">
+          <div className="rd-v2-settings-row stack">
+            <label className="rd-v2-settings-label" htmlFor="rd-settings-email">
+              Faculty email
+            </label>
+            <input
+              id="rd-settings-email"
+              type="email"
+              className="rd-v2-input"
+              placeholder="faculty@yzu.edu.tw"
+              value={emailDraft}
+              onChange={(event) => setEmailDraft(event.target.value)}
+              aria-describedby="rd-settings-email-hint"
+              onKeyDown={(event) => handleEnterToSubmit(event, saveEmail)}
+            />
+            <button type="button" className="rd-v2-btn sm primary" onClick={saveEmail}>
+              Save identity
+            </button>
+            {demoMode ? (
+              <button type="button" className="rd-v2-btn sm ghost" onClick={bindPilot}>
+                Use example profile
+              </button>
+            ) : null}
+          </div>
+          <p id="rd-settings-email-hint" className="rd-v2-settings-hint">
+            Binds the faculty-registry record shown in Profile. Research Drive remains usable without one, and this does not edit registry research facts.
           </p>
         </StatementSection>
 
