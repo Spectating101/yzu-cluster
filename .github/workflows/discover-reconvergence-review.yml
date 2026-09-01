@@ -46,4 +46,4 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-# Exact-head replay for the dense evidence-cockpit prototype.
+# Clean-head replay for the dense evidence-cockpit prototype.
