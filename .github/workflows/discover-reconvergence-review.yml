@@ -46,4 +46,4 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-# Clean-head replay: 10-candidate field, progressive disclosure, and assembly before deep assessment.
+# Clean-head replay: assembly stays above deep assessment; assessment stays contained before results.
