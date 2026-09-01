@@ -1,0 +1,88 @@
+/* Profile / Settings canonical refinement — 2026-09-02
+   Preserve the accepted HPS visual language. This layer only addresses defects
+   visible in the canonical 1440/1920 captures: Profile's duplicated unbound
+   treatment and Settings' cramped 1440 status geometry. */
+
+/* --------------------------------------------------------------------------
+   PROFILE — keep the existing identity ledger. The unbound explanation is a
+   continuation of that ledger, not a second empty card with a second CTA.
+   -------------------------------------------------------------------------- */
+
+.rd-v2-profile-page[data-surface-state="empty"] .rd-v2-profile-unbound {
+  width: 100%;
+  max-width: none;
+  margin-top: 24px;
+  padding: 0 0 18px;
+  border: 0;
+  border-top: 1px solid var(--rd-hps-line, #e2ddd2);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.rd-v2-profile-page[data-surface-state="empty"] .rd-v2-profile-unbound .rd-v2-profile-section-head {
+  padding: 18px 0 9px;
+}
+
+.rd-v2-profile-page[data-surface-state="empty"] .rd-v2-profile-unbound .rd-v2-profile-section-head h2 {
+  font-size: 13px;
+}
+
+.rd-v2-profile-page[data-surface-state="empty"] .rd-v2-profile-unbound .rd-v2-profile-section-head p {
+  max-width: 700px;
+  color: var(--rd-hps-muted, #6e7685);
+}
+
+/* The identity header already owns the setup action (`Use my email`). Do not
+   repeat the same route immediately below it. */
+.rd-v2-profile-page[data-surface-state="empty"] .rd-v2-profile-unbound > .rd-v2-btn {
+  display: none;
+}
+
+/* Let the empty state read as one continuous researcher ledger instead of a
+   small card floating inside the large page canvas. */
+.rd-v2-profile-page[data-surface-state="empty"] .rd-v2-body-scroll {
+  background:
+    linear-gradient(180deg, rgba(246, 245, 239, .44) 0, rgba(255, 254, 250, 0) 180px),
+    var(--rd-release-panel, #fffdf6);
+}
+
+/* --------------------------------------------------------------------------
+   SETTINGS — preserve the current two-column statement architecture. Only
+   tighten desktop rhythm and stop the four-column status row from clipping.
+   -------------------------------------------------------------------------- */
+
+@media (min-width: 1180px) {
+  .rd-v2-settings-statement > .rd-v2-statement-section {
+    padding-top: 19px;
+    padding-bottom: 21px;
+  }
+
+  .rd-v2-settings-row {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .rd-v2-settings-hint {
+    margin-bottom: 5px;
+  }
+
+  .rd-v2-settings-statement .rd-v2-statement-row {
+    grid-template-columns: minmax(112px, .72fr) minmax(82px, .52fr) minmax(128px, 1fr) auto;
+    gap: 8px 10px;
+  }
+
+  .rd-v2-settings-statement .rd-v2-statement-detail {
+    white-space: nowrap;
+  }
+}
+
+@media (min-width: 1680px) {
+  .rd-v2-settings-statement {
+    width: min(100%, 1100px);
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section {
+    grid-template-columns: minmax(160px, 210px) minmax(0, 1fr);
+  }
+}
