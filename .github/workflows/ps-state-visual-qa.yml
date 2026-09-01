@@ -1,4 +1,4 @@
-name: PS anonymous-state visual QA
+name: PS unbound-profile visual QA
 
 on:
   push:
@@ -26,7 +26,7 @@ jobs:
         run: npx playwright install chromium --with-deps
       - name: Production build
         run: npm run build
-      - name: Render anonymous Profile and Settings
+      - name: Render unbound Profile and Settings
         run: |
           mkdir -p .tmp-pw artifacts/ps-state-visual
           TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false \
