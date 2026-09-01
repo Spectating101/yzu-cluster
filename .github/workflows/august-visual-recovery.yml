@@ -1,0 +1,63 @@
+name: August visual recovery proof
+
+on:
+  push:
+    branches:
+      - "recovery/august-visual-authority-20260901"
+    paths:
+      - "drive/src/v2/**"
+      - "e2e/august-visual-recovery.spec.js"
+      - "e2e/fixtures/v2MockApi.js"
+      - ".github/workflows/august-visual-recovery.yml"
+  pull_request:
+    paths:
+      - "drive/src/v2/**"
+      - "e2e/august-visual-recovery.spec.js"
+      - "e2e/fixtures/v2MockApi.js"
+      - ".github/workflows/august-visual-recovery.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: august-visual-recovery-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  screenshot-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Research Drive
+        run: npm run build
+
+      - name: Install Chromium
+        run: npx playwright install chromium --with-deps
+
+      - name: Capture August-authority surfaces
+        run: >-
+          mkdir -p .tmp-pw artifacts/august-visual-recovery &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/august-visual-recovery.spec.js --workers=1 --reporter=line
+
+      - name: Preserve recovery screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: research-drive-august-visual-recovery
+          path: |
+            artifacts/august-visual-recovery
+            test-results
+          if-no-files-found: warn
