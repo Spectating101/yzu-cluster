@@ -151,9 +151,9 @@
 }
 
 .rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail .rd-v2-rail-scroll::after {
-  content: "DURABLE RECORD\AAsk stays scoped to this exact selection. Accepted work is recorded on Discover History, Library, or Synthesis rather than being silently changed from Home.";
+  content: "DURABLE RECORD · Ask stays scoped to this exact selection. Accepted work is recorded on Discover History, Library, or Synthesis rather than being silently changed from Home.\A\AWORKING BOUNDARY · Home prioritizes and resumes. The owning surface still controls review, execution, provenance, readiness, and registration.";
   display: block;
-  min-height: 76px;
+  min-height: 126px;
   margin: 14px 18px 0;
   padding: 14px;
   border-top: 1px solid color-mix(in srgb, var(--rd-border) 72%, transparent);
@@ -385,5 +385,9 @@
   .rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail .rd-v2-rail-scroll::after {
     padding: 16px;
     font-size: 10.5px;
+  }
+
+  .rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail .rd-v2-rail-scroll::after {
+    min-height: 154px;
   }
 }
