@@ -1,0 +1,375 @@
+/* Profile / Settings reopen — 2026-09-02
+   Visual-only composition layer. Keep HPS behavior and authority contracts intact. */
+
+:root {
+  --rd-ps-ink: var(--rd-hps-ink, #182033);
+  --rd-ps-copy: var(--rd-hps-copy, #344054);
+  --rd-ps-muted: var(--rd-hps-muted, #6e7685);
+  --rd-ps-line: var(--rd-hps-line, #e2ddd2);
+  --rd-ps-line-strong: var(--rd-hps-line-strong, #d1d6dd);
+  --rd-ps-sage: var(--rd-hps-sage, #3f6f5c);
+  --rd-ps-sage-soft: var(--rd-hps-sage-soft, #edf3ef);
+  --rd-ps-paper: var(--rd-hps-paper, #fffefa);
+  --rd-ps-soft: var(--rd-hps-soft, #f6f5ef);
+}
+
+/* --------------------------------------------------------------------------
+   PROFILE — the empty state is a first-class dossier, not missing content.
+   -------------------------------------------------------------------------- */
+
+.rd-v2-profile-page .rd-v2-body-scroll {
+  background:
+    linear-gradient(180deg, rgba(246, 245, 239, .54) 0, rgba(255, 254, 250, 0) 210px),
+    var(--rd-release-panel, #fffdf6);
+}
+
+.rd-v2-profile-unbound {
+  display: grid;
+  gap: 18px;
+  min-height: min(610px, calc(100vh - 180px));
+  padding: clamp(22px, 2.4vw, 34px);
+  border: 1px solid var(--rd-ps-line-strong);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 100% 0, rgba(63, 111, 92, .10), transparent 30%),
+    linear-gradient(145deg, rgba(255,255,255,.995), rgba(249,249,244,.98));
+  box-shadow: 0 18px 44px rgba(24, 32, 51, .055);
+}
+
+.rd-v2-profile-unbound-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(250px, .58fr);
+  gap: clamp(28px, 4vw, 58px);
+  align-items: end;
+  padding-bottom: 26px;
+  border-bottom: 1px solid var(--rd-ps-line);
+}
+
+.rd-v2-profile-unbound-copy {
+  min-width: 0;
+}
+
+.rd-v2-profile-unbound-copy .rd-v2-profile-kicker {
+  display: block;
+  margin: 0 0 14px;
+}
+
+.rd-v2-profile-unbound-copy h2 {
+  max-width: 720px;
+  margin: 0;
+  color: var(--rd-ps-ink);
+  font-size: clamp(27px, 2.55vw, 38px);
+  font-weight: 690;
+  letter-spacing: -.04em;
+  line-height: 1.08;
+}
+
+.rd-v2-profile-unbound-copy p {
+  max-width: 760px;
+  margin: 14px 0 0;
+  color: #596477;
+  font-size: 13px;
+  line-height: 1.62;
+}
+
+.rd-v2-profile-unbound-connect {
+  display: grid;
+  gap: 8px;
+  align-content: end;
+  padding: 18px 0 2px clamp(20px, 2.2vw, 34px);
+  border-left: 1px solid var(--rd-ps-line);
+}
+
+.rd-v2-profile-unbound-connect > span,
+.rd-v2-profile-unbound-card > span,
+.rd-v2-profile-unbound-foot > span {
+  color: var(--rd-ps-muted);
+  font-family: var(--rd-mono);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+.rd-v2-profile-unbound-connect > strong {
+  margin-bottom: 9px;
+  color: var(--rd-ps-ink);
+  font-size: 17px;
+  font-weight: 680;
+}
+
+.rd-v2-profile-unbound-connect .rd-v2-btn {
+  width: fit-content;
+}
+
+.rd-v2-profile-unbound-map {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  border-top: 1px solid var(--rd-ps-line);
+  border-bottom: 1px solid var(--rd-ps-line);
+}
+
+.rd-v2-profile-unbound-card {
+  display: grid;
+  min-width: 0;
+  min-height: 170px;
+  grid-template-rows: auto auto 1fr auto;
+  gap: 9px;
+  padding: 22px clamp(18px, 2.2vw, 30px);
+  border-left: 1px solid var(--rd-ps-line);
+}
+
+.rd-v2-profile-unbound-card:first-child {
+  border-left: 0;
+}
+
+.rd-v2-profile-unbound-card > strong {
+  color: var(--rd-ps-ink);
+  font-size: 15px;
+  font-weight: 680;
+  letter-spacing: -.012em;
+}
+
+.rd-v2-profile-unbound-card > p {
+  margin: 0;
+  color: var(--rd-ps-muted);
+  font-size: 11.5px;
+  line-height: 1.55;
+}
+
+.rd-v2-profile-unbound-card > em {
+  color: #65746d;
+  font-family: var(--rd-mono);
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 760;
+  letter-spacing: .045em;
+  text-transform: uppercase;
+}
+
+.rd-v2-profile-unbound-foot {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px 18px;
+  align-items: baseline;
+  padding-top: 4px;
+}
+
+.rd-v2-profile-unbound-foot p {
+  max-width: 780px;
+  margin: 0;
+  color: var(--rd-ps-muted);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.rd-v2-profile-rail-empty {
+  display: grid;
+  gap: 18px;
+  padding: 4px 0;
+}
+
+.rd-v2-profile-rail-empty section {
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--rd-ps-line);
+}
+
+.rd-v2-profile-rail-empty section:last-child {
+  border-bottom: 0;
+}
+
+.rd-v2-profile-rail-empty h3 {
+  margin: 0 0 7px;
+  color: var(--rd-ps-ink);
+  font-size: 11px;
+  font-weight: 760;
+  letter-spacing: .045em;
+  text-transform: uppercase;
+}
+
+.rd-v2-profile-rail-empty p {
+  margin: 0;
+  color: var(--rd-ps-muted);
+  font-size: 11.5px;
+  line-height: 1.55;
+}
+
+/* --------------------------------------------------------------------------
+   SETTINGS — policy first; account/access forms become a companion column.
+   -------------------------------------------------------------------------- */
+
+.rd-v2-settings-page .rd-v2-body-scroll {
+  border: 0;
+  border-radius: 0;
+  background:
+    linear-gradient(180deg, rgba(246, 245, 239, .52) 0, rgba(255, 254, 250, 0) 210px),
+    var(--rd-release-panel, #fffdf6);
+}
+
+.rd-v2-settings-page .rd-v2-page-head {
+  padding-bottom: 18px;
+}
+
+.rd-v2-settings-statement {
+  width: 100%;
+  max-width: none;
+}
+
+.rd-v2-settings-statement > .rd-v2-statement-section,
+.rd-v2-settings-statement > .rd-v2-settings-advanced {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.rd-v2-settings-statement > .rd-v2-statement-section {
+  overflow: hidden;
+  border: 1px solid var(--rd-ps-line);
+  border-radius: 14px;
+  background: rgba(255,255,255,.82);
+  box-shadow: 0 9px 24px rgba(24, 32, 51, .035);
+}
+
+.rd-v2-settings-statement > .rd-v2-statement-section .rd-v2-statement-head {
+  background: rgba(246,245,239,.52);
+}
+
+.rd-v2-settings-statement > .rd-v2-statement-section:first-of-type {
+  border-color: var(--rd-ps-line-strong);
+  background:
+    radial-gradient(circle at 100% 0, rgba(63,111,92,.07), transparent 28%),
+    rgba(255,255,255,.94);
+  box-shadow: 0 14px 34px rgba(24, 32, 51, .05);
+}
+
+.rd-v2-settings-statement > .rd-v2-statement-section:first-of-type .rd-v2-statement-head {
+  background: transparent;
+}
+
+.rd-v2-settings-statement > .rd-v2-statement-section:first-of-type .rd-v2-settings-row {
+  padding-top: 3px;
+}
+
+.rd-v2-settings-statement > .rd-v2-statement-section:first-of-type .rd-v2-select {
+  min-height: 38px;
+}
+
+.rd-v2-settings-statement > .rd-v2-settings-advanced {
+  border-color: var(--rd-ps-line);
+  background: rgba(249,250,252,.72);
+}
+
+@media (min-width: 1600px) {
+  .rd-v2-settings-statement {
+    display: grid;
+    grid-template-columns: minmax(0, 1.46fr) minmax(320px, .72fr);
+    gap: 16px 22px;
+    align-items: start;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section {
+    margin-bottom: 0;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) {
+    grid-column: 1;
+    grid-row: 1 / span 3;
+    min-height: 100%;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(2) {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(3) {
+    grid-column: 1 / -1;
+    grid-row: 4;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(4) {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(5) {
+    grid-column: 2;
+    grid-row: 3;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-settings-advanced {
+    grid-column: 1 / -1;
+    grid-row: 5;
+    margin-top: 2px;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(2),
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(4),
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(5) {
+    box-shadow: none;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(2) .rd-v2-statement-head,
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(4) .rd-v2-statement-head,
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(5) .rd-v2-statement-head {
+    padding-bottom: 8px;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(2) .rd-v2-statement-body,
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(4) .rd-v2-statement-body,
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(5) .rd-v2-statement-body {
+    padding-bottom: 13px;
+  }
+}
+
+@media (max-width: 1180px) {
+  .rd-v2-profile-unbound {
+    min-height: 0;
+  }
+
+  .rd-v2-profile-unbound-hero {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .rd-v2-profile-unbound-connect {
+    padding: 16px 0 0;
+    border-top: 1px solid var(--rd-ps-line);
+    border-left: 0;
+  }
+
+  .rd-v2-profile-unbound-map {
+    grid-template-columns: 1fr;
+  }
+
+  .rd-v2-profile-unbound-card {
+    min-height: 0;
+    border-top: 1px solid var(--rd-ps-line);
+    border-left: 0;
+  }
+
+  .rd-v2-profile-unbound-card:first-child {
+    border-top: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .rd-v2-profile-unbound {
+    gap: 14px;
+    padding: 17px 16px;
+    border-radius: 14px;
+  }
+
+  .rd-v2-profile-unbound-copy h2 {
+    font-size: 25px;
+  }
+
+  .rd-v2-profile-unbound-foot {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section {
+    border-radius: 12px;
+  }
+}
