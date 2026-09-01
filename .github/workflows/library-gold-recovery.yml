@@ -1,0 +1,81 @@
+name: Library gold recovery proof
+
+on:
+  push:
+    branches:
+      - "recovery/august-visual-authority-20260901"
+    paths:
+      - "drive/src/v2/**"
+      - "e2e/v2-library.spec.js"
+      - "e2e/library-retrieval-excellence-render.spec.js"
+      - "e2e/library-convergence-render.spec.js"
+      - "e2e/library-visual-depth-render.spec.js"
+      - "e2e/fixtures/v2MockApi.js"
+      - ".github/workflows/library-gold-recovery.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: library-gold-recovery-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify Library truth contracts
+        run: >-
+          node --test
+          drive/src/v2/libraryVerification.test.js
+          drive/src/v2/libraryReadinessOwnership.test.js
+          drive/src/v2/datasetMeta.test.js
+          drive/src/v2/LibraryDatasetRailPanel.test.js
+          drive/src/v2/librarySearch.test.js
+
+      - name: Install Chromium
+        run: npx playwright install chromium --with-deps
+
+      - name: Build Research Drive
+        run: npm run build
+
+      - name: Exercise Library behavior
+        run: >-
+          npx playwright test
+          e2e/v2-library.spec.js
+          e2e/library-retrieval-excellence-render.spec.js
+          --reporter=line
+        env:
+          CI: "true"
+          YZU_PAGES: "false"
+
+      - name: Render gold-comparable Library states
+        run: >-
+          npx playwright test
+          e2e/library-convergence-render.spec.js
+          e2e/library-visual-depth-render.spec.js
+          --reporter=line
+        env:
+          CI: "true"
+          YZU_PAGES: "false"
+
+      - name: Upload Library recovery renders
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: library-gold-recovery-renders
+          path: |
+            artifacts/library-renders
+            test-results
+          if-no-files-found: warn
