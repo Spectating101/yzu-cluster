@@ -104,10 +104,8 @@ function LibraryDirectoryHome({ collections, collectionsLoading, assetCount, onO
       <header className="rd-v2-library-directory-intro">
         <div>
           <span className="rd-v2-library-directory-kicker">Collections</span>
-          <h2>Choose a research area first</h2>
-          <p>
-            Open a collection to narrow the estate before inspecting evidence. If you already know what you need, search above.
-          </p>
+          <h2>Browse by collection</h2>
+          <p>Use the tree to narrow the Library, or scan all evidence beside it.</p>
         </div>
         <div className="rd-v2-library-directory-summary" aria-label="Library directory summary">
           <span><b>{collections.length}</b> research area{collections.length === 1 ? "" : "s"}</span>
@@ -181,9 +179,8 @@ function LibraryDirectoryHome({ collections, collectionsLoading, assetCount, onO
 /**
  * Root Library composition.
  *
- * The home state orients before it lists: users see the research directory and
- * its nested collections first, then the complete evidence ledger below. Search
- * deliberately collapses that hierarchy and returns direct evidence matches.
+ * The home state keeps directory context visible alongside the evidence ledger.
+ * Search deliberately collapses that hierarchy and returns direct evidence matches.
  */
 export function LibraryEvidenceEstate({
   assets = [],
@@ -225,7 +222,7 @@ export function LibraryEvidenceEstate({
               <span>All evidence</span>
               <h2>Complete Library ledger</h2>
             </div>
-            <p>{visibleAssets.length} held asset{visibleAssets.length === 1 ? "" : "s"} across the directory above.</p>
+            <p>{visibleAssets.length} held asset{visibleAssets.length === 1 ? "" : "s"} across the directory.</p>
           </header>
         ) : null}
 
