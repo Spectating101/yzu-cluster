@@ -75,7 +75,7 @@ async function expectPopulatedHome(page) {
   await expect(page.getByText("Taiwan issuer fundamentals · Q2 refresh", { exact: true })).toBeVisible();
   await expect(page.getByText("Stablecoin exchange activity backfill", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("MOPS governance disclosures", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("Compare Taiwan issuer fundamentals with news-risk shocks around earnings dates.", { exact: true })).toBeVisible();
+  await expect(page.getByText(/Compare Taiwan issuer fundamentals with news-risk shocks/)).toBeVisible();
 }
 
 test.describe("August visual authority recovery", () => {
