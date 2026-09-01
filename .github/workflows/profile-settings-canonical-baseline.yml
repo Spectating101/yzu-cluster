@@ -1,0 +1,39 @@
+name: Profile Settings canonical baseline
+
+on:
+  push:
+    branches:
+      - "proof/profile-settings-canonical-baseline-20260902"
+    paths:
+      - "e2e/profile-settings-canonical-baseline.spec.js"
+      - ".github/workflows/profile-settings-canonical-baseline.yml"
+      - "drive/src/v2/**"
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npx playwright install chromium --with-deps
+      - name: Capture canonical PS baseline
+        run: >-
+          mkdir -p .tmp-pw artifacts/profile-settings-canonical-baseline &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/profile-settings-canonical-baseline.spec.js --workers=1 --reporter=line
+      - name: Upload baseline screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: profile-settings-canonical-baseline
+          path: artifacts/profile-settings-canonical-baseline
+          if-no-files-found: warn
