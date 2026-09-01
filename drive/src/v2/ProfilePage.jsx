@@ -50,6 +50,54 @@ function evidenceRelationship(row, heldIds) {
   };
 }
 
+const UNBOUND_RECORD_ROWS = [
+  {
+    index: "01",
+    title: "Research context",
+    detail: "Specialties, methods, and current research direction supplied by the faculty registry.",
+  },
+  {
+    index: "02",
+    title: "Indexed works",
+    detail: "Publication records associated with the bound researcher identity.",
+  },
+  {
+    index: "03",
+    title: "Evidence relationships",
+    detail: "Recorded research links reconciled against what Library actually holds.",
+  },
+];
+
+function UnboundProfileLedger() {
+  return (
+    <section
+      className="rd-v2-profile-section rd-v2-profile-unbound"
+      data-testid="profile-know-empty"
+      aria-label="Research profile setup"
+    >
+      <header className="rd-v2-profile-section-head">
+        <div>
+          <h2>No faculty profile is bound yet</h2>
+          <p>
+            Research Drive remains usable without a faculty record. Bind a faculty email when this desk should carry researcher-specific context.
+          </p>
+        </div>
+        <span>Awaiting identity</span>
+      </header>
+      <div className="rd-v2-profile-unbound-ledger" aria-label="Researcher record fields awaiting identity">
+        {UNBOUND_RECORD_ROWS.map((row) => (
+          <div className="rd-v2-profile-unbound-row" key={row.index}>
+            <span>{row.index}</span>
+            <strong>{row.title}</strong>
+            <p>{row.detail}</p>
+            <em>Not on record</em>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 /**
  * Profile is an epistemic record, not a routing dashboard. It reports registry
  * facts and recorded research relationships, while Library remains possession
@@ -291,17 +339,7 @@ export function ProfilePage({ profile, libraryHoldings = [], onGoTab, onProfileR
           </p>
         </section>
       ) : !pilotLoading ? (
-        <section className="rd-v2-profile-section rd-v2-profile-unbound" data-testid="profile-know-empty" aria-label="Research profile setup">
-          <header className="rd-v2-profile-section-head">
-            <div>
-              <h2>No faculty profile is bound yet</h2>
-              <p>Research Drive remains usable without a faculty record. Bind your email in Settings when you want profile-ranked context and evidence suggestions.</p>
-            </div>
-          </header>
-          <button type="button" className="rd-v2-btn sm primary" onClick={() => onGoTab?.("settings")}>
-            Open Settings
-          </button>
-        </section>
+        <UnboundProfileLedger />
       ) : null}
     </PageShell>
   );
@@ -337,10 +375,18 @@ export function ProfileDetailPanel({ profile }) {
 
   if (!active) {
     return (
-      <div className="rd-v2-profile-rail" data-testid="profile-detail-rail">
+      <div className="rd-v2-profile-rail rd-v2-profile-rail-unbound" data-testid="profile-detail-rail">
         <section className="rd-v2-profile-rail-block">
           <h3>Research context</h3>
-          <p>No faculty record is bound. Library and Discover remain available without one.</p>
+          <p>No faculty record is bound. Library, Discover, and Synthesis remain available without one.</p>
+        </section>
+        <section className="rd-v2-profile-rail-block">
+          <h3>Record scope</h3>
+          <p>Binding adds registry-backed context, indexed works, and recorded evidence relationships.</p>
+        </section>
+        <section className="rd-v2-profile-rail-block">
+          <h3>Authority</h3>
+          <p>Faculty registry supplies researcher facts. Library separately confirms whether linked evidence is actually held.</p>
         </section>
       </div>
     );
