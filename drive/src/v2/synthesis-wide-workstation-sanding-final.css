@@ -1,57 +1,195 @@
 /* Final large-workstation geometry locks.
- * Kept separate so these state-specific corrections outrank the earlier
- * convergence layer without changing compact/1440 behavior.
+ *
+ * This layer resolves only large-screen composition. Compact/1440 geometry and
+ * every Synthesis semantic/interaction contract remain untouched.
  */
 @media (min-width: 1680px) and (min-height: 900px) {
-  /* Proposal is already horizontal internally. Make the analytical card itself
-     span the workstation grid instead of depending on outer state inference. */
-  .rd-v2-synthesis-page .s04-main > .s04-proposal-card,
-  .rd-v2-synthesis-page .s04-main > [data-testid="synthesis-proposal-state"] {
+  /* New construction was still vertically biased: the framing checklist sat
+     underneath a very wide textarea while the registered-method lane stopped
+     early. Use the available horizontal room inside the purpose card, then let
+     both top-level cards share one deliberate height. */
+  #root .rd-v2-synthesis-page .s04-new-entry-grid {
+    grid-template-columns: minmax(0, 1.12fr) minmax(420px, .88fr) !important;
+    gap: 18px !important;
+    align-items: stretch !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-new-entry-section {
+    min-height: 0 !important;
+    align-self: stretch !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-new-entry-purpose {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.22fr) minmax(300px, .78fr);
+    column-gap: 14px;
+    row-gap: 10px;
+    align-content: start;
+  }
+
+  #root .rd-v2-synthesis-page .s04-new-entry-purpose > :is(small, h2, p:not(.s04-new-entry-boundary)) {
+    grid-column: 1 / -1;
+  }
+
+  #root .rd-v2-synthesis-page .s04-new-entry-purpose > textarea {
+    grid-column: 1;
+    min-height: 168px !important;
+    height: 100%;
+  }
+
+  #root .rd-v2-synthesis-page .s04-new-entry-purpose > .s04-new-entry-framing {
+    grid-column: 2;
+    align-self: stretch;
+    margin-block: 0 !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-new-entry-purpose > :is(.s04-new-entry-boundary, footer) {
+    grid-column: 1 / -1;
+    margin-block: 0 !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-new-entry-methods {
+    display: flex !important;
+    flex-direction: column;
+  }
+
+  #root .rd-v2-synthesis-page .s04-new-entry-methods .s04-new-entry-method-list {
+    margin-top: auto !important;
+    margin-bottom: auto !important;
+  }
+
+  /* Recommendation is one analytical row: the construction and its decision
+     consequence should terminate on the same baseline. The map can use a little
+     more vertical room rather than leaving raw workspace beneath two short cards. */
+  #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-construction) > .s04-opening-construction,
+  #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-construction) > .s04-opening-next {
+    align-self: stretch !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-construction) > .s04-opening-construction {
+    display: flex;
+    flex-direction: column;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-construction) .s04-opening-map {
+    min-height: 224px;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-construction) > .s04-opening-next {
+    height: 100%;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-construction) > .s04-opening-next > footer {
+    margin-top: auto !important;
+  }
+
+  /* Early evidence uses a four-row primary map. In the short states the side
+     lane previously occupied only one or two of those rows, producing the blank
+     vertical gutter visible at 1920. Span the genuinely unused rows instead of
+     manufacturing more cards or prose. */
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"])):not(:has(> [data-testid="synthesis-method-surface"])):not(:has(> .s04-measurement-status)) > .s04-opening-next {
+    grid-column: 2 !important;
+    grid-row: span 4 !important;
+    align-self: stretch !important;
+    height: 100%;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"])):not(:has(> [data-testid="synthesis-method-surface"])):has(> .s04-measurement-status) > .s04-opening-next {
+    grid-column: 2 !important;
+    grid-row: span 3 !important;
+    align-self: stretch !important;
+    height: 100%;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"])):not(:has(> [data-testid="synthesis-method-surface"])) > .s04-opening-next > footer {
+    margin-top: auto !important;
+  }
+
+  /* Proposal was still losing to the earlier high-specificity wide-grid rule.
+     Keep the useful horizontal workstation grammar, but make the two compact
+     checkpoints share one row and let the actual analytical proposal span the
+     desk beneath them. #root is deliberate here: this is the final geometry
+     authority for the exact large-screen state. */
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction)) {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    column-gap: 12px !important;
+    row-gap: 12px !important;
+    align-content: start !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction)) > :is(
+    .s04-head,
+    .s04-opening-brief,
+    .s04-opening-workflow-wrap,
+    .s04-thread-picker,
+    .s04-strip,
+    [data-testid="synthesis-proposal-state"],
+    [data-testid="synthesis-evidence-state"],
+    [data-testid="synthesis-method-surface"]
+  ) {
     grid-column: 1 / -1 !important;
     width: 100% !important;
     max-width: none !important;
     margin-block: 0 !important;
   }
 
-  /* Measurement status appears before ProposalReview in document order. When a
-     proposal follows in the same workspace, make the status a compact full-row
-     checkpoint rather than an orphaned narrow side strip. */
-  .rd-v2-synthesis-page .s04-main > .s04-measurement-status:has(~ .s04-proposal-card),
-  .rd-v2-synthesis-page .s04-main > .s04-measurement-status:has(~ [data-testid="synthesis-proposal-state"]) {
-    grid-column: 1 / -1 !important;
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction)) > .s04-measurement-status {
+    grid-column: 1 !important;
+    align-self: stretch !important;
     width: 100% !important;
+    margin-block: 0 !important;
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
     gap: 16px !important;
-    padding-block: 9px !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction)) > .s04-opening-next {
+    grid-column: 2 !important;
+    align-self: stretch !important;
+    width: 100% !important;
+    min-height: 0 !important;
     margin-block: 0 !important;
   }
 
-  .rd-v2-synthesis-page .s04-main > .s04-measurement-status:has(~ .s04-proposal-card) button,
-  .rd-v2-synthesis-page .s04-main > .s04-measurement-status:has(~ [data-testid="synthesis-proposal-state"]) button {
-    flex: 0 0 auto;
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction)):not(:has(> .s04-measurement-status)) > .s04-opening-next {
+    grid-column: 1 / -1 !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction)) > [data-testid="synthesis-proposal-state"] {
+    grid-row: auto !important;
+    align-self: start !important;
   }
 
   /* Registered/result sidecars use MethodSurfacePanel for measured evidence.
      Give the durable id the text share it needs beside the authority badge. */
-  .rd-v2-synthesis-page .s04-main > [data-testid="synthesis-method-surface"] .s04-title {
+  #root .rd-v2-synthesis-page .s04-main > [data-testid="synthesis-method-surface"] .s04-title {
     gap: 10px;
   }
 
-  .rd-v2-synthesis-page .s04-main > [data-testid="synthesis-method-surface"] .s04-title > div {
+  #root .rd-v2-synthesis-page .s04-main > [data-testid="synthesis-method-surface"] .s04-title > div {
     min-width: 0;
     flex: 1 1 auto;
   }
 
-  .rd-v2-synthesis-page .s04-main > [data-testid="synthesis-method-surface"] .s04-title h2 {
+  #root .rd-v2-synthesis-page .s04-main > [data-testid="synthesis-method-surface"] .s04-title h2 {
     font-size: 16px !important;
     line-height: 1.14 !important;
     overflow-wrap: normal !important;
     word-break: normal !important;
   }
 
-  .rd-v2-synthesis-page .s04-main > [data-testid="synthesis-method-surface"] .s04-title > em {
+  #root .rd-v2-synthesis-page .s04-main > [data-testid="synthesis-method-surface"] .s04-title > em {
     flex: 0 0 auto;
     max-width: 92px;
     text-align: right;
