@@ -107,8 +107,10 @@
   color: #526d60;
 }
 
-.rd-v2-profile-page.is-registry-explorer .rd-v2-profile-identity-side .rd-v2-btn.primary {
-  box-shadow: none;
+/* Browsing and binding are intentionally separate. The historical featured
+   registry record is preview-only in normal mode; identity is set in Settings. */
+.rd-v2-profile-page.is-registry-explorer .rd-v2-profile-identity-side > .rd-v2-btn {
+  display: none;
 }
 
 .rd-v2-profile-explorer-empty {
