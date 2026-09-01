@@ -79,7 +79,7 @@
 
 .rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail .rd-v2-rail-scroll {
   position: relative;
-  padding-bottom: 124px;
+  padding-bottom: 18px;
 }
 
 .rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail .rd-v2-rail-fieldgrid {
@@ -87,6 +87,15 @@
   margin: 8px 14px 0;
   padding: 0;
   border-top: 1px solid color-mix(in srgb, var(--rd-border) 76%, transparent);
+}
+
+.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail .rd-v2-rail-fieldgrid::before {
+  content: "DECISION PATH";
+  display: block;
+  padding: 11px 4px 7px;
+  color: #527765;
+  font: 700 8.5px/1 var(--rd-mono);
+  letter-spacing: .09em;
 }
 
 .rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail .rd-v2-rail-field {
@@ -122,25 +131,39 @@
   line-height: 1.35;
 }
 
-/* Static contextual guidance is deliberately generic: it describes the rail
- * contract, never the selected object's unobserved state. */
-.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail .rd-v2-rail-scroll::after {
-  content: "RESEARCH CONTEXT\AThis inspector follows the active Home object. Ask uses the same selection; durable changes remain on the owning surface.";
-  position: absolute;
-  left: 18px;
-  right: 18px;
-  bottom: 22px;
-  min-height: 70px;
-  padding: 13px 14px 12px;
+/* Generic product-contract context, intentionally independent of any
+ * unobserved selected-object facts. Keep these close to the decision fields
+ * so the rail's useful content is in the first viewport. */
+.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail .rd-v2-rail-fieldgrid::after {
+  content: "WHY THIS IS HERE\AHome surfaces the highest-value grounded work or attention item it can resume. The owning surface remains authoritative for execution and durable state.";
+  display: block;
+  margin: 14px 4px 0;
+  padding: 14px 14px 13px;
   border: 1px solid color-mix(in srgb, var(--rd-border) 78%, transparent);
-  border-left: 2px solid color-mix(in srgb, #527765 52%, var(--rd-border));
+  border-left: 2px solid color-mix(in srgb, #527765 56%, var(--rd-border));
+  background: color-mix(in srgb, var(--rd-surface) 96%, #eef2eb);
+  color: var(--rd-muted);
+  font-size: 10px;
+  font-weight: 520;
+  line-height: 1.55;
+  letter-spacing: 0.012em;
+  white-space: pre-line;
+}
+
+.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail .rd-v2-rail-scroll::after {
+  content: "DURABLE RECORD\AAsk stays scoped to this exact selection. Accepted work is recorded on Discover History, Library, or Synthesis rather than being silently changed from Home.";
+  display: block;
+  min-height: 76px;
+  margin: 14px 18px 0;
+  padding: 14px;
+  border-top: 1px solid color-mix(in srgb, var(--rd-border) 72%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border) 52%, transparent);
   background:
     repeating-linear-gradient(
       to bottom,
       transparent 0 27px,
-      color-mix(in srgb, var(--rd-border) 34%, transparent) 27px 28px
-    ),
-    color-mix(in srgb, var(--rd-surface) 96%, #eef2eb);
+      color-mix(in srgb, var(--rd-border) 28%, transparent) 27px 28px
+    );
   color: var(--rd-muted);
   font-size: 10px;
   font-weight: 520;
@@ -148,12 +171,6 @@
   letter-spacing: 0.012em;
   white-space: pre-line;
   pointer-events: none;
-}
-
-.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail .rd-v2-rail-scroll::after::first-line {
-  color: #527765;
-  font-weight: 700;
-  letter-spacing: 0.08em;
 }
 
 .rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail .rd-v2-rail-sticky-footer {
@@ -353,11 +370,10 @@
   }
 
   /* At 1920 the rail can carry more instrument weight without stealing focus
-   * from the centre. Its lower ruled field makes remaining whitespace read as
-   * intentional working room rather than an unfinished column. */
+   * from the centre. The remaining whitespace is lightly ruled after the
+   * visible context blocks so it reads as working room, not a blank column. */
   .rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail .rd-v2-rail-scroll {
     min-height: calc(100vh - var(--rd-header) - 96px);
-    padding-bottom: 184px;
     background: repeating-linear-gradient(
       to bottom,
       transparent 0 45px,
@@ -365,9 +381,8 @@
     );
   }
 
+  .rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail .rd-v2-rail-fieldgrid::after,
   .rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail .rd-v2-rail-scroll::after {
-    min-height: 116px;
-    bottom: 26px;
     padding: 16px;
     font-size: 10.5px;
   }
