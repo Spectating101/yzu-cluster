@@ -36,6 +36,7 @@ import { Chip, PageShell, SourceRibbon } from "@/v2/ui";
 import { discoverTerritories } from "@/v2/discoverTerritories";
 import { DiscoverCoveragePanel } from "@/v2/DiscoverCoveragePanel";
 import { DiscoverEvidenceCockpit, DiscoverResearchRadar } from "@/v2/DiscoverCockpit";
+import { DiscoverEvidenceField } from "@/v2/DiscoverEvidenceField";
 import { DeskError } from "@/v2/DeskError";
 import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
 
@@ -1641,6 +1642,16 @@ export function BrowsePage({
                 </div>
               </div>
             </section>
+
+            <DiscoverEvidenceField
+              query={q}
+              candidateCount={centreRows.length}
+              resultGroups={resultGroups}
+              assessmentActive={assessmentActive}
+              assessmentResult={assessmentResult}
+              onReviewAssembly={hasEvidenceGap ? () => setRouteComparisonOpen(true) : undefined}
+              onSearchWider={onSearchWeb}
+            />
 
             {centreRows.length ? (
               <section className="rd-v2-discover-ranked-results" aria-label="Ranked Discover results" data-testid="discover-ranked-results">
