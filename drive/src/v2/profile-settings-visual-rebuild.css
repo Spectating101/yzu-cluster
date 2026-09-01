@@ -1,0 +1,443 @@
+/* Profile / Settings visual rebuild — screenshot-led desktop correction.
+   This layer intentionally overrides the reopened PS experiment on desktop.
+   It changes composition only; data, authority, actions, and mobile contracts stay intact. */
+
+@media (min-width: 1180px) {
+  /* ------------------------------------------------------------------------
+     PROFILE — remove the giant nested sheet. The page itself is the desk.
+     ------------------------------------------------------------------------ */
+
+  .rd-v2-profile-page .rd-v2-body-scroll {
+    padding: 0 0 28px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .rd-v2-profile-unbound {
+    display: grid;
+    gap: 14px;
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .rd-v2-profile-unbound-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(240px, .58fr);
+    gap: clamp(26px, 3vw, 52px);
+    align-items: center;
+    min-height: 252px;
+    padding: clamp(28px, 2.6vw, 38px);
+    border: 1px solid var(--rd-ps-line-strong);
+    border-radius: 16px;
+    background:
+      radial-gradient(circle at 100% 0, rgba(63,111,92,.09), transparent 34%),
+      linear-gradient(145deg, rgba(255,255,255,.98), rgba(249,249,244,.95));
+    box-shadow: 0 15px 34px rgba(24,32,51,.045);
+  }
+
+  .rd-v2-profile-unbound-copy h2 {
+    max-width: 720px;
+    font-size: clamp(30px, 2.4vw, 40px);
+  }
+
+  .rd-v2-profile-unbound-copy p {
+    max-width: 720px;
+    font-size: 12.5px;
+  }
+
+  .rd-v2-profile-unbound-connect {
+    min-height: 132px;
+    align-content: center;
+    padding: 8px 0 8px clamp(22px, 2.2vw, 36px);
+  }
+
+  .rd-v2-profile-unbound-map {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    border: 0;
+  }
+
+  .rd-v2-profile-unbound-card,
+  .rd-v2-profile-unbound-card:first-child {
+    min-height: 168px;
+    padding: 21px 22px 18px;
+    border: 1px solid var(--rd-ps-line);
+    border-radius: 14px;
+    background: rgba(255,255,255,.72);
+    box-shadow: 0 7px 19px rgba(24,32,51,.025);
+  }
+
+  .rd-v2-profile-unbound-card > p {
+    max-width: 290px;
+  }
+
+  .rd-v2-profile-unbound-foot {
+    min-height: 58px;
+    align-items: center;
+    padding: 12px 4px 0;
+    border-top: 1px solid var(--rd-ps-line);
+  }
+
+  /* Thin records should stay visibly thin. Do not stretch absence to fill the
+     viewport; two concise fact panels are more truthful than two empty walls. */
+  .rd-v2-profile-page:has([data-testid="profile-memory-thin"]) .rd-v2-body-scroll {
+    display: grid;
+    grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr);
+    grid-template-rows: auto auto;
+    gap: 14px;
+    align-content: start;
+    min-height: 0;
+    padding: 0 0 28px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .rd-v2-profile-page:has([data-testid="profile-memory-thin"]) .rd-v2-profile-identity {
+    grid-column: 1 / -1;
+    margin: 0;
+    padding: 24px 26px;
+    border: 1px solid var(--rd-ps-line-strong);
+    border-radius: 14px;
+    background:
+      radial-gradient(circle at 100% 0, rgba(63,111,92,.055), transparent 30%),
+      rgba(255,255,255,.88);
+    box-shadow: 0 9px 24px rgba(24,32,51,.035);
+  }
+
+  .rd-v2-profile-page:has([data-testid="profile-memory-thin"]) [data-testid="profile-memory-thin"],
+  .rd-v2-profile-page:has([data-testid="profile-memory-thin"]) .rd-v2-profile-lab-section {
+    min-width: 0;
+    min-height: 0;
+    height: auto;
+    margin: 0;
+    overflow: hidden;
+    border: 1px solid var(--rd-ps-line);
+    border-radius: 14px;
+    background: rgba(255,255,255,.78);
+    background-image: none;
+    box-shadow: 0 7px 19px rgba(24,32,51,.025);
+  }
+
+  .rd-v2-profile-page:has([data-testid="profile-memory-thin"]) [data-testid="profile-memory-thin"] {
+    grid-column: 1;
+  }
+
+  .rd-v2-profile-page:has([data-testid="profile-memory-thin"]) .rd-v2-profile-lab-section {
+    grid-column: 2;
+  }
+
+  .rd-v2-profile-page:has([data-testid="profile-memory-thin"]) .rd-v2-profile-section-head {
+    padding: 17px 19px 13px;
+    border-bottom: 1px solid var(--rd-ps-line);
+    background: rgba(246,245,239,.66);
+  }
+
+  .rd-v2-profile-page:has([data-testid="profile-memory-thin"]) .rd-v2-profile-section > :not(.rd-v2-profile-section-head) {
+    margin-inline: 19px;
+  }
+
+  .rd-v2-profile-page:has([data-testid="profile-memory-thin"]) .rd-v2-empty-inline {
+    min-height: 78px;
+    margin-top: 0;
+    padding: 22px 0 18px;
+  }
+
+  .rd-v2-profile-page:has([data-testid="profile-memory-thin"]) .rd-v2-profile-memory-effect {
+    min-height: 0;
+    margin-top: 0;
+    padding: 15px 0 17px;
+    border-top: 1px solid var(--rd-ps-line);
+  }
+
+  /* Make Profile's inspector feel like an intentional record margin rather
+     than two paragraphs stranded at the top of a blank column. */
+  .rd-v2-profile-rail,
+  .rd-v2-profile-rail-empty {
+    display: grid;
+    align-content: start;
+    gap: 0;
+    padding: 0;
+    border-top: 1px solid var(--rd-ps-line);
+  }
+
+  .rd-v2-profile-rail > section,
+  .rd-v2-profile-rail-empty > section {
+    margin: 0;
+    padding: 17px 14px 18px;
+    border-bottom: 1px solid var(--rd-ps-line);
+  }
+
+  /* ------------------------------------------------------------------------
+     SETTINGS — one compact control matrix at BOTH 1440 and 1920.
+     ------------------------------------------------------------------------ */
+
+  .rd-v2-settings-page .rd-v2-body-scroll {
+    padding: 0 0 28px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .rd-v2-settings-statement {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    width: 100%;
+    max-width: none;
+    align-items: stretch;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section,
+  .rd-v2-settings-statement > .rd-v2-settings-advanced {
+    min-width: 0;
+    margin: 0;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section {
+    display: block;
+    overflow: hidden;
+    border: 1px solid var(--rd-ps-line);
+    border-radius: 13px;
+    background: rgba(255,255,255,.82);
+    box-shadow: 0 7px 19px rgba(24,32,51,.025);
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section .rd-v2-statement-head {
+    display: flex;
+    min-height: 0;
+    padding: 13px 15px 11px;
+    border-right: 0;
+    border-bottom: 1px solid var(--rd-ps-line);
+    background: rgba(246,245,239,.68);
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section .rd-v2-statement-body {
+    min-width: 0;
+    padding: 0;
+  }
+
+  /* Workspace behavior: header + three equal policy cells. */
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    border-color: var(--rd-ps-line-strong);
+    background:
+      radial-gradient(circle at 100% 0, rgba(63,111,92,.055), transparent 30%),
+      rgba(255,255,255,.92);
+    box-shadow: 0 11px 27px rgba(24,32,51,.04);
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) .rd-v2-statement-body {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: auto auto;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) .rd-v2-settings-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    align-content: start;
+    margin: 0;
+    padding: 15px 15px 7px;
+    border-left: 1px solid var(--rd-ps-line);
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) .rd-v2-settings-hint {
+    margin: 0;
+    padding: 0 15px 15px;
+    border-left: 1px solid var(--rd-ps-line);
+    color: var(--rd-ps-muted);
+    font-size: 10.5px;
+    line-height: 1.45;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) .rd-v2-settings-row:nth-child(1),
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) .rd-v2-settings-hint:nth-child(2) {
+    grid-column: 1;
+    border-left: 0;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) .rd-v2-settings-row:nth-child(3),
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) .rd-v2-settings-hint:nth-child(4) {
+    grid-column: 2;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) .rd-v2-settings-row:nth-child(5),
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) .rd-v2-settings-hint:nth-child(6) {
+    grid-column: 3;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) .rd-v2-settings-row:nth-child(1),
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) .rd-v2-settings-row:nth-child(3),
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) .rd-v2-settings-row:nth-child(5) {
+    grid-row: 1;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) .rd-v2-settings-hint:nth-child(2),
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) .rd-v2-settings-hint:nth-child(4),
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) .rd-v2-settings-hint:nth-child(6) {
+    grid-row: 2;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) .rd-v2-select {
+    width: 100%;
+    min-width: 0;
+    min-height: 36px;
+  }
+
+  /* Account / identity / browser authority share one visual band. */
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(2) {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(4) {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(5) {
+    grid-column: 3;
+    grid-row: 2;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(2) .rd-v2-statement-body,
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(4) .rd-v2-statement-body,
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(5) .rd-v2-statement-body {
+    display: grid;
+    align-content: start;
+    padding: 8px 14px 14px;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(2) .rd-v2-settings-hint,
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(4) .rd-v2-settings-hint,
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(5) .rd-v2-settings-hint {
+    margin: 0;
+    padding: 10px 0 0;
+    font-size: 10.5px;
+    line-height: 1.45;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(2) .rd-v2-statement-row,
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(5) .rd-v2-statement-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "label metric"
+      "sub detail";
+    gap: 5px 10px;
+    align-items: baseline;
+    min-height: 0;
+    padding: 8px 0 9px;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(2) .rd-v2-statement-label,
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(5) .rd-v2-statement-label { grid-area: label; }
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(2) .rd-v2-statement-metric,
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(5) .rd-v2-statement-metric { grid-area: metric; }
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(2) .rd-v2-statement-sub,
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(5) .rd-v2-statement-sub { grid-area: sub; }
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(2) .rd-v2-statement-detail,
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(5) .rd-v2-statement-detail { grid-area: detail; }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(4) .rd-v2-settings-row.stack {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    margin: 0;
+    padding: 7px 0 4px;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(4) .rd-v2-settings-label {
+    grid-column: 1 / -1;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(4) .rd-v2-input {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(4) .rd-v2-btn {
+    white-space: nowrap;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(5) .rd-v2-settings-row.stack {
+    display: flex;
+    gap: 7px;
+    margin: 0;
+    padding: 8px 0 0;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(5) .rd-v2-settings-row.stack .rd-v2-btn {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  /* Connected storage is a full-width subordinate strip, not a giant title gutter. */
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(3) {
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(3) .rd-v2-statement-body {
+    display: block;
+    padding: 12px 15px 14px;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(3) .rd-v2-connected-intro {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 18px;
+    align-items: start;
+    margin: 0;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(3) .rd-v2-connected-intro p {
+    max-width: 760px;
+    margin: 0;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(3) .rd-v2-settings-hint,
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(3) .rd-v2-connected-error {
+    margin: 10px 0 0;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-settings-advanced {
+    grid-column: 1 / -1;
+    grid-row: 4;
+    border: 1px solid var(--rd-ps-line);
+    border-radius: 12px;
+    background: rgba(249,250,252,.72);
+  }
+}
+
+@media (min-width: 1680px) {
+  .rd-v2-profile-unbound-hero {
+    min-height: 276px;
+  }
+
+  .rd-v2-profile-unbound-card,
+  .rd-v2-profile-unbound-card:first-child {
+    min-height: 186px;
+  }
+
+  .rd-v2-settings-statement {
+    gap: 16px;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) .rd-v2-settings-row {
+    padding: 17px 18px 8px;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) .rd-v2-settings-hint {
+    padding: 0 18px 17px;
+  }
+}
