@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { listSynthesisThreads } from "@/v2/api";
 import { resolveCapacityMark } from "@/v2/capacityMarks";
-import { GuidedState, Skeleton } from "@/v2/InteractionFeedback";
+import { displayName, statusPill } from "@/v2/datasetMeta";
+import { Skeleton } from "@/v2/InteractionFeedback";
 import { HomeSuggestedAsks } from "@/v2/HomeSuggestedAsks";
 import { readResourcesRollupCache, writeResourcesRollupCache } from "@/v2/resourcesRollupCache";
 import { PageShell } from "@/v2/ui";
@@ -35,44 +36,214 @@ function HomeHeadroomMark({ markId }) {
   );
 }
 
-function PickUpCard({ point, loading, onContinue, onReview }) {
+function threadRows(payload) {
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.threads)) return payload.threads;
+  if (Array.isArray(payload?.items)) return payload.items;
+  return [];
+}
+
+function firstObserved(...values) {
+  for (const value of values) {
+    if (value === 0) return value;
+    if (value !== null && value !== undefined && String(value).trim() !== "") return value;
+  }
+  return null;
+}
+
+function shortDate(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  return raw.match(/^\d{4}-\d{2}-\d{2}/)?.[0] || raw;
+}
+
+function researcherName(profile) {
+  return String(
+    firstObserved(
+      profile?.display_name,
+      profile?.name,
+      profile?.full_name,
+      profile?.scholar?.name,
+      profile?.researcher?.name,
+      profile?.faculty?.name,
+    ) || "",
+  ).trim();
+}
+
+function assetText(dataset) {
+  return [
+    dataset?.dataset_id,
+    dataset?.name,
+    dataset?.title,
+    dataset?.display_name,
+    dataset?.source,
+    dataset?.publisher,
+    dataset?.description,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+}
+
+function selectFocalAsset(datasets, pickUp) {
+  const held = (datasets || []).filter(Boolean);
+  const preferred = held.find((dataset) => {
+    const text = assetText(dataset);
+    return text.includes("mops") && (text.includes("financial") || text.includes("statement"));
+  });
+  return preferred || pickUp?.primary?.dataset || held[0] || null;
+}
+
+function assetSummary(dataset) {
+  return String(
+    firstObserved(
+      dataset?.summary,
+      dataset?.description,
+      dataset?.purpose,
+      dataset?.recommended_use,
+      dataset?.research_use,
+    ) || "Durable Library evidence ready for inspection.",
+  ).trim();
+}
+
+function focalFacts(dataset) {
+  if (!dataset) return [];
+  const coverage = firstObserved(dataset.coverage, dataset.date_range, dataset.temporal_coverage);
+  const companies = firstObserved(
+    dataset.company_count,
+    dataset.issuer_count,
+    dataset.entity_count,
+    dataset.entities_count,
+  );
+  const grain = firstObserved(dataset.grain, dataset.unit_of_observation, dataset.frequency);
+  const updated = firstObserved(dataset.updated_at, dataset.as_of, dataset.last_updated);
+  const source = firstObserved(dataset.source, dataset.publisher, dataset.source_system);
+
+  return [
+    coverage ? { label: "Coverage", value: String(coverage) } : null,
+    companies != null ? { label: "Companies", value: String(companies) } : null,
+    grain ? { label: "Grain", value: String(grain).replace(/_/g, " ") } : null,
+    source ? { label: "Source", value: String(source) } : null,
+    updated ? { label: "Updated", value: shortDate(updated) } : null,
+  ]
+    .filter(Boolean)
+    .slice(0, 4);
+}
+
+function FocalAssetCard({ dataset, loading, onOpenLibrary, onInspect }) {
   if (loading) {
     return (
-      <div className="rd-v2-home-pickup-card" data-testid="home-continue" aria-busy="true">
-        <span className="rd-v2-home-eyebrow">Pick up</span>
-        <Skeleton lines={3} label="Loading resume point" />
-      </div>
+      <section className="rd-v2-home-authority-card focal" aria-label="Featured Library evidence">
+        <span className="rd-v2-home-authority-eyebrow">Continue from Library</span>
+        <Skeleton lines={4} label="Loading featured evidence" />
+      </section>
     );
   }
+
+  if (!dataset) {
+    return (
+      <section className="rd-v2-home-authority-card focal" aria-label="Featured Library evidence">
+        <span className="rd-v2-home-authority-eyebrow">Continue from Library</span>
+        <h2>Your evidence estate is ready</h2>
+        <p>Open Library to choose the durable evidence object you want to continue from.</p>
+        <div className="rd-v2-home-authority-actions">
+          <button type="button" className="rd-v2-btn sm primary" onClick={onOpenLibrary}>
+            Open Library
+          </button>
+        </div>
+      </section>
+    );
+  }
+
+  const facts = focalFacts(dataset);
+  return (
+    <section
+      className="rd-v2-home-authority-card focal"
+      aria-label={`Featured Library evidence: ${displayName(dataset)}`}
+      data-testid="home-focal-asset"
+    >
+      <div className="rd-v2-home-focal-head">
+        <div>
+          <span className="rd-v2-home-authority-eyebrow">Continue from Library</span>
+          <h2>{displayName(dataset)}</h2>
+        </div>
+        <span className="rd-v2-home-authority-state">{statusPill(dataset)}</span>
+      </div>
+      <p className="rd-v2-home-focal-summary">{assetSummary(dataset)}</p>
+      {facts.length ? (
+        <dl className="rd-v2-home-focal-facts">
+          {facts.map((fact) => (
+            <div key={`${fact.label}-${fact.value}`}>
+              <dt>{fact.label}</dt>
+              <dd>{fact.value}</dd>
+            </div>
+          ))}
+        </dl>
+      ) : null}
+      <div className="rd-v2-home-focal-rule" aria-hidden>
+        <span />
+        <span />
+        <span />
+        <span />
+      </div>
+      <div className="rd-v2-home-authority-actions">
+        <button type="button" className="rd-v2-btn sm primary" onClick={() => onOpenLibrary?.(dataset)}>
+          Open in Library
+        </button>
+        {onInspect ? (
+          <button type="button" className="rd-v2-btn sm" onClick={() => onInspect(dataset)}>
+            Inspect schema
+          </button>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
+function ContinueResearchCard({ point, loading, secondary, onContinue, onReview }) {
+  if (loading) {
+    return (
+      <section
+        className="rd-v2-home-authority-card continue"
+        data-testid="home-continue"
+        aria-label="Continue research"
+        aria-busy="true"
+      >
+        <span className="rd-v2-home-authority-eyebrow">Pick up · Continue research</span>
+        <Skeleton lines={4} label="Loading resume point" />
+      </section>
+    );
+  }
+
   if (!point) {
     return (
-      <div className="rd-v2-home-pickup-card" data-testid="home-continue">
-        <span className="rd-v2-home-eyebrow">Pick up</span>
-        <GuidedState
-          eyebrow="No resume point"
-          title="Open the Library or find missing evidence"
-          detail="No durable research work currently needs resumption."
-          checks={["Library holds registered evidence", "Discover searches beyond holdings", "Synthesis holds durable constructions"]}
-        />
-      </div>
+      <section className="rd-v2-home-authority-card continue" data-testid="home-continue" aria-label="Continue research">
+        <span className="rd-v2-home-authority-eyebrow">Pick up · Continue research</span>
+        <h2>Start from durable evidence</h2>
+        <p>No existing research object currently needs resumption.</p>
+        <button type="button" className="rd-v2-btn sm primary" onClick={() => onContinue?.({ tab: "library" })}>
+          Continue
+        </button>
+      </section>
     );
   }
+
   return (
-    <article
-      className={`rd-v2-home-pickup-card${point.warn ? " warn" : ""}`}
+    <section
+      className={`rd-v2-home-authority-card continue${point.warn ? " warn" : ""}`}
       data-testid="home-continue"
       data-kind={point.kind}
       data-resume-id={point.id || ""}
-      aria-label={`Pick up: ${point.title}`}
+      aria-label={`Continue research: ${point.title}`}
     >
-      <span className="rd-v2-home-eyebrow">Pick up</span>
+      <span className="rd-v2-home-authority-eyebrow">Pick up · Continue research</span>
       <h2>{point.title}</h2>
-      <p className="rd-v2-home-pickup-state">{point.stateSummary}</p>
-      <div className="rd-v2-home-pickup-foot">
-        <div>
-          {point.pill ? <span className="rd-v2-pill">{point.pill}</span> : null}
-          <span className="rd-v2-home-pickup-loc">{point.location}</span>
-        </div>
+      <p>{point.stateSummary}</p>
+      <div className="rd-v2-home-continue-meta">
+        {point.pill ? <span className="rd-v2-pill">{point.pill}</span> : null}
+        <span>{point.location}</span>
+      </div>
+      <div className="rd-v2-home-authority-actions">
         {point.action === "review" ? (
           <button type="button" className="rd-v2-btn sm primary" onClick={() => onReview?.(point)}>
             Review
@@ -88,15 +259,19 @@ function PickUpCard({ point, loading, onContinue, onReview }) {
       ) : point.thread?.id ? (
         <p className="rd-v2-home-continue-id mono">{point.thread.id}</p>
       ) : null}
-    </article>
+      {secondary ? (
+        <button
+          type="button"
+          className="rd-v2-home-continue-secondary"
+          onClick={() => (secondary.action === "review" ? onReview?.(secondary) : onContinue?.(secondary))}
+        >
+          <span>Also active</span>
+          <strong>{secondary.title}</strong>
+          <em>{secondary.action === "review" ? "Review →" : "Continue →"}</em>
+        </button>
+      ) : null}
+    </section>
   );
-}
-
-function threadRows(payload) {
-  if (Array.isArray(payload)) return payload;
-  if (Array.isArray(payload?.threads)) return payload.threads;
-  if (Array.isArray(payload?.items)) return payload.items;
-  return [];
 }
 
 export function HomePage({
@@ -123,11 +298,7 @@ export function HomePage({
   const surfaceState = resolveSurfaceLifecycle({ loading, error: loadError, count: datasets.length });
   const [synthesisThreads, setSynthesisThreads] = useState([]);
 
-  // Home consumes the durable Synthesis authority directly. Failure is soft:
-  // Library/Discover continuity remains truthful even if Synthesis is temporarily unavailable.
   useEffect(() => {
-    // Durable Synthesis threads are personal reasoning state.  Public guests
-    // can browse the shared estate without creating a protected prefetch.
     if (!canUseAsk) return undefined;
     let cancelled = false;
     let retryTimer = null;
@@ -138,10 +309,6 @@ export function HomePage({
           if (!cancelled) setSynthesisThreads(threadRows(payload));
         })
         .catch(() => {
-          // Home is allowed to remain useful when Synthesis is down, but a
-          // transient front-door failure must not permanently demote an
-          // existing proposal behind passive Library recency. Retry once;
-          // ongoing polling belongs to the Synthesis workspace itself.
           if (!cancelled && attempts < 1) {
             attempts += 1;
             retryTimer = window.setTimeout(loadThreads, 800);
@@ -162,45 +329,39 @@ export function HomePage({
       setCachedRollup(resourcesRollup);
     }
   }, [resourcesRollup]);
+
   const headroomRollup = useMemo(() => {
     if (resourcesRollup && typeof resourcesRollup === "object") return resourcesRollup;
     if (cachedRollup) return cachedRollup;
     return projectRollupFromHealth(health);
   }, [resourcesRollup, cachedRollup, health]);
+
   const headroomLoading = headroomRollup == null && resourcesRollup === undefined && health == null;
   const pickUp = useMemo(
-    () => buildPickUp({
-      datasets,
-      jobs,
-      health,
-      acquisitions,
-      profile,
-      synthesisThreads,
-      pendingDecisionCount,
-    }),
+    () =>
+      buildPickUp({
+        datasets,
+        jobs,
+        health,
+        acquisitions,
+        profile,
+        synthesisThreads,
+        pendingDecisionCount,
+      }),
     [datasets, jobs, health, acquisitions, profile, synthesisThreads, pendingDecisionCount],
   );
+
   useEffect(() => {
     if (!loading) onPrimaryResume?.(pickUp.primary || null);
   }, [loading, onPrimaryResume, pickUp.primary]);
-  const headroom = useMemo(
-    () => buildResourceHeadroom(headroomRollup, health),
-    [headroomRollup, health],
-  );
-  const recommended = useMemo(
-    () => buildRecommendedEvidence(profile, { limit: 2 }),
-    [profile],
-  );
-  const trail = useMemo(
-    () => buildRecentTrail({ jobs, datasets, limit: 3 }),
-    [jobs, datasets],
-  );
+
+  const headroom = useMemo(() => buildResourceHeadroom(headroomRollup, health), [headroomRollup, health]);
+  const recommended = useMemo(() => buildRecommendedEvidence(profile, { limit: 3 }), [profile]);
+  const trail = useMemo(() => buildRecentTrail({ jobs, datasets, limit: 4 }), [jobs, datasets]);
+  const focalAsset = useMemo(() => selectFocalAsset(datasets, pickUp), [datasets, pickUp]);
 
   const continuePrimary = (point) => {
     if (point?.thread?.id) {
-      // Navigation remains a shell responsibility; the typed callback only
-      // binds the exact durable Synthesis object. Keeping these authorities
-      // separate prevents Home from inventing a second navigation path.
       onResumeSynthesisThread?.(point.thread);
       onGoTab?.("synthesis");
       return;
@@ -240,57 +401,46 @@ export function HomePage({
     onGoTab?.("browse");
   };
 
-  return (
-    <PageShell
-      className="rd-v2-home-page rd-v2-home-i10"
-      title="Home"
-      lead="Resume · headroom · durable consequences"
-      footer={null}
-      surfaceState={surfaceState}
-    >
-      {loadError ? <DeskError raw={loadError} surface="Home's Library briefing" /> : null}
-      <div className="rd-v2-home-topband">
-        <section className="rd-v2-home-pickup" aria-label="Pick up">
-          <PickUpCard
-            point={pickUp.primary}
-            loading={loading}
-            onContinue={continuePrimary}
-            onReview={reviewDecision}
-          />
-          {pickUp.secondary ? (
-            <button
-              type="button"
-              className={`rd-v2-home-pickup-secondary${pickUp.secondary.warn ? " warn" : ""}`}
-              onClick={() =>
-                pickUp.secondary.action === "review"
-                  ? reviewDecision(pickUp.secondary)
-                  : continuePrimary(pickUp.secondary)
-              }
-            >
-              <strong>{pickUp.secondary.title}</strong>
-              <span>{pickUp.secondary.stateSummary}</span>
-              <em>
-                {pickUp.secondary.location}
-                {pickUp.secondary.action === "review" ? " · Review" : " · Continue →"}
-              </em>
-            </button>
-          ) : null}
-        </section>
+  const openFocalInLibrary = (dataset = focalAsset) => {
+    if (dataset) onSelectDataset?.(dataset);
+    onGoTab?.("library");
+  };
 
-        <section className="rd-v2-home-headroom" aria-label="Resource headroom">
-          <div className="rd-v2-home-headroom-head">
-            <span className="rd-v2-home-eyebrow">Resource headroom</span>
-            <button type="button" className="rd-v2-linkish" onClick={() => onGoTab?.("resources")}>
-              Resources →
-            </button>
+  const researcher = researcherName(profile);
+  const greeting = researcher ? `Welcome back, ${researcher}` : "Welcome back";
+
+  return (
+    <PageShell className="rd-v2-home-page rd-v2-home-authority" title="Home" lead="" footer={null} surfaceState={surfaceState}>
+      <header className="rd-v2-home-authority-welcome">
+        <div>
+          <span className="rd-v2-home-authority-kicker">Research workspace</span>
+          <h1>{greeting}</h1>
+          <p>Resume durable work, check your research headroom, and move the next evidence decision forward.</p>
+        </div>
+        <button type="button" className="rd-v2-btn primary rd-v2-home-new-research" onClick={() => onGoTab?.("synthesis")}>
+          + New research
+        </button>
+      </header>
+
+      {loadError ? <DeskError raw={loadError} surface="Home's Library briefing" /> : null}
+
+      <div className="rd-v2-home-authority-primary">
+        <FocalAssetCard dataset={focalAsset} loading={loading} onOpenLibrary={openFocalInLibrary} onInspect={onPreviewDataset} />
+
+        <section className="rd-v2-home-authority-card headroom" aria-label="Resource headroom">
+          <div className="rd-v2-home-authority-card-head">
+            <div>
+              <span className="rd-v2-home-authority-eyebrow">Resource headroom</span>
+              <h2>Capacity for the next move</h2>
+            </div>
           </div>
           {loading || headroomLoading ? (
-            <Skeleton lines={3} label="Loading headroom" />
+            <Skeleton lines={4} label="Loading headroom" />
           ) : headroom.length ? (
-            <ul className="rd-v2-home-headroom-list">
-              {headroom.map((slot) => (
+            <ul className="rd-v2-home-authority-headroom-list">
+              {headroom.slice(0, 3).map((slot) => (
                 <li key={slot.id} className={slot.warn ? "warn" : undefined}>
-                  <div className="rd-v2-home-headroom-row">
+                  <div className="rd-v2-home-authority-headroom-row">
                     <strong>
                       {slot.markId ? <HomeHeadroomMark markId={slot.markId} /> : null}
                       {slot.name}
@@ -298,114 +448,111 @@ export function HomePage({
                     <span>{slot.metric}</span>
                   </div>
                   <HeadroomBar pct={slot.pct} warn={slot.warn} />
-                  <div className="rd-v2-home-headroom-meta">
-                    <span>{slot.headroom}</span>
-                    <button
-                      type="button"
-                      className="rd-v2-linkish"
-                      onClick={() => onGoTab?.("resources")}
-                    >
-                      {slot.action === "check" ? "Check →" : "Resources →"}
-                    </button>
-                  </div>
+                  <small>{slot.headroom}</small>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="rd-v2-home-headroom-empty">Capacity signals load with Resources.</p>
+            <p className="rd-v2-home-authority-muted">Capacity signals load with Resources.</p>
+          )}
+          <button type="button" className="rd-v2-linkish rd-v2-home-manage-resources" onClick={() => onGoTab?.("resources")}>
+            Manage resources →
+          </button>
+        </section>
+
+        <ContinueResearchCard
+          point={pickUp.primary}
+          secondary={pickUp.secondary}
+          loading={loading}
+          onContinue={continuePrimary}
+          onReview={reviewDecision}
+        />
+      </div>
+
+      <div className="rd-v2-home-authority-secondary">
+        <section className="rd-v2-home-authority-card trail" aria-label="Recent trail">
+          <div className="rd-v2-home-authority-section-head">
+            <div>
+              <span className="rd-v2-home-authority-eyebrow">Recent trail</span>
+              <h2>Durable consequences</h2>
+            </div>
+            <button type="button" className="rd-v2-linkish" onClick={() => onGoTab?.("browse")}>
+              View History →
+            </button>
+          </div>
+          {trail.length ? (
+            <ul className="rd-v2-home-authority-trail-list">
+              {trail.map((item) => (
+                <li key={item.id}>
+                  <button
+                    type="button"
+                    className="rd-v2-home-authority-trail-row"
+                    onClick={() => {
+                      if (item.dataset) {
+                        onSelectDataset?.(item.dataset);
+                        return;
+                      }
+                      if (item.dest === "history") {
+                        onGoTab?.("browse");
+                        return;
+                      }
+                      onGoTab?.(item.dest === "library" ? "library" : "browse");
+                    }}
+                  >
+                    <span className="kind">{item.kind}</span>
+                    <strong>{item.title}</strong>
+                    <span className="summary">{item.summary}</span>
+                    <em>{item.dest === "library" ? "Library →" : "History →"}</em>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="rd-v2-home-section-empty-actions">
+              <p className="rd-v2-home-section-empty">Nothing durable yet — recent work will collect here.</p>
+            </div>
+          )}
+        </section>
+
+        <section className="rd-v2-home-authority-card next" aria-label="Suggested next steps">
+          <div className="rd-v2-home-authority-section-head">
+            <div>
+              <span className="rd-v2-home-authority-eyebrow">Suggested next steps</span>
+              <h2>Move the research forward</h2>
+            </div>
+          </div>
+          {recommended.length ? (
+            <ul className="rd-v2-home-authority-next-list">
+              {recommended.map((item) => (
+                <li key={item.id}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (item.action === "library" && item.datasetId) {
+                        onGoTab?.("library");
+                        return;
+                      }
+                      if (item.query && onSuggestSearch) {
+                        onSuggestSearch(item.query);
+                        return;
+                      }
+                      onGoTab?.("browse");
+                    }}
+                  >
+                    <div>
+                      <strong>{item.title}</strong>
+                      <span>{item.reason}</span>
+                    </div>
+                    <em>{item.action === "library" ? "Library →" : "Discover →"}</em>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <HomeSuggestedAsks profile={profile} onAskComposer={onAskComposer || onSuggestSearch} canLoadPrincipalSeed={canUseAsk} />
           )}
         </section>
       </div>
-
-      {recommended.length ? (
-        <section className="rd-v2-home-recommended" aria-label="Recommended evidence">
-          <div className="rd-v2-home-section-head">
-            <h2>Recommended evidence</h2>
-          </div>
-          <ul className="rd-v2-home-recommended-list">
-            {recommended.map((item) => (
-              <li key={item.id}>
-                <button
-                  type="button"
-                  className="rd-v2-home-recommended-row"
-                  onClick={() => {
-                    if (item.action === "library" && item.datasetId) {
-                      onGoTab?.("library");
-                      return;
-                    }
-                    if (item.query && onSuggestSearch) {
-                      onSuggestSearch(item.query);
-                      return;
-                    }
-                    onGoTab?.("browse");
-                  }}
-                >
-                  <div>
-                    <strong>{item.title}</strong>
-                    <span>{item.reason}</span>
-                  </div>
-                  <em>{item.badge}</em>
-                  <span className="rd-v2-home-recommended-go">
-                    {item.action === "library" ? "Library →" : "Explore →"}
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
-
-      <section className="rd-v2-home-trail" aria-label="Recent trail">
-        <div className="rd-v2-home-section-head">
-          <h2>Recent trail</h2>
-          <button
-            type="button"
-            className="rd-v2-linkish"
-            onClick={() => onGoTab?.("browse")}
-          >
-            View all →
-          </button>
-        </div>
-        {trail.length ? (
-          <ul className="rd-v2-home-trail-list">
-            {trail.map((item) => (
-              <li key={item.id}>
-                <button
-                  type="button"
-                  className="rd-v2-home-trail-row"
-                  onClick={() => {
-                    if (item.dataset) {
-                      onSelectDataset?.(item.dataset);
-                      return;
-                    }
-                    if (item.dest === "history") {
-                      onGoTab?.("browse");
-                      return;
-                    }
-                    onGoTab?.(item.dest === "library" ? "library" : "browse");
-                  }}
-                >
-                  <span className="rd-v2-home-trail-kind">{item.kind}</span>
-                  <strong>{item.title}</strong>
-                  <span>{item.summary}</span>
-                  <em>{item.dest === "library" ? "Library →" : "History →"}</em>
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div className="rd-v2-home-section-empty-actions">
-            <p className="rd-v2-home-section-empty">
-              Nothing durable yet — recent work will collect here.
-            </p>
-            <HomeSuggestedAsks
-              profile={profile}
-              onAskComposer={onAskComposer || onSuggestSearch}
-              canLoadPrincipalSeed={canUseAsk}
-            />
-          </div>
-        )}
-      </section>
     </PageShell>
   );
 }
