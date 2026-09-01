@@ -1,0 +1,164 @@
+/* Library coherence polish — 2026-09-02
+   This layer deliberately preserves the accepted estate / ledger / inspector
+   architecture. It only reduces competing chrome and makes the visual grammar
+   calmer across browse, retrieval, and selected-asset states. */
+
+/* The Library footer repeated an interaction rule already expressed by the
+   ledger, readiness controls, and selected-asset actions. Keep the canvas quiet. */
+.rd-v2-library-page .rd-v2-scroll-foot {
+  display: none;
+}
+
+/* Treat Type / Readiness / Sort as one retrieval control family instead of
+   three independent cards fighting the search field for attention. */
+.rd-v2-library-page .rd-v2-library-toolbar-filters {
+  gap: 0;
+  padding: 2px 4px;
+  border: 1px solid color-mix(in srgb, var(--rd-border2) 78%, transparent);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.34);
+}
+
+.rd-v2-library-page .rd-v2-library-filter-control {
+  height: 28px;
+  gap: 4px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+}
+
+.rd-v2-library-page .rd-v2-library-filter-control + .rd-v2-library-filter-control {
+  border-left: 1px solid color-mix(in srgb, var(--rd-border2) 68%, transparent);
+  border-radius: 0;
+}
+
+.rd-v2-library-page .rd-v2-library-filter-control:focus-within {
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: none;
+}
+
+.rd-v2-library-page .rd-v2-library-filter-control > span {
+  opacity: 0.72;
+}
+
+/* Search remains the primary retrieval action. The secondary Ask handoff should
+   read as a continuation of that search rather than a new toolbar mode. */
+.rd-v2-library-page .rd-v2-library-search-ask {
+  border-color: color-mix(in srgb, var(--rd-border2) 76%, transparent);
+  background: rgba(255, 255, 255, 0.48);
+  box-shadow: none;
+}
+
+/* Collections are navigation context, not dashboard cards. Reduce their visual
+   mass so the evidence ledger stays unmistakably primary. */
+.rd-v2-library-page .rd-v2-cap-collections {
+  background: rgba(250, 249, 244, 0.22);
+}
+
+.rd-v2-library-page .rd-v2-cap-collection {
+  box-shadow: none;
+}
+
+/* Selected asset: the centre owns substance while the rail owns the decision.
+   Keep the centre trust strip useful, but visibly subordinate so Readiness /
+   Verification / Source do not compete with the decisional rail. */
+.rd-v2-library-workspace .rd-v2-library-claim-strip {
+  margin-top: 6px;
+  border-color: color-mix(in srgb, var(--rd-release-line, var(--rd-border)) 72%, transparent);
+  background: rgba(250, 249, 244, 0.22);
+}
+
+.rd-v2-library-workspace .rd-v2-library-claim-strip > div {
+  padding-block: 6px;
+}
+
+.rd-v2-library-workspace .rd-v2-library-claim-strip span {
+  opacity: 0.66;
+}
+
+.rd-v2-library-workspace .rd-v2-library-claim-strip strong {
+  font-weight: 600;
+}
+
+/* Actions should read as a small tool row, not another card layer. */
+.rd-v2-library-workspace .rd-v2-library-workspace-actions {
+  gap: 7px;
+  padding-block: 10px;
+}
+
+.rd-v2-library-workspace .rd-v2-library-workspace-actions .rd-v2-btn:not(.primary) {
+  border-color: color-mix(in srgb, var(--rd-border2) 76%, transparent);
+  background: rgba(255, 255, 255, 0.38);
+  box-shadow: none;
+}
+
+/* The nested schema/provenance dialog is intentionally a disclosure inside the
+   selected asset, not a third full application surface. Make that hierarchy
+   visible by softening the scrim and tightening the sheet. */
+.rd-v2-library-workspace .rd-v2-library-overlay-scrim {
+  background: rgba(38, 36, 31, 0.18);
+  backdrop-filter: blur(1.5px);
+}
+
+.rd-v2-library-workspace .rd-v2-library-overlay {
+  max-width: min(760px, calc(100vw - 56px));
+  border-color: color-mix(in srgb, var(--rd-border2) 86%, transparent);
+  box-shadow: 0 16px 44px rgba(30, 27, 22, 0.14);
+}
+
+/* Likewise, selected-asset inspection should feel like Library opening an
+   object, not like navigating to another product. */
+.rd-v2-library-inspector-scrim {
+  background: rgba(35, 33, 29, 0.12);
+  backdrop-filter: blur(1px);
+}
+
+.rd-v2-library-inspector-shell {
+  box-shadow: 0 18px 52px rgba(32, 29, 23, 0.13);
+}
+
+/* Keep branch context compact and consistent with the retrieval grammar. */
+.rd-v2-library-page .rd-v2-library-pathbar {
+  background: rgba(250, 249, 244, 0.28);
+}
+
+.rd-v2-library-page .rd-v2-library-pathstats {
+  opacity: 0.78;
+}
+
+@media (max-width: 1180px) {
+  .rd-v2-library-page .rd-v2-library-toolbar-filters {
+    padding: 2px;
+  }
+
+  .rd-v2-library-page .rd-v2-library-filter-control {
+    padding-inline: 6px;
+  }
+}
+
+@media (max-width: 760px) {
+  .rd-v2-library-page .rd-v2-library-toolbar-filters {
+    width: 100%;
+    gap: 2px;
+    padding: 3px;
+  }
+
+  .rd-v2-library-page .rd-v2-library-filter-control,
+  .rd-v2-library-page .rd-v2-library-filter-control + .rd-v2-library-filter-control {
+    border-left: 0;
+    border-radius: 6px;
+  }
+
+  .rd-v2-library-page .rd-v2-library-filter-control + .rd-v2-library-filter-control {
+    border-top: 1px solid color-mix(in srgb, var(--rd-border2) 52%, transparent);
+  }
+
+  .rd-v2-library-workspace .rd-v2-library-overlay {
+    max-width: calc(100vw - 24px);
+  }
+
+  .rd-v2-library-workspace .rd-v2-library-claim-strip {
+    opacity: 0.9;
+  }
+}

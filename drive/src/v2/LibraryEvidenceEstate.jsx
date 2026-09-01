@@ -4,6 +4,7 @@ import { StatusPill } from "@/v2/StatusPill";
 import "@/v2/capability-convergence.css";
 import "@/v2/library-evidence-rigor.css";
 import "@/v2/library-auto-catalog.css";
+import "@/v2/library-coherence-polish.css";
 
 function sourceLabel(row = {}) {
   return String(
@@ -138,8 +139,8 @@ export function LibraryEvidenceEstate({
           <span role="columnheader">Evidence</span>
           {showKind ? <span role="columnheader">Type</span> : null}
           <span role="columnheader">Source</span>
-          <span role="columnheader">Verify</span>
-          <span role="columnheader">State</span>
+          <span role="columnheader">Verification</span>
+          <span role="columnheader">Readiness</span>
         </div>
         <div className="rd-v2-cap-ledger-body">
           {visibleAssets.length ? (
