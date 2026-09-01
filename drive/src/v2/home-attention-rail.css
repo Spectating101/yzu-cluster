@@ -196,6 +196,50 @@
   background: #fbf7ed;
 }
 
+/* 1440-class rails are much narrower. Preserve the same information but use
+ * one horizontal field per line instead of forcing a cramped 2x2 matrix. */
+@media (max-width: 1679px) {
+  .rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-home-rail-record .rd-v2-rail-fieldgrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-home-rail-record .rd-v2-detail-row {
+    display: grid;
+    grid-template-columns: 92px minmax(0, 1fr);
+    align-items: start;
+    gap: 10px;
+    min-height: 0;
+    padding: 9px 10px;
+  }
+
+  .rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-home-rail-record .rd-v2-detail-label {
+    margin: 1px 0 0;
+  }
+
+  .rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-home-rail-record .rd-v2-detail-val {
+    font-size: 10px;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  .rd-v2-home-rail-verdict {
+    padding: 13px 14px;
+  }
+
+  .rd-v2-home-rail-path {
+    padding-top: 11px;
+  }
+
+  .rd-v2-home-rail-path-step {
+    padding-bottom: 14px;
+  }
+
+  .rd-v2-home-rail-path-step p {
+    margin-top: 3px;
+    line-height: 1.35;
+  }
+}
+
 @media (min-width: 1680px) and (min-height: 900px) {
   .rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail:has(.rd-v2-home-rail-verdict) {
     background:
