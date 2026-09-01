@@ -1,36 +1,36 @@
-/* Library coherence — directory-first root
-   Keep the established Library visual language. The intervention is structural:
-   orient with the full research directory before the flat evidence ledger. */
+/* Library coherence — dense directory + working ledger.
+   The directory explains structure without displacing the evidence surface. */
 
 .rd-v2-library-page .rd-v2-scroll-foot {
   display: none;
 }
 
 .rd-v2-library-directory-home {
-  min-height: min(620px, calc(100vh - 230px));
-  padding: 20px 22px 24px;
+  min-height: 0;
+  padding: 12px 14px 14px;
   border-bottom: 1px solid var(--rd-border);
-  background: linear-gradient(180deg, rgba(255, 253, 246, 0.62), rgba(255, 253, 246, 0.14) 55%, transparent);
+  background: rgba(255, 253, 246, 0.34);
 }
 
 .rd-v2-library-directory-intro {
   display: flex;
-  align-items: flex-start;
+  align-items: flex-end;
   justify-content: space-between;
-  gap: 24px;
-  padding-bottom: 16px;
+  gap: 16px;
+  padding-bottom: 10px;
 }
 
 .rd-v2-library-directory-intro > div:first-child {
-  max-width: 690px;
+  min-width: 0;
+  max-width: 620px;
 }
 
 .rd-v2-library-directory-kicker,
 .rd-v2-library-all-evidence-head span {
   display: block;
-  margin-bottom: 5px;
+  margin-bottom: 3px;
   color: var(--rd-muted);
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.11em;
   text-transform: uppercase;
@@ -40,32 +40,32 @@
 .rd-v2-library-all-evidence-head h2 {
   margin: 0;
   color: var(--rd-ink);
-  font-size: 19px;
+  font-size: 15px;
   line-height: 1.25;
 }
 
 .rd-v2-library-directory-intro p {
-  margin: 7px 0 0;
+  margin: 4px 0 0;
   color: var(--rd-muted);
-  font-size: 12px;
-  line-height: 1.55;
+  font-size: 10px;
+  line-height: 1.4;
 }
 
 .rd-v2-library-directory-summary {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
-  gap: 6px;
-  max-width: 360px;
+  gap: 5px;
 }
 
 .rd-v2-library-directory-summary span {
-  padding: 5px 8px;
+  padding: 3px 6px;
   border: 1px solid var(--rd-border2);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.48);
   color: var(--rd-muted);
-  font-size: 10px;
+  font-size: 9px;
+  line-height: 1.2;
   white-space: nowrap;
 }
 
@@ -76,26 +76,25 @@
 .rd-v2-library-directory-tree {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 8px;
   align-content: start;
 }
 
 .rd-v2-library-directory-shelf {
   overflow: hidden;
   border: 1px solid var(--rd-border2);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.58);
-  box-shadow: 0 1px 2px rgba(31, 28, 21, 0.03);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.54);
 }
 
 .rd-v2-library-directory-shelf-head {
   display: grid;
-  grid-template-columns: 18px minmax(0, 1fr) auto 14px;
+  grid-template-columns: 14px minmax(0, 1fr) auto 10px;
   align-items: center;
-  gap: 9px;
+  gap: 7px;
   width: 100%;
-  min-height: 58px;
-  padding: 11px 12px;
+  min-height: 42px;
+  padding: 7px 9px;
   border: 0;
   background: transparent;
   color: inherit;
@@ -105,61 +104,56 @@
 
 .rd-v2-library-directory-shelf-head:hover,
 .rd-v2-library-directory-shelf-head:focus-visible {
-  background: rgba(255, 252, 241, 0.9);
+  background: rgba(255, 252, 241, 0.88);
 }
 
 .rd-v2-library-directory-folder {
   color: var(--rd-muted);
-  font-size: 12px;
+  font-size: 10px;
 }
 
 .rd-v2-library-directory-shelf-copy {
   display: grid;
-  gap: 3px;
+  gap: 1px;
   min-width: 0;
 }
 
 .rd-v2-library-directory-shelf-copy strong {
   overflow: hidden;
   color: var(--rd-ink);
-  font-size: 13px;
-  line-height: 1.25;
+  font-size: 11px;
+  line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .rd-v2-library-directory-shelf-copy em,
 .rd-v2-library-directory-branch em {
-  overflow: hidden;
-  color: var(--rd-muted);
-  font-size: 10px;
-  font-style: normal;
-  line-height: 1.35;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  display: none;
 }
 
 .rd-v2-library-directory-shelf-count {
   color: var(--rd-muted);
-  font-size: 10px;
+  font-size: 9px;
+  line-height: 1.2;
   white-space: nowrap;
 }
 
 .rd-v2-library-directory-branches {
   display: grid;
   border-top: 1px solid var(--rd-border);
-  background: rgba(250, 249, 244, 0.42);
+  background: rgba(250, 249, 244, 0.38);
 }
 
 .rd-v2-library-directory-branch {
   display: grid;
-  grid-template-columns: 18px minmax(0, 1fr) auto;
+  grid-template-columns: 14px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 8px;
-  min-height: 40px;
-  padding: 7px 12px 7px 16px;
+  gap: 6px;
+  min-height: 31px;
+  padding: 5px 9px 5px 12px;
   border: 0;
-  border-top: 1px solid color-mix(in srgb, var(--rd-border) 65%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--rd-border) 58%, transparent);
   background: transparent;
   color: inherit;
   text-align: left;
@@ -177,43 +171,42 @@
 
 .rd-v2-library-directory-branch-line {
   color: var(--rd-muted);
-  opacity: 0.6;
+  opacity: 0.55;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 11px;
+  font-size: 9px;
 }
 
 .rd-v2-library-directory-branch > span:nth-child(2) {
-  display: grid;
-  gap: 2px;
   min-width: 0;
 }
 
 .rd-v2-library-directory-branch strong {
+  display: block;
   overflow: hidden;
   color: var(--rd-body);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 650;
-  line-height: 1.25;
+  line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .rd-v2-library-directory-branch > b {
-  min-width: 20px;
+  min-width: 16px;
   color: var(--rd-muted);
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 650;
   text-align: right;
 }
 
 .rd-v2-library-directory-loading {
   display: grid;
-  gap: 4px;
-  padding: 22px;
+  gap: 3px;
+  padding: 12px;
   border: 1px dashed var(--rd-border2);
-  border-radius: 9px;
+  border-radius: 7px;
   color: var(--rd-muted);
-  font-size: 11px;
+  font-size: 10px;
 }
 
 .rd-v2-library-directory-loading strong {
@@ -221,22 +214,124 @@
 }
 
 .rd-v2-library-all-evidence.after-directory {
-  padding-top: 20px;
-  border-top: 1px solid color-mix(in srgb, var(--rd-border) 76%, transparent);
+  min-width: 0;
+  padding-top: 9px;
+  border-top: 1px solid color-mix(in srgb, var(--rd-border) 72%, transparent);
 }
 
 .rd-v2-library-all-evidence-head {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 20px;
-  padding: 0 18px 12px;
+  gap: 16px;
+  padding: 0 14px 8px;
 }
 
 .rd-v2-library-all-evidence-head p {
   margin: 0;
   color: var(--rd-muted);
-  font-size: 10px;
+  font-size: 9px;
+}
+
+/* Wide desktops have enough horizontal room to keep orientation and evidence
+   visible at the same time. The directory becomes a real navigation rail. */
+@media (min-width: 1680px) {
+  .rd-v2-cap-estate:has(> .rd-v2-library-directory-home) {
+    display: grid;
+    grid-template-columns: minmax(270px, 315px) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .rd-v2-cap-estate:has(> .rd-v2-library-directory-home) > .rd-v2-library-directory-home {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: stretch;
+    padding: 13px 11px 12px;
+    border-right: 1px solid var(--rd-border);
+    border-bottom: 0;
+  }
+
+  .rd-v2-cap-estate:has(> .rd-v2-library-directory-home) > .rd-v2-library-all-evidence {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .rd-v2-cap-estate:has(> .rd-v2-library-directory-home) > .rd-v2-library-available {
+    grid-column: 1 / -1;
+  }
+
+  .rd-v2-library-directory-intro {
+    display: block;
+    padding: 0 2px 10px;
+  }
+
+  .rd-v2-library-directory-intro p {
+    max-width: 260px;
+  }
+
+  .rd-v2-library-directory-summary {
+    justify-content: flex-start;
+    margin-top: 8px;
+  }
+
+  .rd-v2-library-directory-summary span:last-child {
+    display: none;
+  }
+
+  .rd-v2-library-directory-tree {
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+
+  .rd-v2-library-directory-shelf-head {
+    grid-template-columns: 13px minmax(0, 1fr) auto 9px;
+    min-height: 38px;
+    padding: 6px 7px;
+  }
+
+  .rd-v2-library-directory-shelf-count {
+    max-width: 88px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .rd-v2-library-directory-branch {
+    min-height: 29px;
+    padding: 4px 7px 4px 10px;
+  }
+
+  .rd-v2-library-all-evidence.after-directory {
+    padding-top: 12px;
+    border-top: 0;
+  }
+}
+
+/* Mid-size desktops keep the whole directory visible, but only as a compact
+   horizontal map above the ledger. */
+@media (min-width: 1100px) and (max-width: 1679px) {
+  .rd-v2-library-directory-tree {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .rd-v2-library-directory-shelf-count {
+    max-width: 104px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+@media (max-width: 1099px) {
+  .rd-v2-library-directory-intro {
+    align-items: flex-start;
+  }
+
+  .rd-v2-library-directory-tree {
+    grid-template-columns: 1fr;
+  }
+
+  .rd-v2-library-directory-summary {
+    max-width: 250px;
+  }
 }
 
 /* Keep the useful selected-asset hierarchy sanding, but leave the established
@@ -259,36 +354,18 @@
   backdrop-filter: blur(1px);
 }
 
-@media (min-width: 1680px) and (min-height: 900px) {
-  .rd-v2-library-directory-home {
-    min-height: min(690px, calc(100vh - 230px));
-    padding-inline: 28px;
-  }
-
-  .rd-v2-library-directory-tree {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 1050px) {
-  .rd-v2-library-directory-tree {
-    grid-template-columns: 1fr;
-  }
-
-  .rd-v2-library-directory-summary {
-    max-width: 280px;
-  }
-}
-
 @media (max-width: 760px) {
   .rd-v2-library-directory-home {
-    min-height: 0;
-    padding: 14px 12px 18px;
+    padding: 10px 10px 12px;
   }
 
   .rd-v2-library-directory-intro {
     display: grid;
-    gap: 12px;
+    gap: 7px;
+  }
+
+  .rd-v2-library-directory-intro p {
+    display: none;
   }
 
   .rd-v2-library-directory-summary {
@@ -296,8 +373,12 @@
     max-width: none;
   }
 
+  .rd-v2-library-directory-summary span:last-child {
+    display: none;
+  }
+
   .rd-v2-library-directory-shelf-head {
-    grid-template-columns: 16px minmax(0, 1fr) 12px;
+    grid-template-columns: 14px minmax(0, 1fr) 10px;
   }
 
   .rd-v2-library-directory-shelf-count {
@@ -305,8 +386,12 @@
   }
 
   .rd-v2-library-all-evidence-head {
-    display: grid;
-    gap: 5px;
-    padding-inline: 12px;
+    display: flex;
+    align-items: center;
+    padding-inline: 10px;
+  }
+
+  .rd-v2-library-all-evidence-head p {
+    display: none;
   }
 }
