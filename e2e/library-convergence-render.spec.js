@@ -209,7 +209,7 @@ async function openAsset(page, title) {
 }
 
 async function backToRoot(page) {
-  await page.getByRole("button", { name: "← All Library assets" }).click();
+  await page.getByRole("button", { name: "Close asset inspector" }).click();
   await expect(page.getByTestId("library-evidence-estate")).toBeVisible();
 }
 
@@ -217,15 +217,20 @@ test("render current Library evidence and decision states", async ({ page }) => 
   mkdirSync(OUT, { recursive: true });
 
   await setup(page, { width: 1440, height: 900 });
-  await expect(page.getByTestId("library-auto-catalog")).toContainText("View");
-  await expect(page.getByTestId("library-available-evidence")).toContainText("1 additional catalogue record");
-  await expect(page.getByTestId("library-available-evidence")).toContainText("not held in this Library");
+  await expect(page.getByTestId("library-auto-catalog")).toHaveCount(0);
+  await expect(page.getByTestId("library-type-filter")).toHaveValue("all");
+  await expect(page.getByTestId("library-state-filter")).toHaveValue("all");
+  await expect(page.getByTestId("library-sort-filter")).toHaveValue("name");
+  const outside = page.getByTestId("library-available-evidence");
+  await expect(outside).toContainText("1 known record");
+  await expect(outside).toContainText("outside your Library");
+  await expect(outside.getByRole("button", { name: "Review in Discover" })).toBeVisible();
 
-  await page.getByTestId("library-auto-view-literature").click();
+  await page.getByTestId("library-type-filter").selectOption("literature");
   await expect(page.getByTestId("library-evidence-row")).toHaveCount(1);
   await expect(page.getByTestId("library-evidence-row")).toContainText("Stablecoin governance evidence review");
   await expect(page.getByTestId("library-evidence-row")).not.toContainText("Asia daily news-risk panel");
-  await page.getByTestId("library-auto-view-all").click();
+  await page.getByTestId("library-type-filter").selectOption("all");
   await expect(page.getByTestId("library-evidence-row")).toHaveCount(5);
 
   const gdeltRow = page.getByTestId("library-evidence-row").filter({ hasText: "Asia daily news-risk panel" });
@@ -245,10 +250,10 @@ test("render current Library evidence and decision states", async ({ page }) => 
   await settleVisualState(page);
   await page.screenshot({ path: `${OUT}/01-root-1440.png`, fullPage: false });
 
-  await page.getByRole("button", { name: /^Not query-ready / }).click();
+  await page.getByTestId("library-state-filter").selectOption("not_ready");
   await expect(page.getByTestId("library-evidence-row").filter({ hasText: "MOPS financial statements" })).toBeVisible();
   await expect(page.getByTestId("library-evidence-row").filter({ hasText: "Asia daily news-risk panel" })).toHaveCount(0);
-  await page.getByRole("button", { name: /^All$/ }).click();
+  await page.getByTestId("library-state-filter").selectOption("all");
 
   await openAsset(page, "Asia daily news-risk panel");
   await expect(page.getByLabel("Evidence claims")).toContainText("Query ready");
