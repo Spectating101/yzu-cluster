@@ -1,8 +1,6 @@
-import { useState } from "react";
 import { displayName, libraryAssetPresentation, statusPillKind } from "@/v2/datasetMeta";
 import { libraryVerification } from "@/v2/libraryVerification";
 import { StatusPill } from "@/v2/StatusPill";
-import { LibraryPackagePanel } from "@/v2/LibraryPackagePanel";
 import "@/v2/capability-convergence.css";
 import "@/v2/library-evidence-rigor.css";
 import "@/v2/library-auto-catalog.css";
@@ -99,14 +97,15 @@ export function LibraryEvidenceEstate({
   onSearchWider,
   onResetFilters,
 }) {
-  const [packageOpen, setPackageOpen] = useState(false);
   const visibleAssets = assets;
-  const showKind = visibleAssets.some((item) => presentationKind(item?.row || item) !== "dataset");
-  const ledgerClass = `rd-v2-cap-ledger with-verify${showKind ? " show-kind" : ""}`;
+  // August Library authority: keep the ledger schema stable even when every
+  // visible row happens to share one type. Type is evidence metadata, not
+  // optional chrome, and the fixed column preserves scan geometry.
+  const showKind = true;
+  const ledgerClass = "rd-v2-cap-ledger with-verify show-kind";
   const query = String(searchQuery || "").trim();
   const filteredSearchMiss = Boolean(query && searchMatchCount > 0 && !visibleAssets.length);
   const trueSearchMiss = Boolean(query && searchMatchCount === 0);
-  const packageAvailable = Boolean(query && visibleAssets.length);
 
   return (
     <section className="rd-v2-cap-estate" data-testid="library-evidence-estate" aria-label="Research evidence estate">
@@ -134,31 +133,6 @@ export function LibraryEvidenceEstate({
               Organizing collections…
             </span>
           )}
-        </div>
-      ) : null}
-
-      {packageAvailable ? (
-        <div className="rd-v2-library-package-context" data-testid="library-package-context">
-          <div>
-            <span className="rd-v2-eyebrow">Held evidence for this request</span>
-            <strong>{visibleAssets.length} visible match{visibleAssets.length === 1 ? "" : "es"}</strong>
-            <p>Reason across these holdings with Ask, or prepare a portable package from an explicit reviewed selection.</p>
-          </div>
-          <div className="rd-v2-library-package-context-actions">
-            {onAskCurrentSearch ? (
-              <button type="button" className="rd-v2-btn sm ghost" onClick={onAskCurrentSearch}>
-                Ask Library
-              </button>
-            ) : null}
-            <button
-              type="button"
-              className="rd-v2-btn sm primary rd-v2-library-package-trigger"
-              onClick={() => setPackageOpen(true)}
-              data-testid="library-package-open"
-            >
-              Prepare research package <span>{visibleAssets.length}</span>
-            </button>
-          </div>
         </div>
       ) : null}
 
@@ -267,13 +241,6 @@ export function LibraryEvidenceEstate({
           ) : null}
         </aside>
       ) : null}
-
-      <LibraryPackagePanel
-        open={packageOpen}
-        onClose={() => setPackageOpen(false)}
-        researchNeed={query}
-        assets={visibleAssets}
-      />
     </section>
   );
 }
