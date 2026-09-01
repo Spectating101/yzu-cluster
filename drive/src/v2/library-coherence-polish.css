@@ -452,4 +452,60 @@
     color: var(--rd-muted);
     font-size: 10px;
   }
+
+  /* Use the tree's remaining vertical room for explanation, not padding. */
+  .rd-v2-library-directory-shelf-copy em,
+  .rd-v2-library-directory-branch em {
+    display: block;
+    overflow: hidden;
+    margin-top: 2px;
+    color: var(--rd-muted);
+    font-size: 7.75px;
+    font-style: normal;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .rd-v2-library-directory-shelf-head {
+    min-height: 47px;
+  }
+
+  .rd-v2-library-directory-branch {
+    min-height: 38px;
+  }
+
+  /* Keep every review record on one semantic row: evidence | verification |
+     readiness | inspect. */
+  .rd-v2-library-review-queue > header p {
+    display: none;
+  }
+
+  .rd-v2-library-review-item {
+    grid-template-columns: minmax(0, 1fr) 94px 106px 12px;
+    min-height: 47px;
+  }
+
+  .rd-v2-library-review-item > .rd-v2-library-review-copy {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .rd-v2-library-review-item > .rd-v2-cap-verify {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+  }
+
+  .rd-v2-library-review-item > .rd-v2-status-pill,
+  .rd-v2-library-review-item > .rd-v2-pill {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+  }
+
+  .rd-v2-library-review-item > .rd-v2-library-review-arrow {
+    grid-column: 4;
+    grid-row: 1;
+  }
 }
