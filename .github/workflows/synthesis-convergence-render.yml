@@ -10,6 +10,7 @@ on:
     branches:
       - work/chatgpt-final-convergence-20260825
       - hardening/synthesis-analytical-verification-20260826
+      - polish/synthesis-wide-workstation-20260902
   pull_request:
     branches:
       - main
