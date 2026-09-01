@@ -64,7 +64,8 @@ for (const [name, viewport] of VIEWPORTS) {
     await settle(page);
     await expect(page.getByRole("heading", { name: "Find a researcher" })).toBeVisible();
     await expect(page.getByText("Kong, De-Rong", { exact: true }).first()).toBeVisible();
-    await expect(page.getByRole("button", { name: "Use as my profile" })).toBeVisible();
+    await expect(page.getByText("Registry preview", { exact: true }).first()).toBeVisible();
+    await expect(page.getByRole("button", { name: "Set my own identity →" })).toBeVisible();
     await noOverflow(page);
     await page.screenshot({ path: `${OUT}/${name}-profile-unbound.png`, fullPage: false });
   });
@@ -81,8 +82,7 @@ for (const [name, viewport] of VIEWPORTS) {
       },
     });
     await page.addInitScript(() => {
-      window.localStorage.setItem("rd_v2_settings", JSON.stringify({ email: "researcher@example.test" }));
-      window.localStorage.setItem("rd_v2_user_email", "researcher@example.test");
+      window.localStorage.setItem("procure_user_email", "researcher@example.test");
     });
     await page.goto("/?tab=profile", { waitUntil: "domcontentloaded" });
     await settle(page);
