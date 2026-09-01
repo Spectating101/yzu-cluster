@@ -36,6 +36,9 @@ import "./home-authority.css";
 // Containment is part of the authority: no nested prompt/action may bleed
 // beyond the Home card that owns it at any certified desktop viewport.
 import "./home-authority-closure.css";
+// Selected Home attention must read as a continuation of Pick Up, not as a
+// generic inspector explainer detached from the actual decision record.
+import "./home-attention-rail.css";
 import { V2App } from "./App";
 import { InteractionProvider } from "./InteractionGuidance";
 
