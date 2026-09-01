@@ -36,10 +36,13 @@
   width: 100%;
   max-width: 100%;
   min-width: 0;
+  height: auto;
+  min-height: 0;
+  max-height: none;
   box-sizing: border-box;
   margin: 0;
   padding: 9px 0;
-  overflow: hidden;
+  overflow: visible;
   border: 0;
   border-bottom: 1px solid color-mix(in srgb, var(--home-line) 74%, transparent);
   border-radius: 0;
