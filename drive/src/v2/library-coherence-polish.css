@@ -1,9 +1,9 @@
 @import "./library-coherence-base.css";
 
-/* Leaf evidence is part of the semantic tree, but wide screens are the only
-   place with enough room to show the complete hierarchy without crowding the
-   ledger. */
-.rd-v2-library-directory-leaves {
+/* Leaf evidence and the review queue are wide-screen enrichments. Compact
+   layouts keep the already-accepted dense Library composition. */
+.rd-v2-library-directory-leaves,
+.rd-v2-library-review-queue {
   display: none;
 }
 
@@ -21,7 +21,7 @@
   .rd-v2-cap-estate:has(> .rd-v2-library-directory-home) {
     display: grid;
     grid-template-columns: 372px minmax(0, 1fr);
-    grid-template-rows: auto auto;
+    grid-template-rows: auto auto auto;
     gap: 10px 12px;
     align-items: start;
     margin: 0 14px 18px;
@@ -231,5 +231,115 @@
   .rd-v2-library-all-evidence .rd-v2-cap-ledger-head,
   .rd-v2-library-all-evidence .rd-v2-cap-ledger-row {
     grid-template-columns: minmax(360px, 1.8fr) minmax(105px, 0.45fr) minmax(200px, 0.95fr) minmax(108px, 0.42fr) minmax(118px, 0.46fr);
+  }
+
+  /* Use the remaining wide-screen canvas for grounded guidance rather than
+     decorative filler. Only verification states that explicitly require source
+     review appear here; readiness remains visible as a separate claim. */
+  .rd-v2-library-review-queue {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    display: grid;
+    grid-template-columns: 300px minmax(0, 1fr);
+    gap: 16px;
+    padding: 13px 14px;
+    border: 1px solid var(--rd-border);
+    border-radius: 9px;
+    background: rgba(255, 253, 246, 0.5);
+  }
+
+  .rd-v2-library-review-queue > header {
+    align-self: center;
+  }
+
+  .rd-v2-library-review-queue > header span {
+    display: block;
+    margin-bottom: 3px;
+    color: var(--rd-muted);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+  }
+
+  .rd-v2-library-review-queue > header h2 {
+    margin: 0;
+    color: var(--rd-ink);
+    font-size: 14px;
+    line-height: 1.25;
+  }
+
+  .rd-v2-library-review-queue > header p {
+    margin: 5px 0 0;
+    color: var(--rd-muted);
+    font-size: 9.5px;
+    line-height: 1.4;
+  }
+
+  .rd-v2-library-review-items {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .rd-v2-library-review-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    align-items: center;
+    gap: 5px 8px;
+    min-width: 0;
+    min-height: 72px;
+    padding: 9px 10px;
+    border: 1px solid var(--rd-border2);
+    border-radius: 7px;
+    background: rgba(255, 255, 255, 0.58);
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .rd-v2-library-review-item:hover,
+  .rd-v2-library-review-item:focus-visible {
+    background: rgba(255, 255, 255, 0.9);
+  }
+
+  .rd-v2-library-review-copy {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .rd-v2-library-review-copy strong,
+  .rd-v2-library-review-copy em {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .rd-v2-library-review-copy strong {
+    color: var(--rd-body);
+    font-size: 10.5px;
+  }
+
+  .rd-v2-library-review-copy em {
+    color: var(--rd-muted);
+    font-size: 8.5px;
+    font-style: normal;
+  }
+
+  .rd-v2-library-review-item > .rd-v2-cap-verify {
+    justify-self: end;
+  }
+
+  .rd-v2-library-review-item > .rd-v2-status-pill,
+  .rd-v2-library-review-item > .rd-v2-pill {
+    justify-self: start;
+  }
+
+  .rd-v2-library-review-arrow {
+    justify-self: end;
+    color: var(--rd-muted);
+    font-size: 11px;
   }
 }
