@@ -2,14 +2,6 @@ name: Research Drive live review
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - agent/live-review-main-20260804
-    paths:
-      - ".github/workflows/live-review-main.yml"
-      - "playwright.live-review.config.js"
-      - "e2e/live-review.spec.js"
-      - "package.json"
   pull_request:
     branches:
       - main
@@ -28,14 +20,13 @@ concurrency:
 
 jobs:
   review:
-    name: Mutation-blocked Chromium review
+    name: Live Discover screenshot capture
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 12
     env:
       YZU_DESK_URL: https://previous.easycamp.tech
-      LIVE_REVIEW_QUERY: stablecoin
     steps:
-      - name: Checkout current review branch
+      - name: Checkout capture branch
         uses: actions/checkout@v4
 
       - name: Use Node.js
@@ -47,13 +38,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+      - name: Confirm hosted Chrome
+        run: google-chrome --version
 
       - name: Confirm review endpoint
         run: curl --fail --show-error --location --max-time 30 "$YZU_DESK_URL/" >/dev/null
 
-      - name: Run mutation-blocked live review
+      - name: Capture live Discover
         run: npm run test:live-review
 
       - name: Upload live-review evidence
