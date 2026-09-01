@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - "recovery/august-visual-authority-20260901"
+      - "recovery/canonical-visual-authority-20260901"
     paths:
       - "drive/src/v2/**"
       - "e2e/august-visual-recovery.spec.js"
