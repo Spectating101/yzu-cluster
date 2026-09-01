@@ -31,16 +31,21 @@ const REGISTRY_PREVIEW = {
 
 const UNBOUND_DESK_ACCESS = {
   version: 2,
-  authenticated: false,
-  access: "public_guest",
-  principal: null,
+  authenticated: true,
+  access: "operator",
+  principal: {
+    id: "visual-unbound",
+    email: "",
+    display_name: "Researcher",
+    role: "operator",
+  },
   permissions: {
     view_research_data: true,
     view_faculty_profile: true,
-    view_operations: false,
-    use_ask: false,
-    submit_collection: false,
-    approve_jobs: false,
+    view_operations: true,
+    use_ask: true,
+    submit_collection: true,
+    approve_jobs: true,
   },
 };
 
@@ -52,8 +57,8 @@ async function setup(page, viewport, profileBody, boundEmail = "") {
     if (email) window.localStorage.setItem("procure_user_email", email);
   }, boundEmail);
   await mockV2Api(page, { profileBody, historyBody: { items: [] } });
-  // The generic fixture is an authenticated operator. Profile browsing needs
-  // to prove that account identity and faculty-registry lookup are distinct.
+  // A usable Research Drive account is present, but no faculty identity is
+  // implied by that account. This is the explorer state we are designing.
   await page.route("**/library/desk/capabilities", (route) => route.fulfill({
     status: 200,
     contentType: "application/json",
