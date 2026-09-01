@@ -1,5 +1,6 @@
 import "./discover-evidence-field.css";
 import "./discover-scale-polish.css";
+import "./discover-efficiency-polish.css";
 
 function count(value) {
   return Array.isArray(value) ? value.length : 0;
@@ -31,7 +32,7 @@ export function DiscoverEvidenceField({
         <div>
           <span className="rd-v2-eyebrow">Candidate field</span>
           <strong>{candidateCount} candidate{candidateCount === 1 ? "" : "s"}</strong>
-          <p>Discover treats this as a field to compare and combine, not a single-winner lookup.</p>
+          <p>Compare, combine, or synthesize from the field.</p>
         </div>
         <div className="rd-v2-discover-field-actions">
           {onSearchWider ? <button type="button" onClick={() => onSearchWider(query)}>Search wider</button> : null}
