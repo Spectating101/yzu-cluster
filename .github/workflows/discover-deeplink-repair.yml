@@ -1,0 +1,142 @@
+name: Discover deep-link repair
+
+on:
+  push:
+    branches:
+      - polish/discover-reconvergence-20260902
+    paths:
+      - ".github/workflows/discover-deeplink-repair.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: polish/discover-reconvergence-20260902
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Repair Discover selection URL authority
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          app = Path("drive/src/v2/App.jsx")
+          text = app.read_text()
+
+          old = '''      if (next === DISCOVER_TAB && !opts.preserveDiscoverScope) {
+        setDiscoverPreferLive(discoverScopeIsWide());
+      }
+'''
+          new = '''      if (next === DISCOVER_TAB && !opts.preserveDiscoverScope) {
+        setDiscoverPreferLive(discoverScopeIsWide());
+        // A fresh navigation to Discover starts at the retrieval surface. Do not
+        // inherit a Library dataset identity into Discover; direct Discover URLs
+        // still hydrate selectedId before this callback ever runs.
+        setSelectedId("");
+        setDetail(null);
+        setBrowseRow(null);
+      }
+'''
+          assert old in text, "goTab Discover anchor changed"
+          text = text.replace(old, new, 1)
+
+          old = '''  const browseTarget = browseRow;
+  const browseSelectedId = browseRow ? candidateKey(browseRow) : "";
+'''
+          new = '''  const browseTarget = browseRow;
+  // Direct Discover URLs may carry either a raw dataset id or a typed candidate
+  // key. Preserve that requested identity until the source catalogue resolves;
+  // BrowsePage will bind the exact row and hand it back through onSelectRow.
+  const browseSelectedId = browseRow ? candidateKey(browseRow) : selectedId;
+'''
+          assert old in text, "browseSelectedId anchor changed"
+          text = text.replace(old, new, 1)
+
+          old = '''            setBrowseRow(stamped);
+            setBrowseProbe((current) =>
+'''
+          new = '''            setBrowseRow(stamped);
+            const urlDataset = String(stamped?.dataset_id || nextKey || "").trim();
+            if (urlDataset) {
+              setSelectedId(urlDataset);
+              syncUrl({ tab: DISCOVER_TAB, dataset: urlDataset, q: discoverSearchQuery.trim() });
+            }
+            setBrowseProbe((current) =>
+'''
+          assert old in text, "Discover onSelectRow anchor changed"
+          text = text.replace(old, new, 1)
+          app.write_text(text)
+
+          browse = Path("drive/src/v2/BrowsePage.jsx")
+          text = browse.read_text()
+          old = 'import { useEffect, useMemo, useState } from "react";'
+          new = 'import { useEffect, useMemo, useRef, useState } from "react";'
+          assert old in text, "React import anchor changed"
+          text = text.replace(old, new, 1)
+
+          old = '''  const selected = selectedId === candidateKey(row);
+'''
+          new = '''  const selected = selectedId === candidateKey(row) || selectedId === row?.dataset_id;
+'''
+          assert old in text, "candidate selected anchor changed"
+          text = text.replace(old, new, 1)
+
+          old = '''  const [lookupProgress, setLookupProgress] = useState({ library: "waiting", routes: "waiting" });
+'''
+          new = '''  const [lookupProgress, setLookupProgress] = useState({ library: "waiting", routes: "waiting" });
+  const restoredSelectionRef = useRef("");
+'''
+          assert old in text, "lookupProgress anchor changed"
+          text = text.replace(old, new, 1)
+
+          old = '''  useEffect(() => {
+    if (!isExplore || !selectedId || !centreRows.length) return;
+    if (centreRows.some((row) => candidateKey(row) === selectedId)) return;
+    // A stale Library selection must not leave Detail judging an item that is
+    // no longer in the ranked centre.  Preserve the researcher’s selection
+    // when it is visible; otherwise focus the first actual offering.
+    onSelectRow?.(centreRows[0]);
+  }, [isExplore, selectedId, centreRows, onSelectRow]);
+'''
+          new = '''  useEffect(() => {
+    if (!isExplore || !selectedId || !centreRows.length) return;
+    const exact = centreRows.find(
+      (row) => candidateKey(row) === selectedId || row?.dataset_id === selectedId,
+    );
+    if (exact) {
+      // URL hydration has the identity before App has a browseTarget. Bind the
+      // resolved row once so Detail evaluates the same source the URL names.
+      if (restoredSelectionRef.current !== selectedId) {
+        restoredSelectionRef.current = selectedId;
+        onSelectRow?.(exact);
+      }
+      return;
+    }
+    restoredSelectionRef.current = "";
+    // A stale selection must not leave Detail judging an item that is no longer
+    // in the ranked centre. Focus the first actual offering instead.
+    onSelectRow?.(centreRows[0]);
+  }, [isExplore, selectedId, centreRows, onSelectRow]);
+
+  useEffect(() => {
+    if (!selectedId) restoredSelectionRef.current = "";
+  }, [selectedId]);
+'''
+          assert old in text, "selection hydration anchor changed"
+          text = text.replace(old, new, 1)
+          browse.write_text(text)
+          PY
+      - name: Commit repair
+        run: |
+          git config user.name "research-drive-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add drive/src/v2/App.jsx drive/src/v2/BrowsePage.jsx
+          git diff --cached --check
+          git commit -m "fix(discover): restore exact deep-link selection"
+          git push origin HEAD:polish/discover-reconvergence-20260902
