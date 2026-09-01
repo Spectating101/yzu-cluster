@@ -1,0 +1,33 @@
+name: Discover assembly hierarchy patch
+
+on:
+  push:
+    branches:
+      - polish/discover-reconvergence-20260902
+    paths:
+      - "scripts/discover_field_order_patch.py"
+      - ".github/workflows/discover-field-order-patch.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: polish/discover-reconvergence-20260902
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python scripts/discover_field_order_patch.py
+      - name: Commit assembly hierarchy
+        run: |
+          git config user.name "research-drive-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add drive/src/v2/BrowsePage.jsx
+          git diff --cached --check
+          git commit -m "refactor(discover): surface assembly before detailed assessment"
+          git push origin HEAD:polish/discover-reconvergence-20260902
