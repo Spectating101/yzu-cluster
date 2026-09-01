@@ -1,0 +1,87 @@
+/* Final PS desktop density correction after inspecting 1440 + 1920 rebuild renders. */
+
+@media (min-width: 1180px) {
+  .rd-v2-settings-page .rd-v2-page-head {
+    padding-bottom: 12px;
+  }
+
+  .rd-v2-settings-statement {
+    gap: 12px;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section .rd-v2-statement-head {
+    padding: 11px 14px 9px;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) .rd-v2-settings-row {
+    gap: 6px;
+    padding: 12px 14px 5px;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) .rd-v2-settings-hint {
+    padding: 0 14px 12px;
+    font-size: 10px;
+    line-height: 1.38;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) .rd-v2-select {
+    min-height: 34px;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(2) .rd-v2-statement-body,
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(4) .rd-v2-statement-body,
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(5) .rd-v2-statement-body {
+    padding: 6px 12px 11px;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(2) .rd-v2-settings-hint,
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(4) .rd-v2-settings-hint,
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(5) .rd-v2-settings-hint {
+    padding-top: 7px;
+    font-size: 10px;
+    line-height: 1.38;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(2) .rd-v2-statement-row,
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(5) .rd-v2-statement-row {
+    padding: 5px 0 6px;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(4) .rd-v2-settings-row.stack {
+    padding-top: 4px;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(5) .rd-v2-settings-row.stack {
+    padding-top: 5px;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(3) .rd-v2-statement-body {
+    padding: 9px 14px 10px;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(3) .rd-v2-connected-intro p {
+    font-size: 10.5px;
+    line-height: 1.42;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(3) .rd-v2-connected-error,
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(3) .rd-v2-settings-hint {
+    margin-top: 7px;
+  }
+}
+
+@media (min-width: 1680px) {
+  /* 1920 has room for a little more breathing space without returning to the
+     old vertical form. */
+  .rd-v2-settings-statement {
+    gap: 14px;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) .rd-v2-settings-row {
+    padding: 14px 16px 6px;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) .rd-v2-settings-hint {
+    padding: 0 16px 14px;
+  }
+}
