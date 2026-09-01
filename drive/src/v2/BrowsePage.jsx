@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { discoverSearch, discoverSources, webDiscover } from "@/v2/api";
 import { sourcesResponseToRows } from "@/v2/discoverAdapters";
 import { collectRouteLabel } from "@/v2/collectRouteLabel";
@@ -184,7 +184,7 @@ function DiscoverCandidateRow({
 }) {
   const taxonomy = row.discover_taxonomy || classifyDiscoverResult(row, labIds);
   const state = row.discover_state || discoverCandidateState(row, labIds);
-  const selected = selectedId === candidateKey(row);
+  const selected = selectedId === candidateKey(row) || selectedId === row?.dataset_id;
   const ribbonSource =
     row.source || row.collect_via || row.source_route || row.publisher || row.backend || hostLabel(row.url);
   const taxonomyLine = accessLabel(taxonomy);
@@ -672,6 +672,7 @@ export function BrowsePage({
   const [enrichedQuestion, setEnrichedQuestion] = useState("");
   const [autoWidening, setAutoWidening] = useState(false);
   const [lookupProgress, setLookupProgress] = useState({ library: "waiting", routes: "waiting" });
+  const restoredSelectionRef = useRef("");
 
   const pendingRows = useMemo(
     () => pendingApprovalJobs(jobs).filter(isDiscoverHistoryJob).map((job) => jobToCandidateRow(job)).filter(Boolean),
@@ -1098,12 +1099,27 @@ export function BrowsePage({
 
   useEffect(() => {
     if (!isExplore || !selectedId || !centreRows.length) return;
-    if (centreRows.some((row) => candidateKey(row) === selectedId)) return;
-    // A stale Library selection must not leave Detail judging an item that is
-    // no longer in the ranked centre.  Preserve the researcher’s selection
-    // when it is visible; otherwise focus the first actual offering.
+    const exact = centreRows.find(
+      (row) => candidateKey(row) === selectedId || row?.dataset_id === selectedId,
+    );
+    if (exact) {
+      // URL hydration has the identity before App has a browseTarget. Bind the
+      // resolved row once so Detail evaluates the same source the URL names.
+      if (restoredSelectionRef.current !== selectedId) {
+        restoredSelectionRef.current = selectedId;
+        onSelectRow?.(exact);
+      }
+      return;
+    }
+    restoredSelectionRef.current = "";
+    // A stale selection must not leave Detail judging an item that is no longer
+    // in the ranked centre. Focus the first actual offering instead.
     onSelectRow?.(centreRows[0]);
   }, [isExplore, selectedId, centreRows, onSelectRow]);
+
+  useEffect(() => {
+    if (!selectedId) restoredSelectionRef.current = "";
+  }, [selectedId]);
 
   useEffect(() => {
     if (!isExplore || !searchQuery.trim()) {
