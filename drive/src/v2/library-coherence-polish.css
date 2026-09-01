@@ -1,7 +1,7 @@
 /* Library coherence polish — 2026-09-02
-   This layer deliberately preserves the accepted estate / ledger / inspector
-   architecture. It only reduces competing chrome and makes the visual grammar
-   calmer across browse, retrieval, and selected-asset states. */
+   Preserve the accepted estate / ledger / inspector architecture. This layer
+   only reduces competing chrome and gives browse, retrieval, and inspection
+   one calmer visual grammar. */
 
 /* The Library footer repeated an interaction rule already expressed by the
    ledger, readiness controls, and selected-asset actions. Keep the canvas quiet. */
@@ -26,6 +26,7 @@
   border: 0;
   border-radius: 6px;
   background: transparent;
+  transition: background 120ms ease;
 }
 
 .rd-v2-library-page .rd-v2-library-filter-control + .rd-v2-library-filter-control {
@@ -42,8 +43,8 @@
   opacity: 0.72;
 }
 
-/* Search remains the primary retrieval action. The secondary Ask handoff should
-   read as a continuation of that search rather than a new toolbar mode. */
+/* Search remains the primary retrieval action. The secondary Ask handoff reads
+   as a continuation of the search rather than a new toolbar mode. */
 .rd-v2-library-page .rd-v2-library-search-ask {
   border-color: color-mix(in srgb, var(--rd-border2) 76%, transparent);
   background: rgba(255, 255, 255, 0.48);
@@ -58,6 +59,7 @@
 
 .rd-v2-library-page .rd-v2-cap-collection {
   box-shadow: none;
+  transition: background 120ms ease, border-color 120ms ease;
 }
 
 /* Selected asset: the centre owns substance while the rail owns the decision.
@@ -93,9 +95,9 @@
   box-shadow: none;
 }
 
-/* The nested schema/provenance dialog is intentionally a disclosure inside the
-   selected asset, not a third full application surface. Make that hierarchy
-   visible by softening the scrim and tightening the sheet. */
+/* The nested schema/provenance dialog is a disclosure inside the selected
+   asset, not a third full application surface. Make that hierarchy visible by
+   softening the scrim and tightening the sheet. */
 .rd-v2-library-workspace .rd-v2-library-overlay-scrim {
   background: rgba(38, 36, 31, 0.18);
   backdrop-filter: blur(1.5px);
@@ -140,18 +142,17 @@
 @media (max-width: 760px) {
   .rd-v2-library-page .rd-v2-library-toolbar-filters {
     width: 100%;
-    gap: 2px;
+    gap: 0;
     padding: 3px;
   }
 
-  .rd-v2-library-page .rd-v2-library-filter-control,
-  .rd-v2-library-page .rd-v2-library-filter-control + .rd-v2-library-filter-control {
-    border-left: 0;
-    border-radius: 6px;
+  .rd-v2-library-page .rd-v2-library-filter-control {
+    padding-inline: 5px;
   }
 
   .rd-v2-library-page .rd-v2-library-filter-control + .rd-v2-library-filter-control {
-    border-top: 1px solid color-mix(in srgb, var(--rd-border2) 52%, transparent);
+    border-left: 1px solid color-mix(in srgb, var(--rd-border2) 52%, transparent);
+    border-radius: 0;
   }
 
   .rd-v2-library-workspace .rd-v2-library-overlay {
