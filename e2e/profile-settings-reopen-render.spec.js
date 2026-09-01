@@ -14,6 +14,17 @@ async function setupResearcherState(page, viewport, profileBody) {
     profileBody,
     historyBody: { items: [] },
   });
+
+  // Settings visual acceptance should represent a valid connected desk, not a
+  // missing test route. Connected-storage authority can legitimately be empty;
+  // a synthetic 500 here only dirties the screenshot and tests the harness.
+  await page.route("**/library/accounts", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ accounts: [], providers: [] }),
+    }),
+  );
 }
 
 async function noDocumentOverflow(page) {
@@ -75,6 +86,7 @@ for (const viewport of [
     await waitForShell(page);
     await expect(page.getByRole("heading", { name: "Workspace behavior" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Research identity" })).toBeVisible();
+    await expect(page.getByText("No storage providers are configured on this host.")).toBeVisible();
     await noDocumentOverflow(page);
     await settle(page);
     await page.screenshot({ path: `${OUT}/settings-empty-${viewport.name}.png`, fullPage: false });
