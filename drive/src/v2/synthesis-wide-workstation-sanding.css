@@ -1,0 +1,172 @@
+/* Synthesis wide-workstation visual sanding.
+ *
+ * This layer is intentionally presentation-only and only applies to large
+ * workstation viewports. 1440 and below keep the frozen compact composition.
+ * The goal is one spacing rhythm, deliberate sidecars, and balanced horizontal
+ * compositions without changing Synthesis state, wording, or authority.
+ */
+
+@media (min-width: 1680px) and (min-height: 900px) {
+  /* Grid gap is the spacing authority on wide Synthesis. The legacy cards carry
+     their own vertical margins from the compact document layout; keeping both
+     produced the visibly irregular 24–40px holes in otherwise 12–14px grids. */
+  .rd-v2-synthesis-page .s04-main:has(> .s04-opening-construction) > *,
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]) > *,
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]) > *,
+  .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-execution-state"],
+    [data-testid="synthesis-failed-state"],
+    [data-testid="synthesis-registered-state"],
+    [data-testid="synthesis-query-ready-state"]
+  )) > * {
+    margin-block: 0 !important;
+  }
+
+  /* New construction: the methods lane is intentionally shorter when only a
+     few reusable recipes exist. Do not turn that absence into a giant empty
+     bordered card merely because the purpose lane is taller. */
+  .rd-v2-synthesis-page .s04-new-entry-grid {
+    align-items: start;
+  }
+
+  .rd-v2-synthesis-page .s04-new-entry-section,
+  .rd-v2-synthesis-page .s04-new-entry-methods {
+    min-height: 0 !important;
+    align-self: start;
+  }
+
+  /* A measured-evidence failure is a status object, not a loose line of text.
+     Give it a quiet bounded surface so it reads as part of the sidecar stack. */
+  .rd-v2-synthesis-page .s04-measurement-status {
+    box-sizing: border-box;
+    min-width: 0;
+    padding: 11px 12px !important;
+    border: 1px solid #e1e4e9 !important;
+    border-left: 3px solid #b85b57 !important;
+    border-radius: 12px !important;
+    background: rgba(255, 252, 250, .92) !important;
+    box-shadow: none !important;
+  }
+
+  .rd-v2-synthesis-page .s04-measurement-status > :first-child {
+    min-width: 0;
+  }
+
+  .rd-v2-synthesis-page .s04-measurement-status :is(p, span, strong, small) {
+    overflow-wrap: anywhere;
+  }
+
+  /* Recommendation: preserve the asymmetric hierarchy, but make the shorter
+     decision card feel intentionally composed rather than abruptly truncated. */
+  .rd-v2-synthesis-page .s04-main:has(> .s04-opening-construction) {
+    row-gap: 12px;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> .s04-opening-construction) > .s04-opening-next {
+    min-height: 232px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> .s04-opening-construction) > .s04-opening-next > p {
+    max-width: 42ch;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> .s04-opening-construction) > .s04-opening-next > footer {
+    margin-top: auto !important;
+  }
+
+  /* Exploring: keep the evidence map dominant and turn the right lane into one
+     coherent decision stack. The next-state card has enough vertical presence
+     to balance the map without inventing content or stretching to equal height. */
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"])) {
+    grid-template-columns: minmax(0, 1.5fr) minmax(350px, .5fr);
+    row-gap: 12px;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"])) > .s04-measurement-status {
+    grid-column: 2;
+    align-self: start;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"])) > .s04-opening-next {
+    grid-column: 2;
+    min-height: 224px;
+    display: flex;
+    flex-direction: column;
+    align-self: start;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"])) > .s04-opening-next > footer {
+    margin-top: auto !important;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"])) > .s04-measurement-status button {
+    flex: 0 0 auto;
+  }
+
+  /* Proposal is already a horizontal analytical object internally. Giving a
+     tiny measurement strip its own 35% column harmed both pieces, so the
+     proposal regains the whole desk width and the status becomes a compact row. */
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction)) {
+    grid-template-columns: minmax(0, 1fr) !important;
+    row-gap: 12px;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction)) > * {
+    grid-column: 1 !important;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction)) > .s04-measurement-status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding-block: 9px !important;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction)) > .s04-measurement-status button {
+    flex: 0 0 auto;
+  }
+
+  /* Mature states: remove the oversized current-record gap and give measured
+     evidence/provenance enough width to keep durable identifiers readable. */
+  .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-execution-state"],
+    [data-testid="synthesis-failed-state"],
+    [data-testid="synthesis-registered-state"],
+    [data-testid="synthesis-query-ready-state"]
+  )) {
+    grid-template-columns: minmax(0, 1.28fr) minmax(390px, .72fr) !important;
+    row-gap: 12px !important;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-execution-state"],
+    [data-testid="synthesis-failed-state"],
+    [data-testid="synthesis-registered-state"],
+    [data-testid="synthesis-query-ready-state"]
+  )) > [data-testid="synthesis-evidence-state"] .s04-title h2 {
+    font-size: 18px;
+    line-height: 1.12;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-execution-state"],
+    [data-testid="synthesis-failed-state"],
+    [data-testid="synthesis-registered-state"],
+    [data-testid="synthesis-query-ready-state"]
+  )) > [data-testid="synthesis-evidence-state"] :is(strong, dd, code) {
+    overflow-wrap: anywhere;
+  }
+
+  /* Keep wide analytical/blocking views under their existing production-scale
+     layout rules; do not apply aesthetic balancing to stress-test geometry. */
+  .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  )) > * {
+    margin-block: revert;
+  }
+}
