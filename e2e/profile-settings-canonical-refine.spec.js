@@ -29,6 +29,21 @@ const REGISTRY_PREVIEW = {
   },
 };
 
+const UNBOUND_DESK_ACCESS = {
+  version: 2,
+  authenticated: false,
+  access: "public_guest",
+  principal: null,
+  permissions: {
+    view_research_data: true,
+    view_faculty_profile: true,
+    view_operations: false,
+    use_ask: false,
+    submit_collection: false,
+    approve_jobs: false,
+  },
+};
+
 async function setup(page, viewport, profileBody, boundEmail = "") {
   await page.setViewportSize(viewport);
   await page.addInitScript((email) => {
@@ -37,6 +52,13 @@ async function setup(page, viewport, profileBody, boundEmail = "") {
     if (email) window.localStorage.setItem("procure_user_email", email);
   }, boundEmail);
   await mockV2Api(page, { profileBody, historyBody: { items: [] } });
+  // The generic fixture is an authenticated operator. Profile browsing needs
+  // to prove that account identity and faculty-registry lookup are distinct.
+  await page.route("**/library/desk/capabilities", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify(UNBOUND_DESK_ACCESS),
+  }));
   await page.route("**/library/accounts", (route) => route.fulfill({
     status: 200,
     contentType: "application/json",
