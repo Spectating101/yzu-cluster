@@ -1,8 +1,13 @@
 import { mkdir } from "node:fs/promises";
 import { test, expect } from "@playwright/test";
-import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
+import {
+  MOCK_DISCOVER_ASSESSMENT,
+  mockV2Api,
+  waitForShell,
+} from "./fixtures/v2MockApi.js";
 
 const OUT = "artifacts/discover-reconvergence";
+const DATACITE_DATASET_ID = "datacite_10.5281_zenodo.58938";
 
 function resultFixture() {
   return {
@@ -27,6 +32,7 @@ function resultFixture() {
         {
           kind: "source",
           source_id: "datacite_live",
+          dataset_id: DATACITE_DATASET_ID,
           candidate_key: "source:datacite:live",
           title: "DataCite live catalogue",
           description: "Searchable scholarly and research-data catalogue with DOI-level records.",
@@ -74,14 +80,14 @@ function resultFixture() {
   };
 }
 
-async function openDiscover(page) {
-  await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+async function openDiscover(page, path = "/?tab=browse") {
+  await page.goto(path, { waitUntil: "domcontentloaded" });
   await waitForShell(page);
   await expect(page.getByTestId("discover-browse-mode")).toBeVisible();
 }
 
-async function runSearch(page) {
-  await page.getByLabel("Search or describe a research need").fill("stablecoin market evidence");
+async function runSearch(page, query = "stablecoin market evidence") {
+  await page.getByLabel("Search or describe a research need").fill(query);
   await page.getByRole("button", { name: "Explore", exact: true }).click();
   await expect(page.getByTestId("discover-result-summary")).toBeVisible();
   await expect(page.getByTestId("discover-ranked-results")).toBeVisible();
@@ -140,5 +146,35 @@ test.describe("Discover reconvergence visual review", () => {
       await assertNoOverflow(page);
       await page.screenshot({ path: `${OUT}/discover-selected-${viewport.name}.png`, fullPage: false });
     });
+
+    test(`research-question evidence workspace ${viewport.name}`, async ({ page }) => {
+      await mockV2Api(page, {
+        ...resultFixture(),
+        assessmentBody: MOCK_DISCOVER_ASSESSMENT,
+      });
+      await page.setViewportSize({ width: viewport.width, height: viewport.height });
+      await openDiscover(page);
+      await runSearch(page, "Do we hold issuer-quarter governance data for Taiwan?");
+
+      const workspace = page.locator(".rd-v2-evidence-brief.is-workspace");
+      await expect(workspace).toBeVisible();
+      await expect(workspace).toContainText(/Partially covered/i);
+      await expect(workspace).toContainText(/Board-governance variables/i);
+      await assertNoOverflow(page);
+      await page.screenshot({ path: `${OUT}/discover-investigation-${viewport.name}.png`, fullPage: false });
+    });
   }
+
+  test("raw DataCite Discover deep link binds the named source", async ({ page }) => {
+    await mockV2Api(page, resultFixture());
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await openDiscover(page, `/?tab=discover&dataset=${encodeURIComponent(DATACITE_DATASET_ID)}`);
+
+    await expect(page.locator(".rd-v2-discover-candidate.selected")).toContainText("DataCite live catalogue");
+    const rail = page.locator("aside.rd-v2-rail");
+    await expect(rail).toContainText("DataCite live catalogue");
+    await expect(rail).not.toContainText("No candidate selected");
+    await assertNoOverflow(page);
+    await page.screenshot({ path: `${OUT}/discover-deeplink-datacite-1920x1080.png`, fullPage: false });
+  });
 });
