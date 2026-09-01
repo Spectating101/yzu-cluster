@@ -20,3 +20,152 @@
     padding-right: 12px;
   }
 }
+
+/* Full-scale production density ------------------------------------------------
+ * On a 1920-class desk, do not preserve the 1440 truncation strategy. The
+ * available card area should expose the useful text we already have rather
+ * than clipping it into one-line summaries surrounded by unused paper. */
+@media (min-width: 1680px) and (min-height: 900px) {
+  /* Four observed facts fit cleanly across the focal evidence card at this
+   * width; avoid the previous 3+1 orphan row. */
+  .rd-v2-home-authority .rd-v2-home-focal-facts {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    row-gap: 0;
+  }
+
+  .rd-v2-home-authority .rd-v2-home-focal-facts > div,
+  .rd-v2-home-authority .rd-v2-home-focal-facts > div:nth-child(even) {
+    padding: 12px 10px;
+    border-left: 0;
+  }
+
+  .rd-v2-home-authority .rd-v2-home-focal-facts > div:first-child {
+    padding-left: 0;
+  }
+
+  .rd-v2-home-authority .rd-v2-home-focal-facts > div:not(:first-child) {
+    border-left: 1px solid var(--home-line);
+  }
+
+  .rd-v2-home-authority .rd-v2-home-focal-facts dd {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+
+  /* Resource headroom owns a tall card at 1920. Distribute its three real
+   * capacity signals through that height instead of bunching them at the top. */
+  .rd-v2-home-authority .rd-v2-home-authority-card.headroom .rd-v2-home-authority-headroom-list {
+    display: grid;
+    grid-template-rows: repeat(3, minmax(0, 1fr));
+    flex: 1 1 auto;
+    margin: 10px 0 8px;
+  }
+
+  .rd-v2-home-authority .rd-v2-home-authority-card.headroom .rd-v2-home-authority-headroom-list li {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-block: 9px;
+  }
+
+  .rd-v2-home-authority .rd-v2-home-manage-resources {
+    margin-top: 0;
+    padding-top: 9px;
+  }
+
+  /* The focal resume card has a real durable record id already. Use the open
+   * middle band as an understated continuation marker instead of dead space. */
+  .rd-v2-home-authority .rd-v2-home-authority-card.continue {
+    position: relative;
+  }
+
+  .rd-v2-home-authority .rd-v2-home-authority-card.continue[data-resume-id]:not([data-resume-id=""])::after {
+    content: "DURABLE RECORD  ·  " attr(data-resume-id);
+    position: absolute;
+    left: 18px;
+    right: 18px;
+    bottom: 66px;
+    padding-top: 10px;
+    overflow: hidden;
+    border-top: 1px solid color-mix(in srgb, var(--home-line) 70%, transparent);
+    color: color-mix(in srgb, var(--home-muted) 86%, #527765);
+    font: 650 8.4px/1.35 var(--rd-mono);
+    letter-spacing: .055em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  .rd-v2-home-authority .rd-v2-home-authority-card.continue:has(.rd-v2-home-continue-secondary) .rd-v2-home-continue-secondary {
+    margin-top: auto;
+    padding-top: 13px;
+  }
+
+  /* Recent Trail is the biggest beneficiary of wide mode. Stop treating its
+   * title and consequence columns as narrow table cells: each real durable
+   * event gets enough height for two readable lines, and four rows now occupy
+   * the ledger rather than leaving a large blank lower half. */
+  .rd-v2-home-authority .rd-v2-home-authority-trail-list {
+    display: grid;
+    grid-auto-rows: minmax(74px, auto);
+    margin-top: 10px;
+  }
+
+  .rd-v2-home-authority .rd-v2-home-authority-trail-row {
+    grid-template-columns: minmax(96px, .48fr) minmax(178px, .94fr) minmax(0, 1.62fr) auto;
+    align-items: start;
+    min-height: 74px;
+    padding: 13px 0 12px;
+  }
+
+  .rd-v2-home-authority .rd-v2-home-authority-trail-row .kind {
+    padding-top: 1px;
+    line-height: 1.4;
+    white-space: normal;
+  }
+
+  .rd-v2-home-authority .rd-v2-home-authority-trail-row strong,
+  .rd-v2-home-authority .rd-v2-home-authority-trail-row .summary {
+    display: -webkit-box;
+    overflow: hidden;
+    text-overflow: clip;
+    white-space: normal;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .rd-v2-home-authority .rd-v2-home-authority-trail-row strong {
+    font-size: 11.2px;
+    line-height: 1.38;
+  }
+
+  .rd-v2-home-authority .rd-v2-home-authority-trail-row .summary {
+    font-size: 10.5px;
+    line-height: 1.45;
+  }
+
+  .rd-v2-home-authority .rd-v2-home-authority-trail-row em {
+    padding-top: 1px;
+  }
+
+  /* Suggested actions can also use their allotted height. Keep all four
+   * prompts readable, but give each enough vertical rhythm to balance the
+   * expanded ledger on the left. */
+  .rd-v2-home-authority .rd-v2-home-authority-card.next .rd-v2-home-suggested-lead {
+    margin-top: 14px;
+    margin-bottom: 5px;
+  }
+
+  .rd-v2-home-authority .rd-v2-home-authority-card.next .rd-v2-chip {
+    min-height: 66px;
+    padding-top: 15px;
+    padding-bottom: 15px;
+    font-size: 10.8px;
+    line-height: 1.42;
+  }
+
+  .rd-v2-home-authority .rd-v2-home-authority-card.next .rd-v2-chip::before {
+    top: 20px;
+  }
+}
