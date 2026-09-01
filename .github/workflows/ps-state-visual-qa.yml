@@ -1,0 +1,43 @@
+name: PS anonymous-state visual QA
+
+on:
+  push:
+    branches:
+      - polish/profile-settings-state-20260902
+  workflow_dispatch:
+
+concurrency:
+  group: ps-state-visual-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  render-and-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium --with-deps
+      - name: Production build
+        run: npm run build
+      - name: Render anonymous Profile and Settings
+        run: |
+          mkdir -p .tmp-pw artifacts/ps-state-visual
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false \
+            npx playwright test e2e/ps-state-visual.spec.js --project=chromium --workers=1 --reporter=line
+      - name: Upload PS renders
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ps-state-visual
+          path: |
+            artifacts/ps-state-visual
+            test-results
+          if-no-files-found: warn
+          retention-days: 3
