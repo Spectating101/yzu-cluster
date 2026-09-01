@@ -24,6 +24,7 @@ import "./discover-product-inspector.css";
 import "./hps-shell-convergence.css";
 import "./hps-responsive-fixes.css";
 import "./synthesis-workstation.css";
+import "./synthesis-wide-workstation.css";
 import "./discover-frozen-closure.css";
 import "./connected-accounts.css";
 import { V2App } from "./App";
