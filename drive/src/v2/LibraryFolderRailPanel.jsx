@@ -31,12 +31,12 @@ export function LibraryFolderRailPanel({
   const summaryLabel = filteredRoot
     ? "In this view"
     : root
-      ? "In this library"
+      ? "Library overview"
       : "In this collection";
 
   return (
     <RailFrame>
-      <div className="rd-v2-rail-scroll rd-v2-library-folder-inspector">
+      <div className="rd-v2-rail-scroll rd-v2-library-folder-inspector" data-library-root={root ? "true" : "false"}>
         <section className="rd-v2-library-folder-summary">
           <p className="rd-v2-rail-section-label">{summaryLabel}</p>
           <h3>{pluralCount(counts.datasets, "asset")}</h3>
@@ -52,12 +52,14 @@ export function LibraryFolderRailPanel({
           </div>
         </section>
 
-        <section className="rd-v2-library-folder-add">
-          <p className="rd-v2-rail-section-label">Add evidence</p>
-          {onStartUpload ? <button type="button" onClick={() => onStartUpload(object)}>Upload file</button> : null}
-          {onStartUrl ? <button type="button" onClick={() => onStartUrl(object)}>Add URL / DOI</button> : null}
-          {onStartProcure ? <button type="button" onClick={() => onStartProcure(object)}>Find missing evidence</button> : null}
-        </section>
+        {!root ? (
+          <section className="rd-v2-library-folder-add">
+            <p className="rd-v2-rail-section-label">Add evidence</p>
+            {onStartUpload ? <button type="button" onClick={() => onStartUpload(object)}>Upload file</button> : null}
+            {onStartUrl ? <button type="button" onClick={() => onStartUrl(object)}>Add URL / DOI</button> : null}
+            {onStartProcure ? <button type="button" onClick={() => onStartProcure(object)}>Find missing evidence</button> : null}
+          </section>
+        ) : null}
 
         <details className="rd-v2-library-inspector-tech rd-v2-library-folder-tech">
           <summary>Technical details</summary>
