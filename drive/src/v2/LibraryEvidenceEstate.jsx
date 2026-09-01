@@ -215,6 +215,39 @@ function LibraryDirectoryHome({
   );
 }
 
+function LibraryVerificationQueue({ rows, onSelectDataset }) {
+  if (!rows.length) return null;
+  return (
+    <section className="rd-v2-library-review-queue" data-testid="library-review-queue" aria-label="Library verification review queue">
+      <header>
+        <div>
+          <span>Verification review</span>
+          <h2>{rows.length} record{rows.length === 1 ? "" : "s"} need source review</h2>
+        </div>
+        <p>Readiness and verification are separate. These records have partial, unverified, or unchecked correspondence.</p>
+      </header>
+      <div className="rd-v2-library-review-items">
+        {rows.map(({ row, verification }) => (
+          <button
+            type="button"
+            className="rd-v2-library-review-item"
+            key={row.dataset_id || displayName(row)}
+            onClick={() => onSelectDataset?.(row)}
+          >
+            <span className="rd-v2-library-review-copy">
+              <strong>{displayName(row)}</strong>
+              <em>{sourceLabel(row)}</em>
+            </span>
+            <span className={`rd-v2-cap-verify ${verification.kind}`}>{verification.label}</span>
+            <StatusPill dataset={row} />
+            <span className="rd-v2-library-review-arrow" aria-hidden="true">→</span>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 /**
  * Root Library composition.
  *
@@ -242,6 +275,12 @@ export function LibraryEvidenceEstate({
   const directoryFirst = !query && Boolean(collections.length || collectionsLoading);
   const filteredSearchMiss = Boolean(query && searchMatchCount > 0 && !visibleAssets.length);
   const trueSearchMiss = Boolean(query && searchMatchCount === 0);
+  const reviewRows = directoryFirst
+    ? visibleAssets
+        .map((item) => item?.row || item)
+        .map((row) => ({ row, verification: libraryVerification(row) }))
+        .filter(({ verification }) => ["partial", "unverified", "unchecked"].includes(verification.kind))
+    : [];
 
   return (
     <section className="rd-v2-cap-estate" data-testid="library-evidence-estate" aria-label="Research evidence estate">
@@ -372,6 +411,8 @@ export function LibraryEvidenceEstate({
           ) : null}
         </aside>
       ) : null}
+
+      <LibraryVerificationQueue rows={reviewRows} onSelectDataset={onSelectDataset} />
     </section>
   );
 }
