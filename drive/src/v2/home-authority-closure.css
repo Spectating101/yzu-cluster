@@ -68,8 +68,8 @@
 }
 
 /* Wide-desktop enrichment.
- * 1920-class desks have materially more vertical room than 1440, so add
- * texture and breathing room without changing the information architecture.
+ * 1920-class desks have materially more vertical room than 1440, so use that
+ * room to close the research canvas rather than leaving a large dead field.
  * Nothing in this block applies to the certified 1440 composition. */
 @media (min-width: 1680px) and (min-height: 900px) {
   .rd-v2-home-authority-welcome {
@@ -83,6 +83,8 @@
 
   .rd-v2-home-authority-secondary {
     margin-top: 16px;
+    min-height: 374px;
+    align-items: stretch;
   }
 
   .rd-v2-home-authority-card.headroom,
@@ -92,50 +94,64 @@
 
   .rd-v2-home-authority-card.trail,
   .rd-v2-home-authority-card.next {
-    min-height: 286px;
+    min-height: 374px;
   }
 
-  /* An empty trail should still read like a quiet research ledger, not a
-   * vacant dashboard card. The rules are decorative only and never imply
-   * nonexistent events. */
+  /* An empty trail still describes what belongs in the durable record. These
+   * are category guides, not fabricated events. */
   .rd-v2-home-authority-card.trail {
     overflow: hidden;
   }
 
   .rd-v2-home-authority-card.trail .rd-v2-home-section-empty-actions {
     position: relative;
-    min-height: 196px;
-    padding-top: 2px;
+    min-height: 282px;
+    margin-top: 8px;
+    padding: 2px 0 0 18px;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0 54px,
+      color-mix(in srgb, var(--home-line) 46%, transparent) 54px 55px
+    );
+  }
+
+  .rd-v2-home-authority-card.trail .rd-v2-home-section-empty-actions::before,
+  .rd-v2-home-authority-card.trail .rd-v2-home-section-empty-actions::after {
+    position: absolute;
+    left: 18px;
+    right: 8px;
+    color: color-mix(in srgb, var(--home-ink) 72%, var(--home-muted));
+    font-size: 10px;
+    font-weight: 650;
+    line-height: 1.45;
+    letter-spacing: 0.025em;
+    white-space: pre-line;
+    pointer-events: none;
   }
 
   .rd-v2-home-authority-card.trail .rd-v2-home-section-empty-actions::before {
-    content: "";
-    position: absolute;
-    top: 42px;
-    bottom: 8px;
-    left: 2px;
-    width: 2px;
-    border-radius: 999px;
-    background: color-mix(in srgb, #527765 30%, transparent);
-    opacity: 0.55;
-    pointer-events: none;
+    content: "LIBRARY EVIDENCE\A Held assets and evidence changes become durable trail entries.";
+    top: 72px;
   }
 
   .rd-v2-home-authority-card.trail .rd-v2-home-section-empty-actions::after {
-    content: "";
-    position: absolute;
-    inset: 42px 0 8px 15px;
-    background: repeating-linear-gradient(
-      to bottom,
-      transparent 0 37px,
-      color-mix(in srgb, var(--home-line) 52%, transparent) 37px 38px
-    );
-    opacity: 0.72;
-    pointer-events: none;
+    content: "DISCOVER + SYNTHESIS\A Decisions, acquisitions and registered outputs join the same record.";
+    top: 182px;
+  }
+
+  .rd-v2-home-authority-card.trail .rd-v2-home-section-empty {
+    max-width: 520px;
+    margin-bottom: 0;
+    color: var(--home-muted);
   }
 
   /* Give the research prompts a small ledger marker at wide widths. This is
    * deliberately absent at 1440 where the narrower card needs every pixel. */
+  .rd-v2-home-authority-card.next {
+    position: relative;
+    padding-bottom: 58px;
+  }
+
   .rd-v2-home-authority-card.next .rd-v2-chip {
     position: relative;
     padding-left: 16px;
@@ -152,6 +168,20 @@
     border: 1px solid color-mix(in srgb, #527765 62%, var(--home-line));
     border-radius: 50%;
     background: var(--home-card);
+  }
+
+  .rd-v2-home-authority-card.next::after {
+    content: "Suggestions stay grounded in research memory and the evidence estate — not generic productivity prompts.";
+    position: absolute;
+    left: 18px;
+    right: 18px;
+    bottom: 17px;
+    padding-top: 12px;
+    border-top: 1px solid color-mix(in srgb, var(--home-line) 68%, transparent);
+    color: var(--home-muted);
+    font-size: 9.5px;
+    line-height: 1.45;
+    letter-spacing: 0.012em;
   }
 
   .rd-v2-home-authority-card.focal {
