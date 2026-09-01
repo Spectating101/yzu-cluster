@@ -1,0 +1,112 @@
+/* PS-STATE-V1 closure — fixes revealed by the first real anonymous-state render.
+   Keep this tiny and state/layout scoped; product contracts remain in components. */
+
+/* The generic rich Profile section header paints a white editorial strip.
+   That is correct for record sections but wrong inside the dark unbound panel. */
+.rd-v2-profile-page:has(.rd-v2-profile-unbound)
+  .rd-v2-profile-unbound .rd-v2-profile-section-head,
+.rd-v2-profile-page:has(.rd-v2-profile-unbound)
+  .rd-v2-profile-unbound .rd-v2-profile-section-head > div {
+  background: transparent;
+  box-shadow: none;
+}
+
+.rd-v2-profile-page:has(.rd-v2-profile-unbound)
+  .rd-v2-profile-unbound .rd-v2-profile-section-head h2 {
+  color: #f8f6ec;
+}
+
+.rd-v2-profile-page:has(.rd-v2-profile-unbound)
+  .rd-v2-profile-unbound .rd-v2-profile-section-head p {
+  color: #b9c2c4;
+}
+
+/* At 1920-class widths the empty Profile should occupy the available desk
+   rather than becoming two small cards marooned at the top of a blank sheet. */
+@media (min-width: 1680px) {
+  .rd-v2-profile-page:has(.rd-v2-profile-unbound) .rd-v2-body-scroll {
+    grid-auto-rows: minmax(430px, 1fr);
+    align-content: stretch;
+  }
+
+  .rd-v2-profile-page:has(.rd-v2-profile-unbound) .rd-v2-profile-identity,
+  .rd-v2-profile-page:has(.rd-v2-profile-unbound) .rd-v2-profile-unbound {
+    height: 100%;
+    min-height: 430px;
+  }
+
+  /* The right-side Settings cards live in a much narrower column than the old
+     full-width Settings ledger. Give their truth rows a compact, lossless grid. */
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-child(2) .rd-v2-statement-row,
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-child(5) .rd-v2-statement-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto auto;
+    gap: 5px 10px;
+    align-items: start;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-child(2) .rd-v2-statement-label,
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-child(5) .rd-v2-statement-label {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-child(2) .rd-v2-statement-detail,
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-child(5) .rd-v2-statement-detail {
+    grid-column: 2;
+    grid-row: 1;
+    white-space: nowrap;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-child(2) .rd-v2-statement-metric,
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-child(5) .rd-v2-statement-metric {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-child(2) .rd-v2-statement-sub,
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-child(5) .rd-v2-statement-sub {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  /* Research identity is a setup block, not a desktop form row squeezed into
+     a side card. Stack its field/action geometry and keep every control visible. */
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-child(4) .rd-v2-settings-row.stack {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 9px;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-child(4) .rd-v2-settings-label,
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-child(4) .rd-v2-input,
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-child(4) .rd-v2-btn {
+    grid-column: 1;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-child(4) .rd-v2-btn {
+    justify-self: stretch;
+  }
+
+  /* Connection actions may share a line when they fit, but must never bleed
+     out of the narrow authority card. */
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-child(5) .rd-v2-settings-row.stack {
+    display: flex;
+    min-width: 0;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-child(5) .rd-v2-btn {
+    min-width: 0;
+    flex: 1 1 132px;
+  }
+}
