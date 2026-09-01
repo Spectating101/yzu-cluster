@@ -39,6 +39,9 @@ import "./home-authority-closure.css";
 // Selected Home attention must read as a continuation of Pick Up, not as a
 // generic inspector explainer detached from the actual decision record.
 import "./home-attention-rail.css";
+// Final screenshot sanding: remove the redundant page label and close the
+// unnecessary centre-to-inspector gutter without disturbing 1440 geometry.
+import "./home-final-sanding.css";
 import { V2App } from "./App";
 import { InteractionProvider } from "./InteractionGuidance";
 
