@@ -1,0 +1,30 @@
+/* Final scan-density pass for large Discover result fields.
+   Repeated secondary detail should not consume vertical space on every candidate. */
+
+/* Refresh cadence belongs in selected/detail context; coverage and route matter more while scanning. */
+.rd-v2-discover-ranked-results .rd-v2-discover-offering-facts > span:nth-child(3) {
+  display: none !important;
+}
+
+/* Library comparison is valuable, but repeating it 10–50 times overwhelms the field.
+   Reveal it for the row the researcher is actively inspecting. */
+.rd-v2-discover-ranked-results .rd-v2-discover-sufficiency {
+  display: none;
+}
+
+.rd-v2-discover-ranked-results li:hover .rd-v2-discover-sufficiency,
+.rd-v2-discover-ranked-results .rd-v2-discover-candidate.selected .rd-v2-discover-sufficiency,
+.rd-v2-discover-ranked-results .rd-v2-discover-candidate:focus-visible .rd-v2-discover-sufficiency {
+  display: block;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-candidate {
+  min-height: 58px;
+  padding-block: 6px;
+}
+
+@media (max-width: 1500px) {
+  .rd-v2-discover-ranked-results .rd-v2-discover-candidate {
+    min-height: 62px;
+  }
+}
