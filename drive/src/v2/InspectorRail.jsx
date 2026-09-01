@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import {
   BrowseRailPanel,
   DetailPanel,
-  HomeAttentionRailPanel,
   LibraryObjectRailPanel,
   PageRailPanel,
   ResourcesRailPanel,
 } from "@/v2/RailPanels";
+import { HomeAttentionRailPanel } from "@/v2/HomeAttentionRailPanel";
 import { ProfileDetailPanel } from "@/v2/ProfilePage";
 import { activeObjectSelectionHint } from "@/v2/activeObject";
 import { displayName } from "@/v2/datasetMeta";
@@ -229,7 +229,6 @@ export function InspectorRail({
   } else if (mainTab === "synthesis") {
     detailPanel = <SynthesisIdleRailPanel onAskAbout={onAskAbout} />;
   } else if (mainTab === "library" && dataset?.dataset_id) {
-    // Dataset selection wins over folder/page guide (Continue / row click must show SOURCE+VERIFY).
     detailPanel = (
       <LibraryDatasetRailPanel
         dataset={dataset}
@@ -318,9 +317,6 @@ export function InspectorRail({
       );
       return;
     }
-    // Ask is an explicit working state on every surface. Do not collapse the
-    // mobile sheet merely because Profile, Settings, or another page has no
-    // selected row.
     if (railTab === "ask") {
       setMobileRailOpen(true);
       return;
@@ -329,9 +325,6 @@ export function InspectorRail({
       setMobileRailOpen(false);
       return;
     }
-    // A selected Library asset is already a full evidence dossier. On phones,
-    // keep that dossier primary and leave the contextual rail one tap away;
-    // desktop ignores the collapsed geometry and still renders the full rail.
     if (mainTab === "library" && dataset?.dataset_id && railTab === "detail") {
       setMobileRailOpen(false);
       return;
