@@ -13,71 +13,68 @@
     --rd-rail-max: 390px;
   }
 
-  /* Let the reclaimed centre width reach the actual analytical surface rather
-     than being absorbed as extra outer padding. */
   #root .rd-v2-synthesis-page .s04-main {
     padding-inline: 16px !important;
   }
 
-  /* Short opening states should feel like workstations, not summaries floating
-     in the top half of a monitor. Spend available height on the analytical
-     object itself; no new information is invented. */
-  #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-construction) > .s04-opening-construction,
-  #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-construction) > .s04-opening-next {
-    min-height: clamp(420px, 49vh, 510px) !important;
+  /* Recommendation: use the available workstation height for the analytical
+     relationship itself, not for empty canvas below two short cards. */
+  #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-construction)
+    > :is(.s04-opening-construction, .s04-opening-next) {
+    min-height: clamp(410px, 47vh, 500px) !important;
   }
 
-  #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-construction) > .s04-opening-construction .s04-opening-map {
+  #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-construction)
+    > .s04-opening-construction .s04-opening-map {
     flex: 1 1 auto;
-    min-height: 290px !important;
+    min-height: 280px !important;
   }
 
-  /* Defined / Exploring: the evidence canvas owns the remaining height. The
-     operational lane stretches with it so there is no dead half-column below
-     the measurement/next-state stack. */
-  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"])) > [data-testid="synthesis-evidence-state"] {
-    min-height: clamp(430px, 52vh, 540px) !important;
+  /* Defined / Exploring only. Explicitly exclude blocking and later lifecycle
+     states so their already-verified production-scale geometry stays intact. */
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > [data-testid="synthesis-evidence-state"] {
+    min-height: clamp(430px, 50vh, 520px) !important;
     display: flex !important;
     flex-direction: column;
   }
 
-  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"])) > [data-testid="synthesis-evidence-state"] > .s04-map {
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > [data-testid="synthesis-evidence-state"] > .s04-map {
     flex: 1 1 auto;
-    min-height: 220px;
+    min-height: 210px;
   }
 
-  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"])):not(:has(> .s04-measurement-status) > .s04-opening-next {
-    grid-row: span 4 !important;
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > .s04-opening-next {
     height: 100% !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column;
   }
 
-  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"])):has(> .s04-measurement-status) > .s04-opening-next {
-    grid-row: span 3 !important;
-    height: 100% !important;
-  }
-
-  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"])) > .s04-opening-next > footer {
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > .s04-opening-next > footer {
     margin-top: auto !important;
   }
 
-  /* Proposal is intentionally simultaneous now. Give the two review truths a
-     shared workstation-height row instead of another short strip above a large
-     unused lower canvas. */
-  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction)) > :is(
-    [data-testid="synthesis-proposal-state"],
-    [data-testid="synthesis-evidence-state"]
-  ) {
-    min-height: clamp(390px, 44vh, 470px) !important;
+  /* Proposal: proposal and Evidence Map share a deliberate workstation-height
+     review band rather than ending as two short components over blank canvas. */
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction))
+    > :is([data-testid="synthesis-proposal-state"], [data-testid="synthesis-evidence-state"]) {
+    min-height: clamp(380px, 42vh, 455px) !important;
     align-self: stretch !important;
   }
 
-  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction)) > [data-testid="synthesis-evidence-state"] {
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction))
+    > [data-testid="synthesis-evidence-state"] {
     display: flex !important;
     flex-direction: column;
   }
 
-  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction)) > [data-testid="synthesis-evidence-state"] > .s04-map {
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction))
+    > [data-testid="synthesis-evidence-state"] > .s04-map {
     flex: 1 1 auto;
-    min-height: 190px;
+    min-height: 180px;
   }
 }
