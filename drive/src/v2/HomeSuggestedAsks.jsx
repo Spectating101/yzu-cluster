@@ -11,10 +11,14 @@ function seedLead(seed, profile) {
   return "Suggested asks — start with a question or add evidence";
 }
 
-export function HomeSuggestedAsks({ profile, onAskComposer }) {
+export function HomeSuggestedAsks({ profile, onAskComposer, canLoadPrincipalSeed = true }) {
   const [seed, setSeed] = useState(null);
 
   useEffect(() => {
+    // The principal seed contains personal research bootstrap state.  A public
+    // guest receives the same useful generic prompts below, but must not
+    // prefetch a protected endpoint merely by opening Home.
+    if (!canLoadPrincipalSeed) return undefined;
     let cancelled = false;
     fetchJson("/library/seed", { timeoutMs: 8000 })
       .then((payload) => {
@@ -27,7 +31,7 @@ export function HomeSuggestedAsks({ profile, onAskComposer }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [canLoadPrincipalSeed]);
 
   const profilePrompts = useMemo(() => homeSuggestedPrompts(profile, { limit: 4 }), [profile]);
   const prompts = useMemo(() => {

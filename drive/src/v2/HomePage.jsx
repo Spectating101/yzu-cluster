@@ -117,6 +117,7 @@ export function HomePage({
   onResumeSynthesisThread,
   onSuggestSearch,
   onAskComposer,
+  canUseAsk = true,
 }) {
   const loading = catalogLoading || (health == null && datasets.length === 0);
   const surfaceState = resolveSurfaceLifecycle({ loading, error: loadError, count: datasets.length });
@@ -125,6 +126,9 @@ export function HomePage({
   // Home consumes the durable Synthesis authority directly. Failure is soft:
   // Library/Discover continuity remains truthful even if Synthesis is temporarily unavailable.
   useEffect(() => {
+    // Durable Synthesis threads are personal reasoning state.  Public guests
+    // can browse the shared estate without creating a protected prefetch.
+    if (!canUseAsk) return undefined;
     let cancelled = false;
     let retryTimer = null;
     let attempts = 0;
@@ -149,7 +153,7 @@ export function HomePage({
       cancelled = true;
       if (retryTimer != null) window.clearTimeout(retryTimer);
     };
-  }, []);
+  }, [canUseAsk]);
 
   const [cachedRollup, setCachedRollup] = useState(() => readResourcesRollupCache());
   useEffect(() => {
@@ -394,7 +398,11 @@ export function HomePage({
             <p className="rd-v2-home-section-empty">
               Nothing durable yet — recent work will collect here.
             </p>
-            <HomeSuggestedAsks profile={profile} onAskComposer={onAskComposer || onSuggestSearch} />
+            <HomeSuggestedAsks
+              profile={profile}
+              onAskComposer={onAskComposer || onSuggestSearch}
+              canLoadPrincipalSeed={canUseAsk}
+            />
           </div>
         )}
       </section>

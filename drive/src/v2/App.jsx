@@ -1545,6 +1545,7 @@ export function V2App() {
           jobs={jobs}
           usingSeed={usingSeed}
           loadError={loadError}
+          canUseAsk={canUseAsk}
           onAskComposer={canUseAsk ? askFromPrompt : undefined}
           onGoTab={goTab}
           onOpenAttention={openHomeAttention}

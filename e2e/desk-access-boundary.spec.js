@@ -66,6 +66,10 @@ test("a pending capability check never paints a misleading empty page", async ({
 
 test("a public guest can browse the shared estate but is asked to sign in before Ask", async ({ page }) => {
   await mockV2Api(page);
+  const protectedPrefetches = [];
+  page.on("request", (request) => {
+    if (/\/library\/(?:seed|synthesis\/threads)/.test(request.url())) protectedPrefetches.push(request.url());
+  });
   await page.unroute("**/library/desk/capabilities").catch(() => {});
   await page.route("**/library/desk/capabilities", (route) => route.fulfill({
     status: 200,
@@ -93,4 +97,5 @@ test("a public guest can browse the shared estate but is asked to sign in before
   await expect(note).toContainText("Sign in to ask Research Drive.");
   await expect(note).toContainText("saved conversations are available after sign-in.");
   await expect(page.getByTestId("ask-composer")).toHaveCount(0);
+  await expect.poll(() => protectedPrefetches).toEqual([]);
 });
