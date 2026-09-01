@@ -85,15 +85,16 @@
     position: absolute;
     left: 18px;
     right: 18px;
-    bottom: 66px;
-    padding-top: 10px;
+    bottom: 63px;
+    max-height: 32px;
+    padding-top: 9px;
     overflow: hidden;
     border-top: 1px solid color-mix(in srgb, var(--home-line) 70%, transparent);
     color: color-mix(in srgb, var(--home-muted) 86%, #527765);
-    font: 650 8.4px/1.35 var(--rd-mono);
-    letter-spacing: .055em;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    font: 650 8.4px/1.45 var(--rd-mono);
+    letter-spacing: .045em;
+    white-space: normal;
+    overflow-wrap: anywhere;
     pointer-events: none;
   }
 
@@ -108,15 +109,15 @@
    * the ledger rather than leaving a large blank lower half. */
   .rd-v2-home-authority .rd-v2-home-authority-trail-list {
     display: grid;
-    grid-auto-rows: minmax(74px, auto);
+    grid-auto-rows: minmax(86px, auto);
     margin-top: 10px;
   }
 
   .rd-v2-home-authority .rd-v2-home-authority-trail-row {
     grid-template-columns: minmax(96px, .48fr) minmax(178px, .94fr) minmax(0, 1.62fr) auto;
     align-items: start;
-    min-height: 74px;
-    padding: 13px 0 12px;
+    min-height: 86px;
+    padding: 16px 0 14px;
   }
 
   .rd-v2-home-authority .rd-v2-home-authority-trail-row .kind {
