@@ -26,6 +26,7 @@ import "./hps-responsive-fixes.css";
 import "./synthesis-workstation.css";
 import "./discover-frozen-closure.css";
 import "./connected-accounts.css";
+import "./profile-settings-reopen.css";
 import { V2App } from "./App";
 import { InteractionProvider } from "./InteractionGuidance";
 
