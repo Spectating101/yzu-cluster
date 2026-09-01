@@ -6,6 +6,7 @@ const VIEWPORTS = [
   { name: "desktop-wide", width: 1920, height: 905 },
   { name: "desktop", width: 1440, height: 900 },
   { name: "compact", width: 900, height: 760 },
+  { name: "tablet", width: 768, height: 900 },
   { name: "mobile", width: 390, height: 844 },
 ];
 
