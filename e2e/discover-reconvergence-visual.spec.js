@@ -80,6 +80,13 @@ async function openDiscover(page) {
   await expect(page.getByTestId("discover-browse-mode")).toBeVisible();
 }
 
+async function runSearch(page) {
+  await page.getByLabel("Search or describe a research need").fill("stablecoin market evidence");
+  await page.getByRole("button", { name: "Explore", exact: true }).click();
+  await expect(page.getByTestId("discover-result-summary")).toBeVisible();
+  await expect(page.getByTestId("discover-ranked-results")).toBeVisible();
+}
+
 async function assertNoOverflow(page) {
   const dims = await page.locator("main.yzu-main").evaluate((node) => ({
     client: node.clientWidth,
@@ -115,12 +122,23 @@ test.describe("Discover reconvergence visual review", () => {
       await mockV2Api(page, resultFixture());
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
       await openDiscover(page);
-      await page.getByLabel("Search or describe a research need").fill("stablecoin market evidence");
-      await page.getByRole("button", { name: "Explore", exact: true }).click();
-      await expect(page.getByTestId("discover-result-summary")).toBeVisible();
-      await expect(page.getByTestId("discover-ranked-results")).toBeVisible();
+      await runSearch(page);
       await assertNoOverflow(page);
       await page.screenshot({ path: `${OUT}/discover-results-${viewport.name}.png`, fullPage: false });
+    });
+
+    test(`selected evidence evaluation ${viewport.name}`, async ({ page }) => {
+      await mockV2Api(page, resultFixture());
+      await page.setViewportSize({ width: viewport.width, height: viewport.height });
+      await openDiscover(page);
+      await runSearch(page);
+
+      const best = page.getByTestId("discover-ranked-results");
+      await best.getByRole("button", { name: /DataCite live catalogue/i }).first().click();
+      await expect(page.locator(".rd-v2-discover-candidate.selected")).toBeVisible();
+      await expect(page.locator("aside.rd-v2-rail").getByRole("region", { name: "Can I use this" })).toBeVisible();
+      await assertNoOverflow(page);
+      await page.screenshot({ path: `${OUT}/discover-selected-${viewport.name}.png`, fullPage: false });
     });
   }
 });
