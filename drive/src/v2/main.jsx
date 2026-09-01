@@ -33,6 +33,9 @@ import "./visual-hardening.css";
 // HOME-DESKTOP-V1-2026-09-01 is explicit visual authority. Keep it after
 // general hardening so broad surface CSS cannot silently recompose Home.
 import "./home-authority.css";
+// Containment is part of the authority: no nested prompt/action may bleed
+// beyond the Home card that owns it at any certified desktop viewport.
+import "./home-authority-closure.css";
 import { V2App } from "./App";
 import { InteractionProvider } from "./InteractionGuidance";
 
