@@ -30,6 +30,9 @@ import "./connected-accounts.css";
 // it here establishes one deterministic root order for the final overrides.
 import "./discover-production.css";
 import "./visual-hardening.css";
+// HOME-DESKTOP-V1-2026-09-01 is explicit visual authority. Keep it after
+// general hardening so broad surface CSS cannot silently recompose Home.
+import "./home-authority.css";
 import { V2App } from "./App";
 import { InteractionProvider } from "./InteractionGuidance";
 
