@@ -1,22 +1,44 @@
-/* Library coherence polish — 2026-09-02
-   Preserve the accepted estate / ledger / inspector architecture. This layer
-   only reduces competing chrome and gives browse, retrieval, and inspection
-   one calmer visual grammar. */
+/* Library root/home coherence — 2026-09-02
+   The root should read as a calm evidence home, not a stack of independent
+   toolbars. Preserve the accepted estate/ledger model while making hierarchy
+   obvious: find -> narrow -> browse collections -> inspect evidence. */
 
-/* The Library footer repeated an interaction rule already expressed by the
-   ledger, readiness controls, and selected-asset actions. Keep the canvas quiet. */
 .rd-v2-library-page .rd-v2-scroll-foot {
   display: none;
 }
 
-/* Treat Type / Readiness / Sort as one retrieval control family instead of
-   three independent cards fighting the search field for attention. */
+.rd-v2-library-page .rd-v2-library-headline {
+  align-items: center;
+}
+
+.rd-v2-library-page .rd-v2-library-actions {
+  gap: 6px;
+}
+
+.rd-v2-library-page .rd-v2-library-action-btn.ghost {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.rd-v2-library-page .rd-v2-toolbar {
+  gap: 8px;
+  padding-block: 8px;
+  border-top: 1px solid color-mix(in srgb, var(--rd-border) 62%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border) 76%, transparent);
+  background: rgba(255, 253, 246, 0.46);
+}
+
+.rd-v2-library-page .rd-v2-library-toolbar-search {
+  max-width: 520px;
+}
+
 .rd-v2-library-page .rd-v2-library-toolbar-filters {
   gap: 0;
   padding: 2px 4px;
-  border: 1px solid color-mix(in srgb, var(--rd-border2) 78%, transparent);
-  border-radius: 9px;
-  background: rgba(255, 255, 255, 0.34);
+  border: 1px solid color-mix(in srgb, var(--rd-border2) 64%, transparent);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.28);
 }
 
 .rd-v2-library-page .rd-v2-library-filter-control {
@@ -24,14 +46,21 @@
   gap: 4px;
   padding: 0 8px;
   border: 0;
-  border-radius: 6px;
+  border-radius: 0;
   background: transparent;
   transition: background 120ms ease;
 }
 
+.rd-v2-library-page .rd-v2-library-filter-control:first-child {
+  border-radius: 6px 0 0 6px;
+}
+
+.rd-v2-library-page .rd-v2-library-filter-control:last-child {
+  border-radius: 0 6px 6px 0;
+}
+
 .rd-v2-library-page .rd-v2-library-filter-control + .rd-v2-library-filter-control {
-  border-left: 1px solid color-mix(in srgb, var(--rd-border2) 68%, transparent);
-  border-radius: 0;
+  border-left: 1px solid color-mix(in srgb, var(--rd-border2) 52%, transparent);
 }
 
 .rd-v2-library-page .rd-v2-library-filter-control:focus-within {
@@ -40,35 +69,101 @@
 }
 
 .rd-v2-library-page .rd-v2-library-filter-control > span {
-  opacity: 0.72;
+  opacity: 0.64;
 }
 
-/* Search remains the primary retrieval action. The secondary Ask handoff reads
-   as a continuation of the search rather than a new toolbar mode. */
+.rd-v2-library-page .rd-v2-toolbar-count {
+  color: var(--rd-muted);
+  opacity: 0.76;
+  font-size: 10px;
+}
+
 .rd-v2-library-page .rd-v2-library-search-ask {
-  border-color: color-mix(in srgb, var(--rd-border2) 76%, transparent);
-  background: rgba(255, 255, 255, 0.48);
+  border-color: color-mix(in srgb, var(--rd-border2) 68%, transparent);
+  background: rgba(255, 255, 255, 0.4);
   box-shadow: none;
 }
 
-/* Collections are navigation context, not dashboard cards. Reduce their visual
-   mass so the evidence ledger stays unmistakably primary. */
 .rd-v2-library-page .rd-v2-cap-collections {
-  background: rgba(250, 249, 244, 0.22);
+  gap: 12px;
+  padding: 12px 16px 11px;
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border) 72%, transparent);
+  background: rgba(250, 249, 244, 0.12);
+}
+
+.rd-v2-library-page .rd-v2-cap-collections-label {
+  align-self: center;
+  min-width: 72px;
+  color: var(--rd-muted);
+  opacity: 0.72;
+}
+
+.rd-v2-library-page .rd-v2-cap-collection-list {
+  gap: 7px;
 }
 
 .rd-v2-library-page .rd-v2-cap-collection {
+  min-height: 32px;
+  padding-inline: 11px;
+  border-color: color-mix(in srgb, var(--rd-border2) 68%, transparent);
+  background: rgba(255, 255, 255, 0.36);
   box-shadow: none;
   transition: background 120ms ease, border-color 120ms ease;
 }
 
-/* Selected asset: the centre owns substance while the rail owns the decision.
-   Keep the centre trust strip useful, but visibly subordinate so Readiness /
-   Verification / Source do not compete with the decisional rail. */
+.rd-v2-library-page .rd-v2-cap-collection:hover {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.rd-v2-library-page .rd-v2-cap-collection b {
+  opacity: 0.7;
+}
+
+.rd-v2-library-page .rd-v2-cap-ledger {
+  border-top: 0;
+}
+
+.rd-v2-library-page .rd-v2-cap-ledger-head {
+  min-height: 32px;
+  background: rgba(255, 253, 246, 0.5);
+}
+
+.rd-v2-library-page .rd-v2-cap-ledger-row {
+  transition: background 110ms ease;
+}
+
+.rd-v2-library-page .rd-v2-cap-ledger-row:hover {
+  background: rgba(255, 255, 255, 0.54);
+}
+
+.rd-v2-library-page .rd-v2-library-available.compact {
+  margin: 0;
+  border-width: 1px 0 0;
+  border-radius: 0;
+  background: rgba(250, 249, 244, 0.18);
+}
+
+.rd-v2-library-page .rd-v2-library-available.compact .rd-v2-btn {
+  background: rgba(255, 255, 255, 0.46);
+  box-shadow: none;
+}
+
+.rd-v2-shell:has(.rd-v2-library-page) .rd-v2-rail .rd-v2-situation {
+  border-bottom-color: color-mix(in srgb, var(--rd-border) 68%, transparent);
+}
+
+.rd-v2-shell:has(.rd-v2-library-page) .rd-v2-rail .rd-v2-situation-copy {
+  opacity: 0.84;
+}
+
+.rd-v2-shell:has(.rd-v2-library-page) .rd-v2-rail .rd-v2-rail-section-label {
+  opacity: 0.72;
+}
+
 .rd-v2-library-workspace .rd-v2-library-claim-strip {
   margin-top: 6px;
-  border-color: color-mix(in srgb, var(--rd-release-line, var(--rd-border)) 72%, transparent);
-  background: rgba(250, 249, 244, 0.22);
+  border-color: color-mix(in srgb, var(--rd-release-line, var(--rd-border)) 68%, transparent);
+  background: rgba(250, 249, 244, 0.18);
 }
 
 .rd-v2-library-workspace .rd-v2-library-claim-strip > div {
@@ -76,57 +171,60 @@
 }
 
 .rd-v2-library-workspace .rd-v2-library-claim-strip span {
-  opacity: 0.66;
+  opacity: 0.62;
 }
 
 .rd-v2-library-workspace .rd-v2-library-claim-strip strong {
   font-weight: 600;
 }
 
-/* Actions should read as a small tool row, not another card layer. */
 .rd-v2-library-workspace .rd-v2-library-workspace-actions {
   gap: 7px;
   padding-block: 10px;
 }
 
 .rd-v2-library-workspace .rd-v2-library-workspace-actions .rd-v2-btn:not(.primary) {
-  border-color: color-mix(in srgb, var(--rd-border2) 76%, transparent);
-  background: rgba(255, 255, 255, 0.38);
+  border-color: color-mix(in srgb, var(--rd-border2) 72%, transparent);
+  background: rgba(255, 255, 255, 0.34);
   box-shadow: none;
 }
 
-/* The nested schema/provenance dialog is a disclosure inside the selected
-   asset, not a third full application surface. Make that hierarchy visible by
-   softening the scrim and tightening the sheet. */
 .rd-v2-library-workspace .rd-v2-library-overlay-scrim {
-  background: rgba(38, 36, 31, 0.18);
+  background: rgba(38, 36, 31, 0.16);
   backdrop-filter: blur(1.5px);
 }
 
 .rd-v2-library-workspace .rd-v2-library-overlay {
   max-width: min(760px, calc(100vw - 56px));
-  border-color: color-mix(in srgb, var(--rd-border2) 86%, transparent);
-  box-shadow: 0 16px 44px rgba(30, 27, 22, 0.14);
+  border-color: color-mix(in srgb, var(--rd-border2) 84%, transparent);
+  box-shadow: 0 16px 44px rgba(30, 27, 22, 0.13);
 }
 
-/* Likewise, selected-asset inspection should feel like Library opening an
-   object, not like navigating to another product. */
 .rd-v2-library-inspector-scrim {
-  background: rgba(35, 33, 29, 0.12);
+  background: rgba(35, 33, 29, 0.1);
   backdrop-filter: blur(1px);
 }
 
 .rd-v2-library-inspector-shell {
-  box-shadow: 0 18px 52px rgba(32, 29, 23, 0.13);
+  box-shadow: 0 18px 52px rgba(32, 29, 23, 0.12);
 }
 
-/* Keep branch context compact and consistent with the retrieval grammar. */
 .rd-v2-library-page .rd-v2-library-pathbar {
-  background: rgba(250, 249, 244, 0.28);
+  background: rgba(250, 249, 244, 0.24);
 }
 
 .rd-v2-library-page .rd-v2-library-pathstats {
-  opacity: 0.78;
+  opacity: 0.76;
+}
+
+@media (min-width: 1680px) and (min-height: 900px) {
+  .rd-v2-library-page .rd-v2-library-toolbar-search {
+    max-width: 600px;
+  }
+
+  .rd-v2-library-page .rd-v2-cap-collections {
+    padding-block: 14px 13px;
+  }
 }
 
 @media (max-width: 1180px) {
@@ -140,6 +238,10 @@
 }
 
 @media (max-width: 760px) {
+  .rd-v2-library-page .rd-v2-toolbar {
+    padding-block: 7px;
+  }
+
   .rd-v2-library-page .rd-v2-library-toolbar-filters {
     width: 100%;
     gap: 0;
@@ -150,9 +252,13 @@
     padding-inline: 5px;
   }
 
-  .rd-v2-library-page .rd-v2-library-filter-control + .rd-v2-library-filter-control {
-    border-left: 1px solid color-mix(in srgb, var(--rd-border2) 52%, transparent);
-    border-radius: 0;
+  .rd-v2-library-page .rd-v2-cap-collections {
+    gap: 7px;
+    padding: 9px 12px;
+  }
+
+  .rd-v2-library-page .rd-v2-cap-collections-label {
+    min-width: 0;
   }
 
   .rd-v2-library-workspace .rd-v2-library-overlay {
