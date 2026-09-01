@@ -3,71 +3,55 @@
  * convergence layer without changing compact/1440 behavior.
  */
 @media (min-width: 1680px) and (min-height: 900px) {
-  /* Proposal is a full-width analytical sequence. The earlier recommendation
-     grid can also match proposal fixtures that retain a recommendation object,
-     so use an intentionally stronger state selector here. */
-  .rd-v2-synthesis-page.rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]) {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 12px !important;
-  }
-
-  .rd-v2-synthesis-page.rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]) > * {
+  /* Proposal is already horizontal internally. Make the analytical card itself
+     span the workstation grid instead of depending on outer state inference. */
+  .rd-v2-synthesis-page .s04-main > .s04-proposal-card,
+  .rd-v2-synthesis-page .s04-main > [data-testid="synthesis-proposal-state"] {
+    grid-column: 1 / -1 !important;
     width: 100% !important;
     max-width: none !important;
     margin-block: 0 !important;
-    flex: 0 0 auto !important;
   }
 
-  .rd-v2-synthesis-page.rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]) > .s04-measurement-status {
+  /* Measurement status appears before ProposalReview in document order. When a
+     proposal follows in the same workspace, make the status a compact full-row
+     checkpoint rather than an orphaned narrow side strip. */
+  .rd-v2-synthesis-page .s04-main > .s04-measurement-status:has(~ .s04-proposal-card),
+  .rd-v2-synthesis-page .s04-main > .s04-measurement-status:has(~ [data-testid="synthesis-proposal-state"]) {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
     gap: 16px !important;
     padding-block: 9px !important;
+    margin-block: 0 !important;
   }
 
-  /* The registered/result sidecar is the measured-evidence panel rather than
-     the evidence-map panel. Keep the durable dataset id readable beside its
-     authority badge instead of breaking the final word onto a second line. */
-  .rd-v2-synthesis-page.rd-v2-synthesis-page .s04-main:has(> :is(
-    [data-testid="synthesis-execution-state"],
-    [data-testid="synthesis-failed-state"],
-    [data-testid="synthesis-registered-state"],
-    [data-testid="synthesis-query-ready-state"]
-  )) > [data-testid="synthesis-method-surface"] .s04-title {
+  .rd-v2-synthesis-page .s04-main > .s04-measurement-status:has(~ .s04-proposal-card) button,
+  .rd-v2-synthesis-page .s04-main > .s04-measurement-status:has(~ [data-testid="synthesis-proposal-state"]) button {
+    flex: 0 0 auto;
+  }
+
+  /* Registered/result sidecars use MethodSurfacePanel for measured evidence.
+     Give the durable id the text share it needs beside the authority badge. */
+  .rd-v2-synthesis-page .s04-main > [data-testid="synthesis-method-surface"] .s04-title {
     gap: 10px;
   }
 
-  .rd-v2-synthesis-page.rd-v2-synthesis-page .s04-main:has(> :is(
-    [data-testid="synthesis-execution-state"],
-    [data-testid="synthesis-failed-state"],
-    [data-testid="synthesis-registered-state"],
-    [data-testid="synthesis-query-ready-state"]
-  )) > [data-testid="synthesis-method-surface"] .s04-title > div {
+  .rd-v2-synthesis-page .s04-main > [data-testid="synthesis-method-surface"] .s04-title > div {
     min-width: 0;
     flex: 1 1 auto;
   }
 
-  .rd-v2-synthesis-page.rd-v2-synthesis-page .s04-main:has(> :is(
-    [data-testid="synthesis-execution-state"],
-    [data-testid="synthesis-failed-state"],
-    [data-testid="synthesis-registered-state"],
-    [data-testid="synthesis-query-ready-state"]
-  )) > [data-testid="synthesis-method-surface"] .s04-title h2 {
+  .rd-v2-synthesis-page .s04-main > [data-testid="synthesis-method-surface"] .s04-title h2 {
     font-size: 16px !important;
     line-height: 1.14 !important;
     overflow-wrap: normal !important;
     word-break: normal !important;
   }
 
-  .rd-v2-synthesis-page.rd-v2-synthesis-page .s04-main:has(> :is(
-    [data-testid="synthesis-execution-state"],
-    [data-testid="synthesis-failed-state"],
-    [data-testid="synthesis-registered-state"],
-    [data-testid="synthesis-query-ready-state"]
-  )) > [data-testid="synthesis-method-surface"] .s04-title > em {
+  .rd-v2-synthesis-page .s04-main > [data-testid="synthesis-method-surface"] .s04-title > em {
     flex: 0 0 auto;
     max-width: 92px;
     text-align: right;
