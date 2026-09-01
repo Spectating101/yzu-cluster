@@ -46,4 +46,4 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-# Clean-head replay for the dense evidence-cockpit prototype.
+# Exact-head replay for large candidate fields, quieter hierarchy, and assembly-state UI.
