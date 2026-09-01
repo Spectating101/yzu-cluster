@@ -1623,9 +1623,8 @@ export function BrowsePage({
                   ) : null}
                 </div>
               </div>
-            </section>
 
-            <DiscoverEvidenceField
+              <DiscoverEvidenceField
               query={q}
               candidateCount={centreRows.length}
               resultGroups={resultGroups}
@@ -1635,7 +1634,7 @@ export function BrowsePage({
               onSearchWider={onSearchWeb}
             />
 
-            {assessmentActive ? (
+              {assessmentActive ? (
                 <DiscoverEvidenceBrief
                   key={`assessment-workspace:${q}`}
                   variant="workspace"
@@ -1653,6 +1652,8 @@ export function BrowsePage({
                   deskHealth={deskHealth}
                 />
               ) : null}
+
+            </section>
 
             {centreRows.length ? (
               <section className="rd-v2-discover-ranked-results" aria-label="Ranked Discover results" data-testid="discover-ranked-results">
