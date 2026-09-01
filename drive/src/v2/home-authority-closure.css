@@ -66,3 +66,100 @@
   background: transparent;
   color: #315d4a;
 }
+
+/* Wide-desktop enrichment.
+ * 1920-class desks have materially more vertical room than 1440, so add
+ * texture and breathing room without changing the information architecture.
+ * Nothing in this block applies to the certified 1440 composition. */
+@media (min-width: 1680px) and (min-height: 900px) {
+  .rd-v2-home-authority-welcome {
+    padding-bottom: 26px;
+  }
+
+  .rd-v2-home-authority-primary,
+  .rd-v2-home-authority-secondary {
+    gap: 16px;
+  }
+
+  .rd-v2-home-authority-secondary {
+    margin-top: 16px;
+  }
+
+  .rd-v2-home-authority-card.headroom,
+  .rd-v2-home-authority-card.continue {
+    min-height: 282px;
+  }
+
+  .rd-v2-home-authority-card.trail,
+  .rd-v2-home-authority-card.next {
+    min-height: 286px;
+  }
+
+  /* An empty trail should still read like a quiet research ledger, not a
+   * vacant dashboard card. The rules are decorative only and never imply
+   * nonexistent events. */
+  .rd-v2-home-authority-card.trail {
+    overflow: hidden;
+  }
+
+  .rd-v2-home-authority-card.trail .rd-v2-home-section-empty-actions {
+    position: relative;
+    min-height: 196px;
+    padding-top: 2px;
+  }
+
+  .rd-v2-home-authority-card.trail .rd-v2-home-section-empty-actions::before {
+    content: "";
+    position: absolute;
+    top: 42px;
+    bottom: 8px;
+    left: 2px;
+    width: 2px;
+    border-radius: 999px;
+    background: color-mix(in srgb, #527765 30%, transparent);
+    opacity: 0.55;
+    pointer-events: none;
+  }
+
+  .rd-v2-home-authority-card.trail .rd-v2-home-section-empty-actions::after {
+    content: "";
+    position: absolute;
+    inset: 42px 0 8px 15px;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0 37px,
+      color-mix(in srgb, var(--home-line) 52%, transparent) 37px 38px
+    );
+    opacity: 0.72;
+    pointer-events: none;
+  }
+
+  /* Give the research prompts a small ledger marker at wide widths. This is
+   * deliberately absent at 1440 where the narrower card needs every pixel. */
+  .rd-v2-home-authority-card.next .rd-v2-chip {
+    position: relative;
+    padding-left: 16px;
+    padding-right: 4px;
+  }
+
+  .rd-v2-home-authority-card.next .rd-v2-chip::before {
+    content: "";
+    position: absolute;
+    top: 14px;
+    left: 1px;
+    width: 5px;
+    height: 5px;
+    border: 1px solid color-mix(in srgb, #527765 62%, var(--home-line));
+    border-radius: 50%;
+    background: var(--home-card);
+  }
+
+  .rd-v2-home-authority-card.focal {
+    padding-bottom: 20px;
+  }
+
+  .rd-v2-home-focal-rule {
+    height: 6px;
+    margin-top: 17px;
+  }
+}
