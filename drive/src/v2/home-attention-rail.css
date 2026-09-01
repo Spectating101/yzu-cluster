@@ -1,0 +1,214 @@
+/* Home selected-attention rail ------------------------------------------------
+ * This layer replaces generic filler with the exact selected Pick Up object's
+ * decision state, durable record, and path back into the owning surface.
+ */
+
+.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail:has(.rd-v2-home-rail-verdict) {
+  border-left-color: #d9c79f;
+  box-shadow: inset 3px 0 0 color-mix(in srgb, #c89b54 40%, transparent);
+  background:
+    linear-gradient(180deg, #fbf7ed 0 430px, var(--rd-surface) 430px),
+    var(--rd-surface);
+}
+
+/* Kill the previous generic rail filler when the exact Home-attention panel is
+ * present. The rail should explain this object, not explain the product. */
+.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail:has(.rd-v2-home-rail-verdict) .rd-v2-rail-fieldgrid::before,
+.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail:has(.rd-v2-home-rail-verdict) .rd-v2-rail-fieldgrid::after,
+.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail:has(.rd-v2-home-rail-verdict) .rd-v2-rail-scroll::after {
+  content: none;
+  display: none;
+}
+
+.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail:has(.rd-v2-home-rail-verdict) .rd-v2-rail-scroll {
+  min-height: 0;
+  padding: 0 16px 22px;
+  background: transparent;
+}
+
+.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail:has(.rd-v2-home-rail-verdict) .rd-v2-rail-ehead {
+  padding-bottom: 16px;
+  border-bottom-color: color-mix(in srgb, #d9c79f 72%, var(--rd-border));
+  background: transparent;
+}
+
+.rd-v2-home-rail-verdict {
+  margin: 0 16px 14px;
+  padding: 15px 16px 14px;
+  border: 1px solid #ddd2b8;
+  border-left: 3px solid #b6945d;
+  border-radius: 10px;
+  background: #fffdf7;
+}
+
+.rd-v2-home-rail-verdict.warn {
+  border-color: #dec79c;
+  border-left-color: #c08d42;
+  background: #fff9ec;
+}
+
+.rd-v2-home-rail-verdict > span,
+.rd-v2-home-rail-label {
+  display: block;
+  margin-bottom: 8px;
+  color: #6d745f;
+  font: 700 8.5px/1.15 var(--rd-mono);
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+.rd-v2-home-rail-verdict strong {
+  display: block;
+  max-width: 31ch;
+  color: var(--rd-text);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.rd-v2-home-rail-verdict p {
+  margin: 8px 0 0;
+  max-width: 42ch;
+  color: var(--rd-muted);
+  font-size: 10.5px;
+  line-height: 1.5;
+}
+
+.rd-v2-home-rail-record {
+  padding: 4px 0 16px;
+}
+
+.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-home-rail-record .rd-v2-rail-fieldgrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid color-mix(in srgb, #d9c79f 68%, var(--rd-border));
+  border-left: 1px solid color-mix(in srgb, #d9c79f 52%, var(--rd-border));
+}
+
+.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-home-rail-record .rd-v2-detail-row {
+  min-width: 0;
+  min-height: 68px;
+  padding: 12px;
+  border-right: 1px solid color-mix(in srgb, #d9c79f 52%, var(--rd-border));
+  border-bottom: 1px solid color-mix(in srgb, #d9c79f 52%, var(--rd-border));
+  background: color-mix(in srgb, #fffdf7 86%, var(--rd-surface));
+}
+
+.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-home-rail-record .rd-v2-detail-row::before {
+  content: none;
+}
+
+.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-home-rail-record .rd-v2-detail-label {
+  display: block;
+  margin-bottom: 6px;
+  color: #7c7d70;
+  font-size: 8.5px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-home-rail-record .rd-v2-detail-val {
+  display: block;
+  min-width: 0;
+  color: var(--rd-text);
+  font-size: 10.5px;
+  font-weight: 650;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.rd-v2-home-rail-path {
+  margin-top: 4px;
+  padding-top: 14px;
+  border-top: 1px solid color-mix(in srgb, #d9c79f 68%, var(--rd-border));
+}
+
+.rd-v2-home-rail-path-step {
+  position: relative;
+  margin-left: 8px;
+  padding: 0 0 20px 24px;
+}
+
+.rd-v2-home-rail-path-step:last-child {
+  padding-bottom: 4px;
+}
+
+.rd-v2-home-rail-path-step::before {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 0;
+  width: 8px;
+  height: 8px;
+  border: 2px solid #78917d;
+  border-radius: 50%;
+  background: #fbf7ed;
+}
+
+.rd-v2-home-rail-path-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 14px;
+  bottom: 2px;
+  left: 4px;
+  width: 1px;
+  background: linear-gradient(180deg, #9dad9f, #d8d6ca);
+}
+
+.rd-v2-home-rail-path-step.current::before {
+  border-color: #bb8d4a;
+  background: #f2dfba;
+}
+
+.rd-v2-home-rail-path-step.conditional::before {
+  border-style: dashed;
+  border-color: #9ea49a;
+  background: #fffdf7;
+}
+
+.rd-v2-home-rail-path-step > span {
+  display: block;
+  margin-bottom: 4px;
+  color: #6f786c;
+  font: 700 8px/1.15 var(--rd-mono);
+  letter-spacing: .075em;
+  text-transform: uppercase;
+}
+
+.rd-v2-home-rail-path-step strong {
+  display: block;
+  color: var(--rd-text);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.rd-v2-home-rail-path-step p {
+  margin: 5px 0 0;
+  color: var(--rd-muted);
+  font-size: 9.5px;
+  line-height: 1.45;
+}
+
+.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail:has(.rd-v2-home-rail-verdict) .rd-v2-rail-sticky {
+  border-top: 1px solid color-mix(in srgb, #d9c79f 72%, var(--rd-border));
+  background: #fbf7ed;
+}
+
+@media (min-width: 1680px) and (min-height: 900px) {
+  .rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail:has(.rd-v2-home-rail-verdict) {
+    background:
+      linear-gradient(180deg, #fbf7ed 0 520px, var(--rd-surface) 520px),
+      var(--rd-surface);
+  }
+
+  .rd-v2-home-rail-verdict {
+    margin-top: 2px;
+    padding: 18px;
+  }
+
+  .rd-v2-home-rail-path-step {
+    padding-bottom: 24px;
+  }
+}
