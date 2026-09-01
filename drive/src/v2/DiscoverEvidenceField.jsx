@@ -1,4 +1,5 @@
 import "./discover-evidence-field.css";
+import "./discover-scale-polish.css";
 
 function count(value) {
   return Array.isArray(value) ? value.length : 0;
