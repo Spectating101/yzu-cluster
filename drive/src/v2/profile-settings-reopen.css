@@ -14,7 +14,7 @@
 }
 
 /* --------------------------------------------------------------------------
-   PROFILE — the empty state is a first-class dossier, not missing content.
+   PROFILE — empty and thin records remain deliberate dossiers.
    -------------------------------------------------------------------------- */
 
 .rd-v2-profile-page .rd-v2-body-scroll {
@@ -195,8 +195,77 @@
   line-height: 1.55;
 }
 
+/* The earlier HPS freeze flattened thin records into one long ledger. That is
+   honest but visually collapses at desktop. Re-compose only the genuinely thin
+   record: identity remains authoritative, with context and evidence as two
+   bounded facts panels below it. */
+@media (min-width: 1280px) {
+  .rd-v2-profile-page:has([data-testid="profile-memory-thin"]) .rd-v2-body-scroll {
+    display: grid;
+    grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr);
+    grid-template-rows: auto minmax(250px, 1fr);
+    gap: 14px;
+    min-height: min(690px, calc(100vh - 165px));
+    padding: 16px;
+    border: 1px solid var(--rd-ps-line);
+    border-radius: 18px;
+    background:
+      radial-gradient(circle at 100% 0, rgba(63,111,92,.055), transparent 28%),
+      rgba(255,254,250,.82);
+  }
+
+  .rd-v2-profile-page:has([data-testid="profile-memory-thin"]) .rd-v2-profile-identity {
+    grid-column: 1 / -1;
+    margin: 0;
+    padding: 22px 24px;
+    border: 1px solid var(--rd-ps-line-strong);
+    border-radius: 14px;
+    background: rgba(255,255,255,.88);
+    box-shadow: 0 9px 24px rgba(24,32,51,.035);
+  }
+
+  .rd-v2-profile-page:has([data-testid="profile-memory-thin"]) [data-testid="profile-memory-thin"],
+  .rd-v2-profile-page:has([data-testid="profile-memory-thin"]) .rd-v2-profile-lab-section {
+    min-width: 0;
+    min-height: 250px;
+    margin: 0;
+    border: 1px solid var(--rd-ps-line);
+    border-radius: 14px;
+    background: rgba(255,255,255,.72);
+    box-shadow: 0 8px 22px rgba(24,32,51,.028);
+  }
+
+  .rd-v2-profile-page:has([data-testid="profile-memory-thin"]) [data-testid="profile-memory-thin"] {
+    grid-column: 1;
+  }
+
+  .rd-v2-profile-page:has([data-testid="profile-memory-thin"]) .rd-v2-profile-lab-section {
+    grid-column: 2;
+  }
+
+  .rd-v2-profile-page:has([data-testid="profile-memory-thin"]) .rd-v2-profile-section-head {
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid var(--rd-ps-line);
+    background: rgba(246,245,239,.46);
+  }
+
+  .rd-v2-profile-page:has([data-testid="profile-memory-thin"]) .rd-v2-profile-section > :not(.rd-v2-profile-section-head) {
+    margin-inline: 20px;
+  }
+
+  .rd-v2-profile-page:has([data-testid="profile-memory-thin"]) .rd-v2-empty-inline {
+    margin-top: 22px;
+  }
+
+  .rd-v2-profile-page:has([data-testid="profile-memory-thin"]) .rd-v2-profile-memory-effect {
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid var(--rd-ps-line);
+  }
+}
+
 /* --------------------------------------------------------------------------
-   SETTINGS — policy first; account/access forms become a companion column.
+   SETTINGS — policy first, then account/identity/access as one clear band.
    -------------------------------------------------------------------------- */
 
 .rd-v2-settings-page .rd-v2-body-scroll {
@@ -262,29 +331,79 @@
 @media (min-width: 1600px) {
   .rd-v2-settings-statement {
     display: grid;
-    grid-template-columns: minmax(0, 1.46fr) minmax(320px, .72fr);
-    gap: 16px 22px;
-    align-items: start;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    align-items: stretch;
   }
 
   .rd-v2-settings-statement > .rd-v2-statement-section {
     margin-bottom: 0;
   }
 
+  /* Workspace behavior becomes one horizontal policy matrix rather than a
+     tall left column. */
   .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) {
-    grid-column: 1;
-    grid-row: 1 / span 3;
-    min-height: 100%;
-  }
-
-  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(2) {
-    grid-column: 2;
+    grid-column: 1 / -1;
     grid-row: 1;
   }
 
-  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(3) {
-    grid-column: 1 / -1;
-    grid-row: 4;
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) .rd-v2-statement-body {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: auto 1fr;
+    align-items: stretch;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) .rd-v2-settings-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 9px;
+    align-content: start;
+    padding: 18px 20px 8px;
+    border-left: 1px solid var(--rd-ps-line);
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) .rd-v2-settings-row:first-child {
+    border-left: 0;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) .rd-v2-settings-hint {
+    margin: 0;
+    padding: 0 20px 18px;
+    color: var(--rd-ps-muted);
+    border-left: 1px solid var(--rd-ps-line);
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) .rd-v2-settings-row:nth-child(1),
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) .rd-v2-settings-hint:nth-child(2) {
+    grid-column: 1;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) .rd-v2-settings-row:nth-child(3),
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) .rd-v2-settings-hint:nth-child(4) {
+    grid-column: 2;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) .rd-v2-settings-row:nth-child(5),
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) .rd-v2-settings-hint:nth-child(6) {
+    grid-column: 3;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) .rd-v2-settings-row:nth-child(1),
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) .rd-v2-settings-row:nth-child(3),
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) .rd-v2-settings-row:nth-child(5) {
+    grid-row: 1;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) .rd-v2-settings-hint:nth-child(2),
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) .rd-v2-settings-hint:nth-child(4),
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(1) .rd-v2-settings-hint:nth-child(6) {
+    grid-row: 2;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(2) {
+    grid-column: 1;
+    grid-row: 2;
   }
 
   .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(4) {
@@ -293,19 +412,25 @@
   }
 
   .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(5) {
-    grid-column: 2;
+    grid-column: 3;
+    grid-row: 2;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(3) {
+    grid-column: 1 / -1;
     grid-row: 3;
   }
 
   .rd-v2-settings-statement > .rd-v2-settings-advanced {
     grid-column: 1 / -1;
-    grid-row: 5;
-    margin-top: 2px;
+    grid-row: 4;
+    margin-top: 0;
   }
 
   .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(2),
   .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(4),
   .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(5) {
+    min-height: 168px;
     box-shadow: none;
   }
 
@@ -319,6 +444,82 @@
   .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(4) .rd-v2-statement-body,
   .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(5) .rd-v2-statement-body {
     padding-bottom: 13px;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(2) .rd-v2-statement-row,
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(5) .rd-v2-statement-row {
+    grid-template-areas:
+      "label metric"
+      "sub sub"
+      "detail detail";
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 5px 10px;
+    align-items: start;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(2) .rd-v2-statement-label,
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(5) .rd-v2-statement-label {
+    grid-area: label;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(2) .rd-v2-statement-metric,
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(5) .rd-v2-statement-metric {
+    grid-area: metric;
+    text-align: right;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(2) .rd-v2-statement-sub,
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(5) .rd-v2-statement-sub {
+    grid-area: sub;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(2) .rd-v2-statement-detail,
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(5) .rd-v2-statement-detail {
+    grid-area: detail;
+    justify-self: start;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(4) .rd-v2-settings-row.stack {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(4) .rd-v2-settings-row.stack .rd-v2-settings-label {
+    grid-column: 1 / -1;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-of-type(4) .rd-v2-settings-row.stack .rd-v2-input {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+@media (min-width: 1680px) and (min-height: 900px) {
+  .rd-v2-profile-unbound {
+    gap: 22px;
+  }
+
+  .rd-v2-profile-unbound-hero {
+    padding-top: 10px;
+    padding-bottom: 32px;
+  }
+
+  .rd-v2-profile-unbound-card {
+    min-height: 205px;
+    padding-top: 26px;
+    padding-bottom: 26px;
+  }
+}
+
+@media (min-width: 1200px) and (max-width: 1599px) {
+  .rd-v2-settings-statement > .rd-v2-statement-section:first-of-type .rd-v2-settings-row {
+    padding-top: 0;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:first-of-type .rd-v2-settings-hint {
+    margin-bottom: 9px;
   }
 }
 
