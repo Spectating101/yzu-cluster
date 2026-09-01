@@ -1,18 +1,38 @@
 /* Home selected-attention rail ------------------------------------------------
- * This layer replaces generic filler with the exact selected Pick Up object's
- * decision state, durable record, and path back into the owning surface.
+ * Final sanding layer for Home's selected Pick Up state. Keep the rail tied to
+ * the exact object and make the visual hierarchy read as one continuous desk.
  */
 
 .rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail:has(.rd-v2-home-rail-verdict) {
-  border-left-color: #d9c79f;
-  box-shadow: inset 3px 0 0 color-mix(in srgb, #c89b54 40%, transparent);
-  background:
-    linear-gradient(180deg, #fbf7ed 0 430px, var(--rd-surface) 430px),
-    var(--rd-surface);
+  border-left-color: #ddcfb2;
+  box-shadow: inset 2px 0 0 color-mix(in srgb, #b58a48 34%, transparent);
+  background: #fbfaf5;
 }
 
-/* Kill the previous generic rail filler when the exact Home-attention panel is
- * present. The rail should explain this object, not explain the product. */
+/* The selected-object panel already owns the object title. Keep the global
+ * research-situation strip as rail chrome instead of repeating the title and
+ * decision sentence immediately above it. */
+.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail:has(.rd-v2-home-rail-verdict) .rd-v2-situation {
+  padding-bottom: 10px;
+  background: #fbfaf5;
+}
+
+.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail:has(.rd-v2-home-rail-verdict) .rd-v2-situation h2,
+.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail:has(.rd-v2-home-rail-verdict) .rd-v2-situation-next,
+.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail:has(.rd-v2-home-rail-verdict) .rd-v2-situation-state {
+  display: none;
+}
+
+.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail:has(.rd-v2-home-rail-verdict) .rd-v2-situation-topline {
+  margin-bottom: 7px;
+}
+
+.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail:has(.rd-v2-home-rail-verdict) .rd-v2-situation-tabs {
+  margin-top: 0;
+}
+
+/* Remove the previous generic Home filler whenever an exact attention object
+ * is selected. */
 .rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail:has(.rd-v2-home-rail-verdict) .rd-v2-rail-fieldgrid::before,
 .rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail:has(.rd-v2-home-rail-verdict) .rd-v2-rail-fieldgrid::after,
 .rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail:has(.rd-v2-home-rail-verdict) .rd-v2-rail-scroll::after {
@@ -20,80 +40,118 @@
   display: none;
 }
 
-.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail:has(.rd-v2-home-rail-verdict) .rd-v2-rail-scroll {
-  min-height: 0;
-  padding: 0 16px 22px;
+.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail:has(.rd-v2-home-rail-verdict) .rd-v2-rail-ehead {
+  padding: 18px 18px 16px;
+  border-top: 1px solid color-mix(in srgb, #d9c79f 55%, var(--rd-border));
+  border-bottom: 0;
   background: transparent;
 }
 
-.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail:has(.rd-v2-home-rail-verdict) .rd-v2-rail-ehead {
-  padding-bottom: 16px;
-  border-bottom-color: color-mix(in srgb, #d9c79f 72%, var(--rd-border));
-  background: transparent;
+.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail:has(.rd-v2-home-rail-verdict) .rd-v2-rail-ehead .rd-v2-rail-id {
+  margin-bottom: 8px;
+  color: #8a8678;
+  font-size: 8.5px;
+  letter-spacing: .055em;
+}
+
+.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail:has(.rd-v2-home-rail-verdict) .rd-v2-rail-ehead .rd-v2-rail-title {
+  margin-bottom: 8px;
+  font-size: 17px;
+  line-height: 1.2;
+}
+
+.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail:has(.rd-v2-home-rail-verdict) .rd-v2-rail-ehead .rd-v2-rail-desc {
+  max-width: 42ch;
+  margin-top: 0;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+/* State is expressed once, with hierarchy, instead of as a repeated chip in
+ * both the entity header and the record below. */
+.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail:has(.rd-v2-home-rail-verdict) .rd-v2-rail-ehead .rd-v2-rail-pills {
+  display: none;
 }
 
 .rd-v2-home-rail-verdict {
-  margin: 0 16px 14px;
-  padding: 15px 16px 14px;
+  margin: 2px 18px 22px;
+  padding: 19px 18px 18px;
   border: 1px solid #ddd2b8;
   border-left: 3px solid #b6945d;
-  border-radius: 10px;
-  background: #fffdf7;
+  border-radius: 9px;
+  background: #fffdf8;
 }
 
 .rd-v2-home-rail-verdict.warn {
-  border-color: #dec79c;
-  border-left-color: #c08d42;
-  background: #fff9ec;
+  border-color: #dfca9f;
+  border-left-color: #bd8b43;
+  background: #fffaf0;
 }
 
 .rd-v2-home-rail-verdict > span,
 .rd-v2-home-rail-label {
   display: block;
-  margin-bottom: 8px;
   color: #6d745f;
   font: 700 8.5px/1.15 var(--rd-mono);
   letter-spacing: .09em;
   text-transform: uppercase;
 }
 
+.rd-v2-home-rail-verdict > span {
+  margin-bottom: 12px;
+}
+
 .rd-v2-home-rail-verdict strong {
   display: block;
-  max-width: 31ch;
+  max-width: 34ch;
   color: var(--rd-text);
-  font-size: 13px;
-  line-height: 1.35;
+  font-size: 13.5px;
+  line-height: 1.42;
 }
 
 .rd-v2-home-rail-verdict p {
-  margin: 8px 0 0;
-  max-width: 42ch;
+  margin: 11px 0 0;
+  max-width: 44ch;
   color: var(--rd-muted);
   font-size: 10.5px;
-  line-height: 1.5;
+  line-height: 1.55;
+}
+
+.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail:has(.rd-v2-home-rail-verdict) .rd-v2-rail-scroll {
+  min-height: 0;
+  padding: 0 18px 26px;
+  background: transparent;
 }
 
 .rd-v2-home-rail-record {
-  padding: 4px 0 16px;
+  padding: 0 0 20px;
 }
 
+.rd-v2-home-rail-record .rd-v2-home-rail-label {
+  margin: 0 2px 11px;
+}
+
+/* A ledger reads better than an admin 2x2 box here. The rail is narrow even at
+ * 1920 and long identifiers should never be forced into miniature cells. */
 .rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-home-rail-record .rd-v2-rail-fieldgrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0;
+  display: block;
   margin: 0;
   padding: 0;
   border-top: 1px solid color-mix(in srgb, #d9c79f 68%, var(--rd-border));
-  border-left: 1px solid color-mix(in srgb, #d9c79f 52%, var(--rd-border));
+  border-left: 0;
 }
 
 .rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-home-rail-record .rd-v2-detail-row {
+  display: grid;
+  grid-template-columns: 104px minmax(0, 1fr);
+  align-items: start;
+  gap: 12px;
   min-width: 0;
-  min-height: 68px;
-  padding: 12px;
-  border-right: 1px solid color-mix(in srgb, #d9c79f 52%, var(--rd-border));
-  border-bottom: 1px solid color-mix(in srgb, #d9c79f 52%, var(--rd-border));
-  background: color-mix(in srgb, #fffdf7 86%, var(--rd-surface));
+  min-height: 0;
+  padding: 10px 2px;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, #d9c79f 54%, var(--rd-border));
+  background: transparent;
 }
 
 .rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-home-rail-record .rd-v2-detail-row::before {
@@ -102,10 +160,11 @@
 
 .rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-home-rail-record .rd-v2-detail-label {
   display: block;
-  margin-bottom: 6px;
-  color: #7c7d70;
+  margin: 1px 0 0;
+  color: #7b7c70;
   font-size: 8.5px;
-  letter-spacing: .06em;
+  line-height: 1.3;
+  letter-spacing: .065em;
   text-transform: uppercase;
 }
 
@@ -115,20 +174,25 @@
   color: var(--rd-text);
   font-size: 10.5px;
   font-weight: 650;
-  line-height: 1.35;
-  overflow-wrap: anywhere;
+  line-height: 1.4;
+  overflow-wrap: normal;
+  word-break: normal;
 }
 
 .rd-v2-home-rail-path {
-  margin-top: 4px;
-  padding-top: 14px;
-  border-top: 1px solid color-mix(in srgb, #d9c79f 68%, var(--rd-border));
+  margin-top: 2px;
+  padding-top: 18px;
+  border-top: 1px solid color-mix(in srgb, #d9c79f 70%, var(--rd-border));
+}
+
+.rd-v2-home-rail-path > .rd-v2-home-rail-label {
+  margin-bottom: 18px;
 }
 
 .rd-v2-home-rail-path-step {
   position: relative;
-  margin-left: 8px;
-  padding: 0 0 20px 24px;
+  margin-left: 3px;
+  padding: 0 0 23px 27px;
 }
 
 .rd-v2-home-rail-path-step:last-child {
@@ -139,120 +203,174 @@
   content: "";
   position: absolute;
   top: 3px;
-  left: 0;
+  left: 1px;
   width: 8px;
   height: 8px;
   border: 2px solid #78917d;
   border-radius: 50%;
-  background: #fbf7ed;
+  background: #fbfaf5;
 }
 
 .rd-v2-home-rail-path-step:not(:last-child)::after {
   content: "";
   position: absolute;
-  top: 14px;
+  top: 15px;
   bottom: 2px;
-  left: 4px;
+  left: 5px;
   width: 1px;
-  background: linear-gradient(180deg, #9dad9f, #d8d6ca);
+  background: linear-gradient(180deg, #8fa393 0%, #c4cabf 76%, #ddd9ce 100%);
 }
 
 .rd-v2-home-rail-path-step.current::before {
-  border-color: #bb8d4a;
+  border-color: #b7853e;
   background: #f2dfba;
 }
 
 .rd-v2-home-rail-path-step.conditional::before {
   border-style: dashed;
-  border-color: #9ea49a;
+  border-color: #8f988e;
   background: #fffdf7;
 }
 
 .rd-v2-home-rail-path-step > span {
   display: block;
-  margin-bottom: 4px;
+  margin-bottom: 5px;
   color: #6f786c;
   font: 700 8px/1.15 var(--rd-mono);
-  letter-spacing: .075em;
+  letter-spacing: .08em;
   text-transform: uppercase;
 }
 
 .rd-v2-home-rail-path-step strong {
   display: block;
+  max-width: 35ch;
   color: var(--rd-text);
-  font-size: 11px;
-  line-height: 1.35;
+  font-size: 11.2px;
+  line-height: 1.4;
+}
+
+/* The title has already been established immediately above; this step should
+ * explain the role of Home rather than echoing the same object name again. */
+.rd-v2-home-rail-path-step.current strong {
+  display: none;
 }
 
 .rd-v2-home-rail-path-step p {
-  margin: 5px 0 0;
+  margin: 6px 0 0;
+  max-width: 42ch;
   color: var(--rd-muted);
-  font-size: 9.5px;
-  line-height: 1.45;
+  font-size: 9.7px;
+  line-height: 1.48;
+}
+
+.rd-v2-home-rail-path-step.current p {
+  margin-top: 0;
 }
 
 .rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail:has(.rd-v2-home-rail-verdict) .rd-v2-rail-sticky {
-  border-top: 1px solid color-mix(in srgb, #d9c79f 72%, var(--rd-border));
-  background: #fbf7ed;
+  border-top: 1px solid color-mix(in srgb, #d9c79f 70%, var(--rd-border));
+  background: #fbfaf5;
 }
 
-/* 1440-class rails are much narrower. Preserve the same information but use
- * one horizontal field per line instead of forcing a cramped 2x2 matrix. */
-@media (max-width: 1679px) {
-  .rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-home-rail-record .rd-v2-rail-fieldgrid {
-    grid-template-columns: minmax(0, 1fr);
+/* Centre-card micro-sanding: keep the action tied to the decision copy and use
+ * the lower edge for the secondary continuation instead of leaving a floating
+ * button in a large blank middle. */
+.rd-v2-home-authority-card.continue > p {
+  max-width: 46ch;
+  margin-top: 14px;
+  line-height: 1.58;
+}
+
+.rd-v2-home-authority-card.continue h2 {
+  margin-top: 9px;
+}
+
+.rd-v2-home-authority-card.continue .rd-v2-home-continue-meta {
+  margin-top: 16px;
+}
+
+.rd-v2-home-authority-card.continue .rd-v2-home-authority-actions {
+  margin-top: 18px;
+  padding-top: 0;
+}
+
+.rd-v2-home-authority-card.continue .rd-v2-home-continue-secondary {
+  margin-top: auto;
+  padding-top: 15px;
+}
+
+/* Give the focal card footer enough presence to justify its reserved band. */
+@media (min-width: 1680px) and (min-height: 900px) {
+  .rd-v2-home-authority-card.focal::after {
+    font-size: 9.4px;
+    line-height: 1.4;
+    letter-spacing: .045em;
   }
 
-  .rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-home-rail-record .rd-v2-detail-row {
-    display: grid;
-    grid-template-columns: 92px minmax(0, 1fr);
-    align-items: start;
-    gap: 10px;
-    min-height: 0;
-    padding: 9px 10px;
-  }
-
-  .rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-home-rail-record .rd-v2-detail-label {
-    margin: 1px 0 0;
-  }
-
-  .rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-home-rail-record .rd-v2-detail-val {
-    font-size: 10px;
-    overflow-wrap: normal;
-    word-break: normal;
+  .rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail:has(.rd-v2-home-rail-verdict) .rd-v2-rail-ehead {
+    padding: 20px 20px 17px;
   }
 
   .rd-v2-home-rail-verdict {
-    padding: 13px 14px;
+    margin: 4px 20px 24px;
+    padding: 21px 20px 20px;
+  }
+
+  .rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail:has(.rd-v2-home-rail-verdict) .rd-v2-rail-scroll {
+    padding: 0 20px 30px;
+  }
+
+  .rd-v2-home-rail-record {
+    padding-bottom: 22px;
   }
 
   .rd-v2-home-rail-path {
-    padding-top: 11px;
+    padding-top: 20px;
   }
 
   .rd-v2-home-rail-path-step {
-    padding-bottom: 14px;
-  }
-
-  .rd-v2-home-rail-path-step p {
-    margin-top: 3px;
-    line-height: 1.35;
+    padding-bottom: 27px;
   }
 }
 
-@media (min-width: 1680px) and (min-height: 900px) {
-  .rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail:has(.rd-v2-home-rail-verdict) {
-    background:
-      linear-gradient(180deg, #fbf7ed 0 520px, var(--rd-surface) 520px),
-      var(--rd-surface);
+@media (max-width: 1679px) {
+  .rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail:has(.rd-v2-home-rail-verdict) .rd-v2-rail-ehead {
+    padding: 16px 16px 14px;
   }
 
   .rd-v2-home-rail-verdict {
-    margin-top: 2px;
-    padding: 18px;
+    margin: 2px 16px 18px;
+    padding: 16px 15px 15px;
+  }
+
+  .rd-v2-home-rail-verdict > span {
+    margin-bottom: 10px;
+  }
+
+  .rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail:has(.rd-v2-home-rail-verdict) .rd-v2-rail-scroll {
+    padding: 0 16px 22px;
+  }
+
+  .rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-home-rail-record .rd-v2-detail-row {
+    grid-template-columns: 90px minmax(0, 1fr);
+    gap: 10px;
+    padding: 9px 2px;
+  }
+
+  .rd-v2-home-rail-path {
+    padding-top: 15px;
+  }
+
+  .rd-v2-home-rail-path > .rd-v2-home-rail-label {
+    margin-bottom: 14px;
   }
 
   .rd-v2-home-rail-path-step {
-    padding-bottom: 24px;
+    padding-bottom: 17px;
+  }
+
+  .rd-v2-home-rail-path-step p {
+    margin-top: 4px;
+    line-height: 1.4;
   }
 }
