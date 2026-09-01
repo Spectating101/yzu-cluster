@@ -1,0 +1,22 @@
+/* Final Home sanding — visual-only closure after screenshot review. */
+
+/* The global shell already names Home. Repeating a tiny page label directly
+ * above Research workspace adds no information and weakens the opening stack. */
+.rd-v2-home-authority > .rd-v2-page-head {
+  display: none;
+}
+
+/* Keep a little top air after removing the redundant page label, but recover
+ * most of its vertical footprint. Tighten only the rail-side gutter so the
+ * centre and inspector read as one workstation instead of two detached panes. */
+.rd-v2-home-authority > .rd-v2-body-scroll {
+  padding-top: 14px;
+  padding-right: 12px;
+}
+
+@media (max-width: 1679px) {
+  .rd-v2-home-authority > .rd-v2-body-scroll {
+    padding-top: 12px;
+    padding-right: 12px;
+  }
+}
