@@ -242,7 +242,10 @@ test.describe("v2 Library navigation", () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
-    await expect(page.locator("aside.rd-v2-rail")).toContainText("Asia daily news-risk panel");
+    // Home may truthfully foreground the highest-value pending decision rather
+    // than the fixture's first Library asset.  This test is about the
+    // destination context after navigating to Library, not Home's ranking.
+    await expect(page.locator("aside.rd-v2-rail")).toContainText("Research desk");
 
     await page.locator("aside.yzu-sidebar").getByRole("button", { name: "Library", exact: true }).click();
     await expect(page.getByTestId("research-situation")).toContainText("Library");
