@@ -773,6 +773,9 @@ export function V2App() {
         setSelectedId("");
         setDetail(null);
         setBrowseRow(null);
+        setTab(next);
+        syncUrl({ tab: next, dataset: "" });
+        return;
       }
       if (next === "library") {
         setTab(next);
