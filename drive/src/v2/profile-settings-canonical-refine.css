@@ -8,6 +8,18 @@
    continuation of that ledger, not a second empty card with a second CTA.
    -------------------------------------------------------------------------- */
 
+/* The lifecycle hardening layer gives generic empty surfaces a rounded panel.
+   Profile's populated/thin authority is intentionally flat, so its unbound
+   state should keep the same canvas instead of switching visual systems. */
+.rd-v2-profile-page[data-surface-state="empty"] .rd-v2-body-scroll {
+  border: 0;
+  border-radius: 0;
+  background:
+    linear-gradient(180deg, rgba(246, 245, 239, .38) 0, rgba(255, 254, 250, 0) 180px),
+    var(--rd-release-panel, #fffdf6);
+  box-shadow: none;
+}
+
 .rd-v2-profile-page[data-surface-state="empty"] .rd-v2-profile-unbound {
   width: 100%;
   max-width: none;
@@ -22,6 +34,7 @@
 
 .rd-v2-profile-page[data-surface-state="empty"] .rd-v2-profile-unbound .rd-v2-profile-section-head {
   padding: 18px 0 9px;
+  background: transparent;
 }
 
 .rd-v2-profile-page[data-surface-state="empty"] .rd-v2-profile-unbound .rd-v2-profile-section-head h2 {
@@ -37,14 +50,6 @@
    repeat the same route immediately below it. */
 .rd-v2-profile-page[data-surface-state="empty"] .rd-v2-profile-unbound > .rd-v2-btn {
   display: none;
-}
-
-/* Let the empty state read as one continuous researcher ledger instead of a
-   small card floating inside the large page canvas. */
-.rd-v2-profile-page[data-surface-state="empty"] .rd-v2-body-scroll {
-  background:
-    linear-gradient(180deg, rgba(246, 245, 239, .44) 0, rgba(255, 254, 250, 0) 180px),
-    var(--rd-release-panel, #fffdf6);
 }
 
 /* --------------------------------------------------------------------------
