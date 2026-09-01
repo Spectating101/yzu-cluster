@@ -42,6 +42,9 @@ import "./home-attention-rail.css";
 // Final screenshot sanding: remove the redundant page label and close the
 // unnecessary centre-to-inspector gutter without disturbing 1440 geometry.
 import "./home-final-sanding.css";
+// Profile / Settings refinement stays last so its narrow overrides are easy to
+// audit against the canonical HPS authority without touching other surfaces.
+import "./profile-settings-canonical-refine.css";
 import { V2App } from "./App";
 import { InteractionProvider } from "./InteractionGuidance";
 
