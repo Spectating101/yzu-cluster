@@ -110,3 +110,22 @@
     flex: 1 1 132px;
   }
 }
+
+/* With the persistent Inspector present, 900-ish viewport width leaves a much
+   narrower Settings workspace than the viewport number suggests. Stack the
+   preference label/control pair before native select chrome starts eating the
+   selected value. This is the same workspace-width principle used by Home. */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .rd-v2-settings-page .rd-v2-settings-row:not(.stack) {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .rd-v2-settings-page .rd-v2-settings-row:not(.stack) .rd-v2-settings-label,
+  .rd-v2-settings-page .rd-v2-settings-row:not(.stack) .rd-v2-select,
+  .rd-v2-settings-page .rd-v2-settings-row:not(.stack) .rd-v2-input {
+    grid-column: 1;
+    min-width: 0;
+    width: 100%;
+  }
+}
