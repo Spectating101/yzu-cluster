@@ -39,6 +39,7 @@ import "./home-authority-closure.css";
 // PS-STATE-V1-2026-09-02 is intentionally last and state-scoped. It reopens
 // Profile / Settings only; Home and the other frozen workspaces are untouched.
 import "./profile-settings-authority.css";
+import "./profile-settings-authority-closure.css";
 import { V2App } from "./App";
 import { InteractionProvider } from "./InteractionGuidance";
 
