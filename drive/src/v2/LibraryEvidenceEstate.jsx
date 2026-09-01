@@ -103,7 +103,7 @@ function LibraryDirectoryHome({ collections, collectionsLoading, assetCount, onO
     <section className="rd-v2-library-directory-home" aria-label="Library directory" data-testid="library-directory-home">
       <header className="rd-v2-library-directory-intro">
         <div>
-          <span className="rd-v2-library-directory-kicker">Library directory</span>
+          <span className="rd-v2-library-directory-kicker">Collections</span>
           <h2>Choose a research area first</h2>
           <p>
             Open a collection to narrow the estate before inspecting evidence. If you already know what you need, search above.
