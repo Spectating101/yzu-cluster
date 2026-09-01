@@ -31,7 +31,7 @@ export function LibraryFolderRailPanel({
   const summaryLabel = filteredRoot
     ? "In this view"
     : root
-      ? "Library overview"
+      ? "In this library"
       : "In this collection";
 
   return (
@@ -52,14 +52,12 @@ export function LibraryFolderRailPanel({
           </div>
         </section>
 
-        {!root ? (
-          <section className="rd-v2-library-folder-add">
-            <p className="rd-v2-rail-section-label">Add evidence</p>
-            {onStartUpload ? <button type="button" onClick={() => onStartUpload(object)}>Upload file</button> : null}
-            {onStartUrl ? <button type="button" onClick={() => onStartUrl(object)}>Add URL / DOI</button> : null}
-            {onStartProcure ? <button type="button" onClick={() => onStartProcure(object)}>Find missing evidence</button> : null}
-          </section>
-        ) : null}
+        <section className="rd-v2-library-folder-add" hidden={root}>
+          <p className="rd-v2-rail-section-label">Add evidence</p>
+          {onStartUpload ? <button type="button" onClick={() => onStartUpload(object)}>Upload file</button> : null}
+          {onStartUrl ? <button type="button" onClick={() => onStartUrl(object)}>Add URL / DOI</button> : null}
+          {onStartProcure ? <button type="button" onClick={() => onStartProcure(object)}>Find missing evidence</button> : null}
+        </section>
 
         <details className="rd-v2-library-inspector-tech rd-v2-library-folder-tech">
           <summary>Technical details</summary>
