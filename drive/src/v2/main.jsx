@@ -26,6 +26,7 @@ import "./hps-responsive-fixes.css";
 import "./synthesis-workstation.css";
 import "./synthesis-wide-workstation.css";
 import "./synthesis-wide-workstation-closure.css";
+import "./synthesis-wide-workstation-sanding.css";
 import "./discover-frozen-closure.css";
 import "./connected-accounts.css";
 import { V2App } from "./App";
