@@ -75,9 +75,12 @@ function nestedCollections(folder = {}) {
     });
 }
 
-function collectionCountLabel(folder = {}) {
-  const count = collectionCount(folder);
-  return count > 0 ? String(count) : "";
+function nestedAssets(folder = {}) {
+  return Object.values(folder.children || {})
+    .filter((child) => child?.kind === "dataset")
+    .sort((a, b) =>
+      displayName(a?.row || a).localeCompare(displayName(b?.row || b), undefined, { sensitivity: "base" }),
+    );
 }
 
 function moveLedgerFocus(event) {
@@ -96,7 +99,13 @@ function moveLedgerFocus(event) {
   rows[next]?.focus();
 }
 
-function LibraryDirectoryHome({ collections, collectionsLoading, assetCount, onOpenCollection }) {
+function LibraryDirectoryHome({
+  collections,
+  collectionsLoading,
+  assetCount,
+  onOpenCollection,
+  onSelectDataset,
+}) {
   const branchCount = collections.reduce((sum, collection) => sum + nestedCollections(collection).length, 0);
 
   return (
@@ -143,21 +152,51 @@ function LibraryDirectoryHome({ collections, collectionsLoading, assetCount, onO
                   <div className="rd-v2-library-directory-branches" aria-label={`${collection.name || collection.id} collections`}>
                     {branches.map((branch) => {
                       const branchAssets = collectionCount(branch);
+                      const leaves = nestedAssets(branch);
                       return (
-                        <button
-                          key={branch.id}
-                          type="button"
-                          className="rd-v2-library-directory-branch"
-                          data-testid="library-directory-branch"
-                          onClick={() => onOpenCollection?.(branch)}
-                        >
-                          <span className="rd-v2-library-directory-branch-line" aria-hidden="true">└</span>
-                          <span>
-                            <strong>{branch.name || branch.id}</strong>
-                            {branch.blurb ? <em>{branch.blurb}</em> : null}
-                          </span>
-                          <b>{branchAssets}</b>
-                        </button>
+                        <div className="rd-v2-library-directory-branch-block" key={branch.id}>
+                          <button
+                            type="button"
+                            className="rd-v2-library-directory-branch"
+                            data-testid="library-directory-branch"
+                            onClick={() => onOpenCollection?.(branch)}
+                          >
+                            <span className="rd-v2-library-directory-branch-line" aria-hidden="true">└</span>
+                            <span>
+                              <strong>{branch.name || branch.id}</strong>
+                              {branch.blurb ? <em>{branch.blurb}</em> : null}
+                            </span>
+                            <b>{branchAssets}</b>
+                          </button>
+
+                          {leaves.length ? (
+                            <div className="rd-v2-library-directory-leaves" aria-label={`${branch.name || branch.id} evidence`}>
+                              {leaves.map((asset, index) => {
+                                const row = asset?.row || asset;
+                                return (
+                                  <button
+                                    type="button"
+                                    className="rd-v2-library-directory-leaf"
+                                    data-testid="library-directory-leaf"
+                                    key={row.dataset_id || asset.id}
+                                    onClick={() => onSelectDataset?.(row)}
+                                  >
+                                    <span className="rd-v2-library-directory-leaf-line" aria-hidden="true">
+                                      {index === leaves.length - 1 ? "└" : "├"}
+                                    </span>
+                                    <span className="rd-v2-library-directory-leaf-copy">
+                                      <strong>{displayName(row)}</strong>
+                                      <em>{sourceLabel(row)}</em>
+                                    </span>
+                                    <span className="rd-v2-library-directory-leaf-state">
+                                      <StatusPill dataset={row} />
+                                    </span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          ) : null}
+                        </div>
                       );
                     })}
                   </div>
@@ -212,6 +251,7 @@ export function LibraryEvidenceEstate({
           collectionsLoading={collectionsLoading}
           assetCount={visibleAssets.length}
           onOpenCollection={onOpenCollection}
+          onSelectDataset={onSelectDataset}
         />
       ) : null}
 
