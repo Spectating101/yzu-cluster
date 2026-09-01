@@ -1528,24 +1528,6 @@ export function BrowsePage({
                   {sortMenu}
                 </div>
               </div>
-              {assessmentActive ? (
-                <DiscoverEvidenceBrief
-                  key={`assessment-workspace:${q}`}
-                  variant="workspace"
-                  initialQuestion={q}
-                  autoAssess
-                  assessmentValue={assessmentResult}
-                  catalog={catalog}
-                  onSelectRow={onSelectRow}
-                  onLegacySearch={onSuggestSearch}
-                  onCraftUrl={onCraftUrl}
-                  onAssessmentChange={onAssessmentChange}
-                  onAssessmentActive={onAssessmentActive}
-                  resourcesRollup={resourcesRollup}
-                  resourcesError={resourcesError}
-                  deskHealth={deskHealth}
-                />
-              ) : null}
               <div className="rd-v2-discover-frozen-counts" aria-label="Discover result territories">
                 {merged.length || !loading || wideningInProgress
                   ? discoverTerritories(resultGroups).map((territory) =>
@@ -1652,6 +1634,25 @@ export function BrowsePage({
               onReviewAssembly={hasEvidenceGap ? () => setRouteComparisonOpen(true) : undefined}
               onSearchWider={onSearchWeb}
             />
+
+            {assessmentActive ? (
+                <DiscoverEvidenceBrief
+                  key={`assessment-workspace:${q}`}
+                  variant="workspace"
+                  initialQuestion={q}
+                  autoAssess
+                  assessmentValue={assessmentResult}
+                  catalog={catalog}
+                  onSelectRow={onSelectRow}
+                  onLegacySearch={onSuggestSearch}
+                  onCraftUrl={onCraftUrl}
+                  onAssessmentChange={onAssessmentChange}
+                  onAssessmentActive={onAssessmentActive}
+                  resourcesRollup={resourcesRollup}
+                  resourcesError={resourcesError}
+                  deskHealth={deskHealth}
+                />
+              ) : null}
 
             {centreRows.length ? (
               <section className="rd-v2-discover-ranked-results" aria-label="Ranked Discover results" data-testid="discover-ranked-results">
