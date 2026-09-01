@@ -63,3 +63,34 @@ test("a pending capability check never paints a misleading empty page", async ({
   await expect(page.getByTestId("desk-access-gate")).toBeVisible();
   await expect(page.getByText("No curated source routes yet")).toHaveCount(0);
 });
+
+test("a public guest can browse the shared estate but is asked to sign in before Ask", async ({ page }) => {
+  await mockV2Api(page);
+  await page.unroute("**/library/desk/capabilities").catch(() => {});
+  await page.route("**/library/desk/capabilities", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({
+      version: 2,
+      authenticated: true,
+      access: "public_guest",
+      principal: { id: "guest-test", email: "", display_name: "Guest researcher", role: "public_guest" },
+      permissions: {
+        view_research_data: true,
+        view_faculty_profile: false,
+        view_operations: false,
+        use_ask: false,
+        submit_collection: false,
+        approve_jobs: false,
+      },
+    }),
+  }));
+
+  await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
+  await expect(page.getByTestId("library-evidence-estate")).toBeVisible();
+  await page.locator("aside.rd-v2-rail").getByRole("tab", { name: "Ask" }).click();
+  const note = page.locator(".rd-v2-permission-note");
+  await expect(note).toContainText("Sign in to ask Research Drive.");
+  await expect(note).toContainText("saved conversations are available after sign-in.");
+  await expect(page.getByTestId("ask-composer")).toHaveCount(0);
+});

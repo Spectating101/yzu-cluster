@@ -34,7 +34,28 @@ async function mockApi(page) {
     route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ version: 1, authenticated: true, access: "operator" }),
+      // The rendered Profile is principal-bound. Keep this generic shell
+      // fixture authenticated with an explicit principal rather than relying
+      // on the obsolete v1 optimistic-access fallback.
+      body: JSON.stringify({
+        version: 2,
+        authenticated: true,
+        access: "operator",
+        principal: {
+          id: "test-professor",
+          email: "test.prof@example.test",
+          display_name: "Test Prof",
+          role: "operator",
+        },
+        permissions: {
+          view_research_data: true,
+          view_faculty_profile: true,
+          view_operations: true,
+          use_ask: true,
+          submit_collection: true,
+          approve_jobs: true,
+        },
+      }),
     }),
   );
   await page.route("**/library/desk/session", (route) =>

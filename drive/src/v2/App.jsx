@@ -289,6 +289,7 @@ export function V2App() {
   const { toast, show: showToast, dismissIf: dismissToastIf } = useToast();
   const authenticatedEmail = String(deskAccess?.principal?.email || "").trim();
   const canUseAsk = Boolean(deskAccess?.permissions?.use_ask);
+  const isPublicGuest = deskAccess?.access === "public_guest";
   const composerRuntime = composerRuntimeRead(health?.desk?.composer_runtime);
   const canSubmitCollection = Boolean(deskAccess?.permissions?.submit_collection);
   const canApproveJobs = Boolean(deskAccess?.permissions?.approve_jobs);
@@ -2041,8 +2042,17 @@ export function V2App() {
             railContext={railContext}
           /> : (
             <div className="rd-v2-permission-note" role="note">
-              <strong>Ask is not available for this account.</strong>
-              <span>Contact the Research Drive operator if you need access.</span>
+              {isPublicGuest ? (
+                <>
+                  <strong>Sign in to ask Research Drive.</strong>
+                  <span>Your research trail and saved conversations are available after sign-in.</span>
+                </>
+              ) : (
+                <>
+                  <strong>Ask is not available for this account.</strong>
+                  <span>Contact the Research Drive operator if you need access.</span>
+                </>
+              )}
             </div>
           )
         }

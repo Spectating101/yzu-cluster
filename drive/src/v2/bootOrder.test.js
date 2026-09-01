@@ -71,3 +71,9 @@ test("Ask permission gates both Copilot priming and the Ask rail", () => {
   at("canUseAsk ? <AskRail");
   at("assistantAllowed={canUseAsk}");
 });
+
+test("public guests receive a sign-in explanation instead of an operator-only denial", () => {
+  at('const isPublicGuest = deskAccess?.access === "public_guest";');
+  at("Sign in to ask Research Drive.");
+  at("saved conversations are available after sign-in.");
+});
