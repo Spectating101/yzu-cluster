@@ -1,0 +1,381 @@
+/* Profile / Settings visual authority — 2026-09-02
+   Reopens PS only. The underlying researcher, session, storage and preference
+   contracts remain unchanged; this layer fixes state composition and wide-screen
+   hierarchy after the original HPS gate over-indexed on rich-state containment. */
+
+:root {
+  --rd-ps-ink: var(--rd-hps-ink, #182033);
+  --rd-ps-copy: var(--rd-hps-copy, #344054);
+  --rd-ps-muted: var(--rd-hps-muted, #6e7685);
+  --rd-ps-line: var(--rd-hps-line, #e2ddd2);
+  --rd-ps-line-strong: var(--rd-hps-line-strong, #d1d6dd);
+  --rd-ps-sage: var(--rd-hps-sage, #3f6f5c);
+  --rd-ps-sage-soft: var(--rd-hps-sage-soft, #edf3ef);
+  --rd-ps-paper: var(--rd-hps-paper, #fffefa);
+  --rd-ps-soft: var(--rd-hps-soft, #f6f5ef);
+  --rd-ps-radius: 18px;
+}
+
+/* --------------------------------------------------------------------------
+   PROFILE — the absence of a bound identity is a first-class desk state.
+   Rich researcher records deliberately keep the previously certified layout.
+   -------------------------------------------------------------------------- */
+
+.rd-v2-profile-page:has(.rd-v2-profile-unbound) .rd-v2-body-scroll {
+  padding: clamp(18px, 2vw, 28px);
+  background:
+    radial-gradient(circle at 88% 8%, rgba(63, 111, 92, .08), transparent 24%),
+    linear-gradient(180deg, rgba(246, 245, 239, .72), rgba(255, 254, 250, .98) 220px),
+    var(--rd-ps-paper);
+}
+
+.rd-v2-profile-page:has(.rd-v2-profile-unbound) .rd-v2-profile-identity,
+.rd-v2-profile-page:has(.rd-v2-profile-unbound) .rd-v2-profile-unbound {
+  margin: 0;
+  border-radius: var(--rd-ps-radius);
+}
+
+.rd-v2-profile-page:has(.rd-v2-profile-unbound) .rd-v2-profile-identity {
+  position: relative;
+  min-height: 294px;
+  align-items: center;
+  overflow: hidden;
+  padding: clamp(28px, 3vw, 42px);
+  border: 1px solid var(--rd-ps-line-strong);
+  background:
+    radial-gradient(circle at 94% 0, rgba(63, 111, 92, .12), transparent 34%),
+    linear-gradient(145deg, rgba(255,255,255,.99), rgba(249,249,244,.98));
+  box-shadow: 0 18px 44px rgba(24, 32, 51, .065);
+}
+
+.rd-v2-profile-page:has(.rd-v2-profile-unbound) .rd-v2-profile-identity::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--rd-ps-sage);
+}
+
+.rd-v2-profile-page:has(.rd-v2-profile-unbound) .rd-v2-profile-kicker {
+  margin-bottom: 17px;
+}
+
+.rd-v2-profile-page:has(.rd-v2-profile-unbound) .rd-v2-profile-name {
+  max-width: 640px;
+  font-size: clamp(30px, 3.25vw, 44px);
+  font-weight: 690;
+  letter-spacing: -.045em;
+  line-height: 1.02;
+}
+
+.rd-v2-profile-page:has(.rd-v2-profile-unbound) .rd-v2-profile-hint {
+  max-width: 560px;
+  margin-top: 14px;
+  color: #697386;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.rd-v2-profile-page:has(.rd-v2-profile-unbound) .rd-v2-profile-identity-side {
+  align-self: stretch;
+  justify-content: flex-end;
+  flex-direction: column;
+  padding-left: clamp(8px, 2vw, 28px);
+}
+
+.rd-v2-profile-page:has(.rd-v2-profile-unbound) .rd-v2-profile-identity-side .rd-v2-btn {
+  min-width: 138px;
+}
+
+.rd-v2-profile-page:has(.rd-v2-profile-unbound) .rd-v2-profile-unbound {
+  display: flex;
+  min-height: 294px;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: clamp(26px, 2.5vw, 34px);
+  border: 1px solid #202b31;
+  background:
+    radial-gradient(circle at 100% 0, rgba(95, 137, 118, .25), transparent 38%),
+    linear-gradient(145deg, #121b20, #0d1519);
+  color: #f8f6ec;
+  box-shadow: 0 18px 44px rgba(16, 24, 32, .12);
+}
+
+.rd-v2-profile-page:has(.rd-v2-profile-unbound) .rd-v2-profile-unbound .rd-v2-profile-section-head {
+  display: block;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+}
+
+.rd-v2-profile-page:has(.rd-v2-profile-unbound) .rd-v2-profile-unbound .rd-v2-profile-section-head h2 {
+  max-width: 360px;
+  color: #f8f6ec;
+  font-size: clamp(21px, 2vw, 27px);
+  font-weight: 660;
+  letter-spacing: -.03em;
+  line-height: 1.15;
+}
+
+.rd-v2-profile-page:has(.rd-v2-profile-unbound) .rd-v2-profile-unbound .rd-v2-profile-section-head p {
+  max-width: 430px;
+  margin-top: 12px;
+  color: #b9c2c4;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.rd-v2-profile-page:has(.rd-v2-profile-unbound) .rd-v2-profile-unbound > .rd-v2-btn {
+  align-self: flex-start;
+  min-width: 126px;
+  margin-top: 28px;
+  border-color: #f5f2e8;
+  background: #f5f2e8;
+  color: #101820;
+  box-shadow: none;
+}
+
+.rd-v2-profile-page:has(.rd-v2-profile-unbound) .rd-v2-profile-unbound > .rd-v2-btn:hover:not(:disabled) {
+  border-color: #fff;
+  background: #fff;
+}
+
+/* The empty Detail rail should read as an intentional boundary, not a missing
+   implementation. No new claims are introduced; only the existing fact is framed. */
+.rd-v2-profile-rail:has(.rd-v2-profile-rail-block:only-child) {
+  padding-top: 12px;
+}
+
+.rd-v2-profile-rail:has(.rd-v2-profile-rail-block:only-child) .rd-v2-profile-rail-block {
+  position: relative;
+  overflow: hidden;
+  padding: 18px 18px 20px;
+  border: 1px solid var(--rd-ps-line);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(237, 243, 239, .68), rgba(255,255,255,.94));
+}
+
+.rd-v2-profile-rail:has(.rd-v2-profile-rail-block:only-child) .rd-v2-profile-rail-block::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--rd-ps-sage);
+}
+
+/* --------------------------------------------------------------------------
+   SETTINGS — policy has hierarchy. Wide screens use the available horizontal
+   estate; narrower screens fall back to a calm single-column control ledger.
+   -------------------------------------------------------------------------- */
+
+.rd-v2-settings-page .rd-v2-body-scroll {
+  padding: 18px;
+  background:
+    radial-gradient(circle at 96% 0, rgba(63, 111, 92, .055), transparent 23%),
+    linear-gradient(180deg, rgba(246, 245, 239, .58), rgba(255, 254, 250, 0) 190px),
+    var(--rd-ps-paper);
+}
+
+.rd-v2-settings-statement {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+.rd-v2-settings-statement > .rd-v2-statement-section {
+  display: block;
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid var(--rd-ps-line);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, .78);
+  box-shadow: 0 8px 22px rgba(24, 32, 51, .035);
+}
+
+.rd-v2-settings-statement > .rd-v2-statement-section:first-of-type {
+  border-top: 1px solid var(--rd-ps-line);
+}
+
+.rd-v2-settings-statement .rd-v2-statement-head {
+  margin-bottom: 16px;
+}
+
+.rd-v2-settings-statement .rd-v2-statement-head h2 {
+  color: var(--rd-ps-ink);
+  font-size: 12px;
+  font-weight: 760;
+  letter-spacing: .035em;
+}
+
+.rd-v2-settings-statement .rd-v2-statement-body {
+  min-width: 0;
+}
+
+.rd-v2-settings-statement .rd-v2-settings-row {
+  min-width: 0;
+}
+
+.rd-v2-settings-statement > .rd-v2-statement-section:first-child {
+  background:
+    linear-gradient(180deg, rgba(237, 243, 239, .46), rgba(255,255,255,.82) 120px),
+    #fff;
+  border-color: #d4dfd9;
+}
+
+/* An unbound research identity gets a visible but restrained setup emphasis.
+   :placeholder-shown tracks the actual current input state without adding a
+   second React state contract solely for styling. */
+.rd-v2-settings-page:has(#rd-settings-email:placeholder-shown)
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-child(4) {
+  position: relative;
+  overflow: hidden;
+  border-color: #cbd8d1;
+  background:
+    radial-gradient(circle at 100% 0, rgba(63, 111, 92, .11), transparent 42%),
+    #f9fbf9;
+}
+
+.rd-v2-settings-page:has(#rd-settings-email:placeholder-shown)
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-child(4)::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--rd-ps-sage);
+}
+
+.rd-v2-settings-statement > .rd-v2-settings-advanced {
+  margin: 0;
+  border-color: var(--rd-ps-line);
+  background: rgba(248, 248, 244, .86);
+}
+
+.rd-v2-settings-statement > .rd-v2-settings-advanced > summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+/* 1920-class composition: behavior is the primary policy object; account,
+   research identity and desk access form a compact right-hand authority stack. */
+@media (min-width: 1680px) {
+  .rd-v2-profile-page:has(.rd-v2-profile-unbound) .rd-v2-body-scroll {
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(310px, .72fr);
+    gap: clamp(18px, 1.6vw, 26px);
+    align-content: start;
+    align-items: stretch;
+  }
+
+  .rd-v2-settings-statement {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-template-rows: auto auto auto auto auto;
+    gap: 14px;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-child(1) {
+    grid-column: 1 / 8;
+    grid-row: 1 / 4;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-child(2) {
+    grid-column: 8 / 13;
+    grid-row: 1;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-child(4) {
+    grid-column: 8 / 13;
+    grid-row: 2;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-child(5) {
+    grid-column: 8 / 13;
+    grid-row: 3;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-child(3) {
+    grid-column: 1 / 13;
+    grid-row: 4;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-settings-advanced {
+    grid-column: 1 / 13;
+    grid-row: 5;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-child(1) .rd-v2-settings-row:not(.stack) {
+    grid-template-columns: minmax(170px, .72fr) minmax(240px, 1fr);
+    gap: 14px 18px;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section:nth-child(1) .rd-v2-settings-hint {
+    margin-left: min(188px, 32%);
+  }
+}
+
+@media (max-width: 1679px) {
+  .rd-v2-settings-statement {
+    display: grid;
+    gap: 14px;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section,
+  .rd-v2-settings-statement > .rd-v2-settings-advanced {
+    width: 100%;
+  }
+}
+
+@media (max-width: 1024px) {
+  .rd-v2-profile-page:has(.rd-v2-profile-unbound) .rd-v2-profile-identity {
+    min-height: 0;
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+
+  .rd-v2-profile-page:has(.rd-v2-profile-unbound) .rd-v2-profile-identity-side {
+    align-self: auto;
+    align-items: flex-start;
+    padding-left: 0;
+  }
+
+  .rd-v2-profile-page:has(.rd-v2-profile-unbound) .rd-v2-profile-unbound {
+    min-height: 0;
+  }
+
+  .rd-v2-settings-page .rd-v2-body-scroll {
+    padding: 14px;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section {
+    padding: 17px;
+  }
+}
+
+@media (max-width: 640px) {
+  .rd-v2-profile-page:has(.rd-v2-profile-unbound) .rd-v2-body-scroll,
+  .rd-v2-settings-page .rd-v2-body-scroll {
+    padding: 12px;
+  }
+
+  .rd-v2-profile-page:has(.rd-v2-profile-unbound) .rd-v2-profile-identity,
+  .rd-v2-profile-page:has(.rd-v2-profile-unbound) .rd-v2-profile-unbound {
+    padding: 22px 19px;
+    border-radius: 14px;
+  }
+
+  .rd-v2-profile-page:has(.rd-v2-profile-unbound) .rd-v2-profile-name {
+    font-size: 30px;
+  }
+
+  .rd-v2-settings-statement {
+    gap: 10px;
+  }
+
+  .rd-v2-settings-statement > .rd-v2-statement-section {
+    padding: 15px;
+    border-radius: 12px;
+  }
+}
