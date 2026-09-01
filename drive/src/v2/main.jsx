@@ -29,6 +29,7 @@ import "./connected-accounts.css";
 import "./profile-settings-reopen.css";
 import "./profile-settings-reopen-finish.css";
 import "./profile-settings-visual-rebuild.css";
+import "./profile-settings-density-finish.css";
 import { V2App } from "./App";
 import { InteractionProvider } from "./InteractionGuidance";
 
