@@ -21,6 +21,49 @@ async function settle(page) {
   await page.waitForTimeout(100);
 }
 
+async function expectHomeContainment(page, viewportWidth) {
+  const result = await page.evaluate(() => {
+    const pageNode = document.querySelector(".rd-v2-home-authority");
+    const nextCard = document.querySelector(".rd-v2-home-authority-card.next");
+    const bodyScroll = document.querySelector(".rd-v2-home-authority > .rd-v2-body-scroll");
+    if (!pageNode || !nextCard || !bodyScroll) return { missing: true };
+
+    const card = nextCard.getBoundingClientRect();
+    const body = bodyScroll.getBoundingClientRect();
+    const descendants = Array.from(
+      nextCard.querySelectorAll("button, .rd-v2-chip, .rd-v2-chips-row, p, strong, span, em"),
+    );
+    const violations = descendants
+      .map((node) => {
+        const rect = node.getBoundingClientRect();
+        return {
+          tag: node.tagName,
+          cls: node.className || "",
+          left: rect.left,
+          right: rect.right,
+          cardLeft: card.left,
+          cardRight: card.right,
+        };
+      })
+      .filter((entry) => entry.left < card.left - 1 || entry.right > card.right + 1);
+
+    return {
+      missing: false,
+      violations,
+      cardRight: card.right,
+      bodyRight: body.right,
+      scrollWidth: document.documentElement.scrollWidth,
+      clientWidth: document.documentElement.clientWidth,
+    };
+  });
+
+  expect(result.missing).toBe(false);
+  expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
+  expect(result.cardRight).toBeLessThanOrEqual(result.bodyRight + 1);
+  expect(result.scrollWidth).toBeLessThanOrEqual(Math.ceil(viewportWidth));
+  expect(result.clientWidth).toBeLessThanOrEqual(Math.ceil(viewportWidth));
+}
+
 test.describe("August visual authority recovery", () => {
   for (const [viewportName, viewport] of VIEWPORTS) {
     for (const tab of SURFACES) {
@@ -37,6 +80,10 @@ test.describe("August visual authority recovery", () => {
           await expect(rail).toBeVisible();
           const box = await rail.boundingBox();
           expect(box?.width || 0).toBeGreaterThan(300);
+        }
+
+        if (tab === "home") {
+          await expectHomeContainment(page, viewport.width);
         }
 
         await page.screenshot({
