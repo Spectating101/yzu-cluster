@@ -1,0 +1,19 @@
+/* Final screenshot sanding for the Profile / Settings candidate.
+   Keep this tiny and late-loaded: the structural composition is already set. */
+
+.rd-v2-settings-policy-row .rd-v2-select {
+  padding-right: 30px;
+  font-size: 10.5px;
+}
+
+@media (min-width: 1121px) and (max-width: 1599px) {
+  .rd-v2-settings-policy-row {
+    grid-template-columns: minmax(0, 1fr) minmax(238px, .76fr);
+    gap: 16px;
+  }
+
+  .rd-v2-settings-policy-row .rd-v2-select {
+    font-size: 10px;
+    letter-spacing: -.005em;
+  }
+}
