@@ -1,6 +1,12 @@
 import { mkdirSync } from "node:fs";
 import { test, expect } from "@playwright/test";
 import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
+import {
+  HOME_PRODUCTION_DATASETS,
+  HOME_PRODUCTION_HEALTH,
+  HOME_PRODUCTION_JOBS,
+  HOME_PRODUCTION_PROFILE,
+} from "./fixtures/homeProductionState.js";
 
 const OUT = "artifacts/august-visual-recovery";
 const VIEWPORTS = [
@@ -64,6 +70,14 @@ async function expectHomeContainment(page, viewportWidth) {
   expect(result.clientWidth).toBeLessThanOrEqual(Math.ceil(viewportWidth));
 }
 
+async function expectPopulatedHome(page) {
+  await expect(page.getByText("GDELT Asia news-risk · August refresh", { exact: true })).toBeVisible();
+  await expect(page.getByText("Taiwan issuer fundamentals · Q2 refresh", { exact: true })).toBeVisible();
+  await expect(page.getByText("Stablecoin exchange activity backfill", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("MOPS governance disclosures", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Compare Taiwan issuer fundamentals with news-risk shocks around earnings dates.", { exact: true })).toBeVisible();
+}
+
 test.describe("August visual authority recovery", () => {
   for (const [viewportName, viewport] of VIEWPORTS) {
     for (const tab of SURFACES) {
@@ -92,5 +106,28 @@ test.describe("August visual authority recovery", () => {
         });
       });
     }
+
+    test(`home populated production state at ${viewportName}`, async ({ page }) => {
+      mkdirSync(OUT, { recursive: true });
+      await page.setViewportSize(viewport);
+      await mockV2Api(page, {
+        datasetsBody: HOME_PRODUCTION_DATASETS,
+        healthBody: HOME_PRODUCTION_HEALTH,
+        jobsBody: HOME_PRODUCTION_JOBS,
+        profileBody: HOME_PRODUCTION_PROFILE,
+      });
+      await page.goto("/?tab=home");
+      await settle(page);
+
+      await expect(page.locator("main.yzu-main")).toBeVisible();
+      await expect(page.locator("aside.rd-v2-rail")).toBeVisible();
+      await expectPopulatedHome(page);
+      await expectHomeContainment(page, viewport.width);
+
+      await page.screenshot({
+        path: `${OUT}/${viewportName}-home-production.png`,
+        fullPage: false,
+      });
+    });
   }
 });
