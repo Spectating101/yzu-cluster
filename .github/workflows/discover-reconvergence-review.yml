@@ -46,4 +46,4 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-# Exact-head replay after deep-link and fresh-navigation repair.
+# Exact-head replay for the dense evidence-cockpit prototype.
