@@ -46,4 +46,4 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-# Exact-head replay for large candidate fields, quieter hierarchy, and assembly-state UI.
+# Clean-head replay: 10-candidate field, progressive disclosure, and assembly before deep assessment.
