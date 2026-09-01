@@ -1,0 +1,21 @@
+/* Synthesis-only shell proportion for large workstations.
+ *
+ * The persistent Detail/Ask rail is valuable, but the global 470px cap is
+ * unnecessarily expensive on Synthesis at 1920: its recorded context fits in
+ * a narrower interpretive rail while the analytical desk benefits directly
+ * from every reclaimed pixel. 1440 and smaller remain under the global shell
+ * contract.
+ */
+@media (min-width: 1680px) and (min-height: 900px) {
+  body:has(.rd-v2-synthesis-page) .rd-v2-shell {
+    --rd-rail-min: 350px;
+    --rd-rail-ideal: 20vw;
+    --rd-rail-max: 390px;
+  }
+
+  /* Let the reclaimed centre width reach the actual analytical surface rather
+     than being absorbed as extra outer padding. */
+  #root .rd-v2-synthesis-page .s04-main {
+    padding-inline: 16px !important;
+  }
+}
