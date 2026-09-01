@@ -67,6 +67,100 @@
   color: #315d4a;
 }
 
+/* Home rail closure ------------------------------------------------------
+ * The Home inspector should feel like part of the research desk rather than
+ * a large empty column. Keep its content truthful: we enrich hierarchy and
+ * context, but do not manufacture extra object facts. */
+.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--rd-surface) 97%, #edf1eb) 0 196px, var(--rd-surface) 196px),
+    var(--rd-surface);
+}
+
+.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail .rd-v2-rail-scroll {
+  position: relative;
+  padding-bottom: 124px;
+}
+
+.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail .rd-v2-rail-fieldgrid {
+  counter-reset: home-rail-step;
+  margin: 8px 14px 0;
+  padding: 0;
+  border-top: 1px solid color-mix(in srgb, var(--rd-border) 76%, transparent);
+}
+
+.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail .rd-v2-rail-field {
+  position: relative;
+  min-height: 62px;
+  padding: 13px 10px 12px 34px;
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border) 72%, transparent);
+}
+
+.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail .rd-v2-rail-field::before {
+  counter-increment: home-rail-step;
+  content: counter(home-rail-step, decimal-leading-zero);
+  position: absolute;
+  top: 14px;
+  left: 4px;
+  color: color-mix(in srgb, #527765 74%, var(--rd-muted));
+  font: 650 9px/1 var(--rd-mono);
+  letter-spacing: 0.05em;
+}
+
+.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail .rd-v2-rail-field dt {
+  margin-bottom: 5px;
+  color: color-mix(in srgb, var(--rd-muted) 82%, #527765);
+  font-size: 9px;
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+}
+
+.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail .rd-v2-rail-field dd {
+  color: var(--rd-text);
+  font-size: 12px;
+  font-weight: 620;
+  line-height: 1.35;
+}
+
+/* Static contextual guidance is deliberately generic: it describes the rail
+ * contract, never the selected object's unobserved state. */
+.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail .rd-v2-rail-scroll::after {
+  content: "RESEARCH CONTEXT\AThis inspector follows the active Home object. Ask uses the same selection; durable changes remain on the owning surface.";
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 22px;
+  min-height: 70px;
+  padding: 13px 14px 12px;
+  border: 1px solid color-mix(in srgb, var(--rd-border) 78%, transparent);
+  border-left: 2px solid color-mix(in srgb, #527765 52%, var(--rd-border));
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0 27px,
+      color-mix(in srgb, var(--rd-border) 34%, transparent) 27px 28px
+    ),
+    color-mix(in srgb, var(--rd-surface) 96%, #eef2eb);
+  color: var(--rd-muted);
+  font-size: 10px;
+  font-weight: 520;
+  line-height: 1.55;
+  letter-spacing: 0.012em;
+  white-space: pre-line;
+  pointer-events: none;
+}
+
+.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail .rd-v2-rail-scroll::after::first-line {
+  color: #527765;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail .rd-v2-rail-sticky-footer {
+  border-top-color: color-mix(in srgb, var(--rd-border) 82%, #527765);
+  background: color-mix(in srgb, var(--rd-surface) 97%, #eef2eb);
+}
+
 /* Wide-desktop enrichment.
  * 1920-class desks have materially more vertical room than 1440, so use that
  * room to close the research canvas rather than leaving a large dead field.
@@ -81,33 +175,98 @@
     gap: 16px;
   }
 
+  /* Let the focal evidence read as the anchor object while preserving the
+   * secondary decision/resource instruments beside it. */
+  .rd-v2-home-authority-primary {
+    grid-template-columns: minmax(0, 1.42fr) minmax(250px, .86fr) minmax(250px, .86fr);
+  }
+
   .rd-v2-home-authority-secondary {
+    grid-template-columns: minmax(0, 1.58fr) minmax(330px, .92fr);
     margin-top: 16px;
-    min-height: 374px;
+    min-height: 418px;
     align-items: stretch;
   }
 
+  .rd-v2-home-authority-card.focal,
   .rd-v2-home-authority-card.headroom,
   .rd-v2-home-authority-card.continue {
-    min-height: 282px;
+    min-height: 306px;
   }
 
   .rd-v2-home-authority-card.trail,
   .rd-v2-home-authority-card.next {
-    min-height: 374px;
+    min-height: 418px;
   }
 
-  /* An empty trail still describes what belongs in the durable record. These
-   * are category guides, not fabricated events. */
+  /* Turn the focal card's lower whitespace into a restrained evidence-ledger
+   * treatment. It remains decorative and does not imply extra observations. */
+  .rd-v2-home-authority-card.focal {
+    position: relative;
+    padding-bottom: 52px;
+  }
+
+  .rd-v2-home-authority-card.focal::after {
+    content: "HELD EVIDENCE  ·  Library owns provenance, readiness and schema truth";
+    position: absolute;
+    left: 18px;
+    right: 18px;
+    bottom: 18px;
+    padding-top: 11px;
+    border-top: 1px solid color-mix(in srgb, var(--home-line) 70%, transparent);
+    color: color-mix(in srgb, var(--home-muted) 84%, #527765);
+    font: 650 8.8px/1.35 var(--rd-mono);
+    letter-spacing: .055em;
+  }
+
+  .rd-v2-home-focal-facts {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    row-gap: 10px;
+  }
+
+  .rd-v2-home-focal-rule {
+    height: 6px;
+    margin-top: 17px;
+  }
+
+  .rd-v2-home-authority-card.headroom .rd-v2-home-authority-headroom-list li {
+    padding-block: 11px;
+  }
+
+  .rd-v2-home-authority-card.continue .rd-v2-home-continue-meta {
+    margin-top: 16px;
+  }
+
+  /* Recent Trail should read like a ledger even before it has enough durable
+   * events to fill the page. When real rows exist, they sit over the same
+   * ruled substrate; when not, the category guides explain what will land here. */
   .rd-v2-home-authority-card.trail {
     overflow: hidden;
   }
 
+  .rd-v2-home-authority-card.trail::after {
+    content: "EVENT                              DETAILS                          DESTINATION";
+    display: block;
+    margin-top: 12px;
+    padding: 8px 4px 7px;
+    border-top: 1px solid color-mix(in srgb, var(--home-line) 78%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--home-line) 56%, transparent);
+    color: color-mix(in srgb, var(--home-muted) 88%, #527765);
+    font: 650 8px/1.2 var(--rd-mono);
+    letter-spacing: .06em;
+    white-space: pre;
+    opacity: .78;
+  }
+
+  .rd-v2-home-authority-card.trail:has(.rd-v2-home-authority-trail-list)::after {
+    display: none;
+  }
+
   .rd-v2-home-authority-card.trail .rd-v2-home-section-empty-actions {
     position: relative;
-    min-height: 282px;
-    margin-top: 8px;
-    padding: 2px 0 0 18px;
+    min-height: 300px;
+    margin-top: 0;
+    padding: 12px 0 0 18px;
     background: repeating-linear-gradient(
       to bottom,
       transparent 0 54px,
@@ -131,12 +290,12 @@
 
   .rd-v2-home-authority-card.trail .rd-v2-home-section-empty-actions::before {
     content: "LIBRARY EVIDENCE\A Held assets and evidence changes become durable trail entries.";
-    top: 72px;
+    top: 78px;
   }
 
   .rd-v2-home-authority-card.trail .rd-v2-home-section-empty-actions::after {
     content: "DISCOVER + SYNTHESIS\A Decisions, acquisitions and registered outputs join the same record.";
-    top: 182px;
+    top: 188px;
   }
 
   .rd-v2-home-authority-card.trail .rd-v2-home-section-empty {
@@ -145,26 +304,35 @@
     color: var(--home-muted);
   }
 
-  /* Give the research prompts a small ledger marker at wide widths. This is
-   * deliberately absent at 1440 where the narrower card needs every pixel. */
+  .rd-v2-home-authority-trail-list {
+    position: relative;
+    margin-top: 8px;
+    border-top: 1px solid color-mix(in srgb, var(--home-line) 72%, transparent);
+  }
+
+  .rd-v2-home-authority-trail-row {
+    min-height: 57px;
+  }
+
+  /* Give the research prompts a stronger editorial rhythm at wide widths. */
   .rd-v2-home-authority-card.next {
     position: relative;
-    padding-bottom: 58px;
+    padding-bottom: 68px;
   }
 
   .rd-v2-home-authority-card.next .rd-v2-chip {
     position: relative;
-    padding-left: 16px;
-    padding-right: 4px;
+    min-height: 58px;
+    padding: 12px 10px 12px 20px;
   }
 
   .rd-v2-home-authority-card.next .rd-v2-chip::before {
     content: "";
     position: absolute;
-    top: 14px;
-    left: 1px;
-    width: 5px;
-    height: 5px;
+    top: 18px;
+    left: 2px;
+    width: 6px;
+    height: 6px;
     border: 1px solid color-mix(in srgb, #527765 62%, var(--home-line));
     border-radius: 50%;
     background: var(--home-card);
@@ -184,12 +352,23 @@
     letter-spacing: 0.012em;
   }
 
-  .rd-v2-home-authority-card.focal {
-    padding-bottom: 20px;
+  /* At 1920 the rail can carry more instrument weight without stealing focus
+   * from the centre. Its lower ruled field makes remaining whitespace read as
+   * intentional working room rather than an unfinished column. */
+  .rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail .rd-v2-rail-scroll {
+    min-height: calc(100vh - var(--rd-header) - 96px);
+    padding-bottom: 184px;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0 45px,
+      color-mix(in srgb, var(--rd-border) 25%, transparent) 45px 46px
+    );
   }
 
-  .rd-v2-home-focal-rule {
-    height: 6px;
-    margin-top: 17px;
+  .rd-v2-shell:has(.rd-v2-home-authority) .rd-v2-rail .rd-v2-rail-scroll::after {
+    min-height: 116px;
+    bottom: 26px;
+    padding: 16px;
+    font-size: 10.5px;
   }
 }
