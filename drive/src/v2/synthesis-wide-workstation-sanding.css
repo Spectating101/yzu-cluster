@@ -105,19 +105,25 @@
     flex: 0 0 auto;
   }
 
-  /* Proposal is already a horizontal analytical object internally. Giving a
-     tiny measurement strip its own 35% column harmed both pieces, so the
-     proposal regains the whole desk width and the status becomes a compact row. */
-  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction)) {
-    grid-template-columns: minmax(0, 1fr) !important;
-    row-gap: 12px;
+  /* Proposal is already a horizontal analytical object internally. Flatten the
+     outer workspace for this state so legacy grid placement cannot strand the
+     title/status in separate columns. Every direct object gets the whole desk;
+     the proposal itself continues to use horizontal structure inside the card. */
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]) {
+    display: flex !important;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px !important;
   }
 
-  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction)) > * {
-    grid-column: 1 !important;
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]) > * {
+    width: 100% !important;
+    max-width: none !important;
+    margin-block: 0 !important;
+    flex: 0 0 auto;
   }
 
-  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction)) > .s04-measurement-status {
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]) > .s04-measurement-status {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -125,7 +131,7 @@
     padding-block: 9px !important;
   }
 
-  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction)) > .s04-measurement-status button {
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]) > .s04-measurement-status button {
     flex: 0 0 auto;
   }
 
@@ -147,8 +153,8 @@
     [data-testid="synthesis-registered-state"],
     [data-testid="synthesis-query-ready-state"]
   )) > [data-testid="synthesis-evidence-state"] .s04-title h2 {
-    font-size: 18px;
-    line-height: 1.12;
+    font-size: 16px;
+    line-height: 1.14;
   }
 
   .rd-v2-synthesis-page .s04-main:has(> :is(
