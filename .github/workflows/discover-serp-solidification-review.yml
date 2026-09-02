@@ -7,9 +7,9 @@ on:
     paths:
       - "drive/src/v2/main.jsx"
       - "drive/src/v2/DiscoverDatasetProfile.jsx"
+      - "drive/src/v2/discover-analytical-record.css"
       - "drive/src/v2/discover-three-zone.css"
       - "drive/src/v2/discover-serp-solidification.css"
-      - "drive/src/v2/discover-serp-row-v2.css"
       - ".github/workflows/discover-serp-solidification-review.yml"
   workflow_dispatch:
 
