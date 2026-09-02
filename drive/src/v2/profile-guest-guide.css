@@ -1,0 +1,183 @@
+/* Guest Profile is Research Drive's own product profile and lightweight guide.
+ * It should explain the workspace without becoming a marketing dashboard. */
+
+.rd-v2-profile-guest-guide {
+  width: min(100%, 1180px);
+}
+
+.rd-v2-profile-guest-guide .rd-v2-profile-about-header {
+  padding-top: 10px;
+  padding-bottom: 19px;
+}
+
+.rd-v2-profile-guest-guide .rd-v2-profile-about-copy h2 {
+  max-width: 760px;
+  font-size: clamp(21px, 1.55vw, 27px);
+}
+
+.rd-v2-profile-guest-guide .rd-v2-profile-about-copy small {
+  max-width: 78ch;
+  line-height: 1.42;
+}
+
+.rd-v2-profile-guest-guide .rd-v2-profile-simple-section {
+  padding-top: 20px;
+  padding-bottom: 3px;
+}
+
+.rd-v2-profile-guest-guide .rd-v2-profile-simple-section > header {
+  padding-bottom: 7px;
+}
+
+.rd-v2-profile-guest-intro .rd-v2-profile-section-copy {
+  max-width: 90ch;
+  margin-bottom: 15px;
+  font-size: 11.2px;
+  line-height: 1.56;
+}
+
+.rd-v2-profile-guest-flow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid rgba(226, 221, 210, .86);
+}
+
+.rd-v2-profile-guest-step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  gap: 10px;
+  min-width: 0;
+  padding: 15px 18px 16px 0;
+  border-bottom: 1px solid rgba(226, 221, 210, .64);
+}
+
+.rd-v2-profile-guest-step + .rd-v2-profile-guest-step {
+  padding-left: 18px;
+  border-left: 1px solid rgba(226, 221, 210, .72);
+}
+
+.rd-v2-profile-guest-step > span {
+  color: #a09a90;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: .06em;
+}
+
+.rd-v2-profile-guest-step > div {
+  min-width: 0;
+}
+
+.rd-v2-profile-guest-step strong,
+.rd-v2-profile-guest-principle-grid strong {
+  display: block;
+  color: #302e2a;
+  font-size: 10.8px;
+  font-weight: 650;
+}
+
+.rd-v2-profile-guest-step em {
+  display: block;
+  margin-top: 2px;
+  color: #6d675e;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 600;
+}
+
+.rd-v2-profile-guest-step p,
+.rd-v2-profile-guest-principle-grid p {
+  margin: 5px 0 0;
+  color: #7d776e;
+  font-size: 9.2px;
+  line-height: 1.46;
+}
+
+.rd-v2-profile-guest-step .rd-v2-profile-row-action {
+  align-self: start;
+}
+
+.rd-v2-profile-guest-surface-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 34px;
+  border-top: 1px solid rgba(226, 221, 210, .86);
+}
+
+.rd-v2-profile-guest-surface-grid .rd-v2-profile-simple-row {
+  min-height: 58px;
+  padding: 10px 0;
+}
+
+.rd-v2-profile-guest-principle-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  border-top: 1px solid rgba(226, 221, 210, .86);
+}
+
+.rd-v2-profile-guest-principle-grid article {
+  min-width: 0;
+  padding: 14px 18px 16px 0;
+}
+
+.rd-v2-profile-guest-principle-grid article + article {
+  padding-left: 18px;
+  border-left: 1px solid rgba(226, 221, 210, .72);
+}
+
+.rd-v2-profile-guest-principle-grid span {
+  display: block;
+  margin-bottom: 6px;
+  color: #a19b91;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: .06em;
+}
+
+.rd-v2-profile-guest-signin {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 28px;
+  align-items: center;
+  padding-top: 18px !important;
+}
+
+.rd-v2-profile-guest-signin .rd-v2-profile-section-copy {
+  max-width: 86ch;
+  margin-bottom: 14px;
+}
+
+.rd-v2-profile-rail-project ol {
+  margin: 0;
+  padding-left: 16px;
+}
+
+.rd-v2-profile-rail-project ol li + li {
+  margin-top: 4px;
+}
+
+@media (min-width: 1680px) {
+  .rd-v2-profile-guest-guide {
+    width: min(100%, 1280px);
+  }
+
+  .rd-v2-profile-guest-surface-grid {
+    column-gap: 46px;
+  }
+}
+
+@media (max-width: 980px) {
+  .rd-v2-profile-guest-flow,
+  .rd-v2-profile-guest-surface-grid,
+  .rd-v2-profile-guest-principle-grid,
+  .rd-v2-profile-guest-signin {
+    grid-template-columns: 1fr;
+  }
+
+  .rd-v2-profile-guest-step + .rd-v2-profile-guest-step,
+  .rd-v2-profile-guest-principle-grid article + article {
+    padding-left: 0;
+    border-left: 0;
+  }
+}
