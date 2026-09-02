@@ -1,0 +1,285 @@
+/* Library directory bridge.
+   The top-level collection strip is the actual directory authority. It stays
+   compact enough for production estates while the evidence ledger remains the
+   primary working surface. */
+
+.rd-v2-library-directory-strip {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 6px 14px;
+  border-bottom: 1px solid var(--rd-border);
+  background: rgba(247, 244, 236, 0.56);
+}
+
+.rd-v2-library-directory-label {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+
+.rd-v2-library-directory-label:disabled {
+  opacity: 1;
+}
+
+.rd-v2-library-directory-label > span {
+  color: var(--rd-muted);
+  font-size: 8.5px;
+  font-weight: 780;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.rd-v2-library-directory-label > b {
+  overflow: hidden;
+  color: var(--rd-body);
+  font-size: 8.75px;
+  font-weight: 650;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-v2-library-directory-label.navigable {
+  cursor: pointer;
+}
+
+.rd-v2-library-directory-label.navigable:hover > b,
+.rd-v2-library-directory-label.navigable:focus-visible > b {
+  color: var(--rd-link);
+}
+
+.rd-v2-library-directory-list {
+  display: flex;
+  min-width: 0;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 1px;
+  scrollbar-width: thin;
+}
+
+.rd-v2-library-directory-entry {
+  display: inline-flex;
+  flex: none;
+  min-width: 0;
+  min-height: 30px;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 9px;
+  border: 1px solid var(--rd-border2);
+  border-radius: 9px;
+  background: rgba(255, 253, 246, 0.82);
+  color: var(--rd-body);
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 620;
+  line-height: 1.15;
+  text-align: left;
+  transition: border-color 120ms ease, background 120ms ease, box-shadow 120ms ease;
+}
+
+.rd-v2-library-directory-entry:hover,
+.rd-v2-library-directory-entry:focus-visible {
+  border-color: var(--rd-active-border);
+  background: var(--rd-hover);
+}
+
+.rd-v2-library-directory-entry.active {
+  border-color: var(--rd-active-border);
+  background: var(--rd-active-bg);
+  box-shadow: inset 0 0 0 1px rgba(87, 107, 89, 0.08);
+}
+
+.rd-v2-library-directory-entry > span:first-child {
+  max-width: 190px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-v2-library-directory-entry > b {
+  display: inline-flex;
+  min-width: 18px;
+  height: 18px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--rd-accent-soft);
+  color: var(--rd-body);
+  font-family: var(--rd-mono);
+  font-size: 8.5px;
+  font-weight: 760;
+}
+
+.rd-v2-library-directory-arrow {
+  color: var(--rd-link);
+  font-size: 9px;
+  font-weight: 760;
+}
+
+.rd-v2-library-directory-loading {
+  color: var(--rd-muted);
+  font-size: 10px;
+  font-style: italic;
+}
+
+.rd-v2-library-root-estate .rd-v2-library-all-evidence.after-directory {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.rd-v2-library-root-estate .rd-v2-library-all-evidence-head {
+  min-height: 48px;
+  align-items: center;
+  padding: 8px 14px 7px;
+  border-bottom: 1px solid var(--rd-border);
+  background: rgba(255, 253, 246, 0.54);
+}
+
+.rd-v2-library-root-estate .rd-v2-library-all-evidence-head span {
+  margin-bottom: 1px;
+}
+
+.rd-v2-library-root-estate .rd-v2-library-all-evidence-head h2 {
+  font-size: 14px;
+}
+
+.rd-v2-library-root-estate .rd-v2-library-all-evidence-head p {
+  font-size: 9px;
+}
+
+@media (min-width: 1680px) and (min-height: 850px) {
+  .rd-v2-library-page:has(.rd-v2-library-root-estate) .rd-v2-page-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "title actions"
+      "lead actions";
+    align-items: center;
+    column-gap: 28px;
+    row-gap: 4px;
+    padding-bottom: 12px;
+  }
+
+  .rd-v2-library-page:has(.rd-v2-library-root-estate) .rd-v2-page-head > h1 {
+    grid-area: title;
+    margin-bottom: 0;
+  }
+
+  .rd-v2-library-page:has(.rd-v2-library-root-estate) .rd-v2-page-head > .rd-v2-lead {
+    grid-area: lead;
+    margin: 0;
+  }
+
+  .rd-v2-library-page:has(.rd-v2-library-root-estate) .rd-v2-library-headline {
+    grid-area: actions;
+    justify-self: end;
+    align-self: center;
+    width: auto;
+  }
+
+  .rd-v2-library-page:has(.rd-v2-library-root-estate) .rd-v2-library-headline .rd-v2-breadcrumb {
+    display: none;
+  }
+
+  .rd-v2-library-root-estate {
+    margin: 20px 16px 28px;
+    overflow: hidden;
+    border: 1px solid var(--rd-border);
+    border-radius: 11px;
+    background: rgba(255, 255, 255, 0.4);
+  }
+
+  .rd-v2-library-directory-strip {
+    grid-template-columns: 94px minmax(0, 1fr);
+    gap: 12px;
+    min-height: 47px;
+    padding: 7px 16px;
+    background: rgba(249, 247, 240, 0.76);
+  }
+
+  .rd-v2-library-directory-list {
+    gap: 7px;
+  }
+
+  .rd-v2-library-directory-entry {
+    min-height: 31px;
+    padding-inline: 10px;
+    font-size: 10px;
+  }
+
+  .rd-v2-library-root-estate .rd-v2-library-all-evidence-head {
+    min-height: 56px;
+    padding: 10px 16px 9px;
+  }
+
+  .rd-v2-library-root-estate .rd-v2-library-all-evidence-head h2 {
+    font-size: 14.5px;
+  }
+
+  .rd-v2-library-root-estate .rd-v2-cap-ledger {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .rd-v2-library-root-estate .rd-v2-cap-ledger-head {
+    min-height: 38px;
+    background: rgba(248, 247, 242, 0.52);
+  }
+
+  .rd-v2-library-root-estate .rd-v2-cap-ledger-row {
+    min-height: 68px;
+  }
+
+  .rd-v2-library-root-estate .rd-v2-cap-ledger-head,
+  .rd-v2-library-root-estate .rd-v2-cap-ledger-row {
+    grid-template-columns: minmax(330px, 1.8fr) minmax(88px, 0.44fr) minmax(190px, 0.9fr) minmax(110px, 0.46fr) minmax(122px, 0.48fr);
+    column-gap: 18px;
+    padding-inline: 18px;
+  }
+
+  .rd-v2-library-root-estate .rd-v2-cap-evidence {
+    padding-right: 14px;
+  }
+
+  .rd-v2-library-root-estate .rd-v2-cap-evidence strong {
+    font-size: 11.25px;
+    line-height: 1.35;
+  }
+
+  .rd-v2-library-root-estate .rd-v2-cap-evidence em {
+    margin-top: 5px;
+    line-height: 1.4;
+  }
+
+  .rd-v2-library-root-estate > .rd-v2-library-available {
+    margin: 0;
+    border-radius: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .rd-v2-library-directory-strip {
+    grid-template-columns: 1fr;
+    gap: 5px;
+    padding: 7px 12px;
+  }
+
+  .rd-v2-library-directory-label {
+    grid-template-columns: auto 1fr;
+    align-items: baseline;
+    gap: 8px;
+  }
+
+  .rd-v2-library-directory-entry > span:first-child {
+    max-width: 160px;
+  }
+}
