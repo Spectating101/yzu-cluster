@@ -30,6 +30,7 @@ import "./synthesis-wide-workstation-sanding.css";
 import "./synthesis-wide-workstation-sanding-final.css";
 import "./synthesis-wide-shell-canvas.css";
 import "./synthesis-wide-brief-ledger.css";
+import "./synthesis-operation-truth.css";
 import "./discover-frozen-closure.css";
 import "./connected-accounts.css";
 import { V2App } from "./App";
