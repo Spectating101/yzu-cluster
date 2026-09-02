@@ -3,6 +3,7 @@ import { test, expect } from "@playwright/test";
 import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 
 const outDir = "artifacts/synthesis-robustness";
+const ACCEPTED_HASH = "sha256:robustness-accepted-v1";
 
 const NODES = [
   {
@@ -96,6 +97,7 @@ function buildingThread() {
       nodes: structuredClone(NODES),
       edges: [],
       proposal: null,
+      accepted_spec_hash: ACCEPTED_HASH,
       execution_spec: {
         input_dataset_id: "returns",
         output_dataset_id: "issuer_week_excess_return",
@@ -104,6 +106,8 @@ function buildingThread() {
       },
       preview: {
         status: "succeeded",
+        spec_hash: ACCEPTED_HASH,
+        authority_hash: "sha256:robustness-preview-authority",
         bounded: true,
         materialised: false,
         registered: false,
@@ -112,6 +116,7 @@ function buildingThread() {
       execution: {
         status: "running",
         job_id: "robust-job",
+        spec_hash: ACCEPTED_HASH,
         output_dataset_id: "issuer_week_excess_return",
       },
     },
@@ -231,6 +236,7 @@ test("1440 mature Inspector preserves authority proof hierarchy", async ({ page 
   await expect(proof.locator("li").first()).toHaveCSS("display", "grid");
   await expect(proof).toContainText("Accepted revision");
   await expect(proof).toContainText("Passed for current revision");
+  await expect(proof).toContainText("Recorded · running");
 
   await screenshot(page, "authority-proof-1440");
 });
