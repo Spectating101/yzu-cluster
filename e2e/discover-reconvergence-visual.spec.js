@@ -222,6 +222,11 @@ test.describe("Discover reconvergence visual review", () => {
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
       await openDiscover(page);
       await runSearch(page);
+      const fieldBox = await page.getByTestId("discover-evidence-field").boundingBox();
+      const resultsBox = await page.getByTestId("discover-ranked-results").boundingBox();
+      expect(fieldBox).not.toBeNull();
+      expect(resultsBox).not.toBeNull();
+      expect(resultsBox.y - (fieldBox.y + fieldBox.height)).toBeLessThan(38);
       await assertNoOverflow(page);
       await page.screenshot({ path: `${OUT}/discover-results-${viewport.name}.png`, fullPage: false });
     });
@@ -255,6 +260,12 @@ test.describe("Discover reconvergence visual review", () => {
       await expect(workspace).toContainText(/Board-governance variables/i);
       await expect(page.getByTestId("discover-assembly-path")).toBeVisible();
       await expect(page.getByTestId("discover-assembly-path")).toContainText(/No single source has to be the answer/i);
+      const details = workspace.locator(".rd-v2-evidence-detail-disclosure.is-workspace");
+      await expect(details).toBeVisible();
+      expect(await details.evaluate((node) => node.open)).toBe(false);
+      const firstCandidateBox = await page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidate").first().boundingBox();
+      expect(firstCandidateBox).not.toBeNull();
+      expect(firstCandidateBox.y).toBeLessThan(viewport.height);
       await assertNoOverflow(page);
       await page.screenshot({ path: `${OUT}/discover-investigation-${viewport.name}.png`, fullPage: false });
     });
