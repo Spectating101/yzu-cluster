@@ -379,6 +379,20 @@ export function HomePage({
     onSelectDataset?.(point.dataset);
   };
 
+  const openHistory = (title = "Discover History") => {
+    if (onOpenAttention) {
+      onOpenAttention({
+        id: "home-recent-history",
+        kind: "history",
+        tab: "browse",
+        discoverMode: "history",
+        title,
+      });
+      return;
+    }
+    onGoTab?.("browse");
+  };
+
   const reviewDecision = (point) => {
     if (onOpenAttention) {
       onOpenAttention({
@@ -483,7 +497,7 @@ export function HomePage({
             </div>
             <div className="rd-v2-home-trail-head-actions">
               {trail.length ? <span className="rd-v2-home-trail-count">{trail.length} recent</span> : null}
-              <button type="button" className="rd-v2-linkish" onClick={() => onGoTab?.("browse")}>
+              <button type="button" className="rd-v2-linkish" onClick={() => openHistory()}>
                 View History →
               </button>
             </div>
@@ -502,7 +516,7 @@ export function HomePage({
                           return;
                         }
                         if (item.dest === "history") {
-                          onGoTab?.("browse");
+                          openHistory(item.title);
                           return;
                         }
                         onGoTab?.(item.dest === "library" ? "library" : "browse");
@@ -517,7 +531,7 @@ export function HomePage({
                 ))}
               </ul>
               {trailHidden ? (
-                <button type="button" className="rd-v2-home-trail-overflow" onClick={() => onGoTab?.("browse")}>
+                <button type="button" className="rd-v2-home-trail-overflow" onClick={() => openHistory()}>
                   + {trailHidden} more recent {trailHidden === 1 ? "event" : "events"} in History →
                 </button>
               ) : null}
