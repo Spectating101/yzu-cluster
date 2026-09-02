@@ -1,0 +1,29 @@
+name: Discover analytical test patch
+on:
+  push:
+    branches: [prototype/discover-utility-workbench-20260902]
+    paths: [.github/workflows/discover-analytical-test-patch.yml]
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: prototype/discover-utility-workbench-20260902
+      - run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('e2e/discover-reconvergence-visual.spec.js')
+          s = p.read_text()
+          old = '''      const passports = page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-passport");\n      await expect(passports).toHaveCount(10);\n      await expect(page.getByTestId("discover-ranked-results").locator('[data-passport-kind="dataset"], [data-passport-kind="package"]').first()).toContainText(/fields|files|stablecoin|indicator/i);\n      await expect(page.getByTestId("discover-ranked-results").locator('.rd-v2-discover-passport[data-passport-kind="route"]').first()).toContainText(/source|inspect|metadata|record/i);'''
+          new = '''      const profiles = page.getByTestId("discover-ranked-results").locator(".rd-v2-dataset-profile");\n      await expect(profiles).toHaveCount(10);\n      await expect(page.getByTestId("discover-ranked-results").locator('.rd-v2-dataset-profile.is-dataset').first()).toContainText(/variables|contents|fields|stablecoin/i);\n      await expect(page.getByTestId("discover-ranked-results").locator('.rd-v2-dataset-profile.is-route').first()).toContainText(/data source|return|inspect|metadata|record/i);'''
+          assert old in s
+          p.write_text(s.replace(old, new, 1))
+          PY
+          git config user.name research-drive-bot
+          git config user.email actions@users.noreply.github.com
+          git add e2e/discover-reconvergence-visual.spec.js
+          git commit -m "test(discover): certify analytical result profiles"
+          git push origin HEAD:prototype/discover-utility-workbench-20260902
