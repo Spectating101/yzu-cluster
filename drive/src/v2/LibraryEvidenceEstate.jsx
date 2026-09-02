@@ -112,10 +112,7 @@ function LibraryDirectoryNode({
       className={`rd-v2-library-navigator-node${active ? " is-active" : ""}${inPath ? " is-in-path" : ""}`}
       data-depth={depth}
     >
-      <div
-        className="rd-v2-library-navigator-row"
-        style={{ "--rd-library-depth": depth }}
-      >
+      <div className="rd-v2-library-navigator-row" style={{ "--rd-library-depth": depth }}>
         {children.length ? (
           <button
             type="button"
@@ -297,7 +294,7 @@ function LibraryNavigator({
         </div>
 
         <div className="rd-v2-library-navigator-section">
-          <span className="rd-v2-library-navigator-section-label">Collections</span>
+          <span className="rd-v2-library-navigator-section-label">Research areas</span>
           {collections.length ? (
             <div className="rd-v2-library-navigator-tree">
               {collections.map((collection) => (
@@ -319,9 +316,7 @@ function LibraryNavigator({
               <span>Your evidence is already held; the research taxonomy is still loading.</span>
             </div>
           ) : (
-            <div className="rd-v2-library-navigator-empty">
-              No collection taxonomy is registered yet.
-            </div>
+            <div className="rd-v2-library-navigator-empty">No collection taxonomy is registered yet.</div>
           )}
         </div>
       </nav>
@@ -363,7 +358,7 @@ function LibraryEvidencePane({
             : "";
 
   return (
-    <section className="rd-v2-library-all-evidence rd-v2-library-scope-pane" aria-label={`${scopeTitle} evidence`}>
+    <section className="rd-v2-library-all-evidence rd-v2-library-scope-pane" aria-label={`${scopeTitle} evidence`} data-testid="library-directory">
       <header className="rd-v2-library-all-evidence-head rd-v2-library-scope-head">
         <div className="rd-v2-library-scope-title">
           <span>Current scope</span>
@@ -451,19 +446,13 @@ function LibraryEvidencePane({
               </p>
               <div className="rd-v2-library-empty-actions">
                 {trueSearchMiss && onAskCurrentSearch ? (
-                  <button type="button" className="rd-v2-btn sm" onClick={onAskCurrentSearch}>
-                    Ask Library
-                  </button>
+                  <button type="button" className="rd-v2-btn sm" onClick={onAskCurrentSearch}>Ask Library</button>
                 ) : null}
                 {trueSearchMiss && onSearchWider ? (
-                  <button type="button" className="rd-v2-btn sm" onClick={() => onSearchWider(query)}>
-                    Search wider in Discover
-                  </button>
+                  <button type="button" className="rd-v2-btn sm" onClick={() => onSearchWider(query)}>Search wider in Discover</button>
                 ) : null}
                 {!trueSearchMiss && onResetFilters ? (
-                  <button type="button" className="rd-v2-btn sm" onClick={onResetFilters}>
-                    Clear filters
-                  </button>
+                  <button type="button" className="rd-v2-btn sm" onClick={onResetFilters}>Clear filters</button>
                 ) : null}
               </div>
             </div>
@@ -472,21 +461,13 @@ function LibraryEvidencePane({
       </div>
 
       {referenceCount > 0 ? (
-        <aside
-          className="rd-v2-library-available compact rd-v2-library-scope-boundary"
-          aria-label="Available evidence outside your Library"
-          data-testid="library-available-evidence"
-        >
+        <aside className="rd-v2-library-available compact rd-v2-library-scope-boundary" aria-label="Available evidence outside your Library" data-testid="library-available-evidence">
           <p>
-            <strong>
-              {referenceCount} known record{referenceCount === 1 ? "" : "s"} {referenceCount === 1 ? "sits" : "sit"} outside your Library.
-            </strong>{" "}
+            <strong>{referenceCount} known record{referenceCount === 1 ? "" : "s"} {referenceCount === 1 ? "sits" : "sit"} outside your Library.</strong>{" "}
             They remain Discover evidence until explicitly added.
           </p>
           {onReviewAvailable ? (
-            <button type="button" className="rd-v2-btn sm" onClick={onReviewAvailable}>
-              Review in Discover
-            </button>
+            <button type="button" className="rd-v2-btn sm" onClick={onReviewAvailable}>Review in Discover</button>
           ) : null}
         </aside>
       ) : null}
@@ -494,13 +475,7 @@ function LibraryEvidencePane({
   );
 }
 
-/**
- * Persistent Library browser.
- *
- * The navigator owns location; the evidence pane owns held records. Root, folder,
- * search, and smart-view states all use the same browser rather than swapping
- * between unrelated root and folder renderers.
- */
+/** Persistent Library browser: navigator owns location; evidence pane owns held records. */
 export function LibraryEvidenceEstate({
   assets = [],
   collections = [],
@@ -530,15 +505,10 @@ export function LibraryEvidenceEstate({
   onSearchWider,
   onResetFilters,
 }) {
-  const visibleAssets = assets;
   const query = String(searchQuery || "").trim();
 
   return (
-    <section
-      className="rd-v2-cap-estate rd-v2-library-browser"
-      data-testid="library-evidence-estate"
-      aria-label="Research evidence estate"
-    >
+    <section className="rd-v2-cap-estate rd-v2-library-browser" data-testid="library-evidence-estate" aria-label="Research evidence estate">
       <LibraryNavigator
         collections={collections}
         collectionsLoading={collectionsLoading}
@@ -554,7 +524,7 @@ export function LibraryEvidenceEstate({
         onChooseSmartView={onChooseSmartView}
       />
       <LibraryEvidencePane
-        visibleAssets={visibleAssets}
+        visibleAssets={assets}
         selectedId={selectedId}
         scopeTitle={scopeTitle}
         scopeNote={scopeNote}
