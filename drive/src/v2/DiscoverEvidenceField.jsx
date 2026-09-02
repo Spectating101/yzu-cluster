@@ -11,6 +11,7 @@ import "./discover-utility-hierarchy-pass.css";
 import "./discover-wide-comfort.css";
 import "./discover-wide-comfort-final.css";
 import "./discover-data-object-polish.css";
+import "./discover-assistance-polish.css";
 
 function rows(value) {
   return Array.isArray(value) ? value : [];
