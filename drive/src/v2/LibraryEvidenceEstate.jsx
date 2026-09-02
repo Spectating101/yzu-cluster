@@ -120,19 +120,20 @@ export function LibraryEvidenceEstate({
     <section className="rd-v2-cap-estate" data-testid="library-evidence-estate" aria-label="Research evidence estate">
       {collections.length || collectionsLoading ? (
         <div className="rd-v2-cap-collections" aria-label="Curated research collections">
-          <div className="rd-v2-cap-collections-heading">
-            <span className="rd-v2-cap-collections-label">Collections</span>
-            <button
-              type="button"
-              className="rd-v2-cap-folders-link"
-              data-testid="library-folders-root"
-              onClick={() => onOpenCollection?.({ id: LIBRARY_FOLDERS_ROOT, name: "Folders" })}
-            >
-              Folders →
-            </button>
-          </div>
+          <span className="rd-v2-cap-collections-label">Collections</span>
           {collections.length ? (
             <div className="rd-v2-cap-collection-list">
+              <button
+                type="button"
+                className="rd-v2-cap-collection rd-v2-cap-folders-root"
+                data-testid="library-folders-root"
+                aria-label="Browse all folders"
+                title="Browse all folders"
+                onClick={() => onOpenCollection?.({ id: LIBRARY_FOLDERS_ROOT, name: "Folders" })}
+              >
+                <span>Folders</span>
+                <span aria-hidden="true">→</span>
+              </button>
               {collections.map((collection) => {
                 const name = collectionName(collection);
                 return (
