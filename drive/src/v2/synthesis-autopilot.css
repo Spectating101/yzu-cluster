@@ -1,7 +1,15 @@
 /* Persistent Synthesis agent-authority chrome.
- * This is deliberately small: it changes standing authority, not the layout
- * or the durable lifecycle model.
+ * The control belongs to the Synthesis workspace, never the global desk header.
+ * It stays deliberately small because it changes standing authority, not the
+ * durable lifecycle model or the current analytical surface.
  */
+
+.rd-v2-synthesis-sidebar-mode {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 8px 10px 4px;
+}
 
 .rd-v2-synthesis-automation {
   display: inline-flex;
@@ -9,7 +17,7 @@
   gap: 5px;
   min-width: 0;
   height: 26px;
-  margin-left: 7px;
+  margin: 0;
   padding: 0 6px 0 8px;
   border: 1px solid #d8d4c8;
   border-radius: 999px;
@@ -100,12 +108,16 @@
 }
 
 @media (max-width: 980px) {
+  .rd-v2-synthesis-sidebar-mode {
+    justify-content: flex-start;
+    padding: 6px 8px 2px;
+  }
+
   .rd-v2-synthesis-automation > span {
     display: none;
   }
 
   .rd-v2-synthesis-automation {
-    margin-left: 4px;
     padding-left: 6px;
   }
 
