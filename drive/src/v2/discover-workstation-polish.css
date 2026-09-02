@@ -14,6 +14,23 @@
   }
 }
 
+/* Research Radar should not restate query-readiness with a different scope than
+   the authoritative Library strip immediately below it. Keep only orthogonal
+   estate facts here. */
+.rd-v2-discover-radar-metrics .rd-v2-cockpit-metric:nth-child(2) {
+  display: none;
+}
+
+.rd-v2-discover-radar-metrics {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* The territory tabs already summarize ordinary search composition. Repeat the
+   fine-grained field metrics only when an assembly decision makes them useful. */
+.rd-v2-discover-field:not(:has(.rd-v2-discover-assembly)) .rd-v2-discover-field-metrics {
+  display: none;
+}
+
 /* Large candidate fields need a stable provider gutter. Long provider labels
    must never collide with the evidence identity. */
 .rd-v2-discover-ranked-results .rd-v2-discover-candidate {
