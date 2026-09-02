@@ -1,9 +1,11 @@
 /* Medium-desktop compatibility for the persistent Library browser.
-   Keep the evidence schema intact at 1440 while the navigator remains visible. */
+   This sheet is linked before Vite's bundled CSS, so these narrow compatibility
+   overrides use !important intentionally to preserve the established evidence
+   schema after the bundled medium-width rules are applied. */
 @media (min-width: 1100px) and (max-width: 1679px) {
   .rd-v2-library-browser .rd-v2-cap-kind,
   .rd-v2-library-browser .rd-v2-cap-ledger-head > span:nth-child(2) {
-    display: block;
+    display: block !important;
   }
 
   .rd-v2-library-browser .rd-v2-cap-ledger-head,
@@ -13,8 +15,8 @@
       minmax(60px, 0.42fr)
       minmax(88px, 0.65fr)
       minmax(76px, 0.43fr)
-      minmax(88px, 0.48fr);
-    column-gap: 8px;
-    padding-inline: 12px;
+      minmax(88px, 0.48fr) !important;
+    column-gap: 8px !important;
+    padding-inline: 12px !important;
   }
 }
