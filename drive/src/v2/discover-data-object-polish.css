@@ -1,0 +1,209 @@
+/* Dataset-object legibility pass.
+   Discover is searching data, not papers: make every wide result explain the
+   object a researcher would receive before exposing lower-level route mechanics. */
+
+@media (min-width: 1680px) and (min-height: 900px) {
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results-head::after {
+    content: "Source preview   ·   data you get   ·   access" !important;
+    font-size: 10px !important;
+    letter-spacing: .015em !important;
+    text-transform: none !important;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-candidate {
+    min-height: 124px;
+    padding-top: 16px;
+    padding-bottom: 16px;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-candidate-main {
+    grid-template-columns: minmax(280px, .9fr) minmax(0, 1.9fr);
+    grid-template-rows: auto auto;
+    column-gap: 34px;
+    row-gap: 13px;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-candidate-title {
+    font-size: 16px;
+    line-height: 1.28;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-evidence {
+    position: relative;
+    padding-top: 18px;
+    color: var(--rd-text, #182033);
+    font-size: 14.5px;
+    font-weight: 520;
+    line-height: 1.48;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-evidence::before {
+    content: "Source preview";
+    position: absolute;
+    top: 0;
+    left: 0;
+    color: var(--rd-muted, #6e7685);
+    font: 760 9.5px/1.2 var(--rd-mono, ui-monospace, monospace);
+    letter-spacing: .045em;
+    text-transform: uppercase;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-offering-facts {
+    display: grid;
+    grid-template-columns: minmax(280px, 1.55fr) minmax(190px, 1fr) minmax(125px, .6fr);
+    gap: 22px;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-offering-facts > span:nth-child(2) b::after {
+    content: "Data you get" !important;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-offering-facts > span:nth-child(4) b::after {
+    content: "Access" !important;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-offering-facts > span:nth-child(3) b::after {
+    content: "Updated" !important;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-offering-facts b::after {
+    font-size: 10.5px !important;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-offering-facts em {
+    color: var(--rd-text, #182033) !important;
+    font-size: 13px !important;
+    font-weight: 650 !important;
+    line-height: 1.42 !important;
+    white-space: normal !important;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-offering-facts > span:nth-child(2) {
+    padding: 8px 11px !important;
+    border: 1px solid color-mix(in srgb, #718e80 22%, var(--rd-border, #dbd4c5)) !important;
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--rd-active-bg, #eef1ee) 42%, transparent);
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-offering-facts > span:nth-child(4),
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-offering-facts > span:nth-child(3) {
+    padding-top: 8px !important;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-row-add {
+    top: 50%;
+    transform: translateY(-50%);
+    width: 74px;
+    min-width: 74px;
+    min-height: 34px;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-row-add::after {
+    content: "Inspect";
+    font-size: 10px;
+  }
+}
+
+/* Acquisition assistance: outcome first, execution internals second. */
+.rd-v2-intent-route {
+  display: grid;
+}
+
+.rd-v2-intent-route > header { order: 1; }
+.rd-v2-intent-route > p { order: 2; }
+.rd-v2-intent-route > dl { order: 3; }
+.rd-v2-intent-route > .rd-v2-intent-engineering { order: 4; }
+
+.rd-v2-intent-route > dl {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 62%, transparent);
+}
+
+.rd-v2-intent-engineering {
+  margin-top: 10px;
+  padding: 9px 10px;
+  border: 0;
+  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 54%, transparent);
+  border-radius: 0;
+  background: transparent;
+}
+
+.rd-v2-intent-engineering > span {
+  font-size: 0;
+}
+
+.rd-v2-intent-engineering > span::after {
+  content: "How the desk will collect it";
+  color: var(--rd-muted, #6e7685);
+  font: 760 8.5px/1.2 var(--rd-mono, ui-monospace, monospace);
+  letter-spacing: .045em;
+  text-transform: uppercase;
+}
+
+.rd-v2-intent-engineering > strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 10.5px;
+}
+
+.rd-v2-intent-engineering > p,
+.rd-v2-intent-engineering > em {
+  color: var(--rd-muted, #6e7685);
+  font-size: 8.5px;
+  line-height: 1.35;
+}
+
+.rd-v2-intent-engineering > small {
+  display: block;
+  margin-top: 5px;
+  color: #49695a;
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.rd-v2-intent-capacity {
+  opacity: .88;
+}
+
+.rd-v2-intent-capacity > header h3 {
+  font-size: 13px;
+}
+
+.rd-v2-intent-capacity > p {
+  font-size: 9px;
+  line-height: 1.4;
+}
