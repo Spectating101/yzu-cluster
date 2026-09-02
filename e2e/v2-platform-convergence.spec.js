@@ -35,6 +35,196 @@ const MATRIX_VIEWPORTS = [
   { width: 1920, height: 1080 },
 ];
 
+function synthesisSeedThread({ id, title, objective, kind, updatedAt, output }) {
+  const base = {
+    id,
+    created_at: "2026-08-20T04:00:00Z",
+    updated_at: updatedAt,
+    title,
+    objective,
+    materialisation: "not_materialised",
+    state: {
+      title,
+      objective,
+      required_grain: "asset × week",
+      maturity: "exploring",
+      maturityLabel: "Evidence mapping",
+      lastActivity: "Durable construction updated.",
+      nodes: [
+        {
+          id: `${id}-source`,
+          dataset_id: `${id}-source`,
+          type: "source",
+          layer: "evidence",
+          label: "Held research evidence",
+          role: "Core signal",
+          status: "held",
+          grain: "asset-week",
+          coverage: "2021–2026",
+        },
+      ],
+      edges: [],
+      proposal: null,
+      execution_spec: null,
+      execution: null,
+    },
+  };
+
+  if (kind === "review") {
+    base.state.maturity = "review";
+    base.state.maturityLabel = "Method review";
+    base.state.lastActivity = "A method proposal needs review.";
+    base.state.proposal = {
+      id: `${id}-proposal`,
+      proposal_hash: `sha256:${id}-proposal`,
+      title: `${title} method`,
+      summary: "A reviewable construction is ready for researcher acceptance.",
+      operations: [{ op: "append_activity", message: "Review construction." }],
+    };
+  }
+
+  if (kind === "build") {
+    base.materialisation = "planned";
+    base.state.maturity = "accepted";
+    base.state.maturityLabel = "Accepted method";
+    base.state.execution_spec = {
+      input_dataset_id: `${id}-input`,
+      output_dataset_id: output,
+      group_by: ["asset_id", "week"],
+      metrics: [{ function: "mean", column: "value", as: "weekly_value" }],
+    };
+    base.state.execution = {
+      status: "running",
+      job_id: `${id}-job`,
+      output_dataset_id: output,
+    };
+  }
+
+  if (kind === "result") {
+    base.materialisation = "query_ready";
+    base.state.maturity = "registered";
+    base.state.maturityLabel = "Registered";
+    base.state.execution_spec = {
+      input_dataset_id: `${id}-input`,
+      output_dataset_id: output,
+      group_by: ["asset_id", "week"],
+      metrics: [{ function: "mean", column: "value", as: "weekly_value" }],
+    };
+    base.state.execution = {
+      status: "query_ready",
+      job_id: `${id}-job`,
+      output_dataset_id: output,
+      rows: 18240,
+      manifest_id: `${id}-manifest`,
+      drive_verified: true,
+    };
+  }
+
+  return base;
+}
+
+const SYNTHESIS_SEED_THREADS = [
+  synthesisSeedThread({
+    id: "seed-attention",
+    title: "Historical stablecoin attention",
+    objective: "Construct a defensible longitudinal attention signal from search, community, and news evidence.",
+    kind: "active",
+    updatedAt: "2026-09-02T09:20:00Z",
+  }),
+  synthesisSeedThread({
+    id: "seed-reserve",
+    title: "Issuer reserve transparency score",
+    objective: "Construct an issuer-week transparency score from reserve attestations and disclosure evidence.",
+    kind: "active",
+    updatedAt: "2026-09-02T08:50:00Z",
+  }),
+  synthesisSeedThread({
+    id: "seed-trust",
+    title: "Stablecoin trust deterioration",
+    objective: "Separate security incidents, liquidity stress, and attention into one reviewable trust panel.",
+    kind: "review",
+    updatedAt: "2026-09-02T10:10:00Z",
+  }),
+  synthesisSeedThread({
+    id: "seed-depeg",
+    title: "De-peg event severity panel",
+    objective: "Review an event-window construction linking price dislocations, liquidity, and recovery time.",
+    kind: "review",
+    updatedAt: "2026-09-02T09:55:00Z",
+  }),
+  synthesisSeedThread({
+    id: "seed-flow",
+    title: "Exchange flow stress panel",
+    objective: "Construct weekly exchange-flow stress features from registered transaction evidence.",
+    kind: "build",
+    updatedAt: "2026-09-02T10:30:00Z",
+    output: "exchange_flow_stress_weekly",
+  }),
+  synthesisSeedThread({
+    id: "seed-basis",
+    title: "Cross-exchange basis monitor",
+    objective: "Build a weekly basis-stress asset from synchronized exchange price and liquidity evidence.",
+    kind: "build",
+    updatedAt: "2026-09-02T10:22:00Z",
+    output: "cross_exchange_basis_weekly",
+  }),
+  synthesisSeedThread({
+    id: "seed-liquidity",
+    title: "Issuer liquidity weekly panel",
+    objective: "Build an issuer-week liquidity panel from registered market evidence.",
+    kind: "result",
+    updatedAt: "2026-09-02T07:40:00Z",
+    output: "issuer_liquidity_weekly",
+  }),
+  synthesisSeedThread({
+    id: "seed-event-window",
+    title: "Stablecoin event-window panel",
+    objective: "Reuse a registered event-window construction for empirical de-peg analysis.",
+    kind: "result",
+    updatedAt: "2026-09-02T07:15:00Z",
+    output: "stablecoin_event_window_panel",
+  }),
+];
+
+async function installSynthesisWorkspaceSeed(page) {
+  await page.route("**/library/synthesis/threads**", (route) => {
+    const request = route.request();
+    if (request.method() !== "GET") return route.fallback();
+
+    const url = new URL(request.url());
+    const parts = url.pathname.split("/").filter(Boolean);
+    const index = parts.lastIndexOf("threads");
+    const threadId = parts[index + 1] || "";
+    const suffix = parts.slice(index + 2).join("/");
+    const fulfill = (payload, status = 200) => route.fulfill({
+      status,
+      contentType: "application/json",
+      body: JSON.stringify(payload),
+    });
+
+    if (!threadId) {
+      return fulfill({ threads: SYNTHESIS_SEED_THREADS, total: SYNTHESIS_SEED_THREADS.length });
+    }
+
+    const thread = SYNTHESIS_SEED_THREADS.find((item) => item.id === threadId);
+    if (!thread) return fulfill({ error: "not found" }, 404);
+
+    if (suffix === "measurements") {
+      return fulfill({
+        thread_id: thread.id,
+        writes: false,
+        measurement_basis: "mapped_evidence",
+        input_dataset_ids: thread.state.nodes.map((node) => node.dataset_id),
+        measured_inputs: thread.state.nodes.length,
+        unmeasured: [],
+        column_profiles: [],
+      });
+    }
+
+    return fulfill(thread);
+  });
+}
+
 async function expectDestinationReady(page, destination) {
   if (destination.synthesis) {
     await expect(page.getByTestId("synthesis-home-state").getByText("Synthesis workspace", { exact: true })).toBeVisible();
@@ -47,6 +237,7 @@ async function expectDestinationReady(page, destination) {
 test.describe("converged platform shell", () => {
   test.beforeEach(async ({ page }) => {
     await mockV2Api(page);
+    await installSynthesisWorkspaceSeed(page);
     await page.setViewportSize({ width: 1440, height: 1000 });
     await page.goto("/?tab=home", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
