@@ -88,15 +88,15 @@ for (const [name, viewport] of VIEWPORTS) {
     await setup(page, viewport, { found: false, profile: null });
     await page.goto("/?tab=profile", { waitUntil: "domcontentloaded" });
     await settle(page);
-    await expect(page.getByRole("heading", { name: "Research evidence, kept inspectable." })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "What this workspace does" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "How Research Drive treats research context" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Research Drive", exact: true }).first()).toBeVisible();
+    await expect(page.getByRole("heading", { name: "What it does" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "How it handles research" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Find a researcher" })).toHaveCount(0);
     await noOverflow(page);
     await page.screenshot({ path: `${OUT}/${name}-profile-guest.png`, fullPage: false });
   });
 
-  test(`Sparse signed-in Profile keeps the full context architecture ${name}`, async ({ page }) => {
+  test(`Sparse signed-in Profile keeps the full personalization architecture ${name}`, async ({ page }) => {
     mkdirSync(OUT, { recursive: true });
     await setup(
       page,
@@ -115,34 +115,35 @@ for (const [name, viewport] of VIEWPORTS) {
     await page.goto("/?tab=profile", { waitUntil: "domcontentloaded" });
     await settle(page);
     await expect(page.getByText("Test Prof", { exact: true }).first()).toBeVisible();
-    await expect(page.getByRole("heading", { name: "What Research Drive can operate from" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Context Research Drive has on record" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Research context" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "What Research Drive uses" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Works on record" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Evidence relationships" })).toBeVisible();
     await noOverflow(page);
     await page.screenshot({ path: `${OUT}/${name}-profile-user-sparse.png`, fullPage: false });
   });
 
-  test(`Rich signed-in Profile showcases recorded research context ${name}`, async ({ page }) => {
+  test(`Rich signed-in Profile showcases recorded personalization context ${name}`, async ({ page }) => {
     mkdirSync(OUT, { recursive: true });
     await setup(page, viewport, RICH_PROFILE, "rich.researcher@example.test");
     await page.goto("/?tab=profile", { waitUntil: "domcontentloaded" });
     await settle(page);
     await expect(page.getByText("Kong, De-Rong", { exact: true }).first()).toBeVisible();
     await expect(page.getByText("Digital finance, investor behavior, and empirical capital-market research", { exact: true }).first()).toBeVisible();
-    await expect(page.getByText("18", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText("18 indexed works", { exact: true })).toBeVisible();
     await noOverflow(page);
     await page.screenshot({ path: `${OUT}/${name}-profile-user-rich.png`, fullPage: false });
   });
 
-  test(`Settings remains a compact workspace-control surface ${name}`, async ({ page }) => {
+  test(`Settings uses simple category-and-row grammar ${name}`, async ({ page }) => {
     mkdirSync(OUT, { recursive: true });
     await setup(page, viewport, { found: false, profile: null });
     await page.goto("/?tab=settings", { waitUntil: "domcontentloaded" });
     await settle(page);
-    await expect(page.getByRole("heading", { name: "Your desk, by default" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "How the desk responds" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Private workspace authority" })).toBeVisible();
+    await expect(page.getByRole("navigation", { name: "Settings sections" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "General", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Personalization", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Connections", exact: true })).toBeVisible();
     await noOverflow(page);
     await page.screenshot({ path: `${OUT}/${name}-settings.png`, fullPage: false });
   });
