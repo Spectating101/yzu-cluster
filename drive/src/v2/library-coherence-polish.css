@@ -4,7 +4,6 @@
    Keep the accepted split-pane architecture; make the directory route explicit
    and give each working stage enough air to read as a separate section. */
 @media (min-width: 1680px) and (min-height: 850px) {
-  /* Name the rail for what it does, not only what it contains. */
   .rd-v2-library-directory-kicker {
     font-size: 0;
   }
@@ -28,7 +27,6 @@
     line-height: 1.45;
   }
 
-  /* Top-level research areas now advertise the navigation action explicitly. */
   .rd-v2-library-directory-shelf-head {
     grid-template-columns: 14px minmax(0, 1fr) auto 48px;
     column-gap: 10px;
@@ -53,8 +51,6 @@
     max-width: 106px;
   }
 
-  /* Nested collections carry the same affordance instead of leaving a naked
-     asset count as the only thing on the right edge. */
   .rd-v2-library-directory-branch {
     grid-template-columns: 14px minmax(0, 1fr) minmax(74px, auto);
     column-gap: 9px;
@@ -78,7 +74,6 @@
     font-weight: 750;
   }
 
-  /* Research areas are separate directory sections, not one uninterrupted list. */
   .rd-v2-library-directory-tree {
     padding: 9px 0 12px;
   }
@@ -89,25 +84,23 @@
   }
 
   .rd-v2-library-directory-shelf + .rd-v2-library-directory-shelf {
-    margin-top: 9px;
+    margin-top: 11px;
     border-top: 1px solid color-mix(in srgb, var(--rd-border) 74%, transparent);
   }
 
-  /* The retrieval band and the browser are related, but should not visually
-     touch. Keep this intentionally small so it reads as rhythm, not dead space. */
+  /* Keep the small retrieval-to-browser separation that already tested well. */
   .rd-v2-cap-estate:has(> .rd-v2-library-directory-home) {
     margin-top: 20px;
     background: rgba(247, 246, 241, 0.72);
   }
 
-  /* The right pane is one workflow, but its stages should not touch edge-to-edge. */
   .rd-v2-cap-estate:has(> .rd-v2-library-directory-home) > .rd-v2-library-all-evidence {
     background: rgba(255, 255, 255, 0.42);
   }
 
   .rd-v2-cap-estate:has(> .rd-v2-library-directory-home) > .rd-v2-library-available {
     align-self: start;
-    margin: 15px 16px 0;
+    margin: 17px 16px 0;
     padding: 12px 14px;
     border: 1px solid var(--rd-border);
     border-radius: 8px;
@@ -116,7 +109,7 @@
 
   .rd-v2-library-review-queue {
     align-self: start;
-    margin: 15px 16px 16px;
+    margin: 17px 16px 16px;
     overflow: hidden;
     border: 1px solid var(--rd-border);
     border-radius: 9px;
@@ -128,6 +121,7 @@
   }
 
   .rd-v2-library-review-item {
+    width: 100%;
     padding-inline: 15px;
   }
 }
