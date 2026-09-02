@@ -1,133 +1,587 @@
 @import "./library-coherence-polish-core.css";
 
-/* Wide Library navigation clarity and section rhythm.
-   Keep the accepted split-pane architecture; make the directory route explicit
-   and give each working stage enough air to read as a separate section. */
+/* Persistent Library browser experiment.
+   The navigator owns location; the center owns evidence; the product rail remains
+   the stable interpretation/action plane. */
+
+.rd-v2-library-directory-leaves,
+.rd-v2-library-review-queue {
+  display: none;
+}
+
+.rd-v2-library-page:has(.rd-v2-library-directory-home) .rd-v2-toolbar-count {
+  display: none;
+}
+
+.rd-v2-cap-estate.rd-v2-library-browser:has(> .rd-v2-library-directory-home) {
+  display: grid;
+  grid-template-columns: minmax(232px, 252px) minmax(0, 1fr);
+  grid-template-rows: auto;
+  align-items: stretch;
+  gap: 0;
+  margin: 20px 16px 24px;
+  overflow: hidden;
+  border: 1px solid var(--rd-border);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.42);
+}
+
+.rd-v2-cap-estate.rd-v2-library-browser:has(> .rd-v2-library-directory-home)
+  > .rd-v2-library-directory-home {
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-right: 1px solid var(--rd-border);
+  border-bottom: 0;
+  background: rgba(247, 246, 241, 0.76);
+}
+
+.rd-v2-library-browser .rd-v2-library-directory-intro {
+  display: block;
+  padding: 15px 14px 13px;
+  border-bottom: 1px solid var(--rd-border);
+  background: rgba(252, 251, 247, 0.82);
+}
+
+.rd-v2-library-browser .rd-v2-library-directory-kicker {
+  font-size: 0;
+}
+
+.rd-v2-library-browser .rd-v2-library-directory-kicker::after {
+  content: "Directory";
+  font-size: 9px;
+}
+
+.rd-v2-library-browser .rd-v2-library-directory-intro h2 {
+  font-size: 15px;
+  line-height: 1.28;
+}
+
+.rd-v2-library-browser .rd-v2-library-directory-intro p {
+  max-width: 300px;
+  margin-top: 5px;
+  font-size: 9.75px;
+  line-height: 1.42;
+}
+
+.rd-v2-library-browser .rd-v2-library-directory-summary {
+  justify-content: flex-start;
+  gap: 0;
+  margin-top: 9px;
+}
+
+.rd-v2-library-browser .rd-v2-library-directory-summary span {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font-size: 8.75px;
+}
+
+.rd-v2-library-browser .rd-v2-library-directory-summary span + span::before {
+  content: "·";
+  margin: 0 7px;
+  color: var(--rd-muted);
+}
+
+.rd-v2-library-navigator-body {
+  min-width: 0;
+  padding: 8px 0 12px;
+}
+
+.rd-v2-library-navigator-section {
+  min-width: 0;
+  padding: 7px 9px 0;
+}
+
+.rd-v2-library-navigator-section + .rd-v2-library-navigator-section {
+  margin-top: 9px;
+  padding-top: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--rd-border) 70%, transparent);
+}
+
+.rd-v2-library-navigator-section-label {
+  display: block;
+  margin: 0 8px 6px;
+  color: var(--rd-muted);
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: 0.105em;
+  text-transform: uppercase;
+}
+
+.rd-v2-library-navigator-view {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  min-height: 42px;
+  padding: 7px 9px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rd-v2-library-navigator-view:hover,
+.rd-v2-library-navigator-view:focus-visible {
+  background: rgba(255, 255, 255, 0.66);
+}
+
+.rd-v2-library-navigator-view.is-active {
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: inset 2px 0 0 var(--rd-link);
+}
+
+.rd-v2-library-navigator-view > span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rd-v2-library-navigator-view strong,
+.rd-v2-library-navigator-view em {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-v2-library-navigator-view strong {
+  color: var(--rd-body);
+  font-size: 10.5px;
+  font-weight: 680;
+  line-height: 1.25;
+}
+
+.rd-v2-library-navigator-view em {
+  color: var(--rd-muted);
+  font-size: 8.25px;
+  font-style: normal;
+  line-height: 1.25;
+}
+
+.rd-v2-library-navigator-view > b {
+  min-width: 20px;
+  color: var(--rd-muted);
+  font-size: 9px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.rd-v2-library-navigator-tree {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rd-v2-library-navigator-node {
+  min-width: 0;
+}
+
+.rd-v2-library-navigator-row {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  align-items: stretch;
+  min-width: 0;
+  padding-left: calc(var(--rd-library-depth, 0) * 14px);
+}
+
+.rd-v2-library-navigator-twisty,
+.rd-v2-library-navigator-twisty-spacer {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  min-height: 38px;
+  border: 0;
+  background: transparent;
+  color: var(--rd-muted);
+  font-size: 9px;
+}
+
+.rd-v2-library-navigator-twisty {
+  cursor: pointer;
+}
+
+.rd-v2-library-navigator-twisty:hover,
+.rd-v2-library-navigator-twisty:focus-visible {
+  color: var(--rd-body);
+  background: rgba(255, 255, 255, 0.54);
+}
+
+.rd-v2-library-navigator-twisty-spacer {
+  opacity: 0.22;
+}
+
+.rd-v2-library-navigator-target {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  min-height: 38px;
+  padding: 6px 8px 6px 5px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rd-v2-library-navigator-target:hover,
+.rd-v2-library-navigator-target:focus-visible {
+  background: rgba(255, 255, 255, 0.66);
+}
+
+.rd-v2-library-navigator-node.is-in-path > .rd-v2-library-navigator-row .rd-v2-library-navigator-target {
+  color: var(--rd-body);
+}
+
+.rd-v2-library-navigator-node.is-active > .rd-v2-library-navigator-row .rd-v2-library-navigator-target {
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: inset 2px 0 0 var(--rd-link);
+}
+
+.rd-v2-library-navigator-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rd-v2-library-navigator-copy strong,
+.rd-v2-library-navigator-copy em {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-v2-library-navigator-copy strong {
+  color: var(--rd-body);
+  font-size: 10.25px;
+  font-weight: 660;
+  line-height: 1.25;
+}
+
+.rd-v2-library-navigator-copy em {
+  color: var(--rd-muted);
+  font-size: 8.2px;
+  font-style: normal;
+  line-height: 1.25;
+}
+
+.rd-v2-library-navigator-count {
+  min-width: 18px;
+  color: var(--rd-muted);
+  font-size: 8.75px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.rd-v2-library-navigator-open {
+  width: 25px;
+  overflow: hidden;
+  color: var(--rd-link);
+  font-size: 8px;
+  font-weight: 720;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.rd-v2-library-navigator-target:hover .rd-v2-library-navigator-open,
+.rd-v2-library-navigator-target:focus-visible .rd-v2-library-navigator-open,
+.rd-v2-library-navigator-node.is-active .rd-v2-library-navigator-open {
+  opacity: 1;
+}
+
+.rd-v2-library-navigator-children {
+  min-width: 0;
+}
+
+.rd-v2-library-navigator-empty {
+  padding: 8px;
+  color: var(--rd-muted);
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.rd-v2-cap-estate.rd-v2-library-browser:has(> .rd-v2-library-directory-home)
+  > .rd-v2-library-all-evidence {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: rgba(255, 255, 255, 0.34);
+}
+
+.rd-v2-library-browser .rd-v2-library-scope-pane {
+  display: grid;
+  grid-template-rows: auto auto auto;
+  align-content: start;
+}
+
+.rd-v2-library-browser .rd-v2-library-scope-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  min-height: 78px;
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid var(--rd-border);
+  background: rgba(252, 251, 247, 0.74);
+}
+
+.rd-v2-library-scope-title {
+  min-width: 0;
+}
+
+.rd-v2-library-browser .rd-v2-library-scope-title > span {
+  margin-bottom: 3px;
+}
+
+.rd-v2-library-browser .rd-v2-library-scope-title h2 {
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.rd-v2-library-browser .rd-v2-library-scope-title p {
+  display: block;
+  max-width: 620px;
+  margin: 4px 0 0;
+  color: var(--rd-muted);
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.rd-v2-library-scope-stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 5px 10px;
+  max-width: 320px;
+  padding-top: 4px;
+  color: var(--rd-muted);
+  font-size: 8.75px;
+  line-height: 1.3;
+}
+
+.rd-v2-library-scope-stats span {
+  white-space: nowrap;
+}
+
+.rd-v2-library-scope-stats b {
+  color: var(--rd-body);
+  font-weight: 730;
+}
+
+.rd-v2-library-scope-stats .rd-v2-library-scope-view {
+  padding: 2px 6px;
+  border: 1px solid var(--rd-border2);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.66);
+  color: var(--rd-body);
+  font-weight: 680;
+}
+
+.rd-v2-library-browser .rd-v2-cap-ledger {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.rd-v2-library-browser .rd-v2-cap-ledger-head {
+  min-height: 38px;
+  background: rgba(248, 247, 242, 0.58);
+}
+
+.rd-v2-library-browser .rd-v2-cap-ledger-row {
+  min-height: 64px;
+}
+
+.rd-v2-library-browser .rd-v2-cap-ledger-row.is-selected {
+  background: rgba(255, 252, 241, 0.84);
+  box-shadow: inset 2px 0 0 var(--rd-link);
+}
+
+.rd-v2-library-browser .rd-v2-cap-ledger-head,
+.rd-v2-library-browser .rd-v2-cap-ledger-row {
+  column-gap: 11px;
+  padding-inline: 15px;
+}
+
+.rd-v2-library-browser .rd-v2-cap-evidence {
+  padding-right: 7px;
+}
+
+.rd-v2-library-browser .rd-v2-cap-evidence strong {
+  line-height: 1.34;
+}
+
+.rd-v2-library-browser .rd-v2-cap-evidence em {
+  margin-top: 3px;
+  line-height: 1.34;
+}
+
+.rd-v2-library-browser .rd-v2-library-scope-boundary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin: 14px 15px 15px;
+  padding: 11px 13px;
+  border: 1px solid var(--rd-border);
+  border-radius: 8px;
+  background: rgba(249, 248, 243, 0.82);
+}
+
+.rd-v2-library-browser .rd-v2-library-scope-boundary p {
+  margin: 0;
+  font-size: 9.25px;
+  line-height: 1.42;
+}
+
 @media (min-width: 1680px) and (min-height: 850px) {
-  /* Name the rail for what it does, not only what it contains. */
-  .rd-v2-library-directory-kicker {
-    font-size: 0;
-  }
-
-  .rd-v2-library-directory-kicker::after {
-    content: "Directory";
-    font-size: 9px;
-  }
-
-  .rd-v2-library-directory-intro p {
-    font-size: 0;
-    line-height: 0;
-  }
-
-  .rd-v2-library-directory-intro p::after {
-    content: "Open a research area or collection to enter its directory. Choose an evidence leaf to inspect it.";
-    display: block;
-    margin-top: 6px;
-    color: var(--rd-muted);
-    font-size: 10px;
-    line-height: 1.45;
-  }
-
-  /* Top-level research areas now advertise the navigation action explicitly. */
-  .rd-v2-library-directory-shelf-head {
-    grid-template-columns: 14px minmax(0, 1fr) auto 48px;
-    column-gap: 10px;
-    padding-inline: 14px;
-  }
-
-  .rd-v2-library-directory-shelf-head > span:last-child {
-    justify-self: end;
-    color: var(--rd-link);
-    font-size: 0;
-    font-weight: 750;
-    white-space: nowrap;
-  }
-
-  .rd-v2-library-directory-shelf-head > span:last-child::after {
-    content: "Open →";
-    font-size: 9px;
-    letter-spacing: 0.01em;
-  }
-
-  .rd-v2-library-directory-shelf-count {
-    max-width: 106px;
-  }
-
-  /* Nested collections carry the same affordance instead of leaving a naked
-     asset count as the only thing on the right edge. */
-  .rd-v2-library-directory-branch {
-    grid-template-columns: 14px minmax(0, 1fr) minmax(74px, auto);
-    column-gap: 9px;
-    padding-inline: 18px 14px;
-  }
-
-  .rd-v2-library-directory-branch > b {
-    display: inline-flex;
-    min-width: 74px;
+  .rd-v2-library-page:has(.rd-v2-library-directory-home) .rd-v2-page-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "title actions"
+      "lead actions";
     align-items: center;
-    justify-content: flex-end;
-    gap: 8px;
-    color: var(--rd-muted);
-    white-space: nowrap;
+    column-gap: 28px;
+    row-gap: 4px;
+    padding-bottom: 12px;
   }
 
-  .rd-v2-library-directory-branch > b::after {
-    content: "Open →";
-    color: var(--rd-link);
-    font-size: 8.75px;
-    font-weight: 750;
+  .rd-v2-library-page:has(.rd-v2-library-directory-home) .rd-v2-page-head > h1 {
+    grid-area: title;
+    margin-bottom: 0;
   }
 
-  /* Research areas are separate directory sections, not one uninterrupted list. */
-  .rd-v2-library-directory-tree {
-    padding: 9px 0 12px;
+  .rd-v2-library-page:has(.rd-v2-library-directory-home) .rd-v2-page-head > .rd-v2-lead {
+    grid-area: lead;
+    margin: 0;
   }
 
-  .rd-v2-library-directory-shelf {
-    background: rgba(255, 255, 255, 0.26);
-    border-block: 1px solid color-mix(in srgb, var(--rd-border) 74%, transparent);
+  .rd-v2-library-page:has(.rd-v2-library-directory-home) .rd-v2-library-headline {
+    grid-area: actions;
+    justify-self: end;
+    align-self: center;
+    width: auto;
   }
 
-  .rd-v2-library-directory-shelf + .rd-v2-library-directory-shelf {
-    margin-top: 9px;
-    border-top: 1px solid color-mix(in srgb, var(--rd-border) 74%, transparent);
+  .rd-v2-library-page:has(.rd-v2-library-directory-home) .rd-v2-library-headline .rd-v2-breadcrumb {
+    display: none;
   }
 
-  /* The retrieval band and the browser are related, but should not visually
-     touch. Keep this intentionally small so it reads as rhythm, not dead space. */
-  .rd-v2-cap-estate:has(> .rd-v2-library-directory-home) {
+  .rd-v2-cap-estate.rd-v2-library-browser:has(> .rd-v2-library-directory-home) {
+    grid-template-columns: 314px minmax(0, 1fr);
     margin-top: 20px;
-    background: rgba(247, 246, 241, 0.72);
   }
 
-  /* The right pane is one workflow, but its stages should not touch edge-to-edge. */
-  .rd-v2-cap-estate:has(> .rd-v2-library-directory-home) > .rd-v2-library-all-evidence {
-    background: rgba(255, 255, 255, 0.42);
+  .rd-v2-library-browser .rd-v2-cap-ledger-head,
+  .rd-v2-library-browser .rd-v2-cap-ledger-row {
+    grid-template-columns:
+      minmax(260px, 1.65fr)
+      minmax(74px, 0.42fr)
+      minmax(124px, 0.74fr)
+      minmax(88px, 0.42fr)
+      minmax(100px, 0.46fr);
+  }
+}
+
+@media (min-width: 1100px) and (max-width: 1679px) {
+  .rd-v2-cap-estate.rd-v2-library-browser:has(> .rd-v2-library-directory-home) {
+    grid-template-columns: 238px minmax(0, 1fr);
   }
 
-  .rd-v2-cap-estate:has(> .rd-v2-library-directory-home) > .rd-v2-library-available {
-    align-self: start;
-    margin: 15px 16px 0;
-    padding: 12px 14px;
-    border: 1px solid var(--rd-border);
-    border-radius: 8px;
-    background: rgba(252, 250, 244, 0.9);
+  .rd-v2-library-browser .rd-v2-library-directory-intro p,
+  .rd-v2-library-navigator-view em,
+  .rd-v2-library-navigator-copy em {
+    display: none;
   }
 
-  .rd-v2-library-review-queue {
-    align-self: start;
-    margin: 15px 16px 16px;
-    overflow: hidden;
-    border: 1px solid var(--rd-border);
-    border-radius: 9px;
-    background: rgba(252, 250, 245, 0.9);
+  .rd-v2-library-browser .rd-v2-cap-kind,
+  .rd-v2-library-browser .rd-v2-cap-ledger-head > span:nth-child(2) {
+    display: none;
   }
 
-  .rd-v2-library-review-queue > header {
-    padding: 13px 15px 11px;
+  .rd-v2-library-browser .rd-v2-cap-ledger-head,
+  .rd-v2-library-browser .rd-v2-cap-ledger-row {
+    grid-template-columns:
+      minmax(230px, 1.6fr)
+      minmax(110px, 0.72fr)
+      minmax(84px, 0.42fr)
+      minmax(96px, 0.46fr);
   }
 
-  .rd-v2-library-review-item {
-    padding-inline: 15px;
+  .rd-v2-library-browser .rd-v2-library-scope-head {
+    display: grid;
+    gap: 7px;
+  }
+
+  .rd-v2-library-scope-stats {
+    justify-content: flex-start;
+    max-width: none;
+    padding-top: 0;
+  }
+
+  .rd-v2-library-navigator-open {
+    display: none;
+  }
+}
+
+@media (max-width: 1099px) {
+  .rd-v2-cap-estate.rd-v2-library-browser:has(> .rd-v2-library-directory-home) {
+    display: block;
+    margin: 14px 10px 20px;
+  }
+
+  .rd-v2-cap-estate.rd-v2-library-browser:has(> .rd-v2-library-directory-home)
+    > .rd-v2-library-directory-home {
+    border-right: 0;
+    border-bottom: 1px solid var(--rd-border);
+  }
+
+  .rd-v2-library-navigator-body {
+    max-height: 280px;
+    overflow: auto;
+  }
+
+  .rd-v2-library-browser .rd-v2-library-scope-head {
+    display: grid;
+    gap: 7px;
+  }
+
+  .rd-v2-library-scope-stats {
+    justify-content: flex-start;
+    max-width: none;
+    padding-top: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .rd-v2-library-browser .rd-v2-library-directory-intro {
+    padding: 12px 10px 10px;
+  }
+
+  .rd-v2-library-browser .rd-v2-library-directory-intro p,
+  .rd-v2-library-navigator-view em,
+  .rd-v2-library-navigator-copy em,
+  .rd-v2-library-navigator-open {
+    display: none;
+  }
+
+  .rd-v2-library-navigator-section {
+    padding-inline: 6px;
+  }
+
+  .rd-v2-library-browser .rd-v2-library-scope-head {
+    padding: 12px 10px 10px;
   }
 }
