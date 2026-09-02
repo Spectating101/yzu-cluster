@@ -1,0 +1,180 @@
+/* Product-wide visual convergence fixes.
+ * These overrides exist only for defects confirmed in assembled 1440/1920
+ * screenshots. Keep them narrow, state-aware, and late-loaded.
+ */
+
+/* --------------------------------------------------------------------------
+   SYNTHESIS ROOT — empty workspace should present real choices, not zero-state
+   bookkeeping. The empty-state marker gives us a safe, semantic CSS hook.
+   -------------------------------------------------------------------------- */
+
+.rd-v2-synthesis-page .s04-home:has(> [data-testid="synthesis-empty-state"])
+  > .s04-home-entry
+  > .s04-home-entry-card:disabled {
+  display: none;
+}
+
+.rd-v2-synthesis-page .s04-home:has(> [data-testid="synthesis-empty-state"])
+  > .s04-home-entry {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* With no durable constructions there is no useful "Active · 0" surface.
+   The empty workspace already states that truth immediately above it. */
+.rd-v2-synthesis-page .s04-home:has(> [data-testid="synthesis-empty-state"])
+  > [data-testid="synthesis-empty-state"]
+  + .s04-home-section:not(.s04-home-methods) {
+  display: none;
+}
+
+/* Two registered methods are a comparison pair, not two thirds of a 3-up grid. */
+.rd-v2-synthesis-page .s04-home-method-grid:has(> button:nth-child(2):last-child) {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (min-width: 1121px) and (max-width: 1679px) {
+  .rd-v2-synthesis-page .s04-home:has(> [data-testid="synthesis-empty-state"]) {
+    gap: 14px;
+  }
+
+  .rd-v2-synthesis-page .s04-home:has(> [data-testid="synthesis-empty-state"]) > .s04-home-hero {
+    padding: 17px 19px;
+  }
+
+  .rd-v2-synthesis-page .s04-home:has(> [data-testid="synthesis-empty-state"]) > .s04-home-entry .s04-home-entry-card {
+    min-height: 132px;
+    padding: 15px 16px 14px;
+  }
+
+  .rd-v2-synthesis-page .s04-home:has(> [data-testid="synthesis-empty-state"]) > .s04-home-first {
+    padding: 18px 20px;
+  }
+
+  .rd-v2-synthesis-page .s04-home:has(> [data-testid="synthesis-empty-state"]) > .s04-home-first p {
+    margin-bottom: 12px;
+  }
+}
+
+@media (min-width: 1680px) and (min-height: 900px) {
+  .rd-v2-synthesis-page .s04-home:has(> [data-testid="synthesis-empty-state"]) {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 14px 16px;
+    align-items: stretch;
+  }
+
+  .rd-v2-synthesis-page .s04-home:has(> [data-testid="synthesis-empty-state"]) > .s04-home-hero,
+  .rd-v2-synthesis-page .s04-home:has(> [data-testid="synthesis-empty-state"]) > .s04-home-runtime,
+  .rd-v2-synthesis-page .s04-home:has(> [data-testid="synthesis-empty-state"]) > .s04-home-methods {
+    grid-column: 1 / -1;
+  }
+
+  .rd-v2-synthesis-page .s04-home:has(> [data-testid="synthesis-empty-state"]) > .s04-home-entry {
+    grid-column: 1 / 9;
+    grid-row: auto;
+    align-self: stretch;
+  }
+
+  .rd-v2-synthesis-page .s04-home:has(> [data-testid="synthesis-empty-state"]) > .s04-home-first {
+    grid-column: 9 / -1;
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 18px 20px;
+  }
+
+  .rd-v2-synthesis-page .s04-home:has(> [data-testid="synthesis-empty-state"]) > .s04-home-first .rd-v2-btn {
+    align-self: flex-start;
+  }
+
+  .rd-v2-synthesis-page .s04-home:has(> [data-testid="synthesis-empty-state"]) > .s04-home-methods {
+    padding-top: 2px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   SETTINGS 1440 — preserve the 1920 workstation composition, but let the next
+   authority domain (Account & Storage) visibly enter the first 900px viewport.
+   This is a rhythm correction, not a smaller-font rewrite.
+   -------------------------------------------------------------------------- */
+
+@media (min-width: 1121px) and (max-width: 1599px) {
+  .rd-v2-settings-workspace-page .rd-v2-page-head {
+    padding-bottom: 12px;
+  }
+
+  .rd-v2-settings-workspace {
+    padding-bottom: 22px;
+  }
+
+  .rd-v2-settings-policy-hero {
+    gap: 24px;
+    padding: 17px 0 20px;
+  }
+
+  .rd-v2-settings-policy-copy h2 {
+    margin: 6px 0;
+    font-size: 27px;
+  }
+
+  .rd-v2-settings-policy-copy p {
+    font-size: 10.8px;
+    line-height: 1.48;
+  }
+
+  .rd-v2-settings-policy-summary > div {
+    padding: 11px 13px 10px;
+  }
+
+  .rd-v2-settings-layout {
+    gap: 18px;
+    margin-top: 16px;
+  }
+
+  .rd-v2-settings-behavior {
+    padding: 17px 19px 12px;
+  }
+
+  .rd-v2-settings-panel-head {
+    padding-bottom: 12px;
+  }
+
+  .rd-v2-settings-panel-head.compact {
+    padding-bottom: 10px;
+  }
+
+  .rd-v2-settings-policy-row {
+    gap: 16px;
+    padding: 12px 0;
+  }
+
+  .rd-v2-settings-policy-note {
+    margin-top: 10px;
+    font-size: 9.8px;
+    line-height: 1.4;
+  }
+
+  .rd-v2-settings-side-stack {
+    gap: 12px;
+  }
+
+  .rd-v2-settings-identity-panel,
+  .rd-v2-settings-session-panel {
+    padding: 16px 17px;
+  }
+
+  .rd-v2-settings-panel-copy {
+    margin: 10px 0 12px;
+    font-size: 10px;
+    line-height: 1.42;
+  }
+
+  .rd-v2-settings-identity-foot {
+    margin-top: 7px;
+  }
+
+  .rd-v2-settings-account-storage {
+    margin-top: 15px;
+    padding-top: 18px;
+  }
+}
