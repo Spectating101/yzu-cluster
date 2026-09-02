@@ -52,10 +52,13 @@ import "./profile-settings-canonical-refine.css";
 import "./profile-registry-explorer.css";
 import "./profile-settings-final-polish.css";
 import "./profile-settings-workstation.css";
-// Final PS authority: Profile and Settings use the quiet personalization /
-// category-row grammar of modern assistant account surfaces, not dashboards.
+// Profile and Settings use the quiet personalization / category-row grammar of
+// modern assistant account surfaces rather than another product dashboard.
 import "./profile-settings-personalization.css";
 import "./profile-settings-personalization-polish.css";
+// Signed-in Profile adds an AI-generated research portrait while preserving a
+// visible boundary between model interpretation and recorded evidence.
+import "./profile-ai-portrait.css";
 import { V2App } from "./App";
 import { InteractionProvider } from "./InteractionGuidance";
 
