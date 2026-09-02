@@ -35,6 +35,7 @@ import "./synthesis-operated-flow.css";
 import "./synthesis-operated-flow-final.css";
 import "./synthesis-zero-instruction.css";
 import "./synthesis-zero-instruction-contract.css";
+import "./synthesis-zero-instruction-visual-closure.css";
 import "./discover-frozen-closure.css";
 import "./connected-accounts.css";
 import { V2App } from "./App";
