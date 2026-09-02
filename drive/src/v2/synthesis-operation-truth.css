@@ -189,35 +189,50 @@
   line-height: 1.35;
 }
 
-/* During a healthy reasoning turn the compact status card already states that
- * Ask is grounding a proposal. The second DraftCanvas would otherwise repeat
- * the same state below the evidence map. Keep it only when it contains the
- * explicit stall recovery control. */
-.rd-v2-synthesis-page .s04-main:has(> .s04-draft):not(:has([data-testid="synthesis-draft-retry"]))
-  > .s04-draft {
-  display: none !important;
-}
-
-.rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-draft-retry"])
+/* Explicit method reasoning is itself a real operation state. Let its canvas
+ * replace the generic next-step card instead of hiding the canvas as duplicate
+ * decoration. This preserves the visible progress surface and its stall/retry
+ * contract while keeping one clear centre authority. */
+.rd-v2-synthesis-page .s04-main:has(> .s04-draft)
   > .s04-opening-next {
   display: none !important;
 }
 
-/* Before/after reasoning, the generic next card is an operation dock rather
- * than a second dossier. Keep it shallow so measured evidence remains visible
- * in the same viewport. */
-.rd-v2-synthesis-page .s04-main:has(> .s04-measurement-status):not(:has(> [data-testid="synthesis-proposal-state"]))
+.rd-v2-synthesis-page .s04-main > .s04-draft {
+  width: 100%;
+  margin: 0 !important;
+}
+
+@media (min-width: 1680px) and (min-height: 900px) {
+  #root .rd-v2-synthesis-page .s04-main:has(> .s04-draft)
+    > .s04-draft {
+    grid-column: 9 / 13 !important;
+    align-self: stretch !important;
+    min-height: 260px;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> .s04-draft)
+    > [data-testid="synthesis-evidence-state"] {
+    grid-column: 1 / 9 !important;
+    align-self: stretch !important;
+  }
+}
+
+/* Before reasoning, the generic next card is an operation dock rather than a
+ * second dossier. Keep it shallow so measured evidence remains visible in the
+ * same viewport. */
+.rd-v2-synthesis-page .s04-main:has(> .s04-measurement-status):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> .s04-draft))
   > .s04-opening-next {
   padding: 12px 14px;
   box-shadow: none;
 }
 
-.rd-v2-synthesis-page .s04-main:has(> .s04-measurement-status):not(:has(> [data-testid="synthesis-proposal-state"]))
+.rd-v2-synthesis-page .s04-main:has(> .s04-measurement-status):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> .s04-draft))
   > .s04-opening-next > p {
   margin-block: 5px 8px;
 }
 
-.rd-v2-synthesis-page .s04-main:has(> .s04-measurement-status):not(:has(> [data-testid="synthesis-proposal-state"]))
+.rd-v2-synthesis-page .s04-main:has(> .s04-measurement-status):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> .s04-draft))
   > .s04-opening-next > em {
   margin-top: 8px;
   padding-top: 7px;
