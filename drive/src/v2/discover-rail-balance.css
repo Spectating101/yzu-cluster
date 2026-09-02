@@ -1,0 +1,16 @@
+/* Wide-workstation rail balance.
+   Discover keeps a meaningful contextual rail at 1920+ even before selection;
+   the rail is part of the research workspace, not disposable leftover chrome. */
+@media (min-width: 1680px) {
+  body:has(.rd-v2-discover-page) .rd-v2-shell {
+    --rd-rail: 384px;
+  }
+
+  body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-shell {
+    --rd-rail: 360px;
+  }
+
+  body:has(.rd-v2-discover-page .rd-v2-discover-candidate.selected) .rd-v2-shell {
+    --rd-rail: 432px;
+  }
+}
