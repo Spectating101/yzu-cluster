@@ -25,6 +25,18 @@
   background: var(--rd-border2);
 }
 
+/* "State" was too broad for a control that is specifically about research
+   readiness. Keep the existing test/URL contract while making the visible
+   vocabulary match the underlying readiness model. */
+.rd-v2-library-filter-control:has(select[data-testid="library-state-filter"]) > span {
+  font-size: 0;
+}
+
+.rd-v2-library-filter-control:has(select[data-testid="library-state-filter"]) > span::after {
+  content: "Readiness";
+  font-size: 8px;
+}
+
 .rd-v2-library-pagination {
   display: flex;
   min-height: 42px;
@@ -53,6 +65,11 @@
 .rd-v2-library-folder-context {
   padding-block: 2px 10px;
   border-bottom: 1px solid var(--rd-border);
+}
+
+.rd-v2-library-folder-context .rd-v2-rail-note {
+  max-width: 34ch;
+  line-height: 1.48;
 }
 
 .rd-v2-library-folder-context .rd-v2-rail-note + .rd-v2-rail-note {
