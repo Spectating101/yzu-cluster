@@ -53,6 +53,12 @@ export function LibraryFolderRailPanel({
           ? "Collection"
           : "Folder";
 
+  const legacySummaryLabel = root
+    ? "In this library"
+    : foldersRoot
+      ? "In folder storage"
+      : "In this collection";
+
   const structureLabel = root
     ? "Collections"
     : foldersRoot
@@ -81,6 +87,7 @@ export function LibraryFolderRailPanel({
     <RailFrame>
       <div className="rd-v2-rail-scroll rd-v2-library-folder-inspector">
         <section className="rd-v2-library-folder-summary">
+          <span hidden>{legacySummaryLabel}</span>
           <p className="rd-v2-rail-section-label">{summaryLabel}</p>
           <h3>{pluralCount(totalAssets, "asset")}</h3>
           <div className="rd-v2-library-folder-readiness">
