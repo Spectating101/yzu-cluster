@@ -27,6 +27,7 @@ import "./synthesis-workstation.css";
 import "./discover-frozen-closure.css";
 import "./connected-accounts.css";
 import "./discover-three-zone.css";
+import "./discover-serp-solidification.css";
 import { V2App } from "./App";
 import { InteractionProvider } from "./InteractionGuidance";
 
