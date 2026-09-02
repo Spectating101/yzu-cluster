@@ -8,6 +8,7 @@ import {
 } from "@/v2/RailPanels";
 import { HomeAttentionRailPanel } from "@/v2/HomeAttentionRailPanel";
 import { ProfileDetailPanel } from "@/v2/ProfilePage";
+import { SettingsRailPanel } from "@/v2/SettingsRailPanel";
 import { activeObjectSelectionHint } from "@/v2/activeObject";
 import { displayName } from "@/v2/datasetMeta";
 import { LibraryDatasetRailPanel } from "@/v2/LibraryDatasetRailPanel";
@@ -225,7 +226,7 @@ export function InspectorRail({
   } else if (mainTab === "profile") {
     detailPanel = <ProfileDetailPanel profile={profile} />;
   } else if (mainTab === "settings") {
-    detailPanel = <PageRailPanel page="settings" onAskAbout={onAskAbout} />;
+    detailPanel = <SettingsRailPanel onAskAbout={onAskAbout} />;
   } else if (mainTab === "synthesis") {
     detailPanel = <SynthesisIdleRailPanel onAskAbout={onAskAbout} />;
   } else if (mainTab === "library" && dataset?.dataset_id) {
