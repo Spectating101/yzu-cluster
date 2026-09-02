@@ -1,0 +1,205 @@
+/* Adaptive data-product passports.
+   Wide Discover results should reflect the object that was actually found:
+   concrete datasets/packages expose shape and scale; source routes expose
+   capabilities and what inspection can resolve. Do not force unlike objects
+   through one fixed metadata card. */
+
+.rd-v2-discover-passport {
+  display: none;
+}
+
+@media (min-width: 1680px) and (min-height: 900px) {
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results-head::after {
+    content: "Data product preview · observed shape · next useful inspection" !important;
+    font-size: 10px !important;
+    letter-spacing: .012em !important;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-candidate {
+    min-height: 136px;
+    padding-top: 16px;
+    padding-bottom: 16px;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-candidate-main {
+    grid-template-columns: minmax(330px, .94fr) minmax(0, 1.66fr);
+    grid-template-rows: auto auto;
+    column-gap: 34px;
+    row-gap: 8px;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-candidate-heading {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-evidence {
+    grid-column: 1;
+    grid-row: 2;
+    padding-top: 17px;
+    font-size: 13.5px;
+    line-height: 1.5;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-offering-facts {
+    display: none !important;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-passport {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    display: grid;
+    align-content: center;
+    gap: 8px;
+    min-width: 0;
+    padding: 1px 0 0;
+  }
+
+  .rd-v2-discover-passport-head {
+    display: flex;
+    align-items: baseline;
+    gap: 9px;
+    min-width: 0;
+  }
+
+  .rd-v2-discover-passport-head > b {
+    flex: 0 0 auto;
+    color: #37473f;
+    font: 780 9px/1.2 var(--rd-mono, ui-monospace, monospace);
+    letter-spacing: .055em;
+    text-transform: uppercase;
+  }
+
+  .rd-v2-discover-passport-head > span {
+    overflow: hidden;
+    color: var(--rd-muted, #6e7685);
+    font-size: 10.5px;
+    font-weight: 620;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .rd-v2-discover-passport-primary {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .rd-v2-discover-passport-primary > b {
+    color: var(--rd-muted, #6e7685);
+    font: 760 9px/1.2 var(--rd-mono, ui-monospace, monospace);
+    letter-spacing: .045em;
+    text-transform: uppercase;
+  }
+
+  .rd-v2-discover-passport-primary > strong {
+    color: #22362f;
+    font-size: 14px;
+    font-weight: 690;
+    line-height: 1.42;
+  }
+
+  .rd-v2-discover-passport-scale {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    min-width: 0;
+  }
+
+  .rd-v2-discover-passport-scale > span {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 5px;
+    min-width: 0;
+  }
+
+  .rd-v2-discover-passport-scale b {
+    color: var(--rd-muted, #6e7685);
+    font: 730 8.5px/1.2 var(--rd-mono, ui-monospace, monospace);
+    letter-spacing: .03em;
+    text-transform: uppercase;
+  }
+
+  .rd-v2-discover-passport-scale em {
+    color: var(--rd-text, #182033);
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 680;
+  }
+
+  .rd-v2-discover-passport-shape {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px 7px;
+  }
+
+  .rd-v2-discover-passport-shape > span {
+    padding: 2px 6px;
+    border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 78%, transparent);
+    border-radius: 999px;
+    color: #4b5563;
+    background: color-mix(in srgb, var(--rd-paper, #fffdf8) 78%, transparent);
+    font-size: 10.5px;
+    line-height: 1.35;
+  }
+
+  .rd-v2-discover-passport-next {
+    display: flex;
+    align-items: baseline;
+    gap: 7px;
+    min-width: 0;
+    color: var(--rd-muted, #6e7685);
+    font-size: 10.5px;
+    line-height: 1.35;
+  }
+
+  .rd-v2-discover-passport-next b {
+    flex: 0 0 auto;
+    color: #566b61;
+    font: 750 8.5px/1.2 var(--rd-mono, ui-monospace, monospace);
+    letter-spacing: .035em;
+    text-transform: uppercase;
+  }
+
+  .rd-v2-discover-passport[data-passport-kind="route"] {
+    padding-left: 13px;
+    border-left: 2px solid color-mix(in srgb, #586f85 28%, transparent);
+  }
+
+  .rd-v2-discover-passport[data-passport-kind="route"] .rd-v2-discover-passport-primary > strong {
+    color: #2f4052;
+  }
+
+  .rd-v2-discover-passport[data-passport-kind="package"] .rd-v2-discover-passport-head > b,
+  .rd-v2-discover-passport[data-passport-kind="dataset"] .rd-v2-discover-passport-head > b,
+  .rd-v2-discover-passport[data-passport-kind="warehouse"] .rd-v2-discover-passport-head > b {
+    color: #49695a;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-row-add {
+    width: 74px;
+    min-width: 74px;
+    min-height: 34px;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-row-add::after {
+    content: "Inspect";
+  }
+}
