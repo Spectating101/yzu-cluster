@@ -62,6 +62,9 @@ import "./profile-ai-portrait.css";
 // Final density pass: preserve the AI-native hierarchy while removing the
 // cumulative vertical gaps visible in the 1440/1920 acceptance frames.
 import "./profile-ai-portrait-tightening.css";
+// Guest Profile is Research Drive's own guided product profile: explain the
+// research loop, workspace scope, and evidence contract without dashboard UI.
+import "./profile-guest-guide.css";
 import { V2App } from "./App";
 import { InteractionProvider } from "./InteractionGuidance";
 
