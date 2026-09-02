@@ -12,10 +12,6 @@ function rows(value) {
   return Array.isArray(value) ? value : [];
 }
 
-function count(value) {
-  return rows(value).length;
-}
-
 function candidateTitle(row) {
   return row?.title || row?.name || row?.dataset_id || row?.source_id || "Candidate";
 }
@@ -77,7 +73,7 @@ function ComparisonMatrix({ candidates }) {
         role="table"
         aria-label="Candidate comparison matrix"
       >
-        <div className="rd-v2-discover-utility-grid-corner" role="columnheader">Requirement</div>
+        <div className="rd-v2-discover-utility-grid-corner" role="columnheader">Field</div>
         {candidates.map((candidate) => (
           <div key={`head:${candidateTitle(candidate)}`} className="rd-v2-discover-utility-grid-source" role="columnheader">
             <b>{candidateProvider(candidate)}</b>
@@ -121,8 +117,7 @@ export function DiscoverEvidenceField({
     && ["partially_covered", "partial", "not_covered", "uncovered"].includes(verdict)
     && Boolean(assessmentResult?.gap);
   const composable = hasGap && candidateCount > 1;
-  const matrixCandidates = [...availableRows, ...verifyRows].slice(0, 4);
-  const showMatrix = view === "matrix" || composable;
+  const matrixCandidates = [...availableRows, ...verifyRows].slice(0, 3);
 
   return (
     <section className="rd-v2-discover-field rd-v2-discover-field--utility" data-testid="discover-evidence-field" aria-label="Discover evidence field">
@@ -177,7 +172,7 @@ export function DiscoverEvidenceField({
         </div>
       ) : null}
 
-      {showMatrix ? <ComparisonMatrix candidates={matrixCandidates} /> : null}
+      {view === "matrix" ? <ComparisonMatrix candidates={matrixCandidates} /> : null}
     </section>
   );
 }
