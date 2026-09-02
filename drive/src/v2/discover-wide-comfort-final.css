@@ -12,7 +12,24 @@
   .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
     .rd-v2-discover-ranked-results
     .rd-v2-discover-candidate {
+    grid-template-columns: 104px minmax(0, 1fr);
     min-height: 98px;
+    column-gap: 17px;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-candidate-source {
+    width: 104px;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-source-ribbon {
+    max-width: 96px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
@@ -87,5 +104,66 @@
     .rd-v2-discover-offering-facts em {
     font-size: 10.75px !important;
     line-height: 1.35 !important;
+  }
+
+  /* The left rail is a working control surface. At workstation width, spend a
+     little more horizontal space so its labels can be read without squinting. */
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-browse:has(> .rd-v2-discover-evidence-cockpit) {
+    grid-template-columns: 194px minmax(0, 1fr);
+    column-gap: 14px;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-evidence-cockpit {
+    padding: 10px 11px;
+    gap: 8px;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-cockpit-head h3 {
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-cockpit-section-head > span {
+    font-size: 8.7px;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-cockpit-section-head strong {
+    font-size: 8.8px;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-cockpit-facets button {
+    min-height: 28px;
+    padding: 4px 5px;
+    font-size: 9.5px;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-cockpit-assessment p,
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-cockpit-execution p {
+    font-size: 9.2px;
+    line-height: 1.38;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-cockpit-assessment button {
+    min-height: 30px;
+    font-size: 9px;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-cockpit-capacity.is-compact span {
+    font-size: 8px;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-cockpit-capacity.is-compact strong {
+    font-size: 10px;
   }
 }
