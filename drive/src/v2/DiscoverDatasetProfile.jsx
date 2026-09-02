@@ -1,5 +1,6 @@
 import "./discover-analytical-record.css";
 
+// Analytical result records deliberately expose only backend/inspection facts.
 function text(value) {
   return String(value ?? "").trim();
 }
@@ -95,7 +96,7 @@ export function DiscoverDatasetProfile({ row, passport }) {
   const temporal = first(row?.temporal_coverage, row?.date_range, row?.time_range);
   const geography = first(row?.geographic_coverage, row?.geography, row?.region);
   const format = first(row?.format, row?.file_type, row?.content_type, row?.probe_snapshot?.connector?.spec?.content_type);
-  const refresh = first(row?.refresh_frequency, row?.refresh, row?.update_frequency, row?.freshness);
+  const refresh = first(row?.refresh_frequency, row?.refresh, row?.update_frequency, row?.freshness, row?.periodicity);
   const license = first(row?.license, row?.license_name, row?.terms);
   const version = first(row?.version, row?.revision, row?.dataset_version);
   const use = first(row?.recommended_use, row?.use_case, row?.research_use);
