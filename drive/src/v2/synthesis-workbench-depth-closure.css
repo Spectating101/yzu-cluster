@@ -1,0 +1,135 @@
+/* Pixel closure for workstation depth.
+ * The lower blocking-state tier is itself an analytical workbench: compact
+ * measurement receipt, then evidence topology with its contextual facts at the
+ * side.  This removes the remaining large empty measurement card without
+ * inventing any new state.
+ */
+
+@media (min-width: 1680px) and (min-height: 900px) {
+  #root .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  )) > .s04-measurement-status {
+    grid-column: 1 / 13 !important;
+    grid-row: 4 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 14px !important;
+    padding: 9px 13px !important;
+    border-radius: 8px !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  )) > .s04-measurement-status > :is(p, div) {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  )) > .s04-measurement-status button {
+    flex: 0 0 auto !important;
+    margin: 0 0 0 auto !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  )) > [data-testid="synthesis-evidence-state"] {
+    grid-column: 1 / 13 !important;
+    grid-row: 5 !important;
+    min-height: 300px !important;
+    height: auto !important;
+    display: grid !important;
+    grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+    grid-template-rows: auto minmax(210px, auto) auto !important;
+    column-gap: 14px !important;
+    row-gap: 10px !important;
+    padding: 16px !important;
+    overflow: hidden !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  )) > [data-testid="synthesis-evidence-state"] > .s04-title {
+    grid-column: 1 / 13 !important;
+    grid-row: 1 !important;
+    margin: 0 !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  )) > [data-testid="synthesis-evidence-state"] > .s04-map {
+    grid-column: 1 / 9 !important;
+    grid-row: 2 / span 2 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 238px !important;
+    height: 100% !important;
+    margin: 0 !important;
+    align-self: stretch !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  )) > [data-testid="synthesis-evidence-state"] > .s04-pairs {
+    grid-column: 9 / 13 !important;
+    grid-row: 2 !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    align-content: start !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  )) > [data-testid="synthesis-evidence-state"] > .s04-pairs article {
+    min-height: 0 !important;
+    padding: 10px 12px !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  )) > [data-testid="synthesis-evidence-state"] > .s04-actions {
+    grid-column: 9 / 13 !important;
+    grid-row: 3 !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+    align-self: end !important;
+    margin: 0 !important;
+    padding-top: 8px !important;
+  }
+
+  /* Method diagnostics, when present, follow the evidence workbench rather than
+     competing with it for the same row. */
+  #root .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"]
+  )) > [data-testid="synthesis-method-surface"] {
+    grid-column: 1 / 13 !important;
+    grid-row: 6 !important;
+  }
+}
