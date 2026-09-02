@@ -9,7 +9,19 @@ import {
 const OUT = "artifacts/discover-reconvergence";
 const DATACITE_DATASET_ID = "datacite_10.5281_zenodo.58938";
 
-function source({ id, title, description, provider, collectVia = "http_manifest", reference = false, accessMode = "procurement_catalog", coverage, refresh }) {
+function source({
+  id,
+  title,
+  description,
+  provider,
+  collectVia = "http_manifest",
+  reference = false,
+  accessMode = "procurement_catalog",
+  coverage,
+  refresh,
+  grain,
+  recommendedUse,
+}) {
   return {
     kind: "source",
     source_id: id,
@@ -23,6 +35,8 @@ function source({ id, title, description, provider, collectVia = "http_manifest"
     query_relevance: reference ? undefined : 2,
     coverage,
     refresh_frequency: refresh,
+    grain,
+    recommended_use: recommendedUse,
   };
 }
 
@@ -41,6 +55,7 @@ function resultFixture() {
           query_ready: true,
           collect_via: "local_open",
           coverage: "Ethereum transfer events · 2021–2025",
+          grain: "transfer event",
         }],
       }],
       total: 1,
@@ -54,8 +69,10 @@ function resultFixture() {
             description: "Searchable scholarly and research-data catalogue with DOI-level records.",
             provider: "DataCite",
             collectVia: "datacite",
-            coverage: "Research datasets and DOI metadata",
+            coverage: "Research datasets · DOI metadata",
             refresh: "live catalogue",
+            grain: "dataset / DOI record",
+            recommendedUse: "Find citable research datasets and trace their identifiers, creators, repositories, and related metadata.",
           }),
           dataset_id: DATACITE_DATASET_ID,
           candidate_key: "source:datacite:live",
@@ -67,6 +84,8 @@ function resultFixture() {
           provider: "MOPS",
           coverage: "Taiwan issuers · governance filings",
           refresh: "filing cycle",
+          grain: "issuer × filing / period",
+          recommendedUse: "Build board, ownership, governance, and disclosure variables for Taiwan-listed issuers.",
         }),
         source({
           id: "zenodo_stablecoin",
@@ -76,14 +95,18 @@ function resultFixture() {
           collectVia: "zenodo",
           coverage: "Deposited datasets · methods · code",
           refresh: "repository updates",
+          grain: "deposit / file",
+          recommendedUse: "Recover published research datasets, supplementary files, and reproducibility artifacts.",
         }),
         source({
           id: "coingecko_market",
           title: "CoinGecko market-history endpoints",
           description: "Historical prices, market capitalization, volume, exchange metadata, and asset identifiers.",
           provider: "CoinGecko",
-          coverage: "Crypto markets · exchanges · asset history",
+          coverage: "Prices · market cap · volume · exchanges · asset IDs",
           refresh: "daily / intraday",
+          grain: "asset × timestamp / exchange",
+          recommendedUse: "Construct crypto market histories and join assets consistently across exchanges and time.",
         }),
         source({
           id: "defillama_stablecoins",
@@ -92,14 +115,18 @@ function resultFixture() {
           provider: "DefiLlama",
           coverage: "Stablecoin supply · chains · issuers",
           refresh: "daily",
+          grain: "stablecoin × chain × date",
+          recommendedUse: "Track supply migration and issuer or chain concentration through time.",
         }),
         source({
           id: "fred_macro",
           title: "FRED macro-financial series",
           description: "Macroeconomic and financial time series for rates, liquidity, risk, and market controls.",
           provider: "Federal Reserve Bank of St. Louis",
-          coverage: "Rates · liquidity · macro controls",
+          coverage: "Rates · liquidity · risk · macro controls",
           refresh: "series dependent",
+          grain: "series × observation date",
+          recommendedUse: "Add macro-financial controls and event-window context to empirical panels.",
         }),
         source({
           id: "worldbank_indicators",
@@ -108,6 +135,8 @@ function resultFixture() {
           provider: "World Bank",
           coverage: "Country indicators · long panels",
           refresh: "annual / periodic",
+          grain: "economy × indicator × period",
+          recommendedUse: "Build long-run country panels and institutional or development controls.",
         }),
         source({
           id: "imf_data",
@@ -116,22 +145,28 @@ function resultFixture() {
           provider: "IMF",
           coverage: "IFS · macroeconomic panels",
           refresh: "periodic",
+          grain: "economy × series × period",
+          recommendedUse: "Add cross-country monetary, external, and macroeconomic series.",
         }),
         source({
           id: "sec_edgar",
           title: "SEC EDGAR issuer filings",
           description: "Official filings that can contribute issuer disclosures and event timestamps.",
           provider: "SEC",
-          coverage: "US issuer filings · event dates",
+          coverage: "US issuer filings · disclosures · event dates",
           refresh: "filing stream",
+          grain: "issuer × filing",
+          recommendedUse: "Recover official disclosure text, filing dates, and issuer-level events.",
         }),
         source({
           id: "twse_market",
           title: "TWSE market data route",
           description: "Official Taiwan market records for listed-company trading and issuer reference data.",
           provider: "TWSE",
-          coverage: "Taiwan listed firms · market records",
+          coverage: "Taiwan listed firms · trading · issuer reference",
           refresh: "trading day",
+          grain: "security × trading day",
+          recommendedUse: "Build Taiwan security-level market panels and issuer-reference joins.",
         }),
         source({
           id: "openalex_reference",
@@ -227,6 +262,7 @@ test.describe("Discover reconvergence visual review", () => {
       expect(fieldBox).not.toBeNull();
       expect(resultsBox).not.toBeNull();
       expect(resultsBox.y - (fieldBox.y + fieldBox.height)).toBeLessThan(38);
+      await expect(page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidate").first()).toContainText(/dataset \/ DOI record/i);
       await assertNoOverflow(page);
       await page.screenshot({ path: `${OUT}/discover-results-${viewport.name}.png`, fullPage: false });
     });
@@ -261,8 +297,8 @@ test.describe("Discover reconvergence visual review", () => {
       const assembly = page.getByTestId("discover-assembly-path");
       await expect(assembly).toBeVisible();
       await expect(assembly).toContainText(/Board-governance variables/i);
-      await expect(assembly).toContainText(/10 candidates can be compared as inputs/i);
-      await expect(assembly).toContainText(/No assembly has run/i);
+      await expect(assembly).toContainText(/10 sources may contribute part of the missing data/i);
+      await expect(assembly).toContainText(/Nothing has been collected yet/i);
       const details = workspace.locator(".rd-v2-evidence-detail-disclosure.is-workspace");
       await expect(details).toBeVisible();
       expect(await details.evaluate((node) => node.open)).toBe(false);
