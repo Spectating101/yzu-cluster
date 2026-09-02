@@ -111,6 +111,38 @@ export const HOME_PRODUCTION_JOBS = {
       plan: { title: "DataCite climate-finance dataset sync" },
       result: { summary: "Queued for the next collector slot after the active market backfill." },
     },
+    {
+      id: "job-twse-esg-labels-13",
+      status: "registered",
+      type: "collect",
+      connector_id: "twse",
+      registered_dataset_id: "twse_esg_issuer_labels",
+      created_at: "2026-08-31T15:10:00Z",
+      updated_at: "2026-09-01T16:05:00Z",
+      plan: { title: "TWSE ESG issuer labels · September refresh" },
+      result: { summary: "Issuer-level ESG labels were normalized, verified, and registered for panel joins." },
+    },
+    {
+      id: "job-crsp-rebrand-refresh-12",
+      status: "completed",
+      type: "collect",
+      connector_id: "crsp",
+      registered_dataset_id: "crsp_fund_rebrand_panel",
+      created_at: "2026-08-31T10:30:00Z",
+      updated_at: "2026-09-01T14:40:00Z",
+      plan: { title: "CRSP fund rebrand panel refresh" },
+      result: { summary: "Monthly fund names and style fields were reconciled and promoted to the held rebrand panel." },
+    },
+    {
+      id: "job-oecd-climate-risk-11",
+      status: "failed",
+      type: "collect",
+      connector_id: "oecd",
+      created_at: "2026-08-31T08:45:00Z",
+      updated_at: "2026-09-01T13:25:00Z",
+      plan: { title: "OECD climate-risk snapshot" },
+      error: "Remote schema changed during the bounded refresh; review the History record before retrying.",
+    },
   ],
 };
 
@@ -134,7 +166,7 @@ export const HOME_PRODUCTION_HEALTH = {
   status: "ok",
   datasets: 4,
   desk: {
-    jobs: { running: 1, pending_approval: 1, gdelt_progress: "complete through 2026-08" },
+    jobs: { running: 1, queued: 1, failed: 1, pending_approval: 1, gdelt_progress: "complete through 2026-08" },
     composer_configured: true,
     composer_model: "composer-2.5",
     composer_runtime: {

@@ -73,9 +73,25 @@ async function expectHomeContainment(page, viewportWidth) {
 async function expectPopulatedHome(page) {
   await expect(page.getByText("GDELT Asia news-risk · August refresh", { exact: true })).toBeVisible();
   await expect(page.getByText("Taiwan issuer fundamentals · Q2 refresh", { exact: true })).toBeVisible();
+  await expect(page.getByText("TWSE ESG issuer labels · September refresh", { exact: true })).toBeVisible();
   await expect(page.getByText("Stablecoin exchange activity backfill", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("MOPS governance disclosures", { exact: true }).first()).toBeVisible();
   await expect(page.getByText(/Compare Taiwan issuer fundamentals with news-risk shocks/)).toBeVisible();
+  await expect(page.getByRole("button", { name: /\+ 1 more recent event in History/ })).toBeVisible();
+}
+
+async function openProductionHome(page) {
+  await page.goto("/?tab=home");
+  await settle(page);
+  await expect(page.locator(".rd-v2-home-authority")).toBeVisible();
+  await expectPopulatedHome(page);
+}
+
+async function expectTab(page, expected) {
+  await expect.poll(() => {
+    const url = new URL(page.url());
+    return url.searchParams.get("tab") || "home";
+  }).toBe(expected);
 }
 
 test.describe("August visual authority recovery", () => {
@@ -130,4 +146,73 @@ test.describe("August visual authority recovery", () => {
       });
     });
   }
+});
+
+test.describe("Home production interaction proof", () => {
+  test("production Home controls reach their real product surfaces", async ({ page }) => {
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await mockV2Api(page, {
+      datasetsBody: HOME_PRODUCTION_DATASETS,
+      healthBody: HOME_PRODUCTION_HEALTH,
+      jobsBody: HOME_PRODUCTION_JOBS,
+      profileBody: HOME_PRODUCTION_PROFILE,
+    });
+
+    await openProductionHome(page);
+    const focal = page.locator('[data-testid="home-focal-asset"]');
+    await focal.getByRole("button", { name: "Open in Library", exact: true }).click();
+    await expectTab(page, "library");
+    await expect(page.locator(".rd-v2-library-page")).toBeVisible();
+    await expect.poll(() => new URL(page.url()).searchParams.get("dataset")).toBe("gdelt_asia_daily_country_panel");
+
+    await openProductionHome(page);
+    await page.locator('[data-testid="home-focal-asset"]').getByRole("button", { name: "Inspect schema", exact: true }).click();
+    const preview = page.getByRole("dialog", { name: /Asia daily news-risk panel preview/i });
+    await expect(preview).toBeVisible();
+    await preview.getByRole("button", { name: "Close preview", exact: true }).click();
+    await expect(preview).toBeHidden();
+
+    await openProductionHome(page);
+    await page.locator('[data-testid="home-continue"]').getByRole("button", { name: "Review", exact: true }).click();
+    await expectTab(page, "discover");
+    await expect(page.locator(".rd-v2-discover-page--history")).toBeVisible();
+
+    await openProductionHome(page);
+    await page.locator(".rd-v2-home-continue-secondary").click();
+    await expectTab(page, "discover");
+    await expect(page.locator(".rd-v2-discover-page--history")).toBeVisible();
+
+    await openProductionHome(page);
+    await page.locator(".rd-v2-home-authority-trail-row").filter({ hasText: "GDELT Asia news-risk · August refresh" }).click();
+    await expectTab(page, "library");
+    await expect(page.locator(".rd-v2-library-page")).toBeVisible();
+
+    await openProductionHome(page);
+    await page.locator(".rd-v2-home-authority-trail-row").filter({ hasText: "Stablecoin exchange activity backfill" }).click();
+    await expectTab(page, "discover");
+    await expect(page.locator(".rd-v2-discover-page--history")).toBeVisible();
+
+    await openProductionHome(page);
+    await page.getByRole("button", { name: /\+ 1 more recent event in History/ }).click();
+    await expectTab(page, "discover");
+    await expect(page.locator(".rd-v2-discover-page--history")).toBeVisible();
+
+    await openProductionHome(page);
+    await page.locator(".rd-v2-home-authority-card.headroom").getByRole("button", { name: "Manage resources →", exact: true }).click();
+    await expectTab(page, "resources");
+    await expect(page.locator(".rd-v2-resources-page")).toBeVisible();
+
+    await openProductionHome(page);
+    await page.getByRole("button", { name: "+ New research", exact: true }).click();
+    await expectTab(page, "synthesis");
+    await expect(page.locator('[data-testid="synthesis-studio"]')).toBeVisible();
+
+    await openProductionHome(page);
+    await page.locator('[data-testid="home-research-seed"] button').first().click();
+    const askTab = page.locator('aside.rd-v2-rail').getByRole("tab", { name: "Ask", exact: true });
+    const detailTab = page.locator('aside.rd-v2-rail').getByRole("tab", { name: "Detail", exact: true });
+    await expect(askTab).toHaveAttribute("aria-selected", "true");
+    await detailTab.click();
+    await expect(detailTab).toHaveAttribute("aria-selected", "true");
+  });
 });

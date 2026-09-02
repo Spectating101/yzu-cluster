@@ -45,6 +45,12 @@ import "./home-authority-closure.css";
 // Selected Home attention must read as a continuation of Pick Up, not as a
 // generic inspector explainer detached from the actual decision record.
 import "./home-attention-rail.css";
+// Final screenshot sanding: remove the redundant page label and close the
+// unnecessary centre-to-inspector gutter without disturbing 1440 geometry.
+import "./home-final-sanding.css";
+// Recent Trail must adapt to variable production workload volume instead of
+// being composed around a fixed four-row screenshot fixture.
+import "./home-trail-adaptive.css";
 // Profile / Settings refinement stays last so its narrow overrides are easy to
 // audit against the canonical HPS authority without touching other surfaces.
 import "./profile-settings-canonical-refine.css";
