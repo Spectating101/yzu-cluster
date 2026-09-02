@@ -13,26 +13,10 @@ function listField(value) {
   return [];
 }
 
-function holdingIds(rows = []) {
-  const ids = new Set();
-  for (const row of rows || []) {
-    const id = String(row?.dataset_id || row?.id || "").trim();
-    if (id) ids.add(id);
-  }
-  return ids;
-}
-
-function relationshipState(profile, libraryHoldings = []) {
-  const heldIds = holdingIds(libraryHoldings);
-  const relationships = (profile?.lab_fintech_stack || [])
-    .filter((item) => item && (item.label || item.id));
-  const held = relationships.filter((item) =>
-    (item.registry_dataset_ids || [])
-      .map((id) => String(id || "").trim())
-      .filter(Boolean)
-      .some((id) => heldIds.has(id)),
-  ).length;
-  return { total: relationships.length, held };
+function goToTab(tab) {
+  const url = new URL(window.location.href);
+  url.searchParams.set("tab", tab);
+  window.location.assign(url.toString());
 }
 
 function countRecordedSignals(profile) {
@@ -43,7 +27,7 @@ function countRecordedSignals(profile) {
   return specialties + methods + tracks + focus;
 }
 
-function GuestProfileRail({ onGoTab, onAskAbout }) {
+function GuestProfileRail({ onAskAbout }) {
   return (
     <RailFrame>
       <RailEntityHeader
@@ -87,10 +71,10 @@ function GuestProfileRail({ onGoTab, onAskAbout }) {
         </section>
       </div>
       <RailStickyFooter>
-        <button type="button" className="rd-v2-btn sm primary" onClick={() => onGoTab?.("settings")}>
+        <button type="button" className="rd-v2-btn sm primary" onClick={() => goToTab("settings")}>
           Connect research profile
         </button>
-        <button type="button" className="rd-v2-btn sm" onClick={() => onGoTab?.("discover")}>
+        <button type="button" className="rd-v2-btn sm" onClick={() => goToTab("browse")}>
           Explore Discover →
         </button>
         {onAskAbout ? (
@@ -103,18 +87,15 @@ function GuestProfileRail({ onGoTab, onAskAbout }) {
   );
 }
 
-function UserProfileRail({ profile, libraryHoldings, onGoTab, onAskAbout }) {
+function UserProfileRail({ profile, onAskAbout }) {
   const name = profile?.name_en || profile?.name || "Researcher";
   const orgLine = [profile?.title, profile?.discipline].filter(Boolean).join(" · ") || "Research profile";
   const specialties = listField(profile?.specialties);
   const methods = listField(profile?.method_tags?.length ? profile.method_tags : profile?.methods);
   const workCount = Number(profile?.paper_count_parsed || profile?.paper_count || 0) || 0;
-  const relationships = relationshipState(profile, libraryHoldings);
+  const relationshipCount = (profile?.lab_fintech_stack || []).filter((item) => item && (item.label || item.id)).length;
   const recordedSignals = countRecordedSignals(profile);
-  const sparse = recordedSignals === 0 && workCount === 0 && relationships.total === 0;
-  const evidenceRisk = relationships.total > 0 && relationships.held === 0
-    ? "Recorded relationships are not held evidence"
-    : "Inference remains separate from source facts";
+  const sparse = recordedSignals === 0 && workCount === 0 && relationshipCount === 0;
 
   return (
     <RailFrame>
@@ -129,7 +110,7 @@ function UserProfileRail({ profile, libraryHoldings, onGoTab, onAskAbout }) {
         primary={sparse
           ? "Identity is explicit, but the current record does not yet establish enough research context for a rich portrait."
           : `${recordedSignals} explicit research-context signals and ${workCount || "no confirmed"} indexed works are available to ground the portrait.`}
-        risk={evidenceRisk}
+        risk="Inference remains separate from source facts"
         next={sparse ? "Add or correct research context in Settings" : "Use this portrait as context, not as evidence"}
       />
       <div className="rd-v2-rail-scroll rd-v2-profile-operational-rail-scroll" data-testid="profile-detail-rail">
@@ -139,7 +120,7 @@ function UserProfileRail({ profile, libraryHoldings, onGoTab, onAskAbout }) {
             <RailField label="Specialties" value={`${specialties.length} recorded`} />
             <RailField label="Methods" value={`${methods.length} recorded`} />
             <RailField label="Works" value={workCount ? `${workCount} indexed` : "Count not established"} />
-            <RailField label="Evidence" value={`${relationships.held}/${relationships.total} relationships held`} />
+            <RailField label="Evidence links" value={`${relationshipCount} recorded`} />
           </RailFieldGrid>
         </section>
 
@@ -162,7 +143,7 @@ function UserProfileRail({ profile, libraryHoldings, onGoTab, onAskAbout }) {
         </section>
       </div>
       <RailStickyFooter>
-        <button type="button" className="rd-v2-btn sm primary" onClick={() => onGoTab?.("settings")}>
+        <button type="button" className="rd-v2-btn sm primary" onClick={() => goToTab("settings")}>
           Manage research profile
         </button>
         {onAskAbout ? (
@@ -175,16 +156,11 @@ function UserProfileRail({ profile, libraryHoldings, onGoTab, onAskAbout }) {
   );
 }
 
-export function ProfileRailPanel({ profile, libraryHoldings = [], onGoTab, onAskAbout }) {
+export function ProfileRailPanel({ profile, onAskAbout }) {
   const signedIn = Boolean(profile && !profile.unknown);
   return signedIn ? (
-    <UserProfileRail
-      profile={profile}
-      libraryHoldings={libraryHoldings}
-      onGoTab={onGoTab}
-      onAskAbout={onAskAbout}
-    />
+    <UserProfileRail profile={profile} onAskAbout={onAskAbout} />
   ) : (
-    <GuestProfileRail onGoTab={onGoTab} onAskAbout={onAskAbout} />
+    <GuestProfileRail onAskAbout={onAskAbout} />
   );
 }
