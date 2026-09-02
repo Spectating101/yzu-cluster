@@ -1,0 +1,20 @@
+/* Medium-desktop compatibility for the persistent Library browser.
+   Keep the evidence schema intact at 1440 while the navigator remains visible. */
+@media (min-width: 1100px) and (max-width: 1679px) {
+  .rd-v2-library-browser .rd-v2-cap-kind,
+  .rd-v2-library-browser .rd-v2-cap-ledger-head > span:nth-child(2) {
+    display: block;
+  }
+
+  .rd-v2-library-browser .rd-v2-cap-ledger-head,
+  .rd-v2-library-browser .rd-v2-cap-ledger-row {
+    grid-template-columns:
+      minmax(210px, 1.45fr)
+      minmax(60px, 0.42fr)
+      minmax(88px, 0.65fr)
+      minmax(76px, 0.43fr)
+      minmax(88px, 0.48fr);
+    column-gap: 8px;
+    padding-inline: 12px;
+  }
+}
