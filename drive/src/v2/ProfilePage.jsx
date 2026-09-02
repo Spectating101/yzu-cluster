@@ -14,9 +14,18 @@ function memoryText(card, prefix) {
 function memoryLabel(card) {
   if (card?.id === "focus") return "Research focus";
   if (card?.id === "methods") return "Methods";
-  if (card?.id === "also") return "Research context";
-  if (card?.id === "current") return "Current research direction";
+  if (card?.id === "also") return "Additional context";
+  if (card?.id === "current") return "Current research";
   return "Research context";
+}
+
+function initials(value) {
+  const words = String(value || "Researcher")
+    .replace(/[,._-]+/g, " ")
+    .split(/\s+/)
+    .filter(Boolean);
+  if (!words.length) return "R";
+  return words.slice(0, 2).map((word) => word[0]?.toUpperCase()).join("");
 }
 
 function holdingIds(rows = []) {
@@ -34,313 +43,238 @@ function evidenceRelationship(row, heldIds) {
   return {
     ...row,
     held,
-    status: held ? "Held in Library" : "Recorded link · holding not confirmed",
+    status: held ? "Held in Library" : "Recorded link · not held",
   };
 }
 
 const PROJECT_SURFACES = [
   {
     id: "discover",
-    step: "01",
     title: "Discover",
-    copy: "Find, compare, and inspect research material before it becomes part of the workspace record.",
+    copy: "Find and inspect research material before deciding what belongs in the workspace.",
   },
   {
     id: "library",
-    step: "02",
     title: "Library",
-    copy: "Keep evidence, provenance, and durable research holdings inspectable after discovery.",
+    copy: "Keep evidence and provenance as durable, inspectable research holdings.",
   },
   {
     id: "synthesis",
-    step: "03",
     title: "Synthesis",
-    copy: "Turn selected evidence into structured research work while keeping source boundaries visible.",
+    copy: "Work from selected evidence while keeping source boundaries visible.",
   },
 ];
 
 const PROJECT_PRINCIPLES = [
-  ["Evidence stays inspectable", "A result should remain traceable to the source or workspace record that supports it."],
-  ["Context stays explicit", "Research context is shown as context, not silently promoted into a fact or instruction."],
-  ["Holdings stay authoritative", "Library determines what the workspace actually possesses; links and suggestions do not."],
-  ["Recommendations stay separate", "Suggested next actions belong to the workflow that produced them, not to the researcher record."],
+  ["Evidence stays inspectable", "Research material remains traceable to the source or workspace record that supports it."],
+  ["Context stays explicit", "Research context is shown as context instead of being silently promoted into fact."],
+  ["Library stays authoritative", "A recorded relationship is not treated as a held source until Library confirms it."],
 ];
 
-function GuestProjectProfile({ onGoTab }) {
+function SettingLikeRow({ label, copy, action }) {
   return (
-    <>
-      <section className="rd-v2-profile-project-hero" data-testid="profile-project-overview">
-        <div className="rd-v2-profile-project-copy">
-          <span>Research Drive</span>
-          <h2>Research evidence, kept inspectable.</h2>
-          <p>
-            Research Drive is a workspace for discovering, organizing, inspecting, and
-            synthesizing scholarly material without losing the evidence trail that produced the work.
-          </p>
-          <div className="rd-v2-profile-project-actions">
-            <button type="button" className="rd-v2-btn sm primary" onClick={() => onGoTab?.("discover")}>
-              Explore Discover
-            </button>
-            <button type="button" className="rd-v2-btn sm ghost" onClick={() => onGoTab?.("library")}>
-              Open Library
-            </button>
-          </div>
-        </div>
-        <aside className="rd-v2-profile-project-model" aria-label="Research Drive workspace model">
-          <span>Workspace model</span>
-          <strong>Discover → Library → Synthesis</strong>
-          <p>
-            Profile is neutral in guest mode. When a user identity is available, this surface becomes the
-            research-context record Research Drive can operate from.
-          </p>
-        </aside>
-      </section>
-
-      <section className="rd-v2-profile-project-section" aria-labelledby="profile-project-surfaces-title">
-        <header className="rd-v2-profile-section-head">
-          <div>
-            <h2 id="profile-project-surfaces-title">What this workspace does</h2>
-            <p>Three working surfaces, one durable evidence trail.</p>
-          </div>
-          <span>Platform map</span>
-        </header>
-        <div className="rd-v2-profile-project-surfaces">
-          {PROJECT_SURFACES.map((surface) => (
-            <article key={surface.id}>
-              <span>{surface.step}</span>
-              <strong>{surface.title}</strong>
-              <p>{surface.copy}</p>
-              <button type="button" onClick={() => onGoTab?.(surface.id)}>
-                Open {surface.title} →
-              </button>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="rd-v2-profile-project-section" aria-labelledby="profile-project-principles-title">
-        <header className="rd-v2-profile-section-head">
-          <div>
-            <h2 id="profile-project-principles-title">How Research Drive treats research context</h2>
-            <p>The project is designed around evidence boundaries rather than an opaque recommendation profile.</p>
-          </div>
-          <span>Operating principles</span>
-        </header>
-        <div className="rd-v2-profile-project-principles">
-          {PROJECT_PRINCIPLES.map(([title, copy], index) => (
-            <article key={title}>
-              <span>{String(index + 1).padStart(2, "0")}</span>
-              <strong>{title}</strong>
-              <p>{copy}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="rd-v2-profile-project-transition" aria-label="Signed-in profile behavior">
-        <div>
-          <span>When you sign in</span>
-          <strong>This page becomes about you, not about the project.</strong>
-        </div>
-        <p>
-          Research Drive shows the identity, research context, works, and evidence relationships it has on record,
-          including what is known, what is missing, and what the Library can actually confirm.
-        </p>
-      </section>
-    </>
+    <div className="rd-v2-profile-simple-row">
+      <div>
+        <strong>{label}</strong>
+        {copy ? <p>{copy}</p> : null}
+      </div>
+      {action || null}
+    </div>
   );
 }
 
-function UserContextProfile({ profile, libraryHoldings = [] }) {
+function GuestProjectProfile({ onGoTab }) {
+  return (
+    <div className="rd-v2-profile-personalization rd-v2-profile-about-project">
+      <section className="rd-v2-profile-about-header" aria-label="About Research Drive">
+        <div className="rd-v2-profile-avatar is-product">RD</div>
+        <div className="rd-v2-profile-about-copy">
+          <span>About</span>
+          <h2>Research Drive</h2>
+          <p>Research evidence workspace</p>
+        </div>
+      </section>
+
+      <section className="rd-v2-profile-simple-section" aria-labelledby="profile-about-title">
+        <header>
+          <h3 id="profile-about-title">About Research Drive</h3>
+        </header>
+        <p className="rd-v2-profile-section-copy">
+          Research Drive helps you discover, organize, inspect, and work from scholarly material without losing the evidence trail behind the work.
+        </p>
+      </section>
+
+      <section className="rd-v2-profile-simple-section" aria-labelledby="profile-capabilities-title">
+        <header>
+          <h3 id="profile-capabilities-title">What it does</h3>
+        </header>
+        <div className="rd-v2-profile-simple-list">
+          {PROJECT_SURFACES.map((surface) => (
+            <SettingLikeRow
+              key={surface.id}
+              label={surface.title}
+              copy={surface.copy}
+              action={(
+                <button type="button" className="rd-v2-profile-row-action" onClick={() => onGoTab?.(surface.id)}>
+                  Open
+                </button>
+              )}
+            />
+          ))}
+        </div>
+      </section>
+
+      <section className="rd-v2-profile-simple-section" aria-labelledby="profile-principles-title">
+        <header>
+          <h3 id="profile-principles-title">How it handles research</h3>
+        </header>
+        <div className="rd-v2-profile-simple-list">
+          {PROJECT_PRINCIPLES.map(([label, copy]) => (
+            <SettingLikeRow key={label} label={label} copy={copy} />
+          ))}
+        </div>
+      </section>
+
+      <section className="rd-v2-profile-simple-section rd-v2-profile-signin-note" aria-labelledby="profile-signin-title">
+        <header>
+          <h3 id="profile-signin-title">When you sign in</h3>
+        </header>
+        <p className="rd-v2-profile-section-copy">
+          Profile becomes personal: it shows the identity and research context Research Drive has on record for you, plus the boundaries around what the workspace can use when organizing and recommending research.
+        </p>
+      </section>
+    </div>
+  );
+}
+
+function UserContextProfile({ profile, libraryHoldings = [], onGoTab }) {
   const name = profile?.name_en || profile?.name || "Researcher";
-  const paperCount = profile?.paper_count_parsed || profile?.paper_count || null;
   const orgLine = [profile?.title, profile?.discipline].filter(Boolean).join(" · ");
   const email = profile?.email || "";
   const memory = buildMemoryCards(profile);
   const works = buildWorks(profile);
   const lab = buildLab(profile);
-  const currentMemory = memory.find((card) => card.id === "current") || null;
-  const savedMemory = memory.filter((card) => card.id !== "current");
   const heldIds = useMemo(() => holdingIds(libraryHoldings), [libraryHoldings]);
   const relationships = useMemo(
     () => (lab.linked || []).map((row) => evidenceRelationship(row, heldIds)),
     [lab.linked, heldIds],
   );
   const heldRelationships = relationships.filter((row) => row.held).length;
+  const paperCount = works.paperCount || works.items.length || profile?.paper_count_parsed || profile?.paper_count || 0;
 
   return (
-    <>
-      <section className="rd-v2-profile-identity rd-v2-profile-user-identity" aria-label="User research identity">
-        <div className="rd-v2-profile-ident">
-          <span className="rd-v2-profile-kicker">Your research profile</span>
-          <span className="rd-v2-profile-badge">Context on record</span>
-          <h2 className="rd-v2-profile-name">{name}</h2>
-          {orgLine ? <p className="rd-v2-profile-org">{orgLine}</p> : null}
-          <p className="rd-v2-profile-hint">
-            {email || "No faculty email on record"}
-            {" · Source · faculty registry"}
-          </p>
+    <div className="rd-v2-profile-personalization rd-v2-profile-about-user">
+      <section className="rd-v2-profile-about-header" aria-label="About you">
+        <div className="rd-v2-profile-avatar">{initials(name)}</div>
+        <div className="rd-v2-profile-about-copy">
+          <span>About you</span>
+          <h2>{name}</h2>
+          <p>{orgLine || "Researcher"}</p>
+          {email ? <small>{email}</small> : null}
         </div>
-        <div className="rd-v2-profile-identity-side">
-          <div className="rd-v2-profile-identity-metrics" aria-label="Research context summary">
-            <span>
-              <strong>{memory.length}</strong>
-              <em>context fields</em>
-            </span>
-            <span>
-              <strong>{works.paperCount || works.items.length || paperCount || 0}</strong>
-              <em>indexed works</em>
-            </span>
-            <span>
-              <strong>{heldRelationships}/{relationships.length}</strong>
-              <em>evidence links held</em>
-            </span>
-          </div>
-        </div>
+        <button type="button" className="rd-v2-btn sm ghost rd-v2-profile-manage" onClick={() => onGoTab?.("settings")}>
+          Manage
+        </button>
       </section>
 
-      <section className="rd-v2-profile-context-contract" aria-labelledby="profile-context-contract-title">
-        <div>
-          <span>Context available to the desk</span>
-          <h2 id="profile-context-contract-title">What Research Drive can operate from</h2>
-        </div>
-        <div className="rd-v2-profile-context-contract-grid">
-          <article>
-            <span>Identity</span>
-            <strong>{email ? "Bound researcher record" : "Partial researcher record"}</strong>
-            <p>Explicit identity and academic context from the profile source.</p>
-          </article>
-          <article>
-            <span>Evidence</span>
-            <strong>{libraryHoldings.length ? `${libraryHoldings.length} Library holding${libraryHoldings.length === 1 ? "" : "s"}` : "No held evidence reported"}</strong>
-            <p>Library remains the authority for what evidence this workspace actually possesses.</p>
-          </article>
-          <article>
-            <span>Boundary</span>
-            <strong>Suggestions are not profile facts</strong>
-            <p>Recommendations and task state remain attached to the workflow that produced them.</p>
-          </article>
-        </div>
-      </section>
-
-      <section
-        className="rd-v2-profile-section rd-v2-profile-memory-section"
-        data-testid="profile-memory"
-        aria-labelledby="profile-memory-title"
-      >
-        <header className="rd-v2-profile-section-head">
-          <div>
-            <h2 id="profile-memory-title">Context Research Drive has on record</h2>
-            <p>
-              Explicit specialties, methods, and research direction available from the bound profile.
-              Missing fields stay missing rather than being invented.
-            </p>
-          </div>
-          <span>Profile-backed</span>
+      <section className="rd-v2-profile-simple-section" data-testid="profile-memory" aria-labelledby="profile-context-title">
+        <header>
+          <h3 id="profile-context-title">Research context</h3>
+          <p>Context Research Drive can use across the workspace.</p>
         </header>
-        {memory.length ? (
-          <div className="rd-v2-profile-memory-layout">
-            <ul className="rd-v2-profile-memory">
-              {savedMemory.map((card) => (
-                <li key={card.id} className="rd-v2-profile-memory-card" data-memory={card.id}>
-                  <span>{memoryLabel(card)}</span>
-                  <strong>
-                    {memoryText(
-                      card,
-                      card.id === "also" ? "Also" : card.id === "methods" ? "Methods" : "Focus",
-                    )}
-                  </strong>
-                </li>
-              ))}
-            </ul>
-            {currentMemory ? (
-              <article className="rd-v2-profile-memory-anchor" data-memory="current">
-                <span>Current research direction</span>
-                <strong>{memoryText(currentMemory, "Current")}</strong>
-                <p>Recorded in the bound profile.</p>
-              </article>
-            ) : null}
-          </div>
-        ) : (
-          <div className="rd-v2-profile-record-empty">
-            <span>Nothing inferred</span>
-            <strong>No research focus, methods, or current direction are recorded yet.</strong>
-            <p>The rest of the Profile remains available so sparse records do not become a different page type.</p>
-          </div>
-        )}
+        <div className="rd-v2-profile-simple-list">
+          {memory.length ? memory.map((card) => {
+            const prefix = card.id === "current" ? "Current" : card.id === "methods" ? "Methods" : card.id === "also" ? "Also" : "Focus";
+            return (
+              <SettingLikeRow
+                key={card.id}
+                label={memoryLabel(card)}
+                copy={memoryText(card, prefix)}
+              />
+            );
+          }) : (
+            <SettingLikeRow
+              label="Research context"
+              copy="No research focus, methods, or current direction are recorded yet."
+            />
+          )}
+        </div>
       </section>
 
-      <section
-        className="rd-v2-profile-section rd-v2-profile-works-section"
-        data-testid="profile-works"
-        aria-labelledby="profile-works-title"
-      >
-        <header className="rd-v2-profile-section-head">
-          <div>
-            <h2 id="profile-works-title">Works on record</h2>
-            <p>Publication information associated with the bound researcher profile.</p>
-          </div>
-          <span>{works.paperCount || works.items.length || paperCount || 0} indexed</span>
+      <section className="rd-v2-profile-simple-section" aria-labelledby="profile-context-use-title">
+        <header>
+          <h3 id="profile-context-use-title">What Research Drive uses</h3>
+          <p>The visible context boundary behind organization and recommendations.</p>
+        </header>
+        <div className="rd-v2-profile-simple-list">
+          <SettingLikeRow
+            label="Research profile"
+            copy={email ? "Identity and academic context are loaded from the bound research profile." : "Only the identity fields currently on record are available."}
+            action={<span className="rd-v2-profile-row-value">{email ? "Connected" : "Partial"}</span>}
+          />
+          <SettingLikeRow
+            label="Library context"
+            copy="Library determines which evidence this workspace actually holds."
+            action={<span className="rd-v2-profile-row-value">{libraryHoldings.length} held</span>}
+          />
+          <SettingLikeRow
+            label="Evidence relationships"
+            copy="Recorded profile links are checked against current Library holdings."
+            action={<span className="rd-v2-profile-row-value">{heldRelationships}/{relationships.length} held</span>}
+          />
+          <SettingLikeRow
+            label="Recommendations"
+            copy="Suggestions stay attached to the workflow that produced them instead of becoming profile facts."
+            action={<span className="rd-v2-profile-row-value">Workflow-specific</span>}
+          />
+        </div>
+      </section>
+
+      <section className="rd-v2-profile-simple-section" data-testid="profile-works" aria-labelledby="profile-works-title">
+        <header>
+          <h3 id="profile-works-title">Works on record</h3>
+          <p>{paperCount ? `${paperCount} indexed work${paperCount === 1 ? "" : "s"}` : "No works are recorded yet."}</p>
         </header>
         {works.items.length ? (
-          <ol className="rd-v2-profile-works">
-            {works.items.map((work, index) => (
-              <li key={work.raw}>
-                <span>{String(index + 1).padStart(2, "0")}</span>
+          <div className="rd-v2-profile-works-clean">
+            {works.items.map((work) => (
+              <div key={work.raw} className="rd-v2-profile-work-row">
                 <strong>{work.title}</strong>
-              </li>
+              </div>
             ))}
-          </ol>
-        ) : (
-          <div className="rd-v2-profile-record-empty compact">
-            <span>Works</span>
-            <strong>{works.paperCount || paperCount ? "An indexed count exists, but publication highlights are not listed." : "No works are recorded for this profile yet."}</strong>
           </div>
+        ) : (
+          <SettingLikeRow
+            label="Publications"
+            copy={paperCount ? "An indexed count exists, but publication highlights are not listed in this profile." : "Nothing has been added to this profile yet."}
+          />
         )}
       </section>
 
-      <section
-        className="rd-v2-profile-section rd-v2-profile-lab-section"
-        data-testid="profile-lab"
-        aria-labelledby="profile-lab-title"
-      >
-        <header className="rd-v2-profile-section-head">
-          <div>
-            <h2 id="profile-lab-title">Evidence relationships</h2>
-            <p>
-              Recorded relationships are reconciled against the current Library. Profile can describe a link;
-              Library determines whether the evidence is actually held.
-            </p>
-          </div>
-          <span>{heldRelationships} held · {relationships.length} recorded</span>
+      <section className="rd-v2-profile-simple-section" data-testid="profile-lab" aria-labelledby="profile-evidence-title">
+        <header>
+          <h3 id="profile-evidence-title">Evidence relationships</h3>
+          <p>Profile can describe a relationship; Library decides whether the evidence is actually held.</p>
         </header>
-
         {relationships.length ? (
-          <ul className="rd-v2-profile-lab-rows">
+          <div className="rd-v2-profile-simple-list">
             {relationships.map((row) => (
-              <li key={row.id}>
-                <span className="rd-v2-profile-lab-title" title={row.label}>
-                  {row.label}
-                  <em> — {row.routeLabel}</em>
-                </span>
-                <span className="rd-v2-profile-lab-action" data-held={row.held ? "true" : "false"}>
-                  {row.status}
-                </span>
-              </li>
+              <SettingLikeRow
+                key={row.id}
+                label={row.label}
+                copy={row.routeLabel}
+                action={<span className="rd-v2-profile-row-value" data-held={row.held ? "true" : "false"}>{row.status}</span>}
+              />
             ))}
-          </ul>
-        ) : (
-          <div className="rd-v2-profile-record-empty compact">
-            <span>Evidence</span>
-            <strong>No evidence relationships are recorded for this profile yet.</strong>
           </div>
+        ) : (
+          <SettingLikeRow label="Evidence" copy="No evidence relationships are recorded for this profile yet." />
         )}
-
-        <p className="rd-v2-profile-memory-effect" data-testid="profile-suggestion-boundary">
-          Suggestions belong to the workflow that produced them. They are not promoted into your Profile as researcher facts.
+        <p className="rd-v2-profile-context-note" data-testid="profile-suggestion-boundary">
+          Profile shows context Research Drive may use; it does not silently turn suggestions into facts about you.
         </p>
       </section>
-    </>
+    </div>
   );
 }
 
@@ -352,12 +286,12 @@ export function ProfilePage({ profile, libraryHoldings = [], onGoTab }) {
       className={`rd-v2-profile-page rd-v2-profile-grounded ${signedIn ? "is-user-profile" : "is-project-profile"}`}
       title="Profile"
       lead={signedIn
-        ? "What Research Drive knows about you, and the context available when it organizes and recommends research."
-        : "About Research Drive, its evidence model, and how this workspace is designed to operate."}
+        ? "Personal details and research context Research Drive can use across your workspace."
+        : "About Research Drive and the evidence principles behind the workspace."}
       surfaceState="ready"
     >
       {signedIn ? (
-        <UserContextProfile profile={profile} libraryHoldings={libraryHoldings} />
+        <UserContextProfile profile={profile} libraryHoldings={libraryHoldings} onGoTab={onGoTab} />
       ) : (
         <GuestProjectProfile onGoTab={onGoTab} />
       )}
@@ -372,16 +306,12 @@ export function ProfileDetailPanel({ profile }) {
     return (
       <div className="rd-v2-profile-rail rd-v2-profile-rail-project" data-testid="profile-detail-rail">
         <section className="rd-v2-profile-rail-block">
-          <h3>Research Drive</h3>
-          <p>A research evidence workspace built around inspectable sources, durable holdings, and explicit context.</p>
+          <h3>About this profile</h3>
+          <p>Guest mode describes Research Drive itself. No personal research context is assumed.</p>
         </section>
         <section className="rd-v2-profile-rail-block">
-          <h3>Guest profile</h3>
-          <p>No user context is assumed here. This surface describes the project until a researcher profile is available.</p>
-        </section>
-        <section className="rd-v2-profile-rail-block">
-          <h3>Evidence first</h3>
-          <p>Library holdings remain authoritative; recommendations and recorded links stay distinguishable from possessed evidence.</p>
+          <h3>Evidence model</h3>
+          <p>Sources stay inspectable, context stays explicit, and Library remains authoritative for held evidence.</p>
         </section>
       </div>
     );
@@ -392,30 +322,21 @@ export function ProfileDetailPanel({ profile }) {
   return (
     <div className="rd-v2-profile-rail" data-testid="profile-detail-rail">
       <section className="rd-v2-profile-rail-block">
-        <h3>Researcher</h3>
+        <h3>Profile context</h3>
         <p>{read.scholar}</p>
+      </section>
+      <section className="rd-v2-profile-rail-block">
+        <h3>Used across Research Drive</h3>
+        <p>Visible profile context may shape organization and recommendations. Workflow suggestions remain separate.</p>
       </section>
       {read.strengths.length ? (
         <section className="rd-v2-profile-rail-block">
-          <h3>Context on record</h3>
+          <h3>On record</h3>
           <ul>
-            {read.strengths.map((strength) => (
-              <li key={strength}>{strength}</li>
-            ))}
+            {read.strengths.slice(0, 4).map((strength) => <li key={strength}>{strength}</li>)}
           </ul>
         </section>
-      ) : (
-        <section className="rd-v2-profile-rail-block">
-          <h3>Context on record</h3>
-          <p>No additional research strengths or specialties are recorded yet.</p>
-        </section>
-      )}
-      <section className="rd-v2-profile-rail-block">
-        <h3>Context boundary</h3>
-        <p>
-          Profile describes researcher context. Library separately confirms evidence possession, and workflow recommendations remain separate.
-        </p>
-      </section>
+      ) : null}
     </div>
   );
 }
