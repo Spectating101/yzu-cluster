@@ -71,6 +71,9 @@ import "./settings-density-rail-polish.css";
 // Profile's rail is a live context/authority surface, with wide-screen-only
 // enrichment where the 1920 viewport can genuinely use the additional room.
 import "./profile-rail-operational.css";
+// PS owns its internal hierarchy now; remove the generic page inset and the
+// last duplicated section/rail gaps without shrinking type or control targets.
+import "./profile-settings-gap-tightening.css";
 import { V2App } from "./App";
 import { InteractionProvider } from "./InteractionGuidance";
 
