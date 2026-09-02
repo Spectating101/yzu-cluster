@@ -1,0 +1,157 @@
+/* 1920 Synthesis density authority.
+ * Use existing source-backed surfaces together instead of leaving useful
+ * diagnostics below the fold. No semantic state is invented here.
+ */
+
+@media (min-width: 1680px) and (min-height: 900px) {
+  /* MAPPED EVIDENCE: topology is the primary visual; deterministic measurement
+     and the next action share the right lane. Pull the measured-column surface
+     directly underneath so the viewport contains both topology and field truth. */
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):has(> [data-testid="synthesis-method-surface"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > [data-testid="synthesis-evidence-state"] {
+    grid-column: 1 / 8 !important;
+    grid-row: 4 / span 2 !important;
+    min-height: 404px !important;
+    height: auto !important;
+    align-self: stretch !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):has(> [data-testid="synthesis-method-surface"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > .s04-measurement-status {
+    grid-column: 8 / 13 !important;
+    grid-row: 4 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    align-self: start !important;
+    padding: 15px 17px !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):has(> [data-testid="synthesis-method-surface"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > .s04-opening-next {
+    grid-column: 8 / 13 !important;
+    grid-row: 5 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    align-self: start !important;
+    padding: 16px 18px !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):has(> [data-testid="synthesis-method-surface"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > [data-testid="synthesis-method-surface"] {
+    grid-column: 1 / 13 !important;
+    grid-row: 6 !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 13px 15px !important;
+  }
+
+  /* Measured datasets are a comparison surface at workstation width. */
+  #root .rd-v2-synthesis-page [data-testid="synthesis-method-surface"] .s04-measured-datasets {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)) !important;
+    gap: 10px !important;
+    margin-top: 9px !important;
+  }
+
+  #root .rd-v2-synthesis-page [data-testid="synthesis-method-surface"] .s04-measured-dataset {
+    min-width: 0 !important;
+    padding: 10px 11px !important;
+  }
+
+  /* BLOCKING DECISIONS: top tier is the actual methodological decision. The
+     lower tier is a split evidence/field-diagnostics bench, not another full
+     width card stack. */
+  #root .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  )):has(> [data-testid="synthesis-method-surface"]) > .s04-measurement-status {
+    grid-column: 1 / 13 !important;
+    grid-row: 4 !important;
+    min-height: 0 !important;
+    padding: 8px 12px !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  )):has(> [data-testid="synthesis-method-surface"]) > [data-testid="synthesis-evidence-state"] {
+    grid-column: 1 / 9 !important;
+    grid-row: 5 !important;
+    min-height: 286px !important;
+    height: 286px !important;
+    padding: 14px !important;
+    overflow: hidden !important;
+    align-self: stretch !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  )):has(> [data-testid="synthesis-method-surface"]) > [data-testid="synthesis-evidence-state"] > .s04-map {
+    min-height: 190px !important;
+    height: 100% !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  )):has(> [data-testid="synthesis-method-surface"]) > [data-testid="synthesis-method-surface"] {
+    grid-column: 9 / 13 !important;
+    grid-row: 5 !important;
+    min-width: 0 !important;
+    height: 286px !important;
+    margin: 0 !important;
+    padding: 13px !important;
+    overflow: auto !important;
+    align-self: stretch !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  )):has(> [data-testid="synthesis-method-surface"])
+    > [data-testid="synthesis-method-surface"] .s04-measured-datasets {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* PROPOSAL: the proposal remains dominant, but measured field truth is too
+     relevant to leave below the first viewport. Keep evidence side-by-side and
+     put measured inputs in a compact comparison row directly underneath. */
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):has(> [data-testid="synthesis-method-surface"])
+    > [data-testid="synthesis-method-surface"] {
+    grid-column: 1 / 13 !important;
+    grid-row: 5 !important;
+    margin: 0 !important;
+    padding: 12px 14px !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):has(> [data-testid="synthesis-method-surface"])
+    > [data-testid="synthesis-method-surface"] .s04-title {
+    margin-bottom: 7px !important;
+  }
+
+  /* DEFINED / no evidence: use the height as an actual evidence review bay,
+     but keep the inner content anchored instead of inflating empty subcards. */
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-measurement-status)):not(:has(> [data-testid="synthesis-method-surface"])):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"]))
+    > [data-testid="synthesis-evidence-state"] {
+    min-height: 430px !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-measurement-status)):not(:has(> [data-testid="synthesis-method-surface"])):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"]))
+    > [data-testid="synthesis-evidence-state"] > .s04-actions {
+    margin-top: auto !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-measurement-status)):not(:has(> [data-testid="synthesis-method-surface"])):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"]))
+    > .s04-opening-next {
+    min-height: 430px !important;
+    padding: 20px !important;
+  }
+}
