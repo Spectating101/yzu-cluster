@@ -155,21 +155,22 @@
 
 /* The full preview is the selected asset's working view, not a tiny secondary
    popover. On wide desktop it should consume most of the centre plane while
-   leaving the persistent decision rail untouched. */
+   leaving the persistent decision rail untouched. !important is intentional:
+   PreviewModal imports its generic viewer CSS later in the bundle. */
 @media (min-width: 1680px) and (min-height: 850px) {
   .rd-preview-scrim {
-    grid-template-columns: minmax(24px, 1fr) minmax(0, 1080px) minmax(24px, 1fr);
-    gap: 10px;
-    padding: 18px;
+    grid-template-columns: minmax(24px, 1fr) minmax(0, 1080px) minmax(24px, 1fr) !important;
+    gap: 10px !important;
+    padding: 18px !important;
   }
 
   .rd-preview-shell {
-    max-height: min(88vh, calc(100% - 8px));
+    max-height: min(88vh, calc(100% - 8px)) !important;
   }
 
   .rd-preview-table th,
   .rd-preview-table td {
-    padding-inline: 14px;
+    padding-inline: 14px !important;
   }
 }
 
