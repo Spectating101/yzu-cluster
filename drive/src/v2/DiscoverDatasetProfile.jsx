@@ -1,4 +1,5 @@
 import "./discover-analytical-record.css";
+import "./discover-analytical-record-final.css";
 
 // Analytical result records deliberately expose only backend/inspection facts.
 function text(value) {
@@ -114,6 +115,9 @@ export function DiscoverDatasetProfile({ row, passport }) {
     license,
   ]).join(" · ");
   const unknowns = unique(passport.inspectNext || []).slice(0, 3);
+  const preview = row?.preview_supported === true || row?.sample_rows || row?.preview_rows
+    ? "Available"
+    : "";
 
   return (
     <span
@@ -140,10 +144,11 @@ export function DiscoverDatasetProfile({ row, passport }) {
           <Metric label="Geography" value={geography} />
           <Metric label={route ? "Output" : "Distribution"} value={distribution || format} />
           <Metric label="Updated" value={refresh} />
+          <Metric label="Preview" value={preview} />
         </span>
       </span>
 
-      {coverage && !fields.length ? (
+      {coverage ? (
         <span className="rd-v2-dataset-profile-coverage"><b>Coverage</b>{coverage}</span>
       ) : null}
 
