@@ -1,6 +1,7 @@
 import "./discover-analytical-record.css";
 import "./discover-analytical-record-final.css";
 import "./discover-three-zone.css";
+import "./discover-serp-row-v2.css";
 
 // Analytical result records deliberately expose only backend/inspection facts.
 function text(value) {
@@ -112,7 +113,7 @@ export function DiscoverDatasetProfile({ row, passport }) {
   const remainder = columns.length > fields.length ? columns.length - fields.length : 0;
   const distribution = unique([
     format,
-    version ? `Version ${version}` : "",
+    version ? `v${version}` : "",
     license,
   ]).join(" · ");
   const unknowns = unique(passport.inspectNext || []).slice(0, 3);
@@ -127,31 +128,31 @@ export function DiscoverDatasetProfile({ row, passport }) {
       aria-label={`${route ? "Source capability" : "Dataset analytical"} profile`}
     >
       <span className="rd-v2-dataset-profile-topline">
-        <b>{route ? "DATA SOURCE" : passport.kindLabel.toUpperCase()}</b>
+        <b>{route ? "SOURCE CAPABILITY" : passport.kindLabel.toUpperCase()}</b>
         <em>{passport.availability}</em>
       </span>
 
       <span className="rd-v2-dataset-profile-body">
         <span className="rd-v2-dataset-profile-contents">
-          <b>{route ? "WHAT IT CAN RETURN" : fields.length ? "KEY VARIABLES / CONTENTS" : "DATA CONTENT"}</b>
+          <b>{route ? "WHAT IT CAN RETURN" : fields.length ? "VARIABLES / CONTENTS" : "DATA CONTENT"}</b>
           <strong>{contents}{remainder ? ` + ${remainder} more` : ""}</strong>
-          {use ? <span><b>Research use</b>{use}</span> : null}
+          {use ? <span className="rd-v2-dataset-profile-use"><b>Research use</b><span>{use}</span></span> : null}
         </span>
 
+        {coverage ? (
+          <span className="rd-v2-dataset-profile-coverage"><b>Coverage</b><span>{coverage}</span></span>
+        ) : null}
+
         <span className="rd-v2-dataset-profile-facts" aria-label="Dataset facts">
-          <Metric label="Scale" value={scale} />
-          <Metric label="Unit" value={grain} />
+          <Metric label="Grain" value={grain} />
           <Metric label="Time" value={temporal} />
           <Metric label="Geography" value={geography} />
-          <Metric label={route ? "Output" : "Distribution"} value={distribution || format} />
-          <Metric label="Updated" value={refresh} />
+          <Metric label="Scale" value={scale} />
+          <Metric label={route ? "Output" : "Format / license"} value={distribution || format} />
+          <Metric label="Freshness" value={refresh} />
           <Metric label="Preview" value={preview} />
         </span>
       </span>
-
-      {coverage ? (
-        <span className="rd-v2-dataset-profile-coverage"><b>Coverage</b>{coverage}</span>
-      ) : null}
 
       {unknowns.length ? (
         <span className="rd-v2-dataset-profile-open">
