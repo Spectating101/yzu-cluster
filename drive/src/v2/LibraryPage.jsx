@@ -231,7 +231,7 @@ function LibraryHeadActions({
       {canIntake ? <LibraryNewMenu
         open={newMenuOpen}
         onToggle={onToggleNewMenu}
-        onClose={onCloseNewMenu}
+        onCloseNewMenu={onCloseNewMenu}
         onUploadFile={onOpenUpload}
         onAddUrl={onOpenUrlModal}
         onProcure={onProcureBranch}
@@ -407,7 +407,7 @@ export function LibraryPage({
     [catalogDatasets, loading, selectedId, selectionHoldings, selectionFallback],
   );
 
-  // Search narrows the evidence pane; it no longer rebuilds or removes the directory.
+  // Navigation is built from the registered catalog and stays stable while search changes.
   const tree = useMemo(
     () => buildProfessorVaultTree(catalogDatasets, partitions, shelves),
     [catalogDatasets, partitions, shelves],
@@ -453,21 +453,23 @@ export function LibraryPage({
   const scopeDatasetRows = useMemo(
     () =>
       isRoot
-        ? catalogDatasets
+        ? allHeldDatasets
         : collectDatasetDescendants(tree, folderId).map(itemDataset),
-    [catalogDatasets, folderId, isRoot, tree],
+    [allHeldDatasets, folderId, isRoot, tree],
   );
   const scopeDatasetIds = useMemo(
     () => new Set(scopeDatasetRows.map((row) => String(row?.dataset_id || row?.id || "")).filter(Boolean)),
     [scopeDatasetRows],
   );
-  const branchDatasetRows = useMemo(
-    () =>
-      searchActive
-        ? rankedSearchDatasets.filter((row) => scopeDatasetIds.has(String(row?.dataset_id || row?.id || "")))
-        : scopeDatasetRows,
-    [rankedSearchDatasets, scopeDatasetIds, scopeDatasetRows, searchActive],
-  );
+  const branchDatasetRows = useMemo(() => {
+    if (!searchActive) return scopeDatasetRows;
+    // Root retrieval spans every held asset. Folder retrieval is deliberately
+    // scoped by the directory's registered descendants.
+    if (isRoot) return rankedSearchDatasets;
+    return rankedSearchDatasets.filter((row) =>
+      scopeDatasetIds.has(String(row?.dataset_id || row?.id || "")),
+    );
+  }, [isRoot, rankedSearchDatasets, scopeDatasetIds, scopeDatasetRows, searchActive]);
 
   const estateRows = useMemo(
     () =>
@@ -486,9 +488,9 @@ export function LibraryPage({
   const nonReadyCount = Math.max(0, scopeDatasetRows.length - readyCount);
   const browseDatasetCount = scopeDatasetRows.length;
 
-  const totalReadyCount = readinessCount(catalogDatasets);
-  const totalReviewCount = verificationReviewCount(catalogDatasets);
-  const totalAttentionCount = catalogDatasets.filter((row) => itemNeedsAttention(datasetListItem(row))).length;
+  const totalReadyCount = readinessCount(allHeldDatasets);
+  const totalReviewCount = verificationReviewCount(allHeldDatasets);
+  const totalAttentionCount = allHeldDatasets.filter((row) => itemNeedsAttention(datasetListItem(row))).length;
 
   const currentFolderName = isRoot ? "Library" : trail[trail.length - 1]?.name || "Library";
   const scopeTitle = isRoot ? smartViewTitle(filterMode) : currentFolderName;
@@ -670,9 +672,9 @@ export function LibraryPage({
             </div>
             <span className="rd-v2-toolbar-spacer" />
             <span className="rd-v2-toolbar-count">
-              {navigationLoading && !catalogDatasets.length
+              {navigationLoading && !searchActive
                 ? "Organizing collections…"
-                : loading && !catalogDatasets.length
+                : loading && !allHeldDatasets.length
                   ? "Loading Library…"
                   : toolbarCountLabel({
                       searchActive,
@@ -688,7 +690,7 @@ export function LibraryPage({
         {loadError ? <DeskError raw={loadError} surface="your Library" /> : null}
         {navigationError ? <DeskError raw={navigationError} surface="Library collections" /> : null}
 
-        {loading && !catalogDatasets.length ? (
+        {loading && !allHeldDatasets.length ? (
           <div className="rd-v2-library-empty" role="status" aria-live="polite">
             <strong>Loading Library holdings…</strong>
             <p>Reading the registered evidence estate before showing its current assets.</p>
@@ -706,7 +708,7 @@ export function LibraryPage({
             scopeAssetCount={scopeDatasetRows.length}
             scopeReadyCount={readyCount}
             scopeReviewCount={reviewCount}
-            totalAssetCount={catalogDatasets.length}
+            totalAssetCount={allHeldDatasets.length}
             totalReadyCount={totalReadyCount}
             totalReviewCount={totalReviewCount}
             totalAttentionCount={totalAttentionCount}
