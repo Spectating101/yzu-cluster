@@ -1,0 +1,272 @@
+/* Wide-workstation comfort pass.
+   1920 should spend its extra space on legibility and decision value, not on
+   squeezing more internal metadata into the first scan. */
+
+@media (min-width: 1680px) and (min-height: 900px) {
+  .rd-v2-discover-field--utility > header {
+    min-height: 58px;
+    padding: 10px 2px 8px;
+  }
+
+  .rd-v2-discover-field--utility > header strong {
+    font-size: 15px;
+    line-height: 1.2;
+  }
+
+  .rd-v2-discover-field--utility > header p {
+    max-width: 72ch;
+    font-size: 10.5px;
+    line-height: 1.45;
+  }
+
+  .rd-v2-discover-view-switch button,
+  .rd-v2-discover-utility-actions > button {
+    min-height: 29px;
+    padding: 5px 11px;
+    font-size: 9px;
+  }
+
+  .rd-v2-discover-utility-summary {
+    min-height: 38px;
+  }
+
+  .rd-v2-discover-utility-summary > span {
+    gap: 6px;
+    padding: 7px 15px;
+  }
+
+  .rd-v2-discover-utility-summary b {
+    font-size: 11px;
+  }
+
+  .rd-v2-discover-utility-summary em {
+    font-size: 8.5px;
+    letter-spacing: .025em;
+  }
+
+  .rd-v2-discover-ranked-results-head {
+    min-height: 38px;
+  }
+
+  .rd-v2-discover-ranked-results-head::after {
+    content: "Source   ·   What it gives you   ·   How you can use it";
+    color: color-mix(in srgb, var(--rd-muted, #6e7685) 88%, transparent);
+    font: 700 8.5px/1.2 var(--rd-mono, ui-monospace, monospace);
+    letter-spacing: .035em;
+    text-transform: none;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-candidate {
+    grid-template-columns: 88px minmax(0, 1fr);
+    min-height: 94px;
+    padding: 13px 76px 13px 0;
+    column-gap: 14px;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-candidate-source {
+    width: 88px;
+    padding-top: 3px;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-source-ribbon {
+    max-width: 84px;
+    min-height: 20px;
+    padding-inline: 7px;
+    font-size: 8.5px;
+    line-height: 1.1;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-candidate-main {
+    display: grid;
+    grid-template-columns: minmax(245px, .88fr) minmax(0, 1.75fr);
+    grid-template-rows: auto auto;
+    column-gap: 24px;
+    row-gap: 9px;
+    align-items: start;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-candidate-heading {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    display: grid;
+    align-content: start;
+    gap: 6px;
+    padding-top: 1px;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-candidate-title {
+    font-size: 14px;
+    line-height: 1.28;
+    letter-spacing: -.012em;
+  }
+
+  /* Access state is already expressed more usefully in the route column and
+     selected inspector. Do not repeat an internal taxonomy sentence per row. */
+  .rd-v2-discover-ranked-results .rd-v2-discover-possession {
+    display: none;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-evidence {
+    grid-column: 2;
+    grid-row: 1;
+    display: -webkit-box;
+    overflow: hidden;
+    color: var(--rd-body, #3e4759);
+    font-size: 11.5px;
+    font-weight: 560;
+    line-height: 1.45;
+    white-space: normal;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-offering-facts {
+    grid-column: 2;
+    grid-row: 2;
+    display: grid;
+    grid-template-columns: minmax(220px, 1.45fr) minmax(180px, 1.1fr) minmax(105px, .62fr);
+    gap: 16px;
+    margin: 0;
+    opacity: 1;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-offering-facts > span {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  /* In the first scan, keep only the information that changes a sourcing
+     decision. Kind/files/probe detail remain available in the inspector. */
+  .rd-v2-discover-ranked-results .rd-v2-discover-offering-facts > span:nth-child(1) {
+    display: none;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-offering-facts > span:nth-child(2) {
+    order: 1;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-offering-facts > span:nth-child(4) {
+    order: 2;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-offering-facts > span:nth-child(3) {
+    order: 3;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-offering-facts > span:nth-child(n+5) {
+    display: none;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-offering-facts b {
+    color: var(--rd-muted, #6e7685);
+    font-size: 0;
+    font-weight: 750;
+    letter-spacing: .02em;
+    text-transform: none;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-offering-facts > span:nth-child(2) b::after {
+    content: "What it covers";
+    font-size: 8.5px;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-offering-facts > span:nth-child(4) b::after {
+    content: "How to get it";
+    font-size: 8.5px;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-offering-facts > span:nth-child(3) b::after {
+    content: "Updated";
+    font-size: 8.5px;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-offering-facts em {
+    overflow: hidden;
+    color: var(--rd-text, #182033);
+    font-size: 10.2px;
+    font-weight: 620;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-offering-facts > span:nth-child(2) em {
+    color: #314d43;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-offering-facts > span:nth-child(4) em {
+    color: #2f405b;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-row-add {
+    right: 4px;
+    width: 66px;
+    min-width: 66px;
+    min-height: 30px;
+    padding: 5px 8px;
+    font-size: 0;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-row-add::after {
+    content: "Review";
+    font-size: 9.5px;
+    font-weight: 700;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-candidates > li:hover,
+  .rd-v2-discover-ranked-results .rd-v2-discover-candidates > li.rd-v2-row-on {
+    background: rgba(255, 255, 255, .34);
+  }
+
+  /* Assembly is a decision cue, not a technical subsystem. Give its useful
+     sentence enough type size to read without making it a second dashboard. */
+  .rd-v2-discover-assembly--compact {
+    min-height: 58px;
+    padding: 10px 12px;
+    column-gap: 20px;
+  }
+
+  .rd-v2-discover-assembly--compact .rd-v2-discover-assembly-gap span,
+  .rd-v2-discover-assembly--compact .rd-v2-discover-assembly-state > span {
+    font-size: 8.5px;
+  }
+
+  .rd-v2-discover-assembly--compact .rd-v2-discover-assembly-gap strong {
+    font-size: 11.5px;
+    line-height: 1.35;
+  }
+
+  .rd-v2-discover-assembly--compact .rd-v2-discover-assembly-position b {
+    font-size: 10.5px;
+    line-height: 1.3;
+  }
+
+  .rd-v2-discover-assembly--compact .rd-v2-discover-assembly-position span {
+    font-size: 9px;
+    line-height: 1.35;
+  }
+
+  .rd-v2-discover-assembly--compact .rd-v2-discover-assembly-state button {
+    min-height: 29px;
+    padding: 5px 10px;
+    font-size: 9px;
+  }
+
+  .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-assessment-head h2 {
+    font-size: 13px;
+    line-height: 1.3;
+  }
+
+  .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-because {
+    font-size: 10.5px;
+    line-height: 1.45;
+  }
+
+  .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-detail-disclosure > summary {
+    min-height: 32px;
+    font-size: 9.5px;
+  }
+}
