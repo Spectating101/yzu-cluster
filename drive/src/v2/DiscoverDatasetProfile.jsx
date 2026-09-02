@@ -1,6 +1,3 @@
-import "./discover-analytical-record.css";
-import "./discover-analytical-record-final.css";
-import "./discover-three-zone.css";
 import "./discover-serp-row-v2.css";
 
 // Analytical result records deliberately expose only backend/inspection facts.
