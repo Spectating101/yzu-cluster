@@ -1,10 +1,37 @@
 /* Live Library scale layer: keep the existing root design, add only the mechanics
    needed for large estates and a clearer handoff into the folder directory. */
 
-/* The collection buttons already carry explicit "Open … directory" labels and
-   arrows. Keep the live two-column strip geometry pixel-identical. */
+/* Library is the evidence overview; Folders is the manual storage browser.
+   Keep both in the existing compact strip rather than introducing another panel. */
 .rd-v2-cap-collections-hint {
   display: none;
+}
+
+.rd-v2-cap-collections-heading {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.rd-v2-cap-folders-link {
+  flex: 0 0 auto;
+  padding: 2px 0;
+  border: 0;
+  color: var(--rd-link);
+  background: transparent;
+  cursor: pointer;
+  font-size: 9px;
+  font-weight: 720;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.rd-v2-cap-folders-link:hover,
+.rd-v2-cap-folders-link:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .rd-v2-library-pagination {
@@ -42,6 +69,10 @@
 }
 
 @media (max-width: 760px) {
+  .rd-v2-cap-collections-heading {
+    justify-content: flex-start;
+  }
+
   .rd-v2-library-pagination {
     align-items: flex-start;
   }
