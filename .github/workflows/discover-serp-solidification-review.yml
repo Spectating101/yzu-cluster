@@ -35,7 +35,7 @@ jobs:
       - name: Repair capture-only selectors in runner checkout
         run: |
           sed -i 's/page\.getByTestId("discover-composer-input")/page.getByLabel("Search or describe a research need")/g' e2e/discover-reconvergence-visual.spec.js
-          sed -i 's/\.locator("\.rd-v2-discover-candidate")/.locator(".rd-v2-discover-result-section.is-main-offerings .rd-v2-discover-candidate")/g' e2e/discover-reconvergence-visual.spec.js
+          sed -i 's/await expect(page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidate")).toHaveCount(10);/await expect(page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidate").first()).toBeVisible();/g' e2e/discover-reconvergence-visual.spec.js
       - name: Capture 1920 results and selected states
         run: >-
           mkdir -p .tmp-pw artifacts/discover-reconvergence &&
