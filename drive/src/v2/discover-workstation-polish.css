@@ -1,0 +1,116 @@
+/* Discover workstation polish — increase scan efficiency without reducing the
+   evidence-field model. This layer is presentation-only. */
+
+/* Empty/resting inspector is only a cue; return width to the discovery canvas. */
+@media (min-width: 1501px) {
+  body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-shell {
+    --rd-rail: 300px;
+  }
+}
+
+@media (min-width: 1100px) and (max-width: 1500px) {
+  body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-shell {
+    --rd-rail: 286px;
+  }
+}
+
+/* Large candidate fields need a stable provider gutter. Long provider labels
+   must never collide with the evidence identity. */
+.rd-v2-discover-ranked-results .rd-v2-discover-candidate {
+  grid-template-columns: 64px minmax(0, 1fr);
+  column-gap: 8px;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-candidate-source {
+  min-width: 0;
+  width: 64px;
+  overflow: hidden;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-source-ribbon {
+  display: block;
+  max-width: 58px;
+  overflow: hidden;
+  padding-inline: 5px;
+  font-size: 7px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-candidate-main,
+.rd-v2-discover-ranked-results .rd-v2-discover-candidate-heading {
+  min-width: 0;
+}
+
+/* Repeated lifecycle controls remain discoverable, but they stop competing
+   with title/coverage while scanning 10–50 candidates. */
+.rd-v2-discover-ranked-results .rd-v2-discover-candidate .rd-v2-pill {
+  opacity: .58;
+  padding: 2px 5px;
+  font-size: 7px;
+}
+
+.rd-v2-discover-ranked-results li:hover .rd-v2-discover-candidate .rd-v2-pill,
+.rd-v2-discover-ranked-results .rd-v2-row-on .rd-v2-discover-candidate .rd-v2-pill,
+.rd-v2-discover-ranked-results .rd-v2-discover-candidate:focus-visible .rd-v2-pill {
+  opacity: .9;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-row-add {
+  width: 48px;
+  min-width: 48px;
+  padding-inline: 5px;
+  overflow: hidden;
+  font-size: 0;
+  opacity: .46;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-row-add::after {
+  content: "Add";
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.rd-v2-discover-ranked-results li:hover .rd-v2-discover-row-add,
+.rd-v2-discover-ranked-results .rd-v2-row-on .rd-v2-discover-row-add,
+.rd-v2-discover-ranked-results .rd-v2-discover-row-add:focus-visible {
+  opacity: 1;
+}
+
+/* With the compact action, stop reserving a large invisible right gutter. */
+.rd-v2-discover-ranked-results .rd-v2-discover-candidate {
+  padding-right: 62px;
+}
+
+/* Result identity should dominate tertiary route metadata. */
+.rd-v2-discover-ranked-results .rd-v2-discover-candidate-title {
+  font-weight: 720;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-offering-facts,
+.rd-v2-discover-ranked-results .rd-v2-discover-possession {
+  opacity: .78;
+}
+
+@media (max-width: 1500px) {
+  .rd-v2-discover-ranked-results .rd-v2-discover-candidate {
+    grid-template-columns: 58px minmax(0, 1fr);
+    column-gap: 7px;
+    padding-right: 58px;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-candidate-source {
+    width: 58px;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-source-ribbon {
+    max-width: 52px;
+    padding-inline: 4px;
+    font-size: 6.8px;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-row-add {
+    width: 44px;
+    min-width: 44px;
+  }
+}
