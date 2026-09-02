@@ -82,13 +82,16 @@ async function openProductionLibrary(page, width, height) {
   await expect(page.getByTestId("library-folders-root")).toBeVisible();
   await expect(page.locator(".rd-v2-toolbar-count")).toContainText("129 assets");
   await expect(page.getByTestId("library-evidence-row")).toHaveCount(50);
-  await expect(page.getByLabel("Library evidence pagination")).toContainText("Showing 50 of 129");
+  await expect(page.getByLabel("Library evidence pagination")).toContainText("Showing 50 of 129 assets");
 }
 
 test("production-shape Library root at 1920", async ({ page }) => {
   await openProductionLibrary(page, 1920, 1080);
-  await expect(page.locator("aside.rd-v2-rail")).toContainText("129 assets");
-  await expect(page.locator("aside.rd-v2-rail")).toContainText("Rows in view");
+  const rail = page.locator("aside.rd-v2-rail");
+  await expect(rail).toContainText("Library overview");
+  await expect(rail).toContainText("129 assets");
+  await expect(rail).toContainText("Rows after filters");
+  await expect(page.getByRole("columnheader", { name: "Readiness" })).toBeVisible();
   await page.screenshot({ path: "artifacts/library-renders/23-production-root-1920.png", fullPage: true });
 
   await page.getByLabel("Library evidence pagination").getByRole("button", { name: /Load 50 more/ }).click();
@@ -97,6 +100,7 @@ test("production-shape Library root at 1920", async ({ page }) => {
 
 test("production-shape Library root at 1440", async ({ page }) => {
   await openProductionLibrary(page, 1440, 900);
+  await expect(page.getByRole("columnheader", { name: "Readiness" })).toBeVisible();
   await page.screenshot({ path: "artifacts/library-renders/24-production-root-1440.png", fullPage: true });
 });
 
@@ -108,6 +112,7 @@ test("production-shape Folders root and Acquired directory at 1920", async ({ pa
   await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toContainText("Folders");
   await expect(page.getByTestId("library-directory")).toContainText("Acquired");
   await expect(page.getByTestId("library-directory")).toContainText("Your project downloads");
+  await expect(page.locator("aside.rd-v2-rail")).toContainText("Folder storage");
   await page.screenshot({ path: "artifacts/library-renders/25-production-folders-1920.png", fullPage: true });
 
   await page.getByTestId("library-directory").getByText("Acquired", { exact: true }).click();
@@ -116,15 +121,17 @@ test("production-shape Folders root and Acquired directory at 1920", async ({ pa
   await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toContainText("Folders");
   await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toContainText("Acquired");
   await expect(page.getByTestId("library-directory")).toContainText("Procured one-offs");
-  await expect(page.locator("aside.rd-v2-rail")).toContainText("This is the folder directory");
+  const rail = page.locator("aside.rd-v2-rail");
+  await expect(rail).toContainText("Collection");
+  await expect(rail).toContainText("Scope & location");
   await page.screenshot({ path: "artifacts/library-renders/26-production-acquired-1920.png", fullPage: true });
 
   await page.getByTestId("library-directory").getByText("Procured one-offs", { exact: true }).click();
   await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toContainText("Folders");
-  await expect(page.getByLabel("Directory pagination")).toContainText("Showing 50 of 55");
+  await expect(page.getByLabel("Directory pagination")).toContainText("Showing 50 of 55 assets");
   await page.screenshot({ path: "artifacts/library-renders/27-production-procured-1920.png", fullPage: true });
   await page.getByLabel("Directory pagination").getByRole("button", { name: /Load 5 more/ }).click();
-  await expect(page.getByLabel("Directory pagination")).toContainText("Showing 55 of 55");
+  await expect(page.getByLabel("Directory pagination")).toContainText("Showing 55 of 55 assets");
 });
 
 test("overview collection shortcut keeps Folders in the hierarchy", async ({ page }) => {
