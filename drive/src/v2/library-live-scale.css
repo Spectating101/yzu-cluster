@@ -1,0 +1,57 @@
+/* Live Library scale layer: keep the existing root design, add only the mechanics
+   needed for large estates and a clearer handoff into the folder directory. */
+
+.rd-v2-cap-collections-hint {
+  align-self: center;
+  color: var(--rd-muted);
+  font-family: var(--rd-mono);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.rd-v2-library-pagination {
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border-top: 1px solid var(--rd-border);
+  background: rgba(250, 249, 244, 0.36);
+}
+
+.rd-v2-library-pagination.directory {
+  margin-top: 0;
+  border-top: 1px solid var(--rd-border);
+}
+
+.rd-v2-library-pagination > span {
+  color: var(--rd-muted);
+  font-family: var(--rd-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .035em;
+  text-transform: uppercase;
+}
+
+.rd-v2-library-folder-context {
+  padding-block: 2px 10px;
+  border-bottom: 1px solid var(--rd-border);
+}
+
+.rd-v2-library-folder-context .rd-v2-rail-note + .rd-v2-rail-note {
+  margin-top: 7px;
+}
+
+@media (max-width: 760px) {
+  .rd-v2-cap-collections-hint {
+    display: none;
+  }
+
+  .rd-v2-library-pagination {
+    align-items: flex-start;
+  }
+}
