@@ -11,14 +11,6 @@ import {
 import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
 import { PageShell } from "@/v2/ui";
 
-function isDemoMode() {
-  try {
-    return new URLSearchParams(window.location.search).get("demo") === "1";
-  } catch {
-    return false;
-  }
-}
-
 function memoryText(card, prefix) {
   return String(card?.text || "").replace(new RegExp(`^${prefix}:\\s*`, "i"), "");
 }
@@ -50,49 +42,73 @@ function evidenceRelationship(row, heldIds) {
   };
 }
 
-/**
- * Profile is an epistemic record, not a routing dashboard. It reports registry
- * facts and recorded research relationships, while Library remains possession
- * authority for whether evidence is actually held.
- */
 export function ProfilePage({ profile, libraryHoldings = [], onGoTab, onProfileRefresh }) {
   const bound = Boolean(profile && !profile.unknown);
-  const demoMode = isDemoMode();
-  const [pilot, setPilot] = useState(null);
-  const [pilotLoading, setPilotLoading] = useState(!bound && demoMode);
+  const [preview, setPreview] = useState(null);
+  const [previewLoading, setPreviewLoading] = useState(!bound);
+  const [lookupDraft, setLookupDraft] = useState(PILOT_PREVIEW_EMAIL);
+  const [lookupError, setLookupError] = useState("");
 
   useEffect(() => {
-    if (bound || !demoMode) {
-      setPilot(null);
-      setPilotLoading(false);
+    if (bound) {
+      setPreview(null);
+      setPreviewLoading(false);
+      setLookupError("");
       return undefined;
     }
+
     let cancelled = false;
-    setPilotLoading(true);
+    setPreviewLoading(true);
+    setLookupError("");
     facultyProfile(PILOT_PREVIEW_EMAIL)
       .then((data) => {
         if (cancelled) return;
-        if (data?.found && data.profile && !data.profile.unknown) setPilot(data.profile);
-        else setPilot(null);
+        if (data?.found && data.profile && !data.profile.unknown) {
+          setPreview(data.profile);
+          setLookupDraft(data.profile.email || PILOT_PREVIEW_EMAIL);
+        } else {
+          setPreview(null);
+        }
       })
       .catch(() => {
-        if (!cancelled) setPilot(null);
+        if (!cancelled) setPreview(null);
       })
       .finally(() => {
-        if (!cancelled) setPilotLoading(false);
+        if (!cancelled) setPreviewLoading(false);
       });
+
     return () => {
       cancelled = true;
     };
-  }, [bound, demoMode]);
+  }, [bound]);
 
-  const previewing = demoMode && !bound && Boolean(pilot);
-  const active = bound ? profile : previewing ? pilot : null;
+  const lookupFaculty = async (event) => {
+    event?.preventDefault?.();
+    const email = String(lookupDraft || "").trim();
+    if (!email) return;
+    setPreviewLoading(true);
+    setLookupError("");
+    try {
+      const data = await facultyProfile(email);
+      if (data?.found && data.profile && !data.profile.unknown) {
+        setPreview(data.profile);
+      } else {
+        setLookupError("No faculty registry record was returned for that email.");
+      }
+    } catch {
+      setLookupError("The faculty registry could not be reached for this lookup.");
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
+  const previewing = !bound && Boolean(preview);
+  const active = bound ? profile : preview;
   const surfaceState = resolveSurfaceLifecycle({
-    loading: !bound && demoMode && pilotLoading,
-    count: active ? 1 : 0,
+    loading: !bound && previewLoading && !active,
+    count: bound || !previewLoading ? 1 : 0,
   });
-  const name = active?.name_en || active?.name || "Research profile";
+  const name = active?.name_en || active?.name || "Faculty registry";
   const paperCount = active?.paper_count_parsed || active?.paper_count || null;
   const orgLine = [active?.title, active?.discipline].filter(Boolean).join(" · ");
   const email = active?.email || "";
@@ -110,70 +126,109 @@ export function ProfilePage({ profile, libraryHoldings = [], onGoTab, onProfileR
 
   return (
     <PageShell
-      className={`rd-v2-profile-page rd-v2-profile-grounded${previewing ? " is-preview" : ""}`}
+      className={`rd-v2-profile-page rd-v2-profile-grounded${previewing ? " is-preview is-registry-explorer" : ""}`}
       title="Profile"
-      lead="What Research Drive currently knows about this researcher"
+      lead={bound
+        ? "What Research Drive currently knows about this researcher"
+        : "Browse faculty records, then bind an identity only when you want this workspace personalized"}
       surfaceState={surfaceState}
     >
-      <section className="rd-v2-profile-identity" aria-label="Researcher identity">
-        <div className="rd-v2-profile-ident">
-          <span className="rd-v2-profile-kicker">Researcher record</span>
-          {previewing ? <span className="rd-v2-profile-badge">Example</span> : null}
-          <h2 className="rd-v2-profile-name">{name}</h2>
-          {orgLine ? <p className="rd-v2-profile-org">{orgLine}</p> : null}
-          <p className="rd-v2-profile-hint">
-            {email || "No faculty identity is bound to this desk yet."}
-            {previewing ? " · Example · pilot faculty" : ""}
-            {active ? " · Source · faculty registry" : ""}
-          </p>
-        </div>
-        <div className="rd-v2-profile-identity-side">
-          <div className="rd-v2-profile-identity-metrics" aria-label="Researcher record summary">
-            {paperCount ? (
-              <span>
-                <strong>{paperCount}</strong>
-                <em>indexed works</em>
-              </span>
-            ) : null}
-            {memory.length ? (
-              <span>
-                <strong>{memory.length}</strong>
-                <em>context fields</em>
-              </span>
-            ) : null}
-            {relationships.length ? (
-              <span>
-                <strong>{heldRelationships}/{relationships.length}</strong>
-                <em>links held</em>
-              </span>
-            ) : null}
+      {!bound ? (
+        <section
+          className="rd-v2-profile-explorer"
+          data-testid="profile-know-empty"
+          aria-labelledby="rd-profile-explorer-title"
+        >
+          <div className="rd-v2-profile-explorer-copy">
+            <span>Faculty registry explorer</span>
+            <h2 id="rd-profile-explorer-title">Find a researcher</h2>
+            <p>
+              Profile doubles as a read-only registry browser until you bind your own identity.
+              Looking up a faculty record does not personalize the desk.
+            </p>
           </div>
-          {previewing ? (
-            <button
-              type="button"
-              className="rd-v2-btn sm primary"
-              onClick={() => {
-                saveUserEmail(PILOT_PREVIEW_EMAIL);
-                onProfileRefresh?.();
-              }}
-            >
-              Bind example identity
-            </button>
-          ) : !bound ? (
-            <button type="button" className="rd-v2-btn sm primary" onClick={() => onGoTab?.("settings")}>
-              Use my email
-            </button>
-          ) : null}
-        </div>
-      </section>
-
-      {pilotLoading && !bound && demoMode ? (
-        <p className="rd-v2-profile-loading" data-testid="profile-know-empty">
-          Loading example profile…
-        </p>
+          <form className="rd-v2-profile-explorer-search" onSubmit={lookupFaculty}>
+            <label htmlFor="rd-profile-faculty-search">YZU faculty email</label>
+            <div>
+              <input
+                id="rd-profile-faculty-search"
+                type="email"
+                className="rd-v2-input"
+                value={lookupDraft}
+                placeholder="faculty@yzu.edu.tw"
+                onChange={(event) => setLookupDraft(event.target.value)}
+              />
+              <button type="submit" className="rd-v2-btn sm primary" disabled={previewLoading || !lookupDraft.trim()}>
+                {previewLoading ? "Looking up…" : "Find faculty"}
+              </button>
+            </div>
+            {lookupError ? <p className="rd-v2-profile-explorer-error" role="alert">{lookupError}</p> : null}
+          </form>
+          <div className="rd-v2-profile-explorer-meta">
+            <span>{previewing ? "Registry record preview" : "Registry lookup"}</span>
+            <button type="button" onClick={() => onGoTab?.("settings")}>Set my own identity →</button>
+          </div>
+        </section>
       ) : null}
 
-      {(bound || previewing) && memory.length ? (
+      {active ? (
+        <section className="rd-v2-profile-identity" aria-label="Researcher identity">
+          <div className="rd-v2-profile-ident">
+            <span className="rd-v2-profile-kicker">Researcher record</span>
+            {previewing ? <span className="rd-v2-profile-badge">Registry preview</span> : null}
+            <h2 className="rd-v2-profile-name">{name}</h2>
+            {orgLine ? <p className="rd-v2-profile-org">{orgLine}</p> : null}
+            <p className="rd-v2-profile-hint">
+              {email}
+              {previewing ? " · Preview only" : ""}
+              {active ? " · Source · faculty registry" : ""}
+            </p>
+          </div>
+          <div className="rd-v2-profile-identity-side">
+            <div className="rd-v2-profile-identity-metrics" aria-label="Researcher record summary">
+              {paperCount ? (
+                <span>
+                  <strong>{paperCount}</strong>
+                  <em>indexed works</em>
+                </span>
+              ) : null}
+              {memory.length ? (
+                <span>
+                  <strong>{memory.length}</strong>
+                  <em>context fields</em>
+                </span>
+              ) : null}
+              {relationships.length ? (
+                <span>
+                  <strong>{heldRelationships}/{relationships.length}</strong>
+                  <em>links held</em>
+                </span>
+              ) : null}
+            </div>
+            {previewing && email ? (
+              <button
+                type="button"
+                className="rd-v2-btn sm primary"
+                onClick={() => {
+                  saveUserEmail(email);
+                  onProfileRefresh?.();
+                }}
+              >
+                Use as my profile
+              </button>
+            ) : null}
+          </div>
+        </section>
+      ) : previewLoading ? (
+        <p className="rd-v2-profile-loading">Loading faculty registry preview…</p>
+      ) : (
+        <section className="rd-v2-profile-explorer-empty">
+          <span>Registry ready</span>
+          <strong>Search a YZU faculty email above to inspect its recorded research context.</strong>
+        </section>
+      )}
+
+      {active && memory.length ? (
         <section
           className="rd-v2-profile-section rd-v2-profile-memory-section"
           data-testid="profile-memory"
@@ -211,7 +266,7 @@ export function ProfilePage({ profile, libraryHoldings = [], onGoTab, onProfileR
             ) : null}
           </div>
         </section>
-      ) : (bound || previewing) ? (
+      ) : active ? (
         <section className="rd-v2-profile-section" data-testid="profile-memory-thin" aria-label="Research context on record">
           <header className="rd-v2-profile-section-head">
             <div>
@@ -224,7 +279,7 @@ export function ProfilePage({ profile, libraryHoldings = [], onGoTab, onProfileR
         </section>
       ) : null}
 
-      {(bound || previewing) && (works.items.length || works.paperCount) ? (
+      {active && (works.items.length || works.paperCount) ? (
         <section
           className="rd-v2-profile-section rd-v2-profile-works-section"
           data-testid="profile-works"
@@ -252,7 +307,7 @@ export function ProfilePage({ profile, libraryHoldings = [], onGoTab, onProfileR
         </section>
       ) : null}
 
-      {bound || previewing ? (
+      {active ? (
         <section
           className="rd-v2-profile-section rd-v2-profile-lab-section"
           data-testid="profile-lab"
@@ -290,61 +345,34 @@ export function ProfilePage({ profile, libraryHoldings = [], onGoTab, onProfileR
             Suggested evidence belongs to Home and Discover. A recommendation is not a researcher fact and is not part of this profile.
           </p>
         </section>
-      ) : !pilotLoading ? (
-        <section className="rd-v2-profile-section rd-v2-profile-unbound" data-testid="profile-know-empty" aria-label="Research profile setup">
-          <header className="rd-v2-profile-section-head">
-            <div>
-              <h2>No faculty profile is bound yet</h2>
-              <p>Research Drive remains usable without a faculty record. Bind your email in Settings when you want profile-ranked context and evidence suggestions.</p>
-            </div>
-          </header>
-          <button type="button" className="rd-v2-btn sm primary" onClick={() => onGoTab?.("settings")}>
-            Open Settings
-          </button>
-        </section>
       ) : null}
     </PageShell>
   );
 }
 
-/** DETAIL rail for Profile: registry identity, curated strengths, and source boundary. */
 export function ProfileDetailPanel({ profile }) {
   const bound = Boolean(profile && !profile.unknown);
-  const demoMode = isDemoMode();
-  const [pilot, setPilot] = useState(null);
 
-  useEffect(() => {
-    if (bound || !demoMode) {
-      setPilot(null);
-      return undefined;
-    }
-    let cancelled = false;
-    facultyProfile(PILOT_PREVIEW_EMAIL)
-      .then((data) => {
-        if (!cancelled && data?.found && data.profile && !data.profile.unknown) setPilot(data.profile);
-      })
-      .catch(() => {
-        if (!cancelled) setPilot(null);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [bound, demoMode]);
-
-  const previewing = demoMode && !bound && Boolean(pilot);
-  const active = bound ? profile : previewing ? pilot : null;
-  const read = buildDeskRead(active, { previewing });
-
-  if (!active) {
+  if (!bound) {
     return (
-      <div className="rd-v2-profile-rail" data-testid="profile-detail-rail">
+      <div className="rd-v2-profile-rail rd-v2-profile-rail-unbound" data-testid="profile-detail-rail">
         <section className="rd-v2-profile-rail-block">
-          <h3>Research context</h3>
-          <p>No faculty record is bound. Library and Discover remain available without one.</p>
+          <h3>Faculty registry</h3>
+          <p>Profile is currently in browsing mode. Registry lookups are read-only and do not change workspace personalization.</p>
+        </section>
+        <section className="rd-v2-profile-rail-block">
+          <h3>What you can inspect</h3>
+          <p>Research context, indexed works, and recorded evidence relationships for a faculty email.</p>
+        </section>
+        <section className="rd-v2-profile-rail-block">
+          <h3>Binding is separate</h3>
+          <p>Use “Use as my profile” only when the previewed researcher should become this desk’s research identity.</p>
         </section>
       </div>
     );
   }
+
+  const read = buildDeskRead(profile, { previewing: false });
 
   return (
     <div className="rd-v2-profile-rail" data-testid="profile-detail-rail">
@@ -365,7 +393,7 @@ export function ProfileDetailPanel({ profile }) {
       <section className="rd-v2-profile-rail-block">
         <h3>Record source</h3>
         <p>
-          Faculty registry{active.email ? ` · ${active.email}` : ""}. Library separately confirms evidence possession.
+          Faculty registry{profile.email ? ` · ${profile.email}` : ""}. Library separately confirms evidence possession.
         </p>
       </section>
     </div>
