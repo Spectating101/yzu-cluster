@@ -1,22 +1,51 @@
 /* Discover workstation polish — increase scan efficiency without reducing the
    evidence-field model. This layer is presentation-only. */
 
-/* Empty/resting inspector is only a cue; return width to the discovery canvas. */
+/* The contextual rail earns width only when it has a selected evidence object.
+   Resting and unselected search states return the workstation to the evidence field. */
 @media (min-width: 1501px) {
   body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-shell {
-    --rd-rail: 300px;
+    --rd-rail: 236px;
+  }
+  body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(.rd-v2-discover-candidate.selected)) .rd-v2-shell {
+    --rd-rail: 292px;
+  }
+  body:has(.rd-v2-discover-page .rd-v2-discover-candidate.selected) .rd-v2-shell {
+    --rd-rail: 382px;
   }
 }
 
 @media (min-width: 1100px) and (max-width: 1500px) {
   body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-shell {
-    --rd-rail: 286px;
+    --rd-rail: 228px;
+  }
+  body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(.rd-v2-discover-candidate.selected)) .rd-v2-shell {
+    --rd-rail: 276px;
+  }
+  body:has(.rd-v2-discover-page .rd-v2-discover-candidate.selected) .rd-v2-shell {
+    --rd-rail: 344px;
   }
 }
 
-/* Research Radar should not restate query-readiness with a different scope than
-   the authoritative Library strip immediately below it. Keep only orthogonal
-   estate facts here. */
+/* Resting radar reports research state, not the same source identities rendered
+   by the curated inventory directly below it. Keep the estate summary, remove
+   the duplicated mini-catalogue, and make execution a single decision strip. */
+.rd-v2-discover-radar {
+  gap: 7px;
+  margin-top: 8px;
+  padding: 10px 12px 9px;
+}
+
+.rd-v2-discover-radar-head {
+  gap: 12px;
+  padding-bottom: 6px;
+}
+
+.rd-v2-discover-radar-head h2 {
+  margin-top: 2px;
+  font-size: 14px;
+}
+
 .rd-v2-discover-radar-metrics .rd-v2-cockpit-metric:nth-child(2) {
   display: none;
 }
@@ -25,10 +54,99 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.rd-v2-discover-radar-grid {
+  display: block;
+}
+
+.rd-v2-discover-radar-panel--routes,
+.rd-v2-discover-radar-grid > .rd-v2-cockpit-network {
+  display: none;
+}
+
+.rd-v2-discover-radar-panel--execution {
+  display: grid;
+  grid-template-columns: minmax(180px, .72fr) minmax(0, 1.25fr) minmax(104px, .45fr);
+  gap: 10px;
+  align-items: center;
+  padding: 7px 0 0;
+  border: 0;
+  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 54%, transparent);
+  border-radius: 0;
+  background: transparent;
+}
+
+.rd-v2-discover-radar-panel--execution > header {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+}
+
+.rd-v2-discover-radar-panel--execution > header strong {
+  text-align: left;
+}
+
+.rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow {
+  display: none;
+}
+
+.rd-v2-discover-radar-panel--execution .rd-v2-cockpit-execution-facts {
+  margin: 0;
+  border-block: 0;
+  border-left: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 54%, transparent);
+}
+
+.rd-v2-discover-radar-panel--execution .rd-v2-cockpit-execution-facts > div {
+  padding-block: 5px;
+}
+
+.rd-v2-discover-radar-panel--execution .rd-v2-cockpit-capacity {
+  grid-template-columns: repeat(auto-fit, minmax(64px, 1fr));
+  gap: 4px;
+  margin: 0;
+}
+
+.rd-v2-discover-radar-panel--execution .rd-v2-cockpit-capacity > div {
+  padding: 5px 6px;
+}
+
+/* The authoritative Library strip below Radar owns query-readiness. Avoid a
+   second counter whose scope can appear contradictory. */
+.rd-v2-discover-radar-metrics .rd-v2-cockpit-metric {
+  min-height: 34px;
+  padding: 5px 9px;
+}
+
+.rd-v2-discover-radar-metrics .rd-v2-cockpit-metric strong {
+  font-size: 14px;
+}
+
 /* The territory tabs already summarize ordinary search composition. Repeat the
    fine-grained field metrics only when an assembly decision makes them useful. */
 .rd-v2-discover-field:not(:has(.rd-v2-discover-assembly)) .rd-v2-discover-field-metrics {
   display: none;
+}
+
+/* Unselected search rail: three orthogonal counts are enough. Named-route
+   totals are already represented in the centre and the route prose below. */
+body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(.rd-v2-discover-candidate.selected))
+  .rd-v2-resting-rail .rd-v2-rail-fieldgrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(.rd-v2-discover-candidate.selected))
+  .rd-v2-resting-rail .rd-v2-rail-fieldgrid > :nth-child(4) {
+  display: none;
+}
+
+body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(.rd-v2-discover-candidate.selected))
+  .rd-v2-resting-rail {
+  padding-inline: 12px;
+}
+
+body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(.rd-v2-discover-candidate.selected))
+  .rd-v2-resting-rail .rd-v2-eval-prose {
+  font-size: 10.5px;
+  line-height: 1.38;
 }
 
 /* Large candidate fields need a stable provider gutter. Long provider labels
@@ -120,6 +238,11 @@
 }
 
 @media (max-width: 1500px) {
+  .rd-v2-discover-radar-panel--execution {
+    grid-template-columns: minmax(154px, .68fr) minmax(0, 1.3fr) minmax(88px, .42fr);
+    gap: 7px;
+  }
+
   .rd-v2-discover-ranked-results .rd-v2-discover-candidate {
     grid-template-columns: 58px minmax(0, 1fr);
     column-gap: 7px;
