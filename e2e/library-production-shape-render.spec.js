@@ -79,6 +79,7 @@ async function openProductionLibrary(page, width, height) {
   await waitForShell(page);
   await expect(page.getByTestId("library-evidence-row").first()).toBeVisible();
   await expect(page.getByTestId("library-collection-filter")).toHaveCount(9);
+  await expect(page.getByTestId("library-folders-root")).toBeVisible();
   await expect(page.locator(".rd-v2-toolbar-count")).toContainText("129 assets");
   await expect(page.getByTestId("library-evidence-row")).toHaveCount(50);
   await expect(page.getByLabel("Library evidence pagination")).toContainText("Showing 50 of 129");
@@ -99,17 +100,39 @@ test("production-shape Library root at 1440", async ({ page }) => {
   await page.screenshot({ path: "artifacts/library-renders/24-production-root-1440.png", fullPage: true });
 });
 
-test("production-shape Acquired directory at 1920", async ({ page }) => {
+test("production-shape Folders root and Acquired directory at 1920", async ({ page }) => {
+  await openProductionLibrary(page, 1920, 1080);
+  await page.getByTestId("library-folders-root").click();
+  await expect(page).toHaveURL(/folder=__folders__/);
+  await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toContainText("Library");
+  await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toContainText("Folders");
+  await expect(page.getByTestId("library-directory")).toContainText("Acquired");
+  await expect(page.getByTestId("library-directory")).toContainText("Your project downloads");
+  await page.screenshot({ path: "artifacts/library-renders/25-production-folders-1920.png", fullPage: true });
+
+  await page.getByTestId("library-directory").getByText("Acquired", { exact: true }).click();
+  await expect(page).toHaveURL(/folder=acquired/);
+  await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toContainText("Library");
+  await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toContainText("Folders");
+  await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toContainText("Acquired");
+  await expect(page.getByTestId("library-directory")).toContainText("Procured one-offs");
+  await expect(page.locator("aside.rd-v2-rail")).toContainText("This is the folder directory");
+  await page.screenshot({ path: "artifacts/library-renders/26-production-acquired-1920.png", fullPage: true });
+
+  await page.getByTestId("library-directory").getByText("Procured one-offs", { exact: true }).click();
+  await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toContainText("Folders");
+  await expect(page.getByLabel("Directory pagination")).toContainText("Showing 50 of 55");
+  await page.screenshot({ path: "artifacts/library-renders/27-production-procured-1920.png", fullPage: true });
+  await page.getByLabel("Directory pagination").getByRole("button", { name: /Load 5 more/ }).click();
+  await expect(page.getByLabel("Directory pagination")).toContainText("Showing 55 of 55");
+});
+
+test("overview collection shortcut keeps Folders in the hierarchy", async ({ page }) => {
   await openProductionLibrary(page, 1920, 1080);
   await page.getByTestId("library-collection-filter").filter({ hasText: "Acquired" }).click();
   await expect(page).toHaveURL(/folder=acquired/);
-  await expect(page.getByTestId("library-directory")).toContainText("Procured one-offs");
-  await expect(page.locator("aside.rd-v2-rail")).toContainText("This is the folder directory");
-  await page.screenshot({ path: "artifacts/library-renders/25-production-acquired-1920.png", fullPage: true });
-
-  await page.getByTestId("library-directory").getByText("Procured one-offs", { exact: true }).click();
-  await expect(page.getByLabel("Directory pagination")).toContainText("Showing 50 of 55");
-  await page.screenshot({ path: "artifacts/library-renders/26-production-procured-1920.png", fullPage: true });
-  await page.getByLabel("Directory pagination").getByRole("button", { name: /Load 5 more/ }).click();
-  await expect(page.getByLabel("Directory pagination")).toContainText("Showing 55 of 55");
+  const breadcrumb = page.getByRole("navigation", { name: "Breadcrumb" });
+  await expect(breadcrumb).toContainText("Library");
+  await expect(breadcrumb).toContainText("Folders");
+  await expect(breadcrumb).toContainText("Acquired");
 });
