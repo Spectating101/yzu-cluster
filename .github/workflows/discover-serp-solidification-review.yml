@@ -1,0 +1,53 @@
+name: Discover SERP solidification review
+
+on:
+  push:
+    branches:
+      - polish/discover-serp-solidification-20260902
+    paths:
+      - "drive/src/v2/main.jsx"
+      - "drive/src/v2/discover-three-zone.css"
+      - "drive/src/v2/discover-serp-solidification.css"
+      - ".github/workflows/discover-serp-solidification-review.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: discover-serp-solidification-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    name: Build and capture Discover solidification
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install chromium --with-deps
+      - run: npm run build
+      - name: Repair capture-only selectors in runner checkout
+        run: |
+          sed -i 's/page\.getByTestId("discover-composer-input")/page.getByLabel("Search or describe a research need")/g' e2e/discover-reconvergence-visual.spec.js
+          sed -i 's/\.locator("\.rd-v2-discover-candidate")/.locator(".rd-v2-discover-result-section.is-main-offerings .rd-v2-discover-candidate")/g' e2e/discover-reconvergence-visual.spec.js
+      - name: Capture 1920 results and selected states
+        run: >-
+          mkdir -p .tmp-pw artifacts/discover-reconvergence &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/discover-reconvergence-visual.spec.js --workers=1 --reporter=line
+          --grep "large active evidence field 1920x1080|selected evidence evaluation 1920x1080"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: discover-serp-solidification-pixels
+          path: |
+            artifacts/discover-reconvergence
+            test-results
+          if-no-files-found: warn
+          retention-days: 14
