@@ -1,0 +1,48 @@
+name: Discover SERP pixel capture
+
+on:
+  push:
+    branches:
+      - prototype/discover-serp-capture-20260902
+    paths:
+      - "e2e/discover-serp-capture.spec.js"
+      - ".github/workflows/discover-serp-capture.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: discover-serp-capture-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  capture:
+    name: Build and capture 1920 SERP
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install chromium --with-deps
+      - run: npm run build
+      - name: Capture current Discover SERP pixels
+        run: >-
+          mkdir -p .tmp-pw artifacts/discover-serp-capture &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/discover-serp-capture.spec.js --workers=1 --reporter=line
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: discover-serp-pixels
+          path: |
+            artifacts/discover-serp-capture
+            test-results
+          if-no-files-found: warn
+          retention-days: 14
+
+# Capture-only branch. No product source changes, merge, or deployment.
