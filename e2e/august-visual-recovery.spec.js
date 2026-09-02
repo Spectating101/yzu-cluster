@@ -200,7 +200,7 @@ test.describe("Home production interaction proof", () => {
     await openProductionHome(page);
     await page.locator(".rd-v2-home-authority-card.headroom").getByRole("button", { name: "Manage resources →", exact: true }).click();
     await expectTab(page, "resources");
-    await expect(page.locator(".rd-v2-resources-page")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Resources", exact: true })).toBeVisible();
 
     await openProductionHome(page);
     await page.getByRole("button", { name: "+ New research", exact: true }).click();
