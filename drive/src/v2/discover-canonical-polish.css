@@ -3,8 +3,8 @@
  * chrome and removing dashboard residue from the initial state.
  */
 @media (min-width: 1680px) and (min-height: 900px) {
-  /* Shared page chrome: the mode switch belongs to the far edge of the centre
-     workspace rather than floating between title and search. */
+  /* Shared page chrome: the mode switch belongs to the true right edge of the
+     centre workspace rather than floating between title and search. */
   .rd-v2-discover-page > .rd-v2-page-head {
     position: relative !important;
     padding-right: 152px !important;
@@ -13,7 +13,7 @@
   .rd-v2-discover-page > .rd-v2-page-head > .rd-v2-discover-modes {
     position: absolute !important;
     top: 50% !important;
-    right: 22px !important;
+    right: -132px !important;
     margin: 0 !important;
     transform: translateY(-50%) !important;
   }
@@ -26,6 +26,15 @@
 
   .rd-v2-discover-page .rd-v2-discover-result-actions > div:first-child {
     gap: 9px !important;
+  }
+
+  /* Once the SERP passport is reduced to research-significant facts, preserve
+     rhythm without retaining the old 118px factsheet floor. */
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results .rd-v2-discover-candidate {
+    min-height: 96px !important;
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
   }
 
   /* INITIAL EXPLORE — search remains dominant. The radar becomes a compact
