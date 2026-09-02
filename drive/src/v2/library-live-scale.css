@@ -2,36 +2,27 @@
    needed for large estates and a clearer handoff into the folder directory. */
 
 /* Library is the evidence overview; Folders is the manual storage browser.
-   Keep both in the existing compact strip rather than introducing another panel. */
-.rd-v2-cap-collections-hint {
+   Folders participates in the same horizontal strip so it cannot overlap the
+   collection list or expand the live root into another navigation panel. */
+.rd-v2-cap-collections-hint,
+.rd-v2-cap-collections-heading,
+.rd-v2-cap-folders-link {
   display: none;
 }
 
-.rd-v2-cap-collections-heading {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.rd-v2-cap-folders-link {
-  flex: 0 0 auto;
-  padding: 2px 0;
-  border: 0;
-  color: var(--rd-link);
-  background: transparent;
-  cursor: pointer;
-  font-size: 9px;
+.rd-v2-cap-folders-root {
+  border-color: var(--rd-active-border);
+  background: var(--rd-active-bg);
+  color: var(--rd-text);
   font-weight: 720;
-  line-height: 1.2;
-  white-space: nowrap;
 }
 
-.rd-v2-cap-folders-link:hover,
-.rd-v2-cap-folders-link:focus-visible {
-  text-decoration: underline;
-  text-underline-offset: 2px;
+.rd-v2-cap-folders-root::after {
+  content: "";
+  width: 1px;
+  height: 18px;
+  margin-left: 2px;
+  background: var(--rd-border2);
 }
 
 .rd-v2-library-pagination {
@@ -69,10 +60,6 @@
 }
 
 @media (max-width: 760px) {
-  .rd-v2-cap-collections-heading {
-    justify-content: flex-start;
-  }
-
   .rd-v2-library-pagination {
     align-items: flex-start;
   }
