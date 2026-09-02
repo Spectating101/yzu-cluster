@@ -53,11 +53,13 @@ export function LibraryFolderRailPanel({
           ? "Collection"
           : "Folder";
 
-  const legacySummaryLabel = root
-    ? "In this library"
-    : foldersRoot
-      ? "In folder storage"
-      : "In this collection";
+  const legacySummaryLabel = filteredRoot
+    ? "In this view"
+    : root
+      ? "In this library"
+      : foldersRoot
+        ? "In folder storage"
+        : "In this collection";
 
   const structureLabel = root
     ? "Collections"
