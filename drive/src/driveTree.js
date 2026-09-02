@@ -4,6 +4,7 @@ const GLOB_RE = /[*?{\[]/;
 
 export const DRIVE_MY = "my";
 export const DRIVE_LAB = "lab";
+export const LIBRARY_FOLDERS_ROOT = "__folders__";
 
 const DRIVE_ROOT_NAMES = {
   [DRIVE_MY]: "My Drive",
@@ -267,8 +268,13 @@ export function buildDriveTree(datasets, opts = {}) {
   return buildConsumerDriveTree(datasets, { ...opts, scope: DRIVE_LAB });
 }
 
+function isLibraryRoot(root) {
+  return String(root?.name || "").trim().toLowerCase() === "library";
+}
+
 export function findFolder(root, folderId) {
   if (!folderId || folderId === root.id) return root;
+  if (folderId === LIBRARY_FOLDERS_ROOT && isLibraryRoot(root)) return root;
   let node = root;
   const acc = [];
   for (const part of folderId.split("/")) {
@@ -319,9 +325,16 @@ export function collectDatasetDescendants(tree, folderId = "") {
 export function breadcrumbTrail(tree, folderId = "") {
   const root = tree?.root || tree;
   const rootLabel = root.name || driveRootName(tree.scope) || "Drive";
-  if (!folderId) return [{ id: "", name: rootLabel }];
-  const parts = folderId.split("/").filter(Boolean);
   const trail = [{ id: "", name: rootLabel }];
+  if (!folderId) return trail;
+
+  const libraryTree = isLibraryRoot(root);
+  if (libraryTree) {
+    trail.push({ id: LIBRARY_FOLDERS_ROOT, name: "Folders" });
+    if (folderId === LIBRARY_FOLDERS_ROOT) return trail;
+  }
+
+  const parts = folderId.split("/").filter(Boolean);
   let acc = [];
   for (const part of parts) {
     acc.push(part);
