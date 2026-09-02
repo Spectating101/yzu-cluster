@@ -38,6 +38,7 @@ import "./synthesis-zero-instruction-contract.css";
 import "./synthesis-zero-instruction-visual-closure.css";
 import "./synthesis-zero-instruction-visual-final.css";
 import "./synthesis-horizontal-workbench.css";
+import "./synthesis-horizontal-workbench-closure.css";
 import "./discover-frozen-closure.css";
 import "./connected-accounts.css";
 import { V2App } from "./App";
