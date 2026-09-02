@@ -55,6 +55,7 @@ import "./profile-settings-workstation.css";
 // Final PS authority: Profile and Settings use the quiet personalization /
 // category-row grammar of modern assistant account surfaces, not dashboards.
 import "./profile-settings-personalization.css";
+import "./profile-settings-personalization-polish.css";
 import { V2App } from "./App";
 import { InteractionProvider } from "./InteractionGuidance";
 
