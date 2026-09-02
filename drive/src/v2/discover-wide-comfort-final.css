@@ -13,7 +13,7 @@
     .rd-v2-discover-ranked-results
     .rd-v2-discover-candidate {
     grid-template-columns: 104px minmax(0, 1fr);
-    min-height: 110px;
+    min-height: 112px;
     column-gap: 18px;
     padding-top: 14px;
     padding-bottom: 14px;
@@ -45,14 +45,14 @@
   .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
     .rd-v2-discover-ranked-results
     .rd-v2-discover-candidate-title {
-    font-size: 15px;
+    font-size: 15.5px;
     line-height: 1.3;
   }
 
   .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
     .rd-v2-discover-ranked-results
     .rd-v2-discover-evidence {
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 540;
     line-height: 1.48;
     -webkit-line-clamp: 2;
@@ -101,7 +101,7 @@
     .rd-v2-discover-offering-facts b::after {
     display: inline !important;
     color: var(--rd-muted, #6e7685) !important;
-    font-size: 10px !important;
+    font-size: 10.5px !important;
     font-weight: 750 !important;
     letter-spacing: .01em !important;
     text-transform: none !important;
@@ -128,8 +128,8 @@
   .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
     .rd-v2-discover-ranked-results
     .rd-v2-discover-offering-facts em {
-    font-size: 11.5px !important;
-    line-height: 1.4 !important;
+    font-size: 12.25px !important;
+    line-height: 1.42 !important;
   }
 
   /* The query stack was wasting workstation height. Keep the composer prominent,
@@ -149,6 +149,13 @@
     min-height: 38px;
     margin: 0;
     padding: 5px 0 4px;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-query-tools:empty {
+    display: none;
+    min-height: 0;
+    padding: 0;
   }
 
   .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
