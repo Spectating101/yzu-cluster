@@ -36,7 +36,7 @@ export function LibraryFolderRailPanel({
 
   return (
     <RailFrame>
-      <div className="rd-v2-rail-scroll rd-v2-library-folder-inspector" data-library-root={root ? "true" : "false"}>
+      <div className="rd-v2-rail-scroll rd-v2-library-folder-inspector">
         <section className="rd-v2-library-folder-summary">
           <p className="rd-v2-rail-section-label">{summaryLabel}</p>
           <h3>{pluralCount(counts.datasets, "asset")}</h3>
@@ -52,7 +52,7 @@ export function LibraryFolderRailPanel({
           </div>
         </section>
 
-        <section className="rd-v2-library-folder-add" hidden={root}>
+        <section className="rd-v2-library-folder-add">
           <p className="rd-v2-rail-section-label">Add evidence</p>
           {onStartUpload ? <button type="button" onClick={() => onStartUpload(object)}>Upload file</button> : null}
           {onStartUrl ? <button type="button" onClick={() => onStartUrl(object)}>Add URL / DOI</button> : null}

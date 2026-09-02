@@ -136,20 +136,6 @@
   font-style: italic;
 }
 
-/* Library keeps the Research Drive's persistent right rail at every desktop
-   root state. Wide-screen density must be solved inside the Library canvas;
-   never by deleting the shell's anchor rail. These declarations intentionally
-   override the temporary root-only hide introduced by the coherence experiment. */
-@media (min-width: 1680px) and (min-height: 850px) {
-  .rd-v2-shell:has(.rd-v2-library-page .rd-v2-library-directory-home) {
-    grid-template-columns: var(--rd-sidebar) minmax(0, 1fr) var(--rd-rail) !important;
-  }
-
-  .rd-v2-shell:has(.rd-v2-library-page .rd-v2-library-directory-home) > .rd-v2-rail {
-    display: revert !important;
-  }
-}
-
 @media (max-width: 760px) {
   .rd-v2-library-auto-catalog,
   .rd-v2-library-page .rd-v2-cap-collections {
