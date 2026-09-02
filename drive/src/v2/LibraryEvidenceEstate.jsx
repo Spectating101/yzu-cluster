@@ -1,10 +1,12 @@
 import { displayName, libraryAssetPresentation } from "@/v2/datasetMeta";
 import { libraryVerification } from "@/v2/libraryVerification";
 import { StatusPill } from "@/v2/StatusPill";
+import { LibraryDirectoryStrip } from "@/v2/LibraryDirectoryStrip";
 import "@/v2/capability-convergence.css";
 import "@/v2/library-evidence-rigor.css";
 import "@/v2/library-auto-catalog.css";
 import "@/v2/library-coherence-polish.css";
+import "@/v2/library-directory-bridge.css";
 
 function sourceLabel(row = {}) {
   return String(
@@ -55,34 +57,6 @@ function kindLabel(row = {}) {
   return "Dataset";
 }
 
-function collectionCount(folder = {}) {
-  const direct = Number(folder.dataset_count || folder.asset_count || folder.count || 0);
-  if (Number.isFinite(direct) && direct > 0) return direct;
-  return Object.values(folder.children || {}).reduce((sum, child) => {
-    if (child?.kind === "dataset") return sum + 1;
-    if (child?.kind === "folder") return sum + collectionCount(child);
-    return sum;
-  }, 0);
-}
-
-function nestedCollections(folder = {}) {
-  return Object.values(folder.children || {})
-    .filter((child) => child?.kind === "folder")
-    .sort((a, b) => {
-      const sortDelta = Number(a.sort || 500) - Number(b.sort || 500);
-      if (sortDelta) return sortDelta;
-      return String(a.name || "").localeCompare(String(b.name || ""), undefined, { sensitivity: "base" });
-    });
-}
-
-function nestedAssets(folder = {}) {
-  return Object.values(folder.children || {})
-    .filter((child) => child?.kind === "dataset")
-    .sort((a, b) =>
-      displayName(a?.row || a).localeCompare(displayName(b?.row || b), undefined, { sensitivity: "base" }),
-    );
-}
-
 function moveLedgerFocus(event) {
   if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
   const table = event.currentTarget.closest('[role="table"]');
@@ -99,160 +73,12 @@ function moveLedgerFocus(event) {
   rows[next]?.focus();
 }
 
-function LibraryDirectoryHome({
-  collections,
-  collectionsLoading,
-  assetCount,
-  onOpenCollection,
-  onSelectDataset,
-}) {
-  const branchCount = collections.reduce((sum, collection) => sum + nestedCollections(collection).length, 0);
-
-  return (
-    <section className="rd-v2-library-directory-home" aria-label="Library directory" data-testid="library-directory-home">
-      <header className="rd-v2-library-directory-intro">
-        <div>
-          <span className="rd-v2-library-directory-kicker">Collections</span>
-          <h2>Browse by collection</h2>
-          <p>Use the tree to narrow the Library, or scan all evidence beside it.</p>
-        </div>
-        <div className="rd-v2-library-directory-summary" aria-label="Library directory summary">
-          <span><b>{collections.length}</b> research area{collections.length === 1 ? "" : "s"}</span>
-          <span><b>{branchCount}</b> collection{branchCount === 1 ? "" : "s"}</span>
-          <span><b>{assetCount}</b> evidence asset{assetCount === 1 ? "" : "s"}</span>
-        </div>
-      </header>
-
-      {collections.length ? (
-        <div className="rd-v2-library-directory-tree">
-          {collections.map((collection) => {
-            const branches = nestedCollections(collection);
-            const count = collectionCount(collection);
-            return (
-              <article className="rd-v2-library-directory-shelf" key={collection.id}>
-                <button
-                  type="button"
-                  className="rd-v2-library-directory-shelf-head"
-                  data-testid="library-collection-filter"
-                  onClick={() => onOpenCollection?.(collection)}
-                >
-                  <span className="rd-v2-library-directory-folder" aria-hidden="true">▾</span>
-                  <span className="rd-v2-library-directory-shelf-copy">
-                    <strong>{collection.name || collection.label || collection.id}</strong>
-                    {collection.blurb ? <em>{collection.blurb}</em> : null}
-                  </span>
-                  <span className="rd-v2-library-directory-shelf-count">
-                    {branches.length ? `${branches.length} collection${branches.length === 1 ? "" : "s"}` : "Collection"}
-                    {count ? ` · ${count} asset${count === 1 ? "" : "s"}` : ""}
-                  </span>
-                  <span aria-hidden="true">→</span>
-                </button>
-
-                {branches.length ? (
-                  <div className="rd-v2-library-directory-branches" aria-label={`${collection.name || collection.id} collections`}>
-                    {branches.map((branch) => {
-                      const branchAssets = collectionCount(branch);
-                      const leaves = nestedAssets(branch);
-                      return (
-                        <div className="rd-v2-library-directory-branch-block" key={branch.id}>
-                          <button
-                            type="button"
-                            className="rd-v2-library-directory-branch"
-                            data-testid="library-directory-branch"
-                            onClick={() => onOpenCollection?.(branch)}
-                          >
-                            <span className="rd-v2-library-directory-branch-line" aria-hidden="true">└</span>
-                            <span>
-                              <strong>{branch.name || branch.id}</strong>
-                              {branch.blurb ? <em>{branch.blurb}</em> : null}
-                            </span>
-                            <b>{branchAssets}</b>
-                          </button>
-
-                          {leaves.length ? (
-                            <div className="rd-v2-library-directory-leaves" aria-label={`${branch.name || branch.id} evidence`}>
-                              {leaves.map((asset, index) => {
-                                const row = asset?.row || asset;
-                                return (
-                                  <button
-                                    type="button"
-                                    className="rd-v2-library-directory-leaf"
-                                    data-testid="library-directory-leaf"
-                                    key={row.dataset_id || asset.id}
-                                    onClick={() => onSelectDataset?.(row)}
-                                  >
-                                    <span className="rd-v2-library-directory-leaf-line" aria-hidden="true">
-                                      {index === leaves.length - 1 ? "└" : "├"}
-                                    </span>
-                                    <span className="rd-v2-library-directory-leaf-copy">
-                                      <strong>{displayName(row)}</strong>
-                                      <em>{sourceLabel(row)}</em>
-                                    </span>
-                                    <span className="rd-v2-library-directory-leaf-state">
-                                      <StatusPill dataset={row} />
-                                    </span>
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          ) : null}
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : null}
-              </article>
-            );
-          })}
-        </div>
-      ) : collectionsLoading ? (
-        <div className="rd-v2-library-directory-loading" role="status" data-testid="library-collections-loading">
-          <strong>Organizing the Library directory…</strong>
-          <span>Your evidence is already held; the research taxonomy is still loading.</span>
-        </div>
-      ) : null}
-    </section>
-  );
-}
-
-function LibraryVerificationQueue({ rows, onSelectDataset }) {
-  if (!rows.length) return null;
-  return (
-    <section className="rd-v2-library-review-queue" data-testid="library-review-queue" aria-label="Library verification review queue">
-      <header>
-        <div>
-          <span>Verification review</span>
-          <h2>{rows.length} record{rows.length === 1 ? "" : "s"} need source review</h2>
-        </div>
-        <p>Readiness and verification are separate. These records have partial, unverified, or unchecked correspondence.</p>
-      </header>
-      <div className="rd-v2-library-review-items">
-        {rows.map(({ row, verification }) => (
-          <button
-            type="button"
-            className="rd-v2-library-review-item"
-            key={row.dataset_id || displayName(row)}
-            onClick={() => onSelectDataset?.(row)}
-          >
-            <span className="rd-v2-library-review-copy">
-              <strong>{displayName(row)}</strong>
-              <em>{sourceLabel(row)}</em>
-            </span>
-            <span className={`rd-v2-cap-verify ${verification.kind}`}>{verification.label}</span>
-            <StatusPill dataset={row} />
-            <span className="rd-v2-library-review-arrow" aria-hidden="true">→</span>
-          </button>
-        ))}
-      </div>
-    </section>
-  );
-}
-
 /**
  * Root Library composition.
  *
- * The home state keeps directory context visible alongside the evidence ledger.
- * Search deliberately collapses that hierarchy and returns direct evidence matches.
+ * Top-level collections are the actual directory entrances. The evidence ledger
+ * remains the dominant working surface, so the home scales from a handful of
+ * holdings to a large production estate without duplicating the directory tree.
  */
 export function LibraryEvidenceEstate({
   assets = [],
@@ -272,36 +98,29 @@ export function LibraryEvidenceEstate({
   const showKind = true;
   const ledgerClass = "rd-v2-cap-ledger with-verify show-kind";
   const query = String(searchQuery || "").trim();
-  const directoryFirst = !query && Boolean(collections.length || collectionsLoading);
+  const showDirectory = !query && Boolean(collections.length || collectionsLoading);
   const filteredSearchMiss = Boolean(query && searchMatchCount > 0 && !visibleAssets.length);
   const trueSearchMiss = Boolean(query && searchMatchCount === 0);
-  const reviewRows = directoryFirst
-    ? visibleAssets
-        .map((item) => item?.row || item)
-        .map((row) => ({ row, verification: libraryVerification(row) }))
-        .filter(({ verification }) => ["partial", "unverified", "unchecked"].includes(verification.kind))
-    : [];
 
   return (
-    <section className="rd-v2-cap-estate" data-testid="library-evidence-estate" aria-label="Research evidence estate">
-      {directoryFirst ? (
-        <LibraryDirectoryHome
+    <section className="rd-v2-cap-estate rd-v2-library-root-estate" data-testid="library-evidence-estate" aria-label="Research evidence estate">
+      {showDirectory ? (
+        <LibraryDirectoryStrip
           collections={collections}
           collectionsLoading={collectionsLoading}
           assetCount={visibleAssets.length}
           onOpenCollection={onOpenCollection}
-          onSelectDataset={onSelectDataset}
         />
       ) : null}
 
-      <section className={`rd-v2-library-all-evidence${directoryFirst ? " after-directory" : ""}`} aria-label="All Library evidence">
-        {directoryFirst ? (
+      <section className={`rd-v2-library-all-evidence${showDirectory ? " after-directory" : ""}`} aria-label="All Library evidence">
+        {showDirectory ? (
           <header className="rd-v2-library-all-evidence-head">
             <div>
               <span>All evidence</span>
-              <h2>Complete Library ledger</h2>
+              <h2>Library holdings</h2>
             </div>
-            <p>{visibleAssets.length} held asset{visibleAssets.length === 1 ? "" : "s"} across the directory.</p>
+            <p>{visibleAssets.length} held asset{visibleAssets.length === 1 ? "" : "s"} across {collections.length} collection{collections.length === 1 ? "" : "s"}.</p>
           </header>
         ) : null}
 
@@ -411,8 +230,6 @@ export function LibraryEvidenceEstate({
           ) : null}
         </aside>
       ) : null}
-
-      <LibraryVerificationQueue rows={reviewRows} onSelectDataset={onSelectDataset} />
     </section>
   );
 }
