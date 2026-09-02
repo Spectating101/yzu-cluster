@@ -176,14 +176,18 @@ async function noOverflow(page) {
 }
 
 for (const [name, viewport] of VIEWPORTS) {
-  test(`Guest Profile describes Research Drive ${name}`, async ({ page }) => {
+  test(`Guest Profile guides the Research Drive workflow ${name}`, async ({ page }) => {
     mkdirSync(OUT, { recursive: true });
     await setup(page, viewport, { found: false, profile: null });
     await page.goto("/?tab=profile", { waitUntil: "domcontentloaded" });
     await settle(page);
-    await expect(page.getByRole("heading", { name: "Research Drive", exact: true }).first()).toBeVisible();
-    await expect(page.getByRole("heading", { name: "What it does" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "How it handles research" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "From discovery to evidence-grounded research work", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Start here", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "What it does", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "How it handles research", exact: true })).toBeVisible();
+    await expect(page.getByText("Discover", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText("Library", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText("Synthesis", { exact: true }).first()).toBeVisible();
     await noOverflow(page);
     await page.screenshot({ path: `${OUT}/${name}-profile-guest.png`, fullPage: false });
   });
