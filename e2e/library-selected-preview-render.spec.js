@@ -55,7 +55,7 @@ const NAV = {
   }],
 };
 
-test("selected query-ready asset opens a complete full preview at 1920", async ({ page }) => {
+test("selected query-ready asset exposes complete preview rows and fields at 1920", async ({ page }) => {
   mkdirSync(OUT, { recursive: true });
   await page.setViewportSize({ width: 1920, height: 1080 });
   await mockV2Api(page, { datasetsBody: { datasets: [DATASET] }, libraryNavBody: NAV });
@@ -72,6 +72,8 @@ test("selected query-ready asset opens a complete full preview at 1920", async (
   await expect(asset).toBeVisible();
   await asset.click();
   await expect(page.getByTestId("library-asset-workspace")).toContainText("Estimate revision panel");
+  await expect(page.getByTestId("library-decision-basis")).toContainText("Readiness");
+  await expect(page.getByTestId("library-decision-basis")).toContainText("Provenance");
   await expect(page.getByRole("button", { name: "Full preview" })).toBeVisible();
   await page.getByRole("button", { name: "Full preview" }).click();
 
@@ -80,6 +82,13 @@ test("selected query-ready asset opens a complete full preview at 1920", async (
   await expect(preview.getByRole("columnheader", { name: "eps_revision_30d" })).toBeVisible();
   await expect(preview.locator("tbody tr")).toHaveCount(12);
   await expect(page.getByTestId("library-preview-open-state")).toContainText("Preview open in centre");
+  await expect(page.getByTestId("library-decision-basis")).toContainText("Preview state");
   await page.waitForTimeout(180);
-  await page.screenshot({ path: `${OUT}/28-selected-full-preview-1920.png`, fullPage: false });
+  await page.screenshot({ path: `${OUT}/28-selected-full-preview-rows-1920.png`, fullPage: false });
+
+  await preview.getByRole("button", { name: "Fields" }).click();
+  await expect(preview.getByText("Field inventory", { exact: true })).toBeVisible();
+  await expect(preview.getByRole("cell", { name: "eps_revision_30d", exact: true })).toBeVisible();
+  await page.waitForTimeout(120);
+  await page.screenshot({ path: `${OUT}/29-selected-full-preview-fields-1920.png`, fullPage: false });
 });
