@@ -1,9 +1,12 @@
+import { useEffect, useMemo, useState } from "react";
 import { displayName, libraryAssetPresentation, statusPillKind } from "@/v2/datasetMeta";
 import { libraryVerification } from "@/v2/libraryVerification";
 import { StatusPill } from "@/v2/StatusPill";
 import "@/v2/capability-convergence.css";
 import "@/v2/library-evidence-rigor.css";
 import "@/v2/library-auto-catalog.css";
+
+const PAGE_SIZE = 50;
 
 function sourceLabel(row = {}) {
   return String(
@@ -59,6 +62,10 @@ function collectionCountLabel(folder = {}) {
   return Number.isFinite(count) && count > 0 ? String(count) : "";
 }
 
+function collectionName(folder = {}) {
+  return folder.name || folder.label || folder.id || "Collection";
+}
+
 function moveLedgerFocus(event) {
   if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
   const table = event.currentTarget.closest('[role="table"]');
@@ -75,14 +82,6 @@ function moveLedgerFocus(event) {
   rows[next]?.focus();
 }
 
-/**
- * Root Library composition.
- *
- * The Library behaves like a serious file browser: collections narrow context,
- * the ledger remains the primary object, and keyboard navigation never requires
- * opening a second interaction mode. Research Drive adds evidence authority to
- * that familiar grammar rather than replacing it with bespoke dashboard chrome.
- */
 export function LibraryEvidenceEstate({
   assets = [],
   collections = [],
@@ -101,6 +100,17 @@ export function LibraryEvidenceEstate({
   const showKind = true;
   const ledgerClass = "rd-v2-cap-ledger with-verify show-kind";
   const query = String(searchQuery || "").trim();
+  const [visibleLimit, setVisibleLimit] = useState(PAGE_SIZE);
+
+  useEffect(() => {
+    setVisibleLimit(PAGE_SIZE);
+  }, [assets, query]);
+
+  const pagedAssets = useMemo(
+    () => visibleAssets.slice(0, visibleLimit),
+    [visibleAssets, visibleLimit],
+  );
+  const hasMore = pagedAssets.length < visibleAssets.length;
   const filteredSearchMiss = Boolean(query && searchMatchCount > 0 && !visibleAssets.length);
   const trueSearchMiss = Boolean(query && searchMatchCount === 0);
 
@@ -109,21 +119,27 @@ export function LibraryEvidenceEstate({
       {collections.length || collectionsLoading ? (
         <div className="rd-v2-cap-collections" aria-label="Curated research collections">
           <span className="rd-v2-cap-collections-label">Collections</span>
+          <span className="rd-v2-cap-collections-hint">open folder →</span>
           {collections.length ? (
             <div className="rd-v2-cap-collection-list">
-              {collections.map((collection) => (
-                <button
-                  key={collection.id}
-                  type="button"
-                  className="rd-v2-cap-collection"
-                  data-testid="library-collection-filter"
-                  onClick={() => onOpenCollection?.(collection)}
-                >
-                  <span>{collection.name || collection.label || collection.id}</span>
-                  {collectionCountLabel(collection) ? <b>{collectionCountLabel(collection)}</b> : null}
-                  <span aria-hidden="true">→</span>
-                </button>
-              ))}
+              {collections.map((collection) => {
+                const name = collectionName(collection);
+                return (
+                  <button
+                    key={collection.id}
+                    type="button"
+                    className="rd-v2-cap-collection"
+                    data-testid="library-collection-filter"
+                    aria-label={`Open ${name} directory`}
+                    title={`Open ${name} directory`}
+                    onClick={() => onOpenCollection?.(collection)}
+                  >
+                    <span>{name}</span>
+                    {collectionCountLabel(collection) ? <b>{collectionCountLabel(collection)}</b> : null}
+                    <span aria-hidden="true">→</span>
+                  </button>
+                );
+              })}
             </div>
           ) : (
             <span className="rd-v2-cap-collections-loading" role="status" data-testid="library-collections-loading">
@@ -143,7 +159,7 @@ export function LibraryEvidenceEstate({
         </div>
         <div className="rd-v2-cap-ledger-body">
           {visibleAssets.length ? (
-            visibleAssets.map((item) => {
+            pagedAssets.map((item) => {
               const row = item?.row || item;
               const verification = libraryVerification(row);
               return (
@@ -222,6 +238,21 @@ export function LibraryEvidenceEstate({
           )}
         </div>
       </div>
+
+      {visibleAssets.length > PAGE_SIZE ? (
+        <div className="rd-v2-library-pagination" aria-label="Library evidence pagination">
+          <span>Showing {pagedAssets.length} of {visibleAssets.length}</span>
+          {hasMore ? (
+            <button type="button" className="rd-v2-btn sm" onClick={() => setVisibleLimit((limit) => limit + PAGE_SIZE)}>
+              Load {Math.min(PAGE_SIZE, visibleAssets.length - pagedAssets.length)} more
+            </button>
+          ) : (
+            <button type="button" className="rd-v2-btn sm ghost" onClick={() => setVisibleLimit(PAGE_SIZE)}>
+              Back to first {PAGE_SIZE}
+            </button>
+          )}
+        </div>
+      ) : null}
 
       {referenceCount > 0 ? (
         <aside className="rd-v2-library-available compact" aria-label="Available evidence outside your Library" data-testid="library-available-evidence">
