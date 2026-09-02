@@ -86,10 +86,13 @@ function productKind(row, taxonomy) {
   if (files.length || row?.file_summary || /file|csv|parquet|archive|zip|download/.test(raw)) {
     return { key: "package", label: "Data package", concrete: true };
   }
+  if (/api|connector|catalog|metadata_search|live_connector|endpoint/.test(raw)) {
+    return { key: "route", label: "Queryable source", concrete: false };
+  }
   if (row?.dataset_id || row?.schema || row?.schema_summary || observedColumns(row).length || /dataset/.test(raw)) {
     return { key: "dataset", label: "Dataset", concrete: true };
   }
-  if (/api|connector|catalog|metadata_search|live_connector|endpoint/.test(raw) || row?.connector_id || row?.source_id) {
+  if (row?.connector_id || (row?.source_id && !files.length && !tables.length)) {
     return { key: "route", label: "Queryable source", concrete: false };
   }
   return { key: "candidate", label: "Data option", concrete: false };

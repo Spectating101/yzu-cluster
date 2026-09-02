@@ -12,6 +12,7 @@ import "./discover-wide-comfort.css";
 import "./discover-wide-comfort-final.css";
 import "./discover-data-object-polish.css";
 import "./discover-assistance-polish.css";
+import "./discover-adaptive-passport.css";
 
 function rows(value) {
   return Array.isArray(value) ? value : [];

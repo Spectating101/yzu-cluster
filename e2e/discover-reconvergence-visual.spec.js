@@ -21,6 +21,7 @@ function source({
   refresh,
   grain,
   recommendedUse,
+  ...extra
 }) {
   return {
     kind: "source",
@@ -37,6 +38,7 @@ function source({
     refresh_frequency: refresh,
     grain,
     recommended_use: recommendedUse,
+    ...extra,
   };
 }
 
@@ -73,6 +75,9 @@ function resultFixture() {
             refresh: "live catalogue",
             grain: "dataset / DOI record",
             recommendedUse: "Find citable research datasets and trace their identifiers, creators, repositories, and related metadata.",
+            accessMode: "live_connector",
+            format: "JSON API",
+            capabilities: ["Search DOI metadata", "Filter dataset records", "Resolve DOI records", "Page through results"],
           }),
           dataset_id: DATACITE_DATASET_ID,
           candidate_key: "source:datacite:live",
@@ -89,14 +94,21 @@ function resultFixture() {
         }),
         source({
           id: "zenodo_stablecoin",
-          title: "Zenodo stablecoin research deposits",
-          description: "Public research deposits containing reproducible stablecoin datasets and code artifacts.",
+          title: "SoK: Stablecoins for Digital Transformation v1.0.0",
+          description: "Replication bundle with datasets, notebooks, figures, and analysis scripts published as a citable research deposit.",
           provider: "Zenodo",
           collectVia: "zenodo",
-          coverage: "Deposited datasets · methods · code",
-          refresh: "repository updates",
-          grain: "deposit / file",
-          recommendedUse: "Recover published research datasets, supplementary files, and reproducibility artifacts.",
+          coverage: "Stablecoin research replication · datasets · notebooks · figures · scripts",
+          refresh: "versioned deposit",
+          grain: "replication bundle / file",
+          recommendedUse: "Reuse a citable stablecoin replication package and inspect the exact files behind published analysis.",
+          kind: "artifact",
+          format: "ZIP",
+          file_count: 1,
+          size_label: "8.4 MB",
+          version: "v1.0.0",
+          license: "MIT",
+          query_relevance: 4,
         }),
         source({
           id: "coingecko_market",
@@ -109,14 +121,22 @@ function resultFixture() {
           recommendedUse: "Construct crypto market histories and join assets consistently across exchanges and time.",
         }),
         source({
-          id: "defillama_stablecoins",
-          title: "DefiLlama stablecoin supply history",
-          description: "Chain and issuer-level stablecoin supply observations for cross-chain market structure.",
-          provider: "DefiLlama",
-          coverage: "Stablecoin supply · chains · issuers",
-          refresh: "daily",
-          grain: "stablecoin × chain × date",
-          recommendedUse: "Track supply migration and issuer or chain concentration through time.",
+          id: "kaggle_stablecoin_snapshot",
+          title: "Stablecoin Market Daily Snapshot",
+          description: "Daily USD-pegged stablecoin snapshot with market, peg-status, liquidity, and trading measures.",
+          provider: "Kaggle",
+          coverage: "USD-pegged stablecoins · daily market and peg state",
+          refresh: "published snapshot",
+          grain: "stablecoin × day",
+          recommendedUse: "Compare peg stability, market capitalization, liquidity, and trading conditions across stablecoins.",
+          kind: "dataset",
+          format: "CSV",
+          file_count: 1,
+          column_count: 23,
+          columns: ["symbol", "price_usd", "peg_deviation", "peg_status", "market_cap_usd", "volume_24h_usd"],
+          license: "CC BY-NC-SA 4.0",
+          preview_supported: true,
+          query_relevance: 5,
         }),
         source({
           id: "fred_macro",
@@ -137,16 +157,32 @@ function resultFixture() {
           refresh: "annual / periodic",
           grain: "economy × indicator × period",
           recommendedUse: "Build long-run country panels and institutional or development controls.",
+          kind: "dataset",
+          temporal_coverage: "1960–2025",
+          geographic_coverage: "200+ countries and territories",
+          variables: ["1,500+ development indicators"],
+          format: "CSV · Excel · API",
+          license: "CC BY 4.0",
+          preview_supported: true,
+          query_relevance: 2,
         }),
         source({
-          id: "imf_data",
-          title: "IMF Data API catalogue",
-          description: "International financial statistics and macroeconomic series for country-level controls.",
-          provider: "IMF",
-          coverage: "IFS · macroeconomic panels",
-          refresh: "periodic",
-          grain: "economy × series × period",
-          recommendedUse: "Add cross-country monetary, external, and macroeconomic series.",
+          id: "hf_stablecoin_flows",
+          title: "Stablecoin Flows",
+          description: "Machine-readable stablecoin flow dataset distributed as Parquet with repository manifest and schema metadata.",
+          provider: "Hugging Face",
+          collectVia: "huggingface",
+          coverage: "Stablecoin transfer and flow records",
+          refresh: "nightly repository update",
+          grain: "transfer / flow record",
+          recommendedUse: "Analyze stablecoin movement and flow structure from a directly inspectable machine-readable package.",
+          kind: "artifact",
+          format: "Parquet",
+          files: ["Parquet data", "_manifest.json", "_schema.json"],
+          size_label: "15.1 MB",
+          license: "CC BY 4.0",
+          preview_supported: true,
+          query_relevance: 4,
         }),
         source({
           id: "sec_edgar",
@@ -262,7 +298,10 @@ test.describe("Discover reconvergence visual review", () => {
       expect(fieldBox).not.toBeNull();
       expect(resultsBox).not.toBeNull();
       expect(resultsBox.y - (fieldBox.y + fieldBox.height)).toBeLessThan(38);
-      await expect(page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidate").first()).toContainText(/dataset \/ DOI record/i);
+      const passports = page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-passport");
+      await expect(passports).toHaveCount(10);
+      await expect(page.getByTestId("discover-ranked-results").locator('[data-passport-kind="dataset"], [data-passport-kind="package"]').first()).toContainText(/fields|files|stablecoin|indicator/i);
+      await expect(page.getByTestId("discover-ranked-results").locator('.rd-v2-discover-passport[data-passport-kind="route"]').first()).toContainText(/source|inspect|metadata|record/i);
       await assertNoOverflow(page);
       await page.screenshot({ path: `${OUT}/discover-results-${viewport.name}.png`, fullPage: false });
     });
