@@ -1,0 +1,175 @@
+/* Library folder continuity.
+   Entering a collection should reveal the same hierarchy users saw at root,
+   not collapse the branch into a couple of opaque folder rows and a blank pane. */
+
+.rd-v2-library-page .rd-v2-catalog-list-wrap {
+  flex: 0 0 auto;
+  min-height: 0;
+  overflow: visible;
+  border-bottom: 1px solid var(--rd-border);
+}
+
+.rd-v2-library-page .rd-v2-catalog-list {
+  margin: 0;
+}
+
+.rd-v2-library-page .rd-v2-catalog-folder-node {
+  list-style: none;
+  border-bottom: 1px solid var(--rd-border);
+  background: rgba(255, 253, 246, 0.38);
+}
+
+.rd-v2-library-page .rd-v2-catalog-folder-node:last-child {
+  border-bottom: 0;
+}
+
+.rd-v2-library-page .rd-v2-catalog-folder-head {
+  min-height: 54px;
+  border-bottom: 0;
+  background: rgba(255, 255, 255, 0.48);
+}
+
+.rd-v2-library-page .rd-v2-catalog-folder-head:hover,
+.rd-v2-library-page .rd-v2-catalog-folder-head:focus-visible {
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.rd-v2-catalog-folder-open {
+  width: 18px;
+  color: var(--rd-muted);
+  font-size: 11px;
+  text-align: right;
+}
+
+.rd-v2-catalog-folder-preview {
+  display: grid;
+  border-top: 1px solid color-mix(in srgb, var(--rd-border) 70%, transparent);
+  background: rgba(248, 247, 242, 0.58);
+}
+
+.rd-v2-catalog-folder-child {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 45px;
+  width: 100%;
+  padding: 6px 14px 6px 42px;
+  border: 0;
+  border-top: 1px solid color-mix(in srgb, var(--rd-border) 48%, transparent);
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rd-v2-catalog-folder-child:first-child {
+  border-top: 0;
+}
+
+.rd-v2-catalog-folder-child:hover,
+.rd-v2-catalog-folder-child:focus-visible {
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.rd-v2-catalog-folder-branch {
+  color: var(--rd-muted);
+  opacity: 0.56;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 9px;
+}
+
+.rd-v2-catalog-folder-child-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rd-v2-catalog-folder-child-copy strong,
+.rd-v2-catalog-folder-child-copy em {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-v2-catalog-folder-child-copy strong {
+  color: var(--rd-body);
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.2;
+}
+
+.rd-v2-catalog-folder-child-copy em {
+  color: var(--rd-muted);
+  font-size: 9px;
+  font-style: normal;
+  line-height: 1.2;
+}
+
+.rd-v2-catalog-folder-child .rd-v2-status-pill {
+  justify-self: end;
+  white-space: nowrap;
+}
+
+/* Wide desktop: treat a collection as an explorer branch, not a tall empty
+   sheet. Folder nodes become a compact two-column branch map while their leaves
+   remain visible and directly selectable. */
+@media (min-width: 1680px) and (min-height: 850px) {
+  .rd-v2-library-page:not(:has(.rd-v2-library-directory-home)) .rd-v2-library-pathbar {
+    margin: 0 14px;
+    border: 1px solid var(--rd-border);
+    border-bottom: 0;
+    border-radius: 10px 10px 0 0;
+    background: rgba(255, 253, 246, 0.72);
+  }
+
+  .rd-v2-library-page:not(:has(.rd-v2-library-directory-home)) .rd-v2-catalog-list-wrap {
+    margin: 0 14px 18px;
+    overflow: hidden;
+    border: 1px solid var(--rd-border);
+    border-radius: 0 0 10px 10px;
+    background: rgba(255, 255, 255, 0.44);
+  }
+
+  .rd-v2-library-page:not(:has(.rd-v2-library-directory-home)) .rd-v2-catalog-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .rd-v2-library-page:not(:has(.rd-v2-library-directory-home)) .rd-v2-catalog-folder-node {
+    min-width: 0;
+    border-right: 1px solid var(--rd-border);
+  }
+
+  .rd-v2-library-page:not(:has(.rd-v2-library-directory-home)) .rd-v2-catalog-folder-node:nth-child(2n) {
+    border-right: 0;
+  }
+
+  .rd-v2-library-page:not(:has(.rd-v2-library-directory-home)) .rd-v2-catalog-folder-head {
+    min-height: 62px;
+  }
+
+  .rd-v2-library-page:not(:has(.rd-v2-library-directory-home)) .rd-v2-catalog-folder-child {
+    min-height: 50px;
+    padding-left: 38px;
+  }
+
+  /* A leaf folder contains datasets directly, so let those ordinary dataset rows
+     span the full branch width rather than leaving a half-empty second column. */
+  .rd-v2-library-page:not(:has(.rd-v2-library-directory-home)) .rd-v2-catalog-list > li:not(.rd-v2-catalog-folder-node) {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 760px) {
+  .rd-v2-catalog-folder-child {
+    grid-template-columns: 14px minmax(0, 1fr);
+    padding: 7px 12px 7px 24px;
+  }
+
+  .rd-v2-catalog-folder-child .rd-v2-status-pill {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
