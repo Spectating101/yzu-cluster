@@ -1,0 +1,233 @@
+/* Profile / Settings workstation composition.
+ *
+ * Settings should behave like a configuration desk, not a document containing
+ * another stack of cards. The controls and authority boundaries are unchanged;
+ * this layer only removes duplicated summary chrome and composes the existing
+ * decisions horizontally on desktop.
+ */
+
+@media (min-width: 1121px) {
+  .rd-v2-settings-workspace-page .rd-v2-body-scroll {
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .rd-v2-settings-workspace-page .rd-v2-page-head {
+    padding-bottom: 12px;
+  }
+
+  .rd-v2-settings-workspace {
+    max-width: none;
+    padding-bottom: 24px;
+  }
+
+  /* The three values in the old summary were exact duplicates of the controls
+     below. Keep the policy statement, spend the width on the decisions. */
+  .rd-v2-settings-policy-hero {
+    display: block;
+    padding: 15px 2px 16px;
+    border-top: 1px solid var(--rd-hps-line, #e2ddd2);
+    border-bottom: 1px solid var(--rd-hps-line, #e2ddd2);
+  }
+
+  .rd-v2-settings-policy-summary {
+    display: none !important;
+  }
+
+  .rd-v2-settings-policy-copy {
+    display: grid;
+    grid-template-columns: minmax(230px, .7fr) minmax(0, 1.3fr);
+    column-gap: 28px;
+    align-items: baseline;
+  }
+
+  .rd-v2-settings-policy-copy > span {
+    grid-column: 1;
+  }
+
+  .rd-v2-settings-policy-copy h2 {
+    grid-column: 1;
+    margin: 5px 0 0;
+    font-size: 22px;
+    line-height: 1.08;
+  }
+
+  .rd-v2-settings-policy-copy p {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: center;
+    max-width: 72ch;
+    font-size: 10.5px;
+    line-height: 1.48;
+  }
+
+  .rd-v2-settings-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    margin-top: 12px;
+  }
+
+  .rd-v2-settings-panel {
+    border-radius: 12px;
+    box-shadow: none;
+  }
+
+  /* One decision surface: the three defaults are peers, not three more form
+     rows in a tall left-hand card. */
+  .rd-v2-settings-behavior {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .rd-v2-settings-behavior > .rd-v2-settings-panel-head {
+    grid-column: 1 / -1;
+    padding: 14px 16px 11px;
+  }
+
+  .rd-v2-settings-behavior > .rd-v2-settings-panel-head h2 {
+    margin-top: 3px;
+    font-size: 14px;
+  }
+
+  .rd-v2-settings-behavior > .rd-v2-settings-panel-head > p {
+    margin-top: 0;
+    font-size: 9.5px;
+  }
+
+  .rd-v2-settings-policy-row {
+    display: flex;
+    min-width: 0;
+    min-height: 154px;
+    padding: 14px 16px 15px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    border-bottom: 0;
+  }
+
+  .rd-v2-settings-policy-row + .rd-v2-settings-policy-row {
+    border-left: 1px solid rgba(226, 221, 210, .82);
+  }
+
+  .rd-v2-settings-policy-row > div {
+    flex: 1 1 auto;
+  }
+
+  .rd-v2-settings-policy-row strong {
+    font-size: 10.8px;
+  }
+
+  .rd-v2-settings-policy-row p {
+    margin-top: 4px;
+    font-size: 9.4px;
+    line-height: 1.42;
+  }
+
+  .rd-v2-settings-policy-row .rd-v2-select {
+    min-height: 35px;
+    margin-top: auto;
+    padding-right: 30px;
+    font-size: 9.8px;
+  }
+
+  .rd-v2-settings-policy-note {
+    grid-column: 1 / -1;
+    margin: 0;
+    padding: 9px 16px 10px;
+    border-top: 1px solid rgba(226, 221, 210, .78);
+    font-size: 9px;
+    line-height: 1.4;
+  }
+
+  /* Identity and browser authority are adjacent concerns. Keeping them beside
+     each other removes the artificial tall side-stack and reveals the storage
+     continuation inside the first 900px desktop viewport. */
+  .rd-v2-settings-side-stack {
+    display: grid;
+    grid-template-columns: minmax(0, 1.18fr) minmax(280px, .82fr);
+    gap: 12px;
+  }
+
+  .rd-v2-settings-identity-panel,
+  .rd-v2-settings-session-panel {
+    min-height: 0;
+    padding: 14px 16px;
+  }
+
+  .rd-v2-settings-panel-head.compact {
+    padding-bottom: 9px;
+  }
+
+  .rd-v2-settings-panel-head.compact h2 {
+    margin-top: 3px;
+    font-size: 13px;
+  }
+
+  .rd-v2-settings-panel-copy {
+    margin: 9px 0 10px;
+    font-size: 9.5px;
+    line-height: 1.42;
+  }
+
+  .rd-v2-settings-field-label {
+    margin-bottom: 5px;
+  }
+
+  .rd-v2-settings-inline-control :is(.rd-v2-input, .rd-v2-btn) {
+    min-height: 34px;
+  }
+
+  .rd-v2-settings-identity-foot {
+    margin-top: 7px;
+  }
+
+  .rd-v2-settings-action-row {
+    gap: 7px;
+  }
+
+  .rd-v2-settings-account-storage {
+    margin-top: 12px;
+    padding: 15px 18px 17px;
+  }
+
+  .rd-v2-settings-account-storage > .rd-v2-settings-panel-head {
+    padding-bottom: 10px;
+  }
+
+  .rd-v2-settings-account-storage > .rd-v2-settings-panel-head h2 {
+    margin-top: 3px;
+    font-size: 14px;
+  }
+
+  .rd-v2-settings-account-stack > .rd-v2-statement-section {
+    padding-top: 13px;
+  }
+
+  .rd-v2-settings-technical {
+    margin-top: 11px;
+  }
+
+  .rd-v2-settings-technical > summary {
+    padding-block: 11px;
+  }
+}
+
+@media (min-width: 1121px) and (max-width: 1320px) {
+  .rd-v2-settings-policy-copy {
+    grid-template-columns: minmax(210px, .72fr) minmax(0, 1.28fr);
+    column-gap: 20px;
+  }
+
+  .rd-v2-settings-side-stack {
+    grid-template-columns: minmax(0, 1.08fr) minmax(250px, .92fr);
+  }
+
+  .rd-v2-settings-policy-row {
+    padding-inline: 13px;
+  }
+}
