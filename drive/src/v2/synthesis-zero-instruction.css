@@ -62,10 +62,8 @@
   }
 
   /* First real operation after thread creation: choose held Library evidence.
-     Empty-map scaffolding and a disabled next-step dossier only compete with the
-     selector the researcher must actually use. */
-  .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
-    > .s04-opening-next,
+     Empty-map scaffolding and duplicate object cards compete with the selector
+     the researcher must actually use. */
   .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
     > [data-testid="synthesis-evidence-state"] .s04-map,
   .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
@@ -146,6 +144,46 @@
     margin-top: 14px !important;
     padding-top: 12px !important;
     border-top: 1px solid #dfe6e2 !important;
+  }
+
+  /* The disabled reasoning control is a real lock state and remains visible,
+     but only as a subordinate guardrail under the evidence-selection task. */
+  .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
+    > .s04-opening-next {
+    display: block !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 7px 10px !important;
+    border: 1px solid #e1e6e3 !important;
+    border-radius: 8px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
+    > .s04-opening-next > :is(header, p, em) {
+    display: none !important;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
+    > .s04-opening-next > footer {
+    width: 100%;
+    margin: 0 !important;
+    align-items: center !important;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
+    > .s04-opening-next > footer::before {
+    content: "Method reasoning unlocks after you add at least one held input.";
+    margin-right: auto;
+    color: #75808d;
+    font-size: 9.5px;
+    line-height: 1.35;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
+    > .s04-opening-next .s04-next-primary:disabled {
+    opacity: .48 !important;
   }
 
   /* Mapped evidence: the generic explanatory card becomes one shallow advance
