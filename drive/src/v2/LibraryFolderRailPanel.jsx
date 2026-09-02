@@ -17,6 +17,13 @@ function isFilteredRoot(folder) {
   return note.includes("match") && (note.includes("search") || note.includes("matching asset"));
 }
 
+function folderDepth(object) {
+  return String(object?.path || "")
+    .split("/")
+    .map((part) => part.trim())
+    .filter(Boolean).length - 1;
+}
+
 export function LibraryFolderRailPanel({
   object,
   onAskAbout,
@@ -30,16 +37,45 @@ export function LibraryFolderRailPanel({
   const root = !object.folderId;
   const foldersRoot = object.folderId === LIBRARY_FOLDERS_ROOT;
   const filteredRoot = isFilteredRoot(object);
+  const depth = Math.max(0, folderDepth(object));
+  const collection = !root && !foldersRoot && depth === 2;
   const totalAssets = Number(counts.datasets || 0);
-  const visibleItems = Number(counts.items || 0);
+  const scopedRows = Number(counts.items || 0);
   const notReady = Math.max(0, totalAssets - Number(counts.queryReady || 0));
+
   const summaryLabel = filteredRoot
-    ? "In this view"
+    ? "Filtered Library view"
     : root
-      ? "In this library"
+      ? "Library overview"
       : foldersRoot
-        ? "In folder storage"
-        : "In this collection";
+        ? "Folder storage"
+        : collection
+          ? "Collection"
+          : "Folder";
+
+  const structureLabel = root
+    ? "Collections"
+    : foldersRoot
+      ? "Top-level folders"
+      : "Child folders";
+
+  const purpose = filteredRoot
+    ? "This view reflects the current Library search and filters across held evidence. Clear them to return to the full overview."
+    : root
+      ? "Search and review evidence across the full Library. Open Folders when you want to browse the storage structure manually."
+      : foldersRoot
+        ? "Manual storage browser. Open a top-level folder to move deeper; return to Library for cross-estate retrieval and recommendations."
+        : collection
+          ? "Research collection inside Folders. Open a child folder to reach its stored evidence, or use the breadcrumb to move back up."
+          : "Storage folder. Select evidence here, narrow it with the Library controls, or use the breadcrumb to move back up.";
+
+  const askLabel = root
+    ? "Ask about the library →"
+    : foldersRoot
+      ? "Ask about folders →"
+      : collection
+        ? "Ask about this collection →"
+        : "Ask about this folder →";
 
   return (
     <RailFrame>
@@ -61,20 +97,13 @@ export function LibraryFolderRailPanel({
         </section>
 
         <section className="rd-v2-library-folder-context" aria-label="Library browse context">
-          <p className="rd-v2-rail-section-label">Current scope</p>
+          <p className="rd-v2-rail-section-label">Scope &amp; location</p>
           <RailFieldGrid>
             <RailField label="Location" value={object.path || object.destination || "Library"} />
-            <RailField label={root ? "Collections" : "Folders"} value={pluralCount(counts.folders, root ? "collection" : "folder")} />
-            <RailField label="Rows in view" value={String(visibleItems)} />
+            <RailField label={structureLabel} value={pluralCount(counts.folders, root ? "collection" : "folder")} />
+            <RailField label="Rows after filters" value={String(scopedRows)} />
           </RailFieldGrid>
-          {object.note ? <p className="rd-v2-rail-note">{object.note}</p> : null}
-          <p className="rd-v2-rail-note">
-            {root
-              ? "Library is the evidence overview. Use Folders for manual storage browsing, or jump directly into any collection from the main workspace."
-              : foldersRoot
-                ? "This is the manual storage browser. Open a top-level folder to inspect its hierarchy; Library remains the overview of held evidence."
-                : "This is the folder directory. Open a child folder or use the breadcrumb to move back through Folders or Library."}
-          </p>
+          <p className="rd-v2-rail-note">{purpose}</p>
         </section>
 
         <section className="rd-v2-library-folder-add">
@@ -97,7 +126,7 @@ export function LibraryFolderRailPanel({
 
       <RailStickyFooter>
         <button type="button" className="rd-v2-btn sm primary" onClick={onAskAbout}>
-          {root ? "Ask about the library →" : foldersRoot ? "Ask about folders →" : "Ask about this collection →"}
+          {askLabel}
         </button>
       </RailStickyFooter>
     </RailFrame>
