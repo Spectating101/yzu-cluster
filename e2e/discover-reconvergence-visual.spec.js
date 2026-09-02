@@ -305,10 +305,10 @@ test.describe("Discover reconvergence visual review", () => {
       expect(fieldBox).not.toBeNull();
       expect(resultsBox).not.toBeNull();
       expect(resultsBox.y - (fieldBox.y + fieldBox.height)).toBeLessThan(38);
-      const passports = page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-passport");
-      await expect(passports).toHaveCount(10);
-      await expect(page.getByTestId("discover-ranked-results").locator('[data-passport-kind="dataset"], [data-passport-kind="package"]').first()).toContainText(/fields|files|stablecoin|indicator/i);
-      await expect(page.getByTestId("discover-ranked-results").locator('.rd-v2-discover-passport[data-passport-kind="route"]').first()).toContainText(/source|inspect|metadata|record/i);
+      const profiles = page.getByTestId("discover-ranked-results").locator(".rd-v2-dataset-profile");
+      await expect(profiles).toHaveCount(10);
+      await expect(page.getByTestId("discover-ranked-results").locator('.rd-v2-dataset-profile.is-dataset').first()).toContainText(/variables|contents|fields|stablecoin/i);
+      await expect(page.getByTestId("discover-ranked-results").locator('.rd-v2-dataset-profile.is-route').first()).toContainText(/data source|return|inspect|metadata|record/i);
       await assertNoOverflow(page);
       await page.screenshot({ path: `${OUT}/discover-results-${viewport.name}.png`, fullPage: false });
     });
