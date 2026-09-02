@@ -1,6 +1,6 @@
 /* Library folder continuity.
-   Entering a collection should feel like continuing the same Library browser,
-   without taking layout authority away from the accepted root composition. */
+   Entering a collection should continue the root's directory grammar rather
+   than switching to a different wide-screen application. */
 
 .rd-v2-library-page .rd-v2-catalog-list-wrap {
   flex: 0 0 auto;
@@ -111,19 +111,55 @@
   white-space: nowrap;
 }
 
-/* Evidence-rigor gives ledger verification chips a named grid area. Review rows
-   are a different grid, so clear that inherited placement before assigning the
-   review columns. */
 .rd-v2-library-review-item > .rd-v2-cap-verify {
   grid-area: auto;
 }
 
-/* Wide collection/folder states. Root remains the accepted rich split-pane.
-   Folder state should look like the same application one level deeper: explicit
-   location, branch metrics, then a dense directory surface with real leaves. */
+/* Wide collection/folder states use the same vertical rhythm as 1440.
+   The breadcrumb is promoted into the visible bridge back to the root directory. */
 @media (min-width: 1680px) and (min-height: 850px) {
   .rd-v2-library-page:not(:has(.rd-v2-library-directory-home)) .rd-v2-page-head {
     padding-bottom: 12px;
+  }
+
+  .rd-v2-library-page:not(:has(.rd-v2-library-directory-home)) .rd-v2-library-headline {
+    align-items: center;
+    gap: 16px;
+  }
+
+  .rd-v2-library-page:not(:has(.rd-v2-library-directory-home)) .rd-v2-crumb {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .rd-v2-library-page:not(:has(.rd-v2-library-directory-home)) .rd-v2-crumb-item:first-child button {
+    min-height: 30px;
+    padding: 0 10px;
+    border: 1px solid var(--rd-border2);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.54);
+    color: var(--rd-link);
+    font-size: 0;
+    font-weight: 750;
+    cursor: pointer;
+  }
+
+  .rd-v2-library-page:not(:has(.rd-v2-library-directory-home)) .rd-v2-crumb-item:first-child button::after {
+    content: "← Library directory";
+    font-size: 9px;
+    letter-spacing: 0.01em;
+  }
+
+  .rd-v2-library-page:not(:has(.rd-v2-library-directory-home)) .rd-v2-crumb-item .sep {
+    color: var(--rd-muted);
+    opacity: 0.7;
+  }
+
+  .rd-v2-library-page:not(:has(.rd-v2-library-directory-home)) .rd-v2-crumb-item .here {
+    color: var(--rd-body);
+    font-size: 10px;
+    font-weight: 700;
   }
 
   .rd-v2-library-page:not(:has(.rd-v2-library-directory-home)) .rd-v2-toolbar {
@@ -135,9 +171,9 @@
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
     gap: 24px;
-    min-height: 86px;
+    min-height: 78px;
     margin: 0 16px;
-    padding: 16px 18px;
+    padding: 14px 18px;
     border: 1px solid var(--rd-border);
     border-bottom: 0;
     border-radius: 11px 11px 0 0;
@@ -149,9 +185,9 @@
   }
 
   .rd-v2-library-page:not(:has(.rd-v2-library-directory-home)) .rd-v2-library-pathcopy::before {
-    content: "CURRENT DIRECTORY";
+    content: "DIRECTORY / CURRENT FOLDER";
     display: block;
-    margin-bottom: 5px;
+    margin-bottom: 4px;
     color: var(--rd-muted);
     font-size: 8.5px;
     font-weight: 760;
@@ -166,8 +202,8 @@
   }
 
   .rd-v2-library-page:not(:has(.rd-v2-library-directory-home)) .rd-v2-library-pathcopy p {
-    max-width: 660px;
-    margin: 5px 0 0;
+    max-width: 760px;
+    margin: 4px 0 0;
     color: var(--rd-muted);
     font-size: 9.75px;
     line-height: 1.45;
@@ -177,12 +213,12 @@
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: 8px;
+    gap: 7px;
     flex-wrap: wrap;
   }
 
   .rd-v2-library-page:not(:has(.rd-v2-library-directory-home)) .rd-v2-library-pathstats span {
-    min-height: 28px;
+    min-height: 27px;
     display: inline-flex;
     align-items: center;
     padding: 0 9px;
@@ -195,7 +231,7 @@
   }
 
   .rd-v2-library-page:not(:has(.rd-v2-library-directory-home)) .rd-v2-catalog-list-wrap {
-    margin: 0 16px 24px;
+    margin: 0 16px 28px;
     overflow: hidden;
     border: 1px solid var(--rd-border);
     border-radius: 0 0 11px 11px;
@@ -204,11 +240,10 @@
 
   .rd-v2-library-page:not(:has(.rd-v2-library-directory-home)) .rd-v2-catalog-list::before {
     content: "DIRECTORY CONTENTS";
-    grid-column: 1 / -1;
     display: flex;
     align-items: center;
     min-height: 38px;
-    padding: 0 16px;
+    padding: 0 17px;
     border-bottom: 1px solid var(--rd-border);
     background: rgba(248, 247, 242, 0.66);
     color: var(--rd-muted);
@@ -218,27 +253,23 @@
   }
 
   .rd-v2-library-page:not(:has(.rd-v2-library-directory-home)) .rd-v2-catalog-list {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: stretch;
-    gap: 0;
+    display: block;
   }
 
   .rd-v2-library-page:not(:has(.rd-v2-library-directory-home)) .rd-v2-catalog-folder-node {
     min-width: 0;
-    min-height: 100%;
-    border-right: 1px solid var(--rd-border);
-    border-bottom: 0;
+    border-right: 0;
+    border-bottom: 1px solid var(--rd-border);
     background: rgba(255, 253, 246, 0.34);
   }
 
-  .rd-v2-library-page:not(:has(.rd-v2-library-directory-home)) .rd-v2-catalog-folder-node:nth-child(2n) {
-    border-right: 0;
+  .rd-v2-library-page:not(:has(.rd-v2-library-directory-home)) .rd-v2-catalog-folder-node:last-child {
+    border-bottom: 0;
   }
 
   .rd-v2-library-page:not(:has(.rd-v2-library-directory-home)) .rd-v2-catalog-folder-head {
-    min-height: 78px;
-    padding: 13px 16px;
+    min-height: 66px;
+    padding: 10px 17px;
     border-bottom: 1px solid color-mix(in srgb, var(--rd-border) 64%, transparent);
     background: rgba(255, 255, 255, 0.56);
   }
@@ -255,27 +286,27 @@
   }
 
   .rd-v2-library-page:not(:has(.rd-v2-library-directory-home)) .rd-v2-catalog-folder-open {
-    width: 58px;
+    width: 88px;
     color: var(--rd-link);
     font-size: 0;
-    font-weight: 750;
+    font-weight: 760;
     white-space: nowrap;
   }
 
   .rd-v2-library-page:not(:has(.rd-v2-library-directory-home)) .rd-v2-catalog-folder-open::after {
-    content: "Open →";
+    content: "Browse folder →";
     font-size: 9px;
   }
 
   .rd-v2-library-page:not(:has(.rd-v2-library-directory-home)) .rd-v2-catalog-folder-preview {
-    min-height: 150px;
+    min-height: 0;
     align-content: start;
     background: rgba(248, 247, 242, 0.48);
   }
 
   .rd-v2-library-page:not(:has(.rd-v2-library-directory-home)) .rd-v2-catalog-folder-child {
-    min-height: 60px;
-    padding: 10px 16px 10px 42px;
+    min-height: 56px;
+    padding: 8px 18px 8px 44px;
   }
 
   .rd-v2-library-page:not(:has(.rd-v2-library-directory-home)) .rd-v2-catalog-folder-child-copy {
@@ -293,19 +324,11 @@
   }
 
   .rd-v2-library-page:not(:has(.rd-v2-library-directory-home)) .rd-v2-catalog-list > li:not(.rd-v2-catalog-folder-node) {
-    grid-column: 1 / -1;
+    width: 100%;
   }
 
-  /* Keep sparse directories intentional without creating a bordered empty cavity. */
   .rd-v2-library-page:not(:has(.rd-v2-library-directory-home)) .rd-v2-catalog-list-wrap::after {
-    content: "Use the breadcrumb to move up the Library, or open a branch above to go deeper.";
-    display: block;
-    padding: 12px 16px 14px;
-    border-top: 1px solid var(--rd-border);
-    background: rgba(252, 251, 247, 0.62);
-    color: var(--rd-muted);
-    font-size: 9px;
-    line-height: 1.4;
+    content: none;
   }
 }
 
