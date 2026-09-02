@@ -1,0 +1,128 @@
+/* Final density pass for the AI-native Profile.
+ * Preserve the winning hierarchy; remove cumulative vertical dead space only. */
+
+.rd-v2-profile-page.is-user-profile .rd-v2-body-scroll {
+  gap: 5px;
+}
+
+.rd-v2-profile-page.is-user-profile .rd-v2-page-head {
+  margin-bottom: 2px;
+  padding-bottom: 8px;
+}
+
+.rd-v2-profile-ai-native .rd-v2-profile-about-header {
+  padding-top: 12px;
+  padding-bottom: 18px;
+}
+
+.rd-v2-profile-ai-native .rd-v2-profile-ai-portrait,
+.rd-v2-profile-ai-native .rd-v2-profile-map-section,
+.rd-v2-profile-ai-native .rd-v2-profile-work-evidence,
+.rd-v2-profile-ai-native .rd-v2-profile-recorded {
+  padding-top: 21px;
+  padding-bottom: 21px;
+}
+
+.rd-v2-profile-ai-native .rd-v2-profile-ai-portrait {
+  padding-top: 21px;
+}
+
+.rd-v2-profile-ai-native .rd-v2-profile-ai-kicker {
+  margin-bottom: 5px;
+}
+
+.rd-v2-profile-ai-native .rd-v2-profile-ai-overview {
+  margin-top: 12px;
+  line-height: 1.62;
+}
+
+.rd-v2-profile-ai-native .rd-v2-profile-ai-grounding {
+  margin-top: 13px;
+}
+
+.rd-v2-profile-ai-native .rd-v2-profile-section-heading p {
+  margin-top: 3px;
+}
+
+.rd-v2-profile-ai-native .rd-v2-profile-portrait-grid,
+.rd-v2-profile-ai-native .rd-v2-profile-work-evidence-grid {
+  margin-top: 15px;
+}
+
+.rd-v2-profile-ai-native .rd-v2-profile-portrait-column > h4 {
+  padding-bottom: 8px;
+}
+
+.rd-v2-profile-ai-native .rd-v2-profile-portrait-item {
+  padding: 10px 0;
+}
+
+.rd-v2-profile-ai-native .rd-v2-profile-portrait-item p,
+.rd-v2-profile-ai-native .rd-v2-profile-work-read p {
+  margin-top: 4px;
+  line-height: 1.46;
+}
+
+.rd-v2-profile-ai-native .rd-v2-profile-portrait-item small {
+  margin-top: 4px;
+}
+
+.rd-v2-profile-ai-native .rd-v2-profile-pane-head {
+  padding-bottom: 7px;
+}
+
+.rd-v2-profile-ai-native .rd-v2-profile-work-read {
+  padding: 9px 0;
+}
+
+.rd-v2-profile-ai-native .rd-v2-profile-evidence-row {
+  min-height: 50px;
+  padding: 8px 0;
+}
+
+.rd-v2-profile-ai-native .rd-v2-profile-evidence-read {
+  margin-top: 9px;
+}
+
+.rd-v2-profile-ai-native .rd-v2-profile-recorded {
+  padding-bottom: 30px;
+}
+
+.rd-v2-profile-ai-native .rd-v2-profile-recorded-grid {
+  margin-top: 12px;
+}
+
+.rd-v2-profile-ai-native .rd-v2-profile-recorded-grid .rd-v2-profile-simple-row {
+  min-height: 54px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.rd-v2-profile-ai-native .rd-v2-profile-unknowns {
+  margin-top: 14px;
+  padding-top: 10px;
+}
+
+@media (min-width: 1680px) {
+  .rd-v2-profile-page.is-user-profile .rd-v2-body-scroll {
+    gap: 4px;
+  }
+
+  .rd-v2-profile-ai-native .rd-v2-profile-about-header {
+    padding-top: 10px;
+    padding-bottom: 17px;
+  }
+
+  .rd-v2-profile-ai-native .rd-v2-profile-ai-portrait,
+  .rd-v2-profile-ai-native .rd-v2-profile-map-section,
+  .rd-v2-profile-ai-native .rd-v2-profile-work-evidence,
+  .rd-v2-profile-ai-native .rd-v2-profile-recorded {
+    padding-top: 19px;
+    padding-bottom: 19px;
+  }
+
+  .rd-v2-profile-ai-native .rd-v2-profile-portrait-grid,
+  .rd-v2-profile-ai-native .rd-v2-profile-work-evidence-grid {
+    margin-top: 14px;
+  }
+}
