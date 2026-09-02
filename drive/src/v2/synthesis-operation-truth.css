@@ -1,0 +1,96 @@
+/* Synthesis operation truth.
+ *
+ * The durable pre-acceptance flow is not a wizard. A researcher saves a
+ * research object, reviews held evidence, explicitly asks for one reviewable
+ * method proposal, then accepts that exact proposal before Preview/Build.
+ * Keep the UI aligned to those real state transitions instead of presenting a
+ * numbered mock progression.
+ */
+
+/* The four-cell opening strip was a second lifecycle model layered on top of
+ * the durable Synthesis state machine. The product spec explicitly says not to
+ * present a stage wizard before construction acceptance. Keep the dynamic
+ * guidance sentence, remove the fake numbered progression. */
+.rd-v2-synthesis-page .s04-opening-workflow {
+  display: none !important;
+}
+
+.rd-v2-synthesis-page .s04-opening-workflow-wrap {
+  margin-top: 8px;
+}
+
+.rd-v2-synthesis-page .s04-opening-workflow-note {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  align-items: baseline;
+  gap: 10px;
+  margin: 0;
+  padding: 8px 0 9px;
+  border-top: 1px solid #e7ebf0;
+  border-bottom: 1px solid #e7ebf0;
+  color: #556274;
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+
+.rd-v2-synthesis-page .s04-opening-workflow-note > b {
+  font-size: 0;
+}
+
+.rd-v2-synthesis-page .s04-opening-workflow-note > b::after {
+  content: "Current operation";
+  color: #315f4d;
+  font-size: 8.5px;
+  font-weight: 850;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+/* A fixture/future recommendation is not itself a durable acceptance. The
+ * current CTA opens Ask to create a revision-bound proposal, so label it for
+ * the operation it actually performs rather than claiming acceptance early. */
+.rd-v2-synthesis-page .s04-main:has(> .s04-opening-construction)
+  > .s04-opening-next .s04-next-primary {
+  font-size: 0 !important;
+}
+
+.rd-v2-synthesis-page .s04-main:has(> .s04-opening-construction)
+  > .s04-opening-next .s04-next-primary::after {
+  content: "Draft reviewable method";
+  font-size: 9.5px;
+}
+
+/* Recommendation-ready is already self-explanatory through the construction
+ * and its consequence card. Do not show a fake progress strip above it. */
+.rd-v2-synthesis-page .s04-main:has(> .s04-opening-construction)
+  > .s04-opening-workflow-wrap {
+  display: none !important;
+}
+
+/* Once a real proposal exists, ProposalReview owns the consequential decision
+ * and already exposes Challenge / Reject / Accept & test. The generic next-step
+ * card duplicates that authority and makes the path look simulated. */
+.rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"])
+  > .s04-opening-workflow-wrap,
+.rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"])
+  > .s04-opening-next {
+  display: none !important;
+}
+
+/* In the true first durable state, the evidence proposal is the operation.
+ * Reduce the generic next card so it reads as consequence/help rather than a
+ * competing destination beside the actual held-input review surface. */
+.rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-measurement-status)):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"]))
+  > .s04-opening-next {
+  background: transparent;
+  box-shadow: none;
+  border-color: #e5e9ee;
+}
+
+@media (max-width: 600px) {
+  .rd-v2-synthesis-page .s04-opening-workflow-note {
+    grid-template-columns: 1fr;
+    gap: 3px;
+    padding-block: 7px;
+  }
+}
