@@ -73,9 +73,11 @@ async function expectHomeContainment(page, viewportWidth) {
 async function expectPopulatedHome(page) {
   await expect(page.getByText("GDELT Asia news-risk · August refresh", { exact: true })).toBeVisible();
   await expect(page.getByText("Taiwan issuer fundamentals · Q2 refresh", { exact: true })).toBeVisible();
+  await expect(page.getByText("TWSE ESG issuer labels · September refresh", { exact: true })).toBeVisible();
   await expect(page.getByText("Stablecoin exchange activity backfill", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("MOPS governance disclosures", { exact: true }).first()).toBeVisible();
   await expect(page.getByText(/Compare Taiwan issuer fundamentals with news-risk shocks/)).toBeVisible();
+  await expect(page.getByRole("button", { name: /\+ 1 more recent event in History/ })).toBeVisible();
 }
 
 test.describe("August visual authority recovery", () => {

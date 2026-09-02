@@ -42,6 +42,9 @@ import "./home-attention-rail.css";
 // Final screenshot sanding: remove the redundant page label and close the
 // unnecessary centre-to-inspector gutter without disturbing 1440 geometry.
 import "./home-final-sanding.css";
+// Recent Trail must adapt to variable production workload volume instead of
+// being composed around a fixed four-row screenshot fixture.
+import "./home-trail-adaptive.css";
 import { V2App } from "./App";
 import { InteractionProvider } from "./InteractionGuidance";
 

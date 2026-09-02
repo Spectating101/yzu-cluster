@@ -357,7 +357,9 @@ export function HomePage({
 
   const headroom = useMemo(() => buildResourceHeadroom(headroomRollup, health), [headroomRollup, health]);
   const recommended = useMemo(() => buildRecommendedEvidence(profile, { limit: 3 }), [profile]);
-  const trail = useMemo(() => buildRecentTrail({ jobs, datasets, limit: 4 }), [jobs, datasets]);
+  const trail = useMemo(() => buildRecentTrail({ jobs, datasets, limit: 12 }), [jobs, datasets]);
+  const trailVisible = trail.slice(0, 6);
+  const trailHidden = Math.max(0, trail.length - trailVisible.length);
   const focalAsset = useMemo(() => selectFocalAsset(datasets, pickUp), [datasets, pickUp]);
 
   const continuePrimary = (point) => {
@@ -470,43 +472,53 @@ export function HomePage({
       </div>
 
       <div className="rd-v2-home-authority-secondary">
-        <section className="rd-v2-home-authority-card trail" aria-label="Recent trail">
+        <section className="rd-v2-home-authority-card trail" aria-label="Recent trail" data-trail-count={trail.length}>
           <div className="rd-v2-home-authority-section-head">
             <div>
               <span className="rd-v2-home-authority-eyebrow">Recent trail</span>
               <h2>Durable consequences</h2>
             </div>
-            <button type="button" className="rd-v2-linkish" onClick={() => onGoTab?.("browse")}>
-              View History →
-            </button>
+            <div className="rd-v2-home-trail-head-actions">
+              {trail.length ? <span className="rd-v2-home-trail-count">{trail.length} recent</span> : null}
+              <button type="button" className="rd-v2-linkish" onClick={() => onGoTab?.("browse")}>
+                View History →
+              </button>
+            </div>
           </div>
           {trail.length ? (
-            <ul className="rd-v2-home-authority-trail-list">
-              {trail.map((item) => (
-                <li key={item.id}>
-                  <button
-                    type="button"
-                    className="rd-v2-home-authority-trail-row"
-                    onClick={() => {
-                      if (item.dataset) {
-                        onSelectDataset?.(item.dataset);
-                        return;
-                      }
-                      if (item.dest === "history") {
-                        onGoTab?.("browse");
-                        return;
-                      }
-                      onGoTab?.(item.dest === "library" ? "library" : "browse");
-                    }}
-                  >
-                    <span className="kind">{item.kind}</span>
-                    <strong>{item.title}</strong>
-                    <span className="summary">{item.summary}</span>
-                    <em>{item.dest === "library" ? "Library →" : "History →"}</em>
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <>
+              <ul className="rd-v2-home-authority-trail-list">
+                {trailVisible.map((item) => (
+                  <li key={item.id}>
+                    <button
+                      type="button"
+                      className="rd-v2-home-authority-trail-row"
+                      onClick={() => {
+                        if (item.dataset) {
+                          onSelectDataset?.(item.dataset);
+                          return;
+                        }
+                        if (item.dest === "history") {
+                          onGoTab?.("browse");
+                          return;
+                        }
+                        onGoTab?.(item.dest === "library" ? "library" : "browse");
+                      }}
+                    >
+                      <span className="kind">{item.kind}</span>
+                      <strong>{item.title}</strong>
+                      <span className="summary">{item.summary}</span>
+                      <em>{item.dest === "library" ? "Library →" : "History →"}</em>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              {trailHidden ? (
+                <button type="button" className="rd-v2-home-trail-overflow" onClick={() => onGoTab?.("browse")}>
+                  + {trailHidden} more recent {trailHidden === 1 ? "event" : "events"} in History →
+                </button>
+              ) : null}
+            </>
           ) : (
             <div className="rd-v2-home-section-empty-actions">
               <p className="rd-v2-home-section-empty">Nothing durable yet — recent work will collect here.</p>

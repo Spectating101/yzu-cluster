@@ -1,0 +1,120 @@
+/* Home Recent Trail adapts to real workload volume rather than a four-row screenshot fixture. */
+
+.rd-v2-home-trail-head-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  min-width: 0;
+}
+
+.rd-v2-home-trail-count {
+  color: var(--home-muted);
+  font-size: 9px;
+  font-weight: 680;
+  letter-spacing: .055em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.rd-v2-home-trail-overflow {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 10px 4px 2px;
+  border: 0;
+  border-top: 1px solid color-mix(in srgb, var(--home-line) 72%, transparent);
+  background: transparent;
+  color: var(--rd-link);
+  font-size: 9.5px;
+  font-weight: 670;
+  line-height: 1.3;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rd-v2-home-trail-overflow:hover {
+  color: #315d4a;
+}
+
+/* Small sets expand to use the card; larger sets compact instead of clipping. */
+.rd-v2-home-authority-card.trail .rd-v2-home-authority-trail-list {
+  display: grid;
+  align-content: stretch;
+}
+
+.rd-v2-home-authority-card.trail .rd-v2-home-authority-trail-list:not(:has(li:nth-child(5))) {
+  min-height: 312px;
+  grid-auto-rows: minmax(70px, 1fr);
+}
+
+.rd-v2-home-authority-card.trail .rd-v2-home-authority-trail-list:has(li:nth-child(5)) {
+  grid-auto-rows: minmax(55px, auto);
+}
+
+.rd-v2-home-authority-card.trail .rd-v2-home-authority-trail-row {
+  height: 100%;
+}
+
+@media (min-width: 1680px) and (min-height: 900px) {
+  .rd-v2-home-authority-secondary {
+    align-items: start;
+  }
+
+  .rd-v2-home-authority-card.trail {
+    width: 100%;
+    min-height: 418px;
+  }
+
+  .rd-v2-home-authority-card.next {
+    width: 100%;
+    min-height: 418px;
+  }
+
+  .rd-v2-home-authority-card.trail .rd-v2-home-authority-trail-list:has(li:nth-child(5)) .rd-v2-home-authority-trail-row {
+    min-height: 55px;
+    padding-block: 7px;
+  }
+
+  .rd-v2-home-authority-card.trail .rd-v2-home-authority-trail-list:has(li:nth-child(5)) strong,
+  .rd-v2-home-authority-card.trail .rd-v2-home-authority-trail-list:has(li:nth-child(5)) .summary {
+    display: -webkit-box;
+    overflow: hidden;
+    text-overflow: clip;
+    white-space: normal;
+    -webkit-box-orient: vertical;
+  }
+
+  .rd-v2-home-authority-card.trail .rd-v2-home-authority-trail-list:has(li:nth-child(5)) strong {
+    -webkit-line-clamp: 2;
+  }
+
+  .rd-v2-home-authority-card.trail .rd-v2-home-authority-trail-list:has(li:nth-child(5)) .summary {
+    -webkit-line-clamp: 2;
+  }
+}
+
+@media (max-width: 1679px) {
+  .rd-v2-home-authority-card.trail .rd-v2-home-authority-trail-list:not(:has(li:nth-child(5))) {
+    min-height: 0;
+    grid-auto-rows: auto;
+  }
+
+  .rd-v2-home-authority-card.trail .rd-v2-home-authority-trail-list:has(li:nth-child(5)) {
+    grid-auto-rows: auto;
+  }
+
+  .rd-v2-home-trail-count {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .rd-v2-home-trail-head-actions {
+    gap: 6px;
+  }
+
+  .rd-v2-home-trail-overflow {
+    padding-top: 9px;
+  }
+}
