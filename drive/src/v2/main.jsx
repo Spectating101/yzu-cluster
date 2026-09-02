@@ -45,6 +45,12 @@ import "./home-final-sanding.css";
 // Recent Trail must adapt to variable production workload volume instead of
 // being composed around a fixed four-row screenshot fixture.
 import "./home-trail-adaptive.css";
+// Profile / Settings is the only active visual workstream on this branch.
+// Keep these overrides last so PS can be judged against the current canonical
+// shell without importing unrelated surface experiments.
+import "./profile-settings-canonical-refine.css";
+import "./profile-registry-explorer.css";
+import "./profile-settings-final-polish.css";
 import { V2App } from "./App";
 import { InteractionProvider } from "./InteractionGuidance";
 
