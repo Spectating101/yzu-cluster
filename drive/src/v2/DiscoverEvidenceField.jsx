@@ -65,7 +65,7 @@ function ComparisonMatrix({ candidates }) {
           <span className="rd-v2-eyebrow">Candidate comparison</span>
           <strong>{candidates.length} leading inputs, aligned</strong>
         </div>
-        <p>Only recorded source metadata is compared here; blank or unknown fields are not treated as absence.</p>
+        <p>Recorded metadata only. Unknown fields stay unknown rather than being treated as absent.</p>
       </div>
       <div
         className="rd-v2-discover-utility-grid"
@@ -91,6 +91,12 @@ function ComparisonMatrix({ candidates }) {
       </div>
     </div>
   );
+}
+
+function gapText(assessmentResult) {
+  const gap = assessmentResult?.gap;
+  return String(gap?.statement || gap?.blocks || "A required evidence field remains open")
+    .replace(/[.!?]+$/, "");
 }
 
 export function DiscoverEvidenceField({
@@ -125,49 +131,48 @@ export function DiscoverEvidenceField({
         <div>
           <span className="rd-v2-eyebrow">Candidate field</span>
           <strong>{candidateCount} candidate{candidateCount === 1 ? "" : "s"}</strong>
-          <p>Work the evidence set first; open individual sources only when detail is needed.</p>
+          <p>Scan the field first. Open a source when its coverage or route needs inspection.</p>
         </div>
         <div className="rd-v2-discover-field-actions rd-v2-discover-utility-actions">
           <div className="rd-v2-discover-view-switch" role="group" aria-label="Evidence field view">
             <button type="button" className={view === "ledger" ? "on" : ""} aria-pressed={view === "ledger"} onClick={() => setView("ledger")}>Ledger</button>
-            <button type="button" className={view === "matrix" ? "on" : ""} aria-pressed={view === "matrix"} onClick={() => setView("matrix")}>Matrix</button>
+            <button type="button" className={view === "matrix" ? "on" : ""} aria-pressed={view === "matrix"} onClick={() => setView("matrix")}>Compare</button>
           </div>
           {onSearchWider ? <button type="button" onClick={() => onSearchWider(query)}>Search wider</button> : null}
         </div>
       </header>
 
       <div className="rd-v2-discover-utility-summary" aria-label="Evidence field composition">
-        <span><b>{available}</b><em>acquirable</em></span>
+        <span className="is-primary"><b>{available}</b><em>acquirable</em></span>
         <span><b>{verify}</b><em>to verify</em></span>
-        <span><b>{held}</b><em>held evidence</em></span>
+        <span><b>{held}</b><em>held</em></span>
         <span><b>{context}</b><em>references</em></span>
-        <span className="rd-v2-discover-utility-rule"><b>{candidateCount > 4 ? `${candidateCount}` : "All"}</b><em>remain in ledger</em></span>
+        <span className="rd-v2-discover-utility-rule"><b>{candidateCount}</b><em>in ledger</em></span>
       </div>
 
       {composable ? (
-        <div className="rd-v2-discover-assembly" data-testid="discover-assembly-path">
-          <div className="rd-v2-discover-assembly-mark" aria-hidden="true">∑</div>
-          <div>
-            <span>Proposed assembly path</span>
-            <strong>No single source has to be the answer.</strong>
-            <p>
-              {candidateCount} candidate inputs are in the current field while the assessment still records an open gap.
-              Compare complementary coverage before deciding what should be collected, reconciled, or registered as a new dataset.
-            </p>
+        <div className="rd-v2-discover-assembly rd-v2-discover-assembly--compact" data-testid="discover-assembly-path">
+          <div className="rd-v2-discover-assembly-gap">
+            <span>Open evidence gap</span>
+            <strong>{gapText(assessmentResult)}</strong>
+          </div>
+          <div className="rd-v2-discover-assembly-position">
+            <b>{candidateCount} candidates can be compared as inputs</b>
+            <span>No assembly has run. Coverage and feasibility still need verification.</span>
           </div>
           <div className="rd-v2-discover-assembly-state">
-            <span>Current authority</span>
-            <b>Proposed, not executed</b>
-            {onReviewAssembly ? <button type="button" onClick={onReviewAssembly}>Review assembly plan →</button> : null}
+            <span>Proposed</span>
+            {onReviewAssembly ? <button type="button" onClick={onReviewAssembly}>Review assembly →</button> : null}
           </div>
         </div>
       ) : assessmentActive && !assessmentResult ? (
-        <div className="rd-v2-discover-assembly is-checking" role="status">
-          <div className="rd-v2-discover-assembly-mark" aria-hidden="true">…</div>
-          <div>
-            <span>Assembly position</span>
-            <strong>Checking whether one source is enough.</strong>
-            <p>The field remains usable while held evidence and the research brief are compared.</p>
+        <div className="rd-v2-discover-assembly rd-v2-discover-assembly--compact is-checking" role="status">
+          <div className="rd-v2-discover-assembly-gap">
+            <span>Coverage check</span>
+            <strong>Testing whether one source is sufficient</strong>
+          </div>
+          <div className="rd-v2-discover-assembly-position">
+            <span>The candidate ledger remains usable while held evidence is assessed.</span>
           </div>
         </div>
       ) : null}
