@@ -1,8 +1,7 @@
 /* Discover wide workstation authority.
    Left = evidence controls/state. Centre = search + retrieval. Right = assessment/detail.
-   Do not spend centre height repeating state already owned by the side rails. */
+   Side-rail state remains mounted and testable, but no longer consumes centre-flow height. */
 @media (min-width: 1680px) and (min-height: 900px) {
-  /* Compress page chrome: Discover is a workstation, not a landing page. */
   .rd-v2-discover-page .rd-v2-page-head,
   .rd-v2-discover-page .rd-v2-page-header {
     min-height: 0 !important;
@@ -15,16 +14,15 @@
   .rd-v2-discover-page .rd-v2-page-head p,
   .rd-v2-discover-page .rd-v2-page-header p { margin-block: 0 !important; }
 
-  /* The cockpit is the left sub-sidebar. Let it own facets, search landscape,
-     coverage state and decision state instead of repeating those in centre. */
+  /* Left sub-sidebar authority. */
   .rd-v2-discover-evidence-cockpit {
     align-self: start !important;
     min-height: calc(100vh - 118px) !important;
     max-height: calc(100vh - 118px) !important;
     overflow: auto !important;
+    padding-bottom: 142px !important;
   }
 
-  /* Centre begins with the only thing that belongs there: the query. */
   .rd-v2-discover-page .rd-v2-discover-explore-workspace {
     margin-bottom: 0 !important;
     padding-bottom: 0 !important;
@@ -38,23 +36,58 @@
   .rd-v2-discover-page .rd-v2-discover-composer > p,
   .rd-v2-discover-page .rd-v2-discover-composer-scope { display: none !important; }
 
-  /* These are side-rail responsibilities. Keep them in the DOM/state model for
-     now, but remove them from centre composition. InspectorRail already owns
-     Discover assessment; EvidenceCockpit already owns landscape/facets/state. */
+  /* The cockpit already owns these concepts, so their centre duplicates disappear. */
   .rd-v2-discover-page .rd-v2-discover-query-tools,
   .rd-v2-discover-page .rd-v2-discover-frozen-counts,
-  .rd-v2-discover-page .rd-v2-discover-result-actions,
-  .rd-v2-discover-page .rd-v2-discover-field--utility,
-  .rd-v2-discover-page .rd-v2-evidence-brief,
-  .rd-v2-discover-page .rd-v2-discover-evidence-brief,
-  .rd-v2-discover-page .rd-v2-evidence-detail-disclosure.is-workspace {
+  .rd-v2-discover-page .rd-v2-discover-result-actions {
     display: none !important;
   }
 
-  /* Results begin immediately after composer. */
-  .rd-v2-discover-page .rd-v2-discover-ranked-results {
-    margin-top: 2px !important;
+  /* Candidate-field machinery becomes the lower-left sub-sidebar payload. It
+     stays mounted (and therefore truth/test authoritative) without taxing centre height. */
+  .rd-v2-discover-page .rd-v2-discover-field--utility {
+    position: fixed !important;
+    z-index: 24 !important;
+    left: 194px !important;
+    bottom: 18px !important;
+    width: 252px !important;
+    max-width: 252px !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 9px 10px !important;
+    border: 1px solid color-mix(in srgb, var(--rd-border, #d9d2c3) 80%, transparent) !important;
+    border-radius: 7px !important;
+    background: color-mix(in srgb, var(--rd-paper, #fffdf8) 97%, white) !important;
+    box-shadow: 0 8px 22px rgba(31, 41, 47, .06) !important;
   }
+  .rd-v2-discover-page .rd-v2-discover-field--utility .rd-v2-discover-field-lead,
+  .rd-v2-discover-page .rd-v2-discover-field--utility .rd-v2-discover-field-copy,
+  .rd-v2-discover-page .rd-v2-discover-field--utility .rd-v2-discover-field-metrics {
+    font-size: 9.5px !important;
+    line-height: 1.3 !important;
+  }
+  .rd-v2-discover-page .rd-v2-discover-field--utility h3,
+  .rd-v2-discover-page .rd-v2-discover-field--utility strong { font-size: 11.5px !important; }
+
+  /* Assessment is a right-rail responsibility. Dock the already-mounted
+     workspace assessment into the inspector column instead of center flow. */
+  .rd-v2-discover-page .rd-v2-evidence-brief,
+  .rd-v2-discover-page .rd-v2-discover-evidence-brief {
+    position: fixed !important;
+    z-index: 26 !important;
+    right: 18px !important;
+    top: 248px !important;
+    width: 414px !important;
+    max-width: 414px !important;
+    max-height: 470px !important;
+    overflow: auto !important;
+    margin: 0 !important;
+    background: var(--rd-paper, #fffdf8) !important;
+    box-shadow: 0 8px 24px rgba(31, 41, 47, .05) !important;
+  }
+
+  /* Results begin almost immediately after the composer. */
+  .rd-v2-discover-page .rd-v2-discover-ranked-results { margin-top: 2px !important; }
   .rd-v2-discover-page .rd-v2-discover-ranked-results-head {
     min-height: 26px !important;
     padding-top: 4px !important;
@@ -65,19 +98,15 @@
     font-size: 10px !important;
   }
 
-  /* Serious dataset records, but no giant cards. Give each row enough facts to
-     evaluate and keep three-plus records visible in the first workstation view. */
+  /* Serious records without giant cards: enough facts to judge, enough density
+     to compare multiple datasets in the first workstation viewport. */
   .rd-v2-discover-page .rd-v2-discover-ranked-results .rd-v2-discover-candidate {
     min-height: 136px !important;
     padding-top: 9px !important;
     padding-bottom: 9px !important;
   }
-  .rd-v2-discover-page .rd-v2-discover-ranked-results .rd-v2-discover-candidate-main {
-    gap: 4px !important;
-  }
-  .rd-v2-discover-page .rd-v2-discover-ranked-results .rd-v2-discover-candidate-title {
-    font-size: 16px !important;
-  }
+  .rd-v2-discover-page .rd-v2-discover-ranked-results .rd-v2-discover-candidate-main { gap: 4px !important; }
+  .rd-v2-discover-page .rd-v2-discover-ranked-results .rd-v2-discover-candidate-title { font-size: 16px !important; }
   .rd-v2-discover-page .rd-v2-discover-ranked-results .rd-v2-discover-evidence {
     max-width: 980px !important;
     font-size: 12.5px !important;
@@ -106,7 +135,5 @@
     gap: 5px 12px !important;
     padding-left: 14px !important;
   }
-  .rd-v2-discover-page .rd-v2-dataset-profile-metric > em {
-    font-size: 10.5px !important;
-  }
+  .rd-v2-discover-page .rd-v2-dataset-profile-metric > em { font-size: 10.5px !important; }
 }
