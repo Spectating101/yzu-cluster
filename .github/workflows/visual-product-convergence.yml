@@ -1,0 +1,57 @@
+name: Visual product convergence
+
+on:
+  push:
+    branches:
+      - "integration/research-drive-visual-convergence-20260902"
+  pull_request:
+    branches:
+      - "recovery/canonical-visual-authority-20260901"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: visual-product-convergence-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  assembled-desktop-matrix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build assembled Research Drive
+        run: npm run build
+      - run: npx playwright install chromium --with-deps
+      - name: Capture canonical Home states
+        run: >-
+          mkdir -p .tmp-pw artifacts/august-visual-recovery &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/august-visual-recovery.spec.js --workers=1 --reporter=line
+      - name: Capture Synthesis desktop and workstation states
+        run: >-
+          mkdir -p artifacts/synthesis-acceptance &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/synthesis-acceptance-screenshots.spec.js --workers=1 --reporter=line
+      - name: Capture Profile and Settings states
+        run: >-
+          mkdir -p artifacts/profile-settings-canonical-refine &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/profile-settings-canonical-refine.spec.js --workers=1 --reporter=line
+      - name: Preserve assembled visual matrix
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: research-drive-visual-product-convergence
+          path: |
+            artifacts/august-visual-recovery
+            artifacts/synthesis-acceptance
+            artifacts/profile-settings-canonical-refine
+            test-results
+          if-no-files-found: warn
