@@ -1,6 +1,5 @@
-/* Visual closure after inspecting the real 1920 workstation renders.
- * This layer fixes only demonstrable empty-height / narrow-lane failures.
- * It adds no product semantics and leaves 1440/mobile untouched.
+/* Visual closure after repeated inspection of the real 1920 workstation renders.
+ * No semantics change. 1440/mobile remain under their existing authority.
  */
 
 @media (min-width: 1680px) and (min-height: 900px) {
@@ -8,13 +7,6 @@
   #root .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"]) {
     align-content: start !important;
     grid-auto-rows: min-content !important;
-  }
-
-  #root .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
-    > [data-testid="synthesis-evidence-state"] {
-    min-height: 0 !important;
-    height: auto !important;
-    align-self: start !important;
   }
 
   #root .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
@@ -32,8 +24,18 @@
     content: "Select held evidence to unlock method reasoning." !important;
   }
 
-  /* MAPPED / MEASURED EVIDENCE */
-  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has([data-testid="synthesis-evidence-proposal"]))
+  /* EXACT OVERRIDE OF THE EARLIER DEFINED / EXPLORING WORKSTATION LOCK.
+     The old rule deliberately spanned the evidence card across four grid rows.
+     Once the empty map is removed that span becomes a giant dead cavity. */
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > [data-testid="synthesis-evidence-state"] {
+    grid-row: auto !important;
+    min-height: 0 !important;
+    height: auto !important;
+    align-self: start !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
     > .s04-opening-next {
     grid-row: auto !important;
     min-height: 0 !important;
@@ -42,28 +44,27 @@
     padding-block: 10px !important;
   }
 
-  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has([data-testid="synthesis-evidence-proposal"]))
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
     > .s04-opening-next > footer {
     min-height: 0 !important;
+    margin-top: 0 !important;
   }
 
-  /* PROPOSAL */
-  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"])
+  /* PROPOSAL — exact authority selector, then compact supporting map. */
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction))
     > [data-testid="synthesis-evidence-state"] {
     min-height: 0 !important;
     height: auto !important;
     align-self: start !important;
   }
 
-  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"])
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction))
     > [data-testid="synthesis-evidence-state"] .s04-map {
-    min-height: 275px !important;
+    min-height: 245px !important;
+    height: 245px !important;
   }
 
-  /* DECISION STATES
-     Scope, unit and join were still behaving like narrow 1440 cards stranded
-     in a 1920 canvas. Give the decision itself an eight-column analytical
-     plane and use two internal lanes: visual evidence + decision consequences. */
+  /* DECISION STATES — widen the actual decision, not its chrome. */
   #root .rd-v2-synthesis-page [data-testid="synthesis-scope-block"],
   #root .rd-v2-synthesis-page [data-testid="synthesis-unit-conflict"],
   #root .rd-v2-synthesis-page [data-testid="synthesis-join-decision"] {
@@ -72,7 +73,7 @@
     max-width: none !important;
     min-width: 0 !important;
     display: grid !important;
-    grid-template-columns: minmax(0, 1.12fr) minmax(360px, .88fr) !important;
+    grid-template-columns: minmax(0, 1.15fr) minmax(300px, .85fr) !important;
     column-gap: 18px !important;
     row-gap: 12px !important;
     align-items: start !important;
@@ -92,7 +93,7 @@
     width: 100% !important;
     min-width: 0 !important;
     margin: 0 !important;
-    align-self: stretch !important;
+    align-self: start !important;
   }
 
   #root .rd-v2-synthesis-page [data-testid="synthesis-scope-block"] > .s04-note,
@@ -116,13 +117,44 @@
     margin-top: 2px !important;
   }
 
+  /* Unit's visual header was the only Loop-3 regression: the old nowrap rule
+     spilled its sentence into the consequences lane. */
+  #root .rd-v2-synthesis-page [data-testid="synthesis-unit-conflict"] .s04-viz-unit,
+  #root .rd-v2-synthesis-page [data-testid="synthesis-unit-conflict"] .s04-viz-unit * {
+    min-width: 0 !important;
+  }
+
+  #root .rd-v2-synthesis-page [data-testid="synthesis-unit-conflict"] .s04-viz-unit header strong {
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  /* The right four columns are real workstation space. Stack measurement truth
+     and the evidence map there instead of dumping the map underneath the left
+     decision card. */
   #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-scope-block"])
     > .s04-measurement-status,
   #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-unit-conflict"])
     > .s04-measurement-status,
   #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-join-decision"])
-    > .s04-measurement-status {
+    > .s04-measurement-status,
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-scope-block"])
+    > [data-testid="synthesis-evidence-state"],
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-unit-conflict"])
+    > [data-testid="synthesis-evidence-state"],
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-join-decision"])
+    > [data-testid="synthesis-evidence-state"] {
     grid-column: 9 / 13 !important;
+    min-width: 0 !important;
     align-self: start !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-scope-block"])
+    > [data-testid="synthesis-evidence-state"] .s04-map,
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-unit-conflict"])
+    > [data-testid="synthesis-evidence-state"] .s04-map,
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-join-decision"])
+    > [data-testid="synthesis-evidence-state"] .s04-map {
+    min-height: 215px !important;
   }
 }
