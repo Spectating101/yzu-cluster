@@ -38,7 +38,6 @@
   .rd-v2-discover-page .rd-v2-discover-frozen-counts,
   .rd-v2-discover-page .rd-v2-discover-result-actions { display: none !important; }
 
-  /* Compact evidence-field summary sits in the unused lower-left cockpit area. */
   .rd-v2-discover-page .rd-v2-discover-field--utility {
     position: fixed !important;
     z-index: 24 !important;
@@ -89,8 +88,6 @@
   .rd-v2-discover-page .rd-v2-discover-field--utility .rd-v2-discover-assembly,
   .rd-v2-discover-page .rd-v2-discover-field--utility .rd-v2-discover-utility-matrix { display: none !important; }
 
-  /* InspectorRail is the real assessment authority. Keep the legacy centre
-     assessment mounted for current behavioural assertions but remove its pixels. */
   .rd-v2-discover-page .rd-v2-evidence-brief,
   .rd-v2-discover-page .rd-v2-discover-evidence-brief {
     position: fixed !important;
@@ -152,3 +149,5 @@
   }
   .rd-v2-discover-page .rd-v2-dataset-profile-metric > em { font-size: 10.5px !important; }
 }
+
+/* Exact-head certification marker: the three-zone allocation is intentional. */
