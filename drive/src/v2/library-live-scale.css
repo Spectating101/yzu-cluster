@@ -82,8 +82,8 @@
    permits without conflating readiness, verification, or provenance. */
 .rd-v2-library-inspector-basis {
   padding: 13px 14px 14px;
-  border-bottom: 1px solid #263548;
-  background: linear-gradient(180deg, rgba(255, 255, 255, .025), rgba(255, 255, 255, 0));
+  border-bottom: 1px solid var(--rd-border);
+  background: linear-gradient(180deg, rgba(250, 249, 244, .72), rgba(255, 255, 255, 0));
 }
 
 .rd-v2-library-inspector-basis .rd-v2-rail-section-label {
@@ -93,10 +93,10 @@
 .rd-v2-library-inspector-basis-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  border: 1px solid #2a394d;
+  border: 1px solid var(--rd-border2);
   border-radius: 8px;
   overflow: hidden;
-  background: rgba(255, 255, 255, .018);
+  background: rgba(250, 249, 244, .42);
 }
 
 .rd-v2-library-inspector-basis-grid > div {
@@ -105,18 +105,18 @@
 }
 
 .rd-v2-library-inspector-basis-grid > div:nth-child(odd) {
-  border-right: 1px solid #2a394d;
+  border-right: 1px solid var(--rd-border);
 }
 
 .rd-v2-library-inspector-basis-grid > div:nth-child(n + 3) {
-  border-top: 1px solid #2a394d;
+  border-top: 1px solid var(--rd-border);
 }
 
 .rd-v2-library-inspector-basis-grid span,
 .rd-v2-library-inspector-next > span {
   display: block;
   margin-bottom: 4px;
-  color: #8497ad;
+  color: var(--rd-muted);
   font-family: var(--rd-mono);
   font-size: 9px;
   font-weight: 750;
@@ -127,9 +127,9 @@
 .rd-v2-library-inspector-basis-grid strong {
   display: block;
   overflow: hidden;
-  color: #e4ebf4;
+  color: var(--rd-text);
   font-size: 11.5px;
-  font-weight: 640;
+  font-weight: 650;
   line-height: 1.3;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -138,13 +138,13 @@
 .rd-v2-library-inspector-next {
   margin-top: 10px;
   padding: 10px 11px;
-  border-left: 2px solid #4d7b67;
-  background: rgba(74, 121, 98, .09);
+  border-left: 2px solid var(--rd-accent);
+  background: rgba(63, 111, 92, .06);
 }
 
 .rd-v2-library-inspector-next p {
   margin: 0;
-  color: #b9c6d6;
+  color: var(--rd-body);
   font-size: 11.5px;
   line-height: 1.48;
 }
@@ -187,6 +187,6 @@
   }
 
   .rd-v2-library-inspector-basis-grid > div + div {
-    border-top: 1px solid #2a394d;
+    border-top: 1px solid var(--rd-border);
   }
 }
