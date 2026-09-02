@@ -1,0 +1,152 @@
+/* Settings closure pass.
+ *
+ * Keep the quiet category-row grammar, but stop wide desktop from inflating
+ * ordinary controls. The right rail is a live policy instrument rather than a
+ * prose sidebar, so its modules stay compact and decision-oriented.
+ */
+
+.rd-v2-settings-modern .rd-v2-page-head {
+  padding-bottom: 9px !important;
+}
+
+.rd-v2-settings-modern-layout {
+  width: min(100%, 1120px);
+  grid-template-columns: 142px minmax(0, 1fr);
+  gap: 30px;
+  padding: 2px 0 28px;
+}
+
+.rd-v2-settings-local-nav {
+  gap: 1px;
+}
+
+.rd-v2-settings-local-nav a {
+  padding: 6px 9px;
+  border-radius: 7px;
+  font-size: 9.5px;
+}
+
+.rd-v2-settings-simple-section {
+  padding: 4px 0 20px;
+}
+
+.rd-v2-settings-simple-section + .rd-v2-settings-simple-section {
+  padding-top: 19px;
+}
+
+.rd-v2-settings-simple-section > header {
+  padding-bottom: 8px;
+}
+
+.rd-v2-settings-simple-section > header h2 {
+  font-size: 14px;
+}
+
+.rd-v2-settings-simple-section > header p {
+  margin-top: 3px;
+  font-size: 9.4px;
+  line-height: 1.4;
+}
+
+.rd-v2-settings-simple-row {
+  grid-template-columns: minmax(0, 1fr) minmax(190px, 280px);
+  gap: 22px;
+  min-height: 54px;
+  padding: 9px 0;
+}
+
+.rd-v2-settings-simple-copy strong {
+  font-size: 10.2px;
+}
+
+.rd-v2-settings-simple-copy p {
+  margin-top: 3px;
+  font-size: 8.9px;
+  line-height: 1.38;
+}
+
+.rd-v2-settings-modern .rd-v2-select,
+.rd-v2-settings-modern .rd-v2-input {
+  min-height: 32px;
+}
+
+.rd-v2-settings-connected-accounts {
+  padding-top: 7px;
+}
+
+.rd-v2-settings-modern .rd-v2-settings-connected-accounts .rd-v2-statement-section {
+  padding-top: 12px !important;
+}
+
+.rd-v2-settings-modern .rd-v2-settings-connected-accounts .rd-v2-statement-section + .rd-v2-statement-section {
+  margin-top: 8px !important;
+}
+
+.rd-v2-settings-modern .rd-v2-settings-connected-accounts .rd-v2-statement-row {
+  min-height: 50px !important;
+  padding: 8px 0 !important;
+}
+
+.rd-v2-settings-technical-modern > summary {
+  padding: 11px 0 !important;
+}
+
+/* The Settings rail owns a live summary now; remove the legacy nth-child
+   suppression that was only compensating for the old faculty-email copy. */
+body:has(.rd-v2-settings-modern) .rd-v2-settings-rail-scroll .rd-v2-detail-row {
+  display: grid !important;
+}
+
+body:has(.rd-v2-settings-modern) .rd-v2-settings-rail-module {
+  padding: 12px 0 2px;
+  border-bottom: 1px solid rgba(226, 221, 210, .72);
+}
+
+body:has(.rd-v2-settings-modern) .rd-v2-settings-rail-module:last-child {
+  border-bottom: 0;
+}
+
+body:has(.rd-v2-settings-modern) .rd-v2-settings-rail-module .rd-v2-rail-section-label {
+  margin-bottom: 6px;
+}
+
+body:has(.rd-v2-settings-modern) .rd-v2-settings-rail-note {
+  margin: 8px 0 10px;
+  color: #7f796f;
+  font-size: 9px;
+  line-height: 1.42;
+}
+
+@media (min-width: 1680px) {
+  .rd-v2-settings-modern-layout {
+    width: min(100%, 1190px);
+    grid-template-columns: 150px minmax(0, 1fr);
+    gap: 34px;
+    padding-bottom: 24px;
+  }
+
+  .rd-v2-settings-simple-row {
+    min-height: 55px !important;
+    padding: 9px 0 !important;
+  }
+
+  .rd-v2-settings-simple-section {
+    padding-bottom: 18px;
+  }
+
+  .rd-v2-settings-simple-section + .rd-v2-settings-simple-section {
+    padding-top: 18px;
+  }
+}
+
+@media (max-width: 1120px) {
+  .rd-v2-settings-modern-layout {
+    grid-template-columns: 126px minmax(0, 1fr);
+    gap: 22px;
+  }
+
+  .rd-v2-settings-simple-row {
+    grid-template-columns: minmax(0, 1fr) minmax(170px, 240px);
+    gap: 18px;
+  }
+}
