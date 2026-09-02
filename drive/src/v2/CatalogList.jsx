@@ -16,6 +16,14 @@ function isSelected(item, selectedId) {
   return selectedId === (item?.id || dataset?.dataset_id || dataset?.title || dataset?.url);
 }
 
+function paginationNoun(rows = []) {
+  const folders = rows.filter((item) => item?.kind === "folder").length;
+  const assets = rows.length - folders;
+  if (folders === rows.length) return "folders";
+  if (assets === rows.length) return "assets";
+  return "entries";
+}
+
 /** Drive-style list — folders + datasets in one scroll (Library / Home). */
 export function CatalogList({
   rows = [],
@@ -35,6 +43,7 @@ export function CatalogList({
 
   const visibleRows = useMemo(() => rows.slice(0, visibleLimit), [rows, visibleLimit]);
   const hasMore = visibleRows.length < rows.length;
+  const noun = paginationNoun(rows);
 
   if (!rows.length) return null;
 
@@ -57,7 +66,7 @@ export function CatalogList({
       </ul>
       {rows.length > PAGE_SIZE ? (
         <div className="rd-v2-library-pagination directory" aria-label="Directory pagination">
-          <span>Showing {visibleRows.length} of {rows.length}</span>
+          <span>Showing {visibleRows.length} of {rows.length} {noun}</span>
           {hasMore ? (
             <button type="button" className="rd-v2-btn sm" onClick={() => setVisibleLimit((limit) => limit + PAGE_SIZE)}>
               Load {Math.min(PAGE_SIZE, rows.length - visibleRows.length)} more
