@@ -55,6 +55,9 @@ import "./home-trail-adaptive.css";
 // audit against the canonical HPS authority without touching other surfaces.
 import "./profile-settings-canonical-refine.css";
 import "./profile-registry-explorer.css";
+// Final convergence overrides are state- and breakpoint-scoped corrections
+// proven necessary only after the surfaces were rendered together.
+import "./visual-product-convergence.css";
 import { V2App } from "./App";
 import { InteractionProvider } from "./InteractionGuidance";
 
