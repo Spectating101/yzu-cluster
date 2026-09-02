@@ -4,11 +4,8 @@
  */
 
 @media (min-width: 1680px) and (min-height: 900px) {
-  /* MAPPED EVIDENCE: topology is the primary visual; deterministic measurement
-     and the next action share the right lane. Pull the measured-column surface
-     directly underneath so the viewport contains both topology and field truth. */
-  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):has(> [data-testid="synthesis-method-surface"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
-    > [data-testid="synthesis-evidence-state"] {
+  /* MAPPED EVIDENCE */
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):has(> [data-testid="synthesis-method-surface"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"])) > [data-testid="synthesis-evidence-state"] {
     grid-column: 1 / 8 !important;
     grid-row: 4 / span 2 !important;
     min-height: 404px !important;
@@ -16,8 +13,7 @@
     align-self: stretch !important;
   }
 
-  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):has(> [data-testid="synthesis-method-surface"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
-    > .s04-measurement-status {
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):has(> [data-testid="synthesis-method-surface"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"])) > .s04-measurement-status {
     grid-column: 8 / 13 !important;
     grid-row: 4 !important;
     min-height: 0 !important;
@@ -26,8 +22,7 @@
     padding: 15px 17px !important;
   }
 
-  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):has(> [data-testid="synthesis-method-surface"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
-    > .s04-opening-next {
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):has(> [data-testid="synthesis-method-surface"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"])) > .s04-opening-next {
     grid-column: 8 / 13 !important;
     grid-row: 5 !important;
     min-height: 0 !important;
@@ -36,8 +31,7 @@
     padding: 16px 18px !important;
   }
 
-  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):has(> [data-testid="synthesis-method-surface"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
-    > [data-testid="synthesis-method-surface"] {
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):has(> [data-testid="synthesis-method-surface"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"])) > [data-testid="synthesis-method-surface"] {
     grid-column: 1 / 13 !important;
     grid-row: 6 !important;
     min-width: 0 !important;
@@ -45,7 +39,6 @@
     padding: 13px 15px !important;
   }
 
-  /* Measured datasets are a comparison surface at workstation width. */
   #root .rd-v2-synthesis-page [data-testid="synthesis-method-surface"] .s04-measured-datasets {
     display: grid !important;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)) !important;
@@ -58,25 +51,15 @@
     padding: 10px 11px !important;
   }
 
-  /* BLOCKING DECISIONS: top tier is the actual methodological decision. The
-     lower tier is a split evidence/field-diagnostics bench, not another full
-     width card stack. */
-  #root .rd-v2-synthesis-page .s04-main:has(> :is(
-    [data-testid="synthesis-scope-block"],
-    [data-testid="synthesis-unit-conflict"],
-    [data-testid="synthesis-join-decision"]
-  )):has(> [data-testid="synthesis-method-surface"]) > .s04-measurement-status {
+  /* BLOCKING DECISIONS */
+  #root .rd-v2-synthesis-page .s04-main:has(> :is([data-testid="synthesis-scope-block"],[data-testid="synthesis-unit-conflict"],[data-testid="synthesis-join-decision"])):has(> [data-testid="synthesis-method-surface"]) > .s04-measurement-status {
     grid-column: 1 / 13 !important;
     grid-row: 4 !important;
     min-height: 0 !important;
     padding: 8px 12px !important;
   }
 
-  #root .rd-v2-synthesis-page .s04-main:has(> :is(
-    [data-testid="synthesis-scope-block"],
-    [data-testid="synthesis-unit-conflict"],
-    [data-testid="synthesis-join-decision"]
-  )):has(> [data-testid="synthesis-method-surface"]) > [data-testid="synthesis-evidence-state"] {
+  #root .rd-v2-synthesis-page .s04-main:has(> :is([data-testid="synthesis-scope-block"],[data-testid="synthesis-unit-conflict"],[data-testid="synthesis-join-decision"])):has(> [data-testid="synthesis-method-surface"]) > [data-testid="synthesis-evidence-state"] {
     grid-column: 1 / 9 !important;
     grid-row: 5 !important;
     min-height: 286px !important;
@@ -86,20 +69,12 @@
     align-self: stretch !important;
   }
 
-  #root .rd-v2-synthesis-page .s04-main:has(> :is(
-    [data-testid="synthesis-scope-block"],
-    [data-testid="synthesis-unit-conflict"],
-    [data-testid="synthesis-join-decision"]
-  )):has(> [data-testid="synthesis-method-surface"]) > [data-testid="synthesis-evidence-state"] > .s04-map {
+  #root .rd-v2-synthesis-page .s04-main:has(> :is([data-testid="synthesis-scope-block"],[data-testid="synthesis-unit-conflict"],[data-testid="synthesis-join-decision"])):has(> [data-testid="synthesis-method-surface"]) > [data-testid="synthesis-evidence-state"] > .s04-map {
     min-height: 190px !important;
     height: 100% !important;
   }
 
-  #root .rd-v2-synthesis-page .s04-main:has(> :is(
-    [data-testid="synthesis-scope-block"],
-    [data-testid="synthesis-unit-conflict"],
-    [data-testid="synthesis-join-decision"]
-  )):has(> [data-testid="synthesis-method-surface"]) > [data-testid="synthesis-method-surface"] {
+  #root .rd-v2-synthesis-page .s04-main:has(> :is([data-testid="synthesis-scope-block"],[data-testid="synthesis-unit-conflict"],[data-testid="synthesis-join-decision"])):has(> [data-testid="synthesis-method-surface"]) > [data-testid="synthesis-method-surface"] {
     grid-column: 9 / 13 !important;
     grid-row: 5 !important;
     min-width: 0 !important;
@@ -110,48 +85,144 @@
     align-self: stretch !important;
   }
 
-  #root .rd-v2-synthesis-page .s04-main:has(> :is(
-    [data-testid="synthesis-scope-block"],
-    [data-testid="synthesis-unit-conflict"],
-    [data-testid="synthesis-join-decision"]
-  )):has(> [data-testid="synthesis-method-surface"])
-    > [data-testid="synthesis-method-surface"] .s04-measured-datasets {
+  #root .rd-v2-synthesis-page .s04-main:has(> :is([data-testid="synthesis-scope-block"],[data-testid="synthesis-unit-conflict"],[data-testid="synthesis-join-decision"])):has(> [data-testid="synthesis-method-surface"]) > [data-testid="synthesis-method-surface"] .s04-measured-datasets {
     grid-template-columns: 1fr !important;
   }
 
-  /* PROPOSAL: the proposal remains dominant, but measured field truth is too
-     relevant to leave below the first viewport. Keep evidence side-by-side and
-     put measured inputs in a compact comparison row directly underneath. */
-  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):has(> [data-testid="synthesis-method-surface"])
-    > [data-testid="synthesis-method-surface"] {
+  /* PROPOSAL */
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):has(> [data-testid="synthesis-method-surface"]) > [data-testid="synthesis-method-surface"] {
     grid-column: 1 / 13 !important;
     grid-row: 5 !important;
     margin: 0 !important;
     padding: 12px 14px !important;
   }
 
-  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):has(> [data-testid="synthesis-method-surface"])
-    > [data-testid="synthesis-method-surface"] .s04-title {
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):has(> [data-testid="synthesis-method-surface"]) > [data-testid="synthesis-method-surface"] .s04-title {
     margin-bottom: 7px !important;
   }
 
-  /* DEFINED / no evidence: use the height as an actual evidence review bay,
-     but keep the inner content anchored instead of inflating empty subcards. */
-  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-measurement-status)):not(:has(> [data-testid="synthesis-method-surface"])):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"]))
-    > [data-testid="synthesis-evidence-state"] {
+  /* DEFINED / no evidence */
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-measurement-status)):not(:has(> [data-testid="synthesis-method-surface"])):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])) > [data-testid="synthesis-evidence-state"] {
     min-height: 430px !important;
     display: flex !important;
     flex-direction: column !important;
   }
 
-  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-measurement-status)):not(:has(> [data-testid="synthesis-method-surface"])):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"]))
-    > [data-testid="synthesis-evidence-state"] > .s04-actions {
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-measurement-status)):not(:has(> [data-testid="synthesis-method-surface"])):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])) > [data-testid="synthesis-evidence-state"] > .s04-actions {
     margin-top: auto !important;
   }
 
-  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-measurement-status)):not(:has(> [data-testid="synthesis-method-surface"])):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"]))
-    > .s04-opening-next {
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-measurement-status)):not(:has(> [data-testid="synthesis-method-surface"])):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])) > .s04-opening-next {
     min-height: 430px !important;
     padding: 20px !important;
+  }
+
+  /* OPENING INSPECTOR: make the right rail an actual analytical ledger rather
+     than four status fields followed by dead canvas. All values are taken from
+     current thread state or deterministic measurement output. */
+  #root .rd-v2-synthesis-page [data-testid="synthesis-opening-rail"] .rd-v2-rail-scroll {
+    display: grid !important;
+    gap: 9px !important;
+    align-content: start !important;
+    padding-bottom: 12px !important;
+  }
+
+  #root .rd-v2-synthesis-page :is(.s04-rail-gates,.s04-rail-evidence-ledger,.s04-rail-measurement) {
+    padding: 10px 11px !important;
+    border: 1px solid #e0ddd4 !important;
+    border-radius: 8px !important;
+    background: rgba(251,249,243,.74) !important;
+  }
+
+  #root .rd-v2-synthesis-page :is(.s04-rail-gates,.s04-rail-evidence-ledger,.s04-rail-measurement) > header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    margin-bottom: 7px !important;
+  }
+
+  #root .rd-v2-synthesis-page :is(.s04-rail-gates,.s04-rail-evidence-ledger,.s04-rail-measurement) > header span {
+    color: #687687 !important;
+    font-size: 8px !important;
+    font-weight: 800 !important;
+    letter-spacing: .08em !important;
+    text-transform: uppercase !important;
+  }
+
+  #root .rd-v2-synthesis-page :is(.s04-rail-gates,.s04-rail-evidence-ledger,.s04-rail-measurement) > header strong {
+    color: #3d564b !important;
+    font-size: 8.5px !important;
+    font-weight: 800 !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-rail-gates ul,
+  #root .rd-v2-synthesis-page .s04-rail-evidence-ledger ul {
+    display: grid !important;
+    gap: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    list-style: none !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-rail-gates li {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 8px !important;
+    align-items: center !important;
+    min-height: 24px !important;
+    border-top: 1px solid #ebe7dd !important;
+    font-size: 8.5px !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-rail-gates li:first-child { border-top: 0 !important; }
+  #root .rd-v2-synthesis-page .s04-rail-gates li span { color: #65727e !important; }
+  #root .rd-v2-synthesis-page .s04-rail-gates li strong { color: #697782 !important; font-size: 8.5px !important; text-align: right !important; }
+  #root .rd-v2-synthesis-page .s04-rail-gates li.is-ready strong { color: #3f735b !important; }
+  #root .rd-v2-synthesis-page .s04-rail-gates li.is-blocked strong { color: #9a5d3e !important; }
+
+  #root .rd-v2-synthesis-page .s04-rail-evidence-ledger li {
+    display: grid !important;
+    gap: 2px !important;
+    padding: 6px 0 !important;
+    border-top: 1px solid #ebe7dd !important;
+  }
+  #root .rd-v2-synthesis-page .s04-rail-evidence-ledger li:first-child { border-top: 0 !important; }
+  #root .rd-v2-synthesis-page .s04-rail-evidence-ledger li b {
+    overflow: hidden !important;
+    color: #334553 !important;
+    font-size: 8.5px !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+  #root .rd-v2-synthesis-page .s04-rail-evidence-ledger li span {
+    color: #7a858d !important;
+    font-size: 7.5px !important;
+    line-height: 1.3 !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-rail-measurement dl {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+    margin: 0 !important;
+  }
+  #root .rd-v2-synthesis-page .s04-rail-measurement dl > div {
+    min-width: 0 !important;
+    padding: 6px 7px !important;
+    border: 1px solid #e8e3d9 !important;
+    border-radius: 6px !important;
+    background: rgba(255,255,255,.5) !important;
+  }
+  #root .rd-v2-synthesis-page .s04-rail-measurement dt {
+    color: #7a858d !important;
+    font-size: 7px !important;
+    text-transform: uppercase !important;
+  }
+  #root .rd-v2-synthesis-page .s04-rail-measurement dd {
+    margin: 2px 0 0 !important;
+    color: #314453 !important;
+    font-size: 10px !important;
+    font-weight: 750 !important;
   }
 }
