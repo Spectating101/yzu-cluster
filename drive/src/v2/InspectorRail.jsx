@@ -7,7 +7,7 @@ import {
   ResourcesRailPanel,
 } from "@/v2/RailPanels";
 import { HomeAttentionRailPanel } from "@/v2/HomeAttentionRailPanel";
-import { ProfileDetailPanel } from "@/v2/ProfilePage";
+import { ProfileRailPanel } from "@/v2/ProfileRailPanel";
 import { SettingsRailPanel } from "@/v2/SettingsRailPanel";
 import { activeObjectSelectionHint } from "@/v2/activeObject";
 import { displayName } from "@/v2/datasetMeta";
@@ -224,7 +224,7 @@ export function InspectorRail({
       />
     );
   } else if (mainTab === "profile") {
-    detailPanel = <ProfileDetailPanel profile={profile} />;
+    detailPanel = <ProfileRailPanel profile={profile} onAskAbout={onAskAbout} />;
   } else if (mainTab === "settings") {
     detailPanel = <SettingsRailPanel onAskAbout={onAskAbout} />;
   } else if (mainTab === "synthesis") {
