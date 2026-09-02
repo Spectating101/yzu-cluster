@@ -1,11 +1,11 @@
 /* Synthesis zero-instruction usability pass.
  *
- * The durable workflow already exists. This layer removes duplicate narration
- * and gives the operation the researcher can perform now visual authority.
+ * Durable semantics stay unchanged. This layer removes duplicate narration and
+ * makes the operation the researcher can perform now visually dominant.
  */
 
 @media (min-width: 760px) {
-  /* Keep one live operation cue, not a second progress model. */
+  /* One current-operation cue is enough. */
   .rd-v2-synthesis-page .s04-opening-workflow {
     display: none !important;
   }
@@ -30,7 +30,7 @@
     font-weight: 650;
   }
 
-  /* Research brief remains available as context, but stops reading as a hero. */
+  /* Research brief is context, not the task. */
   .rd-v2-synthesis-page .s04-opening-brief {
     box-shadow: none !important;
   }
@@ -44,72 +44,32 @@
     margin-block: 0 !important;
   }
 
-  /* Early mapped-evidence workspace: remove the second Ask advancement CTA and
-     make the duplicate object/negative-status cards read as quiet metadata. */
-  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"]))
-    > [data-testid="synthesis-evidence-state"] > .s04-actions {
+  /* Evidence maps should not carry a second Ask CTA after the page already has
+     a persistent Ask rail and a dedicated operation control. */
+  .rd-v2-synthesis-page [data-testid="synthesis-evidence-state"] > .s04-actions {
     display: none !important;
   }
 
-  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"]))
-    > [data-testid="synthesis-evidence-state"] > .s04-pairs {
+  .rd-v2-synthesis-page [data-testid="synthesis-evidence-state"] > .s04-pairs {
     margin-top: 10px !important;
   }
 
-  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"]))
-    > [data-testid="synthesis-evidence-state"] > .s04-pairs article {
+  .rd-v2-synthesis-page [data-testid="synthesis-evidence-state"] > .s04-pairs article {
     min-height: 0 !important;
     padding: 9px 11px !important;
     background: transparent !important;
     box-shadow: none !important;
   }
 
-  /* Once evidence is mapped and Ask is not already reasoning, there is one
-     advancement control: request one reviewable method proposal. */
-  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has([data-testid="synthesis-evidence-proposal"])):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> .s04-draft)
-    > .s04-opening-next {
-    min-height: 0 !important;
-    padding: 12px 14px !important;
-    border: 1px solid #d9e4de !important;
-    border-radius: 9px !important;
-    background: #f5faf7 !important;
-    box-shadow: none !important;
-  }
-
-  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has([data-testid="synthesis-evidence-proposal"])):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> .s04-draft)
-    > .s04-opening-next > :is(header, p, em) {
-    display: none !important;
-  }
-
-  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has([data-testid="synthesis-evidence-proposal"])):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> .s04-draft)
-    > .s04-opening-next > footer {
-    width: 100%;
-    margin: 0 !important;
-    align-items: center !important;
-  }
-
-  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has([data-testid="synthesis-evidence-proposal"])):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> .s04-draft)
-    > .s04-opening-next > footer::before {
-    content: "Evidence is mapped. Request one reviewable method proposal from these inputs.";
-    margin-right: auto;
-    max-width: 55ch;
-    color: #3f4d5b;
-    font-size: 10.5px;
-    font-weight: 650;
-    line-height: 1.4;
-  }
-
   /* First real operation after thread creation: choose held Library evidence.
-     The empty map scaffold, duplicate object cards, generic next dossier and Ask
-     CTA all disappear while the read-only evidence proposal is present. */
+     Empty-map scaffolding and a disabled next-step dossier only compete with the
+     selector the researcher must actually use. */
   .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
     > .s04-opening-next,
   .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
     > [data-testid="synthesis-evidence-state"] .s04-map,
   .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
-    > [data-testid="synthesis-evidence-state"] .s04-pairs,
-  .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
-    > [data-testid="synthesis-evidence-state"] > .s04-actions {
+    > [data-testid="synthesis-evidence-state"] .s04-pairs {
     display: none !important;
   }
 
@@ -188,13 +148,49 @@
     border-top: 1px solid #dfe6e2 !important;
   }
 
-  /* Proposal is already a strong decision surface. Remove context that repeats
-     its own evidence/method consequences. */
-  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"])
-    > .s04-opening-brief {
-    opacity: .82;
+  /* Mapped evidence: the generic explanatory card becomes one shallow advance
+     control. Reasoning state is overridden below so its live receipt remains. */
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"])
+    > .s04-opening-next {
+    min-height: 0 !important;
+    padding: 12px 14px !important;
+    border: 1px solid #d9e4de !important;
+    border-radius: 9px !important;
+    background: #f5faf7 !important;
+    box-shadow: none !important;
   }
 
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"])
+    > .s04-opening-next > :is(header, p, em) {
+    display: none !important;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"])
+    > .s04-opening-next > footer {
+    width: 100%;
+    margin: 0 !important;
+    align-items: center !important;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"])
+    > .s04-opening-next > footer::before {
+    content: "Evidence is mapped. Request one reviewable method proposal from these inputs.";
+    margin-right: auto;
+    max-width: 55ch;
+    color: #3f4d5b;
+    font-size: 10.5px;
+    font-weight: 650;
+    line-height: 1.4;
+  }
+
+  /* While Ask reasons, the live reasoning surface is authoritative. Keep only
+     the compact disabled receipt established by the operated-flow layer. */
+  .rd-v2-synthesis-page .s04-main:has(> .s04-draft)
+    > .s04-opening-next > footer::before {
+    content: "Ask is drafting one reviewable method proposal. Nothing is accepted or executed yet.";
+  }
+
+  /* Proposal already carries exact change set, unknowns and decision buttons. */
   .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"])
     > [data-testid="synthesis-evidence-state"] > :is(.s04-pairs, .s04-actions) {
     display: none !important;
@@ -206,8 +202,8 @@
     padding-block: 8px !important;
   }
 
-  /* Preview / Approval / Build / Result: old thread history and repeated brief
-     context must not sit above the exact receipt/result. */
+  /* Preview / Approval / Build / Result: remove repeated context and ancient
+     "Current record" history from above the exact receipt/result. */
   .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-execution-state"])
     > :is(.s04-opening-brief, .s04-brief),
   .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-failed-state"])
@@ -221,7 +217,7 @@
 }
 
 @media (min-width: 1680px) and (min-height: 900px) {
-  /* Evidence selection itself gets the entire analytical canvas. */
+  /* Evidence selection itself owns the workstation canvas. */
   #root .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
     > [data-testid="synthesis-evidence-state"] {
     grid-column: 1 / 13 !important;
@@ -233,22 +229,8 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  /* Measured evidence + one operational sidecar. */
-  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has([data-testid="synthesis-evidence-proposal"])):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> .s04-draft)
-    > [data-testid="synthesis-evidence-state"] {
-    grid-column: 1 / 9 !important;
-    grid-row: auto / span 5 !important;
-    align-self: stretch !important;
-  }
-
-  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has([data-testid="synthesis-evidence-proposal"])):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> .s04-draft)
-    > :is(.s04-measurement-status, .s04-opening-next, [data-testid="synthesis-method-surface"]) {
-    grid-column: 9 / 13 !important;
-    align-self: start !important;
-  }
-
-  /* Preview/approval/build get the full first analytical row. Evidence remains
-     inspectable below instead of consuming a third of the primary viewport. */
+  /* Preview / approval / build deserve the full analytical row. Evidence stays
+     available below as context rather than consuming the first viewport. */
   #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-execution-state"])
     > [data-testid="synthesis-execution-state"],
   #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-failed-state"])
@@ -262,23 +244,6 @@
     > [data-testid="synthesis-evidence-state"] {
     grid-column: 1 / 7 !important;
     margin-top: 0 !important;
-  }
-
-  /* Registered/query-ready keeps result authority at left and measured /
-     provenance / reuse context at right. */
-  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-registered-state"])
-    > [data-testid="synthesis-registered-state"],
-  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-query-ready-state"])
-    > [data-testid="synthesis-query-ready-state"] {
-    grid-column: 1 / 9 !important;
-  }
-
-  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-registered-state"])
-    > :is([data-testid="synthesis-method-surface"], [data-testid="synthesis-provenance"], [data-testid="synthesis-reuse"], [data-testid="synthesis-evidence-state"]),
-  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-query-ready-state"])
-    > :is([data-testid="synthesis-method-surface"], [data-testid="synthesis-provenance"], [data-testid="synthesis-reuse"], [data-testid="synthesis-evidence-state"]) {
-    grid-column: 9 / 13 !important;
-    align-self: start !important;
   }
 }
 
