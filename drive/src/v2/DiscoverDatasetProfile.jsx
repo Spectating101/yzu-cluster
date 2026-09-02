@@ -1,3 +1,4 @@
+import "./discover-serp-row-base.css";
 import "./discover-serp-row-v2.css";
 
 // Analytical result records deliberately expose only backend/inspection facts.
