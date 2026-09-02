@@ -1,0 +1,41 @@
+name: Profile Settings current canonical
+
+on:
+  push:
+    branches:
+      - "polish/profile-settings-current-canonical-20260902"
+    paths:
+      - "drive/src/v2/**"
+      - "e2e/profile-settings-canonical-refine.spec.js"
+      - ".github/workflows/profile-settings-current-canonical.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npx playwright install chromium --with-deps
+      - name: Capture PS states from current canonical
+        run: >-
+          mkdir -p .tmp-pw artifacts/profile-settings-canonical-refine &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/profile-settings-canonical-refine.spec.js --workers=1 --reporter=line
+      - name: Upload PS screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: profile-settings-current-canonical
+          path: |
+            artifacts/profile-settings-canonical-refine
+            test-results
+          if-no-files-found: warn
