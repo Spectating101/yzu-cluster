@@ -126,6 +126,11 @@ function OpeningThreadRail({ thread, onAsk }) {
   const profiles = Array.isArray(state.column_profiles) ? state.column_profiles : [];
   const proposal = state.proposal || null;
   const assist = synthesisAssist(thread);
+  const unmeasured = Array.isArray(state.unmeasured) ? state.unmeasured : [];
+  const flaggedProfiles = profiles.filter((profile) => Array.isArray(profile?.flags) && profile.flags.length);
+  const countFlag = (flag) => profiles.filter((profile) => (profile?.flags || []).includes(flag)).length;
+  const measuredInputs = Number(state.measured_inputs || 0);
+  const joinReview = Boolean((Array.isArray(state.join_candidates) && state.join_candidates.length) || state.multi_overlap);
   const measurement = profiles.length
     ? `${profiles.length.toLocaleString()} column${profiles.length === 1 ? "" : "s"}`
     : nodes.length
@@ -144,6 +149,15 @@ function OpeningThreadRail({ thread, onAsk }) {
   const objective = String(thread?.objective || state.objective || brief.purpose || "").trim();
   const period = brief.targetPeriod || state.target_period || state.spec?.period || "Not stated";
   const intendedUse = brief.intendedUse || state.intended_use || state.spec?.intended_use || "Not stated";
+  const gates = [
+    ["Objective", objective ? "Recorded" : "Missing", Boolean(objective)],
+    ["Evidence", nodes.length ? `${nodes.length} mapped` : "Waiting", Boolean(nodes.length)],
+    ["Measurement", profiles.length ? `${profiles.length} profiled` : "Not checked", Boolean(profiles.length)],
+    ["Scope", state.scope_block ? "Decision needed" : profiles.length ? "No blocker" : "Not checked", profiles.length && !state.scope_block],
+    ["Units", state.unit_conflict ? "Decision needed" : profiles.length ? "No blocker" : "Not checked", profiles.length && !state.unit_conflict],
+    ["Join", joinReview ? "Review needed" : profiles.length ? "No blocker" : "Not checked", profiles.length && !joinReview],
+    ["Method", proposal ? "Proposal ready" : recommendation.present ? "Recommendation" : "Not proposed", Boolean(proposal)],
+  ];
 
   return (
     <div data-testid="synthesis-opening-rail">
@@ -165,6 +179,59 @@ function OpeningThreadRail({ thread, onAsk }) {
               <div><dt>Intended use</dt><dd>{intendedUse}</dd></div>
             </dl>
           </section>
+
+          <section className="s04-rail-gates" aria-label="Synthesis readiness ledger">
+            <header><span>Readiness ledger</span><strong>{gates.filter((gate) => gate[2]).length}/{gates.length}</strong></header>
+            <ul>
+              {gates.map(([label, value, ready]) => (
+                <li key={label} className={ready ? "is-ready" : value.includes("needed") ? "is-blocked" : ""}>
+                  <span>{label}</span><strong>{value}</strong>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          {nodes.length ? (
+            <section className="s04-rail-evidence-ledger" aria-label="Mapped evidence ledger">
+              <header><span>Mapped evidence</span><strong>{nodes.length}</strong></header>
+              <ul>
+                {nodes.slice(0, 6).map((node, index) => (
+                  <li key={node.id || node.dataset_id || `${node.label}-${index}`}>
+                    <b>{node.label || node.dataset_id || node.id || `Input ${index + 1}`}</b>
+                    <span>{[node.role, node.grain, node.coverage].filter(Boolean).join(" · ") || node.detail || "Held Library evidence"}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : recommendation.present && recommendation.nodes.length ? (
+            <section className="s04-rail-evidence-ledger is-planned" aria-label="Recommended evidence roles">
+              <header><span>Evidence roles</span><strong>{recommendation.nodes.length}</strong></header>
+              <ul>
+                {recommendation.nodes.slice(0, 6).map((node, index) => (
+                  <li key={node.id || `${node.label}-${index}`}>
+                    <b>{node.label || node.role || `Role ${index + 1}`}</b>
+                    <span>{[node.role, node.grain].filter(Boolean).join(" · ") || node.detail || "Recommended · not mapped"}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
+          {profiles.length || unmeasured.length ? (
+            <section className="s04-rail-measurement" aria-label="Measured evidence diagnostics">
+              <header><span>Measurement diagnostics</span><strong>Held bytes</strong></header>
+              <dl>
+                <div><dt>Inputs</dt><dd>{measuredInputs || nodes.length}</dd></div>
+                <div><dt>Columns</dt><dd>{profiles.length}</dd></div>
+                <div><dt>Flagged</dt><dd>{flaggedProfiles.length}</dd></div>
+                <div><dt>Unread</dt><dd>{unmeasured.length}</dd></div>
+                <div><dt>Look-ahead</dt><dd>{countFlag("lookahead")}</dd></div>
+                <div><dt>Sparse</dt><dd>{countFlag("sparse")}</dd></div>
+                <div><dt>Scale twins</dt><dd>{countFlag("unit_twin")}</dd></div>
+              </dl>
+            </section>
+          ) : null}
+
           <RailFieldGrid>
             <RailField label="Evidence" value={evidence} />
             <RailField label="Measured" value={measurement} />
