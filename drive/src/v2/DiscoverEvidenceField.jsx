@@ -7,6 +7,7 @@ import "./discover-workstation-polish.css";
 import "./discover-resting-polish.css";
 import "./discover-rail-balance.css";
 import "./discover-utility-workbench.css";
+import "./discover-utility-hierarchy-pass.css";
 
 function rows(value) {
   return Array.isArray(value) ? value : [];
