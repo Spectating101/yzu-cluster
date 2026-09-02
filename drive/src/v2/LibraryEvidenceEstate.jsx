@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { LIBRARY_FOLDERS_ROOT } from "@/driveTree";
-import { displayName, libraryAssetPresentation, statusPillKind } from "@/v2/datasetMeta";
+import { displayName, libraryAssetPresentation } from "@/v2/datasetMeta";
 import { libraryVerification } from "@/v2/libraryVerification";
 import { StatusPill } from "@/v2/StatusPill";
 import "@/v2/capability-convergence.css";
@@ -119,7 +119,7 @@ export function LibraryEvidenceEstate({
   return (
     <section className="rd-v2-cap-estate" data-testid="library-evidence-estate" aria-label="Research evidence estate">
       {collections.length || collectionsLoading ? (
-        <div className="rd-v2-cap-collections" aria-label="Curated research collections">
+        <div className="rd-v2-cap-collections" aria-label="Library collection shortcuts and folder storage">
           <span className="rd-v2-cap-collections-label">Collections</span>
           {collections.length ? (
             <div className="rd-v2-cap-collection-list">
@@ -127,8 +127,8 @@ export function LibraryEvidenceEstate({
                 type="button"
                 className="rd-v2-cap-collection rd-v2-cap-folders-root"
                 data-testid="library-folders-root"
-                aria-label="Browse all folders"
-                title="Browse all folders"
+                aria-label="Browse all storage folders"
+                title="Browse the Library storage structure"
                 onClick={() => onOpenCollection?.({ id: LIBRARY_FOLDERS_ROOT, name: "Folders" })}
               >
                 <span>Folders</span>
@@ -143,7 +143,7 @@ export function LibraryEvidenceEstate({
                     className="rd-v2-cap-collection"
                     data-testid="library-collection-filter"
                     aria-label={`Open ${name} directory`}
-                    title={`Open ${name} directory`}
+                    title={`Open ${name} in Folders`}
                     onClick={() => onOpenCollection?.(collection)}
                   >
                     <span>{name}</span>
@@ -166,8 +166,8 @@ export function LibraryEvidenceEstate({
           <span role="columnheader">Evidence</span>
           {showKind ? <span role="columnheader">Type</span> : null}
           <span role="columnheader">Source</span>
-          <span role="columnheader">Verify</span>
-          <span role="columnheader">State</span>
+          <span role="columnheader" title="Whether the recorded source evidence has been checked">Verify</span>
+          <span role="columnheader" title="Whether this evidence can be used directly for research or querying">Readiness</span>
         </div>
         <div className="rd-v2-cap-ledger-body">
           {visibleAssets.length ? (
@@ -253,7 +253,7 @@ export function LibraryEvidenceEstate({
 
       {visibleAssets.length > PAGE_SIZE ? (
         <div className="rd-v2-library-pagination" aria-label="Library evidence pagination">
-          <span>Showing {pagedAssets.length} of {visibleAssets.length}</span>
+          <span>Showing {pagedAssets.length} of {visibleAssets.length} assets</span>
           {hasMore ? (
             <button type="button" className="rd-v2-btn sm" onClick={() => setVisibleLimit((limit) => limit + PAGE_SIZE)}>
               Load {Math.min(PAGE_SIZE, visibleAssets.length - pagedAssets.length)} more
