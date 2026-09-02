@@ -10,6 +10,7 @@ import "./discover-utility-workbench.css";
 import "./discover-utility-hierarchy-pass.css";
 import "./discover-wide-comfort.css";
 import "./discover-wide-comfort-final.css";
+import "./discover-data-object-polish.css";
 
 function rows(value) {
   return Array.isArray(value) ? value : [];
@@ -54,21 +55,21 @@ function candidateObservation(row) {
 function ComparisonMatrix({ candidates }) {
   if (!candidates.length) return null;
   const fields = [
-    ["Evidence type", candidateType],
-    ["Coverage", candidateCoverage],
-    ["Refresh", candidateRefresh],
-    ["Route", candidateRoute],
-    ["Verification", candidateObservation],
+    ["What it contains", candidateCoverage],
+    ["Data product", candidateType],
+    ["Updated", candidateRefresh],
+    ["Access path", candidateRoute],
+    ["What we verified", candidateObservation],
   ];
 
   return (
     <div className="rd-v2-discover-utility-matrix" data-testid="discover-utility-matrix">
       <div className="rd-v2-discover-utility-matrix-head">
         <div>
-          <span className="rd-v2-eyebrow">Candidate comparison</span>
-          <strong>{candidates.length} leading inputs, aligned</strong>
+          <span className="rd-v2-eyebrow">Compare data options</span>
+          <strong>{candidates.length} leading candidates, side by side</strong>
         </div>
-        <p>Recorded metadata only. Unknown fields stay unknown rather than being treated as absent.</p>
+        <p>Only recorded facts are shown. An unknown field stays unknown rather than being treated as missing.</p>
       </div>
       <div
         className="rd-v2-discover-utility-grid"
@@ -76,7 +77,7 @@ function ComparisonMatrix({ candidates }) {
         role="table"
         aria-label="Candidate comparison matrix"
       >
-        <div className="rd-v2-discover-utility-grid-corner" role="columnheader">Field</div>
+        <div className="rd-v2-discover-utility-grid-corner" role="columnheader">Question</div>
         {candidates.map((candidate) => (
           <div key={`head:${candidateTitle(candidate)}`} className="rd-v2-discover-utility-grid-source" role="columnheader">
             <b>{candidateProvider(candidate)}</b>
@@ -132,50 +133,50 @@ export function DiscoverEvidenceField({
     <section className="rd-v2-discover-field rd-v2-discover-field--utility" data-testid="discover-evidence-field" aria-label="Discover evidence field">
       <header>
         <div>
-          <span className="rd-v2-eyebrow">Candidate field</span>
+          <span className="rd-v2-eyebrow">Evidence options</span>
           <strong>{candidateCount} candidate{candidateCount === 1 ? "" : "s"}</strong>
-          <p>Scan the field first. Open a source when its coverage or route needs inspection.</p>
+          <p>Each result shows what data it can contribute and the access route currently known to the desk.</p>
         </div>
         <div className="rd-v2-discover-field-actions rd-v2-discover-utility-actions">
           <div className="rd-v2-discover-view-switch" role="group" aria-label="Evidence field view">
-            <button type="button" className={view === "ledger" ? "on" : ""} aria-pressed={view === "ledger"} onClick={() => setView("ledger")}>Ledger</button>
+            <button type="button" className={view === "ledger" ? "on" : ""} aria-pressed={view === "ledger"} onClick={() => setView("ledger")}>Browse</button>
             <button type="button" className={view === "matrix" ? "on" : ""} aria-pressed={view === "matrix"} onClick={() => setView("matrix")}>Compare</button>
           </div>
-          {onSearchWider ? <button type="button" onClick={() => onSearchWider(query)}>Search wider</button> : null}
+          {onSearchWider ? <button type="button" onClick={() => onSearchWider(query)}>Find more sources</button> : null}
         </div>
       </header>
 
       <div className="rd-v2-discover-utility-summary" aria-label="Evidence field composition">
-        <span className="is-primary"><b>{available}</b><em>acquirable</em></span>
-        <span><b>{verify}</b><em>to verify</em></span>
-        <span><b>{held}</b><em>held</em></span>
+        <span className="is-primary"><b>{available}</b><em>available</em></span>
+        <span><b>{verify}</b><em>need checking</em></span>
+        <span><b>{held}</b><em>in Library</em></span>
         <span><b>{context}</b><em>references</em></span>
-        <span className="rd-v2-discover-utility-rule"><b>{candidateCount}</b><em>in ledger</em></span>
+        <span className="rd-v2-discover-utility-rule"><b>{candidateCount}</b><em>data options</em></span>
       </div>
 
       {composable ? (
         <div className="rd-v2-discover-assembly rd-v2-discover-assembly--compact" data-testid="discover-assembly-path">
           <div className="rd-v2-discover-assembly-gap">
-            <span>Open evidence gap</span>
+            <span>Still missing</span>
             <strong>{gapText(assessmentResult)}</strong>
           </div>
           <div className="rd-v2-discover-assembly-position">
-            <b>{candidateCount} candidates can be compared as inputs</b>
-            <span>No assembly has run. Coverage and feasibility still need verification.</span>
+            <b>{candidateCount} sources may contribute part of the missing data</b>
+            <span>Compare what each source contributes before combining anything. Nothing has been collected yet.</span>
           </div>
           <div className="rd-v2-discover-assembly-state">
-            <span>Proposed</span>
-            {onReviewAssembly ? <button type="button" onClick={onReviewAssembly}>Review assembly →</button> : null}
+            <span>Proposed only</span>
+            {onReviewAssembly ? <button type="button" onClick={onReviewAssembly}>See how to fill the gap →</button> : null}
           </div>
         </div>
       ) : assessmentActive && !assessmentResult ? (
         <div className="rd-v2-discover-assembly rd-v2-discover-assembly--compact is-checking" role="status">
           <div className="rd-v2-discover-assembly-gap">
-            <span>Coverage check</span>
-            <strong>Testing whether one source is sufficient</strong>
+            <span>Checking coverage</span>
+            <strong>Is one source enough for this research need?</strong>
           </div>
           <div className="rd-v2-discover-assembly-position">
-            <span>The candidate ledger remains usable while held evidence is assessed.</span>
+            <span>You can keep inspecting the data options while the held evidence is checked.</span>
           </div>
         </div>
       ) : null}
