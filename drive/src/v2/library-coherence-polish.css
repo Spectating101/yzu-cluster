@@ -93,11 +93,14 @@
     border-top: 1px solid color-mix(in srgb, var(--rd-border) 74%, transparent);
   }
 
-  /* The right pane is one workflow, but its stages should not touch edge-to-edge. */
+  /* The retrieval band and the browser are related, but should not visually
+     touch. Keep this intentionally small so it reads as rhythm, not dead space. */
   .rd-v2-cap-estate:has(> .rd-v2-library-directory-home) {
+    margin-top: 20px;
     background: rgba(247, 246, 241, 0.72);
   }
 
+  /* The right pane is one workflow, but its stages should not touch edge-to-edge. */
   .rd-v2-cap-estate:has(> .rd-v2-library-directory-home) > .rd-v2-library-all-evidence {
     background: rgba(255, 255, 255, 0.42);
   }
