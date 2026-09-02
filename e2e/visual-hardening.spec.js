@@ -458,8 +458,9 @@ test.describe("Research Drive visual hardening", () => {
 
     expect(requestedEmails).not.toContain("drkong@saturn.yzu.edu.tw");
     expect(await page.evaluate(() => localStorage.getItem("procure_user_email"))).toBeNull();
-    await expect(page.getByText("No faculty identity is bound to this desk yet.")).toBeVisible();
-    await expect(page.getByRole("button", { name: "Use my email" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Research evidence, kept inspectable." })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "What this workspace does" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Use my email" })).toHaveCount(0);
     await expect(page.getByText(/Example/i)).toHaveCount(0);
     await assertResearcherFacing(page);
   });
