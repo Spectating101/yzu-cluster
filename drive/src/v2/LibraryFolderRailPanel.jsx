@@ -1,3 +1,4 @@
+import { LIBRARY_FOLDERS_ROOT } from "@/driveTree";
 import {
   RailField,
   RailFieldGrid,
@@ -27,6 +28,7 @@ export function LibraryFolderRailPanel({
 
   const counts = object.counts || {};
   const root = !object.folderId;
+  const foldersRoot = object.folderId === LIBRARY_FOLDERS_ROOT;
   const filteredRoot = isFilteredRoot(object);
   const totalAssets = Number(counts.datasets || 0);
   const visibleItems = Number(counts.items || 0);
@@ -35,7 +37,9 @@ export function LibraryFolderRailPanel({
     ? "In this view"
     : root
       ? "In this library"
-      : "In this collection";
+      : foldersRoot
+        ? "In folder storage"
+        : "In this collection";
 
   return (
     <RailFrame>
@@ -66,8 +70,10 @@ export function LibraryFolderRailPanel({
           {object.note ? <p className="rd-v2-rail-note">{object.note}</p> : null}
           <p className="rd-v2-rail-note">
             {root
-              ? "Use the Collections row in the main workspace to enter a folder; the breadcrumb returns to all Library evidence."
-              : "This is the folder directory. Open a child folder or use the breadcrumb to move back through the Library."}
+              ? "Library is the evidence overview. Use Folders for manual storage browsing, or jump directly into any collection from the main workspace."
+              : foldersRoot
+                ? "This is the manual storage browser. Open a top-level folder to inspect its hierarchy; Library remains the overview of held evidence."
+                : "This is the folder directory. Open a child folder or use the breadcrumb to move back through Folders or Library."}
           </p>
         </section>
 
@@ -91,7 +97,7 @@ export function LibraryFolderRailPanel({
 
       <RailStickyFooter>
         <button type="button" className="rd-v2-btn sm primary" onClick={onAskAbout}>
-          {root ? "Ask about the library →" : "Ask about this collection →"}
+          {root ? "Ask about the library →" : foldersRoot ? "Ask about folders →" : "Ask about this collection →"}
         </button>
       </RailStickyFooter>
     </RailFrame>
