@@ -1,0 +1,141 @@
+/* Canonical Discover state polish — wide workstation only.
+ * Keep Explore/Search/History architecture intact while aligning the shared
+ * chrome and removing dashboard residue from the initial state.
+ */
+@media (min-width: 1680px) and (min-height: 900px) {
+  /* Shared page chrome: the mode switch belongs to the far edge of the centre
+     workspace rather than floating between title and search. */
+  .rd-v2-discover-page > .rd-v2-page-head {
+    position: relative !important;
+    padding-right: 152px !important;
+  }
+
+  .rd-v2-discover-page > .rd-v2-page-head > .rd-v2-discover-modes {
+    position: absolute !important;
+    top: 50% !important;
+    right: 22px !important;
+    margin: 0 !important;
+    transform: translateY(-50%) !important;
+  }
+
+  /* Results summary: let the count breathe inside its utility strip. */
+  .rd-v2-discover-page .rd-v2-discover-result-actions {
+    padding-left: 11px !important;
+    padding-right: 9px !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-result-actions > div:first-child {
+    gap: 9px !important;
+  }
+
+  /* INITIAL EXPLORE — search remains dominant. The radar becomes a compact
+     evidence snapshot rather than a second operational dashboard. */
+  .rd-v2-discover-page .rd-v2-discover-idle {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 342px !important;
+    column-gap: 14px !important;
+    row-gap: 12px !important;
+    align-items: start !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle > .rd-v2-discover-composer {
+    grid-column: 1 / -1 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar {
+    grid-column: 1 !important;
+    margin: 0 !important;
+    padding: 12px 13px 13px !important;
+    gap: 9px !important;
+    box-shadow: none !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-head {
+    grid-template-columns: minmax(0, 1fr) !important;
+    align-items: start !important;
+    gap: 0 !important;
+    padding-bottom: 9px !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-head h2 {
+    margin-bottom: 0 !important;
+    font-size: 15px !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-head p,
+  .rd-v2-discover-page .rd-v2-discover-radar-state,
+  .rd-v2-discover-page .rd-v2-discover-radar-grid,
+  .rd-v2-discover-page .rd-v2-discover-capability-ledger {
+    display: none !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-metrics {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    border-radius: 6px !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-cockpit-metric {
+    min-height: 48px !important;
+    padding: 8px 10px !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-cockpit-metric strong {
+    font-size: 17px !important;
+  }
+
+  /* When there are no curated external routes, the extra Library block merely
+     repeats the radar's held-evidence count. Hide that empty/redundant state. */
+  .rd-v2-discover-page .rd-v2-discover-idle-held:not(:has(.rd-v2-home-section-head)) {
+    display: none !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-intake {
+    grid-column: 2 !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 8px !important;
+    align-items: end !important;
+    margin: 0 !important;
+    padding: 12px !important;
+    border: 1px solid var(--rd-border, #dbd4c5) !important;
+    border-radius: 8px !important;
+    background: color-mix(in srgb, var(--rd-surface, #fffdf6) 88%, #eef1ec 12%) !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-intake label {
+    grid-column: 1 / -1 !important;
+    margin: 0 !important;
+    color: var(--rd-text, #182033) !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-intake input {
+    min-width: 0 !important;
+    height: 34px !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-intake button {
+    min-height: 34px !important;
+    white-space: nowrap !important;
+  }
+
+  /* HISTORY — keep the ledger, but use the same restrained selected evidence
+     language as Explore and avoid naming the selected item twice in the rail. */
+  .rd-v2-discover-page--history .rd-v2-history-row.on {
+    background: color-mix(in srgb, #edf4ef 58%, transparent) !important;
+    box-shadow: inset 3px 0 0 #4f866c !important;
+  }
+
+  body:has(.rd-v2-discover-page--history)
+    aside.rd-v2-rail .rd-v2-rail-ehead {
+    display: none !important;
+  }
+
+  .rd-v2-discover-page--history .rd-v2-history-sync {
+    color: var(--rd-muted, #6e7685) !important;
+    background: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+  }
+}
