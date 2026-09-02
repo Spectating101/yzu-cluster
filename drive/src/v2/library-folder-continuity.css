@@ -111,6 +111,13 @@
   white-space: nowrap;
 }
 
+/* Evidence-rigor gives ledger verification chips a named grid area. Review rows
+   are a different grid, so clear that inherited placement before assigning the
+   review columns. */
+.rd-v2-library-review-item > .rd-v2-cap-verify {
+  grid-area: auto;
+}
+
 /* Wide collection/folder states only. Root composition belongs exclusively to
    library-coherence-polish.css so the two systems cannot fight each other. */
 @media (min-width: 1680px) and (min-height: 850px) {
