@@ -1,0 +1,45 @@
+name: Discover rail authority patch
+
+on:
+  push:
+    branches:
+      - prototype/discover-utility-workbench-20260902
+    paths:
+      - ".github/workflows/discover-rail-authority-patch.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: prototype/discover-utility-workbench-20260902
+      - name: Move wide assessment authority to rail
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          p = Path('drive/src/v2/InspectorRail.jsx')
+          s = p.read_text()
+          old = '''      <dl>\n        <div><dt>Held evidence</dt><dd>{pending ? "—" : held}</dd></div>\n        <div><dt>Centre</dt><dd>{pending ? "Assessment authority" : "Full assessment + sourcing routes"}</dd></div>\n      </dl>\n      <p className="muted">{pending ? "The rail mirrors state only; it does not run a second assessment." : "Use Detail for the decision summary or Ask to reason within this exact evidence need."}</p>'''
+          new = '''      <dl>\n        <div><dt>Held evidence</dt><dd>{pending ? "—" : held}</dd></div>\n        <div><dt>Evidence needed</dt><dd>{pending ? "Checking" : String(result?.gap?.resolution_evidence || "Not specified")}</dd></div>\n      </dl>\n      <p className="muted">{pending ? "The desk is checking held evidence against this requirement." : "This Detail rail is the assessment authority. Results stay available in the centre while you inspect the gap and candidate sources."}</p>'''
+          assert old in s
+          p.write_text(s.replace(old, new, 1))
+
+          t = Path('e2e/discover-reconvergence-visual.spec.js')
+          q = t.read_text()
+          old = '''      const workspace = page.locator(".rd-v2-evidence-brief.is-workspace");\n      await expect(workspace).toBeVisible();\n      await expect(workspace).toContainText(/Partially covered/i);\n      await expect(workspace).toContainText(/Board-governance variables/i);\n      const assembly = page.getByTestId("discover-assembly-path");\n      await expect(assembly).toBeVisible();\n      await expect(assembly).toContainText(/Board-governance variables/i);\n      await expect(assembly).toContainText(/Compare which sources actually provide the missing evidence/i);\n      await expect(assembly).toContainText(/No source selected or collected/i);\n      const details = workspace.locator(".rd-v2-evidence-detail-disclosure.is-workspace");\n      await expect(details).toBeVisible();\n      expect(await details.evaluate((node) => node.open)).toBe(false);'''
+          new = '''      const workspace = page.locator(".rd-v2-evidence-brief.is-workspace");\n      const assembly = page.getByTestId("discover-assembly-path");\n      if (viewport.width >= 1680) {\n        const assessmentRail = page.locator('aside.rd-v2-rail').getByRole('region', { name: 'Evidence assessment summary' });\n        await expect(assessmentRail).toBeVisible();\n        await expect(assessmentRail).toContainText(/Partially covered/i);\n        await expect(assessmentRail).toContainText(/Board-governance variables/i);\n        await expect(assessmentRail).toContainText(/Held evidence/i);\n        await expect(assembly).toBeHidden();\n      } else {\n        await expect(workspace).toBeVisible();\n        await expect(workspace).toContainText(/Partially covered/i);\n        await expect(workspace).toContainText(/Board-governance variables/i);\n        await expect(assembly).toBeVisible();\n        await expect(assembly).toContainText(/Board-governance variables/i);\n        const details = workspace.locator(".rd-v2-evidence-detail-disclosure.is-workspace");\n        await expect(details).toBeVisible();\n        expect(await details.evaluate((node) => node.open)).toBe(false);\n      }'''
+          assert old in q
+          t.write_text(q.replace(old, new, 1))
+          PY
+      - name: Commit rail authority
+        run: |
+          git config user.name research-drive-bot
+          git config user.email actions@users.noreply.github.com
+          git add drive/src/v2/InspectorRail.jsx e2e/discover-reconvergence-visual.spec.js
+          git commit -m "refactor(discover): move wide assessment authority to rail"
+          git push origin HEAD:prototype/discover-utility-workbench-20260902
