@@ -52,6 +52,13 @@ jobs:
           --timeout=30000
           --retries=0
           --reporter=line
+      - name: Exercise Synthesis agent authority modes
+        run: >-
+          mkdir -p artifacts/synthesis-automation &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/synthesis-automation.spec.js
+          --timeout=60000
+          --retries=0
+          --reporter=line
       - name: Exercise remaining Synthesis researcher workflow
         run: >-
           TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/v2-synthesis.spec.js
@@ -91,6 +98,7 @@ jobs:
           path: |
             artifacts/synthesis-renders
             artifacts/synthesis-convergence
+            artifacts/synthesis-automation
             artifacts/synthesis-acceptance
             artifacts/synthesis-scale
             test-results
