@@ -35,8 +35,8 @@ export function LibraryDirectoryStrip({
         disabled={!inFolder}
         aria-label={inFolder ? "Return to all Library evidence" : undefined}
       >
-        <span>Directory</span>
-        {inFolder ? <b>All evidence</b> : <b>{assetCount} assets</b>}
+        <span>Collections</span>
+        <b>{inFolder ? "All evidence" : `${assetCount} assets`}</b>
       </button>
 
       {collections.length ? (
