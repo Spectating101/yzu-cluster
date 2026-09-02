@@ -1,31 +1,96 @@
 /* Discover wide workstation authority.
-   Left = evidence controls/state. Centre = search + retrieval. Right = assessment/detail. */
+   Left = search/refinement context. Centre = SERP-like retrieval. Right = assessment/detail. */
 @media (min-width: 1680px) and (min-height: 900px) {
+  /* Keep useful page chrome without paying a landing-page tax. */
   .rd-v2-discover-page .rd-v2-page-head,
   .rd-v2-discover-page .rd-v2-page-header {
     min-height: 0 !important;
-    padding-top: 7px !important;
-    padding-bottom: 7px !important;
-    margin-bottom: 4px !important;
+    padding-top: 10px !important;
+    padding-bottom: 9px !important;
+    margin-bottom: 8px !important;
   }
   .rd-v2-discover-page .rd-v2-page-head h1,
-  .rd-v2-discover-page .rd-v2-page-header h1 { margin-block: 0 1px !important; }
+  .rd-v2-discover-page .rd-v2-page-header h1 {
+    margin-block: 0 2px !important;
+    font-size: 25px !important;
+  }
   .rd-v2-discover-page .rd-v2-page-head p,
   .rd-v2-discover-page .rd-v2-page-header p { margin-block: 0 !important; }
 
+  /* Left sub-rail: compact, continuous, and actually useful. */
+  .rd-v2-discover-browse:has(> .rd-v2-discover-evidence-cockpit) {
+    grid-template-columns: 236px minmax(0, 1fr) !important;
+    column-gap: 16px !important;
+  }
   .rd-v2-discover-evidence-cockpit {
     align-self: start !important;
-    min-height: calc(100vh - 118px) !important;
-    max-height: calc(100vh - 118px) !important;
+    min-height: 0 !important;
+    max-height: calc(100vh - 126px) !important;
     overflow: auto !important;
-    padding-bottom: 112px !important;
+    gap: 0 !important;
+    padding: 0 !important;
+    border-radius: 7px !important;
+    background: color-mix(in srgb, var(--rd-surface, #fffdf6) 93%, #edf1ee 7%) !important;
+    box-shadow: none !important;
   }
+  .rd-v2-discover-evidence-cockpit > * {
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    margin: 0 !important;
+    padding: 11px 12px !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 70%, transparent) !important;
+  }
+  .rd-v2-discover-evidence-cockpit > *:last-child { border-bottom: 0 !important; }
+  .rd-v2-cockpit-head { order: 1 !important; }
+  .rd-v2-cockpit-facets { order: 2 !important; }
+  .rd-v2-cockpit-stage-map { order: 3 !important; }
+  .rd-v2-discover-evidence-cockpit .rd-v2-cockpit-network { order: 4 !important; display: block !important; }
+  .rd-v2-cockpit-execution { order: 5 !important; }
+  .rd-v2-cockpit-assessment { display: none !important; }
+  .rd-v2-cockpit-head h3 {
+    margin: 4px 0 0 !important;
+    font-size: 12px !important;
+    line-height: 1.35 !important;
+    -webkit-line-clamp: 2 !important;
+  }
+  .rd-v2-cockpit-head p { display: none !important; }
+  .rd-v2-cockpit-section-head { margin-bottom: 7px !important; }
+  .rd-v2-cockpit-facets button {
+    min-height: 30px !important;
+    padding: 6px 7px !important;
+    font-size: 9px !important;
+  }
+  .rd-v2-cockpit-stage-row {
+    grid-template-columns: 62px minmax(40px, 1fr) 18px !important;
+    margin: 6px 0 !important;
+  }
+  .rd-v2-discover-evidence-cockpit .rd-v2-cockpit-network > header {
+    display: flex !important;
+    align-items: baseline !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+  }
+  .rd-v2-discover-evidence-cockpit .rd-v2-cockpit-network > header strong {
+    text-align: right !important;
+  }
+  .rd-v2-discover-evidence-cockpit .rd-v2-cockpit-network-list > div {
+    grid-template-columns: minmax(64px, 1fr) 52px 16px !important;
+    gap: 6px !important;
+  }
+  .rd-v2-cockpit-execution p { margin-bottom: 8px !important; }
 
+  /* The old detached Candidate Field was a second mini-sidebar. On wide desktop
+     its counts are already represented by the cockpit and the right rail owns
+     assessment / assembly authority. */
+  .rd-v2-discover-page .rd-v2-discover-field--utility { display: none !important; }
+
+  /* Search + useful chrome. Keep context, filters and actions; remove prose. */
   .rd-v2-discover-page .rd-v2-discover-explore-workspace {
-    margin-bottom: 0 !important;
+    margin-bottom: 4px !important;
     padding-bottom: 0 !important;
   }
-  .rd-v2-discover-page .rd-v2-discover-explore-need { margin-bottom: 4px !important; }
+  .rd-v2-discover-page .rd-v2-discover-explore-need { margin-bottom: 6px !important; }
   .rd-v2-discover-page .rd-v2-discover-composer {
     min-height: 58px !important;
     padding-top: 7px !important;
@@ -34,60 +99,92 @@
   .rd-v2-discover-page .rd-v2-discover-composer > p,
   .rd-v2-discover-page .rd-v2-discover-composer-scope { display: none !important; }
 
-  .rd-v2-discover-page .rd-v2-discover-query-tools,
-  .rd-v2-discover-page .rd-v2-discover-frozen-counts,
-  .rd-v2-discover-page .rd-v2-discover-result-actions { display: none !important; }
-
-  .rd-v2-discover-page .rd-v2-discover-field--utility {
-    position: fixed !important;
-    z-index: 24 !important;
-    left: 294px !important;
-    bottom: 20px !important;
-    width: 188px !important;
-    max-width: 188px !important;
-    min-height: 0 !important;
-    margin: 0 !important;
-    padding: 8px 9px !important;
-    border: 1px solid color-mix(in srgb, var(--rd-border, #d9d2c3) 82%, transparent) !important;
-    border-radius: 6px !important;
-    background: color-mix(in srgb, var(--rd-paper, #fffdf8) 98%, white) !important;
-    box-shadow: 0 5px 16px rgba(31, 41, 47, .05) !important;
-  }
-  .rd-v2-discover-page .rd-v2-discover-field--utility header {
+  .rd-v2-discover-page .rd-v2-discover-query-tools {
     display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    gap: 10px !important;
+    min-height: 34px !important;
+    margin: 0 !important;
+    padding: 5px 0 6px !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 68%, transparent) !important;
+  }
+  .rd-v2-discover-page .rd-v2-discover-interpreting {
+    display: flex !important;
+    align-items: center !important;
+    gap: 7px !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+  }
+  .rd-v2-discover-page .rd-v2-discover-interpreting > .rd-v2-eyebrow {
+    flex: 0 0 auto !important;
+  }
+  .rd-v2-discover-page .rd-v2-discover-interpreting-chips {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 4px !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+  .rd-v2-discover-page .rd-v2-discover-chip {
+    flex: 0 0 auto !important;
+    padding: 3px 7px !important;
+    font-size: 8.5px !important;
+    white-space: nowrap !important;
+  }
+  .rd-v2-discover-page .rd-v2-discover-refine { flex: 0 0 auto !important; }
+  .rd-v2-discover-page .rd-v2-discover-frozen-controls {
+    display: flex !important;
+    align-items: center !important;
     gap: 5px !important;
   }
-  .rd-v2-discover-page .rd-v2-discover-field--utility header > div:first-child p { display: none !important; }
-  .rd-v2-discover-page .rd-v2-discover-field--utility header > div:first-child strong {
-    display: block !important;
-    font-size: 11px !important;
-    line-height: 1.2 !important;
-  }
-  .rd-v2-discover-page .rd-v2-discover-field--utility .rd-v2-discover-field-actions {
-    display: flex !important;
-    gap: 4px !important;
-  }
-  .rd-v2-discover-page .rd-v2-discover-field--utility .rd-v2-discover-field-actions button {
-    min-height: 25px !important;
-    padding: 3px 6px !important;
+  .rd-v2-discover-page .rd-v2-discover-filter-menu > summary {
+    min-height: 27px !important;
+    padding: 4px 8px !important;
     font-size: 8.5px !important;
   }
-  .rd-v2-discover-page .rd-v2-discover-field--utility .rd-v2-discover-utility-summary {
-    display: grid !important;
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 3px 7px !important;
-    margin-top: 5px !important;
-    padding-top: 5px !important;
-  }
-  .rd-v2-discover-page .rd-v2-discover-field--utility .rd-v2-discover-utility-summary span {
-    display: flex !important;
-    gap: 3px !important;
-    font-size: 8px !important;
-  }
-  .rd-v2-discover-page .rd-v2-discover-field--utility .rd-v2-discover-utility-summary .rd-v2-discover-utility-rule { display: none !important; }
-  .rd-v2-discover-page .rd-v2-discover-field--utility .rd-v2-discover-assembly,
-  .rd-v2-discover-page .rd-v2-discover-field--utility .rd-v2-discover-utility-matrix { display: none !important; }
 
+  .rd-v2-discover-page .rd-v2-discover-frozen-counts { display: none !important; }
+  .rd-v2-discover-page .rd-v2-discover-result-actions {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+    min-height: 38px !important;
+    margin: 0 !important;
+    padding: 5px 0 !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, transparent) !important;
+    background: transparent !important;
+  }
+  .rd-v2-discover-page .rd-v2-discover-result-actions > div:first-child {
+    display: flex !important;
+    align-items: baseline !important;
+    gap: 8px !important;
+    min-width: 0 !important;
+  }
+  .rd-v2-discover-page .rd-v2-discover-result-actions > div:first-child strong {
+    font-size: 10px !important;
+    white-space: nowrap !important;
+  }
+  .rd-v2-discover-page .rd-v2-discover-result-actions > div:first-child span {
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    font-size: 9px !important;
+  }
+  .rd-v2-discover-page .rd-v2-discover-result-actions button {
+    min-height: 27px !important;
+    padding: 4px 8px !important;
+    font-size: 8.5px !important;
+  }
+  .rd-v2-discover-page .rd-v2-discover-result-actions .rd-v2-discover-strategy-trigger {
+    display: none !important;
+  }
+
+  /* Wide assessment authority remains in Detail, never in the result flow. */
   .rd-v2-discover-page .rd-v2-evidence-brief,
   .rd-v2-discover-page .rd-v2-discover-evidence-brief {
     position: fixed !important;
@@ -101,53 +198,173 @@
     margin: 0 !important;
   }
 
-  .rd-v2-discover-page .rd-v2-discover-ranked-results { margin-top: 2px !important; }
+  /* SERP header: one clear divider, no pseudo-table heading. */
+  .rd-v2-discover-page .rd-v2-discover-ranked-results {
+    margin-top: 0 !important;
+    border-top: 0 !important;
+  }
   .rd-v2-discover-page .rd-v2-discover-ranked-results-head {
-    min-height: 26px !important;
-    padding-top: 4px !important;
-    padding-bottom: 4px !important;
+    min-height: 28px !important;
+    padding: 7px 0 5px !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, transparent) !important;
   }
   .rd-v2-discover-page .rd-v2-discover-ranked-results-head::after {
-    content: "Variables / contents · unit · coverage · scale · access" !important;
-    font-size: 10px !important;
+    content: "Ranked by research fit · inspect a result for full evidence detail" !important;
+    color: var(--rd-muted, #6e7685) !important;
+    font-size: 8.5px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
   }
 
+  /* Result rows: flat search records, not cards containing cards. */
+  .rd-v2-discover-page .rd-v2-discover-candidates { gap: 0 !important; }
+  .rd-v2-discover-page .rd-v2-discover-candidates > li {
+    border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 67%, transparent) !important;
+  }
+  .rd-v2-discover-page .rd-v2-discover-candidates > li:last-child { border-bottom: 0 !important; }
+  .rd-v2-discover-page button.row.rd-v2-discover-candidate,
   .rd-v2-discover-page .rd-v2-discover-ranked-results .rd-v2-discover-candidate {
-    min-height: 136px !important;
-    padding-top: 9px !important;
-    padding-bottom: 9px !important;
+    grid-template-columns: 58px minmax(0, 1fr) !important;
+    min-height: 118px !important;
+    padding: 12px 8px 11px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
   }
-  .rd-v2-discover-page .rd-v2-discover-ranked-results .rd-v2-discover-candidate-main { gap: 4px !important; }
-  .rd-v2-discover-page .rd-v2-discover-ranked-results .rd-v2-discover-candidate-title { font-size: 16px !important; }
-  .rd-v2-discover-page .rd-v2-discover-ranked-results .rd-v2-discover-evidence {
-    max-width: 980px !important;
-    font-size: 12.5px !important;
-    line-height: 1.33 !important;
+  .rd-v2-discover-page button.row.rd-v2-discover-candidate:hover {
+    background: rgba(255,255,255,.34) !important;
   }
-  .rd-v2-discover-page .rd-v2-discover-ranked-results .rd-v2-dataset-profile {
+  .rd-v2-discover-page button.row.rd-v2-discover-candidate.selected {
+    background: color-mix(in srgb, #edf4ef 62%, transparent) !important;
+    box-shadow: inset 3px 0 0 #4f866c !important;
+  }
+  .rd-v2-discover-page .rd-v2-discover-candidate-source {
+    padding-top: 2px !important;
+  }
+  .rd-v2-discover-page .rd-v2-discover-candidate-main {
+    gap: 3px !important;
+    min-width: 0 !important;
+  }
+  .rd-v2-discover-page .rd-v2-discover-candidate-heading {
+    display: flex !important;
+    align-items: baseline !important;
+    gap: 8px !important;
+    min-width: 0 !important;
+  }
+  .rd-v2-discover-page .rd-v2-discover-candidate-title {
+    font-size: 15.5px !important;
+    line-height: 1.24 !important;
+  }
+  .rd-v2-discover-page .rd-v2-discover-possession {
+    font-size: 8.5px !important;
+    white-space: nowrap !important;
+  }
+  .rd-v2-discover-page .rd-v2-discover-evidence {
+    max-width: 920px !important;
+    font-size: 11.5px !important;
+    line-height: 1.35 !important;
+  }
+
+  /* Flatten the analytical profile into the row itself. */
+  .rd-v2-discover-page .rd-v2-dataset-profile {
+    display: grid !important;
     gap: 4px !important;
-    margin-top: 0 !important;
-    padding: 6px 10px 5px !important;
+    margin-top: 4px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-left: 2px solid color-mix(in srgb, #6f9482 60%, transparent) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding-left: 10px !important;
+  }
+  .rd-v2-discover-page .rd-v2-dataset-profile-topline {
+    display: flex !important;
+    align-items: baseline !important;
+    gap: 8px !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+  }
+  .rd-v2-discover-page .rd-v2-dataset-profile-topline b,
+  .rd-v2-discover-page .rd-v2-dataset-profile-topline em {
+    font-size: 7.8px !important;
+    line-height: 1.2 !important;
   }
   .rd-v2-discover-page .rd-v2-dataset-profile-body {
-    grid-template-columns: minmax(300px, .9fr) minmax(0, 1.55fr) !important;
+    display: grid !important;
+    grid-template-columns: minmax(300px, 1.35fr) minmax(0, 1.65fr) !important;
     gap: 16px !important;
+    align-items: start !important;
+  }
+  .rd-v2-discover-page .rd-v2-dataset-profile-contents {
+    display: grid !important;
+    gap: 2px !important;
+    min-width: 0 !important;
+  }
+  .rd-v2-discover-page .rd-v2-dataset-profile-contents > b {
+    font-size: 7.5px !important;
   }
   .rd-v2-discover-page .rd-v2-dataset-profile-contents > strong {
-    font-size: 12.5px !important;
-    line-height: 1.3 !important;
+    font-size: 11.5px !important;
+    line-height: 1.28 !important;
   }
-  .rd-v2-discover-page .rd-v2-dataset-profile-contents > span,
-  .rd-v2-discover-page .rd-v2-dataset-profile-coverage,
-  .rd-v2-discover-page .rd-v2-dataset-profile-open {
-    font-size: 9.75px !important;
-    line-height: 1.25 !important;
+  .rd-v2-discover-page .rd-v2-dataset-profile-contents > span {
+    font-size: 8.5px !important;
+    line-height: 1.28 !important;
   }
   .rd-v2-discover-page .rd-v2-dataset-profile-facts {
-    gap: 5px 12px !important;
-    padding-left: 14px !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: flex-start !important;
+    gap: 4px 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
   }
-  .rd-v2-discover-page .rd-v2-dataset-profile-metric > em { font-size: 10.5px !important; }
+  .rd-v2-discover-page .rd-v2-dataset-profile-metric {
+    display: inline-flex !important;
+    align-items: baseline !important;
+    gap: 4px !important;
+    width: auto !important;
+    min-width: 0 !important;
+    padding: 0 9px !important;
+    border: 0 !important;
+    border-right: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, transparent) !important;
+  }
+  .rd-v2-discover-page .rd-v2-dataset-profile-metric:first-child { padding-left: 0 !important; }
+  .rd-v2-discover-page .rd-v2-dataset-profile-metric:last-child { border-right: 0 !important; }
+  .rd-v2-discover-page .rd-v2-dataset-profile-metric > b {
+    font-size: 7.2px !important;
+    white-space: nowrap !important;
+  }
+  .rd-v2-discover-page .rd-v2-dataset-profile-metric > em {
+    font-size: 9.5px !important;
+    line-height: 1.24 !important;
+    white-space: nowrap !important;
+  }
+  .rd-v2-discover-page .rd-v2-dataset-profile-coverage,
+  .rd-v2-discover-page .rd-v2-dataset-profile-open {
+    display: inline-flex !important;
+    align-items: baseline !important;
+    gap: 6px !important;
+    width: auto !important;
+    margin: 0 10px 0 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    font-size: 8.5px !important;
+    line-height: 1.25 !important;
+  }
+  .rd-v2-discover-page .rd-v2-discover-offering-facts { display: none !important; }
+
+  /* Keep rows readable on the selected state where the right rail is wider. */
+  body:has(.rd-v2-discover-page .rd-v2-discover-candidate.selected) .rd-v2-discover-page .rd-v2-dataset-profile-body {
+    grid-template-columns: minmax(260px, 1.2fr) minmax(0, 1.5fr) !important;
+    gap: 12px !important;
+  }
 }
 
-/* Exact-head certification marker: side-rail authority / centre retrieval. */
+/* Exact-head certification marker: useful chrome / flat SERP / side-rail authority. */
