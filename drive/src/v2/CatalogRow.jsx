@@ -2,7 +2,6 @@ import { statusPill, displayName, libraryAssetKind, rowSubtitle } from "@/v2/dat
 import { datasetBrowsePathLabel, folderBrowseSummary } from "@/v2/folderBrowseSummary";
 import { StatusPill } from "@/v2/StatusPill";
 import { SourceRibbon } from "@/v2/ui";
-import "@/v2/library-folder-continuity.css";
 
 const DatasetIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -38,44 +37,6 @@ function scholarlySubtitle(dataset) {
   ].filter(Boolean).join(" · ");
 }
 
-function folderDatasetChildren(item = {}) {
-  return Object.values(item.children || {})
-    .filter((child) => child?.kind === "dataset")
-    .sort((a, b) => displayName(a?.row || a).localeCompare(displayName(b?.row || b), undefined, { sensitivity: "base" }));
-}
-
-function FolderDatasetPreview({ item, onSelect }) {
-  const children = folderDatasetChildren(item);
-  if (!children.length) return null;
-
-  return (
-    <div className="rd-v2-catalog-folder-preview" aria-label={`Evidence in ${item.name || "folder"}`}>
-      {children.map((child, index) => {
-        const dataset = child?.row || child;
-        const source = dataset?.source || dataset?.publisher || dataset?.source_system || dataset?.source_route || "Source not recorded";
-        return (
-          <button
-            type="button"
-            className="rd-v2-catalog-folder-child"
-            data-kind="dataset"
-            key={dataset?.dataset_id || child?.id || `${item.id}-${index}`}
-            onClick={() => onSelect?.(dataset)}
-          >
-            <span className="rd-v2-catalog-folder-branch" aria-hidden="true">
-              {index === children.length - 1 ? "└" : "├"}
-            </span>
-            <span className="rd-v2-catalog-folder-child-copy">
-              <strong>{displayName(dataset)}</strong>
-              <em>{source}</em>
-            </span>
-            <StatusPill dataset={dataset} label={statusPill(dataset)} />
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
 export function CatalogRow({
   item,
   selected,
@@ -106,47 +67,22 @@ export function CatalogRow({
   const state = !isFolder && rowState ? rowState(dataset) : null;
   const kind = isFolder ? "folder" : external ? "external" : assetKind.replace(/_/g, "-");
 
-  if (isFolder) {
-    return (
-      <li className="rd-v2-catalog-folder-node">
-        <button
-          type="button"
-          className="row rd-v2-catalog-folder-head"
-          data-kind="folder"
-          onClick={() => onOpenFolder(item)}
-        >
-          <span className="rd-v2-row-icon">
-            <FolderRowIcon />
-          </span>
-          <span className="text">
-            <span className="row-title">{title}</span>
-            {desc ? <span className="row-desc">{desc}</span> : null}
-            {sub ? <span className="row-sub">{sub}</span> : null}
-          </span>
-          <span className="rd-v2-pill muted" title="Assets in this branch">
-            {folderSummary.pill}
-          </span>
-          <span className="rd-v2-catalog-folder-open" aria-hidden="true">→</span>
-        </button>
-        <FolderDatasetPreview item={item} onSelect={onSelect} />
-      </li>
-    );
-  }
-
   return (
     <li className={selected ? "rd-v2-row-on" : undefined}>
       <button
         type="button"
         className={`row${selected ? " selected" : ""}${external ? " rd-v2-row-ext" : ""}`}
         data-kind={kind}
-        onClick={() => onSelect(dataset)}
+        onClick={() => (isFolder ? onOpenFolder(item) : onSelect(dataset))}
         onDoubleClick={() => {
-          if (onDoubleClick) onDoubleClick(dataset);
+          if (!isFolder && onDoubleClick) onDoubleClick(dataset);
         }}
       >
         <span className={`rd-v2-row-icon${external ? " source" : ""}`}>
           {external ? (
             <SourceRibbon source={dataset.source || dataset.collect_via || dataset.source_route} />
+          ) : isFolder ? (
+            <FolderRowIcon />
           ) : isScholarly ? (
             <ScholarlyWorkIcon />
           ) : (
@@ -159,10 +95,15 @@ export function CatalogRow({
           {desc ? <span className="row-desc">{desc}</span> : null}
           {sub ? <span className="row-sub">{sub}</span> : null}
         </span>
-        {state ? (
+        {!isFolder && state ? (
           <span className={`rd-v2-pill ${state.className}`}>{state.label}</span>
         ) : null}
-        {!state ? <StatusPill dataset={dataset} label={statusPill(dataset)} /> : null}
+        {!isFolder && !state ? <StatusPill dataset={dataset} label={statusPill(dataset)} /> : null}
+        {isFolder ? (
+          <span className="rd-v2-pill muted" title="Assets in this branch">
+            {folderSummary.pill}
+          </span>
+        ) : null}
       </button>
     </li>
   );
