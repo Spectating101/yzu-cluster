@@ -51,6 +51,7 @@ import "./home-trail-adaptive.css";
 import "./profile-settings-canonical-refine.css";
 import "./profile-registry-explorer.css";
 import "./profile-settings-final-polish.css";
+import "./profile-settings-workstation.css";
 import { V2App } from "./App";
 import { InteractionProvider } from "./InteractionGuidance";
 
