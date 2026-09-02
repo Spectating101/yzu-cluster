@@ -68,6 +68,9 @@ import "./profile-guest-guide.css";
 // Settings stays a compact control plane on both desktop targets. Load this
 // last so wide-screen rules cannot silently re-inflate ordinary setting rows.
 import "./settings-density-rail-polish.css";
+// Profile's rail is a live context/authority surface, with wide-screen-only
+// enrichment where the 1920 viewport can genuinely use the additional room.
+import "./profile-rail-operational.css";
 import { V2App } from "./App";
 import { InteractionProvider } from "./InteractionGuidance";
 
