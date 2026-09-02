@@ -297,8 +297,8 @@ test.describe("Discover reconvergence visual review", () => {
       const assembly = page.getByTestId("discover-assembly-path");
       await expect(assembly).toBeVisible();
       await expect(assembly).toContainText(/Board-governance variables/i);
-      await expect(assembly).toContainText(/10 sources may contribute part of the missing data/i);
-      await expect(assembly).toContainText(/Nothing has been collected yet/i);
+      await expect(assembly).toContainText(/Compare which sources actually provide the missing evidence/i);
+      await expect(assembly).toContainText(/No source selected or collected/i);
       const details = workspace.locator(".rd-v2-evidence-detail-disclosure.is-workspace");
       await expect(details).toBeVisible();
       expect(await details.evaluate((node) => node.open)).toBe(false);
