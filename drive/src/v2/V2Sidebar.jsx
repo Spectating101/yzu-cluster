@@ -1,5 +1,10 @@
 import { useEffect, useRef } from "react";
 import { V2_SIDEBAR_FOOT_TABS, V2_SIDEBAR_PRIMARY_TABS } from "@/v2/nav-config.jsx";
+import {
+  SYNTHESIS_AUTOMATION_OPTIONS,
+  synthesisAutomationOption,
+  useSynthesisAutomationMode,
+} from "@/v2/synthesisAutomation.js";
 
 /**
  * Left nav — UI_PRODUCT_AUTHORITY + page freezes shell:
@@ -13,6 +18,8 @@ export function V2Sidebar({
   onOpenRecent,
 }) {
   const activeButtonRef = useRef(null);
+  const [synthesisAutomationMode, setSynthesisAutomationMode] = useSynthesisAutomationMode();
+  const automationOption = synthesisAutomationOption(synthesisAutomationMode);
   const research = activeResearch || {
     title: "Active research",
     emphases: [],
@@ -46,13 +53,33 @@ export function V2Sidebar({
       </nav>
 
       {tab === "synthesis" ? (
-        /* S-04 owns this region: it is the approved ACTIVE WORK / REGISTERED
-           OUTPUTS surface, not a second navigational column inside the page. */
-        <div
-          id="rd-v2-synthesis-sidebar-slot"
-          className="rd-v2-synthesis-sidebar-slot"
-          aria-label="Synthesis work"
-        />
+        <>
+          <div className="rd-v2-synthesis-sidebar-mode" aria-label="Synthesis automation">
+            <label
+              className={`rd-v2-synthesis-automation is-${synthesisAutomationMode}`}
+              title={automationOption.detail}
+            >
+              <span>Agent</span>
+              <select
+                aria-label="Synthesis agent authority"
+                data-testid="synthesis-automation-mode"
+                value={synthesisAutomationMode}
+                onChange={(event) => setSynthesisAutomationMode(event.target.value)}
+              >
+                {SYNTHESIS_AUTOMATION_OPTIONS.map((option) => (
+                  <option key={option.id} value={option.id}>{option.short}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+          {/* S-04 owns this region: it is the approved ACTIVE WORK / REGISTERED
+             OUTPUTS surface, not a second navigational column inside the page. */}
+          <div
+            id="rd-v2-synthesis-sidebar-slot"
+            className="rd-v2-synthesis-sidebar-slot"
+            aria-label="Synthesis work"
+          />
+        </>
       ) : (
         <>
           <div className="rd-v2-sidebar-context" aria-label="Active research">
