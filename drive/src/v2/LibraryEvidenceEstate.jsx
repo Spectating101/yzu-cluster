@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from "react";
 import { displayName, libraryAssetPresentation } from "@/v2/datasetMeta";
 import { libraryVerification } from "@/v2/libraryVerification";
 import { StatusPill } from "@/v2/StatusPill";
@@ -65,7 +66,7 @@ function collectionCount(folder = {}) {
   }, 0);
 }
 
-function nestedCollections(folder = {}) {
+function folderChildren(folder = {}) {
   return Object.values(folder.children || {})
     .filter((child) => child?.kind === "folder")
     .sort((a, b) => {
@@ -73,14 +74,6 @@ function nestedCollections(folder = {}) {
       if (sortDelta) return sortDelta;
       return String(a.name || "").localeCompare(String(b.name || ""), undefined, { sensitivity: "base" });
     });
-}
-
-function nestedAssets(folder = {}) {
-  return Object.values(folder.children || {})
-    .filter((child) => child?.kind === "dataset")
-    .sort((a, b) =>
-      displayName(a?.row || a).localeCompare(displayName(b?.row || b), undefined, { sensitivity: "base" }),
-    );
 }
 
 function moveLedgerFocus(event) {
@@ -99,305 +92,391 @@ function moveLedgerFocus(event) {
   rows[next]?.focus();
 }
 
-function LibraryDirectoryHome({
-  collections,
-  collectionsLoading,
-  assetCount,
+function LibraryDirectoryNode({
+  node,
+  depth,
+  folderId,
+  activePathIds,
+  expandedIds,
+  onToggleExpanded,
   onOpenCollection,
-  onSelectDataset,
 }) {
-  const branchCount = collections.reduce((sum, collection) => sum + nestedCollections(collection).length, 0);
+  const children = folderChildren(node);
+  const expanded = expandedIds.has(node.id);
+  const active = folderId === node.id;
+  const inPath = activePathIds.has(node.id);
+  const testId = depth === 0 ? "library-collection-filter" : "library-directory-branch";
 
   return (
-    <section className="rd-v2-library-directory-home" aria-label="Library directory" data-testid="library-directory-home">
+    <div
+      className={`rd-v2-library-navigator-node${active ? " is-active" : ""}${inPath ? " is-in-path" : ""}`}
+      data-depth={depth}
+    >
+      <div
+        className="rd-v2-library-navigator-row"
+        style={{ "--rd-library-depth": depth }}
+      >
+        {children.length ? (
+          <button
+            type="button"
+            className="rd-v2-library-navigator-twisty"
+            aria-label={`${expanded ? "Collapse" : "Expand"} ${node.name || node.id}`}
+            aria-expanded={expanded}
+            onClick={() => onToggleExpanded(node.id)}
+          >
+            {expanded ? "▾" : "▸"}
+          </button>
+        ) : (
+          <span className="rd-v2-library-navigator-twisty-spacer" aria-hidden="true">·</span>
+        )}
+        <button
+          type="button"
+          className="rd-v2-library-navigator-target"
+          data-testid={testId}
+          aria-current={active ? "page" : undefined}
+          onClick={() => {
+            if (children.length && !expanded) onToggleExpanded(node.id, true);
+            onOpenCollection?.(node);
+          }}
+        >
+          <span className="rd-v2-library-navigator-copy">
+            <strong>{node.name || node.label || node.id}</strong>
+            {depth === 0 && node.blurb ? <em>{node.blurb}</em> : null}
+          </span>
+          <span className="rd-v2-library-navigator-count">{collectionCount(node)}</span>
+          <span className="rd-v2-library-navigator-open" aria-hidden="true">Open</span>
+        </button>
+      </div>
+      {children.length && expanded ? (
+        <div className="rd-v2-library-navigator-children">
+          {children.map((child) => (
+            <LibraryDirectoryNode
+              key={child.id}
+              node={child}
+              depth={depth + 1}
+              folderId={folderId}
+              activePathIds={activePathIds}
+              expandedIds={expandedIds}
+              onToggleExpanded={onToggleExpanded}
+              onOpenCollection={onOpenCollection}
+            />
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function LibraryNavigator({
+  collections,
+  collectionsLoading,
+  folderId,
+  trail,
+  filterMode,
+  totalAssetCount,
+  totalReadyCount,
+  totalReviewCount,
+  totalAttentionCount,
+  onOpenCollection,
+  onOpenRoot,
+  onChooseSmartView,
+}) {
+  const activePathIds = useMemo(
+    () => new Set((trail || []).map((item) => item?.id).filter(Boolean)),
+    [trail],
+  );
+  const [expandedIds, setExpandedIds] = useState(() => new Set());
+
+  useEffect(() => {
+    const ids = (trail || []).map((item) => item?.id).filter(Boolean);
+    if (!ids.length) return;
+    setExpandedIds((current) => {
+      const next = new Set(current);
+      ids.forEach((id) => next.add(id));
+      return next;
+    });
+  }, [trail]);
+
+  const toggleExpanded = (id, forceOpen = false) => {
+    setExpandedIds((current) => {
+      const next = new Set(current);
+      if (forceOpen) next.add(id);
+      else if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const chooseSmartView = (mode) => {
+    onOpenRoot?.();
+    onChooseSmartView?.(mode);
+  };
+
+  const allSelected = !folderId && filterMode === "all";
+  const reviewSelected = !folderId && filterMode === "review";
+  const readySelected = !folderId && filterMode === "ready";
+  const attentionSelected = !folderId && filterMode === "attention";
+
+  return (
+    <section
+      className="rd-v2-library-directory-home rd-v2-library-navigator"
+      aria-label="Library directory"
+      data-testid="library-directory-home"
+    >
       <header className="rd-v2-library-directory-intro">
         <div>
           <span className="rd-v2-library-directory-kicker">Collections</span>
-          <h2>Browse by collection</h2>
-          <p>Use the tree to narrow the Library, or scan all evidence beside it.</p>
+          <h2>Library navigator</h2>
+          <p>Choose a scope. The evidence pane updates without leaving the browser.</p>
         </div>
         <div className="rd-v2-library-directory-summary" aria-label="Library directory summary">
           <span><b>{collections.length}</b> research area{collections.length === 1 ? "" : "s"}</span>
-          <span><b>{branchCount}</b> collection{branchCount === 1 ? "" : "s"}</span>
-          <span><b>{assetCount}</b> evidence asset{assetCount === 1 ? "" : "s"}</span>
+          <span><b>{totalAssetCount}</b> evidence asset{totalAssetCount === 1 ? "" : "s"}</span>
         </div>
       </header>
 
-      {collections.length ? (
-        <div className="rd-v2-library-directory-tree">
-          {collections.map((collection) => {
-            const branches = nestedCollections(collection);
-            const count = collectionCount(collection);
-            return (
-              <article className="rd-v2-library-directory-shelf" key={collection.id}>
-                <button
-                  type="button"
-                  className="rd-v2-library-directory-shelf-head"
-                  data-testid="library-collection-filter"
-                  onClick={() => onOpenCollection?.(collection)}
-                >
-                  <span className="rd-v2-library-directory-folder" aria-hidden="true">▾</span>
-                  <span className="rd-v2-library-directory-shelf-copy">
-                    <strong>{collection.name || collection.label || collection.id}</strong>
-                    {collection.blurb ? <em>{collection.blurb}</em> : null}
-                  </span>
-                  <span className="rd-v2-library-directory-shelf-count">
-                    {branches.length ? `${branches.length} collection${branches.length === 1 ? "" : "s"}` : "Collection"}
-                    {count ? ` · ${count} asset${count === 1 ? "" : "s"}` : ""}
-                  </span>
-                  <span aria-hidden="true">→</span>
-                </button>
-
-                {branches.length ? (
-                  <div className="rd-v2-library-directory-branches" aria-label={`${collection.name || collection.id} collections`}>
-                    {branches.map((branch) => {
-                      const branchAssets = collectionCount(branch);
-                      const leaves = nestedAssets(branch);
-                      return (
-                        <div className="rd-v2-library-directory-branch-block" key={branch.id}>
-                          <button
-                            type="button"
-                            className="rd-v2-library-directory-branch"
-                            data-testid="library-directory-branch"
-                            onClick={() => onOpenCollection?.(branch)}
-                          >
-                            <span className="rd-v2-library-directory-branch-line" aria-hidden="true">└</span>
-                            <span>
-                              <strong>{branch.name || branch.id}</strong>
-                              {branch.blurb ? <em>{branch.blurb}</em> : null}
-                            </span>
-                            <b>{branchAssets}</b>
-                          </button>
-
-                          {leaves.length ? (
-                            <div className="rd-v2-library-directory-leaves" aria-label={`${branch.name || branch.id} evidence`}>
-                              {leaves.map((asset, index) => {
-                                const row = asset?.row || asset;
-                                return (
-                                  <button
-                                    type="button"
-                                    className="rd-v2-library-directory-leaf"
-                                    data-testid="library-directory-leaf"
-                                    key={row.dataset_id || asset.id}
-                                    onClick={() => onSelectDataset?.(row)}
-                                  >
-                                    <span className="rd-v2-library-directory-leaf-line" aria-hidden="true">
-                                      {index === leaves.length - 1 ? "└" : "├"}
-                                    </span>
-                                    <span className="rd-v2-library-directory-leaf-copy">
-                                      <strong>{displayName(row)}</strong>
-                                      <em>{sourceLabel(row)}</em>
-                                    </span>
-                                    <span className="rd-v2-library-directory-leaf-state">
-                                      <StatusPill dataset={row} />
-                                    </span>
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          ) : null}
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : null}
-              </article>
-            );
-          })}
-        </div>
-      ) : collectionsLoading ? (
-        <div className="rd-v2-library-directory-loading" role="status" data-testid="library-collections-loading">
-          <strong>Organizing the Library directory…</strong>
-          <span>Your evidence is already held; the research taxonomy is still loading.</span>
-        </div>
-      ) : null}
-    </section>
-  );
-}
-
-function LibraryVerificationQueue({ rows, onSelectDataset }) {
-  if (!rows.length) return null;
-  return (
-    <section className="rd-v2-library-review-queue" data-testid="library-review-queue" aria-label="Library verification review queue">
-      <header>
-        <div>
-          <span>Verification review</span>
-          <h2>{rows.length} record{rows.length === 1 ? "" : "s"} need source review</h2>
-        </div>
-        <p>Readiness and verification are separate. These records have partial, unverified, or unchecked correspondence.</p>
-      </header>
-      <div className="rd-v2-library-review-items">
-        {rows.map(({ row, verification }) => (
+      <nav className="rd-v2-library-navigator-body" aria-label="Library scopes and smart views">
+        <div className="rd-v2-library-navigator-section">
+          <span className="rd-v2-library-navigator-section-label">Library</span>
           <button
             type="button"
-            className="rd-v2-library-review-item"
-            key={row.dataset_id || displayName(row)}
-            onClick={() => onSelectDataset?.(row)}
+            className={`rd-v2-library-navigator-view${allSelected ? " is-active" : ""}`}
+            data-testid="library-navigator-all"
+            aria-current={allSelected ? "page" : undefined}
+            onClick={() => chooseSmartView("all")}
           >
-            <span className="rd-v2-library-review-copy">
-              <strong>{displayName(row)}</strong>
-              <em>{sourceLabel(row)}</em>
+            <span>
+              <strong>All evidence</strong>
+              <em>Everything held in this Library</em>
             </span>
-            <span className={`rd-v2-cap-verify ${verification.kind}`}>{verification.label}</span>
-            <StatusPill dataset={row} />
-            <span className="rd-v2-library-review-arrow" aria-hidden="true">→</span>
+            <b>{totalAssetCount}</b>
           </button>
-        ))}
-      </div>
+        </div>
+
+        <div className="rd-v2-library-navigator-section">
+          <span className="rd-v2-library-navigator-section-label">Smart views</span>
+          <button
+            type="button"
+            className={`rd-v2-library-navigator-view${reviewSelected ? " is-active" : ""}`}
+            data-testid="library-smart-review"
+            aria-current={reviewSelected ? "page" : undefined}
+            onClick={() => chooseSmartView("review")}
+          >
+            <span>
+              <strong>Needs verification</strong>
+              <em>Source correspondence is incomplete</em>
+            </span>
+            <b>{totalReviewCount}</b>
+          </button>
+          <button
+            type="button"
+            className={`rd-v2-library-navigator-view${readySelected ? " is-active" : ""}`}
+            data-testid="library-smart-ready"
+            aria-current={readySelected ? "page" : undefined}
+            onClick={() => chooseSmartView("ready")}
+          >
+            <span>
+              <strong>Query ready</strong>
+              <em>Evidence ready for direct use</em>
+            </span>
+            <b>{totalReadyCount}</b>
+          </button>
+          <button
+            type="button"
+            className={`rd-v2-library-navigator-view${attentionSelected ? " is-active" : ""}`}
+            data-testid="library-smart-attention"
+            aria-current={attentionSelected ? "page" : undefined}
+            onClick={() => chooseSmartView("attention")}
+          >
+            <span>
+              <strong>Needs attention</strong>
+              <em>Readiness or verification needs work</em>
+            </span>
+            <b>{totalAttentionCount}</b>
+          </button>
+        </div>
+
+        <div className="rd-v2-library-navigator-section">
+          <span className="rd-v2-library-navigator-section-label">Collections</span>
+          {collections.length ? (
+            <div className="rd-v2-library-navigator-tree">
+              {collections.map((collection) => (
+                <LibraryDirectoryNode
+                  key={collection.id}
+                  node={collection}
+                  depth={0}
+                  folderId={folderId}
+                  activePathIds={activePathIds}
+                  expandedIds={expandedIds}
+                  onToggleExpanded={toggleExpanded}
+                  onOpenCollection={onOpenCollection}
+                />
+              ))}
+            </div>
+          ) : collectionsLoading ? (
+            <div className="rd-v2-library-directory-loading" role="status" data-testid="library-collections-loading">
+              <strong>Organizing the Library directory…</strong>
+              <span>Your evidence is already held; the research taxonomy is still loading.</span>
+            </div>
+          ) : (
+            <div className="rd-v2-library-navigator-empty">
+              No collection taxonomy is registered yet.
+            </div>
+          )}
+        </div>
+      </nav>
     </section>
   );
 }
 
-/**
- * Root Library composition.
- *
- * The home state keeps directory context visible alongside the evidence ledger.
- * Search deliberately collapses that hierarchy and returns direct evidence matches.
- */
-export function LibraryEvidenceEstate({
-  assets = [],
-  collections = [],
-  collectionsLoading = false,
-  referenceCount = 0,
-  onOpenCollection,
+function LibraryEvidencePane({
+  visibleAssets,
+  selectedId,
+  scopeTitle,
+  scopeNote,
+  scopeAssetCount,
+  scopeReadyCount,
+  scopeReviewCount,
+  filterMode,
+  referenceCount,
   onReviewAvailable,
   onSelectDataset,
-  searchQuery = "",
-  searchMatchCount = 0,
+  query,
+  searchMatchCount,
   onAskCurrentSearch,
   onSearchWider,
   onResetFilters,
 }) {
-  const visibleAssets = assets;
   const showKind = true;
   const ledgerClass = "rd-v2-cap-ledger with-verify show-kind";
-  const query = String(searchQuery || "").trim();
-  const directoryFirst = !query && Boolean(collections.length || collectionsLoading);
   const filteredSearchMiss = Boolean(query && searchMatchCount > 0 && !visibleAssets.length);
   const trueSearchMiss = Boolean(query && searchMatchCount === 0);
-  const reviewRows = directoryFirst
-    ? visibleAssets
-        .map((item) => item?.row || item)
-        .map((row) => ({ row, verification: libraryVerification(row) }))
-        .filter(({ verification }) => ["partial", "unverified", "unchecked"].includes(verification.kind))
-    : [];
+  const activeViewLabel =
+    filterMode === "review"
+      ? "Needs verification"
+      : filterMode === "ready"
+        ? "Query ready"
+        : filterMode === "attention"
+          ? "Needs attention"
+          : filterMode === "not_ready"
+            ? "Not query-ready"
+            : "";
 
   return (
-    <section className="rd-v2-cap-estate" data-testid="library-evidence-estate" aria-label="Research evidence estate">
-      {directoryFirst ? (
-        <LibraryDirectoryHome
-          collections={collections}
-          collectionsLoading={collectionsLoading}
-          assetCount={visibleAssets.length}
-          onOpenCollection={onOpenCollection}
-          onSelectDataset={onSelectDataset}
-        />
-      ) : null}
-
-      <section className={`rd-v2-library-all-evidence${directoryFirst ? " after-directory" : ""}`} aria-label="All Library evidence">
-        {directoryFirst ? (
-          <header className="rd-v2-library-all-evidence-head">
-            <div>
-              <span>All evidence</span>
-              <h2>Complete Library ledger</h2>
-            </div>
-            <p>{visibleAssets.length} held asset{visibleAssets.length === 1 ? "" : "s"} across the directory.</p>
-          </header>
-        ) : null}
-
-        <div className={ledgerClass} role="table" aria-label="Library evidence">
-          <div className="rd-v2-cap-ledger-head" role="row">
-            <span role="columnheader">Evidence</span>
-            {showKind ? <span role="columnheader">Type</span> : null}
-            <span role="columnheader">Source</span>
-            <span role="columnheader">Verification</span>
-            <span role="columnheader">Readiness</span>
-          </div>
-          <div className="rd-v2-cap-ledger-body">
-            {visibleAssets.length ? (
-              visibleAssets.map((item) => {
-                const row = item?.row || item;
-                const verification = libraryVerification(row);
-                return (
-                  <button
-                    key={row.dataset_id || item.id}
-                    type="button"
-                    className="rd-v2-cap-ledger-row"
-                    data-testid="library-evidence-row"
-                    data-kind="evidence"
-                    role="row"
-                    aria-keyshortcuts="ArrowUp ArrowDown Home End Enter"
-                    onKeyDown={moveLedgerFocus}
-                    onClick={() => onSelectDataset?.(row)}
-                  >
-                    <span className="rd-v2-cap-evidence" role="cell">
-                      <strong>{displayName(row)}</strong>
-                      <em>{descriptionLabel(row)}</em>
-                      {query && row.search_match?.reasons?.length ? (
-                        <span className="rd-v2-library-match" data-testid="library-search-match">
-                          <b>Matched</b>
-                          {row.search_match.reasons.slice(0, 2).map((reason) => (
-                            <span key={`${reason.kind}-${reason.value}`}>
-                              {reason.label} · {reason.value}
-                            </span>
-                          ))}
-                        </span>
-                      ) : null}
-                    </span>
-                    {showKind ? <span className="rd-v2-cap-kind" role="cell">{kindLabel(row)}</span> : null}
-                    <span className="rd-v2-cap-source" role="cell">{sourceLabel(row)}</span>
-                    <span
-                      className={`rd-v2-cap-verify ${verification.kind}`}
-                      data-testid="library-evidence-verification"
-                      role="cell"
-                    >
-                      {verification.label}
-                    </span>
-                    <span className="rd-v2-cap-state" data-testid="library-evidence-readiness" role="cell">
-                      <StatusPill dataset={row} />
-                    </span>
-                  </button>
-                );
-              })
-            ) : (
-              <div className="rd-v2-cap-ledger-empty" data-testid="library-evidence-empty">
-                <strong>
-                  {trueSearchMiss
-                    ? `No held evidence matches “${query}”.`
-                    : filteredSearchMiss
-                      ? "Matching evidence is hidden by the current filters."
-                      : "No evidence matches the current Library filters."}
-                </strong>
-                <p>
-                  {trueSearchMiss
-                    ? "Library searched the evidence you actually hold. Ask can interpret the need, or Discover can search beyond your estate."
-                    : "Reset the filters to return to the full held-evidence view."}
-                </p>
-                <div className="rd-v2-library-empty-actions">
-                  {trueSearchMiss && onAskCurrentSearch ? (
-                    <button type="button" className="rd-v2-btn sm" onClick={onAskCurrentSearch}>
-                      Ask Library
-                    </button>
-                  ) : null}
-                  {trueSearchMiss && onSearchWider ? (
-                    <button type="button" className="rd-v2-btn sm" onClick={() => onSearchWider(query)}>
-                      Search wider in Discover
-                    </button>
-                  ) : null}
-                  {!trueSearchMiss && onResetFilters ? (
-                    <button type="button" className="rd-v2-btn sm" onClick={onResetFilters}>
-                      Clear filters
-                    </button>
-                  ) : null}
-                </div>
-              </div>
-            )}
-          </div>
+    <section className="rd-v2-library-all-evidence rd-v2-library-scope-pane" aria-label={`${scopeTitle} evidence`}>
+      <header className="rd-v2-library-all-evidence-head rd-v2-library-scope-head">
+        <div className="rd-v2-library-scope-title">
+          <span>Current scope</span>
+          <h2>{scopeTitle}</h2>
+          <p>{scopeNote}</p>
         </div>
-      </section>
+        <div className="rd-v2-library-scope-stats" aria-label={`${scopeTitle} summary`}>
+          {activeViewLabel ? <span className="rd-v2-library-scope-view">{activeViewLabel}</span> : null}
+          <span><b>{visibleAssets.length}</b> shown</span>
+          <span><b>{scopeAssetCount}</b> held</span>
+          <span><b>{scopeReadyCount}</b> ready</span>
+          <span><b>{scopeReviewCount}</b> review</span>
+        </div>
+      </header>
+
+      <div className={ledgerClass} role="table" aria-label={`${scopeTitle} Library evidence`}>
+        <div className="rd-v2-cap-ledger-head" role="row">
+          <span role="columnheader">Evidence</span>
+          {showKind ? <span role="columnheader">Type</span> : null}
+          <span role="columnheader">Source</span>
+          <span role="columnheader">Verification</span>
+          <span role="columnheader">Readiness</span>
+        </div>
+        <div className="rd-v2-cap-ledger-body">
+          {visibleAssets.length ? (
+            visibleAssets.map((item) => {
+              const row = item?.row || item;
+              const verification = libraryVerification(row);
+              const active = selectedId && selectedId === (row.dataset_id || item.id);
+              return (
+                <button
+                  key={row.dataset_id || item.id}
+                  type="button"
+                  className={`rd-v2-cap-ledger-row${active ? " is-selected" : ""}`}
+                  data-testid="library-evidence-row"
+                  data-kind="evidence"
+                  data-selected={active ? "true" : "false"}
+                  role="row"
+                  aria-keyshortcuts="ArrowUp ArrowDown Home End Enter"
+                  onKeyDown={moveLedgerFocus}
+                  onClick={() => onSelectDataset?.(row)}
+                >
+                  <span className="rd-v2-cap-evidence" role="cell">
+                    <strong>{displayName(row)}</strong>
+                    <em>{descriptionLabel(row)}</em>
+                    {query && row.search_match?.reasons?.length ? (
+                      <span className="rd-v2-library-match" data-testid="library-search-match">
+                        <b>Matched</b>
+                        {row.search_match.reasons.slice(0, 2).map((reason) => (
+                          <span key={`${reason.kind}-${reason.value}`}>
+                            {reason.label} · {reason.value}
+                          </span>
+                        ))}
+                      </span>
+                    ) : null}
+                  </span>
+                  {showKind ? <span className="rd-v2-cap-kind" role="cell">{kindLabel(row)}</span> : null}
+                  <span className="rd-v2-cap-source" role="cell">{sourceLabel(row)}</span>
+                  <span
+                    className={`rd-v2-cap-verify ${verification.kind}`}
+                    data-testid="library-evidence-verification"
+                    role="cell"
+                  >
+                    {verification.label}
+                  </span>
+                  <span className="rd-v2-cap-state" data-testid="library-evidence-readiness" role="cell">
+                    <StatusPill dataset={row} />
+                  </span>
+                </button>
+              );
+            })
+          ) : (
+            <div className="rd-v2-cap-ledger-empty" data-testid="library-evidence-empty">
+              <strong>
+                {trueSearchMiss
+                  ? `No held evidence matches “${query}”.`
+                  : filteredSearchMiss
+                    ? "Matching evidence is hidden by the current filters."
+                    : "No evidence matches the current Library view."}
+              </strong>
+              <p>
+                {trueSearchMiss
+                  ? "Library searched the evidence you actually hold. Ask can interpret the need, or Discover can search beyond your estate."
+                  : "Change the smart view or clear the filters to return to more held evidence."}
+              </p>
+              <div className="rd-v2-library-empty-actions">
+                {trueSearchMiss && onAskCurrentSearch ? (
+                  <button type="button" className="rd-v2-btn sm" onClick={onAskCurrentSearch}>
+                    Ask Library
+                  </button>
+                ) : null}
+                {trueSearchMiss && onSearchWider ? (
+                  <button type="button" className="rd-v2-btn sm" onClick={() => onSearchWider(query)}>
+                    Search wider in Discover
+                  </button>
+                ) : null}
+                {!trueSearchMiss && onResetFilters ? (
+                  <button type="button" className="rd-v2-btn sm" onClick={onResetFilters}>
+                    Clear filters
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
       {referenceCount > 0 ? (
-        <aside className="rd-v2-library-available compact" aria-label="Available evidence outside your Library" data-testid="library-available-evidence">
+        <aside
+          className="rd-v2-library-available compact rd-v2-library-scope-boundary"
+          aria-label="Available evidence outside your Library"
+          data-testid="library-available-evidence"
+        >
           <p>
             <strong>
               {referenceCount} known record{referenceCount === 1 ? "" : "s"} {referenceCount === 1 ? "sits" : "sit"} outside your Library.
@@ -411,8 +490,87 @@ export function LibraryEvidenceEstate({
           ) : null}
         </aside>
       ) : null}
+    </section>
+  );
+}
 
-      <LibraryVerificationQueue rows={reviewRows} onSelectDataset={onSelectDataset} />
+/**
+ * Persistent Library browser.
+ *
+ * The navigator owns location; the evidence pane owns held records. Root, folder,
+ * search, and smart-view states all use the same browser rather than swapping
+ * between unrelated root and folder renderers.
+ */
+export function LibraryEvidenceEstate({
+  assets = [],
+  collections = [],
+  collectionsLoading = false,
+  folderId = "",
+  trail = [],
+  filterMode = "all",
+  scopeTitle = "All evidence",
+  scopeNote = "",
+  scopeAssetCount = 0,
+  scopeReadyCount = 0,
+  scopeReviewCount = 0,
+  totalAssetCount = 0,
+  totalReadyCount = 0,
+  totalReviewCount = 0,
+  totalAttentionCount = 0,
+  referenceCount = 0,
+  selectedId = "",
+  onOpenCollection,
+  onOpenRoot,
+  onChooseSmartView,
+  onReviewAvailable,
+  onSelectDataset,
+  searchQuery = "",
+  searchMatchCount = 0,
+  onAskCurrentSearch,
+  onSearchWider,
+  onResetFilters,
+}) {
+  const visibleAssets = assets;
+  const query = String(searchQuery || "").trim();
+
+  return (
+    <section
+      className="rd-v2-cap-estate rd-v2-library-browser"
+      data-testid="library-evidence-estate"
+      aria-label="Research evidence estate"
+    >
+      <LibraryNavigator
+        collections={collections}
+        collectionsLoading={collectionsLoading}
+        folderId={folderId}
+        trail={trail}
+        filterMode={filterMode}
+        totalAssetCount={totalAssetCount}
+        totalReadyCount={totalReadyCount}
+        totalReviewCount={totalReviewCount}
+        totalAttentionCount={totalAttentionCount}
+        onOpenCollection={onOpenCollection}
+        onOpenRoot={onOpenRoot}
+        onChooseSmartView={onChooseSmartView}
+      />
+      <LibraryEvidencePane
+        visibleAssets={visibleAssets}
+        selectedId={selectedId}
+        scopeTitle={scopeTitle}
+        scopeNote={scopeNote}
+        scopeAssetCount={scopeAssetCount}
+        scopeReadyCount={scopeReadyCount}
+        scopeReviewCount={scopeReviewCount}
+        filterMode={filterMode}
+        referenceCount={referenceCount}
+        onReviewAvailable={onReviewAvailable}
+        onSelectDataset={onSelectDataset}
+        query={query}
+        searchMatchCount={searchMatchCount}
+        onAskCurrentSearch={onAskCurrentSearch}
+        onSearchWider={onSearchWider}
+        onResetFilters={onResetFilters}
+      />
     </section>
   );
 }
