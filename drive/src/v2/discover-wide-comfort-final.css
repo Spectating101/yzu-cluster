@@ -1,0 +1,91 @@
+/* Final cascade authority for the 1920 comfort pass. The older ledger layers
+   create technical fact labels with pseudo-elements, so this file explicitly
+   removes them and leaves only the user-facing scan vocabulary. */
+
+@media (min-width: 1680px) and (min-height: 900px) {
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results-head::after {
+    font-size: 9.5px;
+    font-weight: 700;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-candidate {
+    min-height: 98px;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-evidence {
+    font-size: 12.25px;
+    line-height: 1.45;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-offering-facts > span:nth-child(1),
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-offering-facts > span:nth-child(n+5) {
+    display: none !important;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-offering-facts > span {
+    padding: 0 !important;
+    border: 0 !important;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-offering-facts b {
+    color: transparent !important;
+    font-size: 0 !important;
+    line-height: 1 !important;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-offering-facts b::before {
+    display: none !important;
+    content: none !important;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-offering-facts b::after {
+    display: inline !important;
+    color: var(--rd-muted, #6e7685) !important;
+    font-size: 9px !important;
+    font-weight: 750 !important;
+    letter-spacing: .01em !important;
+    text-transform: none !important;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-offering-facts > span:nth-child(2) b::after {
+    content: "What it covers" !important;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-offering-facts > span:nth-child(4) b::after {
+    content: "How to get it" !important;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-offering-facts > span:nth-child(3) b::after {
+    content: "Updated" !important;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-offering-facts em {
+    font-size: 10.75px !important;
+    line-height: 1.35 !important;
+  }
+}
