@@ -1,0 +1,46 @@
+/* Final cleanup for the personalization/settings recompose.
+ * Removes the last legacy statement-card treatment that leaks into Connections.
+ * Settings now has a dedicated live rail, so no rail field is hidden by
+ * position-specific legacy overrides.
+ */
+
+.rd-v2-settings-modern .rd-v2-settings-connected-accounts .rd-v2-statement-section,
+.rd-v2-settings-modern .rd-v2-settings-connected-accounts .rd-v2-statement-head,
+.rd-v2-settings-modern .rd-v2-settings-connected-accounts .rd-v2-statement-body,
+.rd-v2-settings-modern .rd-v2-settings-connected-accounts .rd-v2-statement-row {
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.rd-v2-settings-modern .rd-v2-settings-connected-accounts .rd-v2-statement-head {
+  padding: 7px 0 9px !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(226, 221, 210, .72) !important;
+}
+
+.rd-v2-settings-modern .rd-v2-settings-connected-accounts .rd-v2-statement-head h2 {
+  color: #4c4842 !important;
+  font-size: 9.5px !important;
+  font-weight: 680 !important;
+  letter-spacing: .08em !important;
+  text-transform: uppercase !important;
+}
+
+.rd-v2-settings-modern .rd-v2-settings-connected-accounts .rd-v2-statement-body {
+  padding: 0 !important;
+  border: 0 !important;
+}
+
+.rd-v2-settings-modern .rd-v2-settings-connected-accounts .rd-v2-statement-row {
+  min-height: 58px !important;
+  padding: 11px 0 !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(226, 221, 210, .62) !important;
+}
+
+/* This sentence belongs to the old split between account identity and a
+   faculty-specific profile. Personalization now explains that distinction. */
+.rd-v2-settings-modern .rd-v2-settings-connected-accounts .rd-v2-statement-section:first-child .rd-v2-settings-hint {
+  display: none !important;
+}

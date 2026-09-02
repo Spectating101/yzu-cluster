@@ -1,6 +1,6 @@
 /**
  * Organic Profile view-model — derived only from faculty_profile / registry fields.
- * No hardcoded Kong copy; thin profiles simply yield fewer blocks.
+ * No hardcoded Kong copy; sparse profiles keep the same record with fewer facts.
  */
 
 function explicitDemoMode() {
@@ -48,8 +48,14 @@ function trackId(track) {
   return String(track.id || track.track_id || "");
 }
 
+function listField(value) {
+  if (Array.isArray(value)) return value;
+  if (typeof value === "string" && value.trim()) return [value.trim()];
+  return [];
+}
+
 function formatSpecialtyList(specialties) {
-  const parts = (specialties || []).map((s) => String(s).trim()).filter(Boolean);
+  const parts = listField(specialties).map((s) => String(s).trim()).filter(Boolean);
   if (!parts.length) return "";
   if (parts.length === 1) return parts[0];
   if (parts.length === 2) return `${parts[0]} and ${parts[1]}`;
@@ -57,7 +63,7 @@ function formatSpecialtyList(specialties) {
 }
 
 function primaryTrack(tracks) {
-  const list = (tracks || []).filter((t) => t && (typeof t === "string" || t.title || t.name));
+  const list = listField(tracks).filter((t) => t && (typeof t === "string" || t.title || t.name));
   if (!list.length) return null;
   const active = list.find((t) => typeof t === "object" && String(t.phase || "") === "active_grant");
   if (active) return active;
@@ -88,7 +94,7 @@ export function workTitleFromHighlight(highlight) {
     rest = rest.replace(/\.\s*Pacific-Basin.*$/i, "").trim();
     rest = rest.replace(/\.\s*Forthcoming\.?$/i, "").trim();
     if (rest.endsWith(".")) rest = rest.slice(0, -1);
-  return clipText(rest, 180);
+    return clipText(rest, 180);
   }
   return clipText(text, 140);
 }
@@ -124,7 +130,9 @@ function recAlreadyLinked(rec, linked) {
 }
 
 /**
- * Memory cards from specialties, tracks, methods — omit empty cards.
+ * Context cards from explicit registry/profile fields only. Canonical structured
+ * fields win, with alternate backend field names used only when the canonical
+ * field is absent. Empty facts remain empty rather than being inferred.
  */
 export function buildMemoryCards(profile) {
   if (!profile || profile.unknown) return [];
@@ -132,11 +140,14 @@ export function buildMemoryCards(profile) {
   const focus = formatSpecialtyList(profile.specialties);
   if (focus) cards.push({ id: "focus", text: focus });
 
-  const tracks = profile.research_tracks || [];
+  const tracks = listField(profile.research_tracks);
   const primary = primaryTrack(tracks);
   if (primary) {
     const title = trackTitle(primary);
     if (title) cards.push({ id: "current", text: `Current: ${title}` });
+  } else {
+    const currentResearch = String(profile.current_research || "").trim();
+    if (currentResearch) cards.push({ id: "current", text: `Current: ${currentResearch}` });
   }
 
   const others = tracks
@@ -147,7 +158,10 @@ export function buildMemoryCards(profile) {
     cards.push({ id: "also", text: `Also: ${others.join(" · ")}` });
   }
 
-  const methods = (profile.method_tags || []).map(humanTag).filter(Boolean);
+  const methodSource = listField(profile.method_tags).length
+    ? listField(profile.method_tags)
+    : listField(profile.methods);
+  const methods = methodSource.map(humanTag).filter(Boolean);
   if (methods.length) {
     const soft = methods.map((m) => m.toLowerCase());
     cards.push({ id: "methods", text: `Methods: ${soft.join(", ")}` });
@@ -230,9 +244,9 @@ export function buildDeskRead(profile, { previewing = false } = {}) {
 
   const discipline = String(profile.discipline || "").trim() || "Faculty";
   const primary = primaryTrack(profile.research_tracks || []);
-  const focus = shortTheme(trackTitle(primary));
+  const focus = shortTheme(trackTitle(primary)) || shortTheme(profile.current_research);
   const scholar = focus
-    ? `${discipline} faculty · present focus on ${focus.toLowerCase()}.`
+    ? `${discipline} faculty · present focus on ${clipText(focus.toLowerCase(), 82)}.`
     : `${discipline} faculty research program on file.`;
 
   const strengths = [];

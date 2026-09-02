@@ -1,0 +1,256 @@
+/* PS spacing closure.
+ *
+ * Profile and Settings now own their internal hierarchy, so the generic page
+ * body inset and earlier generous section gaps become duplicate whitespace.
+ * Tighten repeated rhythm only; preserve type size, control hit areas, and
+ * the established 1440/1920 information architecture.
+ */
+
+/* ---- Shared page entry -------------------------------------------------- */
+.rd-v2-profile-page .rd-v2-body-scroll,
+.rd-v2-settings-page .rd-v2-body-scroll {
+  padding-top: 6px !important;
+}
+
+.rd-v2-profile-page .rd-v2-page-head,
+.rd-v2-settings-page .rd-v2-page-head {
+  padding-bottom: 5px !important;
+}
+
+/* ---- Settings ----------------------------------------------------------- */
+.rd-v2-settings-modern-layout {
+  padding-top: 0 !important;
+  padding-bottom: 20px !important;
+}
+
+.rd-v2-settings-simple-section {
+  padding-top: 2px !important;
+  padding-bottom: 13px !important;
+}
+
+.rd-v2-settings-simple-section + .rd-v2-settings-simple-section {
+  padding-top: 12px !important;
+}
+
+.rd-v2-settings-simple-section > header {
+  padding-bottom: 5px !important;
+}
+
+.rd-v2-settings-simple-row {
+  min-height: 50px !important;
+  padding-top: 7px !important;
+  padding-bottom: 7px !important;
+}
+
+.rd-v2-settings-connected-accounts {
+  padding-top: 3px !important;
+}
+
+.rd-v2-settings-modern .rd-v2-settings-connected-accounts .rd-v2-statement-section {
+  padding-top: 8px !important;
+}
+
+.rd-v2-settings-modern .rd-v2-settings-connected-accounts .rd-v2-statement-section + .rd-v2-statement-section {
+  margin-top: 5px !important;
+}
+
+.rd-v2-settings-modern .rd-v2-settings-connected-accounts .rd-v2-statement-row {
+  min-height: 46px !important;
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+}
+
+.rd-v2-settings-technical-modern > summary {
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+}
+
+/* ---- Guest Profile ------------------------------------------------------ */
+.rd-v2-profile-page.is-project-profile .rd-v2-profile-about-header {
+  padding-top: 0 !important;
+  padding-bottom: 11px !important;
+}
+
+.rd-v2-profile-guest-guide .rd-v2-profile-simple-section {
+  padding-top: 11px !important;
+  padding-bottom: 0 !important;
+}
+
+.rd-v2-profile-guest-guide .rd-v2-profile-simple-section > header {
+  padding-bottom: 4px !important;
+}
+
+.rd-v2-profile-guest-intro .rd-v2-profile-section-copy {
+  margin-bottom: 6px !important;
+}
+
+.rd-v2-profile-guest-step {
+  padding-top: 9px !important;
+  padding-bottom: 9px !important;
+}
+
+.rd-v2-profile-guest-surface-grid .rd-v2-profile-simple-row {
+  min-height: 46px !important;
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+}
+
+.rd-v2-profile-guest-principle-grid article,
+.rd-v2-profile-guest-personalization-grid article {
+  padding-top: 9px !important;
+  padding-bottom: 9px !important;
+}
+
+/* ---- Signed-in Profile -------------------------------------------------- */
+.rd-v2-profile-page.is-user-profile .rd-v2-body-scroll {
+  gap: 2px !important;
+}
+
+.rd-v2-profile-ai-native .rd-v2-profile-about-header {
+  padding-top: 5px !important;
+  padding-bottom: 12px !important;
+}
+
+.rd-v2-profile-ai-native .rd-v2-profile-ai-portrait,
+.rd-v2-profile-ai-native .rd-v2-profile-map-section,
+.rd-v2-profile-ai-native .rd-v2-profile-work-evidence,
+.rd-v2-profile-ai-native .rd-v2-profile-recorded {
+  padding-top: 14px !important;
+  padding-bottom: 14px !important;
+}
+
+.rd-v2-profile-ai-native .rd-v2-profile-ai-overview {
+  margin-top: 8px !important;
+}
+
+.rd-v2-profile-ai-native .rd-v2-profile-ai-grounding {
+  margin-top: 9px !important;
+}
+
+.rd-v2-profile-ai-native .rd-v2-profile-portrait-grid,
+.rd-v2-profile-ai-native .rd-v2-profile-work-evidence-grid {
+  margin-top: 10px !important;
+}
+
+.rd-v2-profile-ai-native .rd-v2-profile-portrait-column > h4 {
+  padding-bottom: 6px !important;
+}
+
+.rd-v2-profile-ai-native .rd-v2-profile-portrait-item {
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+}
+
+.rd-v2-profile-ai-native .rd-v2-profile-pane-head {
+  padding-bottom: 5px !important;
+}
+
+.rd-v2-profile-ai-native .rd-v2-profile-work-read {
+  padding-top: 7px !important;
+  padding-bottom: 7px !important;
+}
+
+.rd-v2-profile-ai-native .rd-v2-profile-evidence-row {
+  min-height: 46px !important;
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+}
+
+.rd-v2-profile-ai-native .rd-v2-profile-recorded-grid {
+  margin-top: 9px !important;
+}
+
+.rd-v2-profile-ai-native .rd-v2-profile-recorded-grid .rd-v2-profile-simple-row {
+  min-height: 50px !important;
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+}
+
+/* ---- Profile + Settings rail rhythm ------------------------------------ */
+body:has(.rd-v2-profile-page) .rd-v2-rail-ehead,
+body:has(.rd-v2-settings-page) .rd-v2-rail-ehead {
+  padding-top: 11px !important;
+  padding-bottom: 8px !important;
+}
+
+body:has(.rd-v2-profile-page) .rd-v2-rail-decision,
+body:has(.rd-v2-settings-page) .rd-v2-rail-decision {
+  margin-top: 2px !important;
+  margin-bottom: 4px !important;
+}
+
+body:has(.rd-v2-profile-page) .rd-v2-rail-decision-row,
+body:has(.rd-v2-settings-page) .rd-v2-rail-decision-row {
+  padding-top: 7px !important;
+  padding-bottom: 7px !important;
+}
+
+body:has(.rd-v2-profile-page) .rd-v2-profile-rail-module,
+body:has(.rd-v2-settings-page) .rd-v2-settings-rail-module {
+  padding-top: 8px !important;
+  padding-bottom: 0 !important;
+}
+
+body:has(.rd-v2-profile-page) .rd-v2-profile-rail-module .rd-v2-rail-section-label,
+body:has(.rd-v2-settings-page) .rd-v2-settings-rail-module .rd-v2-rail-section-label {
+  margin-bottom: 4px !important;
+}
+
+body:has(.rd-v2-profile-page) .rd-v2-profile-operational-rail-scroll .rd-v2-detail-row,
+body:has(.rd-v2-settings-page) .rd-v2-settings-rail-scroll .rd-v2-detail-row {
+  padding-top: 5px !important;
+  padding-bottom: 5px !important;
+}
+
+body:has(.rd-v2-profile-page) .rd-v2-rail-sticky,
+body:has(.rd-v2-settings-page) .rd-v2-rail-sticky {
+  gap: 6px !important;
+  padding-top: 8px !important;
+  padding-bottom: 9px !important;
+}
+
+@media (min-width: 1680px) {
+  .rd-v2-profile-page .rd-v2-body-scroll,
+  .rd-v2-settings-page .rd-v2-body-scroll {
+    padding-top: 4px !important;
+  }
+
+  .rd-v2-settings-modern-layout {
+    padding-bottom: 16px !important;
+  }
+
+  .rd-v2-settings-simple-section {
+    padding-bottom: 11px !important;
+  }
+
+  .rd-v2-settings-simple-section + .rd-v2-settings-simple-section {
+    padding-top: 10px !important;
+  }
+
+  .rd-v2-profile-guest-guide .rd-v2-profile-simple-section {
+    padding-top: 10px !important;
+  }
+
+  .rd-v2-profile-guest-wide-detail {
+    margin-top: 5px !important;
+    padding-top: 4px !important;
+  }
+
+  .rd-v2-profile-guest-personalization-grid article {
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+  }
+
+  .rd-v2-profile-ai-native .rd-v2-profile-about-header {
+    padding-top: 4px !important;
+    padding-bottom: 11px !important;
+  }
+
+  .rd-v2-profile-ai-native .rd-v2-profile-ai-portrait,
+  .rd-v2-profile-ai-native .rd-v2-profile-map-section,
+  .rd-v2-profile-ai-native .rd-v2-profile-work-evidence,
+  .rd-v2-profile-ai-native .rd-v2-profile-recorded {
+    padding-top: 13px !important;
+    padding-bottom: 13px !important;
+  }
+}

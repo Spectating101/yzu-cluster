@@ -1,0 +1,27 @@
+/* Profile rail closure.
+ * The rail should report current profile authority and the next useful action,
+ * not repeat brochure copy from the main canvas.
+ */
+
+.rd-v2-profile-operational-rail-scroll .rd-v2-profile-rail-module {
+  padding: 12px 0 2px;
+  border-bottom: 1px solid rgba(226, 221, 210, .72);
+}
+
+.rd-v2-profile-operational-rail-scroll .rd-v2-profile-rail-module:last-child {
+  border-bottom: 0;
+}
+
+.rd-v2-profile-operational-rail-scroll .rd-v2-profile-rail-module .rd-v2-rail-section-label {
+  margin-bottom: 6px;
+}
+
+.rd-v2-profile-rail-wide-only {
+  display: none;
+}
+
+@media (min-width: 1680px) and (min-height: 900px) {
+  .rd-v2-profile-rail-wide-only {
+    display: block;
+  }
+}

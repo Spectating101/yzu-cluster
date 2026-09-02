@@ -1,0 +1,427 @@
+/* Profile modes — guest project dossier + signed-in research-context record. */
+
+.rd-v2-profile-page .rd-v2-body-scroll {
+  background:
+    linear-gradient(180deg, rgba(246, 245, 239, .48) 0, rgba(255, 254, 250, 0) 220px),
+    var(--rd-release-panel, #fffdf6);
+}
+
+/* --------------------------------------------------------------------------
+   GUEST PROFILE — the project itself is the neutral profile
+   -------------------------------------------------------------------------- */
+
+.rd-v2-profile-project-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(300px, .72fr);
+  gap: clamp(26px, 3vw, 52px);
+  align-items: stretch;
+  padding: 24px 0 26px;
+  border-top: 1px solid var(--rd-hps-line, #e2ddd2);
+  border-bottom: 1px solid var(--rd-hps-line, #e2ddd2);
+}
+
+.rd-v2-profile-project-copy > span,
+.rd-v2-profile-project-model > span,
+.rd-v2-profile-project-surfaces article > span,
+.rd-v2-profile-project-principles article > span,
+.rd-v2-profile-project-transition span,
+.rd-v2-profile-context-contract > div > span,
+.rd-v2-profile-context-contract article > span,
+.rd-v2-profile-record-empty > span {
+  color: #61756b;
+  font-family: var(--rd-mono);
+  font-size: 8.7px;
+  font-weight: 780;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+.rd-v2-profile-project-copy h2 {
+  max-width: 680px;
+  margin: 8px 0 9px;
+  color: var(--rd-hps-ink, #182033);
+  font-size: clamp(28px, 2.8vw, 40px);
+  font-weight: 670;
+  letter-spacing: -.045em;
+  line-height: 1.02;
+}
+
+.rd-v2-profile-project-copy > p {
+  max-width: 760px;
+  margin: 0;
+  color: var(--rd-hps-muted, #6e7685);
+  font-size: 11.5px;
+  line-height: 1.58;
+}
+
+.rd-v2-profile-project-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.rd-v2-profile-project-model {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 18px 0 2px 22px;
+  border-left: 1px solid var(--rd-hps-line, #e2ddd2);
+}
+
+.rd-v2-profile-project-model strong {
+  margin-top: 9px;
+  color: #2d394c;
+  font-size: 15px;
+  font-weight: 680;
+  letter-spacing: -.015em;
+}
+
+.rd-v2-profile-project-model p {
+  margin: 8px 0 0;
+  color: var(--rd-hps-muted, #6e7685);
+  font-size: 10.3px;
+  line-height: 1.5;
+}
+
+.rd-v2-profile-project-section {
+  padding: 22px 0 0;
+}
+
+.rd-v2-profile-project-section + .rd-v2-profile-project-section {
+  margin-top: 20px;
+  border-top: 1px solid rgba(226, 221, 210, .76);
+}
+
+.rd-v2-profile-project-surfaces {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 4px;
+  border-top: 1px solid rgba(226, 221, 210, .8);
+  border-bottom: 1px solid rgba(226, 221, 210, .8);
+}
+
+.rd-v2-profile-project-surfaces article {
+  min-width: 0;
+  padding: 16px 18px 15px 2px;
+}
+
+.rd-v2-profile-project-surfaces article + article {
+  padding-left: 18px;
+  border-left: 1px solid rgba(226, 221, 210, .8);
+}
+
+.rd-v2-profile-project-surfaces article strong {
+  display: block;
+  margin-top: 7px;
+  color: #2d394c;
+  font-size: 13px;
+  font-weight: 680;
+}
+
+.rd-v2-profile-project-surfaces article p {
+  min-height: 46px;
+  margin: 6px 0 9px;
+  color: var(--rd-hps-muted, #6e7685);
+  font-size: 10.2px;
+  line-height: 1.48;
+}
+
+.rd-v2-profile-project-surfaces article button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #45695a;
+  font-size: 9.5px;
+  font-weight: 680;
+  cursor: pointer;
+}
+
+.rd-v2-profile-project-principles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 4px;
+  border-top: 1px solid rgba(226, 221, 210, .8);
+}
+
+.rd-v2-profile-project-principles article {
+  display: grid;
+  grid-template-columns: 30px minmax(145px, .62fr) minmax(0, 1fr);
+  gap: 12px 14px;
+  align-items: baseline;
+  padding: 13px 16px 13px 2px;
+  border-bottom: 1px solid rgba(226, 221, 210, .76);
+}
+
+.rd-v2-profile-project-principles article:nth-child(even) {
+  padding-left: 18px;
+  border-left: 1px solid rgba(226, 221, 210, .8);
+}
+
+.rd-v2-profile-project-principles article strong {
+  color: #344054;
+  font-size: 10.7px;
+  font-weight: 670;
+}
+
+.rd-v2-profile-project-principles article p {
+  margin: 0;
+  color: var(--rd-hps-muted, #6e7685);
+  font-size: 9.8px;
+  line-height: 1.44;
+}
+
+.rd-v2-profile-project-transition {
+  display: grid;
+  grid-template-columns: minmax(240px, .62fr) minmax(0, 1.38fr);
+  gap: 28px;
+  align-items: baseline;
+  margin-top: 22px;
+  padding: 16px 2px 17px;
+  border-top: 1px solid var(--rd-hps-line, #e2ddd2);
+  border-bottom: 1px solid var(--rd-hps-line, #e2ddd2);
+}
+
+.rd-v2-profile-project-transition strong {
+  display: block;
+  margin-top: 5px;
+  color: #344054;
+  font-size: 11.5px;
+  font-weight: 680;
+}
+
+.rd-v2-profile-project-transition p {
+  margin: 0;
+  color: var(--rd-hps-muted, #6e7685);
+  font-size: 10.2px;
+  line-height: 1.5;
+}
+
+.rd-v2-profile-rail-project .rd-v2-profile-rail-block + .rd-v2-profile-rail-block {
+  margin-top: 18px;
+  padding-top: 17px;
+  border-top: 1px solid var(--rd-hps-line, #e2ddd2);
+}
+
+/* --------------------------------------------------------------------------
+   SIGNED-IN PROFILE — context available to the desk
+   -------------------------------------------------------------------------- */
+
+.rd-v2-profile-user-identity {
+  margin-top: 0;
+}
+
+.rd-v2-profile-context-contract {
+  display: grid;
+  grid-template-columns: minmax(190px, .38fr) minmax(0, 1.62fr);
+  gap: clamp(20px, 2.5vw, 36px);
+  align-items: start;
+  margin-top: 18px;
+  padding: 18px 0 19px;
+  border-top: 1px solid var(--rd-hps-line, #e2ddd2);
+  border-bottom: 1px solid var(--rd-hps-line, #e2ddd2);
+}
+
+.rd-v2-profile-context-contract > div > h2 {
+  margin: 7px 0 0;
+  color: var(--rd-hps-ink, #182033);
+  font-size: 15px;
+  font-weight: 680;
+  letter-spacing: -.02em;
+  line-height: 1.22;
+}
+
+.rd-v2-profile-context-contract-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-left: 1px solid rgba(226, 221, 210, .82);
+}
+
+.rd-v2-profile-context-contract article {
+  min-width: 0;
+  padding: 2px 16px;
+}
+
+.rd-v2-profile-context-contract article + article {
+  border-left: 1px solid rgba(226, 221, 210, .82);
+}
+
+.rd-v2-profile-context-contract article strong {
+  display: block;
+  margin-top: 6px;
+  color: #344054;
+  font-size: 10.7px;
+  font-weight: 680;
+}
+
+.rd-v2-profile-context-contract article p {
+  margin: 5px 0 0;
+  color: var(--rd-hps-muted, #6e7685);
+  font-size: 9.6px;
+  line-height: 1.43;
+}
+
+.rd-v2-profile-record-empty {
+  display: grid;
+  grid-template-columns: auto minmax(220px, .78fr) minmax(0, 1.22fr);
+  gap: 16px 20px;
+  align-items: baseline;
+  padding: 15px 2px 16px;
+  border-top: 1px solid rgba(226, 221, 210, .76);
+  border-bottom: 1px solid rgba(226, 221, 210, .76);
+}
+
+.rd-v2-profile-record-empty strong {
+  color: #465164;
+  font-size: 10.8px;
+  font-weight: 660;
+}
+
+.rd-v2-profile-record-empty p {
+  margin: 0;
+  color: var(--rd-hps-muted, #6e7685);
+  font-size: 9.8px;
+  line-height: 1.46;
+}
+
+.rd-v2-profile-record-empty.compact {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+/* Sparse signed-in records retain the same section rhythm as rich records. */
+.rd-v2-profile-page.is-user-profile .rd-v2-profile-section {
+  margin-top: 20px;
+}
+
+@media (min-width: 1680px) and (min-height: 900px) {
+  .rd-v2-profile-project-hero {
+    grid-template-columns: minmax(0, 1.7fr) minmax(360px, .62fr);
+    padding-top: 28px;
+    padding-bottom: 30px;
+  }
+
+  .rd-v2-profile-project-section {
+    padding-top: 24px;
+  }
+
+  .rd-v2-profile-project-surfaces article {
+    padding-top: 18px;
+    padding-bottom: 18px;
+  }
+
+  .rd-v2-profile-context-contract {
+    grid-template-columns: minmax(220px, .34fr) minmax(0, 1.66fr);
+  }
+}
+
+@media (min-width: 1121px) and (max-width: 1599px) {
+  .rd-v2-profile-project-hero {
+    grid-template-columns: minmax(0, 1.4fr) minmax(260px, .72fr);
+    gap: 24px;
+    padding: 18px 0 20px;
+  }
+
+  .rd-v2-profile-project-copy h2 {
+    font-size: 27px;
+  }
+
+  .rd-v2-profile-project-copy > p {
+    font-size: 10.7px;
+  }
+
+  .rd-v2-profile-project-section {
+    padding-top: 16px;
+  }
+
+  .rd-v2-profile-project-section + .rd-v2-profile-project-section {
+    margin-top: 14px;
+  }
+
+  .rd-v2-profile-project-surfaces article {
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  .rd-v2-profile-project-surfaces article p {
+    min-height: 42px;
+    font-size: 9.5px;
+  }
+
+  .rd-v2-profile-project-principles article {
+    grid-template-columns: 26px minmax(125px, .7fr) minmax(0, 1fr);
+    gap: 8px 10px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+
+  .rd-v2-profile-project-principles article p {
+    font-size: 9.2px;
+  }
+
+  .rd-v2-profile-project-transition {
+    margin-top: 14px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  .rd-v2-profile-context-contract {
+    grid-template-columns: 175px minmax(0, 1fr);
+    gap: 18px;
+    margin-top: 14px;
+    padding: 14px 0 15px;
+  }
+
+  .rd-v2-profile-context-contract article {
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+
+  .rd-v2-profile-page.is-user-profile .rd-v2-profile-section {
+    margin-top: 15px;
+  }
+}
+
+@media (max-width: 1120px) {
+  .rd-v2-profile-project-hero,
+  .rd-v2-profile-context-contract,
+  .rd-v2-profile-project-transition {
+    grid-template-columns: 1fr;
+  }
+
+  .rd-v2-profile-project-model {
+    padding-left: 0;
+    border-left: 0;
+    border-top: 1px solid var(--rd-hps-line, #e2ddd2);
+  }
+
+  .rd-v2-profile-project-surfaces,
+  .rd-v2-profile-context-contract-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rd-v2-profile-project-surfaces article + article,
+  .rd-v2-profile-context-contract article + article {
+    padding-left: 2px;
+    border-left: 0;
+    border-top: 1px solid rgba(226, 221, 210, .76);
+  }
+
+  .rd-v2-profile-project-principles {
+    grid-template-columns: 1fr;
+  }
+
+  .rd-v2-profile-project-principles article:nth-child(even) {
+    padding-left: 2px;
+    border-left: 0;
+  }
+
+  .rd-v2-profile-context-contract-grid {
+    border-left: 0;
+    border-top: 1px solid rgba(226, 221, 210, .82);
+  }
+
+  .rd-v2-profile-context-contract article {
+    padding: 12px 2px;
+  }
+}

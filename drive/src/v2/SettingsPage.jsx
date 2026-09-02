@@ -12,12 +12,9 @@ import { archiveRuntimeStatus } from "@/v2/archiveRuntimeStatus";
 import { assistantRuntimeDetail, composerRuntimeRead } from "@/v2/composerRuntimeStatus";
 import { loadSettings, saveSettings } from "@/v2/settingsStore";
 import { PILOT_PREVIEW_EMAIL } from "@/v2/profileViewModel";
-import { PageShell, StatementRow, StatementSection } from "@/v2/ui";
+import { PageShell, StatementRow } from "@/v2/ui";
 import { handleEnterToSubmit } from "@/v2/enterToSubmit";
 
-// Settings is immediately usable browser-local configuration. Runtime facts
-// inside its optional technical disclosure may still be unmeasured, but they
-// cannot make the settings surface itself a loading or fabricated empty state.
 const SETTINGS_SURFACE_STATE = "ready";
 
 function isDemoMode() {
@@ -90,6 +87,30 @@ function assistantStatus(health) {
   };
 }
 
+function SettingsRow({ title, description, children }) {
+  return (
+    <div className="rd-v2-settings-simple-row">
+      <div className="rd-v2-settings-simple-copy">
+        <strong>{title}</strong>
+        {description ? <p>{description}</p> : null}
+      </div>
+      <div className="rd-v2-settings-simple-control">{children}</div>
+    </div>
+  );
+}
+
+function SettingsSection({ id, title, description, children }) {
+  return (
+    <section id={id} className="rd-v2-settings-simple-section" aria-labelledby={`${id}-title`}>
+      <header>
+        <h2 id={`${id}-title`}>{title}</h2>
+        {description ? <p>{description}</p> : null}
+      </header>
+      <div className="rd-v2-settings-simple-list">{children}</div>
+    </section>
+  );
+}
+
 export function SettingsPage({
   health,
   deskAccess,
@@ -106,8 +127,8 @@ export function SettingsPage({
   const assistant = assistantStatus(health);
   const demoMode = isDemoMode();
   const archive = archiveRuntimeStatus(health);
-  const mcpTools =
-    resourcesRollup?.ai?.mcp_tools?.total ?? resourcesRollup?.hero?.mcp_tools ?? null;
+  const mcpTools = resourcesRollup?.ai?.mcp_tools?.total ?? resourcesRollup?.hero?.mcp_tools ?? null;
+  const principal = deskAccess?.principal || null;
 
   const patch = (change) => {
     const next = saveSettings(change);
@@ -119,9 +140,7 @@ export function SettingsPage({
     const email = saveUserEmail(emailDraft);
     patch({ email });
     onProfileRefresh?.();
-    onToast?.(
-      email ? `Research profile loaded for ${email}` : "Research profile email cleared",
-    );
+    onToast?.(email ? `Research profile loaded for ${email}` : "Research profile cleared");
   };
 
   const bindPilot = () => {
@@ -129,18 +148,14 @@ export function SettingsPage({
     const email = saveUserEmail(PILOT_PREVIEW_EMAIL);
     patch({ email });
     onProfileRefresh?.();
-    onToast?.(`Bound example identity ${email}`);
+    onToast?.(`Loaded example research profile ${email}`);
   };
 
   const connectSession = async () => {
     setBusy(true);
     try {
       const out = await ensureDeskSession({ force: true });
-      onToast?.(
-        out.ok
-          ? "Research desk connected for this browser"
-          : out.error || "Desk connection failed",
-      );
+      onToast?.(out.ok ? "Research desk connected for this browser" : out.error || "Desk connection failed");
       onProfileRefresh?.();
     } finally {
       setBusy(false);
@@ -150,11 +165,7 @@ export function SettingsPage({
   const saveToken = () => {
     const saved = saveDeskToken(tokenDraft);
     setTokenDraft("");
-    onToast?.(
-      saved
-        ? "Fallback access saved for this browser session"
-        : "Fallback access cleared",
-    );
+    onToast?.(saved ? "Fallback access saved for this browser session" : "Fallback access cleared");
     onProfileRefresh?.();
   };
 
@@ -172,189 +183,214 @@ export function SettingsPage({
 
   return (
     <PageShell
-      className="rd-v2-settings-page"
+      className="rd-v2-settings-page rd-v2-settings-workspace-page rd-v2-settings-modern"
       title="Settings"
-      lead="Choose how Research Drive behaves for this browser. Operational health lives under system status, not in the preference hierarchy."
+      lead="Preferences, personalization, connections, and account controls for Research Drive."
       surfaceState={SETTINGS_SURFACE_STATE}
     >
-      <div className="rd-v2-settings-statement">
-        <StatementSection title="Workspace behavior">
-          <div className="rd-v2-settings-row">
-            <label className="rd-v2-settings-label" htmlFor="rd-settings-startup">
-              When Research Drive opens
-            </label>
-            <select
-              id="rd-settings-startup"
-              value={settings.startup}
-              onChange={(event) => patch({ startup: event.target.value })}
-              className="rd-v2-select"
+      <div className="rd-v2-settings-modern-layout">
+        <nav className="rd-v2-settings-local-nav" aria-label="Settings sections">
+          <a href="#settings-general" className="is-active">General</a>
+          <a href="#settings-personalization">Personalization</a>
+          <a href="#settings-connections">Connections</a>
+          <a href="#settings-advanced">Advanced</a>
+        </nav>
+
+        <div className="rd-v2-settings-modern-content">
+          <SettingsSection
+            id="settings-general"
+            title="General"
+            description="Default behavior for the Research Drive workspace."
+          >
+            <SettingsRow
+              title="When Research Drive opens"
+              description="Start from Home or continue from the last research surface you were using."
             >
-              <option value="home">Home — show what needs attention</option>
-              <option value="resume">Continue where I left off</option>
-            </select>
-          </div>
-          <p className="rd-v2-settings-hint">
-            Continue remembers only Library, Discover, or Synthesis. Profile, Settings, and Resources never become a resume destination.
-          </p>
+              <select
+                id="rd-settings-startup"
+                value={settings.startup}
+                onChange={(event) => patch({ startup: event.target.value })}
+                className="rd-v2-select"
+                aria-label="When Research Drive opens"
+              >
+                <option value="home">Home</option>
+                <option value="resume">Continue where I left off</option>
+              </select>
+            </SettingsRow>
 
-          <div className="rd-v2-settings-row">
-            <label className="rd-v2-settings-label" htmlFor="rd-settings-on-select">
-              When evidence is selected
-            </label>
-            <select
-              id="rd-settings-on-select"
-              value={settings.onSelect}
-              onChange={(event) => patch({ onSelect: event.target.value })}
-              className="rd-v2-select"
+            <SettingsRow
+              title="When evidence is selected"
+              description="Choose the default Inspector view for ordinary Library and Discover selection."
             >
-              <option value="detail">Show Detail</option>
-              <option value="ask">Open Ask</option>
-              <option value="keep">Keep current Inspector mode</option>
-            </select>
-          </div>
-          <p className="rd-v2-settings-hint">
-            Applies to evidence selection in Library and Discover. Approval, Resources, and Synthesis decision states keep their task-specific Inspector behavior.
-          </p>
+              <select
+                id="rd-settings-on-select"
+                value={settings.onSelect}
+                onChange={(event) => patch({ onSelect: event.target.value })}
+                className="rd-v2-select"
+                aria-label="When evidence is selected"
+              >
+                <option value="detail">Show Detail</option>
+                <option value="ask">Open Ask</option>
+                <option value="keep">Keep current mode</option>
+              </select>
+            </SettingsRow>
 
-          <div className="rd-v2-settings-row">
-            <label className="rd-v2-settings-label" htmlFor="rd-settings-discover-scope">
-              Discover search
-            </label>
-            <select
-              id="rd-settings-discover-scope"
-              value={settings.discoverScope}
-              onChange={(event) => patch({ discoverScope: event.target.value })}
-              className="rd-v2-select"
+            <SettingsRow
+              title="Discover search"
+              description="Choose whether Discover prefers known evidence first or searches wider immediately."
             >
-              <option value="known">Known evidence first</option>
-              <option value="wide">Search wider immediately</option>
-            </select>
-          </div>
-          <p className="rd-v2-settings-hint">
-            Known-first paints Library and declared routes before progressive enrichment. Wide starts semantic/live federation immediately. Synthesis evidence-gap handoffs always begin known-first.
-          </p>
-        </StatementSection>
+              <select
+                id="rd-settings-discover-scope"
+                value={settings.discoverScope}
+                onChange={(event) => patch({ discoverScope: event.target.value })}
+                className="rd-v2-select"
+                aria-label="Discover search"
+              >
+                <option value="known">Known evidence first</option>
+                <option value="wide">Search wider immediately</option>
+              </select>
+            </SettingsRow>
+          </SettingsSection>
 
-        <ConnectedAccountsSection deskAccess={deskAccess} onToast={onToast} />
+          <SettingsSection
+            id="settings-personalization"
+            title="Personalization"
+            description="Research context Research Drive can use when organizing and recommending work."
+          >
+            <SettingsRow
+              title="Research profile"
+              description="Load academic context by email. This is research context, not your Research Drive account identity."
+            >
+              <div className="rd-v2-settings-profile-control">
+                <input
+                  id="rd-settings-email"
+                  type="email"
+                  className="rd-v2-input"
+                  placeholder="researcher@university.edu"
+                  value={emailDraft}
+                  onChange={(event) => setEmailDraft(event.target.value)}
+                  onKeyDown={(event) => handleEnterToSubmit(event, saveEmail)}
+                  aria-label="Research profile email"
+                />
+                <button type="button" className="rd-v2-btn sm primary" onClick={saveEmail}>Save</button>
+              </div>
+            </SettingsRow>
 
-        <StatementSection title="Research identity">
-          <div className="rd-v2-settings-row stack">
-            <label className="rd-v2-settings-label" htmlFor="rd-settings-email">
-              Faculty email
-            </label>
-            <input
-              id="rd-settings-email"
-              type="email"
-              className="rd-v2-input"
-              placeholder="faculty@yzu.edu.tw"
-              value={emailDraft}
-              onChange={(event) => setEmailDraft(event.target.value)}
-              aria-describedby="rd-settings-email-hint"
-              onKeyDown={(event) => handleEnterToSubmit(event, saveEmail)}
-            />
-            <button type="button" className="rd-v2-btn sm primary" onClick={saveEmail}>
-              Save identity
-            </button>
+            <SettingsRow
+              title="Profile context"
+              description="Profile shows the explicit research context Research Drive has on record. Missing context remains missing rather than being inferred here."
+            >
+              <span className="rd-v2-settings-status-text">{settings.email ? "Profile loaded" : "Not configured"}</span>
+            </SettingsRow>
+
             {demoMode ? (
-              <button type="button" className="rd-v2-btn sm ghost" onClick={bindPilot}>
-                Use example profile
-              </button>
+              <SettingsRow
+                title="Example profile"
+                description="Load the bundled example record for visual or demo verification."
+              >
+                <button type="button" className="rd-v2-btn sm ghost" onClick={bindPilot}>Use example</button>
+              </SettingsRow>
             ) : null}
-          </div>
-          <p id="rd-settings-email-hint" className="rd-v2-settings-hint">
-            Binds the faculty-registry record shown in Profile. Research Drive remains usable without one, and this does not edit registry research facts.
-          </p>
-        </StatementSection>
+          </SettingsSection>
 
-        <StatementSection title="Desk connection">
-          <StatementRow
-            label="This browser"
-            metric={access.label}
-            sublabel={access.detail}
-            detail={access.ok ? "OK" : "NEED"}
-            warn={!access.ok}
-          />
-          <div className="rd-v2-settings-row stack">
-            {access.ok ? (
-              <>
-                <button type="button" className="rd-v2-btn sm ghost" disabled={busy} onClick={connectSession}>
-                  Reconnect
-                </button>
-                <button type="button" className="rd-v2-btn sm danger" disabled={busy} onClick={disconnect}>
-                  Disconnect
-                </button>
-              </>
-            ) : (
-              <button type="button" className="rd-v2-btn sm primary" disabled={busy} onClick={connectSession}>
-                Connect browser
-              </button>
-            )}
-          </div>
-        </StatementSection>
+          <SettingsSection
+            id="settings-connections"
+            title="Connections"
+            description="Browser access and external accounts connected to this workspace."
+          >
+            <SettingsRow
+              title="Browser session"
+              description={`${access.detail}. ${principal?.email ? `Signed in as ${principal.email}.` : "No named account identity is available in this browser."}`}
+            >
+              <div className="rd-v2-settings-session-actions">
+                <span className={`rd-v2-settings-connection-state ${access.ok ? "is-ready" : "is-warning"}`}>{access.label}</span>
+                {access.ok ? (
+                  <>
+                    <button type="button" className="rd-v2-btn sm ghost" disabled={busy} onClick={connectSession}>Reconnect</button>
+                    <button type="button" className="rd-v2-btn sm danger" disabled={busy} onClick={disconnect}>Disconnect</button>
+                  </>
+                ) : (
+                  <button type="button" className="rd-v2-btn sm primary" disabled={busy} onClick={connectSession}>Connect</button>
+                )}
+              </div>
+            </SettingsRow>
 
-        <details className="rd-v2-settings-advanced">
-          <summary>System status and technical details</summary>
-          <div className="rd-v2-settings-advanced-body">
-            <StatementRow
-              label="Research API"
-              metric={health == null ? "Not checked" : health?.status || "Reported"}
-              sublabel="Catalog, Ask, jobs, query, and research-workspace service"
-              detail={health?.status === "ok" ? "OK" : health == null ? "UNKNOWN" : "CHECK"}
-              warn={health != null && health?.status !== "ok"}
-            />
-            <StatementRow
-              label="Assistant runtime"
-              metric={assistant.label}
-              sublabel={assistant.detail}
-              detail={assistant.ready ? "READY" : assistant.known ? "CHECK" : "UNKNOWN"}
-              warn={assistant.known && !assistant.ready}
-            />
-            <StatementRow
-              label="Research archive"
-              metric={archive.label}
-              sublabel={archive.detail}
-              detail={archive.ready ? "READY" : archive.known ? "CHECK" : "UNKNOWN"}
-              warn={archive.known && !archive.ready}
-            />
-            <StatementRow
-              label="Desk equipment"
-              metric={mcpTools != null ? `${mcpTools} MCP tools` : "Not reported"}
-              sublabel="Capability inventory belongs to Resources; this is a compact status read"
-              detail={mcpTools != null ? "REPORTED" : "UNKNOWN"}
-            />
+            <div className="rd-v2-settings-connected-accounts">
+              <ConnectedAccountsSection deskAccess={deskAccess} onToast={onToast} />
+            </div>
+          </SettingsSection>
 
-            <details className="rd-v2-settings-advanced">
-              <summary>Fallback browser access</summary>
-              <div className="rd-v2-settings-advanced-body">
-                <p className="rd-v2-settings-hint">
-                  Use only when this browser cannot mint the normal desk session.
-                </p>
-                <div className="rd-v2-settings-row stack">
-                  <label className="rd-v2-settings-label" htmlFor="rd-settings-token">
-                    Fallback access token
-                  </label>
-                  <input
-                    id="rd-settings-token"
-                    type="password"
-                    className="rd-v2-input"
-                    placeholder="Fallback access token"
-                    value={tokenDraft}
-                    autoComplete="off"
-                    onChange={(event) => setTokenDraft(event.target.value)}
-                    onKeyDown={(event) => {
-                      handleEnterToSubmit(event, () => {
-                        if (!busy && tokenDraft.trim()) saveToken();
-                      });
-                    }}
-                  />
-                  <button type="button" className="rd-v2-btn sm" disabled={busy || !tokenDraft.trim()} onClick={saveToken}>
-                    Save fallback
-                  </button>
+          <section id="settings-advanced" className="rd-v2-settings-simple-section rd-v2-settings-advanced-section">
+            <header>
+              <h2>Advanced</h2>
+              <p>Runtime status and fallback access for troubleshooting.</p>
+            </header>
+            <details className="rd-v2-settings-technical rd-v2-settings-technical-modern">
+              <summary>
+                <span>
+                  <strong>System status & technical details</strong>
+                  <small>Research API, assistant runtime, archive, equipment, and fallback access</small>
+                </span>
+                <em>Show</em>
+              </summary>
+              <div className="rd-v2-settings-technical-body">
+                <StatementRow
+                  label="Research API"
+                  metric={health == null ? "Not checked" : health?.status || "Reported"}
+                  sublabel="Catalog, Ask, jobs, query, and research-workspace service"
+                  detail={health?.status === "ok" ? "OK" : health == null ? "UNKNOWN" : "CHECK"}
+                  warn={health != null && health?.status !== "ok"}
+                />
+                <StatementRow
+                  label="Assistant runtime"
+                  metric={assistant.label}
+                  sublabel={assistant.detail}
+                  detail={assistant.ready ? "READY" : assistant.known ? "CHECK" : "UNKNOWN"}
+                  warn={assistant.known && !assistant.ready}
+                />
+                <StatementRow
+                  label="Research archive"
+                  metric={archive.label}
+                  sublabel={archive.detail}
+                  detail={archive.ready ? "READY" : archive.known ? "CHECK" : "UNKNOWN"}
+                  warn={archive.known && !archive.ready}
+                />
+                <StatementRow
+                  label="Desk equipment"
+                  metric={mcpTools != null ? `${mcpTools} MCP tools` : "Not reported"}
+                  sublabel="Capability inventory belongs to Resources; this is only a compact status read"
+                  detail={mcpTools != null ? "REPORTED" : "UNKNOWN"}
+                />
+
+                <div className="rd-v2-settings-fallback">
+                  <div>
+                    <strong>Fallback browser access</strong>
+                    <p>Use only when this browser cannot mint the normal desk session.</p>
+                  </div>
+                  <div className="rd-v2-settings-inline-control">
+                    <input
+                      id="rd-settings-token"
+                      type="password"
+                      className="rd-v2-input"
+                      placeholder="Fallback access token"
+                      value={tokenDraft}
+                      autoComplete="off"
+                      onChange={(event) => setTokenDraft(event.target.value)}
+                      onKeyDown={(event) => {
+                        handleEnterToSubmit(event, () => {
+                          if (!busy && tokenDraft.trim()) saveToken();
+                        });
+                      }}
+                    />
+                    <button type="button" className="rd-v2-btn sm" disabled={busy || !tokenDraft.trim()} onClick={saveToken}>
+                      Save fallback
+                    </button>
+                  </div>
                 </div>
               </div>
             </details>
-          </div>
-        </details>
+          </section>
+        </div>
       </div>
     </PageShell>
   );
