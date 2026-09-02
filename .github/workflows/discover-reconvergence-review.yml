@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - polish/discover-reconvergence-20260902
+      - prototype/discover-utility-workbench-20260902
     paths:
       - "drive/src/v2/**"
       - "e2e/discover-reconvergence-visual.spec.js"
@@ -46,4 +47,4 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-# Clean-head replay after workstation, resting-radar, and result-scan convergence.
+# Prototype replay: approved Research Drive shell with utility-workbench evidence layer.
