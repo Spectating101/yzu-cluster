@@ -8,7 +8,7 @@ const VIEWPORTS = [
   ["1920", { width: 1920, height: 1080 }],
 ];
 
-const REGISTRY_PREVIEW = {
+const RICH_PROFILE = {
   found: true,
   profile: {
     name_en: "Kong, De-Rong",
@@ -29,12 +29,12 @@ const REGISTRY_PREVIEW = {
   },
 };
 
-const UNBOUND_DESK_ACCESS = {
+const DESK_ACCESS = {
   version: 2,
   authenticated: true,
   access: "operator",
   principal: {
-    id: "visual-unbound",
+    id: "visual-user",
     email: "",
     display_name: "Researcher",
     role: "operator",
@@ -57,12 +57,10 @@ async function setup(page, viewport, profileBody, boundEmail = "") {
     if (email) window.localStorage.setItem("procure_user_email", email);
   }, boundEmail);
   await mockV2Api(page, { profileBody, historyBody: { items: [] } });
-  // A usable Research Drive account is present, but no faculty identity is
-  // implied by that account. This is the explorer state we are designing.
   await page.route("**/library/desk/capabilities", (route) => route.fulfill({
     status: 200,
     contentType: "application/json",
-    body: JSON.stringify(UNBOUND_DESK_ACCESS),
+    body: JSON.stringify(DESK_ACCESS),
   }));
   await page.route("**/library/accounts", (route) => route.fulfill({
     status: 200,
@@ -85,20 +83,20 @@ async function noOverflow(page) {
 }
 
 for (const [name, viewport] of VIEWPORTS) {
-  test(`Profile becomes a registry explorer when unbound ${name}`, async ({ page }) => {
+  test(`Guest Profile describes Research Drive ${name}`, async ({ page }) => {
     mkdirSync(OUT, { recursive: true });
-    await setup(page, viewport, REGISTRY_PREVIEW);
+    await setup(page, viewport, { found: false, profile: null });
     await page.goto("/?tab=profile", { waitUntil: "domcontentloaded" });
     await settle(page);
-    await expect(page.getByRole("heading", { name: "Find a researcher" })).toBeVisible();
-    await expect(page.getByText("Kong, De-Rong", { exact: true }).first()).toBeVisible();
-    await expect(page.getByText("Registry preview", { exact: true }).first()).toBeVisible();
-    await expect(page.getByRole("button", { name: "Set my own identity →" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Research evidence, kept inspectable." })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "What this workspace does" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "How Research Drive treats research context" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Find a researcher" })).toHaveCount(0);
     await noOverflow(page);
-    await page.screenshot({ path: `${OUT}/${name}-profile-unbound.png`, fullPage: false });
+    await page.screenshot({ path: `${OUT}/${name}-profile-guest.png`, fullPage: false });
   });
 
-  test(`canonical thin Profile remains stable ${name}`, async ({ page }) => {
+  test(`Sparse signed-in Profile keeps the full context architecture ${name}`, async ({ page }) => {
     mkdirSync(OUT, { recursive: true });
     await setup(
       page,
@@ -117,12 +115,27 @@ for (const [name, viewport] of VIEWPORTS) {
     await page.goto("/?tab=profile", { waitUntil: "domcontentloaded" });
     await settle(page);
     await expect(page.getByText("Test Prof", { exact: true }).first()).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Find a researcher" })).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "What Research Drive can operate from" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Context Research Drive has on record" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Works on record" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Evidence relationships" })).toBeVisible();
     await noOverflow(page);
-    await page.screenshot({ path: `${OUT}/${name}-profile-thin.png`, fullPage: false });
+    await page.screenshot({ path: `${OUT}/${name}-profile-user-sparse.png`, fullPage: false });
   });
 
-  test(`Settings is a workspace-policy surface ${name}`, async ({ page }) => {
+  test(`Rich signed-in Profile showcases recorded research context ${name}`, async ({ page }) => {
+    mkdirSync(OUT, { recursive: true });
+    await setup(page, viewport, RICH_PROFILE, "drkong@saturn.yzu.edu.tw");
+    await page.goto("/?tab=profile", { waitUntil: "domcontentloaded" });
+    await settle(page);
+    await expect(page.getByText("Kong, De-Rong", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText("Digital finance, investor behavior, and empirical capital-market research", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText("18", { exact: true }).first()).toBeVisible();
+    await noOverflow(page);
+    await page.screenshot({ path: `${OUT}/${name}-profile-user-rich.png`, fullPage: false });
+  });
+
+  test(`Settings remains a compact workspace-control surface ${name}`, async ({ page }) => {
     mkdirSync(OUT, { recursive: true });
     await setup(page, viewport, { found: false, profile: null });
     await page.goto("/?tab=settings", { waitUntil: "domcontentloaded" });
