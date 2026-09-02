@@ -404,7 +404,10 @@ export function HomePage({
   };
 
   const openFocalInLibrary = (dataset = focalAsset) => {
-    if (dataset) onSelectDataset?.(dataset);
+    if (dataset && onSelectDataset) {
+      onSelectDataset(dataset);
+      return;
+    }
     onGoTab?.("library");
   };
 
