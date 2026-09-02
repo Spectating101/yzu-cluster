@@ -46,4 +46,4 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-# Active-flow replay: candidate field stays primary; diagnostic assessment defaults collapsed.
+# Clean-head replay after workstation, resting-radar, and result-scan convergence.
