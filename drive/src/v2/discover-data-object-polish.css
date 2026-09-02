@@ -22,8 +22,8 @@
   .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
     .rd-v2-discover-ranked-results
     .rd-v2-discover-candidate-main {
-    grid-template-columns: minmax(350px, 1.08fr) minmax(0, 1.62fr);
-    grid-template-rows: auto auto;
+    grid-template-columns: minmax(350px, 1.08fr) minmax(0, 1.62fr) !important;
+    grid-template-rows: auto auto !important;
     column-gap: 34px;
     row-gap: 7px;
   }
@@ -31,8 +31,8 @@
   .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
     .rd-v2-discover-ranked-results
     .rd-v2-discover-candidate-heading {
-    grid-column: 1;
-    grid-row: 1;
+    grid-column: 1 !important;
+    grid-row: 1 !important;
     gap: 5px;
   }
 
@@ -46,8 +46,8 @@
   .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
     .rd-v2-discover-ranked-results
     .rd-v2-discover-evidence {
-    grid-column: 1;
-    grid-row: 2;
+    grid-column: 1 !important;
+    grid-row: 2 !important;
     position: relative;
     padding-top: 17px;
     color: var(--rd-body, #3e4759);
@@ -73,20 +73,21 @@
   .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
     .rd-v2-discover-ranked-results
     .rd-v2-discover-offering-facts {
-    grid-column: 2;
-    grid-row: 1 / span 2;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(130px, .55fr);
-    grid-template-rows: auto auto;
-    gap: 9px 22px;
+    grid-column: 2 !important;
+    grid-row: 1 / span 2 !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(130px, .55fr) !important;
+    grid-template-rows: auto auto !important;
+    gap: 9px 22px !important;
     align-content: center;
   }
 
   .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
     .rd-v2-discover-ranked-results
     .rd-v2-discover-offering-facts > span:nth-child(2) {
-    grid-column: 1 / -1;
-    grid-row: 1;
+    order: 0 !important;
+    grid-column: 1 / -1 !important;
+    grid-row: 1 !important;
     display: grid !important;
     gap: 5px;
     min-height: 58px;
@@ -100,8 +101,9 @@
   .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
     .rd-v2-discover-ranked-results
     .rd-v2-discover-offering-facts > span:nth-child(4) {
-    grid-column: 1;
-    grid-row: 2;
+    order: 0 !important;
+    grid-column: 1 !important;
+    grid-row: 2 !important;
     display: grid !important;
     gap: 3px;
     padding: 0 !important;
@@ -110,8 +112,9 @@
   .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
     .rd-v2-discover-ranked-results
     .rd-v2-discover-offering-facts > span:nth-child(3) {
-    grid-column: 2;
-    grid-row: 2;
+    order: 0 !important;
+    grid-column: 2 !important;
+    grid-row: 2 !important;
     display: grid !important;
     gap: 3px;
     padding: 0 !important;
