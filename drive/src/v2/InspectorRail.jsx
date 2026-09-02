@@ -110,9 +110,9 @@ function DiscoverAssessmentRailSummary({ state, onClose }) {
       <p>{pending ? "The central Evidence Position is establishing the current verdict. Previous assessment authority is not reused while this is pending." : gap || "No remaining gap was reported by the current assessment."}</p>
       <dl>
         <div><dt>Held evidence</dt><dd>{pending ? "—" : held}</dd></div>
-        <div><dt>Centre</dt><dd>{pending ? "Assessment authority" : "Full assessment + sourcing routes"}</dd></div>
+        <div><dt>Evidence needed</dt><dd>{pending ? "Checking" : String(result?.gap?.resolution_evidence || "Not specified")}</dd></div>
       </dl>
-      <p className="muted">{pending ? "The rail mirrors state only; it does not run a second assessment." : "Use Detail for the decision summary or Ask to reason within this exact evidence need."}</p>
+      <p className="muted">{pending ? "The desk is checking held evidence against this requirement." : "This Detail rail is the assessment authority. Results stay available in the centre while you inspect the gap and candidate sources."}</p>
       {onClose ? <button type="button" className="rd-v2-btn sm" onClick={onClose}>Hide assessment</button> : null}
     </section>
   );

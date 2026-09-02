@@ -337,17 +337,24 @@ test.describe("Discover reconvergence visual review", () => {
       await runSearch(page, "Do we hold issuer-quarter governance data for Taiwan?");
 
       const workspace = page.locator(".rd-v2-evidence-brief.is-workspace");
-      await expect(workspace).toBeVisible();
-      await expect(workspace).toContainText(/Partially covered/i);
-      await expect(workspace).toContainText(/Board-governance variables/i);
       const assembly = page.getByTestId("discover-assembly-path");
-      await expect(assembly).toBeVisible();
-      await expect(assembly).toContainText(/Board-governance variables/i);
-      await expect(assembly).toContainText(/Compare which sources actually provide the missing evidence/i);
-      await expect(assembly).toContainText(/No source selected or collected/i);
-      const details = workspace.locator(".rd-v2-evidence-detail-disclosure.is-workspace");
-      await expect(details).toBeVisible();
-      expect(await details.evaluate((node) => node.open)).toBe(false);
+      if (viewport.width >= 1680) {
+        const assessmentRail = page.locator('aside.rd-v2-rail').getByRole('region', { name: 'Evidence assessment summary' });
+        await expect(assessmentRail).toBeVisible();
+        await expect(assessmentRail).toContainText(/Partially covered/i);
+        await expect(assessmentRail).toContainText(/Board-governance variables/i);
+        await expect(assessmentRail).toContainText(/Held evidence/i);
+        await expect(assembly).toBeHidden();
+      } else {
+        await expect(workspace).toBeVisible();
+        await expect(workspace).toContainText(/Partially covered/i);
+        await expect(workspace).toContainText(/Board-governance variables/i);
+        await expect(assembly).toBeVisible();
+        await expect(assembly).toContainText(/Board-governance variables/i);
+        const details = workspace.locator(".rd-v2-evidence-detail-disclosure.is-workspace");
+        await expect(details).toBeVisible();
+        expect(await details.evaluate((node) => node.open)).toBe(false);
+      }
       const firstCandidateBox = await page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidate").first().boundingBox();
       expect(firstCandidateBox).not.toBeNull();
       expect(firstCandidateBox.y).toBeLessThan(viewport.height);
