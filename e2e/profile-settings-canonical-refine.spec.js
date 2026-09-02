@@ -182,6 +182,7 @@ for (const [name, viewport] of VIEWPORTS) {
     await page.goto("/?tab=profile", { waitUntil: "domcontentloaded" });
     await settle(page);
     await expect(page.getByRole("heading", { name: "From discovery to evidence-grounded research work", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Sign in \/ connect profile/ })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Start here", exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: "What it does", exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: "How it handles research", exact: true })).toBeVisible();
