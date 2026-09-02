@@ -103,11 +103,73 @@ function reproductionValue(receipt) {
   return receipt.command || receipt.script || receipt.route || "";
 }
 
+function provenanceBasis(dataset, fields, receipt) {
+  if (dataset?.self_provided || dataset?.upload) return "Self-provided";
+  if (receipt.sourceUrl) return "Exact source recorded";
+  if (fields.source || dataset?.source || dataset?.source_system || dataset?.provenance) return "Authority named";
+  return "Not established";
+}
+
+function reproductionBasis(receipt) {
+  return hasReproductionMethod(receipt) ? "Method recorded" : "Method missing";
+}
+
+function nextMove({ state, presentation, previewOpen, receipt, verification }) {
+  if (previewOpen) {
+    return "Review the bounded preview in the centre. Previewing rows does not upgrade verification or provenance.";
+  }
+  if (state.kind === "query-ready") {
+    if (!hasReproductionMethod(receipt)) {
+      return "Inspect the full preview or open a query now; record a reproduction method before treating the workflow as fully reproducible.";
+    }
+    if (verification.kind !== "verified" && verification.kind !== "matched") {
+      return "Inspect the full preview or open a query now, while keeping verification separate from query readiness.";
+    }
+    return "Inspect the full preview for row-level context, then open a query when you need analysis beyond the bounded sample.";
+  }
+  if (state.kind === "connected") {
+    return "Use the declared remote route. Connected means reachable, not that a local query-ready copy exists.";
+  }
+  if (state.kind === "registered") {
+    if (presentation.kind === "scholarly_work") {
+      return "Use the bibliographic record as evidence, then verify the stable source before making a stronger source claim.";
+    }
+    return "Inspect the source record and prepare a usable local copy before treating this asset as queryable evidence.";
+  }
+  return "Resolve the outstanding readiness or provenance gaps before relying on this asset in analysis.";
+}
+
+function DecisionBasis({ state, verification, dataset, fields, receipt, previewOpen, presentation }) {
+  const rows = [
+    ["Readiness", state.label],
+    ["Verification", verification.label],
+    ["Provenance", provenanceBasis(dataset, fields, receipt)],
+    ["Reproduce", reproductionBasis(receipt)],
+  ];
+  return (
+    <section className="rd-v2-library-inspector-basis" aria-label="Decision basis" data-testid="library-decision-basis">
+      <p className="rd-v2-rail-section-label">Decision basis</p>
+      <div className="rd-v2-library-inspector-basis-grid">
+        {rows.map(([label, value]) => (
+          <div key={label}>
+            <span>{label}</span>
+            <strong>{value}</strong>
+          </div>
+        ))}
+      </div>
+      <div className="rd-v2-library-inspector-next">
+        <span>{previewOpen ? "Preview state" : "Next move"}</span>
+        <p>{nextMove({ state, presentation, previewOpen, receipt, verification })}</p>
+      </div>
+    </section>
+  );
+}
+
 /**
  * The centre workspace owns asset substance (table/schema, coverage, grain,
  * research use). The global situation strip owns selected-asset identity. The
- * rail is therefore purely decisional: usability, reproducible provenance,
- * verification, known boundaries, unresolved facts, and Ask.
+ * rail is therefore decisional: usability, provenance, verification,
+ * unresolved facts, and the next valid research move.
  */
 export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onAskAbout }) {
   if (!dataset) return null;
@@ -122,6 +184,9 @@ export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onAskAbo
   const verification = libraryVerification(dataset);
   const remedy = hydrateRemedy(dataset);
   const archiveRef = String(dataset?.canonical_remote || dataset?.lineage?.canonical_remote || "").trim();
+  const hasReceiptDetails = Boolean(
+    receipt.sourceUrl || receipt.method || reproductionValue(receipt) || receipt.upstream,
+  );
 
   return (
     <RailFrame>
@@ -148,15 +213,31 @@ export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onAskAbo
       ) : null}
 
       <div className="rd-v2-rail-scroll rd-v2-library-inspector-scroll">
+        <DecisionBasis
+          state={state}
+          verification={verification}
+          dataset={dataset}
+          fields={fields}
+          receipt={receipt}
+          previewOpen={previewOpen}
+          presentation={presentation}
+        />
+
         <section className="rd-v2-library-inspector-block" aria-label="Source" data-testid="library-rail-source">
-          <p className="rd-v2-rail-section-label">Source & reproduce</p>
+          <p className="rd-v2-rail-section-label">Source &amp; reproduce</p>
           <h3 className="rd-v2-library-rail-module-title">{sourceAuthorityLine(dataset, fields)}</h3>
-          <div className="rd-v2-library-inspector-facts rd-v2-library-provenance-facts">
-            <Fact label={receipt.sourceUrlKind || "Exact source URL"} value={receipt.sourceUrl} href={receipt.sourceUrl} mono />
-            <Fact label="Method" value={receipt.method} />
-            <Fact label={reproductionLabel(receipt)} value={reproductionValue(receipt)} mono />
-            <Fact label="Upstream assets" value={receipt.upstream} mono />
-          </div>
+          {hasReceiptDetails ? (
+            <div className="rd-v2-library-inspector-facts rd-v2-library-provenance-facts">
+              <Fact label={receipt.sourceUrlKind || "Exact source URL"} value={receipt.sourceUrl} href={receipt.sourceUrl} mono />
+              <Fact label="Method" value={receipt.method} />
+              <Fact label={reproductionLabel(receipt)} value={reproductionValue(receipt)} mono />
+              <Fact label="Upstream assets" value={receipt.upstream} mono />
+            </div>
+          ) : (
+            <p className="rd-v2-library-inspector-prose muted">
+              The source authority is named, but no exact reproduction receipt is recorded for this asset.
+            </p>
+          )}
         </section>
 
         <section className="rd-v2-library-inspector-block" aria-label="Verification" data-testid="library-rail-verification">
@@ -191,6 +272,9 @@ export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onAskAbo
         {missing.length ? (
           <section className="rd-v2-library-inspector-block rd-v2-library-inspector-unknown" aria-label="Still unknown">
             <p className="rd-v2-rail-section-label">Still unknown</p>
+            <h3 className="rd-v2-library-rail-module-title">
+              {missing.length} unresolved fact{missing.length === 1 ? "" : "s"}
+            </h3>
             <ul>
               {missing.map((item) => <li key={item}><span aria-hidden>?</span>{item}</li>)}
             </ul>
