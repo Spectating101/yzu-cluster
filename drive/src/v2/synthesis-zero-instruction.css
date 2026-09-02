@@ -1,13 +1,11 @@
 /* Synthesis zero-instruction usability pass.
  *
- * The product already has durable workflow truth. This layer removes duplicate
- * narration and makes the operation the researcher can perform now own the
- * centre canvas. It deliberately adds no new product semantics.
+ * The durable workflow already exists. This layer removes duplicate narration
+ * and gives the operation the researcher can perform now visual authority.
  */
 
 @media (min-width: 760px) {
-  /* A first-time researcher should not have to parse a second lifecycle model.
-     Keep the live current-operation sentence; hide the decorative roadmap. */
+  /* Keep one live operation cue, not a second progress model. */
   .rd-v2-synthesis-page .s04-opening-workflow {
     display: none !important;
   }
@@ -32,7 +30,7 @@
     font-weight: 650;
   }
 
-  /* The brief is context, not the job. Keep it readable but shallow. */
+  /* Research brief remains available as context, but stops reading as a hero. */
   .rd-v2-synthesis-page .s04-opening-brief {
     box-shadow: none !important;
   }
@@ -46,14 +44,66 @@
     margin-block: 0 !important;
   }
 
-  /* FIRST OPERATION — choose held evidence.
-     When the read-only held-input proposal exists, the empty map, generic
-     next-action card, repeated object cards and Ask action are all noise. */
-  .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
-    > .s04-opening-next {
+  /* Early mapped-evidence workspace: remove the second Ask advancement CTA and
+     make the duplicate object/negative-status cards read as quiet metadata. */
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"]))
+    > [data-testid="synthesis-evidence-state"] > .s04-actions {
     display: none !important;
   }
 
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"]))
+    > [data-testid="synthesis-evidence-state"] > .s04-pairs {
+    margin-top: 10px !important;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"]))
+    > [data-testid="synthesis-evidence-state"] > .s04-pairs article {
+    min-height: 0 !important;
+    padding: 9px 11px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  /* Once evidence is mapped and Ask is not already reasoning, there is one
+     advancement control: request one reviewable method proposal. */
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has([data-testid="synthesis-evidence-proposal"])):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> .s04-draft)
+    > .s04-opening-next {
+    min-height: 0 !important;
+    padding: 12px 14px !important;
+    border: 1px solid #d9e4de !important;
+    border-radius: 9px !important;
+    background: #f5faf7 !important;
+    box-shadow: none !important;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has([data-testid="synthesis-evidence-proposal"])):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> .s04-draft)
+    > .s04-opening-next > :is(header, p, em) {
+    display: none !important;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has([data-testid="synthesis-evidence-proposal"])):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> .s04-draft)
+    > .s04-opening-next > footer {
+    width: 100%;
+    margin: 0 !important;
+    align-items: center !important;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has([data-testid="synthesis-evidence-proposal"])):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> .s04-draft)
+    > .s04-opening-next > footer::before {
+    content: "Evidence is mapped. Request one reviewable method proposal from these inputs.";
+    margin-right: auto;
+    max-width: 55ch;
+    color: #3f4d5b;
+    font-size: 10.5px;
+    font-weight: 650;
+    line-height: 1.4;
+  }
+
+  /* First real operation after thread creation: choose held Library evidence.
+     The empty map scaffold, duplicate object cards, generic next dossier and Ask
+     CTA all disappear while the read-only evidence proposal is present. */
+  .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
+    > .s04-opening-next,
   .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
     > [data-testid="synthesis-evidence-state"] .s04-map,
   .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
@@ -77,7 +127,9 @@
   }
 
   .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
-    > [data-testid="synthesis-evidence-state"] > .s04-title small {
+    > [data-testid="synthesis-evidence-state"] > .s04-title small,
+  .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
+    > [data-testid="synthesis-evidence-state"] > .s04-title h2 {
     font-size: 0 !important;
   }
 
@@ -88,11 +140,6 @@
     font-size: 9px;
     font-weight: 850;
     letter-spacing: .09em;
-  }
-
-  .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
-    > [data-testid="synthesis-evidence-state"] > .s04-title h2 {
-    font-size: 0 !important;
   }
 
   .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
@@ -141,63 +188,8 @@
     border-top: 1px solid #dfe6e2 !important;
   }
 
-  /* SECOND OPERATION — inspect mapped/measured evidence.
-     The evidence map remains useful; repeated object/negative-status cards and
-     a second Ask advancement button do not. */
-  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has([data-testid="synthesis-evidence-proposal"])):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"]))
-    > [data-testid="synthesis-evidence-state"] > .s04-actions {
-    display: none !important;
-  }
-
-  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has([data-testid="synthesis-evidence-proposal"])):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"]))
-    > [data-testid="synthesis-evidence-state"] > .s04-pairs {
-    margin-top: 10px !important;
-  }
-
-  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has([data-testid="synthesis-evidence-proposal"])):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"]))
-    > [data-testid="synthesis-evidence-state"] > .s04-pairs article {
-    min-height: 0 !important;
-    padding: 9px 11px !important;
-    background: transparent !important;
-    box-shadow: none !important;
-  }
-
-  /* The operation dock is a single advancement control, not another dossier. */
-  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has([data-testid="synthesis-evidence-proposal"])):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> .s04-draft):not(:has(> [data-testid="synthesis-execution-state"]))
-    > .s04-opening-next {
-    min-height: 0 !important;
-    padding: 12px 14px !important;
-    border: 1px solid #d9e4de !important;
-    border-radius: 9px !important;
-    background: #f5faf7 !important;
-    box-shadow: none !important;
-  }
-
-  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has([data-testid="synthesis-evidence-proposal"])):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> .s04-draft):not(:has(> [data-testid="synthesis-execution-state"]))
-    > .s04-opening-next > :is(header, p, em) {
-    display: none !important;
-  }
-
-  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has([data-testid="synthesis-evidence-proposal"])):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> .s04-draft):not(:has(> [data-testid="synthesis-execution-state"]))
-    > .s04-opening-next > footer {
-    width: 100%;
-    margin: 0 !important;
-    align-items: center !important;
-  }
-
-  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has([data-testid="synthesis-evidence-proposal"])):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> .s04-draft):not(:has(> [data-testid="synthesis-execution-state"]))
-    > .s04-opening-next > footer::before {
-    content: "Evidence is mapped. Request one reviewable method proposal from these inputs.";
-    margin-right: auto;
-    max-width: 55ch;
-    color: #3f4d5b;
-    font-size: 10.5px;
-    font-weight: 650;
-    line-height: 1.4;
-  }
-
-  /* Proposal is already an excellent decision surface. Strip everything that
-     narrates the proposal instead of helping decide it. */
+  /* Proposal is already a strong decision surface. Remove context that repeats
+     its own evidence/method consequences. */
   .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"])
     > .s04-opening-brief {
     opacity: .82;
@@ -214,31 +206,22 @@
     padding-block: 8px !important;
   }
 
-  /* MATURE OPERATION — preview / approval / build / result.
-     Ancient thread-history and repeated brief context must not sit above the
-     exact receipt/result. The Inspector already retains persistent context. */
-  .rd-v2-synthesis-page .s04-main:has(> :is(
-    [data-testid="synthesis-execution-state"],
-    [data-testid="synthesis-failed-state"],
-    [data-testid="synthesis-registered-state"],
-    [data-testid="synthesis-query-ready-state"]
-  )) > :is(.s04-opening-brief, .s04-brief) {
+  /* Preview / Approval / Build / Result: old thread history and repeated brief
+     context must not sit above the exact receipt/result. */
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-execution-state"])
+    > :is(.s04-opening-brief, .s04-brief),
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-failed-state"])
+    > :is(.s04-opening-brief, .s04-brief),
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-registered-state"])
+    > :is(.s04-opening-brief, .s04-brief),
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-query-ready-state"])
+    > :is(.s04-opening-brief, .s04-brief) {
     display: none !important;
-  }
-
-  .rd-v2-synthesis-page .s04-main:has(> :is(
-    [data-testid="synthesis-execution-state"],
-    [data-testid="synthesis-failed-state"],
-    [data-testid="synthesis-registered-state"],
-    [data-testid="synthesis-query-ready-state"]
-  )) > .s04-head {
-    margin-bottom: 2px !important;
   }
 }
 
 @media (min-width: 1680px) and (min-height: 900px) {
-  /* Held-evidence review gets the whole work surface. There is no legitimate
-     right-side operation yet; selection itself is the job. */
+  /* Evidence selection itself gets the entire analytical canvas. */
   #root .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
     > [data-testid="synthesis-evidence-state"] {
     grid-column: 1 / 13 !important;
@@ -246,41 +229,34 @@
   }
 
   #root .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
-    > .s04-opening-workflow-wrap {
-    grid-column: 1 / 13 !important;
-  }
-
-  #root .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
     .s04-evidence-proposal > ul {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  /* Mapped/measured evidence is a genuine two-surface workstation:
-     evidence at left, empirical readiness + one CTA at right. */
-  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has([data-testid="synthesis-evidence-proposal"])):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> .s04-draft):not(:has(> [data-testid="synthesis-execution-state"]))
+  /* Measured evidence + one operational sidecar. */
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has([data-testid="synthesis-evidence-proposal"])):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> .s04-draft)
     > [data-testid="synthesis-evidence-state"] {
     grid-column: 1 / 9 !important;
     grid-row: auto / span 5 !important;
     align-self: stretch !important;
   }
 
-  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has([data-testid="synthesis-evidence-proposal"])):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> .s04-draft):not(:has(> [data-testid="synthesis-execution-state"]))
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has([data-testid="synthesis-evidence-proposal"])):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> .s04-draft)
     > :is(.s04-measurement-status, .s04-opening-next, [data-testid="synthesis-method-surface"]) {
     grid-column: 9 / 13 !important;
     align-self: start !important;
   }
 
-  /* Preview / approval / build deserve the whole analytical plane. Evidence
-     remains below as inspectable context instead of consuming a third of the
-     first viewport. */
-  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-execution-state"]):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"]))
+  /* Preview/approval/build get the full first analytical row. Evidence remains
+     inspectable below instead of consuming a third of the primary viewport. */
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-execution-state"])
     > [data-testid="synthesis-execution-state"],
   #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-failed-state"])
     > [data-testid="synthesis-failed-state"] {
     grid-column: 1 / 13 !important;
   }
 
-  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-execution-state"]):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"]))
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-execution-state"])
     > [data-testid="synthesis-evidence-state"],
   #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-failed-state"])
     > [data-testid="synthesis-evidence-state"] {
@@ -288,35 +264,25 @@
     margin-top: 0 !important;
   }
 
-  /* Registered/query-ready stays a two-surface result workstation: authority
-     and reproduction at left, measured input/provenance at right. */
-  #root .rd-v2-synthesis-page .s04-main:has(> :is(
-    [data-testid="synthesis-registered-state"],
-    [data-testid="synthesis-query-ready-state"]
-  )) > :is(
-    [data-testid="synthesis-registered-state"],
-    [data-testid="synthesis-query-ready-state"]
-  ) {
+  /* Registered/query-ready keeps result authority at left and measured /
+     provenance / reuse context at right. */
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-registered-state"])
+    > [data-testid="synthesis-registered-state"],
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-query-ready-state"])
+    > [data-testid="synthesis-query-ready-state"] {
     grid-column: 1 / 9 !important;
   }
 
-  #root .rd-v2-synthesis-page .s04-main:has(> :is(
-    [data-testid="synthesis-registered-state"],
-    [data-testid="synthesis-query-ready-state"]
-  )) > :is(
-    [data-testid="synthesis-method-surface"],
-    [data-testid="synthesis-provenance"],
-    [data-testid="synthesis-reuse"],
-    [data-testid="synthesis-evidence-state"]
-  ) {
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-registered-state"])
+    > :is([data-testid="synthesis-method-surface"], [data-testid="synthesis-provenance"], [data-testid="synthesis-reuse"], [data-testid="synthesis-evidence-state"]),
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-query-ready-state"])
+    > :is([data-testid="synthesis-method-surface"], [data-testid="synthesis-provenance"], [data-testid="synthesis-reuse"], [data-testid="synthesis-evidence-state"]) {
     grid-column: 9 / 13 !important;
     align-self: start !important;
   }
 }
 
 @media (max-width: 759px) {
-  /* Preserve the compact/mobile roadmap because it remains a useful orientation
-     aid when the working surfaces cannot coexist side-by-side. */
   .rd-v2-synthesis-page .s04-evidence-proposal > ul {
     display: block !important;
   }
