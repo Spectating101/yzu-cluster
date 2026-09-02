@@ -30,6 +30,10 @@ jobs:
       - run: npm ci
       - run: npx playwright install chromium --with-deps
       - run: npm run build
+      - name: Repair capture-only locator in runner checkout
+        run: >-
+          sed -i 's/page\.locator("\.rd-v2-discover-ranked-results")/page.getByTestId("discover-ranked-results")/g'
+          e2e/discover-serp-capture.spec.js
       - name: Capture current Discover SERP pixels
         run: >-
           mkdir -p .tmp-pw artifacts/discover-serp-capture &&
@@ -45,4 +49,4 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-# Capture-only branch. No product source changes, merge, or deployment.
+# Capture-only branch. Runner-only harness repair; no product source changes, merge, or deployment.
