@@ -32,11 +32,12 @@ jobs:
       - run: npm ci
       - run: npx playwright install chromium --with-deps
       - run: npm run build
-      - name: Capture reconverged Discover states
+      - name: Capture wide SERP states
         run: >-
           mkdir -p .tmp-pw artifacts/discover-reconvergence &&
           TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
           e2e/discover-reconvergence-visual.spec.js --workers=1 --reporter=line
+          --grep "large active evidence field 1920x1080|selected evidence evaluation 1920x1080"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -47,4 +48,4 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-# Prototype replay: SERP allocation with useful chrome, flat results, and side-rail authority.
+# Focused prototype replay: 1920 SERP results + selected evidence state.
