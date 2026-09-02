@@ -45,6 +45,6 @@
 
 /* The old Settings rail contains one obsolete faculty-specific field. Keep the
    useful behavior/system summary while the main page owns personalization. */
-body:has(.rd-v2-settings-modern) .rd-v2-rail .rd-v2-rail-field-grid > :nth-child(2) {
+body:has(.rd-v2-settings-modern) .rd-v2-rail .rd-v2-rail-fieldgrid > .rd-v2-detail-row:nth-child(2) {
   display: none !important;
 }
