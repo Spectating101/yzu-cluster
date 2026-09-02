@@ -40,6 +40,7 @@ import { DiscoverEvidenceField } from "@/v2/DiscoverEvidenceField";
 import { DeskError } from "@/v2/DeskError";
 import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
 import { buildDiscoverDataPassport } from "@/v2/discoverDataPassport";
+import { DiscoverDatasetProfile } from "@/v2/DiscoverDatasetProfile";
 
 const FILTERS = [
   { id: "all", label: "All results" },
@@ -253,40 +254,7 @@ function DiscoverCandidateRow({
             <em className="rd-v2-discover-possession">{taxonomyLine}</em>
           </span>
           {evidenceLine ? <span className="rd-v2-discover-evidence">{evidenceLine}</span> : null}
-          <span
-            className="rd-v2-discover-passport"
-            data-passport-kind={passport.kind}
-            aria-label={`${passport.kindLabel} data passport`}
-          >
-            <span className="rd-v2-discover-passport-head">
-              <b>{passport.kindLabel}</b>
-              <span>{passport.availability}</span>
-            </span>
-            <span className="rd-v2-discover-passport-primary">
-              <b>{passport.primaryLabel}</b>
-              <strong>{passport.primary}</strong>
-            </span>
-            {passport.scaleFacts.length ? (
-              <span className="rd-v2-discover-passport-scale">
-                {passport.scaleFacts.map((fact) => (
-                  <span key={`${fact.label}:${fact.value}`}>
-                    <b>{fact.label}</b><em>{fact.value}</em>
-                  </span>
-                ))}
-              </span>
-            ) : null}
-            {passport.shapeFacts.length ? (
-              <span className="rd-v2-discover-passport-shape">
-                {passport.shapeFacts.map((fact) => <span key={fact}>{fact}</span>)}
-              </span>
-            ) : null}
-            {passport.inspectNext.length ? (
-              <span className="rd-v2-discover-passport-next">
-                <b>{passport.concrete ? "Still to inspect" : "Inspection can reveal"}</b>
-                <span>{passport.inspectNext.join(" · ")}</span>
-              </span>
-            ) : null}
-          </span>
+          <DiscoverDatasetProfile row={row} passport={passport} />
           <span className="rd-v2-discover-offering-facts" aria-label="Offering facts">
             {offeringFacts.map(([label, value]) => (
               <span key={`${label}:${value}`}>
