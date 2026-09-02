@@ -45,6 +45,7 @@ import "./synthesis-workbench-depth-closure.css";
 import "./synthesis-workbench-density.css";
 import "./synthesis-workbench-density-fix.css";
 import "./synthesis-autopilot.css";
+import "./synthesis-layout-robustness.css";
 import "./discover-frozen-closure.css";
 import "./connected-accounts.css";
 import { V2App } from "./App";
