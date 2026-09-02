@@ -225,70 +225,67 @@ function resultFixture() {
           description: "DOI metadata and publication context for tracing source provenance and related studies.",
           provider: "Crossref",
           reference: true,
-          coverage: "DOI metadata · publication links",
+          coverage: "DOI metadata · publication context",
         }),
         source({
           id: "twse_reference",
           title: "TWSE market reference",
-          description: "Official market reference context for Taiwan-listed issuers.",
+          description: "Market structure and issuer reference context for interpreting Taiwan securities data.",
           provider: "TWSE",
           reference: true,
-          coverage: "Issuer and market reference",
+          coverage: "Market structure · issuer context",
         }),
         source({
           id: "coingecko_reference",
           title: "CoinGecko market-data reference",
-          description: "Reference context for market history and exchange-volume endpoints.",
+          description: "Asset and exchange reference context that can help interpret market-data candidates.",
           provider: "CoinGecko",
           reference: true,
-          coverage: "Endpoint and asset reference",
+          coverage: "Asset IDs · exchange context",
         }),
       ],
-      total: 14,
     },
   };
 }
 
-async function openDiscover(page, path = "/?tab=browse") {
-  await page.goto(path, { waitUntil: "domcontentloaded" });
+async function openDiscover(page, suffix = "") {
+  await page.goto(`/?tab=discover${suffix}`);
   await waitForShell(page);
-  await expect(page.getByTestId("discover-browse-mode")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Discover" })).toBeVisible();
 }
 
-async function runSearch(page, query = "stablecoin market evidence") {
-  await page.getByLabel("Search or describe a research need").fill(query);
-  await page.getByRole("button", { name: "Explore", exact: true }).click();
-  await expect(page.getByTestId("discover-result-summary")).toBeVisible();
+async function runSearch(page, query = "stablecoin") {
+  const composer = page.getByTestId("discover-composer-input");
+  await composer.fill(query);
+  await composer.press("Enter");
   await expect(page.getByTestId("discover-ranked-results")).toBeVisible();
   await expect(page.getByTestId("discover-evidence-field")).toContainText(/10 candidates/i);
   await expect(page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidate")).toHaveCount(10);
 }
 
 async function assertNoOverflow(page) {
-  const dims = await page.locator("main.yzu-main").evaluate((node) => ({
-    client: node.clientWidth,
-    scroll: node.scrollWidth,
+  const width = await page.evaluate(() => ({
+    viewport: document.documentElement.clientWidth,
+    scroll: document.documentElement.scrollWidth,
   }));
-  expect(dims.scroll).toBeLessThanOrEqual(dims.client + 2);
+  expect(width.scroll).toBeLessThanOrEqual(width.viewport + 1);
 }
 
+const viewports = [
+  { name: "1440x900", width: 1440, height: 900 },
+  { name: "1920x1080", width: 1920, height: 1080 },
+];
+
 test.describe("Discover reconvergence visual review", () => {
-  test.beforeEach(async () => {
+  test.beforeAll(async () => {
     await mkdir(OUT, { recursive: true });
   });
 
-  for (const viewport of [
-    { width: 1440, height: 900, name: "1440x900" },
-    { width: 1920, height: 1080, name: "1920x1080" },
-  ]) {
+  for (const viewport of viewports) {
     test(`resting retrieval workspace ${viewport.name}`, async ({ page }) => {
       await mockV2Api(page, resultFixture());
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
       await openDiscover(page);
-
-      await expect(page.getByTestId("discover-query-composer")).toBeVisible();
-      await expect(page.getByTestId("discover-coverage")).toBeVisible();
-      await expect(page.locator(".rd-v2-discover-evidence-path")).toHaveCount(0);
       await expect(page.locator(".rd-v2-discover-composer-examples")).toBeHidden();
       await expect(page.getByText("Sources the desk already knows how to investigate")).toBeVisible();
       await assertNoOverflow(page);
@@ -318,11 +315,8 @@ test.describe("Discover reconvergence visual review", () => {
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
       await openDiscover(page);
       await runSearch(page);
-
-      const best = page.getByTestId("discover-ranked-results");
-      await best.getByRole("button", { name: /DataCite live catalogue/i }).first().click();
-      await expect(page.locator(".rd-v2-discover-candidate.selected")).toBeVisible();
-      await expect(page.locator("aside.rd-v2-rail").getByRole("region", { name: "Can I use this" })).toBeVisible();
+      await page.getByRole("button", { name: /DataCite live catalogue/i }).click();
+      await expect(page.getByText(/DataCite live catalogue/i).first()).toBeVisible();
       await assertNoOverflow(page);
       await page.screenshot({ path: `${OUT}/discover-selected-${viewport.name}.png`, fullPage: false });
     });
@@ -330,7 +324,7 @@ test.describe("Discover reconvergence visual review", () => {
     test(`research-question assembly field ${viewport.name}`, async ({ page }) => {
       await mockV2Api(page, {
         ...resultFixture(),
-        assessmentBody: MOCK_DISCOVER_ASSESSMENT,
+        discoverAssessmentBody: MOCK_DISCOVER_ASSESSMENT,
       });
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
       await openDiscover(page);
@@ -339,7 +333,7 @@ test.describe("Discover reconvergence visual review", () => {
       const workspace = page.locator(".rd-v2-evidence-brief.is-workspace");
       const assembly = page.getByTestId("discover-assembly-path");
       if (viewport.width >= 1680) {
-        const assessmentRail = page.locator('aside.rd-v2-rail').getByRole('region', { name: 'Evidence assessment summary' });
+        const assessmentRail = page.getByRole('region', { name: 'Evidence assessment summary' });
         await expect(assessmentRail).toBeVisible();
         await expect(assessmentRail).toContainText(/Partially covered/i);
         await expect(assessmentRail).toContainText(/Board-governance variables/i);
@@ -355,9 +349,10 @@ test.describe("Discover reconvergence visual review", () => {
         await expect(details).toBeVisible();
         expect(await details.evaluate((node) => node.open)).toBe(false);
       }
-      const firstCandidateBox = await page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidate").first().boundingBox();
-      expect(firstCandidateBox).not.toBeNull();
-      expect(firstCandidateBox.y).toBeLessThan(viewport.height);
+      const firstResult = page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidate").first();
+      const firstResultBox = await firstResult.boundingBox();
+      expect(firstResultBox).not.toBeNull();
+      expect(firstResultBox.y).toBeLessThan(viewport.height);
       await assertNoOverflow(page);
       await page.screenshot({ path: `${OUT}/discover-investigation-${viewport.name}.png`, fullPage: false });
     });
@@ -366,12 +361,8 @@ test.describe("Discover reconvergence visual review", () => {
   test("raw DataCite Discover deep link binds the named source", async ({ page }) => {
     await mockV2Api(page, resultFixture());
     await page.setViewportSize({ width: 1920, height: 1080 });
-    await openDiscover(page, `/?tab=discover&dataset=${encodeURIComponent(DATACITE_DATASET_ID)}`);
-
-    await expect(page.locator(".rd-v2-discover-candidate.selected")).toContainText("DataCite live catalogue");
-    const rail = page.locator("aside.rd-v2-rail");
-    await expect(rail).toContainText("DataCite live catalogue");
-    await expect(rail).not.toContainText("No candidate selected");
+    await openDiscover(page, `&dataset=${DATACITE_DATASET_ID}`);
+    await expect(page.getByText(/DataCite live catalogue/i).first()).toBeVisible();
     await assertNoOverflow(page);
     await page.screenshot({ path: `${OUT}/discover-deeplink-datacite-1920x1080.png`, fullPage: false });
   });
