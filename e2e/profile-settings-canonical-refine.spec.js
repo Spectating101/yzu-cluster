@@ -14,7 +14,7 @@ const RICH_PROFILE = {
     name_en: "Kong, De-Rong",
     title: "Assistant Professor",
     discipline: "Finance",
-    email: "drkong@saturn.yzu.edu.tw",
+    email: "rich.researcher@example.test",
     paper_count_parsed: 18,
     specialties: ["empirical asset pricing", "investment", "FinTech", "corporate finance"],
     methods: ["panel regression", "event study", "causal inference"],
@@ -125,7 +125,7 @@ for (const [name, viewport] of VIEWPORTS) {
 
   test(`Rich signed-in Profile showcases recorded research context ${name}`, async ({ page }) => {
     mkdirSync(OUT, { recursive: true });
-    await setup(page, viewport, RICH_PROFILE, "drkong@saturn.yzu.edu.tw");
+    await setup(page, viewport, RICH_PROFILE, "rich.researcher@example.test");
     await page.goto("/?tab=profile", { waitUntil: "domcontentloaded" });
     await settle(page);
     await expect(page.getByText("Kong, De-Rong", { exact: true }).first()).toBeVisible();
