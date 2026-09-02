@@ -122,7 +122,7 @@ css_append = r'''
 '''
 marker = "/* Active-flow hierarchy pass after 1440/1920 pixel review."
 assert marker not in css, "active-flow polish already applied"
-css_path.write_text(css.rstrip() + css_append + "\n")
+css_path.write_text(css.rstrip() + css_append.rstrip() + "\n")
 
 spec_path = Path("e2e/discover-reconvergence-visual.spec.js")
 spec = spec_path.read_text()
