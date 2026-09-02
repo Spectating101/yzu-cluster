@@ -65,6 +65,9 @@ import "./profile-ai-portrait-tightening.css";
 // Guest Profile is Research Drive's own guided product profile: explain the
 // research loop, workspace scope, and evidence contract without dashboard UI.
 import "./profile-guest-guide.css";
+// Settings stays a compact control plane on both desktop targets. Load this
+// last so wide-screen rules cannot silently re-inflate ordinary setting rows.
+import "./settings-density-rail-polish.css";
 import { V2App } from "./App";
 import { InteractionProvider } from "./InteractionGuidance";
 
