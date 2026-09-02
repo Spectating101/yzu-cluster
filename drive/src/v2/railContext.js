@@ -193,6 +193,7 @@ export function buildRailContext({
       preview_rows: Number.isFinite(previewRows) ? previewRows : undefined,
       preview_bounded: preview.bounded === true ? true : undefined,
       output_dataset_id: outputId || undefined,
+      job_id: state.execution?.job_id || undefined,
       ...lifecycleSelection(lifecycle),
     };
     actions = ["ask_about"];
