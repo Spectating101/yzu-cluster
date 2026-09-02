@@ -153,11 +153,40 @@
   display: none !important;
 }
 
-/* New durable thread: if held inputs are already on screen, that review is the
- * operation. Do not put a disabled generic action card in front of it. */
+/* New durable thread: when held inputs are already on screen, that evidence
+ * review is the primary operation. Retain the disabled reasoning control only
+ * as a thin guardrail because the interaction contract explicitly verifies it
+ * remains locked until evidence is attached. */
 .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
   > .s04-opening-next {
+  min-height: 0 !important;
+  padding: 7px 10px !important;
+  margin: 0 !important;
+  border: 1px solid #e5e9ee;
+  border-radius: 8px;
+  background: #fafbfc;
+  box-shadow: none;
+}
+
+.rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
+  > .s04-opening-next > :is(header, p, em) {
   display: none !important;
+}
+
+.rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
+  > .s04-opening-next > footer {
+  width: 100%;
+  margin: 0 !important;
+  justify-content: flex-end;
+}
+
+.rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
+  > .s04-opening-next > footer::before {
+  content: "Method reasoning unlocks after held evidence is added.";
+  margin-right: auto;
+  color: #7b8695;
+  font-size: 9.5px;
+  line-height: 1.35;
 }
 
 /* During a healthy reasoning turn the compact status card already states that
