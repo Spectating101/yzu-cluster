@@ -1,0 +1,143 @@
+name: Discover adaptive passport patch
+
+on:
+  push:
+    branches:
+      - prototype/discover-utility-workbench-20260902
+    paths:
+      - .github/workflows/discover-adaptive-passport-patch.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: prototype/discover-utility-workbench-20260902
+          fetch-depth: 0
+      - name: Patch adaptive result passports
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(text, old, new, label):
+              if old not in text:
+                  raise SystemExit(f"missing patch anchor: {label}")
+              return text.replace(old, new, 1)
+
+          browse_path = Path('drive/src/v2/BrowsePage.jsx')
+          browse = browse_path.read_text()
+          browse = replace_once(
+              browse,
+              'import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";\n',
+              'import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";\nimport { buildDiscoverDataPassport } from "@/v2/discoverDataPassport";\n',
+              'passport import',
+          )
+          browse = replace_once(
+              browse,
+              '  const evidenceLine = hasExplicitDescription ? humanizeDiscoverDescription(descriptiveLine(row)) : "";\n  const coverage = coverageLine(row);',
+              '  const evidenceLine = hasExplicitDescription ? humanizeDiscoverDescription(descriptiveLine(row)) : "";\n  const passport = buildDiscoverDataPassport(row, taxonomy);\n  const coverage = coverageLine(row);',
+              'passport build',
+          )
+          browse = replace_once(
+              browse,
+              '        data-state={state.key}\n        data-sufficiency={showSufficiency ? row.discover_sufficiency.state : undefined}',
+              '        data-state={state.key}\n        data-passport-kind={passport.kind}\n        data-sufficiency={showSufficiency ? row.discover_sufficiency.state : undefined}',
+              'passport row attribute',
+          )
+          browse = replace_once(
+              browse,
+              '          {evidenceLine ? <span className="rd-v2-discover-evidence">{evidenceLine}</span> : null}\n          <span className="rd-v2-discover-offering-facts" aria-label="Offering facts">',
+              '''          {evidenceLine ? <span className="rd-v2-discover-evidence">{evidenceLine}</span> : null}\n          <span\n            className="rd-v2-discover-passport"\n            data-passport-kind={passport.kind}\n            aria-label={`${passport.kindLabel} data passport`}\n          >\n            <span className="rd-v2-discover-passport-head">\n              <b>{passport.kindLabel}</b>\n              <span>{passport.availability}</span>\n            </span>\n            <span className="rd-v2-discover-passport-primary">\n              <b>{passport.primaryLabel}</b>\n              <strong>{passport.primary}</strong>\n            </span>\n            {passport.scaleFacts.length ? (\n              <span className="rd-v2-discover-passport-scale">\n                {passport.scaleFacts.map((fact) => (\n                  <span key={`${fact.label}:${fact.value}`}>\n                    <b>{fact.label}</b><em>{fact.value}</em>\n                  </span>\n                ))}\n              </span>\n            ) : null}\n            {passport.shapeFacts.length ? (\n              <span className="rd-v2-discover-passport-shape">\n                {passport.shapeFacts.map((fact) => <span key={fact}>{fact}</span>)}\n              </span>\n            ) : null}\n            {passport.inspectNext.length ? (\n              <span className="rd-v2-discover-passport-next">\n                <b>{passport.concrete ? "Still to inspect" : "Inspection can reveal"}</b>\n                <span>{passport.inspectNext.join(" · ")}</span>\n              </span>\n            ) : null}\n          </span>\n          <span className="rd-v2-discover-offering-facts" aria-label="Offering facts">''',
+              'passport markup',
+          )
+          browse_path.write_text(browse)
+
+          evidence_path = Path('drive/src/v2/DiscoverEvidenceField.jsx')
+          evidence = evidence_path.read_text()
+          evidence = replace_once(
+              evidence,
+              'import "./discover-assistance-polish.css";\n',
+              'import "./discover-assistance-polish.css";\nimport "./discover-adaptive-passport.css";\n',
+              'passport css import',
+          )
+          evidence_path.write_text(evidence)
+
+          passport_path = Path('drive/src/v2/discoverDataPassport.js')
+          passport = passport_path.read_text()
+          passport = replace_once(
+              passport,
+              '''  if (row?.dataset_id || row?.schema || row?.schema_summary || observedColumns(row).length || /dataset/.test(raw)) {\n    return { key: "dataset", label: "Dataset", concrete: true };\n  }\n  if (/api|connector|catalog|metadata_search|live_connector|endpoint/.test(raw) || row?.connector_id || row?.source_id) {\n    return { key: "route", label: "Queryable source", concrete: false };\n  }''',
+              '''  if (/api|connector|catalog|metadata_search|live_connector|endpoint/.test(raw)) {\n    return { key: "route", label: "Queryable source", concrete: false };\n  }\n  if (row?.dataset_id || row?.schema || row?.schema_summary || observedColumns(row).length || /dataset/.test(raw)) {\n    return { key: "dataset", label: "Dataset", concrete: true };\n  }\n  if (row?.connector_id || (row?.source_id && !files.length && !tables.length)) {\n    return { key: "route", label: "Queryable source", concrete: false };\n  }''',
+              'route classification',
+          )
+          passport_path.write_text(passport)
+
+          spec_path = Path('e2e/discover-reconvergence-visual.spec.js')
+          spec = spec_path.read_text()
+          spec = replace_once(
+              spec,
+              '  recommendedUse,\n}) {',
+              '  recommendedUse,\n  ...extra\n}) {',
+              'fixture rest args',
+          )
+          spec = replace_once(
+              spec,
+              '    recommended_use: recommendedUse,\n  };',
+              '    recommended_use: recommendedUse,\n    ...extra,\n  };',
+              'fixture extra fields',
+          )
+
+          # DataCite stays a source route even though the deep-link fixture uses a stable dataset id.
+          spec = replace_once(
+              spec,
+              '            recommendedUse: "Find citable research datasets and trace their identifiers, creators, repositories, and related metadata.",\n',
+              '            recommendedUse: "Find citable research datasets and trace their identifiers, creators, repositories, and related metadata.",\n            accessMode: "live_connector",\n            format: "JSON API",\n            capabilities: ["Search DOI metadata", "Filter dataset records", "Resolve DOI records", "Page through results"],\n',
+              'datacite route capabilities',
+          )
+
+          # Turn the Zenodo row into a concrete, mixed-asset replication bundle.
+          spec = replace_once(
+              spec,
+              '''          id: "zenodo_stablecoin",\n          title: "Zenodo stablecoin research deposits",\n          description: "Public research deposits containing reproducible stablecoin datasets and code artifacts.",\n          provider: "Zenodo",\n          collectVia: "zenodo",\n          coverage: "Deposited datasets · methods · code",\n          refresh: "repository updates",\n          grain: "deposit / file",\n          recommendedUse: "Recover published research datasets, supplementary files, and reproducibility artifacts.",''',
+              '''          id: "zenodo_stablecoin",\n          title: "SoK: Stablecoins for Digital Transformation v1.0.0",\n          description: "Replication bundle with datasets, notebooks, figures, and analysis scripts published as a citable research deposit.",\n          provider: "Zenodo",\n          collectVia: "zenodo",\n          coverage: "Stablecoin research replication · datasets · notebooks · figures · scripts",\n          refresh: "versioned deposit",\n          grain: "replication bundle / file",\n          recommendedUse: "Reuse a citable stablecoin replication package and inspect the exact files behind published analysis.",\n          kind: "artifact",\n          format: "ZIP",\n          file_count: 1,\n          size_label: "8.4 MB",\n          version: "v1.0.0",\n          license: "MIT",\n          query_relevance: 4,''',
+              'zenodo concrete package',
+          )
+
+          # Replace one generic source route with a concrete tabular stablecoin dataset.
+          start = spec.index('        source({\n          id: "defillama_stablecoins",')
+          end = spec.index('        source({\n          id: "fred_macro",', start)
+          spec = spec[:start] + '''        source({\n          id: "kaggle_stablecoin_snapshot",\n          title: "Stablecoin Market Daily Snapshot",\n          description: "Daily USD-pegged stablecoin snapshot with market, peg-status, liquidity, and trading measures.",\n          provider: "Kaggle",\n          coverage: "USD-pegged stablecoins · daily market and peg state",\n          refresh: "published snapshot",\n          grain: "stablecoin × day",\n          recommendedUse: "Compare peg stability, market capitalization, liquidity, and trading conditions across stablecoins.",\n          kind: "dataset",\n          format: "CSV",\n          file_count: 1,\n          column_count: 23,\n          columns: ["symbol", "price_usd", "peg_deviation", "peg_status", "market_cap_usd", "volume_24h_usd"],\n          license: "CC BY-NC-SA 4.0",\n          preview_supported: true,\n          query_relevance: 5,\n        }),\n''' + spec[end:]
+
+          # Replace IMF with a concrete Parquet package that carries its own schema/manifest.
+          start = spec.index('        source({\n          id: "imf_data",')
+          end = spec.index('        source({\n          id: "sec_edgar",', start)
+          spec = spec[:start] + '''        source({\n          id: "hf_stablecoin_flows",\n          title: "Stablecoin Flows",\n          description: "Machine-readable stablecoin flow dataset distributed as Parquet with repository manifest and schema metadata.",\n          provider: "Hugging Face",\n          collectVia: "huggingface",\n          coverage: "Stablecoin transfer and flow records",\n          refresh: "nightly repository update",\n          grain: "transfer / flow record",\n          recommendedUse: "Analyze stablecoin movement and flow structure from a directly inspectable machine-readable package.",\n          kind: "artifact",\n          format: "Parquet",\n          files: ["Parquet data", "_manifest.json", "_schema.json"],\n          size_label: "15.1 MB",\n          license: "CC BY 4.0",\n          preview_supported: true,\n          query_relevance: 4,\n        }),\n''' + spec[end:]
+
+          # Make WDI a concrete multi-resource dataset rather than a generic provider route.
+          spec = replace_once(
+              spec,
+              '          recommendedUse: "Build long-run country panels and institutional or development controls.",\n',
+              '          recommendedUse: "Build long-run country panels and institutional or development controls.",\n          kind: "dataset",\n          temporal_coverage: "1960–2025",\n          geographic_coverage: "200+ countries and territories",\n          variables: ["1,500+ development indicators"],\n          format: "CSV · Excel · API",\n          license: "CC BY 4.0",\n          preview_supported: true,\n          query_relevance: 2,\n',
+              'wdi concrete dataset',
+          )
+
+          spec = replace_once(
+              spec,
+              '      await expect(page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidate").first()).toContainText(/dataset \\/ DOI record/i);',
+              '''      const passports = page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-passport");\n      await expect(passports).toHaveCount(10);\n      await expect(page.getByTestId("discover-ranked-results").locator('[data-passport-kind="dataset"], [data-passport-kind="package"]').first()).toContainText(/fields|files|stablecoin|indicator/i);\n      await expect(page.getByTestId("discover-ranked-results").locator('.rd-v2-discover-passport[data-passport-kind="route"]').first()).toContainText(/source|inspect|metadata|record/i);''',
+              'adaptive passport assertions',
+          )
+          spec_path.write_text(spec)
+          PY
+
+          git config user.name "research-drive-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add drive/src/v2/BrowsePage.jsx drive/src/v2/DiscoverEvidenceField.jsx drive/src/v2/discoverDataPassport.js e2e/discover-reconvergence-visual.spec.js
+          git diff --cached --check
+          git commit -m "prototype(discover): adapt results to real data products [passport-patch]"
+          git push origin HEAD:prototype/discover-utility-workbench-20260902
