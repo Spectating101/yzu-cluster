@@ -59,6 +59,9 @@ import "./profile-settings-personalization-polish.css";
 // Signed-in Profile adds an AI-generated research portrait while preserving a
 // visible boundary between model interpretation and recorded evidence.
 import "./profile-ai-portrait.css";
+// Final density pass: preserve the AI-native hierarchy while removing the
+// cumulative vertical gaps visible in the 1440/1920 acceptance frames.
+import "./profile-ai-portrait-tightening.css";
 import { V2App } from "./App";
 import { InteractionProvider } from "./InteractionGuidance";
 
