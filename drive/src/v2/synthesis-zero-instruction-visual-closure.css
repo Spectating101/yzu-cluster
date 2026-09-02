@@ -1,12 +1,10 @@
 /* Visual closure after inspecting the real 1920 workstation renders.
- * This layer fixes only demonstrable empty-height failures in Evidence and
- * Proposal states. It adds no product semantics and leaves 1440/mobile alone.
+ * This layer fixes only demonstrable empty-height / narrow-lane failures.
+ * It adds no product semantics and leaves 1440/mobile untouched.
  */
 
 @media (min-width: 1680px) and (min-height: 900px) {
-  /* HELD EVIDENCE
-     The selector is the operation. Do not preserve the old evidence-map
-     workstation height after the map itself has intentionally been hidden. */
+  /* HELD EVIDENCE */
   #root .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"]) {
     align-content: start !important;
     grid-auto-rows: min-content !important;
@@ -34,9 +32,7 @@
     content: "Select held evidence to unlock method reasoning." !important;
   }
 
-  /* MAPPED / MEASURED EVIDENCE
-     The operation dock should be a compact action surface below measurement,
-     not a blank panel stretched to the evidence-map height. */
+  /* MAPPED / MEASURED EVIDENCE */
   #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has([data-testid="synthesis-evidence-proposal"]))
     > .s04-opening-next {
     grid-row: auto !important;
@@ -51,10 +47,7 @@
     min-height: 0 !important;
   }
 
-  /* PROPOSAL
-     The proposal is the decision surface. The evidence map is supporting
-     context and should size to its information rather than mirror the full
-     proposal card height. */
+  /* PROPOSAL */
   #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"])
     > [data-testid="synthesis-evidence-state"] {
     min-height: 0 !important;
@@ -65,5 +58,71 @@
   #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"])
     > [data-testid="synthesis-evidence-state"] .s04-map {
     min-height: 275px !important;
+  }
+
+  /* DECISION STATES
+     Scope, unit and join were still behaving like narrow 1440 cards stranded
+     in a 1920 canvas. Give the decision itself an eight-column analytical
+     plane and use two internal lanes: visual evidence + decision consequences. */
+  #root .rd-v2-synthesis-page [data-testid="synthesis-scope-block"],
+  #root .rd-v2-synthesis-page [data-testid="synthesis-unit-conflict"],
+  #root .rd-v2-synthesis-page [data-testid="synthesis-join-decision"] {
+    grid-column: 1 / 9 !important;
+    width: auto !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.12fr) minmax(360px, .88fr) !important;
+    column-gap: 18px !important;
+    row-gap: 12px !important;
+    align-items: start !important;
+  }
+
+  #root .rd-v2-synthesis-page [data-testid="synthesis-scope-block"] > .s04-title,
+  #root .rd-v2-synthesis-page [data-testid="synthesis-unit-conflict"] > .s04-title,
+  #root .rd-v2-synthesis-page [data-testid="synthesis-join-decision"] > .s04-title {
+    grid-column: 1 / -1 !important;
+  }
+
+  #root .rd-v2-synthesis-page [data-testid="synthesis-scope-block"] > .s04-viz,
+  #root .rd-v2-synthesis-page [data-testid="synthesis-unit-conflict"] > .s04-viz,
+  #root .rd-v2-synthesis-page [data-testid="synthesis-join-decision"] > .s04-viz {
+    grid-column: 1 !important;
+    grid-row: 2 / span 4 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    align-self: stretch !important;
+  }
+
+  #root .rd-v2-synthesis-page [data-testid="synthesis-scope-block"] > .s04-note,
+  #root .rd-v2-synthesis-page [data-testid="synthesis-scope-block"] > .s04-options,
+  #root .rd-v2-synthesis-page [data-testid="synthesis-scope-block"] > .s04-fixture,
+  #root .rd-v2-synthesis-page [data-testid="synthesis-unit-conflict"] > .s04-note,
+  #root .rd-v2-synthesis-page [data-testid="synthesis-unit-conflict"] > .s04-options,
+  #root .rd-v2-synthesis-page [data-testid="synthesis-unit-conflict"] > .s04-fixture,
+  #root .rd-v2-synthesis-page [data-testid="synthesis-join-decision"] > .s04-note,
+  #root .rd-v2-synthesis-page [data-testid="synthesis-join-decision"] > .s04-options,
+  #root .rd-v2-synthesis-page [data-testid="synthesis-join-decision"] > .s04-fixture {
+    grid-column: 2 !important;
+    min-width: 0 !important;
+    margin-top: 0 !important;
+  }
+
+  #root .rd-v2-synthesis-page [data-testid="synthesis-scope-block"] > .s04-actions,
+  #root .rd-v2-synthesis-page [data-testid="synthesis-unit-conflict"] > .s04-actions,
+  #root .rd-v2-synthesis-page [data-testid="synthesis-join-decision"] > .s04-actions {
+    grid-column: 1 / -1 !important;
+    margin-top: 2px !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-scope-block"])
+    > .s04-measurement-status,
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-unit-conflict"])
+    > .s04-measurement-status,
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-join-decision"])
+    > .s04-measurement-status {
+    grid-column: 9 / 13 !important;
+    align-self: start !important;
   }
 }
