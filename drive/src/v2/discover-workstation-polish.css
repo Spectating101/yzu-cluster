@@ -62,9 +62,10 @@
 /* Repeated lifecycle controls remain discoverable, but they stop competing
    with title/coverage while scanning 10–50 candidates. */
 .rd-v2-discover-ranked-results .rd-v2-discover-candidate .rd-v2-pill {
-  opacity: .58;
+  opacity: .24;
   padding: 2px 5px;
   font-size: 7px;
+  transition: opacity .12s ease;
 }
 
 .rd-v2-discover-ranked-results li:hover .rd-v2-discover-candidate .rd-v2-pill,
@@ -74,18 +75,27 @@
 }
 
 .rd-v2-discover-ranked-results .rd-v2-discover-row-add {
+  position: absolute;
   width: 48px;
   min-width: 48px;
   padding-inline: 5px;
   overflow: hidden;
-  font-size: 0;
-  opacity: .46;
+  color: transparent !important;
+  text-indent: -9999px;
+  opacity: .42;
 }
 
 .rd-v2-discover-ranked-results .rd-v2-discover-row-add::after {
   content: "Add";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--rd-link, #3f6f5c);
   font-size: 8px;
   font-weight: 700;
+  line-height: 1;
+  text-indent: 0;
 }
 
 .rd-v2-discover-ranked-results li:hover .rd-v2-discover-row-add,
