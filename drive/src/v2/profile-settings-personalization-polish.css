@@ -1,6 +1,8 @@
 /* Final cleanup for the personalization/settings recompose.
- * Removes the last legacy statement-card treatment that leaks into Connections
- * and suppresses the obsolete faculty-specific rail field. */
+ * Removes the last legacy statement-card treatment that leaks into Connections.
+ * Settings now has a dedicated live rail, so no rail field is hidden by
+ * position-specific legacy overrides.
+ */
 
 .rd-v2-settings-modern .rd-v2-settings-connected-accounts .rd-v2-statement-section,
 .rd-v2-settings-modern .rd-v2-settings-connected-accounts .rd-v2-statement-head,
@@ -40,11 +42,5 @@
 /* This sentence belongs to the old split between account identity and a
    faculty-specific profile. Personalization now explains that distinction. */
 .rd-v2-settings-modern .rd-v2-settings-connected-accounts .rd-v2-statement-section:first-child .rd-v2-settings-hint {
-  display: none !important;
-}
-
-/* The old Settings rail contains one obsolete faculty-specific field. Keep the
-   useful behavior/system summary while the main page owns personalization. */
-body:has(.rd-v2-settings-modern) .rd-v2-rail .rd-v2-rail-fieldgrid > .rd-v2-detail-row:nth-child(2) {
   display: none !important;
 }
