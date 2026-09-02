@@ -1,32 +1,90 @@
-/* Wide-screen Discover analytical records.
-   A dataset result should read like a compact research data sheet, not a marketing card. */
+/* Discover analytical SERP records.
+ * One authority for the wide result row: identity -> relevance -> contents ->
+ * coverage -> operational facts -> unresolved evidence.
+ */
 
-.rd-v2-dataset-profile { display: none; }
+/* Analytical payload is a wide-workstation enhancement. */
+.rd-v2-dataset-profile {
+  display: none;
+}
 
 @media (min-width: 1680px) and (min-height: 900px) {
   .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
     .rd-v2-discover-ranked-results-head::after {
-    content: "Dataset profile · analytical shape · access and verification" !important;
-    font-size: 10.5px !important;
-    letter-spacing: .012em !important;
+    content: "Research fit · contents · coverage · access" !important;
+    color: var(--rd-muted, #6e7685) !important;
+    font-size: 8.5px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0 !important;
     text-transform: none !important;
+  }
+
+  /* One continuous ranked list. */
+  .rd-v2-discover-page .rd-v2-discover-candidates {
+    display: grid !important;
+    gap: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-candidates > li {
+    position: relative !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, transparent) !important;
+    background: transparent !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-candidates > li:last-child {
+    border-bottom: 0 !important;
   }
 
   .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
     .rd-v2-discover-ranked-results
     .rd-v2-discover-candidate {
-    min-height: 170px !important;
-    padding-top: 15px !important;
-    padding-bottom: 15px !important;
+    grid-template-columns: 58px minmax(0, 1fr) !important;
+    min-height: 0 !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 10px 8px 11px !important;
+    align-items: start !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
   }
 
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-candidate:hover {
+    background: rgba(255, 255, 255, .26) !important;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-candidate.selected {
+    background: color-mix(in srgb, #edf4ef 56%, transparent) !important;
+    box-shadow: inset 3px 0 0 #4f866c !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-candidate-source {
+    align-self: start !important;
+    padding-top: 2px !important;
+  }
+
+  /* Identity and relevance stay above the analytical payload. */
   .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
     .rd-v2-discover-ranked-results
     .rd-v2-discover-candidate-main {
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) !important;
     grid-template-rows: auto auto auto !important;
-    gap: 7px !important;
+    gap: 3px !important;
+    min-width: 0 !important;
     align-content: start !important;
   }
 
@@ -38,16 +96,18 @@
     display: flex !important;
     align-items: baseline !important;
     justify-content: space-between !important;
-    gap: 18px !important;
-    padding-right: 90px !important;
+    gap: 12px !important;
+    min-height: 20px !important;
+    margin: 0 !important;
+    padding-right: 88px !important;
   }
 
   .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
     .rd-v2-discover-ranked-results
     .rd-v2-discover-candidate-title {
-    font-size: 16.5px !important;
-    line-height: 1.28 !important;
-    letter-spacing: -.008em !important;
+    font-size: 15.5px !important;
+    line-height: 1.22 !important;
+    letter-spacing: -.006em !important;
   }
 
   .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
@@ -55,8 +115,9 @@
     .rd-v2-discover-possession {
     flex: 0 0 auto !important;
     color: #5f6f69 !important;
-    font-size: 10.5px !important;
+    font-size: 8.5px !important;
     font-weight: 650 !important;
+    white-space: nowrap !important;
   }
 
   .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
@@ -64,13 +125,17 @@
     .rd-v2-discover-evidence {
     grid-column: 1 !important;
     grid-row: 2 !important;
-    max-width: 860px !important;
-    padding-top: 0 !important;
-    color: #465060 !important;
-    font-size: 13.5px !important;
+    display: -webkit-box !important;
+    max-width: 900px !important;
+    margin: 0 0 1px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    color: color-mix(in srgb, var(--rd-body, #3e4759) 92%, transparent) !important;
+    font-size: 11px !important;
     font-weight: 500 !important;
-    line-height: 1.45 !important;
-    -webkit-line-clamp: 1 !important;
+    line-height: 1.35 !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
   }
 
   .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
@@ -88,6 +153,7 @@
     display: none !important;
   }
 
+  /* Analytical payload: no inner card, no two-column factsheet. */
   .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
     .rd-v2-discover-ranked-results
     .rd-v2-dataset-profile {
@@ -95,166 +161,237 @@
     grid-row: 3 !important;
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) !important;
-    gap: 6px !important;
-    min-width: 0;
-    margin-top: 2px;
-    padding: 10px 12px 9px;
-    border-top: 1px solid color-mix(in srgb, var(--rd-border, #d9d2c3) 82%, transparent);
-    border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #d9d2c3) 55%, transparent);
-    background: color-mix(in srgb, var(--rd-paper, #fffdf8) 52%, transparent);
+    gap: 4px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 4px 0 0 !important;
+    padding: 6px 0 0 !important;
+    border: 0 !important;
+    border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 58%, transparent) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
   }
 
-  .rd-v2-dataset-profile.is-route {
-    border-left: 3px solid color-mix(in srgb, #587089 45%, transparent);
-    background: color-mix(in srgb, #f3f6f8 58%, var(--rd-paper, #fffdf8));
-  }
-
+  .rd-v2-dataset-profile.is-route,
   .rd-v2-dataset-profile.is-dataset {
-    border-left: 3px solid color-mix(in srgb, #557565 48%, transparent);
+    border-left: 0 !important;
+    background: transparent !important;
   }
 
   .rd-v2-dataset-profile-topline {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 14px;
-    min-width: 0;
+    display: flex !important;
+    align-items: baseline !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    opacity: .74 !important;
+  }
+
+  .rd-v2-dataset-profile-topline > b,
+  .rd-v2-dataset-profile-topline > em {
+    margin: 0 !important;
+    font-size: 7.2px !important;
+    line-height: 1.2 !important;
   }
 
   .rd-v2-dataset-profile-topline > b {
-    color: #4b6659;
-    font: 800 9.5px/1.15 var(--rd-mono, ui-monospace, monospace);
-    letter-spacing: .065em;
+    color: #4b6659 !important;
+    font-family: var(--rd-mono, ui-monospace, monospace) !important;
+    font-weight: 700 !important;
+    letter-spacing: .08em !important;
   }
 
   .rd-v2-dataset-profile.is-route .rd-v2-dataset-profile-topline > b {
-    color: #50677e;
+    color: #50677e !important;
   }
 
   .rd-v2-dataset-profile-topline > em {
-    color: #66706e;
-    font-size: 10.5px;
-    font-style: normal;
-    font-weight: 650;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    color: var(--rd-muted, #6e7685) !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    font-style: normal !important;
+    font-weight: 600 !important;
+    text-align: right !important;
   }
 
   .rd-v2-dataset-profile-body {
-    display: grid;
-    grid-template-columns: minmax(330px, .96fr) minmax(0, 1.44fr);
-    gap: 24px;
-    min-width: 0;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 4px !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
   }
 
   .rd-v2-dataset-profile-contents {
-    display: grid;
-    align-content: start;
-    gap: 4px;
-    min-width: 0;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 1px !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
   }
 
-  .rd-v2-dataset-profile-contents > b,
-  .rd-v2-dataset-profile-coverage > b,
-  .rd-v2-dataset-profile-open > b {
-    color: #6d746f;
-    font: 760 8.8px/1.2 var(--rd-mono, ui-monospace, monospace);
-    letter-spacing: .045em;
-    text-transform: uppercase;
+  .rd-v2-dataset-profile-contents > b {
+    color: var(--rd-muted, #6e7685) !important;
+    font: 650 7.2px/1.2 var(--rd-mono, ui-monospace, monospace) !important;
+    letter-spacing: .07em !important;
+    text-transform: uppercase !important;
   }
 
   .rd-v2-dataset-profile-contents > strong {
-    color: #1e2d36;
-    font-size: 13.5px;
-    font-weight: 700;
-    line-height: 1.38;
+    display: block !important;
+    max-width: 980px !important;
+    color: var(--rd-text, #182033) !important;
+    font-size: 11.25px !important;
+    font-weight: 650 !important;
+    line-height: 1.27 !important;
   }
 
-  .rd-v2-dataset-profile-contents > span {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: 7px;
-    align-items: baseline;
-    color: #515b67;
-    font-size: 10.75px;
-    line-height: 1.35;
+  .rd-v2-dataset-profile-use,
+  .rd-v2-dataset-profile-coverage {
+    display: flex !important;
+    align-items: baseline !important;
+    gap: 6px !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    color: var(--rd-muted, #6e7685) !important;
+    font-size: 8.5px !important;
+    line-height: 1.28 !important;
   }
 
-  .rd-v2-dataset-profile-contents > span > b {
-    color: #65706d;
-    font-size: 9.5px;
-    font-weight: 760;
-    white-space: nowrap;
+  .rd-v2-dataset-profile-use > b,
+  .rd-v2-dataset-profile-coverage > b {
+    flex: 0 0 auto !important;
+    min-width: 58px !important;
+    color: color-mix(in srgb, var(--rd-muted, #6e7685) 92%, transparent) !important;
+    font: 650 7.1px/1.2 var(--rd-mono, ui-monospace, monospace) !important;
+    letter-spacing: .045em !important;
+    text-transform: uppercase !important;
   }
 
+  .rd-v2-dataset-profile-use > span,
+  .rd-v2-dataset-profile-coverage > span {
+    min-width: 0 !important;
+  }
+
+  /* Operational facts are one quiet scan band, ordered by research decision value. */
   .rd-v2-dataset-profile-facts {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 7px 14px;
-    min-width: 0;
-    padding-left: 18px;
-    border-left: 1px solid color-mix(in srgb, var(--rd-border, #d9d2c3) 75%, transparent);
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: baseline !important;
+    gap: 3px 0 !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    margin: 1px 0 0 !important;
+    padding: 4px 0 0 !important;
+    border: 0 !important;
+    border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 46%, transparent) !important;
+    background: transparent !important;
   }
 
   .rd-v2-dataset-profile-metric {
-    display: grid;
-    gap: 2px;
-    min-width: 0;
+    display: inline-flex !important;
+    align-items: baseline !important;
+    gap: 4px !important;
+    width: auto !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 8px !important;
+    border: 0 !important;
+    border-right: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 70%, transparent) !important;
+    background: transparent !important;
+  }
+
+  .rd-v2-dataset-profile-metric:first-child {
+    padding-left: 0 !important;
+  }
+
+  .rd-v2-dataset-profile-metric:last-child {
+    border-right: 0 !important;
   }
 
   .rd-v2-dataset-profile-metric > b {
-    color: #747a78;
-    font: 750 8.5px/1.15 var(--rd-mono, ui-monospace, monospace);
-    letter-spacing: .035em;
-    text-transform: uppercase;
+    color: var(--rd-muted, #6e7685) !important;
+    font: 650 7px/1.2 var(--rd-mono, ui-monospace, monospace) !important;
+    letter-spacing: .04em !important;
+    text-transform: uppercase !important;
+    white-space: nowrap !important;
   }
 
   .rd-v2-dataset-profile-metric > em {
-    overflow: hidden;
-    color: #24313b;
-    font-size: 11.5px;
-    font-style: normal;
-    font-weight: 660;
-    line-height: 1.28;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .rd-v2-dataset-profile-coverage,
-  .rd-v2-dataset-profile-open {
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-    min-width: 0;
-    color: #4e5865;
-    font-size: 10.5px;
-    line-height: 1.3;
+    min-width: 0 !important;
+    max-width: 260px !important;
+    overflow: hidden !important;
+    color: var(--rd-body, #3e4759) !important;
+    font-size: 8.5px !important;
+    font-style: normal !important;
+    font-weight: 560 !important;
+    line-height: 1.22 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
   }
 
   .rd-v2-dataset-profile-open {
-    color: #77756d;
+    display: flex !important;
+    align-items: baseline !important;
+    gap: 6px !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 2px 0 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    color: color-mix(in srgb, var(--rd-muted, #6e7685) 92%, transparent) !important;
+    font-size: 8px !important;
+    line-height: 1.25 !important;
+  }
+
+  .rd-v2-dataset-profile-open > b {
+    flex: 0 0 auto !important;
+    color: #8a6640 !important;
+    font: 650 7px/1.2 var(--rd-mono, ui-monospace, monospace) !important;
+    letter-spacing: .045em !important;
+    text-transform: uppercase !important;
   }
 
   .rd-v2-dataset-profile-open > span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
   }
 
+  /* Row action remains subordinate to scanning. */
   .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
     .rd-v2-discover-ranked-results
     .rd-v2-discover-row-add {
-    top: 19px !important;
+    top: 10px !important;
     transform: none !important;
     width: 74px !important;
     min-width: 74px !important;
-    min-height: 32px !important;
+    min-height: 28px !important;
   }
 
   .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
     .rd-v2-discover-ranked-results
     .rd-v2-discover-row-add::after {
     content: "Inspect" !important;
-    font-size: 10px !important;
+    font-size: 9px !important;
   }
 }
-
-/* Exact-head visual certification trigger for the analytical-record pass. */
