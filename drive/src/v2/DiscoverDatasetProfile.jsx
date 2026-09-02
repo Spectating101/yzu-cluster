@@ -1,5 +1,4 @@
-import "./discover-serp-row-base.css";
-import "./discover-serp-row-v2.css";
+import "./discover-analytical-record.css";
 
 // Analytical result records deliberately expose only backend/inspection facts.
 function text(value) {
