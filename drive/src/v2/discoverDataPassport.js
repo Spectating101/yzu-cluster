@@ -22,6 +22,7 @@ function list(value) {
 }
 
 function compactNumber(value) {
+  if (value == null || value === "") return "";
   const raw = Number(value);
   if (!Number.isFinite(raw)) return text(value);
   if (raw >= 1_000_000_000) return `${(raw / 1_000_000_000).toFixed(raw >= 10_000_000_000 ? 0 : 1)}B`;
@@ -31,6 +32,7 @@ function compactNumber(value) {
 }
 
 function formatBytes(value) {
+  if (value == null || value === "") return "";
   const raw = Number(value);
   if (!Number.isFinite(raw) || raw <= 0) return text(value);
   if (raw >= 1024 ** 3) return `${(raw / 1024 ** 3).toFixed(raw >= 10 * 1024 ** 3 ? 0 : 1)} GB`;
@@ -72,7 +74,8 @@ function observedColumns(row) {
 }
 
 function productKind(row, taxonomy) {
-  const raw = [row?.kind, row?.type, row?.artifact_type, row?.format, row?.access_mode, row?.collect_via]
+  const explicitKind = text(row?.kind || row?.type || row?.artifact_type).toLowerCase();
+  const raw = [explicitKind, row?.format, row?.access_mode, row?.collect_via]
     .map((value) => text(value).toLowerCase())
     .join(" ");
   const files = observedFiles(row);
@@ -83,7 +86,12 @@ function productKind(row, taxonomy) {
   if (tables.length || /warehouse|snowflake|bigquery|delta|table/.test(raw)) {
     return { key: "warehouse", label: "Queryable tables", concrete: true };
   }
-  if (files.length || row?.file_summary || /file|csv|parquet|archive|zip|download/.test(raw)) {
+  // An explicitly typed dataset stays a dataset even when CSV/Parquet is its
+  // distribution format. Packages are bundles/files, not every tabular file.
+  if (/dataset/.test(explicitKind)) {
+    return { key: "dataset", label: "Dataset", concrete: true };
+  }
+  if (files.length || row?.file_summary || /artifact|file|archive|zip|download/.test(explicitKind)) {
     return { key: "package", label: "Data package", concrete: true };
   }
   if (/api|connector|catalog|metadata_search|live_connector|endpoint/.test(raw)) {
@@ -95,10 +103,14 @@ function productKind(row, taxonomy) {
   if (row?.connector_id || (row?.source_id && !files.length && !tables.length)) {
     return { key: "route", label: "Queryable source", concrete: false };
   }
+  if (/csv|parquet/.test(raw)) {
+    return { key: "dataset", label: "Dataset", concrete: true };
+  }
   return { key: "candidate", label: "Data option", concrete: false };
 }
 
 function countFact(label, value, noun) {
+  if (value == null || value === "") return null;
   const normalized = compactNumber(value);
   return normalized ? { label, value: `${normalized}${noun ? ` ${noun}` : ""}` } : null;
 }
@@ -172,6 +184,7 @@ export function buildDiscoverDataPassport(row = {}, taxonomy = {}) {
   if (!files.length && !tableCount && !endpointCount && kind.key === "route") inspectNext.push("resource manifest");
 
   const primary = (() => {
+    if (kind.key === "route" && capabilities.length) return capabilities.join(" · ");
     if (fieldPreview.length) {
       const suffix = Number(columnCount) > fieldPreview.length ? ` + ${Number(columnCount) - fieldPreview.length} more` : "";
       return `${fieldPreview.join(" · ")}${suffix}`;
@@ -184,7 +197,7 @@ export function buildDiscoverDataPassport(row = {}, taxonomy = {}) {
       : "This is a source route; inspect it to resolve concrete datasets or files.";
   })();
 
-  const primaryLabel = fieldPreview.length
+  const primaryLabel = fieldPreview.length && kind.key !== "route"
     ? "Fields surfaced"
     : kind.concrete
       ? "What this object contains"
