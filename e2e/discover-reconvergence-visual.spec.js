@@ -258,8 +258,11 @@ test.describe("Discover reconvergence visual review", () => {
       await expect(workspace).toBeVisible();
       await expect(workspace).toContainText(/Partially covered/i);
       await expect(workspace).toContainText(/Board-governance variables/i);
-      await expect(page.getByTestId("discover-assembly-path")).toBeVisible();
-      await expect(page.getByTestId("discover-assembly-path")).toContainText(/No single source has to be the answer/i);
+      const assembly = page.getByTestId("discover-assembly-path");
+      await expect(assembly).toBeVisible();
+      await expect(assembly).toContainText(/Board-governance variables/i);
+      await expect(assembly).toContainText(/10 candidates can be compared as inputs/i);
+      await expect(assembly).toContainText(/No assembly has run/i);
       const details = workspace.locator(".rd-v2-evidence-detail-disclosure.is-workspace");
       await expect(details).toBeVisible();
       expect(await details.evaluate((node) => node.open)).toBe(false);
