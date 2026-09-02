@@ -1,0 +1,229 @@
+/* Synthesis operated-flow authority.
+ *
+ * This layer is intentionally about composition, not semantics. The durable
+ * thread/API state remains authoritative. The UI must make the operation the
+ * researcher can perform now more prominent than explanatory lifecycle copy.
+ */
+
+/* The old five-cell post-acceptance strip collapses Preview, Approval and
+ * registry verification into a misleading Define/Ground/Review/Build/Reuse
+ * story. Keep the DOM for compatibility, but make the visible strip point to
+ * the exact execution ledger that already carries those real states. */
+.rd-v2-synthesis-page .s04-steps {
+  display: grid !important;
+  grid-template-columns: max-content minmax(0, 1fr);
+  align-items: baseline;
+  gap: 10px;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 8px 0 9px !important;
+  border: 0 !important;
+  border-bottom: 1px solid #e4e8ec !important;
+  background: transparent !important;
+}
+
+.rd-v2-synthesis-page .s04-steps > li {
+  display: none !important;
+}
+
+.rd-v2-synthesis-page .s04-steps::before {
+  content: "EXECUTION LIFECYCLE";
+  color: #315f4d;
+  font-size: 8.5px;
+  font-weight: 850;
+  letter-spacing: .08em;
+}
+
+.rd-v2-synthesis-page .s04-steps::after {
+  content: "Method accepted → bounded preview → researcher approval → worker build → archive + registry → Library handoff";
+  color: #596678;
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+
+/* Explicit reasoning is a real operation state. The live reasoning canvas is
+ * primary, but the action dock remains as a compact disabled receipt so the
+ * researcher can see that the request has already been handed to Ask. */
+.rd-v2-synthesis-page .s04-main:has(> .s04-draft)
+  > .s04-opening-next {
+  display: block !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 7px 10px !important;
+  border: 1px solid #e4e8ec !important;
+  border-radius: 8px !important;
+  background: #fafbfc !important;
+  box-shadow: none !important;
+}
+
+.rd-v2-synthesis-page .s04-main:has(> .s04-draft)
+  > .s04-opening-next > :is(header, p, em) {
+  display: none !important;
+}
+
+.rd-v2-synthesis-page .s04-main:has(> .s04-draft)
+  > .s04-opening-next > footer {
+  width: 100%;
+  margin: 0 !important;
+  justify-content: flex-end;
+}
+
+.rd-v2-synthesis-page .s04-main:has(> .s04-draft)
+  > .s04-opening-next > footer::before {
+  content: "Ask is drafting one reviewable method proposal. Nothing is accepted or executed yet.";
+  margin-right: auto;
+  max-width: 60ch;
+  color: #6d7887;
+  font-size: 9.5px;
+  line-height: 1.35;
+}
+
+/* The held-evidence selector is the first real operation after a thread is
+ * created. Its lock is a guardrail, not a destination. */
+.rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
+  > .s04-opening-next {
+  background: transparent !important;
+  border-color: #e1e6ea !important;
+}
+
+/* Proposal owns the consequential pre-acceptance decision. Once it exists,
+ * neither a roadmap nor a second generic next-action dossier should compete
+ * with Challenge / Reject / Accept & test. */
+.rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"])
+  > .s04-opening-workflow-wrap,
+.rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"])
+  > .s04-opening-next {
+  display: none !important;
+}
+
+@media (min-width: 1680px) and (min-height: 900px) {
+  /* Wide Synthesis is a workstation, not a centred document. The header and
+   * brief remain readable; operational state is allowed to use the canvas. */
+  #root .rd-v2-synthesis-page .s04-main {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: 14px;
+    row-gap: 12px;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main > :is(
+    .s04-head,
+    .s04-opening-brief,
+    .s04-opening-workflow-wrap,
+    .s04-steps,
+    .s04-thread-picker,
+    .s04-strip
+  ) {
+    grid-column: 1 / -1;
+  }
+
+  /* Evidence review / measured evidence: the evidence map is the working
+   * canvas; measurement truth and the next operation are a simultaneous
+   * decision ledger. */
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> [data-testid="synthesis-proposal-state"]))
+    > [data-testid="synthesis-evidence-state"] {
+    grid-column: 1 / 9 !important;
+    grid-row: auto / span 6;
+    align-self: start;
+    margin: 0 !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> [data-testid="synthesis-proposal-state"]))
+    > :is(.s04-measurement-status, .s04-opening-next, [data-testid="synthesis-method-surface"], .s04-draft) {
+    grid-column: 9 / 13 !important;
+    align-self: start;
+    margin: 0 !important;
+  }
+
+  /* While Ask reasons, keep evidence and reasoning visible together. The tiny
+   * disabled action receipt sits under the reasoning canvas rather than
+   * displacing either analytical surface. */
+  #root .rd-v2-synthesis-page .s04-main:has(> .s04-draft)
+    > [data-testid="synthesis-evidence-state"] {
+    grid-column: 1 / 9 !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> .s04-draft)
+    > .s04-draft,
+  #root .rd-v2-synthesis-page .s04-main:has(> .s04-draft)
+    > .s04-opening-next {
+    grid-column: 9 / 13 !important;
+  }
+
+  /* Proposal review becomes the dominant left decision surface. The exact
+   * evidence/method context stays inspectable at right without forcing the
+   * researcher back down a long page. */
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"])
+    > [data-testid="synthesis-proposal-state"] {
+    grid-column: 1 / 9 !important;
+    align-self: start;
+    margin: 0 !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"])
+    > :is([data-testid="synthesis-evidence-state"], [data-testid="synthesis-method-surface"]) {
+    grid-column: 9 / 13 !important;
+    align-self: start;
+    margin: 0 !important;
+  }
+
+  /* Mature execution/result states already expose exact preview/approval/
+   * build/registry truth. Let the execution record dominate while durable
+   * provenance/reuse sit beside it where available. */
+  #root .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-execution-state"],
+    [data-testid="synthesis-failed-state"],
+    [data-testid="synthesis-registered-state"],
+    [data-testid="synthesis-query-ready-state"]
+  )) > :is(
+    [data-testid="synthesis-execution-state"],
+    [data-testid="synthesis-failed-state"],
+    [data-testid="synthesis-registered-state"],
+    [data-testid="synthesis-query-ready-state"]
+  ) {
+    grid-column: 1 / 9 !important;
+    align-self: start;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-execution-state"],
+    [data-testid="synthesis-failed-state"],
+    [data-testid="synthesis-registered-state"],
+    [data-testid="synthesis-query-ready-state"]
+  )) > :is([data-testid="synthesis-provenance"], [data-testid="synthesis-reuse"]) {
+    grid-column: 9 / 13 !important;
+    align-self: start;
+  }
+
+  /* Critical analytical metadata gets a humane workstation floor without
+   * inflating the primary type scale. */
+  #root .rd-v2-synthesis-page :is(
+    .s04-opening-workflow li b,
+    .s04-opening-workflow li small,
+    .s04-opening-workflow-note > b::after,
+    .s04-opening-map li > small,
+    .s04-method-flow article > span
+  ) {
+    font-size: 9.5px !important;
+  }
+
+  #root .rd-v2-synthesis-page :is(
+    .s04-opening-workflow-note,
+    .s04-opening-map li > span,
+    .s04-opening-facts dd,
+    .s04-proposal-summary
+  ) {
+    font-size: 10.5px !important;
+  }
+}
+
+@media (max-width: 700px) {
+  .rd-v2-synthesis-page .s04-steps {
+    grid-template-columns: 1fr;
+    gap: 3px;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> .s04-draft)
+    > .s04-opening-next > footer::before {
+    max-width: 30ch;
+  }
+}
