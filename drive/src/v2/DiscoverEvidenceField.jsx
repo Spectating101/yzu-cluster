@@ -161,22 +161,24 @@ export function DiscoverEvidenceField({
             <strong>{gapText(assessmentResult)}</strong>
           </div>
           <div className="rd-v2-discover-assembly-position">
-            <b>{candidateCount} sources may contribute part of the missing data</b>
-            <span>Compare what each source contributes before combining anything. Nothing has been collected yet.</span>
+            <span className="rd-v2-discover-assembly-kicker">Suggested next step</span>
+            <b>Compare which sources actually provide the missing evidence</b>
+            <span>Discover found {candidateCount} data options that may cover different parts of this requirement.</span>
           </div>
           <div className="rd-v2-discover-assembly-state">
-            <span>Proposed only</span>
-            {onReviewAssembly ? <button type="button" onClick={onReviewAssembly}>See how to fill the gap →</button> : null}
+            <span>Nothing has run</span>
+            <em>No source selected or collected.</em>
+            {onReviewAssembly ? <button type="button" onClick={onReviewAssembly}>Compare sources for this gap →</button> : null}
           </div>
         </div>
       ) : assessmentActive && !assessmentResult ? (
         <div className="rd-v2-discover-assembly rd-v2-discover-assembly--compact is-checking" role="status">
           <div className="rd-v2-discover-assembly-gap">
-            <span>Checking coverage</span>
-            <strong>Is one source enough for this research need?</strong>
+            <span>Checking your Library</span>
+            <strong>Does held evidence already cover this research need?</strong>
           </div>
           <div className="rd-v2-discover-assembly-position">
-            <span>You can keep inspecting the data options while the held evidence is checked.</span>
+            <span>Discover is comparing the requirement against held records. You can keep inspecting the data options while it checks.</span>
           </div>
         </div>
       ) : null}
