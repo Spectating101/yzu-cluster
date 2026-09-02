@@ -56,6 +56,7 @@ jobs:
           npx playwright test
           e2e/library-convergence-render.spec.js
           e2e/library-visual-depth-render.spec.js
+          e2e/library-production-shape-render.spec.js
           --reporter=line
         env:
           CI: "true"
