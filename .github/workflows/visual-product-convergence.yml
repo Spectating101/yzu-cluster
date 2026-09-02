@@ -30,16 +30,24 @@ jobs:
         run: npm run build
       - run: npx playwright install chromium --with-deps
       - name: Capture canonical Home states
+        id: home
+        continue-on-error: true
         run: >-
           mkdir -p .tmp-pw artifacts/august-visual-recovery &&
           TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
           e2e/august-visual-recovery.spec.js --workers=1 --reporter=line
       - name: Capture Synthesis desktop and workstation states
+        id: synthesis
+        if: always()
+        continue-on-error: true
         run: >-
           mkdir -p artifacts/synthesis-acceptance &&
           TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
           e2e/synthesis-acceptance-screenshots.spec.js --workers=1 --reporter=line
       - name: Capture Profile and Settings states
+        id: ps
+        if: always()
+        continue-on-error: true
         run: >-
           mkdir -p artifacts/profile-settings-canonical-refine &&
           TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
@@ -55,3 +63,12 @@ jobs:
             artifacts/profile-settings-canonical-refine
             test-results
           if-no-files-found: warn
+      - name: Enforce assembled visual gate
+        if: always()
+        run: |
+          echo "Home: ${{ steps.home.outcome }}"
+          echo "Synthesis: ${{ steps.synthesis.outcome }}"
+          echo "Profile/Settings: ${{ steps.ps.outcome }}"
+          test "${{ steps.home.outcome }}" = "success"
+          test "${{ steps.synthesis.outcome }}" = "success"
+          test "${{ steps.ps.outcome }}" = "success"
