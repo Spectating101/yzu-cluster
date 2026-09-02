@@ -58,16 +58,23 @@ function evidenceRelationships(profile, libraryHoldings) {
     });
 }
 
+const PROJECT_WORKFLOW = [
+  ["01", "discover", "Discover", "Find evidence", "Search and inspect scholarly material before deciding what belongs in the workspace."],
+  ["02", "library", "Library", "Keep what matters", "Retain selected material as durable holdings with provenance and possession state kept visible."],
+  ["03", "synthesis", "Synthesis", "Work from evidence", "Analyze and compose from selected evidence without hiding the source boundary behind the answer."],
+];
+
 const PROJECT_SURFACES = [
-  ["discover", "Discover", "Find and inspect research material before deciding what belongs in the workspace."],
-  ["library", "Library", "Keep evidence and provenance as durable, inspectable research holdings."],
-  ["synthesis", "Synthesis", "Work from selected evidence while keeping source boundaries visible."],
+  ["home", "Home", "Return to active work, inspect the recent research trail, and see what needs attention next."],
+  ["profile", "Profile", "After sign-in, Research Drive synthesizes a grounded portrait of your research themes, methods, works, and connections."],
+  ["settings", "Settings", "Control workspace defaults, research identity, browser session, connections, and technical behavior."],
+  ["resources", "Resources", "Inspect the desk's research estate, provider capacity, activity, and the operational resources behind the workspace."],
 ];
 
 const PROJECT_PRINCIPLES = [
   ["Evidence stays inspectable", "Research material remains traceable to the source or workspace record that supports it."],
-  ["Context stays explicit", "Research context is shown as context instead of being silently promoted into fact."],
-  ["Library stays authoritative", "A recorded relationship is not treated as a held source until Library confirms it."],
+  ["Context stays explicit", "Research context and AI interpretation stay distinguishable from recorded researcher facts."],
+  ["Library stays authoritative", "A recorded relationship is not treated as held evidence until Library confirms possession."],
 ];
 
 function SettingLikeRow({ label, copy, action }) {
@@ -84,49 +91,92 @@ function SettingLikeRow({ label, copy, action }) {
 
 function GuestProjectProfile({ onGoTab }) {
   return (
-    <div className="rd-v2-profile-personalization rd-v2-profile-about-project">
+    <div className="rd-v2-profile-personalization rd-v2-profile-about-project rd-v2-profile-guest-guide">
       <section className="rd-v2-profile-about-header" aria-label="About Research Drive">
         <div className="rd-v2-profile-avatar is-product">RD</div>
         <div className="rd-v2-profile-about-copy">
-          <span>About</span>
-          <h2>Research Drive</h2>
-          <p>Research evidence workspace</p>
+          <span>Research Drive</span>
+          <h2>From discovery to evidence-grounded research work</h2>
+          <p>AI-assisted research evidence workspace</p>
+          <small>Find material · keep provenance · synthesize from evidence · understand the context behind the work</small>
         </div>
       </section>
 
-      <section className="rd-v2-profile-simple-section" aria-labelledby="profile-about-title">
-        <header><h3 id="profile-about-title">About Research Drive</h3></header>
+      <section className="rd-v2-profile-simple-section rd-v2-profile-guest-intro" aria-labelledby="profile-about-title">
+        <header>
+          <h3 id="profile-about-title">About Research Drive</h3>
+          <p>A research desk, not just a search box.</p>
+        </header>
         <p className="rd-v2-profile-section-copy">
-          Research Drive helps you discover, organize, inspect, and work from scholarly material without losing the evidence trail behind the work.
+          Research Drive is designed around a simple idea: discovery, evidence retention, AI assistance, and researcher context should live in one workspace without collapsing source, interpretation, and possession into the same thing.
         </p>
       </section>
 
+      <section className="rd-v2-profile-simple-section rd-v2-profile-guest-start" aria-labelledby="profile-start-title">
+        <header>
+          <h3 id="profile-start-title">Start here</h3>
+          <p>The core research loop.</p>
+        </header>
+        <div className="rd-v2-profile-guest-flow">
+          {PROJECT_WORKFLOW.map(([step, id, title, verb, copy]) => (
+            <article key={id} className="rd-v2-profile-guest-step">
+              <span>{step}</span>
+              <div>
+                <strong>{title}</strong>
+                <em>{verb}</em>
+                <p>{copy}</p>
+              </div>
+              <button type="button" className="rd-v2-profile-row-action" onClick={() => onGoTab?.(id)}>Open</button>
+            </article>
+          ))}
+        </div>
+      </section>
+
       <section className="rd-v2-profile-simple-section" aria-labelledby="profile-capabilities-title">
-        <header><h3 id="profile-capabilities-title">What it does</h3></header>
-        <div className="rd-v2-profile-simple-list">
+        <header>
+          <h3 id="profile-capabilities-title">What it does</h3>
+          <p>The rest of the workspace around that loop.</p>
+        </header>
+        <div className="rd-v2-profile-guest-surface-grid">
           {PROJECT_SURFACES.map(([id, title, copy]) => (
             <SettingLikeRow
               key={id}
               label={title}
               copy={copy}
-              action={<button type="button" className="rd-v2-profile-row-action" onClick={() => onGoTab?.(id)}>Open</button>}
+              action={id === "profile" ? <span className="rd-v2-profile-row-value">This page</span> : (
+                <button type="button" className="rd-v2-profile-row-action" onClick={() => onGoTab?.(id)}>Open</button>
+              )}
             />
           ))}
         </div>
       </section>
 
-      <section className="rd-v2-profile-simple-section" aria-labelledby="profile-principles-title">
-        <header><h3 id="profile-principles-title">How it handles research</h3></header>
-        <div className="rd-v2-profile-simple-list">
-          {PROJECT_PRINCIPLES.map(([label, copy]) => <SettingLikeRow key={label} label={label} copy={copy} />)}
+      <section className="rd-v2-profile-simple-section rd-v2-profile-guest-principles" aria-labelledby="profile-principles-title">
+        <header>
+          <h3 id="profile-principles-title">How it handles research</h3>
+          <p>The evidence contract underneath the interface.</p>
+        </header>
+        <div className="rd-v2-profile-guest-principle-grid">
+          {PROJECT_PRINCIPLES.map(([label, copy], index) => (
+            <article key={label}>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <strong>{label}</strong>
+              <p>{copy}</p>
+            </article>
+          ))}
         </div>
       </section>
 
-      <section className="rd-v2-profile-simple-section rd-v2-profile-signin-note" aria-labelledby="profile-signin-title">
-        <header><h3 id="profile-signin-title">When you sign in</h3></header>
-        <p className="rd-v2-profile-section-copy">
-          Profile becomes an AI-assisted research portrait grounded in your recorded research context, works, and the evidence this workspace can actually verify.
-        </p>
+      <section className="rd-v2-profile-simple-section rd-v2-profile-signin-note rd-v2-profile-guest-signin" aria-labelledby="profile-signin-title">
+        <div>
+          <header><h3 id="profile-signin-title">When you sign in</h3></header>
+          <p className="rd-v2-profile-section-copy">
+            Profile stops describing Research Drive and starts describing you. Research Drive uses recorded research context, works, and inspectable Library evidence to build an AI-assisted research portrait while keeping model interpretation separate from source facts.
+          </p>
+        </div>
+        <button type="button" className="rd-v2-btn sm ghost" onClick={() => onGoTab?.("settings")}>
+          Set up research profile
+        </button>
       </section>
     </div>
   );
@@ -336,7 +386,7 @@ export function ProfilePage({ profile, libraryHoldings = [], onGoTab }) {
       title="Profile"
       lead={signedIn
         ? "An AI-assisted portrait of your research, grounded in the profile and evidence Research Drive can actually inspect."
-        : "About Research Drive and the evidence principles behind the workspace."}
+        : "A guided map of Research Drive: what the workspace can do, how evidence moves through it, and where to start."}
       surfaceState="ready"
     >
       {signedIn ? (
@@ -354,8 +404,16 @@ export function ProfileDetailPanel({ profile }) {
     return (
       <div className="rd-v2-profile-rail rd-v2-profile-rail-project" data-testid="profile-detail-rail">
         <section className="rd-v2-profile-rail-block">
-          <h3>About this profile</h3>
-          <p>Guest mode describes Research Drive itself. No personal research context is assumed.</p>
+          <h3>Quick start</h3>
+          <ol>
+            <li>Discover — find and inspect material.</li>
+            <li>Library — retain evidence with provenance.</li>
+            <li>Synthesis — work from selected evidence.</li>
+          </ol>
+        </section>
+        <section className="rd-v2-profile-rail-block">
+          <h3>Personalization</h3>
+          <p>Set up research identity in Settings and this page becomes an AI-assisted portrait of the researcher instead of the project.</p>
         </section>
         <section className="rd-v2-profile-rail-block">
           <h3>Evidence model</h3>
