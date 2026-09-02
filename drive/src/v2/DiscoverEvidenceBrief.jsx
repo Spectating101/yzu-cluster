@@ -484,6 +484,18 @@ export function DiscoverEvidenceBrief({
             </section>
           ) : null}
 
+          <details
+            className={`rd-v2-evidence-detail-disclosure${variant === "workspace" ? " is-workspace" : ""}`}
+            open={variant === "workspace" ? undefined : true}
+          >
+            <summary>
+              <span>Assessment details</span>
+              <em>
+                {heldEvidence.length} held · {assessment.gap ? "1 gap" : "no gap"} · {routeLoading
+                  ? "checking routes"
+                  : `${routeRows.length} declared route${routeRows.length === 1 ? "" : "s"}`}
+              </em>
+            </summary>
           {(variant === "layered" || variant === "workspace") ? (
             <details className="rd-v2-evidence-edit">
               <summary>
@@ -584,6 +596,7 @@ export function DiscoverEvidenceBrief({
               <p className="rd-v2-evidence-basis">{assessmentBasisSummary(assessment.assessment_basis)}</p>
             </details>
           ) : null}
+          </details>
         </div>
       )}
       {loading ? <p className="rd-v2-browse-loading" data-testid="discover-assessment-loading">Checking Library evidence against the brief…</p> : null}

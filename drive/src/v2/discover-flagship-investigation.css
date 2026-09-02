@@ -1,0 +1,108 @@
+/* Flagship investigation density — keep the evidence assessment authoritative
+   without consuming the entire 1440×900 retrieval viewport. */
+
+@media (min-width: 981px) and (max-width: 1500px) and (min-height: 780px) {
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-assessment {
+    gap: 8px 10px;
+    padding: 11px 12px 12px;
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-assessment-head h2 {
+    margin-top: 2px;
+    font-size: 13px;
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-because {
+    margin-block: -1px 0;
+    font-size: 9.5px;
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-position-grid > div {
+    min-height: 43px;
+    padding: 7px 9px;
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-position-grid strong {
+    margin-top: 1px;
+    font-size: 11.5px;
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-position-grid em {
+    margin-top: 1px;
+    font-size: 8.5px;
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-held,
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-gap {
+    padding: 8px 9px;
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-held li button {
+    padding-block: 5px;
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes {
+    padding: 8px 9px;
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes .rd-v2-evidence-section-head p {
+    margin-top: 1px;
+    font-size: 8.5px;
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes-list {
+    margin-top: 5px;
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes-list li {
+    padding: 6px 8px;
+  }
+
+  /* Four measured capacity facts fit in one decision strip at 1440. The
+     previous 2×2 grid doubled this section's height and pushed all offerings
+     below the viewport even though capacity is supporting evidence. */
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity {
+    grid-template-columns: 156px minmax(0, 1fr);
+    align-items: center;
+    gap: 8px 10px;
+    padding: 7px 8px;
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity .rd-v2-evidence-section-head p {
+    max-width: none;
+    font-size: 8px;
+    line-height: 1.25;
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity-grid > div,
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity-grid > div:nth-child(even),
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity-grid > div:nth-last-child(-n + 2) {
+    min-height: 39px;
+    padding: 6px 7px;
+    border-right: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 64%, transparent);
+    border-bottom: 0;
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity-grid > div:last-child {
+    border-right: 0;
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity-grid strong {
+    font-size: 9.5px;
+    line-height: 1.2;
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity-grid em {
+    margin-top: 1px;
+    font-size: 7.5px;
+    line-height: 1.2;
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-basis-details {
+    line-height: 1.1;
+  }
+}

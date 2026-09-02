@@ -1,0 +1,267 @@
+/* Large-field Discover pass.
+   Results are the primary research object. Persistent controls stay quiet; density
+   increases through ledger structure rather than nested cards. */
+
+.rd-v2-discover-field {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0 12px;
+  padding: 11px 13px;
+  border-block: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, transparent);
+  background: color-mix(in srgb, var(--rd-surface, #fffdf6) 74%, #eef2ef 26%);
+}
+
+.rd-v2-discover-field > header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.rd-v2-discover-field > header > div:first-child {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: baseline;
+  gap: 6px 10px;
+  min-width: 0;
+}
+
+.rd-v2-discover-field > header strong {
+  color: var(--rd-text, #182033);
+  font-size: 14px;
+}
+
+.rd-v2-discover-field > header p {
+  min-width: 0;
+  margin: 0;
+  color: var(--rd-muted, #6e7685);
+  font-size: 9.5px;
+  line-height: 1.35;
+}
+
+.rd-v2-discover-field-actions button,
+.rd-v2-discover-assembly-state button {
+  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 82%, #26374b 18%);
+  border-radius: 5px;
+  background: var(--rd-surface, #fffdf6);
+  color: var(--rd-text, #182033);
+  font-size: 9px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.rd-v2-discover-field-actions button { padding: 6px 9px; }
+
+.rd-v2-discover-field-metrics {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 56%, transparent);
+}
+
+.rd-v2-discover-field-metrics > span {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  padding: 7px 14px 2px 0;
+  margin-right: 14px;
+  border-right: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 52%, transparent);
+}
+
+.rd-v2-discover-field-metrics > span:last-child { border-right: 0; }
+.rd-v2-discover-field-metrics b { color: var(--rd-text, #182033); font-size: 11px; }
+.rd-v2-discover-field-metrics em { color: var(--rd-muted, #6e7685); font-size: 8.5px; font-style: normal; }
+
+.rd-v2-discover-assembly {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) minmax(150px, auto);
+  gap: 10px;
+  align-items: center;
+  padding: 9px 10px;
+  border-left: 3px solid #788f82;
+  background: color-mix(in srgb, #edf4ef 68%, var(--rd-surface, #fffdf6));
+}
+
+.rd-v2-discover-assembly-mark {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  border: 1px solid #9daf9f;
+  border-radius: 50%;
+  color: #557064;
+  font: 700 13px/1 var(--rd-mono, ui-monospace, monospace);
+}
+
+.rd-v2-discover-assembly > div:nth-child(2) { min-width: 0; }
+.rd-v2-discover-assembly > div:nth-child(2) > span,
+.rd-v2-discover-assembly-state > span { color: #607166; font: 700 7.8px/1.2 var(--rd-mono, ui-monospace, monospace); letter-spacing: .06em; text-transform: uppercase; }
+.rd-v2-discover-assembly > div:nth-child(2) > strong { display: block; margin-top: 2px; color: var(--rd-text, #182033); font-size: 10.5px; }
+.rd-v2-discover-assembly p { margin: 2px 0 0; color: var(--rd-muted, #6e7685); font-size: 8.8px; line-height: 1.35; }
+
+.rd-v2-discover-assembly-state {
+  display: grid;
+  justify-items: end;
+  gap: 3px;
+  text-align: right;
+}
+.rd-v2-discover-assembly-state b { color: #557064; font-size: 9px; }
+.rd-v2-discover-assembly-state button { margin-top: 2px; padding: 5px 8px; }
+.rd-v2-discover-assembly.is-checking { grid-template-columns: 30px minmax(0, 1fr); border-left-color: #ac9e77; background: color-mix(in srgb, #f5f1e6 72%, var(--rd-surface, #fffdf6)); }
+
+/* Quiet the persistent cockpit. It is a control rail, not a second dashboard. */
+.rd-v2-discover-browse:has(> .rd-v2-discover-evidence-cockpit) {
+  grid-template-columns: 184px minmax(0, 1fr);
+  column-gap: 12px;
+}
+
+.rd-v2-discover-evidence-cockpit {
+  gap: 0;
+  padding: 10px 11px;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--rd-surface, #fffdf6) 95%, #eef2ef 5%);
+  box-shadow: none;
+}
+
+.rd-v2-cockpit-head {
+  padding-bottom: 8px;
+}
+.rd-v2-cockpit-head p { display: none; }
+.rd-v2-cockpit-head h3 { margin-bottom: 0; font-size: 10px; -webkit-line-clamp: 2; }
+
+.rd-v2-cockpit-stage-map,
+.rd-v2-cockpit-facets,
+.rd-v2-cockpit-assessment,
+.rd-v2-cockpit-execution,
+.rd-v2-discover-evidence-cockpit .rd-v2-cockpit-network {
+  padding: 8px 0;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 58%, transparent);
+  border-radius: 0;
+  background: transparent;
+}
+
+.rd-v2-discover-evidence-cockpit .rd-v2-cockpit-network {
+  display: none;
+}
+
+.rd-v2-cockpit-stage-map {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px 8px;
+}
+.rd-v2-cockpit-stage-map .rd-v2-cockpit-section-head,
+.rd-v2-cockpit-stage-map .rd-v2-cockpit-live-state { grid-column: 1 / -1; }
+.rd-v2-cockpit-stage-row { grid-template-columns: 1fr auto; gap: 4px; padding: 2px 0; }
+.rd-v2-cockpit-stage-row i { display: none; }
+.rd-v2-cockpit-stage-row span { font-size: 8px; }
+.rd-v2-cockpit-stage-row b { font-size: 9px; }
+
+.rd-v2-cockpit-live-state {
+  margin-top: 2px;
+  padding-top: 5px;
+}
+
+.rd-v2-cockpit-facets button {
+  min-height: 26px;
+  padding: 4px 5px;
+  border-radius: 4px;
+}
+
+.rd-v2-cockpit-assessment p,
+.rd-v2-cockpit-execution p {
+  margin: 5px 0 6px;
+  font-size: 8px;
+}
+
+.rd-v2-cockpit-assessment button,
+.rd-v2-cockpit-execution > button {
+  min-height: 27px;
+  padding: 4px 6px;
+}
+
+/* A dozen results should scan like a professional result ledger, not a stack of cards. */
+.rd-v2-discover-ranked-results {
+  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, transparent);
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-candidates {
+  gap: 0;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-candidates > li {
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 62%, transparent);
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-candidate {
+  min-height: 78px;
+  padding: 9px 104px 9px 10px;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-candidates > li:hover {
+  background: color-mix(in srgb, #eef2ef 44%, transparent);
+}
+
+.rd-v2-discover-ranked-results .rd-v2-row-on {
+  background: color-mix(in srgb, #e8f0eb 56%, transparent);
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-candidate-main { gap: 3px; }
+.rd-v2-discover-ranked-results .rd-v2-discover-candidate-title { font-size: 11.5px; }
+.rd-v2-discover-ranked-results .rd-v2-discover-evidence { font-size: 9px; line-height: 1.32; }
+.rd-v2-discover-ranked-results .rd-v2-discover-offering-facts { margin-top: 1px; }
+.rd-v2-discover-ranked-results .rd-v2-discover-offering-facts > span { min-height: 24px; padding: 4px 7px; }
+.rd-v2-discover-ranked-results .rd-v2-discover-offering-facts b { font-size: 7px; }
+.rd-v2-discover-ranked-results .rd-v2-discover-offering-facts em { font-size: 8px; }
+.rd-v2-discover-ranked-results .rd-v2-discover-sufficiency { margin-top: 1px; font-size: 7.8px; }
+
+.rd-v2-discover-ranked-results .rd-v2-discover-row-add {
+  top: 10px;
+  right: 10px;
+  bottom: auto;
+  min-height: 28px;
+  padding: 4px 8px;
+  font-size: 8px;
+}
+
+@media (min-width: 1680px) {
+  .rd-v2-discover-ranked-results .rd-v2-discover-candidate {
+    min-height: 72px;
+  }
+}
+
+@media (max-width: 1500px) {
+  .rd-v2-discover-browse:has(> .rd-v2-discover-evidence-cockpit) {
+    grid-template-columns: 168px minmax(0, 1fr);
+    column-gap: 10px;
+  }
+  .rd-v2-discover-field > header > div:first-child {
+    grid-template-columns: auto auto;
+  }
+  .rd-v2-discover-field > header p { grid-column: 1 / -1; }
+  .rd-v2-discover-ranked-results .rd-v2-discover-candidate {
+    padding-right: 94px;
+  }
+}
+
+@media (max-width: 1080px) {
+  .rd-v2-discover-browse:has(> .rd-v2-discover-evidence-cockpit) {
+    display: block;
+  }
+  .rd-v2-discover-evidence-cockpit {
+    position: static;
+    margin-bottom: 10px;
+  }
+  .rd-v2-discover-assembly {
+    grid-template-columns: 30px minmax(0, 1fr);
+  }
+  .rd-v2-discover-assembly-state {
+    grid-column: 2;
+    justify-items: start;
+    text-align: left;
+  }
+}
