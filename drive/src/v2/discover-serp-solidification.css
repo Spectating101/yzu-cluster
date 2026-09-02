@@ -1,0 +1,188 @@
+/* Discover wide SERP solidification.
+ * This is intentionally a narrow convergence layer on top of discover-three-zone.css:
+ * - left rail behaves like search refinement, not a monitoring dashboard
+ * - center records scan as SERP evidence, not embedded data sheets
+ * - right rail reads as one evaluation dossier, not a stack of cards
+ */
+@media (min-width: 1680px) and (min-height: 900px) {
+  /* LEFT — refinement authority. Keep facets + provider composition; remove
+     execution/capacity chrome that does not narrow the current result set. */
+  .rd-v2-discover-page .rd-v2-cockpit-stage-map,
+  .rd-v2-discover-page .rd-v2-cockpit-execution {
+    display: none !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-evidence-cockpit {
+    max-height: calc(100vh - 144px) !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-cockpit-facets {
+    order: 2 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-cockpit-network {
+    order: 3 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-cockpit-network-list {
+    display: grid !important;
+    gap: 0 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-cockpit-network-list > div {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: baseline !important;
+    gap: 8px !important;
+    min-height: 26px !important;
+    padding: 5px 0 !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 58%, transparent) !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-cockpit-network-list > div:last-child {
+    border-bottom: 0 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-cockpit-network-list i {
+    display: none !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-cockpit-network-list span {
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    font-size: 9px !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-cockpit-network-list b {
+    font-size: 9px !important;
+    font-variant-numeric: tabular-nums !important;
+  }
+
+  /* CENTER — keep analytical contents strong, but remove the residual
+     inner-card geometry from each result. */
+  .rd-v2-discover-page .rd-v2-dataset-profile,
+  .rd-v2-discover-page .rd-v2-dataset-profile-topline,
+  .rd-v2-discover-page .rd-v2-dataset-profile-body,
+  .rd-v2-discover-page .rd-v2-dataset-profile-contents,
+  .rd-v2-discover-page .rd-v2-dataset-profile-facts,
+  .rd-v2-discover-page .rd-v2-dataset-profile-coverage,
+  .rd-v2-discover-page .rd-v2-dataset-profile-open {
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-dataset-profile {
+    border-left-width: 1px !important;
+    padding-left: 9px !important;
+    margin-top: 3px !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-dataset-profile-topline {
+    opacity: .78 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-dataset-profile-body {
+    gap: 12px !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-dataset-profile-contents > b,
+  .rd-v2-discover-page .rd-v2-dataset-profile-metric > b {
+    color: color-mix(in srgb, var(--rd-muted, #6e7685) 88%, transparent) !important;
+    font-weight: 600 !important;
+    letter-spacing: .06em !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-dataset-profile-contents > strong {
+    font-size: 11.25px !important;
+    line-height: 1.25 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-dataset-profile-metric {
+    padding-inline: 7px !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-dataset-profile-metric > em {
+    font-size: 9px !important;
+  }
+
+  .rd-v2-discover-page button.row.rd-v2-discover-candidate,
+  .rd-v2-discover-page .rd-v2-discover-ranked-results .rd-v2-discover-candidate {
+    padding-top: 11px !important;
+    padding-bottom: 10px !important;
+  }
+
+  /* RIGHT — the Inspector already names the candidate. The evaluation surface
+     therefore starts at the decision, avoiding duplicate identity chrome. */
+  aside.rd-v2-rail .rd-v2-eval-rail .rd-v2-eval-identity {
+    display: none !important;
+  }
+
+  aside.rd-v2-rail .rd-v2-eval-rail .rd-v2-eval-decision {
+    margin-top: 10px !important;
+  }
+
+  aside.rd-v2-rail .rd-v2-eval-rail .rd-v2-eval-sufficiency,
+  aside.rd-v2-rail .rd-v2-eval-rail .rd-v2-eval-block,
+  aside.rd-v2-rail .rd-v2-eval-rail .rd-v2-eval-tech,
+  aside.rd-v2-rail .rd-v2-eval-rail .rd-v2-eval-ask-chips {
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  aside.rd-v2-rail .rd-v2-eval-rail .rd-v2-eval-sufficiency {
+    margin: 0 12px !important;
+    padding: 11px 0 12px !important;
+    border: 0 !important;
+    border-bottom: 1px solid var(--rd-border, #dbd4c5) !important;
+    background: transparent !important;
+  }
+
+  aside.rd-v2-rail .rd-v2-eval-rail .rd-v2-eval-scroll {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    column-gap: 14px !important;
+    align-content: start !important;
+  }
+
+  aside.rd-v2-rail .rd-v2-eval-rail .rd-v2-eval-scroll > .rd-v2-eval-block[aria-label="Useful for"],
+  aside.rd-v2-rail .rd-v2-eval-rail .rd-v2-eval-scroll > .rd-v2-eval-block[aria-label="Coverage"] {
+    margin: 0 !important;
+    padding: 11px 0 12px !important;
+    border: 0 !important;
+    border-bottom: 1px solid var(--rd-border, #dbd4c5) !important;
+    background: transparent !important;
+  }
+
+  aside.rd-v2-rail .rd-v2-eval-rail .rd-v2-eval-scroll > .rd-v2-strategy-card,
+  aside.rd-v2-rail .rd-v2-eval-rail .rd-v2-eval-scroll > .rd-v2-eval-evidence-grid,
+  aside.rd-v2-rail .rd-v2-eval-rail .rd-v2-eval-scroll > .rd-v2-eval-inferred,
+  aside.rd-v2-rail .rd-v2-eval-rail .rd-v2-eval-scroll > .rd-v2-discover-probe-error,
+  aside.rd-v2-rail .rd-v2-eval-rail .rd-v2-eval-scroll > .rd-v2-eval-tech,
+  aside.rd-v2-rail .rd-v2-eval-rail .rd-v2-eval-scroll > .rd-v2-eval-ask-chips {
+    grid-column: 1 / -1 !important;
+  }
+
+  aside.rd-v2-rail .rd-v2-eval-rail .rd-v2-strategy-card {
+    margin: 10px 0 0 !important;
+    padding: 9px 0 !important;
+    border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, transparent) !important;
+    border-left: 0 !important;
+    border-right: 0 !important;
+    background: transparent !important;
+  }
+
+  /* Unknowns are the one rail block that should remain unmistakable. */
+  aside.rd-v2-rail .rd-v2-eval-rail .rd-v2-eval-unknown {
+    border-radius: 6px !important;
+  }
+
+  aside.rd-v2-rail .rd-v2-eval-rail .rd-v2-eval-tech {
+    margin-top: 10px !important;
+  }
+
+  aside.rd-v2-rail .rd-v2-eval-rail .rd-v2-eval-ask-chips {
+    padding-top: 12px !important;
+  }
+}
