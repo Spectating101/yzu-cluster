@@ -24,6 +24,12 @@ import "./discover-product-inspector.css";
 import "./hps-shell-convergence.css";
 import "./hps-responsive-fixes.css";
 import "./synthesis-workstation.css";
+import "./synthesis-wide-workstation.css";
+import "./synthesis-wide-workstation-closure.css";
+import "./synthesis-wide-workstation-sanding.css";
+import "./synthesis-wide-workstation-sanding-final.css";
+import "./synthesis-wide-shell-canvas.css";
+import "./synthesis-wide-brief-ledger.css";
 import "./discover-frozen-closure.css";
 import "./connected-accounts.css";
 // DiscoverCoveragePanel imports this component stylesheet as well, but loading
