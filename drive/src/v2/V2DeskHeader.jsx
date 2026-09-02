@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { deskStatusBadge, deskStatusSummary } from "@/v2/deskStatusBadge";
+import {
+  SYNTHESIS_AUTOMATION_OPTIONS,
+  synthesisAutomationOption,
+  useSynthesisAutomationMode,
+} from "@/v2/synthesisAutomation.js";
 
 /** v2 header — brand · research context · resting status (no global search/Ask pill) */
 
@@ -42,6 +47,7 @@ export function V2DeskHeader({
   datasetLabel = "datasets",
 }) {
   const [accountOpen, setAccountOpen] = useState(false);
+  const [synthesisAutomationMode, setSynthesisAutomationMode] = useSynthesisAutomationMode();
   const accountRef = useRef(null);
   const pendingVisible = workCount > 0 && Boolean(onPendingClick);
   const countText = `${datasetCount} ${datasetLabel}`;
@@ -63,6 +69,7 @@ export function V2DeskHeader({
     onDeskStatusNavigate ? "Open Resources" : null,
   ].filter(Boolean).join(" · ");
   const pageLabel = PAGE_LABELS[currentPage] || String(currentPage || "").toUpperCase();
+  const automationOption = synthesisAutomationOption(synthesisAutomationMode);
 
   useEffect(() => {
     if (!accountOpen) return undefined;
@@ -102,6 +109,24 @@ export function V2DeskHeader({
         <span className="rd-v2-header-page" data-testid="header-page-label">
           {pageLabel}
         </span>
+        {currentPage === "synthesis" ? (
+          <label
+            className={`rd-v2-synthesis-automation is-${synthesisAutomationMode}`}
+            title={automationOption.detail}
+          >
+            <span>Agent</span>
+            <select
+              aria-label="Synthesis agent authority"
+              data-testid="synthesis-automation-mode"
+              value={synthesisAutomationMode}
+              onChange={(event) => setSynthesisAutomationMode(event.target.value)}
+            >
+              {SYNTHESIS_AUTOMATION_OPTIONS.map((option) => (
+                <option key={option.id} value={option.id}>{option.short}</option>
+              ))}
+            </select>
+          </label>
+        ) : null}
       </div>
 
       <div className="rd-v2-header-meta">
