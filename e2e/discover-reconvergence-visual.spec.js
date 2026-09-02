@@ -251,7 +251,7 @@ function resultFixture() {
 async function openDiscover(page, suffix = "") {
   await page.goto(`/?tab=discover${suffix}`);
   await waitForShell(page);
-  await expect(page.getByRole("heading", { name: "Discover" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Discover", exact: true })).toBeVisible();
 }
 
 async function runSearch(page, query = "stablecoin") {
@@ -297,11 +297,20 @@ test.describe("Discover reconvergence visual review", () => {
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
       await openDiscover(page);
       await runSearch(page);
-      const fieldBox = await page.getByTestId("discover-evidence-field").boundingBox();
       const resultsBox = await page.getByTestId("discover-ranked-results").boundingBox();
-      expect(fieldBox).not.toBeNull();
       expect(resultsBox).not.toBeNull();
-      expect(resultsBox.y - (fieldBox.y + fieldBox.height)).toBeLessThan(38);
+      if (viewport.width >= 1680) {
+        await expect(page.getByTestId("discover-evidence-field")).toBeHidden();
+        await expect(page.getByTestId("discover-interpreting")).toBeVisible();
+        await expect(page.locator(".rd-v2-discover-frozen-controls")).toBeVisible();
+        const firstResultBox = await page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidate").first().boundingBox();
+        expect(firstResultBox).not.toBeNull();
+        expect(firstResultBox.y).toBeLessThan(430);
+      } else {
+        const fieldBox = await page.getByTestId("discover-evidence-field").boundingBox();
+        expect(fieldBox).not.toBeNull();
+        expect(resultsBox.y - (fieldBox.y + fieldBox.height)).toBeLessThan(38);
+      }
       const profiles = page.getByTestId("discover-ranked-results").locator(".rd-v2-dataset-profile");
       await expect(profiles).toHaveCount(10);
       await expect(page.getByTestId("discover-ranked-results").locator('.rd-v2-dataset-profile.is-dataset').first()).toContainText(/variables|contents|fields|stablecoin/i);
@@ -315,8 +324,9 @@ test.describe("Discover reconvergence visual review", () => {
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
       await openDiscover(page);
       await runSearch(page);
-      await page.getByRole("button", { name: /DataCite live catalogue/i }).click();
-      await expect(page.getByText(/DataCite live catalogue/i).first()).toBeVisible();
+      const dataciteRow = page.getByTestId("discover-ranked-results").getByRole("button", { name: /DataCite live catalogue/i });
+      await dataciteRow.click();
+      await expect(dataciteRow).toHaveAttribute("aria-pressed", "true");
       await assertNoOverflow(page);
       await page.screenshot({ path: `${OUT}/discover-selected-${viewport.name}.png`, fullPage: false });
     });
@@ -362,7 +372,8 @@ test.describe("Discover reconvergence visual review", () => {
     await mockV2Api(page, resultFixture());
     await page.setViewportSize({ width: 1920, height: 1080 });
     await openDiscover(page, `&dataset=${DATACITE_DATASET_ID}`);
-    await expect(page.getByText(/DataCite live catalogue/i).first()).toBeVisible();
+    const dataciteRow = page.getByTestId("discover-ranked-results").getByRole("button", { name: /DataCite live catalogue/i });
+    await expect(dataciteRow).toHaveAttribute("aria-pressed", "true");
     await assertNoOverflow(page);
     await page.screenshot({ path: `${OUT}/discover-deeplink-datacite-1920x1080.png`, fullPage: false });
   });
