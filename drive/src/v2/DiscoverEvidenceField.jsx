@@ -9,6 +9,7 @@ import "./discover-rail-balance.css";
 import "./discover-utility-workbench.css";
 import "./discover-utility-hierarchy-pass.css";
 import "./discover-wide-comfort.css";
+import "./discover-wide-comfort-final.css";
 
 function rows(value) {
   return Array.isArray(value) ? value : [];
