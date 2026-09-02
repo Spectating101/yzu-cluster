@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
+import { LIBRARY_FOLDERS_ROOT } from "@/driveTree";
 import { displayName, libraryAssetPresentation, statusPillKind } from "@/v2/datasetMeta";
 import { libraryVerification } from "@/v2/libraryVerification";
 import { StatusPill } from "@/v2/StatusPill";
 import "@/v2/capability-convergence.css";
 import "@/v2/library-evidence-rigor.css";
 import "@/v2/library-auto-catalog.css";
+import "@/v2/library-live-scale.css";
 
 const PAGE_SIZE = 50;
 
@@ -118,8 +120,17 @@ export function LibraryEvidenceEstate({
     <section className="rd-v2-cap-estate" data-testid="library-evidence-estate" aria-label="Research evidence estate">
       {collections.length || collectionsLoading ? (
         <div className="rd-v2-cap-collections" aria-label="Curated research collections">
-          <span className="rd-v2-cap-collections-label">Collections</span>
-          <span className="rd-v2-cap-collections-hint">open folder →</span>
+          <div className="rd-v2-cap-collections-heading">
+            <span className="rd-v2-cap-collections-label">Collections</span>
+            <button
+              type="button"
+              className="rd-v2-cap-folders-link"
+              data-testid="library-folders-root"
+              onClick={() => onOpenCollection?.({ id: LIBRARY_FOLDERS_ROOT, name: "Folders" })}
+            >
+              Folders →
+            </button>
+          </div>
           {collections.length ? (
             <div className="rd-v2-cap-collection-list">
               {collections.map((collection) => {
