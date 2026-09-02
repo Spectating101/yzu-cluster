@@ -59,9 +59,9 @@ function evidenceRelationships(profile, libraryHoldings) {
 }
 
 const PROJECT_WORKFLOW = [
-  ["01", "discover", "Discover", "Find evidence", "Search and inspect scholarly material before deciding what belongs in the workspace."],
-  ["02", "library", "Library", "Keep what matters", "Retain selected material as durable holdings with provenance and possession state kept visible."],
-  ["03", "synthesis", "Synthesis", "Work from evidence", "Analyze and compose from selected evidence without hiding the source boundary behind the answer."],
+  ["01", "discover", "Discover", "Find evidence", "Search and inspect scholarly material before deciding what belongs in the workspace.", "Compare the source record first, then carry only useful material forward."],
+  ["02", "library", "Library", "Keep what matters", "Retain selected material as durable holdings with provenance and possession state kept visible.", "Library is the possession boundary: recorded relationships do not silently become held evidence."],
+  ["03", "synthesis", "Synthesis", "Work from evidence", "Analyze and compose from selected evidence without hiding the source boundary behind the answer.", "The answer can be assisted by AI while the evidence underneath it remains inspectable."],
 ];
 
 const PROJECT_SURFACES = [
@@ -75,6 +75,12 @@ const PROJECT_PRINCIPLES = [
   ["Evidence stays inspectable", "Research material remains traceable to the source or workspace record that supports it."],
   ["Context stays explicit", "Research context and AI interpretation stay distinguishable from recorded researcher facts."],
   ["Library stays authoritative", "A recorded relationship is not treated as held evidence until Library confirms possession."],
+];
+
+const PROJECT_PERSONALIZATION = [
+  ["Research context", "Profile can organize the explicit themes, methods, works, and affiliations Research Drive has on record."],
+  ["Grounded portrait", "AI can synthesize patterns across those records while keeping interpretation separate from source facts."],
+  ["Workspace direction", "The same context can steer organization and recommendations without becoming evidence itself."],
 ];
 
 function SettingLikeRow({ label, copy, action }) {
@@ -100,6 +106,12 @@ function GuestProjectProfile({ onGoTab }) {
           <p>AI-assisted research evidence workspace</p>
           <small>Find material · keep provenance · synthesize from evidence · understand the context behind the work</small>
         </div>
+        <div className="rd-v2-profile-guest-primary-action">
+          <button type="button" className="rd-v2-btn primary rd-v2-profile-guest-primary" onClick={() => onGoTab?.("settings")}>
+            Sign in / connect profile <span aria-hidden="true">→</span>
+          </button>
+          <small>Personalize this research desk</small>
+        </div>
       </section>
 
       <section className="rd-v2-profile-simple-section rd-v2-profile-guest-intro" aria-labelledby="profile-about-title">
@@ -118,13 +130,14 @@ function GuestProjectProfile({ onGoTab }) {
           <p>The core research loop.</p>
         </header>
         <div className="rd-v2-profile-guest-flow">
-          {PROJECT_WORKFLOW.map(([step, id, title, verb, copy]) => (
+          {PROJECT_WORKFLOW.map(([step, id, title, verb, copy, wideCopy]) => (
             <article key={id} className="rd-v2-profile-guest-step">
               <span>{step}</span>
               <div>
                 <strong>{title}</strong>
                 <em>{verb}</em>
                 <p>{copy}</p>
+                <small className="rd-v2-profile-guest-wide-detail">{wideCopy}</small>
               </div>
               <button type="button" className="rd-v2-profile-row-action" onClick={() => onGoTab?.(id)}>Open</button>
             </article>
@@ -167,16 +180,20 @@ function GuestProjectProfile({ onGoTab }) {
         </div>
       </section>
 
-      <section className="rd-v2-profile-simple-section rd-v2-profile-signin-note rd-v2-profile-guest-signin" aria-labelledby="profile-signin-title">
-        <div>
-          <header><h3 id="profile-signin-title">When you sign in</h3></header>
-          <p className="rd-v2-profile-section-copy">
-            Profile stops describing Research Drive and starts describing you. Research Drive uses recorded research context, works, and inspectable Library evidence to build an AI-assisted research portrait while keeping model interpretation separate from source facts.
-          </p>
+      <section className="rd-v2-profile-simple-section rd-v2-profile-signin-note rd-v2-profile-guest-signin rd-v2-profile-guest-wide-only" aria-labelledby="profile-signin-title">
+        <header>
+          <h3 id="profile-signin-title">What changes when connected</h3>
+          <p>Profile stops describing the project and starts describing your research context.</p>
+        </header>
+        <div className="rd-v2-profile-guest-personalization-grid">
+          {PROJECT_PERSONALIZATION.map(([label, copy], index) => (
+            <article key={label}>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <strong>{label}</strong>
+              <p>{copy}</p>
+            </article>
+          ))}
         </div>
-        <button type="button" className="rd-v2-btn sm ghost" onClick={() => onGoTab?.("settings")}>
-          Set up research profile
-        </button>
       </section>
     </div>
   );
