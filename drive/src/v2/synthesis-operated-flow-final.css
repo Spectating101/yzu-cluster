@@ -1,0 +1,9 @@
+/* Final operated-flow correction.
+ *
+ * Execution-first states already carry the exact six-part authority track
+ * inside ExecutionRecord. The legacy five-stage project strip must not compete
+ * with Preview, Approval, Build, registry verification, or Result.
+ */
+.rd-v2-synthesis-page .s04-steps {
+  display: none !important;
+}
