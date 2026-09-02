@@ -1,0 +1,69 @@
+/* Visual closure after inspecting the real 1920 workstation renders.
+ * This layer fixes only demonstrable empty-height failures in Evidence and
+ * Proposal states. It adds no product semantics and leaves 1440/mobile alone.
+ */
+
+@media (min-width: 1680px) and (min-height: 900px) {
+  /* HELD EVIDENCE
+     The selector is the operation. Do not preserve the old evidence-map
+     workstation height after the map itself has intentionally been hidden. */
+  #root .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"]) {
+    align-content: start !important;
+    grid-auto-rows: min-content !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
+    > [data-testid="synthesis-evidence-state"] {
+    min-height: 0 !important;
+    height: auto !important;
+    align-self: start !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
+    > .s04-opening-next {
+    grid-column: 1 / 13 !important;
+    grid-row: auto !important;
+    min-height: 0 !important;
+    height: auto !important;
+    align-self: start !important;
+    padding-block: 9px !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
+    > .s04-opening-next > footer::before {
+    content: "Select held evidence to unlock method reasoning." !important;
+  }
+
+  /* MAPPED / MEASURED EVIDENCE
+     The operation dock should be a compact action surface below measurement,
+     not a blank panel stretched to the evidence-map height. */
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has([data-testid="synthesis-evidence-proposal"]))
+    > .s04-opening-next {
+    grid-row: auto !important;
+    min-height: 0 !important;
+    height: auto !important;
+    align-self: start !important;
+    padding-block: 10px !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has([data-testid="synthesis-evidence-proposal"]))
+    > .s04-opening-next > footer {
+    min-height: 0 !important;
+  }
+
+  /* PROPOSAL
+     The proposal is the decision surface. The evidence map is supporting
+     context and should size to its information rather than mirror the full
+     proposal card height. */
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"])
+    > [data-testid="synthesis-evidence-state"] {
+    min-height: 0 !important;
+    height: auto !important;
+    align-self: start !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"])
+    > [data-testid="synthesis-evidence-state"] .s04-map {
+    min-height: 275px !important;
+  }
+}
