@@ -32,6 +32,7 @@ import "./synthesis-wide-shell-canvas.css";
 import "./synthesis-wide-brief-ledger.css";
 import "./synthesis-operation-truth.css";
 import "./synthesis-operated-flow.css";
+import "./synthesis-operated-flow-final.css";
 import "./discover-frozen-closure.css";
 import "./connected-accounts.css";
 import { V2App } from "./App";
