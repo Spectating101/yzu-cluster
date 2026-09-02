@@ -5,9 +5,6 @@
  * enlarging a centred document. No information is invented in this layer.
  */
 @media (min-width: 1680px) and (min-height: 900px) {
-  /* The persistent Detail / Ask rail remains a first-class surface, but the
-     global 470px cap is unnecessarily expensive for Synthesis. Reclaim enough
-     width for the analytical desk without turning the rail into a cramped tray. */
   body:has(.rd-v2-synthesis-page) .rd-v2-shell {
     --rd-rail-min: 350px;
     --rd-rail-ideal: 20vw;
@@ -18,12 +15,8 @@
     padding-inline: 16px !important;
   }
 
-  /* -----------------------------------------------------------------------
-   * Recommendation
-   * --------------------------------------------------------------------- */
-  /* The recommendation already has a legitimate 8/4 composition. Give the
-     analytical relationship enough height to read as the primary object, but
-     do not stretch the decision card far beyond its useful content. */
+  /* Recommendation: preserve the legitimate 8/4 analytical split while giving
+     the construction enough physical authority on a workstation monitor. */
   #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-construction)
     > .s04-opening-construction {
     min-height: clamp(400px, 44vh, 455px) !important;
@@ -47,20 +40,15 @@
     margin-top: auto !important;
   }
 
-  /* -----------------------------------------------------------------------
-   * Defined / unmapped evidence
-   * --------------------------------------------------------------------- */
-  /* With no measurement checkpoint there is not enough independent content to
-     justify an empty four-column side lane. Let the Evidence Map own the full
-     desk and turn What happens next into a compact horizontal decision band. */
-  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"])
-    :is([data-testid="synthesis-scope-block"], [data-testid="synthesis-unit-conflict"], [data-testid="synthesis-join-decision"]) {
-    /* specificity guard only; no visual declaration */
-  }
-
+  /* Defined / unmapped evidence: there is not enough independent material for
+     an empty four-column side lane. Evidence owns the full desk; the next action
+     becomes a horizontal band after the map, in the same semantic order a
+     researcher reads the state. */
   #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-measurement-status)):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
     > [data-testid="synthesis-evidence-state"] {
     grid-column: 1 / 13 !important;
+    grid-row: auto !important;
+    order: 1;
     min-height: clamp(350px, 39vh, 410px) !important;
     display: flex !important;
     flex-direction: column;
@@ -76,6 +64,8 @@
   #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-measurement-status)):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
     > .s04-opening-next {
     grid-column: 1 / 13 !important;
+    grid-row: auto !important;
+    order: 2;
     min-height: 0 !important;
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) minmax(330px, .44fr);
@@ -99,12 +89,8 @@
     margin: 0 !important;
   }
 
-  /* -----------------------------------------------------------------------
-   * Exploring / measured evidence
-   * --------------------------------------------------------------------- */
-  /* Here the 8/4 split is justified: evidence, measurement state, and next
-     decision are useful simultaneously. Make the side lane a deliberate stack
-     rather than two small cards stranded over empty canvas. */
+  /* Exploring / measured evidence: the 8/4 split is justified because evidence,
+     measurement state, and next decision are useful simultaneously. */
   #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
     > [data-testid="synthesis-evidence-state"] {
     min-height: clamp(420px, 47vh, 480px) !important;
@@ -135,12 +121,8 @@
     margin-top: auto !important;
   }
 
-  /* -----------------------------------------------------------------------
-   * Proposal review
-   * --------------------------------------------------------------------- */
-  /* Proposal and evidence are two independent truths. Stretch their analytical
-     internals, not merely their outer borders, so the review band occupies the
-     workstation height with useful structure. */
+  /* Proposal and evidence are independent review truths. Stretch their
+     analytical internals, not merely their borders. */
   #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction))
     > :is([data-testid="synthesis-proposal-state"], [data-testid="synthesis-evidence-state"]) {
     min-height: clamp(460px, 50vh, 515px) !important;
@@ -176,11 +158,8 @@
     min-height: 230px;
   }
 
-  /* -----------------------------------------------------------------------
-   * Mature execution / result states
-   * --------------------------------------------------------------------- */
-  /* Six lifecycle stages were still falling into two rows on a 1920 monitor.
-     Keep the same truth model but spend the horizontal room: one stage row. */
+  /* Mature states spend their horizontal room instead of wrapping a six-stage
+     lifecycle into two rows. */
   #root .rd-v2-synthesis-page .s04-main > :is(
     [data-testid="synthesis-execution-state"],
     [data-testid="synthesis-failed-state"],
@@ -190,10 +169,9 @@
     grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
   }
 
-  /* Registered/query-ready results still serialized proof and reproducibility
-     vertically inside an already-wide card. Turn the result itself into a
-     workstation grid: identity/spec/track remain full width; execution proof
-     and the exact reproducible method share the next row. */
+  /* Registered/query-ready results use a local workstation grid: identity,
+     specification, and lifecycle stay full width; proof and reproducibility
+     share the next row instead of producing a long vertical result card. */
   #root .rd-v2-synthesis-page .s04-main > :is(
     [data-testid="synthesis-registered-state"],
     [data-testid="synthesis-query-ready-state"]
@@ -240,8 +218,7 @@
     margin-top: 0 !important;
   }
 
-  /* Preview is already information-dense. Only give its lifecycle track the
-     six-column workstation treatment; do not inflate the receipt or table. */
+  /* Preview is already information-dense; only the lifecycle row changes. */
   #root .rd-v2-synthesis-page [data-testid="synthesis-execution-state"] .s04-preview-receipt {
     margin-top: 12px;
   }
