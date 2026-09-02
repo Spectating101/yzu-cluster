@@ -34,9 +34,12 @@ function productionFixture() {
       ids.push(id);
       datasets.push({
         dataset_id: id,
+        registry_id: id,
+        registered: true,
         display_name: `${label} evidence ${String(index + 1).padStart(2, "0")}`,
         description: `Production-shape ${label.toLowerCase()} evidence used to verify Library density and directory scaling.`,
         partition_id: partitionId,
+        local_root: `data_lake/${shelfId}/${id}`,
         analysis_readiness: index % 5 === 0 ? "metadata_search" : "instant",
         source: index % 3 === 0 ? "registered_collection" : `${label} source`,
         source_system: `${label} source system`,
