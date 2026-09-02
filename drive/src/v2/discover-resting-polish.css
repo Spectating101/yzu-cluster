@@ -1,6 +1,19 @@
 /* Resting Discover scan pass — the Radar owns research-state context; source
    tiles below it should be fast identities, not mini evaluation dossiers. */
 
+/* Keep the idle Inspector readable after reclaiming most of its previous width. */
+@media (min-width: 1501px) {
+  body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-shell {
+    --rd-rail: 252px;
+  }
+}
+
+@media (min-width: 1100px) and (max-width: 1500px) {
+  body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-shell {
+    --rd-rail: 244px;
+  }
+}
+
 @media (min-width: 761px) {
   .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate {
     min-height: 94px;
