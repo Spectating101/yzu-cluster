@@ -1,15 +1,10 @@
 /* Live Library scale layer: keep the existing root design, add only the mechanics
    needed for large estates and a clearer handoff into the folder directory. */
 
+/* The collection buttons already carry explicit "Open … directory" labels and
+   arrows. Keep the live two-column strip geometry pixel-identical. */
 .rd-v2-cap-collections-hint {
-  align-self: center;
-  color: var(--rd-muted);
-  font-family: var(--rd-mono);
-  font-size: 8px;
-  font-weight: 700;
-  letter-spacing: .04em;
-  text-transform: uppercase;
-  white-space: nowrap;
+  display: none;
 }
 
 .rd-v2-library-pagination {
@@ -47,10 +42,6 @@
 }
 
 @media (max-width: 760px) {
-  .rd-v2-cap-collections-hint {
-    display: none;
-  }
-
   .rd-v2-library-pagination {
     align-items: flex-start;
   }
