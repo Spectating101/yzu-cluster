@@ -1,0 +1,73 @@
+/* Final hierarchy pass for the utility prototype.
+   The candidate field already owns the open-gap and assembly position, so the
+   assessment workspace must behave as a secondary diagnostic rather than
+   repeating another dashboard immediately above the ledger. */
+
+.rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+  .rd-v2-evidence-brief.is-workspace
+  .rd-v2-evidence-position-grid {
+  display: none;
+}
+
+.rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+  .rd-v2-evidence-brief.is-workspace
+  .rd-v2-evidence-assessment {
+  padding-top: 9px;
+  padding-bottom: 7px;
+}
+
+.rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+  .rd-v2-evidence-brief.is-workspace
+  .rd-v2-evidence-assessment-head {
+  margin-bottom: 5px;
+}
+
+.rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+  .rd-v2-evidence-brief.is-workspace
+  .rd-v2-evidence-assessment-head h2 {
+  margin-top: 2px;
+  font-size: 13px;
+  line-height: 1.22;
+}
+
+.rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+  .rd-v2-evidence-brief.is-workspace
+  .rd-v2-evidence-because {
+  margin: 4px 0 7px;
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+  .rd-v2-evidence-brief.is-workspace
+  .rd-v2-evidence-detail-disclosure.is-workspace > summary {
+  min-height: 28px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+/* Repeated route state remains readable but stops competing with candidate
+   identity. The explicit route fact in the evidence row remains the action cue. */
+@media (min-width: 1680px) {
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-possession {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: #638073;
+    font-size: 7.5px;
+    font-weight: 650;
+  }
+
+  .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
+    .rd-v2-discover-ranked-results
+    .rd-v2-discover-candidate.selected
+    .rd-v2-discover-possession {
+    padding: 2px 6px;
+    border: 1px solid color-mix(in srgb, #789586 30%, var(--rd-border, #dbd4c5));
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--rd-active-bg, #eef1ee) 58%, transparent);
+  }
+}
