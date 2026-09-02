@@ -1,0 +1,115 @@
+/* Persistent Synthesis agent-authority chrome.
+ * This is deliberately small: it changes standing authority, not the layout
+ * or the durable lifecycle model.
+ */
+
+.rd-v2-synthesis-automation {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  height: 26px;
+  margin-left: 7px;
+  padding: 0 6px 0 8px;
+  border: 1px solid #d8d4c8;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .56);
+  box-shadow: 0 1px 0 rgba(34, 48, 43, .03);
+  color: #53615b;
+}
+
+.rd-v2-synthesis-automation::before {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  border-radius: 50%;
+  background: #9ba39f;
+  content: "";
+}
+
+.rd-v2-synthesis-automation > span {
+  flex: 0 0 auto;
+  color: #778079;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.rd-v2-synthesis-automation select {
+  width: auto;
+  max-width: 108px;
+  min-width: 72px;
+  height: 22px;
+  padding: 0 2px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #31463d;
+  font: inherit;
+  font-size: 9px;
+  font-weight: 750;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.rd-v2-synthesis-automation.is-auto_choose {
+  border-color: #cbd9d1;
+  background: rgba(244, 249, 246, .82);
+}
+
+.rd-v2-synthesis-automation.is-auto_choose::before {
+  background: #69927e;
+}
+
+.rd-v2-synthesis-automation.is-auto_approve {
+  border-color: #b9d3c4;
+  background: rgba(237, 248, 241, .9);
+}
+
+.rd-v2-synthesis-automation.is-auto_approve::before {
+  background: #3e8061;
+  box-shadow: 0 0 0 2px rgba(62, 128, 97, .09);
+}
+
+.rd-v2-synthesis-auto-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: -1px 0 8px;
+  padding: 6px 9px;
+  border: 1px solid #e1e4dd;
+  border-radius: 7px;
+  background: rgba(248, 250, 247, .74);
+  color: #64706a;
+  font-size: 8.5px;
+  line-height: 1.35;
+}
+
+.rd-v2-synthesis-auto-note b {
+  color: #3e6653;
+  font-size: 8px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.rd-v2-synthesis-auto-note.is-working {
+  border-color: #cadbd1;
+  background: rgba(240, 248, 243, .84);
+}
+
+@media (max-width: 980px) {
+  .rd-v2-synthesis-automation > span {
+    display: none;
+  }
+
+  .rd-v2-synthesis-automation {
+    margin-left: 4px;
+    padding-left: 6px;
+  }
+
+  .rd-v2-synthesis-automation select {
+    max-width: 92px;
+  }
+}
