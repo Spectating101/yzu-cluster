@@ -1,4 +1,4 @@
-name: Discover SERP solidification review
+name: Discover canonical visual review
 
 on:
   push:
@@ -10,6 +10,8 @@ on:
       - "drive/src/v2/discover-analytical-record.css"
       - "drive/src/v2/discover-three-zone.css"
       - "drive/src/v2/discover-serp-solidification.css"
+      - "drive/src/v2/discover-canonical-polish.css"
+      - "e2e/discover-canonical-visual.spec.js"
       - ".github/workflows/discover-serp-solidification-review.yml"
   workflow_dispatch:
 
@@ -17,12 +19,12 @@ permissions:
   contents: read
 
 concurrency:
-  group: discover-serp-solidification-${{ github.ref }}
+  group: discover-canonical-visual-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   review:
-    name: Build and capture Discover solidification
+    name: Build and capture Discover canonical states
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -34,23 +36,28 @@ jobs:
       - run: npm ci
       - run: npx playwright install chromium --with-deps
       - run: npm run build
-      - name: Repair capture-only selectors in runner checkout
+      - name: Repair legacy capture-only selectors in runner checkout
         run: |
           sed -i 's/page\.getByTestId("discover-composer-input")/page.getByLabel("Search or describe a research need")/g' e2e/discover-reconvergence-visual.spec.js
           sed -i 's/await expect(page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidate")).toHaveCount(10);/await expect(page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidate").first()).toBeVisible();/g' e2e/discover-reconvergence-visual.spec.js
           sed -i 's/await expect(page\.locator("\.rd-v2-discover-frozen-controls"))\.toBeVisible();/await expect(page.getByTestId("discover-interpreting")).toBeVisible();/g' e2e/discover-reconvergence-visual.spec.js
       - name: Capture 1920 results and selected states
         run: >-
-          mkdir -p .tmp-pw artifacts/discover-reconvergence &&
+          mkdir -p .tmp-pw artifacts/discover-reconvergence artifacts/discover-canonical &&
           TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
           e2e/discover-reconvergence-visual.spec.js --workers=1 --reporter=line
           --grep "large active evidence field 1920x1080|selected evidence evaluation 1920x1080"
+      - name: Capture 1920 initial and History states
+        run: >-
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/discover-canonical-visual.spec.js --workers=1 --reporter=line
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: discover-serp-solidification-pixels
+          name: discover-canonical-pixels
           path: |
             artifacts/discover-reconvergence
+            artifacts/discover-canonical
             test-results
           if-no-files-found: warn
           retention-days: 14
