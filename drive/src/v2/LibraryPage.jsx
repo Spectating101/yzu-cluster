@@ -13,6 +13,7 @@ import { LibraryAssetWorkspace } from "@/v2/LibraryAssetWorkspace";
 import { LibraryEvidenceEstate } from "@/v2/LibraryEvidenceEstate";
 import { resolveLibrarySelection } from "@/v2/librarySelection";
 import { buildLibrarySearchAskPrompt, rankLibraryHoldings } from "@/v2/librarySearch";
+import { libraryHoldings } from "@/v2/libraryHoldings";
 import { PageShell } from "@/v2/ui";
 import { DeskError } from "@/v2/DeskError";
 import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
@@ -79,6 +80,19 @@ function itemMatchesFilter(item, mode) {
   if (mode === "not_ready") return !ready;
   if (mode === "attention") return itemNeedsAttention(item);
   return true;
+}
+
+function holdingFacetKey(holding = {}) {
+  return `${holding.provider || ""}::${holding.custodian || ""}`;
+}
+
+function holdingFacetLabel(holding = {}) {
+  return [holding.provider, holding.custodian].filter(Boolean).join(" · ") || "Recorded holding";
+}
+
+function itemMatchesHolding(item, mode) {
+  if (mode === "all" || item?.kind === "folder") return true;
+  return libraryHoldings(itemDataset(item)).some((holding) => holdingFacetKey(holding) === mode);
 }
 
 function sortItems(rows, sortBy) {
@@ -324,6 +338,7 @@ export function LibraryPage({
   const [sortBy, setSortBy] = useState("name");
   const [typeMode, setTypeMode] = useState("all");
   const [filterMode, setFilterMode] = useState("all");
+  const [holdingMode, setHoldingMode] = useState("all");
   const [newMenuOpen, setNewMenuOpen] = useState(false);
   const searchInputRef = useRef(null);
   const searchActive = Boolean(String(searchQuery || "").trim());
@@ -360,6 +375,27 @@ export function LibraryPage({
     () => (selectionHoldings || datasets || []).filter((row) => !isOpsNoiseDataset(row)),
     [datasets, selectionHoldings],
   );
+  const holdingFacetOptions = useMemo(() => {
+    const facets = new Map();
+    for (const row of allHeldDatasets) {
+      const seenForAsset = new Set();
+      for (const holding of libraryHoldings(row)) {
+        const key = holdingFacetKey(holding);
+        if (!key || seenForAsset.has(key)) continue;
+        seenForAsset.add(key);
+        const current = facets.get(key) || { key, label: holdingFacetLabel(holding), count: 0 };
+        current.count += 1;
+        facets.set(key, current);
+      }
+    }
+    return [...facets.values()].sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: "base" }));
+  }, [allHeldDatasets]);
+
+  useEffect(() => {
+    if (holdingMode === "all") return;
+    if (!holdingFacetOptions.some((option) => option.key === holdingMode)) setHoldingMode("all");
+  }, [holdingFacetOptions, holdingMode]);
+
   const rankedSearchDatasets = useMemo(
     () => (searchActive ? rankLibraryHoldings(allHeldDatasets, searchQuery, librarySearchNav) : []),
     [allHeldDatasets, librarySearchNav, searchActive, searchQuery],
@@ -429,11 +465,14 @@ export function LibraryPage({
     () =>
       sortItems(
         displayRows.filter(
-          (item) => itemMatchesType(item, typeMode) && itemMatchesFilter(item, filterMode),
+          (item) =>
+            itemMatchesType(item, typeMode) &&
+            itemMatchesFilter(item, filterMode) &&
+            itemMatchesHolding(item, holdingMode),
         ),
         sortBy,
       ),
-    [displayRows, filterMode, sortBy, typeMode],
+    [displayRows, filterMode, holdingMode, sortBy, typeMode],
   );
   const currentFolderName = isRoot ? "Library root" : trail[trail.length - 1]?.name || "Library";
   const showingBranchFallback = false;
@@ -461,10 +500,15 @@ export function LibraryPage({
       sortItems(
         branchDatasetRows
           .map(datasetListItem)
-          .filter((item) => itemMatchesType(item, typeMode) && itemMatchesFilter(item, filterMode)),
+          .filter(
+            (item) =>
+              itemMatchesType(item, typeMode) &&
+              itemMatchesFilter(item, filterMode) &&
+              itemMatchesHolding(item, holdingMode),
+          ),
         sortBy,
       ),
-    [branchDatasetRows, filterMode, sortBy, typeMode],
+    [branchDatasetRows, filterMode, holdingMode, sortBy, typeMode],
   );
   const rootCollections = useMemo(
     () => folderRows.map((folder) => ({
@@ -542,6 +586,7 @@ export function LibraryPage({
   const resetFilters = useCallback(() => {
     setTypeMode("all");
     setFilterMode("all");
+    setHoldingMode("all");
   }, []);
 
   return (
@@ -626,6 +671,22 @@ export function LibraryPage({
                   <option value="ready">Query ready · {readyCount}</option>
                   <option value="attention">Needs attention · {attentionCount}</option>
                   <option value="not_ready">Not query-ready · {nonReadyCount}</option>
+                </select>
+              </label>
+              <label className="rd-v2-library-filter-control">
+                <span>Holding</span>
+                <select
+                  data-testid="library-holding-filter"
+                  aria-label="Filter Library by holding"
+                  value={holdingMode}
+                  onChange={(event) => setHoldingMode(event.target.value)}
+                >
+                  <option value="all">Anywhere</option>
+                  {holdingFacetOptions.map((option) => (
+                    <option key={option.key} value={option.key}>
+                      {option.label} · {option.count}
+                    </option>
+                  ))}
                 </select>
               </label>
               <label className="rd-v2-library-filter-control">
