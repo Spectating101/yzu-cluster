@@ -126,7 +126,9 @@ test.describe("Discover canonical visual states", () => {
     await expect(page.getByLabel("Search or describe a research need")).toBeVisible();
     await expect(page.getByTestId("discover-coverage")).toContainText("Asia daily news-risk panel");
     await expect(page.getByText("Sources the desk already knows how to investigate")).toBeVisible();
-    await expect(page.getByText("DataCite research-data catalogue")).toBeVisible();
+    await expect(
+      page.locator(".rd-v2-discover-idle-held .rd-v2-discover-candidate", { hasText: "DataCite research-data catalogue" }),
+    ).toBeVisible();
     await shot(page, "discover-initial-1920x1080.png");
   });
 
