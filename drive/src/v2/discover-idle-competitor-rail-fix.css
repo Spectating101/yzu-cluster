@@ -1,0 +1,209 @@
+/* Competitor-scale idle rail closure.
+ * EmptyRailState now owns real decision-preview DOM; suppress earlier pseudo
+ * copies and style those real blocks in the existing Detail rail grammar.
+ */
+@media (min-width: 1680px) and (min-height: 900px) {
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-rail {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 7px !important;
+    margin: 12px 11px 0 !important;
+    padding: 12px 0 2px !important;
+    border: 0 !important;
+    border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 74%, transparent) !important;
+    background: transparent !important;
+    text-align: left !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-rail::before,
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-rail::after,
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-rail .rd-v2-rail-empty-title::before,
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-rail .rd-v2-rail-empty-title::after {
+    content: none !important;
+    display: none !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-rail > .rd-v2-rail-empty-title {
+    display: block !important;
+    margin: 0 0 1px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    color: #526b61 !important;
+    font: 760 8px/1.2 var(--rd-mono, ui-monospace, monospace) !important;
+    letter-spacing: .11em !important;
+    text-transform: uppercase !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-rail-card {
+    display: block !important;
+    margin: 0 !important;
+    padding: 9px 10px !important;
+    border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 78%, transparent) !important;
+    border-radius: 6px !important;
+    background: #fbfcf8 !important;
+    box-shadow: none !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-rail-card > .rd-v2-eyebrow {
+    display: block !important;
+    margin: 0 0 7px !important;
+    color: #526b61 !important;
+    font: 730 7.2px/1.2 var(--rd-mono, ui-monospace, monospace) !important;
+    letter-spacing: .075em !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-compare-pair {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 14px minmax(0, 1fr) !important;
+    gap: 5px !important;
+    align-items: center !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-compare-pair > span {
+    display: grid !important;
+    gap: 2px !important;
+    min-width: 0 !important;
+    padding: 6px 7px !important;
+    border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 70%, transparent) !important;
+    border-radius: 4px !important;
+    background: #f5f7f3 !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-compare-pair small {
+    color: #748079 !important;
+    font: 650 6.3px/1.2 var(--rd-mono, ui-monospace, monospace) !important;
+    text-transform: uppercase !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-compare-pair strong {
+    overflow: hidden !important;
+    color: #2a3732 !important;
+    font-size: 7.8px !important;
+    line-height: 1.25 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-compare-pair > i {
+    color: #83928b !important;
+    font-size: 9px !important;
+    font-style: normal !important;
+    text-align: center !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-proof-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 4px !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-proof-grid > span {
+    display: grid !important;
+    gap: 2px !important;
+    min-width: 0 !important;
+    padding: 6px 5px !important;
+    border-radius: 4px !important;
+    background: #f4f5f1 !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-proof-grid > span:first-child {
+    background: #eef5ef !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-proof-grid > span:last-child {
+    background: #fff7ea !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-proof-grid b {
+    color: #35433d !important;
+    font-size: 6.8px !important;
+    line-height: 1.2 !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-proof-grid em {
+    overflow: hidden !important;
+    color: #747e79 !important;
+    font-size: 6.2px !important;
+    font-style: normal !important;
+    line-height: 1.25 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-rail-card.is-gap {
+    border-color: #dac89d !important;
+    background: #fffaf0 !important;
+    box-shadow: inset 3px 0 0 #b98c51 !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-rail-card.is-output {
+    border-color: #b9cfc2 !important;
+    background: #f2f8f3 !important;
+    box-shadow: inset 3px 0 0 #6f9482 !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-rail-card.is-gap > strong {
+    display: block !important;
+    margin: 0 0 3px !important;
+    color: #3b3c34 !important;
+    font-size: 8.2px !important;
+    line-height: 1.3 !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-rail-card.is-gap > p {
+    margin: 0 !important;
+    color: #7d7563 !important;
+    font-size: 7.2px !important;
+    line-height: 1.4 !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-output-flow {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 4px !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-output-flow > span {
+    padding: 4px 5px !important;
+    border: 1px solid #c9d7cf !important;
+    border-radius: 4px !important;
+    background: #f8fbf8 !important;
+    color: #41574d !important;
+    font-size: 6.8px !important;
+    font-weight: 650 !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-output-flow > i {
+    color: #809087 !important;
+    font-size: 7px !important;
+    font-style: normal !important;
+  }
+}
