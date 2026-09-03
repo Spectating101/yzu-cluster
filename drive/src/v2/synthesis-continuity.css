@@ -8,24 +8,6 @@
  * review surface instead of stacking opening-state guidance above it.
  */
 
-.rd-v2-synthesis-page[data-synthesis-workspace-phase="design"] .s04-head > div > small::before {
-  content: "DESIGN · ";
-}
-
-.rd-v2-synthesis-page[data-synthesis-workspace-phase="review"] .s04-head > div > small::before {
-  content: "REVIEW · ";
-}
-
-.rd-v2-synthesis-page[data-synthesis-workspace-phase="execute"] .s04-head > div > small::before {
-  content: "EXECUTE · ";
-}
-
-.rd-v2-synthesis-page[data-synthesis-workspace-phase] .s04-head > div > small::before {
-  font-weight: 800;
-  letter-spacing: .08em;
-  opacity: .72;
-}
-
 .rd-v2-synthesis-page [data-testid="synthesis-scope-block"],
 .rd-v2-synthesis-page [data-testid="synthesis-unit-conflict"],
 .rd-v2-synthesis-page [data-testid="synthesis-join-decision"],
@@ -39,6 +21,43 @@
 }
 
 @media (min-width: 1121px) {
+  /*
+   * Keep the broad workspace stable even when the fine-grained lifecycle label
+   * changes from Proposal to Preview to Approval or from Build to Result. The
+   * chip lives beside the durable thread title, so it survives mature states
+   * where the older eyebrow is intentionally suppressed.
+   */
+  .rd-v2-synthesis-page[data-synthesis-workspace-phase] .s04-head h1::after {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 10px;
+    padding: 3px 7px 2px;
+    border: 1px solid #d8ddd7;
+    border-radius: 999px;
+    background: rgba(246, 247, 242, .92);
+    color: #667269;
+    font-family: var(--rd-mono);
+    font-size: 8px;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    vertical-align: middle;
+    transform: translateY(-2px);
+  }
+
+  .rd-v2-synthesis-page[data-synthesis-workspace-phase="design"] .s04-head h1::after {
+    content: "Design";
+  }
+
+  .rd-v2-synthesis-page[data-synthesis-workspace-phase="review"] .s04-head h1::after {
+    content: "Review";
+  }
+
+  .rd-v2-synthesis-page[data-synthesis-workspace-phase="execute"] .s04-head h1::after {
+    content: "Execute";
+  }
+
   /*
    * Once an execution specification exists, ExecutionRecord already carries
    * the six-stage authority proof. The older five-stage strip above it is a
