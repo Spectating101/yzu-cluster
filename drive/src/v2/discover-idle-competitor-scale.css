@@ -1,0 +1,367 @@
+/* Discover idle — competitor-scaled visual pass.
+ * Evolves the current worked-journey pixels in place. No new shell, no new
+ * navigation, no detached dashboard: search -> federation -> evidence
+ * comparison -> grounded Library/source estate -> direct inspection.
+ */
+@media (min-width: 1680px) and (min-height: 900px) {
+  /* Keep the established dark journey header, but let the comparison surface
+     below carry more of the visual weight. */
+  .rd-v2-discover-page .rd-v2-discover-radar-head {
+    grid-template-columns: minmax(0, 1fr) 220px !important;
+    padding: 16px 21px 15px !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-head h2::after {
+    font-size: 21px !important;
+    line-height: 1.14 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-head p::after {
+    max-width: 980px !important;
+    font-size: 9.6px !important;
+    line-height: 1.45 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-state {
+    gap: 4px !important;
+    padding-left: 16px !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-state::after {
+    content: "Fast evidence first · deeper comparison and verification continue without blocking the result list." !important;
+    max-width: 25ch !important;
+    font-size: 8.7px !important;
+    line-height: 1.4 !important;
+  }
+
+  /* Federation reads like a compact search ladder, not six capability cards. */
+  .rd-v2-discover-page .rd-v2-discover-capability-ledger {
+    padding: 25px 16px 0 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-capability-ledger::before {
+    top: 9px !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-capability-ledger > span {
+    min-height: 55px !important;
+    padding: 9px 13px 10px !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-capability-ledger > span > b::after {
+    font-size: 9.6px !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-capability-ledger > span > em::after {
+    font-size: 8px !important;
+  }
+
+  /* The old linear evidence trace is the main competitor-scale change.
+     Turn the same four truthful stages into a compact decision comparison:
+     held evidence, candidate proof, requirement fit, then gap/output. */
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution {
+    grid-template-columns: 176px minmax(0, 1fr) !important;
+    gap: 14px !important;
+    padding: 13px 17px 14px !important;
+    background: #fbfcf8 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution > header {
+    align-content: start !important;
+    gap: 5px !important;
+    padding: 4px 14px 0 0 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution > header .rd-v2-eyebrow::after {
+    content: "EVIDENCE COMPARISON" !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution > header strong::after {
+    content: "Search results become a coverage decision." !important;
+    max-width: 16ch !important;
+    margin-top: 1px !important;
+    font-size: 12px !important;
+    line-height: 1.28 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution > header::after {
+    content: "Compare what is held, what a candidate adds, and what remains unverified before a sourcing route is proposed." !important;
+    display: block !important;
+    max-width: 22ch !important;
+    margin-top: 4px !important;
+    color: #6b7773 !important;
+    font-size: 8.2px !important;
+    line-height: 1.42 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+    align-items: stretch !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow i,
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span > b {
+    display: none !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span {
+    position: relative !important;
+    display: grid !important;
+    grid-template-rows: auto 1fr auto !important;
+    align-content: start !important;
+    min-height: 82px !important;
+    padding: 9px 10px 9px !important;
+    border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 78%, #8ba096 22%) !important;
+    border-radius: 6px !important;
+    background: #f8f8f4 !important;
+    color: transparent !important;
+    font-size: 0 !important;
+    white-space: normal !important;
+    box-shadow: none !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span::after {
+    grid-row: 1 !important;
+    display: block !important;
+    margin: 0 0 6px !important;
+    color: #26342f !important;
+    font: 710 9.3px/1.25 var(--rd-sans, ui-sans-serif, system-ui, sans-serif) !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span::before {
+    grid-row: 2 !important;
+    display: block !important;
+    color: #68756f !important;
+    font: 470 7.9px/1.42 var(--rd-sans, ui-sans-serif, system-ui, sans-serif) !important;
+    white-space: pre-line !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span:nth-of-type(1) {
+    border-color: #b8cbbf !important;
+    background: #f3f7f3 !important;
+    box-shadow: inset 3px 0 0 #6f9482 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span:nth-of-type(1)::after {
+    content: "Held evidence" !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span:nth-of-type(1)::before {
+    content: "REGISTERED / QUERY-READY\Aknown shape · known provenance" !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span:nth-of-type(1)::marker {
+    content: "" !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span:nth-of-type(2) {
+    border-color: #c7d0cc !important;
+    background: #fafbf8 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span:nth-of-type(2)::after {
+    content: "Candidate source" !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span:nth-of-type(2)::before {
+    content: "PREVIEW / ACCESS / COVERAGE\Asource facts before acquisition" !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span:nth-of-type(3) {
+    border-color: #bcc9c3 !important;
+    background: #f7faf7 !important;
+    box-shadow: inset 3px 0 0 #81988d !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span:nth-of-type(3)::after {
+    content: "Requirement fit" !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span:nth-of-type(3)::before {
+    content: "VARIABLES  ✓\AGRAIN       ?\APERIOD      ✓" !important;
+    font-family: var(--rd-mono, ui-monospace, monospace) !important;
+    letter-spacing: .01em !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span:nth-of-type(4) {
+    border-color: #c6b384 !important;
+    background:
+      linear-gradient(90deg, #fffaf0 0%, #fffaf0 48%, #f2f8f3 48%, #f2f8f3 100%) !important;
+    box-shadow: inset 3px 0 0 #b98c51, inset -3px 0 0 #6f9482 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span:nth-of-type(4)::after {
+    content: "Gap → planned evidence" !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span:nth-of-type(4)::before {
+    content: "MISSING  exact grain / field\AOUTPUT   named dataset shape" !important;
+    font-family: var(--rd-mono, ui-monospace, monospace) !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution::after {
+    content: "SOURCE PROOF   Observed facts  ·  Source-declared facts  ·  Explicit unknowns     |     REVIEW BOUNDARY   preview / probe → approval → durable History → Library" !important;
+    grid-column: 2 !important;
+    display: block !important;
+    margin: 1px 0 0 !important;
+    padding-top: 7px !important;
+    border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 62%, transparent) !important;
+    color: #63716b !important;
+    font: 620 7.6px/1.4 var(--rd-mono, ui-monospace, monospace) !important;
+    letter-spacing: .015em !important;
+  }
+
+  /* Grounded evidence below becomes one continuous evidence estate, so the
+     worked comparison feels connected to actual Library/source inventory. */
+  .rd-v2-discover-page .rd-v2-discover-idle-held {
+    column-gap: 0 !important;
+    margin-top: 11px !important;
+    overflow: hidden !important;
+    border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 86%, #7f9289 14%) !important;
+    border-radius: 8px !important;
+    background: #fffdf8 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held > .rd-v2-discover-coverage {
+    border: 0 !important;
+    border-right: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 78%, transparent) !important;
+    border-radius: 0 !important;
+    background: #fbfcf8 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held > .rd-v2-home-section-head {
+    margin: 0 !important;
+    padding: 13px 14px 10px !important;
+    border: 0 !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 66%, transparent) !important;
+    background: #fffdf8 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held > .rd-v2-catalog {
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: #fffdf8 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held > .rd-v2-catalog > li {
+    min-height: 0 !important;
+    border: 0 !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 58%, transparent) !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held > .rd-v2-catalog > li:last-child {
+    border-bottom: 0 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held > .rd-v2-catalog > li > .rd-v2-discover-candidate {
+    min-height: 55px !important;
+    padding-top: 7px !important;
+    padding-bottom: 7px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+  }
+
+  /* Idle Detail rail: visually demonstrate the decision products using the
+     rail that already exists, instead of another explanatory paragraph stack. */
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-rail-empty-state {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 7px !important;
+    margin: 12px 11px 0 !important;
+    padding: 12px 0 0 !important;
+    border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 74%, transparent) !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-rail-empty-state::before {
+    content: "DISCOVER CAN RETURN" !important;
+    margin: 0 0 2px !important;
+    color: #526b61 !important;
+    font: 760 8px/1.2 var(--rd-mono, ui-monospace, monospace) !important;
+    letter-spacing: .11em !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-rail-empty-title,
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-rail-empty-hint {
+    display: block !important;
+    margin: 0 !important;
+    padding: 9px 10px !important;
+    border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 76%, transparent) !important;
+    border-radius: 6px !important;
+    background: #fbfcf8 !important;
+    color: transparent !important;
+    font-size: 0 !important;
+    text-align: left !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-rail-empty-title::before,
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-rail-empty-hint::before {
+    display: block !important;
+    margin-bottom: 5px !important;
+    color: #536b61 !important;
+    font: 730 7.4px/1.2 var(--rd-mono, ui-monospace, monospace) !important;
+    letter-spacing: .075em !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-rail-empty-title::after,
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-rail-empty-hint::after {
+    display: block !important;
+    color: #53605b !important;
+    font: 500 8.1px/1.45 var(--rd-sans, ui-sans-serif, system-ui, sans-serif) !important;
+    white-space: pre-line !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-rail-empty-title::before {
+    content: "01  EVIDENCE COMPARISON" !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-rail-empty-title::after {
+    content: "IN LIBRARY        CANDIDATE\Aknown coverage  →  added evidence" !important;
+    font-family: var(--rd-mono, ui-monospace, monospace) !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-rail-empty-hint::before {
+    content: "02  SOURCE PROOF" !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-rail-empty-hint::after {
+    content: "OBSERVED   source facts inspected\ADECLARED   provider metadata\AUNKNOWN    unresolved before use" !important;
+    font-family: var(--rd-mono, ui-monospace, monospace) !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-rail-empty-state::after {
+    content: "03  PRECISE GAP\AMissing field / grain / period / access — named explicitly.\A\A04  REVIEWABLE OUTPUT\ANamed dataset shape → supported route → explicit approval → durable Library asset." !important;
+    display: block !important;
+    margin: 0 !important;
+    padding: 10px !important;
+    border: 1px solid #d8c79f !important;
+    border-radius: 6px !important;
+    background:
+      linear-gradient(180deg, #fffaf0 0%, #fffaf0 49%, #f2f8f3 49%, #f2f8f3 100%) !important;
+    color: #56625d !important;
+    font: 500 8.1px/1.48 var(--rd-sans, ui-sans-serif, system-ui, sans-serif) !important;
+    white-space: pre-line !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-rail-empty-icon {
+    display: none !important;
+  }
+}
