@@ -1,0 +1,71 @@
+/* Final idle-only output closure. The worked journey is primary; the persistent
+ * rail and no-route fallback should reinforce what the engine can produce rather
+ * than repeat search order or leave dead canvas.
+ */
+@media (min-width: 1680px) and (min-height: 900px) {
+  /* Right rail: replace the old three-step search-scope pseudo copy with the
+     concrete outputs Discover can produce from a research need. */
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-rail-empty-state {
+    display: block !important;
+    margin: 14px 12px 0 !important;
+    padding: 14px 0 0 !important;
+    border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, transparent) !important;
+    text-align: left !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-rail-empty-state::before {
+    content: "DISCOVER CAN RETURN" !important;
+    display: block !important;
+    margin: 0 0 11px !important;
+    color: #526b61 !important;
+    font: 760 8px/1.2 var(--rd-mono, ui-monospace, monospace) !important;
+    letter-spacing: .11em !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-rail-empty-state::after {
+    content: "01  EVIDENCE COMPARISON\AWhat your Library already covers, and which external offerings add something new.\A\A02  PRECISE EVIDENCE GAP\AMissing fields, grain, period, geography, access, or verification — named explicitly.\A\A03  SOURCING STRATEGY\AA supported source route, or a custom dataset plan only when ordinary routes are insufficient.\A\A04  REVIEWABLE OUTCOME\APreview / probe → explicit approval → durable History → registered Library asset." !important;
+    display: block !important;
+    color: #53605c !important;
+    font: 470 8.8px/1.48 var(--rd-sans, ui-sans-serif, system-ui, sans-serif) !important;
+    white-space: pre-line !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-rail-empty-icon,
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-rail-empty-title,
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-rail-empty-hint {
+    display: none !important;
+  }
+
+  /* With no curated route rows, the right half should still explain the wider
+     source ladder available after a query instead of becoming a blank pane. */
+  .rd-v2-discover-page .rd-v2-discover-idle-held > p.muted {
+    min-height: 182px !important;
+    padding: 14px 16px !important;
+    color: transparent !important;
+    font-size: 0 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held > p.muted::before {
+    content: "BEYOND YOUR LIBRARY" !important;
+    display: block !important;
+    margin-bottom: 9px !important;
+    color: #596f67 !important;
+    font: 720 8px/1.2 var(--rd-mono, ui-monospace, monospace) !important;
+    letter-spacing: .1em !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held > p.muted::after {
+    content: "No curated route is being claimed yet. A submitted need can still widen through:\A\A  SEMANTIC + LIVE ADAPTERS   progressive provider search\A  OPEN WEB CONTEXT          references and source documentation\A  DIRECT URL / DOI          inspect or probe a source you already know\A  GAP ASSESSMENT            determine whether a custom route is actually needed" !important;
+    display: block !important;
+    max-width: 58ch !important;
+    color: #5f6c67 !important;
+    font: 470 8.8px/1.62 var(--rd-sans, ui-sans-serif, system-ui, sans-serif) !important;
+    white-space: pre-line !important;
+  }
+}
