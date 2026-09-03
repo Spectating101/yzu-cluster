@@ -6,6 +6,12 @@ import {
   persistSynthesisAgentRun,
   reduceSynthesisAgentRun,
 } from "@/v2/synthesisAgentRun.js";
+import {
+  SYNTHESIS_OBJECT_CONTEXT_EVENT,
+  clearSynthesisObjectContextSelection,
+  emitSynthesisObjectContext,
+  enrichSynthesisObjectContext,
+} from "@/v2/synthesisObjectContext.js";
 
 function normalized(value) {
   return String(value || "").trim().toLowerCase().replace(/-/g, "_");
@@ -18,15 +24,24 @@ function phaseFor(selected = {}) {
   return "design";
 }
 
-function focusCentre(selector) {
-  if (typeof document === "undefined" || !selector) return;
-  const target = document.querySelector(selector);
-  if (!target) return;
-  const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-  target.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "center" });
-  target.setAttribute("data-synthesis-agent-focus", "true");
-  window.setTimeout(() => target.removeAttribute("data-synthesis-agent-focus"), 1200);
-  document.dispatchEvent(new CustomEvent("synthesis:agent-focus", { detail: { selector } }));
+function focusCentre(selector, target = null) {
+  if (typeof document === "undefined") return;
+  if (selector) {
+    let element = null;
+    try {
+      element = document.querySelector(selector);
+    } catch {
+      element = null;
+    }
+    if (element) {
+      const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+      element.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "center" });
+      element.setAttribute("data-synthesis-agent-focus", "true");
+      window.setTimeout(() => element.removeAttribute("data-synthesis-agent-focus"), 1200);
+      document.dispatchEvent(new CustomEvent("synthesis:agent-focus", { detail: { selector } }));
+    }
+  }
+  if (target) emitSynthesisObjectContext(target);
 }
 
 function useObservableAgentRun({ threadId, automationState }) {
@@ -85,6 +100,30 @@ function useObservableAgentRun({ threadId, automationState }) {
   }, [run]);
 
   return run;
+}
+
+function useSelectedObjectContext(selected = {}) {
+  const threadId = String(selected.thread_id || "");
+  const [context, setContext] = useState(null);
+
+  useEffect(() => {
+    setContext(null);
+    if (!threadId || typeof document === "undefined") return undefined;
+    const onContext = (event) => {
+      if (event?.detail?.clear) {
+        setContext(null);
+        return;
+      }
+      const next = enrichSynthesisObjectContext(event?.detail || {}, selected);
+      if (!next) return;
+      if (next.thread_id && String(next.thread_id) !== threadId) return;
+      setContext(next);
+    };
+    document.addEventListener(SYNTHESIS_OBJECT_CONTEXT_EVENT, onContext);
+    return () => document.removeEventListener(SYNTHESIS_OBJECT_CONTEXT_EVENT, onContext);
+  }, [threadId, selected.proposal_id, selected.proposal_hash, selected.accepted_spec_hash, selected.preview_spec_hash, selected.job_id, selected.run_id, selected.output_dataset_id, selected.registration_id]);
+
+  return [context, setContext];
 }
 
 function decisionReceipt(selected = {}) {
@@ -236,23 +275,32 @@ function timeLabel(value) {
   }
 }
 
+function targetLabel(target) {
+  if (!target) return "";
+  const label = String(target.label || "").trim();
+  const id = String(target.object_id || "").trim();
+  if (label && id) return `${label} · ${id}`;
+  return label || id;
+}
+
 function RunStep({ step }) {
+  const target = step.target || null;
+  const inspectable = Boolean(step.selector || target);
+  const metadata = [timeLabel(step.at), step.action, targetLabel(target)].filter(Boolean).join(" · ");
   return (
     <li className={`is-${step.tone}`}>
       <button
         type="button"
-        disabled={!step.selector}
-        onClick={() => focusCentre(step.selector)}
-        title={step.selector ? "Inspect the research object touched by this operation" : "Observable agent operation"}
+        disabled={!inspectable}
+        onClick={() => focusCentre(step.selector || target?.selector, target)}
+        title={inspectable ? "Inspect the exact research object touched by this operation" : "Observable agent operation"}
       >
         <span className="rd-v2-synthesis-agent-mark" aria-hidden="true">
           {step.tone === "done" ? "✓" : step.tone === "warn" ? "!" : "→"}
         </span>
         <span>
           <b>{step.text}</b>
-          {timeLabel(step.at) || step.action ? (
-            <small>{[timeLabel(step.at), step.action].filter(Boolean).join(" · ")}</small>
-          ) : null}
+          {metadata ? <small>{metadata}</small> : null}
         </span>
       </button>
     </li>
@@ -502,6 +550,7 @@ export function SynthesisAgentConsole({
     threadId: selected.thread_id,
     automationState,
   });
+  const [objectContext, setObjectContext] = useSelectedObjectContext(selected);
   const operation = String(
     automationState ||
     (busy ? status || "Working against the current Synthesis thread…" : "") ||
@@ -509,6 +558,12 @@ export function SynthesisAgentConsole({
     selected.decision_next ||
     "Durable thread is stable. Ask can inspect or revise it.",
   ).trim();
+
+  const clearObjectContext = () => {
+    clearSynthesisObjectContextSelection();
+    setObjectContext(null);
+    emitSynthesisObjectContext({ clear: true, thread_id: selected.thread_id });
+  };
 
   return (
     <section className="rd-v2-synthesis-agent-console" data-testid="synthesis-agent-console" aria-label="Synthesis agent operations">
@@ -527,6 +582,17 @@ export function SynthesisAgentConsole({
         <span aria-hidden="true">{busy || (automationState && !automationState.startsWith("Paused")) ? "→" : "●"}</span>
         <p><small>Current operation</small><b>{operation}</b></p>
       </div>
+
+      {objectContext ? (
+        <div className="rd-v2-synthesis-ask-object-context" data-testid="synthesis-ask-object-context">
+          <div>
+            <small>Selected object</small>
+            <b>{objectContext.label || objectContext.kind}</b>
+            <span>{[objectContext.kind, objectContext.object_id].filter(Boolean).join(" · ")}</span>
+          </div>
+          <button type="button" onClick={clearObjectContext}>Clear</button>
+        </div>
+      ) : null}
 
       <RunTimeline run={run} />
 
