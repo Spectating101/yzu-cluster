@@ -88,10 +88,13 @@ export function installSynthesisInteractionPolish() {
 
   const land = (surface, root) => {
     if (!surface || document.visibilityState !== "visible") return;
+
+    const nextPhase = surfacePhase(surface);
+    root.dataset.synthesisWorkspacePhase = nextPhase;
+
     const key = surfaceKey(surface, root);
     if (!key || key === lastSurface) return;
 
-    const nextPhase = surfacePhase(surface);
     const nextThread = threadKey(root);
     const sameThread = Boolean(lastThread && nextThread && lastThread === nextThread);
     const phaseChanged = Boolean(lastPhase && nextPhase !== lastPhase);
@@ -99,7 +102,6 @@ export function installSynthesisInteractionPolish() {
     lastSurface = key;
     lastPhase = nextPhase;
     lastThread = nextThread;
-    root.dataset.synthesisWorkspacePhase = nextPhase;
 
     surface.dataset.synthesisLanded = "true";
     window.clearTimeout(landingTimer);
