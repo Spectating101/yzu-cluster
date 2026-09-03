@@ -9,7 +9,11 @@ export function EmptyRailState({
   if (discoverIdle) {
     return (
       <div className="rd-v2-rail-empty-state rd-v2-discover-idle-rail" role="status" data-empty-kind="discover-idle">
-        <p className="rd-v2-rail-empty-title">Decision preview</p>
+        <header className="rd-v2-discover-idle-rail-head">
+          <span className="rd-v2-eyebrow">Decision preview</span>
+          <strong>What the Detail rail will establish</strong>
+          <p>One candidate at a time: fit, proof, gap, output shape, then a reviewable next action.</p>
+        </header>
 
         <section className="rd-v2-discover-idle-rail-card is-compare" aria-label="Evidence comparison preview">
           <span className="rd-v2-eyebrow">01 · Evidence comparison</span>
@@ -29,7 +33,7 @@ export function EmptyRailState({
         <section className="rd-v2-discover-idle-rail-card is-proof" aria-label="Source proof preview">
           <span className="rd-v2-eyebrow">02 · Source proof</span>
           <div className="rd-v2-discover-idle-proof-grid">
-            <span><b>Observed</b><em>inspected facts</em></span>
+            <span><b>Observed</b><em>preview / probe</em></span>
             <span><b>Declared</b><em>source metadata</em></span>
             <span><b>Unknown</b><em>not verified</em></span>
           </div>
@@ -38,14 +42,24 @@ export function EmptyRailState({
         <section className="rd-v2-discover-idle-rail-card is-gap" aria-label="Evidence gap preview">
           <span className="rd-v2-eyebrow">03 · Precise gap</span>
           <strong>Missing grain / field / period / access</strong>
-          <p>Named explicitly before a new sourcing route is proposed.</p>
+          <p>The unresolved requirement stays explicit instead of being hidden behind a generic relevance score.</p>
+        </section>
+
+        <section className="rd-v2-discover-idle-rail-card is-output-shape" aria-label="Proposed dataset preview">
+          <span className="rd-v2-eyebrow">04 · Proposed dataset</span>
+          <div className="rd-v2-discover-idle-shape">
+            <strong>exchange × stablecoin × day</strong>
+            <span>price · volume · flow · event day</span>
+          </div>
+          <p>Only the missing evidence is shaped into a new research asset.</p>
         </section>
 
         <section className="rd-v2-discover-idle-rail-card is-output" aria-label="Reviewable outcome preview">
-          <span className="rd-v2-eyebrow">04 · Reviewable output</span>
+          <span className="rd-v2-eyebrow">05 · Review boundary</span>
           <div className="rd-v2-discover-idle-output-flow" aria-label="Review path">
-            <span>Dataset shape</span><i>→</i><span>Route</span><i>→</i><span>Approval</span><i>→</i><span>Library</span>
+            <span>Preview</span><i>→</i><span>Route</span><i>→</i><span>Approval</span><i>→</i><span>Library</span>
           </div>
+          <p>No collection begins from the idle state or from source inspection.</p>
         </section>
       </div>
     );
