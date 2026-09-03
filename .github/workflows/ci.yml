@@ -87,7 +87,11 @@ jobs:
         env: *mock-env
 
       - name: Mock e2e — Library
-        run: TMPDIR=$PWD/.tmp-pw npx playwright test e2e/v2-library.spec.js --reporter=dot
+        run: >-
+          TMPDIR=$PWD/.tmp-pw npx playwright test
+          e2e/v2-library.spec.js
+          e2e/library-pagination-continuity.spec.js
+          --reporter=dot
         env: *mock-env
 
       - name: Mock e2e — Preview
