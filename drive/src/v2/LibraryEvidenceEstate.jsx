@@ -104,9 +104,19 @@ export function LibraryEvidenceEstate({
   const query = String(searchQuery || "").trim();
   const [visibleLimit, setVisibleLimit] = useState(PAGE_SIZE);
 
+  // A new search is a new semantic scope, so begin it from the first page.
   useEffect(() => {
     setVisibleLimit(PAGE_SIZE);
-  }, [assets, query]);
+  }, [query]);
+
+  // Live catalogue hydration replaces the backing array. Preserve the user's
+  // browsing depth through that refresh and clamp only if the result set shrinks.
+  useEffect(() => {
+    setVisibleLimit((limit) => {
+      if (visibleAssets.length <= PAGE_SIZE) return PAGE_SIZE;
+      return Math.min(Math.max(limit, PAGE_SIZE), visibleAssets.length);
+    });
+  }, [visibleAssets.length]);
 
   const pagedAssets = useMemo(
     () => visibleAssets.slice(0, visibleLimit),
