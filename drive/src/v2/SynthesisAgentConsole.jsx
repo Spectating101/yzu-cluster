@@ -1,3 +1,5 @@
+import { useEffect, useRef, useState } from "react";
+
 function normalized(value) {
   return String(value || "").trim().toLowerCase().replace(/-/g, "_");
 }
@@ -18,6 +20,174 @@ function focusCentre(selector) {
   target.setAttribute("data-synthesis-agent-focus", "true");
   window.setTimeout(() => target.removeAttribute("data-synthesis-agent-focus"), 1200);
   document.dispatchEvent(new CustomEvent("synthesis:agent-focus", { detail: { selector } }));
+}
+
+function selectorForActivity(value = "") {
+  const text = String(value || "").toLowerCase();
+  if (!text) return "";
+  if (/scope|row limit|population/.test(text)) return '[data-testid="synthesis-scope-block"]';
+  if (/unit|rescal|normaliz|conversion/.test(text)) return '[data-testid="synthesis-unit-conflict"]';
+  if (/join|key overlap|fanout|many-to-many/.test(text)) return '[data-testid="synthesis-join-decision"]';
+  if (/preview|bounded test|sample execution/.test(text)) {
+    return '[data-testid="synthesis-preview-state"], [data-testid="synthesis-execution-state"]';
+  }
+  if (/proposal|method revision|method proposal|accepted method/.test(text)) {
+    return '[data-testid="synthesis-proposal-state"], [data-testid="synthesis-evidence-proposal"]';
+  }
+  if (/archive|manifest/.test(text)) {
+    return '[data-testid="synthesis-execution-state"], [data-testid="synthesis-registered-state"]';
+  }
+  if (/registry|register|query-ready|library handoff/.test(text)) {
+    return '[data-testid="synthesis-registered-state"], [data-testid="synthesis-query-ready-state"], [data-testid="synthesis-execution-state"]';
+  }
+  if (/build|worker|execut|materialis|materializ|approval|authoriz/.test(text)) {
+    return '[data-testid="synthesis-execution-state"]';
+  }
+  if (/measure|profil|column|schema/.test(text)) return '[data-testid="synthesis-evidence-state"]';
+  if (/evidence|source|library asset|held input|dataset/.test(text)) return '[data-testid="synthesis-evidence-state"]';
+  return "";
+}
+
+function toneForActivity(value = "") {
+  const text = String(value || "").toLowerCase();
+  if (/fail|error|warn|paused|blocked|cannot|could not|unavailable|stale/.test(text)) return "warn";
+  if (/complete|completed|passed|verified|accepted|recorded|selected|resolved|ready/.test(text)) return "done";
+  return "current";
+}
+
+function runStateForActivity(value = "", busy = false) {
+  const text = String(value || "").toLowerCase();
+  if (/^paused\b|blocked|failed|error/.test(text)) return "paused";
+  if (/automation complete|query-ready|registration complete|run complete|turn complete/.test(text)) return "complete";
+  return busy || text ? "running" : "idle";
+}
+
+function activityStep(text) {
+  const value = String(text || "").trim();
+  return {
+    id: `${Date.now()}:${value}`,
+    text: value,
+    tone: toneForActivity(value),
+    selector: selectorForActivity(value),
+    at: Date.now(),
+  };
+}
+
+function appendRunStep(run, value) {
+  const text = String(value || "").trim();
+  if (!text) return run;
+  const last = run.steps?.[run.steps.length - 1];
+  if (last?.text === text) return run;
+  return {
+    ...run,
+    steps: [...(run.steps || []), activityStep(text)].slice(-6),
+    updatedAt: Date.now(),
+  };
+}
+
+function emptyRun(threadId = "") {
+  return {
+    threadId,
+    id: "",
+    state: "idle",
+    startedAt: null,
+    updatedAt: null,
+    steps: [],
+  };
+}
+
+function runStorageKey(threadId) {
+  return `rd_v2_synthesis_agent_run:${String(threadId || "")}`;
+}
+
+function loadStoredRun(threadId) {
+  if (typeof window === "undefined" || !threadId) return emptyRun(threadId);
+  try {
+    const parsed = JSON.parse(window.sessionStorage.getItem(runStorageKey(threadId)) || "null");
+    if (!parsed || parsed.threadId !== threadId || !Array.isArray(parsed.steps)) return emptyRun(threadId);
+    return {
+      ...emptyRun(threadId),
+      ...parsed,
+      state: parsed.state === "running" ? "complete" : parsed.state,
+      steps: parsed.steps.slice(-6),
+    };
+  } catch {
+    return emptyRun(threadId);
+  }
+}
+
+function useObservableAgentRun({ threadId, busy, status, automationState }) {
+  const [run, setRun] = useState(() => emptyRun(threadId));
+  const threadRef = useRef(threadId);
+  const wasBusyRef = useRef(false);
+  const lastAutomationRef = useRef("");
+
+  useEffect(() => {
+    if (threadRef.current === threadId) return;
+    threadRef.current = threadId;
+    wasBusyRef.current = false;
+    lastAutomationRef.current = "";
+    setRun(loadStoredRun(threadId));
+  }, [threadId]);
+
+  useEffect(() => {
+    if (!threadId) return;
+    const streamed = String(status || "").trim();
+    const automation = String(automationState || "").trim();
+
+    setRun((current) => {
+      let next = current.threadId === threadId ? current : loadStoredRun(threadId);
+
+      if (busy && !wasBusyRef.current) {
+        next = {
+          ...emptyRun(threadId),
+          id: `ask-${Date.now()}`,
+          state: "running",
+          startedAt: Date.now(),
+          updatedAt: Date.now(),
+        };
+      }
+
+      if (busy && streamed) {
+        next = appendRunStep(next, streamed);
+        next = { ...next, state: runStateForActivity(streamed, true) };
+      }
+
+      if (automation && automation !== lastAutomationRef.current) {
+        if (!next.id) {
+          next = {
+            ...emptyRun(threadId),
+            id: `automation-${Date.now()}`,
+            state: "running",
+            startedAt: Date.now(),
+            updatedAt: Date.now(),
+          };
+        }
+        next = appendRunStep(next, automation);
+        next = { ...next, state: runStateForActivity(automation, true) };
+      }
+
+      if (!busy && wasBusyRef.current && next.id && next.state === "running" && !automation) {
+        next = { ...next, state: "complete", updatedAt: Date.now() };
+      }
+
+      return next;
+    });
+
+    wasBusyRef.current = busy;
+    lastAutomationRef.current = automation;
+  }, [threadId, busy, status, automationState]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !threadId || !run.id) return;
+    try {
+      window.sessionStorage.setItem(runStorageKey(threadId), JSON.stringify(run));
+    } catch {
+      // Observability must never block research work if browser storage is unavailable.
+    }
+  }, [threadId, run]);
+
+  return run;
 }
 
 function decisionReceipt(selected = {}) {
@@ -156,7 +326,37 @@ function receiptsFor(selected = {}) {
     seen.add(receipt.id);
     deduped.push(receipt);
   });
-  return deduped.slice(-6);
+  return deduped.slice(-5);
+}
+
+function RunTimeline({ run }) {
+  if (!run?.steps?.length) return null;
+  const stateLabel = run.state === "running" ? "LIVE" : run.state === "paused" ? "NEEDS ATTENTION" : "LAST RUN";
+  return (
+    <div className="rd-v2-synthesis-agent-run" data-testid="synthesis-agent-run" data-run-state={run.state}>
+      <div className="rd-v2-synthesis-agent-run-head">
+        <small>{run.state === "running" ? "Agent run" : "Recent agent run"}</small>
+        <span>{stateLabel}</span>
+      </div>
+      <ol>
+        {run.steps.map((step) => (
+          <li key={step.id} className={`is-${step.tone}`}>
+            <button
+              type="button"
+              disabled={!step.selector}
+              onClick={() => focusCentre(step.selector)}
+              title={step.selector ? "Inspect the research object touched by this operation" : "Observable agent operation"}
+            >
+              <span className="rd-v2-synthesis-agent-mark" aria-hidden="true">
+                {step.tone === "done" ? "✓" : step.tone === "warn" ? "!" : "→"}
+              </span>
+              <span>{step.text}</span>
+            </button>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
 }
 
 export function SynthesisAgentConsole({
@@ -170,6 +370,12 @@ export function SynthesisAgentConsole({
   if (!selected.thread_id) return null;
   const phase = phaseFor(selected);
   const receipts = receiptsFor(selected);
+  const run = useObservableAgentRun({
+    threadId: selected.thread_id,
+    busy,
+    status,
+    automationState,
+  });
   const operation = String(
     automationState ||
     (busy ? status || "Working against the current Synthesis thread…" : "") ||
@@ -196,9 +402,11 @@ export function SynthesisAgentConsole({
         <p><small>Current operation</small><b>{operation}</b></p>
       </div>
 
+      <RunTimeline run={run} />
+
       {receipts.length ? (
         <div className="rd-v2-synthesis-agent-activity" data-testid="synthesis-agent-activity">
-          <small>Durable activity</small>
+          <small>Durable proof</small>
           <ol>
             {receipts.map((receipt) => (
               <li key={receipt.id} className={`is-${receipt.tone}`}>
