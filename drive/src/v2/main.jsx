@@ -35,6 +35,7 @@ import "./discover-idle-engine-refine.css";
 import "./discover-idle-capability-rail.css";
 import "./discover-idle-worked-journey.css";
 import "./discover-idle-output-closure.css";
+import "./discover-source-evidence-visual.css";
 import { V2App } from "./App";
 import { InteractionProvider } from "./InteractionGuidance";
 
