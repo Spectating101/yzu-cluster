@@ -107,20 +107,17 @@ async function addPrototypeStyles(page) {
   await page.addStyleTag({ content: `
     .proto-storage-chrome{display:flex;align-items:center;gap:12px;padding:10px 14px;margin:0 0 10px;border:1px solid rgba(30,45,65,.13);border-radius:10px;background:rgba(250,251,252,.95);box-shadow:0 1px 0 rgba(20,30,45,.03)}
     .proto-storage-label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#6a7482;font-weight:700;flex:0 0 auto}
-    .proto-storage-tabs{display:flex;align-items:stretch;gap:4px;overflow-x:auto;scrollbar-width:none}
-    .proto-storage-tabs::-webkit-scrollbar{display:none}
+    .proto-storage-tabs{display:flex;align-items:stretch;gap:4px;overflow-x:auto;scrollbar-width:none}.proto-storage-tabs::-webkit-scrollbar{display:none}
     .proto-storage-tab{appearance:none;border:1px solid transparent;background:transparent;border-radius:8px;padding:7px 10px;display:flex;flex-direction:column;align-items:flex-start;gap:1px;white-space:nowrap;color:#485364;font:inherit}
     .proto-storage-tab strong{font-size:12px;font-weight:650;color:#273344}.proto-storage-tab small{font-size:10px;color:#7b8591}
-    .proto-storage-tab.active{background:#fff;border-color:rgba(43,72,112,.18);box-shadow:0 1px 3px rgba(30,45,65,.06)}
-    .proto-storage-tab.active strong{color:#244b86}
+    .proto-storage-tab.active{background:#fff;border-color:rgba(43,72,112,.18);box-shadow:0 1px 3px rgba(30,45,65,.06)}.proto-storage-tab.active strong{color:#244b86}
     .proto-storage-status{margin-left:auto;font-size:11px;color:#7b8591;white-space:nowrap}
-    .proto-location-card{margin-top:8px;padding:9px 10px;border:1px solid rgba(30,45,65,.11);border-radius:8px;background:rgba(248,249,251,.92)}
-    .proto-location-card.active{background:#fff}
-    .proto-location-card>span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:#7b8591;margin-bottom:3px}
-    .proto-location-card strong{display:block;font-size:12px;color:#263448;margin-bottom:2px}.proto-location-card small{display:block;font-size:10.5px;line-height:1.4;color:#6d7886}
-    .proto-location-path{margin-top:5px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;color:#536071;overflow-wrap:anywhere}
-    .proto-browse-location{margin-top:7px;border:0;background:transparent;padding:0;color:#315f9d;font-size:11px;font-weight:650;cursor:pointer}
-    .proto-trust{margin-top:10px;border-top:1px solid rgba(30,45,65,.1);padding-top:10px}.proto-trust summary{cursor:pointer;display:flex;justify-content:space-between;gap:8px;font-size:11px;font-weight:650;color:#354256}.proto-trust summary span{font-weight:500;color:#748091}
+    .proto-location-list{margin-top:7px;border:1px solid rgba(30,45,65,.11);border-radius:8px;overflow:hidden;background:#fff}
+    .proto-location-row{position:relative;padding:8px 76px 8px 10px;border-top:1px solid rgba(30,45,65,.08);min-height:46px}.proto-location-row:first-child{border-top:0}.proto-location-row.active{background:rgba(43,92,150,.035)}
+    .proto-location-row>span{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#84909d;margin-bottom:2px}
+    .proto-location-row strong{display:block;font-size:11.5px;color:#263448;line-height:1.25}.proto-location-row small{display:block;margin-top:2px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9.5px;line-height:1.35;color:#667281;overflow-wrap:anywhere}
+    .proto-browse-location{position:absolute;right:9px;top:50%;transform:translateY(-50%);border:0;background:transparent;padding:3px;color:#315f9d;font-size:10px;font-weight:650;cursor:pointer}
+    .proto-trust{margin-top:9px;border-top:1px solid rgba(30,45,65,.1);padding-top:9px}.proto-trust summary{cursor:pointer;display:flex;justify-content:space-between;gap:8px;font-size:11px;font-weight:650;color:#354256}.proto-trust summary span{font-weight:500;color:#748091}
     @media(max-width:600px){.proto-storage-chrome{gap:8px;padding:8px 10px}.proto-storage-status{display:none}.proto-storage-tab{padding:6px 8px}.proto-storage-tab small{display:none}}
   ` });
 }
@@ -152,9 +149,11 @@ async function prototypeRail(page) {
       holdings.innerHTML = `
         <p class="rd-v2-rail-section-label">Storage &amp; location</p>
         <h3 class="rd-v2-library-rail-module-title">3 known locations · 3 available</h3>
-        <div class="proto-location-card active"><span>Using for analysis</span><strong>Research Drive</strong><small>YZUC Research Cluster · Query-ready replica</small><div class="proto-location-path">Research panels / GDELT</div></div>
-        <div class="proto-location-card"><span>Other known holding</span><strong>Google Drive · Christopher</strong><div class="proto-location-path">Research / Asia markets / GDELT</div><button class="proto-browse-location" type="button">Browse location →</button></div>
-        <div class="proto-location-card"><span>Original holding</span><strong>Dropbox · Prof. Kong</strong><div class="proto-location-path">Research Projects / Taiwan Markets / GDELT</div><button class="proto-browse-location" type="button">Browse location →</button></div>
+        <div class="proto-location-list">
+          <div class="proto-location-row active"><span>Using for analysis</span><strong>Research Drive · YZUC Research Cluster</strong><small>Research panels / GDELT</small></div>
+          <div class="proto-location-row"><span>Known holding</span><strong>Google Drive · Christopher</strong><small>Research / Asia markets / GDELT</small><button class="proto-browse-location" type="button">Browse →</button></div>
+          <div class="proto-location-row"><span>Original holding</span><strong>Dropbox · Prof. Kong</strong><small>Research Projects / Taiwan Markets / GDELT</small><button class="proto-browse-location" type="button">Browse →</button></div>
+        </div>
       `;
     }
     const source = rail.querySelector('[data-testid="library-rail-source"]');
