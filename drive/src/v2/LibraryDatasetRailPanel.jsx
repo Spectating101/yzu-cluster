@@ -16,11 +16,12 @@ export function decisionFor(dataset) {
 
 function sourceAuthorityValue(dataset) {
   if (dataset?.self_provided || dataset?.upload) return "Self-provided";
+  const provenance = typeof dataset?.provenance === "string" ? dataset.provenance.trim() : "";
   return String(
     dataset?.source ||
       dataset?.publisher ||
-      dataset?.domain ||
-      dataset?.provenance ||
+      dataset?.source_system ||
+      provenance ||
       "",
   ).trim();
 }
