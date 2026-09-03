@@ -15,9 +15,6 @@ function sourceLabel(row = {}) {
     row.source ||
       row.publisher ||
       row.source_system ||
-      row.source_route ||
-      row.collect_via ||
-      row.backend ||
       "Not recorded",
   ).trim();
 }
