@@ -8,6 +8,7 @@ import {
 } from "@/v2/datasetMeta";
 import { hasReproductionMethod, librarySourceReceipt } from "@/v2/libraryProvenance";
 import { libraryVerification } from "@/v2/libraryVerification";
+import { holdingRoleLabel, summarizeLibraryHoldings } from "@/v2/libraryHoldings";
 import { RailFrame, RailStickyFooter } from "@/v2/RailFrame";
 
 export function decisionFor(dataset) {
@@ -176,6 +177,35 @@ function DecisionBasis({ state, verification, dataset, receipt, previewOpen, pre
   );
 }
 
+
+function HoldingsBlock({ summary }) {
+  if (!summary.count) return null;
+  const focus = summary.focus;
+  const otherProviders = summary.providers.filter((provider) => provider !== focus?.provider);
+  const focusLabel = focus?.active ? "Using" : focus?.primary ? "Primary holding" : "Known holding";
+  const focusContext = focus ? [focus.custodian, holdingRoleLabel(focus)].filter(Boolean).join(" · ") : "";
+  return (
+    <section
+      className="rd-v2-library-inspector-block rd-v2-library-inspector-holdings"
+      aria-label="Holdings"
+      data-testid="library-rail-holdings"
+    >
+      <p className="rd-v2-rail-section-label">Holdings</p>
+      <h3 className="rd-v2-library-rail-module-title">{summary.headline}</h3>
+      {focus ? (
+        <div className="rd-v2-library-holding-focus">
+          <span>{focusLabel}</span>
+          <strong>{focus.provider}</strong>
+          {focusContext ? <small>{focusContext}</small> : null}
+        </div>
+      ) : null}
+      {otherProviders.length ? (
+        <p className="rd-v2-library-holdings-provider-line">{otherProviders.join(" · ")}</p>
+      ) : null}
+    </section>
+  );
+}
+
 /**
  * The centre workspace owns asset substance (table/schema, coverage, grain,
  * research use). The global situation strip owns selected-asset identity. The
@@ -193,6 +223,7 @@ export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onAskAbo
   const boundaries = knownBoundaries(dataset, fields);
   const updated = dataset.updated_at || dataset.last_modified || dataset.as_of;
   const verification = libraryVerification(dataset);
+  const holdings = summarizeLibraryHoldings(dataset);
   const remedy = hydrateRemedy(dataset);
   const archiveRef = String(dataset?.canonical_remote || dataset?.lineage?.canonical_remote || "").trim();
   const accessRoute = accessRouteValue(dataset, fields);
@@ -234,6 +265,8 @@ export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onAskAbo
           previewOpen={previewOpen}
           presentation={presentation}
         />
+
+        <HoldingsBlock summary={holdings} />
 
         <section className="rd-v2-library-inspector-block" aria-label="Source" data-testid="library-rail-source">
           <p className="rd-v2-rail-section-label">Source &amp; reproduce</p>
@@ -300,6 +333,7 @@ export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onAskAbo
           <summary>Technical details</summary>
           <div className="rd-v2-library-inspector-tech-body">
             <Fact label="Library ID" value={dataset.dataset_id} mono />
+            {holdings.count ? <Fact label="Known holdings" value={String(holdings.count)} /> : null}
             <Fact label="Registry readiness" value={dataset.analysis_readiness || "not declared"} mono />
             <Fact label="Backend" value={dataset.backend} mono />
             <Fact label="Source endpoint" value={receipt.sourceEndpoint} mono />
