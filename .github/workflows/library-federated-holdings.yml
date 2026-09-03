@@ -1,4 +1,4 @@
-name: Research Drive final system audit
+name: Library final state audit
 
 on:
   push:
@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: research-drive-final-system-${{ github.ref }}
+  group: library-final-state-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -47,7 +47,7 @@ jobs:
         env:
           YZU_PAGES: "true"
 
-      - name: Library contracts
+      - name: Library interaction contracts
         run: >-
           mkdir -p .tmp-pw && TMPDIR=$PWD/.tmp-pw npx playwright test
           e2e/v2-library.spec.js
@@ -59,23 +59,22 @@ jobs:
           CI: "true"
           YZU_PAGES: "false"
 
-      - name: Whole product visual audit
+      - name: Complete Library visual state matrix
         run: >-
           TMPDIR=$PWD/.tmp-pw npx playwright test
           e2e/library-convergence-render.spec.js
-          e2e/release-visual-convergence.spec.js
+          e2e/library-preview-closure-render.spec.js
           --reporter=dot
         env: *mock-env
 
-      - name: Upload final audit renders
+      - name: Upload Library audit renders
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: research-drive-final-system-audit
+          name: library-final-state-audit
           path: |
             artifacts/library-holdings
             artifacts/library-renders
-            artifacts/release-visual
             test-results
           if-no-files-found: warn
           retention-days: 14
