@@ -9,7 +9,7 @@ test.describe("v2 adaptive Preview", () => {
     await waitForShell(page);
   });
 
-  test("owned datasets keep inspection local and open a bounded rows and fields viewer", async ({ page }) => {
+  test("owned datasets keep schema local and expand only the observed sample", async ({ page }) => {
     await page.getByRole("textbox", { name: "Search library holdings" }).fill("Asia");
     await page.getByTestId("library-evidence-row").filter({ hasText: "Asia daily news-risk panel" }).click();
 
@@ -23,9 +23,9 @@ test.describe("v2 adaptive Preview", () => {
     await expect(schemaOverlay).toHaveCount(0);
     await expect(inspectSchema).toBeFocused();
 
-    await workspace.getByRole("button", { name: "Full preview" }).click();
+    await workspace.getByRole("button", { name: "Expand sample" }).click();
 
-    const preview = page.getByRole("dialog", { name: "Asia daily news-risk panel preview" });
+    const preview = page.getByRole("dialog", { name: "Asia daily news-risk panel expanded sample" });
     await expect(preview).toBeVisible();
     const scrim = page.locator(".rd-preview-scrim");
     const inspector = page.getByRole("complementary", { name: "Inspector" });
@@ -33,23 +33,21 @@ test.describe("v2 adaptive Preview", () => {
     expect(scrimBox).not.toBeNull();
     expect(inspectorBox).not.toBeNull();
     expect(scrimBox.x + scrimBox.width).toBeLessThanOrEqual(inspectorBox.x + 1);
-    await expect(inspector.getByTestId("library-preview-open-state")).toHaveText("Preview open in centre");
+    await expect(inspector.getByTestId("library-preview-open-state")).toHaveText("Expanded sample open in centre");
     await expect(inspector.getByRole("button", { name: "Preview rows" })).toHaveCount(0);
-    await expect(preview).toContainText("Dataset preview");
-    await expect(preview.getByRole("button", { name: "Rows", exact: true })).toBeVisible();
-    await expect(preview.getByRole("button", { name: "Fields", exact: true })).toBeVisible();
+    await expect(preview).toContainText("Expanded dataset sample");
+    await expect(preview.getByRole("button", { name: "Rows", exact: true })).toHaveCount(0);
+    await expect(preview.getByRole("button", { name: "Fields", exact: true })).toHaveCount(0);
+    await expect(preview).not.toContainText("Field inventory");
     await expect(preview.getByRole("button", { name: "Query", exact: true })).toHaveCount(0);
-    await expect(preview).toContainText("Observed sample");
+    await expect(preview).toContainText("Expanded sample");
     await expect(preview.locator("table")).toContainText("country");
-
-    await preview.getByRole("button", { name: "Fields", exact: true }).click();
-    await expect(preview).toContainText("Field inventory");
-    await expect(preview).toContainText("database-schema guarantee");
 
     await preview.getByRole("button", { name: "Close preview" }).click();
     await expect(preview).toHaveCount(0);
     await expect(workspace).toBeVisible();
     await expect(workspace).toContainText("Asia daily news-risk panel");
+    await expect(workspace.getByRole("button", { name: "Inspect schema" })).toBeVisible();
   });
 });
 
