@@ -64,6 +64,7 @@ jobs:
           TMPDIR=$PWD/.tmp-pw npx playwright test
           e2e/library-convergence-render.spec.js
           e2e/library-preview-closure-render.spec.js
+          e2e/library-visual-depth-render.spec.js
           --reporter=dot
         env: *mock-env
 
