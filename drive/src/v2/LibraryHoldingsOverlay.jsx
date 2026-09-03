@@ -9,6 +9,7 @@ import {
 function HoldingCard({ holding }) {
   const access = holdingAccessLabel(holding);
   const state = holdingStateLabel(holding);
+  const hasIntegrityDetails = Boolean(holding.version || holding.contentHash || holding.updatedAt);
   return (
     <article className="rd-v2-library-holding-card" data-access={holding.access} data-state={holding.state}>
       <header>
@@ -28,12 +29,15 @@ function HoldingCard({ holding }) {
           <code>{holding.location}</code>
         </div>
       ) : null}
-      {(holding.version || holding.contentHash || holding.updatedAt) ? (
-        <dl className="rd-v2-library-holding-meta">
-          {holding.version ? <div><dt>Version</dt><dd>{holding.version}</dd></div> : null}
-          {holding.updatedAt ? <div><dt>Observed</dt><dd>{holding.updatedAt}</dd></div> : null}
-          {holding.contentHash ? <div><dt>Content identity</dt><dd><code>{holding.contentHash}</code></dd></div> : null}
-        </dl>
+      {hasIntegrityDetails ? (
+        <details className="rd-v2-library-holding-integrity">
+          <summary>Integrity details</summary>
+          <dl className="rd-v2-library-holding-meta">
+            {holding.version ? <div><dt>Version</dt><dd>{holding.version}</dd></div> : null}
+            {holding.updatedAt ? <div><dt>Observed</dt><dd>{holding.updatedAt}</dd></div> : null}
+            {holding.contentHash ? <div><dt>Content identity</dt><dd><code>{holding.contentHash}</code></dd></div> : null}
+          </dl>
+        </details>
       ) : null}
     </article>
   );
