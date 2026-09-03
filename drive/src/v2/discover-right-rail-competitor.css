@@ -1,0 +1,376 @@
+/* Discover competitor-scale rail integration.
+ * Wide workstation only. The persistent rail remains the product authority:
+ * idle previews the filled dossier; selected candidates turn the same grammar
+ * into fit, proof, unknowns and consequential actions.
+ */
+@media (min-width: 1680px) and (min-height: 900px) {
+  /* ── IDLE: make the empty Detail rail a full-height ghost of the selected
+     dossier instead of a short stack floating at the top. */
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-rail {
+    display: grid !important;
+    grid-template-rows: auto repeat(5, auto) minmax(18px, 1fr) !important;
+    align-content: start !important;
+    gap: 8px !important;
+    min-height: calc(100vh - 146px) !important;
+    margin: 0 !important;
+    padding: 14px 12px 12px !important;
+    border: 0 !important;
+    background:
+      linear-gradient(180deg, rgba(248,249,245,.78) 0%, rgba(251,250,246,.38) 100%) !important;
+    text-align: left !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-rail::before,
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-rail::after,
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-rail > .rd-v2-rail-empty-title,
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-rail > .rd-v2-rail-empty-hint {
+    display: none !important;
+    content: none !important;
+  }
+
+  .rd-v2-discover-idle-rail-head {
+    display: grid !important;
+    gap: 4px !important;
+    padding: 0 1px 10px !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 80%, transparent) !important;
+  }
+
+  .rd-v2-discover-idle-rail-head > .rd-v2-eyebrow {
+    color: #557166 !important;
+    font-size: 7.5px !important;
+    letter-spacing: .105em !important;
+  }
+
+  .rd-v2-discover-idle-rail-head > strong {
+    color: var(--rd-text, #182033) !important;
+    font-size: 11.5px !important;
+    font-weight: 720 !important;
+    line-height: 1.28 !important;
+  }
+
+  .rd-v2-discover-idle-rail-head > p {
+    margin: 0 !important;
+    color: var(--rd-muted, #6e7685) !important;
+    font-size: 8.4px !important;
+    line-height: 1.42 !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-rail-card {
+    position: relative !important;
+    display: grid !important;
+    align-content: start !important;
+    gap: 6px !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 10px 10px 9px !important;
+    border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 76%, #83978e 24%) !important;
+    border-radius: 6px !important;
+    background: #fbfbf7 !important;
+    box-shadow: none !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-rail-card > .rd-v2-eyebrow {
+    color: #61786e !important;
+    font-size: 7.1px !important;
+    letter-spacing: .08em !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-rail-card > strong,
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-rail-card > p {
+    margin: 0 !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-rail-card > strong {
+    color: #28342f !important;
+    font-size: 9px !important;
+    line-height: 1.32 !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-rail-card > p {
+    color: #6f7974 !important;
+    font-size: 7.8px !important;
+    line-height: 1.42 !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-rail-card.is-compare {
+    border-left: 3px solid #759584 !important;
+    background: #f4f8f4 !important;
+  }
+
+  .rd-v2-discover-idle-compare-pair {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 14px minmax(0, 1fr) !important;
+    gap: 5px !important;
+    align-items: center !important;
+  }
+
+  .rd-v2-discover-idle-compare-pair > span {
+    display: grid !important;
+    gap: 2px !important;
+    min-width: 0 !important;
+    padding: 6px 7px !important;
+    border: 1px solid #d8dfda !important;
+    border-radius: 4px !important;
+    background: rgba(255,255,255,.68) !important;
+  }
+
+  .rd-v2-discover-idle-compare-pair small {
+    color: #74817b !important;
+    font: 650 6.8px/1.2 var(--rd-mono, ui-monospace, monospace) !important;
+    text-transform: uppercase !important;
+  }
+
+  .rd-v2-discover-idle-compare-pair strong {
+    overflow: hidden !important;
+    color: #29352f !important;
+    font-size: 8px !important;
+    line-height: 1.25 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .rd-v2-discover-idle-compare-pair > i {
+    color: #7b8b83 !important;
+    font-size: 9px !important;
+    font-style: normal !important;
+    text-align: center !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-rail-card.is-proof {
+    background: #f8faf7 !important;
+  }
+
+  .rd-v2-discover-idle-proof-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 4px !important;
+  }
+
+  .rd-v2-discover-idle-proof-grid > span {
+    display: grid !important;
+    gap: 2px !important;
+    padding: 6px 5px !important;
+    border: 1px solid #d9ded9 !important;
+    border-radius: 4px !important;
+    background: rgba(255,255,255,.72) !important;
+  }
+
+  .rd-v2-discover-idle-proof-grid b {
+    color: #33433c !important;
+    font-size: 7.4px !important;
+  }
+
+  .rd-v2-discover-idle-proof-grid em {
+    color: #7b847f !important;
+    font-size: 6.5px !important;
+    font-style: normal !important;
+    line-height: 1.25 !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-rail-card.is-gap {
+    border-color: #dfcda8 !important;
+    background: #fbf5e8 !important;
+    box-shadow: inset 3px 0 0 #b88c50 !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-rail-card.is-output-shape {
+    border-color: #c2d2c8 !important;
+    background: #f0f6f1 !important;
+    box-shadow: inset 3px 0 0 #72937f !important;
+  }
+
+  .rd-v2-discover-idle-shape {
+    display: grid !important;
+    gap: 3px !important;
+    padding: 7px 8px !important;
+    border: 1px solid #cfdbd3 !important;
+    border-radius: 4px !important;
+    background: rgba(255,255,255,.68) !important;
+  }
+
+  .rd-v2-discover-idle-shape strong {
+    color: #2e443a !important;
+    font: 690 8.2px/1.3 var(--rd-mono, ui-monospace, monospace) !important;
+  }
+
+  .rd-v2-discover-idle-shape span {
+    color: #6e7d76 !important;
+    font-size: 7.2px !important;
+    line-height: 1.3 !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-rail-card.is-output {
+    border-color: #c9d4ce !important;
+    background: #f7f9f6 !important;
+  }
+
+  .rd-v2-discover-idle-output-flow {
+    display: grid !important;
+    grid-template-columns: auto 9px auto 9px auto 9px auto !important;
+    gap: 3px !important;
+    align-items: center !important;
+  }
+
+  .rd-v2-discover-idle-output-flow span {
+    padding: 5px 4px !important;
+    border: 1px solid #d5ddd7 !important;
+    border-radius: 4px !important;
+    background: rgba(255,255,255,.68) !important;
+    color: #43534c !important;
+    font-size: 6.8px !important;
+    font-weight: 680 !important;
+    text-align: center !important;
+  }
+
+  .rd-v2-discover-idle-output-flow i {
+    color: #86938d !important;
+    font-size: 7px !important;
+    font-style: normal !important;
+    text-align: center !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-discover-idle-rail::after {
+    content: "SELECT A RESULT TO REPLACE THIS PREVIEW WITH OBSERVED EVIDENCE" !important;
+    display: flex !important;
+    align-items: flex-end !important;
+    min-height: 18px !important;
+    padding: 9px 1px 2px !important;
+    border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 68%, transparent) !important;
+    color: #83908a !important;
+    font: 710 6.8px/1.25 var(--rd-mono, ui-monospace, monospace) !important;
+    letter-spacing: .065em !important;
+  }
+
+  /* ── SELECTED: make the evidence proof/unknown hierarchy visually mirror
+     the idle preview, and lift source inspection above generic Ask assistance. */
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-scroll {
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    padding: 0 12px 12px !important;
+  }
+
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-scroll > .rd-v2-eval-block:nth-of-type(1) {
+    order: 1 !important;
+  }
+
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-scroll > .rd-v2-eval-block:nth-of-type(2) {
+    order: 2 !important;
+  }
+
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-strategy-card {
+    order: 3 !important;
+  }
+
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-tech {
+    order: 4 !important;
+    position: relative !important;
+    margin: 10px 0 0 !important;
+    border: 1px solid #c8d8ce !important;
+    border-left: 3px solid #70927f !important;
+    border-radius: 6px !important;
+    overflow: hidden !important;
+    background: #f2f7f3 !important;
+  }
+
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-tech > summary {
+    min-height: 39px !important;
+    padding: 8px 10px !important;
+    font-size: 0 !important;
+  }
+
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-tech > summary::before {
+    content: "SOURCE PROOF" !important;
+    color: #3f6253 !important;
+    font: 760 7.7px/1.2 var(--rd-mono, ui-monospace, monospace) !important;
+    letter-spacing: .09em !important;
+  }
+
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-tech > summary::after {
+    content: "PROBE FACTS" !important;
+    color: #71847b !important;
+    font: 720 6.8px/1.2 var(--rd-mono, ui-monospace, monospace) !important;
+    letter-spacing: .07em !important;
+  }
+
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-tech:not([open])::after {
+    content: "Open the full source preview for bounded rows / schema; use probe evidence for endpoint and access facts." !important;
+    display: block !important;
+    padding: 0 10px 9px !important;
+    color: #718078 !important;
+    font-size: 7.6px !important;
+    line-height: 1.4 !important;
+  }
+
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-tech[open] > summary {
+    border-bottom: 1px solid #d4dfd8 !important;
+    background: #edf4ef !important;
+  }
+
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-tech[open] > summary::after {
+    content: "OBSERVED / DECLARED" !important;
+  }
+
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-evidence-grid {
+    order: 5 !important;
+    margin-top: 9px !important;
+  }
+
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-inferred {
+    order: 6 !important;
+  }
+
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-discover-probe-error {
+    order: 7 !important;
+  }
+
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-ask-chips {
+    order: 8 !important;
+    margin-top: 10px !important;
+    padding-top: 9px !important;
+    opacity: .88 !important;
+  }
+
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-unknown {
+    border-color: #e1cda7 !important;
+    background: #fbf4e7 !important;
+    box-shadow: inset 3px 0 0 #bb8e50 !important;
+  }
+
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-verified {
+    border-color: #c5d7cc !important;
+    background: #eef5f0 !important;
+    box-shadow: inset 3px 0 0 #72937f !important;
+  }
+
+  /* Source inspection is the competitor-derived first-class secondary action.
+     Keep acquisition primary, but give the first secondary action a decisive
+     outline rather than making every secondary CTA visually identical. */
+  .rd-v2-eval-actions-wide > .rd-v2-btn:first-child {
+    border-color: #8aa698 !important;
+    background: #f1f6f2 !important;
+    color: #315546 !important;
+    font-weight: 710 !important;
+  }
+
+  .rd-v2-eval-actions-wide > .rd-v2-btn:first-child:hover:not(:disabled) {
+    background: #e8f1eb !important;
+  }
+}
