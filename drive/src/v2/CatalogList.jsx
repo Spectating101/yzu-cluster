@@ -37,9 +37,15 @@ export function CatalogList({
 }) {
   const [visibleLimit, setVisibleLimit] = useState(PAGE_SIZE);
 
+  // Backing rows are frequently replaced by live refreshes even when the user
+  // has not changed Library scope. Preserve the browsing depth in that case;
+  // only clamp it when the result set becomes smaller.
   useEffect(() => {
-    setVisibleLimit(PAGE_SIZE);
-  }, [rows]);
+    setVisibleLimit((limit) => {
+      if (rows.length <= PAGE_SIZE) return PAGE_SIZE;
+      return Math.min(Math.max(limit, PAGE_SIZE), rows.length);
+    });
+  }, [rows.length]);
 
   const visibleRows = useMemo(() => rows.slice(0, visibleLimit), [rows, visibleLimit]);
   const hasMore = visibleRows.length < rows.length;
