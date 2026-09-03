@@ -126,19 +126,19 @@ export function LibraryEvidenceEstate({
   return (
     <section className="rd-v2-cap-estate" data-testid="library-evidence-estate" aria-label="Research evidence estate">
       {collections.length || collectionsLoading ? (
-        <div className="rd-v2-cap-collections" aria-label="Library collection shortcuts and folder storage">
-          <span className="rd-v2-cap-collections-label">Collections</span>
+        <div className="rd-v2-cap-collections" aria-label="Research collections and folder storage">
+          <span className="rd-v2-cap-collections-label">Research collections</span>
           {collections.length ? (
             <div className="rd-v2-cap-collection-list">
               <button
                 type="button"
                 className="rd-v2-cap-collection rd-v2-cap-folders-root"
                 data-testid="library-folders-root"
-                aria-label="Browse all storage folders"
+                aria-label="Browse storage folders"
                 title="Browse the Library storage structure"
                 onClick={() => onOpenCollection?.({ id: LIBRARY_FOLDERS_ROOT, name: "Folders" })}
               >
-                <span>Folders</span>
+                <span>Browse folders</span>
                 <span aria-hidden="true">→</span>
               </button>
               {collections.map((collection) => {
