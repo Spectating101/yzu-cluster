@@ -268,17 +268,27 @@ export function buildDriveTree(datasets, opts = {}) {
   return buildConsumerDriveTree(datasets, { ...opts, scope: DRIVE_LAB });
 }
 
-function isLibraryRoot(root) {
-  return String(root?.name || "").trim().toLowerCase() === "library";
+function foldersRoot(root) {
+  return root?.foldersRoot?.kind === "folder" ? root.foldersRoot : null;
 }
 
 export function findFolder(root, folderId) {
   if (!folderId || folderId === root.id) return root;
-  if (folderId === LIBRARY_FOLDERS_ROOT && isLibraryRoot(root)) return root;
+
+  const physicalRoot = foldersRoot(root);
+  if (physicalRoot && folderId === LIBRARY_FOLDERS_ROOT) return physicalRoot;
+
   let node = root;
-  const acc = [];
-  for (const part of folderId.split("/")) {
-    if (!part) continue;
+  let parts = folderId.split("/").filter(Boolean);
+  let acc = [];
+
+  if (physicalRoot && parts[0] === LIBRARY_FOLDERS_ROOT) {
+    node = physicalRoot;
+    acc = [LIBRARY_FOLDERS_ROOT];
+    parts = parts.slice(1);
+  }
+
+  for (const part of parts) {
     acc.push(part);
     const currentId = acc.join("/");
     const children = node.children || {};
@@ -328,19 +338,26 @@ export function breadcrumbTrail(tree, folderId = "") {
   const trail = [{ id: "", name: rootLabel }];
   if (!folderId) return trail;
 
-  const libraryTree = isLibraryRoot(root);
-  if (libraryTree) {
+  const physicalRoot = foldersRoot(root);
+  let parts = folderId.split("/").filter(Boolean);
+  let node = root;
+  let acc = [];
+
+  if (physicalRoot && parts[0] === LIBRARY_FOLDERS_ROOT) {
     trail.push({ id: LIBRARY_FOLDERS_ROOT, name: "Folders" });
     if (folderId === LIBRARY_FOLDERS_ROOT) return trail;
+    node = physicalRoot;
+    acc = [LIBRARY_FOLDERS_ROOT];
+    parts = parts.slice(1);
   }
 
-  const parts = folderId.split("/").filter(Boolean);
-  let acc = [];
   for (const part of parts) {
     acc.push(part);
     const id = acc.join("/");
-    const node = findFolder(root, id);
-    trail.push({ id, name: node?.name || folderLabel(part) });
+    const children = node.children || {};
+    const next = children[id] || Object.values(children).find((c) => c?.kind === "folder" && c.id === id);
+    trail.push({ id, name: next?.name || folderLabel(part) });
+    if (next?.kind === "folder") node = next;
   }
   return trail;
 }

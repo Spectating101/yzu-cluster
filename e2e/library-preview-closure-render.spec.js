@@ -4,6 +4,20 @@ import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 
 const OUT = "artifacts/library-renders";
 
+const EXPANDED_ROWS = Array.from({ length: 30 }, (_, index) => {
+  const countries = ["TW", "JP", "KR", "SG", "ID", "MY"];
+  const day = 30 - Math.floor(index / countries.length);
+  const country = countries[index % countries.length];
+  return {
+    date: `2026-04-${String(day).padStart(2, "0")}`,
+    country,
+    article_count: 820 + index * 47,
+    news_risk: Number((0.18 + ((index * 7) % 61) / 100).toFixed(2)),
+    market_return: Number((((index % 9) - 4) / 1000).toFixed(4)),
+    source_mentions: 32 + ((index * 11) % 97),
+  };
+});
+
 async function settle(page) {
   await page.waitForTimeout(180);
 }
@@ -11,6 +25,14 @@ async function settle(page) {
 test("render final Library expanded sample and schema at desktop width", async ({ page }) => {
   mkdirSync(OUT, { recursive: true });
   await mockV2Api(page);
+  await page.unroute("**/query/*");
+  await page.route("**/query/*", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ rows: EXPANDED_ROWS }),
+    }),
+  );
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
@@ -34,6 +56,8 @@ test("render final Library expanded sample and schema at desktop width", async (
 
   await expect(preview.getByRole("button", { name: "Fields", exact: true })).toHaveCount(0);
   await expect(preview.locator("table")).toContainText("country");
+  await expect(preview.locator("tbody tr")).toHaveCount(30);
+  await expect(preview).toContainText("30 displayed");
   await settle(page);
   await page.screenshot({ path: `${OUT}/09-expanded-sample-1920.png`, fullPage: false });
 
