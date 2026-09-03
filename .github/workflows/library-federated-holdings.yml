@@ -13,6 +13,7 @@ concurrency:
   group: library-federated-holdings-${{ github.ref }}
   cancel-in-progress: true
 
+# Validation-only workflow: product files are never rewritten here.
 jobs:
   validate:
     runs-on: ubuntu-latest
