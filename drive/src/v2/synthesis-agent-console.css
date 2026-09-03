@@ -215,6 +215,12 @@
   outline: none;
 }
 
+/* The console already explains the current decision and exposes shortcuts.
+ * Do not repeat the older empty-chat instruction card beneath it. */
+.rd-v2-synthesis-agent-console + .rd-v2-ask-messages .rd-v2-ask-placeholder[data-testid="synthesis-ask-guidance"] {
+  display: none;
+}
+
 .rd-v2-synthesis-page [data-synthesis-agent-focus="true"] {
   outline: 2px solid color-mix(in srgb, #3f6f5c 38%, transparent);
   outline-offset: 4px;
