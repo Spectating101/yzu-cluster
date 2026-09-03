@@ -80,6 +80,13 @@ jobs:
           --timeout=60000
           --retries=0
           --reporter=line
+      - name: Guard Synthesis in-page AI authority across lifecycle
+        run: >-
+          mkdir -p artifacts/synthesis-authority-workflow &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/synthesis-authority-workflow.spec.js
+          --timeout=60000
+          --retries=0
+          --reporter=line
       - name: Render converged Synthesis frames
         run: mkdir -p .tmp-pw artifacts/synthesis-convergence && TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/synthesis-convergence-render.spec.js --timeout=60000 --retries=0 --reporter=line
       - name: Render desktop Synthesis workflow states
@@ -117,5 +124,6 @@ jobs:
             artifacts/synthesis-scale
             artifacts/synthesis-robustness
             artifacts/synthesis-continuity
+            artifacts/synthesis-authority-workflow
             test-results
           if-no-files-found: warn
