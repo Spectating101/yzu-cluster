@@ -5,6 +5,7 @@ import { useAskChat } from "@/v2/useAskChat";
 import { handleEnterToSubmit } from "@/v2/enterToSubmit";
 import { formatAskText } from "@/v2/askText.jsx";
 import { AskAgentCard } from "@/v2/AskAgentCard.jsx";
+import { SynthesisAgentConsole } from "@/v2/SynthesisAgentConsole.jsx";
 import { displayName } from "@/v2/datasetMeta";
 import { DISCOVER_TAB } from "@/v2/tabIdentity";
 import { decideSynthesisProposal, requestSynthesisExecution } from "@/v2/api";
@@ -133,6 +134,11 @@ export function AskRail({
     ? synthesisSelected.synthesis_ask_prompts.filter(Boolean).slice(0, 4)
     : [];
   const automationOption = synthesisAutomationOption(automationMode);
+  const synthesisApprovalLabel = isSynthesis
+    ? String(synthesisSelected.decision_kind || "") === "approve_execution"
+      ? "Build this revision"
+      : "Approve bound execution"
+    : undefined;
   const hasThread = messages.length > 0;
   const discoverTitle = dataset?.title || dataset?.dataset_id || "";
   const railTitle = isProfile
@@ -320,15 +326,15 @@ export function AskRail({
         <strong>{askEntityTitle || "Ask"}</strong>
         <p className="rd-v2-ask-ctx">{railSubtitle}</p>
       </header>
-      {isSynthesis && automationMode !== SYNTHESIS_AUTOMATION_MODES.MANUAL ? (
-        <p
-          className={`rd-v2-synthesis-auto-note${automationState && !automationState.startsWith("Paused") ? " is-working" : ""}`}
-          data-testid="synthesis-automation-status"
-          title={automationOption.detail}
-        >
-          <b>{automationOption.label}</b>
-          <span>{automationState || automationOption.detail}</span>
-        </p>
+      {isSynthesis && synthesisSelected.thread_id ? (
+        <SynthesisAgentConsole
+          selected={synthesisSelected}
+          busy={busy}
+          status={status}
+          automationState={automationState}
+          automationLabel={automationOption.label}
+          onSend={send}
+        />
       ) : null}
       <div className="rd-v2-ask-messages" data-testid="ask-messages" aria-busy={busy}>
         {messages.length === 0 ? (
@@ -504,6 +510,7 @@ export function AskRail({
                     message={m}
                     busy={busy}
                     approval={approval}
+                    approvalLabel={synthesisApprovalLabel}
                     onSend={send}
                     onApprove={requestApproval}
                   />
