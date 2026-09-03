@@ -14,13 +14,28 @@ export function decisionFor(dataset) {
   return canIUseDecision(dataset);
 }
 
+function sourceAuthorityValue(dataset) {
+  if (dataset?.self_provided || dataset?.upload) return "Self-provided";
+  return String(
+    dataset?.source ||
+      dataset?.publisher ||
+      dataset?.domain ||
+      dataset?.provenance ||
+      "",
+  ).trim();
+}
+
+function accessRouteValue(dataset, fields) {
+  return String(dataset?.collect_via || dataset?.backend || fields.access || "").trim();
+}
+
 function unknowns(dataset, fields, presentation, receipt) {
   const out = [];
   const demotion = demotionSentence(dataset);
   if (demotion) out.push(demotion);
 
-  if (!fields.source && !dataset?.source && !dataset?.source_system && !dataset?.provenance) {
-    out.push("Provenance not reported beyond registry");
+  if (!sourceAuthorityValue(dataset)) {
+    out.push("Source authority not recorded");
   }
   if (!dataset?.self_provided && !dataset?.upload && !receipt.sourceUrl) {
     out.push("Exact source URL not recorded");
@@ -35,7 +50,7 @@ function unknowns(dataset, fields, presentation, receipt) {
   }
 
   if (presentation.kind === "live_source") {
-    if (!dataset?.collect_via && !dataset?.backend && !fields.access && !receipt.method) out.push("Access route not reported");
+    if (!accessRouteValue(dataset, fields) && !receipt.method) out.push("Access route not reported");
     if (!Array.isArray(dataset?.columns) && !Array.isArray(dataset?.fields)) out.push("Declared response shape not reported");
     if (!dataset?.updated_at && !dataset?.last_modified && !dataset?.as_of) out.push("Connection freshness not described");
     return out;
@@ -76,13 +91,8 @@ function Fact({ label, value, mono = false, href = "" }) {
   );
 }
 
-function sourceAuthorityLine(dataset, fields) {
-  if (dataset?.self_provided || dataset?.upload) return "Self-provided";
-  if (fields.source || dataset?.source || dataset?.source_system) {
-    return fields.source || dataset.source || dataset.source_system;
-  }
-  if (dataset?.collect_via || dataset?.backend) return dataset.collect_via || dataset.backend;
-  return "Source authority absent";
+function sourceAuthorityLine(dataset) {
+  return sourceAuthorityValue(dataset) || "Source authority absent";
 }
 
 function askLabel(presentation, state) {
@@ -103,10 +113,10 @@ function reproductionValue(receipt) {
   return receipt.command || receipt.script || receipt.route || "";
 }
 
-function provenanceBasis(dataset, fields, receipt) {
+function provenanceBasis(dataset, receipt) {
   if (dataset?.self_provided || dataset?.upload) return "Self-provided";
   if (receipt.sourceUrl) return "Exact source recorded";
-  if (fields.source || dataset?.source || dataset?.source_system || dataset?.provenance) return "Authority named";
+  if (sourceAuthorityValue(dataset)) return "Authority named";
   return "Not established";
 }
 
@@ -139,11 +149,11 @@ function nextMove({ state, presentation, previewOpen, receipt, verification }) {
   return "Resolve the outstanding readiness or provenance gaps before relying on this asset in analysis.";
 }
 
-function DecisionBasis({ state, verification, dataset, fields, receipt, previewOpen, presentation }) {
+function DecisionBasis({ state, verification, dataset, receipt, previewOpen, presentation }) {
   const rows = [
     ["Readiness", state.label],
     ["Verification", verification.label],
-    ["Provenance", provenanceBasis(dataset, fields, receipt)],
+    ["Provenance", provenanceBasis(dataset, receipt)],
     ["Reproduce", reproductionBasis(receipt)],
   ];
   return (
@@ -184,8 +194,10 @@ export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onAskAbo
   const verification = libraryVerification(dataset);
   const remedy = hydrateRemedy(dataset);
   const archiveRef = String(dataset?.canonical_remote || dataset?.lineage?.canonical_remote || "").trim();
+  const accessRoute = accessRouteValue(dataset, fields);
+  const authority = sourceAuthorityValue(dataset);
   const hasReceiptDetails = Boolean(
-    receipt.sourceUrl || receipt.method || reproductionValue(receipt) || receipt.upstream,
+    receipt.sourceUrl || receipt.method || reproductionValue(receipt) || receipt.upstream || accessRoute,
   );
 
   return (
@@ -217,7 +229,6 @@ export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onAskAbo
           state={state}
           verification={verification}
           dataset={dataset}
-          fields={fields}
           receipt={receipt}
           previewOpen={previewOpen}
           presentation={presentation}
@@ -225,17 +236,20 @@ export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onAskAbo
 
         <section className="rd-v2-library-inspector-block" aria-label="Source" data-testid="library-rail-source">
           <p className="rd-v2-rail-section-label">Source &amp; reproduce</p>
-          <h3 className="rd-v2-library-rail-module-title">{sourceAuthorityLine(dataset, fields)}</h3>
+          <h3 className="rd-v2-library-rail-module-title">{sourceAuthorityLine(dataset)}</h3>
           {hasReceiptDetails ? (
             <div className="rd-v2-library-inspector-facts rd-v2-library-provenance-facts">
               <Fact label={receipt.sourceUrlKind || "Exact source URL"} value={receipt.sourceUrl} href={receipt.sourceUrl} mono />
+              <Fact label="Access route" value={accessRoute} mono />
               <Fact label="Method" value={receipt.method} />
               <Fact label={reproductionLabel(receipt)} value={reproductionValue(receipt)} mono />
               <Fact label="Upstream assets" value={receipt.upstream} mono />
             </div>
           ) : (
             <p className="rd-v2-library-inspector-prose muted">
-              The source authority is named, but no exact reproduction receipt is recorded for this asset.
+              {authority
+                ? "The source authority is named, but no exact reproduction receipt is recorded for this asset."
+                : "No source authority or exact reproduction receipt is recorded for this asset."}
             </p>
           )}
         </section>
