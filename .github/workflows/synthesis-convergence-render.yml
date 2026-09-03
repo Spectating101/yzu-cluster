@@ -80,6 +80,13 @@ jobs:
           --timeout=60000
           --retries=0
           --reporter=line
+      - name: Guard Synthesis terminal-depth observability
+        run: >-
+          mkdir -p artifacts/synthesis-forensics &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/synthesis-forensic-depth.spec.js
+          --timeout=60000
+          --retries=0
+          --reporter=line
       - name: Guard Synthesis in-page AI authority across lifecycle
         run: >-
           mkdir -p artifacts/synthesis-authority-workflow &&
@@ -124,6 +131,7 @@ jobs:
             artifacts/synthesis-scale
             artifacts/synthesis-robustness
             artifacts/synthesis-continuity
+            artifacts/synthesis-forensics
             artifacts/synthesis-authority-workflow
             test-results
           if-no-files-found: warn
