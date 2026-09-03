@@ -172,14 +172,14 @@ test("Synthesis exposes terminal-depth method, row, runtime, and multi-run proof
   await expect(run).toContainText("Validating bounded Preview receipt");
   const trace = page.getByTestId("synthesis-agent-trace");
   await expect(trace).toBeVisible();
-  await expect(trace.locator("summary")).toContainText("9 operations · 2 runs");
-  await trace.locator("summary").click();
+  await expect(trace.locator(":scope > summary")).toContainText("9 operations · 2 runs");
+  await trace.locator(":scope > summary").click();
   await expect(trace).toContainText("Inspecting evidence operation 1");
   await expect(trace).toContainText("Drafting exact method proposal");
 
   const forensics = page.getByTestId("synthesis-forensics");
   await expect(forensics).toBeVisible();
-  await forensics.locator("summary").click();
+  await forensics.locator(":scope > summary").click();
 
   const diff = page.getByTestId("synthesis-research-diff");
   await expect(diff).toContainText("grain");
