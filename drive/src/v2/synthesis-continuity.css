@@ -1,0 +1,90 @@
+/*
+ * Synthesis continuity pass.
+ *
+ * The lifecycle remains deliberately fine-grained, but the researcher should
+ * experience one desk evolving rather than a succession of unrelated pages.
+ * These rules remove redundant progress chrome, keep a stable high-level phase
+ * cue in the thread header, and let the exact Proposal become the dominant
+ * review surface instead of stacking opening-state guidance above it.
+ */
+
+.rd-v2-synthesis-page[data-synthesis-workspace-phase="design"] .s04-head > div > small::before {
+  content: "DESIGN · ";
+}
+
+.rd-v2-synthesis-page[data-synthesis-workspace-phase="review"] .s04-head > div > small::before {
+  content: "REVIEW · ";
+}
+
+.rd-v2-synthesis-page[data-synthesis-workspace-phase="execute"] .s04-head > div > small::before {
+  content: "EXECUTE · ";
+}
+
+.rd-v2-synthesis-page[data-synthesis-workspace-phase] .s04-head > div > small::before {
+  font-weight: 800;
+  letter-spacing: .08em;
+  opacity: .72;
+}
+
+.rd-v2-synthesis-page [data-testid="synthesis-scope-block"],
+.rd-v2-synthesis-page [data-testid="synthesis-unit-conflict"],
+.rd-v2-synthesis-page [data-testid="synthesis-join-decision"],
+.rd-v2-synthesis-page [data-testid="synthesis-proposal-state"],
+.rd-v2-synthesis-page [data-testid="synthesis-preview-state"],
+.rd-v2-synthesis-page [data-testid="synthesis-execution-state"],
+.rd-v2-synthesis-page [data-testid="synthesis-failed-state"],
+.rd-v2-synthesis-page [data-testid="synthesis-registered-state"],
+.rd-v2-synthesis-page [data-testid="synthesis-query-ready-state"] {
+  scroll-margin-top: 112px;
+}
+
+@media (min-width: 1121px) {
+  /*
+   * Once an execution specification exists, ExecutionRecord already carries
+   * the six-stage authority proof. The older five-stage strip above it is a
+   * second competing map of the same work and is the main source of perceived
+   * page switching. Keep one authoritative progress surface instead.
+   */
+  .rd-v2-synthesis-page .s04-steps {
+    display: none !important;
+  }
+
+  /*
+   * Proposal is the review surface. Opening guidance and the earlier
+   * recommendation have already done their job by this point; leaving all
+   * three expanded makes the researcher traverse old state before reaching the
+   * actual decision. Evidence and method surfaces remain below for inspection.
+   */
+  .rd-v2-synthesis-page[data-synthesis-workspace-phase="review"]
+    .s04-main:has([data-testid="synthesis-proposal-state"])
+    .s04-opening-workflow-wrap,
+  .rd-v2-synthesis-page[data-synthesis-workspace-phase="review"]
+    .s04-main:has([data-testid="synthesis-proposal-state"])
+    .s04-opening-construction,
+  .rd-v2-synthesis-page[data-synthesis-workspace-phase="review"]
+    .s04-main:has([data-testid="synthesis-proposal-state"])
+    .s04-opening-next {
+    display: none !important;
+  }
+
+  /* Keep the surviving review/build card visually anchored as state evolves. */
+  .rd-v2-synthesis-page[data-synthesis-workspace-phase="review"] [data-testid="synthesis-proposal-state"],
+  .rd-v2-synthesis-page[data-synthesis-workspace-phase="review"] [data-testid="synthesis-execution-state"],
+  .rd-v2-synthesis-page[data-synthesis-workspace-phase="execute"] [data-testid="synthesis-execution-state"],
+  .rd-v2-synthesis-page[data-synthesis-workspace-phase="execute"] [data-testid="synthesis-failed-state"],
+  .rd-v2-synthesis-page[data-synthesis-workspace-phase="execute"] [data-testid="synthesis-registered-state"],
+  .rd-v2-synthesis-page[data-synthesis-workspace-phase="execute"] [data-testid="synthesis-query-ready-state"] {
+    margin-top: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .rd-v2-synthesis-page [data-synthesis-landed="true"] {
+    animation: synthesis-continuity-land 420ms ease-out;
+  }
+}
+
+@keyframes synthesis-continuity-land {
+  from { box-shadow: 0 0 0 2px color-mix(in srgb, currentColor 10%, transparent); }
+  to { box-shadow: inherit; }
+}
