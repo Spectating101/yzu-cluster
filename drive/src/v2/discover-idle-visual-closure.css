@@ -1,0 +1,156 @@
+/* Final wide-desktop closure for Discover's pre-search state.
+ * Scope is deliberately idle-only: Results, selected evaluation, and History
+ * retain their already-certified composition.
+ */
+@media (min-width: 1680px) and (min-height: 900px) {
+  /* Let the two evidence territories size to their content instead of stretching
+     to the tallest legacy candidate row. */
+  .rd-v2-discover-page .rd-v2-discover-idle-held {
+    align-items: start !important;
+    grid-template-rows: auto auto !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held > .rd-v2-discover-coverage {
+    align-self: start !important;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-coverage-assets > li {
+    min-height: 49px !important;
+    padding-block: 7px !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-coverage-asset-main > strong {
+    font-size: 11px !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-coverage-asset-main > span,
+  .rd-v2-discover-page .rd-v2-discover-coverage-asset-meta > em {
+    font-size: 8.8px !important;
+  }
+
+  /* Known routes are examples of reach, not full SERP records. Explicitly own
+     the li and button geometry so old flagship/card min-heights cannot reappear. */
+  html body .rd-v2-shell .rd-v2-discover-page
+    .rd-v2-discover-idle-held > ul.rd-v2-discover-candidates {
+    align-self: start !important;
+    grid-auto-rows: max-content !important;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  html body .rd-v2-shell .rd-v2-discover-page
+    .rd-v2-discover-idle-held > ul.rd-v2-discover-candidates > li {
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  html body .rd-v2-shell .rd-v2-discover-page
+    .rd-v2-discover-idle-held > ul.rd-v2-discover-candidates > li > button.row.rd-v2-discover-candidate {
+    display: grid !important;
+    grid-template-columns: 54px minmax(0, 1fr) !important;
+    align-items: start !important;
+    gap: 9px !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 10px 11px !important;
+    margin: 0 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate-source {
+    display: block !important;
+    padding-top: 1px !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-source-ribbon,
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-ribbon {
+    max-width: 54px !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate-main {
+    display: grid !important;
+    gap: 3px !important;
+    min-width: 0 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate-title {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    line-height: 1.25 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-possession {
+    font-size: 8px !important;
+    line-height: 1.25 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-evidence {
+    display: -webkit-box !important;
+    overflow: hidden !important;
+    color: var(--rd-muted, #6e7685) !important;
+    font-size: 9px !important;
+    line-height: 1.35 !important;
+    white-space: normal !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+  }
+
+  /* The first-load fallback must not impersonate an empty product module. */
+  .rd-v2-discover-page .rd-v2-discover-idle-held > p.muted {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    align-self: start !important;
+    display: block !important;
+    min-height: 0 !important;
+    height: auto !important;
+    padding: 13px 14px !important;
+    border-style: solid !important;
+    background: color-mix(in srgb, var(--rd-surface, #fffdf6) 70%, transparent) !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held > p.muted::before {
+    content: "BEYOND YOUR LIBRARY" !important;
+    display: block !important;
+    margin-bottom: 5px !important;
+    color: #596f67 !important;
+    font: 720 8px/1.2 var(--rd-mono, ui-monospace, monospace) !important;
+    letter-spacing: .1em !important;
+  }
+
+  /* Search examples should read as affordances, not debug labels. */
+  .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer-examples span {
+    font-size: 8.5px !important;
+    letter-spacing: .055em !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer-examples em {
+    font-size: 10.5px !important;
+  }
+
+  /* Direct inspection is a real entry point. Keep it quiet, but don't let it
+     disappear into helper-copy grey. */
+  .rd-v2-discover-page .rd-v2-discover-idle-intake {
+    padding-top: 13px !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-intake label {
+    font-size: 9px !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-intake::after {
+    color: color-mix(in srgb, var(--rd-muted, #6e7685) 90%, var(--rd-text, #182033) 10%) !important;
+    font-size: 8.5px !important;
+  }
+
+  /* The situation block already explains the idle task. A second empty-state
+     instruction below it is repetition, not useful detail. */
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-rail-empty-state {
+    display: none !important;
+  }
+}
