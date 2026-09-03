@@ -44,6 +44,8 @@ jobs:
         run: >-
           npx playwright test
           e2e/v2-library.spec.js
+          e2e/v2-preview.spec.js
+          e2e/library-pagination-continuity.spec.js
           e2e/library-retrieval-excellence-render.spec.js
           --reporter=line
         env:
@@ -55,6 +57,7 @@ jobs:
           npx playwright test
           e2e/library-convergence-render.spec.js
           e2e/library-visual-depth-render.spec.js
+          e2e/library-preview-closure-render.spec.js
           --reporter=line
         env:
           CI: "true"

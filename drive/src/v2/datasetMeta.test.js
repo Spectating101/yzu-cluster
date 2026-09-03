@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   canIUseDecision,
   demotionSentence,
+  detailFields,
   hydrateRemedy,
   isQueryReadyReadiness,
   libraryAssetKind,
@@ -114,6 +115,17 @@ test("Can I use this keeps the demotion and does not drop the hydrate remedy", (
   assert.equal(decision.headline, "Not query-ready");
   assert.match(decision.body, /local bytes are missing/);
   assert.match(decision.body, /vault archive is available to restore local bytes/);
+});
+
+test("detail source authority never falls back to transport backend", () => {
+  assert.equal(
+    detailFields({ backend: "bigquery_api", collect_via: "BigQuery" }).source,
+    null,
+  );
+  assert.equal(
+    detailFields({ source_system: "GDELT news graph", backend: "local_sqlite" }).source,
+    "GDELT news graph",
+  );
 });
 
 test("a procured paper is presented as a scholarly work, not a tabular dataset", () => {
