@@ -75,7 +75,17 @@ test.describe("v2 Library provenance semantics", () => {
     await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
 
-    await page.getByTestId("library-evidence-row").filter({ hasText: "Transport-only research asset" }).click();
+    const row = page.getByTestId("library-evidence-row").filter({ hasText: "Transport-only research asset" });
+    await expect(row.locator(".rd-v2-cap-source")).toHaveText("Not recorded");
+    await row.click();
+
+    const workspace = page.getByTestId("library-asset-workspace");
+    const claims = workspace.getByLabel("Evidence claims");
+    await expect(claims).toContainText("Source");
+    await expect(claims).toContainText("Not declared");
+    await expect(claims).not.toContainText("bigquery_api");
+    await expect(claims).not.toContainText("bigquery_connector");
+
     const rail = page.locator("aside.rd-v2-rail");
     const source = page.getByTestId("library-rail-source");
     await expect(source.getByRole("heading", { name: "Source authority absent" })).toBeVisible();
