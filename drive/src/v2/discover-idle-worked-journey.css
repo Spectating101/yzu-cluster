@@ -1,0 +1,228 @@
+/* Discover idle — worked research journey.
+ * A pre-search surface should demonstrate the product's transformation, not
+ * enumerate architecture. This wide-only layer turns the existing truthful
+ * radar DOM into an explicitly illustrative research journey while preserving
+ * the actual search composer and grounded Library/source evidence below.
+ */
+@media (min-width: 1680px) and (min-height: 900px) {
+  /* Worked example header ------------------------------------------------ */
+  .rd-v2-discover-page .rd-v2-discover-radar-head {
+    grid-template-columns: minmax(0, 1fr) 230px !important;
+    padding: 18px 21px 17px !important;
+    background:
+      radial-gradient(circle at 82% 0%, rgba(137, 181, 157, .16), transparent 30%),
+      linear-gradient(135deg, #1b2925 0%, #243731 62%, #1b2a25 100%) !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-head .rd-v2-eyebrow::after {
+    content: "EXAMPLE RESEARCH JOURNEY" !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-head h2::after {
+    content: "What data can I use to study stablecoin de-pegs?" !important;
+    max-width: 900px !important;
+    font-size: 22px !important;
+    line-height: 1.16 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-head p::after {
+    content: "One submission can search what is already registered, inspect known external routes, widen into semantic / live providers and web context, then evaluate whether those sources actually answer the research need." !important;
+    max-width: 930px !important;
+    font-size: 10px !important;
+    line-height: 1.5 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-state::before {
+    content: "QUESTION MODE" !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-state::after {
+    content: "Fast results paint first. Coverage assessment + contextual Ask continue without blocking the result list." !important;
+    max-width: 24ch !important;
+    font-size: 9.2px !important;
+  }
+
+  /* Evidence federation -------------------------------------------------- */
+  .rd-v2-discover-page .rd-v2-discover-capability-ledger {
+    position: relative !important;
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 0 !important;
+    padding: 28px 16px 0 !important;
+    background: #f4f6f2 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-capability-ledger::before {
+    content: "EVIDENCE FEDERATION" !important;
+    position: absolute !important;
+    top: 10px !important;
+    left: 18px !important;
+    color: #5f776c !important;
+    font: 740 8px/1.2 var(--rd-mono, ui-monospace, monospace) !important;
+    letter-spacing: .11em !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-capability-ledger > span:nth-child(n+5) {
+    display: none !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-capability-ledger > span {
+    position: relative !important;
+    grid-template-columns: 22px minmax(0, 1fr) !important;
+    min-height: 61px !important;
+    padding: 11px 13px 12px !important;
+    background: transparent !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-capability-ledger > span:not(:last-of-type)::after {
+    content: "→" !important;
+    position: absolute !important;
+    top: 22px !important;
+    right: -4px !important;
+    z-index: 2 !important;
+    display: grid !important;
+    place-items: center !important;
+    width: 12px !important;
+    height: 12px !important;
+    border-radius: 50% !important;
+    background: #f4f6f2 !important;
+    color: #789084 !important;
+    font: 600 8px/1 var(--rd-sans, ui-sans-serif, system-ui, sans-serif) !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-capability-ledger > span > b,
+  .rd-v2-discover-page .rd-v2-discover-capability-ledger > span > em {
+    font-size: 0 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-capability-ledger > span > b::after {
+    display: block !important;
+    color: #1f2e29 !important;
+    font: 710 10px/1.22 var(--rd-sans, ui-sans-serif, system-ui, sans-serif) !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-capability-ledger > span > em::after {
+    display: block !important;
+    margin-top: 3px !important;
+    color: #68756f !important;
+    font: 470 8.4px/1.35 var(--rd-sans, ui-sans-serif, system-ui, sans-serif) !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-capability-ledger > span:nth-child(1) > b::after {
+    content: "Library index" !important;
+  }
+  .rd-v2-discover-page .rd-v2-discover-capability-ledger > span:nth-child(1) > em::after {
+    content: "held + query-ready evidence" !important;
+  }
+  .rd-v2-discover-page .rd-v2-discover-capability-ledger > span:nth-child(2) > b::after {
+    content: "Known source routes" !important;
+  }
+  .rd-v2-discover-page .rd-v2-discover-capability-ledger > span:nth-child(2) > em::after {
+    content: "catalogued providers and routes" !important;
+  }
+  .rd-v2-discover-page .rd-v2-discover-capability-ledger > span:nth-child(3) > b::after {
+    content: "Semantic + live" !important;
+  }
+  .rd-v2-discover-page .rd-v2-discover-capability-ledger > span:nth-child(3) > em::after {
+    content: "progressive external enrichment" !important;
+  }
+  .rd-v2-discover-page .rd-v2-discover-capability-ledger > span:nth-child(4) > b::after {
+    content: "Web context" !important;
+  }
+  .rd-v2-discover-page .rd-v2-discover-capability-ledger > span:nth-child(4) > em::after {
+    content: "references + source documentation" !important;
+  }
+
+  /* Evidence reasoning trace -------------------------------------------- */
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution {
+    grid-template-columns: 230px minmax(0, 1fr) !important;
+    align-items: stretch !important;
+    gap: 15px !important;
+    padding: 14px 18px 15px !important;
+    background: #fbfcf8 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution > header {
+    align-content: center !important;
+    border-right: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, #8ba096 28%) !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution > header .rd-v2-eyebrow::after {
+    content: "EVIDENCE TRACE" !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution > header strong::after {
+    content: "The useful output is the gap — not another search count." !important;
+    max-width: 20ch !important;
+    margin-top: 3px !important;
+    font-size: 11px !important;
+    line-height: 1.35 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow {
+    grid-template-columns: minmax(0, .95fr) 11px minmax(0, 1.05fr) 11px minmax(0, 1.15fr) 11px minmax(0, 1.12fr) !important;
+    gap: 6px !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span {
+    min-height: 66px !important;
+    padding: 9px 9px 8px !important;
+    border-radius: 6px !important;
+    background: #f7f8f4 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span:nth-of-type(3) {
+    border-color: #caa977 !important;
+    background: #fffaf0 !important;
+    box-shadow: inset 3px 0 0 #b98c51 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span:nth-of-type(4) {
+    border-color: #8fb5a3 !important;
+    background: #f2f8f3 !important;
+    box-shadow: inset 3px 0 0 #648d79 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span:nth-of-type(1)::after {
+    content: "Available evidence" !important;
+  }
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span:nth-of-type(1)::before {
+    content: "events · market history · on-chain activity" !important;
+  }
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span:nth-of-type(2)::after {
+    content: "Coverage assessment" !important;
+  }
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span:nth-of-type(2)::before {
+    content: "compare the requirement against held + external evidence" !important;
+  }
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span:nth-of-type(3)::after {
+    content: "Exact gap named" !important;
+  }
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span:nth-of-type(3)::before {
+    content: "harmonized exchange-level daily volume" !important;
+  }
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span:nth-of-type(4)::after {
+    content: "Planned dataset" !important;
+  }
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span:nth-of-type(4)::before {
+    content: "exchange × stablecoin × day · price · volume · event day" !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution::after {
+    content: "Illustrative journey only. The real assessment begins after submit; source feasibility, access, coverage, and collection remain explicit unknowns until observed or reviewed." !important;
+    color: #76817d !important;
+    font-size: 8.2px !important;
+    line-height: 1.42 !important;
+  }
+
+  /* The actual holdings/routes beneath are proof that this is not a marketing
+     diagram. Tighten their labels so the worked journey remains primary. */
+  .rd-v2-discover-page .rd-v2-discover-idle-held {
+    margin-top: 12px !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-coverage-eyebrow::after {
+    content: " · CURRENT REACH" !important;
+    opacity: .72 !important;
+  }
+}
