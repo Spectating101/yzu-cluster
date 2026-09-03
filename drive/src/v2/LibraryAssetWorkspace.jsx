@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { queryDataset } from "@/v2/api";
 import {
   detailFields,
@@ -81,6 +81,35 @@ function ReceiptFact({ label, value: factValue, href = "", mono = false, testId 
 }
 
 function AssetOverlay({ kind, dataset, fields, presentation, onClose }) {
+  const closeButtonRef = useRef(null);
+  const restoreFocusRef = useRef(null);
+  const onCloseRef = useRef(onClose);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  useEffect(() => {
+    if (!kind) return undefined;
+    restoreFocusRef.current = document.activeElement;
+    const frame = window.requestAnimationFrame(() => closeButtonRef.current?.focus());
+    const handleEscape = (event) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      event.stopPropagation();
+      onCloseRef.current?.();
+    };
+    document.addEventListener("keydown", handleEscape, true);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      document.removeEventListener("keydown", handleEscape, true);
+      const previousFocus = restoreFocusRef.current;
+      window.requestAnimationFrame(() => {
+        if (previousFocus?.isConnected) previousFocus.focus?.();
+      });
+    };
+  }, [kind]);
+
   if (!kind) return null;
   const scholarly = presentation.kind === "scholarly_work";
   const liveSource = presentation.kind === "live_source";
@@ -98,7 +127,7 @@ function AssetOverlay({ kind, dataset, fields, presentation, onClose }) {
             <span className="rd-v2-eyebrow">Library inspection</span>
             <h2>{title}</h2>
           </div>
-          <button type="button" className="rd-v2-btn sm" onClick={onClose} aria-label="Close inspection">Close</button>
+          <button ref={closeButtonRef} type="button" className="rd-v2-btn sm" onClick={onClose} aria-label="Close inspection">Close</button>
         </header>
         {kind === "fields" ? (
           scholarly ? (
