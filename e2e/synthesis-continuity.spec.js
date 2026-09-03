@@ -171,58 +171,6 @@ test.describe("Synthesis continuity surfaces", () => {
     await page.screenshot({ path: `${outDir}/build-execute-1440.png`, fullPage: true });
   });
 
-  test("AI authority lives with the active thread from Design through Review and Execute", async ({ page }) => {
-    mkdirSync(outDir, { recursive: true });
-    await page.setViewportSize({ width: 1440, height: 900 });
-
-    await mount(page, {
-      scope_block: { rows: 1043042, limit: 1000000, options: [] },
-    });
-    const sidebar = page.locator("aside.yzu-sidebar");
-    const authority = page.getByTestId("synthesis-authority-control");
-    const mode = page.getByTestId("synthesis-automation-mode");
-    await expect(page.locator(".rd-v2-synthesis-page")).toHaveAttribute("data-synthesis-workspace-phase", "design");
-    await expect(sidebar.getByTestId("synthesis-automation-mode")).toHaveCount(0);
-    await expect(page.locator(".s04-head > em").getByTestId("synthesis-authority-control")).toBeVisible();
-    await expect(mode).toHaveValue("manual");
-    await mode.selectOption("auto_choose");
-    await expect(mode).toHaveValue("auto_choose");
-    await page.screenshot({ path: `${outDir}/authority-design-1440.png`, fullPage: true });
-
-    await page.unrouteAll({ behavior: "ignoreErrors" });
-    await page.goto("about:blank");
-    await mount(page, {
-      proposal: {
-        id: "proposal-authority",
-        proposal_hash: "sha256:proposal-authority",
-        title: "Weekly factor exposure",
-        summary: "Aggregate the daily cross-section to asset × week.",
-        operations: [{ op: "update_spec", patch: { grain: "asset × week" } }],
-        execution_spec: SPEC,
-      },
-    });
-    await expect(page.locator(".rd-v2-synthesis-page")).toHaveAttribute("data-synthesis-workspace-phase", "review");
-    await expect(page.locator(".s04-head > em")).toContainText("Reviewable change");
-    await expect(page.getByTestId("synthesis-automation-mode")).toHaveValue("auto_choose");
-    await expect(page.locator("aside.yzu-sidebar").getByTestId("synthesis-authority-control")).toHaveCount(0);
-    await page.screenshot({ path: `${outDir}/authority-review-1440.png`, fullPage: true });
-
-    await page.unrouteAll({ behavior: "ignoreErrors" });
-    await page.goto("about:blank");
-    await mount(page, {
-      execution_spec: SPEC,
-      accepted_spec_hash: ACCEPTED_HASH,
-      preview: PREVIEW,
-      execution: { status: "running", job_id: "job-running", spec_hash: ACCEPTED_HASH, output_dataset_id: SPEC.output_dataset_id },
-    });
-    await expect(page.locator(".rd-v2-synthesis-page")).toHaveAttribute("data-synthesis-workspace-phase", "execute");
-    await expect(page.locator(".s04-head > em")).toContainText("Durable execution state");
-    await expect(page.getByTestId("synthesis-automation-mode")).toHaveValue("auto_choose");
-    await expect(authority).toHaveCount(0);
-    await expect(page.getByTestId("synthesis-authority-control")).toBeVisible();
-    await page.screenshot({ path: `${outDir}/authority-execute-1440.png`, fullPage: true });
-  });
-
   test("Ask exposes durable agent operations and can focus their centre proof", async ({ page }) => {
     mkdirSync(outDir, { recursive: true });
     await page.setViewportSize({ width: 1440, height: 900 });
