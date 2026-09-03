@@ -10,6 +10,7 @@ const DATASET = {
   description: "Country-day news intensity and market-risk research panel aggregated into one logical Library object across several research storage systems.",
   grain: "country_day",
   analysis_readiness: "instant",
+  local_root: "research_panels/gdelt_federated",
   source: "GDELT GKG",
   join_keys: ["date", "country_iso3"],
   columns: ["date", "country_iso3", "article_count", "news_risk", "market_return"],
