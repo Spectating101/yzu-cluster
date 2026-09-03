@@ -9,10 +9,21 @@ test.describe("v2 adaptive Preview", () => {
     await waitForShell(page);
   });
 
-  test("owned datasets open as a bounded rows and fields viewer", async ({ page }) => {
+  test("owned datasets keep inspection local and open a bounded rows and fields viewer", async ({ page }) => {
     await page.getByRole("textbox", { name: "Search library holdings" }).fill("Asia");
     await page.getByTestId("library-evidence-row").filter({ hasText: "Asia daily news-risk panel" }).click();
-    await page.locator("aside.rd-v2-rail").getByRole("button", { name: "Preview rows" }).click();
+
+    const workspace = page.getByTestId("library-asset-workspace");
+    const inspectSchema = workspace.getByRole("button", { name: "Inspect schema" });
+    await inspectSchema.click();
+    const schemaOverlay = page.getByRole("dialog", { name: "Declared structure" });
+    await expect(schemaOverlay).toBeVisible();
+    await expect(schemaOverlay.getByRole("button", { name: "Close inspection" })).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(schemaOverlay).toHaveCount(0);
+    await expect(inspectSchema).toBeFocused();
+
+    await workspace.getByRole("button", { name: "Full preview" }).click();
 
     const preview = page.getByRole("dialog", { name: "Asia daily news-risk panel preview" });
     await expect(preview).toBeVisible();
@@ -37,5 +48,7 @@ test.describe("v2 adaptive Preview", () => {
 
     await preview.getByRole("button", { name: "Close preview" }).click();
     await expect(preview).toHaveCount(0);
+    await expect(workspace).toBeVisible();
+    await expect(workspace).toContainText("Asia daily news-risk panel");
   });
 });
