@@ -1,0 +1,229 @@
+/* Discover selected-source visual integration — wide workstation only.
+ * Work inside the existing three-zone Explore shell. No new page architecture.
+ * The right rail should read as one continuous evidence dossier rather than a
+ * stack of unrelated cards, while keeping the established paper/terminal grammar.
+ */
+@media (min-width: 1680px) and (min-height: 900px) {
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-identity {
+    padding: 11px 13px 10px !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, transparent) !important;
+    background: #fbfaf5 !important;
+  }
+
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-title {
+    margin-top: 3px !important;
+    font-size: 14px !important;
+    line-height: 1.22 !important;
+    letter-spacing: -.012em !important;
+  }
+
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-source,
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-estate-crumb {
+    margin-top: 4px !important;
+    font-size: 8px !important;
+    line-height: 1.35 !important;
+  }
+
+  /* Keep the existing decision treatment, but make it feel like the opening
+     verdict of the dossier rather than an independent SaaS card. */
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-decision {
+    margin: 10px 12px 0 !important;
+    padding: 10px 11px 9px !important;
+    border: 1px solid color-mix(in srgb, #6f9b86 34%, var(--rd-border, #dbd4c5)) !important;
+    border-left: 3px solid #6e9985 !important;
+    border-radius: 5px !important;
+    background: color-mix(in srgb, #edf5ef 72%, #fffdf8 28%) !important;
+    box-shadow: none !important;
+  }
+
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-decision-headline {
+    margin-top: 4px !important;
+    font-size: 11px !important;
+    line-height: 1.25 !important;
+  }
+
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-decision-body {
+    margin-top: 4px !important;
+    font-size: 8.5px !important;
+    line-height: 1.45 !important;
+  }
+
+  /* Library comparison is evidence, not another card. Give it a ruled dossier
+     treatment and preserve any structured comparison rows already supplied. */
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-sufficiency {
+    margin: 10px 12px 0 !important;
+    padding: 0 0 10px !important;
+    border: 0 !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 82%, transparent) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-sufficiency-copy {
+    padding: 0 !important;
+  }
+
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-sufficiency-compare {
+    margin-top: 8px !important;
+    border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 74%, transparent) !important;
+    border-radius: 5px !important;
+    overflow: hidden !important;
+    background: #faf9f4 !important;
+  }
+
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-scroll {
+    padding: 0 12px 12px !important;
+  }
+
+  /* Existing Useful for / Coverage / Offering profile blocks become a single
+     ruled evidence sheet. Their semantic ordering remains untouched. */
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-scroll > .rd-v2-eval-block,
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-strategy-card {
+    margin: 0 !important;
+    padding: 10px 0 !important;
+    border: 0 !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 75%, transparent) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-section-label,
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-strategy-label {
+    color: #61766d !important;
+    font-size: 7.5px !important;
+    letter-spacing: .09em !important;
+  }
+
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-prose,
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-list {
+    font-size: 8.5px !important;
+    line-height: 1.45 !important;
+  }
+
+  /* Unknowns remain visually decisive, but compact enough that the source
+     inspection affordance is visible in the same viewport. */
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-evidence-grid {
+    display: block !important;
+    margin: 9px 0 0 !important;
+  }
+
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-verified {
+    margin: 0 0 7px !important;
+    padding: 8px 9px !important;
+    border: 1px solid #c9d9cf !important;
+    border-radius: 5px !important;
+    background: #f0f5f1 !important;
+  }
+
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-unknown {
+    margin: 0 !important;
+    padding: 9px 10px !important;
+    border: 1px solid #e4d0ad !important;
+    border-radius: 5px !important;
+    background: #fbf5e9 !important;
+  }
+
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-checklist {
+    gap: 5px !important;
+    margin-top: 7px !important;
+  }
+
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-checklist li {
+    font-size: 8.5px !important;
+    line-height: 1.35 !important;
+  }
+
+  /* Technical evidence is the existing source-inspection surface. Make that
+     affordance visually first-class without inventing another global Preview tab. */
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-tech {
+    margin: 10px 0 0 !important;
+    border: 1px solid #cfd8d2 !important;
+    border-radius: 5px !important;
+    overflow: hidden !important;
+    background: #f5f7f3 !important;
+  }
+
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-tech > summary {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+    min-height: 34px !important;
+    padding: 8px 10px !important;
+    color: #385c4d !important;
+    font-size: 8.5px !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    list-style: none !important;
+  }
+
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-tech > summary::-webkit-details-marker {
+    display: none !important;
+  }
+
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-tech > summary::after {
+    content: "INSPECT" !important;
+    color: #72877e !important;
+    font: 720 7px/1.2 var(--rd-mono, ui-monospace, monospace) !important;
+    letter-spacing: .08em !important;
+  }
+
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-tech[open] > summary {
+    border-bottom: 1px solid #d8dfda !important;
+    background: #eef3ef !important;
+  }
+
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-tech[open] > summary::after {
+    content: "OBSERVED FACTS" !important;
+  }
+
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-tech-body,
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-tech > .rd-v2-eval-prose {
+    padding: 9px 10px 10px !important;
+    font-size: 8px !important;
+  }
+
+  /* Ask stays available but visually subordinate to evidence inspection. */
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-ask-chips {
+    margin: 10px 0 0 !important;
+    padding: 9px 0 2px !important;
+    border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, transparent) !important;
+  }
+
+  .rd-v2-eval-rail .rd-v2-eval-surface[data-lifecycle=""] .rd-v2-eval-ask-chips .rd-v2-chip {
+    min-height: 25px !important;
+    padding: 5px 7px !important;
+    font-size: 7.5px !important;
+    background: #fbfaf6 !important;
+  }
+
+  /* Preserve the existing approval hierarchy while giving the secondary source
+     action enough visual presence to read as part of the same decision footer. */
+  .rd-v2-eval-rail + .rd-v2-eval-actions,
+  .rd-v2-eval-actions:has(+ .rd-v2-eval-rail) {
+    background: #fbfaf5 !important;
+  }
+
+  .rd-v2-eval-actions {
+    padding: 9px 12px 10px !important;
+    gap: 6px !important;
+    border-top-color: color-mix(in srgb, var(--rd-border, #dbd4c5) 86%, #788f84 14%) !important;
+  }
+
+  .rd-v2-eval-actions .rd-v2-eval-primary-action {
+    min-height: 34px !important;
+    border-radius: 6px !important;
+  }
+
+  .rd-v2-eval-actions-wide {
+    gap: 6px !important;
+  }
+
+  .rd-v2-eval-actions-wide > .rd-v2-btn {
+    min-height: 31px !important;
+    border-radius: 6px !important;
+    background: #fbfaf6 !important;
+  }
+}
