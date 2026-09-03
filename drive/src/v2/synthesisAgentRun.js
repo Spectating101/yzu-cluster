@@ -1,5 +1,8 @@
 export const SYNTHESIS_AGENT_ACTIVITY_EVENT = "synthesis:agent-activity";
 
+const MAX_ACTIVE_STEPS = 80;
+const MAX_HISTORY_RUNS = 12;
+
 function selectorForActivity(value = "") {
   const text = String(value || "").toLowerCase();
   if (!text) return "";
@@ -48,6 +51,7 @@ export function emptySynthesisAgentRun(threadId = "") {
     startedAt: null,
     updatedAt: null,
     steps: [],
+    history: [],
   };
 }
 
@@ -70,6 +74,27 @@ function normalizeStep(step = {}) {
   };
 }
 
+function normalizeArchivedRun(run = {}, threadId = "") {
+  if (!run?.id || !Array.isArray(run?.steps)) return null;
+  return {
+    threadId: String(run.threadId || threadId || ""),
+    id: String(run.id),
+    state: run.state === "paused" ? "paused" : "complete",
+    startedAt: Number(run.startedAt) || null,
+    updatedAt: Number(run.updatedAt) || null,
+    steps: run.steps.map(normalizeStep).filter(Boolean).slice(-MAX_ACTIVE_STEPS),
+  };
+}
+
+function archiveCurrentRun(run) {
+  if (!run?.id || !run?.steps?.length) return Array.isArray(run?.history) ? run.history : [];
+  const archived = normalizeArchivedRun(run, run.threadId);
+  const history = Array.isArray(run.history) ? run.history : [];
+  if (!archived) return history;
+  const withoutSameRun = history.filter((item) => item?.id !== archived.id);
+  return [...withoutSameRun, archived].slice(-MAX_HISTORY_RUNS);
+}
+
 function appendRunStep(run, detail = {}) {
   const step = normalizeStep(detail);
   if (!step) return run;
@@ -77,7 +102,7 @@ function appendRunStep(run, detail = {}) {
   if (last?.text === step.text && last?.action === step.action) return run;
   return {
     ...run,
-    steps: [...(run.steps || []), step].slice(-6),
+    steps: [...(run.steps || []), step].slice(-MAX_ACTIVE_STEPS),
     updatedAt: step.at,
   };
 }
@@ -90,8 +115,10 @@ export function reduceSynthesisAgentRun(current, detail = {}) {
   let next = current?.threadId === threadId ? current : emptySynthesisAgentRun(threadId);
 
   if (kind === "run_started") {
+    const history = archiveCurrentRun(next);
     next = {
       ...emptySynthesisAgentRun(threadId),
+      history,
       id: String(detail.runId || `ask-${at}`),
       state: "running",
       startedAt: at,
@@ -103,6 +130,7 @@ export function reduceSynthesisAgentRun(current, detail = {}) {
   if (!next.id) {
     next = {
       ...emptySynthesisAgentRun(threadId),
+      history: Array.isArray(next.history) ? next.history : [],
       id: String(detail.runId || `run-${at}`),
       state: "running",
       startedAt: at,
@@ -135,7 +163,11 @@ export function loadSynthesisAgentRun(threadId) {
       ...emptySynthesisAgentRun(threadId),
       ...parsed,
       state: parsed.state === "running" ? "complete" : parsed.state,
-      steps: parsed.steps.map(normalizeStep).filter(Boolean).slice(-6),
+      steps: parsed.steps.map(normalizeStep).filter(Boolean).slice(-MAX_ACTIVE_STEPS),
+      history: (Array.isArray(parsed.history) ? parsed.history : [])
+        .map((run) => normalizeArchivedRun(run, threadId))
+        .filter(Boolean)
+        .slice(-MAX_HISTORY_RUNS),
     };
   } catch {
     return emptySynthesisAgentRun(threadId);
