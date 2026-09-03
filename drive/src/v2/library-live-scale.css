@@ -551,3 +551,14 @@
 .rd-v2-library-location-filter select option:disabled {
   color: var(--rd-muted);
 }
+
+
+/* LIBRARY FINAL FREEZE: disconnected external folder locations
+   Keep supported providers visible in ordinary toolbar chrome without claiming OAuth access. */
+.rd-v2-library-location-filter select {
+  min-width: 92px;
+}
+
+.rd-v2-library-location-filter select option:disabled {
+  color: var(--rd-muted);
+}
