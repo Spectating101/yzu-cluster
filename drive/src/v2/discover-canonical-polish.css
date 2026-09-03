@@ -1,6 +1,6 @@
 /* Canonical Discover state polish — wide workstation only.
  * Keep Explore/Search/History architecture intact while aligning the shared
- * chrome and removing dashboard residue from the initial state.
+ * chrome and making the idle Explore state useful before the first query.
  */
 @media (min-width: 1680px) and (min-height: 900px) {
   /* Shared page chrome: keep the switch near the right edge without letting
@@ -29,8 +29,7 @@
   }
 
   /* Once the SERP passport is reduced to research-significant facts, the old
-     118px factsheet floor must not stretch the ranked list. This deliberately
-     owns both the list item and button at higher specificity than legacy CSS. */
+     118px factsheet floor must not stretch the ranked list. */
   html body .rd-v2-shell .rd-v2-discover-page:has(.rd-v2-discover-field--utility)
     .rd-v2-discover-ranked-results ul.rd-v2-discover-candidates > li {
     min-height: 0 !important;
@@ -47,96 +46,470 @@
     padding-bottom: 8px !important;
   }
 
-  /* INITIAL EXPLORE — this is a search engine, not a radar/dashboard. Search is
-     followed by real held-evidence context, known routes when they exist, then
-     one inline direct-inspection utility. The state remains useful even while
-     the optional source-route request is still settling. */
+  /* ── INITIAL EXPLORE ───────────────────────────────────────────────
+     Search first, then concrete evidence already in reach and concrete source
+     routes. This is a landing/search surface, not a monitoring dashboard. */
   .rd-v2-discover-page .rd-v2-discover-idle {
     display: block !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 10px 14px 34px !important;
   }
 
   .rd-v2-discover-page .rd-v2-discover-idle > .rd-v2-discover-composer {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 102px !important;
+    gap: 9px 10px !important;
     width: 100% !important;
     margin: 0 !important;
+    padding: 17px 18px 15px !important;
+    border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 88%, #748a81 12%) !important;
+    border-radius: 10px !important;
+    background: color-mix(in srgb, var(--rd-surface, #fffdf6) 96%, #eef2ef 4%) !important;
+    box-shadow: 0 5px 16px rgba(23, 31, 28, .035) !important;
   }
 
-  .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer-scope {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    gap: 0 !important;
-    margin-top: 8px !important;
-    padding-top: 7px !important;
-    border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 62%, transparent) !important;
+  .rd-v2-discover-page .rd-v2-discover-idle > .rd-v2-discover-composer::before {
+    content: "SEARCH EVIDENCE" !important;
+    grid-column: 1 / -1 !important;
+    margin: 0 0 1px !important;
+    color: #596f67 !important;
+    font: 720 9px/1.2 var(--rd-mono, ui-monospace, monospace) !important;
+    letter-spacing: .12em !important;
   }
 
-  .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer-scope > span {
-    display: inline-flex !important;
-    align-items: center !important;
-    min-height: 18px !important;
-    padding: 0 10px !important;
-    border-right: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 65%, transparent) !important;
+  .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer textarea {
+    min-height: 54px !important;
+    padding: 15px 16px !important;
+    border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 80%, #778f84 20%) !important;
+    border-radius: 7px !important;
+    background: #fffefa !important;
+    color: var(--rd-text, #182033) !important;
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+    resize: none !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer > .rd-v2-btn {
+    min-width: 102px !important;
+    min-height: 54px !important;
+    align-self: start !important;
+    border-radius: 7px !important;
+    font-weight: 720 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer > p {
+    grid-column: 1 / -1 !important;
+    margin: -1px 0 0 !important;
     color: var(--rd-muted, #6e7685) !important;
-    font-size: 8.5px !important;
-    font-weight: 560 !important;
+    font-size: 9.5px !important;
+    line-height: 1.4 !important;
   }
 
-  .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer-scope > span:first-child {
-    padding-left: 0 !important;
+  /* Internal search plumbing is useful once a query is running, but on a
+     landing state it reads like implementation documentation. Teach by example. */
+  .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer-scope {
+    display: none !important;
   }
 
-  .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer-scope > span:last-child {
-    border-right: 0 !important;
+  .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer-examples {
+    grid-column: 1 / -1 !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, .7fr) minmax(0, 1.3fr) !important;
+    gap: 8px !important;
+    margin: 2px 0 0 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer-examples button {
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) !important;
+    align-items: baseline !important;
+    gap: 9px !important;
+    min-height: 35px !important;
+    padding: 8px 10px !important;
+    border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 76%, transparent) !important;
+    border-radius: 6px !important;
+    background: rgba(255,255,255,.34) !important;
+    text-align: left !important;
+    box-shadow: none !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer-examples button:hover {
+    border-color: var(--rd-active-border, #c5d2cb) !important;
+    background: color-mix(in srgb, var(--rd-active-bg, #eef1ee) 62%, transparent) !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer-examples span {
+    color: #667970 !important;
+    font: 690 8px/1.2 var(--rd-mono, ui-monospace, monospace) !important;
+    letter-spacing: .07em !important;
+    text-transform: uppercase !important;
+    white-space: nowrap !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer-examples em {
+    min-width: 0 !important;
+    overflow: hidden !important;
+    color: var(--rd-text, #182033) !important;
+    font-size: 10px !important;
+    font-style: normal !important;
+    line-height: 1.3 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
   }
 
   /* The former Research Radar was a second dashboard composed mostly of zero
-     counts on first load. Held evidence and actual known routes below are the
-     truthful resting-state context, so do not render the radar at wide desktop. */
+     counts on first load. Real held evidence below is the resting authority. */
   .rd-v2-discover-page .rd-v2-discover-idle > .rd-v2-discover-radar {
     display: none !important;
   }
 
+  /* Two evidence territories beneath search: what the desk already holds and
+     which curated routes it already knows. Both use thin rows, never card walls. */
   .rd-v2-discover-page .rd-v2-discover-idle-held {
     display: grid !important;
-    gap: 12px !important;
+    grid-template-columns: minmax(0, 1.1fr) minmax(360px, .9fr) !important;
+    grid-template-rows: auto 1fr !important;
+    column-gap: 14px !important;
+    row-gap: 0 !important;
     width: 100% !important;
-    margin: 12px 0 0 !important;
+    margin: 13px 0 0 !important;
     padding: 0 !important;
   }
 
   .rd-v2-discover-page .rd-v2-discover-idle-held > .rd-v2-discover-coverage {
+    grid-column: 1 !important;
+    grid-row: 1 / span 2 !important;
     display: block !important;
     width: 100% !important;
+    min-width: 0 !important;
     margin: 0 !important;
+    padding: 14px 15px 12px !important;
+    border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 82%, transparent) !important;
+    border-radius: 8px !important;
+    background: color-mix(in srgb, var(--rd-surface, #fffdf6) 92%, #eef2ef 8%) !important;
+    box-shadow: none !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-coverage > header {
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+    padding: 0 0 10px !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 65%, transparent) !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-coverage-heading {
+    display: grid !important;
+    grid-template-columns: auto auto !important;
+    align-items: baseline !important;
+    justify-content: start !important;
+    gap: 3px 9px !important;
+    min-width: 0 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-coverage-eyebrow {
+    grid-column: 1 / -1 !important;
+    color: #596f67 !important;
+    font: 720 8px/1.2 var(--rd-mono, ui-monospace, monospace) !important;
+    letter-spacing: .1em !important;
+    text-transform: uppercase !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-coverage-heading > strong {
+    color: var(--rd-text, #182033) !important;
+    font-size: 13px !important;
+    font-weight: 720 !important;
+    line-height: 1.3 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-coverage-heading > span:last-child {
+    color: var(--rd-muted, #6e7685) !important;
+    font-size: 9px !important;
+    font-weight: 560 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-coverage-intro {
+    margin: 9px 0 7px !important;
+    max-width: 70ch !important;
+    color: var(--rd-muted, #6e7685) !important;
+    font-size: 9px !important;
+    line-height: 1.4 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-coverage-assets {
+    display: grid !important;
+    gap: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 55%, transparent) !important;
+    list-style: none !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-coverage-assets > li {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    gap: 14px !important;
+    min-height: 55px !important;
+    padding: 8px 2px !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 55%, transparent) !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-coverage-asset-main,
+  .rd-v2-discover-page .rd-v2-discover-coverage-asset-meta {
+    display: grid !important;
+    min-width: 0 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-coverage-asset-main {
+    gap: 3px !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-coverage-asset-main > strong {
+    overflow: hidden !important;
+    color: var(--rd-text, #182033) !important;
+    font-size: 10.5px !important;
+    font-weight: 690 !important;
+    line-height: 1.3 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-coverage-asset-main > span {
+    overflow: hidden !important;
+    color: var(--rd-muted, #6e7685) !important;
+    font-size: 8.5px !important;
+    line-height: 1.25 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-coverage-asset-meta {
+    justify-items: end !important;
+    gap: 4px !important;
+    text-align: right !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-coverage-asset-meta > em {
+    color: var(--rd-muted, #6e7685) !important;
+    font-size: 8.5px !important;
+    font-style: normal !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-coverage-asset-meta > b {
+    color: #47715f !important;
+    font-size: 7.8px !important;
+    font-weight: 700 !important;
+    letter-spacing: .03em !important;
+    text-transform: uppercase !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-coverage-more,
+  .rd-v2-discover-page .rd-v2-discover-coverage-gap,
+  .rd-v2-discover-page .rd-v2-discover-coverage-folded {
+    margin: 7px 0 0 !important;
+    color: var(--rd-muted, #6e7685) !important;
+    font-size: 8.5px !important;
+    line-height: 1.35 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-coverage-lanes {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 6px 8px !important;
+    margin-top: 9px !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-coverage-lanes > span {
+    color: var(--rd-muted, #6e7685) !important;
+    font-size: 8px !important;
+    font-weight: 650 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-coverage-shelves {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 5px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    list-style: none !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-coverage-shelves button {
+    display: inline-flex !important;
+    align-items: baseline !important;
+    gap: 5px !important;
+    min-height: 25px !important;
+    padding: 4px 7px !important;
+    border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 70%, transparent) !important;
+    border-radius: 5px !important;
+    background: transparent !important;
+    color: var(--rd-body, #3e4759) !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-coverage-shelves button span,
+  .rd-v2-discover-page .rd-v2-discover-coverage-shelves button strong,
+  .rd-v2-discover-page .rd-v2-discover-coverage-shelves button em {
+    font-size: 7.8px !important;
+    font-style: normal !important;
+  }
+
+  /* Known external routes: use the same thin evidence language as the SERP but
+     collapse the passport; the idle screen only needs to prove the desk has
+     somewhere meaningful to widen after the researcher states a need. */
+  .rd-v2-discover-page .rd-v2-discover-idle-held > .rd-v2-home-section-head {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    display: flex !important;
+    align-items: flex-end !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+    margin: 0 !important;
+    padding: 11px 13px 9px !important;
+    border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 82%, transparent) !important;
+    border-bottom: 0 !important;
+    border-radius: 8px 8px 0 0 !important;
+    background: color-mix(in srgb, var(--rd-surface, #fffdf6) 92%, #f2efe8 8%) !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held > .rd-v2-home-section-head .rd-v2-eyebrow {
+    color: #596f67 !important;
+    font-size: 8px !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held > .rd-v2-home-section-head h3 {
+    margin: 2px 0 0 !important;
+    color: var(--rd-text, #182033) !important;
+    font-size: 11.5px !important;
+    line-height: 1.25 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held > .rd-v2-home-section-head > .muted {
+    font-size: 8px !important;
+    white-space: nowrap !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held > .rd-v2-discover-candidates {
+    grid-column: 2 !important;
+    grid-row: 2 !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 0 !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 82%, transparent) !important;
+    border-top: 0 !important;
+    border-radius: 0 0 8px 8px !important;
+    background: color-mix(in srgb, var(--rd-surface, #fffdf6) 86%, transparent) !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held > .rd-v2-discover-candidates > li {
+    min-height: 0 !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 58%, transparent) !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held > .rd-v2-discover-candidates > li:last-child {
+    border-bottom: 0 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate {
+    grid-template-columns: 62px minmax(0, 1fr) !important;
+    gap: 9px !important;
+    min-height: 64px !important;
+    height: auto !important;
+    padding: 8px 10px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate-source {
+    padding-top: 1px !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate-main {
+    gap: 2px !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate-heading {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 2px !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate-title {
+    overflow: hidden !important;
+    font-size: 10px !important;
+    line-height: 1.25 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-possession {
+    max-width: none !important;
+    color: var(--rd-muted, #6e7685) !important;
+    font-size: 7.8px !important;
+    text-align: left !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-evidence {
+    overflow: hidden !important;
+    max-width: 100% !important;
+    min-height: 0 !important;
+    color: var(--rd-muted, #6e7685) !important;
+    font-size: 8.5px !important;
+    line-height: 1.3 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-dataset-profile,
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-offering-facts,
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-sufficiency,
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-row-add {
+    display: none !important;
   }
 
   .rd-v2-discover-page .rd-v2-discover-idle-held > p.muted {
+    grid-column: 2 !important;
+    grid-row: 1 / span 2 !important;
+    display: flex !important;
+    align-items: center !important;
+    min-height: 100% !important;
     margin: 0 !important;
-    padding: 13px 14px !important;
-    border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 76%, transparent) !important;
-    border-radius: 7px !important;
-    background: color-mix(in srgb, var(--rd-surface, #fffdf6) 76%, transparent) !important;
+    padding: 16px !important;
+    border: 1px dashed color-mix(in srgb, var(--rd-border, #dbd4c5) 80%, transparent) !important;
+    border-radius: 8px !important;
+    background: transparent !important;
     color: var(--rd-muted, #6e7685) !important;
-    font-size: 10px !important;
+    font-size: 9px !important;
+    line-height: 1.45 !important;
   }
 
-  /* DiscoverCoveragePanel already states held/query-ready truth. Avoid echoing
-     that count again in a separate note. */
+  /* DiscoverCoveragePanel already shows concrete held evidence, so the older
+     duplicate count note no longer has a job. */
   .rd-v2-discover-page .rd-v2-discover-idle-library-note {
     display: none !important;
   }
 
-  /* Direct URL/DOI inspection is a secondary route into the same evidence desk,
-     not a detached feature card. Keep it as one quiet utility row. */
+  /* Direct URL/DOI inspection is the third entry pattern, integrated into the
+     landing composition rather than detached as a feature card. */
   .rd-v2-discover-page .rd-v2-discover-idle-intake {
     display: grid !important;
-    grid-template-columns: 116px minmax(260px, 520px) auto minmax(0, 1fr) !important;
+    grid-template-columns: 110px minmax(280px, 520px) auto minmax(0, 1fr) !important;
     gap: 10px !important;
     align-items: center !important;
     width: 100% !important;
     margin: 13px 0 0 !important;
-    padding: 13px 0 0 !important;
+    padding: 12px 2px 0 !important;
     border: 0 !important;
-    border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 78%, transparent) !important;
+    border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, transparent) !important;
     border-radius: 0 !important;
     background: transparent !important;
     box-shadow: none !important;
@@ -145,7 +518,7 @@
   .rd-v2-discover-page .rd-v2-discover-idle-intake label {
     margin: 0 !important;
     color: var(--rd-text, #182033) !important;
-    font-size: 9px !important;
+    font-size: 8.5px !important;
     font-weight: 700 !important;
   }
 
@@ -161,16 +534,28 @@
   }
 
   .rd-v2-discover-page .rd-v2-discover-idle-intake::after {
-    content: "Inspect a specific source before deciding whether it belongs in the Library." !important;
+    content: "Inspect a known source directly; search above when the evidence need is still open-ended." !important;
     min-width: 0 !important;
     color: var(--rd-muted, #6e7685) !important;
-    font-size: 8.5px !important;
+    font-size: 8px !important;
     line-height: 1.3 !important;
   }
 
-  /* On the true idle state, the situation header already explains that no
-     result is selected. Collapse the duplicated folder-empty illustration into
-     one short instruction instead of stacking two absence messages. */
+  /* Idle inspector: name the task, not the absence of a selected row. */
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-situation h2 {
+    font-size: 0 !important;
+    line-height: 1.25 !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-situation h2::after {
+    content: "Search evidence" !important;
+    color: var(--rd-text, #182033) !important;
+    font-size: 13px !important;
+    font-weight: 720 !important;
+  }
+
   body:has(.rd-v2-discover-page[data-surface-state="idle"])
     aside.rd-v2-rail .rd-v2-rail-empty-state {
     display: block !important;
@@ -189,7 +574,7 @@
     aside.rd-v2-rail .rd-v2-rail-empty-hint {
     margin: 0 !important;
     color: var(--rd-muted, #6e7685) !important;
-    font-size: 10px !important;
+    font-size: 9.5px !important;
     line-height: 1.45 !important;
   }
 
