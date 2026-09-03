@@ -3,7 +3,6 @@ import {
   BrowseRailPanel,
   DetailPanel,
   HomeAttentionRailPanel,
-  LibraryObjectRailPanel,
   PageRailPanel,
   ResourcesRailPanel,
 } from "@/v2/RailPanels";
@@ -12,6 +11,7 @@ import { activeObjectSelectionHint } from "@/v2/activeObject";
 import { displayName } from "@/v2/datasetMeta";
 import { LibraryDatasetRailPanel } from "@/v2/LibraryDatasetRailPanel";
 import { LibraryFolderRailPanel } from "@/v2/LibraryFolderRailPanel";
+import { LibraryIntakeRailPanel } from "@/v2/LibraryIntakeRailPanel";
 import { ResourcesOverviewRailPanel } from "@/v2/ResourcesOverviewRailPanel";
 import { DiscoverHistoryRailPanel } from "@/v2/DiscoverHistoryRailPanel";
 import { DiscoverIntentRailPanel } from "@/v2/DiscoverIntentRailPanel";
@@ -236,12 +236,8 @@ export function InspectorRail({
     );
   } else if (mainTab === "library" && activeObject?.kind === "library_intake") {
     detailPanel = (
-      <LibraryObjectRailPanel
+      <LibraryIntakeRailPanel
         object={activeObject}
-        onAskAbout={onAskAbout}
-        onStartUpload={onStartLibraryUpload}
-        onStartUrl={onStartLibraryUrl}
-        onStartProcure={onStartLibraryProcure}
         onSubmitUpload={onSubmitLibraryUpload}
         onSubmitUrl={onSubmitLibraryUrl}
         onSubmitProcure={onSubmitLibraryProcure}
