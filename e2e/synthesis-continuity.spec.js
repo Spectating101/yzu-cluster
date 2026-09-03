@@ -141,6 +141,36 @@ test.describe("Synthesis continuity surfaces", () => {
     await page.screenshot({ path: `${outDir}/build-execute-1440.png`, fullPage: true });
   });
 
+  test("Ask exposes durable agent operations and can focus their centre proof", async ({ page }) => {
+    mkdirSync(outDir, { recursive: true });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await mount(page, {
+      measured_inputs: 2,
+      unmeasured: [],
+      proposal: {
+        id: "proposal-observable",
+        proposal_hash: "sha256:proposal-observable",
+        title: "Weekly factor exposure",
+        summary: "Aggregate the daily cross-section to asset × week.",
+        operations: [{ op: "update_spec", patch: { grain: "asset × week" } }],
+        execution_spec: SPEC,
+      },
+    });
+
+    await page.getByRole("tab", { name: "Ask" }).click();
+    const console = page.getByTestId("synthesis-agent-console");
+    await expect(console).toBeVisible();
+    await expect(console).toContainText("AI operations");
+    await expect(console).toContainText("Review");
+    await expect(console).toContainText("Research intent recorded");
+    await expect(console).toContainText("Evidence measured");
+    await expect(console).toContainText("Exact proposal recorded");
+
+    await console.getByRole("button", { name: /Exact proposal recorded/ }).click();
+    await expect(page.getByTestId("synthesis-proposal-state")).toHaveAttribute("data-synthesis-agent-focus", "true");
+    await page.screenshot({ path: `${outDir}/ask-agent-operations-1440.png`, fullPage: true });
+  });
+
   test("a new Design decision does not pull the viewport away inside the same workspace", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await mount(page, {
