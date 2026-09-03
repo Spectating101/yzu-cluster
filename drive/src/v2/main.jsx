@@ -38,6 +38,8 @@ import "./discover-idle-output-closure.css";
 import "./discover-source-evidence-visual.css";
 import "./discover-idle-competitor-scale.css";
 import "./discover-idle-competitor-rail-fix.css";
+import "./discover-right-rail-competitor.css";
+import "./discover-preview-evidence-canvas.css";
 import { V2App } from "./App";
 import { InteractionProvider } from "./InteractionGuidance";
 
