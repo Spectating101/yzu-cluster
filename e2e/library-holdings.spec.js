@@ -14,9 +14,14 @@ const DATASET = {
   source: "GDELT GKG",
   join_keys: ["date", "country_iso3"],
   columns: ["date", "country_iso3", "article_count", "news_risk", "market_return"],
-  coverage: "2018–2024 · 13 Asian economies",
+  coverage: "2018–2026 · 13 Asian economies",
   rows: 188422,
-  updated_at: "2026-08-25T11:14:00Z",
+  refresh_policy: "daily",
+  data_as_of: "2026-09-03",
+  last_refreshed_at: "2026-09-03T15:15:00Z",
+  next_refresh_at: "2026-09-04T15:15:00Z",
+  stale: false,
+  updated_at: "2026-09-03T15:20:00Z",
   verification_status: "verified",
   verification: {
     status: "verified",
@@ -36,7 +41,7 @@ const DATASET = {
       location: "Research panels / News & attention / GDELT",
       active: true,
       query_ready: true,
-      version: "2026-08-25",
+      version: "2026-09-03",
       content_sha256: "sha256:7b7d1fd9…c2a4",
     },
     {
@@ -47,7 +52,7 @@ const DATASET = {
       access: "available",
       state: "current",
       location: "Research / Asia markets / gdelt_asia_daily.csv",
-      version: "2026-08-25",
+      version: "2026-09-03",
       content_sha256: "sha256:7b7d1fd9…c2a4",
     },
     {
@@ -59,17 +64,17 @@ const DATASET = {
       state: "current",
       location: "Finance Research / GDELT / Asia daily panel.csv",
       original: true,
-      version: "2026-08-25",
+      version: "2026-09-03",
       content_sha256: "sha256:7b7d1fd9…c2a4",
     },
   ],
 };
 
 const ROWS = [
-  { date: "2026-04-30", country_iso3: "TWN", article_count: 1842, news_risk: 0.82, market_return: -0.0041 },
-  { date: "2026-04-30", country_iso3: "JPN", article_count: 3921, news_risk: 0.44, market_return: 0.0038 },
-  { date: "2026-04-30", country_iso3: "KOR", article_count: 2274, news_risk: 0.61, market_return: -0.0013 },
-  { date: "2026-04-30", country_iso3: "SGP", article_count: 886, news_risk: 0.29, market_return: 0.0019 },
+  { date: "2026-09-03", country_iso3: "TWN", article_count: 1842, news_risk: 0.82, market_return: -0.0041 },
+  { date: "2026-09-03", country_iso3: "JPN", article_count: 3921, news_risk: 0.44, market_return: 0.0038 },
+  { date: "2026-09-03", country_iso3: "KOR", article_count: 2274, news_risk: 0.61, market_return: -0.0013 },
+  { date: "2026-09-03", country_iso3: "SGP", article_count: 886, news_risk: 0.29, market_return: 0.0019 },
 ];
 
 async function setup(page, viewport = { width: 1440, height: 900 }) {
@@ -91,12 +96,16 @@ test("federated holdings stay object-scoped and separate from provenance and ret
 
   const row = page.getByTestId("library-evidence-row").filter({ hasText: "Asia daily news-risk panel" });
   await expect(row).toBeVisible();
+  await expect(row.getByTestId("library-evidence-freshness")).toContainText("Through Sep 3");
+  await expect(row.getByTestId("library-evidence-freshness")).toContainText("Daily");
   await expect(page.getByTestId("library-holding-filter")).toHaveCount(0);
   await row.click();
 
   const workspace = page.getByTestId("library-asset-workspace");
   const rail = page.locator("aside.rd-v2-rail");
   await expect(workspace).toBeVisible();
+  await expect(rail.getByTestId("library-decision-basis")).toContainText("Freshness");
+  await expect(rail.getByTestId("library-decision-basis")).toContainText("Through Sep 3 · Daily");
   await expect(rail.getByTestId("library-rail-holdings")).toContainText("3 locations · 2 available");
   await expect(rail.getByTestId("library-rail-holdings")).toContainText("YZUC Research Cluster");
   await expect(rail.getByTestId("library-rail-holdings")).toContainText("Google Drive · Dropbox");
@@ -141,6 +150,7 @@ test("holdings remain secondary to the selected dossier on mobile", async ({ pag
   mkdirSync(OUT, { recursive: true });
   await setup(page, { width: 390, height: 844 });
   const row = page.getByTestId("library-evidence-row").filter({ hasText: "Asia daily news-risk panel" });
+  await expect(row.getByTestId("library-evidence-freshness")).toContainText("Through Sep 3");
   await row.click();
   const workspace = page.getByTestId("library-asset-workspace");
   await expect(workspace).toBeVisible();
