@@ -49,11 +49,13 @@ import "./synthesis-layout-robustness.css";
 import "./synthesis-rail-proof-robustness.css";
 import "./synthesis-continuity.css";
 import "./synthesis-agent-console.css";
+import "./synthesis-object-context.css";
 import "./discover-frozen-closure.css";
 import "./connected-accounts.css";
 import { V2App } from "./App";
 import { InteractionProvider } from "./InteractionGuidance";
 import { SynthesisAuthorityMount } from "./SynthesisAuthorityMount.jsx";
+import { SynthesisObjectContextMount } from "./SynthesisObjectContextMount.jsx";
 
 const el = document.getElementById("root");
 if (el) {
@@ -61,6 +63,7 @@ if (el) {
     <InteractionProvider>
       <V2App />
       <SynthesisAuthorityMount />
+      <SynthesisObjectContextMount />
     </InteractionProvider>,
   );
 }
