@@ -85,7 +85,7 @@ async function setup(page, viewport = { width: 1440, height: 900 }) {
   await waitForShell(page);
 }
 
-test("federated holdings stay separate from provenance and storage is searchable", async ({ page }) => {
+test("federated holdings stay separate from provenance and storage is a chrome filter", async ({ page }) => {
   mkdirSync(OUT, { recursive: true });
   await setup(page);
 
@@ -112,6 +112,7 @@ test("federated holdings stay separate from provenance and storage is searchable
   await expect(overlay).toContainText("Christopher");
   await expect(overlay).toContainText("Dropbox");
   await expect(overlay).toContainText("Prof. Kong");
+  await expect(overlay).toContainText("Finance Research / GDELT / Asia daily panel.csv");
   await expect(overlay).toContainText("Original holding");
   await expect(overlay).toContainText("Restricted");
   await expect(overlay).not.toContainText("Source authority");
@@ -126,12 +127,17 @@ test("federated holdings stay separate from provenance and storage is searchable
   await source.getByRole("button", { name: "Close inspection" }).click();
 
   await page.getByRole("button", { name: "Close asset inspector" }).click();
+
   const search = page.getByRole("textbox", { name: "Search library holdings" });
-  await search.fill("Prof. Kong Dropbox");
+  await search.fill("Dropbox");
+  await expect(row).toHaveCount(0);
+  await search.fill("");
+
+  const holdingFilter = page.getByTestId("library-holding-filter");
+  await expect(holdingFilter).toContainText("Dropbox · Prof. Kong · 1");
+  await holdingFilter.selectOption({ label: "Dropbox · Prof. Kong · 1" });
   await expect(row).toBeVisible();
-  await expect(row).toContainText("Matched");
-  await expect(row.getByTestId("library-search-match")).toContainText(/holding/i);
-  await page.screenshot({ path: `${OUT}/03-search-by-holding-1440.png`, fullPage: false });
+  await page.screenshot({ path: `${OUT}/03-filter-by-holding-1440.png`, fullPage: false });
 });
 
 test("holdings remain secondary to the selected dossier on mobile", async ({ page }) => {
