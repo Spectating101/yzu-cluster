@@ -198,6 +198,11 @@ async function openThread(page) {
   await expect(page.getByTestId("synthesis-proposal-state")).toBeVisible();
 }
 
+async function selectActiveThread(page) {
+  await page.getByTestId("synthesis-thread-item").filter({ hasText: "IDN weekly factor exposure" }).click();
+  await expect(page.getByTestId("synthesis-automation-mode")).toBeVisible();
+}
+
 test.describe("Synthesis agent authority", () => {
   test("Auto-choose persists but cannot cross proposal approval", async ({ page }) => {
     mkdirSync(outDir, { recursive: true });
@@ -216,8 +221,9 @@ test.describe("Synthesis agent authority", () => {
 
     await page.reload({ waitUntil: "domcontentloaded" });
     await waitForShell(page);
+    await expect(page.locator("aside.yzu-sidebar").getByTestId("synthesis-automation-mode")).toHaveCount(0);
+    await selectActiveThread(page);
     await expect(page.getByTestId("synthesis-automation-mode")).toHaveValue("auto_choose");
-    await page.getByTestId("synthesis-thread-item").filter({ hasText: "IDN weekly factor exposure" }).click();
     await expect(page.getByRole("button", { name: "Accept & test method" })).toBeVisible();
     expect(counts.patch).toBe(0);
     expect(counts.preview).toBe(0);
@@ -239,8 +245,9 @@ test.describe("Synthesis agent authority", () => {
 
     await page.goto("/?tab=synthesis", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
+    await expect(page.locator("aside.yzu-sidebar").getByTestId("synthesis-automation-mode")).toHaveCount(0);
+    await selectActiveThread(page);
     await expect(page.getByTestId("synthesis-automation-mode")).toHaveValue("auto_approve");
-    await page.getByTestId("synthesis-thread-item").filter({ hasText: "IDN weekly factor exposure" }).click();
 
     await expect.poll(() => counts.patch, { timeout: 10000 }).toBe(1);
     await expect.poll(() => counts.preview, { timeout: 10000 }).toBe(1);
