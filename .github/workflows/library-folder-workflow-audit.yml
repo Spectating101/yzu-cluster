@@ -1,0 +1,86 @@
+name: Library folder workflow audit
+
+on:
+  push:
+    branches:
+      - audit/library-folder-workflow-20260904
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: library-folder-workflow-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Guard Library folder ownership
+        run: |
+          grep -n 'foldersRoot: buildPhysicalFoldersRoot' drive/src/v2/professorVaultTree.js
+          grep -n 'hasExplicitStorageLocation' drive/src/v2/professorVaultTree.js
+          grep -n 'root?.foldersRoot' drive/src/driveTree.js
+          grep -n 'isPhysicalFolder' drive/src/v2/LibraryFolderRailPanel.jsx
+          ! grep -n 'Research collection inside Folders' drive/src/v2/LibraryFolderRailPanel.jsx
+          ! grep -n 'library-holding-filter' drive/src/v2/LibraryPage.jsx
+          ! grep -n 'Freshness' drive/src/v2/LibraryEvidenceEstate.jsx
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium
+
+      - name: Library truth unit tests
+        run: node --test drive/src/v2/libraryHoldings.test.js drive/src/v2/libraryFreshness.test.js
+
+      - name: Production build
+        run: npm run build
+        env:
+          YZU_PAGES: "true"
+
+      - name: Library folder and interaction contracts
+        run: >-
+          mkdir -p .tmp-pw && TMPDIR=$PWD/.tmp-pw npx playwright test
+          e2e/v2-library.spec.js
+          e2e/library-folder-workflow.spec.js
+          e2e/library-holdings.spec.js
+          e2e/library-freshness.spec.js
+          e2e/library-pagination-continuity.spec.js
+          e2e/v2-preview.spec.js
+          --reporter=dot
+        env: &mock-env
+          CI: "true"
+          YZU_PAGES: "false"
+
+      - name: Complete Library visual state matrix
+        run: >-
+          TMPDIR=$PWD/.tmp-pw npx playwright test
+          e2e/library-convergence-render.spec.js
+          e2e/library-preview-closure-render.spec.js
+          e2e/library-visual-depth-render.spec.js
+          --reporter=dot
+        env: *mock-env
+
+      - name: Upload Library folder workflow renders
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: library-folder-workflow-renders
+          path: |
+            artifacts/library-folder-workflow
+            artifacts/library-holdings
+            artifacts/library-freshness
+            artifacts/library-renders
+            test-results
+          if-no-files-found: warn
+          retention-days: 14
