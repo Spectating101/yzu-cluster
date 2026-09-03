@@ -1,0 +1,343 @@
+/* Discover idle — adaptive evidence engine showcase.
+ * Wide workstation only. The existing React contracts remain authoritative;
+ * this layer makes the backend's actual sourcing depth legible before the
+ * first query without turning Explore into a dashboard.
+ */
+@media (min-width: 1680px) and (min-height: 900px) {
+  /* Treat the search composer and capability explanation as one instrument. */
+  .rd-v2-discover-page .rd-v2-discover-idle > .rd-v2-discover-composer {
+    position: relative !important;
+    z-index: 2 !important;
+    border-radius: 12px 12px 0 0 !important;
+    border-bottom-color: color-mix(in srgb, #26352f 76%, var(--rd-border, #dbd4c5)) !important;
+    box-shadow: none !important;
+    padding: 18px 20px 16px !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle > .rd-v2-discover-composer::before {
+    content: "FROM QUESTION TO EVIDENCE" !important;
+    color: #48665b !important;
+    font-size: 9px !important;
+    letter-spacing: .14em !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer textarea {
+    min-height: 60px !important;
+    padding: 17px 18px !important;
+    font-size: 15px !important;
+    border-color: color-mix(in srgb, #577367 32%, var(--rd-border, #dbd4c5)) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.82) !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer > .rd-v2-btn {
+    min-height: 60px !important;
+    font-size: 11px !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer > p {
+    max-width: none !important;
+    color: color-mix(in srgb, var(--rd-muted, #6e7685) 88%, #273631 12%) !important;
+    font-size: 10px !important;
+  }
+
+  /* The old radar DOM already contains the truthful capability contracts. It
+     was previously hidden because the first treatment made it a metrics
+     dashboard. Recompose it as a product thesis / execution narrative instead. */
+  .rd-v2-discover-page .rd-v2-discover-idle > .rd-v2-discover-radar {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 0 !important;
+    width: 100% !important;
+    margin: -1px 0 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    border: 1px solid #26352f !important;
+    border-radius: 0 0 12px 12px !important;
+    background: #f7f8f3 !important;
+    box-shadow: 0 10px 26px rgba(20, 29, 25, .055) !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-head {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 210px !important;
+    gap: 24px !important;
+    align-items: end !important;
+    padding: 19px 21px 18px !important;
+    border: 0 !important;
+    background:
+      radial-gradient(circle at 88% 14%, rgba(143, 179, 158, .16), transparent 26%),
+      linear-gradient(135deg, #1f2e29 0%, #263832 58%, #1f2f2a 100%) !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-head .rd-v2-eyebrow {
+    display: block !important;
+    margin: 0 0 5px !important;
+    color: #b9d1c4 !important;
+    font-size: 8px !important;
+    letter-spacing: .14em !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-head .rd-v2-eyebrow {
+    font-size: 0 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-head .rd-v2-eyebrow::after {
+    content: "ADAPTIVE EVIDENCE ENGINE" !important;
+    color: #b9d1c4 !important;
+    font: 730 8.5px/1.2 var(--rd-mono, ui-monospace, monospace) !important;
+    letter-spacing: .14em !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-head h2 {
+    margin: 0 !important;
+    color: #f8fbf8 !important;
+    font-size: 24px !important;
+    font-weight: 650 !important;
+    line-height: 1.13 !important;
+    letter-spacing: -.025em !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-head h2 {
+    font-size: 0 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-head h2::after {
+    content: "A research question can become reusable evidence." !important;
+    display: block !important;
+    color: #f8fbf8 !important;
+    font: 650 24px/1.13 var(--rd-sans, ui-sans-serif, system-ui, sans-serif) !important;
+    letter-spacing: -.025em !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-head p {
+    max-width: 880px !important;
+    margin: 8px 0 0 !important;
+    color: rgba(238, 246, 241, .72) !important;
+    font-size: 0 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-head p::after {
+    content: "Search what you already hold, widen into known + semantic/live sources and web context, assess the exact evidence gap, inspect or probe a source, then review a custom sourcing route before anything is collected." !important;
+    display: block !important;
+    max-width: 930px !important;
+    font: 450 10.5px/1.55 var(--rd-sans, ui-sans-serif, system-ui, sans-serif) !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-state {
+    align-self: stretch !important;
+    display: grid !important;
+    align-content: center !important;
+    gap: 5px !important;
+    padding-left: 18px !important;
+    border-left: 1px solid rgba(231, 241, 235, .18) !important;
+    text-align: left !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-state span {
+    color: rgba(225, 238, 231, .62) !important;
+    font-size: 8px !important;
+    text-transform: uppercase !important;
+    letter-spacing: .1em !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-state strong {
+    color: #edf5f0 !important;
+    font-size: 10px !important;
+    font-weight: 620 !important;
+    line-height: 1.35 !important;
+  }
+
+  /* Metrics were the dashboard mistake. The capability chain is the product. */
+  .rd-v2-discover-page .rd-v2-discover-radar-metrics {
+    display: none !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-capability-ledger {
+    order: 2 !important;
+    display: grid !important;
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+    gap: 0 !important;
+    margin: 0 !important;
+    padding: 0 16px !important;
+    border-top: 0 !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 82%, #9caea4 18%) !important;
+    background: #f4f6f2 !important;
+    counter-reset: discover-capability !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-capability-ledger > span {
+    counter-increment: discover-capability !important;
+    position: relative !important;
+    display: grid !important;
+    grid-template-columns: 24px minmax(0, 1fr) !important;
+    grid-template-rows: auto auto !important;
+    column-gap: 7px !important;
+    row-gap: 3px !important;
+    min-width: 0 !important;
+    padding: 14px 12px 13px !important;
+    border: 0 !important;
+    border-right: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 64%, transparent) !important;
+    background: transparent !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-capability-ledger > span:last-child {
+    border-right: 0 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-capability-ledger > span::before {
+    content: counter(discover-capability, decimal-leading-zero) !important;
+    grid-row: 1 / span 2 !important;
+    align-self: start !important;
+    color: #729183 !important;
+    font: 720 8px/1.3 var(--rd-mono, ui-monospace, monospace) !important;
+    letter-spacing: .05em !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-capability-ledger b {
+    min-width: 0 !important;
+    color: #1d2a26 !important;
+    font-size: 9.5px !important;
+    font-weight: 720 !important;
+    line-height: 1.25 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-capability-ledger em {
+    min-width: 0 !important;
+    color: #66736f !important;
+    font-size: 8.2px !important;
+    font-style: normal !important;
+    line-height: 1.35 !important;
+  }
+
+  /* Reduce the lower radar to the part the landing state actually needs: the
+     decision/lifecycle logic that makes Discover more than a search engine. */
+  .rd-v2-discover-page .rd-v2-discover-radar-grid {
+    order: 3 !important;
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--routes,
+  .rd-v2-discover-page .rd-v2-discover-radar-grid > .rd-v2-cockpit-network {
+    display: none !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution {
+    position: relative !important;
+    display: grid !important;
+    grid-template-columns: 260px minmax(0, 1fr) !important;
+    align-items: center !important;
+    gap: 18px !important;
+    margin: 0 !important;
+    padding: 13px 18px 14px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: #fbfbf7 !important;
+    box-shadow: none !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution > header {
+    display: grid !important;
+    gap: 3px !important;
+    margin: 0 !important;
+    padding: 0 16px 0 0 !important;
+    border: 0 !important;
+    border-right: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 68%, transparent) !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution > header .rd-v2-eyebrow {
+    font-size: 0 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution > header .rd-v2-eyebrow::after {
+    content: "EVIDENCE DECISIONING" !important;
+    color: #5f776d !important;
+    font: 720 8px/1.2 var(--rd-mono, ui-monospace, monospace) !important;
+    letter-spacing: .1em !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution > header strong {
+    font-size: 0 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution > header strong::after {
+    content: "Name the gap before building the route" !important;
+    display: block !important;
+    color: #24312d !important;
+    font: 660 11px/1.3 var(--rd-sans, ui-sans-serif, system-ui, sans-serif) !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution::after {
+    content: "Coverage assessment · precise unresolved fields / grain / period · source preview + probe · custom strategy when standard sourcing is insufficient · explicit review before collection" !important;
+    grid-column: 2 !important;
+    grid-row: 2 !important;
+    margin-top: -2px !important;
+    color: #6b7773 !important;
+    font-size: 8.5px !important;
+    line-height: 1.45 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 8px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span {
+    min-width: 0 !important;
+    padding: 6px 8px !important;
+    border: 1px solid color-mix(in srgb, #668274 34%, var(--rd-border, #dbd4c5)) !important;
+    border-radius: 5px !important;
+    background: #f5f7f3 !important;
+    color: #26342f !important;
+    font-size: 8.5px !important;
+    font-weight: 650 !important;
+    white-space: nowrap !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span b {
+    color: #6c897c !important;
+    font-size: 7.5px !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow i {
+    color: #83918c !important;
+    font-size: 9px !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-execution-facts,
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-capacity,
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-capacity-empty {
+    display: none !important;
+  }
+
+  /* The grounded data below now acts as proof of reach, not the entire pitch. */
+  .rd-v2-discover-page .rd-v2-discover-idle-held {
+    margin-top: 14px !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held > .rd-v2-discover-coverage,
+  .rd-v2-discover-page .rd-v2-discover-idle-held > .rd-v2-home-section-head,
+  .rd-v2-discover-page .rd-v2-discover-idle-held > ul.rd-v2-discover-candidates {
+    box-shadow: none !important;
+  }
+
+  /* Give the idle right rail an editorial relationship to the engine instead
+     of leaving it as a visually detached white strip. */
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail {
+    background: linear-gradient(180deg, #fbfcf8 0%, #fffdf8 46%, #fffdf8 100%) !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-situation {
+    border-bottom-color: color-mix(in srgb, #5f7b6d 24%, var(--rd-border, #dbd4c5)) !important;
+  }
+}
