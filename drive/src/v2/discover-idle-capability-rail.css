@@ -1,0 +1,79 @@
+/* Final wide idle capability framing: use the remaining chrome to explain
+ * backend behaviour and outputs rather than repeat counts or absence states.
+ */
+@media (min-width: 1680px) and (min-height: 900px) {
+  /* The engine header should explain tempo, not advertise a tiny count. */
+  .rd-v2-discover-page .rd-v2-discover-radar-state > span,
+  .rd-v2-discover-page .rd-v2-discover-radar-state > strong {
+    display: none !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-state::before {
+    content: "FAST PATH" !important;
+    display: block !important;
+    color: rgba(225, 238, 231, .62) !important;
+    font: 720 8px/1.2 var(--rd-mono, ui-monospace, monospace) !important;
+    letter-spacing: .11em !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-state::after {
+    content: "Library + known routes paint first. Semantic, live, and web enrichment widen only when useful." !important;
+    display: block !important;
+    max-width: 22ch !important;
+    color: #edf5f0 !important;
+    font: 560 9.4px/1.45 var(--rd-sans, ui-sans-serif, system-ui, sans-serif) !important;
+  }
+
+  /* Restore the idle detail body, but turn it into an output contract instead
+     of the old 'nothing selected' empty state. */
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-rail-empty-state {
+    display: grid !important;
+    gap: 0 !important;
+    margin: 14px 12px 0 !important;
+    padding: 14px 0 0 !important;
+    border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, transparent) !important;
+    text-align: left !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-rail-empty-icon,
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-rail-empty-title {
+    display: none !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-rail-empty-state::before {
+    content: "DISCOVER CAN RETURN" !important;
+    display: block !important;
+    margin: 0 0 11px !important;
+    color: #536b61 !important;
+    font: 760 8px/1.2 var(--rd-mono, ui-monospace, monospace) !important;
+    letter-spacing: .11em !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-rail-empty-hint {
+    margin: 0 !important;
+    color: transparent !important;
+    font-size: 0 !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-rail-empty-hint::after {
+    content: "01  EVIDENCE COMPARISON\A     What your Library already covers\A\A02  PRECISE GAP\A     Missing fields, grain, period, geography, or access\A\A03  SOURCING STRATEGY\A     Supported route or a custom dataset plan when ordinary sources are insufficient\A\A04  COLLECTION REVIEW\A     Preview / probe → explicit approval → History → Library" !important;
+    display: block !important;
+    color: #53605c !important;
+    font: 470 8.7px/1.52 var(--rd-sans, ui-sans-serif, system-ui, sans-serif) !important;
+    white-space: pre-line !important;
+  }
+
+  /* Remove the earlier pseudo-output attempt now that the real empty-state DOM
+     owns this explanation. */
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-rail-pane-detail.rd-v2-rail-pane-on::after {
+    content: none !important;
+    display: none !important;
+  }
+}
