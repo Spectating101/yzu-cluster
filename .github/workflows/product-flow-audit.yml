@@ -1,0 +1,41 @@
+name: Product flow visual audit
+
+on:
+  push:
+    branches:
+      - audit/product-flow-20260903
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Chromium
+        run: npx playwright install chromium
+      - name: Build Research Drive
+        run: npm run build
+        env:
+          YZU_PAGES: "false"
+      - name: Run whole-product release visual contract
+        run: |
+          mkdir -p artifacts/release-visual
+          npx playwright test e2e/release-visual-convergence.spec.js --reporter=line
+        env:
+          CI: "true"
+          YZU_PAGES: "false"
+      - name: Upload whole-product renders
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: product-flow-renders
+          path: |
+            artifacts/release-visual
+            test-results
+          if-no-files-found: warn
+          retention-days: 7
