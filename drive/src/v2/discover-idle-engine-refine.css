@@ -1,0 +1,200 @@
+/* Second-pass pixel refinement for the wide Discover idle engine.
+ * Loaded after discover-idle-engine-showcase.css.
+ */
+@media (min-width: 1680px) and (min-height: 900px) {
+  /* Capability plane needs to read without microscope-level typography. */
+  .rd-v2-discover-page .rd-v2-discover-capability-ledger b {
+    font-size: 10.2px !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-capability-ledger em {
+    font-size: 8.7px !important;
+  }
+
+  /* Replace the generic lifecycle chips with the actual intelligence layer.
+     The existing DOM remains the four-stage flow; visual labels explain what
+     each stage really means for the researcher. */
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution {
+    grid-template-columns: 250px minmax(0, 1fr) !important;
+    gap: 16px !important;
+    padding: 15px 18px 16px !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 12px minmax(0, 1fr) 12px minmax(0, 1fr) 12px minmax(0, 1fr) !important;
+    gap: 6px !important;
+    width: 100% !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span {
+    display: grid !important;
+    grid-template-columns: 20px minmax(0, 1fr) !important;
+    grid-template-rows: auto auto !important;
+    gap: 2px 6px !important;
+    align-items: start !important;
+    min-height: 48px !important;
+    padding: 8px 9px !important;
+    white-space: normal !important;
+    background: #f6f8f4 !important;
+    border-color: color-mix(in srgb, #628073 38%, var(--rd-border, #dbd4c5)) !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span b {
+    grid-column: 1 !important;
+    grid-row: 1 / span 2 !important;
+    display: grid !important;
+    place-items: center !important;
+    width: 18px !important;
+    height: 18px !important;
+    border: 1px solid color-mix(in srgb, #638074 46%, var(--rd-border, #dbd4c5)) !important;
+    border-radius: 50% !important;
+    color: #537064 !important;
+    font-size: 7.5px !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span {
+    font-size: 0 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span::after {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    color: #22312b !important;
+    font: 700 9.5px/1.2 var(--rd-sans, ui-sans-serif, system-ui, sans-serif) !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span::before {
+    grid-column: 2 !important;
+    grid-row: 2 !important;
+    color: #6d7975 !important;
+    font: 460 7.8px/1.35 var(--rd-sans, ui-sans-serif, system-ui, sans-serif) !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span:nth-of-type(1)::after {
+    content: "Assess the gap" !important;
+  }
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span:nth-of-type(1)::before {
+    content: "unit · fields · grain · period" !important;
+  }
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span:nth-of-type(2)::after {
+    content: "Verify sources" !important;
+  }
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span:nth-of-type(2)::before {
+    content: "preview · live search · probe" !important;
+  }
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span:nth-of-type(3)::after {
+    content: "Build strategy" !important;
+  }
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span:nth-of-type(3)::before {
+    content: "supported route or custom dataset" !important;
+  }
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span:nth-of-type(4)::after {
+    content: "Review & register" !important;
+  }
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow span:nth-of-type(4)::before {
+    content: "approval · History · Library" !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow i {
+    align-self: center !important;
+    justify-self: center !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-radar-panel--execution::after {
+    content: "Standard sources stay the fast path. A custom strategy appears only when the assessed evidence gap cannot be closed by the ordinary routes." !important;
+    margin-top: 4px !important;
+    font-size: 8.6px !important;
+  }
+
+  /* One grounded evidence estate instead of two floating SaaS cards. */
+  .rd-v2-discover-page .rd-v2-discover-idle-held {
+    overflow: hidden !important;
+    column-gap: 0 !important;
+    row-gap: 0 !important;
+    border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 84%, #7b9589 16%) !important;
+    border-radius: 10px !important;
+    background: #fffdf8 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held > .rd-v2-discover-coverage {
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    padding: 14px 15px 12px !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held > .rd-v2-home-section-head {
+    margin: 0 !important;
+    padding: 14px 14px 10px !important;
+    border: 0 !important;
+    border-left: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 74%, transparent) !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 62%, transparent) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held > ul.rd-v2-discover-candidates {
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    border-left: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 74%, transparent) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    gap: 0 !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held > ul.rd-v2-discover-candidates > li {
+    border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 54%, transparent) !important;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held > ul.rd-v2-discover-candidates > li:first-child {
+    border-top: 0 !important;
+  }
+
+  html body .rd-v2-shell .rd-v2-discover-page
+    .rd-v2-discover-idle-held > ul.rd-v2-discover-candidates > li > button.row.rd-v2-discover-candidate {
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  html body .rd-v2-shell .rd-v2-discover-page
+    .rd-v2-discover-idle-held > ul.rd-v2-discover-candidates > li > button.row.rd-v2-discover-candidate:hover {
+    background: color-mix(in srgb, #eef4ef 58%, transparent) !important;
+  }
+
+  /* No-route state occupies the right evidence territory without becoming an
+     empty-state card or leaving a giant hole. */
+  .rd-v2-discover-page .rd-v2-discover-idle-held > p.muted {
+    margin: 0 !important;
+    padding: 14px !important;
+    border: 0 !important;
+    border-left: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 74%, transparent) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+  }
+
+  /* The persistent rail should state the kinds of outputs this engine can
+     produce, not merely repeat the search order. */
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-rail-pane-detail.rd-v2-rail-pane-on::after {
+    content: "DISCOVER OUTPUTS\A\AEvidence comparison\AWhat your Library already covers\A\AEvidence gap\AExactly what fields, grain, period, or access remain unresolved\A\ASourcing strategy\ASupported route or a custom dataset plan when ordinary sources are insufficient\A\ACollection review\APreview / probe → explicit approval → History → Library" !important;
+    display: block !important;
+    margin: 16px 12px 0 !important;
+    padding: 14px 0 0 !important;
+    border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 70%, transparent) !important;
+    color: #66736f !important;
+    font: 460 8.6px/1.5 var(--rd-sans, ui-sans-serif, system-ui, sans-serif) !important;
+    white-space: pre-line !important;
+  }
+
+  body:has(.rd-v2-discover-page[data-surface-state="idle"])
+    aside.rd-v2-rail .rd-v2-rail-pane-detail.rd-v2-rail-pane-on::after::first-line {
+    color: #526b61 !important;
+    font-weight: 760 !important;
+    letter-spacing: .1em !important;
+  }
+}
