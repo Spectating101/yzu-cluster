@@ -1,0 +1,104 @@
+name: Library federated holdings validation
+
+on:
+  push:
+    branches:
+      - feat/library-federated-holdings-20260903
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: library-federated-holdings-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-and-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply bounded holdings integration
+        run: python scripts/apply_library_holdings_patch.py
+
+      - name: Guard holdings ownership boundaries
+        run: |
+          grep -n 'Holdings' drive/src/v2/LibraryAssetWorkspace.jsx
+          grep -n 'library-rail-holdings' drive/src/v2/LibraryDatasetRailPanel.jsx
+          grep -n 'key: "holding"' drive/src/v2/librarySearch.js
+          ! grep -n 'Bibliographic and holding metadata' drive/src/v2/LibraryAssetWorkspace.jsx
+          ! grep -n '<dt>Vault path</dt>' drive/src/v2/LibraryAssetWorkspace.jsx
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium
+
+      - name: Holdings truth unit tests
+        run: node --test drive/src/v2/libraryHoldings.test.js
+
+      - name: Production build
+        run: npm run build
+        env:
+          YZU_PAGES: "true"
+
+      - name: Existing Library contracts
+        run: >-
+          mkdir -p .tmp-pw && TMPDIR=$PWD/.tmp-pw npx playwright test
+          e2e/v2-library.spec.js
+          e2e/library-pagination-continuity.spec.js
+          e2e/v2-preview.spec.js
+          --reporter=dot
+        env: &mock-env
+          CI: "true"
+          YZU_PAGES: "false"
+
+      - name: Federated holdings workflow and renders
+        run: TMPDIR=$PWD/.tmp-pw npx playwright test e2e/library-holdings.spec.js --reporter=dot
+        env: *mock-env
+
+      - name: Library visual regression guard
+        run: >-
+          TMPDIR=$PWD/.tmp-pw npx playwright test
+          e2e/library-convergence-render.spec.js
+          e2e/release-visual-convergence.spec.js
+          --reporter=dot
+        env: *mock-env
+
+      - name: Commit validated holdings integration
+        run: |
+          if git diff --quiet; then
+            echo "No product patch delta to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            drive/src/v2/LibraryAssetWorkspace.jsx \
+            drive/src/v2/LibraryDatasetRailPanel.jsx \
+            drive/src/v2/librarySearch.js \
+            drive/src/v2/library-live-scale.css
+          git commit -m "feat(library): integrate federated holdings"
+          git push origin HEAD:feat/library-federated-holdings-20260903
+
+      - name: Upload holdings renders
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: library-federated-holdings-renders
+          path: |
+            artifacts/library-holdings
+            artifacts/library-renders
+            artifacts/release-visual
+            test-results
+          if-no-files-found: warn
+          retention-days: 14
