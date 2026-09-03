@@ -164,7 +164,7 @@ export function contextFromSynthesisSurface(surface) {
   const definition = TESTID_CONTEXT[testId];
   if (!definition) return null;
   const [kind, fallbackLabel] = definition;
-  const heading = surface.querySelector("h1, h2, h3, header strong, header b, > strong");
+  const heading = surface.querySelector("h1, h2, h3, header strong, header b, :scope > strong");
   return {
     kind,
     label: compact(heading?.textContent || fallbackLabel),
