@@ -85,12 +85,13 @@ async function setup(page, viewport = { width: 1440, height: 900 }) {
   await waitForShell(page);
 }
 
-test("federated holdings stay separate from provenance and storage is a chrome filter", async ({ page }) => {
+test("federated holdings stay object-scoped and separate from provenance and retrieval", async ({ page }) => {
   mkdirSync(OUT, { recursive: true });
   await setup(page);
 
   const row = page.getByTestId("library-evidence-row").filter({ hasText: "Asia daily news-risk panel" });
   await expect(row).toBeVisible();
+  await expect(page.getByTestId("library-holding-filter")).toHaveCount(0);
   await row.click();
 
   const workspace = page.getByTestId("library-asset-workspace");
@@ -127,17 +128,13 @@ test("federated holdings stay separate from provenance and storage is a chrome f
   await source.getByRole("button", { name: "Close inspection" }).click();
 
   await page.getByRole("button", { name: "Close asset inspector" }).click();
-
   const search = page.getByRole("textbox", { name: "Search library holdings" });
   await search.fill("Dropbox");
   await expect(row).toHaveCount(0);
   await search.fill("");
-
-  const holdingFilter = page.getByTestId("library-holding-filter");
-  await expect(holdingFilter).toContainText("Dropbox · Prof. Kong · 1");
-  await holdingFilter.selectOption({ label: "Dropbox · Prof. Kong · 1" });
   await expect(row).toBeVisible();
-  await page.screenshot({ path: `${OUT}/03-filter-by-holding-1440.png`, fullPage: false });
+  await expect(page.getByTestId("library-holding-filter")).toHaveCount(0);
+  await page.screenshot({ path: `${OUT}/03-library-root-without-holding-filter-1440.png`, fullPage: false });
 });
 
 test("holdings remain secondary to the selected dossier on mobile", async ({ page }) => {

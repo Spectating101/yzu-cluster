@@ -1,30 +1,29 @@
-name: Library federated holdings validation
+name: Research Drive final system audit
 
 on:
   push:
     branches:
-      - feat/library-federated-holdings-20260903
+      - audit/research-drive-final-system-20260903
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: library-federated-holdings-${{ github.ref }}
+  group: research-drive-final-system-${{ github.ref }}
   cancel-in-progress: true
 
-# Validation-only workflow: product files are never rewritten here.
 jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Guard holdings ownership boundaries
+      - name: Guard Library semantic ownership
         run: |
           grep -n 'Holdings' drive/src/v2/LibraryAssetWorkspace.jsx
           grep -n 'library-rail-holdings' drive/src/v2/LibraryDatasetRailPanel.jsx
-          grep -n 'library-holding-filter' drive/src/v2/LibraryPage.jsx
+          ! grep -n 'library-holding-filter' drive/src/v2/LibraryPage.jsx
           ! grep -n 'key: "holding"' drive/src/v2/librarySearch.js
           ! grep -n 'Bibliographic and holding metadata' drive/src/v2/LibraryAssetWorkspace.jsx
           ! grep -n '<dt>Vault path</dt>' drive/src/v2/LibraryAssetWorkspace.jsx
@@ -48,22 +47,19 @@ jobs:
         env:
           YZU_PAGES: "true"
 
-      - name: Existing Library contracts
+      - name: Library contracts
         run: >-
           mkdir -p .tmp-pw && TMPDIR=$PWD/.tmp-pw npx playwright test
           e2e/v2-library.spec.js
           e2e/library-pagination-continuity.spec.js
           e2e/v2-preview.spec.js
+          e2e/library-holdings.spec.js
           --reporter=dot
         env: &mock-env
           CI: "true"
           YZU_PAGES: "false"
 
-      - name: Federated holdings workflow and renders
-        run: TMPDIR=$PWD/.tmp-pw npx playwright test e2e/library-holdings.spec.js --reporter=dot
-        env: *mock-env
-
-      - name: Library visual regression guard
+      - name: Whole product visual audit
         run: >-
           TMPDIR=$PWD/.tmp-pw npx playwright test
           e2e/library-convergence-render.spec.js
@@ -71,11 +67,11 @@ jobs:
           --reporter=dot
         env: *mock-env
 
-      - name: Upload holdings renders
+      - name: Upload final audit renders
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: library-federated-holdings-renders
+          name: research-drive-final-system-audit
           path: |
             artifacts/library-holdings
             artifacts/library-renders
