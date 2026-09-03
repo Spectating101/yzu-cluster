@@ -23,8 +23,9 @@ jobs:
         run: |
           grep -n 'Holdings' drive/src/v2/LibraryAssetWorkspace.jsx
           grep -n 'library-rail-holdings' drive/src/v2/LibraryDatasetRailPanel.jsx
-          grep -n 'Freshness' drive/src/v2/LibraryEvidenceEstate.jsx
           grep -n 'Freshness' drive/src/v2/LibraryDatasetRailPanel.jsx
+          ! grep -n 'Freshness' drive/src/v2/LibraryEvidenceEstate.jsx
+          ! grep -n 'library-evidence-freshness' drive/src/v2/LibraryEvidenceEstate.jsx
           ! grep -n 'library-holding-filter' drive/src/v2/LibraryPage.jsx
           ! grep -n 'key: "holding"' drive/src/v2/librarySearch.js
           ! grep -n 'Bibliographic and holding metadata' drive/src/v2/LibraryAssetWorkspace.jsx
