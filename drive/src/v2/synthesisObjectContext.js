@@ -85,6 +85,7 @@ export function selectorForSynthesisObjectContext(context = {}) {
 export function enrichSynthesisObjectContext(context = {}, selected = {}) {
   if (!context || typeof context !== "object") return null;
   const threadId = compact(context.thread_id || selected.thread_id, 160);
+  if (context.clear) return { clear: true, thread_id: threadId || undefined };
   const kind = normalized(context.kind || context.object_kind || kindFromSurface(context.surface || context.surface_testid));
   if (!kind) return null;
 
