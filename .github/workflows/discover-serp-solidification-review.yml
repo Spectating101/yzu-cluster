@@ -23,6 +23,7 @@ on:
       - "drive/src/v2/discover-idle-competitor-rail-fix.css"
       - "drive/src/v2/discover-source-evidence-visual.css"
       - "drive/src/v2/discover-right-rail-competitor.css"
+      - "drive/src/v2/discover-right-rail-selected-fix.css"
       - "drive/src/v2/discover-preview-evidence-canvas.css"
       - "e2e/discover-canonical-visual.spec.js"
       - "e2e/discover-reconvergence-visual.spec.js"
