@@ -62,6 +62,7 @@ const DATASETS = {
       description: "Taiwan issuer-quarter accounting evidence.",
       grain: "issuer_quarter",
       analysis_readiness: "metadata_search",
+      registered: true,
       domain: "procured",
       local_path: "data_lake/procured/mops/financials.csv",
       source: "MOPS",
