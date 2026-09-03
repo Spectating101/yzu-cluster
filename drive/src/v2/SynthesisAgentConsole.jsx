@@ -55,33 +55,33 @@ function toneForActivity(value = "") {
   return "current";
 }
 
-function runStateForActivity(value = "", busy = false) {
+function runStateForActivity(value = "") {
   const text = String(value || "").toLowerCase();
   if (/^paused\b|blocked|failed|error/.test(text)) return "paused";
   if (/automation complete|query-ready|registration complete|run complete|turn complete/.test(text)) return "complete";
-  return busy || text ? "running" : "idle";
+  return "running";
 }
 
-function activityStep(text) {
+function activityStep(text, at = Date.now()) {
   const value = String(text || "").trim();
   return {
-    id: `${Date.now()}:${value}`,
+    id: `${at}:${value}`,
     text: value,
     tone: toneForActivity(value),
     selector: selectorForActivity(value),
-    at: Date.now(),
+    at,
   };
 }
 
-function appendRunStep(run, value) {
+function appendRunStep(run, value, at = Date.now()) {
   const text = String(value || "").trim();
   if (!text) return run;
   const last = run.steps?.[run.steps.length - 1];
   if (last?.text === text) return run;
   return {
     ...run,
-    steps: [...(run.steps || []), activityStep(text)].slice(-6),
-    updatedAt: Date.now(),
+    steps: [...(run.steps || []), activityStep(text, at)].slice(-6),
+    updatedAt: at,
   };
 }
 
@@ -116,8 +116,8 @@ function loadStoredRun(threadId) {
   }
 }
 
-function useObservableAgentRun({ threadId, busy, status, automationState }) {
-  const [run, setRun] = useState(() => emptyRun(threadId));
+function useObservableAgentRun({ threadId, busy, automationState }) {
+  const [run, setRun] = useState(() => loadStoredRun(threadId));
   const threadRef = useRef(threadId);
   const wasBusyRef = useRef(false);
   const lastAutomationRef = useRef("");
@@ -131,52 +131,88 @@ function useObservableAgentRun({ threadId, busy, status, automationState }) {
   }, [threadId]);
 
   useEffect(() => {
-    if (!threadId) return;
-    const streamed = String(status || "").trim();
-    const automation = String(automationState || "").trim();
+    if (!threadId || typeof document === "undefined") return undefined;
+    const onActivity = (event) => {
+      const detail = event?.detail || {};
+      if (String(detail.threadId || "") !== String(threadId)) return;
+      const kind = String(detail.kind || "activity");
+      const at = Number(detail.at) || Date.now();
+      const text = String(detail.text || "").trim();
 
-    setRun((current) => {
-      let next = current.threadId === threadId ? current : loadStoredRun(threadId);
-
-      if (busy && !wasBusyRef.current) {
-        next = {
-          ...emptyRun(threadId),
-          id: `ask-${Date.now()}`,
-          state: "running",
-          startedAt: Date.now(),
-          updatedAt: Date.now(),
-        };
-      }
-
-      if (busy && streamed) {
-        next = appendRunStep(next, streamed);
-        next = { ...next, state: runStateForActivity(streamed, true) };
-      }
-
-      if (automation && automation !== lastAutomationRef.current) {
+      setRun((current) => {
+        let next = current.threadId === threadId ? current : loadStoredRun(threadId);
+        if (kind === "run_started") {
+          next = {
+            ...emptyRun(threadId),
+            id: `ask-${at}`,
+            state: "running",
+            startedAt: at,
+            updatedAt: at,
+          };
+          return text ? appendRunStep(next, text, at) : next;
+        }
         if (!next.id) {
           next = {
             ...emptyRun(threadId),
-            id: `automation-${Date.now()}`,
+            id: `ask-${at}`,
             state: "running",
-            startedAt: Date.now(),
-            updatedAt: Date.now(),
+            startedAt: at,
+            updatedAt: at,
           };
         }
-        next = appendRunStep(next, automation);
-        next = { ...next, state: runStateForActivity(automation, true) };
-      }
+        if (kind === "activity") {
+          next = appendRunStep(next, text, at);
+          return { ...next, state: runStateForActivity(text) };
+        }
+        if (kind === "run_failed") {
+          next = appendRunStep(next, text || "Agent run failed", at);
+          return { ...next, state: "paused", updatedAt: at };
+        }
+        if (kind === "run_completed") {
+          return { ...next, state: "complete", updatedAt: at };
+        }
+        return next;
+      });
+    };
 
-      if (!busy && wasBusyRef.current && next.id && next.state === "running" && !automation) {
-        next = { ...next, state: "complete", updatedAt: Date.now() };
-      }
+    document.addEventListener("synthesis:agent-activity", onActivity);
+    return () => document.removeEventListener("synthesis:agent-activity", onActivity);
+  }, [threadId]);
 
-      return next;
+  useEffect(() => {
+    if (!threadId) return;
+    const automation = String(automationState || "").trim();
+    if (!automation || automation === lastAutomationRef.current) {
+      lastAutomationRef.current = automation;
+      return;
+    }
+
+    setRun((current) => {
+      let next = current.threadId === threadId ? current : loadStoredRun(threadId);
+      if (!next.id || next.state === "complete" || next.state === "paused") {
+        const at = Date.now();
+        next = {
+          ...emptyRun(threadId),
+          id: `automation-${at}`,
+          state: "running",
+          startedAt: at,
+          updatedAt: at,
+        };
+      }
+      next = appendRunStep(next, automation);
+      return { ...next, state: runStateForActivity(automation) };
     });
-
-    wasBusyRef.current = busy;
     lastAutomationRef.current = automation;
-  }, [threadId, busy, status, automationState]);
+  }, [threadId, automationState]);
+
+  useEffect(() => {
+    if (!busy && wasBusyRef.current) {
+      setRun((current) => current.id && current.state === "running"
+        ? { ...current, state: "complete", updatedAt: Date.now() }
+        : current);
+    }
+    wasBusyRef.current = busy;
+  }, [busy]);
 
   useEffect(() => {
     if (typeof window === "undefined" || !threadId || !run.id) return;
@@ -373,7 +409,6 @@ export function SynthesisAgentConsole({
   const run = useObservableAgentRun({
     threadId: selected.thread_id,
     busy,
-    status,
     automationState,
   });
   const operation = String(
