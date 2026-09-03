@@ -1,3 +1,5 @@
+import { selectorForSynthesisObjectContext } from "@/v2/synthesisObjectContext.js";
+
 export const SYNTHESIS_AGENT_ACTIVITY_EVENT = "synthesis:agent-activity";
 
 const MAX_ACTIVE_STEPS = 80;
@@ -59,17 +61,36 @@ export function synthesisAgentRunStorageKey(threadId) {
   return `rd_v2_synthesis_agent_run:${String(threadId || "")}`;
 }
 
+function normalizeTarget(value) {
+  if (!value || typeof value !== "object") return null;
+  const kind = String(value.kind || value.object_kind || "").trim();
+  const objectId = String(value.object_id || value.id || "").trim();
+  const label = String(value.label || value.object_label || "").trim();
+  const surface = String(value.surface || value.surface_testid || "").trim();
+  const selector = String(value.selector || selectorForSynthesisObjectContext(value) || "").trim();
+  if (!kind && !objectId && !surface && !selector) return null;
+  return {
+    kind: kind || undefined,
+    object_id: objectId || undefined,
+    label: label || undefined,
+    surface: surface || undefined,
+    selector: selector || undefined,
+  };
+}
+
 function normalizeStep(step = {}) {
   const text = String(step.text || "").trim();
   if (!text) return null;
   const at = Number(step.at) || Date.now();
+  const target = normalizeTarget(step.target);
   return {
     id: String(step.id || `${at}:${text}`),
     text,
     action: step.action || null,
     elapsedSeconds: step.elapsedSeconds,
     tone: step.tone || toneForActivity(text),
-    selector: step.selector || selectorForActivity(text),
+    target,
+    selector: step.selector || target?.selector || selectorForActivity(`${step.action || ""} ${text}`),
     at,
   };
 }
@@ -99,7 +120,12 @@ function appendRunStep(run, detail = {}) {
   const step = normalizeStep(detail);
   if (!step) return run;
   const last = run.steps?.[run.steps.length - 1];
-  if (last?.text === step.text && last?.action === step.action) return run;
+  if (
+    last?.text === step.text &&
+    last?.action === step.action &&
+    String(last?.target?.object_id || "") === String(step?.target?.object_id || "") &&
+    String(last?.target?.surface || "") === String(step?.target?.surface || "")
+  ) return run;
   return {
     ...run,
     steps: [...(run.steps || []), step].slice(-MAX_ACTIVE_STEPS),
