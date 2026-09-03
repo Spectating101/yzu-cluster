@@ -60,17 +60,47 @@ function threadFor(extra = {}) {
   };
 }
 
+function measurementFor(thread) {
+  return {
+    thread_id: thread.id,
+    writes: false,
+    measurement_basis: "mapped_library_bytes",
+    input_dataset_ids: NODES.map((node) => node.id),
+    measured_inputs: 2,
+    unmeasured: [],
+    column_profiles: [],
+    unit_conflict: null,
+    join_candidates: [],
+  };
+}
+
 async function mount(page, extra) {
   const thread = threadFor(extra);
   await mockV2Api(page);
-  await page.route("**/api/library/synthesis/threads**", (route) =>
-    route.fulfill({
+  await page.route("**/api/library/synthesis/threads**", (route) => {
+    const url = new URL(route.request().url());
+    if (url.pathname.endsWith("/measurements")) {
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(measurementFor(thread)),
+      });
+    }
+    if (url.pathname.endsWith("/discover-handoff")) {
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ thread_id: thread.id, missing_evidence: [], collect_intents: [] }),
+      });
+    }
+    return route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify(route.request().url().includes(thread.id)
+      body: JSON.stringify(url.pathname.endsWith(`/${thread.id}`)
         ? thread
         : { threads: [thread], total: 1 }),
-    }));
+    });
+  });
   await page.goto("/?tab=synthesis", { waitUntil: "domcontentloaded" });
   await page.locator("button:visible").filter({ hasText: thread.title }).first().click();
   await expect(page.locator(".rd-v2-synthesis-page")).toBeVisible();
@@ -145,8 +175,6 @@ test.describe("Synthesis continuity surfaces", () => {
     mkdirSync(outDir, { recursive: true });
     await page.setViewportSize({ width: 1440, height: 900 });
     await mount(page, {
-      measured_inputs: 2,
-      unmeasured: [],
       proposal: {
         id: "proposal-observable",
         proposal_hash: "sha256:proposal-observable",
@@ -165,6 +193,7 @@ test.describe("Synthesis continuity surfaces", () => {
     await expect(console).toContainText("Research intent recorded");
     await expect(console).toContainText("Evidence measured");
     await expect(console).toContainText("Exact proposal recorded");
+    await expect(page.getByTestId("synthesis-ask-guidance")).not.toBeVisible();
 
     await console.getByRole("button", { name: /Exact proposal recorded/ }).click();
     await expect(page.getByTestId("synthesis-proposal-state")).toHaveAttribute("data-synthesis-agent-focus", "true");
