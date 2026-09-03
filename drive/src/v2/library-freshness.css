@@ -1,0 +1,113 @@
+/* Evidence freshness is a research-use claim, not storage metadata.
+   Keep it scan-friendly in the estate and compact in the decision rail. */
+
+.rd-v2-cap-ledger.with-verify.with-freshness.show-kind .rd-v2-cap-ledger-head,
+.rd-v2-cap-ledger.with-verify.with-freshness.show-kind .rd-v2-cap-ledger-row {
+  grid-template-columns:
+    minmax(190px, 1.05fr)
+    minmax(68px, 0.18fr)
+    minmax(104px, 0.34fr)
+    minmax(88px, 0.24fr)
+    minmax(82px, 0.21fr)
+    minmax(96px, 0.23fr);
+  grid-template-areas: "evidence kind source freshness verify state";
+  gap: 10px;
+}
+
+.rd-v2-cap-ledger.with-freshness.show-kind .rd-v2-cap-ledger-head > span:nth-child(4),
+.rd-v2-cap-freshness {
+  grid-area: freshness;
+}
+
+.rd-v2-cap-ledger.with-freshness.show-kind .rd-v2-cap-ledger-head > span:nth-child(5),
+.rd-v2-cap-ledger.with-freshness .rd-v2-cap-verify {
+  grid-area: verify;
+}
+
+.rd-v2-cap-ledger.with-freshness.show-kind .rd-v2-cap-ledger-head > span:nth-child(6),
+.rd-v2-cap-ledger.with-freshness .rd-v2-cap-state {
+  grid-area: state;
+}
+
+.rd-v2-cap-freshness {
+  min-width: 0;
+  color: var(--rd-body);
+  line-height: 1.2;
+}
+
+.rd-v2-cap-freshness strong {
+  display: block;
+  overflow: hidden;
+  color: var(--rd-text);
+  font-size: 10.5px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-v2-cap-freshness small {
+  display: block;
+  margin-top: 2px;
+  overflow: hidden;
+  color: var(--rd-muted);
+  font-size: 9.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-v2-cap-freshness.stale strong {
+  color: #7a433c;
+}
+
+.rd-v2-cap-freshness.unknown strong {
+  color: var(--rd-muted);
+  font-weight: 600;
+}
+
+@media (max-width: 1180px) {
+  .rd-v2-cap-ledger.with-verify.with-freshness.show-kind .rd-v2-cap-ledger-head,
+  .rd-v2-cap-ledger.with-verify.with-freshness.show-kind .rd-v2-cap-ledger-row {
+    grid-template-columns:
+      minmax(190px, 1fr)
+      minmax(108px, 0.36fr)
+      minmax(86px, 0.24fr)
+      minmax(82px, 0.22fr)
+      minmax(96px, 0.24fr);
+    grid-template-areas: "evidence source freshness verify state";
+    gap: 9px;
+  }
+
+  .rd-v2-cap-ledger.with-verify.with-freshness.show-kind .rd-v2-cap-kind,
+  .rd-v2-cap-ledger.with-verify.with-freshness.show-kind .rd-v2-cap-ledger-head > span:nth-child(2) {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .rd-v2-cap-ledger.with-verify.with-freshness.show-kind .rd-v2-cap-ledger-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "evidence state"
+      "source verify"
+      "freshness freshness";
+    gap: 7px 12px;
+  }
+
+  .rd-v2-cap-freshness {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    padding-top: 1px;
+  }
+
+  .rd-v2-cap-freshness strong,
+  .rd-v2-cap-freshness small {
+    display: inline;
+    margin: 0;
+    white-space: normal;
+  }
+
+  .rd-v2-cap-freshness small::before {
+    content: "· ";
+  }
+}
