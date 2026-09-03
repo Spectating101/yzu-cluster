@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  LIBRARY_FOLDERS_ROOT,
   breadcrumbTrail,
   collectDatasetDescendants,
   listFolderChildren,
