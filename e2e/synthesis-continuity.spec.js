@@ -200,6 +200,58 @@ test.describe("Synthesis continuity surfaces", () => {
     await page.screenshot({ path: `${outDir}/ask-agent-operations-1440.png`, fullPage: true });
   });
 
+  test("Ask retains the real streamed agent run and hands each operation back to the centre", async ({ page }) => {
+    mkdirSync(outDir, { recursive: true });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await mount(page, {
+      proposal: {
+        id: "proposal-agent-run",
+        proposal_hash: "sha256:proposal-agent-run",
+        title: "Weekly factor exposure",
+        summary: "Aggregate the daily cross-section to asset × week.",
+        operations: [{ op: "update_spec", patch: { grain: "asset × week" } }],
+        execution_spec: SPEC,
+      },
+    });
+
+    await page.route("**/api/library/chat/stream", async (route) => {
+      if (route.request().method() !== "POST") return route.fallback();
+      const events = [
+        { type: "activity", text: "Inspecting held evidence", action: "read_evidence" },
+        { type: "activity", text: "Measuring relevant columns", action: "measure" },
+        { type: "activity", text: "Drafting exact method proposal", action: "proposal" },
+        {
+          type: "complete",
+          result: {
+            session_id: "agent-run-session",
+            reply: "The existing exact proposal remains the current review target.",
+            action: "answer",
+          },
+        },
+      ];
+      return route.fulfill({
+        status: 200,
+        contentType: "application/x-ndjson",
+        body: `${events.map((event) => JSON.stringify(event)).join("\n")}\n`,
+      });
+    });
+
+    await page.getByRole("tab", { name: "Ask" }).click();
+    await page.getByTestId("ask-composer").fill("Explain what you are doing to this construction.");
+    await page.getByRole("button", { name: "Send" }).click();
+
+    const run = page.getByTestId("synthesis-agent-run");
+    await expect(run).toBeVisible();
+    await expect(run).toHaveAttribute("data-run-state", "complete");
+    await expect(run).toContainText("Inspecting held evidence");
+    await expect(run).toContainText("Measuring relevant columns");
+    await expect(run).toContainText("Drafting exact method proposal");
+
+    await run.getByRole("button", { name: "Drafting exact method proposal" }).click();
+    await expect(page.getByTestId("synthesis-proposal-state")).toHaveAttribute("data-synthesis-agent-focus", "true");
+    await page.screenshot({ path: `${outDir}/ask-agent-run-1440.png`, fullPage: true });
+  });
+
   test("a new Design decision does not pull the viewport away inside the same workspace", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await mount(page, {
