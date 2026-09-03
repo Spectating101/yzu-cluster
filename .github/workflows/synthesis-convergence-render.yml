@@ -73,6 +73,13 @@ jobs:
           --timeout=60000
           --retries=0
           --reporter=line
+      - name: Guard Synthesis workspace continuity
+        run: >-
+          mkdir -p artifacts/synthesis-continuity &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/synthesis-continuity.spec.js
+          --timeout=60000
+          --retries=0
+          --reporter=line
       - name: Render converged Synthesis frames
         run: mkdir -p .tmp-pw artifacts/synthesis-convergence && TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/synthesis-convergence-render.spec.js --timeout=60000 --retries=0 --reporter=line
       - name: Render desktop Synthesis workflow states
@@ -109,5 +116,6 @@ jobs:
             artifacts/synthesis-acceptance
             artifacts/synthesis-scale
             artifacts/synthesis-robustness
+            artifacts/synthesis-continuity
             test-results
           if-no-files-found: warn
