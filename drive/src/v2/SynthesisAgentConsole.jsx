@@ -226,9 +226,51 @@ function receiptsFor(selected = {}) {
   return deduped.slice(-5);
 }
 
+function timeLabel(value) {
+  const timestamp = Number(value);
+  if (!timestamp) return "";
+  try {
+    return new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit", second: "2-digit" }).format(timestamp);
+  } catch {
+    return "";
+  }
+}
+
+function RunStep({ step }) {
+  return (
+    <li className={`is-${step.tone}`}>
+      <button
+        type="button"
+        disabled={!step.selector}
+        onClick={() => focusCentre(step.selector)}
+        title={step.selector ? "Inspect the research object touched by this operation" : "Observable agent operation"}
+      >
+        <span className="rd-v2-synthesis-agent-mark" aria-hidden="true">
+          {step.tone === "done" ? "✓" : step.tone === "warn" ? "!" : "→"}
+        </span>
+        <span>
+          <b>{step.text}</b>
+          {timeLabel(step.at) || step.action ? (
+            <small>{[timeLabel(step.at), step.action].filter(Boolean).join(" · ")}</small>
+          ) : null}
+        </span>
+      </button>
+    </li>
+  );
+}
+
 function RunTimeline({ run }) {
-  if (!run?.steps?.length) return null;
+  if (!run?.steps?.length && !run?.history?.length) return null;
   const stateLabel = run.state === "running" ? "LIVE" : run.state === "paused" ? "NEEDS ATTENTION" : "LAST RUN";
+  const recentSteps = (run.steps || []).slice(-6);
+  const history = Array.isArray(run.history) ? run.history : [];
+  const currentSnapshot = run.id
+    ? [{ id: run.id, state: run.state, startedAt: run.startedAt, updatedAt: run.updatedAt, steps: run.steps || [] }]
+    : [];
+  const allRuns = [...history, ...currentSnapshot];
+  const operationCount = allRuns.reduce((count, item) => count + (item.steps?.length || 0), 0);
+  const hasDeepTrace = operationCount > recentSteps.length || allRuns.length > 1;
+
   return (
     <div className="rd-v2-synthesis-agent-run" data-testid="synthesis-agent-run" data-run-state={run.state}>
       <div className="rd-v2-synthesis-agent-run-head">
@@ -236,23 +278,212 @@ function RunTimeline({ run }) {
         <span>{stateLabel}</span>
       </div>
       <ol>
-        {run.steps.map((step) => (
-          <li key={step.id} className={`is-${step.tone}`}>
-            <button
-              type="button"
-              disabled={!step.selector}
-              onClick={() => focusCentre(step.selector)}
-              title={step.selector ? "Inspect the research object touched by this operation" : "Observable agent operation"}
-            >
-              <span className="rd-v2-synthesis-agent-mark" aria-hidden="true">
-                {step.tone === "done" ? "✓" : step.tone === "warn" ? "!" : "→"}
-              </span>
-              <span>{step.text}</span>
-            </button>
-          </li>
-        ))}
+        {recentSteps.map((step) => <RunStep key={step.id} step={step} />)}
       </ol>
+      {hasDeepTrace ? (
+        <details className="rd-v2-synthesis-agent-trace" data-testid="synthesis-agent-trace">
+          <summary>View run trace · {operationCount} operations · {allRuns.length} run{allRuns.length === 1 ? "" : "s"}</summary>
+          <div>
+            {[...allRuns].reverse().map((item, runIndex) => (
+              <section key={item.id || runIndex}>
+                <header>
+                  <b>{runIndex === 0 ? "Current / latest run" : `Earlier run ${runIndex}`}</b>
+                  <span>{[timeLabel(item.startedAt), item.state].filter(Boolean).join(" · ")}</span>
+                </header>
+                <ol>
+                  {(item.steps || []).map((step) => <RunStep key={`${item.id}-${step.id}`} step={step} />)}
+                </ol>
+              </section>
+            ))}
+          </div>
+        </details>
+      ) : null}
     </div>
+  );
+}
+
+function printable(value) {
+  if (value == null || value === "") return "Not recorded";
+  if (Array.isArray(value)) return value.length ? value.map((item) => printable(item)).join(" · ") : "[]";
+  if (typeof value === "object") return JSON.stringify(value);
+  return String(value);
+}
+
+function compactJson(value) {
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value ?? "");
+  }
+}
+
+function diffRows(selected = {}) {
+  const current = selected.forensic_current_spec || {};
+  const operations = Array.isArray(selected.forensic_proposal_operations) ? selected.forensic_proposal_operations : [];
+  const rows = [];
+  operations.forEach((operation, index) => {
+    const kind = normalized(operation?.op || operation?.type);
+    if (kind === "update_spec" && operation?.patch && typeof operation.patch === "object") {
+      Object.entries(operation.patch).forEach(([key, next]) => {
+        const before = current?.[key];
+        if (compactJson(before) === compactJson(next)) return;
+        rows.push({ id: `${index}:${key}`, label: key.replace(/_/g, " "), before, after: next });
+      });
+      return;
+    }
+    rows.push({
+      id: `${index}:${kind || "operation"}`,
+      label: String(operation?.summary || operation?.label || kind || "structured change").replace(/_/g, " "),
+      before: "—",
+      after: "Proposed",
+    });
+  });
+  return rows.slice(0, 24);
+}
+
+function transformSummary(transform = {}, index = 0) {
+  const kind = String(transform.op || transform.type || `step ${index + 1}`).replace(/_/g, " ");
+  const details = Object.entries(transform)
+    .filter(([key]) => !["op", "type"].includes(key))
+    .slice(0, 6)
+    .map(([key, value]) => `${key.replace(/_/g, " ")}: ${printable(value)}`);
+  return { kind, details: details.join(" · ") };
+}
+
+function previewEffects(preview = {}) {
+  const sampling = preview.sampling || {};
+  const rows = preview.rows || {};
+  const explicit = Array.isArray(preview.row_effects) ? preview.row_effects : [];
+  if (explicit.length) {
+    return explicit.slice(0, 30).map((effect, index) => ({
+      id: String(effect.id || effect.step || effect.label || index),
+      label: String(effect.label || effect.step || effect.operation || `Step ${index + 1}`),
+      before: effect.before ?? effect.input_rows ?? effect.rows_before,
+      after: effect.after ?? effect.output_rows ?? effect.rows_after,
+      dropped: effect.dropped ?? effect.removed ?? effect.delta,
+    }));
+  }
+  const fallback = [
+    ["Source rows", sampling.source_rows],
+    ["Previewed rows", sampling.previewed_rows],
+    ["After transforms", rows.after_transforms],
+    ["Output rows", rows.output],
+  ].filter(([, value]) => value != null);
+  return fallback.map(([label, value], index) => ({ id: `${index}:${label}`, label, after: value }));
+}
+
+function ForensicPanel({ selected = {} }) {
+  const spec = selected.forensic_execution_spec;
+  const preview = selected.forensic_preview;
+  const execution = selected.forensic_execution;
+  const diffs = diffRows(selected);
+  const effects = previewEffects(preview || {});
+  const transforms = Array.isArray(spec?.transforms) ? spec.transforms : [];
+  const metrics = Array.isArray(spec?.metrics) ? spec.metrics : [];
+  const groupBy = Array.isArray(spec?.group_by) ? spec.group_by : [];
+  const hasData = Boolean(spec || diffs.length || effects.length || execution);
+  if (!hasData) return null;
+
+  return (
+    <details className="rd-v2-synthesis-forensics" data-testid="synthesis-forensics">
+      <summary>
+        <span><small>Terminal-depth proof</small><b>Forensic depth</b></span>
+        <em>Recipe · diff · row effects · runtime</em>
+      </summary>
+      <div className="rd-v2-synthesis-forensics-body">
+        {diffs.length ? (
+          <section data-testid="synthesis-research-diff">
+            <header><small>Research diff</small><strong>Exact proposed change</strong></header>
+            <dl className="rd-v2-synthesis-forensic-diff">
+              {diffs.map((row) => (
+                <div key={row.id}>
+                  <dt>{row.label}</dt>
+                  <dd><span>{printable(row.before)}</span><b>→</b><strong>{printable(row.after)}</strong></dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        ) : null}
+
+        {spec ? (
+          <section data-testid="synthesis-exact-recipe">
+            <header><small>Exact recipe</small><strong>{spec.output_dataset_id || "Bound construction"}</strong></header>
+            <ol className="rd-v2-synthesis-recipe">
+              <li><b>Input</b><span>{printable(spec.input_dataset_id)}</span></li>
+              {transforms.map((transform, index) => {
+                const summary = transformSummary(transform, index);
+                return <li key={`${summary.kind}-${index}`}><b>{summary.kind}</b><span>{summary.details || "No additional parameters recorded"}</span></li>;
+              })}
+              {groupBy.length ? <li><b>Group</b><span>{groupBy.join(" + ")}</span></li> : null}
+              {metrics.map((metric, index) => (
+                <li key={`metric-${index}`}><b>Metric</b><span>{printable(metric)}</span></li>
+              ))}
+              <li><b>Output</b><span>{printable(spec.output_dataset_id)}</span></li>
+            </ol>
+            <details className="rd-v2-synthesis-raw-spec">
+              <summary>View exact spec JSON</summary>
+              <pre>{JSON.stringify(spec, null, 2)}</pre>
+            </details>
+          </section>
+        ) : null}
+
+        {effects.length || preview?.warnings?.length || preview?.error ? (
+          <section data-testid="synthesis-preview-forensics">
+            <header><small>Preview forensics</small><strong>Observed row effects</strong></header>
+            {effects.length ? (
+              <table className="rd-v2-synthesis-row-effects">
+                <thead><tr><th>Stage</th><th>Before</th><th>After</th><th>Δ</th></tr></thead>
+                <tbody>
+                  {effects.map((effect) => {
+                    const before = Number(effect.before);
+                    const after = Number(effect.after);
+                    const explicitDelta = Number(effect.dropped);
+                    const delta = Number.isFinite(explicitDelta)
+                      ? explicitDelta
+                      : Number.isFinite(before) && Number.isFinite(after)
+                        ? after - before
+                        : null;
+                    return (
+                      <tr key={effect.id}>
+                        <th>{effect.label}</th>
+                        <td>{Number.isFinite(before) ? before.toLocaleString() : "—"}</td>
+                        <td>{Number.isFinite(after) ? after.toLocaleString() : effect.after != null ? printable(effect.after) : "—"}</td>
+                        <td>{Number.isFinite(delta) ? `${delta > 0 ? "+" : ""}${delta.toLocaleString()}` : "—"}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            ) : null}
+            {preview?.warnings?.length ? (
+              <ul className="rd-v2-synthesis-forensic-notes">
+                {preview.warnings.map((warning, index) => <li key={`warning-${index}`}>{printable(warning)}</li>)}
+              </ul>
+            ) : null}
+            {preview?.error ? <p className="rd-v2-synthesis-forensic-error">{printable(preview.error)}</p> : null}
+          </section>
+        ) : null}
+
+        {execution ? (
+          <section data-testid="synthesis-execution-forensics">
+            <header><small>Execution diagnostics</small><strong>{printable(execution.status)}</strong></header>
+            <dl className="rd-v2-synthesis-runtime-proof">
+              <div><dt>Job</dt><dd>{printable(execution.job_id)}</dd></div>
+              <div><dt>Run</dt><dd>{printable(execution.run_id)}</dd></div>
+              <div><dt>Worker</dt><dd>{printable(execution.worker || execution.worker_pool)}</dd></div>
+              <div><dt>Attempt</dt><dd>{printable(execution.attempt)}</dd></div>
+              <div><dt>Rows</dt><dd>{execution.rows == null ? "Not recorded" : Number(execution.rows).toLocaleString()}</dd></div>
+              <div><dt>Manifest</dt><dd>{printable(execution.manifest_id)}</dd></div>
+              <div><dt>Heartbeat</dt><dd>{printable(execution.heartbeat_at)}</dd></div>
+              <div><dt>Latest event</dt><dd>{printable(execution.latest_event_at)}</dd></div>
+              <div><dt>Archive</dt><dd>{execution.archive_verified ? "Verified" : "Not verified"}</dd></div>
+              <div><dt>Registry</dt><dd>{execution.registry_verified ? "Verified" : "Not verified"}</dd></div>
+            </dl>
+            {execution.error ? <p className="rd-v2-synthesis-forensic-error">{printable(execution.error)}</p> : null}
+          </section>
+        ) : null}
+      </div>
+    </details>
   );
 }
 
@@ -319,6 +550,8 @@ export function SynthesisAgentConsole({
           </ol>
         </div>
       ) : null}
+
+      <ForensicPanel selected={selected} />
 
       <footer className="rd-v2-synthesis-agent-shortcuts" aria-label="Synthesis Ask shortcuts">
         <button type="button" onClick={() => onSend?.("Explain the current Synthesis operation and its exact research consequence.")}>Explain</button>
