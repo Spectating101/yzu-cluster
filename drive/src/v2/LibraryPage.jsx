@@ -324,6 +324,7 @@ export function LibraryPage({
   const [sortBy, setSortBy] = useState("name");
   const [typeMode, setTypeMode] = useState("all");
   const [filterMode, setFilterMode] = useState("all");
+  const [locationMode, setLocationMode] = useState("all");
   const [newMenuOpen, setNewMenuOpen] = useState(false);
   const searchInputRef = useRef(null);
   const searchActive = Boolean(String(searchQuery || "").trim());
@@ -417,6 +418,7 @@ export function LibraryPage({
 
   const destination = useMemo(() => folderDestination(trail, folderId), [trail, folderId]);
   const isRoot = !folderId;
+  const browsingPhysicalFolders = folderId === LIBRARY_FOLDERS_ROOT || String(folderId || "").startsWith(`${LIBRARY_FOLDERS_ROOT}/`);
 
   const items = useMemo(() => listFolderChildren(tree, folderId), [tree, folderId]);
   // Search already filters the catalog upstream; without flattening, Library root
@@ -641,6 +643,24 @@ export function LibraryPage({
                   <option value="updated">Modified</option>
                 </select>
               </label>
+              {browsingPhysicalFolders ? (
+                <label
+                  className="rd-v2-library-filter-control rd-v2-library-location-filter"
+                  title="Connect external storage accounts in Settings to browse their indexed folders."
+                >
+                  <span>Location</span>
+                  <select
+                    data-testid="library-location-filter"
+                    aria-label="Filter folders by connected location"
+                    value={locationMode}
+                    onChange={(event) => setLocationMode(event.target.value)}
+                  >
+                    <option value="all">All</option>
+                    <option value="google_drive" disabled>Google Drive</option>
+                    <option value="dropbox" disabled>Dropbox</option>
+                  </select>
+                </label>
+              ) : null}
             </div>
             <span className="rd-v2-toolbar-spacer" />
             <span className="rd-v2-toolbar-count">
