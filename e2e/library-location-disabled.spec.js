@@ -16,8 +16,8 @@ test("Folders keeps disconnected external locations visible but disabled", async
   const location = page.getByTestId("library-location-filter");
   await expect(location).toBeVisible();
   await expect(location).toHaveValue("all");
-  await expect(location.locator('option[value="google_drive"]')).toBeDisabled();
-  await expect(location.locator('option[value="dropbox"]')).toBeDisabled();
+  await expect(location.locator('option[value="google_drive"]')).toHaveAttribute("disabled", "");
+  await expect(location.locator('option[value="dropbox"]')).toHaveAttribute("disabled", "");
   await page.screenshot({ path: `${OUT}/01-folders-disabled-locations-1440.png`, fullPage: false });
 
   await page.setViewportSize({ width: 390, height: 1000 });
