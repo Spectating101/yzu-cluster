@@ -17,11 +17,9 @@ function isFilteredRoot(folder) {
   return note.includes("match") && (note.includes("search") || note.includes("matching asset"));
 }
 
-function folderDepth(object) {
-  return String(object?.path || "")
-    .split("/")
-    .map((part) => part.trim())
-    .filter(Boolean).length - 1;
+function isPhysicalFolder(folderId = "") {
+  const id = String(folderId || "");
+  return id === LIBRARY_FOLDERS_ROOT || id.startsWith(`${LIBRARY_FOLDERS_ROOT}/`);
 }
 
 export function LibraryFolderRailPanel({
@@ -36,9 +34,9 @@ export function LibraryFolderRailPanel({
   const counts = object.counts || {};
   const root = !object.folderId;
   const foldersRoot = object.folderId === LIBRARY_FOLDERS_ROOT;
+  const physicalFolder = isPhysicalFolder(object.folderId);
   const filteredRoot = isFilteredRoot(object);
-  const depth = Math.max(0, folderDepth(object));
-  const collection = !root && !foldersRoot && depth === 2;
+  const collection = !root && !physicalFolder;
   const totalAssets = Number(counts.datasets || 0);
   const scopedRows = Number(counts.items || 0);
   const notReady = Math.max(0, totalAssets - Number(counts.queryReady || 0));
@@ -49,9 +47,9 @@ export function LibraryFolderRailPanel({
       ? "Library overview"
       : foldersRoot
         ? "Folder storage"
-        : collection
-          ? "Collection"
-          : "Folder";
+        : physicalFolder
+          ? "Folder"
+          : "Collection";
 
   const legacySummaryLabel = filteredRoot
     ? "In this view"
@@ -59,31 +57,35 @@ export function LibraryFolderRailPanel({
       ? "In this library"
       : foldersRoot
         ? "In folder storage"
-        : "In this collection";
+        : physicalFolder
+          ? "In this folder"
+          : "In this collection";
 
   const structureLabel = root
     ? "Collections"
     : foldersRoot
       ? "Top-level folders"
-      : "Child folders";
+      : physicalFolder
+        ? "Child folders"
+        : "Nested context";
 
   const purpose = filteredRoot
     ? "This view reflects the current Library search and filters across held evidence. Clear them to return to the full overview."
     : root
-      ? "Search and review evidence across the full Library. Open Folders when you want to browse the storage structure manually."
+      ? "Search and review evidence across the full Library. Open Folders when you want to browse the recorded storage structure manually."
       : foldersRoot
-        ? "Manual storage browser. Open a top-level folder to move deeper; return to Library for cross-estate retrieval and recommendations."
-        : collection
-          ? "Research collection inside Folders. Open a child folder to reach its stored evidence, or use the breadcrumb to move back up."
-          : "Storage folder. Select evidence here, narrow it with the Library controls, or use the breadcrumb to move back up.";
+        ? "Manual storage browser built only from recorded local paths. Open a top-level folder to move deeper; return to Library for cross-estate retrieval and research collections."
+        : physicalFolder
+          ? "Recorded storage folder. Select evidence here, move deeper through child folders, or use the breadcrumb to move back up."
+          : "Research collection. Select evidence in this context, open nested research context where available, or use the breadcrumb to move back up.";
 
   const askLabel = root
     ? "Ask about the library →"
     : foldersRoot
       ? "Ask about folders →"
-      : collection
-        ? "Ask about this collection →"
-        : "Ask about this folder →";
+      : physicalFolder
+        ? "Ask about this folder →"
+        : "Ask about this collection →";
 
   return (
     <RailFrame>
@@ -109,7 +111,10 @@ export function LibraryFolderRailPanel({
           <p className="rd-v2-rail-section-label">Scope &amp; location</p>
           <RailFieldGrid>
             <RailField label="Location" value={object.path || object.destination || "Library"} />
-            <RailField label={structureLabel} value={pluralCount(counts.folders, root ? "collection" : "folder")} />
+            <RailField
+              label={structureLabel}
+              value={pluralCount(counts.folders, root ? "collection" : "folder")}
+            />
             <RailField label="Rows after filters" value={String(scopedRows)} />
           </RailFieldGrid>
           <p className="rd-v2-rail-note">{purpose}</p>

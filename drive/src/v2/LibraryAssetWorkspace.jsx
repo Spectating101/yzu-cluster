@@ -8,6 +8,8 @@ import {
 } from "@/v2/datasetMeta";
 import { librarySourceReceipt } from "@/v2/libraryProvenance";
 import { libraryVerification } from "@/v2/libraryVerification";
+import { LibraryHoldingsOverlay } from "@/v2/LibraryHoldingsOverlay";
+import { summarizeLibraryHoldings } from "@/v2/libraryHoldings";
 import { PageShell } from "@/v2/ui";
 
 function value(...candidates) {
@@ -133,7 +135,7 @@ function AssetOverlay({ kind, dataset, fields, presentation, onClose }) {
           scholarly ? (
             <>
               <p>
-                Bibliographic and holding metadata for {displayName(dataset)}. This describes the research object; it does not pretend a paper has tabular fields or join keys.
+                Bibliographic and access metadata for {displayName(dataset)}. This describes the research object; it does not pretend a paper has tabular fields or join keys.
               </p>
               <dl className="rd-v2-library-overlay-facts">
                 <div><dt>Object type</dt><dd>Scholarly work</dd></div>
@@ -182,7 +184,7 @@ function AssetOverlay({ kind, dataset, fields, presentation, onClose }) {
         ) : (
           <>
             <p>
-              Reproducibility receipt for this Library asset. Provider identity, source location, acquisition method, verification, and use readiness remain separate claims.
+              Origin and reproducibility receipt for this Library asset. Source authority, acquisition route, verification, and use readiness remain separate claims from current storage holdings.
             </p>
             <dl className="rd-v2-library-overlay-facts" data-testid="library-provenance-receipt">
               <div><dt>Source authority</dt><dd>{value(fields.source, dataset?.source, dataset?.publisher)}</dd></div>
@@ -216,7 +218,6 @@ function AssetOverlay({ kind, dataset, fields, presentation, onClose }) {
               <dl className="rd-v2-library-overlay-facts compact">
                 <div><dt>Library ID</dt><dd><code>{dataset?.dataset_id || "Not declared"}</code></dd></div>
                 <ReceiptFact label="Source endpoint" value={receipt.sourceEndpoint} mono />
-                <div><dt>Vault path</dt><dd><code>{fields.vault || "Not declared"}</code></dd></div>
                 <ReceiptFact label="Fetched at" value={receipt.fetchedAt} />
                 <ReceiptFact label="Content SHA-256" value={receipt.contentSha256} mono />
               </dl>
@@ -410,6 +411,7 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onOpenQuery,
   const presentation = useMemo(() => libraryAssetPresentation(dataset), [dataset]);
   const state = statusPillKind(dataset);
   const verification = useMemo(() => libraryVerification(dataset), [dataset]);
+  const holdings = useMemo(() => summarizeLibraryHoldings(dataset), [dataset]);
   const canQuery = state.kind === "query-ready";
   const hasTableSurface = presentation.previewRows;
   const names = useMemo(() => fieldNames(dataset, fields), [dataset, fields]);
@@ -467,6 +469,7 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onOpenQuery,
         <div className="rd-v2-library-workspace-actions" aria-label="Asset actions">
           {canQuery ? <button type="button" className="rd-v2-btn primary" onClick={onOpenQuery}>Open query</button> : null}
           <button type="button" className="rd-v2-btn" onClick={() => setOverlay("provenance")}>Source record</button>
+          {holdings.count ? <button type="button" className="rd-v2-btn" onClick={() => setOverlay("holdings")}>Holdings</button> : null}
           {!canQuery && state.kind === "registered" && onPrepare ? (
             <button type="button" className="rd-v2-btn primary" onClick={onPrepare}>Prepare local copy</button>
           ) : null}
@@ -497,10 +500,15 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onOpenQuery,
         )}
       </article>
       <AssetOverlay
-        kind={overlay}
+        kind={overlay === "holdings" ? "" : overlay}
         dataset={dataset}
         fields={fields}
         presentation={presentation}
+        onClose={() => setOverlay("")}
+      />
+      <LibraryHoldingsOverlay
+        open={overlay === "holdings"}
+        dataset={dataset}
         onClose={() => setOverlay("")}
       />
     </PageShell>
