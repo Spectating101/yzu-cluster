@@ -18,6 +18,12 @@ const INTERACTIVE_SELECTOR = [
   '[contenteditable="true"]',
 ].join(", ");
 
+function openAskRail() {
+  const tabs = Array.from(document.querySelectorAll('.yzu-inspector [role="tab"]'));
+  const askTab = tabs.find((tab) => String(tab.textContent || "").trim().toLowerCase() === "ask");
+  if (askTab instanceof HTMLElement && askTab.getAttribute("aria-selected") !== "true") askTab.click();
+}
+
 export function SynthesisObjectContextMount() {
   useEffect(() => {
     if (typeof document === "undefined") return undefined;
@@ -34,6 +40,7 @@ export function SynthesisObjectContextMount() {
       clearSynthesisObjectContextSelection();
       surface.setAttribute("data-synthesis-context-selected", "true");
       emitSynthesisObjectContext(context);
+      openAskRail();
     };
     document.addEventListener("click", onClick);
     return () => document.removeEventListener("click", onClick);
