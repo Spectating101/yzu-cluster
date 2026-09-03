@@ -261,7 +261,7 @@ test("render current Library evidence and decision states", async ({ page }) => 
   const dataPreview = page.getByTestId("library-data-preview");
   const assetFacts = page.getByTestId("library-asset-facts");
   await expect(dataPreview).toBeVisible();
-  await expect(dataPreview).toContainText("Observed table");
+  await expect(dataPreview).toContainText("Observed sample");
   await expect(dataPreview.getByRole("columnheader", { name: "news_risk" })).toBeVisible();
   await expect(dataPreview.locator("tbody tr")).toHaveCount(GDELT_PREVIEW_ROWS.length);
   await expect(page.getByTestId("library-observation-receipt")).toContainText("6 rows");
@@ -310,7 +310,7 @@ test("render current Library evidence and decision states", async ({ page }) => 
   await settleVisualState(page);
   await page.screenshot({ path: `${OUT}/05-root-1920.png`, fullPage: false });
   await openAsset(page, "Estimate revision panel");
-  await expect(page.getByTestId("library-data-preview")).toContainText("Observed table");
+  await expect(page.getByTestId("library-data-preview")).toContainText("Observed sample");
   await expect(page.getByTestId("library-data-preview").getByRole("columnheader", { name: "eps_revision_30d" })).toBeVisible();
   await expect(page.getByTestId("library-asset-facts").getByText("Research details", { exact: true })).toBeVisible();
   await assertNoPageOverflow(page);

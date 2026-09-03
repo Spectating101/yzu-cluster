@@ -127,16 +127,16 @@ function reproductionBasis(receipt) {
 
 function nextMove({ state, presentation, previewOpen, receipt, verification }) {
   if (previewOpen) {
-    return "Review the bounded preview in the centre. Previewing rows does not upgrade verification or provenance.";
+    return "Review the expanded sample in the centre. Observed rows do not upgrade verification or provenance.";
   }
   if (state.kind === "query-ready") {
     if (!hasReproductionMethod(receipt)) {
-      return "Inspect the full preview or open a query now; record a reproduction method before treating the workflow as fully reproducible.";
+      return "Open a query when you need analysis; inspect the Source record before treating the workflow as fully reproducible.";
     }
     if (verification.kind !== "verified" && verification.kind !== "matched") {
-      return "Inspect the full preview or open a query now, while keeping verification separate from query readiness.";
+      return "Open a query when you need analysis, while keeping verification separate from query readiness.";
     }
-    return "Inspect the full preview for row-level context, then open a query when you need analysis beyond the bounded sample.";
+    return "Use the bounded sample for a quick value check, then open a query when you need analysis beyond it.";
   }
   if (state.kind === "connected") {
     return "Use the declared remote route. Connected means reachable, not that a local query-ready copy exists.";
@@ -145,7 +145,7 @@ function nextMove({ state, presentation, previewOpen, receipt, verification }) {
     if (presentation.kind === "scholarly_work") {
       return "Use the bibliographic record as evidence, then verify the stable source before making a stronger source claim.";
     }
-    return "Inspect the source record and prepare a usable local copy before treating this asset as queryable evidence.";
+    return "Inspect the Source record and prepare a usable local copy before treating this asset as queryable evidence.";
   }
   return "Resolve the outstanding readiness or provenance gaps before relying on this asset in analysis.";
 }
@@ -169,7 +169,7 @@ function DecisionBasis({ state, verification, dataset, receipt, previewOpen, pre
         ))}
       </div>
       <div className="rd-v2-library-inspector-next">
-        <span>{previewOpen ? "Preview state" : "Next move"}</span>
+        <span>{previewOpen ? "Sample state" : "Next move"}</span>
         <p>{nextMove({ state, presentation, previewOpen, receipt, verification })}</p>
       </div>
     </section>
@@ -316,7 +316,7 @@ export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onAskAbo
       <RailStickyFooter>
         {previewOpen ? (
           <span className="rd-v2-library-preview-state" data-testid="library-preview-open-state">
-            Preview open in centre
+            Expanded sample open in centre
           </span>
         ) : null}
         <button type="button" className="rd-v2-btn primary sm" onClick={onAskAbout}>

@@ -51,11 +51,11 @@ function inferredKind(dataset, isExternal) {
   return "file";
 }
 
-function kindLabel(kind) {
+function kindLabel(kind, libraryExpandedSample = false) {
   if (kind === "source") return "External source preview";
   if (kind === "document") return "Document preview";
   if (kind === "image") return "Image preview";
-  if (kind === "table") return "Dataset preview";
+  if (kind === "table") return libraryExpandedSample ? "Expanded dataset sample" : "Dataset preview";
   return "Evidence preview";
 }
 
@@ -144,6 +144,7 @@ export function PreviewModal({
   onPrevious,
   onNext,
 }) {
+  const libraryExpandedSample = Boolean(dataset?.__libraryExpandedSample);
   const [tab, setTab] = useState(initialTab === "schema" ? "fields" : "rows");
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -179,11 +180,11 @@ export function PreviewModal({
 
   useEffect(() => {
     if (!open) return;
-    setTab(initialTab === "schema" ? "fields" : "rows");
+    setTab(libraryExpandedSample ? "rows" : initialTab === "schema" ? "fields" : "rows");
     setRows([]);
     setError("");
     setDemoNotice("");
-  }, [open, initialTab, dataset?.dataset_id, dataset?.url, dataset?.doi]);
+  }, [open, initialTab, libraryExpandedSample, dataset?.dataset_id, dataset?.url, dataset?.doi]);
 
   useEffect(() => {
     if (!open || !dataset?.dataset_id || isExternal || kind !== "table") return undefined;
@@ -251,14 +252,14 @@ export function PreviewModal({
         className={`rd-preview-shell kind-${kind}`}
         role="dialog"
         aria-modal="true"
-        aria-label={`${title} preview`}
+        aria-label={`${title} ${libraryExpandedSample ? "expanded sample" : "preview"}`}
       >
         <header className="rd-preview-header">
           <div className="rd-preview-identity">
             <span className="rd-preview-icon" aria-hidden="true">{kindIcon(kind)}</span>
             <div>
               <strong>{title}</strong>
-              <span>{kindLabel(kind)}</span>
+              <span>{kindLabel(kind, libraryExpandedSample)}</span>
             </div>
           </div>
           <button ref={closeButtonRef} type="button" className="rd-preview-close" onClick={onClose} aria-label="Close preview">
@@ -272,7 +273,7 @@ export function PreviewModal({
           </div>
         ) : null}
 
-        {kind === "table" ? (
+        {kind === "table" && !libraryExpandedSample ? (
           <nav className="rd-preview-tabs" aria-label="Dataset preview views">
             <button type="button" className={tab === "rows" ? "active" : ""} onClick={() => setTab("rows")}>Rows</button>
             <button type="button" className={tab === "fields" ? "active" : ""} onClick={() => setTab("fields")}>Fields</button>
@@ -302,7 +303,7 @@ export function PreviewModal({
                       <tr>{cols.map((column) => <th key={column}>{column}</th>)}</tr>
                     </thead>
                     <tbody>
-                      {rows.slice(0, 12).map((row, rowIndex) => (
+                      {rows.slice(0, libraryExpandedSample ? MAX_PREVIEW_ROWS : 12).map((row, rowIndex) => (
                         <tr key={rowIndex}>
                           {cols.map((column) => <td key={column}>{String(row[column] ?? "").slice(0, 100)}</td>)}
                         </tr>
@@ -314,7 +315,7 @@ export function PreviewModal({
             </>
           ) : null}
 
-          {kind === "table" && tab === "fields" ? (
+          {kind === "table" && !libraryExpandedSample && tab === "fields" ? (
             <div className="rd-preview-fields">
               <div className="rd-preview-section-heading">
                 <strong>Field inventory</strong>
@@ -359,7 +360,9 @@ export function PreviewModal({
 
         <footer className="rd-preview-footer">
           <div className="rd-preview-footnote">
-            {kind === "table" && rows.length ? `Observed sample · ${Math.min(rows.length, 12)} displayed · ${MAX_PREVIEW_ROWS}-row request` : null}
+            {kind === "table" && rows.length
+              ? `${libraryExpandedSample ? "Expanded sample" : "Observed sample"} · ${Math.min(rows.length, libraryExpandedSample ? MAX_PREVIEW_ROWS : 12)} displayed · ${MAX_PREVIEW_ROWS}-row request`
+              : null}
             {kind === "source" ? "Source record only · row-level contents not observed" : null}
             {(kind === "document" || kind === "image") && assetUrl ? "Backing evidence rendered from its current preview URL" : null}
           </div>

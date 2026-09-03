@@ -239,7 +239,7 @@ function observedColumns(rows = []) {
   return ordered;
 }
 
-function DatasetPreview({ dataset, canQuery, names, fields, state, presentation, onInspect, onOpenFullPreview }) {
+function DatasetPreview({ dataset, canQuery, names, fields, state, presentation, onInspect, onExpandSample }) {
   const [preview, setPreview] = useState({ loading: false, rows: [], error: "" });
 
   useEffect(() => {
@@ -279,7 +279,7 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
       <div className="rd-v2-library-section-heading">
         <div>
           <span className="rd-v2-eyebrow">{liveSource ? "Source inspection" : "Dataset inspection"}</span>
-          <h2>{observed ? (liveSource ? "Observed response sample" : "Observed table") : (liveSource ? "Declared response shape" : "Table structure")}</h2>
+          <h2>{observed ? (liveSource ? "Observed response sample" : "Observed sample") : (liveSource ? "Declared response shape" : "Table structure")}</h2>
         </div>
         <div className="rd-v2-library-preview-tools">
           {observed ? (
@@ -288,8 +288,8 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
             </span>
           ) : null}
           <button type="button" className="rd-v2-btn sm" onClick={onInspect}>Inspect schema</button>
-          {canQuery && onOpenFullPreview ? (
-            <button type="button" className="rd-v2-btn sm" onClick={onOpenFullPreview}>Full preview</button>
+          {canQuery && onExpandSample ? (
+            <button type="button" className="rd-v2-btn sm" onClick={onExpandSample}>Expand sample</button>
           ) : null}
         </div>
       </div>
@@ -481,7 +481,7 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onOpenQuery,
             state={state}
             presentation={presentation}
             onInspect={() => setOverlay("fields")}
-            onOpenFullPreview={onPreview}
+            onExpandSample={onPreview}
           />
         ) : null}
 

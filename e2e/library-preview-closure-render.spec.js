@@ -8,7 +8,7 @@ async function settle(page) {
   await page.waitForTimeout(180);
 }
 
-test("render final Library Full preview rows and fields at desktop width", async ({ page }) => {
+test("render final Library expanded sample and schema at desktop width", async ({ page }) => {
   mkdirSync(OUT, { recursive: true });
   await mockV2Api(page);
   await page.setViewportSize({ width: 1920, height: 1080 });
@@ -19,12 +19,12 @@ test("render final Library Full preview rows and fields at desktop width", async
   await page.getByTestId("library-evidence-row").filter({ hasText: "Asia daily news-risk panel" }).click();
   const workspace = page.getByTestId("library-asset-workspace");
   await expect(workspace).toContainText("Asia daily news-risk panel");
-  await workspace.getByRole("button", { name: "Full preview" }).click();
+  await workspace.getByRole("button", { name: "Expand sample" }).click();
 
-  const preview = page.getByRole("dialog", { name: "Asia daily news-risk panel preview" });
+  const preview = page.getByRole("dialog", { name: "Asia daily news-risk panel expanded sample" });
   const rail = page.getByRole("complementary", { name: "Inspector" });
   await expect(preview).toBeVisible();
-  await expect(rail.getByTestId("library-preview-open-state")).toHaveText("Preview open in centre");
+  await expect(rail.getByTestId("library-preview-open-state")).toHaveText("Expanded sample open in centre");
 
   const [previewBox, railBox] = await Promise.all([preview.boundingBox(), rail.boundingBox()]);
   expect(previewBox).not.toBeNull();
@@ -32,13 +32,17 @@ test("render final Library Full preview rows and fields at desktop width", async
   expect(previewBox.x + previewBox.width).toBeLessThanOrEqual(railBox.x + 1);
   expect(previewBox.width).toBeGreaterThan(950);
 
-  await expect(preview.getByRole("button", { name: "Rows", exact: true })).toBeVisible();
+  await expect(preview.getByRole("button", { name: "Fields", exact: true })).toHaveCount(0);
   await expect(preview.locator("table")).toContainText("country");
   await settle(page);
-  await page.screenshot({ path: `${OUT}/09-full-preview-rows-1920.png`, fullPage: false });
+  await page.screenshot({ path: `${OUT}/09-expanded-sample-1920.png`, fullPage: false });
 
-  await preview.getByRole("button", { name: "Fields", exact: true }).click();
-  await expect(preview).toContainText("Field inventory");
+  await preview.getByRole("button", { name: "Close preview" }).click();
+  await expect(preview).toHaveCount(0);
+  await workspace.getByRole("button", { name: "Inspect schema" }).click();
+  const schema = page.getByRole("dialog", { name: "Declared structure" });
+  await expect(schema).toBeVisible();
+  await expect(schema).toContainText("country");
   await settle(page);
-  await page.screenshot({ path: `${OUT}/10-full-preview-fields-1920.png`, fullPage: false });
+  await page.screenshot({ path: `${OUT}/10-schema-inspection-1920.png`, fullPage: false });
 });

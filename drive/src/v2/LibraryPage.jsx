@@ -117,7 +117,7 @@ function branchStatusNote({
     return isRoot ? "No registered evidence yet" : "No holdings in this branch";
   }
   if (showingSearchHits) {
-    return `${displayCount} matching asset${displayCount === 1 ? "" : "s"} — select one for readiness, source, preview, and Ask`;
+    return `${displayCount} matching asset${displayCount === 1 ? "" : "s"} — select one for readiness, source, sample, and Ask`;
   }
   if (showingBranchFallback) {
     return `${displayCount} asset${displayCount === 1 ? "" : "s"} matched here`;
@@ -204,7 +204,7 @@ function LibraryNewMenu({ open, onToggle, onUploadFile, onAddUrl, onProcure, onC
         <div className="rd-v2-library-action-menu" role="menu" aria-label="New library item">
           {onUploadFile ? <button type="button" role="menuitem" className="rd-v2-library-menu-item" onClick={onUploadFile}>Upload file...</button> : null}
           {onAddUrl ? <button type="button" role="menuitem" className="rd-v2-library-menu-item" onClick={onAddUrl}>Add URL / DOI...</button> : null}
-          {onProcure ? <button type="button" role="menuitem" className="rd-v2-library-menu-item" onClick={onProcure}>Procure missing data...</button> : null}
+          {onProcure ? <button type="button" role="menuitem" className="rd-v2-library-menu-item" onClick={onProcure}>Find missing evidence...</button> : null}
           <button type="button" role="menuitem" className="rd-v2-library-menu-item" disabled>
             New collection
           </button>
@@ -656,7 +656,7 @@ export function LibraryPage({
             </span>
           </>
         }
-        footer="select asset → inspect · preview only when query-ready"
+        footer="select evidence → inspect → query or Ask"
         surfaceState={surfaceState}
       >
         {!isRoot ? (
@@ -740,7 +740,7 @@ export function LibraryPage({
                   <div className="rd-v2-library-empty-actions">
                     {onStartUpload ? <button type="button" className="rd-v2-btn sm" onClick={() => onStartUpload?.()}>Add files</button> : null}
                     {onStartUrl ? <button type="button" className="rd-v2-btn sm" onClick={() => onStartUrl?.()}>Add URL</button> : null}
-                    {onStartProcure ? <button type="button" className="rd-v2-btn sm" onClick={() => onStartProcure?.()}>Find missing data</button> : null}
+                    {onStartProcure ? <button type="button" className="rd-v2-btn sm" onClick={() => onStartProcure?.()}>Find missing evidence</button> : null}
                   </div>
                 ) : null}
               </div>
@@ -751,7 +751,7 @@ export function LibraryPage({
       <LibraryAssetInspector
         dataset={selectedDataset}
         onClose={onClearSelection}
-        onPreview={() => selectedDataset && onPreviewDataset?.(selectedDataset)}
+        onPreview={() => selectedDataset && onPreviewDataset?.({ ...selectedDataset, __libraryExpandedSample: true })}
         onAsk={() => selectedDataset && onAskDataset?.(selectedDataset)}
         onOpenQuery={() => selectedDataset && onOpenQuery?.(selectedDataset.dataset_id)}
       />
