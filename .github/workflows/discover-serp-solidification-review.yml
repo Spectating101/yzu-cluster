@@ -7,10 +7,13 @@ on:
     paths:
       - "drive/src/v2/main.jsx"
       - "drive/src/v2/DiscoverDatasetProfile.jsx"
+      - "drive/src/v2/DiscoverCoveragePanel.jsx"
+      - "drive/src/v2/EmptyRailState.jsx"
       - "drive/src/v2/discover-analytical-record.css"
       - "drive/src/v2/discover-three-zone.css"
       - "drive/src/v2/discover-serp-solidification.css"
       - "drive/src/v2/discover-canonical-polish.css"
+      - "drive/src/v2/discover-idle-visual-closure.css"
       - "e2e/discover-canonical-visual.spec.js"
       - ".github/workflows/discover-serp-solidification-review.yml"
   workflow_dispatch:
