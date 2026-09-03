@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { LIBRARY_FOLDERS_ROOT } from "@/driveTree";
 import { displayName, libraryAssetPresentation } from "@/v2/datasetMeta";
+import { summarizeLibraryFreshness } from "@/v2/libraryFreshness";
 import { libraryVerification } from "@/v2/libraryVerification";
 import { StatusPill } from "@/v2/StatusPill";
 import "@/v2/capability-convergence.css";
 import "@/v2/library-evidence-rigor.css";
 import "@/v2/library-auto-catalog.css";
 import "@/v2/library-live-scale.css";
+import "@/v2/library-freshness.css";
 
 const PAGE_SIZE = 50;
 
@@ -97,7 +99,7 @@ export function LibraryEvidenceEstate({
 }) {
   const visibleAssets = assets;
   const showKind = true;
-  const ledgerClass = "rd-v2-cap-ledger with-verify show-kind";
+  const ledgerClass = "rd-v2-cap-ledger with-verify with-freshness show-kind";
   const query = String(searchQuery || "").trim();
   const [visibleLimit, setVisibleLimit] = useState(PAGE_SIZE);
 
@@ -173,6 +175,7 @@ export function LibraryEvidenceEstate({
           <span role="columnheader">Evidence</span>
           {showKind ? <span role="columnheader">Type</span> : null}
           <span role="columnheader">Source</span>
+          <span role="columnheader" title="How current the evidence is and whether a refresh cadence is recorded">Freshness</span>
           <span role="columnheader" title="Whether the recorded source evidence has been checked">Verify</span>
           <span role="columnheader" title="Whether this evidence can be used directly for research or querying">Readiness</span>
         </div>
@@ -181,6 +184,12 @@ export function LibraryEvidenceEstate({
             pagedAssets.map((item) => {
               const row = item?.row || item;
               const verification = libraryVerification(row);
+              const freshness = summarizeLibraryFreshness(row, { kind: presentationKind(row) });
+              const freshnessClass = freshness.stale
+                ? "stale"
+                : freshness.rootLabel === "Not tracked"
+                  ? "unknown"
+                  : "tracked";
               return (
                 <button
                   key={row.dataset_id || item.id}
@@ -209,6 +218,14 @@ export function LibraryEvidenceEstate({
                   </span>
                   {showKind ? <span className="rd-v2-cap-kind" role="cell">{kindLabel(row)}</span> : null}
                   <span className="rd-v2-cap-source" role="cell">{sourceLabel(row)}</span>
+                  <span
+                    className={`rd-v2-cap-freshness ${freshnessClass}`}
+                    data-testid="library-evidence-freshness"
+                    role="cell"
+                  >
+                    <strong>{freshness.rootLabel}</strong>
+                    {freshness.rootDetail ? <small>{freshness.rootDetail}</small> : null}
+                  </span>
                   <span
                     className={`rd-v2-cap-verify ${verification.kind}`}
                     data-testid="library-evidence-verification"
