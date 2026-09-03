@@ -17,7 +17,7 @@ test.describe("v2 Library evidence estate", () => {
     await expect(page.getByTestId("library-auto-catalog")).toHaveCount(0);
     await expect(page.getByTestId("library-evidence-row").first()).toBeVisible();
     await expect(page.getByTestId("library-collection-filter").first()).toBeVisible();
-    await expect(estate.getByText("Collections", { exact: true })).toBeVisible();
+    await expect(estate.getByText("Research collections", { exact: true })).toBeVisible();
     await expect(page.getByTestId("library-type-filter")).toHaveValue("all");
     await expect(page.getByTestId("library-state-filter")).toHaveValue("all");
     await expect(page.getByTestId("library-sort-filter")).toHaveValue("name");
@@ -47,7 +47,7 @@ test.describe("v2 Library evidence estate", () => {
     await expect(workspace).toContainText("Selected Library asset");
     await expect(preview).toBeVisible();
     await expect(preview).toContainText("Dataset inspection");
-    await expect(preview).toContainText("Observed table");
+    await expect(preview).toContainText("Observed sample");
     await expect(preview).toContainText("Coverage:");
     await expect(preview).toContainText("Grain:");
     await expect(preview).toContainText("Keys:");
@@ -57,7 +57,7 @@ test.describe("v2 Library evidence estate", () => {
     await expect(workspace.getByLabel("Evidence claims")).toContainText("Verification");
     await expect(workspace.getByRole("button", { name: "Open query" })).toBeVisible();
     await expect(workspace.getByRole("button", { name: "Inspect schema" })).toHaveCount(1);
-    await expect(workspace.getByRole("button", { name: "Full preview" })).toHaveCount(1);
+    await expect(workspace.getByRole("button", { name: "Expand sample" })).toHaveCount(1);
     await expect(page.getByTestId("library-observation-receipt")).toContainText("1 row");
 
     const order = await Promise.all([preview.boundingBox(), facts.boundingBox()]);
@@ -120,7 +120,7 @@ test.describe("v2 Library evidence estate", () => {
     await expect(rail).toContainText("Upload files");
     await expect(rail).toContainText("Destination");
     await expect(rail).toContainText("Library");
-    await expect(rail.getByRole("button", { name: "Send to Ask" })).toBeDisabled();
+    await expect(rail.getByRole("button", { name: "Prepare upload" })).toBeDisabled();
 
     await rail.locator('input[type="file"]').setInputFiles({
       name: "faculty-panel.csv",
@@ -128,7 +128,7 @@ test.describe("v2 Library evidence estate", () => {
       buffer: Buffer.from("date,value\n2026-01-01,1\n"),
     });
     await expect(rail).toContainText("faculty-panel.csv");
-    await rail.getByRole("button", { name: "Send to Ask" }).click();
+    await rail.getByRole("button", { name: "Prepare upload" }).click();
     await expect(page.getByTestId("research-situation").getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "true");
     await expect(page.getByTestId("ask-messages")).toContainText("Upload files to Library");
     await expect(page.getByTestId("ask-messages")).toContainText("faculty-panel.csv");
@@ -141,10 +141,10 @@ test.describe("v2 Library evidence estate", () => {
     const rail = page.locator("aside.rd-v2-rail");
     await expect(page.getByRole("dialog", { name: "Add URL or DOI to library" })).toHaveCount(0);
     await expect(rail).toContainText("Add URL / DOI");
-    await expect(rail.getByRole("button", { name: "Send to Ask" })).toBeDisabled();
+    await expect(rail.getByRole("button", { name: "Inspect source" })).toBeDisabled();
 
     await rail.locator("#rd-v2-rail-url-input").fill("https://doi.org/10.1234/example");
-    await rail.getByRole("button", { name: "Send to Ask" }).click();
+    await rail.getByRole("button", { name: "Inspect source" }).click();
     await expect(page.getByTestId("research-situation").getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "true");
     await expect(page.getByTestId("ask-messages")).toContainText("https://doi.org/10.1234/example");
   });

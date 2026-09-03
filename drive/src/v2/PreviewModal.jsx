@@ -303,7 +303,7 @@ export function PreviewModal({
                       <tr>{cols.map((column) => <th key={column}>{column}</th>)}</tr>
                     </thead>
                     <tbody>
-                      {rows.slice(0, 12).map((row, rowIndex) => (
+                      {rows.slice(0, libraryExpandedSample ? MAX_PREVIEW_ROWS : 12).map((row, rowIndex) => (
                         <tr key={rowIndex}>
                           {cols.map((column) => <td key={column}>{String(row[column] ?? "").slice(0, 100)}</td>)}
                         </tr>
@@ -361,7 +361,7 @@ export function PreviewModal({
         <footer className="rd-preview-footer">
           <div className="rd-preview-footnote">
             {kind === "table" && rows.length
-              ? `${libraryExpandedSample ? "Expanded sample" : "Observed sample"} · ${Math.min(rows.length, 12)} displayed · ${MAX_PREVIEW_ROWS}-row request`
+              ? `${libraryExpandedSample ? "Expanded sample" : "Observed sample"} · ${Math.min(rows.length, libraryExpandedSample ? MAX_PREVIEW_ROWS : 12)} displayed · ${MAX_PREVIEW_ROWS}-row request`
               : null}
             {kind === "source" ? "Source record only · row-level contents not observed" : null}
             {(kind === "document" || kind === "image") && assetUrl ? "Backing evidence rendered from its current preview URL" : null}
