@@ -8,16 +8,22 @@ import { normalizeActivityStep } from "@/v2/deskIntegration";
 import { clearChatSessionId, loadChatSessionId, loadUserEmail, saveChatSessionId } from "@/v2/deskSession";
 import { classifyAskIntent, shapeAskReplyForIntent } from "@/v2/askIntent";
 import { emitSynthesisAgentEvent } from "@/v2/synthesisAgentRun.js";
+import {
+  SYNTHESIS_OBJECT_CONTEXT_EVENT,
+  enrichSynthesisObjectContext,
+  synthesisActivityTarget,
+  synthesisObjectContextPrompt,
+} from "@/v2/synthesisObjectContext.js";
 
 function normalizeOutgoingMessage(value, fallback = "") {
   const raw = value ?? fallback;
   if (raw && typeof raw === "object") {
     const prompt = String(raw.prompt || raw.text || "").trim();
     const displayText = String(raw.displayText || raw.label || prompt).trim();
-    return { prompt, displayText };
+    return { prompt, displayText, explicit: true };
   }
   const prompt = String(raw || "").trim();
-  return { prompt, displayText: prompt };
+  return { prompt, displayText: prompt, explicit: false };
 }
 
 function restoredDisplayText(row) {
@@ -29,6 +35,7 @@ function restoredDisplayText(row) {
   // replay only the message they actually authored.
   value = value.replace(/^\[context:[^\n]*?\]\s*/i, "");
   value = value.split(/\n\nSynthesis thread:/i)[0];
+  value = value.split(/\n\nSelected Synthesis object context:/i)[0];
   value = value.split(/\n\nSynthesis workspace context\./i)[0];
   return value.trim();
 }
@@ -99,6 +106,7 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
   const contextRef = useRef(askContextKey(dataset, railContext));
   const busyRef = useRef(false);
   const requestEpochRef = useRef(0);
+  const synthesisObjectContextRef = useRef(null);
   const synthesisThreadId =
     dataset?.kind === "synthesis_thread" ? String(dataset.thread_id || "") : "";
   const synthesisSessionId =
@@ -108,6 +116,19 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
   useEffect(() => {
     railRef.current = railContext;
   }, [railContext]);
+
+  useEffect(() => {
+    synthesisObjectContextRef.current = null;
+    if (!synthesisThreadId || typeof document === "undefined") return undefined;
+    const onObjectContext = (event) => {
+      const next = enrichSynthesisObjectContext(event?.detail || {}, railRef.current?.selected || {});
+      if (!next) return;
+      if (next.thread_id && String(next.thread_id) !== String(synthesisThreadId)) return;
+      synthesisObjectContextRef.current = next;
+    };
+    document.addEventListener(SYNTHESIS_OBJECT_CONTEXT_EVENT, onObjectContext);
+    return () => document.removeEventListener(SYNTHESIS_OBJECT_CONTEXT_EVENT, onObjectContext);
+  }, [synthesisThreadId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -166,10 +187,15 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
         contextRef.current === sendContextKey && requestEpochRef.current === requestEpoch;
       busyRef.current = true;
       const intent = classifyAskIntent(outgoing.displayText || prompt);
+      const objectContext = sendSynthesisThreadId && !outgoing.explicit
+        ? synthesisObjectContextRef.current
+        : null;
+      const objectContextSuffix = objectContext ? synthesisObjectContextPrompt(objectContext) : "";
+      const groundedPrompt = objectContextSuffix ? `${prompt}\n\n${objectContextSuffix}` : prompt;
       const full =
-        contextPrefix && !prompt.startsWith("[context:")
-          ? `${contextPrefix}${prompt}`
-          : prompt;
+        contextPrefix && !groundedPrompt.startsWith("[context:")
+          ? `${contextPrefix}${groundedPrompt}`
+          : groundedPrompt;
       const initialActivity = intent === "status" ? "Checking status…" : "Planning response…";
 
       setMessages((m) => [...m, { role: "user", text: outgoing.displayText, intent }]);
@@ -180,6 +206,7 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
         kind: "run_started",
         text: initialActivity,
         intent,
+        target: objectContext || undefined,
       });
       setMessages((m) => [
         ...m,
@@ -218,12 +245,15 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
             }
             const line =
               event && typeof event === "object" ? String(event.text || "") : String(event || "");
+            const target = synthesisActivityTarget(event, railRef.current?.selected || {});
             setStatus(line);
             emitSynthesisAgentEvent(sendSynthesisThreadId, {
               kind: "activity",
               text: line,
               action: event && typeof event === "object" ? event.action || null : null,
               elapsedSeconds: event && typeof event === "object" ? event.elapsed_seconds : undefined,
+              target: target || undefined,
+              selector: target?.selector || undefined,
             });
             setMessages((m) =>
               m.map((item) =>
@@ -328,6 +358,7 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
           emitSynthesisAgentEvent(sendSynthesisThreadId, {
             kind: "run_completed",
             action: out.action || shaped.action || null,
+            target: objectContext || undefined,
           });
         }
         if (
@@ -378,6 +409,7 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
           emitSynthesisAgentEvent(sendSynthesisThreadId, {
             kind: "run_failed",
             text: readOnlyReview ? "Read-only review" : (msg || "Chat failed"),
+            target: objectContext || undefined,
           });
         }
       } finally {
