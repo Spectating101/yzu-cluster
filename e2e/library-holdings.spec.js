@@ -128,7 +128,7 @@ test("federated holdings stay separate from provenance and storage is a chrome f
 
   await page.getByRole("button", { name: "Close asset inspector" }).click();
 
-  const search = page.getByRole("textbox", { name: "Search library holdings" });
+  const search = page.getByRole("textbox", { name: "Search Library evidence" });
   await search.fill("Dropbox");
   await expect(row).toHaveCount(0);
   await search.fill("");
