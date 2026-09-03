@@ -212,12 +212,6 @@ function fieldGroups(row = {}, navText = "") {
       ]),
     },
     {
-      key: "holding",
-      label: "holding",
-      weight: 8,
-      values: values(row, ["holdings", "storage_holdings", "replicas", "storage_locations"]),
-    },
-    {
       key: "organization",
       label: "collection",
       weight: 6,
@@ -391,7 +385,7 @@ export function buildLibrarySearchAskPrompt(query, rows = []) {
     prompt: [
       `Find the best evidence already held in my Library for: "${q}".`,
       "Search and describe Library holdings as needed. Rank evidence by what the asset actually contains, not just title similarity.",
-      "Explain each recommended match using recorded identity/topic, schema or fields, grain, coverage, source/provenance, holdings/storage location, readiness, and verification when those facts exist.",
+      "Explain each recommended match using recorded identity/topic, schema or fields, grain, coverage, source/provenance, readiness, and verification when those facts exist.",
       "Do not treat external Discover candidates as held Library evidence. Do not infer missing schema, provenance, coverage, or verification.",
       "If no held asset materially fits, say that clearly and recommend Discover for the missing evidence rather than forcing a weak match.",
       candidates.length ? `Instant retrieval candidates:\n${candidates.join("\n")}` : "Instant retrieval found no confident held candidate.",
