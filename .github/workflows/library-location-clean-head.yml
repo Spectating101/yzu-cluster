@@ -1,0 +1,42 @@
+name: Library clean location freeze
+
+on:
+  push:
+    branches:
+      - audit/library-location-clean-head-20260904
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install chromium
+      - name: Production build
+        run: npm run build
+        env:
+          YZU_PAGES: "true"
+      - name: Location chrome and folder workflow
+        run: mkdir -p .tmp-pw && TMPDIR=$PWD/.tmp-pw npx playwright test e2e/library-location-disabled.spec.js e2e/library-folder-workflow.spec.js --reporter=dot
+        env:
+          CI: "true"
+          YZU_PAGES: "false"
+      - name: Upload exact-head renders
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: library-location-clean-head
+          path: |
+            artifacts/library-location-disabled
+            artifacts/library-folder-workflow
+            test-results
+          if-no-files-found: warn
+          retention-days: 14
