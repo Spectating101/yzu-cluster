@@ -1,0 +1,314 @@
+/* Discover external preview — competitor-scale evidence inspection.
+ * Keeps the existing PreviewModal contract and centre-scoped behavior, but
+ * makes external source inspection read like a research evidence canvas rather
+ * than a generic modal. Library preview remains untouched.
+ */
+@media (min-width: 1680px) and (min-height: 900px) {
+  .rd-preview-scrim:has(.rd-preview-shell.kind-source) {
+    grid-template-columns: minmax(46px, 1fr) minmax(0, 1120px) minmax(46px, 1fr) !important;
+    gap: 14px !important;
+    padding: 26px 30px !important;
+    background: rgba(31, 39, 35, .16) !important;
+    backdrop-filter: blur(1.5px) !important;
+  }
+
+  .rd-preview-shell.kind-source {
+    max-height: min(86vh, calc(100% - 8px)) !important;
+    border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 78%, #677f74 22%) !important;
+    border-radius: 10px !important;
+    background: #fffdf8 !important;
+    box-shadow: 0 20px 58px rgba(29, 39, 34, .20), 0 2px 8px rgba(29, 39, 34, .09) !important;
+  }
+
+  .rd-preview-shell.kind-source .rd-preview-header {
+    min-height: 66px !important;
+    padding: 11px 16px 10px 18px !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 84%, #70867b 16%) !important;
+    background: #fbfaf5 !important;
+  }
+
+  .rd-preview-shell.kind-source .rd-preview-icon {
+    width: 36px !important;
+    height: 36px !important;
+    flex-basis: 36px !important;
+    border: 1px solid #c6d7cd !important;
+    border-radius: 7px !important;
+    background: #eaf2ed !important;
+    color: #446858 !important;
+    font-size: 16px !important;
+  }
+
+  .rd-preview-shell.kind-source .rd-preview-identity strong {
+    font-size: 16px !important;
+    font-weight: 690 !important;
+    letter-spacing: -.012em !important;
+  }
+
+  .rd-preview-shell.kind-source .rd-preview-identity div > span {
+    margin-top: 3px !important;
+    color: #6c7973 !important;
+    font-size: 9.5px !important;
+  }
+
+  .rd-preview-shell.kind-source .rd-preview-close {
+    border: 1px solid transparent !important;
+    color: #6f7c76 !important;
+  }
+
+  .rd-preview-shell.kind-source .rd-preview-close:hover,
+  .rd-preview-shell.kind-source .rd-preview-close:focus-visible {
+    border-color: #d7ddd8 !important;
+    background: #f1f4f1 !important;
+  }
+
+  .rd-preview-shell.kind-source .rd-preview-meta-strip {
+    min-height: 36px !important;
+    padding: 0 18px !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 74%, transparent) !important;
+    background: #f5f7f3 !important;
+  }
+
+  .rd-preview-shell.kind-source .rd-preview-meta-strip span {
+    color: #65746d !important;
+    font-size: 8px !important;
+    font-weight: 690 !important;
+    letter-spacing: .055em !important;
+  }
+
+  .rd-preview-shell.kind-source .rd-preview-tabs {
+    min-height: 43px !important;
+    gap: 22px !important;
+    padding: 0 18px !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 82%, transparent) !important;
+    background: #fffdf8 !important;
+  }
+
+  .rd-preview-shell.kind-source .rd-preview-tabs button {
+    padding-inline: 1px !important;
+    border-bottom-width: 2px !important;
+    color: #6c7873 !important;
+    font-size: 10px !important;
+    font-weight: 650 !important;
+  }
+
+  .rd-preview-shell.kind-source .rd-preview-tabs button.active {
+    border-bottom-color: #587e6c !important;
+    color: #315946 !important;
+  }
+
+  .rd-preview-shell.kind-source .rd-preview-body {
+    min-height: 470px !important;
+    background:
+      linear-gradient(180deg, #fffdf8 0%, #fbfbf7 100%) !important;
+  }
+
+  /* Overview reads as a source passport + observation boundary, borrowing the
+     best marketplace inspection pattern without turning into a card wall. */
+  .rd-preview-shell.kind-source .rd-preview-source-record {
+    display: grid !important;
+    grid-template-columns: minmax(0, .88fr) minmax(0, 1.12fr) !important;
+    grid-template-areas:
+      "brand fields"
+      "description fields"
+      "boundary boundary" !important;
+    column-gap: 32px !important;
+    row-gap: 0 !important;
+    padding: 25px 28px 26px !important;
+  }
+
+  .rd-preview-shell.kind-source .rd-preview-source-brand {
+    grid-area: brand !important;
+    margin: 0 0 14px !important;
+    padding-bottom: 13px !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, transparent) !important;
+  }
+
+  .rd-preview-shell.kind-source .rd-preview-source-brand span {
+    color: #60766b !important;
+    font-size: 8px !important;
+    letter-spacing: .08em !important;
+  }
+
+  .rd-preview-shell.kind-source .rd-preview-source-brand strong {
+    margin-top: 5px !important;
+    color: #213029 !important;
+    font-size: 22px !important;
+    font-weight: 660 !important;
+    line-height: 1.18 !important;
+    letter-spacing: -.025em !important;
+  }
+
+  .rd-preview-shell.kind-source .rd-preview-description {
+    grid-area: description !important;
+    max-width: 58ch !important;
+    margin: 0 !important;
+    color: #596760 !important;
+    font-size: 11px !important;
+    line-height: 1.55 !important;
+  }
+
+  .rd-preview-shell.kind-source .rd-preview-source-fields {
+    grid-area: fields !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 0 !important;
+    align-self: start !important;
+    margin: 0 !important;
+    border-top: 1px solid #d9ddd8 !important;
+  }
+
+  .rd-preview-shell.kind-source .rd-preview-source-fields div {
+    grid-template-columns: 118px minmax(0, 1fr) !important;
+    gap: 14px !important;
+    min-height: 42px !important;
+    padding: 9px 2px !important;
+    border-bottom: 1px solid #e0e3df !important;
+  }
+
+  .rd-preview-shell.kind-source .rd-preview-source-fields dt {
+    color: #68776f !important;
+    font: 690 8px/1.35 var(--rd-mono, ui-monospace, monospace) !important;
+    letter-spacing: .045em !important;
+    text-transform: uppercase !important;
+  }
+
+  .rd-preview-shell.kind-source .rd-preview-source-fields dd {
+    color: #33423b !important;
+    font-size: 10px !important;
+    line-height: 1.4 !important;
+  }
+
+  .rd-preview-shell.kind-source .rd-preview-boundary {
+    grid-area: boundary !important;
+    display: grid !important;
+    grid-template-columns: 180px minmax(0, 1fr) !important;
+    gap: 18px !important;
+    align-items: center !important;
+    margin: 24px 0 0 !important;
+    padding: 12px 14px !important;
+    border: 1px solid #c8d8cf !important;
+    border-left: 3px solid #71937f !important;
+    border-radius: 6px !important;
+    background: #eff5f0 !important;
+  }
+
+  .rd-preview-shell.kind-source .rd-preview-boundary[data-status="access_required"],
+  .rd-preview-shell.kind-source .rd-preview-boundary[data-status="failed"] {
+    border-color: #dfcca7 !important;
+    border-left-color: #ba8d50 !important;
+    background: #fbf4e7 !important;
+  }
+
+  .rd-preview-shell.kind-source .rd-preview-boundary strong {
+    color: #405f52 !important;
+    font-size: 8px !important;
+    letter-spacing: .075em !important;
+  }
+
+  .rd-preview-shell.kind-source .rd-preview-boundary span {
+    color: #607069 !important;
+    font-size: 9px !important;
+    line-height: 1.45 !important;
+  }
+
+  /* Rows: analytical evidence table with denser data-studio ergonomics. */
+  .rd-preview-shell.kind-source .rd-preview-table-wrap {
+    min-height: 420px !important;
+    padding: 18px 20px 22px !important;
+    background: #fbfbf7 !important;
+  }
+
+  .rd-preview-shell.kind-source .rd-preview-table {
+    overflow: hidden !important;
+    border: 1px solid #d6dcd7 !important;
+    border-radius: 6px !important;
+    background: #fffefa !important;
+    font-size: 10px !important;
+  }
+
+  .rd-preview-shell.kind-source .rd-preview-table th,
+  .rd-preview-shell.kind-source .rd-preview-table td {
+    height: 38px !important;
+    max-width: 260px !important;
+    padding: 8px 11px !important;
+    border-right: 1px solid #ece9e1 !important;
+    border-bottom: 1px solid #e5e2db !important;
+  }
+
+  .rd-preview-shell.kind-source .rd-preview-table th:last-child,
+  .rd-preview-shell.kind-source .rd-preview-table td:last-child {
+    border-right: 0 !important;
+  }
+
+  .rd-preview-shell.kind-source .rd-preview-table th {
+    background: #f1f4f1 !important;
+    color: #5f7068 !important;
+    font-size: 7.8px !important;
+    letter-spacing: .055em !important;
+  }
+
+  .rd-preview-shell.kind-source .rd-preview-table tbody tr:hover {
+    background: #f2f7f3 !important;
+  }
+
+  /* Fields: make the structure view read as a data dictionary. */
+  .rd-preview-shell.kind-source .rd-preview-fields {
+    padding: 20px 22px 24px !important;
+  }
+
+  .rd-preview-shell.kind-source .rd-preview-section-heading {
+    margin-bottom: 12px !important;
+    padding-bottom: 10px !important;
+    border-bottom: 1px solid #dcded9 !important;
+  }
+
+  .rd-preview-shell.kind-source .rd-preview-section-heading strong {
+    color: #27362f !important;
+    font-size: 12px !important;
+  }
+
+  .rd-preview-shell.kind-source .rd-preview-section-heading span,
+  .rd-preview-shell.kind-source .rd-preview-field-note {
+    color: #718079 !important;
+    font-size: 8.5px !important;
+  }
+
+  .rd-preview-shell.kind-source .rd-preview-schema-facts {
+    margin-top: 16px !important;
+    border-top: 1px solid #dbded9 !important;
+  }
+
+  .rd-preview-shell.kind-source .rd-preview-footer {
+    min-height: 58px !important;
+    padding: 9px 14px 9px 18px !important;
+    border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 84%, #70867b 16%) !important;
+    background: #fbfaf5 !important;
+  }
+
+  .rd-preview-shell.kind-source .rd-preview-footnote {
+    color: #718078 !important;
+    font-size: 8.7px !important;
+  }
+
+  .rd-preview-shell.kind-source .rd-preview-actions button {
+    min-height: 33px !important;
+    border-radius: 5px !important;
+    border-color: #cbd4ce !important;
+    background: #fffdf8 !important;
+    color: #405149 !important;
+    font-size: 9.5px !important;
+  }
+
+  .rd-preview-shell.kind-source .rd-preview-actions button.primary {
+    border-color: #547865 !important;
+    background: #547865 !important;
+    color: #fff !important;
+  }
+
+  .rd-preview-scrim:has(.rd-preview-shell.kind-source) .rd-preview-adjacent {
+    border: 1px solid #d7ddd8 !important;
+    background: rgba(255,253,248,.96) !important;
+    color: #566860 !important;
+    box-shadow: 0 2px 8px rgba(35, 45, 40, .12) !important;
+  }
+}
