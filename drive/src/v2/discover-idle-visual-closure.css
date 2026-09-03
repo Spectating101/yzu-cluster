@@ -52,7 +52,7 @@
   html body .rd-v2-shell .rd-v2-discover-page
     .rd-v2-discover-idle-held > ul.rd-v2-discover-candidates > li > button.row.rd-v2-discover-candidate {
     display: grid !important;
-    grid-template-columns: 54px minmax(0, 1fr) !important;
+    grid-template-columns: 70px minmax(0, 1fr) !important;
     align-items: start !important;
     gap: 9px !important;
     width: 100% !important;
@@ -69,7 +69,7 @@
 
   .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-source-ribbon,
   .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-ribbon {
-    max-width: 54px !important;
+    max-width: 70px !important;
   }
 
   .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate-main {
@@ -222,9 +222,6 @@
 
   body:has(.rd-v2-discover-page[data-surface-state="idle"])
     aside.rd-v2-rail .rd-v2-discover-idle-rail .rd-v2-rail-empty-hint {
-    margin: 10px 0 0 !important;
-    color: var(--rd-muted, #6e7685) !important;
-    font-size: 8.5px !important;
-    line-height: 1.45 !important;
+    display: none !important;
   }
 }
