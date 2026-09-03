@@ -6,6 +6,50 @@ import path from "node:path";
 const OUT = "artifacts/discover-canonical";
 fs.mkdirSync(OUT, { recursive: true });
 
+const IDLE_SOURCES = {
+  results: [
+    {
+      kind: "source",
+      source_id: "datacite_live",
+      candidate_key: "source:datacite_live",
+      title: "DataCite research-data catalogue",
+      description: "Search DOI-level metadata for published research datasets and repository records.",
+      provider: "DataCite",
+      source: "DataCite",
+      access_mode: "live_connector",
+      collect_via: "datacite",
+      coverage: "Research datasets · DOI metadata",
+      grain: "dataset / DOI record",
+    },
+    {
+      kind: "source",
+      source_id: "mops_governance",
+      candidate_key: "source:mops_governance",
+      title: "MOPS governance disclosures",
+      description: "Official Taiwan issuer filings for board, ownership, and governance evidence.",
+      provider: "TWSE / MOPS",
+      source: "MOPS",
+      access_mode: "live_connector",
+      collect_via: "mops_tw",
+      coverage: "Taiwan listed issuers · governance filings",
+      grain: "issuer × filing / period",
+    },
+    {
+      kind: "source",
+      source_id: "coingecko_market",
+      candidate_key: "source:coingecko_market",
+      title: "CoinGecko market-history routes",
+      description: "Historical crypto prices, market cap, volume, exchanges, and asset identifiers.",
+      provider: "CoinGecko",
+      source: "CoinGecko",
+      access_mode: "live_connector",
+      collect_via: "coingecko",
+      coverage: "Crypto market history · exchanges · asset IDs",
+      grain: "asset × timestamp / exchange",
+    },
+  ],
+};
+
 const HISTORY = {
   items: [
     {
@@ -75,12 +119,25 @@ async function shot(page, name) {
 test.describe("Discover canonical visual states", () => {
   test("initial Explore 1920x1080", async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 });
-    await mockV2Api(page);
+    await mockV2Api(page, { discoverSourcesBody: IDLE_SOURCES });
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
     await expect(page.getByTestId("discover-empty")).toBeVisible();
     await expect(page.getByLabel("Search or describe a research need")).toBeVisible();
+    await expect(page.getByTestId("discover-coverage")).toContainText("Asia daily news-risk panel");
+    await expect(page.getByText("Sources the desk already knows how to investigate")).toBeVisible();
+    await expect(page.getByText("DataCite research-data catalogue")).toBeVisible();
     await shot(page, "discover-initial-1920x1080.png");
+  });
+
+  test("initial Explore remains composed without curated routes", async ({ page }) => {
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await mockV2Api(page);
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await expect(page.getByTestId("discover-coverage")).toContainText("Issuer weekly fundamentals");
+    await expect(page.getByText(/No curated source routes yet/i)).toBeVisible();
+    await shot(page, "discover-initial-no-routes-1920x1080.png");
   });
 
   test("History ledger 1920x1080", async ({ page }) => {
