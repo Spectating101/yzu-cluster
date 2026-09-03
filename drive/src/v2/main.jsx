@@ -53,12 +53,14 @@ import "./discover-frozen-closure.css";
 import "./connected-accounts.css";
 import { V2App } from "./App";
 import { InteractionProvider } from "./InteractionGuidance";
+import { SynthesisAuthorityMount } from "./SynthesisAuthorityMount.jsx";
 
 const el = document.getElementById("root");
 if (el) {
   createRoot(el).render(
     <InteractionProvider>
       <V2App />
+      <SynthesisAuthorityMount />
     </InteractionProvider>,
   );
 }
