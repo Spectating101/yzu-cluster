@@ -30,6 +30,7 @@ import "./discover-three-zone.css";
 import "./discover-serp-solidification.css";
 import "./discover-canonical-polish.css";
 import "./discover-idle-visual-closure.css";
+import "./discover-idle-engine-showcase.css";
 import { V2App } from "./App";
 import { InteractionProvider } from "./InteractionGuidance";
 
