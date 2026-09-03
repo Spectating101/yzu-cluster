@@ -8,6 +8,17 @@ import { normalizeActivityStep } from "@/v2/deskIntegration";
 import { clearChatSessionId, loadChatSessionId, loadUserEmail, saveChatSessionId } from "@/v2/deskSession";
 import { classifyAskIntent, shapeAskReplyForIntent } from "@/v2/askIntent";
 
+function emitSynthesisAgentEvent(threadId, detail = {}) {
+  if (!threadId || typeof document === "undefined") return;
+  document.dispatchEvent(new CustomEvent("synthesis:agent-activity", {
+    detail: {
+      threadId: String(threadId),
+      at: Date.now(),
+      ...detail,
+    },
+  }));
+}
+
 function normalizeOutgoingMessage(value, fallback = "") {
   const raw = value ?? fallback;
   if (raw && typeof raw === "object") {
@@ -169,11 +180,17 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
         contextPrefix && !prompt.startsWith("[context:")
           ? `${contextPrefix}${prompt}`
           : prompt;
+      const initialActivity = intent === "status" ? "Checking status…" : "Planning response…";
 
       setMessages((m) => [...m, { role: "user", text: outgoing.displayText, intent }]);
       setInput("");
       setBusy(true);
-      setStatus(intent === "status" ? "Checking status…" : "Planning response…");
+      setStatus(initialActivity);
+      emitSynthesisAgentEvent(sendSynthesisThreadId, {
+        kind: "run_started",
+        text: initialActivity,
+        intent,
+      });
       setMessages((m) => [
         ...m,
         {
@@ -181,7 +198,7 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
           text: "",
           streaming: true,
           intent,
-          activity: intent === "status" ? "Checking status…" : "Planning response…",
+          activity: initialActivity,
           activityLog:
             intent === "status"
               ? []
@@ -212,6 +229,12 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
             const line =
               event && typeof event === "object" ? String(event.text || "") : String(event || "");
             setStatus(line);
+            emitSynthesisAgentEvent(sendSynthesisThreadId, {
+              kind: "activity",
+              text: line,
+              action: event && typeof event === "object" ? event.action || null : null,
+              elapsedSeconds: event && typeof event === "object" ? event.elapsed_seconds : undefined,
+            });
             setMessages((m) =>
               m.map((item) =>
                 item.streaming
@@ -312,6 +335,10 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
                 ? `Campaign ${String(out.campaign_id).slice(0, 8)}…`
                 : "",
           );
+          emitSynthesisAgentEvent(sendSynthesisThreadId, {
+            kind: "run_completed",
+            action: out.action || shaped.action || null,
+          });
         }
         if (
           intent !== "status" &&
@@ -358,6 +385,10 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
             },
           ]);
           setStatus(readOnlyReview ? "Read-only review" : (msg || "Chat failed"));
+          emitSynthesisAgentEvent(sendSynthesisThreadId, {
+            kind: "run_failed",
+            text: readOnlyReview ? "Read-only review" : (msg || "Chat failed"),
+          });
         }
       } finally {
         if (isCurrentRequest()) {
