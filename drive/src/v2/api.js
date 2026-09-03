@@ -1,715 +1,108 @@
-/** Research Drive v2 — HTTP client (dev proxies /api → :8765 via vite.config.js). */
+/**
+ * Research Drive v2 API surface.
+ *
+ * The broad HTTP client remains byte-for-byte in apiCore.js. Ask uses the
+ * adapter below so native backend Synthesis object targets survive both NDJSON
+ * streaming and the Cloudflare-buffered /library/chat production path.
+ */
 
+export * from "./apiCore.js";
+
+import { API } from "./apiCore.js";
 import {
   deskFetchInit,
-  deskHeaders,
-  deskSessionBootstrapped,
-  loadChatSessionId,
   loadUserEmail,
-  markDeskSessionBootstrapped,
   saveChatSessionId,
 } from "./deskSession.js";
-import { createRequestAbort, decodeNdjson, normalizeApiError } from "./transportContract.js";
+import { decodeNdjson, normalizeApiError } from "./transportContract.js";
 
-export const API = import.meta.env?.DEV ? "/api" : "";
-
-/** In-flight bootstrap shared by concurrent callers (App + useAskChat warm). */
-let ensureDeskSessionInflight = null;
-
-export async function fetchJson(path, init = {}) {
-  const options = deskFetchInit(init || {});
-  const timeoutMs = Number(options.timeoutMs || 0);
-  delete options.timeoutMs;
-  const requestAbort = createRequestAbort(timeoutMs, options.signal);
-  if (requestAbort.signal) options.signal = requestAbort.signal;
-
-  try {
-    let r = await fetch(`${API}${path}`, options);
-    const mayBootstrap =
-      path !== "/library/desk/session" && path !== "/library/desk/capabilities";
-    if (r.status === 401 && mayBootstrap) {
-      // A rotated token or v1-cookie revocation can leave sessionStorage stale.
-      // Clear the optimistic marker and let concurrent callers share one mint.
-      markDeskSessionBootstrapped(false);
-      const session = await ensureDeskSession();
-      if (session?.ok) r = await fetch(`${API}${path}`, options);
-    }
-    const raw = await r.text();
-    let data = {};
-    if (raw) {
-      try {
-        data = JSON.parse(raw);
-      } catch {
-        data = { message: raw };
-      }
-    }
-    if (!r.ok) throw new Error(normalizeApiError(data, r.status, path));
-    return data;
-  } catch (error) {
-    if (requestAbort.timedOut()) throw new Error(`Request timed out after ${timeoutMs}ms: ${path}`);
-    throw error;
-  } finally {
-    requestAbort.cancel();
-  }
-}
-
-async function postDeskSessionBootstrap() {
-  try {
-    const data = await fetchJson("/library/desk/session", {
-      method: "POST",
-      body: JSON.stringify({}),
-    });
-    const ok = Boolean(data?.ok || data?.authorized);
-    markDeskSessionBootstrapped(ok);
-    return { ok, bootstrapped: ok, ...data };
-  } catch (error) {
-    markDeskSessionBootstrapped(false);
-    return { ok: false, bootstrapped: false, error: String(error?.message || error) };
-  }
-}
-
-/** Same-origin HttpOnly desk session — no DevTools token injection required. */
-export async function ensureDeskSession({ force = false } = {}) {
-  if (!force && deskSessionBootstrapped()) {
-    return { ok: true, bootstrapped: true, reused: true };
-  }
-  if (!force && ensureDeskSessionInflight) {
-    return ensureDeskSessionInflight;
-  }
-
-  const task = postDeskSessionBootstrap();
-  ensureDeskSessionInflight = task;
-  try {
-    return await task;
-  } finally {
-    if (ensureDeskSessionInflight === task) {
-      ensureDeskSessionInflight = null;
-    }
-  }
-}
-
-/** Public, non-sensitive contract describing what this browser may do. */
-export function deskCapabilities() {
-  return fetchJson("/library/desk/capabilities").then((payload) => {
-    if (!payload?.authenticated || payload?.permissions || Number(payload?.version || 1) >= 2) {
-      return payload;
-    }
-    // Compatibility with the authenticated v1 pilot contract. Version 2+
-    // must always declare permissions and never receives optimistic defaults.
-    return {
-      ...payload,
-      permissions: {
-        view_research_data: true,
-        view_faculty_profile: true,
-        view_operations: true,
-        use_ask: true,
-        submit_collection: true,
-        approve_jobs: true,
-      },
-    };
-  });
-}
-
-/** Resolve internal bootstrap or a browser-local fallback token, then re-check. */
-export async function ensureDeskAccess({ force = false } = {}) {
-  const current = await deskCapabilities().catch((error) => ({
-    authenticated: false,
-    server_configured: null,
-    error: String(error?.message || error),
-  }));
-  if (current?.authenticated && !force) return current;
-  const session = await ensureDeskSession({ force: true });
-  if (!session?.ok) return { ...current, authenticated: false, bootstrap: session };
-  return deskCapabilities().catch((error) => ({
-    ...current,
-    authenticated: false,
-    error: String(error?.message || error),
-  }));
-}
-
-export async function clearDeskSession() {
-  ensureDeskSessionInflight = null;
-  markDeskSessionBootstrapped(false);
-  try {
-    return await fetchJson("/library/desk/session", {
-      method: "POST",
-      body: JSON.stringify({ action: "clear" }),
-    });
-  } catch {
-    try {
-      const r = await fetch(`${API}/library/desk/session`, deskFetchInit({ method: "DELETE" }));
-      return r.json().catch(() => ({ ok: r.ok }));
-    } catch (error) {
-      return { ok: false, error: String(error?.message || error) };
-    }
-  }
-}
-
-export function listDatasets() {
-  return fetchJson("/datasets").then((d) => d.datasets || []);
-}
-
-export function describeDataset(datasetId) {
-  return fetchJson(`/datasets/${encodeURIComponent(datasetId)}`);
-}
-
-export function queryDataset(datasetId, limit = 50) {
-  return fetchJson(`/query/${encodeURIComponent(datasetId)}?limit=${limit}`);
-}
-
-export function deskHealth(live = false, { timeoutMs } = {}) {
-  const q = live ? "?live=1" : "";
-  // live=1 can stall ~30s on cluster probes — UI chrome must not wait.
-  return fetchJson(`/health${q}`, { timeoutMs: timeoutMs ?? (live ? 8000 : 6000) });
-}
-
-export function deskResources(live = true) {
-  const q = live ? "?live=1" : "";
-  return fetchJson(`/library/desk/resources${q}`);
-}
-
-export function discoverSearch(query = "", limit = 12, email = "") {
-  const params = new URLSearchParams({ q: query, limit: String(limit) });
-  if (email) params.set("email", email);
-  // The known-route lookup paints independently. Bound the Library-index leg
-  // so one wedged profile/ranking request cannot leave the whole evidence view
-  // in a permanent “checking” state after useful routes are already visible.
-  return fetchJson(`/library/discover?${params}`, { timeoutMs: 15000 });
-}
-
-export function webDiscover(query = "", limit = 8, tavilyLive = true) {
-  const params = new URLSearchParams({ q: query, limit: String(limit) });
-  if (!tavilyLive) params.set("tavily", "0");
-  return fetchJson(`/library/discover/web?${params}`);
-}
-
-/** Explore source catalogue — preferred Discover search contract when backend supports it. */
-export function discoverSources(
-  query = "",
-  { limit = 12, live = false, prefer = "", semantic = false } = {},
-) {
-  const params = new URLSearchParams({ q: query, limit: String(limit) });
-  if (live) params.set("live", "1");
-  if (semantic) params.set("semantic", "1");
-  if (prefer) params.set("prefer", prefer);
-  // Live adapters (DataCite / HF / …) need more patience than local catalog.
-  return fetchJson(`/library/discover/sources?${params}`, { timeoutMs: live ? 45000 : 12000 });
-}
-
-/**
- * Deliberate evidence-need assessment. This is intentionally separate from
- * catalogue search: typing a question must not start a live assessment.
- */
-export function assessDiscoverEvidence({ question, requirement } = {}) {
-  return fetchJson("/library/discover/assessment", {
-    method: "POST",
-    headers: deskHeaders(),
-    body: JSON.stringify({
-      question: String(question || "").trim(),
-      ...(requirement ? { requirement } : {}),
-    }),
-    // Requirement interpretation is deliberate model work. Keep this separate
-    // from instant catalogue search and give the rail a bounded, visible wait.
-    timeoutMs: 45000,
-  });
-}
-
-/** Declared acquisition options for an assessment the researcher already saw. */
-export function listDiscoverGapRoutes({ question, assessment } = {}) {
-  return fetchJson("/library/discover/routes", {
-    method: "POST",
-    headers: deskHeaders(),
-    body: JSON.stringify({
-      question: String(question || "").trim(),
-      assessment: assessment || undefined,
-    }),
-    timeoutMs: 45000,
-  });
-}
-
-/** Durable Discover sourcing intent — reviewed before any collection job exists. */
-export function createDiscoverIntent({
-  researchNeed,
-  title = "",
-  candidate = null,
-  sessionId = "",
-  userEmail = "",
-} = {}) {
-  return fetchJson("/library/discover/intents", {
-    method: "POST",
-    headers: deskHeaders(),
-    body: JSON.stringify({
-      research_need: String(researchNeed || "").trim(),
-      title: String(title || "").trim(),
-      candidate: candidate && typeof candidate === "object" ? candidate : undefined,
-      session_id: String(sessionId || "").trim(),
-      user_email: String(userEmail || "").trim(),
-    }),
-  });
-}
-
-export function getDiscoverIntent(intentId) {
-  return fetchJson(`/library/discover/intents/${encodeURIComponent(intentId)}`);
-}
-
-export function setDiscoverIntentProposal(intentId, proposal) {
-  return fetchJson(`/library/discover/intents/${encodeURIComponent(intentId)}/proposal`, {
-    method: "POST",
-    headers: deskHeaders(),
-    body: JSON.stringify({ proposal }),
-  });
-}
-
-export function reviewDiscoverIntentProposal(intentId, {
-  decision,
-  proposalId,
-  proposalHash,
-} = {}) {
-  return fetchJson(`/library/discover/intents/${encodeURIComponent(intentId)}/review`, {
-    method: "POST",
-    headers: deskHeaders(),
-    body: JSON.stringify({
-      decision,
-      proposal_id: proposalId,
-      proposal_hash: proposalHash,
-    }),
-  });
-}
-
-export function selectDiscoverIntentRoute(intentId, routeId) {
-  return fetchJson(`/library/discover/intents/${encodeURIComponent(intentId)}/route`, {
-    method: "POST",
-    headers: deskHeaders(),
-    body: JSON.stringify({ route_id: routeId }),
-  });
-}
-
-export function submitDiscoverIntent(intentId, { limit = 200 } = {}) {
-  return fetchJson(`/library/discover/intents/${encodeURIComponent(intentId)}/submit`, {
-    method: "POST",
-    headers: deskHeaders(),
-    body: JSON.stringify({ limit }),
-  });
-}
-
-/** Build and persist a bounded generic proposal for a concrete public URL. */
-export function craftDiscoverIntentProposal({
-  intentId,
-  researchNeed,
-  url = "",
-  title = "",
-  mode = "",
-} = {}) {
-  return fetchJson("/library/craft/discover-proposal", {
-    method: "POST",
-    headers: deskHeaders(),
-    body: JSON.stringify({
-      intent_id: String(intentId || "").trim(),
-      research_need: String(researchNeed || "").trim(),
-      url: String(url || "").trim(),
-      title: String(title || "").trim(),
-      mode: String(mode || "").trim(),
-    }),
-    timeoutMs: 20000,
-  });
-}
-
-/** Durable Discover history (intents / subscriptions / collection runs). */
-export function discoverHistory({ limit = 50, kind = "", sessionId = "" } = {}) {
-  const params = new URLSearchParams({ limit: String(limit) });
-  if (kind) params.set("kind", kind);
-  if (sessionId) params.set("session_id", sessionId);
-  return fetchJson(`/library/discover/history?${params}`, { timeoutMs: 8000 });
-}
-
-/** Bounded Explore source preview. */
-export function previewDiscoverSource({
-  sourceId = "",
-  connectorId = "",
-  candidateKey = "",
-  url = "",
-  datasetId = "",
-  limit = 20,
-} = {}) {
-  return fetchJson("/library/discover/sources/preview", {
-    method: "POST",
-    headers: deskHeaders(),
-    body: JSON.stringify({
-      source_id: sourceId || undefined,
-      connector_id: connectorId || undefined,
-      candidate_key: candidateKey || undefined,
-      url: url || undefined,
-      dataset_id: datasetId || undefined,
-      limit,
-    }),
-    timeoutMs: 15000,
-  });
-}
-
-export function probePublicSource(url, name = "", { candidateKey = "" } = {}) {
-  const body = { url, name };
-  if (candidateKey) body.candidate_key = candidateKey;
-  return fetchJson("/library/discover/probe", {
-    method: "POST",
-    headers: deskHeaders(),
-    body: JSON.stringify(body),
-  });
-}
-
-export function submitDiscoverCollect(
-  connectorId,
-  {
-    limit = 200,
-    autoApprove = false,
-    candidateKey = "",
-    sourceIdentity = "",
-    datasetId = "",
-    doi = "",
-    url = "",
-  } = {},
-) {
-  const body = {
-    connector_id: connectorId,
-    limit,
-    auto_approve: autoApprove,
+function activityEnvelope(event = {}) {
+  const row = event && typeof event === "object" ? event : { text: event };
+  const target = row.target && typeof row.target === "object" ? row.target : undefined;
+  return {
+    text: String(row.text || ""),
+    action: row.action || null,
+    elapsed_seconds: row.elapsed_seconds,
+    target,
+    object_kind: row.object_kind,
+    object_id: row.object_id,
+    object_label: row.object_label,
+    target_kind: row.target_kind,
+    target_id: row.target_id,
+    target_label: row.target_label,
+    surface: row.surface,
+    surface_testid: row.surface_testid,
+    target_surface: row.target_surface,
+    target_selector: row.target_selector,
   };
-  if (candidateKey) body.candidate_key = candidateKey;
-  if (sourceIdentity) body.source_identity = sourceIdentity;
-  if (datasetId) body.dataset_id = datasetId;
-  if (doi) body.doi = doi;
-  if (url) body.url = url;
-  return fetchJson("/library/discover/collect", {
-    method: "POST",
-    headers: deskHeaders(),
-    body: JSON.stringify(body),
-  });
 }
 
-export function submitLibraryJob({ title, plan, autoApprove = false, request = {} }) {
-  return fetchJson("/library/jobs", {
-    method: "POST",
-    headers: deskHeaders(),
-    body: JSON.stringify({
-      title,
-      plan,
-      request,
-      auto_approve: autoApprove,
-    }),
-  });
-}
-
-/** Craft a generic collect plan for a public URL (HTTP / scrape — not a named vendor module). */
-export function craftCollectPlan({ researchNeed = "", url = "", title = "", mode = "", datasetId = "" } = {}) {
-  return fetchJson("/library/craft/collect-plan", {
-    method: "POST",
-    headers: deskHeaders(),
-    body: JSON.stringify({
-      research_need: researchNeed || (url ? `Craft collect for ${url}` : ""),
-      url: url || undefined,
-      title: title || undefined,
-      mode: mode || undefined,
-      dataset_id: datasetId || undefined,
-    }),
-    timeoutMs: 20000,
-  });
-}
-
-export function unifiedSearch(query = "", limit = 12, email = "") {
-  const params = new URLSearchParams({ q: query, limit: String(limit) });
-  if (email) params.set("email", email);
-  return fetchJson(`/library/search?${params}`);
-}
-
-export function facultyProfile(email = "") {
-  const q = email ? `?email=${encodeURIComponent(email)}` : "";
-  return fetchJson(`/library/faculty/profile${q}`);
-}
-
-export function libraryOps(lane = "") {
-  const q = lane ? `?lane=${encodeURIComponent(lane)}` : "";
-  return fetchJson(`/library/ops${q}`);
-}
-
-export function libraryOverview() {
-  return fetchJson("/library/overview");
-}
-
-export function listLibraryNav() {
-  return fetchJson("/library/partitions");
-}
-
-export function listPartitions() {
-  return listLibraryNav().then((d) => d.partitions || []);
-}
-
-export function procurementCatalogSummary() {
-  return fetchJson("/library/catalog?limit=1").then((d) => d.summary || d);
-}
-
-export function yzuClusterStatus(live = true) {
-  const q = live ? "?live=1" : "";
-  return fetchJson(`/yzu/status${q}`);
-}
-
-export function listAcquisitions(live = true) {
-  const q = live ? "?live=1" : "";
-  return fetchJson(`/yzu/acquisitions${q}`);
-}
-
-export function listJobs() {
-  return fetchJson("/library/jobs").then((d) => d.jobs || d.items || d || []);
-}
-
-/** RC2-A: sanitized cross-surface identity from the private factory / desk gateway. */
-export function fetchLiveIdentity({ datasetId = "", jobId = "" } = {}) {
-  const params = new URLSearchParams();
-  if (datasetId) params.set("dataset_id", datasetId);
-  if (jobId) params.set("job_id", jobId);
-  if (![...params.keys()].length) {
-    return Promise.reject(new Error("dataset_id or job_id is required"));
-  }
-  return fetchJson(`/library/live-identity?${params}`);
-}
-
-export function approveJob(jobId) {
-  const body = JSON.stringify({});
-  return fetch(`${API}/library/jobs/${encodeURIComponent(jobId)}/approve`, deskFetchInit({
-    method: "POST",
-    body,
-  })).then(async (r) => {
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok && r.status === 404) {
-      const r2 = await fetch(`${API}/yzu/jobs/${encodeURIComponent(jobId)}/approve`, deskFetchInit({
-        method: "POST",
-        body,
-      }));
-      const d2 = await r2.json().catch(() => ({}));
-      if (!r2.ok) throw new Error(d2.message || d2.error || "Approve failed");
-      return d2;
-    }
-    if (!r.ok) throw new Error(data.message || data.error || "Approve failed");
-    return data;
-  });
-}
-
-/**
- * Warm desk caches. Always waits for a deduplicated successful ensureDeskSession
- * before POSTing /library/desk/warm — callers (App, useAskChat) must not race the cookie.
- * Does not recurse: ensureDeskSession only hits /library/desk/session.
- */
-export async function deskWarm({ sessionId, userEmail, background = true } = {}) {
-  const session = await ensureDeskSession();
-  if (!session?.ok) {
-    return {
-      ok: false,
-      skipped: true,
-      reason: "desk_session_unavailable",
-      error: session?.error || "desk session bootstrap failed",
-    };
-  }
-  return fetchJson("/library/desk/warm", {
-    method: "POST",
-    headers: deskHeaders(),
-    body: JSON.stringify({
-      session_id: sessionId || loadChatSessionId() || undefined,
-      user_email: userEmail || loadUserEmail() || undefined,
-      background,
-    }),
-  });
-}
-
-export function libraryConsolidated(live = false) {
-  const q = live ? "?live=1" : "";
-  return fetchJson(`/library/consolidated${q}`);
-}
-
-export function listSynthesisProfiles() {
-  return fetchJson("/library/synthesis/profiles");
-}
-
-/** Durable Synthesis workspaces. The thread, not a browser-local stage, is authoritative. */
-export function listSynthesisThreads({ limit = 30, sessionId = "" } = {}) {
-  const params = new URLSearchParams({ limit: String(limit) });
-  if (sessionId) params.set("session_id", sessionId);
-  return fetchJson(`/library/synthesis/threads?${params}`);
-}
-
-export function getSynthesisThread(threadId) {
-  return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}`);
-}
-
-/** Read-only facts measured directly from the thread's mapped Library bytes.
- * This route never invokes the assistant and never mutates the construction. */
-export function getSynthesisMeasurements(threadId, { maxInputs = 8 } = {}) {
-  const params = new URLSearchParams({ max_inputs: String(maxInputs) });
-  return fetchJson(
-    `/library/synthesis/threads/${encodeURIComponent(threadId)}/measurements?${params}`,
-  );
-}
-
-/** Read-only, held-only candidate inputs for a Synthesis thread. */
-export function proposeSynthesisEvidenceMap(threadId) {
-  return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}/evidence-map`);
-}
-
-/** Researcher-approved persistence of exact inputs from the current proposal. */
-export function applySynthesisEvidenceMap(threadId, { datasetIds = [] } = {}) {
-  return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}/evidence-map`, {
-    method: "POST",
-    headers: deskHeaders(),
-    body: JSON.stringify({ dataset_ids: datasetIds }),
-  });
-}
-
-export function linkSynthesisThreadConversation(threadId, { sessionId, conversationId = "" } = {}) {
-  return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}/conversation`, {
-    method: "POST",
-    headers: deskHeaders(),
-    body: JSON.stringify({
-      session_id: sessionId,
-      conversation_id: conversationId || undefined,
-    }),
-  });
-}
-
-export function createSynthesisThread({ objective, title = "", requiredGrain = "", sessionId = "" } = {}) {
-  return fetchJson("/library/synthesis/threads", {
-    method: "POST",
-    headers: deskHeaders(),
-    body: JSON.stringify({
-      objective,
-      title: title || undefined,
-      required_grain: requiredGrain || undefined,
-      session_id: sessionId || loadChatSessionId() || undefined,
-    }),
-  });
-}
-
-export function getChatSession(sessionId) {
-  if (!sessionId) return Promise.resolve(null);
-  return fetchJson(`/library/chat/${encodeURIComponent(sessionId)}`);
-}
-
-export function decideSynthesisProposal(threadId, { decision, proposalId, proposalHash } = {}) {
-  return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}/patches`, {
-    method: "POST",
-    headers: deskHeaders(),
-    body: JSON.stringify({
-      decision,
-      proposal_id: proposalId,
-      proposal_hash: proposalHash,
-    }),
-  });
-}
-
-export function requestSynthesisExecution(threadId, { action = "request_approval" } = {}) {
-  const intent = String(action || "request_approval").trim();
-  return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}/execute`, {
-    method: "POST",
-    headers: deskHeaders(),
-    body: JSON.stringify({ action: intent }),
-  });
-}
-
-export function synthesisMaterialisation(threadId) {
-  return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}/materialisation`);
-}
-
-/** Exact immutable method artifact written by the completed Synthesis execution.
- * This endpoint never asks the assistant to regenerate code. */
-export function getSynthesisMethodExport(threadId) {
-  return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}/method`);
-}
-
-/** Durable, backend-declared missing-evidence identities for one thread — the
- * only source of truth for whether a mapped evidence node is Discover-routable. */
-export function getSynthesisDiscoverHandoff(threadId) {
-  return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}/discover-handoff`);
-}
-
-export function getSynthesisProfile(profileId, { refresh = false } = {}) {
-  const q = refresh ? "?refresh=1" : "";
-  return fetchJson(`/library/synthesis/${encodeURIComponent(profileId)}${q}`);
-}
-
-export function runSynthesis(profileId, { previewLimit = 50, gapLimit = 100 } = {}) {
-  return fetchJson("/library/synthesis/run", {
-    method: "POST",
-    headers: deskHeaders(),
-    body: JSON.stringify({
-      profile_id: profileId,
-      preview_limit: previewLimit,
-      gap_limit: gapLimit,
-    }),
-  });
-}
-
-export function runSynthesisPair(leftDatasetId, rightDatasetId) {
-  return fetchJson("/library/synthesis/pair", {
-    method: "POST",
-    headers: deskHeaders(),
-    body: JSON.stringify({
-      left_dataset_id: leftDatasetId,
-      right_dataset_id: rightDatasetId,
-    }),
-  });
-}
-
-export function adviseDatasets(goal, { datasetId = "", limit = 5 } = {}) {
-  return fetchJson("/library/advise", {
-    method: "POST",
-    headers: deskHeaders(),
-    body: JSON.stringify({
-      goal,
-      current_dataset_id: datasetId || undefined,
-      limit,
-    }),
-  });
-}
-
-export function rowsToCsv(rows) {
-  if (!rows?.length) return "";
-  const cols = Object.keys(rows[0]);
-  const esc = (v) => {
-    const s = String(v ?? "");
-    return s.includes(",") || s.includes('"') || s.includes("\n") ? `"${s.replace(/"/g, '""')}"` : s;
+function hiddenSynthesisObjectContext(message = "") {
+  const text = String(message || "");
+  const marker = "Selected Synthesis object context:";
+  const start = text.lastIndexOf(marker);
+  if (start < 0) return null;
+  const block = text.slice(start + marker.length);
+  const pick = (label) => {
+    const match = block.match(new RegExp(`(?:^|\\n)${label}:\\s*([^\\n]+)`, "i"));
+    return String(match?.[1] || "").trim().replace(/\.$/, "");
   };
-  return [cols.join(","), ...rows.map((r) => cols.map((c) => esc(r[c])).join(","))].join("\n");
+  const kind = pick("Kind");
+  if (!kind) return null;
+  const objectId = pick("Object id");
+  const label = pick("Label");
+  const surface = pick("Surface");
+  return {
+    kind,
+    object_id: objectId || undefined,
+    label: label || undefined,
+    surface: surface || undefined,
+  };
 }
 
-export function downloadText(filename, text, mime = "text/plain") {
-  const blob = new Blob([text], { type: mime });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
+function requestRailContext(message, railContext) {
+  if (!railContext || typeof railContext !== "object") return undefined;
+  const selectedObject = hiddenSynthesisObjectContext(message);
+  if (!selectedObject) return railContext;
+  return {
+    ...railContext,
+    synthesis_object_context: selectedObject,
+  };
+}
+
+function replayBufferedActivity(payload, onActivity) {
+  const rows = Array.isArray(payload?.activity_events) ? payload.activity_events : [];
+  rows.forEach((event) => {
+    const activity = activityEnvelope(event);
+    if (activity.text) onActivity?.(activity);
+  });
 }
 
 export async function sendChatMessage(
   message,
   { sessionId, userEmail, railContext, onDelta, onActivity } = {},
 ) {
+  const effectiveRailContext = requestRailContext(message, railContext);
   const body = JSON.stringify({
     message,
     session_id: sessionId || undefined,
     user_email: userEmail || loadUserEmail() || undefined,
-    rail_context: railContext && typeof railContext === "object" ? railContext : undefined,
+    rail_context: effectiveRailContext,
   });
 
   const consumeEvent = (event, state) => {
     if (event.type === "delta" && event.text) onDelta?.(event.text);
     if ((event.type === "activity" || event.type === "progress") && event.text) {
-      onActivity?.({ text: event.text, action: event.action || null, elapsed_seconds: event.elapsed_seconds });
+      onActivity?.(activityEnvelope(event));
     }
     if (event.type === "error") throw new Error(event.message || event.error || "Chat stream error");
     if (event.type === "complete") state.result = event.result || null;
   };
 
   const sendNonStream = async () => {
-    // Local progress — Cloudflare / proxies often hold NDJSON until nearly complete,
-    // so the Ask rail looks frozen if we only wait on stream events.
+    // Local liveness remains useful while Cloudflare buffers the real turn.
+    // Once the backend response arrives, replay its bounded target-bearing
+    // receipts so production reaches the same Synthesis objects as NDJSON dev.
     const started = Date.now();
     const tick = setInterval(() => {
       const elapsed = Math.round((Date.now() - started) / 1000);
@@ -728,14 +121,17 @@ export async function sendChatMessage(
         );
         payload = await fallback.json().catch(() => ({}));
         if (fallback.ok) break;
-        // Transient proxy blips while Composer is busy / service restarts.
         if (![502, 503, 504].includes(fallback.status) || attempt === 1) {
           throw new Error(normalizeApiError(payload, fallback.status, "/library/chat"));
         }
-        onActivity?.({ text: "Desk reconnecting…", elapsed_seconds: Math.round((Date.now() - started) / 1000) });
+        onActivity?.({
+          text: "Desk reconnecting…",
+          elapsed_seconds: Math.round((Date.now() - started) / 1000),
+        });
         await new Promise((r) => setTimeout(r, 1200));
       }
       if (payload.session_id) saveChatSessionId(payload.session_id);
+      replayBufferedActivity(payload, onActivity);
       if (payload.reply) onDelta?.(String(payload.reply));
       return payload;
     } finally {
@@ -743,13 +139,9 @@ export async function sendChatMessage(
     }
   };
 
-  // Production previous.easycamp.tech sits behind Cloudflare, which buffers NDJSON
-  // (~20s TTFB). Prefer the reliable non-stream path unless explicitly opted in.
   const preferStream =
     Boolean(import.meta.env.DEV) || String(import.meta.env.VITE_ASK_STREAM || "").trim() === "1";
-  if (!preferStream) {
-    return sendNonStream();
-  }
+  if (!preferStream) return sendNonStream();
 
   const streamRes = await fetch(`${API}/library/chat/stream`, deskFetchInit({
     method: "POST",
@@ -779,6 +171,7 @@ export async function sendChatMessage(
   if (streamRes.ok) {
     const payload = await streamRes.json().catch(() => ({}));
     if (payload.session_id) saveChatSessionId(payload.session_id);
+    replayBufferedActivity(payload, onActivity);
     return payload;
   }
 
@@ -788,9 +181,4 @@ export async function sendChatMessage(
   }
 
   return sendNonStream();
-}
-
-export function openQueryInNewTab(datasetId, limit = 50) {
-  const url = `${API}/query/${encodeURIComponent(datasetId)}?limit=${limit}`;
-  window.open(url, "_blank", "noopener");
 }

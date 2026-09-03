@@ -24,16 +24,46 @@ import "./discover-product-inspector.css";
 import "./hps-shell-convergence.css";
 import "./hps-responsive-fixes.css";
 import "./synthesis-workstation.css";
+import "./synthesis-wide-workstation.css";
+import "./synthesis-wide-workstation-closure.css";
+import "./synthesis-wide-workstation-sanding.css";
+import "./synthesis-wide-workstation-sanding-final.css";
+import "./synthesis-wide-shell-canvas.css";
+import "./synthesis-wide-brief-ledger.css";
+import "./synthesis-operation-truth.css";
+import "./synthesis-operated-flow.css";
+import "./synthesis-operated-flow-final.css";
+import "./synthesis-zero-instruction.css";
+import "./synthesis-zero-instruction-contract.css";
+import "./synthesis-zero-instruction-visual-closure.css";
+import "./synthesis-zero-instruction-visual-final.css";
+import "./synthesis-horizontal-workbench.css";
+import "./synthesis-horizontal-workbench-closure.css";
+import "./synthesis-horizontal-workbench-sanding.css";
+import "./synthesis-workbench-depth.css";
+import "./synthesis-workbench-depth-closure.css";
+import "./synthesis-workbench-density.css";
+import "./synthesis-workbench-density-fix.css";
+import "./synthesis-autopilot.css";
+import "./synthesis-layout-robustness.css";
+import "./synthesis-rail-proof-robustness.css";
+import "./synthesis-continuity.css";
+import "./synthesis-agent-console.css";
+import "./synthesis-object-context.css";
 import "./discover-frozen-closure.css";
 import "./connected-accounts.css";
 import { V2App } from "./App";
 import { InteractionProvider } from "./InteractionGuidance";
+import { SynthesisAuthorityMount } from "./SynthesisAuthorityMount.jsx";
+import { SynthesisObjectContextMount } from "./SynthesisObjectContextMount.jsx";
 
 const el = document.getElementById("root");
 if (el) {
   createRoot(el).render(
     <InteractionProvider>
       <V2App />
+      <SynthesisAuthorityMount />
+      <SynthesisObjectContextMount />
     </InteractionProvider>,
   );
 }

@@ -1,0 +1,477 @@
+/* 1920 analytical workbench authority.
+ *
+ * The widescreen surface is not a larger document. At workstation resolution,
+ * information that must be compared for the current research operation shares
+ * the x-axis: evidence / measurement / action, or problem / choice / consequence.
+ * This layer is visual only; 1440/mobile and all durable semantics stay intact.
+ */
+
+@media (min-width: 1680px) and (min-height: 900px) {
+  /* -----------------------------------------------------------------------
+   * DEFINED / HELD EVIDENCE
+   * Held Library review and its lock state are one operation, so show them in
+   * the same row instead of serialising a full-width card and a second band.
+   * --------------------------------------------------------------------- */
+  #root .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"]):not(:has(> .s04-measurement-status)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])) {
+    display: grid !important;
+    grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+    grid-auto-flow: row dense !important;
+    column-gap: 12px !important;
+    row-gap: 12px !important;
+    align-content: start !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
+    > [data-testid="synthesis-evidence-state"] {
+    grid-column: 1 / 9 !important;
+    grid-row: 4 !important;
+    min-height: 188px !important;
+    height: auto !important;
+    align-self: stretch !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
+    > .s04-opening-next {
+    grid-column: 9 / 13 !important;
+    grid-row: 4 !important;
+    min-height: 188px !important;
+    height: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-self: stretch !important;
+    padding: 16px !important;
+    border-color: #d8e2dd !important;
+    background: #f6f9f7 !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
+    > .s04-opening-next > footer {
+    display: grid !important;
+    gap: 12px !important;
+    align-content: center !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
+    > .s04-opening-next > footer::before {
+    max-width: 30ch !important;
+    margin: 0 !important;
+    font-size: 11px !important;
+    line-height: 1.45 !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
+    > .s04-opening-next .s04-next-actions,
+  #root .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
+    > .s04-opening-next .s04-next-primary {
+    width: 100% !important;
+  }
+
+  /* -----------------------------------------------------------------------
+   * MAPPED / MEASURED EVIDENCE
+   * Three concurrent truths belong on one row: what is mapped, what the bytes
+   * say, and what advances the research object. The old 8/4 sidecar model left
+   * half of the action lane informationally idle.
+   * --------------------------------------------------------------------- */
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"])) {
+    display: grid !important;
+    grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+    grid-auto-flow: row dense !important;
+    column-gap: 12px !important;
+    row-gap: 12px !important;
+    align-content: start !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > [data-testid="synthesis-evidence-state"] {
+    grid-column: 1 / 7 !important;
+    grid-row: 4 !important;
+    min-height: 348px !important;
+    height: auto !important;
+    align-self: stretch !important;
+    margin: 0 !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > .s04-measurement-status {
+    grid-column: 7 / 10 !important;
+    grid-row: 4 !important;
+    min-height: 348px !important;
+    height: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    align-self: stretch !important;
+    padding: 18px !important;
+    margin: 0 !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > .s04-opening-next {
+    grid-column: 10 / 13 !important;
+    grid-row: 4 !important;
+    min-height: 348px !important;
+    height: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-self: stretch !important;
+    padding: 18px !important;
+    margin: 0 !important;
+    background: #f6faf7 !important;
+  }
+
+  /* At workstation width the next-action lane has its own space, so restore the
+     useful explanation that the compact desktop treatment deliberately hid. */
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > .s04-opening-next > :is(header, p, em) {
+    display: block !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > .s04-opening-next > p {
+    margin-top: 12px !important;
+    color: #41505d !important;
+    font-size: 11px !important;
+    line-height: 1.55 !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > .s04-opening-next > footer {
+    margin-top: auto !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > .s04-opening-next > footer::before {
+    display: none !important;
+  }
+
+  /* -----------------------------------------------------------------------
+   * BLOCKING ANALYTICAL DECISIONS
+   * These are the clearest widescreen payoff: one horizontal workbench where
+   * measured problem, researcher choice, and research consequence coexist.
+   * --------------------------------------------------------------------- */
+  #root .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  )) {
+    display: grid !important;
+    grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+    grid-auto-flow: row dense !important;
+    column-gap: 12px !important;
+    row-gap: 12px !important;
+    align-content: start !important;
+  }
+
+  /* Identity and the research commitment share one shallow top row. */
+  #root .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  )) > .s04-head {
+    grid-column: 1 / 5 !important;
+    grid-row: 1 !important;
+    min-height: 0 !important;
+    align-self: stretch !important;
+    margin: 0 !important;
+    padding: 8px 12px 8px 0 !important;
+    border-bottom: 1px solid #ded8cc !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  )) > .s04-head > div {
+    max-width: none !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  )) > .s04-opening-brief {
+    grid-column: 5 / 13 !important;
+    grid-row: 1 !important;
+    display: grid !important;
+    grid-template-columns: minmax(260px, 1.35fr) repeat(3, minmax(100px, .55fr)) !important;
+    grid-template-rows: auto auto !important;
+    min-height: 0 !important;
+    height: auto !important;
+    align-self: stretch !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    border: 0 !important;
+    border-bottom: 1px solid #ded8cc !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  )) > .s04-opening-brief > header {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    padding: 7px 14px 0 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  )) > .s04-opening-brief > p {
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+    padding: 3px 18px 9px 0 !important;
+    font-size: 10.5px !important;
+    line-height: 1.4 !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  )) > .s04-opening-brief > dl {
+    grid-column: 2 / 5 !important;
+    grid-row: 1 / 3 !important;
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    align-self: stretch !important;
+    margin: 0 !important;
+    border-top: 0 !important;
+    border-left: 1px solid #ded8cc !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  )) > .s04-opening-brief > dl > div {
+    display: flex !important;
+    min-width: 0 !important;
+    padding: 8px 10px !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  )) > .s04-opening-workflow-wrap {
+    grid-column: 1 / 13 !important;
+    grid-row: 2 !important;
+    margin: 0 !important;
+  }
+
+  /* A blocking decision already embodies the relevant measured evidence. The
+     duplicate generic evidence map and generic measurement retry card only
+     compete with the decision. Inspector remains the persistent truth rail. */
+  #root .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  )) > :is(.s04-measurement-status, [data-testid="synthesis-evidence-state"]) {
+    display: none !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-scope-block"])
+    > [data-testid="synthesis-scope-block"],
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-unit-conflict"])
+    > [data-testid="synthesis-unit-conflict"],
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-join-decision"])
+    > [data-testid="synthesis-join-decision"] {
+    grid-column: 1 / 13 !important;
+    grid-row: 3 !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.35fr) minmax(250px, .82fr) minmax(250px, .78fr) !important;
+    column-gap: 16px !important;
+    row-gap: 12px !important;
+    align-items: start !important;
+    align-self: start !important;
+    margin: 0 !important;
+    padding: 18px !important;
+  }
+
+  #root .rd-v2-synthesis-page :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  ) > .s04-title {
+    grid-column: 1 / -1 !important;
+    grid-row: 1 !important;
+    margin: 0 !important;
+  }
+
+  #root .rd-v2-synthesis-page :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  ) > .s04-viz {
+    grid-column: 1 !important;
+    grid-row: 2 / span 4 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    align-self: stretch !important;
+  }
+
+  /* Scope: measured population | scope choices | truth boundary / consequence. */
+  #root .rd-v2-synthesis-page [data-testid="synthesis-scope-block"] > p.s04-note {
+    grid-column: 1 !important;
+    grid-row: 6 !important;
+    margin: 0 !important;
+  }
+
+  #root .rd-v2-synthesis-page [data-testid="synthesis-scope-block"] > .s04-options,
+  #root .rd-v2-synthesis-page [data-testid="synthesis-scope-block"] > .s04-fixture {
+    grid-column: 2 !important;
+    grid-row: 2 / span 5 !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    align-self: stretch !important;
+  }
+
+  #root .rd-v2-synthesis-page [data-testid="synthesis-scope-block"] > .s04-actions {
+    grid-column: 3 !important;
+    grid-row: 2 / span 5 !important;
+    min-width: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    align-self: stretch !important;
+    margin: 0 !important;
+    padding: 14px !important;
+    border: 1px solid #e0ddd4 !important;
+    border-radius: 9px !important;
+    background: #fbfaf6 !important;
+  }
+
+  /* Unit: observed scales | interpretations | downstream consequence. */
+  #root .rd-v2-synthesis-page [data-testid="synthesis-unit-conflict"] > p.s04-note:first-of-type {
+    grid-column: 2 !important;
+    grid-row: 2 !important;
+    margin: 0 !important;
+  }
+
+  #root .rd-v2-synthesis-page [data-testid="synthesis-unit-conflict"] > .s04-options {
+    grid-column: 2 !important;
+    grid-row: 3 / span 3 !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+  }
+
+  #root .rd-v2-synthesis-page [data-testid="synthesis-unit-conflict"] > p.s04-note:last-of-type {
+    grid-column: 3 !important;
+    grid-row: 2 !important;
+    margin: 0 !important;
+    padding: 14px !important;
+    border: 1px solid #eadfcf !important;
+    border-radius: 9px !important;
+    background: #fcf8f1 !important;
+  }
+
+  #root .rd-v2-synthesis-page [data-testid="synthesis-unit-conflict"] > .s04-actions {
+    grid-column: 3 !important;
+    grid-row: 3 / span 3 !important;
+    min-width: 0 !important;
+    align-self: start !important;
+    margin: 0 !important;
+  }
+
+  /* Join: overlap population | key choice | study-population consequence. */
+  #root .rd-v2-synthesis-page [data-testid="synthesis-join-decision"] > .s04-options:first-of-type {
+    grid-column: 2 !important;
+    grid-row: 2 !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+  }
+
+  #root .rd-v2-synthesis-page [data-testid="synthesis-join-decision"] > .s04-options:nth-of-type(2) {
+    grid-column: 3 !important;
+    grid-row: 2 !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+  }
+
+  #root .rd-v2-synthesis-page [data-testid="synthesis-join-decision"] > [data-testid="synthesis-collapse-choice"],
+  #root .rd-v2-synthesis-page [data-testid="synthesis-join-decision"] > .s04-fixture {
+    grid-column: 2 / 4 !important;
+    grid-row: 3 !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+  }
+
+  #root .rd-v2-synthesis-page [data-testid="synthesis-join-decision"] > .s04-actions {
+    grid-column: 2 / 4 !important;
+    grid-row: 4 !important;
+    min-width: 0 !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 14px !important;
+    align-items: center !important;
+    margin: 0 !important;
+  }
+
+  /* Large multi-source overlap needs more than one third of the card. Preserve
+     the three analytical roles but weight the measured population most heavily. */
+  #root .rd-v2-synthesis-page [data-testid="synthesis-join-decision"]:has([data-testid="synthesis-upset-visual"]) {
+    grid-template-columns: minmax(0, 1.9fr) minmax(220px, .55fr) minmax(220px, .55fr) !important;
+  }
+
+  #root .rd-v2-synthesis-page [data-testid="synthesis-upset-visual"] {
+    grid-template-columns: minmax(145px, .56fr) minmax(0, 1.44fr) !important;
+    gap: 10px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  #root .rd-v2-synthesis-page [data-testid="synthesis-upset-visual"] .s04-upset-row {
+    grid-template-columns: minmax(102px, auto) minmax(54px, 1fr) 54px 58px !important;
+    gap: 5px !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  #root .rd-v2-synthesis-page [data-testid="synthesis-upset-visual"] .s04-upset-row .matrix {
+    grid-auto-columns: 11px !important;
+    gap: 2px !important;
+  }
+
+  #root .rd-v2-synthesis-page [data-testid="synthesis-upset-visual"] .s04-upset-legend > span {
+    grid-template-columns: 22px minmax(0, 1fr) auto !important;
+    gap: 6px !important;
+    padding: 6px 7px !important;
+  }
+
+  #root .rd-v2-synthesis-page [data-testid="synthesis-upset-visual"] .s04-upset-legend em {
+    font-size: 9px !important;
+  }
+
+  #root .rd-v2-synthesis-page [data-testid="synthesis-upset-visual"] .s04-upset-legend strong {
+    font-size: 9px !important;
+  }
+
+  /* Keep unit labels inside their analytical lane even when fixtures use long
+     source names. */
+  #root .rd-v2-synthesis-page [data-testid="synthesis-unit-conflict"] .s04-viz-unit,
+  #root .rd-v2-synthesis-page [data-testid="synthesis-unit-conflict"] .s04-viz-unit * {
+    min-width: 0 !important;
+  }
+
+  #root .rd-v2-synthesis-page [data-testid="synthesis-unit-conflict"] .s04-viz-unit header strong,
+  #root .rd-v2-synthesis-page [data-testid="synthesis-unit-conflict"] .s04-viz-unit .label {
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+  }
+}

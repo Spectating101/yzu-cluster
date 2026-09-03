@@ -1,0 +1,225 @@
+/* Synthesis-only shell and composition authority for large workstations.
+ *
+ * 1440 and smaller remain under the frozen desktop contract. At >=1680x900,
+ * use the extra resolution for simultaneous research truths rather than simply
+ * enlarging a centred document. No information is invented in this layer.
+ */
+@media (min-width: 1680px) and (min-height: 900px) {
+  body:has(.rd-v2-synthesis-page) .rd-v2-shell {
+    --rd-rail-min: 350px;
+    --rd-rail-ideal: 20vw;
+    --rd-rail-max: 390px;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main {
+    padding-inline: 16px !important;
+  }
+
+  /* Recommendation: preserve the legitimate 8/4 analytical split while giving
+     the construction enough physical authority on a workstation monitor. */
+  #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-construction)
+    > .s04-opening-construction {
+    min-height: clamp(400px, 44vh, 455px) !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-construction)
+    > .s04-opening-construction .s04-opening-map {
+    flex: 1 1 auto;
+    min-height: 270px !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-construction)
+    > .s04-opening-next {
+    min-height: clamp(400px, 44vh, 455px) !important;
+    display: flex !important;
+    flex-direction: column;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-construction)
+    > .s04-opening-next > footer {
+    margin-top: auto !important;
+  }
+
+  /* Defined / unmapped evidence: there is not enough independent material for
+     an empty four-column side lane. Evidence owns the full desk; the next action
+     becomes a horizontal band after the map, in the same semantic order a
+     researcher reads the state. */
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-measurement-status)):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > [data-testid="synthesis-evidence-state"] {
+    grid-column: 1 / 13 !important;
+    grid-row: auto !important;
+    order: 1;
+    min-height: clamp(350px, 39vh, 410px) !important;
+    display: flex !important;
+    flex-direction: column;
+    margin: 0 !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-measurement-status)):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > [data-testid="synthesis-evidence-state"] > .s04-map {
+    flex: 1 1 auto;
+    min-height: 190px;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-measurement-status)):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > .s04-opening-next {
+    grid-column: 1 / 13 !important;
+    grid-row: auto !important;
+    order: 2;
+    min-height: 0 !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(330px, .44fr);
+    grid-template-rows: auto auto auto;
+    column-gap: 22px;
+    align-items: center;
+    margin: 0 !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-measurement-status)):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > .s04-opening-next > :is(header, p, em) {
+    grid-column: 1;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-measurement-status)):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > .s04-opening-next > footer {
+    grid-column: 2;
+    grid-row: 1 / 4;
+    align-self: center;
+    width: 100%;
+    margin: 0 !important;
+  }
+
+  /* Exploring / measured evidence: the 8/4 split is justified because evidence,
+     measurement state, and next decision are useful simultaneously. */
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > [data-testid="synthesis-evidence-state"] {
+    min-height: clamp(420px, 47vh, 480px) !important;
+    display: flex !important;
+    flex-direction: column;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > [data-testid="synthesis-evidence-state"] > .s04-map {
+    flex: 1 1 auto;
+    min-height: 190px;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > .s04-measurement-status {
+    min-height: 86px;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > .s04-opening-next {
+    min-height: 300px !important;
+    display: flex !important;
+    flex-direction: column;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > .s04-opening-next > footer {
+    margin-top: auto !important;
+  }
+
+  /* Proposal and evidence are independent review truths. Stretch their
+     analytical internals, not merely their borders. */
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction))
+    > :is([data-testid="synthesis-proposal-state"], [data-testid="synthesis-evidence-state"]) {
+    min-height: clamp(460px, 50vh, 515px) !important;
+    align-self: stretch !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction))
+    > [data-testid="synthesis-proposal-state"] {
+    display: flex !important;
+    flex-direction: column;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction))
+    > [data-testid="synthesis-proposal-state"] > .s04-method-flow {
+    flex: 1 1 auto;
+    min-height: 190px;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction))
+    > [data-testid="synthesis-proposal-state"] > .s04-actions {
+    margin-top: auto !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction))
+    > [data-testid="synthesis-evidence-state"] {
+    display: flex !important;
+    flex-direction: column;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction))
+    > [data-testid="synthesis-evidence-state"] > .s04-map {
+    flex: 1 1 auto;
+    min-height: 230px;
+  }
+
+  /* Mature states spend their horizontal room instead of wrapping a six-stage
+     lifecycle into two rows. */
+  #root .rd-v2-synthesis-page .s04-main > :is(
+    [data-testid="synthesis-execution-state"],
+    [data-testid="synthesis-failed-state"],
+    [data-testid="synthesis-registered-state"],
+    [data-testid="synthesis-query-ready-state"]
+  ) > .s04-exec-track {
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  }
+
+  /* Registered/query-ready results use a local workstation grid: identity,
+     specification, and lifecycle stay full width; proof and reproducibility
+     share the next row instead of producing a long vertical result card. */
+  #root .rd-v2-synthesis-page .s04-main > :is(
+    [data-testid="synthesis-registered-state"],
+    [data-testid="synthesis-query-ready-state"]
+  ) {
+    display: grid !important;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: 12px;
+    row-gap: 12px;
+    align-content: start;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main > :is(
+    [data-testid="synthesis-registered-state"],
+    [data-testid="synthesis-query-ready-state"]
+  ) > :is(.s04-title, .s04-method, .s04-exec-track, .s04-actions, .s04-fixture) {
+    grid-column: 1 / 13;
+    width: 100%;
+    margin-block: 0 !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main > :is(
+    [data-testid="synthesis-registered-state"],
+    [data-testid="synthesis-query-ready-state"]
+  ) > .s04-proof {
+    grid-column: 1 / 6;
+    align-self: stretch;
+    margin: 0 !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main > :is(
+    [data-testid="synthesis-registered-state"],
+    [data-testid="synthesis-query-ready-state"]
+  ) > .s04-reproduce {
+    grid-column: 6 / 13;
+    align-self: stretch;
+    height: 100%;
+    margin: 0 !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main > :is(
+    [data-testid="synthesis-registered-state"],
+    [data-testid="synthesis-query-ready-state"]
+  ) > .s04-actions {
+    margin-top: 0 !important;
+  }
+
+  /* Preview is already information-dense; only the lifecycle row changes. */
+  #root .rd-v2-synthesis-page [data-testid="synthesis-execution-state"] .s04-preview-receipt {
+    margin-top: 12px;
+  }
+}

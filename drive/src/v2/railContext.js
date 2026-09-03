@@ -47,6 +47,74 @@ function lifecycleSelection(lifecycle = {}) {
   };
 }
 
+function forensicSynthesisSelection(state = {}, lifecycle = {}) {
+  const proposal = state.proposal || {};
+  const preview = state.preview || {};
+  const execution = state.execution || {};
+  const exactSpec = state.execution_spec || proposal.execution_spec || null;
+  const currentSpec = state.spec && typeof state.spec === "object" ? state.spec : null;
+  const operations = Array.isArray(proposal.operations) ? proposal.operations.slice(0, 40) : [];
+  const previewWarnings = Array.isArray(preview?.preflight?.warnings)
+    ? preview.preflight.warnings.slice(0, 20)
+    : [];
+  const rowEffects = Array.isArray(preview?.row_effects)
+    ? preview.row_effects.slice(0, 40)
+    : Array.isArray(preview?.diagnostics?.row_effects)
+      ? preview.diagnostics.row_effects.slice(0, 40)
+      : [];
+  const outputColumns = Array.isArray(preview?.output?.columns)
+    ? preview.output.columns.slice(0, 40)
+    : [];
+  const hasPreviewForensics = Boolean(
+    Object.keys(preview?.sampling || {}).length ||
+    Object.keys(preview?.rows || {}).length ||
+    rowEffects.length ||
+    previewWarnings.length ||
+    preview.error ||
+    outputColumns.length
+  );
+  const lifecycleProof = lifecycle.proof || {};
+  const hasExecutionForensics = Boolean(
+    execution.status || execution.job_id || execution.manifest_id || execution.error ||
+    lifecycleProof.run_id || lifecycleProof.worker || lifecycleProof.heartbeat_at || lifecycleProof.latest_event_at
+  );
+
+  return {
+    forensic_current_spec: currentSpec || undefined,
+    forensic_execution_spec: exactSpec || undefined,
+    forensic_proposal_operations: operations.length ? operations : undefined,
+    forensic_preview: hasPreviewForensics
+      ? {
+          sampling: preview.sampling || undefined,
+          rows: preview.rows || undefined,
+          row_effects: rowEffects.length ? rowEffects : undefined,
+          warnings: previewWarnings.length ? previewWarnings : undefined,
+          error: preview.error || undefined,
+          output_columns: outputColumns.length ? outputColumns : undefined,
+        }
+      : undefined,
+    forensic_execution: hasExecutionForensics
+      ? {
+          status: execution.status || lifecycle.stage || undefined,
+          job_id: execution.job_id || undefined,
+          run_id: lifecycleProof.run_id || undefined,
+          worker: lifecycleProof.worker || undefined,
+          worker_pool: lifecycleProof.pool || undefined,
+          attempt: lifecycleProof.attempt ?? undefined,
+          heartbeat_at: lifecycleProof.heartbeat_at || undefined,
+          latest_event_at: lifecycleProof.latest_event_at || undefined,
+          rows: execution.rows ?? lifecycleProof.rows ?? undefined,
+          manifest_id: execution.manifest_id || lifecycleProof.manifest_id || undefined,
+          registration_id: lifecycleProof.registration_id || undefined,
+          archive_verified: lifecycleProof.archive_verified || execution.drive_verified || undefined,
+          registry_verified: lifecycleProof.registry_verified || undefined,
+          output_dataset_id: execution.output_dataset_id || exactSpec?.output_dataset_id || undefined,
+          error: execution.error || lifecycle.error || undefined,
+        }
+      : undefined,
+  };
+}
+
 export function buildRailContext({
   tab = "home",
   mode = "detail",
@@ -193,7 +261,9 @@ export function buildRailContext({
       preview_rows: Number.isFinite(previewRows) ? previewRows : undefined,
       preview_bounded: preview.bounded === true ? true : undefined,
       output_dataset_id: outputId || undefined,
+      job_id: state.execution?.job_id || undefined,
       ...lifecycleSelection(lifecycle),
+      ...forensicSynthesisSelection(state, lifecycle),
     };
     actions = ["ask_about"];
     if (["design_method", "review_recommendation"].includes(assist.decisionKind)) actions.push("challenge_method");

@@ -1,0 +1,160 @@
+/* Pixel-review closure for the 1920 horizontal workbench.
+ * Exact legacy-selector overrides only: unmapped Evidence, measured Evidence,
+ * and the 8-source UpSet intrinsic-width case. 1440/mobile are untouched.
+ */
+
+@media (min-width: 1680px) and (min-height: 900px) {
+  /* DEFINED / UNMAPPED.
+     This intentionally does not require an evidence-proposal node: the no-hit
+     state still benefits from evidence/retry and the locked next step sharing
+     one analytical row. */
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-measurement-status)):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > [data-testid="synthesis-evidence-state"] {
+    grid-column: 1 / 9 !important;
+    grid-row: 4 !important;
+    min-height: 214px !important;
+    height: auto !important;
+    align-self: stretch !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-measurement-status)):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > .s04-opening-next {
+    grid-column: 9 / 13 !important;
+    grid-row: 4 !important;
+    min-height: 214px !important;
+    height: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-self: stretch !important;
+    padding: 16px !important;
+    margin: 0 !important;
+    background: #f6f9f7 !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-measurement-status)):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > .s04-opening-next > :is(header, p, em) {
+    display: block !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-measurement-status)):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > .s04-opening-next > p {
+    margin: 10px 0 14px !important;
+    color: #41505d !important;
+    font-size: 11px !important;
+    line-height: 1.5 !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-measurement-status)):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > .s04-opening-next > footer {
+    margin-top: auto !important;
+  }
+
+  /* MAPPED / MEASURED.
+     Match the historical 8/4 selector specificity exactly, then split the old
+     sidecar into two independent three-column lanes. */
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > [data-testid="synthesis-evidence-state"] {
+    grid-column: 1 / 7 !important;
+    grid-row: 4 !important;
+    min-height: 360px !important;
+    height: auto !important;
+    align-self: stretch !important;
+    margin: 0 !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > .s04-measurement-status {
+    grid-column: 7 / 10 !important;
+    grid-row: 4 !important;
+    min-height: 360px !important;
+    height: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-self: stretch !important;
+    padding: 18px !important;
+    margin: 0 !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > .s04-opening-next {
+    grid-column: 10 / 13 !important;
+    grid-row: 4 !important;
+    min-height: 360px !important;
+    height: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-self: stretch !important;
+    padding: 18px !important;
+    margin: 0 !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > .s04-opening-next > :is(header, p, em) {
+    display: block !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > .s04-opening-next > footer {
+    margin-top: auto !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > .s04-opening-next > footer::before {
+    display: none !important;
+  }
+
+  /* EIGHT-SOURCE UPSET.
+     Long source identities are a real production case. Above seven sources,
+     use the whole visual lane: a four-column source ledger above a full-width
+     intersection table. This removes the intrinsic-width collision without
+     clipping any analytical content. */
+  #root .rd-v2-synthesis-page [data-testid="synthesis-upset-visual"]:has(.s04-upset-legend > span:nth-child(8)) {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 10px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  #root .rd-v2-synthesis-page [data-testid="synthesis-upset-visual"]:has(.s04-upset-legend > span:nth-child(8)) > .s04-upset-legend {
+    grid-column: 1 !important;
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  #root .rd-v2-synthesis-page [data-testid="synthesis-upset-visual"]:has(.s04-upset-legend > span:nth-child(8)) > .s04-upset-table {
+    grid-column: 1 !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  #root .rd-v2-synthesis-page [data-testid="synthesis-upset-visual"]:has(.s04-upset-legend > span:nth-child(8)) .s04-upset-row {
+    grid-template-columns: minmax(120px, 1.2fr) minmax(90px, 1.8fr) 62px 70px !important;
+    gap: 6px !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  #root .rd-v2-synthesis-page [data-testid="synthesis-upset-visual"]:has(.s04-upset-legend > span:nth-child(8)) .s04-upset-row .matrix {
+    grid-auto-columns: minmax(8px, 1fr) !important;
+    gap: 2px !important;
+    min-width: 0 !important;
+  }
+
+  #root .rd-v2-synthesis-page [data-testid="synthesis-upset-visual"]:has(.s04-upset-legend > span:nth-child(8)) :is(.s04-upset-row > strong, .s04-upset-row > small, .s04-upset-legend strong) {
+    min-width: 0 !important;
+    white-space: normal !important;
+  }
+
+  #root .rd-v2-synthesis-page [data-testid="synthesis-upset-visual"]:has(.s04-upset-legend > span:nth-child(8)) > p {
+    grid-column: 1 !important;
+  }
+}

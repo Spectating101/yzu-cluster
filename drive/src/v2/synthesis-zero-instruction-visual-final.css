@@ -1,0 +1,147 @@
+/* Final workstation correction derived from the Loop-4 1920 screenshots.
+ * This deliberately overrides obsolete minimum-height assumptions from the
+ * original wide-canvas pass and restores the real two-column blocking grid.
+ * It is presentation-only and gated away from 1440/mobile.
+ */
+
+@media (min-width: 1680px) and (min-height: 900px) {
+  /* DEFINED / HELD EVIDENCE
+     The original wide shell forced a 350–410px evidence card because it still
+     contained an analytical map. Held-evidence review now hides that map, so
+     retaining the old minimum produces a literal empty cavity. */
+  #root .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"]):has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-measurement-status)):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > [data-testid="synthesis-evidence-state"] {
+    min-height: 0 !important;
+    height: auto !important;
+    display: block !important;
+    align-self: start !important;
+  }
+
+  /* MAPPED / MEASURED EVIDENCE
+     Keep the evidence map substantial, but stop the readiness and next-action
+     sidecars from inheriting the old 300px+ workstation height. */
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > .s04-measurement-status {
+    min-height: 0 !important;
+    height: auto !important;
+    align-self: start !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > .s04-opening-next {
+    min-height: 0 !important;
+    height: auto !important;
+    align-self: start !important;
+    display: block !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > .s04-opening-next > footer {
+    margin-top: 0 !important;
+  }
+
+  /* BLOCKING RESEARCH DECISIONS
+     These states already have a genuine two-column workstation parent. Use it
+     directly: decision at left, measurement/evidence context at right. */
+  #root .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  )) {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.62fr) minmax(320px, .38fr) !important;
+    grid-auto-flow: row dense !important;
+    column-gap: 14px !important;
+    row-gap: 12px !important;
+    align-content: start !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  )) > .s04-head {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    align-self: start !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  )) > .s04-opening-brief {
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+    align-self: start !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  )) > .s04-measurement-status {
+    grid-column: 2 !important;
+    grid-row: 1 / span 2 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    align-self: start !important;
+    margin: 0 !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-scope-block"])
+    > [data-testid="synthesis-scope-block"],
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-unit-conflict"])
+    > [data-testid="synthesis-unit-conflict"],
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-join-decision"])
+    > [data-testid="synthesis-join-decision"] {
+    grid-column: 1 !important;
+    grid-row: 3 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    align-self: start !important;
+    margin: 0 !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  )) > [data-testid="synthesis-evidence-state"] {
+    grid-column: 2 !important;
+    grid-row: 3 !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    align-self: start !important;
+    margin: 0 !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  )) > [data-testid="synthesis-evidence-state"] > .s04-map {
+    min-height: 215px !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"]
+  )) > [data-testid="synthesis-method-surface"] {
+    grid-column: 2 !important;
+    grid-row: 4 !important;
+    align-self: start !important;
+    margin: 0 !important;
+  }
+
+  /* Keep any compact auxiliary strip/picker from creating an implicit third
+     lane in the blocking-state grid. */
+  #root .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  )) > :is(.s04-thread-picker, .s04-strip, .s04-opening-workflow-wrap) {
+    grid-column: 1 / -1 !important;
+  }
+}

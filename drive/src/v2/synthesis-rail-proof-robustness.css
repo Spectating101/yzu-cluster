@@ -1,0 +1,87 @@
+/* 1440+ Synthesis mature-thread Inspector robustness.
+ * The external Detail rail is a sibling of the centre Synthesis page. At
+ * compact desktop widths the authority proof must therefore be styled through
+ * page-presence state rather than a descendant selector scoped to the centre.
+ */
+
+@media (min-width: 1121px) {
+  body:has(.rd-v2-synthesis-page) .s04-rail-proof {
+    display: block !important;
+    min-width: 0 !important;
+    margin: 10px 12px 0 !important;
+    padding: 11px 12px !important;
+    border: 1px solid #ded9cf !important;
+    border-radius: 9px !important;
+    background: rgba(251, 249, 243, .82) !important;
+    box-shadow: none !important;
+  }
+
+  body:has(.rd-v2-synthesis-page) .s04-rail-proof > header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+    margin: 0 0 8px !important;
+    padding: 0 0 7px !important;
+    border-bottom: 1px solid #e8e2d8 !important;
+  }
+
+  body:has(.rd-v2-synthesis-page) .s04-rail-proof > header span {
+    color: #667585 !important;
+    font-size: 8px !important;
+    font-weight: 800 !important;
+    letter-spacing: .085em !important;
+    line-height: 1.2 !important;
+    text-transform: uppercase !important;
+  }
+
+  body:has(.rd-v2-synthesis-page) .s04-rail-proof ul {
+    display: grid !important;
+    gap: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    list-style: none !important;
+  }
+
+  body:has(.rd-v2-synthesis-page) .s04-rail-proof li {
+    display: grid !important;
+    grid-template-columns: 78px minmax(0, 1fr) !important;
+    gap: 9px !important;
+    align-items: start !important;
+    margin: 0 !important;
+    padding: 7px 0 !important;
+    border-top: 1px solid #ebe6dd !important;
+    list-style: none !important;
+  }
+
+  body:has(.rd-v2-synthesis-page) .s04-rail-proof li:first-child {
+    border-top: 0 !important;
+  }
+
+  body:has(.rd-v2-synthesis-page) .s04-rail-proof li span,
+  body:has(.rd-v2-synthesis-page) .s04-rail-proof li strong {
+    display: block !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    font-size: 8.7px !important;
+    line-height: 1.35 !important;
+  }
+
+  body:has(.rd-v2-synthesis-page) .s04-rail-proof li span {
+    color: #77838d !important;
+  }
+
+  body:has(.rd-v2-synthesis-page) .s04-rail-proof li strong {
+    color: #596873 !important;
+    font-weight: 760 !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  body:has(.rd-v2-synthesis-page) .s04-rail-proof li.is-done strong {
+    color: #397059 !important;
+  }
+
+  body:has(.rd-v2-synthesis-page) .s04-rail-proof li.is-current strong {
+    color: #8a6544 !important;
+  }
+}

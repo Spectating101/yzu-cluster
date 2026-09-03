@@ -23,6 +23,7 @@ export function AskAgentCard({
   message,
   busy = false,
   approval = "",
+  approvalLabel = "Approve job",
   onSend,
   onApprove,
 }) {
@@ -96,7 +97,7 @@ export function AskAgentCard({
                 <LoaderCircle className="rd-v2-inline-spinner" aria-hidden="true" /> Approving…
               </>
             ) : (
-              "Approve job"
+              approvalLabel
             )}
           </button>
         </div>

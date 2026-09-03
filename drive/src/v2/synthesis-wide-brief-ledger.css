@@ -1,0 +1,111 @@
+/* Wide Synthesis research-context placement.
+ *
+ * The full Research Brief is important context, but at workstation width it
+ * must not compete with the live analytical state as a masthead card. Keep the
+ * same information and edit affordance, but render it as a shallow context
+ * ledger beneath the thread identity. 1440 and smaller retain the frozen
+ * desktop composition.
+ */
+@media (min-width: 1680px) and (min-height: 900px) {
+  #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-brief):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"])) > .s04-head {
+    grid-column: 1 / 13 !important;
+    grid-row: 1 !important;
+    min-height: 68px;
+    padding: 8px 2px 8px 0 !important;
+    align-items: center !important;
+    border-bottom: 1px solid #ded8cc !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-brief):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"])) > .s04-head > div {
+    max-width: 64ch !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-brief):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"])) > .s04-opening-brief {
+    grid-column: 1 / 13 !important;
+    grid-row: 2 !important;
+    display: grid !important;
+    grid-template-columns: minmax(360px, 1.45fr) repeat(3, minmax(150px, .55fr));
+    grid-template-rows: auto auto;
+    min-height: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    border: 0 !important;
+    border-bottom: 1px solid #ded8cc !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-brief) > .s04-opening-brief > header {
+    grid-column: 1;
+    grid-row: 1;
+    min-height: 0 !important;
+    padding: 9px 22px 0 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    align-items: baseline;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-brief) > .s04-opening-brief > header > small {
+    font-size: 8px;
+    letter-spacing: .105em;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-brief) > .s04-opening-brief > header > button {
+    font-size: 8px;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-brief) > .s04-opening-brief > p {
+    grid-column: 1;
+    grid-row: 2;
+    max-width: 72ch;
+    padding: 4px 28px 11px 0 !important;
+    color: #465264;
+    font-size: 11px;
+    line-height: 1.45;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-brief) > .s04-opening-brief > dl {
+    grid-column: 2 / 5;
+    grid-row: 1 / 3;
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    align-self: stretch;
+    margin: 0 !important;
+    border-top: 0 !important;
+    border-left: 1px solid #ded8cc;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-brief) > .s04-opening-brief > dl > div {
+    display: flex;
+    min-width: 0;
+    padding: 10px 14px !important;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-brief) > .s04-opening-brief > dl > div + div {
+    border-left: 1px solid #ded8cc !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-brief) > .s04-opening-brief dt {
+    color: #7b8490;
+    font-size: 9px;
+    line-height: 1.2;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-brief) > .s04-opening-brief dd {
+    margin-top: 3px;
+    font-size: 10px;
+    line-height: 1.25;
+  }
+
+  /* The workflow now follows context instead of being displaced by a large
+     card in the masthead row. Everything after it keeps the existing wide-state
+     choreography from the workstation composition authority. */
+  #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-brief):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"])) > .s04-opening-workflow-wrap {
+    grid-column: 1 / 13 !important;
+    grid-row: 3 !important;
+    margin-top: 0 !important;
+  }
+}

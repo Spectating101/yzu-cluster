@@ -1,0 +1,153 @@
+/* 1920 workstation depth pass.
+ *
+ * Wide Synthesis is a two-dimensional analytical desk, not a horizontal strip
+ * parked at the top of a tall viewport.  Use the lower canvas for source-backed
+ * context that already exists in the thread: evidence topology, deterministic
+ * measurement state, and the operation consequence.  No semantic state is
+ * invented here and 1440/mobile remain untouched.
+ */
+
+@media (min-width: 1680px) and (min-height: 900px) {
+  /* Give the central desk enough vertical authority to read as a workstation. */
+  #root .rd-v2-synthesis-page .s04-main {
+    min-height: calc(100dvh - 78px) !important;
+    align-content: start !important;
+  }
+
+  /* ---------------------------------------------------------------------
+   * DEFINED / NO MAPPED EVIDENCE
+   * There is genuinely less evidence here, so do not fabricate a graph.  The
+   * operation itself gets a larger review zone instead of being crushed into
+   * the first 200px and abandoning the rest of the page.
+   * ------------------------------------------------------------------- */
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-measurement-status)):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > [data-testid="synthesis-evidence-state"] {
+    grid-column: 1 / 9 !important;
+    min-height: 318px !important;
+    align-self: stretch !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-measurement-status)):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > .s04-opening-next {
+    grid-column: 9 / 13 !important;
+    min-height: 318px !important;
+    justify-content: space-between !important;
+    align-self: stretch !important;
+    padding: 20px !important;
+  }
+
+  /* ---------------------------------------------------------------------
+   * MAPPED EVIDENCE / REASONING ENTRY
+   * A graph benefits from actual canvas.  Use a 7/5 workbench: large evidence
+   * topology at left, deterministic measurement and the next operation stacked
+   * at right.  This deliberately replaces the shallow 6/3/3 strip.
+   * ------------------------------------------------------------------- */
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > [data-testid="synthesis-evidence-state"] {
+    grid-column: 1 / 8 !important;
+    grid-row: 4 / span 2 !important;
+    min-height: 520px !important;
+    height: auto !important;
+    align-self: stretch !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > [data-testid="synthesis-evidence-state"] > .s04-map {
+    min-height: 286px !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > .s04-measurement-status {
+    grid-column: 8 / 13 !important;
+    grid-row: 4 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    align-self: stretch !important;
+    padding: 20px !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > .s04-opening-next {
+    grid-column: 8 / 13 !important;
+    grid-row: 5 !important;
+    min-height: 238px !important;
+    height: auto !important;
+    align-self: stretch !important;
+    padding: 20px !important;
+  }
+
+  /* ---------------------------------------------------------------------
+   * SCOPE / UNIT / JOIN
+   * Tier 1 remains the successful horizontal decision comparison. Tier 2 is
+   * the evidence that makes that choice defensible. The previous pass hid this
+   * real context and accidentally turned the lower half of the workstation into
+   * dead canvas.
+   * ------------------------------------------------------------------- */
+  #root .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  )) > :is(.s04-measurement-status, [data-testid="synthesis-evidence-state"]) {
+    display: block !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  )) > [data-testid="synthesis-evidence-state"] {
+    grid-column: 1 / 9 !important;
+    grid-row: 4 !important;
+    min-width: 0 !important;
+    min-height: 270px !important;
+    height: auto !important;
+    align-self: stretch !important;
+    margin: 0 !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  )) > [data-testid="synthesis-evidence-state"] > .s04-map {
+    min-height: 188px !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  )) > .s04-measurement-status {
+    grid-column: 9 / 13 !important;
+    grid-row: 4 !important;
+    min-width: 0 !important;
+    min-height: 270px !important;
+    height: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-self: stretch !important;
+    margin: 0 !important;
+    padding: 20px !important;
+  }
+
+  /* When column diagnostics exist, they become a genuine second-tier sidecar
+     rather than disappearing below the fold. */
+  #root .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"]
+  )) > [data-testid="synthesis-method-surface"] {
+    grid-column: 9 / 13 !important;
+    grid-row: 5 !important;
+    min-width: 0 !important;
+    align-self: start !important;
+    margin: 0 !important;
+  }
+
+  /* Let dense evidence maps use the lower tier rather than clipping their real
+     source identities. */
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-join-decision"])
+    > [data-testid="synthesis-evidence-state"] {
+    overflow: visible !important;
+  }
+}
