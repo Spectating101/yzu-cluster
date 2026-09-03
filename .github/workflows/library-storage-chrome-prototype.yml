@@ -24,8 +24,8 @@ jobs:
         run: npm run build
         env:
           YZU_PAGES: "true"
-      - name: Render prototype
-        run: mkdir -p .tmp-pw && TMPDIR=$PWD/.tmp-pw npx playwright test e2e/library-storage-chrome-prototype.spec.js --reporter=dot
+      - name: Render revised location-filter prototype
+        run: mkdir -p .tmp-pw && TMPDIR=$PWD/.tmp-pw npx playwright test e2e/library-storage-filter-prototype.spec.js --reporter=dot
         env:
           CI: "true"
           YZU_PAGES: "false"
@@ -33,9 +33,9 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: library-storage-chrome-prototype
+          name: library-storage-filter-prototype
           path: |
-            artifacts/library-storage-chrome
+            artifacts/library-storage-filter
             test-results
           if-no-files-found: warn
           retention-days: 14
