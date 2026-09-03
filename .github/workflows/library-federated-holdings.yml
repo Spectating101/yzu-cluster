@@ -23,10 +23,13 @@ jobs:
         run: |
           grep -n 'Holdings' drive/src/v2/LibraryAssetWorkspace.jsx
           grep -n 'library-rail-holdings' drive/src/v2/LibraryDatasetRailPanel.jsx
+          grep -n 'Freshness' drive/src/v2/LibraryEvidenceEstate.jsx
+          grep -n 'Freshness' drive/src/v2/LibraryDatasetRailPanel.jsx
           ! grep -n 'library-holding-filter' drive/src/v2/LibraryPage.jsx
           ! grep -n 'key: "holding"' drive/src/v2/librarySearch.js
           ! grep -n 'Bibliographic and holding metadata' drive/src/v2/LibraryAssetWorkspace.jsx
           ! grep -n '<dt>Vault path</dt>' drive/src/v2/LibraryAssetWorkspace.jsx
+          ! grep -n 'asset?.updated_at) || null' drive/src/v2/assetAuthority.js
 
       - uses: actions/setup-node@v4
         with:
@@ -39,8 +42,8 @@ jobs:
       - name: Install Playwright Chromium
         run: npx playwright install chromium
 
-      - name: Holdings truth unit tests
-        run: node --test drive/src/v2/libraryHoldings.test.js
+      - name: Library truth unit tests
+        run: node --test drive/src/v2/libraryHoldings.test.js drive/src/v2/libraryFreshness.test.js
 
       - name: Production build
         run: npm run build
@@ -54,6 +57,7 @@ jobs:
           e2e/library-pagination-continuity.spec.js
           e2e/v2-preview.spec.js
           e2e/library-holdings.spec.js
+          e2e/library-freshness.spec.js
           --reporter=dot
         env: &mock-env
           CI: "true"
@@ -76,6 +80,7 @@ jobs:
           path: |
             artifacts/library-holdings
             artifacts/library-renders
+            artifacts/library-freshness
             test-results
           if-no-files-found: warn
           retention-days: 14
