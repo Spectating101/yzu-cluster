@@ -14,7 +14,19 @@ on:
       - "drive/src/v2/discover-serp-solidification.css"
       - "drive/src/v2/discover-canonical-polish.css"
       - "drive/src/v2/discover-idle-visual-closure.css"
+      - "drive/src/v2/discover-idle-engine-showcase.css"
+      - "drive/src/v2/discover-idle-engine-refine.css"
+      - "drive/src/v2/discover-idle-capability-rail.css"
+      - "drive/src/v2/discover-idle-worked-journey.css"
+      - "drive/src/v2/discover-idle-output-closure.css"
+      - "drive/src/v2/discover-idle-competitor-scale.css"
+      - "drive/src/v2/discover-idle-competitor-rail-fix.css"
+      - "drive/src/v2/discover-source-evidence-visual.css"
+      - "drive/src/v2/discover-right-rail-competitor.css"
+      - "drive/src/v2/discover-preview-evidence-canvas.css"
       - "e2e/discover-canonical-visual.spec.js"
+      - "e2e/discover-reconvergence-visual.spec.js"
+      - "e2e/discover-preview-visual.spec.js"
       - ".github/workflows/discover-serp-solidification-review.yml"
   workflow_dispatch:
 
@@ -46,7 +58,7 @@ jobs:
           sed -i 's/await expect(page\.locator("\.rd-v2-discover-frozen-controls"))\.toBeVisible();/await expect(page.getByTestId("discover-interpreting")).toBeVisible();/g' e2e/discover-reconvergence-visual.spec.js
       - name: Capture 1920 results and selected states
         run: >-
-          mkdir -p .tmp-pw artifacts/discover-reconvergence artifacts/discover-canonical &&
+          mkdir -p .tmp-pw artifacts/discover-reconvergence artifacts/discover-canonical artifacts/discover-preview &&
           TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
           e2e/discover-reconvergence-visual.spec.js --workers=1 --reporter=line
           --grep "large active evidence field 1920x1080|selected evidence evaluation 1920x1080"
@@ -54,6 +66,10 @@ jobs:
         run: >-
           TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
           e2e/discover-canonical-visual.spec.js --workers=1 --reporter=line
+      - name: Capture 1920 evidence preview
+        run: >-
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/discover-preview-visual.spec.js --workers=1 --reporter=line
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -61,6 +77,7 @@ jobs:
           path: |
             artifacts/discover-reconvergence
             artifacts/discover-canonical
+            artifacts/discover-preview
             test-results
           if-no-files-found: warn
           retention-days: 14
