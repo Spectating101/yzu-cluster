@@ -1,0 +1,286 @@
+/* Selected Discover Detail rail — real DOM selector closure.
+ * rd-v2-eval-rail is on the same node as rd-v2-eval-surface, not an ancestor.
+ * This layer intentionally corrects the prior descendant selector and makes
+ * source proof / unknowns / inspection visibly authoritative.
+ */
+@media (min-width: 1680px) and (min-height: 900px) {
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-eval-identity {
+    padding: 11px 13px 10px !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 76%, transparent) !important;
+    background: #fbfaf5 !important;
+  }
+
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-eval-title {
+    margin-top: 3px !important;
+    font-size: 14px !important;
+    line-height: 1.22 !important;
+    letter-spacing: -.012em !important;
+  }
+
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-eval-source,
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-estate-crumb {
+    margin-top: 4px !important;
+    font-size: 8px !important;
+    line-height: 1.35 !important;
+  }
+
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-eval-decision {
+    margin: 10px 12px 0 !important;
+    padding: 10px 11px 9px !important;
+    border: 1px solid #c5d8cc !important;
+    border-left: 3px solid #6f9682 !important;
+    border-radius: 6px !important;
+    background: #edf5ef !important;
+    box-shadow: none !important;
+  }
+
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-eval-decision-headline {
+    margin-top: 4px !important;
+    color: #26372f !important;
+    font-size: 11px !important;
+    line-height: 1.25 !important;
+  }
+
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-eval-decision-body {
+    margin-top: 4px !important;
+    color: #63716b !important;
+    font-size: 8.4px !important;
+    line-height: 1.43 !important;
+  }
+
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-eval-sufficiency {
+    margin: 10px 12px 0 !important;
+    padding: 0 0 10px !important;
+    border: 0 !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 80%, transparent) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-eval-sufficiency-copy {
+    padding: 0 !important;
+  }
+
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-eval-sufficiency-compare {
+    margin-top: 8px !important;
+    overflow: hidden !important;
+    border: 1px solid #d4dbd6 !important;
+    border-radius: 5px !important;
+    background: #faf9f4 !important;
+  }
+
+  /* Reorder only inside the evidence scroll. The source-proof contract comes
+     before strategy/acquisition detail; Ask remains last. */
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-eval-scroll {
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    padding: 0 12px 12px !important;
+  }
+
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-eval-scroll > [aria-label="Useful for"] {
+    order: 1 !important;
+  }
+
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-eval-scroll > [aria-label="Coverage"] {
+    order: 2 !important;
+  }
+
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-eval-tech {
+    order: 3 !important;
+  }
+
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-strategy-card {
+    order: 4 !important;
+  }
+
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-eval-evidence-grid {
+    order: 5 !important;
+  }
+
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-eval-inferred {
+    order: 6 !important;
+  }
+
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-discover-probe-error {
+    order: 7 !important;
+  }
+
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-eval-ask-chips {
+    order: 8 !important;
+  }
+
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-eval-scroll > .rd-v2-eval-block,
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-strategy-card {
+    margin: 0 !important;
+    padding: 10px 0 !important;
+    border: 0 !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 74%, transparent) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-eval-section-label,
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-strategy-label {
+    color: #60756c !important;
+    font-size: 7.4px !important;
+    letter-spacing: .085em !important;
+  }
+
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-eval-prose,
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-eval-list {
+    color: #52605a !important;
+    font-size: 8.4px !important;
+    line-height: 1.45 !important;
+  }
+
+  /* Source proof becomes the first inspection-specific object in the rail. */
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-eval-tech {
+    position: relative !important;
+    margin: 10px 0 0 !important;
+    overflow: hidden !important;
+    border: 1px solid #c6d7cd !important;
+    border-left: 3px solid #6e927e !important;
+    border-radius: 6px !important;
+    background: #f1f6f2 !important;
+  }
+
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-eval-tech > summary {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    min-height: 38px !important;
+    padding: 8px 10px !important;
+    color: transparent !important;
+    font-size: 0 !important;
+    cursor: pointer !important;
+    list-style: none !important;
+  }
+
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-eval-tech > summary::-webkit-details-marker {
+    display: none !important;
+  }
+
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-eval-tech > summary::before {
+    content: "SOURCE PROOF" !important;
+    color: #3f6253 !important;
+    font: 760 7.7px/1.2 var(--rd-mono, ui-monospace, monospace) !important;
+    letter-spacing: .09em !important;
+  }
+
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-eval-tech > summary::after {
+    content: "PREVIEW / PROBE" !important;
+    color: #71857b !important;
+    font: 720 6.8px/1.2 var(--rd-mono, ui-monospace, monospace) !important;
+    letter-spacing: .065em !important;
+  }
+
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-eval-tech:not([open])::after {
+    content: "Inspect bounded rows / schema in Preview; probe endpoint and access facts separately." !important;
+    display: block !important;
+    padding: 0 10px 9px !important;
+    color: #708079 !important;
+    font-size: 7.6px !important;
+    line-height: 1.4 !important;
+  }
+
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-eval-tech[open] > summary {
+    border-bottom: 1px solid #d4dfd8 !important;
+    background: #eaf2ed !important;
+  }
+
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-eval-tech[open] > summary::after {
+    content: "OBSERVED / DECLARED" !important;
+  }
+
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-eval-tech-body,
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-eval-tech > .rd-v2-eval-prose {
+    padding: 9px 10px 10px !important;
+    font-size: 8px !important;
+    line-height: 1.42 !important;
+  }
+
+  /* Explicit unknowns stay decisive and visually follow proof. */
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-eval-evidence-grid {
+    display: block !important;
+    margin: 9px 0 0 !important;
+  }
+
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-eval-verified {
+    margin: 0 0 7px !important;
+    padding: 8px 9px !important;
+    border: 1px solid #c5d7cc !important;
+    border-left: 3px solid #71927f !important;
+    border-radius: 5px !important;
+    background: #eef5f0 !important;
+  }
+
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-eval-unknown {
+    margin: 0 !important;
+    padding: 9px 10px !important;
+    border: 1px solid #e1cda7 !important;
+    border-left: 3px solid #b98b4e !important;
+    border-radius: 5px !important;
+    background: #fbf4e7 !important;
+  }
+
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-eval-checklist {
+    gap: 5px !important;
+    margin-top: 7px !important;
+  }
+
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-eval-checklist li {
+    color: #515e58 !important;
+    font-size: 8.4px !important;
+    line-height: 1.35 !important;
+  }
+
+  /* Ask is support, not the main inspection UI. */
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-eval-ask-chips {
+    margin: 10px 0 0 !important;
+    padding: 9px 0 2px !important;
+    border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 70%, transparent) !important;
+    opacity: .86 !important;
+  }
+
+  .rd-v2-eval-surface.rd-v2-eval-rail[data-lifecycle=""] .rd-v2-eval-ask-chips .rd-v2-chip {
+    min-height: 25px !important;
+    padding: 5px 7px !important;
+    background: #fbfaf6 !important;
+    font-size: 7.4px !important;
+  }
+
+  .rd-v2-eval-actions {
+    padding: 9px 12px 10px !important;
+    gap: 6px !important;
+    border-top-color: color-mix(in srgb, var(--rd-border, #dbd4c5) 84%, #758d81 16%) !important;
+    background: #fbfaf5 !important;
+  }
+
+  .rd-v2-eval-actions .rd-v2-eval-primary-action {
+    min-height: 34px !important;
+    border-radius: 6px !important;
+  }
+
+  .rd-v2-eval-actions-wide {
+    gap: 6px !important;
+  }
+
+  .rd-v2-eval-actions-wide > .rd-v2-btn {
+    min-height: 31px !important;
+    border-radius: 6px !important;
+    background: #fbfaf6 !important;
+  }
+
+  /* Preview is normally the last secondary action for an external source.
+     Give that action a stronger research-inspection affordance. */
+  .rd-v2-eval-actions-wide > .rd-v2-btn:last-child {
+    border-color: #88a597 !important;
+    background: #eef5f0 !important;
+    color: #315646 !important;
+    font-weight: 710 !important;
+  }
+}
