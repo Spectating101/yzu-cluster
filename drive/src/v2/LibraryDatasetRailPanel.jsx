@@ -6,6 +6,7 @@ import {
   libraryAssetPresentation,
   statusPillKind,
 } from "@/v2/datasetMeta";
+import { freshnessDate, summarizeLibraryFreshness } from "@/v2/libraryFreshness";
 import { hasReproductionMethod, librarySourceReceipt } from "@/v2/libraryProvenance";
 import { libraryVerification } from "@/v2/libraryVerification";
 import { holdingRoleLabel, summarizeLibraryHoldings } from "@/v2/libraryHoldings";
@@ -31,7 +32,7 @@ function accessRouteValue(dataset, fields) {
   return String(dataset?.collect_via || dataset?.backend || fields.access || "").trim();
 }
 
-function unknowns(dataset, fields, presentation, receipt) {
+function unknowns(dataset, fields, presentation, receipt, freshness) {
   const out = [];
   const demotion = demotionSentence(dataset);
   if (demotion) out.push(demotion);
@@ -54,7 +55,9 @@ function unknowns(dataset, fields, presentation, receipt) {
   if (presentation.kind === "live_source") {
     if (!accessRouteValue(dataset, fields) && !receipt.method) out.push("Access route not reported");
     if (!Array.isArray(dataset?.columns) && !Array.isArray(dataset?.fields)) out.push("Declared response shape not reported");
-    if (!dataset?.updated_at && !dataset?.last_modified && !dataset?.as_of) out.push("Connection freshness not described");
+    if (!dataset?.last_checked_at && !dataset?.checked_at && !freshness.lastRefreshedAt && !freshness.dataAsOf) {
+      out.push("Connection freshness not described");
+    }
     return out;
   }
 
@@ -66,8 +69,8 @@ function unknowns(dataset, fields, presentation, receipt) {
   if (!dataset?.analysis_readiness) out.push("Readiness not reported by registry");
   if (!fields.coverage && !dataset?.coverage && !dataset?.date_range) out.push("Coverage not reported");
   if (!dataset?.grain) out.push("Grain not reported");
-  if (!dataset?.updated_at && !dataset?.last_modified && !dataset?.as_of) {
-    out.push("Freshness / last refresh not described");
+  if (!freshness.hasFreshnessEvidence) {
+    out.push("Data freshness / refresh cadence not recorded");
   }
   if (!fields.joinKeys?.length) out.push("Join keys / schema relationship not described");
   if (!(dataset?.limitations || dataset?.caveats || fields.limitations)) out.push("Known caveats not described");
@@ -122,13 +125,12 @@ function provenanceBasis(dataset, receipt) {
   return "Not established";
 }
 
-function reproductionBasis(receipt) {
-  return hasReproductionMethod(receipt) ? "Method recorded" : "Method missing";
-}
-
-function nextMove({ state, presentation, previewOpen, receipt, verification }) {
+function nextMove({ state, presentation, previewOpen, receipt, verification, freshness }) {
   if (previewOpen) {
-    return "Review the expanded sample in the centre. Observed rows do not upgrade verification or provenance.";
+    return "Review the expanded sample in the centre. Observed rows do not upgrade verification, provenance, or freshness.";
+  }
+  if (freshness.stale) {
+    return "Refresh the evidence pipeline before using this copy for time-sensitive analysis; query readiness does not make stale data current.";
   }
   if (state.kind === "query-ready") {
     if (!hasReproductionMethod(receipt)) {
@@ -151,12 +153,12 @@ function nextMove({ state, presentation, previewOpen, receipt, verification }) {
   return "Resolve the outstanding readiness or provenance gaps before relying on this asset in analysis.";
 }
 
-function DecisionBasis({ state, verification, dataset, receipt, previewOpen, presentation }) {
+function DecisionBasis({ state, verification, dataset, receipt, previewOpen, presentation, freshness }) {
   const rows = [
     ["Readiness", state.label],
     ["Verification", verification.label],
     ["Provenance", provenanceBasis(dataset, receipt)],
-    ["Reproduce", reproductionBasis(receipt)],
+    ["Freshness", freshness.basisLabel],
   ];
   return (
     <section className="rd-v2-library-inspector-basis" aria-label="Decision basis" data-testid="library-decision-basis">
@@ -171,12 +173,11 @@ function DecisionBasis({ state, verification, dataset, receipt, previewOpen, pre
       </div>
       <div className="rd-v2-library-inspector-next">
         <span>{previewOpen ? "Sample state" : "Next move"}</span>
-        <p>{nextMove({ state, presentation, previewOpen, receipt, verification })}</p>
+        <p>{nextMove({ state, presentation, previewOpen, receipt, verification, freshness })}</p>
       </div>
     </section>
   );
 }
-
 
 function HoldingsBlock({ summary }) {
   if (!summary.count) return null;
@@ -209,7 +210,7 @@ function HoldingsBlock({ summary }) {
 /**
  * The centre workspace owns asset substance (table/schema, coverage, grain,
  * research use). The global situation strip owns selected-asset identity. The
- * rail is therefore decisional: usability, provenance, verification,
+ * rail is therefore decisional: usability, freshness, provenance, verification,
  * unresolved facts, and the next valid research move.
  */
 export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onAskAbout }) {
@@ -219,9 +220,9 @@ export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onAskAbo
   const state = statusPillKind(dataset);
   const decision = decisionFor(dataset);
   const receipt = librarySourceReceipt(dataset);
-  const missing = unknowns(dataset, fields, presentation, receipt);
+  const freshness = summarizeLibraryFreshness(dataset, { kind: presentation.kind });
+  const missing = unknowns(dataset, fields, presentation, receipt, freshness);
   const boundaries = knownBoundaries(dataset, fields);
-  const updated = dataset.updated_at || dataset.last_modified || dataset.as_of;
   const verification = libraryVerification(dataset);
   const holdings = summarizeLibraryHoldings(dataset);
   const remedy = hydrateRemedy(dataset);
@@ -242,6 +243,9 @@ export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onAskAbo
         <p className="rd-v2-rail-section-label">Can I use this?</p>
         <h3>{decision.headline}</h3>
         <p>{decision.body}</p>
+        {freshness.stale ? (
+          <p data-testid="library-stale-warning">Freshness is stale even though the current copy may remain technically queryable.</p>
+        ) : null}
       </section>
 
       {remedy ? (
@@ -264,6 +268,7 @@ export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onAskAbo
           receipt={receipt}
           previewOpen={previewOpen}
           presentation={presentation}
+          freshness={freshness}
         />
 
         <HoldingsBlock summary={holdings} />
@@ -339,7 +344,12 @@ export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onAskAbo
             <Fact label="Source endpoint" value={receipt.sourceEndpoint} mono />
             <Fact label="Vault path" value={fields.vault} mono />
             <Fact label="Canonical archive" value={archiveRef || null} mono />
-            <Fact label="Updated" value={updated} />
+            <Fact label="Data as of" value={freshness.dataAsOf ? freshnessDate(freshness.dataAsOf, { year: true }) : null} />
+            <Fact label="Last data refresh" value={freshness.lastRefreshedAt || null} />
+            <Fact label="Refresh cadence" value={freshness.cadenceLabel || null} />
+            <Fact label="Next expected refresh" value={freshness.nextRefreshAt || null} />
+            <Fact label="Refresh status" value={freshness.status || (freshness.stale ? "stale" : null)} />
+            <Fact label="Record updated" value={freshness.recordUpdatedAt || null} />
             <Fact label="Fetched" value={receipt.fetchedAt} />
             <Fact label="Content SHA-256" value={receipt.contentSha256} mono />
             {state.kind === "query-ready" ? <Fact label="Query path" value={dataset.dataset_id ? `/query/${dataset.dataset_id}?limit=50` : null} mono /> : null}
