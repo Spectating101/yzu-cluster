@@ -7,17 +7,7 @@ import {
 import { normalizeActivityStep } from "@/v2/deskIntegration";
 import { clearChatSessionId, loadChatSessionId, loadUserEmail, saveChatSessionId } from "@/v2/deskSession";
 import { classifyAskIntent, shapeAskReplyForIntent } from "@/v2/askIntent";
-
-function emitSynthesisAgentEvent(threadId, detail = {}) {
-  if (!threadId || typeof document === "undefined") return;
-  document.dispatchEvent(new CustomEvent("synthesis:agent-activity", {
-    detail: {
-      threadId: String(threadId),
-      at: Date.now(),
-      ...detail,
-    },
-  }));
-}
+import { emitSynthesisAgentEvent } from "@/v2/synthesisAgentRun.js";
 
 function normalizeOutgoingMessage(value, fallback = "") {
   const raw = value ?? fallback;
