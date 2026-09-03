@@ -52,3 +52,36 @@ test.describe("v2 adaptive Preview", () => {
     await expect(workspace).toContainText("Asia daily news-risk panel");
   });
 });
+
+test.describe("v2 Library provenance semantics", () => {
+  test("access transport never masquerades as source authority", async ({ page }) => {
+    await mockV2Api(page, {
+      datasetsBody: {
+        datasets: [
+          {
+            dataset_id: "transport_only_asset",
+            name: "Transport-only research asset",
+            grain: "day",
+            analysis_readiness: "instant",
+            local_root: "research_panels/transport-only",
+            collect_via: "bigquery_connector",
+            backend: "bigquery_api",
+            join_keys: ["date"],
+          },
+        ],
+      },
+    });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+
+    await page.getByTestId("library-evidence-row").filter({ hasText: "Transport-only research asset" }).click();
+    const rail = page.locator("aside.rd-v2-rail");
+    const source = page.getByTestId("library-rail-source");
+    await expect(source.getByRole("heading", { name: "Source authority absent" })).toBeVisible();
+    await expect(source).toContainText("Access route");
+    await expect(source).toContainText("bigquery_connector");
+    await expect(source).not.toContainText("The source authority is named");
+    await expect(rail).toContainText("Source authority not recorded");
+  });
+});
