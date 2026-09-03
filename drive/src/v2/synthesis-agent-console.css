@@ -1,8 +1,8 @@
 /*
  * Synthesis AI operations console.
  *
- * Ask is the command plane; this card exposes only durable/system-observable
- * research operations and receipts. It never claims to expose model reasoning.
+ * Ask is the command plane; this card exposes only system-observable research
+ * operations and durable receipts. It never claims to expose model reasoning.
  */
 .rd-v2-synthesis-agent-console {
   margin: 0 10px 10px;
@@ -31,7 +31,8 @@
 
 .rd-v2-synthesis-agent-head small,
 .rd-v2-synthesis-agent-current small,
-.rd-v2-synthesis-agent-activity > small {
+.rd-v2-synthesis-agent-activity > small,
+.rd-v2-synthesis-agent-run-head small {
   color: #727b88;
   font-family: var(--rd-mono);
   font-size: 8.5px;
@@ -98,15 +99,45 @@
   animation: rd-synthesis-agent-step 900ms ease-in-out infinite alternate;
 }
 
-.rd-v2-synthesis-agent-activity {
+.rd-v2-synthesis-agent-run {
   padding: 8px 9px 7px;
+  border-bottom: 1px solid #ebece6;
+  background: #fcfcf9;
 }
 
-.rd-v2-synthesis-agent-activity > small {
-  display: block;
+.rd-v2-synthesis-agent-run-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   padding: 0 2px 5px;
 }
 
+.rd-v2-synthesis-agent-run-head span {
+  padding: 2px 5px;
+  border: 1px solid #d8dfda;
+  border-radius: 999px;
+  color: #5d6c64;
+  background: #f5f7f4;
+  font-family: var(--rd-mono);
+  font-size: 7.5px;
+  font-weight: 850;
+  letter-spacing: .06em;
+}
+
+.rd-v2-synthesis-agent-run[data-run-state="running"] .rd-v2-synthesis-agent-run-head span {
+  border-color: #cbd9d0;
+  color: #35634f;
+  background: #eef5f0;
+}
+
+.rd-v2-synthesis-agent-run[data-run-state="paused"] .rd-v2-synthesis-agent-run-head span {
+  border-color: #ead9b6;
+  color: #8c5d11;
+  background: #fbf5e8;
+}
+
+.rd-v2-synthesis-agent-run ol,
 .rd-v2-synthesis-agent-activity ol {
   display: grid;
   gap: 2px;
@@ -115,11 +146,14 @@
   list-style: none;
 }
 
+.rd-v2-synthesis-agent-run li,
+.rd-v2-synthesis-agent-run button,
 .rd-v2-synthesis-agent-activity li,
 .rd-v2-synthesis-agent-activity button {
   min-width: 0;
 }
 
+.rd-v2-synthesis-agent-run button,
 .rd-v2-synthesis-agent-activity button {
   width: 100%;
   display: grid;
@@ -132,13 +166,41 @@
   background: transparent;
   color: inherit;
   text-align: left;
+}
+
+.rd-v2-synthesis-agent-run button:not(:disabled),
+.rd-v2-synthesis-agent-activity button {
   cursor: pointer;
 }
 
+.rd-v2-synthesis-agent-run button:disabled {
+  opacity: 1;
+  cursor: default;
+}
+
+.rd-v2-synthesis-agent-run button:not(:disabled):hover,
+.rd-v2-synthesis-agent-run button:not(:disabled):focus-visible,
 .rd-v2-synthesis-agent-activity button:hover,
 .rd-v2-synthesis-agent-activity button:focus-visible {
   outline: none;
   background: #f3f5f0;
+}
+
+.rd-v2-synthesis-agent-run button > span:last-child {
+  color: #39463f;
+  font-size: 9.5px;
+  font-weight: 620;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.rd-v2-synthesis-agent-activity {
+  padding: 8px 9px 7px;
+}
+
+.rd-v2-synthesis-agent-activity > small {
+  display: block;
+  padding: 0 2px 5px;
 }
 
 .rd-v2-synthesis-agent-mark {
@@ -154,11 +216,13 @@
   font-weight: 850;
 }
 
+.rd-v2-synthesis-agent-run li.is-current .rd-v2-synthesis-agent-mark,
 .rd-v2-synthesis-agent-activity li.is-current .rd-v2-synthesis-agent-mark {
   background: #eef1f8;
   color: #435677;
 }
 
+.rd-v2-synthesis-agent-run li.is-warn .rd-v2-synthesis-agent-mark,
 .rd-v2-synthesis-agent-activity li.is-warn .rd-v2-synthesis-agent-mark {
   background: #fbf3df;
   color: #94610d;
@@ -234,6 +298,11 @@
 @media (max-width: 880px) {
   .rd-v2-synthesis-agent-console {
     margin-inline: 8px;
+  }
+
+  .rd-v2-synthesis-agent-run {
+    max-height: 180px;
+    overflow: auto;
   }
 }
 
