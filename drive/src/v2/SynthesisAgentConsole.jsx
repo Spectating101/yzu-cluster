@@ -116,7 +116,7 @@ function receiptsFor(selected = {}) {
   }
 
   const execution = normalized(selected.execution_status);
-  if (execution && !["unknown", "spec_accepted"].includes(execution)) {
+  if (execution && !["unknown", "not_materialised", "spec_accepted"].includes(execution)) {
     const final = ["registered", "query_ready"].includes(execution);
     receipts.push({
       id: "execution",
