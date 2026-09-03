@@ -1,0 +1,53 @@
+name: Library disabled location freeze
+
+on:
+  push:
+    branches:
+      - audit/library-location-disabled-freeze-20260904
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply location chrome
+        run: |
+          python3 scripts/_apply_library_location_disabled.py
+          if ! git diff --quiet -- drive/src/v2/LibraryPage.jsx drive/src/v2/library-live-scale.css; then
+            git config user.name github-actions[bot]
+            git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+            git add drive/src/v2/LibraryPage.jsx drive/src/v2/library-live-scale.css
+            git commit -m "polish(library): keep disconnected locations visible"
+            git push origin HEAD:audit/library-location-disabled-freeze-20260904
+          fi
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install chromium
+      - run: npm run build
+        env:
+          YZU_PAGES: "true"
+      - name: Location chrome + folder workflow
+        run: mkdir -p .tmp-pw && TMPDIR=$PWD/.tmp-pw npx playwright test e2e/library-location-disabled.spec.js e2e/library-folder-workflow.spec.js --reporter=dot
+        env:
+          CI: "true"
+          YZU_PAGES: "false"
+      - name: Upload renders
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: library-location-disabled-freeze
+          path: |
+            artifacts/library-location-disabled
+            artifacts/library-folder-workflow
+            test-results
+          if-no-files-found: warn
+          retention-days: 14
