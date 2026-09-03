@@ -7,28 +7,24 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: library-federated-holdings-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  validate-and-commit:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Apply bounded holdings integration
-        run: python scripts/apply_library_holdings_patch.py
 
       - name: Guard holdings ownership boundaries
         run: |
           grep -n 'Holdings' drive/src/v2/LibraryAssetWorkspace.jsx
           grep -n 'library-rail-holdings' drive/src/v2/LibraryDatasetRailPanel.jsx
-          grep -n 'key: "holding"' drive/src/v2/librarySearch.js
+          grep -n 'library-holding-filter' drive/src/v2/LibraryPage.jsx
+          ! grep -n 'key: "holding"' drive/src/v2/librarySearch.js
           ! grep -n 'Bibliographic and holding metadata' drive/src/v2/LibraryAssetWorkspace.jsx
           ! grep -n '<dt>Vault path</dt>' drive/src/v2/LibraryAssetWorkspace.jsx
 
@@ -73,22 +69,6 @@ jobs:
           e2e/release-visual-convergence.spec.js
           --reporter=dot
         env: *mock-env
-
-      - name: Commit validated holdings integration
-        run: |
-          if git diff --quiet; then
-            echo "No product patch delta to commit."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add \
-            drive/src/v2/LibraryAssetWorkspace.jsx \
-            drive/src/v2/LibraryDatasetRailPanel.jsx \
-            drive/src/v2/librarySearch.js \
-            drive/src/v2/library-live-scale.css
-          git commit -m "feat(library): integrate federated holdings"
-          git push origin HEAD:feat/library-federated-holdings-20260903
 
       - name: Upload holdings renders
         if: always()
