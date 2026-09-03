@@ -625,7 +625,7 @@ export function LibraryPage({
                 value={searchQuery}
                 onChange={(e) => onSearchChange?.(e.target.value)}
                 placeholder="Search title, field, source, coverage…"
-                aria-label="Search Library evidence"
+                aria-label="Search library holdings"
                 aria-keyshortcuts="/"
                 onKeyDown={(e) => {
                   // Live filter; Enter commits focus so arrow navigation can take over.
@@ -673,24 +673,22 @@ export function LibraryPage({
                   <option value="not_ready">Not query-ready · {nonReadyCount}</option>
                 </select>
               </label>
-              {holdingFacetOptions.length ? (
-                <label className="rd-v2-library-filter-control">
-                  <span>Holding</span>
-                  <select
-                    data-testid="library-holding-filter"
-                    aria-label="Filter Library by holding"
-                    value={holdingMode}
-                    onChange={(event) => setHoldingMode(event.target.value)}
-                  >
-                    <option value="all">Anywhere</option>
-                    {holdingFacetOptions.map((option) => (
-                      <option key={option.key} value={option.key}>
-                        {option.label} · {option.count}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              ) : null}
+              <label className="rd-v2-library-filter-control">
+                <span>Holding</span>
+                <select
+                  data-testid="library-holding-filter"
+                  aria-label="Filter Library by holding"
+                  value={holdingMode}
+                  onChange={(event) => setHoldingMode(event.target.value)}
+                >
+                  <option value="all">Anywhere</option>
+                  {holdingFacetOptions.map((option) => (
+                    <option key={option.key} value={option.key}>
+                      {option.label} · {option.count}
+                    </option>
+                  ))}
+                </select>
+              </label>
               <label className="rd-v2-library-filter-control">
                 <span>Sort</span>
                 <select
