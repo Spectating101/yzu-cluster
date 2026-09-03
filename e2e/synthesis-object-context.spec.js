@@ -82,23 +82,46 @@ async function mount(page) {
   return thread;
 }
 
-test("centre object selection grounds Ask and streamed operations retain the exact durable target", async ({ page }) => {
+test("centre object selection grounds Ask and native backend targets drive the exact durable surface", async ({ page }) => {
   mkdirSync(outDir, { recursive: true });
   await page.setViewportSize({ width: 1440, height: 900 });
   const thread = await mount(page);
 
   let submittedMessage = "";
+  let submittedRailContext = null;
   await page.route("**/api/library/chat/stream", async (route) => {
     if (route.request().method() !== "POST") return route.fallback();
-    submittedMessage = route.request().postDataJSON()?.message || "";
+    const posted = route.request().postDataJSON() || {};
+    submittedMessage = posted.message || "";
+    submittedRailContext = posted.rail_context || null;
     const events = [
-      { type: "activity", text: "Checking current recorded state", action: "proposal" },
+      {
+        type: "activity",
+        text: "Checking current recorded state",
+        // Deliberately contradict the semantic fallback. If the client drops
+        // target metadata this would incorrectly focus Evidence, not Proposal.
+        action: "evidence",
+        target: {
+          kind: "proposal",
+          object_id: "proposal-object-context",
+          label: "Method proposal",
+          thread_id: thread.id,
+          surface: "synthesis-proposal-state",
+        },
+      },
       {
         type: "complete",
         result: {
           session_id: "object-context-session",
           reply: "This refers to the selected exact method proposal.",
           action: "answer",
+          activity_target: {
+            kind: "proposal",
+            object_id: "proposal-object-context",
+            label: "Method proposal",
+            thread_id: thread.id,
+            surface: "synthesis-proposal-state",
+          },
         },
       },
     ];
@@ -127,6 +150,11 @@ test("centre object selection grounds Ask and streamed operations retain the exa
   expect(submittedMessage).toContain("Selected Synthesis object context:");
   expect(submittedMessage).toContain("Kind: proposal.");
   expect(submittedMessage).toContain("Object id: proposal-object-context.");
+  expect(submittedRailContext?.synthesis_object_context).toMatchObject({
+    kind: "proposal",
+    object_id: "proposal-object-context",
+    surface: "synthesis-proposal-state",
+  });
   await expect(page.getByTestId("ask-messages")).not.toContainText("Selected Synthesis object context:");
 
   const run = page.getByTestId("synthesis-agent-run");
