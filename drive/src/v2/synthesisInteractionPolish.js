@@ -1,5 +1,3 @@
-import "./synthesis-continuity.css";
-
 const SUBJECT_SELECTORS = [
   '[data-testid="synthesis-scope-block"]',
   '[data-testid="synthesis-unit-conflict"]',
