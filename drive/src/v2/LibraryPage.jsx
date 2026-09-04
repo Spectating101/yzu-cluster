@@ -11,6 +11,7 @@ import { CatalogList } from "@/v2/CatalogList";
 import { libraryAssetPresentation, statusPillKind } from "@/v2/datasetMeta";
 import { libraryVerification } from "@/v2/libraryVerification";
 import { isBrowsableLibraryLocation, normalizeLibraryLocations } from "@/v2/libraryLocations";
+import { filterProviderDirectoryRows, providerDirectoryRows } from "@/v2/libraryFederationRuntime";
 import { LibraryAssetWorkspace } from "@/v2/LibraryAssetWorkspace";
 import { LibraryEvidenceEstate } from "@/v2/LibraryEvidenceEstate";
 import { resolveLibrarySelection } from "@/v2/librarySelection";
@@ -156,7 +157,7 @@ function toolbarCountLabel({ searchActive, isRoot, folderCount, datasetCount, vi
   return parts.join(" · ") || `${visibleCount} row${visibleCount === 1 ? "" : "s"}`;
 }
 
-function LibraryBreadcrumb({ trail, onFolderChange }) {
+function LibraryBreadcrumb({ trail, onFolderChange, onRemoteFolderChange }) {
   return (
     <nav className="rd-v2-breadcrumb rd-v2-crumb" aria-label="Breadcrumb">
       {trail.map((c, i) => {
@@ -167,7 +168,7 @@ function LibraryBreadcrumb({ trail, onFolderChange }) {
             {last ? (
               <span className="here">{c.name}</span>
             ) : (
-              <button type="button" onClick={() => onFolderChange(c.id)}>
+              <button type="button" onClick={() => (c.remote ? onRemoteFolderChange?.(c) : onFolderChange(c.id))}>
                 {c.name}
               </button>
             )}
@@ -323,6 +324,7 @@ export function LibraryPage({
   selectionFallback,
   folderLocations = [],
   onFolderLocationChange,
+  loadFolderLocationDirectory,
   referenceCount = 0,
 }) {
   const [sortBy, setSortBy] = useState("name");
@@ -330,6 +332,10 @@ export function LibraryPage({
   const [filterMode, setFilterMode] = useState("all");
   const [locationMode, setLocationMode] = useState("all");
   const [newMenuOpen, setNewMenuOpen] = useState(false);
+  const [remoteDirectory, setRemoteDirectory] = useState({
+    providerId: "", parentId: "", trail: [], items: [], nextCursor: "", hasMore: false, loading: false, loadingMore: false, error: "",
+  });
+  const remoteRequestRef = useRef(0);
   const searchInputRef = useRef(null);
   const searchActive = Boolean(String(searchQuery || "").trim());
 
@@ -428,19 +434,80 @@ export function LibraryPage({
     [folderLocations],
   );
 
+  const resetRemoteDirectory = useCallback(() => {
+    remoteRequestRef.current += 1;
+    setRemoteDirectory({ providerId: "", parentId: "", trail: [], items: [], nextCursor: "", hasMore: false, loading: false, loadingMore: false, error: "" });
+  }, []);
+
+  const loadRemoteDirectory = useCallback(async ({ providerId, parentId = "", trail: nextTrail = [], cursor = "", append = false } = {}) => {
+    if (!loadFolderLocationDirectory || !providerId) return;
+    const requestId = ++remoteRequestRef.current;
+    setRemoteDirectory((current) => ({
+      ...current,
+      providerId,
+      parentId,
+      trail: nextTrail,
+      loading: !append,
+      loadingMore: append,
+      error: "",
+      ...(append ? {} : { items: [], nextCursor: "", hasMore: false }),
+    }));
+    try {
+      const page = await loadFolderLocationDirectory({ providerId, parentId, cursor, limit: 50 });
+      if (requestId !== remoteRequestRef.current) return;
+      setRemoteDirectory((current) => ({
+        ...current,
+        providerId,
+        parentId,
+        trail: nextTrail,
+        items: append ? [...current.items, ...(page?.items || [])] : (page?.items || []),
+        nextCursor: page?.nextCursor || "",
+        hasMore: Boolean(page?.hasMore),
+        loading: false,
+        loadingMore: false,
+        error: "",
+      }));
+    } catch (error) {
+      if (requestId !== remoteRequestRef.current) return;
+      setRemoteDirectory((current) => ({
+        ...current,
+        loading: false,
+        loadingMore: false,
+        error: String(error?.message || error),
+      }));
+    }
+  }, [loadFolderLocationDirectory]);
+
   useEffect(() => {
     if (locationMode === "all") return;
     const active = normalizedFolderLocations.find((location) => location.id === locationMode);
-    if (!isBrowsableLibraryLocation(active, Boolean(onFolderLocationChange))) setLocationMode("all");
-  }, [locationMode, normalizedFolderLocations, onFolderLocationChange]);
+    if (!isBrowsableLibraryLocation(active, Boolean(loadFolderLocationDirectory))) {
+      setLocationMode("all");
+      resetRemoteDirectory();
+    }
+  }, [loadFolderLocationDirectory, locationMode, normalizedFolderLocations, resetRemoteDirectory]);
+
+  const remoteActive = browsingPhysicalFolders && locationMode !== "all";
+  const providerLocation = normalizedFolderLocations.find((location) => location.id === locationMode) || null;
+  const remoteRows = useMemo(() => providerDirectoryRows({
+    items: remoteDirectory.items,
+    holdings: allHeldDatasets,
+    providerId: locationMode,
+    providerLabel: providerLocation?.label || locationMode,
+  }), [allHeldDatasets, locationMode, providerLocation?.label, remoteDirectory.items]);
+  const searchedRemoteRows = useMemo(
+    () => filterProviderDirectoryRows(remoteRows, searchQuery),
+    [remoteRows, searchQuery],
+  );
 
   const items = useMemo(() => listFolderChildren(tree, folderId), [tree, folderId]);
   // Search already filters the catalog upstream; without flattening, Library root
   // would expose only ancestor shelves instead of the matching evidence itself.
   const displayRows = useMemo(() => {
+    if (remoteActive) return searchedRemoteRows;
     if (!searchActive) return items;
     return collectDatasetDescendants(tree, folderId);
-  }, [folderId, items, searchActive, tree]);
+  }, [folderId, items, remoteActive, searchActive, searchedRemoteRows, tree]);
   const visibleRows = useMemo(
     () =>
       sortItems(
@@ -451,7 +518,10 @@ export function LibraryPage({
       ),
     [displayRows, filterMode, sortBy, typeMode],
   );
-  const currentFolderName = isRoot ? "Library root" : trail[trail.length - 1]?.name || "Library";
+  const activeTrail = remoteActive ? remoteDirectory.trail : trail;
+  const currentFolderName = remoteActive
+    ? activeTrail[activeTrail.length - 1]?.name || providerLocation?.label || "Connected storage"
+    : isRoot ? "Library root" : trail[trail.length - 1]?.name || "Library";
   const showingBranchFallback = false;
   const showingSearchHits = searchActive;
   const folderRows = useMemo(
@@ -468,10 +538,13 @@ export function LibraryPage({
     );
   }, [folderRows, isRoot, searchActive]);
   const branchDatasetRows = useMemo(() => {
+    if (remoteActive) {
+      return remoteRows.filter((item) => item.kind === "dataset").map(itemDataset);
+    }
     if (searchActive) return displayRows.map(itemDataset);
     if (isRoot) return vaultDatasets;
     return collectDatasetDescendants(tree, folderId).map(itemDataset);
-  }, [displayRows, folderId, isRoot, searchActive, tree, vaultDatasets]);
+  }, [displayRows, folderId, isRoot, remoteActive, remoteRows, searchActive, tree, vaultDatasets]);
   const estateRows = useMemo(
     () =>
       sortItems(
@@ -489,20 +562,29 @@ export function LibraryPage({
     })),
     [folderRows, tree],
   );
+  const remoteFileCount = remoteActive ? remoteRows.filter((item) => item.kind !== "folder").length : 0;
   const readyCount = readinessCount(branchDatasetRows);
-  const nonReadyCount = Math.max(0, branchDatasetRows.length - readyCount);
-  const attentionCount = branchDatasetRows.filter((row) => itemNeedsAttention(datasetListItem(row))).length;
-  const browseDatasetCount = branchDatasetRows.length;
-  const branchNote = branchStatusNote({
-    isRoot,
-    items,
-    showingBranchFallback,
-    showingSearchHits,
-    displayCount: isRoot ? estateRows.length : displayRows.length,
-    folderCount,
-    partitionCount,
-    datasetCount: browseDatasetCount,
-  });
+  const browseDatasetCount = remoteActive ? remoteFileCount : branchDatasetRows.length;
+  const nonReadyCount = Math.max(0, browseDatasetCount - readyCount);
+  const attentionCount = remoteActive
+    ? remoteRows.filter((item) => item.kind === "remote_file" || (item.kind === "dataset" && itemNeedsAttention(item))).length
+    : branchDatasetRows.filter((row) => itemNeedsAttention(datasetListItem(row))).length;
+  const branchNote = remoteActive
+    ? remoteDirectory.error
+      ? "Connected directory could not be read"
+      : remoteDirectory.loading
+        ? `Reading ${providerLocation?.label || "connected storage"}…`
+        : `${folderCount} folder${folderCount === 1 ? "" : "s"} · ${browseDatasetCount} file${browseDatasetCount === 1 ? "" : "s"} · known evidence opens its canonical Library dossier`
+    : branchStatusNote({
+        isRoot,
+        items,
+        showingBranchFallback,
+        showingSearchHits,
+        displayCount: isRoot ? estateRows.length : displayRows.length,
+        folderCount,
+        partitionCount,
+        datasetCount: browseDatasetCount,
+      });
   // Keep guide in the contract for the backend-owned taxonomy. Root evidence is
   // no longer gated by those recommendations; shelves remain contextual filters.
   void guide;
@@ -510,8 +592,8 @@ export function LibraryPage({
     () =>
       libraryFolderObject({
         folderId,
-        trail,
-        destination,
+        trail: activeTrail,
+        destination: remoteActive ? folderDestination(activeTrail, LIBRARY_FOLDERS_ROOT) : destination,
         note: branchNote,
         folderCount,
         datasetCount: browseDatasetCount,
@@ -519,7 +601,7 @@ export function LibraryPage({
         itemCount: isRoot ? estateRows.length : visibleRows.length,
         referenceCount: isRoot ? referenceCount : 0,
       }),
-    [branchNote, browseDatasetCount, destination, estateRows.length, folderCount, folderId, isRoot, readyCount, referenceCount, trail, visibleRows.length],
+    [activeTrail, branchNote, browseDatasetCount, destination, estateRows.length, folderCount, folderId, isRoot, readyCount, referenceCount, remoteActive, visibleRows.length],
   );
 
   useEffect(() => {
@@ -540,8 +622,78 @@ export function LibraryPage({
   }, [branchObject, onStartUrl]);
 
   const handleRefresh = useCallback(() => {
+    if (remoteActive && remoteDirectory.providerId) {
+      loadRemoteDirectory({
+        providerId: remoteDirectory.providerId,
+        parentId: remoteDirectory.parentId,
+        trail: remoteDirectory.trail,
+      });
+      return;
+    }
     onRefresh?.();
-  }, [onRefresh]);
+  }, [loadRemoteDirectory, onRefresh, remoteActive, remoteDirectory.parentId, remoteDirectory.providerId, remoteDirectory.trail]);
+
+  const handleLocationChange = useCallback((nextLocation) => {
+    setLocationMode(nextLocation);
+    onFolderLocationChange?.(nextLocation);
+    if (nextLocation === "all") {
+      resetRemoteDirectory();
+      return;
+    }
+    const location = normalizedFolderLocations.find((item) => item.id === nextLocation);
+    if (!isBrowsableLibraryLocation(location, Boolean(loadFolderLocationDirectory))) return;
+    const providerTrail = [
+      { id: "", name: "Library" },
+      { id: LIBRARY_FOLDERS_ROOT, name: "Folders" },
+      { id: `provider:${nextLocation}`, name: location.label, remote: true, providerId: nextLocation, parentId: "" },
+    ];
+    loadRemoteDirectory({ providerId: nextLocation, parentId: "", trail: providerTrail });
+  }, [loadFolderLocationDirectory, loadRemoteDirectory, normalizedFolderLocations, onFolderLocationChange, resetRemoteDirectory]);
+
+  const handleBreadcrumbFolderChange = useCallback((nextFolderId) => {
+    if (remoteActive) {
+      setLocationMode("all");
+      onFolderLocationChange?.("all");
+      resetRemoteDirectory();
+    }
+    onFolderChange?.(nextFolderId);
+  }, [onFolderChange, onFolderLocationChange, remoteActive, resetRemoteDirectory]);
+
+  const handleRemoteBreadcrumb = useCallback((crumb) => {
+    const index = remoteDirectory.trail.findIndex((item) => item.id === crumb.id);
+    const nextTrail = index >= 0 ? remoteDirectory.trail.slice(0, index + 1) : remoteDirectory.trail;
+    loadRemoteDirectory({ providerId: crumb.providerId || locationMode, parentId: crumb.parentId || "", trail: nextTrail });
+  }, [loadRemoteDirectory, locationMode, remoteDirectory.trail]);
+
+  const handleOpenDirectoryFolder = useCallback((folder) => {
+    if (!remoteActive || !folder?.remoteProvider) {
+      onFolderChange?.(folder.id);
+      return;
+    }
+    const crumb = {
+      id: `provider:${folder.remoteProvider}:${folder.providerItemId}`,
+      name: folder.name,
+      remote: true,
+      providerId: folder.remoteProvider,
+      parentId: folder.providerItemId,
+    };
+    loadRemoteDirectory({
+      providerId: folder.remoteProvider,
+      parentId: folder.providerItemId,
+      trail: [...remoteDirectory.trail, crumb],
+    });
+  }, [loadRemoteDirectory, onFolderChange, remoteActive, remoteDirectory.trail]);
+
+  const loadMoreRemote = useCallback(() => {
+    if (!remoteActive || !remoteDirectory.hasMore || !remoteDirectory.nextCursor) return;
+    loadRemoteDirectory({
+      providerId: remoteDirectory.providerId,
+      parentId: remoteDirectory.parentId,
+      trail: remoteDirectory.trail,
+      cursor: remoteDirectory.nextCursor,
+      append: true,
+    });
+  }, [loadRemoteDirectory, remoteActive, remoteDirectory.hasMore, remoteDirectory.nextCursor, remoteDirectory.parentId, remoteDirectory.providerId, remoteDirectory.trail]);
 
   const handleProcureBranch = useCallback(() => {
     setNewMenuOpen(false);
@@ -568,15 +720,15 @@ export function LibraryPage({
         lead="See what you have; Library organizes the evidence without making you maintain a filing cabinet."
         headExtra={
           <div className="rd-v2-library-headline">
-            <LibraryBreadcrumb trail={trail} onFolderChange={onFolderChange} />
+            <LibraryBreadcrumb trail={activeTrail} onFolderChange={handleBreadcrumbFolderChange} onRemoteFolderChange={handleRemoteBreadcrumb} />
             <LibraryHeadActions
               newMenuOpen={newMenuOpen}
               onToggleNewMenu={toggleNewMenu}
               onCloseNewMenu={closeNewMenu}
-              onOpenUpload={openUploadRail}
-              onOpenUrlModal={openUrlRail}
-              onProcureBranch={handleProcureBranch}
-              onRefresh={onRefresh ? handleRefresh : undefined}
+              onOpenUpload={remoteActive ? undefined : openUploadRail}
+              onOpenUrlModal={remoteActive ? undefined : openUrlRail}
+              onProcureBranch={remoteActive ? undefined : handleProcureBranch}
+              onRefresh={onRefresh || remoteActive ? handleRefresh : undefined}
             />
           </div>
         }
@@ -669,12 +821,11 @@ export function LibraryPage({
                     value={locationMode}
                     onChange={(event) => {
                       const nextLocation = event.target.value;
-                      setLocationMode(nextLocation);
-                      onFolderLocationChange?.(nextLocation);
+                      handleLocationChange(nextLocation);
                     }}
                   >
                     {normalizedFolderLocations.map((location) => {
-                      const browsable = isBrowsableLibraryLocation(location, Boolean(onFolderLocationChange));
+                      const browsable = isBrowsableLibraryLocation(location, Boolean(loadFolderLocationDirectory));
                       return (
                         <option
                           key={location.id}
@@ -711,14 +862,16 @@ export function LibraryPage({
           <div
             className="rd-v2-library-branchline rd-v2-library-pathbar"
             aria-label="Library location status"
-            data-navigation-state={navigationLoading ? "loading" : navigationError ? "error" : "ready"}
+            data-navigation-state={remoteActive ? (remoteDirectory.loading ? "loading" : remoteDirectory.error ? "error" : "ready") : navigationLoading ? "loading" : navigationError ? "error" : "ready"}
           >
             <div className="rd-v2-library-pathcopy">
               <strong>{currentFolderName}</strong>
               <p>{branchNote}</p>
             </div>
             <div className="rd-v2-library-pathstats">
-              {navigationLoading && !searchActive ? (
+              {remoteActive && remoteDirectory.loading ? (
+                <span>Reading directory…</span>
+              ) : navigationLoading && !searchActive ? (
                 <span>Organizing collection…</span>
               ) : (
                 <span>{folderCount} folder{folderCount === 1 ? "" : "s"}</span>
@@ -758,7 +911,14 @@ export function LibraryPage({
           )
         ) : (
           <div className="rd-v2-catalog-list-wrap" data-testid="library-directory">
-            {navigationLoading && !searchActive ? (
+            {remoteActive && remoteDirectory.loading ? (
+              <div className="rd-v2-library-empty" role="status" aria-live="polite">
+                <strong>Reading {providerLocation?.label || "connected storage"}…</strong>
+                <p>Loading a bounded provider directory page; the underlying storage remains authoritative for its hierarchy.</p>
+              </div>
+            ) : remoteActive && remoteDirectory.error ? (
+              <DeskError raw={remoteDirectory.error} surface={providerLocation?.label || "connected storage"} />
+            ) : navigationLoading && !searchActive ? (
               <div className="rd-v2-library-empty" role="status" aria-live="polite">
                 <strong>Organizing collection…</strong>
                 <p>Reading the current research context before showing its holdings.</p>
@@ -772,19 +932,25 @@ export function LibraryPage({
               <CatalogList
                 rows={visibleRows}
                 selectedId={selectedId}
-                onOpenFolder={(folder) => onFolderChange(folder.id)}
+                onOpenFolder={handleOpenDirectoryFolder}
                 onSelectDataset={onSelectDataset}
                 compact
+                serverPaginated={remoteActive}
+                hasMore={remoteActive && remoteDirectory.hasMore}
+                loadingMore={remoteDirectory.loadingMore}
+                onLoadMore={remoteActive ? loadMoreRemote : undefined}
               />
             ) : (
               <div className="rd-v2-library-empty">
                 <strong>{searchActive ? "No assets match this search" : "Nothing else in this collection"}</strong>
                 <p>
                   {searchActive
-                    ? "Try a broader keyword, or clear the search to see the current collection again."
-                    : "Clear the filter or use the breadcrumb to return to Library."}
+                    ? "Try a broader keyword, or clear the search to see this directory again."
+                    : remoteActive
+                      ? "This connected directory page contains no visible entries. Use the breadcrumb or choose another Location."
+                      : "Clear the filter or use the breadcrumb to return to Library."}
                 </p>
-                {!searchActive && (onStartUpload || onStartUrl || onStartProcure) ? (
+                {!remoteActive && !searchActive && (onStartUpload || onStartUrl || onStartProcure) ? (
                   <div className="rd-v2-library-empty-actions">
                     {onStartUpload ? <button type="button" className="rd-v2-btn sm" onClick={() => onStartUpload?.()}>Add files</button> : null}
                     {onStartUrl ? <button type="button" className="rd-v2-btn sm" onClick={() => onStartUrl?.()}>Add URL</button> : null}

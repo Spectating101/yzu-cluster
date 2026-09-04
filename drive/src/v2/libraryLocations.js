@@ -79,6 +79,11 @@ export function normalizeProviderDirectoryPage(payload = {}) {
     path: String(item.path || item.display_path || ""),
     metadataVisible: item.metadataVisible !== false && item.metadata_visible !== false,
     contentAccess: String(item.contentAccess || item.content_access || "unknown"),
+    childCount: Number.isFinite(Number(item.childCount ?? item.child_count)) ? Number(item.childCount ?? item.child_count) : null,
+    modifiedAt: String(item.modifiedAt || item.modified_at || item.modified_time || ""),
+    mimeType: String(item.mimeType || item.mime_type || ""),
+    sizeBytes: Number.isFinite(Number(item.sizeBytes ?? item.size_bytes ?? item.size)) ? Number(item.sizeBytes ?? item.size_bytes ?? item.size) : null,
+    accountId: String(item.accountId || item.account_id || ""),
   }));
 
   return {

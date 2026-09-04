@@ -86,6 +86,9 @@ import { buildRailContext } from "@/v2/railContext";
 import { holdingIdsFromCatalog, isLocalHolding } from "@/v2/discoverTaxonomy";
 import { libraryEvidence, libraryHoldings, libraryReferences } from "@/v2/deskCounts";
 import { composerRuntimeRead } from "@/v2/composerRuntimeStatus";
+import { listConnectedAccounts } from "@/v2/connectedAccountsApi";
+import { listLibraryProviderDirectory } from "@/v2/libraryFederationApi";
+import { libraryLocationsFromAccountDocument } from "@/v2/libraryFederationRuntime";
 
 const DESK_HEALTH_READY_POLL_MS = 60_000;
 const DESK_HEALTH_RECHECK_MS = 10_000;
@@ -257,6 +260,7 @@ export function V2App() {
   const [libraryGuide, setLibraryGuide] = useState(null);
   const [libraryNavLoading, setLibraryNavLoading] = useState(true);
   const [libraryNavError, setLibraryNavError] = useState("");
+  const [libraryFolderLocations, setLibraryFolderLocations] = useState([]);
   const [ops, setOps] = useState(null);
   const [jobs, setJobs] = useState([]);
   const [jobsLoaded, setJobsLoaded] = useState(false);
@@ -1498,6 +1502,31 @@ export function V2App() {
     return byDataset;
   }, [partitions, shelves]);
 
+  const refreshLibraryFolderLocations = useCallback(async () => {
+    if (!deskAccess?.authenticated) {
+      setLibraryFolderLocations([]);
+      return [];
+    }
+    try {
+      const document = await listConnectedAccounts();
+      const locations = libraryLocationsFromAccountDocument(document);
+      setLibraryFolderLocations(locations);
+      return locations;
+    } catch {
+      setLibraryFolderLocations([]);
+      return [];
+    }
+  }, [deskAccess?.authenticated]);
+
+  useEffect(() => {
+    if (tab === "library") refreshLibraryFolderLocations();
+  }, [refreshLibraryFolderLocations, tab]);
+
+  const loadLibraryFolderLocationDirectory = useCallback(
+    (request) => listLibraryProviderDirectory(request),
+    [],
+  );
+
   const heldLibraryRows = useMemo(() => libraryHoldings(catalog || []), [catalog]);
   const filteredDatasets = useMemo(() => {
     const q = librarySearchQuery.trim().toLowerCase();
@@ -1598,6 +1627,8 @@ export function V2App() {
           referenceCount={libraryReferenceCount}
           selectionHoldings={heldLibraryRows}
           selectionFallback={isLocalHolding(detail) ? detail : null}
+          folderLocations={libraryFolderLocations}
+          loadFolderLocationDirectory={loadLibraryFolderLocationDirectory}
         />
       );
       break;

@@ -76,6 +76,10 @@ export function libraryHoldings(dataset = {}) {
       const role = text(raw?.role, raw?.holding_role, raw?.replica_role);
       const contentHash = text(raw?.content_sha256, raw?.sha256, raw?.content_hash, raw?.hash);
       const version = text(raw?.version, raw?.edition, raw?.snapshot, raw?.as_of);
+      const versionId = text(raw?.version_id, raw?.snapshot_id, raw?.revision_id);
+      const providerItemId = text(raw?.provider_item_id, raw?.remote_item_id, raw?.file_id, raw?.object_id);
+      const parentItemId = text(raw?.parent_item_id, raw?.remote_parent_id, raw?.parent_id);
+      const accountId = text(raw?.account_id, raw?.storage_account_id, raw?.principal_id);
       const updatedAt = text(raw?.updated_at, raw?.last_modified, raw?.observed_at, raw?.synced_at);
       const id = text(raw?.holding_id, raw?.id, `${dataset?.dataset_id || "asset"}:holding:${index + 1}`);
       if (![provider, custodian, location, role, contentHash, version].some(Boolean)) return null;
@@ -93,6 +97,10 @@ export function libraryHoldings(dataset = {}) {
         queryReady,
         contentHash,
         version,
+        versionId,
+        providerItemId,
+        parentItemId,
+        accountId,
         updatedAt,
       };
     })

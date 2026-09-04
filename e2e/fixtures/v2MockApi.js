@@ -60,6 +60,14 @@ export const MOCK_DISCOVER_HIT = {
   total: 1,
 };
 
+export const MOCK_CONNECTED_ACCOUNTS = {
+  providers: [
+    { id: "google_drive", label: "Google Drive", configured: true, rclone_available: true, directory_browse_available: false },
+    { id: "dropbox", label: "Dropbox", configured: true, rclone_available: true, directory_browse_available: false },
+  ],
+  accounts: [],
+};
+
 export const MOCK_HEALTH = {
   status: "ok",
   datasets: 2,
@@ -664,6 +672,9 @@ export async function mockV2Api(
       contentType: "application/json",
       body: JSON.stringify({ sections: [], total: 0 }),
     }),
+  );
+  await page.route("**/library/accounts", (route) =>
+    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(MOCK_CONNECTED_ACCOUNTS) }),
   );
   await page.route("**/library/ops*", (route) =>
     route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(MOCK_OPS) }),

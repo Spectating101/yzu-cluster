@@ -41,6 +41,7 @@ export function CatalogRow({
   item,
   selected,
   onSelect,
+  onSelectRemoteFile,
   onOpenFolder,
   onDoubleClick,
   external = false,
@@ -48,24 +49,29 @@ export function CatalogRow({
   rowState,
 }) {
   const isFolder = item.kind === "folder";
+  const isRemoteFile = item.kind === "remote_file";
   const dataset = item.row || item;
-  const assetKind = isFolder ? "folder" : libraryAssetKind(dataset);
+  const assetKind = isFolder ? "folder" : isRemoteFile ? "remote_file" : libraryAssetKind(dataset);
   const isScholarly = assetKind === "scholarly_work";
-  const title = isFolder ? item.name : displayName(dataset);
-  const folderSummary = isFolder ? folderBrowseSummary(item) : null;
+  const title = isFolder || isRemoteFile ? item.name : displayName(dataset);
+  const folderSummary = isFolder ? (item.remoteSummary || folderBrowseSummary(item)) : null;
   const pathLabel = !isFolder ? datasetBrowsePathLabel(item) : "";
   const sub = isFolder
     ? folderSummary.sub
-    : isScholarly
-      ? scholarlySubtitle(dataset)
-      : rowSubtitle(dataset);
+    : isRemoteFile
+      ? [item.providerLabel, item.path || item.mimeType].filter(Boolean).join(" · ")
+      : isScholarly
+        ? scholarlySubtitle(dataset)
+        : rowSubtitle(dataset);
   const desc = isFolder
     ? folderSummary.desc
-    : compact
-      ? null
-      : datasetDescription(dataset);
-  const state = !isFolder && rowState ? rowState(dataset) : null;
-  const kind = isFolder ? "folder" : external ? "external" : assetKind.replace(/_/g, "-");
+    : isRemoteFile
+      ? (item.contentAccess === "restricted" ? "Metadata is visible, but this account cannot read the file content." : null)
+      : compact
+        ? null
+        : datasetDescription(dataset);
+  const state = !isFolder && !isRemoteFile && rowState ? rowState(dataset) : null;
+  const kind = isFolder ? "folder" : isRemoteFile ? "remote-file" : external ? "external" : assetKind.replace(/_/g, "-");
 
   return (
     <li className={selected ? "rd-v2-row-on" : undefined}>
@@ -73,9 +79,10 @@ export function CatalogRow({
         type="button"
         className={`row${selected ? " selected" : ""}${external ? " rd-v2-row-ext" : ""}`}
         data-kind={kind}
-        onClick={() => (isFolder ? onOpenFolder(item) : onSelect(dataset))}
+        disabled={isRemoteFile && !onSelectRemoteFile}
+        onClick={() => (isFolder ? onOpenFolder(item) : isRemoteFile ? onSelectRemoteFile?.(item) : onSelect(dataset))}
         onDoubleClick={() => {
-          if (!isFolder && onDoubleClick) onDoubleClick(dataset);
+          if (!isFolder && !isRemoteFile && onDoubleClick) onDoubleClick(dataset);
         }}
       >
         <span className={`rd-v2-row-icon${external ? " source" : ""}`}>
@@ -83,6 +90,8 @@ export function CatalogRow({
             <SourceRibbon source={dataset.source || dataset.collect_via || dataset.source_route} />
           ) : isFolder ? (
             <FolderRowIcon />
+          ) : isRemoteFile ? (
+            <ScholarlyWorkIcon />
           ) : isScholarly ? (
             <ScholarlyWorkIcon />
           ) : (
@@ -95,10 +104,15 @@ export function CatalogRow({
           {desc ? <span className="row-desc">{desc}</span> : null}
           {sub ? <span className="row-sub">{sub}</span> : null}
         </span>
-        {!isFolder && state ? (
+        {!isFolder && !isRemoteFile && state ? (
           <span className={`rd-v2-pill ${state.className}`}>{state.label}</span>
         ) : null}
-        {!isFolder && !state ? <StatusPill dataset={dataset} label={statusPill(dataset)} /> : null}
+        {!isFolder && !isRemoteFile && !state ? <StatusPill dataset={dataset} label={statusPill(dataset)} /> : null}
+        {isRemoteFile ? (
+          <span className={`rd-v2-pill ${item.contentAccess === "restricted" ? "warn" : "muted"}`}>
+            {item.contentAccess === "restricted" ? "No access" : "Not in Library"}
+          </span>
+        ) : null}
         {isFolder ? (
           <span className="rd-v2-pill muted" title="Assets in this branch">
             {folderSummary.pill}
