@@ -1,0 +1,341 @@
+/* Synthesis wide-workstation convergence.
+ *
+ * 1440 remains the compact/frozen composition. At large desktop widths the
+ * centre desk stops behaving like a centred document and starts using the
+ * available canvas for simultaneous research truths.
+ */
+
+@media (min-width: 1680px) and (min-height: 900px) {
+  /* The old S-04 desktop grammar left a readable document measure inside a
+     much wider application centre. That is correct for prose, but wrong for a
+     research workstation. Reclaim the centre width first; individual prose
+     blocks keep their own readable measures internally. */
+  .rd-v2-synthesis-page .s04-shell,
+  .rd-v2-synthesis-page .s04-main {
+    width: 100% !important;
+    max-width: none !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  .rd-v2-synthesis-page .s04-main {
+    padding: 18px 20px 30px !important;
+  }
+
+  .rd-v2-synthesis-page .s04-main > * {
+    max-width: none !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    box-sizing: border-box;
+  }
+
+  /* New construction: two real working lanes instead of a dominant narrow
+     form plus a timid auxiliary card. */
+  .rd-v2-synthesis-page .s04-new-entry {
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  .rd-v2-synthesis-page .s04-new-entry-head {
+    max-width: none;
+  }
+
+  .rd-v2-synthesis-page .s04-new-entry-head > div {
+    max-width: 76ch;
+  }
+
+  .rd-v2-synthesis-page .s04-new-entry-grid {
+    grid-template-columns: minmax(0, 1.18fr) minmax(410px, .82fr);
+    gap: 20px;
+  }
+
+  .rd-v2-synthesis-page .s04-new-entry-purpose textarea {
+    min-height: 150px;
+  }
+
+  .rd-v2-synthesis-page .s04-new-entry-section {
+    min-height: 100%;
+  }
+
+  /* Recommendation: construction and decision consequences are useful at the
+     same time. Do not serialize them down a single document column. */
+  .rd-v2-synthesis-page .s04-main:has(> .s04-opening-construction) {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.62fr) minmax(340px, .58fr);
+    column-gap: 18px;
+    row-gap: 14px;
+    align-content: start;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> .s04-opening-construction) > :is(
+    .s04-head,
+    .s04-opening-brief,
+    .s04-opening-workflow-wrap,
+    .s04-thread-picker,
+    .s04-strip,
+    .s04-measurement-status
+  ) {
+    grid-column: 1 / -1;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> .s04-opening-construction) > .s04-opening-construction {
+    grid-column: 1;
+    align-self: start;
+    margin-top: 0;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> .s04-opening-construction) > .s04-opening-next {
+    grid-column: 2;
+    align-self: start;
+    margin-top: 0;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> .s04-opening-construction) > :is(
+    [data-testid="synthesis-proposal-state"],
+    [data-testid="synthesis-evidence-state"],
+    [data-testid="synthesis-method-surface"]
+  ) {
+    grid-column: 1 / -1;
+  }
+
+  /* The evidence-role diagram is itself a horizontal relationship on a wide
+     monitor: roles -> expected output. Preserve the same semantics, but stop
+     spending vertical space on a down-arrow composition. */
+  .rd-v2-synthesis-page .s04-opening-map {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) 42px minmax(250px, .62fr);
+    grid-template-rows: auto auto auto;
+    align-items: center;
+    column-gap: 10px;
+    row-gap: 8px;
+    padding: 12px;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-map > figcaption {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    margin-bottom: 0;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-map > ol {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: stretch;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-map > .s04-opening-map-flow {
+    grid-column: 2;
+    grid-row: 2;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    margin: 0;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-map > .s04-opening-map-flow > span {
+    flex: 1 1 auto;
+    width: auto;
+    height: 1px;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-map > .s04-opening-map-flow > b {
+    flex: 0 0 22px;
+    transform: rotate(-90deg);
+  }
+
+  .rd-v2-synthesis-page .s04-opening-map > .s04-opening-map-output {
+    grid-column: 3;
+    grid-row: 2;
+    width: 100%;
+    min-height: 82px;
+    margin: 0;
+    align-content: center;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-map > p {
+    grid-column: 3;
+    grid-row: 3;
+    justify-content: flex-start;
+    margin: 0;
+    text-align: left;
+  }
+
+  /* The decision sidecar is deliberately compact; it is a simultaneous
+     decision surface, not a second long document. */
+  .rd-v2-synthesis-page .s04-main:has(> .s04-opening-construction) > .s04-opening-next > footer {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> .s04-opening-construction) > .s04-opening-next > footer > span[aria-hidden="true"] {
+    display: none;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> .s04-opening-construction) > .s04-opening-next .s04-next-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    justify-content: stretch;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> .s04-opening-construction) > .s04-opening-next button {
+    width: 100%;
+  }
+
+  /* Early evidence: the map is the primary canvas. Measurement/readiness and
+     the next decision belong beside it, not above it in a vertical queue. */
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"])) {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.46fr) minmax(340px, .54fr);
+    column-gap: 18px;
+    row-gap: 12px;
+    align-content: start;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"])) > :is(
+    .s04-head,
+    .s04-opening-brief,
+    .s04-opening-workflow-wrap,
+    .s04-thread-picker,
+    .s04-strip
+  ) {
+    grid-column: 1 / -1;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"])) > [data-testid="synthesis-evidence-state"] {
+    grid-column: 1;
+    grid-row: span 4;
+    align-self: start;
+    margin-top: 0;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"])) > :is(
+    .s04-measurement-status,
+    .s04-opening-next,
+    [data-testid="synthesis-method-surface"],
+    [data-testid="synthesis-proposal-state"]
+  ) {
+    grid-column: 2;
+    align-self: start;
+    margin-top: 0;
+  }
+
+  /* Proposal review also benefits from simultaneous consequence/context. */
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction)) {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.46fr) minmax(340px, .54fr);
+    column-gap: 18px;
+    row-gap: 12px;
+    align-content: start;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction)) > :is(
+    .s04-head,
+    .s04-opening-brief,
+    .s04-opening-workflow-wrap,
+    .s04-thread-picker,
+    .s04-strip,
+    .s04-measurement-status
+  ) {
+    grid-column: 1 / -1;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction)) > [data-testid="synthesis-proposal-state"] {
+    grid-column: 1;
+    align-self: start;
+    margin-top: 0;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction)) > .s04-opening-next {
+    grid-column: 2;
+    align-self: start;
+    margin-top: 0;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction)) > :is(
+    [data-testid="synthesis-evidence-state"],
+    [data-testid="synthesis-method-surface"]
+  ) {
+    grid-column: 1 / -1;
+  }
+
+  /* Mature states already had an execution/evidence split. Finish the idea:
+     recorded secondary truths can pair horizontally instead of falling back to
+     one long post-result column. */
+  .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-execution-state"],
+    [data-testid="synthesis-failed-state"],
+    [data-testid="synthesis-registered-state"],
+    [data-testid="synthesis-query-ready-state"]
+  )) {
+    grid-auto-flow: row dense;
+    grid-template-columns: minmax(0, 1.34fr) minmax(360px, .66fr) !important;
+    column-gap: 18px !important;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-execution-state"],
+    [data-testid="synthesis-failed-state"],
+    [data-testid="synthesis-registered-state"],
+    [data-testid="synthesis-query-ready-state"]
+  )) > :is(
+    [data-testid="synthesis-excursion-record"],
+    [data-testid="synthesis-settled-decisions"]
+  ) {
+    grid-column: 1;
+    align-self: start;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-execution-state"],
+    [data-testid="synthesis-failed-state"],
+    [data-testid="synthesis-registered-state"],
+    [data-testid="synthesis-query-ready-state"]
+  )) > :is(
+    [data-testid="synthesis-provenance"],
+    [data-testid="synthesis-reuse"]
+  ) {
+    grid-column: 2;
+    align-self: start;
+  }
+
+  /* Wide monitors can afford a humane information floor. Do not scale primary
+     typography; only stop analytical metadata from looking miniature. */
+  .rd-v2-synthesis-page :is(
+    .s04-opening-map li > small,
+    .s04-opening-map-output > small,
+    .s04-opening-facts dt,
+    .s04-method-flow article > span,
+    .s04-live-note
+  ) {
+    font-size: 9px;
+  }
+
+  .rd-v2-synthesis-page :is(
+    .s04-opening-map li > span,
+    .s04-opening-map > p,
+    .s04-opening-facts dd,
+    .s04-proposal-summary
+  ) {
+    font-size: 10px;
+  }
+
+  /* The Inspector has plenty of vertical room at workstation height. Give the
+     existing recorded-context/proof sections a little more breathing room; do
+     not invent any new facts just to fill the rail. */
+  body:has(.rd-v2-synthesis-page) :is(.s04-rail-context, .s04-rail-proof, .s04-rail-assist) {
+    margin-top: 12px;
+    padding: 13px 14px;
+  }
+
+  body:has(.rd-v2-synthesis-page) .s04-rail-context > p {
+    font-size: 11px;
+    line-height: 1.55;
+  }
+
+  body:has(.rd-v2-synthesis-page) .s04-rail-context dl > div,
+  body:has(.rd-v2-synthesis-page) .s04-rail-proof li {
+    padding: 7px 0;
+  }
+}

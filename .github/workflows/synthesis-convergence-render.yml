@@ -10,6 +10,7 @@ on:
     branches:
       - work/chatgpt-final-convergence-20260825
       - hardening/synthesis-analytical-verification-20260826
+      - polish/synthesis-wide-workstation-20260902
   pull_request:
     branches:
       - main
@@ -51,10 +52,52 @@ jobs:
           --timeout=30000
           --retries=0
           --reporter=line
+      - name: Exercise Synthesis agent authority modes
+        run: >-
+          mkdir -p artifacts/synthesis-automation &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/synthesis-automation.spec.js
+          --timeout=60000
+          --retries=0
+          --reporter=line
       - name: Exercise remaining Synthesis researcher workflow
         run: >-
           TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/v2-synthesis.spec.js
           --grep-invert "researcher reviews held evidence|accepts a revision-bound proposal|does not create a second approval request|renders the selected durable thread in the workspace and Detail rail|keeps the right rail usable on mobile while the workspace remains source-backed"
+          --timeout=60000
+          --retries=0
+          --reporter=line
+      - name: Guard Synthesis desktop layout robustness
+        run: >-
+          mkdir -p artifacts/synthesis-robustness &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/synthesis-layout-robustness.spec.js
+          --timeout=60000
+          --retries=0
+          --reporter=line
+      - name: Guard Synthesis workspace continuity
+        run: >-
+          mkdir -p artifacts/synthesis-continuity &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/synthesis-continuity.spec.js
+          --timeout=60000
+          --retries=0
+          --reporter=line
+      - name: Guard Synthesis terminal-depth observability
+        run: >-
+          mkdir -p artifacts/synthesis-forensics &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/synthesis-forensic-depth.spec.js
+          --timeout=60000
+          --retries=0
+          --reporter=line
+      - name: Guard Synthesis terminal-to-interface object correlation
+        run: >-
+          mkdir -p artifacts/synthesis-object-context &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/synthesis-object-context.spec.js
+          --timeout=60000
+          --retries=0
+          --reporter=line
+      - name: Guard Synthesis in-page AI authority across lifecycle
+        run: >-
+          mkdir -p artifacts/synthesis-authority-workflow &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test e2e/synthesis-authority-workflow.spec.js
           --timeout=60000
           --retries=0
           --reporter=line
@@ -90,7 +133,13 @@ jobs:
           path: |
             artifacts/synthesis-renders
             artifacts/synthesis-convergence
+            artifacts/synthesis-automation
             artifacts/synthesis-acceptance
             artifacts/synthesis-scale
+            artifacts/synthesis-robustness
+            artifacts/synthesis-continuity
+            artifacts/synthesis-forensics
+            artifacts/synthesis-object-context
+            artifacts/synthesis-authority-workflow
             test-results
           if-no-files-found: warn

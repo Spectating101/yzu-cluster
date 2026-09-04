@@ -1,0 +1,57 @@
+/* Second visual pass for the >=1680 Synthesis workstation.
+ * Keep this separate while the wide composition is under pixel review: these
+ * rules only resolve placement/analytical-fit defects exposed by the rendered
+ * acceptance matrix. */
+
+@media (min-width: 1680px) and (min-height: 900px) {
+  /* Auto-placement follows DOM order. The evidence card is rendered after its
+     measurement/next-action sidecars, so without dense packing the browser
+     leaves an empty primary lane above it. Backfill that lane deliberately. */
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"])) {
+    grid-auto-flow: row dense !important;
+  }
+
+  /* Proposal is the primary decision surface. The generic early-evidence rule
+     has deliberately higher selector specificity, so state the proposal
+     placement explicitly instead of allowing it to inherit the sidecar lane. */
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction)) {
+    grid-auto-flow: row dense !important;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction)) > [data-testid="synthesis-proposal-state"] {
+    grid-column: 1 !important;
+    grid-row: auto !important;
+    align-self: start;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction)) > :is(.s04-measurement-status, .s04-opening-next) {
+    grid-column: 2 !important;
+    grid-row: auto !important;
+    align-self: start;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction)) > [data-testid="synthesis-evidence-state"] {
+    grid-column: 1 / -1 !important;
+    grid-row: auto !important;
+    align-self: start;
+  }
+
+  /* The production-scale join view switches its UpSet plot to a two-lane
+     composition once the card becomes wider. Give that analytical surface the
+     width it needs rather than squeezing the plot to preserve a decorative
+     60/40 split. The evidence map remains a useful 280px+ sidecar. */
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-scope-block"]),
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-unit-conflict"]),
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-join-decision"]) {
+    grid-template-columns: minmax(0, 1.7fr) minmax(280px, .3fr) !important;
+  }
+
+  .rd-v2-synthesis-page [data-testid="synthesis-upset-visual"] {
+    min-width: 0;
+  }
+
+  .rd-v2-synthesis-page [data-testid="synthesis-upset-visual"] .s04-upset-legend,
+  .rd-v2-synthesis-page [data-testid="synthesis-upset-visual"] .s04-upset-table {
+    min-width: 0;
+  }
+}

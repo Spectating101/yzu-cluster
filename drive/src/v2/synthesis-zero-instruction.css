@@ -1,0 +1,292 @@
+/* Synthesis zero-instruction usability pass.
+ *
+ * Durable semantics stay unchanged. This layer removes duplicate narration and
+ * makes the operation the researcher can perform now visually dominant.
+ */
+
+@media (min-width: 760px) {
+  /* One current-operation cue is enough. */
+  .rd-v2-synthesis-page .s04-opening-workflow {
+    display: none !important;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-workflow-wrap {
+    margin: 0 !important;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-workflow-note {
+    grid-template-columns: max-content minmax(0, 1fr) !important;
+    gap: 12px !important;
+    margin: 0 !important;
+    padding: 9px 12px !important;
+    border: 1px solid #dfe6e2 !important;
+    border-radius: 8px !important;
+    background: #f7faf8 !important;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-workflow-note > span {
+    color: #354254 !important;
+    font-size: 11px !important;
+    font-weight: 650;
+  }
+
+  /* Research brief is context, not the task. */
+  .rd-v2-synthesis-page .s04-opening-brief {
+    box-shadow: none !important;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-brief > header {
+    min-height: 0 !important;
+    padding-block: 7px !important;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-brief > p {
+    margin-block: 0 !important;
+  }
+
+  /* Evidence maps should not carry a second Ask CTA after the page already has
+     a persistent Ask rail and a dedicated operation control. */
+  .rd-v2-synthesis-page [data-testid="synthesis-evidence-state"] > .s04-actions {
+    display: none !important;
+  }
+
+  .rd-v2-synthesis-page [data-testid="synthesis-evidence-state"] > .s04-pairs {
+    margin-top: 10px !important;
+  }
+
+  .rd-v2-synthesis-page [data-testid="synthesis-evidence-state"] > .s04-pairs article {
+    min-height: 0 !important;
+    padding: 9px 11px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  /* First real operation after thread creation: choose held Library evidence.
+     Empty-map scaffolding and duplicate object cards compete with the selector
+     the researcher must actually use. */
+  .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
+    > [data-testid="synthesis-evidence-state"] .s04-map,
+  .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
+    > [data-testid="synthesis-evidence-state"] .s04-pairs {
+    display: none !important;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
+    > [data-testid="synthesis-evidence-state"] {
+    padding: 0 !important;
+    overflow: hidden;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
+    > [data-testid="synthesis-evidence-state"] > .s04-title {
+    margin: 0 !important;
+    padding: 16px 18px 10px !important;
+    border-bottom: 0 !important;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
+    > [data-testid="synthesis-evidence-state"] > .s04-title small,
+  .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
+    > [data-testid="synthesis-evidence-state"] > .s04-title h2 {
+    font-size: 0 !important;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
+    > [data-testid="synthesis-evidence-state"] > .s04-title small::after {
+    content: "EVIDENCE · CURRENT OPERATION";
+    color: #315f4d;
+    font-size: 9px;
+    font-weight: 850;
+    letter-spacing: .09em;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
+    > [data-testid="synthesis-evidence-state"] > .s04-title h2::after {
+    content: "Choose the held Library inputs that belong";
+    color: #101820;
+    font-size: 21px;
+    font-weight: 760;
+    letter-spacing: -.02em;
+  }
+
+  .rd-v2-synthesis-page .s04-evidence-proposal {
+    margin: 0 16px 16px !important;
+    padding: 16px !important;
+    border: 1px solid #d7e4dd !important;
+    border-radius: 10px !important;
+    background: #f7faf8 !important;
+  }
+
+  .rd-v2-synthesis-page .s04-evidence-proposal > header strong {
+    font-size: 15px !important;
+  }
+
+  .rd-v2-synthesis-page .s04-evidence-proposal > ul {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px !important;
+    margin-top: 12px !important;
+  }
+
+  .rd-v2-synthesis-page .s04-evidence-proposal > ul > li {
+    margin: 0 !important;
+    border: 1px solid #dfe5e8 !important;
+    border-radius: 8px !important;
+    background: #fff !important;
+  }
+
+  .rd-v2-synthesis-page .s04-evidence-proposal > ul > li.selected {
+    border-color: #7fa48f !important;
+    background: #f2f8f4 !important;
+  }
+
+  .rd-v2-synthesis-page .s04-evidence-proposal > footer {
+    margin-top: 14px !important;
+    padding-top: 12px !important;
+    border-top: 1px solid #dfe6e2 !important;
+  }
+
+  /* The disabled reasoning control is a real lock state and remains visible,
+     but only as a subordinate guardrail under the evidence-selection task. */
+  .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
+    > .s04-opening-next {
+    display: block !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 7px 10px !important;
+    border: 1px solid #e1e6e3 !important;
+    border-radius: 8px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
+    > .s04-opening-next > :is(header, p, em) {
+    display: none !important;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
+    > .s04-opening-next > footer {
+    width: 100%;
+    margin: 0 !important;
+    align-items: center !important;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
+    > .s04-opening-next > footer::before {
+    content: "Method reasoning unlocks after you add at least one held input.";
+    margin-right: auto;
+    color: #75808d;
+    font-size: 9.5px;
+    line-height: 1.35;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
+    > .s04-opening-next .s04-next-primary:disabled {
+    opacity: .48 !important;
+  }
+
+  /* Mapped evidence: the generic explanatory card becomes one shallow advance
+     control. Reasoning state is overridden below so its live receipt remains. */
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"])
+    > .s04-opening-next {
+    min-height: 0 !important;
+    padding: 12px 14px !important;
+    border: 1px solid #d9e4de !important;
+    border-radius: 9px !important;
+    background: #f5faf7 !important;
+    box-shadow: none !important;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"])
+    > .s04-opening-next > :is(header, p, em) {
+    display: none !important;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"])
+    > .s04-opening-next > footer {
+    width: 100%;
+    margin: 0 !important;
+    align-items: center !important;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"])
+    > .s04-opening-next > footer::before {
+    content: "Evidence is mapped. Request one reviewable method proposal from these inputs.";
+    margin-right: auto;
+    max-width: 55ch;
+    color: #3f4d5b;
+    font-size: 10.5px;
+    font-weight: 650;
+    line-height: 1.4;
+  }
+
+  /* While Ask reasons, the live reasoning surface is authoritative. Keep only
+     the compact disabled receipt established by the operated-flow layer. */
+  .rd-v2-synthesis-page .s04-main:has(> .s04-draft)
+    > .s04-opening-next > footer::before {
+    content: "Ask is drafting one reviewable method proposal. Nothing is accepted or executed yet.";
+  }
+
+  /* Proposal already carries exact change set, unknowns and decision buttons. */
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"])
+    > [data-testid="synthesis-evidence-state"] > :is(.s04-pairs, .s04-actions) {
+    display: none !important;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"])
+    > .s04-measurement-status {
+    min-height: 0 !important;
+    padding-block: 8px !important;
+  }
+
+  /* Preview / Approval / Build / Result: remove repeated context and ancient
+     "Current record" history from above the exact receipt/result. */
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-execution-state"])
+    > :is(.s04-opening-brief, .s04-brief),
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-failed-state"])
+    > :is(.s04-opening-brief, .s04-brief),
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-registered-state"])
+    > :is(.s04-opening-brief, .s04-brief),
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-query-ready-state"])
+    > :is(.s04-opening-brief, .s04-brief) {
+    display: none !important;
+  }
+}
+
+@media (min-width: 1680px) and (min-height: 900px) {
+  /* Evidence selection itself owns the workstation canvas. */
+  #root .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
+    > [data-testid="synthesis-evidence-state"] {
+    grid-column: 1 / 13 !important;
+    grid-row: auto !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
+    .s04-evidence-proposal > ul {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  /* Preview / approval / build deserve the full analytical row. Evidence stays
+     available below as context rather than consuming the first viewport. */
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-execution-state"])
+    > [data-testid="synthesis-execution-state"],
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-failed-state"])
+    > [data-testid="synthesis-failed-state"] {
+    grid-column: 1 / 13 !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-execution-state"])
+    > [data-testid="synthesis-evidence-state"],
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-failed-state"])
+    > [data-testid="synthesis-evidence-state"] {
+    grid-column: 1 / 7 !important;
+    margin-top: 0 !important;
+  }
+}
+
+@media (max-width: 759px) {
+  .rd-v2-synthesis-page .s04-evidence-proposal > ul {
+    display: block !important;
+  }
+}

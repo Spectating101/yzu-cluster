@@ -1,0 +1,81 @@
+/* Interaction-preserving refinements for the zero-instruction pass.
+ * These controls are real capabilities, but they are deliberately subordinate
+ * to the current operation and primary advancement control.
+ */
+
+@media (min-width: 760px) {
+  /* Keep the required workflow orientation as a thin breadcrumb, not a wizard. */
+  .rd-v2-synthesis-page .s04-opening-workflow {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 1px solid #e2e7e4 !important;
+    border-radius: 7px !important;
+    overflow: hidden;
+    background: transparent !important;
+    box-shadow: none !important;
+    opacity: .72;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-workflow > li {
+    min-height: 0 !important;
+    padding: 6px 8px !important;
+    border: 0 !important;
+    border-right: 1px solid #e7ebe9 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-workflow > li:last-child {
+    border-right: 0 !important;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-workflow > li > span {
+    width: 18px !important;
+    height: 18px !important;
+    min-width: 18px !important;
+    font-size: 8px !important;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-workflow > li b {
+    font-size: 9px !important;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-workflow > li small {
+    display: none !important;
+  }
+
+  /* Ask is an alternate analysis affordance, not the route forward. Preserve
+     the button while making it visually quieter than the stage CTA. */
+  .rd-v2-synthesis-page [data-testid="synthesis-evidence-state"] > .s04-actions {
+    display: flex !important;
+    justify-content: flex-end !important;
+    gap: 8px !important;
+    min-height: 0 !important;
+    margin-top: 8px !important;
+    padding: 7px 0 0 !important;
+    border-top: 1px solid #e8ece9 !important;
+    background: transparent !important;
+  }
+
+  .rd-v2-synthesis-page [data-testid="synthesis-evidence-state"] > .s04-actions button {
+    width: auto !important;
+    min-height: 30px !important;
+    padding: 5px 10px !important;
+    border-color: #d8dee2 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: #53616e !important;
+    font-size: 9px !important;
+    font-weight: 650 !important;
+  }
+
+  /* During held-input selection, even the alternate Ask affordance is hidden:
+     selection and the real locked-next guardrail are sufficient. */
+  .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
+    > [data-testid="synthesis-evidence-state"] > .s04-actions {
+    display: none !important;
+  }
+}

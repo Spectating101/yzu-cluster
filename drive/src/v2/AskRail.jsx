@@ -5,8 +5,58 @@ import { useAskChat } from "@/v2/useAskChat";
 import { handleEnterToSubmit } from "@/v2/enterToSubmit";
 import { formatAskText } from "@/v2/askText.jsx";
 import { AskAgentCard } from "@/v2/AskAgentCard.jsx";
+import { SynthesisAgentConsole } from "@/v2/SynthesisAgentConsole.jsx";
 import { displayName } from "@/v2/datasetMeta";
 import { DISCOVER_TAB } from "@/v2/tabIdentity";
+import { decideSynthesisProposal, requestSynthesisExecution } from "@/v2/api";
+import {
+  SYNTHESIS_AUTOMATION_MODES,
+  synthesisAutomationAllowsApproval,
+  synthesisAutomationAllowsChoice,
+  synthesisAutomationOption,
+  useSynthesisAutomationMode,
+} from "@/v2/synthesisAutomation.js";
+
+const AUTOMATABLE_REASONING_DECISIONS = new Set([
+  "resolve_scope",
+  "resolve_units",
+  "resolve_join",
+  "review_recommendation",
+  "design_method",
+]);
+
+function synthesisAutomationPrompt(selected = {}) {
+  const decision = String(selected.current_decision || "the current Synthesis decision").trim();
+  const risk = String(selected.decision_risk || "No additional recorded risk").trim();
+  const next = String(selected.decision_next || "Advance only if the recorded evidence supports one defensible construction").trim();
+  return {
+    prompt: [
+      "Synthesis Autopilot is allowed to resolve supported method decisions for this durable thread.",
+      `Current decision: ${decision}.`,
+      `Recorded risk: ${risk}.`,
+      `Expected next boundary: ${next}.`,
+      "Use only the recorded research object, held evidence, deterministic measurements, and source/documentation evidence available to this thread.",
+      "If one construction is defensible, choose it, state the research consequence, and record one exact reviewable Synthesis proposal that incorporates that choice.",
+      "If the evidence does not establish one defensible choice, stop and ask the researcher instead of guessing.",
+      "Do not collect evidence, invent measurements, accept your own proposal, approve execution, or register an output in this turn.",
+    ].join(" "),
+    displayText: `Autopilot · ${decision}`,
+  };
+}
+
+function automationStateKey(selected = {}, mode = "manual") {
+  return [
+    selected.thread_id || "",
+    selected.decision_kind || "",
+    selected.proposal_hash || "",
+    selected.accepted_spec_hash || "",
+    selected.preview_status || "",
+    selected.preview_spec_hash || "",
+    selected.execution_status || "",
+    selected.job_id || "",
+    mode,
+  ].join(":");
+}
 
 export function AskRail({
   dataset,
@@ -29,7 +79,10 @@ export function AskRail({
   });
   const pendingSentRef = useRef("");
   const textareaRef = useRef(null);
+  const automationActionRef = useRef("");
   const [approvalState, setApprovalState] = useState({});
+  const [automationState, setAutomationState] = useState("");
+  const [automationMode] = useSynthesisAutomationMode();
 
   useEffect(() => {
     if (!pendingMessage || busy) return;
@@ -80,6 +133,12 @@ export function AskRail({
   const synthesisPrompts = Array.isArray(synthesisSelected.synthesis_ask_prompts)
     ? synthesisSelected.synthesis_ask_prompts.filter(Boolean).slice(0, 4)
     : [];
+  const automationOption = synthesisAutomationOption(automationMode);
+  const synthesisApprovalLabel = isSynthesis
+    ? String(synthesisSelected.decision_kind || "") === "approve_execution"
+      ? "Build this revision"
+      : "Approve bound execution"
+    : undefined;
   const hasThread = messages.length > 0;
   const discoverTitle = dataset?.title || dataset?.dataset_id || "";
   const railTitle = isProfile
@@ -133,6 +192,133 @@ export function AskRail({
       : "") ||
     (isProfile ? profileContext : isSynthesis ? synthesisContext : "");
 
+  useEffect(() => {
+    if (!isSynthesis || !synthesisSelected.thread_id) {
+      automationActionRef.current = "";
+      setAutomationState("");
+      return;
+    }
+    if (automationMode === SYNTHESIS_AUTOMATION_MODES.MANUAL || busy || pendingMessage) {
+      if (automationMode === SYNTHESIS_AUTOMATION_MODES.MANUAL) setAutomationState("");
+      return;
+    }
+
+    const selected = synthesisSelected;
+    const decisionKind = String(selected.decision_kind || "");
+    const actionKey = automationStateKey(selected, automationMode);
+    if (!actionKey || automationActionRef.current === actionKey) return;
+
+    const run = async () => {
+      automationActionRef.current = actionKey;
+      const threadId = String(selected.thread_id || "");
+
+      try {
+        if (synthesisAutomationAllowsChoice(automationMode) && AUTOMATABLE_REASONING_DECISIONS.has(decisionKind)) {
+          setAutomationState("Reasoning through the current method decision…");
+          await send(synthesisAutomationPrompt(selected));
+          setAutomationState("Waiting for the durable thread to record the reasoning result.");
+          return;
+        }
+
+        if (synthesisAutomationAllowsApproval(automationMode) && decisionKind === "review_proposal") {
+          if (!selected.proposal_id || !selected.proposal_hash) {
+            setAutomationState("Paused · proposal identity is not fully recorded.");
+            return;
+          }
+          setAutomationState("Accepting the exact proposal and running bounded Preview…");
+          const accepted = await decideSynthesisProposal(threadId, {
+            decision: "accept",
+            proposalId: selected.proposal_id,
+            proposalHash: selected.proposal_hash,
+          });
+          if (accepted?.state?.execution_spec) {
+            await requestSynthesisExecution(threadId, { action: "preview" });
+          }
+          onSynthesisChanged?.({ threadId, automation: "proposal_accepted" });
+          onToast?.("Autopilot accepted the method and ran bounded Preview");
+          setAutomationState("Method accepted · checking Preview state…");
+          return;
+        }
+
+        if (synthesisAutomationAllowsApproval(automationMode) && decisionKind === "run_preview") {
+          setAutomationState("Running bounded Preview for the accepted revision…");
+          await requestSynthesisExecution(threadId, { action: "preview" });
+          onSynthesisChanged?.({ threadId, automation: "preview_requested" });
+          setAutomationState("Preview requested · waiting for the durable receipt.");
+          return;
+        }
+
+        if (synthesisAutomationAllowsApproval(automationMode) && decisionKind === "review_preview") {
+          if (String(selected.preview_status || "").toLowerCase() !== "succeeded") {
+            setAutomationState("Paused · current Preview is not a successful bound receipt.");
+            return;
+          }
+          setAutomationState("Requesting execution approval for the exact Previewed revision…");
+          const result = await requestSynthesisExecution(threadId, { action: "request_approval" });
+          const jobId = result?.job?.id || result?.thread?.state?.execution?.job_id || "";
+          if (jobId && onApproveJob) {
+            setAutomationState("Approving the bound execution job…");
+            await Promise.resolve(onApproveJob(jobId));
+            onToast?.("Autopilot approved the bound Synthesis execution");
+          } else if (jobId) {
+            setAutomationState("Paused · execution approval permission is unavailable.");
+          } else {
+            setAutomationState("Execution approval requested · waiting for the durable job record.");
+          }
+          onSynthesisChanged?.({ threadId, automation: "execution_requested" });
+          return;
+        }
+
+        if (synthesisAutomationAllowsApproval(automationMode) && decisionKind === "approve_execution") {
+          const jobId = String(selected.job_id || "");
+          if (!jobId || !onApproveJob) {
+            setAutomationState("Paused · the bound approval job or permission is unavailable.");
+            return;
+          }
+          setAutomationState("Approving the already-bound execution job…");
+          await Promise.resolve(onApproveJob(jobId));
+          onSynthesisChanged?.({ threadId, automation: "execution_approved" });
+          onToast?.("Autopilot approved the bound Synthesis execution");
+          setAutomationState("Execution approved · worker lifecycle is now authoritative.");
+          return;
+        }
+
+        if (decisionKind === "map_evidence") {
+          setAutomationState("Paused at evidence review · held inputs still require explicit selection.");
+          return;
+        }
+        if (decisionKind === "recover_preview") {
+          setAutomationState("Paused at failed Preview · inspect the failure before retrying.");
+          return;
+        }
+        if (["recover_build", "approve_execution"].includes(decisionKind)) {
+          setAutomationState("Paused at a researcher or recovery boundary.");
+          return;
+        }
+        if (["await_registration", "inspect_result", "inspect_registered_result"].includes(decisionKind)) {
+          setAutomationState("Automation complete for the current authority path.");
+          return;
+        }
+        setAutomationState("");
+      } catch (error) {
+        setAutomationState(`Paused · ${String(error?.message || "automation could not advance")}`);
+        onToast?.(error?.message || "Synthesis Autopilot paused", "error");
+      }
+    };
+
+    run();
+  }, [
+    automationMode,
+    busy,
+    isSynthesis,
+    onApproveJob,
+    onSynthesisChanged,
+    onToast,
+    pendingMessage,
+    send,
+    synthesisSelected,
+  ]);
+
   return (
     <div className="rd-v2-ask-shell">
       <header className="rd-v2-ask-head">
@@ -140,6 +326,16 @@ export function AskRail({
         <strong>{askEntityTitle || "Ask"}</strong>
         <p className="rd-v2-ask-ctx">{railSubtitle}</p>
       </header>
+      {isSynthesis && synthesisSelected.thread_id ? (
+        <SynthesisAgentConsole
+          selected={synthesisSelected}
+          busy={busy}
+          status={status}
+          automationState={automationState}
+          automationLabel={automationOption.label}
+          onSend={send}
+        />
+      ) : null}
       <div className="rd-v2-ask-messages" data-testid="ask-messages" aria-busy={busy}>
         {messages.length === 0 ? (
           isProfile ? (
@@ -242,7 +438,9 @@ export function AskRail({
             <div className="rd-v2-ask-placeholder" data-testid="synthesis-ask-guidance">
               <p>
                 {synthesisDecision
-                  ? `Current decision: ${synthesisDecision}. Ask stays bound to this durable thread and cannot silently advance its authority state.`
+                  ? automationMode === SYNTHESIS_AUTOMATION_MODES.MANUAL
+                    ? `Current decision: ${synthesisDecision}. Ask stays bound to this durable thread and cannot silently advance its authority state.`
+                    : `Current decision: ${synthesisDecision}. ${automationOption.label} is active; the agent may advance only the authority granted by that mode and must stop at unsupported evidence or recovery boundaries.`
                   : "This conversation shares the active Synthesis thread. Ask can interpret, challenge, or propose a reviewable next step without silently advancing the construction."}
               </p>
               <div className="rd-v2-chips-row rd-v2-ask-chips">
@@ -312,6 +510,7 @@ export function AskRail({
                     message={m}
                     busy={busy}
                     approval={approval}
+                    approvalLabel={synthesisApprovalLabel}
                     onSend={send}
                     onApprove={requestApproval}
                   />

@@ -4,6 +4,7 @@ const SUBJECT_SELECTORS = [
   '[data-testid="synthesis-failed-state"]',
   '[data-testid="synthesis-proposal-state"]',
   '[data-testid="synthesis-join-decision"]',
+  '[data-testid="synthesis-preview-state"]',
   '[data-testid="synthesis-execution-state"]',
   '[data-testid="synthesis-registered-state"]',
   '[data-testid="synthesis-query-ready-state"]',
@@ -14,12 +15,12 @@ const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
 const USER_SCROLL_GRACE_MS = 900;
 const LANDING_MS = 900;
 
-function visibleEnough(element) {
+function entirelyOutsideViewport(element) {
   const rect = element.getBoundingClientRect();
   const viewport = window.innerHeight || document.documentElement.clientHeight;
   const topGuard = 92;
   const bottomGuard = 56;
-  return rect.top >= topGuard && Math.min(rect.bottom, viewport) >= Math.min(rect.top + 96, rect.bottom) && rect.top < viewport - bottomGuard;
+  return rect.bottom <= topGuard || rect.top >= viewport - bottomGuard;
 }
 
 function surfaceKey(element, root) {
@@ -27,6 +28,26 @@ function surfaceKey(element, root) {
   const thread = root?.querySelector(".s04-head h1")?.textContent?.trim() || "";
   const subject = element?.querySelector("h2")?.textContent?.trim() || "";
   return [thread, identity, subject].filter(Boolean).join(":");
+}
+
+function threadKey(root) {
+  return root?.querySelector(".s04-head h1")?.textContent?.trim() || "";
+}
+
+function executionIsReview(surface) {
+  if (!surface) return false;
+  if (surface.querySelector('[data-testid="synthesis-preview-state"]')) return true;
+  const current = surface.querySelector(".s04-exec-track li.now strong")?.textContent?.trim().toLowerCase() || "";
+  if (current.includes("researcher approval")) return true;
+  return /pending approval|approval required|awaiting researcher approval/i.test(surface.textContent || "");
+}
+
+function surfacePhase(surface) {
+  const testId = surface?.getAttribute("data-testid") || "";
+  if (["synthesis-proposal-state", "synthesis-preview-state"].includes(testId)) return "review";
+  if (testId === "synthesis-execution-state") return executionIsReview(surface) ? "review" : "execute";
+  if (["synthesis-failed-state", "synthesis-registered-state", "synthesis-query-ready-state"].includes(testId)) return "execute";
+  return "design";
 }
 
 function authoritativeSurface(root) {
@@ -40,11 +61,12 @@ function authoritativeSurface(root) {
 /**
  * Lightweight interaction polish for the rendered Synthesis workspace.
  *
- * This deliberately does not make research decisions, click controls, or move
- * keyboard focus. React remains authoritative for state. The observer only
- * helps a newly-authoritative surface land in view after that state changes.
- * Selector priority mirrors the workspace's blocking/decision hierarchy rather
- * than DOM order, so polish can never visually outrank a stronger subject.
+ * React remains authoritative for research state. This observer only preserves
+ * spatial continuity: consequential surfaces receive a restrained landing cue,
+ * while the viewport stays put as decisions evolve inside the same Design,
+ * Review, or Execute workspace. A scroll is reserved for a genuine phase
+ * transition whose new authoritative surface is completely outside the current
+ * viewport, and never overrides recent researcher scrolling.
  */
 export function installSynthesisInteractionPolish() {
   if (typeof window === "undefined" || typeof document === "undefined") return () => {};
@@ -52,6 +74,8 @@ export function installSynthesisInteractionPolish() {
   window.__rdSynthesisInteractionPolishInstalled = true;
 
   let lastSurface = "";
+  let lastPhase = "";
+  let lastThread = "";
   let lastUserScrollAt = 0;
   let landingTimer = 0;
   let frame = 0;
@@ -62,9 +86,20 @@ export function installSynthesisInteractionPolish() {
 
   const land = (surface, root) => {
     if (!surface || document.visibilityState !== "visible") return;
+
+    const nextPhase = surfacePhase(surface);
+    root.dataset.synthesisWorkspacePhase = nextPhase;
+
     const key = surfaceKey(surface, root);
     if (!key || key === lastSurface) return;
+
+    const nextThread = threadKey(root);
+    const sameThread = Boolean(lastThread && nextThread && lastThread === nextThread);
+    const phaseChanged = Boolean(lastPhase && nextPhase !== lastPhase);
+
     lastSurface = key;
+    lastPhase = nextPhase;
+    lastThread = nextThread;
 
     surface.dataset.synthesisLanded = "true";
     window.clearTimeout(landingTimer);
@@ -72,7 +107,10 @@ export function installSynthesisInteractionPolish() {
       delete surface.dataset.synthesisLanded;
     }, LANDING_MS);
 
-    if (visibleEnough(surface)) return;
+    // Most Synthesis state changes are transformations of the same desk. Keep
+    // the researcher's spatial memory intact instead of chasing each new panel.
+    if (!sameThread || !phaseChanged) return;
+    if (!entirelyOutsideViewport(surface)) return;
     if (performance.now() - lastUserScrollAt < USER_SCROLL_GRACE_MS) return;
 
     const reduced = window.matchMedia?.(REDUCED_MOTION)?.matches;
@@ -83,7 +121,12 @@ export function installSynthesisInteractionPolish() {
     frame = 0;
     const root = document.querySelector(".rd-v2-synthesis-page");
     if (!root) return;
-    land(authoritativeSurface(root), root);
+    const surface = authoritativeSurface(root);
+    if (!surface) {
+      root.dataset.synthesisWorkspacePhase = "design";
+      return;
+    }
+    land(surface, root);
   };
 
   const scheduleInspect = () => {

@@ -1,0 +1,33 @@
+/* Final 1920 workbench sanding after pixel review.
+ * Keep simultaneous horizontal lanes, but never stretch a sparse operational
+ * panel merely to make the row look full. Useful information density wins over
+ * geometric symmetry.
+ */
+
+@media (min-width: 1680px) and (min-height: 900px) {
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > .s04-measurement-status {
+    min-height: 0 !important;
+    height: auto !important;
+    display: block !important;
+    align-self: start !important;
+    padding: 16px !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > .s04-measurement-status button {
+    margin-top: 14px !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > .s04-opening-next {
+    min-height: 0 !important;
+    height: auto !important;
+    align-self: start !important;
+  }
+
+  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
+    > .s04-opening-next > footer {
+    margin-top: 18px !important;
+  }
+}

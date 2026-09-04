@@ -46,13 +46,15 @@ export function V2Sidebar({
       </nav>
 
       {tab === "synthesis" ? (
-        /* S-04 owns this region: it is the approved ACTIVE WORK / REGISTERED
-           OUTPUTS surface, not a second navigational column inside the page. */
-        <div
-          id="rd-v2-synthesis-sidebar-slot"
-          className="rd-v2-synthesis-sidebar-slot"
-          aria-label="Synthesis work"
-        />
+        <>
+          {/* S-04 owns this region: it is the approved ACTIVE WORK / REGISTERED
+             OUTPUTS surface, not a second navigational column inside the page. */}
+          <div
+            id="rd-v2-synthesis-sidebar-slot"
+            className="rd-v2-synthesis-sidebar-slot"
+            aria-label="Synthesis work"
+          />
+        </>
       ) : (
         <>
           <div className="rd-v2-sidebar-context" aria-label="Active research">

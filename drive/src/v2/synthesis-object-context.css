@@ -1,0 +1,76 @@
+/* Bidirectional Synthesis object context: centre selection ↔ Ask referent. */
+.rd-v2-synthesis-page [data-synthesis-context-selected="true"] {
+  outline: 2px solid rgba(76, 112, 91, 0.32);
+  outline-offset: 2px;
+}
+
+.rd-v2-synthesis-ask-object-context {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  margin: -3px 10px 9px;
+  padding: 7px 8px 7px 10px;
+  border: 1px solid #dfe4de;
+  border-radius: 9px;
+  background: #f8faf7;
+}
+
+.rd-v2-synthesis-ask-object-context > div {
+  min-width: 0;
+}
+
+.rd-v2-synthesis-ask-object-context small,
+.rd-v2-synthesis-ask-object-context b,
+.rd-v2-synthesis-ask-object-context span {
+  display: block;
+}
+
+.rd-v2-synthesis-ask-object-context small {
+  color: #737d77;
+  font-family: var(--rd-mono);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.rd-v2-synthesis-ask-object-context b {
+  margin-top: 2px;
+  color: #29352f;
+  font-size: 10px;
+  line-height: 1.28;
+}
+
+.rd-v2-synthesis-ask-object-context span {
+  margin-top: 1px;
+  color: #727c76;
+  font-family: var(--rd-mono);
+  font-size: 8px;
+  line-height: 1.28;
+  overflow-wrap: anywhere;
+}
+
+.rd-v2-synthesis-ask-object-context button {
+  padding: 4px 6px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #64706a;
+  font-size: 9px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.rd-v2-synthesis-ask-object-context button:hover,
+.rd-v2-synthesis-ask-object-context button:focus-visible {
+  outline: none;
+  background: #eef2ed;
+  color: #33443b;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rd-v2-synthesis-page [data-synthesis-context-selected="true"] {
+    scroll-behavior: auto;
+  }
+}

@@ -1,0 +1,133 @@
+/* Persistent Synthesis agent-authority chrome.
+ * Authority belongs beside the active research consequence, not in navigation.
+ * The page header therefore carries the standing AI permission while Ask and
+ * Autopilot consume the same persisted mode underneath.
+ */
+
+.s04-head > em {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+.rd-v2-synthesis-page-authority {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  margin-left: 1px;
+  padding-left: 8px;
+  border-left: 1px solid #d8d4c8;
+  color: #53615b;
+  font-style: normal;
+}
+
+.rd-v2-synthesis-page-authority::before {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  border-radius: 50%;
+  background: #9ba39f;
+  content: "";
+}
+
+.rd-v2-synthesis-page-authority > span {
+  flex: 0 0 auto;
+  color: #778079;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .075em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.rd-v2-synthesis-page-authority select {
+  width: auto;
+  max-width: 108px;
+  min-width: 72px;
+  height: 22px;
+  padding: 0 2px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #31463d;
+  font: inherit;
+  font-size: 9px;
+  font-weight: 750;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.rd-v2-synthesis-page-authority.is-auto_choose {
+  color: #466756;
+}
+
+.rd-v2-synthesis-page-authority.is-auto_choose::before {
+  background: #69927e;
+}
+
+.rd-v2-synthesis-page-authority.is-auto_approve {
+  color: #315f4d;
+}
+
+.rd-v2-synthesis-page-authority.is-auto_approve::before {
+  background: #3e8061;
+  box-shadow: 0 0 0 2px rgba(62, 128, 97, .09);
+}
+
+.rd-v2-synthesis-page-authority:focus-within {
+  border-left-color: #9eb8aa;
+}
+
+.rd-v2-synthesis-auto-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: -1px 0 8px;
+  padding: 6px 9px;
+  border: 1px solid #e1e4dd;
+  border-radius: 7px;
+  background: rgba(248, 250, 247, .74);
+  color: #64706a;
+  font-size: 8.5px;
+  line-height: 1.35;
+}
+
+.rd-v2-synthesis-auto-note b {
+  color: #3e6653;
+  font-size: 8px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.rd-v2-synthesis-auto-note.is-working {
+  border-color: #cadbd1;
+  background: rgba(240, 248, 243, .84);
+}
+
+@media (max-width: 980px) {
+  .rd-v2-synthesis-page-authority > span {
+    display: none;
+  }
+
+  .rd-v2-synthesis-page-authority {
+    padding-left: 6px;
+  }
+
+  .rd-v2-synthesis-page-authority select {
+    max-width: 92px;
+    min-width: 66px;
+  }
+}
+
+@media (max-width: 640px) {
+  .s04-head > em {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .rd-v2-synthesis-page-authority {
+    flex: 0 0 auto;
+  }
+}
