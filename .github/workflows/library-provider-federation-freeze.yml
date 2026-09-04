@@ -1,0 +1,56 @@
+name: Library provider federation freeze
+
+on:
+  push:
+    branches:
+      - audit/library-provider-federation-freeze-20260904
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - name: Apply provider federation product patch
+        run: |
+          python3 scripts/_apply_library_provider_federation.py
+          if ! git diff --quiet -- drive/src/v2/LibraryPage.jsx drive/src/v2/library-live-scale.css; then
+            git config user.name github-actions[bot]
+            git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+            git add drive/src/v2/LibraryPage.jsx drive/src/v2/library-live-scale.css
+            git commit -m "feat(library): expose federated folder locations"
+            git push origin HEAD:audit/library-provider-federation-freeze-20260904
+          fi
+      - run: npm ci
+      - run: npx playwright install chromium
+      - name: Federation contract tests
+        run: node --test drive/src/v2/libraryLocations.test.js drive/src/v2/libraryHoldings.test.js drive/src/v2/libraryFreshness.test.js
+      - name: Production build
+        run: npm run build
+        env:
+          YZU_PAGES: "true"
+      - name: Folder federation and regression workflow
+        run: mkdir -p .tmp-pw && TMPDIR=$PWD/.tmp-pw npx playwright test e2e/library-location-disabled.spec.js e2e/library-folder-workflow.spec.js e2e/library-pagination-continuity.spec.js e2e/library-holdings.spec.js e2e/library-freshness.spec.js --reporter=dot
+        env:
+          CI: "true"
+          YZU_PAGES: "false"
+      - name: Upload final location renders
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: library-provider-federation-freeze
+          path: |
+            artifacts/library-location-disabled
+            artifacts/library-folder-workflow
+            test-results
+          if-no-files-found: warn
+          retention-days: 14
