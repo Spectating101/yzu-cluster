@@ -51,6 +51,7 @@ export function libraryLocationStatusLabel(location) {
 
 export function providerDirectoryRequest({
   providerId,
+  accountId = "",
   parentId = "",
   cursor = "",
   limit = LIBRARY_DIRECTORY_PAGE_SIZE,
@@ -62,6 +63,7 @@ export function providerDirectoryRequest({
   const safeLimit = Math.max(1, Math.min(200, Number(limit) || LIBRARY_DIRECTORY_PAGE_SIZE));
   return {
     provider,
+    account_id: String(accountId || "").trim(),
     parent_id: String(parentId || ""),
     cursor: String(cursor || ""),
     limit: safeLimit,
@@ -83,11 +85,12 @@ export function normalizeProviderDirectoryPage(payload = {}) {
     modifiedAt: String(item.modifiedAt || item.modified_at || item.modified_time || ""),
     mimeType: String(item.mimeType || item.mime_type || ""),
     sizeBytes: Number.isFinite(Number(item.sizeBytes ?? item.size_bytes ?? item.size)) ? Number(item.sizeBytes ?? item.size_bytes ?? item.size) : null,
-    accountId: String(item.accountId || item.account_id || ""),
+    accountId: String(item.accountId || item.account_id || payload.accountId || payload.account_id || ""),
   }));
 
   return {
     items,
+    accountId: String(payload.accountId || payload.account_id || ""),
     nextCursor: String(payload.nextCursor || payload.next_cursor || payload.cursor || ""),
     hasMore: Boolean(payload.hasMore ?? payload.has_more ?? false),
   };
