@@ -81,7 +81,7 @@ test("connected Google Drive lazily browses provider folders and converges known
   await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toContainText("Google Drive");
   await page.screenshot({ path: `${OUT}/01-google-drive-root-1440.png`, fullPage: false });
 
-  await page.getByRole("button", { name: /My Drive/ }).click();
+  await page.locator('button.row[data-kind="folder"]').filter({ hasText: "My Drive" }).click();
   await expect(page.getByText("Research projects", { exact: true })).toBeVisible();
   await expect(page.getByText("Issuer weekly fundamentals", { exact: true })).toBeVisible();
   await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toContainText("My Drive");

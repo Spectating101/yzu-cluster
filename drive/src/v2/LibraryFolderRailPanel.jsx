@@ -37,11 +37,18 @@ export function LibraryFolderRailPanel({
   const physicalFolder = isPhysicalFolder(object.folderId);
   const filteredRoot = isFilteredRoot(object);
   const collection = !root && !physicalFolder;
+  const providerDirectory = object.browseMode === "provider";
+  const providerLabel = object.provider?.label || "Connected storage";
+  const providerRoot = providerDirectory && !object.provider?.parentId;
   const totalAssets = Number(counts.datasets || 0);
+  const totalFiles = Number(counts.files || 0);
+  const unregisteredFiles = Number(counts.unregisteredFiles || 0);
   const scopedRows = Number(counts.items || 0);
   const notReady = Math.max(0, totalAssets - Number(counts.queryReady || 0));
 
-  const summaryLabel = filteredRoot
+  const summaryLabel = providerDirectory
+    ? `${providerLabel} storage`
+    : filteredRoot
     ? "Filtered Library view"
     : root
       ? "Library overview"
@@ -61,7 +68,9 @@ export function LibraryFolderRailPanel({
           ? "In this folder"
           : "In this collection";
 
-  const structureLabel = root
+  const structureLabel = providerDirectory
+    ? providerRoot ? "Top-level folders" : "Child folders"
+    : root
     ? "Collections"
     : foldersRoot
       ? "Top-level folders"
@@ -69,7 +78,9 @@ export function LibraryFolderRailPanel({
         ? "Child folders"
         : "Nested context";
 
-  const purpose = filteredRoot
+  const purpose = providerDirectory
+    ? `Connected ${providerLabel} directory. Folder names and paths come from the linked storage account. Files already mapped to Library evidence open the canonical dossier; other files remain provider files until they are explicitly registered.`
+    : filteredRoot
     ? "This view reflects the current Library search and filters across held evidence. Clear them to return to the full overview."
     : root
       ? "Search and review evidence across the full Library. Open Folders when you want to browse the recorded storage structure manually."
@@ -79,7 +90,9 @@ export function LibraryFolderRailPanel({
           ? "Recorded storage folder. Select evidence here, move deeper through child folders, or use the breadcrumb to move back up."
           : "Research collection. Select evidence in this context, open nested research context where available, or use the breadcrumb to move back up.";
 
-  const askLabel = root
+  const askLabel = providerDirectory
+    ? providerRoot ? `Ask about ${providerLabel} →` : "Ask about this storage folder →"
+    : root
     ? "Ask about the library →"
     : foldersRoot
       ? "Ask about folders →"
@@ -93,10 +106,12 @@ export function LibraryFolderRailPanel({
         <section className="rd-v2-library-folder-summary">
           <span hidden>{legacySummaryLabel}</span>
           <p className="rd-v2-rail-section-label">{summaryLabel}</p>
-          <h3>{pluralCount(totalAssets, "asset")}</h3>
+          <h3>{providerDirectory ? pluralCount(totalFiles, "file") : pluralCount(totalAssets, "asset")}</h3>
           <div className="rd-v2-library-folder-readiness">
+            {providerDirectory && totalAssets > 0 ? <span><b>{totalAssets}</b> in Library</span> : null}
+            {providerDirectory && unregisteredFiles > 0 ? <span><b>{unregisteredFiles}</b> not in Library</span> : null}
             {counts.queryReady > 0 ? <span><b>{counts.queryReady}</b> query ready</span> : null}
-            {notReady > 0 ? <span><b>{notReady}</b> not query-ready</span> : null}
+            {!providerDirectory && notReady > 0 ? <span><b>{notReady}</b> not query-ready</span> : null}
             {counts.connected > 0 ? <span><b>{counts.connected}</b> connected</span> : null}
             {counts.metadataOnly > 0 ? <span><b>{counts.metadataOnly}</b> metadata only</span> : null}
             {counts.references > 0 ? (
@@ -120,19 +135,21 @@ export function LibraryFolderRailPanel({
           <p className="rd-v2-rail-note">{purpose}</p>
         </section>
 
-        <section className="rd-v2-library-folder-add">
-          <p className="rd-v2-rail-section-label">Add evidence</p>
-          {onStartUpload ? <button type="button" onClick={() => onStartUpload(object)}>Upload file</button> : null}
-          {onStartUrl ? <button type="button" onClick={() => onStartUrl(object)}>Add URL / DOI</button> : null}
-          {onStartProcure ? <button type="button" onClick={() => onStartProcure(object)}>Find missing evidence</button> : null}
-        </section>
+        {!providerDirectory ? (
+          <section className="rd-v2-library-folder-add">
+            <p className="rd-v2-rail-section-label">Add evidence</p>
+            {onStartUpload ? <button type="button" onClick={() => onStartUpload(object)}>Upload file</button> : null}
+            {onStartUrl ? <button type="button" onClick={() => onStartUrl(object)}>Add URL / DOI</button> : null}
+            {onStartProcure ? <button type="button" onClick={() => onStartProcure(object)}>Find missing evidence</button> : null}
+          </section>
+        ) : null}
 
         <details className="rd-v2-library-inspector-tech rd-v2-library-folder-tech">
           <summary>Technical details</summary>
           <div className="rd-v2-library-inspector-tech-body">
             <RailFieldGrid>
-              <RailField label="Destination" value={object.destination} />
-              <RailField label="Items" value={pluralCount(counts.items, "item")} />
+              {providerDirectory ? <RailField label="Provider" value={providerLabel} /> : <RailField label="Destination" value={object.destination} />}
+              <RailField label="Rows" value={pluralCount(counts.items, "row")} />
             </RailFieldGrid>
           </div>
         </details>

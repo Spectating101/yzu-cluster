@@ -61,12 +61,19 @@ export function libraryFolderObject({
   note,
   folderCount = 0,
   datasetCount = 0,
+  fileCount = 0,
+  knownEvidenceCount = null,
+  unregisteredFileCount = 0,
   readyCount = 0,
   connectedCount = 0,
   metadataOnlyCount = 0,
   unknownCount = 0,
   itemCount = 0,
   referenceCount = 0,
+  browseMode = "local",
+  providerId = "",
+  providerLabel = "",
+  providerParentId = "",
 } = {}) {
   const root = !folderId;
   const title = root ? "Library" : compactText(trail[trail.length - 1]?.name, "Library collection");
@@ -78,9 +85,17 @@ export function libraryFolderObject({
     path: folderPath(trail),
     destination: compactText(destination, title),
     note,
+    browseMode,
+    provider: browseMode === "provider" ? {
+      id: compactText(providerId),
+      label: compactText(providerLabel, providerId),
+      parentId: compactText(providerParentId),
+    } : null,
     counts: {
       folders: folderCount,
-      datasets: datasetCount,
+      files: fileCount,
+      datasets: knownEvidenceCount == null ? datasetCount : knownEvidenceCount,
+      unregisteredFiles: unregisteredFileCount,
       queryReady: readyCount,
       connected: connectedCount,
       metadataOnly: metadataOnlyCount,

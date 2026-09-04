@@ -596,12 +596,19 @@ export function LibraryPage({
         destination: remoteActive ? folderDestination(activeTrail, LIBRARY_FOLDERS_ROOT) : destination,
         note: branchNote,
         folderCount,
-        datasetCount: browseDatasetCount,
+        datasetCount: remoteActive ? branchDatasetRows.length : browseDatasetCount,
+        fileCount: remoteActive ? remoteFileCount : 0,
+        knownEvidenceCount: remoteActive ? branchDatasetRows.length : null,
+        unregisteredFileCount: remoteActive ? remoteRows.filter((item) => item.kind === "remote_file").length : 0,
         readyCount,
         itemCount: isRoot ? estateRows.length : visibleRows.length,
+        browseMode: remoteActive ? "provider" : "local",
+        providerId: remoteActive ? locationMode : "",
+        providerLabel: remoteActive ? providerLocation?.label || locationMode : "",
+        providerParentId: remoteActive ? remoteDirectory.parentId : "",
         referenceCount: isRoot ? referenceCount : 0,
       }),
-    [activeTrail, branchNote, browseDatasetCount, destination, estateRows.length, folderCount, folderId, isRoot, readyCount, referenceCount, remoteActive, visibleRows.length],
+    [activeTrail, branchDatasetRows.length, branchNote, browseDatasetCount, destination, estateRows.length, folderCount, folderId, isRoot, locationMode, providerLocation?.label, readyCount, referenceCount, remoteActive, remoteDirectory.parentId, remoteFileCount, remoteRows, visibleRows.length],
   );
 
   useEffect(() => {
@@ -845,13 +852,17 @@ export function LibraryPage({
             <span className="rd-v2-toolbar-count">
               {navigationLoading && !searchActive
                 ? "Organizing collections…"
-                : loading && !vaultDatasets.length ? "Loading Library…" : toolbarCountLabel({
-                searchActive,
-                isRoot,
-                folderCount,
-                datasetCount: browseDatasetCount,
-                visibleCount: isRoot ? estateRows.length : visibleRows.length,
-              })}
+                : loading && !vaultDatasets.length
+                  ? "Loading Library…"
+                  : remoteActive
+                    ? `${folderCount} ${folderCount === 1 ? "folder" : "folders"} · ${remoteFileCount} ${remoteFileCount === 1 ? "file" : "files"}`
+                    : toolbarCountLabel({
+                        searchActive,
+                        isRoot,
+                        folderCount,
+                        datasetCount: browseDatasetCount,
+                        visibleCount: isRoot ? estateRows.length : visibleRows.length,
+                      })}
             </span>
           </>
         }
@@ -877,10 +888,11 @@ export function LibraryPage({
                 <span>{folderCount} folder{folderCount === 1 ? "" : "s"}</span>
               )}
               <span>
-                {browseDatasetCount} asset{browseDatasetCount === 1 ? "" : "s"}
-                {searchActive ? " matched" : ""}
+                {remoteActive
+                  ? `${remoteFileCount} file${remoteFileCount === 1 ? "" : "s"}`
+                  : `${browseDatasetCount} asset${browseDatasetCount === 1 ? "" : "s"}${searchActive ? " matched" : ""}`}
               </span>
-              <span>{readyCount} query-ready</span>
+              <span>{remoteActive ? `${branchDatasetRows.length} in Library` : `${readyCount} query-ready`}</span>
             </div>
           </div>
         ) : null}
