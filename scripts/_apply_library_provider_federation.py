@@ -3,104 +3,31 @@ from pathlib import Path
 page = Path('drive/src/v2/LibraryPage.jsx')
 text = page.read_text()
 
-import_anchor = 'import { libraryVerification } from "@/v2/libraryVerification";\n'
-import_line = 'import { isBrowsableLibraryLocation, libraryLocationStatusLabel, normalizeLibraryLocations } from "@/v2/libraryLocations";\n'
-if import_line not in text:
-    if import_anchor not in text:
-        raise SystemExit('LibraryPage import anchor missing')
-    text = text.replace(import_anchor, import_anchor + import_line, 1)
+old_import = 'import { isBrowsableLibraryLocation, libraryLocationStatusLabel, normalizeLibraryLocations } from "@/v2/libraryLocations";\n'
+new_import = 'import { isBrowsableLibraryLocation, normalizeLibraryLocations } from "@/v2/libraryLocations";\n'
+if old_import in text:
+    text = text.replace(old_import, new_import, 1)
+elif new_import not in text:
+    raise SystemExit('LibraryPage location import missing')
 
-props_anchor = '  selectionFallback,\n  referenceCount = 0,\n}) {'
-props_repl = '  selectionFallback,\n  folderLocations = [],\n  onFolderLocationChange,\n  referenceCount = 0,\n}) {'
-if props_repl not in text:
-    if props_anchor not in text:
-        raise SystemExit('LibraryPage props anchor missing')
-    text = text.replace(props_anchor, props_repl, 1)
+segmented_control = '''              {browsingPhysicalFolders ? (\n                <div\n                  className="rd-v2-library-filter-control rd-v2-library-location-filter"\n                  data-testid="library-location-filter"\n                  aria-label="Folder storage location"\n                >\n                  <span>Location</span>\n                  <div className="rd-v2-library-location-options" role="group" aria-label="Browse folder storage location">\n                    {normalizedFolderLocations.map((location) => {\n                      const browsable = isBrowsableLibraryLocation(location, Boolean(onFolderLocationChange));\n                      const active = location.id === locationMode;\n                      const status = libraryLocationStatusLabel(location);\n                      return (\n                        <button\n                          key={location.id}\n                          type="button"\n                          className={active ? "active" : ""}\n                          data-location={location.id}\n                          data-state={location.state}\n                          aria-pressed={active}\n                          disabled={!browsable}\n                          title={location.id === "all" ? "Browse all available folder locations" : `${location.label} · ${status}`}\n                          onClick={() => {\n                            setLocationMode(location.id);\n                            onFolderLocationChange?.(location.id);\n                          }}\n                        >\n                          {location.label}\n                        </button>\n                      );\n                    })}\n                  </div>\n                </div>\n              ) : null}'''
 
-browse_anchor = '  const browsingPhysicalFolders = folderId === LIBRARY_FOLDERS_ROOT || String(folderId || "").startsWith(`${LIBRARY_FOLDERS_ROOT}/`);\n\n  const items = useMemo(() => listFolderChildren(tree, folderId), [tree, folderId]);'
-browse_repl = '''  const browsingPhysicalFolders = folderId === LIBRARY_FOLDERS_ROOT || String(folderId || "").startsWith(`${LIBRARY_FOLDERS_ROOT}/`);\n  const normalizedFolderLocations = useMemo(\n    () => normalizeLibraryLocations(folderLocations),\n    [folderLocations],\n  );\n\n  useEffect(() => {\n    if (locationMode === "all") return;\n    const active = normalizedFolderLocations.find((location) => location.id === locationMode);\n    if (!isBrowsableLibraryLocation(active, Boolean(onFolderLocationChange))) setLocationMode("all");\n  }, [locationMode, normalizedFolderLocations, onFolderLocationChange]);\n\n  const items = useMemo(() => listFolderChildren(tree, folderId), [tree, folderId]);'''
-if browse_repl not in text:
-    if browse_anchor not in text:
-        raise SystemExit('LibraryPage browse anchor missing')
-    text = text.replace(browse_anchor, browse_repl, 1)
+dropdown_control = '''              {browsingPhysicalFolders ? (\n                <label\n                  className="rd-v2-library-filter-control rd-v2-library-location-filter"\n                  title="Choose which connected storage location to browse."\n                >\n                  <span>Location</span>\n                  <select\n                    data-testid="library-location-filter"\n                    aria-label="Browse folder storage location"\n                    value={locationMode}\n                    onChange={(event) => {\n                      const nextLocation = event.target.value;\n                      setLocationMode(nextLocation);\n                      onFolderLocationChange?.(nextLocation);\n                    }}\n                  >\n                    {normalizedFolderLocations.map((location) => {\n                      const browsable = isBrowsableLibraryLocation(location, Boolean(onFolderLocationChange));\n                      return (\n                        <option\n                          key={location.id}\n                          value={location.id}\n                          data-state={location.state}\n                          disabled={!browsable}\n                        >\n                          {location.label}\n                        </option>\n                      );\n                    })}\n                  </select>\n                </label>\n              ) : null}'''
 
-old_control = '''              {browsingPhysicalFolders ? (\n                <label\n                  className="rd-v2-library-filter-control rd-v2-library-location-filter"\n                  title="Connect external storage accounts in Settings to browse their indexed folders."\n                >\n                  <span>Location</span>\n                  <select\n                    data-testid="library-location-filter"\n                    aria-label="Filter folders by connected location"\n                    value={locationMode}\n                    onChange={(event) => setLocationMode(event.target.value)}\n                  >\n                    <option value="all">All</option>\n                    <option value="google_drive" disabled>Google Drive</option>\n                    <option value="dropbox" disabled>Dropbox</option>\n                  </select>\n                </label>\n              ) : null}'''
-new_control = '''              {browsingPhysicalFolders ? (\n                <div\n                  className="rd-v2-library-filter-control rd-v2-library-location-filter"\n                  data-testid="library-location-filter"\n                  aria-label="Folder storage location"\n                >\n                  <span>Location</span>\n                  <div className="rd-v2-library-location-options" role="group" aria-label="Browse folder storage location">\n                    {normalizedFolderLocations.map((location) => {\n                      const browsable = isBrowsableLibraryLocation(location, Boolean(onFolderLocationChange));\n                      const active = location.id === locationMode;\n                      const status = libraryLocationStatusLabel(location);\n                      return (\n                        <button\n                          key={location.id}\n                          type="button"\n                          className={active ? "active" : ""}\n                          data-location={location.id}\n                          data-state={location.state}\n                          aria-pressed={active}\n                          disabled={!browsable}\n                          title={location.id === "all" ? "Browse all available folder locations" : `${location.label} · ${status}`}\n                          onClick={() => {\n                            setLocationMode(location.id);\n                            onFolderLocationChange?.(location.id);\n                          }}\n                        >\n                          {location.label}\n                        </button>\n                      );\n                    })}\n                  </div>\n                </div>\n              ) : null}'''
-if new_control not in text:
-    if old_control not in text:
-        raise SystemExit('LibraryPage old location control missing')
-    text = text.replace(old_control, new_control, 1)
+if dropdown_control not in text:
+    if segmented_control not in text:
+        raise SystemExit('LibraryPage segmented location control missing')
+    text = text.replace(segmented_control, dropdown_control, 1)
 
 page.write_text(text)
 
 css = Path('drive/src/v2/library-live-scale.css')
 styles = css.read_text()
-marker = '/* LIBRARY FEDERATION FREEZE: visible provider location chrome */'
-if marker not in styles:
-    styles += r'''
+marker = '\n\n/* LIBRARY FEDERATION FREEZE: visible provider location chrome'
+if marker in styles:
+    styles = styles.split(marker, 1)[0].rstrip() + '\n'
+styles += '''\n\n/* LIBRARY FEDERATION FREEZE: Location deliberately reuses the same compact\n   select pattern as Type, Readiness, and Sort. Provider capability remains in\n   the option list instead of becoming a second navigation strip. */\n'''
+css.write_text(styles)
 
-/* LIBRARY FEDERATION FREEZE: visible provider location chrome
-   External stores remain discoverable while disconnected; real account truth
-   only enables them once a provider directory adapter is ready. */
-.rd-v2-library-location-filter {
-  min-width: 0;
-}
-
-.rd-v2-library-location-options {
-  display: inline-flex;
-  min-height: 28px;
-  overflow: hidden;
-  border: 1px solid var(--rd-border2);
-  border-radius: 6px;
-  background: rgba(250, 249, 244, .6);
-}
-
-.rd-v2-library-location-options button {
-  min-width: 0;
-  padding: 0 9px;
-  border: 0;
-  border-left: 1px solid var(--rd-border);
-  background: transparent;
-  color: var(--rd-body);
-  font: inherit;
-  font-size: 10px;
-  cursor: pointer;
-}
-
-.rd-v2-library-location-options button:first-child {
-  border-left: 0;
-}
-
-.rd-v2-library-location-options button.active {
-  background: var(--rd-active-bg);
-  color: var(--rd-text);
-  font-weight: 700;
-}
-
-.rd-v2-library-location-options button:disabled {
-  color: rgba(91, 101, 114, .38);
-  cursor: default;
-  opacity: 1;
-}
-
-.rd-v2-library-location-options button[data-state="indexing"]:disabled,
-.rd-v2-library-location-options button[data-state="error"]:disabled {
-  color: rgba(91, 101, 114, .52);
-}
-
-@media (max-width: 760px) {
-  .rd-v2-library-location-filter {
-    width: 100%;
-  }
-
-  .rd-v2-library-location-options {
-    width: 100%;
-  }
-
-  .rd-v2-library-location-options button {
-    flex: 1 1 auto;
-    padding-inline: 7px;
-  }
-}
-'''
-    css.write_text(styles)
+test_file = Path('e2e/library-location-disabled.spec.js')
+test_file.write_text('''import { mkdirSync } from "node:fs";\nimport { test, expect } from "@playwright/test";\nimport { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";\n\nconst OUT = "artifacts/library-location-disabled";\n\ntest("Folders keeps disconnected external locations in the compact Location dropdown", async ({ page }) => {\n  mkdirSync(OUT, { recursive: true });\n  await page.setViewportSize({ width: 1440, height: 900 });\n  await mockV2Api(page);\n  await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });\n  await waitForShell(page);\n  await page.getByTestId("library-folders-root").click();\n  await expect(page.getByTestId("library-directory")).toBeVisible();\n\n  const location = page.getByTestId("library-location-filter");\n  await expect(location).toBeVisible();\n  await expect(location).toHaveValue("all");\n  await expect(location.locator('option[value="all"]')).toBeEnabled();\n\n  const drive = location.locator('option[value="google_drive"]');\n  const dropbox = location.locator('option[value="dropbox"]');\n  await expect(drive).toBeDisabled();\n  await expect(dropbox).toBeDisabled();\n  await expect(drive).toHaveAttribute("data-state", "disconnected");\n  await expect(dropbox).toHaveAttribute("data-state", "disconnected");\n  await expect(drive).toHaveText("Google Drive");\n  await expect(dropbox).toHaveText("Dropbox");\n  await expect(page.locator('.rd-v2-library-location-options')).toHaveCount(0);\n\n  await page.screenshot({ path: `${OUT}/01-folders-location-dropdown-1440.png`, fullPage: false });\n\n  await page.setViewportSize({ width: 390, height: 1000 });\n  await expect(location).toBeVisible();\n  await expect(location).toHaveValue("all");\n  await expect(drive).toBeDisabled();\n  await expect(dropbox).toBeDisabled();\n  await page.screenshot({ path: `${OUT}/02-folders-location-dropdown-mobile.png`, fullPage: false });\n});\n''')
