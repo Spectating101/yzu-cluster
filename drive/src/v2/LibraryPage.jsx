@@ -10,7 +10,7 @@ import { libraryFolderObject } from "@/v2/activeObject";
 import { CatalogList } from "@/v2/CatalogList";
 import { libraryAssetPresentation, statusPillKind } from "@/v2/datasetMeta";
 import { libraryVerification } from "@/v2/libraryVerification";
-import { isBrowsableLibraryLocation, libraryLocationStatusLabel, normalizeLibraryLocations } from "@/v2/libraryLocations";
+import { isBrowsableLibraryLocation, normalizeLibraryLocations } from "@/v2/libraryLocations";
 import { LibraryAssetWorkspace } from "@/v2/LibraryAssetWorkspace";
 import { LibraryEvidenceEstate } from "@/v2/LibraryEvidenceEstate";
 import { resolveLibrarySelection } from "@/v2/librarySelection";
@@ -658,38 +658,36 @@ export function LibraryPage({
                 </select>
               </label>
               {browsingPhysicalFolders ? (
-                <div
+                <label
                   className="rd-v2-library-filter-control rd-v2-library-location-filter"
-                  data-testid="library-location-filter"
-                  aria-label="Folder storage location"
+                  title="Choose which connected storage location to browse."
                 >
                   <span>Location</span>
-                  <div className="rd-v2-library-location-options" role="group" aria-label="Browse folder storage location">
+                  <select
+                    data-testid="library-location-filter"
+                    aria-label="Browse folder storage location"
+                    value={locationMode}
+                    onChange={(event) => {
+                      const nextLocation = event.target.value;
+                      setLocationMode(nextLocation);
+                      onFolderLocationChange?.(nextLocation);
+                    }}
+                  >
                     {normalizedFolderLocations.map((location) => {
                       const browsable = isBrowsableLibraryLocation(location, Boolean(onFolderLocationChange));
-                      const active = location.id === locationMode;
-                      const status = libraryLocationStatusLabel(location);
                       return (
-                        <button
+                        <option
                           key={location.id}
-                          type="button"
-                          className={active ? "active" : ""}
-                          data-location={location.id}
+                          value={location.id}
                           data-state={location.state}
-                          aria-pressed={active}
                           disabled={!browsable}
-                          title={location.id === "all" ? "Browse all available folder locations" : `${location.label} · ${status}`}
-                          onClick={() => {
-                            setLocationMode(location.id);
-                            onFolderLocationChange?.(location.id);
-                          }}
                         >
                           {location.label}
-                        </button>
+                        </option>
                       );
                     })}
-                  </div>
-                </div>
+                  </select>
+                </label>
               ) : null}
             </div>
             <span className="rd-v2-toolbar-spacer" />

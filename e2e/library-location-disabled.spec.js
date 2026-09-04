@@ -4,7 +4,7 @@ import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 
 const OUT = "artifacts/library-location-disabled";
 
-test("Folders keeps disconnected external locations visible and faded", async ({ page }) => {
+test("Folders keeps disconnected external locations in the compact Location dropdown", async ({ page }) => {
   mkdirSync(OUT, { recursive: true });
   await page.setViewportSize({ width: 1440, height: 900 });
   await mockV2Api(page);
@@ -15,25 +15,25 @@ test("Folders keeps disconnected external locations visible and faded", async ({
 
   const location = page.getByTestId("library-location-filter");
   await expect(location).toBeVisible();
+  await expect(location).toHaveValue("all");
+  await expect(location.locator('option[value="all"]')).toBeEnabled();
 
-  const all = location.getByRole("button", { name: "All" });
-  const drive = location.getByRole("button", { name: "Google Drive" });
-  const dropbox = location.getByRole("button", { name: "Dropbox" });
-
-  await expect(all).toHaveAttribute("aria-pressed", "true");
+  const drive = location.locator('option[value="google_drive"]');
+  const dropbox = location.locator('option[value="dropbox"]');
   await expect(drive).toBeDisabled();
   await expect(dropbox).toBeDisabled();
   await expect(drive).toHaveAttribute("data-state", "disconnected");
   await expect(dropbox).toHaveAttribute("data-state", "disconnected");
-  await expect(location).toContainText("All");
-  await expect(location).toContainText("Google Drive");
-  await expect(location).toContainText("Dropbox");
+  await expect(drive).toHaveText("Google Drive");
+  await expect(dropbox).toHaveText("Dropbox");
+  await expect(page.locator('.rd-v2-library-location-options')).toHaveCount(0);
 
-  await page.screenshot({ path: `${OUT}/01-folders-disabled-locations-1440.png`, fullPage: false });
+  await page.screenshot({ path: `${OUT}/01-folders-location-dropdown-1440.png`, fullPage: false });
 
   await page.setViewportSize({ width: 390, height: 1000 });
   await expect(location).toBeVisible();
+  await expect(location).toHaveValue("all");
   await expect(drive).toBeDisabled();
   await expect(dropbox).toBeDisabled();
-  await page.screenshot({ path: `${OUT}/02-folders-disabled-locations-mobile.png`, fullPage: false });
+  await page.screenshot({ path: `${OUT}/02-folders-location-dropdown-mobile.png`, fullPage: false });
 });
