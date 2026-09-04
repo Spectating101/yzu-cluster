@@ -1,0 +1,101 @@
+/* Resting Discover scan pass — the Radar owns research-state context; source
+   tiles below it should be fast identities, not mini evaluation dossiers. */
+
+/* Keep the idle Inspector readable after reclaiming most of its previous width. */
+@media (min-width: 1501px) {
+  body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-shell {
+    --rd-rail: 252px;
+  }
+}
+
+@media (min-width: 1100px) and (max-width: 1500px) {
+  body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-shell {
+    --rd-rail: 244px;
+  }
+}
+
+@media (min-width: 761px) {
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate {
+    min-height: 94px;
+    padding: 9px 86px 28px 10px;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate-main {
+    gap: 2px;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate-title {
+    font-size: 11.5px;
+    line-height: 1.25;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-evidence {
+    display: block;
+    overflow: hidden;
+    max-width: 100%;
+    font-size: 8.8px;
+    line-height: 1.3;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-offering-facts {
+    gap: 8px;
+    margin-top: 1px;
+    overflow: hidden;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-offering-facts > span {
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+
+  /* Refresh is detail-level context in the resting catalogue. */
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-offering-facts > span:nth-child(3) {
+    display: none;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-offering-facts b {
+    font-size: 6.8px;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-offering-facts em {
+    max-width: 170px;
+    overflow: hidden;
+    font-size: 7.8px;
+    text-overflow: ellipsis;
+  }
+
+  /* Library comparison is available after selection; don't repeat it across
+     every resting source tile. */
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-sufficiency {
+    display: none;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-row-add {
+    right: 8px;
+    bottom: 7px;
+    min-height: 24px;
+    padding: 3px 7px;
+    font-size: 8px;
+    opacity: .68;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held li:hover .rd-v2-discover-row-add,
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-row-add:focus-visible {
+    opacity: 1;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-pill {
+    opacity: .58;
+    font-size: 7px;
+  }
+}
+
+@media (min-width: 1680px) and (min-height: 900px) {
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate {
+    min-height: 90px;
+  }
+}

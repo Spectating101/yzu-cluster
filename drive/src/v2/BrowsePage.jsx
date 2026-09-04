@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { discoverSearch, discoverSources, webDiscover } from "@/v2/api";
 import { sourcesResponseToRows } from "@/v2/discoverAdapters";
 import { collectRouteLabel } from "@/v2/collectRouteLabel";
@@ -35,6 +35,8 @@ import {
 import { Chip, PageShell, SourceRibbon } from "@/v2/ui";
 import { discoverTerritories } from "@/v2/discoverTerritories";
 import { DiscoverCoveragePanel } from "@/v2/DiscoverCoveragePanel";
+import { DiscoverEvidenceCockpit, DiscoverResearchRadar } from "@/v2/DiscoverCockpit";
+import { DiscoverEvidenceField } from "@/v2/DiscoverEvidenceField";
 import { DeskError } from "@/v2/DeskError";
 import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
 
@@ -184,7 +186,7 @@ function DiscoverCandidateRow({
 }) {
   const taxonomy = row.discover_taxonomy || classifyDiscoverResult(row, labIds);
   const state = row.discover_state || discoverCandidateState(row, labIds);
-  const selected = selectedId === candidateKey(row);
+  const selected = selectedId === candidateKey(row) || selectedId === row?.dataset_id;
   const ribbonSource =
     row.source || row.collect_via || row.source_route || row.publisher || row.backend || hostLabel(row.url);
   const taxonomyLine = accessLabel(taxonomy);
@@ -332,6 +334,13 @@ function DiscoverQueryComposer({
       <p>
         Keywords return fast results. A research question also starts a contextual Ask investigation automatically.
       </p>
+      <div className="rd-v2-discover-composer-scope" aria-label="Discover search universe">
+        <span>Library index</span>
+        <span>Source catalogues</span>
+        <span>Open web context</span>
+        <span>URL / DOI inspection</span>
+        <span>Approval-gated acquisition</span>
+      </div>
       {/* VC-5: two compact examples teach the one-composer behaviour by
           demonstration. They are examples, not modes or tabs. */}
       {idle ? (
@@ -672,6 +681,7 @@ export function BrowsePage({
   const [enrichedQuestion, setEnrichedQuestion] = useState("");
   const [autoWidening, setAutoWidening] = useState(false);
   const [lookupProgress, setLookupProgress] = useState({ library: "waiting", routes: "waiting" });
+  const restoredSelectionRef = useRef("");
 
   const pendingRows = useMemo(
     () => pendingApprovalJobs(jobs).filter(isDiscoverHistoryJob).map((job) => jobToCandidateRow(job)).filter(Boolean),
@@ -1098,12 +1108,27 @@ export function BrowsePage({
 
   useEffect(() => {
     if (!isExplore || !selectedId || !centreRows.length) return;
-    if (centreRows.some((row) => candidateKey(row) === selectedId)) return;
-    // A stale Library selection must not leave Detail judging an item that is
-    // no longer in the ranked centre.  Preserve the researcher’s selection
-    // when it is visible; otherwise focus the first actual offering.
+    const exact = centreRows.find(
+      (row) => candidateKey(row) === selectedId || row?.dataset_id === selectedId,
+    );
+    if (exact) {
+      // URL hydration has the identity before App has a browseTarget. Bind the
+      // resolved row once so Detail evaluates the same source the URL names.
+      if (restoredSelectionRef.current !== selectedId) {
+        restoredSelectionRef.current = selectedId;
+        onSelectRow?.(exact);
+      }
+      return;
+    }
+    restoredSelectionRef.current = "";
+    // A stale selection must not leave Detail judging an item that is no longer
+    // in the ranked centre. Focus the first actual offering instead.
     onSelectRow?.(centreRows[0]);
   }, [isExplore, selectedId, centreRows, onSelectRow]);
+
+  useEffect(() => {
+    if (!selectedId) restoredSelectionRef.current = "";
+  }, [selectedId]);
 
   useEffect(() => {
     if (!isExplore || !searchQuery.trim()) {
@@ -1336,7 +1361,7 @@ export function BrowsePage({
     <PageShell
       className="rd-v2-discover-page"
       title="Discover"
-      lead="Search your Library first, then evaluate sources beyond it"
+      lead="Find, compare, verify, and acquire research evidence"
       headExtra={modeTabs}
       toolbar={demoMode ? <Chip warn>Demo preview · static sample</Chip> : null}
       surfaceState={exploreSurfaceState}
@@ -1371,6 +1396,16 @@ export function BrowsePage({
               onAsk={(question) => onAskQuery?.(question, { kind: "investigation" })}
               onAssess={onOpenAssessment}
               idle
+            />
+            <DiscoverResearchRadar
+              catalog={catalog}
+              labIds={labIds}
+              knownRows={idleRecommendations}
+              jobs={jobs}
+              partitions={partitions}
+              shelves={shelves}
+              resourcesRollup={resourcesRollup}
+              onSearch={onSuggestSearch}
             />
             <div className="rd-v2-discover-idle-held">
               <DiscoverCoveragePanel catalog={catalog} partitions={partitions} shelves={shelves} onSearchShelf={
@@ -1426,6 +1461,21 @@ export function BrowsePage({
         ) : null}
         {q ? (
           <>
+            <DiscoverEvidenceCockpit
+              query={q}
+              rows={merged}
+              resultGroups={resultGroups}
+              filterCounts={filterCounts}
+              stateFilter={stateFilter}
+              onFilterChange={setStateFilter}
+              assessmentActive={assessmentActive}
+              assessmentResult={assessmentResult}
+              pendingCount={pendingRows.length}
+              lookupProgress={lookupProgress}
+              resourcesRollup={resourcesRollup}
+              onSearchWider={onSearchWeb}
+              onAssess={onOpenAssessment}
+            />
             <section
               className="rd-v2-discover-explore-workspace"
               aria-label="Discover explore"
@@ -1478,24 +1528,6 @@ export function BrowsePage({
                   {sortMenu}
                 </div>
               </div>
-              {assessmentActive ? (
-                <DiscoverEvidenceBrief
-                  key={`assessment-workspace:${q}`}
-                  variant="workspace"
-                  initialQuestion={q}
-                  autoAssess
-                  assessmentValue={assessmentResult}
-                  catalog={catalog}
-                  onSelectRow={onSelectRow}
-                  onLegacySearch={onSuggestSearch}
-                  onCraftUrl={onCraftUrl}
-                  onAssessmentChange={onAssessmentChange}
-                  onAssessmentActive={onAssessmentActive}
-                  resourcesRollup={resourcesRollup}
-                  resourcesError={resourcesError}
-                  deskHealth={deskHealth}
-                />
-              ) : null}
               <div className="rd-v2-discover-frozen-counts" aria-label="Discover result territories">
                 {merged.length || !loading || wideningInProgress
                   ? discoverTerritories(resultGroups).map((territory) =>
@@ -1591,6 +1623,36 @@ export function BrowsePage({
                   ) : null}
                 </div>
               </div>
+
+              <DiscoverEvidenceField
+              query={q}
+              candidateCount={centreRows.length}
+              resultGroups={resultGroups}
+              assessmentActive={assessmentActive}
+              assessmentResult={assessmentResult}
+              onReviewAssembly={hasEvidenceGap ? () => setRouteComparisonOpen(true) : undefined}
+              onSearchWider={onSearchWeb}
+            />
+
+              {assessmentActive ? (
+                <DiscoverEvidenceBrief
+                  key={`assessment-workspace:${q}`}
+                  variant="workspace"
+                  initialQuestion={q}
+                  autoAssess
+                  assessmentValue={assessmentResult}
+                  catalog={catalog}
+                  onSelectRow={onSelectRow}
+                  onLegacySearch={onSuggestSearch}
+                  onCraftUrl={onCraftUrl}
+                  onAssessmentChange={onAssessmentChange}
+                  onAssessmentActive={onAssessmentActive}
+                  resourcesRollup={resourcesRollup}
+                  resourcesError={resourcesError}
+                  deskHealth={deskHealth}
+                />
+              ) : null}
+
             </section>
 
             {centreRows.length ? (

@@ -625,7 +625,10 @@ export function V2App() {
   }, [selectedId, selectedFromList]);
 
   const browseTarget = browseRow;
-  const browseSelectedId = browseRow ? candidateKey(browseRow) : "";
+  // Direct Discover URLs may carry either a raw dataset id or a typed candidate
+  // key. Preserve that requested identity until the source catalogue resolves;
+  // BrowsePage will bind the exact row and hand it back through onSelectRow.
+  const browseSelectedId = browseRow ? candidateKey(browseRow) : selectedId;
   const historyItems = useMemo(() => {
     const enriched = enrichHistoryEventsFromJobs(historyEvents, jobs);
     const durableJobIds = new Set(
@@ -764,6 +767,15 @@ export function V2App() {
       const next = normalizeReleaseTab(canonicalTab(id));
       if (next === DISCOVER_TAB && !opts.preserveDiscoverScope) {
         setDiscoverPreferLive(discoverScopeIsWide());
+        // A fresh navigation to Discover starts at the retrieval surface. Do not
+        // inherit a Library dataset identity into Discover; direct Discover URLs
+        // still hydrate selectedId before this callback ever runs.
+        setSelectedId("");
+        setDetail(null);
+        setBrowseRow(null);
+        setTab(next);
+        syncUrl({ tab: next, dataset: "" });
+        return;
       }
       if (next === "library") {
         setTab(next);
@@ -1713,6 +1725,11 @@ export function V2App() {
                 ? { ...row, probe_snapshot: probeSnapshots[nextKey] }
                 : row;
             setBrowseRow(stamped);
+            const urlDataset = String(stamped?.dataset_id || nextKey || "").trim();
+            if (urlDataset) {
+              setSelectedId(urlDataset);
+              syncUrl({ tab: DISCOVER_TAB, dataset: urlDataset, q: discoverSearchQuery.trim() });
+            }
             setBrowseProbe((current) =>
               current.candidateKey === nextKey
                 ? current

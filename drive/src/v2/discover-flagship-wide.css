@@ -1,0 +1,47 @@
+/* Wide-screen corrections found from the flagship render itself. */
+
+/* Discover source titles are research identities, not nav labels. Let them wrap
+   instead of silently ellipsizing the actual thing being evaluated. */
+.rd-v2-discover-page .rd-v2-discover-candidate-title {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+/* The 1920 resting capture exposed a 3+1 orphan. Two wide evidence-ledger rows
+   use the workstation better and preserve full source identity. */
+@media (min-width: 1680px) and (min-height: 900px) {
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidates {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate {
+    grid-template-columns: 76px minmax(0, 1fr);
+    gap: 12px;
+    min-height: 118px;
+    padding: 12px 13px 13px;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate-source {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-possession {
+    max-width: 170px;
+    text-align: right;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-evidence {
+    min-height: 0;
+  }
+}

@@ -1,0 +1,106 @@
+/* Final scale polish: keep the result universe primary and remove redundant chrome. */
+
+.rd-v2-discover-browse:has(> .rd-v2-discover-evidence-cockpit) .rd-v2-discover-result-actions {
+  display: none;
+}
+
+.rd-v2-discover-evidence-cockpit .rd-v2-cockpit-execution > button {
+  display: none;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-candidates > li {
+  margin: 0 !important;
+  border: 0 !important;
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 62%, transparent) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-candidate {
+  min-height: 66px !important;
+  padding-top: 7px !important;
+  padding-bottom: 7px !important;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-offering-facts {
+  display: flex !important;
+  flex-wrap: wrap;
+  gap: 2px 0 !important;
+  margin-top: 1px !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-offering-facts > span {
+  display: inline-flex !important;
+  align-items: baseline;
+  gap: 4px;
+  width: auto !important;
+  min-height: 0 !important;
+  padding: 0 8px 0 0 !important;
+  margin: 0 8px 0 0;
+  border: 0 !important;
+  border-right: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 58%, transparent) !important;
+  background: transparent !important;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-offering-facts > span:last-child {
+  border-right: 0 !important;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-offering-facts b,
+.rd-v2-discover-ranked-results .rd-v2-discover-offering-facts em {
+  display: inline !important;
+  margin: 0 !important;
+  line-height: 1.25 !important;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-offering-facts b {
+  color: #607166;
+  font-size: 6.8px !important;
+  letter-spacing: .045em;
+  text-transform: uppercase;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-offering-facts em {
+  color: var(--rd-muted, #6e7685);
+  font-size: 7.8px !important;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-sufficiency {
+  padding-top: 2px !important;
+  border-top: 0 !important;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-row-add {
+  top: 8px !important;
+}
+
+/* Resting radar: capability is visible, but the search remains the strongest object. */
+.rd-v2-discover-radar {
+  box-shadow: none;
+  background: color-mix(in srgb, var(--rd-surface, #fffdf6) 96%, #eef2ef 4%);
+}
+
+.rd-v2-discover-capability-ledger {
+  border: 0;
+  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 58%, transparent);
+  border-radius: 0;
+  background: transparent;
+}
+
+.rd-v2-discover-capability-ledger > span {
+  padding-block: 5px;
+}
+
+@media (max-width: 1500px) {
+  .rd-v2-discover-ranked-results .rd-v2-discover-candidate {
+    min-height: 72px !important;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-offering-facts > span {
+    margin-right: 6px;
+    padding-right: 6px !important;
+  }
+}

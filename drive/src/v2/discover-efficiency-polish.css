@@ -1,0 +1,429 @@
+/* Discover efficiency polish.
+   Keep the evidence-field model, but make hierarchy do more work than decoration.
+   Primary: query + candidate field. Secondary: filters / assessment. Tertiary: idle radar context. */
+
+/* Search scope is useful context, not a second navigation bar. */
+.rd-v2-discover-composer-scope {
+  opacity: .7;
+  gap: 9px;
+}
+
+/* Resting Discover: retain capability without making every capability equally loud. */
+.rd-v2-discover-radar {
+  gap: 8px;
+  padding: 11px 12px 10px;
+  border-color: color-mix(in srgb, var(--rd-border, #dbd4c5) 76%, transparent);
+  background: color-mix(in srgb, var(--rd-surface, #fffdf6) 96%, #eef2ef 4%);
+  box-shadow: none;
+}
+
+.rd-v2-discover-radar-head {
+  gap: 14px;
+  padding-bottom: 8px;
+}
+
+.rd-v2-discover-radar-head h2 {
+  margin: 3px 0 0;
+  font-size: 15px;
+}
+
+.rd-v2-discover-radar-head p {
+  display: none;
+}
+
+.rd-v2-discover-radar-metrics {
+  border: 0;
+  border-block: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 58%, transparent);
+  border-radius: 0;
+  background: transparent;
+}
+
+.rd-v2-cockpit-metric {
+  min-height: 40px;
+  padding: 6px 10px;
+}
+
+.rd-v2-cockpit-metric strong {
+  font-size: 16px;
+}
+
+.rd-v2-discover-radar-grid {
+  grid-template-columns: minmax(0, 1.45fr) minmax(290px, .8fr);
+  gap: 10px;
+}
+
+/* Source-family bars were informative in isolation but noisy when every family had count 1.
+   The concrete routes already carry the same information more usefully. */
+.rd-v2-discover-radar-grid > .rd-v2-cockpit-network {
+  display: none;
+}
+
+.rd-v2-discover-radar-panel {
+  padding: 9px 10px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, .18);
+}
+
+.rd-v2-discover-radar-panel > header {
+  margin-bottom: 6px;
+}
+
+.rd-v2-discover-radar-panel--routes button {
+  padding-block: 5px;
+}
+
+.rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow {
+  display: none;
+}
+
+.rd-v2-discover-radar-panel--execution .rd-v2-cockpit-execution-facts {
+  margin-top: 2px;
+  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 54%, transparent);
+}
+
+.rd-v2-discover-radar-panel--execution .rd-v2-cockpit-capacity {
+  margin-top: 6px;
+}
+
+/* The six-item capability ledger repeated the composer scope and made idle feel like a brochure. */
+.rd-v2-discover-capability-ledger {
+  display: none;
+}
+
+/* Active search: the left rail is a control surface, not a second dashboard. */
+.rd-v2-discover-browse:has(> .rd-v2-discover-evidence-cockpit) {
+  grid-template-columns: 170px minmax(0, 1fr);
+  column-gap: 11px;
+}
+
+.rd-v2-discover-evidence-cockpit {
+  padding: 9px 10px;
+  border-color: color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, transparent);
+}
+
+.rd-v2-cockpit-head {
+  padding-bottom: 7px;
+}
+
+.rd-v2-cockpit-head .rd-v2-eyebrow {
+  opacity: .72;
+}
+
+/* Result territories are already summarized above the field. In the rail they were repetition. */
+.rd-v2-cockpit-stage-map {
+  display: none;
+}
+
+.rd-v2-cockpit-facets,
+.rd-v2-cockpit-assessment,
+.rd-v2-cockpit-execution {
+  padding-block: 7px;
+}
+
+.rd-v2-cockpit-facets button {
+  min-height: 24px;
+  padding: 3px 4px;
+}
+
+.rd-v2-cockpit-facets button:not(.on) {
+  color: color-mix(in srgb, var(--rd-muted, #6e7685) 84%, transparent);
+}
+
+.rd-v2-cockpit-assessment p,
+.rd-v2-cockpit-execution p {
+  margin: 4px 0 5px;
+  line-height: 1.3;
+}
+
+/* Search wider lives beside the candidate field; do not repeat the same CTA in the rail. */
+.rd-v2-cockpit-execution > button {
+  display: none;
+}
+
+.rd-v2-cockpit-capacity.is-compact {
+  margin-top: 4px;
+}
+
+/* Candidate field: a compact framing line, not another card before the actual results. */
+.rd-v2-discover-field {
+  gap: 5px;
+  margin: 6px 0 8px;
+  padding: 7px 10px 6px;
+  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 68%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 52%, transparent);
+  background: transparent;
+}
+
+.rd-v2-discover-field > header {
+  align-items: baseline;
+}
+
+.rd-v2-discover-field > header strong {
+  font-size: 13px;
+}
+
+.rd-v2-discover-field > header p {
+  font-size: 8.8px;
+}
+
+.rd-v2-discover-field-actions button {
+  padding: 4px 7px;
+  border-color: color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, transparent);
+  background: transparent;
+}
+
+.rd-v2-discover-field-metrics {
+  gap: 13px;
+  border: 0;
+}
+
+.rd-v2-discover-field-metrics > span {
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.rd-v2-discover-field-metrics b {
+  font-size: 10px;
+}
+
+.rd-v2-discover-field-metrics em {
+  font-size: 8px;
+}
+
+/* Assembly is the exceptional state, so it earns the strongest emphasis in the field. */
+.rd-v2-discover-assembly {
+  margin-top: 3px;
+  padding: 8px 9px;
+  border-left-width: 2px;
+}
+
+.rd-v2-discover-assembly-mark {
+  width: 23px;
+  height: 23px;
+  font-size: 12px;
+}
+
+/* Large result sets scan as a ledger. Preserve useful facts, cut repetitive chrome. */
+.rd-v2-discover-ranked-results .rd-v2-discover-candidate {
+  min-height: 66px;
+  padding: 7px 96px 7px 8px;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-candidate-main {
+  gap: 2px;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-candidate-title {
+  font-size: 11px;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-evidence {
+  display: block;
+  overflow: hidden;
+  font-size: 8.8px;
+  line-height: 1.25;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-offering-facts {
+  display: flex;
+  gap: 11px;
+  margin-top: 0;
+  overflow: hidden;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-offering-facts > span {
+  display: inline-flex;
+  min-width: 0;
+  min-height: 0;
+  gap: 3px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  white-space: nowrap;
+}
+
+/* Refresh cadence is useful in Detail, but is the least important repeated scan-field here. */
+.rd-v2-discover-ranked-results .rd-v2-discover-offering-facts > span:nth-child(3) {
+  display: none;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-offering-facts b {
+  font-size: 6.8px;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-offering-facts em {
+  max-width: 220px;
+  overflow: hidden;
+  font-size: 7.8px;
+  text-overflow: ellipsis;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-sufficiency {
+  font-size: 7.5px;
+  line-height: 1.2;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-row-add {
+  top: 8px;
+  right: 8px;
+  min-height: 25px;
+  padding: 3px 7px;
+  opacity: .74;
+}
+
+.rd-v2-discover-ranked-results li:hover .rd-v2-discover-row-add,
+.rd-v2-discover-ranked-results .selected + .rd-v2-discover-row-add,
+.rd-v2-discover-ranked-results .rd-v2-discover-row-add:focus-visible {
+  opacity: 1;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-candidate-source .rd-v2-pill {
+  opacity: .68;
+}
+
+@media (min-width: 1680px) {
+  .rd-v2-discover-ranked-results .rd-v2-discover-candidate {
+    min-height: 62px;
+  }
+}
+
+@media (max-width: 1500px) {
+  .rd-v2-discover-browse:has(> .rd-v2-discover-evidence-cockpit) {
+    grid-template-columns: 156px minmax(0, 1fr);
+    column-gap: 9px;
+  }
+
+  .rd-v2-discover-composer-scope span:nth-child(n + 4) {
+    display: none;
+  }
+
+  .rd-v2-discover-field {
+    padding-inline: 8px;
+  }
+
+  .rd-v2-discover-field > header p {
+    grid-column: 1 / -1;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-candidate {
+    min-height: 68px;
+    padding-right: 88px;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-offering-facts {
+    gap: 8px;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-offering-facts em {
+    max-width: 145px;
+  }
+}
+
+@media (max-width: 1080px) {
+  .rd-v2-discover-radar-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Active-flow hierarchy pass after 1440/1920 pixel review. The evidence field
+   stays primary; deep assessment becomes a deliberate drill-down. */
+.rd-v2-evidence-detail-disclosure {
+  min-width: 0;
+}
+
+.rd-v2-evidence-detail-disclosure:not(.is-workspace) > summary {
+  display: none;
+}
+
+.rd-v2-evidence-detail-disclosure.is-workspace {
+  margin-top: 6px;
+  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 62%, transparent);
+}
+
+.rd-v2-evidence-detail-disclosure.is-workspace > summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 2px 2px;
+  color: var(--rd-body, #3e4759);
+  cursor: pointer;
+  list-style: none;
+  font-size: 9.5px;
+  font-weight: 700;
+}
+
+.rd-v2-evidence-detail-disclosure.is-workspace > summary::-webkit-details-marker {
+  display: none;
+}
+
+.rd-v2-evidence-detail-disclosure.is-workspace > summary::before {
+  content: "▸";
+  flex: 0 0 auto;
+  margin-right: -5px;
+  color: var(--rd-muted, #6e7685);
+  font-size: 8px;
+}
+
+.rd-v2-evidence-detail-disclosure.is-workspace[open] > summary::before {
+  content: "▾";
+}
+
+.rd-v2-evidence-detail-disclosure.is-workspace > summary em {
+  margin-left: auto;
+  color: var(--rd-muted, #6e7685);
+  font-size: 8.5px;
+  font-style: normal;
+  font-weight: 500;
+}
+
+.rd-v2-evidence-detail-disclosure.is-workspace[open] > summary {
+  margin-bottom: 6px;
+  padding-bottom: 7px;
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 52%, transparent);
+}
+
+/* Remove the dead band between the field framing and the result ledger. */
+.rd-v2-discover-field + .rd-v2-discover-ranked-results,
+.rd-v2-discover-explore-workspace + .rd-v2-discover-ranked-results {
+  margin-top: 0 !important;
+}
+
+.rd-v2-discover-ranked-results {
+  margin-top: 0 !important;
+  padding-top: 0;
+}
+
+.rd-v2-discover-ranked-results-head {
+  min-height: 28px;
+  padding: 6px 0 5px;
+}
+
+/* The idle inspector need not reserve selected-candidate width. Restore canvas
+   space while keeping enough room for the search summary; expand only on focus. */
+@media (min-width: 1501px) {
+  body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(.rd-v2-discover-candidate.selected)) .rd-v2-shell {
+    --rd-rail: 336px;
+  }
+  body:has(.rd-v2-discover-page .rd-v2-discover-candidate.selected) .rd-v2-shell {
+    --rd-rail: 400px;
+  }
+}
+
+@media (min-width: 1100px) and (max-width: 1500px) {
+  body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(.rd-v2-discover-candidate.selected)) .rd-v2-shell {
+    --rd-rail: 312px;
+  }
+  body:has(.rd-v2-discover-page .rd-v2-discover-candidate.selected) .rd-v2-shell {
+    --rd-rail: 356px;
+  }
+
+  .rd-v2-discover-browse:has(> .rd-v2-discover-evidence-cockpit) {
+    grid-template-columns: 150px minmax(0, 1fr);
+    column-gap: 8px;
+  }
+}

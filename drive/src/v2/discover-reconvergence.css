@@ -1,0 +1,296 @@
+/* Discover reconvergence — make the primary retrieval surface behave like a
+   research instrument, not an onboarding page. This layer is visual only;
+   evidence, sufficiency, sourcing and lifecycle semantics remain authoritative. */
+
+.rd-v2-discover-page .rd-v2-discover-idle {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 18px 20px 34px;
+  gap: 14px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer {
+  width: 100%;
+  max-width: none;
+  grid-template-columns: minmax(0, 1fr) 108px;
+  gap: 8px 10px;
+  padding: 15px 16px 14px;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--rd-surface, #fffdf6) 97%, white 3%);
+  box-shadow: none;
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer::before {
+  content: "DISCOVER EVIDENCE";
+  font-size: 9px;
+  letter-spacing: .13em;
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer textarea {
+  min-height: 50px;
+  padding: 13px 14px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer > .rd-v2-btn {
+  min-width: 108px;
+  min-height: 50px;
+  border-radius: 6px;
+}
+
+/* The interaction teaches itself. Do not spend the first viewport explaining
+   the keyword/question implementation or render pseudo-mode cards. */
+.rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer > p,
+.rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer-examples {
+  display: none;
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle-held {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  max-width: none;
+  padding: 0;
+}
+
+/* Library position is a compact evidence-estate strip. It should support
+   discovery, not displace discovery. */
+.rd-v2-discover-page .rd-v2-discover-coverage {
+  display: grid;
+  gap: 0;
+  width: 100%;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--rd-surface, #fffdf6) 98%, #edf2f0 2%);
+  box-shadow: none;
+}
+
+.rd-v2-discover-page .rd-v2-discover-coverage > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 43px;
+  padding: 8px 12px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-coverage-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  min-width: 0;
+}
+
+.rd-v2-discover-page .rd-v2-discover-coverage-heading strong {
+  color: var(--rd-text, #182033);
+  font-size: 13px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-coverage-heading > span:last-child {
+  color: var(--rd-muted, #6e7685);
+  font-size: 10.5px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-coverage .rd-v2-discover-coverage-gap {
+  margin: 0;
+  color: #8a6b34;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.rd-v2-discover-page .rd-v2-discover-coverage-shelves {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 78%, transparent);
+  list-style: none;
+}
+
+.rd-v2-discover-page .rd-v2-discover-coverage-shelves > li {
+  min-width: 0;
+  border-right: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 66%, transparent);
+}
+
+.rd-v2-discover-page .rd-v2-discover-coverage-shelves > li:last-child {
+  border-right: 0;
+}
+
+.rd-v2-discover-page .rd-v2-discover-coverage-shelves button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  gap: 2px 8px;
+  width: 100%;
+  min-height: 49px;
+  padding: 8px 11px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+
+.rd-v2-discover-page .rd-v2-discover-coverage-shelves button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--rd-hover, #f5f2ea) 78%, transparent);
+}
+
+.rd-v2-discover-page .rd-v2-discover-coverage-shelves button > span {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--rd-text, #182033);
+  font-size: 10.5px;
+  font-weight: 690;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-v2-discover-page .rd-v2-discover-coverage-shelves button > strong {
+  grid-row: 1 / 3;
+  grid-column: 2;
+  align-self: center;
+  color: #52667a;
+  font: 760 14px/1 var(--rd-mono, ui-monospace, monospace);
+}
+
+.rd-v2-discover-page .rd-v2-discover-coverage-shelves button > em {
+  color: var(--rd-muted, #6e7685);
+  font-size: 9px;
+  font-style: normal;
+}
+
+.rd-v2-discover-page .rd-v2-discover-coverage-folded {
+  margin: 0;
+  padding: 6px 11px 7px;
+  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 58%, transparent);
+  font-size: 9.5px;
+}
+
+/* Source inventory is the body of the resting surface. Give it the horizontal
+   room that workstation displays actually provide. */
+.rd-v2-discover-page .rd-v2-discover-idle-held > .rd-v2-home-section-head {
+  margin: 1px 0 -1px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle-held > .rd-v2-home-section-head h3 {
+  margin-top: 2px;
+  font-size: 13px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidates {
+  width: 100%;
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle-intake {
+  width: 100%;
+  max-width: none;
+  grid-template-columns: auto minmax(220px, 440px) auto 1fr;
+  padding: 10px 0 0;
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle-intake::after {
+  content: "Direct inspection is separate from acquisition.";
+  align-self: center;
+  color: var(--rd-muted, #6e7685);
+  font-size: 9.5px;
+}
+
+/* Active discovery should read as one evidence landscape, not nested cards. */
+.rd-v2-discover-page .rd-v2-discover-explore-workspace {
+  margin-inline: 0;
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+.rd-v2-discover-page .rd-v2-discover-explore-need {
+  padding: 12px 14px 9px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-query-tools {
+  padding: 8px 14px 9px;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace {
+  margin-inline: 0;
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+.rd-v2-discover-page .rd-v2-discover-candidates > li {
+  background: color-mix(in srgb, var(--rd-surface, #fffdf6) 99%, white 1%);
+}
+
+@media (min-width: 1680px) and (min-height: 900px) {
+  .rd-v2-discover-page .rd-v2-discover-idle {
+    padding: 20px 24px 38px;
+    gap: 15px;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer {
+    padding: 17px 18px 16px;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidates {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0;
+    border-left: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 80%, transparent);
+    border-right: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 80%, transparent);
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidates > li:nth-child(odd) {
+    border-right: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, transparent);
+  }
+}
+
+@media (max-width: 1180px) {
+  .rd-v2-discover-page .rd-v2-discover-coverage-shelves {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-coverage-shelves > li:nth-child(2) {
+    border-right: 0;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-coverage-shelves > li:nth-child(-n + 2) {
+    border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 66%, transparent);
+  }
+}
+
+@media (max-width: 760px) {
+  .rd-v2-discover-page .rd-v2-discover-idle {
+    padding: 12px 10px 26px;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer {
+    grid-template-columns: 1fr;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer > .rd-v2-btn {
+    width: 100%;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-coverage > header,
+  .rd-v2-discover-page .rd-v2-discover-coverage-heading {
+    align-items: flex-start;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-coverage > header {
+    display: grid;
+    gap: 4px;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-coverage .rd-v2-discover-coverage-gap {
+    white-space: normal;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-intake {
+    grid-template-columns: 1fr auto;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-intake label,
+  .rd-v2-discover-page .rd-v2-discover-idle-intake::after {
+    grid-column: 1 / -1;
+  }
+}
