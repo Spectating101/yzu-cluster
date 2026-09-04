@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   validate:
@@ -20,17 +20,6 @@ jobs:
         with:
           node-version: "20"
           cache: npm
-      - name: Apply federation runtime product patch
-        run: |
-          python3 scripts/_apply_library_federation_runtime.py
-          python3 scripts/_fix_library_federation_runtime.py
-          if ! git diff --quiet -- drive/src/v2 e2e/fixtures/v2MockApi.js e2e/library-federation-runtime.spec.js; then
-            git config user.name github-actions[bot]
-            git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-            git add drive/src/v2 e2e/fixtures/v2MockApi.js e2e/library-federation-runtime.spec.js
-            git commit -m "feat(library): harden provider-backed federation runtime"
-            git push origin HEAD:audit/library-federation-runtime-20260904
-          fi
       - run: npm ci
       - run: npx playwright install chromium
       - name: Federation and evidence identity contracts
@@ -58,6 +47,8 @@ jobs:
         env:
           CI: "true"
           YZU_PAGES: "false"
+      - name: Ensure validation did not mutate tracked source
+        run: git diff --exit-code
       - name: Upload federation runtime proof
         if: always()
         uses: actions/upload-artifact@v4
