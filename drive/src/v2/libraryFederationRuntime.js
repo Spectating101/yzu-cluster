@@ -93,6 +93,10 @@ function canonicalById(holdings = []) {
   );
 }
 
+function remoteIdentity(provider, accountId, providerItemId) {
+  return ["remote", clean(provider), clean(accountId) || "unknown-account", clean(providerItemId)].join(":");
+}
+
 export function providerDirectoryRows({
   items = [],
   holdings = [],
@@ -103,12 +107,14 @@ export function providerDirectoryRows({
   const provider = clean(providerId);
   const label = clean(providerLabel) || provider;
   return (Array.isArray(items) ? items : []).map((item) => {
+    const accountId = clean(item.accountId);
     if (item.kind === "folder") {
       return {
         kind: "folder",
-        id: `remote:${provider}:${item.providerItemId}`,
+        id: remoteIdentity(provider, accountId, item.providerItemId),
         name: item.name,
         remoteProvider: provider,
+        accountId,
         providerItemId: item.providerItemId,
         parentItemId: item.parentItemId,
         remotePath: item.path,
@@ -129,6 +135,7 @@ export function providerDirectoryRows({
           ...canonical,
           __provider_holding: {
             provider,
+            account_id: accountId,
             provider_item_id: item.providerItemId,
             parent_item_id: item.parentItemId,
             path: item.path,
@@ -137,16 +144,18 @@ export function providerDirectoryRows({
         },
         pathLabel: item.path || `${label} holding`,
         remoteProvider: provider,
+        accountId,
         providerItemId: item.providerItemId,
       };
     }
 
     return {
       kind: "remote_file",
-      id: `remote:${provider}:${item.providerItemId}`,
+      id: remoteIdentity(provider, accountId, item.providerItemId),
       name: item.name,
       provider,
       providerLabel: label,
+      accountId,
       providerItemId: item.providerItemId,
       parentItemId: item.parentItemId,
       path: item.path,
