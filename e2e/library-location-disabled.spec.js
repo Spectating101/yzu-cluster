@@ -16,12 +16,12 @@ test("Folders keeps disconnected external locations in the compact Location drop
   const location = page.getByTestId("library-location-filter");
   await expect(location).toBeVisible();
   await expect(location).toHaveValue("all");
-  await expect(location.locator('option[value="all"]')).toBeEnabled();
+  await expect(location.locator('option[value="all"]')).not.toHaveAttribute("disabled", "");
 
   const drive = location.locator('option[value="google_drive"]');
   const dropbox = location.locator('option[value="dropbox"]');
-  await expect(drive).toBeDisabled();
-  await expect(dropbox).toBeDisabled();
+  await expect(drive).toHaveAttribute("disabled", "");
+  await expect(dropbox).toHaveAttribute("disabled", "");
   await expect(drive).toHaveAttribute("data-state", "disconnected");
   await expect(dropbox).toHaveAttribute("data-state", "disconnected");
   await expect(drive).toHaveText("Google Drive");
@@ -33,7 +33,7 @@ test("Folders keeps disconnected external locations in the compact Location drop
   await page.setViewportSize({ width: 390, height: 1000 });
   await expect(location).toBeVisible();
   await expect(location).toHaveValue("all");
-  await expect(drive).toBeDisabled();
-  await expect(dropbox).toBeDisabled();
+  await expect(drive).toHaveAttribute("disabled", "");
+  await expect(dropbox).toHaveAttribute("disabled", "");
   await page.screenshot({ path: `${OUT}/02-folders-location-dropdown-mobile.png`, fullPage: false });
 });
