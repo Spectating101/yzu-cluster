@@ -108,6 +108,8 @@ export function providerDirectoryRows({
   const label = clean(providerLabel) || provider;
   return (Array.isArray(items) ? items : []).map((item) => {
     const accountId = clean(item.accountId);
+    const versionId = clean(item.versionId);
+    const contentHash = clean(item.contentHash);
     if (item.kind === "folder") {
       return {
         kind: "folder",
@@ -140,12 +142,16 @@ export function providerDirectoryRows({
             parent_item_id: item.parentItemId,
             path: item.path,
             content_access: item.contentAccess,
+            version_id: versionId,
+            content_hash: contentHash,
           },
         },
         pathLabel: item.path || `${label} holding`,
         remoteProvider: provider,
         accountId,
         providerItemId: item.providerItemId,
+        versionId,
+        contentHash,
       };
     }
 
@@ -165,6 +171,8 @@ export function providerDirectoryRows({
       contentAccess: item.contentAccess,
       metadataVisible: item.metadataVisible,
       logicalAssetId: item.logicalAssetId,
+      versionId,
+      contentHash,
     };
   });
 }
