@@ -28,8 +28,11 @@ export function normalizeLibraryLocations(locations = []) {
         ...supported,
         state,
         connected: state !== "disconnected",
+        accountId: item.accountId || item.account_id || "",
         accountLabel: item.accountLabel || item.account_label || "",
         rootId: item.rootId || item.root_id || "",
+        accessMode: item.accessMode || item.access_mode || "",
+        directoryBrowseAvailable: Boolean(item.directoryBrowseAvailable ?? item.directory_browse_available ?? false),
       };
     }),
   ];
@@ -86,6 +89,8 @@ export function normalizeProviderDirectoryPage(payload = {}) {
     mimeType: String(item.mimeType || item.mime_type || ""),
     sizeBytes: Number.isFinite(Number(item.sizeBytes ?? item.size_bytes ?? item.size)) ? Number(item.sizeBytes ?? item.size_bytes ?? item.size) : null,
     accountId: String(item.accountId || item.account_id || payload.accountId || payload.account_id || ""),
+    versionId: String(item.versionId || item.version_id || item.revision_id || item.version || ""),
+    contentHash: String(item.contentHash || item.content_hash || item.content_sha256 || item.sha256 || ""),
   }));
 
   return {
