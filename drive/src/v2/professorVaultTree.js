@@ -1,4 +1,4 @@
-import { buildConsumerDriveTree, DRIVE_LAB, LIBRARY_FOLDERS_ROOT } from "@/driveTree";
+import { buildConsumerDriveTree, DRIVE_LAB, LIBRARY_FOLDERS_ROOT } from "../driveTree.js";
 
 /** Professor Library taxonomy plus a separate physical-folder browser. */
 
