@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  LIBRARY_FOLDERS_ROOT,
   breadcrumbTrail,
   collectDatasetDescendants,
   listFolderChildren,
@@ -9,6 +10,7 @@ import { libraryFolderObject } from "@/v2/activeObject";
 import { CatalogList } from "@/v2/CatalogList";
 import { libraryAssetPresentation, statusPillKind } from "@/v2/datasetMeta";
 import { libraryVerification } from "@/v2/libraryVerification";
+import { isBrowsableLibraryLocation, normalizeLibraryLocations } from "@/v2/libraryLocations";
 import { LibraryAssetWorkspace } from "@/v2/LibraryAssetWorkspace";
 import { LibraryEvidenceEstate } from "@/v2/LibraryEvidenceEstate";
 import { resolveLibrarySelection } from "@/v2/librarySelection";
@@ -319,11 +321,14 @@ export function LibraryPage({
   onSearchChange,
   selectionHoldings,
   selectionFallback,
+  folderLocations = [],
+  onFolderLocationChange,
   referenceCount = 0,
 }) {
   const [sortBy, setSortBy] = useState("name");
   const [typeMode, setTypeMode] = useState("all");
   const [filterMode, setFilterMode] = useState("all");
+  const [locationMode, setLocationMode] = useState("all");
   const [newMenuOpen, setNewMenuOpen] = useState(false);
   const searchInputRef = useRef(null);
   const searchActive = Boolean(String(searchQuery || "").trim());
@@ -417,6 +422,17 @@ export function LibraryPage({
 
   const destination = useMemo(() => folderDestination(trail, folderId), [trail, folderId]);
   const isRoot = !folderId;
+  const browsingPhysicalFolders = folderId === LIBRARY_FOLDERS_ROOT || String(folderId || "").startsWith(`${LIBRARY_FOLDERS_ROOT}/`);
+  const normalizedFolderLocations = useMemo(
+    () => normalizeLibraryLocations(folderLocations),
+    [folderLocations],
+  );
+
+  useEffect(() => {
+    if (locationMode === "all") return;
+    const active = normalizedFolderLocations.find((location) => location.id === locationMode);
+    if (!isBrowsableLibraryLocation(active, Boolean(onFolderLocationChange))) setLocationMode("all");
+  }, [locationMode, normalizedFolderLocations, onFolderLocationChange]);
 
   const items = useMemo(() => listFolderChildren(tree, folderId), [tree, folderId]);
   // Search already filters the catalog upstream; without flattening, Library root
@@ -641,6 +657,38 @@ export function LibraryPage({
                   <option value="updated">Modified</option>
                 </select>
               </label>
+              {browsingPhysicalFolders ? (
+                <label
+                  className="rd-v2-library-filter-control rd-v2-library-location-filter"
+                  title="Choose which connected storage location to browse."
+                >
+                  <span>Location</span>
+                  <select
+                    data-testid="library-location-filter"
+                    aria-label="Browse folder storage location"
+                    value={locationMode}
+                    onChange={(event) => {
+                      const nextLocation = event.target.value;
+                      setLocationMode(nextLocation);
+                      onFolderLocationChange?.(nextLocation);
+                    }}
+                  >
+                    {normalizedFolderLocations.map((location) => {
+                      const browsable = isBrowsableLibraryLocation(location, Boolean(onFolderLocationChange));
+                      return (
+                        <option
+                          key={location.id}
+                          value={location.id}
+                          data-state={location.state}
+                          disabled={!browsable}
+                        >
+                          {location.label}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </label>
+              ) : null}
             </div>
             <span className="rd-v2-toolbar-spacer" />
             <span className="rd-v2-toolbar-count">

@@ -1,4 +1,6 @@
-/** Professor Library tree — shelves → folders → datasets (not Apps & connections junk). */
+import { buildConsumerDriveTree, DRIVE_LAB, LIBRARY_FOLDERS_ROOT } from "../driveTree.js";
+
+/** Professor Library taxonomy plus a separate physical-folder browser. */
 
 const OPS_NOISE_RE =
   /canary|smoke|host_acceptance|day2_deploy|mcp_canary|winclaim|fullops|post-heal|landing prove|windows http|ssrf\d|rev_live|example\.com|capability_canary|codex_sec_tickers_canary|synthesis_.*canary/i;
@@ -64,9 +66,80 @@ function deriveShelves(partitions = [], shelves = []) {
   return [...byId.values()];
 }
 
+function hasExplicitStorageLocation(row = {}) {
+  return Boolean(String(row.local_path || "").trim() || String(row.local_root || "").trim());
+}
+
+function clonePhysicalEntry(entry, parentLabels = []) {
+  if (entry?.kind === "folder") {
+    const relativePath = Array.isArray(entry.path) ? entry.path : [];
+    const id = [LIBRARY_FOLDERS_ROOT, ...relativePath].join("/");
+    const labels = [...parentLabels, entry.name].filter(Boolean);
+    const node = {
+      ...entry,
+      id,
+      path: [LIBRARY_FOLDERS_ROOT, ...relativePath],
+      storage_browser: true,
+      children: {},
+    };
+    for (const child of Object.values(entry.children || {})) {
+      const cloned = clonePhysicalEntry(child, labels);
+      if (cloned) node.children[cloned.id] = cloned;
+    }
+    return node;
+  }
+
+  if (entry?.kind === "dataset") {
+    const row = entry.row || entry;
+    const title = datasetTitle(row);
+    return {
+      ...entry,
+      id: String(row.dataset_id || entry.id || ""),
+      name: title,
+      row: { ...row, name: title },
+      path: [LIBRARY_FOLDERS_ROOT, ...(Array.isArray(entry.path) ? entry.path : [])],
+      browsePath: ["Folders", ...parentLabels].filter(Boolean),
+      pathLabel: ["Folders", ...parentLabels].filter(Boolean).join(" › "),
+      storage_browser: true,
+    };
+  }
+
+  return null;
+}
+
 /**
- * Build a Lab tree compatible with listFolderChildren / breadcrumbTrail:
+ * Build the physical storage browser from explicit local paths only.
+ * Assets without a recorded local_path/local_root remain Library evidence, but
+ * are not invented into a fake physical folder.
+ */
+function buildPhysicalFoldersRoot(datasets = []) {
+  const physicalRows = (datasets || []).filter(
+    (row) => !isOpsNoiseDataset(row) && hasExplicitStorageLocation(row),
+  );
+  const physical = buildConsumerDriveTree(physicalRows, { scope: DRIVE_LAB });
+  const root = {
+    id: LIBRARY_FOLDERS_ROOT,
+    kind: "folder",
+    name: "Folders",
+    segment: LIBRARY_FOLDERS_ROOT,
+    path: [LIBRARY_FOLDERS_ROOT],
+    storage_browser: true,
+    children: {},
+  };
+  for (const child of Object.values(physical?.root?.children || {})) {
+    const cloned = clonePhysicalEntry(child);
+    if (cloned) root.children[cloned.id] = cloned;
+  }
+  return root;
+}
+
+/**
+ * Build the research-context taxonomy used by Library root collections:
  *   {shelf_id} / {partition_id} / dataset
+ *
+ * A separate `foldersRoot` is attached to the Library root for manual physical
+ * browsing. It is intentionally not inserted into `children`, so Research
+ * Collections and Folder storage never become the same taxonomy.
  */
 export function buildProfessorVaultTree(datasets = [], partitions = [], shelves = []) {
   const root = {
@@ -75,6 +148,7 @@ export function buildProfessorVaultTree(datasets = [], partitions = [], shelves 
     name: "Library",
     path: [],
     children: {},
+    foldersRoot: buildPhysicalFoldersRoot(datasets),
   };
 
   const shelfSpecs = deriveShelves(partitions, shelves);
@@ -131,7 +205,7 @@ export function buildProfessorVaultTree(datasets = [], partitions = [], shelves 
     partNodes.set(pid, folder);
   }
 
-  // Catch-all for readable holdings without a wired partition.
+  // Catch-all for readable holdings without a wired research partition.
   const otherShelfId = "project_downloads";
   if (!shelfNodes.has(otherShelfId)) {
     const node = {
@@ -187,7 +261,6 @@ export function buildProfessorVaultTree(datasets = [], partitions = [], shelves 
     if (!folder) {
       const hint = String(row.shelf_hint || "").trim();
       if (hint && shelfNodes.has(hint)) {
-        // first partition folder under that shelf, or unfiled under project_downloads
         const shelf = shelfNodes.get(hint);
         folder = Object.values(shelf.children || {}).find((c) => c.kind === "folder") || partNodes.get("unfiled");
       } else {
@@ -217,10 +290,7 @@ export function buildProfessorVaultTree(datasets = [], partitions = [], shelves 
       const files = Object.values(part.children || {}).filter((c) => c.kind === "dataset");
       if (!files.length) delete shelf.children[part.id];
     }
-    if (
-      sid === "project_downloads" &&
-      !Object.keys(shelf.children || {}).length
-    ) {
+    if (sid === "project_downloads" && !Object.keys(shelf.children || {}).length) {
       delete root.children[sid];
     }
   }
@@ -229,6 +299,11 @@ export function buildProfessorVaultTree(datasets = [], partitions = [], shelves 
     root,
     scope: "lab",
     rootName: "Library",
-    meta: { placed, skipped, shelves: Object.keys(root.children || {}).length },
+    meta: {
+      placed,
+      skipped,
+      shelves: Object.keys(root.children || {}).length,
+      physicalFolders: Object.keys(root.foldersRoot?.children || {}).length,
+    },
   };
 }

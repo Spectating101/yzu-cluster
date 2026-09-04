@@ -191,3 +191,351 @@
     border-top: 1px solid var(--rd-border);
   }
 }
+
+/* Federated holdings: current storage topology stays visibly distinct from
+   source provenance. The rail gets a compact location summary; the centre
+   overlay owns copy-level provider, custodian, path, access, and sync state. */
+.rd-v2-library-holding-focus {
+  display: grid;
+  gap: 3px;
+  margin-top: 8px;
+  padding: 9px 10px;
+  border: 1px solid var(--rd-border2);
+  border-radius: 7px;
+  background: rgba(250, 249, 244, .48);
+}
+
+.rd-v2-library-holding-focus > span,
+.rd-v2-library-holding-location > span {
+  color: var(--rd-muted);
+  font-family: var(--rd-mono);
+  font-size: 8.5px;
+  font-weight: 760;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.rd-v2-library-holding-focus strong {
+  color: var(--rd-text);
+  font-size: 11.5px;
+}
+
+.rd-v2-library-holding-focus small {
+  color: var(--rd-muted);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.rd-v2-library-holdings-provider-line {
+  margin: 8px 0 0;
+  color: var(--rd-muted);
+  font-size: 10.5px;
+  line-height: 1.4;
+}
+
+.rd-v2-library-holdings-overlay {
+  width: min(100%, 720px);
+}
+
+.rd-v2-library-holdings-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 2px 0 16px;
+  overflow: hidden;
+  border: 1px solid var(--rd-border2);
+  border-radius: 8px;
+  background: rgba(250, 249, 244, .45);
+}
+
+.rd-v2-library-holdings-summary > div {
+  min-width: 0;
+  padding: 10px 12px;
+}
+
+.rd-v2-library-holdings-summary > div + div {
+  border-left: 1px solid var(--rd-border);
+}
+
+.rd-v2-library-holdings-summary span {
+  display: block;
+  color: var(--rd-muted);
+  font-family: var(--rd-mono);
+  font-size: 8.5px;
+  font-weight: 760;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.rd-v2-library-holdings-summary strong {
+  display: block;
+  margin-top: 3px;
+  color: var(--rd-text);
+  font-size: 17px;
+}
+
+.rd-v2-library-holding-list {
+  display: grid;
+  gap: 9px;
+}
+
+.rd-v2-library-holding-card {
+  padding: 12px 13px;
+  border: 1px solid var(--rd-border2);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, .72);
+}
+
+.rd-v2-library-holding-card > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 0;
+}
+
+.rd-v2-library-holding-card h3 {
+  margin: 3px 0 0;
+  color: var(--rd-text);
+  font-size: 14px;
+}
+
+.rd-v2-library-holding-card header p {
+  margin: 3px 0 0;
+  color: var(--rd-muted);
+  font-size: 10.5px;
+}
+
+.rd-v2-library-holding-status {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 5px;
+}
+
+.rd-v2-library-holding-status span {
+  padding: 3px 6px;
+  border: 1px solid var(--rd-border2);
+  border-radius: 999px;
+  color: var(--rd-muted);
+  font-size: 9px;
+  font-weight: 650;
+}
+
+.rd-v2-library-holding-card[data-access="available"] .rd-v2-library-holding-status span:first-child {
+  border-color: rgba(63, 111, 92, .28);
+  background: rgba(63, 111, 92, .07);
+  color: #365447;
+}
+
+.rd-v2-library-holding-location {
+  display: grid;
+  gap: 4px;
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px solid var(--rd-border);
+}
+
+.rd-v2-library-holding-location code {
+  color: var(--rd-body);
+  font-size: 10.5px;
+  overflow-wrap: anywhere;
+}
+
+.rd-v2-library-holding-meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 10px 0 0;
+}
+
+.rd-v2-library-holding-meta dt {
+  color: var(--rd-muted);
+  font-family: var(--rd-mono);
+  font-size: 8px;
+  font-weight: 760;
+  text-transform: uppercase;
+}
+
+.rd-v2-library-holding-meta dd {
+  margin: 3px 0 0;
+  color: var(--rd-body);
+  font-size: 9.5px;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 760px) {
+  .rd-v2-library-holdings-summary,
+  .rd-v2-library-holding-meta {
+    grid-template-columns: 1fr;
+  }
+
+  .rd-v2-library-holdings-summary > div + div {
+    border-top: 1px solid var(--rd-border);
+    border-left: 0;
+  }
+
+  .rd-v2-library-holding-card > header {
+    display: grid;
+  }
+
+  .rd-v2-library-holding-status {
+    justify-content: flex-start;
+  }
+}
+
+
+/* LIBRARY FINAL FREEZE: compact decision rail
+   Same semantic ownership, less vertical serialization. */
+.rd-v2-library-inspector-basis {
+  padding: 14px 15px 12px;
+}
+
+.rd-v2-library-inspector-basis-grid {
+  display: block;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.rd-v2-library-inspector-basis-grid > div {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  align-items: baseline;
+  gap: 8px;
+  padding: 5px 0;
+  border: 0;
+  border-top: 1px solid rgba(38, 52, 72, .09);
+  background: transparent;
+}
+
+.rd-v2-library-inspector-basis-grid > div:first-child {
+  border-top: 0;
+}
+
+.rd-v2-library-inspector-basis-grid > div:nth-child(odd),
+.rd-v2-library-inspector-basis-grid > div:nth-child(n + 3) {
+  border-right: 0;
+}
+
+.rd-v2-library-inspector-basis-grid span {
+  margin-bottom: 0;
+  font-size: 9px;
+  letter-spacing: .06em;
+}
+
+.rd-v2-library-inspector-basis-grid strong {
+  font-size: 11.5px;
+  line-height: 1.25;
+}
+
+.rd-v2-library-inspector-next {
+  margin-top: 8px;
+  padding: 9px 10px;
+  border-left-color: rgba(39, 84, 133, .45);
+  background: rgba(44, 76, 114, .035);
+}
+
+.rd-v2-library-inspector-next > span {
+  font-size: 9px;
+  letter-spacing: .06em;
+}
+
+.rd-v2-library-inspector-next p {
+  margin-top: 3px;
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+
+.rd-v2-library-inspector-holdings {
+  padding: 12px 15px;
+}
+
+.rd-v2-library-inspector-holdings .rd-v2-library-rail-module-title {
+  margin: 2px 0 5px;
+  font-size: 11.5px;
+}
+
+.rd-v2-library-holding-focus {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: 2px 8px;
+  margin-top: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.rd-v2-library-holding-focus > span {
+  grid-column: 1;
+  align-self: baseline;
+  font-size: 9px;
+}
+
+.rd-v2-library-holding-focus strong {
+  grid-column: 2;
+  font-size: 11.5px;
+  line-height: 1.25;
+}
+
+.rd-v2-library-holding-focus small {
+  grid-column: 2;
+  font-size: 9.5px;
+  line-height: 1.3;
+}
+
+.rd-v2-library-holdings-provider-line {
+  margin: 6px 0 0;
+  padding-top: 6px;
+  border-top: 1px solid rgba(38, 52, 72, .09);
+  font-size: 10px;
+}
+
+.rd-v2-library-inspector-block {
+  padding: 12px 15px;
+}
+
+.rd-v2-library-inspector-block .rd-v2-library-rail-module-title {
+  margin: 2px 0 4px;
+  font-size: 12px;
+}
+
+.rd-v2-library-inspector-prose {
+  margin: 4px 0;
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+
+.rd-v2-library-verify-list {
+  gap: 3px;
+  margin: 6px 0 0;
+}
+
+.rd-v2-library-verify-list li {
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.rd-v2-library-inspector-tech {
+  margin: 9px 15px 12px;
+}
+
+.rd-v2-library-inspector-tech > summary {
+  font-size: 10.5px;
+}
+
+@media (max-width: 760px) {
+  .rd-v2-library-inspector-basis-grid > div {
+    grid-template-columns: 84px minmax(0, 1fr);
+  }
+}
+
+
+/* LIBRARY FEDERATION FREEZE: Location deliberately reuses the same compact
+   select pattern as Type, Readiness, and Sort. Provider capability remains in
+   the option list instead of becoming a second navigation strip. */
+
+
+/* LIBRARY FEDERATION FREEZE: Location deliberately reuses the same compact
+   select pattern as Type, Readiness, and Sort. Provider capability remains in
+   the option list instead of becoming a second navigation strip. */
