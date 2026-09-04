@@ -1,0 +1,41 @@
+name: Library provider directory visual prototype
+
+on:
+  push:
+    branches:
+      - prototype/library-location-provider-direct-20260904
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install chromium
+      - name: Production build
+        run: npm run build
+        env:
+          YZU_PAGES: "true"
+      - name: Render provider directory states
+        run: mkdir -p .tmp-pw && TMPDIR=$PWD/.tmp-pw npx playwright test e2e/library-location-provider-direct-visual.spec.js --reporter=dot
+        env:
+          CI: "true"
+          YZU_PAGES: "false"
+      - name: Upload renders
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: library-location-provider-direct
+          path: |
+            artifacts/library-location-provider-direct
+            test-results
+          if-no-files-found: warn
+          retention-days: 14
