@@ -10,6 +10,7 @@ import { libraryFolderObject } from "@/v2/activeObject";
 import { CatalogList } from "@/v2/CatalogList";
 import { libraryAssetPresentation, statusPillKind } from "@/v2/datasetMeta";
 import { libraryVerification } from "@/v2/libraryVerification";
+import { isBrowsableLibraryLocation, libraryLocationStatusLabel, normalizeLibraryLocations } from "@/v2/libraryLocations";
 import { LibraryAssetWorkspace } from "@/v2/LibraryAssetWorkspace";
 import { LibraryEvidenceEstate } from "@/v2/LibraryEvidenceEstate";
 import { resolveLibrarySelection } from "@/v2/librarySelection";
@@ -320,6 +321,8 @@ export function LibraryPage({
   onSearchChange,
   selectionHoldings,
   selectionFallback,
+  folderLocations = [],
+  onFolderLocationChange,
   referenceCount = 0,
 }) {
   const [sortBy, setSortBy] = useState("name");
@@ -420,6 +423,16 @@ export function LibraryPage({
   const destination = useMemo(() => folderDestination(trail, folderId), [trail, folderId]);
   const isRoot = !folderId;
   const browsingPhysicalFolders = folderId === LIBRARY_FOLDERS_ROOT || String(folderId || "").startsWith(`${LIBRARY_FOLDERS_ROOT}/`);
+  const normalizedFolderLocations = useMemo(
+    () => normalizeLibraryLocations(folderLocations),
+    [folderLocations],
+  );
+
+  useEffect(() => {
+    if (locationMode === "all") return;
+    const active = normalizedFolderLocations.find((location) => location.id === locationMode);
+    if (!isBrowsableLibraryLocation(active, Boolean(onFolderLocationChange))) setLocationMode("all");
+  }, [locationMode, normalizedFolderLocations, onFolderLocationChange]);
 
   const items = useMemo(() => listFolderChildren(tree, folderId), [tree, folderId]);
   // Search already filters the catalog upstream; without flattening, Library root
@@ -645,22 +658,38 @@ export function LibraryPage({
                 </select>
               </label>
               {browsingPhysicalFolders ? (
-                <label
+                <div
                   className="rd-v2-library-filter-control rd-v2-library-location-filter"
-                  title="Connect external storage accounts in Settings to browse their indexed folders."
+                  data-testid="library-location-filter"
+                  aria-label="Folder storage location"
                 >
                   <span>Location</span>
-                  <select
-                    data-testid="library-location-filter"
-                    aria-label="Filter folders by connected location"
-                    value={locationMode}
-                    onChange={(event) => setLocationMode(event.target.value)}
-                  >
-                    <option value="all">All</option>
-                    <option value="google_drive" disabled>Google Drive</option>
-                    <option value="dropbox" disabled>Dropbox</option>
-                  </select>
-                </label>
+                  <div className="rd-v2-library-location-options" role="group" aria-label="Browse folder storage location">
+                    {normalizedFolderLocations.map((location) => {
+                      const browsable = isBrowsableLibraryLocation(location, Boolean(onFolderLocationChange));
+                      const active = location.id === locationMode;
+                      const status = libraryLocationStatusLabel(location);
+                      return (
+                        <button
+                          key={location.id}
+                          type="button"
+                          className={active ? "active" : ""}
+                          data-location={location.id}
+                          data-state={location.state}
+                          aria-pressed={active}
+                          disabled={!browsable}
+                          title={location.id === "all" ? "Browse all available folder locations" : `${location.label} · ${status}`}
+                          onClick={() => {
+                            setLocationMode(location.id);
+                            onFolderLocationChange?.(location.id);
+                          }}
+                        >
+                          {location.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               ) : null}
             </div>
             <span className="rd-v2-toolbar-spacer" />
