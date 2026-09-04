@@ -51,8 +51,8 @@ test("remote directory resolves known holdings to canonical Library identity and
     holdings: [{ dataset_id: "asia_panel", name: "Asia panel", analysis_readiness: "instant" }],
     items: [
       { kind: "folder", accountId: "g1", providerItemId: "folder-1", name: "Research", path: "My Drive / Research", childCount: 4 },
-      { kind: "file", accountId: "g1", providerItemId: "file-known", name: "asia.csv", logicalAssetId: "asia_panel", path: "My Drive / Research / asia.csv", contentAccess: "available" },
-      { kind: "file", accountId: "g1", providerItemId: "file-new", name: "forgotten.csv", path: "My Drive / Research / forgotten.csv", contentAccess: "available" },
+      { kind: "file", accountId: "g1", providerItemId: "file-known", name: "asia.csv", logicalAssetId: "asia_panel", path: "My Drive / Research / asia.csv", contentAccess: "available", versionId: "17", contentHash: "md5:known" },
+      { kind: "file", accountId: "g1", providerItemId: "file-new", name: "forgotten.csv", path: "My Drive / Research / forgotten.csv", contentAccess: "available", versionId: "18", contentHash: "md5:unknown" },
     ],
   });
   assert.equal(rows[0].kind, "folder");
@@ -61,9 +61,13 @@ test("remote directory resolves known holdings to canonical Library identity and
   assert.equal(rows[1].kind, "dataset");
   assert.equal(rows[1].row.dataset_id, "asia_panel");
   assert.equal(rows[1].row.__provider_holding.account_id, "g1");
+  assert.equal(rows[1].row.__provider_holding.version_id, "17");
+  assert.equal(rows[1].row.__provider_holding.content_hash, "md5:known");
   assert.equal(rows[2].kind, "remote_file");
   assert.equal(rows[2].id, "remote:google_drive:g1:file-new");
   assert.equal(rows[2].name, "forgotten.csv");
   assert.equal(rows[2].accountId, "g1");
+  assert.equal(rows[2].versionId, "18");
+  assert.equal(rows[2].contentHash, "md5:unknown");
   assert.equal(filterProviderDirectoryRows(rows, "forgotten").length, 1);
 });
