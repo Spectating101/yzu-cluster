@@ -21,8 +21,9 @@ function directoryPayload(url) {
   const cursor = url.searchParams.get("cursor") || "";
   if (!parent && cursor === "page-2") {
     return {
+      account_id: "acct-gdrive",
       items: [
-        { id: "shared", kind: "folder", name: "Shared with me", path: "Google Drive / Shared with me", child_count: 3, content_access: "available" },
+        { id: "shared", account_id: "acct-gdrive", kind: "folder", name: "Shared with me", path: "Google Drive / Shared with me", child_count: 3, content_access: "available" },
       ],
       next_cursor: "",
       has_more: false,
@@ -30,10 +31,11 @@ function directoryPayload(url) {
   }
   if (!parent) {
     return {
+      account_id: "acct-gdrive",
       items: [
-        { id: "my-drive", kind: "folder", name: "My Drive", path: "Google Drive / My Drive", child_count: 2, content_access: "available" },
-        { id: "known-gdelt", kind: "file", name: "gdelt_asia_daily.csv", logical_asset_id: "gdelt_asia_daily_country_panel", path: "Google Drive / My Drive / Research / gdelt_asia_daily.csv", content_access: "available" },
-        { id: "forgotten", kind: "file", name: "forgotten_survey.csv", path: "Google Drive / My Drive / Archive / forgotten_survey.csv", content_access: "available", mime_type: "text/csv" },
+        { id: "my-drive", account_id: "acct-gdrive", kind: "folder", name: "My Drive", path: "Google Drive / My Drive", child_count: 2, content_access: "available" },
+        { id: "known-gdelt", account_id: "acct-gdrive", kind: "file", name: "gdelt_asia_daily.csv", logical_asset_id: "gdelt_asia_daily_country_panel", path: "Google Drive / My Drive / Research / gdelt_asia_daily.csv", content_access: "available", version_id: "17", content_hash: "md5:abc123" },
+        { id: "forgotten", account_id: "acct-gdrive", kind: "file", name: "forgotten_survey.csv", path: "Google Drive / My Drive / Archive / forgotten_survey.csv", content_access: "available", mime_type: "text/csv", version_id: "2" },
       ],
       next_cursor: "page-2",
       has_more: true,
@@ -41,15 +43,16 @@ function directoryPayload(url) {
   }
   if (parent === "my-drive") {
     return {
+      account_id: "acct-gdrive",
       items: [
-        { id: "research", kind: "folder", name: "Research projects", parent_id: "my-drive", path: "Google Drive / My Drive / Research projects", child_count: 1, content_access: "available" },
-        { id: "issuer", kind: "file", name: "issuer_weekly.parquet", parent_id: "my-drive", logical_asset_id: "issuer_weekly_panel", path: "Google Drive / My Drive / issuer_weekly.parquet", content_access: "available" },
+        { id: "research", account_id: "acct-gdrive", kind: "folder", name: "Research projects", parent_id: "my-drive", path: "Google Drive / My Drive / Research projects", child_count: 1, content_access: "available" },
+        { id: "issuer", account_id: "acct-gdrive", kind: "file", name: "issuer_weekly.parquet", parent_id: "my-drive", logical_asset_id: "issuer_weekly_panel", path: "Google Drive / My Drive / issuer_weekly.parquet", content_access: "available", version_id: "9", content_hash: "md5:def456" },
       ],
       next_cursor: "",
       has_more: false,
     };
   }
-  return { items: [], next_cursor: "", has_more: false };
+  return { account_id: "acct-gdrive", items: [], next_cursor: "", has_more: false };
 }
 
 test("connected Google Drive lazily browses provider folders and converges known files on canonical dossiers", async ({ page }) => {
@@ -61,6 +64,9 @@ test("connected Google Drive lazily browses provider folders and converges known
   );
   await page.route("**/library/folders?*", (route) => {
     const url = new URL(route.request().url());
+    expect(url.searchParams.get("provider")).toBe("google_drive");
+    expect(url.searchParams.get("account_id")).toBe("acct-gdrive");
+    expect(Number(url.searchParams.get("limit"))).toBeLessThanOrEqual(200);
     return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(directoryPayload(url)) });
   });
 
