@@ -23,11 +23,11 @@ jobs:
       - name: Apply provider federation product patch
         run: |
           python3 scripts/_apply_library_provider_federation.py
-          if ! git diff --quiet -- drive/src/v2/LibraryPage.jsx drive/src/v2/library-live-scale.css; then
+          if ! git diff --quiet -- drive/src/v2/LibraryPage.jsx drive/src/v2/library-live-scale.css e2e/library-location-disabled.spec.js; then
             git config user.name github-actions[bot]
             git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-            git add drive/src/v2/LibraryPage.jsx drive/src/v2/library-live-scale.css
-            git commit -m "feat(library): expose federated folder locations"
+            git add drive/src/v2/LibraryPage.jsx drive/src/v2/library-live-scale.css e2e/library-location-disabled.spec.js
+            git commit -m "polish(library): align location with toolbar filters"
             git push origin HEAD:audit/library-provider-federation-freeze-20260904
           fi
       - run: npm ci
