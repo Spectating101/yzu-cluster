@@ -25,7 +25,7 @@ jobs:
         env:
           YZU_PAGES: "true"
       - name: Location chrome and folder workflow
-        run: mkdir -p .tmp-pw && TMPDIR=$PWD/.tmp-pw npx playwright test e2e/library-location-disabled.spec.js e2e/library-folder-workflow.spec.js --reporter=dot
+        run: mkdir -p .tmp-pw && TMPDIR=$PWD/.tmp-pw npx playwright test e2e/library-location-disabled.spec.js e2e/library-location-open.spec.js e2e/library-folder-workflow.spec.js --reporter=dot
         env:
           CI: "true"
           YZU_PAGES: "false"
@@ -36,6 +36,7 @@ jobs:
           name: library-location-clean-head
           path: |
             artifacts/library-location-disabled
+            artifacts/library-location-open
             artifacts/library-folder-workflow
             test-results
           if-no-files-found: warn
