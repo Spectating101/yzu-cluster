@@ -1,0 +1,67 @@
+name: Layout geometry
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - integration/research-drive-final-release-20260906
+    paths:
+      - "drive/src/v2/**"
+      - "e2e/**"
+      - "playwright.config.js"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/layout-geometry.yml"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "drive/src/v2/**"
+      - "e2e/**"
+      - "playwright.config.js"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/layout-geometry.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: layout-geometry-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  viewport-matrix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install chromium
+
+      - name: Verify release layout geometry
+        run: |
+          mkdir -p .tmp-pw
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false \
+            npx playwright test e2e/layout-geometry-contract.spec.js --workers=1 --reporter=line
+
+      - name: Preserve geometry diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: research-drive-layout-geometry
+          path: test-results
+          if-no-files-found: warn
+          retention-days: 14
