@@ -52,6 +52,7 @@ import "./synthesis-agent-console.css";
 import "./synthesis-object-context.css";
 import "./discover-frozen-closure.css";
 import "./connected-accounts.css";
+import "./home-release-closure.css";
 import { V2App } from "./App";
 import { InteractionProvider } from "./InteractionGuidance";
 import { SynthesisAuthorityMount } from "./SynthesisAuthorityMount.jsx";
