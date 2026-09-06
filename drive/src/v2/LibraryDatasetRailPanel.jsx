@@ -6,21 +6,39 @@ import {
   libraryAssetPresentation,
   statusPillKind,
 } from "@/v2/datasetMeta";
+import { freshnessDate, summarizeLibraryFreshness } from "@/v2/libraryFreshness";
 import { hasReproductionMethod, librarySourceReceipt } from "@/v2/libraryProvenance";
 import { libraryVerification } from "@/v2/libraryVerification";
+import { holdingRoleLabel, summarizeLibraryHoldings } from "@/v2/libraryHoldings";
 import { RailFrame, RailStickyFooter } from "@/v2/RailFrame";
 
 export function decisionFor(dataset) {
   return canIUseDecision(dataset);
 }
 
-function unknowns(dataset, fields, presentation, receipt) {
+function sourceAuthorityValue(dataset) {
+  if (dataset?.self_provided || dataset?.upload) return "Self-provided";
+  const provenance = typeof dataset?.provenance === "string" ? dataset.provenance.trim() : "";
+  return String(
+    dataset?.source ||
+      dataset?.publisher ||
+      dataset?.source_system ||
+      provenance ||
+      "",
+  ).trim();
+}
+
+function accessRouteValue(dataset, fields) {
+  return String(dataset?.collect_via || dataset?.backend || fields.access || "").trim();
+}
+
+function unknowns(dataset, fields, presentation, receipt, freshness) {
   const out = [];
   const demotion = demotionSentence(dataset);
   if (demotion) out.push(demotion);
 
-  if (!fields.source && !dataset?.source && !dataset?.source_system && !dataset?.provenance) {
-    out.push("Provenance not reported beyond registry");
+  if (!sourceAuthorityValue(dataset)) {
+    out.push("Source authority not recorded");
   }
   if (!dataset?.self_provided && !dataset?.upload && !receipt.sourceUrl) {
     out.push("Exact source URL not recorded");
@@ -35,9 +53,11 @@ function unknowns(dataset, fields, presentation, receipt) {
   }
 
   if (presentation.kind === "live_source") {
-    if (!dataset?.collect_via && !dataset?.backend && !fields.access && !receipt.method) out.push("Access route not reported");
+    if (!accessRouteValue(dataset, fields) && !receipt.method) out.push("Access route not reported");
     if (!Array.isArray(dataset?.columns) && !Array.isArray(dataset?.fields)) out.push("Declared response shape not reported");
-    if (!dataset?.updated_at && !dataset?.last_modified && !dataset?.as_of) out.push("Connection freshness not described");
+    if (!dataset?.last_checked_at && !dataset?.checked_at && !freshness.lastRefreshedAt && !freshness.dataAsOf) {
+      out.push("Connection freshness not described");
+    }
     return out;
   }
 
@@ -49,8 +69,8 @@ function unknowns(dataset, fields, presentation, receipt) {
   if (!dataset?.analysis_readiness) out.push("Readiness not reported by registry");
   if (!fields.coverage && !dataset?.coverage && !dataset?.date_range) out.push("Coverage not reported");
   if (!dataset?.grain) out.push("Grain not reported");
-  if (!dataset?.updated_at && !dataset?.last_modified && !dataset?.as_of) {
-    out.push("Freshness / last refresh not described");
+  if (!freshness.hasFreshnessEvidence) {
+    out.push("Data freshness / refresh cadence not recorded");
   }
   if (!fields.joinKeys?.length) out.push("Join keys / schema relationship not described");
   if (!(dataset?.limitations || dataset?.caveats || fields.limitations)) out.push("Known caveats not described");
@@ -76,13 +96,8 @@ function Fact({ label, value, mono = false, href = "" }) {
   );
 }
 
-function sourceAuthorityLine(dataset, fields) {
-  if (dataset?.self_provided || dataset?.upload) return "Self-provided";
-  if (fields.source || dataset?.source || dataset?.source_system) {
-    return fields.source || dataset.source || dataset.source_system;
-  }
-  if (dataset?.collect_via || dataset?.backend) return dataset.collect_via || dataset.backend;
-  return "Source authority absent";
+function sourceAuthorityLine(dataset) {
+  return sourceAuthorityValue(dataset) || "Source authority absent";
 }
 
 function askLabel(presentation, state) {
@@ -103,11 +118,100 @@ function reproductionValue(receipt) {
   return receipt.command || receipt.script || receipt.route || "";
 }
 
+function provenanceBasis(dataset, receipt) {
+  if (dataset?.self_provided || dataset?.upload) return "Self-provided";
+  if (receipt.sourceUrl) return "Exact source recorded";
+  if (sourceAuthorityValue(dataset)) return "Authority named";
+  return "Not established";
+}
+
+function nextMove({ state, presentation, previewOpen, receipt, verification, freshness }) {
+  if (previewOpen) {
+    return "Review the expanded sample in the centre. Observed rows do not upgrade verification, provenance, or freshness.";
+  }
+  if (freshness.stale) {
+    return "Refresh the evidence pipeline before using this copy for time-sensitive analysis; query readiness does not make stale data current.";
+  }
+  if (state.kind === "query-ready") {
+    if (!hasReproductionMethod(receipt)) {
+      return "Open a query when you need analysis; inspect the Source record before treating the workflow as fully reproducible.";
+    }
+    if (verification.kind !== "verified" && verification.kind !== "matched") {
+      return "Open a query when you need analysis, while keeping verification separate from query readiness.";
+    }
+    return "Use the bounded sample for a quick value check, then open a query when you need analysis beyond it.";
+  }
+  if (state.kind === "connected") {
+    return "Use the declared remote route. Connected means reachable, not that a local query-ready copy exists.";
+  }
+  if (state.kind === "registered") {
+    if (presentation.kind === "scholarly_work") {
+      return "Use the bibliographic record as evidence, then verify the stable source before making a stronger source claim.";
+    }
+    return "Inspect the Source record and prepare a usable local copy before treating this asset as queryable evidence.";
+  }
+  return "Resolve the outstanding readiness or provenance gaps before relying on this asset in analysis.";
+}
+
+function DecisionBasis({ state, verification, dataset, receipt, previewOpen, presentation, freshness }) {
+  const rows = [
+    ["Readiness", state.label],
+    ["Verification", verification.label],
+    ["Provenance", provenanceBasis(dataset, receipt)],
+    ["Freshness", freshness.basisLabel],
+  ];
+  return (
+    <section className="rd-v2-library-inspector-basis" aria-label="Decision basis" data-testid="library-decision-basis">
+      <p className="rd-v2-rail-section-label">Decision basis</p>
+      <div className="rd-v2-library-inspector-basis-grid">
+        {rows.map(([label, value]) => (
+          <div key={label}>
+            <span>{label}</span>
+            <strong>{value}</strong>
+          </div>
+        ))}
+      </div>
+      <div className="rd-v2-library-inspector-next">
+        <span>{previewOpen ? "Sample state" : "Next move"}</span>
+        <p>{nextMove({ state, presentation, previewOpen, receipt, verification, freshness })}</p>
+      </div>
+    </section>
+  );
+}
+
+function HoldingsBlock({ summary }) {
+  if (!summary.count) return null;
+  const focus = summary.focus;
+  const otherProviders = summary.providers.filter((provider) => provider !== focus?.provider);
+  const focusLabel = focus?.active ? "Using" : focus?.primary ? "Primary holding" : "Known holding";
+  const focusContext = focus ? [focus.custodian, holdingRoleLabel(focus)].filter(Boolean).join(" · ") : "";
+  return (
+    <section
+      className="rd-v2-library-inspector-block rd-v2-library-inspector-holdings"
+      aria-label="Holdings"
+      data-testid="library-rail-holdings"
+    >
+      <p className="rd-v2-rail-section-label">Holdings</p>
+      <h3 className="rd-v2-library-rail-module-title">{summary.headline}</h3>
+      {focus ? (
+        <div className="rd-v2-library-holding-focus">
+          <span>{focusLabel}</span>
+          <strong>{focus.provider}</strong>
+          {focusContext ? <small>{focusContext}</small> : null}
+        </div>
+      ) : null}
+      {otherProviders.length ? (
+        <p className="rd-v2-library-holdings-provider-line">{otherProviders.join(" · ")}</p>
+      ) : null}
+    </section>
+  );
+}
+
 /**
  * The centre workspace owns asset substance (table/schema, coverage, grain,
  * research use). The global situation strip owns selected-asset identity. The
- * rail is therefore purely decisional: usability, reproducible provenance,
- * verification, known boundaries, unresolved facts, and Ask.
+ * rail is therefore decisional: usability, freshness, provenance, verification,
+ * unresolved facts, and the next valid research move.
  */
 export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onAskAbout }) {
   if (!dataset) return null;
@@ -116,12 +220,18 @@ export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onAskAbo
   const state = statusPillKind(dataset);
   const decision = decisionFor(dataset);
   const receipt = librarySourceReceipt(dataset);
-  const missing = unknowns(dataset, fields, presentation, receipt);
+  const freshness = summarizeLibraryFreshness(dataset, { kind: presentation.kind });
+  const missing = unknowns(dataset, fields, presentation, receipt, freshness);
   const boundaries = knownBoundaries(dataset, fields);
-  const updated = dataset.updated_at || dataset.last_modified || dataset.as_of;
   const verification = libraryVerification(dataset);
+  const holdings = summarizeLibraryHoldings(dataset);
   const remedy = hydrateRemedy(dataset);
   const archiveRef = String(dataset?.canonical_remote || dataset?.lineage?.canonical_remote || "").trim();
+  const accessRoute = accessRouteValue(dataset, fields);
+  const authority = sourceAuthorityValue(dataset);
+  const hasReceiptDetails = Boolean(
+    receipt.sourceUrl || receipt.method || reproductionValue(receipt) || receipt.upstream || accessRoute,
+  );
 
   return (
     <RailFrame>
@@ -133,6 +243,9 @@ export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onAskAbo
         <p className="rd-v2-rail-section-label">Can I use this?</p>
         <h3>{decision.headline}</h3>
         <p>{decision.body}</p>
+        {freshness.stale ? (
+          <p data-testid="library-stale-warning">Freshness is stale even though the current copy may remain technically queryable.</p>
+        ) : null}
       </section>
 
       {remedy ? (
@@ -148,15 +261,36 @@ export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onAskAbo
       ) : null}
 
       <div className="rd-v2-rail-scroll rd-v2-library-inspector-scroll">
+        <DecisionBasis
+          state={state}
+          verification={verification}
+          dataset={dataset}
+          receipt={receipt}
+          previewOpen={previewOpen}
+          presentation={presentation}
+          freshness={freshness}
+        />
+
+        <HoldingsBlock summary={holdings} />
+
         <section className="rd-v2-library-inspector-block" aria-label="Source" data-testid="library-rail-source">
-          <p className="rd-v2-rail-section-label">Source & reproduce</p>
-          <h3 className="rd-v2-library-rail-module-title">{sourceAuthorityLine(dataset, fields)}</h3>
-          <div className="rd-v2-library-inspector-facts rd-v2-library-provenance-facts">
-            <Fact label={receipt.sourceUrlKind || "Exact source URL"} value={receipt.sourceUrl} href={receipt.sourceUrl} mono />
-            <Fact label="Method" value={receipt.method} />
-            <Fact label={reproductionLabel(receipt)} value={reproductionValue(receipt)} mono />
-            <Fact label="Upstream assets" value={receipt.upstream} mono />
-          </div>
+          <p className="rd-v2-rail-section-label">Source &amp; reproduce</p>
+          <h3 className="rd-v2-library-rail-module-title">{sourceAuthorityLine(dataset)}</h3>
+          {hasReceiptDetails ? (
+            <div className="rd-v2-library-inspector-facts rd-v2-library-provenance-facts">
+              <Fact label={receipt.sourceUrlKind || "Exact source URL"} value={receipt.sourceUrl} href={receipt.sourceUrl} mono />
+              <Fact label="Access route" value={accessRoute} mono />
+              <Fact label="Method" value={receipt.method} />
+              <Fact label={reproductionLabel(receipt)} value={reproductionValue(receipt)} mono />
+              <Fact label="Upstream assets" value={receipt.upstream} mono />
+            </div>
+          ) : (
+            <p className="rd-v2-library-inspector-prose muted">
+              {authority
+                ? "The source authority is named, but no exact reproduction receipt is recorded for this asset."
+                : "No source authority or exact reproduction receipt is recorded for this asset."}
+            </p>
+          )}
         </section>
 
         <section className="rd-v2-library-inspector-block" aria-label="Verification" data-testid="library-rail-verification">
@@ -191,6 +325,9 @@ export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onAskAbo
         {missing.length ? (
           <section className="rd-v2-library-inspector-block rd-v2-library-inspector-unknown" aria-label="Still unknown">
             <p className="rd-v2-rail-section-label">Still unknown</p>
+            <h3 className="rd-v2-library-rail-module-title">
+              {missing.length} unresolved fact{missing.length === 1 ? "" : "s"}
+            </h3>
             <ul>
               {missing.map((item) => <li key={item}><span aria-hidden>?</span>{item}</li>)}
             </ul>
@@ -201,12 +338,18 @@ export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onAskAbo
           <summary>Technical details</summary>
           <div className="rd-v2-library-inspector-tech-body">
             <Fact label="Library ID" value={dataset.dataset_id} mono />
+            {holdings.count ? <Fact label="Known holdings" value={String(holdings.count)} /> : null}
             <Fact label="Registry readiness" value={dataset.analysis_readiness || "not declared"} mono />
             <Fact label="Backend" value={dataset.backend} mono />
             <Fact label="Source endpoint" value={receipt.sourceEndpoint} mono />
             <Fact label="Vault path" value={fields.vault} mono />
             <Fact label="Canonical archive" value={archiveRef || null} mono />
-            <Fact label="Updated" value={updated} />
+            <Fact label="Data as of" value={freshness.dataAsOf ? freshnessDate(freshness.dataAsOf, { year: true }) : null} />
+            <Fact label="Last data refresh" value={freshness.lastRefreshedAt || null} />
+            <Fact label="Refresh cadence" value={freshness.cadenceLabel || null} />
+            <Fact label="Next expected refresh" value={freshness.nextRefreshAt || null} />
+            <Fact label="Refresh status" value={freshness.status || (freshness.stale ? "stale" : null)} />
+            <Fact label="Record updated" value={freshness.recordUpdatedAt || null} />
             <Fact label="Fetched" value={receipt.fetchedAt} />
             <Fact label="Content SHA-256" value={receipt.contentSha256} mono />
             {state.kind === "query-ready" ? <Fact label="Query path" value={dataset.dataset_id ? `/query/${dataset.dataset_id}?limit=50` : null} mono /> : null}
@@ -217,7 +360,7 @@ export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onAskAbo
       <RailStickyFooter>
         {previewOpen ? (
           <span className="rd-v2-library-preview-state" data-testid="library-preview-open-state">
-            Preview open in centre
+            Expanded sample open in centre
           </span>
         ) : null}
         <button type="button" className="rd-v2-btn primary sm" onClick={onAskAbout}>

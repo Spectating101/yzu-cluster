@@ -1,4 +1,8 @@
+import { useEffect, useMemo, useState } from "react";
 import { CatalogRow } from "@/v2/CatalogRow";
+import "@/v2/library-live-scale.css";
+
+const PAGE_SIZE = 50;
 
 function rowKey(item) {
   if (item?.kind === "folder") return `folder:${item.id}`;
@@ -12,6 +16,14 @@ function isSelected(item, selectedId) {
   return selectedId === (item?.id || dataset?.dataset_id || dataset?.title || dataset?.url);
 }
 
+function paginationNoun(rows = []) {
+  const folders = rows.filter((item) => item?.kind === "folder").length;
+  const assets = rows.length - folders;
+  if (folders === rows.length) return "folders";
+  if (assets === rows.length) return "assets";
+  return "entries";
+}
+
 /** Drive-style list — folders + datasets in one scroll (Library / Home). */
 export function CatalogList({
   rows = [],
@@ -23,23 +35,55 @@ export function CatalogList({
   external = false,
   rowState,
 }) {
+  const [visibleLimit, setVisibleLimit] = useState(PAGE_SIZE);
+
+  // Backing rows are frequently replaced by live refreshes even when the user
+  // has not changed Library scope. Preserve the browsing depth in that case;
+  // only clamp it when the result set becomes smaller.
+  useEffect(() => {
+    setVisibleLimit((limit) => {
+      if (rows.length <= PAGE_SIZE) return PAGE_SIZE;
+      return Math.min(Math.max(limit, PAGE_SIZE), rows.length);
+    });
+  }, [rows.length]);
+
+  const visibleRows = useMemo(() => rows.slice(0, visibleLimit), [rows, visibleLimit]);
+  const hasMore = visibleRows.length < rows.length;
+  const noun = paginationNoun(rows);
+
   if (!rows.length) return null;
 
   return (
-    <ul className="rd-v2-catalog rd-v2-catalog-list" aria-label="Catalog">
-      {rows.map((item) => (
-        <CatalogRow
-          key={rowKey(item)}
-          item={item}
-          selected={isSelected(item, selectedId)}
-          compact={compact}
-          external={external || item?.external}
-          rowState={rowState}
-          onSelect={onSelectDataset}
-          onOpenFolder={onOpenFolder}
-          onDoubleClick={onDoubleClick}
-        />
-      ))}
-    </ul>
+    <>
+      <ul className="rd-v2-catalog rd-v2-catalog-list" aria-label="Catalog">
+        {visibleRows.map((item) => (
+          <CatalogRow
+            key={rowKey(item)}
+            item={item}
+            selected={isSelected(item, selectedId)}
+            compact={compact}
+            external={external || item?.external}
+            rowState={rowState}
+            onSelect={onSelectDataset}
+            onOpenFolder={onOpenFolder}
+            onDoubleClick={onDoubleClick}
+          />
+        ))}
+      </ul>
+      {rows.length > PAGE_SIZE ? (
+        <div className="rd-v2-library-pagination directory" aria-label="Directory pagination">
+          <span>Showing {visibleRows.length} of {rows.length} {noun}</span>
+          {hasMore ? (
+            <button type="button" className="rd-v2-btn sm" onClick={() => setVisibleLimit((limit) => limit + PAGE_SIZE)}>
+              Load {Math.min(PAGE_SIZE, rows.length - visibleRows.length)} more
+            </button>
+          ) : (
+            <button type="button" className="rd-v2-btn sm ghost" onClick={() => setVisibleLimit(PAGE_SIZE)}>
+              Back to first {PAGE_SIZE}
+            </button>
+          )}
+        </div>
+      ) : null}
+    </>
   );
 }

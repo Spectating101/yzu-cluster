@@ -334,7 +334,8 @@ export function detailFields(dataset) {
   return {
     description: d.description || d.recommended_use || "",
     coverage: d.coverage || d.date_range || d.temporal_coverage || null,
-    source: d.source || d.publisher || d.domain || d.backend || null,
+    // Source authority must remain distinct from transport/backend metadata.
+    source: d.source || d.publisher || d.source_system || null,
     access:
       d.access_mode ||
       d.access_shape ||

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  LIBRARY_FOLDERS_ROOT,
   breadcrumbTrail,
   collectDatasetDescendants,
   listFolderChildren,
@@ -9,6 +10,7 @@ import { libraryFolderObject } from "@/v2/activeObject";
 import { CatalogList } from "@/v2/CatalogList";
 import { libraryAssetPresentation, statusPillKind } from "@/v2/datasetMeta";
 import { libraryVerification } from "@/v2/libraryVerification";
+import { isBrowsableLibraryLocation, normalizeLibraryLocations } from "@/v2/libraryLocations";
 import { LibraryAssetWorkspace } from "@/v2/LibraryAssetWorkspace";
 import { LibraryEvidenceEstate } from "@/v2/LibraryEvidenceEstate";
 import { resolveLibrarySelection } from "@/v2/librarySelection";
@@ -117,7 +119,7 @@ function branchStatusNote({
     return isRoot ? "No registered evidence yet" : "No holdings in this branch";
   }
   if (showingSearchHits) {
-    return `${displayCount} matching asset${displayCount === 1 ? "" : "s"} — select one for readiness, source, preview, and Ask`;
+    return `${displayCount} matching asset${displayCount === 1 ? "" : "s"} — select one for readiness, source, sample, and Ask`;
   }
   if (showingBranchFallback) {
     return `${displayCount} asset${displayCount === 1 ? "" : "s"} matched here`;
@@ -204,7 +206,7 @@ function LibraryNewMenu({ open, onToggle, onUploadFile, onAddUrl, onProcure, onC
         <div className="rd-v2-library-action-menu" role="menu" aria-label="New library item">
           {onUploadFile ? <button type="button" role="menuitem" className="rd-v2-library-menu-item" onClick={onUploadFile}>Upload file...</button> : null}
           {onAddUrl ? <button type="button" role="menuitem" className="rd-v2-library-menu-item" onClick={onAddUrl}>Add URL / DOI...</button> : null}
-          {onProcure ? <button type="button" role="menuitem" className="rd-v2-library-menu-item" onClick={onProcure}>Procure missing data...</button> : null}
+          {onProcure ? <button type="button" role="menuitem" className="rd-v2-library-menu-item" onClick={onProcure}>Find missing evidence...</button> : null}
           <button type="button" role="menuitem" className="rd-v2-library-menu-item" disabled>
             New collection
           </button>
@@ -319,11 +321,14 @@ export function LibraryPage({
   onSearchChange,
   selectionHoldings,
   selectionFallback,
+  folderLocations = [],
+  onFolderLocationChange,
   referenceCount = 0,
 }) {
   const [sortBy, setSortBy] = useState("name");
   const [typeMode, setTypeMode] = useState("all");
   const [filterMode, setFilterMode] = useState("all");
+  const [locationMode, setLocationMode] = useState("all");
   const [newMenuOpen, setNewMenuOpen] = useState(false);
   const searchInputRef = useRef(null);
   const searchActive = Boolean(String(searchQuery || "").trim());
@@ -417,6 +422,17 @@ export function LibraryPage({
 
   const destination = useMemo(() => folderDestination(trail, folderId), [trail, folderId]);
   const isRoot = !folderId;
+  const browsingPhysicalFolders = folderId === LIBRARY_FOLDERS_ROOT || String(folderId || "").startsWith(`${LIBRARY_FOLDERS_ROOT}/`);
+  const normalizedFolderLocations = useMemo(
+    () => normalizeLibraryLocations(folderLocations),
+    [folderLocations],
+  );
+
+  useEffect(() => {
+    if (locationMode === "all") return;
+    const active = normalizedFolderLocations.find((location) => location.id === locationMode);
+    if (!isBrowsableLibraryLocation(active, Boolean(onFolderLocationChange))) setLocationMode("all");
+  }, [locationMode, normalizedFolderLocations, onFolderLocationChange]);
 
   const items = useMemo(() => listFolderChildren(tree, folderId), [tree, folderId]);
   // Search already filters the catalog upstream; without flattening, Library root
@@ -641,6 +657,38 @@ export function LibraryPage({
                   <option value="updated">Modified</option>
                 </select>
               </label>
+              {browsingPhysicalFolders ? (
+                <label
+                  className="rd-v2-library-filter-control rd-v2-library-location-filter"
+                  title="Choose which connected storage location to browse."
+                >
+                  <span>Location</span>
+                  <select
+                    data-testid="library-location-filter"
+                    aria-label="Browse folder storage location"
+                    value={locationMode}
+                    onChange={(event) => {
+                      const nextLocation = event.target.value;
+                      setLocationMode(nextLocation);
+                      onFolderLocationChange?.(nextLocation);
+                    }}
+                  >
+                    {normalizedFolderLocations.map((location) => {
+                      const browsable = isBrowsableLibraryLocation(location, Boolean(onFolderLocationChange));
+                      return (
+                        <option
+                          key={location.id}
+                          value={location.id}
+                          data-state={location.state}
+                          disabled={!browsable}
+                        >
+                          {location.label}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </label>
+              ) : null}
             </div>
             <span className="rd-v2-toolbar-spacer" />
             <span className="rd-v2-toolbar-count">
@@ -656,7 +704,7 @@ export function LibraryPage({
             </span>
           </>
         }
-        footer="select asset → inspect · preview only when query-ready"
+        footer="select evidence → inspect → query or Ask"
         surfaceState={surfaceState}
       >
         {!isRoot ? (
@@ -740,7 +788,7 @@ export function LibraryPage({
                   <div className="rd-v2-library-empty-actions">
                     {onStartUpload ? <button type="button" className="rd-v2-btn sm" onClick={() => onStartUpload?.()}>Add files</button> : null}
                     {onStartUrl ? <button type="button" className="rd-v2-btn sm" onClick={() => onStartUrl?.()}>Add URL</button> : null}
-                    {onStartProcure ? <button type="button" className="rd-v2-btn sm" onClick={() => onStartProcure?.()}>Find missing data</button> : null}
+                    {onStartProcure ? <button type="button" className="rd-v2-btn sm" onClick={() => onStartProcure?.()}>Find missing evidence</button> : null}
                   </div>
                 ) : null}
               </div>
@@ -751,7 +799,7 @@ export function LibraryPage({
       <LibraryAssetInspector
         dataset={selectedDataset}
         onClose={onClearSelection}
-        onPreview={() => selectedDataset && onPreviewDataset?.(selectedDataset)}
+        onPreview={() => selectedDataset && onPreviewDataset?.({ ...selectedDataset, __libraryExpandedSample: true })}
         onAsk={() => selectedDataset && onAskDataset?.(selectedDataset)}
         onOpenQuery={() => selectedDataset && onOpenQuery?.(selectedDataset.dataset_id)}
       />

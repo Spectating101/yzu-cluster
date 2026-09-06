@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { queryDataset } from "@/v2/api";
 import {
   detailFields,
@@ -8,6 +8,8 @@ import {
 } from "@/v2/datasetMeta";
 import { librarySourceReceipt } from "@/v2/libraryProvenance";
 import { libraryVerification } from "@/v2/libraryVerification";
+import { LibraryHoldingsOverlay } from "@/v2/LibraryHoldingsOverlay";
+import { summarizeLibraryHoldings } from "@/v2/libraryHoldings";
 import { PageShell } from "@/v2/ui";
 
 function value(...candidates) {
@@ -81,6 +83,35 @@ function ReceiptFact({ label, value: factValue, href = "", mono = false, testId 
 }
 
 function AssetOverlay({ kind, dataset, fields, presentation, onClose }) {
+  const closeButtonRef = useRef(null);
+  const restoreFocusRef = useRef(null);
+  const onCloseRef = useRef(onClose);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  useEffect(() => {
+    if (!kind) return undefined;
+    restoreFocusRef.current = document.activeElement;
+    const frame = window.requestAnimationFrame(() => closeButtonRef.current?.focus());
+    const handleEscape = (event) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      event.stopPropagation();
+      onCloseRef.current?.();
+    };
+    document.addEventListener("keydown", handleEscape, true);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      document.removeEventListener("keydown", handleEscape, true);
+      const previousFocus = restoreFocusRef.current;
+      window.requestAnimationFrame(() => {
+        if (previousFocus?.isConnected) previousFocus.focus?.();
+      });
+    };
+  }, [kind]);
+
   if (!kind) return null;
   const scholarly = presentation.kind === "scholarly_work";
   const liveSource = presentation.kind === "live_source";
@@ -98,13 +129,13 @@ function AssetOverlay({ kind, dataset, fields, presentation, onClose }) {
             <span className="rd-v2-eyebrow">Library inspection</span>
             <h2>{title}</h2>
           </div>
-          <button type="button" className="rd-v2-btn sm" onClick={onClose} aria-label="Close inspection">Close</button>
+          <button ref={closeButtonRef} type="button" className="rd-v2-btn sm" onClick={onClose} aria-label="Close inspection">Close</button>
         </header>
         {kind === "fields" ? (
           scholarly ? (
             <>
               <p>
-                Bibliographic and holding metadata for {displayName(dataset)}. This describes the research object; it does not pretend a paper has tabular fields or join keys.
+                Bibliographic and access metadata for {displayName(dataset)}. This describes the research object; it does not pretend a paper has tabular fields or join keys.
               </p>
               <dl className="rd-v2-library-overlay-facts">
                 <div><dt>Object type</dt><dd>Scholarly work</dd></div>
@@ -153,7 +184,7 @@ function AssetOverlay({ kind, dataset, fields, presentation, onClose }) {
         ) : (
           <>
             <p>
-              Reproducibility receipt for this Library asset. Provider identity, source location, acquisition method, verification, and use readiness remain separate claims.
+              Origin and reproducibility receipt for this Library asset. Source authority, acquisition route, verification, and use readiness remain separate claims from current storage holdings.
             </p>
             <dl className="rd-v2-library-overlay-facts" data-testid="library-provenance-receipt">
               <div><dt>Source authority</dt><dd>{value(fields.source, dataset?.source, dataset?.publisher)}</dd></div>
@@ -187,7 +218,6 @@ function AssetOverlay({ kind, dataset, fields, presentation, onClose }) {
               <dl className="rd-v2-library-overlay-facts compact">
                 <div><dt>Library ID</dt><dd><code>{dataset?.dataset_id || "Not declared"}</code></dd></div>
                 <ReceiptFact label="Source endpoint" value={receipt.sourceEndpoint} mono />
-                <div><dt>Vault path</dt><dd><code>{fields.vault || "Not declared"}</code></dd></div>
                 <ReceiptFact label="Fetched at" value={receipt.fetchedAt} />
                 <ReceiptFact label="Content SHA-256" value={receipt.contentSha256} mono />
               </dl>
@@ -210,7 +240,7 @@ function observedColumns(rows = []) {
   return ordered;
 }
 
-function DatasetPreview({ dataset, canQuery, names, fields, state, presentation, onInspect, onOpenFullPreview }) {
+function DatasetPreview({ dataset, canQuery, names, fields, state, presentation, onInspect, onExpandSample }) {
   const [preview, setPreview] = useState({ loading: false, rows: [], error: "" });
 
   useEffect(() => {
@@ -250,7 +280,7 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
       <div className="rd-v2-library-section-heading">
         <div>
           <span className="rd-v2-eyebrow">{liveSource ? "Source inspection" : "Dataset inspection"}</span>
-          <h2>{observed ? (liveSource ? "Observed response sample" : "Observed table") : (liveSource ? "Declared response shape" : "Table structure")}</h2>
+          <h2>{observed ? (liveSource ? "Observed response sample" : "Observed sample") : (liveSource ? "Declared response shape" : "Table structure")}</h2>
         </div>
         <div className="rd-v2-library-preview-tools">
           {observed ? (
@@ -259,8 +289,8 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
             </span>
           ) : null}
           <button type="button" className="rd-v2-btn sm" onClick={onInspect}>Inspect schema</button>
-          {canQuery && onOpenFullPreview ? (
-            <button type="button" className="rd-v2-btn sm" onClick={onOpenFullPreview}>Full preview</button>
+          {canQuery && onExpandSample ? (
+            <button type="button" className="rd-v2-btn sm" onClick={onExpandSample}>Expand sample</button>
           ) : null}
         </div>
       </div>
@@ -381,6 +411,7 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onOpenQuery,
   const presentation = useMemo(() => libraryAssetPresentation(dataset), [dataset]);
   const state = statusPillKind(dataset);
   const verification = useMemo(() => libraryVerification(dataset), [dataset]);
+  const holdings = useMemo(() => summarizeLibraryHoldings(dataset), [dataset]);
   const canQuery = state.kind === "query-ready";
   const hasTableSurface = presentation.previewRows;
   const names = useMemo(() => fieldNames(dataset, fields), [dataset, fields]);
@@ -413,9 +444,12 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onOpenQuery,
   return (
     <PageShell
       className="rd-v2-library-workspace"
-      title="Library"
-      lead="Inspect held evidence."
-      headExtra={<button type="button" className="rd-v2-btn sm" onClick={onBack}>← All Library assets</button>}
+      headExtra={
+        <div className="rd-v2-library-inspector-bar">
+          <span className="rd-v2-library-inspector-context"><b>Library</b><span aria-hidden="true">·</span> Inspect</span>
+          <button type="button" className="rd-v2-btn sm" onClick={onBack} aria-label="Close asset inspector">Close</button>
+        </div>
+      }
     >
       <article className="rd-v2-library-asset-canvas" data-testid="library-asset-workspace" data-asset-kind={presentation.kind}>
         <header className="rd-v2-library-asset-header">
@@ -435,6 +469,7 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onOpenQuery,
         <div className="rd-v2-library-workspace-actions" aria-label="Asset actions">
           {canQuery ? <button type="button" className="rd-v2-btn primary" onClick={onOpenQuery}>Open query</button> : null}
           <button type="button" className="rd-v2-btn" onClick={() => setOverlay("provenance")}>Source record</button>
+          {holdings.count ? <button type="button" className="rd-v2-btn" onClick={() => setOverlay("holdings")}>Holdings</button> : null}
           {!canQuery && state.kind === "registered" && onPrepare ? (
             <button type="button" className="rd-v2-btn primary" onClick={onPrepare}>Prepare local copy</button>
           ) : null}
@@ -449,7 +484,7 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onOpenQuery,
             state={state}
             presentation={presentation}
             onInspect={() => setOverlay("fields")}
-            onOpenFullPreview={onPreview}
+            onExpandSample={onPreview}
           />
         ) : null}
 
@@ -465,10 +500,15 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onOpenQuery,
         )}
       </article>
       <AssetOverlay
-        kind={overlay}
+        kind={overlay === "holdings" ? "" : overlay}
         dataset={dataset}
         fields={fields}
         presentation={presentation}
+        onClose={() => setOverlay("")}
+      />
+      <LibraryHoldingsOverlay
+        open={overlay === "holdings"}
+        dataset={dataset}
         onClose={() => setOverlay("")}
       />
     </PageShell>

@@ -1,20 +1,20 @@
-import { useState } from "react";
-import { displayName, libraryAssetPresentation, statusPillKind } from "@/v2/datasetMeta";
+import { useEffect, useMemo, useState } from "react";
+import { LIBRARY_FOLDERS_ROOT } from "@/driveTree";
+import { displayName, libraryAssetPresentation } from "@/v2/datasetMeta";
 import { libraryVerification } from "@/v2/libraryVerification";
 import { StatusPill } from "@/v2/StatusPill";
-import { LibraryPackagePanel } from "@/v2/LibraryPackagePanel";
 import "@/v2/capability-convergence.css";
 import "@/v2/library-evidence-rigor.css";
 import "@/v2/library-auto-catalog.css";
+import "@/v2/library-live-scale.css";
+
+const PAGE_SIZE = 50;
 
 function sourceLabel(row = {}) {
   return String(
     row.source ||
       row.publisher ||
       row.source_system ||
-      row.source_route ||
-      row.collect_via ||
-      row.backend ||
       "Not recorded",
   ).trim();
 }
@@ -61,6 +61,10 @@ function collectionCountLabel(folder = {}) {
   return Number.isFinite(count) && count > 0 ? String(count) : "";
 }
 
+function collectionName(folder = {}) {
+  return folder.name || folder.label || folder.id || "Collection";
+}
+
 function moveLedgerFocus(event) {
   if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
   const table = event.currentTarget.closest('[role="table"]');
@@ -77,14 +81,6 @@ function moveLedgerFocus(event) {
   rows[next]?.focus();
 }
 
-/**
- * Root Library composition.
- *
- * The Library behaves like a serious file browser: collections narrow context,
- * the ledger remains the primary object, and keyboard navigation never requires
- * opening a second interaction mode. Research Drive adds evidence authority to
- * that familiar grammar rather than replacing it with bespoke dashboard chrome.
- */
 export function LibraryEvidenceEstate({
   assets = [],
   collections = [],
@@ -99,35 +95,70 @@ export function LibraryEvidenceEstate({
   onSearchWider,
   onResetFilters,
 }) {
-  const [packageOpen, setPackageOpen] = useState(false);
   const visibleAssets = assets;
-  const showKind = visibleAssets.some((item) => presentationKind(item?.row || item) !== "dataset");
-  const ledgerClass = `rd-v2-cap-ledger with-verify${showKind ? " show-kind" : ""}`;
+  const showKind = true;
+  const ledgerClass = "rd-v2-cap-ledger with-verify show-kind";
   const query = String(searchQuery || "").trim();
+  const [visibleLimit, setVisibleLimit] = useState(PAGE_SIZE);
+
+  // A new search is a new semantic scope, so begin it from the first page.
+  useEffect(() => {
+    setVisibleLimit(PAGE_SIZE);
+  }, [query]);
+
+  // Live catalogue hydration replaces the backing array. Preserve the user's
+  // browsing depth through that refresh and clamp only if the result set shrinks.
+  useEffect(() => {
+    setVisibleLimit((limit) => {
+      if (visibleAssets.length <= PAGE_SIZE) return PAGE_SIZE;
+      return Math.min(Math.max(limit, PAGE_SIZE), visibleAssets.length);
+    });
+  }, [visibleAssets.length]);
+
+  const pagedAssets = useMemo(
+    () => visibleAssets.slice(0, visibleLimit),
+    [visibleAssets, visibleLimit],
+  );
+  const hasMore = pagedAssets.length < visibleAssets.length;
   const filteredSearchMiss = Boolean(query && searchMatchCount > 0 && !visibleAssets.length);
   const trueSearchMiss = Boolean(query && searchMatchCount === 0);
-  const packageAvailable = Boolean(query && visibleAssets.length);
 
   return (
     <section className="rd-v2-cap-estate" data-testid="library-evidence-estate" aria-label="Research evidence estate">
       {collections.length || collectionsLoading ? (
-        <div className="rd-v2-cap-collections" aria-label="Curated research collections">
-          <span className="rd-v2-cap-collections-label">Collections</span>
+        <div className="rd-v2-cap-collections" aria-label="Research collections and folder storage">
+          <span className="rd-v2-cap-collections-label">Research collections</span>
           {collections.length ? (
             <div className="rd-v2-cap-collection-list">
-              {collections.map((collection) => (
-                <button
-                  key={collection.id}
-                  type="button"
-                  className="rd-v2-cap-collection"
-                  data-testid="library-collection-filter"
-                  onClick={() => onOpenCollection?.(collection)}
-                >
-                  <span>{collection.name || collection.label || collection.id}</span>
-                  {collectionCountLabel(collection) ? <b>{collectionCountLabel(collection)}</b> : null}
-                  <span aria-hidden="true">→</span>
-                </button>
-              ))}
+              <button
+                type="button"
+                className="rd-v2-cap-collection rd-v2-cap-folders-root"
+                data-testid="library-folders-root"
+                aria-label="Browse storage folders"
+                title="Browse the Library storage structure"
+                onClick={() => onOpenCollection?.({ id: LIBRARY_FOLDERS_ROOT, name: "Folders" })}
+              >
+                <span>Browse folders</span>
+                <span aria-hidden="true">→</span>
+              </button>
+              {collections.map((collection) => {
+                const name = collectionName(collection);
+                return (
+                  <button
+                    key={collection.id}
+                    type="button"
+                    className="rd-v2-cap-collection"
+                    data-testid="library-collection-filter"
+                    aria-label={`Open ${name} directory`}
+                    title={`Open ${name} in Folders`}
+                    onClick={() => onOpenCollection?.(collection)}
+                  >
+                    <span>{name}</span>
+                    {collectionCountLabel(collection) ? <b>{collectionCountLabel(collection)}</b> : null}
+                    <span aria-hidden="true">→</span>
+                  </button>
+                );
+              })}
             </div>
           ) : (
             <span className="rd-v2-cap-collections-loading" role="status" data-testid="library-collections-loading">
@@ -137,42 +168,17 @@ export function LibraryEvidenceEstate({
         </div>
       ) : null}
 
-      {packageAvailable ? (
-        <div className="rd-v2-library-package-context" data-testid="library-package-context">
-          <div>
-            <span className="rd-v2-eyebrow">Held evidence for this request</span>
-            <strong>{visibleAssets.length} visible match{visibleAssets.length === 1 ? "" : "es"}</strong>
-            <p>Reason across these holdings with Ask, or prepare a portable package from an explicit reviewed selection.</p>
-          </div>
-          <div className="rd-v2-library-package-context-actions">
-            {onAskCurrentSearch ? (
-              <button type="button" className="rd-v2-btn sm ghost" onClick={onAskCurrentSearch}>
-                Ask Library
-              </button>
-            ) : null}
-            <button
-              type="button"
-              className="rd-v2-btn sm primary rd-v2-library-package-trigger"
-              onClick={() => setPackageOpen(true)}
-              data-testid="library-package-open"
-            >
-              Prepare research package <span>{visibleAssets.length}</span>
-            </button>
-          </div>
-        </div>
-      ) : null}
-
       <div className={ledgerClass} role="table" aria-label="Library evidence">
         <div className="rd-v2-cap-ledger-head" role="row">
           <span role="columnheader">Evidence</span>
           {showKind ? <span role="columnheader">Type</span> : null}
           <span role="columnheader">Source</span>
-          <span role="columnheader">Verify</span>
-          <span role="columnheader">State</span>
+          <span role="columnheader" title="Whether the recorded source evidence has been checked">Verify</span>
+          <span role="columnheader" title="Whether this evidence can be used directly for research or querying">Readiness</span>
         </div>
         <div className="rd-v2-cap-ledger-body">
           {visibleAssets.length ? (
-            visibleAssets.map((item) => {
+            pagedAssets.map((item) => {
               const row = item?.row || item;
               const verification = libraryVerification(row);
               return (
@@ -252,6 +258,21 @@ export function LibraryEvidenceEstate({
         </div>
       </div>
 
+      {visibleAssets.length > PAGE_SIZE ? (
+        <div className="rd-v2-library-pagination" aria-label="Library evidence pagination">
+          <span>Showing {pagedAssets.length} of {visibleAssets.length} assets</span>
+          {hasMore ? (
+            <button type="button" className="rd-v2-btn sm" onClick={() => setVisibleLimit((limit) => limit + PAGE_SIZE)}>
+              Load {Math.min(PAGE_SIZE, visibleAssets.length - pagedAssets.length)} more
+            </button>
+          ) : (
+            <button type="button" className="rd-v2-btn sm ghost" onClick={() => setVisibleLimit(PAGE_SIZE)}>
+              Back to first {PAGE_SIZE}
+            </button>
+          )}
+        </div>
+      ) : null}
+
       {referenceCount > 0 ? (
         <aside className="rd-v2-library-available compact" aria-label="Available evidence outside your Library" data-testid="library-available-evidence">
           <p>
@@ -267,13 +288,6 @@ export function LibraryEvidenceEstate({
           ) : null}
         </aside>
       ) : null}
-
-      <LibraryPackagePanel
-        open={packageOpen}
-        onClose={() => setPackageOpen(false)}
-        researchNeed={query}
-        assets={visibleAssets}
-      />
     </section>
   );
 }
