@@ -11,12 +11,24 @@ if (!imports.length) throw new Error("No v2 CSS imports found in main.jsx");
 
 const problems = [];
 const warnings = [];
-const pageRootPattern = /\.rd-v2-(?:home|library|discover|synthesis|resources|profile|settings)-page\b/;
-const genericPagePattern = /\.rd-v2-page(?:\b|[\s,{.:#>+~])/;
+const rootToken = /\.rd-v2-(?:home|library|discover|synthesis|resources|profile|settings)-page\b|\.rd-v2-page\b/g;
 const scrollValuePattern = /overflow(?:-y)?\s*:\s*(?:auto|scroll|overlay)\b/i;
 
 function stripComments(value) {
   return value.replace(/\/\*[\s\S]*?\*\//g, "");
+}
+
+function selectorTargetsPageRoot(selector) {
+  return selector.split(",").some((raw) => {
+    const part = raw.trim();
+    const matches = [...part.matchAll(rootToken)];
+    if (!matches.length) return false;
+    const last = matches[matches.length - 1];
+    const tail = part.slice((last.index || 0) + last[0].length);
+    // Same-element qualifiers are fine (.foo, :has(), :hover). A combinator or
+    // whitespace means the selector targets a descendant, not the page frame.
+    return !/(?:\s|>|\+|~)/.test(tail);
+  });
 }
 
 for (const file of imports) {
@@ -29,19 +41,14 @@ for (const file of imports) {
   for (const match of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
     const selector = match[1].trim();
     const body = match[2];
-    if (!scrollValuePattern.test(body)) continue;
+    if (!scrollValuePattern.test(body) || !selectorTargetsPageRoot(selector)) continue;
 
-    // Page roots are frames. Scrolling belongs to a designated descendant
-    // (.rd-v2-body-scroll, evidence ledger, workbench pane), never the root.
-    // One historical release-visual rule is temporarily grandfathered because
-    // home-release-closure.css neutralizes it as the final authority. No new
-    // page-root scroll declaration gets that exemption.
-    const documentedLegacyHome = file === "release-visual.css" && selector === ".rd-v2-home-page";
-    if (
-      !documentedLegacyHome
-      && (pageRootPattern.test(selector) || genericPagePattern.test(selector))
-      && !selector.includes(".rd-v2-body-scroll")
-    ) {
+    // Historical release-visual Home rules are explicitly quarantined until
+    // that large visual layer is consolidated. The final Home closure rejects
+    // their scroll ownership and must stay last in the import order meanwhile.
+    const documentedLegacyHome = file === "release-visual.css"
+      && selector.split(",").every((part) => part.trim().startsWith(".rd-v2-home-page"));
+    if (!documentedLegacyHome) {
       problems.push(`${file}: page-root selector claims vertical scrolling: ${selector.replace(/\s+/g, " ")}`);
     }
   }
@@ -49,9 +56,9 @@ for (const file of imports) {
 
 const closureIndex = imports.indexOf("home-release-closure.css");
 if (closureIndex < 0) {
-  problems.push("main.jsx: home-release-closure.css must remain imported until the legacy Home release rule is removed at source");
+  problems.push("main.jsx: home-release-closure.css must remain imported until legacy Home release rules are removed at source");
 } else if (closureIndex !== imports.length - 1) {
-  problems.push("main.jsx: home-release-closure.css must be the final CSS authority while legacy release-visual Home overflow exists");
+  problems.push("main.jsx: home-release-closure.css must be the final CSS authority while legacy Home overflow exists");
 }
 
 const homeClosure = fs.readFileSync(path.join(v2, "home-release-closure.css"), "utf8");
@@ -75,17 +82,13 @@ if (!/@media\s*\(max-width:\s*720px\)[\s\S]*?\.yzu-main\s*\{[\s\S]*?padding-bott
   problems.push("release-scale.css: mobile main must reserve fixed chrome and remain non-scrolling");
 }
 
-// Keep an explicit warning for the known legacy rule. It is neutralized by the
-// final Home authority and runtime gate, but should be removed when release-visual
-// is next consolidated rather than copied into any new layer.
-const releaseVisual = fs.readFileSync(path.join(v2, "release-visual.css"), "utf8");
-if (/\.rd-v2-home-page\s*\{[^}]*overflow-y\s*:\s*auto/i.test(stripComments(releaseVisual))) {
-  warnings.push("release-visual.css still contains the historical Home overflow-y:auto; home-release-closure.css must remain final until that source layer is consolidated");
+const releaseVisual = stripComments(fs.readFileSync(path.join(v2, "release-visual.css"), "utf8"));
+const legacyHomeScrolls = [...releaseVisual.matchAll(/\.rd-v2-home-page[^,{]*\s*\{[^}]*overflow-y\s*:\s*auto/gi)].length;
+if (legacyHomeScrolls) {
+  warnings.push(`release-visual.css contains ${legacyHomeScrolls} quarantined Home page-root overflow rule(s); do not copy them into new layers`);
 }
 
-if (warnings.length) {
-  console.warn("Layout authority warnings:\n- " + warnings.join("\n- "));
-}
+if (warnings.length) console.warn("Layout authority warnings:\n- " + warnings.join("\n- "));
 if (problems.length) {
   console.error("Layout authority violations:\n- " + problems.join("\n- "));
   process.exit(1);
