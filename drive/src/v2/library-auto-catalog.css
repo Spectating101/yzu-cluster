@@ -6,7 +6,7 @@
    vertical scrolling; the ledger must not stretch a handful of rows into a fake
    full-height directory pane. v2.css freezes the Library body so dense Library
    workspaces can delegate scrolling inward, therefore this sparse auto-catalogue
-   projection must explicitly restore the scroll owner it documents. */
+   projection explicitly restores the scroll owner it documents. */
 .rd-v2-library-page .rd-v2-body-scroll {
   overflow-y: auto;
   overscroll-behavior-y: contain;
@@ -46,44 +46,38 @@
 
 .rd-v2-library-auto-view {
   display: inline-flex;
-  min-width: 0;
+  flex: none;
   align-items: center;
   gap: 7px;
-  flex: none;
-  padding: 6px 9px;
+  min-height: 27px;
+  padding: 4px 9px;
   border: 1px solid var(--rd-border2);
-  border-radius: 9px;
-  background: rgba(255, 253, 246, 0.86);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.62);
   color: var(--rd-body);
   cursor: pointer;
-  font-size: 10.5px;
-  text-align: left;
-  transition: border-color 140ms ease, background 140ms ease, transform 140ms ease;
+  font-size: 10px;
+  font-weight: 620;
+  transition: border-color 120ms ease, background 120ms ease, box-shadow 120ms ease;
 }
 
-.rd-v2-library-auto-view:hover {
+.rd-v2-library-auto-view:hover,
+.rd-v2-library-auto-view:focus-visible {
   border-color: var(--rd-active-border);
-  background: var(--rd-active-bg);
-  transform: translateY(-1px);
+  background: var(--rd-hover);
 }
 
 .rd-v2-library-auto-view.active {
   border-color: var(--rd-active-border);
   background: var(--rd-active-bg);
-  color: var(--rd-text);
-  font-weight: 720;
+  box-shadow: inset 0 0 0 1px rgba(87, 107, 89, 0.08);
 }
 
 .rd-v2-library-auto-view b {
-  display: inline-flex;
-  min-width: 19px;
-  height: 19px;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999px;
-  background: var(--rd-accent-soft);
-  color: var(--rd-body);
-  font-size: 9px;
+  color: var(--rd-muted);
+  font-family: var(--rd-mono);
+  font-size: 8.5px;
+  font-weight: 760;
 }
 
 .rd-v2-library-page .rd-v2-cap-collections {
