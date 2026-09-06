@@ -74,6 +74,19 @@ jobs:
       - name: Re-run the full mocked Research Drive surface
         run: CI=true YZU_PAGES=false npm run test:v2-mock
 
+      - name: Verify frozen Library convergence on the integrated shell
+        run: >-
+          mkdir -p .tmp-pw artifacts/library-convergence &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/library-convergence-render.spec.js
+          e2e/library-folder-workflow.spec.js
+          e2e/library-freshness.spec.js
+          e2e/library-holdings.spec.js
+          e2e/library-location-disabled.spec.js
+          e2e/library-pagination-continuity.spec.js
+          e2e/library-preview-closure-render.spec.js
+          --workers=1 --reporter=line
+
       - name: Verify principal research seed cold-start
         run: >-
           mkdir -p .tmp-pw &&
@@ -99,5 +112,6 @@ jobs:
           name: research-drive-platform-convergence
           path: |
             artifacts/platform-convergence
+            artifacts/library-convergence
             test-results
           if-no-files-found: warn
