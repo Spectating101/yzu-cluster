@@ -24,6 +24,13 @@ async function openHome(page, { pendingDecision = false } = {}) {
   await waitForShell(page);
 }
 
+async function openMobileHome(page) {
+  await mockV2Api(page);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await waitForShell(page);
+}
+
 test.describe("v2 Home Iteration 10 freeze", () => {
   test("Pick Up is the primary resume object", async ({ page }) => {
     await openHome(page);
@@ -44,6 +51,50 @@ test.describe("v2 Home Iteration 10 freeze", () => {
     if ((await recommended.count()) > 0) {
       expect(await recommended.locator(".rd-v2-home-recommended-row").count()).toBeGreaterThan(0);
     }
+  });
+
+  test("mobile Home can expose its final content above fixed research chrome", async ({ page }) => {
+    await openMobileHome(page);
+
+    const scroller = page.locator(".rd-v2-home-page .rd-v2-body-scroll");
+    const trail = page.getByRole("region", { name: "Recent trail" });
+    await expect(scroller).toBeVisible();
+    await expect(trail).toBeAttached();
+
+    const before = await scroller.evaluate((element) => ({
+      clientHeight: element.clientHeight,
+      scrollHeight: element.scrollHeight,
+      overflowY: getComputedStyle(element).overflowY,
+    }));
+    expect(["auto", "scroll"]).toContain(before.overflowY);
+    expect(before.scrollHeight).toBeGreaterThan(before.clientHeight);
+
+    await scroller.evaluate((element) => element.scrollTo({ top: element.scrollHeight, behavior: "instant" }));
+    await page.waitForTimeout(50);
+
+    const geometry = await page.evaluate(() => {
+      const scrollerElement = document.querySelector(".rd-v2-home-page .rd-v2-body-scroll");
+      const trailElement = document.querySelector('.rd-v2-home-trail[aria-label="Recent trail"]');
+      const railElement = document.querySelector(".yzu-inspector");
+      const navElement = document.querySelector(".yzu-sidebar");
+      const scrollerRect = scrollerElement?.getBoundingClientRect();
+      const trailRect = trailElement?.getBoundingClientRect();
+      const railRect = railElement?.getBoundingClientRect();
+      const navRect = navElement?.getBoundingClientRect();
+      return {
+        scrollTop: scrollerElement?.scrollTop || 0,
+        maxScrollTop: Math.max(0, (scrollerElement?.scrollHeight || 0) - (scrollerElement?.clientHeight || 0)),
+        scrollerBottom: scrollerRect?.bottom ?? Infinity,
+        trailBottom: trailRect?.bottom ?? Infinity,
+        railTop: railRect?.top ?? Infinity,
+        navTop: navRect?.top ?? Infinity,
+      };
+    });
+
+    expect(geometry.scrollTop).toBeGreaterThan(0);
+    expect(Math.abs(geometry.maxScrollTop - geometry.scrollTop)).toBeLessThanOrEqual(2);
+    expect(geometry.trailBottom).toBeLessThanOrEqual(geometry.scrollerBottom + 1);
+    expect(geometry.scrollerBottom).toBeLessThanOrEqual(Math.min(geometry.railTop, geometry.navTop) + 1);
   });
 
   test("Continue opens dataset preview and keeps rail grounded", async ({ page }) => {
