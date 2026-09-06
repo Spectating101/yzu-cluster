@@ -408,7 +408,10 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await expect(openingRail).toContainText("Not accepted");
     await expect(openingRail).toContainText("Not registered");
     await expect(page.getByTestId("rail-pane-ask")).toBeHidden();
-    await expect(page.getByText("No output registered", { exact: true })).toBeVisible();
+    // A new durable thread has no registered output, but the recovered
+    // opening surface states that in the rail rather than rendering a dead
+    // empty centre card.
+    await expect(page.getByText("No output registered", { exact: true })).toHaveCount(0);
     await capture(page, "01-durable-evidence-desktop");
   });
 

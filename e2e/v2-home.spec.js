@@ -77,8 +77,11 @@ test.describe("v2 Home Iteration 10 freeze", () => {
   test("Home replaces a Library selection with its exact Pick Up object", async ({ page }) => {
     await openHome(page);
     await page.getByRole("button", { name: "Library", exact: true }).click();
-    const allAssets = page.getByRole("button", { name: "← All Library assets" });
-    if (await allAssets.isVisible().catch(() => false)) await allAssets.click();
+    // Library preserves the currently selected asset as an inspection sheet.
+    // Close that sheet through its current explicit control before selecting
+    // the different asset used to prove Home's resume replacement contract.
+    const closeInspector = page.getByRole("button", { name: "Close asset inspector" });
+    if (await closeInspector.isVisible().catch(() => false)) await closeInspector.click();
     await page.getByRole("textbox", { name: "Search library holdings" }).fill("Ticker week");
     const libraryRow = page.getByTestId("library-evidence-row").filter({ hasText: "Ticker week panel" });
     await expect(libraryRow).toBeVisible();

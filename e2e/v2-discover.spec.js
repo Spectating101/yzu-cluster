@@ -33,19 +33,17 @@ test.describe("v2 Discover tab", () => {
     await waitForShell(page);
   });
 
-  test("empty state offers one adaptive entrance and quiet intake", async ({ page }) => {
+  test("empty state offers one quiet evidence entrance without pseudo-mode examples", async ({ page }) => {
     await expect(page.getByTestId("discover-empty")).toBeVisible();
     await expect(page.getByLabel("Search or describe a research need")).toBeVisible();
     await expect(page.getByRole("button", { name: "Explore", exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: /mode/i })).toHaveCount(0);
     await expect(page.getByLabel("Public URL or DOI")).toBeVisible();
-    // VC-5: two compact examples teach the one-composer behaviour, and the
-    // curated-source block collapses to a single quiet line when it has no
-    // routes rather than filling the canvas with an empty section.
+    // The frozen recovery keeps the first viewport as an evidence instrument,
+    // not a tutorial. The composer is the single entrance; examples remain
+    // mounted for assistive continuity but are not visual furniture.
     const examples = page.getByTestId("discover-composer-examples");
-    await expect(examples).toBeVisible();
-    await expect(examples.getByText("Try a keyword")).toBeVisible();
-    await expect(examples.getByText("Ask a research need")).toBeVisible();
+    await expect(examples).toBeHidden();
     await expect(
       page.getByRole("heading", { name: "Sources the desk already knows how to investigate" }),
     ).toHaveCount(0);
@@ -105,7 +103,12 @@ test.describe("v2 Discover tab", () => {
     await expect(page.getByTestId("discover-resting-summary")).toContainText(/In Library/i);
     await expect(page.getByTestId("discover-resting-summary")).toContainText(/Named routes/i);
     await expect(page.getByTestId("discover-rank-foot")).toContainText(/Ranked using active research/i);
-    await expect(page.getByTestId("discover-filter-menu")).toBeVisible();
+    // The evidence cockpit owns result scoping. Do not restore the old
+    // duplicate Filters/Sort toolbar simply to satisfy a stale selector.
+    const facets = page.getByRole("navigation", { name: "Evidence facets" });
+    await expect(facets).toBeVisible();
+    await expect(facets.getByRole("button", { name: /All evidence/i })).toBeVisible();
+    await expect(facets.getByRole("button", { name: /Beyond Library/i })).toBeVisible();
     await expect(page.getByTestId("discover-browse-mode")).not.toContainText(/process overview/i);
   });
 
@@ -165,10 +168,10 @@ test.describe("v2 Discover tab", () => {
 
     await expect(page.getByLabel("Discover next actions")).toContainText("1 offering with a declared route");
     await expect(page.getByLabel("Discover next actions")).toContainText("1 reference");
-    await expect(page.getByRole("button", { name: "Add to collection", exact: true })).toHaveCount(1);
+    await expect(page.getByRole("button", { name: /^Add to collection/ })).toHaveCount(1);
     const context = page.getByTestId("discover-context-results");
     await expect(context.getByText("CoinGecko example route")).toBeVisible();
-    await expect(context.getByRole("button", { name: "Add to collection" })).toHaveCount(0);
+    await expect(context.getByRole("button", { name: /^Add to collection/ })).toHaveCount(0);
     await page.screenshot({ path: testInfo.outputPath("discover-reference-context-desktop.png"), fullPage: true });
 
     await page.setViewportSize({ width: 390, height: 844 });
@@ -383,21 +386,26 @@ test.describe("v2 Discover tab", () => {
     await expect(rail.getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "true");
   });
 
-  test("mobile filter and sort controls remain fully reachable", async ({ page }) => {
+  test("mobile evidence facets remain fully reachable", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await mockV2Api(page, { discoverBody: MOCK_DISCOVER_HIT });
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
     await searchDiscover(page, "stablecoin");
 
-    const filterBox = await page.getByTestId("discover-filter-menu").boundingBox();
-    const sortBox = await page.getByTestId("discover-sort-menu").boundingBox();
-    expect(filterBox).not.toBeNull();
-    expect(sortBox).not.toBeNull();
-    expect(filterBox.x).toBeGreaterThanOrEqual(0);
-    expect(filterBox.x + filterBox.width).toBeLessThanOrEqual(390);
-    expect(sortBox.x).toBeGreaterThanOrEqual(0);
-    expect(sortBox.x + sortBox.width).toBeLessThanOrEqual(390);
+    const facets = page.getByRole("navigation", { name: "Evidence facets" });
+    const all = facets.getByRole("button", { name: /All evidence/i });
+    const external = facets.getByRole("button", { name: /Beyond Library/i });
+    await expect(all).toBeVisible();
+    await expect(external).toBeVisible();
+    for (const control of [all, external]) {
+      const box = await control.boundingBox();
+      expect(box).not.toBeNull();
+      expect(box.x).toBeGreaterThanOrEqual(0);
+      expect(box.x + box.width).toBeLessThanOrEqual(390);
+    }
+    await external.click();
+    await expect(external).toHaveAttribute("aria-pressed", "true");
   });
 
   test("usable height expands evidence detail and the bounded History ledger", async ({ page }) => {
@@ -432,7 +440,9 @@ test.describe("v2 Discover tab", () => {
     await expect(evidence).toBeVisible();
     await expect(offeringFacts).toContainText("Dataset");
     expect(await evidence.evaluate((node) => getComputedStyle(node).webkitLineClamp)).toBe("1");
-    expect(await offeringFacts.locator("b").first().evaluate((node) => getComputedStyle(node).display)).toBe("none");
+    // The compact ledger preserves fact labels at normal workstation height;
+    // hiding them made the evidence row harder to scan, not denser.
+    expect(await offeringFacts.locator("b").first().evaluate((node) => getComputedStyle(node).display)).toBe("block");
 
     await page.setViewportSize({ width: 1920, height: 961 });
     // The label is an inline declaration, then blockified by its inline-flex
