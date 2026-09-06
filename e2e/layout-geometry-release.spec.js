@@ -37,19 +37,23 @@ async function snapshotGeometry(page) {
     };
     const claimsY = (node) => ["auto", "scroll", "overlay"].includes(getComputedStyle(node).overflowY);
     const actuallyScrollsY = (node) => claimsY(node) && node.scrollHeight > node.clientHeight + 2;
+    const intrinsicScrollWidget = (node) => node.matches?.('textarea, input, select, [contenteditable="true"], [role="textbox"]');
+    const layoutScrollsY = (node) => actuallyScrollsY(node) && !intrinsicScrollWidget(node);
     const rectOf = (node) => {
       const r = node.getBoundingClientRect();
       return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height };
     };
 
     const nodes = [main, ...(main?.querySelectorAll("*") || [])].filter(visible);
-    const active = nodes.filter(actuallyScrollsY);
+    // Textareas and similar controls legitimately scroll inside a page scroller.
+    // They are widgets, not competing page-layout scroll authorities.
+    const active = nodes.filter(layoutScrollsY);
     const bodies = [...(main?.querySelectorAll(".rd-v2-body-scroll") || [])].filter(visible);
 
     const nestedActualScroll = active.flatMap((node) => {
       const conflicts = [];
       for (let parent = node.parentElement; parent && parent !== main?.parentElement; parent = parent.parentElement) {
-        if (parent !== node && visible(parent) && actuallyScrollsY(parent)) {
+        if (parent !== node && visible(parent) && layoutScrollsY(parent)) {
           conflicts.push({ child: String(node.className || node.tagName), parent: String(parent.className || parent.tagName) });
         }
         if (parent === main) break;
@@ -121,16 +125,32 @@ async function scrollPrimaryToEnd(page) {
       const rect = node.getBoundingClientRect();
       return style.display !== "none" && style.visibility !== "hidden" && rect.width > 1 && rect.height > 1;
     };
+    const intrinsicScrollWidget = (node) => node.matches?.('textarea, input, select, [contenteditable="true"], [role="textbox"]');
     const active = [main, ...(main?.querySelectorAll("*") || [])]
-      .filter((node) => node && visible(node) && ["auto", "scroll", "overlay"].includes(getComputedStyle(node).overflowY) && node.scrollHeight > node.clientHeight + 2)
+      .filter((node) => node && visible(node) && !intrinsicScrollWidget(node) && ["auto", "scroll", "overlay"].includes(getComputedStyle(node).overflowY) && node.scrollHeight > node.clientHeight + 2)
       .sort((a, b) => (b.clientWidth * b.clientHeight) - (a.clientWidth * a.clientHeight));
     const body = [...(main?.querySelectorAll(".rd-v2-body-scroll") || [])]
       .filter(visible)
       .sort((a, b) => (b.clientWidth * b.clientHeight) - (a.clientWidth * a.clientHeight))[0];
     const target = active[0] || body || null;
     if (!target) return null;
+
+    // Preserve the exact authority selected for this assertion. Re-discovering
+    // it after a scroll can choose a different child whose overflow state changed.
+    for (const marked of main?.querySelectorAll('[data-rd-layout-primary="true"]') || []) {
+      marked.removeAttribute("data-rd-layout-primary");
+    }
+    target.setAttribute("data-rd-layout-primary", "true");
+
+    // Some product layers intentionally enable smooth scrolling. Geometry proof
+    // needs the final position synchronously, not an animation sampled mid-flight.
+    target.style.scrollBehavior = "auto";
     target.scrollTop = target.scrollHeight;
-    return { className: String(target.className || "") };
+    return {
+      className: String(target.className || ""),
+      scrollTop: target.scrollTop,
+      maxScrollTop: Math.max(0, target.scrollHeight - target.clientHeight),
+    };
   });
 }
 
@@ -143,13 +163,15 @@ async function endGeometry(page) {
       const r = node.getBoundingClientRect();
       return s.display !== "none" && s.visibility !== "hidden" && r.width > 1 && r.height > 1;
     };
+    const intrinsicScrollWidget = (node) => node.matches?.('textarea, input, select, [contenteditable="true"], [role="textbox"]');
     const active = [main, ...(main?.querySelectorAll("*") || [])]
-      .filter((node) => node && visible(node) && ["auto", "scroll", "overlay"].includes(getComputedStyle(node).overflowY) && node.scrollHeight > node.clientHeight + 2)
+      .filter((node) => node && visible(node) && !intrinsicScrollWidget(node) && ["auto", "scroll", "overlay"].includes(getComputedStyle(node).overflowY) && node.scrollHeight > node.clientHeight + 2)
       .sort((a, b) => (b.clientWidth * b.clientHeight) - (a.clientWidth * a.clientHeight));
     const body = [...(main?.querySelectorAll(".rd-v2-body-scroll") || [])]
       .filter(visible)
       .sort((a, b) => (b.clientWidth * b.clientHeight) - (a.clientWidth * a.clientHeight))[0];
-    const target = active[0] || body || null;
+    const marked = main?.querySelector('[data-rd-layout-primary="true"]');
+    const target = (marked && visible(marked) ? marked : null) || active[0] || body || null;
     if (!target) return null;
     const rect = target.getBoundingClientRect();
     const flow = [...target.children].filter((node) => {
@@ -162,6 +184,7 @@ async function endGeometry(page) {
       .map((node) => node.getBoundingClientRect().top)
       .filter((top) => top >= rect.top - 2);
     return {
+      className: String(target.className || ""),
       scrollTop: target.scrollTop,
       maxScrollTop: Math.max(0, target.scrollHeight - target.clientHeight),
       top: rect.top,
@@ -195,12 +218,14 @@ async function assertGeometry(page, info, surface, width, height) {
   expect(initial.clippedBodies.filter((row) => !row.hasActiveDescendant), `${surface}: clipped PageShell content must delegate to a real descendant scroller`).toEqual([]);
 
   if (!initial.primary) return;
-  await scrollPrimaryToEnd(page);
-  await page.waitForTimeout(40);
+  const commanded = await scrollPrimaryToEnd(page);
+  expect(commanded, `${surface}: primary scroll authority can be selected`).toBeTruthy();
+  expect(Math.abs(commanded.maxScrollTop - commanded.scrollTop), `${surface}: scroll command reaches the primary end synchronously`).toBeLessThanOrEqual(2);
+  await page.waitForTimeout(20);
   const end = await endGeometry(page);
   await info.attach("geometry-end", { body: Buffer.from(JSON.stringify(end, null, 2)), contentType: "application/json" });
 
-  expect(Math.abs(end.maxScrollTop - end.scrollTop), `${surface}: primary scroll authority reaches its true end`).toBeLessThanOrEqual(2);
+  expect(Math.abs(end.maxScrollTop - end.scrollTop), `${surface}: primary scroll authority remains at its true end`).toBeLessThanOrEqual(2);
   expect(end.finalFlowBottom, `${surface}: final in-flow content stays inside its scroll authority`).toBeLessThanOrEqual(end.bottom + 2);
   if (width <= 720 && end.fixedChromeTop != null) {
     expect(end.bottom, `${surface}: primary mobile content ends above fixed chrome`).toBeLessThanOrEqual(end.fixedChromeTop + 2);
