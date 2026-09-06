@@ -206,17 +206,16 @@ test.describe("v2 parity @ desk-v2-1440", () => {
     await expect(page.locator('[data-testid="rail-pane-detail"] .rd-v2-rail-sticky')).not.toBeVisible();
   });
 
-  test("Full preview expands from the primary inspection surface without losing rail context", async ({ page }) => {
+  test("Expanded sample opens from the primary inspection surface without losing rail context", async ({ page }) => {
     await selectFirstDataset(page);
-    await page.getByTestId("library-data-preview").getByRole("button", { name: "Full preview" }).click();
-    const preview = page.getByRole("dialog", { name: "Asia daily news-risk panel preview" });
+    await page.getByTestId("library-data-preview").getByRole("button", { name: "Expand sample" }).click();
+    const preview = page.getByRole("dialog", { name: "Asia daily news-risk panel expanded sample" });
     await expect(preview).toBeVisible();
-    await expect(preview.getByRole("button", { name: "Rows", exact: true })).toBeVisible();
-    await expect(preview.getByRole("button", { name: "Fields", exact: true })).toBeVisible();
-    await expect(preview.getByRole("button", { name: "Export sample" })).toBeVisible();
-    await expect(preview.getByRole("button", { name: "Open query" })).toBeVisible();
+    await expect(preview).toContainText("Expanded dataset sample");
+    await expect(preview).toContainText("Expanded sample");
+    await expect(preview.locator("table")).toContainText("country");
     await expect(page.getByTestId("research-situation")).toContainText("Asia daily news-risk panel");
-    await expect(page.getByTestId("library-preview-open-state")).toContainText("Preview open in centre");
+    await expect(page.getByTestId("library-preview-open-state")).toContainText("Expanded sample open in centre");
     await page.keyboard.press("Escape");
     await expect(preview).toHaveCount(0);
   });
