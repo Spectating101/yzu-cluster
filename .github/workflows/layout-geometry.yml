@@ -34,7 +34,7 @@ concurrency:
 jobs:
   viewport-matrix:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -51,11 +51,16 @@ jobs:
       - name: Install Chromium
         run: npx playwright install chromium
 
-      - name: Verify release layout geometry
+      - name: Verify release page geometry
         run: |
           mkdir -p .tmp-pw
           TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false \
             npx playwright test e2e/layout-geometry-release.spec.js --workers=1 --reporter=line
+
+      - name: Verify overlay and expanded-state geometry
+        run: |
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false \
+            npx playwright test e2e/layout-overlay-geometry.spec.js --workers=1 --reporter=line
 
       - name: Preserve geometry diagnostics
         if: always()
