@@ -4,6 +4,9 @@ on:
   pull_request:
     paths:
       - "drive/src/v2/**"
+      # This workflow executes the full mocked v2 surface. Changes to any of
+      # those browser contracts must therefore certify the exact head too.
+      - "e2e/**"
       - "e2e/v2-platform-convergence.spec.js"
       - "e2e/research-seed-convergence.spec.js"
       - "scripts/yzu_cluster/**"
@@ -18,6 +21,8 @@ on:
       - "integration/research-drive-final-release-20260906"
     paths:
       - "drive/src/v2/**"
+      # Keep the exact-head gate coupled to the browser contracts it runs.
+      - "e2e/**"
       - "e2e/v2-platform-convergence.spec.js"
       - "e2e/research-seed-convergence.spec.js"
       - "scripts/yzu_cluster/**"
