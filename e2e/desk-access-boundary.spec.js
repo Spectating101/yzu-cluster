@@ -63,3 +63,35 @@ test("a pending capability check never paints a misleading empty page", async ({
   await expect(page.getByTestId("desk-access-gate")).toBeVisible();
   await expect(page.getByText("No curated source routes yet")).toHaveCount(0);
 });
+
+test("a public guest can browse shared evidence but must sign in to Ask", async ({ page }) => {
+  await mockV2Api(page);
+  await page.unroute("**/library/desk/capabilities").catch(() => {});
+  await page.route("**/library/desk/capabilities", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({
+      version: 2,
+      authenticated: true,
+      access: "public_guest",
+      principal: { id: "guest-test", display_name: "Guest researcher", role: "public_guest" },
+      permissions: {
+        view_research_data: true,
+        view_faculty_profile: false,
+        view_operations: false,
+        use_ask: false,
+        submit_collection: false,
+        approve_jobs: false,
+      },
+      session: { bootstrap_available: true, public_guest_available: true },
+    }),
+  }));
+
+  await page.goto("/?tab=discover", { waitUntil: "domcontentloaded" });
+  await expect(page.getByTestId("desk-access-gate")).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Discover", exact: true })).toBeVisible();
+  await page.getByRole("tab", { name: "Ask" }).click();
+  await expect(page.getByRole("note")).toContainText("Sign in to ask Research Drive.");
+  await expect(page.getByRole("note")).toContainText("Browse Library and Discover freely");
+  await expect(page.getByTestId("ask-composer")).toHaveCount(0);
+});

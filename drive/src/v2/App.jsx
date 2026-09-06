@@ -2075,8 +2075,8 @@ export function V2App() {
             railContext={railContext}
           /> : (
             <div className="rd-v2-permission-note" role="note">
-              <strong>Ask is not available for this account.</strong>
-              <span>Contact the Research Drive operator if you need access.</span>
+              <strong>Sign in to ask Research Drive.</strong>
+              <span>Browse Library and Discover freely; sign in to ask questions and save your research trail.</span>
             </div>
           )
         }
