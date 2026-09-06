@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
+import { MOCK_HEALTH, mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 
 const viewports = [
   ["phone-short", 360, 640],
@@ -7,8 +7,20 @@ const viewports = [
   ["laptop-short", 1366, 768],
 ];
 
-async function open(page, path, width, height) {
-  await mockV2Api(page);
+const QUIET_HEALTH = {
+  ...MOCK_HEALTH,
+  desk: {
+    ...MOCK_HEALTH.desk,
+    jobs: {
+      ...MOCK_HEALTH.desk.jobs,
+      running: 0,
+      pending_approval: 0,
+    },
+  },
+};
+
+async function open(page, path, width, height, mockOptions = {}) {
+  await mockV2Api(page, mockOptions);
   await page.setViewportSize({ width, height });
   await page.goto(path, { waitUntil: "domcontentloaded" });
   await waitForShell(page);
@@ -22,20 +34,16 @@ async function geometry(page, selector) {
       return style.display !== "none" && style.visibility !== "hidden" && rect.width > 1 && rect.height > 1;
     };
     const rect = node.getBoundingClientRect();
-    const scrollables = [node, ...node.querySelectorAll("*")]
-      .filter((el) => visible(el) && ["auto", "scroll", "overlay"].includes(getComputedStyle(el).overflowY) && el.scrollHeight > el.clientHeight + 2)
-      .map((el) => ({
-        className: String(el.className || ""),
-        scrollHeight: el.scrollHeight,
-        clientHeight: el.clientHeight,
-      }));
+    const candidates = [node, ...node.querySelectorAll("*")]
+      .filter((el) => visible(el) && ["auto", "scroll", "overlay"].includes(getComputedStyle(el).overflowY) && el.scrollHeight > el.clientHeight + 2);
+    const scrollables = candidates.map((el) => ({
+      className: String(el.className || ""),
+      scrollHeight: el.scrollHeight,
+      clientHeight: el.clientHeight,
+    }));
     const clippedWithoutScroller = [node, ...node.querySelectorAll("*")]
       .filter((el) => visible(el) && ["hidden", "clip"].includes(getComputedStyle(el).overflowY) && el.scrollHeight > el.clientHeight + 2)
-      .filter((el) => !scrollables.some((_, index) => {
-        const candidates = [node, ...node.querySelectorAll("*")]
-          .filter((candidate) => visible(candidate) && ["auto", "scroll", "overlay"].includes(getComputedStyle(candidate).overflowY) && candidate.scrollHeight > candidate.clientHeight + 2);
-        return candidates[index] && el.contains(candidates[index]);
-      }))
+      .filter((el) => !candidates.some((candidate) => candidate !== el && el.contains(candidate)))
       .map((el) => ({ className: String(el.className || ""), scrollHeight: el.scrollHeight, clientHeight: el.clientHeight }));
     return {
       rect: { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom, width: rect.width, height: rect.height },
@@ -56,6 +64,7 @@ async function assertContained(page, info, selector, width, height, label) {
   expect(data.rect.bottom, `${label}: bottom`).toBeLessThanOrEqual(height + 2);
   expect(data.documentWidth, `${label}: document width`).toBeLessThanOrEqual(width + 2);
   expect(data.documentHeight, `${label}: document height`).toBeLessThanOrEqual(height + 2);
+  expect(data.clippedWithoutScroller, `${label}: clipped content delegates to a real scroller`).toEqual([]);
 }
 
 for (const [name, width, height] of viewports) {
@@ -84,14 +93,22 @@ for (const [name, width, height] of viewports) {
   });
 
   test(`${name} · Home preview stays contained and closable`, async ({ page }, info) => {
-    await open(page, "/", width, height);
+    // Force the same dataset-resume state as v2-home.spec. The default fixture
+    // contains a pending decision, whose Review action correctly routes to
+    // Discover History instead of opening PreviewModal.
+    await open(page, "/", width, height, {
+      jobsBody: { jobs: [] },
+      healthBody: QUIET_HEALTH,
+    });
     const pick = page.getByTestId("home-continue");
     await expect(pick).toBeVisible();
-    await pick.getByRole("button", { name: /Continue|Review/ }).click();
-    const preview = page.locator(".rd-preview-shell");
+    await expect(pick).toHaveAttribute("data-kind", "library_asset");
+    const title = (await pick.locator("h2").innerText()).trim();
+    await pick.getByRole("button", { name: "Continue" }).click();
+    const preview = page.getByRole("dialog", { name: `${title} preview` });
     await expect(preview).toBeVisible();
     await assertContained(page, info, ".rd-preview-shell", width, height, "preview");
-    await expect(preview.getByRole("button", { name: /Close preview/i })).toBeVisible();
+    await expect(preview.getByRole("button", { name: "Close preview" })).toBeVisible();
   });
 
   test(`${name} · Library asset inspector stays contained`, async ({ page }, info) => {
