@@ -1,0 +1,22 @@
+/* Home release closure — keep one vertical scroll authority.
+   The page shell is a fixed-height flex frame; .rd-v2-body-scroll owns the
+   content scroll. Older release layers also made the outer Home page scroll,
+   which produced a visually cropped/nested-scroll viewport on short screens. */
+.rd-v2-home-page,
+.rd-v2-home-page.rd-v2-home-i10 {
+  overflow: hidden;
+  max-height: none;
+}
+
+.rd-v2-home-page .rd-v2-body-scroll {
+  overscroll-behavior-y: contain;
+  scroll-padding-bottom: 24px;
+  padding-bottom: max(24px, env(safe-area-inset-bottom));
+}
+
+@media (max-width: 720px) {
+  .rd-v2-home-page .rd-v2-body-scroll {
+    scroll-padding-bottom: 28px;
+    padding-bottom: max(28px, env(safe-area-inset-bottom));
+  }
+}
