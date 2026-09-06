@@ -55,7 +55,7 @@ jobs:
         run: |
           mkdir -p .tmp-pw
           TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false \
-            npx playwright test e2e/layout-geometry-contract.spec.js --workers=1 --reporter=line
+            npx playwright test e2e/layout-geometry-release.spec.js --workers=1 --reporter=line
 
       - name: Preserve geometry diagnostics
         if: always()
