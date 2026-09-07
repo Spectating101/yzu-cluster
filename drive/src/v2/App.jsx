@@ -1699,10 +1699,10 @@ export function V2App() {
             setDiscoverSearchQuery(q);
             goTab("browse");
           }}
-          onCraftUrl={craftPublicUrlPlan}
+          onCraftUrl={canSubmitCollection ? craftPublicUrlPlan : undefined}
           onSearchWeb={searchDiscoverWider}
           onAskQuery={askDiscoverQuery}
-          onReviewAcquisition={askAddToLab}
+          onReviewAcquisition={canSubmitCollection ? askAddToLab : undefined}
           assessmentActive={discoverAssessment.active}
           assessmentResult={discoverAssessment.result}
           onOpenAssessment={openDiscoverAssessment}

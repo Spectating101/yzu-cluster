@@ -162,7 +162,7 @@ export function V2DeskHeader({
             {principal ? (
               <div className="rd-v2-account-identity">
                 <strong>{principal.display_name || principal.email || "Research Drive user"}</strong>
-                <span>{principal.role === "operator" ? "Operator" : "Member"}</span>
+                <span>{principal.role === "operator" ? "Operator" : principal.role === "public_guest" ? "Guest" : "Member"}</span>
               </div>
             ) : null}
             <button type="button" role="menuitem" onClick={() => openAccountPage("profile")}>

@@ -90,6 +90,12 @@ test("a public guest can browse shared evidence but must sign in to Ask", async 
   await page.goto("/?tab=discover", { waitUntil: "domcontentloaded" });
   await expect(page.getByTestId("desk-access-gate")).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Discover", exact: true })).toBeVisible();
+  // The guest can evaluate shared evidence, but must not be offered an action
+  // that only a collection-capable member can submit.
+  await expect(page.getByRole("button", { name: "Add to collection" })).toHaveCount(0);
+  await expect(page.getByTestId("discover-craft-form")).toHaveCount(0);
+  await page.getByRole("button", { name: "Account" }).click();
+  await expect(page.getByRole("menu", { name: "Account destinations" })).toContainText("Guest");
   await page.getByRole("tab", { name: "Ask" }).click();
   await expect(page.getByRole("note")).toContainText("Sign in to ask Research Drive.");
   await expect(page.getByRole("note")).toContainText("Browse Library and Discover freely");
