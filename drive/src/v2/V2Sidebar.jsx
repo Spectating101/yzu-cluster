@@ -10,6 +10,7 @@ export function V2Sidebar({
   onTabChange,
   activeResearch = null,
   canViewOperations = true,
+  canUseAsk = true,
   recentItems = [],
   onOpenRecent,
 }) {
@@ -44,7 +45,7 @@ export function V2Sidebar({
     <aside className="yzu-sidebar rd-v2-sidebar-wire" aria-label="Research Drive navigation">
       <nav className="rd-v2-sidebar-nav" aria-label="Faculty destinations">
         {V2_SIDEBAR_PRIMARY_TABS
-          .filter(({ id }) => canViewOperations || id !== "resources")
+          .filter(({ id }) => (canViewOperations || id !== "resources") && (canUseAsk || id !== "synthesis"))
           .map(renderNavButton)}
       </nav>
 

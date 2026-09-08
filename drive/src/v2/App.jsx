@@ -569,7 +569,7 @@ export function V2App() {
   }, [refreshBackend, deskAccess?.authenticated]);
 
   useEffect(() => {
-    if (!deskAccess?.authenticated) return undefined;
+    if (!deskAccess?.authenticated || !canViewOperations) return undefined;
     let cancelled = false;
     const pollHealth = () => {
       if (document.visibilityState === "hidden") return;
@@ -597,7 +597,7 @@ export function V2App() {
       window.clearInterval(handle);
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [composerRuntime?.ready, deskAccess?.authenticated]);
+  }, [composerRuntime?.ready, deskAccess?.authenticated, canViewOperations]);
 
   const askFromPrompt = useCallback((prompt) => {
     if (!prompt) return;
@@ -797,7 +797,11 @@ export function V2App() {
   const goTab = useCallback(
     (id, opts = {}) => {
       const requested = normalizeReleaseTab(canonicalTab(id));
-      const next = requested === "resources" && !canViewOperations ? "home" : requested;
+      const next =
+        (requested === "resources" && !canViewOperations) ||
+        (requested === "synthesis" && !canUseAsk)
+          ? "home"
+          : requested;
       if (next === DISCOVER_TAB && !opts.preserveDiscoverScope) {
         setDiscoverPreferLive(discoverScopeIsWide());
         // A fresh navigation to Discover starts at the retrieval surface. Do not
@@ -828,14 +832,17 @@ export function V2App() {
       setTab(next);
       syncUrl({ tab: next });
     },
-    [syncUrl, canViewOperations],
+    [syncUrl, canViewOperations, canUseAsk],
   );
 
   useEffect(() => {
-    if (deskAccess?.authenticated && !canViewOperations && tab === "resources") {
+    if (
+      deskAccess?.authenticated &&
+      ((!canViewOperations && tab === "resources") || (!canUseAsk && tab === "synthesis"))
+    ) {
       goTab("home");
     }
-  }, [deskAccess?.authenticated, canViewOperations, tab, goTab]);
+  }, [deskAccess?.authenticated, canViewOperations, canUseAsk, tab, goTab]);
 
   const handleSynthesisDiscoverHandoff = useCallback(
     ({ field, handoff, thread } = {}) => {
@@ -1607,6 +1614,8 @@ export function V2App() {
           cluster={health?.cluster}
           profile={profile && !profile.unknown ? profile : pilotProfile || profile}
           resourcesRollup={resourcesRollup}
+          showOperationalHeadroom={canViewOperations}
+          canUseSynthesis={canUseAsk}
           acquisitions={acquisitions}
           partitions={partitions}
           jobs={jobs}
@@ -1954,7 +1963,9 @@ export function V2App() {
         onPendingClick={canApproveJobs ? () => openDiscoverAwaiting() : undefined}
         deskStatus={
           health == null
-            ? "syncing"
+            ? !canViewOperations && datasets.length > 0
+              ? "ok"
+              : "syncing"
             : usingSeed
               ? health?.status === "ok"
                 ? "empty"
@@ -1977,6 +1988,7 @@ export function V2App() {
         onTabChange={goTab}
         activeResearch={activeResearch}
         canViewOperations={canViewOperations}
+        canUseAsk={canUseAsk}
         recentItems={sidebarRecent}
         onOpenRecent={(item) => {
           if (item?.dataset) openLibraryDataset(item.dataset);

@@ -66,8 +66,12 @@ test("a pending capability check never paints a misleading empty page", async ({
 
 test("a public guest can browse shared evidence but must sign in to Ask", async ({ page }) => {
   const facultyRequests = [];
+  const privateSurfaceRequests = [];
   page.on("request", (request) => {
     if (request.url().includes("/library/faculty/profile")) facultyRequests.push(request.url());
+    if (/\/library\/(?:synthesis\/threads|desk\/resources)|\/health(?:\?|$)/.test(request.url())) {
+      privateSurfaceRequests.push(request.url());
+    }
   });
   await mockV2Api(page);
   await page.unroute("**/library/desk/capabilities").catch(() => {});
@@ -95,6 +99,7 @@ test("a public guest can browse shared evidence but must sign in to Ask", async 
   await expect(page.getByTestId("desk-access-gate")).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Discover", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Resources", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Synthesis", exact: true })).toHaveCount(0);
   // The guest can evaluate shared evidence, but must not be offered an action
   // that only a collection-capable member can submit.
   await expect(page.getByRole("button", { name: "Add to collection" })).toHaveCount(0);
@@ -110,6 +115,10 @@ test("a public guest can browse shared evidence but must sign in to Ask", async 
   await expect(page.getByRole("note")).toContainText("Sign in to ask Research Drive.");
   await expect(page.getByRole("note")).toContainText("Browse Library and Discover freely");
   await expect(page.getByTestId("ask-composer")).toHaveCount(0);
+
+  await page.goto("/?tab=home", { waitUntil: "domcontentloaded" });
+  await expect(page.getByLabel("Resource headroom")).toHaveCount(0);
+  await expect.poll(() => privateSurfaceRequests).toEqual([]);
 
   await page.goto("/?tab=profile", { waitUntil: "domcontentloaded" });
   await expect(page.getByTestId("profile-know-empty")).toContainText("Sign in to view and save a researcher profile");

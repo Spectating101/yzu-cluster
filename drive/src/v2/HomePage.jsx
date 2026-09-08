@@ -107,6 +107,8 @@ export function HomePage({
   profile,
   acquisitions = [],
   resourcesRollup,
+  showOperationalHeadroom = true,
+  canUseSynthesis = true,
   loadError = "",
   onGoTab,
   onOpenAttention,
@@ -124,6 +126,10 @@ export function HomePage({
   // Home consumes the durable Synthesis authority directly. Failure is soft:
   // Library/Discover continuity remains truthful even if Synthesis is temporarily unavailable.
   useEffect(() => {
+    if (!canUseSynthesis) {
+      setSynthesisThreads([]);
+      return undefined;
+    }
     let cancelled = false;
     listSynthesisThreads({ limit: 20 })
       .then((payload) => {
@@ -135,7 +141,7 @@ export function HomePage({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [canUseSynthesis]);
 
   const [cachedRollup, setCachedRollup] = useState(() => readResourcesRollupCache());
   useEffect(() => {
@@ -251,7 +257,7 @@ export function HomePage({
           ) : null}
         </section>
 
-        <section className="rd-v2-home-headroom" aria-label="Resource headroom">
+        {showOperationalHeadroom ? <section className="rd-v2-home-headroom" aria-label="Resource headroom">
           <div className="rd-v2-home-headroom-head">
             <span className="rd-v2-home-eyebrow">Resource headroom</span>
             <button type="button" className="rd-v2-linkish" onClick={() => onGoTab?.("resources")}>
@@ -288,7 +294,7 @@ export function HomePage({
           ) : (
             <p className="rd-v2-home-headroom-empty">Capacity signals load with Resources.</p>
           )}
-        </section>
+        </section> : null}
       </div>
 
       {recommended.length ? (
