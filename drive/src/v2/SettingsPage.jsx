@@ -97,6 +97,7 @@ export function SettingsPage({
   const [tokenDraft, setTokenDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const access = deskAccessStatus(health, deskAccess);
+  const canViewFacultyProfile = Boolean(deskAccess?.permissions?.view_faculty_profile);
   const assistant = assistantStatus(health);
   const demoMode = isDemoMode();
   const desk = health?.desk || {};
@@ -244,6 +245,7 @@ export function SettingsPage({
         <ConnectedAccountsSection deskAccess={deskAccess} onToast={onToast} />
 
         <StatementSection title="Research identity">
+          {canViewFacultyProfile ? (
           <div className="rd-v2-settings-row stack">
             <label className="rd-v2-settings-label" htmlFor="rd-settings-email">
               Faculty email
@@ -267,9 +269,11 @@ export function SettingsPage({
               </button>
             ) : null}
           </div>
+          ) : null}
           <p id="rd-settings-email-hint" className="rd-v2-settings-hint">
-            Binds the faculty-registry record shown in Profile. This does not edit registry
-            research facts.
+            {canViewFacultyProfile
+              ? "Binds the faculty-registry record shown in Profile. This does not edit registry research facts."
+              : "Public browsing does not load or bind a faculty identity. Sign in to save a research profile and research trail."}
           </p>
         </StatementSection>
 

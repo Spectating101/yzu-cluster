@@ -47,13 +47,19 @@ function evidenceRelationship(row, heldIds) {
  * facts and recorded research relationships, while Library remains possession
  * authority for whether evidence is actually held.
  */
-export function ProfilePage({ profile, libraryHoldings = [], onGoTab, onProfileRefresh }) {
+export function ProfilePage({
+  profile,
+  libraryHoldings = [],
+  onGoTab,
+  onProfileRefresh,
+  allowExamplePreview = false,
+}) {
   const bound = Boolean(profile && !profile.unknown);
   const [pilot, setPilot] = useState(null);
-  const [pilotLoading, setPilotLoading] = useState(!bound);
+  const [pilotLoading, setPilotLoading] = useState(() => allowExamplePreview && !bound);
 
   useEffect(() => {
-    if (bound) {
+    if (bound || !allowExamplePreview) {
       setPilot(null);
       setPilotLoading(false);
       return undefined;
@@ -75,7 +81,7 @@ export function ProfilePage({ profile, libraryHoldings = [], onGoTab, onProfileR
     return () => {
       cancelled = true;
     };
-  }, [bound]);
+  }, [bound, allowExamplePreview]);
 
   const previewing = !bound && Boolean(pilot);
   const active = bound ? profile : pilot;
@@ -151,7 +157,7 @@ export function ProfilePage({ profile, libraryHoldings = [], onGoTab, onProfileR
             >
               Bind example identity
             </button>
-          ) : !bound ? (
+          ) : !bound && allowExamplePreview ? (
             <button type="button" className="rd-v2-btn sm primary" onClick={() => onGoTab?.("settings")}>
               Use my email
             </button>
@@ -159,7 +165,7 @@ export function ProfilePage({ profile, libraryHoldings = [], onGoTab, onProfileR
         </div>
       </section>
 
-      {pilotLoading && !bound ? (
+      {pilotLoading && !bound && allowExamplePreview ? (
         <p className="rd-v2-profile-loading" data-testid="profile-know-empty">
           Loading example profile…
         </p>
@@ -284,7 +290,9 @@ export function ProfilePage({ profile, libraryHoldings = [], onGoTab, onProfileR
         </section>
       ) : !pilotLoading ? (
         <p className="rd-v2-profile-loading" data-testid="profile-know-empty">
-          Bind a YZU faculty email in Settings, or load the example researcher record.
+          {allowExamplePreview
+            ? "Bind a YZU faculty email in Settings, or load the example researcher record."
+            : "Sign in to view and save a researcher profile. Public browsing does not load a faculty identity."}
         </p>
       ) : null}
     </PageShell>
@@ -292,12 +300,12 @@ export function ProfilePage({ profile, libraryHoldings = [], onGoTab, onProfileR
 }
 
 /** DETAIL rail for Profile: registry identity, curated strengths, and source boundary. */
-export function ProfileDetailPanel({ profile }) {
+export function ProfileDetailPanel({ profile, allowExamplePreview = false }) {
   const bound = Boolean(profile && !profile.unknown);
   const [pilot, setPilot] = useState(null);
 
   useEffect(() => {
-    if (bound) {
+    if (bound || !allowExamplePreview) {
       setPilot(null);
       return undefined;
     }
@@ -312,7 +320,7 @@ export function ProfileDetailPanel({ profile }) {
     return () => {
       cancelled = true;
     };
-  }, [bound]);
+  }, [bound, allowExamplePreview]);
 
   const previewing = !bound && Boolean(pilot);
   const active = bound ? profile : pilot;
@@ -321,7 +329,9 @@ export function ProfileDetailPanel({ profile }) {
   if (!active) {
     return (
       <div className="rd-v2-profile-rail" data-testid="profile-detail-rail">
-        <p className="rd-v2-empty-inline">Loading…</p>
+        <p className="rd-v2-empty-inline">
+          {allowExamplePreview ? "Loading…" : "Sign in to view a researcher profile."}
+        </p>
       </div>
     );
   }

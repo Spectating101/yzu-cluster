@@ -164,6 +164,7 @@ export function InspectorRail({
   onSubmitLibraryProcure,
   askPanel,
   profile = null,
+  allowProfilePreview = false,
 }) {
   let detailPanel;
   if (mainTab === "synthesis" && activeObject?.kind === "synthesis_thread") {
@@ -223,7 +224,7 @@ export function InspectorRail({
       />
     );
   } else if (mainTab === "profile") {
-    detailPanel = <ProfileDetailPanel profile={profile} />;
+    detailPanel = <ProfileDetailPanel profile={profile} allowExamplePreview={allowProfilePreview} />;
   } else if (mainTab === "settings") {
     detailPanel = <PageRailPanel page="settings" onAskAbout={onAskAbout} />;
   } else if (mainTab === "synthesis") {

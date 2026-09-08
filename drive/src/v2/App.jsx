@@ -286,6 +286,7 @@ export function V2App() {
   const { toast, show: showToast, dismissIf: dismissToastIf } = useToast();
   const authenticatedEmail = String(deskAccess?.principal?.email || "").trim();
   const canUseAsk = Boolean(deskAccess?.permissions?.use_ask);
+  const canViewFacultyProfile = Boolean(deskAccess?.permissions?.view_faculty_profile);
   const composerRuntime = composerRuntimeRead(health?.desk?.composer_runtime);
   const canSubmitCollection = Boolean(deskAccess?.permissions?.submit_collection);
   const canApproveJobs = Boolean(deskAccess?.permissions?.approve_jobs);
@@ -302,6 +303,15 @@ export function V2App() {
   }, []);
 
   const reloadProfile = useCallback(() => {
+    // A public guest has a valid shared-evidence session, not faculty-profile
+    // authority.  Never fall back to the pilot record in that state: it both
+    // leaks an internal identity request and makes an anonymous desk look like
+    // someone else's research workspace.
+    if (!canViewFacultyProfile) {
+      setProfile({ unknown: true });
+      setPilotProfile(null);
+      return;
+    }
     // Showcase soft-default: keep Kong bound when the browser has no faculty email yet
     // (or after a desk outage wiped the visible identity).
     let email = authenticatedEmail || loadUserEmail();
@@ -344,10 +354,13 @@ export function V2App() {
         }
         setProfile({ email, unknown: true });
       });
-  }, [authenticatedEmail]);
+  }, [authenticatedEmail, canViewFacultyProfile]);
 
   useEffect(() => {
-    if (!deskAccess?.authenticated) return undefined;
+    if (!deskAccess?.authenticated || !canViewFacultyProfile) {
+      setPilotProfile(null);
+      return undefined;
+    }
     // reloadProfile owns the first request. Do not duplicate its pilot lookup
     // while the single-threaded front door is loading the core desk state.
     if (!profile?.unknown) {
@@ -366,7 +379,7 @@ export function V2App() {
     return () => {
       cancelled = true;
     };
-  }, [profile, deskAccess?.authenticated]);
+  }, [profile, deskAccess?.authenticated, canViewFacultyProfile]);
 
   const applyCatalog = useCallback((rows, errMsg = "") => {
     const { catalog, usingSeed: seed } = resolveCatalog(rows, { fallbackToSeed: Boolean(errMsg) });
@@ -1803,6 +1816,7 @@ export function V2App() {
           libraryHoldings={heldLibraryRows}
           onGoTab={goTab}
           onProfileRefresh={reloadProfile}
+          allowExamplePreview={canViewFacultyProfile}
         />
       );
       break;
@@ -1988,6 +2002,7 @@ export function V2App() {
         resourcesDecisionCount={jobsLoaded ? pendingResearchDecisions : null}
         activeObject={activeObject}
         profile={profile}
+        allowProfilePreview={canViewFacultyProfile}
         previewOpen={previewOpen}
         onPreview={() => detail && openPreview(detail)}
         onAskAbout={canUseAsk && composerRuntime?.ready ? askAboutSelection : undefined}

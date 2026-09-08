@@ -65,6 +65,10 @@ test("a pending capability check never paints a misleading empty page", async ({
 });
 
 test("a public guest can browse shared evidence but must sign in to Ask", async ({ page }) => {
+  const facultyRequests = [];
+  page.on("request", (request) => {
+    if (request.url().includes("/library/faculty/profile")) facultyRequests.push(request.url());
+  });
   await mockV2Api(page);
   await page.unroute("**/library/desk/capabilities").catch(() => {});
   await page.route("**/library/desk/capabilities", (route) => route.fulfill({
@@ -100,4 +104,9 @@ test("a public guest can browse shared evidence but must sign in to Ask", async 
   await expect(page.getByRole("note")).toContainText("Sign in to ask Research Drive.");
   await expect(page.getByRole("note")).toContainText("Browse Library and Discover freely");
   await expect(page.getByTestId("ask-composer")).toHaveCount(0);
+
+  await page.goto("/?tab=profile", { waitUntil: "domcontentloaded" });
+  await expect(page.getByTestId("profile-know-empty")).toContainText("Sign in to view and save a researcher profile");
+  await expect(page.getByText(/Bind example identity|Loading example profile|Use EXAMPLE/)).toHaveCount(0);
+  await expect.poll(() => facultyRequests).toEqual([]);
 });
