@@ -516,9 +516,15 @@ export function V2App() {
         setLifecycleRefreshFailed(true);
       })
       .finally(() => setJobsRefreshing(false));
-    listAcquisitions(false)
-      .then((d) => setAcquisitions(d.acquisitions || []))
-      .catch(() => setAcquisitions([]));
+    if (canSubmitCollection) {
+      listAcquisitions(false)
+        .then((d) => setAcquisitions(d.acquisitions || []))
+        .catch(() => setAcquisitions([]));
+    } else {
+      // Public browse sessions have no collection authority.  Do not issue an
+      // expected-forbidden request merely to populate an unavailable surface.
+      setAcquisitions([]);
+    }
     if (canViewOperations) {
       libraryOps()
         .then(setOps)

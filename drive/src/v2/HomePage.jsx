@@ -378,7 +378,11 @@ export function HomePage({
             <p className="rd-v2-home-section-empty">
               Nothing durable yet — recent work will collect here.
             </p>
-            <HomeSuggestedAsks profile={profile} onAskComposer={onAskComposer || onSuggestSearch} />
+            <HomeSuggestedAsks
+              profile={profile}
+              onAskComposer={onAskComposer || onSuggestSearch}
+              allowPrincipalSeed={canUseSynthesis}
+            />
           </div>
         )}
       </section>

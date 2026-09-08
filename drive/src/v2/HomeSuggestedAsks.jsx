@@ -11,11 +11,17 @@ function seedLead(seed, profile) {
   return "Suggested asks — start with a question or add evidence";
 }
 
-export function HomeSuggestedAsks({ profile, onAskComposer }) {
+export function HomeSuggestedAsks({ profile, onAskComposer, allowPrincipalSeed = true }) {
   const [seed, setSeed] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
+    if (!allowPrincipalSeed) {
+      setSeed(null);
+      return () => {
+        cancelled = true;
+      };
+    }
     fetchJson("/library/seed", { timeoutMs: 8000 })
       .then((payload) => {
         if (!cancelled && payload && typeof payload === "object") setSeed(payload);
@@ -27,7 +33,7 @@ export function HomeSuggestedAsks({ profile, onAskComposer }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [allowPrincipalSeed]);
 
   const profilePrompts = useMemo(() => homeSuggestedPrompts(profile, { limit: 4 }), [profile]);
   const prompts = useMemo(() => {

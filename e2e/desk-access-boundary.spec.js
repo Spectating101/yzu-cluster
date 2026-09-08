@@ -67,10 +67,14 @@ test("a pending capability check never paints a misleading empty page", async ({
 test("a public guest can browse shared evidence but must sign in to Ask", async ({ page }) => {
   const facultyRequests = [];
   const privateSurfaceRequests = [];
+  const forbiddenStartupRequests = [];
   page.on("request", (request) => {
     if (request.url().includes("/library/faculty/profile")) facultyRequests.push(request.url());
     if (/\/library\/(?:synthesis\/threads|desk\/resources)|\/health(?:\?|$)/.test(request.url())) {
       privateSurfaceRequests.push(request.url());
+    }
+    if (/\/library\/seed(?:\?|$)|\/yzu\/acquisitions(?:\?|$)/.test(request.url())) {
+      forbiddenStartupRequests.push(request.url());
     }
   });
   await mockV2Api(page);
@@ -119,6 +123,7 @@ test("a public guest can browse shared evidence but must sign in to Ask", async 
   await page.goto("/?tab=home", { waitUntil: "domcontentloaded" });
   await expect(page.getByLabel("Resource headroom")).toHaveCount(0);
   await expect.poll(() => privateSurfaceRequests).toEqual([]);
+  await expect.poll(() => forbiddenStartupRequests).toEqual([]);
 
   await page.goto("/?tab=profile", { waitUntil: "domcontentloaded" });
   await expect(page.getByTestId("profile-know-empty")).toContainText("Sign in to view and save a researcher profile");
