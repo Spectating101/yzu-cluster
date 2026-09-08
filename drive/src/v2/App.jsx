@@ -37,7 +37,7 @@ import {
 } from "@/v2/activeObject";
 import { BrowsePage } from "@/v2/BrowsePage";
 import { loadUserEmail, saveUserEmail } from "@/v2/deskSession";
-import { readResourcesRollupCache, writeResourcesRollupCache } from "@/v2/resourcesRollupCache";
+import { writeResourcesRollupCache } from "@/v2/resourcesRollupCache";
 import { normalizeReleaseTab } from "@/v2/releaseVisibility";
 import { DISCOVER_TAB, canonicalTab } from "@/v2/tabIdentity";
 import { HomePage } from "@/v2/HomePage";
@@ -273,8 +273,9 @@ export function V2App() {
   const [overview, setOverview] = useState(null);
   const [catalogSummary, setCatalogSummary] = useState(null);
   const [cluster, setCluster] = useState(null);
-  // Cache-first (same as Resources page) so Home headroom is not blocked on /desk/resources.
-  const [resourcesRollup, setResourcesRollup] = useState(() => readResourcesRollupCache() ?? undefined);
+  // Operator-only rollup. Public guests deliberately start with no cached host
+  // telemetry, then load only the shared research estate.
+  const [resourcesRollup, setResourcesRollup] = useState(undefined);
   const [resourcesError, setResourcesError] = useState("");
   const [resourcesRefreshedAt, setResourcesRefreshedAt] = useState(null);
   const [resourceMode, setResourceMode] = useState("sources");
@@ -290,6 +291,7 @@ export function V2App() {
   const composerRuntime = composerRuntimeRead(health?.desk?.composer_runtime);
   const canSubmitCollection = Boolean(deskAccess?.permissions?.submit_collection);
   const canApproveJobs = Boolean(deskAccess?.permissions?.approve_jobs);
+  const canViewOperations = Boolean(deskAccess?.permissions?.view_operations);
 
   const refreshDeskAccess = useCallback(async ({ force = false } = {}) => {
     setDeskAccessBusy(true);
@@ -464,23 +466,32 @@ export function V2App() {
       setLibraryNavLoading(false);
     }
 
-    setResourcesError("");
-    try {
-      const payload = await deskResources(false);
-      writeResourcesRollupCache(payload);
-      setResourcesRollup(payload);
-      setResourcesRefreshedAt(Date.now());
-    } catch (error) {
-      setResourcesError(error?.message || String(error));
-      setResourcesRollup((cur) => (cur === undefined ? null : cur));
-    }
-    try {
-      applyHealth(await deskHealth(false, { timeoutMs: 12_000 }));
-    } catch {
-      // Working data routes are not evidence of a health failure. Keep the
-      // absence explicit and retry once the primary requests have drained.
-      markHealthUnmeasured();
-      retryHealthAfterQueue();
+    if (canViewOperations) {
+      setResourcesError("");
+      try {
+        const payload = await deskResources(false);
+        writeResourcesRollupCache(payload);
+        setResourcesRollup(payload);
+        setResourcesRefreshedAt(Date.now());
+      } catch (error) {
+        setResourcesError(error?.message || String(error));
+        setResourcesRollup((cur) => (cur === undefined ? null : cur));
+      }
+      try {
+        applyHealth(await deskHealth(false, { timeoutMs: 12_000 }));
+      } catch {
+        // Working data routes are not evidence of a health failure. Keep the
+        // absence explicit and retry once the primary requests have drained.
+        markHealthUnmeasured();
+        retryHealthAfterQueue();
+      }
+    } else {
+      // Resources is host/operator telemetry. Do not fetch it, retain its
+      // cache, or manufacture a degraded state for a public research guest.
+      setResourcesError("");
+      setResourcesRollup(null);
+      setResourcesRefreshedAt(null);
+      setHealth(null);
     }
 
     // These are useful operational enrichments, but none may delay the
@@ -508,24 +519,32 @@ export function V2App() {
     listAcquisitions(false)
       .then((d) => setAcquisitions(d.acquisitions || []))
       .catch(() => setAcquisitions([]));
-    libraryOps()
-      .then(setOps)
-      .catch(() => setOps(null));
+    if (canViewOperations) {
+      libraryOps()
+        .then(setOps)
+        .catch(() => setOps(null));
+    } else {
+      setOps(null);
+    }
     libraryOverview()
       .then(setOverview)
       .catch(() => setOverview(null));
     procurementCatalogSummary()
       .then(setCatalogSummary)
       .catch(() => setCatalogSummary(null));
-    yzuClusterStatus(false)
-      .then(setCluster)
-      .catch(() => setCluster(null));
+    if (canViewOperations) {
+      yzuClusterStatus(false)
+        .then(setCluster)
+        .catch(() => setCluster(null));
+    } else {
+      setCluster(null);
+    }
     discoverHistory({ limit: 50 })
       .then((data) => setHistoryEvents(mergeHistoryEvents(durableHistoryToEvents(data), [])))
       .catch(() => {});
     reloadProfile();
     setDeskRefreshedAt(Date.now());
-  }, [reloadProfile, applyCatalog]);
+  }, [reloadProfile, applyCatalog, canViewOperations]);
 
   const handleApproveJob = useCallback(
     async (jobId) => {
@@ -777,7 +796,8 @@ export function V2App() {
 
   const goTab = useCallback(
     (id, opts = {}) => {
-      const next = normalizeReleaseTab(canonicalTab(id));
+      const requested = normalizeReleaseTab(canonicalTab(id));
+      const next = requested === "resources" && !canViewOperations ? "home" : requested;
       if (next === DISCOVER_TAB && !opts.preserveDiscoverScope) {
         setDiscoverPreferLive(discoverScopeIsWide());
         // A fresh navigation to Discover starts at the retrieval surface. Do not
@@ -808,8 +828,14 @@ export function V2App() {
       setTab(next);
       syncUrl({ tab: next });
     },
-    [syncUrl],
+    [syncUrl, canViewOperations],
   );
+
+  useEffect(() => {
+    if (deskAccess?.authenticated && !canViewOperations && tab === "resources") {
+      goTab("home");
+    }
+  }, [deskAccess?.authenticated, canViewOperations, tab, goTab]);
 
   const handleSynthesisDiscoverHandoff = useCallback(
     ({ field, handoff, thread } = {}) => {
@@ -1944,12 +1970,13 @@ export function V2App() {
         activeResearchTitle={activeResearch.title}
         currentPage={tab}
         onAccountNavigate={goTab}
-        onDeskStatusNavigate={() => goTab("resources")}
+        onDeskStatusNavigate={canViewOperations ? () => goTab("resources") : undefined}
       />
       <V2Sidebar
         tab={tab}
         onTabChange={goTab}
         activeResearch={activeResearch}
+        canViewOperations={canViewOperations}
         recentItems={sidebarRecent}
         onOpenRecent={(item) => {
           if (item?.dataset) openLibraryDataset(item.dataset);
