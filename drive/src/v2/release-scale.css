@@ -392,8 +392,10 @@ body,
   }
 
   .yzu-inspector.rd-v2-rail-collapsed {
-    height: 44px !important;
-    max-height: 44px !important;
+    /* The grip has a 44px interactive target plus the rail border.  Keeping
+       the containing rail at 44px clipped its own label on short phones. */
+    height: 50px !important;
+    max-height: 50px !important;
     overflow: hidden;
   }
 
