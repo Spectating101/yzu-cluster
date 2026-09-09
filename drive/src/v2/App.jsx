@@ -507,6 +507,18 @@ export function V2App() {
     }
 
     if (canViewOperations) {
+      // Health owns the header, assistant gate, and canonical-archive truth.
+      // Do not strand those behind the heavier Resources aggregation: on the
+      // production estate that left Settings and the global badge saying
+      // "Syncing…" for close to a minute even though Library was usable.
+      try {
+        applyHealth(await deskHealth(false, { timeoutMs: 12_000 }));
+      } catch {
+        // Working data routes are not evidence of a health failure. Keep the
+        // absence explicit and retry once the primary requests have drained.
+        markHealthUnmeasured();
+        retryHealthAfterQueue();
+      }
       setResourcesError("");
       try {
         const payload = await deskResources(false);
@@ -516,14 +528,6 @@ export function V2App() {
       } catch (error) {
         setResourcesError(error?.message || String(error));
         setResourcesRollup((cur) => (cur === undefined ? null : cur));
-      }
-      try {
-        applyHealth(await deskHealth(false, { timeoutMs: 12_000 }));
-      } catch {
-        // Working data routes are not evidence of a health failure. Keep the
-        // absence explicit and retry once the primary requests have drained.
-        markHealthUnmeasured();
-        retryHealthAfterQueue();
       }
     } else {
       // Resources is host/operator telemetry. Do not fetch it, retain its

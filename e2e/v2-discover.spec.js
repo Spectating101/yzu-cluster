@@ -233,6 +233,35 @@ test.describe("v2 Discover tab", () => {
     await expect(page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidate")).toHaveCount(1);
   });
 
+  test("Search wider preserves a partially painted route field", async ({ page }) => {
+    const route = {
+      kind: "source",
+      source_id: "twse_openapi",
+      candidate_key: "source:twse:twse_openapi",
+      provider: "TWSE",
+      title: "TWSE OpenAPI",
+      access_mode: "public_api",
+      collect_via: ["queue"],
+    };
+    await mockV2Api(page, {
+      discoverBody: { sections: [], total: 0 },
+      discoverSourcesBody: { results: [route], total: 1 },
+      discoverSourcesDelayMs: 1_500,
+      discoverLiveSourcesBody: { results: [], total: 0 },
+      discoverLiveSourcesDelayMs: 400,
+    });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await searchDiscover(page, "TWSE");
+
+    const candidates = page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidate");
+    await expect(candidates).toHaveCount(1);
+    await page.getByRole("button", { name: "Search wider", exact: true }).click();
+    await expect(page.getByText("Searching wider sources…", { exact: false })).toBeVisible();
+    await expect(candidates).toHaveCount(1);
+    await expect(candidates.first()).toContainText("TWSE OpenAPI");
+  });
+
   test("paints held evidence while the slower source-route lookup continues", async ({ page }) => {
     await mockV2Api(page, {
       discoverBody: {

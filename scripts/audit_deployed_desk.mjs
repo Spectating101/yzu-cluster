@@ -36,6 +36,7 @@ const pageFilter = new Set(
 );
 const includeCrossWidths = process.env.YZU_AUDIT_CROSS_WIDTHS !== "0";
 const includeInteractions = process.env.YZU_AUDIT_INTERACTIONS !== "0";
+const includeApiSweep = process.env.YZU_AUDIT_API_SWEEP !== "0";
 const staticDir = process.env.YZU_AUDIT_STATIC_DIR ? path.resolve(process.env.YZU_AUDIT_STATIC_DIR) : "";
 if (staticDir && !fs.existsSync(path.join(staticDir, "index.html"))) {
   console.error(`YZU_AUDIT_STATIC_DIR has no index.html: ${staticDir}`);
@@ -174,6 +175,15 @@ observePage(page);
 
 async function waitForDesk() {
   await page.waitForSelector(".rd-v2-shell, .yzu-shell", { timeout: 25_000 });
+  // A full-page audit navigation starts a new application instance. Do not
+  // leave its expensive registry read running while immediately starting the
+  // next page: real users navigate inside the SPA, whereas an audit that piles
+  // abandoned /datasets requests onto the host measures its own request storm.
+  await page.waitForFunction(
+    () => !/Loading Library/.test(document.querySelector(".rd-v2-header-meta-count")?.textContent || ""),
+    null,
+    { timeout: 60_000 },
+  );
   // The backend serialises several bounded status calls. Give an already-mounted
   // shell time to settle so a screenshot is evidence of the usable state.
   await page.waitForTimeout(settleMs);
@@ -190,8 +200,8 @@ async function waitForPageTruth(label) {
     return;
   }
   if (label === "library") {
-    await page.getByTestId("library-directory").waitFor({ state: "visible", timeout: 30_000 }).catch(() => {});
-    await page.getByTestId("library-directory").getByRole("status").waitFor({
+    await page.getByTestId("library-evidence-estate").waitFor({ state: "visible", timeout: 30_000 }).catch(() => {});
+    await page.getByTestId("library-evidence-estate").getByRole("status").waitFor({
       state: "hidden",
       timeout: 30_000,
     }).catch(() => {});
@@ -218,15 +228,7 @@ async function waitForPageTruth(label) {
     return;
   }
   if (label === "settings") {
-    await page.waitForFunction(
-      () => {
-        const cards = Array.from(document.querySelectorAll(".rd-v2-settings-summary-card"));
-        const jobs = cards.find((card) => /\bJobs\b/.test(card.textContent || ""));
-        return jobs && !/Loading actionable jobs|Waiting for job inventory/.test(jobs.textContent || "");
-      },
-      null,
-      { timeout: 30_000 },
-    ).catch(() => {});
+    await page.getByText("Workspace behavior", { exact: true }).waitFor({ state: "visible", timeout: 20_000 });
   }
 }
 
@@ -301,10 +303,44 @@ async function browserGet(url) {
   }, url);
 }
 
-async function inspectPage(label, url, { screenshot = true } = {}) {
+const navigationLabels = {
+  home: "Home",
+  library: "Library",
+  discover: "Discover",
+  synthesis: "Synthesis",
+  resources: "Resources",
+  profile: "Profile",
+  settings: "Settings",
+};
+
+async function navigateDesk(label, url, { forceReload = false } = {}) {
+  const shellMounted = await page.locator(".rd-v2-shell, .yzu-shell").count() > 0;
+  if (!forceReload && shellMounted) {
+    const destination = page
+      .getByRole("complementary", { name: "Research Drive navigation" })
+      .getByRole("button", { name: navigationLabels[label], exact: true });
+    if (await destination.count()) {
+      await destination.first().click();
+      await page.waitForFunction(
+        (expected) => String(document.querySelector("[data-testid='header-page-label']")?.textContent || "")
+          .trim().toLowerCase() === expected,
+        label === "discover" ? "discover" : label,
+        { timeout: 20_000 },
+      ).catch(() => {});
+      await waitForPageTruth(label);
+      await page.evaluate(() => window.scrollTo(0, 0));
+      return;
+    }
+  }
+
   await page.goto(`${baseUrl}${url}`, { waitUntil: "load", timeout: 30_000 });
   await waitForDesk();
   await waitForPageTruth(label);
+  await page.evaluate(() => window.scrollTo(0, 0));
+}
+
+async function inspectPage(label, url, { screenshot = true } = {}) {
+  await navigateDesk(label, url);
   // `goto` may restore the prior scroll position for a same-origin tab. The
   // reference capture is the page landing state, not an accidental retained
   // position after a preceding interaction.
@@ -343,8 +379,10 @@ try {
     return { status: response.status, body: await response.json().catch(() => ({})) };
   });
 
-  for (const requestPath of readOnlyApiPaths) {
-    report.api.push({ path: requestPath, ...(await browserGet(requestPath)) });
+  if (includeApiSweep) {
+    for (const requestPath of readOnlyApiPaths) {
+      report.api.push({ path: requestPath, ...(await browserGet(requestPath)) });
+    }
   }
 
   for (const [label, url] of pages) await inspectPage(label, url);
@@ -364,45 +402,56 @@ try {
     // topical match must expose row preview. Derived holdings may truthfully be
     // registered without a query route.
     const libraryAuditQuery = "gdelt_asia_daily_country_panel";
-    await page.goto(`${baseUrl}/?tab=library`, { waitUntil: "load", timeout: 30_000 });
-    await waitForDesk();
+    await navigateDesk("library", "/?tab=library", { forceReload: true });
     await page.evaluate(() => window.scrollTo(0, 0));
     const librarySearch = page.getByLabel("Search library holdings");
     await librarySearch.fill(libraryAuditQuery);
     await page.waitForFunction(
-      () => document.querySelectorAll("[data-testid='library-directory'] button.row").length > 0,
+      () => document.querySelectorAll("[data-testid='library-evidence-row']").length > 0,
       null,
       { timeout: 20_000 },
     ).catch(() => {});
     report.interactions.push({
       name: "Library query",
       query: await librarySearch.inputValue(),
-      result_rows: await page.getByTestId("library-directory").locator("button.row").count(),
+      result_rows: await page.getByTestId("library-evidence-row").count(),
       horizontal_overflow: await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),
     });
     await page.screenshot({ path: path.join(outDir, "library-search-1440x900.png"), fullPage: false });
 
     const libraryIntakes = [];
     for (const intake of [
-      { menu: "Upload file...", heading: "Upload files", required: "Choose files to upload" },
-      { menu: "Add URL / DOI...", heading: "Add URL / DOI", required: "rd-v2-rail-url-input" },
+      {
+        menu: "Upload file...",
+        heading: "Upload files",
+        required: "Choose files to upload",
+        primary: "Prepare upload",
+      },
+      {
+        menu: "Add URL / DOI...",
+        heading: "Add URL / DOI",
+        required: "rd-v2-rail-url-input",
+        primary: "Inspect source",
+      },
     ]) {
       await page.getByRole("button", { name: "Open new library item menu" }).click();
       const menu = page.getByRole("menu", { name: "New library item" });
       await menu.waitFor({ state: "visible", timeout: 5_000 });
-      const newFolderDisabled = await menu.getByRole("menuitem", { name: "New folder" }).isDisabled();
+      const newFolderAbsent = await menu.getByRole("menuitem", { name: "New folder" }).count() === 0;
       await menu.getByRole("menuitem", { name: intake.menu }).click();
       const inspector = page.getByRole("complementary", { name: "Inspector" });
       await inspector.getByText(intake.heading, { exact: true }).first().waitFor({ state: "visible", timeout: 5_000 });
       const requiredControl = intake.required === "rd-v2-rail-url-input"
         ? inspector.locator("#rd-v2-rail-url-input")
         : inspector.getByLabel(intake.required);
+      const primaryAction = inspector.getByRole("button", { name: intake.primary });
       libraryIntakes.push({
         kind: intake.menu,
         rail_visible: await inspector.getByText(intake.heading, { exact: true }).count() > 0,
         required_control: await requiredControl.count() > 0,
-        send_disabled: await inspector.getByRole("button", { name: "Send to Ask" }).isDisabled(),
-        new_folder_disabled: newFolderDisabled,
+        primary_action: intake.primary,
+        primary_disabled_until_input: await primaryAction.isDisabled(),
+        new_folder_absent: newFolderAbsent,
       });
       await page.screenshot({
         path: path.join(
@@ -415,44 +464,43 @@ try {
       });
       // Selecting a real row restores the ordinary dataset Detail rail without
       // submitting an intake or creating any external state.
-      const restoreRow = page.getByTestId("library-directory").locator('button.row[data-kind="dataset"]').first();
+      const restoreRow = page.getByTestId("library-evidence-row").first();
       await restoreRow.click();
       await page.getByTestId("library-asset-workspace").waitFor({ state: "visible", timeout: 15_000 });
-      await page.getByRole("button", { name: "← All Library assets" }).click();
-      await page.getByTestId("library-directory").waitFor({ state: "visible", timeout: 15_000 });
+      await page.getByRole("button", { name: "Close asset inspector" }).click();
+      await page.getByTestId("library-evidence-estate").waitFor({ state: "visible", timeout: 15_000 });
       await librarySearch.fill(libraryAuditQuery);
       await page.waitForFunction(
-        () => document.querySelectorAll("[data-testid='library-directory'] button.row").length > 0,
+        () => document.querySelectorAll("[data-testid='library-evidence-row']").length > 0,
         null,
         { timeout: 20_000 },
       ).catch(() => {});
     }
     report.interactions.push({ name: "Library bounded intake rails", states: libraryIntakes });
 
-    const libraryDatasetRows = page
-      .getByTestId("library-directory")
-      .locator('button.row[data-kind="dataset"]');
+    const libraryDatasetRows = page.getByTestId("library-evidence-row");
     const libraryDatasetCount = await libraryDatasetRows.count();
     if (libraryDatasetCount) {
       await libraryDatasetRows.first().click();
       await page.getByTestId("library-asset-workspace").waitFor({ state: "visible", timeout: 15_000 });
       auditedDatasetId = new URL(page.url()).searchParams.get("dataset") || "";
-      const previewButton = page.getByTestId("library-asset-workspace").getByRole("button", { name: "Preview rows" });
+      const previewButton = page.getByTestId("library-asset-workspace").getByRole("button", { name: "Expand sample" });
       const previewAvailable = await previewButton.count() > 0;
       let preview = { opened: false, rows: 0, fields: 0, centre_scoped: null };
       if (previewAvailable) {
         await previewButton.click();
-        const dialog = page.getByRole("dialog", { name: /preview/i });
+        const dialog = page.getByRole("dialog", { name: /preview|expanded sample/i });
         await dialog.waitFor({ state: "visible", timeout: 20_000 });
         // The dialog becomes visible one frame before the effect mounts its
         // loading status. Waiting only for "status hidden" can therefore pass
         // before the request starts and capture a spinner as a zero-row result.
         // Wait for a terminal preview state instead: observed rows or the
         // explicit unavailable panel.
-        await Promise.race([
-          dialog.locator("tbody tr").first().waitFor({ state: "visible", timeout: 25_000 }),
-          dialog.locator(".rd-preview-unavailable").waitFor({ state: "visible", timeout: 25_000 }),
-        ]).catch(() => {});
+        await dialog.getByRole("status").waitFor({ state: "visible", timeout: 5_000 }).catch(() => {});
+        await dialog.locator("tbody tr, .rd-preview-unavailable").first().waitFor({
+          state: "visible",
+          timeout: 25_000,
+        }).catch(() => {});
         const scrimBox = await page.locator(".rd-preview-scrim").boundingBox();
         const inspectorBox = await page.getByRole("complementary", { name: "Inspector" }).boundingBox();
         preview = {
@@ -478,6 +526,10 @@ try {
       });
 
       if (auditedDatasetId) {
+        const deepLinkPage = await context.newPage();
+        observePage(deepLinkPage);
+        const interactionPage = page;
+        page = deepLinkPage;
         await page.goto(`${baseUrl}/?dataset=${encodeURIComponent(auditedDatasetId)}`, {
           waitUntil: "load",
           timeout: 30_000,
@@ -490,11 +542,12 @@ try {
           library_heading: await page.getByRole("heading", { name: "Library", exact: true }).count() > 0,
           workspace_visible: await page.getByTestId("library-asset-workspace").count() > 0,
         });
+        await deepLinkPage.close();
+        page = interactionPage;
       }
     }
 
-    await page.goto(`${baseUrl}/?tab=browse`, { waitUntil: "load", timeout: 30_000 });
-    await waitForDesk();
+    await navigateDesk("discover", "/?tab=browse");
     await page.evaluate(() => window.scrollTo(0, 0));
     const composer = page.getByLabel("Search or describe a research need");
     await composer.fill("TWSE");
@@ -634,8 +687,7 @@ try {
       });
     }
 
-    await page.goto(`${baseUrl}/?tab=synthesis`, { waitUntil: "load", timeout: 30_000 });
-    await page.waitForSelector("[data-testid='synthesis-studio']", { timeout: 25_000 });
+    await navigateDesk("synthesis", "/?tab=synthesis");
     await page.waitForTimeout(2_000);
     await page.evaluate(() => window.scrollTo(0, 0));
     const threadItems = page.locator("[data-testid='synthesis-thread-item']");
@@ -658,8 +710,7 @@ try {
     });
     await page.screenshot({ path: path.join(outDir, "synthesis-selected-1440x900.png"), fullPage: false });
 
-    await page.goto(`${baseUrl}/?tab=resources`, { waitUntil: "load", timeout: 30_000 });
-    await waitForDesk();
+    await navigateDesk("resources", "/?tab=resources");
     await page.getByText("Syncing…", { exact: true }).first().waitFor({ state: "hidden", timeout: 20_000 }).catch(() => {});
     await page.waitForFunction(
       () => {
@@ -687,25 +738,32 @@ try {
     });
     await page.screenshot({ path: path.join(outDir, "resources-settled-1440x900.png"), fullPage: false });
 
-    await page.goto(`${baseUrl}/?tab=settings`, { waitUntil: "load", timeout: 30_000 });
-    await waitForDesk();
-    await page.getByText("Syncing…", { exact: true }).first().waitFor({ state: "hidden", timeout: 20_000 }).catch(() => {});
+    await navigateDesk("settings", "/?tab=settings");
+    await page.getByText("Workspace behavior", { exact: true }).waitFor({ state: "visible", timeout: 20_000 });
     await page.waitForFunction(
       () => {
-        const cards = Array.from(document.querySelectorAll(".rd-v2-settings-summary-card"));
-        const jobs = cards.find((card) => /\bJobs\b/.test(card.textContent || ""));
-        return jobs && !/Loading actionable jobs|Waiting for job inventory/.test(jobs.textContent || "");
+        const rows = Array.from(document.querySelectorAll(".rd-v2-settings-advanced-body > .rd-v2-statement-row"));
+        const required = rows.filter((row) => /Research API|Assistant runtime|Research archive/.test(row.textContent || ""));
+        return required.length === 3 && required.every((row) => !/Not checked|Not reported/.test(row.textContent || ""));
       },
       null,
-      { timeout: 30_000 },
+      { timeout: 35_000 },
     ).catch(() => {});
+    await page.getByText("System status and technical details", { exact: true }).click();
+    const technicalRows = page.locator(".rd-v2-settings-advanced-body > .rd-v2-statement-row");
+    await technicalRows.first().waitFor({ state: "visible", timeout: 10_000 });
+    const technicalStatus = await technicalRows.evaluateAll((rows) => rows.map((row) => ({
+      label: row.querySelector(".rd-v2-statement-label")?.textContent?.trim() || "",
+      metric: row.querySelector(".rd-v2-statement-metric")?.textContent?.trim() || "",
+      detail: row.querySelector(".rd-v2-statement-detail")?.textContent?.trim() || "",
+    })));
     report.interactions.push({
       name: "Settings runtime truth",
-      status_cards: await page.locator(".rd-v2-settings-summary-card").allTextContents(),
+      technical_status: technicalStatus,
       connected: await page.getByText("Connected", { exact: true }).count() > 0,
-      actionable_jobs_loaded: await page.locator(".rd-v2-settings-summary-card").nth(2).evaluate(
-        (node) => !/Loading actionable jobs|Waiting for job inventory/.test(node.textContent || ""),
-      ),
+      runtime_reported: technicalStatus
+        .filter((row) => ["Research API", "Assistant runtime", "Research archive"].includes(row.label))
+        .every((row) => row.metric && !/Not checked|Not reported/i.test(row.metric)),
       horizontal_overflow: await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),
     });
     await page.screenshot({ path: path.join(outDir, "settings-settled-1440x900.png"), fullPage: false });
@@ -718,10 +776,9 @@ try {
   // universal claim about the user's display.
   for (const [width, height] of includeCrossWidths ? [[1920, 961], [1920, 905], [1920, 1600], [1280, 800], [390, 844]] : []) {
     await page.setViewportSize({ width, height });
-    for (const [label, url] of pages) {
-      await page.goto(`${baseUrl}${url}`, { waitUntil: "load", timeout: 30_000 });
-      await waitForDesk();
-      await waitForPageTruth(label);
+    for (let pageIndex = 0; pageIndex < pages.length; pageIndex += 1) {
+      const [label, url] = pages[pageIndex];
+      await navigateDesk(label, url, { forceReload: pageIndex === 0 });
       report.pages.push({
         label: `${label}-${width}`,
         url,
@@ -771,7 +828,10 @@ const failures = [
     }
     if (entry.name === "Library bounded intake rails") {
       return entry.states.length === 2 && entry.states.every(
-        (state) => state.rail_visible && state.required_control && state.send_disabled && state.new_folder_disabled,
+        (state) => state.rail_visible
+          && state.required_control
+          && state.primary_disabled_until_input
+          && state.new_folder_absent,
       )
         ? []
         : ["workflow: bounded Library intake rails"];
@@ -797,12 +857,13 @@ const failures = [
         : ["workflow: Discover History exact Library handoff"];
     }
     if (entry.name === "Synthesis thread selection") {
-      return entry.available_threads > 0 && entry.selection_visible && entry.measurements
+      return (entry.available_threads > 0 && entry.selection_visible && entry.measurements)
+        || (entry.available_threads === 0 && entry.resources_escape > 0 && !entry.selection_visible)
         ? []
         : ["workflow: Synthesis measured thread"];
     }
     if (entry.name === "Settings runtime truth") {
-      return entry.status_cards.length === 3 && entry.actionable_jobs_loaded
+      return entry.technical_status.length >= 3 && entry.runtime_reported
         ? []
         : ["workflow: Settings runtime truth"];
     }

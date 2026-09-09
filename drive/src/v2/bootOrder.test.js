@@ -40,6 +40,12 @@ test("the visible research estate loads before aggregate health", () => {
   assert.ok(nav < health, "navigation must not wait behind /health, which may probe for 12s");
 });
 
+test("runtime truth is not stranded behind the full resources rollup", () => {
+  const health = at("applyHealth(await deskHealth(false");
+  const resources = at("await deskResources(false)");
+  assert.ok(health < resources, "header, assistant, and archive truth must settle before Resources");
+});
+
 test("the catalog still leads the boot sequence", () => {
   assert.ok(at("applyCatalog(await listDatasets())") < at("applyNavigation(await listLibraryNav())"));
 });

@@ -682,6 +682,11 @@ export function BrowsePage({
   const [autoWidening, setAutoWidening] = useState(false);
   const [lookupProgress, setLookupProgress] = useState({ library: "waiting", routes: "waiting" });
   const restoredSelectionRef = useRef("");
+  const rowsRef = useRef([]);
+
+  useEffect(() => {
+    rowsRef.current = rows;
+  }, [rows]);
 
   const pendingRows = useMemo(
     () => pendingApprovalJobs(jobs).filter(isDiscoverHistoryJob).map((job) => jobToCandidateRow(job)).filter(Boolean),
@@ -712,7 +717,14 @@ export function BrowsePage({
     // Widening is a refinement of the result set the researcher is already
     // reading. Preserve those measured rows while the live federation runs;
     // clearing them made the frozen counters falsely claim zero evidence.
-    const isWidening = Boolean(preferLiveSources && q && loadedQuery === q);
+    // A researcher can press Search wider as soon as the first partial route
+    // paints, before the slower known-source leg has set loadedQuery. Treat
+    // those already-visible rows as the current evidence field too. Otherwise
+    // that legitimate fast click clears the field and briefly (or, on a live
+    // miss, permanently) turns two observed candidates into “No matches”.
+    const isWidening = Boolean(
+      preferLiveSources && q && (loadedQuery === q || rowsRef.current.length > 0),
+    );
     const email = loadUserEmail();
     const immediateDemo = discoverDemoSearch(q);
     setLoading(true);

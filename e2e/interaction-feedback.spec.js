@@ -32,7 +32,12 @@ test.describe("Research Drive interaction feedback convergence", () => {
     await page.screenshot({ path: `${ARTIFACT_DIR}/feedback-home-loading-1440x900.png` });
 
     await expect(page.getByTestId("interaction-skeleton")).toHaveCount(0, { timeout: 10_000 });
-    await expect(page.getByTestId("home-continue").getByRole("button", { name: "Continue" })).toBeVisible();
+    // A pending researcher decision legitimately outranks the reusable
+    // evidence continuation.  The settled Pick up card may therefore offer
+    // Review or Continue; this loading-state test must not encode ranking.
+    await expect(
+      page.getByTestId("home-continue").getByRole("button", { name: /Review|Continue/ }),
+    ).toBeVisible();
   });
 
   test("readiness popover explains evidence and the safest next action", async ({ page }) => {

@@ -8,6 +8,7 @@ import {
 } from "@/v2/deskSession";
 import { clearDeskSession, ensureDeskSession } from "@/v2/api";
 import { ConnectedAccountsSection } from "@/v2/ConnectedAccountsSection";
+import { archiveRuntimeStatus } from "@/v2/archiveRuntimeStatus";
 import { assistantRuntimeDetail, composerRuntimeRead } from "@/v2/composerRuntimeStatus";
 import { loadSettings, saveSettings } from "@/v2/settingsStore";
 import { PILOT_PREVIEW_EMAIL } from "@/v2/profileViewModel";
@@ -101,12 +102,7 @@ export function SettingsPage({
   const assistant = assistantStatus(health);
   const demoMode = isDemoMode();
   const desk = health?.desk || {};
-  const archive =
-    desk?.gdrive?.ok === true
-      ? "Connected"
-      : desk?.gdrive?.ok === false
-        ? "Needs review"
-        : "Not reported";
+  const archive = archiveRuntimeStatus(health);
   const mcpTools =
     resourcesRollup?.ai?.mcp_tools?.total ?? resourcesRollup?.hero?.mcp_tools ?? null;
 
@@ -242,6 +238,19 @@ export function SettingsPage({
           </p>
         </StatementSection>
 
+        <StatementSection title="Research Drive storage">
+          <StatementRow
+            label="Shared evidence archive"
+            metric={archive.label}
+            sublabel={archive.detail}
+            detail={archive.ready ? "READY" : archive.known ? "CHECK" : "UNKNOWN"}
+            warn={archive.known && !archive.ready}
+          />
+          <p className="rd-v2-settings-hint">
+            This service-managed archive supplies the shared Library. Personal storage below is optional and never replaces the default research estate.
+          </p>
+        </StatementSection>
+
         <ConnectedAccountsSection deskAccess={deskAccess} onToast={onToast} />
 
         <StatementSection title="Research identity">
@@ -345,16 +354,10 @@ export function SettingsPage({
             />
             <StatementRow
               label="Research archive"
-              metric={archive}
-              sublabel="Archive health reported by the desk"
-              detail={
-                desk?.gdrive?.ok === true
-                  ? "OK"
-                  : desk?.gdrive?.ok === false
-                    ? "CHECK"
-                    : "UNKNOWN"
-              }
-              warn={desk?.gdrive?.ok === false}
+              metric={archive.label}
+              sublabel={archive.detail}
+              detail={archive.ready ? "READY" : archive.known ? "CHECK" : "UNKNOWN"}
+              warn={archive.known && !archive.ready}
             />
             <StatementRow
               label="Desk equipment"
