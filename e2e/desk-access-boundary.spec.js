@@ -65,7 +65,9 @@ test("a pending capability check never paints a misleading empty page", async ({
   });
 
   await page.goto("/?tab=discover", { waitUntil: "domcontentloaded" });
-  await expect(page.getByTestId("desk-access-gate")).toBeVisible();
+  await expect(page.getByTestId("desk-session-bootstrap")).toBeVisible();
+  await expect(page.getByTestId("desk-access-gate")).toHaveCount(0);
+  await expect(page.getByText("Opening Research Drive")).toBeVisible();
   await expect(page.getByText("No curated source routes yet")).toHaveCount(0);
 });
 

@@ -27,7 +27,7 @@ import {
   yzuClusterStatus,
 } from "@/v2/api";
 import { AskRail } from "@/v2/AskRail";
-import { DeskAccessGate } from "@/v2/DeskAccessGate";
+import { DeskAccessGate, DeskSessionBootstrap } from "@/v2/DeskAccessGate";
 import {
   datasetObject,
   discoverHistoryObject,
@@ -1973,11 +1973,15 @@ export function V2App() {
   // fall through as a zero, an empty state, or a permanently loading card.
   // Capabilities and session bootstrap are the one public contract; every
   // data surface becomes available only after that contract proves a session.
-  if (deskAccessBusy || !deskAccess?.authenticated) {
+  if (deskAccessBusy) {
+    return <DeskSessionBootstrap />;
+  }
+
+  if (!deskAccess?.authenticated) {
     return (
       <DeskAccessGate
         access={deskAccess}
-        busy={deskAccessBusy}
+        busy={false}
         onRetry={({ force = true } = {}) => refreshDeskAccess({ force })}
       />
     );

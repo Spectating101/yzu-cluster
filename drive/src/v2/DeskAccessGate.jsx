@@ -1,6 +1,26 @@
 import { useState } from "react";
 import { saveDeskToken } from "@/v2/deskSession";
 
+/**
+ * First paint while the browser establishes its same-origin session.
+ *
+ * This is deliberately not the locked gate: a public guest starts in this
+ * state for a short time before its restricted session exists. Showing the
+ * private-desk token wall during that normal bootstrap made the public launch
+ * look broken even though the next request correctly opened Library/Discover.
+ */
+export function DeskSessionBootstrap() {
+  return (
+    <main className="rd-v2-access-gate rd-v2-session-bootstrap" aria-busy="true" data-testid="desk-session-bootstrap">
+      <section className="rd-v2-access-card">
+        <span className="rd-v2-access-kicker">RESEARCH DRIVE</span>
+        <h1>Opening Research Drive</h1>
+        <p>Establishing this browser’s secure session for the shared research estate.</p>
+      </section>
+    </main>
+  );
+}
+
 /** Private-by-default entry for browsers outside the trusted Tailscale desk. */
 export function DeskAccessGate({ access, busy = false, onRetry }) {
   const [token, setToken] = useState("");

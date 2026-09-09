@@ -177,6 +177,14 @@
   line-height: 1.45;
 }
 
+.rd-v2-session-bootstrap .rd-v2-access-card {
+  max-width: 520px;
+}
+
+.rd-v2-session-bootstrap .rd-v2-access-card > p {
+  max-width: 36rem;
+}
+
 @media (max-width: 640px) {
   .rd-v2-access-gate { padding: 16px; }
   .rd-v2-access-card { padding: 30px 24px; }
