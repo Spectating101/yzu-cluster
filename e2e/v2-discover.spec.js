@@ -386,26 +386,38 @@ test.describe("v2 Discover tab", () => {
     await expect(rail.getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "true");
   });
 
-  test("mobile evidence facets remain fully reachable", async ({ page }) => {
+  test("mobile keeps retrieval controls and results reachable without the workstation cockpit", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await mockV2Api(page, { discoverBody: MOCK_DISCOVER_HIT });
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
     await searchDiscover(page, "stablecoin");
 
-    const facets = page.getByRole("navigation", { name: "Evidence facets" });
-    const all = facets.getByRole("button", { name: /All evidence/i });
-    const external = facets.getByRole("button", { name: /Beyond Library/i });
-    await expect(all).toBeVisible();
+    // The evidence cockpit is a high-density workstation aid. On phone width it
+    // must not be stacked above retrieval; the compact filter menu carries the
+    // same decision without consuming the first result viewport.
+    await expect(page.getByRole("navigation", { name: "Evidence facets" })).toBeHidden();
+    const filterMenu = page.getByTestId("discover-filter-menu");
+    await expect(filterMenu).toBeVisible();
+    const menuBox = await filterMenu.boundingBox();
+    expect(menuBox).not.toBeNull();
+    expect(menuBox.x).toBeGreaterThanOrEqual(0);
+    expect(menuBox.x + menuBox.width).toBeLessThanOrEqual(390);
+
+    const firstResult = page.locator(".rd-v2-discover-candidate").first();
+    await expect(firstResult).toBeVisible();
+    const resultBox = await firstResult.boundingBox();
+    expect(resultBox).not.toBeNull();
+    expect(resultBox.y).toBeLessThan(844);
+
+    await filterMenu.locator("summary").click();
+    const external = page
+      .getByRole("group", { name: "Filter Discover results" })
+      .getByRole("button", { name: /Beyond (your )?Library/i });
     await expect(external).toBeVisible();
-    for (const control of [all, external]) {
-      const box = await control.boundingBox();
-      expect(box).not.toBeNull();
-      expect(box.x).toBeGreaterThanOrEqual(0);
-      expect(box.x + box.width).toBeLessThanOrEqual(390);
-    }
     await external.click();
-    await expect(external).toHaveAttribute("aria-pressed", "true");
+    await expect(filterMenu.locator("summary")).toContainText("Beyond your Library");
+    await expect(page.getByTestId("discover-rank-foot")).toContainText("Beyond your Library");
   });
 
   test("usable height expands evidence detail and the bounded History ledger", async ({ page }) => {
