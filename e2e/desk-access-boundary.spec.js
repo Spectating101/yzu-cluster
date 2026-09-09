@@ -120,6 +120,18 @@ test("a public guest can browse shared evidence but must sign in to Ask", async 
   // that only a collection-capable member can submit.
   await expect(page.getByRole("button", { name: "Add to collection" })).toHaveCount(0);
   await expect(page.getByTestId("discover-craft-form")).toHaveCount(0);
+  await page.getByLabel("Search or describe a research need").fill("MOPS filings");
+  await page.getByRole("button", { name: "Explore", exact: true }).click();
+  await expect(page.getByTestId("discover-result-summary")).toBeVisible();
+  const rankedResults = page.getByTestId("discover-ranked-results");
+  await rankedResults.getByRole("button", { name: /MOPS financial statements/ }).click();
+  const signInToRequest = page.locator("aside.rd-v2-rail").getByRole("button", {
+    name: "Sign in to request evidence",
+  });
+  await expect(signInToRequest).toBeVisible();
+  await signInToRequest.click();
+  await expect(page.getByTestId("ask-sign-in-gate")).toContainText("Sign in to ask Research Drive.");
+  await expect(page.getByTestId("discover-intent-workspace")).toHaveCount(0);
   await page.getByRole("button", { name: "Account" }).click();
   await expect(page.getByRole("menu", { name: "Account destinations" })).toContainText("Guest");
   await expect(page.getByTestId("member-sign-in")).toContainText("Sign in to Ask");

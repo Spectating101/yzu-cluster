@@ -209,6 +209,7 @@ export function DiscoverEvaluationSurface({
   intentRecord = null,
   onAskAbout,
   onAddToLab,
+  onRequireMemberAccess,
   onPreviewExternal,
   onProbeSource,
   probeState,
@@ -359,6 +360,11 @@ export function DiscoverEvaluationSurface({
   );
   const localDatasetTitle = sufficiencyLocalTitle(sufficiency);
 
+  const actionLabel = (action) =>
+    action?.id === "add_lab" && !onAddToLab
+      ? "Sign in to request evidence"
+      : action?.label;
+
   const openLocal = () => {
     const local = sufficiency?.bestLocal;
     if (local) onOpenInLibrary?.(local);
@@ -409,7 +415,8 @@ export function DiscoverEvaluationSurface({
       const datasetId = lifecycle?.registeredDatasetId || target?.dataset_id;
       onOpenInLibrary?.(datasetId ? { ...target, dataset_id: datasetId } : target);
     } else if (id === "add_lab") {
-      setRequestConfirm(true);
+      if (onAddToLab) setRequestConfirm(true);
+      else onRequireMemberAccess?.();
     } else if (id === "probe") onProbeSource?.(target);
     else if (id === "preview") onPreviewExternal?.();
     else if (id === "review_approval") onReviewApproval?.(lifecycle?.job || target);
@@ -711,7 +718,7 @@ export function DiscoverEvaluationSurface({
             disabled={probeLoading || submitting}
             onClick={() => runAction(primary.id)}
           >
-            {primary.label}
+            {actionLabel(primary)}
           </button>
         )}
 
@@ -724,7 +731,7 @@ export function DiscoverEvaluationSurface({
               disabled={probeLoading || submitting || requestConfirm}
               onClick={() => runAction(action.id)}
             >
-              {action.label}
+              {actionLabel(action)}
             </button>
           ))}
         </div>
@@ -739,7 +746,7 @@ export function DiscoverEvaluationSurface({
                   disabled={probeLoading || submitting}
                   onClick={() => runAction(mobileSecondary.id)}
                 >
-                  {mobileSecondaryLabel}
+                  {actionLabel({ ...mobileSecondary, label: mobileSecondaryLabel })}
                 </button>
               ) : (
                 <span />
@@ -759,7 +766,7 @@ export function DiscoverEvaluationSurface({
                           event.currentTarget.closest("details")?.removeAttribute("open");
                         }}
                       >
-                        {action.label}
+                        {actionLabel(action)}
                       </button>
                     ))}
                   </div>

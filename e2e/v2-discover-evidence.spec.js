@@ -135,9 +135,10 @@ test.describe("Discover adaptive Explore", () => {
     await expect(page.getByTestId("discover-verdict")).toHaveText("Partially covered");
     await expect(page.getByTestId("discover-ranked-results")).toContainText("MOPS financial statements");
     await expect(rail.getByRole("tab", { name: "Detail" })).toHaveAttribute("aria-selected", "true");
-    await result.locator("details.rd-v2-evidence-edit > summary").click();
-    await expect(result.getByLabel("Geography / universe value")).toHaveValue("Taiwan listed issuers");
-    await expect(result.getByLabel("Fields provenance")).toHaveValue("explicit");
+    // The workstation composition keeps refinement controls out of the scan
+    // path; verify the rendered assessment itself instead of clicking a
+    // deliberately hidden legacy editor.
+    await expect(result).toContainText("Taiwan listed issuers");
     await expect(page.getByTestId("discover-filter-menu")).toHaveCount(1);
     await expect(result).not.toContainText("[object Object]");
   });
@@ -164,20 +165,41 @@ test.describe("Discover adaptive Explore", () => {
 
     await expect(page.getByTestId("discover-verdict")).toHaveText("Not yet recorded");
     await expect(page.getByTestId("discover-verdict")).toHaveClass(/insufficient_metadata/);
-    await expect(page.getByRole("button", { name: "Clarify evidence need" })).toBeVisible();
+    await expect(page.locator(".rd-v2-discover-evidence-cockpit").getByRole("button", {
+      name: "Review assessment",
+    })).toBeVisible();
     await expect(page.getByTestId("discover-route-comparison")).toHaveCount(0);
   });
 
   test("a genuine evidence gap opens temporary route comparison and keeps approval downstream", async ({ page }) => {
     await mockV2Api(page, {
-      discoverBody: MOCK_DISCOVER_HIT,
+      discoverBody: {
+        sections: [{
+          title: "Registry",
+          rows: [
+            ...MOCK_DISCOVER_HIT.sections[0].rows,
+            {
+              dataset_id: "twse_governance_ext",
+              candidate_key: "dataset:twse_governance_ext",
+              title: "TWSE governance disclosures",
+              source: "TWSE",
+              collect_via: "twse_official",
+              url: "https://www.twse.com.tw/example",
+              coverage: "2018–2026",
+              grain: "issuer-year",
+              description: "Board composition and governance disclosures",
+            },
+          ],
+        }],
+        total: 2,
+      },
       assessmentBody: MOCK_DISCOVER_ASSESSMENT,
     });
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
     await search(page, "What data covers Taiwan issuer-quarter governance?");
 
-    await page.getByRole("button", { name: "Review sourcing strategy" }).click();
+    await page.getByRole("button", { name: "Review assembly plan" }).click();
     const comparison = page.getByTestId("discover-route-comparison");
     await expect(comparison).toBeVisible();
     await expect(comparison).toContainText("How it answers the question");
