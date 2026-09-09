@@ -1,12 +1,14 @@
 /** Research Drive v2 — HTTP client (dev proxies /api → :8765 via vite.config.js). */
 
 import {
+  clearDeskToken,
   deskFetchInit,
   deskHeaders,
   deskSessionBootstrapped,
   loadChatSessionId,
   loadUserEmail,
   markDeskSessionBootstrapped,
+  saveDeskToken,
   saveChatSessionId,
 } from "./deskSession.js";
 import { createRequestAbort, decodeNdjson, normalizeApiError } from "./transportContract.js";
@@ -142,6 +144,32 @@ export async function clearDeskSession() {
     } catch (error) {
       return { ok: false, error: String(error?.message || error) };
     }
+  }
+}
+
+/**
+ * Upgrade a public guest with an individually issued member access code.
+ *
+ * The code is sent once to the same-origin server over HTTPS, exchanged for
+ * its HttpOnly expiring desk session, then removed from sessionStorage.  It is
+ * never a URL parameter and never remains available to later browser scripts.
+ */
+export async function signInWithMemberAccessCode(code) {
+  const value = String(code || "").trim();
+  if (!value) throw new Error("Enter your member access code.");
+  saveDeskToken(value);
+  markDeskSessionBootstrapped(false);
+  try {
+    const session = await ensureDeskSession({ force: true });
+    if (!session?.ok) throw new Error(session?.error || "Member sign-in was not accepted.");
+    clearDeskToken();
+    const access = await deskCapabilities();
+    if (!access?.authenticated || !access?.permissions?.use_ask) {
+      throw new Error("This access code does not grant member Ask access.");
+    }
+    return access;
+  } finally {
+    clearDeskToken();
   }
 }
 

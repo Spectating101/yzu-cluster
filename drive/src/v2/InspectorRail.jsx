@@ -118,7 +118,31 @@ function DiscoverAssessmentRailSummary({ state, onClose }) {
   );
 }
 
-function AskSignInPanel({ available, onSignIn }) {
+function AskSignInPanel({
+  providerAvailable,
+  memberAccessCodeAvailable,
+  onProviderSignIn,
+  onMemberCodeSignIn,
+}) {
+  const [accessCode, setAccessCode] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  const submitAccessCode = async (event) => {
+    event.preventDefault();
+    if (!accessCode.trim() || !onMemberCodeSignIn) return;
+    setBusy(true);
+    setError("");
+    try {
+      await onMemberCodeSignIn(accessCode);
+      setAccessCode("");
+    } catch (reason) {
+      setError(String(reason?.message || reason || "Member sign-in was not accepted."));
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <section className="rd-v2-ask-sign-in" data-testid="ask-sign-in-gate" aria-label="Sign in to ask">
       <span className="rd-v2-eyebrow">Personal research trail</span>
@@ -126,13 +150,31 @@ function AskSignInPanel({ available, onSignIn }) {
       <p>
         Shared Library and Discover evidence remain available here. Asking and saved research work begin with a named member session.
       </p>
-      {available && onSignIn ? (
-        <button type="button" className="rd-v2-btn primary" onClick={onSignIn}>
-          Sign in to Ask
+      {memberAccessCodeAvailable && onMemberCodeSignIn ? (
+        <form className="rd-v2-member-code-form" onSubmit={submitAccessCode}>
+          <label htmlFor="rd-member-access-code">Member access code</label>
+          <input
+            id="rd-member-access-code"
+            type="password"
+            autoComplete="one-time-code"
+            value={accessCode}
+            onChange={(event) => setAccessCode(event.target.value)}
+            placeholder="Enter your issued code"
+          />
+          <button type="submit" className="rd-v2-btn primary" disabled={busy || !accessCode.trim()}>
+            {busy ? "Signing in…" : "Sign in to Ask"}
+          </button>
+          {error ? <p className="rd-v2-member-code-error" role="alert">{error}</p> : null}
+        </form>
+      ) : null}
+      {providerAvailable && onProviderSignIn ? (
+        <button type="button" className="rd-v2-btn" onClick={onProviderSignIn}>
+          Continue with member sign-in
         </button>
-      ) : (
+      ) : null}
+      {!memberAccessCodeAvailable && !providerAvailable ? (
         <p className="muted">Member sign-in is not enabled on this host yet.</p>
-      )}
+      ) : null}
     </section>
   );
 }
@@ -183,8 +225,10 @@ export function InspectorRail({
   onSubmitLibraryProcure,
   askPanel,
   askAvailable = true,
-  memberSignInAvailable = false,
+  memberAccessCodeAvailable = false,
+  memberProviderSignInAvailable = false,
   onMemberSignIn,
+  onMemberCodeSignIn,
   profile = null,
   allowProfilePreview = false,
 }) {
@@ -423,7 +467,14 @@ export function InspectorRail({
           aria-hidden={railTab !== "ask"}
           data-testid="rail-pane-ask"
         >
-          {askPanel || <AskSignInPanel available={memberSignInAvailable} onSignIn={onMemberSignIn} />}
+          {askPanel || (
+            <AskSignInPanel
+              providerAvailable={memberProviderSignInAvailable}
+              memberAccessCodeAvailable={memberAccessCodeAvailable}
+              onProviderSignIn={onMemberSignIn}
+              onMemberCodeSignIn={onMemberCodeSignIn}
+            />
+          )}
         </div>
       </div>
     </aside>

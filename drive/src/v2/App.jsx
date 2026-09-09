@@ -21,6 +21,7 @@ import {
   probePublicSource,
   procurementCatalogSummary,
   setDiscoverIntentProposal,
+  signInWithMemberAccessCode,
   submitLibraryJob,
   craftCollectPlan,
   yzuClusterStatus,
@@ -306,7 +307,9 @@ export function V2App() {
   }, []);
 
   const memberSignInAvailable = Boolean(deskAccess?.session?.member_sign_in_available);
-  const beginMemberSignIn = useCallback(() => {
+  const memberAccessCodeAvailable = Boolean(deskAccess?.session?.member_access_code_available);
+  const memberProviderSignInAvailable = Boolean(deskAccess?.session?.member_sign_in_path);
+  const beginCloudflareMemberSignIn = useCallback(() => {
     const path = String(deskAccess?.session?.member_sign_in_path || "").trim();
     if (!path.startsWith("/")) {
       showToast("Member sign-in is not enabled on this host yet.", "error");
@@ -315,6 +318,25 @@ export function V2App() {
     const returnTo = `${window.location.pathname}${window.location.search}${window.location.hash}`;
     window.location.assign(`${path}?return_to=${encodeURIComponent(returnTo)}`);
   }, [deskAccess?.session?.member_sign_in_path, showToast]);
+
+  const beginMemberSignIn = useCallback(() => {
+    // Access-code membership stays on the desk so the researcher can enter
+    // their issued code in the explicit Ask gate. Provider-only hosts can
+    // redirect directly to their identity provider.
+    if (memberAccessCodeAvailable) {
+      setRailTab("ask");
+      return;
+    }
+    beginCloudflareMemberSignIn();
+  }, [beginCloudflareMemberSignIn, memberAccessCodeAvailable]);
+
+  const signInWithMemberCode = useCallback(async (code) => {
+    const access = await signInWithMemberAccessCode(code);
+    setDeskAccess(access);
+    setRailTab("ask");
+    showToast("Signed in. Ask and your private research trail are ready.");
+    return access;
+  }, [showToast]);
 
   const signOut = useCallback(async () => {
     await clearDeskSession();
@@ -2157,8 +2179,10 @@ export function V2App() {
           /> : null
         }
         askAvailable={canUseAsk}
-        memberSignInAvailable={memberSignInAvailable}
+        memberAccessCodeAvailable={memberAccessCodeAvailable}
+        memberProviderSignInAvailable={memberProviderSignInAvailable}
         onMemberSignIn={memberSignInAvailable ? beginMemberSignIn : undefined}
+        onMemberCodeSignIn={memberAccessCodeAvailable ? signInWithMemberCode : undefined}
       />
       <Toast toast={toast} />
     </div>

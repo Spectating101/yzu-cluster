@@ -585,6 +585,33 @@
   line-height: 1.55;
 }
 
+.rd-v2-member-code-form {
+  display: grid;
+  gap: 7px;
+}
+
+.rd-v2-member-code-form label {
+  color: var(--rd-muted);
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.rd-v2-member-code-form input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--rd-border);
+  border-radius: 7px;
+  background: var(--rd-surface, #fff);
+  color: var(--rd-text);
+  font: inherit;
+  font-size: 12px;
+  padding: 9px 10px;
+}
+
+.rd-v2-member-code-error {
+  color: var(--rd-danger, #9b3730) !important;
+}
+
 .rd-v2-situation-sign-in {
   margin-top: 10px;
   border: 0;

@@ -22,7 +22,7 @@ test("a locked desk has one honest boundary, not zero-shaped data", async ({ pag
         bootstrap_available: true,
         public_guest_available: true,
         member_sign_in_available: true,
-        member_sign_in_path: "/library/desk/login",
+        member_access_code_available: true,
       },
     }),
   }));
@@ -104,7 +104,7 @@ test("a public guest can browse shared evidence but must sign in to Ask", async 
         bootstrap_available: true,
         public_guest_available: true,
         member_sign_in_available: true,
-        member_sign_in_path: "/library/desk/login",
+        member_access_code_available: true,
       },
     }),
   }));
@@ -129,6 +129,7 @@ test("a public guest can browse shared evidence but must sign in to Ask", async 
   await page.getByRole("tab", { name: "Ask · sign in" }).click();
   await expect(page.getByTestId("ask-sign-in-gate")).toContainText("Sign in to ask Research Drive.");
   await expect(page.getByTestId("ask-sign-in-gate")).toContainText("Shared Library and Discover evidence remain available");
+  await expect(page.getByLabel("Member access code")).toBeVisible();
   await expect(page.getByRole("button", { name: "Sign in to Ask" })).toBeVisible();
   await expect(page.getByTestId("ask-composer")).toHaveCount(0);
 
