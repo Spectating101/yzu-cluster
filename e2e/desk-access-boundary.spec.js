@@ -64,7 +64,7 @@ test("a pending capability check never paints a misleading empty page", async ({
   await expect(page.getByText("No curated source routes yet")).toHaveCount(0);
 });
 
-test("a public guest can browse shared evidence but must sign in to Ask", async ({ page }) => {
+test("a public guest can browse shared evidence but must sign in to Ask", async ({ page }, testInfo) => {
   const facultyRequests = [];
   const privateSurfaceRequests = [];
   const forbiddenStartupRequests = [];
@@ -126,7 +126,14 @@ test("a public guest can browse shared evidence but must sign in to Ask", async 
   await expect.poll(() => forbiddenStartupRequests).toEqual([]);
 
   await page.goto("/?tab=profile", { waitUntil: "domcontentloaded" });
-  await expect(page.getByTestId("profile-know-empty")).toContainText("Sign in to view and save a researcher profile");
+  await expect(page.getByLabel("Research profile access")).toContainText("Profiles are personal workspaces");
+  await expect(page.getByLabel("Research profile access")).toContainText("Sign in to keep a research profile");
   await expect(page.getByText(/Bind example identity|Loading example profile|Use EXAMPLE/)).toHaveCount(0);
   await expect.poll(() => facultyRequests).toEqual([]);
+  if (process.env.YZU_CAPTURE_VISUALS === "1") {
+    await page.screenshot({ path: testInfo.outputPath("public-profile-1440x900.png"), fullPage: false });
+    await page.goto("/?tab=settings", { waitUntil: "domcontentloaded" });
+    await expect(page.getByText("Public browsing session", { exact: true })).toBeVisible();
+    await page.screenshot({ path: testInfo.outputPath("public-settings-1440x900.png"), fullPage: false });
+  }
 });

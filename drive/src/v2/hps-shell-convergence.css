@@ -48,6 +48,13 @@
   margin-bottom: 30px;
 }
 
+/* A public or thin workspace can legitimately have no operational headroom.
+   Do not reserve a second column for an absent panel: the return card should
+   then own the full research surface rather than leaving a blank beige field. */
+.rd-v2-home-topband:not(:has(> .rd-v2-home-headroom)) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .rd-v2-home-pickup {
   display: flex;
   min-width: 0;
@@ -549,6 +556,49 @@
   margin: 18px 0;
   color: var(--rd-hps-muted);
   font-size: 11.5px;
+}
+
+/* Public visitors do not have a profile record yet. Give that truthful state a
+   compact useful composition instead of rendering an empty identity template. */
+.rd-v2-profile-public-state {
+  max-width: 680px;
+  padding: 28px 0 30px;
+  border-top: 1px solid var(--rd-hps-line);
+  border-bottom: 1px solid var(--rd-hps-line);
+}
+
+.rd-v2-profile-page:has(.rd-v2-profile-public-state) .rd-v2-body-scroll {
+  gap: 0;
+  padding: 6px 0 20px;
+  margin-right: 0;
+  margin-bottom: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+.rd-v2-profile-public-state h2 {
+  margin: 12px 0 8px;
+  color: var(--rd-hps-ink);
+  font-size: clamp(24px, 2.5vw, 32px);
+  letter-spacing: -.035em;
+  line-height: 1.08;
+}
+
+.rd-v2-profile-public-state p {
+  max-width: 560px;
+  margin: 0;
+  color: var(--rd-hps-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.rd-v2-profile-public-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 20px;
 }
 
 .rd-v2-profile-section {

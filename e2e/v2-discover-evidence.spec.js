@@ -13,6 +13,50 @@ async function search(page, query = "MOPS filings") {
 }
 
 test.describe("Discover adaptive Explore", () => {
+  test("keeps the evidence cockpit on a full workstation", async ({ page }, testInfo) => {
+    await mockV2Api(page, { discoverBody: MOCK_DISCOVER_HIT });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await search(page, "MOPS filings");
+
+    await expect(page.locator(".rd-v2-discover-evidence-cockpit")).toBeVisible();
+    await expect(page.getByTestId("discover-filter-menu")).toBeHidden();
+    if (process.env.YZU_CAPTURE_VISUALS === "1") {
+      await page.screenshot({
+        path: testInfo.outputPath("discover-cockpit-workstation-1440x900.png"),
+        fullPage: false,
+      });
+    }
+  });
+
+  test("keeps results first when the workstation cannot afford the evidence cockpit", async ({ page }, testInfo) => {
+    await mockV2Api(page, { discoverBody: MOCK_DISCOVER_HIT });
+    for (const viewport of [
+      { width: 1180, height: 800 },
+      { width: 390, height: 844 },
+    ]) {
+      await page.setViewportSize(viewport);
+      await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+      await waitForShell(page);
+      await search(page, "MOPS filings");
+
+      await expect(page.locator(".rd-v2-discover-evidence-cockpit")).toBeHidden();
+      await expect(page.getByTestId("discover-filter-menu")).toBeVisible();
+      const firstResult = page.locator(".rd-v2-discover-candidate").first();
+      await expect(firstResult).toBeVisible();
+      const box = await firstResult.boundingBox();
+      expect(box, `${viewport.width}px must render a first result`).not.toBeNull();
+      expect(box.y, `${viewport.width}px must not bury the first result below the fold`).toBeLessThan(viewport.height);
+      if (process.env.YZU_CAPTURE_VISUALS === "1") {
+        await page.screenshot({
+          path: testInfo.outputPath(`discover-results-first-${viewport.width}x${viewport.height}.png`),
+          fullPage: false,
+        });
+      }
+    }
+  });
+
   test("plain lookup stays on the index path without starting assessment or Ask", async ({ page }) => {
     let deepCalls = 0;
     let assessmentCalls = 0;

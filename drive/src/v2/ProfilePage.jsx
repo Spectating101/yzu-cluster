@@ -85,6 +85,7 @@ export function ProfilePage({
 
   const previewing = !bound && Boolean(pilot);
   const active = bound ? profile : pilot;
+  const publicProfile = !active && !pilotLoading && !allowExamplePreview;
   const surfaceState = resolveSurfaceLifecycle({
     idle: !bound && !pilotLoading && Boolean(pilot),
     loading: !bound && pilotLoading,
@@ -113,6 +114,24 @@ export function ProfilePage({
       lead="What Research Drive currently knows about this researcher"
       surfaceState={surfaceState}
     >
+      {publicProfile ? (
+        <section className="rd-v2-profile-public-state" aria-label="Research profile access">
+          <span className="rd-v2-profile-kicker">Research identity</span>
+          <h2>Profiles are personal workspaces</h2>
+          <p>
+            Browse the shared Library and Discover as a guest. Sign in to keep a research
+            profile, saved reasoning, and a durable research trail.
+          </p>
+          <div className="rd-v2-profile-public-actions">
+            <button type="button" className="rd-v2-btn sm primary" onClick={() => onGoTab?.("browse")}>
+              Explore sources
+            </button>
+            <button type="button" className="rd-v2-btn sm ghost" onClick={() => onGoTab?.("library")}>
+              Open Library
+            </button>
+          </div>
+        </section>
+      ) : (
       <section className="rd-v2-profile-identity" aria-label="Researcher identity">
         <div className="rd-v2-profile-ident">
           <span className="rd-v2-profile-kicker">Researcher record</span>
@@ -164,6 +183,7 @@ export function ProfilePage({
           ) : null}
         </div>
       </section>
+      )}
 
       {pilotLoading && !bound && allowExamplePreview ? (
         <p className="rd-v2-profile-loading" data-testid="profile-know-empty">
@@ -288,7 +308,7 @@ export function ProfilePage({
             Suggested evidence belongs to Home and Discover. A recommendation is not a researcher fact and is not part of this profile.
           </p>
         </section>
-      ) : !pilotLoading ? (
+      ) : !pilotLoading && !publicProfile ? (
         <p className="rd-v2-profile-loading" data-testid="profile-know-empty">
           {allowExamplePreview
             ? "Bind a YZU faculty email in Settings, or load the example researcher record."

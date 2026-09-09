@@ -518,3 +518,30 @@
   .rd-v2-discover-evidence-cockpit { grid-template-columns: 1fr; }
   .rd-v2-cockpit-head { grid-column: auto; }
 }
+
+/* The cockpit is a workstation aid, not a prerequisite for retrieval. Once the
+   shell has to reserve meaningful width for navigation and the Detail/Ask rail,
+   stacking this summary above search costs the entire first viewport. The centre
+   already carries result territories and the normal filter/sort controls; restore
+   those controls and keep the evidence list first. */
+@media (max-width: 1279px) {
+  .rd-v2-discover-browse:has(> .rd-v2-discover-evidence-cockpit) {
+    display: block;
+  }
+
+  .rd-v2-discover-evidence-cockpit {
+    display: none;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 1279px) {
+  .rd-v2-discover-browse:has(> .rd-v2-discover-evidence-cockpit) .rd-v2-discover-frozen-controls {
+    display: flex !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .rd-v2-discover-browse:has(> .rd-v2-discover-evidence-cockpit) .rd-v2-discover-frozen-controls {
+    display: grid !important;
+  }
+}

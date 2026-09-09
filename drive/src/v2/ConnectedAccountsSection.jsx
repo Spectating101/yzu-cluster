@@ -54,6 +54,7 @@ function providerStatus(provider, accounts) {
 
 export function ConnectedAccountsSection({ deskAccess, onToast }) {
   const role = String(deskAccess?.principal?.role || "");
+  const publicGuest = role === "public_guest";
   const canConnect = Boolean(deskAccess?.authenticated && CONNECTED_ROLES.has(role));
   const principalId = String(deskAccess?.principal?.id || "");
   const [document, setDocument] = useState(null);
@@ -199,10 +200,18 @@ export function ConnectedAccountsSection({ deskAccess, onToast }) {
         {deskAccess?.authenticated ? (
           <>
             <StatementRow
-              label={deskAccess?.principal?.display_name || deskAccess?.principal?.email || "Research Drive account"}
-              metric={role || "member"}
-              sublabel={deskAccess?.principal?.email || `Account ${principalId || "authenticated"}`}
-              detail="SIGNED IN"
+              label={
+                publicGuest
+                  ? "Public browsing session"
+                  : deskAccess?.principal?.display_name || deskAccess?.principal?.email || "Research Drive account"
+              }
+              metric={publicGuest ? "Read-only" : role || "member"}
+              sublabel={
+                publicGuest
+                  ? "Library and Discover are available. Sign in to save work or connect personal storage."
+                  : deskAccess?.principal?.email || `Account ${principalId || "authenticated"}`
+              }
+              detail={publicGuest ? "PUBLIC" : "SIGNED IN"}
             />
             <p className="rd-v2-settings-hint">
               This account owns private work and connected storage. The faculty identity below is a research record and remains separate.
