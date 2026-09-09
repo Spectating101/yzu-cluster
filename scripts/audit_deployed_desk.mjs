@@ -620,8 +620,8 @@ try {
       const widerStatus = page.getByText("Searching wider sources…", { exact: false });
       await widerStatus.waitFor({ state: "visible", timeout: 5_000 }).catch(() => {});
       const completedResponse = await widerResponse;
-      await widerStatus.waitFor({ state: "hidden", timeout: 5_000 }).catch(() => {});
-      await page.waitForTimeout(150);
+      await widerStatus.waitFor({ state: "hidden", timeout: 20_000 }).catch(() => {});
+      await page.waitForTimeout(1_000);
       report.interactions.push({
         name: "Discover wider search",
         response_status: completedResponse?.status() || null,
