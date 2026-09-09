@@ -262,6 +262,48 @@ test.describe("v2 Discover tab", () => {
     await expect(candidates.first()).toContainText("TWSE OpenAPI");
   });
 
+  test("explicit Search wider paints live routes before optional web context settles", async ({ page }) => {
+    const localRoute = {
+      kind: "source",
+      source_id: "twse_openapi",
+      candidate_key: "source:twse:twse_openapi",
+      provider: "TWSE",
+      title: "TWSE OpenAPI",
+      access_mode: "public_api",
+      collect_via: ["queue"],
+    };
+    const widerRoute = {
+      kind: "source",
+      source_id: "twse_dataset_catalogue",
+      candidate_key: "source:twse:dataset_catalogue",
+      provider: "TWSE",
+      title: "TWSE dataset catalogue",
+      access_mode: "public_api",
+      collect_via: ["queue"],
+      query_relevance: 2,
+    };
+    await mockV2Api(page, {
+      discoverBody: { sections: [], total: 0 },
+      discoverSourcesBody: { results: [localRoute], total: 1 },
+      discoverLiveSourcesBody: { results: [widerRoute], total: 1 },
+      discoverLiveSourcesDelayMs: 80,
+    });
+    await page.route("**/library/discover/web*", async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 2_500));
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ sections: [] }) });
+    });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await searchDiscover(page, "TWSE");
+
+    const candidates = page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidate");
+    await expect(candidates).toHaveCount(1);
+    await page.getByRole("button", { name: "Search wider", exact: true }).click();
+    await expect(page.getByText("TWSE dataset catalogue", { exact: true })).toBeVisible({ timeout: 1_500 });
+    await expect(candidates).toHaveCount(2);
+    await expect(page.getByText("Searching wider sources…", { exact: false })).toBeVisible();
+  });
+
   test("paints held evidence while the slower source-route lookup continues", async ({ page }) => {
     await mockV2Api(page, {
       discoverBody: {

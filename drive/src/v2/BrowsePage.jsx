@@ -805,6 +805,17 @@ export function BrowsePage({
             live: true,
           });
           let sourceRows = sourcesResponseToRows(sources);
+          const sourceLabel = sources.demo ? "demo" : "sources";
+          if (sourceRows.length) {
+            // The explicit Search wider path follows the same two-tempo rule
+            // as automatic enrichment: a verified source route is useful on
+            // its own and must paint before optional web context settles.
+            // Otherwise a slow web provider can leave the researcher reading
+            // the pre-widened field even though federation already returned.
+            apply({ results: sourceRows }, sourceLabel, { append: isWidening });
+            if (sources.demo) setDemoFallback(true);
+            setIndexMiss(false);
+          }
           {
             // Web context is additive, not a fallback. It renders in its own
             // rail and is excluded from the ranked centre list, so fetching it
@@ -823,7 +834,7 @@ export function BrowsePage({
                 : sourceRows.length
                   ? "sources"
                   : "external_catalogues";
-              apply({ results: merged }, label, { append: isWidening });
+              apply({ results: merged }, label, { append: isWidening || sourceRows.length > 0 });
               if (sources.demo) setDemoFallback(true);
               setIndexMiss(
                 sourceRows.length ? false : Boolean(web && web.index_miss),
