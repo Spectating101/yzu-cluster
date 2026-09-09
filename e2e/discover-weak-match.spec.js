@@ -68,6 +68,34 @@ test.describe("Discover weak-match continuation", () => {
     await expect(summary.getByRole("status")).toHaveCount(0);
   });
 
+  test("a live source route paints before optional web context settles", async ({ page }) => {
+    await mockV2Api(page, {
+      datasetsBody: { datasets: weakHeldRows },
+      discoverBody: {
+        sections: [{ id: "discover", rows: weakHeldRows }],
+        total: weakHeldRows.length,
+        index_miss: true,
+        weak_match: true,
+      },
+      discoverSourcesBody: { results: [], total: 0 },
+      discoverLiveSourcesBody: { results: [clinicalRoute], total: 1 },
+      discoverLiveSourcesDelayMs: 80,
+    });
+    // Open-web context is supplemental.  A slow provider must not keep a
+    // successful live source response invisible behind the widening state.
+    await page.route("**/library/discover/web*", async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 2_500));
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ sections: [] }) });
+    });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+
+    await search(page, "clinical trial outcomes");
+
+    await expect(page.getByText("Clinical Trial Outcomes", { exact: true })).toBeVisible({ timeout: 2_000 });
+    await expect(page.getByTestId("discover-result-summary").getByRole("status")).toHaveCount(0);
+  });
+
   test("a strong short Library match does not fan out automatically", async ({ page }) => {
     let liveRequests = 0;
     page.on("request", (request) => {

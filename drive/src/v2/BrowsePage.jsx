@@ -957,7 +957,28 @@ export function BrowsePage({
         let extra = [];
         try {
           const sources = await discoverSources(q, { limit: 12, semantic: true, live: true });
-          extra = sourcesResponseToRows(sources);
+          const sourceRows = sourcesResponseToRows(sources);
+          extra = sourceRows;
+          // A live source route is already useful evidence.  Do not hold it
+          // behind the optional web-context request: on a real public desk
+          // the latter can take much longer (or time out) while the source
+          // federator has successfully returned candidates.  Doing so left a
+          // researcher staring at “Checking broader sources…” and a zero
+          // candidate field even though the desk had found a route.
+          if (sourceRows.length && !cancelled) {
+            setRows((current) => dedupeRows([...current, ...sourceRows]));
+            setSource((current) => current ? `${current}+progressive` : "progressive");
+            const hasOffering = sourceRows.some((row) => {
+              const taxonomy = row.discover_taxonomy || classifyDiscoverResult(row, labIds);
+              return offeringType(row, taxonomy) !== "Reference only";
+            });
+            if (hasOffering) setIndexMiss(false);
+            // Web context is supplementary reading, not the condition for a
+            // discovered route to become visible.  Let the result field
+            // settle honestly while that optional leg continues in the
+            // background.
+            setAutoWidening(false);
+          }
         } catch {
           // The first result paint remains valid when optional enrichment is unavailable.
         }
