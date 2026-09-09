@@ -259,6 +259,8 @@ export function ResearchSituationRail({
   restingSummary,
   resourceRow,
   resourcesDecisionCount = 0,
+  askAvailable = true,
+  onMemberSignIn,
 }) {
   const draftSynthesisEntry =
     mainTab === "synthesis" &&
@@ -315,10 +317,16 @@ export function ResearchSituationRail({
           aria-selected={railTab === "ask"}
           className={railTab === "ask" ? "on" : ""}
           onClick={() => onRailTabChange("ask")}
+          data-testid={askAvailable ? "rail-ask-tab" : "rail-ask-sign-in"}
         >
-          Ask
+          {askAvailable ? "Ask" : "Ask · sign in"}
         </button>
       </div>
+      {!askAvailable && railTab === "ask" && onMemberSignIn ? (
+        <button type="button" className="rd-v2-situation-sign-in" onClick={onMemberSignIn}>
+          Sign in to continue
+        </button>
+      ) : null}
     </section>
   );
 }

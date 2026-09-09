@@ -530,6 +530,16 @@
   outline: none;
 }
 
+.rd-v2-account-menu button:disabled {
+  cursor: not-allowed;
+  opacity: 0.56;
+}
+
+.rd-v2-account-menu button:disabled:hover,
+.rd-v2-account-menu button:disabled:focus-visible {
+  background: transparent;
+}
+
 .rd-v2-account-menu span {
   font-size: 12px;
   font-weight: 650;
@@ -554,6 +564,37 @@
 .rd-v2-permission-note strong {
   color: var(--rd-text);
   font-size: 12px;
+}
+
+.rd-v2-ask-sign-in {
+  display: grid;
+  gap: 10px;
+  padding: 20px 18px;
+}
+
+.rd-v2-ask-sign-in strong {
+  color: var(--rd-text);
+  font-size: 15px;
+  line-height: 1.25;
+}
+
+.rd-v2-ask-sign-in p {
+  margin: 0;
+  color: var(--rd-muted);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.rd-v2-situation-sign-in {
+  margin-top: 10px;
+  border: 0;
+  background: transparent;
+  color: var(--rd-accent);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 650;
+  padding: 0;
+  text-align: left;
 }
 
 /* ── 4. Sidebar ── GDrive navigation style ────────────────────── */

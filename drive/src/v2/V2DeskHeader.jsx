@@ -38,6 +38,9 @@ export function V2DeskHeader({
   currentPage = "home",
   onAccountNavigate,
   onDeskStatusNavigate,
+  onMemberSignIn,
+  onSignOut,
+  memberSignInAvailable = false,
   principal = null,
   datasetLabel = "datasets",
 }) {
@@ -63,6 +66,7 @@ export function V2DeskHeader({
     onDeskStatusNavigate ? "Open Resources" : null,
   ].filter(Boolean).join(" · ");
   const pageLabel = PAGE_LABELS[currentPage] || String(currentPage || "").toUpperCase();
+  const isGuest = principal?.role === "public_guest";
 
   useEffect(() => {
     if (!accountOpen) return undefined;
@@ -165,6 +169,19 @@ export function V2DeskHeader({
                 <span>{principal.role === "operator" ? "Operator" : principal.role === "public_guest" ? "Guest" : "Member"}</span>
               </div>
             ) : null}
+            {isGuest ? (
+              <button
+                type="button"
+                role="menuitem"
+                data-testid="member-sign-in"
+                disabled={!memberSignInAvailable}
+                title={memberSignInAvailable ? "Sign in to use Ask and save your research trail" : "Member sign-in is not enabled on this host"}
+                onClick={() => onMemberSignIn?.()}
+              >
+                <span>{memberSignInAvailable ? "Sign in to Ask" : "Member sign-in unavailable"}</span>
+                <small>{memberSignInAvailable ? "Save your research trail" : "Browse shared evidence as a guest"}</small>
+              </button>
+            ) : null}
             <button type="button" role="menuitem" onClick={() => openAccountPage("profile")}>
               <span>Profile</span>
               <small>Research memory</small>
@@ -173,6 +190,12 @@ export function V2DeskHeader({
               <span>Settings</span>
               <small>Desk preferences</small>
             </button>
+            {!isGuest && onSignOut ? (
+              <button type="button" role="menuitem" data-testid="desk-sign-out" onClick={onSignOut}>
+                <span>Sign out</span>
+                <small>Return to shared guest browsing</small>
+              </button>
+            ) : null}
           </div>
         ) : null}
       </div>

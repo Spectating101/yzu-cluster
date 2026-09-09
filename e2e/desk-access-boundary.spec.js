@@ -18,7 +18,12 @@ test("a locked desk has one honest boundary, not zero-shaped data", async ({ pag
       authenticated: false,
       server_configured: true,
       permissions: { view_research_data: false, use_ask: false, view_operations: false },
-      session: { bootstrap_available: true, public_guest_available: true },
+      session: {
+        bootstrap_available: true,
+        public_guest_available: true,
+        member_sign_in_available: true,
+        member_sign_in_path: "/library/desk/login",
+      },
     }),
   }));
   await page.route("**/library/desk/session", (route) => route.fulfill({
@@ -95,7 +100,12 @@ test("a public guest can browse shared evidence but must sign in to Ask", async 
         submit_collection: false,
         approve_jobs: false,
       },
-      session: { bootstrap_available: true, public_guest_available: true },
+      session: {
+        bootstrap_available: true,
+        public_guest_available: true,
+        member_sign_in_available: true,
+        member_sign_in_path: "/library/desk/login",
+      },
     }),
   }));
 
@@ -110,14 +120,16 @@ test("a public guest can browse shared evidence but must sign in to Ask", async 
   await expect(page.getByTestId("discover-craft-form")).toHaveCount(0);
   await page.getByRole("button", { name: "Account" }).click();
   await expect(page.getByRole("menu", { name: "Account destinations" })).toContainText("Guest");
+  await expect(page.getByTestId("member-sign-in")).toContainText("Sign in to Ask");
   // The account menu is intentionally a modal interaction layer. Close it
   // before exercising the inspector tab beneath it, as a real keyboard user
   // would; otherwise the test asks Playwright to click through the menu.
   await page.keyboard.press("Escape");
   await expect(page.getByRole("menu", { name: "Account destinations" })).toHaveCount(0);
-  await page.getByRole("tab", { name: "Ask" }).click();
-  await expect(page.getByRole("note")).toContainText("Sign in to ask Research Drive.");
-  await expect(page.getByRole("note")).toContainText("Browse Library and Discover freely");
+  await page.getByRole("tab", { name: "Ask · sign in" }).click();
+  await expect(page.getByTestId("ask-sign-in-gate")).toContainText("Sign in to ask Research Drive.");
+  await expect(page.getByTestId("ask-sign-in-gate")).toContainText("Shared Library and Discover evidence remain available");
+  await expect(page.getByRole("button", { name: "Sign in to Ask" })).toBeVisible();
   await expect(page.getByTestId("ask-composer")).toHaveCount(0);
 
   await page.goto("/?tab=home", { waitUntil: "domcontentloaded" });

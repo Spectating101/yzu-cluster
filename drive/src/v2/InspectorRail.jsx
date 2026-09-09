@@ -118,6 +118,25 @@ function DiscoverAssessmentRailSummary({ state, onClose }) {
   );
 }
 
+function AskSignInPanel({ available, onSignIn }) {
+  return (
+    <section className="rd-v2-ask-sign-in" data-testid="ask-sign-in-gate" aria-label="Sign in to ask">
+      <span className="rd-v2-eyebrow">Personal research trail</span>
+      <strong>Sign in to ask Research Drive.</strong>
+      <p>
+        Shared Library and Discover evidence remain available here. Asking and saved research work begin with a named member session.
+      </p>
+      {available && onSignIn ? (
+        <button type="button" className="rd-v2-btn primary" onClick={onSignIn}>
+          Sign in to Ask
+        </button>
+      ) : (
+        <p className="muted">Member sign-in is not enabled on this host yet.</p>
+      )}
+    </section>
+  );
+}
+
 export function InspectorRail({
   mainTab,
   railTab,
@@ -163,6 +182,9 @@ export function InspectorRail({
   onSubmitLibraryUrl,
   onSubmitLibraryProcure,
   askPanel,
+  askAvailable = true,
+  memberSignInAvailable = false,
+  onMemberSignIn,
   profile = null,
   allowProfilePreview = false,
 }) {
@@ -386,6 +408,8 @@ export function InspectorRail({
           restingSummary={discoverRestingSummary}
           resourceRow={resourceRow}
           resourcesDecisionCount={resourcesDecisionCount}
+          askAvailable={askAvailable}
+          onMemberSignIn={onMemberSignIn}
         />
         <div
           className={`rd-v2-rail-pane${railTab === "detail" ? " rd-v2-rail-pane-on" : ""}`}
@@ -399,7 +423,7 @@ export function InspectorRail({
           aria-hidden={railTab !== "ask"}
           data-testid="rail-pane-ask"
         >
-          {askPanel}
+          {askPanel || <AskSignInPanel available={memberSignInAvailable} onSignIn={onMemberSignIn} />}
         </div>
       </div>
     </aside>

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { V2DeskHeader } from "@/v2/V2DeskHeader";
 import {
   approveJob,
+  clearDeskSession,
   describeDataset,
   deskHealth,
   deskResources,
@@ -303,6 +304,23 @@ export function V2App() {
       setDeskAccessBusy(false);
     }
   }, []);
+
+  const memberSignInAvailable = Boolean(deskAccess?.session?.member_sign_in_available);
+  const beginMemberSignIn = useCallback(() => {
+    const path = String(deskAccess?.session?.member_sign_in_path || "").trim();
+    if (!path.startsWith("/")) {
+      showToast("Member sign-in is not enabled on this host yet.", "error");
+      return;
+    }
+    const returnTo = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    window.location.assign(`${path}?return_to=${encodeURIComponent(returnTo)}`);
+  }, [deskAccess?.session?.member_sign_in_path, showToast]);
+
+  const signOut = useCallback(async () => {
+    await clearDeskSession();
+    await refreshDeskAccess({ force: true });
+    showToast("Signed out. You can still browse the shared research estate.");
+  }, [refreshDeskAccess, showToast]);
 
   const reloadProfile = useCallback(() => {
     // A public guest has a valid shared-evidence session, not faculty-profile
@@ -1957,6 +1975,9 @@ export function V2App() {
             .join("") || "YZ"
         }
         principal={deskAccess?.principal || null}
+        memberSignInAvailable={memberSignInAvailable}
+        onMemberSignIn={memberSignInAvailable ? beginMemberSignIn : undefined}
+        onSignOut={deskAccess?.principal?.role !== "public_guest" ? signOut : undefined}
         datasetCount={libraryEvidenceCount}
         datasetLabel={libraryEvidenceCount === 1 ? "Library asset" : "Library assets"}
         dataLoading={catalogLoading && catalog.length === 0}
@@ -2133,13 +2154,11 @@ export function V2App() {
             onApproveJob={canApproveJobs ? handleApproveJob : undefined}
             onToast={showToast}
             railContext={railContext}
-          /> : (
-            <div className="rd-v2-permission-note" role="note">
-              <strong>Sign in to ask Research Drive.</strong>
-              <span>Browse Library and Discover freely; sign in to ask questions and save your research trail.</span>
-            </div>
-          )
+          /> : null
         }
+        askAvailable={canUseAsk}
+        memberSignInAvailable={memberSignInAvailable}
+        onMemberSignIn={memberSignInAvailable ? beginMemberSignIn : undefined}
       />
       <Toast toast={toast} />
     </div>
