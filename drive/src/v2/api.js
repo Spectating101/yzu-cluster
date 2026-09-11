@@ -8,13 +8,47 @@
 
 export * from "./apiCore.js";
 
-import { API } from "./apiCore.js";
+import {
+  API,
+  deskCapabilities,
+  fetchJson,
+  requestSynthesisExecution as coreRequestSynthesisExecution,
+} from "./apiCore.js";
 import {
   deskFetchInit,
   loadUserEmail,
   saveChatSessionId,
 } from "./deskSession.js";
 import { decodeNdjson, normalizeApiError } from "./transportContract.js";
+
+/**
+ * Bounded Preview is reasoning evidence, not a collection/materialisation job.
+ * Public researchers use the dedicated use_ask-authorized endpoint. A real
+ * execution request remains behind submit_collection and is stopped client-side
+ * with an honest explanation before the server repeats the same authority check.
+ */
+export async function requestSynthesisExecution(
+  threadId,
+  { action = "request_approval" } = {},
+) {
+  const intent = String(action || "request_approval").trim();
+  if (intent === "preview") {
+    return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}/preview`, {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+  }
+  if (intent === "request_approval") {
+    const access = await deskCapabilities().catch(() => null);
+    if (access?.permissions?.submit_collection === false) {
+      throw new Error(
+        "Lab member access is required to materialize this Synthesis revision. " +
+        "Your research thread and bounded Preview remain saved.",
+      );
+    }
+  }
+  return coreRequestSynthesisExecution(threadId, { action: intent });
+}
 
 function activityEnvelope(event = {}) {
   const row = event && typeof event === "object" ? event : { text: event };
