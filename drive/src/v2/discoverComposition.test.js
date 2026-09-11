@@ -9,6 +9,7 @@ import {
   meaningfulDiscoverTerms,
   normalizeDiscoverText,
 } from "./discoverQuerySpecificity.js";
+import { shouldAppendDiscoverPaint } from "./discoverResultPaint.js";
 
 describe("groupDiscoverBrowseRows", () => {
   it("buckets by taxonomy group into lab / external / needs access", () => {
@@ -84,4 +85,18 @@ it("framing verbs never survive into the interpreted tokens", () => {
     assert.ok(!lowered.includes(word), `${word} leaked into the brief`);
   }
   assert.ok(lowered.includes("wildfire"), "subject token dropped");
+});
+
+describe("progressive Discover result paint", () => {
+  it("preserves an already-painted field during a later leg of the same query", () => {
+    assert.equal(shouldAppendDiscoverPaint({ sameQuery: true, currentCount: 12 }), true);
+  });
+
+  it("replaces the prior field for a genuinely new query", () => {
+    assert.equal(shouldAppendDiscoverPaint({ sameQuery: false, currentCount: 12 }), false);
+  });
+
+  it("keeps explicit widening additive before the first field count settles", () => {
+    assert.equal(shouldAppendDiscoverPaint({ append: true, currentCount: 0 }), true);
+  });
 });

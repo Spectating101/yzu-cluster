@@ -23,6 +23,7 @@ import {
 } from "@/v2/discoverComposition";
 import { assessLocalSufficiency } from "@/v2/discoverSufficiency";
 import { buildDiscoverRestingSummary } from "@/v2/discoverRestingSummary";
+import { shouldAppendDiscoverPaint } from "@/v2/discoverResultPaint";
 import { loadUserEmail } from "@/v2/deskSession";
 import { discoverDemoSearch } from "@/v2/deskSeed";
 import { DiscoverIntentWorkspace } from "@/v2/DiscoverIntentWorkspace";
@@ -683,6 +684,7 @@ export function BrowsePage({
   const [lookupProgress, setLookupProgress] = useState({ library: "waiting", routes: "waiting" });
   const restoredSelectionRef = useRef("");
   const rowsRef = useRef([]);
+  const rowsQueryRef = useRef("");
 
   useEffect(() => {
     rowsRef.current = rows;
@@ -725,22 +727,34 @@ export function BrowsePage({
     const isWidening = Boolean(
       preferLiveSources && q && (loadedQuery === q || rowsRef.current.length > 0),
     );
+    // Catalog/Library hydration can change `labIds` after a live source field
+    // has already painted. That dependency legitimately re-runs retrieval so
+    // possession is reclassified, but it must not erase the evidence the
+    // researcher is reading while the same query refreshes. In production the
+    // resulting blank interval lasted several seconds and selection appeared
+    // to replace the ranked field with a false “No matches” state.
+    const preserveCurrentField = Boolean(
+      q && rowsQueryRef.current === q && rowsRef.current.length > 0,
+    );
     const email = loadUserEmail();
     const immediateDemo = discoverDemoSearch(q);
     setLoading(true);
     setError("");
-    setSource("");
+    if (!preserveCurrentField) setSource("");
     setDemoFallback(false);
     setLookupProgress(
       q && !externalSearchActive && !preferLiveSources
         ? { library: "checking", routes: "checking" }
         : { library: "waiting", routes: "waiting" },
     );
-    if (!isWidening) setRows([]);
+    if (!isWidening && !preserveCurrentField) {
+      rowsQueryRef.current = q;
+      setRows([]);
+    }
     setStateFilter("all");
-    setIndexMiss(false);
+    if (!preserveCurrentField) setIndexMiss(false);
     setAutoWidening(false);
-    if (!isWidening) setLoadedQuery("");
+    if (!isWidening && !preserveCurrentField) setLoadedQuery("");
 
     const flattenRows = (data) => {
       const fromApi = (data.sections || []).flatMap((s) => s.rows || []);
@@ -750,7 +764,13 @@ export function BrowsePage({
     const apply = (data, label, { append = false } = {}) => {
       if (cancelled) return 0;
       const flat = flattenRows(data);
-      setRows((current) => (append ? dedupeRows([...(current || []), ...flat]) : flat));
+      const sameQueryField = rowsQueryRef.current === q;
+      if (flat.length) rowsQueryRef.current = q;
+      setRows((current) => (
+        shouldAppendDiscoverPaint({ append, sameQuery: sameQueryField, currentCount: current?.length })
+          ? dedupeRows([...(current || []), ...flat])
+          : flat
+      ));
       setSource(label);
       if (label !== "demo") setDemoFallback(false);
       return flat.length;
@@ -911,7 +931,11 @@ export function BrowsePage({
         }
 
         if (mergedRows.length) {
-          apply({ sections: [{ id: label, rows: mergedRows }] }, label);
+          apply(
+            { sections: [{ id: label, rows: mergedRows }] },
+            label,
+            { append: preserveCurrentField },
+          );
           // Semantic neighbours can be useful context without establishing that
           // the Library answers the request. Preserve those rows, but retain the
           // backend's weak-match signal so the progressive pass continues to
@@ -931,7 +955,7 @@ export function BrowsePage({
         }
 
         setIndexMiss(weakOrMissingLibraryMatch);
-        setRows([]);
+        if (!preserveCurrentField) setRows([]);
       } catch (err) {
         if (cancelled) return;
         if (usingSeed && immediateDemo.length) {
@@ -939,7 +963,7 @@ export function BrowsePage({
           setSource("demo");
           setDemoFallback(true);
           setError("");
-        } else {
+        } else if (!preserveCurrentField) {
           setRows([]);
           setError("Catalog search unavailable. Check the query engine and retry.");
         }

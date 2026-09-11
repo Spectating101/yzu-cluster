@@ -115,6 +115,62 @@ test.describe("v2 Discover tab", () => {
     await expect(page.getByTestId("discover-browse-mode")).not.toContainText(/process overview/i);
   });
 
+  test("late Library hydration never erases a painted candidate field", async ({ page }) => {
+    // Production can return the first Discover leg before the larger Library
+    // registry has finished hydrating. Updating possession IDs legitimately
+    // re-runs classification, but the same-query refresh must retain the field
+    // and the selected row instead of flashing a false zero-result state.
+    const secondCandidate = {
+      ...MOCK_DISCOVER_HIT.sections[0].rows[0],
+      dataset_id: "forest_fire_economic_route",
+      candidate_key: "dataset:forest_fire_economic_route",
+      title: "Forest fire economic impact panel",
+    };
+    await mockV2Api(page, {
+      discoverBody: {
+        sections: [{
+          ...MOCK_DISCOVER_HIT.sections[0],
+          rows: [...MOCK_DISCOVER_HIT.sections[0].rows, secondCandidate],
+        }],
+        total: 2,
+      },
+      discoverSourcesBody: { results: [], total: 0 },
+      discoverSourcesDelayMs: 4_000,
+    });
+    let releaseDatasets;
+    const datasetsReady = new Promise((resolve) => { releaseDatasets = resolve; });
+    await page.unroute("**/datasets**");
+    await page.route("**/datasets**", async (route) => {
+      await datasetsReady;
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          datasets: [{
+            ...MOCK_DISCOVER_HIT.sections[0].rows[0],
+            analysis_readiness: "instant",
+            local_root: "data_lake/mops",
+          }],
+        }),
+      });
+    });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await searchDiscover(page, "forest fire economic changes");
+
+    const field = page.getByTestId("discover-ranked-results");
+    const first = field.locator(".rd-v2-discover-candidate").first();
+    await expect(first).toBeVisible({ timeout: 10_000 });
+    await first.click();
+    await expect(page.getByTestId("rail-pane-detail")).toContainText(/selected candidate/i);
+
+    releaseDatasets();
+    await page.waitForTimeout(800);
+    await expect(page.getByTestId("discover-result-summary")).toContainText("Library evidence · 1");
+    await expect(field.getByText("Forest fire economic impact panel")).toBeVisible();
+    await expect(page.locator(".rd-v2-discover-miss")).toHaveCount(0);
+  });
+
   test("a completed miss is honest, actionable, and offers Search wider only once", async ({ page }) => {
     await mockV2Api(page, {
       discoverBody: { sections: [], total: 0, index_miss: true, weak_match: true },
