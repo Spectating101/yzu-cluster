@@ -15,6 +15,10 @@ export function discoverIntentCandidate(row = {}, probe = null) {
     candidate_key: candidateKey(row),
     dataset_id: text(row.dataset_id),
     source_id: text(row.source_id),
+    provider: text(row.provider),
+    kind: text(row.kind || row.result_kind),
+    doi: text(row.doi),
+    external_id: text(row.external_id),
     connector_id: text(
       connector.connector_id ||
       connector.id ||

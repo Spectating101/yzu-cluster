@@ -50,6 +50,7 @@ import { ProfilePage } from "@/v2/ProfilePage";
 import { ResourcesPage } from "@/v2/ResourcesPage";
 import { SettingsPage } from "@/v2/SettingsPage";
 import { SynthesisPage } from "@/v2/SynthesisPage";
+import { PageShell } from "@/v2/ui";
 import {
   buildDiscoverLifecycle,
   isLifecycleActive,
@@ -507,6 +508,18 @@ export function V2App() {
     }
 
     if (canViewOperations) {
+      // Health owns the header, assistant gate, and canonical-archive truth.
+      // Do not strand those behind the heavier Resources aggregation: on the
+      // production estate that left Settings and the global badge saying
+      // "Syncing…" for close to a minute even though Library was usable.
+      try {
+        applyHealth(await deskHealth(false, { timeoutMs: 12_000 }));
+      } catch {
+        // Working data routes are not evidence of a health failure. Keep the
+        // absence explicit and retry once the primary requests have drained.
+        markHealthUnmeasured();
+        retryHealthAfterQueue();
+      }
       setResourcesError("");
       try {
         const payload = await deskResources(false);
@@ -516,14 +529,6 @@ export function V2App() {
       } catch (error) {
         setResourcesError(error?.message || String(error));
         setResourcesRollup((cur) => (cur === undefined ? null : cur));
-      }
-      try {
-        applyHealth(await deskHealth(false, { timeoutMs: 12_000 }));
-      } catch {
-        // Working data routes are not evidence of a health failure. Keep the
-        // absence explicit and retry once the primary requests have drained.
-        markHealthUnmeasured();
-        retryHealthAfterQueue();
       }
     } else {
       // Resources is host/operator telemetry. Do not fetch it, retain its
@@ -693,6 +698,15 @@ export function V2App() {
       setDetailLoading(false);
       return;
     }
+    // Discover candidates may carry a provider identifier that resembles a
+    // dataset id, but an external row is not a Library object. Its evidence is
+    // already owned by `browseRow`; asking /datasets/:id for it creates a
+    // predictable 404 on every selection and conflates candidate with holding.
+    if (tab === DISCOVER_TAB && browseRow && !selectedFromList) {
+      setDetail(null);
+      setDetailLoading(false);
+      return;
+    }
     const base = selectedFromList || { dataset_id: selectedId };
     setDetail(base);
     setDetailLoading(true);
@@ -700,7 +714,7 @@ export function V2App() {
       .then((d) => setDetail((cur) => ({ ...cur, ...d })))
       .catch(() => {})
       .finally(() => setDetailLoading(false));
-  }, [selectedId, selectedFromList]);
+  }, [selectedId, selectedFromList, browseRow, tab]);
 
   const browseTarget = browseRow;
   // Direct Discover URLs may carry either a raw dataset id or a typed candidate
@@ -824,7 +838,11 @@ export function V2App() {
 
   // Durable Discover History (optional endpoint — ignore failures).
   useEffect(() => {
-    if (tab !== DISCOVER_TAB) return undefined;
+    // Session bootstrap owns the first protected request. Firing History while
+    // that handshake is still pending creates a guaranteed 401/retry on every
+    // cold Discover visit and exposes an avoidable console/network error even
+    // though the desk recovers moments later.
+    if (tab !== DISCOVER_TAB || !deskAccess?.authenticated) return undefined;
     let cancelled = false;
     discoverHistory({ limit: 50 })
       .then((data) => {
@@ -837,17 +855,13 @@ export function V2App() {
     return () => {
       cancelled = true;
     };
-  }, [tab, jobs]);
+  }, [tab, jobs, deskAccess?.authenticated]);
 
 
   const goTab = useCallback(
     (id, opts = {}) => {
       const requested = normalizeReleaseTab(canonicalTab(id));
-      const next =
-        (requested === "resources" && !canViewOperations) ||
-        (requested === "synthesis" && !canUseAsk)
-          ? "home"
-          : requested;
+      const next = requested;
       if (next === DISCOVER_TAB && !opts.preserveDiscoverScope) {
         setDiscoverPreferLive(discoverScopeIsWide());
         // A fresh navigation to Discover starts at the retrieval surface. Do not
@@ -878,17 +892,8 @@ export function V2App() {
       setTab(next);
       syncUrl({ tab: next });
     },
-    [syncUrl, canViewOperations, canUseAsk],
+    [syncUrl],
   );
-
-  useEffect(() => {
-    if (
-      deskAccess?.authenticated &&
-      ((!canViewOperations && tab === "resources") || (!canUseAsk && tab === "synthesis"))
-    ) {
-      goTab("home");
-    }
-  }, [deskAccess?.authenticated, canViewOperations, canUseAsk, tab, goTab]);
 
   const handleSynthesisDiscoverHandoff = useCallback(
     ({ field, handoff, thread } = {}) => {
@@ -1838,7 +1843,7 @@ export function V2App() {
       );
       break;
     case "synthesis":
-      main = (
+      main = canUseAsk ? (
         <SynthesisPage
           datasets={catalog}
           onAskComposer={askFromPrompt}
@@ -1862,10 +1867,31 @@ export function V2App() {
           onFocusThreadConsumed={() => setFocusSynthesisThreadId("")}
           refreshVersion={synthesisRefreshVersion}
         />
+      ) : (
+        <PageShell
+          className="rd-v2-guest-feature-page rd-v2-guest-synthesis"
+          title="Synthesis"
+          lead="Turn a research question into a durable, reviewable construction."
+          surfaceState="ready"
+        >
+          <section className="rd-v2-guest-feature-hero">
+            <span className="rd-v2-eyebrow">Member research workspace</span>
+            <h2>Build evidence into a method you can inspect, challenge, and reuse.</h2>
+            <p>Synthesis keeps the research objective, evidence roles, unresolved choices, method decisions, execution proof, and resulting Library asset together.</p>
+            <button type="button" className="rd-v2-btn primary" onClick={beginMemberSignIn}>
+              Sign in to start Synthesis
+            </button>
+          </section>
+          <div className="rd-v2-guest-feature-grid" aria-label="Synthesis workflow">
+            <article><span>01</span><strong>Define</strong><p>Record the research object and the decision it must support.</p></article>
+            <article><span>02</span><strong>Ground</strong><p>Assign held Library evidence to explicit analytical roles.</p></article>
+            <article><span>03</span><strong>Build</strong><p>Review method choices before any execution or materialisation.</p></article>
+          </div>
+        </PageShell>
       );
       break;
     case "resources":
-      main = (
+      main = canViewOperations ? (
         <ResourcesPage
           rollup={resourcesRollup}
           rollupLoading={resourcesRollup === undefined}
@@ -1888,6 +1914,27 @@ export function V2App() {
             setRailTab("detail");
           }}
         />
+      ) : (
+        <PageShell
+          className="rd-v2-guest-feature-page rd-v2-guest-resources"
+          title="Resources"
+          lead="The operational authority behind collection, storage, and research execution."
+          surfaceState="ready"
+        >
+          <section className="rd-v2-guest-feature-hero">
+            <span className="rd-v2-eyebrow">Restricted operational view</span>
+            <h2>Research evidence is public here; infrastructure and approval controls are not.</h2>
+            <p>Resources tracks archive capacity, source entitlements, collectors, model readiness, approvals, and failed jobs. Those controls remain limited to research staff so browsing never grants operational authority.</p>
+            <button type="button" className="rd-v2-btn primary" onClick={() => goTab("browse")}>
+              Find evidence in Discover
+            </button>
+          </section>
+          <div className="rd-v2-guest-feature-grid" aria-label="Resource responsibilities">
+            <article><span>ARCHIVE</span><strong>Durable evidence</strong><p>Collected assets return to the shared Library with provenance.</p></article>
+            <article><span>ROUTES</span><strong>Acquisition authority</strong><p>Source access and collection methods stay explicit and reviewable.</p></article>
+            <article><span>CONTROL</span><strong>Approval boundary</strong><p>Public browsing cannot start workers, spend quota, or write data.</p></article>
+          </div>
+        </PageShell>
       );
       break;
     case "profile":
@@ -2089,9 +2136,10 @@ export function V2App() {
           setDiscoverSearchQuery(query);
           goTab("browse");
         }}
-        resourceRow={resourceRow}
-        resourcesRollup={resourcesRollup}
-        resourcesDecisionCount={jobsLoaded ? pendingResearchDecisions : null}
+        resourceRow={canViewOperations ? resourceRow : null}
+        resourcesRollup={canViewOperations ? resourcesRollup : null}
+        resourcesDecisionCount={canViewOperations && jobsLoaded ? pendingResearchDecisions : null}
+        allowOperations={canViewOperations}
         activeObject={activeObject}
         profile={profile}
         allowProfilePreview={canViewFacultyProfile}

@@ -8,6 +8,7 @@ import {
 } from "@/v2/deskSession";
 import { clearDeskSession, ensureDeskSession } from "@/v2/api";
 import { ConnectedAccountsSection } from "@/v2/ConnectedAccountsSection";
+import { archiveRuntimeStatus } from "@/v2/archiveRuntimeStatus";
 import { assistantRuntimeDetail, composerRuntimeRead } from "@/v2/composerRuntimeStatus";
 import { loadSettings, saveSettings } from "@/v2/settingsStore";
 import { PILOT_PREVIEW_EMAIL } from "@/v2/profileViewModel";
@@ -101,12 +102,7 @@ export function SettingsPage({
   const assistant = assistantStatus(health);
   const demoMode = isDemoMode();
   const desk = health?.desk || {};
-  const archive =
-    desk?.gdrive?.ok === true
-      ? "Connected"
-      : desk?.gdrive?.ok === false
-        ? "Needs review"
-        : "Not reported";
+  const archive = archiveRuntimeStatus(health);
   const mcpTools =
     resourcesRollup?.ai?.mcp_tools?.total ?? resourcesRollup?.hero?.mcp_tools ?? null;
 
@@ -179,66 +175,51 @@ export function SettingsPage({
     >
       <div className="rd-v2-settings-statement">
         <StatementSection title="Workspace behavior">
-          <div className="rd-v2-settings-row">
-            <label className="rd-v2-settings-label" htmlFor="rd-settings-startup">
-              When Research Drive opens
-            </label>
-            <select
-              id="rd-settings-startup"
-              value={settings.startup}
-              onChange={(event) => patch({ startup: event.target.value })}
-              className="rd-v2-select"
-            >
-              <option value="home">Home — show what needs attention</option>
-              <option value="resume">Continue where I left off</option>
-            </select>
+          <div className="rd-v2-settings-preference-grid">
+            <div className="rd-v2-settings-preference">
+              <div className="rd-v2-settings-row">
+                <label className="rd-v2-settings-label" htmlFor="rd-settings-startup">When Research Drive opens</label>
+                <select id="rd-settings-startup" value={settings.startup} onChange={(event) => patch({ startup: event.target.value })} className="rd-v2-select">
+                  <option value="home">Home — show what needs attention</option>
+                  <option value="resume">Continue where I left off</option>
+                </select>
+              </div>
+              <p className="rd-v2-settings-hint">Continue remembers only Library, Discover, or Synthesis—not administrative pages.</p>
+            </div>
+            <div className="rd-v2-settings-preference">
+              <div className="rd-v2-settings-row">
+                <label className="rd-v2-settings-label" htmlFor="rd-settings-on-select">When evidence is selected</label>
+                <select id="rd-settings-on-select" value={settings.onSelect} onChange={(event) => patch({ onSelect: event.target.value })} className="rd-v2-select">
+                  <option value="detail">Show Detail</option>
+                  <option value="ask">Open Ask</option>
+                  <option value="keep">Keep current Inspector mode</option>
+                </select>
+              </div>
+              <p className="rd-v2-settings-hint">Library and Discover follow this preference; decision states retain their task-specific view.</p>
+            </div>
+            <div className="rd-v2-settings-preference">
+              <div className="rd-v2-settings-row">
+                <label className="rd-v2-settings-label" htmlFor="rd-settings-discover-scope">Discover search</label>
+                <select id="rd-settings-discover-scope" value={settings.discoverScope} onChange={(event) => patch({ discoverScope: event.target.value })} className="rd-v2-select">
+                  <option value="known">Known evidence first</option>
+                  <option value="wide">Search wider immediately</option>
+                </select>
+              </div>
+              <p className="rd-v2-settings-hint">Known-first paints held evidence quickly; wider search adds live and semantic routes.</p>
+            </div>
           </div>
-          <p className="rd-v2-settings-hint">
-            Continue remembers only Library, Discover, or Synthesis. Profile, Settings, and
-            Resources never become a resume destination.
-          </p>
+        </StatementSection>
 
-          <div className="rd-v2-settings-row">
-            <label className="rd-v2-settings-label" htmlFor="rd-settings-on-select">
-              When evidence is selected
-            </label>
-            <select
-              id="rd-settings-on-select"
-              value={settings.onSelect}
-              onChange={(event) => patch({ onSelect: event.target.value })}
-              className="rd-v2-select"
-            >
-              <option value="detail">Show Detail</option>
-              <option value="ask">Open Ask</option>
-              <option value="keep">Keep current Inspector mode</option>
-            </select>
-          </div>
+        <StatementSection title="Research Drive storage">
+          <StatementRow
+            label="Shared evidence archive"
+            metric={archive.label}
+            sublabel={archive.detail}
+            detail={archive.ready ? "READY" : archive.known ? "CHECK" : "UNKNOWN"}
+            warn={archive.known && !archive.ready}
+          />
           <p className="rd-v2-settings-hint">
-            Applies to evidence selection in Library and Discover. Approval, Resources, and
-            Synthesis decision states keep their task-specific Inspector behavior.
-          </p>
-
-          <div className="rd-v2-settings-row">
-            <label
-              className="rd-v2-settings-label"
-              htmlFor="rd-settings-discover-scope"
-            >
-              Discover search
-            </label>
-            <select
-              id="rd-settings-discover-scope"
-              value={settings.discoverScope}
-              onChange={(event) => patch({ discoverScope: event.target.value })}
-              className="rd-v2-select"
-            >
-              <option value="known">Known evidence first</option>
-              <option value="wide">Search wider immediately</option>
-            </select>
-          </div>
-          <p className="rd-v2-settings-hint">
-            Known-first paints Library and declared routes before progressive enrichment. Wide
-            starts semantic/live federation immediately. Synthesis evidence-gap handoffs always
-            begin known-first.
+            This service-managed archive supplies the shared Library. Personal storage below is optional and never replaces the default research estate.
           </p>
         </StatementSection>
 
@@ -345,16 +326,10 @@ export function SettingsPage({
             />
             <StatementRow
               label="Research archive"
-              metric={archive}
-              sublabel="Archive health reported by the desk"
-              detail={
-                desk?.gdrive?.ok === true
-                  ? "OK"
-                  : desk?.gdrive?.ok === false
-                    ? "CHECK"
-                    : "UNKNOWN"
-              }
-              warn={desk?.gdrive?.ok === false}
+              metric={archive.label}
+              sublabel={archive.detail}
+              detail={archive.ready ? "READY" : archive.known ? "CHECK" : "UNKNOWN"}
+              warn={archive.known && !archive.ready}
             />
             <StatementRow
               label="Desk equipment"

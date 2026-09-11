@@ -199,6 +199,7 @@ export function InspectorRail({
   resourceRow,
   resourcesRollup,
   resourcesDecisionCount,
+  allowOperations = true,
   activeObject,
   previewOpen = false,
   onPreview,
@@ -262,6 +263,7 @@ export function InspectorRail({
         intentRecord={discoverIntentRecord}
         onAskAbout={onAskAbout}
         onAddToLab={onAddToLab}
+        onRequireMemberAccess={() => onRailTabChange?.("ask")}
         onPreviewExternal={onPreviewExternal}
         onProbeSource={onProbeSource}
         probeState={probeState}
@@ -272,6 +274,8 @@ export function InspectorRail({
         onRetryLifecycleRefresh={onRetryLifecycleRefresh}
       />
     );
+  } else if (mainTab === "resources" && !allowOperations) {
+    detailPanel = <PageRailPanel page="resources" />;
   } else if (mainTab === "resources") {
     detailPanel = resourceRow ? (
       <ResourcesRailPanel

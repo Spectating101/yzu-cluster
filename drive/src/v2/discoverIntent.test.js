@@ -16,6 +16,10 @@ test("intent candidate preserves descriptions and observed connector identity", 
       description: "Public transaction and token-transfer tables.",
       recommended_use: "Aggregate transaction flows into daily measures.",
       grain: "transaction",
+      provider: "DataCite",
+      kind: "live_candidate",
+      doi: "10.5281/zenodo.123",
+      external_id: "zenodo.123",
       url: "https://console.cloud.google.com/bigquery",
     },
     {
@@ -28,6 +32,10 @@ test("intent candidate preserves descriptions and observed connector identity", 
   assert.equal(candidate.connector_id, "bigquery_public");
   assert.equal(candidate.description, "Public transaction and token-transfer tables.");
   assert.equal(candidate.recommended_use, "Aggregate transaction flows into daily measures.");
+  assert.equal(candidate.provider, "DataCite");
+  assert.equal(candidate.kind, "live_candidate");
+  assert.equal(candidate.doi, "10.5281/zenodo.123");
+  assert.equal(candidate.external_id, "zenodo.123");
 });
 
 test("declared collection route survives normalization as connector authority", () => {

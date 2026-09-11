@@ -165,15 +165,6 @@ export function SynthesisHome({
 
       {loading ? <p className="s04-home-loading">Loading durable constructions…</p> : null}
 
-      {!loading && !allThreads.length ? (
-        <section className="s04-home-first">
-          <small>Empty workspace</small>
-          <h2>No Synthesis construction has been recorded yet.</h2>
-          <p>The first durable object can begin from a research question or a registered method. Nothing is executed merely by starting one.</p>
-          <button type="button" className="rd-v2-btn primary" onClick={onNew}>Start the first construction</button>
-        </section>
-      ) : null}
-
       {needsYou.length ? (
         <ThreadSection
           eyebrow="Decision queue"

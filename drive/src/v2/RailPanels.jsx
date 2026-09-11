@@ -193,6 +193,15 @@ const PAGE_RAIL_COPY = {
       ["System status", "Available under technical details"],
     ],
   },
+  resources: {
+    title: "Operational boundary",
+    desc: "Resources explains the systems that keep shared evidence available; live controls remain restricted to research staff.",
+    fields: [
+      ["Archive", "Collected evidence returns to the shared Library"],
+      ["Routes", "Collection methods stay explicit and reviewable"],
+      ["Control", "Public browsing cannot start workers, spend quota, or write data"],
+    ],
+  },
 };
 
 function pluralCount(value, singular, plural = `${singular}s`) {

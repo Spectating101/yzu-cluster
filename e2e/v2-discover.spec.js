@@ -50,6 +50,13 @@ test.describe("v2 Discover tab", () => {
     await expect(page.getByText("No curated source routes yet")).toBeVisible();
   });
 
+  test("mobile landing keeps retrieval ahead of workstation capacity context", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(page.getByLabel("Search or describe a research need")).toBeVisible();
+    await expect(page.getByTestId("discover-coverage")).toBeVisible();
+    await expect(page.locator(".rd-v2-discover-radar-panel--execution")).toBeHidden();
+  });
+
   test("idle state leads with live coverage and does not invent a search summary", async ({ page }) => {
     await mockV2Api(page, {
       datasetsBody: {
@@ -85,6 +92,14 @@ test.describe("v2 Discover tab", () => {
   });
 
   test("keyword search renders the external result composition", async ({ page }) => {
+    await mockV2Api(page, { discoverBody: MOCK_DISCOVER_HIT });
+    let externalDescribeRequests = 0;
+    await page.route("**/datasets/mops_financial_statements_ext", (route) => {
+      externalDescribeRequests += 1;
+      return route.fulfill({ status: 404, contentType: "application/json", body: "{}" });
+    });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
     await searchDiscover(page, "TWSE governance");
     await expect(page.locator('button.rd-v2-discover-candidate').first()).toBeVisible({ timeout: 10_000 });
     await expect(page.locator('button.rd-v2-discover-candidate')).not.toHaveCount(0);
@@ -110,6 +125,65 @@ test.describe("v2 Discover tab", () => {
     await expect(facets.getByRole("button", { name: /All evidence/i })).toBeVisible();
     await expect(facets.getByRole("button", { name: /Beyond Library/i })).toBeVisible();
     await expect(page.getByTestId("discover-browse-mode")).not.toContainText(/process overview/i);
+    await page.locator("button.rd-v2-discover-candidate").first().click();
+    await expect(page.getByTestId("rail-pane-detail")).toContainText(/selected candidate/i);
+    expect(externalDescribeRequests).toBe(0);
+  });
+
+  test("late Library hydration never erases a painted candidate field", async ({ page }) => {
+    // Production can return the first Discover leg before the larger Library
+    // registry has finished hydrating. Updating possession IDs legitimately
+    // re-runs classification, but the same-query refresh must retain the field
+    // and the selected row instead of flashing a false zero-result state.
+    const secondCandidate = {
+      ...MOCK_DISCOVER_HIT.sections[0].rows[0],
+      dataset_id: "forest_fire_economic_route",
+      candidate_key: "dataset:forest_fire_economic_route",
+      title: "Forest fire economic impact panel",
+    };
+    await mockV2Api(page, {
+      discoverBody: {
+        sections: [{
+          ...MOCK_DISCOVER_HIT.sections[0],
+          rows: [...MOCK_DISCOVER_HIT.sections[0].rows, secondCandidate],
+        }],
+        total: 2,
+      },
+      discoverSourcesBody: { results: [], total: 0 },
+      discoverSourcesDelayMs: 4_000,
+    });
+    let releaseDatasets;
+    const datasetsReady = new Promise((resolve) => { releaseDatasets = resolve; });
+    await page.unroute("**/datasets**");
+    await page.route("**/datasets**", async (route) => {
+      await datasetsReady;
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          datasets: [{
+            ...MOCK_DISCOVER_HIT.sections[0].rows[0],
+            analysis_readiness: "instant",
+            local_root: "data_lake/mops",
+          }],
+        }),
+      });
+    });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await searchDiscover(page, "forest fire economic changes");
+
+    const field = page.getByTestId("discover-ranked-results");
+    const first = field.locator(".rd-v2-discover-candidate").first();
+    await expect(first).toBeVisible({ timeout: 10_000 });
+    await first.click();
+    await expect(page.getByTestId("rail-pane-detail")).toContainText(/selected candidate/i);
+
+    releaseDatasets();
+    await page.waitForTimeout(800);
+    await expect(page.getByTestId("discover-result-summary")).toContainText("Library evidence · 1");
+    await expect(field.getByText("Forest fire economic impact panel")).toBeVisible();
+    await expect(page.locator(".rd-v2-discover-miss")).toHaveCount(0);
   });
 
   test("a completed miss is honest, actionable, and offers Search wider only once", async ({ page }) => {
@@ -125,14 +199,17 @@ test.describe("v2 Discover tab", () => {
     });
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
-    await searchDiscover(page, "zzqvjjk plmxxc");
+    const missingNeed = "forest fire and economic changes";
+    await searchDiscover(page, missingNeed);
 
     const summary = page.getByTestId("discover-result-summary");
     await expect(summary).toContainText("Available · 0");
     await expect(summary).toContainText("Library evidence · 0");
     await expect(page.locator(".rd-v2-discover-miss")).toContainText(
-      "No matches for “zzqvjjk plmxxc” in the current research index.",
+      `No matches for “${missingNeed}” in the current research index.`,
     );
+    await expect(page.getByText("Global ocean temperature anomaly")).toHaveCount(0);
+    await expect(page.getByText("Refinitiv Asia equity fundamentals")).toHaveCount(0);
     await expect(page.getByLabel("Discover next actions")).toContainText("No offering found yet");
     await expect(page.getByRole("button", { name: "Search wider", exact: true })).toHaveCount(1);
   });
@@ -231,6 +308,77 @@ test.describe("v2 Discover tab", () => {
     await expect(summary).toContainText("Library evidence · 1");
     await expect(summary).toContainText("Web context · 1");
     await expect(page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidate")).toHaveCount(1);
+  });
+
+  test("Search wider preserves a partially painted route field", async ({ page }) => {
+    const route = {
+      kind: "source",
+      source_id: "twse_openapi",
+      candidate_key: "source:twse:twse_openapi",
+      provider: "TWSE",
+      title: "TWSE OpenAPI",
+      access_mode: "public_api",
+      collect_via: ["queue"],
+    };
+    await mockV2Api(page, {
+      discoverBody: { sections: [], total: 0 },
+      discoverSourcesBody: { results: [route], total: 1 },
+      discoverSourcesDelayMs: 1_500,
+      discoverLiveSourcesBody: { results: [], total: 0 },
+      discoverLiveSourcesDelayMs: 400,
+    });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await searchDiscover(page, "TWSE");
+
+    const candidates = page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidate");
+    await expect(candidates).toHaveCount(1);
+    await page.getByRole("button", { name: "Search wider", exact: true }).click();
+    await expect(page.getByText("Searching wider sources…", { exact: false })).toBeVisible();
+    await expect(candidates).toHaveCount(1);
+    await expect(candidates.first()).toContainText("TWSE OpenAPI");
+  });
+
+  test("explicit Search wider paints live routes before optional web context settles", async ({ page }) => {
+    const localRoute = {
+      kind: "source",
+      source_id: "twse_openapi",
+      candidate_key: "source:twse:twse_openapi",
+      provider: "TWSE",
+      title: "TWSE OpenAPI",
+      access_mode: "public_api",
+      collect_via: ["queue"],
+    };
+    const widerRoute = {
+      kind: "source",
+      source_id: "twse_dataset_catalogue",
+      candidate_key: "source:twse:dataset_catalogue",
+      provider: "TWSE",
+      title: "TWSE dataset catalogue",
+      access_mode: "public_api",
+      collect_via: ["queue"],
+      query_relevance: 2,
+    };
+    await mockV2Api(page, {
+      discoverBody: { sections: [], total: 0 },
+      discoverSourcesBody: { results: [localRoute], total: 1 },
+      discoverLiveSourcesBody: { results: [widerRoute], total: 1 },
+      discoverLiveSourcesDelayMs: 80,
+    });
+    await page.route("**/library/discover/web*", async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 2_500));
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ sections: [] }) });
+    });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await searchDiscover(page, "TWSE");
+
+    const candidates = page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidate");
+    await expect(candidates).toHaveCount(1);
+    await page.getByRole("button", { name: "Search wider", exact: true }).click();
+    await expect(page.getByText("TWSE dataset catalogue", { exact: true })).toBeVisible({ timeout: 1_500 });
+    await expect(candidates).toHaveCount(2);
+    await expect(page.getByText("Searching wider sources…", { exact: false })).toBeVisible();
   });
 
   test("paints held evidence while the slower source-route lookup continues", async ({ page }) => {
@@ -342,6 +490,9 @@ test.describe("v2 Discover tab", () => {
   });
 
   test("selecting a discover row keeps Explore visible and updates the Detail rail", async ({ page }) => {
+    await mockV2Api(page, { discoverBody: MOCK_DISCOVER_HIT });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
     await searchDiscover(page);
     await page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate').first().click();
     const surface = page.locator("aside.rd-v2-rail").getByTestId("discover-eval-surface");
