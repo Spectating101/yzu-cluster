@@ -698,6 +698,15 @@ export function V2App() {
       setDetailLoading(false);
       return;
     }
+    // Discover candidates may carry a provider identifier that resembles a
+    // dataset id, but an external row is not a Library object. Its evidence is
+    // already owned by `browseRow`; asking /datasets/:id for it creates a
+    // predictable 404 on every selection and conflates candidate with holding.
+    if (tab === DISCOVER_TAB && browseRow && !selectedFromList) {
+      setDetail(null);
+      setDetailLoading(false);
+      return;
+    }
     const base = selectedFromList || { dataset_id: selectedId };
     setDetail(base);
     setDetailLoading(true);
@@ -705,7 +714,7 @@ export function V2App() {
       .then((d) => setDetail((cur) => ({ ...cur, ...d })))
       .catch(() => {})
       .finally(() => setDetailLoading(false));
-  }, [selectedId, selectedFromList]);
+  }, [selectedId, selectedFromList, browseRow, tab]);
 
   const browseTarget = browseRow;
   // Direct Discover URLs may carry either a raw dataset id or a typed candidate

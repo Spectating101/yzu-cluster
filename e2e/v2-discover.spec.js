@@ -86,6 +86,11 @@ test.describe("v2 Discover tab", () => {
 
   test("keyword search renders the external result composition", async ({ page }) => {
     await mockV2Api(page, { discoverBody: MOCK_DISCOVER_HIT });
+    let externalDescribeRequests = 0;
+    await page.route("**/datasets/mops_financial_statements_ext", (route) => {
+      externalDescribeRequests += 1;
+      return route.fulfill({ status: 404, contentType: "application/json", body: "{}" });
+    });
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
     await searchDiscover(page, "TWSE governance");
@@ -113,6 +118,9 @@ test.describe("v2 Discover tab", () => {
     await expect(facets.getByRole("button", { name: /All evidence/i })).toBeVisible();
     await expect(facets.getByRole("button", { name: /Beyond Library/i })).toBeVisible();
     await expect(page.getByTestId("discover-browse-mode")).not.toContainText(/process overview/i);
+    await page.locator("button.rd-v2-discover-candidate").first().click();
+    await expect(page.getByTestId("rail-pane-detail")).toContainText(/selected candidate/i);
+    expect(externalDescribeRequests).toBe(0);
   });
 
   test("late Library hydration never erases a painted candidate field", async ({ page }) => {
