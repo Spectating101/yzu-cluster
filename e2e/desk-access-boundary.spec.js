@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { mockV2Api } from "./fixtures/v2MockApi.js";
+import { MOCK_DISCOVER_HIT, mockV2Api } from "./fixtures/v2MockApi.js";
 
 // The authenticated desk mock is deliberately replaced with the public
 // capabilities contract.  This is the state an anonymous browser actually
@@ -46,7 +46,7 @@ test("a locked desk has one honest boundary, not zero-shaped data", async ({ pag
   await page.screenshot({ path: testInfo.outputPath("locked-desk-1440x900.png"), fullPage: false });
 });
 
-test("a pending capability check never paints a misleading empty page", async ({ page }) => {
+test("a pending capability check never paints a misleading empty page", async ({ page }, testInfo) => {
   await mockV2Api(page);
   await page.unroute("**/library/desk/capabilities").catch(() => {});
   await page.route("**/library/desk/capabilities", async (route) => {
@@ -67,8 +67,12 @@ test("a pending capability check never paints a misleading empty page", async ({
   await page.goto("/?tab=discover", { waitUntil: "domcontentloaded" });
   await expect(page.getByTestId("desk-session-bootstrap")).toBeVisible();
   await expect(page.getByTestId("desk-access-gate")).toHaveCount(0);
-  await expect(page.getByText("Opening Research Drive")).toBeVisible();
+  await expect(page.getByTestId("desk-session-bootstrap")).toHaveClass(/rd-v2-shell/);
+  await expect(page.getByTestId("desk-session-bootstrap").locator(".rd-v2-access-card")).toHaveCount(0);
   await expect(page.getByText("No curated source routes yet")).toHaveCount(0);
+  if (process.env.YZU_CAPTURE_VISUALS === "1") {
+    await page.screenshot({ path: testInfo.outputPath("session-bootstrap-1440x900.png"), fullPage: false });
+  }
 });
 
 test("a public guest can browse shared evidence but must sign in to Ask", async ({ page }, testInfo) => {
@@ -84,7 +88,7 @@ test("a public guest can browse shared evidence but must sign in to Ask", async 
       forbiddenStartupRequests.push(request.url());
     }
   });
-  await mockV2Api(page);
+  await mockV2Api(page, { discoverBody: MOCK_DISCOVER_HIT });
   await page.unroute("**/library/desk/capabilities").catch(() => {});
   await page.route("**/library/desk/capabilities", (route) => route.fulfill({
     status: 200,
@@ -114,8 +118,24 @@ test("a public guest can browse shared evidence but must sign in to Ask", async 
   await page.goto("/?tab=discover", { waitUntil: "domcontentloaded" });
   await expect(page.getByTestId("desk-access-gate")).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Discover", exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Resources", exact: true })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Synthesis", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Resources", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Synthesis", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Synthesis", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Build evidence into a method you can inspect, challenge, and reuse." })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Sign in to start Synthesis" })).toBeVisible();
+  if (process.env.YZU_CAPTURE_VISUALS === "1") {
+    await page.screenshot({ path: testInfo.outputPath("public-synthesis-1440x900.png"), fullPage: false });
+  }
+  await page.getByRole("button", { name: "Resources", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Research evidence is public here; infrastructure and approval controls are not." })).toBeVisible();
+  await expect(page.locator("aside.rd-v2-rail")).toContainText("Operational boundary");
+  await expect(page.locator("aside.rd-v2-rail").getByRole("button", { name: "Open activity" })).toHaveCount(0);
+  await expect(page.locator("aside.rd-v2-rail").getByText(/awaiting your approval/i)).toHaveCount(0);
+  await expect.poll(() => privateSurfaceRequests).toEqual([]);
+  if (process.env.YZU_CAPTURE_VISUALS === "1") {
+    await page.screenshot({ path: testInfo.outputPath("public-resources-1440x900.png"), fullPage: false });
+  }
+  await page.getByRole("button", { name: "Discover", exact: true }).click();
   // The guest can evaluate shared evidence, but must not be offered an action
   // that only a collection-capable member can submit.
   await expect(page.getByRole("button", { name: "Add to collection" })).toHaveCount(0);

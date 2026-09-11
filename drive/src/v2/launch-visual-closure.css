@@ -1,0 +1,128 @@
+/* External-launch visual closure.
+ * One stable shell geometry, an in-product bootstrap, and workstation density
+ * for quiet pages. This file is intentionally last-loaded. */
+
+.rd-v2-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.rd-v2-session-bootstrap { color: var(--rd-text); }
+.rd-v2-bootstrap-header { grid-template-columns: 28px calc(var(--rd-sidebar) - 50px) minmax(0, 1fr); gap: 8px; }
+.rd-v2-bootstrap-header > strong { min-width: 0; font-size: 14px; white-space: nowrap; }
+.rd-v2-bootstrap-sidebar { padding: 17px 10px; }
+.rd-v2-bootstrap-sidebar > span {
+  display: block;
+  margin-bottom: 6px;
+  padding: 13px 14px;
+  border-radius: 8px;
+  color: var(--rd-sidebar-fg);
+  font-size: 13px;
+}
+.rd-v2-bootstrap-sidebar > span.active { background: var(--rd-sidebar-active-bg); color: var(--rd-sidebar-active-fg); }
+.rd-v2-bootstrap-main { padding: 24px; }
+.rd-v2-bootstrap-title { display: grid; gap: 7px; width: 250px; margin-bottom: 34px; }
+.rd-v2-bootstrap-title > span,
+.rd-v2-bootstrap-title > i,
+.rd-v2-bootstrap-line { display: block; border-radius: 999px; background: #e2e0d8; }
+.rd-v2-bootstrap-title > span { width: 106px; height: 22px; }
+.rd-v2-bootstrap-title > i { width: 210px; height: 9px; }
+.rd-v2-bootstrap-canvas {
+  min-height: 240px;
+  padding: 34px;
+  border: 1px solid var(--rd-border);
+  border-radius: 16px;
+  background: var(--rd-surface);
+  box-shadow: 0 16px 40px rgba(24, 32, 51, .045);
+}
+.rd-v2-bootstrap-line { height: 10px; margin-bottom: 13px; }
+.rd-v2-bootstrap-line.eyebrow { width: 82px; height: 7px; }
+.rd-v2-bootstrap-line.title { width: min(520px, 72%); height: 28px; margin: 24px 0 16px; }
+.rd-v2-bootstrap-line.copy { width: min(680px, 88%); }
+.rd-v2-bootstrap-line.short { width: min(360px, 54%); }
+.rd-v2-bootstrap-rail { display: flex; flex-direction: column; padding: 28px 18px; }
+.rd-v2-bootstrap-rail .title { width: 72%; height: 19px; margin-top: 22px; }
+.rd-v2-bootstrap-rail .copy { width: 92%; }
+
+.rd-v2-guest-feature-page .rd-v2-body-scroll {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 24px;
+}
+.rd-v2-guest-feature-hero {
+  max-width: 850px;
+  padding: clamp(30px, 4vw, 54px);
+  border: 1px solid var(--rd-border);
+  border-radius: 18px;
+  background: radial-gradient(circle at 100% 0, rgba(63,111,92,.12), transparent 38%), var(--rd-surface);
+  box-shadow: 0 18px 44px rgba(24,32,51,.06);
+}
+.rd-v2-guest-feature-hero h2 { max-width: 760px; margin: 14px 0 12px; font-size: clamp(26px, 3vw, 38px); line-height: 1.08; letter-spacing: -.035em; }
+.rd-v2-guest-feature-hero p { max-width: 700px; margin: 0 0 24px; color: var(--rd-muted); line-height: 1.6; }
+.rd-v2-guest-feature-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); max-width: 980px; border-block: 1px solid var(--rd-border); }
+.rd-v2-guest-feature-grid article { min-width: 0; padding: 20px 24px; border-right: 1px solid var(--rd-border); }
+.rd-v2-guest-feature-grid article:last-child { border-right: 0; }
+.rd-v2-guest-feature-grid span { color: var(--rd-link); font: 700 9px/1 var(--rd-mono); letter-spacing: .08em; }
+.rd-v2-guest-feature-grid strong { display: block; margin: 9px 0 5px; color: var(--rd-text); }
+.rd-v2-guest-feature-grid p { margin: 0; color: var(--rd-muted); font-size: 11px; line-height: 1.5; }
+
+@media (min-width: 1537px) {
+  body .rd-v2-shell { --rd-rail: 420px !important; }
+
+  .rd-v2-synthesis-page .s04-home { padding-bottom: 18px; }
+
+  .rd-v2-profile-page .rd-v2-body-scroll {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0 28px;
+    align-content: start;
+  }
+  .rd-v2-profile-page .rd-v2-profile-identity,
+  .rd-v2-profile-page .rd-v2-profile-memory-section,
+  .rd-v2-profile-page .rd-v2-profile-public-state,
+  .rd-v2-profile-page .rd-v2-profile-loading { grid-column: 1 / -1; }
+  .rd-v2-profile-page .rd-v2-profile-identity { padding-block: 18px 20px; }
+  .rd-v2-profile-page .rd-v2-profile-section { margin-top: 16px; }
+  .rd-v2-profile-page .rd-v2-profile-section-head { padding: 12px 0 10px; }
+  .rd-v2-profile-page .rd-v2-profile-memory-anchor { min-height: 172px; padding: 22px 26px; }
+  .rd-v2-profile-page .rd-v2-profile-memory-card { padding-block: 9px; }
+  .rd-v2-profile-page .rd-v2-profile-works li { padding-block: 9px; }
+
+  .rd-v2-settings-statement { width: min(100%, 1180px); max-width: 1180px; }
+  .rd-v2-settings-statement > .rd-v2-statement-section { grid-template-columns: 180px minmax(0, 1fr); gap: 28px; padding-block: 17px 19px; }
+  .rd-v2-settings-preference-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  .rd-v2-settings-preference { min-width: 0; padding: 14px; border: 1px solid var(--rd-border); border-radius: 12px; background: rgba(255,255,255,.48); }
+  .rd-v2-settings-preference .rd-v2-settings-row { display: block; padding: 0; }
+  .rd-v2-settings-preference .rd-v2-settings-label { display: block; margin-bottom: 9px; }
+  .rd-v2-settings-preference .rd-v2-settings-hint { margin: 9px 0 0; line-height: 1.4; }
+  .rd-v2-connected-providers { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .rd-v2-connected-provider,
+  .rd-v2-connected-provider:first-child { min-width: 0; padding: 14px; border: 1px solid var(--rd-border); border-radius: 12px; }
+  .rd-v2-connected-provider > header { align-items: stretch; flex-direction: column; gap: 12px; }
+  .rd-v2-connected-connect { align-items: stretch; flex-direction: column; }
+  .rd-v2-connected-mode { width: 100%; min-width: 0; }
+}
+
+@media (min-width: 721px) and (max-width: 1536px) {
+  body .rd-v2-shell { --rd-rail: clamp(300px, 26vw, 380px) !important; }
+}
+
+@media (max-width: 720px) {
+  .rd-v2-bootstrap-rail { display: none; }
+  .rd-v2-bootstrap-header { grid-template-columns: 28px minmax(0, 1fr); }
+  .rd-v2-bootstrap-header > .rd-v2-bootstrap-line { display: none; }
+  .rd-v2-bootstrap-main { padding: 14px; }
+  .rd-v2-bootstrap-canvas { min-height: 200px; padding: 24px; }
+  .rd-v2-guest-feature-page .rd-v2-body-scroll { justify-content: flex-start; }
+  .rd-v2-guest-feature-grid { grid-template-columns: 1fr; }
+  .rd-v2-guest-feature-grid article { border-right: 0; border-bottom: 1px solid var(--rd-border); }
+  .rd-v2-settings-preference-grid { display: grid; gap: 8px; }
+}

@@ -11,13 +11,37 @@ import { saveDeskToken } from "@/v2/deskSession";
  */
 export function DeskSessionBootstrap() {
   return (
-    <main className="rd-v2-access-gate rd-v2-session-bootstrap" aria-busy="true" data-testid="desk-session-bootstrap">
-      <section className="rd-v2-access-card">
-        <span className="rd-v2-access-kicker">RESEARCH DRIVE</span>
-        <h1>Opening Research Drive</h1>
-        <p>Establishing this browser’s secure session for the shared research estate.</p>
-      </section>
-    </main>
+    <div
+      className="yzu-shell with-inspector rd-theme-light rd-v2-shell rd-v2-session-bootstrap"
+      aria-busy="true"
+      data-testid="desk-session-bootstrap"
+    >
+      <span className="rd-v2-visually-hidden">Opening Research Drive</span>
+      <header className="rd-v2-header rd-v2-bootstrap-header" aria-hidden="true">
+        <span className="rd-brand-mark">RD</span>
+        <strong>Research Drive</strong>
+        <span className="rd-v2-bootstrap-line short" />
+      </header>
+      <aside className="yzu-sidebar rd-v2-bootstrap-sidebar" aria-hidden="true">
+        {['Home', 'Library', 'Discover', 'Synthesis', 'Resources'].map((label, index) => (
+          <span key={label} className={index === 0 ? "active" : ""}>{label}</span>
+        ))}
+      </aside>
+      <main className="yzu-main rd-v2-shell-main rd-v2-bootstrap-main" aria-hidden="true">
+        <div className="rd-v2-bootstrap-title"><span /><i /></div>
+        <section className="rd-v2-bootstrap-canvas">
+          <span className="rd-v2-bootstrap-line eyebrow" />
+          <span className="rd-v2-bootstrap-line title" />
+          <span className="rd-v2-bootstrap-line copy" />
+          <span className="rd-v2-bootstrap-line copy short" />
+        </section>
+      </main>
+      <aside className="yzu-inspector rd-v2-bootstrap-rail" aria-hidden="true">
+        <span className="rd-v2-bootstrap-line eyebrow" />
+        <span className="rd-v2-bootstrap-line title" />
+        <span className="rd-v2-bootstrap-line copy" />
+      </aside>
+    </div>
   );
 }
 

@@ -920,12 +920,6 @@ export function BrowsePage({
           return;
         }
 
-        if (immediateDemo.length) {
-          apply({ sections: [{ id: "demo", rows: immediateDemo }] }, "demo");
-          setIndexMiss(false);
-          return;
-        }
-
         if (preferLiveSources) {
           const web = await webDiscover(q, 8);
           const webRows = webHitsToRows(web);
@@ -940,7 +934,7 @@ export function BrowsePage({
         setRows([]);
       } catch (err) {
         if (cancelled) return;
-        if (immediateDemo.length) {
+        if (usingSeed && immediateDemo.length) {
           setRows(immediateDemo);
           setSource("demo");
           setDemoFallback(true);

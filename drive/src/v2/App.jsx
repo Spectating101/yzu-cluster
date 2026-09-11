@@ -50,6 +50,7 @@ import { ProfilePage } from "@/v2/ProfilePage";
 import { ResourcesPage } from "@/v2/ResourcesPage";
 import { SettingsPage } from "@/v2/SettingsPage";
 import { SynthesisPage } from "@/v2/SynthesisPage";
+import { PageShell } from "@/v2/ui";
 import {
   buildDiscoverLifecycle,
   isLifecycleActive,
@@ -847,11 +848,7 @@ export function V2App() {
   const goTab = useCallback(
     (id, opts = {}) => {
       const requested = normalizeReleaseTab(canonicalTab(id));
-      const next =
-        (requested === "resources" && !canViewOperations) ||
-        (requested === "synthesis" && !canUseAsk)
-          ? "home"
-          : requested;
+      const next = requested;
       if (next === DISCOVER_TAB && !opts.preserveDiscoverScope) {
         setDiscoverPreferLive(discoverScopeIsWide());
         // A fresh navigation to Discover starts at the retrieval surface. Do not
@@ -882,17 +879,8 @@ export function V2App() {
       setTab(next);
       syncUrl({ tab: next });
     },
-    [syncUrl, canViewOperations, canUseAsk],
+    [syncUrl],
   );
-
-  useEffect(() => {
-    if (
-      deskAccess?.authenticated &&
-      ((!canViewOperations && tab === "resources") || (!canUseAsk && tab === "synthesis"))
-    ) {
-      goTab("home");
-    }
-  }, [deskAccess?.authenticated, canViewOperations, canUseAsk, tab, goTab]);
 
   const handleSynthesisDiscoverHandoff = useCallback(
     ({ field, handoff, thread } = {}) => {
@@ -1842,7 +1830,7 @@ export function V2App() {
       );
       break;
     case "synthesis":
-      main = (
+      main = canUseAsk ? (
         <SynthesisPage
           datasets={catalog}
           onAskComposer={askFromPrompt}
@@ -1866,10 +1854,31 @@ export function V2App() {
           onFocusThreadConsumed={() => setFocusSynthesisThreadId("")}
           refreshVersion={synthesisRefreshVersion}
         />
+      ) : (
+        <PageShell
+          className="rd-v2-guest-feature-page rd-v2-guest-synthesis"
+          title="Synthesis"
+          lead="Turn a research question into a durable, reviewable construction."
+          surfaceState="ready"
+        >
+          <section className="rd-v2-guest-feature-hero">
+            <span className="rd-v2-eyebrow">Member research workspace</span>
+            <h2>Build evidence into a method you can inspect, challenge, and reuse.</h2>
+            <p>Synthesis keeps the research objective, evidence roles, unresolved choices, method decisions, execution proof, and resulting Library asset together.</p>
+            <button type="button" className="rd-v2-btn primary" onClick={beginMemberSignIn}>
+              Sign in to start Synthesis
+            </button>
+          </section>
+          <div className="rd-v2-guest-feature-grid" aria-label="Synthesis workflow">
+            <article><span>01</span><strong>Define</strong><p>Record the research object and the decision it must support.</p></article>
+            <article><span>02</span><strong>Ground</strong><p>Assign held Library evidence to explicit analytical roles.</p></article>
+            <article><span>03</span><strong>Build</strong><p>Review method choices before any execution or materialisation.</p></article>
+          </div>
+        </PageShell>
       );
       break;
     case "resources":
-      main = (
+      main = canViewOperations ? (
         <ResourcesPage
           rollup={resourcesRollup}
           rollupLoading={resourcesRollup === undefined}
@@ -1892,6 +1901,27 @@ export function V2App() {
             setRailTab("detail");
           }}
         />
+      ) : (
+        <PageShell
+          className="rd-v2-guest-feature-page rd-v2-guest-resources"
+          title="Resources"
+          lead="The operational authority behind collection, storage, and research execution."
+          surfaceState="ready"
+        >
+          <section className="rd-v2-guest-feature-hero">
+            <span className="rd-v2-eyebrow">Restricted operational view</span>
+            <h2>Research evidence is public here; infrastructure and approval controls are not.</h2>
+            <p>Resources tracks archive capacity, source entitlements, collectors, model readiness, approvals, and failed jobs. Those controls remain limited to research staff so browsing never grants operational authority.</p>
+            <button type="button" className="rd-v2-btn primary" onClick={() => goTab("browse")}>
+              Find evidence in Discover
+            </button>
+          </section>
+          <div className="rd-v2-guest-feature-grid" aria-label="Resource responsibilities">
+            <article><span>ARCHIVE</span><strong>Durable evidence</strong><p>Collected assets return to the shared Library with provenance.</p></article>
+            <article><span>ROUTES</span><strong>Acquisition authority</strong><p>Source access and collection methods stay explicit and reviewable.</p></article>
+            <article><span>CONTROL</span><strong>Approval boundary</strong><p>Public browsing cannot start workers, spend quota, or write data.</p></article>
+          </div>
+        </PageShell>
       );
       break;
     case "profile":
@@ -2093,9 +2123,10 @@ export function V2App() {
           setDiscoverSearchQuery(query);
           goTab("browse");
         }}
-        resourceRow={resourceRow}
-        resourcesRollup={resourcesRollup}
-        resourcesDecisionCount={jobsLoaded ? pendingResearchDecisions : null}
+        resourceRow={canViewOperations ? resourceRow : null}
+        resourcesRollup={canViewOperations ? resourcesRollup : null}
+        resourcesDecisionCount={canViewOperations && jobsLoaded ? pendingResearchDecisions : null}
+        allowOperations={canViewOperations}
         activeObject={activeObject}
         profile={profile}
         allowProfilePreview={canViewFacultyProfile}

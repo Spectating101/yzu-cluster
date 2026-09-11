@@ -85,6 +85,9 @@ test.describe("v2 Discover tab", () => {
   });
 
   test("keyword search renders the external result composition", async ({ page }) => {
+    await mockV2Api(page, { discoverBody: MOCK_DISCOVER_HIT });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
     await searchDiscover(page, "TWSE governance");
     await expect(page.locator('button.rd-v2-discover-candidate').first()).toBeVisible({ timeout: 10_000 });
     await expect(page.locator('button.rd-v2-discover-candidate')).not.toHaveCount(0);
@@ -125,14 +128,17 @@ test.describe("v2 Discover tab", () => {
     });
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
-    await searchDiscover(page, "zzqvjjk plmxxc");
+    const missingNeed = "forest fire and economic changes";
+    await searchDiscover(page, missingNeed);
 
     const summary = page.getByTestId("discover-result-summary");
     await expect(summary).toContainText("Available · 0");
     await expect(summary).toContainText("Library evidence · 0");
     await expect(page.locator(".rd-v2-discover-miss")).toContainText(
-      "No matches for “zzqvjjk plmxxc” in the current research index.",
+      `No matches for “${missingNeed}” in the current research index.`,
     );
+    await expect(page.getByText("Global ocean temperature anomaly")).toHaveCount(0);
+    await expect(page.getByText("Refinitiv Asia equity fundamentals")).toHaveCount(0);
     await expect(page.getByLabel("Discover next actions")).toContainText("No offering found yet");
     await expect(page.getByRole("button", { name: "Search wider", exact: true })).toHaveCount(1);
   });
@@ -413,6 +419,9 @@ test.describe("v2 Discover tab", () => {
   });
 
   test("selecting a discover row keeps Explore visible and updates the Detail rail", async ({ page }) => {
+    await mockV2Api(page, { discoverBody: MOCK_DISCOVER_HIT });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
     await searchDiscover(page);
     await page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate').first().click();
     const surface = page.locator("aside.rd-v2-rail").getByTestId("discover-eval-surface");
