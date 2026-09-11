@@ -829,7 +829,11 @@ export function V2App() {
 
   // Durable Discover History (optional endpoint — ignore failures).
   useEffect(() => {
-    if (tab !== DISCOVER_TAB) return undefined;
+    // Session bootstrap owns the first protected request. Firing History while
+    // that handshake is still pending creates a guaranteed 401/retry on every
+    // cold Discover visit and exposes an avoidable console/network error even
+    // though the desk recovers moments later.
+    if (tab !== DISCOVER_TAB || !deskAccess?.authenticated) return undefined;
     let cancelled = false;
     discoverHistory({ limit: 50 })
       .then((data) => {
@@ -842,7 +846,7 @@ export function V2App() {
     return () => {
       cancelled = true;
     };
-  }, [tab, jobs]);
+  }, [tab, jobs, deskAccess?.authenticated]);
 
 
   const goTab = useCallback(

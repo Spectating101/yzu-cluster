@@ -43,3 +43,58 @@ test("an unavailable desk session fails closed behind one honest access boundary
   await expect(boundary).toContainText("Operations");
   await expect(page.getByRole("heading", { name: "Opening your desk…" })).toHaveCount(0);
 });
+
+test("protected Discover history waits for session bootstrap", async ({ page }) => {
+  await mockV2Api(page);
+
+  let releaseSession;
+  const sessionReady = new Promise((resolve) => { releaseSession = resolve; });
+  let sessionEstablished = false;
+  let historyRequests = 0;
+  await page.route("**/library/desk/capabilities", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({
+      version: 2,
+      authenticated: sessionEstablished,
+      server_configured: true,
+      access: sessionEstablished ? "operator" : "locked",
+      permissions: sessionEstablished
+        ? {
+            view_research_data: true,
+            view_faculty_profile: true,
+            view_operations: true,
+            use_ask: true,
+            submit_collection: true,
+            approve_jobs: true,
+          }
+        : {},
+    }),
+  }));
+  await page.route("**/library/desk/session", async (route) => {
+    await sessionReady;
+    sessionEstablished = true;
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ ok: true, authorized: true }),
+    });
+  });
+  await page.route("**/library/discover/history*", (route) => {
+    historyRequests += 1;
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ history: [] }),
+    });
+  });
+
+  await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+  await expect(page.getByTestId("desk-session-bootstrap")).toBeVisible();
+  await page.waitForTimeout(300);
+  expect(historyRequests).toBe(0);
+
+  releaseSession();
+  await expect(page.locator(".rd-v2-shell")).toBeVisible();
+  await expect.poll(() => historyRequests).toBeGreaterThan(0);
+});
