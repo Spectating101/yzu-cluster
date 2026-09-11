@@ -264,3 +264,11 @@ body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(
     min-width: 44px;
   }
 }
+
+@media (max-width: 720px) {
+  /* Capacity and approval context is a workstation aid. On a phone its
+     three-column decision strip collapses into clipped fragments before the
+     researcher reaches search results. Preserve the useful Library/route
+     counts and remove only this nonessential operational summary. */
+  .rd-v2-discover-radar-panel--execution { display: none; }
+}

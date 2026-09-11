@@ -50,6 +50,13 @@ test.describe("v2 Discover tab", () => {
     await expect(page.getByText("No curated source routes yet")).toBeVisible();
   });
 
+  test("mobile landing keeps retrieval ahead of workstation capacity context", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(page.getByLabel("Search or describe a research need")).toBeVisible();
+    await expect(page.getByTestId("discover-coverage")).toBeVisible();
+    await expect(page.locator(".rd-v2-discover-radar-panel--execution")).toBeHidden();
+  });
+
   test("idle state leads with live coverage and does not invent a search summary", async ({ page }) => {
     await mockV2Api(page, {
       datasetsBody: {
