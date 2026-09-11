@@ -74,6 +74,14 @@
 .rd-v2-guest-feature-grid strong { display: block; margin: 9px 0 5px; color: var(--rd-text); }
 .rd-v2-guest-feature-grid p { margin: 0; color: var(--rd-muted); font-size: 11px; line-height: 1.5; }
 
+/* The held-evidence control sits late in the result-territory band. Anchor its
+   preview to that band's right edge so a narrower workstation canvas does not
+   push the otherwise bounded popover underneath the inspector rail. */
+.rd-v2-discover-page .rd-v2-discover-library-popover {
+  right: 0;
+  left: auto;
+}
+
 @media (min-width: 1537px) {
   body .rd-v2-shell { --rd-rail: 420px !important; }
 
