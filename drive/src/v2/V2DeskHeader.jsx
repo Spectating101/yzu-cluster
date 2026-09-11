@@ -175,11 +175,11 @@ export function V2DeskHeader({
                 role="menuitem"
                 data-testid="member-sign-in"
                 disabled={!memberSignInAvailable}
-                title={memberSignInAvailable ? "Sign in to use Ask and save your research trail" : "Member sign-in is not enabled on this host"}
+                title={memberSignInAvailable ? "Sign in to use Ask, Synthesis, and save your research trail" : "Member sign-in is not enabled on this host"}
                 onClick={() => onMemberSignIn?.()}
               >
-                <span>{memberSignInAvailable ? "Sign in to Ask" : "Member sign-in unavailable"}</span>
-                <small>{memberSignInAvailable ? "Save your research trail" : "Browse shared evidence as a guest"}</small>
+                <span>{memberSignInAvailable ? "Sign in" : "Member sign-in unavailable"}</span>
+                <small>{memberSignInAvailable ? "Ask, Synthesis, and saved work" : "Browse shared evidence as a guest"}</small>
               </button>
             ) : null}
             <button type="button" role="menuitem" onClick={() => openAccountPage("profile")}>

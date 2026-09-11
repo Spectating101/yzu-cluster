@@ -150,27 +150,29 @@ function AskSignInPanel({
       <p>
         Shared Library and Discover evidence remain available here. Asking and saved research work begin with a named member session.
       </p>
+      {providerAvailable && onProviderSignIn ? (
+        <button type="button" className="rd-v2-btn primary" onClick={onProviderSignIn}>
+          Continue with email
+        </button>
+      ) : null}
       {memberAccessCodeAvailable && onMemberCodeSignIn ? (
         <form className="rd-v2-member-code-form" onSubmit={submitAccessCode}>
-          <label htmlFor="rd-member-access-code">Member access code</label>
+          <label htmlFor="rd-member-access-code">
+            {providerAvailable ? "Or use an invitation code" : "Invitation code"}
+          </label>
           <input
             id="rd-member-access-code"
             type="password"
             autoComplete="one-time-code"
             value={accessCode}
             onChange={(event) => setAccessCode(event.target.value)}
-            placeholder="Enter your issued code"
+            placeholder="Enter your invitation code"
           />
           <button type="submit" className="rd-v2-btn primary" disabled={busy || !accessCode.trim()}>
             {busy ? "Signing in…" : "Sign in to Ask"}
           </button>
           {error ? <p className="rd-v2-member-code-error" role="alert">{error}</p> : null}
         </form>
-      ) : null}
-      {providerAvailable && onProviderSignIn ? (
-        <button type="button" className="rd-v2-btn" onClick={onProviderSignIn}>
-          Continue with member sign-in
-        </button>
       ) : null}
       {!memberAccessCodeAvailable && !providerAvailable ? (
         <p className="muted">Member sign-in is not enabled on this host yet.</p>

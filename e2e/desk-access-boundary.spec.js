@@ -154,7 +154,8 @@ test("a public guest can browse shared evidence but must sign in to Ask", async 
   await expect(page.getByTestId("discover-intent-workspace")).toHaveCount(0);
   await page.getByRole("button", { name: "Account" }).click();
   await expect(page.getByRole("menu", { name: "Account destinations" })).toContainText("Guest");
-  await expect(page.getByTestId("member-sign-in")).toContainText("Sign in to Ask");
+  await expect(page.getByTestId("member-sign-in")).toContainText("Sign in");
+  await expect(page.getByTestId("member-sign-in")).toContainText("Ask, Synthesis, and saved work");
   // The account menu is intentionally a modal interaction layer. Close it
   // before exercising the inspector tab beneath it, as a real keyboard user
   // would; otherwise the test asks Playwright to click through the menu.
@@ -163,7 +164,7 @@ test("a public guest can browse shared evidence but must sign in to Ask", async 
   await page.getByRole("tab", { name: "Ask · sign in" }).click();
   await expect(page.getByTestId("ask-sign-in-gate")).toContainText("Sign in to ask Research Drive.");
   await expect(page.getByTestId("ask-sign-in-gate")).toContainText("Shared Library and Discover evidence remain available");
-  await expect(page.getByLabel("Member access code")).toBeVisible();
+  await expect(page.getByLabel("Invitation code")).toBeVisible();
   await expect(page.getByRole("button", { name: "Sign in to Ask" })).toBeVisible();
   await expect(page.getByTestId("ask-composer")).toHaveCount(0);
 
@@ -183,4 +184,40 @@ test("a public guest can browse shared evidence but must sign in to Ask", async 
     await expect(page.getByText("Public browsing session", { exact: true })).toBeVisible();
     await page.screenshot({ path: testInfo.outputPath("public-settings-1440x900.png"), fullPage: false });
   }
+});
+
+test("a public guest can begin self-service verified email sign-in", async ({ page }) => {
+  await mockV2Api(page, { discoverBody: MOCK_DISCOVER_HIT });
+  await page.unroute("**/library/desk/capabilities").catch(() => {});
+  await page.route("**/library/desk/capabilities", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({
+      version: 2,
+      authenticated: true,
+      access: "public_guest",
+      principal: { id: "guest-test", display_name: "Guest researcher", role: "public_guest" },
+      permissions: { view_research_data: true, use_ask: false },
+      session: {
+        bootstrap_available: true,
+        public_guest_available: true,
+        member_sign_in_available: true,
+        member_access_code_available: false,
+        member_sign_in_path: "/library/desk/login",
+        member_sign_in_mode: "email",
+      },
+    }),
+  }));
+  await page.route("**/library/desk/login?**", (route) => route.fulfill({
+    status: 200,
+    contentType: "text/plain",
+    body: "Verified email sign-in",
+  }));
+
+  await page.goto("/?tab=discover", { waitUntil: "domcontentloaded" });
+  await page.getByRole("button", { name: "Account" }).click();
+  await page.getByTestId("member-sign-in").click();
+
+  await expect.poll(() => new URL(page.url()).pathname).toBe("/library/desk/login");
+  expect(new URL(page.url()).searchParams.get("return_to")).toBe("/?tab=discover");
 });
