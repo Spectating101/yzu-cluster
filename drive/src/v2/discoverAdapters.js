@@ -42,6 +42,15 @@ export function cleanDescription(value) {
     .trim();
 }
 
+const ABSENT_ROUTE_SENTINELS = new Set(["none", "null", "unknown", "unavailable", "n/a", "na", "false"]);
+
+export function cleanCollectVia(value) {
+  const values = Array.isArray(value) ? value : [value];
+  return values
+    .map((item) => String(item ?? "").trim())
+    .filter((item) => item && !ABSENT_ROUTE_SENTINELS.has(item.toLowerCase()));
+}
+
 function endpointToUrl(endpoint) {
   const text = String(endpoint || "").trim();
   if (!text) return "";
@@ -53,7 +62,7 @@ function endpointToUrl(endpoint) {
 export function sourceResultToCandidate(row = {}) {
   const label = row.title || row.label || row.name || row.source_id || "External source";
   const caps = Array.isArray(row.capabilities) ? row.capabilities : [];
-  const collect = Array.isArray(row.collect_via) ? row.collect_via : row.collect_via ? [row.collect_via] : [];
+  const collect = cleanCollectVia(row.collect_via);
   const url = row.url || endpointToUrl(row.endpoint);
   return {
     ...row,
@@ -68,7 +77,7 @@ export function sourceResultToCandidate(row = {}) {
       cleanDescription(row.notes) ||
       [row.access_mode, ...caps.slice(0, 3)].filter(Boolean).join(" · "),
     access_mode: row.access_mode || row.access || "",
-    collect_via: collect[0] || row.collect_via || "",
+    collect_via: collect[0] || "",
     url,
     external: true,
     preview_supported: Boolean(row.preview_supported),

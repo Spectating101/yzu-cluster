@@ -113,6 +113,16 @@ test("webHitsToRows strips catalogue markup from section and result payloads", (
   assert.equal(result.description, "Burned area by region");
 });
 
+test("Discover adapters erase explicit no-route sentinels before evaluation", () => {
+  const source = sourceResultToCandidate({ title: "Known record", collect_via: "none" });
+  const [search] = webHitsToRows({
+    sections: [{ rows: [{ title: "Known record", collect_via: "none" }] }],
+  });
+
+  assert.equal(source.collect_via, "");
+  assert.equal(search.collect_via, "");
+});
+
 test("sourceResultToCandidate falls back when description is markup-only", () => {
   const row = sourceResultToCandidate({
     source_id: "x",

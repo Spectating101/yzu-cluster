@@ -1,5 +1,5 @@
 import { candidateKey, discoverCandidateUrl } from "./candidateKey.js";
-import { cleanDescription } from "./discoverAdapters.js";
+import { cleanCollectVia, cleanDescription } from "./discoverAdapters.js";
 
 export { discoverCandidateUrl } from "./candidateKey.js";
 
@@ -44,6 +44,7 @@ export function webHitsToRows(data) {
       const url = hit.url || "";
       return {
         ...hit,
+        collect_via: cleanCollectVia(hit.collect_via)[0] || "",
         description: cleanDescription(
           hit.description || hit.snippet || hit.content || hit.public_summary || "",
         ),
