@@ -153,6 +153,7 @@ export function searchHitToCandidate(row = {}) {
     row.candidate_key || (datasetId ? `dataset:${datasetId}` : "") || "";
   return {
     ...row,
+    collect_via: cleanCollectVia(row.collect_via)[0] || "",
     dataset_id: datasetId || row.dataset_id || "",
     title: row.title || row.name || row.label || datasetId || url || "Untitled",
     name: row.name || row.title || row.label || datasetId || "",

@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   sourceResultToCandidate,
+  searchHitToCandidate,
   sourcesResponseToRows,
   durableHistoryToEvents,
   normalizeDiscoverMode,
@@ -118,9 +119,15 @@ test("Discover adapters erase explicit no-route sentinels before evaluation", ()
   const [search] = webHitsToRows({
     sections: [{ rows: [{ title: "Known record", collect_via: "none" }] }],
   });
+  const indexed = searchHitToCandidate({
+    kind: "registry_dataset",
+    dataset_id: "known-record",
+    collect_via: "none",
+  });
 
   assert.equal(source.collect_via, "");
   assert.equal(search.collect_via, "");
+  assert.equal(indexed.collect_via, "");
 });
 
 test("sourceResultToCandidate falls back when description is markup-only", () => {
