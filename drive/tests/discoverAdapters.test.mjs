@@ -7,6 +7,7 @@ import {
   normalizeDiscoverMode,
 } from "../src/v2/discoverAdapters.js";
 import { descriptiveLine } from "../src/v2/browseMeta.js";
+import { webHitsToRows } from "../src/v2/discoverActions.js";
 
 test("sourceResultToCandidate maps Explore source rows for Discover UI", () => {
   const row = sourceResultToCandidate({
@@ -98,6 +99,18 @@ test("sourceResultToCandidate strips catalogue markup out of descriptions", () =
     description: "<p>Daily <b>events</b>&nbsp;coverage &amp; tone</p>",
   });
   assert.equal(row.description, "Daily events coverage & tone");
+});
+
+test("webHitsToRows strips catalogue markup from section and result payloads", () => {
+  const [section] = webHitsToRows({
+    sections: [{ rows: [{ title: "Forest fire", description: '<p><span lang="en">Economic &amp; social costs</span></p>' }] }],
+  });
+  const [result] = webHitsToRows({
+    results: [{ title: "Forest fire", snippet: "<em>Burned area</em>&nbsp;by region" }],
+  });
+
+  assert.equal(section.description, "Economic & social costs");
+  assert.equal(result.description, "Burned area by region");
 });
 
 test("sourceResultToCandidate falls back when description is markup-only", () => {

@@ -101,6 +101,8 @@ test("public member gets an honest personal research-profile cold start", async 
   await page.getByRole("button", { name: "Set up research context" }).click();
 
   await expect(page.getByTestId("research-profile-editor")).toContainText("Your research context");
+  await expect(page.getByTestId("profile-detail-rail")).toContainText("Stablecoin trust thesis");
+  await expect(page.getByTestId("profile-detail-rail")).not.toContainText("Not set up yet");
   expect(savedBody).toEqual({
     academic_stage: "Master's student",
     discipline: "Finance",

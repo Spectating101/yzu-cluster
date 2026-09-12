@@ -210,6 +210,13 @@ function PersonalResearchProfile({ document, onDocument, onProfileRefresh }) {
   );
 }
 
+const PERSONAL_PROFILE_UPDATED_EVENT = "research-drive:personal-profile-updated";
+
+function publishPersonalProfile(document) {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent(PERSONAL_PROFILE_UPDATED_EVENT, { detail: document }));
+}
+
 /**
  * Profile is an epistemic record, not a routing dashboard. Account identity,
  * user-confirmed research context, faculty-registry evidence and Library
@@ -306,7 +313,10 @@ export function ProfilePage({
       {signedInResearcher ? (
         <PersonalResearchProfile
           document={personalDocument}
-          onDocument={setPersonalDocument}
+          onDocument={(document) => {
+            setPersonalDocument(document);
+            publishPersonalProfile(document);
+          }}
           onProfileRefresh={onProfileRefresh}
         />
       ) : null}
@@ -462,6 +472,16 @@ export function ProfileDetailPanel({ profile, allowExamplePreview = false }) {
         if (!cancelled) setPersonalDocument(null);
       });
     return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    const onPersonalProfileUpdated = (event) => {
+      if (event?.detail && typeof event.detail === "object") {
+        setPersonalDocument(event.detail);
+      }
+    };
+    window.addEventListener(PERSONAL_PROFILE_UPDATED_EVENT, onPersonalProfileUpdated);
+    return () => window.removeEventListener(PERSONAL_PROFILE_UPDATED_EVENT, onPersonalProfileUpdated);
   }, []);
 
   const principalEmail = personalDocument?.principal?.email || "";

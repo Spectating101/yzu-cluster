@@ -29,7 +29,7 @@ export function normalizeDiscoverMode(raw = "") {
  * "mktcap < 5B and volume > 1M" would collapse to "mktcap 1M", silently
  * changing what the description says.
  */
-function cleanDescription(value) {
+export function cleanDescription(value) {
   return String(value || "")
     .replace(/<\/?[a-zA-Z][^<>]*>/g, " ")
     .replace(/&nbsp;/gi, " ")
