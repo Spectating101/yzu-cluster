@@ -2191,10 +2191,14 @@ export function V2App() {
                     : selectedHistoryEvent
                     ? { ...selectedHistoryEvent, title: selectedHistoryEvent.target || selectedHistoryEvent.title, kind: "discover_history" }
                     : browseTarget || (activeObject?.kind === "discover_investigation" ? activeObject : null)
-                : tab === "home" && activeObject?.kind === "home_attention"
-                  ? {
-                      title: `Home · ${activeObject.title}`,
-                    }
+                : tab === "home"
+                  ? activeObject?.kind === "home_attention"
+                    ? {
+                        title: `Home · ${activeObject.title}`,
+                        kind: "home_attention",
+                        id: activeObject.id,
+                      }
+                    : detail
                 : activeObject?.kind === "library_folder" || activeObject?.kind === "library_intake"
                   ? {
                       title: `Library · ${activeObject.title}`,
