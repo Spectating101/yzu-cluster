@@ -376,8 +376,8 @@ test.describe("v2 Discover tab", () => {
     const candidates = page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidate");
     await expect(candidates).toHaveCount(1);
     await page.getByRole("button", { name: "Search wider", exact: true }).click();
-    await expect(page.getByText("TWSE dataset catalogue", { exact: true })).toBeVisible({ timeout: 1_500 });
-    await expect(candidates).toHaveCount(2);
+    await expect(candidates).toHaveCount(2, { timeout: 1_500 });
+    await expect(page.getByTestId("discover-ranked-results")).toContainText("TWSE dataset catalogue");
     await expect(page.getByText("Searching wider sources…", { exact: false })).toBeVisible();
   });
 
@@ -428,7 +428,7 @@ test.describe("v2 Discover tab", () => {
     await page.getByTestId("discover-library-evidence").locator("summary").click();
     await expect(page.getByText("Issuer weekly fundamentals", { exact: true })).toBeVisible();
 
-    await expect(page.getByText("MOPS filings route", { exact: true })).toBeVisible();
+    await expect(page.getByTestId("discover-ranked-results")).toContainText("MOPS filings route");
     await expect(progress).toHaveCount(0);
   });
 
