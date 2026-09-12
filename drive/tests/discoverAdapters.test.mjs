@@ -2,11 +2,13 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   sourceResultToCandidate,
+  searchHitToCandidate,
   sourcesResponseToRows,
   durableHistoryToEvents,
   normalizeDiscoverMode,
 } from "../src/v2/discoverAdapters.js";
 import { descriptiveLine } from "../src/v2/browseMeta.js";
+import { webHitsToRows } from "../src/v2/discoverActions.js";
 
 test("sourceResultToCandidate maps Explore source rows for Discover UI", () => {
   const row = sourceResultToCandidate({
@@ -98,6 +100,34 @@ test("sourceResultToCandidate strips catalogue markup out of descriptions", () =
     description: "<p>Daily <b>events</b>&nbsp;coverage &amp; tone</p>",
   });
   assert.equal(row.description, "Daily events coverage & tone");
+});
+
+test("webHitsToRows strips catalogue markup from section and result payloads", () => {
+  const [section] = webHitsToRows({
+    sections: [{ rows: [{ title: "Forest fire", description: '<p><span lang="en">Economic &amp; social costs</span></p>' }] }],
+  });
+  const [result] = webHitsToRows({
+    results: [{ title: "Forest fire", snippet: "<em>Burned area</em>&nbsp;by region" }],
+  });
+
+  assert.equal(section.description, "Economic & social costs");
+  assert.equal(result.description, "Burned area by region");
+});
+
+test("Discover adapters erase explicit no-route sentinels before evaluation", () => {
+  const source = sourceResultToCandidate({ title: "Known record", collect_via: "none" });
+  const [search] = webHitsToRows({
+    sections: [{ rows: [{ title: "Known record", collect_via: "none" }] }],
+  });
+  const indexed = searchHitToCandidate({
+    kind: "registry_dataset",
+    dataset_id: "known-record",
+    collect_via: "none",
+  });
+
+  assert.equal(source.collect_via, "");
+  assert.equal(search.collect_via, "");
+  assert.equal(indexed.collect_via, "");
 });
 
 test("sourceResultToCandidate falls back when description is markup-only", () => {

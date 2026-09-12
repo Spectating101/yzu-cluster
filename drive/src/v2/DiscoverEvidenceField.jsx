@@ -35,8 +35,16 @@ export function DiscoverEvidenceField({
       <header>
         <div>
           <span className="rd-v2-eyebrow">Candidate field</span>
-          <strong>{candidateCount} candidate{candidateCount === 1 ? "" : "s"}</strong>
-          <p>Compare, combine, or synthesize from the field.</p>
+          <strong>
+            {candidateCount === 0 && context > 0
+              ? "No collection-ready route yet"
+              : `${candidateCount} candidate${candidateCount === 1 ? "" : "s"}`}
+          </strong>
+          <p>
+            {candidateCount === 0 && context > 0
+              ? `${context} relevant reference${context === 1 ? " is" : "s are"} available to inspect or probe.`
+              : "Compare, combine, or synthesize from the field."}
+          </p>
         </div>
         <div className="rd-v2-discover-field-actions">
           {onSearchWider ? <button type="button" onClick={() => onSearchWider(query)}>Search wider</button> : null}

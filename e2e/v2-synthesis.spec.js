@@ -203,6 +203,29 @@ async function installSynthesisThreadMock(page) {
 
     const thread = threads.get(threadId);
     if (!thread) return respond({ error: "not found" }, 404);
+    const respondWithPreview = () => {
+      thread.state.preview = {
+        status: "succeeded",
+        spec_hash: thread.state.accepted_spec_hash,
+        authority_hash: "sha256:fixture-authority",
+        bounded: true,
+        materialised: false,
+        registered: false,
+        sampling: { source_rows: 1000, previewed_rows: 100, source_truncated: true },
+        rows: { preview_input: 100, after_transforms: 100, output: 10 },
+        output: { columns: ["asset_id", "week", "row_count"], rows: [] },
+        preflight: { warnings: [] },
+      };
+      thread.state.lastActivity = "Bounded synthesis preview succeeded; review it before requesting execution.";
+      thread.updated_at = "2026-07-19T09:01:30+00:00";
+      return respond({
+        thread,
+        preview: thread.state.preview,
+        preview_only: true,
+        execution_submitted: false,
+        review_required: true,
+      });
+    };
     if (!suffix && method === "GET") return respond(thread);
     if (suffix === "measurements" && method === "GET") {
       const mappedIds = (thread.state.nodes || []).map((node) => node.dataset_id).filter(Boolean);
@@ -277,32 +300,11 @@ async function installSynthesisThreadMock(page) {
       thread.session_id = body.session_id || "";
       return respond(thread);
     }
+    if (suffix === "preview" && method === "POST") return respondWithPreview();
     if (suffix === "execute" && method === "POST") {
       const body = route.request().postDataJSON?.() || {};
       const action = String(body.action || "");
-      if (action === "preview") {
-        thread.state.preview = {
-          status: "succeeded",
-          spec_hash: thread.state.accepted_spec_hash,
-          authority_hash: "sha256:fixture-authority",
-          bounded: true,
-          materialised: false,
-          registered: false,
-          sampling: { source_rows: 1000, previewed_rows: 100, source_truncated: true },
-          rows: { preview_input: 100, after_transforms: 100, output: 10 },
-          output: { columns: ["asset_id", "week", "row_count"], rows: [] },
-          preflight: { warnings: [] },
-        };
-        thread.state.lastActivity = "Bounded synthesis preview succeeded; review it before requesting execution.";
-        thread.updated_at = "2026-07-19T09:01:30+00:00";
-        return respond({
-          thread,
-          preview: thread.state.preview,
-          preview_only: true,
-          execution_submitted: false,
-          review_required: true,
-        });
-      }
+      if (action === "preview") return respondWithPreview();
       if (action === "request_approval") {
         const currentPreview = thread.state.preview?.status === "succeeded"
           && thread.state.preview?.spec_hash === thread.state.accepted_spec_hash;

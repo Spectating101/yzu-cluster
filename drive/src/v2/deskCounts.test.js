@@ -17,12 +17,15 @@ const rows = [
   held("panel_a"),
   held("panel_b"),
   held("ops_collector_manifest", { partition_id: "ops.collection" }),
+  held("collection_receipt", {
+    catalog_reconciliation: { state: "receipt_only", query_allowed: false },
+  }),
   { dataset_id: "catalogue_only", access_shape: "catalog_reference" },
 ];
 
 test("each count answers a different question and says which", () => {
   const c = deskCounts(rows);
-  assert.equal(c.registry, 4);
+  assert.equal(c.registry, 5);
   assert.ok(c.libraryVisible <= c.registry);
   assert.ok(c.libraryEvidence <= c.libraryVisible);
   assert.ok(c.libraryEvidence <= c.heldForClassification);
@@ -46,6 +49,17 @@ test("a catalogue reference is registered but not held", () => {
   assert.equal(libraryEvidence(only), 0);
   assert.equal(libraryReferences(only), 1);
   assert.deepEqual(libraryHoldings(only), []);
+});
+
+test("receipt-only collection records stay in lifecycle history, not the evidence estate", () => {
+  const receipt = held("collect_discover_refresh_twse", {
+    catalog_reconciliation: { state: "receipt_only", query_allowed: false },
+  });
+  assert.equal(registryTotal([receipt]), 1, "the durable registry record is preserved");
+  assert.equal(libraryVisible([receipt]), 0);
+  assert.equal(libraryEvidence([receipt]), 0);
+  assert.equal(libraryReferences([receipt]), 0);
+  assert.deepEqual(libraryHoldings([receipt]), []);
 });
 
 test("empty input is valid and reads zero everywhere", () => {

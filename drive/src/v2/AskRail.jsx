@@ -73,6 +73,12 @@ export function AskRail({
   const { messages, input, setInput, busy, status, send, contextLabel } = useAskChat({
     dataset,
     railContext,
+    // Home's visible Pick Up object hydrates after the shell becomes usable.
+    // That passive visual/context enrichment must not replace the conversation
+    // owner and erase an in-flight answer. Deliberately opened attention items
+    // remain separate contextual conversations.
+    contextKeyOverride:
+      mainTab === "home" && dataset?.kind !== "home_attention" ? "home" : "",
     onCollected,
     onSynthesisChanged,
     onToast,

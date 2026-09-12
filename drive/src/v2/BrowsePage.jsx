@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { discoverSearch, discoverSources, webDiscover } from "@/v2/api";
-import { sourcesResponseToRows } from "@/v2/discoverAdapters";
+import { searchHitToCandidate, sourcesResponseToRows } from "@/v2/discoverAdapters";
 import { collectRouteLabel } from "@/v2/collectRouteLabel";
 import { DiscoverHistoryPanel } from "@/v2/DiscoverHistoryPanel";
 import { isDiscoverHistoryJob, jobToCandidateRow, pendingApprovalJobs } from "@/v2/procurementJobs";
@@ -758,7 +758,9 @@ export function BrowsePage({
 
     const flattenRows = (data) => {
       const fromApi = (data.sections || []).flatMap((s) => s.rows || []);
-      return fromApi.length ? fromApi : data.results || data.hits || [];
+      return (fromApi.length ? fromApi : data.results || data.hits || [])
+        .map((row) => searchHitToCandidate(row))
+        .filter(Boolean);
     };
 
     const apply = (data, label, { append = false } = {}) => {
@@ -1633,6 +1635,11 @@ export function BrowsePage({
                       <strong>Checking sources</strong>
                       <span>{merged.length ? "Library evidence is already visible" : "Finding available routes"}</span>
                     </>
+                  ) : !loading && centreRows.length === 0 && contextualRows.length > 0 ? (
+                    <>
+                      <strong>{plural(contextualRows.length, "reference")} to inspect</strong>
+                      <span>No collection-ready route is declared yet</span>
+                    </>
                   ) : !loading && centreRows.length === 0 ? (
                     <>
                       <strong>No offering found yet</strong>
@@ -1800,7 +1807,7 @@ export function BrowsePage({
               </section>
             ) : null}
 
-            {!loading && !error && centreRows.length === 0 ? (
+            {!loading && !error && centreRows.length === 0 && contextualRows.length === 0 ? (
               <div className="rd-v2-discover-miss">
                 <p className="rd-v2-empty-inline">
                   No {stateFilter === "all" ? "" : `${activeFilter.label.toLowerCase()} `}matches for “{q}”

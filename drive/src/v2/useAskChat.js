@@ -80,7 +80,11 @@ export function askContextKey(dataset = null, railContext = null) {
   const datasetId = contextPart(dataset?.dataset_id || railContext?.dataset_id);
   if (datasetId) return `dataset:${datasetId}`;
 
-  const entityId = contextPart(railContext?.entity?.id || dataset?.id);
+  // A caller-provided dataset/object id is the explicit conversation owner.
+  // Rail context can hydrate asynchronously (for example Home's Pick Up card),
+  // so letting that passive entity replace the explicit id discards an
+  // otherwise successful in-flight answer.
+  const entityId = contextPart(dataset?.id || railContext?.entity?.id);
   if (entityId) return `${kind}:${entityId}`;
 
   const investigation = contextPart(
@@ -96,7 +100,14 @@ export function askContextKey(dataset = null, railContext = null) {
   return "general";
 }
 
-export function useAskChat({ dataset, railContext, onCollected, onSynthesisChanged, onToast } = {}) {
+export function useAskChat({
+  dataset,
+  railContext,
+  contextKeyOverride,
+  onCollected,
+  onSynthesisChanged,
+  onToast,
+} = {}) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -111,7 +122,7 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
     dataset?.kind === "synthesis_thread" ? String(dataset.thread_id || "") : "";
   const synthesisSessionId =
     dataset?.kind === "synthesis_thread" ? String(dataset.session_id || "") : "";
-  const contextKey = askContextKey(dataset, railContext);
+  const contextKey = contextPart(contextKeyOverride) || askContextKey(dataset, railContext);
 
   useEffect(() => {
     railRef.current = railContext;

@@ -50,3 +50,27 @@ test("member can research but does not receive operator approval controls", asyn
   await page.getByRole("button", { name: "Account" }).click();
   await expect(page.getByRole("menu", { name: "Account destinations" })).toContainText("Member");
 });
+
+test("a Home Ask answer survives passive Pick Up hydration", async ({ page }) => {
+  const answer = "Resources context received.";
+  await mockV2Api(page, { datasetsDelayMs: 1_000 });
+  await page.route("**/api/library/chat", async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 1_800));
+    const body = route.request().postDataJSON?.() || {};
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ session_id: body.session_id || "home-stable-session", reply: answer, action: "answer" }),
+    });
+  });
+
+  await page.goto("/?tab=home", { waitUntil: "domcontentloaded" });
+  await waitForShell(page);
+  await page.getByRole("tab", { name: /^Ask/ }).click();
+  await expect(page.getByTestId("ask-composer")).toBeVisible();
+  await page.getByTestId("ask-composer").fill("Which held datasets support stablecoin research?");
+  await page.getByRole("button", { name: "Send", exact: true }).click();
+
+  await expect(page.getByTestId("ask-messages")).toContainText(answer, { timeout: 5_000 });
+  await expect(page.getByTestId("ask-messages")).toContainText("Which held datasets support stablecoin research?");
+});

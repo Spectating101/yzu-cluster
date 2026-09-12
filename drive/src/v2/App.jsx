@@ -6,6 +6,7 @@ import {
   describeDataset,
   deskHealth,
   deskResources,
+  deskWarm,
   ensureDeskAccess,
   createDiscoverIntent,
   craftDiscoverIntentProposal,
@@ -287,6 +288,9 @@ export function V2App() {
   /** Ask can persist a review proposal; refresh the canvas in the same turn. */
   const [synthesisRefreshVersion, setSynthesisRefreshVersion] = useState(0);
   const healthRetryRef = useRef(null);
+  // Optional provider priming is keyed to the signed-in researcher and never
+  // participates in the visible estate boot sequence.
+  const deskWarmKeyRef = useRef("");
   const { toast, show: showToast, dismissIf: dismissToastIf } = useToast();
   const authenticatedEmail = String(deskAccess?.principal?.email || "").trim();
   const canUseAsk = Boolean(deskAccess?.permissions?.use_ask);
@@ -614,6 +618,22 @@ export function V2App() {
   useEffect(() => {
     refreshDeskAccess();
   }, [refreshDeskAccess]);
+
+  useEffect(() => {
+    if (!deskAccess?.authenticated || !canUseAsk) return undefined;
+    const email = authenticatedEmail || loadUserEmail();
+    const key = String(deskAccess?.principal?.id || email || "authenticated");
+    if (deskWarmKeyRef.current === key) return undefined;
+
+    // Visible Library/Discover work gets the first 300 ms. Priming is a
+    // permission-gated best effort: public guests never spend inference, and
+    // a provider failure cannot turn Home into an error state.
+    const timer = window.setTimeout(() => {
+      deskWarmKeyRef.current = key;
+      void deskWarm({ userEmail: email || undefined, background: true }).catch(() => {});
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [authenticatedEmail, canUseAsk, deskAccess?.authenticated, deskAccess?.principal?.id]);
 
   useEffect(() => {
     if (deskAccess?.authenticated) refreshBackend();
@@ -2191,10 +2211,14 @@ export function V2App() {
                     : selectedHistoryEvent
                     ? { ...selectedHistoryEvent, title: selectedHistoryEvent.target || selectedHistoryEvent.title, kind: "discover_history" }
                     : browseTarget || (activeObject?.kind === "discover_investigation" ? activeObject : null)
-                : tab === "home" && activeObject?.kind === "home_attention"
-                  ? {
-                      title: `Home · ${activeObject.title}`,
-                    }
+                : tab === "home"
+                  ? activeObject?.kind === "home_attention"
+                    ? {
+                        title: `Home · ${activeObject.title}`,
+                        kind: "home_attention",
+                        id: activeObject.id,
+                      }
+                    : detail
                 : activeObject?.kind === "library_folder" || activeObject?.kind === "library_intake"
                   ? {
                       title: `Library · ${activeObject.title}`,
