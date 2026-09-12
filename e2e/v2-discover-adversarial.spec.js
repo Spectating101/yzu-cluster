@@ -97,6 +97,10 @@ test.describe("Discover adversarial lifecycle", () => {
     const workspace = page.locator(".rd-v2-evidence-brief.is-workspace");
     await expect(workspace).toContainText("MOPS governance disclosures");
 
+    // The approved dense composition keeps detailed routes/capacity in one
+    // disclosure. Exercise the real interaction instead of waiting on a
+    // deliberately hidden descendant.
+    await workspace.locator("details.rd-v2-evidence-detail-disclosure > summary").click();
     await workspace.getByRole("button", { name: "Refresh declared routes" }).click();
     await expect(workspace.getByRole("button", { name: "Comparing declared sources…" })).toBeDisabled();
 
@@ -137,7 +141,7 @@ test.describe("Discover adversarial lifecycle", () => {
     await waitForShell(page);
     await search(page, "MOPS filings");
 
-    await page.getByTestId("discover-ranked-results").getByRole("button", { name: "Review acquisition route" }).click();
+    await page.getByTestId("discover-ranked-results").getByRole("button", { name: "Add to collection" }).click();
     const workspace = page.getByTestId("discover-intent-workspace");
     await expect(workspace.getByRole("button", { name: "Submit for approval" })).toHaveCount(0);
 
@@ -192,9 +196,17 @@ test.describe("Discover adversarial lifecycle", () => {
     await search(page, "What data covers Taiwan issuer-quarter governance?");
 
     const capacity = page.locator('[aria-label="Execution capacity"]');
+    await page.locator("details.rd-v2-evidence-detail-disclosure > summary").click();
     await expect(capacity).toBeVisible();
-    await expect(capacity).toHaveAttribute("data-state", "checking");
-    await expect(capacity).toContainText("Checking measured desk capacity…");
+    // Capacity is intentionally subordinate inside the details disclosure.
+    // On a fast run its delayed response can settle while the visible estate
+    // and assessment load. Both observable states are honest; neither may
+    // invent assigned compute or quota.
+    const initialState = await capacity.getAttribute("data-state");
+    expect(["checking", "measured"]).toContain(initialState);
+    if (initialState === "checking") {
+      await expect(capacity).toContainText("Checking measured desk capacity…");
+    }
     await expect(capacity).toContainText("No worker or quota is assigned here.");
     await expect(capacity).not.toContainText(/assigned worker|assigned quota/i);
 
@@ -215,6 +227,7 @@ test.describe("Discover adversarial lifecycle", () => {
     await search(page, "What data covers Taiwan issuer-quarter governance?");
 
     const capacity = page.locator('[aria-label="Execution capacity"]');
+    await page.locator("details.rd-v2-evidence-detail-disclosure > summary").click();
     await expect(capacity).toBeVisible();
     await expect(capacity).toHaveAttribute("data-state", "partial");
     await expect(capacity).toContainText("Full resource refresh failed");

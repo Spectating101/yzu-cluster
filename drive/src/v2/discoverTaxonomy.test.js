@@ -145,6 +145,14 @@ describe("discover taxonomy (D1 / D1.1)", () => {
     assert.equal(c.key, "external-acquirable");
   });
 
+  it("does not treat a no-route registry sentinel as acquisition available", () => {
+    for (const collect_via of ["none", "unknown", "unavailable", "n/a", ["none"]]) {
+      const row = { kind: "registry_dataset", dataset_id: "known-but-unusable", collect_via };
+      assert.equal(hasAcquisitionRoute(row), false);
+      assert.equal(classifyDiscoverResult(row, new Set()).key, "external-discoverable");
+    }
+  });
+
   it("does not treat connector_id alone as acquisition available", () => {
     assert.equal(hasAcquisitionRoute({ connector_id: "example_com_data" }), false);
     const c = classifyDiscoverResult({

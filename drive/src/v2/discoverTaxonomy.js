@@ -103,6 +103,14 @@ function trim(value) {
   return String(value ?? "").trim();
 }
 
+function hasNamedRoute(value) {
+  const values = Array.isArray(value) ? value : [value];
+  return values.some((item) => {
+    const route = lower(item).trim();
+    return Boolean(route) && !["none", "null", "unknown", "unavailable", "n/a", "na", "false"].includes(route);
+  });
+}
+
 const CATALOG_ONLY_ACCESS = new Set([
   "catalog_reference",
   "procurement_catalog",
@@ -263,7 +271,11 @@ export function hasAcquisitionRoute(row) {
   if (!row || typeof row !== "object") return false;
   if (isReferenceOnly(row)) return false;
   if (row.acquisition_available === true || row.collectable === true) return true;
-  if (trim(row.collect_via) || trim(row.source_route)) return true;
+  // Registry search uses the literal sentinel ``collect_via: none`` for a
+  // known object with no acquisition route. Treating any non-empty string as
+  // a route made that row read "Acquisition available" while its route field
+  // rendered blank. Only a named route is authority to offer acquisition.
+  if (hasNamedRoute(row.collect_via) || hasNamedRoute(row.source_route)) return true;
   if (connectorSupportsCollection(row.connector)) return true;
   if (connectorSupportsCollection(row.probe_snapshot?.connector)) return true;
   if (connectorSupportsCollection(row.probe_result?.connector)) return true;
