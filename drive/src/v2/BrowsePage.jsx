@@ -1635,6 +1635,11 @@ export function BrowsePage({
                       <strong>Checking sources</strong>
                       <span>{merged.length ? "Library evidence is already visible" : "Finding available routes"}</span>
                     </>
+                  ) : !loading && centreRows.length === 0 && contextualRows.length > 0 ? (
+                    <>
+                      <strong>{plural(contextualRows.length, "reference")} to inspect</strong>
+                      <span>No collection-ready route is declared yet</span>
+                    </>
                   ) : !loading && centreRows.length === 0 ? (
                     <>
                       <strong>No offering found yet</strong>
@@ -1802,7 +1807,7 @@ export function BrowsePage({
               </section>
             ) : null}
 
-            {!loading && !error && centreRows.length === 0 ? (
+            {!loading && !error && centreRows.length === 0 && contextualRows.length === 0 ? (
               <div className="rd-v2-discover-miss">
                 <p className="rd-v2-empty-inline">
                   No {stateFilter === "all" ? "" : `${activeFilter.label.toLowerCase()} `}matches for “{q}”

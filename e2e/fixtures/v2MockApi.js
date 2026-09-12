@@ -331,6 +331,7 @@ export async function mockV2Api(
     discoverDelayMs = 0,
     discoverSourcesDelayMs = 0,
     discoverLiveSourcesDelayMs = 0,
+    discoverWebBody = MOCK_WEB_DISCOVER,
     healthBody = MOCK_HEALTH,
     healthDelayMs = 0,
     datasetsBody = MOCK_DATASETS,
@@ -686,7 +687,7 @@ export async function mockV2Api(
     route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify(MOCK_WEB_DISCOVER),
+      body: JSON.stringify(discoverWebBody),
     }),
   );
   await page.route("**/library/discover/history?*", (route) =>

@@ -196,6 +196,7 @@ test.describe("v2 Discover tab", () => {
         weak_match: true,
         no_supported_route: true,
       },
+      discoverWebBody: { sections: [], total: 0, index_miss: true },
     });
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
@@ -212,6 +213,30 @@ test.describe("v2 Discover tab", () => {
     await expect(page.getByText("Refinitiv Asia equity fundamentals")).toHaveCount(0);
     await expect(page.getByLabel("Discover next actions")).toContainText("No offering found yet");
     await expect(page.getByRole("button", { name: "Search wider", exact: true })).toHaveCount(1);
+  });
+
+  test("relevant web references replace the false no-matches state without claiming an acquisition route", async ({ page }) => {
+    await mockV2Api(page, {
+      discoverBody: { sections: [], total: 0, index_miss: true, weak_match: true },
+      discoverSourcesBody: {
+        results: [],
+        total: 0,
+        index_miss: true,
+        weak_match: true,
+        no_supported_route: true,
+      },
+    });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await searchDiscover(page, "forest fire and economic changes");
+
+    const context = page.getByTestId("discover-context-results");
+    await expect(context.getByText("Example open dataset")).toBeVisible();
+    await expect(page.locator(".rd-v2-discover-miss")).toHaveCount(0);
+    await expect(page.getByLabel("Discover next actions")).toContainText("1 reference to inspect");
+    await expect(page.getByLabel("Discover next actions")).toContainText("No collection-ready route is declared yet");
+    await expect(page.getByTestId("discover-evidence-field")).toContainText("No collection-ready route yet");
+    await expect(page.getByTestId("discover-evidence-field")).toContainText("1 relevant reference is available to inspect or probe");
   });
 
   test("reference-only routes can be inspected but never claim an acquisition review route", async ({ page }, testInfo) => {
