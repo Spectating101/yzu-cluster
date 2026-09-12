@@ -1,5 +1,6 @@
 import { isOpsNoiseDataset } from "./professorVaultTree.js";
 import { isLocalHolding } from "./discoverTaxonomy.js";
+import { isReceiptOnlyAsset } from "./datasetMeta.js";
 
 // Four screens were reporting the same idea with four numbers: the chrome said
 // 168, the Library body 112, Discover's idle sentence 149, its counter row 9.
@@ -14,17 +15,21 @@ export function registryTotal(rows = []) {
 
 /** Registry rows visible to a researcher, whether held or merely referenced. */
 export function libraryVisible(rows = []) {
-  return rows.filter((row) => !isOpsNoiseDataset(row)).length;
+  return rows.filter((row) => !isOpsNoiseDataset(row) && !isReceiptOnlyAsset(row)).length;
 }
 
 /** The durable evidence estate rendered by Library. */
 export function libraryHoldings(rows = []) {
-  return rows.filter((row) => !isOpsNoiseDataset(row) && isLocalHolding(row));
+  return rows.filter(
+    (row) => !isOpsNoiseDataset(row) && !isReceiptOnlyAsset(row) && isLocalHolding(row),
+  );
 }
 
 /** Visible registry records that are not held. They remain Discover evidence. */
 export function libraryReferences(rows = []) {
-  return rows.filter((row) => !isOpsNoiseDataset(row) && !isLocalHolding(row)).length;
+  return rows.filter(
+    (row) => !isOpsNoiseDataset(row) && !isReceiptOnlyAsset(row) && !isLocalHolding(row),
+  ).length;
 }
 
 /** What the desk possesses, used to classify a Discover result as already held.
