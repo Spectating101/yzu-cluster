@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { mockV2Api } from "./fixtures/v2MockApi.js";
+import { MOCK_DATASETS, mockV2Api } from "./fixtures/v2MockApi.js";
 
 test("an unavailable desk session fails closed behind one honest access boundary", async ({ page }) => {
   await mockV2Api(page);
@@ -97,4 +97,32 @@ test("protected Discover history waits for session bootstrap", async ({ page }) 
   releaseSession();
   await expect(page.locator(".rd-v2-shell")).toBeVisible();
   await expect.poll(() => historyRequests).toBeGreaterThan(0);
+});
+
+test("Library loading never presents a fabricated empty estate", async ({ page }) => {
+  await mockV2Api(page);
+
+  let releaseDatasets;
+  const datasetsReady = new Promise((resolve) => { releaseDatasets = resolve; });
+  await page.route("**/datasets", async (route) => {
+    await datasetsReady;
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(MOCK_DATASETS),
+    });
+  });
+
+  await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
+  await expect(page.locator(".rd-v2-shell")).toBeVisible();
+  await expect(page.getByText("Loading Library holdings…", { exact: true })).toBeVisible();
+  const rail = page.locator("aside.rd-v2-rail");
+  await expect(rail).toContainText("Reading holdings…");
+  await expect(rail).toContainText("Registered evidence is still loading.");
+  await expect(rail).not.toContainText("0 assets");
+  await expect(rail).not.toContainText("0 collections");
+
+  releaseDatasets();
+  await expect(rail).toContainText(`${MOCK_DATASETS.datasets.length} assets`);
+  await expect(rail).not.toContainText("Reading holdings…");
 });

@@ -493,6 +493,7 @@ export function LibraryPage({
   const nonReadyCount = Math.max(0, branchDatasetRows.length - readyCount);
   const attentionCount = branchDatasetRows.filter((row) => itemNeedsAttention(datasetListItem(row))).length;
   const browseDatasetCount = branchDatasetRows.length;
+  const holdingsPending = loading && !vaultDatasets.length;
   const branchNote = branchStatusNote({
     isRoot,
     items,
@@ -518,8 +519,9 @@ export function LibraryPage({
         readyCount,
         itemCount: isRoot ? estateRows.length : visibleRows.length,
         referenceCount: isRoot ? referenceCount : 0,
+        loading: holdingsPending,
       }),
-    [branchNote, browseDatasetCount, destination, estateRows.length, folderCount, folderId, isRoot, readyCount, referenceCount, trail, visibleRows.length],
+    [branchNote, browseDatasetCount, destination, estateRows.length, folderCount, folderId, holdingsPending, isRoot, readyCount, referenceCount, trail, visibleRows.length],
   );
 
   useEffect(() => {

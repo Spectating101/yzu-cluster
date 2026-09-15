@@ -32,6 +32,7 @@ export function LibraryFolderRailPanel({
   if (object?.kind !== "library_folder") return null;
 
   const counts = object.counts || {};
+  const loading = Boolean(object.loading);
   const root = !object.folderId;
   const foldersRoot = object.folderId === LIBRARY_FOLDERS_ROOT;
   const physicalFolder = isPhysicalFolder(object.folderId);
@@ -93,8 +94,9 @@ export function LibraryFolderRailPanel({
         <section className="rd-v2-library-folder-summary">
           <span hidden>{legacySummaryLabel}</span>
           <p className="rd-v2-rail-section-label">{summaryLabel}</p>
-          <h3>{pluralCount(totalAssets, "asset")}</h3>
-          <div className="rd-v2-library-folder-readiness">
+          <h3>{loading ? "Reading holdings…" : pluralCount(totalAssets, "asset")}</h3>
+          <div className="rd-v2-library-folder-readiness" aria-busy={loading || undefined}>
+            {loading ? <span>Registered evidence is still loading.</span> : null}
             {counts.queryReady > 0 ? <span><b>{counts.queryReady}</b> query ready</span> : null}
             {notReady > 0 ? <span><b>{notReady}</b> not query-ready</span> : null}
             {counts.connected > 0 ? <span><b>{counts.connected}</b> connected</span> : null}
@@ -113,9 +115,9 @@ export function LibraryFolderRailPanel({
             <RailField label="Location" value={object.path || object.destination || "Library"} />
             <RailField
               label={structureLabel}
-              value={pluralCount(counts.folders, root ? "collection" : "folder")}
+              value={loading ? "Reading…" : pluralCount(counts.folders, root ? "collection" : "folder")}
             />
-            <RailField label="Rows after filters" value={String(scopedRows)} />
+            <RailField label="Rows after filters" value={loading ? "Reading…" : String(scopedRows)} />
           </RailFieldGrid>
           <p className="rd-v2-rail-note">{purpose}</p>
         </section>

@@ -67,6 +67,7 @@ export function libraryFolderObject({
   unknownCount = 0,
   itemCount = 0,
   referenceCount = 0,
+  loading = false,
 } = {}) {
   const root = !folderId;
   const title = root ? "Library" : compactText(trail[trail.length - 1]?.name, "Library collection");
@@ -78,6 +79,7 @@ export function libraryFolderObject({
     path: folderPath(trail),
     destination: compactText(destination, title),
     note,
+    loading: Boolean(loading),
     counts: {
       folders: folderCount,
       datasets: datasetCount,
