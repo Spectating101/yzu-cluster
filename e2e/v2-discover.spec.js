@@ -445,16 +445,19 @@ test.describe("v2 Discover tab", () => {
     await expect(progress).toContainText("Library evidence · checked");
     await expect(progress).toContainText("Known source routes · checking");
     await expect(page.getByTestId("discover-result-summary")).toContainText("Library evidence · 1");
-    await expect(page.getByLabel("Discover next actions")).toContainText("Checking sources");
+    await expect(page.getByLabel("Discover next actions")).toContainText("1 Library result");
     await expect(page.getByLabel("Discover next actions")).not.toContainText("0 offerings");
+    // Until the slower external route arrives, the matching held evidence is
+    // the primary truthful result rather than a zero-result field.
+    await expect(page.getByTestId("discover-ranked-results")).toContainText("Issuer weekly fundamentals");
     await captureWorkflow(page, "discover-progressive-1440x900");
     await page.setViewportSize({ width: 390, height: 844 });
     await captureWorkflow(page, "discover-progressive-390x844");
-    await page.getByTestId("discover-library-evidence").locator("summary").click();
-    await expect(page.getByText("Issuer weekly fundamentals", { exact: true })).toBeVisible();
 
     await expect(page.getByTestId("discover-ranked-results")).toContainText("MOPS filings route");
     await expect(progress).toHaveCount(0);
+    await page.getByTestId("discover-library-evidence").locator("summary").click();
+    await expect(page.getByText("Issuer weekly fundamentals", { exact: true })).toBeVisible();
   });
 
   test("does not report zero held evidence while the registry is still loading", async ({ page }) => {
@@ -483,6 +486,37 @@ test.describe("v2 Discover tab", () => {
       const summary = page.getByTestId("discover-result-summary");
       await expect(summary).toContainText("Library evidence · Checking…");
       await expect(summary).not.toContainText("Library evidence · 0");
+    } finally {
+      releaseCatalog();
+    }
+  });
+
+  test("idle research radar does not fabricate an empty estate while loading", async ({ page }) => {
+    let releaseCatalog;
+    const catalogReady = new Promise((resolve) => {
+      releaseCatalog = resolve;
+    });
+    await page.route("**/datasets", async (route) => {
+      await catalogReady;
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ datasets: [] }),
+      });
+    });
+
+    const catalogRequest = page.waitForRequest((request) =>
+      new URL(request.url()).pathname.endsWith("/datasets"),
+    );
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await catalogRequest;
+    await waitForShell(page);
+
+    try {
+      const radar = page.getByTestId("discover-research-radar");
+      await expect(radar).toContainText("Reading research estate");
+      await expect(radar).toContainText("Evidence counts are loading");
+      await expect(radar).not.toContainText("0 source families visible");
     } finally {
       releaseCatalog();
     }

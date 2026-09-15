@@ -682,6 +682,7 @@ export function BrowsePage({
   const [loadedQuery, setLoadedQuery] = useState("");
   const [enrichedQuestion, setEnrichedQuestion] = useState("");
   const [autoWidening, setAutoWidening] = useState(false);
+  const [sourceLookupSettledQuery, setSourceLookupSettledQuery] = useState("");
   const [lookupProgress, setLookupProgress] = useState({ library: "waiting", routes: "waiting" });
   const restoredSelectionRef = useRef("");
   const rowsRef = useRef([]);
@@ -751,6 +752,7 @@ export function BrowsePage({
     if (!isWidening && !preserveCurrentField) {
       rowsQueryRef.current = q;
       setRows([]);
+      setSourceLookupSettledQuery("");
     }
     setStateFilter("all");
     if (!preserveCurrentField) setIndexMiss(false);
@@ -1004,6 +1006,9 @@ export function BrowsePage({
     let cancelled = false;
     setAutoWidening(true);
     const enrich = async () => {
+      // Optional web context runs beside source discovery, never after it as
+      // an extra serial wait on the researcher's primary result field.
+      const webPending = webDiscover(q, 8).catch(() => null);
       try {
         let extra = [];
         try {
@@ -1019,11 +1024,6 @@ export function BrowsePage({
           if (sourceRows.length && !cancelled) {
             setRows((current) => dedupeRows([...current, ...sourceRows]));
             setSource((current) => current ? `${current}+progressive` : "progressive");
-            const hasOffering = sourceRows.some((row) => {
-              const taxonomy = row.discover_taxonomy || classifyDiscoverResult(row, labIds);
-              return offeringType(row, taxonomy) !== "Reference only";
-            });
-            if (hasOffering) setIndexMiss(false);
             // Web context is supplementary reading, not the condition for a
             // discovered route to become visible.  Let the result field
             // settle honestly while that optional leg continues in the
@@ -1032,6 +1032,11 @@ export function BrowsePage({
           }
         } catch {
           // The first result paint remains valid when optional enrichment is unavailable.
+        } finally {
+          if (!cancelled) {
+            setSourceLookupSettledQuery(q);
+            setAutoWidening(false);
+          }
         }
         // Web context is fetched for every question, not only when the route
         // catalogue came up short. It renders in its own rail and is excluded
@@ -1041,8 +1046,8 @@ export function BrowsePage({
         // The index-miss logic below already refuses to let a web hit stand in
         // for an offering, which is the property that gate was really guarding.
         try {
-          const web = await webDiscover(q, 8);
-          extra = dedupeRows([...extra, ...rankExternalCatalogueRows(webHitsToRows(web), q)]);
+          const web = await webPending;
+          if (web) extra = dedupeRows([...extra, ...rankExternalCatalogueRows(webHitsToRows(web), q)]);
         } catch {
           // Web context is optional and must never erase already-rendered evidence.
         }
@@ -1064,7 +1069,6 @@ export function BrowsePage({
           // effect start changes a dependency, runs the cleanup immediately and
           // causes every eventual source result to be discarded as cancelled.
           setEnrichedQuestion(q);
-          setAutoWidening(false);
         }
       }
     };
@@ -1157,9 +1161,9 @@ export function BrowsePage({
   }, [filtered, labIds]);
 
   // Explore is a decision surface, not a dump of everything matching a word.
-  // Keep held Library matches reachable through the control above, while the
-  // centre list focuses on sources that can become a request.  A user-selected
-  // filter still owns the list exactly, including Library results.
+  // Prefer external offerings when they exist. If none has been established,
+  // the strongest truthful answer is matching Library evidence—not an empty
+  // field with the only results hidden inside a compact control.
   const rankedOfferings = useMemo(
     () =>
       renderedRows.filter((row) => {
@@ -1176,7 +1180,12 @@ export function BrowsePage({
     }),
     [renderedRows, labIds],
   );
-  const centreRows = stateFilter === "all" ? rankedOfferings : renderedRows;
+  const heldEvidenceIsPrimary = Boolean(
+    stateFilter === "all" && rankedOfferings.length === 0 && resultGroups.held.length > 0,
+  );
+  const centreRows = stateFilter === "all"
+    ? heldEvidenceIsPrimary ? resultGroups.held : rankedOfferings
+    : renderedRows;
 
   useEffect(() => {
     if (!isExplore || !selectedId || !centreRows.length) return;
@@ -1278,6 +1287,7 @@ export function BrowsePage({
     && !preferLiveSources
     && externalSearchQuery !== q
     && (isDiscoverResearchQuestion(q) || indexMiss)
+    && sourceLookupSettledQuery !== q
     && enrichedQuestion !== q,
   );
   const broaderSearchPending = Boolean(autoWidening || progressiveSearchPending);
@@ -1398,7 +1408,7 @@ export function BrowsePage({
     </details>
   );
 
-  const libraryEvidenceMenu = resultGroups.held.length ? (
+  const libraryEvidenceMenu = resultGroups.held.length && !heldEvidenceIsPrimary ? (
     <details className="rd-v2-discover-library-evidence" data-testid="discover-library-evidence">
       <summary>Library evidence · {resultGroups.held.length}</summary>
       <div className="rd-v2-discover-library-popover">
@@ -1497,6 +1507,7 @@ export function BrowsePage({
               shelves={shelves}
               resourcesRollup={resourcesRollup}
               onSearch={onSuggestSearch}
+              loading={catalogLoading || !historyJobsLoaded}
             />
             <div className="rd-v2-discover-idle-held">
               <DiscoverCoveragePanel catalog={catalog} partitions={partitions} shelves={shelves} onSearchShelf={
@@ -1674,7 +1685,11 @@ export function BrowsePage({
                     </>
                   ) : (
                     <>
-                      <strong>{plural(centreRows.length, "offering")}</strong>
+                      <strong>
+                        {heldEvidenceIsPrimary
+                          ? plural(centreRows.length, "Library result")
+                          : plural(centreRows.length, "offering")}
+                      </strong>
                       <span>
                         {stateFilter === "all"
                           ? resultBreakdown || "available to inspect"

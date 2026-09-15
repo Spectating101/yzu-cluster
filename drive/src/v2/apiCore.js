@@ -208,7 +208,9 @@ export function discoverSearch(query = "", limit = 12, email = "") {
 export function webDiscover(query = "", limit = 8, tavilyLive = true) {
   const params = new URLSearchParams({ q: query, limit: String(limit) });
   if (!tavilyLive) params.set("tavily", "0");
-  return fetchJson(`/library/discover/web?${params}`);
+  // Web context is supplemental reading. A slow provider must not keep a
+  // completed Library/source search in a perpetual loading state.
+  return fetchJson(`/library/discover/web?${params}`, { timeoutMs: 15000 });
 }
 
 /** Explore source catalogue — preferred Discover search contract when backend supports it. */
