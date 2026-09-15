@@ -1298,8 +1298,14 @@ export function BrowsePage({
     source === "sources" &&
     merged.length > 0 &&
     !hasSpecificSourceRoute(merged, q);
-  const assessmentStatus = String(assessmentResult?.assessment_status || "").toLowerCase();
-  const assessmentVerdict = String(assessmentResult?.verdict || "").toLowerCase();
+  const assessmentStatus = String(assessmentResult?.assessment_status || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
+  const assessmentVerdict = String(assessmentResult?.verdict || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
   const hasEvidenceGap =
     assessmentStatus === "assessed"
     && ["partially_covered", "partial", "not_covered", "uncovered"].includes(assessmentVerdict)
@@ -1655,7 +1661,13 @@ export function BrowsePage({
                   </span>
                 ) : null}
               </div>
-              <div className="rd-v2-discover-result-actions" aria-label="Discover next actions">
+              <div
+                className="rd-v2-discover-result-actions"
+                aria-label="Discover next actions"
+                data-assessment-status={assessmentStatus || "none"}
+                data-assessment-verdict={assessmentVerdict || "none"}
+                data-has-evidence-gap={hasEvidenceGap ? "true" : "false"}
+              >
                 <div>
                   {broaderSearchPending && resultGroups.held.length > 0 ? (
                     <>

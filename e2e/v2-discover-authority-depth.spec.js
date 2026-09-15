@@ -12,6 +12,13 @@ async function search(page, query) {
   await expect(page.getByTestId("discover-result-summary")).toBeVisible();
 }
 
+async function openAssessmentEditor(workspace) {
+  const disclosure = workspace.locator("details.rd-v2-evidence-detail-disclosure.is-workspace");
+  await disclosure.locator(":scope > summary").click();
+  await expect(disclosure).toHaveAttribute("open", "");
+  await disclosure.locator("details.rd-v2-evidence-edit > summary").click();
+}
+
 const correctedAssessment = {
   ...MOCK_DISCOVER_ASSESSMENT,
   because: "The corrected brief requires director-tenure and independence fields that are not evidenced in the held record.",
@@ -89,7 +96,7 @@ test.describe("Discover authority depth", () => {
     await expect(workspace.getByTestId("discover-verdict")).toHaveText("Partially covered");
     await expect(workspace).toContainText("MOPS governance disclosures");
 
-    await workspace.locator("details.rd-v2-evidence-edit > summary").click();
+    await openAssessmentEditor(workspace);
     await workspace.getByLabel("Fields value").fill("director_tenure, independent_director_ratio");
     await workspace.getByRole("button", { name: "Apply & reassess" }).click();
 
@@ -136,7 +143,7 @@ test.describe("Discover authority depth", () => {
     await expect(evidence.getByTestId("discover-verdict")).toHaveText("Partially covered");
     await expect(page.getByTestId("discover-query-composer")).toHaveCount(1);
 
-    await evidence.locator("details.rd-v2-evidence-edit > summary").click();
+    await openAssessmentEditor(evidence);
     await evidence.getByLabel("Fields value").fill("director_tenure, independent_director_ratio");
     await evidence.getByRole("button", { name: "Apply & reassess" }).click();
 
@@ -144,7 +151,11 @@ test.describe("Discover authority depth", () => {
     await expect(evidence).toContainText("TWSE director roster");
     await expect(evidence).not.toContainText("MOPS governance disclosures");
 
-    await page.getByRole("button", { name: "Review sourcing strategy" }).click();
+    const nextActions = page.getByLabel("Discover next actions");
+    await expect(nextActions).toHaveAttribute("data-assessment-status", "assessed");
+    await expect(nextActions).toHaveAttribute("data-assessment-verdict", "partially_covered");
+    await expect(nextActions).toHaveAttribute("data-has-evidence-gap", "true");
+    await nextActions.getByRole("button", { name: "Review sourcing strategy" }).click();
     const comparison = page.getByTestId("discover-route-comparison");
     await expect(comparison).toBeVisible();
     await expect(comparison).toContainText("Observed");
