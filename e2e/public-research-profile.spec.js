@@ -33,7 +33,7 @@ function publicMemberCapabilities() {
   };
 }
 
-test("public member gets an honest personal research-profile cold start", async ({ page }) => {
+test("public member gets an honest personal research-profile cold start", async ({ page }, testInfo) => {
   await mockV2Api(page);
   await page.unroute("**/library/desk/capabilities").catch(() => {});
   await page.route("**/library/desk/capabilities", (route) => route.fulfill({
@@ -44,6 +44,46 @@ test("public member gets an honest personal research-profile cold start", async 
 
   let savedBody = null;
   let configured = false;
+  let memorySettings = { auto_learn: true, use_memory: true };
+  let learnedMemories = [
+    {
+      id: "memory-wildfire",
+      kind: "topic",
+      value: "wildfire economics",
+      scope: "account",
+      evidence_count: 2,
+      updated_at: "2026-09-15T00:00:00Z",
+    },
+  ];
+  const memoryDocument = () => ({
+    version: 1,
+    settings: memorySettings,
+    memories: learnedMemories,
+    stored_count: learnedMemories.length,
+    active_count: memorySettings.use_memory ? learnedMemories.length : 0,
+    authority: {
+      kind: "learned_research_memory",
+      principal_scoped: true,
+      separate_from_declared_profile: true,
+      user_controllable: true,
+    },
+  });
+  await page.route("**/library/profile/memory", async (route) => {
+    const body = route.request().postDataJSON();
+    if (body.action === "settings") {
+      memorySettings = { ...memorySettings, ...body };
+      delete memorySettings.action;
+    } else if (body.action === "forget") {
+      learnedMemories = learnedMemories.filter((item) => item.id !== body.memory_id);
+    } else if (body.action === "clear") {
+      learnedMemories = [];
+    }
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(memoryDocument()),
+    });
+  });
   await page.route("**/library/profile", async (route) => {
     const request = route.request();
     if (request.method() === "POST") {
@@ -70,6 +110,7 @@ test("public member gets an honest personal research-profile cold start", async 
         configured,
         onboarding_required: !configured,
         starter_prompts: [],
+        memory: memoryDocument(),
         authority: {
           identity: "authenticated_principal",
           research_context: configured ? "user_confirmed" : "empty",
@@ -89,8 +130,17 @@ test("public member gets an honest personal research-profile cold start", async 
   await expect(page.getByTestId("personal-research-profile")).toContainText("Alice Student");
   await expect(page.getByTestId("personal-research-profile")).toContainText("alice@student.yzu.edu.tw");
   await expect(page.getByTestId("research-profile-editor")).toContainText("Set up your research context");
+  await expect(page.getByTestId("learned-research-memory")).toContainText("wildfire economics");
+  await expect(page.getByTestId("learned-research-memory")).toContainText("2 supporting moments");
+  await expect(page.getByTestId("profile-detail-rail")).toContainText("wildfire economics");
+  await expect(page.getByTestId("profile-detail-rail")).toContainText("learned memory");
+  await expect(page.getByTestId("profile-detail-rail")).not.toContainText("Not set up yet");
   await expect(page.getByText("Sign in to view and save a researcher profile.")).toHaveCount(0);
   expect(facultyRequests).toBe(0);
+  await testInfo.attach("learned-research-memory", {
+    body: await page.getByTestId("learned-research-memory").screenshot(),
+    contentType: "image/png",
+  });
 
   await page.getByLabel("Academic stage").fill("Master's student");
   await page.getByLabel("Field / discipline").fill("Finance");
@@ -114,4 +164,9 @@ test("public member gets an honest personal research-profile cold start", async 
   expect(savedBody).not.toHaveProperty("email");
   expect(savedBody).not.toHaveProperty("role");
   expect(savedBody).not.toHaveProperty("permissions");
+
+  await page.getByLabel("Learn from Ask").click();
+  await expect(page.getByLabel("Learn from Ask")).not.toBeChecked();
+  await page.getByRole("button", { name: "Forget wildfire economics" }).click();
+  await expect(page.getByTestId("learned-research-memory")).toContainText("Nothing has been learned yet");
 });

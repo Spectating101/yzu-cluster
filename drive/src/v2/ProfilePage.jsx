@@ -2,8 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import { facultyProfile } from "@/v2/api";
 import { saveUserEmail } from "@/v2/deskSession";
 import {
+  clearResearchMemory,
   clearResearchProfile,
+  forgetResearchMemory,
   getResearchProfile,
+  saveResearchMemorySettings,
   saveResearchProfile,
 } from "@/v2/researchProfileApi";
 import {
@@ -86,6 +89,133 @@ function draftFromDocument(document) {
   };
 }
 
+const LEARNED_MEMORY_LABELS = {
+  topic: "Topic",
+  method: "Method",
+  data_interest: "Data interest",
+  research_goal: "Research goal",
+  preference: "Working preference",
+};
+
+function LearnedResearchMemory({ document, onDocument, onProfileRefresh }) {
+  const memory = document?.memory || {};
+  const settings = memory.settings || { auto_learn: true, use_memory: true };
+  const memories = Array.isArray(memory.memories) ? memory.memories : [];
+  const [working, setWorking] = useState("");
+  const [notice, setNotice] = useState("");
+
+  const replaceMemory = (next) => {
+    onDocument?.({ ...document, memory: next });
+    onProfileRefresh?.();
+  };
+  const updateSettings = async (patch) => {
+    setWorking("settings");
+    setNotice("");
+    try {
+      replaceMemory(await saveResearchMemorySettings(patch));
+    } catch (error) {
+      setNotice(error?.message || "Memory settings could not be saved.");
+    } finally {
+      setWorking("");
+    }
+  };
+  const forget = async (memoryId) => {
+    setWorking(memoryId);
+    setNotice("");
+    try {
+      replaceMemory(await forgetResearchMemory(memoryId));
+      setNotice("Memory removed.");
+    } catch (error) {
+      setNotice(error?.message || "That memory could not be removed.");
+    } finally {
+      setWorking("");
+    }
+  };
+  const clear = async () => {
+    setWorking("clear");
+    setNotice("");
+    try {
+      replaceMemory(await clearResearchMemory());
+      setNotice("Learned research memory cleared.");
+    } catch (error) {
+      setNotice(error?.message || "Learned memory could not be cleared.");
+    } finally {
+      setWorking("");
+    }
+  };
+
+  return (
+    <section className="rd-v2-profile-section rd-v2-learned-memory" data-testid="learned-research-memory" aria-labelledby="learned-memory-title">
+      <header className="rd-v2-profile-section-head">
+        <div>
+          <h2 id="learned-memory-title">Learned research memory</h2>
+          <p>
+            Ask can retain durable topics, methods, data needs, goals, and working preferences. Declared profile fields remain separately user-authored.
+          </p>
+        </div>
+        <span>{memories.length ? `${memories.length} remembered` : "Nothing learned"}</span>
+      </header>
+
+      <div className="rd-v2-memory-controls" aria-label="Research memory controls">
+        <label>
+          <input
+            type="checkbox"
+            checked={Boolean(settings.auto_learn)}
+            disabled={Boolean(working)}
+            onChange={(event) => updateSettings({ auto_learn: event.target.checked })}
+          />
+          <span><strong>Learn from Ask</strong><em>Save useful long-term research context automatically.</em></span>
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            checked={Boolean(settings.use_memory)}
+            disabled={Boolean(working)}
+            onChange={(event) => updateSettings({ use_memory: event.target.checked })}
+          />
+          <span><strong>Use learned memory</strong><em>Apply remembered context to future search and reasoning.</em></span>
+        </label>
+      </div>
+
+      {memories.length ? (
+        <ul className="rd-v2-learned-memory-list">
+          {memories.map((item) => (
+            <li key={item.id}>
+              <div>
+                <span>{LEARNED_MEMORY_LABELS[item.kind] || "Research context"}{item.scope === "project" ? " · Project" : ""}</span>
+                <strong>{item.value}</strong>
+                <em>
+                  {item.evidence_count > 1 ? `${item.evidence_count} supporting moments` : "Learned from Ask"}
+                </em>
+              </div>
+              <button
+                type="button"
+                className="rd-v2-btn sm ghost"
+                disabled={Boolean(working)}
+                onClick={() => forget(item.id)}
+                aria-label={`Forget ${item.value}`}
+              >
+                {working === item.id ? "Removing…" : "Forget"}
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="rd-v2-empty-inline">
+          Nothing has been learned yet. Research Drive will retain only durable context from signed-in Ask conversations.
+        </p>
+      )}
+
+      {memories.length ? (
+        <button type="button" className="rd-v2-btn sm ghost rd-v2-memory-clear" disabled={Boolean(working)} onClick={clear}>
+          {working === "clear" ? "Clearing…" : "Clear learned memory"}
+        </button>
+      ) : null}
+      {notice ? <p className="rd-v2-profile-hint" role="status">{notice}</p> : null}
+    </section>
+  );
+}
+
 function PersonalResearchProfile({ document, onDocument, onProfileRefresh }) {
   const [draft, setDraft] = useState(() => draftFromDocument(document));
   const [saving, setSaving] = useState(false);
@@ -134,6 +264,14 @@ function PersonalResearchProfile({ document, onDocument, onProfileRefresh }) {
 
   const principal = document?.principal || {};
   const configured = Boolean(document?.configured);
+  const hasLearnedMemory = Boolean(document?.memory?.memories?.length);
+  const learnedMemory = (
+    <LearnedResearchMemory
+      document={document}
+      onDocument={onDocument}
+      onProfileRefresh={onProfileRefresh}
+    />
+  );
   return (
     <>
       <section className="rd-v2-profile-identity" aria-label="Researcher identity" data-testid="personal-research-profile">
@@ -155,6 +293,8 @@ function PersonalResearchProfile({ document, onDocument, onProfileRefresh }) {
           </div>
         </div>
       </section>
+
+      {hasLearnedMemory ? learnedMemory : null}
 
       <section className="rd-v2-profile-section" data-testid="research-profile-editor" aria-labelledby="research-profile-editor-title">
         <header className="rd-v2-profile-section-head">
@@ -206,6 +346,7 @@ function PersonalResearchProfile({ document, onDocument, onProfileRefresh }) {
           {notice ? <p className="rd-v2-profile-hint" role="status">{notice}</p> : null}
         </div>
       </section>
+      {hasLearnedMemory ? null : learnedMemory}
     </>
   );
 }
@@ -507,11 +648,20 @@ export function ProfileDetailPanel({ profile, allowExamplePreview = false }) {
   if (personalDocument?.principal) {
     const principal = personalDocument.principal;
     const context = personalDocument.profile || {};
+    const memory = personalDocument.memory || {};
+    const learned = memory?.settings?.use_memory === false
+      ? []
+      : (memory.memories || []).map((item) => item?.value).filter(Boolean);
     const contextBits = [
       context.current_project,
       ...(context.research_topics || []),
       ...(context.methods || []),
+      ...learned,
     ].filter(Boolean).slice(0, 5);
+    const contextSources = [
+      personalDocument.configured ? "user-confirmed context" : null,
+      learned.length ? "learned memory" : null,
+    ].filter(Boolean);
     return (
       <div className="rd-v2-profile-rail" data-testid="profile-detail-rail">
         <section className="rd-v2-profile-rail-block">
@@ -524,7 +674,7 @@ export function ProfileDetailPanel({ profile, allowExamplePreview = false }) {
         </section>
         <section className="rd-v2-profile-rail-block">
           <h3>Record source</h3>
-          <p>Verified account · user-confirmed research context</p>
+          <p>Verified account{contextSources.length ? ` · ${contextSources.join(" · ")}` : ""}</p>
         </section>
       </div>
     );
