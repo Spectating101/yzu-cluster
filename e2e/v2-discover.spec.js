@@ -445,19 +445,18 @@ test.describe("v2 Discover tab", () => {
     await expect(progress).toContainText("Library evidence · checked");
     await expect(progress).toContainText("Known source routes · checking");
     await expect(page.getByTestId("discover-result-summary")).toContainText("Library evidence · 1");
-    await expect(page.getByLabel("Discover next actions")).toContainText("1 Library result");
+    await expect(page.getByLabel("Discover next actions")).toContainText("1 Library match");
     await expect(page.getByLabel("Discover next actions")).not.toContainText("0 offerings");
-    // Until the slower external route arrives, the matching held evidence is
-    // the primary truthful result rather than a zero-result field.
-    await expect(page.getByTestId("discover-ranked-results")).toContainText("Issuer weekly fundamentals");
+    // Held evidence remains immediately inspectable through the frozen bounded
+    // control while the slower external route is still being discovered.
+    await page.getByTestId("discover-library-evidence").locator("summary").click();
+    await expect(page.getByText("Issuer weekly fundamentals", { exact: true })).toBeVisible();
     await captureWorkflow(page, "discover-progressive-1440x900");
     await page.setViewportSize({ width: 390, height: 844 });
     await captureWorkflow(page, "discover-progressive-390x844");
 
     await expect(page.getByTestId("discover-ranked-results")).toContainText("MOPS filings route");
     await expect(progress).toHaveCount(0);
-    await page.getByTestId("discover-library-evidence").locator("summary").click();
-    await expect(page.getByText("Issuer weekly fundamentals", { exact: true })).toBeVisible();
   });
 
   test("does not report zero held evidence while the registry is still loading", async ({ page }) => {

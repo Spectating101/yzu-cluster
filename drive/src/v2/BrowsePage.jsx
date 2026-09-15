@@ -1161,9 +1161,8 @@ export function BrowsePage({
   }, [filtered, labIds]);
 
   // Explore is a decision surface, not a dump of everything matching a word.
-  // Prefer external offerings when they exist. If none has been established,
-  // the strongest truthful answer is matching Library evidence—not an empty
-  // field with the only results hidden inside a compact control.
+  // External offerings own the ranked centre; held evidence stays available in
+  // the bounded Library control above it, as required by the frozen composition.
   const rankedOfferings = useMemo(
     () =>
       renderedRows.filter((row) => {
@@ -1180,12 +1179,7 @@ export function BrowsePage({
     }),
     [renderedRows, labIds],
   );
-  const heldEvidenceIsPrimary = Boolean(
-    stateFilter === "all" && rankedOfferings.length === 0 && resultGroups.held.length > 0,
-  );
-  const centreRows = stateFilter === "all"
-    ? heldEvidenceIsPrimary ? resultGroups.held : rankedOfferings
-    : renderedRows;
+  const centreRows = stateFilter === "all" ? rankedOfferings : renderedRows;
 
   useEffect(() => {
     if (!isExplore || !selectedId || !centreRows.length) return;
@@ -1408,7 +1402,7 @@ export function BrowsePage({
     </details>
   );
 
-  const libraryEvidenceMenu = resultGroups.held.length && !heldEvidenceIsPrimary ? (
+  const libraryEvidenceMenu = resultGroups.held.length ? (
     <details className="rd-v2-discover-library-evidence" data-testid="discover-library-evidence">
       <summary>Library evidence · {resultGroups.held.length}</summary>
       <div className="rd-v2-discover-library-popover">
@@ -1663,10 +1657,20 @@ export function BrowsePage({
               </div>
               <div className="rd-v2-discover-result-actions" aria-label="Discover next actions">
                 <div>
-                  {broaderSearchPending ? (
+                  {broaderSearchPending && resultGroups.held.length > 0 ? (
+                    <>
+                      <strong>{plural(resultGroups.held.length, "Library match")}</strong>
+                      <span>Checking broader sources for a direct route</span>
+                    </>
+                  ) : broaderSearchPending ? (
                     <>
                       <strong>Checking broader sources</strong>
                       <span>Related Library evidence remains visible while the desk looks for a direct route</span>
+                    </>
+                  ) : loading && centreRows.length === 0 && resultGroups.held.length > 0 ? (
+                    <>
+                      <strong>{plural(resultGroups.held.length, "Library match")}</strong>
+                      <span>Known source routes are still being checked</span>
                     </>
                   ) : loading && centreRows.length === 0 ? (
                     <>
@@ -1685,11 +1689,7 @@ export function BrowsePage({
                     </>
                   ) : (
                     <>
-                      <strong>
-                        {heldEvidenceIsPrimary
-                          ? plural(centreRows.length, "Library result")
-                          : plural(centreRows.length, "offering")}
-                      </strong>
+                      <strong>{plural(centreRows.length, "offering")}</strong>
                       <span>
                         {stateFilter === "all"
                           ? resultBreakdown || "available to inspect"
