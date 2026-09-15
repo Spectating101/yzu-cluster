@@ -1254,8 +1254,22 @@ export function BrowsePage({
 
   const q = (searchQuery || "").trim();
   const wideningInProgress = Boolean(preferLiveSources && q && loadedQuery === q);
+  // A research-question miss starts a second, broader discovery leg after the
+  // fast Library/known-route pass settles.  React schedules that effect after
+  // the settled render, so `autoWidening` alone leaves one render where the UI
+  // can falsely announce "No matches" before the broader leg has even begun.
+  // Keep the state pending from the measured index miss through enrichment.
+  const progressiveSearchPending = Boolean(
+    isExplore
+    && q
+    && !preferLiveSources
+    && externalSearchQuery !== q
+    && (isDiscoverResearchQuestion(q) || indexMiss)
+    && enrichedQuestion !== q,
+  );
+  const broaderSearchPending = Boolean(autoWidening || progressiveSearchPending);
   const allInLab =
-    !loading && !autoWidening && merged.length > 0 && stageCounts.inLab > 0 && stageCounts.inLab === merged.length;
+    !loading && !broaderSearchPending && merged.length > 0 && stageCounts.inLab > 0 && stageCounts.inLab === merged.length;
   const demoMode = demoFallback || (usingSeed && source === "demo");
   const activeFilter = FILTERS.find((item) => item.id === stateFilter) || FILTERS[0];
   const externalSearchActive = Boolean(q && externalSearchQuery === q);
@@ -1294,7 +1308,7 @@ export function BrowsePage({
 
   const exploreSurfaceState = resolveSurfaceLifecycle({
     idle: !q && !catalogLoading && !loadError,
-    loading: q ? loading : catalogLoading,
+    loading: q ? (loading || broaderSearchPending) : catalogLoading,
     error: q ? error : loadError,
     count: q ? merged.length : catalog.length,
   });
@@ -1617,7 +1631,7 @@ export function BrowsePage({
                     Searching wider sources…
                   </span>
                 ) : null}
-                {!loading && autoWidening ? (
+                {!loading && broaderSearchPending ? (
                   <span className="rd-v2-discover-counts-loading" role="status">
                     Checking broader sources…
                   </span>
@@ -1625,7 +1639,7 @@ export function BrowsePage({
               </div>
               <div className="rd-v2-discover-result-actions" aria-label="Discover next actions">
                 <div>
-                  {autoWidening ? (
+                  {broaderSearchPending ? (
                     <>
                       <strong>Checking broader sources</strong>
                       <span>Related Library evidence remains visible while the desk looks for a direct route</span>
@@ -1807,7 +1821,7 @@ export function BrowsePage({
               </section>
             ) : null}
 
-            {!loading && !error && centreRows.length === 0 && contextualRows.length === 0 ? (
+            {!loading && !broaderSearchPending && !error && centreRows.length === 0 && contextualRows.length === 0 ? (
               <div className="rd-v2-discover-miss">
                 <p className="rd-v2-empty-inline">
                   No {stateFilter === "all" ? "" : `${activeFilter.label.toLowerCase()} `}matches for “{q}”

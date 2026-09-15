@@ -68,6 +68,32 @@ test.describe("Discover weak-match continuation", () => {
     await expect(summary.getByRole("status")).toHaveCount(0);
   });
 
+  test("does not announce no matches before broader discovery settles", async ({ page }) => {
+    await mockV2Api(page, {
+      datasetsBody: { datasets: [] },
+      discoverBody: {
+        sections: [],
+        total: 0,
+        index_miss: true,
+        weak_match: true,
+      },
+      discoverSourcesBody: { results: [], total: 0 },
+      discoverLiveSourcesBody: { results: [clinicalRoute], total: 1 },
+      discoverLiveSourcesDelayMs: 1_000,
+    });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+
+    await search(page, "clinical trial outcomes");
+
+    const summary = page.getByTestId("discover-result-summary");
+    await expect(summary.getByRole("status")).toContainText("Checking broader sources");
+    await expect(page.getByText(/No matches for/)).toHaveCount(0);
+
+    await expect(page.getByText("Clinical Trial Outcomes", { exact: true })).toBeVisible();
+    await expect(page.getByText(/No matches for/)).toHaveCount(0);
+  });
+
   test("a live source route paints before optional web context settles", async ({ page }) => {
     await mockV2Api(page, {
       datasetsBody: { datasets: weakHeldRows },
