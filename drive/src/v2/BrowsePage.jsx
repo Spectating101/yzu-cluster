@@ -23,7 +23,7 @@ import {
 } from "@/v2/discoverComposition";
 import { assessLocalSufficiency } from "@/v2/discoverSufficiency";
 import { buildDiscoverRestingSummary } from "@/v2/discoverRestingSummary";
-import { shouldAppendDiscoverPaint } from "@/v2/discoverResultPaint";
+import { discoverSearchOutcomeUnknown, shouldAppendDiscoverPaint } from "@/v2/discoverResultPaint";
 import { loadUserEmail } from "@/v2/deskSession";
 import { discoverDemoSearch } from "@/v2/deskSeed";
 import { DiscoverIntentWorkspace } from "@/v2/DiscoverIntentWorkspace";
@@ -678,6 +678,7 @@ export function BrowsePage({
   const [routeComparisonOpen, setRouteComparisonOpen] = useState(false);
   const [sortMode, setSortMode] = useState("relevance");
   const [queryDraft, setQueryDraft] = useState(searchQuery || "");
+  const [searchRevision, setSearchRevision] = useState(0);
   const [loadedQuery, setLoadedQuery] = useState("");
   const [enrichedQuestion, setEnrichedQuestion] = useState("");
   const [autoWidening, setAutoWidening] = useState(false);
@@ -912,6 +913,13 @@ export function BrowsePage({
         const discoverRows = flattenRows(discover);
         const knownSourceRows = sourcesResponseToRows(knownSources);
         let mergedRows = dedupeRows([...knownSourceRows, ...discoverRows]);
+        if (discoverSearchOutcomeUnknown({
+          resultCount: mergedRows.length,
+          libraryFailed: Boolean(discoverFailure),
+          routesFailed: Boolean(knownSourcesFailure),
+        })) {
+          throw discoverFailure || knownSourcesFailure;
+        }
         let label = mergedRows.length ? "index" : "";
         const weakOrMissingLibraryMatch = Boolean(discover.index_miss || discover.weak_match);
 
@@ -979,7 +987,7 @@ export function BrowsePage({
     return () => {
       cancelled = true;
     };
-  }, [searchQuery, discoverMode, labIds, preferLiveSources, externalSearchQuery]);
+  }, [searchQuery, discoverMode, labIds, preferLiveSources, externalSearchQuery, searchRevision]);
 
   useEffect(() => {
     const q = String(searchQuery || "").trim();
@@ -1253,6 +1261,11 @@ export function BrowsePage({
   }, [merged, labIds]);
 
   const q = (searchQuery || "").trim();
+  const requestSearch = (nextQuery) => {
+    const next = String(nextQuery || "").trim();
+    if (next && next === q) setSearchRevision((revision) => revision + 1);
+    onSuggestSearch?.(next);
+  };
   const wideningInProgress = Boolean(preferLiveSources && q && loadedQuery === q);
   // A research-question miss starts a second, broader discovery leg after the
   // fast Library/known-route pass settles.  React schedules that effect after
@@ -1470,7 +1483,7 @@ export function BrowsePage({
             <DiscoverQueryComposer
               value={queryDraft}
               onValueChange={setQueryDraft}
-              onSearch={onSuggestSearch}
+              onSearch={requestSearch}
               onAsk={(question) => onAskQuery?.(question, { kind: "investigation" })}
               onAssess={onOpenAssessment}
               idle
@@ -1563,7 +1576,7 @@ export function BrowsePage({
                 <DiscoverQueryComposer
                   value={queryDraft}
                   onValueChange={setQueryDraft}
-                  onSearch={onSuggestSearch}
+                  onSearch={requestSearch}
                   onAsk={(question) => onAskQuery?.(question, { kind: "results", rows: merged })}
                   onAssess={onOpenAssessment}
                 />

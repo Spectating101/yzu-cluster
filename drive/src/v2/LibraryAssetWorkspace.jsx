@@ -11,6 +11,7 @@ import { libraryVerification } from "@/v2/libraryVerification";
 import { LibraryHoldingsOverlay } from "@/v2/LibraryHoldingsOverlay";
 import { summarizeLibraryHoldings } from "@/v2/libraryHoldings";
 import { PageShell } from "@/v2/ui";
+import { previewCellValue } from "@/v2/previewValue";
 
 function value(...candidates) {
   return candidates.map((item) => String(item || "").trim()).find(Boolean) || "Not declared";
@@ -311,7 +312,7 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
               {observed ? (
                 preview.rows.map((row, index) => (
                   <tr key={index}>
-                    {schemaColumns.map((column) => <td key={column}>{String(row[column] ?? "—")}</td>)}
+                    {schemaColumns.map((column) => <td key={column}>{previewCellValue(row[column])}</td>)}
                   </tr>
                 ))
               ) : (

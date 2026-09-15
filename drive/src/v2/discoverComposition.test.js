@@ -9,7 +9,7 @@ import {
   meaningfulDiscoverTerms,
   normalizeDiscoverText,
 } from "./discoverQuerySpecificity.js";
-import { shouldAppendDiscoverPaint } from "./discoverResultPaint.js";
+import { discoverSearchOutcomeUnknown, shouldAppendDiscoverPaint } from "./discoverResultPaint.js";
 
 describe("groupDiscoverBrowseRows", () => {
   it("buckets by taxonomy group into lab / external / needs access", () => {
@@ -98,5 +98,15 @@ describe("progressive Discover result paint", () => {
 
   it("keeps explicit widening additive before the first field count settles", () => {
     assert.equal(shouldAppendDiscoverPaint({ append: true, currentCount: 0 }), true);
+  });
+
+  it("does not turn one failed search leg plus an empty leg into a proven miss", () => {
+    assert.equal(discoverSearchOutcomeUnknown({ resultCount: 0, libraryFailed: true }), true);
+    assert.equal(discoverSearchOutcomeUnknown({ resultCount: 0, routesFailed: true }), true);
+  });
+
+  it("keeps a partial result field usable when another search leg fails", () => {
+    assert.equal(discoverSearchOutcomeUnknown({ resultCount: 1, libraryFailed: true }), false);
+    assert.equal(discoverSearchOutcomeUnknown({ resultCount: 0 }), false);
   });
 });
