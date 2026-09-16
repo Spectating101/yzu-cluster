@@ -90,6 +90,11 @@
   .rd-v2-profile-page .rd-v2-body-scroll {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    /* This grid is also the viewport's scroll container. Its auto rows must
+       size to their contents instead of shrinking to share the fixed canvas
+       height; otherwise identity copy paints outside a padding-only row and
+       collides with the following profile sections. */
+    grid-auto-rows: max-content;
     gap: 0 28px;
     align-content: start;
   }

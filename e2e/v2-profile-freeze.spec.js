@@ -52,8 +52,8 @@ test.describe("Profile freeze showcase", () => {
     });
     await page.goto("/?tab=profile", { waitUntil: "domcontentloaded" });
     await expect(page.locator(".rd-v2-profile-name")).not.toHaveText("Research profile", { timeout: 20_000 });
-    await expect(page.getByRole("heading", { name: "Profile" })).toBeVisible();
-    await expect(page.getByText("Research memory carried into Discover and Ask")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Profile", level: 1 })).toBeVisible();
+    await expect(page.getByText("Account identity, user-confirmed research context, and recorded scholarly evidence")).toBeVisible();
 
     const memory = page.getByTestId("profile-memory");
     await expect(memory).toBeVisible();
@@ -68,9 +68,8 @@ test.describe("Profile freeze showcase", () => {
 
     const lab = page.getByTestId("profile-lab");
     await expect(lab).toBeVisible();
-    await expect(lab.getByText("Linked to you")).toBeVisible();
-    await expect(lab.getByText("Suggested")).toBeVisible();
-    await expect(lab.getByText(/Open →|Link →|Search →/).first()).toBeVisible();
+    await expect(lab).toContainText("Recorded link · holding not confirmed");
+    await expect(lab).toContainText("Library—not Profile—is possession authority");
 
     // No legacy split panes / tracks list
     await expect(page.getByTestId("profile-know")).toHaveCount(0);
@@ -79,8 +78,8 @@ test.describe("Profile freeze showcase", () => {
     const detail = page.getByTestId("profile-detail-rail");
     await expect(detail).toBeVisible();
     await expect(detail.getByText("Scholar")).toBeVisible();
-    await expect(detail.getByText("Strengths")).toBeVisible();
-    await expect(detail.getByText("Desk")).toBeVisible();
+    await expect(detail.getByText("Registry strengths")).toBeVisible();
+    await expect(detail.getByText("Record source")).toBeVisible();
     await expect(detail).toContainText(/faculty/i);
 
     await page.screenshot({ path: OUT, fullPage: true });

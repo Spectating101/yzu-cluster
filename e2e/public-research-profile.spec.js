@@ -34,6 +34,7 @@ function publicMemberCapabilities() {
 }
 
 test("public member gets an honest personal research-profile cold start", async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 1920, height: 961 });
   await mockV2Api(page);
   await page.unroute("**/library/desk/capabilities").catch(() => {});
   await page.route("**/library/desk/capabilities", (route) => route.fulfill({
@@ -137,6 +138,27 @@ test("public member gets an honest personal research-profile cold start", async 
   await expect(page.getByTestId("profile-detail-rail")).not.toContainText("Not set up yet");
   await expect(page.getByText("Sign in to view and save a researcher profile.")).toHaveCount(0);
   expect(facultyRequests).toBe(0);
+
+  // The wide Profile composition uses a two-column content grid. Because the
+  // same element is a fixed-height scroll container, auto rows used to shrink
+  // the identity to its padding while its text overflowed into the editor and
+  // learned-memory row. Keep this as a geometry contract, not a screenshot-only
+  // assertion, so CI fails on the actual overlap.
+  const profileIdentityBox = await page.getByTestId("personal-research-profile").boundingBox();
+  const identityCopyBox = await page.getByTestId("personal-research-profile").locator(".rd-v2-profile-ident").boundingBox();
+  const identityMetricsBox = await page.getByTestId("personal-research-profile").locator(".rd-v2-profile-identity-side").boundingBox();
+  const editorBox = await page.getByTestId("research-profile-editor").boundingBox();
+  const learnedMemoryBox = await page.getByTestId("learned-research-memory").boundingBox();
+  expect(profileIdentityBox).not.toBeNull();
+  expect(identityCopyBox).not.toBeNull();
+  expect(identityMetricsBox).not.toBeNull();
+  expect(editorBox).not.toBeNull();
+  expect(learnedMemoryBox).not.toBeNull();
+  const identityContentBottom = Math.max(
+    identityCopyBox.y + identityCopyBox.height,
+    identityMetricsBox.y + identityMetricsBox.height,
+  );
+  expect(Math.min(editorBox.y, learnedMemoryBox.y)).toBeGreaterThanOrEqual(identityContentBottom - 1);
   await testInfo.attach("learned-research-memory", {
     body: await page.getByTestId("learned-research-memory").screenshot(),
     contentType: "image/png",
