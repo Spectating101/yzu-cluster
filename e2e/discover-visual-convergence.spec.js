@@ -119,8 +119,11 @@ test.describe("Discover visual convergence", () => {
     await assertNoHorizontalOverflow(page);
 
     const decisionBand = page.getByLabel("Discover next actions");
-    await expect(decisionBand).toBeHidden();
+    await expect(decisionBand).toBeVisible();
     await expect(decisionBand).toHaveAttribute("data-has-evidence-gap", "false");
+    await expect(page.getByTestId("discover-start-synthesis")).toHaveText(
+      /Start Synthesis with \d+ Library result/,
+    );
 
     await page.screenshot({ path: `${OUT}/discover-results-1440x900.png`, fullPage: false });
 
