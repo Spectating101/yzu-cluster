@@ -640,6 +640,7 @@ export function BrowsePage({
   onSearchWeb,
   onAskQuery,
   onReviewAcquisition,
+  onStartSynthesis,
   discoverMode = "explore",
   onDiscoverModeChange,
   discoverFocusAwaiting = false,
@@ -684,6 +685,8 @@ export function BrowsePage({
   const [autoWidening, setAutoWidening] = useState(false);
   const [sourceLookupSettledQuery, setSourceLookupSettledQuery] = useState("");
   const [lookupProgress, setLookupProgress] = useState({ library: "waiting", routes: "waiting" });
+  const [synthesisStarting, setSynthesisStarting] = useState(false);
+  const [synthesisStartError, setSynthesisStartError] = useState("");
   const restoredSelectionRef = useRef("");
   const rowsRef = useRef([]);
   const rowsQueryRef = useRef("");
@@ -1711,7 +1714,37 @@ export function BrowsePage({
                   )}
                 </div>
                 <div>
-                  {onSearchWeb ? (
+                  {onStartSynthesis && resultGroups.held.length > 0 ? (
+                    <button
+                      type="button"
+                      data-testid="discover-start-synthesis"
+                      className="rd-v2-discover-strategy-trigger is-ready"
+                      disabled={synthesisStarting}
+                      onClick={async () => {
+                        setSynthesisStarting(true);
+                        setSynthesisStartError("");
+                        try {
+                          await onStartSynthesis({
+                            objective: q,
+                            datasetIds: resultGroups.held
+                              .map((row) => row?.dataset_id || row?.id)
+                              .filter(Boolean),
+                          });
+                        } catch (cause) {
+                          setSynthesisStartError(
+                            cause?.message || "Could not start Synthesis from these Library results.",
+                          );
+                        } finally {
+                          setSynthesisStarting(false);
+                        }
+                      }}
+                    >
+                      {synthesisStarting
+                        ? "Starting Synthesis…"
+                        : `Start Synthesis with ${plural(resultGroups.held.length, "Library result")}`}
+                    </button>
+                  ) : null}
+                  {onSearchWeb && !(onStartSynthesis && resultGroups.held.length > 0) ? (
                     <button type="button" onClick={() => onSearchWeb(q)}>
                       Search wider
                     </button>
@@ -1746,6 +1779,9 @@ export function BrowsePage({
                   ) : null}
                 </div>
               </div>
+              {synthesisStartError ? (
+                <p className="rd-v2-inline-error" role="status">{synthesisStartError}</p>
+              ) : null}
 
               <DiscoverEvidenceField
               query={q}

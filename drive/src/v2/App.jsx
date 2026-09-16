@@ -2,7 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { V2DeskHeader } from "@/v2/V2DeskHeader";
 import {
   approveJob,
+  applySynthesisEvidenceMap,
   clearDeskSession,
+  createSynthesisThread,
   describeDataset,
   deskHealth,
   deskResources,
@@ -937,6 +939,44 @@ export function V2App() {
     goTab("synthesis");
   }, [synthesisDiscoverHandoff, goTab]);
 
+  const startSynthesisFromDiscover = useCallback(
+    async ({ objective, datasetIds = [] } = {}) => {
+      const researchObjective = String(objective || "").trim();
+      const exactDatasetIds = [...new Set(
+        (Array.isArray(datasetIds) ? datasetIds : [])
+          .map((id) => String(id || "").trim())
+          .filter(Boolean),
+      )];
+      if (!researchObjective || !exactDatasetIds.length) {
+        throw new Error("Choose at least one held Library result before starting Synthesis.");
+      }
+
+      const title = researchObjective.split(/[.!?]/)[0].trim().slice(0, 120) || "Discover evidence synthesis";
+      try {
+        const created = await createSynthesisThread({
+          objective: researchObjective,
+          title,
+        });
+        const mapped = await applySynthesisEvidenceMap(created.id, {
+          datasetIds: exactDatasetIds,
+        });
+        const thread = mapped?.thread || (mapped?.state ? mapped : created);
+        setFocusSynthesisThreadId(thread.id);
+        setSynthesisRefreshVersion((current) => current + 1);
+        setActiveObject(synthesisThreadObject(thread));
+        goTab("synthesis");
+        showToast(
+          `Synthesis started with ${exactDatasetIds.length} exact Library ${exactDatasetIds.length === 1 ? "result" : "results"}`,
+        );
+        return thread;
+      } catch (cause) {
+        showToast(cause?.message || "Could not start Synthesis from these Library results");
+        throw cause;
+      }
+    },
+    [goTab, showToast],
+  );
+
   const selectDataset = useCallback(
     (row) => {
       const id = row?.dataset_id || row?.id;
@@ -1822,6 +1862,7 @@ export function V2App() {
           onSearchWeb={searchDiscoverWider}
           onAskQuery={askDiscoverQuery}
           onReviewAcquisition={canSubmitCollection ? askAddToLab : undefined}
+          onStartSynthesis={canUseAsk ? startSynthesisFromDiscover : undefined}
           assessmentActive={discoverAssessment.active}
           assessmentResult={discoverAssessment.result}
           onOpenAssessment={openDiscoverAssessment}
