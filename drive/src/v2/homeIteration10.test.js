@@ -226,3 +226,23 @@ test("recent trail keeps host verification probes out of researcher work", () =>
   assert.equal(trail.length, 1);
   assert.match(trail[0].title, /BAYC/);
 });
+
+test("recent trail translates worker exceptions instead of exposing serialized job payloads", () => {
+  const trail = buildRecentTrail({
+    jobs: [
+      {
+        id: "failed-figshare",
+        status: "failed",
+        title: "Launch acceptance Figshare acquisition",
+        error: 'RuntimeError: remote collect exited 1: {"ok":false,"job_id":"discover-submit:abc","items":[{"status":404,"error":"HTTP 404"}]}',
+        updated_at: "2026-09-09T17:32:52Z",
+      },
+    ],
+    datasets: [],
+  });
+
+  assert.equal(trail.length, 1);
+  assert.equal(trail[0].kind, "COLLECTION FAILED");
+  assert.equal(trail[0].summary, "The source file was not available; review the recorded route in History.");
+  assert.doesNotMatch(trail[0].summary, /RuntimeError|job_id|\{|\}/);
+});
