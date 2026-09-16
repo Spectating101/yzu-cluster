@@ -72,6 +72,17 @@ export function composerRuntimeRead(runtime) {
 }
 
 /**
+ * Operators receive the full health document. Ordinary Ask members receive a
+ * deliberately small runtime observation in desk capabilities instead. Both
+ * must drive the same Synthesis gate without exposing operations telemetry.
+ */
+export function composerRuntimeFromSources(health, deskAccess) {
+  return composerRuntimeRead(
+    health?.desk?.composer_runtime ?? deskAccess?.assistant_runtime,
+  );
+}
+
+/**
  * Name the provider that /health says is actually serving Ask.  The runtime
  * model is deliberately kept separate: Copilot's `auto` pool may resolve a
  * different model per turn, so a cached probe model is not a durable product

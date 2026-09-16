@@ -5,6 +5,7 @@ import {
   applySynthesisEvidenceMap,
   clearDeskSession,
   createSynthesisThread,
+  deskCapabilities,
   describeDataset,
   deskHealth,
   deskResources,
@@ -97,7 +98,7 @@ import { discoverCandidateState } from "@/v2/browseMeta";
 import { buildRailContext } from "@/v2/railContext";
 import { holdingIdsFromCatalog, isLocalHolding } from "@/v2/discoverTaxonomy";
 import { libraryEvidence, libraryHoldings, libraryReferences } from "@/v2/deskCounts";
-import { composerRuntimeRead } from "@/v2/composerRuntimeStatus";
+import { composerRuntimeFromSources } from "@/v2/composerRuntimeStatus";
 
 const DESK_HEALTH_READY_POLL_MS = 60_000;
 const DESK_HEALTH_RECHECK_MS = 10_000;
@@ -297,7 +298,7 @@ export function V2App() {
   const authenticatedEmail = String(deskAccess?.principal?.email || "").trim();
   const canUseAsk = Boolean(deskAccess?.permissions?.use_ask);
   const canViewFacultyProfile = Boolean(deskAccess?.permissions?.view_faculty_profile);
-  const composerRuntime = composerRuntimeRead(health?.desk?.composer_runtime);
+  const composerRuntime = composerRuntimeFromSources(health, deskAccess);
   const canSubmitCollection = Boolean(deskAccess?.permissions?.submit_collection);
   const canApproveJobs = Boolean(deskAccess?.permissions?.approve_jobs);
   const canViewOperations = Boolean(deskAccess?.permissions?.view_operations);
@@ -671,6 +672,35 @@ export function V2App() {
       document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [composerRuntime?.ready, deskAccess?.authenticated, canViewOperations]);
+
+  useEffect(() => {
+    if (!deskAccess?.authenticated || !canUseAsk || canViewOperations) return undefined;
+    let cancelled = false;
+    const pollCapabilities = () => {
+      if (document.visibilityState === "hidden") return;
+      deskCapabilities()
+        .then((access) => {
+          if (!cancelled) setDeskAccess(access || { authenticated: false });
+        })
+        .catch(() => {
+          // Preserve the last measured runtime truth. Ask remains available,
+          // while Synthesis stays fail-closed until a verified observation arrives.
+        });
+    };
+    const intervalMs = composerRuntime?.ready
+      ? DESK_HEALTH_READY_POLL_MS
+      : DESK_HEALTH_RECHECK_MS;
+    const handle = window.setInterval(pollCapabilities, intervalMs);
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") pollCapabilities();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      cancelled = true;
+      window.clearInterval(handle);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [composerRuntime?.ready, deskAccess?.authenticated, canUseAsk, canViewOperations]);
 
   const askFromPrompt = useCallback((prompt) => {
     if (!prompt) return;
