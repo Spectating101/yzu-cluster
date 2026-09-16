@@ -212,7 +212,10 @@ test.describe("Discover continuous hostile researcher journey", () => {
 
     // Correct the research brief. The old sourcing answer must be replaced by a
     // sourcing route grounded in the revised requirement before acquisition.
-    await evidence.locator("details.rd-v2-evidence-edit > summary").click();
+    const assessmentDetails = evidence.locator("details.rd-v2-evidence-detail-disclosure.is-workspace");
+    await assessmentDetails.locator(":scope > summary").click();
+    await expect(assessmentDetails).toHaveAttribute("open", "");
+    await assessmentDetails.locator("details.rd-v2-evidence-edit > summary").click();
     await evidence.getByLabel("Fields value").fill("director_tenure, independent_director_ratio");
     await evidence.getByRole("button", { name: "Apply & reassess" }).click();
     await expect(evidence).toContainText("Director-tenure and independent-director ratio are not evidenced");
@@ -223,8 +226,12 @@ test.describe("Discover continuous hostile researcher journey", () => {
 
     // Sourcing found an explicitly acquirable artifact. Opening it must yield
     // backend-authored procurement engineering, not an operator dashboard.
-    const ranked = page.getByTestId("discover-ranked-results");
-    await ranked.getByRole("button", { name: "Review acquisition route" }).click();
+    const nextActions = page.getByLabel("Discover next actions");
+    await expect(nextActions).toHaveAttribute("data-has-evidence-gap", "true");
+    await nextActions.getByRole("button", { name: "Review sourcing strategy" }).click();
+    const comparison = page.getByTestId("discover-route-comparison");
+    await expect(comparison).toBeVisible();
+    await comparison.getByRole("button", { name: /Review acquisition route/ }).click();
     const workspace = page.getByTestId("discover-intent-workspace");
     await expect(workspace).toBeVisible();
     const engineering = workspace.getByTestId("discover-procurement-engineering");
