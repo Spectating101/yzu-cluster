@@ -7,7 +7,7 @@ import {
   ResourcesRailPanel,
 } from "@/v2/RailPanels";
 import { ProfileDetailPanel } from "@/v2/ProfilePage";
-import { activeObjectSelectionHint } from "@/v2/activeObject";
+import { activeObjectBelongsToTab, activeObjectSelectionHint } from "@/v2/activeObject";
 import { displayName } from "@/v2/datasetMeta";
 import { LibraryDatasetRailPanel } from "@/v2/LibraryDatasetRailPanel";
 import { LibraryFolderRailPanel } from "@/v2/LibraryFolderRailPanel";
@@ -76,22 +76,6 @@ const MOBILE_RAIL_IDLE_HINTS = new Set([
   "Profile",
   "Desk setup",
 ]);
-
-function activeHintBelongsToTab(mainTab, object) {
-  if (!object) return false;
-  if (mainTab === "library") {
-    return ["library_folder", "library_intake", "dataset"].includes(object.kind);
-  }
-  if (mainTab === DISCOVER_TAB) {
-    return ["external_candidate", "discover_history", "discover_investigation"].includes(object.kind);
-  }
-  if (mainTab === "resources") return object.kind === "resource_row";
-  if (mainTab === "home") {
-    return object.kind === "home_attention" || (object.kind === "dataset" && object.owner === "home");
-  }
-  if (mainTab === "synthesis") return object.kind === "synthesis_thread";
-  return false;
-}
 
 function DiscoverAssessmentRailSummary({ state, onClose }) {
   const result = state?.result || null;
@@ -361,7 +345,7 @@ export function InspectorRail({
     );
   }
 
-  const allowActiveHint = activeHintBelongsToTab(mainTab, activeObject);
+  const allowActiveHint = activeObjectBelongsToTab(mainTab, activeObject);
   const selectionHint =
     (allowActiveHint ? activeObjectSelectionHint(activeObject) : "") ||
     railSelectionHint(

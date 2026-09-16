@@ -96,6 +96,7 @@ import { discoverModeFromLegacy, discoverModeToUrlState } from "@/v2/discoverMod
 import { isDiscoverHistoryJob, jobToDiscoverHistoryEvent, pendingApprovalJobs } from "@/v2/procurementJobs";
 import { discoverCandidateState } from "@/v2/browseMeta";
 import { buildRailContext } from "@/v2/railContext";
+import { askDatasetForSurface } from "@/v2/askContext";
 import { holdingIdsFromCatalog, isLocalHolding } from "@/v2/discoverTaxonomy";
 import { libraryEvidence, libraryHoldings, libraryReferences } from "@/v2/deskCounts";
 import { composerRuntimeFromSources } from "@/v2/composerRuntimeStatus";
@@ -820,6 +821,30 @@ export function V2App() {
         profileEmail: profile?.email || loadUserEmail(),
       }),
     [tab, railTab, detail, activeObject, pageSearchQuery, folderId, profile],
+  );
+
+  const askDataset = useMemo(
+    () =>
+      askDatasetForSurface({
+        tab,
+        detail,
+        activeObject,
+        browseTarget,
+        discoverIntentRecord,
+        selectedHistoryEvent,
+        resourceRow,
+        profile,
+      }),
+    [
+      tab,
+      detail,
+      activeObject,
+      browseTarget,
+      discoverIntentRecord,
+      selectedHistoryEvent,
+      resourceRow,
+      profile,
+    ],
   );
 
   const syncUrl = useCallback(
@@ -2266,54 +2291,7 @@ export function V2App() {
         onSubmitLibraryProcure={canSubmitCollection ? submitLibraryProcure : undefined}
         askPanel={
           canUseAsk ? <AskRail
-            dataset={
-              tab === "resources" && resourceRow
-                ? {
-                    title: `Resources · ${resourceRow.label}`,
-                  }
-                : tab === DISCOVER_TAB
-                  ? discoverIntentRecord
-                    ? {
-                        title: discoverIntentRecord.intent?.title || discoverIntentRecord.candidate?.title || "Acquisition review",
-                        kind: "discover_intent",
-                        intent_id: discoverIntentRecord.intent?.id,
-                        research_need: discoverIntentRecord.intent?.research_need || discoverIntentRecord.researchNeed,
-                      }
-                    : selectedHistoryEvent
-                    ? { ...selectedHistoryEvent, title: selectedHistoryEvent.target || selectedHistoryEvent.title, kind: "discover_history" }
-                    : browseTarget || (activeObject?.kind === "discover_investigation" ? activeObject : null)
-                : tab === "home"
-                  ? activeObject?.kind === "home_attention"
-                    ? {
-                        title: `Home · ${activeObject.title}`,
-                        kind: "home_attention",
-                        id: activeObject.id,
-                      }
-                    : detail
-                : activeObject?.kind === "library_folder" || activeObject?.kind === "library_intake"
-                  ? {
-                      title: `Library · ${activeObject.title}`,
-                    }
-                : tab === "synthesis"
-                  ? activeObject?.kind === "synthesis_thread"
-                    ? {
-                        title: activeObject.title,
-                        kind: "synthesis_thread",
-                        thread_id: activeObject.id,
-                        session_id: activeObject.thread?.session_id || "",
-                      }
-                    : { title: "Synthesis studio", kind: "synthesis_thread" }
-                : tab === "profile"
-                  ? {
-                      title:
-                        profile?.name_en && !profile.unknown
-                          ? `Profile · ${profile.name_en}`
-                          : "Profile",
-                    }
-                : tab === "settings"
-                  ? { title: "Desk setup" }
-                : detail
-            }
+            dataset={askDataset}
             mainTab={tab}
             searchQuery={pageSearchQuery}
             pendingMessage={pendingAsk}

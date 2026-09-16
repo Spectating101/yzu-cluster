@@ -1,4 +1,5 @@
 import { displayName } from "@/v2/datasetMeta";
+export { activeObjectBelongsToTab } from "./contextOwnership.js";
 import { candidateKey } from "@/v2/candidateKey";
 
 function compactText(value, fallback = "") {

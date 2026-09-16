@@ -4,6 +4,7 @@ import { assetAuthorityContext } from "@/v2/assetAuthority";
 import { connectorContext } from "@/v2/connectorContract";
 import { normalizeSynthesisExecution } from "@/v2/executionLifecycle";
 import { synthesisAssist } from "@/v2/synthesisAssist.js";
+import { activeObjectBelongsToTab } from "./contextOwnership.js";
 
 function readinessLabel(dataset) {
   const raw = String(dataset?.analysis_readiness || "").trim();
@@ -124,26 +125,28 @@ export function buildRailContext({
   folderId = "",
   profileEmail = "",
 } = {}) {
+  const scopedObject = activeObjectBelongsToTab(tab, activeObject) ? activeObject : null;
+  const scopedDataset = tab === "home" || tab === "library" ? dataset : null;
   let entity = null;
   let datasetId = "";
   let actions = [];
   let selected = null;
 
-  if (activeObject?.kind === "external_candidate") {
-    const row = activeObject.row || {};
+  if (scopedObject?.kind === "external_candidate") {
+    const row = scopedObject.row || {};
     const contract = connectorContext(row);
-    const key = row.candidate_key || candidateKey(row) || activeObject.id || "";
+    const key = row.candidate_key || candidateKey(row) || scopedObject.id || "";
     entity = {
       kind: "external_candidate",
-      id: activeObject.id,
-      title: activeObject.title,
+      id: scopedObject.id,
+      title: scopedObject.title,
       source_id: contract.source_id,
       connector_id: contract.connector_id,
       candidate_key: key || undefined,
       status: contract.access_state || undefined,
     };
     selected = {
-      title: activeObject.title,
+      title: scopedObject.title,
       candidate_key: key || undefined,
       ...contract,
     };
@@ -155,22 +158,22 @@ export function buildRailContext({
     if (contract.credential_required) actions.push("configure_access");
     if (contract.access_state === "rate_limited" && contract.retryable) actions.push("retry_later");
     if (!contract.supported) actions.push("find_alternative_source");
-  } else if (activeObject?.kind === "discover_history") {
-    const row = activeObject.row || {};
+  } else if (scopedObject?.kind === "discover_history") {
+    const row = scopedObject.row || {};
     const meta = row.meta || {};
     const status = row.status || meta.status || "";
     const sourceId = meta.source_id || row.source_id || "";
     const candidateKey = meta.candidate_key || row.candidate_key || "";
-    const eventId = row.id || meta.intent_id || meta.job_id || meta.subscription_id || activeObject.id || "";
+    const eventId = row.id || meta.intent_id || meta.job_id || meta.subscription_id || scopedObject.id || "";
     entity = {
       kind: "discover_history",
       id: eventId,
-      title: activeObject.title,
+      title: scopedObject.title,
       status: status || undefined,
       event_kind: row.kind || row.action || undefined,
     };
     selected = {
-      title: activeObject.title,
+      title: scopedObject.title,
       status: status || undefined,
       event_kind: row.kind || row.action || undefined,
       source_id: sourceId || undefined,
@@ -183,18 +186,18 @@ export function buildRailContext({
     if (/pending_approval|ready_for_review|awaiting|needs_approval/i.test(String(status))) {
       actions.push("review_request");
     }
-  } else if (activeObject?.kind === "resource_row") {
-    const row = activeObject.row || {};
+  } else if (scopedObject?.kind === "resource_row") {
+    const row = scopedObject.row || {};
     const lifecycle = row.lifecycle || {};
     const sourceContract = row.kind === "source" ? connectorContext(row) : null;
     entity = {
       kind: "resource_row",
-      id: activeObject.id,
-      title: activeObject.title,
+      id: scopedObject.id,
+      title: scopedObject.title,
       status: lifecycle.stage || sourceContract?.access_state || row.metric || undefined,
     };
     selected = {
-      title: activeObject.title,
+      title: scopedObject.title,
       resource_kind: row.kind || undefined,
       status: lifecycle.stage || sourceContract?.access_state || row.metric || undefined,
       detail: row.detail || lifecycle.detail || undefined,
@@ -210,14 +213,14 @@ export function buildRailContext({
     }
     if (sourceContract?.credential_required) actions.push("configure_access");
     if (sourceContract?.probe_required) actions.push("probe");
-  } else if (activeObject?.kind === "library_folder" || activeObject?.kind === "library_intake") {
-    entity = { kind: activeObject.kind, id: activeObject.id, title: activeObject.title };
+  } else if (scopedObject?.kind === "library_folder" || scopedObject?.kind === "library_intake") {
+    entity = { kind: scopedObject.kind, id: scopedObject.id, title: scopedObject.title };
     actions = ["upload", "add_url", "procure"];
-  } else if (activeObject?.kind === "home_attention") {
-    entity = { kind: "home_attention", id: activeObject.id, title: activeObject.title };
+  } else if (scopedObject?.kind === "home_attention") {
+    entity = { kind: "home_attention", id: scopedObject.id, title: scopedObject.title };
     actions = ["open", "ask_about"];
-  } else if (activeObject?.kind === "synthesis_thread") {
-    const thread = activeObject.thread || {};
+  } else if (scopedObject?.kind === "synthesis_thread") {
+    const thread = scopedObject.thread || {};
     const state = thread.state || {};
     const lifecycle = normalizeSynthesisExecution(thread);
     const assist = synthesisAssist(thread);
@@ -227,15 +230,15 @@ export function buildRailContext({
     const unmeasured = Array.isArray(state.unmeasured) ? state.unmeasured : [];
     entity = {
       kind: "synthesis_thread",
-      id: activeObject.id,
-      title: activeObject.title,
+      id: scopedObject.id,
+      title: scopedObject.title,
       status: assist.status || (lifecycle.stage !== "unknown" ? lifecycle.stage : state.maturity || undefined),
       synthesis_stage: assist.stage,
       decision_kind: assist.decisionKind,
     };
     selected = {
-      thread_id: activeObject.id,
-      title: activeObject.title,
+      thread_id: scopedObject.id,
+      title: scopedObject.title,
       objective: thread.objective || state.objective || undefined,
       required_grain: state.required_grain || state.spec?.grain || undefined,
       maturity: state.maturity || state.maturityLabel || undefined,
@@ -274,19 +277,19 @@ export function buildRailContext({
     if (lifecycle.retryable && /failed|blocked/.test(lifecycle.stage)) actions.push("retry_execution");
     if (assist.stage === "result") actions.push("open_output");
     if (lifecycle.stage === "registered") actions.push("refresh_output");
-  } else if (dataset?.dataset_id) {
-    const authority = assetAuthorityContext(dataset);
+  } else if (scopedDataset?.dataset_id) {
+    const authority = assetAuthorityContext(scopedDataset);
     entity = {
       kind: "dataset",
-      id: dataset.dataset_id,
-      title: displayName(dataset),
+      id: scopedDataset.dataset_id,
+      title: displayName(scopedDataset),
       status: authority.readiness || undefined,
     };
     selected = {
-      title: displayName(dataset),
+      title: displayName(scopedDataset),
       ...authority,
     };
-    datasetId = dataset.dataset_id;
+    datasetId = scopedDataset.dataset_id;
     actions = ["ask_about", "inspect_lineage"];
     if (authority.readiness === "query_ready") actions.unshift("preview_rows");
     if (authority.refresh_policy) actions.push("refresh_asset");
@@ -298,11 +301,11 @@ export function buildRailContext({
     entity,
     selected: selected || undefined,
     dataset_id: datasetId || undefined,
-    folder_id: folderId || undefined,
-    search_query: searchQuery?.trim() || undefined,
+    folder_id: tab === "library" ? folderId || undefined : undefined,
+    search_query: tab === "browse" ? searchQuery?.trim() || undefined : undefined,
     profile_email: profileEmail || undefined,
-    readiness: dataset ? readinessLabel(dataset) : undefined,
-    vault_path: dataset ? vaultPath(dataset) : undefined,
+    readiness: scopedDataset ? readinessLabel(scopedDataset) : undefined,
+    vault_path: scopedDataset ? vaultPath(scopedDataset) : undefined,
     actions: actions.length ? actions : undefined,
   };
 }
