@@ -83,29 +83,19 @@ test.describe("Discover visual convergence", () => {
     await openDiscover(page);
 
     const coverage = page.getByTestId("discover-coverage");
+    const radar = page.getByTestId("discover-research-radar");
     await expect(coverage).toBeVisible();
+    await expect(radar).toBeVisible();
     await expect(page.getByTestId("discover-query-composer")).toBeVisible();
-    const path = coverage.locator(".rd-v2-discover-evidence-path");
-    const stages = path.locator("li");
-    await expect(stages).toHaveCount(4);
-    await expect(stages.nth(0)).toContainText("Evidence need");
-    await expect(stages.nth(0)).toContainText("reviewable evidence contract");
-    await expect(stages.nth(1)).toContainText("Library position");
-    await expect(stages.nth(1)).toContainText("before new acquisition");
-    await expect(stages.nth(2)).toContainText("Sourcing strategy");
-    await expect(stages.nth(2)).toContainText("unresolved evidence gaps");
-    await expect(stages.nth(3)).toContainText("Reviewed acquisition");
-    await expect(stages.nth(3)).toContainText("approval before collection");
+    await expect(radar).toContainText("Research radar");
+    await expect(radar).toContainText("Your evidence universe before the next search");
+    await expect(radar).toContainText("Acquisition & execution");
+    await expect(radar).toContainText("From evidence gap to Library object");
+    await expect(radar).toContainText("Awaiting approval");
+    await expect(coverage).toContainText("Your Library");
+    await expect(coverage).toContainText("query-ready");
+    await expect(coverage.locator(".rd-v2-discover-evidence-path")).toHaveCount(0);
     await page.screenshot({ path: `${OUT}/discover-idle-1440x900.png`, fullPage: false });
-    const offenders = await path.locator("li").evaluateAll((nodes) =>
-      nodes.map((node, index) => ({
-        index,
-        text: node.textContent?.replace(/\s+/g, " ").trim(),
-        clientWidth: node.clientWidth,
-        scrollWidth: node.scrollWidth,
-      })).filter((item) => item.scrollWidth > item.clientWidth + 2),
-    );
-    expect(offenders, `evidence-path overflow: ${JSON.stringify(offenders)}`).toEqual([]);
     await assertNoHorizontalOverflow(page);
 
     await page.setViewportSize({ width: 1920, height: 1080 });
@@ -125,15 +115,12 @@ test.describe("Discover visual convergence", () => {
     await expect(summary).toContainText("1 offering with a declared route");
     await expect(page.getByTestId("discover-ranked-results")).toBeVisible();
     await expect(page.getByTestId("discover-context-results")).toBeVisible();
-    await expect(page.getByRole("button", { name: "Review acquisition route", exact: true })).toHaveCount(1);
+    await expect(page.getByRole("button", { name: /Add to collection/ })).toHaveCount(1);
     await assertNoHorizontalOverflow(page);
 
     const decisionBand = page.getByLabel("Discover next actions");
-    await expect(decisionBand).toBeVisible();
-    const bandBox = await decisionBand.boundingBox();
-    const resultsBox = await page.getByTestId("discover-ranked-results").boundingBox();
-    expect(bandBox && resultsBox).toBeTruthy();
-    expect(bandBox.y).toBeLessThan(resultsBox.y);
+    await expect(decisionBand).toBeHidden();
+    await expect(decisionBand).toHaveAttribute("data-has-evidence-gap", "false");
 
     await page.screenshot({ path: `${OUT}/discover-results-1440x900.png`, fullPage: false });
 
@@ -143,7 +130,7 @@ test.describe("Discover visual convergence", () => {
   });
 
 
-  test("research question promotes evidence position, sourcing strategy, and capacity above search results", async ({ page }) => {
+  test("research question promotes evidence position and sourcing strategy without workflow sprawl", async ({ page }) => {
     await mockV2Api(page, { ...resultFixture(), assessmentBody: MOCK_DISCOVER_ASSESSMENT });
     await page.setViewportSize({ width: 1440, height: 900 });
     await openDiscover(page);
@@ -159,16 +146,13 @@ test.describe("Discover visual convergence", () => {
     await expect(workspace).toContainText(/Collector fleet|BigQuery|GDrive vault/);
     await expect(workspace).toContainText("No worker or quota is assigned here");
 
-    const capacityCards = workspace.locator(".rd-v2-evidence-capacity-grid > div");
-    const capacityCardBoxes = await capacityCards.evaluateAll((nodes) => nodes.map((node) => ({
-      width: node.getBoundingClientRect().width,
-      height: node.getBoundingClientRect().height,
-      clientWidth: node.clientWidth,
-      scrollWidth: node.scrollWidth,
-    })));
-    expect(capacityCardBoxes.length).toBeGreaterThan(0);
-    expect(Math.min(...capacityCardBoxes.map((box) => box.width))).toBeGreaterThanOrEqual(220);
-    expect(capacityCardBoxes.filter((box) => box.scrollWidth > box.clientWidth + 2)).toEqual([]);
+    const assessmentDetails = workspace.locator("details.rd-v2-evidence-detail-disclosure.is-workspace");
+    await expect(assessmentDetails).not.toHaveAttribute("open", "");
+    await expect(workspace.locator(".rd-v2-evidence-capacity-grid > div").first()).toBeHidden();
+    const nextActions = page.getByLabel("Discover next actions");
+    await expect(nextActions).toBeVisible();
+    await expect(nextActions).toHaveAttribute("data-has-evidence-gap", "true");
+    await expect(nextActions.getByRole("button", { name: "Review sourcing strategy" })).toBeVisible();
 
     const workspaceBox = await workspace.boundingBox();
     const resultsBox = await page.getByTestId("discover-ranked-results").boundingBox();
@@ -213,7 +197,7 @@ test.describe("Discover visual convergence", () => {
     await openDiscover(page);
     await search(page, "stablecoin market evidence");
 
-    await page.getByRole("button", { name: "Review acquisition route", exact: true }).click();
+    await page.getByRole("button", { name: /Add to collection/ }).click();
     const dialog = page.getByRole("dialog", { name: "Review acquisition" });
     await expect(dialog).toBeVisible();
     await expect(page.getByTestId("discover-intent-workspace")).toContainText("Acquisition review");
