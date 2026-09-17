@@ -143,7 +143,7 @@ test("Profile separates registry relationships from Library possession and exclu
   await page.goto("/?tab=profile", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
 
-  await expect(page.getByText("What Research Drive currently knows about this researcher")).toBeVisible();
+  await expect(page.getByText("Account identity, user-confirmed research context, and recorded scholarly evidence")).toBeVisible();
   await expect(page.getByText(/Source · faculty registry/)).toBeVisible();
   await expect(page.getByRole("heading", { name: "Research context on record" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Research evidence relationships" })).toBeVisible();
@@ -174,7 +174,7 @@ test("Settings evidence policy changes Library selection and Keep current preser
   await expect(page.getByTestId("research-situation").getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "true");
 });
 
-test("Settings wide Discover policy starts live semantic federation immediately", async ({ page }) => {
+test("Settings wide Discover policy starts bounded live federation immediately", async ({ page }) => {
   const seen = [];
   await mockV2Api(page, { jobsBody: { jobs: [] }, discoverBody: { sections: [], total: 0 } });
   await page.route("**/library/discover/sources?*", async (route) => {
@@ -190,7 +190,26 @@ test("Settings wide Discover policy starts live semantic federation immediately"
   await expect(search).toBeVisible();
   await search.fill("stablecoin depeg evidence");
   await search.press("Enter");
-  await expect.poll(() => seen.some((url) => url.includes("live=1") && url.includes("semantic=1"))).toBeTruthy();
+  await expect.poll(() => seen.some((url) => url.includes("live=1") && !url.includes("semantic=1"))).toBeTruthy();
+});
+
+test("a Discover research question searches first without spending Ask or assessment automatically", async ({ page }) => {
+  const reasoningRequests = [];
+  await mockV2Api(page, { jobsBody: { jobs: [] }, discoverBody: { sections: [], total: 0 } });
+  page.on("request", (request) => {
+    if (/\/library\/(?:chat|discover\/assessment)(?:\?|$)/.test(request.url())) {
+      reasoningRequests.push(request.url());
+    }
+  });
+
+  await page.goto("/?tab=discover", { waitUntil: "domcontentloaded" });
+  await waitForShell(page);
+  await page.getByLabel("Search or describe a research need").fill("How do forest fires affect county employment?");
+  await page.getByRole("button", { name: "Explore", exact: true }).click();
+  await expect(page.getByTestId("discover-result-summary")).toBeVisible();
+  await expect(page.getByText("Results arrive first. Use Review assessment or Ask when you want interpretation.")).toHaveCount(1);
+  await page.waitForTimeout(500);
+  expect(reasoningRequests).toEqual([]);
 });
 
 test("Synthesis evidence-gap handoff overrides wide preference and begins known-first", async ({ page }) => {

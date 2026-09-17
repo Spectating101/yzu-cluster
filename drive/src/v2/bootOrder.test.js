@@ -56,12 +56,11 @@ test("deferred enrichment is still fetched, not dropped", () => {
   at("listJobs()");
 });
 
-test("Copilot priming is permission-gated background work, never boot work", () => {
-  const warm = at("void deskWarm({ userEmail: email || undefined, background: true })");
-  const backend = at("const refreshBackend = useCallback");
-  const visibleEstate = at("applyCatalog(await listDatasets())");
-  assert.ok(warm > backend, "warmup must not be folded into refreshBackend");
-  assert.ok(warm > visibleEstate, "the visible estate must remain ahead of optional priming");
-  at("if (!deskAccess?.authenticated || !canUseAsk) return undefined");
-  at("public guests never spend inference");
+test("Copilot priming belongs to the active Ask context, never application boot", () => {
+  assert.doesNotMatch(src, /deskWarm\s*\(/);
+  const askSource = readFileSync(new URL("./useAskChat.js", import.meta.url), "utf8");
+  assert.match(askSource, /if \(!warmEnabled\) return undefined/);
+  assert.match(askSource, /background: false/);
+  assert.match(askSource, /saveChatSessionId\(sessionId, contextKey\)/);
+  assert.match(askSource, /await beginWarm\(\)/);
 });

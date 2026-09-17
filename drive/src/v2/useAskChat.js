@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  deskWarm,
   getChatSession,
   linkSynthesisThreadConversation,
   sendChatMessage,
@@ -107,6 +108,7 @@ export function useAskChat({
   onCollected,
   onSynthesisChanged,
   onToast,
+  warmEnabled = false,
 } = {}) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
@@ -117,12 +119,52 @@ export function useAskChat({
   const contextRef = useRef(askContextKey(dataset, railContext));
   const busyRef = useRef(false);
   const requestEpochRef = useRef(0);
+  const warmPromiseRef = useRef(null);
+  const warmContextRef = useRef("");
+  const warmTimerRef = useRef(null);
   const synthesisObjectContextRef = useRef(null);
   const synthesisThreadId =
     dataset?.kind === "synthesis_thread" ? String(dataset.thread_id || "") : "";
   const synthesisSessionId =
     dataset?.kind === "synthesis_thread" ? String(dataset.session_id || "") : "";
   const contextKey = contextPart(contextKeyOverride) || askContextKey(dataset, railContext);
+
+  const beginWarm = useCallback(() => {
+    if (!warmEnabled) return Promise.resolve(null);
+    if (warmContextRef.current === contextKey) {
+      return warmPromiseRef.current || Promise.resolve({ session_id: sessionRef.current || "" });
+    }
+
+    const existingSessionId = synthesisThreadId
+      ? synthesisSessionId
+      : loadChatSessionId(contextKey);
+    if (existingSessionId) {
+      warmContextRef.current = contextKey;
+      sessionRef.current = existingSessionId;
+      return Promise.resolve({ session_id: existingSessionId });
+    }
+
+    warmContextRef.current = contextKey;
+    const warming = deskWarm({
+      sessionId: undefined,
+      userEmail: loadUserEmail() || undefined,
+      background: false,
+    })
+      .then((out) => {
+        const sessionId = String(out?.session_id || "").trim();
+        if (sessionId && contextRef.current === contextKey) {
+          sessionRef.current = sessionId;
+          if (!synthesisThreadId) saveChatSessionId(sessionId, contextKey);
+        }
+        return out;
+      })
+      .catch(() => null)
+      .finally(() => {
+        if (warmPromiseRef.current === warming) warmPromiseRef.current = null;
+      });
+    warmPromiseRef.current = warming;
+    return warming;
+  }, [contextKey, synthesisSessionId, synthesisThreadId, warmEnabled]);
 
   useEffect(() => {
     railRef.current = railContext;
@@ -177,6 +219,31 @@ export function useAskChat({
       cancelled = true;
     };
   }, [contextKey, synthesisThreadId, synthesisSessionId]);
+
+  useEffect(() => {
+    if (!warmEnabled) return undefined;
+    if (warmContextRef.current === contextKey) return undefined;
+
+    const existingSessionId = synthesisThreadId
+      ? synthesisSessionId
+      : loadChatSessionId(contextKey);
+    if (existingSessionId) {
+      warmContextRef.current = contextKey;
+      sessionRef.current = existingSessionId;
+      return undefined;
+    }
+
+    // Ask must be deliberate. Give transient navigation 300 ms to settle so
+    // merely passing through a context cannot spend inference.
+    warmTimerRef.current = window.setTimeout(() => {
+      warmTimerRef.current = null;
+      void beginWarm();
+    }, 300);
+    return () => {
+      if (warmTimerRef.current) window.clearTimeout(warmTimerRef.current);
+      warmTimerRef.current = null;
+    };
+  }, [beginWarm, contextKey, synthesisSessionId, synthesisThreadId, warmEnabled]);
 
   const contextPrefix = dataset?.dataset_id
     ? `[context: ${dataset.dataset_id}] `
@@ -235,6 +302,12 @@ export function useAskChat({
       ]);
 
       try {
+        if (warmTimerRef.current) {
+          window.clearTimeout(warmTimerRef.current);
+          warmTimerRef.current = null;
+        }
+        if (warmEnabled && !sessionRef.current) await beginWarm();
+        else if (warmPromiseRef.current) await warmPromiseRef.current;
         const out = await sendChatMessage(full, {
           sessionId: sessionRef.current,
           userEmail: loadUserEmail(),
@@ -433,12 +506,14 @@ export function useAskChat({
     [
       contextKey,
       contextPrefix,
+      beginWarm,
       input,
       onCollected,
       onSynthesisChanged,
       onToast,
       synthesisSessionId,
       synthesisThreadId,
+      warmEnabled,
     ],
   );
 

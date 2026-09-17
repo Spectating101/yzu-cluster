@@ -49,7 +49,7 @@ function synthesisPhaseLabel(thread) {
   return humanize(stage);
 }
 
-function discoverSituation({ browseTarget, browseLifecycle, historyEvent, discoverIntentRecord, discoverAssessment, restingSummary }) {
+function discoverSituation({ browseTarget, browseLifecycle, historyEvent, discoverIntentRecord, discoverAssessment, restingSummary, discoverMode }) {
   if (discoverIntentRecord) {
     const state = humanize(
       discoverIntentRecord.state?.status ||
@@ -98,6 +98,14 @@ function discoverSituation({ browseTarget, browseLifecycle, historyEvent, discov
       status: lifecycleLabel || humanize(browseTarget.group_label || browseTarget.analysis_readiness) || "Candidate evidence",
       facts: [sourceLabel(browseTarget), text(browseTarget.coverage || browseTarget.date_range)],
       next: "Confirm fit, source evidence, and collection route before promoting this candidate into the Library.",
+    };
+  }
+
+  if (discoverMode === "history") {
+    return {
+      status: "Research lifecycle",
+      facts: [],
+      next: "Select a lifecycle item to inspect its consequence, evidence, and next valid action.",
     };
   }
 
@@ -256,6 +264,7 @@ export function ResearchSituationRail({
   historyEvent,
   discoverIntentRecord,
   discoverAssessment,
+  discoverMode,
   restingSummary,
   resourceRow,
   resourcesDecisionCount = 0,
@@ -282,6 +291,7 @@ export function ResearchSituationRail({
     historyEvent,
     discoverIntentRecord,
     discoverAssessment,
+    discoverMode,
     restingSummary,
     resourceRow,
     resourcesDecisionCount,

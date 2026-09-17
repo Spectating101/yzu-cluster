@@ -299,8 +299,6 @@ function DiscoverQueryComposer({
   value,
   onValueChange,
   onSearch,
-  onAsk,
-  onAssess,
   idle = false,
 }) {
   const submit = (event) => {
@@ -308,12 +306,6 @@ function DiscoverQueryComposer({
     const next = String(value || "").trim();
     if (!next) return;
     onSearch?.(next);
-    if (isDiscoverResearchQuestion(next)) {
-      // Assessment is deliberately started before Ask so the visible rail lands
-      // on the continuing conversation while the hidden Detail lens evaluates.
-      onAssess?.(next);
-      onAsk?.(next);
-    }
   };
   return (
     <form
@@ -333,7 +325,7 @@ function DiscoverQueryComposer({
         Explore
       </button>
       <p>
-        Keywords return fast results. A research question also starts a contextual Ask investigation automatically.
+        Results arrive first. Use Review assessment or Ask when you want interpretation.
       </p>
       <div className="rd-v2-discover-composer-scope" aria-label="Discover search universe">
         <span>Library index</span>
@@ -829,7 +821,7 @@ export function BrowsePage({
           const webPending = webDiscover(q, 8).catch(() => null);
           let sources = await discoverSources(q, {
             limit: 12,
-            semantic: true,
+            semantic: false,
             live: true,
           });
           let sourceRows = sourcesResponseToRows(sources);
@@ -1015,7 +1007,7 @@ export function BrowsePage({
       try {
         let extra = [];
         try {
-          const sources = await discoverSources(q, { limit: 12, semantic: true, live: true });
+          const sources = await discoverSources(q, { limit: 12, semantic: false, live: true });
           const sourceRows = sourcesResponseToRows(sources);
           extra = sourceRows;
           // A live source route is already useful evidence.  Do not hold it
@@ -1497,8 +1489,6 @@ export function BrowsePage({
               value={queryDraft}
               onValueChange={setQueryDraft}
               onSearch={requestSearch}
-              onAsk={(question) => onAskQuery?.(question, { kind: "investigation" })}
-              onAssess={onOpenAssessment}
               idle
             />
             <DiscoverResearchRadar
@@ -1591,8 +1581,6 @@ export function BrowsePage({
                   value={queryDraft}
                   onValueChange={setQueryDraft}
                   onSearch={requestSearch}
-                  onAsk={(question) => onAskQuery?.(question, { kind: "results", rows: merged })}
-                  onAssess={onOpenAssessment}
                 />
               </header>
 

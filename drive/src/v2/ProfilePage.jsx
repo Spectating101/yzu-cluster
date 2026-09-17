@@ -369,12 +369,17 @@ export function ProfilePage({
   onGoTab,
   onProfileRefresh,
   allowExamplePreview = false,
+  personalProfileAvailable = false,
 }) {
   const [personalDocument, setPersonalDocument] = useState(undefined);
   const [pilot, setPilot] = useState(null);
   const demoMode = explicitDemoMode();
 
   useEffect(() => {
+    if (!personalProfileAvailable) {
+      setPersonalDocument(null);
+      return undefined;
+    }
     let cancelled = false;
     getResearchProfile()
       .then((document) => {
@@ -386,7 +391,7 @@ export function ProfilePage({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [personalProfileAvailable]);
 
   const principalEmail = personalDocument?.principal?.email || "";
   const suppliedProfileBound = Boolean(profile && !profile.unknown);
@@ -598,12 +603,20 @@ export function ProfilePage({
 }
 
 /** DETAIL rail for Profile: account identity first, registry evidence second. */
-export function ProfileDetailPanel({ profile, allowExamplePreview = false }) {
+export function ProfileDetailPanel({
+  profile,
+  allowExamplePreview = false,
+  personalProfileAvailable = false,
+}) {
   const [personalDocument, setPersonalDocument] = useState(undefined);
   const [pilot, setPilot] = useState(null);
   const demoMode = explicitDemoMode();
 
   useEffect(() => {
+    if (!personalProfileAvailable) {
+      setPersonalDocument(null);
+      return undefined;
+    }
     let cancelled = false;
     getResearchProfile()
       .then((document) => {
@@ -613,7 +626,7 @@ export function ProfileDetailPanel({ profile, allowExamplePreview = false }) {
         if (!cancelled) setPersonalDocument(null);
       });
     return () => { cancelled = true; };
-  }, []);
+  }, [personalProfileAvailable]);
 
   useEffect(() => {
     const onPersonalProfileUpdated = (event) => {

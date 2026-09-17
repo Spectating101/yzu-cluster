@@ -69,6 +69,7 @@ export function AskRail({
   onApproveJob,
   onToast,
   railContext,
+  warmEnabled = false,
 }) {
   const { messages, input, setInput, busy, status, send, contextLabel } = useAskChat({
     dataset,
@@ -82,6 +83,7 @@ export function AskRail({
     onCollected,
     onSynthesisChanged,
     onToast,
+    warmEnabled,
   });
   const pendingSentRef = useRef("");
   const textareaRef = useRef(null);

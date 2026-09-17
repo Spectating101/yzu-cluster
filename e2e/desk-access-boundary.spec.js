@@ -77,10 +77,16 @@ test("a pending capability check never paints a misleading empty page", async ({
 
 test("a public guest can browse shared evidence but must sign in to Ask", async ({ page }, testInfo) => {
   const facultyRequests = [];
+  const personalProfileRequests = [];
+  const externalDatasetRequests = [];
   const privateSurfaceRequests = [];
   const forbiddenStartupRequests = [];
   page.on("request", (request) => {
     if (request.url().includes("/library/faculty/profile")) facultyRequests.push(request.url());
+    if (request.url().includes("/library/profile")) personalProfileRequests.push(request.url());
+    if (/\/datasets\/(?:source|doi|url|title)(?::|%3A)/i.test(request.url())) {
+      externalDatasetRequests.push(request.url());
+    }
     if (/\/library\/(?:synthesis\/threads|desk\/resources)|\/health(?:\?|$)/.test(request.url())) {
       privateSurfaceRequests.push(request.url());
     }
@@ -145,6 +151,7 @@ test("a public guest can browse shared evidence but must sign in to Ask", async 
   await expect(page.getByTestId("discover-result-summary")).toBeVisible();
   const rankedResults = page.getByTestId("discover-ranked-results");
   await rankedResults.getByRole("button", { name: /MOPS financial statements/ }).click();
+  await expect.poll(() => externalDatasetRequests).toEqual([]);
   const signInToRequest = page.locator("aside.rd-v2-rail").getByRole("button", {
     name: "Sign in to request evidence",
   });
@@ -178,6 +185,7 @@ test("a public guest can browse shared evidence but must sign in to Ask", async 
   await expect(page.getByLabel("Research profile access")).toContainText("Sign in to keep a research profile");
   await expect(page.getByText(/Bind example identity|Loading example profile|Use EXAMPLE/)).toHaveCount(0);
   await expect.poll(() => facultyRequests).toEqual([]);
+  await expect.poll(() => personalProfileRequests).toEqual([]);
   if (process.env.YZU_CAPTURE_VISUALS === "1") {
     await page.screenshot({ path: testInfo.outputPath("public-profile-1440x900.png"), fullPage: false });
     await page.goto("/?tab=settings", { waitUntil: "domcontentloaded" });

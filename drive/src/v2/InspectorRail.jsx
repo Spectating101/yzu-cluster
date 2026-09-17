@@ -29,6 +29,7 @@ function railSelectionHint(
   discoverAssessment,
   resourceRow,
   restingSummary,
+  discoverMode,
 ) {
   if (mainTab === DISCOVER_TAB && discoverIntentRecord) {
     return discoverIntentRecord.intent?.title || discoverIntentRecord.candidate?.title || "Acquisition review";
@@ -41,6 +42,9 @@ function railSelectionHint(
   }
   if (mainTab === DISCOVER_TAB && browseTarget) {
     return browseTarget.title || browseTarget.dataset_id || "Discover result";
+  }
+  if (mainTab === DISCOVER_TAB && discoverMode === "history") {
+    return "Discover history";
   }
   if (mainTab === DISCOVER_TAB && restingSummary?.hasResults) {
     return "Search summary";
@@ -176,6 +180,7 @@ export function InspectorRail({
   historyJob,
   discoverIntentRecord,
   discoverAssessment,
+  discoverMode = "explore",
   discoverCatalog = [],
   onDiscoverAssessmentChange,
   onDiscoverAssessmentActive,
@@ -240,6 +245,8 @@ export function InspectorRail({
       />
     ) : discoverAssessment?.active ? (
       <DiscoverAssessmentRailSummary state={discoverAssessment} onClose={onCloseDiscoverAssessment} />
+    ) : discoverMode === "history" ? (
+      <DiscoverHistoryRailPanel />
     ) : (
       <BrowseRailPanel
         target={browseTarget}
@@ -281,7 +288,13 @@ export function InspectorRail({
       />
     );
   } else if (mainTab === "profile") {
-    detailPanel = <ProfileDetailPanel profile={profile} allowExamplePreview={allowProfilePreview} />;
+    detailPanel = (
+      <ProfileDetailPanel
+        profile={profile}
+        allowExamplePreview={allowProfilePreview}
+        personalProfileAvailable={askAvailable}
+      />
+    );
   } else if (mainTab === "settings") {
     detailPanel = <PageRailPanel page="settings" onAskAbout={onAskAbout} />;
   } else if (mainTab === "synthesis") {
@@ -358,6 +371,7 @@ export function InspectorRail({
       discoverAssessment,
       resourceRow,
       discoverRestingSummary,
+      discoverMode,
     );
 
   const [mobileRailOpen, setMobileRailOpen] = useState(false);
@@ -440,6 +454,7 @@ export function InspectorRail({
           historyEvent={historyEvent}
           discoverIntentRecord={discoverIntentRecord}
           discoverAssessment={discoverAssessment}
+          discoverMode={discoverMode}
           restingSummary={discoverRestingSummary}
           resourceRow={resourceRow}
           resourcesDecisionCount={resourcesDecisionCount}

@@ -9,7 +9,6 @@ import {
   describeDataset,
   deskHealth,
   deskResources,
-  deskWarm,
   ensureDeskAccess,
   createDiscoverIntent,
   craftDiscoverIntentProposal,
@@ -292,9 +291,6 @@ export function V2App() {
   /** Ask can persist a review proposal; refresh the canvas in the same turn. */
   const [synthesisRefreshVersion, setSynthesisRefreshVersion] = useState(0);
   const healthRetryRef = useRef(null);
-  // Optional provider priming is keyed to the signed-in researcher and never
-  // participates in the visible estate boot sequence.
-  const deskWarmKeyRef = useRef("");
   const { toast, show: showToast, dismissIf: dismissToastIf } = useToast();
   const authenticatedEmail = String(deskAccess?.principal?.email || "").trim();
   const canUseAsk = Boolean(deskAccess?.permissions?.use_ask);
@@ -624,22 +620,6 @@ export function V2App() {
   }, [refreshDeskAccess]);
 
   useEffect(() => {
-    if (!deskAccess?.authenticated || !canUseAsk) return undefined;
-    const email = authenticatedEmail || loadUserEmail();
-    const key = String(deskAccess?.principal?.id || email || "authenticated");
-    if (deskWarmKeyRef.current === key) return undefined;
-
-    // Visible Library/Discover work gets the first 300 ms. Priming is a
-    // permission-gated best effort: public guests never spend inference, and
-    // a provider failure cannot turn Home into an error state.
-    const timer = window.setTimeout(() => {
-      deskWarmKeyRef.current = key;
-      void deskWarm({ userEmail: email || undefined, background: true }).catch(() => {});
-    }, 300);
-    return () => window.clearTimeout(timer);
-  }, [authenticatedEmail, canUseAsk, deskAccess?.authenticated, deskAccess?.principal?.id]);
-
-  useEffect(() => {
     if (deskAccess?.authenticated) refreshBackend();
   }, [refreshBackend, deskAccess?.authenticated]);
 
@@ -755,7 +735,12 @@ export function V2App() {
     // dataset id, but an external row is not a Library object. Its evidence is
     // already owned by `browseRow`; asking /datasets/:id for it creates a
     // predictable 404 on every selection and conflates candidate with holding.
-    if (tab === DISCOVER_TAB && browseRow && !selectedFromList) {
+    const browseAuthority = selectedFromList || browseRow;
+    const typedDiscoverCandidate = /^(?:source|doi|url|title):/i.test(String(selectedId));
+    if (
+      tab === DISCOVER_TAB &&
+      (typedDiscoverCandidate || (browseRow && !isLocalHolding(browseAuthority, labIds)))
+    ) {
       setDetail(null);
       setDetailLoading(false);
       return;
@@ -767,7 +752,7 @@ export function V2App() {
       .then((d) => setDetail((cur) => ({ ...cur, ...d })))
       .catch(() => {})
       .finally(() => setDetailLoading(false));
-  }, [selectedId, selectedFromList, browseRow, tab]);
+  }, [selectedId, selectedFromList, browseRow, tab, labIds]);
 
   const browseTarget = browseRow;
   // Direct Discover URLs may carry either a raw dataset id or a typed candidate
@@ -2061,6 +2046,7 @@ export function V2App() {
           onGoTab={goTab}
           onProfileRefresh={reloadProfile}
           allowExamplePreview={canViewFacultyProfile}
+          personalProfileAvailable={canUseAsk}
         />
       );
       break;
@@ -2237,6 +2223,7 @@ export function V2App() {
         historyJob={selectedHistoryJob}
         discoverIntentRecord={discoverIntentRecord}
         discoverAssessment={discoverAssessment}
+        discoverMode={discoverMode}
         discoverCatalog={catalog}
         discoverRestingSummary={discoverRestingSummary}
         onDiscoverAssessmentChange={(result) => {
@@ -2301,6 +2288,7 @@ export function V2App() {
             onApproveJob={canApproveJobs ? handleApproveJob : undefined}
             onToast={showToast}
             railContext={railContext}
+            warmEnabled={railTab === "ask"}
           /> : null
         }
         askAvailable={canUseAsk}
