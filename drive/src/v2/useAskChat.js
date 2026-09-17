@@ -121,7 +121,6 @@ export function useAskChat({
   const requestEpochRef = useRef(0);
   const warmPromiseRef = useRef(null);
   const warmContextRef = useRef("");
-  const warmTimerRef = useRef(null);
   const synthesisObjectContextRef = useRef(null);
   const synthesisThreadId =
     dataset?.kind === "synthesis_thread" ? String(dataset.thread_id || "") : "";
@@ -220,31 +219,6 @@ export function useAskChat({
     };
   }, [contextKey, synthesisThreadId, synthesisSessionId]);
 
-  useEffect(() => {
-    if (!warmEnabled) return undefined;
-    if (warmContextRef.current === contextKey) return undefined;
-
-    const existingSessionId = synthesisThreadId
-      ? synthesisSessionId
-      : loadChatSessionId(contextKey);
-    if (existingSessionId) {
-      warmContextRef.current = contextKey;
-      sessionRef.current = existingSessionId;
-      return undefined;
-    }
-
-    // Ask must be deliberate. Give transient navigation 300 ms to settle so
-    // merely passing through a context cannot spend inference.
-    warmTimerRef.current = window.setTimeout(() => {
-      warmTimerRef.current = null;
-      void beginWarm();
-    }, 300);
-    return () => {
-      if (warmTimerRef.current) window.clearTimeout(warmTimerRef.current);
-      warmTimerRef.current = null;
-    };
-  }, [beginWarm, contextKey, synthesisSessionId, synthesisThreadId, warmEnabled]);
-
   const contextPrefix = dataset?.dataset_id
     ? `[context: ${dataset.dataset_id}] `
     : dataset?.title
@@ -302,10 +276,6 @@ export function useAskChat({
       ]);
 
       try {
-        if (warmTimerRef.current) {
-          window.clearTimeout(warmTimerRef.current);
-          warmTimerRef.current = null;
-        }
         if (warmEnabled && !sessionRef.current) await beginWarm();
         else if (warmPromiseRef.current) await warmPromiseRef.current;
         const out = await sendChatMessage(full, {
@@ -524,6 +494,7 @@ export function useAskChat({
     busy,
     status,
     send,
+    prime: beginWarm,
     contextLabel:
       dataset?.kind === "external_candidate"
         ? dataset.title || dataset.row?.dataset_id || dataset.id || null

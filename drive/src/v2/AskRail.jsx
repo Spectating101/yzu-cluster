@@ -71,7 +71,7 @@ export function AskRail({
   railContext,
   warmEnabled = false,
 }) {
-  const { messages, input, setInput, busy, status, send, contextLabel } = useAskChat({
+  const { messages, input, setInput, busy, status, send, prime, contextLabel } = useAskChat({
     dataset,
     railContext,
     // Home's visible Pick Up object hydrates after the shell becomes usable.
@@ -561,6 +561,7 @@ export function AskRail({
           }
           disabled={busy}
           data-testid="ask-composer"
+          onFocus={() => { void prime(); }}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => {
             handleEnterToSubmit(e, () => {

@@ -109,6 +109,10 @@ test("opening Ask primes and reuses the exact research-context session", async (
   expect(warms).toEqual([]);
 
   await page.getByRole("tab", { name: /^Ask/ }).click();
+  await page.waitForTimeout(450);
+  expect(warms).toEqual([]);
+  await page.getByTestId("ask-composer").click();
+  await expect.poll(() => warms.length).toBe(1);
   await page.getByTestId("ask-composer").fill("Which evidence can I use?");
   await page.getByRole("button", { name: "Send", exact: true }).click();
   await expect(page.getByTestId("ask-messages")).toContainText("Grounded answer");

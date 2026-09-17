@@ -59,8 +59,9 @@ test("deferred enrichment is still fetched, not dropped", () => {
 test("Copilot priming belongs to the active Ask context, never application boot", () => {
   assert.doesNotMatch(src, /deskWarm\s*\(/);
   const askSource = readFileSync(new URL("./useAskChat.js", import.meta.url), "utf8");
-  assert.match(askSource, /if \(!warmEnabled\) return undefined/);
+  assert.match(askSource, /if \(!warmEnabled\) return Promise\.resolve\(null\)/);
   assert.match(askSource, /background: false/);
   assert.match(askSource, /saveChatSessionId\(sessionId, contextKey\)/);
   assert.match(askSource, /await beginWarm\(\)/);
+  assert.match(askSource, /prime: beginWarm/);
 });
