@@ -52,7 +52,10 @@ export function buildDiscoverRestingSummary(rows = [], labIds = new Set(), query
   }
 
   return {
-    hasResults: found > 0,
+    // A search can return held evidence or useful reading context without a
+    // collection-ready external offering. That is still evidence assembled,
+    // not "No discover result".
+    hasResults: found > 0 || libraryEvidenceCount > 0 || contextCount > 0,
     found,
     foundLine: found
       ? `${found} offering${found === 1 ? "" : "s"}`

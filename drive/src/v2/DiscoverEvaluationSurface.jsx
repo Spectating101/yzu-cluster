@@ -81,7 +81,9 @@ function RestingSearchRail({ summary, onOpenInLibrary }) {
             </p>
           ) : null}
           <p className="rd-v2-eval-prose muted">
-            Select an offering to see its coverage, collection route, and what remains unknown before collecting.
+            {summary.found
+              ? "Select an offering to see its coverage, collection route, and what remains unknown before collecting."
+              : "Inspect the held evidence and references; no collection-ready external offering has been established yet."}
           </p>
         </section>
       </div>
