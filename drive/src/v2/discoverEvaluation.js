@@ -85,6 +85,32 @@ export function usefulForLine(row) {
   return "Research use is not yet described.";
 }
 
+/**
+ * Convert transport/runtime failures into researcher-facing probe truth.
+ *
+ * The raw failure can contain Python exception names, errno values, local
+ * hostnames, or connector implementation details. None of those help a
+ * researcher decide whether the source is usable. Keep the visible message
+ * bounded to what the failure actually establishes: access was not verified.
+ */
+export function researcherProbeError(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  if (/name resolution|enotfound|eai_again|getaddrinfo|\bdns\b/i.test(raw)) {
+    return "The source hostname could not be resolved, so access remains unverified. Retry later or inspect the source directly.";
+  }
+  if (/timed?\s*out|timeout|deadline exceeded/i.test(raw)) {
+    return "The source did not respond before the probe timed out, so access remains unverified. Retry later or inspect the source directly.";
+  }
+  if (/401|403|unauthori[sz]ed|forbidden|access denied/i.test(raw)) {
+    return "The source refused the probe or requires access. Review its access conditions before requesting collection.";
+  }
+  if (/connection refused|econnrefused|failed to connect|network is unreachable|connection error/i.test(raw)) {
+    return "The source could not be reached, so access remains unverified. Retry later or inspect the source directly.";
+  }
+  return "The source probe did not complete, so access remains unverified. Retry later or inspect the source directly.";
+}
+
 export function coverageParts(row) {
   const parts = [
     row?.coverage,
@@ -248,7 +274,7 @@ export function buildDiscoverEvaluation(row, labIds, probeState) {
     technical: classified.technical || [],
     actions,
     hasProbe,
-    probeError: probeState?.error || "",
+    probeError: researcherProbeError(probeState?.error),
     probeLoading: Boolean(probeState?.loading),
   };
 }

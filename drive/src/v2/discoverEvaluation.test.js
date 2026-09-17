@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import {
   buildDiscoverEvaluation,
   evaluationActions,
+  researcherProbeError,
   usefulForLine,
 } from "./discoverEvaluation.js";
 import { classifyDiscoverResult } from "./discoverTaxonomy.js";
@@ -20,6 +21,23 @@ describe("usefulForLine", () => {
 
   it("falls back when metadata is thin", () => {
     assert.equal(usefulForLine({}), "Research use is not yet described.");
+  });
+});
+
+describe("researcherProbeError", () => {
+  it("replaces a raw DNS/runtime exception with bounded access truth", () => {
+    const message = researcherProbeError("[Errno -3] Temporary failure in name resolution");
+    assert.match(message, /hostname could not be resolved/i);
+    assert.match(message, /access remains unverified/i);
+    assert.doesNotMatch(message, /Errno|name resolution/i);
+  });
+
+  it("does not expose unknown connector exceptions", () => {
+    const message = researcherProbeError("Traceback: connector_secret_path=/srv/private/foo");
+    assert.equal(
+      message,
+      "The source probe did not complete, so access remains unverified. Retry later or inspect the source directly.",
+    );
   });
 });
 
