@@ -206,6 +206,40 @@ test.describe("v2 parity @ desk-v2-1440", () => {
     await expect(page.locator('[data-testid="rail-pane-detail"] .rd-v2-rail-sticky')).not.toBeVisible();
   });
 
+  test("Ask drops a prior evidence object when navigation changes surface ownership", async ({ page }) => {
+    await selectFirstDataset(page);
+    await v2Nav(page, "Resources");
+    await expect(page.locator(".rd-v2-page-head h1", { hasText: "Resources" })).toBeVisible();
+
+    let posted = null;
+    await page.route("**/api/library/chat/stream", async (route) => {
+      if (route.request().method() !== "POST") return route.fallback();
+      posted = route.request().postDataJSON();
+      return route.fulfill({
+        status: 200,
+        contentType: "application/x-ndjson",
+        body: `${JSON.stringify({
+          type: "complete",
+          result: { session_id: "surface-context", reply: "Resources is the current operational surface." },
+        })}\n`,
+      });
+    });
+
+    await page.getByTestId("research-situation").getByRole("tab", { name: "Ask" }).click();
+    await expect(page.getByTestId("research-situation")).toContainText("Resources");
+    await page.getByTestId("ask-composer").fill("What surface am I using?");
+    await page.getByRole("button", { name: "Send" }).click();
+    await expect(page.getByText("Resources is the current operational surface.")).toBeVisible();
+
+    expect(posted?.message).toContain("[context: Resources · Research capacity]");
+    expect(posted?.message).not.toContain("gdelt_asia_daily_country_panel");
+    expect(posted?.rail_context).toMatchObject({ tab: "resources", entity: null });
+    expect(posted?.rail_context?.dataset_id).toBeUndefined();
+    expect(posted?.rail_context?.selected).toBeUndefined();
+    expect(posted?.rail_context?.search_query).toBeUndefined();
+    expect(posted?.rail_context?.vault_path).toBeUndefined();
+  });
+
   test("Expanded sample opens from the primary inspection surface without losing rail context", async ({ page }) => {
     await selectFirstDataset(page);
     await page.getByTestId("library-data-preview").getByRole("button", { name: "Expand sample" }).click();

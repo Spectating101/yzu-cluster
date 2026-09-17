@@ -15,6 +15,20 @@ test.describe("v2 Discover Explore|History (main converge)", () => {
   });
 
   test("Discover exposes Explore and History as stable modes", async ({ page }) => {
+    await page.unroute("**/library/jobs*").catch(() => {});
+    await page.unroute("**/library/discover/history?*").catch(() => {});
+    await page.route("**/library/jobs*", (route) => route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ jobs: [] }),
+    }));
+    await page.route("**/library/discover/history?*", (route) => route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ events: [] }),
+    }));
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await waitForShell(page);
     const modes = page.getByRole("tablist", { name: "Discover mode" });
     await expect(modes.getByRole("tab", { name: "Explore" })).toHaveAttribute("aria-selected", "true");
     await expect(modes.getByRole("tab", { name: "History" })).toBeVisible();
@@ -23,6 +37,11 @@ test.describe("v2 Discover Explore|History (main converge)", () => {
     await modes.getByRole("tab", { name: "History" }).click();
     await expect(page).toHaveURL(/mode=history/);
     await expect(page.getByTestId("discover-history")).toBeVisible();
+    const rail = page.getByRole("complementary", { name: "Inspector" });
+    await expect(rail).toContainText("Discover history");
+    await expect(rail).toContainText("Research lifecycle");
+    await expect(rail).toContainText("No lifecycle item selected");
+    await expect(rail).not.toContainText("Search summary");
 
     await page.goto("/?tab=browse&mode=activity", { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("tab", { name: "Explore" })).toHaveAttribute("aria-selected", "true");

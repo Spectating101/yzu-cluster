@@ -1,6 +1,7 @@
 /* Final scale polish: keep the result universe primary and remove redundant chrome. */
 
-.rd-v2-discover-browse:has(> .rd-v2-discover-evidence-cockpit) .rd-v2-discover-result-actions {
+.rd-v2-discover-browse:has(> .rd-v2-discover-evidence-cockpit)
+  .rd-v2-discover-result-actions:not([data-has-evidence-gap="true"]):not(:has([data-testid="discover-start-synthesis"])) {
   display: none;
 }
 

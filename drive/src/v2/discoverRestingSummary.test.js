@@ -81,3 +81,13 @@ test("the search rail carries external, Library, and reference territories witho
   assert.equal(summary.contextCount, 2);
   assert.equal(summary.landscapeLine, "2 external offerings · 18 Library results · 2 references");
 });
+
+test("reference-only evidence still earns a truthful search summary", () => {
+  const summary = buildDiscoverRestingSummary([], new Set(), "forest fire economics", {
+    libraryEvidenceCount: 2,
+    contextCount: 8,
+  });
+  assert.equal(summary.hasResults, true);
+  assert.equal(summary.found, 0);
+  assert.equal(summary.landscapeLine, "0 external offerings · 2 Library results · 8 references");
+});

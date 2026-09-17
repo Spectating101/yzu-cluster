@@ -674,6 +674,7 @@ function EvidenceMap({
   selectedField,
   onSelectField,
   onRouteToDiscover,
+  onSearchBeyond,
   missingIds,
   evidenceProposal,
   mappingEvidence,
@@ -798,6 +799,11 @@ function EvidenceMap({
             <button type="button" className="rd-v2-btn" disabled={mappingEvidence} onClick={onFindEvidence}>
               Search held evidence again
             </button>
+            {!proposed.length ? (
+              <button type="button" className="rd-v2-btn primary" disabled={mappingEvidence} onClick={onSearchBeyond}>
+                Search beyond Library in Discover
+              </button>
+            ) : null}
             {proposed.length ? (
               <button
                 type="button"
@@ -1995,6 +2001,25 @@ export function SynthesisPage({
     }
   };
 
+  const routeObjectiveToDiscover = () => {
+    if (!selected) return;
+    const objective = text(selected.objective || selected.state?.objective);
+    if (!objective) return;
+    onDiscoverHandoff?.({
+      field: {
+        id: "objective-evidence-gap",
+        label: objective,
+        role: "No held Library evidence matched this research object",
+      },
+      handoff: {
+        required_grain: text(selected.state?.required_grain || selected.state?.spec?.grain),
+        missing_evidence: [],
+        collect_intents: [],
+      },
+      thread: selected,
+    });
+  };
+
   const ask = (prompt, thread = selected, displayText = prompt) => {
     const assist = thread ? synthesisAssist(threadWithMeasurements(thread, measurementByThread[thread.id]?.payload || null)) : null;
     const context = thread
@@ -2108,6 +2133,7 @@ export function SynthesisPage({
       const created = await createSynthesisThread({
         objective: nextObjective,
         title: titleFromObjective(nextObjective),
+        requiredGrain: synthesisDraftBrief(nextObjective).values.targetGrain,
       });
       replaceThread(created);
       returnThreadIdRef.current = created.id;
@@ -2392,6 +2418,7 @@ export function SynthesisPage({
                   selectedField={selectedField}
                   onSelectField={setSelectedField}
                   onRouteToDiscover={routeToDiscover}
+                  onSearchBeyond={routeObjectiveToDiscover}
                   missingIds={missingEvidenceIds}
                   evidenceProposal={evidenceProposal}
                   mappingEvidence={mappingEvidence}
@@ -2406,6 +2433,7 @@ export function SynthesisPage({
                   selectedField={selectedField}
                   onSelectField={setSelectedField}
                   onRouteToDiscover={routeToDiscover}
+                  onSearchBeyond={routeObjectiveToDiscover}
                   missingIds={missingEvidenceIds}
                   evidenceProposal={evidenceProposal}
                   mappingEvidence={mappingEvidence}

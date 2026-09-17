@@ -442,6 +442,30 @@ export function buildRecommendedEvidence(profile, { limit = 2 } = {}) {
   }));
 }
 
+function recentTrailFailureSummary(job) {
+  const detail = String(job?.error || job?.result?.summary || "");
+  if (/\b(?:http\s*)?404\b|not[ _-]?found/i.test(detail)) {
+    return "The source file was not available; review the recorded route in History.";
+  }
+  if (/\b(?:http\s*)?40[13]\b|forbidden|unauthori[sz]ed|access[ _-]?denied/i.test(detail)) {
+    return "The source denied access; review its access requirements in History.";
+  }
+  if (/timed?[ _-]?out|timeout|deadline[ _-]?exceeded/i.test(detail)) {
+    return "The source did not respond in time; review and retry from History.";
+  }
+  if (/rate[ _-]?limit|\b429\b|too[ _-]?many[ _-]?requests/i.test(detail)) {
+    return "The source rate-limited this collection; review retry options in History.";
+  }
+  return "Collection failed; review the recorded cause and recovery options in History.";
+}
+
+function recentTrailSummary(job, status) {
+  if (/failed/i.test(status)) return recentTrailFailureSummary(job);
+  const summary = String(job?.result?.summary || status).replace(/_/g, " ").trim();
+  if (summary.length <= 180) return summary;
+  return `${summary.slice(0, 177).trimEnd()}…`;
+}
+
 export function buildRecentTrail({ jobs = [], datasets = [], limit = 3 } = {}) {
   const material = [...jobs]
     .filter((job) => {
@@ -496,7 +520,7 @@ export function buildRecentTrail({ jobs = [], datasets = [], limit = 3 } = {}) {
       id: job.id,
       kind,
       title,
-      summary: String(job.error || job.result?.summary || status).replace(/_/g, " "),
+      summary: recentTrailSummary(job, status),
       dest: /registered|completed/.test(status) ? "library" : "history",
     });
     if (fromJobs.length >= limit) break;

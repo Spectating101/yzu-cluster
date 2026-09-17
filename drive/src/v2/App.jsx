@@ -2,11 +2,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { V2DeskHeader } from "@/v2/V2DeskHeader";
 import {
   approveJob,
+  applySynthesisEvidenceMap,
   clearDeskSession,
+  createSynthesisThread,
+  deskCapabilities,
   describeDataset,
   deskHealth,
   deskResources,
-  deskWarm,
   ensureDeskAccess,
   createDiscoverIntent,
   craftDiscoverIntentProposal,
@@ -93,9 +95,10 @@ import { discoverModeFromLegacy, discoverModeToUrlState } from "@/v2/discoverMod
 import { isDiscoverHistoryJob, jobToDiscoverHistoryEvent, pendingApprovalJobs } from "@/v2/procurementJobs";
 import { discoverCandidateState } from "@/v2/browseMeta";
 import { buildRailContext } from "@/v2/railContext";
+import { askDatasetForSurface } from "@/v2/askContext";
 import { holdingIdsFromCatalog, isLocalHolding } from "@/v2/discoverTaxonomy";
 import { libraryEvidence, libraryHoldings, libraryReferences } from "@/v2/deskCounts";
-import { composerRuntimeRead } from "@/v2/composerRuntimeStatus";
+import { composerRuntimeFromSources } from "@/v2/composerRuntimeStatus";
 
 const DESK_HEALTH_READY_POLL_MS = 60_000;
 const DESK_HEALTH_RECHECK_MS = 10_000;
@@ -288,14 +291,11 @@ export function V2App() {
   /** Ask can persist a review proposal; refresh the canvas in the same turn. */
   const [synthesisRefreshVersion, setSynthesisRefreshVersion] = useState(0);
   const healthRetryRef = useRef(null);
-  // Optional provider priming is keyed to the signed-in researcher and never
-  // participates in the visible estate boot sequence.
-  const deskWarmKeyRef = useRef("");
   const { toast, show: showToast, dismissIf: dismissToastIf } = useToast();
   const authenticatedEmail = String(deskAccess?.principal?.email || "").trim();
   const canUseAsk = Boolean(deskAccess?.permissions?.use_ask);
   const canViewFacultyProfile = Boolean(deskAccess?.permissions?.view_faculty_profile);
-  const composerRuntime = composerRuntimeRead(health?.desk?.composer_runtime);
+  const composerRuntime = composerRuntimeFromSources(health, deskAccess);
   const canSubmitCollection = Boolean(deskAccess?.permissions?.submit_collection);
   const canApproveJobs = Boolean(deskAccess?.permissions?.approve_jobs);
   const canViewOperations = Boolean(deskAccess?.permissions?.view_operations);
@@ -565,13 +565,16 @@ export function V2App() {
         setLifecycleRefreshFailed(true);
       })
       .finally(() => setJobsRefreshing(false));
-    if (canSubmitCollection) {
+    if (canViewOperations) {
       listAcquisitions(false)
         .then((d) => setAcquisitions(d.acquisitions || []))
         .catch(() => setAcquisitions([]));
     } else {
-      // Public browse sessions have no collection authority.  Do not issue an
-      // expected-forbidden request merely to populate an unavailable surface.
+      // The cluster acquisition ledger is operator telemetry. Members submit
+      // and revisit their own work through jobs + Discover History, but may
+      // not read the cross-principal /yzu/acquisitions surface. Avoid an
+      // expected 403 after member sign-in and keep Home scoped to personal
+      // lifecycle truth.
       setAcquisitions([]);
     }
     if (canViewOperations) {
@@ -620,22 +623,6 @@ export function V2App() {
   }, [refreshDeskAccess]);
 
   useEffect(() => {
-    if (!deskAccess?.authenticated || !canUseAsk) return undefined;
-    const email = authenticatedEmail || loadUserEmail();
-    const key = String(deskAccess?.principal?.id || email || "authenticated");
-    if (deskWarmKeyRef.current === key) return undefined;
-
-    // Visible Library/Discover work gets the first 300 ms. Priming is a
-    // permission-gated best effort: public guests never spend inference, and
-    // a provider failure cannot turn Home into an error state.
-    const timer = window.setTimeout(() => {
-      deskWarmKeyRef.current = key;
-      void deskWarm({ userEmail: email || undefined, background: true }).catch(() => {});
-    }, 300);
-    return () => window.clearTimeout(timer);
-  }, [authenticatedEmail, canUseAsk, deskAccess?.authenticated, deskAccess?.principal?.id]);
-
-  useEffect(() => {
     if (deskAccess?.authenticated) refreshBackend();
   }, [refreshBackend, deskAccess?.authenticated]);
 
@@ -669,6 +656,35 @@ export function V2App() {
       document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [composerRuntime?.ready, deskAccess?.authenticated, canViewOperations]);
+
+  useEffect(() => {
+    if (!deskAccess?.authenticated || !canUseAsk || canViewOperations) return undefined;
+    let cancelled = false;
+    const pollCapabilities = () => {
+      if (document.visibilityState === "hidden") return;
+      deskCapabilities()
+        .then((access) => {
+          if (!cancelled) setDeskAccess(access || { authenticated: false });
+        })
+        .catch(() => {
+          // Preserve the last measured runtime truth. Ask remains available,
+          // while Synthesis stays fail-closed until a verified observation arrives.
+        });
+    };
+    const intervalMs = composerRuntime?.ready
+      ? DESK_HEALTH_READY_POLL_MS
+      : DESK_HEALTH_RECHECK_MS;
+    const handle = window.setInterval(pollCapabilities, intervalMs);
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") pollCapabilities();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      cancelled = true;
+      window.clearInterval(handle);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [composerRuntime?.ready, deskAccess?.authenticated, canUseAsk, canViewOperations]);
 
   const askFromPrompt = useCallback((prompt) => {
     if (!prompt) return;
@@ -722,7 +738,12 @@ export function V2App() {
     // dataset id, but an external row is not a Library object. Its evidence is
     // already owned by `browseRow`; asking /datasets/:id for it creates a
     // predictable 404 on every selection and conflates candidate with holding.
-    if (tab === DISCOVER_TAB && browseRow && !selectedFromList) {
+    const browseAuthority = selectedFromList || browseRow;
+    const typedDiscoverCandidate = /^(?:source|doi|url|title):/i.test(String(selectedId));
+    if (
+      tab === DISCOVER_TAB &&
+      (typedDiscoverCandidate || (browseRow && !isLocalHolding(browseAuthority, labIds)))
+    ) {
       setDetail(null);
       setDetailLoading(false);
       return;
@@ -734,7 +755,7 @@ export function V2App() {
       .then((d) => setDetail((cur) => ({ ...cur, ...d })))
       .catch(() => {})
       .finally(() => setDetailLoading(false));
-  }, [selectedId, selectedFromList, browseRow, tab]);
+  }, [selectedId, selectedFromList, browseRow, tab, labIds]);
 
   const browseTarget = browseRow;
   // Direct Discover URLs may carry either a raw dataset id or a typed candidate
@@ -788,6 +809,30 @@ export function V2App() {
         profileEmail: profile?.email || loadUserEmail(),
       }),
     [tab, railTab, detail, activeObject, pageSearchQuery, folderId, profile],
+  );
+
+  const askDataset = useMemo(
+    () =>
+      askDatasetForSurface({
+        tab,
+        detail,
+        activeObject,
+        browseTarget,
+        discoverIntentRecord,
+        selectedHistoryEvent,
+        resourceRow,
+        profile,
+      }),
+    [
+      tab,
+      detail,
+      activeObject,
+      browseTarget,
+      discoverIntentRecord,
+      selectedHistoryEvent,
+      resourceRow,
+      profile,
+    ],
   );
 
   const syncUrl = useCallback(
@@ -936,6 +981,44 @@ export function V2App() {
     setSynthesisDiscoverHandoff(null);
     goTab("synthesis");
   }, [synthesisDiscoverHandoff, goTab]);
+
+  const startSynthesisFromDiscover = useCallback(
+    async ({ objective, datasetIds = [] } = {}) => {
+      const researchObjective = String(objective || "").trim();
+      const exactDatasetIds = [...new Set(
+        (Array.isArray(datasetIds) ? datasetIds : [])
+          .map((id) => String(id || "").trim())
+          .filter(Boolean),
+      )];
+      if (!researchObjective || !exactDatasetIds.length) {
+        throw new Error("Choose at least one held Library result before starting Synthesis.");
+      }
+
+      const title = researchObjective.split(/[.!?]/)[0].trim().slice(0, 120) || "Discover evidence synthesis";
+      try {
+        const created = await createSynthesisThread({
+          objective: researchObjective,
+          title,
+        });
+        const mapped = await applySynthesisEvidenceMap(created.id, {
+          datasetIds: exactDatasetIds,
+        });
+        const thread = mapped?.thread || (mapped?.state ? mapped : created);
+        setFocusSynthesisThreadId(thread.id);
+        setSynthesisRefreshVersion((current) => current + 1);
+        setActiveObject(synthesisThreadObject(thread));
+        goTab("synthesis");
+        showToast(
+          `Synthesis started with ${exactDatasetIds.length} exact Library ${exactDatasetIds.length === 1 ? "result" : "results"}`,
+        );
+        return thread;
+      } catch (cause) {
+        showToast(cause?.message || "Could not start Synthesis from these Library results");
+        throw cause;
+      }
+    },
+    [goTab, showToast],
+  );
 
   const selectDataset = useCallback(
     (row) => {
@@ -1822,6 +1905,7 @@ export function V2App() {
           onSearchWeb={searchDiscoverWider}
           onAskQuery={askDiscoverQuery}
           onReviewAcquisition={canSubmitCollection ? askAddToLab : undefined}
+          onStartSynthesis={canUseAsk ? startSynthesisFromDiscover : undefined}
           assessmentActive={discoverAssessment.active}
           assessmentResult={discoverAssessment.result}
           onOpenAssessment={openDiscoverAssessment}
@@ -1965,6 +2049,7 @@ export function V2App() {
           onGoTab={goTab}
           onProfileRefresh={reloadProfile}
           allowExamplePreview={canViewFacultyProfile}
+          personalProfileAvailable={canUseAsk}
         />
       );
       break;
@@ -2141,6 +2226,7 @@ export function V2App() {
         historyJob={selectedHistoryJob}
         discoverIntentRecord={discoverIntentRecord}
         discoverAssessment={discoverAssessment}
+        discoverMode={discoverMode}
         discoverCatalog={catalog}
         discoverRestingSummary={discoverRestingSummary}
         onDiscoverAssessmentChange={(result) => {
@@ -2195,54 +2281,7 @@ export function V2App() {
         onSubmitLibraryProcure={canSubmitCollection ? submitLibraryProcure : undefined}
         askPanel={
           canUseAsk ? <AskRail
-            dataset={
-              tab === "resources" && resourceRow
-                ? {
-                    title: `Resources · ${resourceRow.label}`,
-                  }
-                : tab === DISCOVER_TAB
-                  ? discoverIntentRecord
-                    ? {
-                        title: discoverIntentRecord.intent?.title || discoverIntentRecord.candidate?.title || "Acquisition review",
-                        kind: "discover_intent",
-                        intent_id: discoverIntentRecord.intent?.id,
-                        research_need: discoverIntentRecord.intent?.research_need || discoverIntentRecord.researchNeed,
-                      }
-                    : selectedHistoryEvent
-                    ? { ...selectedHistoryEvent, title: selectedHistoryEvent.target || selectedHistoryEvent.title, kind: "discover_history" }
-                    : browseTarget || (activeObject?.kind === "discover_investigation" ? activeObject : null)
-                : tab === "home"
-                  ? activeObject?.kind === "home_attention"
-                    ? {
-                        title: `Home · ${activeObject.title}`,
-                        kind: "home_attention",
-                        id: activeObject.id,
-                      }
-                    : detail
-                : activeObject?.kind === "library_folder" || activeObject?.kind === "library_intake"
-                  ? {
-                      title: `Library · ${activeObject.title}`,
-                    }
-                : tab === "synthesis"
-                  ? activeObject?.kind === "synthesis_thread"
-                    ? {
-                        title: activeObject.title,
-                        kind: "synthesis_thread",
-                        thread_id: activeObject.id,
-                        session_id: activeObject.thread?.session_id || "",
-                      }
-                    : { title: "Synthesis studio", kind: "synthesis_thread" }
-                : tab === "profile"
-                  ? {
-                      title:
-                        profile?.name_en && !profile.unknown
-                          ? `Profile · ${profile.name_en}`
-                          : "Profile",
-                    }
-                : tab === "settings"
-                  ? { title: "Desk setup" }
-                : detail
-            }
+            dataset={askDataset}
             mainTab={tab}
             searchQuery={pageSearchQuery}
             pendingMessage={pendingAsk}
@@ -2252,6 +2291,7 @@ export function V2App() {
             onApproveJob={canApproveJobs ? handleApproveJob : undefined}
             onToast={showToast}
             railContext={railContext}
+            warmEnabled={railTab === "ask"}
           /> : null
         }
         askAvailable={canUseAsk}

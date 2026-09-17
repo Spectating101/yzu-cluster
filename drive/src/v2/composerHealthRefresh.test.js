@@ -16,4 +16,6 @@ test("an authenticated open desk keeps assistant runtime truth current", () => {
   assert.match(source, /composerRuntime\?\.ready\s*\?\s*DESK_HEALTH_READY_POLL_MS\s*:\s*DESK_HEALTH_RECHECK_MS/);
   assert.match(source, /window\.clearInterval\(handle\)/);
   assert.match(source, /document\.visibilityState === "visible"/);
+  assert.match(source, /deskCapabilities\(\)/);
+  assert.match(source, /!canUseAsk \|\| canViewOperations/);
 });

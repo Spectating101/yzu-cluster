@@ -23,7 +23,7 @@ import {
 } from "@/v2/discoverComposition";
 import { assessLocalSufficiency } from "@/v2/discoverSufficiency";
 import { buildDiscoverRestingSummary } from "@/v2/discoverRestingSummary";
-import { shouldAppendDiscoverPaint } from "@/v2/discoverResultPaint";
+import { discoverSearchOutcomeUnknown, shouldAppendDiscoverPaint } from "@/v2/discoverResultPaint";
 import { loadUserEmail } from "@/v2/deskSession";
 import { discoverDemoSearch } from "@/v2/deskSeed";
 import { DiscoverIntentWorkspace } from "@/v2/DiscoverIntentWorkspace";
@@ -299,8 +299,6 @@ function DiscoverQueryComposer({
   value,
   onValueChange,
   onSearch,
-  onAsk,
-  onAssess,
   idle = false,
 }) {
   const submit = (event) => {
@@ -308,12 +306,6 @@ function DiscoverQueryComposer({
     const next = String(value || "").trim();
     if (!next) return;
     onSearch?.(next);
-    if (isDiscoverResearchQuestion(next)) {
-      // Assessment is deliberately started before Ask so the visible rail lands
-      // on the continuing conversation while the hidden Detail lens evaluates.
-      onAssess?.(next);
-      onAsk?.(next);
-    }
   };
   return (
     <form
@@ -333,7 +325,7 @@ function DiscoverQueryComposer({
         Explore
       </button>
       <p>
-        Keywords return fast results. A research question also starts a contextual Ask investigation automatically.
+        Results arrive first. Use Review assessment or Ask when you want interpretation.
       </p>
       <div className="rd-v2-discover-composer-scope" aria-label="Discover search universe">
         <span>Library index</span>
@@ -640,6 +632,7 @@ export function BrowsePage({
   onSearchWeb,
   onAskQuery,
   onReviewAcquisition,
+  onStartSynthesis,
   discoverMode = "explore",
   onDiscoverModeChange,
   discoverFocusAwaiting = false,
@@ -678,10 +671,14 @@ export function BrowsePage({
   const [routeComparisonOpen, setRouteComparisonOpen] = useState(false);
   const [sortMode, setSortMode] = useState("relevance");
   const [queryDraft, setQueryDraft] = useState(searchQuery || "");
+  const [searchRevision, setSearchRevision] = useState(0);
   const [loadedQuery, setLoadedQuery] = useState("");
   const [enrichedQuestion, setEnrichedQuestion] = useState("");
   const [autoWidening, setAutoWidening] = useState(false);
+  const [sourceLookupSettledQuery, setSourceLookupSettledQuery] = useState("");
   const [lookupProgress, setLookupProgress] = useState({ library: "waiting", routes: "waiting" });
+  const [synthesisStarting, setSynthesisStarting] = useState(false);
+  const [synthesisStartError, setSynthesisStartError] = useState("");
   const restoredSelectionRef = useRef("");
   const rowsRef = useRef([]);
   const rowsQueryRef = useRef("");
@@ -750,6 +747,7 @@ export function BrowsePage({
     if (!isWidening && !preserveCurrentField) {
       rowsQueryRef.current = q;
       setRows([]);
+      setSourceLookupSettledQuery("");
     }
     setStateFilter("all");
     if (!preserveCurrentField) setIndexMiss(false);
@@ -823,7 +821,7 @@ export function BrowsePage({
           const webPending = webDiscover(q, 8).catch(() => null);
           let sources = await discoverSources(q, {
             limit: 12,
-            semantic: true,
+            semantic: false,
             live: true,
           });
           let sourceRows = sourcesResponseToRows(sources);
@@ -912,6 +910,13 @@ export function BrowsePage({
         const discoverRows = flattenRows(discover);
         const knownSourceRows = sourcesResponseToRows(knownSources);
         let mergedRows = dedupeRows([...knownSourceRows, ...discoverRows]);
+        if (discoverSearchOutcomeUnknown({
+          resultCount: mergedRows.length,
+          libraryFailed: Boolean(discoverFailure),
+          routesFailed: Boolean(knownSourcesFailure),
+        })) {
+          throw discoverFailure || knownSourcesFailure;
+        }
         let label = mergedRows.length ? "index" : "";
         const weakOrMissingLibraryMatch = Boolean(discover.index_miss || discover.weak_match);
 
@@ -979,7 +984,7 @@ export function BrowsePage({
     return () => {
       cancelled = true;
     };
-  }, [searchQuery, discoverMode, labIds, preferLiveSources, externalSearchQuery]);
+  }, [searchQuery, discoverMode, labIds, preferLiveSources, externalSearchQuery, searchRevision]);
 
   useEffect(() => {
     const q = String(searchQuery || "").trim();
@@ -996,10 +1001,13 @@ export function BrowsePage({
     let cancelled = false;
     setAutoWidening(true);
     const enrich = async () => {
+      // Optional web context runs beside source discovery, never after it as
+      // an extra serial wait on the researcher's primary result field.
+      const webPending = webDiscover(q, 8).catch(() => null);
       try {
         let extra = [];
         try {
-          const sources = await discoverSources(q, { limit: 12, semantic: true, live: true });
+          const sources = await discoverSources(q, { limit: 12, semantic: false, live: true });
           const sourceRows = sourcesResponseToRows(sources);
           extra = sourceRows;
           // A live source route is already useful evidence.  Do not hold it
@@ -1011,11 +1019,6 @@ export function BrowsePage({
           if (sourceRows.length && !cancelled) {
             setRows((current) => dedupeRows([...current, ...sourceRows]));
             setSource((current) => current ? `${current}+progressive` : "progressive");
-            const hasOffering = sourceRows.some((row) => {
-              const taxonomy = row.discover_taxonomy || classifyDiscoverResult(row, labIds);
-              return offeringType(row, taxonomy) !== "Reference only";
-            });
-            if (hasOffering) setIndexMiss(false);
             // Web context is supplementary reading, not the condition for a
             // discovered route to become visible.  Let the result field
             // settle honestly while that optional leg continues in the
@@ -1024,6 +1027,11 @@ export function BrowsePage({
           }
         } catch {
           // The first result paint remains valid when optional enrichment is unavailable.
+        } finally {
+          if (!cancelled) {
+            setSourceLookupSettledQuery(q);
+            setAutoWidening(false);
+          }
         }
         // Web context is fetched for every question, not only when the route
         // catalogue came up short. It renders in its own rail and is excluded
@@ -1033,8 +1041,8 @@ export function BrowsePage({
         // The index-miss logic below already refuses to let a web hit stand in
         // for an offering, which is the property that gate was really guarding.
         try {
-          const web = await webDiscover(q, 8);
-          extra = dedupeRows([...extra, ...rankExternalCatalogueRows(webHitsToRows(web), q)]);
+          const web = await webPending;
+          if (web) extra = dedupeRows([...extra, ...rankExternalCatalogueRows(webHitsToRows(web), q)]);
         } catch {
           // Web context is optional and must never erase already-rendered evidence.
         }
@@ -1056,7 +1064,6 @@ export function BrowsePage({
           // effect start changes a dependency, runs the cleanup immediately and
           // causes every eventual source result to be discarded as cancelled.
           setEnrichedQuestion(q);
-          setAutoWidening(false);
         }
       }
     };
@@ -1149,9 +1156,8 @@ export function BrowsePage({
   }, [filtered, labIds]);
 
   // Explore is a decision surface, not a dump of everything matching a word.
-  // Keep held Library matches reachable through the control above, while the
-  // centre list focuses on sources that can become a request.  A user-selected
-  // filter still owns the list exactly, including Library results.
+  // External offerings own the ranked centre; held evidence stays available in
+  // the bounded Library control above it, as required by the frozen composition.
   const rankedOfferings = useMemo(
     () =>
       renderedRows.filter((row) => {
@@ -1253,6 +1259,11 @@ export function BrowsePage({
   }, [merged, labIds]);
 
   const q = (searchQuery || "").trim();
+  const requestSearch = (nextQuery) => {
+    const next = String(nextQuery || "").trim();
+    if (next && next === q) setSearchRevision((revision) => revision + 1);
+    onSuggestSearch?.(next);
+  };
   const wideningInProgress = Boolean(preferLiveSources && q && loadedQuery === q);
   // A research-question miss starts a second, broader discovery leg after the
   // fast Library/known-route pass settles.  React schedules that effect after
@@ -1265,6 +1276,7 @@ export function BrowsePage({
     && !preferLiveSources
     && externalSearchQuery !== q
     && (isDiscoverResearchQuestion(q) || indexMiss)
+    && sourceLookupSettledQuery !== q
     && enrichedQuestion !== q,
   );
   const broaderSearchPending = Boolean(autoWidening || progressiveSearchPending);
@@ -1281,8 +1293,14 @@ export function BrowsePage({
     source === "sources" &&
     merged.length > 0 &&
     !hasSpecificSourceRoute(merged, q);
-  const assessmentStatus = String(assessmentResult?.assessment_status || "").toLowerCase();
-  const assessmentVerdict = String(assessmentResult?.verdict || "").toLowerCase();
+  const assessmentStatus = String(assessmentResult?.assessment_status || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
+  const assessmentVerdict = String(assessmentResult?.verdict || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
   const hasEvidenceGap =
     assessmentStatus === "assessed"
     && ["partially_covered", "partial", "not_covered", "uncovered"].includes(assessmentVerdict)
@@ -1470,9 +1488,7 @@ export function BrowsePage({
             <DiscoverQueryComposer
               value={queryDraft}
               onValueChange={setQueryDraft}
-              onSearch={onSuggestSearch}
-              onAsk={(question) => onAskQuery?.(question, { kind: "investigation" })}
-              onAssess={onOpenAssessment}
+              onSearch={requestSearch}
               idle
             />
             <DiscoverResearchRadar
@@ -1484,6 +1500,7 @@ export function BrowsePage({
               shelves={shelves}
               resourcesRollup={resourcesRollup}
               onSearch={onSuggestSearch}
+              loading={catalogLoading || !historyJobsLoaded}
             />
             <div className="rd-v2-discover-idle-held">
               <DiscoverCoveragePanel catalog={catalog} partitions={partitions} shelves={shelves} onSearchShelf={
@@ -1563,9 +1580,7 @@ export function BrowsePage({
                 <DiscoverQueryComposer
                   value={queryDraft}
                   onValueChange={setQueryDraft}
-                  onSearch={onSuggestSearch}
-                  onAsk={(question) => onAskQuery?.(question, { kind: "results", rows: merged })}
-                  onAssess={onOpenAssessment}
+                  onSearch={requestSearch}
                 />
               </header>
 
@@ -1637,12 +1652,28 @@ export function BrowsePage({
                   </span>
                 ) : null}
               </div>
-              <div className="rd-v2-discover-result-actions" aria-label="Discover next actions">
+              <div
+                className="rd-v2-discover-result-actions"
+                aria-label="Discover next actions"
+                data-assessment-status={assessmentStatus || "none"}
+                data-assessment-verdict={assessmentVerdict || "none"}
+                data-has-evidence-gap={hasEvidenceGap ? "true" : "false"}
+              >
                 <div>
-                  {broaderSearchPending ? (
+                  {broaderSearchPending && resultGroups.held.length > 0 ? (
+                    <>
+                      <strong>{plural(resultGroups.held.length, "Library match")}</strong>
+                      <span>Checking broader sources for a direct route</span>
+                    </>
+                  ) : broaderSearchPending ? (
                     <>
                       <strong>Checking broader sources</strong>
                       <span>Related Library evidence remains visible while the desk looks for a direct route</span>
+                    </>
+                  ) : loading && centreRows.length === 0 && resultGroups.held.length > 0 ? (
+                    <>
+                      <strong>{plural(resultGroups.held.length, "Library match")}</strong>
+                      <span>Known source routes are still being checked</span>
                     </>
                   ) : loading && centreRows.length === 0 ? (
                     <>
@@ -1671,7 +1702,37 @@ export function BrowsePage({
                   )}
                 </div>
                 <div>
-                  {onSearchWeb ? (
+                  {onStartSynthesis && resultGroups.held.length > 0 ? (
+                    <button
+                      type="button"
+                      data-testid="discover-start-synthesis"
+                      className="rd-v2-discover-strategy-trigger is-ready"
+                      disabled={synthesisStarting}
+                      onClick={async () => {
+                        setSynthesisStarting(true);
+                        setSynthesisStartError("");
+                        try {
+                          await onStartSynthesis({
+                            objective: q,
+                            datasetIds: resultGroups.held
+                              .map((row) => row?.dataset_id || row?.id)
+                              .filter(Boolean),
+                          });
+                        } catch (cause) {
+                          setSynthesisStartError(
+                            cause?.message || "Could not start Synthesis from these Library results.",
+                          );
+                        } finally {
+                          setSynthesisStarting(false);
+                        }
+                      }}
+                    >
+                      {synthesisStarting
+                        ? "Starting Synthesis…"
+                        : `Start Synthesis with ${plural(resultGroups.held.length, "Library result")}`}
+                    </button>
+                  ) : null}
+                  {onSearchWeb && !(onStartSynthesis && resultGroups.held.length > 0) ? (
                     <button type="button" onClick={() => onSearchWeb(q)}>
                       Search wider
                     </button>
@@ -1706,6 +1767,9 @@ export function BrowsePage({
                   ) : null}
                 </div>
               </div>
+              {synthesisStartError ? (
+                <p className="rd-v2-inline-error" role="status">{synthesisStartError}</p>
+              ) : null}
 
               <DiscoverEvidenceField
               query={q}

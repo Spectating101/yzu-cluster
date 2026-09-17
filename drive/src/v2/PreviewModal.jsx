@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { previewCellValue, researcherPreviewReason } from "@/v2/previewValue";
 import {
   downloadText,
   openQueryInNewTab,
@@ -97,13 +98,16 @@ function externalPreviewBoundary(preview) {
   if (status === "access_required") {
     return {
       title: "Access required before preview",
-      body: preview?.reason || preview?.notes || "The source requires entitlement, credentials, or another access step before a sample can be observed.",
+      body: researcherPreviewReason(
+        preview?.reason || preview?.notes,
+        "The source requires entitlement, credentials, or another access step before a sample can be observed.",
+      ),
     };
   }
   if (status === "failed") {
     return {
       title: "Source record only",
-      body: preview?.reason || "The bounded preview could not establish schema or sample rows.",
+      body: researcherPreviewReason(preview?.reason),
     };
   }
   return {
@@ -464,7 +468,7 @@ export function PreviewModal({
                     <thead><tr>{cols.map((column) => <th key={column}>{column}</th>)}</tr></thead>
                     <tbody>
                       {observedRows.slice(0, MAX_EXTERNAL_PREVIEW_ROWS).map((row, rowIndex) => (
-                        <tr key={rowIndex}>{cols.map((column) => <td key={column}>{String(row[column] ?? "").slice(0, 100)}</td>)}</tr>
+                        <tr key={rowIndex}>{cols.map((column) => <td key={column}>{previewCellValue(row[column], { empty: "", maxLength: 100 })}</td>)}</tr>
                       ))}
                     </tbody>
                   </table>
@@ -511,7 +515,7 @@ export function PreviewModal({
                     <tbody>
                       {rows.slice(0, libraryExpandedSample ? MAX_PREVIEW_ROWS : 12).map((row, rowIndex) => (
                         <tr key={rowIndex}>
-                          {cols.map((column) => <td key={column}>{String(row[column] ?? "").slice(0, 100)}</td>)}
+                          {cols.map((column) => <td key={column}>{previewCellValue(row[column], { empty: "", maxLength: 100 })}</td>)}
                         </tr>
                       ))}
                     </tbody>

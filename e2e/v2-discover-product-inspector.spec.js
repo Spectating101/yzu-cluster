@@ -243,4 +243,44 @@ test.describe("Discover offering inspector", () => {
       path: "artifacts/discover-convergence/discover-inspector-fields-1440x900.png",
     });
   });
+
+  test("keeps authorization vocabulary out of a guest source preview", async ({ page }) => {
+    const candidate = {
+      kind: "artifact",
+      source_id: "guest_preview",
+      candidate_key: "source:guest_preview",
+      title: "Guest-visible source record",
+      provider: "Example Data Provider",
+      url: "https://example.com/source",
+      access_mode: "public_http",
+      query_relevance: 4,
+    };
+
+    await mockV2Api(page, {
+      discoverBody: { sections: [], total: 0 },
+      discoverSourcesBody: { results: [candidate], total: 1 },
+    });
+    await page.route("**/library/discover/sources/preview", (route) => route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        status: "failed",
+        source_id: "guest_preview",
+        candidate_key: "source:guest_preview",
+        reason: "Desk role public_guest lacks permission: submit_collection",
+      }),
+    }));
+
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await search(page, "guest source");
+    await page.getByTestId("discover-ranked-results").locator("button.rd-v2-discover-candidate").click();
+    await page.locator("aside.rd-v2-rail").getByRole("button", { name: "Inspect source", exact: true }).click();
+
+    const dialog = page.getByRole("dialog", { name: /Guest-visible source record preview/i });
+    await expect(dialog).toContainText("Collection requests require a research-member account");
+    await expect(dialog).toContainText("This preview has not started collection");
+    await expect(dialog).not.toContainText(/public_guest|submit_collection|Desk role/i);
+  });
 });

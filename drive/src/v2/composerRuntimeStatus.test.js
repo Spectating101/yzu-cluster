@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { composerRuntimeRead } from "./composerRuntimeStatus.js";
+import { composerRuntimeFromSources, composerRuntimeRead } from "./composerRuntimeStatus.js";
 
 describe("composerRuntimeRead", () => {
   it("returns null when no runtime object is present", () => {
@@ -51,5 +51,24 @@ describe("composerRuntimeRead", () => {
     const read = composerRuntimeRead({ status: "something_new_the_frontend_does_not_know", verified: true });
     assert.equal(read.ready, false);
     assert.equal(read.warn, true);
+  });
+});
+
+describe("composerRuntimeFromSources", () => {
+  it("lets an ordinary Ask member use the sanitized capability observation", () => {
+    const read = composerRuntimeFromSources(null, {
+      assistant_runtime: { status: "ready", verified: true, configured: true },
+    });
+    assert.equal(read.ready, true);
+    assert.equal(read.short, "Ready");
+  });
+
+  it("prefers operator health when both sources are present", () => {
+    const read = composerRuntimeFromSources(
+      { desk: { composer_runtime: { status: "degraded", verified: true } } },
+      { assistant_runtime: { status: "ready", verified: true } },
+    );
+    assert.equal(read.ready, false);
+    assert.equal(read.short, "Degraded");
   });
 });

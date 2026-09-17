@@ -7,7 +7,7 @@ import {
   ResourcesRailPanel,
 } from "@/v2/RailPanels";
 import { ProfileDetailPanel } from "@/v2/ProfilePage";
-import { activeObjectSelectionHint } from "@/v2/activeObject";
+import { activeObjectBelongsToTab, activeObjectSelectionHint } from "@/v2/activeObject";
 import { displayName } from "@/v2/datasetMeta";
 import { LibraryDatasetRailPanel } from "@/v2/LibraryDatasetRailPanel";
 import { LibraryFolderRailPanel } from "@/v2/LibraryFolderRailPanel";
@@ -29,6 +29,7 @@ function railSelectionHint(
   discoverAssessment,
   resourceRow,
   restingSummary,
+  discoverMode,
 ) {
   if (mainTab === DISCOVER_TAB && discoverIntentRecord) {
     return discoverIntentRecord.intent?.title || discoverIntentRecord.candidate?.title || "Acquisition review";
@@ -41,6 +42,9 @@ function railSelectionHint(
   }
   if (mainTab === DISCOVER_TAB && browseTarget) {
     return browseTarget.title || browseTarget.dataset_id || "Discover result";
+  }
+  if (mainTab === DISCOVER_TAB && discoverMode === "history") {
+    return "Discover history";
   }
   if (mainTab === DISCOVER_TAB && restingSummary?.hasResults) {
     return "Search summary";
@@ -76,22 +80,6 @@ const MOBILE_RAIL_IDLE_HINTS = new Set([
   "Profile",
   "Desk setup",
 ]);
-
-function activeHintBelongsToTab(mainTab, object) {
-  if (!object) return false;
-  if (mainTab === "library") {
-    return ["library_folder", "library_intake", "dataset"].includes(object.kind);
-  }
-  if (mainTab === DISCOVER_TAB) {
-    return ["external_candidate", "discover_history", "discover_investigation"].includes(object.kind);
-  }
-  if (mainTab === "resources") return object.kind === "resource_row";
-  if (mainTab === "home") {
-    return object.kind === "home_attention" || (object.kind === "dataset" && object.owner === "home");
-  }
-  if (mainTab === "synthesis") return object.kind === "synthesis_thread";
-  return false;
-}
 
 function DiscoverAssessmentRailSummary({ state, onClose }) {
   const result = state?.result || null;
@@ -192,6 +180,7 @@ export function InspectorRail({
   historyJob,
   discoverIntentRecord,
   discoverAssessment,
+  discoverMode = "explore",
   discoverCatalog = [],
   onDiscoverAssessmentChange,
   onDiscoverAssessmentActive,
@@ -256,6 +245,8 @@ export function InspectorRail({
       />
     ) : discoverAssessment?.active ? (
       <DiscoverAssessmentRailSummary state={discoverAssessment} onClose={onCloseDiscoverAssessment} />
+    ) : discoverMode === "history" ? (
+      <DiscoverHistoryRailPanel />
     ) : (
       <BrowseRailPanel
         target={browseTarget}
@@ -265,6 +256,7 @@ export function InspectorRail({
         intentRecord={discoverIntentRecord}
         onAskAbout={onAskAbout}
         onAddToLab={onAddToLab}
+        hasMemberSession={askAvailable}
         onRequireMemberAccess={() => onRailTabChange?.("ask")}
         onPreviewExternal={onPreviewExternal}
         onProbeSource={onProbeSource}
@@ -296,7 +288,13 @@ export function InspectorRail({
       />
     );
   } else if (mainTab === "profile") {
-    detailPanel = <ProfileDetailPanel profile={profile} allowExamplePreview={allowProfilePreview} />;
+    detailPanel = (
+      <ProfileDetailPanel
+        profile={profile}
+        allowExamplePreview={allowProfilePreview}
+        personalProfileAvailable={askAvailable}
+      />
+    );
   } else if (mainTab === "settings") {
     detailPanel = <PageRailPanel page="settings" onAskAbout={onAskAbout} />;
   } else if (mainTab === "synthesis") {
@@ -361,7 +359,7 @@ export function InspectorRail({
     );
   }
 
-  const allowActiveHint = activeHintBelongsToTab(mainTab, activeObject);
+  const allowActiveHint = activeObjectBelongsToTab(mainTab, activeObject);
   const selectionHint =
     (allowActiveHint ? activeObjectSelectionHint(activeObject) : "") ||
     railSelectionHint(
@@ -373,6 +371,7 @@ export function InspectorRail({
       discoverAssessment,
       resourceRow,
       discoverRestingSummary,
+      discoverMode,
     );
 
   const [mobileRailOpen, setMobileRailOpen] = useState(false);
@@ -455,6 +454,7 @@ export function InspectorRail({
           historyEvent={historyEvent}
           discoverIntentRecord={discoverIntentRecord}
           discoverAssessment={discoverAssessment}
+          discoverMode={discoverMode}
           restingSummary={discoverRestingSummary}
           resourceRow={resourceRow}
           resourcesDecisionCount={resourcesDecisionCount}

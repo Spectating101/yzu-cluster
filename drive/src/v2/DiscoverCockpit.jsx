@@ -143,6 +143,7 @@ export function DiscoverResearchRadar({
   shelves = [],
   resourcesRollup,
   onSearch,
+  loading = false,
 }) {
   const held = catalog.filter((row) => labIds?.has?.(rowId(row)));
   const ready = held.filter(isQueryReady);
@@ -151,12 +152,19 @@ export function DiscoverResearchRadar({
   const capacity = measuredCapacity(resourcesRollup);
   const sourceRows = [...knownRows, ...catalog.filter((row) => !labIds?.has?.(rowId(row)))];
   const starterRows = sourceRows.slice(0, 4);
-  const metrics = [
-    metric("Library", held.length, "held evidence"),
-    metric("Query-ready", ready.length, held.length ? "declared / observed" : "none measured"),
-    metric("Known routes", knownRows.length, "outside Library"),
-    metric("Collections", pending.length + active.length, pending.length ? `${pending.length} awaiting approval` : active.length ? `${active.length} active` : "none active"),
-  ];
+  const metrics = loading
+    ? [
+        metric("Library", "Reading…", "held evidence"),
+        metric("Query-ready", "Reading…", "not yet measured"),
+        metric("Known routes", knownRows.length || "Reading…", "source map"),
+        metric("Collections", "Reading…", "lifecycle state"),
+      ]
+    : [
+        metric("Library", held.length, "held evidence"),
+        metric("Query-ready", ready.length, held.length ? "declared / observed" : "none measured"),
+        metric("Known routes", knownRows.length, "outside Library"),
+        metric("Collections", pending.length + active.length, pending.length ? `${pending.length} awaiting approval` : active.length ? `${active.length} active` : "none active"),
+      ];
 
   return (
     <section className="rd-v2-discover-radar" data-testid="discover-research-radar">
@@ -167,8 +175,8 @@ export function DiscoverResearchRadar({
           <p>Held evidence, known source routes, collection state, and measurable execution capacity in one desk view.</p>
         </div>
         <div className="rd-v2-discover-radar-state">
-          <span>{shelves.length || partitions.length ? "Library mapped" : "Library index"}</span>
-          <strong>{sourceFamilies(sourceRows).length} source families visible</strong>
+          <span>{loading ? "Reading research estate" : shelves.length || partitions.length ? "Library mapped" : "Library index"}</span>
+          <strong>{loading ? "Evidence counts are loading" : `${sourceFamilies(sourceRows).length} source families visible`}</strong>
         </div>
       </header>
 
@@ -180,7 +188,7 @@ export function DiscoverResearchRadar({
         <section className="rd-v2-discover-radar-panel rd-v2-discover-radar-panel--routes">
           <header>
             <span className="rd-v2-eyebrow">Known evidence routes</span>
-            <strong>{knownRows.length ? "Ready to investigate" : "Populate through discovery"}</strong>
+            <strong>{loading ? "Reading known routes" : knownRows.length ? "Ready to investigate" : "Populate through discovery"}</strong>
           </header>
           {starterRows.length ? (
             <ul>
@@ -194,6 +202,8 @@ export function DiscoverResearchRadar({
                 </li>
               ))}
             </ul>
+          ) : loading ? (
+            <p>Reading the Library and source map…</p>
           ) : (
             <p>Search a research need to populate source routes from the catalogue and wider adapters.</p>
           )}

@@ -187,10 +187,9 @@ const SYNTHESIS_SEED_THREADS = [
 ];
 
 async function installSynthesisWorkspaceSeed(page) {
+  const createdThreads = [];
   await page.route("**/library/synthesis/threads**", (route) => {
     const request = route.request();
-    if (request.method() !== "GET") return route.fallback();
-
     const url = new URL(request.url());
     const parts = url.pathname.split("/").filter(Boolean);
     const index = parts.lastIndexOf("threads");
@@ -202,12 +201,55 @@ async function installSynthesisWorkspaceSeed(page) {
       body: JSON.stringify(payload),
     });
 
-    if (!threadId) {
-      return fulfill({ threads: SYNTHESIS_SEED_THREADS, total: SYNTHESIS_SEED_THREADS.length });
+    if (!threadId && request.method() === "POST") {
+      const body = request.postDataJSON();
+      const created = {
+        id: "discover-synthesis-thread",
+        created_at: "2026-09-17T02:00:00Z",
+        updated_at: "2026-09-17T02:00:00Z",
+        title: body.title,
+        objective: body.objective,
+        materialisation: "not_materialised",
+        state: {
+          title: body.title,
+          objective: body.objective,
+          required_grain: body.required_grain || "",
+          maturity: "exploring",
+          maturityLabel: "Evidence mapping",
+          nodes: [],
+          edges: [],
+          proposal: null,
+          execution: null,
+        },
+      };
+      createdThreads.unshift(created);
+      return fulfill(created);
     }
 
-    const thread = SYNTHESIS_SEED_THREADS.find((item) => item.id === threadId);
+    if (!threadId) {
+      const threads = [...createdThreads, ...SYNTHESIS_SEED_THREADS];
+      return fulfill({ threads, total: threads.length });
+    }
+
+    const thread = [...createdThreads, ...SYNTHESIS_SEED_THREADS].find((item) => item.id === threadId);
     if (!thread) return fulfill({ error: "not found" }, 404);
+
+    if (suffix === "evidence-map" && request.method() === "POST") {
+      const body = request.postDataJSON();
+      thread.state.nodes = (body.dataset_ids || []).map((datasetId, index) => ({
+        id: `discover-evidence-${index + 1}`,
+        dataset_id: datasetId,
+        type: "source",
+        layer: "evidence",
+        label: datasetId,
+        role: "Discover Library match",
+        status: "held",
+      }));
+      return fulfill({
+        thread,
+        added: thread.state.nodes,
+      });
+    }
 
     if (suffix === "measurements") {
       return fulfill({
@@ -320,8 +362,44 @@ test.describe("converged platform shell", () => {
     await expect(page.getByRole("heading", { name: "Discover", exact: true })).toBeVisible();
     await expect(page).not.toHaveURL(/folder=/);
 
+    await page.route("**/library/discover?*", (route) => {
+      const url = new URL(route.request().url());
+      if (!url.pathname.endsWith("/library/discover")) return route.fallback();
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          sections: [{
+            id: "discover",
+            label: "Recommended",
+            rows: [
+              {
+                dataset_id: "gdelt_asia_daily_country_panel",
+                title: "Asia daily news-risk panel",
+                source: "GDELT GKG",
+                analysis_readiness: "instant",
+                grain: "country_day",
+              },
+              {
+                dataset_id: "mops_financial_statements_ext",
+                candidate_key: "dataset:mops_financial_statements_ext",
+                title: "MOPS financial statements (Taiwan)",
+                source: "MOPS",
+                collect_via: "mops_tw",
+                url: "https://mops.twse.com.tw/example",
+                grain: "issuer-quarter",
+              },
+            ],
+          }],
+          total: 2,
+          library_evidence: { count: 1, is_chrome: true },
+          sources: ["registry"],
+        }),
+      });
+    });
+
     const discoverComposer = page.getByLabel("Search or describe a research need");
-    await discoverComposer.fill("MOPS financial statements");
+    await discoverComposer.fill("Asia daily news");
     await page.getByRole("button", { name: "Explore", exact: true }).click();
     await expect(page.getByTestId("discover-result-summary")).toBeVisible();
     await expect(page.getByLabel("Discover next actions")).toContainText(/declared route|Search wider/i);
@@ -331,9 +409,13 @@ test.describe("converged platform shell", () => {
     await expect(page.locator("body")).not.toContainText("materialized_instant");
     await capture(page, "09-library-to-discover-desktop");
 
-    await page.locator("aside.yzu-sidebar").getByRole("button", { name: "Synthesis", exact: true }).click();
-    await expect(page.getByTestId("synthesis-home-state").getByText("Synthesis workspace", { exact: true })).toBeVisible();
-    await expect(page.getByRole("region", { name: "Start or continue Synthesis work" })).toBeVisible();
+    const startSynthesis = page.getByTestId("discover-start-synthesis");
+    await expect(startSynthesis).toBeVisible();
+    await expect(startSynthesis).toHaveText(/Start Synthesis with \d+ Library result/);
+    await startSynthesis.click();
+    await expect(page).toHaveURL(/tab=synthesis/);
+    await expect(page.getByTestId("synthesis-studio")).toContainText("Asia daily news");
+    await expect(page.getByTestId("synthesis-evidence-state")).toContainText("gdelt_asia_daily_country_panel");
     await expect(page.getByTestId("research-situation")).toContainText("Synthesis");
     await expect(page.getByTestId("research-situation")).not.toContainText("In this collection");
     await capture(page, "10-discover-to-synthesis-desktop");
@@ -344,7 +426,7 @@ test.describe("converged platform shell", () => {
     await expect(page.getByTestId("research-situation")).toContainText("Resources");
     const rail = page.getByRole("complementary", { name: "Inspector" });
     await expect(rail).toContainText("Library capacity");
-    await expect(rail).not.toContainText("MOPS financial statements");
+    await expect(rail).not.toContainText("Asia daily news");
     await capture(page, "11-synthesis-to-resources-desktop");
   });
 
