@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { previewCellValue } from "@/v2/previewValue";
+import { previewCellValue, researcherPreviewReason } from "@/v2/previewValue";
 import {
   downloadText,
   openQueryInNewTab,
@@ -98,13 +98,16 @@ function externalPreviewBoundary(preview) {
   if (status === "access_required") {
     return {
       title: "Access required before preview",
-      body: preview?.reason || preview?.notes || "The source requires entitlement, credentials, or another access step before a sample can be observed.",
+      body: researcherPreviewReason(
+        preview?.reason || preview?.notes,
+        "The source requires entitlement, credentials, or another access step before a sample can be observed.",
+      ),
     };
   }
   if (status === "failed") {
     return {
       title: "Source record only",
-      body: preview?.reason || "The bounded preview could not establish schema or sample rows.",
+      body: researcherPreviewReason(preview?.reason),
     };
   }
   return {
