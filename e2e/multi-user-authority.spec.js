@@ -16,7 +16,17 @@ test("account menu names the authenticated person and simple role", async ({ pag
 
 
 test("member can research but does not receive operator approval controls", async ({ page }) => {
+  let acquisitionLedgerRequests = 0;
   await mockV2Api(page);
+  await page.unroute("**/yzu/acquisitions*").catch(() => {});
+  await page.route("**/yzu/acquisitions*", (route) => {
+    acquisitionLedgerRequests += 1;
+    return route.fulfill({
+      status: 403,
+      contentType: "application/json",
+      body: JSON.stringify({ error: "Forbidden" }),
+    });
+  });
   await page.route("**/library/desk/capabilities", (route) =>
     route.fulfill({
       status: 200,
@@ -49,6 +59,7 @@ test("member can research but does not receive operator approval controls", asyn
   await expect(page.getByRole("note")).toHaveCount(0);
   await page.getByRole("button", { name: "Account" }).click();
   await expect(page.getByRole("menu", { name: "Account destinations" })).toContainText("Member");
+  await expect.poll(() => acquisitionLedgerRequests).toBe(0);
 });
 
 test("a Home Ask answer survives passive Pick Up hydration", async ({ page }) => {

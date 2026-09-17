@@ -565,13 +565,16 @@ export function V2App() {
         setLifecycleRefreshFailed(true);
       })
       .finally(() => setJobsRefreshing(false));
-    if (canSubmitCollection) {
+    if (canViewOperations) {
       listAcquisitions(false)
         .then((d) => setAcquisitions(d.acquisitions || []))
         .catch(() => setAcquisitions([]));
     } else {
-      // Public browse sessions have no collection authority.  Do not issue an
-      // expected-forbidden request merely to populate an unavailable surface.
+      // The cluster acquisition ledger is operator telemetry. Members submit
+      // and revisit their own work through jobs + Discover History, but may
+      // not read the cross-principal /yzu/acquisitions surface. Avoid an
+      // expected 403 after member sign-in and keep Home scoped to personal
+      // lifecycle truth.
       setAcquisitions([]);
     }
     if (canViewOperations) {
