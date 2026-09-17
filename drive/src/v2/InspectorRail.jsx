@@ -249,6 +249,7 @@ export function InspectorRail({
         intentRecord={discoverIntentRecord}
         onAskAbout={onAskAbout}
         onAddToLab={onAddToLab}
+        hasMemberSession={askAvailable}
         onRequireMemberAccess={() => onRailTabChange?.("ask")}
         onPreviewExternal={onPreviewExternal}
         onProbeSource={onProbeSource}

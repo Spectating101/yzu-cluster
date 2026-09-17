@@ -209,6 +209,7 @@ export function DiscoverEvaluationSurface({
   intentRecord = null,
   onAskAbout,
   onAddToLab,
+  hasMemberSession = false,
   onRequireMemberAccess,
   onPreviewExternal,
   onProbeSource,
@@ -362,8 +363,16 @@ export function DiscoverEvaluationSurface({
 
   const actionLabel = (action) =>
     action?.id === "add_lab" && !onAddToLab
-      ? "Sign in to request evidence"
+      ? hasMemberSession
+        ? "Lab membership required"
+        : "Sign in to request evidence"
       : action?.label;
+
+  const actionDisabled = (action) =>
+    probeLoading ||
+    submitting ||
+    requestConfirm ||
+    (action?.id === "add_lab" && !onAddToLab && hasMemberSession);
 
   const openLocal = () => {
     const local = sufficiency?.bestLocal;
@@ -416,7 +425,7 @@ export function DiscoverEvaluationSurface({
       onOpenInLibrary?.(datasetId ? { ...target, dataset_id: datasetId } : target);
     } else if (id === "add_lab") {
       if (onAddToLab) setRequestConfirm(true);
-      else onRequireMemberAccess?.();
+      else if (!hasMemberSession) onRequireMemberAccess?.();
     } else if (id === "probe") onProbeSource?.(target);
     else if (id === "preview") onPreviewExternal?.();
     else if (id === "review_approval") onReviewApproval?.(lifecycle?.job || target);
@@ -715,7 +724,7 @@ export function DiscoverEvaluationSurface({
           <button
             type="button"
             className="rd-v2-btn primary rd-v2-eval-primary-action"
-            disabled={probeLoading || submitting}
+            disabled={actionDisabled(primary)}
             onClick={() => runAction(primary.id)}
           >
             {actionLabel(primary)}
@@ -728,7 +737,7 @@ export function DiscoverEvaluationSurface({
               key={action.id}
               type="button"
               className="rd-v2-btn"
-              disabled={probeLoading || submitting || requestConfirm}
+              disabled={actionDisabled(action)}
               onClick={() => runAction(action.id)}
             >
               {actionLabel(action)}
@@ -743,7 +752,7 @@ export function DiscoverEvaluationSurface({
                 <button
                   type="button"
                   className="rd-v2-eval-mobile-secondary"
-                  disabled={probeLoading || submitting}
+                  disabled={actionDisabled(mobileSecondary)}
                   onClick={() => runAction(mobileSecondary.id)}
                 >
                   {actionLabel({ ...mobileSecondary, label: mobileSecondaryLabel })}
@@ -760,7 +769,7 @@ export function DiscoverEvaluationSurface({
                       <button
                         key={action.id}
                         type="button"
-                        disabled={probeLoading || submitting}
+                        disabled={actionDisabled(action)}
                         onClick={(event) => {
                           runAction(action.id);
                           event.currentTarget.closest("details")?.removeAttribute("open");

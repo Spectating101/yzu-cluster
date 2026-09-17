@@ -186,6 +186,47 @@ test("a public guest can browse shared evidence but must sign in to Ask", async 
   }
 });
 
+test("a signed-in public member sees the collection authority boundary, not another sign-in prompt", async ({ page }) => {
+  await mockV2Api(page, { discoverBody: MOCK_DISCOVER_HIT });
+  await page.unroute("**/library/desk/capabilities").catch(() => {});
+  await page.route("**/library/desk/capabilities", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({
+      version: 2,
+      authenticated: true,
+      access: "public_member",
+      principal: { id: "student-test", display_name: "Student researcher", role: "public_member" },
+      permissions: {
+        view_research_data: true,
+        view_faculty_profile: false,
+        view_operations: false,
+        use_ask: true,
+        submit_collection: false,
+        approve_jobs: false,
+      },
+      session: {
+        bootstrap_available: true,
+        public_guest_available: true,
+        member_sign_in_available: true,
+        member_access_code_available: true,
+      },
+    }),
+  }));
+
+  await page.goto("/?tab=discover", { waitUntil: "domcontentloaded" });
+  await page.getByLabel("Search or describe a research need").fill("MOPS filings");
+  await page.getByRole("button", { name: "Explore", exact: true }).click();
+  await page.getByTestId("discover-ranked-results").getByRole("button", { name: /MOPS financial statements/ }).click();
+
+  const restricted = page.locator("aside.rd-v2-rail").getByRole("button", {
+    name: "Lab membership required",
+  });
+  await expect(restricted).toBeVisible();
+  await expect(restricted).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Sign in to request evidence" })).toHaveCount(0);
+});
+
 test("a public guest can begin self-service verified email sign-in", async ({ page }) => {
   await mockV2Api(page, { discoverBody: MOCK_DISCOVER_HIT });
   await page.unroute("**/library/desk/capabilities").catch(() => {});
