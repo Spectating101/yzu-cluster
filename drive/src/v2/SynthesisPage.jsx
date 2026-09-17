@@ -2108,6 +2108,7 @@ export function SynthesisPage({
       const created = await createSynthesisThread({
         objective: nextObjective,
         title: titleFromObjective(nextObjective),
+        requiredGrain: synthesisDraftBrief(nextObjective).values.targetGrain,
       });
       replaceThread(created);
       returnThreadIdRef.current = created.id;

@@ -1,3 +1,5 @@
+import { synthesisDraftBrief } from "./synthesisDraft.js";
+
 /**
  * The S-04 opening composition, from SYNTHESIS_S04_PRODUCT_SPEC.md §5–§6.
  *
@@ -49,11 +51,15 @@ export function isPreAcceptance(thread) {
 export function researchBrief(thread) {
   const state = thread?.state || {};
   const spec = state.spec || {};
+  const body = firstOf(state, ["brief", "objective"]) || str(thread?.objective);
+  const explicit = synthesisDraftBrief(body).values;
   return {
-    body: firstOf(state, ["brief", "objective"]) || str(thread?.objective),
-    targetGrain: firstOf(state, ["required_grain"]) || firstOf(spec, ["grain", "target_grain"]),
-    targetPeriod: firstOf(state, ["target_period"]) || firstOf(spec, ["period", "target_period"]),
-    intendedUse: firstOf(state, ["intended_use"]) || firstOf(spec, ["intended_use"]),
+    body,
+    targetGrain:
+      firstOf(state, ["required_grain"]) || firstOf(spec, ["grain", "target_grain"]) || explicit.targetGrain,
+    targetPeriod:
+      firstOf(state, ["target_period"]) || firstOf(spec, ["period", "target_period"]) || explicit.targetPeriod,
+    intendedUse: firstOf(state, ["intended_use"]) || firstOf(spec, ["intended_use"]) || explicit.intendedUse,
     editable: isPreAcceptance(thread),
   };
 }

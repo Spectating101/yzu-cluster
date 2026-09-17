@@ -47,6 +47,17 @@ test("the brief falls back to the thread objective, never to invented text", () 
   assert.equal(brief.targetPeriod, "");
 });
 
+test("the brief preserves commitments stated explicitly in the objective", () => {
+  const brief = researchBrief({
+    objective:
+      "Build a county × year panel for 2000–2025 linking wildfire exposure to " +
+      "employment outcomes for a difference-in-differences study.",
+  });
+  assert.equal(brief.targetGrain, "county × year");
+  assert.equal(brief.targetPeriod, "2000–2025");
+  assert.equal(brief.intendedUse, "for a difference-in-differences study");
+});
+
 test("no construction reports absent rather than an empty frame", () => {
   const rec = recommendedConstruction({ state: {} });
   assert.equal(rec.present, false);

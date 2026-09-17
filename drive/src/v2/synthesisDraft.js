@@ -4,7 +4,14 @@ function text(value) {
 
 const GRAIN_RE = /\b(?:grain|unit|panel|daily|weekly|monthly|quarterly|annual(?:ly)?|per\s+(?:asset|issuer|firm|country|event|transaction|user|document)|(?:asset|issuer|firm|country|event|transaction|token|exchange)\s*(?:[×x]|-|by)\s*(?:day|week|month|quarter|year))\b/i;
 const PERIOD_RE = /\b(?:19|20)\d{2}\b|\b(?:since|from|between|through|until|before|after|historical|longitudinal|over\s+time|time\s+horizon|period|window)\b/i;
-const USE_RE = /\b(?:test(?:ing)?|estimate|regression|event[- ]study|forecast|predict|validate|validation|compare|explain|causal|monitor|screen|rank|downstream|reuse|reusable|input\s+for|support\s+(?:a|an|the)?\s*(?:study|analysis|model))\b/i;
+const USE_RE = /\b(?:test(?:ing)?|estimate|regression|event[- ]study|difference(?:s)?[- ]in[- ]difference(?:s)?|did\s+(?:study|design|estimate)|forecast|predict|validate|validation|compare|explain|causal|monitor|screen|rank|downstream|reuse|reusable|input\s+for|support\s+(?:a|an|the)?\s*(?:study|analysis|model))\b/i;
+const GRAIN_VALUE_RE = /\b(?:asset|issuer|firm|company|country|county|state|event|transaction|user|document|token|exchange)\s*(?:[×x]|-|by)\s*(?:day|week|month|quarter|year)\b/i;
+const PERIOD_VALUE_RE = /\b(?:19|20)\d{2}\s*(?:[-–—]|to|through)\s*(?:19|20)\d{2}\b/i;
+const USE_VALUE_RE = /\b(?:for\s+(?:(?:a|an|the)\s+)?[^,.;]{0,90}?(?:study|analysis|model|forecast|validation)|to\s+(?:test|estimate|forecast|predict|validate|compare|explain|monitor|screen|rank)\b[^,.;]{0,90})/i;
+
+function explicitValue(value, pattern) {
+  return value.match(pattern)?.[0]?.trim() || "";
+}
 
 export function synthesisDraftBrief(objective = "") {
   const value = text(objective);
@@ -47,6 +54,11 @@ export function synthesisDraftBrief(objective = "") {
     cues,
     complete,
     missing,
+    values: {
+      targetGrain: explicitValue(value, GRAIN_VALUE_RE),
+      targetPeriod: explicitValue(value, PERIOD_VALUE_RE),
+      intendedUse: explicitValue(value, USE_VALUE_RE),
+    },
     readyToCreate: Boolean(value) && complete >= 3,
   };
 }
