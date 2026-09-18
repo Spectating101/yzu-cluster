@@ -25,6 +25,7 @@ The annotated tag object, peeled commit, and frozen public product pin are three
 - RC2 freezes the public/runtime SHA pair above.
 - This public repo is the interface and behavioral contract, not the production control plane.
 - The RC2 golden asset `procured_src_b0a7ba3817a5` is Registered and is not Query ready.
+- A later-main synthetic test ingest `test_ingest_src_20260919` exists on this packaging checkout. It is a labelled local fixture journey, **not** RC2, **not** a GitHub Release, and **not** Query-ready promotion of the RC2 golden asset.
 - `origin/main` and the later `research-drive-public-20260917*` tags exist and are not RC2.
 - `research-drive-private` is GitHub-public as of 2026-09-18 despite the name.
 - On this packaging checkout, `npm run test:candidate-key` (247), `npm run test:runtime-contract` (40), and the Python interop suite (32) passed. Default `npm run release:verify` fails because `main` already changed product files after the frozen public pin; `node scripts/verify_rc2_release.mjs --closed-release` passed.
@@ -38,6 +39,7 @@ The annotated tag object, peeled commit, and frozen public product pin are three
 - That `origin/main`, `live/deployed-ui-20260825`, `research-drive-public-20260917*`, or RC3-preview `62284a5` is RC2 or a new named release.
 - That GitHub Pages is the RC2 live desk.
 - Public multi-user SaaS, Query-ready promotion, or that green CI reopens RC2.
+- That the later-main test ingest `test_ingest_src_20260919` is RC2, a new GitHub Release, Yuan Ze adoption, or Query-ready promotion of `procured_src_b0a7ba3817a5`.
 
 ## What would promote the claim
 

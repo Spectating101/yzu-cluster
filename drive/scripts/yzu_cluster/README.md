@@ -17,3 +17,5 @@ tests/test_yzu_interop_*.py
 ```
 
 That package defines and tests the shared behavioral contract without claiming to be the deployed Optiplex/Windows/GDrive control plane.
+
+`scripts/yzu_cluster/interop_ingest.py` is a later-main labelled test ingest (`test_ingest_src_20260919`). It is not RC2, not a GitHub Release, and not Query-ready promotion of the RC2 golden asset.

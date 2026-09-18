@@ -1,0 +1,13 @@
+{
+  "fixture_id": "test_ingest_src_20260919",
+  "label": "TEST INGEST — later-main synthetic fixture, not the RC2 golden asset, not a live acquisition, not a GitHub Release",
+  "not_rc2": true,
+  "not_github_release": true,
+  "not_live_acquisition": true,
+  "not_query_ready_claim": true,
+  "rc2_golden_dataset_id_this_is_not": "procured_src_b0a7ba3817a5",
+  "records": [
+    {"entity": "alpha", "week": "2026-W36", "value": 1},
+    {"entity": "beta", "week": "2026-W36", "value": 2}
+  ]
+}

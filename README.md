@@ -46,6 +46,7 @@ Read [`docs/REPOSITORY_TOPOLOGY.md`](docs/REPOSITORY_TOPOLOGY.md) before changin
 | `e2e/` | Browser and rendered-state contracts |
 | `docs/product/` | Public product and interoperability contracts |
 | `scripts/yzu_cluster/` | Executable dependency-free reference runtime |
+| `scripts/yzu_cluster/interop_ingest.py` | Later-main labelled test ingest journey (not RC2) |
 | `tests/test_yzu_interop_*.py` | Reference runtime behavioral tests |
 
 The public reference runtime is intentionally framework-neutral. It does not contain the private host, archive, credential, or production-data environment.
@@ -69,6 +70,8 @@ Research Drive RC2 is live-accepted with the implementation pins below:
 | Private runtime | `07cb7b885454aef32f3e2351da8733794fe9c17b` |
 
 The release truth anchor is `procured_src_b0a7ba3817a5`: it is **Registered**, queryable through the accepted runtime authority, and deliberately **not** represented as Query ready.
+
+A later-main synthetic test ingest (`test_ingest_src_20260919` in `scripts/yzu_cluster/fixtures/test_ingest_journey_20260919/`) exercises byte-preserving ingest, synthesis, restart, worker failure, and retry on this public reference runtime. That journey is **not** RC2, **not** a GitHub Release, **not** a live acquisition, and it does **not** promote the RC2 golden asset to Query ready.
 
 - [RC2 release notes](docs/releases/RESEARCH_DRIVE_RC2.md)
 - [RC2 operator quickstart](docs/releases/RC2_OPERATOR_QUICKSTART.md)

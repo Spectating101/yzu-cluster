@@ -1,0 +1,9 @@
+TEST INGEST — later-main synthetic fixture (2026-09-19)
+
+This directory is a labelled local test source for the public reference
+runtime ingest journey. It is not a live acquisition.
+
+It is not the RC2 golden asset procured_src_b0a7ba3817a5.
+It is not a GitHub Release and does not retag research-drive-rc2.
+It does not promote that golden asset to Query ready.
+It is not Yuan Ze adoption, production SaaS, or a new named release.

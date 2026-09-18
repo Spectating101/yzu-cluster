@@ -114,6 +114,10 @@
       "evidence": "release/research-drive-rc2.json golden_asset.query_ready=false and analysis_readiness=metadata_search."
     },
     {
+      "claim": "The later-main synthetic test ingest test_ingest_src_20260919 is a labelled local fixture journey on the public reference runtime. It is not RC2, not a GitHub Release, and does not promote procured_src_b0a7ba3817a5 to Query ready.",
+      "evidence": "scripts/yzu_cluster/fixtures/test_ingest_journey_20260919/LABEL.txt and tests/test_yzu_interop_ingest_journey.py."
+    },
+    {
       "claim": "GitHub default branch main at 8a1e62de1d0b38de9dc3f9908458371f9e3ba27e is later than RC2 and is not a new named release.",
       "evidence": "git merge-base --is-ancestor 33fcacb origin/main; no GitHub Release exists for 8a1e62d."
     },
@@ -143,7 +147,8 @@
     "Registered assets are Query ready.",
     "Automatic Query-ready promotion is in scope.",
     "Green CI, a later snapshot tag, or a packaging branch reopens or replaces RC2.",
-    "The companion repository default README currently describes Research Drive; as of 2026-09-18 it still describes Sharpe-Renaissance."
+    "The companion repository default README currently describes Research Drive; as of 2026-09-18 it still describes Sharpe-Renaissance.",
+    "The later-main test ingest test_ingest_src_20260919 is RC2, a new GitHub Release, Yuan Ze adoption, production SaaS, or Query-ready promotion of procured_src_b0a7ba3817a5."
   ],
   "promotion_requirements": {
     "NEW_NAMED_RELEASE": [

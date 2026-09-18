@@ -343,11 +343,16 @@ drive/src/v2/executionLifecycle.js
 drive/src/v2/assetAuthority.js
 drive/src/v2/railContext.js
 drive/src/v2/resourcesLedger.js
+scripts/yzu_cluster/interop_ingest.py
+tests/test_yzu_interop_ingest_journey.py
 ```
+
+`interop_ingest.py` is a later-main labelled test ingest on the public reference runtime. It is not RC2, not a GitHub Release, and not Query-ready promotion of `procured_src_b0a7ba3817a5`.
 
 Contract verification:
 
 ```bash
 npm run test:runtime-contract
+python -m unittest discover -s tests -p "test_yzu_interop_*.py" -v
 npm run build
 ```
