@@ -8,8 +8,9 @@ The **public candidate** is the existing GitHub release [`research-drive-rc2`](h
 
 | Ref | SHA | Status |
 |---|---|---|
-| Named release `research-drive-rc2` | `33fcacb4416e1a8ae53d0e16bbd14b19d8ebf3c9` | Public candidate. GitHub Latest. |
-| Frozen public product pin | `b40ff0945f5e1957f0100742185e2a78b06dd498` | Interface SHA inside RC2. The tag commit may be newer. |
+| Named release `research-drive-rc2` (peeled commit) | `33fcacb4416e1a8ae53d0e16bbd14b19d8ebf3c9` | Public candidate. GitHub Latest. |
+| Annotated tag object | `279a59f5f82a8e7a3aec749cbddcc540cf0e6e7e` | Tag object SHA. Different from the peeled commit. |
+| Frozen public product pin | `b40ff0945f5e1957f0100742185e2a78b06dd498` | Interface SHA inside RC2. Different from both tag SHAs. |
 | Frozen runtime pin | `07cb7b885454aef32f3e2351da8733794fe9c17b` | Companion SHA in `Spectating101/research-drive-private`. |
 | GitHub `main` | `8a1e62de1d0b38de9dc3f9908458371f9e3ba27e` | Default clone / Pages source as of 2026-08-25. Later than RC2. **Not** a new release. |
 | `research-drive-public-20260917.2` | `c577b1cb7f8bad23b8a8b4a2b09bf7d6973225ea` | Later snapshot tag. Different SHA. **Not** RC2. Not a GitHub Release. |
@@ -26,12 +27,6 @@ Public and companion are not fake versus real:
 - RC2 recorded live-acceptance evidence in its own release notes. Connected cloud mounts, including GDrive, are not owned product bytes.
 
 Read [`docs/REPOSITORY_TOPOLOGY.md`](docs/REPOSITORY_TOPOLOGY.md) before changing repository boundaries or starting a new release branch. Topology dates in that file are older than this currency note.
-
-## Current public currency — 2026-09-18
-
-Claim boundary: [`docs/CLAIMS_BOUNDARY.md`](docs/CLAIMS_BOUNDARY.md).
-
-GitHub `main` is `8a1e62d` (2026-08-25). Tag `research-drive-rc2` and the README RC2 pin below are **different SHAs**. Do not treat this default branch as that RC2 pin. RC3-preview `62284a5` is not RC2. No new release is declared here.
 
 ## What this is
 

@@ -7,12 +7,14 @@
     "named_release": "research-drive-rc2",
     "named_release_url": "https://github.com/Spectating101/yzu-cluster/releases/tag/research-drive-rc2",
     "tag": "research-drive-rc2",
+    "tag_object": "279a59f5f82a8e7a3aec749cbddcc540cf0e6e7e",
     "commit": "33fcacb4416e1a8ae53d0e16bbd14b19d8ebf3c9",
     "commit_subject": "Publish Research Drive RC2 release",
     "commit_committed_at": "2026-07-21T01:37:51+08:00",
     "github_latest_release": "research-drive-rc2",
     "notes": [
       "Claims bind to the existing named GitHub release tag research-drive-rc2 and its peeled commit SHA.",
+      "The annotated tag object 279a59f5, peeled commit 33fcacb, and frozen public product pin b40ff094 are three different SHAs. Do not collapse them.",
       "The RC2 packaging commit may be newer than the frozen public product pin. That distinction is recorded in release/research-drive-rc2.json and is not a new release.",
       "This file does not create, retag, or reopen RC2."
     ]
@@ -134,6 +136,7 @@
     "Spectating101 owns Google Drive or any other connected cloud bytes used by a host.",
     "Spectating101/research-drive-private is a private repository.",
     "origin/main, live/deployed-ui-20260825, or research-drive-public-20260917* is RC2 or a new named release.",
+    "The annotated tag object 279a59f5, peeled commit 33fcacb, and frozen public product pin b40ff094 are the same artifact.",
     "ops/rc3-auto-preview @ 62284a5 is RC2 or an accepted RC3 release.",
     "GitHub Pages at spectating101.github.io/yzu-cluster is the RC2 live-accepted desk.",
     "The product is a public multi-user SaaS.",

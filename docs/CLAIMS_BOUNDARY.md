@@ -9,14 +9,15 @@ This file binds the **existing** GitHub release `research-drive-rc2`. It does no
 | Field | Value |
 |---|---|
 | Named release | [`research-drive-rc2`](https://github.com/Spectating101/yzu-cluster/releases/tag/research-drive-rc2) |
-| Tag / commit | `research-drive-rc2` → `33fcacb4416e1a8ae53d0e16bbd14b19d8ebf3c9` |
+| Annotated tag object | `279a59f5f82a8e7a3aec749cbddcc540cf0e6e7e` |
+| Peeled tag commit | `33fcacb4416e1a8ae53d0e16bbd14b19d8ebf3c9` |
 | Frozen public product pin | `b40ff0945f5e1957f0100742185e2a78b06dd498` |
 | Frozen runtime pin | `07cb7b885454aef32f3e2351da8733794fe9c17b` on `Spectating101/research-drive-private` |
 | Default clone (`origin/main`) | `8a1e62de1d0b38de9dc3f9908458371f9e3ba27e` (2026-08-25) — later than RC2, **not** a new release |
 | Later public snapshots | `research-drive-public-20260913`, `research-drive-public-20260917`, `.1`, `.2` — **different SHAs**, not RC2, not GitHub Releases |
 | RC3-preview | `ops/rc3-auto-preview` @ `62284a59a00dd16defba6aa6c6054eec4a24097d` is **not** RC2 |
 
-The RC2 packaging commit may be newer than the frozen public product pin. That is already stated in the RC2 notes. It is not a second release.
+The annotated tag object, peeled commit, and frozen public product pin are three different SHAs. Do not collapse them. The packaging commit may be newer than the frozen public product pin. That is already stated in the RC2 notes. It is not a second release.
 
 ## Supported now
 
