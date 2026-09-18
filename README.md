@@ -2,15 +2,30 @@
 
 Public GitHub home for the **YZU Research Drive** product: researcher-facing UI, design canon, visual-review evidence, interoperability contracts, and a dependency-free executable reference runtime.
 
-This repository is **not the deployed lab control plane**. The production API, MCP, orchestrator, workers, scrapers, registry writes, host configuration, and `data_lake/` live in the private repository `Spectating101/research-drive-private`.
+## Currency (2026-09-18)
 
-Public and private are not fake versus real:
+The **public candidate** is the existing GitHub release [`research-drive-rc2`](https://github.com/Spectating101/yzu-cluster/releases/tag/research-drive-rc2), commit `33fcacb4416e1a8ae53d0e16bbd14b19d8ebf3c9`. This packaging does not create a new tag or release.
 
-- **Public** publishes the interface and executable behavioral contract.
-- **Private** adopts that contract inside the real Research Drive control plane.
-- **Live hosts** prove the private implementation on Optiplex, Windows workers, and GDrive.
+| Ref | SHA | Status |
+|---|---|---|
+| Named release `research-drive-rc2` | `33fcacb4416e1a8ae53d0e16bbd14b19d8ebf3c9` | Public candidate. GitHub Latest. |
+| Frozen public product pin | `b40ff0945f5e1957f0100742185e2a78b06dd498` | Interface SHA inside RC2. The tag commit may be newer. |
+| Frozen runtime pin | `07cb7b885454aef32f3e2351da8733794fe9c17b` | Companion SHA in `Spectating101/research-drive-private`. |
+| GitHub `main` | `8a1e62de1d0b38de9dc3f9908458371f9e3ba27e` | Default clone / Pages source as of 2026-08-25. Later than RC2. **Not** a new release. |
+| `research-drive-public-20260917.2` | `c577b1cb7f8bad23b8a8b4a2b09bf7d6973225ea` | Later snapshot tag. Different SHA. **Not** RC2. Not a GitHub Release. |
+| `ops/rc3-auto-preview` | `62284a59a00dd16defba6aa6c6054eec4a24097d` | RC3-preview ops. **Not** RC2. |
 
-Read [`docs/REPOSITORY_TOPOLOGY.md`](docs/REPOSITORY_TOPOLOGY.md) before changing repository boundaries or starting a new release branch.
+Earlier snapshot tags `research-drive-public-20260913`, `research-drive-public-20260917`, and `research-drive-public-20260917.1` are also different SHAs from RC2. Inspection claims: [`docs/CLAIMS_BOUNDARY.md`](docs/CLAIMS_BOUNDARY.md), [`docs/product/claims-and-nonclaims.v1.json`](docs/product/claims-and-nonclaims.v1.json).
+
+This repository is **not the deployed lab control plane**. Companion API, MCP, orchestrator, workers, scrapers, registry writes, host configuration, and `data_lake/` live in `Spectating101/research-drive-private`. That repository is **GitHub-public as of 2026-09-18** despite the name. Its default README currently describes Sharpe-Renaissance, not Research Drive.
+
+Public and companion are not fake versus real:
+
+- **This public repo** publishes the interface and executable behavioral contract.
+- **The companion repo** holds the named RC2 runtime pin; that is not institutional adoption and not production beyond that SHA pair.
+- RC2 recorded live-acceptance evidence in its own release notes. Connected cloud mounts, including GDrive, are not owned product bytes.
+
+Read [`docs/REPOSITORY_TOPOLOGY.md`](docs/REPOSITORY_TOPOLOGY.md) before changing repository boundaries or starting a new release branch. Topology dates in that file are older than this currency note.
 
 ## Current public currency — 2026-09-18
 
@@ -44,10 +59,10 @@ The public reference runtime is intentionally framework-neutral. It does not con
 
 | Surface | URL |
 |---------|-----|
-| **GitHub Pages** — static UI + demo seed | https://spectating101.github.io/yzu-cluster/ |
-| **Full desk** — private API + chat + workers | Run from the private Research Drive checkout |
+| **GitHub Pages** — static UI + demo seed | https://spectating101.github.io/yzu-cluster/ (follows GitHub `main`, not the RC2 tag) |
+| **Full desk** — companion API + chat + workers | Run from a `research-drive-private` checkout pinned to the named runtime SHA |
 
-Static Pages shows the v2 shell and offline/demo data. Composer chat and live registry require the private API.
+Static Pages shows the v2 shell and offline/demo data. Composer chat and live registry require the companion API. Pages is not the RC2 live-accepted desk.
 
 ## RC2 accepted release
 
@@ -86,7 +101,7 @@ npm run dev
 
 ### Full desk
 
-From the private `research-drive-private`/Sharpe-Renaissance checkout:
+From a `research-drive-private` checkout pinned to the named runtime SHA (the default README there is still Sharpe-Renaissance; do not treat that as Research Drive product copy):
 
 ```bash
 bash drive/scripts/run_yzu_cluster.sh
@@ -106,17 +121,19 @@ npm run release:verify
 npm run release:test
 ```
 
-Rendered review uses the Playwright suites under `e2e/` and, when the private desk is available, the live integration capture scripts.
+Rendered review uses the Playwright suites under `e2e/` and, when the companion desk is available, the live integration capture scripts.
 
-`npm run release:package` creates a deterministic public static distribution, file inventory, and SHA-256 checksums under `artifacts/`. It never packages the private control plane, secrets, registry data, or collected datasets.
+`npm run release:package` creates a deterministic public static distribution, file inventory, and SHA-256 checksums under `artifacts/`. It never packages the companion control plane, secrets, registry data, or collected datasets.
 
 ## Canon docs
 
-- [`docs/REPOSITORY_TOPOLOGY.md`](docs/REPOSITORY_TOPOLOGY.md) — repository and release authority
+- [`docs/CLAIMS_BOUNDARY.md`](docs/CLAIMS_BOUNDARY.md) — inspection claims and nonclaims
+- [`docs/product/claims-and-nonclaims.v1.json`](docs/product/claims-and-nonclaims.v1.json) — machine-readable bound SHA/tag
+- [`docs/REPOSITORY_TOPOLOGY.md`](docs/REPOSITORY_TOPOLOGY.md) — repository and release authority (older than the currency note above)
 - [`docs/UI_PRODUCT_AUTHORITY.md`](docs/UI_PRODUCT_AUTHORITY.md) — interface authority
 - [`docs/RESEARCH_DRIVE_RIGHT_RAIL_CONTRACT.md`](docs/RESEARCH_DRIVE_RIGHT_RAIL_CONTRACT.md) — Detail | Ask rail
 - [`docs/product/SYNTHESIS_S04_PRODUCT_SPEC.md`](docs/product/SYNTHESIS_S04_PRODUCT_SPEC.md) — Synthesis product model
-- [`docs/product/CLUSTER_RUNTIME_INTEROP_CONTRACT.md`](docs/product/CLUSTER_RUNTIME_INTEROP_CONTRACT.md) — public/private runtime contract
+- [`docs/product/CLUSTER_RUNTIME_INTEROP_CONTRACT.md`](docs/product/CLUSTER_RUNTIME_INTEROP_CONTRACT.md) — public/companion runtime contract
 
 ## Publishing discipline
 
@@ -126,4 +143,4 @@ Historical and superseded PR branches remain available for archaeology, but only
 
 ## Share line
 
-> Research Drive is a lab data desk for YZU: organized vault catalog, live query registry, and a Composer-backed procurement loop — search what we have, collect what we don't, construct defensible research assets, and register them for next time.
+> Research Drive is a research data desk: organized vault catalog, registered-asset query against a named runtime, and a Composer-backed procurement loop. RC2 is the named public candidate. This is not a Yuan Ze University deployment claim.
