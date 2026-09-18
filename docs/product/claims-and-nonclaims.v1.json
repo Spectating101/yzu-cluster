@@ -82,6 +82,16 @@
       "url": "https://spectating101.github.io/yzu-cluster/",
       "source_branch": "main",
       "limit": "Static Pages follows GitHub main, not the research-drive-rc2 tag."
+    },
+    "packaging_branch_local_suite": {
+      "base": "8a1e62de1d0b38de9dc3f9908458371f9e3ba27e",
+      "observed_at": "2026-09-18",
+      "npm_run_test_candidate_key": "247 passed, 0 failed",
+      "npm_run_test_runtime_contract": "40 passed, 0 failed",
+      "python_unittest_test_yzu_interop": "32 passed, 0 failed",
+      "npm_run_release_verify": "failed on origin/main because 234 paths already differ from frozen public pin b40ff094; this predates the claims files",
+      "node_scripts_verify_rc2_release_closed_release": "passed",
+      "playwright_e2e": "not re-run locally; last GitHub CI on origin/main succeeded"
     }
   },
   "supported": [
