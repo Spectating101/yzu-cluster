@@ -1,0 +1,160 @@
+{
+  "schema": "research_drive.claim_boundary.v1",
+  "as_of": "2026-09-18",
+  "authority": {
+    "public_repo": "Spectating101/yzu-cluster",
+    "public_repo_visibility": "public",
+    "named_release": "research-drive-rc2",
+    "named_release_url": "https://github.com/Spectating101/yzu-cluster/releases/tag/research-drive-rc2",
+    "tag": "research-drive-rc2",
+    "commit": "33fcacb4416e1a8ae53d0e16bbd14b19d8ebf3c9",
+    "commit_subject": "Publish Research Drive RC2 release",
+    "commit_committed_at": "2026-07-21T01:37:51+08:00",
+    "github_latest_release": "research-drive-rc2",
+    "notes": [
+      "Claims bind to the existing named GitHub release tag research-drive-rc2 and its peeled commit SHA.",
+      "The RC2 packaging commit may be newer than the frozen public product pin. That distinction is recorded in release/research-drive-rc2.json and is not a new release.",
+      "This file does not create, retag, or reopen RC2."
+    ]
+  },
+  "frozen_implementation_pair": {
+    "public_product_sha": "b40ff0945f5e1957f0100742185e2a78b06dd498",
+    "public_product_repo": "Spectating101/yzu-cluster",
+    "private_runtime_sha": "07cb7b885454aef32f3e2351da8733794fe9c17b",
+    "private_runtime_repo": "Spectating101/research-drive-private",
+    "private_runtime_repo_visibility_as_of": "public",
+    "source": "release/research-drive-rc2.json pins"
+  },
+  "related_refs_not_this_release": {
+    "github_default_branch": {
+      "ref": "origin/main",
+      "commit": "8a1e62de1d0b38de9dc3f9908458371f9e3ba27e",
+      "committed_at": "2026-08-25T16:57:43+08:00",
+      "subject": "Tell hosted agents which branch is real",
+      "relation": "Descendant of research-drive-rc2. Default clone and GitHub Pages source as of this packaging date. Not a new named release."
+    },
+    "later_public_snapshot_tags": [
+      {
+        "tag": "research-drive-public-20260913",
+        "commit": "3175e0728c53e797e4944d6a3f230c4587ac25cb"
+      },
+      {
+        "tag": "research-drive-public-20260917",
+        "commit": "6e791ac5123801949b7ef21339f2bb09acc98f5a"
+      },
+      {
+        "tag": "research-drive-public-20260917.1",
+        "commit": "501244148d0399bfa72f91c6560b6b4a75985f73"
+      },
+      {
+        "tag": "research-drive-public-20260917.2",
+        "commit": "c577b1cb7f8bad23b8a8b4a2b09bf7d6973225ea"
+      }
+    ],
+    "rc3_preview_not_rc2": {
+      "ref": "ops/rc3-auto-preview",
+      "commit": "62284a59a00dd16defba6aa6c6054eec4a24097d",
+      "committed_at": "2026-07-23T12:51:06+08:00",
+      "subject": "fix(ops): make RC3 watcher install Tailwind oxide under systemd",
+      "relation": "RC3-preview ops checkout. Not RC2. Not a GitHub Release."
+    },
+    "aug25_deployed_ui_branch": {
+      "ref": "live/deployed-ui-20260825",
+      "commit": "01fe463a858aef316e500656a20c4b6b6e88a449",
+      "relation": "Recorded in AGENTS.md on origin/main as the UI being served on 2026-08-25. Not a named release. Not RC2."
+    },
+    "companion_default_main": {
+      "repo": "Spectating101/research-drive-private",
+      "commit": "a8535c3e803e4015d0d506756072be41f05b597c",
+      "committed_at": "2026-08-27T16:01:02Z",
+      "relation": "Companion default branch as of this packaging date. Not the RC2 runtime pin."
+    }
+  },
+  "observed_checks": {
+    "origin_main_github_actions": {
+      "head": "8a1e62de1d0b38de9dc3f9908458371f9e3ba27e",
+      "ci": "https://github.com/Spectating101/yzu-cluster/actions/runs/32829362743",
+      "pages": "https://github.com/Spectating101/yzu-cluster/actions/runs/32829362716",
+      "conclusion": "success",
+      "limit": "Green CI on origin/main does not recertify RC2 live acceptance and does not promote later snapshot tags."
+    },
+    "github_pages_source": {
+      "url": "https://spectating101.github.io/yzu-cluster/",
+      "source_branch": "main",
+      "limit": "Static Pages follows GitHub main, not the research-drive-rc2 tag."
+    }
+  },
+  "supported": [
+    {
+      "claim": "The named public candidate for this package is GitHub release tag research-drive-rc2 at commit 33fcacb4416e1a8ae53d0e16bbd14b19d8ebf3c9.",
+      "evidence": "GitHub Latest release research-drive-rc2; annotated tag peels to that commit; release assets and docs/releases/RESEARCH_DRIVE_RC2.md exist at that tag."
+    },
+    {
+      "claim": "RC2 freezes an implementation pair: public product b40ff0945f5e1957f0100742185e2a78b06dd498 on Spectating101/yzu-cluster and runtime 07cb7b885454aef32f3e2351da8733794fe9c17b on Spectating101/research-drive-private.",
+      "evidence": "release/research-drive-rc2.json pins; GitHub release notes for research-drive-rc2."
+    },
+    {
+      "claim": "This public repository is the interface and behavioral contract, not the production control plane.",
+      "evidence": "RC2 truth_constraints.public_repository_is_not_the_production_control_plane and docs/releases/RESEARCH_DRIVE_RC2.md known limitations."
+    },
+    {
+      "claim": "Registered is not Query ready on the RC2 golden asset procured_src_b0a7ba3817a5.",
+      "evidence": "release/research-drive-rc2.json golden_asset.query_ready=false and analysis_readiness=metadata_search."
+    },
+    {
+      "claim": "GitHub default branch main at 8a1e62de1d0b38de9dc3f9908458371f9e3ba27e is later than RC2 and is not a new named release.",
+      "evidence": "git merge-base --is-ancestor 33fcacb origin/main; no GitHub Release exists for 8a1e62d."
+    },
+    {
+      "claim": "Later tags research-drive-public-20260913 and research-drive-public-20260917* exist at SHAs different from research-drive-rc2.",
+      "evidence": "GitHub tag list for Spectating101/yzu-cluster. Those tags are snapshots, not GitHub Releases, and are not RC2."
+    },
+    {
+      "claim": "ops/rc3-auto-preview commit 62284a59a00dd16defba6aa6c6054eec4a24097d is not RC2.",
+      "evidence": "That commit is dated 2026-07-23 on branch ops/rc3-auto-preview and has no research-drive-rc2 tag."
+    },
+    {
+      "claim": "Spectating101/research-drive-private is GitHub-public as of 2026-09-18 despite the repository name.",
+      "evidence": "GitHub API visibility=public, private=false on 2026-09-18."
+    }
+  ],
+  "unsupported_or_prohibited": [
+    "Yuan Ze University or any other institution has adopted, procured, or deployed Research Drive.",
+    "Production operation exists beyond the named RC2 SHA pair.",
+    "Spectating101 owns Google Drive or any other connected cloud bytes used by a host.",
+    "Spectating101/research-drive-private is a private repository.",
+    "origin/main, live/deployed-ui-20260825, or research-drive-public-20260917* is RC2 or a new named release.",
+    "ops/rc3-auto-preview @ 62284a5 is RC2 or an accepted RC3 release.",
+    "GitHub Pages at spectating101.github.io/yzu-cluster is the RC2 live-accepted desk.",
+    "The product is a public multi-user SaaS.",
+    "Registered assets are Query ready.",
+    "Automatic Query-ready promotion is in scope.",
+    "Green CI, a later snapshot tag, or a packaging branch reopens or replaces RC2.",
+    "The companion repository default README currently describes Research Drive; as of 2026-09-18 it still describes Sharpe-Renaissance."
+  ],
+  "promotion_requirements": {
+    "NEW_NAMED_RELEASE": [
+      "publish a GitHub Release whose tag peels to the claimed SHA",
+      "rebind this file to that tag and SHA",
+      "do not reuse the research-drive-rc2 tag"
+    ],
+    "PRODUCTION_BEYOND_PAIR": [
+      "name the exact public and runtime SHAs being claimed",
+      "independent host evidence that is not merely a connected third-party drive",
+      "do not treat GitHub Pages or a snapshot tag as production"
+    ],
+    "INSTITUTIONAL_ADOPTION": [
+      "named institution and scope",
+      "durable receipt from that institution",
+      "unaltered artifact identity"
+    ],
+    "CLOUD_BYTE_OWNERSHIP": [
+      "account or legal evidence that the storage is owned by the claimant",
+      "connected GDrive or similar mounts do not satisfy this"
+    ],
+    "QUERY_READY": [
+      "RC2-style acceptance that the named golden asset is query_ready",
+      "do not manufacture a replacement acquisition to make a smoke test pass"
+    ]
+  }
+}

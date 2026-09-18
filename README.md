@@ -12,6 +12,12 @@ Public and private are not fake versus real:
 
 Read [`docs/REPOSITORY_TOPOLOGY.md`](docs/REPOSITORY_TOPOLOGY.md) before changing repository boundaries or starting a new release branch.
 
+## Current public currency — 2026-09-18
+
+Claim boundary: [`docs/CLAIMS_BOUNDARY.md`](docs/CLAIMS_BOUNDARY.md).
+
+GitHub `main` is `8a1e62d` (2026-08-25). Tag `research-drive-rc2` and the README RC2 pin below are **different SHAs**. Do not treat this default branch as that RC2 pin. RC3-preview `62284a5` is not RC2. No new release is declared here.
+
 ## What this is
 
 | Promise | What professors get |
