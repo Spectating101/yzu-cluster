@@ -317,6 +317,51 @@
   }
 }
 
+/* ── Mobile Detail / Ask: a collapsed rail is a contextual control, not a bar ── */
+@media (max-width: 720px) {
+  .yzu-inspector.rd-v2-rail-collapsed {
+    left: auto !important;
+    right: 8px !important;
+    width: auto !important;
+    min-width: 44px !important;
+    max-width: calc(100vw - 16px) !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .yzu-inspector.rd-v2-rail-collapsed .rd-v2-rail-chrome {
+    width: auto;
+    min-width: 0;
+    margin-left: auto;
+    border: 0;
+    background: transparent;
+  }
+
+  .yzu-inspector.rd-v2-rail-collapsed .rd-v2-rail-mobile-grip {
+    width: auto;
+    max-width: calc(100vw - 28px);
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 14px;
+    overflow: hidden;
+    border: 1px solid rgba(210, 216, 226, 0.96);
+    border-radius: 999px;
+    background: rgba(255, 253, 246, 0.985);
+    color: #344054;
+    box-shadow: 0 12px 32px rgba(17, 24, 39, 0.16);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    backdrop-filter: blur(16px) saturate(140%);
+  }
+
+  .yzu-inspector.rd-v2-rail-collapsed .rd-v2-rail-mobile-grip:hover,
+  .yzu-inspector.rd-v2-rail-collapsed .rd-v2-rail-mobile-grip:focus-visible {
+    border-color: rgba(63, 111, 92, 0.42);
+    color: #1a3030;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .rd-v2-access-form-row input,
   .rd-v2-access-form-row button {
