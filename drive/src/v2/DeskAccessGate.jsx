@@ -52,6 +52,14 @@ export function DeskAccessGate({ access, busy = false, onRetry }) {
   const bootstrapError = String(access?.bootstrap?.error || "");
   const currentEntryIsUntrusted = /not permitted|forbidden|\b403\b/i.test(bootstrapError);
   const canTryAutomaticEntry = Boolean(access?.session?.bootstrap_available) && !currentEntryIsUntrusted;
+  const hasServiceWarning = configured === false || Boolean(access?.error);
+  const statusText = configured === false
+    ? "This host has no desk credential configured; protected APIs fail closed."
+    : currentEntryIsUntrusted
+      ? "This browser is not on a trusted desk entry. Use your issued access token, or open the desk through its approved address."
+      : access?.error
+        ? "Secure access check is unavailable. The desk remains locked; retry after the service is restored."
+        : "Use the token issued for your member or operator account.";
 
   const connect = () => {
     const value = saveDeskToken(token);
@@ -62,7 +70,14 @@ export function DeskAccessGate({ access, busy = false, onRetry }) {
   return (
     <main className="rd-v2-access-gate" aria-labelledby="rd-access-title" data-testid="desk-access-gate">
       <section className="rd-v2-access-card">
-        <span className="rd-v2-access-kicker">RESEARCH DRIVE · PRIVATE DESK</span>
+        <div className="rd-v2-access-lockup" aria-hidden="true">
+          <span className="rd-v2-access-mark">RD</span>
+          <span>
+            <strong>Research Drive</strong>
+            <small>Private research workspace</small>
+          </span>
+        </div>
+        <span className="rd-v2-access-kicker">CONTROLLED DESK ENTRY</span>
         <h1 id="rd-access-title">Research data stays inside the desk.</h1>
         <p>
           This browser has not established an authorized desk session. Catalog data, faculty memory,
@@ -70,10 +85,10 @@ export function DeskAccessGate({ access, busy = false, onRetry }) {
         </p>
 
         <div className="rd-v2-access-boundary" aria-label="Access boundary">
-          <span><i aria-hidden="true">✓</i> Interface shell</span>
-          <span><i aria-hidden="true">—</i> Research data</span>
-          <span><i aria-hidden="true">—</i> Ask and collection</span>
-          <span><i aria-hidden="true">—</i> Operations</span>
+          <span><i aria-hidden="true">•</i> Interface shell</span>
+          <span><i aria-hidden="true">•</i> Research data</span>
+          <span><i aria-hidden="true">•</i> Ask and collection</span>
+          <span><i aria-hidden="true">•</i> Operations</span>
         </div>
 
         <form
@@ -98,24 +113,21 @@ export function DeskAccessGate({ access, busy = false, onRetry }) {
           </div>
         </form>
 
-        <button
-          type="button"
-          className="rd-v2-access-retry"
-          disabled={busy}
-          onClick={() => onRetry?.({ force: true, tokenProvided: false })}
+        <div
+          className={`rd-v2-access-status${hasServiceWarning ? " warning" : ""}`}
+          role="status"
+          aria-live="polite"
         >
-          {canTryAutomaticEntry ? "Retry trusted internal entry" : "Check access again"}
-        </button>
-
-        <small>
-          {configured === false
-            ? "This host has no desk credential configured; protected APIs fail closed."
-            : currentEntryIsUntrusted
-              ? "This browser is not on a trusted desk entry. Use your issued access token, or open the desk through its approved address."
-            : access?.error
-              ? "Secure access check is unavailable. The desk remains locked; retry after the service is restored."
-              : "Use the token issued for your member or operator account."}
-        </small>
+          <span>{statusText}</span>
+          <button
+            type="button"
+            className="rd-v2-access-retry"
+            disabled={busy}
+            onClick={() => onRetry?.({ force: true, tokenProvided: false })}
+          >
+            {canTryAutomaticEntry ? "Retry trusted internal entry" : "Check access again"}
+          </button>
+        </div>
       </section>
     </main>
   );
