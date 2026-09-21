@@ -35,19 +35,83 @@ function HomeHeadroomMark({ markId }) {
   );
 }
 
-function PickUpCard({ point, loading, onContinue, onReview }) {
+function resolveHomePosture({ loading, point }) {
+  if (loading) {
+    return {
+      id: "loading",
+      eyebrow: "Pick up · Loading",
+      lead: "Resume · headroom · durable consequences",
+    };
+  }
+  if (!point) {
+    return {
+      id: "cold",
+      eyebrow: "Pick up · Start",
+      lead: "Start with held evidence · find what is missing · preserve durable work",
+    };
+  }
+  if (point.kind === "decision") {
+    return {
+      id: "decision",
+      eyebrow: "Pick up · Decision",
+      lead: "A researcher decision is waiting before work can continue",
+    };
+  }
+  if (point.kind === "synthesis_thread") {
+    return {
+      id: point.warn ? "recovery" : "synthesis",
+      eyebrow: point.warn ? "Pick up · Recovery" : "Pick up · Synthesis",
+      lead: point.warn
+        ? "A durable construction needs review before continuing"
+        : "Durable research work is ready to resume",
+    };
+  }
+  if (point.kind === "discover_work") {
+    return {
+      id: point.warn ? "recovery" : "acquisition",
+      eyebrow: point.warn ? "Pick up · Recovery" : "Pick up · Acquisition",
+      lead: point.warn
+        ? "An acquisition needs review before evidence can move forward"
+        : "Evidence acquisition is in progress · History holds the lifecycle truth",
+    };
+  }
+  if (point.kind === "library_asset") {
+    return {
+      id: "held-evidence",
+      eyebrow: "Pick up · Evidence",
+      lead: "Evidence is on hand · inspect it · continue the research",
+    };
+  }
+  return {
+    id: "active",
+    eyebrow: "Pick up · Continue",
+    lead: "Resume the most consequential durable research state",
+  };
+}
+
+function PickUpCard({ point, loading, posture, onContinue, onReview }) {
+  const eyebrow = posture?.eyebrow || "Pick up";
   if (loading) {
     return (
-      <div className="rd-v2-home-pickup-card" data-testid="home-continue" aria-busy="true">
-        <span className="rd-v2-home-eyebrow">Pick up</span>
+      <div
+        className="rd-v2-home-pickup-card"
+        data-testid="home-continue"
+        data-posture={posture?.id || "loading"}
+        aria-busy="true"
+      >
+        <span className="rd-v2-home-eyebrow">{eyebrow}</span>
         <Skeleton lines={3} label="Loading resume point" />
       </div>
     );
   }
   if (!point) {
     return (
-      <div className="rd-v2-home-pickup-card" data-testid="home-continue">
-        <span className="rd-v2-home-eyebrow">Pick up</span>
+      <div
+        className="rd-v2-home-pickup-card"
+        data-testid="home-continue"
+        data-posture={posture?.id || "cold"}
+      >
+        <span className="rd-v2-home-eyebrow">{eyebrow}</span>
         <GuidedState
           eyebrow="No resume point"
           title="Open the Library or find missing evidence"
@@ -62,10 +126,11 @@ function PickUpCard({ point, loading, onContinue, onReview }) {
       className={`rd-v2-home-pickup-card${point.warn ? " warn" : ""}`}
       data-testid="home-continue"
       data-kind={point.kind}
+      data-posture={posture?.id || "active"}
       data-resume-id={point.id || ""}
       aria-label={`Pick up: ${point.title}`}
     >
-      <span className="rd-v2-home-eyebrow">Pick up</span>
+      <span className="rd-v2-home-eyebrow">{eyebrow}</span>
       <h2>{point.title}</h2>
       <p className="rd-v2-home-pickup-state">{point.stateSummary}</p>
       <div className="rd-v2-home-pickup-foot">
@@ -160,6 +225,10 @@ export function HomePage({
     () => buildPickUp({ datasets, jobs, health, acquisitions, profile, synthesisThreads }),
     [datasets, jobs, health, acquisitions, profile, synthesisThreads],
   );
+  const homePosture = useMemo(
+    () => resolveHomePosture({ loading, point: pickUp.primary }),
+    [loading, pickUp.primary],
+  );
   useEffect(() => {
     if (!loading) onPrimaryResume?.(pickUp.primary || null);
   }, [loading, onPrimaryResume, pickUp.primary]);
@@ -224,16 +293,17 @@ export function HomePage({
     <PageShell
       className="rd-v2-home-page rd-v2-home-i10"
       title="Home"
-      lead="Resume · headroom · durable consequences"
+      lead={homePosture.lead}
       footer={null}
       surfaceState={surfaceState}
     >
       {loadError ? <DeskError raw={loadError} surface="Home's Library briefing" /> : null}
-      <div className="rd-v2-home-topband">
+      <div className="rd-v2-home-topband" data-home-posture={homePosture.id}>
         <section className="rd-v2-home-pickup" aria-label="Pick up">
           <PickUpCard
             point={pickUp.primary}
             loading={loading}
+            posture={homePosture}
             onContinue={continuePrimary}
             onReview={reviewDecision}
           />
