@@ -6,10 +6,38 @@
  * evidence path, selected-object continuity, and mobile containment.
  */
 import { expect, test } from "@playwright/test";
-import { MOCK_DISCOVER_HIT, mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
+import {
+  MOCK_DISCOVER_HIT,
+  MOCK_HEALTH,
+  mockV2Api,
+  waitForShell,
+} from "./fixtures/v2MockApi.js";
 
 const DESKTOP = { width: 1440, height: 900 };
 const MOBILE = { width: 390, height: 844 };
+
+// The shared v2 fixture intentionally represents an active desk: it has held
+// datasets and an approval waiting in /health. First-use guidance is only the
+// truthful Home state when there is no durable/recent work to resume, so the
+// Home contract must create that state explicitly rather than calling the
+// default fixture a cold start.
+const COLD_START_OPTIONS = {
+  datasetsBody: { datasets: [] },
+  jobsBody: { jobs: [] },
+  healthBody: {
+    ...MOCK_HEALTH,
+    datasets: 0,
+    desk: {
+      ...MOCK_HEALTH.desk,
+      jobs: {
+        ...(MOCK_HEALTH.desk?.jobs || {}),
+        running: 0,
+        pending_approval: 0,
+        gdelt_progress: "",
+      },
+    },
+  },
+};
 
 async function open(page, url, viewport = DESKTOP, options = {}) {
   await page.setViewportSize(viewport);
@@ -19,7 +47,7 @@ async function open(page, url, viewport = DESKTOP, options = {}) {
 }
 
 test("Home cold start explains the research path without pretending work exists", async ({ page }) => {
-  await open(page, "/?tab=home");
+  await open(page, "/?tab=home", DESKTOP, COLD_START_OPTIONS);
 
   const path = page.getByTestId("home-first-use-path");
   await expect(path).toBeVisible();
@@ -53,7 +81,7 @@ test("Discover keeps the selected object visually bound to its inspector", async
 });
 
 test("first-use guidance remains compact on a phone", async ({ page }) => {
-  await open(page, "/?tab=home", MOBILE);
+  await open(page, "/?tab=home", MOBILE, COLD_START_OPTIONS);
 
   const path = page.getByTestId("home-first-use-path");
   await expect(path).toBeVisible();
