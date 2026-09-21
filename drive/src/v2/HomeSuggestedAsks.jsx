@@ -5,10 +5,10 @@ import { Chip, ChipRow } from "@/v2/ui";
 
 function seedLead(seed, profile) {
   if (seed?.bootstrap_mode === "faculty_profile") return "Research desk seeded from your faculty profile";
-  if (seed?.bootstrap_mode === "yzu_profile_fallback") return "Research desk ready — start with a question or add evidence";
-  if (seed?.bootstrap_mode === "generic_cold_start") return "Research desk ready — start with a question or add evidence";
+  if (seed?.bootstrap_mode === "yzu_profile_fallback") return "Research desk ready — begin with the evidence you have";
+  if (seed?.bootstrap_mode === "generic_cold_start") return "Research desk ready — begin with the evidence you have";
   if (profile && !profile.unknown) return "Suggested for your research profile";
-  return "Suggested asks — start with a question or add evidence";
+  return "Research desk ready — begin with the evidence you have";
 }
 
 export function HomeSuggestedAsks({ profile, onAskComposer, allowPrincipalSeed = true }) {
@@ -55,6 +55,11 @@ export function HomeSuggestedAsks({ profile, onAskComposer, allowPrincipalSeed =
       data-bootstrap-mode={seed?.bootstrap_mode || "fallback"}
     >
       <p className="muted small rd-v2-home-suggested-lead">{lead}</p>
+      <div className="rd-v2-home-first-use-path" data-testid="home-first-use-path" aria-label="Research path">
+        <span><b>Ask</b><em>Reason over current research context</em></span>
+        <span><b>Discover</b><em>Close gaps when evidence is missing</em></span>
+        <span><b>Synthesis</b><em>Preserve an approved method and output</em></span>
+      </div>
       {seed ? (
         <p className="muted small" data-testid="home-research-seed-sources">
           {connectedSources.length
