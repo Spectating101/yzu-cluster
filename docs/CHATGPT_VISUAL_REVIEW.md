@@ -19,6 +19,12 @@ The long-lived screenshot packet may intentionally preserve historical visual ev
 
 For pull requests using the normal Runtime contracts workflow, prefer the `research-drive-platform-convergence` artifact when it was generated from the exact PR head. It contains current desktop/workstation/mobile convergence renders and is a better source for visual judgment than an older committed packet.
 
+### Post-freeze visual authority
+
+Do not add another one-off CSS closure file for ordinary visual sanding. The late-loaded `drive/src/v2/visual-system-consolidation.css` file is the bounded post-freeze authority for cross-surface palette, rail-density, thin-state, small motion, and mobile-shell corrections. Page-specific stylesheets continue to own structural layout and product semantics.
+
+A visual change belongs in that consolidation layer only when it is genuinely cross-surface or polish-level. If it changes information architecture, research semantics, permissions, execution authority, or a page's structural composition, it requires its own product review rather than another CSS override.
+
 ## Screenshots in this repo (for ChatGPT + connector)
 
 **Desktop review set** (start here only when the manifest matches the review target):
