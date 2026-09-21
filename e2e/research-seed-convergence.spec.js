@@ -141,6 +141,7 @@ test("seed endpoint failure does not block the existing cold-start Home", async 
   const seed = page.getByTestId("home-research-seed");
   await expect(seed).toBeVisible();
   await expect(seed).toHaveAttribute("data-bootstrap-mode", "fallback");
-  await expect(seed).toContainText("Suggested asks");
+  await expect(seed).toContainText("Research desk ready");
+  await expect(page.getByTestId("home-first-use-path")).toContainText(/Library[\s\S]*desk[\s\S]*holds[\s\S]*evidence/i);
   await expect(page.getByTestId("desk-access-gate")).toHaveCount(0);
 });

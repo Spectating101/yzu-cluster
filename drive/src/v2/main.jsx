@@ -54,6 +54,7 @@ import "./discover-frozen-closure.css";
 import "./connected-accounts.css";
 import "./launch-visual-closure.css";
 import "./home-release-closure.css";
+import "./visual-system-consolidation.css";
 import { V2App } from "./App";
 import { InteractionProvider } from "./InteractionGuidance";
 import { SynthesisAuthorityMount } from "./SynthesisAuthorityMount.jsx";

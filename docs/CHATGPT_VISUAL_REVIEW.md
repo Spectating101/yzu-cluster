@@ -11,9 +11,23 @@ Use this when you want **pixel-level** critique of Research Drive v2 — not jus
 
 GitHub alone cannot answer whether the hero hooks or the rail feels cramped.
 
+## Screenshot freshness is part of the evidence
+
+Do **not** treat `docs/screenshots-review/` as proof of the current checkout merely because the images are present in that checkout. Read `manifest.json` first and compare its recorded `git_head` / capture date with the exact SHA under review.
+
+The long-lived screenshot packet may intentionally preserve historical visual evidence. If its recorded head does not match the implementation being judged, use exact-head CI render artifacts or generate a fresh capture instead. A stale screenshot must never override the current UI authority or an exact-head rendered acceptance run.
+
+For pull requests using the normal Runtime contracts workflow, prefer the `research-drive-platform-convergence` artifact when it was generated from the exact PR head. It contains current desktop/workstation/mobile convergence renders and is a better source for visual judgment than an older committed packet.
+
+### Post-freeze visual authority
+
+Do not add another one-off CSS closure file for ordinary visual sanding. The late-loaded `drive/src/v2/visual-system-consolidation.css` file is the bounded post-freeze authority for cross-surface palette, rail-density, thin-state, small motion, and mobile-shell corrections. Page-specific stylesheets continue to own structural layout and product semantics.
+
+A visual change belongs in that consolidation layer only when it is genuinely cross-surface or polish-level. If it changes information architecture, research semantics, permissions, execution authority, or a page's structural composition, it requires its own product review rather than another CSS override.
+
 ## Screenshots in this repo (for ChatGPT + connector)
 
-**Desktop review set** (start here):
+**Desktop review set** (start here only when the manifest matches the review target):
 
 | Image | Route |
 |-------|--------|
@@ -84,7 +98,7 @@ git push origin main
 Review Research Drive v2 (YZU procurement desk) — visual + product critique.
 
 Repo: Spectating101/yzu-cluster
-Screenshots: docs/screenshots-review/ (desktop-home, library, library-connections-queue, discover, resources)
+Before using committed screenshots, verify docs/screenshots-review/manifest.json matches the exact implementation SHA. If it does not, use exact-head CI convergence renders or a fresh capture.
 Product: lab research data desk — Library, Discover, Resources, Detail|Ask rail.
 Not SolarPunk, not trading alpha.
 

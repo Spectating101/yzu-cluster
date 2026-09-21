@@ -79,6 +79,20 @@ jobs:
       - name: Re-run the full mocked Research Drive surface
         run: CI=true YZU_PAGES=false npm run test:v2-mock
 
+      - name: Verify researcher first-use contract
+        run: >-
+          mkdir -p .tmp-pw &&
+          TMPDIR=$PWD/.tmp-pw CI=true YZU_PAGES=false npx playwright test
+          e2e/researcher-first-use-contract.spec.js --workers=1 --reporter=line
+
+      - name: Preserve researcher first-use renders
+        if: always()
+        shell: bash
+        run: |
+          rm -rf artifacts/first-use
+          mkdir -p artifacts/first-use
+          find test-results -type f -name 'home-first-use-*.png' -exec cp '{}' artifacts/first-use/ \; 2>/dev/null || true
+
       - name: Verify frozen Library convergence on the integrated shell
         run: >-
           mkdir -p .tmp-pw artifacts/library-convergence &&
@@ -118,5 +132,6 @@ jobs:
           path: |
             artifacts/platform-convergence
             artifacts/library-convergence
+            artifacts/first-use
             test-results
           if-no-files-found: warn

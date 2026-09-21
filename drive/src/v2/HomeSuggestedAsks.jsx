@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { fetchJson } from "@/v2/api";
 import { homeSuggestedPrompts } from "@/v2/homePrompts";
-import { Chip, ChipRow } from "@/v2/ui";
+import { Chip } from "@/v2/ui";
 
 function seedLead(seed, profile) {
   if (seed?.bootstrap_mode === "faculty_profile") return "Research desk seeded from your faculty profile";
-  if (seed?.bootstrap_mode === "yzu_profile_fallback") return "Research desk ready — start with a question or add evidence";
-  if (seed?.bootstrap_mode === "generic_cold_start") return "Research desk ready — start with a question or add evidence";
+  if (seed?.bootstrap_mode === "yzu_profile_fallback") return "Research desk ready — inspect what is held, then close what is missing";
+  if (seed?.bootstrap_mode === "generic_cold_start") return "Research desk ready — inspect what is held, then close what is missing";
   if (profile && !profile.unknown) return "Suggested for your research profile";
-  return "Suggested asks — start with a question or add evidence";
+  return "Research desk ready — inspect what is held, then close what is missing";
 }
 
 export function HomeSuggestedAsks({ profile, onAskComposer, allowPrincipalSeed = true }) {
@@ -55,6 +55,14 @@ export function HomeSuggestedAsks({ profile, onAskComposer, allowPrincipalSeed =
       data-bootstrap-mode={seed?.bootstrap_mode || "fallback"}
     >
       <p className="muted small rd-v2-home-suggested-lead">{lead}</p>
+      <div className="muted small" data-testid="home-first-use-path" aria-label="Research path">
+        <p>
+          Start with <strong>Library</strong> when the desk already holds the evidence. Use <strong>Discover</strong> when evidence is missing.
+        </p>
+        <p>
+          <strong>Ask</strong> reasons over the current research context. <strong>Synthesis</strong> preserves approved methods and outputs as durable work.
+        </p>
+      </div>
       {seed ? (
         <p className="muted small" data-testid="home-research-seed-sources">
           {connectedSources.length
@@ -70,13 +78,22 @@ export function HomeSuggestedAsks({ profile, onAskComposer, allowPrincipalSeed =
           {connectedSources.map((source) => source?.label || source?.provider || "Connected storage").join(" · ")}
         </p>
       ) : null}
-      <ChipRow>
+      <div
+        className="rd-v2-chips-row"
+        data-testid="home-suggested-prompts"
+        style={{ flexWrap: "wrap", overflow: "visible" }}
+      >
         {prompts.map((prompt) => (
-          <Chip key={prompt} active onClick={() => onAskComposer?.(prompt)}>
+          <Chip
+            key={prompt}
+            active
+            onClick={() => onAskComposer?.(prompt)}
+            style={{ maxWidth: "100%", whiteSpace: "normal", textAlign: "left" }}
+          >
             {prompt.length > 72 ? `${prompt.slice(0, 69)}…` : prompt}
           </Chip>
         ))}
-      </ChipRow>
+      </div>
     </section>
   );
 }
