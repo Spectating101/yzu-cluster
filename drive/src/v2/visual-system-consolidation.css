@@ -4,7 +4,22 @@
  * page composition, research semantics, permissions, or execution authority.
  * It closes visual drift around the public entry and reasserts the frozen
  * parchment / charcoal / sage product language over residual indigo accents.
+ *
+ * Keep post-freeze visual sanding here rather than creating more one-off
+ * authority layers. Page-specific files still own their structural layouts.
  */
+
+:root {
+  --rd-polish-ink: var(--rd-accent, #101820);
+  --rd-polish-sage: var(--rd-link, #3f6f5c);
+  --rd-polish-paper: var(--rd-surface, #fffdf6);
+  --rd-polish-canvas: var(--rd-canvas, #eeeae0);
+  --rd-polish-line: #ded8ca;
+  --rd-polish-line-soft: #ebe7dc;
+  --rd-polish-muted: #6e7685;
+  --rd-polish-fast: 140ms;
+  --rd-polish-medium: 180ms;
+}
 
 /* ── Private desk entry: make the first public surface feel like Research Drive ── */
 .rd-v2-access-gate {
@@ -157,7 +172,7 @@
   background: #fff;
   color: #182033;
   box-shadow: inset 0 1px 0 rgba(16, 24, 32, 0.02);
-  transition: border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
+  transition: border-color var(--rd-polish-fast) ease, box-shadow var(--rd-polish-fast) ease, background var(--rd-polish-fast) ease;
 }
 
 .rd-v2-access-form-row input:focus {
@@ -280,6 +295,165 @@
   color: #101820;
 }
 
+/* ── Inspector density: one decision surface, then quieter supporting facts ── */
+.rd-v2-rail-panel .rd-v2-rail-scroll {
+  padding-bottom: 18px;
+  scrollbar-gutter: stable;
+}
+
+.rd-v2-rail-panel .rd-v2-rail-decision {
+  margin: 0 14px 10px;
+  overflow: hidden;
+  border: 1px solid var(--rd-polish-line);
+  border-radius: 10px;
+  background: #faf8f2;
+  box-shadow: 0 1px 0 rgba(16, 24, 32, 0.025);
+}
+
+.rd-v2-rail-panel .rd-v2-rail-decision-row {
+  min-height: 32px;
+  padding: 7px 10px;
+  gap: 10px;
+  border-top-color: var(--rd-polish-line-soft);
+}
+
+.rd-v2-rail-panel .rd-v2-rail-decision-label {
+  color: #7b8790;
+  font-size: 9.5px;
+  letter-spacing: 0.07em;
+}
+
+.rd-v2-rail-panel .rd-v2-rail-decision-value {
+  font-size: 11.5px;
+  line-height: 1.35;
+}
+
+.rd-v2-library-inspector-scroll {
+  padding-inline: 18px;
+}
+
+.rd-v2-library-inspector-block {
+  padding-block: 12px;
+  border-bottom-color: var(--rd-polish-line-soft);
+}
+
+.rd-v2-rail-section-label {
+  margin-top: 10px;
+  margin-bottom: 6px;
+  color: #81909a;
+}
+
+.rd-v2-rail-fieldgrid {
+  padding-top: 2px;
+}
+
+.rd-v2-rail-fieldgrid .rd-v2-detail-row {
+  min-height: 30px;
+}
+
+/* A no-selection rail is still useful context. Treat it like a bounded prompt,
+ * not a lonely icon floating inside a full-height white column. */
+.rd-v2-rail-empty-state {
+  align-items: flex-start;
+  width: auto;
+  margin: 16px;
+  padding: 20px 18px;
+  border: 1px dashed var(--rd-polish-line);
+  border-radius: 12px;
+  background: #fbfaf5;
+  text-align: left;
+}
+
+.rd-v2-rail-empty-icon {
+  width: 34px;
+  height: 34px;
+  padding: 7px;
+  border-radius: 10px;
+  background: #eef3ef;
+  color: var(--rd-polish-sage);
+}
+
+.rd-v2-rail-empty-title {
+  margin-top: 14px;
+  color: var(--rd-polish-ink);
+}
+
+.rd-v2-rail-empty-hint {
+  max-width: 32ch;
+  color: #68737e;
+  line-height: 1.55;
+}
+
+/* ── Honest thin states: compact evidence cards instead of blank canvas ── */
+.rd-v2-profile-page [data-testid="profile-memory-thin"],
+.rd-v2-profile-page [data-testid="profile-lab"]:has(> .rd-v2-empty-inline) {
+  align-self: start;
+  min-height: 0;
+  padding: 16px 18px 18px;
+  border: 1px solid var(--rd-polish-line);
+  border-radius: 12px;
+  background: rgba(255, 253, 246, 0.82);
+  box-shadow: 0 1px 0 rgba(16, 24, 32, 0.025);
+}
+
+.rd-v2-profile-page [data-testid="profile-memory-thin"] .rd-v2-empty-inline,
+.rd-v2-profile-page [data-testid="profile-lab"] > .rd-v2-empty-inline {
+  margin: 12px 0 0;
+  padding: 13px 14px;
+  border: 1px dashed #d8d2c6;
+  border-radius: 9px;
+  background: #f8f6ef;
+  color: #68737e;
+  line-height: 1.5;
+}
+
+.rd-v2-profile-page [data-testid="profile-lab"] > .rd-v2-profile-memory-effect {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--rd-polish-line-soft);
+}
+
+/* ── Causal motion: show state continuity, never decorative motion ── */
+@keyframes rd-polish-context-in {
+  from {
+    opacity: 0.72;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rd-v2-rail-pane-on {
+  animation: rd-polish-context-in var(--rd-polish-medium) ease-out both;
+}
+
+.rd-v2-discover-candidate,
+.rd-v2-library-asset,
+.rd-v2-res-inventory-row {
+  transition:
+    background-color var(--rd-polish-fast) ease,
+    border-color var(--rd-polish-fast) ease,
+    box-shadow var(--rd-polish-fast) ease;
+}
+
+.rd-v2-discover-candidate.selected,
+.rd-v2-library-asset.selected,
+.rd-v2-res-inventory-row.on {
+  box-shadow: inset 3px 0 0 var(--rd-polish-sage);
+}
+
+.rd-v2-pill,
+.rd-v2-trust-badge,
+.rd-v2-discover-sufficiency,
+.rd-v2-rail-decision-value {
+  transition:
+    color var(--rd-polish-fast) ease,
+    background-color var(--rd-polish-fast) ease,
+    border-color var(--rd-polish-fast) ease;
+}
+
 @media (max-width: 640px) {
   .rd-v2-access-gate {
     padding: 14px;
@@ -314,6 +488,17 @@
     align-items: flex-start;
     flex-direction: column;
     gap: 8px;
+  }
+
+  .rd-v2-rail-empty-state {
+    margin: 12px;
+    padding: 16px;
+  }
+
+  .rd-v2-profile-page [data-testid="profile-memory-thin"],
+  .rd-v2-profile-page [data-testid="profile-lab"]:has(> .rd-v2-empty-inline) {
+    padding: 14px;
+    border-radius: 10px;
   }
 }
 
@@ -364,7 +549,18 @@
 
 @media (prefers-reduced-motion: reduce) {
   .rd-v2-access-form-row input,
-  .rd-v2-access-form-row button {
+  .rd-v2-access-form-row button,
+  .rd-v2-discover-candidate,
+  .rd-v2-library-asset,
+  .rd-v2-res-inventory-row,
+  .rd-v2-pill,
+  .rd-v2-trust-badge,
+  .rd-v2-discover-sufficiency,
+  .rd-v2-rail-decision-value {
     transition: none;
+  }
+
+  .rd-v2-rail-pane-on {
+    animation: none;
   }
 }
