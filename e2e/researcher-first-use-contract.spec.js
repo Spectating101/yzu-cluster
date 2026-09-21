@@ -175,9 +175,18 @@ test("first-use guidance remains compact on a phone", async ({ page }, testInfo)
   expect(box.x).toBeGreaterThanOrEqual(0);
   expect(box.x + box.width).toBeLessThanOrEqual(MOBILE.width);
 
+  // Preserve the initial phone shell/posture, then separately capture the
+  // guidance inside Home's internal scroll frame. `fullPage` alone cannot
+  // reveal content below a nested overflow scroller.
   await page.screenshot({
     path: testInfo.outputPath("home-first-use-mobile.png"),
     fullPage: true,
+    animations: "disabled",
+  });
+  await path.scrollIntoViewIfNeeded();
+  await expect(path).toBeInViewport();
+  await page.screenshot({
+    path: testInfo.outputPath("home-first-use-mobile-guidance.png"),
     animations: "disabled",
   });
 });
