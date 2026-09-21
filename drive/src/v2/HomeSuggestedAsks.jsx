@@ -55,11 +55,9 @@ export function HomeSuggestedAsks({ profile, onAskComposer, allowPrincipalSeed =
       data-bootstrap-mode={seed?.bootstrap_mode || "fallback"}
     >
       <p className="muted small rd-v2-home-suggested-lead">{lead}</p>
-      <div className="rd-v2-home-first-use-path" data-testid="home-first-use-path" aria-label="Research path">
-        <span><b>Ask</b><em>Reason over current research context</em></span>
-        <span><b>Discover</b><em>Close gaps when evidence is missing</em></span>
-        <span><b>Synthesis</b><em>Preserve an approved method and output</em></span>
-      </div>
+      <p className="muted small" data-testid="home-first-use-path" aria-label="Research path">
+        <strong>Ask</strong> reasons over current research context · <strong>Discover</strong> closes gaps when evidence is missing · <strong>Synthesis</strong> preserves an approved method and output.
+      </p>
       {seed ? (
         <p className="muted small" data-testid="home-research-seed-sources">
           {connectedSources.length
