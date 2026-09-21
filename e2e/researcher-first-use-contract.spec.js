@@ -46,22 +46,31 @@ async function open(page, url, viewport = DESKTOP, options = {}) {
   await waitForShell(page).catch(() => {});
 }
 
-test("Home cold start explains the research path without pretending work exists", async ({ page }) => {
+test("Home cold start explains the research path without pretending work exists", async ({ page }, testInfo) => {
   await open(page, "/?tab=home", DESKTOP, COLD_START_OPTIONS);
 
   const path = page.getByTestId("home-first-use-path");
   await expect(path).toBeVisible();
 
   // Protect the researcher mental model, not a particular tense or copy edit.
-  // Each named surface must retain its role in the path: Ask reasons over held
-  // context, Discover closes evidence gaps, and Synthesis preserves approved work.
+  // Each named surface must retain its role: Library is held evidence, Ask
+  // reasons over context, Discover closes evidence gaps, and Synthesis keeps
+  // approved work durable.
+  await expect(path).toContainText(/Library\s+is\s+what\s+the\s+desk\s+holds/i);
   await expect(path).toContainText(/Ask\s+reason\w*\s+over\s+current\s+research\s+context/i);
-  await expect(path).toContainText(/Discover\s+close\w*\s+gaps\s+when\s+evidence\s+is\s+missing/i);
-  await expect(path).toContainText(/Synthesis\s+preserv\w*\s+an\s+approved\s+method\s+and\s+output/i);
+  await expect(path).toContainText(/Discover\s+close\w*\s+(?:evidence\s+)?gaps/i);
+  await expect(path).toContainText(/Synthesis\s+preserv\w*\s+approved\s+methods?\s+and\s+outputs?/i);
 
   // First use remains evidence-honest: guidance may orient, but it must not
   // invent a resume object or durable work that is not present in the mock.
   await expect(page.getByTestId("home-continue")).toContainText(/No resume point|No durable research work/i);
+
+  // Keep an exact-head visual record of the state this contract protects.
+  await page.screenshot({
+    path: testInfo.outputPath("home-first-use-desktop.png"),
+    fullPage: true,
+    animations: "disabled",
+  });
 });
 
 test("Discover keeps the selected object visually bound to its inspector", async ({ page }) => {
@@ -80,7 +89,7 @@ test("Discover keeps the selected object visually bound to its inspector", async
   await expect(rail).toContainText(/Can I use this|Selected candidate/i);
 });
 
-test("first-use guidance remains compact on a phone", async ({ page }) => {
+test("first-use guidance remains compact on a phone", async ({ page }, testInfo) => {
   await open(page, "/?tab=home", MOBILE, COLD_START_OPTIONS);
 
   const path = page.getByTestId("home-first-use-path");
@@ -97,4 +106,10 @@ test("first-use guidance remains compact on a phone", async ({ page }) => {
   expect(box).not.toBeNull();
   expect(box.x).toBeGreaterThanOrEqual(0);
   expect(box.x + box.width).toBeLessThanOrEqual(MOBILE.width);
+
+  await page.screenshot({
+    path: testInfo.outputPath("home-first-use-mobile.png"),
+    fullPage: true,
+    animations: "disabled",
+  });
 });
