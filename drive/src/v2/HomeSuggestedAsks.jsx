@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { fetchJson } from "@/v2/api";
 import { homeSuggestedPrompts } from "@/v2/homePrompts";
-import { Chip, ChipRow } from "@/v2/ui";
+import { Chip } from "@/v2/ui";
 
 function seedLead(seed, profile) {
   if (seed?.bootstrap_mode === "faculty_profile") return "Research desk seeded from your faculty profile";
@@ -78,13 +78,22 @@ export function HomeSuggestedAsks({ profile, onAskComposer, allowPrincipalSeed =
           {connectedSources.map((source) => source?.label || source?.provider || "Connected storage").join(" · ")}
         </p>
       ) : null}
-      <ChipRow>
+      <div
+        className="rd-v2-chips-row"
+        data-testid="home-suggested-prompts"
+        style={{ flexWrap: "wrap", overflow: "visible" }}
+      >
         {prompts.map((prompt) => (
-          <Chip key={prompt} active onClick={() => onAskComposer?.(prompt)}>
+          <Chip
+            key={prompt}
+            active
+            onClick={() => onAskComposer?.(prompt)}
+            style={{ maxWidth: "100%", whiteSpace: "normal", textAlign: "left" }}
+          >
             {prompt.length > 72 ? `${prompt.slice(0, 69)}…` : prompt}
           </Chip>
         ))}
-      </ChipRow>
+      </div>
     </section>
   );
 }
