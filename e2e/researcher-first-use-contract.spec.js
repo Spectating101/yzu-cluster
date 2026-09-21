@@ -23,12 +23,13 @@ test("Home cold start explains the research path without pretending work exists"
 
   const path = page.getByTestId("home-first-use-path");
   await expect(path).toBeVisible();
-  await expect(path).toContainText("Ask");
-  await expect(path).toContainText("Reason over current research context");
-  await expect(path).toContainText("Discover");
-  await expect(path).toContainText("Close gaps when evidence is missing");
-  await expect(path).toContainText("Synthesis");
-  await expect(path).toContainText("Preserve an approved method and output");
+
+  // Protect the researcher mental model, not a particular tense or copy edit.
+  // Each named surface must retain its role in the path: Ask reasons over held
+  // context, Discover closes evidence gaps, and Synthesis preserves approved work.
+  await expect(path).toContainText(/Ask\s+reason\w*\s+over\s+current\s+research\s+context/i);
+  await expect(path).toContainText(/Discover\s+close\w*\s+gaps\s+when\s+evidence\s+is\s+missing/i);
+  await expect(path).toContainText(/Synthesis\s+preserv\w*\s+an\s+approved\s+method\s+and\s+output/i);
 
   // First use remains evidence-honest: guidance may orient, but it must not
   // invent a resume object or durable work that is not present in the mock.
