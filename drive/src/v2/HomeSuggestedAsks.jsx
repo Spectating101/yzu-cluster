@@ -55,9 +55,14 @@ export function HomeSuggestedAsks({ profile, onAskComposer, allowPrincipalSeed =
       data-bootstrap-mode={seed?.bootstrap_mode || "fallback"}
     >
       <p className="muted small rd-v2-home-suggested-lead">{lead}</p>
-      <p className="muted small" data-testid="home-first-use-path" aria-label="Research path">
-        <strong>Library</strong> is what the desk holds · <strong>Ask</strong> reasons over current research context · <strong>Discover</strong> closes evidence gaps · <strong>Synthesis</strong> preserves approved methods and outputs.
-      </p>
+      <div className="muted small" data-testid="home-first-use-path" aria-label="Research path">
+        <p>
+          Start with <strong>Library</strong> when the desk already holds the evidence. Use <strong>Discover</strong> when evidence is missing.
+        </p>
+        <p>
+          <strong>Ask</strong> reasons over the current research context. <strong>Synthesis</strong> preserves approved methods and outputs as durable work.
+        </p>
+      </div>
       {seed ? (
         <p className="muted small" data-testid="home-research-seed-sources">
           {connectedSources.length
