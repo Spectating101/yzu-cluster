@@ -5,10 +5,10 @@ import { Chip, ChipRow } from "@/v2/ui";
 
 function seedLead(seed, profile) {
   if (seed?.bootstrap_mode === "faculty_profile") return "Research desk seeded from your faculty profile";
-  if (seed?.bootstrap_mode === "yzu_profile_fallback") return "Research desk ready — begin with the evidence you have";
-  if (seed?.bootstrap_mode === "generic_cold_start") return "Research desk ready — begin with the evidence you have";
+  if (seed?.bootstrap_mode === "yzu_profile_fallback") return "Research desk ready — inspect what is held, then close what is missing";
+  if (seed?.bootstrap_mode === "generic_cold_start") return "Research desk ready — inspect what is held, then close what is missing";
   if (profile && !profile.unknown) return "Suggested for your research profile";
-  return "Research desk ready — begin with the evidence you have";
+  return "Research desk ready — inspect what is held, then close what is missing";
 }
 
 export function HomeSuggestedAsks({ profile, onAskComposer, allowPrincipalSeed = true }) {
@@ -56,7 +56,7 @@ export function HomeSuggestedAsks({ profile, onAskComposer, allowPrincipalSeed =
     >
       <p className="muted small rd-v2-home-suggested-lead">{lead}</p>
       <p className="muted small" data-testid="home-first-use-path" aria-label="Research path">
-        <strong>Ask</strong> reasons over current research context · <strong>Discover</strong> closes gaps when evidence is missing · <strong>Synthesis</strong> preserves an approved method and output.
+        <strong>Library</strong> is what the desk holds · <strong>Ask</strong> reasons over current research context · <strong>Discover</strong> closes evidence gaps · <strong>Synthesis</strong> preserves approved methods and outputs.
       </p>
       {seed ? (
         <p className="muted small" data-testid="home-research-seed-sources">
