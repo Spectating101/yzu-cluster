@@ -1,0 +1,325 @@
+/* Research Drive — visual-system consolidation
+ *
+ * Late-loaded polish only. This file deliberately does not change navigation,
+ * page composition, research semantics, permissions, or execution authority.
+ * It closes visual drift around the public entry and reasserts the frozen
+ * parchment / charcoal / sage product language over residual indigo accents.
+ */
+
+/* ── Private desk entry: make the first public surface feel like Research Drive ── */
+.rd-v2-access-gate {
+  min-height: 100dvh;
+  padding: clamp(20px, 5vw, 56px);
+  background:
+    radial-gradient(circle at 12% 10%, rgba(63, 111, 92, 0.16), transparent 30rem),
+    radial-gradient(circle at 88% 88%, rgba(154, 101, 14, 0.08), transparent 28rem),
+    linear-gradient(145deg, #f7f4ec 0%, #eeeae0 58%, #e7e2d7 100%);
+}
+
+.rd-v2-access-card {
+  position: relative;
+  width: min(620px, 100%);
+  padding: 38px 42px 34px;
+  overflow: hidden;
+  border: 1px solid rgba(15, 23, 28, 0.14);
+  border-radius: 18px;
+  background: rgba(255, 253, 246, 0.985);
+  box-shadow:
+    0 28px 80px rgba(15, 23, 28, 0.13),
+    0 2px 8px rgba(15, 23, 28, 0.06);
+}
+
+.rd-v2-access-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: linear-gradient(90deg, #101820 0 34%, #3f6f5c 34% 76%, #caa65a 76% 100%);
+}
+
+.rd-v2-access-lockup {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 30px;
+}
+
+.rd-v2-access-mark {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  border-radius: 11px;
+  background: linear-gradient(145deg, #24343a, #101820 58%, #0a1014);
+  color: #fcfcf0;
+  box-shadow: 0 8px 18px rgba(16, 24, 32, 0.22), inset 0 1px 0 rgba(252, 252, 240, 0.12);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.rd-v2-access-lockup > span:last-child {
+  display: grid;
+  gap: 2px;
+}
+
+.rd-v2-access-lockup strong {
+  color: #101820;
+  font-size: 14px;
+  font-weight: 740;
+  letter-spacing: -0.015em;
+}
+
+.rd-v2-access-lockup small {
+  margin: 0;
+  color: #6e7685;
+  font-size: 10.5px;
+  line-height: 1.2;
+}
+
+.rd-v2-access-kicker {
+  margin-bottom: 12px;
+  color: #3f6f5c;
+  font-size: 10px;
+  font-weight: 760;
+  letter-spacing: 0.12em;
+}
+
+.rd-v2-access-card h1 {
+  max-width: 500px;
+  margin-bottom: 16px;
+  color: #182033;
+  font-size: clamp(30px, 4vw, 40px);
+  font-weight: 740;
+  line-height: 1.06;
+  letter-spacing: -0.04em;
+}
+
+.rd-v2-access-card > p {
+  max-width: 520px;
+  color: #596273;
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+.rd-v2-access-boundary {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  margin: 26px 0 24px;
+  overflow: hidden;
+  border: 1px solid #ddd7ca;
+  border-radius: 12px;
+  background: #faf8f1;
+}
+
+.rd-v2-access-boundary span {
+  display: flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 9px 12px;
+  color: #56606d;
+  font-size: 11.5px;
+}
+
+.rd-v2-access-boundary span:nth-child(odd) {
+  border-right: 1px solid #e7e1d6;
+}
+
+.rd-v2-access-boundary span:nth-child(-n + 2) {
+  border-bottom: 1px solid #e7e1d6;
+}
+
+.rd-v2-access-boundary i {
+  width: 18px;
+  color: #3f6f5c;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.rd-v2-access-card form label {
+  margin-bottom: 7px;
+  color: #344054;
+  font-size: 11px;
+  font-weight: 720;
+  letter-spacing: 0.01em;
+}
+
+.rd-v2-access-form-row {
+  gap: 9px;
+}
+
+.rd-v2-access-form-row input {
+  height: 44px;
+  padding: 0 13px;
+  border: 1px solid #d4d9df;
+  border-radius: 10px;
+  background: #fff;
+  color: #182033;
+  box-shadow: inset 0 1px 0 rgba(16, 24, 32, 0.02);
+  transition: border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
+}
+
+.rd-v2-access-form-row input:focus {
+  outline: none;
+  border-color: rgba(63, 111, 92, 0.55);
+  box-shadow: 0 0 0 4px rgba(63, 111, 92, 0.11);
+}
+
+.rd-v2-access-form-row button {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid #101820;
+  border-radius: 10px;
+  background: #101820;
+  color: #fcfcf0;
+  box-shadow: 0 7px 18px rgba(16, 24, 32, 0.18);
+  transition: transform 130ms ease, box-shadow 130ms ease, background 130ms ease, opacity 130ms ease;
+}
+
+.rd-v2-access-form-row button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: #1a2a32;
+  box-shadow: 0 10px 24px rgba(16, 24, 32, 0.24);
+}
+
+.rd-v2-access-form-row button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.rd-v2-access-form-row button:disabled {
+  border-color: #d9d6cd;
+  background: #e9e6de;
+  color: #969389;
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+.rd-v2-access-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 46px;
+  margin-top: 14px;
+  padding: 10px 12px;
+  border: 1px solid #e1ddd2;
+  border-radius: 10px;
+  background: #f7f5ee;
+  color: #69717e;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.rd-v2-access-status.warning {
+  border-color: #ead6aa;
+  background: #fff8e9;
+  color: #73541b;
+}
+
+.rd-v2-access-retry {
+  width: auto;
+  min-height: 32px;
+  margin: 0;
+  padding: 0 4px;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #3f6f5c;
+  box-shadow: none;
+  font-size: 10.5px;
+  font-weight: 720;
+  white-space: nowrap;
+}
+
+.rd-v2-access-retry:hover:not(:disabled) {
+  color: #274d3d;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.rd-v2-access-retry:focus-visible,
+.rd-v2-access-form-row button:focus-visible {
+  outline: 3px solid rgba(63, 111, 92, 0.25);
+  outline-offset: 2px;
+}
+
+/* ── Palette consolidation: selected/review surfaces use sage, not indigo ── */
+.rd-v2-library-asset.selected {
+  background: #eef3ef;
+  box-shadow: inset 3px 0 0 #3f6f5c;
+}
+
+.rd-v2-library-collection:hover,
+.rd-v2-library-asset:hover {
+  background: #f6f7f2;
+}
+
+.rd-v2-res-inventory-row:hover,
+.rd-v2-res-inventory-row.on {
+  background: #f3f7f4;
+  box-shadow: inset 3px 0 0 #3f6f5c;
+}
+
+.rd-v2-discover-focus {
+  background:
+    radial-gradient(circle at 70% -20%, rgba(63, 111, 92, 0.22), transparent 34rem),
+    linear-gradient(145deg, #101820 0%, #172228 52%, #0f171c 100%);
+}
+
+.rd-v2-profile-page .rd-v2-body-scroll {
+  background:
+    radial-gradient(circle at 12% 0%, rgba(63, 111, 92, 0.075), transparent 27rem),
+    #f8f8f5;
+}
+
+::selection {
+  background: rgba(63, 111, 92, 0.2);
+  color: #101820;
+}
+
+@media (max-width: 640px) {
+  .rd-v2-access-gate {
+    padding: 14px;
+  }
+
+  .rd-v2-access-card {
+    padding: 28px 22px 24px;
+    border-radius: 16px;
+  }
+
+  .rd-v2-access-lockup {
+    margin-bottom: 24px;
+  }
+
+  .rd-v2-access-boundary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rd-v2-access-boundary span:nth-child(odd) {
+    border-right: 0;
+  }
+
+  .rd-v2-access-boundary span:nth-child(-n + 3) {
+    border-bottom: 1px solid #e7e1d6;
+  }
+
+  .rd-v2-access-form-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rd-v2-access-status {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rd-v2-access-form-row input,
+  .rd-v2-access-form-row button {
+    transition: none;
+  }
+}
