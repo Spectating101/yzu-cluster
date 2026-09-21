@@ -157,7 +157,7 @@ test("Discover keeps the selected object visually bound to its inspector", async
   await expect(rail).toContainText(/Can I use this|Selected candidate/i);
 });
 
-test("first-use guidance remains compact on a phone", async ({ page }, testInfo) => {
+test("first-use guidance remains compact and readable on a phone", async ({ page }, testInfo) => {
   await open(page, "/?tab=home", MOBILE, COLD_START_OPTIONS);
 
   const path = page.getByTestId("home-first-use-path");
@@ -174,6 +174,16 @@ test("first-use guidance remains compact on a phone", async ({ page }, testInfo)
   expect(box).not.toBeNull();
   expect(box.x).toBeGreaterThanOrEqual(0);
   expect(box.x + box.width).toBeLessThanOrEqual(MOBILE.width);
+
+  const prompts = page.getByTestId("home-suggested-prompts").getByRole("button");
+  const promptCount = await prompts.count();
+  expect(promptCount).toBeGreaterThan(0);
+  for (let index = 0; index < promptCount; index += 1) {
+    const promptBox = await prompts.nth(index).boundingBox();
+    expect(promptBox).not.toBeNull();
+    expect(promptBox.x).toBeGreaterThanOrEqual(0);
+    expect(promptBox.x + promptBox.width).toBeLessThanOrEqual(MOBILE.width);
+  }
 
   // Preserve the initial phone shell/posture, then separately capture the
   // guidance inside Home's internal scroll frame. `fullPage` alone cannot
