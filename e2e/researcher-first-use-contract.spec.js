@@ -52,14 +52,14 @@ test("Home cold start explains the research path without pretending work exists"
   const path = page.getByTestId("home-first-use-path");
   await expect(path).toBeVisible();
 
-  // Protect the researcher mental model, not a particular tense or copy edit.
+  // Protect the researcher mental model, not a particular sentence shape.
   // Each named surface must retain its role: Library is held evidence, Ask
   // reasons over context, Discover closes evidence gaps, and Synthesis keeps
   // approved work durable.
-  await expect(path).toContainText(/Library\s+is\s+what\s+the\s+desk\s+holds/i);
-  await expect(path).toContainText(/Ask\s+reason\w*\s+over\s+current\s+research\s+context/i);
-  await expect(path).toContainText(/Discover\s+close\w*\s+(?:evidence\s+)?gaps/i);
-  await expect(path).toContainText(/Synthesis\s+preserv\w*\s+approved\s+methods?\s+and\s+outputs?/i);
+  await expect(path).toContainText(/Library[\s\S]*desk[\s\S]*holds[\s\S]*evidence/i);
+  await expect(path).toContainText(/Discover[\s\S]*evidence[\s\S]*missing/i);
+  await expect(path).toContainText(/Ask[\s\S]*reason\w*[\s\S]*current\s+research\s+context/i);
+  await expect(path).toContainText(/Synthesis[\s\S]*preserv\w*[\s\S]*approved\s+methods?\s+and\s+outputs?[\s\S]*durable/i);
 
   // First use remains evidence-honest: guidance may orient, but it must not
   // invent a resume object or durable work that is not present in the mock.
