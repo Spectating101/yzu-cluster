@@ -3,7 +3,8 @@
  *
  * This is not a substitute for human usability evidence. It protects the
  * interface conditions a researcher pilot depends on: orientation, a clear
- * evidence path, selected-object continuity, and mobile containment.
+ * evidence path, truthful Home posture, selected-object continuity, and mobile
+ * containment.
  */
 import { expect, test } from "@playwright/test";
 import {
@@ -16,6 +17,19 @@ import {
 const DESKTOP = { width: 1440, height: 900 };
 const MOBILE = { width: 390, height: 844 };
 
+const QUIET_HEALTH = {
+  ...MOCK_HEALTH,
+  desk: {
+    ...MOCK_HEALTH.desk,
+    jobs: {
+      ...(MOCK_HEALTH.desk?.jobs || {}),
+      running: 0,
+      pending_approval: 0,
+      gdelt_progress: "",
+    },
+  },
+};
+
 // The shared v2 fixture intentionally represents an active desk: it has held
 // datasets and an approval waiting in /health. First-use guidance is only the
 // truthful Home state when there is no durable/recent work to resume, so the
@@ -25,17 +39,8 @@ const COLD_START_OPTIONS = {
   datasetsBody: { datasets: [] },
   jobsBody: { jobs: [] },
   healthBody: {
-    ...MOCK_HEALTH,
+    ...QUIET_HEALTH,
     datasets: 0,
-    desk: {
-      ...MOCK_HEALTH.desk,
-      jobs: {
-        ...(MOCK_HEALTH.desk?.jobs || {}),
-        running: 0,
-        pending_approval: 0,
-        gdelt_progress: "",
-      },
-    },
   },
 };
 
@@ -63,7 +68,12 @@ test("Home cold start explains the research path without pretending work exists"
 
   // First use remains evidence-honest: guidance may orient, but it must not
   // invent a resume object or durable work that is not present in the mock.
-  await expect(page.getByTestId("home-continue")).toContainText(/No resume point|No durable research work/i);
+  const pickup = page.getByTestId("home-continue");
+  await expect(pickup).toHaveAttribute("data-posture", "cold");
+  await expect(pickup).toContainText(/Pick up\s*·\s*Start/i);
+  await expect(pickup).toContainText(/No resume point|No durable research work/i);
+  await expect(page.locator(".rd-v2-home-topband")).toHaveAttribute("data-home-posture", "cold");
+  await expect(page.locator(".rd-v2-page-head")).toContainText(/Start with held evidence/i);
 
   // Keep an exact-head visual record of the state this contract protects.
   await page.screenshot({
@@ -71,6 +81,64 @@ test("Home cold start explains the research path without pretending work exists"
     fullPage: true,
     animations: "disabled",
   });
+});
+
+test("Home distinguishes held evidence from an empty desk", async ({ page }) => {
+  await open(page, "/?tab=home", DESKTOP, {
+    jobsBody: { jobs: [] },
+    healthBody: QUIET_HEALTH,
+  });
+
+  const pickup = page.getByTestId("home-continue");
+  await expect(pickup).toHaveAttribute("data-kind", "library_asset");
+  await expect(pickup).toHaveAttribute("data-posture", "held-evidence");
+  await expect(pickup).toContainText(/Pick up\s*·\s*Evidence/i);
+  await expect(page.locator(".rd-v2-home-topband")).toHaveAttribute("data-home-posture", "held-evidence");
+  await expect(page.locator(".rd-v2-page-head")).toContainText(/Evidence is on hand/i);
+});
+
+test("Home elevates an explicit researcher decision above generic resume copy", async ({ page }) => {
+  await open(page, "/?tab=home", DESKTOP);
+
+  const pickup = page.getByTestId("home-continue");
+  await expect(pickup).toHaveAttribute("data-kind", "decision");
+  await expect(pickup).toHaveAttribute("data-posture", "decision");
+  await expect(pickup).toContainText(/Pick up\s*·\s*Decision/i);
+  await expect(page.locator(".rd-v2-home-topband")).toHaveAttribute("data-home-posture", "decision");
+  await expect(page.locator(".rd-v2-page-head")).toContainText(/researcher decision is waiting/i);
+});
+
+test("Home identifies a durable Synthesis thread as resumable research work", async ({ page }) => {
+  await page.setViewportSize(DESKTOP);
+  await mockV2Api(page, COLD_START_OPTIONS);
+  await page.route("**/api/library/synthesis/threads**", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        threads: [
+          {
+            id: "thread-first-use-resume",
+            title: "Cross-country ECI robustness",
+            updated_at: "2026-09-21T12:00:00Z",
+            state: {
+              nodes: [{ id: "held-evidence-1", layer: "evidence", type: "source" }],
+              execution: { status: "" },
+            },
+          },
+        ],
+      }),
+    }),
+  );
+  await page.goto("/?tab=home", { waitUntil: "domcontentloaded" });
+  await waitForShell(page).catch(() => {});
+
+  const pickup = page.getByTestId("home-continue");
+  await expect(pickup).toHaveAttribute("data-kind", "synthesis_thread");
+  await expect(pickup).toHaveAttribute("data-posture", "synthesis");
+  await expect(pickup).toContainText(/Pick up\s*·\s*Synthesis/i);
+  await expect(pickup).toContainText("Cross-country ECI robustness");
+  await expect(page.locator(".rd-v2-page-head")).toContainText(/Durable research work is ready to resume/i);
 });
 
 test("Discover keeps the selected object visually bound to its inspector", async ({ page }) => {
