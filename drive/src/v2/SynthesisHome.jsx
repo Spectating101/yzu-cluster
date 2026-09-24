@@ -107,10 +107,9 @@ export function SynthesisHome({
     <section className="s04-home" data-testid="synthesis-home-state">
       <header className="s04-home-hero">
         <div>
-          <small>Synthesis workspace</small>
-          <h1>Construct research assets from questions, evidence, and reusable methods.</h1>
+          <h1>Synthesis</h1>
           <p>
-            Start something new, return to a durable construction, or reuse a registered method. Each construction keeps its own evidence, decisions, execution proof, and result.
+            Construct research assets from questions, evidence, and reusable methods. Start something new, return to a durable construction, or reuse a registered method.
           </p>
         </div>
         {allThreads.length ? (

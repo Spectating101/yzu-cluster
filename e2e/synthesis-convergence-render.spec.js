@@ -273,7 +273,7 @@ test("captures Synthesis home, thread work, and new-entry navigation", async ({ 
 
   const home = page.getByTestId("synthesis-home-state");
   await expect(home).toBeVisible();
-  await expect(home).toContainText("Synthesis workspace");
+  await expect(home.getByRole("heading", { name: "Synthesis", exact: true })).toBeVisible();
   await expect(home).toContainText("Stablecoin trust deterioration");
   await expect(home).toContainText("Exchange flow stress panel");
   await expect(home).toContainText("Issuer liquidity weekly panel");
