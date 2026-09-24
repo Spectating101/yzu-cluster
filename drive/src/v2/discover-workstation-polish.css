@@ -78,7 +78,7 @@ body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(
   max-width: 58px;
   overflow: hidden;
   padding-inline: 5px;
-  font-size: 7px;
+  font-size: 9.5px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -93,7 +93,7 @@ body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(
 .rd-v2-discover-ranked-results .rd-v2-discover-candidate .rd-v2-pill {
   opacity: .24;
   padding: 2px 5px;
-  font-size: 7px;
+  font-size: 9.5px;
   transition: opacity .12s ease;
 }
 
@@ -121,7 +121,7 @@ body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(
   display: grid;
   place-items: center;
   color: var(--rd-link, #3f6f5c);
-  font-size: 8px;
+  font-size: 9.5px;
   font-weight: 700;
   line-height: 1;
   text-indent: 0;
@@ -161,9 +161,9 @@ body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(
   }
 
   .rd-v2-discover-ranked-results .rd-v2-source-ribbon {
-    max-width: 52px;
+    max-width: 88px;
     padding-inline: 4px;
-    font-size: 6.8px;
+    font-size: 9.5px;
   }
 
   .rd-v2-discover-ranked-results .rd-v2-discover-row-add {

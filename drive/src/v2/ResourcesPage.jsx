@@ -393,27 +393,6 @@ function ActivityFilterBar({ value, onChange }) {
   );
 }
 
-/** Terra donor: never invent schedulable capacity from joined/stale membership. */
-function WorkersToolbarStat({ rollup }) {
-  const fields = workersToolbarFieldsFromRollup(rollup);
-  const value = formatCollectorState(fields);
-  if (!value || value === "Not reported") return null;
-  const title = [
-    fields.online != null ? `online ${fields.online}` : null,
-    fields.stale != null ? `stale ${fields.stale}` : null,
-    fields.busy != null ? `busy ${fields.busy}` : null,
-  ]
-    .filter(Boolean)
-    .join(" · ");
-
-  return (
-    <span className="rd-v2-toolbar-stat" aria-label={`Collection workers ${value}`} title={title || undefined}>
-      <span>Collectors</span>
-      <strong>{value}</strong>
-    </span>
-  );
-}
-
 function resourceStatus(row) {
   if (row.warn) return "Check";
   if (row.ok === false) return "Offline";
@@ -915,7 +894,6 @@ export function ResourcesPage({
           <Chip active={mode === "method"} onClick={() => onModeChange?.("method")}>
             Method
           </Chip>
-          <WorkersToolbarStat rollup={lastKnownRollup} />
           {(mode === "sources" || mode === "spending") && periodLabel ? (
             <span className="rd-v2-toolbar-meta">{periodLabel}</span>
           ) : filterLabel ? (

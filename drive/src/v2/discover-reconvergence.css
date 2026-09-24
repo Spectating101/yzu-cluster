@@ -23,7 +23,7 @@
 
 .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer::before {
   content: "DISCOVER EVIDENCE";
-  font-size: 9px;
+  font-size: 9.5px;
   letter-spacing: .13em;
 }
 
@@ -155,7 +155,7 @@
 
 .rd-v2-discover-page .rd-v2-discover-coverage-shelves button > em {
   color: var(--rd-muted, #6e7685);
-  font-size: 9px;
+  font-size: 9.5px;
   font-style: normal;
 }
 

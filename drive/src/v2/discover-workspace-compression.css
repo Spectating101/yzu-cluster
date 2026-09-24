@@ -53,7 +53,7 @@
 .rd-v2-discover-page .rd-v2-evidence-position-grid em {
   display: -webkit-box;
   overflow: hidden;
-  font-size: 8.8px;
+  font-size: 9.5px;
   line-height: 1.2;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 1;
@@ -117,7 +117,7 @@
 
 .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes .rd-v2-evidence-section-head p {
   margin-top: 2px;
-  font-size: 9px;
+  font-size: 9.5px;
   line-height: 1.25;
 }
 
@@ -156,7 +156,7 @@
 }
 
 .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes-list em {
-  font-size: 9px;
+  font-size: 9.5px;
   line-height: 1.25;
   text-align: right;
 }
@@ -183,7 +183,7 @@
 }
 
 .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity-grid em {
-  font-size: 8.4px;
+  font-size: 9.5px;
   line-height: 1.2;
 }
 

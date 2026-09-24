@@ -47,12 +47,12 @@
   }
 
   #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-brief) > .s04-opening-brief > header > small {
-    font-size: 8px;
+    font-size: 9.5px;
     letter-spacing: .105em;
   }
 
   #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-brief) > .s04-opening-brief > header > button {
-    font-size: 8px;
+    font-size: 9.5px;
   }
 
   #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-brief) > .s04-opening-brief > p {
@@ -90,7 +90,7 @@
 
   #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-brief) > .s04-opening-brief dt {
     color: #7b8490;
-    font-size: 9px;
+    font-size: 9.5px;
     line-height: 1.2;
   }
 

@@ -28,7 +28,7 @@
 
   body:has(.rd-v2-synthesis-page) .s04-rail-proof > header span {
     color: #667585 !important;
-    font-size: 8px !important;
+    font-size: 9.5px !important;
     font-weight: 800 !important;
     letter-spacing: .085em !important;
     line-height: 1.2 !important;
@@ -63,7 +63,7 @@
     display: block !important;
     min-width: 0 !important;
     margin: 0 !important;
-    font-size: 8.7px !important;
+    font-size: 9.5px !important;
     line-height: 1.35 !important;
   }
 

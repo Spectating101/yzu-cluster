@@ -73,7 +73,7 @@ function discoverSituation({ browseTarget, browseLifecycle, historyEvent, discov
     const state = humanize(historyEvent.status || historyEvent.lifecycle || historyEvent.stage);
     return {
       status: state || "Recorded lifecycle",
-      facts: [sourceLabel(historyEvent), text(historyEvent.registered_dataset_id || historyEvent.dataset_id)],
+      facts: [sourceLabel(historyEvent)],
       next: historyEvent.registered_dataset_id
         ? "Open the registered Library object to inspect what the acquisition actually produced."
         : "Use the durable record to understand what happened before retrying or changing route.",

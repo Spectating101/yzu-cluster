@@ -18,7 +18,7 @@ body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-card > .rd-v2-ev
   border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, transparent);
   background: linear-gradient(180deg, #f4f8f5, #fafbf8);
   color: #557565;
-  font-size: 8px;
+  font-size: 9.5px;
   letter-spacing: .08em;
 }
 
@@ -39,7 +39,7 @@ body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-block[data-block
 
 body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-block[data-block="what_you_will_get"] .rd-v2-strategy-label {
   color: #355f4d;
-  font-size: 9px;
+  font-size: 9.5px;
 }
 
 body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-block[data-block="what_you_will_get"] .rd-v2-eval-prose {
@@ -119,7 +119,7 @@ body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-check dt {
 body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-check dd {
   margin: 3px 0 0;
   color: #40505f;
-  font-size: 9px;
+  font-size: 9.5px;
   line-height: 1.32;
   overflow-wrap: anywhere;
 }
@@ -155,7 +155,7 @@ body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-chain li {
   border-radius: 999px;
   background: #fafbf9;
   color: #4c5967;
-  font-size: 8.5px;
+  font-size: 9.5px;
   line-height: 1.25;
 }
 
@@ -170,7 +170,7 @@ body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-chain li + li::b
 
 body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-block[data-block="how_we_build"] > .rd-v2-eval-prose.muted {
   margin: 4px 0 0;
-  font-size: 8.8px;
+  font-size: 9.5px;
   line-height: 1.35;
 }
 
@@ -180,7 +180,7 @@ body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-gaps {
   border-top: 1px dashed color-mix(in srgb, var(--rd-border, #dbd4c5) 70%, transparent);
   background: #fcfbf7;
   color: #77808a;
-  font-size: 8.5px;
+  font-size: 9.5px;
   line-height: 1.35;
 }
 

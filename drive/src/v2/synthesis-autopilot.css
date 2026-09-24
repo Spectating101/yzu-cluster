@@ -35,7 +35,7 @@
 .rd-v2-synthesis-page-authority > span {
   flex: 0 0 auto;
   color: #778079;
-  font-size: 8px;
+  font-size: 9.5px;
   font-weight: 800;
   letter-spacing: .075em;
   line-height: 1;
@@ -53,7 +53,7 @@
   background: transparent;
   color: #31463d;
   font: inherit;
-  font-size: 9px;
+  font-size: 9.5px;
   font-weight: 750;
   line-height: 1;
   cursor: pointer;

@@ -43,7 +43,7 @@
 .s04-opening-map-output > small,
 .s04-opening-facts dt {
   color: #68748a;
-  font-size: 8.5px;
+  font-size: 9.5px;
   font-weight: 800;
   letter-spacing: .09em;
   text-transform: uppercase;
@@ -55,7 +55,7 @@
   background: transparent;
   color: #285e8e;
   font: inherit;
-  font-size: 9px;
+  font-size: 9.5px;
   font-weight: 800;
   letter-spacing: .075em;
   text-transform: uppercase;
@@ -152,7 +152,7 @@
   border-radius: 50%;
   color: #777f87;
   background: #faf8f2;
-  font-size: 9px;
+  font-size: 9.5px;
   font-weight: 800;
 }
 
@@ -169,7 +169,7 @@
   margin-top: 1px;
   overflow: hidden;
   color: #858d96;
-  font-size: 8.5px;
+  font-size: 9.5px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -193,14 +193,14 @@
   margin: 0;
   padding: 6px 10px 0;
   color: #66727d;
-  font-size: 9px;
+  font-size: 9.5px;
   line-height: 1.35;
 }
 
 .s04-opening-workflow-note b {
   flex: 0 0 auto;
   color: #315f4d;
-  font-size: 8px;
+  font-size: 9.5px;
   letter-spacing: .08em;
   text-transform: uppercase;
 }
@@ -215,7 +215,7 @@
   border-radius: 999px;
   color: #36715b;
   background: #f5fbf7;
-  font-size: 8px;
+  font-size: 9.5px;
   font-style: normal;
   font-weight: 800;
   letter-spacing: .075em;
@@ -279,7 +279,7 @@
 
 .s04-opening-map li > small {
   color: #4f6f84;
-  font-size: 8.5px;
+  font-size: 9.5px;
   font-weight: 800;
   letter-spacing: .06em;
   text-transform: uppercase;
@@ -297,7 +297,7 @@
 .s04-opening-map li > span,
 .s04-opening-map-output > span {
   color: #7b879a;
-  font-size: 9px;
+  font-size: 9.5px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -357,7 +357,7 @@
 
 .s04-opening-map > p > b {
   color: #3d725f;
-  font-size: 8.5px;
+  font-size: 9.5px;
   letter-spacing: .07em;
   text-transform: uppercase;
 }
@@ -395,7 +395,7 @@
   display: block;
   margin-top: 2px;
   color: #8a94a5;
-  font-size: 9px;
+  font-size: 9.5px;
   font-style: normal;
 }
 
@@ -491,7 +491,7 @@
   padding-top: 10px;
   border-top: 1px solid #e8ebf1;
   color: #8791a2;
-  font-size: 9px;
+  font-size: 9.5px;
   font-style: normal;
 }
 
@@ -541,7 +541,7 @@
 
   .s04-mobile-brief-disclosure > summary small {
     color: #607083;
-    font-size: 8px;
+    font-size: 9.5px;
     font-weight: 800;
     letter-spacing: .09em;
     text-transform: uppercase;
@@ -563,7 +563,7 @@
     margin-top: 4px;
     overflow: hidden;
     color: #73808b;
-    font-size: 8.5px;
+    font-size: 9.5px;
     font-style: normal;
     line-height: 1.3;
     text-overflow: ellipsis;
@@ -573,7 +573,7 @@
   .s04-mobile-brief-disclosure > summary > b {
     flex: 0 0 auto;
     color: #315f51;
-    font-size: 8px;
+    font-size: 9.5px;
     letter-spacing: .06em;
     text-transform: uppercase;
   }
@@ -603,7 +603,7 @@
   .s04-mobile-brief-full dd { margin: 0; }
   .s04-mobile-brief-full dt {
     color: #607083;
-    font-size: 8px;
+    font-size: 9.5px;
     font-weight: 800;
     letter-spacing: .09em;
     text-transform: uppercase;
@@ -711,7 +711,7 @@
 .yzu-sidebar .s04-threads--sidebar > header span,
 .yzu-sidebar .s04-thread-outputs > small {
   color: #8e9aa8;
-  font-size: 8.5px;
+  font-size: 9.5px;
   font-weight: 800;
   letter-spacing: .09em;
   text-transform: uppercase;
@@ -720,7 +720,7 @@
 .yzu-sidebar .s04-threads--sidebar > header small {
   display: block;
   color: #718091;
-  font-size: 9px;
+  font-size: 9.5px;
   line-height: 1.2;
 }
 
@@ -734,7 +734,7 @@
   border-radius: 7px;
   background: rgba(255, 255, 255, .06);
   color: #c7e0d0;
-  font-size: 8px;
+  font-size: 9.5px;
   font-weight: 800;
   line-height: 1.2;
   letter-spacing: .03em;
@@ -806,7 +806,7 @@
   border-radius: 7px;
   background: rgba(255, 255, 255, .09);
   color: #aeb9c7;
-  font-size: 9px;
+  font-size: 9.5px;
 }
 
 .yzu-sidebar .s04-threads--sidebar button.active > b {
@@ -834,7 +834,7 @@
 .yzu-sidebar .s04-thread-outputs > p {
   margin: 0;
   color: #7f8a99;
-  font-size: 9px;
+  font-size: 9.5px;
   line-height: 1.45;
 }
 
@@ -870,7 +870,7 @@
 
 .s04-map .sources > .s04-map-node > small {
   color: #667287;
-  font-size: 8px;
+  font-size: 9.5px;
   font-weight: 800;
   letter-spacing: .06em;
   line-height: 1.3;
@@ -886,7 +886,7 @@
 
 .s04-map .sources > .s04-map-node > span {
   color: #7d8799;
-  font-size: 8.5px;
+  font-size: 9.5px;
   line-height: 1.35;
   overflow-wrap: anywhere;
 }
@@ -920,7 +920,7 @@
 .rd-v2-synthesis-page .s04-evidence-proposal small,
 .rd-v2-synthesis-page .s04-evidence-proposal li > span {
   color: var(--s04-muted);
-  font-size: 8.5px;
+  font-size: 9.5px;
   line-height: 1.35;
 }
 
@@ -943,7 +943,7 @@
   border-radius: 999px;
   color: #5b7465;
   background: rgba(250, 248, 242, .76);
-  font-size: 8px;
+  font-size: 9.5px;
   font-style: normal;
   font-weight: 800;
   letter-spacing: .06em;
@@ -1030,7 +1030,7 @@
 .rd-v2-synthesis-page .s04-evidence-proposal .rd-v2-btn {
   min-height: 32px;
   padding: 0 10px;
-  font-size: 9px;
+  font-size: 9.5px;
   font-weight: 800;
   letter-spacing: .045em;
   text-transform: uppercase;
@@ -1369,7 +1369,7 @@
 .rd-v2-synthesis-page .s04-measurement-status details {
   margin-top: 4px;
   color: var(--s04-muted);
-  font-size: 8.5px;
+  font-size: 9.5px;
 }
 
 .rd-v2-synthesis-page .s04-measurement-status summary {
@@ -1403,7 +1403,7 @@
 
 .rd-v2-synthesis-page .s04-measurement-status small {
   color: var(--s04-muted);
-  font-size: 8.5px;
+  font-size: 9.5px;
   line-height: 1.4;
 }
 
@@ -1425,7 +1425,7 @@
   border-radius: 999px;
   background: rgba(248, 245, 237, .72);
   color: #657080;
-  font-size: 8px;
+  font-size: 9.5px;
   line-height: 1.1;
 }
 
@@ -1437,7 +1437,7 @@
 
 .rd-v2-synthesis-page .s04-measurement-status .s04-measurement-facts b {
   color: inherit;
-  font-size: 8.5px;
+  font-size: 9.5px;
 }
 
 .rd-v2-synthesis-page .s04-measurement-status .rd-v2-btn {
@@ -1463,7 +1463,7 @@
 
 .rd-v2-synthesis-page .s04-measured-dataset > header small {
   color: var(--s04-muted);
-  font-size: 8px;
+  font-size: 9.5px;
   font-weight: 800;
   letter-spacing: .08em;
   text-transform: uppercase;
@@ -1499,7 +1499,7 @@
   border: 0;
   background: transparent;
   color: #445365;
-  font-size: 9px;
+  font-size: 9.5px;
   font-weight: 750;
   line-height: 1.25;
 }
@@ -1562,7 +1562,7 @@
 
   .s04-thread-picker > span {
     color: #6c7890;
-    font-size: 8.5px;
+    font-size: 9.5px;
     font-weight: 800;
     letter-spacing: .09em;
     text-transform: uppercase;
@@ -1621,7 +1621,7 @@
   .rd-v2-shell:has(.rd-v2-synthesis-page) .rd-v2-rail-collapsed .rd-v2-rail-mobile-grip::after {
     content: "Ask";
     color: inherit;
-    font-size: 8.5px;
+    font-size: 9.5px;
     font-weight: 800;
     letter-spacing: .04em;
   }

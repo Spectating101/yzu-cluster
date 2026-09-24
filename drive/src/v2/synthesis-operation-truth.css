@@ -47,7 +47,7 @@
   left: 0;
   top: 9px;
   color: #a7b0bb;
-  font-size: 9px;
+  font-size: 9.5px;
 }
 
 .rd-v2-synthesis-page .s04-opening-workflow li > span {
@@ -58,7 +58,7 @@
 .rd-v2-synthesis-page .s04-opening-workflow li.done b,
 .rd-v2-synthesis-page .s04-opening-workflow li.now b {
   color: #556274 !important;
-  font-size: 8.5px;
+  font-size: 9.5px;
   font-weight: 800;
   letter-spacing: .065em;
   text-transform: uppercase;
@@ -67,7 +67,7 @@
 .rd-v2-synthesis-page .s04-opening-workflow li small {
   margin-top: 2px;
   color: #8a94a2;
-  font-size: 8.5px;
+  font-size: 9.5px;
 }
 
 .rd-v2-synthesis-page .s04-opening-workflow-wrap {
@@ -94,7 +94,7 @@
 .rd-v2-synthesis-page .s04-opening-workflow-note > b::after {
   content: "Current operation";
   color: #315f4d;
-  font-size: 8.5px;
+  font-size: 9.5px;
   font-weight: 850;
   letter-spacing: .08em;
   text-transform: uppercase;

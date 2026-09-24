@@ -193,7 +193,7 @@ test("Settings wide Discover policy starts bounded live federation immediately",
   await expect.poll(() => seen.some((url) => url.includes("live=1") && !url.includes("semantic=1"))).toBeTruthy();
 });
 
-test("a Discover research question searches first without spending Ask or assessment automatically", async ({ page }) => {
+test("a Discover research question keeps results, starts assessment, and opens Ask", async ({ page }) => {
   const reasoningRequests = [];
   await mockV2Api(page, { jobsBody: { jobs: [] }, discoverBody: { sections: [], total: 0 } });
   page.on("request", (request) => {
@@ -207,7 +207,24 @@ test("a Discover research question searches first without spending Ask or assess
   await page.getByLabel("Search or describe a research need").fill("How do forest fires affect county employment?");
   await page.getByRole("button", { name: "Explore", exact: true }).click();
   await expect(page.getByTestId("discover-result-summary")).toBeVisible();
-  await expect(page.getByText("Results arrive first. Use Review assessment or Ask when you want interpretation.")).toHaveCount(1);
+  await expect(page.locator("aside.rd-v2-rail").getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "true");
+  await expect.poll(() => reasoningRequests.length).toBeGreaterThan(0);
+});
+
+test("a Discover keyword search spends no Ask or assessment", async ({ page }) => {
+  const reasoningRequests = [];
+  await mockV2Api(page, { jobsBody: { jobs: [] }, discoverBody: { sections: [], total: 0 } });
+  page.on("request", (request) => {
+    if (/\/library\/(?:chat|discover\/assessment)(?:\?|$)/.test(request.url())) {
+      reasoningRequests.push(request.url());
+    }
+  });
+
+  await page.goto("/?tab=discover", { waitUntil: "domcontentloaded" });
+  await waitForShell(page);
+  await page.getByLabel("Search or describe a research need").fill("stablecoin");
+  await page.getByRole("button", { name: "Explore", exact: true }).click();
+  await expect(page.getByTestId("discover-result-summary")).toBeVisible();
   await page.waitForTimeout(500);
   expect(reasoningRequests).toEqual([]);
 });

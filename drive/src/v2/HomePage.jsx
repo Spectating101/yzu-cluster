@@ -350,13 +350,15 @@ export function HomePage({
                   <HeadroomBar pct={slot.pct} warn={slot.warn} />
                   <div className="rd-v2-home-headroom-meta">
                     <span>{slot.headroom}</span>
-                    <button
-                      type="button"
-                      className="rd-v2-linkish"
-                      onClick={() => onGoTab?.("resources")}
-                    >
-                      {slot.action === "check" ? "Check →" : "Resources →"}
-                    </button>
+                    {slot.action === "check" ? (
+                      <button
+                        type="button"
+                        className="rd-v2-linkish"
+                        onClick={() => onGoTab?.("resources")}
+                      >
+                        Check →
+                      </button>
+                    ) : null}
                   </div>
                 </li>
               ))}

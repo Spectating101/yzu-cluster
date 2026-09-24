@@ -55,7 +55,7 @@
     .s04-rail-measurement
   ) > header span {
     color: #667585 !important;
-    font-size: 8px !important;
+    font-size: 9.5px !important;
     font-weight: 800 !important;
     letter-spacing: .085em !important;
     line-height: 1.2 !important;
@@ -68,7 +68,7 @@
     .s04-rail-measurement
   ) > header strong {
     color: #365746 !important;
-    font-size: 8.5px !important;
+    font-size: 9.5px !important;
     font-weight: 800 !important;
     line-height: 1.2 !important;
     white-space: nowrap !important;
@@ -109,12 +109,12 @@
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-gates li span {
     color: #65727e !important;
-    font-size: 8.5px !important;
+    font-size: 9.5px !important;
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-gates li strong {
     color: #66737d !important;
-    font-size: 8.5px !important;
+    font-size: 9.5px !important;
     font-weight: 750 !important;
     text-align: right !important;
     white-space: normal !important;
@@ -151,7 +151,7 @@
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-evidence-ledger li b {
     overflow: hidden !important;
     color: #304250 !important;
-    font-size: 8.8px !important;
+    font-size: 9.5px !important;
     font-weight: 750 !important;
     line-height: 1.28 !important;
     text-overflow: ellipsis !important;
@@ -160,7 +160,7 @@
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-evidence-ledger li span {
     color: #77838d !important;
-    font-size: 7.8px !important;
+    font-size: 9.5px !important;
     line-height: 1.35 !important;
   }
 
@@ -187,7 +187,7 @@
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-measurement dt {
     color: #7a858d !important;
-    font-size: 7px !important;
+    font-size: 9.5px !important;
     font-weight: 750 !important;
     letter-spacing: .06em !important;
     text-transform: uppercase !important;

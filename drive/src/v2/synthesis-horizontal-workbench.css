@@ -455,11 +455,11 @@
   }
 
   #root .rd-v2-synthesis-page [data-testid="synthesis-upset-visual"] .s04-upset-legend em {
-    font-size: 9px !important;
+    font-size: 9.5px !important;
   }
 
   #root .rd-v2-synthesis-page [data-testid="synthesis-upset-visual"] .s04-upset-legend strong {
-    font-size: 9px !important;
+    font-size: 9.5px !important;
   }
 
   /* Keep unit labels inside their analytical lane even when fixtures use long

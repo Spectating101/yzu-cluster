@@ -29,7 +29,7 @@
 
 .rd-v2-library-filter-control:has(select[data-testid="library-state-filter"]) > span::after {
   content: "Readiness";
-  font-size: 8px;
+  font-size: 9.5px;
 }
 
 .rd-v2-library-pagination {
@@ -51,7 +51,7 @@
 .rd-v2-library-pagination > span {
   color: var(--rd-muted);
   font-family: var(--rd-mono);
-  font-size: 9px;
+  font-size: 9.5px;
   font-weight: 700;
   letter-spacing: .035em;
   text-transform: uppercase;
@@ -113,7 +113,7 @@
   margin-bottom: 4px;
   color: var(--rd-muted);
   font-family: var(--rd-mono);
-  font-size: 9px;
+  font-size: 9.5px;
   font-weight: 750;
   letter-spacing: .055em;
   text-transform: uppercase;
@@ -204,7 +204,7 @@
 .rd-v2-library-holding-location > span {
   color: var(--rd-muted);
   font-family: var(--rd-mono);
-  font-size: 8.5px;
+  font-size: 9.5px;
   font-weight: 760;
   letter-spacing: .06em;
   text-transform: uppercase;
@@ -255,7 +255,7 @@
   display: block;
   color: var(--rd-muted);
   font-family: var(--rd-mono);
-  font-size: 8.5px;
+  font-size: 9.5px;
   font-weight: 760;
   letter-spacing: .05em;
   text-transform: uppercase;
@@ -312,7 +312,7 @@
   border: 1px solid var(--rd-border2);
   border-radius: 999px;
   color: var(--rd-muted);
-  font-size: 9px;
+  font-size: 9.5px;
   font-weight: 650;
 }
 
@@ -391,7 +391,7 @@
 
 .rd-v2-library-inspector-basis-grid span {
   margin-bottom: 0;
-  font-size: 9px;
+  font-size: 9.5px;
   letter-spacing: .06em;
 }
 
@@ -408,7 +408,7 @@
 }
 
 .rd-v2-library-inspector-next > span {
-  font-size: 9px;
+  font-size: 9.5px;
   letter-spacing: .06em;
 }
 
@@ -441,7 +441,7 @@
 .rd-v2-library-holding-focus > span {
   grid-column: 1;
   align-self: baseline;
-  font-size: 9px;
+  font-size: 9.5px;
 }
 
 .rd-v2-library-holding-focus strong {

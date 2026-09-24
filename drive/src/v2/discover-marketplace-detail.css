@@ -36,7 +36,7 @@
 }
 
 .rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) button.row.rd-v2-discover-candidate {
-  grid-template-columns: 52px minmax(0, 1fr);
+  grid-template-columns: 88px minmax(0, 1fr);
   gap: 11px;
   min-height: 0;
   padding: 11px 12px 12px;
@@ -75,7 +75,7 @@
   border-radius: 999px;
   background: #f1f7f3;
   color: #3f6f5c;
-  font-size: 8.7px;
+  font-size: 9.5px;
   font-style: normal;
   font-weight: 730;
   line-height: 1.2;
@@ -86,7 +86,7 @@
 .rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-evidence {
   max-width: 760px;
   color: #596676;
-  font-size: 10.8px;
+  font-size: 11.5px;
   line-height: 1.4;
 }
 
@@ -146,7 +146,7 @@
   border-radius: 6px;
   background: #fbfdfb;
   color: #376b56;
-  font-size: 9px;
+  font-size: 9.5px;
   font-weight: 720;
 }
 
@@ -183,7 +183,7 @@ body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-identity {
 body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-kicker {
   margin-bottom: 5px;
   color: #718197;
-  font-size: 8px;
+  font-size: 9.5px;
   letter-spacing: .075em;
 }
 
@@ -209,7 +209,7 @@ body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-source {
 body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-estate-crumb {
   margin-top: 5px;
   color: #7a8591;
-  font-size: 8.5px;
+  font-size: 9.5px;
   line-height: 1.3;
 }
 

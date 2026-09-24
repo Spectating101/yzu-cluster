@@ -71,7 +71,7 @@ export function DiscoverHistoryRailPanel({ event, job, onAskAbout, onReviewReque
         id={requestId}
         title={title}
         pills={<span className={`rd-v2-pill${pillTone(state.label)}`}>{state.label}</span>}
-        description={source}
+        description={source && source !== requestId ? source : undefined}
       />
       <div className="rd-v2-rail-scroll">
         <div className="rd-v2-history-known-unknowns" data-testid="history-known-unknowns">

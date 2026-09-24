@@ -58,7 +58,7 @@
 }
 
 .rd-v2-discover-page .rd-v2-discover-offering-facts > span {
-  font-size: 9px;
+  font-size: 9.5px;
 }
 
 .rd-v2-discover-page .rd-v2-discover-row-add {
@@ -111,7 +111,7 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-rail-fieldgrid .rd-v2-
 
 body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-rail-fieldgrid .rd-v2-detail-label {
   color: #718197;
-  font-size: 8.5px;
+  font-size: 9.5px;
   letter-spacing: .07em;
 }
 
@@ -185,13 +185,13 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-rail-fieldgrid .rd-v2-
 .rd-v2-discover-page .rd-v2-evidence-capacity-grid > div:last-child { border-right: 0; }
 .rd-v2-discover-page .rd-v2-evidence-capacity-grid > div.needs-attention { background: #fff7ea; }
 .rd-v2-discover-page .rd-v2-evidence-capacity-grid strong { color: var(--rd-text, #182033); font-size: 11px; }
-.rd-v2-discover-page .rd-v2-evidence-capacity-grid em { color: var(--rd-muted, #6e7685); font-size: 9px; font-style: normal; line-height: 1.35; }
+.rd-v2-discover-page .rd-v2-evidence-capacity-grid em { color: var(--rd-muted, #6e7685); font-size: 9.5px; font-style: normal; line-height: 1.35; }
 .rd-v2-discover-assessment-rail-summary { display: grid; gap: 9px; padding: 15px 13px 24px; }
 .rd-v2-discover-assessment-rail-summary > strong { color: var(--rd-text, #182033); font-size: 16px; }
 .rd-v2-discover-assessment-rail-summary > p { margin: 0; color: var(--rd-body, #3e4759); font-size: 11px; line-height: 1.5; }
 .rd-v2-discover-assessment-rail-summary dl { display: grid; grid-template-columns: 1fr 1fr; margin: 2px 0 0; border-block: 1px solid var(--rd-border, #dbd4c5); }
 .rd-v2-discover-assessment-rail-summary dl > div { padding: 9px 7px; }
-.rd-v2-discover-assessment-rail-summary dt { color: var(--rd-muted, #6e7685); font-size: 8.5px; text-transform: uppercase; letter-spacing: .06em; }
+.rd-v2-discover-assessment-rail-summary dt { color: var(--rd-muted, #6e7685); font-size: 9.5px; text-transform: uppercase; letter-spacing: .06em; }
 .rd-v2-discover-assessment-rail-summary dd { margin: 3px 0 0; color: var(--rd-text, #182033); font-size: 10.5px; font-weight: 650; }
 .rd-v2-intent-capacity { display: grid; gap: 9px; padding: 12px 14px; border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, #6f8f80 28%); border-radius: 8px; background: #f7faf7; }
 .rd-v2-intent-capacity header h3 { margin: 3px 0 0; color: var(--rd-text, #182033); font-size: 12.5px; }
@@ -199,7 +199,7 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-rail-fieldgrid .rd-v2-
 .rd-v2-intent-capacity article { display: grid; gap: 3px; min-width: 0; padding: 8px 9px; border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 68%, transparent); border-radius: 6px; background: rgba(255,255,255,.48); }
 .rd-v2-intent-capacity article.needs-attention { background: #fff7ea; }
 .rd-v2-intent-capacity article strong { color: var(--rd-text, #182033); font-size: 10.5px; }
-.rd-v2-intent-capacity article em { color: var(--rd-muted, #6e7685); font-size: 9px; font-style: normal; line-height: 1.3; }
+.rd-v2-intent-capacity article em { color: var(--rd-muted, #6e7685); font-size: 9.5px; font-style: normal; line-height: 1.3; }
 .rd-v2-intent-capacity > p { margin: 0; color: var(--rd-muted, #6e7685); font-size: 9.5px; line-height: 1.4; }
 @media (max-width: 1180px) {
   .rd-v2-discover-page .rd-v2-evidence-position-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -335,7 +335,7 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-rail-fieldgrid .rd-v2-
 }
 .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity .rd-v2-evidence-section-head p {
   margin-top: 3px;
-  font-size: 9px;
+  font-size: 9.5px;
   line-height: 1.35;
 }
 .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity-grid {
@@ -344,7 +344,7 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-rail-fieldgrid .rd-v2-
 
 .rd-v2-discover-page .rd-v2-evidence-basis-details {
   color: var(--rd-muted, #6e7685);
-  font-size: 9px;
+  font-size: 9.5px;
 }
 .rd-v2-discover-page .rd-v2-evidence-basis-details summary {
   width: fit-content;
@@ -463,7 +463,7 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-rail-fieldgrid .rd-v2-
   min-width: 0;
   margin: 0;
   color: var(--rd-muted, #6e7685);
-  font-size: 9px;
+  font-size: 9.5px;
   font-style: normal;
   line-height: 1.35;
   overflow-wrap: anywhere;

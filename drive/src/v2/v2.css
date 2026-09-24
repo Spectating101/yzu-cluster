@@ -313,7 +313,7 @@
   border-radius: 999px;
   background: #f8fafd;
   color: var(--rd-body);
-  font-size: 9px;
+  font-size: 9.5px;
   font-weight: 650;
   line-height: 1.25;
   white-space: nowrap;
@@ -407,7 +407,7 @@
 .rd-v2-account-identity span {
   color: var(--rd-muted);
   font-family: var(--rd-mono);
-  font-size: 9px;
+  font-size: 9.5px;
   text-transform: capitalize;
 }
 
@@ -446,7 +446,7 @@
 
 .rd-v2-account-menu small {
   color: var(--rd-muted);
-  font-size: 9px;
+  font-size: 9.5px;
 }
 
 .rd-v2-ask-sign-in {
@@ -731,17 +731,30 @@
   border-radius: 16px;
 }
 
-.rd-v2-library-headline {
-  display: flex;
+.rd-v2-library-page > .rd-v2-page-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 16px;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  min-height: 32px;
-  margin-top: 6px;
+}
+
+.rd-v2-library-page > .rd-v2-page-head > h1,
+.rd-v2-library-page > .rd-v2-page-head > .rd-v2-lead {
+  grid-column: 1;
+}
+
+.rd-v2-library-headline {
+  display: contents;
 }
 
 .rd-v2-library-headline .rd-v2-breadcrumb {
+  grid-column: 1;
   min-width: 0;
+}
+
+.rd-v2-library-headline .rd-v2-library-actions {
+  grid-column: 2;
+  grid-row: 1 / span 2;
 }
 
 .rd-v2-library-actions {
@@ -1709,7 +1722,7 @@
 
 /* Legacy pill (strips / inline use) */
 .rd-v2-pill {
-  font-size: 9px;
+  font-size: 9.5px;
   font-weight: 700;
   padding: 2px 7px;
   border-radius: 8px;
@@ -3056,7 +3069,7 @@
 
 .rd-v2-discover-candidates button.row.rd-v2-discover-candidate {
   grid-template-areas: "source main";
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: 88px minmax(0, 1fr);
   align-items: start;
   gap: clamp(12px, 1.4vw, 20px);
   min-height: 0;
@@ -3381,7 +3394,7 @@
   display: flex;
   gap: 8px;
   margin: 0 0 5px;
-  color: #d5deea;
+  color: inherit;
   font-size: 13px;
   line-height: 1.4;
 }
@@ -4972,7 +4985,7 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
   background: transparent;
   color: #8a6a20;
   font-family: var(--rd-mono);
-  font-size: 9px;
+  font-size: 9.5px;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -6226,7 +6239,7 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
   border-radius: 50%;
   color: #fff;
   background: #f7f3e9;
-  font-size: 8px;
+  font-size: 9.5px;
   font-style: normal;
 }
 
@@ -6355,7 +6368,7 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
     display: inline;
     margin-right: 4px;
     color: #7b8390;
-    font-size: 8.5px;
+    font-size: 9.5px;
     font-weight: 760;
     letter-spacing: .07em;
     text-transform: uppercase;
@@ -6410,7 +6423,7 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
   .rd-v2-discover-offering-facts b {
     display: block;
     color: #7b8390;
-    font-size: 8.5px;
+    font-size: 9.5px;
     font-weight: 760;
     letter-spacing: .07em;
     text-transform: uppercase;

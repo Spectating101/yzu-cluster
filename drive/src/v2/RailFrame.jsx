@@ -4,10 +4,14 @@ export function RailFrame({ children }) {
   return <div className="rd-v2-rail-panel rd-v2-rail-panel-on">{children}</div>;
 }
 
+const PLAIN_SLUG = /^[a-z]+(?:[- ][a-z]+)*$/;
+
 export function RailEntityHeader({ id, title, pills, description }) {
+  const slug = typeof id === "string" && PLAIN_SLUG.test(id);
+  const label = slug ? id.charAt(0).toUpperCase() + id.slice(1).replace(/-/g, " ") : id;
   return (
     <div className="rd-v2-rail-ehead">
-      {id ? <p className="rd-v2-rail-id mono">{id}</p> : null}
+      {id ? <p className={slug ? "rd-v2-rail-id" : "rd-v2-rail-id mono"}>{label}</p> : null}
       {title ? <h2 className="rd-v2-rail-title">{title}</h2> : null}
       {pills ? <div className="rd-v2-rail-pills">{pills}</div> : null}
       {description ? <p className="rd-v2-rail-desc">{description}</p> : null}

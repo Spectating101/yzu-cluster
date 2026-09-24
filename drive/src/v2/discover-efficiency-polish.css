@@ -40,7 +40,7 @@
 }
 
 .rd-v2-discover-field > header p {
-  font-size: 8.8px;
+  font-size: 9.5px;
 }
 
 /* Assembly is the exceptional state, so it earns the strongest emphasis in the field. */
@@ -73,7 +73,7 @@
 .rd-v2-discover-ranked-results .rd-v2-discover-evidence {
   display: block;
   overflow: hidden;
-  font-size: 8.8px;
+  font-size: 9.5px;
   line-height: 1.25;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -103,18 +103,18 @@
 }
 
 .rd-v2-discover-ranked-results .rd-v2-discover-offering-facts b {
-  font-size: 6.8px;
+  font-size: 9.5px;
 }
 
 .rd-v2-discover-ranked-results .rd-v2-discover-offering-facts em {
   max-width: 220px;
   overflow: hidden;
-  font-size: 7.8px;
+  font-size: 9.5px;
   text-overflow: ellipsis;
 }
 
 .rd-v2-discover-ranked-results .rd-v2-discover-sufficiency {
-  font-size: 7.5px;
+  font-size: 9.5px;
   line-height: 1.2;
 }
 
@@ -207,7 +207,7 @@
   flex: 0 0 auto;
   margin-right: -5px;
   color: var(--rd-muted, #6e7685);
-  font-size: 8px;
+  font-size: 9.5px;
 }
 
 .rd-v2-evidence-detail-disclosure.is-workspace[open] > summary::before {
@@ -217,7 +217,7 @@
 .rd-v2-evidence-detail-disclosure.is-workspace > summary em {
   margin-left: auto;
   color: var(--rd-muted, #6e7685);
-  font-size: 8.5px;
+  font-size: 9.5px;
   font-style: normal;
   font-weight: 500;
 }

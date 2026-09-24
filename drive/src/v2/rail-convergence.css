@@ -26,7 +26,7 @@
   justify-content: space-between;
   gap: 10px;
   color: var(--rd-muted);
-  font-size: 8.5px;
+  font-size: 9.5px;
   font-weight: 780;
   letter-spacing: 0.11em;
   text-transform: uppercase;
@@ -36,7 +36,7 @@
   max-width: 58%;
   overflow: hidden;
   color: var(--rd-body);
-  font-size: 9px;
+  font-size: 9.5px;
   font-weight: 720;
   letter-spacing: 0.02em;
   text-align: right;
@@ -342,13 +342,13 @@
   }
 
   .rd-v2-synthesis-page .s04-opening-map li > small {
-    font-size: 6.5px;
+    font-size: 9.5px;
     line-height: 1.25;
   }
 
   .rd-v2-synthesis-page .s04-opening-map li > strong {
     overflow: visible;
-    font-size: 8.5px;
+    font-size: 9.5px;
     line-height: 1.25;
     text-overflow: clip;
     white-space: normal;

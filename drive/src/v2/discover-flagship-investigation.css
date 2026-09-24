@@ -29,7 +29,7 @@
 
   .rd-v2-discover-page .rd-v2-evidence-position-grid em {
     margin-top: 1px;
-    font-size: 8.5px;
+    font-size: 9.5px;
   }
 
   .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-held,
@@ -47,7 +47,7 @@
 
   .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes .rd-v2-evidence-section-head p {
     margin-top: 1px;
-    font-size: 8.5px;
+    font-size: 9.5px;
   }
 
   .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes-list {
@@ -70,7 +70,7 @@
 
   .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity .rd-v2-evidence-section-head p {
     max-width: none;
-    font-size: 8px;
+    font-size: 9.5px;
     line-height: 1.25;
   }
 
@@ -98,7 +98,7 @@
 
   .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity-grid em {
     margin-top: 1px;
-    font-size: 7.5px;
+    font-size: 9.5px;
     line-height: 1.2;
   }
 

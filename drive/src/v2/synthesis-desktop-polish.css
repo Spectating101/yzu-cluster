@@ -33,7 +33,7 @@
 
 .s04-workflow-guide > summary small {
   color: #647586;
-  font-size: 8px;
+  font-size: 9.5px;
   font-weight: 820;
   letter-spacing: .09em;
   text-transform: uppercase;
@@ -42,7 +42,7 @@
 .s04-workflow-guide > summary strong {
   overflow: hidden;
   color: #2d3d4b;
-  font-size: 9px;
+  font-size: 9.5px;
   font-weight: 730;
   line-height: 1.35;
   text-overflow: ellipsis;
@@ -52,7 +52,7 @@
 .s04-workflow-guide > summary em {
   flex: none;
   color: #687687;
-  font-size: 8px;
+  font-size: 9.5px;
   font-style: normal;
   font-weight: 780;
 }
@@ -76,7 +76,7 @@
 .s04-workflow-guide-body > p {
   margin: 0;
   color: #7a858d;
-  font-size: 7.5px;
+  font-size: 9.5px;
   line-height: 1.45;
 }
 
@@ -120,7 +120,7 @@
   border-radius: 999px;
   background: rgba(255,255,255,.68);
   color: #697785;
-  font-size: 7.5px;
+  font-size: 9.5px;
   font-weight: 820;
 }
 
@@ -142,13 +142,13 @@
 
 .s04-workflow-guide-body li strong {
   color: #374957;
-  font-size: 9px;
+  font-size: 9.5px;
   line-height: 1.25;
 }
 
 .s04-workflow-guide-body li small {
   color: #7a8690;
-  font-size: 7.5px;
+  font-size: 9.5px;
   line-height: 1.35;
 }
 
@@ -240,7 +240,7 @@
   .yzu-inspector .s04-rail-context > p,
   .yzu-inspector .s04-draft-rail-brief > p,
   .yzu-inspector .s04-rail-proof strong {
-    font-size: 9px;
+    font-size: 9.5px;
     line-height: 1.45;
   }
 

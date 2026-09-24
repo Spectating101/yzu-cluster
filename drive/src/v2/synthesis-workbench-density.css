@@ -144,7 +144,7 @@
 
   #root .rd-v2-synthesis-page :is(.s04-rail-gates,.s04-rail-evidence-ledger,.s04-rail-measurement) > header span {
     color: #687687 !important;
-    font-size: 8px !important;
+    font-size: 9.5px !important;
     font-weight: 800 !important;
     letter-spacing: .08em !important;
     text-transform: uppercase !important;
@@ -152,7 +152,7 @@
 
   #root .rd-v2-synthesis-page :is(.s04-rail-gates,.s04-rail-evidence-ledger,.s04-rail-measurement) > header strong {
     color: #3d564b !important;
-    font-size: 8.5px !important;
+    font-size: 9.5px !important;
     font-weight: 800 !important;
   }
 
@@ -172,12 +172,12 @@
     align-items: center !important;
     min-height: 24px !important;
     border-top: 1px solid #ebe7dd !important;
-    font-size: 8.5px !important;
+    font-size: 9.5px !important;
   }
 
   #root .rd-v2-synthesis-page .s04-rail-gates li:first-child { border-top: 0 !important; }
   #root .rd-v2-synthesis-page .s04-rail-gates li span { color: #65727e !important; }
-  #root .rd-v2-synthesis-page .s04-rail-gates li strong { color: #697782 !important; font-size: 8.5px !important; text-align: right !important; }
+  #root .rd-v2-synthesis-page .s04-rail-gates li strong { color: #697782 !important; font-size: 9.5px !important; text-align: right !important; }
   #root .rd-v2-synthesis-page .s04-rail-gates li.is-ready strong { color: #3f735b !important; }
   #root .rd-v2-synthesis-page .s04-rail-gates li.is-blocked strong { color: #9a5d3e !important; }
 
@@ -191,13 +191,13 @@
   #root .rd-v2-synthesis-page .s04-rail-evidence-ledger li b {
     overflow: hidden !important;
     color: #334553 !important;
-    font-size: 8.5px !important;
+    font-size: 9.5px !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
   }
   #root .rd-v2-synthesis-page .s04-rail-evidence-ledger li span {
     color: #7a858d !important;
-    font-size: 7.5px !important;
+    font-size: 9.5px !important;
     line-height: 1.3 !important;
   }
 
@@ -216,7 +216,7 @@
   }
   #root .rd-v2-synthesis-page .s04-rail-measurement dt {
     color: #7a858d !important;
-    font-size: 7px !important;
+    font-size: 9.5px !important;
     text-transform: uppercase !important;
   }
   #root .rd-v2-synthesis-page .s04-rail-measurement dd {

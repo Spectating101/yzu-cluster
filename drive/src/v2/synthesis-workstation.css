@@ -237,7 +237,7 @@
   body:has(.rd-v2-synthesis-page) .s04-rail-context dt,
   body:has(.rd-v2-synthesis-page) .s04-rail-proof li span {
     color: var(--rd-muted);
-    font-size: 9px;
+    font-size: 9.5px;
   }
 
   body:has(.rd-v2-synthesis-page) .s04-rail-context dd,

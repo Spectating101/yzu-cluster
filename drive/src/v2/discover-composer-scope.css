@@ -18,7 +18,7 @@
   padding-top: 6px;
   border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 54%, transparent);
 }
-.rd-v2-discover-composer-scope > span { display: inline-flex; align-items: center; gap: 4px; color: var(--rd-muted, #6e7685); font-size: 8.3px; }
+.rd-v2-discover-composer-scope > span { display: inline-flex; align-items: center; gap: 4px; color: var(--rd-muted, #6e7685); font-size: 9.5px; }
 .rd-v2-discover-composer-scope > span::before { content: ""; width: 4px; height: 4px; border-radius: 50%; background: #789588; }
 .rd-v2-discover-composer-scope > span:last-child::before { background: #ae7d43; }
 

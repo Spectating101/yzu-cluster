@@ -235,7 +235,12 @@
   border-top: 0;
 }
 
-.rd-v2-home-headroom-row,
+.rd-v2-home-headroom-row {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
 .rd-v2-home-headroom-meta {
   display: flex;
   min-width: 0;
@@ -255,10 +260,11 @@
 }
 
 .rd-v2-home-headroom-row > span {
+  padding-left: 24px;
   color: var(--rd-hps-ink);
-  font-family: var(--rd-mono);
-  font-size: 10.5px;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .rd-v2-home-headroom-mark {
@@ -370,7 +376,7 @@
 .rd-v2-home-recommended-row > em {
   color: #69756f;
   font-family: var(--rd-mono);
-  font-size: 9px;
+  font-size: 9.5px;
   font-style: normal;
   font-weight: 760;
   letter-spacing: .04em;
@@ -407,7 +413,7 @@
 .rd-v2-home-trail-kind {
   color: #7b817d;
   font-family: var(--rd-mono);
-  font-size: 9px;
+  font-size: 9.5px;
   font-weight: 760;
   letter-spacing: .05em;
   text-transform: uppercase;
@@ -487,7 +493,7 @@
   border-radius: 999px;
   color: #65746d;
   font-family: var(--rd-mono);
-  font-size: 8.5px;
+  font-size: 9.5px;
   font-weight: 760;
   letter-spacing: .06em;
   text-transform: uppercase;
@@ -639,7 +645,7 @@
 .rd-v2-profile-section-head > span {
   color: var(--rd-hps-muted);
   font-family: var(--rd-mono);
-  font-size: 9px;
+  font-size: 9.5px;
   font-weight: 730;
   letter-spacing: .04em;
   white-space: nowrap;
@@ -716,7 +722,7 @@
 .rd-v2-learned-memory-list em {
   color: var(--rd-hps-muted);
   font-family: var(--rd-mono);
-  font-size: 9px;
+  font-size: 9.5px;
   font-style: normal;
   letter-spacing: .035em;
   text-transform: uppercase;
@@ -779,7 +785,7 @@
 .rd-v2-profile-memory-anchor > span {
   color: #7b817d;
   font-family: var(--rd-mono);
-  font-size: 8.8px;
+  font-size: 9.5px;
   font-weight: 780;
   letter-spacing: .08em;
   text-transform: uppercase;
@@ -994,7 +1000,7 @@
 
 .rd-v2-settings-statement .rd-v2-statement-row {
   display: grid;
-  grid-template-columns: minmax(150px, .85fr) minmax(120px, .65fr) minmax(190px, 1.15fr) auto;
+  grid-template-columns: minmax(120px, .8fr) auto minmax(0, 1.2fr) auto;
   gap: 12px;
   align-items: center;
   min-height: 0;
@@ -1030,7 +1036,7 @@
 .rd-v2-settings-statement .rd-v2-statement-detail {
   color: #758078;
   font-family: var(--rd-mono);
-  font-size: 8.7px;
+  font-size: 9.5px;
   font-weight: 770;
   letter-spacing: .05em;
 }
