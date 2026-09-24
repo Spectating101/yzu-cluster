@@ -303,7 +303,7 @@ function PersonalResearchProfile({ document, onDocument, onProfileRefresh }) {
               {configured ? "Your research context" : "Set up your research context"}
             </h2>
             <p>
-              This context helps Ask understand your work. It cannot change your account, role, permissions, or collection authority.
+              This context is yours. It sits beside any faculty registry record without overwriting it, and helps Discover and Ask understand your work. It cannot change your account, role, permissions, or collection authority.
             </p>
           </div>
           <span>{configured ? "User-confirmed" : "Cold start"}</span>
@@ -363,6 +363,24 @@ function publishPersonalProfile(document) {
  * user-confirmed research context, faculty-registry evidence and Library
  * possession stay separate authorities.
  */
+function RegistryFocusAction({ signedIn }) {
+  if (!signedIn) {
+    return <p className="rd-v2-profile-focus-note">Sign in to add your own research focus alongside this record.</p>;
+  }
+  const openEditor = () => {
+    document.querySelector("[data-testid=research-profile-editor]")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.setTimeout(() => document.getElementById("rd-profile-project")?.focus({ preventScroll: true }), 250);
+  };
+  return (
+    <div className="rd-v2-profile-focus-action">
+      <p>Add or correct your focus. It is saved as yours beside this registry record, and Discover and Ask use both.</p>
+      <button type="button" className="rd-v2-btn sm primary" data-testid="profile-add-focus" onClick={openEditor}>
+        Add research focus
+      </button>
+    </div>
+  );
+}
+
 export function ProfilePage({
   profile,
   libraryHoldings = [],
@@ -532,6 +550,7 @@ export function ProfilePage({
             </div>
             <span>Registry-backed</span>
           </header>
+          <RegistryFocusAction signedIn={signedInResearcher} />
           <div className="rd-v2-profile-memory-layout">
             <ul className="rd-v2-profile-memory">
               {savedMemory.map((card) => (
@@ -553,10 +572,10 @@ export function ProfilePage({
       ) : active ? (
         <section className="rd-v2-profile-section" data-testid="profile-memory-thin" aria-label="Research context on record">
           <header className="rd-v2-profile-section-head">
-            <div><h2>Research context on record</h2><p>Thin registry records stay thin rather than inventing researcher context.</p></div>
+            <div><h2>Research context on record</h2><p>The faculty registry holds no specialties, methods, or current research direction for this record.</p></div>
             <span>Registry-backed</span>
           </header>
-          <p className="rd-v2-empty-inline">No specialties, methods, or current research direction are recorded.</p>
+          <RegistryFocusAction signedIn={signedInResearcher} />
         </section>
       ) : null}
 

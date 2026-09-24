@@ -88,14 +88,33 @@ test("Resources — one collector vocabulary across toolbar, card, and rail", as
   await shot(page, "resources-1440x900.png");
 });
 
-test("Profile thin — actionable memory and Library connections", async ({ page }) => {
-  await open(page, "/?tab=profile");
+test("Profile thin — a signed-in researcher can add a research focus beside the registry record", async ({ page }) => {
+  await page.setViewportSize(DESKTOP);
+  await mockV2Api(page, {
+    profileBody: { found: true, profile: { name_en: "Test Prof", email: "prof@example.edu", discipline: "YZU" } },
+  });
+  await page.route("**/library/profile", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        configured: false,
+        principal: { id: "prof-1", email: "prof@example.edu", display_name: "Test Prof", role: "member" },
+        profile: {},
+        memory: { memories: [], settings: { auto_learn: true, use_memory: true } },
+      }),
+    }),
+  );
+  await page.goto("/?tab=profile", { waitUntil: "domcontentloaded" });
+  await waitForShell(page).catch(() => {});
+  await page.waitForTimeout(900);
   const main = page.locator("main");
-  await expect(main).toContainText("No research direction saved.");
-  await expect(main.getByRole("button", { name: "Add research focus" })).toBeVisible();
-  await expect(main).toContainText("Library connections");
-  await expect(main.getByRole("button", { name: "Find relevant Library assets" })).toBeVisible();
-  await expect(main).toContainText("Suggestions appear after a research focus is saved.");
+  await expect(main.getByTestId("profile-memory-thin").or(main.getByTestId("profile-memory"))).toBeVisible();
+  const add = main.getByTestId("profile-add-focus");
+  await expect(add).toBeVisible();
+  await add.click();
+  await expect(page.locator("#rd-profile-project")).toBeFocused();
+  await expect(main.getByTestId("research-profile-editor")).toContainText("without overwriting it");
   await shot(page, "profile-thin-1440x900.png");
 });
 

@@ -320,3 +320,32 @@
     font-size: 17px;
   }
 }
+
+.rd-v2-profile-focus-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 2px 0 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--rd-hps-line, #e2ddd2);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--rd-surface, #fffdf6) 92%, #3f6f5c 8%);
+}
+
+.rd-v2-profile-focus-action p,
+.rd-v2-profile-focus-note {
+  margin: 0;
+  color: var(--rd-muted, #5c6472);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.rd-v2-profile-focus-action .rd-v2-btn {
+  flex: none;
+}
+
+.rd-v2-profile-page [data-testid="research-profile-editor"] {
+  scroll-margin-top: 30px;
+}
+
