@@ -324,10 +324,6 @@
   /* The Inspector has plenty of vertical room at workstation height. Give the
      existing recorded-context/proof sections a little more breathing room; do
      not invent any new facts just to fill the rail. */
-  body:has(.rd-v2-synthesis-page) :is(.s04-rail-context, .s04-rail-proof, .s04-rail-assist) {
-    margin-top: 12px;
-    padding: 13px 14px;
-  }
 
   body:has(.rd-v2-synthesis-page) .s04-rail-context > p {
     font-size: 11px;

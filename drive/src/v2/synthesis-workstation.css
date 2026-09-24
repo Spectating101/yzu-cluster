@@ -203,30 +203,12 @@
   /* The external Detail/Ask rail remains interpretive. Richer Synthesis rail
      sections use its vertical space for recorded context and authority proof. */
   body:has(.rd-v2-synthesis-page) .s04-rail-context,
-  body:has(.rd-v2-synthesis-page) .s04-rail-proof,
-  body:has(.rd-v2-synthesis-page) .s04-rail-assist {
+  body:has(.rd-v2-synthesis-page) .s04-rail-proof {
     margin: 10px 12px 0;
     padding: 11px 12px;
     border: 1px solid var(--rd-border);
     border-radius: 10px;
     background: color-mix(in srgb, var(--rd-surface) 88%, transparent);
-  }
-
-  body:has(.rd-v2-synthesis-page) :is(.s04-rail-context, .s04-rail-proof, .s04-rail-assist) > header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 8px;
-  }
-
-  body:has(.rd-v2-synthesis-page) :is(.s04-rail-context, .s04-rail-proof, .s04-rail-assist) > header span {
-    color: var(--rd-muted);
-    font-family: var(--rd-mono);
-    font-size: 8.5px;
-    font-weight: 800;
-    letter-spacing: .08em;
-    text-transform: uppercase;
   }
 
   body:has(.rd-v2-synthesis-page) .s04-rail-context > p {
@@ -274,35 +256,5 @@
 
   body:has(.rd-v2-synthesis-page) .s04-rail-proof li.is-current strong {
     color: var(--rd-review-fg);
-  }
-
-  body:has(.rd-v2-synthesis-page) .s04-rail-assist {
-    display: grid;
-    gap: 6px;
-  }
-
-  body:has(.rd-v2-synthesis-page) .s04-rail-assist > header {
-    margin-bottom: 2px;
-  }
-
-  body:has(.rd-v2-synthesis-page) .s04-rail-assist button {
-    width: 100%;
-    min-height: 32px;
-    padding: 7px 9px;
-    border: 1px solid color-mix(in srgb, var(--rd-border) 82%, transparent);
-    border-radius: 8px;
-    background: transparent;
-    color: var(--rd-body);
-    cursor: pointer;
-    font: inherit;
-    font-size: 9.5px;
-    line-height: 1.35;
-    text-align: left;
-  }
-
-  body:has(.rd-v2-synthesis-page) .s04-rail-assist button:hover {
-    border-color: var(--rd-active-border);
-    background: var(--rd-active-bg);
-    color: var(--rd-active-fg);
   }
 }

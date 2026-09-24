@@ -215,41 +215,6 @@
   color: #9aa3b5;
 }
 
-.rd-v2-progress-marker {
-  display: grid;
-  width: 18px;
-  height: 18px;
-  place-items: center;
-  border: 1px solid rgba(186, 196, 216, 0.9);
-  border-radius: 999px;
-  background: #fff;
-  font-size: 9px;
-  font-weight: 700;
-}
-
-.rd-v2-progress-card li[data-state="active"] .rd-v2-progress-marker {
-  border-color: #3f6f5c;
-  background: #3f6f5c;
-  color: #fff;
-}
-
-.rd-v2-progress-card li[data-state="past"] .rd-v2-progress-marker {
-  border-color: rgba(56, 145, 106, 0.55);
-  background: rgba(56, 145, 106, 0.14);
-  color: #27815b;
-}
-
-.rd-v2-progress-card li[data-state="pending"] .rd-v2-progress-marker {
-  border-color: rgba(186, 196, 216, 0.9);
-  background: #fff;
-  color: #a6aebd;
-}
-
-.rd-v2-progress-marker svg {
-  width: 11px;
-  height: 11px;
-}
-
 .rd-v2-inline-spinner {
   width: 13px;
   height: 13px;
@@ -316,65 +281,6 @@
   padding: 4px 2px;
 }
 
-.rd-v2-home-loading-copy {
-  display: grid;
-  gap: 14px;
-  width: min(620px, 100%);
-}
-
-.rd-v2-home-loading-copy > span {
-  color: #667187;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.rd-v2-home-loading-copy .rd-v2-skeleton > span:first-child {
-  height: 20px;
-  width: min(440px, 82%);
-}
-
-.rd-v2-home-loading-meta {
-  display: grid;
-  grid-template-columns: minmax(100px, 150px) minmax(160px, 260px);
-  gap: 12px;
-}
-
-.rd-v2-home-action-skeleton {
-  width: 132px;
-  gap: 10px;
-}
-
-.rd-v2-home-action-skeleton > span {
-  height: 31px;
-  border-radius: 9px;
-}
-
-.rd-v2-home-lanes-loading {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.rd-v2-home-lanes-loading > .rd-v2-skeleton,
-.rd-v2-home-list-skeletons > .rd-v2-skeleton {
-  padding: 16px;
-  border: 1px solid rgba(216, 223, 235, 0.9);
-  border-radius: 12px;
-  background: rgba(251, 252, 254, 0.9);
-}
-
-.rd-v2-home-attention-skeleton {
-  max-width: 620px;
-  padding: 8px 0;
-}
-
-.rd-v2-home-list-skeletons {
-  display: grid;
-  gap: 8px;
-}
-
 .rd-v2-browse-loading {
   display: flex;
   align-items: center;
@@ -414,14 +320,6 @@
   .rd-v2-rich-popover footer {
     padding-left: 15px;
     padding-right: 15px;
-  }
-
-  .rd-v2-home-lanes-loading {
-    grid-template-columns: 1fr;
-  }
-
-  .rd-v2-home-loading-meta {
-    grid-template-columns: 1fr;
   }
 
   .rd-v2-progress-card {

@@ -71,17 +71,6 @@
 
 /* Resting radar: capability is visible, but the search remains the strongest object. */
 
-.rd-v2-discover-capability-ledger {
-  border: 0;
-  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 58%, transparent);
-  border-radius: 0;
-  background: transparent;
-}
-
-.rd-v2-discover-capability-ledger > span {
-  padding-block: 5px;
-}
-
 @media (max-width: 1500px) {
   .rd-v2-discover-ranked-results .rd-v2-discover-candidate {
     min-height: 72px !important;

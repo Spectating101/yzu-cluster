@@ -14,9 +14,6 @@
    The concrete routes already carry the same information more usefully. */
 
 /* The six-item capability ledger repeated the composer scope and made idle feel like a brochure. */
-.rd-v2-discover-capability-ledger {
-  display: none;
-}
 
 /* Active search: the left rail is a control surface, not a second dashboard. */
 
@@ -44,32 +41,6 @@
 
 .rd-v2-discover-field > header p {
   font-size: 8.8px;
-}
-
-.rd-v2-discover-field-actions button {
-  padding: 4px 7px;
-  border-color: color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, transparent);
-  background: transparent;
-}
-
-.rd-v2-discover-field-metrics {
-  gap: 13px;
-  border: 0;
-}
-
-.rd-v2-discover-field-metrics > span {
-  gap: 4px;
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-
-.rd-v2-discover-field-metrics b {
-  font-size: 10px;
-}
-
-.rd-v2-discover-field-metrics em {
-  font-size: 8px;
 }
 
 /* Assembly is the exceptional state, so it earns the strongest emphasis in the field. */

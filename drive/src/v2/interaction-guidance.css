@@ -64,9 +64,7 @@
 .rd-v2-btn,
 .rd-v2-chip,
 .yzu-sidebar button,
-.rd-v2-home-actions button,
 .rd-v2-history-load-more,
-.rd-v2-rail-toggle button,
 .rd-v2-rich-popover-close {
   transition:
     transform var(--rd-decor-duration-press) var(--rd-decor-ease-standard),
@@ -78,12 +76,9 @@
 }
 
 /* Dense research rows remain spatially stable; only paint properties change. */
-.rd-v2-library-asset,
-.rd-v2-library-collection,
 .rd-v2-discover-candidate,
 .rd-v2-catalog button.row,
 .rd-v2-history-row,
-.rd-v2-resource-row,
 .rd-v2-statement-row,
 .rd-v2-ledger-row {
   transition:
@@ -95,32 +90,10 @@
 
 .rd-v2-btn:active:not(:disabled),
 .rd-v2-chip.clickable:active:not(:disabled),
-.rd-v2-home-actions button:active:not(:disabled),
 .rd-v2-history-load-more:active:not(:disabled),
 .yzu-sidebar button:active:not(:disabled) {
   transform: scale(0.985);
   transition-duration: var(--rd-decor-duration-press);
-}
-
-:is(
-  .rd-v2-btn,
-  .rd-v2-chip.clickable,
-  .rd-v2-home-actions button,
-  .rd-v2-history-load-more,
-  .yzu-sidebar button,
-  .rd-v2-rail-toggle button,
-  .rd-v2-rich-popover-close,
-  .rd-v2-library-asset,
-  .rd-v2-library-collection,
-  .rd-v2-discover-candidate,
-  .rd-v2-catalog button.row,
-  .rd-v2-history-row,
-  .rd-v2-resource-row,
-  .rd-v2-statement-row,
-  .rd-v2-ledger-row
-):focus-visible {
-  outline: 2px solid rgba(63, 111, 92, 0.78);
-  outline-offset: 2px;
 }
 
 .rd-v2-context-help {
@@ -203,7 +176,6 @@
   height: 12px;
 }
 
-.rd-v2-settings-summary-card > span,
 .rd-v2-statement-label {
   display: inline-flex;
   align-items: center;
@@ -211,7 +183,6 @@
 }
 
 .rd-v2-library-action-menu,
-.rd-v2-library-control-popover,
 .rd-v2-discover-filter-popover {
   transform-origin: top right;
   animation: rd-tooltip-enter var(--rd-decor-duration-small) var(--rd-decor-ease-enter) both;
@@ -246,7 +217,6 @@
   .rd-v2-toast,
   .rd-v2-tooltip,
   .rd-v2-library-action-menu,
-  .rd-v2-library-control-popover,
   .rd-v2-discover-filter-popover {
     animation-name: none !important;
     transform: none !important;
@@ -254,7 +224,6 @@
 
   .rd-v2-btn:active:not(:disabled),
   .rd-v2-chip.clickable:active:not(:disabled),
-  .rd-v2-home-actions button:active:not(:disabled),
   .rd-v2-history-load-more:active:not(:disabled),
   .yzu-sidebar button:active:not(:disabled),
   .rd-v2-context-help:hover,

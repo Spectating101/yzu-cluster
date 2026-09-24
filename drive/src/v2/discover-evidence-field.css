@@ -39,7 +39,6 @@
   line-height: 1.35;
 }
 
-.rd-v2-discover-field-actions button,
 .rd-v2-discover-assembly-state button {
   border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 82%, #26374b 18%);
   border-radius: 5px;
@@ -49,28 +48,6 @@
   font-weight: 700;
   cursor: pointer;
 }
-
-.rd-v2-discover-field-actions button { padding: 6px 9px; }
-
-.rd-v2-discover-field-metrics {
-  display: flex;
-  align-items: stretch;
-  gap: 0;
-  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 56%, transparent);
-}
-
-.rd-v2-discover-field-metrics > span {
-  display: flex;
-  align-items: baseline;
-  gap: 5px;
-  padding: 7px 14px 2px 0;
-  margin-right: 14px;
-  border-right: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 52%, transparent);
-}
-
-.rd-v2-discover-field-metrics > span:last-child { border-right: 0; }
-.rd-v2-discover-field-metrics b { color: var(--rd-text, #182033); font-size: 11px; }
-.rd-v2-discover-field-metrics em { color: var(--rd-muted, #6e7685); font-size: 8.5px; font-style: normal; }
 
 .rd-v2-discover-assembly {
   display: grid;

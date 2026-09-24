@@ -2,26 +2,6 @@
    not a minimalist search landing page. Every region below carries live or explicitly
    unmeasured product state; no decorative fake metrics are introduced. */
 
-.rd-v2-discover-capability-ledger {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 66%, transparent);
-  border-radius: 6px;
-  background: #f3f3ed;
-}
-
-.rd-v2-discover-capability-ledger > span {
-  display: grid;
-  gap: 2px;
-  padding: 7px 9px;
-  border-right: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 60%, transparent);
-}
-
-.rd-v2-discover-capability-ledger > span:last-child { border-right: 0; }
-.rd-v2-discover-capability-ledger b { color: var(--rd-text, #182033); font-size: 8.3px; }
-.rd-v2-discover-capability-ledger em { color: var(--rd-muted, #6e7685); font-size: 7.5px; font-style: normal; line-height: 1.25; }
-
 /* Query state: introduce a persistent research-control dock beside results. */
 
 /* The centre list now has a control dock, so remove duplicate filter furniture and
@@ -41,18 +21,6 @@
 .rd-v2-discover-composer-scope > span { display: inline-flex; align-items: center; gap: 4px; color: var(--rd-muted, #6e7685); font-size: 8.3px; }
 .rd-v2-discover-composer-scope > span::before { content: ""; width: 4px; height: 4px; border-radius: 50%; background: #789588; }
 .rd-v2-discover-composer-scope > span:last-child::before { background: #ae7d43; }
-
-@media (max-width: 1500px) {
-  .rd-v2-discover-capability-ledger { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .rd-v2-discover-capability-ledger > span:nth-child(3) { border-right: 0; }
-  .rd-v2-discover-capability-ledger > span:nth-child(-n+3) { border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 60%, transparent); }
-}
-
-@media (max-width: 760px) {
-  .rd-v2-discover-capability-ledger { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .rd-v2-discover-capability-ledger > span { border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 60%, transparent); }
-  .rd-v2-discover-capability-ledger > span:nth-child(even) { border-right: 0; }
-}
 
 /* The cockpit is a workstation aid, not a prerequisite for retrieval. Once the
    shell has to reserve meaningful width for navigation and the Detail/Ask rail,

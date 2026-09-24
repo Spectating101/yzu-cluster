@@ -262,26 +262,11 @@
 }
 
 /* ── Palette consolidation: selected/review surfaces use sage, not indigo ── */
-.rd-v2-library-asset.selected {
-  background: #eef3ef;
-  box-shadow: inset 3px 0 0 #3f6f5c;
-}
-
-.rd-v2-library-collection:hover,
-.rd-v2-library-asset:hover {
-  background: #f6f7f2;
-}
 
 .rd-v2-res-inventory-row:hover,
 .rd-v2-res-inventory-row.on {
   background: #f3f7f4;
   box-shadow: inset 3px 0 0 #3f6f5c;
-}
-
-.rd-v2-discover-focus {
-  background:
-    radial-gradient(circle at 70% -20%, rgba(63, 111, 92, 0.22), transparent 34rem),
-    linear-gradient(145deg, #101820 0%, #172228 52%, #0f171c 100%);
 }
 
 .rd-v2-profile-page .rd-v2-body-scroll {
@@ -430,7 +415,6 @@
 }
 
 .rd-v2-discover-candidate,
-.rd-v2-library-asset,
 .rd-v2-res-inventory-row {
   transition:
     background-color var(--rd-polish-fast) ease,
@@ -439,7 +423,6 @@
 }
 
 .rd-v2-discover-candidate.selected,
-.rd-v2-library-asset.selected,
 .rd-v2-res-inventory-row.on {
   box-shadow: inset 3px 0 0 var(--rd-polish-sage);
 }
@@ -551,7 +534,6 @@
   .rd-v2-access-form-row input,
   .rd-v2-access-form-row button,
   .rd-v2-discover-candidate,
-  .rd-v2-library-asset,
   .rd-v2-res-inventory-row,
   .rd-v2-pill,
   .rd-v2-trust-badge,

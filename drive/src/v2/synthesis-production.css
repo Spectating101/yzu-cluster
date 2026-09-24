@@ -46,37 +46,7 @@
   border-radius: 0;
 }
 
-.rd-v2-synthesis-page .sj-shell {
-  display: grid;
-  gap: 0;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  background: var(--rd-surface, #fffdf6);
-  border: 1px solid var(--rd-border, #dbd4c5);
-  border-radius: 14px;
-  box-shadow: var(--rd-shadow-xs, 0 1px 2px rgba(24, 32, 51, 0.04));
-}
-
 /* One object header, one timeline, one active work surface. */
-.rd-v2-synthesis-page .sj-object-header {
-  padding: 18px 20px 15px;
-  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 78%, transparent);
-  background: color-mix(in srgb, var(--rd-surface, #fffdf6) 94%, #fff);
-}
-
-.rd-v2-synthesis-page .sj-object-header h1 {
-  margin: 3px 0 5px;
-  font-size: clamp(20px, 1.8vw, 27px);
-  line-height: 1.12;
-}
-
-.rd-v2-synthesis-page .sj-object-actions button {
-  min-height: 32px;
-  border-radius: 7px;
-  background: transparent;
-}
 
 /* The six visible phases are orientation, not six checkout destinations.
  * Internal proposal/readiness/approval states stay distinct in the lifecycle. */
@@ -186,72 +156,7 @@
   display: none;
 }
 
-.rd-v2-synthesis-page .sj-objective-form {
-  max-width: 840px;
-  gap: 11px;
-}
-
-.rd-v2-synthesis-page .sj-objective-form textarea {
-  min-height: 108px;
-  resize: vertical;
-  border-radius: 7px;
-  background: #fffef9;
-  font-size: 13px;
-}
-
-.rd-v2-synthesis-page .sj-objective-grid {
-  grid-template-columns: minmax(240px, 390px);
-}
-
-.rd-v2-synthesis-page .sj-objective-submit {
-  justify-content: flex-start;
-}
-
-.rd-v2-synthesis-page .sj-objective-submit .primary {
-  min-height: 34px;
-  border-radius: 7px;
-}
-
 /* Registered methods are inventory, not marketing cards. */
-.rd-v2-synthesis-page .sj-method-starters {
-  margin-top: 2px;
-  padding-top: 15px;
-  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 78%, transparent);
-}
-
-.rd-v2-synthesis-page .sj-method-starters > header {
-  margin-bottom: 5px;
-}
-
-.rd-v2-synthesis-page .sj-method-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0;
-  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, transparent);
-}
-
-.rd-v2-synthesis-page .sj-method-card {
-  min-height: 52px;
-  padding: 10px 4px;
-  border: 0;
-  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, transparent);
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-}
-
-.rd-v2-synthesis-page .sj-method-card:hover {
-  background: var(--rd-hover, #f5f2ea);
-}
-
-.rd-v2-synthesis-page .sj-method-card strong {
-  font-size: 12px;
-}
-
-.rd-v2-synthesis-page .sj-method-card small {
-  margin-top: 2px;
-  font-size: 10.5px;
-}
 
 /* Keep review/build records dense and documentary once the construction has
  * advanced. Cards are reserved for actual decisions, not every piece of copy. */
@@ -263,16 +168,10 @@
 .rd-v2-synthesis-page .sj-join-candidates button,
 .rd-v2-synthesis-page .sj-segmented button,
 .rd-v2-synthesis-page .sj-column-picker label,
-.rd-v2-synthesis-page .sj-metric-row,
-.rd-v2-synthesis-page .sj-proposal-fact,
-.rd-v2-synthesis-page .sj-result-fact {
+.rd-v2-synthesis-page .sj-metric-row {
   border-radius: 7px;
   background: #fffef9;
   box-shadow: none;
-}
-
-.rd-v2-synthesis-page .sj-inspection-note {
-  margin: 10px 20px 0;
 }
 
 @media (max-width: 920px) {
@@ -288,7 +187,6 @@
     padding: 17px 16px 22px;
   }
 
-  .rd-v2-synthesis-page .sj-object-header,
   .rd-v2-synthesis-page .sj-journey {
     padding-left: 16px;
     padding-right: 16px;
@@ -303,9 +201,5 @@
 
   .rd-v2-synthesis-page .rd-v2-body-scroll {
     padding-bottom: 0;
-  }
-
-  .rd-v2-synthesis-page .sj-shell {
-    border-radius: 12px;
   }
 }

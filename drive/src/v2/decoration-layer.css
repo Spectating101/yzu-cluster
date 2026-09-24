@@ -24,17 +24,13 @@
 @media (hover: hover) and (pointer: fine) {
   .rd-v2-btn:not(:disabled):hover,
   .rd-v2-chip.clickable:not(:disabled):hover,
-  .rd-v2-home-actions button:not(:disabled):hover,
   .rd-v2-history-load-more:not(:disabled):hover {
     box-shadow: 0 4px 12px rgba(24, 35, 70, 0.085);
   }
 
   .rd-v2-catalog button.row:hover,
-  .rd-v2-library-asset:hover,
-  .rd-v2-library-collection:hover,
   .rd-v2-discover-candidate:hover,
   .rd-v2-history-row:hover,
-  .rd-v2-resource-row:hover,
   .rd-v2-statement-row:hover,
   .rd-v2-ledger-row:hover {
     border-color: rgba(112, 126, 177, 0.34);
@@ -44,7 +40,6 @@
 
 .rd-v2-btn:not(:disabled):active,
 .rd-v2-chip.clickable:not(:disabled):active,
-.rd-v2-home-actions button:not(:disabled):active,
 .rd-v2-history-load-more:not(:disabled):active,
 .yzu-sidebar button:not(:disabled):active {
   box-shadow: none;
@@ -185,19 +180,10 @@
 
 /* VC-7: completed steps stay clearly legible rather than fading toward
    disabled; the current step keeps the strongest emphasis. */
-.rd-v2-progress-card li[data-state="past"] .rd-v2-progress-marker {
-  border-color: rgba(56, 145, 106, 0.55);
-  background: rgba(56, 145, 106, 0.14);
-  color: #27815b;
-}
 
 .rd-v2-progress-card li[data-state="active"] {
   background: rgba(63, 111, 92, 0.09);
   color: #1f2a3d;
-}
-
-.rd-v2-progress-card li[data-state="active"] .rd-v2-progress-marker {
-  animation: rd-decor-marker-halo 400ms var(--rd-decor-ease-enter) 1;
 }
 
 .rd-v2-progress-card li[data-state="pending"] {
@@ -223,7 +209,6 @@
   .rd-v2-progress-card,
   .rd-v2-progress-card-title > svg,
   .rd-v2-progress-phase-fill,
-  .rd-v2-progress-card li[data-state="active"] .rd-v2-progress-marker,
   .rd-v2-history-node.active {
     animation-name: none !important;
   }

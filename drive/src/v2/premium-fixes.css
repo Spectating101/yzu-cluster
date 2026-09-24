@@ -7,16 +7,5 @@
   position: relative;
 }
 
-.rd-v2-preview-scrim {
-  position: absolute !important;
-  inset: 0 !important;
-  z-index: 120 !important;
-}
-
 /* Discover Focus keeps one command authority, but the action region must end
    before the floating mobile navigation begins instead of extending behind it. */
-@media (max-width: 720px) {
-  .rd-v2-discover-focus {
-    padding-bottom: 76px;
-  }
-}

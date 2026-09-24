@@ -57,14 +57,6 @@
   display: none;
 }
 
-.rd-v2-synthesis-page .sj-shell {
-  width: 100%;
-  max-width: none;
-  gap: 14px;
-  margin: 0;
-  padding: 0 0 40px;
-}
-
 .rd-v2-synthesis-page .sj-stage-page {
   gap: 16px;
   padding: 2px 2px 28px;
@@ -104,22 +96,6 @@
 .rd-v2-synthesis-page .sj-state-chip.ready {
   border-color: color-mix(in srgb, #77a98d 48%, var(--rd-v2-border, #d8dee8));
   background: color-mix(in srgb, #e8f3ec 62%, transparent);
-}
-
-.rd-v2-synthesis-page .sj-object-header {
-  padding: 1px 2px 2px;
-}
-
-.rd-v2-synthesis-page .sj-object-header > div:first-child > small {
-  color: var(--rd-v2-muted, #697386);
-  text-transform: uppercase;
-  letter-spacing: .09em;
-  font-size: 9px;
-  font-weight: 720;
-}
-
-.rd-v2-synthesis-page .sj-object-header h1 {
-  font-size: clamp(23px, 2vw, 31px);
 }
 
 /* Six visible research phases. Proposal/readiness/approval remain distinct
@@ -194,57 +170,21 @@
   font-size: 9px;
 }
 
-.rd-v2-synthesis-page .sj-inspection-note {
-  padding: 8px 10px;
-  border-radius: 7px;
-  background: color-mix(in srgb, var(--rd-v2-accent, #4b6f65) 4%, transparent);
-}
-
 /* Objective is a workspace, not a form card. */
-.rd-v2-synthesis-page .sj-objective-form {
-  gap: 13px;
-}
 
-.rd-v2-synthesis-page .sj-objective-form textarea,
-.rd-v2-synthesis-page .sj-objective-form input,
 .rd-v2-synthesis-page .sj-field input,
 .rd-v2-synthesis-page .sj-field select {
   background: color-mix(in srgb, #fff 64%, var(--rd-v2-paper, #f5f1e7));
 }
 
-.rd-v2-synthesis-page .sj-objective-form textarea {
-  min-height: 132px;
-}
-
-.rd-v2-synthesis-page .sj-objective-grid {
-  grid-template-columns: minmax(220px, 420px);
-  align-items: start;
-}
-
 /* The rail now carries the authority consequence. Keeping the duplicate block
  * in the centre would make the page feel like a wizard again. */
-.rd-v2-synthesis-page .sj-objective-grid > .sj-inline-alert.neutral {
-  display: none;
-}
 
-.rd-v2-synthesis-page .sj-objective-submit {
-  justify-content: flex-start;
-}
-
-.rd-v2-synthesis-page .sj-method-starters {
-  margin-top: 4px;
-  padding-top: 16px;
-  border-top: 1px solid color-mix(in srgb, var(--rd-v2-border, #d8dee8) 78%, transparent);
-}
-
-.rd-v2-synthesis-page .sj-method-card,
 .rd-v2-synthesis-page .sj-choice-grid button,
 .rd-v2-synthesis-page .sj-join-candidates button,
 .rd-v2-synthesis-page .sj-segmented button,
 .rd-v2-synthesis-page .sj-column-picker label,
-.rd-v2-synthesis-page .sj-metric-row,
-.rd-v2-synthesis-page .sj-proposal-fact,
-.rd-v2-synthesis-page .sj-result-fact {
+.rd-v2-synthesis-page .sj-metric-row {
   background: color-mix(in srgb, #fff 58%, var(--rd-v2-paper, #f5f1e7));
   box-shadow: none;
 }
@@ -262,22 +202,9 @@
   background: color-mix(in srgb, #fff 46%, var(--rd-v2-paper, #f5f1e7));
 }
 
-.rd-v2-synthesis-page .sj-code-block {
-  border-radius: 8px;
-}
-
 /* -------------------------------------------------------------------------- */
 /* Library — evidence, source relationship, and usability must scan together  */
 /* -------------------------------------------------------------------------- */
-
-.rd-v2-cap-estate-head {
-  padding-top: 12px;
-  padding-bottom: 10px;
-}
-
-.rd-v2-cap-estate-head p {
-  max-width: 720px;
-}
 
 .rd-v2-cap-ledger.with-verify .rd-v2-cap-ledger-head,
 .rd-v2-cap-ledger.with-verify .rd-v2-cap-ledger-row {
@@ -355,9 +282,6 @@
 }
 
 @media (max-width: 920px) {
-  .rd-v2-synthesis-page .sj-objective-grid {
-    grid-template-columns: 1fr;
-  }
 
   .rd-v2-synthesis-page .sj-journey ol {
     min-width: 590px;

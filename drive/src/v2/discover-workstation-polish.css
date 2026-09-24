@@ -36,9 +36,6 @@
 
 /* The territory tabs already summarize ordinary search composition. Repeat the
    fine-grained field metrics only when an assembly decision makes them useful. */
-.rd-v2-discover-field:not(:has(.rd-v2-discover-assembly)) .rd-v2-discover-field-metrics {
-  display: none;
-}
 
 /* Unselected search rail: three orthogonal counts are enough. Named-route
    totals are already represented in the centre and the route prose below. */

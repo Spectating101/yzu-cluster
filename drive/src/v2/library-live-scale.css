@@ -4,11 +4,6 @@
 /* Library is the evidence overview; Folders is the manual storage browser.
    Folders participates in the same horizontal strip so it cannot overlap the
    collection list or expand the live root into another navigation panel. */
-.rd-v2-cap-collections-hint,
-.rd-v2-cap-collections-heading,
-.rd-v2-cap-folders-link {
-  display: none;
-}
 
 .rd-v2-cap-folders-root {
   border-color: var(--rd-active-border);
@@ -341,31 +336,8 @@
   overflow-wrap: anywhere;
 }
 
-.rd-v2-library-holding-meta {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  margin: 10px 0 0;
-}
-
-.rd-v2-library-holding-meta dt {
-  color: var(--rd-muted);
-  font-family: var(--rd-mono);
-  font-size: 8px;
-  font-weight: 760;
-  text-transform: uppercase;
-}
-
-.rd-v2-library-holding-meta dd {
-  margin: 3px 0 0;
-  color: var(--rd-body);
-  font-size: 9.5px;
-  overflow-wrap: anywhere;
-}
-
 @media (max-width: 760px) {
-  .rd-v2-library-holdings-summary,
-  .rd-v2-library-holding-meta {
+  .rd-v2-library-holdings-summary {
     grid-template-columns: 1fr;
   }
 

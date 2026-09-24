@@ -167,14 +167,6 @@
 }
 
 @media (max-width: 760px) {
-  .rd-v2-cap-estate-head {
-    gap: 12px;
-    padding: 13px 14px 11px;
-  }
-
-  .rd-v2-cap-estate-head p {
-    font-size: 11px;
-  }
 
   .rd-v2-cap-collections {
     grid-template-columns: 1fr;
