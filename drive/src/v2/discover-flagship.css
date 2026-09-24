@@ -71,54 +71,6 @@
   border-bottom: 0;
 }
 
-/* Known routes are the resting evidence catalogue. Use the horizontal canvas
-   like a professional source marketplace rather than a narrow list. */
-@media (min-width: 1180px) {
-  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidates {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-    border: 0;
-  }
-
-  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidates > li,
-  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidates > li:nth-child(odd) {
-    min-width: 0;
-    border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 86%, transparent);
-    border-radius: 7px;
-  }
-
-  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate {
-    grid-template-columns: 1fr;
-    gap: 8px;
-    min-height: 126px;
-    padding: 13px 14px 14px;
-  }
-
-  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate-source {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate-title {
-    font-size: 14px;
-  }
-
-  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-evidence {
-    min-height: 32px;
-  }
-}
-
-@media (min-width: 1680px) and (min-height: 900px) {
-  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidates {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate {
-    min-height: 144px;
-  }
-}
-
 /* Active search is one command/evidence strip, not a stack of cards. */
 .rd-v2-discover-page .rd-v2-discover-explore-workspace {
   border-width: 0 0 1px;
@@ -171,35 +123,6 @@
 
 .rd-v2-discover-page .rd-v2-discover-result-actions button:hover:not(:disabled) {
   background: var(--rd-hover, #f5f2ea);
-}
-
-/* Results should occupy the workstation, not become tall single-column cards. */
-@media (min-width: 1680px) and (min-height: 900px) {
-  .rd-v2-discover-page .rd-v2-discover-ranked-results .rd-v2-discover-candidates,
-  .rd-v2-discover-page .rd-v2-discover-context-results .rd-v2-discover-candidates {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 9px;
-  }
-
-  .rd-v2-discover-page .rd-v2-discover-ranked-results .rd-v2-discover-candidate,
-  .rd-v2-discover-page .rd-v2-discover-context-results .rd-v2-discover-candidate {
-    grid-template-columns: 72px minmax(0, 1fr);
-    gap: 10px;
-    min-height: 132px;
-    padding: 11px 12px 12px;
-  }
-
-  .rd-v2-discover-page .rd-v2-discover-ranked-results .rd-v2-discover-candidate-heading,
-  .rd-v2-discover-page .rd-v2-discover-context-results .rd-v2-discover-candidate-heading {
-    display: grid;
-    gap: 3px;
-  }
-
-  .rd-v2-discover-page .rd-v2-discover-ranked-results .rd-v2-discover-possession,
-  .rd-v2-discover-page .rd-v2-discover-context-results .rd-v2-discover-possession {
-    max-width: none;
-    text-align: left;
-  }
 }
 
 /* The idle rail is an evaluation canvas waiting for selection, not a giant

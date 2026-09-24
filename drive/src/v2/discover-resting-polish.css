@@ -16,8 +16,18 @@
 
 @media (min-width: 761px) {
   .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate {
-    min-height: 94px;
-    padding: 9px 86px 28px 10px;
+    min-height: 0;
+    padding: 10px 12px 12px 10px;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidates li:has(.rd-v2-discover-row-add) button.row.rd-v2-discover-candidate {
+    padding-right: 132px;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-row-add {
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%);
   }
 
   .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate-main {

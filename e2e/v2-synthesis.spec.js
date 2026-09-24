@@ -511,7 +511,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
   });
 
   test("collapses a long live brief on mobile while keeping the full brief explicitly reachable", async ({ page }) => {
-    await page.getByRole("button", { name: "+ New synthesis" }).click();
+    await page.getByRole("button", { name: "New synthesis", exact: true }).click();
     await page.getByTestId("synthesis-intent-state").getByRole("textbox").fill(LONG_LIVE_BRIEF);
     await page.getByRole("button", { name: "Create construction" }).click();
 
@@ -550,7 +550,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
         body: JSON.stringify({ messages: [] }),
       }),
     );
-    await page.getByRole("button", { name: "+ New synthesis" }).click();
+    await page.getByRole("button", { name: "New synthesis", exact: true }).click();
     const objective = page.getByPlaceholder(/Build a weekly measure/i);
     await objective.fill("Test whether Indonesian microstructure predicts later analyst revisions.");
     await page.getByRole("button", { name: "Create construction" }).click();
@@ -929,7 +929,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
   });
 
   test("creates a durable thread quietly, then hands mapped evidence to Ask only on explicit reasoning", async ({ page }) => {
-    await page.getByRole("button", { name: "+ New" }).click();
+    await page.getByRole("button", { name: "New synthesis", exact: true }).click();
     await expect(page.locator(".s04-intent-contract")).toHaveCount(0);
     await expect(page.getByText(/Nothing is built here\./)).toBeVisible();
     await expect(page.locator("aside.rd-v2-rail")).toContainText("Ask · Research objective");
@@ -965,7 +965,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
   });
 
   test("the reasoning canvas yields to proposal review once the explicit agent turn lands, without a manual reload", async ({ page }) => {
-    await page.getByRole("button", { name: "+ New" }).click();
+    await page.getByRole("button", { name: "New synthesis", exact: true }).click();
     const objective = "Construct a weekly issuer attention panel for Taiwan filings.";
     await page.getByTestId("synthesis-intent-state").getByRole("textbox").fill(objective);
 
@@ -1016,7 +1016,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
   });
 
   test("stops polling explicitly requested reasoning and admits a stall, then recovers on retry", async ({ page }) => {
-    await page.getByRole("button", { name: "+ New" }).click();
+    await page.getByRole("button", { name: "New synthesis", exact: true }).click();
     await page.getByTestId("synthesis-intent-state").getByRole("textbox").fill("Unresolved objective for stall coverage.");
     await page.getByRole("button", { name: "Create construction" }).click();
 
@@ -1047,7 +1047,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
   });
 
   test("a stalled explicit reasoning turn does not make the next new thread look stalled", async ({ page }) => {
-    await page.getByRole("button", { name: "+ New" }).click();
+    await page.getByRole("button", { name: "New synthesis", exact: true }).click();
     await page.getByTestId("synthesis-intent-state").getByRole("textbox").fill("First unresolved objective.");
     await page.getByRole("button", { name: "Create construction" }).click();
     let evidenceProposal = page.getByTestId("synthesis-evidence-proposal");
@@ -1061,7 +1061,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await page.clock.fastForward(65000);
     await expect(page.getByTestId("synthesis-draft-state")).toContainText("Taking longer than expected");
 
-    await page.getByRole("button", { name: "+ New" }).click();
+    await page.getByRole("button", { name: "New synthesis", exact: true }).click();
     const secondObjective = "Second unresolved objective.";
     await page.getByTestId("synthesis-intent-state").getByRole("textbox").fill(secondObjective);
     await page.getByRole("button", { name: "Create construction" }).click();

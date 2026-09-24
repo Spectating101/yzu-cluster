@@ -334,7 +334,7 @@ test.describe("Synthesis acceptance screenshots", () => {
     const heading = page.locator(".s04-thread-heading");
     const label = heading.locator("span");
     const count = heading.locator("small");
-    const create = page.getByRole("button", { name: "+ New synthesis" });
+    const create = page.getByRole("button", { name: "New synthesis", exact: true });
     await expect(label).toBeVisible();
     await expect(count).toBeVisible();
     await expect(create).toBeVisible();

@@ -299,7 +299,7 @@ test("captures Synthesis home, thread work, and new-entry navigation", async ({ 
   await expect(openingRail).toContainText("Not registered");
   await capture(page, "01-thread-detail-1440x1000");
 
-  await page.getByRole("button", { name: "+ New synthesis" }).click();
+  await page.getByRole("button", { name: "New synthesis", exact: true }).click();
   const entry = page.getByTestId("synthesis-intent-state");
   await expect(entry).toBeVisible();
   await expect(entry.getByRole("button", { name: /Back to Synthesis home/ })).toBeVisible();

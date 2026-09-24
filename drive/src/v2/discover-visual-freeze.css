@@ -68,10 +68,6 @@
   padding-inline: 8px;
 }
 
-.rd-v2-discover-page .rd-v2-discover-candidates > li:has(.rd-v2-discover-row-add) .rd-v2-discover-candidate-main {
-  padding-bottom: 20px;
-}
-
 /* Reference/web context is intentionally quieter than obtainable evidence. */
 .rd-v2-discover-page .rd-v2-discover-context-results .rd-v2-discover-candidates {
   border-top-color: color-mix(in srgb, var(--rd-border, #dbd4c5) 65%, transparent);

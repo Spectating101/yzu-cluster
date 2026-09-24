@@ -66,6 +66,10 @@
   white-space: nowrap;
 }
 
+.rd-v2-rail:has(.rd-v2-rail-pane-on .rd-v2-rail-ehead .rd-v2-rail-title) .rd-v2-situation > h2 {
+  display: none;
+}
+
 .rd-v2-situation-facts {
   display: flex;
   min-width: 0;

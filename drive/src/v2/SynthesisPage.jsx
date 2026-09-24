@@ -276,9 +276,11 @@ function ThreadList({ threads, selectedId, loading, onSelect, onHome, onNew, cre
           type="button"
           className={`s04-thread-new${creating ? " is-active" : ""}`}
           aria-pressed={creating}
+          aria-label="New synthesis"
+          title="New synthesis"
           onClick={onNew}
         >
-          + New synthesis
+          + New
         </button>
       </header>
       <div className="s04-thread-list">

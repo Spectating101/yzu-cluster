@@ -710,6 +710,7 @@
 
 .yzu-sidebar .s04-threads--sidebar > header span,
 .yzu-sidebar .s04-thread-outputs > small {
+  white-space: nowrap;
   color: #8e9aa8;
   font-size: 9.5px;
   font-weight: 800;

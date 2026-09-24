@@ -592,10 +592,6 @@
   font-weight: 740;
 }
 
-.rd-v2-discover-page .rd-v2-discover-candidates > li:has(.rd-v2-discover-row-add) .rd-v2-discover-candidate-main {
-  padding-bottom: 24px;
-}
-
 .rd-v2-discover-page .rd-v2-discover-context-results {
   margin-top: 16px;
   opacity: .92;

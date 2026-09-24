@@ -3069,7 +3069,7 @@
 
 .rd-v2-discover-candidates button.row.rd-v2-discover-candidate {
   grid-template-areas: "source main";
-  grid-template-columns: 88px minmax(0, 1fr);
+  grid-template-columns: 96px minmax(0, 1fr);
   align-items: start;
   gap: clamp(12px, 1.4vw, 20px);
   min-height: 0;
@@ -3079,7 +3079,7 @@
 }
 
 .rd-v2-discover-candidates li:has(.rd-v2-discover-row-add) button.row.rd-v2-discover-candidate {
-  padding-bottom: 43px;
+  padding-right: 72px;
 }
 
 .rd-v2-discover-row-add {

@@ -69,7 +69,7 @@ body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(
 
 .rd-v2-discover-ranked-results .rd-v2-discover-candidate-source {
   min-width: 0;
-  width: 64px;
+  width: 96px;
   overflow: hidden;
 }
 
@@ -157,11 +157,11 @@ body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(
   }
 
   .rd-v2-discover-ranked-results .rd-v2-discover-candidate-source {
-    width: 58px;
+    width: 96px;
   }
 
   .rd-v2-discover-ranked-results .rd-v2-source-ribbon {
-    max-width: 88px;
+    max-width: 96px;
     padding-inline: 4px;
     font-size: 9.5px;
   }
