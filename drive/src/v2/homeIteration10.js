@@ -431,10 +431,11 @@ export function buildResourceHeadroom(rollup, health = null) {
 
 export function buildRecommendedEvidence(profile, { limit = 2 } = {}) {
   const lab = buildLab(profile);
+  const researcherCopy = (value) => String(value || "").replace(/\bcustom procure(?:ment)?\b/gi, "custom collection");
   return (lab.suggested || []).slice(0, limit).map((item) => ({
     id: item.id,
-    title: item.label,
-    reason: item.reason || "recommended for current research",
+    title: researcherCopy(item.label),
+    reason: researcherCopy(item.reason || "recommended for current research"),
     badge: item.action === "link" ? "IN LIBRARY, NOT LINKED" : "NOT IN LIBRARY YET",
     query: item.query,
     datasetId: item.datasetId,

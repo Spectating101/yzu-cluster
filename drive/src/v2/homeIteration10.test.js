@@ -162,6 +162,16 @@ test("recommended evidence uses profile procurement recommendations", () => {
   assert.ok(rows[0].badge);
 });
 
+test("legacy profile wording is readable without changing its search intent", () => {
+  const [row] = buildRecommendedEvidence({
+    procurement_recommendations: [
+      { prompt: "Find data via custom procure", source_route: "datacite", search_query: "USDT" },
+    ],
+  });
+  assert.equal(row.title, "Find data via custom collection");
+  assert.equal(row.query, "USDT");
+});
+
 test("recent trail prefers durable jobs", () => {
   const trail = buildRecentTrail({
     jobs: [

@@ -57,6 +57,8 @@ export function DiscoverHistoryRailPanel({ event, job, onAskAbout, onReviewReque
     "Durable Discover record";
   const requestId =
     datasetId || meta.intent_id || truth.jobId || meta.job_id || meta.subscription_id || event.id || "";
+  const readableId = /_|^[a-f0-9]{10,}$/i.test(requestId) ? "" : requestId;
+  const readableSource = /_|^[a-f0-9]{10,}$/i.test(source) ? "" : source;
   const canReview = state.label === "Approval required" && Boolean(job?.id || meta.job_id || truth.jobId);
   const registered = state.label === "Registered" || state.label === "Query ready" || truth.registered;
   const libraryHref = datasetId ? `?tab=library&dataset=${encodeURIComponent(datasetId)}` : "";
@@ -68,10 +70,10 @@ export function DiscoverHistoryRailPanel({ event, job, onAskAbout, onReviewReque
   return (
     <RailFrame>
       <RailEntityHeader
-        id={requestId}
+        id={readableId}
         title={title}
         pills={<span className={`rd-v2-pill${pillTone(state.label)}`}>{state.label}</span>}
-        description={source && source !== requestId ? source : undefined}
+        description={readableSource && readableSource !== requestId ? readableSource : undefined}
       />
       <div className="rd-v2-rail-scroll">
         <div className="rd-v2-history-known-unknowns" data-testid="history-known-unknowns">
@@ -120,6 +122,7 @@ export function DiscoverHistoryRailPanel({ event, job, onAskAbout, onReviewReque
         <details className="rd-v2-rail-technical">
           <summary>Technical record</summary>
           <RailFieldGrid>
+            {requestId ? <RailField label="Record" value={requestId} mono /> : null}
             {datasetId ? <RailField label="Dataset" value={datasetId} mono /> : null}
             {truth.candidateKey ? <RailField label="Candidate" value={truth.candidateKey} mono /> : null}
             {truth.sourceId ? <RailField label="Source" value={truth.sourceId} mono /> : null}
