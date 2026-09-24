@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { canIUseDecision, libraryAssetPresentation, statusPillKind } from "@/v2/datasetMeta";
 import { DISCOVER_TAB } from "@/v2/tabIdentity";
+import { plainIdentifiers } from "@/v2/plainText";
 import { synthesisJourneyStage } from "@/v2/synthesisLifecycle";
 import "@/v2/rail-convergence.css";
 import "@/v2/final-convergence.css";
@@ -137,7 +138,7 @@ function librarySituation({ dataset, activeObject }) {
     const decision = canIUseDecision(dataset);
     const presentation = libraryAssetPresentation(dataset);
     const source = sourceLabel(dataset);
-    const shape = text(dataset.grain || dataset.coverage || dataset.date_range);
+    const shape = text(plainIdentifiers(dataset.grain) || dataset.coverage || dataset.date_range);
     return {
       status: status.label,
       statusKind: status.kind,

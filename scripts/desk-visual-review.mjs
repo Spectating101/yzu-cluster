@@ -114,7 +114,8 @@ function detectDefects() {
       }
     }
     const cs = getComputedStyle(el);
-    if (cs.overflowX !== "visible" && el.scrollWidth > el.clientWidth + 1 && cs.textOverflow !== "ellipsis" && !/auto|scroll/.test(cs.overflowX)) {
+    const replacedText = parseFloat(cs.textIndent) < -100;
+    if (!replacedText && cs.overflowX !== "visible" && el.scrollWidth > el.clientWidth + 1 && cs.textOverflow !== "ellipsis" && !/auto|scroll/.test(cs.overflowX)) {
       push("hard-cut-text", el, { px: el.scrollWidth - el.clientWidth });
     }
     if (cs.overflowX === "visible" && el.parentElement && cs.whiteSpace.includes("nowrap")) {

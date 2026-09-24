@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { buildCapacityAccessPairs } from "./resourcesCapacity.js";
+import { buildCapacityAccessPairs, plainAccessText } from "./resourcesCapacity.js";
 
 const sampleRollup = {
   hero: {
@@ -159,4 +159,17 @@ describe("buildCapacityAccessPairs", () => {
     assert.equal(byId.mcp.metric, "Not reported");
     assert.equal(byId.mcp.warn, true);
   });
+});
+
+it("source access text reads as plain language, keeping paths and prose", () => {
+  assert.equal(
+    plainAccessText("refinitiv_backfill · refinitiv_promote_registry · entitlement probes"),
+    "Refinitiv backfill · Refinitiv promote registry · entitlement probes",
+  );
+  assert.equal(
+    plainAccessText("wrds_crsp_compustat_ccm queue task → data_lake/wrds/"),
+    "WRDS CRSP Compustat CCM queue task → data_lake/wrds/",
+  );
+  assert.equal(plainAccessText("sec_fetch_company_tickers"), "SEC fetch company tickers");
+  assert.equal(plainAccessText("Official feeds and queue scripts"), "Official feeds and queue scripts");
 });

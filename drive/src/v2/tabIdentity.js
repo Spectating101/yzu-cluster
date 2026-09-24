@@ -18,6 +18,16 @@ export function canonicalTab(tab) {
   return ALIASES[id] || id;
 }
 
+const TAB_LABELS = {
+  home: "Home", library: "Library", [DISCOVER_TAB]: "Discover", synthesis: "Synthesis",
+  resources: "Resources", profile: "Profile", settings: "Settings",
+};
+
+/** The navigation name a researcher sees for any accepted tab spelling. */
+export function tabLabel(tab) {
+  return TAB_LABELS[canonicalTab(tab)] || "Home";
+}
+
 /** True when both spellings name the same destination. */
 export function sameTab(a, b) {
   return canonicalTab(a) === canonicalTab(b);

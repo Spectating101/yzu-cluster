@@ -14,7 +14,7 @@ import {
 } from "@/v2/RailFrame";
 import { DetailPanel } from "@/v2/DetailPanel";
 import { handleEnterToSubmit } from "@/v2/enterToSubmit";
-import { DISCOVER_TAB } from "@/v2/tabIdentity";
+import { DISCOVER_TAB, tabLabel } from "@/v2/tabIdentity";
 
 function fmtGiB(gib) {
   if (gib == null) return "—";
@@ -467,7 +467,7 @@ export function HomeAttentionRailPanel({ object, onAskAbout }) {
   return (
     <RailFrame>
       <RailEntityHeader
-        id={row.id || object?.id || "home-attention"}
+        id="Home attention"
         title={row.title || object?.title || "Home attention"}
         description={row.detail || "Selected work from the Home attention queue."}
         pills={row.metric ? <span className={`rd-v2-pill${row.warn ? " warn" : ""}`}>{row.metric}</span> : null}
@@ -476,7 +476,7 @@ export function HomeAttentionRailPanel({ object, onAskAbout }) {
         <RailFieldGrid>
           <RailField label="Type" value={row.label || row.kind || object?.kind} />
           <RailField label="Next" value={row.next || "Review"} />
-          <RailField label="Surface" value={row.tab === DISCOVER_TAB ? "Discover" : row.tab || "home"} />
+          <RailField label="Surface" value={tabLabel(row.tab || "home")} />
           {row.resourceRow?.job?.id ? <RailField label="Job ID" value={row.resourceRow.job.id} mono /> : null}
         </RailFieldGrid>
       </div>

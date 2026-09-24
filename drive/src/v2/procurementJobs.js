@@ -1,3 +1,5 @@
+import { plainIdentifiers } from "./plainText.js";
+
 /** Bind cluster jobs to Discover candidates and normalize procure state. */
 
 export function normalizedTitle(value) {
@@ -64,6 +66,12 @@ export function jobToCandidateRow(job) {
   };
 }
 
+const SOURCE_LABELS = { discover_intent: "Discover request", cluster: "Lab cluster" };
+
+function sourceLabel(source) {
+  return SOURCE_LABELS[source] || plainIdentifiers(source);
+}
+
 export function jobToDiscoverHistoryEvent(job) {
   if (!job?.id) return null;
   const status = String(job.status || "queued");
@@ -75,7 +83,7 @@ export function jobToDiscoverHistoryEvent(job) {
     job.plan?.summary ||
     (status === "pending_approval"
       ? "Researcher approval is required before this request can continue"
-      : `${source} · ${status.replace(/_/g, " ")}`);
+      : `${sourceLabel(source)} · ${status.replace(/_/g, " ")}`);
   return {
     id: `job:${job.id}`,
     ts: job.updated_at || job.created_at || job.submitted_at || "",

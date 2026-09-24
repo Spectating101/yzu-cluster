@@ -1,3 +1,4 @@
+import { plainIdentifiers } from "./plainText.js";
 /**
  * Resources · Capacity & access band
  * Storage (vault/cache) · Services (Cursor Ask / BigQuery) · Desk (query engine / Tavily)
@@ -278,6 +279,8 @@ export function sourceAuthorityLabel(row) {
   return "NOT CHECKED";
 }
 
+export { plainIdentifiers as plainAccessText };
+
 export function groupSourceCapabilities(panels = []) {
   const families = {
     licensed: { id: "licensed", title: "Licensed / institutional", rows: [] },
@@ -294,13 +297,14 @@ export function groupSourceCapabilities(panels = []) {
       families[family].rows.push({
         id: row.key || row.id || label,
         name: label,
-        access:
+        access: plainIdentifiers(
           row.metric ||
           row.route ||
           row.access ||
           row.sublabel ||
           row.detail ||
           "Access not described",
+        ),
         authority: sourceAuthorityLabel(row),
         markId: identifyProviderMarkId(row),
         row,

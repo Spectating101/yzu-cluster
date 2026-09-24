@@ -31,3 +31,12 @@ test("internal operations do not enter the researcher Discover lifecycle", () =>
     plan: { job_type: "scraper_run", execution_policy: { scope: "faculty" } },
   }), true);
 });
+
+test("history summaries name the job source in plain language", () => {
+  const event = jobToDiscoverHistoryEvent({ id: "j1", status: "completed", request: { source: "discover_intent" } });
+  assert.equal(event.summary, "Discover request · completed");
+  assert.equal(event.meta.source_id, "discover_intent");
+  const other = jobToDiscoverHistoryEvent({ id: "j2", status: "failed", plan: { source: "sec_edgar_filings" } });
+  assert.equal(other.summary, "SEC EDGAR filings · failed");
+});
+

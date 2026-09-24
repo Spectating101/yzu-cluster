@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { plainIdentifiers } from "@/v2/plainText";
 import { queryDataset } from "@/v2/api";
 import {
   detailFields,
@@ -354,7 +355,7 @@ function EvidenceShape({ dataset, fields, presentation, rowCount, state }) {
         <div><dt>Object type</dt><dd>Scholarly work</dd></div>
         <div><dt>Identifier</dt><dd className="is-identifier" title={value(dataset?.doi, dataset?.url, dataset?.dataset_id)}>{value(dataset?.doi, dataset?.url, dataset?.dataset_id)}</dd></div>
         <div><dt>Source</dt><dd>{value(fields.source, dataset?.source_system, dataset?.publisher)}</dd></div>
-        <div><dt>Access</dt><dd>{value(dataset?.access_mode, dataset?.access_shape, dataset?.backend)}</dd></div>
+        <div><dt>Access</dt><dd>{plainIdentifiers(value(dataset?.access_mode, dataset?.access_shape, dataset?.backend))}</dd></div>
         <div><dt>Library state</dt><dd>{state.label}</dd></div>
       </dl>
     );
@@ -375,7 +376,7 @@ function EvidenceShape({ dataset, fields, presentation, rowCount, state }) {
       <dl className="rd-v2-library-evidence-facts">
         <div><dt>Object type</dt><dd>Operational resource</dd></div>
         <div><dt>Source</dt><dd>{value(fields.source, dataset?.source_system)}</dd></div>
-        <div><dt>Access</dt><dd>{value(dataset?.access_mode, dataset?.backend, fields.access)}</dd></div>
+        <div><dt>Access</dt><dd>{plainIdentifiers(value(dataset?.access_mode, dataset?.backend, fields.access))}</dd></div>
         <div><dt>State</dt><dd>{state.label}</dd></div>
         <div><dt>Coverage</dt><dd>{value(fields.coverage, dataset?.coverage)}</dd></div>
       </dl>
