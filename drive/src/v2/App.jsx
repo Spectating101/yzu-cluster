@@ -724,7 +724,7 @@ export function V2App() {
   const labIds = useMemo(() => holdingIdsFromCatalog(catalog), [catalog]);
 
   const selectedFromList = useMemo(
-    () => catalog.find((d) => d.dataset_id === selectedId) || null,
+    () => (selectedId ? catalog.find((d) => d.dataset_id === selectedId) || null : null),
     [catalog, selectedId],
   );
 

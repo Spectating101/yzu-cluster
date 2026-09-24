@@ -202,3 +202,9 @@ export function isCandidateQueued(row, jobs = []) {
     return jobMatchesCandidate(j, row);
   });
 }
+
+/** A row is the selected candidate only when something is selected and it names that row. */
+export function isSelectedCandidate(selectedId, row) {
+  if (!selectedId || !row) return false;
+  return selectedId === candidateKey(row) || (Boolean(row.dataset_id) && selectedId === row.dataset_id);
+}

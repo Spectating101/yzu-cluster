@@ -16,7 +16,7 @@ import {
   taxonomyStageCounts,
 } from "@/v2/browseMeta";
 import { discoverCandidateUrl, webHitsToRows } from "@/v2/discoverActions";
-import { candidateKey, isCandidateQueued, withCandidateKey } from "@/v2/candidateKey";
+import { candidateKey, isCandidateQueued, isSelectedCandidate, withCandidateKey } from "@/v2/candidateKey";
 import { buildDiscoverLifecycle, projectDiscoverCandidateLifecycle } from "@/v2/discoverLifecycle";
 import {
   interpretEvidenceNeed,
@@ -187,7 +187,7 @@ function DiscoverCandidateRow({
 }) {
   const taxonomy = row.discover_taxonomy || classifyDiscoverResult(row, labIds);
   const state = row.discover_state || discoverCandidateState(row, labIds);
-  const selected = selectedId === candidateKey(row) || selectedId === row?.dataset_id;
+  const selected = isSelectedCandidate(selectedId, row);
   const ribbonSource =
     row.source || row.collect_via || row.source_route || row.publisher || row.backend || hostLabel(row.url);
   const taxonomyLine = accessLabel(taxonomy);
@@ -1188,7 +1188,7 @@ export function BrowsePage({
   useEffect(() => {
     if (!isExplore || !selectedId || !centreRows.length) return;
     const exact = centreRows.find(
-      (row) => candidateKey(row) === selectedId || row?.dataset_id === selectedId,
+      (row) => isSelectedCandidate(selectedId, row),
     );
     if (exact) {
       // URL hydration has the identity before App has a browseTarget. Bind the
