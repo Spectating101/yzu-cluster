@@ -221,6 +221,16 @@
   min-width: 0;
 }
 
+.rd-v2-cap-state .rd-v2-status-pill {
+  max-width: 100%;
+}
+
+.rd-v2-cap-state .rd-v2-status-pill > span:not(.rd-v2-status-dot) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .rd-v2-cap-ledger-empty {
   padding: 30px 20px;
   color: var(--rd-muted);

@@ -126,7 +126,7 @@ export function StatusPill({ dataset, label }) {
   return (
     <span className={cls}>
       <span className="rd-v2-status-dot" aria-hidden />
-      <span>{text}</span>
+      <span title={text}>{text}</span>
       <RichContextHelp {...guidance} label={`Explain ${text}`} />
     </span>
   );

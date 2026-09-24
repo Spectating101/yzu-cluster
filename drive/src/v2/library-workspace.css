@@ -15,7 +15,6 @@
   min-height: 0;
   padding: 18px clamp(14px, 2.1vw, 30px);
   background: rgba(32, 38, 49, 0.13);
-  backdrop-filter: blur(1px);
 }
 
 .rd-v2-library-inspector-shell {
