@@ -140,7 +140,7 @@ function AssetOverlay({ kind, dataset, fields, presentation, onClose }) {
               </p>
               <dl className="rd-v2-library-overlay-facts">
                 <div><dt>Object type</dt><dd>Scholarly work</dd></div>
-                <div><dt>Identifier</dt><dd>{value(dataset?.doi, dataset?.url, dataset?.dataset_id)}</dd></div>
+                <div><dt>Identifier</dt><dd className="is-identifier" title={value(dataset?.doi, dataset?.url, dataset?.dataset_id)}>{value(dataset?.doi, dataset?.url, dataset?.dataset_id)}</dd></div>
                 <div><dt>Source</dt><dd>{value(fields.source, dataset?.source_system, dataset?.publisher)}</dd></div>
                 <div><dt>Access record</dt><dd>{value(dataset?.access_mode, dataset?.access_shape, dataset?.backend)}</dd></div>
               </dl>
@@ -352,7 +352,7 @@ function EvidenceShape({ dataset, fields, presentation, rowCount, state }) {
     return (
       <dl className="rd-v2-library-evidence-facts">
         <div><dt>Object type</dt><dd>Scholarly work</dd></div>
-        <div><dt>Identifier</dt><dd>{value(dataset?.doi, dataset?.url, dataset?.dataset_id)}</dd></div>
+        <div><dt>Identifier</dt><dd className="is-identifier" title={value(dataset?.doi, dataset?.url, dataset?.dataset_id)}>{value(dataset?.doi, dataset?.url, dataset?.dataset_id)}</dd></div>
         <div><dt>Source</dt><dd>{value(fields.source, dataset?.source_system, dataset?.publisher)}</dd></div>
         <div><dt>Access</dt><dd>{value(dataset?.access_mode, dataset?.access_shape, dataset?.backend)}</dd></div>
         <div><dt>Library state</dt><dd>{state.label}</dd></div>
@@ -447,7 +447,7 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onOpenQuery,
       className="rd-v2-library-workspace"
       headExtra={
         <div className="rd-v2-library-inspector-bar">
-          <span className="rd-v2-library-inspector-context"><b>Library</b><span aria-hidden="true">·</span> Inspect</span>
+          <span className="rd-v2-library-inspector-context"><b>Library</b> <span aria-hidden="true">·</span> Inspect</span>
           <button type="button" className="rd-v2-btn sm" onClick={onBack} aria-label="Close asset inspector">Close</button>
         </div>
       }

@@ -17,6 +17,14 @@
   background: rgba(32, 38, 49, 0.13);
 }
 
+.rd-v2-library-inspector-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
 .rd-v2-library-inspector-shell {
   width: min(100%, 1180px);
   height: min(84vh, 820px);
@@ -334,6 +342,15 @@
   font-weight: 600;
   line-height: 1.35;
   overflow-wrap: anywhere;
+}
+
+.rd-v2-library-evidence-facts dd.is-identifier,
+.rd-v2-library-overlay-facts dd.is-identifier {
+  overflow: hidden;
+  font-family: var(--rd-mono);
+  font-size: 10.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .rd-v2-library-evidence-notes {

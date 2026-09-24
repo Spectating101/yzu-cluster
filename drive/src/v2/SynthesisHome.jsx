@@ -113,12 +113,14 @@ export function SynthesisHome({
             Start something new, return to a durable construction, or reuse a registered method. Each construction keeps its own evidence, decisions, execution proof, and result.
           </p>
         </div>
-        <dl aria-label="Synthesis workspace status">
-          <div><dt>Active</dt><dd>{active.length}</dd></div>
-          <div className={needsYou.length ? "needs" : ""}><dt>Needs you</dt><dd>{needsYou.length}</dd></div>
-          <div><dt>In flight</dt><dd>{building.length}</dd></div>
-          <div><dt>Results</dt><dd>{results.length}</dd></div>
-        </dl>
+        {allThreads.length ? (
+          <dl aria-label="Synthesis workspace status">
+            <div><dt>Active</dt><dd>{active.length}</dd></div>
+            <div className={needsYou.length ? "needs" : ""}><dt>Needs you</dt><dd>{needsYou.length}</dd></div>
+            <div><dt>In flight</dt><dd>{building.length}</dd></div>
+            <div><dt>Results</dt><dd>{results.length}</dd></div>
+          </dl>
+        ) : null}
       </header>
 
       <section className="s04-home-entry" aria-label="Start or continue Synthesis work">
@@ -143,17 +145,18 @@ export function SynthesisHome({
           <span>{methods.length ? `${methods.length} registered method${methods.length === 1 ? "" : "s"} can seed a new construction.` : "No registered method is reported yet."}</span>
           <em>{methods.length ? "Browse methods ↓" : "None available"}</em>
         </button>
-        <button
-          type="button"
-          className="s04-home-entry-card"
-          onClick={() => continueThread && onOpenThread?.(continueThread.id)}
-          disabled={!continueThread}
-        >
-          <small>Durable work</small>
-          <strong>{needsYou.length ? "Return to what needs you" : "Continue a construction"}</strong>
-          <span>{continueThread ? titleFor(continueThread) : "No saved construction exists yet."}</span>
-          <em>{continueThread ? `${synthesisWorkspaceActionLabel(continueThread)} →` : "Nothing saved"}</em>
-        </button>
+        {continueThread ? (
+          <button
+            type="button"
+            className="s04-home-entry-card"
+            onClick={() => onOpenThread?.(continueThread.id)}
+          >
+            <small>Durable work</small>
+            <strong>{needsYou.length ? "Return to what needs you" : "Continue a construction"}</strong>
+            <span>{titleFor(continueThread)}</span>
+            <em>{`${synthesisWorkspaceActionLabel(continueThread)} →`}</em>
+          </button>
+        ) : null}
       </section>
 
       {!reasoningAvailable ? (
@@ -176,14 +179,16 @@ export function SynthesisHome({
         />
       ) : null}
 
-      <ThreadSection
-        eyebrow="Active constructions"
-        title="Research objects in progress"
-        description="Evidence mapping and method design remain independently resumable when no explicit researcher decision is blocking them."
-        rows={active}
-        onOpen={onOpenThread}
-        empty={!loading && allThreads.length ? "No construction is currently in research or method design." : ""}
-      />
+      {allThreads.length ? (
+        <ThreadSection
+          eyebrow="Active constructions"
+          title="Research objects in progress"
+          description="Evidence mapping and method design remain independently resumable when no explicit researcher decision is blocking them."
+          rows={active}
+          onOpen={onOpenThread}
+          empty={!loading ? "No construction is currently in research or method design." : ""}
+        />
+      ) : null}
 
       {building.length ? (
         <ThreadSection
