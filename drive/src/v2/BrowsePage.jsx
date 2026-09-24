@@ -299,6 +299,8 @@ function DiscoverQueryComposer({
   value,
   onValueChange,
   onSearch,
+  onAsk,
+  onAssess,
   idle = false,
 }) {
   const submit = (event) => {
@@ -306,6 +308,10 @@ function DiscoverQueryComposer({
     const next = String(value || "").trim();
     if (!next) return;
     onSearch?.(next);
+    if (isDiscoverResearchQuestion(next)) {
+      onAssess?.(next);
+      onAsk?.(next);
+    }
   };
   return (
     <form
@@ -325,7 +331,9 @@ function DiscoverQueryComposer({
         Explore
       </button>
       <p>
-        Results arrive first. Use Review assessment or Ask when you want interpretation.
+        {onAsk
+          ? "Keywords return fast results. A research question also starts a contextual Ask investigation automatically."
+          : "Results arrive first. Use Assess coverage when you want interpretation."}
       </p>
       <div className="rd-v2-discover-composer-scope" aria-label="Discover search universe">
         <span>Library index</span>
@@ -631,6 +639,7 @@ export function BrowsePage({
   onCraftUrl,
   onSearchWeb,
   onAskQuery,
+  askAvailable = false,
   onReviewAcquisition,
   onStartSynthesis,
   discoverMode = "explore",
@@ -1489,6 +1498,8 @@ export function BrowsePage({
               value={queryDraft}
               onValueChange={setQueryDraft}
               onSearch={requestSearch}
+              onAsk={askAvailable ? (question) => onAskQuery?.(question, { kind: "investigation" }) : undefined}
+              onAssess={askAvailable ? onOpenAssessment : undefined}
               idle
             />
             <div className="rd-v2-discover-idle-held">
@@ -1555,6 +1566,8 @@ export function BrowsePage({
                   value={queryDraft}
                   onValueChange={setQueryDraft}
                   onSearch={requestSearch}
+                  onAsk={askAvailable ? (question) => onAskQuery?.(question, { kind: "results", rows: merged }) : undefined}
+                  onAssess={askAvailable ? onOpenAssessment : undefined}
                 />
               </header>
 

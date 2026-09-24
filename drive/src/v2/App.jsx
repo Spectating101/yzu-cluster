@@ -1904,6 +1904,7 @@ export function V2App() {
           onCraftUrl={canSubmitCollection ? craftPublicUrlPlan : undefined}
           onSearchWeb={searchDiscoverWider}
           onAskQuery={askDiscoverQuery}
+          askAvailable={canUseAsk}
           onReviewAcquisition={canSubmitCollection ? askAddToLab : undefined}
           onStartSynthesis={canUseAsk ? startSynthesisFromDiscover : undefined}
           assessmentActive={discoverAssessment.active}
