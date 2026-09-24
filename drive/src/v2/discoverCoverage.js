@@ -1,6 +1,5 @@
-import { isOpsNoiseDataset } from "./professorVaultTree.js";
-import { isLocalHolding } from "./discoverTaxonomy.js";
 import { statusPillKind } from "./datasetMeta.js";
+import { isLibraryHoldingRow, isLibraryVisibleRow } from "./deskCounts.js";
 
 // Discover's resting state claimed "103 assets are checked automatically" and
 // never showed one of them. The claim was the only thing on screen; the evidence
@@ -49,15 +48,17 @@ export function coverageShelves(catalog = [], partitions = [], shelves = []) {
       membership.set(String(id), shelf);
     }
   }
-  const visible = catalog.filter((row) => row && !isOpsNoiseDataset(row));
+  const visible = catalog.filter(isLibraryVisibleRow);
   const byShelf = new Map();
   for (const row of visible) {
     const id = shelfIdFor(row, lanes, membership);
     const shelf = byShelf.get(id)
       || { id, label: shelfLabels.get(id) || label(id), total: 0, held: 0, queryReady: 0 };
     shelf.total += 1;
-    if (isLocalHolding(row)) shelf.held += 1;
-    if (isReady(row)) shelf.queryReady += 1;
+    if (isLibraryHoldingRow(row)) {
+      shelf.held += 1;
+      if (isReady(row)) shelf.queryReady += 1;
+    }
     byShelf.set(id, shelf);
   }
   return [...byShelf.values()].sort((a, b) => b.total - a.total || a.label.localeCompare(b.label));

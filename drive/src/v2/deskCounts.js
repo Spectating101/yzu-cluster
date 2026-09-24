@@ -8,6 +8,16 @@ import { isReceiptOnlyAsset } from "./datasetMeta.js";
 // counting the raw registry. Naming them here means a fifth cannot appear
 // quietly, and a caller has to choose which one it means.
 
+/** A registry row a researcher can see, whether held or merely referenced. */
+export function isLibraryVisibleRow(row) {
+  return Boolean(row) && !isOpsNoiseDataset(row) && !isReceiptOnlyAsset(row);
+}
+
+/** A visible row the desk actually holds: one asset in the Library estate. */
+export function isLibraryHoldingRow(row) {
+  return isLibraryVisibleRow(row) && isLocalHolding(row);
+}
+
 /** Every row the registry declares, held or not. */
 export function registryTotal(rows = []) {
   return rows.length;
@@ -15,21 +25,17 @@ export function registryTotal(rows = []) {
 
 /** Registry rows visible to a researcher, whether held or merely referenced. */
 export function libraryVisible(rows = []) {
-  return rows.filter((row) => !isOpsNoiseDataset(row) && !isReceiptOnlyAsset(row)).length;
+  return rows.filter(isLibraryVisibleRow).length;
 }
 
 /** The durable evidence estate rendered by Library. */
 export function libraryHoldings(rows = []) {
-  return rows.filter(
-    (row) => !isOpsNoiseDataset(row) && !isReceiptOnlyAsset(row) && isLocalHolding(row),
-  );
+  return rows.filter(isLibraryHoldingRow);
 }
 
 /** Visible registry records that are not held. They remain Discover evidence. */
 export function libraryReferences(rows = []) {
-  return rows.filter(
-    (row) => !isOpsNoiseDataset(row) && !isReceiptOnlyAsset(row) && !isLocalHolding(row),
-  ).length;
+  return rows.filter((row) => isLibraryVisibleRow(row) && !isLocalHolding(row)).length;
 }
 
 /** What the desk possesses, used to classify a Discover result as already held.
