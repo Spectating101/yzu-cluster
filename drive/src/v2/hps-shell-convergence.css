@@ -27,13 +27,14 @@
    -------------------------------------------------------------------------- */
 
 .rd-v2-home-page.rd-v2-home-i10 .rd-v2-body-scroll {
+  padding-top: 16px;
   background:
     linear-gradient(180deg, rgba(246, 245, 239, 0.62) 0, rgba(255, 254, 250, 0) 180px),
     var(--rd-release-panel, #fffdf6);
 }
 
 .rd-v2-home-page .rd-v2-page-head {
-  padding-bottom: 18px;
+  padding-bottom: 2px;
 }
 
 .rd-v2-home-page .rd-v2-lead {
