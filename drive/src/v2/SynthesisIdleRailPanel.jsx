@@ -46,28 +46,22 @@ function WorkflowGuide() {
   );
 }
 
-/**
- * Idle Synthesis rail.
- *
- * The centre owns the live workspace inventory and counts. This panel explains
- * what the directory contains without pretending that one construction is
- * already selected or duplicating changing counts from the home canvas.
- */
 export function SynthesisIdleRailPanel({ onAskAbout }) {
   return (
     <RailFrame>
       <RailEntityHeader
-        title="Workspace map"
-        description="How independent constructions, reusable methods, and finished research assets relate inside Synthesis."
+        title="No construction selected"
+        description="Start a construction from a research question, or open a registered method."
       />
       <div className="rd-v2-rail-scroll">
-        <WorkflowGuide />
         <RailFieldGrid>
-          <RailField label="Work" value="Each construction keeps its own evidence, decisions, and execution state" />
-          <RailField label="Methods" value="Registered methods start a new construction; old assumptions are not silently inherited" />
-          <RailField label="Results" value="Registered outputs remain linked to their construction and return to Library" />
-          <RailField label="Authority" value="Method acceptance and execution approval stay explicit per construction" />
+          <RailField label="Start" value="Describe the construct you need" />
+          <RailField label="Ask" value="Clarifies meaning and required evidence" />
+          <RailField label="Ground" value="Checks Library inputs and defensible proxies" />
+          <RailField label="Review" value="You approve the method before execution" />
+          <RailField label="Output" value="Archive, registration, and readiness remain separate" />
         </RailFieldGrid>
+        <WorkflowGuide />
       </div>
       <RailStickyFooter>
         <button type="button" className="rd-v2-btn sm" onClick={() => onAskAbout?.()}>

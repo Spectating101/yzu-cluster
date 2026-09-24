@@ -46,8 +46,8 @@ test("Home sparse — start action, no dead sidebar placeholder", async ({ page 
 test("Library sparse branch — clear state and bounded intake", async ({ page }) => {
   await open(page, "/?tab=library&folder=zz-empty-branch");
   const empty = page.locator(".rd-v2-library-empty");
-  await expect(empty).toContainText("Nothing else in this folder");
-  for (const label of ["Add files", "Add URL", "Find missing data"]) {
+  await expect(empty).toContainText("Nothing else in this collection");
+  for (const label of ["Add files", "Add URL", "Find missing evidence"]) {
     await expect(empty.getByRole("button", { name: label })).toBeVisible();
   }
   // Library boundary vocabulary is unified.
@@ -69,14 +69,13 @@ test("Discover idle — first-use examples, no oversized empty route block", asy
 test("Synthesis new — durable-object start and bounded empty rail", async ({ page }) => {
   await open(page, "/?tab=synthesis");
   const rail = page.getByRole("complementary", { name: "Inspector" });
-  await expect(rail.getByRole("heading", { name: "Synthesis studio" })).toBeVisible();
-  await expect(rail).toContainText("No construction selected");
-  await expect(rail).toContainText("Start a durable construction or open a registered method");
-  await expect(rail).toContainText("Methods, execution, archive, registration, and readiness are separate records");
+  await expect(rail.getByRole("heading", { name: "No construction selected" })).toBeVisible();
+  for (const step of ["Start", "Ask", "Ground", "Review", "Output"]) {
+    await expect(page.getByTestId("rail-pane-detail").getByText(step, { exact: true })).toBeVisible();
+  }
+  await expect(rail).toContainText("Archive, registration, and readiness remain separate");
   await expect(rail).not.toContainText("Choose a blueprint or custom pair");
-  // Synthesis nests a studio <main> inside the shell <main>.
-  await expect(page.locator("main.yzu-main")).toContainText("Start one durable research object.");
-  await expect(page.getByRole("button", { name: "Start a construction" })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Start from a research question/ })).toBeVisible();
   await shot(page, "synthesis-new-1440x900.png");
 });
 
