@@ -61,7 +61,7 @@ export function coverageShelves(catalog = [], partitions = [], shelves = []) {
     }
     byShelf.set(id, shelf);
   }
-  return [...byShelf.values()].sort((a, b) => b.total - a.total || a.label.localeCompare(b.label));
+  return [...byShelf.values()].sort((a, b) => b.held - a.held || b.total - a.total || a.label.localeCompare(b.label));
 }
 
 /** Totals the shelf rows must add up to — nothing on screen may disagree. */

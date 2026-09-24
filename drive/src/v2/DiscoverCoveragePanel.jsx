@@ -32,8 +32,11 @@ export function DiscoverCoveragePanel({ catalog = [], partitions = [], shelves =
           <li key={shelf.id}>
             <button type="button" onClick={() => onSearchShelf?.(shelf)} disabled={!onSearchShelf}>
               <span>{shelf.label}</span>
-              <strong>{shelf.total}</strong>
-              <em>{shelf.queryReady ? `${shelf.queryReady} ready` : "catalogue"}</em>
+              <strong>{shelf.held}</strong>
+              <em>{[
+                shelf.queryReady ? `${shelf.queryReady} ready` : null,
+                shelf.total > shelf.held ? `${shelf.total - shelf.held} declared` : null,
+              ].filter(Boolean).join(" · ") || "catalogue"}</em>
             </button>
           </li>
         ))}
@@ -41,7 +44,7 @@ export function DiscoverCoveragePanel({ catalog = [], partitions = [], shelves =
 
       {folded.length ? (
         <p className="rd-v2-discover-coverage-folded">
-          More in Library · {folded.map((shelf) => `${shelf.label} ${shelf.total}`).join(" · ")}
+          More in Library · {folded.map((shelf) => `${shelf.label} ${shelf.held}`).join(" · ")}
         </p>
       ) : null}
     </section>
