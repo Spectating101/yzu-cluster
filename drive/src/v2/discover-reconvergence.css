@@ -42,8 +42,7 @@
 
 /* The interaction teaches itself. Do not spend the first viewport explaining
    the keyword/question implementation or render pseudo-mode cards. */
-.rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer > p,
-.rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer-examples {
+.rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer > p {
   display: none;
 }
 

@@ -211,7 +211,7 @@ test.describe("Discover reconvergence visual review", () => {
       await expect(page.getByTestId("discover-query-composer")).toBeVisible();
       await expect(page.getByTestId("discover-coverage")).toBeVisible();
       await expect(page.locator(".rd-v2-discover-evidence-path")).toHaveCount(0);
-      await expect(page.locator(".rd-v2-discover-composer-examples")).toBeHidden();
+      await expect(page.getByTestId("discover-composer-examples")).toBeVisible();
       await expect(page.getByText("Sources the desk already knows how to investigate")).toBeVisible();
       await assertNoOverflow(page);
       await page.screenshot({ path: `${OUT}/discover-resting-${viewport.name}.png`, fullPage: false });

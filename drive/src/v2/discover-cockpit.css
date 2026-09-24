@@ -2,37 +2,6 @@
    not a minimalist search landing page. Every region below carries live or explicitly
    unmeasured product state; no decorative fake metrics are introduced. */
 
-.rd-v2-discover-radar {
-  display: grid;
-  gap: 12px;
-  margin-top: 12px;
-  padding: 14px;
-  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 82%, #203044 18%);
-  border-radius: 10px;
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--rd-surface, #fffdf6) 88%, #eef2ef 12%), var(--rd-surface, #fffdf6));
-  box-shadow: 0 12px 30px rgba(26, 35, 48, .045);
-}
-
-.rd-v2-discover-radar-head {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 18px;
-  align-items: end;
-  padding-bottom: 11px;
-  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 70%, transparent);
-}
-
-.rd-v2-discover-radar-head h2 {
-  margin: 4px 0 3px;
-  color: var(--rd-text, #182033);
-  font-size: 17px;
-  line-height: 1.22;
-  letter-spacing: -.012em;
-}
-
-.rd-v2-discover-radar-head p,
-.rd-v2-discover-radar-panel p,
 .rd-v2-cockpit-network p,
 .rd-v2-cockpit-execution p,
 .rd-v2-cockpit-assessment p {
@@ -42,33 +11,11 @@
   line-height: 1.42;
 }
 
-.rd-v2-discover-radar-state {
-  display: grid;
-  justify-items: end;
-  gap: 2px;
-  text-align: right;
-}
-
-.rd-v2-discover-radar-state span,
 .rd-v2-cockpit-section-head > span {
   color: #607166;
   font: 730 8px/1.2 var(--rd-mono, ui-monospace, monospace);
   letter-spacing: .07em;
   text-transform: uppercase;
-}
-
-.rd-v2-discover-radar-state strong {
-  color: var(--rd-text, #182033);
-  font-size: 10px;
-}
-
-.rd-v2-discover-radar-metrics {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 74%, transparent);
-  border-radius: 7px;
-  background: color-mix(in srgb, #f7f7f2 70%, var(--rd-surface, #fffdf6));
 }
 
 .rd-v2-cockpit-metric {
@@ -85,14 +32,6 @@
 .rd-v2-cockpit-metric strong { grid-row: 1 / span 2; grid-column: 2; align-self: center; color: var(--rd-text, #182033); font-size: 19px; font-weight: 720; }
 .rd-v2-cockpit-metric em { color: var(--rd-muted, #6e7685); font-size: 9px; font-style: normal; }
 
-.rd-v2-discover-radar-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(220px, .82fr) minmax(0, 1fr);
-  gap: 10px;
-  align-items: stretch;
-}
-
-.rd-v2-discover-radar-panel,
 .rd-v2-cockpit-network {
   min-width: 0;
   padding: 11px 12px;
@@ -101,7 +40,6 @@
   background: rgba(255, 255, 255, .36);
 }
 
-.rd-v2-discover-radar-panel > header,
 .rd-v2-cockpit-network > header {
   display: flex;
   align-items: baseline;
@@ -110,44 +48,12 @@
   margin-bottom: 8px;
 }
 
-.rd-v2-discover-radar-panel > header strong,
 .rd-v2-cockpit-network > header strong {
   color: var(--rd-muted, #6e7685);
   font-size: 8.5px;
   font-weight: 650;
   text-align: right;
 }
-
-.rd-v2-discover-radar-panel--routes ul {
-  display: grid;
-  gap: 0;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 56%, transparent);
-}
-
-.rd-v2-discover-radar-panel--routes li {
-  min-width: 0;
-  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 54%, transparent);
-}
-
-.rd-v2-discover-radar-panel--routes button {
-  display: grid;
-  grid-template-columns: 86px minmax(0, 1fr);
-  gap: 2px 8px;
-  width: 100%;
-  padding: 7px 1px;
-  border: 0;
-  background: transparent;
-  text-align: left;
-  cursor: pointer;
-}
-
-.rd-v2-discover-radar-panel--routes button:hover strong { text-decoration: underline; text-underline-offset: 2px; }
-.rd-v2-discover-radar-panel--routes button > span { grid-row: 1 / span 2; color: #607166; font: 700 8px/1.25 var(--rd-mono, ui-monospace, monospace); text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; }
-.rd-v2-discover-radar-panel--routes button > strong { min-width: 0; color: var(--rd-text, #182033); font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.rd-v2-discover-radar-panel--routes button > em { min-width: 0; color: var(--rd-muted, #6e7685); font-size: 8.5px; font-style: normal; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .rd-v2-cockpit-network-list {
   display: grid;
@@ -475,13 +381,9 @@
   }
   .rd-v2-discover-evidence-cockpit { padding: 13px; gap: 10px; }
   .rd-v2-cockpit-head h3 { font-size: 11.5px; }
-  .rd-v2-discover-radar-grid { grid-template-columns: minmax(0, 1.22fr) minmax(240px, .85fr) minmax(0, 1.05fr); }
 }
 
 @media (max-width: 1500px) {
-  .rd-v2-discover-radar { padding: 12px; gap: 10px; }
-  .rd-v2-discover-radar-grid { grid-template-columns: minmax(0, 1.1fr) minmax(190px, .78fr) minmax(0, .98fr); gap: 8px; }
-  .rd-v2-discover-radar-head h2 { font-size: 15px; }
   .rd-v2-discover-capability-ledger { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .rd-v2-discover-capability-ledger > span:nth-child(3) { border-right: 0; }
   .rd-v2-discover-capability-ledger > span:nth-child(-n+3) { border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 60%, transparent); }
@@ -497,21 +399,14 @@
 }
 
 @media (max-width: 1180px) {
-  .rd-v2-discover-radar-grid { grid-template-columns: 1fr 1fr; }
-  .rd-v2-discover-radar-panel--execution { grid-column: 1 / -1; }
   .rd-v2-discover-browse:has(> .rd-v2-discover-evidence-cockpit) { display: block; }
   .rd-v2-discover-evidence-cockpit { position: static; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 10px; }
   .rd-v2-cockpit-head { grid-column: 1 / -1; }
 }
 
 @media (max-width: 760px) {
-  .rd-v2-discover-radar-head { grid-template-columns: 1fr; }
-  .rd-v2-discover-radar-state { justify-items: start; text-align: left; }
-  .rd-v2-discover-radar-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .rd-v2-cockpit-metric:nth-child(2) { border-right: 0; }
   .rd-v2-cockpit-metric:nth-child(-n+2) { border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 66%, transparent); }
-  .rd-v2-discover-radar-grid { grid-template-columns: 1fr; }
-  .rd-v2-discover-radar-panel--execution { grid-column: auto; }
   .rd-v2-discover-capability-ledger { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .rd-v2-discover-capability-ledger > span { border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 60%, transparent); }
   .rd-v2-discover-capability-ledger > span:nth-child(even) { border-right: 0; }

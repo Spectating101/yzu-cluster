@@ -83,15 +83,10 @@ test.describe("Discover visual convergence", () => {
     await openDiscover(page);
 
     const coverage = page.getByTestId("discover-coverage");
-    const radar = page.getByTestId("discover-research-radar");
     await expect(coverage).toBeVisible();
-    await expect(radar).toBeVisible();
     await expect(page.getByTestId("discover-query-composer")).toBeVisible();
-    await expect(radar).toContainText("Research radar");
-    await expect(radar).toContainText("Your evidence universe before the next search");
-    await expect(radar).toContainText("Acquisition & execution");
-    await expect(radar).toContainText("From evidence gap to Library object");
-    await expect(radar).toContainText("Awaiting approval");
+    await expect(page.getByTestId("discover-composer-examples")).toBeVisible();
+    await expect(page.getByTestId("discover-research-radar")).toHaveCount(0);
     await expect(coverage).toContainText("Your Library");
     await expect(coverage).toContainText("query-ready");
     await expect(coverage.locator(".rd-v2-discover-evidence-path")).toHaveCount(0);

@@ -5,14 +5,6 @@ function text(value, fallback = "—") {
   return String(value).trim() || fallback;
 }
 
-function rowId(row) {
-  return row?.dataset_id || row?.id || row?.candidate_key || row?.doi || row?.url || row?.title || row?.name || "";
-}
-
-function rowTitle(row) {
-  return row?.title || row?.name || row?.dataset_id || row?.doi || row?.url || "Untitled source";
-}
-
 function rowSource(row) {
   const direct = row?.source || row?.publisher || row?.provider || row?.backend || row?.collect_via;
   if (direct) return text(direct);
@@ -23,27 +15,6 @@ function rowSource(row) {
   } catch {
     return "Unattributed";
   }
-}
-
-function isQueryReady(row) {
-  const direct = row?.query_ready ?? row?.queryReady ?? row?.query_ready_declared;
-  if (direct === true) return true;
-  const state = [
-    row?.materialization_status,
-    row?.materialization?.status,
-    row?.evidence_state?.materialization?.status,
-    row?.readiness,
-    row?.status,
-  ].filter(Boolean).join(" ").toLowerCase();
-  return state.includes("query_ready") || state.includes("query-ready") || state.includes("query ready");
-}
-
-function isPendingJob(job) {
-  return ["pending_approval", "awaiting_approval", "needs_approval"].includes(String(job?.status || "").toLowerCase());
-}
-
-function isActiveJob(job) {
-  return ["queued", "running", "collecting", "processing", "submitted"].includes(String(job?.status || "").toLowerCase());
 }
 
 function sourceFamilies(rows, limit = 6) {
@@ -94,20 +65,6 @@ function measuredCapacity(resourcesRollup) {
   return out.slice(0, 3);
 }
 
-function metric(label, value, note) {
-  return { label, value: String(value), note };
-}
-
-function MiniMetric({ item }) {
-  return (
-    <div className="rd-v2-cockpit-metric">
-      <span>{item.label}</span>
-      <strong>{item.value}</strong>
-      {item.note ? <em>{item.note}</em> : null}
-    </div>
-  );
-}
-
 function SourceNetwork({ rows, title = "Source network", compact = false }) {
   const families = sourceFamilies(rows, compact ? 5 : 7);
   const max = Math.max(1, ...families.map((item) => item.count));
@@ -130,126 +87,6 @@ function SourceNetwork({ rows, title = "Source network", compact = false }) {
       ) : (
         <p>No source-family metadata has been returned yet.</p>
       )}
-    </section>
-  );
-}
-
-export function DiscoverResearchRadar({
-  catalog = [],
-  labIds,
-  knownRows = [],
-  jobs = [],
-  partitions = [],
-  shelves = [],
-  resourcesRollup,
-  onSearch,
-  loading = false,
-}) {
-  const held = catalog.filter((row) => labIds?.has?.(rowId(row)));
-  const ready = held.filter(isQueryReady);
-  const pending = jobs.filter(isPendingJob);
-  const active = jobs.filter(isActiveJob);
-  const capacity = measuredCapacity(resourcesRollup);
-  const sourceRows = [...knownRows, ...catalog.filter((row) => !labIds?.has?.(rowId(row)))];
-  const starterRows = sourceRows.slice(0, 4);
-  const metrics = loading
-    ? [
-        metric("Library", "Reading…", "held evidence"),
-        metric("Query-ready", "Reading…", "not yet measured"),
-        metric("Known routes", knownRows.length || "Reading…", "source map"),
-        metric("Collections", "Reading…", "lifecycle state"),
-      ]
-    : [
-        metric("Library", held.length, "held evidence"),
-        metric("Query-ready", ready.length, held.length ? "declared / observed" : "none measured"),
-        metric("Known routes", knownRows.length, "outside Library"),
-        metric("Collections", pending.length + active.length, pending.length ? `${pending.length} awaiting approval` : active.length ? `${active.length} active` : "none active"),
-      ];
-
-  return (
-    <section className="rd-v2-discover-radar" data-testid="discover-research-radar">
-      <header className="rd-v2-discover-radar-head">
-        <div>
-          <span className="rd-v2-eyebrow">Research radar</span>
-          <h2>Your evidence universe before the next search</h2>
-          <p>Held evidence, known source routes, collection state, and measurable execution capacity in one desk view.</p>
-        </div>
-        <div className="rd-v2-discover-radar-state">
-          <span>{loading ? "Reading research estate" : shelves.length || partitions.length ? "Library mapped" : "Library index"}</span>
-          <strong>{loading ? "Evidence counts are loading" : `${sourceFamilies(sourceRows).length} source families visible`}</strong>
-        </div>
-      </header>
-
-      <div className="rd-v2-discover-radar-metrics">
-        {metrics.map((item) => <MiniMetric key={item.label} item={item} />)}
-      </div>
-
-      <div className="rd-v2-discover-radar-grid">
-        <section className="rd-v2-discover-radar-panel rd-v2-discover-radar-panel--routes">
-          <header>
-            <span className="rd-v2-eyebrow">Known evidence routes</span>
-            <strong>{loading ? "Reading known routes" : knownRows.length ? "Ready to investigate" : "Populate through discovery"}</strong>
-          </header>
-          {starterRows.length ? (
-            <ul>
-              {starterRows.map((row) => (
-                <li key={rowId(row)}>
-                  <button type="button" onClick={() => onSearch?.(rowTitle(row))}>
-                    <span>{rowSource(row)}</span>
-                    <strong>{rowTitle(row)}</strong>
-                    <em>{text(row?.access_mode || row?.collect_via || row?.kind || row?.type, "route metadata available")}</em>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : loading ? (
-            <p>Reading the Library and source map…</p>
-          ) : (
-            <p>Search a research need to populate source routes from the catalogue and wider adapters.</p>
-          )}
-        </section>
-
-        <SourceNetwork rows={sourceRows} />
-
-        <section className="rd-v2-discover-radar-panel rd-v2-discover-radar-panel--execution">
-          <header>
-            <span className="rd-v2-eyebrow">Acquisition &amp; execution</span>
-            <strong>From evidence gap to Library object</strong>
-          </header>
-          <div className="rd-v2-cockpit-flow" aria-label="Discover acquisition flow">
-            <span><b>1</b> Find</span>
-            <i>→</i>
-            <span><b>2</b> Verify</span>
-            <i>→</i>
-            <span><b>3</b> Review</span>
-            <i>→</i>
-            <span><b>4</b> Register</span>
-          </div>
-          <div className="rd-v2-cockpit-execution-facts">
-            <div><span>Awaiting approval</span><strong>{pending.length}</strong></div>
-            <div><span>Active collections</span><strong>{active.length}</strong></div>
-            <div><span>Library groups</span><strong>{shelves.length || partitions.length || "—"}</strong></div>
-          </div>
-          {capacity.length ? (
-            <div className="rd-v2-cockpit-capacity">
-              {capacity.map((item) => (
-                <div key={item.label}><span>{item.label}</span><strong>{item.value}</strong><em>{item.note}</em></div>
-              ))}
-            </div>
-          ) : (
-            <p className="rd-v2-cockpit-capacity-empty">Execution capacity is not measured in this response yet; Discover will not infer it.</p>
-          )}
-        </section>
-      </div>
-
-      <div className="rd-v2-discover-capability-ledger" aria-label="Discover capabilities">
-        <span><b>Library evidence</b><em>held + query-ready state</em></span>
-        <span><b>Source catalogues</b><em>known and live routes</em></span>
-        <span><b>Open web context</b><em>explicit wider search</em></span>
-        <span><b>URL / DOI inspection</b><em>probe before collection</em></span>
-        <span><b>Acquisition review</b><em>approval-gated</em></span>
-        <span><b>History</b><em>durable request trail</em></span>
-      </div>
     </section>
   );
 }

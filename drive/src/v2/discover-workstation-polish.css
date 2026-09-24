@@ -30,95 +30,9 @@
 /* Resting radar reports research state, not the same source identities rendered
    by the curated inventory directly below it. Keep the estate summary, remove
    the duplicated mini-catalogue, and make execution a single decision strip. */
-.rd-v2-discover-radar {
-  gap: 7px;
-  margin-top: 8px;
-  padding: 10px 12px 9px;
-}
-
-.rd-v2-discover-radar-head {
-  gap: 12px;
-  padding-bottom: 6px;
-}
-
-.rd-v2-discover-radar-head h2 {
-  margin-top: 2px;
-  font-size: 14px;
-}
-
-.rd-v2-discover-radar-metrics .rd-v2-cockpit-metric:nth-child(2) {
-  display: none;
-}
-
-.rd-v2-discover-radar-metrics {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.rd-v2-discover-radar-grid {
-  display: block;
-}
-
-.rd-v2-discover-radar-panel--routes,
-.rd-v2-discover-radar-grid > .rd-v2-cockpit-network {
-  display: none;
-}
-
-.rd-v2-discover-radar-panel--execution {
-  display: grid;
-  grid-template-columns: minmax(180px, .72fr) minmax(0, 1.25fr) minmax(104px, .45fr);
-  gap: 10px;
-  align-items: center;
-  padding: 7px 0 0;
-  border: 0;
-  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 54%, transparent);
-  border-radius: 0;
-  background: transparent;
-}
-
-.rd-v2-discover-radar-panel--execution > header {
-  display: grid;
-  gap: 2px;
-  margin: 0;
-}
-
-.rd-v2-discover-radar-panel--execution > header strong {
-  text-align: left;
-}
-
-.rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow {
-  display: none;
-}
-
-.rd-v2-discover-radar-panel--execution .rd-v2-cockpit-execution-facts {
-  margin: 0;
-  border-block: 0;
-  border-left: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 54%, transparent);
-}
-
-.rd-v2-discover-radar-panel--execution .rd-v2-cockpit-execution-facts > div {
-  padding-block: 5px;
-}
-
-.rd-v2-discover-radar-panel--execution .rd-v2-cockpit-capacity {
-  grid-template-columns: repeat(auto-fit, minmax(64px, 1fr));
-  gap: 4px;
-  margin: 0;
-}
-
-.rd-v2-discover-radar-panel--execution .rd-v2-cockpit-capacity > div {
-  padding: 5px 6px;
-}
 
 /* The authoritative Library strip below Radar owns query-readiness. Avoid a
    second counter whose scope can appear contradictory. */
-.rd-v2-discover-radar-metrics .rd-v2-cockpit-metric {
-  min-height: 34px;
-  padding: 5px 9px;
-}
-
-.rd-v2-discover-radar-metrics .rd-v2-cockpit-metric strong {
-  font-size: 14px;
-}
 
 /* The territory tabs already summarize ordinary search composition. Repeat the
    fine-grained field metrics only when an assembly decision makes them useful. */
@@ -238,10 +152,6 @@ body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(
 }
 
 @media (max-width: 1500px) {
-  .rd-v2-discover-radar-panel--execution {
-    grid-template-columns: minmax(154px, .68fr) minmax(0, 1.3fr) minmax(88px, .42fr);
-    gap: 7px;
-  }
 
   .rd-v2-discover-ranked-results .rd-v2-discover-candidate {
     grid-template-columns: 58px minmax(0, 1fr);
@@ -263,12 +173,4 @@ body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(
     width: 44px;
     min-width: 44px;
   }
-}
-
-@media (max-width: 720px) {
-  /* Capacity and approval context is a workstation aid. On a phone its
-     three-column decision strip collapses into clipped fragments before the
-     researcher reaches search results. Preserve the useful Library/route
-     counts and remove only this nonessential operational summary. */
-  .rd-v2-discover-radar-panel--execution { display: none; }
 }

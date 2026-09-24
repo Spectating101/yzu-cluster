@@ -79,10 +79,6 @@
 }
 
 /* Resting radar: capability is visible, but the search remains the strongest object. */
-.rd-v2-discover-radar {
-  box-shadow: none;
-  background: color-mix(in srgb, var(--rd-surface, #fffdf6) 96%, #eef2ef 4%);
-}
 
 .rd-v2-discover-capability-ledger {
   border: 0;

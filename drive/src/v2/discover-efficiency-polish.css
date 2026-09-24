@@ -9,34 +9,6 @@
 }
 
 /* Resting Discover: retain capability without making every capability equally loud. */
-.rd-v2-discover-radar {
-  gap: 8px;
-  padding: 11px 12px 10px;
-  border-color: color-mix(in srgb, var(--rd-border, #dbd4c5) 76%, transparent);
-  background: color-mix(in srgb, var(--rd-surface, #fffdf6) 96%, #eef2ef 4%);
-  box-shadow: none;
-}
-
-.rd-v2-discover-radar-head {
-  gap: 14px;
-  padding-bottom: 8px;
-}
-
-.rd-v2-discover-radar-head h2 {
-  margin: 3px 0 0;
-  font-size: 15px;
-}
-
-.rd-v2-discover-radar-head p {
-  display: none;
-}
-
-.rd-v2-discover-radar-metrics {
-  border: 0;
-  border-block: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 58%, transparent);
-  border-radius: 0;
-  background: transparent;
-}
 
 .rd-v2-cockpit-metric {
   min-height: 40px;
@@ -47,43 +19,8 @@
   font-size: 16px;
 }
 
-.rd-v2-discover-radar-grid {
-  grid-template-columns: minmax(0, 1.45fr) minmax(290px, .8fr);
-  gap: 10px;
-}
-
 /* Source-family bars were informative in isolation but noisy when every family had count 1.
    The concrete routes already carry the same information more usefully. */
-.rd-v2-discover-radar-grid > .rd-v2-cockpit-network {
-  display: none;
-}
-
-.rd-v2-discover-radar-panel {
-  padding: 9px 10px;
-  border-radius: 5px;
-  background: rgba(255, 255, 255, .18);
-}
-
-.rd-v2-discover-radar-panel > header {
-  margin-bottom: 6px;
-}
-
-.rd-v2-discover-radar-panel--routes button {
-  padding-block: 5px;
-}
-
-.rd-v2-discover-radar-panel--execution .rd-v2-cockpit-flow {
-  display: none;
-}
-
-.rd-v2-discover-radar-panel--execution .rd-v2-cockpit-execution-facts {
-  margin-top: 2px;
-  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 54%, transparent);
-}
-
-.rd-v2-discover-radar-panel--execution .rd-v2-cockpit-capacity {
-  margin-top: 6px;
-}
 
 /* The six-item capability ledger repeated the composer scope and made idle feel like a brochure. */
 .rd-v2-discover-capability-ledger {
@@ -320,12 +257,6 @@
 
   .rd-v2-discover-ranked-results .rd-v2-discover-offering-facts em {
     max-width: 145px;
-  }
-}
-
-@media (max-width: 1080px) {
-  .rd-v2-discover-radar-grid {
-    grid-template-columns: 1fr;
   }
 }
 

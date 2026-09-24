@@ -33,17 +33,15 @@ test.describe("v2 Discover tab", () => {
     await waitForShell(page);
   });
 
-  test("empty state offers one quiet evidence entrance without pseudo-mode examples", async ({ page }) => {
+  test("empty state offers one evidence entrance with two first-use examples", async ({ page }) => {
     await expect(page.getByTestId("discover-empty")).toBeVisible();
     await expect(page.getByLabel("Search or describe a research need")).toBeVisible();
     await expect(page.getByRole("button", { name: "Explore", exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: /mode/i })).toHaveCount(0);
     await expect(page.getByLabel("Public URL or DOI")).toBeVisible();
-    // The frozen recovery keeps the first viewport as an evidence instrument,
-    // not a tutorial. The composer is the single entrance; examples remain
-    // mounted for assistive continuity but are not visual furniture.
     const examples = page.getByTestId("discover-composer-examples");
-    await expect(examples).toBeHidden();
+    await expect(examples.getByText("Try a keyword")).toBeVisible();
+    await expect(examples.getByText("Ask a research need")).toBeVisible();
     await expect(
       page.getByRole("heading", { name: "Sources the desk already knows how to investigate" }),
     ).toHaveCount(0);
@@ -490,7 +488,7 @@ test.describe("v2 Discover tab", () => {
     }
   });
 
-  test("idle research radar does not fabricate an empty estate while loading", async ({ page }) => {
+  test("idle Discover does not fabricate an empty estate while loading", async ({ page }) => {
     let releaseCatalog;
     const catalogReady = new Promise((resolve) => {
       releaseCatalog = resolve;
@@ -512,10 +510,9 @@ test.describe("v2 Discover tab", () => {
     await waitForShell(page);
 
     try {
-      const radar = page.getByTestId("discover-research-radar");
-      await expect(radar).toContainText("Reading research estate");
-      await expect(radar).toContainText("Evidence counts are loading");
-      await expect(radar).not.toContainText("0 source families visible");
+      await expect(page.getByTestId("discover-query-composer")).toBeVisible();
+      await expect(page.getByTestId("discover-coverage")).toHaveCount(0);
+      await expect(page.getByTestId("discover-empty")).not.toContainText(/\b0 held\b/);
     } finally {
       releaseCatalog();
     }
