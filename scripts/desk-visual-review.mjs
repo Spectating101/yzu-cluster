@@ -125,6 +125,20 @@ function detectDefects() {
       }
     }
   }
+  for (const btn of document.querySelectorAll("button, a")) {
+    if (getComputedStyle(btn).position !== "absolute" || !visible(btn)) continue;
+    const host = btn.offsetParent;
+    if (!host) continue;
+    const b = btn.getBoundingClientRect();
+    for (const el of host.querySelectorAll("*")) {
+      if (el === btn || btn.contains(el) || el.contains(btn) || !visible(el)) continue;
+      if (![...el.childNodes].some((c) => c.nodeType === 3 && c.textContent.trim())) continue;
+      const r = el.getBoundingClientRect();
+      if (r.right > b.left + 1 && r.left < b.right - 1 && r.bottom > b.top + 1 && r.top < b.bottom - 1) {
+        push("overlaps-button", el, { button: describe(btn), px: Math.round(Math.min(r.right, b.right) - Math.max(r.left, b.left)) });
+      }
+    }
+  }
   const words = document.body.innerText.match(/\b[a-z]+_[a-z_]+\b|\b[0-9a-f]{12}\b/g) || [];
   const leaks = [...new Set(words)].filter((w) => !/^https?/.test(w)).slice(0, 20);
   return { defects: out, rawIdentifiers: leaks };
