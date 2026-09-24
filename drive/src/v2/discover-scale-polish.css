@@ -1,14 +1,5 @@
 /* Final scale polish: keep the result universe primary and remove redundant chrome. */
 
-.rd-v2-discover-browse:has(> .rd-v2-discover-evidence-cockpit)
-  .rd-v2-discover-result-actions:not([data-has-evidence-gap="true"]):not(:has([data-testid="discover-start-synthesis"])) {
-  display: none;
-}
-
-.rd-v2-discover-evidence-cockpit .rd-v2-cockpit-execution > button {
-  display: none;
-}
-
 .rd-v2-discover-ranked-results .rd-v2-discover-candidates > li {
   margin: 0 !important;
   border: 0 !important;

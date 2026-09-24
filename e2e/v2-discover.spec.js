@@ -113,15 +113,12 @@ test.describe("v2 Discover tab", () => {
     await expect(page.getByLabel("Discover next actions")).toContainText(/with a declared route|Search wider/i);
     await expect(page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-ranked-results-head strong")).toHaveCount(0);
     await expect(page.getByTestId("discover-resting-summary")).toContainText(/External/i);
-    await expect(page.getByTestId("discover-resting-summary")).toContainText(/In Library/i);
-    await expect(page.getByTestId("discover-resting-summary")).toContainText(/Named routes/i);
+    await expect(page.getByTestId("discover-resting-summary")).toContainText(/Library results/i);
+    await expect(page.getByTestId("discover-resting-summary")).toContainText(/Declared routes/i);
     await expect(page.getByTestId("discover-rank-foot")).toContainText(/Ranked using active research/i);
-    // The evidence cockpit owns result scoping. Do not restore the old
-    // duplicate Filters/Sort toolbar simply to satisfy a stale selector.
-    const facets = page.getByRole("navigation", { name: "Evidence facets" });
-    await expect(facets).toBeVisible();
-    await expect(facets.getByRole("button", { name: /All evidence/i })).toBeVisible();
-    await expect(facets.getByRole("button", { name: /Beyond Library/i })).toBeVisible();
+    await expect(page.getByTestId("discover-filter-menu")).toBeVisible();
+    await expect(page.getByTestId("discover-sort-menu")).toBeVisible();
+    await expect(page.getByRole("navigation", { name: "Evidence facets" })).toHaveCount(0);
     await expect(page.getByTestId("discover-browse-mode")).not.toContainText(/process overview/i);
     await page.locator("button.rd-v2-discover-candidate").first().click();
     await expect(page.getByTestId("rail-pane-detail")).toContainText(/selected candidate/i);

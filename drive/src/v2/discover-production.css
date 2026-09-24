@@ -373,6 +373,27 @@
   gap: 7px;
 }
 
+.rd-v2-discover-page .rd-v2-discover-assess-action {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid rgb(219, 212, 197);
+  border-radius: 8px;
+  background: rgb(255, 253, 246);
+  color: rgb(62, 71, 89);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.rd-v2-discover-page .rd-v2-discover-assess-action:hover {
+  border-color: #b9ae98;
+  color: #182033;
+}
+
 /* Territories become the evidence ledger headline. */
 .rd-v2-discover-page .rd-v2-discover-frozen-counts {
   display: flex;

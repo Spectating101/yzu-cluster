@@ -13,15 +13,16 @@ async function search(page, query = "MOPS filings") {
 }
 
 test.describe("Discover adaptive Explore", () => {
-  test("keeps the evidence cockpit on a full workstation", async ({ page }, testInfo) => {
+  test("keeps frozen Filters and Sort chrome on a full workstation", async ({ page }, testInfo) => {
     await mockV2Api(page, { discoverBody: MOCK_DISCOVER_HIT });
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
     await search(page, "MOPS filings");
 
-    await expect(page.locator(".rd-v2-discover-evidence-cockpit")).toBeVisible();
-    await expect(page.getByTestId("discover-filter-menu")).toBeHidden();
+    await expect(page.locator(".rd-v2-discover-evidence-cockpit")).toHaveCount(0);
+    await expect(page.getByTestId("discover-filter-menu")).toBeVisible();
+    await expect(page.getByTestId("discover-sort-menu")).toBeVisible();
     if (process.env.YZU_CAPTURE_VISUALS === "1") {
       await page.screenshot({
         path: testInfo.outputPath("discover-cockpit-workstation-1440x900.png"),
@@ -30,7 +31,7 @@ test.describe("Discover adaptive Explore", () => {
     }
   });
 
-  test("keeps results first when the workstation cannot afford the evidence cockpit", async ({ page }, testInfo) => {
+  test("keeps results first at narrower widths", async ({ page }, testInfo) => {
     await mockV2Api(page, { discoverBody: MOCK_DISCOVER_HIT });
     for (const viewport of [
       { width: 1180, height: 800 },
@@ -165,9 +166,7 @@ test.describe("Discover adaptive Explore", () => {
 
     await expect(page.getByTestId("discover-verdict")).toHaveText("Not yet recorded");
     await expect(page.getByTestId("discover-verdict")).toHaveClass(/insufficient_metadata/);
-    await expect(page.locator(".rd-v2-discover-evidence-cockpit").getByRole("button", {
-      name: "Review assessment",
-    })).toBeVisible();
+    await expect(page.getByTestId("discover-assess-coverage")).toHaveText("Review assessment");
     await expect(page.getByTestId("discover-route-comparison")).toHaveCount(0);
   });
 

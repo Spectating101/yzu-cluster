@@ -16,3 +16,4 @@ artifacts/
 # one repository, so a committed file would carry identical content into every
 # tree and could not distinguish them — which is the whole point of it.
 .desk-role
+.desk-review/

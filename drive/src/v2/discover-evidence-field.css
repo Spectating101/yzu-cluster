@@ -110,75 +110,6 @@
 .rd-v2-discover-assembly.is-checking { grid-template-columns: 30px minmax(0, 1fr); border-left-color: #ac9e77; background: color-mix(in srgb, #f5f1e6 72%, var(--rd-surface, #fffdf6)); }
 
 /* Quiet the persistent cockpit. It is a control rail, not a second dashboard. */
-.rd-v2-discover-browse:has(> .rd-v2-discover-evidence-cockpit) {
-  grid-template-columns: 184px minmax(0, 1fr);
-  column-gap: 12px;
-}
-
-.rd-v2-discover-evidence-cockpit {
-  gap: 0;
-  padding: 10px 11px;
-  border-radius: 7px;
-  background: color-mix(in srgb, var(--rd-surface, #fffdf6) 95%, #eef2ef 5%);
-  box-shadow: none;
-}
-
-.rd-v2-cockpit-head {
-  padding-bottom: 8px;
-}
-.rd-v2-cockpit-head p { display: none; }
-.rd-v2-cockpit-head h3 { margin-bottom: 0; font-size: 10px; -webkit-line-clamp: 2; }
-
-.rd-v2-cockpit-stage-map,
-.rd-v2-cockpit-facets,
-.rd-v2-cockpit-assessment,
-.rd-v2-cockpit-execution,
-.rd-v2-discover-evidence-cockpit .rd-v2-cockpit-network {
-  padding: 8px 0;
-  border: 0;
-  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 58%, transparent);
-  border-radius: 0;
-  background: transparent;
-}
-
-.rd-v2-discover-evidence-cockpit .rd-v2-cockpit-network {
-  display: none;
-}
-
-.rd-v2-cockpit-stage-map {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 5px 8px;
-}
-.rd-v2-cockpit-stage-map .rd-v2-cockpit-section-head,
-.rd-v2-cockpit-stage-map .rd-v2-cockpit-live-state { grid-column: 1 / -1; }
-.rd-v2-cockpit-stage-row { grid-template-columns: 1fr auto; gap: 4px; padding: 2px 0; }
-.rd-v2-cockpit-stage-row i { display: none; }
-.rd-v2-cockpit-stage-row span { font-size: 8px; }
-.rd-v2-cockpit-stage-row b { font-size: 9px; }
-
-.rd-v2-cockpit-live-state {
-  margin-top: 2px;
-  padding-top: 5px;
-}
-
-.rd-v2-cockpit-facets button {
-  min-height: 26px;
-  padding: 4px 5px;
-  border-radius: 4px;
-}
-
-.rd-v2-cockpit-assessment p,
-.rd-v2-cockpit-execution p {
-  margin: 5px 0 6px;
-  font-size: 8px;
-}
-
-.rd-v2-cockpit-assessment button,
-.rd-v2-cockpit-execution > button {
-  min-height: 27px;
-  padding: 4px 6px;
-}
 
 /* A dozen results should scan like a professional result ledger, not a stack of cards. */
 .rd-v2-discover-ranked-results {
@@ -235,10 +166,6 @@
 }
 
 @media (max-width: 1500px) {
-  .rd-v2-discover-browse:has(> .rd-v2-discover-evidence-cockpit) {
-    grid-template-columns: 168px minmax(0, 1fr);
-    column-gap: 10px;
-  }
   .rd-v2-discover-field > header > div:first-child {
     grid-template-columns: auto auto;
   }
@@ -249,13 +176,6 @@
 }
 
 @media (max-width: 1080px) {
-  .rd-v2-discover-browse:has(> .rd-v2-discover-evidence-cockpit) {
-    display: block;
-  }
-  .rd-v2-discover-evidence-cockpit {
-    position: static;
-    margin-bottom: 10px;
-  }
   .rd-v2-discover-assembly {
     grid-template-columns: 30px minmax(0, 1fr);
   }

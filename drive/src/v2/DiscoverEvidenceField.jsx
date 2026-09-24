@@ -11,17 +11,12 @@ function count(value) {
 }
 
 export function DiscoverEvidenceField({
-  query,
   candidateCount = 0,
   resultGroups = {},
   assessmentActive = false,
   assessmentResult = null,
   onReviewAssembly,
-  onSearchWider,
 }) {
-  const held = count(resultGroups.held);
-  const available = count(resultGroups.available);
-  const verify = count(resultGroups.external);
   const context = count(resultGroups.context);
   const assessmentStatus = String(assessmentResult?.assessment_status || "").toLowerCase();
   const verdict = String(assessmentResult?.verdict || "").toLowerCase();
@@ -30,34 +25,20 @@ export function DiscoverEvidenceField({
     && Boolean(assessmentResult?.gap);
   const composable = hasGap && candidateCount > 1;
 
+  const checking = assessmentActive && !assessmentResult;
+  const referencesOnly = candidateCount === 0 && context > 0;
+  if (!composable && !checking && !referencesOnly) return null;
+
   return (
     <section className="rd-v2-discover-field" data-testid="discover-evidence-field" aria-label="Discover evidence field">
-      <header>
-        <div>
-          <span className="rd-v2-eyebrow">Candidate field</span>
-          <strong>
-            {candidateCount === 0 && context > 0
-              ? "No collection-ready route yet"
-              : `${candidateCount} candidate${candidateCount === 1 ? "" : "s"}`}
-          </strong>
-          <p>
-            {candidateCount === 0 && context > 0
-              ? `${context} relevant reference${context === 1 ? " is" : "s are"} available to inspect or probe.`
-              : "Compare, combine, or synthesize from the field."}
-          </p>
-        </div>
-        <div className="rd-v2-discover-field-actions">
-          {onSearchWider ? <button type="button" onClick={() => onSearchWider(query)}>Search wider</button> : null}
-        </div>
-      </header>
-
-      <div className="rd-v2-discover-field-metrics" aria-label="Evidence field composition">
-        <span><b>{available}</b><em>acquirable</em></span>
-        <span><b>{verify}</b><em>to verify</em></span>
-        <span><b>{held}</b><em>held evidence</em></span>
-        <span><b>{context}</b><em>references</em></span>
-      </div>
-
+      {referencesOnly ? (
+        <header>
+          <div>
+            <strong>No collection-ready route yet</strong>
+            <p>{`${context} relevant reference${context === 1 ? " is" : "s are"} available to inspect or probe.`}</p>
+          </div>
+        </header>
+      ) : null}
       {composable ? (
         <div className="rd-v2-discover-assembly" data-testid="discover-assembly-path">
           <div className="rd-v2-discover-assembly-mark" aria-hidden="true">∑</div>
@@ -75,7 +56,7 @@ export function DiscoverEvidenceField({
             {onReviewAssembly ? <button type="button" onClick={onReviewAssembly}>Review assembly plan →</button> : null}
           </div>
         </div>
-      ) : assessmentActive && !assessmentResult ? (
+      ) : checking ? (
         <div className="rd-v2-discover-assembly is-checking" role="status">
           <div className="rd-v2-discover-assembly-mark" aria-hidden="true">…</div>
           <div>

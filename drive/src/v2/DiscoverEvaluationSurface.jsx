@@ -52,7 +52,6 @@ function sufficiencyLocalTitle(sufficiency) {
 }
 
 function RestingSearchRail({ summary, onOpenInLibrary }) {
-  const namedRouteCount = (summary.routes || []).reduce((total, route) => total + Number(route.count || 0), 0);
   const routeLine = (summary.routes || [])
     .slice(0, 3)
     .map((route) => `${route.label}${route.count > 1 ? ` · ${route.count}` : ""}`)
@@ -64,12 +63,6 @@ function RestingSearchRail({ summary, onOpenInLibrary }) {
         <section className="rd-v2-eval-block" aria-label="Discover search summary">
           <p className="rd-v2-eval-section-label">Search · {summary.query || "Discover"}</p>
           <p className="rd-v2-eval-prose">{summary.landscapeLine || summary.heldLine || summary.foundLine}</p>
-          <RailFieldGrid>
-            <RailField label="External" value={String(summary.found || 0)} />
-            <RailField label="In Library" value={String(summary.libraryEvidenceCount ?? summary.heldCount ?? 0)} />
-            <RailField label="References" value={String(summary.contextCount || 0)} />
-            <RailField label="Named routes" value={String(namedRouteCount)} />
-          </RailFieldGrid>
           {routeLine ? (
             <p className="rd-v2-eval-prose">
               <b>Declared routes</b><br />{routeLine}

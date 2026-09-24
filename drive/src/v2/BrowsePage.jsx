@@ -36,7 +36,7 @@ import {
 import { Chip, PageShell, SourceRibbon } from "@/v2/ui";
 import { discoverTerritories } from "@/v2/discoverTerritories";
 import { DiscoverCoveragePanel } from "@/v2/DiscoverCoveragePanel";
-import { DiscoverEvidenceCockpit } from "@/v2/DiscoverCockpit";
+import "./discover-composer-scope.css";
 import { DiscoverEvidenceField } from "@/v2/DiscoverEvidenceField";
 import { DeskError } from "@/v2/DeskError";
 import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
@@ -1545,21 +1545,6 @@ export function BrowsePage({
         ) : null}
         {q ? (
           <>
-            <DiscoverEvidenceCockpit
-              query={q}
-              rows={merged}
-              resultGroups={resultGroups}
-              filterCounts={filterCounts}
-              stateFilter={stateFilter}
-              onFilterChange={setStateFilter}
-              assessmentActive={assessmentActive}
-              assessmentResult={assessmentResult}
-              pendingCount={pendingRows.length}
-              lookupProgress={lookupProgress}
-              resourcesRollup={resourcesRollup}
-              onSearchWider={onSearchWeb}
-              onAssess={onOpenAssessment}
-            />
             <section
               className="rd-v2-discover-explore-workspace"
               aria-label="Discover explore"
@@ -1608,6 +1593,16 @@ export function BrowsePage({
                 <div className="rd-v2-discover-frozen-controls">
                   {filterMenu}
                   {sortMenu}
+                  {onOpenAssessment ? (
+                    <button
+                      type="button"
+                      className="rd-v2-discover-assess-action"
+                      data-testid="discover-assess-coverage"
+                      onClick={() => onOpenAssessment(q)}
+                    >
+                      {assessmentActive ? "Review assessment" : "Assess coverage"}
+                    </button>
+                  ) : null}
                 </div>
               </div>
               <div className="rd-v2-discover-frozen-counts" aria-label="Discover result territories">
@@ -1721,7 +1716,7 @@ export function BrowsePage({
                         : `Start Synthesis with ${plural(resultGroups.held.length, "Library result")}`}
                     </button>
                   ) : null}
-                  {onSearchWeb && !(onStartSynthesis && resultGroups.held.length > 0) ? (
+                  {onSearchWeb ? (
                     <button type="button" onClick={() => onSearchWeb(q)}>
                       Search wider
                     </button>
@@ -1761,13 +1756,11 @@ export function BrowsePage({
               ) : null}
 
               <DiscoverEvidenceField
-              query={q}
               candidateCount={centreRows.length}
               resultGroups={resultGroups}
               assessmentActive={assessmentActive}
               assessmentResult={assessmentResult}
               onReviewAssembly={hasEvidenceGap ? () => setRouteComparisonOpen(true) : undefined}
-              onSearchWider={onSearchWeb}
             />
 
               {assessmentActive ? (

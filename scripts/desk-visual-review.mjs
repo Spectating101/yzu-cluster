@@ -8,7 +8,7 @@ import { mockV2Api } from "../e2e/fixtures/v2MockApi.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const deskUrl = (process.env.YZU_DESK_URL || "http://100.127.141.44:8765").replace(/\/$/, "");
-const outDir = path.resolve(process.env.REVIEW_OUT || path.join(root, "test-results", "desk-visual-review"));
+const outDir = path.resolve(process.env.REVIEW_OUT || path.join(root, ".desk-review"));
 const port = Number(process.env.REVIEW_PORT || 5197);
 const refresh = process.env.REVIEW_REFRESH === "1";
 const discoverQuery = process.env.REVIEW_QUERY || "stablecoin de-peg";

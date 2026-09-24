@@ -10,15 +10,6 @@
 
 /* Resting Discover: retain capability without making every capability equally loud. */
 
-.rd-v2-cockpit-metric {
-  min-height: 40px;
-  padding: 6px 10px;
-}
-
-.rd-v2-cockpit-metric strong {
-  font-size: 16px;
-}
-
 /* Source-family bars were informative in isolation but noisy when every family had count 1.
    The concrete routes already carry the same information more usefully. */
 
@@ -28,58 +19,10 @@
 }
 
 /* Active search: the left rail is a control surface, not a second dashboard. */
-.rd-v2-discover-browse:has(> .rd-v2-discover-evidence-cockpit) {
-  grid-template-columns: 170px minmax(0, 1fr);
-  column-gap: 11px;
-}
-
-.rd-v2-discover-evidence-cockpit {
-  padding: 9px 10px;
-  border-color: color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, transparent);
-}
-
-.rd-v2-cockpit-head {
-  padding-bottom: 7px;
-}
-
-.rd-v2-cockpit-head .rd-v2-eyebrow {
-  opacity: .72;
-}
 
 /* Result territories are already summarized above the field. In the rail they were repetition. */
-.rd-v2-cockpit-stage-map {
-  display: none;
-}
-
-.rd-v2-cockpit-facets,
-.rd-v2-cockpit-assessment,
-.rd-v2-cockpit-execution {
-  padding-block: 7px;
-}
-
-.rd-v2-cockpit-facets button {
-  min-height: 24px;
-  padding: 3px 4px;
-}
-
-.rd-v2-cockpit-facets button:not(.on) {
-  color: color-mix(in srgb, var(--rd-muted, #6e7685) 84%, transparent);
-}
-
-.rd-v2-cockpit-assessment p,
-.rd-v2-cockpit-execution p {
-  margin: 4px 0 5px;
-  line-height: 1.3;
-}
 
 /* Search wider lives beside the candidate field; do not repeat the same CTA in the rail. */
-.rd-v2-cockpit-execution > button {
-  display: none;
-}
-
-.rd-v2-cockpit-capacity.is-compact {
-  margin-top: 4px;
-}
 
 /* Candidate field: a compact framing line, not another card before the actual results. */
 .rd-v2-discover-field {
@@ -229,10 +172,6 @@
 }
 
 @media (max-width: 1500px) {
-  .rd-v2-discover-browse:has(> .rd-v2-discover-evidence-cockpit) {
-    grid-template-columns: 156px minmax(0, 1fr);
-    column-gap: 9px;
-  }
 
   .rd-v2-discover-composer-scope span:nth-child(n + 4) {
     display: none;
@@ -351,10 +290,5 @@
   }
   body:has(.rd-v2-discover-page .rd-v2-discover-candidate.selected) .rd-v2-shell {
     --rd-rail: 356px;
-  }
-
-  .rd-v2-discover-browse:has(> .rd-v2-discover-evidence-cockpit) {
-    grid-template-columns: 150px minmax(0, 1fr);
-    column-gap: 8px;
   }
 }

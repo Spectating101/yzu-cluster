@@ -8,7 +8,7 @@ import { mockV2Api } from "../e2e/fixtures/v2MockApi.js";
 
 const [, , tabUrl = "/?tab=home", exprFile, width = "1440", height = "900"] = process.argv;
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const snap = path.join(process.env.REVIEW_OUT || path.join(root, "test-results", "desk-visual-review"), "live-snapshot.json");
+const snap = path.join(process.env.REVIEW_OUT || path.join(root, ".desk-review"), "live-snapshot.json");
 const live = JSON.parse(fs.readFileSync(snap, "utf8"));
 const port = Number(process.env.PROBE_PORT || 5198);
 const server = spawn(process.execPath, [path.join(root, "node_modules/vite/bin/vite.js"), "--port", String(port), "--strictPort"], { cwd: root, stdio: "ignore" });

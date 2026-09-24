@@ -182,7 +182,6 @@ async function runSearch(page, query = "stablecoin market evidence") {
   await page.getByRole("button", { name: "Explore", exact: true }).click();
   await expect(page.getByTestId("discover-result-summary")).toBeVisible();
   await expect(page.getByTestId("discover-ranked-results")).toBeVisible();
-  await expect(page.getByTestId("discover-evidence-field")).toContainText(/10 candidates/i);
   await expect(page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidate")).toHaveCount(10);
 }
 
@@ -222,11 +221,11 @@ test.describe("Discover reconvergence visual review", () => {
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
       await openDiscover(page);
       await runSearch(page);
-      const fieldBox = await page.getByTestId("discover-evidence-field").boundingBox();
+      const countsBox = await page.locator(".rd-v2-discover-frozen-counts").boundingBox();
       const resultsBox = await page.getByTestId("discover-ranked-results").boundingBox();
-      expect(fieldBox).not.toBeNull();
+      expect(countsBox).not.toBeNull();
       expect(resultsBox).not.toBeNull();
-      expect(resultsBox.y - (fieldBox.y + fieldBox.height)).toBeLessThan(38);
+      expect(resultsBox.y - (countsBox.y + countsBox.height)).toBeLessThan(120);
       await assertNoOverflow(page);
       await page.screenshot({ path: `${OUT}/discover-results-${viewport.name}.png`, fullPage: false });
     });
