@@ -256,8 +256,9 @@ test("render current Library evidence and decision states", async ({ page }) => 
   await page.getByTestId("library-state-filter").selectOption("all");
 
   await openAsset(page, "Asia daily news-risk panel");
-  await expect(page.getByLabel("Evidence claims")).toContainText("Query ready");
-  await expect(page.getByLabel("Evidence claims")).toContainText("Verified");
+  await expect(page.getByLabel("Evidence claims")).toBeHidden();
+  await expect(page.locator("aside.rd-v2-rail")).toContainText("Query ready");
+  await expect(page.locator("aside.rd-v2-rail")).toContainText("Verified");
   const dataPreview = page.getByTestId("library-data-preview");
   const assetFacts = page.getByTestId("library-asset-facts");
   await expect(dataPreview).toBeVisible();
@@ -293,8 +294,9 @@ test("render current Library evidence and decision states", async ({ page }) => 
   await backToRoot(page);
   await page.getByRole("textbox", { name: "Search library holdings" }).fill("MOPS");
   await openAsset(page, "MOPS financial statements");
-  await expect(page.getByLabel("Evidence claims")).toContainText("Metadata only");
-  await expect(page.getByLabel("Evidence claims")).toContainText("Partial");
+  await expect(page.getByLabel("Evidence claims")).toBeHidden();
+  await expect(page.locator("aside.rd-v2-rail")).toContainText("Metadata only");
+  await expect(page.locator("aside.rd-v2-rail")).toContainText("Partial");
   await expect(page.getByTestId("library-data-preview")).toContainText("Table structure");
   await expect(page.getByTestId("library-data-preview")).toContainText("issuer_id");
   await expect(page.locator("aside.rd-v2-rail")).toContainText("Partial");

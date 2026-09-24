@@ -269,7 +269,7 @@ async function installSynthesisWorkspaceSeed(page) {
 
 async function expectDestinationReady(page, destination) {
   if (destination.synthesis) {
-    await expect(page.getByTestId("synthesis-home-state").getByText("Synthesis workspace", { exact: true })).toBeVisible();
+    await expect(page.getByTestId("synthesis-home-state").getByRole("heading", { name: "Synthesis", exact: true })).toBeVisible();
     await expect(page.getByRole("region", { name: "Start or continue Synthesis work" })).toBeVisible();
     return;
   }

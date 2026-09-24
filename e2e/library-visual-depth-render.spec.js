@@ -173,7 +173,7 @@ async function openAsset(page, title) {
 }
 
 async function backToRoot(page) {
-  await page.getByRole("button", { name: "← All Library assets" }).click();
+  await page.getByRole("button", { name: "Close asset inspector" }).click();
   await expect(page.getByTestId("library-asset-inspector")).toHaveCount(0);
   await expect(page.getByTestId("library-evidence-estate")).toBeVisible();
   await settleVisualState(page);
@@ -190,8 +190,9 @@ test("render Library depth states on desktop", async ({ page }) => {
   const scholarly = page.getByTestId("library-asset-workspace");
   const scholarlyRail = page.locator("aside.rd-v2-rail");
   await expect(scholarly).toHaveAttribute("data-asset-kind", "scholarly_work");
-  await expect(scholarly.getByLabel("Evidence claims")).toContainText("Registered");
-  await expect(scholarly.getByLabel("Evidence claims")).toContainText("Unverified");
+  await expect(scholarly.getByLabel("Evidence claims")).toBeHidden();
+  await expect(scholarlyRail).toContainText("Registered");
+  await expect(scholarlyRail).toContainText("Unverified");
   await expect(scholarly.getByRole("button", { name: "Preview rows" })).toHaveCount(0);
   await expect(scholarly.getByRole("button", { name: "Open query" })).toHaveCount(0);
   await expect(scholarly.getByRole("button", { name: "Ask about this work" })).toHaveCount(0);
@@ -216,8 +217,9 @@ test("render Library depth states on desktop", async ({ page }) => {
   await openAsset(page, "Public blockchain query source");
   const connected = page.getByTestId("library-asset-workspace");
   const connectedRail = page.locator("aside.rd-v2-rail");
-  await expect(connected.getByLabel("Evidence claims")).toContainText("Connected");
-  await expect(connected.getByLabel("Evidence claims")).toContainText("Not checked");
+  await expect(connected.getByLabel("Evidence claims")).toBeHidden();
+  await expect(connectedRail).toContainText("Connected");
+  await expect(connectedRail).toContainText("Not checked");
   await expect(connected.getByRole("button", { name: "Open query" })).toHaveCount(0);
   await expect(connected.getByRole("button", { name: "Ask about this source" })).toHaveCount(0);
   const connectedPreview = connected.getByTestId("library-data-preview");
@@ -260,7 +262,7 @@ test("render Library depth states on desktop", async ({ page }) => {
   await waitForShell(page);
   await expect(page.getByTestId("library-evidence-estate")).toBeVisible();
   await page.getByRole("textbox", { name: "Search library holdings" }).fill("definitely-no-such-library-asset");
-  await expect(page.getByTestId("library-evidence-estate")).toContainText("No evidence matches the current Library view");
+  await expect(page.getByTestId("library-evidence-estate")).toContainText("No held evidence matches");
   const filteredRail = page.locator("aside.rd-v2-rail");
   await expect(filteredRail).toContainText("In this view");
   await expect(filteredRail).not.toContainText("In this library");

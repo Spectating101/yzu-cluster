@@ -53,8 +53,9 @@ test.describe("v2 Library evidence estate", () => {
     await expect(preview).toContainText("Keys:");
     await expect(facts.getByText("Research details", { exact: true })).toBeVisible();
     expect(await facts.evaluate((element) => element.open)).toBe(false);
-    await expect(workspace.getByLabel("Evidence claims")).toContainText("Readiness");
-    await expect(workspace.getByLabel("Evidence claims")).toContainText("Verification");
+    await expect(workspace.getByLabel("Evidence claims")).toBeHidden();
+    await expect(page.locator("aside.rd-v2-rail")).toContainText("Readiness");
+    await expect(page.locator("aside.rd-v2-rail")).toContainText("Verification");
     await expect(workspace.getByRole("button", { name: "Open query" })).toBeVisible();
     await expect(workspace.getByRole("button", { name: "Inspect schema" })).toHaveCount(1);
     await expect(workspace.getByRole("button", { name: "Expand sample" })).toHaveCount(1);

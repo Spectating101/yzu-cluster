@@ -462,10 +462,9 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onOpenQuery,
           </div>
         </header>
 
-        <div className="rd-v2-library-claim-strip" aria-label="Evidence claims">
-          <div><span>Readiness</span><strong>{state.label}</strong></div>
-          <div><span>Verification</span><strong>{verification.label}</strong></div>
-          <div><span>Source</span><strong>{value(fields.source, dataset?.source, dataset?.publisher)}</strong></div>
+        <div className="rd-v2-library-mobile-claims" aria-label="Evidence claims">
+          <span>Readiness <strong>{state.label}</strong></span>
+          <span>Verification <strong>{verification.label}</strong></span>
         </div>
 
         <div className="rd-v2-library-workspace-actions" aria-label="Asset actions">
