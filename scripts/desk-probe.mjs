@@ -28,6 +28,10 @@ try {
   await mockV2Api(page, Object.fromEntries(Object.entries(opts).filter(([, v]) => v)));
   await page.goto(url + tabUrl, { waitUntil: "domcontentloaded" });
   await page.waitForTimeout(3000);
+  if (process.env.PROBE_CLICK) {
+    await page.locator(process.env.PROBE_CLICK).first().click();
+    await page.waitForTimeout(1200);
+  }
   const expr = exprFile ? fs.readFileSync(exprFile, "utf8") : "document.title";
   console.log(JSON.stringify(await page.evaluate(expr), null, 1));
   if (process.env.PROBE_SHOT) await page.screenshot({ path: process.env.PROBE_SHOT });
