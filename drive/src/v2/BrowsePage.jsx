@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { discoverSearch, discoverSources, webDiscover } from "@/v2/api";
-import { searchHitToCandidate, sourcesResponseToRows } from "@/v2/discoverAdapters";
+import { partialFitLine, searchHitToCandidate, sourcesResponseToRows } from "@/v2/discoverAdapters";
 import { collectRouteLabel } from "@/v2/collectRouteLabel";
 import { DiscoverHistoryPanel } from "@/v2/DiscoverHistoryPanel";
 import { isDiscoverHistoryJob, jobToCandidateRow, pendingApprovalJobs } from "@/v2/procurementJobs";
@@ -205,6 +205,7 @@ function DiscoverCandidateRow({
     ).trim(),
   );
   const evidenceLine = hasExplicitDescription ? humanizeDiscoverDescription(descriptiveLine(row)) : "";
+  const fitLine = partialFitLine(row);
   const coverage = coverageLine(row);
   const showCoverage = coverage && coverage !== "Coverage not described";
   const offeringFacts = [
@@ -250,6 +251,7 @@ function DiscoverCandidateRow({
             </strong>
             <em className="rd-v2-discover-possession">{taxonomyLine}</em>
           </span>
+          {fitLine ? <span className="rd-v2-discover-evidence" data-testid="discover-partial-fit">{fitLine}</span> : null}
           {evidenceLine ? <span className="rd-v2-discover-evidence">{evidenceLine}</span> : null}
           <span className="rd-v2-discover-offering-facts" aria-label="Offering facts">
             {offeringFacts.map(([label, value]) => (

@@ -376,6 +376,8 @@ export function orderDiscoverResults(rows, labIds) {
         : classifyDiscoverResult(row, labIds),
   }));
   decorated.sort((a, b) => {
+    const partial = Number(Boolean(a.row?.partial_fit)) - Number(Boolean(b.row?.partial_fit));
+    if (partial) return partial;
     if (a.classification.group !== b.classification.group) {
       return a.classification.group - b.classification.group;
     }

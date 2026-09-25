@@ -107,6 +107,15 @@ function candidateDedupeKey(candidate, row = {}) {
     .toLowerCase();
 }
 
+export function partialFitLine(row) {
+  const fit = row?.partial_fit;
+  if (!fit) return null;
+  const covers = (fit.covers || []).join(" + ");
+  const missing = (fit.missing || []).join(" + ");
+  if (!missing) return covers ? `Partial match on ${covers}` : "Partial match";
+  return covers ? `Covers ${covers} · missing ${missing}` : `Missing ${missing}`;
+}
+
 export function sourcesResponseToRows(data) {
   const results = Array.isArray(data?.results) ? data.results : [];
   const searchMeta = {
@@ -120,9 +129,16 @@ export function sourcesResponseToRows(data) {
   // capability). Collapse on identity so Explore doesn't show visual duplicates
   // that would each queue a separate collection job. First occurrence wins —
   // later copies carry no extra information.
+  const partials = (Array.isArray(data?.partial_matches) ? data.partial_matches : []).map((row) => ({
+    ...row,
+    partial_fit: {
+      covers: Array.isArray(row.covers) ? row.covers : [],
+      missing: Array.isArray(row.missing) ? row.missing : [],
+    },
+  }));
   const seen = new Set();
   const out = [];
-  for (const row of results) {
+  for (const row of [...results, ...partials]) {
     const candidate = sourceResultToCandidate(row);
     const key = candidateDedupeKey(candidate, row);
     if (key && seen.has(key)) continue;
