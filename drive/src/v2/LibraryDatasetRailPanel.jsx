@@ -11,6 +11,7 @@ import { hasReproductionMethod, librarySourceReceipt } from "@/v2/libraryProvena
 import { libraryVerification } from "@/v2/libraryVerification";
 import { holdingRoleLabel, summarizeLibraryHoldings } from "@/v2/libraryHoldings";
 import { RailFrame, RailStickyFooter } from "@/v2/RailFrame";
+import { plainRoute } from "@/v2/plainText";
 
 export function decisionFor(dataset) {
   return canIUseDecision(dataset);
@@ -279,8 +280,8 @@ export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onAskAbo
           {hasReceiptDetails ? (
             <div className="rd-v2-library-inspector-facts rd-v2-library-provenance-facts">
               <Fact label={receipt.sourceUrlKind || "Exact source URL"} value={receipt.sourceUrl} href={receipt.sourceUrl} mono />
-              <Fact label="Access route" value={accessRoute} mono />
-              <Fact label="Method" value={receipt.method} />
+              <Fact label="Access route" value={plainRoute(accessRoute)} />
+              <Fact label="Method" value={plainRoute(receipt.method)} />
               <Fact label={reproductionLabel(receipt)} value={reproductionValue(receipt)} mono />
               <Fact label="Upstream assets" value={receipt.upstream} mono />
             </div>

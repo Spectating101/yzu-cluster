@@ -1156,7 +1156,7 @@ function ExecutionRecord({ thread, busy, onRequest, onReview, onAsk, onOpenDatas
         : failed
           ? "Execution failed"
           : "Execution record";
-  const badge = previewEligible ? previewStatus : queryReady ? "Query ready" : registered ? "Registered" : status;
+  const badge = previewEligible ? previewStatus : queryReady ? "Query-ready" : registered ? "Registered" : status;
 
   return (
     <section className="s04-card" data-testid={queryReady ? "synthesis-query-ready-state" : registered ? "synthesis-registered-state" : failed ? "synthesis-failed-state" : "synthesis-execution-state"}>

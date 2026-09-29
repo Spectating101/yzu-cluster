@@ -145,7 +145,7 @@ describe("classifyJobLifecycle", () => {
     assert.equal(c.primaryAction.id, "open_library");
   });
 
-  it("registered without query readiness is not Query ready", () => {
+  it("registered without query readiness is not Query-ready", () => {
     const c = classifyJobLifecycle(
       job({ status: "completed", registered_dataset_id: "mops_financial_statements_2026" }),
       {
@@ -161,7 +161,7 @@ describe("classifyJobLifecycle", () => {
     assert.notEqual(c.state, LIFECYCLE.QUERY_READY);
   });
 
-  it("registered query-ready asset = In Library · Query ready", () => {
+  it("registered query-ready asset = In Library · Query-ready", () => {
     const c = classifyJobLifecycle(
       job({ status: "completed", registered_dataset_id: "mops_panel" }),
       {
@@ -169,7 +169,7 @@ describe("classifyJobLifecycle", () => {
       },
     );
     assert.equal(c.state, LIFECYCLE.QUERY_READY);
-    assert.equal(c.label, "In Library · Query ready");
+    assert.equal(c.label, "In Library · Query-ready");
   });
 });
 
@@ -265,7 +265,7 @@ describe("projectDiscoverCandidateLifecycle (A4)", () => {
     });
     const projected = projectDiscoverCandidateLifecycle(ROW, life);
     assert.equal(projected.discover_taxonomy.key, "local-query-ready");
-    assert.match(projected.discover_taxonomy.label, /Query ready/i);
+    assert.match(projected.discover_taxonomy.label, /Query-ready/i);
     assert.equal(projected.candidate_key, ROW.candidate_key);
   });
 
@@ -309,7 +309,7 @@ describe("applyLifecycleToEvaluation (A4)", () => {
       ],
     });
     const next = applyLifecycleToEvaluation(evaluation, life);
-    assert.equal(next.decision.headline, "In Library · Query ready");
+    assert.equal(next.decision.headline, "In Library · Query-ready");
     assert.equal(next.taxonomyKey, "local-query-ready");
     assert.equal(
       next.unknowns.some((u) => /endpoint not probed|Acquisition constraints/i.test(u)),

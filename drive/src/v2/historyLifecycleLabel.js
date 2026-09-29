@@ -54,8 +54,8 @@ export function historyLifecycleLabel(event) {
     return "Failed — needs recovery";
   }
   if (kind === "ready" || status === "registered" || action === "registered_asset") {
-    // Never promote receipt_only / non-query holdings to Query ready from status text alone.
-    if (truth.queryReady) return "Query ready";
+    // Never promote receipt_only / non-query holdings to Query-ready from status text alone.
+    if (truth.queryReady) return "Query-ready";
     // The feed reports query_ready / usable / readiness on the event itself.
     // Keying only off catalog_reconciliation collapsed a held, usable asset and
     // an archived, unusable one into the same "Registered" label.
@@ -64,7 +64,7 @@ export function historyLifecycleLabel(event) {
       event?.usable === false ||
       status === "registered_not_queryable"
     ) {
-      return "Not query-ready";
+      return "Registered · unconfirmed";
     }
     if (truth.receiptOnly && (event?.query_ready === true || event?.usable === true)) {
       // Held and reported usable, but the registry row could not be read back,
@@ -182,7 +182,7 @@ export function historyLifecycleExplanation(event) {
         risk: "Do not treat the output as registered or query-ready.",
         next: "Inspect the failure and create a revised request if the route changed.",
       };
-    case "Not query-ready":
+    case "Registered · unconfirmed":
       return {
         label,
         explanation: "The desk holds a registration receipt for this object, but it is not queryable.",
@@ -197,7 +197,7 @@ export function historyLifecycleExplanation(event) {
         risk: "Query results may not match what the catalog claims about this object.",
         next: "Open it in Library to confirm the schema before relying on it.",
       };
-    case "Query ready":
+    case "Query-ready":
       return {
         label,
         explanation: "The registered asset has an explicit query-ready authority state.",
@@ -213,7 +213,7 @@ export function historyLifecycleExplanation(event) {
           archive && readback
             ? "Archive verification and canonical registry read-back both succeeded for this Library asset."
             : "The durable record reports registration; inspect its proof fields before reuse.",
-        risk: "Registered is not Query ready. No query capability is claimed here.",
+        risk: "Registered is not Query-ready. No query capability is claimed here.",
         next: "Open the exact Library asset or ask about its provenance and readiness gap.",
       };
     }

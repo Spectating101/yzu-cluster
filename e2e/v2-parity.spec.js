@@ -192,14 +192,14 @@ test.describe("v2 parity @ desk-v2-1440", () => {
     const situation = page.getByTestId("research-situation");
     const rail = page.locator("aside.rd-v2-rail");
     await expect(situation).toContainText("Asia daily news-risk panel");
-    await expect(situation).toContainText("Query ready");
+    await expect(situation).toContainText("Query-ready");
     await expect(situation.getByRole("tab", { name: "Detail" })).toHaveAttribute("aria-selected", "true");
     await expect(page.locator('[data-testid="rail-pane-ask"]')).toBeHidden();
     await expect(rail.getByRole("button", { name: "Preview rows" })).toHaveCount(0);
     await expect(rail.getByRole("button", { name: "Ask about this →" })).toBeVisible();
     await expect(rail).not.toContainText("Coverage & grain");
     await expect(rail.locator(".rd-v2-library-evidence-facts")).toHaveCount(0);
-    await expect(page.locator('aside.rd-v2-rail [aria-label="Can I use this?"]')).toContainText("Query ready");
+    await expect(page.locator('aside.rd-v2-rail [aria-label="Can I use this?"]')).toContainText("Query-ready");
     await situation.getByRole("tab", { name: "Ask" }).click();
     await expect(page.getByTestId("ask-composer")).toBeVisible();
     await expect(page.getByTestId("research-situation")).toContainText("Asia daily news-risk panel");

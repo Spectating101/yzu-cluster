@@ -43,7 +43,7 @@ describe("researcherProbeError", () => {
 
 describe("evaluationActions", () => {
   it("local query-ready primary is Open in Library", () => {
-    const taxonomy = { key: "local-query-ready", label: "In Library · Query ready" };
+    const taxonomy = { key: "local-query-ready", label: "In Library · Query-ready" };
     const actions = evaluationActions({}, taxonomy);
     assert.equal(actions.primary.id, "open_library");
     assert.equal(actions.primary.label, "Open in Library");
@@ -159,6 +159,6 @@ describe("buildDiscoverEvaluation", () => {
     assert.equal(taxonomy.key, "local-query-ready");
     const evaluation = buildDiscoverEvaluation(row, labIds, null);
     assert.equal(evaluation.actions.primary.label, "Open in Library");
-    assert.match(evaluation.decision.headline, /Query ready/i);
+    assert.match(evaluation.decision.headline, /Query-ready/i);
   });
 });

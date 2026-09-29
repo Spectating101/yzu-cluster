@@ -14,7 +14,7 @@ import { discoverCandidateUrl } from "./candidateKey.js";
 
 const DECISION = {
   "local-query-ready": {
-    headline: "In Library · Query ready",
+    headline: "In Library · Query-ready",
     body: "You can query this dataset now.",
   },
   "local-connected": {

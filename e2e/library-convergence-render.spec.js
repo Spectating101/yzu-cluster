@@ -235,7 +235,7 @@ test("render current Library evidence and decision states", async ({ page }) => 
 
   const gdeltRow = page.getByTestId("library-evidence-row").filter({ hasText: "Asia daily news-risk panel" });
   await expect(gdeltRow.getByTestId("library-evidence-verification")).toHaveText("Verified");
-  await expect(gdeltRow.getByTestId("library-evidence-readiness")).toContainText("Query ready");
+  await expect(gdeltRow.getByTestId("library-evidence-readiness")).toContainText("Query-ready");
   const connectedRow = page.getByTestId("library-evidence-row").filter({ hasText: "Public blockchain query source" });
   await expect(connectedRow.getByTestId("library-evidence-readiness")).toContainText("Connected");
 
@@ -257,7 +257,7 @@ test("render current Library evidence and decision states", async ({ page }) => 
 
   await openAsset(page, "Asia daily news-risk panel");
   await expect(page.getByLabel("Evidence claims")).toBeHidden();
-  await expect(page.locator("aside.rd-v2-rail")).toContainText("Query ready");
+  await expect(page.locator("aside.rd-v2-rail")).toContainText("Query-ready");
   await expect(page.locator("aside.rd-v2-rail")).toContainText("Verified");
   const dataPreview = page.getByTestId("library-data-preview");
   const assetFacts = page.getByTestId("library-asset-facts");
@@ -286,7 +286,7 @@ test("render current Library evidence and decision states", async ({ page }) => 
   await page.getByRole("button", { name: "Source record" }).click();
   await expect(page.getByRole("dialog", { name: "Source and provenance" })).toBeVisible();
   await expect(page.getByTestId("library-source-verification")).toContainText("Verified");
-  await expect(page.getByTestId("library-source-readiness")).toContainText("Query ready");
+  await expect(page.getByTestId("library-source-readiness")).toContainText("Query-ready");
   await settleVisualState(page);
   await page.screenshot({ path: `${OUT}/03-source-record-1440.png`, fullPage: false });
   await page.getByRole("button", { name: "Close inspection" }).click();

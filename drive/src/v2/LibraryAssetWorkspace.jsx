@@ -1,3 +1,4 @@
+import { plainRoute } from "@/v2/plainText";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { plainIdentifiers } from "@/v2/plainText";
 import { queryDataset } from "@/v2/api";
@@ -162,7 +163,7 @@ function AssetOverlay({ kind, dataset, fields, presentation, onClose }) {
                 <p className="rd-v2-library-muted">No declared response fields are available in the current registry record.</p>
               )}
               <dl className="rd-v2-library-overlay-facts">
-                <div><dt>Access route</dt><dd>{value(dataset?.collect_via, dataset?.backend, fields.access)}</dd></div>
+                <div><dt>Access route</dt><dd>{plainRoute(value(dataset?.collect_via, dataset?.backend, fields.access))}</dd></div>
                 <div><dt>Coverage</dt><dd>{value(fields.coverage, dataset?.coverage)}</dd></div>
               </dl>
             </>
@@ -365,7 +366,7 @@ function EvidenceShape({ dataset, fields, presentation, rowCount, state }) {
       <dl className="rd-v2-library-evidence-facts">
         <div><dt>Object type</dt><dd>{state.kind === "connected" ? "Connected source" : "Live source"}</dd></div>
         <div><dt>Source</dt><dd>{value(fields.source, dataset?.source_system)}</dd></div>
-        <div><dt>Access route</dt><dd>{value(dataset?.collect_via, dataset?.backend, fields.access)}</dd></div>
+        <div><dt>Access route</dt><dd>{plainRoute(value(dataset?.collect_via, dataset?.backend, fields.access))}</dd></div>
         <div><dt>Coverage</dt><dd>{value(fields.coverage, dataset?.coverage)}</dd></div>
         <div><dt>Use state</dt><dd>{state.label}</dd></div>
       </dl>

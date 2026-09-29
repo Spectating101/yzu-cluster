@@ -37,7 +37,7 @@ test.describe("Research Drive interaction guidance", () => {
     await help.click();
     const popover = page.getByTestId("rich-context-popover");
     await expect(popover).toBeVisible();
-    await expect(popover).toContainText(/Query ready|Registered|Connected source/);
+    await expect(popover).toContainText(/Query-ready|Registered|Connected source/);
     await expect(popover).toContainText("Safest next step");
     await page.keyboard.press("Escape");
     await expect(popover).toHaveCount(0);

@@ -60,7 +60,7 @@ export function DiscoverHistoryRailPanel({ event, job, onAskAbout, onReviewReque
   const readableId = /_|^[a-f0-9]{10,}$/i.test(requestId) ? "" : requestId;
   const readableSource = /_|^[a-f0-9]{10,}$/i.test(source) ? "" : source;
   const canReview = state.label === "Approval required" && Boolean(job?.id || meta.job_id || truth.jobId);
-  const registered = state.label === "Registered" || state.label === "Query ready" || truth.registered;
+  const registered = state.label === "Registered" || state.label === "Query-ready" || truth.registered;
   const libraryHref = datasetId ? `?tab=library&dataset=${encodeURIComponent(datasetId)}` : "";
   const risk = truth.receiptOnly
     ? "Receipt-only holding — do not treat as query-ready until catalog reconciliation completes."

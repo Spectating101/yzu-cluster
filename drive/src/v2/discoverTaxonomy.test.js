@@ -24,7 +24,7 @@ describe("discover taxonomy (D1 / D1.1)", () => {
       lab,
     );
     assert.equal(c.key, "local-query-ready");
-    assert.match(c.label, /Query ready/i);
+    assert.match(c.label, /Query-ready/i);
   });
 
   it("does not call connected local holdings query-ready", () => {
@@ -252,7 +252,7 @@ describe("discover taxonomy (D1 / D1.1)", () => {
 
   it("exceptional pills only for queued / manual / unavailable", () => {
     assert.equal(
-      exceptionalRowPill({}, { key: "local-query-ready", readiness: "Query ready" }, { key: "in_lab" }),
+      exceptionalRowPill({}, { key: "local-query-ready", readiness: "Query-ready" }, { key: "in_lab" }),
       null,
     );
     assert.equal(

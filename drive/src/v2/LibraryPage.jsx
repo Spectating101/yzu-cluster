@@ -641,9 +641,9 @@ export function LibraryPage({
                   onChange={(event) => setFilterMode(event.target.value)}
                 >
                   <option value="all">Any</option>
-                  <option value="ready">Query ready · {readyCount}</option>
+                  <option value="ready">Query-ready · {readyCount}</option>
                   <option value="attention">Needs attention · {attentionCount}</option>
-                  <option value="not_ready">Not query-ready · {nonReadyCount}</option>
+                  <option value="not_ready">Registered · unconfirmed · {nonReadyCount}</option>
                 </select>
               </label>
               <label className="rd-v2-library-filter-control">

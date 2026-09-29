@@ -163,3 +163,13 @@ describe("operations self-checks", () => {
     assert.equal(chips[1].detail, "run desk worker");
   });
 });
+
+describe("unverified assistant after a restart", () => {
+  it("raises no notice when the desk is otherwise healthy", () => {
+    const chips = buildDeskIntegrationChips({
+      status: "ok",
+      desk: { composer_configured: true, composer_runtime: { status: "unverified", configured: true, verified: false } },
+    });
+    assert.deepEqual(chips, []);
+  });
+});

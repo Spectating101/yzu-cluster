@@ -376,7 +376,7 @@ export function LibraryObjectRailPanel({
           <p className="rd-v2-rail-section-label">{root ? "In this library" : "In this collection"}</p>
           <h3>{pluralCount(counts.datasets, root ? "asset" : "dataset")}</h3>
           <div className="rd-v2-library-folder-readiness">
-            {counts.queryReady > 0 ? <span><b>{counts.queryReady}</b> query ready</span> : null}
+            {counts.queryReady > 0 ? <span><b>{counts.queryReady}</b> query-ready</span> : null}
             {counts.connected > 0 ? <span><b>{counts.connected}</b> connected</span> : null}
             {counts.metadataOnly > 0 ? <span><b>{counts.metadataOnly}</b> metadata only</span> : null}
             {counts.unknown > 0 ? <span><b>{counts.unknown}</b> readiness unknown</span> : null}

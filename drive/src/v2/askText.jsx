@@ -90,7 +90,7 @@ export function parseAskReply(text) {
 export function readinessLabel(value) {
   const key = String(value || "").toLowerCase().replace(/\s+/g, "_");
   if (!key) return "";
-  if (key.includes("query_ready") || key === "ready" || key === "instant") return "Query ready";
+  if (key.includes("query_ready") || key === "ready" || key === "instant") return "Query-ready";
   if (key.includes("review")) return "Needs review";
   if (key.includes("fail") || key.includes("error")) return "Not ready";
   return key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());

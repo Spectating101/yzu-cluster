@@ -44,7 +44,7 @@ import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
 const FILTERS = [
   { id: "all", label: "All results" },
   { id: "in_lab", label: "In your Library" },
-  { id: "query_ready", label: "Query ready" },
+  { id: "query_ready", label: "Query-ready" },
   { id: "external", label: "Beyond your Library" },
   { id: "needs_access", label: "Needs access" },
 ];

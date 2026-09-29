@@ -110,7 +110,7 @@ test.describe("Discover evaluation screenshots", () => {
 
     // 5. local query-ready — unknowns must be lab-relevant
     await page.locator(".rd-v2-discover-candidate", { hasText: "Asia daily news-risk panel" }).click();
-    await expect(page.getByTestId("discover-eval-surface")).toContainText("Query ready");
+    await expect(page.getByTestId("discover-eval-surface")).toContainText("Query-ready");
     await expect(page.getByTestId("discover-eval-actions").getByRole("button", { name: "Open in Library" })).toBeVisible();
     await expect(page.getByTestId("discover-eval-surface")).not.toContainText("Source endpoint not probed");
     await expect(page.getByTestId("discover-eval-surface")).not.toContainText("Acquisition constraints not verified");

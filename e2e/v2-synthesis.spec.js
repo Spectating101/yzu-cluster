@@ -769,7 +769,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await expect(registered).toContainText("mft_s04_0726");
     await expect(registered).toContainText("Reported verified");
     await expect(registered.getByText("Registered", { exact: true })).toBeVisible();
-    await expect(registered.getByText("Query ready", { exact: true })).toHaveCount(0);
+    await expect(registered.getByText("Query-ready", { exact: true })).toHaveCount(0);
     await expect(registered.getByRole("button", { name: "Open in Library" })).toBeVisible();
     await expect(registered).toContainText("Library handoff");
     await expect(registered).toContainText("Registered");
@@ -811,7 +811,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
   test("renders query-ready only from an explicit query-ready lifecycle", async ({ page }) => {
     await page.getByTestId("synthesis-thread-item").filter({ hasText: "Query-ready stablecoin attention panel" }).click();
     const ready = page.getByTestId("synthesis-query-ready-state");
-    await expect(ready.getByText("Query ready", { exact: true })).toBeVisible();
+    await expect(ready.getByText("Query-ready", { exact: true })).toBeVisible();
     await expect(ready).toContainText("Query-ready output reported");
     await expect(ready.getByRole("button", { name: "Open in Library" })).toBeVisible();
   });

@@ -681,7 +681,7 @@ function ResearchCapability({ cluster, panels, rollup, catalogSummary }) {
           <span>Reusable research estate</span>
           <strong>
             {registry != null ? `${registry} registered assets` : "Registered estate available"}
-            {instant != null ? ` · ${instant} query ready` : ""}
+            {instant != null ? ` · ${instant} query-ready` : ""}
           </strong>
           <em>
             {partitions != null

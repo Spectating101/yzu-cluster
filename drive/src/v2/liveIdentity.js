@@ -2,7 +2,7 @@
 
 export function liveIdentityBadge(identity) {
   const readiness = String(identity?.readiness || "").toLowerCase();
-  if (readiness === "query_ready") return { kind: "query-ready", label: "Query ready" };
+  if (readiness === "query_ready") return { kind: "query-ready", label: "Query-ready" };
   if (readiness === "registered") return { kind: "registered", label: "Registered" };
   const expected = identity?.synthesis_expectation?.badge;
   if (expected) return { kind: readiness || "unknown", label: String(expected) };

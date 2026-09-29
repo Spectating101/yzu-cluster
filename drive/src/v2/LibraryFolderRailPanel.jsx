@@ -97,7 +97,7 @@ export function LibraryFolderRailPanel({
           <h3>{loading ? "Reading holdings…" : pluralCount(totalAssets, "asset")}</h3>
           <div className="rd-v2-library-folder-readiness" aria-busy={loading || undefined}>
             {loading ? <span>Registered evidence is still loading.</span> : null}
-            {counts.queryReady > 0 ? <span><b>{counts.queryReady}</b> query ready</span> : null}
+            {counts.queryReady > 0 ? <span><b>{counts.queryReady}</b> query-ready</span> : null}
             {notReady > 0 ? <span><b>{notReady}</b> not query-ready</span> : null}
             {counts.connected > 0 ? <span><b>{counts.connected}</b> connected</span> : null}
             {counts.metadataOnly > 0 ? <span><b>{counts.metadataOnly}</b> metadata only</span> : null}

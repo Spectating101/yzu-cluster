@@ -65,7 +65,7 @@ function acquisitionOnlyRow(dataset = {}) {
 export function statusPillKind(dataset) {
   const reason = runtimeReadinessReason(dataset);
   if (reason) {
-    return { kind: "warn", label: "Not query-ready" };
+    return { kind: "warn", label: "Registered · unconfirmed" };
   }
   if (dataset?.live_identity_badge?.kind && dataset?.live_identity_badge?.label) {
     return dataset.live_identity_badge;
@@ -81,7 +81,7 @@ export function statusPillKind(dataset) {
     return { kind: "external", label: "External" };
   }
   if (isQueryReadyReadiness(readiness)) {
-    return { kind: "query-ready", label: "Query ready" };
+    return { kind: "query-ready", label: "Query-ready" };
   }
   if (readiness === "registered") {
     return { kind: "registered", label: "Registered" };
@@ -103,13 +103,13 @@ export function statusPill(dataset) {
   return statusPillKind(dataset).label;
 }
 
-/** Faculty-facing "Can I use this?" copy — keeps Registered distinct from Query ready. */
+/** Faculty-facing "Can I use this?" copy — keeps Registered distinct from Query-ready. */
 export function canIUseDecision(dataset) {
   const demotion = demotionSentence(dataset);
   if (demotion) {
     const remedy = hydrateRemedy(dataset);
     return {
-      headline: "Not query-ready",
+      headline: "Registered · unconfirmed",
       body: remedy ? `${demotion} ${remedy}` : demotion,
     };
   }
@@ -117,7 +117,7 @@ export function canIUseDecision(dataset) {
   const assetKind = libraryAssetKind(dataset);
   if (state.kind === "query-ready") {
     return {
-      headline: "Query ready",
+      headline: "Query-ready",
       body: "You can preview and query this dataset now.",
     };
   }
@@ -239,7 +239,7 @@ export function libraryAssetKind(dataset = {}) {
   }
   // A registered remote holding with an explicit live connection is a source
   // contract, not a rectangular dataset. This is presentation typing only:
-  // Connected remains distinct from Query ready and no access is promoted.
+  // Connected remains distinct from Query-ready and no access is promoted.
   if (
     statusPillKind(dataset).kind === "connected" &&
     !dataset?.local_root &&

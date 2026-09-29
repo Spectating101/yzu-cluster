@@ -26,9 +26,10 @@ export function buildDeskIntegrationChips(health) {
   if (!health?.desk) return [];
   const desk = health.desk;
   const chips = [];
+  const degraded = String(health.status || "").toLowerCase() === "degraded";
 
   // Desk status badge already lives in the header — only chip when degraded.
-  if (String(health.status || "").toLowerCase() === "degraded") {
+  if (degraded) {
     chips.push({ id: "desk", label: "Desk degraded", tone: "warn" });
   }
 
@@ -37,7 +38,8 @@ export function buildDeskIntegrationChips(health) {
   // degraded" showed with no visible cause. "unavailable" (never configured)
   // is a normal, expected state, not worth a warning chip here.
   const runtimeRead = composerRuntimeRead(desk.composer_runtime);
-  if (runtimeRead && !runtimeRead.ready && runtimeRead.status !== "unavailable") {
+  const quietStates = degraded ? ["unavailable"] : ["unavailable", "unverified"];
+  if (runtimeRead && !runtimeRead.ready && !quietStates.includes(runtimeRead.status)) {
     chips.push({ id: "composer", label: runtimeRead.label, tone: "warn" });
   }
 

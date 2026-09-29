@@ -16,7 +16,7 @@ const STYLES = {
 
 const GUIDANCE = {
   "query-ready": {
-    title: "Query ready",
+    title: "Query-ready",
     summary: "This asset has passed the checks needed for analysis inside Research Drive.",
     checks: [
       "A durable registry identity is available",
@@ -27,13 +27,13 @@ const GUIDANCE = {
   },
   registered: {
     title: "Registered",
-    summary: "The asset is durably archived and registered, but Research Drive has not promoted it to Query ready.",
+    summary: "The asset is durably archived and registered, but Research Drive has not promoted it to Query-ready.",
     checks: [
       "Archive and registry identity are available",
       "Provenance can be inspected in Detail",
       "Query readiness remains a separate evidence claim",
     ],
-    next: "Inspect files or preview support without relabelling the asset Query ready.",
+    next: "Inspect files or preview support without relabelling the asset Query-ready.",
   },
   connected: {
     title: "Connected source",

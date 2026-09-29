@@ -243,7 +243,7 @@ export function classifyJobLifecycle(job, { catalog = [], labIds = null } = {}) 
     if (ready || resultReady) {
       return {
         state: LIFECYCLE.QUERY_READY,
-        label: "In Library · Query ready",
+        label: "In Library · Query-ready",
         explanation: "The collected output is registered and can be queried in the Library.",
         primaryAction: { id: "open_library", label: "Open in Library" },
         secondaryActions: [{ id: "track_resources", label: "Track in Resources" }],
@@ -391,7 +391,7 @@ export function projectDiscoverCandidateLifecycle(row, lifecycle) {
       discover_taxonomy: {
         ...base,
         key: "local-query-ready",
-        label: "In Library · Query ready",
+        label: "In Library · Query-ready",
         lifecycle_projected: true,
       },
     };
@@ -451,9 +451,9 @@ export function applyLifecycleToEvaluation(evaluation, lifecycle) {
     return {
       ...evaluation,
       taxonomyKey: "local-query-ready",
-      taxonomyLabel: "In Library · Query ready",
+      taxonomyLabel: "In Library · Query-ready",
       decision: {
-        headline: "In Library · Query ready",
+        headline: "In Library · Query-ready",
         body: "You can query this dataset now.",
       },
       unknowns: lifecycleHandoffUnknowns(LIFECYCLE.QUERY_READY),

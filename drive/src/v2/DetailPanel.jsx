@@ -181,7 +181,7 @@ function isDatasetReady(dataset) {
 
 function datasetUseStatus(dataset, fields) {
   const demotion = demotionSentence(dataset);
-  if (demotion) return "Not query-ready";
+  if (demotion) return "Registered · unconfirmed";
   if (isDatasetReady(dataset)) return "Ready";
   return "Needs review";
 }

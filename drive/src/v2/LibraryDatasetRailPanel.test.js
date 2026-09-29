@@ -41,7 +41,7 @@ test("registered operational records use recorded-state semantics", () => {
 
 test("query ready remains distinct from registered", () => {
   const ready = canIUseDecision({ analysis_readiness: "instant" });
-  assert.equal(ready.headline, "Query ready");
+  assert.equal(ready.headline, "Query-ready");
   const registered = canIUseDecision({ analysis_readiness: "registered" });
   assert.notEqual(registered.headline, ready.headline);
 });

@@ -69,7 +69,7 @@ test.describe("v2 Library evidence estate", () => {
     const rail = page.locator("aside.rd-v2-rail");
     await expect(page.getByTestId("research-situation")).toContainText("Asia daily news-risk panel");
     await expect(rail).toContainText("Can I use this?");
-    await expect(rail).toContainText("Query ready");
+    await expect(rail).toContainText("Query-ready");
     await expect(rail).toContainText("Source & reproduce");
     await expect(rail).toContainText("Exact source URL not recorded");
     await expect(rail).toContainText("Reproduction method not recorded");
@@ -102,7 +102,7 @@ test.describe("v2 Library evidence estate", () => {
     await expect(provenance).toContainText("Acquisition method");
     await expect(provenance.getByText("Not recorded", { exact: true })).toHaveCount(2);
     await expect(page.getByTestId("library-source-verification")).toContainText("Not checked");
-    await expect(page.getByTestId("library-source-readiness")).toContainText("Query ready");
+    await expect(page.getByTestId("library-source-readiness")).toContainText("Query-ready");
     await provenance.getByRole("button", { name: "Close inspection" }).click();
 
     await page.getByRole("button", { name: "Close asset inspector" }).click();

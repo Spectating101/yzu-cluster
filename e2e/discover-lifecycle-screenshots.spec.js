@@ -61,15 +61,15 @@ test.describe("Discover lifecycle screenshots", () => {
       registered_dataset_id: "mops_financial_statements_2026",
       result: { query_ready: true, analysis_readiness: "instant" },
     })]);
-    await expect(surface.getByTestId("discover-lifecycle")).toContainText("Query ready");
-    await expect(surface.locator('[aria-label="Can I use this"]')).toContainText("In Library · Query ready");
+    await expect(surface.getByTestId("discover-lifecycle")).toContainText("Query-ready");
+    await expect(surface.locator('[aria-label="Can I use this"]')).toContainText("In Library · Query-ready");
     await expect(page.getByTestId("discover-eval-actions").getByRole("button", { name: "Open in Library" })).toBeVisible();
     await shot(page, "04-desktop-query-ready");
 
     await page.setViewportSize({ width: 390, height: 1200 });
     const rail = page.locator("aside.rd-v2-rail");
     await rail.getByRole("button", { name: /Show Detail/ }).click();
-    await expect(rail.getByTestId("discover-lifecycle")).toContainText("Query ready");
+    await expect(rail.getByTestId("discover-lifecycle")).toContainText("Query-ready");
     await shot(page, "05-mobile-query-ready-detail");
   });
 });

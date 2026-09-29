@@ -130,7 +130,7 @@ test("render Library estate browser and inspector review states", async ({ page 
   await openNestedCollection(page, "gdelt");
   await selectAsset(page, "Asia daily news-risk panel");
   await expect(page.locator("aside.rd-v2-rail")).toContainText("Can I use this?");
-  await expect(page.locator("aside.rd-v2-rail")).toContainText("Query ready");
+  await expect(page.locator("aside.rd-v2-rail")).toContainText("Query-ready");
   await page.screenshot({ path: `${OUT}/03-desktop-selected-query-ready.png`, fullPage: false });
 
   await openCollection(page, "Acquired data");

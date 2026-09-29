@@ -40,7 +40,7 @@ test("fuzzy readiness substrings must not claim query ready", () => {
 test("dataset readiness labels preserve the explicit access contract", () => {
   assert.equal(statusPillKind({ analysis_readiness: "instant" }).kind, "query-ready");
   assert.equal(statusPillKind({ analysis_readiness: "instant_or_minutes" }).kind, "query-ready");
-  assert.equal(statusPillKind({ analysis_readiness: "query_ready" }).label, "Query ready");
+  assert.equal(statusPillKind({ analysis_readiness: "query_ready" }).label, "Query-ready");
   assert.equal(statusPillKind({ analysis_readiness: "registered" }).label, "Registered");
   assert.equal(statusPillKind({ analysis_readiness: "connected" }).kind, "connected");
   assert.equal(statusPillKind({ analysis_readiness: "dry_run_before_execution" }).kind, "connected");
@@ -60,7 +60,7 @@ test("instant readiness is not query-ready when local panel is missing at runtim
     runtime_readiness_reason: "local_panel_missing",
   });
   assert.notEqual(pill.kind, "query-ready");
-  assert.notEqual(pill.label, "Query ready");
+  assert.notEqual(pill.label, "Query-ready");
 });
 
 test("declared instant without a runtime reason stays query-ready", () => {
@@ -112,7 +112,7 @@ test("Can I use this keeps the demotion and does not drop the hydrate remedy", (
     runtime_readiness_reason: "local_bytes_missing",
     hydrate_required: true,
   });
-  assert.equal(decision.headline, "Not query-ready");
+  assert.equal(decision.headline, "Registered · unconfirmed");
   assert.match(decision.body, /local bytes are missing/);
   assert.match(decision.body, /vault archive is available to restore local bytes/);
 });
