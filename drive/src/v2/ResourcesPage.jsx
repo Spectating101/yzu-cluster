@@ -784,6 +784,28 @@ function ResourceInventory({ sections, selectedKey, onSelect }) {
   );
 }
 
+function MachineChecks({ operations }) {
+  const checks = Array.isArray(operations?.checks) ? operations.checks : [];
+  if (!checks.length) return null;
+  const failing = checks.filter((check) => check.ok === false).length;
+  return (
+    <div className="rd-v2-res-method-checks" data-testid="resources-machine-checks">
+      <h3>
+        Machine checks
+        <em>{failing ? `${failing} need${failing === 1 ? "s" : ""} attention` : "All passing"}</em>
+      </h3>
+      <ul>
+        {checks.map((check) => (
+          <li key={check.id} className={check.ok === false ? check.tone || "warn" : "ok"}>
+            <strong>{check.label}</strong>
+            <span>{check.detail}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export function ResourcesPage({
   rollup,
   rollupLoading = false,
@@ -986,6 +1008,7 @@ export function ResourcesPage({
                 : "No method decisions waiting. Active routes appear here when collection is in flight."}
             </p>
           </div>
+          <MachineChecks operations={health?.desk?.operations} />
         </section>
       ) : (
         <>

@@ -59,7 +59,7 @@ export function deskStatusSummary(statusBadge, chips) {
     return { label: badge.label, tone: badge.tone, details: [badge.label] };
   }
 
-  const details = [badge.label, ...notices.map((chip) => chip.label)];
+  const details = [badge.label, ...notices.map((chip) => (chip.detail ? `${chip.label}: ${chip.detail}` : chip.label))];
   if (notices.length === 0) {
     return { label: badge.label, tone: badge.tone, details };
   }

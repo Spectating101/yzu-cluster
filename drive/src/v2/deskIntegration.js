@@ -41,6 +41,12 @@ export function buildDeskIntegrationChips(health) {
     chips.push({ id: "composer", label: runtimeRead.label, tone: "warn" });
   }
 
+  for (const check of desk.operations?.checks || []) {
+    if (check?.ok === false && check.label) {
+      chips.push({ id: `ops-${check.id}`, label: check.label, tone: check.tone === "bad" ? "bad" : "warn", detail: check.detail || "" });
+    }
+  }
+
   const gdrive = desk.gdrive;
   if (gdrive && gdrive.ok === false) {
     chips.push({ id: "gdrive", label: "Vault unreachable", tone: "bad" });

@@ -938,6 +938,43 @@
   color: #5b6578;
   font-size: 0.88rem;
 }
+.rd-v2-res-method-checks {
+  margin-top: 12px;
+  border: 1px solid #e4e8f0;
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: #fff;
+}
+.rd-v2-res-method-checks h3 {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+}
+.rd-v2-res-method-checks h3 em {
+  font-style: normal;
+  font-size: 0.8rem;
+  color: var(--rd-release-subtle);
+}
+.rd-v2-res-method-checks ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.rd-v2-res-method-checks li {
+  display: grid;
+  grid-template-columns: minmax(12rem, 16rem) 1fr;
+  gap: 12px;
+  padding: 6px 0 6px 10px;
+  border-left: 3px solid var(--rd-release-green);
+  font-size: 0.85rem;
+}
+.rd-v2-res-method-checks li.warn { border-left-color: var(--rd-release-amber); }
+.rd-v2-res-method-checks li.bad { border-left-color: #b42318; }
+.rd-v2-res-method-checks li span { color: #5b6578; }
 
 /* Discover Explore empty — densify first viewport (freeze: no giant blank canvas) */
 
