@@ -190,3 +190,9 @@ test("metadata catalogues and normal panels keep distinct Library projections", 
     "dataset",
   );
 });
+
+test("registered folders of files read as files, not as unconfirmed tables", () => {
+  const pill = statusPillKind({ dataset_id: "d", registered: true, analysis_readiness: "registered", access_shape: "local_file_tree" });
+  assert.equal(pill.label, "Files available");
+  assert.equal(statusPillKind({ dataset_id: "d", registered: true, analysis_readiness: "registered" }).label, "Registered");
+});

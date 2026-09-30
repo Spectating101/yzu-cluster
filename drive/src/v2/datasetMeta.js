@@ -84,6 +84,9 @@ export function statusPillKind(dataset) {
     return { kind: "query-ready", label: "Query-ready" };
   }
   if (readiness === "registered") {
+    if (String(dataset?.access_shape || "").toLowerCase() === "local_file_tree") {
+      return { kind: "registered", label: "Files available" };
+    }
     return { kind: "registered", label: "Registered" };
   }
   if (readiness === "dry_run_before_execution" || /bigquery/i.test(dataset?.backend || "")) {
