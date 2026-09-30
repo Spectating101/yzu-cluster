@@ -2,6 +2,7 @@
  * Home Iteration 10 projection helpers — docs/HOME_FULL_SCALE_FREEZE_2026-07-16.md
  */
 
+import { storageFree, storageUsed } from "./storageFormat.js";
 import { displayName, isReceiptOnlyAsset, statusPill } from "./datasetMeta.js";
 import { buildHomeBriefing } from "./homeBriefing.js";
 import { buildLab } from "./profileViewModel.js";
@@ -54,6 +55,23 @@ function formatHeadroom(pct) {
   return `${Math.max(0, Math.round(100 - pct))}% headroom`;
 }
 
+
+function jobIdentity(job) {
+  const plan = job?.plan || {};
+  return String(plan.task_id || plan.dataset_id || plan.url || plan.title || job?.title || "").trim().toLowerCase();
+}
+
+export function failureSuperseded(job, jobs) {
+  const identity = jobIdentity(job);
+  if (!identity) return false;
+  const failedAt = String(job?.updated_at || job?.created_at || "");
+  return (jobs || []).some((other) =>
+    other !== job
+    && String(other?.status || "").toLowerCase() === "completed"
+    && jobIdentity(other) === identity
+    && String(other?.updated_at || other?.created_at || "") > failedAt);
+}
+
 export function buildPickUp({
   datasets = [],
   jobs = [],
@@ -97,7 +115,7 @@ export function buildPickUp({
         id: firstPending?.id || "approval",
         title: /^synth(?:esis)?[\s_-]*block$/i.test(rawTitle)
           ? "Synthesis proposal awaiting review"
-          : rawTitle || "Research decision waiting",
+          : rawTitle || `${pendingCount} ${pendingCount === 1 ? "request" : "requests"} awaiting your approval`,
         stateSummary: "A researcher decision is required before this work can continue.",
         location: "DISCOVER / HISTORY",
         pill: `${pendingCount} pending`,
@@ -170,6 +188,7 @@ export function buildPickUp({
   for (const job of jobs || []) {
     const status = String(job?.status || job?.state || "").toLowerCase();
     if (!/failed|queued|running/.test(status)) continue;
+    if (status === "failed" && failureSuperseded(job, jobs)) continue;
     if (isHistoryNoise({ id: job.id, title: job?.plan?.title || job.title, status })) continue;
     const failed = status === "failed";
     candidates.push({
@@ -329,7 +348,7 @@ export function buildResourceHeadroom(rollup, health = null) {
       metric: observed
         ? used === 0 && capOk
           ? `Empty · ${cap} TB capacity`
-          : `${used}/${capOk ? cap : "?"} TB`
+          : storageUsed(used, capOk ? cap : null, "TB")
         : capOk
           ? `${cap} TB capacity · use not observed`
           : "Quota not observed",
@@ -350,7 +369,7 @@ export function buildResourceHeadroom(rollup, health = null) {
       pinned: false,
       metric:
         cache.used_gb != null || cache.total_gb != null
-          ? `${cache.used_gb ?? "?"}/${cache.total_gb ?? "?"} GB`
+          ? storageUsed(cache.used_gb, cache.total_gb, "GB")
           : cache.mounted
             ? "Mounted"
             : "Capacity",

@@ -1,5 +1,6 @@
 /** Resources — running jobs, stack, storage (sources/layers live in deskSourcesManifest.js). */
 
+import { storageFree, storageUsed } from "./storageFormat.js";
 import { measuredComposerLabel } from "./resourcesTruth.js";
 import { normalizeExecutionLifecycle } from "./executionLifecycle.js";
 import { evaluateJobRouting } from "./workerRouting.js";
@@ -233,7 +234,7 @@ export function buildStorageRows({ health }) {
         kind: "usage",
         key: "vault",
         label: canonical.label || "GDrive vault",
-        metric: `${used ?? "?"}/${quota ?? "?"} TB`,
+        metric: storageUsed(used, quota, "TB") || "Not observed",
         progress: pct,
         ok: desk.gdrive?.ok !== false,
         warn: pct != null && pct >= 75,
@@ -249,7 +250,7 @@ export function buildStorageRows({ health }) {
         kind: "usage",
         key: "nvme",
         label: hot.label || "NVMe hot desk",
-        metric: hot.free_gb != null ? `${hot.free_gb} GB free` : `${pct}% used`,
+        metric: hot.free_gb != null ? storageFree(hot.free_gb) : `${pct}% used`,
         progress: Number.isFinite(pct) ? pct : null,
         ok: hot.headroom_ok !== false,
         warn: hot.headroom_ok === false || pct >= 85,
@@ -267,7 +268,7 @@ export function buildStorageRows({ health }) {
         label: cache.label || "USB bulk cache",
         metric: mounted
           ? cache.total_gb
-            ? `${cache.used_gb ?? "?"}/${cache.total_gb} GB`
+            ? storageUsed(cache.used_gb, cache.total_gb, "GB") || "mounted"
             : "mounted"
           : "offline",
         ok: mounted,

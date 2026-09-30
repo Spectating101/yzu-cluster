@@ -629,9 +629,11 @@
 
 .rd-v2-profile-section-head h2 {
   color: var(--rd-hps-ink);
+  font-family: inherit;
   font-size: 14px;
   font-weight: 690;
   letter-spacing: -.018em;
+  text-transform: none;
 }
 
 .rd-v2-profile-section-head p {

@@ -1,3 +1,4 @@
+import { storageFree, storageUsed } from "./storageFormat.js";
 import { plainIdentifiers } from "./plainText.js";
 /**
  * Resources · Capacity & access band
@@ -98,14 +99,14 @@ export function buildCapacityAccessPairs(rollup, health) {
       metric: vaultObserved
         ? vaultUsed === 0 && Number.isFinite(vaultCap)
           ? `Empty · ${vaultCap} TB capacity`
-          : `${vaultUsed}/${Number.isFinite(vaultCap) ? vaultCap : "?"} TB`
+          : storageUsed(vaultUsed, vaultCap, "TB")
         : Number.isFinite(vaultCap)
           ? `${vaultCap} TB · use not observed`
           : "NOT OBSERVED",
       pct: vaultPct,
       available: vaultObserved
         ? Number.isFinite(vaultCap) && Number.isFinite(vaultUsed)
-          ? `${Math.max(0, vaultCap - vaultUsed).toFixed(1)} TB available`
+          ? storageFree(vaultCap - vaultUsed, "TB")
           : null
         : "NOT OBSERVED",
       warn: vaultPct != null && vaultPct >= 85,
@@ -116,19 +117,34 @@ export function buildCapacityAccessPairs(rollup, health) {
       name: cache.label || "USB bulk cache",
       metric:
         cache.used_gb != null || cache.total_gb != null
-          ? `${cache.used_gb ?? "?"}/${cache.total_gb ?? "?"} GB`
+          ? storageUsed(cache.used_gb, cache.total_gb, "GB")
           : cache.mounted
             ? "Mounted"
             : "Not mounted",
       pct: cachePct,
       available:
         cache.total_gb != null && cache.used_gb != null
-          ? `${Math.max(0, Number(cache.total_gb) - Number(cache.used_gb)).toFixed(0)} GB available`
+          ? storageFree(Number(cache.total_gb) - Number(cache.used_gb))
           : null,
       warn: cachePct != null && cachePct >= 85,
       action: cachePct != null && cachePct >= 85 ? "CHECK" : null,
     }),
   ];
+  const disk = health?.desk?.storage_tiers?.hot || rollup?.usage?.hot || {};
+  if (disk.headroom_ok === false) {
+    storage.push(
+      meter({
+        id: "desk-disk",
+        markId: "cache",
+        name: "This machine's disk",
+        metric: `${storageFree(disk.free_gb)}${disk.required_min_gb != null ? ` · needs ${disk.required_min_gb} GB` : ""}`,
+        pct: Number(disk.used_pct),
+        available: "Below the desk's minimum free space",
+        warn: true,
+        action: "CHECK",
+      }),
+    );
+  }
 
   const services = [
     meter({

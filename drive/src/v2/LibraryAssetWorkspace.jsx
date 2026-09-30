@@ -1,4 +1,4 @@
-import { plainRoute } from "@/v2/plainText";
+import { plainRoute } from "./plainText.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { plainIdentifiers } from "@/v2/plainText";
 import { queryDataset } from "@/v2/api";

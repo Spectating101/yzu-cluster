@@ -256,3 +256,13 @@ test("recent trail translates worker exceptions instead of exposing serialized j
   assert.equal(trail[0].summary, "The source file was not available; review the recorded route in History.");
   assert.doesNotMatch(trail[0].summary, /RuntimeError|job_id|\{|\}/);
 });
+
+test("a failed collection that a later run completed is not a needs-you item", async () => {
+  const { failureSuperseded } = await import("./homeIteration10.js");
+  const failed = { id: "a", status: "failed", updated_at: "2026-09-25T14:44:32Z", plan: { task_id: "crypto_majors_daily_10y" } };
+  const later = { id: "b", status: "completed", updated_at: "2026-09-26T01:00:00Z", plan: { task_id: "crypto_majors_daily_10y" } };
+  const other = { id: "c", status: "completed", updated_at: "2026-09-27T01:00:00Z", plan: { task_id: "something_else" } };
+  assert.equal(failureSuperseded(failed, [failed, later]), true);
+  assert.equal(failureSuperseded(failed, [failed, other]), false);
+  assert.equal(failureSuperseded({ ...failed, updated_at: "2026-09-28T00:00:00Z" }, [failed, later]), false);
+});
