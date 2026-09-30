@@ -64,7 +64,7 @@ export function AskAgentCard({
 
       <div className="rd-v2-ask-card-body">
         {streaming && !message?.text ? (
-          <p className="rd-v2-ask-card-pending">Gathering grounded context…</p>
+          <p className="rd-v2-ask-card-pending">{String(message?.activity || "").trim() || "Gathering grounded context…"}</p>
         ) : null}
         {parsed.paragraphs.map((para, i) => (
           <p key={`p-${i}`} className="rd-v2-ask-card-para">

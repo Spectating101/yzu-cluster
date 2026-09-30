@@ -147,7 +147,7 @@ export function useAskChat({
     const warming = deskWarm({
       sessionId: undefined,
       userEmail: loadUserEmail() || undefined,
-      background: false,
+      background: true,
     })
       .then((out) => {
         const sessionId = String(out?.session_id || "").trim();
