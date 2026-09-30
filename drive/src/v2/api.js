@@ -140,7 +140,7 @@ export async function sendChatMessage(
     const started = Date.now();
     const tick = setInterval(() => {
       const elapsed = Math.round((Date.now() - started) / 1000);
-      onActivity?.({ text: "Working…", elapsed_seconds: elapsed });
+      onActivity?.({ text: "Researching with the Library and source tools…", elapsed_seconds: elapsed });
     }, 1500);
     try {
       let fallback;
