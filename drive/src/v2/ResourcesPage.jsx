@@ -357,7 +357,7 @@ function ActivityLog({ rows, selectedKey, onSelectRow }) {
                     </em>
                   </span>
                   <span className={`rd-v2-res-activity-meter${costLabel === "—" ? " empty" : ""}`}>
-                    {costLabel}
+                    {costLabel === "—" ? "" : costLabel}
                   </span>
                 </button>
               );

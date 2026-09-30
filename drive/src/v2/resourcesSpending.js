@@ -2,6 +2,7 @@
 
 import { buildMotionRowsFromRollup } from "@/v2/resourcesFromRollup";
 import { measuredComposerLabel } from "./resourcesTruth.js";
+import { plainIdentifiers } from "./plainText.js";
 
 function rowBase(row) {
   return { ok: true, warn: false, ...row };
@@ -39,8 +40,9 @@ function cleanTarget(target) {
 }
 
 function cleanActivitySubject(target, action) {
-  let text = cleanTarget(target).replace(/\s+/g, " ").trim();
+  let text = cleanTarget(target).replace(/\s+/g, " ").replace(/^web:\s*/i, "").trim();
   if (!text) return ACTION_LABELS[action] || action || "Activity";
+  if (/^[a-z][a-z0-9]*(?:_[a-z0-9]+)+$/.test(text)) return plainIdentifiers(text);
 
   const currentRun = text.match(/^Explain the current procurement run:\s*([^.]+?)(?:\s*\(|\.|$)/i);
   if (currentRun?.[1]) return currentRun[1].trim();
@@ -56,9 +58,11 @@ function cleanActivitySubject(target, action) {
 
 const ACTION_LABELS = {
   ask: "Ask",
-  discover: "Browse discover",
-  bq_dry_run: "BQ dry-run",
-  bq_read: "BQ read",
+  discover: "Discover search",
+  discover_sources: "Source search",
+  web: "Web context",
+  bq_dry_run: "BigQuery cost check",
+  bq_read: "BigQuery read",
   procure: "Procure",
   query: "Query dataset",
   preview: "Preview",
@@ -288,8 +292,8 @@ export function buildActivityRows(rollup, filter = null) {
         kind: "activity",
         key: `act-${ev.id}`,
         label: cleanActivitySubject(ev.target, ev.action),
-        metric: ACTION_LABELS[ev.action] || ev.action,
-        actionLabel: ACTION_LABELS[ev.action] || ev.action,
+        metric: ACTION_LABELS[ev.action] || plainIdentifiers(ev.action),
+        actionLabel: ACTION_LABELS[ev.action] || plainIdentifiers(ev.action),
         target: cleanTarget(ev.target),
         sublabel: fmtTime(ev.ts),
         costLabel: fmtCost(ev.cost),

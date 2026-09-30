@@ -1295,6 +1295,14 @@ body:has(.rd-v2-discover-page) .rd-v2-eval-actions {
   border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 80%, transparent);
   background: rgba(255, 255, 255, 0.96);
   box-shadow: 0 -10px 26px rgba(16, 24, 32, 0.035);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 14px;
+}
+body:has(.rd-v2-discover-page) .rd-v2-eval-actions > .rd-v2-eval-primary-action {
+  flex: 1 0 100%;
+  justify-content: center;
 }
 
 @media (max-width: 1180px) {

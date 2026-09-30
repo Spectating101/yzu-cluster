@@ -549,7 +549,7 @@ function WhatHappensNext({
               ? "The desk has finished deterministic checks against held evidence. Assistant reasoning is not verified, so no construction has been invented; review the measured risks or check Resources."
               : "Start a reasoning turn to request one reviewable construction. It may clarify a decisive gap first; it will not collect, execute, or change data."}
       </p>
-      <footer>
+      <footer data-evidence={needsEvidence ? "needed" : "mapped"}>
         {rec.alternatives ? (
           <button
             type="button"
