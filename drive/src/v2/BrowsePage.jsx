@@ -17,6 +17,7 @@ import {
 } from "@/v2/browseMeta";
 import { discoverCandidateUrl, webHitsToRows } from "@/v2/discoverActions";
 import { candidateKey, isCandidateQueued, isSelectedCandidate, withCandidateKey } from "@/v2/candidateKey";
+import { pinOrder } from "./stableOrder.js";
 import { buildDiscoverLifecycle, projectDiscoverCandidateLifecycle } from "@/v2/discoverLifecycle";
 import {
   interpretEvidenceNeed,
@@ -1131,13 +1132,20 @@ export function BrowsePage({
     return orderDiscoverResults(stampedRows, labIds);
   }, [rows, jobs, labIds, catalog, probeSnapshots]);
 
+  const pinnedOrderRef = useRef({ query: "", order: new Map() });
+  const pinned = useMemo(() => {
+    const q = String(searchQuery || "").trim();
+    if (pinnedOrderRef.current.query !== q) pinnedOrderRef.current = { query: q, order: new Map() };
+    return pinOrder(merged, (row) => candidateKey(row) || candidateTitle(row), pinnedOrderRef.current.order);
+  }, [merged, searchQuery]);
+
   const filtered = useMemo(() => {
-    if (stateFilter === "all") return merged;
-    return merged.filter((r) => {
+    if (stateFilter === "all") return pinned;
+    return pinned.filter((r) => {
       const tax = r.discover_taxonomy || classifyDiscoverResult(r, labIds);
       return taxonomyMatchesFilter(tax, stateFilter);
     });
-  }, [merged, stateFilter, labIds]);
+  }, [pinned, stateFilter, labIds]);
 
   // The frozen Explore composition has one ranked list.  Filters and sorting
   // change that list; they never promote a "best" row into a second surface.
@@ -1785,6 +1793,7 @@ export function BrowsePage({
                   initialQuestion={q}
                   autoAssess
                   assessmentValue={assessmentResult}
+                  libraryMatchCount={resultGroups.held.length}
                   catalog={catalog}
                   onSelectRow={onSelectRow}
                   onLegacySearch={onSuggestSearch}

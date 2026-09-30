@@ -5,6 +5,7 @@ import { plainIdentifiers } from "@/v2/plainText";
 import { synthesisJourneyStage } from "@/v2/synthesisLifecycle";
 import "@/v2/rail-convergence.css";
 import "@/v2/final-convergence.css";
+import { assessmentGapText, assessmentLabel } from "./assessmentLabels.js";
 
 function text(value) {
   if (value === null || value === undefined) return "";
@@ -82,8 +83,8 @@ function discoverSituation({ browseTarget, browseLifecycle, historyEvent, discov
 
   if (discoverAssessment?.active) {
     const result = discoverAssessment.result || discoverAssessment;
-    const verdict = humanize(result.verdict || result.assessment_status || result.status);
-    const gap = text(result.gap?.statement);
+    const verdict = assessmentLabel(result, humanize(result.status));
+    const gap = assessmentGapText(result);
     return {
       status: verdict || "Coverage assessment",
       facts: [text(discoverAssessment.question || result.question), gap],

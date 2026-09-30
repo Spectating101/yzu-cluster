@@ -19,6 +19,7 @@ import { SynthesisThreadRailPanel } from "@/v2/SynthesisThreadRailPanel";
 import { SynthesisIdleRailPanel } from "@/v2/SynthesisIdleRailPanel";
 import { ResearchSituationRail } from "@/v2/ResearchSituationRail";
 import { DISCOVER_TAB } from "@/v2/tabIdentity";
+import { assessmentGapText, assessmentLabel } from "./assessmentLabels.js";
 
 function railSelectionHint(
   mainTab,
@@ -86,10 +87,8 @@ function DiscoverAssessmentRailSummary({ state, onClose }) {
   const pending = !result;
   const status = pending
     ? "Assessment in progress"
-    : String(result?.verdict || result?.assessment_status || "Coverage assessment")
-      .replaceAll("_", " ")
-      .replace(/^./, (letter) => letter.toUpperCase());
-  const gap = String(result?.gap?.statement || "").trim();
+    : assessmentLabel(result);
+  const gap = assessmentGapText(result);
   const held = Array.isArray(result?.held_evidence) ? result.held_evidence.length : 0;
   return (
     <section className="rd-v2-discover-assessment-rail-summary" aria-label="Evidence assessment summary">

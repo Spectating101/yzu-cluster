@@ -3,20 +3,7 @@ import { assessDiscoverEvidence, listDiscoverGapRoutes } from "@/v2/api";
 import { DISCOVER_SUGGESTIONS } from "@/v2/deskSeed";
 import { handleEnterToRequestSubmit } from "@/v2/enterToSubmit";
 import { buildDiscoverDecisionCapacity } from "@/v2/discoverDecisionCapacity";
-
-const VERDICT_LABELS = {
-  covered: "Covered",
-  partially_covered: "Partially covered",
-  partial: "Partially covered",
-  not_covered: "Not covered",
-  uncovered: "Not covered",
-  // Backward compatibility for the short-lived fourth-verdict contract.
-  cannot_assess: "Not yet recorded",
-};
-const ASSESSMENT_STATUS_LABELS = {
-  insufficient_metadata: "Not yet recorded",
-  insufficient_requirement: "Needs a brief",
-};
+import { assessmentLabel, assessmentStatusKey } from "./assessmentLabels.js";
 
 function text(value, fallback) {
   if (value == null || value === "") return fallback;
@@ -177,6 +164,7 @@ export function DiscoverEvidenceBrief({
   resourcesRollup,
   resourcesError = "",
   deskHealth = null,
+  libraryMatchCount = 0,
 }) {
   const [draft, setDraft] = useState(initialQuestion);
   const [assessment, setAssessment] = useState(assessmentValue);
@@ -222,11 +210,13 @@ export function DiscoverEvidenceBrief({
   const suggestions = useMemo(() => localSuggestions(catalog, draft), [catalog, draft]);
   const heldEvidence = Array.isArray(assessment?.held_evidence) ? assessment.held_evidence : [];
   const verdictKey = String(assessment?.verdict || "").trim().toLowerCase().replace(/[ -]/g, "_");
-  const assessmentStatus = String(assessment?.assessment_status || "").trim().toLowerCase().replace(/[ -]/g, "_");
-  const verdictLabel = ASSESSMENT_STATUS_LABELS[assessmentStatus]
-    || VERDICT_LABELS[verdictKey]
-    || text(assessment?.verdict, "Assessment pending");
+  const assessmentStatus = assessmentStatusKey(assessment);
+  const verdictLabel = assessmentLabel(assessment, text(assessment?.verdict, "Assessment pending"));
   const verdictTone = assessmentStatus || verdictKey || "unknown";
+  const briefNeeded = assessmentStatus === "insufficient_requirement";
+  const because = briefNeeded
+    ? `${libraryMatchCount ? `${libraryMatchCount} Library ${libraryMatchCount === 1 ? "match" : "matches"} found. ` : ""}Coverage is checked once the brief says what the data must cover: period, frequency, or instruments.`
+    : text(assessment?.because, "Reasoning was not provided.");
   const establishedDimensions = dimensions.filter((item) => item.value && item.value !== "Unknown");
   const routeRows = Array.isArray(routeResult?.routes) ? routeResult.routes : [];
   const capacityRows = useMemo(
@@ -473,13 +463,21 @@ export function DiscoverEvidenceBrief({
             </span>
             {onClose ? <button type="button" className="rd-v2-evidence-close" onClick={onClose}>Hide assessment</button> : null}
           </header>
-          <p className="rd-v2-evidence-because">{text(assessment.because, "Reasoning was not provided.")}</p>
+          <p className="rd-v2-evidence-because">{because}</p>
 
           {variant === "workspace" ? (
             <section className="rd-v2-evidence-position-grid" aria-label="Evidence position summary">
               <div><span>Requirement</span><strong>{establishedDimensions.length}/{dimensions.length || 0}</strong><em>dimensions established</em></div>
-              <div><span>Library support</span><strong>{heldEvidence.length}</strong><em>held evidence record{heldEvidence.length === 1 ? "" : "s"}</em></div>
-              <div><span>Evidence gap</span><strong>{assessment.gap ? "Open" : "None reported"}</strong><em>{assessment.gap ? text(assessment.gap.statement, "Gap recorded") : "Assessment reported no remaining gap"}</em></div>
+              {briefNeeded ? (
+                <div><span>Library matches</span><strong>{libraryMatchCount}</strong><em>coverage not yet checked</em></div>
+              ) : (
+                <div><span>Library support</span><strong>{heldEvidence.length}</strong><em>held evidence record{heldEvidence.length === 1 ? "" : "s"}</em></div>
+              )}
+              {briefNeeded ? (
+                <div><span>Evidence gap</span><strong>Brief needed</strong><em>State period, frequency, or instruments</em></div>
+              ) : (
+                <div><span>Evidence gap</span><strong>{assessment.gap ? "Open" : "None reported"}</strong><em>{assessment.gap ? text(assessment.gap.statement, "Gap recorded") : "Assessment reported no remaining gap"}</em></div>
+              )}
               <div><span>Sourcing</span><strong>{routeLoading ? "Checking" : routeRows.length ? `${routeRows.length} declared` : "Not established"}</strong><em>{routeRows.length ? "source options for the recorded gap" : "no route claim without a backend comparison"}</em></div>
             </section>
           ) : null}
@@ -491,7 +489,7 @@ export function DiscoverEvidenceBrief({
             <summary>
               <span>Assessment details</span>
               <em>
-                {heldEvidence.length} held · {assessment.gap ? "1 gap" : "no gap"} · {routeLoading
+                {briefNeeded ? `${libraryMatchCount} Library matches` : `${heldEvidence.length} held`} · {briefNeeded ? "brief needed" : assessment.gap ? "1 gap" : "no gap"} · {routeLoading
                   ? "checking routes"
                   : `${routeRows.length} declared route${routeRows.length === 1 ? "" : "s"}`}
               </em>
