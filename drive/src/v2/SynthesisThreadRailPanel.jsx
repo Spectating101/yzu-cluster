@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   RailDecisionSummary,
   RailField,
@@ -9,6 +10,7 @@ import { synthesisAssist } from "@/v2/synthesisAssist.js";
 import { synthesisDraftBrief, synthesisDraftPrompt } from "@/v2/synthesisDraft.js";
 import { synthesisPreviewTruth } from "@/v2/synthesisLifecycle";
 import { isPreAcceptance, recommendedConstruction, researchBrief } from "@/v2/synthesisBrief.js";
+import { describeDataset } from "@/v2/api";
 import "./synthesis-convergence.css";
 
 function normalizedExecutionStatus(thread) {
@@ -293,7 +295,45 @@ function AuthorityProof({ state, status, preview, outputId, registered, queryRea
   );
 }
 
-export function SynthesisThreadRailPanel({ thread, onAskAbout, onOpenInLibrary }) {
+function useLibraryRecord(datasetId) {
+  const [record, setRecord] = useState({ id: "", name: "", queryReady: false });
+  useEffect(() => {
+    if (!datasetId) return undefined;
+    let cancelled = false;
+    describeDataset(datasetId)
+      .then((payload) => {
+        if (cancelled) return;
+        const ds = payload?.dataset || payload || {};
+        setRecord({
+          id: datasetId,
+          name: String(ds.name || ds.display_name || ds.title || ""),
+          queryReady: ds.analysis_readiness === "query_ready" || ds.materialization?.query_ready === true,
+        });
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [datasetId]);
+  return record.id === datasetId ? record : { id: datasetId, name: "", queryReady: false };
+}
+
+export function SynthesisThreadRailPanel({ thread: recordedThread, onAskAbout, onOpenInLibrary }) {
+  const recordedOutputId =
+    recordedThread?.state?.execution?.output_dataset_id || recordedThread?.state?.execution_spec?.output_dataset_id || "";
+  const specInputId =
+    recordedThread?.state?.execution_spec?.input_dataset_id ||
+    recordedThread?.state?.proposal?.execution_spec?.input_dataset_id ||
+    "";
+  const recordedRegistered =
+    recordedThread?.materialisation === "registered" ||
+    normalizedExecutionStatus(recordedThread) === "registered";
+  const outputRecord = useLibraryRecord(recordedRegistered ? recordedOutputId : "");
+  const inputRecord = useLibraryRecord(specInputId);
+  const thread =
+    outputRecord.queryReady && recordedThread?.materialisation !== "query_ready"
+      ? { ...recordedThread, materialisation: "query_ready" }
+      : recordedThread;
   const state = thread?.state || {};
   const execution = state.execution || {};
   const status = normalizedExecutionStatus(thread);
@@ -310,7 +350,7 @@ export function SynthesisThreadRailPanel({ thread, onAskAbout, onOpenInLibrary }
   const evidenceValue = sources.length
     ? `${sources.length} mapped inputs`
     : specInput
-      ? `Declared input · ${state.execution_spec ? "accepted" : "proposed"}: ${specInput}`
+      ? `${inputRecord.name || specInput}${state.execution_spec ? "" : " · proposed"}`
       : "No inputs mapped";
   const target = {
     kind: "synthesis_thread",
@@ -341,11 +381,18 @@ export function SynthesisThreadRailPanel({ thread, onAskAbout, onOpenInLibrary }
           queryReady={queryReady}
         />
         <RailFieldGrid>
-          <RailField label="Grain" value={state.required_grain || state.spec?.grain} />
-          <RailField label="Evidence" value={evidenceValue} />
-          <RailField label="Proposal" value={state.proposal?.title || "No proposal awaiting review"} />
-          <RailField label="Output" value={outputId || "Not registered"} mono={Boolean(outputId)} />
-          <RailField label="Manifest" value={execution.manifest_id || "Not reported"} mono={Boolean(execution.manifest_id)} />
+          {state.required_grain || state.spec?.grain ? (
+            <RailField label="Grain" value={state.required_grain || state.spec?.grain} />
+          ) : null}
+          <RailField label={sources.length ? "Evidence" : "Input"} value={evidenceValue} />
+          {!registered ? (
+            <RailField label="Proposal" value={state.proposal?.title || "No proposal awaiting review"} />
+          ) : null}
+          <RailField
+            label="Output"
+            value={registered ? outputRecord.name || outputId : "Not registered"}
+            mono={registered && !outputRecord.name}
+          />
         </RailFieldGrid>
       </div>
       <RailStickyFooter>
@@ -355,7 +402,7 @@ export function SynthesisThreadRailPanel({ thread, onAskAbout, onOpenInLibrary }
             className="rd-v2-btn primary"
             onClick={() => onOpenInLibrary?.({
               dataset_id: outputId,
-              name: outputId,
+              name: outputRecord.name || outputId,
               analysis_readiness: queryReady ? "query_ready" : "registered",
             })}
           >

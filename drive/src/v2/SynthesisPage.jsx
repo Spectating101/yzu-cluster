@@ -1129,8 +1129,26 @@ function formatCell(value) {
   return String(value);
 }
 
+function useDatasetName(datasetId) {
+  const [named, setNamed] = useState({ id: "", name: "" });
+  useEffect(() => {
+    if (!datasetId) return undefined;
+    let cancelled = false;
+    describeDataset(datasetId)
+      .then((payload) => {
+        const ds = payload?.dataset || payload || {};
+        if (!cancelled) setNamed({ id: datasetId, name: String(ds.name || ds.display_name || ds.title || "") });
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [datasetId]);
+  return named.id === datasetId ? named.name : "";
+}
+
 function useRegisteredOutput(outputId, enabled) {
-  const [state, setState] = useState({ loading: false, name: "", rows: [], columns: [], total: null, error: "" });
+  const [state, setState] = useState({ loading: false, name: "", queryReady: false, rows: [], columns: [], total: null, error: "" });
   useEffect(() => {
     if (!enabled || !outputId) return undefined;
     let cancelled = false;
@@ -1143,6 +1161,7 @@ function useRegisteredOutput(outputId, enabled) {
       setState({
         loading: false,
         name: String(ds.name || ds.display_name || ds.title || ""),
+        queryReady: ds.analysis_readiness === "query_ready" || ds.materialization?.query_ready === true,
         rows,
         columns: Object.keys(rows[0] || {}),
         total: result.meta?.total_rows ?? result.meta?.returned ?? null,
@@ -1187,8 +1206,10 @@ function ExecutionRecord({ thread, busy, onRequest, onReview, onAsk, onOpenDatas
   const status = text(execution.status, "not requested").replace(/_/g, " ");
   const outputId = threadOutput(thread);
   const mode = stateFor(thread);
-  const queryReady = mode === "query_ready";
-  const registered = mode === "registered" || queryReady;
+  const registered = mode === "registered" || mode === "query_ready";
+  const result = useRegisteredOutput(outputId, registered);
+  const inputName = useDatasetName(spec.input_dataset_id);
+  const queryReady = mode === "query_ready" || result.queryReady;
   const failed = execution.status === "failed";
   const pendingApproval = rawStatus === "pending_approval";
   const active = ["queued", "running", "registering", "archiving"].includes(rawStatus);
@@ -1219,7 +1240,6 @@ function ExecutionRecord({ thread, busy, onRequest, onReview, onAsk, onOpenDatas
           ? "Execution failed"
           : "Execution record";
   const badge = previewEligible ? previewStatus : queryReady ? "Query-ready" : registered ? "Registered" : status;
-  const result = useRegisteredOutput(outputId, registered);
 
   return (
     <section className="s04-card" data-testid={queryReady ? "synthesis-query-ready-state" : registered ? "synthesis-registered-state" : failed ? "synthesis-failed-state" : "synthesis-execution-state"}>
@@ -1233,8 +1253,8 @@ function ExecutionRecord({ thread, busy, onRequest, onReview, onAsk, onOpenDatas
       {registered ? <RegisteredResultTable result={result} /> : null}
       {hasSpec ? (
         <dl className="s04-method">
-          <div><dt>Input</dt><dd>{softIdentifier(spec.input_dataset_id)}</dd></div>
-          <div><dt>Output</dt><dd>{softIdentifier(spec.output_dataset_id)}</dd></div>
+          <div><dt>Input</dt><dd>{inputName || softIdentifier(spec.input_dataset_id)}</dd></div>
+          <div><dt>Output</dt><dd>{(registered && result.name) || softIdentifier(spec.output_dataset_id)}</dd></div>
           <div><dt>Group by</dt><dd>{Array.isArray(spec.group_by) ? spec.group_by.join(" · ") : "Not reported"}</dd></div>
           <div><dt>Metrics</dt><dd>{Array.isArray(spec.metrics) ? `${spec.metrics.length} defined` : "Not reported"}</dd></div>
         </dl>

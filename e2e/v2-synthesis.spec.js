@@ -757,7 +757,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
     // shown, never stacked with the draft/interpreting canvas underneath it.
     await expect(page.getByTestId("synthesis-draft-state")).toHaveCount(0);
     const rail = page.locator("aside.rd-v2-rail");
-    await expect(rail).toContainText("Declared input · accepted: stablecoin_trust_engagement_weekly");
+    await expect(rail).toContainText("stablecoin_trust_engagement_weekly");
     await expect(rail).not.toContainText("No inputs mapped");
     await capture(page, "09-rail-evidence-fixed-desktop");
   });
