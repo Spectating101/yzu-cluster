@@ -11,31 +11,31 @@ const VISIBLE_PHASES = [
   {
     id: "evidence",
     label: "Evidence",
-    detail: "Held inputs",
+    detail: "Library inputs",
     stages: ["evidence"],
   },
   {
     id: "method",
     label: "Method",
-    detail: "Construction choices",
+    detail: "Build choices",
     stages: ["specification"],
   },
   {
     id: "review",
     label: "Review",
-    detail: "Proposal + authority",
+    detail: "Proposal and permissions",
     stages: ["proposal", "readiness", "approval"],
   },
   {
     id: "build",
     label: "Build",
-    detail: "Execution + registration",
+    detail: "Execution and Library checks",
     stages: ["build"],
   },
   {
     id: "result",
     label: "Result",
-    detail: "Registered evidence",
+    detail: "Data saved to Library",
     stages: ["result"],
   },
 ];

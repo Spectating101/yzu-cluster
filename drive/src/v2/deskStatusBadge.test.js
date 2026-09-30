@@ -7,7 +7,7 @@ describe("deskStatusBadge", () => {
     assert.deepEqual(deskStatusBadge("ok"), { label: "Live registry", tone: "ok" });
     assert.deepEqual(deskStatusBadge("syncing"), { label: "Syncing…", tone: "muted" });
     assert.deepEqual(deskStatusBadge("empty"), { label: "Empty registry", tone: "warn" });
-    assert.deepEqual(deskStatusBadge("degraded"), { label: "Desk degraded", tone: "warn" });
+    assert.deepEqual(deskStatusBadge("degraded"), { label: "Research Drive needs attention", tone: "warn" });
     assert.deepEqual(deskStatusBadge("demo"), { label: "Demo catalog", tone: "warn" });
   });
 
@@ -16,8 +16,8 @@ describe("deskStatusBadge", () => {
   });
 
   it("falls back to offline rather than claiming health for an unknown state", () => {
-    assert.equal(deskStatusBadge("nonsense").label, "Desk API offline");
-    assert.equal(deskStatusBadge(undefined).label, "Desk API offline");
+    assert.equal(deskStatusBadge("nonsense").label, "Research Drive API offline");
+    assert.equal(deskStatusBadge(undefined).label, "Research Drive API offline");
   });
 });
 
@@ -72,16 +72,16 @@ describe("deskStatusSummary", () => {
   it("collapses integration warnings and leaves pending work to its own link", () => {
     assert.deepEqual(
       deskStatusSummary(
-        { label: "Desk degraded", tone: "warn" },
+        { label: "Research Drive needs attention", tone: "warn" },
         [
           { id: "composer", label: "Assistant unverified", tone: "warn" },
           { id: "debt", label: "13 pending · 25d", tone: "warn" },
         ],
       ),
       {
-        label: "1 desk notice",
+        label: "1 Research Drive notice",
         tone: "warn",
-        details: ["Desk degraded", "Assistant unverified"],
+        details: ["Research Drive needs attention", "Assistant unverified"],
       },
     );
   });

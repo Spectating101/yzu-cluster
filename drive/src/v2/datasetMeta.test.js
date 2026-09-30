@@ -40,8 +40,8 @@ test("fuzzy readiness substrings must not claim query ready", () => {
 test("dataset readiness labels preserve the explicit access contract", () => {
   assert.equal(statusPillKind({ analysis_readiness: "instant" }).kind, "query-ready");
   assert.equal(statusPillKind({ analysis_readiness: "instant_or_minutes" }).kind, "query-ready");
-  assert.equal(statusPillKind({ analysis_readiness: "query_ready" }).label, "Query-ready");
-  assert.equal(statusPillKind({ analysis_readiness: "registered" }).label, "Registered");
+  assert.equal(statusPillKind({ analysis_readiness: "query_ready" }).label, "Ready to query");
+  assert.equal(statusPillKind({ analysis_readiness: "registered" }).label, "Saved to Library");
   assert.equal(statusPillKind({ analysis_readiness: "connected" }).kind, "connected");
   assert.equal(statusPillKind({ analysis_readiness: "dry_run_before_execution" }).kind, "connected");
   assert.equal(statusPillKind({ analysis_readiness: "metadata_search" }).label, "Metadata only");
@@ -60,7 +60,7 @@ test("instant readiness is not query-ready when local panel is missing at runtim
     runtime_readiness_reason: "local_panel_missing",
   });
   assert.notEqual(pill.kind, "query-ready");
-  assert.notEqual(pill.label, "Query-ready");
+  assert.notEqual(pill.label, "Ready to query");
 });
 
 test("declared instant without a runtime reason stays query-ready", () => {
@@ -73,11 +73,11 @@ test("demotion sentence names the measured gap, not a generic warning", () => {
       analysis_readiness: "instant",
       runtime_readiness_reason: "local_panel_missing",
     }),
-    "Declared queryable; local panel is missing.",
+    "Documented as queryable, but the local panel is missing.",
   );
   assert.equal(
     demotionSentence({ runtime_readiness_reason: "local_bytes_missing" }),
-    "Declared queryable; local bytes are missing.",
+    "Documented as queryable, but local data is missing.",
   );
   assert.equal(demotionSentence({ analysis_readiness: "instant" }), "");
 });
@@ -93,7 +93,7 @@ test("any runtime readiness reason blocks Query-ready, including unknown future 
       analysis_readiness: "instant",
       runtime_readiness_reason: "new_engine_reason_v2",
     }),
-    "Declared queryable; runtime readiness is not confirmed.",
+    "Documented as queryable, but readiness in the current system has not been confirmed.",
   );
 });
 
@@ -112,8 +112,8 @@ test("Can I use this keeps the demotion and does not drop the hydrate remedy", (
     runtime_readiness_reason: "local_bytes_missing",
     hydrate_required: true,
   });
-  assert.equal(decision.headline, "Registered · unconfirmed");
-  assert.match(decision.body, /local bytes are missing/);
+  assert.equal(decision.headline, "In Library · not yet checked");
+  assert.match(decision.body, /local data is missing/);
   assert.match(decision.body, /vault archive is available to restore local bytes/);
 });
 
@@ -167,7 +167,7 @@ test("connected remote holdings present as live sources without becoming query r
     noun: "live source",
     eyebrow: "Selected live source",
     shapeTitle: "Source contract",
-    structureTitle: "Declared response shape",
+    structureTitle: "Documented response shape",
     structureAction: "Inspect fields",
     askLabel: "Ask about this source",
     previewRows: true,
@@ -194,5 +194,5 @@ test("metadata catalogues and normal panels keep distinct Library projections", 
 test("registered folders of files read as files, not as unconfirmed tables", () => {
   const pill = statusPillKind({ dataset_id: "d", registered: true, analysis_readiness: "registered", access_shape: "local_file_tree" });
   assert.equal(pill.label, "Files available");
-  assert.equal(statusPillKind({ dataset_id: "d", registered: true, analysis_readiness: "registered" }).label, "Registered");
+  assert.equal(statusPillKind({ dataset_id: "d", registered: true, analysis_readiness: "registered" }).label, "Saved to Library");
 });

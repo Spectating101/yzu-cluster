@@ -46,7 +46,7 @@ function evidenceRelationship(row, heldIds) {
   return {
     ...row,
     held,
-    status: held ? "Held in Library" : "Recorded link · holding not confirmed",
+    status: held ? "In Library" : "Recorded link · dataset not confirmed",
   };
 }
 
@@ -150,7 +150,7 @@ function LearnedResearchMemory({ document, onDocument, onProfileRefresh }) {
         <div>
           <h2 id="learned-memory-title">Learned research memory</h2>
           <p>
-            Ask can retain durable topics, methods, data needs, goals, and working preferences. Declared profile fields remain separately user-authored.
+            Ask can save your topics, methods, data needs, goals, and working preferences. You still write your own profile fields.
           </p>
         </div>
         <span>{memories.length ? `${memories.length} remembered` : "Nothing learned"}</span>
@@ -202,7 +202,7 @@ function LearnedResearchMemory({ document, onDocument, onProfileRefresh }) {
         </ul>
       ) : (
         <p className="rd-v2-empty-inline">
-          Nothing has been learned yet. Research Drive will retain only durable context from signed-in Ask conversations.
+          Nothing has been learned yet. Research Drive saves research context only from signed-in Ask conversations.
         </p>
       )}
 
@@ -303,7 +303,7 @@ function PersonalResearchProfile({ document, onDocument, onProfileRefresh }) {
               {configured ? "Your research context" : "Set up your research context"}
             </h2>
             <p>
-              This context is yours. It sits beside any faculty registry record without overwriting it, and helps Discover and Ask understand your work. It cannot change your account, role, permissions, or collection authority.
+              This context is yours. It helps Discover and Ask understand your work without overwriting your faculty record. It cannot change your account, role, or access and collection permissions.
             </p>
           </div>
           <span>{configured ? "User-confirmed" : "Cold start"}</span>
@@ -490,8 +490,7 @@ export function ProfilePage({
           <span className="rd-v2-profile-kicker">Research identity</span>
           <h2>Profiles are personal workspaces</h2>
           <p>
-            Browse the shared Library and Discover as a guest. Sign in to keep a research
-            profile, saved reasoning, and a durable research trail.
+            Browse the shared Library and Discover as a guest. Sign in to save your research profile, reasoning, and request history.
           </p>
           <div className="rd-v2-profile-public-actions">
             <button type="button" className="rd-v2-btn sm primary" onClick={() => onGoTab?.("browse")}>
@@ -521,7 +520,7 @@ export function ProfilePage({
             <div className="rd-v2-profile-identity-metrics" aria-label="Researcher record summary">
               {paperCount ? <span><strong>{paperCount}</strong><em>indexed works</em></span> : null}
               {memory.length ? <span><strong>{memory.length}</strong><em>context fields</em></span> : null}
-              {relationships.length ? <span><strong>{heldRelationships}/{relationships.length}</strong><em>links held</em></span> : null}
+              {relationships.length ? <span><strong>{heldRelationships}/{relationships.length}</strong><em>links in Library</em></span> : null}
             </div>
             {previewing ? (
               <button
@@ -598,9 +597,9 @@ export function ProfilePage({
           <header className="rd-v2-profile-section-head">
             <div>
               <h2 id="profile-lab-title">Research evidence relationships</h2>
-              <p>Recorded relationships are reconciled against the current Library. Library—not Profile—is possession authority.</p>
+              <p>Saved links are checked against the current Library. Library confirms which data you have.</p>
             </div>
-            <span>{heldRelationships} held · {relationships.length} recorded</span>
+            <span>{heldRelationships} in Library · {relationships.length} recorded</span>
           </header>
           {relationships.length ? (
             <ul className="rd-v2-profile-lab-rows">

@@ -19,7 +19,7 @@ const DECISIONS = [
 test("every decision carries who made it", () => {
   const decisions = settledDecisions(DECISIONS);
   assert.deepEqual(decisions.map((d) => d.authorityLabel),
-    ["observed", "the desk chose", "you chose"]);
+    ["observed", "Research Drive chose", "you chose"]);
 });
 
 test("what the data established is not contestable; the rest is", () => {

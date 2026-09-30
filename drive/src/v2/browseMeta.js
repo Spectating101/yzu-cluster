@@ -84,7 +84,7 @@ export function discoverCandidateState(row, labIds) {
       : taxonomy.key === "external-acquirable"
         ? "Review acquisition route"
         : taxonomy.key === "external-probed"
-          ? "Review probe, then decide"
+          ? "Review connection test, then decide"
           : taxonomy.key === "licensed-manual"
             ? "Manual / licensed path"
             : "Inspect source",

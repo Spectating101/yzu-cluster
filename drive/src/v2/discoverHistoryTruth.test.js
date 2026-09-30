@@ -81,8 +81,8 @@ test("historyHoldingTruth never promotes receipt_only to query-ready", () => {
   assert.equal(truth.stages.registered, true);
   assert.equal(truth.stages.collected, true);
   assert.equal(truth.receiptOnly, true);
-  assert.match(truth.label, /Registered/);
-  assert.notEqual(truth.label, "Query-ready");
+  assert.match(truth.label, /In Library/);
+  assert.notEqual(truth.label, "Ready to query");
   // Triad stays distinct — collected does not imply query-ready.
   assert.notDeepEqual(
     { c: truth.stages.collected, r: truth.stages.registered, q: truth.stages.queryReady },

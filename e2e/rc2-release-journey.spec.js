@@ -107,7 +107,7 @@ test.describe("Research Drive RC2 release journey", () => {
     for (const label of ["Synthesis", "Resources", "Profile", "Settings"]) {
       await openTab(page, label);
       if (label === "Synthesis") {
-        await expect(page.getByRole("heading", { name: "Start one durable research object." })).toBeVisible();
+        await expect(page.getByRole("heading", { name: "Start a saved research build." })).toBeVisible();
       } else {
         await expect(page.locator(".rd-v2-page-head h1", { hasText: label })).toBeVisible();
       }

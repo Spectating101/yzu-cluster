@@ -1,21 +1,23 @@
 term,kind,count,files
 Ask about this source,object-label,10,drive/src/v2/discoverEvaluation.js | drive/src/v2/discoverLifecycle.js | drive/src/v2/discoverSufficiency.js
+Saved to Library,object-label,10,drive/src/v2/DiscoverEvaluationSurface.jsx | drive/src/v2/StatusPill.jsx | drive/src/v2/datasetMeta.js
 Destination,jsx-attr,9,drive/src/v2/DiscoverIntentWorkspace.jsx | drive/src/v2/LibraryFolderRailPanel.jsx | drive/src/v2/LibraryIntakeRailPanel.jsx
 Coverage,jsx-text,8,drive/src/v2/DiscoverEvaluationSurface.jsx | drive/src/v2/LibraryAssetWorkspace.jsx
 Track in Resources,object-label,8,drive/src/v2/discoverEvaluation.js | drive/src/v2/discoverLifecycle.js
-Registered,object-label,7,drive/src/v2/DiscoverEvaluationSurface.jsx | drive/src/v2/StatusPill.jsx | drive/src/v2/datasetMeta.js
 Source,jsx-text,7,drive/src/v2/DiscoverEvaluationSurface.jsx | drive/src/v2/LibraryAssetWorkspace.jsx | drive/src/v2/LibraryEvidenceEstate.jsx
+Access,jsx-text,6,drive/src/v2/DiscoverEvaluationSurface.jsx | drive/src/v2/LibraryAssetWorkspace.jsx | drive/src/v2/ResourcesPage.jsx
 Connected,object-label,6,drive/src/v2/SettingsPage.jsx | drive/src/v2/datasetMeta.js
 Inspect source,object-label,6,drive/src/v2/discoverEvaluation.js
 Path,jsx-attr,6,drive/src/v2/LibraryIntakeRailPanel.jsx | drive/src/v2/RailPanels.jsx
 Queued,object-label,6,drive/src/v2/StatusPill.jsx | drive/src/v2/browseMeta.js | drive/src/v2/datasetMeta.js
 Technical details,jsx-text,6,drive/src/v2/DiscoverIntentRailPanel.jsx | drive/src/v2/DiscoverIntentWorkspace.jsx | drive/src/v2/LibraryAssetWorkspace.jsx
+Unit of observation,jsx-text,6,drive/src/v2/LibraryAssetWorkspace.jsx | drive/src/v2/SynthesisPage.jsx | drive/src/v2/SynthesisThreadRailPanel.jsx
+Verification,jsx-text,6,drive/src/v2/LibraryAssetWorkspace.jsx | drive/src/v2/LibraryDatasetRailPanel.jsx | drive/src/v2/PreviewModal.jsx
 Ask about this →,jsx-text,5,drive/src/v2/DetailPanel.jsx | drive/src/v2/RailPanels.jsx
 Close,jsx-text,5,drive/src/v2/BrowsePage.jsx | drive/src/v2/LibraryAssetWorkspace.jsx | drive/src/v2/LibraryHoldingsOverlay.jsx
-In Library · Query-ready,object-label,5,drive/src/v2/discoverEvaluation.js | drive/src/v2/discoverLifecycle.js | drive/src/v2/discoverTaxonomy.js
-Probe source,object-label,5,drive/src/v2/discoverEvaluation.js
-Query-ready,object-label,5,drive/src/v2/BrowsePage.jsx | drive/src/v2/StatusPill.jsx | drive/src/v2/datasetMeta.js
-Access,jsx-text,4,drive/src/v2/DiscoverEvaluationSurface.jsx | drive/src/v2/LibraryAssetWorkspace.jsx | drive/src/v2/ResourcesPage.jsx
+In Library · ready to query,object-label,5,drive/src/v2/discoverEvaluation.js | drive/src/v2/discoverLifecycle.js | drive/src/v2/discoverTaxonomy.js
+Ready to query,object-label,5,drive/src/v2/BrowsePage.jsx | drive/src/v2/StatusPill.jsx | drive/src/v2/datasetMeta.js
+Test connection,object-label,5,drive/src/v2/discoverEvaluation.js
 Check Resources,jsx-text,4,drive/src/v2/SynthesisHome.jsx | drive/src/v2/SynthesisPage.jsx
 Coverage,jsx-attr,4,drive/src/v2/DetailPanel.jsx | drive/src/v2/DiscoverEvaluationSurface.jsx | drive/src/v2/DiscoverIntentWorkspace.jsx
 Job,jsx-attr,4,drive/src/v2/DetailPanel.jsx | drive/src/v2/DiscoverHistoryRailPanel.jsx | drive/src/v2/DiscoverIntentRailPanel.jsx
@@ -23,25 +25,25 @@ Job,jsx-text,4,drive/src/v2/DiscoverIntentWorkspace.jsx | drive/src/v2/Provenanc
 Next,jsx-text,4,drive/src/v2/ReusePanel.jsx | drive/src/v2/SynthesisPage.jsx
 Object type,jsx-text,4,drive/src/v2/LibraryAssetWorkspace.jsx
 Open in Library,object-label,4,drive/src/v2/discoverEvaluation.js | drive/src/v2/discoverLifecycle.js
-query-ready,jsx-text,4,drive/src/v2/DiscoverCoveragePanel.jsx | drive/src/v2/LibraryFolderRailPanel.jsx | drive/src/v2/LibraryPage.jsx
 Readiness,jsx-attr,4,drive/src/v2/DetailPanel.jsx | drive/src/v2/RailPanels.jsx
+ready to query,jsx-text,4,drive/src/v2/DiscoverCoveragePanel.jsx | drive/src/v2/LibraryFolderRailPanel.jsx | drive/src/v2/LibraryPage.jsx
 Rows,jsx-text,4,drive/src/v2/PreviewModal.jsx | drive/src/v2/SynthesisAgentConsole.jsx | drive/src/v2/SynthesisPage.jsx
 View activity →,jsx-text,4,drive/src/v2/RailPanels.jsx
+Waiting for your approval,object-label,4,drive/src/v2/discoverLifecycle.js | drive/src/v2/homeBriefing.js | drive/src/v2/synthesisAssist.js
+Your Library,jsx-text,4,drive/src/v2/DiscoverCoveragePanel.jsx | drive/src/v2/LibraryAssetWorkspace.jsx | drive/src/v2/LibraryDatasetRailPanel.jsx
 {…} period · {…} today,template,3,drive/src/v2/resourcesSpending.js
 {…}/{…} busy,template,3,drive/src/v2/resourcesLedger.js | drive/src/v2/resourcesSpending.js
+Access,jsx-attr,3,drive/src/v2/DetailPanel.jsx | drive/src/v2/DiscoverIntentWorkspace.jsx | drive/src/v2/LibraryDatasetRailPanel.jsx
 Account,jsx-attr,3,drive/src/v2/ConnectedAccountsSection.jsx | drive/src/v2/V2DeskHeader.jsx | drive/src/v2/V2Sidebar.jsx
 Approval boundary,jsx-text,3,drive/src/v2/App.jsx | drive/src/v2/SettledDecisionsPanel.jsx | drive/src/v2/SynthesisPage.jsx
-Authority,jsx-text,3,drive/src/v2/PreviewModal.jsx | drive/src/v2/ResourcesPage.jsx
 BigQuery,object-label,3,drive/src/v2/resourcesFromRollup.js | drive/src/v2/resourcesSpending.js
 Build,object-label,3,drive/src/v2/SynthesisJourneyNav.jsx | drive/src/v2/synthesisAssist.js | drive/src/v2/synthesisLifecycle.js
 Collection queue,object-label,3,drive/src/v2/resourcesFromRollup.js | drive/src/v2/resourcesLedger.js
 Connector,jsx-attr,3,drive/src/v2/DiscoverHistoryRailPanel.jsx | drive/src/v2/DiscoverIntentRailPanel.jsx | drive/src/v2/DiscoverIntentWorkspace.jsx
-Desk connection,jsx-attr,3,drive/src/v2/ResourcesOverviewRailPanel.jsx | drive/src/v2/ResourcesPage.jsx | drive/src/v2/SettingsPage.jsx
 Evidence,jsx-attr,3,drive/src/v2/DiscoverHistoryRailPanel.jsx | drive/src/v2/SynthesisThreadRailPanel.jsx
 Failed,object-label,3,drive/src/v2/datasetMeta.js | drive/src/v2/discoverLifecycle.js
 Fields,jsx-text,3,drive/src/v2/BrowsePage.jsx | drive/src/v2/PreviewModal.jsx
-Grain,jsx-attr,3,drive/src/v2/DetailPanel.jsx | drive/src/v2/DiscoverIntentWorkspace.jsx | drive/src/v2/SynthesisThreadRailPanel.jsx
-Holdings,jsx-text,3,drive/src/v2/LibraryAssetWorkspace.jsx | drive/src/v2/LibraryDatasetRailPanel.jsx | drive/src/v2/LibraryHoldingsOverlay.jsx
+How it’s collected,object-label,3,drive/src/v2/BrowsePage.jsx | drive/src/v2/providerMarks.js
 Input,jsx-text,3,drive/src/v2/SynthesisAgentConsole.jsx | drive/src/v2/SynthesisPage.jsx | drive/src/v2/SynthesisVisualReasoning.jsx
 Intended use,jsx-text,3,drive/src/v2/SynthesisPage.jsx | drive/src/v2/SynthesisThreadRailPanel.jsx
 Library evidence,object-label,3,drive/src/v2/BrowsePage.jsx | drive/src/v2/discoverTerritories.js
@@ -49,7 +51,7 @@ Load,jsx-text,3,drive/src/v2/CatalogList.jsx | drive/src/v2/DiscoverHistoryPanel
 Manifest,jsx-text,3,drive/src/v2/ProvenancePanel.jsx | drive/src/v2/SynthesisAgentConsole.jsx | drive/src/v2/SynthesisPage.jsx
 Method,jsx-attr,3,drive/src/v2/LibraryDatasetRailPanel.jsx | drive/src/v2/SynthesisThreadRailPanel.jsx
 more,jsx-text,3,drive/src/v2/CatalogList.jsx | drive/src/v2/DiscoverHistoryPanel.jsx | drive/src/v2/LibraryEvidenceEstate.jsx
-No registered method is reported on this desk yet.,jsx-text,3,drive/src/v2/SynthesisHome.jsx | drive/src/v2/SynthesisPage.jsx
+No method saved to Library is reported by Research Drive yet.,jsx-text,3,drive/src/v2/SynthesisHome.jsx | drive/src/v2/SynthesisPage.jsx
 Not checked,object-label,3,drive/src/v2/SettingsPage.jsx | drive/src/v2/archiveRuntimeStatus.js | drive/src/v2/libraryVerification.js
 Open in Library,jsx-text,3,drive/src/v2/DiscoverHistoryRailPanel.jsx | drive/src/v2/SynthesisPage.jsx | drive/src/v2/SynthesisThreadRailPanel.jsx
 Open local dataset,object-label,3,drive/src/v2/discoverSufficiency.js
@@ -59,31 +61,30 @@ Period,jsx-text,3,drive/src/v2/BrowsePage.jsx | drive/src/v2/LibraryAssetWorkspa
 Query engine,object-label,3,drive/src/v2/resourcesFromRollup.js | drive/src/v2/resourcesSpending.js
 RD,jsx-text,3,drive/src/v2/DeskAccessGate.jsx | drive/src/v2/V2DeskHeader.jsx
 Readiness unknown,object-label,3,drive/src/v2/StatusPill.jsx | drive/src/v2/datasetMeta.js
+Request history,jsx-attr,3,drive/src/v2/DiscoverHistoryPanel.jsx | drive/src/v2/RailPanels.jsx
 Request this evidence,object-label,3,drive/src/v2/discoverEvaluation.js
 Research brief,jsx-text,3,drive/src/v2/BrowsePage.jsx | drive/src/v2/SynthesisPage.jsx | drive/src/v2/SynthesisThreadRailPanel.jsx
 Research Drive,jsx-text,3,drive/src/v2/DeskAccessGate.jsx | drive/src/v2/V2DeskHeader.jsx
+Research Drive connection,jsx-attr,3,drive/src/v2/ResourcesOverviewRailPanel.jsx | drive/src/v2/ResourcesPage.jsx | drive/src/v2/SettingsPage.jsx
 Research object,jsx-text,3,drive/src/v2/BrowsePage.jsx | drive/src/v2/SynthesisPage.jsx | drive/src/v2/SynthesisThreadRailPanel.jsx
 Resources,jsx-attr,3,drive/src/v2/App.jsx | drive/src/v2/RailPanels.jsx | drive/src/v2/ResourcesPage.jsx
 row,jsx-text,3,drive/src/v2/LibraryAssetWorkspace.jsx | drive/src/v2/SynthesisPage.jsx
 Run,jsx-attr,3,drive/src/v2/DetailPanel.jsx | drive/src/v2/RailPanels.jsx
 Source,jsx-attr,3,drive/src/v2/DetailPanel.jsx | drive/src/v2/DiscoverHistoryRailPanel.jsx | drive/src/v2/LibraryDatasetRailPanel.jsx
-Source route,object-label,3,drive/src/v2/BrowsePage.jsx | drive/src/v2/providerMarks.js
 Type,jsx-text,3,drive/src/v2/LibraryEvidenceEstate.jsx | drive/src/v2/LibraryPage.jsx | drive/src/v2/PreviewModal.jsx
-Verification,jsx-text,3,drive/src/v2/LibraryAssetWorkspace.jsx | drive/src/v2/LibraryDatasetRailPanel.jsx
+Unit of observation,jsx-attr,3,drive/src/v2/DetailPanel.jsx | drive/src/v2/DiscoverIntentWorkspace.jsx | drive/src/v2/SynthesisThreadRailPanel.jsx
 Worker,jsx-attr,3,drive/src/v2/DetailPanel.jsx | drive/src/v2/RailPanels.jsx
 :8765 {…},template,2,drive/src/v2/resourcesFromRollup.js
 {…} {…},template,2,drive/src/v2/DiscoverHistoryPanel.jsx | drive/src/v2/PreviewModal.jsx
 {…} pending,template,2,drive/src/v2/homeBriefing.js
-Access,jsx-attr,2,drive/src/v2/DetailPanel.jsx | drive/src/v2/DiscoverIntentWorkspace.jsx
-Access route,jsx-text,2,drive/src/v2/LibraryAssetWorkspace.jsx
 Acquire,jsx-text,2,drive/src/v2/ResourcesPage.jsx
 Acquisition path,object-label,2,drive/src/v2/discoverStrategyCard.js
 Active work,jsx-text,2,drive/src/v2/SynthesisPage.jsx
+Add to Library,jsx-text,2,drive/src/v2/ResourcesPage.jsx
 Add URL / DOI,jsx-attr,2,drive/src/v2/LibraryIntakeRailPanel.jsx | drive/src/v2/RailPanels.jsx
 Add URL / DOI,jsx-text,2,drive/src/v2/LibraryFolderRailPanel.jsx | drive/src/v2/RailPanels.jsx
 All,object-label,2,drive/src/v2/DiscoverHistoryPanel.jsx | drive/src/v2/libraryLocations.js
 Approval,object-label,2,drive/src/v2/DiscoverEvaluationSurface.jsx | drive/src/v2/synthesisLifecycle.js
-Approval required,object-label,2,drive/src/v2/discoverLifecycle.js | drive/src/v2/synthesisAssist.js
 Archive,jsx-text,2,drive/src/v2/SynthesisAgentConsole.jsx | drive/src/v2/SynthesisPage.jsx
 Ask · {…},template,2,drive/src/v2/resourcesFromRollup.js | drive/src/v2/resourcesLedger.js
 Ask about this decision,jsx-text,2,drive/src/v2/SynthesisThreadRailPanel.jsx
@@ -92,6 +93,7 @@ Ask Library,jsx-text,2,drive/src/v2/LibraryEvidenceEstate.jsx | drive/src/v2/Lib
 Assess this source: {…},template,2,drive/src/v2/App.jsx | drive/src/v2/DiscoverEvaluationSurface.jsx
 Back to first,jsx-text,2,drive/src/v2/CatalogList.jsx | drive/src/v2/LibraryEvidenceEstate.jsx
 Beyond your Library,object-label,2,drive/src/v2/BrowsePage.jsx | drive/src/v2/StatusPill.jsx
+Build,jsx-text,2,drive/src/v2/App.jsx | drive/src/v2/SynthesisPage.jsx
 Can I use this?,jsx-text,2,drive/src/v2/DiscoverEvaluationSurface.jsx | drive/src/v2/LibraryDatasetRailPanel.jsx
 Candidate key,jsx-attr,2,drive/src/v2/DiscoverIntentRailPanel.jsx | drive/src/v2/DiscoverIntentWorkspace.jsx
 Capacity & access,jsx-text,2,drive/src/v2/ResourcesPage.jsx
@@ -104,10 +106,9 @@ Controller · {…},template,2,drive/src/v2/resourcesFromRollup.js | drive/src/v
 Cursor Ask,object-label,2,drive/src/v2/capacityMarks.js | drive/src/v2/composerRuntimeStatus.js
 Data product,object-label,2,drive/src/v2/discoverStrategyCard.js
 DataCite harvest,object-label,2,drive/src/v2/resourcesFromRollup.js | drive/src/v2/resourcesLedger.js
+dataset,jsx-text,2,drive/src/v2/LibraryPackagePanel.jsx | drive/src/v2/LibraryPage.jsx
 Dataset,object-label,2,drive/src/v2/discoverLifecycle.js
 Define the research object,object-label,2,drive/src/v2/synthesisAssist.js | drive/src/v2/synthesisLifecycle.js
-Desk degraded,object-label,2,drive/src/v2/deskIntegration.js | drive/src/v2/deskStatusBadge.js
-Desk token,object-label,2,drive/src/v2/resourcesFromRollup.js
 Detail,jsx-attr,2,drive/src/v2/RailPanels.jsx
 Disconnect,jsx-text,2,drive/src/v2/ConnectedAccountsSection.jsx | drive/src/v2/SettingsPage.jsx
 Discover,jsx-attr,2,drive/src/v2/BrowsePage.jsx
@@ -119,29 +120,28 @@ event,jsx-text,2,drive/src/v2/ResourcesPage.jsx
 Evidence,object-label,2,drive/src/v2/SynthesisJourneyNav.jsx | drive/src/v2/synthesisLifecycle.js
 Evidence gap,jsx-text,2,drive/src/v2/DiscoverEvidenceBrief.jsx
 Evidence measured,object-label,2,drive/src/v2/SynthesisAgentConsole.jsx | drive/src/v2/synthesisAssist.js
-Evidence position,jsx-text,2,drive/src/v2/DiscoverEvidenceBrief.jsx | drive/src/v2/InspectorRail.jsx
 Evidence roles,jsx-text,2,drive/src/v2/SynthesisPage.jsx | drive/src/v2/SynthesisThreadRailPanel.jsx
 Execute,jsx-text,2,drive/src/v2/ResourcesPage.jsx
 Execution capacity,jsx-attr,2,drive/src/v2/DiscoverEvidenceBrief.jsx | drive/src/v2/DiscoverIntentWorkspace.jsx
 Execution capacity,jsx-text,2,drive/src/v2/DiscoverEvidenceBrief.jsx | drive/src/v2/DiscoverIntentWorkspace.jsx
 Export sample,jsx-text,2,drive/src/v2/PreviewModal.jsx
-External · Acquisition available,object-label,2,drive/src/v2/discoverEvaluation.js | drive/src/v2/discoverTaxonomy.js
-External · Acquisition unavailable,object-label,2,drive/src/v2/discoverEvaluation.js | drive/src/v2/discoverTaxonomy.js
-External · Available to inspect,object-label,2,drive/src/v2/discoverEvaluation.js | drive/src/v2/discoverTaxonomy.js
-External · Probed,object-label,2,drive/src/v2/discoverEvaluation.js | drive/src/v2/discoverTaxonomy.js
+External · available to inspect,object-label,2,drive/src/v2/discoverEvaluation.js | drive/src/v2/discoverTaxonomy.js
+External · collection available,object-label,2,drive/src/v2/discoverEvaluation.js | drive/src/v2/discoverTaxonomy.js
+External · collection unavailable,object-label,2,drive/src/v2/discoverEvaluation.js | drive/src/v2/discoverTaxonomy.js
+External · connection tested,object-label,2,drive/src/v2/discoverEvaluation.js | drive/src/v2/discoverTaxonomy.js
 Field,jsx-text,2,drive/src/v2/PreviewModal.jsx
 Find,jsx-text,2,drive/src/v2/ResourcesPage.jsx
+Find data in your Library,jsx-text,2,drive/src/v2/RailPanels.jsx | drive/src/v2/SynthesisPage.jsx
 Find missing evidence,jsx-text,2,drive/src/v2/LibraryFolderRailPanel.jsx | drive/src/v2/LibraryPage.jsx
 Google BigQuery,object-label,2,drive/src/v2/capacityMarks.js | drive/src/v2/providerMarks.js
-Grain,jsx-text,2,drive/src/v2/LibraryAssetWorkspace.jsx | drive/src/v2/SynthesisThreadRailPanel.jsx
 Ground,jsx-text,2,drive/src/v2/App.jsx | drive/src/v2/SynthesisPage.jsx
 Have a URL or DOI?,jsx-text,2,drive/src/v2/BrowsePage.jsx | drive/src/v2/DiscoverEvidenceBrief.jsx
 Hide assessment,jsx-text,2,drive/src/v2/DiscoverEvidenceBrief.jsx | drive/src/v2/InspectorRail.jsx
-Holdings,jsx-attr,2,drive/src/v2/LibraryDatasetRailPanel.jsx | drive/src/v2/LibraryHoldingsOverlay.jsx
 https://doi.org/10.1234/example https://data.example.org/dataset,jsx-attr,2,drive/src/v2/LibraryIntakeRailPanel.jsx | drive/src/v2/RailPanels.jsx
 Identifier,jsx-text,2,drive/src/v2/LibraryAssetWorkspace.jsx
-In Library · Connected,object-label,2,drive/src/v2/discoverEvaluation.js | drive/src/v2/discoverTaxonomy.js
-In Library · Metadata only,object-label,2,drive/src/v2/discoverEvaluation.js | drive/src/v2/discoverTaxonomy.js
+In Library · connected,object-label,2,drive/src/v2/discoverEvaluation.js | drive/src/v2/discoverTaxonomy.js
+In Library · metadata only,object-label,2,drive/src/v2/discoverEvaluation.js | drive/src/v2/discoverTaxonomy.js
+In Library · not yet checked,object-label,2,drive/src/v2/datasetMeta.js
 Inspect →,jsx-text,2,drive/src/v2/BrowsePage.jsx | drive/src/v2/DiscoverEvidenceBrief.jsx
 Intake,jsx-text,2,drive/src/v2/LibraryIntakeRailPanel.jsx | drive/src/v2/RailPanels.jsx
 Intent ID,jsx-attr,2,drive/src/v2/DiscoverIntentRailPanel.jsx | drive/src/v2/DiscoverIntentWorkspace.jsx
@@ -153,8 +153,9 @@ Keys:,jsx-text,2,drive/src/v2/LibraryAssetWorkspace.jsx
 Library,jsx-text,2,drive/src/v2/HomeSuggestedAsks.jsx | drive/src/v2/LibraryAssetWorkspace.jsx
 Library evidence,jsx-attr,2,drive/src/v2/DiscoverEvidenceBrief.jsx | drive/src/v2/LibraryEvidenceEstate.jsx
 Library evidence ·,jsx-text,2,drive/src/v2/BrowsePage.jsx
-Licensed / manual access,object-label,2,drive/src/v2/discoverEvaluation.js | drive/src/v2/discoverTaxonomy.js
-Loading Library holdings…,jsx-text,2,drive/src/v2/LibraryPage.jsx
+Licensed · university access or manual upload,object-label,2,drive/src/v2/discoverEvaluation.js | drive/src/v2/discoverTaxonomy.js
+Loading Library data…,jsx-text,2,drive/src/v2/LibraryPage.jsx
+Loading methods saved to Library…,jsx-text,2,drive/src/v2/SynthesisHome.jsx | drive/src/v2/SynthesisPage.jsx
 Location,jsx-attr,2,drive/src/v2/DetailPanel.jsx | drive/src/v2/LibraryFolderRailPanel.jsx
 Location,jsx-text,2,drive/src/v2/LibraryHoldingsOverlay.jsx | drive/src/v2/LibraryPage.jsx
 Manifest,jsx-attr,2,drive/src/v2/DetailPanel.jsx | drive/src/v2/DiscoverHistoryRailPanel.jsx
@@ -162,11 +163,12 @@ Measured sources,jsx-attr,2,drive/src/v2/MultiOverlapVisual.jsx
 metadata only,jsx-text,2,drive/src/v2/LibraryFolderRailPanel.jsx | drive/src/v2/RailPanels.jsx
 Metadata only,object-label,2,drive/src/v2/datasetMeta.js
 Method,jsx-text,2,drive/src/v2/ResourcesPage.jsx | drive/src/v2/SynthesisThreadRailPanel.jsx
-Method reasoning unlocks after you add at least one held input.,css-content,2,drive/src/v2/styles/05-synthesis-workstation.css
+Method reasoning becomes available after you add at least one input from your Library.,css-content,2,drive/src/v2/styles/05-synthesis-workstation.css
+Method saved to Library,jsx-text,2,drive/src/v2/SynthesisHome.jsx | drive/src/v2/SynthesisPage.jsx
+Methods saved to Library,jsx-text,2,drive/src/v2/SynthesisPage.jsx
 Name A–Z,jsx-text,2,drive/src/v2/BrowsePage.jsx
 Needs access,object-label,2,drive/src/v2/BrowsePage.jsx | drive/src/v2/discoverComposition.js
-Needs approval,object-label,2,drive/src/v2/homeBriefing.js
-New construction,jsx-text,2,drive/src/v2/SynthesisHome.jsx | drive/src/v2/SynthesisPage.jsx
+New build,jsx-text,2,drive/src/v2/SynthesisHome.jsx | drive/src/v2/SynthesisPage.jsx
 New construction,object-label,2,drive/src/v2/SynthesisPage.jsx
 New synthesis,jsx-attr,2,drive/src/v2/SynthesisPage.jsx
 No files selected yet.,jsx-text,2,drive/src/v2/LibraryIntakeRailPanel.jsx | drive/src/v2/RailPanels.jsx
@@ -177,36 +179,32 @@ Open →,jsx-text,2,drive/src/v2/MethodSurfacePanel.jsx | drive/src/v2/Synthesis
 Open Library results,jsx-text,2,drive/src/v2/BrowsePage.jsx | drive/src/v2/DiscoverEvaluationSurface.jsx
 Open query,jsx-text,2,drive/src/v2/LibraryAssetWorkspace.jsx | drive/src/v2/PreviewModal.jsx
 Organizing collection…,jsx-text,2,drive/src/v2/LibraryPage.jsx
-Output is not yet a registered Library asset.,object-label,2,drive/src/v2/historyLifecycleLabel.js
+Output has not yet been saved as a Library dataset.,object-label,2,drive/src/v2/historyLifecycleLabel.js
+Outputs saved to Library,jsx-attr,2,drive/src/v2/SynthesisHome.jsx | drive/src/v2/SynthesisPage.jsx
 Paste a public URL or DOI,jsx-attr,2,drive/src/v2/BrowsePage.jsx | drive/src/v2/DiscoverEvidenceBrief.jsx
 Preview failed,object-label,2,drive/src/v2/synthesisAssist.js
 Preview passed,object-label,2,drive/src/v2/synthesisAssist.js
 Procurement approval waiting,object-label,2,drive/src/v2/homeBriefing.js
 Procurement MCP,object-label,2,drive/src/v2/resourcesFromRollup.js | drive/src/v2/resourcesLedger.js
-Promote,jsx-text,2,drive/src/v2/ResourcesPage.jsx
 Provenance,jsx-text,2,drive/src/v2/DetailPanel.jsx | drive/src/v2/ProvenancePanel.jsx
 Public URL or DOI,jsx-attr,2,drive/src/v2/BrowsePage.jsx | drive/src/v2/DiscoverEvidenceBrief.jsx
-Query-ready,jsx-attr,2,drive/src/v2/LibraryIntakeRailPanel.jsx | drive/src/v2/RailPanels.jsx
 Readiness,jsx-text,2,drive/src/v2/LibraryAssetWorkspace.jsx | drive/src/v2/LibraryEvidenceEstate.jsx
 Ready,object-label,2,drive/src/v2/DiscoverHistoryPanel.jsx | drive/src/v2/attentionModel.js
-Recommended construction,jsx-attr,2,drive/src/v2/SynthesisPage.jsx
-Recommended construction,jsx-text,2,drive/src/v2/SynthesisPage.jsx
+Ready to query,jsx-attr,2,drive/src/v2/LibraryIntakeRailPanel.jsx | drive/src/v2/RailPanels.jsx
 Record source,jsx-text,2,drive/src/v2/ProfilePage.jsx
 Refresh,jsx-text,2,drive/src/v2/LibraryPage.jsx | drive/src/v2/ResourcesPage.jsx
-Registered · unconfirmed,object-label,2,drive/src/v2/datasetMeta.js
-Registered in Library,object-label,2,drive/src/v2/discoverLifecycle.js
-Registered method,jsx-text,2,drive/src/v2/SynthesisHome.jsx | drive/src/v2/SynthesisPage.jsx
-Registered methods,jsx-text,2,drive/src/v2/SynthesisPage.jsx
-Registered outputs,jsx-attr,2,drive/src/v2/SynthesisHome.jsx | drive/src/v2/SynthesisPage.jsx
 Registry,jsx-text,2,drive/src/v2/SynthesisAgentConsole.jsx | drive/src/v2/SynthesisPage.jsx
 Registry-backed,jsx-text,2,drive/src/v2/ProfilePage.jsx
 Relevance,jsx-text,2,drive/src/v2/BrowsePage.jsx | drive/src/v2/LibraryPage.jsx
 Research assistant,object-label,2,drive/src/v2/capacityMarks.js | drive/src/v2/composerRuntimeStatus.js
 Research context on record,jsx-text,2,drive/src/v2/ProfilePage.jsx
+Research Drive,object-label,2,drive/src/v2/RailPanels.jsx | drive/src/v2/resourcesCapacity.js
+Research Drive needs attention,object-label,2,drive/src/v2/deskIntegration.js | drive/src/v2/deskStatusBadge.js
+Research Drive token,object-label,2,drive/src/v2/resourcesFromRollup.js
 Research fit,object-label,2,drive/src/v2/discoverStrategyCard.js
-Research lifecycle,jsx-attr,2,drive/src/v2/DiscoverHistoryPanel.jsx
 Research object,object-label,2,drive/src/v2/SynthesisJourneyNav.jsx | drive/src/v2/synthesisDraft.js
 Research purpose,jsx-text,2,drive/src/v2/SynthesisPage.jsx
+Research tools,jsx-attr,2,drive/src/v2/RailPanels.jsx | drive/src/v2/SettingsPage.jsx
 Result,object-label,2,drive/src/v2/SynthesisJourneyNav.jsx | drive/src/v2/synthesisLifecycle.js
 Results,jsx-text,2,drive/src/v2/BrowsePage.jsx | drive/src/v2/SynthesisHome.jsx
 Retry,jsx-text,2,drive/src/v2/DiscoverEvaluationSurface.jsx | drive/src/v2/V2DeskHeader.jsx
@@ -225,10 +223,11 @@ State,jsx-text,2,drive/src/v2/LibraryAssetWorkspace.jsx | drive/src/v2/LibraryPa
 Still unknown,jsx-attr,2,drive/src/v2/DiscoverEvaluationSurface.jsx | drive/src/v2/LibraryDatasetRailPanel.jsx
 Still unknown,jsx-text,2,drive/src/v2/DiscoverEvaluationSurface.jsx | drive/src/v2/LibraryDatasetRailPanel.jsx
 Still unknown,object-label,2,drive/src/v2/discoverStrategyCard.js
+Suggested build,jsx-attr,2,drive/src/v2/SynthesisPage.jsx
+Suggested build,jsx-text,2,drive/src/v2/SynthesisPage.jsx
 Synthesis,jsx-text,2,drive/src/v2/HomeSuggestedAsks.jsx | drive/src/v2/SynthesisHome.jsx
 Synthesis,object-label,2,drive/src/v2/nav-config.jsx | drive/src/v2/synthesisAssist.js
 Synthesis workflow,jsx-attr,2,drive/src/v2/App.jsx | drive/src/v2/SynthesisPage.jsx
-Target grain,jsx-text,2,drive/src/v2/SynthesisPage.jsx
 Target period,jsx-text,2,drive/src/v2/SynthesisPage.jsx
 Tavily,object-label,2,drive/src/v2/providerMarks.js | drive/src/v2/resourcesSpending.js
 Tavily discover,object-label,2,drive/src/v2/resourcesFromRollup.js
@@ -236,29 +235,31 @@ Technical evidence,jsx-text,2,drive/src/v2/DiscoverEvaluationSurface.jsx
 Technical record,jsx-text,2,drive/src/v2/DiscoverHistoryRailPanel.jsx | drive/src/v2/SynthesisPage.jsx
 to inspect,jsx-text,2,drive/src/v2/BrowsePage.jsx
 Track progress until archive and registry evidence are confirmed.,object-label,2,drive/src/v2/historyLifecycleLabel.js
-Truth boundary,jsx-text,2,drive/src/v2/ScopePanel.jsx | drive/src/v2/SynthesisPage.jsx
 UI · orchestration,object-label,2,drive/src/v2/resourcesFromRollup.js | drive/src/v2/resourcesLedger.js
 Upload,jsx-text,2,drive/src/v2/LibraryIntakeRailPanel.jsx | drive/src/v2/RailPanels.jsx
 Upload file,jsx-text,2,drive/src/v2/LibraryFolderRailPanel.jsx | drive/src/v2/RailPanels.jsx
 Upload files,jsx-attr,2,drive/src/v2/LibraryIntakeRailPanel.jsx | drive/src/v2/RailPanels.jsx
-Upstream assets,jsx-attr,2,drive/src/v2/LibraryAssetWorkspace.jsx | drive/src/v2/LibraryDatasetRailPanel.jsx
+Upstream datasets,jsx-attr,2,drive/src/v2/LibraryAssetWorkspace.jsx | drive/src/v2/LibraryDatasetRailPanel.jsx
 URLs or DOIs,jsx-text,2,drive/src/v2/LibraryIntakeRailPanel.jsx | drive/src/v2/RailPanels.jsx
 Vault,object-label,2,drive/src/v2/resourcesSpending.js
 Vault path,jsx-attr,2,drive/src/v2/DetailPanel.jsx | drive/src/v2/LibraryDatasetRailPanel.jsx
 Verified,object-label,2,drive/src/v2/archiveRuntimeStatus.js | drive/src/v2/libraryVerification.js
 Verify,jsx-text,2,drive/src/v2/ConnectedAccountsSection.jsx | drive/src/v2/LibraryEvidenceEstate.jsx
 went looking,object-label,2,drive/src/v2/synthesisFocus.js
+What this does and doesn't claim,jsx-text,2,drive/src/v2/ScopePanel.jsx | drive/src/v2/SynthesisPage.jsx
+What your Library covers,jsx-text,2,drive/src/v2/DiscoverEvidenceBrief.jsx | drive/src/v2/InspectorRail.jsx
 Workers,object-label,2,drive/src/v2/resourcesSpending.js
+Your Library,jsx-attr,2,drive/src/v2/LibraryDatasetRailPanel.jsx | drive/src/v2/LibraryHoldingsOverlay.jsx
 :{…} {…},template,1,drive/src/v2/resourcesSpending.js
 . Library separately confirms evidence possession.,jsx-text,1,drive/src/v2/ProfilePage.jsx
 . These describe the connected source contract; they are not an observed local row sample.,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
 . They are registry metadata until a local preview is observed.,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
 . This describes the research object; it does not pretend a paper has tabular fields or join keys.,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
-. You can still create constructions and review or map held evidence.,jsx-text,1,drive/src/v2/SynthesisHome.jsx
+. You can still create builds and review or map data in your Library.,jsx-text,1,drive/src/v2/SynthesisHome.jsx
 · Personal research workspace,jsx-text,1,drive/src/v2/ProfilePage.jsx
 · SHA-256 verified,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 {…} access,template,1,drive/src/v2/ConnectedAccountsSection.jsx
-{…} desk {…},template,1,drive/src/v2/deskStatusBadge.js
+{…} dataset saved to Library{…}.,template,1,drive/src/v2/homeBriefing.js
 {…} document,template,1,drive/src/v2/PreviewModal.jsx
 {…} eligible worker{…},template,1,drive/src/v2/workerRouting.js
 {…} entities overlap between {…} and {…},template,1,drive/src/v2/SynthesisVisualReasoning.jsx
@@ -275,10 +276,10 @@ Workers,object-label,2,drive/src/v2/resourcesSpending.js
 {…} open,template,1,drive/src/v2/resourcesLedger.js
 {…} pending · {…}d,template,1,drive/src/v2/deskIntegration.js
 {…} provenance,template,1,drive/src/v2/DiscoverEvidenceBrief.jsx
-{…} registered,template,1,drive/src/v2/resourcesLedger.js
-{…} registered holding{…}.,template,1,drive/src/v2/homeBriefing.js
+{…} Research Drive {…},template,1,drive/src/v2/deskStatusBadge.js
 {…} runnable of {…} tasks,template,1,drive/src/v2/resourcesLedger.js
 {…} running,template,1,drive/src/v2/resourcesSpending.js
+{…} saved,template,1,drive/src/v2/resourcesLedger.js
 {…} source URLs,template,1,drive/src/v2/resourcesLedger.js
 {…} today,template,1,drive/src/v2/resourcesFromRollup.js
 {…} tools · {…} core · {…} acquire · {…} ops,template,1,drive/src/v2/resourcesLedger.js
@@ -312,31 +313,30 @@ Workers,object-label,2,drive/src/v2/resourcesSpending.js
 4,jsx-text,1,drive/src/v2/SynthesisSpecificationPage.jsx
 8 stages,jsx-text,1,drive/src/v2/SynthesisIdleRailPanel.jsx
 A,jsx-text,1,drive/src/v2/MultiOverlapVisual.jsx
-"A construction keeps the evidence map, method review, execution proof, and registered output on one thread. No method or output is claimed until the desk records it.",jsx-text,1,drive/src/v2/SynthesisPage.jsx
-A decision is bound to this exact proposal revision. A changed proposal must be reviewed again.,jsx-text,1,drive/src/v2/SynthesisPage.jsx
-A durable research-construction thread,jsx-text,1,drive/src/v2/SynthesisPage.jsx
+"A build keeps the evidence map, method review, execution checks, and saved output together. A method or output appears only after Research Drive saves it.",jsx-text,1,drive/src/v2/SynthesisPage.jsx
+A match or data in your Library does not guarantee a download. Research Drive checks download permissions on the server.,jsx-text,1,drive/src/v2/LibraryPackagePanel.jsx
 A recommendation remains a proxy design until the researcher accepts and specifies it,object-label,1,drive/src/v2/synthesisAssist.js
 A researcher decision is waiting before work can continue,object-label,1,drive/src/v2/HomePage.jsx
+A saved research build,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 A search that found nothing is a result. Returning to an unchanged screen would lose it.,jsx-text,1,drive/src/v2/ExcursionRecordPanel.jsx
+A suggested build and permission to run it require separate decisions.,jsx-text,1,drive/src/v2/SynthesisIdleRailPanel.jsx
 "A technically valid key can still redefine the study population. Treat coverage as a research decision, not plumbing.",jsx-text,1,drive/src/v2/JoinDecisionPanel.jsx
 Academic dataset discovery,object-label,1,drive/src/v2/ResourcesPage.jsx
 Academic stage,jsx-text,1,drive/src/v2/ProfilePage.jsx
 Accept & test method,jsx-text,1,drive/src/v2/SynthesisPage.jsx
-Accept or reject this exact revision-bound proposal,object-label,1,drive/src/v2/synthesisAssist.js
+Accept or reject this version of the proposal,object-label,1,drive/src/v2/synthesisAssist.js
 Accept the recommendation for detailed method design or challenge it in Ask,object-label,1,drive/src/v2/synthesisAssist.js
-Acceptance makes this exact method revision eligible for bounded Preview,object-label,1,drive/src/v2/synthesisAssist.js
 Accepted spec,jsx-text,1,drive/src/v2/SynthesisPage.jsx
+Accepting this version of the method allows a sample preview,object-label,1,drive/src/v2/synthesisAssist.js
+Access,object-label,1,drive/src/v2/BrowsePage.jsx
 Access & source,object-label,1,drive/src/v2/discoverStrategyCard.js
 Access boundary,jsx-attr,1,drive/src/v2/DeskAccessGate.jsx
 Access record,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
 Access required before preview,object-label,1,drive/src/v2/PreviewModal.jsx
-Access route,jsx-attr,1,drive/src/v2/LibraryDatasetRailPanel.jsx
-Access route,object-label,1,drive/src/v2/BrowsePage.jsx
 "Access, current usage, and research capability across the Library.",jsx-attr,1,drive/src/v2/ResourcesOverviewRailPanel.jsx
 Account destinations,jsx-attr,1,drive/src/v2/V2DeskHeader.jsx
 "Account identity, user-confirmed research context, and recorded scholarly evidence",jsx-attr,1,drive/src/v2/ProfilePage.jsx
 Acquired data,object-label,1,drive/src/v2/libraryEstate.js
-Acquisition authority,jsx-text,1,drive/src/v2/App.jsx
 Acquisition method,jsx-attr,1,drive/src/v2/LibraryAssetWorkspace.jsx
 Acquisition method is not established.,object-label,1,drive/src/v2/historyLifecycleLabel.js
 Acquisition review,jsx-text,1,drive/src/v2/DiscoverIntentWorkspace.jsx
@@ -345,8 +345,8 @@ Actionable failures,object-label,1,drive/src/v2/resourcesFromRollup.js
 Active,jsx-text,1,drive/src/v2/SynthesisHome.jsx
 Active,object-label,1,drive/src/v2/DiscoverHistoryPanel.jsx
 Active ·,jsx-text,1,drive/src/v2/InteractionFeedback.jsx
+Active builds,jsx-attr,1,drive/src/v2/SynthesisHome.jsx
 Active collection and research workstreams,object-label,1,drive/src/v2/libraryEstate.js
-Active constructions,jsx-attr,1,drive/src/v2/SynthesisHome.jsx
 Active research,jsx-attr,1,drive/src/v2/V2Sidebar.jsx
 Active research,jsx-text,1,drive/src/v2/V2Sidebar.jsx
 Active research,object-label,1,drive/src/v2/V2Sidebar.jsx
@@ -369,32 +369,31 @@ Additional focused candidate actions,jsx-attr,1,drive/src/v2/DiscoverEvaluationS
 After,jsx-text,1,drive/src/v2/SynthesisAgentConsole.jsx
 After transforms,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Aggregate metrics,jsx-text,1,drive/src/v2/SynthesisSpecificationPage.jsx
-AI authority,jsx-text,1,drive/src/v2/SynthesisAuthorityMount.jsx
-AI construction workspace,jsx-text,1,drive/src/v2/SynthesisPage.jsx
+AI build workspace,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 AI identify + custom HTTP/scrape — not a named vendor downloader,object-label,1,drive/src/v2/ResourcesPage.jsx
 "AI may resolve supported decisions, accept the proposal, Preview it, request execution, and approve the bound job when permitted.",object-label,1,drive/src/v2/synthesisAutomation.js
 AI may resolve supported method decisions and draft the proposal; approvals stay manual.,object-label,1,drive/src/v2/synthesisAutomation.js
 AI operations,jsx-text,1,drive/src/v2/SynthesisAgentConsole.jsx
-AI suggests and reasons; you choose and approve each authority change.,object-label,1,drive/src/v2/synthesisAutomation.js
-All constructions,jsx-text,1,drive/src/v2/SynthesisPage.jsx
+AI permissions,jsx-text,1,drive/src/v2/SynthesisAuthorityMount.jsx
+AI suggests and reasons. You choose the method and approve each step that needs permission.,object-label,1,drive/src/v2/synthesisAutomation.js
+All builds,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 All results,object-label,1,drive/src/v2/BrowsePage.jsx
 all three,jsx-text,1,drive/src/v2/MultiOverlapVisual.jsx
 Already in your Library,object-label,1,drive/src/v2/discoverComposition.js
-alternative constructions available,jsx-text,1,drive/src/v2/SynthesisPage.jsx
+alternative builds available,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 and,jsx-text,1,drive/src/v2/SynthesisSpecificationPage.jsx
 and its current accepted state.,jsx-text,1,drive/src/v2/AskRail.jsx
 Any,jsx-text,1,drive/src/v2/LibraryPage.jsx
 Apply & reassess,jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
 Apply remembered context to future search and reasoning.,jsx-text,1,drive/src/v2/ProfilePage.jsx
 Approval-gated acquisition,jsx-text,1,drive/src/v2/BrowsePage.jsx
-"Approvals, collection, and registered assets. Search activity and host checks remain available without burying research work.",jsx-text,1,drive/src/v2/DiscoverHistoryPanel.jsx
 Approve job,jsx-text,1,drive/src/v2/RailPanels.jsx
-Approved requests become durable collection jobs.,jsx-text,1,drive/src/v2/ResourcesPage.jsx
+Approved requests are saved so collection can be tracked.,jsx-text,1,drive/src/v2/ResourcesPage.jsx
 Approving…,jsx-text,1,drive/src/v2/AskAgentCard.jsx
 Archive,jsx-attr,1,drive/src/v2/DetailPanel.jsx
 ARCHIVE,jsx-text,1,drive/src/v2/App.jsx
 Archive + registry,object-label,1,drive/src/v2/synthesisLifecycle.js
-Archive + registry read-back yields a Library asset.,jsx-text,1,drive/src/v2/ResourcesPage.jsx
+Archive checks and reading back the saved record confirm the dataset is in Library.,jsx-text,1,drive/src/v2/ResourcesPage.jsx
 Archive proof verified,object-label,1,drive/src/v2/SynthesisAgentConsole.jsx
 archive verified,jsx-text,1,drive/src/v2/ProvenancePanel.jsx
 Ask,jsx-attr,1,drive/src/v2/SynthesisIdleRailPanel.jsx
@@ -416,37 +415,30 @@ Ask about this source,jsx-text,1,drive/src/v2/DiscoverEvaluationSurface.jsx
 Ask about this state,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Ask about this workspace →,jsx-text,1,drive/src/v2/SynthesisIdleRailPanel.jsx
 Ask and collection,jsx-text,1,drive/src/v2/DeskAccessGate.jsx
-"Ask can retain durable topics, methods, data needs, goals, and working preferences. Declared profile fields remain separately user-authored.",jsx-text,1,drive/src/v2/ProfilePage.jsx
+"Ask can save your topics, methods, data needs, goals, and working preferences. You still write your own profile fields.",jsx-text,1,drive/src/v2/ProfilePage.jsx
 Ask follow-up →,jsx-text,1,drive/src/v2/RailPanels.jsx
 Ask from an active research context,jsx-attr,1,drive/src/v2/AskRail.jsx
-"Ask how the saved research memory shapes Discover and Synthesis, or correct context that the desk should stop carrying forward.",jsx-text,1,drive/src/v2/AskRail.jsx
+"Ask how saved research context shapes Discover and Synthesis, or correct information Research Drive should stop using.",jsx-text,1,drive/src/v2/AskRail.jsx
 Ask is drafting one reviewable method proposal from the mapped evidence. Nothing is accepted or executed yet.,css-content,1,drive/src/v2/styles/05-synthesis-workstation.css
 Ask Library →,jsx-text,1,drive/src/v2/RailPanels.jsx
 Ask MCP toolkit,object-label,1,drive/src/v2/capacityMarks.js
 Ask proposes reviewable changes. It cannot silently accept a method or register an output.,jsx-text,1,drive/src/v2/SynthesisPage.jsx
-Ask the desk to investigate →,jsx-text,1,drive/src/v2/DiscoverIntentWorkspace.jsx
-"Ask the desk to investigate a connector, public URL, entitlement, or implementation path. No collection can be submitted from this state.",jsx-text,1,drive/src/v2/DiscoverIntentWorkspace.jsx
+Ask Research Drive to investigate →,jsx-text,1,drive/src/v2/DiscoverIntentWorkspace.jsx
+"Ask Research Drive to investigate a connector, public URL, university access, or collection method. You cannot submit a collection request at this stage.",jsx-text,1,drive/src/v2/DiscoverIntentWorkspace.jsx
+Ask saves it as a research build with an evidence map.,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Ask to procure,jsx-text,1,drive/src/v2/RailPanels.jsx
-Ask turns it into a durable object and evidence map.,jsx-text,1,drive/src/v2/SynthesisPage.jsx
-"Ask what evidence you already hold, why a result matches, how holdings compare, or what is genuinely missing. Library answers must keep held evidence separate from Discover candidates.",jsx-text,1,drive/src/v2/AskRail.jsx
-"Ask what the current desk settings change, which connections are available, and where approval or readiness boundaries still apply.",jsx-text,1,drive/src/v2/AskRail.jsx
+"Ask what data you have, why a result matches, how datasets compare, or what is missing. Library answers distinguish data you have from Discover candidates.",jsx-text,1,drive/src/v2/AskRail.jsx
+"Ask what Research Drive settings change, which connections are available, and what still needs approval or readiness checks.",jsx-text,1,drive/src/v2/AskRail.jsx
 Ask what this costs,jsx-text,1,drive/src/v2/ScopePanel.jsx
 Ask what was ruled out,jsx-text,1,drive/src/v2/ExcursionRecordPanel.jsx
 Ask which is which,jsx-text,1,drive/src/v2/UnitConflictPanel.jsx
 Assembly position,jsx-text,1,drive/src/v2/DiscoverEvidenceField.jsx
-Assess this Library asset: {…},template,1,drive/src/v2/App.jsx
+Assess this Library dataset: {…},template,1,drive/src/v2/App.jsx
 Assess this source,object-label,1,drive/src/v2/DiscoverEvaluationSurface.jsx
 Assessing strategy…,jsx-text,1,drive/src/v2/BrowsePage.jsx
 Assessment basis,jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
 Assessment details,jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
-asset,jsx-text,1,drive/src/v2/LibraryPage.jsx
-Asset actions,jsx-attr,1,drive/src/v2/LibraryAssetWorkspace.jsx
-Asset facts,jsx-attr,1,drive/src/v2/LibraryAssetWorkspace.jsx
-Asset facts,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
-assets,jsx-text,1,drive/src/v2/LibraryEvidenceEstate.jsx
-Assets in this branch,jsx-attr,1,drive/src/v2/CatalogRow.jsx
-Assets organized under {…},template,1,drive/src/v2/libraryEstate.js
-Assign held Library evidence to explicit analytical roles.,jsx-text,1,drive/src/v2/App.jsx
+Assign data in your Library to specific analytical roles.,jsx-text,1,drive/src/v2/App.jsx
 assigned worker {…} is offline,template,1,drive/src/v2/workerRouting.js
 Assistant degraded,object-label,1,drive/src/v2/composerRuntimeStatus.js
 Assistant needs recheck,object-label,1,drive/src/v2/composerRuntimeStatus.js
@@ -461,7 +453,6 @@ At a glance,jsx-attr,1,drive/src/v2/DetailPanel.jsx
 At a glance,jsx-text,1,drive/src/v2/DetailPanel.jsx
 Attempt,jsx-attr,1,drive/src/v2/DetailPanel.jsx
 Attempt,jsx-text,1,drive/src/v2/SynthesisAgentConsole.jsx
-Authority proof,jsx-text,1,drive/src/v2/SynthesisThreadRailPanel.jsx
 Authorization required,object-label,1,drive/src/v2/SettingsPage.jsx
 Authorize or reject the exact previewed execution request,object-label,1,drive/src/v2/synthesisAssist.js
 Authorize the exact previewed execution,object-label,1,drive/src/v2/synthesisLifecycle.js
@@ -469,8 +460,8 @@ Auto-approve,object-label,1,drive/src/v2/synthesisAutomation.js
 Auto-choose,object-label,1,drive/src/v2/synthesisAutomation.js
 Autopilot · {…},template,1,drive/src/v2/AskRail.jsx
 Available,object-label,1,drive/src/v2/discoverTerritories.js
+Available collection methods,jsx-text,1,drive/src/v2/ResourcesPage.jsx
 Available evidence outside your Library,jsx-attr,1,drive/src/v2/LibraryEvidenceEstate.jsx
-Available source routes,jsx-text,1,drive/src/v2/ResourcesPage.jsx
 Available to you,jsx-text,1,drive/src/v2/LibraryHoldingsOverlay.jsx
 Awaiting approval,object-label,1,drive/src/v2/resourcesFromRollup.js
 B,jsx-text,1,drive/src/v2/MultiOverlapVisual.jsx
@@ -480,14 +471,10 @@ Bar length encodes absolute magnitude on a common scale; labels preserve the sig
 Basis,jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
 Before,jsx-text,1,drive/src/v2/SynthesisAgentConsole.jsx
 Before collection,object-label,1,drive/src/v2/ResourcesPage.jsx
-"Begin from a recorded construction, then review any change.",jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Bibliographic and access metadata for,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
 Bind example identity,jsx-text,1,drive/src/v2/ProfilePage.jsx
 Boundary,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
 Boundary,object-label,1,drive/src/v2/DiscoverIntentRailPanel.jsx
-Bounded preview,object-label,1,drive/src/v2/synthesisLifecycle.js
-Bounded Preview {…},template,1,drive/src/v2/SynthesisAgentConsole.jsx
-Bounded source-preview response; not a database-schema guarantee,jsx-text,1,drive/src/v2/PreviewModal.jsx
 Breadcrumb,jsx-attr,1,drive/src/v2/LibraryPage.jsx
 Brief needed,jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
 Brief summary,jsx-text,1,drive/src/v2/SynthesisPage.jsx
@@ -496,26 +483,28 @@ Browse folders,jsx-text,1,drive/src/v2/LibraryEvidenceEstate.jsx
 Browse Library vault,object-label,1,drive/src/v2/homeBriefing.js
 Browse storage folders,jsx-attr,1,drive/src/v2/LibraryEvidenceEstate.jsx
 Browse the Library storage structure,jsx-attr,1,drive/src/v2/LibraryEvidenceEstate.jsx
-"Browse the shared Library and Discover as a guest. Sign in to keep a research profile, saved reasoning, and a durable research trail.",jsx-text,1,drive/src/v2/ProfilePage.jsx
+"Browse the shared Library and Discover as a guest. Sign in to save your research profile, reasoning, and request history.",jsx-text,1,drive/src/v2/ProfilePage.jsx
 Browser session,object-label,1,drive/src/v2/SettingsPage.jsx
-Build,jsx-text,1,drive/src/v2/App.jsx
 Build {…},template,1,drive/src/v2/SynthesisSpecificationPage.jsx
+Build choices,object-label,1,drive/src/v2/SynthesisJourneyNav.jsx
 Build completed,object-label,1,drive/src/v2/synthesisAssist.js
 "Build evidence into a method you can inspect, challenge, and reuse.",jsx-text,1,drive/src/v2/App.jsx
 Build failed,object-label,1,drive/src/v2/synthesisAssist.js
+"Build research datasets from questions, evidence, and reusable methods. Start a new build, return to a saved build, or reuse a method saved to Library.",jsx-text,1,drive/src/v2/SynthesisHome.jsx
+Build suggested,object-label,1,drive/src/v2/synthesisAssist.js
 Built,jsx-text,1,drive/src/v2/ProvenancePanel.jsx
 Bytes,object-label,1,drive/src/v2/discoverLifecycle.js
 C,jsx-text,1,drive/src/v2/MultiOverlapVisual.jsx
 Cache unmounted,object-label,1,drive/src/v2/deskIntegration.js
-Can I answer with the local asset?,object-label,1,drive/src/v2/discoverSufficiency.js
+Can I answer with the local dataset?,object-label,1,drive/src/v2/discoverSufficiency.js
 Can I use the output yet?,object-label,1,drive/src/v2/DiscoverEvaluationSurface.jsx
 Can I use this,jsx-attr,1,drive/src/v2/DiscoverEvaluationSurface.jsx
 Can I use this?,jsx-attr,1,drive/src/v2/LibraryDatasetRailPanel.jsx
-Can the desk support this acquisition path?,jsx-text,1,drive/src/v2/DiscoverIntentWorkspace.jsx
+Can Research Drive support this collection method?,jsx-text,1,drive/src/v2/DiscoverIntentWorkspace.jsx
 Cancel,jsx-text,1,drive/src/v2/DiscoverEvaluationSurface.jsx
 Candidate,jsx-attr,1,drive/src/v2/DiscoverHistoryRailPanel.jsx
 Candidate,jsx-text,1,drive/src/v2/DiscoverEvaluationSurface.jsx
-"candidate inputs are in the current field while the assessment still records an open gap. Compare complementary coverage before deciding what should be collected, reconciled, or registered as a new dataset.",jsx-text,1,drive/src/v2/DiscoverEvidenceField.jsx
+"candidate inputs are shown while the assessment still reports a gap. Compare their coverage before deciding what to collect, check, or save to Library as a new dataset.",jsx-text,1,drive/src/v2/DiscoverEvidenceField.jsx
 cannot build,object-label,1,drive/src/v2/synthesisFocus.js
 Cannot build,jsx-text,1,drive/src/v2/ScopePanel.jsx
 Canonical archive,jsx-attr,1,drive/src/v2/LibraryDatasetRailPanel.jsx
@@ -532,35 +521,37 @@ Challenge,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Challenge in Ask,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 "Challenge the change set, then accept or reject it explicitly",object-label,1,drive/src/v2/synthesisAssist.js
 Challenge the framing,jsx-text,1,drive/src/v2/SynthesisThreadRailPanel.jsx
-"Change desk settings only when they alter access, capability, or evidence handling.",object-label,1,drive/src/v2/ResearchSituationRail.jsx
+"Change Research Drive settings when they affect access, available tools, or how data is handled.",object-label,1,drive/src/v2/ResearchSituationRail.jsx
 CHECK,object-label,1,drive/src/v2/resourcesCapacity.js
 Check →,jsx-text,1,drive/src/v2/HomePage.jsx
 Check again,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Check running collections,object-label,1,drive/src/v2/homeBriefing.js
 check Settings when API offline,object-label,1,drive/src/v2/resourcesFromRollup.js
+"Check the candidate’s fit, source evidence, and collection method before adding it to Library.",object-label,1,drive/src/v2/ResearchSituationRail.jsx
+Check the limits and decide whether to save a local copy.,object-label,1,drive/src/v2/StatusPill.jsx
 checked automatically after a research question.,jsx-text,1,drive/src/v2/BrowsePage.jsx
 Checking broader sources,jsx-text,1,drive/src/v2/BrowsePage.jsx
 Checking broader sources for a direct route,jsx-text,1,drive/src/v2/BrowsePage.jsx
 Checking broader sources…,jsx-text,1,drive/src/v2/BrowsePage.jsx
 Checking Library evidence against the brief…,jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
-Checking measured desk capacity…,jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
+Checking measured Research Drive capacity…,jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
 Checking pending approvals…,jsx-text,1,drive/src/v2/DiscoverHistoryPanel.jsx
 Checking sources,jsx-text,1,drive/src/v2/BrowsePage.jsx
 Checking whether one source is enough.,jsx-text,1,drive/src/v2/DiscoverEvidenceField.jsx
 Checking…,object-label,1,drive/src/v2/ResourcesPage.jsx
-"Choose a durable construction, start from a research question, or reuse a registered method.",object-label,1,drive/src/v2/ResearchSituationRail.jsx
+"Choose a saved build, start from a research question, or reuse a method saved to Library.",object-label,1,drive/src/v2/ResearchSituationRail.jsx
 Choose a scope explicitly; the engine will not trim evidence silently,object-label,1,drive/src/v2/synthesisAssist.js
 Choose column…,jsx-text,1,drive/src/v2/SynthesisSpecificationPage.jsx
-Choose held Library inputs,object-label,1,drive/src/v2/synthesisLifecycle.js
 "Choose how Research Drive behaves for this browser. Operational health lives under system status, not in the preference hierarchy.",jsx-attr,1,drive/src/v2/SettingsPage.jsx
 Choose how these evidence sources become one study population,object-label,1,drive/src/v2/synthesisAssist.js
+Choose Library inputs,object-label,1,drive/src/v2/synthesisLifecycle.js
 Choose Synthesis thread,jsx-attr,1,drive/src/v2/SynthesisPage.jsx
 Choose the concrete route to submit,jsx-text,1,drive/src/v2/DiscoverIntentWorkspace.jsx
 Choose the dataset whose rows define the starting population.,jsx-text,1,drive/src/v2/SynthesisSpecificationPage.jsx
 Choose the defensible supported population,object-label,1,drive/src/v2/synthesisAssist.js
 Choose the documented scale interpretation before combining the fields,object-label,1,drive/src/v2/synthesisAssist.js
-Choose the held Library inputs that belong,css-content,1,drive/src/v2/styles/05-synthesis-workstation.css
 Choose the join key and the population consequence deliberately,object-label,1,drive/src/v2/synthesisAssist.js
+Choose the Library inputs that belong,css-content,1,drive/src/v2/styles/05-synthesis-workstation.css
 Choose which connected storage location to browse.,jsx-attr,1,drive/src/v2/LibraryPage.jsx
 "Circles show set membership; the strip below is proportional to the measured union. Counts, not circle area, carry magnitude.",jsx-text,1,drive/src/v2/SynthesisVisualReasoning.jsx
 Citable,jsx-text,1,drive/src/v2/ProvenancePanel.jsx
@@ -569,21 +560,23 @@ Clear,jsx-text,1,drive/src/v2/SynthesisAgentConsole.jsx
 Clear filters,jsx-text,1,drive/src/v2/LibraryEvidenceEstate.jsx
 Clear research context,jsx-text,1,drive/src/v2/ProfilePage.jsx
 Close acquisition strategy,jsx-attr,1,drive/src/v2/BrowsePage.jsx
-Close asset inspector,jsx-attr,1,drive/src/v2/LibraryAssetWorkspace.jsx
+Close data inspector,jsx-attr,1,drive/src/v2/LibraryAssetWorkspace.jsx
 Close explanation,jsx-attr,1,drive/src/v2/InteractionGuidance.jsx
-Close holdings,jsx-attr,1,drive/src/v2/LibraryHoldingsOverlay.jsx
 Close inspection,jsx-attr,1,drive/src/v2/LibraryAssetWorkspace.jsx
+Close Library view,jsx-attr,1,drive/src/v2/LibraryHoldingsOverlay.jsx
 Close preview,jsx-attr,1,drive/src/v2/PreviewModal.jsx
 Close research package,jsx-attr,1,drive/src/v2/LibraryPackagePanel.jsx
 Cluster jobs,object-label,1,drive/src/v2/providerMarks.js
 Code generation,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 CoinGecko,object-label,1,drive/src/v2/providerMarks.js
 Collect · normalize · reconcile,jsx-text,1,drive/src/v2/BrowsePage.jsx
+"Collect the data again, or open it in Library to see what is missing.",object-label,1,drive/src/v2/historyLifecycleLabel.js
 Collect through {…},template,1,drive/src/v2/discoverIntent.js
 Collect tokens,object-label,1,drive/src/v2/resourcesFromRollup.js
-Collected assets return to the shared Library with provenance.,jsx-text,1,drive/src/v2/App.jsx
-Collection complete · Registration pending,object-label,1,drive/src/v2/discoverLifecycle.js
-Collection lifecycle,jsx-text,1,drive/src/v2/DiscoverIntentWorkspace.jsx
+Collected data returns to the shared Library with its source history.,jsx-text,1,drive/src/v2/App.jsx
+Collection complete · waiting to save to Library,object-label,1,drive/src/v2/discoverLifecycle.js
+Collection history,jsx-text,1,drive/src/v2/DiscoverIntentWorkspace.jsx
+Collection permissions,jsx-text,1,drive/src/v2/App.jsx
 Collection status,jsx-attr,1,drive/src/v2/DiscoverEvaluationSurface.jsx
 Collection status,jsx-text,1,drive/src/v2/DiscoverEvaluationSurface.jsx
 Collections,jsx-attr,1,drive/src/v2/RailPanels.jsx
@@ -593,31 +586,26 @@ Columns,jsx-text,1,drive/src/v2/SynthesisThreadRailPanel.jsx
 columns profiled,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Compare alternatives,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Compare coverage,jsx-text,1,drive/src/v2/BrowsePage.jsx
-Compare held evidence against external candidates before requesting more data.,object-label,1,drive/src/v2/ResearchSituationRail.jsx
+Compare data in your Library with external candidates before requesting more data.,object-label,1,drive/src/v2/ResearchSituationRail.jsx
 Compiled ·,jsx-text,1,drive/src/v2/DiscoverIntentWorkspace.jsx
-Completed constructions remain attached to their method and execution history while the resulting asset returns to Library.,jsx-attr,1,drive/src/v2/SynthesisHome.jsx
-Completion alone does not imply registration or query readiness.,object-label,1,drive/src/v2/historyLifecycleLabel.js
+Completed builds keep their method and execution history. Their resulting datasets appear in Library.,jsx-attr,1,drive/src/v2/SynthesisHome.jsx
+Completion alone does not confirm the output is saved to Library or ready to query.,object-label,1,drive/src/v2/historyLifecycleLabel.js
 Composer,object-label,1,drive/src/v2/resourcesSpending.js
 Composer turns,object-label,1,drive/src/v2/resourcesFromRollup.js
 Condition needs attention,object-label,1,drive/src/v2/StatusPill.jsx
 Configured,object-label,1,drive/src/v2/SettingsPage.jsx
 configured routes used by Discover when evidence is missing.,jsx-text,1,drive/src/v2/ResourcesPage.jsx
 Confirm execution mode before relying on automatic refresh.,object-label,1,drive/src/v2/historyLifecycleLabel.js
-"Confirm fit, source evidence, and collection route before promoting this candidate into the Library.",object-label,1,drive/src/v2/ResearchSituationRail.jsx
-Confirm limits and decide whether a durable local copy is required.,object-label,1,drive/src/v2/StatusPill.jsx
 Connect browser,jsx-text,1,drive/src/v2/SettingsPage.jsx
-"Connect external storage accounts without migrating their files into Research Drive. This release establishes provider authority and verification; Library indexing and materialisation remain separate, explicit operations.",jsx-text,1,drive/src/v2/ConnectedAccountsSection.jsx
+Connect external storage accounts while keeping their files in place. This release checks access to the provider. Adding files to the Library index and building data require separate actions.,jsx-text,1,drive/src/v2/ConnectedAccountsSection.jsx
 Connect this browser to a named Research Drive account before linking personal storage.,jsx-text,1,drive/src/v2/ConnectedAccountsSection.jsx
 Connected source,object-label,1,drive/src/v2/StatusPill.jsx
 Connected sources,object-label,1,drive/src/v2/libraryEstate.js
 Connected storage,jsx-attr,1,drive/src/v2/ConnectedAccountsSection.jsx
-Connected storage is available to named member and operator accounts. Guest/public sessions never receive cloud-account authority.,jsx-text,1,drive/src/v2/ConnectedAccountsSection.jsx
-"Consequential construction choices, proposal reviews, Preview checks, approvals, and recoveries surface here instead of hiding in active work.",jsx-attr,1,drive/src/v2/SynthesisHome.jsx
-"Construct research assets from questions, evidence, and reusable methods. Start something new, return to a durable construction, or reuse a registered method.",jsx-text,1,drive/src/v2/SynthesisHome.jsx
-Construction,jsx-text,1,drive/src/v2/SynthesisPage.jsx
-Construction choices,object-label,1,drive/src/v2/SynthesisJourneyNav.jsx
-Construction recommendation,object-label,1,drive/src/v2/synthesisAssist.js
-Construction recommended,object-label,1,drive/src/v2/synthesisAssist.js
+Connected storage is available to member and administrator accounts. Guests and public sessions cannot access cloud accounts.,jsx-text,1,drive/src/v2/ConnectedAccountsSection.jsx
+Connection test,object-label,1,drive/src/v2/providerMarks.js
+Connection test pending,object-label,1,drive/src/v2/archiveRuntimeStatus.js
+Connection tests,object-label,1,drive/src/v2/resourcesSpending.js
 contest this,jsx-text,1,drive/src/v2/SettledDecisionsPanel.jsx
 Context facts,jsx-attr,1,drive/src/v2/ResearchSituationRail.jsx
 context fields,jsx-text,1,drive/src/v2/ProfilePage.jsx
@@ -629,7 +617,6 @@ Continue to record this proposal and choose one route. Collection will not start
 Continue where I left off,jsx-text,1,drive/src/v2/SettingsPage.jsx
 Continue with email,jsx-text,1,drive/src/v2/InspectorRail.jsx
 CONTROL,jsx-text,1,drive/src/v2/App.jsx
-CONTROLLED DESK ENTRY,jsx-text,1,drive/src/v2/DeskAccessGate.jsx
 Controller staging,object-label,1,drive/src/v2/resourcesFromRollup.js
 Copilot Ask,object-label,1,drive/src/v2/composerRuntimeStatus.js
 Copy citation,jsx-text,1,drive/src/v2/ProvenancePanel.jsx
@@ -639,14 +626,13 @@ Cost,jsx-attr,1,drive/src/v2/DiscoverIntentWorkspace.jsx
 Coverage not described,jsx-text,1,drive/src/v2/DiscoverEvaluationSurface.jsx
 coverage not yet checked,jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
 Coverage:,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
-Coverage: Not declared,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
+Coverage: Not documented,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
 Craft collect for {…},template,1,drive/src/v2/App.jsx
-Create construction,jsx-text,1,drive/src/v2/SynthesisPage.jsx
+Create build,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Creates,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Credentials stay server-side,jsx-text,1,drive/src/v2/ConnectedAccountsSection.jsx
 CRSP,object-label,1,drive/src/v2/providerMarks.js
 Curated beyond your Library,jsx-text,1,drive/src/v2/BrowsePage.jsx
-Current authority,jsx-text,1,drive/src/v2/DiscoverEvidenceField.jsx
 Current capacity,jsx-text,1,drive/src/v2/ResourcesOverviewRailPanel.jsx
 Current context,jsx-text,1,drive/src/v2/ProfilePage.jsx
 Current method progress,jsx-text,1,drive/src/v2/ResourcesPage.jsx
@@ -658,53 +644,46 @@ Current record,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Current research context,jsx-attr,1,drive/src/v2/ResearchSituationRail.jsx
 Current research direction,jsx-text,1,drive/src/v2/ProfilePage.jsx
 current set,jsx-text,1,drive/src/v2/SynthesisVisualReasoning.jsx
+Current state,jsx-attr,1,drive/src/v2/DiscoverHistoryRailPanel.jsx
+Current verification,jsx-text,1,drive/src/v2/DiscoverEvidenceField.jsx
 Custom dataset strategy · proposed,jsx-text,1,drive/src/v2/BrowsePage.jsx
 Data,jsx-text,1,drive/src/v2/LibraryPage.jsx
+Data actions,jsx-attr,1,drive/src/v2/LibraryAssetWorkspace.jsx
 Data as of,jsx-attr,1,drive/src/v2/LibraryDatasetRailPanel.jsx
-data asset,jsx-text,1,drive/src/v2/LibraryPackagePanel.jsx
 Data collected through Research Drive,object-label,1,drive/src/v2/libraryEstate.js
+Data facts,jsx-attr,1,drive/src/v2/LibraryAssetWorkspace.jsx
+Data facts,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
+Data in your Library,jsx-attr,1,drive/src/v2/LibraryIntakeRailPanel.jsx
+Data in your Library,jsx-text,1,drive/src/v2/InspectorRail.jsx
+Data in your Library is reviewed before method acceptance,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Data interests,jsx-text,1,drive/src/v2/ProfilePage.jsx
 Data pipelines,object-label,1,drive/src/v2/libraryEstate.js
+Data saved to Library,jsx-text,1,drive/src/v2/SynthesisPage.jsx
+Data saved to Library,object-label,1,drive/src/v2/SynthesisJourneyNav.jsx
+Data saved to Library is still loading.,jsx-text,1,drive/src/v2/LibraryFolderRailPanel.jsx
 DataCite,object-label,1,drive/src/v2/providerMarks.js
 Dataset,jsx-attr,1,drive/src/v2/DiscoverHistoryRailPanel.jsx
 Dataset preview views,jsx-attr,1,drive/src/v2/PreviewModal.jsx
 Dataset table and structure,jsx-attr,1,drive/src/v2/LibraryAssetWorkspace.jsx
-Decide whether this exact previewed revision should request execution approval,object-label,1,drive/src/v2/synthesisAssist.js
+datasets,jsx-text,1,drive/src/v2/LibraryEvidenceEstate.jsx
+Datasets in this branch,jsx-attr,1,drive/src/v2/CatalogRow.jsx
+Datasets organized under {…},template,1,drive/src/v2/libraryEstate.js
+Decide whether to request execution approval for this previewed version,object-label,1,drive/src/v2/synthesisAssist.js
 Decision,object-label,1,drive/src/v2/attentionModel.js
-Decision basis,jsx-attr,1,drive/src/v2/LibraryDatasetRailPanel.jsx
-Decision basis,jsx-text,1,drive/src/v2/LibraryDatasetRailPanel.jsx
 Decision memory,jsx-attr,1,drive/src/v2/DiscoverIntentRailPanel.jsx
 Decision memory,jsx-text,1,drive/src/v2/DiscoverIntentRailPanel.jsx
 Decision queue,jsx-attr,1,drive/src/v2/SynthesisHome.jsx
 Decision summary,jsx-attr,1,drive/src/v2/RailFrame.jsx
 Decisions,jsx-attr,1,drive/src/v2/ResourcesOverviewRailPanel.jsx
 decisions ·,jsx-text,1,drive/src/v2/SettledDecisionsPanel.jsx
-Declared acquisition routes,jsx-attr,1,drive/src/v2/DiscoverEvidenceBrief.jsx
-Declared fields and operations for,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
-Declared response fields for,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
-declared route,jsx-text,1,drive/src/v2/DiscoverCoveragePanel.jsx
-Declared routes,jsx-text,1,drive/src/v2/DiscoverEvaluationSurface.jsx
-Declared scale,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
-Declared ways to close the gap,jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
 Define,jsx-text,1,drive/src/v2/App.jsx
 Define the latent construct,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Demo catalog,object-label,1,drive/src/v2/deskStatusBadge.js
 Demo preview · static sample,jsx-text,1,drive/src/v2/BrowsePage.jsx
-Derived and analysis-ready research assets,object-label,1,drive/src/v2/libraryEstate.js
-Describe the construction you need.,jsx-text,1,drive/src/v2/SynthesisPage.jsx
+Derived research datasets ready for analysis,object-label,1,drive/src/v2/libraryEstate.js
+Describe the build you need.,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Describe the object you need. Evidence and method become explicit decisions after creation.,jsx-text,1,drive/src/v2/SynthesisHome.jsx
 "Describe your thesis, paper, experiment, or current research question.",jsx-attr,1,drive/src/v2/ProfilePage.jsx
-Desk,object-label,1,drive/src/v2/resourcesCapacity.js
-Desk access token,jsx-text,1,drive/src/v2/DeskAccessGate.jsx
-Desk API offline,object-label,1,drive/src/v2/deskStatusBadge.js
-Desk API unreachable — start,jsx-text,1,drive/src/v2/ResourcesPage.jsx
-Desk capacity,jsx-attr,1,drive/src/v2/RailPanels.jsx
-Desk configuration,object-label,1,drive/src/v2/ResearchSituationRail.jsx
-Desk equipment,jsx-attr,1,drive/src/v2/SettingsPage.jsx
-Desk preferences,jsx-text,1,drive/src/v2/V2DeskHeader.jsx
-Desk reports pending approval — open Discover to review.,object-label,1,drive/src/v2/homeBriefing.js
-Desk status,jsx-attr,1,drive/src/v2/V2DeskHeader.jsx
-Desk status,object-label,1,drive/src/v2/deskStatusBadge.js
 Detail,jsx-text,1,drive/src/v2/ResearchSituationRail.jsx
 Deterministic script,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 "deterministic, arbitrary",object-label,1,drive/src/v2/joinCandidates.js
@@ -718,8 +697,8 @@ Directory pagination,jsx-attr,1,drive/src/v2/CatalogList.jsx
 Discarded,jsx-text,1,drive/src/v2/SynthesisVisualReasoning.jsx
 Discover,object-label,1,drive/src/v2/nav-config.jsx
 Discover candidates,jsx-attr,1,drive/src/v2/BrowsePage.jsx
-Discover checks the index first. Wider discovery is explicit; coverage assessment names one evidence gap; route comparison preserves unknowns; and any collection remains approval-gated before its verified output is registered in Library and recorded in History.,jsx-text,1,drive/src/v2/BrowsePage.jsx
-Discover compares and records the route. History governs approval and execution. Library owns the verified registered output.,jsx-text,1,drive/src/v2/DiscoverIntentRailPanel.jsx
+"Discover checks the index first. You choose when to search more widely. Coverage assessment identifies a gap, and collection methods are compared with unknowns kept visible. Collection requires your approval. Verified outputs are saved to Library and recorded in History.",jsx-text,1,drive/src/v2/BrowsePage.jsx
+Discover compares and saves collection methods. History tracks approval and execution. Verified outputs are saved to Library.,jsx-text,1,drive/src/v2/DiscoverIntentRailPanel.jsx
 DISCOVER EVIDENCE,css-content,1,drive/src/v2/styles/07-discover.css
 Discover evidence field,jsx-attr,1,drive/src/v2/DiscoverEvidenceField.jsx
 Discover explore,jsx-attr,1,drive/src/v2/BrowsePage.jsx
@@ -733,15 +712,20 @@ Discover search,object-label,1,drive/src/v2/providerMarks.js
 Discover search summary,jsx-attr,1,drive/src/v2/DiscoverEvaluationSurface.jsx
 Discover search universe,jsx-attr,1,drive/src/v2/BrowsePage.jsx
 Discovery & intake,object-label,1,drive/src/v2/ResourcesPage.jsx
+Discuss build in Ask,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Discuss conflict,jsx-text,1,drive/src/v2/SynthesisSpecificationPage.jsx
-Discuss construction in Ask,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Dismiss,jsx-text,1,drive/src/v2/BrowsePage.jsx
-Distinguish a retryable worker failure from a construction defect,object-label,1,drive/src/v2/synthesisAssist.js
+Distinguish a retryable worker failure from a build defect,object-label,1,drive/src/v2/synthesisAssist.js
 Do not infer progress beyond the recorded thread state,object-label,1,drive/src/v2/synthesisAssist.js
 "Do not infer route, method, or execution state from an absent record.",object-label,1,drive/src/v2/historyLifecycleLabel.js
-Do not resubmit until the durable intent can be read. The approval job may already exist even though the response was lost.,jsx-text,1,drive/src/v2/DiscoverIntentWorkspace.jsx
-Do not reuse the output until registry evidence promotes it to Result,object-label,1,drive/src/v2/synthesisAssist.js
-Do not treat the output as registered or query-ready.,object-label,1,drive/src/v2/historyLifecycleLabel.js
+Do not treat the output as saved to Library or ready to query.,object-label,1,drive/src/v2/historyLifecycleLabel.js
+Documented acquisition routes,jsx-attr,1,drive/src/v2/DiscoverEvidenceBrief.jsx
+Documented fields and operations for,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
+Documented response fields for,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
+documented route,jsx-text,1,drive/src/v2/DiscoverCoveragePanel.jsx
+Documented routes,jsx-text,1,drive/src/v2/DiscoverEvaluationSurface.jsx
+Documented scale,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
+Documented ways to close the gap,jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
 Does not,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 does not currently expose,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
 DOI and dataset catalog search,object-label,1,drive/src/v2/ResourcesPage.jsx
@@ -756,17 +740,13 @@ Draft reviewable method,css-content,1,drive/src/v2/styles/05-synthesis-workstati
 Dropbox,object-label,1,drive/src/v2/libraryLocations.js
 "Dry-run, then query",object-label,1,drive/src/v2/ResourcesPage.jsx
 DuckDuckGo,object-label,1,drive/src/v2/providerMarks.js
-Durable Discover decision record,jsx-attr,1,drive/src/v2/DiscoverIntentRailPanel.jsx
-Durable evidence,jsx-text,1,drive/src/v2/App.jsx
-Durable proof,jsx-text,1,drive/src/v2/SynthesisAgentConsole.jsx
-Durable work,jsx-text,1,drive/src/v2/SynthesisHome.jsx
 e.g.,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 "e.g. Finance, Marketing, Computer Science",jsx-attr,1,drive/src/v2/ProfilePage.jsx
 e.g. Master's student,jsx-attr,1,drive/src/v2/ProfilePage.jsx
 Each metric becomes an explicit output column in the accepted execution specification.,jsx-text,1,drive/src/v2/SynthesisSpecificationPage.jsx
 Edit brief,jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
-Edit intent,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Edit only what the assessment should use on its next pass.,jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
+Edit request,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Editable evidence brief,jsx-attr,1,drive/src/v2/DiscoverEvidenceBrief.jsx
 Empty registry,object-label,1,drive/src/v2/deskStatusBadge.js
 engine limit,jsx-text,1,drive/src/v2/SynthesisVisualReasoning.jsx
@@ -802,7 +782,6 @@ Evidence mapping and method design remain independently resumable when no explic
 Evidence movement,jsx-text,1,drive/src/v2/ResourcesPage.jsx
 Evidence movement method,jsx-attr,1,drive/src/v2/ResourcesPage.jsx
 Evidence need,jsx-text,1,drive/src/v2/BrowsePage.jsx
-Evidence position summary,jsx-attr,1,drive/src/v2/DiscoverEvidenceBrief.jsx
 Evidence-bound,jsx-text,1,drive/src/v2/AskAgentCard.jsx
 Exact change set,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Exact method artifact,jsx-text,1,drive/src/v2/SynthesisPage.jsx
@@ -815,21 +794,22 @@ excluded with reasons,jsx-text,1,drive/src/v2/LibraryPackagePanel.jsx
 "Execute, register, or silently choose consequential methodology",jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Execution,jsx-attr,1,drive/src/v2/SynthesisThreadRailPanel.jsx
 Execution,jsx-text,1,drive/src/v2/SynthesisThreadRailPanel.jsx
-Execution & registration,jsx-attr,1,drive/src/v2/SynthesisHome.jsx
-Execution + registration,object-label,1,drive/src/v2/SynthesisJourneyNav.jsx
+Execution and Library checks,jsx-attr,1,drive/src/v2/SynthesisHome.jsx
+Execution and Library checks,object-label,1,drive/src/v2/SynthesisJourneyNav.jsx
 Execution approval,object-label,1,drive/src/v2/synthesisAssist.js
 Execution diagnostics,jsx-text,1,drive/src/v2/SynthesisAgentConsole.jsx
 Execution evidence,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 execution failed,object-label,1,drive/src/v2/synthesisFocus.js
 Execution failed,object-label,1,drive/src/v2/synthesisAssist.js
-EXECUTION LIFECYCLE,css-content,1,drive/src/v2/styles/05-synthesis-workstation.css
 Execution mode,jsx-attr,1,drive/src/v2/DiscoverHistoryRailPanel.jsx
+EXECUTION STAGES,css-content,1,drive/src/v2/styles/05-synthesis-workstation.css
+"Execution, completion, and Library checks remain in progress until result evidence is saved.",jsx-attr,1,drive/src/v2/SynthesisHome.jsx
 Expand sample,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
 Expanded sample open in centre,jsx-text,1,drive/src/v2/LibraryDatasetRailPanel.jsx
 Expected output,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Explain,jsx-text,1,drive/src/v2/SynthesisAgentConsole.jsx
 Explain {…},template,1,drive/src/v2/StatusPill.jsx
-Explain this lifecycle item: {…},template,1,drive/src/v2/App.jsx
+Explain this request: {…},template,1,drive/src/v2/App.jsx
 Explore,jsx-text,1,drive/src/v2/BrowsePage.jsx
 Explore,object-label,1,drive/src/v2/BrowsePage.jsx
 Explore question,jsx-attr,1,drive/src/v2/DiscoverEvidenceBrief.jsx
@@ -852,6 +832,7 @@ Field / discipline,jsx-text,1,drive/src/v2/ProfilePage.jsx
 Field inventory,jsx-text,1,drive/src/v2/PreviewModal.jsx
 Field shape not recorded.,jsx-text,1,drive/src/v2/DiscoverEvaluationSurface.jsx
 Field types are derived from registry metadata and the observed sample; they are not a database-schema guarantee.,jsx-text,1,drive/src/v2/PreviewModal.jsx
+Fields need review before being standardized in a research dataset.,object-label,1,drive/src/v2/historyLifecycleLabel.js
 file,jsx-text,1,drive/src/v2/LibraryPackagePanel.jsx
 Filter Discover results,jsx-attr,1,drive/src/v2/BrowsePage.jsx
 Filter Library by state,jsx-attr,1,drive/src/v2/LibraryPage.jsx
@@ -861,8 +842,6 @@ Filters,jsx-text,1,drive/src/v2/BrowsePage.jsx
 "Find candidates, classify URLs",object-label,1,drive/src/v2/ResourcesPage.jsx
 Find evidence,jsx-text,1,drive/src/v2/LibraryIntakeRailPanel.jsx
 Find evidence in Discover,jsx-text,1,drive/src/v2/App.jsx
-Find held evidence,jsx-text,1,drive/src/v2/RailPanels.jsx
-Find held Library evidence,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Find in Library: {…},template,1,drive/src/v2/librarySearch.js
 Find missing data,jsx-text,1,drive/src/v2/RailPanels.jsx
 Find missing evidence,jsx-attr,1,drive/src/v2/LibraryIntakeRailPanel.jsx
@@ -873,20 +852,20 @@ first match,object-label,1,drive/src/v2/joinCandidates.js
 Flagged,jsx-text,1,drive/src/v2/SynthesisThreadRailPanel.jsx
 Focus this proof in the Synthesis workspace,jsx-attr,1,drive/src/v2/SynthesisAgentConsole.jsx
 folder,jsx-text,1,drive/src/v2/LibraryPage.jsx
-Follow execution and registration proof,object-label,1,drive/src/v2/synthesisLifecycle.js
-for this asset.,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
+Follow execution and Library checks,object-label,1,drive/src/v2/synthesisLifecycle.js
+Follow the saved execution evidence. No new method decision is required while this accepted build is running,object-label,1,drive/src/v2/synthesisAssist.js
+for this data.,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
 Forensic depth,jsx-text,1,drive/src/v2/SynthesisAgentConsole.jsx
 Forget {…},template,1,drive/src/v2/ProfilePage.jsx
 Frame this in Ask →,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Freshness is stale even though the current copy may remain technically queryable.,jsx-text,1,drive/src/v2/LibraryDatasetRailPanel.jsx
 From research context recommendations.,object-label,1,drive/src/v2/homeBriefing.js
 Frozen with execution,jsx-text,1,drive/src/v2/SynthesisPage.jsx
-"Full resource refresh failed. Showing only capacity facts still measured by the desk; do not infer missing compute, storage, or quota.",jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
 Function,jsx-text,1,drive/src/v2/SynthesisSpecificationPage.jsx
 GDELT pipeline,object-label,1,drive/src/v2/resourcesLedger.js
 Google Drive,object-label,1,drive/src/v2/libraryLocations.js
 Google Drive vault,object-label,1,drive/src/v2/capacityMarks.js
-Grain:,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
+Grant write access only when Research Drive should be allowed to change files in the connected account.,jsx-text,1,drive/src/v2/ConnectedAccountsSection.jsx
 Ground,jsx-attr,1,drive/src/v2/SynthesisIdleRailPanel.jsx
 Grounded assistant,jsx-attr,1,drive/src/v2/AskRail.jsx
 Group,jsx-text,1,drive/src/v2/SynthesisAgentConsole.jsx
@@ -895,45 +874,38 @@ Grouping keys,jsx-text,1,drive/src/v2/SynthesisSpecificationPage.jsx
 Guarded remote analysis,jsx-text,1,drive/src/v2/ResourcesPage.jsx
 Harvest,jsx-attr,1,drive/src/v2/RailPanels.jsx
 Heartbeat,jsx-text,1,drive/src/v2/SynthesisAgentConsole.jsx
-held,jsx-text,1,drive/src/v2/DiscoverCoveragePanel.jsx
-held ·,jsx-text,1,drive/src/v2/ProfilePage.jsx
-Held bytes,jsx-text,1,drive/src/v2/SynthesisThreadRailPanel.jsx
-Held bytes · no assistant,jsx-text,1,drive/src/v2/MethodSurfacePanel.jsx
-Held evidence,jsx-attr,1,drive/src/v2/LibraryIntakeRailPanel.jsx
-Held evidence,jsx-text,1,drive/src/v2/InspectorRail.jsx
-Held evidence is reviewed before method acceptance,jsx-text,1,drive/src/v2/SynthesisPage.jsx
-held evidence record,jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
-Held input,jsx-text,1,drive/src/v2/SynthesisPage.jsx
-Held inputs,object-label,1,drive/src/v2/SynthesisJourneyNav.jsx
-Held inputs found,jsx-text,1,drive/src/v2/SynthesisPage.jsx
-Held locally,jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
-Held-evidence assessment,jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
 Help frame this in Ask,jsx-text,1,drive/src/v2/SynthesisThreadRailPanel.jsx
 Hide full brief,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 History filters,jsx-attr,1,drive/src/v2/DiscoverHistoryPanel.jsx
-Holding truth,jsx-attr,1,drive/src/v2/DiscoverHistoryRailPanel.jsx
 Home,jsx-attr,1,drive/src/v2/HomePage.jsx
 Home,object-label,1,drive/src/v2/nav-config.jsx
 Home — show what needs attention,jsx-text,1,drive/src/v2/SettingsPage.jsx
 Host and integration checks kept outside research history,jsx-text,1,drive/src/v2/DiscoverHistoryPanel.jsx
 hot {…}%,template,1,drive/src/v2/resourcesSpending.js
 How Discover handles a missing dataset,jsx-text,1,drive/src/v2/BrowsePage.jsx
-How is the local asset related?,object-label,1,drive/src/v2/discoverSufficiency.js
+How is the local dataset related?,object-label,1,drive/src/v2/discoverSufficiency.js
 How it answers the question,jsx-text,1,drive/src/v2/BrowsePage.jsx
-How one construction moves,jsx-text,1,drive/src/v2/SynthesisIdleRailPanel.jsx
-How one Synthesis construction moves,jsx-attr,1,drive/src/v2/SynthesisIdleRailPanel.jsx
+How it’s collected,jsx-attr,1,drive/src/v2/LibraryAssetWorkspace.jsx
+How one build moves,jsx-text,1,drive/src/v2/SynthesisIdleRailPanel.jsx
+How one Synthesis build moves,jsx-attr,1,drive/src/v2/SynthesisIdleRailPanel.jsx
+How Synthesis was verified,jsx-attr,1,drive/src/v2/SynthesisThreadRailPanel.jsx
+How this was verified,jsx-text,1,drive/src/v2/SynthesisThreadRailPanel.jsx
 How to read this page,jsx-text,1,drive/src/v2/RailPanels.jsx
 How to use it,jsx-text,1,drive/src/v2/DiscoverIntentWorkspace.jsx
 Hugging Face,object-label,1,drive/src/v2/providerMarks.js
 HuggingFace,object-label,1,drive/src/v2/resourcesFromRollup.js
 I intend this population change.,jsx-text,1,drive/src/v2/SynthesisSpecificationPage.jsx
 Identity + coverage,object-label,1,drive/src/v2/BrowsePage.jsx
+"If you make no change, Research Drive’s choices are accepted. Every choice stays listed and reversible. Findings established by the data cannot be reopened as choices.",jsx-text,1,drive/src/v2/SettledDecisionsPanel.jsx
 Implementation and source terms remain unverified,jsx-text,1,drive/src/v2/BrowsePage.jsx
 in Discover until acquired,jsx-text,1,drive/src/v2/LibraryFolderRailPanel.jsx
 in Discover until acquired.,jsx-text,1,drive/src/v2/RailPanels.jsx
 In flight,jsx-text,1,drive/src/v2/SynthesisHome.jsx
-In lab · Registered,object-label,1,drive/src/v2/discoverLifecycle.js
+in Library,jsx-text,1,drive/src/v2/DiscoverCoveragePanel.jsx
 In Library,jsx-text,1,drive/src/v2/DiscoverEvaluationSurface.jsx
+in Library ·,jsx-text,1,drive/src/v2/ProfilePage.jsx
+In Library · being checked,object-label,1,drive/src/v2/datasetMeta.js
+In Library · not yet checked ·,jsx-text,1,drive/src/v2/LibraryPage.jsx
 in use,object-label,1,drive/src/v2/columnSurface.js
 In your Library,object-label,1,drive/src/v2/BrowsePage.jsx
 "Include anyway, and say why",jsx-text,1,drive/src/v2/MethodSurfacePanel.jsx
@@ -953,30 +925,29 @@ Inspect,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
 Inspect {…},template,1,drive/src/v2/LibraryPage.jsx
 "Inspect a public source, retain its metadata, and prepare the next valid Library action.",jsx-attr,1,drive/src/v2/LibraryIntakeRailPanel.jsx
 Inspect failed or blocked jobs.,object-label,1,drive/src/v2/homeBriefing.js
-Inspect files or preview support without relabelling the asset Query-ready.,object-label,1,drive/src/v2/StatusPill.jsx
+Inspect files or preview options. Readiness for querying still needs a separate check.,object-label,1,drive/src/v2/StatusPill.jsx
 Inspect in Ask,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Inspect record,object-label,1,drive/src/v2/discoverEvaluation.js
-Inspect related lab asset,object-label,1,drive/src/v2/discoverSufficiency.js
+Inspect related Library dataset,object-label,1,drive/src/v2/discoverSufficiency.js
 Inspect schema,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
 Inspect source,jsx-text,1,drive/src/v2/LibraryIntakeRailPanel.jsx
-Inspect the bounded failure before retrying,object-label,1,drive/src/v2/synthesisAssist.js
-Inspect the current durable research state,object-label,1,drive/src/v2/synthesisAssist.js
 Inspect the current object or Ask within this scoped context.,object-label,1,drive/src/v2/ResearchSituationRail.jsx
+Inspect the current saved research state,object-label,1,drive/src/v2/synthesisAssist.js
+Inspect the dataset saved to Library,object-label,1,drive/src/v2/synthesisLifecycle.js
+Inspect the failed sample test before retrying,object-label,1,drive/src/v2/synthesisAssist.js
 Inspect the failure and create a revised request if the route changed.,object-label,1,drive/src/v2/historyLifecycleLabel.js
 Inspect the output and its supporting evidence.,object-label,1,drive/src/v2/historyLifecycleLabel.js
 Inspect the recorded error and retry only after correcting the cause.,object-label,1,drive/src/v2/StatusPill.jsx
-Inspect the registered Library asset,object-label,1,drive/src/v2/synthesisLifecycle.js
-Inspect the technical record or wait for the next durable update.,object-label,1,drive/src/v2/historyLifecycleLabel.js
-Inspecting bounded source preview…,jsx-text,1,drive/src/v2/PreviewModal.jsx
+Inspect the technical record or wait for the next saved update.,object-label,1,drive/src/v2/historyLifecycleLabel.js
 Inspecting source,object-label,1,drive/src/v2/PreviewModal.jsx
 Inspecting source structure…,jsx-text,1,drive/src/v2/PreviewModal.jsx
+Inspecting the source sample preview…,jsx-text,1,drive/src/v2/PreviewModal.jsx
 Inspector,jsx-attr,1,drive/src/v2/InspectorRail.jsx
 Inspector mode,jsx-attr,1,drive/src/v2/ResearchSituationRail.jsx
 Intended use,object-label,1,drive/src/v2/synthesisDraft.js
 Interface shell,jsx-text,1,drive/src/v2/DeskAccessGate.jsx
 Interpret,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Interpreted evidence need,jsx-attr,1,drive/src/v2/BrowsePage.jsx
-Investigate available source and access routes.,object-label,1,drive/src/v2/historyLifecycleLabel.js
 Job status,jsx-attr,1,drive/src/v2/RailPanels.jsx
 Join decision,jsx-text,1,drive/src/v2/JoinDecisionPanel.jsx
 Join decision,object-label,1,drive/src/v2/synthesisAssist.js
@@ -984,8 +955,8 @@ Join decision needed,object-label,1,drive/src/v2/synthesisAssist.js
 Join reach,jsx-attr,1,drive/src/v2/SynthesisVisualReasoning.jsx
 Join type,jsx-attr,1,drive/src/v2/SynthesisSpecificationPage.jsx
 Keep current Inspector mode,jsx-text,1,drive/src/v2/SettingsPage.jsx
-Keep provenance attached while the new evidence is registered and its usability is established.,object-label,1,drive/src/v2/ResearchSituationRail.jsx
 Keep the primary evidence population unchanged.,jsx-text,1,drive/src/v2/SynthesisSpecificationPage.jsx
+Keep the source history attached while the data is saved to Library and checked for use.,object-label,1,drive/src/v2/ResearchSituationRail.jsx
 keys,jsx-text,1,drive/src/v2/MultiOverlapVisual.jsx
 Keys,jsx-attr,1,drive/src/v2/RailPanels.jsx
 keys survive across all,jsx-text,1,drive/src/v2/MultiOverlapVisual.jsx
@@ -993,19 +964,19 @@ Known,jsx-attr,1,drive/src/v2/DiscoverHistoryRailPanel.jsx
 Known,jsx-text,1,drive/src/v2/DiscoverHistoryRailPanel.jsx
 Known boundary,jsx-attr,1,drive/src/v2/LibraryDatasetRailPanel.jsx
 Known boundary,jsx-text,1,drive/src/v2/LibraryDatasetRailPanel.jsx
+Known collection methods are still being checked,jsx-text,1,drive/src/v2/BrowsePage.jsx
 Known data,jsx-attr,1,drive/src/v2/RailPanels.jsx
 Known evidence first,jsx-text,1,drive/src/v2/SettingsPage.jsx
 Known holdings,jsx-attr,1,drive/src/v2/LibraryDatasetRailPanel.jsx
 Known locations,jsx-text,1,drive/src/v2/LibraryHoldingsOverlay.jsx
 known record,jsx-text,1,drive/src/v2/LibraryEvidenceEstate.jsx
-Known source routes are still being checked,jsx-text,1,drive/src/v2/BrowsePage.jsx
-Known-first paints held evidence quickly; wider search adds live and semantic routes.,jsx-text,1,drive/src/v2/SettingsPage.jsx
 Lab collector fleet,object-label,1,drive/src/v2/capacityMarks.js
 Last attempt,object-label,1,drive/src/v2/discoverLifecycle.js
 Last data refresh,jsx-attr,1,drive/src/v2/LibraryDatasetRailPanel.jsx
 last match,object-label,1,drive/src/v2/joinCandidates.js
+Last step,jsx-attr,1,drive/src/v2/DiscoverHistoryRailPanel.jsx
 Last update,object-label,1,drive/src/v2/discoverLifecycle.js
-Latest durable update,jsx-attr,1,drive/src/v2/DiscoverHistoryRailPanel.jsx
+Last updated,jsx-attr,1,drive/src/v2/DiscoverHistoryRailPanel.jsx
 Latest event,jsx-text,1,drive/src/v2/SynthesisAgentConsole.jsx
 Learn from Ask,jsx-text,1,drive/src/v2/ProfilePage.jsx
 Learned research memory,jsx-text,1,drive/src/v2/ProfilePage.jsx
@@ -1016,13 +987,19 @@ Library,jsx-attr,1,drive/src/v2/LibraryPage.jsx
 Library,object-label,1,drive/src/v2/nav-config.jsx
 Library · portable evidence,jsx-text,1,drive/src/v2/LibraryPackagePanel.jsx
 Library and Discover follow this preference; decision states retain their task-specific view.,jsx-text,1,drive/src/v2/SettingsPage.jsx
-Library asset,jsx-attr,1,drive/src/v2/DiscoverIntentRailPanel.jsx
 Library browse context,jsx-attr,1,drive/src/v2/LibraryFolderRailPanel.jsx
 Library capacity,jsx-attr,1,drive/src/v2/ResourcesOverviewRailPanel.jsx
 Library comparison,css-content,1,drive/src/v2/styles/01-foundation.css
 Library coverage,jsx-attr,1,drive/src/v2/DiscoverEvaluationSurface.jsx
 Library coverage,jsx-text,1,drive/src/v2/DiscoverEvaluationSurface.jsx
+Library coverage assessment,jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
 Library coverage comparison,jsx-attr,1,drive/src/v2/DiscoverEvaluationSurface.jsx
+Library coverage summary,jsx-attr,1,drive/src/v2/DiscoverEvidenceBrief.jsx
+Library data,jsx-text,1,drive/src/v2/SynthesisThreadRailPanel.jsx
+Library data · no assistant,jsx-text,1,drive/src/v2/MethodSurfacePanel.jsx
+Library data record,jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
+Library dataset,jsx-attr,1,drive/src/v2/DiscoverIntentRailPanel.jsx
+Library datasets not yet organized into a collection,object-label,1,drive/src/v2/libraryEstate.js
 Library evidence,jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
 Library evidence · Checking…,jsx-text,1,drive/src/v2/BrowsePage.jsx
 Library evidence families,jsx-attr,1,drive/src/v2/DiscoverCoveragePanel.jsx
@@ -1033,32 +1010,31 @@ Library handoff,object-label,1,drive/src/v2/synthesisLifecycle.js
 Library ID,jsx-attr,1,drive/src/v2/LibraryDatasetRailPanel.jsx
 Library ID,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
 Library index,jsx-text,1,drive/src/v2/BrowsePage.jsx
+Library input,jsx-text,1,drive/src/v2/SynthesisPage.jsx
+Library inputs,object-label,1,drive/src/v2/SynthesisJourneyNav.jsx
+Library inputs found,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Library inspection,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
 Library location status,jsx-attr,1,drive/src/v2/LibraryPage.jsx
 Library matches,jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
 Library state,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
 Library support,jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
 Licensed / institutional,object-label,1,drive/src/v2/resourcesCapacity.js
-Lifecycle,jsx-attr,1,drive/src/v2/RailPanels.jsx
-Lifecycle path,jsx-attr,1,drive/src/v2/DiscoverEvaluationSurface.jsx
 Limitation,jsx-attr,1,drive/src/v2/DiscoverIntentWorkspace.jsx
 Limitations,jsx-attr,1,drive/src/v2/DetailPanel.jsx
-links held,jsx-text,1,drive/src/v2/ProfilePage.jsx
+links in Library,jsx-text,1,drive/src/v2/ProfilePage.jsx
 Literature,jsx-text,1,drive/src/v2/LibraryPage.jsx
 Live identity,jsx-attr,1,drive/src/v2/DetailPanel.jsx
 Live registry,object-label,1,drive/src/v2/deskStatusBadge.js
 Live sources,jsx-text,1,drive/src/v2/LibraryPage.jsx
-Loading bounded source sample…,jsx-text,1,drive/src/v2/PreviewModal.jsx
-Loading durable constructions…,jsx-text,1,drive/src/v2/SynthesisHome.jsx
+Loading a source sample…,jsx-text,1,drive/src/v2/PreviewModal.jsx
 Loading example profile…,jsx-text,1,drive/src/v2/ProfilePage.jsx
 Loading headroom,jsx-attr,1,drive/src/v2/HomePage.jsx
 Loading observed rows…,jsx-text,1,drive/src/v2/PreviewModal.jsx
-Loading registered blueprints…,jsx-text,1,drive/src/v2/SynthesisPage.jsx
-Loading registered methods…,jsx-text,1,drive/src/v2/SynthesisHome.jsx
 Loading resume point,jsx-attr,1,drive/src/v2/HomePage.jsx
+Loading saved builds…,jsx-text,1,drive/src/v2/SynthesisHome.jsx
 Loading the result…,jsx-text,1,drive/src/v2/SynthesisPage.jsx
-Local asset,jsx-text,1,drive/src/v2/DiscoverEvaluationSurface.jsx
 Local context only while you type. An assessment runs when you submit.,jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
+Local dataset,jsx-text,1,drive/src/v2/DiscoverEvaluationSurface.jsx
 Look-ahead,jsx-text,1,drive/src/v2/SynthesisThreadRailPanel.jsx
 LSEG Workspace / EDP,object-label,1,drive/src/v2/providerMarks.js
 Machine checks,jsx-text,1,drive/src/v2/ResourcesPage.jsx
@@ -1076,16 +1052,14 @@ Markers show where each candidate scope lands against the real execution boundar
 Market data & filings,object-label,1,drive/src/v2/ResourcesPage.jsx
 Matched,jsx-text,1,drive/src/v2/LibraryEvidenceEstate.jsx
 Matched,object-label,1,drive/src/v2/libraryVerification.js
-Matched and held do not imply downloadable. Package authority is resolved server-side.,jsx-text,1,drive/src/v2/LibraryPackagePanel.jsx
 matches for “,jsx-text,1,drive/src/v2/BrowsePage.jsx
 Meaningful keys,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
 Measure again,jsx-text,1,drive/src/v2/SynthesisSpecificationPage.jsx
 Measured,jsx-attr,1,drive/src/v2/SynthesisThreadRailPanel.jsx
-"Measured capacity is unavailable. Do not assume compute, storage, or quota from this sourcing view.",jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
-Measured desk capability that can change the sourcing decision. No worker or quota is assigned here.,jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
+"Measured capacity is unavailable. Compute, storage, and quota cannot be inferred from this view of collection options.",jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
 Measured evidence,jsx-text,1,drive/src/v2/MethodSurfacePanel.jsx
 Measured evidence diagnostics,jsx-attr,1,drive/src/v2/SynthesisThreadRailPanel.jsx
-measured from held bytes,jsx-text,1,drive/src/v2/SynthesisPage.jsx
+measured from Library data,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 measured inputs,jsx-text,1,drive/src/v2/MultiOverlapVisual.jsx
 Measured risks,jsx-attr,1,drive/src/v2/SynthesisPage.jsx
 Measured state could not be loaded.,jsx-text,1,drive/src/v2/SynthesisSpecificationPage.jsx
@@ -1101,21 +1075,21 @@ metadata/access record,jsx-text,1,drive/src/v2/LibraryPackagePanel.jsx
 Metered spending,jsx-attr,1,drive/src/v2/RailPanels.jsx
 Method,object-label,1,drive/src/v2/SynthesisJourneyNav.jsx
 Method ·,jsx-text,1,drive/src/v2/DiscoverHistoryPanel.jsx
-"Method acceptance, bounded Preview, execution authority, and registered result are recorded separately.",jsx-attr,1,drive/src/v2/SynthesisThreadRailPanel.jsx
+"Method acceptance, sample preview, execution approval, and the result saved to Library are recorded separately.",jsx-attr,1,drive/src/v2/SynthesisThreadRailPanel.jsx
 Method accepted,css-content,1,drive/src/v2/styles/08-convergence.css
 Method accepted,object-label,1,drive/src/v2/synthesisLifecycle.js
-Method accepted → bounded preview → researcher approval → worker build → archive + registry → Library handoff,css-content,1,drive/src/v2/styles/05-synthesis-workstation.css
+Method accepted → sample preview → your approval → build → archive and Library checks → saved to Library,css-content,1,drive/src/v2/styles/05-synthesis-workstation.css
 Method design,object-label,1,drive/src/v2/synthesisAssist.js
 Method provenance chain,jsx-attr,1,drive/src/v2/SynthesisPage.jsx
-Method reasoning unlocks after held evidence is added.,css-content,1,drive/src/v2/styles/05-synthesis-workstation.css
-Method revision accepted,object-label,1,drive/src/v2/SynthesisAgentConsole.jsx
+Method reasoning becomes available after you add data from your Library.,css-content,1,drive/src/v2/styles/05-synthesis-workstation.css
 Method SHA-256,jsx-text,1,drive/src/v2/SynthesisPage.jsx
+Method version accepted,object-label,1,drive/src/v2/SynthesisAgentConsole.jsx
 Methods,jsx-text,1,drive/src/v2/ProfilePage.jsx
 Metric,jsx-attr,1,drive/src/v2/RailPanels.jsx
 Metric,jsx-text,1,drive/src/v2/SynthesisAgentConsole.jsx
 Metric detail not reported,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Metrics,jsx-text,1,drive/src/v2/SynthesisPage.jsx
-Microsoft does not expose delegated metadata-only file access; OneDrive metadata authority therefore uses read-only Files.Read.,jsx-text,1,drive/src/v2/ConnectedAccountsSection.jsx
+Microsoft does not offer delegated access to file metadata alone. OneDrive metadata access uses the read-only Files.Read permission.,jsx-text,1,drive/src/v2/ConnectedAccountsSection.jsx
 Missing,jsx-attr,1,drive/src/v2/RailPanels.jsx
 Model interpretation,jsx-text,1,drive/src/v2/DiscoverEvaluationSurface.jsx
 Modified,jsx-text,1,drive/src/v2/LibraryPage.jsx
@@ -1124,9 +1098,9 @@ More actions,jsx-attr,1,drive/src/v2/DiscoverEvaluationSurface.jsx
 More in Library ·,jsx-text,1,drive/src/v2/DiscoverCoveragePanel.jsx
 Name,jsx-text,1,drive/src/v2/LibraryPage.jsx
 Name the decisive validity risk,jsx-text,1,drive/src/v2/SynthesisPage.jsx
+Needs attention,object-label,1,drive/src/v2/homeBriefing.js
 Needs attention ·,jsx-text,1,drive/src/v2/LibraryPage.jsx
 Needs connection,object-label,1,drive/src/v2/SettingsPage.jsx
-Needs recovery,object-label,1,drive/src/v2/homeBriefing.js
 Needs review,object-label,1,drive/src/v2/archiveRuntimeStatus.js
 Needs setup,object-label,1,drive/src/v2/SettingsPage.jsx
 Needs you,jsx-attr,1,drive/src/v2/DiscoverHistoryPanel.jsx
@@ -1137,7 +1111,7 @@ never populated,object-label,1,drive/src/v2/columnSurface.js
 New ▾,jsx-text,1,drive/src/v2/LibraryPage.jsx
 New collection,jsx-text,1,drive/src/v2/LibraryPage.jsx
 New library item,jsx-attr,1,drive/src/v2/LibraryPage.jsx
-New messages use this lifecycle context.,jsx-text,1,drive/src/v2/AskRail.jsx
+New messages use this request’s context.,jsx-text,1,drive/src/v2/AskRail.jsx
 New messages use this source context.,jsx-text,1,drive/src/v2/AskRail.jsx
 New messages use this Synthesis thread,jsx-text,1,drive/src/v2/AskRail.jsx
 New Synthesis entry contract,jsx-attr,1,drive/src/v2/SynthesisPage.jsx
@@ -1149,32 +1123,30 @@ Next steps,jsx-text,1,drive/src/v2/AskAgentCard.jsx
 Next valid action,jsx-text,1,drive/src/v2/BrowsePage.jsx
 Next: Proposal,jsx-text,1,drive/src/v2/SynthesisSpecificationPage.jsx
 No,jsx-text,1,drive/src/v2/BrowsePage.jsx
-No active constructions.,jsx-text,1,drive/src/v2/SynthesisPage.jsx
+No active builds.,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 No additional limitation was recorded. Ask should still challenge construct validity before acceptance.,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 No assistant runtime signal,object-label,1,drive/src/v2/SettingsPage.jsx
+No build has been suggested yet. Start a reasoning turn to prepare a proposal from this brief and saved Library evidence.,jsx-text,1,drive/src/v2/SynthesisPage.jsx
+No build selected,jsx-attr,1,drive/src/v2/SynthesisIdleRailPanel.jsx
 No candidate selected,jsx-attr,1,drive/src/v2/DiscoverEvaluationSurface.jsx
 No collection has started.,object-label,1,drive/src/v2/historyLifecycleLabel.js
-No collection-ready route is declared yet,jsx-text,1,drive/src/v2/BrowsePage.jsx
+No collection method is documented as ready yet,jsx-text,1,drive/src/v2/BrowsePage.jsx
+"No collection methods are listed yet. Search above, or paste a URL or DOI below.",jsx-text,1,drive/src/v2/BrowsePage.jsx
 No collection-ready route yet,jsx-text,1,drive/src/v2/DiscoverEvidenceField.jsx
-No construction has been recommended yet. Start a reasoning turn to ground one reviewable proposal in this brief and the recorded Library evidence.,jsx-text,1,drive/src/v2/SynthesisPage.jsx
-No construction selected,jsx-attr,1,drive/src/v2/SynthesisIdleRailPanel.jsx
-"No curated source routes yet — search above, or paste a URL or DOI below.",jsx-text,1,drive/src/v2/BrowsePage.jsx
-No current source route specifically matches “,jsx-text,1,drive/src/v2/BrowsePage.jsx
+No connection test evidence yet. Test the connection to check the source.,jsx-text,1,drive/src/v2/DiscoverEvaluationSurface.jsx
+No current collection method specifically matches “,jsx-text,1,drive/src/v2/BrowsePage.jsx
+"No data is built here. After you create the build, Research Drive reviews data in your Library. Ask reasoning is a separate step and waits if the assistant is unavailable.",jsx-text,1,drive/src/v2/SynthesisPage.jsx
+No dataset saved to Library is expected from this request.,object-label,1,drive/src/v2/historyLifecycleLabel.js
 No decision-relevant measured capacity was reported.,jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
-No declared fields are available in the current registry record.,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
-No declared response fields are available in the current registry record.,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
-No declared route was found. This does not establish that no source exists.,jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
 No direct route match,jsx-text,1,drive/src/v2/BrowsePage.jsx
-"No durable Discover items match this filter. Requests, collections, schedules, and registered outputs appear here.",jsx-text,1,drive/src/v2/DiscoverHistoryPanel.jsx
-No durable Library asset is expected from this request.,object-label,1,drive/src/v2/historyLifecycleLabel.js
-No durable research work currently needs resumption.,jsx-attr,1,drive/src/v2/HomePage.jsx
+No documented collection method was found. A source may still exist.,jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
 No evidence relationships are recorded for this researcher.,jsx-text,1,drive/src/v2/ProfilePage.jsx
 "No evidence was collected, and re-running the same request will be refused again.",object-label,1,drive/src/v2/historyLifecycleLabel.js
+No fields are documented in the current Library record.,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
 No join,jsx-text,1,drive/src/v2/SynthesisSpecificationPage.jsx
 "No key duplicates, so no collapse strategy is needed. Coverage is the question here.",jsx-text,1,drive/src/v2/JoinDecisionPanel.jsx
 No Library evidence was returned. This does not establish that no evidence exists.,jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
 No Library input established,object-label,1,drive/src/v2/BrowsePage.jsx
-No lifecycle item selected,jsx-attr,1,drive/src/v2/DiscoverHistoryRailPanel.jsx
 No LLM regeneration,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 No local metadata is available yet.,jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
 No measured columns are available yet.,jsx-text,1,drive/src/v2/SynthesisSpecificationPage.jsx
@@ -1182,14 +1154,18 @@ No measured join candidate.,jsx-text,1,drive/src/v2/SynthesisSpecificationPage.j
 No offering found yet,jsx-text,1,drive/src/v2/BrowsePage.jsx
 no online worker reports {…},template,1,drive/src/v2/workerRouting.js
 No operation summary was returned. Inspect this proposal with Ask before deciding.,jsx-text,1,drive/src/v2/SynthesisPage.jsx
-No probe evidence yet. Probe the source to collect endpoint facts.,jsx-text,1,drive/src/v2/DiscoverEvaluationSurface.jsx
-No registered output is claimed until archive and registry proof exists,object-label,1,drive/src/v2/synthesisAssist.js
-No registered outputs.,jsx-text,1,drive/src/v2/SynthesisPage.jsx
+No output is confirmed as saved to Library until archive and Library checks pass,object-label,1,drive/src/v2/synthesisAssist.js
+No outputs saved to Library.,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 No remaining gap was reported.,jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
+No request selected,jsx-attr,1,drive/src/v2/DiscoverHistoryRailPanel.jsx
+No response fields are documented in the current Library record.,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
 No resume point,jsx-attr,1,drive/src/v2/HomePage.jsx
 "No runs in this filter. Switch filters above, or open Discover History to review collection decisions.",jsx-text,1,drive/src/v2/ResourcesPage.jsx
+"No saved Discover requests match this filter. Requests, collections, schedules, and outputs saved to Library appear here.",jsx-text,1,drive/src/v2/DiscoverHistoryPanel.jsx
+No saved research work needs to be resumed.,jsx-attr,1,drive/src/v2/HomePage.jsx
+No saved work yet. Recent work will appear here.,jsx-text,1,drive/src/v2/HomePage.jsx
 No single source has to be the answer.,jsx-text,1,drive/src/v2/DiscoverEvidenceField.jsx
-No specific source route match,jsx-attr,1,drive/src/v2/BrowsePage.jsx
+No specific collection method match,jsx-attr,1,drive/src/v2/BrowsePage.jsx
 No storage providers are configured on this host.,jsx-text,1,drive/src/v2/ConnectedAccountsSection.jsx
 No supported route established,object-label,1,drive/src/v2/BrowsePage.jsx
 No supported route recorded,jsx-text,1,drive/src/v2/DiscoverIntentWorkspace.jsx
@@ -1197,25 +1173,21 @@ No usage rows in this period.,jsx-text,1,drive/src/v2/ResourcesPage.jsx
 No worker is authorized to run until this approval is granted,object-label,1,drive/src/v2/synthesisAssist.js
 No write token required,object-label,1,drive/src/v2/SettingsPage.jsx
 Normalize to {…},template,1,drive/src/v2/discoverStrategyCard.js
-not held,jsx-text,1,drive/src/v2/DiscoverCoveragePanel.jsx
-not query-ready,jsx-text,1,drive/src/v2/LibraryFolderRailPanel.jsx
+not ready to query,jsx-text,1,drive/src/v2/LibraryFolderRailPanel.jsx
 Not recorded,jsx-attr,1,drive/src/v2/DiscoverEvaluationSurface.jsx
 Not yet reusable,object-label,1,drive/src/v2/discoverLifecycle.js
 Notes,jsx-attr,1,drive/src/v2/DetailPanel.jsx
-Nothing durable yet — recent work will collect here.,jsx-text,1,drive/src/v2/HomePage.jsx
-Nothing has been learned yet. Research Drive will retain only durable context from signed-in Ask conversations.,jsx-text,1,drive/src/v2/ProfilePage.jsx
+Nothing has been learned yet. Research Drive saves research context only from signed-in Ask conversations.,jsx-text,1,drive/src/v2/ProfilePage.jsx
 "Nothing here can be read into an analysis; treat it as a record, not as data.",object-label,1,drive/src/v2/historyLifecycleLabel.js
-"Nothing is built here. After creation, the desk reviews held Library evidence; Ask reasoning remains a separate step and waits if the assistant is unavailable.",jsx-text,1,drive/src/v2/SynthesisPage.jsx
-Nothing is durable until the construction is created,object-label,1,drive/src/v2/synthesisAssist.js
-Nothing is materialised yet,jsx-text,1,drive/src/v2/SynthesisPage.jsx
+Nothing is built yet,jsx-text,1,drive/src/v2/SynthesisPage.jsx
+Nothing is saved until you create the build,object-label,1,drive/src/v2/synthesisAssist.js
 Nothing will update this evidence object; treat the last collection as final.,object-label,1,drive/src/v2/historyLifecycleLabel.js
 Now,jsx-text,1,drive/src/v2/ResourcesOverviewRailPanel.jsx
 NVMe {…},template,1,drive/src/v2/deskIntegration.js
 OAuth application credentials are not configured on this Research Drive host.,jsx-text,1,drive/src/v2/ConnectedAccountsSection.jsx
 Objective → Evidence → Method → … → Result,jsx-text,1,drive/src/v2/SynthesisIdleRailPanel.jsx
-Observe durable execution proof; no new method decision is required while the accepted build is active,object-label,1,drive/src/v2/synthesisAssist.js
 Observed,jsx-text,1,drive/src/v2/BrowsePage.jsx
-Observed output is not a registered Library asset.,object-label,1,drive/src/v2/historyLifecycleLabel.js
+Observed output has not been saved as a Library dataset.,object-label,1,drive/src/v2/historyLifecycleLabel.js
 Observed row effects,jsx-text,1,drive/src/v2/SynthesisAgentConsole.jsx
 Observed sample available,object-label,1,drive/src/v2/PreviewModal.jsx
 Observed structure,jsx-text,1,drive/src/v2/PreviewModal.jsx
@@ -1236,25 +1208,25 @@ only there,object-label,1,drive/src/v2/coverageBands.js
 Open,object-label,1,drive/src/v2/SettingsPage.jsx
 Open {…} directory,template,1,drive/src/v2/LibraryEvidenceEstate.jsx
 Open {…} in Folders,template,1,drive/src/v2/LibraryEvidenceEstate.jsx
-Open a durable acquisition intent for review? No collection starts from this action.,jsx-text,1,drive/src/v2/DiscoverEvaluationSurface.jsx
+Open a saved collection request for review? This action does not start collection.,jsx-text,1,drive/src/v2/DiscoverEvaluationSurface.jsx
 Open acquisition review,jsx-text,1,drive/src/v2/DiscoverEvaluationSurface.jsx
 Open activity,jsx-text,1,drive/src/v2/ResourcesOverviewRailPanel.jsx
 Open Ask,jsx-text,1,drive/src/v2/SettingsPage.jsx
 Open Detail and resolve or document the condition before relying on it.,object-label,1,drive/src/v2/StatusPill.jsx
-"Open Detail to inspect access, authority, and collection options.",object-label,1,drive/src/v2/StatusPill.jsx
+"Open Detail to review access, verification, and collection options.",object-label,1,drive/src/v2/StatusPill.jsx
 Open Discover History,object-label,1,drive/src/v2/homeBriefing.js
 Open Discover History for live job records.,object-label,1,drive/src/v2/homeBriefing.js
-Open Discover History to inspect the durable job record.,object-label,1,drive/src/v2/homeBriefing.js
+Open Discover History to inspect the saved collection record.,object-label,1,drive/src/v2/homeBriefing.js
 Open in History →,jsx-text,1,drive/src/v2/DiscoverIntentWorkspace.jsx
 Open it in Library to confirm the schema before relying on it.,object-label,1,drive/src/v2/historyLifecycleLabel.js
 Open Library,jsx-text,1,drive/src/v2/ProfilePage.jsx
 Open new library item menu,jsx-attr,1,drive/src/v2/LibraryPage.jsx
 Open original,jsx-text,1,drive/src/v2/PreviewModal.jsx
 Open system status to inspect runtime health,object-label,1,drive/src/v2/SettingsPage.jsx
-Open the asset in Library or inspect its query evidence.,object-label,1,drive/src/v2/historyLifecycleLabel.js
-Open the exact Library asset or ask about its provenance and readiness gap.,object-label,1,drive/src/v2/historyLifecycleLabel.js
-Open the holding in Library.,object-label,1,drive/src/v2/homeBriefing.js
+Open the dataset in Library or inspect its query evidence.,object-label,1,drive/src/v2/historyLifecycleLabel.js
+Open the dataset in Library.,object-label,1,drive/src/v2/homeBriefing.js
 Open the Library or find missing evidence,jsx-attr,1,drive/src/v2/HomePage.jsx
+Open this Library dataset or ask about its source history and what still needs to be checked.,object-label,1,drive/src/v2/historyLifecycleLabel.js
 Open web context,jsx-text,1,drive/src/v2/BrowsePage.jsx
 OpenAlex,object-label,1,drive/src/v2/providerMarks.js
 Opening Research Drive,jsx-text,1,drive/src/v2/DeskAccessGate.jsx
@@ -1271,8 +1243,7 @@ or choose files from disk for Library ingestion.,jsx-text,1,drive/src/v2/Library
 or choose files from disk for vault ingestion.,jsx-text,1,drive/src/v2/RailPanels.jsx
 Or reuse,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Organizing collections…,jsx-text,1,drive/src/v2/LibraryEvidenceEstate.jsx
-"Origin and reproducibility receipt for this Library asset. Source authority, acquisition route, verification, and use readiness remain separate claims from current storage holdings.",jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
-Other assets,object-label,1,drive/src/v2/libraryEstate.js
+Other datasets,object-label,1,drive/src/v2/libraryEstate.js
 Outcome,jsx-attr,1,drive/src/v2/RailPanels.jsx
 Output column,jsx-text,1,drive/src/v2/SynthesisSpecificationPage.jsx
 output contract and transformation,jsx-text,1,drive/src/v2/BrowsePage.jsx
@@ -1280,16 +1251,18 @@ Output dataset ID,jsx-text,1,drive/src/v2/SynthesisSpecificationPage.jsx
 Output identity,jsx-text,1,drive/src/v2/SynthesisSpecificationPage.jsx
 Output rows,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Output sample ·,jsx-text,1,drive/src/v2/SynthesisPage.jsx
+Outputs saved to Library,jsx-text,1,drive/src/v2/SynthesisPage.jsx
+outside Library,jsx-text,1,drive/src/v2/DiscoverCoveragePanel.jsx
 outside your Library.,jsx-text,1,drive/src/v2/LibraryEvidenceEstate.jsx
 Overview,jsx-text,1,drive/src/v2/PreviewModal.jsx
 Package evidence selection,jsx-attr,1,drive/src/v2/LibraryPackagePanel.jsx
 "panel regression, survey, SEM",jsx-attr,1,drive/src/v2/ProfilePage.jsx
 Partial,object-label,1,drive/src/v2/libraryVerification.js
 Partition,jsx-attr,1,drive/src/v2/DetailPanel.jsx
-Paste your desk access token,jsx-attr,1,drive/src/v2/DeskAccessGate.jsx
+Paste your Research Drive access token,jsx-attr,1,drive/src/v2/DeskAccessGate.jsx
 pending,jsx-text,1,drive/src/v2/V2DeskHeader.jsx
 Pending approval · {…},template,1,drive/src/v2/procurementJobs.js
-Pending approvals could not refresh; showing the latest durable lifecycle.,jsx-text,1,drive/src/v2/DiscoverHistoryPanel.jsx
+Pending approvals could not refresh. The last saved request history is shown.,jsx-text,1,drive/src/v2/DiscoverHistoryPanel.jsx
 Period,jsx-attr,1,drive/src/v2/DetailPanel.jsx
 Period totals → daily history → attribution. Approvals stay on Discover History / Needs you — not here.,jsx-text,1,drive/src/v2/ResourcesPage.jsx
 Personal research profile summary,jsx-attr,1,drive/src/v2/ProfilePage.jsx
@@ -1310,27 +1283,20 @@ Prepare local copy,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
 Prepare research package,jsx-attr,1,drive/src/v2/LibraryPackagePanel.jsx
 Prepare research package,jsx-text,1,drive/src/v2/LibraryPackagePanel.jsx
 Prepare upload,jsx-text,1,drive/src/v2/LibraryIntakeRailPanel.jsx
-preserves approved methods and outputs as durable work.,jsx-text,1,drive/src/v2/HomeSuggestedAsks.jsx
 Preview,jsx-text,1,drive/src/v2/SynthesisThreadRailPanel.jsx
 Preview,object-label,1,drive/src/v2/synthesisLifecycle.js
 Preview forensics,jsx-text,1,drive/src/v2/SynthesisAgentConsole.jsx
-"Preview is bounded evidence about this exact method revision. It materialises nothing, registers nothing, and does not prove full-population results.",jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Preview metadata,jsx-attr,1,drive/src/v2/PreviewModal.jsx
 Preview next item,jsx-attr,1,drive/src/v2/PreviewModal.jsx
 Preview previous item,jsx-attr,1,drive/src/v2/PreviewModal.jsx
 Preview rows,jsx-text,1,drive/src/v2/DetailPanel.jsx
 "Preview rows, ask a grounded question, or use it in Synthesis.",object-label,1,drive/src/v2/StatusPill.jsx
-Preview this revision,jsx-text,1,drive/src/v2/ReusePanel.jsx
+"Preview tests this version of the method on a sample. It does not build or save a dataset to Library, and it does not prove results for the full population.",jsx-text,1,drive/src/v2/SynthesisPage.jsx
+Preview this version,jsx-text,1,drive/src/v2/ReusePanel.jsx
 Preview unavailable,jsx-text,1,drive/src/v2/PreviewModal.jsx
-Preview/Test,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Previewed,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Primary evidence input,jsx-text,1,drive/src/v2/SynthesisSpecificationPage.jsx
 Private research workspace,jsx-text,1,drive/src/v2/DeskAccessGate.jsx
-"Probe a public source, collect metadata, and hand the acquisition plan to Ask.",jsx-attr,1,drive/src/v2/RailPanels.jsx
-Probe again,object-label,1,drive/src/v2/discoverEvaluation.js
-Probe pending,object-label,1,drive/src/v2/archiveRuntimeStatus.js
-Probe the source or ask Research Drive for the safest acquisition path.,object-label,1,drive/src/v2/StatusPill.jsx
-"Probe, craft plan, approve, then collect",object-label,1,drive/src/v2/ResourcesPage.jsx
 Processed,object-label,1,drive/src/v2/discoverLifecycle.js
 Procure,jsx-text,1,drive/src/v2/RailPanels.jsx
 Procure branch,jsx-attr,1,drive/src/v2/RailPanels.jsx
@@ -1348,14 +1314,14 @@ Project,jsx-attr,1,drive/src/v2/RailPanels.jsx
 Proportional union of both datasets,jsx-attr,1,drive/src/v2/SynthesisVisualReasoning.jsx
 Proposal,jsx-attr,1,drive/src/v2/SynthesisThreadRailPanel.jsx
 Proposal,object-label,1,drive/src/v2/synthesisLifecycle.js
-Proposal + authority,object-label,1,drive/src/v2/SynthesisJourneyNav.jsx
+Proposal and permissions,object-label,1,drive/src/v2/SynthesisJourneyNav.jsx
 Proposal needs review,object-label,1,drive/src/v2/synthesisAssist.js
 Proposal review,object-label,1,drive/src/v2/synthesisAssist.js
 proposal to review,object-label,1,drive/src/v2/synthesisFocus.js
 Proposed,jsx-text,1,drive/src/v2/BrowsePage.jsx
 Proposed acquisition routes,jsx-attr,1,drive/src/v2/DiscoverIntentWorkspace.jsx
 Proposed assembly path,jsx-text,1,drive/src/v2/DiscoverEvidenceField.jsx
-Proposed construction pipeline,jsx-attr,1,drive/src/v2/SynthesisPage.jsx
+Proposed build pipeline,jsx-attr,1,drive/src/v2/SynthesisPage.jsx
 Proposed dataset strategy,jsx-attr,1,drive/src/v2/BrowsePage.jsx
 Proposed output,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Proposed routes · review required,jsx-text,1,drive/src/v2/DiscoverIntentWorkspace.jsx
@@ -1370,30 +1336,27 @@ q,jsx-text,1,drive/src/v2/SynthesisSpecificationPage.jsx
 Query cap,jsx-attr,1,drive/src/v2/RailPanels.jsx
 Query path,jsx-attr,1,drive/src/v2/LibraryDatasetRailPanel.jsx
 Query results may not match what the catalog claims about this object.,object-label,1,drive/src/v2/historyLifecycleLabel.js
-Query-ready ·,jsx-text,1,drive/src/v2/LibraryPage.jsx
 Queue,object-label,1,drive/src/v2/DiscoverEvaluationSurface.jsx
 Ranked Discover results,jsx-attr,1,drive/src/v2/BrowsePage.jsx
-"Re-collect the object, or open it in Library to see what the holding is missing.",object-label,1,drive/src/v2/historyLifecycleLabel.js
 Read + write,jsx-text,1,drive/src/v2/ConnectedAccountsSection.jsx
 Read files,jsx-text,1,drive/src/v2/ConnectedAccountsSection.jsx
 Readiness ledger,jsx-text,1,drive/src/v2/SynthesisThreadRailPanel.jsx
 readiness unknown,jsx-text,1,drive/src/v2/RailPanels.jsx
-Reading a bounded local sample…,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
+Reading a local sample…,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
+Reading columns in your Library and testing join coverage. No assistant is involved.,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Reading connected accounts…,jsx-text,1,drive/src/v2/ConnectedAccountsSection.jsx
-Reading held columns and testing join coverage. No assistant is involved.,jsx-text,1,drive/src/v2/SynthesisPage.jsx
-Reading the current research context before showing its holdings.,jsx-text,1,drive/src/v2/LibraryPage.jsx
-Reading the registered evidence estate before showing its current assets.,jsx-text,1,drive/src/v2/LibraryPage.jsx
-Reading the registered evidence estate before showing this collection.,jsx-text,1,drive/src/v2/LibraryPage.jsx
+Reading the current research context before showing data in your Library.,jsx-text,1,drive/src/v2/LibraryPage.jsx
+Reading your Library before showing its datasets.,jsx-text,1,drive/src/v2/LibraryPage.jsx
+Reading your Library before showing this collection.,jsx-text,1,drive/src/v2/LibraryPage.jsx
 Ready for an evidence need,object-label,1,drive/src/v2/ResearchSituationRail.jsx
+Ready to query ·,jsx-text,1,drive/src/v2/LibraryPage.jsx
 reasons over the current research context.,jsx-text,1,drive/src/v2/HomeSuggestedAsks.jsx
 Recent,jsx-attr,1,drive/src/v2/V2Sidebar.jsx
 Recent,jsx-text,1,drive/src/v2/V2Sidebar.jsx
 Recent trail,jsx-attr,1,drive/src/v2/HomePage.jsx
 Recent trail,jsx-text,1,drive/src/v2/HomePage.jsx
 Recipe · diff · row effects · runtime,jsx-text,1,drive/src/v2/SynthesisAgentConsole.jsx
-Recommendation and execution are separate authority boundaries.,jsx-text,1,drive/src/v2/SynthesisIdleRailPanel.jsx
 Recommended,jsx-text,1,drive/src/v2/SynthesisPage.jsx
-Recommended construction evidence roles,jsx-attr,1,drive/src/v2/SynthesisPage.jsx
 Recommended evidence,jsx-attr,1,drive/src/v2/HomePage.jsx
 Recommended evidence,jsx-text,1,drive/src/v2/HomePage.jsx
 Recommended evidence roles,jsx-attr,1,drive/src/v2/SynthesisThreadRailPanel.jsx
@@ -1404,10 +1367,8 @@ Record details,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
 Record the research object and the decision it must support.,jsx-text,1,drive/src/v2/App.jsx
 Record updated,jsx-attr,1,drive/src/v2/LibraryDatasetRailPanel.jsx
 recorded,jsx-text,1,drive/src/v2/ProfilePage.jsx
-Recorded event,jsx-attr,1,drive/src/v2/DiscoverHistoryRailPanel.jsx
 Recorded expenditure,jsx-text,1,drive/src/v2/ResourcesPage.jsx
 Recorded in the faculty registry.,jsx-text,1,drive/src/v2/ProfilePage.jsx
-Recorded relationships are reconciled against the current Library. Library—not Profile—is possession authority.,jsx-text,1,drive/src/v2/ProfilePage.jsx
 Recorded research object,jsx-attr,1,drive/src/v2/SynthesisThreadRailPanel.jsx
 "Recorded scholarly context is evidence, not account identity and not a claim that every workflow uses every field.",jsx-text,1,drive/src/v2/ProfilePage.jsx
 Recorded scholarly evidence,jsx-text,1,drive/src/v2/ProfilePage.jsx
@@ -1427,18 +1388,8 @@ Refresh status,jsx-attr,1,drive/src/v2/LibraryDatasetRailPanel.jsx
 Refuse ambiguous duplicates,jsx-text,1,drive/src/v2/SynthesisSpecificationPage.jsx
 refuse the join,object-label,1,drive/src/v2/joinCandidates.js
 Register only after archive and query-readiness verification,jsx-text,1,drive/src/v2/BrowsePage.jsx
-Registered · reconciliation pending,object-label,1,drive/src/v2/datasetMeta.js
-Registered · unconfirmed ·,jsx-text,1,drive/src/v2/LibraryPage.jsx
-Registered evidence,object-label,1,drive/src/v2/SynthesisJourneyNav.jsx
-Registered evidence is still loading.,jsx-text,1,drive/src/v2/LibraryFolderRailPanel.jsx
-Registered is not Query-ready. No query capability is claimed here.,object-label,1,drive/src/v2/historyLifecycleLabel.js
-Registered Library evidence,jsx-text,1,drive/src/v2/SynthesisPage.jsx
-Registered outputs,jsx-text,1,drive/src/v2/SynthesisPage.jsx
-Registered starting points,jsx-text,1,drive/src/v2/SynthesisHome.jsx
-Registered synthesis methods,jsx-attr,1,drive/src/v2/SynthesisPage.jsx
 Registration evidence,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Registry,jsx-attr,1,drive/src/v2/DiscoverHistoryRailPanel.jsx
-Registry assets not yet organized into a collection,object-label,1,drive/src/v2/libraryEstate.js
 Registry catalog,object-label,1,drive/src/v2/providerMarks.js
 Registry metadata plus observed sample fields,jsx-text,1,drive/src/v2/PreviewModal.jsx
 Registry readiness,jsx-attr,1,drive/src/v2/LibraryDatasetRailPanel.jsx
@@ -1446,7 +1397,7 @@ registry reference,jsx-text,1,drive/src/v2/LibraryFolderRailPanel.jsx
 Registry strengths,jsx-text,1,drive/src/v2/ProfilePage.jsx
 Reject,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Reject proposal,jsx-text,1,drive/src/v2/DiscoverIntentWorkspace.jsx
-Related Library evidence remains visible while the desk looks for a direct route,jsx-text,1,drive/src/v2/BrowsePage.jsx
+Related Library evidence remains visible while Research Drive looks for a direct collection method,jsx-text,1,drive/src/v2/BrowsePage.jsx
 Relevant Library evidence,jsx-text,1,drive/src/v2/BrowsePage.jsx
 Remote and query-time data access,object-label,1,drive/src/v2/libraryEstate.js
 Remote datasets without local download,object-label,1,drive/src/v2/ResourcesPage.jsx
@@ -1458,9 +1409,11 @@ Repeated right-hand keys,jsx-text,1,drive/src/v2/SynthesisSpecificationPage.jsx
 Reproduce,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Reproduce command,jsx-attr,1,drive/src/v2/LibraryAssetWorkspace.jsx
 Reproduction is incomplete because the registry does not yet retain,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
-Request one reviewable construction for explicit method review,object-label,1,drive/src/v2/synthesisAssist.js
+Request a suggested build for method review,object-label,1,drive/src/v2/synthesisAssist.js
+Request history,jsx-text,1,drive/src/v2/DiscoverHistoryPanel.jsx
+Request history,object-label,1,drive/src/v2/ResearchSituationRail.jsx
+Request stages,jsx-attr,1,drive/src/v2/DiscoverEvaluationSurface.jsx
 Requested cadence,jsx-attr,1,drive/src/v2/DiscoverHistoryRailPanel.jsx
-Required grain,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Requirement,jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
 Requirement dimensions were not supplied.,jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
 rescale rf ÷100,object-label,1,drive/src/v2/synthesisContract.js
@@ -1471,31 +1424,50 @@ Research assistant progress,jsx-attr,1,drive/src/v2/AskRail.jsx
 Research boundary,jsx-text,1,drive/src/v2/JoinDecisionPanel.jsx
 Research brief,jsx-attr,1,drive/src/v2/SynthesisPage.jsx
 Research brief framing checklist,jsx-attr,1,drive/src/v2/SynthesisPage.jsx
+Research build,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Research campaigns,object-label,1,drive/src/v2/libraryEstate.js
 Research capability,jsx-attr,1,drive/src/v2/ResourcesPage.jsx
 Research collections,jsx-text,1,drive/src/v2/LibraryEvidenceEstate.jsx
 Research collections and folder storage,jsx-attr,1,drive/src/v2/LibraryEvidenceEstate.jsx
-Research construction,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 research context,jsx-text,1,drive/src/v2/ProfilePage.jsx
 Research context,object-label,1,drive/src/v2/ResearchSituationRail.jsx
 Research context on record,jsx-attr,1,drive/src/v2/ProfilePage.jsx
 Research data,jsx-text,1,drive/src/v2/DeskAccessGate.jsx
-Research data stays inside the desk.,jsx-text,1,drive/src/v2/DeskAccessGate.jsx
+Research data stays inside Research Drive.,jsx-text,1,drive/src/v2/DeskAccessGate.jsx
 Research details,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
 Research diff,jsx-text,1,drive/src/v2/SynthesisAgentConsole.jsx
-Research Drive,object-label,1,drive/src/v2/RailPanels.jsx
-"Research Drive can search holdings, inspect evidence, propose collection, and explain what remains uncertain.",jsx-attr,1,drive/src/v2/AskRail.jsx
+RESEARCH DRIVE ACCESS,jsx-text,1,drive/src/v2/DeskAccessGate.jsx
+Research Drive access token,jsx-text,1,drive/src/v2/DeskAccessGate.jsx
+Research Drive API offline,object-label,1,drive/src/v2/deskStatusBadge.js
+Research Drive API unreachable — start,jsx-text,1,drive/src/v2/ResourcesPage.jsx
+"Research Drive can search your Library, inspect data, propose collection, and explain what remains uncertain.",jsx-attr,1,drive/src/v2/AskRail.jsx
+Research Drive capacity,jsx-attr,1,drive/src/v2/RailPanels.jsx
+Research Drive capacity that may affect where you get the data. No worker or quota is assigned here.,jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
+Research Drive checks what can be measured. You choose what the build should do.,jsx-text,1,drive/src/v2/SynthesisSpecificationPage.jsx
+Research Drive chose,object-label,1,drive/src/v2/threadRecord.js
+Research Drive configuration,object-label,1,drive/src/v2/ResearchSituationRail.jsx
+Research Drive could not complete that request,object-label,1,drive/src/v2/deskErrorCopy.js
+Research Drive did not answer in time,object-label,1,drive/src/v2/deskErrorCopy.js
+Research Drive found two plausible series at different scales,jsx-text,1,drive/src/v2/SynthesisVisualReasoning.jsx
+Research Drive has not reported its shared master copy (Google Drive),object-label,1,drive/src/v2/archiveRuntimeStatus.js
+Research Drive is unreachable,object-label,1,drive/src/v2/deskErrorCopy.js
+Research Drive knows the collection methods below. They are not evidence results for this question.,jsx-text,1,drive/src/v2/BrowsePage.jsx
 Research Drive navigation,jsx-attr,1,drive/src/v2/V2Sidebar.jsx
+Research Drive needs a session,object-label,1,drive/src/v2/deskErrorCopy.js
+Research Drive preferences,jsx-text,1,drive/src/v2/V2DeskHeader.jsx
+Research Drive reports a request waiting for approval. Open Discover to review.,object-label,1,drive/src/v2/homeBriefing.js
 Research Drive state,jsx-text,1,drive/src/v2/InteractionGuidance.jsx
+Research Drive status,jsx-attr,1,drive/src/v2/V2DeskHeader.jsx
+Research Drive status,object-label,1,drive/src/v2/deskStatusBadge.js
 Research Drive storage,jsx-attr,1,drive/src/v2/SettingsPage.jsx
+Research Drive will check this specification and save a version identifier before it can be accepted.,jsx-text,1,drive/src/v2/SynthesisSpecificationPage.jsx
+Research Drive will not invent a join key from names alone.,jsx-text,1,drive/src/v2/SynthesisSpecificationPage.jsx
+"Research Drive will test the same transforms, joins, and aggregations used in the full build on a sample. It will not create a worker job or a Library dataset.",jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Research evidence estate,jsx-attr,1,drive/src/v2/LibraryEvidenceEstate.jsx
 Research evidence is public here; infrastructure and approval controls are not.,jsx-text,1,drive/src/v2/App.jsx
 Research evidence relationships,jsx-text,1,drive/src/v2/ProfilePage.jsx
 Research identity,jsx-attr,1,drive/src/v2/SettingsPage.jsx
 Research identity,jsx-text,1,drive/src/v2/ProfilePage.jsx
-Research intent recorded,object-label,1,drive/src/v2/SynthesisAgentConsole.jsx
-Research lifecycle,jsx-text,1,drive/src/v2/DiscoverHistoryPanel.jsx
-Research lifecycle,object-label,1,drive/src/v2/ResearchSituationRail.jsx
 Research memory,jsx-text,1,drive/src/v2/V2DeskHeader.jsx
 Research memory controls,jsx-attr,1,drive/src/v2/ProfilePage.jsx
 Research need,jsx-attr,1,drive/src/v2/DiscoverIntentRailPanel.jsx
@@ -1508,9 +1480,9 @@ Research path,jsx-attr,1,drive/src/v2/HomeSuggestedAsks.jsx
 Research profile,object-label,1,drive/src/v2/ResearchSituationRail.jsx
 Research profile access,jsx-attr,1,drive/src/v2/ProfilePage.jsx
 Research request,jsx-text,1,drive/src/v2/LibraryPackagePanel.jsx
+Research request recorded,object-label,1,drive/src/v2/SynthesisAgentConsole.jsx
 Research requests and outcomes,jsx-text,1,drive/src/v2/DiscoverHistoryPanel.jsx
 Research terms,jsx-attr,1,drive/src/v2/LibraryAssetWorkspace.jsx
-Research tools,jsx-attr,1,drive/src/v2/RailPanels.jsx
 Research topics,jsx-text,1,drive/src/v2/ProfilePage.jsx
 Research use,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
 Researcher,jsx-text,1,drive/src/v2/ProfilePage.jsx
@@ -1519,9 +1491,9 @@ Researcher approval,object-label,1,drive/src/v2/synthesisLifecycle.js
 Researcher identity,jsx-attr,1,drive/src/v2/ProfilePage.jsx
 Researcher record,object-label,1,drive/src/v2/RailPanels.jsx
 Researcher record summary,jsx-attr,1,drive/src/v2/ProfilePage.jsx
-Resolve material construction choices,object-label,1,drive/src/v2/synthesisLifecycle.js
-"Resolve the access condition on the source, or choose a route the desk is licensed for.",object-label,1,drive/src/v2/historyLifecycleLabel.js
+Resolve material build choices,object-label,1,drive/src/v2/synthesisLifecycle.js
 Resolve the incompatible measurement scales,object-label,1,drive/src/v2/synthesisAssist.js
+"Resolve the source’s access requirement, or choose a collection method Research Drive is licensed to use.",object-label,1,drive/src/v2/historyLifecycleLabel.js
 Resolve with:,jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
 resolved,jsx-text,1,drive/src/v2/ExcursionRecordPanel.jsx
 Resource headroom,jsx-attr,1,drive/src/v2/HomePage.jsx
@@ -1531,41 +1503,47 @@ resources,jsx-text,1,drive/src/v2/ResourcesPage.jsx
 Resources,object-label,1,drive/src/v2/nav-config.jsx
 Resources →,jsx-text,1,drive/src/v2/HomePage.jsx
 Resources statement row,jsx-attr,1,drive/src/v2/RailPanels.jsx
-"Resources tracks archive capacity, source entitlements, collectors, model readiness, approvals, and failed jobs. Those controls remain limited to research staff so browsing never grants operational authority.",jsx-text,1,drive/src/v2/App.jsx
+"Resources tracks archive capacity, university access to sources, collectors, model readiness, approvals, and failed jobs. These controls are available only to research staff. Browsing does not grant permission to operate them.",jsx-text,1,drive/src/v2/App.jsx
 Restore from archive,jsx-attr,1,drive/src/v2/LibraryDatasetRailPanel.jsx
 Restore from archive,jsx-text,1,drive/src/v2/LibraryDatasetRailPanel.jsx
 Restricted,jsx-text,1,drive/src/v2/LibraryHoldingsOverlay.jsx
 Restricted operational view,jsx-text,1,drive/src/v2/App.jsx
 Result,jsx-text,1,drive/src/v2/SynthesisThreadRailPanel.jsx
 Result ·,jsx-text,1,drive/src/v2/SynthesisPage.jsx
-Resume · headroom · durable consequences,object-label,1,drive/src/v2/HomePage.jsx
+Results remain available while data in your Library is compared with your research brief.,jsx-text,1,drive/src/v2/DiscoverEvidenceField.jsx
+Resume · capacity · saved outcomes,object-label,1,drive/src/v2/HomePage.jsx
 Resume the highest-value grounded work or inspect the evidence state behind the next decision.,object-label,1,drive/src/v2/ResearchSituationRail.jsx
-Resume the most consequential durable research state,object-label,1,drive/src/v2/HomePage.jsx
-"Resume the refresh, or accept the current snapshot as the working asset.",object-label,1,drive/src/v2/historyLifecycleLabel.js
-Retry held evidence,jsx-text,1,drive/src/v2/SynthesisPage.jsx
-Retry held-evidence discovery,jsx-attr,1,drive/src/v2/SynthesisPage.jsx
+Resume the most consequential saved research state,object-label,1,drive/src/v2/HomePage.jsx
+"Resume the refresh, or use the current snapshot as your working dataset.",object-label,1,drive/src/v2/historyLifecycleLabel.js
+Retry Library search,jsx-attr,1,drive/src/v2/SynthesisPage.jsx
+Retry Library search,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Retry only if the same method is still defensible; otherwise revise the proposal,object-label,1,drive/src/v2/synthesisAssist.js
 Retry preview,jsx-text,1,drive/src/v2/PreviewModal.jsx
 Return to shared guest browsing,jsx-text,1,drive/src/v2/V2DeskHeader.jsx
 Return to Synthesis,jsx-text,1,drive/src/v2/BrowsePage.jsx
 Reusable method,jsx-text,1,drive/src/v2/SynthesisHome.jsx
 Reusable methods,jsx-text,1,drive/src/v2/SynthesisHome.jsx
-Reusable research assets,jsx-attr,1,drive/src/v2/SynthesisHome.jsx
+Reusable research data,jsx-attr,1,drive/src/v2/SynthesisHome.jsx
 Reusable research estate,jsx-text,1,drive/src/v2/ResourcesPage.jsx
-Reuse a construction that already exists.,jsx-text,1,drive/src/v2/SynthesisPage.jsx
-Reusing a registered method,jsx-text,1,drive/src/v2/ReusePanel.jsx
+Reuse an existing build.,jsx-text,1,drive/src/v2/SynthesisPage.jsx
+Reusing a method saved to Library,jsx-text,1,drive/src/v2/ReusePanel.jsx
 Review,jsx-attr,1,drive/src/v2/SynthesisIdleRailPanel.jsx
 Review,jsx-text,1,drive/src/v2/HomePage.jsx
+Review access,object-label,1,drive/src/v2/BrowsePage.jsx
 Review access requirements,object-label,1,drive/src/v2/discoverEvaluation.js
-Review access route,object-label,1,drive/src/v2/BrowsePage.jsx
 Review acquisition,jsx-attr,1,drive/src/v2/BrowsePage.jsx
 Review acquisition route,object-label,1,drive/src/v2/BrowsePage.jsx
 Review approval,object-label,1,drive/src/v2/discoverLifecycle.js
+"Review approvals, collection, and data saved to Library. Search activity and system checks are also available.",jsx-text,1,drive/src/v2/DiscoverHistoryPanel.jsx
 Review assembly plan →,jsx-text,1,drive/src/v2/DiscoverEvidenceField.jsx
+Review available collection methods and access requirements.,object-label,1,drive/src/v2/historyLifecycleLabel.js
+"Review build choices, proposals, sample checks, approvals, and issues that need attention here.",jsx-attr,1,drive/src/v2/SynthesisHome.jsx
+Review collection methods here. Choose where to get data and track collection in Discover.,jsx-text,1,drive/src/v2/ResourcesPage.jsx
+Review collection strategy,jsx-text,1,drive/src/v2/BrowsePage.jsx
 Review execution approval,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Review in Discover,jsx-text,1,drive/src/v2/LibraryEvidenceEstate.jsx
-Review measured evidence and turn it into one reviewable construction,object-label,1,drive/src/v2/synthesisAssist.js
-Review method choices before any execution or materialisation.,jsx-text,1,drive/src/v2/App.jsx
+Review measured evidence and propose a build for review,object-label,1,drive/src/v2/synthesisAssist.js
+Review method choices before running the build or creating data.,jsx-text,1,drive/src/v2/App.jsx
 Review only capacity or access conditions that materially constrain research work.,object-label,1,drive/src/v2/ResearchSituationRail.jsx
 Review or reject the recorded method.,object-label,1,drive/src/v2/historyLifecycleLabel.js
 Review pending approvals,object-label,1,drive/src/v2/homeBriefing.js
@@ -1573,25 +1551,23 @@ Review proposed change,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Review request,jsx-text,1,drive/src/v2/DiscoverHistoryRailPanel.jsx
 "Review row effects and warnings, then request approval only if the receipt is acceptable",object-label,1,drive/src/v2/synthesisAssist.js
 "Review source, cost, and vault destination before collection starts.",object-label,1,drive/src/v2/homeBriefing.js
-Review sourcing strategy,jsx-text,1,drive/src/v2/BrowsePage.jsx
+Review system resources when a measured limit changes what Research Drive can do.,object-label,1,drive/src/v2/ResearchSituationRail.jsx
+Review the data matched in your Library. Downloads include data only when a local export method has been verified.,jsx-text,1,drive/src/v2/LibraryPackagePanel.jsx
 Review the evidence and approve only when the proposed action is acceptable.,object-label,1,drive/src/v2/StatusPill.jsx
-Review the exact proposed revision,object-label,1,drive/src/v2/synthesisLifecycle.js
-Review the held evidence Library matched. The server will include data only where a verified local export path actually exists.,jsx-text,1,drive/src/v2/LibraryPackagePanel.jsx
-Review the held inputs below and add only the evidence that belongs to this research object.,css-content,1,drive/src/v2/styles/05-synthesis-workstation.css
-Review the recommendation and decide whether this is the right construction to design,object-label,1,drive/src/v2/synthesisAssist.js
+Review the Library inputs below and add only the data that belongs to this research question.,css-content,1,drive/src/v2/styles/05-synthesis-workstation.css
 Review the recorded evidence shape or mapping.,object-label,1,drive/src/v2/historyLifecycleLabel.js
-"Review the revision, Preview evidence, inputs and requested output before deciding",object-label,1,drive/src/v2/synthesisAssist.js
 Review the schedule or ask about its scope.,object-label,1,drive/src/v2/historyLifecycleLabel.js
 Review the source and the exact request before approval.,object-label,1,drive/src/v2/historyLifecycleLabel.js
+Review the suggested build and decide whether to design its method,object-label,1,drive/src/v2/synthesisAssist.js
+Review this version of the proposal,object-label,1,drive/src/v2/synthesisLifecycle.js
+"Review this version, sample preview evidence, inputs, and requested output before deciding",object-label,1,drive/src/v2/synthesisAssist.js
 Reviewed acquisition routes,jsx-attr,1,drive/src/v2/DiscoverIntentWorkspace.jsx
 Reviewed routes,jsx-text,1,drive/src/v2/DiscoverIntentWorkspace.jsx
-Revision bound,object-label,1,drive/src/v2/synthesisLifecycle.js
 rollup unavailable,object-label,1,drive/src/v2/resourcesFromRollup.js
 Route,jsx-attr,1,drive/src/v2/DetailPanel.jsx
 Route to Discover,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Routes,jsx-attr,1,drive/src/v2/RailPanels.jsx
 ROUTES,jsx-text,1,drive/src/v2/App.jsx
-Routes remain available for inspection here; sourcing choices and collection progress stay in Discover.,jsx-text,1,drive/src/v2/ResourcesPage.jsx
 routing capability not reported for {…},template,1,drive/src/v2/workerRouting.js
 Rows after filters,jsx-attr,1,drive/src/v2/LibraryFolderRailPanel.jsx
 run,jsx-text,1,drive/src/v2/SynthesisAgentConsole.jsx
@@ -1603,11 +1579,21 @@ Running now,object-label,1,drive/src/v2/resourcesFromRollup.js
 Running or verifying,jsx-attr,1,drive/src/v2/SynthesisHome.jsx
 S&P Capital IQ / Compustat,object-label,1,drive/src/v2/providerMarks.js
 Safest next step,jsx-text,1,drive/src/v2/InteractionGuidance.jsx
+Sample preview,jsx-text,1,drive/src/v2/SynthesisPage.jsx
+Sample preview,object-label,1,drive/src/v2/synthesisLifecycle.js
+Sample preview {…},template,1,drive/src/v2/SynthesisAgentConsole.jsx
 Sampling:,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Save fallback,jsx-text,1,drive/src/v2/SettingsPage.jsx
 Save identity,jsx-text,1,drive/src/v2/SettingsPage.jsx
 Save useful long-term research context automatically.,jsx-text,1,drive/src/v2/ProfilePage.jsx
 Saved connectors,object-label,1,drive/src/v2/resourcesLedger.js
+Saved Discover decision record,jsx-attr,1,drive/src/v2/DiscoverIntentRailPanel.jsx
+Saved evidence,jsx-text,1,drive/src/v2/App.jsx
+Saved links are checked against the current Library. Library confirms which data you have.,jsx-text,1,drive/src/v2/ProfilePage.jsx
+Saved proof,jsx-text,1,drive/src/v2/SynthesisAgentConsole.jsx
+Saved to Library does not mean ready to query. Query access has not been confirmed here.,object-label,1,drive/src/v2/historyLifecycleLabel.js
+Saved work,jsx-text,1,drive/src/v2/SynthesisHome.jsx
+saves approved methods and outputs for reuse.,jsx-text,1,drive/src/v2/HomeSuggestedAsks.jsx
 Scale comparison,jsx-text,1,drive/src/v2/SynthesisVisualReasoning.jsx
 Scale twins,jsx-text,1,drive/src/v2/SynthesisThreadRailPanel.jsx
 Scale:,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
@@ -1629,10 +1615,9 @@ Search beyond Library in Discover,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 "Search datasets, or describe what data you need…",jsx-attr,1,drive/src/v2/BrowsePage.jsx
 Search evidence assembled,object-label,1,drive/src/v2/ResearchSituationRail.jsx
 Search external catalogues,jsx-text,1,drive/src/v2/BrowsePage.jsx
-Search held evidence again,jsx-text,1,drive/src/v2/SynthesisPage.jsx
-Search library holdings,jsx-attr,1,drive/src/v2/LibraryPage.jsx
 Search or describe a research need,jsx-attr,1,drive/src/v2/BrowsePage.jsx
 Search registries from Discover.,object-label,1,drive/src/v2/homeBriefing.js
+Search starts with data in your Library. Wider search adds live sources and matches by meaning.,jsx-text,1,drive/src/v2/SettingsPage.jsx
 "Search title, field, source, coverage…",jsx-attr,1,drive/src/v2/LibraryPage.jsx
 Search wider,jsx-text,1,drive/src/v2/BrowsePage.jsx
 Search wider →,jsx-text,1,drive/src/v2/BrowsePage.jsx
@@ -1640,24 +1625,25 @@ Search wider immediately,jsx-text,1,drive/src/v2/SettingsPage.jsx
 Search wider in Discover,jsx-text,1,drive/src/v2/LibraryEvidenceEstate.jsx
 Search wider only when you need alternatives or broader coverage.,jsx-text,1,drive/src/v2/BrowsePage.jsx
 Search wider or refine the evidence need,jsx-text,1,drive/src/v2/BrowsePage.jsx
+Search your Library,jsx-attr,1,drive/src/v2/LibraryPage.jsx
+Search your Library again,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Search: {…},template,1,drive/src/v2/homeBriefing.js
-Searches registered assets and lets you review them before this map changes.,jsx-text,1,drive/src/v2/SynthesisPage.jsx
+Searches data saved to Library for you to review before changing this map.,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Searching wider sources…,jsx-text,1,drive/src/v2/BrowsePage.jsx
 SEC EDGAR,object-label,1,drive/src/v2/providerMarks.js
 See what you have; Library organizes the evidence without making you maintain a filing cabinet.,jsx-attr,1,drive/src/v2/LibraryPage.jsx
 "Select a key resource to inspect access, limits, or activity.",jsx-attr,1,drive/src/v2/RailPanels.jsx
-"Select a lifecycle item to inspect its consequence, evidence, and next valid action.",object-label,1,drive/src/v2/ResearchSituationRail.jsx
 Select a record for existing Detail or Ask.,jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
+"Select a request to review its outcome, evidence, and next available action.",object-label,1,drive/src/v2/ResearchSituationRail.jsx
+Select data in your Library to start method reasoning.,css-content,1,drive/src/v2/styles/05-synthesis-workstation.css
 "Select evidence to inspect its source and readiness, or add evidence when the Library does not yet cover the research need.",object-label,1,drive/src/v2/ResearchSituationRail.jsx
 "Select evidence to inspect source, readiness, content, and reuse constraints.",object-label,1,drive/src/v2/ResearchSituationRail.jsx
-Select held evidence to unlock method reasoning.,css-content,1,drive/src/v2/styles/05-synthesis-workstation.css
 Select route,jsx-text,1,drive/src/v2/DiscoverIntentWorkspace.jsx
 Select the columns that define one output row. Leaving this empty produces one aggregate row.,jsx-text,1,drive/src/v2/SynthesisSpecificationPage.jsx
 selected,jsx-text,1,drive/src/v2/LibraryPackagePanel.jsx
 Selected candidate,jsx-text,1,drive/src/v2/DiscoverEvaluationSurface.jsx
-"Selected candidate stays in context. Ask about usability, risks, lab overlap, or what to probe next — without inventing clearance or completeness.",jsx-text,1,drive/src/v2/AskRail.jsx
 Selected evidence,jsx-text,1,drive/src/v2/SynthesisPage.jsx
-Selected Library asset,object-label,1,drive/src/v2/datasetMeta.js
+Selected Library dataset,object-label,1,drive/src/v2/datasetMeta.js
 Selected live source,object-label,1,drive/src/v2/datasetMeta.js
 Selected metadata index,object-label,1,drive/src/v2/datasetMeta.js
 Selected object,jsx-text,1,drive/src/v2/SynthesisAgentConsole.jsx
@@ -1672,7 +1658,7 @@ Settings,jsx-text,1,drive/src/v2/V2DeskHeader.jsx
 Settings,object-label,1,drive/src/v2/nav-config.jsx
 Settled,jsx-text,1,drive/src/v2/SettledDecisionsPanel.jsx
 settled decisions,object-label,1,drive/src/v2/synthesisFocus.js
-"settled decisions carry forward. The prior version stays registered and citable — this is a revision, not an overwrite.",jsx-text,1,drive/src/v2/ReusePanel.jsx
+settled decisions carry forward. The prior version stays saved to Library and citable. This creates a new version without overwriting it.,jsx-text,1,drive/src/v2/ReusePanel.jsx
 Shared evidence archive,jsx-attr,1,drive/src/v2/SettingsPage.jsx
 Shared Library and Discover evidence remain available here. Asking and saved research work begin with a named member session.,jsx-text,1,drive/src/v2/InspectorRail.jsx
 shared scale,jsx-text,1,drive/src/v2/SynthesisVisualReasoning.jsx
@@ -1688,7 +1674,6 @@ Sign in to keep a personal research profile.,jsx-text,1,drive/src/v2/ProfilePage
 Sign in to start Synthesis,jsx-text,1,drive/src/v2/App.jsx
 Sign out,jsx-text,1,drive/src/v2/V2DeskHeader.jsx
 Signals,jsx-text,1,drive/src/v2/BrowsePage.jsx
-"Silence accepts what the desk chose, so every desk choice stays listed and reversible. What the data established is not a choice and cannot be reopened.",jsx-text,1,drive/src/v2/SettledDecisionsPanel.jsx
 skip this join,object-label,1,drive/src/v2/joinCandidates.js
 smaller exclusive intersection,jsx-text,1,drive/src/v2/MultiOverlapVisual.jsx
 Sort Discover results,jsx-attr,1,drive/src/v2/BrowsePage.jsx
@@ -1696,27 +1681,25 @@ Sort Library,jsx-attr,1,drive/src/v2/LibraryPage.jsx
 Source,object-label,1,drive/src/v2/discoverLifecycle.js
 Source & reproduce,jsx-text,1,drive/src/v2/LibraryDatasetRailPanel.jsx
 Source access and collection methods stay explicit and reviewable.,jsx-text,1,drive/src/v2/App.jsx
-Source authority,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
 Source capabilities,jsx-attr,1,drive/src/v2/ResourcesPage.jsx
 Source capabilities,jsx-text,1,drive/src/v2/ResourcesPage.jsx
-Source capability rows appear when the desk reports routes.,jsx-text,1,drive/src/v2/ResourcesPage.jsx
+Source capabilities appear when Research Drive reports collection methods.,jsx-text,1,drive/src/v2/ResourcesPage.jsx
 Source catalogues,jsx-text,1,drive/src/v2/BrowsePage.jsx
 Source column,jsx-text,1,drive/src/v2/SynthesisSpecificationPage.jsx
 source data ·,jsx-text,1,drive/src/v2/LibraryPackagePanel.jsx
+"Source history and reproduction record for this Library dataset. Source verification, collection method, and readiness for use are checked separately from where copies are stored.",jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
 Source inventory,jsx-attr,1,drive/src/v2/ResourcesOverviewRailPanel.jsx
 Source preview,jsx-text,1,drive/src/v2/PreviewModal.jsx
-Source probe,object-label,1,drive/src/v2/providerMarks.js
-Source probes,object-label,1,drive/src/v2/resourcesSpending.js
 Source record,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
 Source record only,object-label,1,drive/src/v2/PreviewModal.jsx
-Source route,jsx-attr,1,drive/src/v2/LibraryAssetWorkspace.jsx
 Source rows,jsx-text,1,drive/src/v2/SynthesisPage.jsx
+Source sample preview; it does not guarantee the database structure,jsx-text,1,drive/src/v2/PreviewModal.jsx
 Source system,jsx-attr,1,drive/src/v2/DetailPanel.jsx
+Source verification,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
 Sources,jsx-text,1,drive/src/v2/ResourcesPage.jsx
 Sources beyond your Library,object-label,1,drive/src/v2/discoverComposition.js
 Sources overview,jsx-attr,1,drive/src/v2/ResourcesPage.jsx
-Sources the desk already knows how to investigate,jsx-text,1,drive/src/v2/BrowsePage.jsx
-Sourcing,jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
+Sources Research Drive knows how to investigate,jsx-text,1,drive/src/v2/BrowsePage.jsx
 Sparse,jsx-text,1,drive/src/v2/SynthesisThreadRailPanel.jsx
 Spec {…}…,template,1,drive/src/v2/SynthesisAgentConsole.jsx
 Specification,object-label,1,drive/src/v2/synthesisLifecycle.js
@@ -1729,38 +1712,43 @@ Stage local evidence for the current Library location before ingestion.,jsx-attr
 Stage local files against the current Library branch and hand ingestion to the vault via Ask.,jsx-attr,1,drive/src/v2/RailPanels.jsx
 Start,jsx-attr,1,drive/src/v2/SynthesisIdleRailPanel.jsx
 Start →,jsx-text,1,drive/src/v2/SynthesisHome.jsx
-Start a construction,jsx-text,1,drive/src/v2/SynthesisPage.jsx
-"Start a construction from a research question, or open a registered method.",jsx-attr,1,drive/src/v2/SynthesisIdleRailPanel.jsx
+Start a build,jsx-text,1,drive/src/v2/SynthesisPage.jsx
+"Start a build from a research question, or open a method saved to Library.",jsx-attr,1,drive/src/v2/SynthesisIdleRailPanel.jsx
 Start a new refresh request if the evidence need still stands.,object-label,1,drive/src/v2/historyLifecycleLabel.js
 Start a revised request if the evidence need still stands.,object-label,1,drive/src/v2/historyLifecycleLabel.js
+Start a saved research build.,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 "Start from a recorded method, then review how its inputs and assumptions change for this new thread.",jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Start from a research question,jsx-text,1,drive/src/v2/SynthesisHome.jsx
-Start from registered work,jsx-text,1,drive/src/v2/SynthesisHome.jsx
+"Start from a saved build, then review any change.",jsx-text,1,drive/src/v2/SynthesisPage.jsx
 "Start from the research object, not the machinery.",jsx-text,1,drive/src/v2/SynthesisPage.jsx
-Start one durable research object.,jsx-text,1,drive/src/v2/SynthesisPage.jsx
+Start from work saved to Library,jsx-text,1,drive/src/v2/SynthesisHome.jsx
 Start or continue Synthesis work,jsx-attr,1,drive/src/v2/SynthesisHome.jsx
-Start with held evidence · find what is missing · preserve durable work,object-label,1,drive/src/v2/HomePage.jsx
+Start with data you have · find what is missing · save your work,object-label,1,drive/src/v2/HomePage.jsx
+Starting points saved to Library,jsx-text,1,drive/src/v2/SynthesisHome.jsx
 State,jsx-attr,1,drive/src/v2/SynthesisThreadRailPanel.jsx
 "State period, frequency, or instruments",jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
 State the evidence you need…,jsx-attr,1,drive/src/v2/DiscoverEvidenceBrief.jsx
-"State the research need; Discover will separate held evidence, external candidates, and unresolved gaps.",object-label,1,drive/src/v2/ResearchSituationRail.jsx
-State the research purpose or reuse a registered method,object-label,1,drive/src/v2/synthesisAssist.js
+State the research purpose or reuse a method saved to Library,object-label,1,drive/src/v2/synthesisAssist.js
+"State your research need. Discover will show data in your Library, external candidates, and unresolved gaps.",object-label,1,drive/src/v2/ResearchSituationRail.jsx
 Status,jsx-attr,1,drive/src/v2/RailPanels.jsx
 Status refresh failed · showing last known state,jsx-text,1,drive/src/v2/DiscoverEvaluationSurface.jsx
 Still not established,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Still unverified,jsx-text,1,drive/src/v2/DiscoverEvaluationSurface.jsx
 stop rather than guess which row wins,object-label,1,drive/src/v2/joinCandidates.js
 Storage,object-label,1,drive/src/v2/resourcesCapacity.js
+Stored locally,jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
 Strategy,jsx-attr,1,drive/src/v2/DiscoverEvaluationSurface.jsx
 Strong brief checklist,jsx-text,1,drive/src/v2/SynthesisPage.jsx
+Structure appears only when the sample preview returns it. Missing fields have not been observed.,jsx-text,1,drive/src/v2/PreviewModal.jsx
 Structure available · rows not observed,object-label,1,drive/src/v2/PreviewModal.jsx
-Structure is shown only when returned by the bounded preview contract. Missing fields remain unobserved.,jsx-text,1,drive/src/v2/PreviewModal.jsx
 Structured public finance routes — craft a URL when the connector is missing,object-label,1,drive/src/v2/ResourcesPage.jsx
 Submission creates a pending-approval job. It does not approve the collection.,jsx-text,1,drive/src/v2/DiscoverIntentWorkspace.jsx
 Submission status is unconfirmed,jsx-text,1,drive/src/v2/DiscoverIntentWorkspace.jsx
 Submitted,object-label,1,drive/src/v2/DiscoverEvaluationSurface.jsx
 Submitting collection…,object-label,1,drive/src/v2/discoverLifecycle.js
 Suggested asks,jsx-attr,1,drive/src/v2/HomeSuggestedAsks.jsx
+Suggested build,object-label,1,drive/src/v2/synthesisAssist.js
+Suggested build evidence roles,jsx-attr,1,drive/src/v2/SynthesisPage.jsx
 Suggested evidence belongs to Home and Discover. A recommendation is not a researcher fact and is not part of this profile.,jsx-text,1,drive/src/v2/ProfilePage.jsx
 Suggested evidence needs,jsx-attr,1,drive/src/v2/DiscoverEvidenceBrief.jsx
 Suggested next steps,jsx-attr,1,drive/src/v2/AskAgentCard.jsx
@@ -1771,14 +1759,14 @@ Syncing,object-label,1,drive/src/v2/ResourcesOverviewRailPanel.jsx
 Syncing…,jsx-text,1,drive/src/v2/ResourcesPage.jsx
 Syncing…,object-label,1,drive/src/v2/deskStatusBadge.js
 Synthesis,jsx-attr,1,drive/src/v2/App.jsx
-Synthesis agent authority,jsx-attr,1,drive/src/v2/SynthesisAuthorityMount.jsx
 Synthesis agent operations,jsx-attr,1,drive/src/v2/SynthesisAgentConsole.jsx
+Synthesis agent permissions,jsx-attr,1,drive/src/v2/SynthesisAuthorityMount.jsx
 Synthesis Ask shortcuts,jsx-attr,1,drive/src/v2/SynthesisAgentConsole.jsx
-Synthesis authority proof,jsx-attr,1,drive/src/v2/SynthesisThreadRailPanel.jsx
 Synthesis evidence gap,jsx-text,1,drive/src/v2/BrowsePage.jsx
 Synthesis evidence handoff,jsx-attr,1,drive/src/v2/BrowsePage.jsx
-Synthesis execution lifecycle,jsx-attr,1,drive/src/v2/SynthesisPage.jsx
-"Synthesis keeps the research objective, evidence roles, unresolved choices, method decisions, execution proof, and resulting Library asset together.",jsx-text,1,drive/src/v2/App.jsx
+Synthesis execution stages,jsx-attr,1,drive/src/v2/SynthesisPage.jsx
+"Synthesis keeps your research objective, evidence roles, unresolved choices, method decisions, execution evidence, and resulting Library dataset together.",jsx-text,1,drive/src/v2/App.jsx
+Synthesis methods saved to Library,jsx-attr,1,drive/src/v2/SynthesisPage.jsx
 Synthesis project stages,jsx-attr,1,drive/src/v2/SynthesisPage.jsx
 Synthesis readiness ledger,jsx-attr,1,drive/src/v2/SynthesisThreadRailPanel.jsx
 Synthesis research phases,jsx-attr,1,drive/src/v2/SynthesisJourneyNav.jsx
@@ -1795,33 +1783,26 @@ Take first match,jsx-text,1,drive/src/v2/SynthesisSpecificationPage.jsx
 Take last match,jsx-text,1,drive/src/v2/SynthesisSpecificationPage.jsx
 Target,jsx-attr,1,drive/src/v2/RailPanels.jsx
 Terminal-depth proof,jsx-text,1,drive/src/v2/SynthesisAgentConsole.jsx
-Test the accepted recipe on bounded bytes,object-label,1,drive/src/v2/synthesisLifecycle.js
+"Test a public source connection, collect metadata, and send the collection plan to Ask.",jsx-attr,1,drive/src/v2/RailPanels.jsx
+Test connection again,object-label,1,drive/src/v2/discoverEvaluation.js
+Test the accepted recipe on sample data,object-label,1,drive/src/v2/synthesisLifecycle.js
+Test the connection or ask Research Drive for the safest collection method.,object-label,1,drive/src/v2/StatusPill.jsx
+"Test the connection, plan, approve, then collect",object-label,1,drive/src/v2/ResourcesPage.jsx
 That did not load,object-label,1,drive/src/v2/deskErrorCopy.js
 The current query path returned no sample rows.,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
 The current Synthesis evidence map,jsx-attr,1,drive/src/v2/SynthesisPage.jsx
-the desk chose,object-label,1,drive/src/v2/threadRecord.js
-The desk could not complete that request,object-label,1,drive/src/v2/deskErrorCopy.js
-The desk did not answer in time,object-label,1,drive/src/v2/deskErrorCopy.js
-The desk has not reported its shared canonical archive,object-label,1,drive/src/v2/archiveRuntimeStatus.js
-The desk is unreachable,object-label,1,drive/src/v2/deskErrorCopy.js
-The desk sees two internally plausible series on different magnitudes,jsx-text,1,drive/src/v2/SynthesisVisualReasoning.jsx
-The desk validates what is measurable. You choose what the construction should actually do.,jsx-text,1,drive/src/v2/SynthesisSpecificationPage.jsx
-The desk will not invent a join key from names alone.,jsx-text,1,drive/src/v2/SynthesisSpecificationPage.jsx
-"The desk will run the production transform, join, and aggregation semantics against a bounded input window. It will not create a worker job or research asset.",jsx-text,1,drive/src/v2/SynthesisPage.jsx
 The evidence map is intact. No measurement has been inferred.,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 The evidence object will drift from its source while the refresh is paused.,object-label,1,drive/src/v2/historyLifecycleLabel.js
 "The faculty registry holds no specialties, methods, or current research direction for this record.",jsx-text,1,drive/src/v2/ProfilePage.jsx
-The field remains usable while held evidence and the research brief are compared.,jsx-text,1,drive/src/v2/DiscoverEvidenceField.jsx
 The first Synthesis reasoning steps,jsx-attr,1,drive/src/v2/SynthesisPage.jsx
 The inner join keeps only the measured overlapping keys.,jsx-text,1,drive/src/v2/SynthesisSpecificationPage.jsx
 The method editor will not guess the available columns.,jsx-text,1,drive/src/v2/SynthesisSpecificationPage.jsx
 "The method is reviewable as runnable Python, not reconstructed from prose. The script is the exact deterministic artifact archived with this execution.",jsx-text,1,drive/src/v2/SynthesisPage.jsx
-"The operational authority behind collection, storage, and research execution.",jsx-attr,1,drive/src/v2/App.jsx
-The output becomes a versioned Library asset only after verified execution and registration.,jsx-text,1,drive/src/v2/SynthesisSpecificationPage.jsx
+The output becomes a versioned Library dataset only after execution is verified and the result is saved to Library.,jsx-text,1,drive/src/v2/SynthesisSpecificationPage.jsx
 The proposed method is not accepted or executing yet.,object-label,1,drive/src/v2/historyLifecycleLabel.js
+"The resource refresh failed. Only capacity still measured by Research Drive is shown. Missing compute, storage, and quota information remains unknown.",jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
 The right side repeats this key — which row should win?,jsx-text,1,drive/src/v2/JoinDecisionPanel.jsx
-"The routes below are known to the desk, but they are not evidence results for this question.",jsx-text,1,drive/src/v2/BrowsePage.jsx
-The server will validate this exact specification and persist a revision hash before anything can be accepted.,jsx-text,1,drive/src/v2/SynthesisSpecificationPage.jsx
+"The selected candidate stays in context. Ask about usability, risks, Library overlap, or the next connection to test. Access and completeness still need evidence.",jsx-text,1,drive/src/v2/AskRail.jsx
 The shared service archive has not been measured in this session,object-label,1,drive/src/v2/archiveRuntimeStatus.js
 The storage byte adapter is unavailable on this host.,jsx-text,1,drive/src/v2/ConnectedAccountsSection.jsx
 The two answers differ by,jsx-text,1,drive/src/v2/UnitConflictPanel.jsx
@@ -1829,25 +1810,26 @@ Then,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 They remain Discover evidence until explicitly added.,jsx-text,1,drive/src/v2/LibraryEvidenceEstate.jsx
 This account owns private work and connected storage. The faculty identity below is a research record and remains separate.,jsx-text,1,drive/src/v2/ConnectedAccountsSection.jsx
 This browser,jsx-attr,1,drive/src/v2/SettingsPage.jsx
-"This browser has not established an authorized desk session. Catalog data, faculty memory, credentials, jobs, and worker details remain hidden until access is verified.",jsx-text,1,drive/src/v2/DeskAccessGate.jsx
+"This browser has not established an authorized Research Drive session. Catalog data, faculty memory, credentials, jobs, and worker details remain hidden until access is checked.",jsx-text,1,drive/src/v2/DeskAccessGate.jsx
 "This checklist is guidance only. It does not infer evidence, methodology, or research validity.",jsx-text,1,drive/src/v2/SynthesisPage.jsx
-"This context is yours. It sits beside any faculty registry record without overwriting it, and helps Discover and Ask understand your work. It cannot change your account, role, permissions, or collection authority.",jsx-text,1,drive/src/v2/ProfilePage.jsx
-This desk needs a session,object-label,1,drive/src/v2/deskErrorCopy.js
-"This intent is durable, but it has no reviewed acquisition route yet.",jsx-text,1,drive/src/v2/DiscoverIntentWorkspace.jsx
-"This is a map, not a progress score. Later stages remain unavailable until the durable thread earns them.",jsx-text,1,drive/src/v2/SynthesisIdleRailPanel.jsx
+"This context is yours. It helps Discover and Ask understand your work without overwriting your faculty record. It cannot change your account, role, or access and collection permissions.",jsx-text,1,drive/src/v2/ProfilePage.jsx
 This is a research handoff only; no collection has started.,jsx-text,1,drive/src/v2/BrowsePage.jsx
-This is an unsaved entry into the same Synthesis workspace. Record a research purpose or reuse a registered method; the durable thread begins only after you choose one.,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 "This is the method a reviewer would re-run, not a description of it.",jsx-text,1,drive/src/v2/ProvenancePanel.jsx
-"This lifecycle record stays in context. Ask about its durable state, evidence, uncertainty, or the safest next action without upgrading a status claim.",jsx-text,1,drive/src/v2/AskRail.jsx
-This package reflects current Library holdings and verified export paths. It does not by itself establish analytical sufficiency for the research question.,jsx-text,1,drive/src/v2/LibraryPackagePanel.jsx
+This map shows the stages of a build. Later stages become available only when the saved work meets their requirements.,jsx-text,1,drive/src/v2/SynthesisIdleRailPanel.jsx
+This package reflects data in your Library and checked export methods. It does not by itself show that the data is sufficient for your research question.,jsx-text,1,drive/src/v2/LibraryPackagePanel.jsx
 This period,jsx-attr,1,drive/src/v2/RailPanels.jsx
 This preview cannot submit procurement or promise delivery.,jsx-text,1,drive/src/v2/BrowsePage.jsx
-"This proposal has no revision hash, so it cannot be accepted from the desk. Refresh it through Ask.",jsx-text,1,drive/src/v2/SynthesisPage.jsx
+"This proposal has no version identifier, so Research Drive cannot accept it. Refresh it through Ask.",jsx-text,1,drive/src/v2/SynthesisPage.jsx
+"This request is saved, but its collection method has not been reviewed yet.",jsx-text,1,drive/src/v2/DiscoverIntentWorkspace.jsx
+"This request stays in context. Ask about its saved state, evidence, unknowns, or next available action. Its status still depends on the evidence.",jsx-text,1,drive/src/v2/AskRail.jsx
 This service-managed archive supplies the shared Library. Personal storage below is optional and never replaces the default research estate.,jsx-text,1,drive/src/v2/SettingsPage.jsx
+This Synthesis draft is unsaved. State a research purpose or reuse a method saved to Library. The build is saved only after you choose one.,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 This thread refreshes automatically.,jsx-text,1,drive/src/v2/SynthesisPage.jsx
+This version,object-label,1,drive/src/v2/synthesisLifecycle.js
 Time horizon,object-label,1,drive/src/v2/synthesisDraft.js
 to what needs you,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Today / state,jsx-attr,1,drive/src/v2/RailPanels.jsx
+"Tools and permissions for collecting, storing, and building research data.",jsx-attr,1,drive/src/v2/App.jsx
 Top BQ drivers,jsx-text,1,drive/src/v2/RailPanels.jsx
 Trace proof,jsx-text,1,drive/src/v2/SynthesisAgentConsole.jsx
 Trace research questions to reusable evidence,jsx-attr,1,drive/src/v2/BrowsePage.jsx
@@ -1855,10 +1837,9 @@ Track extraction evidence and wait for a reviewable result.,object-label,1,drive
 Track the item in Resources or Discover History.,object-label,1,drive/src/v2/StatusPill.jsx
 "transaction data, survey panels, market prices",jsx-attr,1,drive/src/v2/ProfilePage.jsx
 Transcend bulk cache,object-label,1,drive/src/v2/capacityMarks.js
-Treat infrastructure as research capacity: act only when a measured constraint changes what the desk can do.,object-label,1,drive/src/v2/ResearchSituationRail.jsx
 Try a keyword,jsx-text,1,drive/src/v2/BrowsePage.jsx
 Try measurement again,jsx-text,1,drive/src/v2/SynthesisPage.jsx
-"Turn a research question into a durable, reviewable construction.",jsx-attr,1,drive/src/v2/App.jsx
+Turn a research question into a saved build you can review.,jsx-attr,1,drive/src/v2/App.jsx
 Turn measured evidence into an exact build specification.,jsx-text,1,drive/src/v2/SynthesisSpecificationPage.jsx
 Type,jsx-attr,1,drive/src/v2/RailPanels.jsx
 Typical observed magnitude,jsx-text,1,drive/src/v2/SynthesisVisualReasoning.jsx
@@ -1866,8 +1847,8 @@ Unavailable,object-label,1,drive/src/v2/discoverTaxonomy.js
 union,jsx-text,1,drive/src/v2/MultiOverlapVisual.jsx
 union ·,jsx-text,1,drive/src/v2/MultiOverlapVisual.jsx
 Unit,jsx-text,1,drive/src/v2/BrowsePage.jsx
-Unit / grain,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
-Unit / grain,object-label,1,drive/src/v2/synthesisDraft.js
+Unit of observation,object-label,1,drive/src/v2/synthesisDraft.js
+Unit of observation:,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
 units need you,object-label,1,drive/src/v2/synthesisFocus.js
 Universe,jsx-text,1,drive/src/v2/BrowsePage.jsx
 Unknown,jsx-text,1,drive/src/v2/BrowsePage.jsx
@@ -1876,7 +1857,6 @@ Unknowns,jsx-text,1,drive/src/v2/DiscoverHistoryRailPanel.jsx
 Unread,jsx-text,1,drive/src/v2/SynthesisThreadRailPanel.jsx
 Unresolved evidence,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 unresolved fact,jsx-text,1,drive/src/v2/LibraryDatasetRailPanel.jsx
-Unreviewed fields are not silently normalized into a research asset.,object-label,1,drive/src/v2/historyLifecycleLabel.js
 Unverified,object-label,1,drive/src/v2/libraryVerification.js
 Updated,jsx-text,1,drive/src/v2/ResourcesPage.jsx
 Upload file...,jsx-text,1,drive/src/v2/LibraryPage.jsx
@@ -1890,20 +1870,20 @@ Usage report,jsx-attr,1,drive/src/v2/ResourcesPage.jsx
 Use →,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Use as starting point →,jsx-text,1,drive/src/v2/SynthesisHome.jsx
 Use Ask to identify the next defensible research decision,object-label,1,drive/src/v2/synthesisAssist.js
-Use EXAMPLE (Kong),jsx-text,1,drive/src/v2/SettingsPage.jsx
+Use example account (Kong),jsx-text,1,drive/src/v2/SettingsPage.jsx
 Use learned memory,jsx-text,1,drive/src/v2/ProfilePage.jsx
-Use only when this browser cannot mint the normal desk session.,jsx-text,1,drive/src/v2/SettingsPage.jsx
+Use only when this browser cannot create the normal Research Drive session.,jsx-text,1,drive/src/v2/SettingsPage.jsx
 Use ordinary research language. Evidence and method remain separate decisions after the object is recorded.,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Use readiness,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
 Use state,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
-"Use the current Library branch as the destination and ask the desk to search, probe, and propose acquisition steps.",jsx-attr,1,drive/src/v2/RailPanels.jsx
-Use the recorded query evidence rather than inferring readiness from registration alone.,object-label,1,drive/src/v2/historyLifecycleLabel.js
+Use the recorded query evidence. Saving to Library alone does not confirm readiness.,object-label,1,drive/src/v2/historyLifecycleLabel.js
+"Use this Library folder as the destination. Ask Research Drive to search, test connections, and propose collection steps.",jsx-attr,1,drive/src/v2/RailPanels.jsx
 Use this Library location as context for a wider evidence search and acquisition review.,jsx-attr,1,drive/src/v2/LibraryIntakeRailPanel.jsx
 Use what your Library already holds before collecting again.,object-label,1,drive/src/v2/discoverComposition.js
 Used,jsx-attr,1,drive/src/v2/RailPanels.jsx
 Useful for,jsx-attr,1,drive/src/v2/DiscoverEvaluationSurface.jsx
 Useful for,jsx-text,1,drive/src/v2/DiscoverEvaluationSurface.jsx
-Using a method creates a new durable construction; it does not silently reuse old assumptions or execute work.,jsx-text,1,drive/src/v2/SynthesisHome.jsx
+Using a method creates a new saved build. You review its assumptions before any work runs.,jsx-text,1,drive/src/v2/SynthesisHome.jsx
 Validate against,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Vault,jsx-attr,1,drive/src/v2/DetailPanel.jsx
 Vault dictionary,object-label,1,drive/src/v2/providerMarks.js
@@ -1921,7 +1901,9 @@ View method as code,jsx-text,1,drive/src/v2/ProvenancePanel.jsx
 View run trace ·,jsx-text,1,drive/src/v2/SynthesisAgentConsole.jsx
 View source,jsx-text,1,drive/src/v2/PreviewModal.jsx
 Wait for archive and registry proof,object-label,1,drive/src/v2/synthesisAssist.js
-Wait for the worker and registry lifecycle to produce durable evidence,object-label,1,drive/src/v2/synthesisAssist.js
+Wait for the worker and Library checks to save result evidence,object-label,1,drive/src/v2/synthesisAssist.js
+Wait until Library checks confirm the result before reusing the output,object-label,1,drive/src/v2/synthesisAssist.js
+Wait until the saved request can be read before submitting again. An approval request may already exist even though the response was lost.,jsx-text,1,drive/src/v2/DiscoverIntentWorkspace.jsx
 Ways to get this evidence,jsx-attr,1,drive/src/v2/BrowsePage.jsx
 Web (arbitrary),object-label,1,drive/src/v2/providerMarks.js
 Web context,object-label,1,drive/src/v2/discoverTerritories.js
@@ -1940,17 +1922,18 @@ What failed?,object-label,1,drive/src/v2/DiscoverEvaluationSurface.jsx
 What happens next,jsx-attr,1,drive/src/v2/SynthesisPage.jsx
 What it costs to get wrong,jsx-text,1,drive/src/v2/UnitConflictPanel.jsx
 What remains available,jsx-text,1,drive/src/v2/PreviewModal.jsx
-What should I probe next?,object-label,1,drive/src/v2/DiscoverEvaluationSurface.jsx
-What the desk reported,jsx-text,1,drive/src/v2/DeskError.jsx
+What Research Drive reported,jsx-text,1,drive/src/v2/DeskError.jsx
 What this enables,jsx-text,1,drive/src/v2/ResourcesPage.jsx
-What will be registered?,object-label,1,drive/src/v2/DiscoverEvaluationSurface.jsx
+What will be saved to Library?,object-label,1,drive/src/v2/DiscoverEvaluationSurface.jsx
 when evidence is missing.,jsx-text,1,drive/src/v2/HomeSuggestedAsks.jsx
 When evidence is selected,jsx-text,1,drive/src/v2/SettingsPage.jsx
 When Research Drive opens,jsx-text,1,drive/src/v2/SettingsPage.jsx
-when the desk already holds the evidence. Use,jsx-text,1,drive/src/v2/HomeSuggestedAsks.jsx
-"Where this research object is held now. These locations describe copies, custodians, and access; they do not change where the evidence originally came from.",jsx-text,1,drive/src/v2/LibraryHoldingsOverlay.jsx
+when the data is already in your Library. Use,jsx-text,1,drive/src/v2/HomeSuggestedAsks.jsx
+Where to get it,jsx-text,1,drive/src/v2/DiscoverEvidenceBrief.jsx
+"Where your data is stored now. These locations show copies, who manages them, and access. The original source stays the same.",jsx-text,1,drive/src/v2/LibraryHoldingsOverlay.jsx
 Whether the recorded source evidence has been checked,jsx-attr,1,drive/src/v2/LibraryEvidenceEstate.jsx
 Whether this evidence can be used directly for research or querying,jsx-attr,1,drive/src/v2/LibraryEvidenceEstate.jsx
+Which connection should I test next?,object-label,1,drive/src/v2/DiscoverEvaluationSurface.jsx
 Which key links them?,jsx-text,1,drive/src/v2/JoinDecisionPanel.jsx
 Why is local comparison unavailable?,object-label,1,drive/src/v2/discoverSufficiency.js
 Why is the local dataset only partial?,object-label,1,drive/src/v2/discoverSufficiency.js
@@ -1958,13 +1941,14 @@ Why is this waiting for approval?,object-label,1,drive/src/v2/DiscoverEvaluation
 Why some inputs were not measured,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Why this is here,jsx-text,1,drive/src/v2/ExcursionRecordPanel.jsx
 Why this needs you,jsx-text,1,drive/src/v2/UnitConflictPanel.jsx
+Why this status,jsx-attr,1,drive/src/v2/LibraryDatasetRailPanel.jsx
+Why this status,jsx-text,1,drive/src/v2/LibraryDatasetRailPanel.jsx
 Why this stops here,jsx-text,1,drive/src/v2/ScopePanel.jsx
 Worker,jsx-text,1,drive/src/v2/SynthesisAgentConsole.jsx
 worker {…} lacks {…},template,1,drive/src/v2/workerRouting.js
 Worker build,object-label,1,drive/src/v2/synthesisLifecycle.js
 Worker completed,object-label,1,drive/src/v2/synthesisAssist.js
-Worker completion is not registration or query readiness,object-label,1,drive/src/v2/synthesisAssist.js
-"Worker execution, completion, and registry verification stay in flight until durable result evidence exists.",jsx-attr,1,drive/src/v2/SynthesisHome.jsx
+Worker completion does not confirm the output is saved to Library or ready to query,object-label,1,drive/src/v2/synthesisAssist.js
 Worker pipelines,object-label,1,drive/src/v2/resourcesLedger.js
 Workers,jsx-attr,1,drive/src/v2/RailPanels.jsx
 Workers run the chosen route under dry-run protection.,jsx-text,1,drive/src/v2/ResourcesPage.jsx
@@ -1976,12 +1960,11 @@ Works,jsx-text,1,drive/src/v2/ProfilePage.jsx
 Workspace,object-label,1,drive/src/v2/ResearchSituationRail.jsx
 Workspace behavior,jsx-attr,1,drive/src/v2/SettingsPage.jsx
 Workspace policy,object-label,1,drive/src/v2/RailPanels.jsx
-Write authority is explicit. Use it only when Research Drive should be allowed to change upstream files.,jsx-text,1,drive/src/v2/ConnectedAccountsSection.jsx
 Written,object-label,1,drive/src/v2/discoverLifecycle.js
 Yahoo Finance,object-label,1,drive/src/v2/providerMarks.js
 you can reopen,jsx-text,1,drive/src/v2/SettledDecisionsPanel.jsx
 you chose,object-label,1,drive/src/v2/threadRecord.js
-Your Library,jsx-text,1,drive/src/v2/DiscoverCoveragePanel.jsx
+"Your decision applies to this version of the proposal. If the proposal changes, review it again.",jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Your purpose will appear here while you write. Nothing is saved yet.,jsx-text,1,drive/src/v2/SynthesisThreadRailPanel.jsx
 Zenodo,object-label,1,drive/src/v2/providerMarks.js
 Zenodo · OpenAlex,object-label,1,drive/src/v2/providerMarks.js

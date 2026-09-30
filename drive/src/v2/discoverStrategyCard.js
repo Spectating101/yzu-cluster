@@ -9,7 +9,7 @@
 
 import { coverageParts } from "./discoverEvaluation.js";
 import { discoverCandidateUrl } from "./candidateKey.js";
-import { collectRouteLabel } from "./collectRouteLabel.js";
+import { collectRouteLabel, UNNAMED_ROUTE } from "./collectRouteLabel.js";
 import { intentCollection, intentState } from "./discoverIntent.js";
 import { humanizeDiscoverDescription } from "./browseMeta.js";
 
@@ -101,7 +101,7 @@ function formatLabel(row) {
 function scaleLabel(row) {
   const count = row?.row_count ?? row?.rows ?? row?.num_rows ?? row?.records;
   if (count != null && count !== "" && Number.isFinite(Number(count))) {
-    return `${Number(count).toLocaleString()} rows declared`;
+    return `${Number(count).toLocaleString()} rows documented`;
   }
   const size = text(row?.size || row?.dataset_size || row?.file_size || row?.bytes);
   return size ? `Scale ${size}` : "";
@@ -140,7 +140,7 @@ function accessAssessment(row, evaluation) {
     };
   }
   if (connectorId(row)) {
-    return { access: ACCESS.PROPOSED, accessDetail: `Collection route declared · ${connectorId(row)}` };
+    return { access: ACCESS.PROPOSED, accessDetail: `Download method known · ${connectorId(row)}` };
   }
   return { access: ACCESS.UNKNOWN, accessDetail: "" };
 }
@@ -167,7 +167,7 @@ function recordedNeed({ intent, researchNeed }) {
 }
 
 function nextCheck(row, evaluation, fields, files) {
-  if (!evaluation?.hasProbe && discoverCandidateUrl(row)) return "Probe source endpoint";
+  if (!evaluation?.hasProbe && discoverCandidateUrl(row)) return "Test the source connection";
   if (!fields.length) return "Inspect schema / fields";
   if (!files.length && evaluation?.hasProbe) return "Inspect downloadable artifacts";
   return "Verify coverage completeness";
@@ -215,7 +215,7 @@ export function buildDiscoverStrategyCard(row, evaluation, options = {}) {
     omitted.push({
       id: "what_you_will_get",
       label: "Data product",
-      reason: "No grain, coverage, field shape, file inventory, format, or scale is recorded on this offering.",
+      reason: "This offering has no documented unit of observation, coverage, fields, files, format, or scale.",
     });
   }
 
@@ -239,7 +239,7 @@ export function buildDiscoverStrategyCard(row, evaluation, options = {}) {
   if (connector) {
     const routeLabel = collectRouteLabel(connector);
     const steps = [{
-      label: routeLabel === "a declared route" ? "Collection route declared" : `Collect via ${routeLabel}`,
+      label: routeLabel === UNNAMED_ROUTE ? "Download method known" : `Collect via ${routeLabel}`,
       evidence: "declared",
       detail: connector,
     }];
@@ -256,7 +256,7 @@ export function buildDiscoverStrategyCard(row, evaluation, options = {}) {
     omitted.push({
       id: "how_we_build",
       label: "Acquisition path",
-      reason: "No collection route is declared for this offering.",
+      reason: "No collection method is documented for this offering.",
     });
   }
 

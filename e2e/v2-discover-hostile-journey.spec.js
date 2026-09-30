@@ -228,7 +228,7 @@ test.describe("Discover continuous hostile researcher journey", () => {
     // backend-authored procurement engineering, not an operator dashboard.
     const nextActions = page.getByLabel("Discover next actions");
     await expect(nextActions).toHaveAttribute("data-has-evidence-gap", "true");
-    await nextActions.getByRole("button", { name: "Review sourcing strategy" }).click();
+    await nextActions.getByRole("button", { name: "Review collection strategy" }).click();
     const comparison = page.getByTestId("discover-route-comparison");
     await expect(comparison).toBeVisible();
     await comparison.getByRole("button", { name: /Review acquisition route/ }).click();

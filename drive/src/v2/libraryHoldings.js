@@ -54,11 +54,11 @@ export function holdingStateLabel(holding) {
 
 export function holdingRoleLabel(holding) {
   if (holding.role) return holding.role;
-  if (holding.active) return "Active holding";
-  if (holding.primary) return "Primary holding";
-  if (holding.original) return "Original holding";
-  if (holding.queryReady) return "Query-ready replica";
-  return "Holding";
+  if (holding.active) return "Active copy";
+  if (holding.primary) return "Primary copy";
+  if (holding.original) return "Original copy";
+  if (holding.queryReady) return "Copy ready to query";
+  return "Library data";
 }
 
 export function libraryHoldings(dataset = {}) {
@@ -108,7 +108,7 @@ export function summarizeLibraryHoldings(dataset = {}) {
   const staleCount = holdings.filter((holding) => holding.state === "stale").length;
   const focus = holdings.find((holding) => holding.active) || holdings.find((holding) => holding.primary) || holdings[0] || null;
   const providers = [...new Set(holdings.map((holding) => holding.provider).filter(Boolean))];
-  let headline = "No holdings recorded";
+  let headline = "No Library data recorded";
   if (holdings.length) {
     const locations = `${holdings.length} location${holdings.length === 1 ? "" : "s"}`;
     if (availableCount) headline = `${locations} · ${availableCount} available`;

@@ -120,7 +120,7 @@ test("Library keeps pipeline freshness in the selected dossier rather than the r
   await expect(tech).toContainText("Record updated");
   await page.screenshot({ path: "artifacts/library-freshness/03-selected-freshness-details-1440.png", fullPage: false });
 
-  await page.getByRole("button", { name: "Close asset inspector" }).click();
+  await page.getByRole("button", { name: "Close data inspector" }).click();
   await selectAsset(page, "Weekly attention panel");
   await expect(page.getByTestId("library-stale-warning")).toContainText("stale");
   await expect(page.locator("aside.rd-v2-rail").getByTestId("library-decision-basis")).toContainText("Stale · Weekly");

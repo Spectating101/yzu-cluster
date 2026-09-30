@@ -139,7 +139,7 @@ export function buildPickUp({
   const stageLabel = {
     approval: "Approval",
     proposal: "Proposal review",
-    preview: "Bounded preview",
+    preview: "Sample preview",
     specification: "Specification",
     evidence: "Evidence",
     build: "Build",
@@ -153,30 +153,30 @@ export function buildPickUp({
     if (["registered", "query_ready"].includes(status) || stage === "result") continue;
     const failed = status === "failed";
     const summary = failed
-      ? "Execution failed; inspect the durable construction before retrying."
+      ? "Execution failed. Inspect the saved build before retrying."
       : stage === "approval"
-        ? "A bounded preview has reached the execution-approval boundary."
+        ? "A sample preview is ready for an execution approval decision."
         : stage === "proposal"
           ? "An exact Synthesis proposal is ready for researcher review."
           : stage === "preview"
-            ? "The accepted method is at bounded-preview validation."
+            ? "The accepted method is being tested on a sample."
             : stage === "specification"
-              ? "Held evidence is mapped; material construction choices remain."
+              ? "Data you have is mapped. Build choices that affect the result remain."
               : stage === "evidence"
-                ? "This durable construction is waiting on evidence decisions."
+                ? "This saved build is waiting on evidence decisions."
                 : stage === "build"
-                  ? `Execution is ${status || "in progress"}; inspect its durable build and registration state.`
-                  : "A durable Synthesis construction is ready to continue.";
+                  ? `Execution is ${status || "in progress"}; inspect its saved build and Library status.`
+                  : "A saved Synthesis build is ready to continue.";
     candidates.push({
       rank: failed ? 1 : (stageRank[stage] ?? 8),
       updated: String(thread.updated_at || thread.created_at || ""),
       point: {
         kind: "synthesis_thread",
         id: thread.id,
-        title: String(thread.title || thread?.state?.title || thread?.state?.objective || thread.objective || "Synthesis construction"),
+        title: String(thread.title || thread?.state?.title || thread?.state?.objective || thread.objective || "Synthesis build"),
         stateSummary: summary,
         location: `SYNTHESIS / ${(stageLabel[stage] || stage || "THREAD").toUpperCase()}`,
-        pill: failed ? "Needs recovery" : stageLabel[stage] || "Active",
+        pill: failed ? "Needs attention" : stageLabel[stage] || "Active",
         thread,
         tab: "synthesis",
         action: "continue",
@@ -199,10 +199,10 @@ export function buildPickUp({
         id: job.id || `discover-${status}`,
         title: String(job?.plan?.title || job.title || job.name || "Discover acquisition"),
         stateSummary: failed
-          ? "Acquisition failed; inspect the durable History record before retrying."
-          : `Acquisition is ${status}; History holds the durable lifecycle record.`,
+          ? "Collection failed. Inspect the saved History record before retrying."
+          : `Acquisition is ${status}; History holds the saved request record.`,
         location: "DISCOVER / HISTORY",
-        pill: failed ? "Needs recovery" : status,
+        pill: failed ? "Needs attention" : status,
         job,
         tab: "browse",
         action: "review",
@@ -410,7 +410,7 @@ export function buildResourceHeadroom(rollup, health = null) {
       markId: provider.id === "cursor" ? "cursor" : "assistant",
       name: provider.label,
       pinned: false,
-      metric: turnsToday > 0 ? `${turnsToday} turns today` : (runtime?.short ?? "Not yet probed"),
+      metric: turnsToday > 0 ? `${turnsToday} turns today` : (runtime?.short ?? "Connection not yet tested"),
       pct: null,
       headroom: runtime
         ? assistantRuntimeDetail(

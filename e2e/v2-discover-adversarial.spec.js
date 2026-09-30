@@ -101,8 +101,8 @@ test.describe("Discover adversarial lifecycle", () => {
     // disclosure. Exercise the real interaction instead of waiting on a
     // deliberately hidden descendant.
     await workspace.locator("details.rd-v2-evidence-detail-disclosure > summary").click();
-    await workspace.getByRole("button", { name: "Refresh declared routes" }).click();
-    await expect(workspace.getByRole("button", { name: "Comparing declared sources…" })).toBeDisabled();
+    await workspace.getByRole("button", { name: "Refresh documented routes" }).click();
+    await expect(workspace.getByRole("button", { name: "Comparing documented sources…" })).toBeDisabled();
 
     await workspace.locator("details.rd-v2-evidence-edit > summary").click();
     await workspace.getByLabel("Fields value").fill("director_tenure, independent_director_ratio");
@@ -179,7 +179,7 @@ test.describe("Discover adversarial lifecycle", () => {
     await search(page, "What data covers Taiwan issuer-quarter governance?");
 
     const workspace = page.locator(".rd-v2-evidence-brief.is-workspace");
-    await expect(workspace).toContainText("Declared routes are unavailable. The gap remains unresolved.");
+    await expect(workspace).toContainText("Documented collection methods are unavailable. The gap remains unresolved.");
     await expect(workspace).toContainText("Not established");
     await expect(workspace).not.toContainText("Collection can be requested for review");
   });
@@ -205,7 +205,7 @@ test.describe("Discover adversarial lifecycle", () => {
     const initialState = await capacity.getAttribute("data-state");
     expect(["checking", "measured"]).toContain(initialState);
     if (initialState === "checking") {
-      await expect(capacity).toContainText("Checking measured desk capacity…");
+      await expect(capacity).toContainText("Checking measured Research Drive capacity…");
     }
     await expect(capacity).toContainText("No worker or quota is assigned here.");
     await expect(capacity).not.toContainText(/assigned worker|assigned quota/i);

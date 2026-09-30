@@ -135,7 +135,7 @@ test("bounded browser engineering summary stays explicit about required prefligh
 
   assert.equal(summary.primitiveLabel, "Browser acquisition");
   assert.equal(summary.capabilityLabel, "browser");
-  assert.equal(summary.sizingLabel, "bounded sizing");
+  assert.equal(summary.sizingLabel, "sample-based sizing");
   assert.equal(summary.preflightLabel, "preflight required");
   assert.equal(summary.parallelismLabel, "single claim");
 });

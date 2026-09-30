@@ -8,7 +8,7 @@ test("owned local holdings keep explicit query-ready state even when acquisition
     local_root: "research_panels/example",
     analysis_readiness: "instant",
   });
-  assert.deepEqual(state, { kind: "query-ready", label: "Query-ready" });
+  assert.deepEqual(state, { kind: "query-ready", label: "Ready to query" });
 });
 
 test("registered remote holdings keep explicit connected state even when collect_via is retained", () => {

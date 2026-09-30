@@ -2,10 +2,10 @@
 
 import { classifyDiscoverResult, isLocalHolding } from "./discoverTaxonomy.js";
 import { deriveUnknowns } from "./discoverProbeEvidence.js";
-import { collectRouteLabel } from "./collectRouteLabel.js";
+import { collectRouteDisplayLabel } from "./collectRouteLabel.js";
 
 function collectViaLabel(row) {
-  return collectRouteLabel(row?.collect_via);
+  return collectRouteDisplayLabel(row?.collect_via);
 }
 
 function rowIsHeld(row, labIds) {
@@ -64,11 +64,11 @@ export function buildDiscoverRestingSummary(rows = [], labIds = new Set(), query
     // This is the overlap within the visible result set, not the total held
     // Library count shown in Discover chrome. Name that scope so the two
     // truthful values cannot read as a contradiction in the right rail.
-    heldLine: found ? `${heldCount} of these ${found} already held` : "",
+    heldLine: found ? `${heldCount} of these ${found} already in Library` : "",
     heldBody: found
       ? heldCount
         ? ""
-        : "No offering here matched something the lab already holds."
+        : "No offering here matched data in your Library."
       : "",
     libraryEvidenceCount,
     contextCount,

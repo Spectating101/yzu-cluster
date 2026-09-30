@@ -26,9 +26,9 @@ function outputFor(thread) {
 
 function updatedLabel(thread) {
   const raw = thread?.updated_at || thread?.created_at;
-  if (!raw) return "Durable thread";
+  if (!raw) return "Saved thread";
   const date = new Date(raw);
-  if (Number.isNaN(date.getTime())) return "Durable thread";
+  if (Number.isNaN(date.getTime())) return "Saved thread";
   return `Updated ${date.toLocaleDateString(undefined, { month: "short", day: "numeric" })}`;
 }
 
@@ -52,7 +52,7 @@ function ThreadCard({ thread, onOpen, priority = false }) {
       <strong>{titleFor(thread)}</strong>
       <p>{summary}</p>
       <span className="s04-home-thread-foot">
-        <small>{projectKey ? `Project · ${projectKey}` : output ? "Library-bound output" : "Durable construction"}</small>
+        <small>{projectKey ? `Project · ${projectKey}` : output ? "Library-bound output" : "Saved build"}</small>
         <em>{synthesisWorkspaceActionLabel(thread)} →</em>
       </span>
     </button>
@@ -108,7 +108,7 @@ export function SynthesisHome({
         <div>
           <h1>Synthesis</h1>
           <p>
-            Construct research assets from questions, evidence, and reusable methods. Start something new, return to a durable construction, or reuse a registered method.
+            Build research datasets from questions, evidence, and reusable methods. Start a new build, return to a saved build, or reuse a method saved to Library.
           </p>
         </div>
         {allThreads.length ? (
@@ -127,7 +127,7 @@ export function SynthesisHome({
           className="s04-home-entry-card primary"
           onClick={onNew}
         >
-          <small>New construction</small>
+          <small>New build</small>
           <strong>Start from a research question</strong>
           <span>Describe the object you need. Evidence and method become explicit decisions after creation.</span>
           <em>Start →</em>
@@ -139,8 +139,8 @@ export function SynthesisHome({
           disabled={!methods.length}
         >
           <small>Reusable method</small>
-          <strong>Start from registered work</strong>
-          <span>{methods.length ? `${methods.length} registered method${methods.length === 1 ? "" : "s"} can seed a new construction.` : "No registered method is reported yet."}</span>
+          <strong>Start from work saved to Library</strong>
+          <span>{methods.length ? `${methods.length} method saved to Library${methods.length === 1 ? "" : "s"} can start a new build.` : "No method saved to Library is reported yet."}</span>
           <em>{methods.length ? "Browse methods ↓" : "None available"}</em>
         </button>
         {continueThread ? (
@@ -149,8 +149,8 @@ export function SynthesisHome({
             className="s04-home-entry-card"
             onClick={() => onOpenThread?.(continueThread.id)}
           >
-            <small>Durable work</small>
-            <strong>{needsYou.length ? "Return to what needs you" : "Continue a construction"}</strong>
+            <small>Saved work</small>
+            <strong>{needsYou.length ? "Return to what needs you" : "Continue a build"}</strong>
             <span>{titleFor(continueThread)}</span>
             <em>{`${synthesisWorkspaceActionLabel(continueThread)} →`}</em>
           </button>
@@ -159,18 +159,18 @@ export function SynthesisHome({
 
       {!reasoningAvailable ? (
         <aside className="s04-home-runtime">
-          <span><strong>Assistant reasoning is paused.</strong> {reasoningStatus}. You can still create constructions and review or map held evidence.</span>
+          <span><strong>Assistant reasoning is paused.</strong> {reasoningStatus}. You can still create builds and review or map data in your Library.</span>
           <button type="button" className="rd-v2-btn" onClick={() => onOpenResources?.()}>Check Resources</button>
         </aside>
       ) : null}
 
-      {loading ? <p className="s04-home-loading">Loading durable constructions…</p> : null}
+      {loading ? <p className="s04-home-loading">Loading saved builds…</p> : null}
 
       {needsYou.length ? (
         <ThreadSection
           eyebrow="Decision queue"
           title="Needs your decision"
-          description="Consequential construction choices, proposal reviews, Preview checks, approvals, and recoveries surface here instead of hiding in active work."
+          description="Review build choices, proposals, sample checks, approvals, and issues that need attention here."
           rows={needsYou}
           onOpen={onOpenThread}
           priority
@@ -179,20 +179,20 @@ export function SynthesisHome({
 
       {allThreads.length ? (
         <ThreadSection
-          eyebrow="Active constructions"
+          eyebrow="Active builds"
           title="Research objects in progress"
           description="Evidence mapping and method design remain independently resumable when no explicit researcher decision is blocking them."
           rows={active}
           onOpen={onOpenThread}
-          empty={!loading ? "No construction is currently in research or method design." : ""}
+          empty={!loading ? "No build is currently in research or method design." : ""}
         />
       ) : null}
 
       {building.length ? (
         <ThreadSection
-          eyebrow="Execution & registration"
+          eyebrow="Execution and Library checks"
           title="Running or verifying"
-          description="Worker execution, completion, and registry verification stay in flight until durable result evidence exists."
+          description="Execution, completion, and Library checks remain in progress until result evidence is saved."
           rows={building}
           onOpen={onOpenThread}
         />
@@ -200,9 +200,9 @@ export function SynthesisHome({
 
       {results.length ? (
         <ThreadSection
-          eyebrow="Registered outputs"
-          title="Reusable research assets"
-          description="Completed constructions remain attached to their method and execution history while the resulting asset returns to Library."
+          eyebrow="Outputs saved to Library"
+          title="Reusable research data"
+          description="Completed builds keep their method and execution history. Their resulting datasets appear in Library."
           rows={results}
           onOpen={onOpenThread}
         />
@@ -212,13 +212,13 @@ export function SynthesisHome({
         <header>
           <div>
             <small>Reusable methods</small>
-            <h2>Registered starting points</h2>
-            <p>Using a method creates a new durable construction; it does not silently reuse old assumptions or execute work.</p>
+            <h2>Starting points saved to Library</h2>
+            <p>Using a method creates a new saved build. You review its assumptions before any work runs.</p>
           </div>
           <em>{methods.length}</em>
         </header>
-        {profilesLoading ? <p className="s04-home-empty-row">Loading registered methods…</p> : null}
-        {profilesError ? <DeskError raw={profilesError} surface="registered Synthesis methods" /> : null}
+        {profilesLoading ? <p className="s04-home-empty-row">Loading methods saved to Library…</p> : null}
+        {profilesError ? <DeskError raw={profilesError} surface="Synthesis methods saved to Library" /> : null}
         {!profilesLoading && !profilesError && methods.length ? (
           <div className="s04-home-method-grid" data-testid="synthesis-home-methods">
             {methods.map((profile) => (
@@ -228,16 +228,16 @@ export function SynthesisHome({
                 onClick={() => onStartBlueprint?.(profile)}
                 title={text(profile.title, profile.id)}
               >
-                <small>Registered method</small>
+                <small>Method saved to Library</small>
                 <strong>{text(profile.title, profile.id)}</strong>
-                <span>{text(profile.description, "Recorded construction recipe")}</span>
+                <span>{text(profile.description, "Recorded build recipe")}</span>
                 <em>Use as starting point →</em>
               </button>
             ))}
           </div>
         ) : null}
         {!profilesLoading && !profilesError && !methods.length ? (
-          <p className="s04-home-empty-row">No registered method is reported on this desk yet.</p>
+          <p className="s04-home-empty-row">No method saved to Library is reported by Research Drive yet.</p>
         ) : null}
       </section>
     </section>

@@ -4,11 +4,11 @@ import { homeSuggestedPrompts } from "@/v2/homePrompts";
 import { Chip } from "@/v2/ui";
 
 function seedLead(seed, profile) {
-  if (seed?.bootstrap_mode === "faculty_profile") return "Research desk seeded from your faculty profile";
-  if (seed?.bootstrap_mode === "yzu_profile_fallback") return "Research desk ready — inspect what is held, then close what is missing";
-  if (seed?.bootstrap_mode === "generic_cold_start") return "Research desk ready — inspect what is held, then close what is missing";
+  if (seed?.bootstrap_mode === "faculty_profile") return "Research Drive seeded from your faculty profile";
+  if (seed?.bootstrap_mode === "yzu_profile_fallback") return "Research Drive is ready — review data you have, then find what is missing";
+  if (seed?.bootstrap_mode === "generic_cold_start") return "Research Drive is ready — review data you have, then find what is missing";
   if (profile && !profile.unknown) return "Suggested for your research profile";
-  return "Research desk ready — inspect what is held, then close what is missing";
+  return "Research Drive is ready — review data you have, then find what is missing";
 }
 
 export function HomeSuggestedAsks({ profile, onAskComposer, allowPrincipalSeed = true }) {
@@ -57,10 +57,10 @@ export function HomeSuggestedAsks({ profile, onAskComposer, allowPrincipalSeed =
       <p className="muted small rd-v2-home-suggested-lead">{lead}</p>
       <div className="muted small" data-testid="home-first-use-path" aria-label="Research path">
         <p>
-          Start with <strong>Library</strong> when the desk already holds the evidence. Use <strong>Discover</strong> when evidence is missing.
+          Start with <strong>Library</strong> when the data is already in your Library. Use <strong>Discover</strong> when evidence is missing.
         </p>
         <p>
-          <strong>Ask</strong> reasons over the current research context. <strong>Synthesis</strong> preserves approved methods and outputs as durable work.
+          <strong>Ask</strong> reasons over the current research context. <strong>Synthesis</strong> saves approved methods and outputs for reuse.
         </p>
       </div>
       {seed ? (

@@ -148,7 +148,7 @@ test("Profile separates registry relationships from Library possession and exclu
   await expect(page.getByRole("heading", { name: "Research context on record" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Research evidence relationships" })).toBeVisible();
   await expect(page.getByText("Held in Library")).toBeVisible();
-  await expect(page.getByText("Recorded link · holding not confirmed")).toBeVisible();
+  await expect(page.getByText("Recorded link · dataset not confirmed")).toBeVisible();
   await expect(page.getByTestId("profile-suggestion-boundary")).toContainText("not a researcher fact");
   await expect(page.getByRole("button", { name: /Edit research memory|Add research focus/i })).toHaveCount(0);
   await expect(page.getByText("Suggested", { exact: true })).toHaveCount(0);

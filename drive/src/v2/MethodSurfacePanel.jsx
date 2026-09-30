@@ -108,7 +108,7 @@ export function MethodSurfacePanel({ dataset, datasets, profiles, inUse = [], on
           <small>Measured evidence</small>
           <h2>{sets.length === 1 ? sets[0].id : `${sets.length} mapped Library inputs`}</h2>
         </div>
-        <em className="neutral">Held bytes · no assistant</em>
+        <em className="neutral">Library data · no assistant</em>
       </header>
       <div className="s04-measured-datasets">
         {sets.map((entry) => (

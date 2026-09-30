@@ -30,7 +30,7 @@ test.describe("v2 Resources tab", () => {
     await expect(inventory).toContainText("Capacity & access");
     await expect(inventory).toContainText("Storage");
     await expect(inventory).toContainText("Services");
-    await expect(inventory).toContainText("Desk");
+    await expect(inventory).toContainText("Research Drive");
     await expect(inventory).not.toContainText("Work capacity");
     await expect(capacityGrid(page).getByRole("button", { name: /GDrive vault/ })).toBeVisible();
     await expect(capacityGrid(page).getByRole("button", { name: /BigQuery/ })).toBeVisible();

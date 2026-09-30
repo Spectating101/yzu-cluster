@@ -23,7 +23,7 @@ const ROUTES = {
   coingecko_simple_price_api: "CoinGecko live API", usdt_bigquery_catalogue: "BigQuery on-chain catalogue",
   procurement_catalog: "Catalogue record", http_manifest: "File download", scraper_run: "Web capture",
   collection_queue_task: "Scheduled collection", synthesis_execute: "Synthesis", huggingface_collect: "Hugging Face download",
-  materialized_query_ready: "Collected, query-ready", derived_internal: "Built in Synthesis", queue: "Collection queue",
+  materialized_query_ready: "Collected, ready to query", derived_internal: "Built in Synthesis", queue: "Collection queue",
 };
 
 export function plainRoute(value) {

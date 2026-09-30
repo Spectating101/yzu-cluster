@@ -119,7 +119,7 @@ for (const [name, width, height] of viewports) {
     await expect(page.getByTestId("library-asset-inspector")).toBeVisible();
     await expect(page.locator(".rd-v2-library-inspector-shell")).toBeVisible();
     await assertContained(page, info, ".rd-v2-library-inspector-shell", width, height, "library-inspector");
-    await expect(page.getByRole("button", { name: /Close asset inspector/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Close data inspector/i })).toBeVisible();
   });
 }
 

@@ -1,3 +1,4 @@
+import { collectionStatusLabel } from "@/v2/procurementJobs";
 import { useMemo, useRef, useState } from "react";
 import {
   getDiscoverIntent,
@@ -66,7 +67,7 @@ function RouteCard({ route, sourceTitle, selected, recommended = false, disabled
       ) : null}
       <dl>
         <Fact label="Coverage" value={route.coverage} />
-        <Fact label="Grain" value={route.grain} />
+        <Fact label="Unit of observation" value={route.grain} />
         <Fact label="Access" value={route.access} />
         <Fact label="Destination" value={route.destination} />
         <Fact label="Refresh" value={route.refresh} />
@@ -152,7 +153,7 @@ export function DiscoverIntentWorkspace({
   };
 
   const reconcileSubmissionStatus = async () => {
-    if (!intent?.id) throw new Error("No Discover intent is available to reconcile.");
+    if (!intent?.id) throw new Error("No Discover request is available to check.");
     const durableIntent = await getDiscoverIntent(intent.id);
     const durableState = intentState(durableIntent);
     const durableCollection = intentCollection(durableIntent);
@@ -190,12 +191,12 @@ export function DiscoverIntentWorkspace({
     setSubmissionUncertain(false);
     if (canSubmitDiscoverIntent(durableIntent)) {
       setError("");
-      setSubmissionNotice("Durable status confirms no approval job was created. You can retry.");
+      setSubmissionNotice("The saved status confirms no approval request was created. You can retry.");
       return "not_committed";
     }
 
     setSubmissionNotice("");
-    setError("Durable status changed before an approval job was established. Review the current route state before continuing.");
+    setError("The saved status changed before an approval request was confirmed. Review the current collection method before continuing.");
     return "changed";
   };
 
@@ -274,7 +275,7 @@ export function DiscoverIntentWorkspace({
 
       {capacityRows.length ? (
         <section className="rd-v2-intent-capacity" aria-label="Execution capacity">
-          <header><div><span className="rd-v2-eyebrow">Execution capacity</span><h3>Can the desk support this acquisition path?</h3></div></header>
+          <header><div><span className="rd-v2-eyebrow">Execution capacity</span><h3>Can Research Drive support this collection method?</h3></div></header>
           <div>
             {capacityRows.map((row) => (
               <article key={row.id} className={row.attention ? "needs-attention" : ""}>
@@ -289,7 +290,7 @@ export function DiscoverIntentWorkspace({
       {submissionUncertain ? (
         <section className="rd-v2-intent-error" data-testid="discover-submit-unconfirmed" role="status">
           <strong>Submission status is unconfirmed</strong>
-          <p>Do not resubmit until the durable intent can be read. The approval job may already exist even though the response was lost.</p>
+          <p>Wait until the saved request can be read before submitting again. An approval request may already exist even though the response was lost.</p>
           <button
             type="button"
             className="rd-v2-btn"
@@ -371,10 +372,10 @@ export function DiscoverIntentWorkspace({
       ) : (
         <section className="rd-v2-intent-empty">
           <span className="rd-v2-eyebrow">No supported route recorded</span>
-          <h3>This intent is durable, but it has no reviewed acquisition route yet.</h3>
-          <p>Ask the desk to investigate a connector, public URL, entitlement, or implementation path. No collection can be submitted from this state.</p>
+          <h3>This request is saved, but its collection method has not been reviewed yet.</h3>
+          <p>Ask Research Drive to investigate a connector, public URL, university access, or collection method. You cannot submit a collection request at this stage.</p>
           <button type="button" className="rd-v2-btn" onClick={() => onAsk?.(record)}>
-            Ask the desk to investigate →
+            Ask Research Drive to investigate →
           </button>
         </section>
       )}
@@ -382,11 +383,11 @@ export function DiscoverIntentWorkspace({
       {collection.job_id ? (
         <section className="rd-v2-intent-collection" data-testid="discover-intent-collection">
           <div>
-            <span className="rd-v2-eyebrow">Collection lifecycle</span>
-            <h3>{registeredId ? "Registered in Library" : text(jobStatus, "pending approval").replaceAll("_", " ")}</h3>
+            <span className="rd-v2-eyebrow">Collection history</span>
+            <h3>{registeredId ? "Saved to Library" : collectionStatusLabel(jobStatus)}</h3>
             <p>
               Job {collection.job_id}
-              {registeredId ? ` · registered as ${registeredId}` : " · collection remains governed by History and approval state"}
+              {registeredId ? ` · saved to Library as ${registeredId}` : " · collection remains governed by History and approval state"}
             </p>
           </div>
           <button type="button" className="rd-v2-btn" onClick={() => onOpenHistory?.(record)}>

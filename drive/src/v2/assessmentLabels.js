@@ -23,7 +23,7 @@ export function assessmentLabel(result, fallback = "Coverage assessment") {
 
 export function assessmentGapText(result) {
   if (key(result?.assessment_status) === "insufficient_requirement") {
-    return "State what the data must cover (period, frequency, or instruments) so held coverage can be checked.";
+    return "State what the data must cover (period, frequency, or instruments) so coverage in your Library can be checked.";
   }
   return String(result?.gap?.statement || "").trim();
 }

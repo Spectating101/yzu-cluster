@@ -292,7 +292,7 @@ test.describe("converged platform shell", () => {
 
     await page.getByRole("button", { name: "Library", exact: true }).click();
     await expect(page.getByTestId("library-evidence-estate")).toBeVisible();
-    await page.getByRole("textbox", { name: "Search library holdings" }).fill("Asia");
+    await page.getByRole("textbox", { name: "Search your Library" }).fill("Asia");
     const firstDataset = page.getByTestId("library-evidence-row").first();
     await expect(firstDataset).toBeVisible();
     await firstDataset.click();
@@ -311,7 +311,7 @@ test.describe("converged platform shell", () => {
 
     await openAccountDestination(page, "Settings");
     await expect(page.locator("main.yzu-main").getByRole("heading", { name: "Settings", exact: true })).toBeVisible();
-    await expect(page.locator("aside.rd-v2-rail")).toContainText("Desk setup");
+    await expect(page.locator("aside.rd-v2-rail")).toContainText("Research Drive setup");
     await capture(page, "05-settings-desktop");
   });
 

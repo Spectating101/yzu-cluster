@@ -229,18 +229,18 @@ test("Library physical folder workflow remains distinct from Research Collection
   await page.screenshot({ path: `${OUT}/05-folder-selected-dossier-1440.png`, fullPage: false });
 
   // 5. Close the dossier and use breadcrumbs as actual directory navigation.
-  await page.getByRole("button", { name: "Close asset inspector" }).click();
+  await page.getByRole("button", { name: "Close data inspector" }).click();
   await breadcrumb.getByRole("button", { name: "Research panels" }).click();
   await expect(folderRow(page, "gdelt")).toBeVisible();
   await expect(folderRow(page, "refinitiv")).toBeVisible();
   await page.screenshot({ path: `${OUT}/06-breadcrumb-back-1440.png`, fullPage: false });
 
   // 6. Folder-local semantic search can cut through nested paths without redefining identity.
-  await page.getByRole("textbox", { name: "Search library holdings" }).fill("Asia daily");
+  await page.getByRole("textbox", { name: "Search your Library" }).fill("Asia daily");
   await expect(page.getByTestId("library-directory")).toContainText("Asia daily news-risk panel");
   await expect(folderRow(page, "gdelt")).toHaveCount(0);
   await page.screenshot({ path: `${OUT}/07-folder-search-1440.png`, fullPage: false });
-  await page.getByRole("textbox", { name: "Search library holdings" }).fill("");
+  await page.getByRole("textbox", { name: "Search your Library" }).fill("");
   await expect(folderRow(page, "gdelt")).toBeVisible();
 
   // 7. Intake inherits the actual physical destination.

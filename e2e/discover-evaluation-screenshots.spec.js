@@ -83,11 +83,11 @@ test.describe("Discover evaluation screenshots", () => {
     // 1. external before probe
     await page.locator(".rd-v2-discover-candidate", { hasText: "Bare public CSV index" }).click();
     await expect(page.getByTestId("discover-eval-surface")).toContainText("Available to inspect");
-    await expect(page.getByTestId("discover-eval-actions").getByRole("button", { name: "Probe source" })).toBeVisible();
+    await expect(page.getByTestId("discover-eval-actions").getByRole("button", { name: "Test connection" })).toBeVisible();
     await shot(page, "01-desktop-external-before-probe");
 
     // 2. after successful probe — wait for toast clear so hierarchy is the subject
-    await page.getByTestId("discover-eval-actions").getByRole("button", { name: "Probe source" }).click();
+    await page.getByTestId("discover-eval-actions").getByRole("button", { name: "Test connection" }).click();
     await expect(page.getByTestId("discover-eval-surface").locator(".rd-v2-eval-verified")).toBeVisible();
     await expect(page.getByTestId("discover-eval-actions").getByRole("button", { name: "Preview source" })).toBeVisible();
     await waitProbeToastClear(page);
@@ -102,7 +102,7 @@ test.describe("Discover evaluation screenshots", () => {
 
     // 4. licensed/manual
     await page.locator(".rd-v2-discover-candidate", { hasText: "Refinitiv Asia equity" }).click();
-    await expect(page.getByTestId("discover-eval-surface")).toContainText("Licensed / manual access");
+    await expect(page.getByTestId("discover-eval-surface")).toContainText("Licensed · university access or manual upload");
     await expect(
       page.getByTestId("discover-eval-actions").getByRole("button", { name: "Review access requirements" }),
     ).toBeVisible();
@@ -110,9 +110,9 @@ test.describe("Discover evaluation screenshots", () => {
 
     // 5. local query-ready — unknowns must be lab-relevant
     await page.locator(".rd-v2-discover-candidate", { hasText: "Asia daily news-risk panel" }).click();
-    await expect(page.getByTestId("discover-eval-surface")).toContainText("Query-ready");
+    await expect(page.getByTestId("discover-eval-surface")).toContainText("Ready to query");
     await expect(page.getByTestId("discover-eval-actions").getByRole("button", { name: "Open in Library" })).toBeVisible();
-    await expect(page.getByTestId("discover-eval-surface")).not.toContainText("Source endpoint not probed");
+    await expect(page.getByTestId("discover-eval-surface")).not.toContainText("Source connection not tested");
     await expect(page.getByTestId("discover-eval-surface")).not.toContainText("Acquisition constraints not verified");
     await shot(page, "05-desktop-local-query-ready");
 

@@ -35,7 +35,7 @@ test("an unavailable desk session fails closed behind one honest access boundary
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await expect(page.getByTestId("desk-access-gate")).toBeVisible();
   await expect(page.locator(".rd-v2-shell")).toHaveCount(0);
-  await expect(page.getByRole("heading", { name: "Research data stays inside the desk." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Research data stays inside Research Drive." })).toBeVisible();
   const boundary = page.getByLabel("Access boundary");
   await expect(boundary).toContainText("Interface shell");
   await expect(boundary).toContainText("Research data");
@@ -115,14 +115,14 @@ test("Library loading never presents a fabricated empty estate", async ({ page }
 
   await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
   await expect(page.locator(".rd-v2-shell")).toBeVisible();
-  await expect(page.getByText("Loading Library holdings…", { exact: true })).toBeVisible();
+  await expect(page.getByText("Loading Library data…", { exact: true })).toBeVisible();
   const rail = page.locator("aside.rd-v2-rail");
-  await expect(rail).toContainText("Reading holdings…");
-  await expect(rail).toContainText("Registered evidence is still loading.");
+  await expect(rail).toContainText("Reading your Library…");
+  await expect(rail).toContainText("Data saved to Library is still loading.");
   await expect(rail).not.toContainText("0 assets");
   await expect(rail).not.toContainText("0 collections");
 
   releaseDatasets();
   await expect(rail).toContainText(`${MOCK_DATASETS.datasets.length} assets`);
-  await expect(rail).not.toContainText("Reading holdings…");
+  await expect(rail).not.toContainText("Reading your Library…");
 });

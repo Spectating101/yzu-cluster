@@ -173,7 +173,7 @@ async function openAsset(page, title) {
 }
 
 async function backToRoot(page) {
-  await page.getByRole("button", { name: "Close asset inspector" }).click();
+  await page.getByRole("button", { name: "Close data inspector" }).click();
   await expect(page.getByTestId("library-asset-inspector")).toHaveCount(0);
   await expect(page.getByTestId("library-evidence-estate")).toBeVisible();
   await settleVisualState(page);
@@ -191,7 +191,7 @@ test("render Library depth states on desktop", async ({ page }) => {
   const scholarlyRail = page.locator("aside.rd-v2-rail");
   await expect(scholarly).toHaveAttribute("data-asset-kind", "scholarly_work");
   await expect(scholarly.getByLabel("Evidence claims")).toBeHidden();
-  await expect(scholarlyRail).toContainText("Registered");
+  await expect(scholarlyRail).toContainText("Saved to Library");
   await expect(scholarlyRail).toContainText("Unverified");
   await expect(scholarly.getByRole("button", { name: "Preview rows" })).toHaveCount(0);
   await expect(scholarly.getByRole("button", { name: "Open query" })).toHaveCount(0);
@@ -207,7 +207,7 @@ test("render Library depth states on desktop", async ({ page }) => {
   await expect(scholarlyRail).toContainText("datacite");
   await expect(scholarlyRail).toContainText("collect_doi");
   await expect(scholarlyRail).not.toContainText("Exact source URL not recorded");
-  await expect(scholarlyRail).not.toContainText("Grain not reported");
+  await expect(scholarlyRail).not.toContainText("Unit of observation not reported");
   await expect(scholarlyRail).not.toContainText("Join keys / schema relationship not described");
   await expect(scholarlyRail.getByRole("button", { name: "Ask about this work →" })).toBeVisible();
   await assertNoPageOverflow(page);
@@ -223,9 +223,9 @@ test("render Library depth states on desktop", async ({ page }) => {
   await expect(connected.getByRole("button", { name: "Open query" })).toHaveCount(0);
   await expect(connected.getByRole("button", { name: "Ask about this source" })).toHaveCount(0);
   const connectedPreview = connected.getByTestId("library-data-preview");
-  await expect(connectedPreview).toContainText("Declared response shape");
+  await expect(connectedPreview).toContainText("Documented response shape");
   await expect(connectedPreview.getByRole("columnheader", { name: "block_timestamp" })).toBeVisible();
-  await expect(connectedPreview).toContainText("Declared structure only");
+  await expect(connectedPreview).toContainText("Documented structure only");
   await expect(connectedPreview).not.toContainText("Grain: Not declared");
   await expect(connectedPreview).not.toContainText("Scale: Not declared");
   await expect(connectedPreview).not.toContainText("Keys: Not declared");
@@ -261,7 +261,7 @@ test("render Library depth states on desktop", async ({ page }) => {
   await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
   await expect(page.getByTestId("library-evidence-estate")).toBeVisible();
-  await page.getByRole("textbox", { name: "Search library holdings" }).fill("definitely-no-such-library-asset");
+  await page.getByRole("textbox", { name: "Search your Library" }).fill("definitely-no-such-library-asset");
   await expect(page.getByTestId("library-evidence-estate")).toContainText("No held evidence matches");
   const filteredRail = page.locator("aside.rd-v2-rail");
   await expect(filteredRail).toContainText("In this view");
@@ -277,7 +277,7 @@ test("render Library depth states on mobile", async ({ page }) => {
 
   await openAsset(page, "Stablecoin governance evidence review");
   await expect(page.getByTestId("library-asset-workspace")).toHaveAttribute("data-asset-kind", "scholarly_work");
-  await expect(page.getByLabel("Evidence claims")).toContainText("Registered");
+  await expect(page.getByLabel("Evidence claims")).toContainText("Saved to Library");
   await expect(page.getByLabel("Evidence claims")).toContainText("Unverified");
   await expect(page.locator("aside.rd-v2-rail")).toHaveClass(/rd-v2-rail-collapsed/);
   await assertNoPageOverflow(page);

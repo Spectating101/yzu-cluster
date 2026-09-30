@@ -54,12 +54,12 @@ export function DeskAccessGate({ access, busy = false, onRetry }) {
   const canTryAutomaticEntry = Boolean(access?.session?.bootstrap_available) && !currentEntryIsUntrusted;
   const hasServiceWarning = configured === false || Boolean(access?.error);
   const statusText = configured === false
-    ? "This host has no desk credential configured; protected APIs fail closed."
+    ? "This host has no Research Drive credential configured. Protected services remain inaccessible."
     : currentEntryIsUntrusted
-      ? "This browser is not on a trusted desk entry. Use your issued access token, or open the desk through its approved address."
+      ? "This browser is not using a trusted Research Drive address. Use your issued access token, or open Research Drive at its approved address."
       : access?.error
-        ? "Secure access check is unavailable. The desk remains locked; retry after the service is restored."
-        : "Use the token issued for your member or operator account.";
+        ? "The secure access check is unavailable. Research Drive remains locked. Retry after the service is restored."
+        : "Use the token issued for your member or administrator account.";
 
   const connect = () => {
     const value = saveDeskToken(token);
@@ -77,11 +77,10 @@ export function DeskAccessGate({ access, busy = false, onRetry }) {
             <small>Private research workspace</small>
           </span>
         </div>
-        <span className="rd-v2-access-kicker">CONTROLLED DESK ENTRY</span>
-        <h1 id="rd-access-title">Research data stays inside the desk.</h1>
+        <span className="rd-v2-access-kicker">RESEARCH DRIVE ACCESS</span>
+        <h1 id="rd-access-title">Research data stays inside Research Drive.</h1>
         <p>
-          This browser has not established an authorized desk session. Catalog data, faculty memory,
-          credentials, jobs, and worker details remain hidden until access is verified.
+          This browser has not established an authorized Research Drive session. Catalog data, faculty memory, credentials, jobs, and worker details remain hidden until access is checked.
         </p>
 
         <div className="rd-v2-access-boundary" aria-label="Access boundary">
@@ -97,7 +96,7 @@ export function DeskAccessGate({ access, busy = false, onRetry }) {
             connect();
           }}
         >
-          <label htmlFor="rd-access-token">Desk access token</label>
+          <label htmlFor="rd-access-token">Research Drive access token</label>
           <div className="rd-v2-access-form-row">
             <input
               id="rd-access-token"
@@ -105,7 +104,7 @@ export function DeskAccessGate({ access, busy = false, onRetry }) {
               autoComplete="current-password"
               value={token}
               onChange={(event) => setToken(event.target.value)}
-              placeholder="Paste your desk access token"
+              placeholder="Paste your Research Drive access token"
             />
             <button type="submit" disabled={busy || !token.trim()}>
               {busy ? "Checking…" : "Connect"}

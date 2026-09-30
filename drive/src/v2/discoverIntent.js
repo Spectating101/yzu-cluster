@@ -73,7 +73,7 @@ function primitiveLabel(value) {
   const key = text(value);
   if (key === "http_manifest") return "HTTP acquisition";
   if (key === "scraper_run") return "Browser acquisition";
-  if (key === "source_probe") return "Source probe";
+  if (key === "source_probe") return "Connection test";
   return key.replaceAll("_", " ");
 }
 
@@ -100,7 +100,7 @@ export function procurementEngineeringSummary(route = {}) {
     capabilities,
     capabilityLabel: capabilities.length ? capabilities.join(" + ") : "capability not recorded",
     placementLabel: summary.placement === "runtime" ? "runtime placement" : text(summary.placement, "placement unrecorded"),
-    sizingLabel: resourceBasis === "bounded" ? "bounded sizing" : "baseline sizing",
+    sizingLabel: resourceBasis === "bounded" ? "sample-based sizing" : "baseline sizing",
     preflight,
     preflightLabel:
       preflight === "required"

@@ -30,7 +30,7 @@ test("a row with no measured shape emits no strategy blocks, only omission reaso
   assert.ok(omitted(built, "how_it_answers"));
   assert.ok(omitted(built, "how_we_build"));
   for (const entry of built.omitted) {
-    assert.match(entry.reason, /not recorded|no .*recorded|not described|not declared|no .*declared/i);
+    assert.match(entry.reason, /not recorded|no .*recorded|not described|not documented|no .*documented/i);
   }
 });
 
@@ -74,7 +74,7 @@ test("nested schema properties become declared product fields without inventing 
   const shape = block(built, "what_you_will_get");
   assert.deepEqual(shape.fields, ["issuer_id", "quarter", "governance_score"]);
   assert.match(shape.line, /parquet/i);
-  assert.match(shape.line, /18,420 rows declared/i);
+  assert.match(shape.line, /18,420 rows documented/i);
 });
 
 test("how it answers the question exists only when an evidence need is recorded", () => {
@@ -147,7 +147,7 @@ test("acquisition path is the declared route and stops at the request boundary",
   assert.ok(build);
   assert.deepEqual(
     build.steps.map((s) => s.label),
-    ["Collection route declared", "Normalize to entity-date"],
+    ["Download method known", "Normalize to entity-date"],
   );
   assert.equal(build.steps.every((s) => s.evidence === "declared"), true);
   assert.match(build.boundary, /no acquisition request has been created yet/i);
@@ -162,7 +162,7 @@ test("verify and register enter the path only when a collection job is recorded"
   const build = block(built, "how_we_build");
   assert.deepEqual(
     build.steps.map((s) => s.label),
-    ["Collection route declared", "Normalize to entity-date", "Verify + register"],
+    ["Download method known", "Normalize to entity-date", "Verify + register"],
   );
   assert.equal(build.steps.at(-1).evidence, "measured");
   assert.equal(build.steps.at(-1).detail, "job_123");
@@ -193,7 +193,7 @@ test("source inspection probes a reachable endpoint before asking for missing sc
   const declared = card(row);
   assert.equal(block(declared, "source_check").row.access, "proposed");
   assert.equal(block(declared, "source_check").row.coverage, "2015–2026");
-  assert.equal(block(declared, "source_check").row.nextCheck, "Probe source endpoint");
+  assert.equal(block(declared, "source_check").row.nextCheck, "Test the source connection");
 
   const probed = card(row, {
     probeState: {
@@ -228,7 +228,7 @@ test("still unknown mirrors the measured unknowns and is never emptied for polis
   const unknown = block(built, "still_unknown");
 
   assert.ok(unknown.items.length);
-  assert.ok(unknown.items.includes("Source endpoint not probed"));
+  assert.ok(unknown.items.includes("Source connection not tested"));
   assert.equal(omitted(built, "still_unknown"), null);
 });
 

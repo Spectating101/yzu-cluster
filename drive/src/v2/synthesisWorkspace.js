@@ -38,11 +38,11 @@ export function synthesisWorkspaceNeedsDecision(thread) {
 export function synthesisWorkspacePhaseLabel(thread) {
   const assist = synthesisAssist(thread);
   const phase = synthesisWorkspacePhase(thread);
-  if (phase === "failed") return "Needs recovery";
+  if (phase === "failed") return "Needs attention";
   if (phase === "result") {
-    return synthesisWorkspaceExecutionStatus(thread) === "query_ready" ? "Query-ready result" : "Registered result";
+    return synthesisWorkspaceExecutionStatus(thread) === "query_ready" ? "Result ready to query" : "Result saved to Library";
   }
-  return assist.status || assist.label || "Durable construction";
+  return assist.status || assist.label || "Saved build";
 }
 
 export function synthesisWorkspaceActionLabel(thread) {
@@ -58,7 +58,7 @@ export function synthesisWorkspaceActionLabel(thread) {
     case "review_preview": return "Review Preview";
     case "approve_execution": return "Review approval";
     case "recover_build": return "Inspect failure";
-    case "await_registration": return "View registration";
+    case "await_registration": return "View Library save status";
     case "open_result": return "Open result";
     case "map_evidence": return "Continue evidence";
     case "design_method": return "Continue method";

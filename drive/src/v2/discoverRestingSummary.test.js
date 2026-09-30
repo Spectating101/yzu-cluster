@@ -24,7 +24,7 @@ test("found counts search rows, never holdings catalog length", () => {
   assert.equal(summary.found, 5);
   assert.equal(summary.foundLine, "5 offerings");
   assert.equal(summary.heldCount, 0);
-  assert.match(summary.heldLine, /0 of these 5 already held/);
+  assert.match(summary.heldLine, /0 of these 5 already in Library/);
   assert.match(summary.heldBody, /No offering here matched/i);
 });
 
@@ -36,7 +36,7 @@ test("held join is labIds intersected with search rows, stated once", () => {
   const summary = buildDiscoverRestingSummary(rows, new Set(["gdelt_asia_daily_country_panel"]));
   assert.equal(summary.found, 2);
   assert.equal(summary.heldCount, 1);
-  assert.match(summary.heldLine, /1 of these 2 already held/);
+  assert.match(summary.heldLine, /1 of these 2 already in Library/);
   assert.equal(summary.heldBody, "");
   assert.equal(summary.comparisonBody, undefined);
 });
@@ -62,7 +62,7 @@ test("unknowns come from deriveUnknowns on unprobed rows, unique", () => {
   ];
   const summary = buildDiscoverRestingSummary(rows, new Set(), "stablecoin");
   assert.ok(summary.unknowns.length);
-  assert.ok(summary.unknowns.includes("Source endpoint not probed"));
+  assert.ok(summary.unknowns.includes("Source connection not tested"));
   assert.equal(new Set(summary.unknowns).size, summary.unknowns.length);
   assert.equal(summary.query, "stablecoin");
 });

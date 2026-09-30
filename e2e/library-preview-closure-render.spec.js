@@ -37,7 +37,7 @@ test("render final Library expanded sample and schema at desktop width", async (
   await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
 
-  await page.getByRole("textbox", { name: "Search library holdings" }).fill("Asia");
+  await page.getByRole("textbox", { name: "Search your Library" }).fill("Asia");
   await page.getByTestId("library-evidence-row").filter({ hasText: "Asia daily news-risk panel" }).click();
   const workspace = page.getByTestId("library-asset-workspace");
   await expect(workspace).toContainText("Asia daily news-risk panel");
@@ -64,7 +64,7 @@ test("render final Library expanded sample and schema at desktop width", async (
   await preview.getByRole("button", { name: "Close preview" }).click();
   await expect(preview).toHaveCount(0);
   await workspace.getByRole("button", { name: "Inspect schema" }).click();
-  const schema = page.getByRole("dialog", { name: "Declared structure" });
+  const schema = page.getByRole("dialog", { name: "Documented structure" });
   await expect(schema).toBeVisible();
   await expect(schema).toContainText("country");
   await settle(page);

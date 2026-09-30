@@ -169,7 +169,7 @@ describe("classifyJobLifecycle", () => {
       },
     );
     assert.equal(c.state, LIFECYCLE.QUERY_READY);
-    assert.equal(c.label, "In Library · Query-ready");
+    assert.equal(c.label, "In Library · ready to query");
   });
 });
 
@@ -265,7 +265,7 @@ describe("projectDiscoverCandidateLifecycle (A4)", () => {
     });
     const projected = projectDiscoverCandidateLifecycle(ROW, life);
     assert.equal(projected.discover_taxonomy.key, "local-query-ready");
-    assert.match(projected.discover_taxonomy.label, /Query-ready/i);
+    assert.match(projected.discover_taxonomy.label, /Ready to query/i);
     assert.equal(projected.candidate_key, ROW.candidate_key);
   });
 
@@ -278,7 +278,7 @@ describe("projectDiscoverCandidateLifecycle (A4)", () => {
     assert.equal(life.state, LIFECYCLE.REGISTERED);
     const projected = projectDiscoverCandidateLifecycle(ROW, life);
     assert.equal(projected.discover_taxonomy.key, "local-connected");
-    assert.match(projected.discover_taxonomy.label, /Registered/i);
+    assert.match(projected.discover_taxonomy.label, /Saved to Library/i);
     assert.notEqual(projected.discover_taxonomy.key, "local-query-ready");
   });
 
@@ -309,7 +309,7 @@ describe("applyLifecycleToEvaluation (A4)", () => {
       ],
     });
     const next = applyLifecycleToEvaluation(evaluation, life);
-    assert.equal(next.decision.headline, "In Library · Query-ready");
+    assert.equal(next.decision.headline, "In Library · ready to query");
     assert.equal(next.taxonomyKey, "local-query-ready");
     assert.equal(
       next.unknowns.some((u) => /endpoint not probed|Acquisition constraints/i.test(u)),
@@ -324,7 +324,7 @@ describe("applyLifecycleToEvaluation (A4)", () => {
       jobs: [job({ status: "completed", registered_dataset_id: "mops_panel" })],
     });
     const next = applyLifecycleToEvaluation(evaluation, life);
-    assert.equal(next.decision.headline, "Registered in Library");
+    assert.equal(next.decision.headline, "Saved to Library");
     assert.notEqual(next.taxonomyKey, "local-query-ready");
     assert.equal(
       next.unknowns.some((u) => /endpoint not probed|Acquisition constraints/i.test(u)),

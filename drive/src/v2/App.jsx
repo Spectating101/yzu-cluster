@@ -1004,7 +1004,7 @@ export function V2App() {
           .filter(Boolean),
       )];
       if (!researchObjective || !exactDatasetIds.length) {
-        throw new Error("Choose at least one held Library result before starting Synthesis.");
+        throw new Error("Choose at least one result in your Library before starting Synthesis.");
       }
 
       const title = researchObjective.split(/[.!?]/)[0].trim().slice(0, 120) || "Discover evidence synthesis";
@@ -1248,7 +1248,7 @@ export function V2App() {
           prompt: buildAddToLabPrompt(target, probeResult),
           displayText: buildAddToLabDisplayText(target, probeResult),
         });
-        showToast(err?.message || "Intent creation failed — opened Ask instead");
+        showToast(err?.message || "Request creation failed — opened Ask instead");
       } finally {
         setCollectSubmittingKey("");
       }
@@ -1302,8 +1302,8 @@ export function V2App() {
         goTab("browse");
         showToast(
           job?.status === "pending_approval"
-            ? "Crafted collect plan — approval required"
-            : "Crafted collect plan queued",
+            ? "Collection plan prepared — waiting for your approval"
+            : "Collection plan queued",
         );
       } catch (err) {
         setRailTab("ask");
@@ -1321,7 +1321,7 @@ export function V2App() {
     const url = discoverCandidateUrl(target);
     const key = candidateKey(target);
     if (!url) {
-      setBrowseProbe({ candidateKey: key, loading: false, result: null, error: "No public URL to probe for this candidate." });
+      setBrowseProbe({ candidateKey: key, loading: false, result: null, error: "No public URL is available to test this candidate’s connection." });
       return;
     }
     setBrowseProbe({ candidateKey: key, loading: true, result: null, error: "" });
@@ -1346,7 +1346,7 @@ export function V2App() {
           : current,
       );
       const label = String(target?.title || target?.name || target?.dataset_id || "Source").trim();
-      showToast(`${label} probed — review verified evidence`, {
+      showToast(`${label} connection tested — review verified evidence`, {
         scope: "discover-probe",
         candidateKey: key,
       });
@@ -1356,7 +1356,7 @@ export function V2App() {
         candidateKey: key,
         loading: false,
         result: null,
-        error: err?.message || "Probe failed",
+        error: err?.message || "Connection test failed",
       });
     }
   }, [showToast]);
@@ -1507,7 +1507,7 @@ export function V2App() {
             override ||
               {
                 prompt: `Explain this Discover lifecycle item: ${label}. Summarize its durable state, what is verified, what is still unknown, and the safest next action. Do not claim collection, registration, or query readiness unless the record proves it.`,
-                displayText: `Explain this lifecycle item: ${label}`,
+                displayText: `Explain this request: ${label}`,
               },
           );
           return;
@@ -1617,7 +1617,7 @@ export function V2App() {
     setRailTab("ask");
     setPendingAsk({
       prompt: `Assess this Library asset for the current research context: ${displayName(dataset)}. State what the declared evidence supports, what is not established, whether local access is proven, and the safest valid next action. Do not infer readiness beyond the recorded state.`,
-      displayText: `Assess this Library asset: ${displayName(dataset)}`,
+      displayText: `Assess this Library dataset: ${displayName(dataset)}`,
     });
   }, []);
 
@@ -1891,8 +1891,8 @@ export function V2App() {
             refreshBackend({ preserveJob: job || null });
             showToast(
               job?.status === "pending_approval"
-                ? "Intent submitted — approval required"
-                : "Intent submitted — open History for lifecycle state",
+                ? "Request submitted — waiting for your approval"
+                : "Request submitted — open History for its current state",
             );
           }}
           onOpenIntentHistory={(record) => {
@@ -1987,21 +1987,21 @@ export function V2App() {
         <PageShell
           className="rd-v2-guest-feature-page rd-v2-guest-synthesis"
           title="Synthesis"
-          lead="Turn a research question into a durable, reviewable construction."
+          lead="Turn a research question into a saved build you can review."
           surfaceState="ready"
         >
           <section className="rd-v2-guest-feature-hero">
             <span className="rd-v2-eyebrow">Member research workspace</span>
             <h2>Build evidence into a method you can inspect, challenge, and reuse.</h2>
-            <p>Synthesis keeps the research objective, evidence roles, unresolved choices, method decisions, execution proof, and resulting Library asset together.</p>
+            <p>Synthesis keeps your research objective, evidence roles, unresolved choices, method decisions, execution evidence, and resulting Library dataset together.</p>
             <button type="button" className="rd-v2-btn primary" onClick={beginMemberSignIn}>
               Sign in to start Synthesis
             </button>
           </section>
           <div className="rd-v2-guest-feature-grid" aria-label="Synthesis workflow">
             <article><span>01</span><strong>Define</strong><p>Record the research object and the decision it must support.</p></article>
-            <article><span>02</span><strong>Ground</strong><p>Assign held Library evidence to explicit analytical roles.</p></article>
-            <article><span>03</span><strong>Build</strong><p>Review method choices before any execution or materialisation.</p></article>
+            <article><span>02</span><strong>Ground</strong><p>Assign data in your Library to specific analytical roles.</p></article>
+            <article><span>03</span><strong>Build</strong><p>Review method choices before running the build or creating data.</p></article>
           </div>
         </PageShell>
       );
@@ -2034,20 +2034,20 @@ export function V2App() {
         <PageShell
           className="rd-v2-guest-feature-page rd-v2-guest-resources"
           title="Resources"
-          lead="The operational authority behind collection, storage, and research execution."
+          lead="Tools and permissions for collecting, storing, and building research data."
           surfaceState="ready"
         >
           <section className="rd-v2-guest-feature-hero">
             <span className="rd-v2-eyebrow">Restricted operational view</span>
             <h2>Research evidence is public here; infrastructure and approval controls are not.</h2>
-            <p>Resources tracks archive capacity, source entitlements, collectors, model readiness, approvals, and failed jobs. Those controls remain limited to research staff so browsing never grants operational authority.</p>
+            <p>Resources tracks archive capacity, university access to sources, collectors, model readiness, approvals, and failed jobs. These controls are available only to research staff. Browsing does not grant permission to operate them.</p>
             <button type="button" className="rd-v2-btn primary" onClick={() => goTab("browse")}>
               Find evidence in Discover
             </button>
           </section>
           <div className="rd-v2-guest-feature-grid" aria-label="Resource responsibilities">
-            <article><span>ARCHIVE</span><strong>Durable evidence</strong><p>Collected assets return to the shared Library with provenance.</p></article>
-            <article><span>ROUTES</span><strong>Acquisition authority</strong><p>Source access and collection methods stay explicit and reviewable.</p></article>
+            <article><span>ARCHIVE</span><strong>Saved evidence</strong><p>Collected data returns to the shared Library with its source history.</p></article>
+            <article><span>ROUTES</span><strong>Collection permissions</strong><p>Source access and collection methods stay explicit and reviewable.</p></article>
             <article><span>CONTROL</span><strong>Approval boundary</strong><p>Public browsing cannot start workers, spend quota, or write data.</p></article>
           </div>
         </PageShell>
@@ -2169,7 +2169,7 @@ export function V2App() {
         onMemberSignIn={memberSignInAvailable ? beginMemberSignIn : undefined}
         onSignOut={deskAccess?.principal?.role !== "public_guest" ? signOut : undefined}
         datasetCount={libraryEvidenceCount}
-        datasetLabel={libraryEvidenceCount === 1 ? "Library asset" : "Library assets"}
+        datasetLabel={libraryEvidenceCount === 1 ? "Library dataset" : "Library datasets"}
         dataLoading={catalogLoading && catalog.length === 0}
         usingSeed={usingSeed}
         workCount={

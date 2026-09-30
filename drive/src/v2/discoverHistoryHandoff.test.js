@@ -107,13 +107,13 @@ test("receipt_only History never promotes to query-ready; handoff keeps identiti
   assert.equal(truth.stages.queryReady, false);
   assert.equal(truth.stages.registered, true);
   assert.equal(truth.stages.collected, true);
-  assert.notEqual(truth.label, "Query-ready");
-  assert.match(truth.label, /Registered/);
+  assert.notEqual(truth.label, "Ready to query");
+  assert.match(truth.label, /In Library/);
   assert.equal(
     historyEvidenceSummary(event),
-    "Archive proof not confirmed · registration receipt retained · current catalog reconciliation pending",
+    "Archive proof not confirmed · record of saving to Library retained · current catalog reconciliation pending",
   );
-  assert.doesNotMatch(historyEvidenceSummary(event), /query-ready on desk/i);
+  assert.doesNotMatch(historyEvidenceSummary(event), /ready to query on desk/i);
 
   const handoff = historyLibraryHandoff(event);
   assert.equal(handoff.dataset_id, "rev_live2");
@@ -148,8 +148,8 @@ test("completed, registered, and query_ready stay distinct in holding truth", ()
   assert.equal(completed.queryReady, false);
   assert.equal(completed.completed, true);
   assert.equal(completed.label, "Completed");
-  assert.notEqual(completed.label, "Registered");
-  assert.notEqual(completed.label, "Query-ready");
+  assert.notEqual(completed.label, "Saved to Library");
+  assert.notEqual(completed.label, "Ready to query");
   assert.equal(
     historyLibraryHandoff({
       status: "completed",
@@ -174,7 +174,7 @@ test("completed, registered, and query_ready stay distinct in holding truth", ()
   });
   assert.equal(registered.queryReady, false);
   assert.equal(registered.completed, false);
-  assert.equal(registered.label, "Registered");
+  assert.equal(registered.label, "Saved to Library");
 
   const queryReady = historyHoldingTruth({
     status: "query_ready",
@@ -187,7 +187,7 @@ test("completed, registered, and query_ready stay distinct in holding truth", ()
   });
   assert.equal(queryReady.queryReady, true);
   assert.equal(queryReady.completed, false);
-  assert.equal(queryReady.label, "Query-ready");
+  assert.equal(queryReady.label, "Ready to query");
 });
 
 test("Explore source candidates retain identity fields for preview/handoff", () => {

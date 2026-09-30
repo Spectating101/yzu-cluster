@@ -19,15 +19,15 @@ test("new catalog reconciliation wins over a stale query-ready receipt everywher
 
   const row = page.getByRole("button", { name: /Route prove · TWSE BWIBBU_ALL/i });
   await expect(row).toBeVisible({ timeout: 30_000 });
-  await expect(row).toContainText("Registered · reconciliation pending");
+  await expect(row).toContainText("In Library · being checked");
   await expect(row).toContainText("current catalog reconciliation pending");
   await expect(row).not.toContainText("query-ready on desk");
   await row.click();
 
   const inspector = page.getByRole("complementary", { name: "Inspector" });
   await expect(inspector).toContainText("Current catalog row is not loaded");
-  await expect(inspector).toContainText("Registered · reconciliation pending");
+  await expect(inspector).toContainText("In Library · being checked");
   await expect(inspector).toContainText("current catalog reconciliation pending");
-  await expect(inspector).not.toContainText("Registered in catalog");
+  await expect(inspector).not.toContainText("Saved in the catalog");
   await expect(inspector).not.toContainText("query-ready on desk");
 });

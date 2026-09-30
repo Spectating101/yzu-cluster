@@ -1,3 +1,4 @@
+import { collectionStatusLabel } from "@/v2/procurementJobs";
 import {
   RailDecisionSummary,
   RailEntityHeader,
@@ -23,8 +24,8 @@ function routeTitle(route, sourceTitle = "") {
 }
 
 function statusLabel(state, collection) {
-  if (collection.registered_dataset_id) return "Registered in Library";
-  if (collection.job_id) return text(collection.status, "Pending approval").replaceAll("_", " ");
+  if (collection.registered_dataset_id) return "Saved to Library";
+  if (collection.job_id) return collectionStatusLabel(collection.status);
   if (state.proposal) return "Proposal ready";
   if (state.routes?.length) return "Routes reviewed";
   return "Route investigation needed";
@@ -37,14 +38,14 @@ export function DiscoverIntentRailPanel({ record }) {
   const route = selectedIntentRoute(intent);
   const label = statusLabel(state, collection);
   const next = collection.registered_dataset_id
-    ? "Open the resulting asset in Library."
+    ? "Open the resulting dataset in Library."
     : collection.job_id
-      ? "Track approval, collection, and registration in History."
+      ? "Track approval, collection, and saving to Library in History."
       : state.proposal
         ? "Continue to route selection or reject the proposal in the review canvas."
         : state.routes?.length
           ? "Select a route and submit it for approval."
-          : "Ask the desk to investigate a supported route.";
+          : "Ask Research Drive to investigate a supported collection method.";
   const boundary = collection.job_id
     ? "Discover preserves the decision; History owns execution."
     : "No collection starts until a reviewed route is submitted and approved.";
@@ -57,7 +58,7 @@ export function DiscoverIntentRailPanel({ record }) {
       <RailEntityHeader
         title={text(intent.title || state.candidate?.title, "Acquisition review")}
         pills={<span className="rd-v2-pill warn">{label}</span>}
-        description="Durable Discover decision record"
+        description="Saved Discover decision record"
       />
       <RailDecisionSummary
         primary={collection.job_id ? "Execution moved to History" : "Collection has not started"}
@@ -78,15 +79,14 @@ export function DiscoverIntentRailPanel({ record }) {
             <RailField label="Selected route" value={selectedRouteLabel} />
             {collection.job_id ? <RailField label="Job" value={collection.job_id} mono /> : null}
             {collection.registered_dataset_id ? (
-              <RailField label="Library asset" value={collection.registered_dataset_id} mono />
+              <RailField label="Library dataset" value={collection.registered_dataset_id} mono />
             ) : null}
           </RailFieldGrid>
         </section>
         <section className="rd-v2-library-inspector-block" aria-label="Workflow boundary">
           <p className="rd-v2-rail-section-label">Workflow boundary</p>
           <p className="rd-v2-library-inspector-prose">
-            Discover compares and records the route. History governs approval and execution.
-            Library owns the verified registered output.
+            Discover compares and saves collection methods. History tracks approval and execution. Verified outputs are saved to Library.
           </p>
         </section>
         <details className="rd-v2-rail-technical">

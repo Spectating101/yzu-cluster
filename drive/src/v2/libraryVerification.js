@@ -10,17 +10,17 @@ const COPY = {
   verified: {
     label: "Verified",
     kind: "verified",
-    body: "A durable verification record is attached to this owned evidence.",
+    body: "A saved verification record is attached to this data in your Library.",
   },
   matched: {
     label: "Matched",
     kind: "matched",
-    body: "A durable comparison records correspondence with sourcable evidence.",
+    body: "A saved comparison records a match with data available from a source.",
   },
   partial: {
     label: "Partial",
     kind: "partial",
-    body: "A durable comparison records only partial correspondence; inspect the remaining differences before reuse.",
+    body: "A saved comparison records a partial match. Review the remaining differences before reuse.",
   },
   unverified: {
     label: "Unverified",
@@ -30,7 +30,7 @@ const COPY = {
   not_checked: {
     label: "Not checked",
     kind: "unchecked",
-    body: "No durable source-comparison claim has been established for this asset.",
+    body: "No saved source comparison has been confirmed for this dataset.",
   },
 };
 

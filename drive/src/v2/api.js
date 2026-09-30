@@ -159,7 +159,7 @@ export async function sendChatMessage(
           throw new Error(normalizeApiError(payload, fallback.status, "/library/chat"));
         }
         onActivity?.({
-          text: "Desk reconnecting…",
+          text: "Research Drive reconnecting…",
           elapsed_seconds: Math.round((Date.now() - started) / 1000),
         });
         await new Promise((r) => setTimeout(r, 1200));

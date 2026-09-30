@@ -39,7 +39,7 @@ function ResultSummary({ result }) {
       <div className="rd-v2-library-package-ready-head">
         <div>
           <span className="rd-v2-eyebrow">Research package ready</span>
-          <strong>{included.length} data asset{included.length === 1 ? "" : "s"} · {metadataOnly.length} metadata/access record{metadataOnly.length === 1 ? "" : "s"}</strong>
+          <strong>{included.length} dataset{included.length === 1 ? "" : "s"} · {metadataOnly.length} metadata/access record{metadataOnly.length === 1 ? "" : "s"}</strong>
           <p>{formatBytes(result.data_bytes)} source data · {result.data_file_count || 0} file{result.data_file_count === 1 ? "" : "s"}</p>
         </div>
         {href ? (
@@ -54,7 +54,7 @@ function ResultSummary({ result }) {
         {excluded.length ? <span><b>{excluded.length}</b> excluded with reasons</span> : null}
       </div>
       <p className="rd-v2-library-package-boundary">
-        This package reflects current Library holdings and verified export paths. It does not by itself establish analytical sufficiency for the research question.
+        This package reflects data in your Library and checked export methods. It does not by itself show that the data is sufficient for your research question.
       </p>
     </section>
   );
@@ -111,7 +111,7 @@ export function LibraryPackagePanel({ open, onClose, researchNeed = "", assets =
           <div>
             <span className="rd-v2-eyebrow">Library · portable evidence</span>
             <h2>Prepare research package</h2>
-            <p>Review the held evidence Library matched. The server will include data only where a verified local export path actually exists.</p>
+            <p>Review the data matched in your Library. Downloads include data only when a local export method has been verified.</p>
           </div>
           <button type="button" className="rd-v2-btn ghost sm" onClick={onClose} aria-label="Close research package">Close</button>
         </header>
@@ -132,7 +132,7 @@ export function LibraryPackagePanel({ open, onClose, researchNeed = "", assets =
                   <strong>{displayName(row)}</strong>
                   <em>{id}</em>
                 </span>
-                <small>{row.search_match?.reasons?.[0]?.label || row.grain || row.source || "Held evidence"}</small>
+                <small>{row.search_match?.reasons?.[0]?.label || row.grain || row.source || "Data in your Library"}</small>
               </label>
             );
           })}
@@ -141,7 +141,7 @@ export function LibraryPackagePanel({ open, onClose, researchNeed = "", assets =
         <footer className="rd-v2-library-package-actions">
           <div>
             <strong>{selectedIds.length} selected</strong>
-            <span>Matched and held do not imply downloadable. Package authority is resolved server-side.</span>
+            <span>A match or data in your Library does not guarantee a download. Research Drive checks download permissions on the server.</span>
           </div>
           <div className="rd-v2-library-package-buttons">
             {onAsk ? (

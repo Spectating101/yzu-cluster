@@ -10,12 +10,12 @@ export function DiscoverCoveragePanel({ catalog = [], partitions = [], shelves =
       <header>
         <div className="rd-v2-discover-coverage-heading">
           <span className="rd-v2-discover-coverage-eyebrow">Your Library</span>
-          <strong>{summary.held} held</strong>
-          <span>{summary.queryReady} query-ready</span>
+          <strong>{summary.held} in Library</strong>
+          <span>{summary.queryReady} ready to query</span>
         </div>
         {summary.declaredNotHeld ? (
           <span className="rd-v2-discover-coverage-gap">
-            {summary.declaredNotHeld} declared route{summary.declaredNotHeld === 1 ? "" : "s"} not held
+            {summary.declaredNotHeld} documented route{summary.declaredNotHeld === 1 ? "" : "s"} outside Library
           </span>
         ) : null}
       </header>
@@ -28,7 +28,7 @@ export function DiscoverCoveragePanel({ catalog = [], partitions = [], shelves =
               <strong>{shelf.held}</strong>
               <em>{[
                 shelf.queryReady ? `${shelf.queryReady} ready` : null,
-                shelf.total > shelf.held ? `${shelf.total - shelf.held} declared` : null,
+                shelf.total > shelf.held ? `${shelf.total - shelf.held} documented` : null,
               ].filter(Boolean).join(" · ") || "catalogue"}</em>
             </button>
           </li>

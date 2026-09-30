@@ -87,8 +87,8 @@ export function LibraryIntakeRailPanel({
           <RailFieldGrid>
             <RailField label="Destination" value={destination} />
             <RailField label="Path" value={object.path} />
-            <RailField label="Held evidence" value={pluralCount(object.counts?.datasets, "asset")} />
-            <RailField label="Query-ready" value={String(object.counts?.queryReady ?? 0)} />
+            <RailField label="Data in your Library" value={pluralCount(object.counts?.datasets, "dataset")} />
+            <RailField label="Ready to query" value={String(object.counts?.queryReady ?? 0)} />
           </RailFieldGrid>
         </div>
         <RailStickyFooter>

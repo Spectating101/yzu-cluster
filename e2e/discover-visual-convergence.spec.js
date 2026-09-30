@@ -150,7 +150,7 @@ test.describe("Discover visual convergence", () => {
     const nextActions = page.getByLabel("Discover next actions");
     await expect(nextActions).toBeVisible();
     await expect(nextActions).toHaveAttribute("data-has-evidence-gap", "true");
-    await expect(nextActions.getByRole("button", { name: "Review sourcing strategy" })).toBeVisible();
+    await expect(nextActions.getByRole("button", { name: "Review collection strategy" })).toBeVisible();
 
     const workspaceBox = await workspace.boundingBox();
     const resultsBox = await page.getByTestId("discover-ranked-results").boundingBox();

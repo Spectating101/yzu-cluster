@@ -40,14 +40,14 @@ function resolveHomePosture({ loading, point }) {
     return {
       id: "loading",
       eyebrow: "Pick up · Loading",
-      lead: "Resume · headroom · durable consequences",
+      lead: "Resume · capacity · saved outcomes",
     };
   }
   if (!point) {
     return {
       id: "cold",
       eyebrow: "Pick up · Start",
-      lead: "Start with held evidence · find what is missing · preserve durable work",
+      lead: "Start with data you have · find what is missing · save your work",
     };
   }
   if (point.kind === "decision") {
@@ -62,8 +62,8 @@ function resolveHomePosture({ loading, point }) {
       id: point.warn ? "recovery" : "synthesis",
       eyebrow: point.warn ? "Pick up · Recovery" : "Pick up · Synthesis",
       lead: point.warn
-        ? "A durable construction needs review before continuing"
-        : "Durable research work is ready to resume",
+        ? "A saved build needs review before continuing"
+        : "Saved research work is ready to resume",
     };
   }
   if (point.kind === "discover_work") {
@@ -72,7 +72,7 @@ function resolveHomePosture({ loading, point }) {
       eyebrow: point.warn ? "Pick up · Recovery" : "Pick up · Acquisition",
       lead: point.warn
         ? "An acquisition needs review before evidence can move forward"
-        : "Evidence acquisition is in progress · History holds the lifecycle truth",
+        : "Collection is in progress · History shows the current state",
     };
   }
   if (point.kind === "library_asset") {
@@ -85,7 +85,7 @@ function resolveHomePosture({ loading, point }) {
   return {
     id: "active",
     eyebrow: "Pick up · Continue",
-    lead: "Resume the most consequential durable research state",
+    lead: "Resume the most consequential saved research state",
   };
 }
 
@@ -115,8 +115,8 @@ function PickUpCard({ point, loading, posture, onContinue, onReview }) {
         <GuidedState
           eyebrow="No resume point"
           title="Open the Library or find missing evidence"
-          detail="No durable research work currently needs resumption."
-          checks={["Library holds registered evidence", "Discover searches beyond holdings", "Synthesis holds durable constructions"]}
+          detail="No saved research work needs to be resumed."
+          checks={["Library holds saved data", "Discover finds data beyond your Library", "Synthesis holds saved builds"]}
         />
       </div>
     );
@@ -437,7 +437,7 @@ export function HomePage({
                     onGoTab?.(item.dest === "library" ? "library" : "browse");
                   }}
                 >
-                  <span className="rd-v2-home-trail-kind">{item.kind}</span>
+                  <span className="rd-v2-home-trail-kind">{item.kind === "REGISTERED ASSET" ? "Library dataset" : item.kind}</span>
                   <strong>{item.title}</strong>
                   <span>{item.summary}</span>
                   <em>{item.dest === "library" ? "Library →" : "History →"}</em>
@@ -448,7 +448,7 @@ export function HomePage({
         ) : (
           <div className="rd-v2-home-section-empty-actions">
             <p className="rd-v2-home-section-empty">
-              Nothing durable yet — recent work will collect here.
+              No saved work yet. Recent work will appear here.
             </p>
             <HomeSuggestedAsks
               profile={profile}

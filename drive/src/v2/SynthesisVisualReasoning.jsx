@@ -135,7 +135,7 @@ export function UnitScaleVisual({ conflict, outcomes }) {
       <header>
         <div>
           <small>Scale comparison</small>
-          <strong>The desk sees two internally plausible series on different magnitudes</strong>
+          <strong>Research Drive found two plausible series at different scales</strong>
         </div>
         <span>shared scale</span>
       </header>

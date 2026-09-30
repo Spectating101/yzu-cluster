@@ -127,20 +127,20 @@ test("workspace resume labels describe the actual next researcher action", () =>
   assert.equal(synthesisWorkspaceActionLabel(previewRequired), "Run Preview");
   assert.equal(synthesisWorkspacePhaseLabel(previewPassed), "Preview passed");
   assert.equal(synthesisWorkspaceActionLabel(previewPassed), "Review Preview");
-  assert.equal(synthesisWorkspacePhaseLabel(approval), "Approval required");
+  assert.equal(synthesisWorkspacePhaseLabel(approval), "Waiting for your approval");
   assert.equal(synthesisWorkspaceActionLabel(approval), "Review approval");
   assert.equal(synthesisWorkspacePhaseLabel(building), "Execution running");
   assert.equal(synthesisWorkspaceActionLabel(building), "View build");
   assert.equal(synthesisWorkspacePhaseLabel(awaitingRegistration), "Worker completed");
-  assert.equal(synthesisWorkspaceActionLabel(awaitingRegistration), "View registration");
-  assert.equal(synthesisWorkspacePhaseLabel(result), "Query-ready result");
+  assert.equal(synthesisWorkspaceActionLabel(awaitingRegistration), "View Library save status");
+  assert.equal(synthesisWorkspacePhaseLabel(result), "Result ready to query");
   assert.equal(synthesisWorkspaceActionLabel(result), "Open result");
 });
 
 test("decision queue summaries surface the blocker instead of repeating project prose", () => {
   assert.equal(synthesisWorkspaceDecisionSummary(scope), "Input exceeds supported row limit");
   assert.match(synthesisWorkspaceDecisionSummary(join), /42% of the left-side entities match/);
-  assert.match(synthesisWorkspaceDecisionSummary(previewPassed), /5,000 bounded input rows/);
+  assert.match(synthesisWorkspaceDecisionSummary(previewPassed), /5,000 sample input rows/);
   assert.equal(synthesisWorkspaceDecisionSummary(approval), "No worker is authorized to run until this approval is granted");
   assert.equal(synthesisWorkspaceDecisionSummary(building), "");
 });

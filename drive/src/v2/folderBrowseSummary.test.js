@@ -46,7 +46,7 @@ test("empty partition folder is explicit", () => {
     children: {},
   };
   const summary = folderBrowseSummary(part);
-  assert.equal(summary.sub, "No datasets on this desk yet");
+  assert.equal(summary.sub, "No datasets in Research Drive yet");
   assert.equal(summary.pill, "0");
   assert.equal(summary.desc, "Retail / social overlays");
 });

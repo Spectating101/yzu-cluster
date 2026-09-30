@@ -43,7 +43,7 @@ test.describe("v2 Discover tab", () => {
     await expect(examples.getByText("Try a keyword")).toBeVisible();
     await expect(examples.getByText("Ask a research need")).toBeVisible();
     await expect(
-      page.getByRole("heading", { name: "Sources the desk already knows how to investigate" }),
+      page.getByRole("heading", { name: "Sources Research Drive knows how to investigate" }),
     ).toHaveCount(0);
     await expect(page.getByText("No curated source routes yet")).toBeVisible();
   });
@@ -229,7 +229,7 @@ test.describe("v2 Discover tab", () => {
     await expect(context.getByText("Example open dataset")).toBeVisible();
     await expect(page.locator(".rd-v2-discover-miss")).toHaveCount(0);
     await expect(page.getByLabel("Discover next actions")).toContainText("1 reference to inspect");
-    await expect(page.getByLabel("Discover next actions")).toContainText("No collection-ready route is declared yet");
+    await expect(page.getByLabel("Discover next actions")).toContainText("No collection method is documented as ready yet");
     await expect(page.getByTestId("discover-evidence-field")).toContainText("No collection-ready route yet");
     await expect(page.getByTestId("discover-evidence-field")).toContainText("1 relevant reference is available to inspect or probe");
   });
@@ -700,7 +700,7 @@ test.describe("v2 Discover tab", () => {
     await waitForShell(page);
     await searchDiscover(page, "mops");
     await page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate', { hasText: "MOPS" }).click();
-    await page.locator('[data-testid="discover-eval-actions"]').getByRole("button", { name: "Probe source" }).click();
+    await page.locator('[data-testid="discover-eval-actions"]').getByRole("button", { name: "Test connection" }).click();
     const surface = page.locator("aside.rd-v2-rail").getByTestId("discover-eval-surface");
     await expect(surface.locator(".rd-v2-eval-verified")).toContainText("text/csv");
     await expect(surface.locator(".rd-v2-eval-verified")).toContainText(/domain observed/i);

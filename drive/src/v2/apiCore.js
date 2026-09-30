@@ -540,7 +540,7 @@ export async function deskWarm({ sessionId, userEmail, background = true } = {})
       ok: false,
       skipped: true,
       reason: "desk_session_unavailable",
-      error: session?.error || "desk session bootstrap failed",
+      error: session?.error || "Research Drive session bootstrap failed",
     };
   }
   return fetchJson("/library/desk/warm", {
@@ -768,7 +768,7 @@ export async function sendChatMessage(
         if (![502, 503, 504].includes(fallback.status) || attempt === 1) {
           throw new Error(normalizeApiError(payload, fallback.status, "/library/chat"));
         }
-        onActivity?.({ text: "Desk reconnecting…", elapsed_seconds: Math.round((Date.now() - started) / 1000) });
+        onActivity?.({ text: "Research Drive reconnecting…", elapsed_seconds: Math.round((Date.now() - started) / 1000) });
         await new Promise((r) => setTimeout(r, 1200));
       }
       if (payload.session_id) saveChatSessionId(payload.session_id);

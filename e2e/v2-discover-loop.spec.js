@@ -39,8 +39,8 @@ test.describe("v2 Discover Explore|History (main converge)", () => {
     await expect(page.getByTestId("discover-history")).toBeVisible();
     const rail = page.getByRole("complementary", { name: "Inspector" });
     await expect(rail).toContainText("Discover history");
-    await expect(rail).toContainText("Research lifecycle");
-    await expect(rail).toContainText("No lifecycle item selected");
+    await expect(rail).toContainText("Request history");
+    await expect(rail).toContainText("No request selected");
     await expect(rail).not.toContainText("Search summary");
 
     await page.goto("/?tab=browse&mode=activity", { waitUntil: "domcontentloaded" });
@@ -62,7 +62,7 @@ test.describe("v2 Discover Explore|History (main converge)", () => {
     await expect(page.getByRole("tab", { name: /History/ })).toHaveAttribute("aria-selected", "true");
     const rail = page.getByRole("complementary", { name: "Inspector" });
     await expect(rail).toContainText("TWSE governance");
-    await expect(rail).toContainText("Approval required");
+    await expect(rail).toContainText("Waiting for your approval");
   });
 
   test("History names the pending-approval hydration window instead of looking empty", async ({ page }) => {

@@ -35,3 +35,8 @@ export function isNamedRoute(value) {
 }
 
 export { UNNAMED_ROUTE };
+
+export function collectRouteDisplayLabel(value) {
+  const label = collectRouteLabel(value);
+  return label === UNNAMED_ROUTE ? "a documented route" : label;
+}

@@ -149,16 +149,16 @@ test("Preview and approval remain separate visible and network intentions", asyn
   await openFixture(page);
 
   const execution = page.getByTestId("synthesis-execution-state");
-  const runPreview = execution.getByRole("button", { name: "Run bounded test" });
+  const runPreview = execution.getByRole("button", { name: "Run sample test" });
   await expect(runPreview).toBeVisible();
-  await expect(execution).toContainText("Bounded preview required");
+  await expect(execution).toContainText("Sample preview required");
   await expect(execution.getByRole("button", { name: "Review execution approval" })).toHaveCount(0);
   await runPreview.click();
 
   // The bounded test is its own network intention. It may not create an
   // approval request, worker job, materialised asset, or registration.
   await expect.poll(() => observed.actions()).toEqual(["preview"]);
-  await expect(execution).toContainText("Bounded preview passed");
+  await expect(execution).toContainText("Sample preview passed");
   await expect(execution).toContainText("100");
   const reviewApproval = execution.getByRole("button", { name: "Review execution approval" });
   await expect(reviewApproval).toBeVisible();
@@ -185,13 +185,13 @@ test("a stale Preview can only rerun the bounded test from the browser", async (
 
   const execution = page.getByTestId("synthesis-execution-state");
   await expect(execution).toContainText("Stale");
-  const rerun = execution.getByRole("button", { name: "Run bounded test" });
+  const rerun = execution.getByRole("button", { name: "Run sample test" });
   await expect(rerun).toBeVisible();
   await expect(execution.getByRole("button", { name: "Review execution approval" })).toHaveCount(0);
   await rerun.click();
 
   await expect.poll(() => observed.actions()).toEqual(["preview"]);
-  await expect(execution).toContainText("Bounded preview passed");
+  await expect(execution).toContainText("Sample preview passed");
   await expect(execution.getByRole("button", { name: "Review execution approval" })).toBeVisible();
   await expect.poll(() => observed.actions()).toEqual(["preview"]);
 });

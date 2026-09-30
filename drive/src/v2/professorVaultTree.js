@@ -225,7 +225,7 @@ export function buildProfessorVaultTree(datasets = [], partitions = [], shelves 
     const folder = {
       id: otherFolderId,
       kind: "folder",
-      name: "Other holdings",
+      name: "Other Library data",
       segment: "unfiled",
       path: [otherShelfId, "unfiled"],
       partition_id: "unfiled",

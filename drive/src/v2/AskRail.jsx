@@ -1,3 +1,4 @@
+import { synthesisRequestCopy } from "@/v2/synthesisAssist.js";
 import { useEffect, useRef, useState } from "react";
 import { LoaderCircle } from "lucide-react";
 import { GuidedState, ProgressSteps } from "@/v2/InteractionFeedback";
@@ -26,9 +27,9 @@ const AUTOMATABLE_REASONING_DECISIONS = new Set([
 ]);
 
 function synthesisAutomationPrompt(selected = {}) {
-  const decision = String(selected.current_decision || "the current Synthesis decision").trim();
-  const risk = String(selected.decision_risk || "No additional recorded risk").trim();
-  const next = String(selected.decision_next || "Advance only if the recorded evidence supports one defensible construction").trim();
+  const decision = String(synthesisRequestCopy(selected.current_decision) || "the current Synthesis decision").trim();
+  const risk = String(synthesisRequestCopy(selected.decision_risk) || "No additional recorded risk").trim();
+  const next = String(synthesisRequestCopy(selected.decision_next) || "Advance only if the recorded evidence supports one defensible construction").trim();
   return {
     prompt: [
       "Synthesis Autopilot is allowed to resolve supported method decisions for this durable thread.",
@@ -40,7 +41,7 @@ function synthesisAutomationPrompt(selected = {}) {
       "If the evidence does not establish one defensible choice, stop and ask the researcher instead of guessing.",
       "Do not collect evidence, invent measurements, accept your own proposal, approve execution, or register an output in this turn.",
     ].join(" "),
-    displayText: `Autopilot · ${decision}`,
+    displayText: `Autopilot · ${String(selected.current_decision || decision).trim()}`,
   };
 }
 
@@ -129,8 +130,9 @@ export function AskRail({
   const isDiscoverInvestigation = isDiscover && dataset?.kind === "discover_investigation";
   const isSynthesis = mainTab === "synthesis";
   const profileContext = dataset?.title || "Profile";
-  const synthesisContext =
-    dataset?.title && dataset.title !== "Synthesis studio"
+  const synthesisContext = dataset?.thread_id === "__new__"
+    ? "New build"
+    : dataset?.title && dataset.title !== "Synthesis studio"
       ? dataset.title
       : "Synthesis studio";
   const synthesisSelected = isSynthesis ? railContext?.selected || {} : {};
@@ -144,17 +146,17 @@ export function AskRail({
   const automationOption = synthesisAutomationOption(automationMode);
   const synthesisApprovalLabel = isSynthesis
     ? String(synthesisSelected.decision_kind || "") === "approve_execution"
-      ? "Build this revision"
-      : "Approve bound execution"
+      ? "Build this version"
+      : "Approve this execution request"
     : undefined;
   const hasThread = messages.length > 0;
   const discoverTitle = dataset?.title || dataset?.dataset_id || "";
   const railTitle = isProfile
     ? "Ask"
     : isSettings
-      ? "Ask · desk setup"
+      ? "Ask · Research Drive setup"
     : isDiscoverHistory
-      ? "Ask · lifecycle item"
+      ? "Ask · request"
       : isDiscoverInvestigation
         ? "Ask · investigation"
       : isDiscover
@@ -171,9 +173,9 @@ export function AskRail({
       ? `Continuing · context → ${profileContext}`
       : `Context · ${profileContext}`
     : isSettings
-      ? "Context · desk preferences and connection state"
+      ? "Context · Research Drive preferences and connection state"
     : isDiscoverHistory && discoverTitle
-      ? `Lifecycle context · ${discoverTitle}`
+      ? `Request history context · ${discoverTitle}`
       : isDiscoverInvestigation && discoverTitle
         ? hasThread
           ? `Continuing · investigation → ${discoverTitle}`
@@ -189,13 +191,14 @@ export function AskRail({
             : isLibrary
               ? searchQuery
                 ? `Search context · ${searchQuery}`
-                : "Context · held research evidence"
+                : "Context · data in your Library"
               : ctxParts.length
                 ? ctxParts.join(" · ")
                 : "Select a dataset for grounded answers";
 
-  const askEntityTitle =
-    (dataset?.dataset_id || dataset?.title
+  const askEntityTitle = isSynthesis && dataset?.thread_id === "__new__"
+    ? "New build"
+    : (dataset?.dataset_id || dataset?.title
       ? displayName(dataset) || dataset?.title || dataset?.dataset_id
       : "") ||
     (isProfile ? profileContext : isSynthesis ? synthesisContext : "");
@@ -224,7 +227,7 @@ export function AskRail({
         if (synthesisAutomationAllowsChoice(automationMode) && AUTOMATABLE_REASONING_DECISIONS.has(decisionKind)) {
           setAutomationState("Reasoning through the current method decision…");
           await send(synthesisAutomationPrompt(selected));
-          setAutomationState("Waiting for the durable thread to record the reasoning result.");
+          setAutomationState("Waiting for the reasoning result to be saved to the build.");
           return;
         }
 
@@ -233,7 +236,7 @@ export function AskRail({
             setAutomationState("Paused · proposal identity is not fully recorded.");
             return;
           }
-          setAutomationState("Accepting the exact proposal and running bounded Preview…");
+          setAutomationState("Accepting the exact proposal and running sample preview…");
           const accepted = await decideSynthesisProposal(threadId, {
             decision: "accept",
             proposalId: selected.proposal_id,
@@ -243,35 +246,35 @@ export function AskRail({
             await requestSynthesisExecution(threadId, { action: "preview" });
           }
           onSynthesisChanged?.({ threadId, automation: "proposal_accepted" });
-          onToast?.("Autopilot accepted the method and ran bounded Preview");
+          onToast?.("Autopilot accepted the method and ran sample preview");
           setAutomationState("Method accepted · checking Preview state…");
           return;
         }
 
         if (synthesisAutomationAllowsApproval(automationMode) && decisionKind === "run_preview") {
-          setAutomationState("Running bounded Preview for the accepted revision…");
+          setAutomationState("Running a sample preview for this accepted version…");
           await requestSynthesisExecution(threadId, { action: "preview" });
           onSynthesisChanged?.({ threadId, automation: "preview_requested" });
-          setAutomationState("Preview requested · waiting for the durable receipt.");
+          setAutomationState("Preview requested · waiting for the saved test record.");
           return;
         }
 
         if (synthesisAutomationAllowsApproval(automationMode) && decisionKind === "review_preview") {
           if (String(selected.preview_status || "").toLowerCase() !== "succeeded") {
-            setAutomationState("Paused · current Preview is not a successful bound receipt.");
+            setAutomationState("Paused · the current sample preview has not passed for this version.");
             return;
           }
-          setAutomationState("Requesting execution approval for the exact Previewed revision…");
+          setAutomationState("Requesting execution approval for this previewed version…");
           const result = await requestSynthesisExecution(threadId, { action: "request_approval" });
           const jobId = result?.job?.id || result?.thread?.state?.execution?.job_id || "";
           if (jobId && onApproveJob) {
-            setAutomationState("Approving the bound execution job…");
+            setAutomationState("Approving this execution request…");
             await Promise.resolve(onApproveJob(jobId));
-            onToast?.("Autopilot approved the bound Synthesis execution");
+            onToast?.("Autopilot approved this Synthesis execution");
           } else if (jobId) {
             setAutomationState("Paused · execution approval permission is unavailable.");
           } else {
-            setAutomationState("Execution approval requested · waiting for the durable job record.");
+            setAutomationState("Execution approval requested · waiting for the saved job record.");
           }
           onSynthesisChanged?.({ threadId, automation: "execution_requested" });
           return;
@@ -280,19 +283,19 @@ export function AskRail({
         if (synthesisAutomationAllowsApproval(automationMode) && decisionKind === "approve_execution") {
           const jobId = String(selected.job_id || "");
           if (!jobId || !onApproveJob) {
-            setAutomationState("Paused · the bound approval job or permission is unavailable.");
+            setAutomationState("Paused · this approval request or permission is unavailable.");
             return;
           }
-          setAutomationState("Approving the already-bound execution job…");
+          setAutomationState("Approving this execution request…");
           await Promise.resolve(onApproveJob(jobId));
           onSynthesisChanged?.({ threadId, automation: "execution_approved" });
-          onToast?.("Autopilot approved the bound Synthesis execution");
-          setAutomationState("Execution approved · worker lifecycle is now authoritative.");
+          onToast?.("Autopilot approved this Synthesis execution");
+          setAutomationState("Execution approved · the worker now reports execution progress.");
           return;
         }
 
         if (decisionKind === "map_evidence") {
-          setAutomationState("Paused at evidence review · held inputs still require explicit selection.");
+          setAutomationState("Paused at evidence review · select the inputs from your Library.");
           return;
         }
         if (decisionKind === "recover_preview") {
@@ -300,11 +303,11 @@ export function AskRail({
           return;
         }
         if (["recover_build", "approve_execution"].includes(decisionKind)) {
-          setAutomationState("Paused at a researcher or recovery boundary.");
+          setAutomationState("Paused for your decision or an issue that needs attention.");
           return;
         }
         if (["await_registration", "inspect_result", "inspect_registered_result"].includes(decisionKind)) {
-          setAutomationState("Automation complete for the current authority path.");
+          setAutomationState("Automation completed the currently permitted steps.");
           return;
         }
         setAutomationState("");
@@ -349,8 +352,7 @@ export function AskRail({
           isProfile ? (
             <div className="rd-v2-ask-placeholder">
               <p>
-                Ask how the saved research memory shapes Discover and Synthesis, or correct context that the desk
-                should stop carrying forward.
+                Ask how saved research context shapes Discover and Synthesis, or correct information Research Drive should stop using.
               </p>
               <div className="rd-v2-chips-row rd-v2-ask-chips">
                 {[
@@ -367,8 +369,7 @@ export function AskRail({
           ) : isSettings ? (
             <div className="rd-v2-ask-placeholder">
               <p>
-                Ask what the current desk settings change, which connections are available, and where approval or
-                readiness boundaries still apply.
+                Ask what Research Drive settings change, which connections are available, and what still needs approval or readiness checks.
               </p>
               <div className="rd-v2-chips-row rd-v2-ask-chips">
                 {[
@@ -385,8 +386,7 @@ export function AskRail({
           ) : isDiscoverHistory && discoverTitle ? (
             <div className="rd-v2-ask-placeholder">
               <p>
-                This lifecycle record stays in context. Ask about its durable state, evidence, uncertainty, or the
-                safest next action without upgrading a status claim.
+                This request stays in context. Ask about its saved state, evidence, unknowns, or next available action. Its status still depends on the evidence.
               </p>
               <div className="rd-v2-chips-row rd-v2-ask-chips">
                 {[
@@ -403,8 +403,7 @@ export function AskRail({
           ) : isDiscover && discoverTitle ? (
             <div className="rd-v2-ask-placeholder">
               <p>
-                Selected candidate stays in context. Ask about usability, risks, lab overlap, or what to probe next —
-                without inventing clearance or completeness.
+                The selected candidate stays in context. Ask about usability, risks, Library overlap, or the next connection to test. Access and completeness still need evidence.
               </p>
               <div className="rd-v2-chips-row rd-v2-ask-chips">
                 {[
@@ -428,7 +427,7 @@ export function AskRail({
           ) : isLibrary ? (
             <div className="rd-v2-ask-placeholder" data-testid="library-ask-guidance">
               <p>
-                Ask what evidence you already hold, why a result matches, how holdings compare, or what is genuinely missing. Library answers must keep held evidence separate from Discover candidates.
+                Ask what data you have, why a result matches, how datasets compare, or what is missing. Library answers distinguish data you have from Discover candidates.
               </p>
               <div className="rd-v2-chips-row rd-v2-ask-chips">
                 {[
@@ -447,9 +446,9 @@ export function AskRail({
               <p>
                 {synthesisDecision
                   ? automationMode === SYNTHESIS_AUTOMATION_MODES.MANUAL
-                    ? `Current decision: ${synthesisDecision}. Ask stays bound to this durable thread and cannot silently advance its authority state.`
-                    : `Current decision: ${synthesisDecision}. ${automationOption.label} is active; the agent may advance only the authority granted by that mode and must stop at unsupported evidence or recovery boundaries.`
-                  : "This conversation shares the active Synthesis thread. Ask can interpret, challenge, or propose a reviewable next step without silently advancing the construction."}
+                    ? `Current decision: ${synthesisDecision}. Ask stays with this saved build and cannot change its permissions without a decision.`
+                    : `Current decision: ${synthesisDecision}. ${automationOption.label} is active. The agent can take only the steps this mode permits and must stop when evidence is insufficient or a problem needs attention.`
+                  : "This conversation uses the active Synthesis build. Ask can explain, challenge, or propose a next step for review. It cannot advance the build without a decision."}
               </p>
               <div className="rd-v2-chips-row rd-v2-ask-chips">
                 {(synthesisPrompts.length
@@ -477,7 +476,7 @@ export function AskRail({
               className="rd-v2-ask-guided-empty"
               eyebrow="Grounded assistant"
               title="Ask from an active research context"
-              detail="Research Drive can search holdings, inspect evidence, propose collection, and explain what remains uncertain."
+              detail="Research Drive can search your Library, inspect data, propose collection, and explain what remains uncertain."
               checks={[
                 "Visible context stays attached to the conversation",
                 "Material collection still requires the appropriate approval path",
@@ -489,7 +488,7 @@ export function AskRail({
           <>
             {isDiscoverHistory ? (
               <p className="rd-v2-ask-context-notice" data-testid="ask-context-notice">
-                New messages use this lifecycle context.
+                New messages use this request’s context.
               </p>
             ) : isDiscover && discoverTitle ? (
               <p className="rd-v2-ask-context-notice" data-testid="ask-context-notice">
@@ -550,13 +549,13 @@ export function AskRail({
             isProfile
               ? "Correct the research memory or ask how it is used…"
               : isSettings
-                ? "Ask about desk behavior, access, or approvals…"
+                ? "Ask about Research Drive behavior, access, or approvals…"
               : isSynthesis
                 ? synthesisDecision
                   ? `Ask about ${synthesisDecision.toLowerCase()}…`
                   : "Correct the interpretation, add a constraint, or ask…"
                 : isDiscoverHistory
-                  ? "Ask about this lifecycle record…"
+                  ? "Ask about this request history record…"
                   : "Ask about coverage, overlaps, or procurement…"
           }
           disabled={busy}

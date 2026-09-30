@@ -116,7 +116,7 @@ async function selectFirstDataset(page) {
   await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
   await page.locator(".rd-v2-shell").waitFor({ timeout: 30_000 });
   await page.getByTestId("library-evidence-estate").waitFor({ state: "visible", timeout: 15_000 });
-  await page.getByRole("textbox", { name: "Search library holdings" }).fill("Asia");
+  await page.getByRole("textbox", { name: "Search your Library" }).fill("Asia");
   const row = page.getByTestId("library-evidence-row").first();
   await row.waitFor({ state: "visible", timeout: 15_000 });
   await row.click();
@@ -192,14 +192,14 @@ test.describe("v2 parity @ desk-v2-1440", () => {
     const situation = page.getByTestId("research-situation");
     const rail = page.locator("aside.rd-v2-rail");
     await expect(situation).toContainText("Asia daily news-risk panel");
-    await expect(situation).toContainText("Query-ready");
+    await expect(situation).toContainText("Ready to query");
     await expect(situation.getByRole("tab", { name: "Detail" })).toHaveAttribute("aria-selected", "true");
     await expect(page.locator('[data-testid="rail-pane-ask"]')).toBeHidden();
     await expect(rail.getByRole("button", { name: "Preview rows" })).toHaveCount(0);
     await expect(rail.getByRole("button", { name: "Ask about this →" })).toBeVisible();
     await expect(rail).not.toContainText("Coverage & grain");
     await expect(rail.locator(".rd-v2-library-evidence-facts")).toHaveCount(0);
-    await expect(page.locator('aside.rd-v2-rail [aria-label="Can I use this?"]')).toContainText("Query-ready");
+    await expect(page.locator('aside.rd-v2-rail [aria-label="Can I use this?"]')).toContainText("Ready to query");
     await situation.getByRole("tab", { name: "Ask" }).click();
     await expect(page.getByTestId("ask-composer")).toBeVisible();
     await expect(page.getByTestId("research-situation")).toContainText("Asia daily news-risk panel");

@@ -255,7 +255,7 @@ test.describe("Synthesis acceptance screenshots", () => {
           .toHaveText(EXPECTED_PHASE[name]);
 
         if (name === "00a-defined") {
-          await expect(page.getByTestId("synthesis-workflow-next")).toContainText("Find held evidence");
+          await expect(page.getByTestId("synthesis-workflow-next")).toContainText("Find data in your Library");
           await expect(page.getByTestId("synthesis-evidence-state")).toBeVisible();
           await expect(page.getByTestId("synthesis-evidence-state")).toContainText("No inputs mapped");
         }
@@ -264,7 +264,7 @@ test.describe("Synthesis acceptance screenshots", () => {
           const preview = page.getByTestId("synthesis-preview-state");
           await expect(preview).toBeVisible();
           await expect(preview).toContainText("Test this accepted recipe before full execution");
-          await expect(page.getByRole("button", { name: "Run bounded test" })).toBeVisible();
+          await expect(page.getByRole("button", { name: "Run sample test" })).toBeVisible();
         }
 
         if (name === "06b-preview-passed") {
@@ -278,7 +278,7 @@ test.describe("Synthesis acceptance screenshots", () => {
         if (name === "06c-approval") {
           await expect(page.getByTestId("synthesis-preview-state")).toHaveCount(0);
           await expect(page.getByRole("button", { name: "Review execution approval" })).toBeVisible();
-          await expect(page.getByText("Bounded preview", { exact: true })).toBeVisible();
+          await expect(page.getByText("Sample preview", { exact: true })).toBeVisible();
           const previewStep = page.getByRole("listitem").filter({ hasText: "Bounded preview" }).first();
           await expect(previewStep).toBeVisible();
           await expect(previewStep).toContainText("✓");
@@ -372,9 +372,9 @@ test.describe("Synthesis acceptance screenshots", () => {
     await mount(page, threadFor(STATES["00-opening-recommended"]));
 
     const main = page.locator(".s04-main");
-    await expect(main.getByText("Construction recommendation", { exact: true })).toBeVisible();
+    await expect(main.getByText("Suggested build", { exact: true })).toBeVisible();
     await expect(main.getByRole("region", { name: "Research brief" })).toBeVisible();
-    await expect(main.getByRole("region", { name: "Recommended construction" })).toBeVisible();
+    await expect(main.getByRole("region", { name: "Suggested build" })).toBeVisible();
     await expect(main.getByRole("region", { name: "What happens next" })).toBeVisible();
     await expect(main.locator(':text-is("asset × week"):visible')).toHaveCount(1);
     await expect(main.getByText("Composite weekly attention index", { exact: true })).toHaveCount(1);

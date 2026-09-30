@@ -100,7 +100,7 @@ export function CatalogRow({
         ) : null}
         {!isFolder && !state ? <StatusPill dataset={dataset} label={statusPill(dataset)} /> : null}
         {isFolder ? (
-          <span className="rd-v2-pill muted" title="Assets in this branch">
+          <span className="rd-v2-pill muted" title="Datasets in this branch">
             {folderSummary.pill}
           </span>
         ) : null}

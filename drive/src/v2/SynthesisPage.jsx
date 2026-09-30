@@ -23,7 +23,7 @@ import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
 import { ExcursionRecordPanel } from "./ExcursionRecordPanel.jsx";
 import { SynthesisHome } from "./SynthesisHome.jsx";
 import { focusFor } from "./synthesisFocus.js";
-import { synthesisAssist } from "@/v2/synthesisAssist.js";
+import { synthesisAssistRequestContext, synthesisAssist } from "@/v2/synthesisAssist.js";
 import { synthesisDraftBrief, synthesisDraftPrompt } from "@/v2/synthesisDraft.js";
 
 // The record renders whether or not it leads, so the strip must not offer it too.
@@ -165,7 +165,7 @@ const SYNTHESIS_STAGES = [
   ["Ground", "Library evidence"],
   ["Review", "Method decision"],
   ["Build", "Execution record"],
-  ["Reuse", "Library asset"],
+  ["Reuse", "Library dataset"],
 ];
 
 function synthesisStageIndex(thread) {
@@ -265,7 +265,7 @@ function ThreadList({ threads, selectedId, loading, onSelect, onHome, onNew, cre
         onClick={onHome}
       >
         <b>⌂</b>
-        <span><strong>Synthesis workspace</strong><small>All constructions</small></span>
+        <span><strong>Synthesis workspace</strong><small>All builds</small></span>
       </button>
       <header>
         <div className="s04-thread-heading">
@@ -285,12 +285,12 @@ function ThreadList({ threads, selectedId, loading, onSelect, onHome, onNew, cre
       </header>
       <div className="s04-thread-list">
         {activeThreads.map(renderThread)}
-        {!loading && !activeThreads.length ? <p className="s04-thread-empty">No active constructions.</p> : null}
+        {!loading && !activeThreads.length ? <p className="s04-thread-empty">No active builds.</p> : null}
       </div>
-      <section className="s04-thread-outputs" aria-label="Registered outputs">
-        <small>Registered outputs</small>
+      <section className="s04-thread-outputs" aria-label="Outputs saved to Library">
+        <small>Outputs saved to Library</small>
         {registeredThreads.map(renderThread)}
-        {!loading && !registeredThreads.length ? <p>No registered outputs.</p> : null}
+        {!loading && !registeredThreads.length ? <p>No outputs saved to Library.</p> : null}
       </section>
     </section>
   );
@@ -329,14 +329,14 @@ function ResearchBrief({ thread, onEditIntent }) {
       <header>
         <small>Research brief</small>
         {brief.editable ? (
-          <button type="button" onClick={() => onEditIntent?.()}>Edit intent</button>
+          <button type="button" onClick={() => onEditIntent?.()}>Edit request</button>
         ) : null}
       </header>
       <details className="s04-mobile-brief-disclosure" data-testid="synthesis-mobile-brief">
         <summary>
           <span>
             <small>Brief summary</small>
-            <strong>{text(brief.body, "Research intent recorded")}</strong>
+            <strong>{text(brief.body, "Research request recorded")}</strong>
             <em>{mobileContext.length ? mobileContext.join(" · ") : "Research commitments not stated"}</em>
           </span>
           <b>
@@ -348,7 +348,7 @@ function ResearchBrief({ thread, onEditIntent }) {
           {brief.body ? <p>{brief.body}</p> : null}
           <dl>
             <div>
-              <dt>Target grain</dt>
+              <dt>Unit of observation</dt>
               <dd className={brief.targetGrain ? "" : "unstated"}>{text(brief.targetGrain, "Not stated")}</dd>
             </div>
             <div>
@@ -365,7 +365,7 @@ function ResearchBrief({ thread, onEditIntent }) {
       {brief.body ? <p>{brief.body}</p> : null}
       <dl>
         <div>
-          <dt>Target grain</dt>
+          <dt>Unit of observation</dt>
           <dd className={brief.targetGrain ? "" : "unstated"}>{text(brief.targetGrain, "Not stated")}</dd>
         </div>
         <div>
@@ -389,7 +389,7 @@ function OpeningWorkflow({ thread, reasoningAvailable, reasoningStatus }) {
   const steps = [
     ["Define", "Research brief"],
     ["Map evidence", "Held Library inputs"],
-    ["Reason", "Reviewable construction"],
+    ["Reason", "Reviewable build"],
     ["Approve", "Explicit decision"],
   ];
   return (
@@ -407,11 +407,11 @@ function OpeningWorkflow({ thread, reasoningAvailable, reasoningStatus }) {
         <span>
           {reasoningAvailable
             ? mapped
-              ? "Review mapped evidence, then request one reviewable construction."
-              : "Find held evidence before method reasoning."
+              ? "Review the mapped evidence, then request a suggested build."
+              : "Find data in your Library before method reasoning."
             : mapped
               ? `${reasoningStatus}; review the evidence map or check Resources before reasoning.`
-              : `Find held evidence now; ${reasoningStatus.toLowerCase()} blocks method reasoning.`}
+              : `Find data in your Library now; ${reasoningStatus.toLowerCase()} blocks method reasoning.`}
         </span>
       </p>
     </div>
@@ -421,14 +421,14 @@ function OpeningWorkflow({ thread, reasoningAvailable, reasoningStatus }) {
 function OpeningRoleMap({ recommendation }) {
   const output = recommendation.expectedOutput.label || recommendation.title;
   return (
-    <figure className="s04-opening-map" aria-label="Recommended construction evidence roles">
+    <figure className="s04-opening-map" aria-label="Suggested build evidence roles">
       <figcaption>Evidence roles</figcaption>
       <ol>
         {recommendation.nodes.map((node) => (
           <li key={node.id || node.source}>
             <small>{text(node.role, "Role not stated")}</small>
             <strong>{node.source}</strong>
-            <span>{text(node.grain, "Grain not stated")}</span>
+            <span>{text(node.grain, "Unit of observation not stated")}</span>
           </li>
         ))}
       </ol>
@@ -480,21 +480,20 @@ function RecommendedConstruction({ thread, onCompare }) {
   const rec = recommendedConstruction(thread);
   if (!rec.present) {
     return (
-      <section className="s04-opening-construction s04-opening-construction--empty" aria-label="Recommended construction">
+      <section className="s04-opening-construction s04-opening-construction--empty" aria-label="Suggested build">
         <header>
-          <small>Recommended construction</small>
+          <small>Suggested build</small>
         </header>
         <p>
-          No construction has been recommended yet. Start a reasoning turn to ground one
-          reviewable proposal in this brief and the recorded Library evidence.
+          No build has been suggested yet. Start a reasoning turn to prepare a proposal from this brief and saved Library evidence.
         </p>
       </section>
     );
   }
   return (
-    <section className="s04-opening-construction" aria-label="Recommended construction">
+    <section className="s04-opening-construction" aria-label="Suggested build">
       <header>
-        <small>Recommended construction</small>
+        <small>Suggested build</small>
         <em>Recommended</em>
       </header>
       <h2>{rec.title}</h2>
@@ -502,7 +501,7 @@ function RecommendedConstruction({ thread, onCompare }) {
       <ConstructionFacts recommendation={rec} />
       {rec.alternatives ? (
         <button type="button" className="s04-opening-alternatives" onClick={() => onCompare?.()}>
-          {rec.alternatives} alternative constructions available <b>▸</b>
+          {rec.alternatives} alternative builds available <b>▸</b>
         </button>
       ) : null}
     </section>
@@ -538,16 +537,16 @@ function WhatHappensNext({
       </header>
       <p>
         {hasProposal
-          ? "Copilot recorded one review-only construction from the held evidence. Inspect the exact change set before accepting or rejecting it; nothing has run."
+          ? "Copilot saved a proposed build from data you have. Review the changes before accepting or rejecting it. Nothing has run."
           : hasRecommendation
-          ? "Accepting a construction will not build data. The desk will draft the detailed method and surface only the choices that materially change the output."
+          ? "Accepting a suggested build does not create data. Research Drive will draft the method and show the choices that affect the output."
           : needsEvidence
-            ? "First review held Library inputs. Then Ask can ground one reviewable construction in recorded evidence; neither step will collect, execute, or change data without your approval."
+            ? "First review inputs in your Library. Then Ask can prepare a suggested build from the saved evidence. Neither step collects, runs, or changes data without your approval."
           : reasoningPending
-            ? "Ask is grounding one reviewable construction in this brief and the recorded Library evidence. It will not collect, execute, or change data."
+            ? "Ask is preparing a suggested build from this brief and saved Library evidence. It will not collect, run, or change data."
             : reasoningBlocked
-              ? "The desk has finished deterministic checks against held evidence. Assistant reasoning is not verified, so no construction has been invented; review the measured risks or check Resources."
-              : "Start a reasoning turn to request one reviewable construction. It may clarify a decisive gap first; it will not collect, execute, or change data."}
+              ? "Research Drive has checked the data you have. Assistant reasoning has not been verified, so no build has been suggested. Review the measured risks or check Resources."
+              : "Start a reasoning turn to request a suggested build. Ask may first clarify a gap that affects the decision. It will not collect, run, or change data."}
       </p>
       <footer data-evidence={needsEvidence ? "needed" : "mapped"}>
         {rec.alternatives ? (
@@ -566,9 +565,9 @@ function WhatHappensNext({
               className="s04-next-map"
               disabled={!onFindEvidence}
               onClick={() => onFindEvidence?.()}
-              title="Retry held-evidence discovery"
+              title="Retry Library search"
             >
-              Retry held evidence
+              Retry Library search
             </button>
           ) : null}
           {!hasProposal && !reasoningAvailable ? (
@@ -582,7 +581,7 @@ function WhatHappensNext({
               className="s04-next-primary"
               disabled={needsEvidence || reasoningPending || !reasoningAvailable || (hasRecommendation ? !onAccept : !onStartReasoning)}
               onClick={() => (hasRecommendation ? onAccept?.() : onStartReasoning?.())}
-              title={needsEvidence ? "Review and map held evidence before method reasoning." : !reasoningAvailable ? reasoningStatus : undefined}
+              title={needsEvidence ? "Review and map data in your Library before method reasoning." : !reasoningAvailable ? reasoningStatus : undefined}
             >
               {hasRecommendation
                 ? "Accept & design method"
@@ -602,7 +601,7 @@ function WhatHappensNext({
             ? "Waiting for a reviewable proposal · nothing built or modified"
             : reasoningAvailable
               ? "A proposal will be reviewable before any method or data changes"
-              : `${reasoningStatus}. Held-evidence mapping remains available.`}
+              : `${reasoningStatus}. Library evidence mapping remains available.`}
       </em>
     </section>
   );
@@ -622,19 +621,19 @@ function ThreadHeader({ thread, onEditIntent }) {
           <small>{stageLabel(thread)}</small>
           <h1>{titleFor(thread)}</h1>
           {opening ? null : (
-            <p>{text(thread?.objective || state.objective, "A durable research-construction thread.")}</p>
+            <p>{text(thread?.objective || state.objective, "A saved research build.")}</p>
           )}
         </div>
         <em>
           {queryReady
-            ? "Query-ready evidence"
+            ? "Data ready to query"
             : registered
-              ? "Registered evidence"
+              ? "Data saved to Library"
               : execution.status
-              ? "Durable execution state"
+              ? "Saved execution state"
               : state.proposal
                 ? "Reviewable change"
-                : "No output registered"}
+                : "No output saved to Library"}
         </em>
       </header>
       <ResearchBrief thread={thread} onEditIntent={onEditIntent} />
@@ -645,7 +644,7 @@ function ThreadHeader({ thread, onEditIntent }) {
           {text(state.lastActivity, "No method or output claim has been recorded yet.")}
         </span>
         <span className="s04-brief-grain">
-          <small>Required grain</small>
+          <small>Unit of observation</small>
           {text(state.required_grain || state.spec?.grain, "Not specified")}
         </span>
       </div>
@@ -717,7 +716,7 @@ function EvidenceMap({
       <header className="s04-title">
         <div>
           <small>Evidence map</small>
-          <h2>{text(target?.label, "Research construction")}</h2>
+          <h2>{text(target?.label, "Research build")}</h2>
         </div>
         <em className="neutral">{evidence.length ? `${evidence.length} mapped inputs` : "No inputs mapped"}</em>
       </header>
@@ -740,8 +739,8 @@ function EvidenceMap({
           ) : (
             <article className="s04-empty-evidence">
               <small>Next</small>
-              <strong>Find held Library evidence</strong>
-              <span>Searches registered assets and lets you review them before this map changes.</span>
+              <strong>Find data in your Library</strong>
+              <span>Searches data saved to Library for you to review before changing this map.</span>
             </article>
           )}
         </div>
@@ -764,8 +763,8 @@ function EvidenceMap({
         >
           <header>
             <div>
-              <small>Held inputs found</small>
-              <strong>{proposed.length ? `${proposed.length} inputs found · choose what belongs` : "No new held inputs found"}</strong>
+              <small>Library inputs found</small>
+              <strong>{proposed.length ? `${proposed.length} inputs found · choose what belongs` : "No new Library inputs found"}</strong>
             </div>
             <em>{proposed.length ? `${reviewedIds.size} selected` : "Nothing to add"}</em>
           </header>
@@ -785,7 +784,7 @@ function EvidenceMap({
                       <span>
                         <strong>{text(node.label || node.dataset_id, "Unnamed evidence")}</strong>
                         <small>
-                          {[node.grain, node.coverage, node.query_ready ? "Query-ready bytes" : "Bytes not verified"]
+                          {[node.grain, node.coverage, node.query_ready ? "Data ready to query" : "Bytes not verified"]
                             .filter(Boolean)
                             .join(" · ")}
                         </small>
@@ -799,7 +798,7 @@ function EvidenceMap({
           {proposalReason ? <p>{proposalReason}</p> : null}
           <footer>
             <button type="button" className="rd-v2-btn" disabled={mappingEvidence} onClick={onFindEvidence}>
-              Search held evidence again
+              Search your Library again
             </button>
             {!proposed.length ? (
               <button type="button" className="rd-v2-btn primary" disabled={mappingEvidence} onClick={onSearchBeyond}>
@@ -827,7 +826,7 @@ function EvidenceMap({
         <article>
           <small>Research object</small>
           <strong>{mapTarget}</strong>
-          <p>{text(target?.interpretation, "The research brief above remains the source of truth for this construction.")}</p>
+          <p>{text(target?.interpretation, "This build continues to use the research brief above.")}</p>
         </article>
         <article>
           <small>Unresolved evidence</small>
@@ -866,11 +865,11 @@ function EvidenceMap({
           </p>
           {evidence.length ? (
             <button type="button" className="rd-v2-btn primary" onClick={() => onAsk("Explain the current evidence map and identify the next material research decision.")}>
-              Discuss construction in Ask
+              Discuss build in Ask
             </button>
           ) : (
             <button type="button" className="rd-v2-btn primary" disabled={mappingEvidence} onClick={onFindEvidence}>
-              {mappingEvidence ? "Finding held evidence…" : "Find held Library evidence"}
+              {mappingEvidence ? "Searching your Library…" : "Find data in your Library"}
             </button>
           )}
         </footer>
@@ -894,7 +893,7 @@ function softIdentifier(value, fallback = "Not reported") {
 const PROPOSAL_OPERATION_LABELS = {
   add_node: "Add evidence or a derived construct",
   add_edge: "Link evidence to the research target",
-  update_spec: "Update the construction method",
+  update_spec: "Update the build method",
   append_activity: "Record this proposal in project history",
   remove_node: "Remove mapped evidence or a construct",
   remove_edge: "Remove an evidence relationship",
@@ -947,18 +946,18 @@ function ProposalReview({ thread, busy, onDecide, onAsk }) {
         </em>
       </header>
       <p className="s04-proposal-summary">
-        {text(proposal.summary, "The agent proposed a change to this durable construction.")}
+        {text(proposal.summary, "The agent proposed a change to this saved build.")}
       </p>
       {proposal.execution_spec ? (
-        <div className="s04-method-flow" aria-label="Proposed construction pipeline">
+        <div className="s04-method-flow" aria-label="Proposed build pipeline">
           <article>
-            <small>Held input</small>
+            <small>Library input</small>
             <strong>{softIdentifier(spec.input_dataset_id)}</strong>
-            <span>Registered Library evidence</span>
+            <span>Data saved to Library</span>
           </article>
           <b aria-hidden="true">→</b>
           <article className="transform">
-            <small>Construction</small>
+            <small>Build</small>
             <strong>{groupBy.length ? `Group by ${groupBy.join(" + ")}` : "Aggregate all rows"}</strong>
             <div>
               {metrics.length
@@ -970,7 +969,7 @@ function ProposalReview({ thread, busy, onDecide, onAsk }) {
           <article className="output">
             <small>Proposed output</small>
             <strong>{softIdentifier(spec.output_dataset_id)}</strong>
-            <span>Nothing is materialised yet</span>
+            <span>Nothing is built yet</span>
           </article>
         </div>
       ) : null}
@@ -1002,11 +1001,11 @@ function ProposalReview({ thread, busy, onDecide, onAsk }) {
           )}
         </section>
       </div>
-      {!canDecide ? <p className="s04-fixture">This proposal has no revision hash, so it cannot be accepted from the desk. Refresh it through Ask.</p> : null}
+      {!canDecide ? <p className="s04-fixture">This proposal has no version identifier, so Research Drive cannot accept it. Refresh it through Ask.</p> : null}
       <footer className="s04-actions">
         <p>
           <small>Approval boundary</small>
-          A decision is bound to this exact proposal revision. A changed proposal must be reviewed again.
+          Your decision applies to this version of the proposal. If the proposal changes, review it again.
         </p>
         <button type="button" className="rd-v2-btn" onClick={() => onAsk("Challenge this Synthesis proposal and explain every methodological consequence.")}>Challenge in Ask</button>
         <button type="button" className="rd-v2-btn" disabled={busy || !canDecide} onClick={() => onDecide("reject")}>Reject</button>
@@ -1226,25 +1225,25 @@ function ExecutionRecord({ thread, busy, onRequest, onReview, onAsk, onOpenDatas
   const showExecutionProof = Boolean(execution.job_id || registered || failed || pendingApproval || active);
   const headline = previewEligible
     ? previewTruth.failed
-      ? "Bounded preview failed"
+      ? "Sample preview failed"
       : previewTruth.succeeded
-        ? "Bounded preview passed"
-        : "Bounded preview required"
+        ? "Sample preview passed"
+        : "Sample preview required"
     : queryReady
-      ? "Query-ready research asset"
+      ? "Research dataset ready to query"
       : registered
-        ? "Registered research asset"
+        ? "Research dataset saved to Library"
         : failed
           ? "Execution failed"
           : "Execution record";
-  const badge = previewEligible ? previewStatus : queryReady ? "Query-ready" : registered ? "Registered" : status;
+  const badge = previewEligible ? previewStatus : queryReady ? "Ready to query" : registered ? "Saved to Library" : status;
 
   return (
     <section className="s04-card" data-testid={queryReady ? "synthesis-query-ready-state" : registered ? "synthesis-registered-state" : failed ? "synthesis-failed-state" : "synthesis-execution-state"}>
       <header className="s04-title">
         <div>
           <small>{headline}</small>
-          <h2>{registered ? result.name || softIdentifier(outputId, "Registered output") : softIdentifier(spec.output_dataset_id, "No execution requested")}</h2>
+          <h2>{registered ? result.name || softIdentifier(outputId, "Output saved to Library") : softIdentifier(spec.output_dataset_id, "No execution requested")}</h2>
         </div>
         <em className={registered || previewTruth.succeeded ? "success" : failed || previewTruth.failed ? "warn" : "neutral"}>{badge}</em>
       </header>
@@ -1258,7 +1257,7 @@ function ExecutionRecord({ thread, busy, onRequest, onReview, onAsk, onOpenDatas
         </dl>
       ) : null}
       {hasSpec ? (
-        <ol className="s04-exec-track" aria-label="Synthesis execution lifecycle">
+        <ol className="s04-exec-track" aria-label="Synthesis execution stages">
           {track.map((step, index) => (
             <li key={step.label} className={step.state}>
               <b>{step.state === "done" ? "✓" : step.state === "failed" ? "×" : index + 1}</b>
@@ -1277,14 +1276,14 @@ function ExecutionRecord({ thread, busy, onRequest, onReview, onAsk, onOpenDatas
         >
           <header className="s04-preview-head">
             <div>
-              <small>Preview/Test</small>
-              <strong>{previewTruth.succeeded ? "This accepted recipe completed on bounded bytes." : previewTruth.failed ? "The bounded recipe did not complete." : "Test this accepted recipe before full execution."}</strong>
+              <small>Sample preview</small>
+              <strong>{previewTruth.succeeded ? "This accepted recipe completed on sample data." : previewTruth.failed ? "The recipe did not complete on the sample." : "Test this accepted recipe before full execution."}</strong>
             </div>
             <em>{previewStatus}</em>
           </header>
           {!previewTruth.current ? (
             <p className="s04-preview-copy">
-              The desk will run the production transform, join, and aggregation semantics against a bounded input window. It will not create a worker job or research asset.
+              Research Drive will test the same transforms, joins, and aggregations used in the full build on a sample. It will not create a worker job or a Library dataset.
             </p>
           ) : null}
           {previewTruth.succeeded ? (
@@ -1297,7 +1296,7 @@ function ExecutionRecord({ thread, busy, onRequest, onReview, onAsk, onOpenDatas
               </dl>
               <p className="s04-preview-copy">
                 {warningCount ? `${warningCount} preflight warning${warningCount === 1 ? "" : "s"} recorded. ` : "No preflight warnings recorded. "}
-                Sampling: {text(sampling.strategy, "bounded window").replace(/_/g, " ")}.
+                Sampling: {text(sampling.strategy, "sample window").replace(/_/g, " ")}.
               </p>
               {sampleRows.length && sampleColumns.length ? (
                 <div className="s04-preview-sample">
@@ -1318,7 +1317,7 @@ function ExecutionRecord({ thread, busy, onRequest, onReview, onAsk, onOpenDatas
           ) : null}
           {previewTruth.failed ? <p className="s04-preview-error">{text(preview.error, "The preview failed without a recorded error detail.")}</p> : null}
           <p className="s04-preview-boundary">
-            Preview is bounded evidence about this exact method revision. It materialises nothing, registers nothing, and does not prove full-population results.
+            Preview tests this version of the method on a sample. It does not build or save a dataset to Library, and it does not prove results for the full population.
           </p>
         </section>
       ) : null}
@@ -1349,19 +1348,19 @@ function ExecutionRecord({ thread, busy, onRequest, onReview, onAsk, onOpenDatas
       {registered ? <MethodExportActions thread={thread} /> : null}
       <footer className="s04-actions">
         <p>
-          <small>Truth boundary</small>
+          <small>What this does and doesn't claim</small>
           {queryReady
-            ? "This asset is shown because the thread reports a query-ready output."
+            ? "This dataset appears because the saved build reports an output ready to query."
             : registered
-              ? "This asset is shown because the thread reports a registered output; query readiness is not implied."
+              ? "This dataset appears because the saved build reports an output saved to Library. Query readiness is not confirmed."
               : failed
-                ? "The accepted specification remains inspectable; no output is claimed registered."
+                ? "You can inspect the accepted specification. No output has been confirmed as saved to Library."
                 : previewEligible
                   ? previewTruth.succeeded
-                    ? "The bounded preview passed. Requesting execution now creates a separate revision-bound approval job; it still does not authorize the worker."
-                    : "A successful bounded preview is required before this accepted revision may request execution approval."
+                    ? "The sample preview passed. Requesting the full build creates a separate approval request for this version. The worker still needs approval to run."
+                    : "This accepted version must pass a sample preview before you can request approval for the full build."
                   : hasSpec
-                    ? "A previewed execution request remains separate from worker approval and registration."
+                    ? "An execution request after a sample preview still requires worker approval and separate checks before saving to Library."
                     : "An accepted execution specification is required before this thread can be tested or built."}
         </p>
         {registered ? (
@@ -1379,7 +1378,7 @@ function ExecutionRecord({ thread, busy, onRequest, onReview, onAsk, onOpenDatas
         ) : null}
         {previewEligible ? (
           <button type="button" className="rd-v2-btn primary" disabled={busy} onClick={onRequest}>
-            {previewTruth.succeeded ? "Review execution approval" : previewTruth.failed ? "Rerun bounded test" : "Run bounded test"}
+            {previewTruth.succeeded ? "Review execution approval" : previewTruth.failed ? "Rerun sample test" : "Run sample test"}
           </button>
         ) : null}
         {pendingApproval ? <button type="button" className="rd-v2-btn primary" onClick={() => onReview?.(execution)}>Review execution approval</button> : null}
@@ -1396,7 +1395,7 @@ function DraftCanvas({ thread, onAsk, stalled, onRetry }) {
     <section className="s04-card s04-draft" data-testid="synthesis-draft-state">
       <header className="s04-title">
         <div>
-          <small>AI construction workspace</small>
+          <small>AI build workspace</small>
           <h2>{stalled ? "Taking longer than expected" : "Interpretation in progress"}</h2>
         </div>
         <em className="neutral">{stalled ? "No response yet" : "Grounding Library evidence"}</em>
@@ -1428,7 +1427,7 @@ function DraftCanvas({ thread, onAsk, stalled, onRetry }) {
           <small>Working agreement</small>
           {stalled
             ? "The agent hasn't responded yet. Nothing has been built or modified — you can keep waiting or check again now."
-            : "Ask clarifies the construct one decision at a time. Nothing is executed or registered from this state."}
+            : "Ask clarifies the research measure one decision at a time. Nothing is run or saved to Library at this stage."}
         </p>
         {stalled ? (
           <button type="button" className="rd-v2-btn" data-testid="synthesis-draft-retry" onClick={onRetry}>
@@ -1467,11 +1466,10 @@ function NewThread({
     <section className="s04-intent s04-new-entry" data-testid="synthesis-intent-state">
       <header className="s04-new-entry-head">
         <div>
-          <small>New construction</small>
+          <small>New build</small>
           <h1>Start from the research object, not the machinery.</h1>
           <p>
-            This is an unsaved entry into the same Synthesis workspace. Record a research purpose or reuse a registered method;
-            the durable thread begins only after you choose one.
+            This Synthesis draft is unsaved. State a research purpose or reuse a method saved to Library. The build is saved only after you choose one.
           </p>
         </div>
         <button type="button" className="s04-new-entry-back" onClick={onCancel}>
@@ -1482,7 +1480,7 @@ function NewThread({
       <div className="s04-new-entry-grid">
         <section className="s04-new-entry-section s04-new-entry-purpose">
           <small>Research purpose</small>
-          <h2>Describe the construction you need.</h2>
+          <h2>Describe the build you need.</h2>
           <p>Use ordinary research language. Evidence and method remain separate decisions after the object is recorded.</p>
           <textarea
             rows={7}
@@ -1520,13 +1518,13 @@ function NewThread({
             <p>This checklist is guidance only. It does not infer evidence, methodology, or research validity.</p>
           </div>
           <p className="s04-new-entry-boundary">
-            Nothing is built here. After creation, the desk reviews held Library evidence; Ask reasoning remains a separate step and waits if the assistant is unavailable.
+            No data is built here. After you create the build, Research Drive reviews data in your Library. Ask reasoning is a separate step and waits if the assistant is unavailable.
           </p>
           <footer>
             <span>
               {objective.trim()
-                ? "Creates one durable Synthesis thread from this exact purpose."
-                : "Enter a purpose to create a durable thread."}
+                ? "Saves one Synthesis build with this research purpose."
+                : "Enter a research purpose to save a build."}
             </span>
             {!reasoningAvailable ? (
               <button type="button" className="rd-v2-btn" onClick={() => onOpenResources?.()}>
@@ -1540,14 +1538,14 @@ function NewThread({
               onClick={onCreate}
               title={objective.trim() ? undefined : "Enter an objective to continue"}
             >
-              Create construction
+              Create build
             </button>
           </footer>
         </section>
 
         <section className="s04-new-entry-section s04-new-entry-methods">
-          <small>Registered methods</small>
-          <h2>Reuse a construction that already exists.</h2>
+          <small>Methods saved to Library</small>
+          <h2>Reuse an existing build.</h2>
           <p>Start from a recorded method, then review how its inputs and assumptions change for this new thread.</p>
           {startingPoints.length ? (
             <div className="s04-new-entry-method-list">
@@ -1561,12 +1559,12 @@ function NewThread({
                 >
                   <strong>{text(profile.title, profile.id)}</strong>
                   <em>Use →</em>
-                  <span>{text(profile.description, "Registered construction recipe")}</span>
+                  <span>{text(profile.description, "Build recipe saved to Library")}</span>
                 </button>
               ))}
             </div>
           ) : (
-            <p className="s04-new-entry-method-empty">No registered method is reported on this desk yet.</p>
+            <p className="s04-new-entry-method-empty">No method saved to Library is reported by Research Drive yet.</p>
           )}
         </section>
       </div>
@@ -1574,11 +1572,11 @@ function NewThread({
       <dl className="s04-new-entry-contract" aria-label="New Synthesis entry contract">
         <div>
           <dt>Creates</dt>
-          <dd>A durable research-construction thread</dd>
+          <dd>A saved research build</dd>
         </div>
         <div>
           <dt>Then</dt>
-          <dd>Held evidence is reviewed before method acceptance</dd>
+          <dd>Data in your Library is reviewed before method acceptance</dd>
         </div>
         <div>
           <dt>Does not</dt>
@@ -1602,32 +1600,31 @@ function EmptyWorkspace({
   const list = Array.isArray(profiles) ? profiles : [];
   return (
     <section className="s04-intent s04-empty-canvas" data-testid="synthesis-empty-state">
-      <small>Research construction</small>
-      <h2>Start one durable research object.</h2>
+      <small>Research build</small>
+      <h2>Start a saved research build.</h2>
       <p>
-        A construction keeps the evidence map, method review, execution proof, and registered output on one thread.
-        No method or output is claimed until the desk records it.
+        A build keeps the evidence map, method review, execution checks, and saved output together. A method or output appears only after Research Drive saves it.
       </p>
       <div className="s04-empty-decisions">
         <article>
           <small>Start with</small>
           <strong>Research purpose</strong>
-          <span>Ask turns it into a durable object and evidence map.</span>
+          <span>Ask saves it as a research build with an evidence map.</span>
         </article>
         <article>
           <small>Or reuse</small>
-          <strong>Registered method</strong>
-          <span>Begin from a recorded construction, then review any change.</span>
+          <strong>Method saved to Library</strong>
+          <span>Start from a saved build, then review any change.</span>
         </article>
       </div>
-      {profilesLoading ? <p className="s04-fixture">Loading registered blueprints…</p> : null}
-      {profilesError ? <DeskError raw={profilesError} surface="the registered methods" /> : null}
+      {profilesLoading ? <p className="s04-fixture">Loading methods saved to Library…</p> : null}
+      {profilesError ? <DeskError raw={profilesError} surface="the methods saved to Library" /> : null}
       {!profilesLoading && !profilesError && !list.length ? (
-        <p className="s04-fixture">No registered method is reported on this desk yet.</p>
+        <p className="s04-fixture">No method saved to Library is reported by Research Drive yet.</p>
       ) : null}
       {list.length ? (
-        <ul className="s04-blueprint-recipes" aria-label="Registered synthesis methods" data-testid="synthesis-blueprints">
-          <li className="s04-blueprint-heading">Registered methods</li>
+        <ul className="s04-blueprint-recipes" aria-label="Synthesis methods saved to Library" data-testid="synthesis-blueprints">
+          <li className="s04-blueprint-heading">Methods saved to Library</li>
           {list.map((profile) => {
             const sources = Array.isArray(profile.sources) ? profile.sources : [];
             const joins = Array.isArray(profile.join_keys) ? profile.join_keys : [];
@@ -1635,7 +1632,7 @@ function EmptyWorkspace({
               text(profile.description) ||
               (sources.length
                 ? `Inputs: ${sources.map((s) => s.label || s.id).filter(Boolean).join(" · ")}`
-                : "Registered construction recipe");
+                : "Build recipe saved to Library");
             return (
               <li key={profile.id}>
                 <button
@@ -1664,7 +1661,7 @@ function EmptyWorkspace({
           </button>
         ) : null}
         <button type="button" className="rd-v2-btn primary" onClick={onNew}>
-          Start a construction
+          Start a build
         </button>
       </footer>
     </section>
@@ -1711,7 +1708,7 @@ function MeasurementStatus({ phase, measurements, onRetry }) {
     return (
       <section className="s04-measurement-status is-loading" data-testid="synthesis-measurement-status" aria-live="polite">
         <span aria-hidden="true" />
-        <p><strong>Measuring mapped evidence</strong><small>Reading held columns and testing join coverage. No assistant is involved.</small></p>
+        <p><strong>Measuring mapped evidence</strong><small>Reading columns in your Library and testing join coverage. No assistant is involved.</small></p>
       </section>
     );
   }
@@ -1727,7 +1724,7 @@ function MeasurementStatus({ phase, measurements, onRetry }) {
     <section className="s04-measurement-status is-ready" data-testid="synthesis-measurement-status" role="status">
       <span aria-hidden="true">✓</span>
       <div>
-        <strong>{inputs} mapped input{inputs === 1 ? "" : "s"} measured from held bytes</strong>
+        <strong>{inputs} mapped input{inputs === 1 ? "" : "s"} measured from Library data</strong>
         <small>
           {profiles.length.toLocaleString()} columns profiled
           {unmeasured.length ? ` · ${unmeasured.length} input${unmeasured.length === 1 ? "" : "s"} could not be read` : " · no assistant involved"}
@@ -1839,7 +1836,7 @@ export function SynthesisPage({
       .catch((cause) => {
         if (cancelled) return;
         setProfiles([]);
-        setProfilesError(text(cause?.message, "Registered blueprints could not be loaded."));
+        setProfilesError(text(cause?.message, "Methods saved to Library could not be loaded."));
       })
       .finally(() => {
         if (!cancelled) setProfilesLoading(false);
@@ -1868,7 +1865,7 @@ export function SynthesisPage({
     assistantAllowed && assistantRuntime?.ready === true && onAskComposer,
   );
   const reasoningStatus = !assistantAllowed
-    ? "Ask is unavailable for this desk session"
+    ? "Ask is unavailable for this Research Drive session"
     : assistantRuntime?.label || "Assistant runtime not verified";
 
   useEffect(() => {
@@ -2075,7 +2072,7 @@ export function SynthesisPage({
       const match = (item) => String(item?.id || item?.evidence_id || item?.dataset_id || "") === evidenceId;
       const missingEvidence = (handoff?.missing_evidence || []).filter(match);
       const collectIntents = (handoff?.collect_intents || []).filter(match);
-      if (!missingEvidence.length) throw new Error("This evidence gap is no longer part of the durable Discover handoff.");
+      if (!missingEvidence.length) throw new Error("This evidence gap is no longer part of the saved request sent to Discover.");
       onDiscoverHandoff?.({
         field,
         handoff: { ...handoff, missing_evidence: missingEvidence, collect_intents: collectIntents },
@@ -2108,7 +2105,7 @@ export function SynthesisPage({
   };
 
   const ask = (prompt, thread = selected, displayText = prompt) => {
-    const assist = thread ? synthesisAssist(threadWithMeasurements(thread, measurementByThread[thread.id]?.payload || null)) : null;
+    const assist = thread ? synthesisAssistRequestContext(threadWithMeasurements(thread, measurementByThread[thread.id]?.payload || null)) : null;
     const context = thread
       ? `\n\nSynthesis thread: ${titleFor(thread)}\nObjective: ${text(thread.objective || thread.state?.objective)}\nCurrent stage: ${assist?.label || stageLabel(thread)}.\nCurrent researcher decision: ${assist?.decision || "Inspect the durable construction"}.\nRecorded risk: ${assist?.risk || "No additional risk summary recorded"}.`
       : "\n\nSynthesis workspace context.";
@@ -2137,7 +2134,7 @@ export function SynthesisPage({
     try {
       setEvidenceProposal(await proposeSynthesisEvidenceMap(selected.id));
     } catch (cause) {
-      setError(text(cause?.message, "Held evidence could not be searched for this construction."));
+      setError(text(cause?.message, "Data in your Library could not be searched for this build."));
     } finally {
       setMappingEvidence(false);
     }
@@ -2172,7 +2169,7 @@ export function SynthesisPage({
       }
       setEvidenceProposal(null);
     } catch (cause) {
-      setError(text(cause?.message, "The reviewed evidence inputs could not be added to this construction."));
+      setError(text(cause?.message, "The reviewed inputs could not be added to this build."));
       refreshThread(selected.id).catch(() => {});
     } finally {
       setMappingEvidence(false);
@@ -2293,7 +2290,7 @@ export function SynthesisPage({
             onSelectThread?.(previewThread);
           }
         } catch (previewCause) {
-          setError(text(previewCause?.message, "The method was accepted, but its bounded test could not be completed."));
+          setError(text(previewCause?.message, "The method was accepted, but its sample test could not be completed."));
           refreshThread(next.id).catch(() => {});
         }
       }
@@ -2335,7 +2332,7 @@ export function SynthesisPage({
         }
       }
     } catch (cause) {
-      setError(text(cause?.message, "The bounded preview or execution request could not be completed."));
+      setError(text(cause?.message, "The sample preview or build request could not be completed."));
       refreshThread().catch(() => {});
     } finally {
       setBusy(false);
@@ -2369,7 +2366,7 @@ export function SynthesisPage({
       </SynthesisSidebarPortal>
       <div className="s04-shell" data-testid="synthesis-studio">
         <main className="s04-main">
-          {error ? <DeskError raw={error} surface="your constructions" alert /> : null}
+          {error ? <DeskError raw={error} surface="your builds" alert /> : null}
           {newMode ? (
             <NewThread
               objective={objective}

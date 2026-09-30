@@ -45,17 +45,17 @@ function NewEntryRail({ thread, onAsk }) {
   const primary = !draft.objective
     ? "Describe the research object"
     : draft.readyToCreate
-      ? "Review the brief before making it durable"
+      ? "Review the brief before saving it"
       : `Clarify ${draft.missing[0]?.label?.toLowerCase() || "the missing framing"}`;
   const risk = !draft.objective
-    ? "A blank objective gives Ask nothing durable to ground"
+    ? "Ask needs a research purpose to work from"
     : draft.missing.length
       ? `${draft.missing.length} framing commitment${draft.missing.length === 1 ? " is" : "s are"} still unstated`
       : "No evidence or methodology has been chosen yet";
   const next = !draft.objective
-    ? "State the research purpose or reuse a registered method"
+    ? "State the research purpose or reuse a method saved to Library"
     : draft.readyToCreate
-      ? "Create the construction, then review held Library evidence"
+      ? "Create the build, then review data in your Library"
       : "Complete the brief yourself or use Ask to sharpen it";
 
   return (
@@ -173,9 +173,9 @@ function OpeningThreadRail({ thread, onAsk }) {
         <div className="rd-v2-rail-scroll">
           <section className="s04-rail-context" aria-label="Recorded research object">
             <header><span>Research object</span></header>
-            <p>{objective || "No durable objective recorded."}</p>
+            <p>{objective || "No research purpose saved."}</p>
             <dl>
-              <div><dt>Grain</dt><dd>{brief.targetGrain || state.required_grain || "Not stated"}</dd></div>
+              <div><dt>Unit of observation</dt><dd>{brief.targetGrain || state.required_grain || "Not stated"}</dd></div>
               <div><dt>Period</dt><dd>{period}</dd></div>
               <div><dt>Intended use</dt><dd>{intendedUse}</dd></div>
             </dl>
@@ -199,7 +199,7 @@ function OpeningThreadRail({ thread, onAsk }) {
                 {nodes.slice(0, 6).map((node, index) => (
                   <li key={node.id || node.dataset_id || `${node.label}-${index}`}>
                     <b>{node.label || node.dataset_id || node.id || `Input ${index + 1}`}</b>
-                    <span>{[node.role, node.grain, node.coverage].filter(Boolean).join(" · ") || node.detail || "Held Library evidence"}</span>
+                    <span>{[node.role, node.grain, node.coverage].filter(Boolean).join(" · ") || node.detail || "Data in your Library"}</span>
                   </li>
                 ))}
               </ul>
@@ -220,7 +220,7 @@ function OpeningThreadRail({ thread, onAsk }) {
 
           {profiles.length || unmeasured.length ? (
             <section className="s04-rail-measurement" aria-label="Measured evidence diagnostics">
-              <header><span>Measurement diagnostics</span><strong>Held bytes</strong></header>
+              <header><span>Measurement diagnostics</span><strong>Library data</strong></header>
               <dl>
                 <div><dt>Inputs</dt><dd>{measuredInputs || nodes.length}</dd></div>
                 <div><dt>Columns</dt><dd>{profiles.length}</dd></div>
@@ -237,7 +237,7 @@ function OpeningThreadRail({ thread, onAsk }) {
             <RailField label="Evidence" value={evidence} />
             <RailField label="Measured" value={measurement} />
             <RailField label="Method" value={method} />
-            <RailField label="Output" value="Not registered" />
+            <RailField label="Output" value="Not saved to Library" />
           </RailFieldGrid>
         </div>
         <RailStickyFooter>
@@ -257,7 +257,7 @@ function AuthorityProof({ state, status, preview, outputId, registered, queryRea
   const executionStarted = !["", "spec_accepted", "pending_approval"].includes(status);
   const resultRecorded = registered || Boolean(state.execution?.manifest_id);
   const previewText = preview.succeeded
-    ? "Passed for current revision"
+    ? "Passed for this version"
     : preview.failed
       ? "Failed"
       : preview.stale
@@ -271,21 +271,21 @@ function AuthorityProof({ state, status, preview, outputId, registered, queryRea
         ? `Recorded · ${status || "execution"}`
         : "Not recorded";
   const resultText = queryReady
-    ? "Query-ready in Library"
+    ? "Ready to query in Library"
     : registered
-      ? "Registered in Library"
+      ? "Saved to Library"
       : outputId
-        ? "Declared · not registered"
-        : "Not registered";
+        ? "Documented · not saved to Library"
+        : "Not saved to Library";
   return (
     <section
       className="s04-rail-proof"
-      aria-label="Synthesis authority proof"
-      title="Method acceptance, bounded Preview, execution authority, and registered result are recorded separately."
+      aria-label="How Synthesis was verified"
+      title="Method acceptance, sample preview, execution approval, and the result saved to Library are recorded separately."
     >
-      <header><span>Authority proof</span></header>
+      <header><span>How this was verified</span></header>
       <ul>
-        <li className={hasMethod ? "is-done" : ""}><span>Method</span><strong>{hasMethod ? "Accepted revision" : "Not accepted"}</strong></li>
+        <li className={hasMethod ? "is-done" : ""}><span>Method</span><strong>{hasMethod ? "Accepted version" : "Not accepted"}</strong></li>
         <li className={preview.succeeded ? "is-done" : "is-current"}><span>Preview</span><strong>{previewText}</strong></li>
         <li className={executionStarted ? "is-done" : "is-current"}><span>Execution</span><strong>{executionText}</strong></li>
         <li className={resultRecorded ? "is-done" : ""}><span>Result</span><strong>{resultText}</strong></li>
@@ -381,7 +381,7 @@ export function SynthesisThreadRailPanel({ thread: recordedThread, onAskAbout, o
         />
         <RailFieldGrid>
           {state.required_grain || state.spec?.grain ? (
-            <RailField label="Grain" value={state.required_grain || state.spec?.grain} />
+            <RailField label="Unit of observation" value={state.required_grain || state.spec?.grain} />
           ) : null}
           <RailField label={sources.length ? "Evidence" : "Input"} value={evidenceValue} />
           {!registered ? (
@@ -389,7 +389,7 @@ export function SynthesisThreadRailPanel({ thread: recordedThread, onAskAbout, o
           ) : null}
           <RailField
             label="Output"
-            value={registered ? outputRecord.name || outputId : "Not registered"}
+            value={registered ? outputRecord.name || outputId : "Not saved to Library"}
             mono={registered && !outputRecord.name}
           />
         </RailFieldGrid>

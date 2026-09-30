@@ -36,8 +36,8 @@ function surfaceLabel(mainTab) {
   if (mainTab === "synthesis") return "Synthesis";
   if (mainTab === "resources") return "Resources";
   if (mainTab === "profile") return "Profile";
-  if (mainTab === "settings") return "Desk setup";
-  return "Research desk";
+  if (mainTab === "settings") return "Research Drive setup";
+  return "Research Drive";
 }
 
 function synthesisPhaseLabel(thread) {
@@ -63,19 +63,19 @@ function discoverSituation({ browseTarget, browseLifecycle, historyEvent, discov
         text(discoverIntentRecord.candidate?.coverage || discoverIntentRecord.intent?.candidate?.coverage),
       ],
       next: /approval/i.test(state)
-        ? "Review the recorded acquisition request before granting authority."
-        : "Confirm evidence fit and the declared acquisition route before collection.",
+        ? "Review the saved collection request before granting permission."
+        : "Check whether the data fits your research and review the documented collection method before collecting it.",
     };
   }
 
   if (historyEvent) {
     const state = humanize(historyEvent.status || historyEvent.lifecycle || historyEvent.stage);
     return {
-      status: state || "Recorded lifecycle",
+      status: state || "Recorded request history",
       facts: [sourceLabel(historyEvent)],
       next: historyEvent.registered_dataset_id
-        ? "Open the registered Library object to inspect what the acquisition actually produced."
-        : "Use the durable record to understand what happened before retrying or changing route.",
+        ? "Open the dataset saved to Library to review what collection produced."
+        : "Use the saved record to understand what happened before retrying or changing the collection method.",
     };
   }
 
@@ -87,8 +87,8 @@ function discoverSituation({ browseTarget, browseLifecycle, historyEvent, discov
       status: verdict || "Coverage assessment",
       facts: [text(discoverAssessment.question || result.question), gap],
       next: gap
-        ? "Review the evidence gap and declared sourcing routes before requesting new data."
-        : "Confirm whether held evidence is sufficient before widening the sourcing search.",
+        ? "Review the evidence gap and documented collection methods before requesting new data."
+        : "Check whether data you have is sufficient before searching more widely for sources.",
     };
   }
 
@@ -97,15 +97,15 @@ function discoverSituation({ browseTarget, browseLifecycle, historyEvent, discov
     return {
       status: lifecycleLabel || humanize(browseTarget.group_label || browseTarget.analysis_readiness) || "Candidate evidence",
       facts: [sourceLabel(browseTarget), text(browseTarget.coverage || browseTarget.date_range)],
-      next: "Confirm fit, source evidence, and collection route before promoting this candidate into the Library.",
+      next: "Check the candidate’s fit, source evidence, and collection method before adding it to Library.",
     };
   }
 
   if (discoverMode === "history") {
     return {
-      status: "Research lifecycle",
+      status: "Request history",
       facts: [],
-      next: "Select a lifecycle item to inspect its consequence, evidence, and next valid action.",
+      next: "Select a request to review its outcome, evidence, and next available action.",
     };
   }
 
@@ -120,14 +120,14 @@ function discoverSituation({ browseTarget, browseLifecycle, historyEvent, discov
     return {
       status: "Search evidence assembled",
       facts,
-      next: "Compare held evidence against external candidates before requesting more data.",
+      next: "Compare data in your Library with external candidates before requesting more data.",
     };
   }
 
   return {
     status: "Ready for an evidence need",
     facts: [],
-    next: "State the research need; Discover will separate held evidence, external candidates, and unresolved gaps.",
+    next: "State your research need. Discover will show data in your Library, external candidates, and unresolved gaps.",
   };
 }
 
@@ -161,7 +161,7 @@ function librarySituation({ dataset, activeObject }) {
     return {
       status: text(activeObject.statusText) || "Evidence intake",
       facts: [],
-      next: "Keep provenance attached while the new evidence is registered and its usability is established.",
+      next: "Keep the source history attached while the data is saved to Library and checked for use.",
     };
   }
 
@@ -178,7 +178,7 @@ function resourceSituation(resourceRow, resourcesDecisionCount) {
     return {
       status: state || "Research capacity",
       facts: [text(resourceRow.label), text(resourceRow.value || resourceRow.detail || resourceRow.summary)],
-      next: "Treat infrastructure as research capacity: act only when a measured constraint changes what the desk can do.",
+      next: "Review system resources when a measured limit changes what Research Drive can do.",
     };
   }
   return {
@@ -218,13 +218,13 @@ function buildSituation(props) {
     return {
       status: "Workspace",
       facts: [],
-      next: "Choose a durable construction, start from a research question, or reuse a registered method.",
+      next: "Choose a saved build, start from a research question, or reuse a method saved to Library.",
     };
   }
   if (mainTab === "resources") return resourceSituation(props.resourceRow, resourcesDecisionCount);
   if (mainTab === "home") {
     return {
-      status: text(activeObject?.statusText) || "Research desk",
+      status: text(activeObject?.statusText) || "Research Drive",
       facts: [],
       next: "Resume the highest-value grounded work or inspect the evidence state behind the next decision.",
     };
@@ -233,7 +233,7 @@ function buildSituation(props) {
     return { status: "Research profile", facts: [], next: "Profile context steers research direction without becoming evidence itself." };
   }
   if (mainTab === "settings") {
-    return { status: "Desk configuration", facts: [], next: "Change desk settings only when they alter access, capability, or evidence handling." };
+    return { status: "Research Drive configuration", facts: [], next: "Change Research Drive settings when they affect access, available tools, or how data is handled." };
   }
   return { status: "Research context", facts: [], next: "Inspect the current object or Ask within this scoped context." };
 }

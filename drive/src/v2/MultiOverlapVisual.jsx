@@ -109,7 +109,7 @@ export function MultiOverlapVisual({ overlap }) {
     <figure className="s04-viz s04-viz-multi-overlap" data-testid="synthesis-multi-overlap-visual">
       <header>
         <div>
-          <small>{bounded ? "Bounded overlap window" : "Measured multi-source overlap"}</small>
+          <small>{bounded ? "Sample overlap window" : "Measured multi-source overlap"}</small>
           <strong>{n(overlap.all_shared_distinct)} keys survive across all {sourceCount} measured inputs</strong>
         </div>
         <span>{n(overlap.union_distinct)} union · {overlap.key_parts?.join(" + ") || overlap.key}</span>

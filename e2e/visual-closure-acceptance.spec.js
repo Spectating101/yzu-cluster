@@ -61,7 +61,7 @@ test("Discover idle — first-use examples, no oversized empty route block", asy
   await expect(examples.getByText("Try a keyword")).toBeVisible();
   await expect(examples.getByText("Ask a research need")).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Sources the desk already knows how to investigate" }),
+    page.getByRole("heading", { name: "Sources Research Drive knows how to investigate" }),
   ).toHaveCount(0);
   await shot(page, "discover-idle-1440x900.png");
 });
@@ -69,11 +69,11 @@ test("Discover idle — first-use examples, no oversized empty route block", asy
 test("Synthesis new — durable-object start and bounded empty rail", async ({ page }) => {
   await open(page, "/?tab=synthesis");
   const rail = page.getByRole("complementary", { name: "Inspector" });
-  await expect(rail.getByRole("heading", { name: "No construction selected" })).toBeVisible();
+  await expect(rail.getByRole("heading", { name: "No build selected" })).toBeVisible();
   for (const step of ["Start", "Ask", "Ground", "Review", "Output"]) {
     await expect(page.getByTestId("rail-pane-detail").getByText(step, { exact: true })).toBeVisible();
   }
-  await expect(rail).toContainText("Archive, registration, and readiness remain separate");
+  await expect(rail).toContainText("Archiving, saving to Library, and readiness remain separate");
   await expect(rail).not.toContainText("Choose a blueprint or custom pair");
   await expect(page.getByRole("button", { name: /Start from a research question/ })).toBeVisible();
   await shot(page, "synthesis-new-1440x900.png");

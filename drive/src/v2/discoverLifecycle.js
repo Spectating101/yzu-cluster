@@ -167,7 +167,7 @@ export function classifyJobLifecycle(job, { catalog = [], labIds = null } = {}) 
   if (status === "pending_approval") {
     return {
       state: LIFECYCLE.APPROVAL_REQUIRED,
-      label: "Approval required",
+      label: "Waiting for your approval",
       explanation: "This collection plan is waiting for approval before work begins.",
       primaryAction: { id: "review_approval", label: "Review approval" },
       secondaryActions: [{ id: "track_resources", label: "Track in Resources" }],
@@ -223,9 +223,9 @@ export function classifyJobLifecycle(job, { catalog = [], labIds = null } = {}) 
     if (!regId) {
       return {
         state: LIFECYCLE.COMPLETED_UNREGISTERED,
-        label: "Collection complete · Registration pending",
+        label: "Collection complete · waiting to save to Library",
         explanation:
-          "Collection finished, but the output is not yet registered as a reusable Library dataset.",
+          "Collection finished, but the output has not yet been saved as a reusable Library dataset.",
         primaryAction: { id: "track_resources", label: "Track in Resources" },
         secondaryActions: [],
         evidence: [],
@@ -243,8 +243,8 @@ export function classifyJobLifecycle(job, { catalog = [], labIds = null } = {}) 
     if (ready || resultReady) {
       return {
         state: LIFECYCLE.QUERY_READY,
-        label: "In Library · Query-ready",
-        explanation: "The collected output is registered and can be queried in the Library.",
+        label: "In Library · ready to query",
+        explanation: "The collected output is saved to Library and ready to query there.",
         primaryAction: { id: "open_library", label: "Open in Library" },
         secondaryActions: [{ id: "track_resources", label: "Track in Resources" }],
         evidence: [{ label: "Dataset", value: regId }],
@@ -255,7 +255,7 @@ export function classifyJobLifecycle(job, { catalog = [], labIds = null } = {}) 
     }
     return {
       state: LIFECYCLE.REGISTERED,
-      label: "Registered in Library",
+      label: "Saved to Library",
       explanation: "The collected output now has a Library dataset record.",
       primaryAction: { id: "open_library", label: "Open in Library" },
       secondaryActions: [{ id: "track_resources", label: "Track in Resources" }],
@@ -391,7 +391,7 @@ export function projectDiscoverCandidateLifecycle(row, lifecycle) {
       discover_taxonomy: {
         ...base,
         key: "local-query-ready",
-        label: "In Library · Query-ready",
+        label: "In Library · ready to query",
         lifecycle_projected: true,
       },
     };
@@ -403,8 +403,8 @@ export function projectDiscoverCandidateLifecycle(row, lifecycle) {
       discover_taxonomy: {
         ...base,
         key: "local-connected",
-        label: "In lab · Registered",
-        readiness: "Registered",
+        label: "Saved to Library",
+        readiness: "Saved to Library",
         lifecycle_projected: true,
       },
     };
@@ -451,9 +451,9 @@ export function applyLifecycleToEvaluation(evaluation, lifecycle) {
     return {
       ...evaluation,
       taxonomyKey: "local-query-ready",
-      taxonomyLabel: "In Library · Query-ready",
+      taxonomyLabel: "In Library · ready to query",
       decision: {
-        headline: "In Library · Query-ready",
+        headline: "In Library · ready to query",
         body: "You can query this dataset now.",
       },
       unknowns: lifecycleHandoffUnknowns(LIFECYCLE.QUERY_READY),
@@ -463,9 +463,9 @@ export function applyLifecycleToEvaluation(evaluation, lifecycle) {
     return {
       ...evaluation,
       taxonomyKey: "local-connected",
-      taxonomyLabel: "In lab · Registered",
+      taxonomyLabel: "Saved to Library",
       decision: {
-        headline: "Registered in Library",
+        headline: "Saved to Library",
         body: "A Library dataset record exists. Instant query access is not confirmed.",
       },
       unknowns: lifecycleHandoffUnknowns(LIFECYCLE.REGISTERED),

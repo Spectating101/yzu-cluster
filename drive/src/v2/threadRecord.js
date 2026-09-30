@@ -13,7 +13,7 @@
 
 export const AUTHORITY = {
   observed: { label: "observed", contestable: false, note: "established from the data" },
-  desk: { label: "the desk chose", contestable: true, note: "resolved for you, and reversible" },
+  desk: { label: "Research Drive chose", contestable: true, note: "resolved for you, and reversible" },
   researcher: { label: "you chose", contestable: true, note: "your decision" },
 };
 

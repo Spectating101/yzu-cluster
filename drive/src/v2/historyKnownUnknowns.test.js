@@ -70,8 +70,8 @@ describe("historyKnownUnknowns", () => {
       { meta: { registry_readback: true } },
       { registered: true, receiptOnly: true },
     );
-    assert.ok(result.known.includes("Registration receipt retains read-back proof"));
-    assert.ok(!result.known.includes("Registered in catalog"));
+    assert.ok(result.known.includes("The save record includes evidence that the Library record was read back"));
+    assert.ok(!result.known.includes("Saved in the catalog"));
     assert.ok(result.unknowns.includes("Current catalog row is not loaded"));
   });
 

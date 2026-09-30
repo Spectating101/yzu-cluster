@@ -127,7 +127,7 @@ test.describe("Synthesis continuity surfaces", () => {
     await expect(root).toHaveAttribute("data-synthesis-workspace-phase", "review");
     await expect(page.getByTestId("synthesis-proposal-state")).toBeVisible();
     await expect(page.locator(".s04-opening-workflow-wrap")).not.toBeVisible();
-    await expect(page.getByRole("region", { name: "Recommended construction" })).not.toBeVisible();
+    await expect(page.getByRole("region", { name: "Suggested build" })).not.toBeVisible();
     await expect(page.getByRole("region", { name: "What happens next" })).not.toBeVisible();
     await expect(page.getByTestId("synthesis-evidence-state")).toBeVisible();
     await page.screenshot({ path: `${outDir}/proposal-review-1440.png`, fullPage: true });
@@ -190,7 +190,7 @@ test.describe("Synthesis continuity surfaces", () => {
     await expect(console).toBeVisible();
     await expect(console).toContainText("AI operations");
     await expect(console).toContainText("Review");
-    await expect(console).toContainText("Research intent recorded");
+    await expect(console).toContainText("Research request recorded");
     await expect(console).toContainText("Evidence measured");
     await expect(console).toContainText("Exact proposal recorded");
     await expect(page.getByTestId("synthesis-ask-guidance")).not.toBeVisible();

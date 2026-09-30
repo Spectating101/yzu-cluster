@@ -7,7 +7,7 @@ const RAW_401 = "Desk access token required (set Authorization: Bearer or X-Desk
 
 test("the auth message never reaches the reader", () => {
   const copy = deskErrorCopy(RAW_401, { surface: "your constructions" });
-  assert.equal(copy.headline, "This desk needs a session");
+  assert.equal(copy.headline, "Research Drive needs a session");
   assert.match(copy.body, /Sign in to load your constructions/);
   assert.doesNotMatch(copy.body, /Authorization|Bearer|X-Desk-Token|token/i);
   assert.doesNotMatch(copy.headline, /Bearer|X-Desk-Token/i);
@@ -25,7 +25,7 @@ test("a session problem is distinguished from a fault", () => {
 
 test("a server fault says it is the desk's fault, not the question's", () => {
   const copy = deskErrorCopy("500 /library/synthesis/profiles", { surface: "the method library" });
-  assert.match(copy.body, /fault on the desk/);
+  assert.match(copy.body, /Research Drive error/);
   assert.doesNotMatch(copy.body, /500|\/library/);
 });
 

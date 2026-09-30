@@ -94,7 +94,7 @@ export function recommendedConstruction(thread) {
   }
   return {
     present: true,
-    title: str(chosen.title) || "Recommended construction",
+    title: str(chosen.title) || "Suggested build",
     validationRole: str(chosen.validation_role),
     nodes,
     idealDirectMeasure: {

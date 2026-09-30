@@ -32,7 +32,7 @@ describe("synthesisAssist canonical research state", () => {
     assert.equal(assist.status, "Evidence measured");
     assert.match(assist.decision, /Review measured evidence/);
     assert.equal(assist.risk, "1 sparse / flagged column");
-    assert.match(assist.next, /Request one reviewable construction/);
+    assert.match(assist.next, /Request a suggested build/);
   });
 
   it("keeps a recommendation explicitly in researcher review", () => {
@@ -44,8 +44,8 @@ describe("synthesisAssist canonical research state", () => {
       }],
     }));
 
-    assert.equal(assist.status, "Construction recommended");
-    assert.match(assist.decision, /Review the recommendation/);
+    assert.equal(assist.status, "Build suggested");
+    assert.match(assist.decision, /Review the suggested build/);
     assert.match(assist.risk, /proxy design/);
   });
 
@@ -87,7 +87,7 @@ describe("synthesisAssist canonical research state", () => {
 
     assert.equal(assist.label, "Preview passed");
     assert.equal(assist.decisionKind, "review_preview");
-    assert.match(assist.risk, /250 bounded input rows/);
+    assert.match(assist.risk, /250 sample input rows/);
     assert.match(assist.risk, /not the full population/);
     assert.ok(assist.prompts.some((prompt) => /fail to cover/i.test(prompt)));
   });
@@ -106,8 +106,8 @@ describe("synthesisAssist canonical research state", () => {
 
     assert.equal(assist.label, "Preview stale");
     assert.equal(assist.decisionKind, "run_preview");
-    assert.match(assist.decision, /Rerun Preview/);
-    assert.match(assist.risk, /older method or input revision/);
+    assert.match(assist.decision, /Rerun the sample preview/);
+    assert.match(assist.risk, /older version of the method or inputs/);
   });
 
   it("keeps pending approval as an explicit researcher authorization boundary", () => {
@@ -117,7 +117,7 @@ describe("synthesisAssist canonical research state", () => {
     }));
 
     assert.equal(assist.label, "Execution approval");
-    assert.equal(assist.status, "Approval required");
+    assert.equal(assist.status, "Waiting for your approval");
     assert.match(assist.risk, /No worker is authorized/);
     assert.ok(assist.prompts.some((prompt) => /exactly what I would authorize/i.test(prompt)));
   });
@@ -130,7 +130,7 @@ describe("synthesisAssist canonical research state", () => {
 
     assert.equal(assist.label, "Build completed");
     assert.equal(assist.status, "Worker completed");
-    assert.match(assist.risk, /not registration or query readiness/);
+    assert.match(assist.risk, /does not confirm the output is saved to Library or ready to query/);
   });
 
   it("marks only durable query-ready evidence as a query-ready result", () => {
@@ -139,8 +139,8 @@ describe("synthesisAssist canonical research state", () => {
       execution: { status: "query_ready", output_dataset_id: "synthesis_output" },
     }, "query_ready"));
 
-    assert.equal(assist.label, "Query-ready result");
-    assert.equal(assist.status, "Query-ready output");
+    assert.equal(assist.label, "Result ready to query");
+    assert.equal(assist.status, "Output ready to query");
     assert.match(assist.risk, /inherit/);
   });
 });

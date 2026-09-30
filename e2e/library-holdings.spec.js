@@ -108,11 +108,11 @@ test("federated holdings stay object-scoped and separate from provenance and ret
   await expect(rail.getByTestId("library-rail-holdings")).toContainText("3 locations · 2 available");
   await expect(rail.getByTestId("library-rail-holdings")).toContainText("YZUC Research Cluster");
   await expect(rail.getByTestId("library-rail-holdings")).toContainText("Google Drive · Dropbox");
-  await expect(workspace.getByRole("button", { name: "Holdings" })).toBeVisible();
+  await expect(workspace.getByRole("button", { name: "Your Library" })).toBeVisible();
   await page.screenshot({ path: `${OUT}/01-selected-holdings-1440.png`, fullPage: false });
 
-  await workspace.getByRole("button", { name: "Holdings" }).click();
-  const overlay = page.getByRole("dialog", { name: "Holdings" });
+  await workspace.getByRole("button", { name: "Your Library" }).click();
+  const overlay = page.getByRole("dialog", { name: "Your Library" });
   await expect(overlay).toBeVisible();
   await expect(overlay).toContainText("Where this research object is held now");
   await expect(overlay).toContainText("YZUC Research Cluster");
@@ -122,12 +122,12 @@ test("federated holdings stay object-scoped and separate from provenance and ret
   await expect(overlay).toContainText("Dropbox");
   await expect(overlay).toContainText("Prof. Kong");
   await expect(overlay).toContainText("Finance Research / GDELT / Asia daily panel.csv");
-  await expect(overlay).toContainText("Original holding");
+  await expect(overlay).toContainText("Original copy");
   await expect(overlay).toContainText("Restricted");
-  await expect(overlay).not.toContainText("Source authority");
+  await expect(overlay).not.toContainText("Source verification");
   await page.screenshot({ path: `${OUT}/02-holdings-overlay-1440.png`, fullPage: false });
 
-  await overlay.getByRole("button", { name: "Close holdings" }).click();
+  await overlay.getByRole("button", { name: "Close Library view" }).click();
   await workspace.getByRole("button", { name: "Source record" }).click();
   const source = page.getByRole("dialog", { name: "Source and provenance" });
   await expect(source).toContainText("GDELT GKG");
@@ -135,8 +135,8 @@ test("federated holdings stay object-scoped and separate from provenance and ret
   await expect(source).not.toContainText("Google Drive");
   await source.getByRole("button", { name: "Close inspection" }).click();
 
-  await page.getByRole("button", { name: "Close asset inspector" }).click();
-  const search = page.getByRole("textbox", { name: "Search library holdings" });
+  await page.getByRole("button", { name: "Close data inspector" }).click();
+  const search = page.getByRole("textbox", { name: "Search your Library" });
   await search.fill("Dropbox");
   await expect(row).toHaveCount(0);
   await search.fill("");
@@ -152,6 +152,6 @@ test("holdings remain secondary to the selected dossier on mobile", async ({ pag
   await row.click();
   const workspace = page.getByTestId("library-asset-workspace");
   await expect(workspace).toBeVisible();
-  await expect(workspace.getByRole("button", { name: "Holdings" })).toBeVisible();
+  await expect(workspace.getByRole("button", { name: "Your Library" })).toBeVisible();
   await page.screenshot({ path: `${OUT}/04-selected-holdings-mobile.png`, fullPage: false });
 });

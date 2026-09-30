@@ -45,9 +45,9 @@ export function SynthesisAuthorityMount() {
       data-testid="synthesis-authority-control"
       title={option.detail}
     >
-      <span>AI authority</span>
+      <span>AI permissions</span>
       <select
-        aria-label="Synthesis agent authority"
+        aria-label="Synthesis agent permissions"
         data-testid="synthesis-automation-mode"
         value={mode}
         onChange={(event) => setMode(event.target.value)}

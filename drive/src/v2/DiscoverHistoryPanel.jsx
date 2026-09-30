@@ -76,7 +76,7 @@ function eventSummary(event) {
   if (summary) return String(summary);
   if (meta.cadence) return `Cadence: ${meta.cadence}`;
   if (meta.candidate_key) return `Candidate: ${meta.candidate_key}`;
-  return "Durable Discover record";
+  return "Saved Discover record";
 }
 
 function eventSourceIdentity(event) {
@@ -315,16 +315,15 @@ export function DiscoverHistoryPanel({
     <section
       className="rd-v2-discover-history"
       data-testid="discover-history"
-      aria-label="Research lifecycle"
+      aria-label="Request history"
       aria-busy={!jobsLoaded || jobsRefreshing}
     >
       <div className="rd-v2-history-intro">
         <div>
-          <span className="rd-v2-eyebrow">Research lifecycle</span>
+          <span className="rd-v2-eyebrow">Request history</span>
           <h2>Research requests and outcomes</h2>
           <p>
-            Approvals, collection, and registered assets. Search activity and host checks remain available without burying
-            research work.
+            Review approvals, collection, and data saved to Library. Search activity and system checks are also available.
           </p>
           {!jobsLoaded ? (
             <p className="rd-v2-history-sync" data-testid="discover-history-jobs-sync" role="status">
@@ -332,7 +331,7 @@ export function DiscoverHistoryPanel({
             </p>
           ) : jobsRefreshFailed ? (
             <p className="rd-v2-history-sync is-warning" data-testid="discover-history-jobs-sync" role="status">
-              Pending approvals could not refresh; showing the latest durable lifecycle.
+              Pending approvals could not refresh. The last saved request history is shown.
             </p>
           ) : null}
           {fenced.hiddenNoise > 0 ||
@@ -374,14 +373,14 @@ export function DiscoverHistoryPanel({
       {!visible.length && !(filter === "all" && systemRows.length) ? (
         <div className="rd-v2-discover-miss">
           <p className="rd-v2-empty-inline">
-            No durable Discover items match this filter. Requests, collections, schedules, and registered outputs appear here.
+            No saved Discover requests match this filter. Requests, collections, schedules, and outputs saved to Library appear here.
           </p>
         </div>
       ) : filter === "all" ? (
         <div className="rd-v2-history-territories">
           <Territory title="Needs you" events={needsYou} total={filterCounts.needs_approval} selectedId={selectedId} onSelectEvent={onSelectEvent} />
           <Territory
-            title="Research lifecycle"
+            title="Request history"
             events={lifecycle}
             selectedId={selectedId}
             onSelectEvent={onSelectEvent}
@@ -407,7 +406,7 @@ export function DiscoverHistoryPanel({
       ) : (
         <div className="rd-v2-history-territories">
           <Territory
-            title={HISTORY_FILTERS.find((item) => item.id === filter)?.label || "Research lifecycle"}
+            title={HISTORY_FILTERS.find((item) => item.id === filter)?.label || "Request history"}
             events={lifecycle}
             selectedId={selectedId}
             onSelectEvent={onSelectEvent}

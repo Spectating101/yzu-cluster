@@ -104,7 +104,7 @@ const STRIP = [
       (s.settled_decisions || []).length ? `${s.settled_decisions.length} decisions` : "" },
   { id: "provenance", label: "provenance", summary: (s) =>
       s.provenance?.method_hash ? "method and fingerprints" : "" },
-  { id: "reuse", label: "reuse", summary: (s) => (s.reuse_from ? "start a revision" : "") },
+  { id: "reuse", label: "reuse", summary: (s) => (s.reuse_from ? "start a new version" : "") },
 ];
 
 export function focusFor(state, promoted = "") {

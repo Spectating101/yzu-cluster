@@ -155,7 +155,7 @@ test.describe("Discover authority depth", () => {
     await expect(nextActions).toHaveAttribute("data-assessment-status", "assessed");
     await expect(nextActions).toHaveAttribute("data-assessment-verdict", "partially_covered");
     await expect(nextActions).toHaveAttribute("data-has-evidence-gap", "true");
-    await nextActions.getByRole("button", { name: "Review sourcing strategy" }).click();
+    await nextActions.getByRole("button", { name: "Review collection strategy" }).click();
     const comparison = page.getByTestId("discover-route-comparison");
     await expect(comparison).toBeVisible();
     await expect(comparison).toContainText("Observed");

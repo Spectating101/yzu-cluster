@@ -134,16 +134,16 @@ function decisionReceipt(selected = {}) {
     resolve_scope: ["Resolve scope", '[data-testid="synthesis-scope-block"]'],
     resolve_units: ["Resolve units", '[data-testid="synthesis-unit-conflict"]'],
     resolve_join: ["Resolve join", '[data-testid="synthesis-join-decision"]'],
-    review_recommendation: ["Review construction", '[data-testid="synthesis-evidence-proposal"]'],
+    review_recommendation: ["Review build", '[data-testid="synthesis-evidence-proposal"]'],
     design_method: ["Design method", '[data-testid="synthesis-evidence-proposal"]'],
-    review_proposal: ["Review exact method revision", '[data-testid="synthesis-proposal-state"]'],
-    run_preview: ["Run bounded Preview", '[data-testid="synthesis-preview-state"]'],
-    recover_preview: ["Recover failed Preview", '[data-testid="synthesis-preview-state"]'],
-    review_preview: ["Review Preview proof", '[data-testid="synthesis-preview-state"]'],
-    approve_execution: ["Authorize bound execution", '[data-testid="synthesis-execution-state"]'],
+    review_proposal: ["Review this version of the method", '[data-testid="synthesis-proposal-state"]'],
+    run_preview: ["Run sample preview", '[data-testid="synthesis-preview-state"]'],
+    recover_preview: ["Review the failed sample preview", '[data-testid="synthesis-preview-state"]'],
+    review_preview: ["Review sample preview evidence", '[data-testid="synthesis-preview-state"]'],
+    approve_execution: ["Approve this execution request", '[data-testid="synthesis-execution-state"]'],
     recover_build: ["Recover failed build", '[data-testid="synthesis-failed-state"]'],
-    await_registration: ["Await archive + registry proof", '[data-testid="synthesis-execution-state"]'],
-    inspect_result: ["Inspect registered result", '[data-testid="synthesis-registered-state"]'],
+    await_registration: ["Wait for archive and Library checks", '[data-testid="synthesis-execution-state"]'],
+    inspect_result: ["Inspect the result saved to Library", '[data-testid="synthesis-registered-state"]'],
     inspect_registered_result: ["Inspect Library handoff", '[data-testid="synthesis-query-ready-state"]'],
   };
   const resolved = map[kind];
@@ -151,7 +151,7 @@ function decisionReceipt(selected = {}) {
   return {
     id: `decision:${kind}`,
     label: resolved[0],
-    detail: detail || "Current durable authority boundary.",
+    detail: detail || "The current saved permissions and approval requirements.",
     tone: kind.startsWith("recover_") ? "warn" : "current",
     selector: resolved[1],
   };
@@ -162,7 +162,7 @@ function receiptsFor(selected = {}) {
   if (selected.objective) {
     receipts.push({
       id: "objective",
-      label: "Research intent recorded",
+      label: "Research request recorded",
       detail: String(selected.objective),
       tone: "done",
       selector: ".s04-opening-brief",
@@ -187,7 +187,7 @@ function receiptsFor(selected = {}) {
     receipts.push({
       id: "proposal",
       label: "Exact proposal recorded",
-      detail: selected.proposal_hash ? `Revision ${String(selected.proposal_hash).slice(0, 18)}…` : "Revision identity recorded",
+      detail: selected.proposal_hash ? `Version ${String(selected.proposal_hash).slice(0, 18)}…` : "Version identifier saved",
       tone: normalized(selected.decision_kind) === "review_proposal" ? "current" : "done",
       selector: '[data-testid="synthesis-proposal-state"]',
     });
@@ -196,7 +196,7 @@ function receiptsFor(selected = {}) {
   if (selected.accepted_spec_hash) {
     receipts.push({
       id: "accepted",
-      label: "Method revision accepted",
+      label: "Method version accepted",
       detail: `Spec ${String(selected.accepted_spec_hash).slice(0, 18)}…`,
       tone: "done",
       selector: '[data-testid="synthesis-preview-state"], [data-testid="synthesis-execution-state"]',
@@ -212,10 +212,10 @@ function receiptsFor(selected = {}) {
     );
     receipts.push({
       id: "preview",
-      label: `Bounded Preview ${previewStatus === "succeeded" ? "passed" : previewStatus.replace(/_/g, " ")}`,
+      label: `Sample preview ${previewStatus === "succeeded" ? "passed" : previewStatus.replace(/_/g, " ")}`,
       detail: bound
-        ? `${Number.isFinite(Number(selected.preview_rows)) ? `${Number(selected.preview_rows).toLocaleString()} rows · ` : ""}bound to accepted revision`
-        : "Preview receipt is not bound to the current accepted revision",
+        ? `${Number.isFinite(Number(selected.preview_rows)) ? `${Number(selected.preview_rows).toLocaleString()} rows · ` : ""}for this accepted version`
+        : "The preview record does not apply to this accepted version",
       tone: previewStatus === "succeeded" && bound ? "done" : "warn",
       selector: '[data-testid="synthesis-preview-state"], [data-testid="synthesis-execution-state"]',
     });
@@ -227,7 +227,7 @@ function receiptsFor(selected = {}) {
     receipts.push({
       id: "execution",
       label: final ? "Execution completed" : `Execution ${execution.replace(/_/g, " ")}`,
-      detail: selected.job_id ? `Bound job ${selected.job_id}` : "Durable execution record",
+      detail: selected.job_id ? `Bound job ${selected.job_id}` : "Saved execution record",
       tone: execution === "failed" ? "warn" : final ? "done" : "current",
       selector: execution === "failed"
         ? '[data-testid="synthesis-failed-state"]'
@@ -249,7 +249,7 @@ function receiptsFor(selected = {}) {
     receipts.push({
       id: "result",
       label: selected.registry_verified ? "Registry proof verified" : "Output identity recorded",
-      detail: selected.output_dataset_id || "Registered output recorded",
+      detail: selected.output_dataset_id || "Output saved to Library",
       tone: selected.registry_verified ? "done" : "current",
       selector: '[data-testid="synthesis-registered-state"], [data-testid="synthesis-query-ready-state"]',
     });
@@ -455,7 +455,7 @@ function ForensicPanel({ selected = {} }) {
 
         {spec ? (
           <section data-testid="synthesis-exact-recipe">
-            <header><small>Exact recipe</small><strong>{spec.output_dataset_id || "Bound construction"}</strong></header>
+            <header><small>Exact recipe</small><strong>{spec.output_dataset_id || "Current build"}</strong></header>
             <ol className="rd-v2-synthesis-recipe">
               <li><b>Input</b><span>{printable(spec.input_dataset_id)}</span></li>
               {transforms.map((transform, index) => {
@@ -556,7 +556,7 @@ export function SynthesisAgentConsole({
     (busy ? status || "Working against the current Synthesis thread…" : "") ||
     selected.current_decision ||
     selected.decision_next ||
-    "Durable thread is stable. Ask can inspect or revise it.",
+    "The saved build is stable. Ask can inspect or revise it.",
   ).trim();
 
   const clearObjectContext = () => {
@@ -598,7 +598,7 @@ export function SynthesisAgentConsole({
 
       {receipts.length ? (
         <div className="rd-v2-synthesis-agent-activity" data-testid="synthesis-agent-activity">
-          <small>Durable proof</small>
+          <small>Saved proof</small>
           <ol>
             {receipts.map((receipt) => (
               <li key={receipt.id} className={`is-${receipt.tone}`}>

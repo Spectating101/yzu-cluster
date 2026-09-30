@@ -16,24 +16,24 @@ const STYLES = {
 
 const GUIDANCE = {
   "query-ready": {
-    title: "Query-ready",
-    summary: "This asset has passed the checks needed for analysis inside Research Drive.",
+    title: "Ready to query",
+    summary: "This data has passed the checks needed for analysis inside Research Drive.",
     checks: [
-      "A durable registry identity is available",
-      "Local or connected query authority is reconciled",
-      "The current desk is permitted to analyse it",
+      "A saved Library identifier is available",
+      "Local or connected query access has been checked",
+      "Research Drive is permitted to analyse it",
     ],
     next: "Preview rows, ask a grounded question, or use it in Synthesis.",
   },
   registered: {
-    title: "Registered",
-    summary: "The asset is durably archived and registered, but Research Drive has not promoted it to Query-ready.",
+    title: "Saved to Library",
+    summary: "The dataset is archived and saved to Library. Research Drive has not confirmed that it is ready to query.",
     checks: [
       "Archive and registry identity are available",
       "Provenance can be inspected in Detail",
       "Query readiness remains a separate evidence claim",
     ],
-    next: "Inspect files or preview support without relabelling the asset Query-ready.",
+    next: "Inspect files or preview options. Readiness for querying still needs a separate check.",
   },
   connected: {
     title: "Connected source",
@@ -43,7 +43,7 @@ const GUIDANCE = {
       "Availability may depend on credentials or an upstream service",
       "Local archival and licensing still require confirmation",
     ],
-    next: "Open Detail to inspect access, authority, and collection options.",
+    next: "Open Detail to review access, verification, and collection options.",
   },
   review: {
     title: "Review required",
@@ -73,7 +73,7 @@ const GUIDANCE = {
       "Access and licensing may still need verification",
       "Collection requires an explicit route or proposal",
     ],
-    next: "Probe the source or ask Research Drive for the safest acquisition path.",
+    next: "Test the connection or ask Research Drive for the safest collection method.",
   },
   remote: {
     title: "Remote query",
@@ -81,15 +81,15 @@ const GUIDANCE = {
     checks: [
       "Results depend on upstream availability",
       "The Library may retain metadata without retaining the source bytes",
-      "Remote access does not imply durable archival",
+      "Remote access does not confirm a saved archive",
     ],
-    next: "Confirm limits and decide whether a durable local copy is required.",
+    next: "Check the limits and decide whether to save a local copy.",
   },
   queued: {
     title: "Queued",
     summary: "The request has been accepted into the work queue but is not currently executing.",
     checks: [
-      "A durable work item exists",
+      "The request is saved",
       "No running worker is implied",
       "Queue position and approval requirements may still change",
     ],
@@ -107,11 +107,11 @@ const GUIDANCE = {
   },
   unknown: {
     title: "Readiness unknown",
-    summary: "Research Drive cannot yet prove this asset's readiness state.",
+    summary: "Research Drive has not yet confirmed whether this data is ready for use.",
     checks: [
       "No positive readiness claim is being fabricated",
       "Metadata may still be incomplete or stale",
-      "The asset should not silently enter analysis",
+      "The data needs a readiness check before analysis",
     ],
     next: "Refresh or inspect the source, registry, and query evidence.",
   },

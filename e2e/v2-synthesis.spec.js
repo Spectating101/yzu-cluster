@@ -408,12 +408,12 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await expect(openingRail).toContainText("3 mapped");
     await expect(openingRail).toContainText("Measurement pending");
     await expect(openingRail).toContainText("Not accepted");
-    await expect(openingRail).toContainText("Not registered");
+    await expect(openingRail).toContainText("Not saved to Library");
     await expect(page.getByTestId("rail-pane-ask")).toBeHidden();
     // A new durable thread has no registered output, but the recovered
     // opening surface states that in the rail rather than rendering a dead
     // empty centre card.
-    await expect(page.getByText("No output registered", { exact: true })).toHaveCount(0);
+    await expect(page.getByText("No output saved to Library", { exact: true })).toHaveCount(0);
     await capture(page, "01-durable-evidence-desktop");
   });
 
@@ -506,14 +506,14 @@ test.describe("v2 Synthesis durable thread surface", () => {
 
     await expect(action).toBeEnabled();
     await expect(page.getByTestId("synthesis-workflow-next")).toContainText(
-      "Review mapped evidence, then request one reviewable construction.",
+      "Review the mapped evidence, then request a suggested build.",
     );
   });
 
   test("collapses a long live brief on mobile while keeping the full brief explicitly reachable", async ({ page }) => {
     await page.getByRole("button", { name: "New synthesis", exact: true }).click();
     await page.getByTestId("synthesis-intent-state").getByRole("textbox").fill(LONG_LIVE_BRIEF);
-    await page.getByRole("button", { name: "Create construction" }).click();
+    await page.getByRole("button", { name: "Create build" }).click();
 
     const desktopBrief = page.locator(".s04-opening-brief > p");
     await expect(desktopBrief).toContainText("future filings to leak into earlier weeks");
@@ -553,7 +553,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await page.getByRole("button", { name: "New synthesis", exact: true }).click();
     const objective = page.getByPlaceholder(/Build a weekly measure/i);
     await objective.fill("Test whether Indonesian microstructure predicts later analyst revisions.");
-    await page.getByRole("button", { name: "Create construction" }).click();
+    await page.getByRole("button", { name: "Create build" }).click();
 
     const evidence = page.getByTestId("synthesis-evidence-state");
     const next = page.getByLabel("What happens next");
@@ -597,14 +597,14 @@ test.describe("v2 Synthesis durable thread surface", () => {
     // redundant navigation/checkpoint card must stay absent.
     await expect(page.getByRole("region", { name: "What happens next" })).toHaveCount(0);
     await expect(page.locator("aside.rd-v2-rail")).toContainText("Proposal needs review");
-    await expect(page.locator("aside.rd-v2-rail")).toContainText("Accept or reject this exact revision-bound proposal");
+    await expect(page.locator("aside.rd-v2-rail")).toContainText("Accept or reject this version of the proposal");
     await expect(page.locator("aside.rd-v2-rail")).not.toContainText("No construction has been recommended yet");
     await expect(proposal).toBeVisible();
     await expect(proposal.getByRole("button", { name: "Accept & test method" })).toBeVisible();
     await expect(proposal).toContainText("Aggregate held weekly panel");
-    await expect(proposal).toContainText("Held input");
+    await expect(proposal).toContainText("Library input");
     await expect(proposal).toContainText("Proposed output");
-    await expect(proposal).toContainText("Nothing is materialised yet");
+    await expect(proposal).toContainText("Nothing is built yet");
     await expect(proposal).toContainText("Still not established");
     await expect(proposal).toContainText("Pending proposal limitation from the exact change set");
     await expect(proposal).toContainText("Direct investor belief is not observed");
@@ -613,8 +613,8 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await page.getByRole("button", { name: "Accept & test method" }).click();
     const execution = page.getByTestId("synthesis-execution-state");
     await expect(execution).toContainText("stablecoin_attention_weekly");
-    await expect(execution).toContainText("Bounded preview passed");
-    await expect(execution.getByRole("button", { name: "Run bounded test" })).toHaveCount(0);
+    await expect(execution).toContainText("Sample preview passed");
+    await expect(execution.getByRole("button", { name: "Run sample test" })).toHaveCount(0);
     await expect(execution.getByRole("button", { name: "Review execution approval" })).toBeVisible();
     await capture(page, "03-preview-passed-desktop");
 
@@ -768,11 +768,11 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await expect(registered).toContainText("13,827");
     await expect(registered).toContainText("mft_s04_0726");
     await expect(registered).toContainText("Reported verified");
-    await expect(registered.getByText("Registered", { exact: true })).toBeVisible();
-    await expect(registered.getByText("Query-ready", { exact: true })).toHaveCount(0);
+    await expect(registered.getByText("Saved to Library", { exact: true })).toBeVisible();
+    await expect(registered.getByText("Ready to query", { exact: true })).toHaveCount(0);
     await expect(registered.getByRole("button", { name: "Open in Library" })).toBeVisible();
     await expect(registered).toContainText("Library handoff");
-    await expect(registered).toContainText("Registered");
+    await expect(registered).toContainText("Saved to Library");
     await capture(page, "04-registered-desktop");
   });
 
@@ -811,14 +811,14 @@ test.describe("v2 Synthesis durable thread surface", () => {
   test("renders query-ready only from an explicit query-ready lifecycle", async ({ page }) => {
     await page.getByTestId("synthesis-thread-item").filter({ hasText: "Query-ready stablecoin attention panel" }).click();
     const ready = page.getByTestId("synthesis-query-ready-state");
-    await expect(ready.getByText("Query-ready", { exact: true })).toBeVisible();
+    await expect(ready.getByText("Ready to query", { exact: true })).toBeVisible();
     await expect(ready).toContainText("Query-ready output reported");
     await expect(ready.getByRole("button", { name: "Open in Library" })).toBeVisible();
   });
 
   test("sends the selected durable thread to the shared Ask rail", async ({ page }) => {
     await selectThread(page, "Historical stablecoin attention");
-    await page.getByRole("button", { name: "Discuss construction in Ask" }).click();
+    await page.getByRole("button", { name: "Discuss build in Ask" }).click();
     const rail = page.locator("aside.rd-v2-rail");
     await expect(rail).toContainText("Ask · Method design");
     await expect(rail).toContainText("Keep the primary horizon weekly.");
@@ -916,7 +916,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await page.route("**/api/library/chat/stream", proposalReply);
     await page.route("**/api/library/chat", proposalReply);
 
-    await page.getByRole("button", { name: "Discuss construction in Ask" }).click();
+    await page.getByRole("button", { name: "Discuss build in Ask" }).click();
     await page.getByTestId("ask-composer").fill("Persist the review proposal.");
     await page.getByRole("button", { name: "Send", exact: true }).click();
 
@@ -939,7 +939,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
 
     const objective = "Construct a weekly issuer attention panel for Taiwan filings.";
     await page.getByTestId("synthesis-intent-state").getByRole("textbox").fill(objective);
-    await page.getByRole("button", { name: "Create construction" }).click();
+    await page.getByRole("button", { name: "Create build" }).click();
     await expect(page.getByRole("region", { name: "Research brief", exact: true }).first().getByRole("paragraph")).toHaveText(objective);
     await expect(page.getByTestId("synthesis-studio").getByRole("heading", { name: "Weekly issuer attention panel for Taiwan filings" })).toBeVisible();
     await expect(page.getByTestId("synthesis-draft-state")).toHaveCount(0);
@@ -973,7 +973,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
       page.waitForResponse(
         (res) => res.url().includes("/api/library/synthesis/threads") && res.request().method() === "POST",
       ),
-      page.getByRole("button", { name: "Create construction" }).click(),
+      page.getByRole("button", { name: "Create build" }).click(),
     ]);
     const created = await createResponse.json();
     const threadId = created.id;
@@ -1018,7 +1018,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
   test("stops polling explicitly requested reasoning and admits a stall, then recovers on retry", async ({ page }) => {
     await page.getByRole("button", { name: "New synthesis", exact: true }).click();
     await page.getByTestId("synthesis-intent-state").getByRole("textbox").fill("Unresolved objective for stall coverage.");
-    await page.getByRole("button", { name: "Create construction" }).click();
+    await page.getByRole("button", { name: "Create build" }).click();
 
     const evidenceProposal = page.getByTestId("synthesis-evidence-proposal");
     await evidenceProposal.getByRole("checkbox", { name: /Indonesia daily cross-section/ }).check();
@@ -1049,7 +1049,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
   test("a stalled explicit reasoning turn does not make the next new thread look stalled", async ({ page }) => {
     await page.getByRole("button", { name: "New synthesis", exact: true }).click();
     await page.getByTestId("synthesis-intent-state").getByRole("textbox").fill("First unresolved objective.");
-    await page.getByRole("button", { name: "Create construction" }).click();
+    await page.getByRole("button", { name: "Create build" }).click();
     let evidenceProposal = page.getByTestId("synthesis-evidence-proposal");
     await evidenceProposal.getByRole("checkbox", { name: /Indonesia daily cross-section/ }).check();
     await evidenceProposal.getByRole("button", { name: "Add 1 selected input" }).click();
@@ -1064,7 +1064,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await page.getByRole("button", { name: "New synthesis", exact: true }).click();
     const secondObjective = "Second unresolved objective.";
     await page.getByTestId("synthesis-intent-state").getByRole("textbox").fill(secondObjective);
-    await page.getByRole("button", { name: "Create construction" }).click();
+    await page.getByRole("button", { name: "Create build" }).click();
     await expect(page.getByTestId("synthesis-draft-state")).toHaveCount(0);
 
     evidenceProposal = page.getByTestId("synthesis-evidence-proposal");
@@ -1242,7 +1242,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await expect(openingRail).toContainText("3 mapped");
     await expect(openingRail).toContainText("Measurement pending");
     await expect(openingRail).toContainText("Not accepted");
-    await expect(openingRail).toContainText("Not registered");
+    await expect(openingRail).toContainText("Not saved to Library");
     await capture(page, "09-detail-sheet-mobile");
     await rail.getByRole("tab", { name: "Ask" }).click();
     await expect(rail.getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "true");
@@ -1261,8 +1261,8 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await page.getByRole("button", { name: /Weekly trust panel.*Review proposal/ }).first().click();
     await expect(page.getByRole("combobox", { name: "Choose Synthesis thread" })).toHaveValue("thread-proposal");
     const proposal = page.getByTestId("synthesis-proposal-state");
-    await expect(proposal).toContainText("Held input");
-    await expect(proposal).toContainText("Construction");
+    await expect(proposal).toContainText("Library input");
+    await expect(proposal).toContainText("Build");
     await expect(proposal).toContainText("Proposed output");
     await expect
       .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth))
@@ -1586,7 +1586,7 @@ test.describe("v2 Synthesis measured evidence integration", () => {
     await waitForShell(page);
     await page.getByTestId("synthesis-thread-item").first().click();
 
-    await expect(page.getByTestId("synthesis-measurement-status")).toContainText("2 mapped inputs measured from held bytes");
+    await expect(page.getByTestId("synthesis-measurement-status")).toContainText("2 mapped inputs measured from Library data");
     await expect(page.getByTestId("synthesis-measurement-status")).toContainText("5 columns profiled");
     await expect(page.getByRole("list", { name: "Measured risks" })).toContainText("3Flagged");
     await expect(page.getByRole("list", { name: "Measured risks" })).toContainText("1Look-ahead");
@@ -1599,7 +1599,7 @@ test.describe("v2 Synthesis measured evidence integration", () => {
     await expect(openingRail).toContainText("Method");
     await expect(openingRail).toContainText("Not accepted");
     await expect(openingRail).toContainText("Output");
-    await expect(openingRail).toContainText("Not registered");
+    await expect(openingRail).toContainText("Not saved to Library");
     expect(renderErrors, "measured state must not feed selection back into an infinite render loop").toEqual([]);
     await expect(page.getByTestId("synthesis-method-surface")).toContainText("2 mapped Library inputs");
     await expect(page.getByTestId("synthesis-measured-dataset")).toHaveCount(2);
@@ -1615,7 +1615,7 @@ test.describe("v2 Synthesis measured evidence integration", () => {
       (warningBox?.y || Infinity) + (warningBox?.height || Infinity),
       "the authoritative measurement decision should be visible before the deep evidence record",
     ).toBeLessThanOrEqual(1000);
-    await expect(page.getByRole("region", { name: "Recommended construction" })).toHaveCount(0);
+    await expect(page.getByRole("region", { name: "Suggested build" })).toHaveCount(0);
     await capture(page, "measured-evidence-1440x1000");
 
     await page.setViewportSize({ width: 390, height: 844 });

@@ -296,7 +296,7 @@ test("captures Synthesis home, thread work, and new-entry navigation", async ({ 
   await expect(openingRail).toContainText("3 mapped");
   await expect(openingRail).toContainText("2 columns");
   await expect(openingRail).toContainText("Not accepted");
-  await expect(openingRail).toContainText("Not registered");
+  await expect(openingRail).toContainText("Not saved to Library");
   await capture(page, "01-thread-detail-1440x1000");
 
   await page.getByRole("button", { name: "New synthesis", exact: true }).click();
@@ -352,16 +352,16 @@ test("keeps the current recommended opening complete after explicit selection", 
   const situation = page.getByTestId("research-situation");
   await expect(situation.locator(".rd-v2-situation-state")).toHaveText("Method");
   const openingRail = page.getByTestId("synthesis-opening-rail");
-  await expect(openingRail).toContainText("Construction recommended");
+  await expect(openingRail).toContainText("Build suggested");
   await expect(openingRail).toContainText("Review the recommendation");
   await expect(openingRail).toContainText("3 evidence roles");
   await expect(openingRail).toContainText("Not measured");
   await expect(openingRail).toContainText("Recommended · not accepted");
 
   const main = page.locator(".s04-main");
-  await expect(main.getByText("Construction recommendation", { exact: true })).toBeVisible();
+  await expect(main.getByText("Suggested build", { exact: true })).toBeVisible();
   await expect(main.getByRole("region", { name: "Research brief" })).toBeVisible();
-  await expect(main.getByRole("region", { name: "Recommended construction" })).toBeVisible();
+  await expect(main.getByRole("region", { name: "Suggested build" })).toBeVisible();
   await expect(main.getByRole("region", { name: "What happens next" })).toBeVisible();
   await expect(main.getByTestId("synthesis-workflow-next")).not.toBeVisible();
   await expect(main.getByTestId("synthesis-evidence-state")).not.toBeVisible();

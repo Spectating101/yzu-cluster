@@ -36,7 +36,7 @@ function railSelectionHint(
     return discoverIntentRecord.intent?.title || discoverIntentRecord.candidate?.title || "Acquisition review";
   }
   if (mainTab === DISCOVER_TAB && historyEvent) {
-    return historyEvent.target || historyEvent.title || historyEvent.id || "Discover lifecycle item";
+    return historyEvent.target || historyEvent.title || historyEvent.id || "Discover request";
   }
   if (mainTab === DISCOVER_TAB && discoverAssessment?.active) {
     return "Coverage assessment";
@@ -63,7 +63,7 @@ function railSelectionHint(
     return "Profile";
   }
   if (mainTab === "settings") {
-    return "Desk setup";
+    return "Research Drive setup";
   }
   if (mainTab === "synthesis") {
     return "Synthesis";
@@ -79,7 +79,7 @@ const MOBILE_RAIL_IDLE_HINTS = new Set([
   "No discover result",
   "Resources",
   "Profile",
-  "Desk setup",
+  "Research Drive setup",
 ]);
 
 function DiscoverAssessmentRailSummary({ state, onClose }) {
@@ -92,12 +92,12 @@ function DiscoverAssessmentRailSummary({ state, onClose }) {
   const held = Array.isArray(result?.held_evidence) ? result.held_evidence.length : 0;
   return (
     <section className="rd-v2-discover-assessment-rail-summary" aria-label="Evidence assessment summary">
-      <span className="rd-v2-eyebrow">Evidence position</span>
+      <span className="rd-v2-eyebrow">What your Library covers</span>
       <strong>{status}</strong>
-      <p>{pending ? "The central Evidence Position is establishing the current verdict. Previous assessment authority is not reused while this is pending." : gap || "No remaining gap was reported by the current assessment."}</p>
+      <p>{pending ? "The Library coverage assessment is being updated. The previous assessment is not used while this is pending." : gap || "No remaining gap was reported by the current assessment."}</p>
       <dl>
-        <div><dt>Held evidence</dt><dd>{pending ? "—" : held}</dd></div>
-        <div><dt>Centre</dt><dd>{pending ? "Assessment authority" : "Full assessment + sourcing routes"}</dd></div>
+        <div><dt>Data in your Library</dt><dd>{pending ? "—" : held}</dd></div>
+        <div><dt>Centre</dt><dd>{pending ? "Assessment basis" : "Full assessment + collection methods"}</dd></div>
       </dl>
       <p className="muted">{pending ? "The rail mirrors state only; it does not run a second assessment." : "Use Detail for the decision summary or Ask to reason within this exact evidence need."}</p>
       {onClose ? <button type="button" className="rd-v2-btn sm" onClick={onClose}>Hide assessment</button> : null}

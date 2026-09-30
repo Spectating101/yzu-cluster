@@ -61,7 +61,7 @@ test("failed Synthesis is recovery work and registered Synthesis is not resumabl
   });
   assert.equal(primary.id, "thread-failed");
   assert.equal(primary.warn, true);
-  assert.match(primary.pill, /recovery/i);
+  assert.match(primary.pill, /attention/i);
 });
 
 test("Discover recovery outranks Library when no Synthesis needs attention", () => {

@@ -70,27 +70,27 @@ export function LibraryHoldingsOverlay({ open, dataset, onClose }) {
         className="rd-v2-library-overlay rd-v2-library-holdings-overlay"
         role="dialog"
         aria-modal="true"
-        aria-label="Holdings"
+        aria-label="Your Library"
         data-testid="library-holdings-overlay"
       >
         <header>
           <div>
             <span className="rd-v2-eyebrow">Federated Library</span>
-            <h2>Holdings</h2>
+            <h2>Your Library</h2>
           </div>
           <button
             ref={closeButtonRef}
             type="button"
             className="rd-v2-btn sm"
             onClick={onClose}
-            aria-label="Close holdings"
+            aria-label="Close Library view"
           >
             Close
           </button>
         </header>
 
         <p>
-          Where this research object is held now. These locations describe copies, custodians, and access; they do not change where the evidence originally came from.
+          Where your data is stored now. These locations show copies, who manages them, and access. The original source stays the same.
         </p>
 
         <div className="rd-v2-library-holdings-summary" data-testid="library-holdings-summary">

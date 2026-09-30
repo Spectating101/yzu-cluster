@@ -29,12 +29,12 @@ const PATH_STAGES = [
   { id: "approval", label: "Approval" },
   { id: "queue", label: "Queue" },
   { id: "running", label: "Running" },
-  { id: "registered", label: "Registered" },
+  { id: "registered", label: "Saved to Library" },
 ];
 
 const SUFFICIENCY_DIMENSION_LABELS = Object.freeze({
   temporal_coverage: "Time coverage",
-  grain: "Grain",
+  grain: "Unit of observation",
   geographic_coverage: "Geography",
   variables: "Variables",
   entity_universe: "Entity universe",
@@ -66,7 +66,7 @@ function RestingSearchRail({ summary, onOpenInLibrary }) {
           <p className="rd-v2-eval-prose">{summary.landscapeLine || summary.heldLine || summary.foundLine}</p>
           {routeLine ? (
             <p className="rd-v2-eval-prose">
-              <b>Declared routes</b><br />{routeLine}
+              <b>Documented routes</b><br />{routeLine}
             </p>
           ) : null}
           {unknownLine ? (
@@ -77,7 +77,7 @@ function RestingSearchRail({ summary, onOpenInLibrary }) {
           <p className="rd-v2-eval-prose muted">
             {summary.found
               ? "Select an offering to see its coverage, collection route, and what remains unknown before collecting."
-              : "Inspect the held evidence and references; no collection-ready external offering has been established yet."}
+              : "Inspect data in your Library and the references. No external source is confirmed as ready to collect yet."}
           </p>
         </section>
       </div>
@@ -285,7 +285,7 @@ export function DiscoverEvaluationSurface({
         lifecycle.state === LIFECYCLE.QUERY_READY
           ? {
               id: "what_registered",
-              label: "What will be registered?",
+              label: "What will be saved to Library?",
               prompt: `What was or will be registered from collecting ${evaluation.title}?`,
             }
           : null,
@@ -308,7 +308,7 @@ export function DiscoverEvaluationSurface({
         },
         {
           id: "probe_next",
-          label: "What should I probe next?",
+          label: "Which connection should I test next?",
           prompt: `Given ${evaluation.title}, what should I probe next, and what would still remain unknown after a successful probe?`,
         },
       ];
@@ -506,7 +506,7 @@ export function DiscoverEvaluationSurface({
                 ))}
               </ul>
             ) : null}
-            <ol className="rd-v2-eval-lifecycle-path" aria-label="Lifecycle path">
+            <ol className="rd-v2-eval-lifecycle-path" aria-label="Request stages">
               {PATH_STAGES.map((stage) => (
                 <li
                   key={stage.id}
@@ -567,7 +567,7 @@ export function DiscoverEvaluationSurface({
 
             {localDatasetTitle ? (
               <p className="rd-v2-eval-sufficiency-reference">
-                <span>Local asset</span>
+                <span>Local dataset</span>
                 <strong>{localDatasetTitle}</strong>
               </p>
             ) : null}
@@ -676,7 +676,7 @@ export function DiscoverEvaluationSurface({
             <details key={targetKey} className="rd-v2-eval-tech">
               <summary>Technical evidence</summary>
               <p className="rd-v2-eval-prose muted">
-                No probe evidence yet. Probe the source to collect endpoint facts.
+                No connection test evidence yet. Test the connection to check the source.
               </p>
             </details>
           )}
@@ -706,7 +706,7 @@ export function DiscoverEvaluationSurface({
 
         {requestConfirm ? (
           <div className="rd-v2-eval-confirm" data-testid="discover-request-confirm">
-            <p>Open a durable acquisition intent for review? No collection starts from this action.</p>
+            <p>Open a saved collection request for review? This action does not start collection.</p>
             <div className="rd-v2-eval-confirm-actions">
               <button type="button" className="rd-v2-btn primary" disabled={probeLoading || submitting} onClick={confirmRequestEvidence}>
                 Open acquisition review

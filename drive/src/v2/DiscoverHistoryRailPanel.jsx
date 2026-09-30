@@ -1,7 +1,7 @@
 import { EmptyRailState } from "@/v2/EmptyRailState";
 import { historyEvidenceSummary, historyHoldingTruth } from "@/v2/discoverAdapters";
 import { RailDecisionSummary, RailEntityHeader, RailField, RailFieldGrid, RailFrame, RailStickyFooter } from "@/v2/RailFrame";
-import { historyLifecycleExplanation } from "@/v2/historyLifecycleLabel";
+import { historyLifecycleExplanation, historyLifecycleInternalLabel } from "@/v2/historyLifecycleLabel";
 import { historyKnownUnknowns, NO_EVIDENCE_YET } from "@/v2/historyKnownUnknowns";
 
 function text(value) {
@@ -34,8 +34,8 @@ export function DiscoverHistoryRailPanel({ event, job, onAskAbout, onReviewReque
       <RailFrame>
         <div className="rd-v2-rail-scroll">
           <EmptyRailState
-            title="No lifecycle item selected"
-            hint="Select a request, schedule, failure, or registered result to inspect its durable state."
+            title="No request selected"
+            hint="Select a request, schedule, failure, or result saved to Library to review its current state."
           />
         </div>
       </RailFrame>
@@ -54,16 +54,17 @@ export function DiscoverHistoryRailPanel({ event, job, onAskAbout, onReviewReque
     meta.source_id ||
     meta.candidate_key ||
     meta.intent_id ||
-    "Durable Discover record";
+    "Saved Discover record";
   const requestId =
     datasetId || meta.intent_id || truth.jobId || meta.job_id || meta.subscription_id || event.id || "";
   const readableId = /_|^[a-f0-9]{10,}$/i.test(requestId) ? "" : requestId;
   const readableSource = /_|^[a-f0-9]{10,}$/i.test(source) ? "" : source;
-  const canReview = state.label === "Approval required" && Boolean(job?.id || meta.job_id || truth.jobId);
-  const registered = state.label === "Registered" || state.label === "Query-ready" || truth.registered;
+  const internalLabel = historyLifecycleInternalLabel(event);
+  const canReview = internalLabel === "Approval required" && Boolean(job?.id || meta.job_id || truth.jobId);
+  const registered = internalLabel === "Registered" || internalLabel === "Query-ready" || truth.registered;
   const libraryHref = datasetId ? `?tab=library&dataset=${encodeURIComponent(datasetId)}` : "";
   const risk = truth.receiptOnly
-    ? "Receipt-only holding — do not treat as query-ready until catalog reconciliation completes."
+    ? "Only a saved receipt is available. Do not treat the data as ready to query until the catalog checks finish."
     : state.risk;
   const evidence = historyKnownUnknowns(event, truth);
 
@@ -72,7 +73,7 @@ export function DiscoverHistoryRailPanel({ event, job, onAskAbout, onReviewReque
       <RailEntityHeader
         id={readableId}
         title={title}
-        pills={<span className={`rd-v2-pill${pillTone(state.label)}`}>{state.label}</span>}
+        pills={<span className={`rd-v2-pill${pillTone(internalLabel)}`}>{state.label}</span>}
         description={readableSource && readableSource !== requestId ? readableSource : undefined}
       />
       <div className="rd-v2-rail-scroll">
@@ -109,9 +110,9 @@ export function DiscoverHistoryRailPanel({ event, job, onAskAbout, onReviewReque
         </div>
         <RailDecisionSummary status={state.label} primary={state.explanation} risk={risk} next={state.next} />
         <RailFieldGrid>
-          <RailField label="Latest durable update" value={updatedAt(event)} />
-          <RailField label="Holding truth" value={truth.label} />
-          <RailField label="Recorded event" value={text(event.kind || event.action || "discover")} />
+          <RailField label="Last updated" value={updatedAt(event)} />
+          <RailField label="Current state" value={truth.label} />
+          <RailField label="Last step" value={text(event.kind || event.action || "discover")} />
           {historyEvidenceSummary(event) ? <RailField label="Evidence" value={historyEvidenceSummary(event)} /> : null}
           {meta.cadence || event.cadence ? <RailField label="Schedule" value={meta.cadence || event.cadence} /> : null}
           {meta.requested_schedule || event.requested_schedule ? (

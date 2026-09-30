@@ -40,7 +40,7 @@ export function discoverHistoryObject(event) {
   return {
     kind: "discover_history",
     id,
-    title: compactText(event.target || event.title, "Discover lifecycle item"),
+    title: compactText(event.target || event.title, "Discover request"),
     row: event,
   };
 }

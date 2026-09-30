@@ -23,14 +23,14 @@ test.describe("Library retrieval excellence", () => {
 
     await page.locator(".rd-v2-page-head h1").focus();
     await page.keyboard.press("/");
-    await expect(page.getByRole("textbox", { name: "Search library holdings" })).toBeFocused();
+    await expect(page.getByRole("textbox", { name: "Search your Library" })).toBeFocused();
 
     await page.screenshot({ path: `${OUT}/17-retrieval-controls-1440.png`, fullPage: true });
   });
 
   test("exact field recall is explainable and keyboard rows behave like a file list", async ({ page }) => {
     await openLibrary(page);
-    const search = page.getByRole("textbox", { name: "Search library holdings" });
+    const search = page.getByRole("textbox", { name: "Search your Library" });
     await search.fill("country_iso3");
 
     const rows = page.getByTestId("library-evidence-row");
@@ -54,7 +54,7 @@ test.describe("Library retrieval excellence", () => {
 
   test("vague memory and source-plus-coverage queries remain evidence-grounded", async ({ page }) => {
     await openLibrary(page);
-    const search = page.getByRole("textbox", { name: "Search library holdings" });
+    const search = page.getByRole("textbox", { name: "Search your Library" });
 
     await search.fill("daily Asia news");
     await expect(page.getByTestId("library-evidence-row").first()).toContainText("Asia daily news-risk panel");
@@ -69,7 +69,7 @@ test.describe("Library retrieval excellence", () => {
 
   test("true search miss stays inside the possession boundary and offers explicit widening", async ({ page }) => {
     await openLibrary(page);
-    await page.getByRole("textbox", { name: "Search library holdings" }).fill("zzqvjjk_nonexistent_measure");
+    await page.getByRole("textbox", { name: "Search your Library" }).fill("zzqvjjk_nonexistent_measure");
 
     const empty = page.getByTestId("library-evidence-empty");
     await expect(empty).toContainText("No held evidence matches");
@@ -82,7 +82,7 @@ test.describe("Library retrieval excellence", () => {
 
   test("retrieval remains compact at 1920", async ({ page }) => {
     await openLibrary(page, 1920);
-    await page.getByRole("textbox", { name: "Search library holdings" }).fill("country_iso3");
+    await page.getByRole("textbox", { name: "Search your Library" }).fill("country_iso3");
     await expect(page.getByTestId("library-evidence-row").first()).toBeVisible();
     await page.screenshot({ path: `${OUT}/22-retrieval-field-1920.png`, fullPage: true });
   });

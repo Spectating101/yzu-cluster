@@ -90,11 +90,11 @@ function AtAGlance({ dataset, fields }) {
   const size = dataset.size || dataset.size_mb || dataset.size_gb || dataset.bytes;
   const owner = dataset.owner || dataset.publisher || dataset.domain;
   const rows = [
-    ["Grain", dataset.grain || fields.partition],
+    ["Unit of observation", dataset.grain || fields.partition],
     ["Coverage", fields.coverage || dataset.coverage || dataset.date_range],
     ["Source", fields.source],
     ["Location", estate.location || fields.vault || fields.access, true],
-    ["Authority", estate.authority],
+    ["Verification", estate.authority],
     ["Freshness", estate.freshness],
     ["Readiness", dataset.analysis_readiness || "unknown"],
     ["Rows", rowCount],
@@ -116,7 +116,7 @@ function AtAGlance({ dataset, fields }) {
 function EvidenceMap({ dataset, fields }) {
   const queryPath = dataset?.dataset_id ? `/query/${dataset.dataset_id}?limit=50` : "";
   const nodes = [
-    ["Registry", dataset?.dataset_id || "not registered"],
+    ["Registry", dataset?.dataset_id || "not saved to Library"],
     ["Vault", fields.vault || fields.access || "no vault path"],
     ["Source", fields.source || "unknown source"],
     ["Preview", queryPath || "select dataset"],
@@ -181,7 +181,7 @@ function isDatasetReady(dataset) {
 
 function datasetUseStatus(dataset, fields) {
   const demotion = demotionSentence(dataset);
-  if (demotion) return "Registered · unconfirmed";
+  if (demotion) return "In Library · not yet checked";
   if (isDatasetReady(dataset)) return "Ready";
   return "Needs review";
 }
@@ -192,7 +192,7 @@ function datasetPrimary(dataset, fields) {
   const ready = isDatasetReady(dataset);
   let line = ready ? "Yes — preview rows or ask questions" : "Not yet confirmed";
   if (fields.vault || fields.access) {
-    line = ready ? `${line} · registered in vault` : `${line} · vault path pending review`;
+    line = ready ? `${line} · saved in the archive` : `${line} · vault path pending review`;
   }
   return line;
 }
@@ -304,7 +304,7 @@ export function DetailPanel({
 
         <DetailSection label="Coverage">
           <FieldRow label="Period" value={fields.coverage || view.coverage} loading={loading} />
-          <FieldRow label="Grain" value={view.grain} loading={loading} />
+          <FieldRow label="Unit of observation" value={view.grain} loading={loading} />
           <FieldRow label="Partition" value={fields.partition} loading={loading} />
         </DetailSection>
 

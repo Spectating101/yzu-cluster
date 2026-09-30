@@ -78,7 +78,7 @@ describe("classifyProbeEvidence", () => {
     assert.match(verified, /HTTP endpoint responded \(200\)/);
     assert.match(verified, /text\/csv/);
     assert.match(inferred, /direct file|machine-readable/i);
-    assert.match(model, /Probe summary/);
+    assert.match(model, /Connection test summary/);
     assert.ok(classified.technical.some((f) => f.label === "Connector ID"));
     assert.equal(
       classified.verified.some((f) => /legal|open license|acquirable|research-ready/i.test(f.label)),
@@ -113,7 +113,7 @@ describe("classifyProbeEvidence", () => {
       classified.verified.some((f) => /open and collectable|Verified source/i.test(f.label + f.detail)),
       false,
     );
-    assert.ok(classified.model.some((f) => f.kind === "model" && /Probe summary/i.test(f.label)));
+    assert.ok(classified.model.some((f) => f.kind === "model" && /Connection test summary/i.test(f.label)));
   });
 });
 
@@ -128,7 +128,7 @@ describe("unknowns + primary verified", () => {
   it("surfaces unknowns before probe for external candidates", () => {
     const taxonomy = classifyDiscoverResult(ROW, new Set());
     const unknowns = deriveUnknowns(ROW, taxonomy, { verified: [] }, false);
-    assert.ok(unknowns.some((u) => /not probed/i.test(u)));
+    assert.ok(unknowns.some((u) => /connection not tested/i.test(u)));
     assert.ok(unknowns.some((u) => /Acquisition constraints/i.test(u)));
   });
 

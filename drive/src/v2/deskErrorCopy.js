@@ -10,23 +10,23 @@
 const RULES = [
   {
     match: /unauthor|access token|401|forbidden|403/i,
-    headline: "This desk needs a session",
-    say: (surface) => `Sign in to load ${surface}. Nothing is missing — the desk will not answer until it knows who is asking.`,
+    headline: "Research Drive needs a session",
+    say: (surface) => `Sign in to load ${surface}. Research Drive needs to know who is asking before it can answer.`,
   },
   {
     match: /timed out|timeout/i,
-    headline: "The desk did not answer in time",
-    say: (surface) => `${capitalise(surface)} could not be loaded before the request expired. Retry, or check the desk is reachable.`,
+    headline: "Research Drive did not answer in time",
+    say: (surface) => `${capitalise(surface)} could not be loaded before the request expired. Retry, or check that Research Drive is reachable.`,
   },
   {
     match: /50\d|server error|internal/i,
-    headline: "The desk could not complete that request",
-    say: (surface) => `${capitalise(surface)} is unavailable right now. This is a fault on the desk, not in what you asked for.`,
+    headline: "Research Drive could not complete that request",
+    say: (surface) => `${capitalise(surface)} is unavailable right now because of a Research Drive error.`,
   },
   {
     match: /failed to fetch|networkerror|econnrefused/i,
-    headline: "The desk is unreachable",
-    say: (surface) => `${capitalise(surface)} could not be requested at all. Check the desk is running.`,
+    headline: "Research Drive is unreachable",
+    say: (surface) => `${capitalise(surface)} could not be requested. Check that Research Drive is running.`,
   },
 ];
 
@@ -48,7 +48,7 @@ export function deskErrorCopy(raw, { surface = "this page" } = {}) {
   }
   return {
     headline: "That did not load",
-    body: `${capitalise(surface)} could not be loaded. The desk reported a problem rather than an empty result.`,
+    body: `${capitalise(surface)} could not be loaded because Research Drive reported an error.`,
     detail: text,
   };
 }

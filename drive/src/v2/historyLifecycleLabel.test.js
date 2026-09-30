@@ -19,6 +19,6 @@ test("frozen lifecycle labels require an explicit recorded stage", () => {
 test("failed recovery vocabulary is shared", () => {
   assert.equal(
     historyLifecycleLabel({ status: "failed", action: "collection_run" }),
-    "Failed — needs recovery",
+    "Failed — needs attention",
   );
 });

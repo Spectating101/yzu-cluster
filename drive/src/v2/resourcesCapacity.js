@@ -139,7 +139,7 @@ export function buildCapacityAccessPairs(rollup, health) {
         name: "This machine's disk",
         metric: `${storageFree(disk.free_gb)}${disk.required_min_gb != null ? ` · needs ${disk.required_min_gb} GB` : ""}`,
         pct: Number(disk.used_pct),
-        available: "Below the desk's minimum free space",
+        available: "Below Research Drive’s minimum free space",
         warn: true,
         action: "CHECK",
       }),
@@ -273,7 +273,7 @@ export function buildCapacityAccessPairs(rollup, health) {
   return [
     { id: "storage", title: "Storage", meters: storage },
     { id: "services", title: "Services", meters: services },
-    { id: "desk", title: "Desk", meters: desk },
+    { id: "desk", title: "Research Drive", meters: desk },
   ];
 }
 

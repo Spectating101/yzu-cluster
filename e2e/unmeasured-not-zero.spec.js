@@ -19,6 +19,6 @@ test("a Library that could not load says so instead of reporting zero", async ({
 
   const err = page.getByTestId("desk-error").first();
   await expect(err).toBeVisible();
-  await expect(err).toContainText("This desk needs a session");
+  await expect(err).toContainText("Research Drive needs a session");
   await expect(err.locator("p")).not.toContainText("Bearer");
 });

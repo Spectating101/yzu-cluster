@@ -17,7 +17,7 @@ async function selectFirstLibraryDataset(page) {
   await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
   await page.getByTestId("library-evidence-estate").waitFor({ state: "visible" });
-  await page.getByRole("textbox", { name: "Search library holdings" }).fill("Asia");
+  await page.getByRole("textbox", { name: "Search your Library" }).fill("Asia");
   const row = page.getByTestId("library-evidence-row").first();
   await expect(row).toBeVisible();
   await row.click();

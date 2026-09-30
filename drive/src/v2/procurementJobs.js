@@ -14,7 +14,7 @@ export function jobTitle(job) {
   const kindLabels = {
     synthesis_execute: "Synthesis execution",
     scraper_run: "Evidence collection",
-    source_probe: "Source probe",
+    source_probe: "Connection test",
     collection_queue_batch: "Scheduled collection",
   };
   return kindLabels[kind] || explicit || job?.id || "Collection job";
@@ -131,4 +131,24 @@ export function activeProcurementJobs(jobs = []) {
 export function mergeJobLists(recent, pending) {
   const seen = new Set(recent.map((job) => job?.id));
   return [...recent, ...pending.filter((job) => job?.id && !seen.has(job.id))];
+}
+
+const COLLECTION_STATUS_LABELS = {
+  pending_approval: "Waiting for your approval",
+  running: "Collecting",
+  collecting: "Collecting",
+  queued: "Queued",
+  failed: "Failed — needs attention",
+  blocked: "Blocked — needs attention",
+  registered: "Saved to Library",
+  query_ready: "Ready to query",
+  cancelled: "Cancelled",
+  completed: "Collection complete",
+};
+
+export function collectionStatusLabel(status, fallback = "Status not reported") {
+  const value = String(status || "").trim();
+  return Object.hasOwn(COLLECTION_STATUS_LABELS, value)
+    ? COLLECTION_STATUS_LABELS[value]
+    : value.replaceAll("_", " ") || fallback;
 }

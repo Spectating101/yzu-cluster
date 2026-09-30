@@ -12,11 +12,11 @@ test("registered live identity never becomes Query-ready", () => {
     job_id: "day2-deploy-smoke-20260720a",
     synthesis_expectation: { badge: "Registered", not_badge: "Query-ready" },
   };
-  assert.deepEqual(liveIdentityBadge(identity), { kind: "registered", label: "Registered" });
+  assert.deepEqual(liveIdentityBadge(identity), { kind: "registered", label: "Saved to Library" });
   const view = applyLiveIdentity({ dataset_id: "day2_deploy_smoke_20260720" }, identity);
   assert.equal(view.analysis_readiness, "registered");
-  assert.equal(statusPillKind(view).label, "Registered");
-  assert.notEqual(statusPillKind(view).label, "Query-ready");
+  assert.equal(statusPillKind(view).label, "Saved to Library");
+  assert.notEqual(statusPillKind(view).label, "Ready to query");
 });
 
 test("query_ready live identity keeps Query-ready badge", () => {
@@ -27,7 +27,7 @@ test("query_ready live identity keeps Query-ready badge", () => {
   };
   const view = applyLiveIdentity({ dataset_id: "panel_x" }, identity);
   assert.equal(statusPillKind(view).kind, "query-ready");
-  assert.equal(statusPillKind(view).label, "Query-ready");
+  assert.equal(statusPillKind(view).label, "Ready to query");
 });
 
 test("identity lookup prefers explicit dataset and job ids", () => {

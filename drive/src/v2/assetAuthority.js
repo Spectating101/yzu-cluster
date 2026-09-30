@@ -65,8 +65,8 @@ function verificationState(asset) {
 
 const READINESS_LABELS = {
   metadata_only: "Metadata only",
-  registered: "Registered",
-  query_ready: "Query-ready",
+  registered: "Saved to Library",
+  query_ready: "Ready to query",
   unavailable_unverified: "Unavailable / not verified",
   unknown: "Unknown",
 };

@@ -115,44 +115,44 @@ function branchStatusNote({
   datasetCount,
 }) {
   if (!displayCount && !folderCount) {
-    if (showingSearchHits) return "No assets match this search";
-    return isRoot ? "No registered evidence yet" : "No holdings in this branch";
+    if (showingSearchHits) return "No datasets match this search";
+    return isRoot ? "No data saved to Library yet" : "No data in this branch";
   }
   if (showingSearchHits) {
-    return `${displayCount} matching asset${displayCount === 1 ? "" : "s"} — select one for readiness, source, sample, and Ask`;
+    return `${displayCount} matching dataset${displayCount === 1 ? "" : "s"} — select one for readiness, source, sample, and Ask`;
   }
   if (showingBranchFallback) {
-    return `${displayCount} asset${displayCount === 1 ? "" : "s"} matched here`;
+    return `${displayCount} dataset${displayCount === 1 ? "" : "s"} matched here`;
   }
   if (isRoot) {
     const parts = [];
-    if (datasetCount) parts.push(`${datasetCount} evidence asset${datasetCount === 1 ? "" : "s"}`);
+    if (datasetCount) parts.push(`${datasetCount} dataset${datasetCount === 1 ? "" : "s"}`);
     if (folderCount) parts.push(`${folderCount} research collection${folderCount === 1 ? "" : "s"}`);
     if (partitionCount) parts.push(`${partitionCount} nested context${partitionCount === 1 ? "" : "s"}`);
-    return parts.join(" · ") || "Browse the registered evidence estate";
+    return parts.join(" · ") || "Browse your Library";
   }
   if (items.length) {
     const parts = [];
     if (folderCount) parts.push(`${folderCount} folder${folderCount === 1 ? "" : "s"}`);
-    if (datasetCount) parts.push(`${datasetCount} asset${datasetCount === 1 ? "" : "s"}`);
-    return parts.join(" · ") || "Open a folder or evidence asset";
+    if (datasetCount) parts.push(`${datasetCount} dataset${datasetCount === 1 ? "" : "s"}`);
+    return parts.join(" · ") || "Open a folder or dataset";
   }
-  return "No holdings in this branch";
+  return "No data in this branch";
 }
 
 function toolbarCountLabel({ searchActive, isRoot, folderCount, datasetCount, visibleCount }) {
   if (searchActive) {
-    return `${visibleCount} asset${visibleCount === 1 ? "" : "s"}`;
+    return `${visibleCount} dataset${visibleCount === 1 ? "" : "s"}`;
   }
   if (isRoot) {
     const parts = [];
-    if (datasetCount) parts.push(`${datasetCount} asset${datasetCount === 1 ? "" : "s"}`);
+    if (datasetCount) parts.push(`${datasetCount} dataset${datasetCount === 1 ? "" : "s"}`);
     if (folderCount) parts.push(`${folderCount} collection${folderCount === 1 ? "" : "s"}`);
     return parts.join(" · ") || `${visibleCount} row${visibleCount === 1 ? "" : "s"}`;
   }
   const parts = [];
   if (folderCount) parts.push(`${folderCount} ${folderCount === 1 ? "folder" : "folders"}`);
-  if (datasetCount) parts.push(`${datasetCount} ${datasetCount === 1 ? "asset" : "assets"}`);
+  if (datasetCount) parts.push(`${datasetCount} ${datasetCount === 1 ? "dataset" : "datasets"}`);
   return parts.join(" · ") || `${visibleCount} row${visibleCount === 1 ? "" : "s"}`;
 }
 
@@ -598,7 +598,7 @@ export function LibraryPage({
                 value={searchQuery}
                 onChange={(e) => onSearchChange?.(e.target.value)}
                 placeholder="Search title, field, source, coverage…"
-                aria-label="Search library holdings"
+                aria-label="Search your Library"
                 aria-keyshortcuts="/"
                 onKeyDown={(e) => {
                   // Live filter; Enter commits focus so arrow navigation can take over.
@@ -641,9 +641,9 @@ export function LibraryPage({
                   onChange={(event) => setFilterMode(event.target.value)}
                 >
                   <option value="all">Any</option>
-                  <option value="ready">Query-ready · {readyCount}</option>
+                  <option value="ready">Ready to query · {readyCount}</option>
                   <option value="attention">Needs attention · {attentionCount}</option>
-                  <option value="not_ready">Registered · unconfirmed · {nonReadyCount}</option>
+                  <option value="not_ready">In Library · not yet checked · {nonReadyCount}</option>
                 </select>
               </label>
               <label className="rd-v2-library-filter-control">
@@ -726,10 +726,10 @@ export function LibraryPage({
                 <span>{folderCount} folder{folderCount === 1 ? "" : "s"}</span>
               )}
               <span>
-                {browseDatasetCount} asset{browseDatasetCount === 1 ? "" : "s"}
+                {browseDatasetCount} dataset{browseDatasetCount === 1 ? "" : "s"}
                 {searchActive ? " matched" : ""}
               </span>
-              <span>{readyCount} query-ready</span>
+              <span>{readyCount} ready to query</span>
             </div>
           </div>
         ) : null}
@@ -739,8 +739,8 @@ export function LibraryPage({
         {isRoot ? (
           loading && !vaultDatasets.length ? (
             <div className="rd-v2-library-empty" role="status" aria-live="polite">
-              <strong>Loading Library holdings…</strong>
-              <p>Reading the registered evidence estate before showing its current assets.</p>
+              <strong>Loading Library data…</strong>
+              <p>Reading your Library before showing its datasets.</p>
             </div>
           ) : (
             <LibraryEvidenceEstate
@@ -763,12 +763,12 @@ export function LibraryPage({
             {navigationLoading && !searchActive ? (
               <div className="rd-v2-library-empty" role="status" aria-live="polite">
                 <strong>Organizing collection…</strong>
-                <p>Reading the current research context before showing its holdings.</p>
+                <p>Reading the current research context before showing data in your Library.</p>
               </div>
             ) : loading && !vaultDatasets.length ? (
               <div className="rd-v2-library-empty" role="status" aria-live="polite">
-                <strong>Loading Library holdings…</strong>
-                <p>Reading the registered evidence estate before showing this collection.</p>
+                <strong>Loading Library data…</strong>
+                <p>Reading your Library before showing this collection.</p>
               </div>
             ) : visibleRows.length ? (
               <CatalogList
@@ -780,7 +780,7 @@ export function LibraryPage({
               />
             ) : (
               <div className="rd-v2-library-empty">
-                <strong>{searchActive ? "No assets match this search" : "Nothing else in this collection"}</strong>
+                <strong>{searchActive ? "No datasets match this search" : "Nothing else in this collection"}</strong>
                 <p>
                   {searchActive
                     ? "Try a broader keyword, or clear the search to see the current collection again."

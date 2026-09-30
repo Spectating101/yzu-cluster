@@ -38,7 +38,7 @@ export function previewCellValue(value, { empty = "—", maxLength = 240 } = {})
   return `${text.slice(0, Math.max(1, maxLength - 1))}…`;
 }
 
-export function researcherPreviewReason(value, fallback = "The bounded preview could not establish schema or sample rows.") {
+export function researcherPreviewReason(value, fallback = "The sample preview could not confirm the structure or return sample rows.") {
   const raw = String(value || "").trim();
   if (!raw) return fallback;
   if (/\bsubmit_collection\b|desk role .* lacks permission/i.test(raw)) {

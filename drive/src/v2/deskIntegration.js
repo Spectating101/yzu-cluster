@@ -30,7 +30,7 @@ export function buildDeskIntegrationChips(health) {
 
   // Desk status badge already lives in the header — only chip when degraded.
   if (degraded) {
-    chips.push({ id: "desk", label: "Desk degraded", tone: "warn" });
+    chips.push({ id: "desk", label: "Research Drive needs attention", tone: "warn" });
   }
 
   // composer_runtime is frequently the reason status flips to degraded —
@@ -116,9 +116,9 @@ export function buildObjectEstateCrumb(object, { probeState = null, searchMeta =
     null;
   let freshness = formatAge(stamp);
   if (probeState?.observedAt) {
-    freshness = `Probed ${formatAge(probeState.observedAt)}`;
+    freshness = `Connection tested ${formatAge(probeState.observedAt)}`;
   } else if (probeState?.loading) {
-    freshness = "Probe in flight";
+    freshness = "Connection test in flight";
   } else if (searchMeta?.search_mode) {
     const mode = String(searchMeta.search_mode);
     freshness =
@@ -140,7 +140,7 @@ export function buildObjectEstateCrumb(object, { probeState = null, searchMeta =
       object.analysis_readiness === "instant" ||
       object.analysis_readiness === "instant_or_minutes" ||
       object.analysis_readiness === "queryable";
-    authority = ready ? "Query-ready registry" : "Library registry";
+    authority = ready ? "Ready to query registry" : "Library registry";
   }
   if (object.cached === true) authority = (authority ? `${authority} · ` : "") + "Cached";
   if (object.demo || object._demo) authority = "Demo fixture — verify source";

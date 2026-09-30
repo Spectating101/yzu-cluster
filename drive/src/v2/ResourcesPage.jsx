@@ -18,6 +18,14 @@ import { Chip, PageShell, StatementRow, StatementSection } from "@/v2/ui";
 import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
 import { DeskError } from "@/v2/DeskError";
 
+const SOURCE_AUTHORITY_TEXT = {
+  OBSERVED: "Observed",
+  UNAVAILABLE: "Unavailable",
+  CONDITIONAL: "Conditional",
+  "NOT CHECKED": "Not checked",
+  "ROUTE DEFINED": "Method documented",
+};
+
 const METER_ACTION_TEXT = { CHECK: "worth checking", NEED: "needs setup" };
 
 function shortText(value, max = 92) {
@@ -126,7 +134,7 @@ function facultyOpsLabel(label, key) {
     "Ask / model turns": "Ask usage",
     Workers: "Collection workers",
     Vault: "Library vault",
-    "Query engine": "Desk connection",
+    "Query engine": "Research Drive connection",
   };
   return map[label] || label;
 }
@@ -144,7 +152,7 @@ function CapacityAccessGrid({ rollup, health, loading = false, selectedKey, onSe
       ? pair.meters.map((meter) => ({
           ...meter,
           metric: "Checking…",
-          available: "Waiting for live desk telemetry",
+          available: "Waiting for live Research Drive telemetry",
           pct: null,
           warn: false,
         }))
@@ -215,14 +223,14 @@ function SourceCapabilityLedger({ panels, selectedKey, onSelect }) {
     { rows: panels?.layers || [] },
   ]);
   if (!families.length) {
-    return <p className="rd-v2-res-idle">Source capability rows appear when the desk reports routes.</p>;
+    return <p className="rd-v2-res-idle">Source capabilities appear when Research Drive reports collection methods.</p>;
   }
   return (
     <div className="rd-v2-res-source-ledger" data-testid="resources-source-ledger">
       <header className="rd-v2-res-source-ledger-head">
         <span>Source</span>
         <span>Access</span>
-        <span>Authority</span>
+        <span>Verification</span>
       </header>
       {families.map((family) => (
         <section key={family.id} className="rd-v2-res-source-family" aria-label={family.title}>
@@ -251,7 +259,7 @@ function SourceCapabilityLedger({ panels, selectedKey, onSelect }) {
                   <strong>{row.name}</strong>
                 </span>
                 <span>{row.access}</span>
-                <em data-authority={row.authority}>{row.authority}</em>
+                <em data-authority={row.authority}>{SOURCE_AUTHORITY_TEXT[row.authority] || row.authority}</em>
               </button>
             );
           })}
@@ -289,7 +297,7 @@ function ResourcesStatusStrip({ rollup }) {
         />
       ))}
       <StatusStripCell
-        label="Desk connection"
+        label="Research Drive connection"
         value={qe.up ? "Connected" : "Offline"}
         sub="Catalog and query service"
         tone={qe.up === false ? "off" : ""}
@@ -305,7 +313,7 @@ function ActivityUsageSummary({ rollup }) {
     ["Remote tables", fmtGiBValue(period.bq_gib_billed), `${fmtGiBValue(today.bq_gib_billed)} today`],
     ["Web search", fmtCount(period.tavily_calls, "call"), `${today.tavily_calls ?? 0} today`],
     ["Ask usage", fmtCount(period.composer_turns, "turn"), `${today.composer_turns ?? 0} today`],
-    ["Source probes", fmtCount(period.probe_calls, "probe"), `${today.probe_calls ?? 0} today`],
+    ["Connection tests", fmtCount(period.probe_calls, "connection test"), `${today.probe_calls ?? 0} today`],
   ];
   return (
     <section className="rd-v2-res-status-strip rd-v2-res-status-strip-activity" aria-label="Usage report">
@@ -420,7 +428,7 @@ function sourceGroupRow({ rows, keys, key, label, endpoint, metric, detail }) {
   return {
     kind: "source",
     key,
-    section: "Source routes",
+    section: "Collection methods",
     group: true,
     label,
     endpoint,
@@ -457,7 +465,7 @@ function buildPinnedSourceRows(providers = [], layers = []) {
       keys: ["layer-discover_search", "layer-web_discover", "layer-probe_url"],
       key: "route-discovery-intake",
       label: "Discovery & intake",
-      endpoint: "Discover search · Web discover · Source probe",
+      endpoint: "Discover search · Web discover · Connection test",
       metric: "Find candidates, classify URLs",
       detail: "Before collection",
     }),
@@ -467,7 +475,7 @@ function buildPinnedSourceRows(providers = [], layers = []) {
       key: "source-public-web",
       label: "Public web (craft)",
       endpoint: "Any public URL → generic collect plan",
-      metric: "Probe, craft plan, approve, then collect",
+      metric: "Test the connection, plan, approve, then collect",
       detail: "AI identify + custom HTTP/scrape — not a named vendor downloader",
     }),
     sourceGroupRow({
@@ -499,7 +507,7 @@ function resourceDetail(row) {
     if (row.key === "source-market-filings") return "Official market data and filings";
     if (row.key === "source-research-catalogs") return "Academic metadata and dataset APIs";
     if (row.key === "route-discovery-intake") return "Candidate discovery and URL classification";
-    if (row.key === "source-public-web") return "Probe and browser collect";
+    if (row.key === "source-public-web") return "Test connections and collect through the browser";
     if (row.key === "source-remote-tables") return "Dry-run protected remote query";
     if (row.key === "source-sec_edgar") return "Company filings";
     if (row.key === "source-twse") return "Taiwan market data";
@@ -559,8 +567,8 @@ function resourceQuota(row) {
   if (row.kind === "source") {
     if (row.key === "source-market-filings") return "Official feeds and queue scripts";
     if (row.key === "source-research-catalogs") return "DOI lookup and dataset import";
-    if (row.key === "route-discovery-intake") return "Search and probe before collect";
-    if (row.key === "source-public-web") return "Probe, then collect";
+    if (row.key === "route-discovery-intake") return "Search and test connections before collecting";
+    if (row.key === "source-public-web") return "Test the connection, then collect";
     if (row.key === "source-remote-tables") return "Query with dry-run limit";
     if (row.key === "source-sec_edgar") return "Download queue";
     if (row.key === "source-twse") return "Download queue";
@@ -569,7 +577,7 @@ function resourceQuota(row) {
     if (row.key === "source-bigquery") return "Remote query";
     if (row.key === "source-datacite") return "DOI lookup";
     if (row.key === "source-huggingface") return "Dataset import";
-    if (row.key === "source-web_generic") return "Probe, then collect";
+    if (row.key === "source-web_generic") return "Test the connection, then collect";
     return row.collect_via || row.layers || "Available";
   }
   return row.metric || row.routes || "—";
@@ -645,10 +653,10 @@ function buildResourceInventorySections(panels) {
     ),
     inventorySection(
       "sources",
-      "Source routes",
+      "Collection methods",
       sources,
       "Route",
-      "Routes the desk can use to find, probe, and collect missing data.",
+      "Methods Research Drive can use to find missing data, test connections, and collect it.",
     ),
   ].filter((section) => section.rows.length);
 }
@@ -666,8 +674,8 @@ function ResearchCapability({ cluster, panels, rollup, catalogSummary }) {
     workers.online != null || workers.idle != null
       ? `Online ${workers.online ?? 0} · idle ${workers.idle ?? 0}${
           workers.busy != null ? ` · busy ${workers.busy}` : ""
-        }. Discover can probe and collect within access rules.`
-      : "Discover can probe and collect within the available access rules.";
+        }. Discover can test connections and collect data within access rules.`
+      : "Discover can test connections and collect data within the available access rules.";
   const bigQuery = (panels.metered || []).find((row) => row.key === "bigquery");
 
   return (
@@ -682,13 +690,13 @@ function ResearchCapability({ cluster, panels, rollup, catalogSummary }) {
         <div>
           <span>Reusable research estate</span>
           <strong>
-            {registry != null ? `${registry} registered assets` : "Registered estate available"}
-            {instant != null ? ` · ${instant} query-ready` : ""}
+            {registry != null ? `${registry} datasets saved to Library` : "Data saved to Library available"}
+            {instant != null ? ` · ${instant} ready to query` : ""}
           </strong>
           <em>
             {partitions != null
               ? `${partitions} organized collections available in Library.`
-              : "Registered assets remain available in Library."}
+              : "Saved datasets remain available in Library."}
           </em>
         </div>
         <div>
@@ -764,13 +772,13 @@ function ResourceInventory({ sections, selectedKey, onSelect }) {
         <details className="rd-v2-res-routes">
           <summary>
             <span>
-              <strong>Available source routes</strong>
+              <strong>Available collection methods</strong>
               <em>{sourceRoutes} configured routes used by Discover when evidence is missing.</em>
             </span>
             <b>Show routes</b>
           </summary>
           <div className="rd-v2-res-routes-body">
-            <p>Routes remain available for inspection here; sourcing choices and collection progress stay in Discover.</p>
+            <p>Review collection methods here. Choose where to get data and track collection in Discover.</p>
             {sourceSection.rows.map((item) => (
               <ResourceInventoryRow
                 key={item.id}
@@ -883,7 +891,7 @@ export function ResourcesPage({
     refreshedAt != null ? `${Math.max(0, Math.round((Date.now() - refreshedAt) / 1000))}s ago` : null;
   const surfaceState = resolveSurfaceLifecycle({
     loading: syncing,
-    error: loadError || (rollup === null ? "Desk API unreachable" : ""),
+    error: loadError || (rollup === null ? "Research Drive API unreachable" : ""),
     hasData: Boolean(lastKnownRollup),
   });
 
@@ -944,7 +952,7 @@ export function ResourcesPage({
       {loadError ? <DeskError raw={loadError} surface="resource telemetry" /> : null}
       {rollup === null && !rollupLoading && !loadError ? (
         <p className="rd-v2-res-offline" role="status">
-          Desk API unreachable — start <code>python -m scripts.research_query_engine.server</code> on :8765.
+          Research Drive API unreachable — start <code>python -m scripts.research_query_engine.server</code> on :8765.
         </p>
       ) : null}
 
@@ -985,15 +993,15 @@ export function ResourcesPage({
             </li>
             <li>
               <strong>Acquire</strong>
-              <span>Approved requests become durable collection jobs.</span>
+              <span>Approved requests are saved so collection can be tracked.</span>
             </li>
             <li>
               <strong>Execute</strong>
               <span>Workers run the chosen route under dry-run protection.</span>
             </li>
             <li>
-              <strong>Promote</strong>
-              <span>Archive + registry read-back yields a Library asset.</span>
+              <strong>Add to Library</strong>
+              <span>Archive checks and reading back the saved record confirm the dataset is in Library.</span>
             </li>
           </ol>
           <div className="rd-v2-res-method-progress">
@@ -1002,7 +1010,7 @@ export function ResourcesPage({
               <li className={reviewRows.length ? "pending" : "idle"}>Find</li>
               <li className={reviewRows.length ? "active" : "idle"}>Acquire</li>
               <li className="idle">Execute</li>
-              <li className="idle">Promote</li>
+              <li className="idle">Add to Library</li>
             </ol>
             <p>
               {reviewRows.length

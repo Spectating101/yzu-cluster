@@ -26,7 +26,8 @@ function explicitStage(event) {
   return String(value).trim().toLowerCase().replace(/[\s-]+/g, "_");
 }
 
-export function historyLifecycleLabel(event) {
+// Keep the legacy status values used by decisions separate from display copy.
+export function historyLifecycleInternalLabel(event) {
   const status = String(event?.status || event?.meta?.status || "").toLowerCase();
   const action = String(event?.kind || event?.action || "").toLowerCase();
   const truth = historyHoldingTruth(event);
@@ -79,17 +80,32 @@ export function historyLifecycleLabel(event) {
   return status ? status.replace(/[_-]+/g, " ") : "Status not reported";
 }
 
+const STATUS_LABELS = {
+  "Approval required": "Waiting for your approval",
+  "Blocked — needs recovery": "Blocked — needs attention",
+  "Failed — needs recovery": "Failed — needs attention",
+  "Registered · unconfirmed": "In Library · not yet checked",
+  "Registered · reconciliation pending": "In Library · being checked",
+  "Query-ready": "Ready to query",
+  Registered: "Saved to Library",
+};
+
+export function historyLifecycleLabel(event) {
+  const internalLabel = historyLifecycleInternalLabel(event);
+  return Object.hasOwn(STATUS_LABELS, internalLabel) ? STATUS_LABELS[internalLabel] : internalLabel;
+}
+
 export function historyLifecycleExplanation(event) {
   const label = historyLifecycleLabel(event);
   const status = String(event?.status || event?.meta?.status || "").toLowerCase();
   const meta = event?.meta || {};
 
-  switch (label) {
+  switch (historyLifecycleInternalLabel(event)) {
     case "Cancelled":
       return {
         label,
         explanation: "This request was cancelled. It is not collecting and does not need recovery.",
-        risk: "No durable Library asset is expected from this request.",
+        risk: "No dataset saved to Library is expected from this request.",
         next: "Start a revised request if the evidence need still stands.",
       };
     case "Scheduled refresh":
@@ -107,7 +123,7 @@ export function historyLifecycleExplanation(event) {
         label,
         explanation: "This refresh is recorded but is not running. It resumes only when a researcher restarts it.",
         risk: "The evidence object will drift from its source while the refresh is paused.",
-        next: "Resume the refresh, or accept the current snapshot as the working asset.",
+        next: "Resume the refresh, or use the current snapshot as your working dataset.",
       };
     case "Refresh stopped":
       return {
@@ -128,7 +144,7 @@ export function historyLifecycleExplanation(event) {
         label,
         explanation: "The request exists while a viable acquisition route is being established.",
         risk: "Acquisition method is not established.",
-        next: "Investigate available source and access routes.",
+        next: "Review available collection methods and access requirements.",
       };
     case "Method review":
       return {
@@ -141,28 +157,28 @@ export function historyLifecycleExplanation(event) {
       return {
         label,
         explanation: "The evidence request reports active extraction.",
-        risk: "Observed output is not a registered Library asset.",
+        risk: "Observed output has not been saved as a Library dataset.",
         next: "Track extraction evidence and wait for a reviewable result.",
       };
     case "Schema review":
       return {
         label,
         explanation: "Collection returned evidence that needs a researcher-owned shape or mapping decision.",
-        risk: "Unreviewed fields are not silently normalized into a research asset.",
+        risk: "Fields need review before being standardized in a research dataset.",
         next: "Review the recorded evidence shape or mapping.",
       };
     case "Queued":
       return {
         label,
         explanation: "The approved request is waiting for a worker.",
-        risk: "Output is not yet a registered Library asset.",
+        risk: "Output has not yet been saved as a Library dataset.",
         next: "Track progress until archive and registry evidence are confirmed.",
       };
     case "Collecting":
       return {
         label,
-        explanation: "Collection is active. The current evidence below is the last durable update.",
-        risk: "Output is not yet a registered Library asset.",
+        explanation: "Collection is active. The evidence below shows the last saved update.",
+        risk: "Output has not yet been saved as a Library dataset.",
         next: "Track progress until archive and registry evidence are confirmed.",
       };
     case "Blocked — needs recovery":
@@ -173,36 +189,36 @@ export function historyLifecycleExplanation(event) {
         label,
         explanation: "A licence or access gate refused this collection, so it never ran.",
         risk: "No evidence was collected, and re-running the same request will be refused again.",
-        next: "Resolve the access condition on the source, or choose a route the desk is licensed for.",
+        next: "Resolve the source’s access requirement, or choose a collection method Research Drive is licensed to use.",
       };
     case "Failed — needs recovery":
       return {
         label,
         explanation: "The latest execution did not complete. Existing request evidence is preserved.",
-        risk: "Do not treat the output as registered or query-ready.",
+        risk: "Do not treat the output as saved to Library or ready to query.",
         next: "Inspect the failure and create a revised request if the route changed.",
       };
     case "Registered · unconfirmed":
       return {
         label,
-        explanation: "The desk holds a registration receipt for this object, but it is not queryable.",
+        explanation: "Research Drive has a record of saving this dataset to Library, but it cannot be queried.",
         risk: "Nothing here can be read into an analysis; treat it as a record, not as data.",
-        next: "Re-collect the object, or open it in Library to see what the holding is missing.",
+        next: "Collect the data again, or open it in Library to see what is missing.",
       };
     case "Registered · reconciliation pending":
       return {
         label,
         explanation:
-          "The desk holds this object and reports it usable, but the registry row could not be read back, so catalog equivalence is unconfirmed.",
+          "Research Drive has this dataset and reports it usable. Its Library record could not be read back, so a match with the catalog has not been confirmed.",
         risk: "Query results may not match what the catalog claims about this object.",
         next: "Open it in Library to confirm the schema before relying on it.",
       };
     case "Query-ready":
       return {
         label,
-        explanation: "The registered asset has an explicit query-ready authority state.",
-        risk: "Use the recorded query evidence rather than inferring readiness from registration alone.",
-        next: "Open the asset in Library or inspect its query evidence.",
+        explanation: "Checks confirm that this Library dataset is ready to query.",
+        risk: "Use the recorded query evidence. Saving to Library alone does not confirm readiness.",
+        next: "Open the dataset in Library or inspect its query evidence.",
       };
     case "Registered": {
       const archive = meta.archive_verified === true || event?.archive_verified === true;
@@ -211,26 +227,26 @@ export function historyLifecycleExplanation(event) {
         label,
         explanation:
           archive && readback
-            ? "Archive verification and canonical registry read-back both succeeded for this Library asset."
-            : "The durable record reports registration; inspect its proof fields before reuse.",
-        risk: "Registered is not Query-ready. No query capability is claimed here.",
-        next: "Open the exact Library asset or ask about its provenance and readiness gap.",
+            ? "The archive was checked and the master Library record was read back successfully for this dataset."
+            : "The saved record says the dataset was saved to Library. Inspect the verification details before reuse.",
+        risk: "Saved to Library does not mean ready to query. Query access has not been confirmed here.",
+        next: "Open this Library dataset or ask about its source history and what still needs to be checked.",
       };
     }
     case "Completed":
     case "Archived":
       return {
         label,
-        explanation: "The latest durable record reports completion. Verify registry/readiness evidence before reuse.",
-        risk: "Completion alone does not imply registration or query readiness.",
+        explanation: "The latest saved record reports completion. Check that the output is saved to Library and ready for use before reuse.",
+        risk: "Completion alone does not confirm the output is saved to Library or ready to query.",
         next: "Inspect the output and its supporting evidence.",
       };
     default:
       return {
         label,
-        explanation: "The lifecycle record does not report a named research stage.",
+        explanation: "The request record does not report a research stage.",
         risk: "Do not infer route, method, or execution state from an absent record.",
-        next: "Inspect the technical record or wait for the next durable update.",
+        next: "Inspect the technical record or wait for the next saved update.",
       };
   }
 }

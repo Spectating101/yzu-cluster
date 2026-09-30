@@ -4,7 +4,7 @@ import { statusPillKind } from "@/v2/datasetMeta";
 const COLLECTIONS = Object.freeze({
   research_panels: {
     title: "Research panels",
-    description: "Derived and analysis-ready research assets",
+    description: "Derived research datasets ready for analysis",
     tone: "derived",
     order: 0,
   },
@@ -39,8 +39,8 @@ const COLLECTIONS = Object.freeze({
     order: 5,
   },
   other: {
-    title: "Other assets",
-    description: "Registry assets not yet organized into a collection",
+    title: "Other datasets",
+    description: "Library datasets not yet organized into a collection",
     tone: "other",
     order: 6,
   },
@@ -114,7 +114,7 @@ export function collectionDescriptor(folder) {
   if (known) return known;
   return {
     title: folder?.name || "Collection",
-    description: `Assets organized under ${folder?.name || "this collection"}`,
+    description: `Datasets organized under ${folder?.name || "this collection"}`,
     tone: "default",
     order: 50,
   };
@@ -159,7 +159,7 @@ export function assetTypeLabel(row) {
     return "Operational resource";
   }
   if (readiness === "connected") return "Connected source";
-  if (domain === "procured" || path.includes("procured")) return "Acquired asset";
+  if (domain === "procured" || path.includes("procured")) return "Collected dataset";
   if (path.includes("research_panels") || domain === "derived") return "Derived panel";
   if (readiness === "remote") return "Catalog record";
   return "Library dataset";

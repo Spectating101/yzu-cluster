@@ -1,3 +1,4 @@
+import { synthesisRailContextForRequest } from "@/v2/synthesisAssist.js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   deskWarm,
@@ -302,7 +303,7 @@ export function useAskChat({
         const out = await sendChatMessage(full, {
           sessionId: sessionRef.current,
           userEmail: loadUserEmail(),
-          railContext: railRef.current,
+          railContext: synthesisRailContextForRequest(railRef.current),
           onDelta: (chunk) => {
             if (!isCurrentRequest()) return;
             setStatus("");
@@ -448,7 +449,7 @@ export function useAskChat({
           onCollected?.();
           onToast?.(
             out.action === "schedule_refresh"
-              ? "Refresh registered in Discover History"
+              ? "Refresh saved in Discover History"
               : "Queued for collection",
           );
         }
@@ -460,7 +461,7 @@ export function useAskChat({
         if (intent !== "status" && (subId || out.action === "schedule_refresh")) {
           onCollected?.();
           if (out.action !== "schedule_refresh") {
-            onToast?.("Refresh registered in Discover History");
+            onToast?.("Refresh saved in Discover History");
           }
         }
         if (intent !== "status" && shaped.pendingJobId && shaped.jobStatus === "pending_approval") {

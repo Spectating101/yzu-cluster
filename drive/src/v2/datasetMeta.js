@@ -27,9 +27,9 @@ export function isReceiptOnlyAsset(dataset) {
 }
 
 const RUNTIME_DEMOTION = {
-  local_panel_missing: "Declared queryable; local panel is missing.",
-  local_bytes_missing: "Declared queryable; local bytes are missing.",
-  csv_schema_mismatch: "Declared queryable; schema does not match the registered panel.",
+  local_panel_missing: "Documented as queryable, but the local panel is missing.",
+  local_bytes_missing: "Documented as queryable, but local data is missing.",
+  csv_schema_mismatch: "Documented as queryable, but the structure does not match the saved panel.",
 };
 
 export function runtimeReadinessReason(dataset) {
@@ -39,7 +39,7 @@ export function runtimeReadinessReason(dataset) {
 export function demotionSentence(dataset) {
   const reason = runtimeReadinessReason(dataset);
   if (!reason) return "";
-  return RUNTIME_DEMOTION[reason] || "Declared queryable; runtime readiness is not confirmed.";
+  return RUNTIME_DEMOTION[reason] || "Documented as queryable, but readiness in the current system has not been confirmed.";
 }
 
 /** Engine already computed this. UI must not drop it. */
@@ -65,13 +65,13 @@ function acquisitionOnlyRow(dataset = {}) {
 export function statusPillKind(dataset) {
   const reason = runtimeReadinessReason(dataset);
   if (reason) {
-    return { kind: "warn", label: "Registered · unconfirmed" };
+    return { kind: "warn", label: "In Library · not yet checked" };
   }
   if (dataset?.live_identity_badge?.kind && dataset?.live_identity_badge?.label) {
     return dataset.live_identity_badge;
   }
   if (isReceiptOnlyAsset(dataset)) {
-    return { kind: "registered", label: "Registered · reconciliation pending" };
+    return { kind: "registered", label: "In Library · being checked" };
   }
   const readiness = String(dataset?.analysis_readiness || "")
     .trim()
@@ -81,13 +81,13 @@ export function statusPillKind(dataset) {
     return { kind: "external", label: "External" };
   }
   if (isQueryReadyReadiness(readiness)) {
-    return { kind: "query-ready", label: "Query-ready" };
+    return { kind: "query-ready", label: "Ready to query" };
   }
   if (readiness === "registered") {
     if (String(dataset?.access_shape || "").toLowerCase() === "local_file_tree") {
       return { kind: "registered", label: "Files available" };
     }
-    return { kind: "registered", label: "Registered" };
+    return { kind: "registered", label: "Saved to Library" };
   }
   if (readiness === "dry_run_before_execution" || /bigquery/i.test(dataset?.backend || "")) {
     return { kind: "connected", label: "Connected" };
@@ -112,7 +112,7 @@ export function canIUseDecision(dataset) {
   if (demotion) {
     const remedy = hydrateRemedy(dataset);
     return {
-      headline: "Registered · unconfirmed",
+      headline: "In Library · not yet checked",
       body: remedy ? `${demotion} ${remedy}` : demotion,
     };
   }
@@ -120,7 +120,7 @@ export function canIUseDecision(dataset) {
   const assetKind = libraryAssetKind(dataset);
   if (state.kind === "query-ready") {
     return {
-      headline: "Query-ready",
+      headline: "Ready to query",
       body: "You can preview and query this dataset now.",
     };
   }
@@ -133,7 +133,7 @@ export function canIUseDecision(dataset) {
   if (state.kind === "remote") {
     return {
       headline: "Metadata only",
-      body: "This record supports discovery and acquisition. A queryable local asset is not confirmed.",
+      body: "This record supports discovery and acquisition. A local dataset ready to query is not confirmed.",
     };
   }
   if (state.kind === "queued") {
@@ -145,37 +145,37 @@ export function canIUseDecision(dataset) {
   if (state.kind === "warn") {
     return {
       headline: "Review required",
-      body: "The current asset needs review before analysis.",
+      body: "This data needs review before analysis.",
     };
   }
   if (state.kind === "failed") {
     return {
       headline: "Failed",
-      body: "The current asset path failed and needs attention before use.",
+      body: "Access to this data failed and needs attention before use.",
     };
   }
   if (state.kind === "external") {
     return {
       headline: "External source",
-      body: "This source is not confirmed as a usable Library asset.",
+      body: "This source is not confirmed as usable data in your Library.",
     };
   }
   if (state.kind === "registered" && assetKind === "scholarly_work") {
     return {
-      headline: "Registered",
+      headline: "Saved to Library",
       body: "Retained as a reusable scholarly work in this Library. Source verification remains a separate claim.",
     };
   }
   if (state.kind === "registered" && assetKind === "operational") {
     return {
-      headline: "Registered",
+      headline: "Saved to Library",
       body: "Retained as a reusable operational record; its current state must be judged from the recorded evidence.",
     };
   }
   if (state.kind === "registered") {
     return {
-      headline: "Registered",
-      body: "Registered and reusable as an archived research asset; querying has not yet been proven.",
+      headline: "Saved to Library",
+      body: "Saved to Library and reusable as an archived research dataset. Querying has not yet been confirmed.",
     };
   }
   return {
@@ -289,7 +289,7 @@ export function libraryAssetPresentation(dataset = {}) {
       noun: "live source",
       eyebrow: "Selected live source",
       shapeTitle: "Source contract",
-      structureTitle: "Declared response shape",
+      structureTitle: "Documented response shape",
       structureAction: "Inspect fields",
       askLabel: "Ask about this source",
       previewRows: true,
@@ -310,9 +310,9 @@ export function libraryAssetPresentation(dataset = {}) {
   return {
     kind: "dataset",
     noun: "dataset",
-    eyebrow: "Selected Library asset",
-    shapeTitle: "Declared evidence shape",
-    structureTitle: "Declared structure",
+    eyebrow: "Selected Library dataset",
+    shapeTitle: "Documented evidence shape",
+    structureTitle: "Documented structure",
     structureAction: "Inspect fields",
     askLabel: "Ask about access",
     previewRows: true,
@@ -348,7 +348,7 @@ export function detailFields(dataset) {
     partition: partitionParts.length ? partitionParts.join(" · ") : null,
     joinKeys: joinKeys.length ? joinKeys : null,
     vault: d.local_root || d.local_path || d.vault_path || null,
-    use: d.recommended_use || (d.grain ? `Panel at ${d.grain} grain` : null),
+    use: d.recommended_use || (d.grain ? `Panel at ${d.grain} unit of observation` : null),
   };
 }
 

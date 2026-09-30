@@ -8,15 +8,14 @@ export function ReusePanel({ source, changes, onPreview, onChange }) {
     <section className="s04-card" data-testid="synthesis-reuse">
       <header className="s04-title">
         <div>
-          <small>Reusing a registered method</small>
-          <h2>{source.output_dataset_id || "A registered method"}</h2>
+          <small>Reusing a method saved to Library</small>
+          <h2>{source.output_dataset_id || "A method saved to Library"}</h2>
         </div>
         <em className="neutral">{shortHash(diff.from)}</em>
       </header>
 
       <p className="s04-fixture">
-        {diff.carriedCount} settled decisions carry forward. The prior version stays
-        registered and citable — this is a revision, not an overwrite.
+        {diff.carriedCount} settled decisions carry forward. The prior version stays saved to Library and citable. This creates a new version without overwriting it.
       </p>
 
       <div className="s04-options">
@@ -54,7 +53,7 @@ export function ReusePanel({ source, changes, onPreview, onChange }) {
           disabled={!diff.moved.length}
           onClick={() => onPreview?.(diff)}
         >
-          Preview this revision
+          Preview this version
         </button>
       </footer>
     </section>

@@ -368,7 +368,7 @@ export function rankLibraryHoldings(rows = [], query = "", navByDataset = new Ma
 }
 
 function resultLabel(row = {}) {
-  return String(row.display_name || row.name || row.title || row.dataset_id || "Library asset").trim();
+  return String(row.display_name || row.name || row.title || row.dataset_id || "Library dataset").trim();
 }
 
 export function buildLibrarySearchAskPrompt(query, rows = []) {

@@ -70,13 +70,13 @@ const MARKS = {
   registry: { src: registryCatalogMark, alt: "Registry catalog", title: "Registry catalog" },
   discover: { src: discoverSearchMark, alt: "Discover search", title: "Discover search" },
   web_discover: { src: duckduckgoMark, alt: "Web discover", title: "Web discover" },
-  probe: { src: sourceProbeMark, alt: "Source probe", title: "Source probe" },
+  probe: { src: sourceProbeMark, alt: "Connection test", title: "Connection test" },
   http: { src: directHttpMark, alt: "Direct HTTP", title: "Direct HTTP" },
   cluster: { src: clusterJobsMark, alt: "Cluster jobs", title: "Cluster jobs" },
   generic: {
     src: genericRouteMark,
-    alt: "Source route",
-    title: "Source route",
+    alt: "How it’s collected",
+    title: "How it’s collected",
     generic: true,
   },
 };
@@ -103,7 +103,7 @@ export function resolveProviderMark(row = {}) {
   }
 
   if (id === "generic") {
-    const label = String(row.label || row.name || "Source route");
+    const label = String(row.label || row.name || "How it’s collected");
     return {
       id: "generic",
       ...MARKS.generic,

@@ -418,16 +418,16 @@ export function historyHoldingTruth(event = null) {
   );
 
   let label = "Recorded";
-  if (queryReady) label = "Query-ready";
-  else if (receiptOnly) label = "Registered · reconciliation pending";
-  else if (registered) label = "Registered";
+  if (queryReady) label = "Ready to query";
+  else if (receiptOnly) label = "In Library · being checked";
+  else if (registered) label = "Saved to Library";
   else if (completedOnly) label = "Completed";
   else if (/pending_approval|ready_for_review|awaiting|needs_approval/.test(status)) {
-    label = "Needs approval";
+    label = "Waiting for your approval";
   } else if (/queued|running|active|in_progress/.test(status)) {
     label = status === "running" ? "Collecting" : "Active";
   } else if (/failed|error|needs_recovery|blocked/.test(status)) {
-    label = "Needs recovery";
+    label = "Needs attention";
   } else if (collected) {
     label = "Collected";
   }
@@ -473,7 +473,7 @@ export function historyEvidenceSummary(event = null) {
   const receiptReadback = meta.registry_readback ?? event?.registry_readback;
   return [
     archiveVerified === true ? "Archive verified" : "Archive proof not confirmed",
-    receiptReadback === true ? "registration receipt retains read-back proof" : "registration receipt retained",
+    receiptReadback === true ? "the save record includes evidence that the Library record was read back" : "record of saving to Library retained",
     "current catalog reconciliation pending",
   ].join(" · ");
 }

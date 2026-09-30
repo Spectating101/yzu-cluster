@@ -28,7 +28,7 @@ export function composerRuntimeRead(runtime) {
         warn: true,
         label: "Assistant degraded",
         short: "Degraded",
-        why: "last probe failed",
+        why: "last connection test failed",
       };
     case "stale":
       return {
@@ -46,7 +46,7 @@ export function composerRuntimeRead(runtime) {
         warn: true,
         label: "Assistant unverified",
         short: "Unverified",
-        why: "not yet probed live",
+        why: "live connection not yet tested",
       };
     case "unavailable":
       return {

@@ -9,12 +9,12 @@ import {
 const JOURNEY = [
   ["Objective", "State what should exist or be measured"],
   ["Evidence", "Review held evidence and route genuine gaps"],
-  ["Method", "Resolve scope, units, joins, and construction choices"],
-  ["Proposal", "Review one exact revision before accepting it"],
-  ["Preview", "Run the accepted recipe on bounded real bytes"],
+  ["Method", "Resolve scope, units, joins, and build choices"],
+  ["Proposal", "Review this version before accepting it"],
+  ["Preview", "Run the accepted recipe on sample data"],
   ["Approval", "Explicitly authorize the previewed execution"],
-  ["Build", "Observe worker execution and durable proof"],
-  ["Result", "Register, verify, and reuse the research asset"],
+  ["Build", "Observe worker execution and saved proof"],
+  ["Result", "Save to Library, verify, and reuse the research dataset"],
 ];
 
 function WorkflowGuide() {
@@ -22,13 +22,13 @@ function WorkflowGuide() {
     <details className="s04-workflow-guide">
       <summary>
         <span>
-          <small>How one construction moves</small>
+          <small>How one build moves</small>
           <strong>Objective → Evidence → Method → … → Result</strong>
         </span>
         <em>8 stages</em>
       </summary>
-      <div className="s04-workflow-guide-body" aria-label="How one Synthesis construction moves">
-        <p>Recommendation and execution are separate authority boundaries.</p>
+      <div className="s04-workflow-guide-body" aria-label="How one Synthesis build moves">
+        <p>A suggested build and permission to run it require separate decisions.</p>
         <ol>
           {JOURNEY.map(([label, description]) => (
             <li key={label}>
@@ -39,7 +39,7 @@ function WorkflowGuide() {
             </li>
           ))}
         </ol>
-        <p>This is a map, not a progress score. Later stages remain unavailable until the durable thread earns them.</p>
+        <p>This map shows the stages of a build. Later stages become available only when the saved work meets their requirements.</p>
       </div>
     </details>
   );
@@ -49,8 +49,8 @@ export function SynthesisIdleRailPanel({ onAskAbout }) {
   return (
     <RailFrame>
       <RailEntityHeader
-        title="No construction selected"
-        description="Start a construction from a research question, or open a registered method."
+        title="No build selected"
+        description="Start a build from a research question, or open a method saved to Library."
       />
       <div className="rd-v2-rail-scroll">
         <RailFieldGrid>
@@ -58,7 +58,7 @@ export function SynthesisIdleRailPanel({ onAskAbout }) {
           <RailField label="Ask" value="Clarifies meaning and required evidence" />
           <RailField label="Ground" value="Checks Library inputs and defensible proxies" />
           <RailField label="Review" value="You approve the method before execution" />
-          <RailField label="Output" value="Archive, registration, and readiness remain separate" />
+          <RailField label="Output" value="Archiving, saving to Library, and readiness remain separate" />
         </RailFieldGrid>
         <WorkflowGuide />
       </div>

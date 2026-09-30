@@ -14,7 +14,7 @@ export const SYNTHESIS_AUTOMATION_OPTIONS = Object.freeze([
     id: SYNTHESIS_AUTOMATION_MODES.MANUAL,
     label: "Manual",
     short: "Manual",
-    detail: "AI suggests and reasons; you choose and approve each authority change.",
+    detail: "AI suggests and reasons. You choose the method and approve each step that needs permission.",
   },
   {
     id: SYNTHESIS_AUTOMATION_MODES.AUTO_CHOOSE,

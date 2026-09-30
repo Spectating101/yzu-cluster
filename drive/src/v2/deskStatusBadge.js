@@ -15,8 +15,8 @@ export function deskStatusBadge(deskStatus, usingSeed = false) {
   if (deskStatus === "syncing") return { label: "Syncing…", tone: "muted" };
   if (deskStatus === "empty") return { label: "Empty registry", tone: "warn" };
   if (usingSeed || deskStatus === "demo") return { label: "Demo catalog", tone: "warn" };
-  if (deskStatus === "degraded") return { label: "Desk degraded", tone: "warn" };
-  return { label: "Desk API offline", tone: "warn" };
+  if (deskStatus === "degraded") return { label: "Research Drive needs attention", tone: "warn" };
+  return { label: "Research Drive API offline", tone: "warn" };
 }
 
 function normalizeLabel(value) {
@@ -48,7 +48,7 @@ export function visibleIntegrationChips(chips, statusLabel) {
  * competing pill.
  */
 export function deskStatusSummary(statusBadge, chips) {
-  const badge = statusBadge || { label: "Desk status", tone: "muted" };
+  const badge = statusBadge || { label: "Research Drive status", tone: "muted" };
   const notices = visibleIntegrationChips(chips, badge.label)
     // Pending work already has its own precise, clickable count beside the
     // Library count. Repeating its age here made one fact occupy two badges.
@@ -64,7 +64,7 @@ export function deskStatusSummary(statusBadge, chips) {
     return { label: badge.label, tone: badge.tone, details };
   }
   return {
-    label: `${notices.length} desk ${notices.length === 1 ? "notice" : "notices"}`,
+    label: `${notices.length} Research Drive ${notices.length === 1 ? "notice" : "notices"}`,
     tone: notices.some((chip) => ["bad", "danger", "error"].includes(chip.tone)) ? "bad" : "warn",
     details,
   };

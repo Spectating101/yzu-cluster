@@ -30,7 +30,7 @@ test.describe("v2 Library evidence estate", () => {
   });
 
   test("selecting evidence inspects in place while deeper dossier detail stays progressive", async ({ page }) => {
-    await page.getByRole("textbox", { name: "Search library holdings" }).fill("Asia");
+    await page.getByRole("textbox", { name: "Search your Library" }).fill("Asia");
     const row = page.getByTestId("library-evidence-row").filter({ hasText: "Asia daily news-risk panel" });
     await expect(row).toBeVisible();
     await expect(row).toContainText("Matched");
@@ -49,7 +49,7 @@ test.describe("v2 Library evidence estate", () => {
     await expect(preview).toContainText("Dataset inspection");
     await expect(preview).toContainText("Observed sample");
     await expect(preview).toContainText("Coverage:");
-    await expect(preview).toContainText("Grain:");
+    await expect(preview).toContainText("Unit of observation:");
     await expect(preview).toContainText("Keys:");
     await expect(facts.getByText("Research details", { exact: true })).toBeVisible();
     expect(await facts.evaluate((element) => element.open)).toBe(false);
@@ -69,7 +69,7 @@ test.describe("v2 Library evidence estate", () => {
     const rail = page.locator("aside.rd-v2-rail");
     await expect(page.getByTestId("research-situation")).toContainText("Asia daily news-risk panel");
     await expect(rail).toContainText("Can I use this?");
-    await expect(rail).toContainText("Query-ready");
+    await expect(rail).toContainText("Ready to query");
     await expect(rail).toContainText("Source & reproduce");
     await expect(rail).toContainText("Exact source URL not recorded");
     await expect(rail).toContainText("Reproduction method not recorded");
@@ -83,13 +83,13 @@ test.describe("v2 Library evidence estate", () => {
 
     await facts.getByText("Research details", { exact: true }).click();
     expect(await facts.evaluate((element) => element.open)).toBe(true);
-    await expect(facts).toContainText("Asset facts");
+    await expect(facts).toContainText("Data facts");
     await expect(facts).toContainText("Research use");
     await expect(facts).toContainText("Boundary");
     await expect(workspace.locator(".rd-v2-library-evidence-facts")).toContainText("ScopeNot declared");
 
     await workspace.getByRole("button", { name: "Inspect schema" }).click();
-    const fields = page.getByRole("dialog", { name: "Declared structure" });
+    const fields = page.getByRole("dialog", { name: "Documented structure" });
     await expect(fields).toBeVisible();
     await expect(fields).toContainText("country_iso3");
     await fields.getByRole("button", { name: "Close inspection" }).click();
@@ -102,10 +102,10 @@ test.describe("v2 Library evidence estate", () => {
     await expect(provenance).toContainText("Acquisition method");
     await expect(provenance.getByText("Not recorded", { exact: true })).toHaveCount(2);
     await expect(page.getByTestId("library-source-verification")).toContainText("Not checked");
-    await expect(page.getByTestId("library-source-readiness")).toContainText("Query-ready");
+    await expect(page.getByTestId("library-source-readiness")).toContainText("Ready to query");
     await provenance.getByRole("button", { name: "Close inspection" }).click();
 
-    await page.getByRole("button", { name: "Close asset inspector" }).click();
+    await page.getByRole("button", { name: "Close data inspector" }).click();
     await expect(inspector).toHaveCount(0);
     await expect(page.getByTestId("library-evidence-estate")).toBeVisible();
   });
@@ -178,7 +178,7 @@ test.describe("v2 Library navigation", () => {
     await expect(outside).toContainText("1 known record");
     await expect(outside).toContainText("outside your Library");
     await expect(outside.getByRole("button", { name: "Review in Discover" })).toBeVisible();
-    await page.getByRole("textbox", { name: "Search library holdings" }).fill("Registered reference only");
+    await page.getByRole("textbox", { name: "Search your Library" }).fill("Registered reference only");
     await expect(page.getByTestId("library-evidence-estate")).toContainText("No held evidence matches");
     await expect(page.getByRole("button", { name: "Search wider in Discover" })).toBeVisible();
   });

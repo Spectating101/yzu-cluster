@@ -38,8 +38,8 @@ test("a locked desk has one honest boundary, not zero-shaped data", async ({ pag
   await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
   const gate = page.getByTestId("desk-access-gate");
   await expect(gate).toBeVisible();
-  await expect(gate).toContainText("Research data stays inside the desk.");
-  await expect(gate).toContainText("This browser is not on a trusted desk entry.");
+  await expect(gate).toContainText("Research data stays inside Research Drive.");
+  await expect(gate).toContainText("This browser is not using a trusted Research Drive address.");
   await expect(gate.getByRole("button", { name: "Check access again" })).toBeVisible();
   await expect(page.getByText(/0 datasets|Nothing else in this folder|Syncing…/)).toHaveCount(0);
 

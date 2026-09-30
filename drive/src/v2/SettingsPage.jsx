@@ -126,7 +126,7 @@ export function SettingsPage({
     const email = saveUserEmail(PILOT_PREVIEW_EMAIL);
     patch({ email });
     onProfileRefresh?.();
-    onToast?.(`Bound EXAMPLE identity ${email}`);
+    onToast?.(`Connected example account ${email}`);
   };
 
   const connectSession = async () => {
@@ -135,8 +135,8 @@ export function SettingsPage({
       const out = await ensureDeskSession({ force: true });
       onToast?.(
         out.ok
-          ? "Research desk connected for this browser"
-          : out.error || "Desk connection failed",
+          ? "Research Drive connected for this browser"
+          : out.error || "Research Drive connection failed",
       );
       onProfileRefresh?.();
     } finally {
@@ -160,7 +160,7 @@ export function SettingsPage({
     try {
       clearDeskToken();
       await clearDeskSession();
-      onToast?.("Research desk disconnected");
+      onToast?.("Research Drive disconnected");
       onProfileRefresh?.();
     } finally {
       setBusy(false);
@@ -205,7 +205,7 @@ export function SettingsPage({
                   <option value="wide">Search wider immediately</option>
                 </select>
               </div>
-              <p className="rd-v2-settings-hint">Known-first paints held evidence quickly; wider search adds live and semantic routes.</p>
+              <p className="rd-v2-settings-hint">Search starts with data in your Library. Wider search adds live sources and matches by meaning.</p>
             </div>
           </div>
         </StatementSection>
@@ -246,7 +246,7 @@ export function SettingsPage({
             </button>
             {demoMode ? (
               <button type="button" className="rd-v2-btn sm ghost" onClick={bindPilot}>
-                Use EXAMPLE (Kong)
+                Use example account (Kong)
               </button>
             ) : null}
           </div>
@@ -258,7 +258,7 @@ export function SettingsPage({
           </p>
         </StatementSection>
 
-        <StatementSection title="Desk connection">
+        <StatementSection title="Research Drive connection">
           <StatementRow
             label="This browser"
             metric={access.label}
@@ -332,7 +332,7 @@ export function SettingsPage({
               warn={archive.known && !archive.ready}
             />
             <StatementRow
-              label="Desk equipment"
+              label="Research tools"
               metric={mcpTools != null ? `${mcpTools} research tools` : "Not reported"}
               sublabel="Capability inventory belongs to Resources; this is a compact status read"
               detail={mcpTools != null ? "Reported" : "Unknown"}
@@ -342,7 +342,7 @@ export function SettingsPage({
               <summary>Fallback browser access</summary>
               <div className="rd-v2-settings-advanced-body">
                 <p className="rd-v2-settings-hint">
-                  Use only when this browser cannot mint the normal desk session.
+                  Use only when this browser cannot create the normal Research Drive session.
                 </p>
                 <div className="rd-v2-settings-row stack">
                   <label className="rd-v2-settings-label" htmlFor="rd-settings-token">

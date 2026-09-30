@@ -14,7 +14,7 @@ function pluralCount(value, singular, plural = `${singular}s`) {
 function isFilteredRoot(folder) {
   if (folder?.folderId) return false;
   const note = String(folder?.note || "").toLowerCase();
-  return note.includes("match") && (note.includes("search") || note.includes("matching asset"));
+  return note.includes("match") && (note.includes("search") || note.includes("matching dataset"));
 }
 
 function isPhysicalFolder(folderId = "") {
@@ -71,7 +71,7 @@ export function LibraryFolderRailPanel({
         : "Nested context";
 
   const purpose = filteredRoot
-    ? "This view reflects the current Library search and filters across held evidence. Clear them to return to the full overview."
+    ? "This view shows the current search and filters for data in your Library. Clear them to return to the full overview."
     : root
       ? "Search and review evidence across the full Library. Open Folders when you want to browse the recorded storage structure manually."
       : foldersRoot
@@ -94,11 +94,11 @@ export function LibraryFolderRailPanel({
         <section className="rd-v2-library-folder-summary">
           <span hidden>{legacySummaryLabel}</span>
           <p className="rd-v2-rail-section-label">{summaryLabel}</p>
-          <h3>{loading ? "Reading holdings…" : pluralCount(totalAssets, "asset")}</h3>
+          <h3>{loading ? "Reading your Library…" : pluralCount(totalAssets, "asset")}</h3>
           <div className="rd-v2-library-folder-readiness" aria-busy={loading || undefined}>
-            {loading ? <span>Registered evidence is still loading.</span> : null}
-            {counts.queryReady > 0 ? <span><b>{counts.queryReady}</b> query-ready</span> : null}
-            {notReady > 0 ? <span><b>{notReady}</b> not query-ready</span> : null}
+            {loading ? <span>Data saved to Library is still loading.</span> : null}
+            {counts.queryReady > 0 ? <span><b>{counts.queryReady}</b> ready to query</span> : null}
+            {notReady > 0 ? <span><b>{notReady}</b> not ready to query</span> : null}
             {counts.connected > 0 ? <span><b>{counts.connected}</b> connected</span> : null}
             {counts.metadataOnly > 0 ? <span><b>{counts.metadataOnly}</b> metadata only</span> : null}
             {counts.references > 0 ? (

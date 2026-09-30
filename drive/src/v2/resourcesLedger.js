@@ -120,7 +120,7 @@ export function buildStackRows({ health, catalogSummary, cluster }) {
   const composerOk = !!desk.composer_configured;
   list.push(
     rowBase({
-      section: "Desk stack",
+      section: "Research Drive stack",
       kind: "stack",
       key: "composer",
       label: `Ask · ${measuredComposerLabel(desk.composer_model)}`,
@@ -133,7 +133,7 @@ export function buildStackRows({ health, catalogSummary, cluster }) {
   if (mcp.total) {
     list.push(
       rowBase({
-        section: "Desk stack",
+        section: "Research Drive stack",
         kind: "stack",
         key: "mcp",
         label: "Procurement MCP",
@@ -145,7 +145,7 @@ export function buildStackRows({ health, catalogSummary, cluster }) {
   if (catalogSummary) {
     list.push(
       rowBase({
-        section: "Desk stack",
+        section: "Research Drive stack",
         kind: "stack",
         key: "connectors",
         label: "Saved connectors",
@@ -154,7 +154,7 @@ export function buildStackRows({ health, catalogSummary, cluster }) {
     );
     list.push(
       rowBase({
-        section: "Desk stack",
+        section: "Research Drive stack",
         kind: "stack",
         key: "queue-tasks",
         label: "Collection queue",
@@ -164,11 +164,11 @@ export function buildStackRows({ health, catalogSummary, cluster }) {
     if (catalogSummary.pipelines) {
       list.push(
         rowBase({
-          section: "Desk stack",
+          section: "Research Drive stack",
           kind: "stack",
           key: "pipelines",
           label: "Worker pipelines",
-          metric: `${catalogSummary.pipelines} registered`,
+          metric: `${catalogSummary.pipelines} saved`,
         }),
       );
     }
@@ -177,7 +177,7 @@ export function buildStackRows({ health, catalogSummary, cluster }) {
   const controller = cluster?.controller || "optiplex";
   list.push(
     rowBase({
-      section: "Desk stack",
+      section: "Research Drive stack",
       kind: "stack",
       key: "controller",
       label: `Controller · ${controller}`,
@@ -188,7 +188,7 @@ export function buildStackRows({ health, catalogSummary, cluster }) {
   if (pools?.total != null || pools?.busy != null) {
     list.push(
       rowBase({
-        section: "Desk stack",
+        section: "Research Drive stack",
         kind: "stack",
         key: "workers",
         label: "windows_lab",
@@ -202,7 +202,7 @@ export function buildStackRows({ health, catalogSummary, cluster }) {
   } else if (wl) {
     list.push(
       rowBase({
-        section: "Desk stack",
+        section: "Research Drive stack",
         kind: "stack",
         key: "workers",
         label: "windows_lab",
@@ -249,7 +249,7 @@ export function buildStorageRows({ health }) {
         section: "Usage",
         kind: "usage",
         key: "nvme",
-        label: hot.label || "NVMe hot desk",
+        label: hot.label || "NVMe working storage",
         metric: hot.free_gb != null ? storageFree(hot.free_gb) : `${pct}% used`,
         progress: Number.isFinite(pct) ? pct : null,
         ok: hot.headroom_ok !== false,

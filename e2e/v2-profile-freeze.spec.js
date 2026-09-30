@@ -68,8 +68,8 @@ test.describe("Profile freeze showcase", () => {
 
     const lab = page.getByTestId("profile-lab");
     await expect(lab).toBeVisible();
-    await expect(lab).toContainText("Recorded link · holding not confirmed");
-    await expect(lab).toContainText("Library—not Profile—is possession authority");
+    await expect(lab).toContainText("Recorded link · dataset not confirmed");
+    await expect(lab).toContainText("Library confirms which data you have");
 
     // No legacy split panes / tracks list
     await expect(page.getByTestId("profile-know")).toHaveCount(0);

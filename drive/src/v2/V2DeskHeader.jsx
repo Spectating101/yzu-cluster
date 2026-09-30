@@ -109,7 +109,7 @@ export function V2DeskHeader({
       </div>
 
       <div className="rd-v2-header-meta">
-        <div className="rd-v2-trust-strip" aria-label="Desk status" data-testid="desk-integration-strip">
+        <div className="rd-v2-trust-strip" aria-label="Research Drive status" data-testid="desk-integration-strip">
           {onDeskStatusNavigate ? (
             <button
               type="button"
@@ -166,7 +166,7 @@ export function V2DeskHeader({
             {principal ? (
               <div className="rd-v2-account-identity">
                 <strong>{principal.display_name || principal.email || "Research Drive user"}</strong>
-                <span>{principal.role === "operator" ? "Operator" : principal.role === "public_guest" ? "Guest" : "Member"}</span>
+                <span>{principal.role === "operator" ? "Administrator" : principal.role === "public_guest" ? "Guest" : "Member"}</span>
               </div>
             ) : null}
             {isGuest ? (
@@ -188,7 +188,7 @@ export function V2DeskHeader({
             </button>
             <button type="button" role="menuitem" onClick={() => openAccountPage("settings")}>
               <span>Settings</span>
-              <small>Desk preferences</small>
+              <small>Research Drive preferences</small>
             </button>
             {!isGuest && onSignOut ? (
               <button type="button" role="menuitem" data-testid="desk-sign-out" onClick={onSignOut}>

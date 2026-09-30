@@ -91,16 +91,16 @@ test("a usable holding and an unusable one do not share a label", () => {
 });
 
 test("an unusable holding says so", () => {
-  assert.equal(historyLifecycleLabel(ARCHIVED_UNUSABLE), "Registered · unconfirmed");
+  assert.equal(historyLifecycleLabel(ARCHIVED_UNUSABLE), "In Library · not yet checked");
   const x = historyLifecycleExplanation(ARCHIVED_UNUSABLE);
-  assert.match(x.explanation, /not queryable/i);
+  assert.match(x.explanation, /cannot be queried/i);
   assert.ok(x.next);
 });
 
 test("a usable holding with an unread registry row is not over-claimed", () => {
   const label = historyLifecycleLabel(HELD_USABLE);
-  assert.equal(label, "Registered · reconciliation pending");
-  assert.notEqual(label, "Query-ready", "must not claim query-ready without registry read-back");
+  assert.equal(label, "In Library · being checked");
+  assert.notEqual(label, "Ready to query", "must not claim query-ready without registry read-back");
   const x = historyLifecycleExplanation(HELD_USABLE);
   assert.match(x.risk, /may not match/i);
 });
@@ -110,7 +110,7 @@ test("a confirmed query-ready holding is still Query-ready", () => {
     ...HELD_USABLE,
     catalog_reconciliation: { state: "reconciled", registry_row_loaded: true },
   };
-  assert.equal(historyLifecycleLabel(confirmed), "Query-ready");
+  assert.equal(historyLifecycleLabel(confirmed), "Ready to query");
 });
 
 /**

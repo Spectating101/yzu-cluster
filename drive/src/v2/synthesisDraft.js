@@ -26,7 +26,7 @@ export function synthesisDraftBrief(objective = "") {
     },
     {
       id: "grain",
-      label: "Unit / grain",
+      label: "Unit of observation",
       ready: GRAIN_RE.test(value),
       help: "What does one row or observation represent?",
       example: "asset × week",
@@ -65,7 +65,7 @@ export function synthesisDraftBrief(objective = "") {
 
 export function synthesisDraftPrompt(objective = "") {
   const brief = synthesisDraftBrief(objective);
-  const missing = brief.missing.map((cue) => cue.label).join(", ");
+  const missing = brief.missing.map((cue) => cue.id === "grain" ? "Unit / grain" : cue.label).join(", ");
   if (!brief.objective) {
     return "Help me frame a new Synthesis research object. Ask one high-value clarification at a time. Help me state the research object, unit or grain, time horizon, and intended use. Do not choose evidence or methodology yet.";
   }

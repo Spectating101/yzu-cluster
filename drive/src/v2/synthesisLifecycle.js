@@ -38,13 +38,13 @@ export const POST_APPROVAL_STATUSES = [
  */
 export const SYNTHESIS_JOURNEY_STAGES = [
   { id: "objective", label: "Objective", detail: "Define the research object" },
-  { id: "evidence", label: "Evidence", detail: "Choose held Library inputs" },
-  { id: "specification", label: "Specification", detail: "Resolve material construction choices" },
-  { id: "proposal", label: "Proposal", detail: "Review the exact proposed revision" },
-  { id: "preview", label: "Preview", detail: "Test the accepted recipe on bounded bytes" },
+  { id: "evidence", label: "Evidence", detail: "Choose Library inputs" },
+  { id: "specification", label: "Specification", detail: "Resolve material build choices" },
+  { id: "proposal", label: "Proposal", detail: "Review this version of the proposal" },
+  { id: "preview", label: "Preview", detail: "Test the accepted recipe on sample data" },
   { id: "approval", label: "Approval", detail: "Authorize the exact previewed execution" },
-  { id: "build", label: "Build", detail: "Follow execution and registration proof" },
-  { id: "result", label: "Result", detail: "Inspect the registered Library asset" },
+  { id: "build", label: "Build", detail: "Follow execution and Library checks" },
+  { id: "result", label: "Result", detail: "Inspect the dataset saved to Library" },
 ];
 
 const JOURNEY_INDEX = Object.fromEntries(SYNTHESIS_JOURNEY_STAGES.map((stage, index) => [stage.id, index]));
@@ -140,19 +140,19 @@ export function synthesisStageLockReason(thread, stageId) {
   if (!stage?.locked) return "";
   switch (stageId) {
     case "evidence":
-      return "Create the durable research object first.";
+      return "Create the saved research build first.";
     case "specification":
-      return "Review and attach held Library evidence first.";
+      return "Review and attach data in your Library first.";
     case "proposal":
-      return "Resolve the current construction choices before a proposal can be reviewed.";
+      return "Resolve the current build choices before reviewing a proposal.";
     case "preview":
-      return "Accept an exact proposal revision before running a bounded preview.";
+      return "Accept this version of the proposal before running a sample preview.";
     case "approval":
-      return "Run and review a successful bounded preview of this accepted revision first.";
+      return "Run and review a successful sample preview of this accepted version first.";
     case "build":
       return "Approve the exact previewed execution request before a worker may run.";
     case "result":
-      return "A worker result must be verified and registered before Result is available.";
+      return "A worker result must be checked and saved to Library before Result is available.";
     default:
       return "Complete the current Synthesis page first.";
   }
@@ -161,14 +161,14 @@ export function synthesisStageLockReason(thread, stageId) {
 export function buildStageDetail(thread) {
   const state = thread?.state || {};
   const status = normalizeStatus(state.execution?.status);
-  if (status === "pending_approval") return "Approval required";
+  if (status === "pending_approval") return "Waiting for your approval";
   if (status === "failed") return "Execution failed";
   if (POST_APPROVAL_STATUSES.includes(status)) return "Approved execution";
   if (state.execution_spec) {
     const preview = synthesisPreviewTruth(thread);
-    if (preview.failed) return "Bounded preview failed";
-    if (preview.succeeded) return "Bounded preview passed";
-    return "Bounded preview required";
+    if (preview.failed) return "Sample preview failed";
+    if (preview.succeeded) return "Sample preview passed";
+    return "Sample preview required";
   }
   return "Execution record";
 }
@@ -193,9 +193,9 @@ export function executionTrack(status, registered, queryReady = false, preview =
   const previewDone = previewState === "succeeded";
   const previewFailed = previewState === "failed";
   return [
-    { label: "Method accepted", detail: "Revision bound", state: "done" },
+    { label: "Method accepted", detail: "This version", state: "done" },
     {
-      label: "Bounded preview",
+      label: "Sample preview",
       detail: previewDone ? "Passed" : previewFailed ? "Failed" : "Required",
       state: previewDone ? "done" : previewFailed ? "failed" : normalized === "spec_accepted" || !normalized ? "now" : "",
     },
@@ -237,10 +237,10 @@ export function executionTrack(status, registered, queryReady = false, preview =
     {
       label: "Library handoff",
       detail: queryReady
-        ? "Query-ready asset"
+        ? "Dataset ready to query"
         : registered
-          ? "Registered · query readiness unverified"
-          : "Not registered",
+          ? "Saved to Library · query readiness not yet checked"
+          : "Not saved to Library",
       state: registered ? "done" : "",
     },
   ];

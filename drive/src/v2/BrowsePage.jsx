@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { discoverSearch, discoverSources, webDiscover } from "@/v2/api";
 import { partialFitLine, searchHitToCandidate, sourcesResponseToRows } from "@/v2/discoverAdapters";
-import { collectRouteLabel } from "@/v2/collectRouteLabel";
+import { collectRouteDisplayLabel } from "@/v2/collectRouteLabel";
 import { DiscoverHistoryPanel } from "@/v2/DiscoverHistoryPanel";
 import { isDiscoverHistoryJob, jobToCandidateRow, pendingApprovalJobs } from "@/v2/procurementJobs";
 import {
@@ -44,10 +44,14 @@ import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
 const FILTERS = [
   { id: "all", label: "All results" },
   { id: "in_lab", label: "In your Library" },
-  { id: "query_ready", label: "Query-ready" },
+  { id: "query_ready", label: "Ready to query" },
   { id: "external", label: "Beyond your Library" },
   { id: "needs_access", label: "Needs access" },
 ];
+
+const OFFERING_LABELS = {
+  "Reference only": "Reference (not downloadable)",
+};
 
 function plural(value, singular, pluralValue = `${singular}s`) {
   return `${value} ${value === 1 ? singular : pluralValue}`;
@@ -81,13 +85,13 @@ function offeringType(row, taxonomy) {
 function accessLabel(taxonomy) {
   switch (taxonomy?.key) {
     case "local-query-ready":
-      return "In your Library · Query-ready declared";
+      return "In your Library · documented as ready to query";
     case "external-discoverable":
-      return "Access not verified";
+      return "Access not checked";
     case "external-probed":
-      return "Probe observed";
+      return "Connection tested";
     case "external-acquirable":
-      return "Collection route declared";
+      return "Download method known";
     case "external-unavailable":
       return "No supported route";
     case "licensed-manual":
@@ -101,7 +105,7 @@ function libraryFacingSufficiency(value) {
   return String(value || "")
     .replaceAll("Exact local match", "Exact Library match")
     .replaceAll("Partial local coverage", "Partial Library coverage")
-    .replaceAll("Related lab asset", "Related Library asset")
+    .replaceAll("Related lab asset", "Related Library dataset")
     .replaceAll("No local alternative found", "No Library alternative found")
     .replaceAll("Local comparison unavailable", "Library comparison unavailable")
     .replaceAll("In lab", "In Library");
@@ -209,14 +213,14 @@ function DiscoverCandidateRow({
   const coverage = coverageLine(row);
   const showCoverage = coverage && coverage !== "Coverage not described";
   const offeringFacts = [
-    ["Type", offeringType(row, taxonomy)],
+    ["Type", OFFERING_LABELS[offeringType(row, taxonomy)] || offeringType(row, taxonomy)],
     ["Coverage", showCoverage ? coverage : null],
     ["Refresh", row?.refresh_frequency || row?.refresh || row?.update_frequency],
-    ["Route", collectRouteLabel(row?.collect_via)
-      ? `Collect via ${collectRouteLabel(row.collect_via)}`
+    ["Route", collectRouteDisplayLabel(row?.collect_via)
+      ? `Collect via ${collectRouteDisplayLabel(row.collect_via)}`
       : null],
     ["Files", row?.file_summary || null],
-    ["Observation", row?.probe_snapshot?.observed_at ? "Observed probe" : null],
+    ["Observation", row?.probe_snapshot?.observed_at ? "Connection tested" : null],
   ].filter(([, value]) => Boolean(value));
   const canAdd = taxonomy.key === "external-acquirable"
     && !["Reference only", "Web context"].includes(offeringType(row, taxonomy))
@@ -365,7 +369,7 @@ function DiscoverQueryComposer({
 function DiscoverLookupProgress({ progress, hasResults = false }) {
   const steps = [
     ["library", "Library evidence"],
-    ["routes", "Known source routes"],
+    ["routes", "Known collection methods"],
   ];
   return (
     <div
@@ -434,14 +438,14 @@ function DiscoverRouteComparison({
   ].filter(Boolean).join(" ");
   const nextAction = publicRoute
     ? {
-        text: `Review the declared route for ${candidateTitle(publicRoute)} and verify coverage before approval.`,
+        text: `Review the documented route for ${candidateTitle(publicRoute)} and verify coverage before approval.`,
         label: "Review acquisition route",
         run: () => onReviewAcquisition?.(publicRoute),
       }
     : accessRoute
       ? {
-          text: `Review entitlement and permitted coverage for ${candidateTitle(accessRoute)} before choosing a route.`,
-          label: "Review access route",
+          text: `Review university access and permitted coverage for ${candidateTitle(accessRoute)} before choosing a route.`,
+          label: "Review access",
           run: () => onReviewAcquisition?.(accessRoute),
         }
       : {
@@ -463,17 +467,17 @@ function DiscoverRouteComparison({
       state: "Unknown",
     },
     publicRoute ? {
-      label: "Source route",
+      label: "How it’s collected",
       title: candidateTitle(publicRoute),
-      state: publicRoute?.probe_snapshot?.observed_at ? "Probe observed" : "Route declared · verify",
+      state: publicRoute?.probe_snapshot?.observed_at ? "Connection tested" : "Route documented · verify",
       action: () => onReviewAcquisition?.(publicRoute),
     } : accessRoute ? {
-      label: "Access route",
+      label: "Access",
       title: candidateTitle(accessRoute),
-      state: "Entitlement must be verified",
+      state: "University access must be checked",
       action: () => onReviewAcquisition?.(accessRoute),
     } : {
-      label: "Source route",
+      label: "How it’s collected",
       title: "No supported route established",
       state: "Needs investigation",
     },
@@ -514,7 +518,7 @@ function DiscoverRouteComparison({
           <button type="button" onClick={onClose} aria-label="Close acquisition strategy">Close</button>
         </header>
         <p className="rd-v2-discover-route-intro">
-          {gap?.statement || "The standard sourcing path does not yet establish every part of this evidence need."}
+          {gap?.statement || "The standard collection method does not yet cover every part of this data need."}
         </p>
         <section className="rd-v2-discover-strategy-answer">
           <span>How it answers the question</span>
@@ -1236,7 +1240,7 @@ export function BrowsePage({
   const resultBreakdown = useMemo(
     () => [
       resultGroups.available.length
-        ? `${plural(resultGroups.available.length, "offering")} with a declared route`
+        ? `${plural(resultGroups.available.length, "offering")} with a documented route`
         : null,
       resultGroups.external.length
         ? `${plural(resultGroups.external.length, "route")} to verify`
@@ -1489,7 +1493,7 @@ export function BrowsePage({
               <strong>{synthesisHandoff.field?.label || synthesisHandoff.field?.dataset_id || "Selected evidence"}</strong>
               <p>
                 {synthesisHandoff.field?.role ? `${synthesisHandoff.field.role}. ` : ""}
-                {synthesisHandoff.handoff?.required_grain ? `Required grain: ${synthesisHandoff.handoff.required_grain}. ` : ""}
+                {synthesisHandoff.handoff?.required_grain ? `Unit of observation: ${synthesisHandoff.handoff.required_grain}. ` : ""}
                 This is a research handoff only; no collection has started.
               </p>
             </div>
@@ -1522,9 +1526,9 @@ export function BrowsePage({
                   <div className="rd-v2-home-section-head">
                     <div>
                       <span className="rd-v2-eyebrow">Curated beyond your Library</span>
-                      <h3>Sources the desk already knows how to investigate</h3>
+                      <h3>Sources Research Drive knows how to investigate</h3>
                     </div>
-                    <span className="muted">{plural(merged.length, "known source route")}</span>
+                    <span className="muted">{plural(merged.length, "known collection method")}</span>
                   </div>
                   <DiscoverCandidateList
                     rows={idleRecommendations}
@@ -1536,7 +1540,7 @@ export function BrowsePage({
                 </>
               ) : (
                 <p className="muted">
-                  No curated source routes yet — search above, or paste a URL or DOI below.
+                  No collection methods are listed yet. Search above, or paste a URL or DOI below.
                 </p>
               )}
               {idleHoldings.length ? (
@@ -1674,12 +1678,12 @@ export function BrowsePage({
                   ) : broaderSearchPending ? (
                     <>
                       <strong>Checking broader sources</strong>
-                      <span>Related Library evidence remains visible while the desk looks for a direct route</span>
+                      <span>Related Library evidence remains visible while Research Drive looks for a direct collection method</span>
                     </>
                   ) : loading && centreRows.length === 0 && resultGroups.held.length > 0 ? (
                     <>
                       <strong>{plural(resultGroups.held.length, "Library match")}</strong>
-                      <span>Known source routes are still being checked</span>
+                      <span>Known collection methods are still being checked</span>
                     </>
                   ) : loading && centreRows.length === 0 ? (
                     <>
@@ -1689,7 +1693,7 @@ export function BrowsePage({
                   ) : !loading && centreRows.length === 0 && contextualRows.length > 0 ? (
                     <>
                       <strong>{plural(contextualRows.length, "reference")} to inspect</strong>
-                      <span>No collection-ready route is declared yet</span>
+                      <span>No collection method is documented as ready yet</span>
                     </>
                   ) : !loading && centreRows.length === 0 ? (
                     <>
@@ -1768,7 +1772,7 @@ export function BrowsePage({
                       className="rd-v2-discover-strategy-trigger is-ready"
                       onClick={() => setRouteComparisonOpen(true)}
                     >
-                      Review sourcing strategy
+                      Review collection strategy
                     </button>
                   ) : null}
                 </div>
@@ -1878,11 +1882,11 @@ export function BrowsePage({
             ) : null}
 
             {sourceRouteGap ? (
-              <section className="rd-v2-discover-route-gap" aria-label="No specific source route match">
+              <section className="rd-v2-discover-route-gap" aria-label="No specific collection method match">
                 <div>
                   <span className="rd-v2-eyebrow">No direct route match</span>
-                  <strong>No current source route specifically matches “{q}”.</strong>
-                  <p>The routes below are known to the desk, but they are not evidence results for this question.</p>
+                  <strong>No current collection method specifically matches “{q}”.</strong>
+                  <p>Research Drive knows the collection methods below. They are not evidence results for this question.</p>
                 </div>
                 <button type="button" className="rd-v2-btn sm" onClick={() => setExternalSearchQuery(q)}>
                   Search external catalogues
@@ -1912,9 +1916,7 @@ export function BrowsePage({
             <details className="rd-v2-discover-process-disclosure">
               <summary>How Discover handles a missing dataset</summary>
               <p>
-                Discover checks the index first. Wider discovery is explicit; coverage assessment names one evidence
-                gap; route comparison preserves unknowns; and any collection remains approval-gated before its
-                verified output is registered in Library and recorded in History.
+                Discover checks the index first. You choose when to search more widely. Coverage assessment identifies a gap, and collection methods are compared with unknowns kept visible. Collection requires your approval. Verified outputs are saved to Library and recorded in History.
               </p>
             </details>
           </>

@@ -30,15 +30,15 @@ import { candidateKey } from "./candidateKey.js";
 
 export const TAXONOMY = {
   "local-query-ready": {
-    label: "In Library · Query-ready",
+    label: "In Library · ready to query",
     possession: "In Library",
-    readiness: "Query-ready",
+    readiness: "Ready to query",
     className: "lab",
     group: 1,
     filter: ["in_lab", "query_ready"],
   },
   "local-connected": {
-    label: "In Library · Connected",
+    label: "In Library · connected",
     possession: "In Library",
     readiness: "Connected",
     className: "lab",
@@ -46,7 +46,7 @@ export const TAXONOMY = {
     filter: ["in_lab"],
   },
   "local-metadata": {
-    label: "In Library · Metadata only",
+    label: "In Library · metadata only",
     possession: "In Library",
     readiness: "Metadata only",
     className: "lab",
@@ -54,7 +54,7 @@ export const TAXONOMY = {
     filter: ["in_lab"],
   },
   "external-discoverable": {
-    label: "External · Available to inspect",
+    label: "External · available to inspect",
     possession: "External",
     readiness: "Available to inspect",
     className: "ext",
@@ -62,15 +62,15 @@ export const TAXONOMY = {
     filter: ["external"],
   },
   "external-probed": {
-    label: "External · Probed",
+    label: "External · connection tested",
     possession: "External",
-    readiness: "Probed",
+    readiness: "Connection tested",
     className: "ext",
     group: 3,
     filter: ["external"],
   },
   "external-acquirable": {
-    label: "External · Acquisition available",
+    label: "External · collection available",
     possession: "External",
     readiness: "Acquisition available",
     className: "ext",
@@ -78,7 +78,7 @@ export const TAXONOMY = {
     filter: ["external"],
   },
   "external-unavailable": {
-    label: "External · Acquisition unavailable",
+    label: "External · collection unavailable",
     possession: "External",
     readiness: "Acquisition unavailable",
     className: "warn",
@@ -86,7 +86,7 @@ export const TAXONOMY = {
     filter: ["external", "needs_access"],
   },
   "licensed-manual": {
-    label: "Licensed / manual access",
+    label: "Licensed · university access or manual upload",
     possession: "Licensed",
     readiness: "Manual access",
     className: "warn",

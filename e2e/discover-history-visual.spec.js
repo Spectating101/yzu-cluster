@@ -83,9 +83,9 @@ test.describe("Discover History visual acceptance", () => {
     const ledger = page.getByTestId("discover-history");
     const rail = page.locator("aside.rd-v2-rail");
     await expect(ledger.getByRole("heading", { name: "Needs you" })).toBeVisible();
-    await expect(ledger.getByRole("heading", { name: "Research lifecycle" })).toBeVisible();
+    await expect(ledger.getByRole("heading", { name: "Request history" })).toBeVisible();
     await expect(rail).toContainText("Historical USDT transactions");
-    await expect(rail).toContainText("Approval required");
+    await expect(rail).toContainText("Waiting for your approval");
     await shot(page, "01-desktop-needs-you");
 
     await ledger.getByRole("button", { name: /Historical stablecoin attention/i }).click();

@@ -26,15 +26,15 @@ export function archiveRuntimeStatus(health) {
       ready: false,
       known: false,
       label: "Not reported",
-      detail: "The desk has not reported its shared canonical archive",
+      detail: "Research Drive has not reported its shared master copy (Google Drive)",
     };
   }
   const root = readableRoot(archive.drive_root);
-  const scope = root ? `Service-managed partition · ${root}` : "Service-managed canonical archive";
+  const scope = root ? `Service-managed partition · ${root}` : "System-managed master copy (Google Drive)";
   const ready = archive.ready === true || archive.ok === true || archive.drive_list_ok === true;
   if (ready) return { ready: true, known: true, label: "Verified", detail: scope };
   if (archive.ready === false || archive.ok === false || archive.drive_list_ok === false) {
     return { ready: false, known: true, label: "Needs review", detail: scope };
   }
-  return { ready: false, known: true, label: "Probe pending", detail: scope };
+  return { ready: false, known: true, label: "Connection test pending", detail: scope };
 }

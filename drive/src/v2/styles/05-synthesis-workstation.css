@@ -1487,7 +1487,7 @@
 
 .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
   > .s04-opening-workflow-wrap .s04-opening-workflow-note > span::after {
-  content: " Review the held inputs below and add only the evidence that belongs to this research object.";
+  content: " Review the Library inputs below and add only the data that belongs to this research question.";
   font-size: var(--rd-text-2xs);
 }
 
@@ -1551,7 +1551,7 @@
 
 .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
   > .s04-opening-next > footer::before {
-  content: "Method reasoning unlocks after held evidence is added.";
+  content: "Method reasoning becomes available after you add data from your Library.";
   margin-right: auto;
   color: #7b8390;
   font-size: var(--rd-text-2xs);
@@ -1650,7 +1650,7 @@
 }
 
 .rd-v2-synthesis-page .s04-steps::before {
-  content: "EXECUTION LIFECYCLE";
+  content: "EXECUTION STAGES";
   color: #315f4d;
   font-size: var(--rd-text-2xs);
   font-weight: 700;
@@ -1658,7 +1658,7 @@
 }
 
 .rd-v2-synthesis-page .s04-steps::after {
-  content: "Method accepted → bounded preview → researcher approval → worker build → archive + registry → Library handoff";
+  content: "Method accepted → sample preview → your approval → build → archive and Library checks → saved to Library";
   color: #5b6578;
   font-size: var(--rd-text-2xs);
   line-height: 1.45;
@@ -1961,7 +1961,7 @@
 
   .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
     > [data-testid="synthesis-evidence-state"] > .s04-title h2::after {
-    content: "Choose the held Library inputs that belong";
+    content: "Choose the Library inputs that belong";
     color: #101820;
     font-size: var(--rd-text-2xl);
     font-weight: 700;
@@ -2033,7 +2033,7 @@
 
   .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
     > .s04-opening-next > footer::before {
-    content: "Method reasoning unlocks after you add at least one held input.";
+    content: "Method reasoning becomes available after you add at least one input from your Library.";
     margin-right: auto;
     color: #7b8390;
     font-size: var(--rd-text-2xs);
@@ -2071,7 +2071,7 @@
 
   .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"])
     > .s04-opening-next > footer[data-evidence="needed"]::before {
-    content: "Method reasoning unlocks after you add at least one held input.";
+    content: "Method reasoning becomes available after you add at least one input from your Library.";
   }
 
   .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"])
@@ -2256,7 +2256,7 @@
 
   #root .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
     > .s04-opening-next > footer::before {
-    content: "Select held evidence to unlock method reasoning." !important;
+    content: "Select data in your Library to start method reasoning." !important;
   }
 
   /* EXACT OVERRIDE OF THE EARLIER DEFINED / EXPLORING WORKSTATION LOCK.

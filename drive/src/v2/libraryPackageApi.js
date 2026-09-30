@@ -27,7 +27,7 @@ async function readJson(response) {
 
 export async function prepareLibraryPackage({ researchNeed = "", datasetIds = [] } = {}) {
   const ids = [...new Set((datasetIds || []).map((id) => String(id || "").trim()).filter(Boolean))];
-  if (!ids.length) throw new Error("Select at least one held Library asset.");
+  if (!ids.length) throw new Error("Select at least one dataset in your Library.");
   const response = await fetch("/api/library/packages/prepare", {
     method: "POST",
     credentials: "include",

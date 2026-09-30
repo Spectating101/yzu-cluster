@@ -8,10 +8,10 @@ test("registered datasets never fall through to Readiness unknown", () => {
     dataset_id: "day2_deploy_smoke_20260720",
     analysis_readiness: "registered",
   });
-  assert.equal(statusPillKind({ analysis_readiness: "registered" }).label, "Registered");
-  assert.equal(decision.headline, "Registered");
-  assert.match(decision.body, /archived research asset/i);
-  assert.match(decision.body, /querying has not yet been proven/i);
+  assert.equal(statusPillKind({ analysis_readiness: "registered" }).label, "Saved to Library");
+  assert.equal(decision.headline, "Saved to Library");
+  assert.match(decision.body, /archived research dataset/i);
+  assert.match(decision.body, /querying has not yet been confirmed/i);
   assert.doesNotMatch(decision.headline, /unknown/i);
 });
 
@@ -21,7 +21,7 @@ test("registered scholarly work uses bibliographic semantics instead of query se
     asset_kind: "scholarly_work",
     analysis_readiness: "registered",
   });
-  assert.equal(decision.headline, "Registered");
+  assert.equal(decision.headline, "Saved to Library");
   assert.match(decision.body, /reusable scholarly work/i);
   assert.match(decision.body, /source verification remains a separate claim/i);
   assert.doesNotMatch(decision.body, /querying/i);
@@ -33,7 +33,7 @@ test("registered operational records use recorded-state semantics", () => {
     asset_kind: "operational",
     analysis_readiness: "registered",
   });
-  assert.equal(decision.headline, "Registered");
+  assert.equal(decision.headline, "Saved to Library");
   assert.match(decision.body, /reusable operational record/i);
   assert.match(decision.body, /recorded evidence/i);
   assert.doesNotMatch(decision.body, /querying/i);
@@ -41,7 +41,7 @@ test("registered operational records use recorded-state semantics", () => {
 
 test("query ready remains distinct from registered", () => {
   const ready = canIUseDecision({ analysis_readiness: "instant" });
-  assert.equal(ready.headline, "Query-ready");
+  assert.equal(ready.headline, "Ready to query");
   const registered = canIUseDecision({ analysis_readiness: "registered" });
   assert.notEqual(registered.headline, ready.headline);
 });

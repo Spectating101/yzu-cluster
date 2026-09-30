@@ -10,7 +10,7 @@ test("account menu names the authenticated person and simple role", async ({ pag
   await page.getByRole("button", { name: "Account" }).click();
   const menu = page.getByRole("menu", { name: "Account destinations" });
   await expect(menu).toContainText("Researcher One");
-  await expect(menu).toContainText("Operator");
+  await expect(menu).toContainText("Administrator");
   await expect(menu).not.toContainText("methods-lab");
 });
 

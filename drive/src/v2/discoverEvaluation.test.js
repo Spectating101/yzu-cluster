@@ -36,7 +36,7 @@ describe("researcherProbeError", () => {
     const message = researcherProbeError("Traceback: connector_secret_path=/srv/private/foo");
     assert.equal(
       message,
-      "The source probe did not complete, so access remains unverified. Retry later or inspect the source directly.",
+      "The connection test did not complete, so access has not been confirmed. Retry later or inspect the source directly.",
     );
   });
 });
@@ -95,7 +95,7 @@ describe("buildDiscoverEvaluation", () => {
     });
     assert.equal(evaluation.hasProbe, false);
     assert.deepEqual(evaluation.verified, []);
-    assert.ok(evaluation.unknowns.some((u) => /not probed/i.test(u)));
+    assert.ok(evaluation.unknowns.some((u) => /connection not tested/i.test(u)));
     assert.equal(evaluation.actions.primary.id, "probe");
     assert.match(evaluation.decision.headline, /Available to inspect/i);
   });
@@ -159,6 +159,6 @@ describe("buildDiscoverEvaluation", () => {
     assert.equal(taxonomy.key, "local-query-ready");
     const evaluation = buildDiscoverEvaluation(row, labIds, null);
     assert.equal(evaluation.actions.primary.label, "Open in Library");
-    assert.match(evaluation.decision.headline, /Query-ready/i);
+    assert.match(evaluation.decision.headline, /Ready to query/i);
   });
 });

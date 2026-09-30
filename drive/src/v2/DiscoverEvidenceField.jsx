@@ -28,7 +28,7 @@ export function DiscoverEvidenceField({
         <header>
           <div>
             <strong>No collection-ready route yet</strong>
-            <p>{`${context} relevant reference${context === 1 ? " is" : "s are"} available to inspect or probe.`}</p>
+            <p>{`${context} relevant reference${context === 1 ? " is" : "s are"} available to inspect or test its connection.`}</p>
           </div>
         </header>
       ) : null}
@@ -39,12 +39,11 @@ export function DiscoverEvidenceField({
             <span>Proposed assembly path</span>
             <strong>No single source has to be the answer.</strong>
             <p>
-              {candidateCount} candidate inputs are in the current field while the assessment still records an open gap.
-              Compare complementary coverage before deciding what should be collected, reconciled, or registered as a new dataset.
+              {candidateCount} candidate inputs are shown while the assessment still reports a gap. Compare their coverage before deciding what to collect, check, or save to Library as a new dataset.
             </p>
           </div>
           <div className="rd-v2-discover-assembly-state">
-            <span>Current authority</span>
+            <span>Current verification</span>
             <b>Proposed, not executed</b>
             {onReviewAssembly ? <button type="button" onClick={onReviewAssembly}>Review assembly plan →</button> : null}
           </div>
@@ -55,7 +54,7 @@ export function DiscoverEvidenceField({
           <div>
             <span>Assembly position</span>
             <strong>Checking whether one source is enough.</strong>
-            <p>The field remains usable while held evidence and the research brief are compared.</p>
+            <p>Results remain available while data in your Library is compared with your research brief.</p>
           </div>
         </div>
       ) : null}

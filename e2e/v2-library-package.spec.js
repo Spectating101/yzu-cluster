@@ -27,7 +27,7 @@ async function openLibrarySearch(page, query) {
   });
   await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
-  await page.getByRole("textbox", { name: "Search library holdings" }).fill(query);
+  await page.getByRole("textbox", { name: "Search your Library" }).fill(query);
 }
 
 async function assertContained(page) {
@@ -75,11 +75,11 @@ test.describe("Library research packages", () => {
 
     await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
-    await page.getByRole("textbox", { name: "Search library holdings" }).fill("Asia");
+    await page.getByRole("textbox", { name: "Search your Library" }).fill("Asia");
 
     const context = page.getByTestId("library-package-context");
     await expect(context).toBeVisible();
-    await expect(context).toContainText("Held evidence for this request");
+    await expect(context).toContainText("Data in your Library for this request");
     await expect(context.getByRole("button", { name: "Ask Library" })).toBeVisible();
     const open = page.getByTestId("library-package-open");
     await expect(open).toBeVisible();

@@ -37,8 +37,8 @@ function descriptionLabel(row = {}) {
   else if (kind === "metadata_index") pieces.push("Metadata index");
   else if (kind === "live_source") pieces.push("Live research source");
   else if (kind === "operational") pieces.push("Operational research record");
-  else pieces.push("Registered research dataset");
-  if (grain) pieces.push(`${grain} grain`);
+  else pieces.push("Research dataset saved to Library");
+  if (grain) pieces.push(`${grain} unit of observation`);
   if (coverage) pieces.push(coverage);
   return pieces.join(" · ");
 }
@@ -222,15 +222,15 @@ export function LibraryEvidenceEstate({
             <div className="rd-v2-cap-ledger-empty" data-testid="library-evidence-empty">
               <strong>
                 {trueSearchMiss
-                  ? `No held evidence matches “${query}”.`
+                  ? `No data in your Library matches “${query}”.`
                   : filteredSearchMiss
                     ? "Matching evidence is hidden by the current filters."
                     : "No evidence matches the current Library filters."}
               </strong>
               <p>
                 {trueSearchMiss
-                  ? "Library searched the evidence you actually hold. Ask can interpret the need, or Discover can search beyond your estate."
-                  : "Reset the filters to return to the full held-evidence view."}
+                  ? "Library searched data you have. Ask can interpret the need, or Discover can search beyond your Library."
+                  : "Reset the filters to return to all data in your Library."}
               </p>
               <div className="rd-v2-library-empty-actions">
                 {trueSearchMiss && onAskCurrentSearch ? (
@@ -256,7 +256,7 @@ export function LibraryEvidenceEstate({
 
       {visibleAssets.length > PAGE_SIZE ? (
         <div className="rd-v2-library-pagination" aria-label="Library evidence pagination">
-          <span>Showing {pagedAssets.length} of {visibleAssets.length} assets</span>
+          <span>Showing {pagedAssets.length} of {visibleAssets.length} datasets</span>
           {hasMore ? (
             <button type="button" className="rd-v2-btn sm" onClick={() => setVisibleLimit((limit) => limit + PAGE_SIZE)}>
               Load {Math.min(PAGE_SIZE, visibleAssets.length - pagedAssets.length)} more

@@ -324,7 +324,7 @@ const CASES = [
       await expect(upset).toBeVisible();
       await expect(page.locator(".s04-upset-legend > span")).toHaveCount(8);
       await expect(decision.locator("header.s04-title h2")).toHaveText(EIGHT_OVERLAP.sources[1].label);
-      await expect(page.getByTestId("synthesis-multi-overlap-visual")).toContainText("Bounded overlap window");
+      await expect(page.getByTestId("synthesis-multi-overlap-visual")).toContainText("Sample overlap window");
       await expect(page.getByTestId("synthesis-multi-overlap-visual")).toContainText("representative-sample claim");
       await expect(page.getByTestId("synthesis-multi-overlap-visual")).toContainText("smaller exclusive intersections");
       await expectNoHorizontalOverflow(upset);

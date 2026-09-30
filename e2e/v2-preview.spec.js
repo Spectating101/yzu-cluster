@@ -10,13 +10,13 @@ test.describe("v2 adaptive Preview", () => {
   });
 
   test("owned datasets keep schema local and expand only the observed sample", async ({ page }) => {
-    await page.getByRole("textbox", { name: "Search library holdings" }).fill("Asia");
+    await page.getByRole("textbox", { name: "Search your Library" }).fill("Asia");
     await page.getByTestId("library-evidence-row").filter({ hasText: "Asia daily news-risk panel" }).click();
 
     const workspace = page.getByTestId("library-asset-workspace");
     const inspectSchema = workspace.getByRole("button", { name: "Inspect schema" });
     await inspectSchema.click();
-    const schemaOverlay = page.getByRole("dialog", { name: "Declared structure" });
+    const schemaOverlay = page.getByRole("dialog", { name: "Documented structure" });
     await expect(schemaOverlay).toBeVisible();
     await expect(schemaOverlay.getByRole("button", { name: "Close inspection" })).toBeFocused();
     await page.keyboard.press("Escape");
@@ -80,16 +80,16 @@ test.describe("v2 Library provenance semantics", () => {
     const workspace = page.getByTestId("library-asset-workspace");
     const claims = workspace.getByLabel("Evidence claims");
     await expect(claims).toContainText("Source");
-    await expect(claims).toContainText("Not declared");
+    await expect(claims).toContainText("Not documented");
     await expect(claims).not.toContainText("bigquery_api");
     await expect(claims).not.toContainText("bigquery_connector");
 
     const rail = page.locator("aside.rd-v2-rail");
     const source = page.getByTestId("library-rail-source");
-    await expect(source.getByRole("heading", { name: "Source authority absent" })).toBeVisible();
-    await expect(source).toContainText("Access route");
+    await expect(source.getByRole("heading", { name: "Source not recorded" })).toBeVisible();
+    await expect(source).toContainText("Access");
     await expect(source).toContainText("bigquery_connector");
     await expect(source).not.toContainText("The source authority is named");
-    await expect(rail).toContainText("Source authority not recorded");
+    await expect(rail).toContainText("Source not recorded");
   });
 });

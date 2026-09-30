@@ -73,5 +73,5 @@ test("does not infer a holdings topology when the registry has not recorded one"
   };
   const summary = summarizeLibraryHoldings(dataset);
   assert.equal(summary.count, 0);
-  assert.equal(summary.headline, "No holdings recorded");
+  assert.equal(summary.headline, "No Library data recorded");
 });

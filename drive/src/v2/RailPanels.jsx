@@ -53,8 +53,8 @@ function resourceRailName(row) {
 }
 
 function resourceRailDescription(row) {
-  if (row.group) return "Source route group";
-  if (row.kind === "source") return "Source route";
+  if (row.group) return "Collection methods";
+  if (row.kind === "source") return "How it’s collected";
   if (row.kind === "metered") return "Account limit";
   if (row.kind === "usage") return "Storage";
   return row.section || row.kind || "Resource";
@@ -73,7 +73,7 @@ function resourceRailUse(row) {
   if (row.key === "source-market-filings") return "Official market data and filings";
   if (row.key === "source-research-catalogs") return "Academic metadata and dataset APIs";
   if (row.key === "route-discovery-intake") return "Candidate discovery and URL classification";
-  if (row.key === "source-public-web") return "Probe and browser collect";
+  if (row.key === "source-public-web") return "Test connections and collect through the browser";
   if (row.key === "source-remote-tables") return "Dry-run protected remote query";
   if (row.key === "source-sec_edgar") return "Company filings";
   if (row.key === "source-twse") return "Taiwan market data";
@@ -90,8 +90,8 @@ function resourceRailAccess(row) {
   if (row.key === "source-gdelt") return "Queue to collect";
   if (row.key === "source-market-filings") return "Official feeds and queue scripts";
   if (row.key === "source-research-catalogs") return "DOI lookup and dataset import";
-  if (row.key === "route-discovery-intake") return "Search and probe before collect";
-  if (row.key === "source-public-web") return "Probe, then collect";
+  if (row.key === "route-discovery-intake") return "Search and test connections before collecting";
+  if (row.key === "source-public-web") return "Test the connection, then collect";
   if (row.key === "source-remote-tables") return "Query with dry-run limit";
   if (row.key === "source-sec_edgar") return "Download queue";
   if (row.key === "source-twse") return "Download queue";
@@ -100,7 +100,7 @@ function resourceRailAccess(row) {
   if (row.key === "source-bigquery") return "Remote query";
   if (row.key === "source-datacite") return "DOI lookup";
   if (row.key === "source-huggingface") return "Dataset import";
-  if (row.key === "source-web_generic") return "Probe, then collect";
+  if (row.key === "source-web_generic") return "Test the connection, then collect";
   return row.collect_via || row.routes || row.metric || "Available";
 }
 
@@ -159,7 +159,7 @@ const PAGE_RAIL_COPY = {
   },
   library: {
     title: "Library guide",
-    desc: "Your working data vault: folders, registered datasets, query readiness, and procurement memory.",
+    desc: "Your Library: folders, saved datasets, readiness checks, and collection history.",
     fields: [
       ["Use this page", "Find data you already have"],
       ["Primary move", "Select a dataset or branch"],
@@ -169,10 +169,10 @@ const PAGE_RAIL_COPY = {
   },
   synthesis: {
     title: "Synthesis studio",
-    desc: "Select a construction to inspect its evidence, review state, and registered proof.",
+    desc: "Select a build to review its evidence, review status, and Library verification.",
     fields: [
-      ["Current state", "No construction selected"],
-      ["Next", "Start a durable construction or open a registered method"],
+      ["Current state", "No build selected"],
+      ["Next", "Start a saved build or open a method saved to Library"],
       ["Boundary", "Methods, execution, archive, registration, and readiness are separate records"],
     ],
   },
@@ -181,7 +181,7 @@ const PAGE_RAIL_COPY = {
     desc: "Registry-backed identity, research context, works, and recorded evidence relationships.",
     fields: [
       ["Source", "Faculty registry"],
-      ["Evidence authority", "Library confirms what is actually held"],
+      ["Evidence verification", "Library confirms what is actually held"],
       ["Boundary", "Suggestions are not researcher facts"],
     ],
   },
@@ -227,7 +227,7 @@ function LibraryIntakeRailPanel({ object, onSubmitUpload, onSubmitUrl, onSubmitP
         <RailEntityHeader
           id={object.id}
           title="Add URL / DOI"
-          description="Probe a public source, collect metadata, and hand the acquisition plan to Ask."
+          description="Test a public source connection, collect metadata, and send the collection plan to Ask."
           pills={<span className="rd-v2-pill ext">Intake</span>}
         />
         <div className="rd-v2-rail-scroll">
@@ -272,7 +272,7 @@ function LibraryIntakeRailPanel({ object, onSubmitUpload, onSubmitUrl, onSubmitP
         <RailEntityHeader
           id={object.id}
           title="Procure branch"
-          description="Use the current Library branch as the destination and ask the desk to search, probe, and propose acquisition steps."
+          description="Use this Library folder as the destination. Ask Research Drive to search, test connections, and propose collection steps."
           pills={<span className="rd-v2-pill ext">Procure</span>}
         />
         <div className="rd-v2-rail-scroll">
@@ -280,7 +280,7 @@ function LibraryIntakeRailPanel({ object, onSubmitUpload, onSubmitUrl, onSubmitP
             <RailField label="Destination" value={destination} />
             <RailField label="Path" value={object.path} />
             <RailField label="Known data" value={pluralCount(object.counts?.datasets, "dataset")} />
-            <RailField label="Query-ready" value={String(object.counts?.queryReady ?? 0)} />
+            <RailField label="Ready to query" value={String(object.counts?.queryReady ?? 0)} />
           </RailFieldGrid>
         </div>
         <RailStickyFooter>
@@ -377,7 +377,7 @@ export function LibraryObjectRailPanel({
           <p className="rd-v2-rail-section-label">{root ? "In this library" : "In this collection"}</p>
           <h3>{pluralCount(counts.datasets, root ? "asset" : "dataset")}</h3>
           <div className="rd-v2-library-folder-readiness">
-            {counts.queryReady > 0 ? <span><b>{counts.queryReady}</b> query-ready</span> : null}
+            {counts.queryReady > 0 ? <span><b>{counts.queryReady}</b> ready to query</span> : null}
             {counts.connected > 0 ? <span><b>{counts.connected}</b> connected</span> : null}
             {counts.metadataOnly > 0 ? <span><b>{counts.metadataOnly}</b> metadata only</span> : null}
             {counts.unknown > 0 ? <span><b>{counts.unknown}</b> readiness unknown</span> : null}
@@ -424,7 +424,7 @@ export function PageRailPanel({ page = "home", onAskAbout }) {
       <RailFrame>
         <div className="rd-v2-rail-scroll rd-v2-library-page-guide">
           <section className="rd-v2-library-folder-summary">
-            <p className="rd-v2-rail-section-label">Find held evidence</p>
+            <p className="rd-v2-rail-section-label">Find data in your Library</p>
             <p className="rd-v2-rail-note">
               Search by title, field, source, coverage, or research context, then inspect the result in place.
             </p>
@@ -579,7 +579,7 @@ export function ResourcesRailPanel({ row, rollup, onApproveJob, onRefresh, onVie
                 <RailField label="Worker" value={liveIdentity.worker_id || "—"} mono />
                 <RailField label="Run" value={liveIdentity.run_id || "—"} mono />
                 <RailField label="Job" value={liveIdentity.job_id || "—"} mono />
-                <RailField label="Lifecycle" value={liveIdentity.lifecycle || "—"} />
+                <RailField label="Request history" value={liveIdentity.lifecycle || "—"} />
               </>
             ) : null}
           </RailFieldGrid>
@@ -662,7 +662,7 @@ export function ResourcesRailPanel({ row, rollup, onApproveJob, onRefresh, onVie
   if (row.kind === "capacity") {
     return (
       <RailFrame>
-        <RailEntityHeader id={row.key} title={row.label} description="Desk capacity" />
+        <RailEntityHeader id={row.key} title={row.label} description="Research Drive capacity" />
         <div className="rd-v2-rail-scroll">
           <RailFieldGrid>
             <RailField label="Status" value={row.metric} />
@@ -757,7 +757,7 @@ export function ResourcesRailPanel({ row, rollup, onApproveJob, onRefresh, onVie
           row.job?.status === "pending_approval"
             ? "Approve or reject the job"
             : row.kind === "source"
-              ? "Use Discover to search or probe"
+              ? "Use Discover to search or test connections"
               : row.kind === "metered"
                 ? "View activity before heavy use"
                 : row.kind === "usage"

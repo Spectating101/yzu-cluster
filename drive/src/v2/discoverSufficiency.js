@@ -25,7 +25,7 @@ const LABELS = Object.freeze({
   [SUFFICIENCY.EXACT_LOCAL]: "Exact local match",
   [SUFFICIENCY.LIKELY_EQUIVALENT]: "Likely equivalent",
   [SUFFICIENCY.PARTIAL_LOCAL]: "Partial local coverage",
-  [SUFFICIENCY.RELATED_LOCAL]: "Related Library asset",
+  [SUFFICIENCY.RELATED_LOCAL]: "Related Library dataset",
   [SUFFICIENCY.NO_LOCAL_ALTERNATIVE]: "No local alternative found",
   [SUFFICIENCY.COMPARISON_UNKNOWN]: "Local comparison unavailable",
 });
@@ -149,7 +149,7 @@ function noneResult() {
   return {
     state: SUFFICIENCY.NO_LOCAL_ALTERNATIVE,
     label: LABELS[SUFFICIENCY.NO_LOCAL_ALTERNATIVE],
-    summary: "The completed local comparison found no qualifying Library asset.",
+    summary: "The completed local comparison found no qualifying Library dataset.",
     localMatches: [],
     bestLocal: null,
     basis: [],
@@ -157,7 +157,7 @@ function noneResult() {
     comparisonComplete: true,
     browseLine: LABELS[SUFFICIENCY.NO_LOCAL_ALTERNATIVE],
     focusHeadline: LABELS[SUFFICIENCY.NO_LOCAL_ALTERNATIVE],
-    focusBody: "The completed local comparison found no qualifying Library asset.",
+    focusBody: "The completed local comparison found no qualifying Library dataset.",
     primaryActionHint: null,
     secondaryActionHint: null,
   };
@@ -170,7 +170,7 @@ function exactMatch(lab) {
     state: SUFFICIENCY.EXACT_LOCAL,
     label: LABELS[SUFFICIENCY.EXACT_LOCAL],
     summary: ready
-      ? "A query-ready dataset with the same canonical identity is already in your Library."
+      ? "A dataset with the same identifier is already in your Library and ready to query."
       : "A dataset with the same canonical identity is already in your Library.",
     localMatches: [lab],
     bestLocal: lab,
@@ -180,7 +180,7 @@ function exactMatch(lab) {
     browseLine: `${LABELS[SUFFICIENCY.EXACT_LOCAL]} · ${title}`,
     focusHeadline: LABELS[SUFFICIENCY.EXACT_LOCAL],
     focusBody: ready
-      ? "A query-ready dataset with the same canonical identity is already in your Library."
+      ? "A dataset with the same identifier is already in your Library and ready to query."
       : "A dataset with the same canonical identity is already in your Library.",
     primaryActionHint: { id: "open_local", label: "Open local dataset" },
     secondaryActionHint: null,
@@ -205,7 +205,7 @@ function grainGapSummary(localGrain, candGrain) {
     dimension: "grain",
     local: localGrain,
     candidate: candGrain,
-    summary: `Local grain: ${localGrain} · Candidate grain: ${candGrain}`,
+    summary: `Library unit of observation: ${localGrain} · Candidate unit of observation: ${candGrain}`,
   };
 }
 
@@ -228,7 +228,7 @@ function relatedOrPartial(lab, candidate, basis) {
     return {
       state: SUFFICIENCY.PARTIAL_LOCAL,
       label: LABELS[SUFFICIENCY.PARTIAL_LOCAL],
-      summary: `A related local asset covers part of this need. ${gapLine}`,
+      summary: `A related local dataset covers part of this need. ${gapLine}`,
       localMatches: [lab],
       bestLocal: lab,
       basis,
@@ -262,7 +262,7 @@ function relatedOrPartial(lab, candidate, basis) {
     focusHeadline: LABELS[SUFFICIENCY.RELATED_LOCAL],
     focusBody: "The Library has a related dataset for the same research object. Equivalence is not established.",
     primaryActionHint: null,
-    secondaryActionHint: { id: "inspect_related", label: "Inspect related lab asset" },
+    secondaryActionHint: { id: "inspect_related", label: "Inspect related Library dataset" },
   };
 }
 
@@ -568,7 +568,7 @@ export function sufficiencyAskPrompts(sufficiency, title) {
     return [
       {
         id: "compare_related",
-        label: "How is the local asset related?",
+        label: "How is the local dataset related?",
         prompt: `How is the local asset related to ${label}? Do not claim equivalence.`,
       },
     ];
@@ -577,7 +577,7 @@ export function sufficiencyAskPrompts(sufficiency, title) {
     return [
       {
         id: "use_local",
-        label: "Can I answer with the local asset?",
+        label: "Can I answer with the local dataset?",
         prompt: `Can I answer my research question with the local asset already matched to ${label}?`,
       },
     ];

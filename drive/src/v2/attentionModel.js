@@ -48,7 +48,7 @@ export function resourcesOpsPosture(counts) {
   if (running > 0) {
     return `${running} collection${running === 1 ? "" : "s"} running`;
   }
-  return "Desk ready";
+  return "Research Drive ready";
 }
 
 export function resourcesOpsPill(counts, queryUp) {

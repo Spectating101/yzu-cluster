@@ -144,7 +144,7 @@ test.describe("Discover submit transport recovery", () => {
 
     await workspace.getByRole("button", { name: "Submit for approval" }).click();
 
-    await expect(workspace).toContainText("Durable status confirms no approval job was created. You can retry.");
+    await expect(workspace).toContainText("The saved status confirms no approval request was created. You can retry.");
     await expect(workspace.getByTestId("discover-submit-unconfirmed")).toHaveCount(0);
     await expect(workspace.getByRole("button", { name: "Submit for approval" })).toBeEnabled();
     await expect.poll(calls.submitCalls).toBe(1);

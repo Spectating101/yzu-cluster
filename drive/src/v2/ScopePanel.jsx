@@ -59,7 +59,7 @@ export function ScopePanel({ block, onChoose, onAsk }) {
 
       <footer className="s04-actions">
         <p className="s04-note">
-          <b>Truth boundary</b>
+          <b>What this does and doesn't claim</b>
           Scope changes findings, so it is your choice and not a silent trim.
         </p>
         <button type="button" className="rd-v2-btn" onClick={() => onAsk?.("Explain what this scope removes from my question.")}>

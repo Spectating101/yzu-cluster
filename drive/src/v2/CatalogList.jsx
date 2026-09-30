@@ -19,7 +19,7 @@ function paginationNoun(rows = []) {
   const folders = rows.filter((item) => item?.kind === "folder").length;
   const assets = rows.length - folders;
   if (folders === rows.length) return "folders";
-  if (assets === rows.length) return "assets";
+  if (assets === rows.length) return "datasets";
   return "entries";
 }
 

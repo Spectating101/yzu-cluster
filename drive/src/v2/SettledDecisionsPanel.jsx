@@ -35,8 +35,7 @@ export function SettledDecisionsPanel({ decisions, onContest }) {
       <footer className="s04-actions">
         <p>
           <small>Approval boundary</small>
-          Silence accepts what the desk chose, so every desk choice stays listed and
-          reversible. What the data established is not a choice and cannot be reopened.
+          If you make no change, Research Drive’s choices are accepted. Every choice stays listed and reversible. Findings established by the data cannot be reopened as choices.
         </p>
       </footer>
     </section>

@@ -30,14 +30,14 @@ test.describe("Research Drive interaction guidance", () => {
 
   test("readiness states open a richer explanation by click and keyboard", async ({ page }) => {
     await openTab(page, "Library");
-    await page.getByRole("textbox", { name: "Search library holdings" }).fill("Asia");
+    await page.getByRole("textbox", { name: "Search your Library" }).fill("Asia");
     const help = page.getByRole("button", { name: /^Explain / }).first();
     await expect(help).toBeVisible();
 
     await help.click();
     const popover = page.getByTestId("rich-context-popover");
     await expect(popover).toBeVisible();
-    await expect(popover).toContainText(/Query-ready|Registered|Connected source/);
+    await expect(popover).toContainText(/Ready to query|Saved to Library|Connected source/);
     await expect(popover).toContainText("Safest next step");
     await page.keyboard.press("Escape");
     await expect(popover).toHaveCount(0);
@@ -51,7 +51,7 @@ test.describe("Research Drive interaction guidance", () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
-    await page.getByRole("textbox", { name: "Search library holdings" }).fill("Asia");
+    await page.getByRole("textbox", { name: "Search your Library" }).fill("Asia");
 
     const help = page.getByRole("button", { name: /^Explain / }).first();
     await expect(help).toBeVisible();

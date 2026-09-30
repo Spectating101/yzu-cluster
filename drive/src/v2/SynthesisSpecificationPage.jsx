@@ -246,7 +246,7 @@ export function SynthesisSpecificationPage({
         <div>
           <small>Stage 3 · Specification</small>
           <h2>Turn measured evidence into an exact build specification.</h2>
-          <p>The desk validates what is measurable. You choose what the construction should actually do.</p>
+          <p>Research Drive checks what can be measured. You choose what the build should do.</p>
         </div>
         <span className={`sj-state-chip ${measurementPhase}`}>{measurementPhase === "ready" ? "Measured" : measurementPhase === "loading" ? "Measuring…" : measurementPhase === "error" ? "Measurement incomplete" : "Waiting for measurements"}</span>
       </header>
@@ -276,7 +276,7 @@ export function SynthesisSpecificationPage({
       </section>
 
       <section className="sj-decision-block">
-        <header><span>2</span><div><h3>Output identity</h3><p>The output becomes a versioned Library asset only after verified execution and registration.</p></div></header>
+        <header><span>2</span><div><h3>Output identity</h3><p>The output becomes a versioned Library dataset only after execution is verified and the result is saved to Library.</p></div></header>
         <label className="sj-field wide">
           <span>Output dataset ID</span>
           <input value={outputDatasetId} onChange={(event) => setOutputDatasetId(event.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "_"))} spellCheck="false" />
@@ -301,7 +301,7 @@ export function SynthesisSpecificationPage({
         <section className="sj-decision-block">
           <header><span>4</span><div><h3>Optional second-source join</h3><p>Coverage is measured before the join becomes part of the method. A low-coverage inner join is a population change, not a harmless merge.</p></div></header>
           {!joinCandidates.length ? (
-            <div className="sj-inline-alert neutral"><div><strong>No measured join candidate.</strong><span>The desk will not invent a join key from names alone.</span></div></div>
+            <div className="sj-inline-alert neutral"><div><strong>No measured join candidate.</strong><span>Research Drive will not invent a join key from names alone.</span></div></div>
           ) : (
             <>
               <div className="sj-join-candidates">
@@ -397,7 +397,7 @@ export function SynthesisSpecificationPage({
       {localError ? <div className="sj-inline-alert error" role="alert"><div><strong>Specification not ready.</strong><span>{localError}</span></div></div> : null}
 
       <footer className="sj-stage-actions">
-        <div><strong>Next: Proposal</strong><span>The server will validate this exact specification and persist a revision hash before anything can be accepted.</span></div>
+        <div><strong>Next: Proposal</strong><span>Research Drive will check this specification and save a version identifier before it can be accepted.</span></div>
         <button type="button" className="primary" disabled={busy || measurementPhase === "loading" || !mappedIds.length} onClick={createProposal}>
           {busy ? "Validating…" : "Create reviewable proposal"}
         </button>

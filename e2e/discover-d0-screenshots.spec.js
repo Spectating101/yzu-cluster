@@ -116,7 +116,7 @@ test("D0 desktop identity + exact queue + probe switch", async ({ page }) => {
   });
   await mops.click();
   const rail = page.locator("aside.rd-v2-rail");
-  await rail.getByTestId("discover-eval-actions").getByRole("button", { name: "Probe source" }).click();
+  await rail.getByTestId("discover-eval-actions").getByRole("button", { name: "Test connection" }).click();
   await expect(rail.locator(".rd-v2-eval-verified")).toBeVisible();
   await shot(page, "desktop-1440x900__probe-candidate-a");
   await twse.click();

@@ -135,7 +135,7 @@ test.describe("professor demo @ live-desk", () => {
     }
 
     await expect(page.locator(".rd-v2-rail-toggle button.on", { hasText: "Detail" })).toBeVisible();
-    await expect(page.locator('[data-testid="rail-pane-detail"]')).toContainText(/Query-ready|Ready/i);
+    await expect(page.locator('[data-testid="rail-pane-detail"]')).toContainText(/Ready to query|Ready/i);
 
     const datasetId =
       (await page.locator("aside.rd-v2-rail .rd-v2-detail-id, aside .rd-v2-rail-scroll code").first().textContent()) ||

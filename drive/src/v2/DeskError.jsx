@@ -10,7 +10,7 @@ export function DeskError({ raw, surface, alert = false }) {
       <strong>{copy.headline}</strong>
       <p>{copy.body}</p>
       <details>
-        <summary>What the desk reported</summary>
+        <summary>What Research Drive reported</summary>
         <code>{copy.detail}</code>
       </details>
     </div>

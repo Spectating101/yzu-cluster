@@ -35,7 +35,7 @@ test.describe("Discover composition screenshots", () => {
     await expect(detail).toContainText("Still unknown");
     await shot(page, "01-desktop-explore-detail");
 
-    await page.getByTestId("discover-eval-actions").getByRole("button", { name: "Probe source" }).click();
+    await page.getByTestId("discover-eval-actions").getByRole("button", { name: "Test connection" }).click();
     await expect(detail.locator(".rd-v2-eval-verified")).toBeVisible();
     await shot(page, "02-desktop-explore-probed-detail");
 

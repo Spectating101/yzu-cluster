@@ -227,14 +227,14 @@ export function ConnectedAccountsSection({ deskAccess, onToast }) {
       <StatementSection title="Connected storage">
         <div className="rd-v2-connected-intro">
           <p>
-            Connect external storage accounts without migrating their files into Research Drive. This release establishes provider authority and verification; Library indexing and materialisation remain separate, explicit operations.
+            Connect external storage accounts while keeping their files in place. This release checks access to the provider. Adding files to the Library index and building data require separate actions.
           </p>
           <span>Credentials stay server-side</span>
         </div>
 
         {!canConnect ? (
           <p className="rd-v2-settings-hint" data-testid="connected-accounts-unavailable">
-            Connected storage is available to named member and operator accounts. Guest/public sessions never receive cloud-account authority.
+            Connected storage is available to member and administrator accounts. Guests and public sessions cannot access cloud accounts.
           </p>
         ) : loading && !document ? (
           <p className="rd-v2-settings-hint">Reading connected accounts…</p>
@@ -325,11 +325,11 @@ export function ConnectedAccountsSection({ deskAccess, onToast }) {
                     </p>
                   ) : provider.id === "onedrive" && selectedMode === "index" ? (
                     <p className="rd-v2-connected-provider-note">
-                      Microsoft does not expose delegated metadata-only file access; OneDrive metadata authority therefore uses read-only Files.Read.
+                      Microsoft does not offer delegated access to file metadata alone. OneDrive metadata access uses the read-only Files.Read permission.
                     </p>
                   ) : selectedMode === "write" ? (
                     <p className="rd-v2-connected-provider-note">
-                      Write authority is explicit. Use it only when Research Drive should be allowed to change upstream files.
+                      Grant write access only when Research Drive should be allowed to change files in the connected account.
                     </p>
                   ) : null}
                 </article>

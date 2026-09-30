@@ -22,7 +22,7 @@ test("a configured fast health response stays explicit while its live probe is p
     probe_skipped: "non_live_fast_path",
     drive_root: "gdrive:research",
   } } });
-  assert.equal(status.label, "Probe pending");
+  assert.equal(status.label, "Connection test pending");
   assert.equal(status.known, true);
   assert.equal(status.ready, false);
 });

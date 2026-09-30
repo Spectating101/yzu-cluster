@@ -66,8 +66,8 @@ export function ResourcesOverviewRailPanel({ rollup, decisionCount, onViewActivi
             {query.up === false
               ? "Catalog and query service is offline."
               : sourceCount != null
-                ? `${sourceCount} source routes are configured; authority is reported per route.`
-                : "Source routes and collection capacity are available for inspection."}
+                ? `${sourceCount} collection methods are configured; permissions are reported for each method.`
+                : "Collection methods and capacity are available for review."}
           </p>
         </section>
         <p className="rd-v2-rail-section-label">Current capacity</p>
@@ -84,7 +84,7 @@ export function ResourcesOverviewRailPanel({ rollup, decisionCount, onViewActivi
           <RailField label="Collectors" value={collectorState} />
           <RailField label="Drive archive" value={vaultState} />
           <RailField label="Source inventory" value={sourceCount != null ? `${sourceCount} configured` : "Configured routes"} />
-          <RailField label="Desk connection" value={query.up === false ? "Offline" : "Connected"} />
+          <RailField label="Research Drive connection" value={query.up === false ? "Offline" : "Connected"} />
         </RailFieldGrid>
       </div>
       <RailStickyFooter>

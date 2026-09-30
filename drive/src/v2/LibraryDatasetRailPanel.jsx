@@ -39,7 +39,7 @@ function unknowns(dataset, fields, presentation, receipt, freshness) {
   if (demotion) out.push(demotion);
 
   if (!sourceAuthorityValue(dataset)) {
-    out.push("Source authority not recorded");
+    out.push("Source not recorded");
   }
   if (!dataset?.self_provided && !dataset?.upload && !receipt.sourceUrl) {
     out.push("Exact source URL not recorded");
@@ -54,8 +54,8 @@ function unknowns(dataset, fields, presentation, receipt, freshness) {
   }
 
   if (presentation.kind === "live_source") {
-    if (!accessRouteValue(dataset, fields) && !receipt.method) out.push("Access route not reported");
-    if (!Array.isArray(dataset?.columns) && !Array.isArray(dataset?.fields)) out.push("Declared response shape not reported");
+    if (!accessRouteValue(dataset, fields) && !receipt.method) out.push("Access not reported");
+    if (!Array.isArray(dataset?.columns) && !Array.isArray(dataset?.fields)) out.push("Documented response shape not reported");
     if (!dataset?.last_checked_at && !dataset?.checked_at && !freshness.lastRefreshedAt && !freshness.dataAsOf) {
       out.push("Connection freshness not described");
     }
@@ -69,7 +69,7 @@ function unknowns(dataset, fields, presentation, receipt, freshness) {
 
   if (!dataset?.analysis_readiness) out.push("Readiness not reported by registry");
   if (!fields.coverage && !dataset?.coverage && !dataset?.date_range) out.push("Coverage not reported");
-  if (!dataset?.grain) out.push("Grain not reported");
+  if (!dataset?.grain) out.push("Unit of observation not reported");
   if (!freshness.hasFreshnessEvidence) {
     out.push("Data freshness / refresh cadence not recorded");
   }
@@ -98,7 +98,7 @@ function Fact({ label, value, mono = false, href = "" }) {
 }
 
 function sourceAuthorityLine(dataset) {
-  return sourceAuthorityValue(dataset) || "Source authority absent";
+  return sourceAuthorityValue(dataset) || "Source not recorded";
 }
 
 function askLabel(presentation, state) {
@@ -122,7 +122,7 @@ function reproductionValue(receipt) {
 function provenanceBasis(dataset, receipt) {
   if (dataset?.self_provided || dataset?.upload) return "Self-provided";
   if (receipt.sourceUrl) return "Exact source recorded";
-  if (sourceAuthorityValue(dataset)) return "Authority named";
+  if (sourceAuthorityValue(dataset)) return "Source named";
   return "Not established";
 }
 
@@ -140,18 +140,18 @@ function nextMove({ state, presentation, previewOpen, receipt, verification, fre
     if (verification.kind !== "verified" && verification.kind !== "matched") {
       return "Open a query when you need analysis, while keeping verification separate from query readiness.";
     }
-    return "Use the bounded sample for a quick value check, then open a query when you need analysis beyond it.";
+    return "Use the sample for a quick value check. Open a query for analysis beyond the sample.";
   }
   if (state.kind === "connected") {
-    return "Use the declared remote route. Connected means reachable, not that a local query-ready copy exists.";
+    return "Use the documented remote connection. Connected means the source is reachable. It does not confirm a local copy ready to query.";
   }
   if (state.kind === "registered") {
     if (presentation.kind === "scholarly_work") {
       return "Use the bibliographic record as evidence, then verify the stable source before making a stronger source claim.";
     }
-    return "Inspect the Source record and prepare a usable local copy before treating this asset as queryable evidence.";
+    return "Inspect the source record and prepare a usable local copy before treating this data as ready to query.";
   }
-  return "Resolve the outstanding readiness or provenance gaps before relying on this asset in analysis.";
+  return "Resolve the readiness or source history gaps before relying on this data in analysis.";
 }
 
 function DecisionBasis({ state, verification, dataset, receipt, previewOpen, presentation, freshness }) {
@@ -162,8 +162,8 @@ function DecisionBasis({ state, verification, dataset, receipt, previewOpen, pre
     ["Freshness", freshness.basisLabel],
   ];
   return (
-    <section className="rd-v2-library-inspector-basis" aria-label="Decision basis" data-testid="library-decision-basis">
-      <p className="rd-v2-rail-section-label">Decision basis</p>
+    <section className="rd-v2-library-inspector-basis" aria-label="Why this status" data-testid="library-decision-basis">
+      <p className="rd-v2-rail-section-label">Why this status</p>
       <div className="rd-v2-library-inspector-basis-grid">
         {rows.map(([label, value]) => (
           <div key={label}>
@@ -184,15 +184,15 @@ function HoldingsBlock({ summary }) {
   if (!summary.count) return null;
   const focus = summary.focus;
   const otherProviders = summary.providers.filter((provider) => provider !== focus?.provider);
-  const focusLabel = focus?.active ? "Using" : focus?.primary ? "Primary holding" : "Known holding";
+  const focusLabel = focus?.active ? "Using" : focus?.primary ? "Primary copy" : "Known copy";
   const focusContext = focus ? [focus.custodian, holdingRoleLabel(focus)].filter(Boolean).join(" · ") : "";
   return (
     <section
       className="rd-v2-library-inspector-block rd-v2-library-inspector-holdings"
-      aria-label="Holdings"
+      aria-label="Your Library"
       data-testid="library-rail-holdings"
     >
-      <p className="rd-v2-rail-section-label">Holdings</p>
+      <p className="rd-v2-rail-section-label">Your Library</p>
       <h3 className="rd-v2-library-rail-module-title">{summary.headline}</h3>
       {focus ? (
         <div className="rd-v2-library-holding-focus">
@@ -280,16 +280,16 @@ export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onAskAbo
           {hasReceiptDetails ? (
             <div className="rd-v2-library-inspector-facts rd-v2-library-provenance-facts">
               <Fact label={receipt.sourceUrlKind || "Exact source URL"} value={receipt.sourceUrl} href={receipt.sourceUrl} mono />
-              <Fact label="Access route" value={plainRoute(accessRoute)} />
+              <Fact label="Access" value={plainRoute(accessRoute)} />
               <Fact label="Method" value={plainRoute(receipt.method)} />
               <Fact label={reproductionLabel(receipt)} value={reproductionValue(receipt)} mono />
-              <Fact label="Upstream assets" value={receipt.upstream} mono />
+              <Fact label="Upstream datasets" value={receipt.upstream} mono />
             </div>
           ) : (
             <p className="rd-v2-library-inspector-prose muted">
               {authority
-                ? "The source authority is named, but no exact reproduction receipt is recorded for this asset."
-                : "No source authority or exact reproduction receipt is recorded for this asset."}
+                ? "The source is named, but no record of how to reproduce this dataset is saved."
+                : "No source verification or reproduction record is saved for this dataset."}
             </p>
           )}
         </section>

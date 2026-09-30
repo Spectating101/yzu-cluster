@@ -234,8 +234,8 @@ test("1440 mature Inspector preserves authority proof hierarchy", async ({ page 
   await expectStyledCard(proof);
   await expect(proof.locator("li")).toHaveCount(4);
   await expect(proof.locator("li").first()).toHaveCSS("display", "grid");
-  await expect(proof).toContainText("Accepted revision");
-  await expect(proof).toContainText("Passed for current revision");
+  await expect(proof).toContainText("Accepted version");
+  await expect(proof).toContainText("Passed for this version");
   await expect(proof).toContainText("Recorded · running");
 
   await screenshot(page, "authority-proof-1440");
