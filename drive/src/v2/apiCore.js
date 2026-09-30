@@ -12,6 +12,7 @@ import {
   saveChatSessionId,
 } from "./deskSession.js";
 import { createRequestAbort, decodeNdjson, normalizeApiError } from "./transportContract.js";
+import { mergeJobLists } from "./procurementJobs.js";
 
 export const API = import.meta.env?.DEV ? "/api" : "";
 
@@ -486,8 +487,13 @@ export function listAcquisitions(live = true) {
   return fetchJson(`/yzu/acquisitions${q}`);
 }
 
+const jobRows = (d) => d?.jobs || d?.items || (Array.isArray(d) ? d : []);
+
 export function listJobs() {
-  return fetchJson("/library/jobs").then((d) => d.jobs || d.items || d || []);
+  return Promise.all([
+    fetchJson("/library/jobs").then(jobRows),
+    fetchJson("/library/jobs?status=pending_approval&limit=100").then(jobRows).catch(() => []),
+  ]).then(([recent, pending]) => mergeJobLists(recent, pending));
 }
 
 /** RC2-A: sanitized cross-surface identity from the private factory / desk gateway. */

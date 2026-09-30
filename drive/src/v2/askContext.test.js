@@ -46,3 +46,10 @@ describe("Ask surface context ownership", () => {
     );
   });
 });
+
+it("Discover objects keep their Ask context under either tab spelling", () => {
+  const object = { kind: "discover_history", id: "e1", title: "TWSE refresh" };
+  assert.equal(activeObjectBelongsToTab("discover", object), true);
+  assert.equal(activeObjectBelongsToTab("browse", object), true);
+  assert.equal(activeObjectBelongsToTab("library", object), false);
+});

@@ -5,6 +5,7 @@ import { connectorContext } from "@/v2/connectorContract";
 import { normalizeSynthesisExecution } from "@/v2/executionLifecycle";
 import { synthesisAssist } from "@/v2/synthesisAssist.js";
 import { activeObjectBelongsToTab } from "./contextOwnership.js";
+import { DISCOVER_TAB, canonicalTab } from "./tabIdentity.js";
 
 function readinessLabel(dataset) {
   const raw = String(dataset?.analysis_readiness || "").trim();
@@ -302,7 +303,7 @@ export function buildRailContext({
     selected: selected || undefined,
     dataset_id: datasetId || undefined,
     folder_id: tab === "library" ? folderId || undefined : undefined,
-    search_query: tab === "browse" ? searchQuery?.trim() || undefined : undefined,
+    search_query: canonicalTab(tab) === DISCOVER_TAB ? searchQuery?.trim() || undefined : undefined,
     profile_email: profileEmail || undefined,
     readiness: scopedDataset ? readinessLabel(scopedDataset) : undefined,
     vault_path: scopedDataset ? vaultPath(scopedDataset) : undefined,

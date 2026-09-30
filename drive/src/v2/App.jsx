@@ -863,6 +863,7 @@ export function V2App() {
       const nextState = discoverModeFromLegacy(rawMode);
       setDiscoverMode(nextState.mode);
       setDiscoverFocusAwaiting(nextState.focusAwaiting);
+      awaitingFocusRef.current = false;
       if (nextState.mode === "history") {
         setBrowseRow(null);
         setActiveObject((current) => (current?.kind === "external_candidate" ? null : current));
@@ -876,6 +877,7 @@ export function V2App() {
     [discoverSearchQuery, syncUrl],
   );
 
+  const awaitingFocusRef = useRef(false);
   const openDiscoverAwaiting = useCallback(
     ({ job = null, focusAwaiting = true } = {}) => {
       setDiscoverMode("history");
@@ -897,9 +899,20 @@ export function V2App() {
         setSelectedHistoryId("");
         setActiveObject(null);
       }
+      awaitingFocusRef.current = !targetJob && focusAwaiting;
     },
     [jobs, syncUrl, discoverSearchQuery],
   );
+
+  useEffect(() => {
+    if (!awaitingFocusRef.current) return;
+    const pending = pendingApprovalJobs(jobs).find(isDiscoverHistoryJob);
+    if (!pending) return;
+    awaitingFocusRef.current = false;
+    const event = jobToDiscoverHistoryEvent(pending);
+    setSelectedHistoryId(event?.id || "");
+    setActiveObject(discoverHistoryObject(event));
+  }, [jobs]);
 
   // Durable Discover History (optional endpoint — ignore failures).
   useEffect(() => {

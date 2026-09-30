@@ -127,3 +127,8 @@ export function pendingApprovalCount(jobs = []) {
 export function activeProcurementJobs(jobs = []) {
   return jobs.filter((j) => ["pending_approval", "queued", "running"].includes(String(j.status || "")));
 }
+
+export function mergeJobLists(recent, pending) {
+  const seen = new Set(recent.map((job) => job?.id));
+  return [...recent, ...pending.filter((job) => job?.id && !seen.has(job.id))];
+}

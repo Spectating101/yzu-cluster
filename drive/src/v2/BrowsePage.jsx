@@ -1350,7 +1350,7 @@ export function BrowsePage({
   const modeTabs = (
     <DiscoverModeTabs
       mode={showHistory ? "history" : "explore"}
-      pendingCount={pendingRows.length}
+      pendingCount={new Set(pendingRows.map((row) => row.title || row.id)).size}
       onChange={onDiscoverModeChange}
     />
   );

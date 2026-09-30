@@ -171,13 +171,13 @@ function HistoryRow({ event, selectedId, index, onSelectEvent, secondary = false
   );
 }
 
-function Territory({ title, events, selectedId, onSelectEvent, startIndex = 0, secondary = false }) {
+function Territory({ title, events, total, selectedId, onSelectEvent, startIndex = 0, secondary = false }) {
   if (!events.length) return null;
   return (
     <section className={`rd-v2-history-territory${secondary ? " is-secondary" : ""}`} aria-label={title}>
       <header className="rd-v2-history-territory-head">
         <h3>{title}</h3>
-        <span>{events.length}</span>
+        <span>{total ?? events.length}</span>
       </header>
       <div className="rd-v2-history-list">
         {events.map((event, index) => (
@@ -251,9 +251,14 @@ export function DiscoverHistoryPanel({
     filter === "search" ? searchRows : filter === "system" ? systemRows : durable;
   const filtered = useMemo(
     () =>
-      filter === "all" || filter === "search" || filter === "system"
-        ? normalized
-        : normalized.filter((event) => eventKind(event) === filter),
+      filter === "all"
+        ? [
+            ...normalized.filter((event) => eventKind(event) === "needs_approval"),
+            ...normalized.filter((event) => eventKind(event) !== "needs_approval"),
+          ]
+        : filter === "search" || filter === "system"
+          ? normalized
+          : normalized.filter((event) => eventKind(event) === filter),
     [filter, normalized],
   );
   const visible = filtered.slice(0, visibleCount);
@@ -374,7 +379,7 @@ export function DiscoverHistoryPanel({
         </div>
       ) : filter === "all" ? (
         <div className="rd-v2-history-territories">
-          <Territory title="Needs you" events={needsYou} selectedId={selectedId} onSelectEvent={onSelectEvent} />
+          <Territory title="Needs you" events={needsYou} total={filterCounts.needs_approval} selectedId={selectedId} onSelectEvent={onSelectEvent} />
           <Territory
             title="Research lifecycle"
             events={lifecycle}

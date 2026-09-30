@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { isDiscoverHistoryJob, jobTitle, jobToDiscoverHistoryEvent } from "./procurementJobs.js";
+import { isDiscoverHistoryJob, jobTitle, jobToDiscoverHistoryEvent, mergeJobLists } from "./procurementJobs.js";
 
 test("pending approvals do not claim every request is a collection", () => {
   const event = jobToDiscoverHistoryEvent({
@@ -40,3 +40,9 @@ test("history summaries name the job source in plain language", () => {
   assert.equal(other.summary, "SEC EDGAR filings · failed");
 });
 
+
+test("pending approvals older than the recent window stay in the job list", () => {
+  const recent = [{ id: "a", status: "completed" }, { id: "b", status: "pending_approval" }];
+  const pending = [{ id: "b", status: "pending_approval" }, { id: "c", status: "pending_approval" }];
+  assert.deepEqual(mergeJobLists(recent, pending).map((job) => job.id), ["a", "b", "c"]);
+});
