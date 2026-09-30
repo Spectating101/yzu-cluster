@@ -1676,9 +1676,7 @@ export function V2App() {
   const openHomeAttention = useCallback(
     (item) => {
       if (item?.tab === DISCOVER_TAB || item?.discoverMode === "history") {
-        setDiscoverModeSafe("history");
-        goTab("browse");
-        setRailTab("detail");
+        openDiscoverAwaiting({ job: item.resourceRow?.job || null, focusAwaiting: true });
         return;
       }
       if (item?.tab === "resources" && item.resourceRow) {
@@ -1692,7 +1690,7 @@ export function V2App() {
       }
       goTab(item?.tab || "home");
     },
-    [goTab, setDiscoverModeSafe],
+    [goTab, openDiscoverAwaiting],
   );
 
   const libraryNavHaystack = useMemo(() => {

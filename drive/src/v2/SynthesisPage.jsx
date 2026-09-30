@@ -4,6 +4,8 @@ import { PageShell } from "@/v2/ui";
 import {
   createSynthesisThread,
   decideSynthesisProposal,
+  describeDataset,
+  queryDataset,
   applySynthesisEvidenceMap,
   getSynthesisDiscoverHandoff,
   getSynthesisMeasurements,
@@ -1117,6 +1119,66 @@ function MethodExportActions({ thread }) {
   );
 }
 
+function formatCell(value) {
+  if (value === null || value === undefined || value === "") return "—";
+  const n = Number(value);
+  if (typeof value === "number" || (typeof value === "string" && value.trim() !== "" && Number.isFinite(n) && /^-?\d/.test(value))) {
+    if (Number.isInteger(n)) return n.toLocaleString();
+    return Math.abs(n) < 10 ? n.toFixed(3) : n.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  }
+  return String(value);
+}
+
+function useRegisteredOutput(outputId, enabled) {
+  const [state, setState] = useState({ loading: false, name: "", rows: [], columns: [], total: null, error: "" });
+  useEffect(() => {
+    if (!enabled || !outputId) return undefined;
+    let cancelled = false;
+    setState((current) => ({ ...current, loading: true, error: "" }));
+    Promise.allSettled([describeDataset(outputId), queryDataset(outputId, 20, { hydrate: true })]).then(([described, queried]) => {
+      if (cancelled) return;
+      const ds = described.status === "fulfilled" ? described.value?.dataset || described.value || {} : {};
+      const result = queried.status === "fulfilled" ? queried.value || {} : {};
+      const rows = Array.isArray(result.rows) ? result.rows : [];
+      setState({
+        loading: false,
+        name: String(ds.name || ds.display_name || ds.title || ""),
+        rows,
+        columns: Object.keys(rows[0] || {}),
+        total: result.meta?.total_rows ?? result.meta?.returned ?? null,
+        error: rows.length ? "" : String(result.meta?.message || (queried.status === "rejected" ? "The result could not be loaded." : "")),
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [outputId, enabled]);
+  return state;
+}
+
+function RegisteredResultTable({ result }) {
+  if (result.loading) return <p className="s04-preview-copy" data-testid="synthesis-result-loading">Loading the result…</p>;
+  if (!result.rows.length) {
+    return result.error ? <p className="s04-preview-copy" data-testid="synthesis-result-unavailable">{result.error}</p> : null;
+  }
+  const columns = result.columns.slice(0, 10);
+  return (
+    <div className="s04-preview-sample s04-result-table" data-testid="synthesis-result-table">
+      <small>Result · {result.rows.length} row{result.rows.length === 1 ? "" : "s"}{result.rows.length >= 20 ? " shown" : ""}</small>
+      <div className="s04-preview-table-wrap">
+        <table className="s04-preview-table">
+          <thead><tr>{columns.map((column) => <th key={column}>{column}</th>)}</tr></thead>
+          <tbody>
+            {result.rows.map((row, rowIndex) => (
+              <tr key={rowIndex}>{columns.map((column) => <td key={`${rowIndex}-${column}`}>{formatCell(row?.[column])}</td>)}</tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 function ExecutionRecord({ thread, busy, onRequest, onReview, onAsk, onOpenDataset }) {
   const state = thread?.state || {};
   const execution = state.execution || {};
@@ -1157,16 +1219,18 @@ function ExecutionRecord({ thread, busy, onRequest, onReview, onAsk, onOpenDatas
           ? "Execution failed"
           : "Execution record";
   const badge = previewEligible ? previewStatus : queryReady ? "Query-ready" : registered ? "Registered" : status;
+  const result = useRegisteredOutput(outputId, registered);
 
   return (
     <section className="s04-card" data-testid={queryReady ? "synthesis-query-ready-state" : registered ? "synthesis-registered-state" : failed ? "synthesis-failed-state" : "synthesis-execution-state"}>
       <header className="s04-title">
         <div>
           <small>{headline}</small>
-          <h2>{registered ? softIdentifier(outputId, "Registered output") : softIdentifier(spec.output_dataset_id, "No execution requested")}</h2>
+          <h2>{registered ? result.name || softIdentifier(outputId, "Registered output") : softIdentifier(spec.output_dataset_id, "No execution requested")}</h2>
         </div>
         <em className={registered || previewTruth.succeeded ? "success" : failed || previewTruth.failed ? "warn" : "neutral"}>{badge}</em>
       </header>
+      {registered ? <RegisteredResultTable result={result} /> : null}
       {hasSpec ? (
         <dl className="s04-method">
           <div><dt>Input</dt><dd>{softIdentifier(spec.input_dataset_id)}</dd></div>
@@ -1241,6 +1305,8 @@ function ExecutionRecord({ thread, busy, onRequest, onReview, onAsk, onOpenDatas
         </section>
       ) : null}
       {showExecutionProof ? (
+        <details className="s04-tech-record" open={!registered}>
+        <summary>Technical record</summary>
         <div className="s04-proof">
           <section>
             <small>Execution evidence</small>
@@ -1259,6 +1325,7 @@ function ExecutionRecord({ thread, busy, onRequest, onReview, onAsk, onOpenDatas
             </dl>
           </section>
         </div>
+        </details>
       ) : null}
       {failed ? <p className="s04-fixture">{text(execution.error, "The execution failed without a recorded error detail.")}</p> : null}
       {registered ? <MethodExportActions thread={thread} /> : null}

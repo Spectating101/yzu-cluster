@@ -181,8 +181,8 @@ export function describeDataset(datasetId) {
   return fetchJson(`/datasets/${encodeURIComponent(datasetId)}`);
 }
 
-export function queryDataset(datasetId, limit = 50) {
-  return fetchJson(`/query/${encodeURIComponent(datasetId)}?limit=${limit}`);
+export function queryDataset(datasetId, limit = 50, { hydrate = false } = {}) {
+  return fetchJson(`/query/${encodeURIComponent(datasetId)}?limit=${limit}${hydrate ? "&hydrate=1" : ""}`);
 }
 
 export function deskHealth(live = false, { timeoutMs } = {}) {

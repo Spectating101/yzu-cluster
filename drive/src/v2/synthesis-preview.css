@@ -229,3 +229,23 @@
     transition-duration: .01ms !important;
   }
 }
+
+.s04-result-table {
+  margin: 4px 0 14px;
+}
+
+.s04-tech-record > summary {
+  cursor: pointer;
+  padding: 6px 0;
+  color: var(--rd-muted, #5b6578);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.s04-tech-record[open] > summary {
+  margin-bottom: 8px;
+}
+
+.s04-result-table .s04-preview-table {
+  font-size: 12px;
+}
