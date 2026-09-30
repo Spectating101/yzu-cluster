@@ -5,6 +5,7 @@ import {
   linkSynthesisThreadConversation,
   sendChatMessage,
 } from "@/v2/api";
+import { FOLLOW_UP_INTERVAL_MS, FOLLOW_UP_LIMIT_MS, awaitsFullAnswer, lateAssistantRows } from "./askFollowUp.js";
 import { normalizeActivityStep } from "@/v2/deskIntegration";
 import { clearChatSessionId, loadChatSessionId, loadUserEmail, saveChatSessionId } from "@/v2/deskSession";
 import { classifyAskIntent, shapeAskReplyForIntent } from "@/v2/askIntent";
@@ -225,6 +226,26 @@ export function useAskChat({
       ? `[context: ${dataset.title}] `
       : "";
 
+  const followFullAnswer = useCallback((sessionId, quickReply, isCurrentRequest) => {
+    const started = Date.now();
+    const poll = () => {
+      if (!isCurrentRequest() || Date.now() - started > FOLLOW_UP_LIMIT_MS) return;
+      getChatSession(sessionId)
+        .then((session) => {
+          if (!isCurrentRequest()) return;
+          const rows = Array.isArray(session?.messages) ? session.messages : [];
+          const late = lateAssistantRows(rows, quickReply);
+          if (late.length) {
+            setMessages((m) => [...m, ...late.map(restoreMessage)]);
+            return;
+          }
+          setTimeout(poll, FOLLOW_UP_INTERVAL_MS);
+        })
+        .catch(() => setTimeout(poll, FOLLOW_UP_INTERVAL_MS));
+    };
+    setTimeout(poll, FOLLOW_UP_INTERVAL_MS);
+  }, []);
+
   const send = useCallback(
     async (text) => {
       const outgoing = normalizeOutgoingMessage(text, input);
@@ -409,6 +430,9 @@ export function useAskChat({
                 ? `Campaign ${String(out.campaign_id).slice(0, 8)}…`
                 : "",
           );
+          if (awaitsFullAnswer(out) && out.session_id) {
+            followFullAnswer(out.session_id, reply, isCurrentRequest);
+          }
           emitSynthesisAgentEvent(sendSynthesisThreadId, {
             kind: "run_completed",
             action: out.action || shaped.action || null,
@@ -484,6 +508,7 @@ export function useAskChat({
       synthesisSessionId,
       synthesisThreadId,
       warmEnabled,
+      followFullAnswer,
     ],
   );
 
