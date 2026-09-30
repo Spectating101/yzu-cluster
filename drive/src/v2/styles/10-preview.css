@@ -59,7 +59,7 @@
   background: #e8f0fe;
   color: var(--rd-accent);
   font-family: var(--rd-mono);
-  font-size: 18px;
+  font-size: var(--rd-text-xl);
   font-weight: 700;
 }
 
@@ -75,8 +75,8 @@
 .rd-preview-identity strong {
   overflow: hidden;
   color: var(--rd-text);
-  font-size: 15px;
-  font-weight: 650;
+  font-size: var(--rd-text-lg);
+  font-weight: 600;
   line-height: 1.3;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -85,7 +85,7 @@
 .rd-preview-identity div > span {
   margin-top: 2px;
   color: var(--rd-muted);
-  font-size: 11px;
+  font-size: var(--rd-text-2xs);
   line-height: 1.25;
 }
 
@@ -119,7 +119,7 @@
   overflow-x: auto;
   padding: 0 16px;
   border-bottom: 1px solid var(--rd-border);
-  background: #fbfcfe;
+  background: #ffffff;
   scrollbar-width: none;
 }
 
@@ -130,10 +130,10 @@
 .rd-preview-meta-strip span {
   flex: 0 0 auto;
   color: var(--rd-muted);
-  font-family: var(--rd-mono);
-  font-size: 10px;
+  font-family: var(--rd-font);
+  font-size: var(--rd-text-2xs);
   font-weight: 600;
-  letter-spacing: 0.035em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -141,7 +141,7 @@
 .rd-preview-meta-strip span + span::before {
   content: "·";
   margin: 0 9px;
-  color: #a6abb1;
+  color: #a4acb7;
 }
 
 .rd-preview-tabs {
@@ -192,7 +192,7 @@
   border-collapse: collapse;
   color: var(--rd-body);
   font-family: var(--rd-mono);
-  font-size: 11px;
+  font-size: var(--rd-text-2xs);
 }
 
 .rd-preview-table th,
@@ -210,21 +210,21 @@
   position: sticky;
   top: 0;
   z-index: 2;
-  background: #f8fafd;
+  background: #ffffff;
   color: var(--rd-muted);
-  font-size: 9.5px;
+  font-size: var(--rd-text-2xs);
   font-weight: 700;
-  letter-spacing: 0.055em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
 .rd-preview-table tbody tr:hover {
-  background: #f8fafd;
+  background: #ffffff;
 }
 
 .rd-preview-table.fields td:first-child {
   color: var(--rd-text);
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .rd-preview-fields {
@@ -241,13 +241,13 @@
 
 .rd-preview-section-heading strong {
   color: var(--rd-text);
-  font-size: 13px;
+  font-size: var(--rd-text-sm);
 }
 
 .rd-preview-section-heading span,
 .rd-preview-field-note {
   color: var(--rd-muted);
-  font-size: 11px;
+  font-size: var(--rd-text-2xs);
 }
 
 .rd-preview-field-note {
@@ -267,7 +267,7 @@
 .rd-preview-loading span {
   width: 28px;
   height: 28px;
-  border: 3px solid #dfe5ec;
+  border: 3px solid #e8ebf1;
   border-top-color: var(--rd-accent);
   border-radius: 50%;
   animation: rd-preview-spin 0.8s linear infinite;
@@ -275,7 +275,7 @@
 
 .rd-preview-loading p {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--rd-text-xs);
 }
 
 @keyframes rd-preview-spin {
@@ -287,9 +287,9 @@
   padding: 8px 10px;
   border: 1px solid #f0d7a8;
   border-radius: 6px;
-  background: #fff8eb;
+  background: #fffbeb;
   color: #8a5b00;
-  font-size: 11px;
+  font-size: var(--rd-text-2xs);
 }
 
 .rd-preview-source-record {
@@ -305,16 +305,16 @@
 
 .rd-preview-source-brand span {
   color: var(--rd-muted);
-  font-family: var(--rd-mono);
-  font-size: 10px;
+  font-family: var(--rd-font);
+  font-size: var(--rd-text-2xs);
   font-weight: 700;
-  letter-spacing: 0.055em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
 .rd-preview-source-brand strong {
   color: var(--rd-text);
-  font-size: 20px;
+  font-size: var(--rd-text-2xl);
   line-height: 1.25;
 }
 
@@ -335,7 +335,7 @@
 
 .rd-preview-source-fields dt {
   color: var(--rd-muted);
-  font-size: 11px;
+  font-size: var(--rd-text-2xs);
   font-weight: 600;
 }
 
@@ -343,7 +343,7 @@
   min-width: 0;
   margin: 0;
   color: var(--rd-body);
-  font-size: 12px;
+  font-size: var(--rd-text-xs);
   overflow-wrap: anywhere;
 }
 
@@ -351,7 +351,7 @@
   max-width: 680px;
   margin: 20px 0 0;
   color: var(--rd-body);
-  font-size: 13px;
+  font-size: var(--rd-text-sm);
   line-height: 1.55;
 }
 
@@ -363,20 +363,20 @@
   padding: 12px 14px;
   border: 1px solid var(--rd-border2);
   border-radius: 7px;
-  background: #f8fafd;
+  background: #ffffff;
 }
 
 .rd-preview-boundary strong {
   color: var(--rd-text);
-  font-family: var(--rd-mono);
-  font-size: 9.5px;
-  letter-spacing: 0.055em;
+  font-family: var(--rd-font);
+  font-size: var(--rd-text-2xs);
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
 .rd-preview-boundary span {
   color: var(--rd-muted);
-  font-size: 11px;
+  font-size: var(--rd-text-2xs);
   line-height: 1.45;
 }
 
@@ -400,21 +400,21 @@
   background: var(--rd-ext-bg);
   color: var(--rd-muted);
   font-family: var(--rd-mono);
-  font-size: 17px;
+  font-size: var(--rd-text-xl);
   font-weight: 700;
 }
 
 .rd-preview-unavailable h3 {
   margin: 0;
   color: var(--rd-text);
-  font-size: 16px;
+  font-size: var(--rd-text-lg);
 }
 
 .rd-preview-unavailable > p {
   max-width: 460px;
   margin: 7px 0 0;
   color: var(--rd-muted);
-  font-size: 12px;
+  font-size: var(--rd-text-xs);
   line-height: 1.5;
 }
 
@@ -424,13 +424,13 @@
   padding: 12px 14px;
   border: 1px solid var(--rd-border);
   border-radius: 7px;
-  background: #fbfcfe;
+  background: #ffffff;
   text-align: left;
 }
 
 .rd-preview-unavailable-meta strong {
   color: var(--rd-body);
-  font-size: 11px;
+  font-size: var(--rd-text-2xs);
 }
 
 .rd-preview-unavailable-meta ul {
@@ -442,7 +442,7 @@
 .rd-preview-unavailable-meta li {
   padding: 3px 0;
   color: var(--rd-muted);
-  font-size: 11px;
+  font-size: var(--rd-text-2xs);
 }
 
 .rd-preview-link-button {
@@ -459,7 +459,7 @@
   display: grid;
   place-items: center;
   padding: 18px;
-  background: #f1f3f4;
+  background: #eef1ee;
 }
 
 .rd-preview-image-stage img {
@@ -474,7 +474,7 @@
   width: 100%;
   min-height: 58vh;
   border: 0;
-  background: #f1f3f4;
+  background: #eef1ee;
 }
 
 .rd-preview-footer {
@@ -493,7 +493,7 @@
   min-width: 0;
   overflow: hidden;
   color: var(--rd-muted);
-  font-size: 10.5px;
+  font-size: var(--rd-text-2xs);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -512,7 +512,7 @@
   border-radius: 5px;
   background: var(--rd-surface);
   color: var(--rd-body);
-  font: 600 11.5px/1 var(--rd-font);
+  font: 600 11px/1 var(--rd-font);
   cursor: pointer;
 }
 
@@ -545,7 +545,7 @@
   background: rgba(255, 255, 255, 0.9);
   color: var(--rd-body);
   box-shadow: 0 2px 8px rgba(32, 33, 36, 0.18);
-  font: 400 30px/1 var(--rd-font);
+  font: 400 28px/1 var(--rd-font);
   cursor: pointer;
 }
 

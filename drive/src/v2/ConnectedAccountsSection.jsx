@@ -211,7 +211,7 @@ export function ConnectedAccountsSection({ deskAccess, onToast }) {
                   ? "Library and Discover are available. Sign in to save work or connect personal storage."
                   : deskAccess?.principal?.email || `Account ${principalId || "authenticated"}`
               }
-              detail={publicGuest ? "PUBLIC" : "SIGNED IN"}
+              detail={publicGuest ? "Public" : "Signed in"}
             />
             <p className="rd-v2-settings-hint">
               This account owns private work and connected storage. The faculty identity below is a research record and remains separate.

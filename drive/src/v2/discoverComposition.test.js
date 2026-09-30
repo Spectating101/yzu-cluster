@@ -110,3 +110,10 @@ describe("progressive Discover result paint", () => {
     assert.equal(discoverSearchOutcomeUnknown({ resultCount: 0 }), false);
   });
 });
+
+describe("interpretEvidenceNeed question words", () => {
+  it("keeps evidence terms and drops question scaffolding", () => {
+    const { tokens } = interpretEvidenceNeed("Did bitcoin volatility rise when stablecoins de-pegged?");
+    assert.deepEqual(tokens, ["Bitcoin", "Volatility", "Stablecoins", "De-pegged"]);
+  });
+});

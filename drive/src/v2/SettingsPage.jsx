@@ -215,7 +215,7 @@ export function SettingsPage({
             label="Shared evidence archive"
             metric={archive.label}
             sublabel={archive.detail}
-            detail={archive.ready ? "READY" : archive.known ? "CHECK" : "UNKNOWN"}
+            detail={archive.ready ? "Ready" : archive.known ? "Needs a check" : "Unknown"}
             warn={archive.known && !archive.ready}
           />
           <p className="rd-v2-settings-hint">
@@ -263,7 +263,7 @@ export function SettingsPage({
             label="This browser"
             metric={access.label}
             sublabel={access.detail}
-            detail={access.ok ? "OK" : "NEED"}
+            detail={access.ok ? "Healthy" : "Needed"}
             warn={!access.ok}
           />
           <div className="rd-v2-settings-row stack">
@@ -308,10 +308,10 @@ export function SettingsPage({
               sublabel="Catalog, Ask, jobs, query, and research-workspace service"
               detail={
                 health?.status === "ok"
-                  ? "OK"
+                  ? "Healthy"
                   : health == null
-                    ? "UNKNOWN"
-                    : "CHECK"
+                    ? "Unknown"
+                    : "Needs a check"
               }
               warn={health != null && health?.status !== "ok"}
             />
@@ -320,7 +320,7 @@ export function SettingsPage({
               metric={assistant.label}
               sublabel={assistant.detail}
               detail={
-                assistant.ready ? "READY" : assistant.known ? "CHECK" : "UNKNOWN"
+                assistant.ready ? "Ready" : assistant.known ? "Needs a check" : "Unknown"
               }
               warn={assistant.known && !assistant.ready}
             />
@@ -328,14 +328,14 @@ export function SettingsPage({
               label="Research archive"
               metric={archive.label}
               sublabel={archive.detail}
-              detail={archive.ready ? "READY" : archive.known ? "CHECK" : "UNKNOWN"}
+              detail={archive.ready ? "Ready" : archive.known ? "Needs a check" : "Unknown"}
               warn={archive.known && !archive.ready}
             />
             <StatementRow
               label="Desk equipment"
-              metric={mcpTools != null ? `${mcpTools} MCP tools` : "Not reported"}
+              metric={mcpTools != null ? `${mcpTools} research tools` : "Not reported"}
               sublabel="Capability inventory belongs to Resources; this is a compact status read"
-              detail={mcpTools != null ? "REPORTED" : "UNKNOWN"}
+              detail={mcpTools != null ? "Reported" : "Unknown"}
             />
 
             <details className="rd-v2-settings-advanced">

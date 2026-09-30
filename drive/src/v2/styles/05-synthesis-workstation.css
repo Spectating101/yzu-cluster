@@ -195,7 +195,7 @@
   body:has(.rd-v2-synthesis-page) .s04-rail-context > p {
     margin: 0;
     color: var(--rd-body);
-    font-size: 10.5px;
+    font-size: var(--rd-text-2xs);
     line-height: 1.5;
   }
 
@@ -218,7 +218,7 @@
   body:has(.rd-v2-synthesis-page) .s04-rail-context dt,
   body:has(.rd-v2-synthesis-page) .s04-rail-proof li span {
     color: var(--rd-muted);
-    font-size: 9.5px;
+    font-size: var(--rd-text-2xs);
   }
 
   body:has(.rd-v2-synthesis-page) .s04-rail-context dd,
@@ -226,8 +226,8 @@
     min-width: 0;
     margin: 0;
     color: var(--rd-text);
-    font-size: 9.5px;
-    font-weight: 680;
+    font-size: var(--rd-text-2xs);
+    font-weight: 700;
     overflow-wrap: anywhere;
   }
 
@@ -535,7 +535,7 @@
     .s04-method-flow article > span,
     .s04-live-note
   ) {
-    font-size: 9.5px;
+    font-size: var(--rd-text-2xs);
   }
 
   .rd-v2-synthesis-page :is(
@@ -544,7 +544,7 @@
     .s04-opening-facts dd,
     .s04-proposal-summary
   ) {
-    font-size: 10px;
+    font-size: var(--rd-text-2xs);
   }
 
   /* The Inspector has plenty of vertical room at workstation height. Give the
@@ -552,7 +552,7 @@
      not invent any new facts just to fill the rail. */
 
   body:has(.rd-v2-synthesis-page) .s04-rail-context > p {
-    font-size: 11px;
+    font-size: var(--rd-text-2xs);
     line-height: 1.55;
   }
 
@@ -665,10 +665,10 @@
     box-sizing: border-box;
     min-width: 0;
     padding: 11px 12px !important;
-    border: 1px solid #e1e4e9 !important;
+    border: 1px solid #e8ebf1 !important;
     border-left: 3px solid #b85b57 !important;
     border-radius: 12px !important;
-    background: rgba(255, 252, 250, .92) !important;
+    background: rgba(255, 255, 255, 0.92) !important;
     box-shadow: none !important;
   }
 
@@ -777,7 +777,7 @@
     [data-testid="synthesis-registered-state"],
     [data-testid="synthesis-query-ready-state"]
   )) > [data-testid="synthesis-evidence-state"] .s04-title h2 {
-    font-size: 16px;
+    font-size: var(--rd-text-lg);
     line-height: 1.14;
   }
 
@@ -1052,7 +1052,7 @@
   }
 
   #root .rd-v2-synthesis-page .s04-main > [data-testid="synthesis-method-surface"] .s04-title h2 {
-    font-size: 16px !important;
+    font-size: var(--rd-text-lg) !important;
     line-height: 1.14 !important;
     overflow-wrap: normal !important;
     word-break: normal !important;
@@ -1226,7 +1226,7 @@
   #root .rd-v2-synthesis-page .s04-main > :is(
     [data-testid="synthesis-registered-state"],
     [data-testid="synthesis-query-ready-state"]
-  ) > :is(.s04-title, .s04-method, .s04-exec-track, .s04-actions, .s04-fixture) {
+  ) > :is(.s04-title, .s04-result-table, .s04-method, .s04-exec-track, .s04-tech-record, .s04-actions, .s04-fixture) {
     grid-column: 1 / 13;
     width: 100%;
     margin-block: 0 !important;
@@ -1245,7 +1245,7 @@
     [data-testid="synthesis-registered-state"],
     [data-testid="synthesis-query-ready-state"]
   ) > .s04-reproduce {
-    grid-column: 6 / 13;
+    grid-column: 1 / 13;
     align-self: stretch;
     height: 100%;
     margin: 0 !important;
@@ -1280,7 +1280,7 @@
     min-height: 68px;
     padding: 8px 2px 8px 0 !important;
     align-items: center !important;
-    border-bottom: 1px solid #ded8cc !important;
+    border-bottom: 1px solid #dbd4c5 !important;
   }
 
   #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-brief):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"])) > .s04-head > div {
@@ -1297,7 +1297,7 @@
     margin: 0 !important;
     overflow: visible !important;
     border: 0 !important;
-    border-bottom: 1px solid #ded8cc !important;
+    border-bottom: 1px solid #dbd4c5 !important;
     border-radius: 0 !important;
     background: transparent !important;
     box-shadow: none !important;
@@ -1314,12 +1314,12 @@
   }
 
   #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-brief) > .s04-opening-brief > header > small {
-    font-size: 9.5px;
-    letter-spacing: .105em;
+    font-size: var(--rd-text-2xs);
+    letter-spacing: 0.06em;
   }
 
   #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-brief) > .s04-opening-brief > header > button {
-    font-size: 9.5px;
+    font-size: var(--rd-text-2xs);
   }
 
   #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-brief) > .s04-opening-brief > p {
@@ -1327,8 +1327,8 @@
     grid-row: 2;
     max-width: 72ch;
     padding: 4px 28px 11px 0 !important;
-    color: #465264;
-    font-size: 11px;
+    color: #465164;
+    font-size: var(--rd-text-2xs);
     line-height: 1.45;
   }
 
@@ -1340,7 +1340,7 @@
     align-self: stretch;
     margin: 0 !important;
     border-top: 0 !important;
-    border-left: 1px solid #ded8cc;
+    border-left: 1px solid #dbd4c5;
   }
 
   #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-brief) > .s04-opening-brief > dl > div {
@@ -1352,18 +1352,18 @@
   }
 
   #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-brief) > .s04-opening-brief > dl > div + div {
-    border-left: 1px solid #ded8cc !important;
+    border-left: 1px solid #dbd4c5 !important;
   }
 
   #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-brief) > .s04-opening-brief dt {
-    color: #7b8490;
-    font-size: 9.5px;
+    color: #7a858d;
+    font-size: var(--rd-text-2xs);
     line-height: 1.2;
   }
 
   #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-brief) > .s04-opening-brief dd {
     margin-top: 3px;
-    font-size: 10px;
+    font-size: var(--rd-text-2xs);
     line-height: 1.25;
   }
 
@@ -1399,7 +1399,7 @@
   margin: 0;
   padding: 0;
   border: 0;
-  border-block: 1px solid #e7ebf0;
+  border-block: 1px solid #e8ebf1;
   border-radius: 0;
   background: transparent;
   overflow: visible;
@@ -1413,7 +1413,7 @@
   min-width: 0;
   padding: 7px 12px 7px 0;
   background: transparent !important;
-  color: #687487;
+  color: #6e7685;
 }
 
 .rd-v2-synthesis-page .s04-opening-workflow li + li {
@@ -1426,8 +1426,8 @@
   position: absolute;
   left: 0;
   top: 9px;
-  color: #a7b0bb;
-  font-size: 9.5px;
+  color: #a4acb7;
+  font-size: var(--rd-text-2xs);
 }
 
 .rd-v2-synthesis-page .s04-opening-workflow li > span {
@@ -1437,17 +1437,17 @@
 .rd-v2-synthesis-page .s04-opening-workflow li b,
 .rd-v2-synthesis-page .s04-opening-workflow li.done b,
 .rd-v2-synthesis-page .s04-opening-workflow li.now b {
-  color: #556274 !important;
-  font-size: 9.5px;
-  font-weight: 800;
-  letter-spacing: .065em;
+  color: #5b6578 !important;
+  font-size: var(--rd-text-2xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
 .rd-v2-synthesis-page .s04-opening-workflow li small {
   margin-top: 2px;
-  color: #8a94a2;
-  font-size: 9.5px;
+  color: #8a94a6;
+  font-size: var(--rd-text-2xs);
 }
 
 .rd-v2-synthesis-page .s04-opening-workflow-note {
@@ -1457,9 +1457,9 @@
   gap: 10px;
   margin: 0;
   padding: 8px 0 9px;
-  border-bottom: 1px solid #e7ebf0;
-  color: #556274;
-  font-size: 10.5px;
+  border-bottom: 1px solid #e8ebf1;
+  color: #5b6578;
+  font-size: var(--rd-text-2xs);
   line-height: 1.45;
 }
 
@@ -1470,9 +1470,9 @@
 .rd-v2-synthesis-page .s04-opening-workflow-note > b::after {
   content: "Current operation";
   color: #315f4d;
-  font-size: 9.5px;
-  font-weight: 850;
-  letter-spacing: .08em;
+  font-size: var(--rd-text-2xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
@@ -1488,13 +1488,13 @@
 .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
   > .s04-opening-workflow-wrap .s04-opening-workflow-note > span::after {
   content: "Review the held inputs below and add only the evidence that belongs to this research object.";
-  font-size: 10.5px;
+  font-size: var(--rd-text-2xs);
 }
 
 .rd-v2-synthesis-page .s04-main:has(> .s04-draft)
   > .s04-opening-workflow-wrap .s04-opening-workflow-note > span::after {
   content: "Ask is drafting one reviewable method proposal from the mapped evidence. Nothing is accepted or executed yet.";
-  font-size: 10.5px;
+  font-size: var(--rd-text-2xs);
 }
 
 /* A fixture/future recommendation is not itself a durable acceptance. The
@@ -1508,7 +1508,7 @@
 .rd-v2-synthesis-page .s04-main:has(> .s04-opening-construction)
   > .s04-opening-next .s04-next-primary::after {
   content: "Draft reviewable method";
-  font-size: 9.5px;
+  font-size: var(--rd-text-2xs);
 }
 
 /* Recommendation-ready is already self-explanatory through the construction
@@ -1532,7 +1532,7 @@
   min-height: 0 !important;
   padding: 7px 10px !important;
   margin: 0 !important;
-  border: 1px solid #e5e9ee;
+  border: 1px solid #e8ebf1;
   border-radius: 8px;
   box-shadow: none;
 }
@@ -1553,8 +1553,8 @@
   > .s04-opening-next > footer::before {
   content: "Method reasoning unlocks after held evidence is added.";
   margin-right: auto;
-  color: #7b8695;
-  font-size: 9.5px;
+  color: #7b8390;
+  font-size: var(--rd-text-2xs);
   line-height: 1.35;
 }
 
@@ -1641,7 +1641,7 @@
   margin: 0 !important;
   padding: 8px 0 9px !important;
   border: 0 !important;
-  border-bottom: 1px solid #e4e8ec !important;
+  border-bottom: 1px solid #e8ebf1 !important;
   background: transparent !important;
 }
 
@@ -1652,15 +1652,15 @@
 .rd-v2-synthesis-page .s04-steps::before {
   content: "EXECUTION LIFECYCLE";
   color: #315f4d;
-  font-size: 9.5px;
-  font-weight: 850;
-  letter-spacing: .08em;
+  font-size: var(--rd-text-2xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
 }
 
 .rd-v2-synthesis-page .s04-steps::after {
   content: "Method accepted → bounded preview → researcher approval → worker build → archive + registry → Library handoff";
-  color: #596678;
-  font-size: 10.5px;
+  color: #5b6578;
+  font-size: var(--rd-text-2xs);
   line-height: 1.45;
 }
 
@@ -1673,9 +1673,9 @@
   min-height: 0 !important;
   margin: 0 !important;
   padding: 7px 10px !important;
-  border: 1px solid #e4e8ec !important;
+  border: 1px solid #e8ebf1 !important;
   border-radius: 8px !important;
-  background: #fafbfc !important;
+  background: #ffffff !important;
   box-shadow: none !important;
 }
 
@@ -1696,8 +1696,8 @@
   content: "Ask is drafting one reviewable method proposal. Nothing is accepted or executed yet.";
   margin-right: auto;
   max-width: 60ch;
-  color: #6d7887;
-  font-size: 9.5px;
+  color: #6e7685;
+  font-size: var(--rd-text-2xs);
   line-height: 1.35;
 }
 
@@ -1706,7 +1706,7 @@
 .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
   > .s04-opening-next {
   background: transparent !important;
-  border-color: #e1e6ea !important;
+  border-color: #e8ebf1 !important;
 }
 
 /* Proposal owns the consequential pre-acceptance decision. Once it exists,
@@ -1826,7 +1826,7 @@
     .s04-opening-map li > small,
     .s04-method-flow article > span
   ) {
-    font-size: 9.5px !important;
+    font-size: var(--rd-text-2xs) !important;
   }
 
   #root .rd-v2-synthesis-page :is(
@@ -1835,7 +1835,7 @@
     .s04-opening-facts dd,
     .s04-proposal-summary
   ) {
-    font-size: 10.5px !important;
+    font-size: var(--rd-text-2xs) !important;
   }
 }
 
@@ -1883,13 +1883,13 @@
     padding: 9px 12px !important;
     border: 1px solid #dfe6e2 !important;
     border-radius: 8px !important;
-    background: #f7faf8 !important;
+    background: #ffffff !important;
   }
 
   .rd-v2-synthesis-page .s04-opening-workflow-note > span {
-    color: #354254 !important;
-    font-size: 11px !important;
-    font-weight: 650;
+    color: #3e4759 !important;
+    font-size: var(--rd-text-2xs) !important;
+    font-weight: 600;
   }
 
   /* Research brief is context, not the task. */
@@ -1954,30 +1954,30 @@
     > [data-testid="synthesis-evidence-state"] > .s04-title small::after {
     content: "EVIDENCE · CURRENT OPERATION";
     color: #315f4d;
-    font-size: 9.5px;
-    font-weight: 850;
-    letter-spacing: .09em;
+    font-size: var(--rd-text-2xs);
+    font-weight: 700;
+    letter-spacing: 0.06em;
   }
 
   .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
     > [data-testid="synthesis-evidence-state"] > .s04-title h2::after {
     content: "Choose the held Library inputs that belong";
     color: #101820;
-    font-size: 21px;
-    font-weight: 760;
-    letter-spacing: -.02em;
+    font-size: var(--rd-text-2xl);
+    font-weight: 700;
+    letter-spacing: -0.01em;
   }
 
   .rd-v2-synthesis-page .s04-evidence-proposal {
     margin: 0 16px 16px !important;
     padding: 16px !important;
-    border: 1px solid #d7e4dd !important;
+    border: 1px solid #dfe6e2 !important;
     border-radius: 10px !important;
-    background: #f7faf8 !important;
+    background: #ffffff !important;
   }
 
   .rd-v2-synthesis-page .s04-evidence-proposal > header strong {
-    font-size: 15px !important;
+    font-size: var(--rd-text-lg) !important;
   }
 
   .rd-v2-synthesis-page .s04-evidence-proposal > ul {
@@ -1989,14 +1989,14 @@
 
   .rd-v2-synthesis-page .s04-evidence-proposal > ul > li {
     margin: 0 !important;
-    border: 1px solid #dfe5e8 !important;
+    border: 1px solid #e0e0e0 !important;
     border-radius: 8px !important;
     background: #fff !important;
   }
 
   .rd-v2-synthesis-page .s04-evidence-proposal > ul > li.selected {
     border-color: #7fa48f !important;
-    background: #f2f8f4 !important;
+    background: #eef1ee !important;
   }
 
   .rd-v2-synthesis-page .s04-evidence-proposal > footer {
@@ -2013,7 +2013,7 @@
     min-height: 0 !important;
     margin: 0 !important;
     padding: 7px 10px !important;
-    border: 1px solid #e1e6e3 !important;
+    border: 1px solid #dfe6e2 !important;
     border-radius: 8px !important;
     background: transparent !important;
     box-shadow: none !important;
@@ -2035,8 +2035,8 @@
     > .s04-opening-next > footer::before {
     content: "Method reasoning unlocks after you add at least one held input.";
     margin-right: auto;
-    color: #75808d;
-    font-size: 9.5px;
+    color: #7b8390;
+    font-size: var(--rd-text-2xs);
     line-height: 1.35;
   }
 
@@ -2051,7 +2051,7 @@
     > .s04-opening-next {
     min-height: 0 !important;
     padding: 12px 14px !important;
-    border: 1px solid #d9e4de !important;
+    border: 1px solid #dfe6e2 !important;
     border-radius: 9px !important;
     background: #f5faf7 !important;
     box-shadow: none !important;
@@ -2074,9 +2074,9 @@
     content: "Evidence is mapped. Request one reviewable method proposal from these inputs.";
     margin-right: auto;
     max-width: 55ch;
-    color: #3f4d5b;
-    font-size: 10.5px;
-    font-weight: 650;
+    color: #41505d;
+    font-size: var(--rd-text-2xs);
+    font-weight: 600;
     line-height: 1.4;
   }
 
@@ -2159,7 +2159,7 @@
     min-height: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
-    border: 1px solid #e2e7e4 !important;
+    border: 1px solid #dfe6e2 !important;
     border-radius: 7px !important;
     overflow: hidden;
     background: transparent !important;
@@ -2171,7 +2171,7 @@
     min-height: 0 !important;
     padding: 6px 8px !important;
     border: 0 !important;
-    border-right: 1px solid #e7ebe9 !important;
+    border-right: 1px solid #eef1ee !important;
     background: transparent !important;
     box-shadow: none !important;
   }
@@ -2184,11 +2184,11 @@
     width: 18px !important;
     height: 18px !important;
     min-width: 18px !important;
-    font-size: 9.5px !important;
+    font-size: var(--rd-text-2xs) !important;
   }
 
   .rd-v2-synthesis-page .s04-opening-workflow > li b {
-    font-size: 9.5px !important;
+    font-size: var(--rd-text-2xs) !important;
   }
 
   .rd-v2-synthesis-page .s04-opening-workflow > li small {
@@ -2204,7 +2204,7 @@
     min-height: 0 !important;
     margin-top: 8px !important;
     padding: 7px 0 0 !important;
-    border-top: 1px solid #e8ece9 !important;
+    border-top: 1px solid #eef1ee !important;
     background: transparent !important;
   }
 
@@ -2215,9 +2215,9 @@
     border-color: #d8dee2 !important;
     background: transparent !important;
     box-shadow: none !important;
-    color: #53616e !important;
-    font-size: 9.5px !important;
-    font-weight: 650 !important;
+    color: #536371 !important;
+    font-size: var(--rd-text-2xs) !important;
+    font-weight: 600 !important;
   }
 
   /* During held-input selection, even the alternate Ask affordance is hidden:
@@ -2452,8 +2452,8 @@
     justify-content: center !important;
     align-self: stretch !important;
     padding: 16px !important;
-    border-color: #d8e2dd !important;
-    background: #f6f9f7 !important;
+    border-color: #dfe6e2 !important;
+    background: #ffffff !important;
   }
 
   #root .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
@@ -2467,7 +2467,7 @@
     > .s04-opening-next > footer::before {
     max-width: 30ch !important;
     margin: 0 !important;
-    font-size: 11px !important;
+    font-size: var(--rd-text-2xs) !important;
     line-height: 1.45 !important;
   }
 
@@ -2528,7 +2528,7 @@
     align-self: stretch !important;
     padding: 18px !important;
     margin: 0 !important;
-    background: #f6faf7 !important;
+    background: #ffffff !important;
   }
 
   /* At workstation width the next-action lane has its own space, so restore the
@@ -2542,7 +2542,7 @@
     > .s04-opening-next > p {
     margin-top: 12px !important;
     color: #41505d !important;
-    font-size: 11px !important;
+    font-size: var(--rd-text-2xs) !important;
     line-height: 1.55 !important;
   }
 
@@ -2586,7 +2586,7 @@
     align-self: stretch !important;
     margin: 0 !important;
     padding: 8px 12px 8px 0 !important;
-    border-bottom: 1px solid #ded8cc !important;
+    border-bottom: 1px solid #dbd4c5 !important;
   }
 
   #root .rd-v2-synthesis-page .s04-main:has(> :is(
@@ -2613,7 +2613,7 @@
     margin: 0 !important;
     overflow: visible !important;
     border: 0 !important;
-    border-bottom: 1px solid #ded8cc !important;
+    border-bottom: 1px solid #dbd4c5 !important;
     border-radius: 0 !important;
     background: transparent !important;
     box-shadow: none !important;
@@ -2639,7 +2639,7 @@
     grid-column: 1 !important;
     grid-row: 2 !important;
     padding: 3px 18px 9px 0 !important;
-    font-size: 10.5px !important;
+    font-size: var(--rd-text-2xs) !important;
     line-height: 1.4 !important;
   }
 
@@ -2655,7 +2655,7 @@
     align-self: stretch !important;
     margin: 0 !important;
     border-top: 0 !important;
-    border-left: 1px solid #ded8cc !important;
+    border-left: 1px solid #dbd4c5 !important;
   }
 
   #root .rd-v2-synthesis-page .s04-main:has(> :is(
@@ -2755,9 +2755,9 @@
     align-self: stretch !important;
     margin: 0 !important;
     padding: 14px !important;
-    border: 1px solid #e0ddd4 !important;
+    border: 1px solid #e2ddd2 !important;
     border-radius: 9px !important;
-    background: #fbfaf6 !important;
+    background: #ffffff !important;
   }
 
   /* Unit: observed scales | interpretations | downstream consequence. */
@@ -2779,9 +2779,9 @@
     grid-row: 2 !important;
     margin: 0 !important;
     padding: 14px !important;
-    border: 1px solid #eadfcf !important;
+    border: 1px solid #e8d9c8 !important;
     border-radius: 9px !important;
-    background: #fcf8f1 !important;
+    background: #fffdf6 !important;
   }
 
   #root .rd-v2-synthesis-page [data-testid="synthesis-unit-conflict"] > .s04-actions {
@@ -2859,11 +2859,11 @@
   }
 
   #root .rd-v2-synthesis-page [data-testid="synthesis-upset-visual"] .s04-upset-legend em {
-    font-size: 9.5px !important;
+    font-size: var(--rd-text-2xs) !important;
   }
 
   #root .rd-v2-synthesis-page [data-testid="synthesis-upset-visual"] .s04-upset-legend strong {
-    font-size: 9.5px !important;
+    font-size: var(--rd-text-2xs) !important;
   }
 
   /* Keep unit labels inside their analytical lane even when fixtures use long
@@ -2904,7 +2904,7 @@
     display: flex !important;
     flex-direction: column !important;
     margin: 0 !important;
-    background: #f6f9f7 !important;
+    background: #ffffff !important;
   }
 
   #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-measurement-status)):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
@@ -2916,7 +2916,7 @@
     > .s04-opening-next > p {
     margin: 10px 0 14px !important;
     color: #41505d !important;
-    font-size: 11px !important;
+    font-size: var(--rd-text-2xs) !important;
     line-height: 1.5 !important;
   }
 
@@ -3466,9 +3466,9 @@
 
   #root .rd-v2-synthesis-page :is(.s04-rail-gates,.s04-rail-evidence-ledger,.s04-rail-measurement) {
     padding: 10px 11px !important;
-    border: 1px solid #e0ddd4 !important;
+    border: 1px solid #e2ddd2 !important;
     border-radius: 8px !important;
-    background: rgba(251,249,243,.74) !important;
+    background: rgba(255, 253, 246, 0.74) !important;
   }
 
   #root .rd-v2-synthesis-page :is(.s04-rail-gates,.s04-rail-evidence-ledger,.s04-rail-measurement) > header {
@@ -3480,17 +3480,17 @@
   }
 
   #root .rd-v2-synthesis-page :is(.s04-rail-gates,.s04-rail-evidence-ledger,.s04-rail-measurement) > header span {
-    color: #687687 !important;
-    font-size: 9.5px !important;
-    font-weight: 800 !important;
-    letter-spacing: .08em !important;
+    color: #5b6578 !important;
+    font-size: var(--rd-text-2xs) !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.06em !important;
     text-transform: uppercase !important;
   }
 
   #root .rd-v2-synthesis-page :is(.s04-rail-gates,.s04-rail-evidence-ledger,.s04-rail-measurement) > header strong {
-    color: #3d564b !important;
-    font-size: 9.5px !important;
-    font-weight: 800 !important;
+    color: #365447 !important;
+    font-size: var(--rd-text-2xs) !important;
+    font-weight: 700 !important;
   }
 
   #root .rd-v2-synthesis-page .s04-rail-gates ul,
@@ -3508,33 +3508,33 @@
     gap: 8px !important;
     align-items: center !important;
     min-height: 24px !important;
-    border-top: 1px solid #ebe7dd !important;
-    font-size: 9.5px !important;
+    border-top: 1px solid #eeeae0 !important;
+    font-size: var(--rd-text-2xs) !important;
   }
 
   #root .rd-v2-synthesis-page .s04-rail-gates li:first-child { border-top: 0 !important; }
   #root .rd-v2-synthesis-page .s04-rail-gates li span { color: #65727e !important; }
-  #root .rd-v2-synthesis-page .s04-rail-gates li strong { color: #697782 !important; font-size: 9.5px !important; text-align: right !important; }
-  #root .rd-v2-synthesis-page .s04-rail-gates li.is-ready strong { color: #3f735b !important; }
+  #root .rd-v2-synthesis-page .s04-rail-gates li strong { color: #65727e !important; font-size: var(--rd-text-2xs) !important; text-align: right !important; }
+  #root .rd-v2-synthesis-page .s04-rail-gates li.is-ready strong { color: #397059 !important; }
   #root .rd-v2-synthesis-page .s04-rail-gates li.is-blocked strong { color: #9a5d3e !important; }
 
   #root .rd-v2-synthesis-page .s04-rail-evidence-ledger li {
     display: grid !important;
     gap: 2px !important;
     padding: 6px 0 !important;
-    border-top: 1px solid #ebe7dd !important;
+    border-top: 1px solid #eeeae0 !important;
   }
   #root .rd-v2-synthesis-page .s04-rail-evidence-ledger li:first-child { border-top: 0 !important; }
   #root .rd-v2-synthesis-page .s04-rail-evidence-ledger li b {
     overflow: hidden !important;
-    color: #334553 !important;
-    font-size: 9.5px !important;
+    color: #314453 !important;
+    font-size: var(--rd-text-2xs) !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
   }
   #root .rd-v2-synthesis-page .s04-rail-evidence-ledger li span {
     color: #7a858d !important;
-    font-size: 9.5px !important;
+    font-size: var(--rd-text-2xs) !important;
     line-height: 1.3 !important;
   }
 
@@ -3547,20 +3547,20 @@
   #root .rd-v2-synthesis-page .s04-rail-measurement dl > div {
     min-width: 0 !important;
     padding: 6px 7px !important;
-    border: 1px solid #e8e3d9 !important;
+    border: 1px solid #e2ddd2 !important;
     border-radius: 6px !important;
     background: rgba(255,255,255,.5) !important;
   }
   #root .rd-v2-synthesis-page .s04-rail-measurement dt {
-    color: #7a858d !important;
-    font-size: 9.5px !important;
+    color: #5b6578 !important;
+    font-size: var(--rd-text-2xs) !important;
     text-transform: uppercase !important;
   }
   #root .rd-v2-synthesis-page .s04-rail-measurement dd {
     margin: 2px 0 0 !important;
     color: #314453 !important;
-    font-size: 10px !important;
-    font-weight: 750 !important;
+    font-size: var(--rd-text-2xs) !important;
+    font-weight: 700 !important;
   }
 }
 
@@ -3596,9 +3596,9 @@
     min-width: 0 !important;
     margin: 0 !important;
     padding: 11px 12px !important;
-    border: 1px solid #ded9cf !important;
+    border: 1px solid #e2ddd2 !important;
     border-radius: 9px !important;
-    background: rgba(251, 249, 243, .82) !important;
+    background: rgba(255, 253, 246, 0.82) !important;
     box-shadow: none !important;
   }
 
@@ -3613,7 +3613,7 @@
     gap: 10px !important;
     margin: 0 0 8px !important;
     padding: 0 0 7px !important;
-    border-bottom: 1px solid #e8e2d8 !important;
+    border-bottom: 1px solid #e2ddd2 !important;
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] :is(
@@ -3621,10 +3621,10 @@
     .s04-rail-evidence-ledger,
     .s04-rail-measurement
   ) > header span {
-    color: #667585 !important;
-    font-size: 9.5px !important;
-    font-weight: 800 !important;
-    letter-spacing: .085em !important;
+    color: #5b6578 !important;
+    font-size: var(--rd-text-2xs) !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.06em !important;
     line-height: 1.2 !important;
     text-transform: uppercase !important;
   }
@@ -3634,9 +3634,9 @@
     .s04-rail-evidence-ledger,
     .s04-rail-measurement
   ) > header strong {
-    color: #365746 !important;
-    font-size: 9.5px !important;
-    font-weight: 800 !important;
+    color: #365447 !important;
+    font-size: var(--rd-text-2xs) !important;
+    font-weight: 700 !important;
     line-height: 1.2 !important;
     white-space: nowrap !important;
   }
@@ -3658,7 +3658,7 @@
     min-height: 27px !important;
     margin: 0 !important;
     padding: 5px 0 !important;
-    border-top: 1px solid #ebe6dd !important;
+    border-top: 1px solid #eeeae0 !important;
     list-style: none !important;
   }
 
@@ -3676,13 +3676,13 @@
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-gates li span {
     color: #65727e !important;
-    font-size: 9.5px !important;
+    font-size: var(--rd-text-2xs) !important;
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-gates li strong {
-    color: #66737d !important;
-    font-size: 9.5px !important;
-    font-weight: 750 !important;
+    color: #65727e !important;
+    font-size: var(--rd-text-2xs) !important;
+    font-weight: 700 !important;
     text-align: right !important;
     white-space: normal !important;
   }
@@ -3700,7 +3700,7 @@
     gap: 3px !important;
     margin: 0 !important;
     padding: 7px 0 !important;
-    border-top: 1px solid #ebe6dd !important;
+    border-top: 1px solid #eeeae0 !important;
     list-style: none !important;
   }
 
@@ -3717,17 +3717,17 @@
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-evidence-ledger li b {
     overflow: hidden !important;
-    color: #304250 !important;
-    font-size: 9.5px !important;
-    font-weight: 750 !important;
+    color: #314453 !important;
+    font-size: var(--rd-text-2xs) !important;
+    font-weight: 700 !important;
     line-height: 1.28 !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-evidence-ledger li span {
-    color: #77838d !important;
-    font-size: 9.5px !important;
+    color: #7a858d !important;
+    font-size: var(--rd-text-2xs) !important;
     line-height: 1.35 !important;
   }
 
@@ -3741,7 +3741,7 @@
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-measurement dl > div {
     min-width: 0 !important;
     padding: 7px 8px !important;
-    border: 1px solid #e8e3da !important;
+    border: 1px solid #e2ddd2 !important;
     border-radius: 7px !important;
     background: rgba(255, 255, 255, .5) !important;
   }
@@ -3753,18 +3753,18 @@
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-measurement dt {
-    color: #7a858d !important;
-    font-size: 9.5px !important;
-    font-weight: 750 !important;
-    letter-spacing: .06em !important;
+    color: #5b6578 !important;
+    font-size: var(--rd-text-2xs) !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.06em !important;
     text-transform: uppercase !important;
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-measurement dd {
     margin-top: 3px !important;
     color: #314453 !important;
-    font-size: 10px !important;
-    font-weight: 760 !important;
+    font-size: var(--rd-text-2xs) !important;
+    font-weight: 700 !important;
     line-height: 1.2 !important;
   }
 
@@ -3914,8 +3914,8 @@
   min-width: 0;
   margin-left: 1px;
   padding-left: 8px;
-  border-left: 1px solid #d8d4c8;
-  color: #53615b;
+  border-left: 1px solid #dbd4c5;
+  color: #4e5c55;
   font-style: normal;
 }
 
@@ -3924,16 +3924,16 @@
   height: 6px;
   flex: 0 0 6px;
   border-radius: 50%;
-  background: #9ba39f;
+  background: #9aa49e;
   content: "";
 }
 
 .rd-v2-synthesis-page-authority > span {
   flex: 0 0 auto;
-  color: #778079;
-  font-size: 9.5px;
-  font-weight: 800;
-  letter-spacing: .075em;
+  color: #5b6578;
+  font-size: var(--rd-text-2xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
   line-height: 1;
   text-transform: uppercase;
 }
@@ -3949,18 +3949,18 @@
   background: transparent;
   color: #31463d;
   font: inherit;
-  font-size: 9.5px;
-  font-weight: 750;
+  font-size: var(--rd-text-2xs);
+  font-weight: 700;
   line-height: 1;
   cursor: pointer;
 }
 
 .rd-v2-synthesis-page-authority.is-auto_choose {
-  color: #466756;
+  color: #49675a;
 }
 
 .rd-v2-synthesis-page-authority.is-auto_choose::before {
-  background: #69927e;
+  background: #6f9582;
 }
 
 .rd-v2-synthesis-page-authority.is-auto_approve {
@@ -3973,7 +3973,7 @@
 }
 
 .rd-v2-synthesis-page-authority:focus-within {
-  border-left-color: #9eb8aa;
+  border-left-color: #9db4a8;
 }
 
 @media (max-width: 980px) {
@@ -4031,9 +4031,9 @@
     min-width: 0 !important;
     margin: 0 !important;
     padding: 11px 12px !important;
-    border: 1px solid #ded9cf !important;
+    border: 1px solid #e2ddd2 !important;
     border-radius: 9px !important;
-    background: rgba(251, 249, 243, .82) !important;
+    background: rgba(255, 253, 246, 0.82) !important;
     box-shadow: none !important;
   }
 
@@ -4049,7 +4049,7 @@
     gap: 10px !important;
     margin: 0 0 8px !important;
     padding: 0 0 7px !important;
-    border-bottom: 1px solid #e8e2d8 !important;
+    border-bottom: 1px solid #e2ddd2 !important;
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] :is(
@@ -4058,10 +4058,10 @@
     .s04-rail-evidence-ledger,
     .s04-rail-measurement
   ) > header span {
-    color: #667585 !important;
-    font-size: 9.5px !important;
-    font-weight: 800 !important;
-    letter-spacing: .085em !important;
+    color: #5b6578 !important;
+    font-size: var(--rd-text-2xs) !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.06em !important;
     line-height: 1.2 !important;
     text-transform: uppercase !important;
   }
@@ -4071,17 +4071,17 @@
     .s04-rail-evidence-ledger,
     .s04-rail-measurement
   ) > header strong {
-    color: #365746 !important;
-    font-size: 9.5px !important;
-    font-weight: 800 !important;
+    color: #365447 !important;
+    font-size: var(--rd-text-2xs) !important;
+    font-weight: 700 !important;
     line-height: 1.2 !important;
     white-space: nowrap !important;
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-context > p {
     margin: 0 !important;
-    color: #44525d !important;
-    font-size: 9.5px !important;
+    color: #41505d !important;
+    font-size: var(--rd-text-2xs) !important;
     line-height: 1.5 !important;
   }
 
@@ -4095,24 +4095,24 @@
     grid-template-columns: 78px minmax(0, 1fr) !important;
     gap: 8px !important;
     padding: 6px 0 !important;
-    border-top: 1px solid #ebe6dd !important;
+    border-top: 1px solid #eeeae0 !important;
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-context dt,
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-context dd {
     min-width: 0 !important;
     margin: 0 !important;
-    font-size: 9.5px !important;
+    font-size: var(--rd-text-2xs) !important;
     line-height: 1.35 !important;
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-context dt {
-    color: #77838d !important;
+    color: #7a858d !important;
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-context dd {
-    color: #344653 !important;
-    font-weight: 750 !important;
+    color: #314453 !important;
+    font-weight: 700 !important;
     overflow-wrap: anywhere !important;
   }
 
@@ -4133,7 +4133,7 @@
     min-height: 27px !important;
     margin: 0 !important;
     padding: 5px 0 !important;
-    border-top: 1px solid #ebe6dd !important;
+    border-top: 1px solid #eeeae0 !important;
     list-style: none !important;
   }
 
@@ -4152,13 +4152,13 @@
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-gates li span {
     color: #65727e !important;
-    font-size: 9.5px !important;
+    font-size: var(--rd-text-2xs) !important;
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-gates li strong {
-    color: #66737d !important;
-    font-size: 9.5px !important;
-    font-weight: 750 !important;
+    color: #65727e !important;
+    font-size: var(--rd-text-2xs) !important;
+    font-weight: 700 !important;
     text-align: right !important;
     white-space: normal !important;
     overflow-wrap: anywhere !important;
@@ -4177,7 +4177,7 @@
     gap: 3px !important;
     margin: 0 !important;
     padding: 7px 0 !important;
-    border-top: 1px solid #ebe6dd !important;
+    border-top: 1px solid #eeeae0 !important;
     list-style: none !important;
   }
 
@@ -4190,17 +4190,17 @@
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-evidence-ledger li b {
     overflow: hidden !important;
-    color: #304250 !important;
-    font-size: 9.5px !important;
-    font-weight: 750 !important;
+    color: #314453 !important;
+    font-size: var(--rd-text-2xs) !important;
+    font-weight: 700 !important;
     line-height: 1.28 !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-evidence-ledger li span {
-    color: #77838d !important;
-    font-size: 9.5px !important;
+    color: #7a858d !important;
+    font-size: var(--rd-text-2xs) !important;
     line-height: 1.35 !important;
     overflow-wrap: anywhere !important;
   }
@@ -4215,7 +4215,7 @@
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-measurement dl > div {
     min-width: 0 !important;
     padding: 7px 8px !important;
-    border: 1px solid #e8e3da !important;
+    border: 1px solid #e2ddd2 !important;
     border-radius: 7px !important;
     background: rgba(255, 255, 255, .5) !important;
   }
@@ -4227,18 +4227,18 @@
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-measurement dt {
-    color: #7a858d !important;
-    font-size: 9.5px !important;
-    font-weight: 750 !important;
-    letter-spacing: .06em !important;
+    color: #5b6578 !important;
+    font-size: var(--rd-text-2xs) !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.06em !important;
     text-transform: uppercase !important;
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-measurement dd {
     margin-top: 3px !important;
     color: #314453 !important;
-    font-size: 10px !important;
-    font-weight: 760 !important;
+    font-size: var(--rd-text-2xs) !important;
+    font-weight: 700 !important;
     line-height: 1.2 !important;
   }
 
@@ -4279,9 +4279,9 @@
     align-items: stretch !important;
     gap: 8px !important;
     padding: 12px !important;
-    border: 1px solid #e0ddd4 !important;
+    border: 1px solid #e2ddd2 !important;
     border-radius: 9px !important;
-    background: #fbfaf6 !important;
+    background: #ffffff !important;
   }
 
   #root .rd-v2-synthesis-page [data-testid="synthesis-unit-conflict"] > .s04-actions .rd-v2-btn {
@@ -4335,9 +4335,9 @@
     min-width: 0 !important;
     margin: 10px 12px 0 !important;
     padding: 11px 12px !important;
-    border: 1px solid #ded9cf !important;
+    border: 1px solid #e2ddd2 !important;
     border-radius: 9px !important;
-    background: rgba(251, 249, 243, .82) !important;
+    background: rgba(255, 253, 246, 0.82) !important;
     box-shadow: none !important;
   }
 
@@ -4348,14 +4348,14 @@
     gap: 10px !important;
     margin: 0 0 8px !important;
     padding: 0 0 7px !important;
-    border-bottom: 1px solid #e8e2d8 !important;
+    border-bottom: 1px solid #e2ddd2 !important;
   }
 
   body:has(.rd-v2-synthesis-page) .s04-rail-proof > header span {
-    color: #667585 !important;
-    font-size: 9.5px !important;
-    font-weight: 800 !important;
-    letter-spacing: .085em !important;
+    color: #5b6578 !important;
+    font-size: var(--rd-text-2xs) !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.06em !important;
     line-height: 1.2 !important;
     text-transform: uppercase !important;
   }
@@ -4375,7 +4375,7 @@
     align-items: start !important;
     margin: 0 !important;
     padding: 7px 0 !important;
-    border-top: 1px solid #ebe6dd !important;
+    border-top: 1px solid #eeeae0 !important;
     list-style: none !important;
   }
 
@@ -4388,17 +4388,17 @@
     display: block !important;
     min-width: 0 !important;
     margin: 0 !important;
-    font-size: 9.5px !important;
+    font-size: var(--rd-text-2xs) !important;
     line-height: 1.35 !important;
   }
 
   body:has(.rd-v2-synthesis-page) .s04-rail-proof li span {
-    color: #77838d !important;
+    color: #7a858d !important;
   }
 
   body:has(.rd-v2-synthesis-page) .s04-rail-proof li strong {
-    color: #596873 !important;
-    font-weight: 760 !important;
+    color: #536371 !important;
+    font-weight: 700 !important;
     overflow-wrap: anywhere !important;
   }
 
@@ -4446,15 +4446,15 @@
     align-items: center;
     margin-left: 10px;
     padding: 3px 7px 2px;
-    border: 1px solid #d8ddd7;
+    border: 1px solid #d7dfd4;
     border-radius: 999px;
-    background: rgba(246, 247, 242, .92);
-    color: #667269;
-    font-family: var(--rd-mono);
-    font-size: 9.5px;
-    font-weight: 800;
+    background: rgba(255, 253, 246, 0.92);
+    color: #5b6578;
+    font-family: var(--rd-font);
+    font-size: var(--rd-text-2xs);
+    font-weight: 700;
     line-height: 1.2;
-    letter-spacing: .08em;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     vertical-align: middle;
     transform: translateY(-2px);
@@ -4525,9 +4525,9 @@
  */
 .rd-v2-synthesis-agent-console {
   margin: 0 10px 10px;
-  border: 1px solid #dfe3dc;
+  border: 1px solid #dfe6e2;
   border-radius: 12px;
-  background: rgba(255, 255, 252, 0.96);
+  background: rgba(255, 255, 255, 0.96);
   box-shadow: 0 8px 22px rgba(17, 24, 39, 0.045);
   overflow: hidden;
 }
@@ -4538,7 +4538,7 @@
   justify-content: space-between;
   gap: 10px;
   padding: 10px 11px 8px;
-  border-bottom: 1px solid #ebece6;
+  border-bottom: 1px solid #eef1ee;
 }
 
 .rd-v2-synthesis-agent-head > div {
@@ -4553,29 +4553,29 @@
 .rd-v2-synthesis-agent-activity > small,
 .rd-v2-synthesis-agent-run-head small,
 .rd-v2-synthesis-forensics small {
-  color: #727b88;
-  font-family: var(--rd-mono);
-  font-size: 9.5px;
-  font-weight: 800;
-  letter-spacing: .075em;
+  color: #5b6578;
+  font-family: var(--rd-font);
+  font-size: var(--rd-text-2xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
 .rd-v2-synthesis-agent-head strong {
   color: #182033;
-  font-size: 12px;
-  letter-spacing: -.01em;
+  font-size: var(--rd-text-xs);
+  letter-spacing: -0.01em;
 }
 
 .rd-v2-synthesis-agent-mode {
   flex: 0 0 auto;
   padding: 3px 7px;
-  border: 1px solid #d7ddd8;
+  border: 1px solid #d6ddd9;
   border-radius: 999px;
-  color: #4d6258;
-  background: #f5f8f4;
-  font-size: 9.5px;
-  font-weight: 760;
+  color: #52695f;
+  background: #eef1ee;
+  font-size: var(--rd-text-2xs);
+  font-weight: 700;
   line-height: 1.2;
 }
 
@@ -4585,14 +4585,14 @@
   gap: 7px;
   align-items: start;
   padding: 9px 11px;
-  background: #f7f8f4;
-  border-bottom: 1px solid #ebece6;
+  background: #fffdf6;
+  border-bottom: 1px solid #eef1ee;
   color: #4e5c55;
 }
 
 .rd-v2-synthesis-agent-current > span {
   padding-top: 10px;
-  font-size: 11px;
+  font-size: var(--rd-text-2xs);
   line-height: 1;
 }
 
@@ -4608,9 +4608,9 @@
 
 .rd-v2-synthesis-agent-current b {
   margin-top: 3px;
-  color: #2d3833;
-  font-size: 10.5px;
-  font-weight: 650;
+  color: #29352f;
+  font-size: var(--rd-text-2xs);
+  font-weight: 600;
   line-height: 1.42;
   overflow-wrap: anywhere;
 }
@@ -4621,8 +4621,8 @@
 
 .rd-v2-synthesis-agent-run {
   padding: 8px 9px 7px;
-  border-bottom: 1px solid #ebece6;
-  background: #fcfcf9;
+  border-bottom: 1px solid #eef1ee;
+  background: #ffffff;
 }
 
 .rd-v2-synthesis-agent-run-head {
@@ -4635,26 +4635,26 @@
 
 .rd-v2-synthesis-agent-run-head span {
   padding: 2px 5px;
-  border: 1px solid #d8dfda;
+  border: 1px solid #dfe6e2;
   border-radius: 999px;
-  color: #5d6c64;
-  background: #f5f7f4;
+  color: #607166;
+  background: #eef1ee;
   font-family: var(--rd-mono);
-  font-size: 9.5px;
-  font-weight: 850;
-  letter-spacing: .06em;
+  font-size: var(--rd-text-2xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
 }
 
 .rd-v2-synthesis-agent-run[data-run-state="running"] .rd-v2-synthesis-agent-run-head span {
-  border-color: #cbd9d0;
-  color: #35634f;
-  background: #eef5f0;
+  border-color: #c5d2cb;
+  color: #315f4d;
+  background: #eef1ee;
 }
 
 .rd-v2-synthesis-agent-run[data-run-state="paused"] .rd-v2-synthesis-agent-run-head span {
-  border-color: #ead9b6;
+  border-color: #e6d9b8;
   color: #8c5d11;
-  background: #fbf5e8;
+  background: #fffbeb;
 }
 
 .rd-v2-synthesis-agent-run ol,
@@ -4703,7 +4703,7 @@
 .rd-v2-synthesis-agent-activity button:hover,
 .rd-v2-synthesis-agent-activity button:focus-visible {
   outline: none;
-  background: #f3f5f0;
+  background: #eef1ee;
 }
 
 .rd-v2-synthesis-agent-run button > span:last-child {
@@ -4712,9 +4712,9 @@
 
 .rd-v2-synthesis-agent-run button > span:last-child > b {
   display: block;
-  color: #39463f;
-  font-size: 9.5px;
-  font-weight: 620;
+  color: #334039;
+  font-size: var(--rd-text-2xs);
+  font-weight: 600;
   line-height: 1.35;
   overflow-wrap: anywhere;
 }
@@ -4724,8 +4724,8 @@
   margin-top: 1px;
   color: #858d98;
   font-family: var(--rd-mono);
-  font-size: 9.5px;
-  font-weight: 650;
+  font-size: var(--rd-text-2xs);
+  font-weight: 600;
   line-height: 1.25;
   text-transform: none;
   letter-spacing: 0;
@@ -4733,14 +4733,14 @@
 
 .rd-v2-synthesis-agent-trace {
   margin-top: 5px;
-  border-top: 1px dashed #e0e4de;
+  border-top: 1px dashed #dfe6e2;
 }
 
 .rd-v2-synthesis-agent-trace > summary {
   padding: 7px 4px 2px;
   color: #55635d;
-  font-size: 9.5px;
-  font-weight: 720;
+  font-size: var(--rd-text-2xs);
+  font-weight: 700;
   cursor: pointer;
 }
 
@@ -4749,15 +4749,15 @@
   margin-top: 5px;
   padding: 5px;
   overflow: auto;
-  border: 1px solid #e6e8e2;
+  border: 1px solid #dfe6e2;
   border-radius: 8px;
-  background: #fafbf8;
+  background: #ffffff;
 }
 
 .rd-v2-synthesis-agent-trace section + section {
   margin-top: 8px;
   padding-top: 8px;
-  border-top: 1px solid #e5e8e2;
+  border-top: 1px solid #dfe6e2;
 }
 
 .rd-v2-synthesis-agent-trace section > header {
@@ -4770,13 +4770,13 @@
 
 .rd-v2-synthesis-agent-trace section > header b {
   color: #334039;
-  font-size: 9.5px;
+  font-size: var(--rd-text-2xs);
 }
 
 .rd-v2-synthesis-agent-trace section > header span {
   color: #858d98;
   font-family: var(--rd-mono);
-  font-size: 9.5px;
+  font-size: var(--rd-text-2xs);
 }
 
 .rd-v2-synthesis-agent-activity {
@@ -4795,22 +4795,22 @@
   height: 16px;
   margin-top: 1px;
   border-radius: 999px;
-  background: #eef3ef;
+  background: #eef1ee;
   color: #3f6f5c;
-  font-size: 9.5px;
-  font-weight: 850;
+  font-size: var(--rd-text-2xs);
+  font-weight: 700;
 }
 
 .rd-v2-synthesis-agent-run li.is-current .rd-v2-synthesis-agent-mark,
 .rd-v2-synthesis-agent-activity li.is-current .rd-v2-synthesis-agent-mark {
-  background: #eef1f8;
+  background: #e8ebf1;
   color: #435677;
 }
 
 .rd-v2-synthesis-agent-run li.is-warn .rd-v2-synthesis-agent-mark,
 .rd-v2-synthesis-agent-activity li.is-warn .rd-v2-synthesis-agent-mark {
-  background: #fbf3df;
-  color: #94610d;
+  background: #fef7e0;
+  color: #9a650e;
 }
 
 .rd-v2-synthesis-agent-activity button > span:last-child {
@@ -4823,23 +4823,23 @@
 }
 
 .rd-v2-synthesis-agent-activity b {
-  color: #27322e;
-  font-size: 10px;
-  font-weight: 690;
+  color: #29352f;
+  font-size: var(--rd-text-2xs);
+  font-weight: 700;
   line-height: 1.3;
 }
 
 .rd-v2-synthesis-agent-activity button small {
   margin-top: 1px;
-  color: #727b88;
-  font-size: 9.5px;
+  color: #6e7685;
+  font-size: var(--rd-text-2xs);
   line-height: 1.34;
   overflow-wrap: anywhere;
 }
 
 .rd-v2-synthesis-forensics {
-  border-top: 1px solid #ebece6;
-  background: #fbfcfa;
+  border-top: 1px solid #eef1ee;
+  background: #ffffff;
 }
 
 .rd-v2-synthesis-forensics > summary {
@@ -4859,8 +4859,8 @@
 .rd-v2-synthesis-forensics > summary::after {
   content: "▸";
   flex: 0 0 auto;
-  color: #6e7772;
-  font-size: 10px;
+  color: #66706c;
+  font-size: var(--rd-text-2xs);
 }
 
 .rd-v2-synthesis-forensics[open] > summary::after {
@@ -4879,13 +4879,13 @@
 .rd-v2-synthesis-forensics > summary b {
   margin-top: 2px;
   color: #29352f;
-  font-size: 10px;
+  font-size: var(--rd-text-2xs);
 }
 
 .rd-v2-synthesis-forensics > summary em {
   margin-left: auto;
-  color: #747d78;
-  font-size: 9.5px;
+  color: #7b817d;
+  font-size: var(--rd-text-2xs);
   font-style: normal;
   text-align: right;
 }
@@ -4898,7 +4898,7 @@
 
 .rd-v2-synthesis-forensics-body > section {
   padding: 8px;
-  border: 1px solid #e2e6e0;
+  border: 1px solid #dfe6e2;
   border-radius: 9px;
   background: #fff;
 }
@@ -4913,8 +4913,8 @@
 
 .rd-v2-synthesis-forensics-body > section > header strong {
   min-width: 0;
-  color: #2e3a34;
-  font-size: 9.5px;
+  color: #334039;
+  font-size: var(--rd-text-2xs);
   text-align: right;
   overflow-wrap: anywhere;
 }
@@ -4932,7 +4932,7 @@
   gap: 7px;
   align-items: start;
   padding: 5px 0;
-  border-top: 1px solid #f0f1ed;
+  border-top: 1px solid #eef1ee;
 }
 
 .rd-v2-synthesis-forensic-diff > div:first-child {
@@ -4941,8 +4941,8 @@
 
 .rd-v2-synthesis-forensic-diff dt,
 .rd-v2-synthesis-runtime-proof dt {
-  color: #717a75;
-  font-size: 9.5px;
+  color: #758078;
+  font-size: var(--rd-text-2xs);
   font-weight: 700;
   text-transform: capitalize;
 }
@@ -4950,8 +4950,8 @@
 .rd-v2-synthesis-forensic-diff dd,
 .rd-v2-synthesis-runtime-proof dd {
   margin: 0;
-  color: #344039;
-  font-size: 9.5px;
+  color: #334039;
+  font-size: var(--rd-text-2xs);
   line-height: 1.35;
   overflow-wrap: anywhere;
 }
@@ -4963,19 +4963,19 @@
 }
 
 .rd-v2-synthesis-forensic-diff dd > span {
-  color: #7c8580;
+  color: #7b817d;
   text-decoration: line-through;
-  text-decoration-color: rgba(124, 133, 128, .42);
+  text-decoration-color: rgba(123, 129, 125, 0.42);
 }
 
 .rd-v2-synthesis-forensic-diff dd > b {
-  color: #9aa09c;
+  color: #9aa49e;
   text-align: center;
 }
 
 .rd-v2-synthesis-forensic-diff dd > strong {
-  color: #315d49;
-  font-weight: 750;
+  color: #315f4d;
+  font-weight: 700;
 }
 
 .rd-v2-synthesis-recipe {
@@ -4991,7 +4991,7 @@
   grid-template-columns: 58px minmax(0, 1fr);
   gap: 7px;
   padding: 5px 0;
-  border-top: 1px solid #f0f1ed;
+  border-top: 1px solid #eef1ee;
 }
 
 .rd-v2-synthesis-recipe li:first-child {
@@ -4999,28 +4999,28 @@
 }
 
 .rd-v2-synthesis-recipe b {
-  color: #59655f;
-  font-family: var(--rd-mono);
-  font-size: 9.5px;
+  color: #5b6578;
+  font-family: var(--rd-font);
+  font-size: var(--rd-text-2xs);
   text-transform: uppercase;
 }
 
 .rd-v2-synthesis-recipe span {
-  color: #303c36;
-  font-size: 9.5px;
+  color: #334039;
+  font-size: var(--rd-text-2xs);
   line-height: 1.35;
   overflow-wrap: anywhere;
 }
 
 .rd-v2-synthesis-raw-spec {
   margin-top: 6px;
-  border-top: 1px dashed #e3e5e0;
+  border-top: 1px dashed #dfe6e2;
 }
 
 .rd-v2-synthesis-raw-spec > summary {
   padding-top: 6px;
-  color: #56635d;
-  font-size: 9.5px;
+  color: #55635d;
+  font-size: var(--rd-text-2xs);
   font-weight: 700;
   cursor: pointer;
 }
@@ -5031,10 +5031,10 @@
   padding: 7px;
   overflow: auto;
   border-radius: 7px;
-  background: #f5f7f4;
+  background: #eef1ee;
   color: #334039;
   font-family: var(--rd-mono);
-  font-size: 9.5px;
+  font-size: var(--rd-text-2xs);
   line-height: 1.45;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
@@ -5043,13 +5043,13 @@
 .rd-v2-synthesis-row-effects {
   width: 100%;
   border-collapse: collapse;
-  font-size: 9.5px;
+  font-size: var(--rd-text-2xs);
 }
 
 .rd-v2-synthesis-row-effects th,
 .rd-v2-synthesis-row-effects td {
   padding: 4px 3px;
-  border-top: 1px solid #f0f1ed;
+  border-top: 1px solid #eef1ee;
   color: #48534d;
   text-align: right;
 }
@@ -5061,8 +5061,8 @@
 
 .rd-v2-synthesis-row-effects thead th {
   border-top: 0;
-  color: #777f7b;
-  font-size: 9.5px;
+  color: #5b6578;
+  font-size: var(--rd-text-2xs);
   text-transform: uppercase;
 }
 
@@ -5070,7 +5070,7 @@
   margin: 7px 0 0;
   padding-left: 17px;
   color: #72551f;
-  font-size: 9.5px;
+  font-size: var(--rd-text-2xs);
   line-height: 1.4;
 }
 
@@ -5098,7 +5098,7 @@
   border-radius: 7px;
   background: #fbf1e5;
   color: #814d11;
-  font-size: 9.5px;
+  font-size: var(--rd-text-2xs);
   line-height: 1.4;
 }
 
@@ -5106,26 +5106,26 @@
   display: flex;
   gap: 5px;
   padding: 7px 9px 9px;
-  border-top: 1px solid #ebece6;
+  border-top: 1px solid #eef1ee;
 }
 
 .rd-v2-synthesis-agent-shortcuts button {
   min-width: 0;
   flex: 1 1 0;
   padding: 5px 6px;
-  border: 1px solid #dfe3dc;
+  border: 1px solid #dfe6e2;
   border-radius: 7px;
   background: #fff;
   color: #4e5c55;
-  font-size: 9.5px;
-  font-weight: 650;
+  font-size: var(--rd-text-2xs);
+  font-weight: 600;
   cursor: pointer;
 }
 
 .rd-v2-synthesis-agent-shortcuts button:hover,
 .rd-v2-synthesis-agent-shortcuts button:focus-visible {
-  border-color: #cbd4cd;
-  background: #f7f9f6;
+  border-color: #c5d2cb;
+  background: #ffffff;
   outline: none;
 }
 
@@ -5180,9 +5180,9 @@
   align-items: center;
   margin: -3px 10px 9px;
   padding: 7px 8px 7px 10px;
-  border: 1px solid #dfe4de;
+  border: 1px solid #dfe6e2;
   border-radius: 9px;
-  background: #f8faf7;
+  background: #ffffff;
 }
 
 .rd-v2-synthesis-ask-object-context > div {
@@ -5196,26 +5196,26 @@
 }
 
 .rd-v2-synthesis-ask-object-context small {
-  color: #737d77;
-  font-family: var(--rd-mono);
-  font-size: 9.5px;
-  font-weight: 800;
-  letter-spacing: .07em;
+  color: #5b6578;
+  font-family: var(--rd-font);
+  font-size: var(--rd-text-2xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
 .rd-v2-synthesis-ask-object-context b {
   margin-top: 2px;
   color: #29352f;
-  font-size: 10px;
+  font-size: var(--rd-text-2xs);
   line-height: 1.28;
 }
 
 .rd-v2-synthesis-ask-object-context span {
   margin-top: 1px;
-  color: #727c76;
+  color: #758078;
   font-family: var(--rd-mono);
-  font-size: 9.5px;
+  font-size: var(--rd-text-2xs);
   line-height: 1.28;
   overflow-wrap: anywhere;
 }
@@ -5225,8 +5225,8 @@
   border: 0;
   border-radius: 6px;
   background: transparent;
-  color: #64706a;
-  font-size: 9.5px;
+  color: #66706c;
+  font-size: var(--rd-text-2xs);
   font-weight: 700;
   cursor: pointer;
 }
@@ -5234,8 +5234,8 @@
 .rd-v2-synthesis-ask-object-context button:hover,
 .rd-v2-synthesis-ask-object-context button:focus-visible {
   outline: none;
-  background: #eef2ed;
-  color: #33443b;
+  background: #eef1ee;
+  color: #334039;
 }
 
 @media (prefers-reduced-motion: reduce) {

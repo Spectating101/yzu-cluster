@@ -195,17 +195,12 @@ export function buildCapacityAccessPairs(rollup, health) {
       markId: "bigquery",
       name: "BigQuery",
       metric: bq.configured
-        ? [
-            bq.project || "ADC ok",
-            Number.isFinite(bqCapGiB) ? `${fmtGiB(bqCapGiB)} / query` : null,
-          ]
-            .filter(Boolean)
-            .join(" · ")
+        ? ["Connected", Number.isFinite(bqCapGiB) ? `${fmtGiB(bqCapGiB)} per query` : null].filter(Boolean).join(" · ")
         : "Not configured",
       pct: bqPct,
       available: bq.configured
-        ? `${fmtGiB(bqToday) || "0 GiB"} billed today`
-        : "ADC / project missing",
+        ? [`${fmtGiB(bqToday) || "0 GiB"} billed today`, bq.project ? `project ${bq.project}` : null].filter(Boolean).join(" · ")
+        : "Google Cloud project not set up",
       warn: !bq.configured,
       action: bq.configured ? null : "NEED",
     }),
@@ -259,7 +254,7 @@ export function buildCapacityAccessPairs(rollup, health) {
       // observations. A configured Composer key cannot prove any tools were
       // loaded, and calling it "Composer ready" here contradicted the
       // adjacent runtime card whenever the provider was unverified.
-      metric: mcpTotal > 0 ? `${mcpTotal} MCP tools` : "Not reported",
+      metric: mcpTotal > 0 ? `${mcpTotal} research tools` : "Not reported",
       pct: null,
       available:
         mcpTotal > 0

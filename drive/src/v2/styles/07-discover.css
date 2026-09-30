@@ -16,19 +16,19 @@
 
 .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer {
   display: grid;
-  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 84%, #91a7bd 16%);
+  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 84%, #94a3b8 16%);
 }
 
 .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer::before {
   grid-column: 1 / -1;
   color: #66788c;
-  font: 720 10px/1.2 var(--rd-mono, ui-monospace, monospace);
+  font: 700 11px/1.2 var(--rd-mono, ui-monospace, monospace);
 }
 
 .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer textarea {
   resize: none;
   border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 82%, #7389a0 18%);
-  background: #fffefa;
+  background: #ffffff;
   color: var(--rd-text, #182033);
   line-height: 1.45;
 }
@@ -41,7 +41,7 @@
 
 .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer > .rd-v2-btn {
   align-self: start;
-  font-weight: 720;
+  font-weight: 700;
 }
 
 .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer > p {
@@ -49,7 +49,7 @@
   max-width: 720px;
   margin: -2px 0 0;
   color: var(--rd-muted, #6e7685);
-  font-size: 11.5px;
+  font-size: var(--rd-text-2xs);
   line-height: 1.5;
 }
 
@@ -74,19 +74,19 @@
 
 .rd-v2-discover-page .rd-v2-discover-composer-examples button:hover {
   border-color: var(--rd-active-border, #c5d2cb);
-  background: var(--rd-hover, #f5f2ea);
+  background: var(--rd-hover, #eeeae0);
 }
 
 .rd-v2-discover-page .rd-v2-discover-composer-examples span {
-  color: #748091;
-  font: 680 9.5px/1.2 var(--rd-mono, ui-monospace, monospace);
-  letter-spacing: .08em;
+  color: #5b6578;
+  font: 700 11px/1.2 var(--rd-mono, ui-monospace, monospace);
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
 .rd-v2-discover-page .rd-v2-discover-composer-examples em {
   color: var(--rd-text, #182033);
-  font-size: 12px;
+  font-size: var(--rd-text-xs);
   font-style: normal;
   line-height: 1.35;
 }
@@ -101,9 +101,9 @@
 }
 
 .rd-v2-discover-page .rd-v2-discover-coverage-eyebrow {
-  color: #52667a;
-  font: 760 10px/1.2 var(--rd-mono, ui-monospace, monospace);
-  letter-spacing: .11em;
+  color: #5b6578;
+  font: 700 11px/1.2 var(--rd-font);
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
@@ -116,14 +116,14 @@
 .rd-v2-discover-page .rd-v2-discover-coverage-gap {
   margin: 8px 0 0;
   color: var(--rd-muted, #6e7685);
-  font-size: 10.5px;
+  font-size: var(--rd-text-2xs);
   line-height: 1.45;
 }
 
 .rd-v2-discover-page .rd-v2-discover-idle-library-note {
   padding: 0 2px;
   color: var(--rd-muted, #6e7685);
-  font-size: 10.5px;
+  font-size: var(--rd-text-2xs);
 }
 
 .rd-v2-discover-page .rd-v2-discover-idle-intake {
@@ -135,8 +135,8 @@
 
 .rd-v2-discover-page .rd-v2-discover-idle-intake label {
   color: var(--rd-muted, #6e7685);
-  font-size: 10.5px;
-  font-weight: 680;
+  font-size: var(--rd-text-2xs);
+  font-weight: 700;
 }
 
 .rd-v2-discover-page .rd-v2-discover-idle-intake input {
@@ -151,7 +151,7 @@
   min-height: 34px;
   padding: 0 10px;
   color: var(--rd-link, #3f6f5c);
-  font-weight: 720;
+  font-weight: 700;
 }
 
 /* ── Active query: make the evidence need the anchor ─────────────────── */
@@ -174,9 +174,9 @@
   padding: 10px 12px;
   border-radius: 7px;
   border: 1px solid var(--rd-border, #dbd4c5);
-  background: #fffefa;
+  background: #ffffff;
   color: var(--rd-text, #182033);
-  font-size: 13px;
+  font-size: var(--rd-text-sm);
 }
 
 .rd-v2-discover-page .rd-v2-discover-explore-need .rd-v2-btn {
@@ -189,7 +189,7 @@
   grid-column: 1 / -1;
   margin: -1px 0 0;
   color: var(--rd-muted, #6e7685);
-  font-size: 10px;
+  font-size: var(--rd-text-2xs);
 }
 
 .rd-v2-discover-page .rd-v2-discover-query-tools {
@@ -210,7 +210,7 @@
 
 .rd-v2-discover-page .rd-v2-discover-interpreting > .rd-v2-eyebrow {
   margin-right: 2px;
-  color: #60758a;
+  color: #607083;
 }
 
 .rd-v2-discover-page .rd-v2-discover-interpreting-chips {
@@ -225,7 +225,7 @@
   border-radius: 999px;
   background: color-mix(in srgb, var(--rd-active-bg, #eef1ee) 76%, transparent);
   color: var(--rd-active-fg, #1a3030);
-  font-size: 10.5px;
+  font-size: var(--rd-text-2xs);
 }
 
 .rd-v2-discover-page .rd-v2-discover-refine {
@@ -236,8 +236,8 @@
 .rd-v2-discover-page .rd-v2-discover-refine summary {
   width: fit-content;
   color: var(--rd-body, #3e4759);
-  font-size: 10.5px;
-  font-weight: 650;
+  font-size: var(--rd-text-2xs);
+  font-weight: 600;
 }
 
 .rd-v2-discover-page .rd-v2-discover-refine-body {
@@ -253,7 +253,7 @@
 .rd-v2-discover-page .rd-v2-discover-refine-body p {
   margin: 0;
   color: var(--rd-muted, #6e7685);
-  font-size: 10.5px;
+  font-size: var(--rd-text-2xs);
   line-height: 1.45;
 }
 
@@ -272,8 +272,8 @@
   background: rgb(255, 253, 246);
   color: rgb(62, 71, 89);
   font: inherit;
-  font-size: 12px;
-  font-weight: 650;
+  font-size: var(--rd-text-xs);
+  font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -298,15 +298,15 @@
   min-height: 28px;
   padding: 0 11px;
   color: var(--rd-muted, #6e7685);
-  font-size: 10.5px;
-  font-weight: 610;
+  font-size: var(--rd-text-2xs);
+  font-weight: 600;
   white-space: nowrap;
 }
 
 .rd-v2-discover-page .rd-v2-discover-frozen-counts > span:first-child {
   padding-left: 0;
   color: var(--rd-text, #182033);
-  font-weight: 740;
+  font-weight: 700;
 }
 
 .rd-v2-discover-page .rd-v2-discover-frozen-counts > span + span {
@@ -323,8 +323,8 @@
   padding: 14px;
   border-radius: 10px;
   border: 1px solid var(--rd-border2, #d2ccc0);
-  background: #fffefa;
-  box-shadow: 0 18px 50px rgba(15, 23, 28, .12);
+  background: #ffffff;
+  box-shadow: 0 18px 50px rgba(16, 24, 32, 0.12);
 }
 
 /* One decision band: what we found + what can happen next. */
@@ -342,7 +342,7 @@
 }
 
 .rd-v2-discover-page .rd-v2-discover-result-actions strong {
-  font-weight: 760;
+  font-weight: 700;
 }
 
 .rd-v2-discover-page .rd-v2-discover-result-actions span {
@@ -361,14 +361,14 @@
   padding: 0 10px;
   border: 1px solid rgba(255,255,255,.24);
   border-radius: 6px;
-  font-size: 10.5px;
+  font-size: var(--rd-text-2xs);
   font-weight: 700;
 }
 
 .rd-v2-discover-page .rd-v2-discover-result-actions .is-ready {
   border-color: #b8d1c4;
-  background: #eaf4ef;
-  color: #244f40;
+  background: #eef1ee;
+  color: #294d40;
 }
 
 /* ── Evidence rows: scan like an instrument, not a generic card list ───── */
@@ -386,8 +386,8 @@
 }
 
 .rd-v2-discover-page .rd-v2-discover-ranked-results-head .rd-v2-eyebrow {
-  color: #5f7388;
-  letter-spacing: .12em;
+  color: #607083;
+  letter-spacing: 0.06em;
 }
 
 .rd-v2-discover-page .rd-v2-discover-candidates {
@@ -406,13 +406,13 @@
 
 .rd-v2-discover-page .rd-v2-discover-candidates > li:hover {
   border-color: var(--rd-active-border, #c5d2cb);
-  background: #fffefa;
+  background: #ffffff;
 }
 
 .rd-v2-discover-page .rd-v2-discover-candidates > li.rd-v2-row-on {
-  border-color: #94afa2;
-  box-shadow: inset 3px 0 0 #4b7563;
-  background: #fbfdf9;
+  border-color: #9db4a8;
+  box-shadow: inset 3px 0 0 #4b7766;
+  background: #ffffff;
 }
 
 .rd-v2-discover-page .rd-v2-discover-candidate {
@@ -452,18 +452,18 @@
 .rd-v2-discover-page .rd-v2-discover-candidate-title {
   min-width: 0;
   color: var(--rd-text, #182033);
-  font-size: 13.5px;
-  font-weight: 750;
+  font-size: var(--rd-text-md);
+  font-weight: 700;
   line-height: 1.3;
 }
 
 .rd-v2-discover-page .rd-v2-discover-possession {
   flex: 0 0 auto;
   max-width: 190px;
-  color: #5b7283;
-  font-size: 10px;
+  color: #607083;
+  font-size: var(--rd-text-2xs);
   font-style: normal;
-  font-weight: 650;
+  font-weight: 600;
   line-height: 1.3;
   text-align: right;
 }
@@ -471,7 +471,7 @@
 .rd-v2-discover-page .rd-v2-discover-evidence {
   max-width: 78ch;
   color: var(--rd-body, #3e4759);
-  font-size: 11px;
+  font-size: var(--rd-text-2xs);
   line-height: 1.45;
 }
 
@@ -487,7 +487,7 @@
   gap: 4px;
   padding: 0 9px;
   border-left: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 80%, transparent);
-  font-size: 9.5px;
+  font-size: var(--rd-text-2xs);
   line-height: 1.35;
 }
 
@@ -497,8 +497,8 @@
 }
 
 .rd-v2-discover-page .rd-v2-discover-offering-facts b {
-  color: #687586;
-  font-weight: 690;
+  color: #6e7685;
+  font-weight: 700;
 }
 
 .rd-v2-discover-page .rd-v2-discover-offering-facts em {
@@ -509,10 +509,10 @@
 .rd-v2-discover-page .rd-v2-discover-sufficiency {
   width: fit-content;
   padding-left: 9px;
-  border-left: 2px solid #a8bcb1;
-  color: #53695f;
-  font-size: 9.5px;
-  font-weight: 640;
+  border-left: 2px solid #aebfb6;
+  color: #52695f;
+  font-size: var(--rd-text-2xs);
+  font-weight: 600;
 }
 
 .rd-v2-discover-page .rd-v2-discover-row-add {
@@ -523,10 +523,10 @@
   padding: 0 9px;
   border: 1px solid #a9bba7;
   border-radius: 5px;
-  background: #fffef7;
+  background: #fffdf6;
   color: #356147;
-  font-size: 9.5px;
-  font-weight: 740;
+  font-size: var(--rd-text-2xs);
+  font-weight: 700;
 }
 
 .rd-v2-discover-page .rd-v2-discover-context-results {
@@ -540,7 +540,7 @@
 
 .rd-v2-discover-page .rd-v2-discover-rank-foot {
   padding: 9px 1px 0;
-  font-size: 9.5px;
+  font-size: var(--rd-text-2xs);
 }
 
 .rd-v2-discover-page .rd-v2-discover-process-disclosure {
@@ -548,12 +548,12 @@
   padding-top: 10px;
   border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 68%, transparent);
   color: var(--rd-muted, #6e7685);
-  font-size: 10px;
+  font-size: var(--rd-text-2xs);
 }
 
 .rd-v2-discover-page .rd-v2-discover-process-disclosure summary {
   width: fit-content;
-  font-weight: 680;
+  font-weight: 700;
 }
 
 .rd-v2-discover-page .rd-v2-discover-process-disclosure p {
@@ -576,23 +576,31 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-block {
 
 body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-section-label {
   margin: 0;
-  color: #687d91;
-  font: 730 10px/1.25 var(--rd-mono, ui-monospace, monospace);
-  letter-spacing: .09em;
+  color: #5b6578;
+  font: 700 11px/1.25 var(--rd-font);
+  letter-spacing: 0.06em;
   text-transform: uppercase;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-question {
+  margin: 4px 0 10px;
+  color: #182033;
+  font-size: var(--rd-text-md);
+  font-weight: 600;
+  line-height: 1.35;
 }
 
 body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose {
   margin: 0;
   color: var(--rd-body, #3e4759);
-  font-size: 11px;
+  font-size: var(--rd-text-2xs);
   line-height: 1.52;
 }
 
 body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
   color: var(--rd-text, #182033);
-  font-size: 10px;
-  letter-spacing: .04em;
+  font-size: var(--rd-text-2xs);
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
@@ -601,7 +609,7 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
 .rd-v2-discover-page .rd-v2-discover-intent-modal {
   border-radius: 14px;
   border-color: color-mix(in srgb, var(--rd-border2, #d2ccc0) 80%, #8297a8 20%);
-  box-shadow: 0 24px 80px rgba(15, 23, 28, .2);
+  box-shadow: 0 24px 80px rgba(16, 24, 32, 0.2);
 }
 
 .rd-v2-discover-page .rd-v2-discover-strategy-answer,
@@ -697,8 +705,8 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
 
 .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer::before {
   content: "DISCOVER EVIDENCE";
-  font-size: 9.5px;
-  letter-spacing: .13em;
+  font-size: var(--rd-text-2xs);
+  letter-spacing: 0.06em;
 }
 
 .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer textarea {
@@ -734,7 +742,7 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
   padding: 0;
   overflow: hidden;
   border-radius: 8px;
-  background: color-mix(in srgb, var(--rd-surface, #fffdf6) 98%, #edf2f0 2%);
+  background: color-mix(in srgb, var(--rd-surface, #fffdf6) 98%, #eef1ee 2%);
   box-shadow: none;
 }
 
@@ -756,18 +764,18 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
 
 .rd-v2-discover-page .rd-v2-discover-coverage-heading strong {
   color: var(--rd-text, #182033);
-  font-size: 13px;
+  font-size: var(--rd-text-sm);
 }
 
 .rd-v2-discover-page .rd-v2-discover-coverage-heading > span:last-child {
   color: var(--rd-muted, #6e7685);
-  font-size: 10.5px;
+  font-size: var(--rd-text-2xs);
 }
 
 .rd-v2-discover-page .rd-v2-discover-coverage .rd-v2-discover-coverage-gap {
   margin: 0;
   color: #8a6b34;
-  font-size: 10px;
+  font-size: var(--rd-text-2xs);
   white-space: nowrap;
 }
 
@@ -803,15 +811,15 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
 }
 
 .rd-v2-discover-page .rd-v2-discover-coverage-shelves button:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--rd-hover, #f5f2ea) 78%, transparent);
+  background: color-mix(in srgb, var(--rd-hover, #eeeae0) 78%, transparent);
 }
 
 .rd-v2-discover-page .rd-v2-discover-coverage-shelves button > span {
   min-width: 0;
   overflow: hidden;
   color: var(--rd-text, #182033);
-  font-size: 10.5px;
-  font-weight: 690;
+  font-size: var(--rd-text-2xs);
+  font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -821,12 +829,12 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
   grid-column: 2;
   align-self: center;
   color: #52667a;
-  font: 760 14px/1 var(--rd-mono, ui-monospace, monospace);
+  font: 700 14px/1 var(--rd-mono, ui-monospace, monospace);
 }
 
 .rd-v2-discover-page .rd-v2-discover-coverage-shelves button > em {
   color: var(--rd-muted, #6e7685);
-  font-size: 9.5px;
+  font-size: var(--rd-text-2xs);
   font-style: normal;
 }
 
@@ -834,7 +842,7 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
   margin: 0;
   padding: 6px 11px 7px;
   border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 58%, transparent);
-  font-size: 9.5px;
+  font-size: var(--rd-text-2xs);
 }
 
 /* Source inventory is the body of the resting surface. Give it the horizontal
@@ -845,7 +853,7 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
 
 .rd-v2-discover-page .rd-v2-discover-idle-held > .rd-v2-home-section-head h3 {
   margin-top: 2px;
-  font-size: 13px;
+  font-size: var(--rd-text-sm);
 }
 
 .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidates {
@@ -863,7 +871,7 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
   content: "Direct inspection is separate from acquisition.";
   align-self: center;
   color: var(--rd-muted, #6e7685);
-  font-size: 9.5px;
+  font-size: var(--rd-text-2xs);
 }
 
 /* Active discovery should read as one evidence landscape, not nested cards. */
@@ -1026,13 +1034,13 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
 
 /* Search should feel like the command surface of the application. */
 .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer {
-  border-color: color-mix(in srgb, var(--rd-border, #dbd4c5) 64%, #8095a7 36%);
-  background: #fffef9;
+  border-color: color-mix(in srgb, var(--rd-border, #dbd4c5) 64%, #8297a8 36%);
+  background: #ffffff;
 }
 
 .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer textarea {
   min-height: 58px;
-  font-size: 15px;
+  font-size: var(--rd-text-lg);
   box-shadow: inset 0 0 0 1px rgba(255,255,255,.62);
 }
 
@@ -1086,22 +1094,22 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
 
 .rd-v2-discover-page .rd-v2-discover-result-actions strong {
   color: var(--rd-text, #182033);
-  font-size: 11.5px;
+  font-size: var(--rd-text-2xs);
 }
 
 .rd-v2-discover-page .rd-v2-discover-result-actions span {
   color: var(--rd-muted, #6e7685);
-  font-size: 10px;
+  font-size: var(--rd-text-2xs);
 }
 
 .rd-v2-discover-page .rd-v2-discover-result-actions button {
   border-color: var(--rd-border2, #d2ccc0);
-  background: #fffef9;
+  background: #ffffff;
   color: var(--rd-text, #182033);
 }
 
 .rd-v2-discover-page .rd-v2-discover-result-actions button:hover:not(:disabled) {
-  background: var(--rd-hover, #f5f2ea);
+  background: var(--rd-hover, #eeeae0);
 }
 
 /* The idle rail is an evaluation canvas waiting for selection, not a giant
@@ -1202,12 +1210,12 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
 
   .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-assessment-head h2 {
     margin-top: 2px;
-    font-size: 13px;
+    font-size: var(--rd-text-sm);
   }
 
   .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-because {
     margin-block: -1px 0;
-    font-size: 9.5px;
+    font-size: var(--rd-text-2xs);
   }
 
   .rd-v2-discover-page .rd-v2-evidence-position-grid > div {
@@ -1217,12 +1225,12 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
 
   .rd-v2-discover-page .rd-v2-evidence-position-grid strong {
     margin-top: 1px;
-    font-size: 11.5px;
+    font-size: var(--rd-text-2xs);
   }
 
   .rd-v2-discover-page .rd-v2-evidence-position-grid em {
     margin-top: 1px;
-    font-size: 9.5px;
+    font-size: var(--rd-text-2xs);
   }
 
   .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-held,
@@ -1240,7 +1248,7 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
 
   .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes .rd-v2-evidence-section-head p {
     margin-top: 1px;
-    font-size: 9.5px;
+    font-size: var(--rd-text-2xs);
   }
 
   .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes-list {
@@ -1263,7 +1271,7 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
 
   .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity .rd-v2-evidence-section-head p {
     max-width: none;
-    font-size: 9.5px;
+    font-size: var(--rd-text-2xs);
     line-height: 1.25;
   }
 
@@ -1285,13 +1293,13 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
   }
 
   .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity-grid strong {
-    font-size: 9.5px;
+    font-size: var(--rd-text-2xs);
     line-height: 1.2;
   }
 
   .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity-grid em {
     margin-top: 1px;
-    font-size: 9.5px;
+    font-size: var(--rd-text-2xs);
     line-height: 1.2;
   }
 
@@ -1320,8 +1328,8 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
   padding-top: 6px;
   border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 54%, transparent);
 }
-.rd-v2-discover-composer-scope > span { display: inline-flex; align-items: center; gap: 4px; color: var(--rd-muted, #6e7685); font-size: 9.5px; }
-.rd-v2-discover-composer-scope > span::before { content: ""; width: 4px; height: 4px; border-radius: 50%; background: #789588; }
+.rd-v2-discover-composer-scope > span { display: inline-flex; align-items: center; gap: 4px; color: var(--rd-muted, #6e7685); font-size: var(--rd-text-2xs); }
+.rd-v2-discover-composer-scope > span::before { content: ""; width: 4px; height: 4px; border-radius: 50%; background: #7e9589; }
 .rd-v2-discover-composer-scope > span:last-child::before { background: #ae7d43; }
 
 /* The cockpit is a workstation aid, not a prerequisite for retrieval. Once the
@@ -1366,11 +1374,11 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
 }
 
 .rd-v2-discover-assembly-state button {
-  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 82%, #26374b 18%);
+  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 82%, #263548 18%);
   border-radius: 5px;
   background: var(--rd-surface, #fffdf6);
   color: var(--rd-text, #182033);
-  font-size: 9.5px;
+  font-size: var(--rd-text-2xs);
   font-weight: 700;
   cursor: pointer;
 }
@@ -1380,8 +1388,8 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
   grid-template-columns: 30px minmax(0, 1fr) minmax(150px, auto);
   gap: 10px;
   align-items: center;
-  border-left: 3px solid #788f82;
-  background: color-mix(in srgb, #edf4ef 68%, var(--rd-surface, #fffdf6));
+  border-left: 3px solid #7e9589;
+  background: color-mix(in srgb, #eef1ee 68%, var(--rd-surface, #fffdf6));
 }
 
 .rd-v2-discover-assembly-mark {
@@ -1395,9 +1403,9 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
 
 .rd-v2-discover-assembly > div:nth-child(2) { min-width: 0; }
 .rd-v2-discover-assembly > div:nth-child(2) > span,
-.rd-v2-discover-assembly-state > span { color: #607166; font: 700 7.8px/1.2 var(--rd-mono, ui-monospace, monospace); letter-spacing: .06em; text-transform: uppercase; }
-.rd-v2-discover-assembly > div:nth-child(2) > strong { display: block; margin-top: 2px; color: var(--rd-text, #182033); font-size: 10.5px; }
-.rd-v2-discover-assembly p { margin: 2px 0 0; color: var(--rd-muted, #6e7685); font-size: 9.5px; line-height: 1.35; }
+.rd-v2-discover-assembly-state > span { color: #5b6578; font: 700 11px/1.2 var(--rd-mono, ui-monospace, monospace); letter-spacing: 0.06em; text-transform: uppercase; }
+.rd-v2-discover-assembly > div:nth-child(2) > strong { display: block; margin-top: 2px; color: var(--rd-text, #182033); font-size: var(--rd-text-2xs); }
+.rd-v2-discover-assembly p { margin: 2px 0 0; color: var(--rd-muted, #6e7685); font-size: var(--rd-text-2xs); line-height: 1.35; }
 
 .rd-v2-discover-assembly-state {
   display: grid;
@@ -1405,9 +1413,9 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
   gap: 3px;
   text-align: right;
 }
-.rd-v2-discover-assembly-state b { color: #557064; font-size: 9.5px; }
+.rd-v2-discover-assembly-state b { color: #557064; font-size: var(--rd-text-2xs); }
 .rd-v2-discover-assembly-state button { margin-top: 2px; padding: 5px 8px; }
-.rd-v2-discover-assembly.is-checking { grid-template-columns: 30px minmax(0, 1fr); border-left-color: #ac9e77; background: color-mix(in srgb, #f5f1e6 72%, var(--rd-surface, #fffdf6)); }
+.rd-v2-discover-assembly.is-checking { grid-template-columns: 30px minmax(0, 1fr); border-left-color: #ac9e77; background: color-mix(in srgb, #eeeae0 72%, var(--rd-surface, #fffdf6)); }
 
 /* Quiet the persistent cockpit. It is a control rail, not a second dashboard. */
 
@@ -1428,17 +1436,17 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
 }
 
 .rd-v2-discover-ranked-results .rd-v2-discover-candidates > li:hover {
-  background: color-mix(in srgb, #eef2ef 44%, transparent);
+  background: color-mix(in srgb, #eef1ee 44%, transparent);
 }
 
 .rd-v2-discover-ranked-results .rd-v2-row-on {
-  background: color-mix(in srgb, #e8f0eb 56%, transparent);
+  background: color-mix(in srgb, #eef1ee 56%, transparent);
 }
 .rd-v2-discover-ranked-results .rd-v2-discover-sufficiency { margin-top: 1px; }
 
 .rd-v2-discover-ranked-results .rd-v2-discover-row-add {
   bottom: auto;
-  font-size: 9.5px;
+  font-size: var(--rd-text-2xs);
 }
 
 @media (max-width: 1500px) {
@@ -1509,15 +1517,15 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
 }
 
 .rd-v2-discover-ranked-results .rd-v2-discover-offering-facts b {
-  color: #607166;
-  font-size: 9.5px !important;
-  letter-spacing: .045em;
+  color: #5b6578;
+  font-size: var(--rd-text-2xs) !important;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
 .rd-v2-discover-ranked-results .rd-v2-discover-offering-facts em {
   color: var(--rd-muted, #6e7685);
-  font-size: 9.5px !important;
+  font-size: var(--rd-text-2xs) !important;
 }
 
 .rd-v2-discover-ranked-results .rd-v2-discover-sufficiency {
@@ -1581,11 +1589,11 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
 }
 
 .rd-v2-discover-field > header strong {
-  font-size: 13px;
+  font-size: var(--rd-text-sm);
 }
 
 .rd-v2-discover-field > header p {
-  font-size: 9.5px;
+  font-size: var(--rd-text-2xs);
 }
 
 /* Assembly is the exceptional state, so it earns the strongest emphasis in the field. */
@@ -1598,7 +1606,7 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
 .rd-v2-discover-assembly-mark {
   width: 23px;
   height: 23px;
-  font-size: 12px;
+  font-size: var(--rd-text-xs);
 }
 
 /* Large result sets scan as a ledger. Preserve useful facts, cut repetitive chrome. */
@@ -1611,13 +1619,13 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
 }
 
 .rd-v2-discover-ranked-results .rd-v2-discover-candidate-title {
-  font-size: 11px;
+  font-size: var(--rd-text-2xs);
 }
 
 .rd-v2-discover-ranked-results .rd-v2-discover-evidence {
   display: block;
   overflow: hidden;
-  font-size: 9.5px;
+  font-size: var(--rd-text-2xs);
   line-height: 1.25;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -1644,18 +1652,18 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
 /* Refresh cadence is useful in Detail, but is the least important repeated scan-field here. */
 
 .rd-v2-discover-ranked-results .rd-v2-discover-offering-facts b {
-  font-size: 9.5px;
+  font-size: var(--rd-text-2xs);
 }
 
 .rd-v2-discover-ranked-results .rd-v2-discover-offering-facts em {
   max-width: 220px;
   overflow: hidden;
-  font-size: 9.5px;
+  font-size: var(--rd-text-2xs);
   text-overflow: ellipsis;
 }
 
 .rd-v2-discover-ranked-results .rd-v2-discover-sufficiency {
-  font-size: 9.5px;
+  font-size: var(--rd-text-2xs);
   line-height: 1.2;
 }
 
@@ -1723,7 +1731,7 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
   color: var(--rd-body, #3e4759);
   cursor: pointer;
   list-style: none;
-  font-size: 9.5px;
+  font-size: var(--rd-text-2xs);
   font-weight: 700;
 }
 
@@ -1736,7 +1744,7 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
   flex: 0 0 auto;
   margin-right: -5px;
   color: var(--rd-muted, #6e7685);
-  font-size: 9.5px;
+  font-size: var(--rd-text-2xs);
 }
 
 .rd-v2-evidence-detail-disclosure.is-workspace[open] > summary::before {
@@ -1746,7 +1754,7 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
 .rd-v2-evidence-detail-disclosure.is-workspace > summary em {
   margin-left: auto;
   color: var(--rd-muted, #6e7685);
-  font-size: 9.5px;
+  font-size: var(--rd-text-2xs);
   font-style: normal;
   font-weight: 500;
 }
@@ -1861,7 +1869,7 @@ body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(
 
 body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(.rd-v2-discover-candidate.selected))
   .rd-v2-resting-rail .rd-v2-eval-prose {
-  font-size: 10.5px;
+  font-size: var(--rd-text-2xs);
   line-height: 1.38;
 }
 
@@ -1883,7 +1891,7 @@ body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(
   max-width: 58px;
   overflow: hidden;
   padding-inline: 5px;
-  font-size: 9.5px;
+  font-size: var(--rd-text-2xs);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1898,7 +1906,7 @@ body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(
 .rd-v2-discover-ranked-results .rd-v2-discover-candidate .rd-v2-pill {
   opacity: .24;
   padding: 2px 5px;
-  font-size: 9.5px;
+  font-size: var(--rd-text-2xs);
   transition: opacity .12s ease;
 }
 
@@ -1926,7 +1934,7 @@ body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(
   display: grid;
   place-items: center;
   color: var(--rd-link, #3f6f5c);
-  font-size: 9.5px;
+  font-size: var(--rd-text-2xs);
   font-weight: 700;
   line-height: 1;
   text-indent: 0;
@@ -1945,7 +1953,7 @@ body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(
 
 /* Result identity should dominate tertiary route metadata. */
 .rd-v2-discover-ranked-results .rd-v2-discover-candidate-title {
-  font-weight: 720;
+  font-weight: 700;
 }
 
 .rd-v2-discover-ranked-results .rd-v2-discover-offering-facts,
@@ -1968,7 +1976,7 @@ body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(
   .rd-v2-discover-ranked-results .rd-v2-source-ribbon {
     max-width: 96px;
     padding-inline: 4px;
-    font-size: 9.5px;
+    font-size: var(--rd-text-2xs);
   }
 
   .rd-v2-discover-ranked-results .rd-v2-discover-row-add {
@@ -2014,7 +2022,7 @@ body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(
   }
 
   .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate-title {
-    font-size: 11.5px;
+    font-size: var(--rd-text-2xs);
     line-height: 1.25;
   }
 
@@ -2022,7 +2030,7 @@ body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(
     display: block;
     overflow: hidden;
     max-width: 100%;
-    font-size: 9.5px;
+    font-size: var(--rd-text-2xs);
     line-height: 1.3;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -2047,13 +2055,13 @@ body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(
   }
 
   .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-offering-facts b {
-    font-size: 9.5px;
+    font-size: var(--rd-text-2xs);
   }
 
   .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-offering-facts em {
     max-width: 170px;
     overflow: hidden;
-    font-size: 9.5px;
+    font-size: var(--rd-text-2xs);
     text-overflow: ellipsis;
   }
 
@@ -2068,7 +2076,7 @@ body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(
     bottom: 7px;
     min-height: 24px;
     padding: 3px 7px;
-    font-size: 9.5px;
+    font-size: var(--rd-text-2xs);
     opacity: .68;
   }
 
@@ -2079,7 +2087,7 @@ body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(
 
   .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-pill {
     opacity: .58;
-    font-size: 9.5px;
+    font-size: var(--rd-text-2xs);
   }
 }
 

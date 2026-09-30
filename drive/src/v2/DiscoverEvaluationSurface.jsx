@@ -61,7 +61,8 @@ function RestingSearchRail({ summary, onOpenInLibrary }) {
     <RailFrame>
       <div className="rd-v2-rail-scroll rd-v2-resting-rail" data-testid="discover-resting-summary">
         <section className="rd-v2-eval-block" aria-label="Discover search summary">
-          <p className="rd-v2-eval-section-label">Search · {summary.query || "Discover"}</p>
+          <p className="rd-v2-eval-section-label">Search</p>
+          <p className="rd-v2-eval-question">{summary.query || "Discover"}</p>
           <p className="rd-v2-eval-prose">{summary.landscapeLine || summary.heldLine || summary.foundLine}</p>
           {routeLine ? (
             <p className="rd-v2-eval-prose">

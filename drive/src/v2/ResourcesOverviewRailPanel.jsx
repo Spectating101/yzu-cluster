@@ -11,6 +11,7 @@ import {
   resourcesOpsPosture,
 } from "@/v2/attentionModel";
 import { formatCollectorState, workersToolbarFieldsFromRollup } from "@/v2/workersToolbarStat";
+import { storageUsed } from "./storageFormat.js";
 
 export function ResourcesOverviewRailPanel({ rollup, decisionCount, onViewActivity }) {
   const workers = rollup?.hero?.workers || {};
@@ -34,7 +35,7 @@ export function ResourcesOverviewRailPanel({ rollup, decisionCount, onViewActivi
   // VC-4: identical field set, vocabulary, and denominator as the toolbar/card.
   const collectorState = formatCollectorState(workersToolbarFieldsFromRollup(rollup));
   const vaultState = vault.used_tb != null
-    ? `${vault.used_tb}/${vault.cap_tb ?? "?"} TB`
+    ? storageUsed(vault.used_tb, vault.cap_tb, "TB")
     : vault.cap_tb != null
       ? `${vault.cap_tb} TB capacity`
       : "Usage pending";
@@ -81,7 +82,7 @@ export function ResourcesOverviewRailPanel({ rollup, decisionCount, onViewActivi
           />
           <RailField label="Running" value={counts.running ? String(counts.running) : "None"} />
           <RailField label="Collectors" value={collectorState} />
-          <RailField label="Vault" value={vaultState} />
+          <RailField label="Drive archive" value={vaultState} />
           <RailField label="Source inventory" value={sourceCount != null ? `${sourceCount} configured` : "Configured routes"} />
           <RailField label="Desk connection" value={query.up === false ? "Offline" : "Connected"} />
         </RailFieldGrid>

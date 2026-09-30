@@ -7,6 +7,7 @@ import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 // refactor can be proven to change nothing (or exactly what it meant to).
 // Inert unless CSS_SNAP_DIR is set; compare runs with scripts/css-snap-diff.mjs.
 const OUT = process.env.CSS_SNAP_DIR;
+const LIVE = process.env.CSS_SNAP_LIVE === "1";
 
 const PROPS = [
   "display", "position", "float", "visibility", "opacity", "z-index", "overflow-x", "overflow-y",
@@ -34,6 +35,8 @@ const STATES = [
   { name: "discover-history", go: "/?tab=discover&mode=history" },
   { name: "synthesis", go: "/?tab=synthesis" },
   { name: "synthesis-thread", go: "/?tab=synthesis", act: async (page) => page.getByTestId("synthesis-thread-item").first().click({ timeout: 8000 }) },
+  { name: "synthesis-result", go: "/?tab=synthesis", live: true, act: async (page) => page.getByText("Crypto volatility in stablecoin de-peg weeks").first().click({ timeout: 8000 }) },
+  { name: "discover-question", go: "/?tab=discover&q=Did%20bitcoin%20volatility%20rise%20when%20stablecoins%20de-pegged%3F", live: true },
   { name: "resources", go: "/?tab=resources" },
   { name: "profile", go: "/?tab=profile" },
   { name: "settings", go: "/?tab=settings" },
@@ -46,17 +49,23 @@ const VIEWPORTS = [
 test.describe("css snapshot", () => {
   test.skip(!OUT, "set CSS_SNAP_DIR to record");
   for (const viewport of VIEWPORTS) {
-    for (const state of STATES) {
+    for (const state of STATES.filter((s) => LIVE || !s.live)) {
       test(`${state.name} @${viewport.width}`, async ({ page }) => {
         await page.setViewportSize(viewport);
         await page.emulateMedia({ reducedMotion: "reduce" });
-        await page.clock.install({ time: new Date("2026-09-30T08:00:00Z") });
-        await mockV2Api(page);
+        if (LIVE) {
+          const origin = new URL(process.env.YZU_DESK_URL || "http://127.0.0.1:8799").origin;
+          await page.route((url) => url.origin === origin, (route) =>
+            route.continue({ headers: { ...route.request().headers(), authorization: `Bearer ${process.env.CSS_SNAP_TOKEN || "scratch-local-probe"}` } }));
+        } else {
+          await page.clock.install({ time: new Date("2026-09-30T08:00:00Z") });
+          await mockV2Api(page);
+        }
         await page.goto(state.go, { waitUntil: "domcontentloaded" });
         await waitForShell(page);
         if (state.act) await state.act(page).catch(() => {});
-        await page.clock.runFor(4000);
-        await page.waitForTimeout(1200);
+        if (!LIVE) await page.clock.runFor(4000);
+        await page.waitForTimeout(LIVE ? 6000 : 1200);
         await page.addStyleTag({ content: "*,*::before,*::after{transition:none!important;animation:none!important;caret-color:transparent!important}" });
         await page.evaluate(() => document.fonts?.ready);
         const snap = await page.evaluate(({ props, pseudoProps }) => {

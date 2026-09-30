@@ -18,6 +18,8 @@ import { Chip, PageShell, StatementRow, StatementSection } from "@/v2/ui";
 import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
 import { DeskError } from "@/v2/DeskError";
 
+const METER_ACTION_TEXT = { CHECK: "worth checking", NEED: "needs setup" };
+
 function shortText(value, max = 92) {
   const text = String(value || "");
   return text.length > max ? `${text.slice(0, max - 1)}…` : text;
@@ -195,7 +197,7 @@ function CapacityAccessGrid({ rollup, health, loading = false, selectedKey, onSe
                   )}
                   <em>
                     {meter.available || (pct != null ? `${pct}%` : "—")}
-                    {meter.action ? ` · ${meter.action}` : ""}
+                    {meter.action ? ` · ${METER_ACTION_TEXT[meter.action] || meter.action}` : ""}
                   </em>
                 </button>
               );

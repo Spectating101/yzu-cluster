@@ -55,13 +55,14 @@ describe("buildCapacityAccessPairs", () => {
     assert.match(byId.vault.name, /Google Drive/i);
     assert.match(byId.cache.name, /Transcend/i);
     assert.match(byId.cursor.metric, /50 turns/);
-    assert.match(byId.bigquery.metric, /search-485108/);
+    assert.match(byId.bigquery.metric, /^Connected/);
+    assert.match(byId.bigquery.available, /project search-485108/);
     // VC-4: the fleet headline uses the shared collector vocabulary so the
     // card, toolbar, and rail cannot disagree. Identity readiness moved to the
     // detail line because it is a different operational dimension.
     assert.match(byId.fleet.metric, /^\d+ registered/);
     assert.match(byId.fleet.available, /3\/4 identities ready/);
-    assert.match(byId.mcp.metric, /86 MCP/);
+    assert.match(byId.mcp.metric, /86 research tools/);
   });
 
   it("shows Composer unverified rather than Ready when /health.desk.composer_runtime is configured but not verified", () => {

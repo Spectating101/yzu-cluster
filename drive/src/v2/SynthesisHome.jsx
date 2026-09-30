@@ -37,7 +37,7 @@ function ThreadCard({ thread, onOpen, priority = false }) {
   const projectKey = text(thread?.project_key || thread?.state?.project_key);
   const summary = priority
     ? synthesisWorkspaceDecisionSummary(thread) || objectiveFor(thread)
-    : output || objectiveFor(thread);
+    : objectiveFor(thread);
   return (
     <button
       type="button"

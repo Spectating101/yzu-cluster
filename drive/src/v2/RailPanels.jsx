@@ -15,6 +15,7 @@ import {
 import { DetailPanel } from "@/v2/DetailPanel";
 import { handleEnterToSubmit } from "@/v2/enterToSubmit";
 import { DISCOVER_TAB, tabLabel } from "@/v2/tabIdentity";
+import { storageUsed } from "./storageFormat.js";
 
 function fmtGiB(gib) {
   if (gib == null) return "—";
@@ -540,7 +541,7 @@ export function ResourcesRailPanel({ row, rollup, onApproveJob, onRefresh, onVie
             <RailField label="Activity" value="Open the feed for approvals, asks, and metered use" />
             <RailField label="Routes" value={sourceCount != null ? `${sourceCount} configured` : "Configured procurement routes"} />
             <RailField label="Workers" value={`${workers.busy ?? "—"}/${workers.total ?? "—"} busy`} />
-            <RailField label="Vault" value={vault.used_tb != null ? `${vault.used_tb}/${vault.cap_tb ?? "?"} TB` : "quota pending"} />
+            <RailField label="Drive archive" value={vault.used_tb != null ? storageUsed(vault.used_tb, vault.cap_tb, "TB") : "Quota pending"} />
           </RailFieldGrid>
         </div>
         <RailStickyFooter>
@@ -666,7 +667,7 @@ export function ResourcesRailPanel({ row, rollup, onApproveJob, onRefresh, onVie
           <RailFieldGrid>
             <RailField label="Status" value={row.metric} />
             <RailField label="Detail" value={row.sublabel || "—"} />
-            {row.detail?.mcp != null ? <RailField label="MCP tools" value={String(row.detail.mcp)} /> : null}
+            {row.detail?.mcp != null ? <RailField label="Research tools" value={String(row.detail.mcp)} /> : null}
             {row.progress != null ? <RailField label="Used" value={`${row.progress}%`} /> : null}
           </RailFieldGrid>
         </div>
