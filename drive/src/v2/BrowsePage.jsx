@@ -37,7 +37,6 @@ import {
 import { Chip, PageShell, SourceRibbon } from "@/v2/ui";
 import { discoverTerritories } from "@/v2/discoverTerritories";
 import { DiscoverCoveragePanel } from "@/v2/DiscoverCoveragePanel";
-import "./discover-composer-scope.css";
 import { DiscoverEvidenceField } from "@/v2/DiscoverEvidenceField";
 import { DeskError } from "@/v2/DeskError";
 import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";

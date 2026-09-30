@@ -1,0 +1,1557 @@
+/* ── discover-visual-freeze ── */
+/* Final Discover visual hardening overrides.
+   Keep this file adversarial: it exists for production-scale layout defects and
+   last-mile visual hierarchy found by rendered validation, not to redefine
+   Discover semantics. */
+
+/* Keep the arrow inside the content box even under inherited list metrics. */
+
+/* Long source titles and status strings must not turn one result into a page-wide scroller. */
+.rd-v2-discover-page .rd-v2-discover-candidate-heading,
+.rd-v2-discover-page .rd-v2-discover-candidate-title,
+.rd-v2-discover-page .rd-v2-discover-evidence,
+.rd-v2-discover-page .rd-v2-discover-possession,
+.rd-v2-discover-page .rd-v2-discover-offering-facts {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* The result landscape is a compact evidence ledger, not a stack of dashboard cards. */
+.rd-v2-discover-page .rd-v2-discover-candidates {
+  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 88%, transparent);
+}
+
+.rd-v2-discover-page .rd-v2-discover-candidates > li,
+.rd-v2-discover-page .rd-v2-discover-candidates > li:hover {
+  min-height: 0;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 88%, transparent);
+  border-radius: 0;
+}
+
+.rd-v2-discover-page .rd-v2-discover-candidate {
+  min-height: 0;
+}
+
+.rd-v2-discover-page .rd-v2-discover-row-add {
+  padding-inline: 8px;
+}
+
+/* Reference/web context is intentionally quieter than obtainable evidence. */
+.rd-v2-discover-page .rd-v2-discover-context-results .rd-v2-discover-candidates {
+  border-top-color: color-mix(in srgb, var(--rd-border, #dbd4c5) 65%, transparent);
+}
+
+/* Search-summary rail facts should scan as a compact judgment grid, not four
+   unrelated metadata lines. */
+body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-rail-fieldgrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 88%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--rd-surface, #fffdf6) 68%, transparent);
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-rail-fieldgrid .rd-v2-detail-row {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 9px 10px;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 66%, transparent);
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-rail-fieldgrid .rd-v2-detail-row:nth-child(odd) {
+  border-right: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 66%, transparent);
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-rail-fieldgrid .rd-v2-detail-row:nth-last-child(-n + 2) {
+  border-bottom: 0;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-rail-fieldgrid .rd-v2-detail-label {
+  color: #718197;
+  font-size: 9.5px;
+  letter-spacing: .07em;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-rail-fieldgrid .rd-v2-detail-val {
+  color: var(--rd-text, #182033);
+  font-size: 12px;
+  font-weight: 760;
+}
+
+/* The held-evidence popover is a local scroller if an upstream identifier is pathological;
+   it must never expand the full Research Drive canvas. */
+.rd-v2-discover-page .rd-v2-discover-library-popover {
+  max-width: calc(100vw - 48px);
+  overflow-x: auto;
+}
+
+@media (max-width: 760px) {
+  body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-rail-fieldgrid {
+    grid-template-columns: 1fr;
+  }
+
+  body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-rail-fieldgrid .rd-v2-detail-row,
+  body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-rail-fieldgrid .rd-v2-detail-row:nth-child(odd) {
+    border-right: 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 66%, transparent);
+  }
+
+  body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-rail-fieldgrid .rd-v2-detail-row:last-child {
+    border-bottom: 0;
+  }
+}
+
+
+/* Discover capability convergence: evidence investigation workspace. */
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace {
+  max-width: none;
+  margin: 0 16px 14px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--rd-border2, #d2ccc0) 78%, #698b7b 22%);
+  background: color-mix(in srgb, var(--rd-surface, #fffdf6) 96%, #edf3ef 4%);
+}
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace > .rd-v2-evidence-question,
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace > .rd-v2-evidence-suggestions { display: none; }
+.rd-v2-discover-page .rd-v2-evidence-workspace-pending { display: grid; gap: 5px; padding: 16px 18px; border-left: 3px solid #6f8f80; }
+.rd-v2-discover-page .rd-v2-evidence-workspace-pending strong { color: var(--rd-text, #182033); font-size: 13px; }
+.rd-v2-discover-page .rd-v2-evidence-workspace-pending p { margin: 0; color: var(--rd-muted, #6e7685); font-size: 10.5px; }
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-assessment { display: grid; }
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-assessment-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 74%, transparent); }
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-assessment-head h2 { max-width: 780px; letter-spacing: -.015em; }
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-verdict { justify-content: center; font-size: 11px; }
+.rd-v2-discover-page .rd-v2-evidence-position-grid { display: grid; overflow: hidden; border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 80%, transparent); border-radius: 7px; background: rgba(255,255,255,.34); }
+.rd-v2-discover-page .rd-v2-evidence-position-grid > div { display: grid; align-content: start; min-width: 0; border-right: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 66%, transparent); }
+.rd-v2-discover-page .rd-v2-evidence-position-grid > div:last-child { border-right: 0; }
+.rd-v2-discover-page .rd-v2-evidence-position-grid span,
+.rd-v2-discover-page .rd-v2-evidence-capacity-grid span,
+.rd-v2-intent-capacity article span { color: #718197; font: 720 8.5px/1.2 var(--rd-mono, ui-monospace, monospace); letter-spacing: .07em; text-transform: uppercase; }
+.rd-v2-discover-page .rd-v2-evidence-position-grid strong { color: var(--rd-text, #182033); }
+.rd-v2-discover-page .rd-v2-evidence-position-grid em { min-width: 0; color: var(--rd-muted, #6e7685); font-style: normal; overflow-wrap: anywhere; }
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-held,
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-gap,
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes,
+.rd-v2-discover-page .rd-v2-evidence-capacity { padding: 12px 13px; border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 76%, transparent); border-radius: 7px; background: color-mix(in srgb, var(--rd-surface, #fffdf6) 72%, transparent); }
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-gap { border-left: 3px solid #b1843c; background: #fffaf0; }
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes { border-left: 3px solid #668574; }
+.rd-v2-discover-page .rd-v2-evidence-routes-list li { min-width: 0; overflow-wrap: anywhere; }
+.rd-v2-discover-page .rd-v2-evidence-capacity-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 0; overflow: hidden; margin-top: 8px; border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, transparent); border-radius: 6px; }
+.rd-v2-discover-page .rd-v2-evidence-capacity-grid > div { display: grid; gap: 3px; min-width: 0; padding: 9px 10px; border-right: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 64%, transparent); }
+.rd-v2-discover-page .rd-v2-evidence-capacity-grid > div:last-child { border-right: 0; }
+.rd-v2-discover-page .rd-v2-evidence-capacity-grid > div.needs-attention { background: #fff7ea; }
+.rd-v2-discover-page .rd-v2-evidence-capacity-grid strong { color: var(--rd-text, #182033); font-size: 11px; }
+.rd-v2-discover-page .rd-v2-evidence-capacity-grid em { color: var(--rd-muted, #6e7685); font-size: 9.5px; font-style: normal; line-height: 1.35; }
+.rd-v2-discover-assessment-rail-summary { display: grid; gap: 9px; padding: 15px 13px 24px; }
+.rd-v2-discover-assessment-rail-summary > strong { color: var(--rd-text, #182033); font-size: 16px; }
+.rd-v2-discover-assessment-rail-summary > p { margin: 0; color: var(--rd-body, #3e4759); font-size: 11px; line-height: 1.5; }
+.rd-v2-discover-assessment-rail-summary dl { display: grid; grid-template-columns: 1fr 1fr; margin: 2px 0 0; border-block: 1px solid var(--rd-border, #dbd4c5); }
+.rd-v2-discover-assessment-rail-summary dl > div { padding: 9px 7px; }
+.rd-v2-discover-assessment-rail-summary dt { color: var(--rd-muted, #6e7685); font-size: 9.5px; text-transform: uppercase; letter-spacing: .06em; }
+.rd-v2-discover-assessment-rail-summary dd { margin: 3px 0 0; color: var(--rd-text, #182033); font-size: 10.5px; font-weight: 650; }
+.rd-v2-intent-capacity { display: grid; border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, #6f8f80 28%); border-radius: 8px; }
+.rd-v2-intent-capacity header h3 { margin: 3px 0 0; color: var(--rd-text, #182033); font-size: 12.5px; }
+.rd-v2-intent-capacity > div { display: grid; gap: 7px; }
+.rd-v2-intent-capacity article { display: grid; gap: 3px; min-width: 0; border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 68%, transparent); border-radius: 6px; background: rgba(255,255,255,.48); }
+.rd-v2-intent-capacity article.needs-attention { background: #fff7ea; }
+.rd-v2-intent-capacity article strong { color: var(--rd-text, #182033); }
+.rd-v2-intent-capacity article em { color: var(--rd-muted, #6e7685); font-style: normal; line-height: 1.3; }
+.rd-v2-intent-capacity > p { margin: 0; color: var(--rd-muted, #6e7685); line-height: 1.4; }
+@media (max-width: 1180px) {
+  .rd-v2-discover-page .rd-v2-evidence-position-grid > div:nth-child(2) { border-right: 0; }
+  .rd-v2-discover-page .rd-v2-evidence-position-grid > div:nth-child(-n + 2) { border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 66%, transparent); }
+}
+
+
+/* Discover capability convergence: mobile control reachability. */
+@media (max-width: 760px) {
+  .rd-v2-discover-page .rd-v2-discover-frozen-controls {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-frozen-controls > .rd-v2-discover-filter-menu {
+    flex: none;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-frozen-controls > .rd-v2-discover-filter-menu > summary {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-frozen-controls > .rd-v2-discover-filter-menu > summary > span,
+  .rd-v2-discover-page .rd-v2-discover-frozen-controls > .rd-v2-discover-filter-menu > summary > strong {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+
+/* Discover visual compression: capability without workflow sprawl.
+   The researcher's first scan is verdict -> evidence gap -> ways forward.
+   Audit/provenance and held-record detail remain present but subordinate. */
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-assessment {
+  grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-assessment-head,
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-because,
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-position-grid,
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-edit,
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes,
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity,
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-basis-details,
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace > .rd-v2-browse-loading,
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace > .rd-v2-discover-error {
+  grid-column: 1 / -1;
+}
+
+/* Requirement detail is already summarized by Edit brief. The decision strip
+   therefore leads with held support, the unresolved gap, and sourcing state. */
+.rd-v2-discover-page .rd-v2-evidence-position-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.rd-v2-discover-page .rd-v2-evidence-position-grid > div:first-child {
+  display: none;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-held {
+  grid-column: 1;
+  border-color: color-mix(in srgb, var(--rd-border, #dbd4c5) 62%, transparent);
+  background: color-mix(in srgb, var(--rd-surface, #fffdf6) 52%, transparent);
+}
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-gap {
+  grid-column: 2;
+}
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-held .rd-v2-evidence-section-head,
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-gap .rd-v2-eyebrow {
+  margin-bottom: 5px;
+}
+
+/* Ways forward are the primary action-bearing evidence after the gap. Keep the
+   source options readable side-by-side instead of making each look like a page. */
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes {
+  background: color-mix(in srgb, #eef5f1 58%, var(--rd-surface, #fffdf6));
+}
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes-list {
+  display: grid;
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 66%, transparent);
+  border-radius: 6px;
+}
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes-list li {
+  border: 0;
+  background: color-mix(in srgb, var(--rd-surface, #fffdf6) 78%, transparent);
+}
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes-list li:last-child {
+  border-right: 0;
+}
+
+/* Capacity is a concise feasibility strip, not an operations dashboard. */
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity {
+  display: grid;
+  grid-template-columns: minmax(160px, .7fr) minmax(0, 1.8fr);
+  align-items: center;
+  border-style: dashed;
+  background: transparent;
+}
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity .rd-v2-evidence-section-head {
+  margin: 0;
+}
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity .rd-v2-evidence-section-head p {
+  font-size: 9.5px;
+}
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity-grid {
+  margin: 0;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-basis-details {
+  color: var(--rd-muted, #6e7685);
+  font-size: 9.5px;
+}
+.rd-v2-discover-page .rd-v2-evidence-basis-details summary {
+  width: fit-content;
+  cursor: pointer;
+  font-weight: 700;
+  letter-spacing: .02em;
+}
+.rd-v2-discover-page .rd-v2-evidence-basis-details .rd-v2-evidence-basis {
+  margin: 6px 0 0;
+}
+
+@media (max-width: 980px) {
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-assessment {
+    grid-template-columns: 1fr;
+  }
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-held,
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-gap {
+    grid-column: 1;
+  }
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .rd-v2-discover-page .rd-v2-evidence-position-grid,
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes-list {
+    grid-template-columns: 1fr;
+  }
+  .rd-v2-discover-page .rd-v2-evidence-position-grid > div,
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes-list li {
+    border-right: 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 60%, transparent);
+  }
+  .rd-v2-discover-page .rd-v2-evidence-position-grid > div:last-child,
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes-list li:last-child {
+    border-bottom: 0;
+  }
+}
+
+
+/* Discover 1440 investigation density hardening. */
+@media (min-width: 981px) and (max-width: 1500px) {
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity .rd-v2-evidence-section-head p {
+    max-width: 680px;
+    font-size: 9.5px;
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity-grid > div {
+    min-height: 48px;
+    border-right: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 64%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 64%, transparent);
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity-grid > div:nth-child(even) {
+    border-right: 0;
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity-grid > div:nth-last-child(-n + 2) {
+    border-bottom: 0;
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity-grid strong {
+    line-height: 1.3;
+  }
+}
+
+
+/* Discover procurement engineering summary: backend truth, not an ops dashboard. */
+.rd-v2-intent-engineering {
+  margin: 8px 0 2px;
+  border-block: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, transparent);
+}
+.rd-v2-intent-engineering > span {
+  padding-top: 2px;
+  font: 720 8.5px/1.2 var(--rd-mono, ui-monospace, monospace);
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+.rd-v2-intent-engineering > strong {
+  min-width: 0;
+  line-height: 1.3;
+}
+.rd-v2-intent-engineering > p,
+.rd-v2-intent-engineering > em,
+.rd-v2-intent-engineering > small {
+  grid-column: 2;
+  min-width: 0;
+  font-style: normal;
+  overflow-wrap: anywhere;
+}
+.rd-v2-intent-engineering > em { font-weight: 650; }
+.rd-v2-intent-engineering.needs-review > em { color: #9a650e; }
+.rd-v2-intent-engineering > small { opacity: .88; }
+@media (max-width: 640px) {
+  .rd-v2-intent-engineering > span,
+  .rd-v2-intent-engineering > p,
+  .rd-v2-intent-engineering > em,
+  .rd-v2-intent-engineering > small { grid-column: 1; grid-row: auto; }
+}
+
+/* ── discover-workspace-compression ── */
+/* Discover evidence-investigation compression after rendered 1440x900 review.
+   Capability stays visible; repeated instructions and backend-step chrome lose
+   vertical weight so the researcher can see verdict -> gap -> way forward ->
+   feasibility in one workstation scan. */
+
+/* Once a query is active, the composer has already taught its keyword/question
+   behavior. Keep the single input, but do not repeat idle onboarding copy. */
+.rd-v2-discover-page .rd-v2-discover-explore-need .rd-v2-discover-composer > p {
+  display: none;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace {
+  margin-bottom: 10px;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-assessment {
+  gap: 7px 10px;
+  padding: 11px 13px 12px;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-assessment-head {
+  gap: 9px;
+  padding-bottom: 6px;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-assessment-head h2 {
+  margin-top: 2px;
+  font-size: 14.5px;
+  line-height: 1.2;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-verdict {
+  min-width: 108px;
+  padding: 5px 8px;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-because {
+  margin: 0;
+  font-size: 10.5px;
+  line-height: 1.3;
+}
+
+/* The summary is a status strip, not another explanatory section. */
+.rd-v2-discover-page .rd-v2-evidence-position-grid > div {
+  gap: 1px;
+  padding: 6px 8px;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-position-grid strong {
+  font-size: 11px;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-position-grid em {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 9.5px;
+  line-height: 1.2;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+/* Edit brief remains immediately available but visually subordinate to the
+   verdict. The details disclose the full requirement only when correction is
+   needed. */
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-edit > summary {
+  min-height: 0;
+  padding-block: 4px;
+  font-size: 9.5px;
+}
+
+/* Held support and precise gap are one decision row. Their detailed record and
+   provenance remain reachable through Detail/Ask rather than consuming the
+   whole first viewport. */
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-held,
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-gap {
+  padding: 7px 9px;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-held .rd-v2-evidence-section-head p {
+  display: none;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-held ul {
+  margin-top: 3px;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-held li button {
+  padding-block: 4px;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-held li button > span,
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-held li button > em {
+  line-height: 1.25;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-gap p {
+  margin: 3px 0 0;
+  font-size: 9.8px;
+  line-height: 1.3;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-gap strong {
+  font-size: 11.5px;
+  line-height: 1.25;
+}
+
+/* Sourcing options are actionable evidence rows, not mini cards. One route uses
+   the full width; two routes stack as compact comparison rows rather than
+   leaving an empty half-panel. */
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes {
+  padding: 7px 9px 8px;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes .rd-v2-evidence-section-head {
+  margin-bottom: 3px;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes .rd-v2-evidence-section-head p {
+  margin-top: 2px;
+  font-size: 9.5px;
+  line-height: 1.25;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes-list {
+  grid-template-columns: 1fr;
+  margin-top: 4px;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes-list li {
+  display: grid;
+  grid-template-columns: minmax(150px, .8fr) minmax(0, 1.35fr) minmax(180px, auto);
+  gap: 6px 10px;
+  align-items: baseline;
+  padding: 6px 8px;
+  border-right: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 60%, transparent);
+  list-style: none;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes-list li:last-child {
+  border-bottom: 0;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes-list li::marker {
+  content: "";
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes-list strong {
+  font-size: 10.8px;
+  line-height: 1.25;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes-list span {
+  font-size: 9.8px;
+  line-height: 1.3;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes-list em {
+  font-size: 9.5px;
+  line-height: 1.25;
+  text-align: right;
+}
+
+/* Capacity is the final feasibility strip in the scan. Keep all measured facts,
+   but give the strip less height than the evidence/gap decision itself. */
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity {
+  gap: 7px 10px;
+  padding: 6px 8px;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity .rd-v2-evidence-section-head p {
+  margin-top: 2px;
+  line-height: 1.2;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity-grid > div {
+  gap: 1px;
+  padding: 6px 7px;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity-grid strong {
+  font-size: 10px;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity-grid em {
+  font-size: 9.5px;
+  line-height: 1.2;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-basis-details {
+  line-height: 1.2;
+}
+
+@media (max-width: 1100px) {
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes-list li {
+    grid-template-columns: minmax(130px, .85fr) minmax(0, 1.15fr);
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes-list em {
+    grid-column: 1 / -1;
+    text-align: left;
+  }
+}
+
+@media (max-width: 640px) {
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes-list li {
+    grid-template-columns: 1fr;
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes-list em {
+    grid-column: auto;
+  }
+}
+
+/* ── discover-marketplace-convergence ── */
+/* Discover marketplace convergence — visual-product pass.
+   Mature data discovery products solve scanability, offering identity, access state,
+   and acquisition hierarchy well. Keep Discover's stronger evidence semantics, but
+   stop presenting them with internal-console visual weight. */
+
+/* ── Browse: external offerings should read like data products, not ledger rows. ── */
+
+/* Context and references remain deliberately flatter than obtainable offerings. */
+.rd-v2-discover-page .rd-v2-discover-context-results .rd-v2-discover-candidates {
+  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, transparent);
+}
+
+.rd-v2-discover-page .rd-v2-discover-context-results .rd-v2-discover-candidates > li,
+.rd-v2-discover-page .rd-v2-discover-context-results .rd-v2-discover-candidates > li:hover {
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 70%, transparent);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.rd-v2-discover-page .rd-v2-discover-context-results .rd-v2-discover-possession {
+  border-color: var(--rd-border, #dbd4c5);
+  background: #f4f2ec;
+  color: #777f89;
+}
+
+/* ── Acquisition review: product first, infrastructure second. ── */
+.rd-v2-intent-workspace {
+  display: flex !important;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rd-v2-intent-workspace > * { order: 5; }
+.rd-v2-intent-workspace > .rd-v2-intent-workspace-head { order: 0; }
+.rd-v2-intent-workspace > .rd-v2-intent-need { order: 1; }
+.rd-v2-intent-workspace > .rd-v2-intent-error,
+.rd-v2-intent-workspace > .rd-v2-intent-use { order: 2; }
+.rd-v2-intent-workspace > .rd-v2-intent-proposal,
+.rd-v2-intent-workspace > .rd-v2-intent-reviewed,
+.rd-v2-intent-workspace > .rd-v2-intent-empty { order: 3; }
+.rd-v2-intent-workspace > .rd-v2-intent-collection { order: 4; }
+.rd-v2-intent-workspace > .rd-v2-intent-capacity { order: 6; }
+
+.rd-v2-intent-workspace-head {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 18px;
+  padding-bottom: 17px;
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 82%, transparent);
+}
+
+.rd-v2-intent-workspace-head > .rd-v2-linkish {
+  grid-column: 1 / -1;
+  justify-self: start;
+  margin-bottom: 3px;
+}
+
+.rd-v2-intent-workspace-head h2 {
+  margin: 4px 0 6px;
+  color: var(--rd-text, #182033);
+  font-size: clamp(20px, 2vw, 26px);
+  line-height: 1.13;
+  letter-spacing: -.025em;
+}
+
+.rd-v2-intent-workspace-head > div > p:not(.rd-v2-intent-use) {
+  max-width: 760px;
+  margin: 0;
+  color: #566272;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.rd-v2-intent-identity {
+  align-self: start;
+}
+
+.rd-v2-intent-identity strong {
+  display: inline-flex;
+  align-items: center;
+  min-height: 27px;
+  padding: 4px 9px;
+  border: 1px solid #d8bf87;
+  border-radius: 999px;
+  background: #fff8e8;
+  color: #8b6215;
+  font-size: 9.5px;
+  font-weight: 760;
+  letter-spacing: .035em;
+  text-transform: uppercase;
+}
+
+.rd-v2-intent-need {
+  display: grid;
+  grid-template-columns: 115px minmax(0, 1fr);
+  gap: 12px;
+  align-items: baseline;
+  padding: 9px 11px;
+  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 70%, transparent);
+  border-left: 3px solid #6b8e7d;
+  border-radius: 6px;
+  background: rgba(255,255,255,.36);
+}
+
+.rd-v2-intent-need p {
+  margin: 0;
+  color: var(--rd-text, #182033);
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+
+.rd-v2-intent-proposal,
+.rd-v2-intent-reviewed {
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--rd-border2, #d2ccc0) 74%, #779487 26%);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--rd-surface, #fffdf6) 97%, white 3%);
+  box-shadow: 0 8px 22px rgba(15, 23, 28, .035);
+}
+
+.rd-v2-intent-proposal > header,
+.rd-v2-intent-reviewed > header {
+  padding: 14px 15px 11px;
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 75%, transparent);
+  background: linear-gradient(180deg, rgba(244,248,246,.7), rgba(255,255,255,0));
+}
+
+.rd-v2-intent-proposal > header h3,
+.rd-v2-intent-reviewed > header h3 {
+  margin: 3px 0 0;
+  color: var(--rd-text, #182033);
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+.rd-v2-intent-route-list {
+  padding: 0 15px;
+}
+
+.rd-v2-intent-route {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin: 0;
+  padding: 13px 0 14px;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, transparent);
+  border-radius: 0;
+  background: transparent;
+}
+
+.rd-v2-intent-route:last-child { border-bottom: 0; }
+
+.rd-v2-intent-route.is-selected {
+  margin-inline: -15px;
+  padding-inline: 15px;
+  background: #f5f9f7;
+  box-shadow: inset 3px 0 0 #4f7865;
+}
+
+.rd-v2-intent-route > header { order: 0; }
+.rd-v2-intent-route > p { order: 1; }
+.rd-v2-intent-route > dl { order: 2; }
+.rd-v2-intent-route > .rd-v2-intent-engineering { order: 3; }
+
+.rd-v2-intent-route > header h3 {
+  margin-top: 3px;
+  color: var(--rd-text, #182033);
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.rd-v2-intent-route > p {
+  max-width: 760px;
+  margin: 0;
+  color: #596676;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.rd-v2-intent-route > dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  overflow: hidden;
+  margin: 1px 0 0;
+  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, transparent);
+  border-radius: 6px;
+  background: rgba(255,255,255,.42);
+}
+
+.rd-v2-intent-route > dl > div {
+  min-width: 0;
+  padding: 8px 9px;
+  border-right: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 64%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 64%, transparent);
+}
+
+.rd-v2-intent-route > dl > div:nth-child(3n) { border-right: 0; }
+.rd-v2-intent-route > dl > div:nth-last-child(-n + 3) { border-bottom: 0; }
+
+.rd-v2-intent-route dt {
+  color: #788492;
+  font: 720 8px/1.2 var(--rd-mono, ui-monospace, monospace);
+  letter-spacing: .065em;
+  text-transform: uppercase;
+}
+
+.rd-v2-intent-route dd {
+  margin: 3px 0 0;
+  color: #3e4b5a;
+  font-size: 10.5px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.rd-v2-intent-engineering {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 3px 9px;
+  align-items: baseline;
+  margin-top: 0;
+  padding: 8px 9px;
+  border: 1px solid #d8e2dc;
+  border-radius: 6px;
+  background: #f4f8f5;
+}
+
+.rd-v2-intent-engineering > span {
+  grid-row: 1 / span 2;
+  align-self: center;
+  color: #557765;
+  font-size: 9.5px;
+}
+
+.rd-v2-intent-engineering > strong {
+  color: #294938;
+  font-size: 10.5px;
+}
+
+.rd-v2-intent-engineering > p,
+.rd-v2-intent-engineering > em,
+.rd-v2-intent-engineering > small {
+  margin: 0;
+  color: #66746c;
+  font-size: 9.5px;
+  line-height: 1.3;
+}
+
+.rd-v2-intent-engineering > em {
+  grid-column: 3;
+  grid-row: 1;
+  text-align: right;
+}
+
+.rd-v2-intent-engineering > small {
+  grid-column: 2 / -1;
+}
+
+.rd-v2-intent-proposal > footer,
+.rd-v2-intent-submit {
+  gap: 10px;
+  padding: 11px 15px;
+  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, transparent);
+  background: #fbfaf5;
+}
+
+.rd-v2-intent-submit {
+  margin: 0;
+}
+
+.rd-v2-intent-submit > div strong {
+  color: var(--rd-text, #182033);
+  font-size: 11.5px;
+}
+
+.rd-v2-intent-submit > div span {
+  color: #687381;
+  font-size: 9.5px;
+}
+
+/* Fulfillment capacity remains visible, but no longer competes with the data product. */
+.rd-v2-intent-capacity {
+  gap: 7px;
+  margin-top: 2px;
+  padding: 10px 11px;
+  border-color: color-mix(in srgb, var(--rd-border, #dbd4c5) 80%, #7e9589 20%);
+  background: rgba(247,249,247,.68);
+  box-shadow: none;
+}
+
+.rd-v2-intent-capacity > header h3 {
+  margin-top: 2px;
+  color: #4b5867;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.rd-v2-intent-capacity > div {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.rd-v2-intent-capacity article {
+  min-height: 0;
+  padding: 7px 8px;
+}
+
+.rd-v2-intent-capacity article strong { font-size: 10px; }
+.rd-v2-intent-capacity article em { font-size: 9.5px; }
+.rd-v2-intent-capacity > p { font-size: 9.5px; }
+
+@media (max-width: 1500px) {
+  .rd-v2-intent-route > dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .rd-v2-intent-route > dl > div:nth-child(3n) { border-right: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 64%, transparent); }
+  .rd-v2-intent-route > dl > div:nth-child(2n) { border-right: 0; }
+  .rd-v2-intent-route > dl > div:nth-last-child(-n + 3) { border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 64%, transparent); }
+  .rd-v2-intent-route > dl > div:nth-last-child(-n + 2) { border-bottom: 0; }
+}
+
+@media (max-width: 900px) {
+  .rd-v2-intent-route > dl,
+  .rd-v2-intent-capacity > div {
+    grid-template-columns: 1fr 1fr;
+  }
+  .rd-v2-intent-workspace-head {
+    grid-template-columns: 1fr;
+  }
+  .rd-v2-intent-identity { justify-self: start; }
+}
+
+@media (max-width: 620px) {
+  .rd-v2-intent-route > dl,
+  .rd-v2-intent-capacity > div {
+    grid-template-columns: 1fr;
+  }
+  .rd-v2-intent-need {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+  .rd-v2-intent-engineering {
+    grid-template-columns: 1fr;
+  }
+  .rd-v2-intent-engineering > span,
+  .rd-v2-intent-engineering > strong,
+  .rd-v2-intent-engineering > p,
+  .rd-v2-intent-engineering > em,
+  .rd-v2-intent-engineering > small {
+    grid-column: auto;
+    grid-row: auto;
+    text-align: left;
+  }
+}
+
+/* ── discover-marketplace-detail ── */
+/* Discover marketplace detail pass.
+   This file targets the live ranked-results wrapper and selected-candidate rail.
+   It remains presentation-only: backend taxonomy, evidence, lifecycle, and action
+   authority are unchanged. */
+
+/* ── Ranked external offerings: real data-product scan surface. ── */
+.rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-candidates {
+  display: grid;
+  gap: 8px;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-candidates > li {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 82%, #859a90 18%);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--rd-surface, #fffdf6) 98%, white 2%);
+  box-shadow: 0 4px 14px rgba(15, 23, 28, .025);
+  transition: border-color .12s ease, box-shadow .12s ease, background .12s ease;
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-candidates > li:hover {
+  border-color: #aebdb5;
+  background: #fffefa;
+  box-shadow: 0 8px 20px rgba(15, 23, 28, .05);
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-candidates > li.rd-v2-row-on {
+  border-color: #88a697;
+  background: #f5f9f7;
+  box-shadow: inset 3px 0 0 #4d7865, 0 6px 18px rgba(15, 23, 28, .04);
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) button.row.rd-v2-discover-candidate {
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 11px;
+  min-height: 0;
+  padding: 11px 12px 12px;
+  border: 0;
+  background: transparent;
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-candidates li:has(.rd-v2-discover-row-add) button.row.rd-v2-discover-candidate {
+  padding-right: 128px;
+  padding-bottom: 12px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-candidate-main {
+  gap: 5px;
+  padding: 0;
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-candidate-heading {
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-candidate-title {
+  color: var(--rd-text, #182033);
+  font-size: 13.5px;
+  font-weight: 720;
+  line-height: 1.24;
+  letter-spacing: -.012em;
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-possession {
+  flex: 0 0 auto;
+  max-width: 190px;
+  padding: 3px 7px;
+  border: 1px solid color-mix(in srgb, #6f9582 45%, var(--rd-border, #dbd4c5));
+  border-radius: 999px;
+  background: #f1f7f3;
+  color: #3f6f5c;
+  font-size: 9.5px;
+  font-style: normal;
+  font-weight: 730;
+  line-height: 1.2;
+  text-align: right;
+  white-space: normal;
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-evidence {
+  max-width: 760px;
+  color: #596676;
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-offering-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
+  gap: 0;
+  overflow: hidden;
+  width: min(100%, 720px);
+  margin-top: 2px;
+  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 70%, transparent);
+  border-radius: 6px;
+  background: rgba(255,255,255,.44);
+  white-space: normal;
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-offering-facts > span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding: 6px 7px;
+  border-right: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 62%, transparent);
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-offering-facts > span:last-child {
+  border-right: 0;
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-offering-facts > span + span::before {
+  content: none;
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-offering-facts b {
+  display: block;
+  color: #7b8794;
+  font: 720 7.7px/1.15 var(--rd-mono, ui-monospace, monospace);
+  letter-spacing: .065em;
+  text-transform: uppercase;
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-offering-facts em {
+  overflow: visible;
+  color: #465364;
+  font-size: 9.6px;
+  line-height: 1.28;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-row-add {
+  top: 11px;
+  right: 11px;
+  bottom: auto;
+  min-height: 28px;
+  padding: 0 9px;
+  border: 1px solid #9db4a8;
+  border-radius: 6px;
+  background: #fbfdfb;
+  color: #376b56;
+  font-size: 9.5px;
+  font-weight: 720;
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-row-add:hover {
+  border-color: #658b78;
+  background: #eef6f1;
+}
+
+/* Context/reference results remain search references, not fake data products. */
+.rd-v2-discover-page .rd-v2-discover-context-results .rd-v2-discover-candidates {
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 68%, transparent);
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--rd-canvas, #eeeae0) 25%, var(--rd-surface, #fffdf6));
+}
+
+.rd-v2-discover-page .rd-v2-discover-context-results .rd-v2-discover-candidates > li {
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 68%, transparent);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.rd-v2-discover-page .rd-v2-discover-context-results .rd-v2-discover-candidates > li:last-child { border-bottom: 0; }
+
+/* ── Selected candidate: compact offering sheet, not an audit transcript. ── */
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-identity {
+  padding: 13px 14px 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 82%, transparent);
+  background: linear-gradient(180deg, rgba(248,250,249,.94), rgba(255,255,255,.5));
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-kicker {
+  margin-bottom: 5px;
+  color: #718197;
+  font-size: 9.5px;
+  letter-spacing: .075em;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-title {
+  margin: 0;
+  color: var(--rd-text, #182033);
+  font-size: 16px;
+  line-height: 1.2;
+  letter-spacing: -.018em;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-source {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  margin: 6px 0 0;
+  color: #5e6b79;
+  font-size: 9.5px;
+  line-height: 1.3;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-estate-crumb {
+  margin-top: 5px;
+  color: #7a8591;
+  font-size: 9.5px;
+  line-height: 1.3;
+}
+
+/* Access/use decision is the first consequential fact, visually equivalent to
+   marketplace availability rather than another generic section. */
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-decision {
+  margin: 10px 12px 0;
+  padding: 10px 11px;
+  border: 1px solid #c9ded2;
+  border-left: 3px solid #4f7d66;
+  border-radius: 7px;
+  background: #f2f8f4;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-decision .rd-v2-eval-section-label {
+  color: #557765;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-decision-headline {
+  margin-top: 4px;
+  color: var(--rd-text, #182033);
+  font-size: 12.5px;
+  line-height: 1.3;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-decision-body {
+  margin-top: 3px;
+  color: #596676;
+  font-size: 9.8px;
+  line-height: 1.4;
+}
+
+/* Library comparison stays prominent but shorter than access state. */
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-sufficiency {
+  margin: 8px 12px 0;
+  padding: 9px 10px;
+  border-radius: 7px;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-sufficiency-copy .rd-v2-eval-decision-headline {
+  font-size: 11.5px;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-scroll {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+  align-content: start;
+  padding: 9px 12px 14px;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-scroll > .rd-v2-eval-block[aria-label="Useful for"],
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-scroll > .rd-v2-eval-block[aria-label="Coverage"] {
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, transparent);
+  border-radius: 7px;
+  background: rgba(255,255,255,.5);
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-scroll > .rd-v2-eval-block[aria-label="Useful for"] .rd-v2-eval-prose,
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-scroll > .rd-v2-eval-block[aria-label="Coverage"] .rd-v2-eval-prose,
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-scroll > .rd-v2-eval-block[aria-label="Coverage"] .rd-v2-eval-list {
+  margin-top: 4px;
+  color: #4f5d6d;
+  font-size: 9.5px;
+  line-height: 1.4;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-card,
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-evidence-grid,
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-inferred,
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-discover-probe-error,
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-tech,
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-ask-chips {
+  grid-column: 1 / -1;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-card {
+  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 76%, transparent);
+  border-radius: 7px;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-block {
+  padding-block: 7px;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-block:first-of-type { padding-top: 4px; }
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-block:last-of-type { padding-bottom: 3px; }
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-chain {
+  margin-block: 5px;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-evidence-grid {
+  gap: 8px;
+  margin: 0;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-unknown,
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-verified {
+  padding: 9px 10px;
+  border-radius: 7px;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-tech {
+  margin-top: 0;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-ask-chips {
+  padding-top: 2px;
+}
+
+/* Consequential action remains the fixed endpoint of the scan. */
+body:has(.rd-v2-discover-page) .rd-v2-eval-actions {
+  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 80%, transparent);
+  background: rgba(255,254,249,.96);
+  box-shadow: 0 -10px 26px rgba(15, 23, 28, .035);
+}
+
+@media (max-width: 1180px) {
+  .rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-candidates li:has(.rd-v2-discover-row-add) button.row.rd-v2-discover-candidate {
+    padding-right: 12px;
+    padding-bottom: 42px;
+  }
+  .rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-row-add {
+    top: auto;
+    bottom: 9px;
+  }
+}
+
+@media (max-width: 760px) {
+  .rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) button.row.rd-v2-discover-candidate {
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+  body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-scroll {
+    grid-template-columns: 1fr;
+  }
+  body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-scroll > * {
+    grid-column: 1;
+  }
+}
+
+/* ── discover-marketplace-breakpoints ── */
+/* Marketplace convergence breakpoint contract.
+   Preserve the established 1440x900 compact mode while keeping the new
+   structured offering sheet. Wider/taller desks expose field labels. */
+
+@media (min-width: 761px) and (max-width: 1599px) and (max-height: 1000px) {
+  .rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-offering-facts b {
+    display: none;
+  }
+}
+
+@media (min-width: 1600px) {
+  .rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-offering-facts {
+    display: flex;
+    width: min(100%, 760px);
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-offering-facts > span {
+    flex: 1 1 0;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-offering-facts b {
+    display: block;
+  }
+}
+
+@media (min-height: 1200px) {
+  .rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-offering-facts b {
+    display: block;
+  }
+}
+
+/* ── discover-product-inspector ── */
+/* Discover offering inspector — inspect before acquire.
+   This layer only reorganizes facts already carried by the selected offering,
+   bound probe evidence, or durable intent. Missing schema/preview remains missing. */
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+  border-color: color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, #789386 28%);
+  background: #fffef9;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-card > .rd-v2-eval-section-label {
+  margin: 0;
+  padding: 8px 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, transparent);
+  background: linear-gradient(180deg, #f4f8f5, #fafbf8);
+  color: #557565;
+  font-size: 9.5px;
+  letter-spacing: .08em;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-block {
+  min-width: 0;
+  padding: 9px 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 64%, transparent);
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-block:last-of-type {
+  border-bottom: 0;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-block[data-block="what_you_will_get"] {
+  padding: 10px;
+  background: #fbfdfb;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-block[data-block="what_you_will_get"] .rd-v2-strategy-label {
+  color: #355f4d;
+  font-size: 9.5px;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-block[data-block="what_you_will_get"] .rd-v2-eval-prose {
+  margin: 4px 0 0;
+  color: #344251;
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 7px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-fields li {
+  max-width: 100%;
+  padding: 3px 6px;
+  overflow: hidden;
+  border: 1px solid #d8e2dc;
+  border-radius: 4px;
+  background: #f5f8f6;
+  color: #455866;
+  font: 650 8.5px/1.25 var(--rd-mono, ui-monospace, monospace);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-block[data-block="how_it_answers"] {
+  background: #fffdf8;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-block[data-block="how_it_answers"] .rd-v2-eval-prose {
+  margin: 4px 0 0;
+  color: #4b5868;
+  font-size: 9.6px;
+  line-height: 1.42;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-check {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  overflow: hidden;
+  margin: 6px 0 0;
+  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 68%, transparent);
+  border-radius: 5px;
+  background: rgba(255,255,255,.52);
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-check > div {
+  min-width: 0;
+  padding: 6px 7px;
+  border-right: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 58%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 58%, transparent);
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-check > div:nth-child(2n) {
+  border-right: 0;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-check > div:nth-last-child(-n + 2) {
+  border-bottom: 0;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-check dt {
+  color: #7a8592;
+  font: 720 7.5px/1.15 var(--rd-mono, ui-monospace, monospace);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-check dd {
+  margin: 3px 0 0;
+  color: #40505f;
+  font-size: 9.5px;
+  line-height: 1.32;
+  overflow-wrap: anywhere;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-access {
+  font-weight: 730;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-access[data-access="observed"] {
+  color: #2f6a50;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-access[data-access="proposed"] {
+  color: #8a681f;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-chain {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-items: center;
+  margin: 6px 0 4px;
+  padding: 0;
+  list-style: none;
+  counter-reset: none;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-chain li {
+  position: relative;
+  min-width: 0;
+  padding: 4px 7px;
+  border: 1px solid #dde3df;
+  border-radius: 999px;
+  background: #fafbf9;
+  color: #4c5967;
+  font-size: 9.5px;
+  line-height: 1.25;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-chain li + li::before {
+  content: "→";
+  position: absolute;
+  left: -6px;
+  top: 50%;
+  color: #9aa49e;
+  transform: translate(-50%, -50%);
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-block[data-block="how_we_build"] > .rd-v2-eval-prose.muted {
+  margin: 4px 0 0;
+  font-size: 9.5px;
+  line-height: 1.35;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-gaps {
+  margin: 0;
+  padding: 7px 10px 8px 24px;
+  border-top: 1px dashed color-mix(in srgb, var(--rd-border, #dbd4c5) 70%, transparent);
+  background: #fcfbf7;
+  color: #77808a;
+  font-size: 9.5px;
+  line-height: 1.35;
+}
+
+@media (max-width: 760px) {
+  body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-check {
+    grid-template-columns: 1fr;
+  }
+
+  body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-check > div,
+  body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-check > div:nth-child(2n) {
+    border-right: 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 58%, transparent);
+  }
+
+  body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-check > div:last-child {
+    border-bottom: 0;
+  }
+}

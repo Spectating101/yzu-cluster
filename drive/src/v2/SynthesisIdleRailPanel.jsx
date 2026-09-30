@@ -5,7 +5,6 @@ import {
   RailFrame,
   RailStickyFooter,
 } from "@/v2/RailFrame";
-import "./synthesis-desktop-polish.css";
 
 const JOURNEY = [
   ["Objective", "State what should exist or be measured"],

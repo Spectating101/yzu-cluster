@@ -1,0 +1,1441 @@
+/* ── synthesis-convergence ── */
+/* Final Synthesis convergence: keep the mature S-04 workbench, but make the
+ * unsaved entry state read as part of the same desk instead of a detached form. */
+
+.yzu-sidebar .s04-threads--sidebar .s04-thread-new.is-active {
+  border-color: rgba(207, 232, 216, .62);
+  background: rgba(231, 236, 232, .17);
+  color: #f2faf4;
+  box-shadow: inset 0 0 0 1px rgba(231, 236, 232, .05);
+}
+
+.rd-v2-synthesis-page .s04-new-entry {
+  overflow: visible;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.rd-v2-synthesis-page .s04-new-entry-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 2px 0 16px;
+  border-bottom: 1px solid var(--s04-rule, #d8d1c4);
+}
+
+.rd-v2-synthesis-page .s04-new-entry-head > div {
+  min-width: 0;
+}
+
+.rd-v2-synthesis-page .s04-new-entry-head small,
+.rd-v2-synthesis-page .s04-new-entry-section > small,
+.rd-v2-synthesis-page .s04-new-entry-contract dt {
+  display: block;
+  color: #607083;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+.rd-v2-synthesis-page .s04-new-entry-head h1 {
+  max-width: 24ch;
+  margin: 5px 0 0;
+  color: var(--s04-ink, #1d2a36);
+  font-size: clamp(25px, 2.5vw, 34px);
+  font-weight: 690;
+  letter-spacing: -.035em;
+  line-height: 1.05;
+}
+
+.rd-v2-synthesis-page .s04-new-entry-head p {
+  max-width: 66ch;
+  margin: 8px 0 0;
+  color: var(--s04-muted, #637083);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.rd-v2-synthesis-page .s04-new-entry-back {
+  flex: 0 0 auto;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid #cbc7bc;
+  border-radius: 8px;
+  background: rgba(248, 245, 237, .76);
+  color: #4c5b68;
+  font: inherit;
+  font-size: 9.5px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.rd-v2-synthesis-page .s04-new-entry-back:hover {
+  border-color: #aeb9ae;
+  background: #f6f3eb;
+  color: #294d40;
+}
+
+.rd-v2-synthesis-page .s04-new-entry-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(260px, .75fr);
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.rd-v2-synthesis-page .s04-new-entry-section {
+  min-width: 0;
+  padding: 15px 16px;
+  border: 1px solid var(--s04-rule, #d8d1c4);
+  border-radius: 10px;
+  background: rgba(248, 245, 237, .82);
+}
+
+.rd-v2-synthesis-page .s04-new-entry-section > h2 {
+  margin: 5px 0 0;
+  color: var(--s04-ink, #1d2a36);
+  font-size: 16px;
+  font-weight: 680;
+  letter-spacing: -.018em;
+}
+
+.rd-v2-synthesis-page .s04-new-entry-section > p {
+  margin: 6px 0 0;
+  color: var(--s04-muted, #637083);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.rd-v2-synthesis-page .s04-new-entry-purpose textarea {
+  width: 100%;
+  min-height: 164px;
+  box-sizing: border-box;
+  margin-top: 12px;
+  padding: 13px 14px;
+  resize: vertical;
+  border: 1px solid #cbc7bc;
+  border-radius: 9px;
+  outline: none;
+  background: #fbf9f3;
+  color: #263543;
+  font: inherit;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.rd-v2-synthesis-page .s04-new-entry-purpose textarea:focus {
+  border-color: #8eaa99;
+  box-shadow: 0 0 0 2px rgba(63, 111, 92, .08);
+}
+
+.rd-v2-synthesis-page .s04-new-entry-boundary {
+  margin: 10px 0 0;
+  padding: 9px 10px;
+  border-left: 3px solid #8da798;
+  background: rgba(237, 242, 235, .66);
+  color: #596875;
+  font-size: 9.5px;
+  line-height: 1.45;
+}
+
+.rd-v2-synthesis-page .s04-new-entry-purpose > footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 11px;
+  border-top: 1px solid var(--s04-rule-soft, #e5dfd4);
+}
+
+.rd-v2-synthesis-page .s04-new-entry-purpose > footer > span {
+  max-width: 56ch;
+  color: #75818c;
+  font-size: 9.5px;
+  line-height: 1.4;
+}
+
+.rd-v2-synthesis-page .s04-new-entry-methods {
+  align-content: start;
+}
+
+.rd-v2-synthesis-page .s04-new-entry-method-list {
+  display: grid;
+  gap: 7px;
+  margin-top: 12px;
+}
+
+.rd-v2-synthesis-page .s04-new-entry-method-list > button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 3px 10px;
+  width: 100%;
+  padding: 10px 11px;
+  border: 1px solid #d8d4c9;
+  border-radius: 8px;
+  background: rgba(250, 248, 242, .78);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rd-v2-synthesis-page .s04-new-entry-method-list > button:hover:not(:disabled) {
+  border-color: #9eb2a4;
+  background: #f2f6ef;
+}
+
+.rd-v2-synthesis-page .s04-new-entry-method-list button strong {
+  min-width: 0;
+  overflow: hidden;
+  color: #304051;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-v2-synthesis-page .s04-new-entry-method-list button span {
+  grid-column: 1 / -1;
+  color: #77838e;
+  font-size: 9.5px;
+  line-height: 1.4;
+}
+
+.rd-v2-synthesis-page .s04-new-entry-method-list button em {
+  color: #426b5b;
+  font-size: 9.5px;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.rd-v2-synthesis-page .s04-new-entry-method-list button:disabled {
+  cursor: not-allowed;
+  opacity: .56;
+}
+
+.rd-v2-synthesis-page .s04-new-entry-method-empty {
+  margin-top: 12px;
+  padding: 10px;
+  border: 1px dashed #d4d0c5;
+  border-radius: 8px;
+  color: #7c8790;
+  font-size: 9.5px;
+  line-height: 1.45;
+}
+
+.rd-v2-synthesis-page .s04-new-entry-contract {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 14px 0 0;
+  border-top: 1px solid var(--s04-rule, #d8d1c4);
+  border-bottom: 1px solid var(--s04-rule, #d8d1c4);
+}
+
+.rd-v2-synthesis-page .s04-new-entry-contract > div {
+  min-width: 0;
+  padding: 11px 12px;
+}
+
+.rd-v2-synthesis-page .s04-new-entry-contract > div + div {
+  border-left: 1px solid var(--s04-rule-soft, #e5dfd4);
+}
+
+.rd-v2-synthesis-page .s04-new-entry-contract dd {
+  margin: 4px 0 0;
+  color: #334250;
+  font-size: 9.5px;
+  line-height: 1.4;
+}
+
+/* Earliest durable state: if the page is offering the evidence-map action, it
+ * has not earned method reasoning yet. Keep one unambiguous forward action
+ * instead of simultaneously telling the researcher to map evidence and reason. */
+.rd-v2-synthesis-page .s04-opening-next:has(.s04-next-map) .s04-next-primary {
+  display: none;
+}
+
+/* The left rail is deliberately terse, but the selected Readiness thread must
+ * not keep the stale pre-acceptance word “Exploring”. Readiness is the unique
+ * execution surface whose lifecycle track has no current worker/approval step
+ * yet; replace only that selected secondary label. */
+body:has(.rd-v2-synthesis-page [data-testid="synthesis-execution-state"] .s04-exec-track):not(:has(.rd-v2-synthesis-page [data-testid="synthesis-execution-state"] .s04-exec-track .now))
+  .s04-thread-list button.active small {
+  font-size: 0;
+}
+
+body:has(.rd-v2-synthesis-page [data-testid="synthesis-execution-state"] .s04-exec-track):not(:has(.rd-v2-synthesis-page [data-testid="synthesis-execution-state"] .s04-exec-track .now))
+  .s04-thread-list button.active small::after {
+  content: "Method accepted";
+  font-size: 9.5px;
+}
+
+@media (max-width: 860px) {
+  .rd-v2-synthesis-page .s04-new-entry-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .rd-v2-synthesis-page .s04-new-entry-head {
+    gap: 10px;
+    padding-bottom: 12px;
+  }
+
+  .rd-v2-synthesis-page .s04-new-entry-head h1 {
+    font-size: 23px;
+  }
+
+  .rd-v2-synthesis-page .s04-new-entry-back {
+    min-height: 38px;
+    padding: 0 9px;
+  }
+
+  .rd-v2-synthesis-page .s04-new-entry-grid {
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .rd-v2-synthesis-page .s04-new-entry-section {
+    padding: 13px;
+  }
+
+  .rd-v2-synthesis-page .s04-new-entry-purpose > footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .rd-v2-synthesis-page .s04-new-entry-purpose > footer .rd-v2-btn {
+    width: 100%;
+  }
+
+  .rd-v2-synthesis-page .s04-new-entry-contract {
+    grid-template-columns: 1fr;
+  }
+
+  .rd-v2-synthesis-page .s04-new-entry-contract > div + div {
+    border-top: 1px solid var(--s04-rule-soft, #e5dfd4);
+    border-left: 0;
+  }
+}
+
+/* New Construction is a research-brief composer, not a blank textarea. The
+   cues are advisory only: they help the researcher state the object before any
+   evidence or method authority exists. */
+.rd-v2-synthesis-page .s04-new-entry-framing {
+  margin-top: 10px;
+  padding: 10px 11px 9px;
+  border: 1px solid #d8d4c9;
+  border-radius: 9px;
+  background: rgba(251, 249, 243, .66);
+}
+
+.rd-v2-synthesis-page .s04-new-entry-framing > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rd-v2-synthesis-page .s04-new-entry-framing > header > div {
+  display: grid;
+  gap: 2px;
+}
+
+.rd-v2-synthesis-page .s04-new-entry-framing > header small {
+  color: #687687;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.rd-v2-synthesis-page .s04-new-entry-framing > header strong {
+  color: #334454;
+  font-size: 10px;
+}
+
+.rd-v2-synthesis-page .s04-new-entry-framing > header button {
+  border: 0;
+  background: transparent;
+  color: #386554;
+  font: inherit;
+  font-size: 9.5px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.rd-v2-synthesis-page .s04-new-entry-framing > header button:disabled {
+  cursor: not-allowed;
+  opacity: .45;
+}
+
+.rd-v2-synthesis-page .s04-new-entry-framing > ul {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin: 9px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rd-v2-synthesis-page .s04-new-entry-framing li {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 6px;
+  min-width: 0;
+  padding: 7px 8px;
+  border: 1px solid #e0ddd3;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, .48);
+}
+
+.rd-v2-synthesis-page .s04-new-entry-framing li > b {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: #ece9e1;
+  color: #8a8f91;
+  font-size: 9.5px;
+}
+
+.rd-v2-synthesis-page .s04-new-entry-framing li.is-ready > b {
+  background: #e2eee6;
+  color: #396a53;
+}
+
+.rd-v2-synthesis-page .s04-new-entry-framing li > span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rd-v2-synthesis-page .s04-new-entry-framing li strong {
+  color: #394958;
+  font-size: 9.5px;
+}
+
+.rd-v2-synthesis-page .s04-new-entry-framing li small,
+.rd-v2-synthesis-page .s04-new-entry-framing li em {
+  color: #7b8790;
+  font-size: 9.5px;
+  font-style: normal;
+  line-height: 1.3;
+}
+
+.rd-v2-synthesis-page .s04-new-entry-framing > p {
+  margin: 7px 0 0;
+  color: #8a939a;
+  font-size: 9.5px;
+}
+
+.s04-draft-rail-brief {
+  margin: 0 0 12px;
+  padding: 11px;
+  border: 1px solid #e2ded5;
+  border-radius: 9px;
+  background: rgba(250, 248, 242, .58);
+}
+
+.s04-draft-rail-brief > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.s04-draft-rail-brief > header span {
+  color: #718091;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.s04-draft-rail-brief > header strong {
+  color: #426654;
+  font-size: 9.5px;
+}
+
+.s04-draft-rail-brief > p {
+  display: -webkit-box;
+  margin: 8px 0 9px;
+  overflow: hidden;
+  color: #4f5e6c;
+  font-size: 9.5px;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+
+.s04-draft-rail-brief > p.is-empty { color: #90989f; }
+
+.s04-draft-rail-brief > ul {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.s04-draft-rail-brief li {
+  display: grid;
+  grid-template-columns: 17px minmax(0, 1fr);
+  gap: 6px;
+  align-items: start;
+  padding-top: 5px;
+  border-top: 1px solid #ece8df;
+}
+
+.s04-draft-rail-brief li > b {
+  display: grid;
+  place-items: center;
+  width: 17px;
+  height: 17px;
+  border-radius: 999px;
+  background: #eeece6;
+  color: #9a9ea0;
+  font-size: 9.5px;
+}
+
+.s04-draft-rail-brief li.is-ready > b {
+  background: #e2eee6;
+  color: #386850;
+}
+
+.s04-draft-rail-brief li > span { display: grid; gap: 1px; }
+.s04-draft-rail-brief li strong { color: #445363; font-size: 9.5px; }
+.s04-draft-rail-brief li small { color: #7d8892; font-size: 9.5px; line-height: 1.35; }
+
+@media (max-width: 760px) {
+  .rd-v2-synthesis-page .s04-new-entry-framing > ul { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 480px) {
+  .rd-v2-synthesis-page .s04-new-entry-framing > header { align-items: flex-start; }
+  .rd-v2-synthesis-page .s04-new-entry-framing > ul { grid-template-columns: 1fr; }
+}
+
+/* ── synthesis-desktop-polish ── */
+/* Desktop/workstation Synthesis closeout.
+ *
+ * This layer is intentionally about comprehension, not extra features. It
+ * gives the current decision more visual authority than supporting evidence,
+ * makes the workstation typography easier to scan, and strengthens the rail as
+ * an interpretive guide. Mobile keeps the existing compact composition. */
+
+.s04-workflow-guide {
+  margin: 0 0 14px;
+  border: 1px solid #ddd8cd;
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(250, 248, 242, .84), rgba(247, 245, 238, .54));
+  overflow: hidden;
+}
+
+.s04-workflow-guide > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 11px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.s04-workflow-guide > summary::-webkit-details-marker { display: none; }
+
+.s04-workflow-guide > summary > span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.s04-workflow-guide > summary small {
+  color: #647586;
+  font-size: 9.5px;
+  font-weight: 820;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+.s04-workflow-guide > summary strong {
+  overflow: hidden;
+  color: #2d3d4b;
+  font-size: 9.5px;
+  font-weight: 730;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.s04-workflow-guide > summary em {
+  flex: none;
+  color: #687687;
+  font-size: 9.5px;
+  font-style: normal;
+  font-weight: 780;
+}
+
+.s04-workflow-guide > summary em::after {
+  content: "  ▾";
+}
+
+.s04-workflow-guide[open] > summary {
+  border-bottom: 1px solid #e7e2d9;
+}
+
+.s04-workflow-guide[open] > summary em::after {
+  content: "  ▴";
+}
+
+.s04-workflow-guide-body {
+  padding: 9px 11px 10px;
+}
+
+.s04-workflow-guide-body > p {
+  margin: 0;
+  color: #7a858d;
+  font-size: 9.5px;
+  line-height: 1.45;
+}
+
+.s04-workflow-guide-body > p:first-child {
+  margin-bottom: 6px;
+  color: #5e6c78;
+}
+
+.s04-workflow-guide-body > p:last-child {
+  margin-top: 7px;
+  padding-top: 7px;
+  border-top: 1px solid #e7e2d9;
+}
+
+.s04-workflow-guide-body > ol {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: synthesis-guide;
+}
+
+.s04-workflow-guide-body > ol > li {
+  counter-increment: synthesis-guide;
+  position: relative;
+  display: grid;
+  grid-template-columns: 21px minmax(0, 1fr);
+  gap: 7px;
+  min-width: 0;
+  padding: 4px 0;
+}
+
+.s04-workflow-guide-body > ol > li::before {
+  content: counter(synthesis-guide);
+  display: grid;
+  place-items: center;
+  width: 19px;
+  height: 19px;
+  border: 1px solid #d6d2c8;
+  border-radius: 999px;
+  background: rgba(255,255,255,.68);
+  color: #697785;
+  font-size: 9.5px;
+  font-weight: 820;
+}
+
+.s04-workflow-guide-body > ol > li + li::after {
+  content: "";
+  position: absolute;
+  top: -3px;
+  left: 9px;
+  width: 1px;
+  height: 7px;
+  background: #ddd8cf;
+}
+
+.s04-workflow-guide-body li > span {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.s04-workflow-guide-body li strong {
+  color: #374957;
+  font-size: 9.5px;
+  line-height: 1.25;
+}
+
+.s04-workflow-guide-body li small {
+  color: #7a8690;
+  font-size: 9.5px;
+  line-height: 1.35;
+}
+
+@media (min-width: 1121px) {
+  /* Workstation typography: labels stay compact, but research prose and
+     decision content should not read like dense telemetry. */
+  .rd-v2-synthesis-page .s04-head h1,
+  .rd-v2-synthesis-page .s04-new-entry-head h1 {
+    letter-spacing: -.03em;
+  }
+
+  .rd-v2-synthesis-page :is(
+    .s04-opening-brief,
+    .s04-brief,
+    .s04-card,
+    .s04-opening-construction,
+    [data-testid="synthesis-evidence-state"],
+    [data-testid="synthesis-method-surface"]
+  ) p,
+  .rd-v2-synthesis-page :is(
+    .s04-opening-brief,
+    .s04-brief,
+    .s04-card,
+    .s04-opening-construction,
+    [data-testid="synthesis-evidence-state"],
+    [data-testid="synthesis-method-surface"]
+  ) li {
+    line-height: 1.52;
+  }
+
+  /* The current decision owns the first visual layer. These are the live
+     surfaces where researcher judgement or execution authority actually changes. */
+  .rd-v2-synthesis-page :is(
+    [data-testid="synthesis-proposal-state"],
+    [data-testid="synthesis-execution-state"],
+    [data-testid="synthesis-failed-state"],
+    [data-testid="synthesis-registered-state"],
+    [data-testid="synthesis-query-ready-state"],
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  ) {
+    border-color: #cbc6ba;
+    box-shadow: 0 9px 24px rgba(42, 52, 58, .055), 0 1px 2px rgba(42, 52, 58, .04);
+  }
+
+  /* Supporting evidence remains inspectable but visually recedes. */
+  .rd-v2-synthesis-page :is(
+    [data-testid="synthesis-evidence-state"],
+    [data-testid="synthesis-method-surface"],
+    .s04-opening-brief,
+    .s04-brief
+  ) {
+    border-color: #e1ddd4;
+    box-shadow: none;
+  }
+
+  .rd-v2-synthesis-page :is(
+    [data-testid="synthesis-proposal-state"],
+    [data-testid="synthesis-execution-state"],
+    [data-testid="synthesis-failed-state"],
+    [data-testid="synthesis-registered-state"],
+    [data-testid="synthesis-query-ready-state"],
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  ) h2 {
+    font-size: 17px;
+    letter-spacing: -.018em;
+  }
+
+  /* Make dense evidence facts readable without making metadata labels loud. */
+  .rd-v2-synthesis-page :is(
+    .s04-opening-construction,
+    [data-testid="synthesis-evidence-state"],
+    [data-testid="synthesis-method-surface"],
+    [data-testid="synthesis-execution-state"]
+  ) :is(p, dd, td, li span) {
+    font-size: max(9.5px, 0.53vw);
+  }
+
+  .rd-v2-synthesis-page .s04-new-entry-section > p,
+  .rd-v2-synthesis-page .s04-new-entry-purpose textarea {
+    font-size: 11px;
+  }
+
+  /* The rail is interpretation, not telemetry: give its prose enough room to
+     be read as guidance while retaining compact uppercase field labels. */
+  .yzu-inspector .s04-rail-context > p,
+  .yzu-inspector .s04-draft-rail-brief > p,
+  .yzu-inspector .s04-rail-proof strong {
+    font-size: 9.5px;
+    line-height: 1.45;
+  }
+
+  .yzu-inspector .s04-rail-context,
+  .yzu-inspector .s04-rail-proof,
+  .yzu-inspector .s04-draft-rail-brief {
+    border-radius: 10px;
+  }
+}
+
+@media (min-width: 1600px) {
+  /* On a real workstation, make hierarchy visible through spacing and type,
+     not through larger empty gutters. */
+  .rd-v2-synthesis-page .s04-head h1 {
+    font-size: 27px;
+  }
+
+  .rd-v2-synthesis-page .s04-main > :is(
+    [data-testid="synthesis-proposal-state"],
+    [data-testid="synthesis-execution-state"],
+    [data-testid="synthesis-failed-state"],
+    [data-testid="synthesis-registered-state"],
+    [data-testid="synthesis-query-ready-state"]
+  ) {
+    border-radius: 12px;
+  }
+
+  .yzu-inspector .s04-workflow-guide,
+  .yzu-inspector .s04-rail-context,
+  .yzu-inspector .s04-rail-proof {
+    margin-bottom: 13px;
+  }
+}
+
+/* The product is workstation-first. Existing responsive rules remain intact;
+ * no new mobile composition is introduced by this closeout layer. */
+
+/* ── rail-convergence ── */
+/* Whole-product rail convergence.
+   The existing page-specific rail panels remain authoritative. This layer makes
+   current context persistent and turns Detail / Ask into two views of the same
+   research object instead of two unrelated rail personalities. */
+
+/* The legacy inspector chrome used to own an 80px desktop header. Its controls
+   are retired inside the converged rail, so keeping that reservation creates a
+   blank band above the actual research context. Mobile keeps its own visible
+   grip height through .rd-v2-rail-mobile-grip. */
+.rd-v2-rail-chrome {
+  min-height: 0;
+  padding: 0;
+  border-bottom: 0;
+  background: transparent;
+}
+
+.rd-v2-situation {
+  padding: 12px 14px 0;
+  border-bottom: 1px solid var(--rd-border);
+  background: linear-gradient(180deg, rgba(250, 249, 245, 0.98), rgba(247, 246, 241, 0.9));
+}
+
+.rd-v2-situation-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--rd-muted);
+  font-size: 9.5px;
+  font-weight: 780;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.rd-v2-situation-state {
+  max-width: 58%;
+  overflow: hidden;
+  color: var(--rd-body);
+  font-size: 9.5px;
+  font-weight: 720;
+  letter-spacing: 0.02em;
+  text-align: right;
+  text-overflow: ellipsis;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.rd-v2-situation-state.state-query-ready {
+  color: var(--rd-success-fg, #346b57);
+}
+
+.rd-v2-situation-state.state-warn,
+.rd-v2-situation-state.state-failed {
+  color: var(--rd-danger-fg, #9d3c36);
+}
+
+.rd-v2-situation h2 {
+  margin: 7px 0 0;
+  overflow: hidden;
+  color: var(--rd-text);
+  font-size: 14px;
+  font-weight: 740;
+  line-height: 1.28;
+  letter-spacing: -0.015em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-v2-rail:has(.rd-v2-rail-pane-on .rd-v2-rail-ehead .rd-v2-rail-title) .rd-v2-situation > h2 {
+  display: none;
+}
+
+.rd-v2-situation-facts {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  margin-top: 7px;
+}
+
+.rd-v2-situation-facts span {
+  position: relative;
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--rd-muted);
+  font-size: 9.5px;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-v2-situation-facts span + span::before {
+  content: "·";
+  margin-right: 8px;
+  color: var(--rd-border2);
+}
+
+.rd-v2-situation-next {
+  margin: 8px 0 0;
+  color: var(--rd-body);
+  font-size: 10px;
+}
+
+.rd-v2-situation-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  margin-top: 11px;
+  padding: 3px;
+  border: 1px solid var(--rd-border);
+  border-radius: 10px;
+  background: rgba(230, 233, 229, 0.72);
+}
+
+.rd-v2-situation-tabs button {
+  min-height: 30px;
+  padding: 5px 10px;
+  border: 0;
+  border-radius: 7px;
+  color: var(--rd-muted);
+  background: transparent;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 720;
+  transition: color 120ms ease, background 120ms ease, box-shadow 120ms ease;
+}
+
+.rd-v2-situation-tabs button:hover {
+  color: var(--rd-text);
+}
+
+.rd-v2-situation-tabs button.on {
+  color: var(--rd-text);
+  background: var(--rd-surface);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+/* Ask already receives strict object-scoped context. The persistent situation
+   header now owns repeated identity, so the embedded Ask header can stay in the
+   accessibility tree without consuming another large visual block. */
+.rd-v2-rail-pane[data-testid="rail-pane-ask"] .rd-v2-ask-head {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.rd-v2-rail-pane[data-testid="rail-pane-ask"] .rd-v2-ask-rail {
+  min-height: 0;
+  flex: 1;
+}
+
+/* Retire the old binary chrome only inside the converged inspector. Existing
+   selectors/tests can continue to target the tab roles in the situation unit. */
+
+/* -------------------------------------------------------------------------- */
+/* Synthesis visual audit — whole workflow hierarchy                           */
+/* -------------------------------------------------------------------------- */
+
+/* The workspace is a control room. At desktop width, independent durable
+   states should scan beside each other instead of becoming one long feed that
+   pushes Build and Results below the first fold. */
+@media (min-width: 1121px) {
+  .rd-v2-synthesis-page .s04-home {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 14px;
+    row-gap: 14px;
+  }
+
+  .rd-v2-synthesis-page .s04-home > .s04-home-hero,
+  .rd-v2-synthesis-page .s04-home > .s04-home-entry,
+  .rd-v2-synthesis-page .s04-home > .s04-home-runtime,
+  .rd-v2-synthesis-page .s04-home > .s04-home-methods {
+    grid-column: 1 / -1;
+  }
+
+  .rd-v2-synthesis-page .s04-home-hero {
+    gap: 22px;
+    padding: 17px 19px;
+  }
+
+  .rd-v2-synthesis-page .s04-home-hero h1 {
+    max-width: 720px;
+    margin-top: 5px;
+    font-size: clamp(23px, 1.85vw, 29px);
+  }
+
+  .rd-v2-synthesis-page .s04-home-entry {
+    gap: 9px;
+  }
+
+  .rd-v2-synthesis-page .s04-home-entry-card {
+    min-height: 132px;
+    padding: 15px 16px;
+  }
+
+  .rd-v2-synthesis-page .s04-home-section {
+    align-content: start;
+    gap: 8px;
+    padding-top: 2px;
+  }
+
+  .rd-v2-synthesis-page .s04-home-section:not(.s04-home-methods) .s04-home-thread-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rd-v2-synthesis-page .s04-home-thread {
+    padding: 12px 13px 11px;
+  }
+}
+
+/* Once an exact proposal exists, the proposal itself owns the centre decision.
+   A second green 'Review checkpoint' card above it only delays the real review. */
+.rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]) > .s04-opening-next {
+  display: none;
+}
+
+/* After method acceptance the dominant object is execution/result truth, not
+   the pre-build evidence map. Keep the research brief for orientation, retire
+   the coarse five-stage strip, then visually lead with the execution record.
+   Evidence and provenance remain below as inspectable supporting context. */
+.rd-v2-synthesis-page .s04-main:has(> :is(
+  [data-testid="synthesis-execution-state"],
+  [data-testid="synthesis-failed-state"],
+  [data-testid="synthesis-registered-state"],
+  [data-testid="synthesis-query-ready-state"]
+)) {
+  display: flex;
+  flex-direction: column;
+}
+
+.rd-v2-synthesis-page .s04-main:has(> :is(
+  [data-testid="synthesis-execution-state"],
+  [data-testid="synthesis-failed-state"],
+  [data-testid="synthesis-registered-state"],
+  [data-testid="synthesis-query-ready-state"]
+)) > * {
+  order: 20;
+}
+
+.rd-v2-synthesis-page .s04-main:has(> :is(
+  [data-testid="synthesis-execution-state"],
+  [data-testid="synthesis-failed-state"],
+  [data-testid="synthesis-registered-state"],
+  [data-testid="synthesis-query-ready-state"]
+)) > .s04-head { order: 0; }
+
+.rd-v2-synthesis-page .s04-main:has(> :is(
+  [data-testid="synthesis-execution-state"],
+  [data-testid="synthesis-failed-state"],
+  [data-testid="synthesis-registered-state"],
+  [data-testid="synthesis-query-ready-state"]
+)) > .s04-opening-brief { order: 1; }
+
+.rd-v2-synthesis-page .s04-main:has(> :is(
+  [data-testid="synthesis-execution-state"],
+  [data-testid="synthesis-failed-state"],
+  [data-testid="synthesis-registered-state"],
+  [data-testid="synthesis-query-ready-state"]
+)) > .s04-brief { order: 2; }
+
+.rd-v2-synthesis-page .s04-main:has(> :is(
+  [data-testid="synthesis-execution-state"],
+  [data-testid="synthesis-failed-state"],
+  [data-testid="synthesis-registered-state"],
+  [data-testid="synthesis-query-ready-state"]
+)) > .s04-thread-picker { order: 3; }
+
+.rd-v2-synthesis-page .s04-main:has(> :is(
+  [data-testid="synthesis-execution-state"],
+  [data-testid="synthesis-failed-state"],
+  [data-testid="synthesis-registered-state"],
+  [data-testid="synthesis-query-ready-state"]
+)) > .s04-strip { order: 4; }
+
+.rd-v2-synthesis-page .s04-main:has(> :is(
+  [data-testid="synthesis-execution-state"],
+  [data-testid="synthesis-failed-state"],
+  [data-testid="synthesis-registered-state"],
+  [data-testid="synthesis-query-ready-state"]
+)) > .s04-steps {
+  display: none;
+}
+
+.rd-v2-synthesis-page .s04-main > :is(
+  [data-testid="synthesis-execution-state"],
+  [data-testid="synthesis-failed-state"],
+  [data-testid="synthesis-registered-state"],
+  [data-testid="synthesis-query-ready-state"]
+) {
+  order: 5;
+  margin-top: 12px;
+}
+
+.rd-v2-synthesis-page .s04-main:has(> :is(
+  [data-testid="synthesis-execution-state"],
+  [data-testid="synthesis-failed-state"],
+  [data-testid="synthesis-registered-state"],
+  [data-testid="synthesis-query-ready-state"]
+)) > .s04-measurement-status { order: 6; }
+
+.rd-v2-synthesis-page .s04-main:has(> :is(
+  [data-testid="synthesis-execution-state"],
+  [data-testid="synthesis-failed-state"],
+  [data-testid="synthesis-registered-state"],
+  [data-testid="synthesis-query-ready-state"]
+)) > [data-testid="synthesis-method-surface"] { order: 7; }
+
+.rd-v2-synthesis-page .s04-main:has(> :is(
+  [data-testid="synthesis-execution-state"],
+  [data-testid="synthesis-failed-state"],
+  [data-testid="synthesis-registered-state"],
+  [data-testid="synthesis-query-ready-state"]
+)) > [data-testid="synthesis-evidence-state"] { order: 8; }
+
+/* Mobile canonical opening: preserve all three evidence roles but stop their
+   cards from consuming nearly an entire viewport before the acceptance choice. */
+@media (max-width: 600px) {
+
+  .rd-v2-synthesis-page .s04-opening-construction > h2 {
+    margin-bottom: 7px;
+    font-size: 17px;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-map {
+    padding: 8px;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-map ol {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-map li {
+    gap: 2px;
+    padding: 7px 6px;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-map li > small {
+    font-size: 9.5px;
+    line-height: 1.25;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-map li > strong {
+    overflow: visible;
+    font-size: 9.5px;
+    line-height: 1.25;
+    text-overflow: clip;
+    white-space: normal;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-map li > span {
+    display: none;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-map-flow {
+    margin: 3px auto;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-map-output {
+    padding: 6px 9px;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-facts {
+    margin-top: 7px;
+  }
+
+  .rd-v2-synthesis-page .s04-new-entry-purpose textarea {
+    min-height: 132px;
+  }
+}
+
+@media (max-width: 900px) {
+  .rd-v2-situation {
+    padding-top: 9px;
+  }
+
+  .rd-v2-situation-next,
+  .rd-v2-situation-facts {
+    display: none;
+  }
+
+  .rd-v2-situation-tabs {
+    margin-top: 8px;
+  }
+
+  .yzu-inspector.rd-v2-rail-collapsed .rd-v2-situation {
+    display: none;
+  }
+}
+
+/* ── final-convergence ── */
+/*
+ * Final frontend convergence overrides.
+ *
+ * This file intentionally scopes refinements to the current v2 composition.
+ * It does not revive historical layouts. The goal is to preserve current
+ * truth/interaction contracts while making each surface feel like one Research
+ * Drive rather than a set of page-local mini applications.
+ */
+
+/* -------------------------------------------------------------------------- */
+/* Synthesis — adaptive research workspace, not an embedded wizard            */
+/* -------------------------------------------------------------------------- */
+
+/* S-04's canonical recommended opening is brief → recommendation → explicit
+ * consequence/action. Once a grounded recommendation is on screen, the local
+ * four-step opening strip adds a second lifecycle and can contradict the real
+ * durable state (for example, claiming held evidence is mapped when only the
+ * recommendation's evidence roles are established). Keep the strip only while
+ * the desk is still moving toward a recommendation. */
+.rd-v2-synthesis-page .s04-main:has(.s04-opening-construction:not(.s04-opening-construction--empty)) .s04-opening-workflow-wrap {
+  display: none;
+}
+
+/* A grounded recommendation already exposes its evidence architecture. If the
+ * durable evidence map is still empty, showing the pre-recommendation intake
+ * card underneath the acceptance decision makes the page tell the researcher
+ * to go backwards. Keep a real mapped-evidence panel when nodes exist; suppress
+ * only the empty intake state after a recommendation is available. */
+.rd-v2-synthesis-page .s04-main:has(.s04-opening-construction:not(.s04-opening-construction--empty)) [data-testid="synthesis-evidence-state"]:has(.s04-empty-evidence) {
+  display: none;
+}
+
+/* Scope, unit, and join conflicts are blocking method decisions. They must own
+ * the centre instead of appearing below the generic pre-acceptance wizard and
+ * "start method reasoning" card. The durable decision panels remain visible;
+ * only generic guidance that would ask the researcher to move past the blocker
+ * is suppressed. */
+.rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-scope-block"]) .s04-opening-workflow-wrap,
+.rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-scope-block"]) .s04-opening-next,
+.rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-unit-conflict"]) .s04-opening-workflow-wrap,
+.rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-unit-conflict"]) .s04-opening-next,
+.rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-join-decision"]) .s04-opening-workflow-wrap,
+.rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-join-decision"]) .s04-opening-next {
+  display: none;
+}
+
+/* Join is itself the unresolved method choice. Hiding the generic column
+ * surface while that blocker is active keeps the actual join decision above
+ * supporting evidence instead of burying it underneath a second method panel. */
+.rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-join-decision"]) [data-testid="synthesis-method-surface"] {
+  display: none;
+}
+
+/* Proposal review already has an exact revision and its own review checkpoint;
+ * the four-step opening strip is obsolete once that durable proposal exists. */
+.rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-proposal-state"]) .s04-opening-workflow-wrap {
+  display: none;
+}
+
+.rd-v2-synthesis-page .sj-stage-page {
+  gap: 16px;
+  padding: 2px 2px 28px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.rd-v2-synthesis-page .sj-stage-header {
+  padding: 2px 0 15px;
+  border-bottom-color: color-mix(in srgb, var(--rd-v2-border, #d8dee8) 78%, transparent);
+}
+
+/* Internal stage numbering remains an authority concern, not the primary
+ * visual metaphor. The phase track carries the researcher-facing orientation. */
+.rd-v2-synthesis-page .sj-stage-header > div > small {
+  display: none;
+}
+
+.rd-v2-synthesis-page .sj-stage-header h2 {
+  max-width: 820px;
+  margin-top: 0;
+  font-size: clamp(21px, 1.85vw, 27px);
+  letter-spacing: -0.022em;
+}
+
+.rd-v2-synthesis-page .sj-stage-header p {
+  max-width: 800px;
+}
+
+.rd-v2-synthesis-page .sj-state-chip {
+  border: 1px solid color-mix(in srgb, var(--rd-v2-border, #d8dee8) 78%, transparent);
+  background: color-mix(in srgb, var(--rd-v2-paper, #f5f1e7) 72%, transparent);
+}
+
+.rd-v2-synthesis-page .sj-state-chip.ready {
+  border-color: color-mix(in srgb, #77a98d 48%, var(--rd-v2-border, #d8dee8));
+  background: color-mix(in srgb, #e8f3ec 62%, transparent);
+}
+
+/* Six visible research phases. Proposal/readiness/approval remain distinct
+ * durable states inside Review but no longer become three giant destinations. */
+.rd-v2-synthesis-page .sj-journey {
+  position: relative;
+  overflow-x: auto;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  scrollbar-width: thin;
+}
+
+.rd-v2-synthesis-page .sj-journey ol {
+  grid-template-columns: repeat(6, minmax(98px, 1fr));
+  min-width: 640px;
+  border-top: 1px solid color-mix(in srgb, var(--rd-v2-border, #d8dee8) 78%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-v2-border, #d8dee8) 78%, transparent);
+}
+
+.rd-v2-synthesis-page .sj-journey li:not(:last-child)::after {
+  top: 22px;
+  right: -8px;
+  width: 16px;
+  background: color-mix(in srgb, var(--rd-v2-border, #d8dee8) 72%, transparent);
+}
+
+.rd-v2-synthesis-page .sj-journey button {
+  min-height: 55px;
+  padding: 10px 9px;
+  border-right: 0;
+}
+
+.rd-v2-synthesis-page .sj-journey li.selected button {
+  background: color-mix(in srgb, var(--rd-v2-accent, #4b6f65) 5%, transparent);
+}
+
+.rd-v2-synthesis-page .sj-journey li.current button,
+.rd-v2-synthesis-page .sj-journey li.earned-current button {
+  box-shadow: inset 0 -2px color-mix(in srgb, var(--rd-v2-accent, #4b6f65) 88%, transparent);
+}
+
+.rd-v2-synthesis-page .sj-journey-index {
+  width: 10px;
+  height: 10px;
+  flex: 0 0 10px;
+  margin-top: 4px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--rd-v2-muted, #697386) 48%, transparent);
+  border-radius: 50%;
+  background: transparent;
+  color: transparent;
+  font-size: 0;
+}
+
+.rd-v2-synthesis-page .sj-journey li.done .sj-journey-index {
+  border-color: color-mix(in srgb, #4d8068 70%, transparent);
+  background: #4d8068;
+}
+
+.rd-v2-synthesis-page .sj-journey li.current .sj-journey-index,
+.rd-v2-synthesis-page .sj-journey li.earned-current .sj-journey-index {
+  border-color: color-mix(in srgb, var(--rd-v2-accent, #4b6f65) 85%, transparent);
+  background: color-mix(in srgb, var(--rd-v2-accent, #4b6f65) 72%, transparent);
+}
+
+.rd-v2-synthesis-page .sj-journey-copy strong {
+  font-size: 11px;
+}
+
+.rd-v2-synthesis-page .sj-journey-copy small {
+  font-size: 9.5px;
+}
+
+/* Objective is a workspace, not a form card. */
+
+.rd-v2-synthesis-page .sj-field input,
+.rd-v2-synthesis-page .sj-field select {
+  background: color-mix(in srgb, #fff 64%, var(--rd-v2-paper, #f5f1e7));
+}
+
+/* The rail now carries the authority consequence. Keeping the duplicate block
+ * in the centre would make the page feel like a wizard again. */
+
+.rd-v2-synthesis-page .sj-choice-grid button,
+.rd-v2-synthesis-page .sj-join-candidates button,
+.rd-v2-synthesis-page .sj-segmented button,
+.rd-v2-synthesis-page .sj-column-picker label,
+.rd-v2-synthesis-page .sj-metric-row {
+  background: color-mix(in srgb, #fff 58%, var(--rd-v2-paper, #f5f1e7));
+  box-shadow: none;
+}
+
+.rd-v2-synthesis-page .sj-decision-block {
+  padding: 14px 0 16px;
+}
+
+.rd-v2-synthesis-page .sj-decision-block > header > span {
+  background: color-mix(in srgb, var(--rd-v2-accent, #4b6f65) 7%, transparent);
+}
+
+.rd-v2-synthesis-page .sj-inline-alert {
+  border-radius: 8px;
+  background: color-mix(in srgb, #fff 46%, var(--rd-v2-paper, #f5f1e7));
+}
+
+/* -------------------------------------------------------------------------- */
+/* Library — evidence, source relationship, and usability must scan together  */
+/* -------------------------------------------------------------------------- */
+
+.rd-v2-cap-verify {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Shared rail — keep the research situation compact enough to leave room for */
+/* meaningful domain detail while making current truth/next action persistent. */
+/* -------------------------------------------------------------------------- */
+
+.rd-v2-situation {
+  padding-bottom: 10px;
+}
+
+.rd-v2-situation h2 {
+  margin-bottom: 5px;
+}
+
+.rd-v2-situation-facts {
+  gap: 4px 7px;
+}
+
+.rd-v2-situation-next {
+  margin-top: 7px;
+  line-height: 1.38;
+}
+
+@media (max-width: 920px) {
+
+  .rd-v2-synthesis-page .sj-journey ol {
+    min-width: 590px;
+  }
+}

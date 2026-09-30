@@ -5,7 +5,6 @@ import {
   synthesisWorkspaceDecisionSummary,
   synthesisWorkspacePhaseLabel,
 } from "@/v2/synthesisWorkspace.js";
-import "./synthesis-home.css";
 
 function text(value, fallback = "") {
   return String(value || "").trim() || fallback;

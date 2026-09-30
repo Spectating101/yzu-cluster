@@ -1,0 +1,2114 @@
+/* ── discover-production ── */
+/* Discover visual convergence.
+   This layer is presentation-only: React/backend remain authoritative for sourcing,
+   lifecycle, sufficiency, and acquisition decisions.  The goal is to give those
+   existing truths the same visual discipline as the Synthesis workspace. */
+
+/* ── Idle composition ─────────────────────────────────────────────────── */
+.rd-v2-discover-page .rd-v2-discover-browse {
+  min-width: 0;
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle {
+  display: grid;
+  align-content: start;
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer {
+  display: grid;
+  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 84%, #91a7bd 16%);
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer::before {
+  grid-column: 1 / -1;
+  color: #66788c;
+  font: 720 10px/1.2 var(--rd-mono, ui-monospace, monospace);
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer textarea {
+  resize: none;
+  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 82%, #7389a0 18%);
+  background: #fffefa;
+  color: var(--rd-text, #182033);
+  line-height: 1.45;
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer textarea:focus {
+  outline: 2px solid color-mix(in srgb, var(--rd-link, #3f6f5c) 34%, transparent);
+  outline-offset: 1px;
+  border-color: color-mix(in srgb, var(--rd-link, #3f6f5c) 48%, var(--rd-border, #dbd4c5));
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer > .rd-v2-btn {
+  align-self: start;
+  font-weight: 720;
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer > p {
+  grid-column: 1 / -1;
+  max-width: 720px;
+  margin: -2px 0 0;
+  color: var(--rd-muted, #6e7685);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+.rd-v2-discover-page .rd-v2-discover-composer-examples {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-composer-examples button {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 9px 12px;
+  border: 1px solid var(--rd-border, #dbd4c5);
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--rd-surface, #fffdf6) 88%, transparent);
+  text-align: left;
+}
+
+.rd-v2-discover-page .rd-v2-discover-composer-examples button:hover {
+  border-color: var(--rd-active-border, #c5d2cb);
+  background: var(--rd-hover, #f5f2ea);
+}
+
+.rd-v2-discover-page .rd-v2-discover-composer-examples span {
+  color: #748091;
+  font: 680 9.5px/1.2 var(--rd-mono, ui-monospace, monospace);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.rd-v2-discover-page .rd-v2-discover-composer-examples em {
+  color: var(--rd-text, #182033);
+  font-size: 12px;
+  font-style: normal;
+  line-height: 1.35;
+}
+
+/* ── Library coverage: calm evidence map, never a squeezed dashboard ─── */
+.rd-v2-discover-page .rd-v2-discover-coverage {
+  border: 1px solid var(--rd-border, #dbd4c5);
+}
+
+.rd-v2-discover-page .rd-v2-discover-coverage > header {
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 82%, transparent);
+}
+
+.rd-v2-discover-page .rd-v2-discover-coverage-eyebrow {
+  color: #52667a;
+  font: 760 10px/1.2 var(--rd-mono, ui-monospace, monospace);
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+.rd-v2-discover-page .rd-v2-discover-coverage .rd-v2-catalog-list {
+  margin: 2px 0 0;
+  border-top: 0;
+}
+
+.rd-v2-discover-page .rd-v2-discover-coverage-folded,
+.rd-v2-discover-page .rd-v2-discover-coverage-gap {
+  margin: 8px 0 0;
+  color: var(--rd-muted, #6e7685);
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle-library-note {
+  padding: 0 2px;
+  color: var(--rd-muted, #6e7685);
+  font-size: 10.5px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle-intake {
+  display: grid;
+  align-items: center;
+  gap: 10px;
+  border-top: 1px solid var(--rd-border, #dbd4c5);
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle-intake label {
+  color: var(--rd-muted, #6e7685);
+  font-size: 10.5px;
+  font-weight: 680;
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle-intake input {
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--rd-border, #dbd4c5);
+  border-radius: 6px;
+  background: rgba(255,255,255,.48);
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle-intake button {
+  min-height: 34px;
+  padding: 0 10px;
+  color: var(--rd-link, #3f6f5c);
+  font-weight: 720;
+}
+
+/* ── Active query: make the evidence need the anchor ─────────────────── */
+.rd-v2-discover-page .rd-v2-discover-explore-workspace {
+  display: grid;
+  gap: 0;
+  margin: 0 0 18px;
+  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 80%, transparent);
+  overflow: visible;
+}
+
+.rd-v2-discover-page .rd-v2-discover-explore-need .rd-v2-discover-composer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 10px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-explore-need textarea {
+  min-height: 42px;
+  padding: 10px 12px;
+  border-radius: 7px;
+  border: 1px solid var(--rd-border, #dbd4c5);
+  background: #fffefa;
+  color: var(--rd-text, #182033);
+  font-size: 13px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-explore-need .rd-v2-btn {
+  min-width: 76px;
+  min-height: 42px;
+  border-radius: 7px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-explore-need .rd-v2-discover-composer > p {
+  grid-column: 1 / -1;
+  margin: -1px 0 0;
+  color: var(--rd-muted, #6e7685);
+  font-size: 10px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-query-tools {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 64%, transparent);
+}
+
+.rd-v2-discover-page .rd-v2-discover-interpreting {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px 10px;
+  min-width: 0;
+}
+
+.rd-v2-discover-page .rd-v2-discover-interpreting > .rd-v2-eyebrow {
+  margin-right: 2px;
+  color: #60758a;
+}
+
+.rd-v2-discover-page .rd-v2-discover-interpreting-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-chip {
+  padding: 4px 8px;
+  border: 1px solid color-mix(in srgb, var(--rd-active-border, #c5d2cb) 74%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--rd-active-bg, #eef1ee) 76%, transparent);
+  color: var(--rd-active-fg, #1a3030);
+  font-size: 10.5px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-refine {
+  flex-basis: 100%;
+  margin-top: 1px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-refine summary {
+  width: fit-content;
+  color: var(--rd-body, #3e4759);
+  font-size: 10.5px;
+  font-weight: 650;
+}
+
+.rd-v2-discover-page .rd-v2-discover-refine-body {
+  display: grid;
+  gap: 5px;
+  max-width: 680px;
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-left: 2px solid var(--rd-active-border, #c5d2cb);
+  background: rgba(255,255,255,.34);
+}
+
+.rd-v2-discover-page .rd-v2-discover-refine-body p {
+  margin: 0;
+  color: var(--rd-muted, #6e7685);
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+
+.rd-v2-discover-page .rd-v2-discover-frozen-controls {
+  display: flex;
+  gap: 7px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-assess-action {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid rgb(219, 212, 197);
+  border-radius: 8px;
+  background: rgb(255, 253, 246);
+  color: rgb(62, 71, 89);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.rd-v2-discover-page .rd-v2-discover-assess-action:hover {
+  border-color: #b9ae98;
+  color: #182033;
+}
+
+/* Territories become the evidence ledger headline. */
+.rd-v2-discover-page .rd-v2-discover-frozen-counts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0;
+  border-top: 1px solid var(--rd-border, #dbd4c5);
+}
+
+.rd-v2-discover-page .rd-v2-discover-frozen-counts > span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 11px;
+  color: var(--rd-muted, #6e7685);
+  font-size: 10.5px;
+  font-weight: 610;
+  white-space: nowrap;
+}
+
+.rd-v2-discover-page .rd-v2-discover-frozen-counts > span:first-child {
+  padding-left: 0;
+  color: var(--rd-text, #182033);
+  font-weight: 740;
+}
+
+.rd-v2-discover-page .rd-v2-discover-frozen-counts > span + span {
+  border-left: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 78%, transparent);
+}
+
+.rd-v2-discover-page .rd-v2-discover-library-evidence > summary {
+  color: var(--rd-text, #182033);
+  font-weight: 700;
+}
+
+.rd-v2-discover-page .rd-v2-discover-library-popover {
+  width: min(620px, calc(100vw - 40px));
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px solid var(--rd-border2, #d2ccc0);
+  background: #fffefa;
+  box-shadow: 0 18px 50px rgba(15, 23, 28, .12);
+}
+
+/* One decision band: what we found + what can happen next. */
+.rd-v2-discover-page .rd-v2-discover-result-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+}
+
+.rd-v2-discover-page .rd-v2-discover-result-actions > div:first-child {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rd-v2-discover-page .rd-v2-discover-result-actions strong {
+  font-weight: 760;
+}
+
+.rd-v2-discover-page .rd-v2-discover-result-actions span {
+  line-height: 1.4;
+}
+
+.rd-v2-discover-page .rd-v2-discover-result-actions > div:last-child {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-result-actions button {
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid rgba(255,255,255,.24);
+  border-radius: 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.rd-v2-discover-page .rd-v2-discover-result-actions .is-ready {
+  border-color: #b8d1c4;
+  background: #eaf4ef;
+  color: #244f40;
+}
+
+/* ── Evidence rows: scan like an instrument, not a generic card list ───── */
+.rd-v2-discover-page .rd-v2-discover-ranked-results {
+  margin: 14px 0 0;
+  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 76%, transparent);
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 0 7px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results-head .rd-v2-eyebrow {
+  color: #5f7388;
+  letter-spacing: .12em;
+}
+
+.rd-v2-discover-page .rd-v2-discover-candidates {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+}
+
+.rd-v2-discover-page .rd-v2-discover-candidates > li {
+  position: relative;
+  overflow: visible;
+  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 90%, transparent);
+  border-radius: 8px;
+  transition: border-color .14s ease, background-color .14s ease, transform .14s ease;
+}
+
+.rd-v2-discover-page .rd-v2-discover-candidates > li:hover {
+  border-color: var(--rd-active-border, #c5d2cb);
+  background: #fffefa;
+}
+
+.rd-v2-discover-page .rd-v2-discover-candidates > li.rd-v2-row-on {
+  border-color: #94afa2;
+  box-shadow: inset 3px 0 0 #4b7563;
+  background: #fbfdf9;
+}
+
+.rd-v2-discover-page .rd-v2-discover-candidate {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: 14px;
+  width: 100%;
+  min-width: 0;
+  padding: 12px 14px 13px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+
+.rd-v2-discover-page .rd-v2-discover-candidate-source {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+}
+
+.rd-v2-discover-page .rd-v2-discover-candidate-main {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.rd-v2-discover-page .rd-v2-discover-candidate-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  min-width: 0;
+}
+
+.rd-v2-discover-page .rd-v2-discover-candidate-title {
+  min-width: 0;
+  color: var(--rd-text, #182033);
+  font-size: 13.5px;
+  font-weight: 750;
+  line-height: 1.3;
+}
+
+.rd-v2-discover-page .rd-v2-discover-possession {
+  flex: 0 0 auto;
+  max-width: 190px;
+  color: #5b7283;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 650;
+  line-height: 1.3;
+  text-align: right;
+}
+
+.rd-v2-discover-page .rd-v2-discover-evidence {
+  max-width: 78ch;
+  color: var(--rd-body, #3e4759);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.rd-v2-discover-page .rd-v2-discover-offering-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 0;
+  color: var(--rd-muted, #6e7685);
+}
+
+.rd-v2-discover-page .rd-v2-discover-offering-facts > span {
+  display: inline-flex;
+  gap: 4px;
+  padding: 0 9px;
+  border-left: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 80%, transparent);
+  font-size: 9.5px;
+  line-height: 1.35;
+}
+
+.rd-v2-discover-page .rd-v2-discover-offering-facts > span:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+
+.rd-v2-discover-page .rd-v2-discover-offering-facts b {
+  color: #687586;
+  font-weight: 690;
+}
+
+.rd-v2-discover-page .rd-v2-discover-offering-facts em {
+  color: var(--rd-muted, #6e7685);
+  font-style: normal;
+}
+
+.rd-v2-discover-page .rd-v2-discover-sufficiency {
+  width: fit-content;
+  padding-left: 9px;
+  border-left: 2px solid #a8bcb1;
+  color: #53695f;
+  font-size: 9.5px;
+  font-weight: 640;
+}
+
+.rd-v2-discover-page .rd-v2-discover-row-add {
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+  min-height: 28px;
+  padding: 0 9px;
+  border: 1px solid #a9bba7;
+  border-radius: 5px;
+  background: #fffef7;
+  color: #356147;
+  font-size: 9.5px;
+  font-weight: 740;
+}
+
+.rd-v2-discover-page .rd-v2-discover-context-results {
+  margin-top: 16px;
+  opacity: .92;
+}
+
+.rd-v2-discover-page .rd-v2-discover-context-results .rd-v2-discover-candidates > li {
+  background: color-mix(in srgb, var(--rd-canvas, #eeeae0) 36%, var(--rd-surface, #fffdf6));
+}
+
+.rd-v2-discover-page .rd-v2-discover-rank-foot {
+  padding: 9px 1px 0;
+  font-size: 9.5px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-process-disclosure {
+  margin-top: 18px;
+  padding-top: 10px;
+  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 68%, transparent);
+  color: var(--rd-muted, #6e7685);
+  font-size: 10px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-process-disclosure summary {
+  width: fit-content;
+  font-weight: 680;
+}
+
+.rd-v2-discover-page .rd-v2-discover-process-disclosure p {
+  max-width: 78ch;
+  line-height: 1.5;
+}
+
+/* ── Decision rail: same judgement discipline as Synthesis ───────────── */
+body:has(.rd-v2-discover-page) .rd-v2-resting-rail {
+  padding: 14px 16px 18px;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-block {
+  display: grid;
+  gap: 12px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-section-label {
+  margin: 0;
+  color: #687d91;
+  font: 730 10px/1.25 var(--rd-mono, ui-monospace, monospace);
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose {
+  margin: 0;
+  color: var(--rd-body, #3e4759);
+  font-size: 11px;
+  line-height: 1.52;
+}
+
+body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
+  color: var(--rd-text, #182033);
+  font-size: 10px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+/* ── Strategy/acquisition overlays ───────────────────────────────────── */
+.rd-v2-discover-page .rd-v2-discover-route-compare,
+.rd-v2-discover-page .rd-v2-discover-intent-modal {
+  border-radius: 14px;
+  border-color: color-mix(in srgb, var(--rd-border2, #d2ccc0) 80%, #8297a8 20%);
+  box-shadow: 0 24px 80px rgba(15, 23, 28, .2);
+}
+
+.rd-v2-discover-page .rd-v2-discover-strategy-answer,
+.rd-v2-discover-page .rd-v2-discover-strategy-next {
+  border-radius: 8px;
+}
+
+/* ── Responsive safeguards ───────────────────────────────────────────── */
+@media (max-width: 1050px) {
+
+  .rd-v2-discover-page .rd-v2-discover-candidate {
+    grid-template-columns: 76px minmax(0, 1fr);
+    gap: 11px;
+  }
+}
+
+@media (max-width: 720px) {
+  .rd-v2-discover-page .rd-v2-discover-idle {
+    padding-inline: 0;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer,
+  .rd-v2-discover-page .rd-v2-discover-explore-need .rd-v2-discover-composer,
+  .rd-v2-discover-page .rd-v2-discover-result-actions,
+  .rd-v2-discover-page .rd-v2-discover-query-tools {
+    grid-template-columns: 1fr;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer > .rd-v2-btn,
+  .rd-v2-discover-page .rd-v2-discover-explore-need .rd-v2-btn {
+    width: 100%;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-frozen-counts > span,
+  .rd-v2-discover-page .rd-v2-discover-frozen-counts > span:first-child {
+    min-height: 24px;
+    padding: 0 8px;
+    border-left: 0;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-result-actions > div:last-child {
+    justify-content: flex-start;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-candidate {
+    grid-template-columns: 1fr;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-candidate-source {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-candidate-heading {
+    display: grid;
+    gap: 4px;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-possession {
+    max-width: none;
+    text-align: left;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rd-v2-discover-page .rd-v2-discover-candidates > li {
+    transition: none;
+  }
+}
+
+/* ── discover-reconvergence ── */
+/* Discover reconvergence — make the primary retrieval surface behave like a
+   research instrument, not an onboarding page. This layer is visual only;
+   evidence, sufficiency, sourcing and lifecycle semantics remain authoritative. */
+
+.rd-v2-discover-page .rd-v2-discover-idle {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 18px 20px 34px;
+  gap: 14px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer {
+  width: 100%;
+  max-width: none;
+  grid-template-columns: minmax(0, 1fr) 108px;
+  gap: 8px 10px;
+  padding: 15px 16px 14px;
+  border-radius: 9px;
+  box-shadow: none;
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer::before {
+  content: "DISCOVER EVIDENCE";
+  font-size: 9.5px;
+  letter-spacing: .13em;
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer textarea {
+  padding: 13px 14px;
+  border-radius: 6px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer > .rd-v2-btn {
+  min-width: 108px;
+  border-radius: 6px;
+}
+
+/* The interaction teaches itself. Do not spend the first viewport explaining
+   the keyword/question implementation or render pseudo-mode cards. */
+.rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer > p {
+  display: none;
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle-held {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  max-width: none;
+  padding: 0;
+}
+
+/* Library position is a compact evidence-estate strip. It should support
+   discovery, not displace discovery. */
+.rd-v2-discover-page .rd-v2-discover-coverage {
+  display: grid;
+  gap: 0;
+  width: 100%;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--rd-surface, #fffdf6) 98%, #edf2f0 2%);
+  box-shadow: none;
+}
+
+.rd-v2-discover-page .rd-v2-discover-coverage > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 43px;
+  padding: 8px 12px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-coverage-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  min-width: 0;
+}
+
+.rd-v2-discover-page .rd-v2-discover-coverage-heading strong {
+  color: var(--rd-text, #182033);
+  font-size: 13px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-coverage-heading > span:last-child {
+  color: var(--rd-muted, #6e7685);
+  font-size: 10.5px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-coverage .rd-v2-discover-coverage-gap {
+  margin: 0;
+  color: #8a6b34;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.rd-v2-discover-page .rd-v2-discover-coverage-shelves {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 78%, transparent);
+  list-style: none;
+}
+
+.rd-v2-discover-page .rd-v2-discover-coverage-shelves > li {
+  min-width: 0;
+  border-right: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 66%, transparent);
+}
+
+.rd-v2-discover-page .rd-v2-discover-coverage-shelves > li:last-child {
+  border-right: 0;
+}
+
+.rd-v2-discover-page .rd-v2-discover-coverage-shelves button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  gap: 2px 8px;
+  width: 100%;
+  min-height: 49px;
+  padding: 8px 11px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+
+.rd-v2-discover-page .rd-v2-discover-coverage-shelves button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--rd-hover, #f5f2ea) 78%, transparent);
+}
+
+.rd-v2-discover-page .rd-v2-discover-coverage-shelves button > span {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--rd-text, #182033);
+  font-size: 10.5px;
+  font-weight: 690;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-v2-discover-page .rd-v2-discover-coverage-shelves button > strong {
+  grid-row: 1 / 3;
+  grid-column: 2;
+  align-self: center;
+  color: #52667a;
+  font: 760 14px/1 var(--rd-mono, ui-monospace, monospace);
+}
+
+.rd-v2-discover-page .rd-v2-discover-coverage-shelves button > em {
+  color: var(--rd-muted, #6e7685);
+  font-size: 9.5px;
+  font-style: normal;
+}
+
+.rd-v2-discover-page .rd-v2-discover-coverage-folded {
+  margin: 0;
+  padding: 6px 11px 7px;
+  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 58%, transparent);
+  font-size: 9.5px;
+}
+
+/* Source inventory is the body of the resting surface. Give it the horizontal
+   room that workstation displays actually provide. */
+.rd-v2-discover-page .rd-v2-discover-idle-held > .rd-v2-home-section-head {
+  margin: 1px 0 -1px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle-held > .rd-v2-home-section-head h3 {
+  margin-top: 2px;
+  font-size: 13px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidates {
+  width: 100%;
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle-intake {
+  width: 100%;
+  max-width: none;
+  grid-template-columns: auto minmax(220px, 440px) auto 1fr;
+  padding: 10px 0 0;
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle-intake::after {
+  content: "Direct inspection is separate from acquisition.";
+  align-self: center;
+  color: var(--rd-muted, #6e7685);
+  font-size: 9.5px;
+}
+
+/* Active discovery should read as one evidence landscape, not nested cards. */
+.rd-v2-discover-page .rd-v2-discover-explore-workspace {
+  margin-inline: 0;
+  box-shadow: none;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace {
+  margin-inline: 0;
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+.rd-v2-discover-page .rd-v2-discover-candidates > li {
+  background: color-mix(in srgb, var(--rd-surface, #fffdf6) 99%, white 1%);
+}
+
+@media (min-width: 1680px) and (min-height: 900px) {
+  .rd-v2-discover-page .rd-v2-discover-idle {
+    padding: 20px 24px 38px;
+    gap: 15px;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer {
+    padding: 17px 18px 16px;
+  }
+
+}
+
+@media (max-width: 1180px) {
+  .rd-v2-discover-page .rd-v2-discover-coverage-shelves {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-coverage-shelves > li:nth-child(2) {
+    border-right: 0;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-coverage-shelves > li:nth-child(-n + 2) {
+    border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 66%, transparent);
+  }
+}
+
+@media (max-width: 760px) {
+  .rd-v2-discover-page .rd-v2-discover-idle {
+    padding: 12px 10px 26px;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer {
+    grid-template-columns: 1fr;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer > .rd-v2-btn {
+    width: 100%;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-coverage > header,
+  .rd-v2-discover-page .rd-v2-discover-coverage-heading {
+    align-items: flex-start;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-coverage > header {
+    display: grid;
+    gap: 4px;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-coverage .rd-v2-discover-coverage-gap {
+    white-space: normal;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-intake {
+    grid-template-columns: 1fr auto;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-intake label,
+  .rd-v2-discover-page .rd-v2-discover-idle-intake::after {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ── discover-reconvergence-tight ── */
+/* Second-pass density tuning after rendered 1440/1920 inspection. */
+
+.rd-v2-discover-page .rd-v2-discover-idle-library-note {
+  display: none;
+}
+
+@media (min-width: 761px) and (max-width: 1679px) {
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidates > li {
+    min-height: 0;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate {
+    min-height: 0;
+    padding-top: 10px;
+    padding-bottom: 34px;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate-main {
+    gap: 3px;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-evidence {
+    line-height: 1.3;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-row-add {
+    bottom: 7px;
+  }
+}
+
+/* ── discover-flagship ── */
+/* Discover flagship pass — stronger workstation composition after visual review.
+   Presentation only: no evidence, route, sufficiency, lifecycle or approval truth
+   is inferred here. */
+
+/* Discover is the primary retrieval surface. On wide workstations the empty
+   inspector must not consume the same width as an active evaluation. */
+@media (min-width: 1100px) {
+  body:has(.rd-v2-discover-page) .rd-v2-shell {
+    --rd-rail: 360px;
+  }
+
+  body:has(.rd-v2-discover-page .rd-v2-discover-candidate.selected) .rd-v2-shell {
+    --rd-rail: 420px;
+  }
+}
+
+/* Make the page identity a compact workstation header rather than a tall
+   marketing header. */
+.rd-v2-discover-page .rd-v2-page-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px 16px;
+  padding-top: 14px;
+  padding-bottom: 11px;
+}
+
+.rd-v2-discover-page .rd-v2-page-head > h1 {
+  grid-column: 1;
+  margin: 0;
+}
+
+.rd-v2-discover-page .rd-v2-page-head > .rd-v2-lead {
+  grid-column: 2;
+  margin: 0;
+  max-width: none;
+}
+
+.rd-v2-discover-page .rd-v2-page-head > .rd-v2-discover-modes {
+  grid-column: 3;
+  margin: 0;
+}
+
+.rd-v2-discover-page .rd-v2-body-scroll {
+  padding-top: 8px;
+}
+
+/* Search should feel like the command surface of the application. */
+.rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer {
+  border-color: color-mix(in srgb, var(--rd-border, #dbd4c5) 64%, #8095a7 36%);
+  background: #fffef9;
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer textarea {
+  min-height: 58px;
+  font-size: 15px;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.62);
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer > .rd-v2-btn {
+  min-height: 58px;
+}
+
+/* A single Library family should not render as a mostly-empty dashboard row. */
+.rd-v2-discover-page .rd-v2-discover-coverage-shelves:has(> li:only-child) {
+  display: none;
+}
+
+.rd-v2-discover-page .rd-v2-discover-coverage:has(.rd-v2-discover-coverage-shelves > li:only-child) > header {
+  min-height: 48px;
+  border-bottom: 0;
+}
+
+/* Active search is one command/evidence strip, not a stack of cards. */
+.rd-v2-discover-page .rd-v2-discover-explore-workspace {
+  border-width: 0 0 1px;
+  border-radius: 0;
+  background: transparent;
+}
+
+.rd-v2-discover-page .rd-v2-discover-explore-need {
+  padding: 8px 0 9px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-query-tools {
+  padding: 8px 0 9px;
+  border-top-color: color-mix(in srgb, var(--rd-border, #dbd4c5) 58%, transparent);
+}
+
+.rd-v2-discover-page .rd-v2-discover-frozen-counts {
+  min-height: 36px;
+  padding: 0;
+  border-bottom: 0;
+  background: transparent;
+}
+
+/* The old black decision bar visually dominated the actual results. Reduce it
+   to a neutral evidence-status strip. */
+.rd-v2-discover-page .rd-v2-discover-result-actions {
+  min-height: 46px;
+  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 82%, #91a6a0 18%);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--rd-active-bg, #eef1ee) 58%, var(--rd-surface, #fffdf6));
+  color: var(--rd-text, #182033);
+}
+
+.rd-v2-discover-page .rd-v2-discover-result-actions strong {
+  color: var(--rd-text, #182033);
+  font-size: 11.5px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-result-actions span {
+  color: var(--rd-muted, #6e7685);
+  font-size: 10px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-result-actions button {
+  border-color: var(--rd-border2, #d2ccc0);
+  background: #fffef9;
+  color: var(--rd-text, #182033);
+}
+
+.rd-v2-discover-page .rd-v2-discover-result-actions button:hover:not(:disabled) {
+  background: var(--rd-hover, #f5f2ea);
+}
+
+/* The idle rail is an evaluation canvas waiting for selection, not a giant
+   empty-state illustration. Keep the cue compact and near the top. */
+body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-state {
+  min-height: auto;
+  margin: 22px 18px;
+  padding: 18px 16px;
+  align-items: flex-start;
+  justify-items: start;
+  border-top: 1px solid var(--rd-border, #dbd4c5);
+  border-bottom: 1px solid var(--rd-border, #dbd4c5);
+  text-align: left;
+}
+
+body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-icon {
+  width: 24px;
+  height: 24px;
+  margin-bottom: 5px;
+}
+
+body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-title {
+  margin-top: 4px;
+}
+
+body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
+  max-width: 31ch;
+}
+
+@media (max-width: 760px) {
+  .rd-v2-discover-page .rd-v2-page-head {
+    display: block;
+  }
+
+  .rd-v2-discover-page .rd-v2-page-head > .rd-v2-lead,
+  .rd-v2-discover-page .rd-v2-page-head > .rd-v2-discover-modes {
+    margin-top: 6px;
+  }
+}
+
+/* ── discover-flagship-wide ── */
+/* Wide-screen corrections found from the flagship render itself. */
+
+/* Discover source titles are research identities, not nav labels. Let them wrap
+   instead of silently ellipsizing the actual thing being evaluated. */
+.rd-v2-discover-page .rd-v2-discover-candidate-title {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+/* The 1920 resting capture exposed a 3+1 orphan. Two wide evidence-ledger rows
+   use the workstation better and preserve full source identity. */
+@media (min-width: 1680px) and (min-height: 900px) {
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidates {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate {
+    grid-template-columns: 76px minmax(0, 1fr);
+    gap: 12px;
+    padding: 12px 13px 13px;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate-source {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-possession {
+    max-width: 170px;
+    text-align: right;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-evidence {
+    min-height: 0;
+  }
+}
+
+/* ── discover-flagship-investigation ── */
+/* Flagship investigation density — keep the evidence assessment authoritative
+   without consuming the entire 1440×900 retrieval viewport. */
+
+@media (min-width: 981px) and (max-width: 1500px) and (min-height: 780px) {
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-assessment {
+    gap: 8px 10px;
+    padding: 11px 12px 12px;
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-assessment-head h2 {
+    margin-top: 2px;
+    font-size: 13px;
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-because {
+    margin-block: -1px 0;
+    font-size: 9.5px;
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-position-grid > div {
+    min-height: 43px;
+    padding: 7px 9px;
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-position-grid strong {
+    margin-top: 1px;
+    font-size: 11.5px;
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-position-grid em {
+    margin-top: 1px;
+    font-size: 9.5px;
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-held,
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-gap {
+    padding: 8px 9px;
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-held li button {
+    padding-block: 5px;
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes {
+    padding: 8px 9px;
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes .rd-v2-evidence-section-head p {
+    margin-top: 1px;
+    font-size: 9.5px;
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes-list {
+    margin-top: 5px;
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes-list li {
+    padding: 6px 8px;
+  }
+
+  /* Four measured capacity facts fit in one decision strip at 1440. The
+     previous 2×2 grid doubled this section's height and pushed all offerings
+     below the viewport even though capacity is supporting evidence. */
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity {
+    grid-template-columns: 156px minmax(0, 1fr);
+    align-items: center;
+    gap: 8px 10px;
+    padding: 7px 8px;
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity .rd-v2-evidence-section-head p {
+    max-width: none;
+    font-size: 9.5px;
+    line-height: 1.25;
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity-grid > div,
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity-grid > div:nth-child(even),
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity-grid > div:nth-last-child(-n + 2) {
+    min-height: 39px;
+    padding: 6px 7px;
+    border-right: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 64%, transparent);
+    border-bottom: 0;
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity-grid > div:last-child {
+    border-right: 0;
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity-grid strong {
+    font-size: 9.5px;
+    line-height: 1.2;
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity-grid em {
+    margin-top: 1px;
+    font-size: 9.5px;
+    line-height: 1.2;
+  }
+
+  .rd-v2-discover-page .rd-v2-evidence-basis-details {
+    line-height: 1.1;
+  }
+}
+
+/* ── discover-composer-scope ── */
+/* Dense Discover cockpit: evidence retrieval should read like a research instrument,
+   not a minimalist search landing page. Every region below carries live or explicitly
+   unmeasured product state; no decorative fake metrics are introduced. */
+
+/* Query state: introduce a persistent research-control dock beside results. */
+
+/* The centre list now has a control dock, so remove duplicate filter furniture and
+   let the result rows carry more structured evidence per scan. */
+
+/* Search composer now advertises the actual search/acquisition universe. */
+.rd-v2-discover-composer-scope {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 1px;
+  padding-top: 6px;
+  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 54%, transparent);
+}
+.rd-v2-discover-composer-scope > span { display: inline-flex; align-items: center; gap: 4px; color: var(--rd-muted, #6e7685); font-size: 9.5px; }
+.rd-v2-discover-composer-scope > span::before { content: ""; width: 4px; height: 4px; border-radius: 50%; background: #789588; }
+.rd-v2-discover-composer-scope > span:last-child::before { background: #ae7d43; }
+
+/* The cockpit is a workstation aid, not a prerequisite for retrieval. Once the
+   shell has to reserve meaningful width for navigation and the Detail/Ask rail,
+   stacking this summary above search costs the entire first viewport. The centre
+   already carries result territories and the normal filter/sort controls; restore
+   those controls and keep the evidence list first. */
+
+/* ── discover-evidence-field ── */
+/* Large-field Discover pass.
+   Results are the primary research object. Persistent controls stay quiet; density
+   increases through ledger structure rather than nested cards. */
+
+.rd-v2-discover-field {
+  display: grid;
+  border-block: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, transparent);
+}
+
+.rd-v2-discover-field > header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.rd-v2-discover-field > header > div:first-child {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: baseline;
+  gap: 6px 10px;
+  min-width: 0;
+}
+
+.rd-v2-discover-field > header strong {
+  color: var(--rd-text, #182033);
+}
+
+.rd-v2-discover-field > header p {
+  min-width: 0;
+  margin: 0;
+  color: var(--rd-muted, #6e7685);
+  line-height: 1.35;
+}
+
+.rd-v2-discover-assembly-state button {
+  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 82%, #26374b 18%);
+  border-radius: 5px;
+  background: var(--rd-surface, #fffdf6);
+  color: var(--rd-text, #182033);
+  font-size: 9.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.rd-v2-discover-assembly {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) minmax(150px, auto);
+  gap: 10px;
+  align-items: center;
+  border-left: 3px solid #788f82;
+  background: color-mix(in srgb, #edf4ef 68%, var(--rd-surface, #fffdf6));
+}
+
+.rd-v2-discover-assembly-mark {
+  display: grid;
+  place-items: center;
+  border: 1px solid #9daf9f;
+  border-radius: 50%;
+  color: #557064;
+  font: 700 13px/1 var(--rd-mono, ui-monospace, monospace);
+}
+
+.rd-v2-discover-assembly > div:nth-child(2) { min-width: 0; }
+.rd-v2-discover-assembly > div:nth-child(2) > span,
+.rd-v2-discover-assembly-state > span { color: #607166; font: 700 7.8px/1.2 var(--rd-mono, ui-monospace, monospace); letter-spacing: .06em; text-transform: uppercase; }
+.rd-v2-discover-assembly > div:nth-child(2) > strong { display: block; margin-top: 2px; color: var(--rd-text, #182033); font-size: 10.5px; }
+.rd-v2-discover-assembly p { margin: 2px 0 0; color: var(--rd-muted, #6e7685); font-size: 9.5px; line-height: 1.35; }
+
+.rd-v2-discover-assembly-state {
+  display: grid;
+  justify-items: end;
+  gap: 3px;
+  text-align: right;
+}
+.rd-v2-discover-assembly-state b { color: #557064; font-size: 9.5px; }
+.rd-v2-discover-assembly-state button { margin-top: 2px; padding: 5px 8px; }
+.rd-v2-discover-assembly.is-checking { grid-template-columns: 30px minmax(0, 1fr); border-left-color: #ac9e77; background: color-mix(in srgb, #f5f1e6 72%, var(--rd-surface, #fffdf6)); }
+
+/* Quiet the persistent cockpit. It is a control rail, not a second dashboard. */
+
+/* A dozen results should scan like a professional result ledger, not a stack of cards. */
+.rd-v2-discover-ranked-results {
+  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, transparent);
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-candidates {
+  gap: 0;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-candidate {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-candidates > li:hover {
+  background: color-mix(in srgb, #eef2ef 44%, transparent);
+}
+
+.rd-v2-discover-ranked-results .rd-v2-row-on {
+  background: color-mix(in srgb, #e8f0eb 56%, transparent);
+}
+.rd-v2-discover-ranked-results .rd-v2-discover-sufficiency { margin-top: 1px; }
+
+.rd-v2-discover-ranked-results .rd-v2-discover-row-add {
+  bottom: auto;
+  font-size: 9.5px;
+}
+
+@media (max-width: 1500px) {
+  .rd-v2-discover-field > header > div:first-child {
+    grid-template-columns: auto auto;
+  }
+}
+
+@media (max-width: 1080px) {
+  .rd-v2-discover-assembly {
+    grid-template-columns: 30px minmax(0, 1fr);
+  }
+  .rd-v2-discover-assembly-state {
+    grid-column: 2;
+    justify-items: start;
+    text-align: left;
+  }
+}
+
+/* ── discover-scale-polish ── */
+/* Final scale polish: keep the result universe primary and remove redundant chrome. */
+
+.rd-v2-discover-ranked-results .rd-v2-discover-candidates > li {
+  margin: 0 !important;
+  border: 0 !important;
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 62%, transparent) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-candidate {
+  min-height: 66px !important;
+  padding-top: 7px !important;
+  padding-bottom: 7px !important;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-offering-facts {
+  display: flex !important;
+  flex-wrap: wrap;
+  gap: 2px 0 !important;
+  margin-top: 1px !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-offering-facts > span {
+  display: inline-flex !important;
+  align-items: baseline;
+  width: auto !important;
+  min-height: 0 !important;
+  padding: 0 8px 0 0 !important;
+  margin: 0 8px 0 0;
+  border: 0 !important;
+  border-right: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 58%, transparent) !important;
+  background: transparent !important;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-offering-facts > span:last-child {
+  border-right: 0 !important;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-offering-facts b,
+.rd-v2-discover-ranked-results .rd-v2-discover-offering-facts em {
+  display: inline !important;
+  margin: 0 !important;
+  line-height: 1.25 !important;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-offering-facts b {
+  color: #607166;
+  font-size: 9.5px !important;
+  letter-spacing: .045em;
+  text-transform: uppercase;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-offering-facts em {
+  color: var(--rd-muted, #6e7685);
+  font-size: 9.5px !important;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-sufficiency {
+  padding-top: 2px !important;
+  border-top: 0 !important;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-row-add {
+  top: 8px !important;
+}
+
+/* Resting radar: capability is visible, but the search remains the strongest object. */
+
+@media (max-width: 1500px) {
+  .rd-v2-discover-ranked-results .rd-v2-discover-candidate {
+    min-height: 72px !important;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-offering-facts > span {
+    margin-right: 6px;
+    padding-right: 6px !important;
+  }
+}
+
+/* ── discover-efficiency-polish ── */
+/* Discover efficiency polish.
+   Keep the evidence-field model, but make hierarchy do more work than decoration.
+   Primary: query + candidate field. Secondary: filters / assessment. Tertiary: idle radar context. */
+
+/* Search scope is useful context, not a second navigation bar. */
+.rd-v2-discover-composer-scope {
+  opacity: .7;
+  gap: 9px;
+}
+
+/* Resting Discover: retain capability without making every capability equally loud. */
+
+/* Source-family bars were informative in isolation but noisy when every family had count 1.
+   The concrete routes already carry the same information more usefully. */
+
+/* The six-item capability ledger repeated the composer scope and made idle feel like a brochure. */
+
+/* Active search: the left rail is a control surface, not a second dashboard. */
+
+/* Result territories are already summarized above the field. In the rail they were repetition. */
+
+/* Search wider lives beside the candidate field; do not repeat the same CTA in the rail. */
+
+/* Candidate field: a compact framing line, not another card before the actual results. */
+.rd-v2-discover-field {
+  gap: 5px;
+  margin: 6px 0 8px;
+  padding: 7px 10px 6px;
+  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 68%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 52%, transparent);
+  background: transparent;
+}
+
+.rd-v2-discover-field > header {
+  align-items: baseline;
+}
+
+.rd-v2-discover-field > header strong {
+  font-size: 13px;
+}
+
+.rd-v2-discover-field > header p {
+  font-size: 9.5px;
+}
+
+/* Assembly is the exceptional state, so it earns the strongest emphasis in the field. */
+.rd-v2-discover-assembly {
+  margin-top: 3px;
+  padding: 8px 9px;
+  border-left-width: 2px;
+}
+
+.rd-v2-discover-assembly-mark {
+  width: 23px;
+  height: 23px;
+  font-size: 12px;
+}
+
+/* Large result sets scan as a ledger. Preserve useful facts, cut repetitive chrome. */
+.rd-v2-discover-ranked-results .rd-v2-discover-candidate {
+  padding: 7px 96px 7px 8px;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-candidate-main {
+  gap: 2px;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-candidate-title {
+  font-size: 11px;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-evidence {
+  display: block;
+  overflow: hidden;
+  font-size: 9.5px;
+  line-height: 1.25;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-offering-facts {
+  display: flex;
+  gap: 11px;
+  margin-top: 0;
+  overflow: hidden;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-offering-facts > span {
+  display: inline-flex;
+  min-width: 0;
+  min-height: 0;
+  gap: 3px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  white-space: nowrap;
+}
+
+/* Refresh cadence is useful in Detail, but is the least important repeated scan-field here. */
+
+.rd-v2-discover-ranked-results .rd-v2-discover-offering-facts b {
+  font-size: 9.5px;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-offering-facts em {
+  max-width: 220px;
+  overflow: hidden;
+  font-size: 9.5px;
+  text-overflow: ellipsis;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-sufficiency {
+  font-size: 9.5px;
+  line-height: 1.2;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-row-add {
+  top: 8px;
+  right: 8px;
+  min-height: 25px;
+  padding: 3px 7px;
+}
+
+.rd-v2-discover-ranked-results li:hover .rd-v2-discover-row-add,
+.rd-v2-discover-ranked-results .selected + .rd-v2-discover-row-add,
+.rd-v2-discover-ranked-results .rd-v2-discover-row-add:focus-visible {
+  opacity: 1;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-candidate-source .rd-v2-pill {
+  opacity: .68;
+}
+
+@media (max-width: 1500px) {
+
+  .rd-v2-discover-composer-scope span:nth-child(n + 4) {
+    display: none;
+  }
+
+  .rd-v2-discover-field {
+    padding-inline: 8px;
+  }
+
+  .rd-v2-discover-field > header p {
+    grid-column: 1 / -1;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-offering-facts {
+    gap: 8px;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-offering-facts em {
+    max-width: 145px;
+  }
+}
+
+/* Active-flow hierarchy pass after 1440/1920 pixel review. The evidence field
+   stays primary; deep assessment becomes a deliberate drill-down. */
+.rd-v2-evidence-detail-disclosure {
+  min-width: 0;
+}
+
+.rd-v2-evidence-detail-disclosure:not(.is-workspace) > summary {
+  display: none;
+}
+
+.rd-v2-evidence-detail-disclosure.is-workspace {
+  margin-top: 6px;
+  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 62%, transparent);
+}
+
+.rd-v2-evidence-detail-disclosure.is-workspace > summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 2px 2px;
+  color: var(--rd-body, #3e4759);
+  cursor: pointer;
+  list-style: none;
+  font-size: 9.5px;
+  font-weight: 700;
+}
+
+.rd-v2-evidence-detail-disclosure.is-workspace > summary::-webkit-details-marker {
+  display: none;
+}
+
+.rd-v2-evidence-detail-disclosure.is-workspace > summary::before {
+  content: "▸";
+  flex: 0 0 auto;
+  margin-right: -5px;
+  color: var(--rd-muted, #6e7685);
+  font-size: 9.5px;
+}
+
+.rd-v2-evidence-detail-disclosure.is-workspace[open] > summary::before {
+  content: "▾";
+}
+
+.rd-v2-evidence-detail-disclosure.is-workspace > summary em {
+  margin-left: auto;
+  color: var(--rd-muted, #6e7685);
+  font-size: 9.5px;
+  font-style: normal;
+  font-weight: 500;
+}
+
+.rd-v2-evidence-detail-disclosure.is-workspace[open] > summary {
+  margin-bottom: 6px;
+  padding-bottom: 7px;
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 52%, transparent);
+}
+
+/* Remove the dead band between the field framing and the result ledger. */
+.rd-v2-discover-field + .rd-v2-discover-ranked-results,
+.rd-v2-discover-explore-workspace + .rd-v2-discover-ranked-results {
+  margin-top: 0 !important;
+}
+
+.rd-v2-discover-ranked-results {
+  margin-top: 0 !important;
+  padding-top: 0;
+}
+
+.rd-v2-discover-ranked-results-head {
+  min-height: 28px;
+  padding: 6px 0 5px;
+}
+
+/* The idle inspector need not reserve selected-candidate width. Restore canvas
+   space while keeping enough room for the search summary; expand only on focus. */
+
+/* ── discover-scan-polish ── */
+/* Final scan-density pass for large Discover result fields.
+   Repeated secondary detail should not consume vertical space on every candidate. */
+
+/* Refresh cadence belongs in selected/detail context; coverage and route matter more while scanning. */
+.rd-v2-discover-ranked-results .rd-v2-discover-offering-facts > span:nth-child(3) {
+  display: none !important;
+}
+
+/* Library comparison is valuable, but repeating it 10–50 times overwhelms the field.
+   Reveal it for the row the researcher is actively inspecting. */
+.rd-v2-discover-ranked-results .rd-v2-discover-sufficiency {
+  display: none;
+}
+
+.rd-v2-discover-ranked-results li:hover .rd-v2-discover-sufficiency,
+.rd-v2-discover-ranked-results .rd-v2-discover-candidate.selected .rd-v2-discover-sufficiency,
+.rd-v2-discover-ranked-results .rd-v2-discover-candidate:focus-visible .rd-v2-discover-sufficiency {
+  display: block;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-candidate {
+  min-height: 58px;
+  padding-block: 6px;
+}
+
+@media (max-width: 1500px) {
+  .rd-v2-discover-ranked-results .rd-v2-discover-candidate {
+    min-height: 62px;
+  }
+}
+
+/* ── discover-workstation-polish ── */
+/* Discover workstation polish — increase scan efficiency without reducing the
+   evidence-field model. This layer is presentation-only. */
+
+/* The contextual rail earns width only when it has a selected evidence object.
+   Resting and unselected search states return the workstation to the evidence field. */
+@media (min-width: 1501px) {
+  body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(.rd-v2-discover-candidate.selected)) .rd-v2-shell {
+    --rd-rail: 292px;
+  }
+  body:has(.rd-v2-discover-page .rd-v2-discover-candidate.selected) .rd-v2-shell {
+    --rd-rail: 382px;
+  }
+}
+
+@media (min-width: 1100px) and (max-width: 1500px) {
+  body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(.rd-v2-discover-candidate.selected)) .rd-v2-shell {
+    --rd-rail: 276px;
+  }
+  body:has(.rd-v2-discover-page .rd-v2-discover-candidate.selected) .rd-v2-shell {
+    --rd-rail: 344px;
+  }
+}
+
+/* Resting radar reports research state, not the same source identities rendered
+   by the curated inventory directly below it. Keep the estate summary, remove
+   the duplicated mini-catalogue, and make execution a single decision strip. */
+
+/* The authoritative Library strip below Radar owns query-readiness. Avoid a
+   second counter whose scope can appear contradictory. */
+
+/* The territory tabs already summarize ordinary search composition. Repeat the
+   fine-grained field metrics only when an assembly decision makes them useful. */
+
+/* Unselected search rail: three orthogonal counts are enough. Named-route
+   totals are already represented in the centre and the route prose below. */
+body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(.rd-v2-discover-candidate.selected))
+  .rd-v2-resting-rail .rd-v2-rail-fieldgrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(.rd-v2-discover-candidate.selected))
+  .rd-v2-resting-rail .rd-v2-rail-fieldgrid > :nth-child(4) {
+  display: none;
+}
+
+body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(.rd-v2-discover-candidate.selected))
+  .rd-v2-resting-rail {
+  padding-inline: 12px;
+}
+
+body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(.rd-v2-discover-candidate.selected))
+  .rd-v2-resting-rail .rd-v2-eval-prose {
+  font-size: 10.5px;
+  line-height: 1.38;
+}
+
+/* Large candidate fields need a stable provider gutter. Long provider labels
+   must never collide with the evidence identity. */
+.rd-v2-discover-ranked-results .rd-v2-discover-candidate {
+  grid-template-columns: 64px minmax(0, 1fr);
+  column-gap: 8px;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-candidate-source {
+  min-width: 0;
+  width: 96px;
+  overflow: hidden;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-source-ribbon {
+  display: block;
+  max-width: 58px;
+  overflow: hidden;
+  padding-inline: 5px;
+  font-size: 9.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-candidate-main,
+.rd-v2-discover-ranked-results .rd-v2-discover-candidate-heading {
+  min-width: 0;
+}
+
+/* Repeated lifecycle controls remain discoverable, but they stop competing
+   with title/coverage while scanning 10–50 candidates. */
+.rd-v2-discover-ranked-results .rd-v2-discover-candidate .rd-v2-pill {
+  opacity: .24;
+  padding: 2px 5px;
+  font-size: 9.5px;
+  transition: opacity .12s ease;
+}
+
+.rd-v2-discover-ranked-results li:hover .rd-v2-discover-candidate .rd-v2-pill,
+.rd-v2-discover-ranked-results .rd-v2-row-on .rd-v2-discover-candidate .rd-v2-pill,
+.rd-v2-discover-ranked-results .rd-v2-discover-candidate:focus-visible .rd-v2-pill {
+  opacity: .9;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-row-add {
+  position: absolute;
+  width: 48px;
+  min-width: 48px;
+  padding-inline: 5px;
+  overflow: hidden;
+  color: transparent !important;
+  text-indent: -9999px;
+  opacity: .42;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-row-add::after {
+  content: "Add";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--rd-link, #3f6f5c);
+  font-size: 9.5px;
+  font-weight: 700;
+  line-height: 1;
+  text-indent: 0;
+}
+
+.rd-v2-discover-ranked-results li:hover .rd-v2-discover-row-add,
+.rd-v2-discover-ranked-results .rd-v2-row-on .rd-v2-discover-row-add,
+.rd-v2-discover-ranked-results .rd-v2-discover-row-add:focus-visible {
+  opacity: 1;
+}
+
+/* With the compact action, stop reserving a large invisible right gutter. */
+.rd-v2-discover-ranked-results .rd-v2-discover-candidate {
+  padding-right: 62px;
+}
+
+/* Result identity should dominate tertiary route metadata. */
+.rd-v2-discover-ranked-results .rd-v2-discover-candidate-title {
+  font-weight: 720;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-offering-facts,
+.rd-v2-discover-ranked-results .rd-v2-discover-possession {
+  opacity: .78;
+}
+
+@media (max-width: 1500px) {
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-candidate {
+    grid-template-columns: 58px minmax(0, 1fr);
+    column-gap: 7px;
+    padding-right: 58px;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-candidate-source {
+    width: 96px;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-source-ribbon {
+    max-width: 96px;
+    padding-inline: 4px;
+    font-size: 9.5px;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-row-add {
+    width: 44px;
+    min-width: 44px;
+  }
+}
+
+/* ── discover-resting-polish ── */
+/* Resting Discover scan pass — the Radar owns research-state context; source
+   tiles below it should be fast identities, not mini evaluation dossiers. */
+
+/* Keep the idle Inspector readable after reclaiming most of its previous width. */
+@media (min-width: 1501px) {
+  body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-shell {
+    --rd-rail: 252px;
+  }
+}
+
+@media (min-width: 1100px) and (max-width: 1500px) {
+  body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-shell {
+    --rd-rail: 244px;
+  }
+}
+
+@media (min-width: 761px) {
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate {
+    min-height: 0;
+    padding: 10px 12px 12px 10px;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidates li:has(.rd-v2-discover-row-add) button.row.rd-v2-discover-candidate {
+    padding-right: 132px;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-row-add {
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate-main {
+    gap: 2px;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate-title {
+    font-size: 11.5px;
+    line-height: 1.25;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-evidence {
+    display: block;
+    overflow: hidden;
+    max-width: 100%;
+    font-size: 9.5px;
+    line-height: 1.3;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-offering-facts {
+    gap: 8px;
+    margin-top: 1px;
+    overflow: hidden;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-offering-facts > span {
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+
+  /* Refresh is detail-level context in the resting catalogue. */
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-offering-facts > span:nth-child(3) {
+    display: none;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-offering-facts b {
+    font-size: 9.5px;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-offering-facts em {
+    max-width: 170px;
+    overflow: hidden;
+    font-size: 9.5px;
+    text-overflow: ellipsis;
+  }
+
+  /* Library comparison is available after selection; don't repeat it across
+     every resting source tile. */
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-sufficiency {
+    display: none;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-row-add {
+    right: 8px;
+    bottom: 7px;
+    min-height: 24px;
+    padding: 3px 7px;
+    font-size: 9.5px;
+    opacity: .68;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held li:hover .rd-v2-discover-row-add,
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-row-add:focus-visible {
+    opacity: 1;
+  }
+
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-pill {
+    opacity: .58;
+    font-size: 9.5px;
+  }
+}
+
+@media (min-width: 1680px) and (min-height: 900px) {
+  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate {
+    min-height: 90px;
+  }
+}
+
+/* ── discover-rail-balance ── */
+/* Wide-workstation rail balance.
+   Discover keeps a meaningful contextual rail at 1920+ even before selection;
+   the rail is part of the research workspace, not disposable leftover chrome. */
+@media (min-width: 1680px) {
+  body:has(.rd-v2-discover-page) .rd-v2-shell {
+    --rd-rail: 408px;
+  }
+
+  body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-shell {
+    --rd-rail: 384px;
+  }
+
+  /* Match the higher-specificity workstation selector so the wide balance
+     actually owns unselected search states instead of falling back to 292px. */
+  body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(.rd-v2-discover-candidate.selected)) .rd-v2-shell {
+    --rd-rail: 408px;
+  }
+
+  body:has(.rd-v2-discover-page .rd-v2-discover-candidate.selected) .rd-v2-shell {
+    --rd-rail: 448px;
+  }
+}

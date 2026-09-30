@@ -1,10 +1,3 @@
-import "./discover-evidence-field.css";
-import "./discover-scale-polish.css";
-import "./discover-efficiency-polish.css";
-import "./discover-scan-polish.css";
-import "./discover-workstation-polish.css";
-import "./discover-resting-polish.css";
-import "./discover-rail-balance.css";
 
 function count(value) {
   return Array.isArray(value) ? value.length : 0;

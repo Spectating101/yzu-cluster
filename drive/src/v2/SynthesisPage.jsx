@@ -25,8 +25,6 @@ import { SynthesisHome } from "./SynthesisHome.jsx";
 import { focusFor } from "./synthesisFocus.js";
 import { synthesisAssist } from "@/v2/synthesisAssist.js";
 import { synthesisDraftBrief, synthesisDraftPrompt } from "@/v2/synthesisDraft.js";
-import "./s04-opening.css";
-import "./synthesis-preview.css";
 
 // The record renders whether or not it leads, so the strip must not offer it too.
 const RECORD_ALWAYS = ["columns", "excursions", "settled", "provenance", "reuse"];

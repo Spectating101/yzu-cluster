@@ -1,11 +1,4 @@
 import { coverageSplit, coverageSummary } from "@/v2/discoverCoverage";
-import "./discover-production.css";
-import "./discover-visual-freeze.css";
-import "./discover-reconvergence.css";
-import "./discover-reconvergence-tight.css";
-import "./discover-flagship.css";
-import "./discover-flagship-wide.css";
-import "./discover-flagship-investigation.css";
 
 export function DiscoverCoveragePanel({ catalog = [], partitions = [], shelves = [], onSearchShelf }) {
   const summary = coverageSummary(catalog, partitions, shelves);

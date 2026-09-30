@@ -11,7 +11,6 @@ import { synthesisDraftBrief, synthesisDraftPrompt } from "@/v2/synthesisDraft.j
 import { synthesisPreviewTruth } from "@/v2/synthesisLifecycle";
 import { isPreAcceptance, recommendedConstruction, researchBrief } from "@/v2/synthesisBrief.js";
 import { describeDataset } from "@/v2/api";
-import "./synthesis-convergence.css";
 
 function normalizedExecutionStatus(thread) {
   return String(thread?.state?.execution?.status || "").trim().toLowerCase().replace(/-/g, "_");

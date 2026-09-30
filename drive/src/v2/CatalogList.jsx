@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { CatalogRow } from "@/v2/CatalogRow";
-import "@/v2/library-live-scale.css";
 
 const PAGE_SIZE = 50;
 

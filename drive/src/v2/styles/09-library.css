@@ -1,0 +1,1240 @@
+/* ── library-live-scale ── */
+/* Live Library scale layer: keep the existing root design, add only the mechanics
+   needed for large estates and a clearer handoff into the folder directory. */
+
+/* Library is the evidence overview; Folders is the manual storage browser.
+   Folders participates in the same horizontal strip so it cannot overlap the
+   collection list or expand the live root into another navigation panel. */
+
+.rd-v2-cap-folders-root {
+  border-color: var(--rd-active-border);
+  background: var(--rd-active-bg);
+  color: var(--rd-text);
+  font-weight: 720;
+}
+
+.rd-v2-cap-folders-root::after {
+  content: "";
+  width: 1px;
+  height: 18px;
+  margin-left: 2px;
+  background: var(--rd-border2);
+}
+
+/* "State" was too broad for a control that is specifically about research
+   readiness. Keep the existing test/URL contract while making the visible
+   vocabulary match the underlying readiness model. */
+.rd-v2-library-filter-control:has(select[data-testid="library-state-filter"]) > span {
+  font-size: 0;
+}
+
+.rd-v2-library-filter-control:has(select[data-testid="library-state-filter"]) > span::after {
+  content: "Readiness";
+  font-size: 9.5px;
+}
+
+.rd-v2-library-pagination {
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border-top: 1px solid var(--rd-border);
+  background: rgba(250, 249, 244, 0.36);
+}
+
+.rd-v2-library-pagination.directory {
+  margin-top: 0;
+  border-top: 1px solid var(--rd-border);
+}
+
+.rd-v2-library-pagination > span {
+  color: var(--rd-muted);
+  font-family: var(--rd-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: .035em;
+  text-transform: uppercase;
+}
+
+.rd-v2-library-folder-context {
+  padding-block: 2px 10px;
+  border-bottom: 1px solid var(--rd-border);
+}
+
+.rd-v2-library-folder-context .rd-v2-rail-note {
+  max-width: 34ch;
+  line-height: 1.48;
+}
+
+.rd-v2-library-folder-context .rd-v2-rail-note + .rd-v2-rail-note {
+  margin-top: 7px;
+}
+
+/* Selected evidence: keep the rail decisional rather than repeating the centre
+   workspace. The basis grid stays legible while a full preview covers the
+   working surface, and the next-move note explains what the current state
+   permits without conflating readiness, verification, or provenance. */
+.rd-v2-library-inspector-basis {
+  border-bottom: 1px solid var(--rd-border);
+  background: linear-gradient(180deg, rgba(250, 249, 244, .72), rgba(255, 255, 255, 0));
+}
+
+.rd-v2-library-inspector-basis .rd-v2-rail-section-label {
+  margin-bottom: 9px;
+}
+
+.rd-v2-library-inspector-basis-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  overflow: hidden;
+}
+
+.rd-v2-library-inspector-basis-grid > div {
+  min-width: 0;
+}
+
+.rd-v2-library-inspector-basis-grid > div:nth-child(n + 3) {
+  border-top: 1px solid var(--rd-border);
+}
+
+.rd-v2-library-inspector-basis-grid span,
+.rd-v2-library-inspector-next > span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--rd-muted);
+  font-family: var(--rd-mono);
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.rd-v2-library-inspector-basis-grid strong {
+  display: block;
+  overflow: hidden;
+  color: var(--rd-text);
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-v2-library-inspector-next {
+  border-left: 2px solid var(--rd-accent);
+}
+
+.rd-v2-library-inspector-next p {
+  margin: 0;
+  color: var(--rd-body);
+}
+
+.rd-v2-library-inspector-unknown .rd-v2-library-rail-module-title {
+  margin-bottom: 7px;
+}
+
+/* The full preview is the selected asset's working view, not a tiny secondary
+   popover. On wide desktop it should consume most of the centre plane while
+   leaving the persistent decision rail untouched. !important is intentional:
+   PreviewModal imports its generic viewer CSS later in the bundle. */
+@media (min-width: 1680px) and (min-height: 850px) {
+  .rd-preview-scrim {
+    grid-template-columns: minmax(24px, 1fr) minmax(0, 1080px) minmax(24px, 1fr) !important;
+    gap: 10px !important;
+    padding: 18px !important;
+  }
+
+  .rd-preview-shell {
+    max-height: min(88vh, calc(100% - 8px)) !important;
+  }
+
+  .rd-preview-table th,
+  .rd-preview-table td {
+    padding-inline: 14px !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .rd-v2-library-pagination {
+    align-items: flex-start;
+  }
+
+  .rd-v2-library-inspector-basis-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rd-v2-library-inspector-basis-grid > div + div {
+    border-top: 1px solid var(--rd-border);
+  }
+}
+
+/* Federated holdings: current storage topology stays visibly distinct from
+   source provenance. The rail gets a compact location summary; the centre
+   overlay owns copy-level provider, custodian, path, access, and sync state. */
+
+.rd-v2-library-holding-focus > span,
+.rd-v2-library-holding-location > span {
+  color: var(--rd-muted);
+  font-family: var(--rd-mono);
+  font-size: 9.5px;
+  font-weight: 760;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.rd-v2-library-holding-focus strong {
+  color: var(--rd-text);
+}
+
+.rd-v2-library-holding-focus small {
+  color: var(--rd-muted);
+}
+
+.rd-v2-library-holdings-provider-line {
+  color: var(--rd-muted);
+  line-height: 1.4;
+}
+
+.rd-v2-library-holdings-overlay {
+  width: min(100%, 720px);
+}
+
+.rd-v2-library-holdings-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 2px 0 16px;
+  overflow: hidden;
+  border: 1px solid var(--rd-border2);
+  border-radius: 8px;
+  background: rgba(250, 249, 244, .45);
+}
+
+.rd-v2-library-holdings-summary > div {
+  min-width: 0;
+  padding: 10px 12px;
+}
+
+.rd-v2-library-holdings-summary > div + div {
+  border-left: 1px solid var(--rd-border);
+}
+
+.rd-v2-library-holdings-summary span {
+  display: block;
+  color: var(--rd-muted);
+  font-family: var(--rd-mono);
+  font-size: 9.5px;
+  font-weight: 760;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.rd-v2-library-holdings-summary strong {
+  display: block;
+  margin-top: 3px;
+  color: var(--rd-text);
+  font-size: 17px;
+}
+
+.rd-v2-library-holding-list {
+  display: grid;
+  gap: 9px;
+}
+
+.rd-v2-library-holding-card {
+  padding: 12px 13px;
+  border: 1px solid var(--rd-border2);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, .72);
+}
+
+.rd-v2-library-holding-card > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 0;
+}
+
+.rd-v2-library-holding-card h3 {
+  margin: 3px 0 0;
+  color: var(--rd-text);
+  font-size: 14px;
+}
+
+.rd-v2-library-holding-card header p {
+  margin: 3px 0 0;
+  color: var(--rd-muted);
+  font-size: 10.5px;
+}
+
+.rd-v2-library-holding-status {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 5px;
+}
+
+.rd-v2-library-holding-status span {
+  padding: 3px 6px;
+  border: 1px solid var(--rd-border2);
+  border-radius: 999px;
+  color: var(--rd-muted);
+  font-size: 9.5px;
+  font-weight: 650;
+}
+
+.rd-v2-library-holding-card[data-access="available"] .rd-v2-library-holding-status span:first-child {
+  border-color: rgba(63, 111, 92, .28);
+  background: rgba(63, 111, 92, .07);
+  color: #365447;
+}
+
+.rd-v2-library-holding-location {
+  display: grid;
+  gap: 4px;
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px solid var(--rd-border);
+}
+
+.rd-v2-library-holding-location code {
+  color: var(--rd-body);
+  font-size: 10.5px;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 760px) {
+  .rd-v2-library-holdings-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .rd-v2-library-holdings-summary > div + div {
+    border-top: 1px solid var(--rd-border);
+    border-left: 0;
+  }
+
+  .rd-v2-library-holding-card > header {
+    display: grid;
+  }
+
+  .rd-v2-library-holding-status {
+    justify-content: flex-start;
+  }
+}
+
+
+/* LIBRARY FINAL FREEZE: compact decision rail
+   Same semantic ownership, less vertical serialization. */
+.rd-v2-library-inspector-basis {
+  padding: 14px 15px 12px;
+}
+
+.rd-v2-library-inspector-basis-grid {
+  display: block;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.rd-v2-library-inspector-basis-grid > div {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  align-items: baseline;
+  gap: 8px;
+  padding: 5px 0;
+  border: 0;
+  border-top: 1px solid rgba(38, 52, 72, .09);
+  background: transparent;
+}
+
+.rd-v2-library-inspector-basis-grid > div:first-child {
+  border-top: 0;
+}
+
+.rd-v2-library-inspector-basis-grid > div:nth-child(odd),
+.rd-v2-library-inspector-basis-grid > div:nth-child(n + 3) {
+  border-right: 0;
+}
+
+.rd-v2-library-inspector-basis-grid span {
+  margin-bottom: 0;
+  font-size: 9.5px;
+  letter-spacing: .06em;
+}
+
+.rd-v2-library-inspector-basis-grid strong {
+  font-size: 11.5px;
+  line-height: 1.25;
+}
+
+.rd-v2-library-inspector-next {
+  margin-top: 8px;
+  padding: 9px 10px;
+  border-left-color: rgba(39, 84, 133, .45);
+  background: rgba(44, 76, 114, .035);
+}
+
+.rd-v2-library-inspector-next > span {
+  font-size: 9.5px;
+  letter-spacing: .06em;
+}
+
+.rd-v2-library-inspector-next p {
+  margin-top: 3px;
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+
+.rd-v2-library-inspector-holdings {
+  padding: 12px 15px;
+}
+
+.rd-v2-library-inspector-holdings .rd-v2-library-rail-module-title {
+  margin: 2px 0 5px;
+  font-size: 11.5px;
+}
+
+.rd-v2-library-holding-focus {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: 2px 8px;
+  margin-top: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.rd-v2-library-holding-focus > span {
+  grid-column: 1;
+  align-self: baseline;
+  font-size: 9.5px;
+}
+
+.rd-v2-library-holding-focus strong {
+  grid-column: 2;
+  font-size: 11.5px;
+  line-height: 1.25;
+}
+
+.rd-v2-library-holding-focus small {
+  grid-column: 2;
+  font-size: 9.5px;
+  line-height: 1.3;
+}
+
+.rd-v2-library-holdings-provider-line {
+  margin: 6px 0 0;
+  padding-top: 6px;
+  border-top: 1px solid rgba(38, 52, 72, .09);
+  font-size: 10px;
+}
+
+.rd-v2-library-inspector-block {
+  padding: 12px 15px;
+}
+
+.rd-v2-library-inspector-block .rd-v2-library-rail-module-title {
+  margin: 2px 0 4px;
+  font-size: 12px;
+}
+
+.rd-v2-library-inspector-prose {
+  margin: 4px 0;
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+
+.rd-v2-library-verify-list {
+  gap: 3px;
+  margin: 6px 0 0;
+}
+
+.rd-v2-library-verify-list li {
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.rd-v2-library-inspector-tech {
+  margin: 9px 15px 12px;
+}
+
+.rd-v2-library-inspector-tech > summary {
+  font-size: 10.5px;
+}
+
+@media (max-width: 760px) {
+  .rd-v2-library-inspector-basis-grid > div {
+    grid-template-columns: 84px minmax(0, 1fr);
+  }
+}
+
+
+/* LIBRARY FEDERATION FREEZE: Location deliberately reuses the same compact
+   select pattern as Type, Readiness, and Sort. Provider capability remains in
+   the option list instead of becoming a second navigation strip. */
+
+
+/* LIBRARY FEDERATION FREEZE: Location deliberately reuses the same compact
+   select pattern as Type, Readiness, and Sort. Provider capability remains in
+   the option list instead of becoming a second navigation strip. */
+
+/* ── capability-convergence ── */
+/* Capability-convergence layer.
+   Current shell remains authoritative; this file only changes how selected
+   centre surfaces expose already-supported research capability. */
+
+.rd-v2-cap-estate {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  border-top: 1px solid var(--rd-border);
+  background: rgba(255, 253, 246, 0.72);
+}
+
+.rd-v2-cap-collections {
+  display: grid;
+  grid-template-columns: 138px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 8px 20px;
+  border-bottom: 1px solid var(--rd-border);
+  background: rgba(247, 244, 236, 0.62);
+}
+
+.rd-v2-cap-collections-label {
+  color: var(--rd-muted);
+  font-size: 9.5px;
+  font-weight: 760;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.rd-v2-cap-collections-loading {
+  color: var(--rd-muted);
+  font-size: 10px;
+  font-style: italic;
+}
+
+.rd-v2-cap-collection-list {
+  display: flex;
+  min-width: 0;
+  gap: 7px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.rd-v2-cap-collection {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  padding: 6px 9px;
+  border: 1px solid var(--rd-border2);
+  border-radius: 9px;
+  color: var(--rd-body);
+  background: rgba(255, 253, 246, 0.86);
+  cursor: pointer;
+  font-size: 10.5px;
+  text-align: left;
+  transition: border-color 140ms ease, background 140ms ease, transform 140ms ease;
+}
+
+.rd-v2-cap-collection:hover {
+  border-color: var(--rd-active-border);
+  background: var(--rd-active-bg);
+  transform: translateY(-1px);
+}
+
+.rd-v2-cap-collection > span:first-child {
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-v2-cap-collection b {
+  display: inline-flex;
+  min-width: 19px;
+  height: 19px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--rd-accent-soft);
+  color: var(--rd-body);
+  font-size: 9.5px;
+}
+
+.rd-v2-cap-ledger {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
+.rd-v2-cap-ledger-head,
+.rd-v2-cap-ledger-row {
+  display: grid;
+  grid-template-columns: minmax(360px, 1fr) minmax(130px, 0.34fr) minmax(105px, 0.26fr);
+  gap: 18px;
+  align-items: center;
+}
+
+.rd-v2-cap-ledger.show-kind .rd-v2-cap-ledger-head,
+.rd-v2-cap-ledger.show-kind .rd-v2-cap-ledger-row {
+  grid-template-columns: minmax(300px, 1fr) minmax(105px, 0.28fr) minmax(115px, 0.32fr) minmax(105px, 0.26fr);
+  gap: 16px;
+}
+
+.rd-v2-cap-ledger-head {
+  padding: 8px 20px;
+  border-bottom: 1px solid var(--rd-border);
+  color: var(--rd-muted);
+  background: rgba(255, 253, 246, 0.94);
+  font-size: 9.5px;
+  font-weight: 780;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.rd-v2-cap-ledger-body {
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+}
+
+.rd-v2-cap-ledger-row {
+  width: 100%;
+  min-height: 62px;
+  padding: 9px 20px;
+  border: 0;
+  border-bottom: 1px solid rgba(219, 212, 197, 0.82);
+  color: var(--rd-body);
+  background: rgba(255, 253, 246, 0.62);
+  cursor: pointer;
+  text-align: left;
+  transition: background 120ms ease, box-shadow 120ms ease;
+}
+
+.rd-v2-cap-ledger-row:hover,
+.rd-v2-cap-ledger-row:focus-visible {
+  background: var(--rd-hover);
+  box-shadow: inset 3px 0 0 var(--rd-link);
+}
+
+.rd-v2-cap-evidence {
+  min-width: 0;
+}
+
+.rd-v2-cap-evidence strong {
+  display: block;
+  overflow: hidden;
+  color: var(--rd-text);
+  font-size: 12.5px;
+  font-weight: 720;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-v2-cap-evidence em {
+  display: block;
+  margin-top: 3px;
+  overflow: hidden;
+  color: var(--rd-muted);
+  font-size: 10.5px;
+  font-style: normal;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-v2-cap-kind,
+.rd-v2-cap-source {
+  overflow: hidden;
+  color: var(--rd-body);
+  font-size: 10.5px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-v2-cap-kind {
+  color: var(--rd-muted);
+}
+
+.rd-v2-cap-state {
+  min-width: 0;
+}
+
+.rd-v2-cap-state .rd-v2-status-pill {
+  max-width: 100%;
+}
+
+.rd-v2-cap-state .rd-v2-status-pill > span:not(.rd-v2-status-dot) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rd-v2-cap-ledger-empty {
+  padding: 30px 20px;
+  color: var(--rd-muted);
+}
+
+.rd-v2-cap-ledger-empty strong {
+  color: var(--rd-text);
+  font-size: 12px;
+}
+
+.rd-v2-cap-ledger-empty p {
+  max-width: 520px;
+  margin: 6px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+@media (max-width: 1120px) {
+  .rd-v2-cap-ledger-head,
+  .rd-v2-cap-ledger-row,
+  .rd-v2-cap-ledger.show-kind .rd-v2-cap-ledger-head,
+  .rd-v2-cap-ledger.show-kind .rd-v2-cap-ledger-row {
+    grid-template-columns: minmax(260px, 1fr) minmax(100px, 0.32fr) minmax(100px, 0.32fr);
+  }
+
+  .rd-v2-cap-ledger.show-kind .rd-v2-cap-kind {
+    display: none;
+  }
+
+  .rd-v2-cap-ledger.show-kind .rd-v2-cap-ledger-head > span:nth-child(2) {
+    display: none;
+  }
+}
+
+/* ── library-evidence-rigor ── */
+/* Library evidence rigor layer.
+   The ledger exposes four independent claims (five when Type is present):
+   evidence identity, source, verification, and readiness. Keep the CSS grid in
+   lock-step with that semantic contract rather than letting implicit grid rows
+   rearrange the last claim. */
+
+/* A breadcrumb earns its space only after the researcher has entered a
+   collection. At Library root the one-item trail merely repeats the page title. */
+.rd-v2-library-page .rd-v2-crumb:has(.rd-v2-crumb-item:only-child) {
+  display: none;
+}
+
+.rd-v2-cap-ledger.with-verify .rd-v2-cap-ledger-head,
+.rd-v2-cap-ledger.with-verify .rd-v2-cap-ledger-row {
+  grid-template-columns: minmax(270px, 1fr) minmax(150px, 0.46fr) minmax(96px, 0.24fr) minmax(132px, 0.3fr);
+  grid-template-areas: "evidence source verify state";
+  gap: 16px;
+}
+
+.rd-v2-cap-ledger.with-verify.show-kind .rd-v2-cap-ledger-head,
+.rd-v2-cap-ledger.with-verify.show-kind .rd-v2-cap-ledger-row {
+  grid-template-columns: minmax(230px, 1.05fr) minmax(90px, 0.22fr) minmax(150px, 0.48fr) minmax(94px, 0.22fr) minmax(132px, 0.28fr);
+  grid-template-areas: "evidence kind source verify state";
+  gap: 14px;
+}
+
+.rd-v2-cap-ledger-head > span:first-child,
+.rd-v2-cap-evidence { grid-area: evidence; }
+.rd-v2-cap-ledger.show-kind .rd-v2-cap-ledger-head > span:nth-child(2),
+.rd-v2-cap-kind { grid-area: kind; }
+.rd-v2-cap-ledger:not(.show-kind) .rd-v2-cap-ledger-head > span:nth-child(2),
+.rd-v2-cap-ledger.show-kind .rd-v2-cap-ledger-head > span:nth-child(3),
+.rd-v2-cap-source { grid-area: source; }
+.rd-v2-cap-ledger:not(.show-kind) .rd-v2-cap-ledger-head > span:nth-child(3),
+.rd-v2-cap-ledger.show-kind .rd-v2-cap-ledger-head > span:nth-child(4),
+.rd-v2-cap-verify { grid-area: verify; }
+.rd-v2-cap-ledger:not(.show-kind) .rd-v2-cap-ledger-head > span:nth-child(4),
+.rd-v2-cap-ledger.show-kind .rd-v2-cap-ledger-head > span:nth-child(5),
+.rd-v2-cap-state { grid-area: state; }
+
+/* Provenance is a first-class evidence claim, not disposable table chrome.
+   Give long institutional source identities two readable lines before clipping. */
+.rd-v2-cap-source {
+  display: -webkit-box;
+  overflow: hidden;
+  line-height: 1.35;
+  white-space: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.rd-v2-cap-verify {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  align-items: center;
+  min-height: 22px;
+  padding: 3px 7px;
+  border: 1px solid var(--rd-border2);
+  border-radius: 999px;
+  color: var(--rd-muted);
+  background: rgba(255, 255, 255, 0.55);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.rd-v2-cap-verify.unchecked {
+  padding-inline: 0;
+  border-color: transparent;
+  background: none;
+  color: #8a8f98;
+  font-weight: 600;
+}
+
+.rd-v2-cap-verify.verified,
+.rd-v2-cap-verify.matched {
+  border-color: #c7dacf;
+  color: #315b45;
+  background: #f2f8f4;
+}
+
+.rd-v2-cap-verify.partial {
+  border-color: #e3d3ad;
+  color: #765f2e;
+  background: #fffaf0;
+}
+
+.rd-v2-cap-verify.unverified {
+  border-color: #e2c4c0;
+  color: #7a433c;
+  background: #fff6f4;
+}
+
+.rd-v2-library-observation-receipt {
+  color: var(--rd-muted);
+  font-family: var(--rd-mono);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.rd-v2-library-mobile-claims {
+  display: none;
+}
+
+.rd-v2-library-observation-receipt {
+  flex: 0 0 auto;
+  padding-top: 2px;
+}
+
+.rd-v2-library-verification-note {
+  margin: 15px 0 0;
+  padding: 11px 12px;
+  border-left: 2px solid #c7dacf;
+  background: #f7faf7;
+  color: var(--rd-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+@media (max-width: 1120px) {
+  .rd-v2-cap-ledger.with-verify .rd-v2-cap-ledger-head,
+  .rd-v2-cap-ledger.with-verify .rd-v2-cap-ledger-row,
+  .rd-v2-cap-ledger.with-verify.show-kind .rd-v2-cap-ledger-head,
+  .rd-v2-cap-ledger.with-verify.show-kind .rd-v2-cap-ledger-row {
+    grid-template-columns: minmax(220px, 1fr) minmax(128px, 0.42fr) minmax(92px, 0.24fr) minmax(100px, 0.26fr);
+    grid-template-areas: "evidence source verify state";
+    gap: 12px;
+  }
+
+  .rd-v2-cap-ledger.with-verify.show-kind .rd-v2-cap-kind,
+  .rd-v2-cap-ledger.with-verify.show-kind .rd-v2-cap-ledger-head > span:nth-child(2) {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .rd-v2-library-mobile-claims {
+    display: grid;
+    gap: 4px;
+    margin-top: 8px;
+    padding: 8px 0;
+    border-block: 1px solid var(--rd-release-line, var(--rd-border));
+    color: var(--rd-muted);
+    font-size: 11px;
+  }
+
+  .rd-v2-library-mobile-claims strong {
+    margin-left: 5px;
+    color: var(--rd-release-ink, var(--rd-text));
+  }
+
+
+  .rd-v2-cap-collections {
+    grid-template-columns: 1fr;
+    gap: 6px;
+    padding: 8px 14px 10px;
+  }
+
+  .rd-v2-cap-ledger-head {
+    display: none;
+  }
+
+  .rd-v2-cap-ledger.with-verify .rd-v2-cap-ledger-row,
+  .rd-v2-cap-ledger.with-verify.show-kind .rd-v2-cap-ledger-row {
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "evidence state"
+      "source verify";
+    gap: 8px 12px;
+    align-items: start;
+    padding: 12px 14px;
+  }
+
+  .rd-v2-cap-ledger.with-verify.show-kind .rd-v2-cap-kind {
+    display: none;
+  }
+
+  .rd-v2-cap-evidence strong {
+    white-space: normal;
+  }
+
+  .rd-v2-cap-evidence em {
+    display: -webkit-box;
+    white-space: normal;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .rd-v2-cap-source {
+    align-self: center;
+    white-space: normal;
+  }
+
+  .rd-v2-cap-state,
+  .rd-v2-cap-verify {
+    justify-self: end;
+  }
+
+  /* Library's phone hierarchy keeps the evidence canvas primary. The global
+     shell owns the bottom navigation; a collapsed Library rail should therefore
+     be only the contextual affordance itself, not a second full-width bar. */
+  .rd-v2-shell:has(.rd-v2-library-page) .yzu-inspector.rd-v2-rail-collapsed,
+  .rd-v2-shell:has(.rd-v2-library-workspace) .yzu-inspector.rd-v2-rail-collapsed {
+    left: auto !important;
+    right: 8px !important;
+    width: max-content !important;
+    max-width: calc(100vw - 16px) !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .rd-v2-shell:has(.rd-v2-library-inspector-scrim) .yzu-inspector.rd-v2-rail-collapsed {
+    display: none !important;
+  }
+
+  .rd-v2-library-page .rd-v2-scroll-foot {
+    display: none;
+  }
+}
+
+
+/* Library retrieval evidence */
+.rd-v2-library-match {
+  display: flex;
+  min-width: 0;
+  gap: 6px;
+  align-items: center;
+  margin-top: 3px;
+  font-size: 10.5px;
+  line-height: 1.25;
+  color: var(--text-muted, #667085);
+  overflow: hidden;
+}
+
+.rd-v2-library-match > b {
+  flex: 0 0 auto;
+  font-weight: 700;
+  color: var(--text-secondary, #475467);
+}
+
+.rd-v2-library-match > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-v2-library-match > span + span::before {
+  content: "·";
+  margin-right: 6px;
+  color: var(--text-subtle, #98a2b3);
+}
+
+.rd-v2-library-search-ask {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+
+/* Library file-browser ergonomics */
+.rd-v2-library-page .rd-v2-toolbar {
+  gap: 7px;
+}
+
+.rd-v2-library-toolbar-search {
+  flex: 1 1 330px;
+  min-width: 300px;
+  max-width: 460px;
+}
+
+.rd-v2-library-toolbar-search input {
+  width: 100%;
+  min-width: 0;
+  text-overflow: ellipsis;
+}
+
+.rd-v2-library-toolbar-search kbd {
+  flex: 0 0 auto;
+  min-width: 20px;
+  padding: 1px 5px;
+  border: 1px solid var(--rd-border2);
+  border-radius: 5px;
+  color: var(--rd-muted);
+  background: rgba(255, 255, 255, 0.62);
+  font-family: var(--rd-mono);
+  font-size: 9.5px;
+  line-height: 16px;
+  text-align: center;
+}
+
+.rd-v2-library-toolbar-filters {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.rd-v2-library-filter-control {
+  display: inline-flex;
+  min-width: 0;
+  height: 30px;
+  align-items: center;
+  gap: 5px;
+  padding: 0 7px;
+  border: 1px solid var(--rd-border2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.58);
+  color: var(--rd-muted);
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.rd-v2-library-filter-control > span {
+  font-family: var(--rd-mono);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.rd-v2-library-filter-control select {
+  max-width: 148px;
+  padding: 0 16px 0 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--rd-text);
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.rd-v2-library-filter-control:focus-within {
+  border-color: var(--rd-text);
+  box-shadow: 0 0 0 1px rgba(31, 41, 55, 0.08);
+}
+
+.rd-v2-library-available.compact {
+  display: flex;
+  min-height: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--rd-border);
+  border-radius: 8px;
+  background: rgba(250, 249, 244, 0.42);
+}
+
+.rd-v2-library-available.compact p {
+  margin: 0;
+  color: var(--rd-muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.rd-v2-library-available.compact strong {
+  color: var(--rd-text);
+  font-weight: 650;
+}
+
+.rd-v2-cap-ledger-row:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline: 2px solid rgba(45, 67, 54, 0.42);
+  outline-offset: -2px;
+}
+
+@media (min-width: 1500px) {
+  .rd-v2-library-toolbar-search {
+    max-width: 520px;
+  }
+}
+
+@media (max-width: 1180px) {
+  .rd-v2-library-toolbar-search {
+    min-width: 270px;
+  }
+
+  .rd-v2-library-toolbar-filters {
+    flex-wrap: wrap;
+  }
+
+  .rd-v2-library-filter-control select {
+    max-width: 118px;
+  }
+}
+
+@media (max-width: 760px) {
+  .rd-v2-library-toolbar-search kbd {
+    display: none;
+  }
+
+  .rd-v2-library-toolbar-filters {
+    width: 100%;
+  }
+
+  .rd-v2-library-filter-control {
+    flex: 1 1 30%;
+  }
+
+  .rd-v2-library-filter-control select {
+    width: 100%;
+    max-width: none;
+  }
+
+  .rd-v2-library-available.compact {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+/* ── library-auto-catalog ── */
+/* Library auto-catalogue layer.
+   Canonical evidence stays put. These controls only project the estate into
+   useful views, while collections remain an explicit curation layer. */
+
+/* Sparse estates should end where their evidence ends. The PageShell body owns
+   vertical scrolling; the ledger must not stretch a handful of rows into a fake
+   full-height directory pane. v2.css freezes the Library body so dense Library
+   workspaces can delegate scrolling inward, therefore this sparse auto-catalogue
+   projection explicitly restores the scroll owner it documents. */
+.rd-v2-library-page .rd-v2-body-scroll {
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+}
+
+.rd-v2-library-page .rd-v2-cap-estate,
+.rd-v2-library-page .rd-v2-cap-ledger,
+.rd-v2-library-page .rd-v2-cap-ledger-body {
+  flex: 0 0 auto;
+  min-height: 0;
+}
+
+.rd-v2-library-page .rd-v2-cap-ledger-body {
+  overflow: visible;
+}
+
+/* View and collection controls are operating chrome, not destinations. Keep
+   them compact so the evidence ledger begins immediately under the page tools. */
+
+.rd-v2-library-page .rd-v2-cap-collections {
+  grid-template-columns: 78px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 5px 16px;
+  background: rgba(247, 244, 236, 0.46);
+}
+
+.rd-v2-library-page .rd-v2-cap-collection {
+  padding-block: 4px;
+  background: rgba(255, 253, 246, 0.72);
+}
+
+.rd-v2-library-page .rd-v2-cap-ledger-head {
+  padding-block: 7px;
+}
+
+.rd-v2-library-page .rd-v2-cap-ledger-row {
+  min-height: 56px;
+  padding-block: 7px;
+}
+
+.rd-v2-library-available {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 10px 16px 12px;
+  border-top: 1px solid var(--rd-border);
+  background: rgba(245, 246, 241, 0.72);
+}
+
+.rd-v2-library-available > div {
+  min-width: 0;
+}
+
+.rd-v2-library-available h3 {
+  margin: 2px 0 2px;
+  color: var(--rd-text);
+  font-size: 12.5px;
+  font-weight: 720;
+  line-height: 1.3;
+}
+
+.rd-v2-library-available p {
+  max-width: 820px;
+  margin: 0;
+  color: var(--rd-muted);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.rd-v2-library-available .rd-v2-btn {
+  flex: none;
+}
+
+@media (max-width: 760px) {
+  .rd-v2-library-page .rd-v2-cap-collections {
+    grid-template-columns: 1fr;
+    gap: 5px;
+    padding: 7px 14px;
+  }
+
+  .rd-v2-cap-collection-list {
+    margin-inline: -2px;
+    padding: 2px;
+  }
+
+  .rd-v2-library-available {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 9px;
+    padding: 11px 14px 13px;
+  }
+
+  .rd-v2-library-available .rd-v2-btn {
+    width: 100%;
+  }
+}

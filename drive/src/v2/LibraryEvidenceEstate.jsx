@@ -3,10 +3,6 @@ import { LIBRARY_FOLDERS_ROOT } from "@/driveTree";
 import { displayName, libraryAssetPresentation } from "@/v2/datasetMeta";
 import { libraryVerification } from "@/v2/libraryVerification";
 import { StatusPill } from "@/v2/StatusPill";
-import "@/v2/capability-convergence.css";
-import "@/v2/library-evidence-rigor.css";
-import "@/v2/library-auto-catalog.css";
-import "@/v2/library-live-scale.css";
 
 const PAGE_SIZE = 50;
 

@@ -1,0 +1,880 @@
+/* ── discover-frozen-closure ── */
+/* RC88 frozen Discover closure.
+ * Keep the held-Library preview bounded by the Discover centre surface.
+ */
+.rd-v2-discover-frozen-counts {
+  position: relative;
+}
+
+.rd-v2-discover-library-evidence {
+  position: static;
+}
+
+.rd-v2-discover-library-popover {
+  width: min(520px, 100%);
+  max-width: 100%;
+}
+
+/* ── connected-accounts ── */
+.rd-v2-connected-intro {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 20px;
+  margin: 0 0 18px;
+}
+
+.rd-v2-connected-intro p {
+  margin: 0;
+  max-width: 690px;
+  color: var(--rd-muted, #66706c);
+  line-height: 1.55;
+}
+
+.rd-v2-connected-intro span {
+  flex: 0 0 auto;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--rd-muted, #66706c);
+}
+
+.rd-v2-connected-providers {
+  display: grid;
+  gap: 12px;
+}
+
+.rd-v2-connected-provider {
+  border-top: 1px solid var(--rd-line, rgba(31, 39, 36, 0.14));
+  padding: 16px 0 4px;
+}
+
+.rd-v2-connected-provider:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.rd-v2-connected-provider > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.rd-v2-connected-provider > header > div:first-child {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.rd-v2-connected-provider > header strong {
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.rd-v2-connected-provider > header span,
+.rd-v2-connected-account-copy span,
+.rd-v2-connected-account-copy small,
+.rd-v2-connected-provider-note {
+  color: var(--rd-muted, #66706c);
+}
+
+.rd-v2-connected-provider > header span {
+  font-size: 12px;
+}
+
+.rd-v2-connected-connect,
+.rd-v2-connected-account-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rd-v2-connected-mode {
+  min-width: 138px;
+}
+
+.rd-v2-connected-accounts-list {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+  border-top: 1px solid var(--rd-line, rgba(31, 39, 36, 0.1));
+}
+
+.rd-v2-connected-accounts-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--rd-line, rgba(31, 39, 36, 0.1));
+}
+
+.rd-v2-connected-account-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rd-v2-connected-account-copy strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-v2-connected-account-copy span,
+.rd-v2-connected-account-copy small {
+  font-size: 12px;
+}
+
+.rd-v2-connected-provider-note,
+.rd-v2-connected-error {
+  margin: 10px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.rd-v2-connected-error {
+  color: var(--rd-danger, #8c2f2f);
+}
+
+@media (max-width: 760px) {
+  .rd-v2-connected-intro,
+  .rd-v2-connected-provider > header,
+  .rd-v2-connected-accounts-list li {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .rd-v2-connected-connect,
+  .rd-v2-connected-account-actions {
+    width: 100%;
+  }
+
+  .rd-v2-connected-mode {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .rd-v2-connected-connect .rd-v2-btn,
+  .rd-v2-connected-account-actions .rd-v2-btn {
+    flex: 1 1 0;
+  }
+}
+
+/* ── launch-visual-closure ── */
+/* External-launch visual closure.
+ * One stable shell geometry, an in-product bootstrap, and workstation density
+ * for quiet pages. This file is intentionally last-loaded. */
+
+.rd-v2-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.rd-v2-session-bootstrap { color: var(--rd-text); }
+.rd-v2-bootstrap-header { grid-template-columns: 28px calc(var(--rd-sidebar) - 50px) minmax(0, 1fr); gap: 8px; }
+.rd-v2-bootstrap-header > strong { min-width: 0; font-size: 14px; white-space: nowrap; }
+.rd-v2-bootstrap-sidebar { padding: 17px 10px; }
+.rd-v2-bootstrap-sidebar > span {
+  display: block;
+  margin-bottom: 6px;
+  padding: 13px 14px;
+  border-radius: 8px;
+  color: var(--rd-sidebar-fg);
+  font-size: 13px;
+}
+.rd-v2-bootstrap-sidebar > span.active { background: var(--rd-sidebar-active-bg); color: var(--rd-sidebar-active-fg); }
+.rd-v2-bootstrap-main { padding: 24px; }
+.rd-v2-bootstrap-title { display: grid; gap: 7px; width: 250px; margin-bottom: 34px; }
+.rd-v2-bootstrap-title > span,
+.rd-v2-bootstrap-title > i,
+.rd-v2-bootstrap-line { display: block; border-radius: 999px; background: #e2e0d8; }
+.rd-v2-bootstrap-title > span { width: 106px; height: 22px; }
+.rd-v2-bootstrap-title > i { width: 210px; height: 9px; }
+.rd-v2-bootstrap-canvas {
+  min-height: 240px;
+  padding: 34px;
+  border: 1px solid var(--rd-border);
+  border-radius: 16px;
+  background: var(--rd-surface);
+  box-shadow: 0 16px 40px rgba(24, 32, 51, .045);
+}
+.rd-v2-bootstrap-line { height: 10px; margin-bottom: 13px; }
+.rd-v2-bootstrap-line.eyebrow { width: 82px; height: 7px; }
+.rd-v2-bootstrap-line.title { width: min(520px, 72%); height: 28px; margin: 24px 0 16px; }
+.rd-v2-bootstrap-line.copy { width: min(680px, 88%); }
+.rd-v2-bootstrap-line.short { width: min(360px, 54%); }
+.rd-v2-bootstrap-rail { display: flex; flex-direction: column; padding: 28px 18px; }
+.rd-v2-bootstrap-rail .title { width: 72%; height: 19px; margin-top: 22px; }
+.rd-v2-bootstrap-rail .copy { width: 92%; }
+
+.rd-v2-guest-feature-page .rd-v2-body-scroll {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 24px;
+}
+.rd-v2-guest-feature-hero {
+  max-width: 850px;
+  padding: clamp(30px, 4vw, 54px);
+  border: 1px solid var(--rd-border);
+  border-radius: 18px;
+  background: radial-gradient(circle at 100% 0, rgba(63,111,92,.12), transparent 38%), var(--rd-surface);
+  box-shadow: 0 18px 44px rgba(24,32,51,.06);
+}
+.rd-v2-guest-feature-hero h2 { max-width: 760px; margin: 14px 0 12px; font-size: clamp(26px, 3vw, 38px); line-height: 1.08; letter-spacing: -.035em; }
+.rd-v2-guest-feature-hero p { max-width: 700px; margin: 0 0 24px; color: var(--rd-muted); line-height: 1.6; }
+.rd-v2-guest-feature-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); max-width: 980px; border-block: 1px solid var(--rd-border); }
+.rd-v2-guest-feature-grid article { min-width: 0; padding: 20px 24px; border-right: 1px solid var(--rd-border); }
+.rd-v2-guest-feature-grid article:last-child { border-right: 0; }
+.rd-v2-guest-feature-grid span { color: var(--rd-link); font: 700 9px/1 var(--rd-mono); letter-spacing: .08em; }
+.rd-v2-guest-feature-grid strong { display: block; margin: 9px 0 5px; color: var(--rd-text); }
+.rd-v2-guest-feature-grid p { margin: 0; color: var(--rd-muted); font-size: 11px; line-height: 1.5; }
+
+/* The held-evidence control sits late in the result-territory band. Anchor its
+   preview to that band's right edge so a narrower workstation canvas does not
+   push the otherwise bounded popover underneath the inspector rail. */
+.rd-v2-discover-page .rd-v2-discover-library-popover {
+  right: 0;
+  left: auto;
+}
+
+@media (min-width: 1537px) {
+  body .rd-v2-shell { --rd-rail: 420px !important; }
+
+  .rd-v2-synthesis-page .s04-home { padding-bottom: 18px; }
+
+  .rd-v2-profile-page .rd-v2-body-scroll {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    /* This grid is also the viewport's scroll container. Its auto rows must
+       size to their contents instead of shrinking to share the fixed canvas
+       height; otherwise identity copy paints outside a padding-only row and
+       collides with the following profile sections. */
+    grid-auto-rows: max-content;
+    gap: 0 28px;
+    align-content: start;
+  }
+  .rd-v2-profile-page .rd-v2-profile-identity,
+  .rd-v2-profile-page .rd-v2-profile-memory-section,
+  .rd-v2-profile-page .rd-v2-profile-public-state,
+  .rd-v2-profile-page .rd-v2-profile-loading { grid-column: 1 / -1; }
+  .rd-v2-profile-page .rd-v2-profile-identity { padding-block: 18px 20px; }
+  .rd-v2-profile-page .rd-v2-profile-section { margin-top: 16px; }
+  .rd-v2-profile-page .rd-v2-profile-section-head { padding: 12px 0 10px; }
+  .rd-v2-profile-page .rd-v2-profile-memory-anchor { min-height: 172px; padding: 22px 26px; }
+  .rd-v2-profile-page .rd-v2-profile-memory-card { padding-block: 9px; }
+  .rd-v2-profile-page .rd-v2-profile-works li { padding-block: 9px; }
+
+  .rd-v2-settings-statement { width: min(100%, 1180px); max-width: 1180px; }
+  .rd-v2-settings-statement > .rd-v2-statement-section { grid-template-columns: 180px minmax(0, 1fr); gap: 28px; padding-block: 17px 19px; }
+  .rd-v2-settings-preference-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  .rd-v2-settings-preference { min-width: 0; padding: 14px; border: 1px solid var(--rd-border); border-radius: 12px; background: rgba(255,255,255,.48); }
+  .rd-v2-settings-preference .rd-v2-settings-row { display: block; padding: 0; }
+  .rd-v2-settings-preference .rd-v2-settings-label { display: block; margin-bottom: 9px; }
+  .rd-v2-settings-preference .rd-v2-settings-hint { margin: 9px 0 0; line-height: 1.4; }
+  .rd-v2-connected-providers { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .rd-v2-connected-provider,
+  .rd-v2-connected-provider:first-child { min-width: 0; padding: 14px; border: 1px solid var(--rd-border); border-radius: 12px; }
+  .rd-v2-connected-provider > header { align-items: stretch; flex-direction: column; gap: 12px; }
+  .rd-v2-connected-connect { align-items: stretch; flex-direction: column; }
+  .rd-v2-connected-mode { width: 100%; min-width: 0; }
+}
+
+@media (min-width: 721px) and (max-width: 1536px) {
+  body .rd-v2-shell { --rd-rail: clamp(300px, 26vw, 380px) !important; }
+}
+
+@media (max-width: 720px) {
+  .rd-v2-bootstrap-rail { display: none; }
+  .rd-v2-bootstrap-header { grid-template-columns: 28px minmax(0, 1fr); }
+  .rd-v2-bootstrap-header > .rd-v2-bootstrap-line { display: none; }
+  .rd-v2-bootstrap-main { padding: 14px; }
+  .rd-v2-bootstrap-canvas { min-height: 200px; padding: 24px; }
+  .rd-v2-guest-feature-page .rd-v2-body-scroll { justify-content: flex-start; }
+  .rd-v2-guest-feature-grid { grid-template-columns: 1fr; }
+  .rd-v2-guest-feature-grid article { border-right: 0; border-bottom: 1px solid var(--rd-border); }
+  .rd-v2-settings-preference-grid { display: grid; gap: 8px; }
+}
+
+/* ── home-release-closure ── */
+/* Home release closure — keep one vertical scroll authority.
+   The page shell is a fixed-height flex frame; .rd-v2-body-scroll owns the
+   content scroll. Older release layers also made the outer Home page scroll,
+   which produced a visually cropped/nested-scroll viewport on short screens. */
+.rd-v2-home-page,
+.rd-v2-home-page.rd-v2-home-i10 {
+  overflow: hidden;
+  max-height: none;
+}
+
+.rd-v2-home-page .rd-v2-body-scroll {
+  overscroll-behavior-y: contain;
+  scroll-padding-bottom: 24px;
+  padding-bottom: max(24px, env(safe-area-inset-bottom));
+}
+
+@media (max-width: 720px) {
+  .rd-v2-home-page .rd-v2-body-scroll {
+    scroll-padding-bottom: 28px;
+    padding-bottom: max(28px, env(safe-area-inset-bottom));
+  }
+}
+
+/* ── visual-system-consolidation ── */
+/* Research Drive — visual-system consolidation
+ *
+ * Late-loaded polish only. This file deliberately does not change navigation,
+ * page composition, research semantics, permissions, or execution authority.
+ * It closes visual drift around the public entry and reasserts the frozen
+ * parchment / charcoal / sage product language over residual indigo accents.
+ *
+ * Keep post-freeze visual sanding here rather than creating more one-off
+ * authority layers. Page-specific files still own their structural layouts.
+ */
+
+:root {
+  --rd-polish-ink: var(--rd-accent, #101820);
+  --rd-polish-sage: var(--rd-link, #3f6f5c);
+  --rd-polish-paper: var(--rd-surface, #fffdf6);
+  --rd-polish-canvas: var(--rd-canvas, #eeeae0);
+  --rd-polish-line: #ded8ca;
+  --rd-polish-line-soft: #ebe7dc;
+  --rd-polish-muted: #6e7685;
+  --rd-polish-fast: 140ms;
+  --rd-polish-medium: 180ms;
+}
+
+/* ── Private desk entry: make the first public surface feel like Research Drive ── */
+.rd-v2-access-gate {
+  min-height: 100dvh;
+  padding: clamp(20px, 5vw, 56px);
+  background:
+    radial-gradient(circle at 12% 10%, rgba(63, 111, 92, 0.16), transparent 30rem),
+    radial-gradient(circle at 88% 88%, rgba(154, 101, 14, 0.08), transparent 28rem),
+    linear-gradient(145deg, #f7f4ec 0%, #eeeae0 58%, #e7e2d7 100%);
+}
+
+.rd-v2-access-card {
+  position: relative;
+  width: min(620px, 100%);
+  padding: 38px 42px 34px;
+  overflow: hidden;
+  border: 1px solid rgba(15, 23, 28, 0.14);
+  border-radius: 18px;
+  background: rgba(255, 253, 246, 0.985);
+  box-shadow:
+    0 28px 80px rgba(15, 23, 28, 0.13),
+    0 2px 8px rgba(15, 23, 28, 0.06);
+}
+
+.rd-v2-access-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: linear-gradient(90deg, #101820 0 34%, #3f6f5c 34% 76%, #caa65a 76% 100%);
+}
+
+.rd-v2-access-lockup {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 30px;
+}
+
+.rd-v2-access-mark {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  border-radius: 11px;
+  background: linear-gradient(145deg, #24343a, #101820 58%, #0a1014);
+  color: #fcfcf0;
+  box-shadow: 0 8px 18px rgba(16, 24, 32, 0.22), inset 0 1px 0 rgba(252, 252, 240, 0.12);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.rd-v2-access-lockup > span:last-child {
+  display: grid;
+  gap: 2px;
+}
+
+.rd-v2-access-lockup strong {
+  color: #101820;
+  font-size: 14px;
+  font-weight: 740;
+  letter-spacing: -0.015em;
+}
+
+.rd-v2-access-lockup small {
+  margin: 0;
+  color: #6e7685;
+  font-size: 10.5px;
+  line-height: 1.2;
+}
+
+.rd-v2-access-kicker {
+  margin-bottom: 12px;
+  color: #3f6f5c;
+  font-size: 10px;
+  font-weight: 760;
+  letter-spacing: 0.12em;
+}
+
+.rd-v2-access-card h1 {
+  max-width: 500px;
+  margin-bottom: 16px;
+  color: #182033;
+  font-size: clamp(30px, 4vw, 40px);
+  font-weight: 740;
+  line-height: 1.06;
+  letter-spacing: -0.04em;
+}
+
+.rd-v2-access-card > p {
+  max-width: 520px;
+  color: #596273;
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+.rd-v2-access-boundary {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  margin: 26px 0 24px;
+  overflow: hidden;
+  border: 1px solid #ddd7ca;
+  border-radius: 12px;
+  background: #faf8f1;
+}
+
+.rd-v2-access-boundary span {
+  display: flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 9px 12px;
+  color: #56606d;
+  font-size: 11.5px;
+}
+
+.rd-v2-access-boundary span:nth-child(odd) {
+  border-right: 1px solid #e7e1d6;
+}
+
+.rd-v2-access-boundary span:nth-child(-n + 2) {
+  border-bottom: 1px solid #e7e1d6;
+}
+
+.rd-v2-access-boundary i {
+  width: 18px;
+  color: #3f6f5c;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.rd-v2-access-card form label {
+  margin-bottom: 7px;
+  color: #344054;
+  font-size: 11px;
+  font-weight: 720;
+  letter-spacing: 0.01em;
+}
+
+.rd-v2-access-form-row {
+  gap: 9px;
+}
+
+.rd-v2-access-form-row input {
+  height: 44px;
+  padding: 0 13px;
+  border: 1px solid #d4d9df;
+  border-radius: 10px;
+  background: #fff;
+  color: #182033;
+  box-shadow: inset 0 1px 0 rgba(16, 24, 32, 0.02);
+  transition: border-color var(--rd-polish-fast) ease, box-shadow var(--rd-polish-fast) ease, background var(--rd-polish-fast) ease;
+}
+
+.rd-v2-access-form-row input:focus {
+  outline: none;
+  border-color: rgba(63, 111, 92, 0.55);
+  box-shadow: 0 0 0 4px rgba(63, 111, 92, 0.11);
+}
+
+.rd-v2-access-form-row button {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid #101820;
+  border-radius: 10px;
+  background: #101820;
+  color: #fcfcf0;
+  box-shadow: 0 7px 18px rgba(16, 24, 32, 0.18);
+  transition: transform 130ms ease, box-shadow 130ms ease, background 130ms ease, opacity 130ms ease;
+}
+
+.rd-v2-access-form-row button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: #1a2a32;
+  box-shadow: 0 10px 24px rgba(16, 24, 32, 0.24);
+}
+
+.rd-v2-access-form-row button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.rd-v2-access-form-row button:disabled {
+  border-color: #d9d6cd;
+  background: #e9e6de;
+  color: #969389;
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+.rd-v2-access-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 46px;
+  margin-top: 14px;
+  padding: 10px 12px;
+  border: 1px solid #e1ddd2;
+  border-radius: 10px;
+  background: #f7f5ee;
+  color: #69717e;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.rd-v2-access-status.warning {
+  border-color: #ead6aa;
+  background: #fff8e9;
+  color: #73541b;
+}
+
+.rd-v2-access-retry {
+  width: auto;
+  min-height: 32px;
+  margin: 0;
+  padding: 0 4px;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #3f6f5c;
+  box-shadow: none;
+  font-size: 10.5px;
+  font-weight: 720;
+  white-space: nowrap;
+}
+
+.rd-v2-access-retry:hover:not(:disabled) {
+  color: #274d3d;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.rd-v2-access-retry:focus-visible,
+.rd-v2-access-form-row button:focus-visible {
+  outline: 3px solid rgba(63, 111, 92, 0.25);
+  outline-offset: 2px;
+}
+
+/* ── Palette consolidation: selected/review surfaces use sage, not indigo ── */
+
+.rd-v2-res-inventory-row:hover,
+.rd-v2-res-inventory-row.on {
+  background: #f3f7f4;
+  box-shadow: inset 3px 0 0 #3f6f5c;
+}
+
+.rd-v2-profile-page .rd-v2-body-scroll {
+  background:
+    radial-gradient(circle at 12% 0%, rgba(63, 111, 92, 0.075), transparent 27rem),
+    #f8f8f5;
+}
+
+::selection {
+  background: rgba(63, 111, 92, 0.2);
+  color: #101820;
+}
+
+/* ── Inspector density: one decision surface, then quieter supporting facts ── */
+.rd-v2-rail-panel .rd-v2-rail-scroll {
+  padding-bottom: 18px;
+  scrollbar-gutter: stable;
+}
+
+.rd-v2-rail-panel .rd-v2-rail-decision {
+  margin: 0 14px 10px;
+  overflow: hidden;
+  border: 1px solid var(--rd-polish-line);
+  border-radius: 10px;
+  background: #faf8f2;
+  box-shadow: 0 1px 0 rgba(16, 24, 32, 0.025);
+}
+
+.rd-v2-rail-panel .rd-v2-rail-decision-row {
+  min-height: 32px;
+  padding: 7px 10px;
+  gap: 10px;
+  border-top-color: var(--rd-polish-line-soft);
+}
+
+.rd-v2-rail-panel .rd-v2-rail-decision-label {
+  color: #7b8790;
+  font-size: 9.5px;
+  letter-spacing: 0.07em;
+}
+
+.rd-v2-rail-panel .rd-v2-rail-decision-value {
+  font-size: 11.5px;
+  line-height: 1.35;
+}
+
+.rd-v2-library-inspector-scroll {
+  padding-inline: 18px;
+}
+
+.rd-v2-library-inspector-block {
+  padding-block: 12px;
+  border-bottom-color: var(--rd-polish-line-soft);
+}
+
+.rd-v2-rail-section-label {
+  margin-top: 10px;
+  margin-bottom: 6px;
+  color: #81909a;
+}
+
+.rd-v2-rail-fieldgrid {
+  padding-top: 2px;
+}
+
+.rd-v2-rail-fieldgrid .rd-v2-detail-row {
+  min-height: 30px;
+}
+
+/* A no-selection rail is still useful context. Treat it like a bounded prompt,
+ * not a lonely icon floating inside a full-height white column. */
+.rd-v2-rail-empty-state {
+  align-items: flex-start;
+  width: auto;
+  margin: 16px;
+  padding: 20px 18px;
+  border: 1px dashed var(--rd-polish-line);
+  border-radius: 12px;
+  background: #fbfaf5;
+  text-align: left;
+}
+
+.rd-v2-rail-empty-icon {
+  width: 34px;
+  height: 34px;
+  padding: 7px;
+  border-radius: 10px;
+  background: #eef3ef;
+  color: var(--rd-polish-sage);
+}
+
+.rd-v2-rail-empty-title {
+  margin-top: 14px;
+  color: var(--rd-polish-ink);
+}
+
+.rd-v2-rail-empty-hint {
+  max-width: 32ch;
+  color: #68737e;
+  line-height: 1.55;
+}
+
+/* ── Honest thin states: compact evidence cards instead of blank canvas ── */
+.rd-v2-profile-page [data-testid="profile-memory-thin"],
+.rd-v2-profile-page [data-testid="profile-lab"]:has(> .rd-v2-empty-inline) {
+  align-self: start;
+  min-height: 0;
+  padding: 16px 18px 18px;
+  border: 1px solid var(--rd-polish-line);
+  border-radius: 12px;
+  background: rgba(255, 253, 246, 0.82);
+  box-shadow: 0 1px 0 rgba(16, 24, 32, 0.025);
+}
+
+.rd-v2-profile-page [data-testid="profile-memory-thin"] .rd-v2-empty-inline,
+.rd-v2-profile-page [data-testid="profile-lab"] > .rd-v2-empty-inline {
+  margin: 12px 0 0;
+  padding: 13px 14px;
+  border: 1px dashed #d8d2c6;
+  border-radius: 9px;
+  background: #f8f6ef;
+  color: #68737e;
+  line-height: 1.5;
+}
+
+.rd-v2-profile-page [data-testid="profile-lab"] > .rd-v2-profile-memory-effect {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--rd-polish-line-soft);
+}
+
+/* ── Causal motion: show state continuity, never decorative motion ── */
+@keyframes rd-polish-context-in {
+  from {
+    opacity: 0.72;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rd-v2-rail-pane-on {
+  animation: rd-polish-context-in var(--rd-polish-medium) ease-out both;
+}
+
+.rd-v2-discover-candidate,
+.rd-v2-res-inventory-row {
+  transition:
+    background-color var(--rd-polish-fast) ease,
+    border-color var(--rd-polish-fast) ease,
+    box-shadow var(--rd-polish-fast) ease;
+}
+
+.rd-v2-discover-candidate.selected,
+.rd-v2-res-inventory-row.on {
+  box-shadow: inset 3px 0 0 var(--rd-polish-sage);
+}
+
+.rd-v2-pill,
+.rd-v2-trust-badge,
+.rd-v2-discover-sufficiency,
+.rd-v2-rail-decision-value {
+  transition:
+    color var(--rd-polish-fast) ease,
+    background-color var(--rd-polish-fast) ease,
+    border-color var(--rd-polish-fast) ease;
+}
+
+@media (max-width: 640px) {
+  .rd-v2-access-gate {
+    padding: 14px;
+  }
+
+  .rd-v2-access-card {
+    padding: 28px 22px 24px;
+    border-radius: 16px;
+  }
+
+  .rd-v2-access-lockup {
+    margin-bottom: 24px;
+  }
+
+  .rd-v2-access-boundary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rd-v2-access-boundary span:nth-child(odd) {
+    border-right: 0;
+  }
+
+  .rd-v2-access-boundary span:nth-child(-n + 3) {
+    border-bottom: 1px solid #e7e1d6;
+  }
+
+  .rd-v2-access-form-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rd-v2-access-status {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .rd-v2-rail-empty-state {
+    margin: 12px;
+    padding: 16px;
+  }
+
+  .rd-v2-profile-page [data-testid="profile-memory-thin"],
+  .rd-v2-profile-page [data-testid="profile-lab"]:has(> .rd-v2-empty-inline) {
+    padding: 14px;
+    border-radius: 10px;
+  }
+}
+
+/* ── Mobile Detail / Ask: a collapsed rail is a contextual control, not a bar ── */
+@media (max-width: 720px) {
+  .yzu-inspector.rd-v2-rail-collapsed {
+    left: auto !important;
+    right: 8px !important;
+    width: auto !important;
+    min-width: 44px !important;
+    max-width: calc(100vw - 16px) !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .yzu-inspector.rd-v2-rail-collapsed .rd-v2-rail-chrome {
+    width: auto;
+    min-width: 0;
+    margin-left: auto;
+    border: 0;
+    background: transparent;
+  }
+
+  .yzu-inspector.rd-v2-rail-collapsed .rd-v2-rail-mobile-grip {
+    width: auto;
+    max-width: calc(100vw - 28px);
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 14px;
+    overflow: hidden;
+    border: 1px solid rgba(210, 216, 226, 0.96);
+    border-radius: 999px;
+    background: rgba(255, 253, 246, 0.985);
+    color: #344054;
+    box-shadow: 0 12px 32px rgba(17, 24, 39, 0.16);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    backdrop-filter: blur(16px) saturate(140%);
+  }
+
+  .yzu-inspector.rd-v2-rail-collapsed .rd-v2-rail-mobile-grip:hover,
+  .yzu-inspector.rd-v2-rail-collapsed .rd-v2-rail-mobile-grip:focus-visible {
+    border-color: rgba(63, 111, 92, 0.42);
+    color: #1a3030;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rd-v2-access-form-row input,
+  .rd-v2-access-form-row button,
+  .rd-v2-discover-candidate,
+  .rd-v2-res-inventory-row,
+  .rd-v2-pill,
+  .rd-v2-trust-badge,
+  .rd-v2-discover-sufficiency,
+  .rd-v2-rail-decision-value {
+    transition: none;
+  }
+
+  .rd-v2-rail-pane-on {
+    animation: none;
+  }
+}

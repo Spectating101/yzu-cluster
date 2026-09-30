@@ -11,7 +11,6 @@ import { candidateKey } from "@/v2/candidateKey";
 import { humanizeDiscoverDescription } from "@/v2/browseMeta";
 import { buildSchemaRows, displayName, statusPill } from "@/v2/datasetMeta";
 import { previewSampleRows } from "@/v2/deskSeed";
-import "@/v2/preview.css";
 
 const MAX_PREVIEW_ROWS = 50;
 const MAX_EXTERNAL_PREVIEW_ROWS = 5;

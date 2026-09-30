@@ -3,8 +3,6 @@ import { canIUseDecision, libraryAssetPresentation, statusPillKind } from "@/v2/
 import { DISCOVER_TAB } from "@/v2/tabIdentity";
 import { plainIdentifiers } from "@/v2/plainText";
 import { synthesisJourneyStage } from "@/v2/synthesisLifecycle";
-import "@/v2/rail-convergence.css";
-import "@/v2/final-convergence.css";
 import { assessmentGapText, assessmentLabel } from "./assessmentLabels.js";
 
 function text(value) {

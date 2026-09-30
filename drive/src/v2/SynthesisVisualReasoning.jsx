@@ -1,6 +1,5 @@
 import { formatResult } from "./unitConflict.js";
 import { joinOverlapModel, scopeRetentionModel, unitScaleModel } from "./synthesisVisualReasoning.js";
-import "./synthesis-visual-reasoning.css";
 
 function count(value) {
   return Number(value || 0).toLocaleString();
