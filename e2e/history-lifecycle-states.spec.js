@@ -21,9 +21,9 @@ const FIXTURE = JSON.parse(
 );
 
 const EXPECTED = [
-  { status: "failed", label: "failed — needs recovery", next: /inspect the failure/i },
-  { status: "blocked", label: "blocked — needs recovery", next: /access|licens/i },
-  { status: "pending_approval", label: "approval required", next: /review the source/i },
+  { status: "failed", label: "failed — needs attention", next: /inspect the failure/i },
+  { status: "blocked", label: "blocked — needs attention", next: /access|licens/i },
+  { status: "pending_approval", label: "waiting for your approval", next: /review the source/i },
   { status: "running", label: "collecting", next: null },
   { status: "queued", label: "queued", next: null },
   { status: "paused", label: "refresh paused", next: /resume/i },

@@ -118,7 +118,7 @@ test.describe("Library research packages", () => {
   test("no held match never offers a fake package action", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await openLibrarySearch(page, "definitely-not-held-zzzz");
-    await expect(page.getByTestId("library-evidence-empty")).toContainText("No held evidence matches");
+    await expect(page.getByTestId("library-evidence-empty")).toContainText("No data in your Library matches");
     await expect(page.getByTestId("library-package-open")).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Search wider in Discover" })).toBeVisible();
   });

@@ -22,9 +22,9 @@ test.describe("Library pagination continuity", () => {
     await waitForShell(page);
 
     const pagination = page.getByLabel("Library evidence pagination");
-    await expect(pagination).toContainText("Showing 50 of 120 assets");
+    await expect(pagination).toContainText("Showing 50 of 120 datasets");
     await pagination.getByRole("button", { name: "Load 50 more" }).click();
-    await expect(pagination).toContainText("Showing 100 of 120 assets");
+    await expect(pagination).toContainText("Showing 100 of 120 datasets");
     await expect(page.getByTestId("library-evidence-row")).toHaveCount(100);
 
     const refreshed = page.waitForResponse((response) => {
@@ -34,7 +34,7 @@ test.describe("Library pagination continuity", () => {
     await page.getByRole("button", { name: "Refresh", exact: true }).click();
     await refreshed;
 
-    await expect(pagination).toContainText("Showing 100 of 120 assets");
+    await expect(pagination).toContainText("Showing 100 of 120 datasets");
     await expect(page.getByTestId("library-evidence-row")).toHaveCount(100);
   });
 });

@@ -114,7 +114,7 @@ test("Profile thin — a signed-in researcher can add a research focus beside th
   await expect(add).toBeVisible();
   await add.click();
   await expect(page.locator("#rd-profile-project")).toBeFocused();
-  await expect(main.getByTestId("research-profile-editor")).toContainText("without overwriting it");
+  await expect(main.getByTestId("research-profile-editor")).toContainText("without overwriting your faculty record");
   await shot(page, "profile-thin-1440x900.png");
 });
 

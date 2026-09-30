@@ -830,7 +830,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await expect(page.getByTestId("rail-pane-detail")).toBeHidden();
     await expect(rail.getByTestId("ask-composer")).toHaveAttribute(
       "placeholder",
-      "Ask about review measured evidence and turn it into one reviewable construction…",
+      "Ask about review measured evidence and propose a build for review…",
     );
     await capture(page, "05-shared-ask-desktop");
   });
@@ -931,7 +931,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
   test("creates a durable thread quietly, then hands mapped evidence to Ask only on explicit reasoning", async ({ page }) => {
     await page.getByRole("button", { name: "New synthesis", exact: true }).click();
     await expect(page.locator(".s04-intent-contract")).toHaveCount(0);
-    await expect(page.getByText(/Nothing is built here\./)).toBeVisible();
+    await expect(page.getByText(/No data is built here\./)).toBeVisible();
     await expect(page.locator("aside.rd-v2-rail")).toContainText("Ask · Research objective");
     await expect(page.getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "false");
     await expect(page.getByTestId("rail-pane-detail")).toBeVisible();
@@ -1486,7 +1486,7 @@ test.describe("v2 Synthesis decision and record panels", () => {
       ],
     }));
     const panel = page.getByTestId("synthesis-reuse");
-    await expect(panel).toContainText("revision, not an overwrite");
+    await expect(panel).toContainText("new version without overwriting it");
     await expect(panel).toContainText("5 defined → 7 defined");
     await expect(panel).toContainText("unchanged · 2020-01-01");
   });

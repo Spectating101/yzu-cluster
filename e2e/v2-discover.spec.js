@@ -45,7 +45,7 @@ test.describe("v2 Discover tab", () => {
     await expect(
       page.getByRole("heading", { name: "Sources Research Drive knows how to investigate" }),
     ).toHaveCount(0);
-    await expect(page.getByText("No curated source routes yet")).toBeVisible();
+    await expect(page.getByText("No collection methods are listed yet")).toBeVisible();
   });
 
   test("mobile landing keeps retrieval ahead of workstation capacity context", async ({ page }) => {
@@ -78,7 +78,7 @@ test.describe("v2 Discover tab", () => {
     await waitForShell(page);
 
     const coverage = page.getByTestId("discover-coverage");
-    const knownRoutes = page.getByText("No curated source routes yet");
+    const knownRoutes = page.getByText("No collection methods are listed yet");
     await expect(coverage).toBeVisible();
     await expect(knownRoutes).toBeVisible();
     await expect(page.getByTestId("discover-resting-summary")).toHaveCount(0);
@@ -110,11 +110,11 @@ test.describe("v2 Discover tab", () => {
     //   Available · N   Library evidence · N   Web context · N
     await expect(page.getByTestId("discover-result-summary")).toContainText(/Available\s*·\s*\d+/i);
     await expect(page.getByTestId("discover-result-summary")).toContainText(/Library evidence\s*·\s*\d+/i);
-    await expect(page.getByLabel("Discover next actions")).toContainText(/with a declared route|Search wider/i);
+    await expect(page.getByLabel("Discover next actions")).toContainText(/with a documented route|Search wider/i);
     await expect(page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-ranked-results-head strong")).toHaveCount(0);
     await expect(page.getByTestId("discover-resting-summary")).toContainText(/External/i);
     await expect(page.getByTestId("discover-resting-summary")).toContainText(/Library results/i);
-    await expect(page.getByTestId("discover-resting-summary")).toContainText(/Declared routes/i);
+    await expect(page.getByTestId("discover-resting-summary")).toContainText(/Documented routes/i);
     await expect(page.getByTestId("discover-rank-foot")).toContainText(/Ranked using active research/i);
     await expect(page.getByTestId("discover-filter-menu")).toBeVisible();
     await expect(page.getByTestId("discover-sort-menu")).toBeVisible();
@@ -231,7 +231,7 @@ test.describe("v2 Discover tab", () => {
     await expect(page.getByLabel("Discover next actions")).toContainText("1 reference to inspect");
     await expect(page.getByLabel("Discover next actions")).toContainText("No collection method is documented as ready yet");
     await expect(page.getByTestId("discover-evidence-field")).toContainText("No collection-ready route yet");
-    await expect(page.getByTestId("discover-evidence-field")).toContainText("1 relevant reference is available to inspect or probe");
+    await expect(page.getByTestId("discover-evidence-field")).toContainText("1 relevant reference is available to inspect or test its connection");
   });
 
   test("reference-only routes can be inspected but never claim an acquisition review route", async ({ page }, testInfo) => {
@@ -263,7 +263,7 @@ test.describe("v2 Discover tab", () => {
     await waitForShell(page);
     await searchDiscover(page, "stablecoin");
 
-    await expect(page.getByLabel("Discover next actions")).toContainText("1 offering with a declared route");
+    await expect(page.getByLabel("Discover next actions")).toContainText("1 offering with a documented route");
     await expect(page.getByLabel("Discover next actions")).toContainText("1 reference");
     await expect(page.getByRole("button", { name: /^Add to collection/ })).toHaveCount(1);
     const context = page.getByTestId("discover-context-results");
@@ -438,7 +438,7 @@ test.describe("v2 Discover tab", () => {
     const progress = page.getByTestId("discover-lookup-progress");
     await expect(progress).toContainText("Current evidence is visible");
     await expect(progress).toContainText("Library evidence · checked");
-    await expect(progress).toContainText("Known source routes · checking");
+    await expect(progress).toContainText("Known collection methods · checking");
     await expect(page.getByTestId("discover-result-summary")).toContainText("Library evidence · 1");
     await expect(page.getByLabel("Discover next actions")).toContainText("1 Library match");
     await expect(page.getByLabel("Discover next actions")).not.toContainText("0 offerings");

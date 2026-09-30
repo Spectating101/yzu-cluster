@@ -231,7 +231,7 @@ test("a confirmed-unreachable desk API shows honest unknown capacity, never fabr
 
   const main = page.locator("main");
   await expect(main.getByText("That did not load", { exact: true })).toBeVisible();
-  await expect(main).toContainText("Resource telemetry could not be loaded.");
+  await expect(main).toContainText("Resource telemetry could not be loaded because Research Drive reported an error.");
 
   const grid = capacityGrid(page);
   await expect(grid).toBeVisible();

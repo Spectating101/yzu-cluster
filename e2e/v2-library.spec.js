@@ -44,7 +44,7 @@ test.describe("v2 Library evidence estate", () => {
     const facts = page.getByTestId("library-asset-facts");
     await expect(inspector).toBeVisible();
     await expect(workspace).toBeVisible();
-    await expect(workspace).toContainText("Selected Library asset");
+    await expect(workspace).toContainText("Selected Library dataset");
     await expect(preview).toBeVisible();
     await expect(preview).toContainText("Dataset inspection");
     await expect(preview).toContainText("Observed sample");
@@ -86,7 +86,7 @@ test.describe("v2 Library evidence estate", () => {
     await expect(facts).toContainText("Data facts");
     await expect(facts).toContainText("Research use");
     await expect(facts).toContainText("Boundary");
-    await expect(workspace.locator(".rd-v2-library-evidence-facts")).toContainText("ScopeNot declared");
+    await expect(workspace.locator(".rd-v2-library-evidence-facts")).toContainText("ScopeNot documented");
 
     await workspace.getByRole("button", { name: "Inspect schema" }).click();
     const fields = page.getByRole("dialog", { name: "Documented structure" });
@@ -172,14 +172,14 @@ test.describe("v2 Library navigation", () => {
     await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
 
-    await expect(page.locator(".rd-v2-header-meta-count")).toContainText("Library asset");
+    await expect(page.locator(".rd-v2-header-meta-count")).toContainText("Library dataset");
     await expect(page.locator("aside.rd-v2-rail")).toContainText("1 registry reference stays in Discover until acquired");
     const outside = page.getByTestId("library-available-evidence");
     await expect(outside).toContainText("1 known record");
     await expect(outside).toContainText("outside your Library");
     await expect(outside.getByRole("button", { name: "Review in Discover" })).toBeVisible();
     await page.getByRole("textbox", { name: "Search your Library" }).fill("Registered reference only");
-    await expect(page.getByTestId("library-evidence-estate")).toContainText("No held evidence matches");
+    await expect(page.getByTestId("library-evidence-estate")).toContainText("No data in your Library matches");
     await expect(page.getByRole("button", { name: "Search wider in Discover" })).toBeVisible();
   });
 

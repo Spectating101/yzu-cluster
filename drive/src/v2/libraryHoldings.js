@@ -52,8 +52,17 @@ export function holdingStateLabel(holding) {
   return "State not recorded";
 }
 
+const ROLE_WORDS = {
+  "original holding": "Original copy",
+  "active holding": "Active copy",
+  "primary holding": "Primary copy",
+  "query-ready replica": "Copy ready to query",
+  "research replica": "Research copy",
+  holding: "Library data",
+};
+
 export function holdingRoleLabel(holding) {
-  if (holding.role) return holding.role;
+  if (holding.role) return ROLE_WORDS[String(holding.role).trim().toLowerCase()] || holding.role;
   if (holding.active) return "Active copy";
   if (holding.primary) return "Primary copy";
   if (holding.original) return "Original copy";

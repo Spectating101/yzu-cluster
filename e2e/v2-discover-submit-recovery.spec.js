@@ -108,7 +108,7 @@ test.describe("Discover submit transport recovery", () => {
 
     await workspace.getByRole("button", { name: "Submit for approval" }).click();
 
-    await expect(workspace.getByTestId("discover-intent-collection")).toContainText("pending approval");
+    await expect(workspace.getByTestId("discover-intent-collection")).toContainText("Waiting for your approval");
     await expect(workspace.getByTestId("discover-intent-collection")).toContainText("job-lost-response-1");
     await expect(workspace.getByRole("button", { name: "Submit for approval" })).toHaveCount(0);
     await expect(workspace.getByTestId("discover-submit-unconfirmed")).toHaveCount(0);
@@ -126,7 +126,7 @@ test.describe("Discover submit transport recovery", () => {
     const unconfirmed = workspace.getByTestId("discover-submit-unconfirmed");
     await expect(unconfirmed).toBeVisible();
     await expect(unconfirmed).toContainText("Submission status is unconfirmed");
-    await expect(unconfirmed).toContainText("Do not resubmit");
+    await expect(unconfirmed).toContainText("Wait until the saved request can be read before submitting again");
     await expect(workspace.getByRole("button", { name: "Submit for approval" })).toBeDisabled();
     await expect.poll(calls.submitCalls).toBe(1);
     await expect.poll(calls.getCalls).toBe(1);

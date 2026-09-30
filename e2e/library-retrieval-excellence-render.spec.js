@@ -72,7 +72,7 @@ test.describe("Library retrieval excellence", () => {
     await page.getByRole("textbox", { name: "Search your Library" }).fill("zzqvjjk_nonexistent_measure");
 
     const empty = page.getByTestId("library-evidence-empty");
-    await expect(empty).toContainText("No held evidence matches");
+    await expect(empty).toContainText("No data in your Library matches");
     await expect(empty.getByRole("button", { name: "Ask Library" })).toBeVisible();
     await expect(empty.getByRole("button", { name: "Search wider in Discover" })).toBeVisible();
     await expect(page.getByTestId("library-evidence-row")).toHaveCount(0);

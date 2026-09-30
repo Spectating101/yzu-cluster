@@ -197,7 +197,7 @@ test("render Library depth states on desktop", async ({ page }) => {
   await expect(scholarly.getByRole("button", { name: "Open query" })).toHaveCount(0);
   await expect(scholarly.getByRole("button", { name: "Ask about this work" })).toHaveCount(0);
   await expect(scholarly.getByRole("button", { name: "Inspect record" })).toHaveCount(1);
-  await expect(scholarly).toContainText("does not establish source verification or methodological fitness");
+  await expect(scholarly).toContainText("does not confirm its source or suitability for your method");
   await expect(page.getByTestId("research-situation")).toContainText("scholarly work");
   await expect(page.getByTestId("research-situation")).toContainText("Retained as a reusable scholarly work");
   await expect(page.getByTestId("research-situation")).not.toContainText("querying has not yet been proven");
@@ -226,9 +226,9 @@ test("render Library depth states on desktop", async ({ page }) => {
   await expect(connectedPreview).toContainText("Documented response shape");
   await expect(connectedPreview.getByRole("columnheader", { name: "block_timestamp" })).toBeVisible();
   await expect(connectedPreview).toContainText("Documented structure only");
-  await expect(connectedPreview).not.toContainText("Grain: Not declared");
-  await expect(connectedPreview).not.toContainText("Scale: Not declared");
-  await expect(connectedPreview).not.toContainText("Keys: Not declared");
+  await expect(connectedPreview).not.toContainText("Unit of observation: Not documented");
+  await expect(connectedPreview).not.toContainText("Scale: Not documented");
+  await expect(connectedPreview).not.toContainText("Keys: Not documented");
   await expect(connectedRail).toContainText("BigQuery");
   await expect(connectedRail).toContainText("bigquery_dry_run · bigquery_read_query");
   await expect(connectedRail).toContainText("Exact source URL not recorded");
@@ -262,7 +262,7 @@ test("render Library depth states on desktop", async ({ page }) => {
   await waitForShell(page);
   await expect(page.getByTestId("library-evidence-estate")).toBeVisible();
   await page.getByRole("textbox", { name: "Search your Library" }).fill("definitely-no-such-library-asset");
-  await expect(page.getByTestId("library-evidence-estate")).toContainText("No held evidence matches");
+  await expect(page.getByTestId("library-evidence-estate")).toContainText("No data in your Library matches");
   const filteredRail = page.locator("aside.rd-v2-rail");
   await expect(filteredRail).toContainText("In this view");
   await expect(filteredRail).not.toContainText("In this library");

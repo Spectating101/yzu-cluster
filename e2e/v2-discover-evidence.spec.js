@@ -246,7 +246,7 @@ test.describe("Discover adaptive Explore", () => {
     await expect(workspace.getByRole("button", { name: "Submit for approval" })).toBeEnabled();
     await workspace.getByRole("button", { name: "Submit for approval" }).click();
 
-    await expect(workspace.getByTestId("discover-intent-collection")).toContainText("pending approval");
+    await expect(workspace.getByTestId("discover-intent-collection")).toContainText("Waiting for your approval");
     await expect(workspace.getByTestId("discover-intent-collection")).toContainText(
       "collection remains governed by History",
     );

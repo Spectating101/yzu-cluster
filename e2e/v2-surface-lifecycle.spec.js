@@ -18,7 +18,7 @@ test.describe("primary surface lifecycle contract", () => {
 
     await expect(surface(page)).toHaveAttribute("data-surface-state", "loading");
     await expect(page.locator(".rd-v2-header-meta-count")).toHaveText("Loading Library…");
-    await expect(page.locator(".rd-v2-header-meta-count")).not.toContainText("0 Library assets");
+    await expect(page.locator(".rd-v2-header-meta-count")).not.toContainText("0 Library datasets");
     await expect(surface(page)).toHaveAttribute("data-surface-state", "ready", { timeout: 5_000 });
 
     await page.locator("aside.yzu-sidebar").getByRole("button", { name: "Library", exact: true }).click();
@@ -57,7 +57,7 @@ test.describe("primary surface lifecycle contract", () => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
 
-    await expect(page.locator(".rd-v2-header-meta-count")).toContainText("3 Library assets", {
+    await expect(page.locator(".rd-v2-header-meta-count")).toContainText("3 Library datasets", {
       timeout: 1_500,
     });
     await expect(page.getByTestId("desk-integration-strip")).toBeVisible();
@@ -69,7 +69,7 @@ test.describe("primary surface lifecycle contract", () => {
     await waitForShell(page);
 
     await expect(surface(page)).toHaveAttribute("data-surface-state", "empty");
-    await expect(page.locator(".rd-v2-header-meta-count")).toContainText("0 Library assets");
+    await expect(page.locator(".rd-v2-header-meta-count")).toContainText("0 Library datasets");
     await expect(page.getByText(/Demo preview|OFFLINE/i)).toHaveCount(0);
     await expect(page.getByTestId("desk-error")).toHaveCount(0);
   });

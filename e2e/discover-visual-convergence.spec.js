@@ -88,7 +88,7 @@ test.describe("Discover visual convergence", () => {
     await expect(page.getByTestId("discover-composer-examples")).toBeVisible();
     await expect(page.getByTestId("discover-research-radar")).toHaveCount(0);
     await expect(coverage).toContainText("Your Library");
-    await expect(coverage).toContainText("query-ready");
+    await expect(coverage).toContainText("ready to query");
     await expect(coverage.locator(".rd-v2-discover-evidence-path")).toHaveCount(0);
     await page.screenshot({ path: `${OUT}/discover-idle-1440x900.png`, fullPage: false });
     await assertNoHorizontalOverflow(page);
@@ -107,7 +107,7 @@ test.describe("Discover visual convergence", () => {
     const summary = page.getByTestId("discover-result-summary");
     await expect(summary).toContainText(/Available\s*·\s*1/i);
     await expect(summary).toContainText(/Library evidence\s*·\s*1/i);
-    await expect(summary).toContainText("1 offering with a declared route");
+    await expect(summary).toContainText("1 offering with a documented route");
     await expect(page.getByTestId("discover-ranked-results")).toBeVisible();
     await expect(page.getByTestId("discover-context-results")).toBeVisible();
     await expect(page.getByRole("button", { name: /Add to collection/ })).toHaveCount(1);

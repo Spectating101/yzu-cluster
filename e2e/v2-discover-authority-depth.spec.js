@@ -101,7 +101,7 @@ test.describe("Discover authority depth", () => {
     await workspace.getByRole("button", { name: "Apply & reassess" }).click();
 
     await expect(workspace).toContainText("Assessment is unavailable");
-    await expect(workspace).toContainText("No current evidence verdict is established");
+    await expect(workspace).toContainText("No current coverage assessment has been confirmed");
     await expect(workspace.getByTestId("discover-verdict")).toHaveCount(0);
     await expect(workspace.getByTestId("discover-held-evidence")).toHaveCount(0);
     await expect(workspace).not.toContainText("MOPS governance disclosures");
@@ -180,23 +180,23 @@ test.describe("Discover authority depth", () => {
     await acquisition.getByRole("button", { name: "Submit for approval" }).click();
 
     const lifecycle = acquisition.getByTestId("discover-intent-collection");
-    await expect(lifecycle).toContainText("pending approval");
+    await expect(lifecycle).toContainText("Waiting for your approval");
     await expect(lifecycle).toContainText("collection remains governed by History");
-    await expect(acquisition).not.toContainText(/approved collection|collection complete|registered in library/i);
+    await expect(acquisition).not.toContainText(/approved collection|collection complete|saved to library/i);
 
     await lifecycle.getByRole("button", { name: /Open in History/ }).click();
     const history = page.getByTestId("discover-history");
     await expect(history).toBeVisible();
     await expect(page.getByRole("tab", { name: /History/ })).toHaveAttribute("aria-selected", "true");
     await expect(history).toContainText("MOPS financial statements");
-    await expect(history).toContainText(/pending approval|needs approval|approval required/i);
+    await expect(history).toContainText(/waiting for your approval/i);
 
     await page.reload({ waitUntil: "domcontentloaded" });
     await waitForShell(page);
     const restoredHistory = page.getByTestId("discover-history");
     await expect(restoredHistory).toBeVisible();
     await expect(restoredHistory).toContainText("MOPS financial statements");
-    await expect(restoredHistory).toContainText(/pending approval|needs approval|approval required/i);
+    await expect(restoredHistory).toContainText(/waiting for your approval/i);
 
     expect(assessmentCalls()).toBe(2);
     expect(routeCalls).toBeGreaterThanOrEqual(2);

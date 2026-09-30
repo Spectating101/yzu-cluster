@@ -134,7 +134,7 @@ test.describe("Research Drive release visual contract", () => {
   await expect(page.getByText("Research API", { exact: true })).toBeVisible();
   await expect(page.getByText("Assistant runtime", { exact: true })).toBeVisible();
   await expect(page.getByText("Research archive", { exact: true })).toBeVisible();
-  await expect(page.getByText("Desk equipment", { exact: true })).toBeVisible();
+  await expect(page.getByText("Research tools", { exact: true })).toBeVisible();
 });
 
 test("long research identities wrap instead of breaking the visible Detail pane", async ({ page }) => {

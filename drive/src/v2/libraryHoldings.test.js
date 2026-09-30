@@ -42,7 +42,7 @@ test("normalizes explicit federated holdings without inventing storage from unre
   assert.equal(holdings[0].state, "current");
   assert.equal(holdingAccessLabel(holdings[0]), "Available");
   assert.equal(holdingStateLabel(holdings[0]), "Current");
-  assert.equal(holdingRoleLabel(holdings[0]), "Query-ready replica");
+  assert.equal(holdingRoleLabel(holdings[0]), "Copy ready to query");
   assert.equal(holdings[1].custodian, "Prof. Kong");
   assert.equal(holdings[1].access, "restricted");
 });
@@ -74,4 +74,10 @@ test("does not infer a holdings topology when the registry has not recorded one"
   const summary = summarizeLibraryHoldings(dataset);
   assert.equal(summary.count, 0);
   assert.equal(summary.headline, "No Library data recorded");
+});
+
+test("backend holding roles read in the Library's plain words", () => {
+  assert.equal(holdingRoleLabel({ role: "Original holding" }), "Original copy");
+  assert.equal(holdingRoleLabel({ role: "Query-ready replica" }), "Copy ready to query");
+  assert.equal(holdingRoleLabel({ role: "Mirror on lab NAS" }), "Mirror on lab NAS");
 });

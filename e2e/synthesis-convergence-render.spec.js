@@ -278,7 +278,7 @@ test("captures Synthesis home, thread work, and new-entry navigation", async ({ 
   await expect(home).toContainText("Exchange flow stress panel");
   await expect(home).toContainText("Issuer liquidity weekly panel");
   await expect(home).toContainText("Event-study panel");
-  await expect(page.getByRole("button", { name: /Synthesis workspace All constructions/ })).toHaveAttribute("aria-current", "page");
+  await expect(page.getByRole("button", { name: /Synthesis workspace All builds/ })).toHaveAttribute("aria-current", "page");
   await expect(page.getByTestId("research-situation").locator(".rd-v2-situation-state")).toHaveText("Workspace");
   await capture(page, "00-home-multi-workflow-1440x1000");
 
@@ -292,7 +292,7 @@ test("captures Synthesis home, thread work, and new-entry navigation", async ({ 
   await expect(openingRail).toContainText("Evidence measured");
   await expect(openingRail).toContainText("Review measured evidence");
   await expect(openingRail).toContainText("1 sparse / flagged column");
-  await expect(openingRail).toContainText("Request one reviewable construction");
+  await expect(openingRail).toContainText("Request a suggested build");
   await expect(openingRail).toContainText("3 mapped");
   await expect(openingRail).toContainText("2 columns");
   await expect(openingRail).toContainText("Not accepted");
@@ -353,13 +353,14 @@ test("keeps the current recommended opening complete after explicit selection", 
   await expect(situation.locator(".rd-v2-situation-state")).toHaveText("Method");
   const openingRail = page.getByTestId("synthesis-opening-rail");
   await expect(openingRail).toContainText("Build suggested");
-  await expect(openingRail).toContainText("Review the recommendation");
+  await expect(openingRail).toContainText("Review the suggested build");
   await expect(openingRail).toContainText("3 evidence roles");
   await expect(openingRail).toContainText("Not measured");
   await expect(openingRail).toContainText("Recommended · not accepted");
 
   const main = page.locator(".s04-main");
-  await expect(main.getByText("Suggested build", { exact: true })).toBeVisible();
+  // The stage header and recommendation panel intentionally share this label.
+  await expect(main.locator(".s04-head").getByText("Suggested build", { exact: true })).toBeVisible();
   await expect(main.getByRole("region", { name: "Research brief" })).toBeVisible();
   await expect(main.getByRole("region", { name: "Suggested build" })).toBeVisible();
   await expect(main.getByRole("region", { name: "What happens next" })).toBeVisible();

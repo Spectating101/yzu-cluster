@@ -250,7 +250,7 @@ test.describe("Discover continuous hostile researcher journey", () => {
     // the approval job. The UI must reconcile, never blind-resubmit.
     const calls = await installAmbiguousCommittedSubmit(page);
     await workspace.getByRole("button", { name: "Submit for approval" }).click();
-    await expect(workspace.getByTestId("discover-intent-collection")).toContainText("pending approval");
+    await expect(workspace.getByTestId("discover-intent-collection")).toContainText("Waiting for your approval");
     await expect(workspace.getByTestId("discover-intent-collection")).toContainText("job-hostile-journey-1");
     await expect(workspace.getByRole("button", { name: "Submit for approval" })).toHaveCount(0);
     await expect.poll(calls.submitCalls).toBe(1);

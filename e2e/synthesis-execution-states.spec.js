@@ -22,7 +22,7 @@ const FIXTURE = JSON.parse(
 const THREADS = FIXTURE.threads;
 
 const visibleExecutionTrack = (page) =>
-  page.locator('ol.s04-exec-track[aria-label="Synthesis execution lifecycle"]:visible');
+  page.locator('ol.s04-exec-track[aria-label="Synthesis execution stages"]:visible');
 
 async function installExecutionStateMock(page) {
   const threads = new Map(THREADS.map((thread) => [thread.id, structuredClone(thread)]));

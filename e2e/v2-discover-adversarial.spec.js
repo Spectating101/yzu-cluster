@@ -156,7 +156,7 @@ test.describe("Discover adversarial lifecycle", () => {
       node.click();
     });
 
-    await expect(workspace.getByTestId("discover-intent-collection")).toContainText("pending approval");
+    await expect(workspace.getByTestId("discover-intent-collection")).toContainText("Waiting for your approval");
     await expect.poll(() => submitCalls).toBe(1);
     await expect(workspace.getByRole("button", { name: "Submit for approval" })).toHaveCount(0);
     await expect(workspace.getByRole("button", { name: "Select route" })).toHaveCount(0);
@@ -230,8 +230,8 @@ test.describe("Discover adversarial lifecycle", () => {
     await page.locator("details.rd-v2-evidence-detail-disclosure > summary").click();
     await expect(capacity).toBeVisible();
     await expect(capacity).toHaveAttribute("data-state", "partial");
-    await expect(capacity).toContainText("Full resource refresh failed");
-    await expect(capacity).toContainText("do not infer missing compute, storage, or quota");
+    await expect(capacity).toContainText("The resource refresh failed");
+    await expect(capacity).toContainText("Missing compute, storage, and quota information remains unknown");
     // /health independently measures the vault in this fixture, so it may be
     // retained. Fleet and BigQuery belong to the failed full rollup and must not
     // be invented from their absence.

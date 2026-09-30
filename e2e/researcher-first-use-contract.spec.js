@@ -61,19 +61,19 @@ test("Home cold start explains the research path without pretending work exists"
   // Each named surface must retain its role: Library is held evidence, Ask
   // reasons over context, Discover closes evidence gaps, and Synthesis keeps
   // approved work durable.
-  await expect(path).toContainText(/Library[\s\S]*desk[\s\S]*holds[\s\S]*evidence/i);
+  await expect(path).toContainText(/Library[\s\S]*data[\s\S]*already in your Library/i);
   await expect(path).toContainText(/Discover[\s\S]*evidence[\s\S]*missing/i);
   await expect(path).toContainText(/Ask[\s\S]*reason\w*[\s\S]*current\s+research\s+context/i);
-  await expect(path).toContainText(/Synthesis[\s\S]*preserv\w*[\s\S]*approved\s+methods?\s+and\s+outputs?[\s\S]*durable/i);
+  await expect(path).toContainText(/Synthesis[\s\S]*saves[\s\S]*approved\s+methods?\s+and\s+outputs?[\s\S]*reuse/i);
 
   // First use remains evidence-honest: guidance may orient, but it must not
   // invent a resume object or durable work that is not present in the mock.
   const pickup = page.getByTestId("home-continue");
   await expect(pickup).toHaveAttribute("data-posture", "cold");
   await expect(pickup).toContainText(/Pick up\s*·\s*Start/i);
-  await expect(pickup).toContainText(/No resume point|No durable research work/i);
+  await expect(pickup).toContainText(/No resume point|No saved research work/i);
   await expect(page.locator(".rd-v2-home-topband")).toHaveAttribute("data-home-posture", "cold");
-  await expect(page.locator(".rd-v2-page-head")).toContainText(/Start with held evidence/i);
+  await expect(page.locator(".rd-v2-page-head")).toContainText(/Start with data you have/i);
 
   // Keep an exact-head visual record of the state this contract protects.
   await page.screenshot({
@@ -138,7 +138,7 @@ test("Home identifies a durable Synthesis thread as resumable research work", as
   await expect(pickup).toHaveAttribute("data-posture", "synthesis");
   await expect(pickup).toContainText(/Pick up\s*·\s*Synthesis/i);
   await expect(pickup).toContainText("Cross-country ECI robustness");
-  await expect(page.locator(".rd-v2-page-head")).toContainText(/Durable research work is ready to resume/i);
+  await expect(page.locator(".rd-v2-page-head")).toContainText(/Saved research work is ready to resume/i);
 });
 
 test("Discover keeps the selected object visually bound to its inspector", async ({ page }) => {

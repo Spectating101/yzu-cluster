@@ -55,7 +55,7 @@ test.describe("Discover offering inspector", () => {
     await expect(rail.getByTestId("discover-strategy-card")).toContainText("2018–2026");
     await expect(rail.getByTestId("discover-strategy-card")).toContainText("Taiwan listed issuers");
     await expect(rail.getByTestId("discover-strategy-card")).toContainText("parquet");
-    await expect(rail.getByTestId("discover-strategy-card")).toContainText("18,420 rows declared");
+    await expect(rail.getByTestId("discover-strategy-card")).toContainText("18,420 rows documented");
     await expect(rail.getByTestId("discover-strategy-card")).toContainText("issuer_id");
     await expect(rail.getByTestId("discover-strategy-card")).toContainText("governance_score");
     await expect(rail.getByTestId("discover-strategy-card")).toContainText("Access & source");

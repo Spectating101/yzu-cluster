@@ -90,7 +90,7 @@ test.describe("Connected storage accounts", () => {
     await expect(page.getByText("Researcher One", { exact: true })).toBeVisible();
     await expect(page.getByText("Personal Drive", { exact: true })).toBeVisible();
     await expect(page.getByText("Lab Drive", { exact: true })).toBeVisible();
-    await expect(page.getByText(/Library indexing and materialisation remain separate/i)).toBeVisible();
+    await expect(page.getByText(/Adding files to the Library index and building data require separate actions/i)).toBeVisible();
     const labDrive = page.getByTestId("connected-account-g-lab");
     await expect(labDrive).toContainText("Lab Drive");
     await expect(labDrive).toContainText("lab@example.test · Metadata");

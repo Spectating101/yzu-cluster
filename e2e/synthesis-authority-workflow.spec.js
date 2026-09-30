@@ -33,19 +33,19 @@ const STAGES = [
   {
     id: "01-objective",
     phase: "design",
-    status: "No output registered",
+    status: "No output saved to Library",
     state: { nodes: [] },
   },
   {
     id: "02-evidence",
     phase: "design",
-    status: "No output registered",
+    status: "No output saved to Library",
     state: { nodes: NODES },
   },
   {
     id: "03-specification",
     phase: "design",
-    status: "No output registered",
+    status: "No output saved to Library",
     state: {
       nodes: NODES,
       unit_conflict: {
@@ -76,7 +76,7 @@ const STAGES = [
   {
     id: "05-preview",
     phase: "review",
-    status: "Durable execution state",
+    status: "Saved execution state",
     state: {
       nodes: NODES,
       execution_spec: SPEC,
@@ -88,7 +88,7 @@ const STAGES = [
   {
     id: "06-approval",
     phase: "review",
-    status: "Durable execution state",
+    status: "Saved execution state",
     state: {
       nodes: NODES,
       execution_spec: SPEC,
@@ -100,7 +100,7 @@ const STAGES = [
   {
     id: "07-build",
     phase: "execute",
-    status: "Durable execution state",
+    status: "Saved execution state",
     state: {
       nodes: NODES,
       execution_spec: SPEC,
@@ -112,7 +112,7 @@ const STAGES = [
   {
     id: "08-result",
     phase: "execute",
-    status: "Query-ready evidence",
+    status: "Data ready to query",
     state: {
       nodes: NODES,
       execution_spec: SPEC,

@@ -204,7 +204,7 @@ test.describe("Research Drive interaction robustness", () => {
     await expect(page.locator(".rd-v2-toast", { hasText: "MOPS" })).toHaveCount(0);
 
     await page.getByTestId("discover-eval-actions").getByRole("button", { name: "Test connection" }).click();
-    await expect(page.locator(".rd-v2-toast")).toContainText("SEC company facts probed");
+    await expect(page.locator(".rd-v2-toast")).toContainText("SEC company facts connection tested");
     await expect(sec).toHaveClass(/selected/);
     await expect(surface).toBeVisible();
     await expect(surface.locator(".rd-v2-eval-title")).toContainText("SEC company facts");

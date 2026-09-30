@@ -114,7 +114,7 @@ test("federated holdings stay object-scoped and separate from provenance and ret
   await workspace.getByRole("button", { name: "Your Library" }).click();
   const overlay = page.getByRole("dialog", { name: "Your Library" });
   await expect(overlay).toBeVisible();
-  await expect(overlay).toContainText("Where this research object is held now");
+  await expect(overlay).toContainText("Where your data is stored now");
   await expect(overlay).toContainText("YZUC Research Cluster");
   await expect(overlay).toContainText("Research Drive");
   await expect(overlay).toContainText("Google Drive");

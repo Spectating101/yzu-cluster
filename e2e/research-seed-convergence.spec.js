@@ -71,7 +71,7 @@ test("cold researcher gets a useful seed without connected storage", async ({ pa
   const seed = page.getByTestId("home-research-seed");
   await expect(seed).toBeVisible();
   await expect(seed).toHaveAttribute("data-bootstrap-mode", "yzu_profile_fallback");
-  await expect(seed).toContainText("Research desk ready");
+  await expect(seed).toContainText("Research Drive is ready — review data you have, then find what is missing");
   await expect(page.getByTestId("home-research-seed-sources")).toContainText("No connected storage required");
   await expect(seed.getByText("Describe the research question you want to investigate")).toBeVisible();
   await expect(seed).not.toContainText("Lab Drive");
@@ -141,7 +141,7 @@ test("seed endpoint failure does not block the existing cold-start Home", async 
   const seed = page.getByTestId("home-research-seed");
   await expect(seed).toBeVisible();
   await expect(seed).toHaveAttribute("data-bootstrap-mode", "fallback");
-  await expect(seed).toContainText("Research desk ready");
-  await expect(page.getByTestId("home-first-use-path")).toContainText(/Library[\s\S]*desk[\s\S]*holds[\s\S]*evidence/i);
+  await expect(seed).toContainText("Research Drive is ready — review data you have, then find what is missing");
+  await expect(page.getByTestId("home-first-use-path")).toContainText(/Library[\s\S]*data[\s\S]*already in your Library/i);
   await expect(page.getByTestId("desk-access-gate")).toHaveCount(0);
 });

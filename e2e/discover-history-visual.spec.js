@@ -94,7 +94,7 @@ test.describe("Discover History visual acceptance", () => {
 
     await ledger.getByRole("button", { name: /^Recovery(\s|$)/ }).click();
     await expect(ledger).toContainText("Taiwan governance source");
-    await expect(rail).toContainText(/needs recovery/i);
+    await expect(rail).toContainText(/needs attention/i);
     await shot(page, "03-desktop-recovery-detail");
 
     await ledger.getByRole("button", { name: /^Scheduled(\s|$)/ }).click();
@@ -104,7 +104,7 @@ test.describe("Discover History visual acceptance", () => {
 
     await rail.getByRole("button", { name: "Ask about this" }).click();
     await expect(rail.getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "true");
-    await expect(rail.locator(".rd-v2-ask-head")).toContainText("lifecycle item");
+    await expect(rail.locator(".rd-v2-ask-head")).toContainText("request");
     await expect(rail.getByTestId("ask-messages")).toContainText("Lifecycle context received for TWSE refresh");
     await shot(page, "05-desktop-history-ask");
   });
