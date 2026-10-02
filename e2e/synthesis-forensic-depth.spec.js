@@ -169,7 +169,7 @@ test("Synthesis exposes terminal-depth method, row, runtime, and multi-run proof
   await emitRun(page, { threadId: "thread-forensic-depth", kind: "run_completed", at: base + 12000 });
 
   const run = page.getByTestId("synthesis-agent-run");
-  await expect(run).toContainText("Validating bounded Preview receipt");
+  await expect(run).toContainText("Checking the sample preview record");
   const trace = page.getByTestId("synthesis-agent-trace");
   await expect(trace).toBeVisible();
   await expect(trace.locator(":scope > summary")).toContainText("9 operations · 2 runs");

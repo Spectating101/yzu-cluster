@@ -166,7 +166,7 @@ test("Preview and approval remain separate visible and network intentions", asyn
 
   const rail = page.locator("aside.rd-v2-rail");
   await rail.getByRole("tab", { name: "Ask" }).click();
-  await expect(rail.getByRole("button", { name: /What does this bounded Preview fail to cover/ })).toBeVisible();
+  await expect(rail.getByRole("button", { name: /What does this sample preview fail to cover/ })).toBeVisible();
 
   // One explicit review action may create/reuse the pending approval record
   // and immediately open that durable record. It still does not approve or run

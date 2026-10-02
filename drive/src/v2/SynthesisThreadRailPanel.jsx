@@ -1,3 +1,4 @@
+import { synthesisObjectiveDisplay } from "./uiVocabularyLabels.js";
 import { useEffect, useState } from "react";
 import {
   RailDecisionSummary,
@@ -74,7 +75,7 @@ function NewEntryRail({ thread, onAsk }) {
             <strong>{draft.complete}/4 framed</strong>
           </header>
           {draft.objective ? (
-            <p>{draft.objective}</p>
+            <p>{synthesisObjectiveDisplay(draft.objective)}</p>
           ) : (
             <p className="is-empty">Your purpose will appear here while you write. Nothing is saved yet.</p>
           )}
@@ -173,7 +174,7 @@ function OpeningThreadRail({ thread, onAsk }) {
         <div className="rd-v2-rail-scroll">
           <section className="s04-rail-context" aria-label="Recorded research object">
             <header><span>Research object</span></header>
-            <p>{objective || "No research purpose saved."}</p>
+            <p>{synthesisObjectiveDisplay(objective) || "No research purpose saved."}</p>
             <dl>
               <div><dt>Unit of observation</dt><dd>{brief.targetGrain || state.required_grain || "Not stated"}</dd></div>
               <div><dt>Period</dt><dd>{period}</dd></div>

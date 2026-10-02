@@ -176,7 +176,7 @@ export function groupDiscoverBrowseRows(rows) {
     {
       id: "lab",
       title: "Already in your Library",
-      description: "Use what your Library already holds before collecting again.",
+      description: "Use data you already have in Library before collecting again.",
       rows: lab,
     },
     {

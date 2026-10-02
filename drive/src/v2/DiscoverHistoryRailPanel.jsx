@@ -1,12 +1,8 @@
 import { EmptyRailState } from "@/v2/EmptyRailState";
 import { historyEvidenceSummary, historyHoldingTruth } from "@/v2/discoverAdapters";
 import { RailDecisionSummary, RailEntityHeader, RailField, RailFieldGrid, RailFrame, RailStickyFooter } from "@/v2/RailFrame";
-import { historyLifecycleExplanation, historyLifecycleInternalLabel } from "@/v2/historyLifecycleLabel";
+import { historyEvidenceLabel, historyEventLabel, historyExecutionModeLabel, historyLifecycleExplanation, historyLifecycleInternalLabel } from "@/v2/historyLifecycleLabel";
 import { historyKnownUnknowns, NO_EVIDENCE_YET } from "@/v2/historyKnownUnknowns";
-
-function text(value) {
-  return String(value || "").replace(/_/g, " ").trim();
-}
 
 function historyState(event) {
   return historyLifecycleExplanation(event);
@@ -112,13 +108,13 @@ export function DiscoverHistoryRailPanel({ event, job, onAskAbout, onReviewReque
         <RailFieldGrid>
           <RailField label="Last updated" value={updatedAt(event)} />
           <RailField label="Current state" value={truth.label} />
-          <RailField label="Last step" value={text(event.kind || event.action || "discover")} />
-          {historyEvidenceSummary(event) ? <RailField label="Evidence" value={historyEvidenceSummary(event)} /> : null}
+          <RailField label="Last step" value={historyEventLabel(event.kind || event.action || "discover")} />
+          {historyEvidenceSummary(event) ? <RailField label="Evidence" value={historyEvidenceLabel(historyEvidenceSummary(event))} /> : null}
           {meta.cadence || event.cadence ? <RailField label="Schedule" value={meta.cadence || event.cadence} /> : null}
           {meta.requested_schedule || event.requested_schedule ? (
             <RailField label="Requested cadence" value={meta.requested_schedule || event.requested_schedule} />
           ) : null}
-          {meta.execution_mode ? <RailField label="Execution mode" value={text(meta.execution_mode)} /> : null}
+          {meta.execution_mode ? <RailField label="Execution mode" value={historyExecutionModeLabel(meta.execution_mode)} /> : null}
         </RailFieldGrid>
         <details className="rd-v2-rail-technical">
           <summary>Technical record</summary>

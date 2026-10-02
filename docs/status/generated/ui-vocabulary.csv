@@ -834,6 +834,7 @@ Field shape not recorded.,jsx-text,1,drive/src/v2/DiscoverEvaluationSurface.jsx
 Field types are derived from registry metadata and the observed sample; they are not a database-schema guarantee.,jsx-text,1,drive/src/v2/PreviewModal.jsx
 Fields need review before being standardized in a research dataset.,object-label,1,drive/src/v2/historyLifecycleLabel.js
 file,jsx-text,1,drive/src/v2/LibraryPackagePanel.jsx
+Files available,object-label,1,drive/src/v2/datasetMeta.js
 Filter Discover results,jsx-attr,1,drive/src/v2/BrowsePage.jsx
 Filter Library by state,jsx-attr,1,drive/src/v2/LibraryPage.jsx
 Filter Library by type,jsx-attr,1,drive/src/v2/LibraryPage.jsx
@@ -1870,6 +1871,7 @@ Usage report,jsx-attr,1,drive/src/v2/ResourcesPage.jsx
 Use →,jsx-text,1,drive/src/v2/SynthesisPage.jsx
 Use as starting point →,jsx-text,1,drive/src/v2/SynthesisHome.jsx
 Use Ask to identify the next defensible research decision,object-label,1,drive/src/v2/synthesisAssist.js
+Use data you already have in Library before collecting again.,object-label,1,drive/src/v2/discoverComposition.js
 Use example account (Kong),jsx-text,1,drive/src/v2/SettingsPage.jsx
 Use learned memory,jsx-text,1,drive/src/v2/ProfilePage.jsx
 Use only when this browser cannot create the normal Research Drive session.,jsx-text,1,drive/src/v2/SettingsPage.jsx
@@ -1879,7 +1881,6 @@ Use state,jsx-text,1,drive/src/v2/LibraryAssetWorkspace.jsx
 Use the recorded query evidence. Saving to Library alone does not confirm readiness.,object-label,1,drive/src/v2/historyLifecycleLabel.js
 "Use this Library folder as the destination. Ask Research Drive to search, test connections, and propose collection steps.",jsx-attr,1,drive/src/v2/RailPanels.jsx
 Use this Library location as context for a wider evidence search and acquisition review.,jsx-attr,1,drive/src/v2/LibraryIntakeRailPanel.jsx
-Use what your Library already holds before collecting again.,object-label,1,drive/src/v2/discoverComposition.js
 Used,jsx-attr,1,drive/src/v2/RailPanels.jsx
 Useful for,jsx-attr,1,drive/src/v2/DiscoverEvaluationSurface.jsx
 Useful for,jsx-text,1,drive/src/v2/DiscoverEvaluationSurface.jsx

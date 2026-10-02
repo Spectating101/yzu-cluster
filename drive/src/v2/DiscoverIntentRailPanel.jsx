@@ -1,3 +1,4 @@
+import { collectionRouteTitle } from "./collectRouteLabel.js";
 import { collectionStatusLabel } from "@/v2/procurementJobs";
 import {
   RailDecisionSummary,
@@ -14,13 +15,6 @@ import {
 
 function text(value, fallback = "") {
   return String(value || "").trim() || fallback;
-}
-
-function routeTitle(route, sourceTitle = "") {
-  const raw = text(route?.title);
-  return /^collect through [a-z0-9_-]+$/i.test(raw) && sourceTitle
-    ? `Collect from ${sourceTitle}`
-    : raw;
 }
 
 function statusLabel(state, collection) {
@@ -50,7 +44,7 @@ export function DiscoverIntentRailPanel({ record }) {
     ? "Discover preserves the decision; History owns execution."
     : "No collection starts until a reviewed route is submitted and approved.";
   const sourceTitle = text(state.candidate?.title || intent.title);
-  const selectedRouteLabel = routeTitle(route, sourceTitle)
+  const selectedRouteLabel = collectionRouteTitle(route?.title, sourceTitle)
     || (state.proposal ? "Choose after reviewing the proposal" : "Not selected");
 
   return (

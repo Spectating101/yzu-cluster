@@ -144,11 +144,30 @@ const COLLECTION_STATUS_LABELS = {
   query_ready: "Ready to query",
   cancelled: "Cancelled",
   completed: "Collection complete",
+  draft: "Draft request",
+  proposal_ready: "Proposal ready for review",
+  route_selected: "Collection method selected",
+  submitted: "Submitted for approval",
+  registered_not_queryable: "In Library · not yet checked",
+  registering: "Saving to Library",
+  registration_pending: "Waiting to save to Library",
+  approved: "Approved",
+  pending: "Pending",
+  paused: "Paused",
+  stopped: "Stopped",
+  succeeded: "Completed",
+  archiving: "Saving the master copy",
+  ready_for_review: "Ready for review",
+  query_ready_declared: "Documented as ready to query · not yet checked",
+  assigned: "Worker assigned",
+  retrying: "Retrying",
+  validating: "Checking the output",
+  not_started: "Not started",
 };
 
 export function collectionStatusLabel(status, fallback = "Status not reported") {
-  const value = String(status || "").trim();
+  const value = String(status || "").trim().toLowerCase().replace(/[\s-]+/g, "_");
   return Object.hasOwn(COLLECTION_STATUS_LABELS, value)
     ? COLLECTION_STATUS_LABELS[value]
-    : value.replaceAll("_", " ") || fallback;
+    : fallback;
 }

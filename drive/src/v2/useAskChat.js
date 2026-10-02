@@ -1,3 +1,4 @@
+import { uiVocabularyLabel } from "./uiVocabularyLabels.js";
 import { synthesisRailContextForRequest } from "@/v2/synthesisAssist.js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -40,7 +41,7 @@ function restoredDisplayText(row) {
   value = value.split(/\n\nSynthesis thread:/i)[0];
   value = value.split(/\n\nSelected Synthesis object context:/i)[0];
   value = value.split(/\n\nSynthesis workspace context\./i)[0];
-  return value.trim();
+  return uiVocabularyLabel(value.trim());
 }
 
 function restoreMessage(row) {
@@ -272,7 +273,7 @@ export function useAskChat({
           : groundedPrompt;
       const initialActivity = intent === "status" ? "Checking status…" : "Planning response…";
 
-      setMessages((m) => [...m, { role: "user", text: outgoing.displayText, intent }]);
+      setMessages((m) => [...m, { role: "user", text: text == null ? outgoing.displayText : uiVocabularyLabel(outgoing.displayText), intent }]);
       setInput("");
       setBusy(true);
       setStatus(initialActivity);
@@ -524,6 +525,6 @@ export function useAskChat({
     contextLabel:
       dataset?.kind === "external_candidate"
         ? dataset.title || dataset.row?.dataset_id || dataset.id || null
-        : dataset?.dataset_id || dataset?.title || null,
+        : dataset?.dataset_id || uiVocabularyLabel(dataset?.title) || null,
   };
 }

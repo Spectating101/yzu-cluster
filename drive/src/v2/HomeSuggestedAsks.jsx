@@ -1,3 +1,4 @@
+import { uiVocabularyLabel } from "./uiVocabularyLabels.js";
 import { useEffect, useMemo, useState } from "react";
 import { fetchJson } from "@/v2/api";
 import { homeSuggestedPrompts } from "@/v2/homePrompts";
@@ -69,7 +70,7 @@ export function HomeSuggestedAsks({ profile, onAskComposer, allowPrincipalSeed =
             ? `${connectedSources.length} verified connected ${connectedSources.length === 1 ? "source" : "sources"} · additive to your base research context`
             : "No connected storage required · your base research context is available"}
           {sourceSummary?.reference_holdings
-            ? ` · ${sourceSummary.reference_holdings} reference ${sourceSummary.reference_holdings === 1 ? "holding" : "holdings"}`
+            ? ` · ${sourceSummary.reference_holdings} reference ${sourceSummary.reference_holdings === 1 ? "dataset" : "datasets"}`
             : ""}
         </p>
       ) : null}
@@ -90,7 +91,7 @@ export function HomeSuggestedAsks({ profile, onAskComposer, allowPrincipalSeed =
             onClick={() => onAskComposer?.(prompt)}
             style={{ maxWidth: "100%", whiteSpace: "normal", textAlign: "left" }}
           >
-            {prompt.length > 72 ? `${prompt.slice(0, 69)}…` : prompt}
+            {uiVocabularyLabel(prompt).length > 72 ? `${uiVocabularyLabel(prompt).slice(0, 69)}…` : uiVocabularyLabel(prompt)}
           </Chip>
         ))}
       </div>

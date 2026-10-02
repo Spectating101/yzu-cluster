@@ -1,8 +1,9 @@
+import { collectionRouteTitle } from "./collectRouteLabel.js";
 import { useEffect, useMemo, useState } from "react";
 import { Chip } from "@/v2/ui";
 import { fenceHistoryEvents, systemVerificationClassification } from "@/v2/historyNoiseFence";
 import { historyEvidenceSummary, historyLifecycleBucket } from "@/v2/discoverAdapters";
-import { historyLifecycleLabel } from "@/v2/historyLifecycleLabel";
+import { historyEvidenceLabel, historyLifecycleLabel } from "@/v2/historyLifecycleLabel";
 
 const HISTORY_FILTERS = [
   { id: "all", label: "All" },
@@ -73,7 +74,7 @@ function eventSummary(event) {
   if (opaqueRunReference(event) && /script_key\s+not\s+allowlisted/i.test(String(summary || ""))) {
     return "Collector configuration blocked";
   }
-  if (summary) return String(summary);
+  if (summary) return historyEvidenceLabel(summary);
   if (meta.cadence) return `Cadence: ${meta.cadence}`;
   if (meta.candidate_key) return `Candidate: ${meta.candidate_key}`;
   return "Saved Discover record";
@@ -98,7 +99,7 @@ function eventSourceIdentity(event) {
   // "Source pending" is an implementation fallback, not useful researcher
   // context. Preserve it in the record/rail but do not lead every ledger row
   // with the same empty phrase.
-  return [source === "Source pending" ? "" : source, identity, runReference ? `Run ${runReference}` : ""]
+  return [source === "Source pending" ? "" : collectionRouteTitle(source), identity, runReference ? `Run ${runReference}` : ""]
     .filter(Boolean)
     .join(" · ");
 }

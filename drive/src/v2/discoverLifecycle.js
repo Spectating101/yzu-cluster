@@ -432,7 +432,7 @@ function lifecycleHandoffUnknowns(state) {
   }
   if (state === LIFECYCLE.COMPLETED_UNREGISTERED) {
     return [
-      "Registration not complete",
+      "Saving to Library is not complete",
       "Reusable dataset path not yet confirmed",
       "Query readiness not established",
     ];
@@ -476,7 +476,7 @@ export function applyLifecycleToEvaluation(evaluation, lifecycle) {
       ...evaluation,
       decision: {
         headline: "Not yet reusable",
-        body: "Collection finished, but registration is still pending.",
+        body: "Collection finished, but saving to Library is still pending.",
       },
       unknowns: lifecycleHandoffUnknowns(LIFECYCLE.COMPLETED_UNREGISTERED),
     };

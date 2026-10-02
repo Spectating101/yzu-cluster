@@ -3,7 +3,7 @@ import { fetchLiveIdentity } from "@/v2/api";
 import { demotionSentence, detailFields, displayName, statusPillKind } from "@/v2/datasetMeta";
 import { EmptyRailState } from "@/v2/EmptyRailState";
 import { buildObjectEstateCrumb } from "@/v2/deskIntegration";
-import { applyLiveIdentity, identityLookupFromRow } from "@/v2/liveIdentity";
+import { applyLiveIdentity, liveIdentityReadinessLabel, identityLookupFromRow } from "@/v2/liveIdentity";
 import {
   RailDecisionSummary,
   RailEntityHeader,
@@ -281,7 +281,7 @@ export function DetailPanel({
 
         {identity ? (
           <DetailSection label="Live identity" defaultOpen>
-            <FieldRow label="Readiness" value={identity.synthesis_expectation?.badge || identity.readiness} />
+            <FieldRow label="Readiness" value={liveIdentityReadinessLabel(identity)} />
             <FieldRow label="Worker" value={identity.worker_id} mono hideEmpty />
             <FieldRow label="Run" value={identity.run_id} mono hideEmpty />
             <FieldRow label="Attempt" value={identity.attempt ? String(identity.attempt) : null} hideEmpty />

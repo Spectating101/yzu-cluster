@@ -392,6 +392,35 @@ export function synthesisAskPrompts(thread) {
   return synthesisAssist(thread).prompts;
 }
 
+const EXECUTION_LABELS = {
+  not_requested: "Not requested",
+  spec_accepted: "Method accepted",
+  preview_required: "Sample preview required",
+  pending_approval: "Waiting for your approval",
+  queued: "Queued",
+  running: "Building",
+  archiving: "Saving the master copy",
+  registering: "Saving to Library",
+  completed: "Build completed",
+  registered: "Saved to Library",
+  query_ready: "Ready to query",
+  registered_not_queryable: "In Library · not yet checked",
+  failed: "Build failed",
+  blocked: "Blocked · needs attention",
+  cancelled: "Cancelled",
+  assigned: "Worker assigned",
+  retrying: "Retrying",
+  validating: "Checking the output",
+  succeeded: "Build completed",
+  paused: "Paused",
+  stopped: "Stopped",
+};
+
+export function synthesisExecutionLabel(value) {
+  const key = String(value || "not_requested").trim().toLowerCase().replace(/[\s-]+/g, "_");
+  return EXECUTION_LABELS[key] || "Execution status not described";
+}
+
 // These display strings also appear in Ask context. Keep the request wording
 // stable while the interface uses the researcher-facing vocabulary.
 const REQUEST_COPY = {

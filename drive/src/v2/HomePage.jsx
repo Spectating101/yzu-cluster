@@ -1,3 +1,4 @@
+import { uiVocabularyLabel } from "./uiVocabularyLabels.js";
 import { useEffect, useMemo, useState } from "react";
 import { listSynthesisThreads } from "@/v2/api";
 import { resolveCapacityMark } from "@/v2/capacityMarks";
@@ -116,7 +117,7 @@ function PickUpCard({ point, loading, posture, onContinue, onReview }) {
           eyebrow="No resume point"
           title="Open the Library or find missing evidence"
           detail="No saved research work needs to be resumed."
-          checks={["Library holds saved data", "Discover finds data beyond your Library", "Synthesis holds saved builds"]}
+          checks={["Library stores your saved data", "Discover finds data beyond your Library", "Synthesis stores your saved builds"]}
         />
       </div>
     );
@@ -132,7 +133,7 @@ function PickUpCard({ point, loading, posture, onContinue, onReview }) {
     >
       <span className="rd-v2-home-eyebrow">{eyebrow}</span>
       <h2>{point.title}</h2>
-      <p className="rd-v2-home-pickup-state">{point.stateSummary}</p>
+      <p className="rd-v2-home-pickup-state">{uiVocabularyLabel(point.stateSummary)}</p>
       <div className="rd-v2-home-pickup-foot">
         <div>
           {point.pill ? <span className="rd-v2-pill">{point.pill}</span> : null}
@@ -318,7 +319,7 @@ export function HomePage({
               }
             >
               <strong>{pickUp.secondary.title}</strong>
-              <span>{pickUp.secondary.stateSummary}</span>
+              <span>{uiVocabularyLabel(pickUp.secondary.stateSummary)}</span>
               <em>
                 {pickUp.secondary.location}
                 {pickUp.secondary.action === "review" ? " · Review" : " · Continue →"}

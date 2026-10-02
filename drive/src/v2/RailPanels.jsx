@@ -1,9 +1,10 @@
+import { collectionStatusLabel } from "./procurementJobs.js";
 import { useEffect, useRef, useState } from "react";
 import { fetchLiveIdentity } from "@/v2/api";
 import { DiscoverEvaluationSurface } from "@/v2/DiscoverEvaluationSurface";
 import { displayName } from "@/v2/datasetMeta";
 import { EmptyRailState } from "@/v2/EmptyRailState";
-import { identityLookupFromRow } from "@/v2/liveIdentity";
+import { liveIdentityReadinessLabel, identityLookupFromRow } from "@/v2/liveIdentity";
 import {
   RailDecisionSummary,
   RailEntityHeader,
@@ -173,7 +174,7 @@ const PAGE_RAIL_COPY = {
     fields: [
       ["Current state", "No build selected"],
       ["Next", "Start a saved build or open a method saved to Library"],
-      ["Boundary", "Methods, execution, archive, registration, and readiness are separate records"],
+      ["Boundary", "Methods, execution, archiving, saving to Library, and readiness are checked separately"],
     ],
   },
   profile: {
@@ -181,7 +182,7 @@ const PAGE_RAIL_COPY = {
     desc: "Registry-backed identity, research context, works, and recorded evidence relationships.",
     fields: [
       ["Source", "Faculty registry"],
-      ["Evidence verification", "Library confirms what is actually held"],
+      ["Evidence verification", "Library confirms what data you have"],
       ["Boundary", "Suggestions are not researcher facts"],
     ],
   },
@@ -574,7 +575,7 @@ export function ResourcesRailPanel({ row, rollup, onApproveJob, onRefresh, onVie
               <>
                 <RailField
                   label="Readiness"
-                  value={liveIdentity.synthesis_expectation?.badge || liveIdentity.readiness}
+                  value={liveIdentityReadinessLabel(liveIdentity)}
                 />
                 <RailField label="Worker" value={liveIdentity.worker_id || "—"} mono />
                 <RailField label="Run" value={liveIdentity.run_id || "—"} mono />
@@ -682,7 +683,7 @@ export function ResourcesRailPanel({ row, rollup, onApproveJob, onRefresh, onVie
 
   const shortLabel = resourceRailName(row);
   const fallbackStatus = row.job?.status
-    ? String(row.job.status).replace(/_/g, " ")
+    ? collectionStatusLabel(row.job.status)
     : row.warn
       ? "Needs review"
       : row.ok !== false
@@ -773,14 +774,14 @@ export function ResourcesRailPanel({ row, rollup, onApproveJob, onRefresh, onVie
           {row.job ? (
             <>
               <RailField label="Job ID" value={row.job.id} mono />
-              <RailField label="Job status" value={row.job.status} />
+              <RailField label="Job status" value={collectionStatusLabel(row.job.status)} />
             </>
           ) : null}
           {liveIdentity ? (
             <>
               <RailField
                 label="Readiness"
-                value={liveIdentity.synthesis_expectation?.badge || liveIdentity.readiness}
+                value={liveIdentityReadinessLabel(liveIdentity)}
               />
               <RailField label="Worker" value={liveIdentity.worker_id || "—"} mono />
               <RailField label="Run" value={liveIdentity.run_id || "—"} mono />

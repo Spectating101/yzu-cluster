@@ -8,7 +8,7 @@ import {
 
 const JOURNEY = [
   ["Objective", "State what should exist or be measured"],
-  ["Evidence", "Review held evidence and route genuine gaps"],
+  ["Evidence", "Review data in your Library and find what is missing"],
   ["Method", "Resolve scope, units, joins, and build choices"],
   ["Proposal", "Review this version before accepting it"],
   ["Preview", "Run the accepted recipe on sample data"],

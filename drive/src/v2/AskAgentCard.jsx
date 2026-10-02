@@ -1,3 +1,4 @@
+import { uiVocabularyLabel } from "./uiVocabularyLabels.js";
 import { LoaderCircle } from "lucide-react";
 import {
   formatAskText,
@@ -119,7 +120,7 @@ export function AskAgentCard({
                   disabled={busy}
                   onClick={() => onSend?.(prompt)}
                 >
-                  {label}
+                  {uiVocabularyLabel(label)}
                 </button>
               );
             })}

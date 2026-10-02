@@ -1,3 +1,5 @@
+import { collectionRouteTitle } from "./collectRouteLabel.js";
+import { uiVocabularyLabel } from "./uiVocabularyLabels.js";
 import { collectionStatusLabel } from "@/v2/procurementJobs";
 import { useMemo, useRef, useState } from "react";
 import {
@@ -29,13 +31,6 @@ function Fact({ label, value, unknown = false }) {
   );
 }
 
-function routeTitle(route, sourceTitle = "") {
-  const raw = text(route?.title, "Untitled acquisition route");
-  return /^collect through [a-z0-9_-]+$/i.test(raw) && sourceTitle
-    ? `Collect from ${sourceTitle}`
-    : raw;
-}
-
 function RouteCard({ route, sourceTitle, selected, recommended = false, disabled, onSelect }) {
   const highlighted = selected || recommended;
   const engineering = procurementEngineeringSummary(route);
@@ -46,13 +41,13 @@ function RouteCard({ route, sourceTitle, selected, recommended = false, disabled
           <span className="rd-v2-eyebrow">
             {selected ? "Selected route" : recommended ? "Recommended route" : "Available route"}
           </span>
-          <h3>{routeTitle(route, sourceTitle)}</h3>
+          <h3>{collectionRouteTitle(route?.title, sourceTitle) || "Collection method not named"}</h3>
         </div>
         {!selected && onSelect ? (
           <button type="button" disabled={disabled} onClick={onSelect}>Select route</button>
         ) : null}
       </header>
-      {route.summary ? <p>{route.summary}</p> : null}
+      {route.summary ? <p>{uiVocabularyLabel(route.summary)}</p> : null}
       {engineering ? (
         <div
           className={`rd-v2-intent-engineering${engineering.preflight === "required" ? " needs-review" : ""}`}
@@ -68,7 +63,7 @@ function RouteCard({ route, sourceTitle, selected, recommended = false, disabled
       <dl>
         <Fact label="Coverage" value={route.coverage} />
         <Fact label="Unit of observation" value={route.grain} />
-        <Fact label="Access" value={route.access} />
+        <Fact label="Access" value={uiVocabularyLabel(route.access)} />
         <Fact label="Destination" value={route.destination} />
         <Fact label="Refresh" value={route.refresh} />
         <Fact label="Cost" value={route.cost} unknown />
@@ -264,7 +259,7 @@ export function DiscoverIntentWorkspace({
           {use ? <p className="rd-v2-intent-use"><b>How to use it</b> {use}</p> : null}
         </div>
         <div className="rd-v2-intent-identity">
-          <strong>{text(state.status, "draft").replaceAll("_", " ")}</strong>
+          <strong>{collectionStatusLabel(state.status || "draft")}</strong>
         </div>
       </header>
 
@@ -309,8 +304,8 @@ export function DiscoverIntentWorkspace({
           <header>
             <div>
               <span className="rd-v2-eyebrow">Proposed routes · review required</span>
-              <h3>{proposal.summary}</h3>
-              {proposal.reason ? <p>{proposal.reason}</p> : null}
+              <h3>{uiVocabularyLabel(proposal.summary)}</h3>
+              {proposal.reason ? <p>{uiVocabularyLabel(proposal.reason)}</p> : null}
             </div>
           </header>
           <div className="rd-v2-intent-route-list">
@@ -355,7 +350,7 @@ export function DiscoverIntentWorkspace({
           {!collection.job_id ? (
             <div className="rd-v2-intent-submit">
               <div>
-                <strong>{selectedRoute ? routeTitle(selectedRoute, title) : "Select a route"}</strong>
+                <strong>{selectedRoute ? collectionRouteTitle(selectedRoute?.title, title) : "Select a route"}</strong>
                 <span>Submission creates a pending-approval job. It does not approve the collection.</span>
               </div>
               <button

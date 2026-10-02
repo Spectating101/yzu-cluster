@@ -1,3 +1,4 @@
+import { uiVocabularyLabel } from "./uiVocabularyLabels.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { discoverSearch, discoverSources, webDiscover } from "@/v2/api";
 import { partialFitLine, searchHitToCandidate, sourcesResponseToRows } from "@/v2/discoverAdapters";
@@ -1492,7 +1493,7 @@ export function BrowsePage({
               <span className="rd-v2-eyebrow">Synthesis evidence gap</span>
               <strong>{synthesisHandoff.field?.label || synthesisHandoff.field?.dataset_id || "Selected evidence"}</strong>
               <p>
-                {synthesisHandoff.field?.role ? `${synthesisHandoff.field.role}. ` : ""}
+                {synthesisHandoff.field?.role ? `${uiVocabularyLabel(synthesisHandoff.field.role)}. ` : ""}
                 {synthesisHandoff.handoff?.required_grain ? `Unit of observation: ${synthesisHandoff.handoff.required_grain}. ` : ""}
                 This is a research handoff only; no collection has started.
               </p>

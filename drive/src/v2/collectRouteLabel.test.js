@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { UNNAMED_ROUTE, collectRouteLabel, isNamedRoute } from "./collectRouteLabel.js";
+import { UNNAMED_ROUTE, collectRouteLabel, collectionRouteTitle, isNamedRoute } from "./collectRouteLabel.js";
 
 describe("collectRouteLabel", () => {
   it("names the route kinds the live backend actually emits", () => {
@@ -43,5 +43,14 @@ describe("collectRouteLabel", () => {
     assert.equal(isNamedRoute("bigquery"), true);
     assert.equal(isNamedRoute("mops_tw"), false);
     assert.equal(isNamedRoute(""), false);
+  });
+  it("maps route fields while preserving named sources and the request sentinel", () => {
+    assert.equal(collectionRouteTitle("Collection route"), "Collection method");
+    assert.equal(collectionRouteTitle("Recorded event"), "Last step");
+    assert.equal(collectionRouteTitle("http_manifest"), "a file manifest");
+    assert.equal(collectionRouteTitle("discover_intent"), "Discover request");
+    assert.equal(collectionRouteTitle("Collect through twse_daily", "TWSE daily quotes"), "Collect from TWSE daily quotes");
+    assert.equal(collectionRouteTitle("WRDS university download"), "WRDS university download");
+    assert.equal(UNNAMED_ROUTE, "a declared route");
   });
 });

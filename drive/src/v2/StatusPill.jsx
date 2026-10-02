@@ -1,5 +1,6 @@
 import { RichContextHelp } from "@/v2/InteractionGuidance";
 import { statusPillKind } from "@/v2/datasetMeta";
+import { uiVocabularyLabel } from "./uiVocabularyLabels.js";
 
 const STYLES = {
   "query-ready": "rd-v2-status-pill rd-v2-status-ready",
@@ -119,7 +120,7 @@ const GUIDANCE = {
 
 export function StatusPill({ dataset, label }) {
   const state = statusPillKind(dataset);
-  const text = label || state.label;
+  const text = uiVocabularyLabel(label || state.label);
   const kind = state.kind;
   const cls = STYLES[kind] || STYLES.unknown;
   const guidance = GUIDANCE[kind] || GUIDANCE.unknown;

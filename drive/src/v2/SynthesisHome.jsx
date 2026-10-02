@@ -1,3 +1,4 @@
+import { synthesisObjectiveDisplay } from "./uiVocabularyLabels.js";
 import { DeskError } from "@/v2/DeskError";
 import {
   partitionSynthesisWorkspace,
@@ -15,7 +16,7 @@ function titleFor(thread) {
 }
 
 function objectiveFor(thread) {
-  return text(thread?.objective || thread?.state?.objective, "No research objective recorded yet.");
+  return synthesisObjectiveDisplay(text(thread?.objective || thread?.state?.objective, "No research objective recorded yet."));
 }
 
 function outputFor(thread) {

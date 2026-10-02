@@ -1,3 +1,4 @@
+import { synthesisObjectiveDisplay, uiVocabularyLabel } from "./uiVocabularyLabels.js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { PageShell } from "@/v2/ui";
@@ -23,7 +24,7 @@ import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
 import { ExcursionRecordPanel } from "./ExcursionRecordPanel.jsx";
 import { SynthesisHome } from "./SynthesisHome.jsx";
 import { focusFor } from "./synthesisFocus.js";
-import { synthesisAssistRequestContext, synthesisAssist } from "@/v2/synthesisAssist.js";
+import { synthesisExecutionLabel, synthesisAssistRequestContext, synthesisAssist } from "@/v2/synthesisAssist.js";
 import { synthesisDraftBrief, synthesisDraftPrompt } from "@/v2/synthesisDraft.js";
 
 // The record renders whether or not it leads, so the strip must not offer it too.
@@ -336,7 +337,7 @@ function ResearchBrief({ thread, onEditIntent }) {
         <summary>
           <span>
             <small>Brief summary</small>
-            <strong>{text(brief.body, "Research request recorded")}</strong>
+            <strong>{synthesisObjectiveDisplay(text(brief.body, "Research request recorded"))}</strong>
             <em>{mobileContext.length ? mobileContext.join(" · ") : "Research commitments not stated"}</em>
           </span>
           <b>
@@ -345,7 +346,7 @@ function ResearchBrief({ thread, onEditIntent }) {
           </b>
         </summary>
         <div className="s04-mobile-brief-full" data-testid="synthesis-mobile-brief-full">
-          {brief.body ? <p>{brief.body}</p> : null}
+          {brief.body ? <p>{synthesisObjectiveDisplay(brief.body)}</p> : null}
           <dl>
             <div>
               <dt>Unit of observation</dt>
@@ -362,7 +363,7 @@ function ResearchBrief({ thread, onEditIntent }) {
           </dl>
         </div>
       </details>
-      {brief.body ? <p>{brief.body}</p> : null}
+      {brief.body ? <p>{synthesisObjectiveDisplay(brief.body)}</p> : null}
       <dl>
         <div>
           <dt>Unit of observation</dt>
@@ -388,7 +389,7 @@ function OpeningWorkflow({ thread, reasoningAvailable, reasoningStatus }) {
   const active = recommendation ? 3 : mapped ? 2 : brief.body ? 1 : 0;
   const steps = [
     ["Define", "Research brief"],
-    ["Map evidence", "Held Library inputs"],
+    ["Map evidence", "Inputs from your Library"],
     ["Reason", "Reviewable build"],
     ["Approve", "Explicit decision"],
   ];
@@ -621,7 +622,7 @@ function ThreadHeader({ thread, onEditIntent }) {
           <small>{stageLabel(thread)}</small>
           <h1>{titleFor(thread)}</h1>
           {opening ? null : (
-            <p>{text(thread?.objective || state.objective, "A saved research build.")}</p>
+            <p>{synthesisObjectiveDisplay(text(thread?.objective || state.objective, "A saved research build."))}</p>
           )}
         </div>
         <em>
@@ -731,7 +732,7 @@ function EvidenceMap({
                 onClick={() => onSelectField?.(node)}
                 aria-pressed={selectedField?.id === node.id}
               >
-                <small>{text(node.role || node.eyebrow || node.status, "Evidence")}</small>
+                <small>{uiVocabularyLabel(text(node.role || node.eyebrow || node.status, "Evidence"))}</small>
                 <strong>{text(node.label || node.dataset_id, "Unnamed evidence")}</strong>
                 <span>{[node.grain, node.coverage].filter(Boolean).join(" · ") || "Metadata not reported"}</span>
               </button>
@@ -795,7 +796,7 @@ function EvidenceMap({
               })}
             </ul>
           ) : null}
-          {proposalReason ? <p>{proposalReason}</p> : null}
+          {proposalReason ? <p>{uiVocabularyLabel(proposalReason)}</p> : null}
           <footer>
             <button type="button" className="rd-v2-btn" disabled={mappingEvidence} onClick={onFindEvidence}>
               Search your Library again
@@ -1200,7 +1201,7 @@ function ExecutionRecord({ thread, busy, onRequest, onReview, onAsk, onOpenDatas
   const execution = state.execution || {};
   const spec = state.execution_spec || {};
   const rawStatus = text(execution.status).toLowerCase().replace(/-/g, "_");
-  const status = text(execution.status, "not requested").replace(/_/g, " ");
+  const status = synthesisExecutionLabel(execution.status);
   const outputId = threadOutput(thread);
   const mode = stateFor(thread);
   const registered = mode === "registered" || mode === "query_ready";
@@ -1403,7 +1404,7 @@ function DraftCanvas({ thread, onAsk, stalled, onRetry }) {
       <div className="s04-draft-flow" role="img" aria-label="The first Synthesis reasoning steps">
         {isPreAcceptance(thread) ? null : (
           <>
-            <strong>{text(thread?.objective || state.objective, "Research objective")}</strong>
+            <strong>{synthesisObjectiveDisplay(text(thread?.objective || state.objective, "Research objective"))}</strong>
             <b>↓</b>
           </>
         )}

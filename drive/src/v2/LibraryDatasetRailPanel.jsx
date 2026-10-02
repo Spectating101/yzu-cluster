@@ -1,3 +1,4 @@
+import { uiVocabularyLabel } from "./uiVocabularyLabels.js";
 import {
   canIUseDecision,
   demotionSentence,
@@ -243,7 +244,7 @@ export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onAskAbo
       >
         <p className="rd-v2-rail-section-label">Can I use this?</p>
         <h3>{decision.headline}</h3>
-        <p>{decision.body}</p>
+        <p>{uiVocabularyLabel(decision.body)}</p>
         {freshness.stale ? (
           <p data-testid="library-stale-warning">Freshness is stale even though the current copy may remain technically queryable.</p>
         ) : null}

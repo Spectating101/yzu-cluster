@@ -1,3 +1,4 @@
+import { uiVocabularyLabel } from "./uiVocabularyLabels.js";
 import { synthesisRequestCopy } from "@/v2/synthesisAssist.js";
 import { useEffect, useRef, useState } from "react";
 import { LoaderCircle } from "lucide-react";
@@ -361,7 +362,7 @@ export function AskRail({
                   "Which assumptions should I correct?",
                 ].map((p) => (
                   <button key={p} type="button" className="rd-v2-chip clickable" disabled={busy} onClick={() => send(p)}>
-                    {p}
+                    {uiVocabularyLabel(p)}
                   </button>
                 ))}
               </div>
@@ -378,7 +379,7 @@ export function AskRail({
                   "What remains unconnected?",
                 ].map((p) => (
                   <button key={p} type="button" className="rd-v2-chip clickable" disabled={busy} onClick={() => send(p)}>
-                    {p}
+                    {uiVocabularyLabel(p)}
                   </button>
                 ))}
               </div>
@@ -395,7 +396,7 @@ export function AskRail({
                   `What is the safest next action for ${discoverTitle}?`,
                 ].map((p) => (
                   <button key={p} type="button" className="rd-v2-chip clickable" disabled={busy} onClick={() => send(p)}>
-                    {String(p).slice(0, 42)}
+                    {String(uiVocabularyLabel(p)).slice(0, 42)}
                   </button>
                 ))}
               </div>
@@ -419,7 +420,7 @@ export function AskRail({
                     disabled={busy}
                     onClick={() => send(p)}
                   >
-                    {String(p).slice(0, 42)}
+                    {String(uiVocabularyLabel(p)).slice(0, 42)}
                   </button>
                 ))}
               </div>
@@ -436,7 +437,7 @@ export function AskRail({
                   "What evidence is still missing?",
                 ].map((p) => (
                   <button key={p} type="button" className="rd-v2-chip clickable" disabled={busy} onClick={() => send(p)}>
-                    {String(p).length > 48 ? `${String(p).slice(0, 45)}…` : p}
+                    {String(uiVocabularyLabel(p)).length > 48 ? `${String(uiVocabularyLabel(p)).slice(0, 45)}…` : uiVocabularyLabel(p)}
                   </button>
                 ))}
               </div>
@@ -464,9 +465,9 @@ export function AskRail({
                     className="rd-v2-chip clickable"
                     disabled={busy}
                     onClick={() => send(p)}
-                    title={p}
+                    title={uiVocabularyLabel(p)}
                   >
-                    {String(p).length > 54 ? `${String(p).slice(0, 51)}…` : p}
+                    {String(uiVocabularyLabel(p)).length > 54 ? `${String(uiVocabularyLabel(p)).slice(0, 51)}…` : uiVocabularyLabel(p)}
                   </button>
                 ))}
               </div>

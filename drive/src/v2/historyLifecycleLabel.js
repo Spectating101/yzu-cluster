@@ -4,6 +4,9 @@
  */
 
 import { historyHoldingTruth, historyLifecycleBucket } from "./discoverAdapters.js";
+import { collectionStatusLabel } from "./procurementJobs.js";
+import { collectionRouteTitle } from "./collectRouteLabel.js";
+import { uiVocabularyLabel } from "./uiVocabularyLabels.js";
 
 const EXPLICIT_STAGE_LABELS = Object.freeze({
   route_investigating: "Route investigating",
@@ -88,11 +91,87 @@ const STATUS_LABELS = {
   "Registered · reconciliation pending": "In Library · being checked",
   "Query-ready": "Ready to query",
   Registered: "Saved to Library",
+  "Route investigating": "Finding a collection method",
+  "schema review": "Review dataset fields",
+  "query ready": "Ready to query",
+  "registered not queryable": "In Library · not yet checked",
+  "pending approval": "Waiting for your approval",
+  "route selected": "Collection method selected",
+  "proposal ready": "Proposal ready for review",
+  "receipt only": "Saved receipt · data not yet checked",
+  draft: "Draft request",
+  submitted: "Submitted for approval",
+  registering: "Saving to Library",
+  "registration pending": "Waiting to save to Library",
+  approved: "Approved",
+  pending: "Pending",
+  paused: "Paused",
+  stopped: "Stopped",
+  "Status not reported": "Status not reported",
+  Cancelled: "Cancelled",
+  "Scheduled refresh": "Scheduled refresh",
+  "Refresh paused": "Refresh paused",
+  "Refresh stopped": "Refresh stopped",
+  Queued: "Queued",
+  Collecting: "Collecting",
+  "Method review": "Method review",
+  "Schema review": "Review dataset fields",
+  Extracting: "Extracting",
+  Archived: "Archived",
+  Completed: "Completed",
+  "ready for review": "Ready for review",
+  "query ready declared": "Documented as ready to query · not yet checked",
+  "not started": "Not started",
 };
+
+const EVENT_LABELS = {
+  intent: "Request",
+  collection_run: "Collection",
+  registered_asset: "Saved to Library",
+  discover: "Discover request",
+  recorded_event: "Last step",
+  source_probe: "Connection test",
+  proposal: "Proposal",
+  route_selected: "Collection method selected",
+  approval: "Approval decision",
+  subscription: "Scheduled refresh",
+  refresh: "Refresh",
+  create: "Request saved",
+  change: "Request changed",
+};
+
+const EXECUTION_MODE_LABELS = {
+  non_executing: "Recorded only · does not run automatically",
+  automatic: "Runs automatically",
+  manual: "Run manually",
+};
+
+function enumLabel(value, labels, fallback) {
+  const key = String(value || "").trim().toLowerCase().replace(/[\s-]+/g, "_");
+  return labels[key] || fallback;
+}
+
+export function historyEventLabel(value) {
+  return enumLabel(value, EVENT_LABELS, "Request update");
+}
+
+export function historyExecutionModeLabel(value) {
+  return enumLabel(value, EXECUTION_MODE_LABELS, "Execution mode not described");
+}
+
+export function historyEvidenceLabel(value) {
+  const raw = String(value || "");
+  const match = raw.match(/^(.+) · ([a-z_]+)$/);
+  if (match) {
+    const label = collectionStatusLabel(match[2], "");
+    if (label) return `${collectionRouteTitle(match[1])} · ${label}`;
+  }
+  return uiVocabularyLabel(raw);
+}
 
 export function historyLifecycleLabel(event) {
   const internalLabel = historyLifecycleInternalLabel(event);
-  return Object.hasOwn(STATUS_LABELS, internalLabel) ? STATUS_LABELS[internalLabel] : internalLabel;
+  return Object.hasOwn(STATUS_LABELS, internalLabel) ? STATUS_LABELS[internalLabel] : "Status not described";
 }
 
 export function historyLifecycleExplanation(event) {

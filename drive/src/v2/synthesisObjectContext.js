@@ -1,3 +1,5 @@
+import { uiVocabularyLabel } from "./uiVocabularyLabels.js";
+
 export const SYNTHESIS_OBJECT_CONTEXT_EVENT = "synthesis:object-context";
 
 const SURFACE_BY_KIND = {
@@ -23,6 +25,10 @@ const KIND_LABELS = {
   execution: "Execution",
   result: "Registered result",
 };
+
+export function synthesisObjectKindLabel(value) {
+  return uiVocabularyLabel(KIND_LABELS[normalized(value)] || "Synthesis item");
+}
 
 const TESTID_CONTEXT = {
   "synthesis-evidence-state": ["evidence", "Evidence map"],

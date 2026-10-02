@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { applyLiveIdentity, identityLookupFromRow, liveIdentityBadge } from "./liveIdentity.js";
+import { applyLiveIdentity, identityLookupFromRow, liveIdentityReadinessLabel, liveIdentityBadge } from "./liveIdentity.js";
 import { statusPillKind } from "./datasetMeta.js";
 
 test("registered live identity never becomes Query-ready", () => {
@@ -38,4 +38,15 @@ test("identity lookup prefers explicit dataset and job ids", () => {
     }),
     { datasetId: "ds1", jobId: "job-1" },
   );
+});
+
+
+test("live readiness fields use display labels without modifying backend identity", () => {
+  const identity = Object.freeze({ readiness: "registered_not_queryable" });
+  assert.equal(liveIdentityReadinessLabel(identity), "In Library · not yet checked");
+  assert.equal(identity.readiness, "registered_not_queryable");
+  assert.equal(liveIdentityReadinessLabel({ readiness: "query_ready_declared" }), "Documented as ready to query · not yet checked");
+  assert.equal(liveIdentityReadinessLabel({ readiness: "metadata_search" }), "Metadata only");
+  assert.equal(liveIdentityReadinessLabel({ readiness: "internal_future_enum" }), "Readiness not described");
+  assert.equal(liveIdentityReadinessLabel({ synthesis_expectation: { badge: "Saved · access needs review" } }), "Saved · access needs review");
 });

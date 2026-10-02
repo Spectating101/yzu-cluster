@@ -1,5 +1,32 @@
 /** Apply RC2-A sanitized live identity onto desk rows without inventing readiness. */
 
+const READINESS_LABELS = {
+  query_ready: "Ready to query",
+  registered: "Saved to Library",
+  registered_not_queryable: "In Library · not yet checked",
+  query_ready_declared: "Documented as ready to query · not yet checked",
+  metadata_only: "Metadata only",
+  metadata_search: "Metadata only",
+  receipt_only: "Saved receipt · data not yet checked",
+  not_ready: "Not ready",
+  needs_review: "Needs review",
+  unconfirmed: "Not yet checked",
+  reconciliation_pending: "Being checked",
+  unknown: "Readiness not described",
+  registered_output: "Output saved to Library",
+  registered_result: "Result saved to Library",
+  query_ready_output: "Output ready to query",
+  query_ready_result: "Result ready to query",
+  "registered_·_unconfirmed": "In Library · not yet checked",
+  "registered_·_reconciliation_pending": "In Library · being checked",
+};
+
+export function liveIdentityReadinessLabel(identity = {}) {
+  const value = String(identity?.synthesis_expectation?.badge || identity?.readiness || "").trim();
+  const key = value.toLowerCase().replace(/[\s-]+/g, "_");
+  return READINESS_LABELS[key] || (value && /\s/.test(value) ? value : "Readiness not described");
+}
+
 export function liveIdentityBadge(identity) {
   const readiness = String(identity?.readiness || "").toLowerCase();
   if (readiness === "query_ready") return { kind: "query-ready", label: "Ready to query" };

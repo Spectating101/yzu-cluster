@@ -1,3 +1,5 @@
+import { synthesisExecutionLabel } from "./synthesisAssist.js";
+import { uiVocabularyLabel } from "./uiVocabularyLabels.js";
 import { useEffect, useRef, useState } from "react";
 import {
   SYNTHESIS_AGENT_ACTIVITY_EVENT,
@@ -11,6 +13,7 @@ import {
   clearSynthesisObjectContextSelection,
   emitSynthesisObjectContext,
   enrichSynthesisObjectContext,
+  synthesisObjectKindLabel,
 } from "@/v2/synthesisObjectContext.js";
 
 function normalized(value) {
@@ -226,7 +229,7 @@ function receiptsFor(selected = {}) {
     const final = ["registered", "query_ready"].includes(execution);
     receipts.push({
       id: "execution",
-      label: final ? "Execution completed" : `Execution ${execution.replace(/_/g, " ")}`,
+      label: final ? "Execution completed" : synthesisExecutionLabel(execution),
       detail: selected.job_id ? `Bound job ${selected.job_id}` : "Saved execution record",
       tone: execution === "failed" ? "warn" : final ? "done" : "current",
       selector: execution === "failed"
@@ -299,7 +302,7 @@ function RunStep({ step }) {
           {step.tone === "done" ? "✓" : step.tone === "warn" ? "!" : "→"}
         </span>
         <span>
-          <b>{step.text}</b>
+          <b>{uiVocabularyLabel(step.text)}</b>
           {metadata ? <small>{metadata}</small> : null}
         </span>
       </button>
@@ -514,7 +517,7 @@ function ForensicPanel({ selected = {} }) {
 
         {execution ? (
           <section data-testid="synthesis-execution-forensics">
-            <header><small>Execution diagnostics</small><strong>{printable(execution.status)}</strong></header>
+            <header><small>Execution diagnostics</small><strong>{synthesisExecutionLabel(execution.status)}</strong></header>
             <dl className="rd-v2-synthesis-runtime-proof">
               <div><dt>Job</dt><dd>{printable(execution.job_id)}</dd></div>
               <div><dt>Run</dt><dd>{printable(execution.run_id)}</dd></div>
@@ -587,8 +590,8 @@ export function SynthesisAgentConsole({
         <div className="rd-v2-synthesis-ask-object-context" data-testid="synthesis-ask-object-context">
           <div>
             <small>Selected object</small>
-            <b>{objectContext.label || objectContext.kind}</b>
-            <span>{[objectContext.kind, objectContext.object_id].filter(Boolean).join(" · ")}</span>
+            <b>{uiVocabularyLabel(objectContext.label) || synthesisObjectKindLabel(objectContext.kind)}</b>
+            <span>{[synthesisObjectKindLabel(objectContext.kind), objectContext.object_id].filter(Boolean).join(" · ")}</span>
           </div>
           <button type="button" onClick={clearObjectContext}>Clear</button>
         </div>
@@ -607,7 +610,7 @@ export function SynthesisAgentConsole({
                     {receipt.tone === "done" ? "✓" : receipt.tone === "warn" ? "!" : "→"}
                   </span>
                   <span>
-                    <b>{receipt.label}</b>
+                    <b>{uiVocabularyLabel(receipt.label)}</b>
                     <small>{receipt.detail}</small>
                   </span>
                 </button>
