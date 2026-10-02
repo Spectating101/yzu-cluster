@@ -1,3 +1,4 @@
+import { AnalysisResults } from "./AnalysisResults.jsx";
 import { synthesisObjectiveDisplay, uiVocabularyLabel } from "./uiVocabularyLabels.js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -1146,7 +1147,7 @@ function useDatasetName(datasetId) {
 }
 
 function useRegisteredOutput(outputId, enabled) {
-  const [state, setState] = useState({ loading: false, name: "", queryReady: false, rows: [], columns: [], total: null, error: "" });
+  const [state, setState] = useState({ id: "", loading: false, analysis: null, chart: null, name: "", queryReady: false, rows: [], columns: [], total: null, error: "" });
   useEffect(() => {
     if (!enabled || !outputId) return undefined;
     let cancelled = false;
@@ -1157,7 +1158,10 @@ function useRegisteredOutput(outputId, enabled) {
       const result = queried.status === "fulfilled" ? queried.value || {} : {};
       const rows = Array.isArray(result.rows) ? result.rows : [];
       setState({
+        id: outputId,
         loading: false,
+        analysis: ds.analysis,
+        chart: ds.chart,
         name: String(ds.name || ds.display_name || ds.title || ""),
         queryReady: ds.analysis_readiness === "query_ready" || ds.materialization?.query_ready === true,
         rows,
@@ -1170,11 +1174,12 @@ function useRegisteredOutput(outputId, enabled) {
       cancelled = true;
     };
   }, [outputId, enabled]);
-  return state;
+  return state.id === outputId ? state : { loading: enabled, name: "", queryReady: false, rows: [], columns: [], analysis: null, chart: null };
 }
 
 function RegisteredResultTable({ result }) {
   if (result.loading) return <p className="s04-preview-copy" data-testid="synthesis-result-loading">Loading the result…</p>;
+  if (result.analysis) return <AnalysisResults analysis={result.analysis} chart={result.chart} rows={result.rows} />;
   if (!result.rows.length) {
     return result.error ? <p className="s04-preview-copy" data-testid="synthesis-result-unavailable">{result.error}</p> : null;
   }
@@ -1299,7 +1304,8 @@ function ExecutionRecord({ thread, busy, onRequest, onReview, onAsk, onOpenDatas
                 {warningCount ? `${warningCount} preflight warning${warningCount === 1 ? "" : "s"} recorded. ` : "No preflight warnings recorded. "}
                 Sampling: {text(sampling.strategy, "sample window").replace(/_/g, " ")}.
               </p>
-              {sampleRows.length && sampleColumns.length ? (
+              <AnalysisResults analysis={preview.analysis} chart={preview.chart} rows={sampleRows} />
+              {!preview.analysis && sampleRows.length && sampleColumns.length ? (
                 <div className="s04-preview-sample">
                   <small>Output sample · {sampleRows.length} row{sampleRows.length === 1 ? "" : "s"}</small>
                   <div className="s04-preview-table-wrap">

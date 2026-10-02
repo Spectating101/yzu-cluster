@@ -1,3 +1,4 @@
+import { AnalysisResults } from "./AnalysisResults.jsx";
 import { plainRoute } from "./plainText.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { plainIdentifiers } from "@/v2/plainText";
@@ -253,12 +254,13 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
       return undefined;
     }
     setPreview({ loading: true, rows: [], error: "" });
-    queryDataset(dataset.dataset_id, 8)
+    queryDataset(dataset.dataset_id, dataset.analysis ? 10000 : 8)
       .then((payload) => {
         if (!cancelled) {
           setPreview({
+            datasetId: dataset.dataset_id,
             loading: false,
-            rows: Array.isArray(payload?.rows) ? payload.rows.slice(0, 8) : [],
+            rows: Array.isArray(payload?.rows) ? (dataset.analysis ? payload.rows : payload.rows.slice(0, 8)) : [],
             error: "",
           });
         }
@@ -267,7 +269,9 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
         if (!cancelled) setPreview({ loading: false, rows: [], error: "Preview is not available right now." });
       });
     return () => { cancelled = true; };
-  }, [canQuery, dataset?.dataset_id]);
+  }, [canQuery, dataset?.dataset_id, dataset?.analysis]);
+
+  if (dataset.analysis) return <AnalysisResults analysis={dataset.analysis} chart={dataset.chart} rows={preview.datasetId === dataset.dataset_id ? preview.rows : []} />;
 
   const columns = observedColumns(preview.rows);
   const schemaColumns = columns.length ? columns : names.slice(0, 12);
@@ -477,7 +481,7 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onOpenQuery,
           ) : null}
         </div>
 
-        {hasTableSurface ? (
+        {hasTableSurface || dataset?.analysis ? (
           <DatasetPreview
             dataset={dataset}
             canQuery={canQuery}

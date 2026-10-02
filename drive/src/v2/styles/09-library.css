@@ -1238,3 +1238,8 @@
     width: 100%;
   }
 }
+
+.rd-v2-library-asset-canvas .rd-analysis {
+  margin: 0;
+  padding: 18px 0;
+}

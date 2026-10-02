@@ -3171,3 +3171,138 @@
   .s04-multi-venn-body { grid-template-columns: 1fr; }
   .s04-multi-source-legend { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
+
+.rd-analysis {
+  margin: 16px 0;
+  padding: 14px 0;
+  border-top: 1px solid var(--rd-border);
+  color: var(--rd-text);
+  font-family: var(--rd-font);
+  font-size: var(--rd-text-sm);
+}
+
+.rd-analysis-header h3 {
+  margin: 0 0 6px;
+  font-size: var(--rd-text-md);
+}
+
+.rd-analysis-header p,
+.rd-analysis-note {
+  margin: 4px 0;
+  color: var(--rd-body);
+}
+
+.rd-analysis-sample,
+.rd-analysis-warnings {
+  margin: 12px 0;
+  padding: 10px 12px;
+  border-left: 3px solid var(--rd-review-fg);
+  background: var(--rd-review-bg);
+  color: var(--rd-text);
+}
+
+.rd-analysis-sample {
+  font-weight: 600;
+}
+
+.rd-analysis-warnings ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+}
+
+.rd-analysis-warnings li + li {
+  margin-top: 4px;
+}
+
+.rd-analysis-table-wrap,
+.rd-analysis-chart-wrap {
+  overflow-x: auto;
+}
+
+.rd-analysis-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--rd-text-xs);
+}
+
+.rd-analysis-table th,
+.rd-analysis-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--rd-border);
+  white-space: nowrap;
+  text-align: right;
+}
+
+.rd-analysis-table th {
+  font-family: var(--rd-font);
+  font-weight: 600;
+}
+
+.rd-analysis-table th:first-child {
+  text-align: left;
+}
+
+.rd-analysis-table td,
+.rd-analysis-table .rd-analysis-numeric {
+  font-family: var(--rd-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.rd-analysis-fit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin: 12px 0;
+  font-size: var(--rd-text-xs);
+}
+
+.rd-analysis-fit div {
+  display: flex;
+  gap: 6px;
+}
+
+.rd-analysis-fit dt {
+  color: var(--rd-muted);
+}
+
+.rd-analysis-fit dd {
+  margin: 0;
+}
+
+.rd-analysis-chart {
+  display: block;
+  width: 100%;
+  min-width: 480px;
+  margin-top: 12px;
+  background: var(--rd-surface);
+  font-family: var(--rd-font);
+  font-size: 12px;
+}
+
+.rd-analysis-chart text {
+  fill: var(--rd-text);
+}
+
+.rd-analysis-chart rect {
+  stroke: var(--rd-border);
+}
+
+.rd-analysis-reference {
+  stroke: var(--rd-muted);
+  stroke-dasharray: 4 4;
+  stroke-width: 1;
+}
+
+.rd-analysis-whisker {
+  stroke: var(--rd-link);
+  stroke-width: 2;
+}
+
+.rd-analysis-point,
+.rd-analysis-band {
+  fill: var(--rd-link);
+}
+
+.rd-analysis-band {
+  fill-opacity: 0.18;
+}

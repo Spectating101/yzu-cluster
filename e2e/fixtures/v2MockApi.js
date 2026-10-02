@@ -37,6 +37,56 @@ export const MOCK_DATASETS = {
   ],
 };
 
+export const MOCK_OLS_ROWS = [
+  { term: "const", coef: 1050, se: 240, t: 4.375, p: 0.024, ci_low: 579.6, ci_high: 1520.4 },
+  { term: "year", coef: -0.520, se: 0.119, t: -4.37, p: 0.024, ci_low: -0.754, ci_high: -0.286 },
+];
+
+export const MOCK_OLS_ANALYSIS = {
+  type: "ols",
+  spec: { type: "ols", outcome: "unemployment", predictors: ["year"], covariance: "cluster", cluster: "county" },
+  n_obs: 288,
+  r2: 0.089,
+  adj_r2: 0.086,
+  F: 19.0,
+  F_p: 0.024,
+  df_resid: 286,
+  clusters: 4,
+  covariance: "cluster",
+  inference: "Student t",
+  dropped_rows: 0,
+  warnings: ["few clusters (<30); cluster inference may be unreliable"],
+};
+
+const correlationRows = [
+  { var1: "unemployment", var2: "unemployment", r: 1, n: 288 },
+  { var1: "unemployment", var2: "year", r: -0.298, n: 288 },
+  { var1: "year", var2: "unemployment", r: -0.298, n: 288 },
+  { var1: "year", var2: "year", r: 1, n: 288 },
+];
+
+export const MOCK_ANALYSIS_DATASETS = {
+  datasets: [
+    { dataset_id: "county_unemployment_ols", name: "County unemployment regression", analysis_readiness: "query_ready", registered: true, local_path: "research_panels/county_unemployment_ols.parquet", analysis: MOCK_OLS_ANALYSIS, chart: { data: { values: MOCK_OLS_ROWS } }, artifacts: { script: "method.py" } },
+    { dataset_id: "county_correlation", name: "County unemployment correlation", analysis_readiness: "query_ready", registered: true, local_path: "research_panels/county_correlation.parquet", analysis: { type: "correlation", spec: { type: "correlation", columns: ["unemployment", "year"], method: "pearson" }, method: "pearson", n_obs: 288, dropped_rows: 0, warnings: [] }, chart: { data: { values: correlationRows } }, artifacts: {} },
+  ],
+};
+
+export const MOCK_ANALYSIS_PREVIEW = {
+  status: "succeeded",
+  spec_hash: "analysis-spec-v1",
+  analysis: { ...MOCK_OLS_ANALYSIS, sample_only: true, label: "sample only — not the final estimate", n_obs: 48 },
+  chart: { data: { values: MOCK_OLS_ROWS } },
+  sampling: { source_rows: 288, previewed_rows: 48, strategy: "sample_window" },
+  rows: { after_transforms: 48, output: 2 },
+  output: { rows: MOCK_OLS_ROWS, columns: ["term", "coef", "se", "t", "p", "ci_low", "ci_high"] },
+};
+
+export const MOCK_ANALYSIS_THREADS = [
+  { id: "analysis-result", title: "County unemployment analysis", objective: "Estimate county unemployment over time.", materialisation: "registered", created_at: "2026-10-01T09:00:00Z", updated_at: "2026-10-01T09:01:00Z", state: { nodes: [], execution_spec: { input_dataset_id: "gdelt_asia_daily_country_panel", output_dataset_id: "county_unemployment_ols", analysis: MOCK_OLS_ANALYSIS.spec }, execution: { status: "query_ready", output_dataset_id: "county_unemployment_ols" } } },
+  { id: "analysis-preview", title: "County sample analysis", objective: "Test the regression on a sample.", materialisation: "not_materialised", created_at: "2026-10-01T09:00:00Z", updated_at: "2026-10-01T09:00:00Z", state: { nodes: [], accepted_spec_hash: "analysis-spec-v1", execution_spec: { input_dataset_id: "gdelt_asia_daily_country_panel", output_dataset_id: "county_sample_ols", analysis: MOCK_OLS_ANALYSIS.spec }, execution: { status: "spec_accepted" }, preview: null } },
+];
+
 export const MOCK_DISCOVER_HIT = {
   sections: [
     {
@@ -335,6 +385,7 @@ export async function mockV2Api(
     healthBody = MOCK_HEALTH,
     healthDelayMs = 0,
     datasetsBody = MOCK_DATASETS,
+    analysisThreads = false,
     datasetsDelayMs = 0,
     datasetsStatus = 200,
     resourcesBody = MOCK_RESOURCES_ROLLUP,
@@ -876,13 +927,33 @@ export async function mockV2Api(
       body: JSON.stringify(profileBody),
     }),
   );
-  await page.route("**/query/*", (route) =>
-    route.fulfill({
+  await page.route("**/query/*", (route) => {
+    const id = decodeURIComponent(new URL(route.request().url()).pathname.split("/query/")[1] || "");
+    const dataset = datasetsBody.datasets?.find((item) => item.dataset_id === id);
+    return route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ rows: [{ date: "2026-04-30", country: "TW", score: 0.82 }] }),
-    }),
-  );
+      body: JSON.stringify({ rows: dataset?.chart?.data?.values || [{ date: "2026-04-30", country: "TW", score: 0.82 }] }),
+    });
+  });
+  if (analysisThreads) {
+    const threads = structuredClone(MOCK_ANALYSIS_THREADS);
+    await page.route("**/library/synthesis/threads**", (route) => {
+      const path = new URL(route.request().url()).pathname.split("/threads")[1] || "";
+      const [id, action] = path.split("/").filter(Boolean);
+      const respond = (body) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(body) });
+      if (!id) return respond({ threads });
+      const thread = threads.find((item) => item.id === id);
+      if (!action) return respond(thread);
+      if (action === "preview" || (action === "execute" && route.request().postDataJSON()?.action === "preview")) {
+        thread.state.preview = structuredClone(MOCK_ANALYSIS_PREVIEW);
+        return respond({ thread, preview: thread.state.preview, preview_only: true });
+      }
+      if (action === "measurements") return respond({ thread_id: id, input_dataset_ids: [], column_profiles: [], unmeasured: [], writes: false });
+      if (action === "evidence-map") return respond({ thread_id: id, nodes: [], writes: false });
+      return respond({});
+    });
+  }
 }
 
 export async function v2Nav(page, label) {
