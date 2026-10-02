@@ -67,9 +67,18 @@ const correlationRows = [
 
 export const MOCK_ANALYSIS_DATASETS = {
   datasets: [
-    { dataset_id: "county_unemployment_ols", name: "County unemployment regression", analysis_readiness: "query_ready", registered: true, local_path: "research_panels/county_unemployment_ols.parquet", analysis: MOCK_OLS_ANALYSIS, chart: { data: { values: MOCK_OLS_ROWS } }, artifacts: { script: "method.py" } },
-    { dataset_id: "county_correlation", name: "County unemployment correlation", analysis_readiness: "query_ready", registered: true, local_path: "research_panels/county_correlation.parquet", analysis: { type: "correlation", spec: { type: "correlation", columns: ["unemployment", "year"], method: "pearson" }, method: "pearson", n_obs: 288, dropped_rows: 0, warnings: [] }, chart: { data: { values: correlationRows } }, artifacts: {} },
+    { dataset_id: "county_unemployment_ols", name: "County unemployment regression", analysis_readiness: "query_ready", registered: true, local_path: "research_panels/county_unemployment_ols.parquet", synthesis_analysis: MOCK_OLS_ANALYSIS, synthesis_artifacts: { "analysis.json": "analysis.json", "chart.json": "chart.json" } },
+    { dataset_id: "county_correlation", name: "County unemployment correlation", analysis_readiness: "query_ready", registered: true, local_path: "research_panels/county_correlation.parquet", synthesis_analysis: { type: "correlation", spec: { type: "correlation", columns: ["unemployment", "year"], method: "pearson" }, method: "pearson", n_obs: 288, dropped_rows: 0, warnings: [] }, synthesis_artifacts: { "chart.json": "chart.json" } },
   ],
+};
+
+const MOCK_ANALYSIS_ROWS = {
+  county_unemployment_ols: MOCK_OLS_ROWS,
+  county_correlation: correlationRows,
+};
+
+const MOCK_ANALYSIS_CHARTS = {
+  county_unemployment_ols: { data: { values: MOCK_OLS_ROWS } },
 };
 
 export const MOCK_ANALYSIS_PREVIEW = {
@@ -472,7 +481,8 @@ export async function mockV2Api(
     const id = decodeURIComponent(route.request().url().split("/datasets/")[1]?.split("?")[0] || "");
     const rows = Array.isArray(datasetsBody?.datasets) ? datasetsBody.datasets : [];
     const row = rows.find((d) => d.dataset_id === id) || rows[0] || { dataset_id: id };
-    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(row) });
+    const described = row.synthesis_analysis ? { ...row, analysis: row.synthesis_analysis, chart: MOCK_ANALYSIS_CHARTS[row.dataset_id], artifacts: row.synthesis_artifacts } : row;
+    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(described) });
   });
   await page.route("**/library/desk/resources*", async (route) => {
     if (resourcesDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, resourcesDelayMs));
@@ -933,7 +943,7 @@ export async function mockV2Api(
     return route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ rows: dataset?.chart?.data?.values || [{ date: "2026-04-30", country: "TW", score: 0.82 }] }),
+      body: JSON.stringify({ rows: MOCK_ANALYSIS_ROWS[dataset?.dataset_id] || [{ date: "2026-04-30", country: "TW", score: 0.82 }] }),
     });
   });
   if (analysisThreads) {

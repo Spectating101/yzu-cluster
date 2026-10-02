@@ -244,7 +244,10 @@ function observedColumns(rows = []) {
   return ordered;
 }
 
+const datasetAnalysis = (dataset) => dataset?.analysis || dataset?.synthesis_analysis || null;
+
 function DatasetPreview({ dataset, canQuery, names, fields, state, presentation, onInspect, onExpandSample }) {
+  const analysis = datasetAnalysis(dataset);
   const [preview, setPreview] = useState({ loading: false, rows: [], error: "" });
 
   useEffect(() => {
@@ -254,13 +257,13 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
       return undefined;
     }
     setPreview({ loading: true, rows: [], error: "" });
-    queryDataset(dataset.dataset_id, dataset.analysis ? 10000 : 8)
+    queryDataset(dataset.dataset_id, analysis ? 10000 : 8)
       .then((payload) => {
         if (!cancelled) {
           setPreview({
             datasetId: dataset.dataset_id,
             loading: false,
-            rows: Array.isArray(payload?.rows) ? (dataset.analysis ? payload.rows : payload.rows.slice(0, 8)) : [],
+            rows: Array.isArray(payload?.rows) ? (analysis ? payload.rows : payload.rows.slice(0, 8)) : [],
             error: "",
           });
         }
@@ -269,9 +272,9 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
         if (!cancelled) setPreview({ loading: false, rows: [], error: "Preview is not available right now." });
       });
     return () => { cancelled = true; };
-  }, [canQuery, dataset?.dataset_id, dataset?.analysis]);
+  }, [canQuery, dataset?.dataset_id, analysis]);
 
-  if (dataset.analysis) return <AnalysisResults analysis={dataset.analysis} chart={dataset.chart} rows={preview.datasetId === dataset.dataset_id ? preview.rows : []} />;
+  if (analysis) return <AnalysisResults analysis={analysis} chart={dataset.chart} rows={preview.datasetId === dataset.dataset_id ? preview.rows : []} />;
 
   const columns = observedColumns(preview.rows);
   const schemaColumns = columns.length ? columns : names.slice(0, 12);
@@ -481,7 +484,7 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onOpenQuery,
           ) : null}
         </div>
 
-        {hasTableSurface || dataset?.analysis ? (
+        {hasTableSurface || datasetAnalysis(dataset) ? (
           <DatasetPreview
             dataset={dataset}
             canQuery={canQuery}
