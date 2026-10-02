@@ -1,5 +1,5 @@
 import React from "react";
-import { analysisDescription, analysisRows, analysisTypeLabel, correlationColor, correlationMatrix, covarianceLabel, eventGeometry, formatAnalysisCount, formatAnalysisNumber as number, formatAnalysisP as pValue, regressionGeometry } from "./analysisResults.js";
+import { REGRESSION_TYPES, analysisDescription, analysisRows, analysisTypeLabel, coefficientScale, isBinaryModel, correlationColor, correlationMatrix, covarianceLabel, eventGeometry, formatAnalysisCount, formatAnalysisNumber as number, formatAnalysisP as pValue, regressionGeometry } from "./analysisResults.js";
 
 const chartLabel = (label) => label.length > 22 ? `${label.slice(0, 21)}…` : label;
 const ci = (row) => `[${number(row.ci_low)}, ${number(row.ci_high)}]`;
@@ -65,10 +65,18 @@ function EventChart({ rows, label }) {
 }
 
 function FitStats({ analysis }) {
-  const stats = [
+  const binary = isBinaryModel(analysis);
+  const stats = binary ? [
+    ["Pseudo R² (McFadden)", number(analysis.pseudo_r2)],
+    ["Log likelihood", number(analysis.llf)],
+    ["LR χ²", number(analysis.LR)],
+    ["LR p", pValue(analysis.LR_p)],
+    ["Converged", analysis.converged === false ? "No" : analysis.converged === true ? "Yes" : "—"],
+    ["Clusters", formatAnalysisCount(analysis.clusters)],
+  ] : [
     ["R²", number(analysis.r2)],
     ["Adjusted R²", number(analysis.adj_r2)],
-    ...(analysis.type === "panel_fe" ? [["Within R²", number(analysis.within_r2)]] : []),
+    ...(analysis.within_r2 !== undefined ? [["Within R²", number(analysis.within_r2)]] : []),
     ["F", number(analysis.F)],
     ["F p", pValue(analysis.F_p)],
     ["Residual df", formatAnalysisCount(analysis.df_resid)],
@@ -81,16 +89,44 @@ function FitStats({ analysis }) {
   );
 }
 
-function RegressionTable({ rows }) {
+function MarginalEffectsTable({ effects }) {
+  if (!effects?.length) return null;
+  return (
+    <table className="rd-analysis-table" aria-label="Average marginal effects">
+      <thead>
+        <tr>{["Term", "Average marginal effect", "Std. error"].map((heading) => <th scope="col" key={heading}>{heading}</th>)}</tr>
+      </thead>
+      <tbody>
+        {effects.map((row) => <tr key={row.term}><th scope="row">{row.term}</th><td>{number(row.coef)}</td><td>{number(row.se)}</td></tr>)}
+      </tbody>
+    </table>
+  );
+}
+
+function FirstStageTable({ stages }) {
+  if (!stages?.length) return null;
+  return (
+    <table className="rd-analysis-table" aria-label="First-stage diagnostics">
+      <thead>
+        <tr>{["Endogenous regressor", "First-stage F", "p", "First-stage R²"].map((heading) => <th scope="col" key={heading}>{heading}</th>)}</tr>
+      </thead>
+      <tbody>
+        {stages.map((row) => <tr key={row.term}><th scope="row">{row.term}</th><td>{number(row.F)}</td><td>{pValue(row.F_p)}</td><td>{number(row.r2)}</td></tr>)}
+      </tbody>
+    </table>
+  );
+}
+
+function RegressionTable({ rows, statistic = "t", highlight = "" }) {
   return (
     <table className="rd-analysis-table" aria-label="Regression results">
       <thead>
-        <tr>{["Term", "Estimate", "Std. error", "t", "p", "95% CI"].map((heading) => <th scope="col" key={heading}>{heading}</th>)}</tr>
+        <tr>{["Term", "Estimate", "Std. error", statistic, "p", "95% CI"].map((heading) => <th scope="col" key={heading}>{heading}</th>)}</tr>
       </thead>
       <tbody>
         {rows.map((row, index) => (
-          <tr key={index}>
-            <th scope="row">{row.term}</th>
+          <tr key={index} className={highlight && row.term === highlight ? "is-highlighted" : undefined}>
+            <th scope="row">{highlight && row.term === highlight ? "Treatment effect (treated × post)" : row.term}</th>
             <td>{number(row.coef)}</td>
             <td>{number(row.se)}</td>
             <td>{number(row.t)}</td>
@@ -147,7 +183,8 @@ function EventTable({ rows }) {
 export function AnalysisResults({ analysis, rows, chart }) {
   if (!analysis) return null;
   const values = analysisRows(rows, chart);
-  const regression = analysis.type === "ols" || analysis.type === "panel_fe";
+  const regression = REGRESSION_TYPES.has(analysis.type);
+  const scale = coefficientScale(analysis);
   const correlation = analysis.type === "correlation";
   const label = analysisTypeLabel(analysis.type);
   const covariance = covarianceLabel(analysis);
@@ -173,9 +210,12 @@ export function AnalysisResults({ analysis, rows, chart }) {
       {!values.length ? <p>Result rows are unavailable.</p> : (
         <>
           <div className="rd-analysis-table-wrap">
-            {regression ? <RegressionTable rows={values} /> : correlation ? <CorrelationTable matrix={matrix} /> : <EventTable rows={values} />}
+            {regression ? <RegressionTable rows={values} statistic={isBinaryModel(analysis) ? "z" : "t"} highlight={analysis.type === "did" ? analysis.interaction_term || "treated_x_post" : ""} /> : correlation ? <CorrelationTable matrix={matrix} /> : <EventTable rows={values} />}
           </div>
+          {scale ? <p className="rd-analysis-note">{scale}</p> : null}
           {regression ? <FitStats analysis={analysis} /> : null}
+          {isBinaryModel(analysis) ? <div className="rd-analysis-table-wrap"><MarginalEffectsTable effects={analysis.marginal_effects} /></div> : null}
+          {analysis.type === "iv" ? <div className="rd-analysis-table-wrap"><FirstStageTable stages={analysis.first_stage} /></div> : null}
           <div className="rd-analysis-chart-wrap">
             {regression ? <RegressionChart rows={values} label={label} /> : correlation ? <CorrelationChart matrix={matrix} label={label} /> : <EventChart rows={values} label={label} />}
           </div>

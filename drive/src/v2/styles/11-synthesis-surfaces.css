@@ -3248,6 +3248,15 @@
   font-variant-numeric: tabular-nums;
 }
 
+.rd-analysis-table tr.is-highlighted {
+  background: var(--rd-accent-soft);
+}
+
+.rd-analysis-table tr.is-highlighted th,
+.rd-analysis-table tr.is-highlighted td {
+  font-weight: 600;
+}
+
 .rd-analysis-fit {
   display: flex;
   flex-wrap: wrap;

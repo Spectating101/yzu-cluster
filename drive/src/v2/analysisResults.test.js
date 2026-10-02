@@ -141,3 +141,32 @@ describe("analysis rendering", () => {
     assert.match(panel, /0.250/);
   });
 });
+
+describe("deeper analysis types", () => {
+  it("labels and describes logit, probit, IV and DiD in plain words", () => {
+    assert.equal(analysisTypeLabel("logit"), "Logistic regression (logit)");
+    assert.equal(analysisTypeLabel("probit"), "Probit regression");
+    assert.equal(analysisTypeLabel("iv"), "Instrumental variables (2SLS)");
+    assert.equal(analysisTypeLabel("did"), "Difference-in-differences");
+    assert.equal(analysisDescription({ type: "iv", spec: { outcome: "wage", endog: ["educ"], instruments: ["distance"], exog: ["age"] } }), "Outcome: wage · Endogenous: educ · Instruments: distance · Exogenous: age");
+    assert.equal(analysisDescription({ type: "did", spec: { outcome: "y", treated: "treat", post: "after", entity: "firm", time: "year" } }), "Outcome: y · Treated: treat · Post: after · Fixed effects: firm and year");
+  });
+  it("renders binary models with z statistics, likelihood fit and marginal effects", () => {
+    const html = renderToStaticMarkup(AnalysisResults({ analysis: { type: "logit", spec: { outcome: "default", predictors: ["leverage"] }, n_obs: 500, warnings: [], pseudo_r2: 0.12, llf: -300.5, LR: 81.9, LR_p: 0.00001, converged: true, marginal_effects: [{ term: "leverage", coef: 0.0412, se: 0.008 }] }, rows: [{ term: "leverage", coef: 0.9, se: 0.2, t: 4.5, p: 0.00001, ci_low: 0.5, ci_high: 1.3 }] }));
+    assert.match(html, /<th scope="col">z<\/th>/);
+    assert.match(html, /Pseudo R² \(McFadden\)/);
+    assert.match(html, /aria-label="Average marginal effects"/);
+    assert.match(html, /0\.041/);
+    assert.match(html, /log-odds/);
+    assert.doesNotMatch(html, /Adjusted R²/);
+  });
+  it("renders IV first-stage diagnostics and highlights the DiD treatment effect", () => {
+    const iv = renderToStaticMarkup(AnalysisResults({ analysis: { type: "iv", spec: { outcome: "y", endog: ["d"], instruments: ["z"] }, n_obs: 100, warnings: ["weak instruments: first-stage F < 10 for d (4.2)"], first_stage: [{ term: "d", F: 4.2, F_p: 0.04, r2: 0.05 }] }, rows: [{ term: "d", coef: 1, se: 0.5, t: 2, p: 0.05, ci_low: 0, ci_high: 2 }] }));
+    assert.match(iv, /aria-label="First-stage diagnostics"/);
+    assert.match(iv, /weak instruments/);
+    assert.match(iv, /<th scope="col">t<\/th>/);
+    const did = renderToStaticMarkup(AnalysisResults({ analysis: { type: "did", spec: { outcome: "y", treated: "treat", post: "after" }, n_obs: 400, warnings: [], interaction_term: "treated_x_post" }, rows: [{ term: "treated_x_post", coef: 2.1, se: 0.4, t: 5.2, p: 0.0001, ci_low: 1.3, ci_high: 2.9 }] }));
+    assert.match(did, /class="is-highlighted"/);
+    assert.match(did, /Treatment effect \(treated × post\)/);
+  });
+});

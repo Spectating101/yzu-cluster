@@ -16,7 +16,17 @@ export function formatAnalysisCount(value) {
 }
 
 export function analysisTypeLabel(type) {
-  return ({ ols: "Linear regression (OLS)", panel_fe: "Panel regression with fixed effects", correlation: "Correlation", event_study: "Event study" })[type] || "Analysis";
+  return ({ ols: "Linear regression (OLS)", panel_fe: "Panel regression with fixed effects", logit: "Logistic regression (logit)", probit: "Probit regression", iv: "Instrumental variables (2SLS)", did: "Difference-in-differences", correlation: "Correlation", event_study: "Event study" })[type] || "Analysis";
+}
+
+export const REGRESSION_TYPES = new Set(["ols", "panel_fe", "logit", "probit", "iv", "did"]);
+
+export const isBinaryModel = (analysis) => analysis?.type === "logit" || analysis?.type === "probit";
+
+export function coefficientScale(analysis) {
+  if (analysis?.type === "logit") return "Coefficients are log-odds; average marginal effects are on the probability scale.";
+  if (analysis?.type === "probit") return "Coefficients are on the probit index; average marginal effects are on the probability scale.";
+  return "";
 }
 
 export function covarianceLabel(analysis) {
@@ -36,6 +46,9 @@ export function analysisDescription(analysis) {
     const benchmark = analysis.benchmark || spec.benchmark;
     return [`Return: ${spec.return || "Not documented"}`, benchmark === "market" ? `Market benchmark: ${spec.market_return || "Not documented"}` : "Mean return benchmark", spec.event_window ? `Event window: ${spec.event_window.join(" to ")}` : "", spec.estimation_window ? `Estimation window: ${spec.estimation_window.join(" to ")}` : ""].filter(Boolean).join(" · ");
   }
+  const list = (values) => (values || []).join(", ") || "None";
+  if (analysis.type === "iv") return [`Outcome: ${spec.outcome || "Not documented"}`, `Endogenous: ${list(spec.endog)}`, `Instruments: ${list(spec.instruments)}`, `Exogenous: ${list(spec.exog)}`].join(" · ");
+  if (analysis.type === "did") return [`Outcome: ${spec.outcome || "Not documented"}`, `Treated: ${spec.treated || "Not documented"}`, `Post: ${spec.post || "Not documented"}`, spec.controls?.length ? `Controls: ${list(spec.controls)}` : "", spec.entity || spec.time ? `Fixed effects: ${[spec.entity, spec.time].filter(Boolean).join(" and ")}` : ""].filter(Boolean).join(" · ");
   return [`Outcome: ${spec.outcome || "Not documented"}`, `Predictors: ${(spec.predictors || []).join(", ") || "Not documented"}`].join(" · ");
 }
 
