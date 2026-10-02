@@ -202,7 +202,7 @@ test("Synthesis exposes terminal-depth method, row, runtime, and multi-run proof
   await expect(preview).toContainText("12 preview rows were removed");
 
   const execution = page.getByTestId("synthesis-execution-forensics");
-  await expect(execution).toContainText("running");
+  await expect(execution).toContainText("Building");
   await expect(execution).toContainText("job-forensic-001");
   await expect(execution).toContainText("manifest-forensic-001");
   await expect(execution).toContainText("4,988");
