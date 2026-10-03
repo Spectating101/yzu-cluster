@@ -137,7 +137,8 @@ export function SourceRibbon({ source }) {
   else if (key.includes("datacite") || key.includes("doi")) { label = "DOI"; tone = "doi"; }
   else if (key.includes("gdelt")) { label = "GDELT"; tone = "gdelt"; }
   else if (key.includes("refinitiv") || key.includes("lseg")) { label = "LSEG"; tone = "warn"; }
-  else if (key.includes("lab") || key.includes("registry") || key.includes("vault")) {
+  else if (key === "bls" || key.includes("bureau of labor statistics")) { label = "BLS"; }
+  else if (/\blab\b/.test(key) || key.includes("registry") || key.includes("vault")) {
     label = "LAB";
     tone = "lab";
   }

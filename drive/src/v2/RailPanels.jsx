@@ -437,9 +437,9 @@ export function PageRailPanel({ page = "home", onAskAbout }) {
           </RailFieldGrid>
         </div>
         <RailStickyFooter>
-          <button type="button" className="rd-v2-btn sm" onClick={() => onAskAbout?.()}>
+          {onAskAbout ? <button type="button" className="rd-v2-btn sm" onClick={() => onAskAbout()}>
             Ask Library →
-          </button>
+          </button> : <span className="rd-v2-rail-note">Sign in to Ask about your Library.</span>}
         </RailStickyFooter>
       </RailFrame>
     );
@@ -456,9 +456,9 @@ export function PageRailPanel({ page = "home", onAskAbout }) {
         </RailFieldGrid>
       </div>
       <RailStickyFooter>
-        <button type="button" className="rd-v2-btn sm" onClick={() => onAskAbout?.()}>
+        {onAskAbout ? <button type="button" className="rd-v2-btn sm" onClick={() => onAskAbout()}>
           Ask about this page →
-        </button>
+        </button> : <span className="rd-v2-rail-note">Sign in to Ask about this page.</span>}
       </RailStickyFooter>
     </RailFrame>
   );
@@ -483,9 +483,9 @@ export function HomeAttentionRailPanel({ object, onAskAbout }) {
         </RailFieldGrid>
       </div>
       <RailStickyFooter>
-        <button type="button" className="rd-v2-btn sm" onClick={() => onAskAbout?.(object)}>
+        {onAskAbout ? <button type="button" className="rd-v2-btn sm" onClick={() => onAskAbout(object)}>
           Ask about this →
-        </button>
+        </button> : <span className="rd-v2-rail-note">Sign in to Ask about this item.</span>}
       </RailStickyFooter>
     </RailFrame>
   );

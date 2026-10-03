@@ -303,6 +303,8 @@ export function InspectorRail({
     detailPanel = (
       <LibraryDatasetRailPanel
         dataset={dataset}
+        catalog={discoverCatalog}
+        onOpenDataset={onOpenInLibrary}
         previewOpen={previewOpen}
         onPreview={onPreview}
         onAskAbout={onAskAbout}
@@ -340,6 +342,8 @@ export function InspectorRail({
     detailPanel = (
       <LibraryDatasetRailPanel
         dataset={dataset}
+        catalog={discoverCatalog}
+        onOpenDataset={onOpenInLibrary}
         previewOpen={previewOpen}
         onPreview={onPreview}
         onAskAbout={onAskAbout}

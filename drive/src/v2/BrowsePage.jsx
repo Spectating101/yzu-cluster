@@ -1,7 +1,7 @@
 import { uiVocabularyLabel } from "./uiVocabularyLabels.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { discoverSearch, discoverSources, webDiscover } from "@/v2/api";
-import { partialFitLine, searchHitToCandidate, sourcesResponseToRows } from "@/v2/discoverAdapters";
+import { partialFitLine, reconcileDiscoverRegistryRows, searchHitToCandidate, sourcesResponseToRows } from "@/v2/discoverAdapters";
 import { collectRouteDisplayLabel } from "@/v2/collectRouteLabel";
 import { DiscoverHistoryPanel } from "@/v2/DiscoverHistoryPanel";
 import { isDiscoverHistoryJob, jobToCandidateRow, pendingApprovalJobs } from "@/v2/procurementJobs";
@@ -772,7 +772,7 @@ export function BrowsePage({
 
     const flattenRows = (data) => {
       const fromApi = (data.sections || []).flatMap((s) => s.rows || []);
-      return (fromApi.length ? fromApi : data.results || data.hits || [])
+      return reconcileDiscoverRegistryRows(fromApi.length ? fromApi : data.results || data.hits || [], catalog, !catalogLoading && catalog.length > 0)
         .map((row) => searchHitToCandidate(row))
         .filter(Boolean);
     };
@@ -1000,7 +1000,7 @@ export function BrowsePage({
     return () => {
       cancelled = true;
     };
-  }, [searchQuery, discoverMode, labIds, preferLiveSources, externalSearchQuery, searchRevision]);
+  }, [searchQuery, discoverMode, labIds, catalog, catalogLoading, preferLiveSources, externalSearchQuery, searchRevision]);
 
   useEffect(() => {
     const q = String(searchQuery || "").trim();

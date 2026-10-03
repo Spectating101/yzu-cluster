@@ -190,14 +190,16 @@ export function LibraryEvidenceEstate({
                   onClick={() => onSelectDataset?.(row)}
                 >
                   <span className="rd-v2-cap-evidence" role="cell">
-                    <strong>{displayName(row)}</strong>
+                    <strong title={displayName(row)}>{displayName(row)}</strong>
                     <em>{descriptionLabel(row)}</em>
                     {query && row.search_match?.reasons?.length ? (
                       <span className="rd-v2-library-match" data-testid="library-search-match">
                         <b>Matched</b>
                         {row.search_match.reasons.slice(0, 2).map((reason) => (
                           <span key={`${reason.kind}-${reason.value}`}>
-                            {reason.label} · {reason.value}
+                            {reason.kind === "name" && reason.value === row.dataset_id
+                              ? <>Dataset · {displayName(row)}</>
+                              : <>{reason.label} · {reason.value}</>}
                           </span>
                         ))}
                       </span>

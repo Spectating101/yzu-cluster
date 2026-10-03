@@ -61,7 +61,9 @@ export function HomeSuggestedAsks({ profile, onAskComposer, allowPrincipalSeed =
           Start with <strong>Library</strong> when the data is already in your Library. Use <strong>Discover</strong> when evidence is missing.
         </p>
         <p>
-          <strong>Ask</strong> reasons over the current research context. <strong>Synthesis</strong> saves approved methods and outputs for reuse.
+          {allowPrincipalSeed
+            ? <><strong>Ask</strong> reasons over the current research context. <strong>Synthesis</strong> saves approved methods and outputs for reuse.</>
+            : <>Sign in to use <strong>Ask</strong> and save research builds in <strong>Synthesis</strong>.</>}
         </p>
       </div>
       {seed ? (
@@ -79,7 +81,7 @@ export function HomeSuggestedAsks({ profile, onAskComposer, allowPrincipalSeed =
           {connectedSources.map((source) => source?.label || source?.provider || "Connected storage").join(" · ")}
         </p>
       ) : null}
-      <div
+      {allowPrincipalSeed ? <div
         className="rd-v2-chips-row"
         data-testid="home-suggested-prompts"
         style={{ flexWrap: "wrap", overflow: "visible" }}
@@ -94,7 +96,7 @@ export function HomeSuggestedAsks({ profile, onAskComposer, allowPrincipalSeed =
             {uiVocabularyLabel(prompt).length > 72 ? `${uiVocabularyLabel(prompt).slice(0, 69)}…` : uiVocabularyLabel(prompt)}
           </Chip>
         ))}
-      </div>
+      </div> : null}
     </section>
   );
 }

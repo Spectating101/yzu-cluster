@@ -21,18 +21,6 @@
   background: var(--rd-border2);
 }
 
-/* "State" was too broad for a control that is specifically about research
-   readiness. Keep the existing test/URL contract while making the visible
-   vocabulary match the underlying readiness model. */
-.rd-v2-library-filter-control:has(select[data-testid="library-state-filter"]) > span {
-  font-size: 0;
-}
-
-.rd-v2-library-filter-control:has(select[data-testid="library-state-filter"]) > span::after {
-  content: "Readiness";
-  font-size: var(--rd-text-2xs);
-}
-
 .rd-v2-library-pagination {
   display: flex;
   min-height: 42px;
@@ -625,15 +613,32 @@
   min-width: 0;
 }
 
-.rd-v2-cap-evidence strong {
+.rd-v2-library-upstream > span { display: block; }
+.rd-v2-library-upstream-link {
   display: block;
+  min-height: 24px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--rd-link);
+  font: inherit;
+  line-height: 1.5;
+  text-align: left;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.rd-v2-library-upstream-link:focus-visible { outline: 2px solid var(--rd-link); outline-offset: 2px; }
+
+.rd-v2-cap-evidence strong {
+  display: -webkit-box;
   overflow: hidden;
   color: var(--rd-text);
   font-size: var(--rd-text-xs);
   font-weight: 700;
   line-height: 1.35;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  white-space: normal;
 }
 
 .rd-v2-cap-evidence em {

@@ -122,12 +122,12 @@ export function LibraryFolderRailPanel({
           <p className="rd-v2-rail-note">{purpose}</p>
         </section>
 
-        <section className="rd-v2-library-folder-add">
+        {onStartUpload || onStartUrl || onStartProcure ? <section className="rd-v2-library-folder-add">
           <p className="rd-v2-rail-section-label">Add evidence</p>
           {onStartUpload ? <button type="button" onClick={() => onStartUpload(object)}>Upload file</button> : null}
           {onStartUrl ? <button type="button" onClick={() => onStartUrl(object)}>Add URL / DOI</button> : null}
           {onStartProcure ? <button type="button" onClick={() => onStartProcure(object)}>Find missing evidence</button> : null}
-        </section>
+        </section> : null}
 
         <details className="rd-v2-library-inspector-tech rd-v2-library-folder-tech">
           <summary>Technical details</summary>
@@ -141,9 +141,9 @@ export function LibraryFolderRailPanel({
       </div>
 
       <RailStickyFooter>
-        <button type="button" className="rd-v2-btn sm primary" onClick={onAskAbout}>
+        {onAskAbout ? <button type="button" className="rd-v2-btn sm primary" onClick={onAskAbout}>
           {askLabel}
-        </button>
+        </button> : <span className="rd-v2-rail-note">Sign in to Ask about {root ? "the Library" : physicalFolder ? "this folder" : "this collection"}.</span>}
       </RailStickyFooter>
     </RailFrame>
   );

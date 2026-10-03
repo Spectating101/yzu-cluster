@@ -16,6 +16,10 @@ for (const tab of TABS) {
     await page.goto(`/?tab=${tab}`, { waitUntil: "domcontentloaded" });
     await waitForShell(page);
     await expect(page.locator(".rd-v2-shell")).toBeVisible();
+    if (tab === "history") {
+      await expect(page.getByRole("heading", { name: "Discover", exact: true })).toBeVisible();
+      await expect(page.getByTestId("discover-browse-mode")).toHaveCount(0);
+    }
     expect(errors, `uncaught error while mounting ${tab}: ${errors[0] || ""}`).toEqual([]);
   });
 }
@@ -26,5 +30,6 @@ test("a deep link to a removed destination still mounts the shell", async ({ pag
   await mockV2Api(page);
   await page.goto("/?tab=cluster", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
+  await expect(page.getByRole("heading", { name: "Home", exact: true })).toBeVisible();
   expect(errors).toEqual([]);
 });

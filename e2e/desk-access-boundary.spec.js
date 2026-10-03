@@ -127,14 +127,16 @@ test("a public guest can browse shared evidence but must sign in to Ask", async 
   await expect(page.getByRole("button", { name: "Resources", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Synthesis", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Synthesis", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Build evidence into a method you can inspect, challenge, and reuse." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Build a method from your research question" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Sign in to start Synthesis" })).toBeVisible();
+  await expect(page.locator("aside.rd-v2-rail").getByRole("button", { name: /Ask about/ })).toHaveCount(0);
   if (process.env.YZU_CAPTURE_VISUALS === "1") {
     await page.screenshot({ path: testInfo.outputPath("public-synthesis-1440x900.png"), fullPage: false });
   }
   await page.getByRole("button", { name: "Resources", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Research evidence is public here; infrastructure and approval controls are not." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Research staff manage resources" })).toBeVisible();
   await expect(page.locator("aside.rd-v2-rail")).toContainText("Operational boundary");
+  await expect(page.locator("aside.rd-v2-rail").getByRole("button", { name: /Ask about/ })).toHaveCount(0);
   await expect(page.locator("aside.rd-v2-rail").getByRole("button", { name: "Open activity" })).toHaveCount(0);
   await expect(page.locator("aside.rd-v2-rail").getByText(/awaiting your approval/i)).toHaveCount(0);
   await expect.poll(() => privateSurfaceRequests).toEqual([]);

@@ -125,6 +125,44 @@ test.describe("v2 Discover tab", () => {
     expect(externalDescribeRequests).toBe(0);
   });
 
+  test("stale index records and collected receipts do not become external offers", async ({ page }) => {
+    const title = "County unemployment trend";
+    const held = ["county_current", "county_other"].map(dataset_id => ({
+      dataset_id, name: title, analysis_readiness: "instant", local_root: "research_panels/county",
+    }));
+    await mockV2Api(page, {
+      datasetsBody: { datasets: held },
+      discoverSourcesBody: { results: [{
+        kind: "source", source_id: "bls", provider: "U.S. Bureau of Labor Statistics",
+        title: "County unemployment official source", collect_via: ["public_api_collect"],
+      }] },
+      discoverBody: { sections: [{ id: "discover", rows: [
+        ...held.map(row => ({
+          kind: "registry_dataset", dataset_id: row.dataset_id, title,
+          source: "registry", local_ready: true, collect_via: "local_open",
+        })),
+        { kind: "registry_dataset", dataset_id: "county_old", title,
+          source: "collection_index", local_ready: false, collect_via: "datacite" },
+        { kind: "registry_dataset", dataset_id: "county_old_ready", title,
+          source: "collection_index", local_ready: true, collect_via: "local_open" },
+        { kind: "catalog", title, source: "procured", collect_via: "none" },
+        { kind: "datacite", title: "County unemployment published dataset",
+          source: "DataCite", doi: "10.1234/county", collect_via: "datacite" },
+      ] }], total: 6 },
+    });
+    await page.goto("/?tab=discover", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await searchDiscover(page, "county unemployment");
+    const summary = page.getByTestId("discover-result-summary");
+    await expect(summary).toContainText("Available · 2");
+    await expect(summary).toContainText("Library evidence · 2");
+    const results = page.getByTestId("discover-ranked-results");
+    await expect(results.locator(".rd-v2-discover-candidate")).toHaveCount(2);
+    await expect(results.locator(".rd-v2-source-ribbon").filter({ hasText: /^BLS$/ })).toBeVisible();
+    await expect(results).not.toContainText("PROCURED");
+    await expect(results).toContainText("County unemployment published dataset");
+  });
+
   test("late Library hydration never erases a painted candidate field", async ({ page }) => {
     // Production can return the first Discover leg before the larger Library
     // registry has finished hydrating. Updating possession IDs legitimately

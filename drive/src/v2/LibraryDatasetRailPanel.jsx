@@ -8,7 +8,7 @@ import {
   statusPillKind,
 } from "@/v2/datasetMeta";
 import { freshnessDate, summarizeLibraryFreshness } from "@/v2/libraryFreshness";
-import { hasReproductionMethod, librarySourceReceipt } from "@/v2/libraryProvenance";
+import { hasReproductionMethod, librarySourceReceipt, libraryUpstreamDatasets } from "@/v2/libraryProvenance";
 import { libraryVerification } from "@/v2/libraryVerification";
 import { holdingRoleLabel, summarizeLibraryHoldings } from "@/v2/libraryHoldings";
 import { RailFrame, RailStickyFooter } from "@/v2/RailFrame";
@@ -217,13 +217,14 @@ function HoldingsBlock({ summary }) {
  * rail is therefore decisional: usability, freshness, provenance, verification,
  * unresolved facts, and the next valid research move.
  */
-export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onAskAbout }) {
+export function LibraryDatasetRailPanel({ dataset, catalog = [], previewOpen = false, onAskAbout, onOpenDataset }) {
   if (!dataset) return null;
   const fields = detailFields(dataset);
   const presentation = libraryAssetPresentation(dataset);
   const state = statusPillKind(dataset);
   const decision = decisionFor(dataset);
   const receipt = librarySourceReceipt(dataset);
+  const upstream = libraryUpstreamDatasets(dataset, catalog);
   const freshness = summarizeLibraryFreshness(dataset, { kind: presentation.kind });
   const missing = unknowns(dataset, fields, presentation, receipt, freshness);
   const boundaries = knownBoundaries(dataset, fields);
@@ -286,7 +287,16 @@ export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onAskAbo
               <Fact label="Access" value={plainRoute(accessRoute)} />
               <Fact label="Method" value={plainRoute(receipt.method)} />
               <Fact label={reproductionLabel(receipt)} value={reproductionValue(receipt)} mono />
-              <Fact label="Upstream datasets" value={receipt.upstream} mono />
+              {upstream.length ? (
+                <div className="rd-v2-library-inspector-fact">
+                  <span>Upstream datasets</span>
+                  <strong className="rd-v2-library-upstream">{upstream.map((input) => <span key={input.id}>
+                    {input.dataset && onOpenDataset
+                      ? <button type="button" className="rd-v2-library-upstream-link" onClick={() => onOpenDataset(input.dataset)}>{input.name}</button>
+                      : input.name}
+                  </span>)}</strong>
+                </div>
+              ) : null}
             </div>
           ) : (
             <p className="rd-v2-library-inspector-prose muted">
@@ -342,6 +352,7 @@ export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onAskAbo
           <summary>Technical details</summary>
           <div className="rd-v2-library-inspector-tech-body">
             <Fact label="Library ID" value={dataset.dataset_id} mono />
+            <Fact label="Upstream dataset IDs" value={receipt.upstream} mono />
             {holdings.count ? <Fact label="Known holdings" value={String(holdings.count)} /> : null}
             <Fact label="Registry readiness" value={dataset.analysis_readiness || "not declared"} mono />
             <Fact label="Backend" value={dataset.backend} mono />
@@ -367,9 +378,9 @@ export function LibraryDatasetRailPanel({ dataset, previewOpen = false, onAskAbo
             Expanded sample open in centre
           </span>
         ) : null}
-        <button type="button" className="rd-v2-btn primary sm" onClick={onAskAbout}>
+        {onAskAbout ? <button type="button" className="rd-v2-btn primary sm" onClick={onAskAbout}>
           {askLabel(presentation, state)}
-        </button>
+        </button> : <span className="rd-v2-library-inspector-prose muted">Sign in to Ask about this dataset.</span>}
       </RailStickyFooter>
     </RailFrame>
   );

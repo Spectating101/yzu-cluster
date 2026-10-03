@@ -9,6 +9,7 @@ describe("collectRouteLabel", () => {
     assert.equal(collectRouteLabel("local_open"), "a local file");
     assert.equal(collectRouteLabel("datacite"), "the DataCite API");
     assert.equal(collectRouteLabel("huggingface"), "the Hugging Face API");
+    assert.equal(collectRouteLabel("public_api_collect"), "an official source API");
   });
 
   it("names the freeze's route vocabulary", () => {

@@ -2,6 +2,20 @@
 
 import { isReceiptOnlyAsset, isQueryReadyReadiness, statusPillKind } from "./datasetMeta.js";
 
+/** Reconcile indexed records by identity against the current returned catalog. */
+export function reconcileDiscoverRegistryRows(rows = [], catalog = [], catalogLoaded = false) {
+  const byId = new Map(catalog.map(row => [row.dataset_id, row]));
+  return rows.filter(row => {
+    if (row?.source === "procured" && !row.dataset_id && !row.doi && !row.url) return false;
+    if (row?.kind !== "registry_dataset" || !catalogLoaded) return true;
+    const current = byId.get(row.dataset_id);
+    if (current) return !isReceiptOnlyAsset(current);
+    // An index snapshot is not current possession evidence. Other live results
+    // can precede catalog hydration and must remain visible.
+    return row.source !== "collection_index";
+  });
+}
+
 export function normalizeDiscoverMode(raw = "") {
   const mode = String(raw || "").trim().toLowerCase();
   if (mode === "history") return "history";
@@ -167,9 +181,12 @@ export function searchHitToCandidate(row = {}) {
   const url = row.url || endpointToUrl(row.endpoint);
   const candidateKey =
     row.candidate_key || (datasetId ? `dataset:${datasetId}` : "") || "";
+  const route = cleanCollectVia(row.collect_via)[0] || "";
+  const unsupportedDoiRoute = row.kind === "registry_dataset" && route === "datacite" && !row.doi;
   return {
     ...row,
-    collect_via: cleanCollectVia(row.collect_via)[0] || "",
+    collect_via: unsupportedDoiRoute ? "" : route,
+    ...(unsupportedDoiRoute ? { procureability_label: "Method not recorded", collectable: false } : {}),
     dataset_id: datasetId || row.dataset_id || "",
     title: row.title || row.name || row.label || datasetId || url || "Untitled",
     name: row.name || row.title || row.label || datasetId || "",

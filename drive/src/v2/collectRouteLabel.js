@@ -15,6 +15,7 @@ const ROUTE_LABELS = {
   queue: "queue",
   api: "an API query",
   api_query: "an API query",
+  public_api_collect: "an official source API",
 };
 
 const UNNAMED_ROUTE = "a declared route";

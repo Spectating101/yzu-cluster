@@ -117,12 +117,14 @@ function readParams() {
   const rawTab = p.get("tab") || (dataset ? "library" : "") || startupTab() || "home";
   const folder = p.get("folder") || "";
   const q = p.get("q") || "";
-  let tab = normalizeReleaseTab(canonicalTab(rawTab));
+  const legacyHistory = rawTab.toLowerCase() === "history";
+  let tab = normalizeReleaseTab(canonicalTab(legacyHistory ? DISCOVER_TAB : rawTab));
+  if (!["home", "library", DISCOVER_TAB, "synthesis", "resources", "profile", "settings"].includes(tab)) tab = "home";
   // Library deep links: folder+dataset without a Discover query belong on Library.
   if (tab === DISCOVER_TAB && folder && !q) {
     tab = "library";
   }
-  const discoverState = discoverModeFromLegacy(p.get("mode") || "");
+  const discoverState = discoverModeFromLegacy(p.get("mode") || (legacyHistory ? "history" : ""));
   return {
     tab,
     dataset,
@@ -2038,8 +2040,8 @@ export function V2App() {
         >
           <section className="rd-v2-guest-feature-hero">
             <span className="rd-v2-eyebrow">Member research workspace</span>
-            <h2>Build evidence into a method you can inspect, challenge, and reuse.</h2>
-            <p>Synthesis keeps your research objective, evidence roles, unresolved choices, method decisions, execution evidence, and resulting Library dataset together.</p>
+            <h2>Build a method from your research question</h2>
+            <p>Sign in to choose Library inputs, review a method, and save the build and its results. You can browse saved results in Library now.</p>
             <button type="button" className="rd-v2-btn primary" onClick={beginMemberSignIn}>
               Sign in to start Synthesis
             </button>
@@ -2085,8 +2087,8 @@ export function V2App() {
         >
           <section className="rd-v2-guest-feature-hero">
             <span className="rd-v2-eyebrow">Restricted operational view</span>
-            <h2>Research evidence is public here; infrastructure and approval controls are not.</h2>
-            <p>Resources tracks archive capacity, university access to sources, collectors, model readiness, approvals, and failed jobs. These controls are available only to research staff. Browsing does not grant permission to operate them.</p>
+            <h2>Research staff manage resources</h2>
+            <p>Archive capacity, source access, approvals, and running jobs are available to research staff. Browse the shared evidence in Library or find sources in Discover.</p>
             <button type="button" className="rd-v2-btn primary" onClick={() => goTab("browse")}>
               Find evidence in Discover
             </button>

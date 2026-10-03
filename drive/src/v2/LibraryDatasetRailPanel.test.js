@@ -1,7 +1,17 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { canIUseDecision, statusPillKind } from "./datasetMeta.js";
-import { hasReproductionMethod, librarySourceReceipt } from "./libraryProvenance.js";
+import { hasReproductionMethod, librarySourceReceipt, libraryUpstreamDatasets } from "./libraryProvenance.js";
+
+test("upstream names resolve exact identities even when titles match", () => {
+  const rows = [{ dataset_id: "a", name: "County panel" }, { dataset_id: "b", name: "County panel" }];
+  const inputs = libraryUpstreamDatasets({ lineage: { inputs: ["b", { dataset_id: "a" }, "b", "missing"] } }, rows);
+  assert.deepEqual(inputs.map(i => i.id), ["b", "a", "missing"]);
+  assert.equal(inputs[0].dataset, rows[1]);
+  assert.equal(inputs[1].dataset, rows[0]);
+  assert.equal(inputs[2].dataset, undefined);
+  assert.equal(inputs[2].name, "Input not in current Library");
+});
 
 test("registered datasets never fall through to Readiness unknown", () => {
   const decision = canIUseDecision({

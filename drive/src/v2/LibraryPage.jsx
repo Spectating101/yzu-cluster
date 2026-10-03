@@ -65,12 +65,11 @@ function itemMatchesType(item, mode) {
   return true;
 }
 
-function itemNeedsAttention(item) {
+function itemVerificationConfirmed(item) {
   if (item?.kind === "folder") return false;
   const row = itemDataset(item);
-  const readiness = statusPillKind(row).kind;
   const verification = libraryVerification(row).kind;
-  return readiness !== "query-ready" || !["verified", "matched"].includes(verification);
+  return ["verified", "matched"].includes(verification);
 }
 
 function itemMatchesFilter(item, mode) {
@@ -79,7 +78,8 @@ function itemMatchesFilter(item, mode) {
   const ready = statusPillKind(row).kind === "query-ready";
   if (mode === "ready") return ready;
   if (mode === "not_ready") return !ready;
-  if (mode === "attention") return itemNeedsAttention(item);
+  if (mode === "confirmed") return itemVerificationConfirmed(item);
+  if (mode === "unconfirmed") return !itemVerificationConfirmed(item);
   return true;
 }
 
@@ -253,8 +253,12 @@ function LibraryAssetInspector({ dataset, onClose, onPreview, onOpenQuery, onAsk
 
   useEffect(() => {
     if (!dataset) return undefined;
+    const opener = document.activeElement;
     const frame = window.requestAnimationFrame(() => inspectorRef.current?.focus());
-    return () => window.cancelAnimationFrame(frame);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      if (opener?.isConnected) opener.focus();
+    };
   }, [dataset?.dataset_id]);
 
   if (!dataset) return null;
@@ -493,7 +497,7 @@ export function LibraryPage({
   );
   const readyCount = readinessCount(branchDatasetRows);
   const nonReadyCount = Math.max(0, branchDatasetRows.length - readyCount);
-  const attentionCount = branchDatasetRows.filter((row) => itemNeedsAttention(datasetListItem(row))).length;
+  const confirmedCount = branchDatasetRows.filter((row) => itemVerificationConfirmed(datasetListItem(row))).length;
   const browseDatasetCount = branchDatasetRows.length;
   const holdingsPending = loading && !vaultDatasets.length;
   const branchNote = branchStatusNote({
@@ -635,7 +639,7 @@ export function LibraryPage({
                 </select>
               </label>
               <label className="rd-v2-library-filter-control">
-                <span>State</span>
+                <span>Status</span>
                 <select
                   data-testid="library-state-filter"
                   aria-label="Filter Library by state"
@@ -643,9 +647,14 @@ export function LibraryPage({
                   onChange={(event) => setFilterMode(event.target.value)}
                 >
                   <option value="all">Any</option>
-                  <option value="ready">Ready to query · {readyCount}</option>
-                  <option value="attention">Needs attention · {attentionCount}</option>
-                  <option value="not_ready">In Library · not yet checked · {nonReadyCount}</option>
+                  <optgroup label="Query readiness">
+                    <option value="ready">Ready to query · {readyCount}</option>
+                    <option value="not_ready">Not ready to query · {nonReadyCount}</option>
+                  </optgroup>
+                  <optgroup label="Source verification">
+                    <option value="confirmed">Source confirmed · {confirmedCount}</option>
+                    <option value="unconfirmed">Source not confirmed · {branchDatasetRows.length - confirmedCount}</option>
+                  </optgroup>
                 </select>
               </label>
               <label className="rd-v2-library-filter-control">

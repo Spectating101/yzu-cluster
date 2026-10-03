@@ -63,9 +63,9 @@ export function SynthesisIdleRailPanel({ onAskAbout }) {
         <WorkflowGuide />
       </div>
       <RailStickyFooter>
-        <button type="button" className="rd-v2-btn sm" onClick={() => onAskAbout?.()}>
+        {onAskAbout ? <button type="button" className="rd-v2-btn sm" onClick={() => onAskAbout()}>
           Ask about this workspace →
-        </button>
+        </button> : <span className="rd-v2-rail-note">Sign in to Ask about this workspace.</span>}
       </RailStickyFooter>
     </RailFrame>
   );

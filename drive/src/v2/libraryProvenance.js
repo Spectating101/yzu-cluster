@@ -140,3 +140,13 @@ export function librarySourceReceipt(dataset = {}) {
 export function hasReproductionMethod(receipt = {}) {
   return Boolean(receipt.command || receipt.script || receipt.route || receipt.method);
 }
+
+export function libraryUpstreamDatasets(dataset = {}, catalog = []) {
+  const lineage = asObject(dataset.lineage);
+  const raw = lineage.upstream_dataset_ids || lineage.upstream_datasets || lineage.inputs || [];
+  const ids = Array.isArray(raw) ? raw : String(raw).split(/\s*[·,]\s*/);
+  const byId = new Map(catalog.map((row) => [row.dataset_id, row]));
+  return [...new Set(ids.map((value) => typeof value === "object"
+    ? value?.dataset_id || value?.id || "" : String(value || "").trim()).filter(Boolean))]
+    .map((id) => ({ id, dataset: byId.get(id), name: byId.get(id)?.name || byId.get(id)?.title || "Input not in current Library" }));
+}
