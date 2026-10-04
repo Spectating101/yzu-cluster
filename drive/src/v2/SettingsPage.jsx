@@ -7,6 +7,7 @@ import {
   saveUserEmail,
 } from "@/v2/deskSession";
 import { clearDeskSession, ensureDeskSession } from "@/v2/api";
+import { ProviderConnectionsSection } from "@/v2/ProviderConnectionsSection";
 import { ConnectedAccountsSection } from "@/v2/ConnectedAccountsSection";
 import { archiveRuntimeStatus } from "@/v2/archiveRuntimeStatus";
 import { assistantRuntimeDetail, composerRuntimeRead } from "@/v2/composerRuntimeStatus";
@@ -224,6 +225,7 @@ export function SettingsPage({
         </StatementSection>
 
         <ConnectedAccountsSection deskAccess={deskAccess} onToast={onToast} />
+        <ProviderConnectionsSection deskAccess={deskAccess} onToast={onToast} />
 
         <StatementSection title="Research identity">
           {canViewFacultyProfile ? (

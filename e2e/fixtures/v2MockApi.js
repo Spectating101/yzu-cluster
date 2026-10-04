@@ -427,6 +427,7 @@ export async function mockV2Api(
   const liveJobs = {
     jobs: Array.isArray(jobsBody?.jobs) ? [...jobsBody.jobs] : [],
   };
+  await page.route("**/library/provider-connections", route => route.fulfill({ contentType: "application/json", body: JSON.stringify({ ok: true, providers: [], connections: [] }) }));
   const liveIntents = new Map();
   let nextIntentId = 1;
   await page.route("**/library/desk/capabilities", (route) =>
