@@ -15,6 +15,9 @@ import { LibraryHoldingsOverlay } from "@/v2/LibraryHoldingsOverlay";
 import { summarizeLibraryHoldings } from "@/v2/libraryHoldings";
 import { PageShell } from "@/v2/ui";
 import { previewCellValue } from "@/v2/previewValue";
+import { collectionRecipe } from "./collectionRecipe.js";
+import { coverageText } from "./coverageText.js";
+import { LibraryPackagePanel } from "./LibraryPackagePanel.jsx";
 
 function value(...candidates) {
   return candidates.map((item) => String(item || "").trim()).find(Boolean) || "Not documented";
@@ -248,15 +251,17 @@ const datasetAnalysis = (dataset) => dataset?.analysis || dataset?.synthesis_ana
 
 function DatasetPreview({ dataset, canQuery, names, fields, state, presentation, onInspect, onExpandSample }) {
   const analysis = datasetAnalysis(dataset);
-  const [preview, setPreview] = useState({ loading: false, rows: [], error: "" });
+  const [loadedPreview, setPreview] = useState(null);
+  const preview = loadedPreview?.datasetId === dataset?.dataset_id ? loadedPreview
+    : { loading: Boolean(canQuery && dataset?.dataset_id), rows: [], error: "" };
 
   useEffect(() => {
     let cancelled = false;
     if (!canQuery || !dataset?.dataset_id) {
-      setPreview({ loading: false, rows: [], error: "" });
+      setPreview({ datasetId: dataset?.dataset_id, loading: false, rows: [], error: "" });
       return undefined;
     }
-    setPreview({ loading: true, rows: [], error: "" });
+    setPreview({ datasetId: dataset.dataset_id, loading: true, rows: [], error: "" });
     queryDataset(dataset.dataset_id, analysis ? 10000 : 8)
       .then((payload) => {
         if (!cancelled) {
@@ -269,7 +274,7 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
         }
       })
       .catch(() => {
-        if (!cancelled) setPreview({ loading: false, rows: [], error: "Preview is not available right now." });
+        if (!cancelled) setPreview({ datasetId: dataset.dataset_id, loading: false, rows: [], error: "Preview is not available right now." });
       });
     return () => { cancelled = true; };
   }, [canQuery, dataset?.dataset_id, analysis]);
@@ -282,7 +287,7 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
   const joinKeys = fields.joinKeys || [];
   const rowCount = dataset?.rows || dataset?.row_count || dataset?.num_rows || dataset?.records;
   const liveSource = presentation.kind === "live_source";
-  const coverage = String(fields.coverage || dataset?.coverage || "").trim();
+  const coverage = coverageText(fields.coverage || dataset?.coverage).trim();
   const grain = String(dataset?.grain || "").trim();
 
   return (
@@ -327,7 +332,7 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
               ) : (
                 <tr className="rd-v2-library-schema-only-row">
                   <td colSpan={Math.max(schemaColumns.length, 1)}>
-                    {canQuery
+                    {preview.loading ? "Reading a local sample…" : canQuery
                       ? "Observed rows are not available in this sample."
                       : liveSource
                         ? `${state.label} does not confirm an observed response sample. The fields above show only documented structure.`
@@ -415,8 +420,16 @@ function StructureSummary({ dataset, presentation }) {
   );
 }
 
-export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onOpenQuery, onPrepare }) {
+export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onOpenQuery, onPrepare, onRefreshData }) {
   const [overlay, setOverlay] = useState("");
+  const [packageOpen, setPackageOpen] = useState(false);
+  const packageAssets = useMemo(() => [dataset], [dataset]);
+  const [refreshBusy, setRefreshBusy] = useState(false);
+  const refreshData = async () => {
+    if (refreshBusy) return;
+    setRefreshBusy(true);
+    try { await onRefreshData(dataset); } finally { setRefreshBusy(false); }
+  };
   const fields = useMemo(() => detailFields(dataset), [dataset]);
   const presentation = useMemo(() => libraryAssetPresentation(dataset), [dataset]);
   const state = statusPillKind(dataset);
@@ -478,6 +491,9 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onOpenQuery,
         <div className="rd-v2-library-workspace-actions" aria-label="Data actions">
           {canQuery ? <button type="button" className="rd-v2-btn primary" onClick={onOpenQuery}>Open query</button> : null}
           <button type="button" className="rd-v2-btn" onClick={() => setOverlay("provenance")}>Source record</button>
+          {canQuery ? <button type="button" className="rd-v2-btn" onClick={() => setPackageOpen(true)}>Export with provenance</button> : null}
+          {onRefreshData && collectionRecipe(dataset) ?
+            <button type="button" className="rd-v2-btn" disabled={refreshBusy} onClick={refreshData}>{refreshBusy ? "Preparing refresh…" : "Refresh data"}</button> : null}
           {holdings.count ? <button type="button" className="rd-v2-btn" onClick={() => setOverlay("holdings")}>Your Library</button> : null}
           {!canQuery && state.kind === "registered" && onPrepare ? (
             <button type="button" className="rd-v2-btn primary" onClick={onPrepare}>Prepare local copy</button>
@@ -520,6 +536,7 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onOpenQuery,
         dataset={dataset}
         onClose={() => setOverlay("")}
       />
+      <LibraryPackagePanel open={packageOpen} onClose={() => setPackageOpen(false)} assets={packageAssets} />
     </PageShell>
   );
 }

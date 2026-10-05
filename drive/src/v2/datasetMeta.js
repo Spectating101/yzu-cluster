@@ -1,4 +1,5 @@
 /** Map registry rows → frozen UI labels (Detail + StatusPill). */
+import { coverageText } from "./coverageText.js";
 
 /** Exact readiness tokens that mean smoke-proven / instant local query — never fuzzy `/query|ready/`. */
 export function isQueryReadyReadiness(value) {
@@ -326,17 +327,17 @@ export function displayName(dataset) {
 export function rowSubtitle(dataset) {
   const parts = [dataset?.subtitle || dataset?.dataset_id || dataset?.doi || dataset?.url, dataset?.grain].filter(Boolean);
   const cov = dataset?.coverage || dataset?.date_range;
-  if (cov) parts.push(String(cov));
+  if (cov) parts.push(coverageText(cov));
   return parts.join(" · ");
 }
 
 export function detailFields(dataset) {
   const d = dataset || {};
-  const partitionParts = [d.grain, d.coverage || d.date_range || d.temporal_coverage].filter(Boolean);
+  const partitionParts = [d.grain, coverageText(d.coverage || d.date_range || d.temporal_coverage)].filter(Boolean);
   const joinKeys = d.join_keys || [];
   return {
     description: d.description || d.recommended_use || "",
-    coverage: d.coverage || d.date_range || d.temporal_coverage || null,
+    coverage: coverageText(d.coverage || d.date_range || d.temporal_coverage) || null,
     // Source authority must remain distinct from transport/backend metadata.
     source: d.source || d.publisher || d.source_system || null,
     access:

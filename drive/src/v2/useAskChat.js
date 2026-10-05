@@ -222,12 +222,6 @@ export function useAskChat({
     };
   }, [contextKey, synthesisThreadId, synthesisSessionId]);
 
-  const contextPrefix = dataset?.dataset_id
-    ? `[context: ${dataset.dataset_id}] `
-    : dataset?.title
-      ? `[context: ${dataset.title}] `
-      : "";
-
   const followFullAnswer = useCallback((sessionId, quickReply, isCurrentRequest) => {
     const started = Date.now();
     const poll = () => {
@@ -267,10 +261,9 @@ export function useAskChat({
         : null;
       const objectContextSuffix = objectContext ? synthesisObjectContextPrompt(objectContext) : "";
       const groundedPrompt = objectContextSuffix ? `${prompt}\n\n${objectContextSuffix}` : prompt;
-      const full =
-        contextPrefix && !groundedPrompt.startsWith("[context:")
-          ? `${contextPrefix}${groundedPrompt}`
-          : groundedPrompt;
+      // Selection already travels in railContext. Display titles may contain
+      // unrelated dates; keep them out of the collection request parser.
+      const full = groundedPrompt;
       const initialActivity = intent === "status" ? "Checking status…" : "Planning response…";
 
       setMessages((m) => [...m, { role: "user", text: text == null ? outgoing.displayText : uiVocabularyLabel(outgoing.displayText), intent }]);
@@ -501,7 +494,6 @@ export function useAskChat({
     },
     [
       contextKey,
-      contextPrefix,
       beginWarm,
       input,
       onCollected,

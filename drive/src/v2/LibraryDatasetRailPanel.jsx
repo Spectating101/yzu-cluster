@@ -45,6 +45,7 @@ function unknowns(dataset, fields, presentation, receipt, freshness) {
   if (!dataset?.self_provided && !dataset?.upload && !receipt.sourceUrl) {
     out.push("Exact source URL not recorded");
   }
+  if (receipt.sourceUrlKind === "Endpoint from saved recipe") out.push("Original fetch URL was not recorded; endpoint reconstructed from saved recipe");
   if (!hasReproductionMethod(receipt)) {
     out.push("Reproduction method not recorded");
   }
@@ -122,6 +123,7 @@ function reproductionValue(receipt) {
 
 function provenanceBasis(dataset, receipt) {
   if (dataset?.self_provided || dataset?.upload) return "Self-provided";
+  if (receipt.sourceUrlKind === "Endpoint from saved recipe") return "Saved source recipe";
   if (receipt.sourceUrl) return "Exact source recorded";
   if (sourceAuthorityValue(dataset)) return "Source named";
   return "Not established";

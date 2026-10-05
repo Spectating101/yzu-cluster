@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { displayName } from "@/v2/datasetMeta";
 import { libraryPackageDownloadHref, prepareLibraryPackage } from "@/v2/libraryPackageApi";
@@ -70,6 +70,33 @@ export function LibraryPackagePanel({ open, onClose, researchNeed = "", assets =
   const [preparing, setPreparing] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
+  const panelRef = useRef(null);
+  const closeRef = useRef(onClose);
+  const preparingRef = useRef(preparing);
+  closeRef.current = onClose;
+  preparingRef.current = preparing;
+  useEffect(() => {
+    if (!open) return undefined;
+    const previous = document.activeElement;
+    panelRef.current?.focus();
+    const keydown = (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault(); event.stopPropagation();
+        if (!preparingRef.current) closeRef.current?.();
+      }
+      if (event.key !== "Tab") return;
+      const controls = [...(panelRef.current?.querySelectorAll("button:not(:disabled), a[href], input:not(:disabled)") || [])];
+      const first = controls[0], last = controls.at(-1);
+      if (!first) { event.preventDefault(); return; }
+      if (event.shiftKey && (document.activeElement === first || document.activeElement === panelRef.current)) {
+        event.preventDefault(); last.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || document.activeElement === panelRef.current)) {
+        event.preventDefault(); first.focus();
+      }
+    };
+    document.addEventListener("keydown", keydown, true);
+    return () => { document.removeEventListener("keydown", keydown, true); previous?.focus?.(); };
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -106,7 +133,7 @@ export function LibraryPackagePanel({ open, onClose, researchNeed = "", assets =
     <div className="rd-v2-library-package-scrim" role="presentation" onMouseDown={(event) => {
       if (event.target === event.currentTarget) onClose?.();
     }}>
-      <section className="rd-v2-library-package-panel" role="dialog" aria-modal="true" aria-label="Prepare research package" data-testid="library-package-panel">
+      <section ref={panelRef} tabIndex={-1} className="rd-v2-library-package-panel" role="dialog" aria-modal="true" aria-label="Prepare research package" data-testid="library-package-panel">
         <header className="rd-v2-library-package-head">
           <div>
             <span className="rd-v2-eyebrow">Library · portable evidence</span>

@@ -78,7 +78,7 @@ export function librarySourceReceipt(dataset = {}) {
 
   return {
     sourceUrl: exactSourceUrl || resolver,
-    sourceUrlKind: exactSourceUrl ? "Exact source URL" : resolver ? "DOI resolver" : "",
+    sourceUrlKind: exactSourceUrl ? (dataset.source_url_basis === "reconstructed_from_saved_recipe" ? "Endpoint from saved recipe" : "Exact source URL") : resolver ? "DOI resolver" : "",
     sourceEndpoint: firstText(dataset.source_endpoint, provenance.source_endpoint, procurement.source_endpoint, acquisition.source_endpoint),
     method: firstText(
       dataset.acquisition_method,
@@ -132,7 +132,7 @@ export function librarySourceReceipt(dataset = {}) {
       lineage.route,
     ),
     upstream: lineageIds(lineage),
-    fetchedAt: firstText(webfetch.fetched_at, acquisition.fetched_at, procurement.fetched_at, provenance.fetched_at),
+    fetchedAt: firstText(dataset.retrieved_at, webfetch.fetched_at, acquisition.fetched_at, procurement.fetched_at, provenance.fetched_at),
     contentSha256: firstText(webfetch.content_sha256, acquisition.content_sha256, procurement.content_sha256, provenance.content_sha256),
   };
 }

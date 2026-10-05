@@ -248,14 +248,14 @@ function LibraryHeadActions({
   );
 }
 
-function LibraryAssetInspector({ dataset, onClose, onPreview, onOpenQuery, onAsk }) {
+function LibraryAssetInspector({ dataset, onClose, onPreview, onOpenQuery, onAsk, onRefreshData }) {
   const inspectorRef = useRef(null);
 
   useEffect(() => {
     if (!dataset) return undefined;
     const frame = window.requestAnimationFrame(() => inspectorRef.current?.focus());
     return () => window.cancelAnimationFrame(frame);
-  }, [dataset]);
+  }, [dataset?.dataset_id]);
 
   if (!dataset) return null;
 
@@ -286,6 +286,7 @@ function LibraryAssetInspector({ dataset, onClose, onPreview, onOpenQuery, onAsk
           onPreview={onPreview}
           onAsk={onAsk}
           onOpenQuery={onOpenQuery}
+          onRefreshData={onRefreshData}
         />
       </section>
     </div>
@@ -307,6 +308,7 @@ export function LibraryPage({
   onSelectDataset,
   onPreviewDataset,
   onOpenQuery,
+  onRefreshData,
   onRefresh,
   onFocusFolder,
   onStartUpload,
@@ -804,6 +806,7 @@ export function LibraryPage({
         onPreview={() => selectedDataset && onPreviewDataset?.({ ...selectedDataset, __libraryExpandedSample: true })}
         onAsk={() => selectedDataset && onAskDataset?.(selectedDataset)}
         onOpenQuery={() => selectedDataset && onOpenQuery?.(selectedDataset.dataset_id)}
+        onRefreshData={onRefreshData}
       />
     </>
   );

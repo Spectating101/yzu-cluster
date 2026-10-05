@@ -93,6 +93,7 @@ export function summarizeLibraryFreshness(asset = {}, { kind = "" } = {}) {
     asset?.last_refreshed_at,
     asset?.data_refreshed_at,
     asset?.refreshed_at,
+    asset?.retrieved_at,
   ) || null;
   const dataAsOf = firstValue(
     refresh.data_as_of,
@@ -115,7 +116,7 @@ export function summarizeLibraryFreshness(asset = {}, { kind = "" } = {}) {
   let rootLabel = "Not tracked";
   if (stale) rootLabel = "Stale";
   else if (dataAsOf) rootLabel = `Through ${freshnessDate(dataAsOf)}`;
-  else if (lastRefreshedAt) rootLabel = freshnessDate(lastRefreshedAt);
+  else if (lastRefreshedAt) rootLabel = `${lastRefreshedAt === asset?.retrieved_at && !refresh.last_refreshed_at && !asset?.last_refreshed_at && !asset?.data_refreshed_at && !asset?.refreshed_at ? "Retrieved " : ""}${freshnessDate(lastRefreshedAt)}`;
   else if (isStatic) rootLabel = "Static";
   else if (isLive) rootLabel = "Live";
   else if (cadenceLabel) rootLabel = cadenceLabel;

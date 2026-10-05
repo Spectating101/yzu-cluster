@@ -1,3 +1,4 @@
+import { collectionRecipe } from "./collectionRecipe.js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { V2DeskHeader } from "@/v2/V2DeskHeader";
 import {
@@ -7,6 +8,7 @@ import {
   createSynthesisThread,
   deskCapabilities,
   describeDataset,
+  fetchJson,
   deskHealth,
   deskResources,
   ensureDeskAccess,
@@ -30,6 +32,8 @@ import {
   yzuClusterStatus,
 } from "@/v2/api";
 import { AskRail } from "@/v2/AskRail";
+import { JobReviewDialog } from "./JobReviewDialog.jsx";
+import { reviewJobId } from "./reviewJobId.js";
 import { DeskAccessGate, DeskSessionBootstrap } from "@/v2/DeskAccessGate";
 import {
   datasetObject,
@@ -198,6 +202,8 @@ function resourceAskPrompt(row) {
 }
 
 export function V2App() {
+  const [reviewingJobId, setReviewingJobId] = useState("");
+  const [approvedCollectionId, setApprovedCollectionId] = useState("");
   // Bind the canonical fold to the setter rather than to every caller. Seven
   // call sites still write "browse"; after the rename the switch matches
   // "discover", so a stray non-canonical write rendered nothing and dropped the
@@ -604,6 +610,29 @@ export function V2App() {
     setDeskRefreshedAt(Date.now());
   }, [reloadProfile, applyCatalog, canViewOperations]);
 
+  useEffect(() => {
+    if (!approvedCollectionId) return undefined;
+    let cancelled = false;
+    let timer;
+    const deadline = Date.now() + 15 * 60 * 1000;
+    const tick = async () => {
+      try {
+        const job = await fetchJson(`/library/jobs/${encodeURIComponent(approvedCollectionId)}`);
+        if (cancelled) return;
+        if (["completed", "failed", "cancelled", "rejected"].includes(job.status)) {
+          refreshBackend();
+          setApprovedCollectionId("");
+          showToast(job.status === "completed" ? "Collection saved to Library" : `Collection ${job.status}`,
+            job.status === "completed" ? "success" : "error");
+          return;
+        }
+      } catch { /* The saved job remains available in History after a transient read failure. */ }
+      if (!cancelled && Date.now() < deadline) timer = window.setTimeout(tick, 4000);
+    };
+    tick();
+    return () => { cancelled = true; window.clearTimeout(timer); };
+  }, [approvedCollectionId, refreshBackend, showToast]);
+
   const handleApproveJob = useCallback(
     async (jobId) => {
       if (!jobId) return;
@@ -751,10 +780,12 @@ export function V2App() {
     const base = selectedFromList || { dataset_id: selectedId };
     setDetail(base);
     setDetailLoading(true);
+    let cancelled = false;
     describeDataset(selectedId)
-      .then((d) => setDetail((cur) => ({ ...cur, ...d })))
+      .then((d) => { if (!cancelled) setDetail((cur) => ({ ...cur, ...d })); })
       .catch(() => {})
-      .finally(() => setDetailLoading(false));
+      .finally(() => { if (!cancelled) setDetailLoading(false); });
+    return () => { cancelled = true; };
   }, [selectedId, selectedFromList, browseRow, tab, labIds]);
 
   const browseTarget = browseRow;
@@ -1406,7 +1437,9 @@ export function V2App() {
     (jobOrTarget) => {
       // Authority: pending approvals stay in Discover (Explore queue / Detail), not Resources.
       const job = jobOrTarget?.bound_job || jobOrTarget;
-      openDiscoverAwaiting({ job: job?.id ? job : null, focusAwaiting: true });
+      const id = reviewJobId(jobOrTarget);
+      if (id) setReviewingJobId(id);
+      else openDiscoverAwaiting({ job: job?.id ? job : null, focusAwaiting: true });
     },
     [openDiscoverAwaiting],
   );
@@ -1822,6 +1855,18 @@ export function V2App() {
           onSelectDataset={selectDataset}
           onPreviewDataset={openPreview}
           onOpenQuery={openQueryInNewTab}
+          onRefreshData={canSubmitCollection ? async (dataset) => {
+            try {
+              const recipe = collectionRecipe(dataset);
+              if (!recipe) throw new Error("No reusable public collection recipe is recorded.");
+              const out = await fetchJson("/library/discover/collect", { method: "POST",
+                body: JSON.stringify({ source_id: recipe.source_id, request: recipe.request,
+                  title: dataset.name || dataset.title, auto_approve: false }) });
+              if (!out.job?.id) throw new Error(out.error || "Could not prepare refresh.");
+              setReviewingJobId(out.job.id);
+              refreshBackend();
+            } catch (err) { showToast(err.message || "Refresh failed", "error"); }
+          } : undefined}
           onClearSelection={clearLibrarySelection}
           onAskDataset={canUseAsk ? askAboutLibraryDataset : undefined}
           onAskSearch={canUseAsk ? queueLibraryAsk : undefined}
@@ -2213,6 +2258,9 @@ export function V2App() {
       />
       <main className="yzu-main rd-v2-shell-main">
         {main}
+        <JobReviewDialog jobId={reviewingJobId} canApprove={canApproveJobs}
+          onClose={() => setReviewingJobId("")}
+          onApproved={(id) => { setApprovedCollectionId(id); showToast("Collection approved"); refreshBackend(); }} />
         <PreviewModal
           open={previewOpen}
           dataset={previewTarget || detail}
@@ -2279,8 +2327,7 @@ export function V2App() {
         onReviewApproval={reviewApprovalInResources}
         onRetryLifecycleRefresh={retryLifecycleRefresh}
         onReviewHistoryRequest={(item) => {
-          const job = item?.id && item?.status ? item : selectedHistoryJob;
-          if (job) reviewApprovalInResources(job);
+          reviewApprovalInResources(selectedHistoryJob || item);
         }}
         onPreviewExternal={() => browseRow && openPreviewExternal(browseRow)}
         onApproveJob={canApproveJobs ? handleApproveJob : undefined}
