@@ -57,6 +57,12 @@ describe("historyKnownUnknowns", () => {
     assert.deepEqual(result.known, ["Catalog reconciled"]);
   });
 
+  it("shows a loaded Library record as known instead of an unresolved reconciliation", () => {
+    const result = historyKnownUnknowns({ catalog_reconciliation: { state: "catalog_loaded" } }, null);
+    assert.deepEqual(result.known, ["Current Library record loaded"]);
+    assert.deepEqual(result.unknowns, []);
+  });
+
   it("counts any other catalog state as an unknown, carrying the state", () => {
     const result = historyKnownUnknowns(
       { meta: { catalog_reconciliation: { state: "pending_promotion" } } },

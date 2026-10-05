@@ -31,6 +31,7 @@ const RUNTIME_DEMOTION = {
   local_panel_missing: "Documented as queryable, but the local panel is missing.",
   local_bytes_missing: "Documented as queryable, but local data is missing.",
   csv_schema_mismatch: "Documented as queryable, but the structure does not match the saved panel.",
+  historical_membership_invalid: "Historical use is blocked: this release repeats current constituents across historical dates. Reacquire and validate dated membership before analysis.",
 };
 
 export function runtimeReadinessReason(dataset) {
@@ -65,6 +66,7 @@ function acquisitionOnlyRow(dataset = {}) {
 
 export function statusPillKind(dataset) {
   const reason = runtimeReadinessReason(dataset);
+  if (reason === "historical_membership_invalid") return { kind: "warn", label: "Historical use blocked" };
   if (reason) {
     return { kind: "warn", label: "In Library · not yet checked" };
   }
@@ -113,7 +115,7 @@ export function canIUseDecision(dataset) {
   if (demotion) {
     const remedy = hydrateRemedy(dataset);
     return {
-      headline: "In Library · not yet checked",
+      headline: statusPillKind(dataset).label,
       body: remedy ? `${demotion} ${remedy}` : demotion,
     };
   }
@@ -122,7 +124,9 @@ export function canIUseDecision(dataset) {
   if (state.kind === "query-ready") {
     return {
       headline: "Ready to query",
-      body: "You can preview and query this dataset now.",
+      body: dataset?.temporal_quality?.status === "undated_snapshot"
+        ? `You can inspect this snapshot now. ${dataset.temporal_quality.reason}`
+        : "You can preview and query this dataset now.",
     };
   }
   if (state.kind === "connected") {

@@ -27,7 +27,8 @@ export function historyKnownUnknowns(event, truth) {
     meta.catalog_reconciliation?.state || event?.catalog_reconciliation?.state,
   );
   if (catalog) {
-    if (RECONCILED.has(catalog.toLowerCase())) known.push("Catalog reconciled");
+    if (catalog.toLowerCase() === "catalog loaded") known.push("Current Library record loaded");
+    else if (RECONCILED.has(catalog.toLowerCase())) known.push("Catalog reconciled");
     else unknowns.push(`Catalog reconciliation ${catalog}`);
   }
 

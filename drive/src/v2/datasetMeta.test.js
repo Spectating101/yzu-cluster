@@ -22,6 +22,19 @@ test("unknown readiness is never promoted to query ready", () => {
   });
 });
 
+test("quarantined membership gives a blocked-use decision rather than an unchecked label", () => {
+  const asset = { analysis_readiness: "registered", runtime_readiness_reason: "historical_membership_invalid" };
+  assert.equal(statusPillKind(asset).label, "Historical use blocked");
+  assert.equal(canIUseDecision(asset).headline, "Historical use blocked");
+  assert.match(canIUseDecision(asset).body, /Reacquire and validate/);
+});
+
+test("queryable undated fundamentals still explain the historical-use restriction", () => {
+  const asset = { analysis_readiness: "instant", temporal_quality: { status: "undated_snapshot", reason: "Fiscal years are missing." } };
+  assert.match(canIUseDecision(asset).body, /snapshot/);
+  assert.match(canIUseDecision(asset).body, /Fiscal years are missing/);
+});
+
 test("readiness projection stays null-safe before a dataset is selected", () => {
   assert.deepEqual(statusPillKind(null), {
     kind: "unknown",
