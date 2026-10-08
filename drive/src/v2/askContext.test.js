@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { askDatasetForSurface } from "./askContext.js";
+import { askDatasetForSurface, homeConversationOverride } from "./askContext.js";
 import { activeObjectBelongsToTab } from "./contextOwnership.js";
 
 const gdelt = {
@@ -52,4 +52,21 @@ it("Discover objects keep their Ask context under either tab spelling", () => {
   assert.equal(activeObjectBelongsToTab("discover", object), true);
   assert.equal(activeObjectBelongsToTab("browse", object), true);
   assert.equal(activeObjectBelongsToTab("library", object), false);
+});
+
+it("passive Home hydration keeps the conversation while explicit attention remains separate", () => {
+  for (const id of ["request-one", "request-two"]) {
+    const dataset = askDatasetForSurface({
+      tab: "home",
+      activeObject: { kind: "home_attention", id, title: "Pending request", passive: true },
+    });
+    assert.equal(homeConversationOverride("home", dataset), "home");
+  }
+  const deliberate = askDatasetForSurface({
+    tab: "home",
+    activeObject: { kind: "home_attention", id: "request-one", title: "Pending request" },
+  });
+  assert.equal(homeConversationOverride("home", deliberate), "");
+  assert.equal(homeConversationOverride("home", gdelt), "home");
+  assert.equal(homeConversationOverride("library", gdelt), "");
 });

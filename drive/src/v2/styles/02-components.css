@@ -3299,6 +3299,9 @@ summary:focus-visible {
 /* Showcase grounded-answer card (replaces flat agent bubble) */
 .rd-v2-ask-card {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  overflow-wrap: anywhere;
   gap: 12px;
   padding: 14px 14px 12px;
   border: 1px solid var(--rd-border, #e2ddd2);
@@ -3380,6 +3383,8 @@ summary:focus-visible {
 
 .rd-v2-ask-card-body {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
   gap: 8px;
 }
 

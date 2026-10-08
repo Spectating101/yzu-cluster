@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { approveJob, fetchJson } from "./api.js";
+import { jobReviewFacts } from "./jobReviewFacts.js";
 import "./job-review.css";
 
 export function JobReviewDialog({ jobId, canApprove, onClose, onApproved }) {
@@ -71,11 +72,9 @@ export function JobReviewDialog({ jobId, canApprove, onClose, onApproved }) {
           <dl className="rd-v2-job-review-facts">
             <div><dt>Status</dt><dd>{job.status === "pending_approval" ? "Awaiting approval" : String(job.status || "Unknown").replaceAll("_", " ")}</dd></div>
             <div><dt>Source</dt><dd>{plan.provider || plan.source_id || plan.connector_id || "Not recorded"}</dd></div>
-            <div><dt>Period</dt><dd>{request.start || "Not specified"} → {request.end || "Not specified"}</dd></div>
-            <div><dt>Series</dt><dd>{(request.series_ids || request.indicator_ids || request.instruments || []).join(", ") || "See collection details"}</dd></div>
             <div><dt>Destination</dt><dd>{plan.destination || (plan.dataset_id ? `Library · ${plan.dataset_id}` : "Default collection destination")}</dd></div>
-            {Object.entries(request).filter(([key]) => !["start", "end", "series_ids", "indicator_ids", "instruments"].includes(key)).map(([key, val]) =>
-              <div key={key}><dt>{key.replaceAll("_", " ").replace(/^./, (letter) => letter.toUpperCase())}</dt><dd>{Array.isArray(val) ? val.join(", ") : typeof val === "object" ? JSON.stringify(val) : String(val)}</dd></div>)}
+            {jobReviewFacts(request).map(({ label, value }) =>
+              <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
           </dl>
           <p>Approval runs this saved plan and adds its result to Library after validation and archiving.</p>
           {canApprove && job.status === "pending_approval" ?

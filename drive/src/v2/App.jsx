@@ -638,6 +638,7 @@ export function V2App() {
       if (!jobId) return;
       try {
         await approveJob(jobId);
+        setApprovedCollectionId(jobId);
         showToast(`Job approved · ${String(jobId).slice(0, 8)}…`);
         refreshBackend();
       } catch (err) {
@@ -1111,7 +1112,7 @@ export function V2App() {
       if (!id) {
         setSelectedId((current) => (current ? "" : current));
         setDetail((current) => (current ? null : current));
-        setActiveObject(point ? homeAttentionObject(point) : null);
+        setActiveObject(point ? { ...homeAttentionObject(point), passive: true } : null);
         writeParams({ tab: "home", dataset: "", folder: "", preview: false, q: "", mode: "" });
         return;
       }
@@ -1575,7 +1576,7 @@ export function V2App() {
         return;
       }
       if (target?.kind === "home_attention") {
-        setActiveObject(target);
+        setActiveObject({ ...target, passive: false });
         setRailTab("ask");
         setPendingAsk(
           target.row?.prompt || `Explain this Home attention item: ${target.title || "selected work"}.`,

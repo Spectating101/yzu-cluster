@@ -1,12 +1,15 @@
 import { Fragment } from "react";
 import { liveIdentityReadinessLabel } from "./liveIdentity.js";
+import { askDownloadLink } from "./askDownloadLink.js";
 
 /** Light Ask-rail formatting — bold, inline code, line breaks. No full markdown. */
 export function formatAskText(text) {
   const raw = String(text ?? "");
   if (!raw) return null;
-  const parts = raw.split(/(\*\*[^*]+\*\*|`[^`]+`|\n)/g).filter((part) => part !== "");
+  const parts = raw.split(/(\[[^\]\n]+\]\([^\s)]+\)|\*\*[^*]+\*\*|`[^`]+`|\n)/g).filter((part) => part !== "");
   return parts.map((part, i) => {
+    const download = askDownloadLink(part);
+    if (download) return <a key={`download-${i}`} href={download.href} download>{download.label}</a>;
     if (part === "\n") return <br key={`br-${i}`} />;
     if (part.startsWith("**") && part.endsWith("**") && part.length > 4) {
       return <strong key={`b-${i}`}>{part.slice(2, -2)}</strong>;

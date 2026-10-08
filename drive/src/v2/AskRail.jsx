@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { LoaderCircle } from "lucide-react";
 import { GuidedState, ProgressSteps } from "@/v2/InteractionFeedback";
 import { useAskChat } from "@/v2/useAskChat";
+import { homeConversationOverride } from "./askContext.js";
 import { handleEnterToSubmit } from "@/v2/enterToSubmit";
 import { formatAskText } from "@/v2/askText.jsx";
 import { AskAgentCard } from "@/v2/AskAgentCard.jsx";
@@ -81,7 +82,7 @@ export function AskRail({
     // owner and erase an in-flight answer. Deliberately opened attention items
     // remain separate contextual conversations.
     contextKeyOverride:
-      mainTab === "home" && dataset?.kind !== "home_attention" ? "home" : "",
+      homeConversationOverride(mainTab, dataset),
     onCollected,
     onSynthesisChanged,
     onToast,

@@ -5,6 +5,12 @@ function titled(title, fields = {}) {
   return { title, ...fields };
 }
 
+export function homeConversationOverride(tab, dataset) {
+  return tab === "home" && (dataset?.kind !== "home_attention" || dataset.passive)
+    ? "home"
+    : "";
+}
+
 export function askDatasetForSurface({
   tab,
   detail,
@@ -46,6 +52,7 @@ export function askDatasetForSurface({
       return titled(`Home · ${scopedObject.title}`, {
         kind: "home_attention",
         id: scopedObject.id,
+        passive: Boolean(scopedObject.passive),
       });
     }
     return scopedObject?.kind === "dataset" && detail?.dataset_id ? detail : titled("Home");
