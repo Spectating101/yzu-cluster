@@ -4,3 +4,8 @@ export function askDownloadLink(text) {
     ? { label: match[1], href: match[2] }
     : null;
 }
+
+export function datasetDownloadHref(dataset) {
+  const href = dataset?.full_download;
+  return typeof href === "string" ? askDownloadLink(`[file](${href})`)?.href || "" : "";
+}
