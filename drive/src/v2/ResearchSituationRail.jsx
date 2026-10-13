@@ -226,7 +226,7 @@ function buildSituation(props) {
     return {
       status: text(activeObject?.statusText) || "Research Drive",
       facts: [],
-      next: "Resume the highest-value grounded work or inspect the evidence state behind the next decision.",
+      next: "Pick up where you left off, or check whether a dataset is ready to use.",
     };
   }
   if (mainTab === "profile") {

@@ -177,7 +177,7 @@ export function SettingsPage({
     <PageShell
       className="rd-v2-settings-page"
       title="Settings"
-      lead="Choose how Research Drive behaves for this browser. Operational health lives under system status, not in the preference hierarchy."
+      lead="Your account, and how Research Drive behaves in this browser."
     >
       <div className="rd-v2-settings-statement">
         <AccountSection deskAccess={deskAccess} onSignOut={onSignOut} />

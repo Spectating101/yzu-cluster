@@ -16,7 +16,7 @@ export function V2Sidebar({
 }) {
   const activeButtonRef = useRef(null);
   const research = activeResearch || {
-    title: "Active research",
+    title: "No research focus set",
     emphases: [],
   };
   const recent = Array.isArray(recentItems) ? recentItems.slice(0, 4) : [];
@@ -69,7 +69,7 @@ export function V2Sidebar({
                 ))}
               </ul>
             ) : (
-              <p className="rd-v2-sidebar-hint">Profile sets research direction.</p>
+              <p className="rd-v2-sidebar-hint">Add your research focus in Profile.</p>
             )}
           </div>
 

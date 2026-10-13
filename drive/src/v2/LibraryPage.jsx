@@ -573,7 +573,7 @@ export function LibraryPage({
       <PageShell
         className="rd-v2-library-page"
         title="Library"
-        lead="See what you have; Library organizes the evidence without making you maintain a filing cabinet."
+        lead="Everything you hold, where it came from, and whether it is ready to query."
         headExtra={
           <div className="rd-v2-library-headline">
             <LibraryBreadcrumb trail={trail} onFolderChange={onFolderChange} />

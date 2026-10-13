@@ -2197,7 +2197,7 @@ function DeskWorkspace({ onIdentityChanged }) {
           source.research_direction ||
           source.current_research ||
           source.name_en)) ||
-      "Active research";
+      "No research focus set";
     const emphases = [
       ...(Array.isArray(source?.specialties) ? source.specialties : []),
       ...(Array.isArray(source?.research_emphases) ? source.research_emphases : []),
