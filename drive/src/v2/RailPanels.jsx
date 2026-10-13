@@ -1,3 +1,4 @@
+import { AskUnavailableNote } from "@/v2/askNote";
 import { collectionStatusLabel } from "./procurementJobs.js";
 import { useEffect, useRef, useState } from "react";
 import { fetchLiveIdentity } from "@/v2/api";
@@ -439,7 +440,7 @@ export function PageRailPanel({ page = "home", onAskAbout }) {
         <RailStickyFooter>
           {onAskAbout ? <button type="button" className="rd-v2-btn sm" onClick={() => onAskAbout()}>
             Ask Library →
-          </button> : <span className="rd-v2-rail-note">Sign in to Ask about your Library.</span>}
+          </button> : <AskUnavailableNote className="rd-v2-rail-note" subject="your Library" />}
         </RailStickyFooter>
       </RailFrame>
     );
@@ -458,7 +459,7 @@ export function PageRailPanel({ page = "home", onAskAbout }) {
       <RailStickyFooter>
         {onAskAbout ? <button type="button" className="rd-v2-btn sm" onClick={() => onAskAbout()}>
           Ask about this page →
-        </button> : <span className="rd-v2-rail-note">Sign in to Ask about this page.</span>}
+        </button> : <AskUnavailableNote className="rd-v2-rail-note" subject="this page" />}
       </RailStickyFooter>
     </RailFrame>
   );
@@ -485,7 +486,7 @@ export function HomeAttentionRailPanel({ object, onAskAbout }) {
       <RailStickyFooter>
         {onAskAbout ? <button type="button" className="rd-v2-btn sm" onClick={() => onAskAbout(object)}>
           Ask about this →
-        </button> : <span className="rd-v2-rail-note">Sign in to Ask about this item.</span>}
+        </button> : <AskUnavailableNote className="rd-v2-rail-note" subject="this item" />}
       </RailStickyFooter>
     </RailFrame>
   );

@@ -1,3 +1,4 @@
+import { AskUnavailableNote } from "@/v2/askNote";
 import {
   RailEntityHeader,
   RailField,
@@ -65,7 +66,7 @@ export function SynthesisIdleRailPanel({ onAskAbout }) {
       <RailStickyFooter>
         {onAskAbout ? <button type="button" className="rd-v2-btn sm" onClick={() => onAskAbout()}>
           Ask about this workspace →
-        </button> : <span className="rd-v2-rail-note">Sign in to Ask about this workspace.</span>}
+        </button> : <AskUnavailableNote className="rd-v2-rail-note" subject="this workspace" />}
       </RailStickyFooter>
     </RailFrame>
   );

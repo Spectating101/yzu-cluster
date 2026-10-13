@@ -1,3 +1,4 @@
+import { AskUnavailableNote } from "@/v2/askNote";
 import { uiVocabularyLabel } from "./uiVocabularyLabels.js";
 import {
   canIUseDecision,
@@ -386,7 +387,7 @@ export function LibraryDatasetRailPanel({ dataset, catalog = [], previewOpen = f
         ) : null}
         {onAskAbout ? <button type="button" className="rd-v2-btn primary sm" onClick={onAskAbout}>
           {askLabel(presentation, state)}
-        </button> : <span className="rd-v2-library-inspector-prose muted">Sign in to Ask about this dataset.</span>}
+        </button> : <AskUnavailableNote className="rd-v2-library-inspector-prose muted" subject="this dataset" />}
       </RailStickyFooter>
     </RailFrame>
   );

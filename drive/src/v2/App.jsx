@@ -105,6 +105,7 @@ import { askDatasetForSurface } from "@/v2/askContext";
 import { holdingIdsFromCatalog, isLocalHolding } from "@/v2/discoverTaxonomy";
 import { libraryEvidence, libraryHoldings, libraryReferences } from "@/v2/deskCounts";
 import { composerRuntimeFromSources } from "@/v2/composerRuntimeStatus";
+import { AskAccessContext } from "@/v2/askNote";
 
 const DESK_HEALTH_READY_POLL_MS = 60_000;
 const DESK_HEALTH_RECHECK_MS = 10_000;
@@ -2318,90 +2319,92 @@ function DeskWorkspace({ onIdentityChanged }) {
           }}
         />
       </main>
-      <InspectorRail
-        mainTab={tab}
-        railTab={railTab}
-        onRailTabChange={setRailTab}
-        dataset={detail}
-        detailLoading={detailLoading}
-        browseTarget={browseTarget}
-        historyEvent={selectedHistoryEvent}
-        historyJob={selectedHistoryJob}
-        discoverIntentRecord={discoverIntentRecord}
-        discoverAssessment={discoverAssessment}
-        discoverMode={discoverMode}
-        discoverCatalog={catalog}
-        discoverRestingSummary={discoverRestingSummary}
-        onDiscoverAssessmentChange={(result) => {
-          setDiscoverAssessment((current) => ({ ...current, active: true, result }));
-        }}
-        onDiscoverAssessmentActive={(active) => {
-          setDiscoverAssessment((current) => ({ ...current, active }));
-        }}
-        onCloseDiscoverAssessment={() => {
-          setDiscoverAssessment({ active: false, question: "", result: null });
-        }}
-        onSuggestDiscoverSearch={(query) => {
-          setDiscoverSearchQuery(query);
-          goTab("browse");
-        }}
-        resourceRow={canViewOperations ? resourceRow : null}
-        resourcesRollup={canViewOperations ? resourcesRollup : null}
-        resourcesDecisionCount={canViewOperations && jobsLoaded ? pendingResearchDecisions : null}
-        allowOperations={canViewOperations}
-        activeObject={activeObject}
-        profile={profile}
-        allowProfilePreview={canViewFacultyProfile}
-        previewOpen={previewOpen}
-        onPreview={() => detail && openPreview(detail)}
-        onAskAbout={canUseAsk && composerRuntime?.ready ? askAboutSelection : undefined}
-        onViewActivity={(filter) => {
-          setResourceMode("usage");
-          setActivityFilter(filter);
-          setRailTab("detail");
-        }}
-        onAddToLab={canSubmitCollection ? askAddToLab : undefined}
-        onProbeSource={probeDiscoverCandidate}
-        probeState={browseProbeState}
-        onOpenInLibrary={openInLibraryFromDiscover}
-        labIds={labIds}
-        browseLifecycle={browseLifecycle}
-        onTrackResources={trackJobInResources}
-        onReviewApproval={reviewApprovalInResources}
-        onRetryLifecycleRefresh={retryLifecycleRefresh}
-        onReviewHistoryRequest={(item) => {
-          reviewApprovalInResources(selectedHistoryJob || item);
-        }}
-        onPreviewExternal={() => browseRow && openPreviewExternal(browseRow)}
-        onApproveJob={canApproveJobs ? handleApproveJob : undefined}
-        onRefresh={refreshBackend}
-        onStartLibraryUpload={canSubmitCollection ? (folder) => startLibraryIntake("upload", folder) : undefined}
-        onStartLibraryUrl={canSubmitCollection ? (folder) => startLibraryIntake("url", folder) : undefined}
-        onStartLibraryProcure={canSubmitCollection ? (folder) => startLibraryIntake("procure", folder) : undefined}
-        onSubmitLibraryUpload={canSubmitCollection ? submitLibraryUpload : undefined}
-        onSubmitLibraryUrl={canSubmitCollection ? submitLibraryUrl : undefined}
-        onSubmitLibraryProcure={canSubmitCollection ? submitLibraryProcure : undefined}
-        askPanel={
-          canUseAsk ? <AskRail
-            dataset={askDataset}
-            mainTab={tab}
-            searchQuery={pageSearchQuery}
-            pendingMessage={pendingAsk}
-            onPendingConsumed={() => setPendingAsk("")}
-            onCollected={refreshBackend}
-            onSynthesisChanged={() => setSynthesisRefreshVersion((current) => current + 1)}
-            onApproveJob={canApproveJobs ? handleApproveJob : undefined}
-            onToast={showToast}
-            railContext={railContext}
-            warmEnabled={railTab === "ask"}
-          /> : null
-        }
-        askAvailable={canUseAsk}
-        memberAccessCodeAvailable={memberAccessCodeAvailable}
-        memberProviderSignInAvailable={memberProviderSignInAvailable}
-        onMemberSignIn={memberSignInAvailable ? beginMemberSignIn : undefined}
-        onMemberCodeSignIn={memberAccessCodeAvailable ? signInWithMemberCode : undefined}
-      />
+      <AskAccessContext.Provider value={canUseAsk}>
+        <InspectorRail
+          mainTab={tab}
+          railTab={railTab}
+          onRailTabChange={setRailTab}
+          dataset={detail}
+          detailLoading={detailLoading}
+          browseTarget={browseTarget}
+          historyEvent={selectedHistoryEvent}
+          historyJob={selectedHistoryJob}
+          discoverIntentRecord={discoverIntentRecord}
+          discoverAssessment={discoverAssessment}
+          discoverMode={discoverMode}
+          discoverCatalog={catalog}
+          discoverRestingSummary={discoverRestingSummary}
+          onDiscoverAssessmentChange={(result) => {
+            setDiscoverAssessment((current) => ({ ...current, active: true, result }));
+          }}
+          onDiscoverAssessmentActive={(active) => {
+            setDiscoverAssessment((current) => ({ ...current, active }));
+          }}
+          onCloseDiscoverAssessment={() => {
+            setDiscoverAssessment({ active: false, question: "", result: null });
+          }}
+          onSuggestDiscoverSearch={(query) => {
+            setDiscoverSearchQuery(query);
+            goTab("browse");
+          }}
+          resourceRow={canViewOperations ? resourceRow : null}
+          resourcesRollup={canViewOperations ? resourcesRollup : null}
+          resourcesDecisionCount={canViewOperations && jobsLoaded ? pendingResearchDecisions : null}
+          allowOperations={canViewOperations}
+          activeObject={activeObject}
+          profile={profile}
+          allowProfilePreview={canViewFacultyProfile}
+          previewOpen={previewOpen}
+          onPreview={() => detail && openPreview(detail)}
+          onAskAbout={canUseAsk && composerRuntime?.ready ? askAboutSelection : undefined}
+          onViewActivity={(filter) => {
+            setResourceMode("usage");
+            setActivityFilter(filter);
+            setRailTab("detail");
+          }}
+          onAddToLab={canSubmitCollection ? askAddToLab : undefined}
+          onProbeSource={probeDiscoverCandidate}
+          probeState={browseProbeState}
+          onOpenInLibrary={openInLibraryFromDiscover}
+          labIds={labIds}
+          browseLifecycle={browseLifecycle}
+          onTrackResources={trackJobInResources}
+          onReviewApproval={reviewApprovalInResources}
+          onRetryLifecycleRefresh={retryLifecycleRefresh}
+          onReviewHistoryRequest={(item) => {
+            reviewApprovalInResources(selectedHistoryJob || item);
+          }}
+          onPreviewExternal={() => browseRow && openPreviewExternal(browseRow)}
+          onApproveJob={canApproveJobs ? handleApproveJob : undefined}
+          onRefresh={refreshBackend}
+          onStartLibraryUpload={canSubmitCollection ? (folder) => startLibraryIntake("upload", folder) : undefined}
+          onStartLibraryUrl={canSubmitCollection ? (folder) => startLibraryIntake("url", folder) : undefined}
+          onStartLibraryProcure={canSubmitCollection ? (folder) => startLibraryIntake("procure", folder) : undefined}
+          onSubmitLibraryUpload={canSubmitCollection ? submitLibraryUpload : undefined}
+          onSubmitLibraryUrl={canSubmitCollection ? submitLibraryUrl : undefined}
+          onSubmitLibraryProcure={canSubmitCollection ? submitLibraryProcure : undefined}
+          askPanel={
+            canUseAsk ? <AskRail
+              dataset={askDataset}
+              mainTab={tab}
+              searchQuery={pageSearchQuery}
+              pendingMessage={pendingAsk}
+              onPendingConsumed={() => setPendingAsk("")}
+              onCollected={refreshBackend}
+              onSynthesisChanged={() => setSynthesisRefreshVersion((current) => current + 1)}
+              onApproveJob={canApproveJobs ? handleApproveJob : undefined}
+              onToast={showToast}
+              railContext={railContext}
+              warmEnabled={railTab === "ask"}
+            /> : null
+          }
+          askAvailable={canUseAsk}
+          memberAccessCodeAvailable={memberAccessCodeAvailable}
+          memberProviderSignInAvailable={memberProviderSignInAvailable}
+          onMemberSignIn={memberSignInAvailable ? beginMemberSignIn : undefined}
+          onMemberCodeSignIn={memberAccessCodeAvailable ? signInWithMemberCode : undefined}
+        />
+      </AskAccessContext.Provider>
       <Toast toast={toast} />
     </div>
   );

@@ -1,3 +1,4 @@
+import { AskUnavailableNote } from "@/v2/askNote";
 import { LIBRARY_FOLDERS_ROOT } from "@/driveTree";
 import {
   RailField,
@@ -143,7 +144,7 @@ export function LibraryFolderRailPanel({
       <RailStickyFooter>
         {onAskAbout ? <button type="button" className="rd-v2-btn sm primary" onClick={onAskAbout}>
           {askLabel}
-        </button> : <span className="rd-v2-rail-note">Sign in to Ask about {root ? "the Library" : physicalFolder ? "this folder" : "this collection"}.</span>}
+        </button> : <AskUnavailableNote className="rd-v2-rail-note" subject={root ? "the Library" : physicalFolder ? "this folder" : "this collection"} />}
       </RailStickyFooter>
     </RailFrame>
   );
