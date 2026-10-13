@@ -284,7 +284,7 @@ export function LibraryDatasetRailPanel({ dataset, catalog = [], previewOpen = f
           <h3 className="rd-v2-library-rail-module-title">{sourceAuthorityLine(dataset)}</h3>
           {datasetDownloadHref(dataset) ? (
             <p className="rd-v2-library-inspector-prose">
-              <a href={datasetDownloadHref(dataset)} download data-testid="library-rail-full-download">Download the full file</a>
+              <a href={datasetDownloadHref(dataset)} download data-testid="library-rail-full-download">Download CSV</a>
             </p>
           ) : null}
           {hasReceiptDetails ? (
