@@ -423,7 +423,7 @@
   [data-testid="synthesis-failed-state"],
   [data-testid="synthesis-registered-state"],
   [data-testid="synthesis-query-ready-state"]
-)) > .s04-head > div > small {
+)) > .s04-head > div > small > .s04-head-stage {
   display: none;
 }
 

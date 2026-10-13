@@ -94,6 +94,11 @@ export function SynthesisHome({
   onNew,
   onStartBlueprint,
   onOpenResources,
+  archivedCount = 0,
+  archivedThreads = null,
+  onShowArchived,
+  onRestore,
+  restoringId = "",
 }) {
   const allThreads = Array.isArray(threads) ? threads : [];
   const methods = Array.isArray(profiles) ? profiles : [];
@@ -207,6 +212,37 @@ export function SynthesisHome({
           rows={results}
           onOpen={onOpenThread}
         />
+      ) : null}
+
+      {archivedCount ? (
+        <section className="s04-home-section" data-testid="synthesis-home-archived">
+          <header>
+            <div>
+              <small>Archived</small>
+              <h2>Archived builds</h2>
+              <p>Archived builds keep their history and any data saved to Library. Restore one to work on it again.</p>
+            </div>
+            <em>{archivedCount}</em>
+          </header>
+          {Array.isArray(archivedThreads) ? (
+            archivedThreads.length ? (
+              <ul className="s04-home-archived-list">
+                {archivedThreads.map((thread) => (
+                  <li key={thread.id}>
+                    <span><strong>{titleFor(thread)}</strong><small>{updatedLabel(thread)}</small></span>
+                    <button type="button" className="rd-v2-btn" disabled={restoringId === thread.id} onClick={() => onRestore?.(thread.id)}>
+                      {restoringId === thread.id ? "Restoring…" : "Restore"}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : <p className="s04-home-empty-row">No archived builds.</p>
+          ) : (
+            <button type="button" className="rd-v2-btn" onClick={() => onShowArchived?.()} data-testid="synthesis-show-archived">
+              Show archived builds
+            </button>
+          )}
+        </section>
       ) : null}
 
       <section className="s04-home-section s04-home-methods" id="synthesis-home-methods">

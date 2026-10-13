@@ -576,10 +576,19 @@ export function listSynthesisProfiles() {
 }
 
 /** Durable Synthesis workspaces. The thread, not a browser-local stage, is authoritative. */
-export function listSynthesisThreads({ limit = 30, sessionId = "" } = {}) {
+export function listSynthesisThreads({ limit = 30, sessionId = "", includeArchived = false } = {}) {
   const params = new URLSearchParams({ limit: String(limit) });
   if (sessionId) params.set("session_id", sessionId);
+  if (includeArchived) params.set("include_archived", "1");
   return fetchJson(`/library/synthesis/threads?${params}`);
+}
+
+export function archiveSynthesisThread(threadId, archived = true) {
+  return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}/archive`, {
+    method: "POST",
+    headers: deskHeaders(),
+    body: JSON.stringify({ archived }),
+  });
 }
 
 export function getSynthesisThread(threadId) {

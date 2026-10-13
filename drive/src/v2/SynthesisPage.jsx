@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { PageShell } from "@/v2/ui";
 import {
+  archiveSynthesisThread,
   createSynthesisThread,
   decideSynthesisProposal,
   describeDataset,
@@ -609,7 +610,7 @@ function WhatHappensNext({
   );
 }
 
-function ThreadHeader({ thread, onEditIntent }) {
+function ThreadHeader({ thread, onEditIntent, onArchive, archiving = false }) {
   const state = thread?.state || {};
   const opening = isPreAcceptance(thread);
   const execution = state.execution || {};
@@ -620,7 +621,16 @@ function ThreadHeader({ thread, onEditIntent }) {
     <>
       <header className="s04-head">
         <div>
-          <small>{stageLabel(thread)}</small>
+          <small>
+            <span className="s04-head-stage">{stageLabel(thread)}{onArchive ? " · " : ""}</span>
+            {onArchive ? (
+              <>
+                <button type="button" className="s04-head-archive" onClick={onArchive} disabled={archiving} data-testid="synthesis-archive-build">
+                  {archiving ? "Archiving…" : "Archive build"}
+                </button>
+              </>
+            ) : null}
+          </small>
           <h1>{titleFor(thread)}</h1>
           {opening ? null : (
             <p>{synthesisObjectiveDisplay(text(thread?.objective || state.objective, "A saved research build."))}</p>
@@ -1773,6 +1783,9 @@ export function SynthesisPage({
   refreshVersion = 0,
 }) {
   const [threads, setThreads] = useState([]);
+  const [archivedCount, setArchivedCount] = useState(0);
+  const [archivedThreads, setArchivedThreads] = useState(null);
+  const [archivingId, setArchivingId] = useState("");
   const [profiles, setProfiles] = useState([]);
   const [profilesLoading, setProfilesLoading] = useState(true);
   const [profilesError, setProfilesError] = useState("");
@@ -1813,6 +1826,7 @@ export function SynthesisPage({
       const result = await listSynthesisThreads();
       const next = Array.isArray(result?.threads) ? result.threads : [];
       setThreads(next);
+      setArchivedCount(Number(result?.archived_count) || 0);
       // The Synthesis tab is a workspace, not an implicit first-thread route.
       // Preserve an explicit selection if it still exists; otherwise remain on
       // the workspace home until a researcher opens a construction or a deep
@@ -2183,6 +2197,30 @@ export function SynthesisPage({
     }
   };
 
+  const loadArchived = useCallback(async () => {
+    try {
+      const result = await listSynthesisThreads({ limit: 200, includeArchived: true });
+      setArchivedThreads((Array.isArray(result?.threads) ? result.threads : []).filter((thread) => thread.archived_at));
+    } catch (cause) {
+      setError(text(cause?.message, "Archived builds could not be loaded."));
+    }
+  }, []);
+
+  const setArchivedBuild = async (threadId, archived) => {
+    setArchivingId(threadId);
+    setError("");
+    try {
+      await archiveSynthesisThread(threadId, archived);
+      if (archived && selectedId === threadId) goHome();
+      await refreshThreads({ keepLoading: true });
+      if (archivedThreads !== null) await loadArchived();
+    } catch (cause) {
+      setError(text(cause?.message, archived ? "The build could not be archived." : "The build could not be restored."));
+    } finally {
+      setArchivingId("");
+    }
+  };
+
   const goHome = () => {
     returnThreadIdRef.current = "";
     setSelectedId("");
@@ -2401,6 +2439,11 @@ export function SynthesisPage({
               profilesLoading={profilesLoading}
               profilesError={profilesError}
               onOpenThread={selectThread}
+              archivedCount={archivedCount}
+              archivedThreads={archivedThreads}
+              onShowArchived={loadArchived}
+              onRestore={(threadId) => setArchivedBuild(threadId, false)}
+              restoringId={archivingId}
               onNew={beginNew}
               onStartBlueprint={startBlueprint}
               reasoningAvailable={reasoningAvailable}
@@ -2417,6 +2460,8 @@ export function SynthesisPage({
               <ThreadHeader
                 thread={displayedSelected}
                 onEditIntent={() => ask("I want to revise this research intent. Show the change that would be recorded before applying it.")}
+                onArchive={() => setArchivedBuild(selected.id, true)}
+                archiving={archivingId === selected.id}
               />
               {preAcceptance ? (
                 <OpeningWorkflow
