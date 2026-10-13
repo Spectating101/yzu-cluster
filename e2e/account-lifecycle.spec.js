@@ -97,10 +97,13 @@ test("account change in another tab removes the prior researcher's visible conve
   const other = await context.newPage();
   await other.goto("/?tab=library", { waitUntil: "domcontentloaded" });
   actor = access("bob");
+  await page.evaluate(() => history.replaceState(null, "", "/?tab=home&q=alice-private-question&thread_id=alice-thread"));
   await other.evaluate(() => localStorage.setItem("rd_desk_identity_changed", `${Date.now()}:bob`));
   await page.getByRole("button", { name: "Account", exact: true }).click();
   await expect(page.getByRole("menu", { name: "Account destinations" })).toContainText("bob");
   await expect(page.getByText("Alice private research answer", { exact: true })).toHaveCount(0);
+  expect(new URL(page.url()).searchParams.has("q")).toBe(false);
+  expect(new URL(page.url()).searchParams.has("thread_id")).toBe(false);
   const pointers = await page.evaluate(() => Object.keys(localStorage).filter((key) => key.includes("chat_session:user:")));
   expect(pointers.some((key) => key.includes("alice"))).toBe(true);
   expect(pointers.some((key) => key.includes("bob"))).toBe(false);

@@ -5,6 +5,7 @@ const SESSION_CONTEXT_PREFIX = `${SESSION_KEY}:context:`;
 const DESK_SESSION_BOOTSTRAPPED_KEY = "rd_desk_session_bootstrapped";
 export const DESK_IDENTITY_EVENT_KEY = "rd_desk_identity_changed";
 let activePrincipal = "";
+let activeRole = "";
 let identityGeneration = 0;
 
 /** Server-observed identity scopes browser pointers; storage never grants access. */
@@ -12,9 +13,21 @@ export function bindDeskIdentity(principal = null) {
   const next = String(principal?.id || "");
   if (next === activePrincipal) return false;
   const previous = activePrincipal;
+  const previousRole = activeRole;
   activePrincipal = next;
+  activeRole = String(principal?.role || "");
   identityGeneration += 1;
   clearDeskToken();
+  if (previous && previousRole !== "public_guest") {
+    try {
+      const current = new URL(window.location.href);
+      const tab = current.searchParams.get("tab") || "home";
+      // Research links can carry private questions and object IDs. Retain only
+      // the public destination when leaving a signed-in identity.
+      const safeTab = ["home", "library", "settings", "profile", "resources"].includes(tab) ? tab : "home";
+      window.history.replaceState(null, "", `${current.pathname}?tab=${safeTab}`);
+    } catch { /* Non-browser clients do not have a URL. */ }
+  }
   try {
     // Preserve the original operator's faculty preference, without lending it
     // to newly invited users. Legacy conversation pointers cannot establish an owner.
