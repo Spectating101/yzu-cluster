@@ -9,7 +9,7 @@ export function AccountSection({ deskAccess, onSignOut }) {
   const signedIn = Boolean(deskAccess?.permissions?.use_ask);
   const [usage, setUsage] = useState(null);
   const [error, setError] = useState("");
-  const reload = () => accountUsage().then(setUsage).catch((e) => setError(e.message));
+  const reload = () => { setError(""); return accountUsage().then(setUsage).catch((e) => setError(e.message)); };
   useEffect(() => {
     if (!signedIn) return undefined;
     let current = true;
@@ -72,10 +72,13 @@ export function AccountAdministration({ deskAccess }) {
   return <StatementSection title="Researcher access">
     <p className="rd-v2-settings-hint">Issue an individual invitation for each person. Replacement invitations and access changes end their earlier sessions without deleting their research work.</p>
     {document?.configured === false ? <p role="status">A private account registry must be configured before invitations can be issued.</p> : null}
+    {document?.invalid_account_count > 0 ? <p role="alert">{document.invalid_account_count} account entries failed validation and cannot sign in. Review the private account registry on the host before restoring their access.</p> : null}
+    {document?.mail ? <p className="rd-v2-settings-hint" role="status">Email sign-in: {document.mail.configured ? "configured" : "not configured"}. {document.mail.available ? `${document.mail.accepted_last_24h} messages accepted by the provider · ${document.mail.failed_last_24h} failed in 24 hours. Provider acceptance does not confirm inbox delivery.` : "Mail monitoring unavailable."} {document.mail.last_send && !document.mail.last_send.accepted ? `Latest send failed: ${document.mail.last_send.category}${document.mail.last_send.http_status ? ` (HTTP ${document.mail.last_send.http_status})` : ""}. Check the mail configuration.` : ""}</p> : null}
+    <button type="button" className="rd-v2-btn sm ghost" disabled={busy} onClick={() => { setError(""); listDeskAccounts().then(setDocument).catch((e) => setError(e.message)); }}>Refresh accounts</button>
     <form className="rd-account-form" onSubmit={(event) => { event.preventDefault(); if (editing) setPending({ action: "update", ...draft, label: `Update ${draft.id}’s account details` }); else run({ action: "create", ...draft }); }}>
       <label>Account ID<input className="rd-v2-input" readOnly={editing} required minLength={2} maxLength={96} pattern="[A-Za-z0-9][A-Za-z0-9._-]+" value={draft.id} onChange={(e) => patch("id", e.target.value)} autoComplete="off" /></label>
       <label>Display name<input className="rd-v2-input" required maxLength={160} value={draft.display_name} onChange={(e) => patch("display_name", e.target.value)} /></label>
-      <label>Email (optional)<input className="rd-v2-input" type="email" maxLength={320} value={draft.email} onChange={(e) => patch("email", e.target.value)} /></label>
+      <label>Email (optional)<input className="rd-v2-input" type="email" maxLength={254} value={draft.email} onChange={(e) => patch("email", e.target.value)} /></label>
       <label>Access<select className="rd-v2-select" value={draft.role} onChange={(e) => patch("role", e.target.value)}>{["public_member", "member", "operator"].map((role) => <option key={role} value={role}>{ACCOUNT_ROLES[role]}</option>)}</select></label>
       <p className="rd-account-wide rd-v2-settings-hint">Researcher: Ask and saved work. Lab member: provider connections and collections. Operator: approvals, account administration and operations.</p>
       <button type="submit" className="rd-v2-btn sm primary" disabled={busy || !document?.configured}>{busy ? "Saving…" : editing ? "Review account changes" : "Issue invitation"}</button>

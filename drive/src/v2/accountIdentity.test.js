@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { bindDeskIdentity, deskIdentityGeneration, assertDeskIdentity, saveChatSessionId, loadChatSessionId, saveUserEmail, loadUserEmail, saveDeskToken, hasDeskToken } from "./deskSession.js";
+import { bindDeskIdentity, deskHeaders, deskIdentityGeneration, assertDeskIdentity, saveChatSessionId, loadChatSessionId, saveUserEmail, loadUserEmail, saveDeskToken, hasDeskToken } from "./deskSession.js";
 import { loadSettings, saveSettings } from "./settingsStore.js";
 import { touchRecent, loadRecentIds } from "./recent.js";
 
@@ -41,4 +41,12 @@ test("new invited users never inherit legacy operator identity or conversation",
   bindDeskIdentity({ id: "new-researcher", role: "public_member" });
   assert.equal(loadUserEmail(), ""); assert.equal(loadChatSessionId("general"), "");
   assert.equal(localStorage.getItem("rd_v2_chat_session"), null);
+});
+
+test("browser requests bind the observed account so stale tabs cannot write into another account", () => {
+  bindDeskIdentity({ id: "alice", role: "member" });
+  const original = deskHeaders();
+  bindDeskIdentity({ id: "bob", role: "member" });
+  assert.equal(original["x-desk-principal"], "alice");
+  assert.equal(deskHeaders()["x-desk-principal"], "bob");
 });

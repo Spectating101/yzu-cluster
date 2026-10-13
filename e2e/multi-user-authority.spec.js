@@ -10,7 +10,7 @@ test("account menu names the authenticated person and simple role", async ({ pag
   await page.getByRole("button", { name: "Account" }).click();
   const menu = page.getByRole("menu", { name: "Account destinations" });
   await expect(menu).toContainText("Researcher One");
-  await expect(menu).toContainText("Administrator");
+  await expect(menu).toContainText("Operator");
   await expect(menu).not.toContainText("methods-lab");
 });
 
@@ -58,7 +58,7 @@ test("member can research but does not receive operator approval controls", asyn
   await page.getByRole("tab", { name: /^Ask/ }).click();
   await expect(page.getByRole("note")).toHaveCount(0);
   await page.getByRole("button", { name: "Account" }).click();
-  await expect(page.getByRole("menu", { name: "Account destinations" })).toContainText("Member");
+  await expect(page.getByRole("menu", { name: "Account destinations" })).toContainText("Lab member");
   await expect.poll(() => acquisitionLedgerRequests).toBe(0);
 });
 

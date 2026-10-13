@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { deskStatusBadge, deskStatusSummary } from "@/v2/deskStatusBadge";
+import { ACCOUNT_ROLES } from "./accountRoles.js";
 
 /** v2 header — brand · research context · resting status (no global search/Ask pill) */
 
@@ -166,7 +167,7 @@ export function V2DeskHeader({
             {principal ? (
               <div className="rd-v2-account-identity">
                 <strong>{principal.display_name || principal.email || "Research Drive user"}</strong>
-                <span>{principal.role === "operator" ? "Administrator" : principal.role === "public_guest" ? "Guest" : "Member"}</span>
+                <span>{ACCOUNT_ROLES[principal.role] || "Unknown access"}</span>
               </div>
             ) : null}
             {isGuest ? (

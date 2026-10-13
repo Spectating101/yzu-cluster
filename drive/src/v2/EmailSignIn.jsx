@@ -72,7 +72,8 @@ export function EmailSignInForm({ signupAvailable = false }) {
     <input id={`${id}-email`} className="rd-v2-input" type="email" autoComplete="email" required maxLength={254} value={email} onChange={(event) => setEmail(event.target.value)} />
     {purpose === "signup" ? <><label htmlFor={`${id}-name`}>Your name</label><input id={`${id}-name`} className="rd-v2-input" autoComplete="name" required maxLength={160} value={name} onChange={(event) => setName(event.target.value)} /><p>Creating an account gives you Ask and personal saved work. Lab access to collection and providers is granted separately.</p></> : null}
     {purpose === "invite" ? <><label htmlFor={`${id}-invitation`}>Invitation or existing access code</label><input id={`${id}-invitation`} type="password" className="rd-v2-input" autoComplete="one-time-code" required value={invitation} onChange={(event) => setInvitation(event.target.value)} /><p>Use the email named on your invitation. Verification keeps your existing account and saved work, and retires this code.</p></> : null}
-    <p>We’ll email a link that expires in 15 minutes. Open it and select Continue; no password is needed.</p>
+    {purpose === "signup" ? <p>Your research trail is visible to you and desk operators. Other researchers can browse the shared Library.</p> : null}
+    <p>We’ll email a link that expires in 15 minutes. Open it and select Continue; no password is needed. You can request up to three links per email address each hour.</p>
     <button type="submit" className="rd-v2-btn sm primary" disabled={busy}>{busy ? "Requesting link…" : notice ? "Request another link" : "Email me a sign-in link"}</button>
     {notice ? <p role="status">{notice}</p> : null}
     {error ? <p role="alert">{error}</p> : null}

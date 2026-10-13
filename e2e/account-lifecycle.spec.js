@@ -109,3 +109,31 @@ test("account change in another tab removes the prior researcher's visible conve
   expect(pointers.some((key) => key.includes("bob"))).toBe(false);
   await other.close();
 });
+
+
+test("operator sees delivery failures and must reauthenticate before issuing an invitation", async ({ page }) => {
+  await mockV2Api(page);
+  await page.route("**/library/desk/capabilities", (route) => fulfill(route, access("operator-fixture", "operator")));
+  await page.route("**/library/account/usage", (route) => fulfill(route, usage));
+  let created = 0;
+  await page.route("**/library/admin/accounts", (route) => {
+    if (route.request().method() === "POST") {
+      created += 1;
+      return fulfill(route, { message: "Sign in again before changing accounts." }, 403);
+    }
+    return fulfill(route, { configured: true, accounts: [], invalid_account_count: 1,
+      mail: { configured: true, available: true, accepted_last_24h: 2, failed_last_24h: 1,
+        last_send: { accepted: false, category: "provider_rejected", http_status: 403 } } });
+  });
+  await page.goto("/?tab=settings", { waitUntil: "domcontentloaded" });
+  await waitForShell(page);
+  await expect(page.getByText(/Latest send failed: provider_rejected/)).toBeVisible();
+  await expect(page.getByText(/account entries failed validation/)).toBeVisible();
+  await page.getByLabel("Account ID", { exact: true }).fill("new-researcher");
+  await page.getByLabel("Display name", { exact: true }).fill("New researcher");
+  await page.getByRole("button", { name: "Issue invitation", exact: true }).click();
+  await expect(page.getByRole("alert").filter({ hasText: "Sign in again" })).toBeVisible();
+  await expect(page.getByLabel("Member access code", { exact: true })).toHaveCount(0);
+  expect(created).toBe(1);
+  await page.screenshot({ path: test.info().outputPath("account-mail-status.png"), fullPage: true });
+});

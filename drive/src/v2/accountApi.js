@@ -11,9 +11,4 @@ export const changeDeskAccount = (payload) => fetchJson("/library/admin/accounts
   method: "POST", body: JSON.stringify(payload),
 });
 
-export const ACCOUNT_ROLES = {
-  public_guest: "Guest",
-  public_member: "Researcher",
-  member: "Lab member",
-  operator: "Operator",
-};
+export { ACCOUNT_ROLES } from "./accountRoles.js";

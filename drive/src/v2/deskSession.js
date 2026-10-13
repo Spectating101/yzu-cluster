@@ -60,6 +60,11 @@ export function bindDeskIdentity(principal = null) {
 }
 
 export function deskIdentityGeneration() { return identityGeneration; }
+export function notifyDeskAuthenticationFailure(status, payload = {}) {
+  if ((status === 401 || (status === 409 && payload?.error === "account_changed")) && typeof window !== "undefined") {
+    window.dispatchEvent(new Event("rd-desk-session-expired"));
+  }
+}
 export function assertDeskIdentity(generation) {
   if (generation !== identityGeneration) throw new Error("Your account changed. This earlier request was discarded.");
 }
@@ -118,6 +123,7 @@ export function deskHeaders(extra = {}) {
     "content-type": "application/json",
     ...flattenHeaderBag(extra),
   };
+  if (activePrincipal) headers["x-desk-principal"] = activePrincipal;
   const token = loadDeskToken();
   if (token) {
     headers["x-desk-token"] = token;

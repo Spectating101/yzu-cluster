@@ -4,6 +4,7 @@ import {
   clearDeskToken,
   assertDeskIdentity,
   deskIdentityGeneration,
+  notifyDeskAuthenticationFailure,
   deskFetchInit,
   deskHeaders,
   deskSessionBootstrapped,
@@ -34,12 +35,15 @@ export async function fetchJson(path, init = {}) {
     const mayBootstrap =
       path !== "/library/desk/session" && path !== "/library/desk/capabilities";
     if (r.status === 401 && mayBootstrap) {
-      if (typeof window !== "undefined") window.dispatchEvent(new Event("rd-desk-session-expired"));
+      notifyDeskAuthenticationFailure(r.status);
       // A rotated token or v1-cookie revocation can leave sessionStorage stale.
       // Clear the optimistic marker and let concurrent callers share one mint.
       markDeskSessionBootstrapped(false);
       const session = await ensureDeskSession();
-      if (session?.ok) r = await fetch(`${API}${path}`, options);
+      if (session?.ok) {
+        assertDeskIdentity(identity);
+        r = await fetch(`${API}${path}`, options);
+      }
     }
     const raw = await r.text();
     assertDeskIdentity(identity);
@@ -51,7 +55,10 @@ export async function fetchJson(path, init = {}) {
         data = { message: raw };
       }
     }
-    if (!r.ok) throw new Error(normalizeApiError(data, r.status, path));
+    if (!r.ok) {
+      notifyDeskAuthenticationFailure(r.status, data);
+      throw new Error(normalizeApiError(data, r.status, path));
+    }
     return data;
   } catch (error) {
     if (requestAbort.timedOut()) throw new Error(`Request timed out after ${timeoutMs}ms: ${path}`);

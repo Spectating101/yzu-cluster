@@ -99,3 +99,54 @@ test("verified researcher can request recovery without account administration", 
   expect(requested).toEqual({ email: "alice@example.test", purpose: "recover" });
   await expect(page.getByRole("button", { name: "Issue invitation", exact: true })).toHaveCount(0);
 });
+
+
+test("email service failure remains actionable without claiming a link was sent", async ({ page }) => {
+  await mockV2Api(page);
+  await page.route("**/library/desk/capabilities", (route) => fulfill(route, access()));
+  await page.route("**/library/desk/email/request", (route) => fulfill(route, { message: "Email account access is temporarily unavailable. Try again shortly." }, 503));
+  await page.goto("/?tab=settings", { waitUntil: "domcontentloaded" });
+  await waitForShell(page);
+  const form = page.getByRole("form", { name: "Email account access" });
+  await form.getByLabel("Account option").selectOption("signup");
+  await expect(form).toContainText("visible to you and desk operators");
+  await form.getByLabel("Account email").fill("alice@example.test");
+  await form.getByLabel("Your name").fill("Alice");
+  await form.getByRole("button", { name: "Email me a sign-in link" }).click();
+  await expect(form.getByRole("alert")).toContainText("temporarily unavailable");
+  await expect(form.getByRole("status")).toHaveCount(0);
+  await expect(form.getByRole("button", { name: "Email me a sign-in link" })).toBeEnabled();
+});
+
+test("a link invalidated after inspection cannot complete or change the browser account", async ({ page }) => {
+  await mockV2Api(page);
+  let consumes = 0;
+  await page.route("**/library/desk/capabilities", (route) => fulfill(route, access()));
+  await page.route("**/library/desk/email/inspect", (route) => fulfill(route, { email: "alice@example.test", purpose: "signup" }));
+  await page.route("**/library/desk/email/consume", (route) => { consumes += 1; return fulfill(route, { message: "This link is invalid or expired. Request a new link." }, 400); });
+  await page.goto(`/#desk-email=${"c".repeat(43)}`, { waitUntil: "domcontentloaded" });
+  await expect(page.getByText("alice@example.test", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Continue to Research Drive", exact: true }).click();
+  await expect(page.getByRole("alert")).toContainText("invalid or expired");
+  await expect(page.getByRole("button", { name: "Continue to Research Drive", exact: true })).toBeDisabled();
+  expect(consumes).toBe(1);
+  await page.getByRole("button", { name: "Return to sign in", exact: true }).click();
+  await expect(page.getByText("Guest browsing", { exact: true })).toBeVisible();
+});
+
+
+test("email confirmation fits a phone viewport and is usable from the keyboard", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await mockV2Api(page);
+  await page.route("**/library/desk/email/inspect", (route) => fulfill(route, { email: "alice@example.test", purpose: "signup" }));
+  await page.goto(`/#desk-email=${"d".repeat(43)}`, { waitUntil: "domcontentloaded" });
+  const button = page.getByRole("button", { name: "Continue to Research Drive", exact: true });
+  await expect(button).toBeEnabled();
+  await page.keyboard.press("Tab");
+  await expect(button).toBeFocused();
+  const box = await button.boundingBox();
+  expect(box.x).toBeGreaterThanOrEqual(0);
+  expect(box.x + box.width).toBeLessThanOrEqual(390);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+  await page.screenshot({ path: test.info().outputPath("email-confirmation-phone.png"), fullPage: true });
+});

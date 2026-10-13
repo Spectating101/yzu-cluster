@@ -18,6 +18,7 @@ import {
   assertDeskIdentity,
   deskIdentityGeneration,
   deskFetchInit,
+  notifyDeskAuthenticationFailure,
   loadUserEmail,
   saveChatSessionId,
 } from "./deskSession.js";
@@ -161,7 +162,7 @@ export async function sendChatMessage(
         );
         payload = await fallback.json().catch(() => ({}));
         assertDeskIdentity(identity);
-        if (fallback.status === 401 && typeof window !== "undefined") window.dispatchEvent(new Event("rd-desk-session-expired"));
+        if (!fallback.ok) notifyDeskAuthenticationFailure(fallback.status, payload);
         if (fallback.ok) break;
         if (![502, 503, 504].includes(fallback.status) || attempt === 1) {
           throw new Error(normalizeApiError(payload, fallback.status, "/library/chat"));
@@ -222,8 +223,8 @@ export async function sendChatMessage(
   }
 
   if (![404, 405, 406, 415].includes(streamRes.status)) {
-    if (streamRes.status === 401 && typeof window !== "undefined") window.dispatchEvent(new Event("rd-desk-session-expired"));
     const streamError = await streamRes.json().catch(() => ({}));
+    notifyDeskAuthenticationFailure(streamRes.status, streamError);
     throw new Error(normalizeApiError(streamError, streamRes.status, "/library/chat/stream"));
   }
 
