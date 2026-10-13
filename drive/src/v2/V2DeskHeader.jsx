@@ -35,7 +35,7 @@ export function V2DeskHeader({
   refreshedAt = null,
   dryRunProtected: _dryRunProtected = true,
   integrationChips = [],
-  activeResearchTitle = "Active research",
+  activeResearchTitle = "No research focus set",
   currentPage = "home",
   onAccountNavigate,
   onDeskStatusNavigate,
@@ -177,7 +177,7 @@ export function V2DeskHeader({
                 data-testid="member-sign-in"
                 disabled={!memberSignInAvailable}
                 title={memberSignInAvailable ? "Sign in to use Ask, Synthesis, and save your research trail" : "Member sign-in is not enabled on this host"}
-                onClick={() => onMemberSignIn?.()}
+                onClick={() => { setAccountOpen(false); onMemberSignIn?.(); }}
               >
                 <span>{memberSignInAvailable ? "Sign in" : "Member sign-in unavailable"}</span>
                 <small>{memberSignInAvailable ? "Ask, Synthesis, and saved work" : "Browse shared evidence as a guest"}</small>
@@ -192,7 +192,7 @@ export function V2DeskHeader({
               <small>Research Drive preferences</small>
             </button>
             {!isGuest && onSignOut ? (
-              <button type="button" role="menuitem" data-testid="desk-sign-out" onClick={onSignOut}>
+              <button type="button" role="menuitem" data-testid="desk-sign-out" onClick={() => { setAccountOpen(false); onSignOut(); }}>
                 <span>Sign out</span>
                 <small>Return to shared guest browsing</small>
               </button>

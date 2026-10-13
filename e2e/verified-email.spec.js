@@ -20,6 +20,7 @@ test("guest can create an account, request another link and accept an invitation
   await waitForShell(page);
   await page.getByRole("button", { name: "Account", exact: true }).click();
   await page.getByTestId("member-sign-in").click();
+  await expect(page.getByRole("menu", { name: "Account destinations" })).toHaveCount(0);
   const form = page.getByRole("form", { name: "Email account access" });
   await expect(form).toBeVisible();
   await form.getByLabel("Account option").selectOption("signup");
