@@ -35,6 +35,7 @@ import { AskRail } from "@/v2/AskRail";
 import { JobReviewDialog } from "./JobReviewDialog.jsx";
 import { reviewJobId } from "./reviewJobId.js";
 import { DeskAccessGate, DeskSessionBootstrap } from "@/v2/DeskAccessGate";
+import { EmailLinkConfirmation, readEmailLinkFragment } from "./EmailSignIn.jsx";
 import {
   datasetObject,
   discoverHistoryObject,
@@ -204,8 +205,13 @@ function resourceAskPrompt(row) {
   return `Explain this Resources row: ${row.label} (${row.metric || row.section || "selected"}).`;
 }
 
+const INITIAL_EMAIL_LINK = readEmailLinkFragment();
+
 export function V2App() {
   const [identity, setIdentity] = useState("");
+  const [emailLink] = useState(INITIAL_EMAIL_LINK);
+  const [emailLinkDismissed, setEmailLinkDismissed] = useState(false);
+  if (emailLink !== null && !emailLinkDismissed) return <EmailLinkConfirmation token={emailLink} onCancel={() => { window.history.replaceState(null, "", "/?tab=settings"); setEmailLinkDismissed(true); }} />;
   return <DeskWorkspace key={identity} onIdentityChanged={setIdentity} />;
 }
 
@@ -347,7 +353,8 @@ function DeskWorkspace({ onIdentityChanged }) {
 
   const memberSignInAvailable = Boolean(deskAccess?.session?.member_sign_in_available);
   const memberAccessCodeAvailable = Boolean(deskAccess?.session?.member_access_code_available);
-  const memberProviderSignInAvailable = Boolean(deskAccess?.session?.member_sign_in_path);
+  const emailSignInAvailable = Boolean(deskAccess?.session?.email_sign_in_available);
+  const memberProviderSignInAvailable = emailSignInAvailable || Boolean(deskAccess?.session?.member_sign_in_path);
   const beginCloudflareMemberSignIn = useCallback(() => {
     const path = String(deskAccess?.session?.member_sign_in_path || "").trim();
     if (!path.startsWith("/")) {
@@ -357,17 +364,6 @@ function DeskWorkspace({ onIdentityChanged }) {
     const returnTo = `${window.location.pathname}${window.location.search}${window.location.hash}`;
     window.location.assign(`${path}?return_to=${encodeURIComponent(returnTo)}`);
   }, [deskAccess?.session?.member_sign_in_path, showToast]);
-
-  const beginMemberSignIn = useCallback(() => {
-    // Access-code membership stays on the desk so the researcher can enter
-    // their issued code in the explicit Ask gate. Provider-only hosts can
-    // redirect directly to their identity provider.
-    if (memberAccessCodeAvailable) {
-      setRailTab("ask");
-      return;
-    }
-    beginCloudflareMemberSignIn();
-  }, [beginCloudflareMemberSignIn, memberAccessCodeAvailable]);
 
   const signInWithMemberCode = useCallback(async (code) => {
     const access = await signInWithMemberAccessCode(code);
@@ -1041,6 +1037,12 @@ function DeskWorkspace({ onIdentityChanged }) {
     },
     [syncUrl],
   );
+
+  const beginMemberSignIn = useCallback(() => {
+    if (emailSignInAvailable) { goTab("settings"); return; }
+    if (memberAccessCodeAvailable) { setRailTab("ask"); return; }
+    beginCloudflareMemberSignIn();
+  }, [beginCloudflareMemberSignIn, memberAccessCodeAvailable, emailSignInAvailable, goTab]);
 
   const handleSynthesisDiscoverHandoff = useCallback(
     ({ field, handoff, thread } = {}) => {

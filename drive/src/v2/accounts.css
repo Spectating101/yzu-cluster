@@ -19,3 +19,9 @@
 .rd-account-welcome h2 { margin: 0 0 8px; font-size: 17px; }
 .rd-account-welcome p { margin: 0 0 12px; max-width: 780px; line-height: 1.55; }
 .rd-account-welcome .rd-account-actions { margin-top: 12px; }
+.rd-email-signin { display: grid; gap: 10px; max-width: 480px; margin: 18px 0; }
+.rd-email-signin label { font-size: 12px; font-weight: 600; }
+.rd-email-signin p { font-size: 12px; line-height: 1.6; margin: 0; }
+.rd-email-signin button { justify-self: start; }
+.rd-email-account-options { margin: 14px 0; font-size: 12px; }
+.rd-email-account-options summary { cursor: pointer; }

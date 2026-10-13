@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { ACCOUNT_ROLES, accountUsage, changeDeskAccount, listDeskAccounts } from "./accountApi.js";
 import { StatementSection } from "@/v2/ui";
 import "./accounts.css";
+import { EmailSignInForm } from "./EmailSignIn.jsx";
 
 export function AccountSection({ deskAccess, onSignOut }) {
   const actor = deskAccess?.principal;
@@ -19,13 +20,14 @@ export function AccountSection({ deskAccess, onSignOut }) {
     <div className="rd-account-summary">
       <strong>{signedIn ? actor?.display_name || actor?.email || "Researcher" : "Guest browsing"}</strong>
       <span>{ACCOUNT_ROLES[actor?.role] || "Signed out"}{signedIn && actor?.email ? ` · ${actor.email}` : ""}</span>
-      <p>{signedIn ? "Your profile, Ask conversations and research threads belong to this account. The shared Library is available to other researchers. Operators can inspect saved research work." : "Browse Library and Discover freely. Sign in with your invitation to use Ask and keep a personal research trail."}</p>
+      <p>{signedIn ? "Your profile, Ask conversations and research threads belong to this account. The shared Library is available to other researchers. Operators can inspect saved research work." : "Browse Library and Discover freely. Sign in to use Ask and keep a personal research trail."}</p>
       {signedIn ? <>
         <p>{deskAccess?.permissions?.submit_collection ? "You can connect providers and submit collections. Approval follows the desk’s collection policy." : "You can reason over shared evidence and save research work. A lab member handles provider connections and collection requests."}</p>
         <button type="button" className="rd-v2-btn sm ghost" onClick={onSignOut}>Sign out of this browser</button>
-        <p className="rd-v2-settings-hint">Your saved work and connected providers remain available when you sign back in. For a lost invitation, ask an operator for a replacement for this same account.</p>
+        <p className="rd-v2-settings-hint">Your saved work and connected providers remain available when you sign back in. {deskAccess?.session?.email_sign_in_available ? "Verified accounts can recover access below using their account email. Existing code accounts should verify their email first." : "For a lost access code, ask an operator for a replacement for this same account."}</p>
       </> : null}
     </div>
+    {deskAccess?.session?.email_sign_in_available ? (signedIn ? <details className="rd-email-account-options"><summary>Verify email, sign in again or recover access</summary><EmailSignInForm signupAvailable={false} /></details> : <EmailSignInForm signupAvailable={deskAccess?.session?.email_signup_available} />) : null}
     {signedIn ? <div className="rd-account-usage" aria-label="Assistant allowance">
       <h3>Shared assistant allowance</h3>
       {usage ? <p><strong>{usage.hourly_remaining} / {usage.limits.hourly_requests}</strong> requests remaining this hour · <strong>{usage.daily_remaining} / {usage.limits.daily_requests}</strong> in the last 24 hours{usage.running_requests ? ` · ${usage.running_requests} running` : ""}</p> : <p>{error ? "Allowance unavailable" : "Checking allowance…"}</p>}
@@ -56,7 +58,7 @@ export function AccountAdministration({ deskAccess }) {
     setBusy(true); setError(""); setInvitation(null);
     try {
       const out = await changeDeskAccount(payload);
-      if (out.access_code) setInvitation({ id: out.account.id, code: out.access_code });
+      if (out.access_code) setInvitation({ id: out.account.id, code: out.access_code, notice: out.notice });
       setPending(null);
       if (payload.action === "create" || editing) {
         setDraft({ id: "", display_name: "", email: "", role: "public_member" });
@@ -81,14 +83,14 @@ export function AccountAdministration({ deskAccess }) {
     </form>
     {invitation ? <div className="rd-account-invitation" role="status">
       <strong>Invitation for {invitation.id}</strong>
-      <p>Copy and send this privately. It will not be shown again.</p>
+      <p>{invitation.notice || "Copy and send this privately. It will not be shown again."}</p>
       <label htmlFor="rd-issued-invitation">Member access code</label>
       <textarea id="rd-issued-invitation" readOnly value={invitation.code} onFocus={(event) => event.target.select()} />
       <button type="button" className="rd-v2-btn sm ghost" onClick={() => setInvitation(null)}>I’ve saved the invitation</button>
     </div> : null}
     <ul className="rd-account-list" aria-label="Desk accounts">
       {(document?.accounts || []).map((account) => <li key={account.id}>
-        <div><strong>{account.display_name || account.id}</strong><span>{account.id} · {ACCOUNT_ROLES[account.role]} · {account.enabled ? "Active" : "Disabled"}{account.daily_requests != null ? ` · ${account.daily_requests} assistant requests in 24h` : ""}</span></div>
+        <div><strong>{account.display_name || account.id}</strong><span>{account.id} · {ACCOUNT_ROLES[account.role]} · {account.enabled ? "Active" : "Disabled"}{account.email_verified ? " · Email verified" : account.auth_method === "email_invite" ? " · Awaiting email verification" : " · Access code"}{account.daily_requests != null ? ` · ${account.daily_requests} assistant requests in 24h` : ""}</span></div>
         {account.manageable !== false && account.id !== deskAccess?.principal?.id ? <div className="rd-account-actions">
           <button type="button" className="rd-v2-btn sm ghost" disabled={busy} onClick={() => { setEditing(true); setInvitation(null); setPending(null); setDraft({ id: account.id, display_name: account.display_name || "", email: account.email || "", role: account.role }); }}>Edit details</button>
           <select aria-label={`Access for ${account.id}`} className="rd-v2-select" value={account.role} disabled={busy} onChange={(event) => setPending({ action: "update", id: account.id, role: event.target.value, label: `Change ${account.id} to ${ACCOUNT_ROLES[event.target.value]}` })}>{["public_member", "member", "operator"].map((role) => <option key={role} value={role}>{ACCOUNT_ROLES[role]}</option>)}</select>
