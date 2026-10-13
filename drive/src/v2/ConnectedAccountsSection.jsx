@@ -52,7 +52,7 @@ function providerStatus(provider, accounts) {
   return "Ready to connect";
 }
 
-export function ConnectedAccountsSection({ deskAccess, onToast }) {
+export function ConnectedAccountsSection({ deskAccess, onToast, showIdentity = true }) {
   const role = String(deskAccess?.principal?.role || "");
   const publicGuest = role === "public_guest";
   const canConnect = Boolean(deskAccess?.authenticated && CONNECTED_ROLES.has(role));
@@ -196,7 +196,7 @@ export function ConnectedAccountsSection({ deskAccess, onToast }) {
 
   return (
     <>
-      <StatementSection title="Account">
+      {showIdentity ? <StatementSection title="Account">
         {deskAccess?.authenticated ? (
           <>
             <StatementRow
@@ -222,7 +222,7 @@ export function ConnectedAccountsSection({ deskAccess, onToast }) {
             Connect this browser to a named Research Drive account before linking personal storage.
           </p>
         )}
-      </StatementSection>
+      </StatementSection> : null}
 
       <StatementSection title="Connected storage">
         <div className="rd-v2-connected-intro">

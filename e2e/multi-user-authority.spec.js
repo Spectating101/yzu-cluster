@@ -55,7 +55,7 @@ test("member can research but does not receive operator approval controls", asyn
   await page.goto("/?tab=home", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
   await expect(page.getByTestId("header-pending-link")).toHaveCount(0);
-  await page.getByRole("button", { name: /^Ask/ }).click();
+  await page.getByRole("tab", { name: /^Ask/ }).click();
   await expect(page.getByRole("note")).toHaveCount(0);
   await page.getByRole("button", { name: "Account" }).click();
   await expect(page.getByRole("menu", { name: "Account destinations" })).toContainText("Member");
@@ -129,7 +129,7 @@ test("opening Ask primes and reuses the exact research-context session", async (
   await expect(page.getByTestId("ask-messages")).toContainText("Grounded answer");
 
   expect(warms).toHaveLength(1);
-  expect(warms[0].background).toBe(false);
+  expect(warms[0].background).toBe(true);
   expect(chats).toHaveLength(1);
   expect(chats[0].session_id).toBe("warm-home-context");
 });

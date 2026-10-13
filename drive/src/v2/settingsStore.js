@@ -1,4 +1,4 @@
-import { loadUserEmail } from "./deskSession.js";
+import { deskStorageKey, loadUserEmail } from "./deskSession.js";
 
 const KEY = "rd_v2_settings";
 const LAST_RESEARCH_SURFACE_KEY = "rd_v2_last_research_surface";
@@ -26,7 +26,7 @@ function normalizeDiscoverScope(value) {
 
 export function loadSettings() {
   try {
-    const stored = JSON.parse(localStorage.getItem(KEY) || "{}");
+    const stored = JSON.parse(localStorage.getItem(deskStorageKey(KEY)) || "{}");
     const email = stored.email || loadUserEmail() || "";
     // Compatibility for older settings that stored a literal default tab.
     // Home stays Home; a former research-surface default becomes Resume.
@@ -56,20 +56,20 @@ export function saveSettings(patch) {
   next.onSelect = normalizeOnSelect(next.onSelect);
   next.discoverScope = normalizeDiscoverScope(next.discoverScope);
   delete next.defaultTab;
-  localStorage.setItem(KEY, JSON.stringify(next));
+  localStorage.setItem(deskStorageKey(KEY), JSON.stringify(next));
   return next;
 }
 
 export function rememberResearchSurface(tab) {
   const normalized = String(tab || "").trim();
   if (!RESEARCH_SURFACES.has(normalized)) return false;
-  localStorage.setItem(LAST_RESEARCH_SURFACE_KEY, normalized);
+  localStorage.setItem(deskStorageKey(LAST_RESEARCH_SURFACE_KEY), normalized);
   return true;
 }
 
 export function loadLastResearchSurface() {
   try {
-    const stored = String(localStorage.getItem(LAST_RESEARCH_SURFACE_KEY) || "").trim();
+    const stored = String(localStorage.getItem(deskStorageKey(LAST_RESEARCH_SURFACE_KEY)) || "").trim();
     return RESEARCH_SURFACES.has(stored) ? stored : "";
   } catch {
     return "";

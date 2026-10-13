@@ -2,6 +2,8 @@
 
 import {
   clearDeskToken,
+  assertDeskIdentity,
+  deskIdentityGeneration,
   deskFetchInit,
   deskHeaders,
   deskSessionBootstrapped,
@@ -20,6 +22,7 @@ export const API = import.meta.env?.DEV ? "/api" : "";
 let ensureDeskSessionInflight = null;
 
 export async function fetchJson(path, init = {}) {
+  const identity = deskIdentityGeneration();
   const options = deskFetchInit(init || {});
   const timeoutMs = Number(options.timeoutMs || 0);
   delete options.timeoutMs;
@@ -31,6 +34,7 @@ export async function fetchJson(path, init = {}) {
     const mayBootstrap =
       path !== "/library/desk/session" && path !== "/library/desk/capabilities";
     if (r.status === 401 && mayBootstrap) {
+      if (typeof window !== "undefined") window.dispatchEvent(new Event("rd-desk-session-expired"));
       // A rotated token or v1-cookie revocation can leave sessionStorage stale.
       // Clear the optimistic marker and let concurrent callers share one mint.
       markDeskSessionBootstrapped(false);
@@ -38,6 +42,7 @@ export async function fetchJson(path, init = {}) {
       if (session?.ok) r = await fetch(`${API}${path}`, options);
     }
     const raw = await r.text();
+    assertDeskIdentity(identity);
     let data = {};
     if (raw) {
       try {

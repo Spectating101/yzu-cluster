@@ -3,6 +3,58 @@ const TOKEN_KEY = "desk_access_token";
 const SESSION_KEY = "rd_v2_chat_session";
 const SESSION_CONTEXT_PREFIX = `${SESSION_KEY}:context:`;
 const DESK_SESSION_BOOTSTRAPPED_KEY = "rd_desk_session_bootstrapped";
+export const DESK_IDENTITY_EVENT_KEY = "rd_desk_identity_changed";
+let activePrincipal = "";
+let identityGeneration = 0;
+
+/** Server-observed identity scopes browser pointers; storage never grants access. */
+export function bindDeskIdentity(principal = null) {
+  const next = String(principal?.id || "");
+  if (next === activePrincipal) return false;
+  const previous = activePrincipal;
+  activePrincipal = next;
+  identityGeneration += 1;
+  clearDeskToken();
+  try {
+    // Preserve the original operator's faculty preference, without lending it
+    // to newly invited users. Legacy conversation pointers cannot establish an owner.
+    if (!previous && principal?.role === "operator" && next === "desk-operator") {
+      const legacyEmail = localStorage.getItem(EMAIL_KEY);
+      if (legacyEmail && !localStorage.getItem(userEmailKey())) localStorage.setItem(userEmailKey(), legacyEmail);
+      for (const key of ["rd_v2_settings", "rd_v2_recent_datasets", "rd_v2_last_research_surface"]) {
+        const value = localStorage.getItem(key);
+        if (value && !localStorage.getItem(deskStorageKey(key))) localStorage.setItem(deskStorageKey(key), value);
+      }
+      const legacySession = localStorage.getItem(SESSION_KEY);
+      if (legacySession && !localStorage.getItem(chatSessionStorageKey())) localStorage.setItem(chatSessionStorageKey(), legacySession);
+      for (let i = 0; i < localStorage.length; i += 1) {
+        const key = localStorage.key(i);
+        if (key?.startsWith(SESSION_CONTEXT_PREFIX)) {
+          const context = decodeURIComponent(key.slice(SESSION_CONTEXT_PREFIX.length));
+          if (!localStorage.getItem(chatSessionStorageKey(context))) localStorage.setItem(chatSessionStorageKey(context), localStorage.getItem(key));
+        }
+      }
+    }
+    localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(EMAIL_KEY);
+    for (let i = localStorage.length - 1; i >= 0; i -= 1) {
+      const key = localStorage.key(i);
+      if (key?.startsWith(SESSION_CONTEXT_PREFIX)) localStorage.removeItem(key);
+    }
+    sessionStorage.removeItem("rd.v2.resources.rollup.v1");
+  } catch { /* Browser storage can be unavailable. */ }
+  return true;
+}
+
+export function deskIdentityGeneration() { return identityGeneration; }
+export function assertDeskIdentity(generation) {
+  if (generation !== identityGeneration) throw new Error("Your account changed. This earlier request was discarded.");
+}
+export function notifyDeskIdentityChange() {
+  try { localStorage.setItem(DESK_IDENTITY_EVENT_KEY, `${Date.now()}:${Math.random()}`); } catch { /* ignore */ }
+}
+function userEmailKey() { return activePrincipal ? `${EMAIL_KEY}:user:${encodeURIComponent(activePrincipal)}` : EMAIL_KEY; }
+export function deskStorageKey(key) { return activePrincipal ? `${key}:user:${encodeURIComponent(activePrincipal)}` : key; }
 
 /** Fetch/Headers-compatible: header names are always lowercase in our maps. */
 function normalizeHeaderName(name) {
@@ -116,7 +168,7 @@ export function deskSessionBootstrapped() {
 
 export function loadUserEmail() {
   try {
-    return localStorage.getItem(EMAIL_KEY) || "";
+    return localStorage.getItem(userEmailKey()) || "";
   } catch {
     return "";
   }
@@ -124,8 +176,8 @@ export function loadUserEmail() {
 
 export function saveUserEmail(email) {
   const v = String(email || "").trim();
-  if (v) localStorage.setItem(EMAIL_KEY, v);
-  else localStorage.removeItem(EMAIL_KEY);
+  if (v) localStorage.setItem(userEmailKey(), v);
+  else localStorage.removeItem(userEmailKey());
   return v;
 }
 
@@ -142,6 +194,7 @@ function normalizedChatContextKey(contextKey = "") {
  */
 export function chatSessionStorageKey(contextKey = "") {
   const key = normalizedChatContextKey(contextKey);
+  if (activePrincipal) return `${SESSION_KEY}:user:${encodeURIComponent(activePrincipal)}:context:${encodeURIComponent(key || "general").slice(0, 512)}`;
   return key ? `${SESSION_CONTEXT_PREFIX}${encodeURIComponent(key).slice(0, 512)}` : SESSION_KEY;
 }
 

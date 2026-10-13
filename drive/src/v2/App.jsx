@@ -45,7 +45,7 @@ import {
   synthesisThreadObject,
 } from "@/v2/activeObject";
 import { BrowsePage } from "@/v2/BrowsePage";
-import { loadUserEmail, saveUserEmail } from "@/v2/deskSession";
+import { bindDeskIdentity, clearDeskToken, DESK_IDENTITY_EVENT_KEY, loadUserEmail, notifyDeskIdentityChange, saveUserEmail } from "@/v2/deskSession";
 import { writeResourcesRollupCache } from "@/v2/resourcesRollupCache";
 import { normalizeReleaseTab } from "@/v2/releaseVisibility";
 import { DISCOVER_TAB, canonicalTab } from "@/v2/tabIdentity";
@@ -56,6 +56,7 @@ import { PreviewModal } from "@/v2/PreviewModal";
 import { ProfilePage } from "@/v2/ProfilePage";
 import { ResourcesPage } from "@/v2/ResourcesPage";
 import { SettingsPage } from "@/v2/SettingsPage";
+import { ResearcherWelcome } from "./ResearcherWelcome.jsx";
 import { SynthesisPage } from "@/v2/SynthesisPage";
 import { PageShell } from "@/v2/ui";
 import {
@@ -204,6 +205,11 @@ function resourceAskPrompt(row) {
 }
 
 export function V2App() {
+  const [identity, setIdentity] = useState("");
+  return <DeskWorkspace key={identity} onIdentityChanged={setIdentity} />;
+}
+
+function DeskWorkspace({ onIdentityChanged }) {
   const [reviewingJobId, setReviewingJobId] = useState("");
   const [approvedCollectionId, setApprovedCollectionId] = useState("");
   // Bind the canonical fold to the setter rather than to every caller. Seven
@@ -308,16 +314,36 @@ export function V2App() {
   const canApproveJobs = Boolean(deskAccess?.permissions?.approve_jobs);
   const canViewOperations = Boolean(deskAccess?.permissions?.view_operations);
 
+  const applyDeskAccess = useCallback((access) => {
+    const changed = bindDeskIdentity(access?.principal);
+    setDeskAccess(access || { authenticated: false });
+    if (changed) onIdentityChanged(String(access?.principal?.id || "locked"));
+    return access;
+  }, [onIdentityChanged]);
+
   const refreshDeskAccess = useCallback(async ({ force = false } = {}) => {
     setDeskAccessBusy(true);
     try {
       const access = await ensureDeskAccess({ force });
-      setDeskAccess(access || { authenticated: false });
+      applyDeskAccess(access);
       return access;
     } finally {
       setDeskAccessBusy(false);
     }
-  }, []);
+  }, [applyDeskAccess]);
+
+  useEffect(() => {
+    const sync = (event) => {
+      if (event.key === DESK_IDENTITY_EVENT_KEY) refreshDeskAccess();
+    };
+    window.addEventListener("storage", sync);
+    const expired = () => refreshDeskAccess();
+    window.addEventListener("rd-desk-session-expired", expired);
+    return () => {
+      window.removeEventListener("storage", sync);
+      window.removeEventListener("rd-desk-session-expired", expired);
+    };
+  }, [refreshDeskAccess]);
 
   const memberSignInAvailable = Boolean(deskAccess?.session?.member_sign_in_available);
   const memberAccessCodeAvailable = Boolean(deskAccess?.session?.member_access_code_available);
@@ -345,15 +371,22 @@ export function V2App() {
 
   const signInWithMemberCode = useCallback(async (code) => {
     const access = await signInWithMemberAccessCode(code);
-    setDeskAccess(access);
+    applyDeskAccess(access);
+    notifyDeskIdentityChange();
     setRailTab("ask");
     showToast("Signed in. Ask and your private research trail are ready.");
     return access;
-  }, [showToast]);
+  }, [applyDeskAccess, showToast]);
 
   const signOut = useCallback(async () => {
-    await clearDeskSession();
+    clearDeskToken();
+    const result = await clearDeskSession();
+    if (!result?.ok) {
+      showToast("Sign-out could not complete. Try again before leaving this browser.", "error");
+      return;
+    }
     await refreshDeskAccess({ force: true });
+    notifyDeskIdentityChange();
     showToast("Signed out. You can still browse the shared research estate.");
   }, [refreshDeskAccess, showToast]);
 
@@ -370,12 +403,14 @@ export function V2App() {
     // Showcase soft-default: keep Kong bound when the browser has no faculty email yet
     // (or after a desk outage wiped the visible identity).
     let email = authenticatedEmail || loadUserEmail();
-    if (!email) email = saveUserEmail(PILOT_PREVIEW_EMAIL);
+    const canUsePilot = deskAccess?.principal?.role === "operator";
+    if (!email && canUsePilot) email = saveUserEmail(PILOT_PREVIEW_EMAIL);
+    if (!email) { setProfile({ unknown: true }); return; }
     facultyProfile(email)
       .then((data) => {
         if (!data?.found || !data.profile || data.profile.unknown) {
           // Fall back to pilot bind rather than leaving the desk looking empty.
-          if (email !== PILOT_PREVIEW_EMAIL) {
+          if (canUsePilot && email !== PILOT_PREVIEW_EMAIL) {
             saveUserEmail(PILOT_PREVIEW_EMAIL);
             facultyProfile(PILOT_PREVIEW_EMAIL)
               .then((pilot) => {
@@ -394,7 +429,7 @@ export function V2App() {
         setProfile(data.profile);
       })
       .catch(() => {
-        if (email !== PILOT_PREVIEW_EMAIL) {
+        if (canUsePilot && email !== PILOT_PREVIEW_EMAIL) {
           saveUserEmail(PILOT_PREVIEW_EMAIL);
           facultyProfile(PILOT_PREVIEW_EMAIL)
             .then((pilot) => {
@@ -409,10 +444,10 @@ export function V2App() {
         }
         setProfile({ email, unknown: true });
       });
-  }, [authenticatedEmail, canViewFacultyProfile]);
+  }, [authenticatedEmail, canViewFacultyProfile, deskAccess?.principal?.role]);
 
   useEffect(() => {
-    if (!deskAccess?.authenticated || !canViewFacultyProfile) {
+    if (!deskAccess?.authenticated || !canViewFacultyProfile || deskAccess?.principal?.role !== "operator") {
       setPilotProfile(null);
       return undefined;
     }
@@ -434,7 +469,7 @@ export function V2App() {
     return () => {
       cancelled = true;
     };
-  }, [profile, deskAccess?.authenticated, canViewFacultyProfile]);
+  }, [profile, deskAccess?.authenticated, canViewFacultyProfile, deskAccess?.principal?.role]);
 
   const applyCatalog = useCallback((rows, errMsg = "") => {
     const { catalog, usingSeed: seed } = resolveCatalog(rows, { fallbackToSeed: Boolean(errMsg) });
@@ -696,7 +731,7 @@ export function V2App() {
       if (document.visibilityState === "hidden") return;
       deskCapabilities()
         .then((access) => {
-          if (!cancelled) setDeskAccess(access || { authenticated: false });
+          if (!cancelled) applyDeskAccess(access);
         })
         .catch(() => {
           // Preserve the last measured runtime truth. Ask remains available,
@@ -716,7 +751,7 @@ export function V2App() {
       window.clearInterval(handle);
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [composerRuntime?.ready, deskAccess?.authenticated, canUseAsk, canViewOperations]);
+  }, [composerRuntime?.ready, deskAccess?.authenticated, canUseAsk, canViewOperations, applyDeskAccess]);
 
   const askFromPrompt = useCallback((prompt) => {
     if (!prompt) return;
@@ -2118,6 +2153,8 @@ export function V2App() {
         <SettingsPage
           health={health}
           deskAccess={deskAccess}
+          onSignOut={signOut}
+          onAccountChanged={refreshDeskAccess}
           jobs={jobs}
           jobsLoaded={jobsLoaded}
           jobsRefreshFailed={lifecycleRefreshFailed}
@@ -2260,6 +2297,7 @@ export function V2App() {
         }}
       />
       <main className="yzu-main rd-v2-shell-main">
+        {tab === "home" ? <ResearcherWelcome deskAccess={deskAccess} onGoTab={goTab} /> : null}
         {main}
         <JobReviewDialog jobId={reviewingJobId} canApprove={canApproveJobs}
           onClose={() => setReviewingJobId("")}

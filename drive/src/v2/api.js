@@ -15,6 +15,8 @@ import {
   requestSynthesisExecution as coreRequestSynthesisExecution,
 } from "./apiCore.js";
 import {
+  assertDeskIdentity,
+  deskIdentityGeneration,
   deskFetchInit,
   loadUserEmail,
   saveChatSessionId,
@@ -116,6 +118,7 @@ export async function sendChatMessage(
   message,
   { sessionId, userEmail, railContext, onDelta, onActivity } = {},
 ) {
+  const identity = deskIdentityGeneration();
   const effectiveRailContext = requestRailContext(message, railContext);
   const body = JSON.stringify({
     message,
@@ -125,6 +128,7 @@ export async function sendChatMessage(
   });
 
   const consumeEvent = (event, state) => {
+    assertDeskIdentity(identity);
     if (event.type === "delta" && event.text) onDelta?.(event.text);
     if ((event.type === "activity" || event.type === "progress") && event.text) {
       onActivity?.(activityEnvelope(event));
@@ -139,6 +143,7 @@ export async function sendChatMessage(
     // receipts so production reaches the same Synthesis objects as NDJSON dev.
     const started = Date.now();
     const tick = setInterval(() => {
+      if (identity !== deskIdentityGeneration()) return;
       const elapsed = Math.round((Date.now() - started) / 1000);
       onActivity?.({ text: "Researching with the Library and source tools…", elapsed_seconds: elapsed });
     }, 1500);
@@ -146,6 +151,7 @@ export async function sendChatMessage(
       let fallback;
       let payload = {};
       for (let attempt = 0; attempt < 2; attempt += 1) {
+        assertDeskIdentity(identity);
         fallback = await fetch(
           `${API}/library/chat`,
           deskFetchInit({
@@ -154,6 +160,8 @@ export async function sendChatMessage(
           }),
         );
         payload = await fallback.json().catch(() => ({}));
+        assertDeskIdentity(identity);
+        if (fallback.status === 401 && typeof window !== "undefined") window.dispatchEvent(new Event("rd-desk-session-expired"));
         if (fallback.ok) break;
         if (![502, 503, 504].includes(fallback.status) || attempt === 1) {
           throw new Error(normalizeApiError(payload, fallback.status, "/library/chat"));
@@ -164,6 +172,7 @@ export async function sendChatMessage(
         });
         await new Promise((r) => setTimeout(r, 1200));
       }
+      assertDeskIdentity(identity);
       if (payload.session_id) saveChatSessionId(payload.session_id);
       replayBufferedActivity(payload, onActivity);
       if (payload.reply) onDelta?.(String(payload.reply));
@@ -182,6 +191,7 @@ export async function sendChatMessage(
     body,
   }));
   const contentType = streamRes.headers.get("content-type") || "";
+  assertDeskIdentity(identity);
 
   if (streamRes.ok && contentType.includes("ndjson") && streamRes.body) {
     const reader = streamRes.body.getReader();
@@ -198,18 +208,21 @@ export async function sendChatMessage(
     const tail = decodeNdjson(buffer, decoder.decode(), { final: true });
     tail.events.forEach((event) => consumeEvent(event, state));
     if (!state.result) throw new Error("Chat ended without a response");
+    assertDeskIdentity(identity);
     if (state.result.session_id) saveChatSessionId(state.result.session_id);
     return state.result;
   }
 
   if (streamRes.ok) {
     const payload = await streamRes.json().catch(() => ({}));
+    assertDeskIdentity(identity);
     if (payload.session_id) saveChatSessionId(payload.session_id);
     replayBufferedActivity(payload, onActivity);
     return payload;
   }
 
   if (![404, 405, 406, 415].includes(streamRes.status)) {
+    if (streamRes.status === 401 && typeof window !== "undefined") window.dispatchEvent(new Event("rd-desk-session-expired"));
     const streamError = await streamRes.json().catch(() => ({}));
     throw new Error(normalizeApiError(streamError, streamRes.status, "/library/chat/stream"));
   }

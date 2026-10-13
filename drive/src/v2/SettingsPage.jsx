@@ -3,11 +3,12 @@ import {
   clearDeskToken,
   deskSessionBootstrapped,
   hasDeskToken,
-  saveDeskToken,
   saveUserEmail,
 } from "@/v2/deskSession";
 import { clearDeskSession, ensureDeskSession } from "@/v2/api";
 import { ProviderConnectionsSection } from "@/v2/ProviderConnectionsSection";
+import { AccountAdministration, AccountSection } from "./AccountSection.jsx";
+import { signInWithMemberAccessCode } from "./apiCore.js";
 import { ConnectedAccountsSection } from "@/v2/ConnectedAccountsSection";
 import { archiveRuntimeStatus } from "@/v2/archiveRuntimeStatus";
 import { assistantRuntimeDetail, composerRuntimeRead } from "@/v2/composerRuntimeStatus";
@@ -93,6 +94,8 @@ export function SettingsPage({
   onProfileRefresh,
   onToast,
   onSettingsChange,
+  onSignOut,
+  onAccountChanged,
 }) {
   const [settings, setSettings] = useState(() => loadSettings());
   const [emailDraft, setEmailDraft] = useState(() => settings.email || "");
@@ -140,23 +143,25 @@ export function SettingsPage({
           : out.error || "Research Drive connection failed",
       );
       onProfileRefresh?.();
+      onAccountChanged?.();
     } finally {
       setBusy(false);
     }
   };
 
-  const saveToken = () => {
-    const saved = saveDeskToken(tokenDraft);
-    setTokenDraft("");
-    onToast?.(
-      saved
-        ? "Fallback access saved for this browser session"
-        : "Fallback access cleared",
-    );
-    onProfileRefresh?.();
+  const saveToken = async () => {
+    setBusy(true);
+    try {
+      await signInWithMemberAccessCode(tokenDraft);
+      setTokenDraft("");
+      await onAccountChanged?.();
+      onToast?.("Access code exchanged for a browser session.");
+    } catch (error) { onToast?.(error.message, "error"); }
+    finally { setBusy(false); }
   };
 
   const disconnect = async () => {
+    if (onSignOut) return onSignOut();
     setBusy(true);
     try {
       clearDeskToken();
@@ -175,6 +180,8 @@ export function SettingsPage({
       lead="Choose how Research Drive behaves for this browser. Operational health lives under system status, not in the preference hierarchy."
     >
       <div className="rd-v2-settings-statement">
+        <AccountSection deskAccess={deskAccess} onSignOut={onSignOut} />
+        <AccountAdministration deskAccess={deskAccess} />
         <StatementSection title="Workspace behavior">
           <div className="rd-v2-settings-preference-grid">
             <div className="rd-v2-settings-preference">
@@ -224,7 +231,7 @@ export function SettingsPage({
           </p>
         </StatementSection>
 
-        <ConnectedAccountsSection deskAccess={deskAccess} onToast={onToast} />
+        <ConnectedAccountsSection deskAccess={deskAccess} onToast={onToast} showIdentity={false} />
         <ProviderConnectionsSection deskAccess={deskAccess} onToast={onToast} />
 
         <StatementSection title="Research identity">
@@ -340,11 +347,11 @@ export function SettingsPage({
               detail={mcpTools != null ? "Reported" : "Unknown"}
             />
 
-            <details className="rd-v2-settings-advanced">
+            {deskAccess?.permissions?.view_operations ? <details className="rd-v2-settings-advanced">
               <summary>Fallback browser access</summary>
               <div className="rd-v2-settings-advanced-body">
                 <p className="rd-v2-settings-hint">
-                  Use only when this browser cannot create the normal Research Drive session.
+                  Exchange an issued access code for a browser session. The code is removed after sign-in.
                 </p>
                 <div className="rd-v2-settings-row stack">
                   <label className="rd-v2-settings-label" htmlFor="rd-settings-token">
@@ -370,11 +377,11 @@ export function SettingsPage({
                     disabled={busy || !tokenDraft.trim()}
                     onClick={saveToken}
                   >
-                    Save fallback
+                    Use access code
                   </button>
                 </div>
               </div>
-            </details>
+            </details> : null}
           </div>
         </details>
       </div>
