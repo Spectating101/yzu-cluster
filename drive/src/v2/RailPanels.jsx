@@ -188,12 +188,12 @@ const PAGE_RAIL_COPY = {
     ],
   },
   settings: {
-    title: "Workspace policy",
-    desc: "Behavior, identity binding, and browser access for this Research Drive.",
+    title: "Your settings",
+    desc: "Your account, and how Research Drive behaves in this browser.",
     fields: [
-      ["Behavior", "Startup, evidence Inspector, Discover breadth"],
-      ["Identity", "Faculty email binding"],
-      ["System status", "Available under technical details"],
+      ["Account", "Sign in, sign out, recover access"],
+      ["Assistant", "How many Ask requests you have left"],
+      ["System status", "Under technical details"],
     ],
   },
   resources: {

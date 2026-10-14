@@ -146,7 +146,7 @@ export function SynthesisHome({
         >
           <small>Reusable method</small>
           <strong>Start from work saved to Library</strong>
-          <span>{methods.length ? `${methods.length} method saved to Library${methods.length === 1 ? "" : "s"} can start a new build.` : "No method saved to Library is reported yet."}</span>
+          <span>{methods.length ? `${methods.length} ${methods.length === 1 ? "method" : "methods"} saved to Library can start a new build.` : "No method saved to Library is reported yet."}</span>
           <em>{methods.length ? "Browse methods ↓" : "None available"}</em>
         </button>
         {continueThread ? (

@@ -306,7 +306,7 @@ function PersonalResearchProfile({ document, onDocument, onProfileRefresh }) {
               This context is yours. It helps Discover and Ask understand your work without overwriting your faculty record. It cannot change your account, role, or access and collection permissions.
             </p>
           </div>
-          <span>{configured ? "User-confirmed" : "Cold start"}</span>
+          <span>{configured ? "Confirmed by you" : "Not set up yet"}</span>
         </header>
         <div className="rd-v2-settings-statement">
           <div className="rd-v2-settings-row stack">

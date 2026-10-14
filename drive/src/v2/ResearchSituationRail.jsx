@@ -230,10 +230,10 @@ function buildSituation(props) {
     };
   }
   if (mainTab === "profile") {
-    return { status: "Research profile", facts: [], next: "Profile context steers research direction without becoming evidence itself." };
+    return { status: "Research profile", facts: [], next: "Your research focus helps Discover and Ask suggest relevant data. It is never treated as data itself." };
   }
   if (mainTab === "settings") {
-    return { status: "Research Drive configuration", facts: [], next: "Change Research Drive settings when they affect access, available tools, or how data is handled." };
+    return { status: "Settings", facts: [], next: "Your account, sign-in, and assistant allowance." };
   }
   return { status: "Research context", facts: [], next: "Inspect the current object or Ask within this scoped context." };
 }
