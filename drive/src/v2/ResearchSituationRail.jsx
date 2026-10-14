@@ -224,7 +224,7 @@ function buildSituation(props) {
   if (mainTab === "resources") return resourceSituation(props.resourceRow, resourcesDecisionCount);
   if (mainTab === "home") {
     return {
-      status: text(activeObject?.statusText) || "Research Drive",
+      status: text(activeObject?.statusText) || "Overview",
       facts: [],
       next: "Pick up where you left off, or check whether a dataset is ready to use.",
     };

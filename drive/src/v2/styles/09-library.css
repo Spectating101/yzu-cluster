@@ -504,10 +504,9 @@
 
 .rd-v2-cap-collection-list {
   display: flex;
+  flex-wrap: wrap;
   min-width: 0;
-  gap: 7px;
-  overflow-x: auto;
-  scrollbar-width: thin;
+  gap: 6px 7px;
 }
 
 .rd-v2-cap-collection {

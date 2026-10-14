@@ -8,6 +8,7 @@ import { readResourcesRollupCache, writeResourcesRollupCache } from "@/v2/resour
 import { PageShell } from "@/v2/ui";
 import { DeskError } from "@/v2/DeskError";
 import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
+import { displayName, statusPillKind } from "@/v2/datasetMeta";
 import {
   buildPickUp,
   buildRecentTrail,
@@ -106,6 +107,38 @@ function WelcomeCard({ onGoTab, onSignIn }) {
         {onSignIn ? <button type="button" className="rd-v2-btn" onClick={onSignIn}>Sign in</button> : null}
       </div>
     </article>
+  );
+}
+
+function firstSentence(value) {
+  const textValue = String(value || "").replace(/\s+/g, " ").trim();
+  const end = textValue.search(/[.!?](\s|$)/);
+  return end > 0 ? textValue.slice(0, end + 1) : textValue;
+}
+
+function GuestReadyDatasets({ datasets, onGoTab, onSelectDataset }) {
+  const ready = datasets
+    .filter((row) => row?.dataset_id && statusPillKind(row).kind === "query-ready")
+    .sort((a, b) => String(b.retrieved_at || "").localeCompare(String(a.retrieved_at || "")))
+    .slice(0, 4);
+  if (!ready.length) return null;
+  return (
+    <section className="rd-v2-home-guest-ready" aria-label="Ready to use now" data-testid="home-guest-ready">
+      <div className="rd-v2-home-section-head">
+        <h2>Ready to use now</h2>
+        <button type="button" className="rd-v2-linkish" onClick={() => onGoTab?.("library")}>All datasets →</button>
+      </div>
+      <ul>
+        {ready.map((row) => (
+          <li key={row.dataset_id}>
+            <button type="button" onClick={() => onSelectDataset?.(row)}>
+              <strong>{displayName(row)}</strong>
+              {row.description ? <span>{firstSentence(row.description)}</span> : null}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
@@ -324,6 +357,7 @@ export function HomePage({
         {isGuest ? (
           <section className="rd-v2-home-pickup" aria-label="Welcome">
             <WelcomeCard onGoTab={onGoTab} onSignIn={onSignIn} />
+            <GuestReadyDatasets datasets={datasets} onGoTab={onGoTab} onSelectDataset={onSelectDataset} />
           </section>
         ) : <section className="rd-v2-home-pickup" aria-label="Pick up">
           <PickUpCard

@@ -152,11 +152,11 @@ const RAIL_ACTION_LABELS = {
 const PAGE_RAIL_COPY = {
   home: {
     title: "Research Drive",
-    desc: "Start from the Library, missing-data search, or resource safety checks.",
+    desc: "Start from data you already have in the Library, or describe what you need in Discover.",
     fields: [
       ["Use this page", "See what needs attention now"],
-      ["Primary move", "Open Library or Discover"],
-      ["When blocked", "Check Resources for approvals, limits, or credentials"],
+      ["Have data", "Open it in the Library"],
+      ["Need data", "Describe it in Discover"],
     ],
   },
   library: {
