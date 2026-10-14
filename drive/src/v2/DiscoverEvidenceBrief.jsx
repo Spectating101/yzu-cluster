@@ -613,7 +613,7 @@ export function DiscoverEvidenceBrief({
           </details>
         </div>
       )}
-      {loading ? <p className="rd-v2-browse-loading" data-testid="discover-assessment-loading">Checking Library evidence against the brief…</p> : null}
+      {loading && !(variant === "workspace" && !assessment) ? <p className="rd-v2-browse-loading" data-testid="discover-assessment-loading">Checking your request against the Library again…</p> : null}
       {error && variant !== "workspace" ? <p className="rd-v2-discover-error" role="status">{error}</p> : null}
     </section>
   );
