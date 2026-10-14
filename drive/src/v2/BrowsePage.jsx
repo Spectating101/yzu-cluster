@@ -634,6 +634,7 @@ export function BrowsePage({
   shelves = [],
   loadError = "",
   onOpenLibraryResults,
+  onOpenInLibrary,
   catalog = [],
   selectedId,
   onSelectRow,
@@ -1800,6 +1801,7 @@ export function BrowsePage({
                   libraryMatchCount={resultGroups.held.length}
                   catalog={catalog}
                   onSelectRow={onSelectRow}
+                  onOpenInLibrary={onOpenInLibrary}
                   onLegacySearch={onSuggestSearch}
                   onCraftUrl={onCraftUrl}
                   onAssessmentChange={onAssessmentChange}

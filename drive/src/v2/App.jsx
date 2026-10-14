@@ -2007,6 +2007,7 @@ function DeskWorkspace({ onIdentityChanged }) {
           assessmentActive={discoverAssessment.active}
           assessmentResult={discoverAssessment.result}
           onOpenAssessment={openDiscoverAssessment}
+          onOpenInLibrary={openInLibraryFromDiscover}
           onAssessmentChange={(result) => {
             setDiscoverAssessment((current) => ({ ...current, active: true, result }));
           }}
