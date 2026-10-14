@@ -104,7 +104,7 @@ export function LibraryFolderRailPanel({
             {counts.metadataOnly > 0 ? <span><b>{counts.metadataOnly}</b> metadata only</span> : null}
             {counts.references > 0 ? (
               <span>
-                <b>{counts.references}</b> registry reference{counts.references === 1 ? "" : "s"} {counts.references === 1 ? "stays" : "stay"} in Discover until acquired
+                <b>{counts.references}</b> known source{counts.references === 1 ? "" : "s"} not yet collected; find {counts.references === 1 ? "it" : "them"} in Discover
               </span>
             ) : null}
           </div>

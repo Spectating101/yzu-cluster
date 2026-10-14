@@ -1855,6 +1855,8 @@ function DeskWorkspace({ onIdentityChanged }) {
           resourcesRollup={resourcesRollup}
           showOperationalHeadroom={canViewOperations}
           canUseSynthesis={canUseAsk}
+          isGuest={deskAccess?.principal?.role === "public_guest"}
+          onSignIn={memberSignInAvailable ? beginMemberSignIn : undefined}
           acquisitions={acquisitions}
           partitions={partitions}
           jobs={jobs}
@@ -1927,6 +1929,7 @@ function DeskWorkspace({ onIdentityChanged }) {
           referenceCount={libraryReferenceCount}
           selectionHoldings={heldLibraryRows}
           selectionFallback={isLocalHolding(detail) ? detail : null}
+          selectionDetail={detail}
         />
       );
       break;

@@ -15,7 +15,7 @@ export function DiscoverCoveragePanel({ catalog = [], partitions = [], shelves =
         </div>
         {summary.declaredNotHeld ? (
           <span className="rd-v2-discover-coverage-gap">
-            {summary.declaredNotHeld} documented route{summary.declaredNotHeld === 1 ? "" : "s"} outside Library
+            {summary.declaredNotHeld} known source{summary.declaredNotHeld === 1 ? "" : "s"} not yet collected
           </span>
         ) : null}
       </header>

@@ -151,7 +151,7 @@ function librarySituation({ dataset, activeObject }) {
       ? activeObject.facts.map((fact) => text(fact?.value || fact?.label || fact)).filter(Boolean)
       : [];
     return {
-      status: text(activeObject.statusText) || "Evidence estate",
+      status: text(activeObject.statusText) || "Overview",
       facts,
       next: "Select evidence to inspect its source and readiness, or add evidence when the Library does not yet cover the research need.",
     };
@@ -166,7 +166,7 @@ function librarySituation({ dataset, activeObject }) {
   }
 
   return {
-    status: "Evidence estate",
+    status: "Overview",
     facts: [],
     next: "Select evidence to inspect source, readiness, content, and reuse constraints.",
   };

@@ -1481,7 +1481,7 @@ export function BrowsePage({
     <PageShell
       className="rd-v2-discover-page"
       title="Discover"
-      lead="Find, compare, verify, and acquire research evidence"
+      lead="Check what your Library already holds, and where to get what it doesn't"
       headExtra={modeTabs}
       toolbar={demoMode ? <Chip warn>Demo preview · static sample</Chip> : null}
       surfaceState={exploreSurfaceState}
@@ -1658,11 +1658,6 @@ export function BrowsePage({
                     Searching wider sources…
                   </span>
                 ) : null}
-                {!loading && broaderSearchPending ? (
-                  <span className="rd-v2-discover-counts-loading" role="status">
-                    Checking broader sources…
-                  </span>
-                ) : null}
               </div>
               <div
                 className="rd-v2-discover-result-actions"
@@ -1671,7 +1666,7 @@ export function BrowsePage({
                 data-assessment-verdict={assessmentVerdict || "none"}
                 data-has-evidence-gap={hasEvidenceGap ? "true" : "false"}
               >
-                <div>
+                <div role={broaderSearchPending ? "status" : undefined}>
                   {broaderSearchPending && resultGroups.held.length > 0 ? (
                     <>
                       <strong>{plural(resultGroups.held.length, "Library match")}</strong>
@@ -1749,11 +1744,7 @@ export function BrowsePage({
                       Search wider
                     </button>
                   ) : null}
-                  {assessmentPending ? (
-                    <button type="button" className="rd-v2-discover-strategy-trigger is-pending" disabled>
-                      Assessing strategy…
-                    </button>
-                  ) : strategyNeedsContext ? (
+                  {assessmentPending ? null : strategyNeedsContext ? (
                     <button
                       type="button"
                       className="rd-v2-discover-strategy-trigger"

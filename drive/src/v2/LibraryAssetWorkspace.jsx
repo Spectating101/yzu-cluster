@@ -18,6 +18,7 @@ import { previewCellValue } from "@/v2/previewValue";
 import { collectionRecipe } from "./collectionRecipe.js";
 import { coverageText } from "./coverageText.js";
 import { LibraryPackagePanel } from "./LibraryPackagePanel.jsx";
+import { datasetDownloadHref } from "@/v2/askDownloadLink";
 
 function value(...candidates) {
   return candidates.map((item) => String(item || "").trim()).find(Boolean) || "Not documented";
@@ -490,6 +491,9 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onOpenQuery,
 
         <div className="rd-v2-library-workspace-actions" aria-label="Data actions">
           {canQuery ? <button type="button" className="rd-v2-btn primary" onClick={onOpenQuery}>Open query</button> : null}
+          {datasetDownloadHref(dataset) ? (
+            <a className="rd-v2-btn" href={datasetDownloadHref(dataset)} download data-testid="library-workspace-download">Download CSV</a>
+          ) : null}
           <button type="button" className="rd-v2-btn" onClick={() => setOverlay("provenance")}>Source record</button>
           {canQuery ? <button type="button" className="rd-v2-btn" onClick={() => setPackageOpen(true)}>Export with provenance</button> : null}
           {onRefreshData && collectionRecipe(dataset) ?

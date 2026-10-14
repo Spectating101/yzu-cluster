@@ -4996,6 +4996,10 @@ body,
   padding: 10px 0 12px;
 }
 
+.rd-v2-library-workspace-actions a.rd-v2-btn {
+  text-decoration: none;
+}
+
 .rd-v2-library-section-heading {
   display: flex;
   align-items: flex-start;

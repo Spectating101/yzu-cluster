@@ -374,11 +374,11 @@ export function DiscoverEvidenceBrief({
           role="status"
         >
           <span className="rd-v2-eyebrow">What your Library covers</span>
-          <strong>{error ? "Assessment is unavailable" : "Checking the research need against data in your Library…"}</strong>
+          <strong>{error ? "Coverage check unavailable" : "Checking your request against the Library…"}</strong>
           <p>
             {error
-              ? "No current coverage assessment has been confirmed. Catalog results remain visible. Reassess before relying on claims about data you have or collection options."
-              : "Search results stay available while coverage, gaps, and collection options are checked."}
+              ? "Results below are still usable. Run the check again before relying on what the Library covers."
+              : "Usually 10–20 seconds. The results below are already usable."}
           </p>
         </div>
       ) : null}

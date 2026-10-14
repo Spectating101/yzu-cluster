@@ -386,7 +386,7 @@ export function LibraryObjectRailPanel({
           </div>
           {root && counts.references > 0 ? (
             <p className="rd-v2-rail-note">
-              {pluralCount(counts.references, "registry reference")} {counts.references === 1 ? "stays" : "stay"} in Discover until acquired.
+              {pluralCount(counts.references, "known source")} not yet collected; find {counts.references === 1 ? "it" : "them"} in Discover.
             </p>
           ) : null}
         </section>

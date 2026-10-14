@@ -18,9 +18,8 @@ export function DiscoverEvidenceField({
     && Boolean(assessmentResult?.gap);
   const composable = hasGap && candidateCount > 1;
 
-  const checking = assessmentActive && !assessmentResult;
   const referencesOnly = candidateCount === 0 && context > 0;
-  if (!composable && !checking && !referencesOnly) return null;
+  if (!composable && !referencesOnly) return null;
 
   return (
     <section className="rd-v2-discover-field" data-testid="discover-evidence-field" aria-label="Discover evidence field">
@@ -46,15 +45,6 @@ export function DiscoverEvidenceField({
             <span>Current verification</span>
             <b>Proposed, not executed</b>
             {onReviewAssembly ? <button type="button" onClick={onReviewAssembly}>Review assembly plan →</button> : null}
-          </div>
-        </div>
-      ) : checking ? (
-        <div className="rd-v2-discover-assembly is-checking" role="status">
-          <div className="rd-v2-discover-assembly-mark" aria-hidden="true">…</div>
-          <div>
-            <span>Assembly position</span>
-            <strong>Checking whether one source is enough.</strong>
-            <p>Results remain available while data in your Library is compared with your research brief.</p>
           </div>
         </div>
       ) : null}

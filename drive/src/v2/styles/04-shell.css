@@ -93,6 +93,27 @@
   background: var(--rd-hps-warn);
 }
 
+.rd-v2-home-welcome-steps {
+  display: grid;
+  gap: 10px;
+  max-width: 680px;
+  margin: 0 0 22px;
+  padding-left: 20px;
+  color: #5b6578;
+  font-size: var(--rd-text-sm);
+  line-height: 1.5;
+}
+
+.rd-v2-home-welcome-steps strong {
+  color: var(--rd-hps-ink);
+}
+
+.rd-v2-home-welcome-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .rd-v2-home-eyebrow {
   display: block;
   color: var(--rd-hps-muted);

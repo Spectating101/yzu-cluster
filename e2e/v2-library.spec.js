@@ -196,7 +196,7 @@ test.describe("v2 Library navigation", () => {
     await waitForShell(page);
 
     await expect(page.locator(".rd-v2-header-meta-count")).toContainText("Library dataset");
-    await expect(page.locator("aside.rd-v2-rail")).toContainText("1 registry reference stays in Discover until acquired");
+    await expect(page.locator("aside.rd-v2-rail")).toContainText("1 known source not yet collected; find it in Discover");
     const outside = page.getByTestId("library-available-evidence");
     await expect(outside).toContainText("1 known record");
     await expect(outside).toContainText("outside your Library");

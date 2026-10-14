@@ -93,7 +93,8 @@ export function LibraryEvidenceEstate({
 }) {
   const visibleAssets = assets;
   const showKind = true;
-  const ledgerClass = "rd-v2-cap-ledger with-verify show-kind";
+  const showVerify = visibleAssets.some((item) => libraryVerification(item?.row || item).key !== "not_checked");
+  const ledgerClass = `rd-v2-cap-ledger ${showVerify ? "with-verify" : "without-verify"} show-kind`;
   const query = String(searchQuery || "").trim();
   const [visibleLimit, setVisibleLimit] = useState(PAGE_SIZE);
 
@@ -169,7 +170,7 @@ export function LibraryEvidenceEstate({
           <span role="columnheader">Evidence</span>
           {showKind ? <span role="columnheader">Type</span> : null}
           <span role="columnheader">Source</span>
-          <span role="columnheader" title="Whether the recorded source evidence has been checked">Verify</span>
+          {showVerify ? <span role="columnheader" title="Whether the recorded source evidence has been checked">Verify</span> : null}
           <span role="columnheader" title="Whether this evidence can be used directly for research or querying">Readiness</span>
         </div>
         <div className="rd-v2-cap-ledger-body">
@@ -207,13 +208,15 @@ export function LibraryEvidenceEstate({
                   </span>
                   {showKind ? <span className="rd-v2-cap-kind" role="cell">{kindLabel(row)}</span> : null}
                   <span className="rd-v2-cap-source" role="cell">{sourceLabel(row)}</span>
-                  <span
-                    className={`rd-v2-cap-verify ${verification.kind}`}
-                    data-testid="library-evidence-verification"
-                    role="cell"
-                  >
-                    {verification.label}
-                  </span>
+                  {showVerify ? (
+                    <span
+                      className={`rd-v2-cap-verify ${verification.kind}`}
+                      data-testid="library-evidence-verification"
+                      role="cell"
+                    >
+                      {verification.label}
+                    </span>
+                  ) : null}
                   <span className="rd-v2-cap-state" data-testid="library-evidence-readiness" role="cell">
                     <StatusPill dataset={row} />
                   </span>
