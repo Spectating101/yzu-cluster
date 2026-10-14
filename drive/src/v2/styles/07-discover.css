@@ -833,6 +833,8 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
 }
 
 .rd-v2-discover-page .rd-v2-discover-coverage-shelves button > em {
+  min-width: 0;
+  white-space: normal;
   color: var(--rd-muted, #6e7685);
   font-size: var(--rd-text-2xs);
   font-style: normal;
