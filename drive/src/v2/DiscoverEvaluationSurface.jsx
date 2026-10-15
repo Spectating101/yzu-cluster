@@ -4,8 +4,9 @@
  * this is presentation only.
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { buildObjectEstateCrumb } from "@/v2/deskIntegration";
+import { plainIdentifiers } from "@/v2/plainText";
 import { applyLifecycleToEvaluation, LIFECYCLE } from "@/v2/discoverLifecycle";
 import { buildDiscoverEvaluation } from "@/v2/discoverEvaluation";
 import { buildDiscoverStrategyCard } from "@/v2/discoverStrategyCard";
@@ -235,11 +236,6 @@ export function DiscoverEvaluationSurface({
     }
     return buildDiscoverEvaluation(sufficiency.bestLocal, labIds, null);
   }, [lifecycle, sufficiency, labIds]);
-  const [requestConfirm, setRequestConfirm] = useState(false);
-
-  useEffect(() => {
-    setRequestConfirm(false);
-  }, [target]);
 
   if (!target || !evaluation) {
     if (variant === "workspace") return null;
@@ -367,7 +363,6 @@ export function DiscoverEvaluationSurface({
   const actionDisabled = (action) =>
     probeLoading ||
     submitting ||
-    requestConfirm ||
     (action?.id === "add_lab" && !onAddToLab && hasMemberSession);
 
   const openLocal = () => {
@@ -420,18 +415,13 @@ export function DiscoverEvaluationSurface({
       const datasetId = lifecycle?.registeredDatasetId || target?.dataset_id;
       onOpenInLibrary?.(datasetId ? { ...target, dataset_id: datasetId } : target);
     } else if (id === "add_lab") {
-      if (onAddToLab) setRequestConfirm(true);
+      if (onAddToLab) onAddToLab(target);
       else if (!hasMemberSession) onRequireMemberAccess?.();
     } else if (id === "probe") onProbeSource?.(target);
     else if (id === "preview") onPreviewExternal?.();
     else if (id === "review_approval") onReviewApproval?.(lifecycle?.job || target);
     else if (id === "track_resources") onTrackResources?.(lifecycle?.job || target);
     else if (id === "ask" || id === "review_access") askWithSufficiency();
-  };
-
-  const confirmRequestEvidence = () => {
-    setRequestConfirm(false);
-    onAddToLab?.(target);
   };
 
   const reachedStages = new Set(lifecycle?.stages || []);
@@ -542,14 +532,14 @@ export function DiscoverEvaluationSurface({
                     </span>
                     <span className="rd-v2-eval-sufficiency-side">
                       <small>In Library</small>
-                      <strong>{difference.local || "Not described"}</strong>
+                      <strong>{plainIdentifiers(difference.local) || "Not described"}</strong>
                     </span>
                     <span className="rd-v2-eval-sufficiency-arrow" aria-hidden="true">
                       →
                     </span>
                     <span className="rd-v2-eval-sufficiency-side">
                       <small>Candidate</small>
-                      <strong>{difference.candidate || "Not described"}</strong>
+                      <strong>{plainIdentifiers(difference.candidate) || "Not described"}</strong>
                     </span>
                   </div>
                 ))}
@@ -685,19 +675,7 @@ export function DiscoverEvaluationSurface({
           <p className="rd-v2-eval-action-status">{submitting ? "Submitting…" : "Probing source…"}</p>
         ) : null}
 
-        {requestConfirm ? (
-          <div className="rd-v2-eval-confirm" data-testid="discover-request-confirm">
-            <p>Open a saved collection request for review? This action does not start collection.</p>
-            <div className="rd-v2-eval-confirm-actions">
-              <button type="button" className="rd-v2-btn primary" disabled={probeLoading || submitting} onClick={confirmRequestEvidence}>
-                Open acquisition review
-              </button>
-              <button type="button" className="rd-v2-btn" onClick={() => setRequestConfirm(false)}>
-                Cancel
-              </button>
-            </div>
-          </div>
-        ) : (
+        {(
           <button
             type="button"
             className="rd-v2-btn primary rd-v2-eval-primary-action"

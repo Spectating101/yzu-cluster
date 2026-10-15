@@ -242,7 +242,7 @@ test.describe("Discover continuous hostile researcher journey", () => {
     await expect(engineering).not.toContainText(/worker-[0-9]|reservation|contract hash|DAG/i);
     await expect(workspace.getByRole("button", { name: "Submit for approval" })).toHaveCount(0);
 
-    await workspace.getByRole("button", { name: "Continue to route selection" }).click();
+    await workspace.getByRole("button", { name: /^(Use this route|Continue to route selection)$/ }).click();
     await expect(workspace).toContainText("Reviewed routes");
     await expect(workspace.getByRole("button", { name: "Submit for approval" })).toBeEnabled();
 

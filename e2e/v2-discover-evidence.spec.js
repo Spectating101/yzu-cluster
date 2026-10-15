@@ -273,10 +273,10 @@ test.describe("Discover adaptive Explore", () => {
     await expect(workspace.getByRole("button", { name: "Submit for approval" })).toHaveCount(0);
     await expect(page.getByTestId("discover-result-summary")).toBeVisible();
     await expect(page.getByRole("dialog", { name: "Review acquisition" })).toBeVisible();
-    await expect(page.locator("aside.rd-v2-rail")).toContainText("Saved Discover decision record");
+    await expect(page.locator("aside.rd-v2-rail")).toContainText("Saved data request");
     await expect(page.locator("aside.rd-v2-rail").getByRole("button", { name: "Request this data" })).toHaveCount(0);
 
-    await workspace.getByRole("button", { name: "Continue to route selection" }).click();
+    await workspace.getByRole("button", { name: /^(Use this route|Continue to route selection)$/ }).click();
     await expect(workspace).toContainText("Reviewed routes");
     await expect(workspace.getByRole("button", { name: "Submit for approval" })).toBeEnabled();
     await workspace.getByRole("button", { name: "Submit for approval" }).click();
@@ -324,7 +324,7 @@ test.describe("Discover adaptive Explore", () => {
     await expect(engineering).not.toContainText(/worker-[0-9]|assigned worker|contract hash/i);
     await expect(workspace.getByRole("button", { name: "Submit for approval" })).toHaveCount(0);
 
-    await workspace.getByRole("button", { name: "Continue to route selection" }).click();
+    await workspace.getByRole("button", { name: /^(Use this route|Continue to route selection)$/ }).click();
     await expect(workspace.getByTestId("discover-procurement-engineering")).toBeVisible();
     await expect(workspace.getByRole("button", { name: "Submit for approval" })).toBeEnabled();
   });

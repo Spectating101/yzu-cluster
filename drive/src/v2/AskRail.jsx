@@ -151,7 +151,6 @@ export function AskRail({
       ? "Build this version"
       : "Approve this execution request"
     : undefined;
-  const hasThread = messages.length > 0;
   const discoverTitle = dataset?.title || dataset?.dataset_id || "";
   const railTitle = isProfile
     ? "Ask"
@@ -160,7 +159,7 @@ export function AskRail({
     : isDiscoverHistory
       ? "Ask · request"
       : isDiscoverInvestigation
-        ? "Ask · investigation"
+        ? "Ask · your question"
       : isDiscover
         ? "Ask · selected source"
         : isSynthesis
@@ -169,34 +168,24 @@ export function AskRail({
             : "Ask · synthesis thread"
           : isLibrary
             ? "Ask · Library"
-            : "Procurement chat";
+            : "Ask";
   const railSubtitle = isProfile
-    ? hasThread
-      ? `Continuing · context → ${profileContext}`
-      : `Context · ${profileContext}`
+    ? `About: ${profileContext}`
     : isSettings
-      ? "Context · Research Drive preferences and connection state"
-    : isDiscoverHistory && discoverTitle
-      ? `Request history context · ${discoverTitle}`
-      : isDiscoverInvestigation && discoverTitle
-        ? hasThread
-          ? `Continuing · investigation → ${discoverTitle}`
-          : `Investigation · ${discoverTitle}`
-      : isDiscover && discoverTitle && hasThread
-        ? `Selected context · ${discoverTitle}`
+      ? "About: your settings and sign-in"
+      : isDiscoverHistory && discoverTitle
+        ? `About this request: ${discoverTitle}`
         : isDiscover && discoverTitle
-          ? `Evaluating · ${discoverTitle}`
+          ? `About: ${discoverTitle}`
           : isSynthesis
-            ? hasThread
-              ? `Continuing · ${synthesisStageLabel || "thread"} → ${synthesisContext}`
-              : `${synthesisStageLabel || "Thread context"} · ${synthesisContext}`
+            ? `About: ${synthesisContext}`
             : isLibrary
               ? searchQuery
-                ? `Search context · ${searchQuery}`
-                : "Context · data in your Library"
+                ? `About your search: ${searchQuery}`
+                : "About your Library"
               : ctxParts.length
                 ? ctxParts.join(" · ")
-                : "Select a dataset for grounded answers";
+                : "Select a dataset to ask about it";
 
   const askEntityTitle = isSynthesis && dataset?.thread_id === "__new__"
     ? "New build"
@@ -490,11 +479,11 @@ export function AskRail({
           <>
             {isDiscoverHistory ? (
               <p className="rd-v2-ask-context-notice" data-testid="ask-context-notice">
-                New messages use this request’s context.
+                Questions here are about this request.
               </p>
             ) : isDiscover && discoverTitle ? (
               <p className="rd-v2-ask-context-notice" data-testid="ask-context-notice">
-                New messages use this source context.
+                Questions here are about the selected source.
               </p>
             ) : isSynthesis ? (
               <p className="rd-v2-ask-context-notice" data-testid="ask-context-notice">
@@ -558,7 +547,7 @@ export function AskRail({
                   : "Correct the interpretation, add a constraint, or ask…"
                 : isDiscoverHistory
                   ? "Ask about this request history record…"
-                  : "Ask about coverage, overlaps, or procurement…"
+                  : "Ask about this data, what is missing, or where to get it…"
           }
           disabled={busy}
           data-testid="ask-composer"

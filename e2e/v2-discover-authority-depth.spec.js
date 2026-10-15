@@ -174,7 +174,7 @@ test.describe("Discover authority depth", () => {
     await expect(acquisition).toContainText("Proposed routes · review required");
     await expect(acquisition.getByRole("button", { name: "Submit for approval" })).toHaveCount(0);
 
-    await acquisition.getByRole("button", { name: "Continue to route selection" }).click();
+    await acquisition.getByRole("button", { name: /^(Use this route|Continue to route selection)$/ }).click();
     await expect(acquisition).toContainText("Reviewed routes");
     await expect(acquisition.getByRole("button", { name: "Submit for approval" })).toBeEnabled();
     await acquisition.getByRole("button", { name: "Submit for approval" }).click();

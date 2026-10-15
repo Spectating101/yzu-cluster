@@ -145,7 +145,7 @@ test.describe("Discover adversarial lifecycle", () => {
     const workspace = page.getByTestId("discover-intent-workspace");
     await expect(workspace.getByRole("button", { name: "Submit for approval" })).toHaveCount(0);
 
-    await workspace.getByRole("button", { name: "Continue to route selection" }).click();
+    await workspace.getByRole("button", { name: /^(Use this route|Continue to route selection)$/ }).click();
     const submit = workspace.getByRole("button", { name: "Submit for approval" });
     await expect(submit).toBeEnabled();
 

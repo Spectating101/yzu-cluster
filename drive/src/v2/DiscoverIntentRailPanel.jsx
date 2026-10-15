@@ -34,15 +34,17 @@ export function DiscoverIntentRailPanel({ record }) {
   const next = collection.registered_dataset_id
     ? "Open the resulting dataset in Library."
     : collection.job_id
-      ? "Track approval, collection, and saving to Library in History."
+      ? "Follow approval and collection in History."
       : state.proposal
-        ? "Continue to route selection or reject the proposal in the review canvas."
+        ? "Use the route shown, or reject it."
         : state.routes?.length
-          ? "Select a route and submit it for approval."
-          : "Ask Research Drive to investigate a supported collection method.";
+          ? state.selected_route_id
+            ? "Submit it for approval."
+            : "Choose a route, then submit it for approval."
+          : "Ask Research Drive to look for a way to collect it.";
   const boundary = collection.job_id
-    ? "Discover preserves the decision; History owns execution."
-    : "No collection starts until a reviewed route is submitted and approved.";
+    ? "Collection runs only after approval, and is tracked in History."
+    : "Nothing is collected until a route is submitted and approved.";
   const sourceTitle = text(state.candidate?.title || intent.title);
   const selectedRouteLabel = collectionRouteTitle(route?.title, sourceTitle)
     || (state.proposal ? "Choose after reviewing the proposal" : "Not selected");
@@ -52,21 +54,21 @@ export function DiscoverIntentRailPanel({ record }) {
       <RailEntityHeader
         title={text(intent.title || state.candidate?.title, "Acquisition review")}
         pills={<span className="rd-v2-pill warn">{label}</span>}
-        description="Saved Discover decision record"
+        description="Saved data request"
       />
       <RailDecisionSummary
-        primary={collection.job_id ? "Execution moved to History" : "Collection has not started"}
+        primary={collection.job_id ? "Sent for approval" : "Collection has not started"}
         risk={boundary}
         next={next}
         labels={{
           primary: "Collection",
-          risk: "Boundary",
+          risk: "Safeguard",
           next: "Next",
         }}
       />
       <div className="rd-v2-rail-scroll">
-        <section className="rd-v2-library-inspector-block" aria-label="Decision memory">
-          <p className="rd-v2-rail-section-label">Decision memory</p>
+        <section className="rd-v2-library-inspector-block" aria-label="Your request">
+          <p className="rd-v2-rail-section-label">Your request</p>
           <RailFieldGrid>
             <RailField label="Research need" value={intent.research_need || record?.researchNeed} />
             <RailField label="Offering" value={state.candidate?.title || intent.title} />
@@ -77,10 +79,10 @@ export function DiscoverIntentRailPanel({ record }) {
             ) : null}
           </RailFieldGrid>
         </section>
-        <section className="rd-v2-library-inspector-block" aria-label="Workflow boundary">
-          <p className="rd-v2-rail-section-label">Workflow boundary</p>
+        <section className="rd-v2-library-inspector-block" aria-label="How this works">
+          <p className="rd-v2-rail-section-label">How this works</p>
           <p className="rd-v2-library-inspector-prose">
-            Discover compares and saves collection methods. History tracks approval and execution. Verified outputs are saved to Library.
+            You choose the source here. Once it is approved in History, the data is collected and saved to your Library.
           </p>
         </section>
         <details className="rd-v2-rail-technical">

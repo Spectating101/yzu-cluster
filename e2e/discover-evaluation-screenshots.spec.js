@@ -143,7 +143,7 @@ test.describe("Discover evaluation screenshots", () => {
       await grip.click();
     }
     await page.locator("aside.rd-v2-rail").getByRole("tab", { name: "Ask" }).click();
-    await expect(page.locator(".rd-v2-ask-ctx")).toContainText("Selected context · Bare public CSV");
+    await expect(page.locator(".rd-v2-ask-ctx")).toContainText("About: Bare public CSV");
     await expect(page.getByTestId("ask-context-notice")).toBeVisible();
     await shot(page, "09-mobile-detail-ask-context");
   });
