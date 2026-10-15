@@ -209,7 +209,7 @@ const PAGE_RAIL_COPY = {
     fields: [
       ["Archive", "Collected evidence returns to the shared Library"],
       ["Routes", "Collection methods stay explicit and reviewable"],
-      ["Control", "Public browsing cannot start workers, spend quota, or write data"],
+      ["Control", "Nothing is collected or spent until an approver says yes"],
     ],
   },
 };

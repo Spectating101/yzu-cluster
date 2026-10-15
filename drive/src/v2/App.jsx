@@ -2149,7 +2149,7 @@ function DeskWorkspace({ onIdentityChanged }) {
           <div className="rd-v2-guest-feature-grid" aria-label="Resource responsibilities">
             <article><span>ARCHIVE</span><strong>Saved evidence</strong><p>Collected data returns to the shared Library with its source history.</p></article>
             <article><span>ROUTES</span><strong>Collection permissions</strong><p>Source access and collection methods stay explicit and reviewable.</p></article>
-            <article><span>CONTROL</span><strong>Approval boundary</strong><p>Public browsing cannot start workers, spend quota, or write data.</p></article>
+            <article><span>CONTROL</span><strong>Approval boundary</strong><p>Nothing is collected or spent until an approver says yes.</p></article>
           </div>
         </PageShell>
       );
