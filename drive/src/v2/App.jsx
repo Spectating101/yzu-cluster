@@ -22,7 +22,6 @@ import {
   listDatasets,
   listJobs,
   listLibraryNav,
-  openQueryInNewTab,
   probePublicSource,
   procurementCatalogSummary,
   setDiscoverIntentProposal,
@@ -32,6 +31,7 @@ import {
   yzuClusterStatus,
 } from "@/v2/api";
 import { AskRail } from "@/v2/AskRail";
+import { DataTableView } from "@/v2/DataTableView";
 import { JobReviewDialog } from "./JobReviewDialog.jsx";
 import { reviewJobId } from "./reviewJobId.js";
 import { DeskAccessGate, DeskSessionBootstrap } from "@/v2/DeskAccessGate";
@@ -542,14 +542,13 @@ function DeskWorkspace({ onIdentityChanged }) {
       // lever, not parallelism — this move was worth 4.3x, concurrency ~1.3x.
     setLibraryNavLoading(true);
     setLibraryNavError("");
-    try {
-      applyNavigation(await listLibraryNav());
-    } catch (error) {
-      clearNavigation();
-      setLibraryNavError(error?.message || String(error));
-    } finally {
-      setLibraryNavLoading(false);
-    }
+    listLibraryNav()
+      .then((navigation) => applyNavigation(navigation))
+      .catch((error) => {
+        clearNavigation();
+        setLibraryNavError(error?.message || String(error));
+      })
+      .finally(() => setLibraryNavLoading(false));
 
     if (canViewOperations) {
       // Health owns the header, assistant gate, and canonical-archive truth.
@@ -1540,6 +1539,17 @@ function DeskWorkspace({ onIdentityChanged }) {
     goTab("library");
   }, [discoverSearchQuery, goTab]);
 
+  const [dataTableDataset, setDataTableDataset] = useState(null);
+  const openDataTable = useCallback(
+    (datasetId) => {
+      if (!datasetId) return;
+      const row = catalog.find((item) => item.dataset_id === datasetId) || { dataset_id: datasetId };
+      setDataTableDataset(detail?.dataset_id === datasetId ? { ...row, ...detail } : row);
+    },
+    [catalog, detail],
+  );
+  const closeDataTable = useCallback(() => setDataTableDataset(null), []);
+
   const openInLibraryFromDiscover = useCallback(
     (target) => {
       if (target?.library_search) {
@@ -1855,6 +1865,8 @@ function DeskWorkspace({ onIdentityChanged }) {
           resourcesRollup={resourcesRollup}
           showOperationalHeadroom={canViewOperations}
           canUseSynthesis={canUseAsk}
+          isGuest={deskAccess?.principal?.role === "public_guest"}
+          onSignIn={memberSignInAvailable ? beginMemberSignIn : undefined}
           acquisitions={acquisitions}
           partitions={partitions}
           jobs={jobs}
@@ -1895,7 +1907,7 @@ function DeskWorkspace({ onIdentityChanged }) {
           selectedId={selectedId}
           onSelectDataset={selectDataset}
           onPreviewDataset={openPreview}
-          onOpenQuery={openQueryInNewTab}
+          onOpenQuery={openDataTable}
           onRefreshData={canSubmitCollection ? async (dataset) => {
             try {
               const recipe = collectionRecipe(dataset);
@@ -1927,6 +1939,7 @@ function DeskWorkspace({ onIdentityChanged }) {
           referenceCount={libraryReferenceCount}
           selectionHoldings={heldLibraryRows}
           selectionFallback={isLocalHolding(detail) ? detail : null}
+          selectionDetail={detail}
         />
       );
       break;
@@ -2007,6 +2020,7 @@ function DeskWorkspace({ onIdentityChanged }) {
           assessmentActive={discoverAssessment.active}
           assessmentResult={discoverAssessment.result}
           onOpenAssessment={openDiscoverAssessment}
+          onOpenInLibrary={openInLibraryFromDiscover}
           onAssessmentChange={(result) => {
             setDiscoverAssessment((current) => ({ ...current, active: true, result }));
           }}
@@ -2134,7 +2148,7 @@ function DeskWorkspace({ onIdentityChanged }) {
           <div className="rd-v2-guest-feature-grid" aria-label="Resource responsibilities">
             <article><span>ARCHIVE</span><strong>Saved evidence</strong><p>Collected data returns to the shared Library with its source history.</p></article>
             <article><span>ROUTES</span><strong>Collection permissions</strong><p>Source access and collection methods stay explicit and reviewable.</p></article>
-            <article><span>CONTROL</span><strong>Approval boundary</strong><p>Public browsing cannot start workers, spend quota, or write data.</p></article>
+            <article><span>CONTROL</span><strong>Approval boundary</strong><p>Nothing is collected or spent until an approver says yes.</p></article>
           </div>
         </PageShell>
       );
@@ -2305,12 +2319,20 @@ function DeskWorkspace({ onIdentityChanged }) {
         <JobReviewDialog jobId={reviewingJobId} canApprove={canApproveJobs}
           onClose={() => setReviewingJobId("")}
           onApproved={(id) => { setApprovedCollectionId(id); showToast("Collection approved"); refreshBackend(); }} />
+        <DataTableView dataset={dataTableDataset} onClose={closeDataTable} />
         <PreviewModal
           open={previewOpen}
           dataset={previewTarget || detail}
           mode={previewMode}
           usingSeed={usingSeed}
           onAskAbout={() => setRailTab("ask")}
+          onOpenTable={(target) => {
+            setPreviewOpen(false);
+            setPreviewTarget(null);
+            setPreviewMode("lab");
+            syncUrl({ preview: false });
+            openDataTable(target.dataset_id);
+          }}
           onClose={() => {
             setPreviewOpen(false);
             setPreviewTarget(null);
@@ -2356,7 +2378,7 @@ function DeskWorkspace({ onIdentityChanged }) {
           allowProfilePreview={canViewFacultyProfile}
           previewOpen={previewOpen}
           onPreview={() => detail && openPreview(detail)}
-          onAskAbout={canUseAsk && composerRuntime?.ready ? askAboutSelection : undefined}
+          onAskAbout={canUseAsk && composerRuntime?.usable ? askAboutSelection : undefined}
           onViewActivity={(filter) => {
             setResourceMode("usage");
             setActivityFilter(filter);

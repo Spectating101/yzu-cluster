@@ -3,7 +3,7 @@ import { assessDiscoverEvidence, listDiscoverGapRoutes } from "@/v2/api";
 import { DISCOVER_SUGGESTIONS } from "@/v2/deskSeed";
 import { handleEnterToRequestSubmit } from "@/v2/enterToSubmit";
 import { buildDiscoverDecisionCapacity } from "@/v2/discoverDecisionCapacity";
-import { assessmentLabel, assessmentStatusKey } from "./assessmentLabels.js";
+import { assessmentLabel, assessmentStatusKey, judgedLibraryMatch } from "./assessmentLabels.js";
 
 function text(value, fallback) {
   if (value == null || value === "") return fallback;
@@ -150,6 +150,7 @@ function localSuggestions(catalog, question) {
 
 /** A compact, authoritative assessment path inside Explore. */
 export function DiscoverEvidenceBrief({
+  onOpenInLibrary,
   catalog = [],
   onSelectRow,
   onLegacySearch,
@@ -209,6 +210,7 @@ export function DiscoverEvidenceBrief({
 
   const suggestions = useMemo(() => localSuggestions(catalog, draft), [catalog, draft]);
   const heldEvidence = Array.isArray(assessment?.held_evidence) ? assessment.held_evidence : [];
+  const libraryAnswer = judgedLibraryMatch(assessment);
   const verdictKey = String(assessment?.verdict || "").trim().toLowerCase().replace(/[ -]/g, "_");
   const assessmentStatus = assessmentStatusKey(assessment);
   const verdictLabel = assessmentLabel(assessment, text(assessment?.verdict, "Assessment pending"));
@@ -372,11 +374,11 @@ export function DiscoverEvidenceBrief({
           role="status"
         >
           <span className="rd-v2-eyebrow">What your Library covers</span>
-          <strong>{error ? "Assessment is unavailable" : "Checking the research need against data in your Library…"}</strong>
+          <strong>{error ? "Coverage check unavailable" : "Checking your request against the Library…"}</strong>
           <p>
             {error
-              ? "No current coverage assessment has been confirmed. Catalog results remain visible. Reassess before relying on claims about data you have or collection options."
-              : "Search results stay available while coverage, gaps, and collection options are checked."}
+              ? "Results below are still usable. Run the check again before relying on what the Library covers."
+              : "Usually 10–20 seconds. The results below are already usable."}
           </p>
         </div>
       ) : null}
@@ -464,6 +466,20 @@ export function DiscoverEvidenceBrief({
             {onClose ? <button type="button" className="rd-v2-evidence-close" onClick={onClose}>Hide assessment</button> : null}
           </header>
           <p className="rd-v2-evidence-because">{because}</p>
+          {libraryAnswer ? (
+            <button
+              type="button"
+              className="rd-v2-evidence-library-answer"
+              data-testid="discover-library-answer"
+              onClick={() => (onOpenInLibrary
+                ? onOpenInLibrary({ dataset_id: libraryAnswer.dataset_id, title: libraryAnswer.title })
+                : onSelectRow?.(evidenceCandidate(libraryAnswer)))}
+            >
+              <span>{libraryAnswer.judgement === "covers" ? "In your Library" : "Partly in your Library"}</span>
+              <strong>{text(libraryAnswer.title, "Library dataset")}</strong>
+              <em>{onOpenInLibrary ? "Open in Library →" : "Open →"}</em>
+            </button>
+          ) : null}
 
           {variant === "workspace" ? (
             <section className="rd-v2-evidence-position-grid" aria-label="Library coverage summary">
@@ -597,7 +613,7 @@ export function DiscoverEvidenceBrief({
           </details>
         </div>
       )}
-      {loading ? <p className="rd-v2-browse-loading" data-testid="discover-assessment-loading">Checking Library evidence against the brief…</p> : null}
+      {loading && !(variant === "workspace" && !assessment) ? <p className="rd-v2-browse-loading" data-testid="discover-assessment-loading">Checking your request against the Library again…</p> : null}
       {error && variant !== "workspace" ? <p className="rd-v2-discover-error" role="status">{error}</p> : null}
     </section>
   );

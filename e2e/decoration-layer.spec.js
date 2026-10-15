@@ -87,7 +87,7 @@ test.describe("Research Drive RC2.1 transient decoration layer", () => {
     await expect(progress).toHaveCount(0, { timeout: 10_000 });
     await expect(rail).toContainText("grounded in the current Research Drive context");
     await expect(rail.getByTestId("ask-agent-card")).toHaveCount(1);
-    await expect(rail.getByTestId("ask-agent-card")).toContainText("Grounded answer");
+    await expect(rail.getByTestId("ask-agent-card")).toContainText("Answer");
     await expect(rail.getByRole("progressbar")).toHaveCount(0);
   });
 

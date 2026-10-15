@@ -1215,6 +1215,7 @@
 .yzu-sidebar .s04-thread-list,
 .yzu-sidebar .s04-thread-outputs {
   display: grid;
+  min-width: 0;
   gap: 4px;
 }
 
@@ -1227,6 +1228,7 @@
 .yzu-sidebar .s04-thread-outputs > small {
   display: block;
   margin-bottom: 3px;
+  white-space: normal;
 }
 
 .yzu-sidebar .s04-threads--sidebar .s04-thread-list > button,

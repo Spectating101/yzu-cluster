@@ -144,6 +144,41 @@ test.describe("Discover adaptive Explore", () => {
     await expect(result).not.toContainText("[object Object]");
   });
 
+  test("a Library dataset the assistant judged to cover the need is named above the results", async ({ page }) => {
+    const held = {
+      ...MOCK_DISCOVER_ASSESSMENT.held_evidence[0],
+      dataset_id: "twse_daily_market",
+      title: "TWSE daily market trading value, volume and TAIEX",
+      contribution: "Research assistant: covers. Daily TWSE trading value and TAIEX for 2024.",
+      judgement: "covers",
+    };
+    await mockV2Api(page, {
+      discoverBody: MOCK_DISCOVER_HIT,
+      assessmentBody: {
+        ...MOCK_DISCOVER_ASSESSMENT,
+        verdict: "covered",
+        verdict_basis: "model_judgement",
+        because: "The research assistant judged that TWSE daily market trading value, volume and TAIEX covers this request.",
+        gap: null,
+        held_evidence: [held, ...MOCK_DISCOVER_ASSESSMENT.held_evidence],
+      },
+    });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await search(page, "I need daily trading value and TAIEX for the Taiwan stock market in 2024");
+
+    const rail = page.locator("aside.rd-v2-rail");
+    await rail.getByRole("tab", { name: "Detail" }).click();
+    await expect(page.getByTestId("discover-verdict")).toHaveText("Likely covered");
+    const answer = page.getByTestId("discover-library-answer");
+    await expect(answer).toContainText("In your Library");
+    await expect(answer).toContainText("TWSE daily market trading value, volume and TAIEX");
+    await expect(answer).toContainText("Open in Library");
+    await answer.click();
+    await expect(page).toHaveURL(/tab=library/);
+    await expect(page).toHaveURL(/dataset=twse_daily_market/);
+  });
+
   test("metadata gaps stay neutral and do not open procurement comparison", async ({ page }) => {
     await mockV2Api(page, {
       discoverBody: MOCK_DISCOVER_HIT,
@@ -238,10 +273,10 @@ test.describe("Discover adaptive Explore", () => {
     await expect(workspace.getByRole("button", { name: "Submit for approval" })).toHaveCount(0);
     await expect(page.getByTestId("discover-result-summary")).toBeVisible();
     await expect(page.getByRole("dialog", { name: "Review acquisition" })).toBeVisible();
-    await expect(page.locator("aside.rd-v2-rail")).toContainText("Saved Discover decision record");
-    await expect(page.locator("aside.rd-v2-rail").getByRole("button", { name: "Request this evidence" })).toHaveCount(0);
+    await expect(page.locator("aside.rd-v2-rail")).toContainText("Saved data request");
+    await expect(page.locator("aside.rd-v2-rail").getByRole("button", { name: "Request this data" })).toHaveCount(0);
 
-    await workspace.getByRole("button", { name: "Continue to route selection" }).click();
+    await workspace.getByRole("button", { name: /^(Use this route|Continue to route selection)$/ }).click();
     await expect(workspace).toContainText("Reviewed routes");
     await expect(workspace.getByRole("button", { name: "Submit for approval" })).toBeEnabled();
     await workspace.getByRole("button", { name: "Submit for approval" }).click();
@@ -289,7 +324,7 @@ test.describe("Discover adaptive Explore", () => {
     await expect(engineering).not.toContainText(/worker-[0-9]|assigned worker|contract hash/i);
     await expect(workspace.getByRole("button", { name: "Submit for approval" })).toHaveCount(0);
 
-    await workspace.getByRole("button", { name: "Continue to route selection" }).click();
+    await workspace.getByRole("button", { name: /^(Use this route|Continue to route selection)$/ }).click();
     await expect(workspace.getByTestId("discover-procurement-engineering")).toBeVisible();
     await expect(workspace.getByRole("button", { name: "Submit for approval" })).toBeEnabled();
   });

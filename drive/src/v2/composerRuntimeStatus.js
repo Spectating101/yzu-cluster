@@ -16,6 +16,7 @@ export function composerRuntimeRead(runtime) {
       return {
         status,
         ready: true,
+        usable: true,
         warn: false,
         label: "Assistant ready",
         short: "Ready",
@@ -25,6 +26,7 @@ export function composerRuntimeRead(runtime) {
       return {
         status,
         ready: false,
+        usable: true,
         warn: true,
         label: "Assistant degraded",
         short: "Degraded",
@@ -34,6 +36,7 @@ export function composerRuntimeRead(runtime) {
       return {
         status,
         ready: false,
+        usable: true,
         warn: true,
         label: "Assistant needs recheck",
         short: "Needs recheck",
@@ -43,6 +46,7 @@ export function composerRuntimeRead(runtime) {
       return {
         status,
         ready: false,
+        usable: true,
         warn: true,
         label: "Assistant unverified",
         short: "Unverified",
@@ -52,6 +56,7 @@ export function composerRuntimeRead(runtime) {
       return {
         status,
         ready: false,
+        usable: false,
         warn: true,
         label: "Assistant unavailable",
         short: "Not configured",
@@ -63,6 +68,7 @@ export function composerRuntimeRead(runtime) {
       return {
         status: status || "unknown",
         ready: false,
+        usable: false,
         warn: true,
         label: "Assistant status unknown",
         short: "Unknown",

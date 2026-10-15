@@ -2597,7 +2597,7 @@ summary:focus-visible {
   font-weight: 700;
   line-height: 1;
 }
-.rd-v2-history-row-3line { align-items: start; min-height: 78px; }
+.rd-v2-history-row-3line { align-items: start; min-height: 56px; }
 .rd-v2-history-main { display: grid; gap: 2px; }
 .rd-v2-history-line1 { display: flex; align-items: baseline; gap: 2px; }
 .rd-v2-history-line2,
@@ -2816,9 +2816,15 @@ summary:focus-visible {
 /* The selected-source inspector is part of the desk, not a separate dark
    operations console. Keep the full-canvas evaluation variant independent. */
 .rd-v2-eval-surface.rd-v2-eval-rail {
+  overflow-y: auto;
   background: var(--rd-surface);
   border-left: 0;
   color: var(--rd-body);
+}
+
+.rd-v2-eval-rail .rd-v2-eval-scroll {
+  flex: none;
+  overflow: visible;
 }
 
 .rd-v2-eval-rail .rd-v2-eval-identity,
@@ -2904,7 +2910,14 @@ summary:focus-visible {
 }
 
 .rd-v2-eval-rail .rd-v2-eval-sufficiency-compare-row {
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: 6px;
   border-top-color: var(--rd-border);
+}
+
+.rd-v2-eval-rail .rd-v2-eval-sufficiency-arrow {
+  display: none;
 }
 
 /* Resources is one continuous workspace: section padding supplies its rhythm;
@@ -4994,6 +5007,10 @@ body,
   flex-wrap: wrap;
   gap: 7px;
   padding: 10px 0 12px;
+}
+
+.rd-v2-library-workspace-actions a.rd-v2-btn {
+  text-decoration: none;
 }
 
 .rd-v2-library-section-heading {

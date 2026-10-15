@@ -19,7 +19,7 @@ async function readyForSubmit(page) {
 
   const workspace = page.getByTestId("discover-intent-workspace");
   await expect(workspace).toContainText("Proposed routes · review required");
-  await workspace.getByRole("button", { name: "Continue to route selection" }).click();
+  await workspace.getByRole("button", { name: /^(Use this route|Continue to route selection)$/ }).click();
   await expect(workspace).toContainText("Reviewed routes");
   await expect(workspace.getByRole("button", { name: "Submit for approval" })).toBeEnabled();
   return workspace;

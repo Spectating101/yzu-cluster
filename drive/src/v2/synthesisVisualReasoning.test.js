@@ -50,3 +50,12 @@ test("unit visual uses common magnitude scales while preserving signed values", 
   assert.equal(model.results[0].percent, 1);
   assert.equal(model.results[1].percent, 100);
 });
+
+test("a downstream comparison where every answer is zero is not drawn", () => {
+  const conflict = { left: { column: "a", typical: 17.9 }, right: { column: "b", typical: 2872.8 } };
+  const zero = unitScaleModel(conflict, [{ id: "as_recorded", result: 0 }, { id: "rescaled", result: 0 }]);
+  assert.deepEqual(zero.results, []);
+  assert.equal(zero.inputs.length, 2);
+  const real = unitScaleModel(conflict, [{ id: "as_recorded", result: 0 }, { id: "rescaled", result: 4.2 }]);
+  assert.equal(real.results.length, 2);
+});

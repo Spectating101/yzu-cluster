@@ -269,7 +269,8 @@ export function DiscoverIntentWorkspace({
       </section>
 
       {capacityRows.length ? (
-        <section className="rd-v2-intent-capacity" aria-label="Execution capacity">
+        <details className="rd-v2-intent-capacity" aria-label="Execution capacity">
+          <summary>Collection capacity <em>context only</em></summary>
           <header><div><span className="rd-v2-eyebrow">Execution capacity</span><h3>Can Research Drive support this collection method?</h3></div></header>
           <div>
             {capacityRows.map((row) => (
@@ -279,7 +280,7 @@ export function DiscoverIntentWorkspace({
             ))}
           </div>
           <p>Capacity is context only. No worker, quota, or storage tier is assigned until a reviewed route becomes an approved job.</p>
-        </section>
+        </details>
       ) : null}
 
       {submissionUncertain ? (
@@ -320,9 +321,9 @@ export function DiscoverIntentWorkspace({
             ))}
           </div>
           <footer>
-            <p>Continue to record this proposal and choose one route. Collection will not start.</p>
+            <p>{proposalRoutes.length === 1 ? "Nothing is collected yet. Next you submit it for approval." : "Choose one route next. Nothing is collected yet."}</p>
             <button type="button" className="rd-v2-btn primary" disabled={Boolean(busy)} onClick={() => review("accept")}>
-              {busy === "review:accept" ? "Recording…" : "Continue to route selection"}
+              {busy === "review:accept" ? "Recording…" : proposalRoutes.length === 1 ? "Use this route" : "Continue to route selection"}
             </button>
             <button type="button" className="rd-v2-btn" disabled={Boolean(busy)} onClick={() => review("reject")}>
               Reject proposal
@@ -333,7 +334,7 @@ export function DiscoverIntentWorkspace({
         <section className="rd-v2-intent-reviewed" aria-label="Reviewed acquisition routes">
           <header>
             <span className="rd-v2-eyebrow">Reviewed routes</span>
-            <h3>Choose the concrete route to submit</h3>
+            <h3>{routes.length === 1 && state.selected_route_id ? "Ready to submit" : "Choose a route to submit"}</h3>
           </header>
           <div className="rd-v2-intent-route-list">
             {routes.map((route) => (
@@ -351,7 +352,7 @@ export function DiscoverIntentWorkspace({
             <div className="rd-v2-intent-submit">
               <div>
                 <strong>{selectedRoute ? collectionRouteTitle(selectedRoute?.title, title) : "Select a route"}</strong>
-                <span>Submission creates a pending-approval job. It does not approve the collection.</span>
+                <span>Submitting sends this to an approver. Nothing is collected until it is approved.</span>
               </div>
               <button
                 type="button"

@@ -179,6 +179,7 @@ export function buildLab(profile) {
 
   for (const rec of profile?.procurement_recommendations || []) {
     if (!rec || typeof rec !== "object") continue;
+    if (rec.family === "custom_pipeline" || rec.pipeline === "custom") continue;
     if (recAlreadyLinked(rec, linkedKeys)) continue;
     const label = recLabel(rec);
     if (!label) continue;

@@ -504,10 +504,9 @@
 
 .rd-v2-cap-collection-list {
   display: flex;
+  flex-wrap: wrap;
   min-width: 0;
-  gap: 7px;
-  overflow-x: auto;
-  scrollbar-width: thin;
+  gap: 6px 7px;
 }
 
 .rd-v2-cap-collection {
@@ -741,6 +740,15 @@
   grid-template-areas: "evidence kind source verify state";
   gap: 14px;
 }
+
+.rd-v2-cap-ledger.without-verify.show-kind .rd-v2-cap-ledger-head,
+.rd-v2-cap-ledger.without-verify.show-kind .rd-v2-cap-ledger-row {
+  grid-template-columns: minmax(220px, 1fr) minmax(80px, 0.2fr) minmax(120px, 0.4fr) minmax(168px, 0.36fr);
+  grid-template-areas: "evidence kind source state";
+  gap: 14px;
+}
+
+.rd-v2-cap-ledger.without-verify.show-kind .rd-v2-cap-ledger-head > span:nth-child(4) { grid-area: state; }
 
 .rd-v2-cap-ledger-head > span:first-child,
 .rd-v2-cap-evidence { grid-area: evidence; }

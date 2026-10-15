@@ -79,7 +79,7 @@ test.describe("v2 Library evidence estate", () => {
     await expect(workspace.getByLabel("Evidence claims")).toBeHidden();
     await expect(page.locator("aside.rd-v2-rail")).toContainText("Readiness");
     await expect(page.locator("aside.rd-v2-rail")).toContainText("Verification");
-    await expect(workspace.getByRole("button", { name: "Open query" })).toBeVisible();
+    await expect(workspace.getByRole("button", { name: "View all rows" })).toBeVisible();
     await expect(workspace.getByRole("button", { name: "Inspect schema" })).toHaveCount(1);
     await expect(workspace.getByRole("button", { name: "Expand sample" })).toHaveCount(1);
     await expect(page.getByTestId("library-observation-receipt")).toContainText("1 row");
@@ -196,7 +196,7 @@ test.describe("v2 Library navigation", () => {
     await waitForShell(page);
 
     await expect(page.locator(".rd-v2-header-meta-count")).toContainText("Library dataset");
-    await expect(page.locator("aside.rd-v2-rail")).toContainText("1 registry reference stays in Discover until acquired");
+    await expect(page.locator("aside.rd-v2-rail")).toContainText("1 known source not yet collected; find it in Discover");
     const outside = page.getByTestId("library-available-evidence");
     await expect(outside).toContainText("1 known record");
     await expect(outside).toContainText("outside your Library");

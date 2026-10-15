@@ -119,10 +119,10 @@ test("Library loading never presents a fabricated empty estate", async ({ page }
   const rail = page.locator("aside.rd-v2-rail");
   await expect(rail).toContainText("Reading your Library…");
   await expect(rail).toContainText("Data saved to Library is still loading.");
-  await expect(rail).not.toContainText("0 assets");
+  await expect(rail).not.toContainText("0 datasets");
   await expect(rail).not.toContainText("0 collections");
 
   releaseDatasets();
-  await expect(rail).toContainText(`${MOCK_DATASETS.datasets.length} assets`);
+  await expect(rail).toContainText(`${MOCK_DATASETS.datasets.length} datasets`);
   await expect(rail).not.toContainText("Reading your Library…");
 });

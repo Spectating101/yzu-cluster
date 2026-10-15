@@ -1,3 +1,4 @@
+import { coverageSpan } from "./coverageText.js";
 /**
  * Discover local sufficiency / equivalence authority.
  *
@@ -49,7 +50,7 @@ function normalizeGrain(v) {
 }
 
 function coverageText(row) {
-  return String(row?.coverage || row?.date_range || row?.temporal_coverage || "").trim();
+  return coverageSpan(row?.coverage || row?.date_range || row?.temporal_coverage).trim();
 }
 
 function sourceIdentity(row) {
@@ -182,7 +183,7 @@ function exactMatch(lab) {
     focusBody: ready
       ? "A dataset with the same identifier is already in your Library and ready to query."
       : "A dataset with the same canonical identity is already in your Library.",
-    primaryActionHint: { id: "open_local", label: "Open local dataset" },
+    primaryActionHint: { id: "open_local", label: "Open in Library" },
     secondaryActionHint: null,
   };
 }
@@ -239,7 +240,7 @@ function relatedOrPartial(lab, candidate, basis) {
       focusBody: "Your Library covers part of this need. The known difference is shown below.",
       gapLines: diffs.map((d) => d.summary),
       primaryActionHint: null,
-      secondaryActionHint: { id: "open_local", label: "Open local dataset" },
+      secondaryActionHint: { id: "open_local", label: "Open in Library" },
     };
   }
 
@@ -411,7 +412,7 @@ export function sufficiencyFromBackend(localComparison, catalog = []) {
       focusBody:
         localComparison.summary ||
         `${title} is treated as equivalent by an explicit backend relation.`,
-      primaryActionHint: { id: "open_local", label: "Open local dataset" },
+      primaryActionHint: { id: "open_local", label: "Open in Library" },
       secondaryActionHint: null,
     };
   }

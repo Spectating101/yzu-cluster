@@ -120,7 +120,7 @@ test("pending approval becomes the primary decision, not a separate Attention pa
   assert.equal(primary.kind, "decision");
   assert.equal(primary.action, "review");
   assert.match(primary.title, /MOPS/);
-  assert.equal(primary.location, "DISCOVER / HISTORY");
+  assert.equal(primary.location, "History");
   assert.equal(secondary.kind, "library_asset");
 });
 

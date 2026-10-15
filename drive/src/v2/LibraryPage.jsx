@@ -327,6 +327,7 @@ export function LibraryPage({
   onSearchChange,
   selectionHoldings,
   selectionFallback,
+  selectionDetail,
   folderLocations = [],
   onFolderLocationChange,
   referenceCount = 0,
@@ -717,7 +718,7 @@ export function LibraryPage({
             </span>
           </>
         }
-        footer="select evidence → inspect → query or Ask"
+        footer="Select a dataset to see its sample, source and download"
         surfaceState={surfaceState}
       >
         {!isRoot ? (
@@ -810,7 +811,12 @@ export function LibraryPage({
         )}
       </PageShell>
       <LibraryAssetInspector
-        dataset={selectedDataset}
+        dataset={
+          selectedDataset && !selectedDataset.full_download && selectionDetail?.full_download
+            && selectionDetail.dataset_id === selectedDataset.dataset_id
+            ? { ...selectedDataset, full_download: selectionDetail.full_download }
+            : selectedDataset
+        }
         onClose={onClearSelection}
         onPreview={() => selectedDataset && onPreviewDataset?.({ ...selectedDataset, __libraryExpandedSample: true })}
         onAsk={() => selectedDataset && onAskDataset?.(selectedDataset)}

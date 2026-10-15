@@ -100,8 +100,8 @@ test.describe("Discover authority depth", () => {
     await workspace.getByLabel("Fields value").fill("director_tenure, independent_director_ratio");
     await workspace.getByRole("button", { name: "Apply & reassess" }).click();
 
-    await expect(workspace).toContainText("Assessment is unavailable");
-    await expect(workspace).toContainText("No current coverage assessment has been confirmed");
+    await expect(workspace).toContainText("Coverage check unavailable");
+    await expect(workspace).toContainText("Run the check again before relying on what the Library covers");
     await expect(workspace.getByTestId("discover-verdict")).toHaveCount(0);
     await expect(workspace.getByTestId("discover-held-evidence")).toHaveCount(0);
     await expect(workspace).not.toContainText("MOPS governance disclosures");
@@ -174,7 +174,7 @@ test.describe("Discover authority depth", () => {
     await expect(acquisition).toContainText("Proposed routes · review required");
     await expect(acquisition.getByRole("button", { name: "Submit for approval" })).toHaveCount(0);
 
-    await acquisition.getByRole("button", { name: "Continue to route selection" }).click();
+    await acquisition.getByRole("button", { name: /^(Use this route|Continue to route selection)$/ }).click();
     await expect(acquisition).toContainText("Reviewed routes");
     await expect(acquisition.getByRole("button", { name: "Submit for approval" })).toBeEnabled();
     await acquisition.getByRole("button", { name: "Submit for approval" }).click();

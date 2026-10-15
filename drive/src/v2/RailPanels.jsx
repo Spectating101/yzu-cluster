@@ -149,14 +149,21 @@ const RAIL_ACTION_LABELS = {
   bq_read: "BQ read",
 };
 
+const HOME_ITEM_KINDS = {
+  decision: "A request waiting for your approval",
+  synthesis_thread: "A Synthesis build",
+  discover_work: "A data collection",
+  library_asset: "A dataset in your Library",
+};
+
 const PAGE_RAIL_COPY = {
   home: {
     title: "Research Drive",
-    desc: "Start from the Library, missing-data search, or resource safety checks.",
+    desc: "Start from data you already have in the Library, or describe what you need in Discover.",
     fields: [
       ["Use this page", "See what needs attention now"],
-      ["Primary move", "Open Library or Discover"],
-      ["When blocked", "Check Resources for approvals, limits, or credentials"],
+      ["Have data", "Open it in the Library"],
+      ["Need data", "Describe it in Discover"],
     ],
   },
   library: {
@@ -188,12 +195,12 @@ const PAGE_RAIL_COPY = {
     ],
   },
   settings: {
-    title: "Workspace policy",
-    desc: "Behavior, identity binding, and browser access for this Research Drive.",
+    title: "Your settings",
+    desc: "Your account, and how Research Drive behaves in this browser.",
     fields: [
-      ["Behavior", "Startup, evidence Inspector, Discover breadth"],
-      ["Identity", "Faculty email binding"],
-      ["System status", "Available under technical details"],
+      ["Account", "Sign in, sign out, recover access"],
+      ["Assistant", "How many Ask requests you have left"],
+      ["System status", "Under technical details"],
     ],
   },
   resources: {
@@ -202,7 +209,7 @@ const PAGE_RAIL_COPY = {
     fields: [
       ["Archive", "Collected evidence returns to the shared Library"],
       ["Routes", "Collection methods stay explicit and reviewable"],
-      ["Control", "Public browsing cannot start workers, spend quota, or write data"],
+      ["Control", "Nothing is collected or spent until an approver says yes"],
     ],
   },
 };
@@ -386,7 +393,7 @@ export function LibraryObjectRailPanel({
           </div>
           {root && counts.references > 0 ? (
             <p className="rd-v2-rail-note">
-              {pluralCount(counts.references, "registry reference")} {counts.references === 1 ? "stays" : "stay"} in Discover until acquired.
+              {pluralCount(counts.references, "known source")} not yet collected; find {counts.references === 1 ? "it" : "them"} in Discover.
             </p>
           ) : null}
         </section>
@@ -477,9 +484,9 @@ export function HomeAttentionRailPanel({ object, onAskAbout }) {
       />
       <div className="rd-v2-rail-scroll">
         <RailFieldGrid>
-          <RailField label="Type" value={row.label || row.kind || object?.kind} />
+          <RailField label="What" value={HOME_ITEM_KINDS[row.label || row.kind || object?.kind] || row.label || row.kind || object?.kind} />
           <RailField label="Next" value={row.next || "Review"} />
-          <RailField label="Surface" value={tabLabel(row.tab || "home")} />
+          <RailField label="Where" value={tabLabel(row.tab || "home")} />
           {row.resourceRow?.job?.id ? <RailField label="Job ID" value={row.resourceRow.job.id} mono /> : null}
         </RailFieldGrid>
       </div>

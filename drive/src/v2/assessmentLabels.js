@@ -17,8 +17,22 @@ export function assessmentStatusKey(result) {
   return key(result?.assessment_status);
 }
 
+const JUDGED_VERDICT_LABELS = {
+  covered: "Likely covered",
+  partially_covered: "Likely partly covered",
+  not_covered: "Likely not covered",
+};
+
 export function assessmentLabel(result, fallback = "Coverage assessment") {
+  if (key(result?.verdict_basis) === "model_judgement" && JUDGED_VERDICT_LABELS[key(result?.verdict)]) {
+    return JUDGED_VERDICT_LABELS[key(result?.verdict)];
+  }
   return ASSESSMENT_STATUS_LABELS[key(result?.assessment_status)] || VERDICT_LABELS[key(result?.verdict)] || fallback;
+}
+
+export function judgedLibraryMatch(result) {
+  const held = Array.isArray(result?.held_evidence) ? result.held_evidence : [];
+  return held.find((row) => row?.judgement === "covers") || held.find((row) => row?.judgement === "partial") || null;
 }
 
 export function assessmentGapText(result) {

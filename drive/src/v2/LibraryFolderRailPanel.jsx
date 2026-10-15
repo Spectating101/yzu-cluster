@@ -95,7 +95,7 @@ export function LibraryFolderRailPanel({
         <section className="rd-v2-library-folder-summary">
           <span hidden>{legacySummaryLabel}</span>
           <p className="rd-v2-rail-section-label">{summaryLabel}</p>
-          <h3>{loading ? "Reading your Library…" : pluralCount(totalAssets, "asset")}</h3>
+          <h3>{loading ? "Reading your Library…" : pluralCount(totalAssets, "dataset")}</h3>
           <div className="rd-v2-library-folder-readiness" aria-busy={loading || undefined}>
             {loading ? <span>Data saved to Library is still loading.</span> : null}
             {counts.queryReady > 0 ? <span><b>{counts.queryReady}</b> ready to query</span> : null}
@@ -104,7 +104,7 @@ export function LibraryFolderRailPanel({
             {counts.metadataOnly > 0 ? <span><b>{counts.metadataOnly}</b> metadata only</span> : null}
             {counts.references > 0 ? (
               <span>
-                <b>{counts.references}</b> registry reference{counts.references === 1 ? "" : "s"} {counts.references === 1 ? "stays" : "stay"} in Discover until acquired
+                <b>{counts.references}</b> known source{counts.references === 1 ? "" : "s"} not yet collected; find {counts.references === 1 ? "it" : "them"} in Discover
               </span>
             ) : null}
           </div>

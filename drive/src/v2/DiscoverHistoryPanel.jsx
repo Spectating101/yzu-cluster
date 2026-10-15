@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Chip } from "@/v2/ui";
 import { fenceHistoryEvents, systemVerificationClassification } from "@/v2/historyNoiseFence";
 import { historyEvidenceSummary, historyLifecycleBucket } from "@/v2/discoverAdapters";
+import { waitingAge } from "./historyAge.js";
 import { historyEvidenceLabel, historyLifecycleLabel } from "@/v2/historyLifecycleLabel";
 
 const HISTORY_FILTERS = [
@@ -111,7 +112,13 @@ function eventEvidenceLine(event) {
   if (meta.archive_note) parts.push(String(meta.archive_note));
   if (meta.progress_note) parts.push(String(meta.progress_note));
   parts.push(eventTime(event));
+  if (eventKind(event) === "needs_approval") parts.push(waitingAge(event?.ts));
   return parts.filter(Boolean).join(" · ");
+}
+
+function rowIdentity(event) {
+  const identity = eventSourceIdentity(event);
+  return /approval is required|waiting for (your|a researcher)/i.test(identity) ? "" : identity;
 }
 
 function eventMethodCue(event) {
@@ -160,7 +167,7 @@ function HistoryRow({ event, selectedId, index, onSelectEvent, secondary = false
           {selected ? <span className="rd-v2-history-selected-mark" aria-hidden>▌</span> : null}
           <strong>{title}</strong>
         </span>
-        <span className="rd-v2-history-line2">{eventSourceIdentity(event)}</span>
+        {rowIdentity(event) ? <span className="rd-v2-history-line2">{rowIdentity(event)}</span> : null}
         <span className="rd-v2-history-line3">{eventEvidenceLine(event)}</span>
         {systemCue ? <span className="rd-v2-history-system-cue">{systemCue}</span> : null}
         {methodCue ? <span className="rd-v2-history-method-cue">Method · {methodCue}</span> : null}

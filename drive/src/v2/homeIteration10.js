@@ -9,6 +9,7 @@ import { buildLab } from "./profileViewModel.js";
 import { recentDatasets } from "./recent.js";
 import { isHistoryNoise, isSystemVerificationTraffic } from "./historyNoiseFence.js";
 import { synthesisJourneyStage } from "./synthesisLifecycle.js";
+import { waitingAge } from "./historyAge.js";
 import {
   assistantProviderRead,
   assistantRuntimeDetail,
@@ -72,6 +73,15 @@ export function failureSuperseded(job, jobs) {
     && String(other?.updated_at || other?.created_at || "") > failedAt);
 }
 
+function pendingSummary(count, jobs) {
+  const stamps = (jobs || [])
+    .map((job) => Date.parse(job?.created_at || job?.updated_at || ""))
+    .filter(Number.isFinite);
+  const age = stamps.length ? waitingAge(new Date(Math.min(...stamps)).toISOString()) : "";
+  const waiting = count === 1 ? "This request is waiting for your approval." : `${count} requests are waiting for your approval.`;
+  return age && count > 1 ? `${waiting} The oldest has been ${age}.` : age ? `${waiting.slice(0, -1)}, ${age}.` : waiting;
+}
+
 export function buildPickUp({
   datasets = [],
   jobs = [],
@@ -95,7 +105,7 @@ export function buildPickUp({
   );
   const judgmentApprovals = (briefing?.needsJudgment || []).filter((item) => item.kind === "approval");
   const pendingCount = Number(
-    judgmentApprovals.length || health?.desk?.jobs?.pending_approval || pendingJobs.length || 0,
+    pendingJobs.length || health?.desk?.jobs?.pending_approval || judgmentApprovals.length || 0,
   );
   const firstPending =
     (judgmentApprovals[0]?.job && pendingJobs.find((job) => job.id === judgmentApprovals[0].job.id)) ||
@@ -116,8 +126,8 @@ export function buildPickUp({
         title: /^synth(?:esis)?[\s_-]*block$/i.test(rawTitle)
           ? "Synthesis proposal awaiting review"
           : rawTitle || `${pendingCount} ${pendingCount === 1 ? "request" : "requests"} awaiting your approval`,
-        stateSummary: "A researcher decision is required before this work can continue.",
-        location: "DISCOVER / HISTORY",
+        stateSummary: pendingSummary(pendingCount, pendingJobs),
+        location: "History",
         pill: `${pendingCount} pending`,
         job: firstPending,
         tab: "browse",
@@ -155,15 +165,15 @@ export function buildPickUp({
     const summary = failed
       ? "Execution failed. Inspect the saved build before retrying."
       : stage === "approval"
-        ? "A sample preview is ready for an execution approval decision."
+        ? "A sample preview is ready. Approve it to run the full build."
         : stage === "proposal"
-          ? "An exact Synthesis proposal is ready for researcher review."
+          ? "A proposal is ready for you to review."
           : stage === "preview"
-            ? "The accepted method is being tested on a sample."
+            ? "The method is being tested on a sample."
             : stage === "specification"
-              ? "Data you have is mapped. Build choices that affect the result remain."
+              ? "Your data is matched. A few build choices are still open."
               : stage === "evidence"
-                ? "This saved build is waiting on evidence decisions."
+                ? "This build is waiting for you to choose its data."
                 : stage === "build"
                   ? `Execution is ${status || "in progress"}; inspect its saved build and Library status.`
                   : "A saved Synthesis build is ready to continue.";
@@ -175,7 +185,7 @@ export function buildPickUp({
         id: thread.id,
         title: String(thread.title || thread?.state?.title || thread?.state?.objective || thread.objective || "Synthesis build"),
         stateSummary: summary,
-        location: `SYNTHESIS / ${(stageLabel[stage] || stage || "THREAD").toUpperCase()}`,
+        location: `Synthesis · ${stageLabel[stage] || "Build"}`,
         pill: failed ? "Needs attention" : stageLabel[stage] || "Active",
         thread,
         tab: "synthesis",
@@ -200,8 +210,8 @@ export function buildPickUp({
         title: String(job?.plan?.title || job.title || job.name || "Discover acquisition"),
         stateSummary: failed
           ? "Collection failed. Inspect the saved History record before retrying."
-          : `Acquisition is ${status}; History holds the saved request record.`,
-        location: "DISCOVER / HISTORY",
+          : `Collection is ${status}. Follow it in History.`,
+        location: "History",
         pill: failed ? "Needs attention" : status,
         job,
         tab: "browse",

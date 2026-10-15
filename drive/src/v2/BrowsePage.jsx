@@ -1,5 +1,6 @@
 import { uiVocabularyLabel } from "./uiVocabularyLabels.js";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { instantLibraryMatches } from "@/v2/discoverInstantMatches";
 import { discoverSearch, discoverSources, webDiscover } from "@/v2/api";
 import { partialFitLine, reconcileDiscoverRegistryRows, searchHitToCandidate, sourcesResponseToRows } from "@/v2/discoverAdapters";
 import { collectRouteDisplayLabel } from "@/v2/collectRouteLabel";
@@ -217,7 +218,7 @@ function DiscoverCandidateRow({
     ["Type", OFFERING_LABELS[offeringType(row, taxonomy)] || offeringType(row, taxonomy)],
     ["Coverage", showCoverage ? coverage : null],
     ["Refresh", row?.refresh_frequency || row?.refresh || row?.update_frequency],
-    ["Route", collectRouteDisplayLabel(row?.collect_via)
+    ["Route", !taxonomy.key.startsWith("local-") && collectRouteDisplayLabel(row?.collect_via)
       ? `Collect via ${collectRouteDisplayLabel(row.collect_via)}`
       : null],
     ["Files", row?.file_summary || null],
@@ -634,6 +635,7 @@ export function BrowsePage({
   shelves = [],
   loadError = "",
   onOpenLibraryResults,
+  onOpenInLibrary,
   catalog = [],
   selectedId,
   onSelectRow,
@@ -697,6 +699,27 @@ export function BrowsePage({
   const [synthesisStartError, setSynthesisStartError] = useState("");
   const restoredSelectionRef = useRef("");
   const rowsRef = useRef([]);
+  const catalogRef = useRef(catalog);
+  catalogRef.current = catalog;
+
+  useEffect(() => {
+    const menus = ".rd-v2-discover-library-evidence[open], .rd-v2-discover-filter-menu[open]";
+    const closeOutside = (event) => {
+      document.querySelectorAll(menus).forEach((menu) => {
+        if (!menu.contains(event.target)) menu.removeAttribute("open");
+      });
+    };
+    const closeOnEscape = (event) => {
+      if (event.key !== "Escape") return;
+      document.querySelectorAll(menus).forEach((menu) => menu.removeAttribute("open"));
+    };
+    document.addEventListener("pointerdown", closeOutside);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeOutside);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, []);
   const rowsQueryRef = useRef("");
 
   useEffect(() => {
@@ -886,6 +909,8 @@ export function BrowsePage({
         // is usually fast; waiting for the source-route catalogue made a real
         // local match disappear behind one generic spinner. Each partial paint
         // is additive, and the settled merge below remains the final authority.
+        const instant = instantLibraryMatches(catalogRef.current, q);
+        if (instant.length) apply({ results: instant }, "index_local", { append: true });
         let discover = {};
         let knownSources = {};
         let discoverFailure = null;
@@ -1480,7 +1505,7 @@ export function BrowsePage({
     <PageShell
       className="rd-v2-discover-page"
       title="Discover"
-      lead="Find, compare, verify, and acquire research evidence"
+      lead="Check what your Library already holds, and where to get what it doesn't"
       headExtra={modeTabs}
       toolbar={demoMode ? <Chip warn>Demo preview · static sample</Chip> : null}
       surfaceState={exploreSurfaceState}
@@ -1637,7 +1662,7 @@ export function BrowsePage({
                   ? discoverTerritories(resultGroups).map((territory) =>
                     // A page reload can begin a query before /datasets has
                     // answered. That is unmeasured, not zero held evidence.
-                    territory.id === "held" && (catalogLoading || lookupProgress.library === "checking") ? (
+                    territory.id === "held" && !resultGroups.held.length && (catalogLoading || lookupProgress.library === "checking") ? (
                       <span key={territory.id}>Library evidence · Checking…</span>
                     // The freeze makes Library evidence an opener, not a label:
                     // it reveals a bounded preview plus Compare coverage and Open
@@ -1657,11 +1682,6 @@ export function BrowsePage({
                     Searching wider sources…
                   </span>
                 ) : null}
-                {!loading && broaderSearchPending ? (
-                  <span className="rd-v2-discover-counts-loading" role="status">
-                    Checking broader sources…
-                  </span>
-                ) : null}
               </div>
               <div
                 className="rd-v2-discover-result-actions"
@@ -1670,7 +1690,7 @@ export function BrowsePage({
                 data-assessment-verdict={assessmentVerdict || "none"}
                 data-has-evidence-gap={hasEvidenceGap ? "true" : "false"}
               >
-                <div>
+                <div role={broaderSearchPending ? "status" : undefined}>
                   {broaderSearchPending && resultGroups.held.length > 0 ? (
                     <>
                       <strong>{plural(resultGroups.held.length, "Library match")}</strong>
@@ -1748,11 +1768,7 @@ export function BrowsePage({
                       Search wider
                     </button>
                   ) : null}
-                  {assessmentPending ? (
-                    <button type="button" className="rd-v2-discover-strategy-trigger is-pending" disabled>
-                      Assessing strategy…
-                    </button>
-                  ) : strategyNeedsContext ? (
+                  {assessmentPending ? null : strategyNeedsContext ? (
                     <button
                       type="button"
                       className="rd-v2-discover-strategy-trigger"
@@ -1800,6 +1816,7 @@ export function BrowsePage({
                   libraryMatchCount={resultGroups.held.length}
                   catalog={catalog}
                   onSelectRow={onSelectRow}
+                  onOpenInLibrary={onOpenInLibrary}
                   onLegacySearch={onSuggestSearch}
                   onCraftUrl={onCraftUrl}
                   onAssessmentChange={onAssessmentChange}

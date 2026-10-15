@@ -1,5 +1,6 @@
 import { AnalysisResults } from "./AnalysisResults.jsx";
 import { synthesisObjectiveDisplay, uiVocabularyLabel } from "./uiVocabularyLabels.js";
+import { plainIdentifiers } from "./plainText.js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { PageShell } from "@/v2/ui";
@@ -743,9 +744,9 @@ function EvidenceMap({
                 onClick={() => onSelectField?.(node)}
                 aria-pressed={selectedField?.id === node.id}
               >
-                <small>{uiVocabularyLabel(text(node.role || node.eyebrow || node.status, "Evidence"))}</small>
+                <small>{/^registered$/i.test(text(node.role || node.eyebrow || node.status, "")) ? "In Library" : uiVocabularyLabel(text(node.role || node.eyebrow || node.status, "Evidence"))}</small>
                 <strong>{text(node.label || node.dataset_id, "Unnamed evidence")}</strong>
-                <span>{[node.grain, node.coverage].filter(Boolean).join(" · ") || "Metadata not reported"}</span>
+                <span>{[plainIdentifiers(node.grain), node.coverage].filter(Boolean).join(" · ") || "Metadata not reported"}</span>
               </button>
             ))
           ) : (
@@ -1268,8 +1269,8 @@ function ExecutionRecord({ thread, busy, onRequest, onReview, onAsk, onOpenDatas
         <dl className="s04-method">
           <div><dt>Input</dt><dd>{inputName || softIdentifier(spec.input_dataset_id)}</dd></div>
           <div><dt>Output</dt><dd>{(registered && result.name) || softIdentifier(spec.output_dataset_id)}</dd></div>
-          <div><dt>Group by</dt><dd>{Array.isArray(spec.group_by) ? spec.group_by.join(" · ") : "Not reported"}</dd></div>
-          <div><dt>Metrics</dt><dd>{Array.isArray(spec.metrics) ? `${spec.metrics.length} defined` : "Not reported"}</dd></div>
+          <div><dt>Group by</dt><dd>{Array.isArray(spec.group_by) ? (spec.group_by.length ? spec.group_by.join(" · ") : "None (all rows)") : "Not reported"}</dd></div>
+          {Array.isArray(spec.metrics) && spec.metrics.length ? <div><dt>Metrics</dt><dd>{`${spec.metrics.length} defined`}</dd></div> : null}
         </dl>
       ) : null}
       {hasSpec ? (
@@ -1716,9 +1717,9 @@ function MeasurementStatus({ phase, measurements, onRetry }) {
   const flagCount = (flag) => profiles.filter((profile) => (profile.flags || []).includes(flag)).length;
   const measuredRisks = [
     flagged ? ["Flagged", flagged] : null,
-    flagCount("lookahead") ? ["Look-ahead", flagCount("lookahead")] : null,
+    flagCount("lookahead") ? ["Uses future data", flagCount("lookahead")] : null,
     flagCount("sparse") ? ["Sparse", flagCount("sparse")] : null,
-    flagCount("unit_twin") ? ["Scale twins", flagCount("unit_twin")] : null,
+    flagCount("unit_twin") ? ["Scale mismatch", flagCount("unit_twin")] : null,
   ].filter(Boolean);
 
   if (phase === "loading") {
@@ -2410,7 +2411,7 @@ export function SynthesisPage({
         />
       </SynthesisSidebarPortal>
       <div className="s04-shell" data-testid="synthesis-studio">
-        <main className="s04-main">
+        <div className="s04-main">
           {error ? <DeskError raw={error} surface="your builds" alert /> : null}
           {newMode ? (
             <NewThread
@@ -2529,6 +2530,7 @@ export function SynthesisPage({
               <MethodSurfacePanel
                 dataset={displayedSelected.state?.spec?.input_dataset_id}
                 datasets={displayedSelected.state?.input_dataset_ids}
+                titles={Object.fromEntries(evidenceNodes(displayedSelected).filter((node) => node?.dataset_id && node?.label).map((node) => [node.dataset_id, node.label]))}
                 profiles={displayedSelected.state?.column_profiles}
                 inUse={displayedSelected.state?.columns_in_use}
                 onOpenColumn={reasoningAvailable ? (column) => ask(`Inspect ${column.column} in this construction.`) : null}
@@ -2613,7 +2615,7 @@ export function SynthesisPage({
               ) : null}
             </>
           ) : null}
-        </main>
+        </div>
       </div>
     </PageShell>
   );

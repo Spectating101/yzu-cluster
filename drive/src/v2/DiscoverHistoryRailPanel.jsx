@@ -63,6 +63,8 @@ export function DiscoverHistoryRailPanel({ event, job, onAskAbout, onReviewReque
     ? "Only a saved receipt is available. Do not treat the data as ready to query until the catalog checks finish."
     : state.risk;
   const evidence = historyKnownUnknowns(event, truth);
+  const evidenceSummary = historyEvidenceSummary(event) ? historyEvidenceLabel(historyEvidenceSummary(event)) : "";
+  const evidenceNote = /approval is required|waiting for (your|a researcher)/i.test(evidenceSummary) ? "" : evidenceSummary;
 
   return (
     <RailFrame>
@@ -104,12 +106,12 @@ export function DiscoverHistoryRailPanel({ event, job, onAskAbout, onReviewReque
             <p className="rd-v2-eval-prose muted">{NO_EVIDENCE_YET}</p>
           ) : null}
         </div>
-        <RailDecisionSummary status={state.label} primary={state.explanation} risk={risk} next={state.next} />
+        <RailDecisionSummary primary={state.explanation} risk={risk} next={state.next} />
         <RailFieldGrid>
           <RailField label="Last updated" value={updatedAt(event)} />
-          <RailField label="Current state" value={truth.label} />
+          {truth.label && truth.label !== state.label ? <RailField label="Current state" value={truth.label} /> : null}
           <RailField label="Last step" value={historyEventLabel(event.kind || event.action || "discover")} />
-          {historyEvidenceSummary(event) ? <RailField label="Evidence" value={historyEvidenceLabel(historyEvidenceSummary(event))} /> : null}
+          {evidenceNote ? <RailField label="Evidence" value={evidenceNote} /> : null}
           {meta.cadence || event.cadence ? <RailField label="Schedule" value={meta.cadence || event.cadence} /> : null}
           {meta.requested_schedule || event.requested_schedule ? (
             <RailField label="Requested cadence" value={meta.requested_schedule || event.requested_schedule} />

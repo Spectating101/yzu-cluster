@@ -68,6 +68,10 @@ function contextPart(value) {
  * component identity, so conversation ownership must be explicit rather than
  * inferred from whether the component remounted.
  */
+const ASK_TURN_BUSY = /previous assistant request is still running|shared assistant is busy/i;
+const ASK_TURN_RETRY_MS = 5000;
+const ASK_TURN_RETRIES = 36;
+
 export function askContextKey(dataset = null, railContext = null) {
   const kind = contextPart(dataset?.kind || railContext?.entity?.kind || "general") || "general";
   if (kind === "synthesis_thread") {
@@ -294,7 +298,7 @@ export function useAskChat({
       try {
         if (warmEnabled && !sessionRef.current) await beginWarm();
         else if (warmPromiseRef.current) await warmPromiseRef.current;
-        const out = await sendChatMessage(full, {
+        const chatOptions = {
           sessionId: sessionRef.current,
           userEmail: loadUserEmail(),
           railContext: synthesisRailContextForRequest(railRef.current),
@@ -337,8 +341,24 @@ export function useAskChat({
               ),
             );
           },
-        });
-
+        };
+        let out;
+        for (let attempt = 0; ; attempt += 1) {
+          try {
+            out = await sendChatMessage(full, chatOptions);
+            break;
+          } catch (waitError) {
+            const waitMessage = String(waitError?.message || "");
+            if (!ASK_TURN_BUSY.test(waitMessage) || attempt >= ASK_TURN_RETRIES || !isCurrentRequest()) throw waitError;
+            const waiting = /shared assistant/i.test(waitMessage)
+              ? "Ask is busy with other researchers. Waiting for a free turn…"
+              : "Finishing your previous question first…";
+            setStatus(waiting);
+            setMessages((m) => m.map((item) => (item.streaming ? { ...item, activity: waiting } : item)));
+            await new Promise((resolve) => setTimeout(resolve, ASK_TURN_RETRY_MS));
+            if (!isCurrentRequest()) throw waitError;
+          }
+        }
         if (out.session_id) {
           if (sendSynthesisThreadId) {
             if (out.session_id !== sendSynthesisSessionId) {

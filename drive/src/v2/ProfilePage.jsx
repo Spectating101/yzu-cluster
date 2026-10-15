@@ -306,7 +306,7 @@ function PersonalResearchProfile({ document, onDocument, onProfileRefresh }) {
               This context is yours. It helps Discover and Ask understand your work without overwriting your faculty record. It cannot change your account, role, or access and collection permissions.
             </p>
           </div>
-          <span>{configured ? "User-confirmed" : "Cold start"}</span>
+          <span>{configured ? "Confirmed by you" : "Not set up yet"}</span>
         </header>
         <div className="rd-v2-settings-statement">
           <div className="rd-v2-settings-row stack">
@@ -390,6 +390,7 @@ export function ProfilePage({
   personalProfileAvailable = false,
 }) {
   const [personalDocument, setPersonalDocument] = useState(undefined);
+  const [personalAttempt, setPersonalAttempt] = useState(0);
   const [pilot, setPilot] = useState(null);
   const demoMode = explicitDemoMode();
 
@@ -409,7 +410,7 @@ export function ProfilePage({
     return () => {
       cancelled = true;
     };
-  }, [personalProfileAvailable]);
+  }, [personalProfileAvailable, personalAttempt]);
 
   const principalEmail = personalDocument?.principal?.email || "";
   const suppliedProfileBound = Boolean(profile && !profile.unknown);
@@ -446,7 +447,8 @@ export function ProfilePage({
   const previewing = !bound && Boolean(pilot);
   const active = bound ? profile : pilot;
   const signedInResearcher = Boolean(personalDocument?.principal);
-  const publicProfile = !signedInResearcher && !active && personalDocument !== undefined && !pilotLoading;
+  const publicProfile = !personalProfileAvailable && !active && personalDocument !== undefined && !pilotLoading;
+  const personalUnavailable = personalProfileAvailable && !signedInResearcher && personalDocument !== undefined;
   const surfaceState = resolveSurfaceLifecycle({
     loading: personalDocument === undefined || pilotLoading,
     count: signedInResearcher || active ? 1 : 0,
@@ -483,6 +485,26 @@ export function ProfilePage({
           }}
           onProfileRefresh={onProfileRefresh}
         />
+      ) : null}
+
+      {personalUnavailable ? (
+        <section className="rd-v2-profile-public-state" aria-label="Research profile access" data-testid="profile-unavailable">
+          <span className="rd-v2-profile-kicker">Your research profile</span>
+          <h2>Your profile could not be loaded right now</h2>
+          <p>You are signed in. Your saved research focus is safe; try loading it again in a moment.</p>
+          <div className="rd-v2-profile-public-actions">
+            <button
+              type="button"
+              className="rd-v2-btn sm primary"
+              onClick={() => {
+                setPersonalDocument(undefined);
+                setPersonalAttempt((attempt) => attempt + 1);
+              }}
+            >
+              Try again
+            </button>
+          </div>
+        </section>
       ) : null}
 
       {publicProfile ? (
@@ -717,7 +739,9 @@ export function ProfileDetailPanel({
   if (!active) {
     return (
       <div className="rd-v2-profile-rail" data-testid="profile-detail-rail">
-        <p className="rd-v2-empty-inline">Sign in to keep a personal research profile.</p>
+        <p className="rd-v2-empty-inline">
+          {personalProfileAvailable ? "Your profile could not be loaded right now." : "Sign in to keep a personal research profile."}
+        </p>
       </div>
     );
   }

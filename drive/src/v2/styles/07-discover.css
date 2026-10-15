@@ -327,6 +327,14 @@
   box-shadow: 0 18px 50px rgba(16, 24, 32, 0.12);
 }
 
+.rd-v2-discover-page .rd-v2-discover-library-popover .rd-v2-discover-possession {
+  max-width: 170px;
+  overflow: visible;
+  text-align: right;
+  text-overflow: clip;
+  white-space: normal;
+}
+
 /* One decision band: what we found + what can happen next. */
 .rd-v2-discover-page .rd-v2-discover-result-actions {
   display: grid;
@@ -833,6 +841,8 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
 }
 
 .rd-v2-discover-page .rd-v2-discover-coverage-shelves button > em {
+  min-width: 0;
+  white-space: normal;
   color: var(--rd-muted, #6e7685);
   font-size: var(--rd-text-2xs);
   font-style: normal;
@@ -1509,8 +1519,7 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
   border-right: 0 !important;
 }
 
-.rd-v2-discover-ranked-results .rd-v2-discover-offering-facts b,
-.rd-v2-discover-ranked-results .rd-v2-discover-offering-facts em {
+.rd-v2-discover-ranked-results .rd-v2-discover-offering-facts b {
   display: inline !important;
   margin: 0 !important;
   line-height: 1.25 !important;
@@ -1656,10 +1665,15 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
 }
 
 .rd-v2-discover-ranked-results .rd-v2-discover-offering-facts em {
-  max-width: 220px;
+  display: -webkit-box;
+  max-width: 440px;
+  margin: 0;
   overflow: hidden;
   font-size: var(--rd-text-2xs);
-  text-overflow: ellipsis;
+  line-height: 1.25;
+  white-space: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .rd-v2-discover-ranked-results .rd-v2-discover-sufficiency {
@@ -1703,7 +1717,7 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
   }
 
   .rd-v2-discover-ranked-results .rd-v2-discover-offering-facts em {
-    max-width: 145px;
+    max-width: 320px;
   }
 }
 

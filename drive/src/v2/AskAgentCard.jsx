@@ -46,7 +46,7 @@ export function AskAgentCard({
       <header className="rd-v2-ask-card-head">
         <div className="rd-v2-ask-card-kicker">
           <span className="rd-v2-ask-card-eyebrow">
-            {streaming ? "Working" : "Grounded answer"}
+            {streaming ? "Working" : "Answer"}
           </span>
           {readiness ? (
             <span className={`rd-v2-ask-card-pill rd-v2-ask-card-pill-${tone}`}>
@@ -128,13 +128,6 @@ export function AskAgentCard({
         </div>
       ) : null}
 
-      {!streaming && action ? (
-        <footer className="rd-v2-ask-card-foot">
-          <span>Evidence-bound</span>
-          <span aria-hidden="true">·</span>
-          <span>{action}</span>
-        </footer>
-      ) : null}
     </article>
   );
 }

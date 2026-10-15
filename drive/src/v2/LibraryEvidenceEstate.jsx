@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { LIBRARY_FOLDERS_ROOT } from "@/driveTree";
 import { displayName, libraryAssetPresentation } from "@/v2/datasetMeta";
 import { libraryVerification } from "@/v2/libraryVerification";
+import { coverageSpan } from "@/v2/coverageText";
 import { StatusPill } from "@/v2/StatusPill";
 
 const PAGE_SIZE = 50;
@@ -31,7 +32,7 @@ function descriptionLabel(row = {}) {
 
   const kind = presentationKind(row);
   const grain = String(row.grain || "").trim();
-  const coverage = String(row.coverage || row.date_range || row.temporal_coverage || "").trim();
+  const coverage = coverageSpan(row.coverage || row.date_range || row.temporal_coverage).trim();
   const pieces = [];
   if (kind === "scholarly_work") pieces.push("Bibliographic research evidence");
   else if (kind === "metadata_index") pieces.push("Metadata index");
@@ -93,7 +94,8 @@ export function LibraryEvidenceEstate({
 }) {
   const visibleAssets = assets;
   const showKind = true;
-  const ledgerClass = "rd-v2-cap-ledger with-verify show-kind";
+  const showVerify = visibleAssets.some((item) => libraryVerification(item?.row || item).key !== "not_checked");
+  const ledgerClass = `rd-v2-cap-ledger ${showVerify ? "with-verify" : "without-verify"} show-kind`;
   const query = String(searchQuery || "").trim();
   const [visibleLimit, setVisibleLimit] = useState(PAGE_SIZE);
 
@@ -166,10 +168,10 @@ export function LibraryEvidenceEstate({
 
       <div className={ledgerClass} role="table" aria-label="Library evidence">
         <div className="rd-v2-cap-ledger-head" role="row">
-          <span role="columnheader">Evidence</span>
+          <span role="columnheader">Dataset</span>
           {showKind ? <span role="columnheader">Type</span> : null}
           <span role="columnheader">Source</span>
-          <span role="columnheader" title="Whether the recorded source evidence has been checked">Verify</span>
+          {showVerify ? <span role="columnheader" title="Whether the recorded source evidence has been checked">Verify</span> : null}
           <span role="columnheader" title="Whether this evidence can be used directly for research or querying">Readiness</span>
         </div>
         <div className="rd-v2-cap-ledger-body">
@@ -207,13 +209,15 @@ export function LibraryEvidenceEstate({
                   </span>
                   {showKind ? <span className="rd-v2-cap-kind" role="cell">{kindLabel(row)}</span> : null}
                   <span className="rd-v2-cap-source" role="cell">{sourceLabel(row)}</span>
-                  <span
-                    className={`rd-v2-cap-verify ${verification.kind}`}
-                    data-testid="library-evidence-verification"
-                    role="cell"
-                  >
-                    {verification.label}
-                  </span>
+                  {showVerify ? (
+                    <span
+                      className={`rd-v2-cap-verify ${verification.kind}`}
+                      data-testid="library-evidence-verification"
+                      role="cell"
+                    >
+                      {verification.label}
+                    </span>
+                  ) : null}
                   <span className="rd-v2-cap-state" data-testid="library-evidence-readiness" role="cell">
                     <StatusPill dataset={row} />
                   </span>

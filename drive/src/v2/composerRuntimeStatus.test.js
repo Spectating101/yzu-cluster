@@ -72,3 +72,15 @@ describe("composerRuntimeFromSources", () => {
     assert.equal(read.short, "Degraded");
   });
 });
+
+describe("Ask usability", () => {
+  it("a failed or stale check keeps Ask usable; only a missing assistant withdraws it", () => {
+  assert.equal(composerRuntimeRead({ status: "ready" }).usable, true);
+  assert.equal(composerRuntimeRead({ status: "degraded" }).usable, true);
+  assert.equal(composerRuntimeRead({ status: "stale" }).usable, true);
+  assert.equal(composerRuntimeRead({ status: "unverified" }).usable, true);
+  assert.equal(composerRuntimeRead({ status: "unavailable" }).usable, false);
+  assert.equal(composerRuntimeRead({ status: "mystery" }).usable, false);
+  assert.equal(composerRuntimeRead({ status: "degraded" }).ready, false);
+});
+});
