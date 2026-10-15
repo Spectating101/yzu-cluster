@@ -36,6 +36,7 @@ import { JobReviewDialog } from "./JobReviewDialog.jsx";
 import { reviewJobId } from "./reviewJobId.js";
 import { DeskAccessGate, DeskSessionBootstrap } from "@/v2/DeskAccessGate";
 import { EmailLinkConfirmation, readEmailLinkFragment } from "./EmailSignIn.jsx";
+import { AccessScreen } from "./AccessScreen.jsx";
 import {
   datasetObject,
   discoverHistoryObject,
@@ -212,7 +213,15 @@ export function V2App() {
   const [identity, setIdentity] = useState("");
   const [emailLink] = useState(INITIAL_EMAIL_LINK);
   const [emailLinkDismissed, setEmailLinkDismissed] = useState(false);
-  if (emailLink !== null && !emailLinkDismissed) return <EmailLinkConfirmation token={emailLink} onCancel={() => { window.history.replaceState(null, "", "/?tab=settings"); setEmailLinkDismissed(true); }} />;
+  if (emailLink !== null && !emailLinkDismissed) {
+    return (
+      <EmailLinkConfirmation
+        token={emailLink}
+        onCancel={() => { window.history.replaceState(null, "", "/?tab=home"); setEmailLinkDismissed(true); }}
+        onRequestNew={() => { window.history.replaceState(null, "", "/?tab=home&access=signin"); setEmailLinkDismissed(true); }}
+      />
+    );
+  }
   return <DeskWorkspace key={identity} onIdentityChanged={setIdentity} />;
 }
 
@@ -356,6 +365,21 @@ function DeskWorkspace({ onIdentityChanged }) {
   const memberAccessCodeAvailable = Boolean(deskAccess?.session?.member_access_code_available);
   const emailSignInAvailable = Boolean(deskAccess?.session?.email_sign_in_available);
   const memberProviderSignInAvailable = emailSignInAvailable || Boolean(deskAccess?.session?.member_sign_in_path);
+  const [accessMode, setAccessMode] = useState(() => new URLSearchParams(window.location.search).get("access") || "");
+  const setAccessParam = useCallback((mode) => {
+    const url = new URL(window.location.href);
+    if (mode) url.searchParams.set("access", mode);
+    else url.searchParams.delete("access");
+    window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
+  }, []);
+  const openAccess = useCallback((mode = "signin") => {
+    setAccessMode(mode);
+    setAccessParam(mode);
+  }, [setAccessParam]);
+  const closeAccess = useCallback(() => {
+    setAccessMode("");
+    setAccessParam("");
+  }, [setAccessParam]);
   const beginCloudflareMemberSignIn = useCallback(() => {
     const path = String(deskAccess?.session?.member_sign_in_path || "").trim();
     if (!path.startsWith("/")) {
@@ -1039,10 +1063,9 @@ function DeskWorkspace({ onIdentityChanged }) {
   );
 
   const beginMemberSignIn = useCallback(() => {
-    if (emailSignInAvailable) { goTab("settings"); return; }
-    if (memberAccessCodeAvailable) { setRailTab("ask"); return; }
+    if (emailSignInAvailable || memberAccessCodeAvailable) { openAccess("signin"); return; }
     beginCloudflareMemberSignIn();
-  }, [beginCloudflareMemberSignIn, memberAccessCodeAvailable, emailSignInAvailable, goTab]);
+  }, [beginCloudflareMemberSignIn, memberAccessCodeAvailable, emailSignInAvailable, openAccess]);
 
   const handleSynthesisDiscoverHandoff = useCallback(
     ({ field, handoff, thread } = {}) => {
@@ -1867,6 +1890,7 @@ function DeskWorkspace({ onIdentityChanged }) {
           canUseSynthesis={canUseAsk}
           isGuest={deskAccess?.principal?.role === "public_guest"}
           onSignIn={memberSignInAvailable ? beginMemberSignIn : undefined}
+          onCreateAccount={emailSignInAvailable && deskAccess?.session?.email_signup_available ? () => openAccess("signup") : undefined}
           acquisitions={acquisitions}
           partitions={partitions}
           jobs={jobs}
@@ -2171,6 +2195,7 @@ function DeskWorkspace({ onIdentityChanged }) {
           health={health}
           deskAccess={deskAccess}
           onSignOut={signOut}
+          onOpenAccess={openAccess}
           onAccountChanged={refreshDeskAccess}
           jobs={jobs}
           jobsLoaded={jobsLoaded}
@@ -2255,6 +2280,15 @@ function DeskWorkspace({ onIdentityChanged }) {
 
   return (
     <div className={`yzu-shell with-inspector rd-theme-light rd-v2-shell${hideRail ? " no-rail" : ""}`}>
+      {accessMode && deskAccess?.principal?.role === "public_guest" ? (
+        <AccessScreen
+          mode={accessMode}
+          session={deskAccess?.session}
+          onModeChange={openAccess}
+          onClose={closeAccess}
+          onMemberCodeSignIn={memberAccessCodeAvailable ? signInWithMemberCode : undefined}
+        />
+      ) : null}
       <V2DeskHeader
         onBrandClick={() => goTab("home")}
         onRetry={refreshBackend}

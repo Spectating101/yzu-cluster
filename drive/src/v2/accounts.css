@@ -25,3 +25,30 @@
 .rd-email-signin button { justify-self: start; }
 .rd-email-account-options { margin: 14px 0; font-size: 12px; }
 .rd-email-account-options summary { cursor: pointer; }
+.rd-access-screen { position: fixed; inset: 0; z-index: 80; overflow-y: auto; }
+.rd-access-screen .rd-v2-access-card { width: min(480px, 100%); padding: 34px 38px 28px; }
+.rd-access-screen .rd-v2-access-lockup { margin-bottom: 26px; }
+.rd-access-screen h1 { margin: 0 0 8px; color: #182033; font-size: 26px; font-weight: 700; line-height: 1.15; letter-spacing: -0.01em; }
+.rd-access-screen .rd-access-lead { margin: 0 0 20px; color: #5b6578; font-size: var(--rd-text-sm); line-height: 1.55; }
+.rd-access-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin: 0 0 22px; padding: 4px; border: 1px solid #e2ddd2; border-radius: 10px; background: #f4f1e8; }
+.rd-access-tabs button { min-height: 34px; border: 0; border-radius: 7px; background: transparent; color: #5b6578; font: inherit; font-size: var(--rd-text-sm); font-weight: 600; cursor: pointer; }
+.rd-access-tabs button[aria-selected="true"] { background: #fffdf6; color: #101820; box-shadow: 0 1px 3px rgba(16, 24, 32, 0.12); }
+.rd-access-form { display: grid; gap: 14px; }
+.rd-access-form label { display: grid; gap: 6px; color: #2a3a52; font-size: var(--rd-text-xs); font-weight: 600; }
+.rd-access-form .rd-v2-input { width: 100%; min-height: 40px; font-size: var(--rd-text-sm); }
+.rd-access-form .rd-v2-btn.primary { min-height: 42px; justify-content: center; }
+.rd-access-form small, .rd-access-sent small, .rd-access-screen section > small { display: block; margin: 10px 0 0; color: #6e7685; font-size: var(--rd-text-2xs); line-height: 1.5; }
+.rd-access-error { margin: 0; color: #9b2c2c; font-size: var(--rd-text-xs); line-height: 1.5; }
+.rd-access-links { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin-top: 18px; }
+.rd-access-links button, .rd-access-back, .rd-access-close { padding: 0; border: 0; background: none; color: #3f6f5c; font: inherit; font-size: var(--rd-text-xs); font-weight: 600; cursor: pointer; }
+.rd-access-links button:hover, .rd-access-back:hover, .rd-access-close:hover { text-decoration: underline; }
+.rd-access-back { display: block; margin-bottom: 14px; }
+.rd-access-close { display: block; margin: 24px auto 0; color: #6e7685; }
+.rd-access-sent p { margin: 0 0 20px; color: #5b6578; font-size: var(--rd-text-sm); line-height: 1.6; }
+.rd-access-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.rd-access-actions a.rd-v2-btn { text-decoration: none; }
+.rd-email-link-gate { position: fixed; inset: 0; overflow-y: auto; }
+.rd-email-link-gate .rd-v2-access-card { width: min(480px, 100%); }
+.rd-email-link-gate h1 { margin: 0 0 10px; font-size: 26px; line-height: 1.15; }
+.rd-email-link-gate p { margin: 0 0 18px; color: #5b6578; font-size: var(--rd-text-sm); line-height: 1.6; }
+.rd-account-entry { margin-top: 14px; }

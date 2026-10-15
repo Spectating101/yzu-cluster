@@ -139,7 +139,7 @@ function AskSignInPanel({
       </p>
       {providerAvailable && onProviderSignIn ? (
         <button type="button" className="rd-v2-btn primary" onClick={onProviderSignIn}>
-          Continue with email
+          Sign in or create account
         </button>
       ) : null}
       {memberAccessCodeAvailable && onMemberCodeSignIn ? (

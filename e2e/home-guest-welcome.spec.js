@@ -20,8 +20,11 @@ test("a signed-out visitor is told what Research Drive does and where to start",
   await expect(welcome).toContainText("Research data you can use, with where it came from");
   await expect(welcome.getByRole("listitem")).toHaveCount(3);
   await expect(page.getByTestId("home-continue")).toHaveCount(0);
-  await welcome.getByRole("button", { name: "Sign in" }).click();
-  await expect(page.getByRole("form", { name: "Email account access" })).toBeVisible();
+  await expect(welcome.getByRole("button", { name: "Create account" })).toBeVisible();
+  await welcome.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(page.getByTestId("access-screen").getByRole("heading", { name: "Sign in to Research Drive" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByTestId("access-screen")).toHaveCount(0);
 
   await page.goto("/?tab=home", { waitUntil: "domcontentloaded" });
   await waitForShell(page);

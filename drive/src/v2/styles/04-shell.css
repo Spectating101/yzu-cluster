@@ -114,6 +114,22 @@
   gap: 10px;
 }
 
+.rd-v2-home-welcome-signin {
+  margin: 12px 0 0;
+  color: var(--rd-muted);
+  font-size: var(--rd-text-xs);
+}
+
+.rd-v2-home-welcome-signin button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #3f6f5c;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
 .rd-v2-home-guest-ready {
   margin-top: 14px;
 }

@@ -11,9 +11,9 @@
 const TONE_VISIBLE = ["warn", "error", "danger", "bad"];
 
 export function deskStatusBadge(deskStatus, usingSeed = false) {
-  if (deskStatus === "ok") return { label: "Live registry", tone: "ok" };
+  if (deskStatus === "ok") return { label: "Online", tone: "ok" };
   if (deskStatus === "syncing") return { label: "Syncing…", tone: "muted" };
-  if (deskStatus === "empty") return { label: "Empty registry", tone: "warn" };
+  if (deskStatus === "empty") return { label: "Library empty", tone: "warn" };
   if (usingSeed || deskStatus === "demo") return { label: "Demo catalog", tone: "warn" };
   if (deskStatus === "degraded") return { label: "Research Drive needs attention", tone: "warn" };
   return { label: "Research Drive API offline", tone: "warn" };

@@ -95,6 +95,7 @@ export function SettingsPage({
   onToast,
   onSettingsChange,
   onSignOut,
+  onOpenAccess,
   onAccountChanged,
 }) {
   const [settings, setSettings] = useState(() => loadSettings());
@@ -180,7 +181,7 @@ export function SettingsPage({
       lead="Your account, and how Research Drive behaves in this browser."
     >
       <div className="rd-v2-settings-statement">
-        <AccountSection deskAccess={deskAccess} onSignOut={onSignOut} />
+        <AccountSection deskAccess={deskAccess} onSignOut={onSignOut} onOpenAccess={onOpenAccess} />
         <AccountAdministration deskAccess={deskAccess} />
         <StatementSection title="Workspace behavior">
           <div className="rd-v2-settings-preference-grid">

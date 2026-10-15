@@ -81,7 +81,7 @@ test.beforeEach(async ({ page }) => {
 
 async function waitLive(page) {
   await page.locator(".rd-v2-shell").waitFor({ timeout: 30_000 });
-  const live = page.locator(".rd-v2-trust-badge.ok", { hasText: "Live registry" });
+  const live = page.locator(".rd-v2-trust-badge.ok", { hasText: "Online" });
   try {
     await expect(live).toBeVisible({ timeout: 25_000 });
   } catch {

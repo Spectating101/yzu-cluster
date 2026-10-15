@@ -48,7 +48,7 @@ test.describe("beta workflow @ live-desk", () => {
   test("1 — header shows live registry, not demo seed", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await page.locator(".rd-v2-shell").waitFor({ timeout: 30_000 });
-    await expect(page.locator(".rd-v2-trust-badge.ok", { hasText: "Live registry" })).toBeVisible({
+    await expect(page.locator(".rd-v2-trust-badge.ok", { hasText: "Online" })).toBeVisible({
       timeout: 45_000,
     });
     await expect(page.locator(".rd-v2-trust-badge", { hasText: "Demo catalog" })).toHaveCount(0);

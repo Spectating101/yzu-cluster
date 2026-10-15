@@ -11,7 +11,7 @@ export function readEmailLinkFragment() {
   return token;
 }
 
-export function EmailLinkConfirmation({ token, onCancel }) {
+export function EmailLinkConfirmation({ token, onCancel, onRequestNew }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [target, setTarget] = useState(null);
@@ -29,16 +29,29 @@ export function EmailLinkConfirmation({ token, onCancel }) {
       markDeskSessionBootstrapped(true);
       notifyDeskIdentityChange();
       window.location.replace("/?tab=home");
-    } catch (reason) { setError(reason.message); setBusy(false); }
+    } catch (reason) { setTarget(null); setError(reason.message); setBusy(false); }
   };
-  return <main className="rd-v2-access-gate"><section className="rd-v2-access-card" aria-labelledby="rd-email-confirm-title">
-    <span className="rd-v2-access-kicker">RESEARCH DRIVE</span>
-    <h1 id="rd-email-confirm-title">Continue with your email link</h1>
-    {target ? <p>Account: <strong>{target.email}</strong></p> : !error ? <p role="status">Checking the link…</p> : null}
-    <p>This signs this browser into the account that requested the link. If you are already signed in, it replaces that browser session. Recovery ends earlier sessions.</p>
-    <button type="button" className="rd-v2-btn primary" disabled={busy || Boolean(error) || !target} onClick={complete}>{busy ? "Verifying…" : "Continue to Research Drive"}</button>
-    <button type="button" className="rd-v2-btn ghost" disabled={busy} onClick={onCancel}>Return to sign in</button>
-    {error ? <p role="alert">{error}</p> : null}
+  const lockup = <div className="rd-v2-access-lockup" aria-hidden="true"><span className="rd-v2-access-mark">RD</span><span><strong>Research Drive</strong><small>Research data you can use, with where it came from</small></span></div>;
+  if (error && !target) {
+    return <main className="rd-v2-access-gate rd-email-link-gate"><section className="rd-v2-access-card" aria-labelledby="rd-email-confirm-title" data-testid="email-link-invalid">
+      {lockup}
+      <h1 id="rd-email-confirm-title">This link can’t be used</h1>
+      <p role="alert">Sign-in links work once and expire after 15 minutes. Request a new one and open the latest email.</p>
+      <div className="rd-access-actions">
+        <button type="button" className="rd-v2-btn primary" onClick={onRequestNew || onCancel}>Request a new link</button>
+        <button type="button" className="rd-v2-btn ghost" onClick={onCancel}>Back to Research Drive</button>
+      </div>
+    </section></main>;
+  }
+  return <main className="rd-v2-access-gate rd-email-link-gate"><section className="rd-v2-access-card" aria-labelledby="rd-email-confirm-title">
+    {lockup}
+    <h1 id="rd-email-confirm-title">{target ? "Continue to Research Drive" : "Checking your link…"}</h1>
+    {target ? <p>Signing in as <strong>{target.email}</strong>. If this browser is signed in to another account, that session ends.</p> : <p role="status">This takes a moment.</p>}
+    <div className="rd-access-actions">
+      <button type="button" className="rd-v2-btn primary" disabled={busy || !target} onClick={complete}>{busy ? "Signing in…" : "Continue"}</button>
+      <button type="button" className="rd-v2-btn ghost" disabled={busy} onClick={onCancel}>Cancel</button>
+    </div>
+    {error ? <p role="alert" className="rd-access-error">{error}</p> : null}
   </section></main>;
 }
 

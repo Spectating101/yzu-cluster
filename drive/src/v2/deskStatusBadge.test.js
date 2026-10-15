@@ -4,9 +4,9 @@ import { deskStatusBadge, deskStatusSummary, visibleIntegrationChips } from "./d
 
 describe("deskStatusBadge", () => {
   it("maps each desk state to one label", () => {
-    assert.deepEqual(deskStatusBadge("ok"), { label: "Live registry", tone: "ok" });
+    assert.deepEqual(deskStatusBadge("ok"), { label: "Online", tone: "ok" });
     assert.deepEqual(deskStatusBadge("syncing"), { label: "Syncing…", tone: "muted" });
-    assert.deepEqual(deskStatusBadge("empty"), { label: "Empty registry", tone: "warn" });
+    assert.deepEqual(deskStatusBadge("empty"), { label: "Library empty", tone: "warn" });
     assert.deepEqual(deskStatusBadge("degraded"), { label: "Research Drive needs attention", tone: "warn" });
     assert.deepEqual(deskStatusBadge("demo"), { label: "Demo catalog", tone: "warn" });
   });
@@ -44,7 +44,7 @@ describe("visibleIntegrationChips", () => {
       { id: "b", label: "Broken", tone: "error" },
       { id: "c", label: "Quiet", tone: "muted" },
     ];
-    assert.deepEqual(visibleIntegrationChips(chips, "Live registry").map((c) => c.id), ["b"]);
+    assert.deepEqual(visibleIntegrationChips(chips, "Online").map((c) => c.id), ["b"]);
   });
 
   it("collapses chips duplicated among themselves", () => {
@@ -52,20 +52,20 @@ describe("visibleIntegrationChips", () => {
       { id: "a", label: "NVMe 87%", tone: "warn" },
       { id: "b", label: "NVMe 87%", tone: "warn" },
     ];
-    assert.deepEqual(visibleIntegrationChips(chips, "Live registry").map((c) => c.id), ["a"]);
+    assert.deepEqual(visibleIntegrationChips(chips, "Online").map((c) => c.id), ["a"]);
   });
 
   it("survives absent or malformed input", () => {
-    assert.deepEqual(visibleIntegrationChips(null, "Live registry"), []);
-    assert.deepEqual(visibleIntegrationChips([null, { tone: "warn" }], "Live registry"), []);
+    assert.deepEqual(visibleIntegrationChips(null, "Online"), []);
+    assert.deepEqual(visibleIntegrationChips([null, { tone: "warn" }], "Online"), []);
   });
 });
 
 describe("deskStatusSummary", () => {
   it("keeps a healthy desk to one quiet status", () => {
     assert.deepEqual(
-      deskStatusSummary({ label: "Live registry", tone: "ok" }, []),
-      { label: "Live registry", tone: "ok", details: ["Live registry"] },
+      deskStatusSummary({ label: "Online", tone: "ok" }, []),
+      { label: "Online", tone: "ok", details: ["Online"] },
     );
   });
 

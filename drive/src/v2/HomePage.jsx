@@ -91,7 +91,7 @@ function resolveHomePosture({ loading, point }) {
   };
 }
 
-function WelcomeCard({ onGoTab, onSignIn }) {
+function WelcomeCard({ onGoTab, onSignIn, onCreateAccount }) {
   return (
     <article className="rd-v2-home-pickup-card rd-v2-home-welcome" data-testid="home-welcome">
       <span className="rd-v2-home-eyebrow">Welcome to Research Drive</span>
@@ -99,20 +99,24 @@ function WelcomeCard({ onGoTab, onSignIn }) {
       <ol className="rd-v2-home-welcome-steps">
         <li><strong>Browse the Library.</strong> Preview datasets that are ready to query, see their source, and download them as CSV.</li>
         <li><strong>Describe what you need in Discover.</strong> See what the Library already covers and where the rest can be collected.</li>
-        <li><strong>Sign in to do more.</strong> Ask the research assistant, request new collections, and save builds.</li>
+        <li><strong>{onCreateAccount ? "Create an account to do more." : "Sign in to do more."}</strong> Ask the research assistant, request new collections, and save builds.</li>
       </ol>
       <div className="rd-v2-home-welcome-actions">
         <button type="button" className="rd-v2-btn primary" onClick={() => onGoTab?.("library")}>Browse the Library</button>
         <button type="button" className="rd-v2-btn" onClick={() => onGoTab?.("browse")}>Find data</button>
-        {onSignIn ? <button type="button" className="rd-v2-btn" onClick={onSignIn}>Sign in</button> : null}
+        {onCreateAccount ? <button type="button" className="rd-v2-btn" onClick={onCreateAccount}>Create account</button> : null}
+        {onSignIn && !onCreateAccount ? <button type="button" className="rd-v2-btn" onClick={onSignIn}>Sign in</button> : null}
       </div>
+      {onSignIn && onCreateAccount ? (
+        <p className="rd-v2-home-welcome-signin">Already have an account? <button type="button" onClick={onSignIn}>Sign in</button></p>
+      ) : null}
     </article>
   );
 }
 
 function firstSentence(value) {
   const textValue = String(value || "").replace(/\s+/g, " ").trim();
-  const end = textValue.search(/[.!?](\s|$)/);
+  const end = textValue.search(/(?<!\b(?:St|Mr|Mrs|Ms|Dr|Inc|Co|Corp|Ltd|Jr|vs|No|U\.S|e\.g|i\.e))[.!?](?=\s+[A-Z0-9]|$)/);
   return end > 0 ? textValue.slice(0, end + 1) : textValue;
 }
 
@@ -229,6 +233,7 @@ export function HomePage({
   canUseSynthesis = true,
   isGuest = false,
   onSignIn,
+  onCreateAccount,
   loadError = "",
   onGoTab,
   onOpenAttention,
@@ -348,7 +353,7 @@ export function HomePage({
     <PageShell
       className="rd-v2-home-page rd-v2-home-i10"
       title="Home"
-      lead={isGuest ? "Find research data you can use, and see where it came from" : homePosture.lead}
+      lead={isGuest ? "Start here" : homePosture.lead}
       footer={null}
       surfaceState={surfaceState}
     >
@@ -356,7 +361,7 @@ export function HomePage({
       <div className="rd-v2-home-topband" data-home-posture={isGuest ? "welcome" : homePosture.id}>
         {isGuest ? (
           <section className="rd-v2-home-pickup" aria-label="Welcome">
-            <WelcomeCard onGoTab={onGoTab} onSignIn={onSignIn} />
+            <WelcomeCard onGoTab={onGoTab} onSignIn={onSignIn} onCreateAccount={onCreateAccount} />
             <GuestReadyDatasets datasets={datasets} onGoTab={onGoTab} onSelectDataset={onSelectDataset} />
           </section>
         ) : <section className="rd-v2-home-pickup" aria-label="Pick up">

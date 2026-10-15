@@ -9,33 +9,42 @@ const access = (id = "guest-fixture", role = "public_guest") => ({ version: 2, a
 });
 
 test("guest can create an account, request another link and accept an invitation without storing the code", async ({ page }) => {
+  await page.clock.install();
   await mockV2Api(page);
   await page.route("**/library/desk/capabilities", (route) => fulfill(route, access()));
   const requests = [];
   await page.route("**/library/desk/email/request", (route) => {
     requests.push(route.request().postDataJSON());
-    return fulfill(route, { ok: true, message: "If this address can use the requested account option, a sign-in link will arrive shortly. Check your inbox and spam folder." });
+    return fulfill(route, { ok: true, message: "If this address can use the requested account option, a sign-in link will arrive shortly." });
   });
   await page.goto("/?tab=home", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
   await page.getByRole("button", { name: "Account", exact: true }).click();
   await page.getByTestId("member-sign-in").click();
   await expect(page.getByRole("menu", { name: "Account destinations" })).toHaveCount(0);
-  const form = page.getByRole("form", { name: "Email account access" });
-  await expect(form).toBeVisible();
-  await form.getByLabel("Account option").selectOption("signup");
-  await form.getByLabel("Account email").fill("alice@example.test");
-  await form.getByLabel("Your name").fill("Alice");
-  await form.getByRole("button", { name: "Email me a sign-in link" }).click();
-  await expect(form.getByRole("status")).toContainText("Check your inbox");
+  const screen = page.getByTestId("access-screen");
+  await expect(screen.getByRole("heading", { name: "Sign in to Research Drive" })).toBeVisible();
+  await screen.getByRole("tab", { name: "Create account" }).click();
+  await screen.getByLabel("Your name").fill("Alice");
+  await screen.getByLabel("University email").fill("alice@example.test");
+  await screen.locator("form button[type=submit]").click();
+  await expect(screen.getByTestId("access-check-email")).toContainText("alice@example.test");
   expect(requests[0]).toEqual({ email: "alice@example.test", purpose: "signup", display_name: "Alice" });
-  await form.getByRole("button", { name: "Request another link" }).click();
+  await expect(screen.getByRole("button", { name: /Send again in/ })).toBeDisabled();
+  await page.clock.fastForward(31000);
+  await screen.getByRole("button", { name: "Send again", exact: true }).click();
   await expect.poll(() => requests.length).toBe(2);
-  await form.getByLabel("Account option").selectOption("invite");
-  await form.getByLabel("Invitation or existing access code").fill("synthetic-invitation");
-  await form.getByRole("button", { name: "Email me a sign-in link" }).click();
-  await expect(form.getByLabel("Invitation or existing access code")).toHaveValue("");
+  expect(requests[1]).toEqual(requests[0]);
+  await screen.getByRole("button", { name: "Use a different email" }).click();
+  await screen.getByRole("tab", { name: "Sign in" }).click();
+  await screen.getByRole("button", { name: "Have an invitation code?" }).click();
+  await screen.getByLabel("Email").fill("alice@example.test");
+  await screen.getByLabel("Invitation code").fill("synthetic-invitation");
+  await screen.getByRole("button", { name: "Email me a sign-in link" }).click();
+  await expect(screen.getByTestId("access-check-email")).toBeVisible();
   expect(requests[2]).toEqual({ email: "alice@example.test", purpose: "invite", invitation: "synthetic-invitation" });
+  await screen.getByRole("button", { name: "Use a different email" }).click();
+  await expect(screen.getByLabel("Invitation code")).toHaveValue("");
   const stored = await page.evaluate(() => JSON.stringify({ ...localStorage, ...sessionStorage }));
   expect(stored).not.toContain("synthetic-invitation");
   await page.screenshot({ path: test.info().outputPath("guest-email-access.png"), fullPage: true });
@@ -62,7 +71,7 @@ test("email callback shows its account, removes the fragment and requires explic
   expect(page.url()).not.toContain(token);
   expect(consumes).toBe(0);
   await page.screenshot({ path: test.info().outputPath("email-link-confirmation.png"), fullPage: true });
-  await page.getByRole("button", { name: "Continue to Research Drive", exact: true }).click();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
   await waitForShell(page);
   await expect(page.getByRole("heading", { name: "Welcome, stable-alice", exact: true })).toBeVisible();
   expect(consumes).toBe(1);
@@ -77,11 +86,12 @@ test("expired email link does not activate an account and returns to sign in", a
   await page.route("**/library/desk/email/inspect", (route) => fulfill(route, { message: "This link is invalid or expired. Request a new link." }, 400));
   await page.route("**/library/desk/email/consume", (route) => { consumes += 1; return fulfill(route, {}, 400); });
   await page.goto(`/#desk-email=${"b".repeat(43)}`, { waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("alert")).toContainText("invalid or expired");
-  await expect(page.getByRole("button", { name: "Continue to Research Drive", exact: true })).toBeDisabled();
+  await expect(page.getByTestId("email-link-invalid")).toBeVisible();
+  await expect(page.getByRole("alert")).toContainText("expire");
+  await expect(page.getByRole("button", { name: "Continue", exact: true })).toHaveCount(0);
   expect(consumes).toBe(0);
-  await page.getByRole("button", { name: "Return to sign in", exact: true }).click();
-  await expect(page.getByRole("form", { name: "Email account access" })).toBeVisible();
+  await page.getByRole("button", { name: "Request a new link", exact: true }).click();
+  await expect(page.getByTestId("access-screen").getByRole("heading", { name: "Sign in to Research Drive" })).toBeVisible();
 });
 
 test("verified researcher can request recovery without account administration", async ({ page }) => {
@@ -108,15 +118,15 @@ test("email service failure remains actionable without claiming a link was sent"
   await page.route("**/library/desk/email/request", (route) => fulfill(route, { message: "Email account access is temporarily unavailable. Try again shortly." }, 503));
   await page.goto("/?tab=settings", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
-  const form = page.getByRole("form", { name: "Email account access" });
-  await form.getByLabel("Account option").selectOption("signup");
-  await expect(form).toContainText("visible to you and desk operators");
-  await form.getByLabel("Account email").fill("alice@example.test");
-  await form.getByLabel("Your name").fill("Alice");
-  await form.getByRole("button", { name: "Email me a sign-in link" }).click();
-  await expect(form.getByRole("alert")).toContainText("temporarily unavailable");
-  await expect(form.getByRole("status")).toHaveCount(0);
-  await expect(form.getByRole("button", { name: "Email me a sign-in link" })).toBeEnabled();
+  await page.locator(".rd-account-entry").getByRole("button", { name: "Create account" }).click();
+  const screen = page.getByTestId("access-screen");
+  await expect(screen).toContainText("visible to you and the desk operators");
+  await screen.getByLabel("Your name").fill("Alice");
+  await screen.getByLabel("University email").fill("alice@example.test");
+  await screen.locator("form button[type=submit]").click();
+  await expect(screen.getByRole("alert")).toContainText("temporarily unavailable");
+  await expect(screen.getByTestId("access-check-email")).toHaveCount(0);
+  await expect(screen.locator("form button[type=submit]")).toBeEnabled();
 });
 
 test("a link invalidated after inspection cannot complete or change the browser account", async ({ page }) => {
@@ -127,21 +137,21 @@ test("a link invalidated after inspection cannot complete or change the browser 
   await page.route("**/library/desk/email/consume", (route) => { consumes += 1; return fulfill(route, { message: "This link is invalid or expired. Request a new link." }, 400); });
   await page.goto(`/#desk-email=${"c".repeat(43)}`, { waitUntil: "domcontentloaded" });
   await expect(page.getByText("alice@example.test", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Continue to Research Drive", exact: true }).click();
-  await expect(page.getByRole("alert")).toContainText("invalid or expired");
-  await expect(page.getByRole("button", { name: "Continue to Research Drive", exact: true })).toBeDisabled();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await expect(page.getByTestId("email-link-invalid")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Continue", exact: true })).toHaveCount(0);
   expect(consumes).toBe(1);
-  await page.getByRole("button", { name: "Return to sign in", exact: true }).click();
-  await expect(page.getByText("Guest browsing", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Back to Research Drive", exact: true }).click();
+  await waitForShell(page);
+  await expect(page.getByTestId("home-welcome")).toBeVisible();
 });
-
 
 test("email confirmation fits a phone viewport and is usable from the keyboard", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await mockV2Api(page);
   await page.route("**/library/desk/email/inspect", (route) => fulfill(route, { email: "alice@example.test", purpose: "signup" }));
   await page.goto(`/#desk-email=${"d".repeat(43)}`, { waitUntil: "domcontentloaded" });
-  const button = page.getByRole("button", { name: "Continue to Research Drive", exact: true });
+  const button = page.getByRole("button", { name: "Continue", exact: true });
   await expect(button).toBeEnabled();
   await page.keyboard.press("Tab");
   await expect(button).toBeFocused();
