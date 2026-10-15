@@ -542,14 +542,13 @@ function DeskWorkspace({ onIdentityChanged }) {
       // lever, not parallelism — this move was worth 4.3x, concurrency ~1.3x.
     setLibraryNavLoading(true);
     setLibraryNavError("");
-    try {
-      applyNavigation(await listLibraryNav());
-    } catch (error) {
-      clearNavigation();
-      setLibraryNavError(error?.message || String(error));
-    } finally {
-      setLibraryNavLoading(false);
-    }
+    listLibraryNav()
+      .then((navigation) => applyNavigation(navigation))
+      .catch((error) => {
+        clearNavigation();
+        setLibraryNavError(error?.message || String(error));
+      })
+      .finally(() => setLibraryNavLoading(false));
 
     if (canViewOperations) {
       // Health owns the header, assistant gate, and canonical-archive truth.
