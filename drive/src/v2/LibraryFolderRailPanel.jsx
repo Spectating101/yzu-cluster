@@ -95,7 +95,7 @@ export function LibraryFolderRailPanel({
         <section className="rd-v2-library-folder-summary">
           <span hidden>{legacySummaryLabel}</span>
           <p className="rd-v2-rail-section-label">{summaryLabel}</p>
-          <h3>{loading ? "Reading your Library…" : pluralCount(totalAssets, "asset")}</h3>
+          <h3>{loading ? "Reading your Library…" : pluralCount(totalAssets, "dataset")}</h3>
           <div className="rd-v2-library-folder-readiness" aria-busy={loading || undefined}>
             {loading ? <span>Data saved to Library is still loading.</span> : null}
             {counts.queryReady > 0 ? <span><b>{counts.queryReady}</b> ready to query</span> : null}

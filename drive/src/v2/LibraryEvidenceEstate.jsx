@@ -168,7 +168,7 @@ export function LibraryEvidenceEstate({
 
       <div className={ledgerClass} role="table" aria-label="Library evidence">
         <div className="rd-v2-cap-ledger-head" role="row">
-          <span role="columnheader">Evidence</span>
+          <span role="columnheader">Dataset</span>
           {showKind ? <span role="columnheader">Type</span> : null}
           <span role="columnheader">Source</span>
           {showVerify ? <span role="columnheader" title="Whether the recorded source evidence has been checked">Verify</span> : null}
