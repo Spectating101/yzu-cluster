@@ -1589,8 +1589,8 @@ test.describe("v2 Synthesis measured evidence integration", () => {
     await expect(page.getByTestId("synthesis-measurement-status")).toContainText("2 mapped inputs measured from Library data");
     await expect(page.getByTestId("synthesis-measurement-status")).toContainText("5 columns profiled");
     await expect(page.getByRole("list", { name: "Measured risks" })).toContainText("3Flagged");
-    await expect(page.getByRole("list", { name: "Measured risks" })).toContainText("1Look-ahead");
-    await expect(page.getByRole("list", { name: "Measured risks" })).toContainText("2Scale twins");
+    await expect(page.getByRole("list", { name: "Measured risks" })).toContainText("1Uses future data");
+    await expect(page.getByRole("list", { name: "Measured risks" })).toContainText("2Scale mismatch");
     const openingRail = page.getByTestId("synthesis-opening-rail");
     await expect(openingRail).toContainText("Evidence");
     await expect(openingRail).toContainText("2 mapped");

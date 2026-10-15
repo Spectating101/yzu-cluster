@@ -12,6 +12,7 @@ import { synthesisDraftBrief, synthesisDraftPrompt } from "@/v2/synthesisDraft.j
 import { synthesisPreviewTruth } from "@/v2/synthesisLifecycle";
 import { isPreAcceptance, recommendedConstruction, researchBrief } from "@/v2/synthesisBrief.js";
 import { describeDataset } from "@/v2/api";
+import { plainIdentifiers } from "./plainText.js";
 
 function normalizedExecutionStatus(thread) {
   return String(thread?.state?.execution?.status || "").trim().toLowerCase().replace(/-/g, "_");
@@ -200,7 +201,7 @@ function OpeningThreadRail({ thread, onAsk }) {
                 {nodes.slice(0, 6).map((node, index) => (
                   <li key={node.id || node.dataset_id || `${node.label}-${index}`}>
                     <b>{node.label || node.dataset_id || node.id || `Input ${index + 1}`}</b>
-                    <span>{[node.role, node.grain, node.coverage].filter(Boolean).join(" · ") || node.detail || "Data in your Library"}</span>
+                    <span>{[node.role, plainIdentifiers(node.grain), node.coverage].filter(Boolean).join(" · ") || node.detail || "Data in your Library"}</span>
                   </li>
                 ))}
               </ul>
@@ -227,9 +228,9 @@ function OpeningThreadRail({ thread, onAsk }) {
                 <div><dt>Columns</dt><dd>{profiles.length}</dd></div>
                 <div><dt>Flagged</dt><dd>{flaggedProfiles.length}</dd></div>
                 <div><dt>Unread</dt><dd>{unmeasured.length}</dd></div>
-                <div><dt>Look-ahead</dt><dd>{countFlag("lookahead")}</dd></div>
+                <div><dt>Uses future data</dt><dd>{countFlag("lookahead")}</dd></div>
                 <div><dt>Sparse</dt><dd>{countFlag("sparse")}</dd></div>
-                <div><dt>Scale twins</dt><dd>{countFlag("unit_twin")}</dd></div>
+                <div><dt>Scale mismatch</dt><dd>{countFlag("unit_twin")}</dd></div>
               </dl>
             </section>
           ) : null}

@@ -81,9 +81,10 @@ export function unitScaleModel(conflict, outcomes = []) {
       recommended: Boolean(item.recommended),
     }));
   const resultMax = Math.max(...results.map((item) => item.magnitude), 0) || 1;
+  const informative = results.some((item) => item.magnitude > 0);
 
   return {
     inputs: inputs.map((item) => ({ ...item, percent: pct(item.magnitude, inputMax) })),
-    results: results.map((item) => ({ ...item, percent: pct(item.magnitude, resultMax) })),
+    results: informative ? results.map((item) => ({ ...item, percent: pct(item.magnitude, resultMax) })) : [],
   };
 }

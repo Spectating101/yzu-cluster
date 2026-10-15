@@ -18,13 +18,13 @@ function profileSets(profiles, dataset, datasets) {
     .filter((entry) => entry.profiles.length);
 }
 
-function DatasetSurface({ entry, inUse, expanded, onToggle, onOpenColumn, onOverride }) {
+function DatasetSurface({ entry, title, inUse, expanded, onToggle, onOpenColumn, onOverride }) {
   const grouped = groupColumns(entry.profiles, inUse);
   return (
     <article className="s04-measured-dataset" data-testid="synthesis-measured-dataset">
       <header>
         <small>Mapped Library input</small>
-        <strong>{entry.id}</strong>
+        <strong title={entry.id}>{title || entry.id}</strong>
       </header>
       <button
         type="button"
@@ -96,7 +96,7 @@ function DatasetSurface({ entry, inUse, expanded, onToggle, onOpenColumn, onOver
   );
 }
 
-export function MethodSurfacePanel({ dataset, datasets, profiles, inUse = [], onOpenColumn, onOverride }) {
+export function MethodSurfacePanel({ dataset, datasets, profiles, titles = {}, inUse = [], onOpenColumn, onOverride }) {
   const [expanded, setExpanded] = useState({});
   const sets = profileSets(profiles, dataset, datasets);
   if (!sets.length) return null;
@@ -106,15 +106,16 @@ export function MethodSurfacePanel({ dataset, datasets, profiles, inUse = [], on
       <header className="s04-title">
         <div>
           <small>Measured evidence</small>
-          <h2>{sets.length === 1 ? sets[0].id : `${sets.length} mapped Library inputs`}</h2>
+          <h2>{sets.length === 1 ? titles[sets[0].id] || sets[0].id : `${sets.length} mapped Library inputs`}</h2>
         </div>
-        <em className="neutral">Library data · no assistant</em>
+        <em className="neutral">Measured from Library data</em>
       </header>
       <div className="s04-measured-datasets">
         {sets.map((entry) => (
           <DatasetSurface
             key={entry.id}
             entry={entry}
+            title={titles[entry.id]}
             inUse={inUse}
             expanded={Boolean(expanded[entry.id])}
             onToggle={() => setExpanded((current) => ({ ...current, [entry.id]: !current[entry.id] }))}
