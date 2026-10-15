@@ -249,6 +249,7 @@ function ThreadList({ threads, selectedId, loading, onSelect, onHome, onNew, cre
         ref={thread.id === selectedId ? selectedRef : null}
         className={thread.id === selectedId ? "active" : ""}
         onClick={() => onSelect(thread.id)}
+        title={titleFor(thread)}
         data-testid="synthesis-thread-item"
       >
         <b>{["registered", "query_ready"].includes(stateFor(thread)) ? "✓" : stateFor(thread) === "failed" ? "!" : "S"}</b>
