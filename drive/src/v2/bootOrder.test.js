@@ -29,13 +29,13 @@ const at = (needle) => {
 };
 
 test("the visible research estate loads before operational enrichment", () => {
-  const nav = at("applyNavigation(await listLibraryNav())");
+  const nav = at("listLibraryNav()");
   const resources = at("await deskResources(false)");
   assert.ok(nav < resources, "navigation must not wait behind the resources rollup");
 });
 
 test("the visible research estate loads before aggregate health", () => {
-  const nav = at("applyNavigation(await listLibraryNav())");
+  const nav = at("listLibraryNav()");
   const health = at("applyHealth(await deskHealth(false");
   assert.ok(nav < health, "navigation must not wait behind /health, which may probe for 12s");
 });
@@ -46,8 +46,13 @@ test("runtime truth is not stranded behind the full resources rollup", () => {
   assert.ok(health < resources, "header, assistant, and archive truth must settle before Resources");
 });
 
+test("navigation resolves in the background instead of holding the startup queue", () => {
+  assert.doesNotMatch(src, /await listLibraryNav\(\)/);
+  assert.match(src, /listLibraryNav\(\)\s*\.then\(\(navigation\) => applyNavigation\(navigation\)\)/);
+});
+
 test("the catalog still leads the boot sequence", () => {
-  assert.ok(at("applyCatalog(await listDatasets())") < at("applyNavigation(await listLibraryNav())"));
+  assert.ok(at("applyCatalog(await listDatasets())") < at("listLibraryNav()"));
 });
 
 test("deferred enrichment is still fetched, not dropped", () => {
