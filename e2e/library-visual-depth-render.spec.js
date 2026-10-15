@@ -219,7 +219,7 @@ test("render Library depth states on desktop", async ({ page }) => {
   const connectedRail = page.locator("aside.rd-v2-rail");
   await expect(connected.getByLabel("Evidence claims")).toBeHidden();
   await expect(connectedRail).toContainText("Connected");
-  await expect(connectedRail).toContainText("Not checked");
+  await expect(connectedRail).toContainText("Not yet compared with source");
   await expect(connected.getByRole("button", { name: "View all rows" })).toHaveCount(0);
   await expect(connected.getByRole("button", { name: "Ask about this source" })).toHaveCount(0);
   const connectedPreview = connected.getByTestId("library-data-preview");
@@ -286,7 +286,7 @@ test("render Library depth states on mobile", async ({ page }) => {
   await backToRoot(page);
   await openAsset(page, "Public blockchain query source");
   await expect(page.getByLabel("Evidence claims")).toContainText("Connected");
-  await expect(page.getByLabel("Evidence claims")).toContainText("Not checked");
+  await expect(page.getByLabel("Evidence claims")).toContainText("Not yet compared with source");
   await expect(page.locator("aside.rd-v2-rail")).toHaveClass(/rd-v2-rail-collapsed/);
   await assertNoPageOverflow(page);
   await page.screenshot({ path: `${OUT}/15-connected-source-mobile.png`, fullPage: false });

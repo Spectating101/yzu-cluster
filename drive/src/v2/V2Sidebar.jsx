@@ -81,7 +81,7 @@ export function V2Sidebar({
               <ul>
                 {recent.map((item) => (
                   <li key={item.id}>
-                    <button type="button" onClick={() => onOpenRecent?.(item)}>
+                    <button type="button" title={item.title} onClick={() => onOpenRecent?.(item)}>
                       {item.title}
                     </button>
                   </li>

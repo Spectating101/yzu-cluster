@@ -4,7 +4,7 @@ import { libraryVerification } from "./libraryVerification.js";
 
 test("verification is not inferred from query readiness", () => {
   const verification = libraryVerification({ analysis_readiness: "instant" });
-  assert.equal(verification.label, "Not checked");
+  assert.equal(verification.label, "Not yet compared with source");
   assert.equal(verification.kind, "unchecked");
 });
 
@@ -37,6 +37,6 @@ test("partial verification keeps unresolved evidence explicit", () => {
 
 test("unknown verification tokens fail closed to not checked", () => {
   const verification = libraryVerification({ verification_status: "probably_ok" });
-  assert.equal(verification.label, "Not checked");
+  assert.equal(verification.label, "Not yet compared with source");
   assert.equal(verification.explicit, true);
 });

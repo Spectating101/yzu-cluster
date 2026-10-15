@@ -2421,15 +2421,23 @@ summary:focus-visible {
   display: grid;
   gap: 4px;
 }
-.rd-v2-sidebar-recent button {
+.yzu-sidebar .rd-v2-sidebar-recent button {
+  display: -webkit-box;
+  height: auto;
+  min-height: 0;
+  overflow: hidden;
   border: 0;
   background: transparent;
-  padding: 4px 0;
+  margin: 4px 0;
+  padding: 0;
   text-align: left;
   color: var(--rd-sidebar-fg, #b7c0cc);
   font-size: var(--rd-text-xs);
+  line-height: 1.35;
   cursor: pointer;
   width: 100%;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 .rd-v2-sidebar-recent button:hover {
   color: var(--rd-sidebar-fg-strong, #fffdf6);
@@ -5011,6 +5019,18 @@ body,
 
 .rd-v2-library-workspace-actions a.rd-v2-btn {
   text-decoration: none;
+}
+
+.rd-v2-library-workspace-secondary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin-left: auto;
+}
+
+.rd-v2-library-workspace-secondary .rd-v2-btn.ghost {
+  color: var(--rd-muted);
+  font-weight: 600;
 }
 
 .rd-v2-library-section-heading {

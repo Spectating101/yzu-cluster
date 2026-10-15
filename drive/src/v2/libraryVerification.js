@@ -28,7 +28,7 @@ const COPY = {
     body: "A verification attempt did not establish correspondence with authoritative or sourcable evidence.",
   },
   not_checked: {
-    label: "Not checked",
+    label: "Not yet compared with source",
     kind: "unchecked",
     body: "No saved source comparison has been confirmed for this dataset.",
   },

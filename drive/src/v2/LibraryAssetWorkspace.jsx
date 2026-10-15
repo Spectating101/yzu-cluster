@@ -263,7 +263,7 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
       return undefined;
     }
     setPreview({ datasetId: dataset.dataset_id, loading: true, rows: [], error: "" });
-    queryDataset(dataset.dataset_id, analysis ? 10000 : 8)
+    queryDataset(dataset.dataset_id, analysis ? 10000 : 8, { spread: !analysis })
       .then((payload) => {
         if (!cancelled) {
           setPreview({
@@ -494,11 +494,13 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onOpenQuery,
           {datasetDownloadHref(dataset) ? (
             <a className="rd-v2-btn" href={datasetDownloadHref(dataset)} download data-testid="library-workspace-download">Download CSV</a>
           ) : null}
-          <button type="button" className="rd-v2-btn" onClick={() => setOverlay("provenance")}>Source record</button>
-          {canQuery ? <button type="button" className="rd-v2-btn" onClick={() => setPackageOpen(true)}>Export with provenance</button> : null}
-          {onRefreshData && collectionRecipe(dataset) ?
-            <button type="button" className="rd-v2-btn" disabled={refreshBusy} onClick={refreshData}>{refreshBusy ? "Preparing refresh…" : "Refresh data"}</button> : null}
-          {holdings.count ? <button type="button" className="rd-v2-btn" onClick={() => setOverlay("holdings")}>Your Library</button> : null}
+          <span className="rd-v2-library-workspace-secondary">
+            <button type="button" className="rd-v2-btn ghost" onClick={() => setOverlay("provenance")}>Source record</button>
+            {canQuery ? <button type="button" className="rd-v2-btn ghost" onClick={() => setPackageOpen(true)}>Export with provenance</button> : null}
+            {onRefreshData && collectionRecipe(dataset) ?
+              <button type="button" className="rd-v2-btn ghost" disabled={refreshBusy} onClick={refreshData}>{refreshBusy ? "Preparing refresh…" : "Refresh data"}</button> : null}
+            {holdings.count ? <button type="button" className="rd-v2-btn ghost" onClick={() => setOverlay("holdings")}>Your Library</button> : null}
+          </span>
           {!canQuery && state.kind === "registered" && onPrepare ? (
             <button type="button" className="rd-v2-btn primary" onClick={onPrepare}>Prepare local copy</button>
           ) : null}

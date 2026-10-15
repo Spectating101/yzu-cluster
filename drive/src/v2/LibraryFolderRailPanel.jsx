@@ -118,7 +118,7 @@ export function LibraryFolderRailPanel({
               label={structureLabel}
               value={loading ? "Reading…" : pluralCount(counts.folders, root ? "collection" : "folder")}
             />
-            <RailField label="Rows after filters" value={loading ? "Reading…" : String(scopedRows)} />
+            <RailField label="Datasets shown" value={loading ? "Reading…" : String(scopedRows)} />
           </RailFieldGrid>
           <p className="rd-v2-rail-note">{purpose}</p>
         </section>

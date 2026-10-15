@@ -124,7 +124,7 @@ test.describe("v2 Library evidence estate", () => {
     await expect(provenance).toContainText("Exact source URL");
     await expect(provenance).toContainText("Acquisition method");
     await expect(provenance.getByText("Not recorded", { exact: true })).toHaveCount(2);
-    await expect(page.getByTestId("library-source-verification")).toContainText("Not checked");
+    await expect(page.getByTestId("library-source-verification")).toContainText("Not yet compared with source");
     await expect(page.getByTestId("library-source-readiness")).toContainText("Ready to query");
     await provenance.getByRole("button", { name: "Close inspection" }).click();
 
