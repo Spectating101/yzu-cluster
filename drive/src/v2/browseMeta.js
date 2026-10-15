@@ -23,7 +23,7 @@ export {
 
 /**
  * Preserve taxonomy authority first, then use only an explicit backend
- * query_relevance measurement to order peers inside the same taxonomy group.
+ * rank_score (or query_relevance) measurement to order peers inside the same taxonomy group.
  * Unmeasured peers and ties preserve backend/API order. This is intentionally
  * not a frontend fit heuristic.
  */
@@ -36,8 +36,8 @@ export function orderDiscoverResults(rows, labIds) {
       const rightGroup = Number(right.row?.discover_taxonomy?.group ?? 99);
       if (leftGroup !== rightGroup) return leftGroup - rightGroup;
 
-      const leftRaw = left.row?.query_relevance;
-      const rightRaw = right.row?.query_relevance;
+      const leftRaw = left.row?.rank_score ?? left.row?.query_relevance;
+      const rightRaw = right.row?.rank_score ?? right.row?.query_relevance;
       const leftMeasured = leftRaw !== null && leftRaw !== undefined && leftRaw !== "" && Number.isFinite(Number(leftRaw));
       const rightMeasured = rightRaw !== null && rightRaw !== undefined && rightRaw !== "" && Number.isFinite(Number(rightRaw));
 
