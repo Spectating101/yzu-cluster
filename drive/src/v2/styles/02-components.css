@@ -2597,7 +2597,7 @@ summary:focus-visible {
   font-weight: 700;
   line-height: 1;
 }
-.rd-v2-history-row-3line { align-items: start; min-height: 78px; }
+.rd-v2-history-row-3line { align-items: start; min-height: 56px; }
 .rd-v2-history-main { display: grid; gap: 2px; }
 .rd-v2-history-line1 { display: flex; align-items: baseline; gap: 2px; }
 .rd-v2-history-line2,
