@@ -274,7 +274,7 @@ test.describe("Discover adaptive Explore", () => {
     await expect(page.getByTestId("discover-result-summary")).toBeVisible();
     await expect(page.getByRole("dialog", { name: "Review acquisition" })).toBeVisible();
     await expect(page.locator("aside.rd-v2-rail")).toContainText("Saved Discover decision record");
-    await expect(page.locator("aside.rd-v2-rail").getByRole("button", { name: "Request this evidence" })).toHaveCount(0);
+    await expect(page.locator("aside.rd-v2-rail").getByRole("button", { name: "Request this data" })).toHaveCount(0);
 
     await workspace.getByRole("button", { name: "Continue to route selection" }).click();
     await expect(workspace).toContainText("Reviewed routes");

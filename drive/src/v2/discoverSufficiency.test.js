@@ -195,7 +195,7 @@ describe("discoverSufficiency", () => {
     );
   });
 
-  it("exact local match changes primary action to Open local dataset", () => {
+  it("exact local match changes primary action to Open in Library", () => {
     const suf = assessLocalSufficiency(
       { dataset_id: "gdelt_asia_daily_country_panel" },
       [LAB_GDELT],

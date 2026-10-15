@@ -51,7 +51,7 @@ test.describe("Discover sufficiency screenshots", () => {
       collect_via: "http_fetch",
     });
     await expect(detail.getByTestId("discover-lab-coverage")).toContainText("Exact local match");
-    await expect(page.getByTestId("discover-eval-actions")).toContainText("Open local dataset");
+    await expect(page.getByTestId("discover-eval-actions")).toContainText("Open in Library");
     await shot(page, "01-desktop-exact-local");
 
     detail = await selectCandidate(page, {

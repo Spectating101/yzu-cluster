@@ -1222,13 +1222,13 @@ body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-sufficiency-copy .rd
 
 body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-scroll {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 8px;
   align-content: start;
   padding: 9px 12px 14px;
 }
 
-body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-scroll > .rd-v2-eval-block[aria-label="Useful for"],
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-scroll > .rd-v2-eval-block[aria-label="In plain terms"],
 body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-scroll > .rd-v2-eval-block[aria-label="Coverage"] {
   min-width: 0;
   padding: 9px 10px;
@@ -1237,7 +1237,7 @@ body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-scroll > .rd-v2-eval
   background: rgba(255,255,255,.5);
 }
 
-body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-scroll > .rd-v2-eval-block[aria-label="Useful for"] .rd-v2-eval-prose,
+body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-scroll > .rd-v2-eval-block[aria-label="In plain terms"] .rd-v2-eval-prose,
 body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-scroll > .rd-v2-eval-block[aria-label="Coverage"] .rd-v2-eval-prose,
 body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-scroll > .rd-v2-eval-block[aria-label="Coverage"] .rd-v2-eval-list {
   margin-top: 4px;

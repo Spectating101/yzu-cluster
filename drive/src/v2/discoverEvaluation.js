@@ -189,7 +189,7 @@ export function evaluationActions(row, taxonomy, { queued = false, hasProbeUrl =
   }
   if (key === "external-acquirable") {
     return {
-      primary: { id: "add_lab", label: "Request this evidence" },
+      primary: { id: "add_lab", label: "Request this data" },
       secondary: [
         hasProbeUrl && !probed ? { id: "probe", label: "Test connection" } : null,
         { id: "preview", label: "Inspect source" },
@@ -201,7 +201,7 @@ export function evaluationActions(row, taxonomy, { queued = false, hasProbeUrl =
     return {
       primary: { id: "preview", label: "Inspect source" },
       secondary: [
-        { id: "add_lab", label: "Request this evidence" },
+        { id: "add_lab", label: "Request this data" },
         hasProbeUrl ? { id: "probe", label: "Test connection again" } : null,
         { id: "ask", label: "Ask about this source" },
       ].filter(Boolean),
@@ -213,7 +213,7 @@ export function evaluationActions(row, taxonomy, { queued = false, hasProbeUrl =
       ? { id: "probe", label: "Test connection" }
       : { id: "preview", label: "Inspect source" },
     secondary: [
-      { id: "add_lab", label: "Request this evidence" },
+      { id: "add_lab", label: "Request this data" },
       { id: "ask", label: "Ask about this source" },
       hasProbeUrl ? { id: "preview", label: "Inspect source" } : null,
     ].filter(Boolean),

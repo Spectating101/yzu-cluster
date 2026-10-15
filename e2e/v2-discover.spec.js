@@ -592,13 +592,13 @@ test.describe("v2 Discover tab", () => {
     await expect(page.locator(".rd-v2-shell")).not.toHaveClass(/no-rail/);
     await expect(surface.locator(".rd-v2-eval-title")).toContainText(/MOPS|Taiwan/i);
     await expect(surface).toContainText("Can I use this?");
-    await expect(surface).toContainText("Useful for");
+    await expect(surface).toContainText("In plain terms");
     await expect(surface).toContainText("Still unknown");
     await expect(surface.locator(".rd-v2-eval-tech")).toBeVisible();
     await expect(surface.locator(".rd-v2-eval-tech")).not.toHaveAttribute("open");
     await expect(
       page.locator('[data-testid="discover-eval-actions"] .rd-v2-btn.primary', {
-        hasText: /Request this evidence|Open in Library/,
+        hasText: /Request this data|Open in Library/,
       }),
     ).toBeVisible();
     await expect(surface).not.toContainText("What we know");

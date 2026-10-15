@@ -5,6 +5,7 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
+import { buildObjectEstateCrumb } from "@/v2/deskIntegration";
 import { applyLifecycleToEvaluation, LIFECYCLE } from "@/v2/discoverLifecycle";
 import { buildDiscoverEvaluation } from "@/v2/discoverEvaluation";
 import { buildDiscoverStrategyCard } from "@/v2/discoverStrategyCard";
@@ -22,7 +23,6 @@ import {
   RailStickyFooter,
 } from "@/v2/RailFrame";
 import { EmptyRailState } from "@/v2/EmptyRailState";
-import { buildObjectEstateCrumb } from "@/v2/deskIntegration";
 
 const PATH_STAGES = [
   { id: "submitted", label: "Submitted" },
@@ -436,17 +436,16 @@ export function DiscoverEvaluationSurface({
 
   const reachedStages = new Set(lifecycle?.stages || []);
   const shellClass = variant === "workspace" ? "rd-v2-eval-workspace" : "rd-v2-eval-rail";
-  const estate = buildObjectEstateCrumb(target, {
-    probeState: probeState
-      ? {
-          loading: Boolean(probeLoading),
-          observedAt: probeState.observed_at || probeState.observedAt || probeState.at || null,
-        }
-      : probeLoading
-        ? { loading: true }
-        : null,
-    searchMeta: target?.search_meta || target?._search_meta || null,
-  });
+  const accessLine = (() => {
+    const { freshness } = buildObjectEstateCrumb(target, {
+      probeState: probeState
+        ? { loading: Boolean(probeLoading), observedAt: probeState.observed_at || probeState.observedAt || probeState.at || null }
+        : probeLoading
+          ? { loading: true }
+          : null,
+    });
+    return /^(Access|Connection)/.test(String(freshness || "")) ? freshness : "";
+  })();
 
   const body = (
     <>
@@ -462,16 +461,8 @@ export function DiscoverEvaluationSurface({
         <header className="rd-v2-eval-identity">
           <p className="rd-v2-eval-kicker">Selected candidate</p>
           <h2 className="rd-v2-eval-title">{evaluation.title}</h2>
-          <p className="rd-v2-eval-source">
-            {evaluation.sourceLine}
-            <span aria-hidden="true"> · </span>
-            {evaluation.taxonomyLabel}
-          </p>
-          {estate.location || estate.freshness || estate.authority ? (
-            <p className="rd-v2-estate-crumb" data-testid="object-estate-crumb">
-              {[estate.authority, estate.location, estate.freshness].filter(Boolean).join(" · ")}
-            </p>
-          ) : null}
+          <p className="rd-v2-eval-source">{evaluation.sourceLine}</p>
+          {accessLine ? <p className="rd-v2-estate-crumb" data-testid="object-estate-crumb">{accessLine}</p> : null}
         </header>
 
         <section className="rd-v2-eval-decision" aria-label="Can I use this">
@@ -575,91 +566,84 @@ export function DiscoverEvaluationSurface({
         ) : null}
 
         <div className="rd-v2-rail-scroll rd-v2-eval-scroll">
-          <section className="rd-v2-eval-block" aria-label="Useful for">
-            <p className="rd-v2-eval-section-label">Useful for</p>
+          <section className="rd-v2-eval-block" aria-label="In plain terms">
+            <p className="rd-v2-eval-section-label">In plain terms</p>
             <p className="rd-v2-eval-prose">{evaluation.usefulFor}</p>
           </section>
 
-          {evaluation.coverage.length ? (
-            <section className="rd-v2-eval-block" aria-label="Coverage">
-              <p className="rd-v2-eval-section-label">Coverage</p>
-              <ul className="rd-v2-eval-list">
-                {evaluation.coverage.map((line) => (
-                  <li key={line}>{line}</li>
-                ))}
-              </ul>
-            </section>
-          ) : (
-            <section className="rd-v2-eval-block" aria-label="Coverage">
-              <p className="rd-v2-eval-section-label">Coverage</p>
-              <p className="rd-v2-eval-prose muted">Coverage not described</p>
-            </section>
-          )}
-
-          <StrategyCard card={strategyCard} />
-
-          <div className="rd-v2-eval-evidence-grid">
-            {evaluation.hasProbe && evaluation.verified.length ? (
-              <section className="rd-v2-eval-block rd-v2-eval-verified" aria-label="Verified">
-                <p className="rd-v2-eval-section-label">Verified</p>
-                <ul className="rd-v2-eval-checklist">
-                  {evaluation.verified.map((item) => (
-                    <li key={item}>
-                      <span className="rd-v2-eval-mark ok" aria-hidden="true">
-                        ✓
-                      </span>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            ) : null}
-
-            <section className="rd-v2-eval-block rd-v2-eval-unknown" aria-label="Still unknown">
-              <p className="rd-v2-eval-section-label">Still unknown</p>
-              <ul className="rd-v2-eval-checklist">
-                {displayUnknowns.map((item) => (
-                  <li key={item}>
-                    <span className="rd-v2-eval-mark unknown" aria-hidden="true">
-                      ?
-                    </span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </section>
-          </div>
-
-          {evaluation.inferred.length ? (
-            <section className="rd-v2-eval-block rd-v2-eval-inferred" aria-label="Inferred">
-              <p className="rd-v2-eval-section-label">Inferred</p>
-              <ul className="rd-v2-eval-checklist">
-                {evaluation.inferred.map((item) => (
-                  <li key={item}>
-                    <span className="rd-v2-eval-mark infer" aria-hidden="true">
-                      ~
-                    </span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ) : null}
+          <section className="rd-v2-eval-block rd-v2-eval-unknown" aria-label="Still unknown">
+            <p className="rd-v2-eval-section-label">Still unknown</p>
+            <ul className="rd-v2-eval-checklist">
+              {displayUnknowns.map((item) => (
+                <li key={item}>
+                  <span className="rd-v2-eval-mark unknown" aria-hidden="true">
+                    ?
+                  </span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </section>
 
           {evaluation.probeError ? (
             <p className="rd-v2-discover-probe-error">{evaluation.probeError}</p>
           ) : null}
 
-          {evaluation.technical.length || evaluation.modelNotes.length ? (
-            <details key={targetKey} className="rd-v2-eval-tech">
-              <summary>Technical evidence</summary>
-              <div className="rd-v2-eval-tech-body">
-                {evaluation.modelNotes.map((note) => (
-                  <p key={note.label} className="rd-v2-eval-model-note">
-                    <span className="rd-v2-eval-section-label">Model interpretation</span>
-                    {note.detail || note.label}
-                  </p>
-                ))}
+          <details key={targetKey} className="rd-v2-eval-tech" data-testid="discover-eval-source-details">
+            <summary>Source details</summary>
+            <div className="rd-v2-eval-tech-body">
+              {evaluation.coverage.length ? (
+                <section className="rd-v2-eval-block" aria-label="Coverage">
+                  <p className="rd-v2-eval-section-label">Coverage</p>
+                  <ul className="rd-v2-eval-list">
+                    {evaluation.coverage.map((line) => (
+                      <li key={line}>{line}</li>
+                    ))}
+                  </ul>
+                </section>
+              ) : null}
+
+              <StrategyCard card={strategyCard} />
+
+              {evaluation.hasProbe && evaluation.verified.length ? (
+                <section className="rd-v2-eval-block rd-v2-eval-verified" aria-label="Verified">
+                  <p className="rd-v2-eval-section-label">Verified</p>
+                  <ul className="rd-v2-eval-checklist">
+                    {evaluation.verified.map((item) => (
+                      <li key={item}>
+                        <span className="rd-v2-eval-mark ok" aria-hidden="true">
+                          ✓
+                        </span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ) : null}
+
+              {evaluation.inferred.length ? (
+                <section className="rd-v2-eval-block rd-v2-eval-inferred" aria-label="Inferred">
+                  <p className="rd-v2-eval-section-label">Inferred</p>
+                  <ul className="rd-v2-eval-checklist">
+                    {evaluation.inferred.map((item) => (
+                      <li key={item}>
+                        <span className="rd-v2-eval-mark infer" aria-hidden="true">
+                          ~
+                        </span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ) : null}
+
+              {evaluation.modelNotes.map((note) => (
+                <p key={note.label} className="rd-v2-eval-model-note">
+                  <span className="rd-v2-eval-section-label">Model interpretation</span>
+                  {note.detail || note.label}
+                </p>
+              ))}
+              {evaluation.technical.length ? (
                 <RailFieldGrid>
                   {evaluation.technical.map((fact) => (
                     <RailField
@@ -670,16 +654,13 @@ export function DiscoverEvaluationSurface({
                     />
                   ))}
                 </RailFieldGrid>
-              </div>
-            </details>
-          ) : (
-            <details key={targetKey} className="rd-v2-eval-tech">
-              <summary>Technical evidence</summary>
-              <p className="rd-v2-eval-prose muted">
-                No connection test evidence yet. Test the connection to check the source.
-              </p>
-            </details>
-          )}
+              ) : (
+                <p className="rd-v2-eval-prose muted">
+                  No connection test evidence yet. Test the connection to check the source.
+                </p>
+              )}
+            </div>
+          </details>
 
           <section className="rd-v2-eval-ask-chips" aria-label="Ask about this source">
             <p className="rd-v2-eval-section-label">Ask about this source</p>
