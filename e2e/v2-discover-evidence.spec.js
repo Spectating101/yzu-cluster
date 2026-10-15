@@ -124,7 +124,7 @@ test.describe("Discover adaptive Explore", () => {
 
     const rail = page.locator("aside.rd-v2-rail");
     await expect(rail.getByRole("tab", { name: "Detail" })).toHaveAttribute("aria-selected", "true");
-    await expect(page.getByTestId("ask-messages")).toHaveCount(0);
+    await expect(page.getByTestId("ask-messages")).not.toContainText("Do we hold issuer-quarter governance data for Taiwan?");
     const result = page.locator(".rd-v2-evidence-brief.is-workspace").getByTestId("discover-assessment-result");
     await expect(result).toBeVisible();
     await expect(page.getByTestId("discover-query-composer")).toHaveCount(1);

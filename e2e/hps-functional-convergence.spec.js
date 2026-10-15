@@ -193,8 +193,9 @@ test("Settings wide Discover policy starts bounded live federation immediately",
   await expect.poll(() => seen.some((url) => url.includes("live=1") && !url.includes("semantic=1"))).toBeTruthy();
 });
 
-test("a Discover research question keeps results, starts assessment, and opens Ask", async ({ page }) => {
+test("a Discover research question keeps results and starts assessment without opening Ask", async ({ page }) => {
   const reasoningRequests = [];
+  const chatRequests = [];
   await mockV2Api(page, { jobsBody: { jobs: [] }, discoverBody: { sections: [], total: 0 } });
   page.on("request", (request) => {
     if (/\/library\/(?:chat|discover\/assessment)(?:\?|$)/.test(request.url())) {
@@ -204,11 +205,15 @@ test("a Discover research question keeps results, starts assessment, and opens A
 
   await page.goto("/?tab=discover", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
+  page.on("request", (request) => {
+    if (/\/library\/chat(?:\?|$)/.test(request.url())) chatRequests.push(request.url());
+  });
   await page.getByLabel("Search or describe a research need").fill("How do forest fires affect county employment?");
   await page.getByRole("button", { name: "Explore", exact: true }).click();
   await expect(page.getByTestId("discover-result-summary")).toBeVisible();
-  await expect(page.locator("aside.rd-v2-rail").getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator("aside.rd-v2-rail").getByRole("tab", { name: "Detail" })).toHaveAttribute("aria-selected", "true");
   await expect.poll(() => reasoningRequests.length).toBeGreaterThan(0);
+  expect(chatRequests).toEqual([]);
 });
 
 test("a Discover keyword search spends no Ask or assessment", async ({ page }) => {
