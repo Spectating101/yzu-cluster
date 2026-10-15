@@ -483,7 +483,9 @@ export function AskRail({
               </p>
             ) : isDiscover && discoverTitle ? (
               <p className="rd-v2-ask-context-notice" data-testid="ask-context-notice">
-                Questions here are about the selected source.
+                {dataset?.kind === "discover_investigation"
+                  ? "Questions here are about this search."
+                  : "Questions here are about the selected source."}
               </p>
             ) : isSynthesis ? (
               <p className="rd-v2-ask-context-notice" data-testid="ask-context-notice">

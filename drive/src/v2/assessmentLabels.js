@@ -35,6 +35,16 @@ export function judgedLibraryMatch(result) {
   return held.find((row) => row?.judgement === "covers") || held.find((row) => row?.judgement === "partial") || null;
 }
 
+export function librarySupportSummary(result) {
+  const held = Array.isArray(result?.held_evidence) ? result.held_evidence : [];
+  const covers = held.filter((row) => row?.judgement === "covers").length;
+  const partial = held.filter((row) => row?.judgement === "partial").length;
+  const checked = held.length;
+  if (covers) return { value: `${covers} cover${covers === 1 ? "s" : ""}`, detail: `of ${checked} Library record${checked === 1 ? "" : "s"} checked` };
+  if (partial) return { value: `${partial} partly cover${partial === 1 ? "s" : ""}`, detail: `of ${checked} Library record${checked === 1 ? "" : "s"} checked` };
+  return { value: String(checked), detail: `Library record${checked === 1 ? "" : "s"} checked` };
+}
+
 export function assessmentGapText(result) {
   if (key(result?.assessment_status) === "insufficient_requirement") {
     return "State what the data must cover (period, frequency, or instruments) so coverage in your Library can be checked.";

@@ -93,7 +93,7 @@ function accessLabel(taxonomy) {
     case "external-probed":
       return "Connection tested";
     case "external-acquirable":
-      return "Download method known";
+      return "Can be collected";
     case "external-unavailable":
       return "No supported route";
     case "licensed-manual":
@@ -215,6 +215,7 @@ function DiscoverCandidateRow({
   const coverage = coverageLine(row);
   const showCoverage = coverage && coverage !== "Coverage not described";
   const offeringFacts = [
+    ["Fit", row?.place_fit ? row.place_fit.charAt(0).toUpperCase() + row.place_fit.slice(1) : null],
     ["Type", OFFERING_LABELS[offeringType(row, taxonomy)] || offeringType(row, taxonomy)],
     ["Coverage", showCoverage ? coverage : null],
     ["Refresh", row?.refresh_frequency || row?.refresh || row?.update_frequency],
@@ -316,10 +317,7 @@ function DiscoverQueryComposer({
     const next = String(value || "").trim();
     if (!next) return;
     onSearch?.(next);
-    if (isDiscoverResearchQuestion(next)) {
-      onAssess?.(next);
-      onAsk?.(next);
-    }
+    if (isDiscoverResearchQuestion(next)) onAssess?.(next);
   };
   return (
     <form
@@ -339,9 +337,7 @@ function DiscoverQueryComposer({
         Explore
       </button>
       <p>
-        {onAsk
-          ? "Keywords return fast results. A research question also starts a contextual Ask investigation automatically."
-          : "Results arrive first. Use Assess coverage when you want interpretation."}
+        Keywords return fast results. A research question also checks what your Library already covers.
       </p>
       <div className="rd-v2-discover-composer-scope" aria-label="Discover search universe">
         <span>Library index</span>
@@ -1485,7 +1481,7 @@ export function BrowsePage({
       <PageShell
         className="rd-v2-discover-page rd-v2-discover-page--history"
         title="Discover"
-        lead="Trace research questions to reusable evidence"
+        lead="Your collection requests, from approval to ready data"
         headExtra={modeTabs}
         surfaceState={historySurfaceState}
       >

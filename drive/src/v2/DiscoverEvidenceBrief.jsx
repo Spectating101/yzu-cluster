@@ -3,7 +3,7 @@ import { assessDiscoverEvidence, listDiscoverGapRoutes } from "@/v2/api";
 import { DISCOVER_SUGGESTIONS } from "@/v2/deskSeed";
 import { handleEnterToRequestSubmit } from "@/v2/enterToSubmit";
 import { buildDiscoverDecisionCapacity } from "@/v2/discoverDecisionCapacity";
-import { assessmentLabel, assessmentStatusKey, judgedLibraryMatch } from "./assessmentLabels.js";
+import { assessmentLabel, assessmentStatusKey, judgedLibraryMatch, librarySupportSummary } from "./assessmentLabels.js";
 
 function text(value, fallback) {
   if (value == null || value === "") return fallback;
@@ -211,6 +211,7 @@ export function DiscoverEvidenceBrief({
   const suggestions = useMemo(() => localSuggestions(catalog, draft), [catalog, draft]);
   const heldEvidence = Array.isArray(assessment?.held_evidence) ? assessment.held_evidence : [];
   const libraryAnswer = judgedLibraryMatch(assessment);
+  const support = librarySupportSummary(assessment);
   const verdictKey = String(assessment?.verdict || "").trim().toLowerCase().replace(/[ -]/g, "_");
   const assessmentStatus = assessmentStatusKey(assessment);
   const verdictLabel = assessmentLabel(assessment, text(assessment?.verdict, "Assessment pending"));
@@ -487,7 +488,7 @@ export function DiscoverEvidenceBrief({
               {briefNeeded ? (
                 <div><span>Library matches</span><strong>{libraryMatchCount}</strong><em>coverage not yet checked</em></div>
               ) : (
-                <div><span>Library support</span><strong>{heldEvidence.length}</strong><em>Library data record{heldEvidence.length === 1 ? "" : "s"}</em></div>
+                <div><span>Library support</span><strong>{support.value}</strong><em>{support.detail}</em></div>
               )}
               {briefNeeded ? (
                 <div><span>Evidence gap</span><strong>Brief needed</strong><em>State period, frequency, or instruments</em></div>
@@ -505,7 +506,7 @@ export function DiscoverEvidenceBrief({
             <summary>
               <span>Assessment details</span>
               <em>
-                {briefNeeded ? `${libraryMatchCount} Library matches` : `${heldEvidence.length} in Library`} · {briefNeeded ? "brief needed" : assessment.gap ? "1 gap" : "no gap"} · {routeLoading
+                {briefNeeded ? `${libraryMatchCount} Library matches` : `${heldEvidence.length} checked`} · {briefNeeded ? "brief needed" : assessment.gap ? "1 gap" : "no gap"} · {routeLoading
                   ? "checking routes"
                   : `${routeRows.length} documented route${routeRows.length === 1 ? "" : "s"}`}
               </em>

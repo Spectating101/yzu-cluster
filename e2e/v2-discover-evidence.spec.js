@@ -113,7 +113,7 @@ test.describe("Discover adaptive Explore", () => {
     await expect.poll(() => deepCalls).toBeGreaterThan(0);
   });
 
-  test("a research question keeps results visible, assesses automatically, and seeds Ask", async ({ page }) => {
+  test("a research question keeps results visible, assesses automatically, and leaves Ask to the researcher", async ({ page }) => {
     await mockV2Api(page, {
       discoverBody: MOCK_DISCOVER_HIT,
       assessmentBody: MOCK_DISCOVER_ASSESSMENT,
@@ -123,11 +123,8 @@ test.describe("Discover adaptive Explore", () => {
     await search(page, "Do we hold issuer-quarter governance data for Taiwan?");
 
     const rail = page.locator("aside.rd-v2-rail");
-    await expect(rail.getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "true");
-    await expect(page.getByTestId("ask-messages")).toContainText(
-      "Do we hold issuer-quarter governance data for Taiwan?",
-    );
-    await rail.getByRole("tab", { name: "Detail" }).click();
+    await expect(rail.getByRole("tab", { name: "Detail" })).toHaveAttribute("aria-selected", "true");
+    await expect(page.getByTestId("ask-messages")).toHaveCount(0);
     const result = page.locator(".rd-v2-evidence-brief.is-workspace").getByTestId("discover-assessment-result");
     await expect(result).toBeVisible();
     await expect(page.getByTestId("discover-query-composer")).toHaveCount(1);
@@ -310,7 +307,7 @@ test.describe("Discover adaptive Explore", () => {
     await search(page, "example public research files");
 
     const result = page.getByTestId("discover-ranked-results");
-    await expect(result).toContainText("Download method known");
+    await expect(result).toContainText("Can be collected");
     await result.getByRole("button", { name: "Add to collection" }).click();
     const workspace = page.getByTestId("discover-intent-workspace");
     await expect(workspace).toBeVisible();

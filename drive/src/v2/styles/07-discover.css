@@ -1938,7 +1938,7 @@ body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(
   overflow: hidden;
   color: transparent !important;
   text-indent: -9999px;
-  opacity: .42;
+  opacity: .82;
 }
 
 .rd-v2-discover-ranked-results .rd-v2-discover-row-add::after {
