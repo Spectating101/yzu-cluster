@@ -66,7 +66,7 @@ test("historyHoldingTruth never promotes receipt_only to query-ready", () => {
         readiness: "query_ready",
         dataset_id: "rev_live2",
         job_id: "042816e2f8af",
-        summary: "Archive verified · registry verified · query-ready on desk",
+        summary: "Archived copy verified · in the Library · ready to query",
         catalog_reconciliation: {
           state: "receipt_only",
           registry_row_loaded: false,

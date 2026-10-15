@@ -204,12 +204,12 @@ const PAGE_RAIL_COPY = {
     ],
   },
   resources: {
-    title: "Operational boundary",
-    desc: "Resources explains the systems that keep shared evidence available; live controls remain restricted to research staff.",
+    title: "Your resources",
+    desc: "What you can use, what you have asked for, and how collection is approved.",
     fields: [
-      ["Archive", "Collected evidence returns to the shared Library"],
-      ["Routes", "Collection methods stay explicit and reviewable"],
-      ["Control", "Nothing is collected or spent until an approver says yes"],
+      ["Assistant", "Ask and coverage checks use your hourly allowance"],
+      ["Requests", "Each collection waits for a research operator's approval"],
+      ["Library", "Collected data returns to the shared Library with its source"],
     ],
   },
 };
@@ -477,9 +477,9 @@ export function HomeAttentionRailPanel({ object, onAskAbout }) {
   return (
     <RailFrame>
       <RailEntityHeader
-        id="Home attention"
-        title={row.title || object?.title || "Home attention"}
-        description={row.detail || "Selected work from the Home attention queue."}
+        id="Pick up"
+        title={row.title || object?.title || "Pick up"}
+        description={row.detail || "The work Home suggests you return to first."}
         pills={row.metric ? <span className={`rd-v2-pill${row.warn ? " warn" : ""}`}>{row.metric}</span> : null}
       />
       <div className="rd-v2-rail-scroll">

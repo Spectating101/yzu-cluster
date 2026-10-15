@@ -51,7 +51,7 @@ test("new researcher gets personal onboarding and no operator account controls",
   await page.goto("/?tab=home", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
   await expect(page.getByRole("heading", { name: "Welcome, new-researcher" })).toBeVisible();
-  await page.getByRole("button", { name: "Set up my research context", exact: true }).click();
+  await page.getByRole("button", { name: "Set up research context", exact: true }).click();
   await expect(page.getByTestId("personal-research-profile")).toContainText("new-researcher");
   await page.goto("/?tab=settings", { waitUntil: "domcontentloaded" });
   await waitForShell(page);

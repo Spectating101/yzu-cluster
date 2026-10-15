@@ -134,8 +134,8 @@ test("a public guest can browse shared evidence but must sign in to Ask", async 
     await page.screenshot({ path: testInfo.outputPath("public-synthesis-1440x900.png"), fullPage: false });
   }
   await page.getByRole("button", { name: "Resources", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Research staff manage resources" })).toBeVisible();
-  await expect(page.locator("aside.rd-v2-rail")).toContainText("Operational boundary");
+  await expect(page.getByRole("heading", { name: "Your allowance and requests appear here after you sign in" })).toBeVisible();
+  await expect(page.locator("aside.rd-v2-rail")).toContainText("Your resources");
   await expect(page.locator("aside.rd-v2-rail").getByRole("button", { name: /Ask about/ })).toHaveCount(0);
   await expect(page.locator("aside.rd-v2-rail").getByRole("button", { name: "Open activity" })).toHaveCount(0);
   await expect(page.locator("aside.rd-v2-rail").getByText(/awaiting your approval/i)).toHaveCount(0);

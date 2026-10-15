@@ -20,8 +20,8 @@ describe("historyKnownUnknowns", () => {
       { meta: { archive_verified: true, registry_readback: true } },
       null,
     );
-    assert.ok(result.known.includes("Archive verified"));
-    assert.ok(result.known.includes("Registry read-back confirmed"));
+    assert.ok(result.known.includes("Archived copy verified"));
+    assert.ok(result.known.includes("Library record confirmed"));
     assert.deepEqual(result.unknowns, []);
   });
 
@@ -30,14 +30,14 @@ describe("historyKnownUnknowns", () => {
       { meta: { archive_verified: false, registry_readback: false } },
       null,
     );
-    assert.ok(result.unknowns.includes("Archive not verified"));
-    assert.ok(result.unknowns.includes("Registry read-back not confirmed"));
+    assert.ok(result.unknowns.includes("Archived copy not verified"));
+    assert.ok(result.unknowns.includes("Library record not confirmed"));
     assert.deepEqual(result.known, []);
   });
 
   it("reads proofs off the event when meta omits them", () => {
     const result = historyKnownUnknowns({ archive_verified: true }, null);
-    assert.deepEqual(result.known, ["Archive verified"]);
+    assert.deepEqual(result.known, ["Archived copy verified"]);
   });
 
   it("prefers meta over the event for the same proof", () => {
@@ -45,7 +45,7 @@ describe("historyKnownUnknowns", () => {
       { archive_verified: true, meta: { archive_verified: false } },
       null,
     );
-    assert.deepEqual(result.unknowns, ["Archive not verified"]);
+    assert.deepEqual(result.unknowns, ["Archived copy not verified"]);
     assert.deepEqual(result.known, []);
   });
 
@@ -54,7 +54,7 @@ describe("historyKnownUnknowns", () => {
       { meta: { catalog_reconciliation: { state: "reconciled" } } },
       null,
     );
-    assert.deepEqual(result.known, ["Catalog reconciled"]);
+    assert.deepEqual(result.known, ["Library listing up to date"]);
   });
 
   it("shows a loaded Library record as known instead of an unresolved reconciliation", () => {
@@ -68,7 +68,7 @@ describe("historyKnownUnknowns", () => {
       { meta: { catalog_reconciliation: { state: "pending_promotion" } } },
       null,
     );
-    assert.deepEqual(result.unknowns, ["Catalog reconciliation pending promotion"]);
+    assert.deepEqual(result.unknowns, ["Library listing pending promotion"]);
   });
 
   it("carries registered and receipt-only from holding truth", () => {
@@ -77,13 +77,13 @@ describe("historyKnownUnknowns", () => {
       { registered: true, receiptOnly: true },
     );
     assert.ok(result.known.includes("The save record includes evidence that the Library record was read back"));
-    assert.ok(!result.known.includes("Saved in the catalog"));
-    assert.ok(result.unknowns.includes("Current catalog row is not loaded"));
+    assert.ok(!result.known.includes("Listed in the Library"));
+    assert.ok(result.unknowns.includes("Current Library listing not loaded"));
   });
 
   it("does not invent a holding claim when truth is absent", () => {
     const result = historyKnownUnknowns({ meta: { archive_verified: true } }, undefined);
-    assert.deepEqual(result.known, ["Archive verified"]);
+    assert.deepEqual(result.known, ["Archived copy verified"]);
   });
 
   it("survives a null event", () => {

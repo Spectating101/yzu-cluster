@@ -374,7 +374,7 @@ body:has(.rd-v2-synthesis-page [data-testid="synthesis-execution-state"] .s04-ex
 
 .rd-v2-synthesis-page .s04-new-entry-framing > ul {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
   margin: 9px 0 0;
   padding: 0;

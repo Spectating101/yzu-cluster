@@ -37,6 +37,7 @@ import { reviewJobId } from "./reviewJobId.js";
 import { DeskAccessGate, DeskSessionBootstrap } from "@/v2/DeskAccessGate";
 import { EmailLinkConfirmation, readEmailLinkFragment } from "./EmailSignIn.jsx";
 import { AccessScreen } from "./AccessScreen.jsx";
+import { MemberResources } from "./MemberResources.jsx";
 import {
   datasetObject,
   discoverHistoryObject,
@@ -2158,22 +2159,17 @@ function DeskWorkspace({ onIdentityChanged }) {
         <PageShell
           className="rd-v2-guest-feature-page rd-v2-guest-resources"
           title="Resources"
-          lead="Tools and permissions for collecting, storing, and building research data."
+          lead={canUseAsk ? "Your assistant allowance, your collection requests, and what the Library holds." : "Tools and permissions for collecting, storing, and building research data."}
           surfaceState="ready"
         >
-          <section className="rd-v2-guest-feature-hero">
-            <span className="rd-v2-eyebrow">Restricted operational view</span>
-            <h2>Research staff manage resources</h2>
-            <p>Archive capacity, source access, approvals, and running jobs are available to research staff. Browse the shared evidence in Library or find sources in Discover.</p>
-            <button type="button" className="rd-v2-btn primary" onClick={() => goTab("browse")}>
-              Find evidence in Discover
-            </button>
-          </section>
-          <div className="rd-v2-guest-feature-grid" aria-label="Resource responsibilities">
-            <article><span>ARCHIVE</span><strong>Saved evidence</strong><p>Collected data returns to the shared Library with its source history.</p></article>
-            <article><span>ROUTES</span><strong>Collection permissions</strong><p>Source access and collection methods stay explicit and reviewable.</p></article>
-            <article><span>CONTROL</span><strong>Approval boundary</strong><p>Nothing is collected or spent until an approver says yes.</p></article>
-          </div>
+          <MemberResources
+            signedIn={canUseAsk}
+            jobs={jobs}
+            libraryCount={libraryEvidenceCount}
+            onGoTab={goTab}
+            onOpenHistory={() => openDiscoverAwaiting({ focusAwaiting: false })}
+            onSignIn={memberSignInAvailable ? beginMemberSignIn : undefined}
+          />
         </PageShell>
       );
       break;

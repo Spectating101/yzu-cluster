@@ -25,9 +25,9 @@ test("new catalog reconciliation wins over a stale query-ready receipt everywher
   await row.click();
 
   const inspector = page.getByRole("complementary", { name: "Inspector" });
-  await expect(inspector).toContainText("Current catalog row is not loaded");
+  await expect(inspector).toContainText("Current Library listing not loaded");
   await expect(inspector).toContainText("In Library · being checked");
   await expect(inspector).toContainText("current catalog reconciliation pending");
-  await expect(inspector).not.toContainText("Saved in the catalog");
+  await expect(inspector).not.toContainText("Listed in the Library");
   await expect(inspector).not.toContainText("query-ready on desk");
 });

@@ -114,6 +114,10 @@ function WelcomeCard({ onGoTab, onSignIn, onCreateAccount }) {
   );
 }
 
+export function codeLikeTitle(value) {
+  return /\b(?=[A-Z0-9]*\d)[A-Z0-9]{6,}\b/.test(String(value || ""));
+}
+
 function firstSentence(value) {
   const textValue = String(value || "").replace(/\s+/g, " ").trim();
   const end = textValue.search(/(?<!\b(?:St|Mr|Mrs|Ms|Dr|Inc|Co|Corp|Ltd|Jr|vs|No|U\.S|e\.g|i\.e))[.!?](?=\s+[A-Z0-9]|$)/);
@@ -123,7 +127,8 @@ function firstSentence(value) {
 function GuestReadyDatasets({ datasets, onGoTab, onSelectDataset }) {
   const ready = datasets
     .filter((row) => row?.dataset_id && statusPillKind(row).kind === "query-ready")
-    .sort((a, b) => String(b.retrieved_at || "").localeCompare(String(a.retrieved_at || "")))
+    .sort((a, b) => Number(codeLikeTitle(displayName(a))) - Number(codeLikeTitle(displayName(b)))
+      || String(b.retrieved_at || "").localeCompare(String(a.retrieved_at || "")))
     .slice(0, 4);
   if (!ready.length) return null;
   return (
@@ -137,7 +142,7 @@ function GuestReadyDatasets({ datasets, onGoTab, onSelectDataset }) {
           <li key={row.dataset_id}>
             <button type="button" onClick={() => onSelectDataset?.(row)}>
               <strong>{displayName(row)}</strong>
-              {row.description ? <span>{firstSentence(row.description)}</span> : null}
+              {row.description && !/^collected from https?:/i.test(String(row.description).trim()) ? <span>{firstSentence(row.description)}</span> : null}
             </button>
           </li>
         ))}

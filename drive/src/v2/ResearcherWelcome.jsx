@@ -20,13 +20,13 @@ export function ResearcherWelcome({ deskAccess, onGoTab }) {
     setShow(false);
   };
   return <section className="rd-account-welcome" aria-labelledby="rd-welcome-title">
-    <h2 id="rd-welcome-title">Welcome, {actor.display_name || "researcher"}</h2>
-    <p>Start with evidence in Library, find additional sources in Discover, or use Ask to investigate a question. Your research trail belongs to your account.</p>
-    <p>Adding your topic and methods in Profile helps the desk tailor its suggestions. You can start without filling it in.</p>
+    <div className="rd-account-welcome-text">
+      <h2 id="rd-welcome-title">Welcome, {actor.display_name || "researcher"}</h2>
+      <p>Add your topic and methods in Profile so suggestions fit your work. You can start without it.</p>
+    </div>
     <div className="rd-account-actions">
-      <button type="button" className="rd-v2-btn sm primary" onClick={() => onGoTab("profile")}>Set up my research context</button>
-      <button type="button" className="rd-v2-btn sm ghost" onClick={() => { dismiss(); onGoTab("library"); }}>Start with Library</button>
-      <button type="button" className="rd-v2-btn sm ghost" onClick={dismiss}>Dismiss welcome</button>
+      <button type="button" className="rd-v2-btn sm primary" onClick={() => onGoTab("profile")}>Set up research context</button>
+      <button type="button" className="rd-v2-btn sm ghost" onClick={dismiss}>Not now</button>
     </div>
   </section>;
 }

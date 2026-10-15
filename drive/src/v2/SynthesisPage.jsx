@@ -1486,7 +1486,7 @@ function NewThread({
       <header className="s04-new-entry-head">
         <div>
           <small>New build</small>
-          <h1>Start from the research object, not the machinery.</h1>
+          <h1>Describe the dataset you want to build</h1>
           <p>
             This Synthesis draft is unsaved. State a research purpose or reuse a method saved to Library. The build is saved only after you choose one.
           </p>

@@ -484,15 +484,23 @@ export function historyEvidenceSummary(event = null) {
   const meta = event?.meta || {};
   const raw = String(meta.summary || event?.summary || "").trim();
   const truth = historyHoldingTruth(event);
-  if (!truth.receiptOnly) return raw;
+  if (!truth.receiptOnly) return plainEvidenceSummary(raw);
 
   const archiveVerified = meta.archive_verified ?? event?.archive_verified;
   const receiptReadback = meta.registry_readback ?? event?.registry_readback;
   return [
-    archiveVerified === true ? "Archive verified" : "Archive proof not confirmed",
+    archiveVerified === true ? "Archived copy verified" : "Archive proof not confirmed",
     receiptReadback === true ? "the save record includes evidence that the Library record was read back" : "record of saving to Library retained",
     "current catalog reconciliation pending",
   ].join(" · ");
+}
+
+export function plainEvidenceSummary(raw) {
+  return String(raw || "")
+    .replace(/\bArchive verified\b/g, "Archived copy verified")
+    .replace(/\barchive verified\b/g, "archived copy verified")
+    .replace(/\bregistry verified\b/g, "in the Library")
+    .replace(/\bquery-ready on desk\b/g, "ready to query");
 }
 
 /** Library / Explore handoff payload — preserves identities without inventing readiness. */

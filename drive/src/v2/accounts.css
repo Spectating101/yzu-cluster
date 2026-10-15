@@ -15,10 +15,11 @@
 .rd-account-invitation, .rd-account-confirm { padding: 16px; border: 1px solid var(--rd-border, #ddd); border-radius: 6px; max-width: 780px; }
 .rd-account-invitation textarea { width: 100%; min-height: 60px; padding: 10px; resize: vertical; font-size: 13px; overflow-wrap: anywhere; box-sizing: border-box; }
 .rd-account-confirm button + button { margin-left: 8px; }
-.rd-account-welcome { border: 1px solid var(--rd-border, #ddd); border-radius: 6px; padding: 18px 22px; margin-bottom: 18px; }
-.rd-account-welcome h2 { margin: 0 0 8px; font-size: 17px; }
-.rd-account-welcome p { margin: 0 0 12px; max-width: 780px; line-height: 1.55; }
-.rd-account-welcome .rd-account-actions { margin-top: 12px; }
+.rd-account-welcome { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; border: 1px solid var(--rd-border, #ddd); border-radius: 10px; padding: 10px 14px; margin: 0 0 14px; background: var(--rd-surface, #fffdf6); }
+.rd-account-welcome-text { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; min-width: 0; }
+.rd-account-welcome h2 { margin: 0; font-size: var(--rd-text-md); font-weight: 700; }
+.rd-account-welcome p { margin: 0; max-width: 780px; color: var(--rd-muted); font-size: var(--rd-text-sm); line-height: 1.5; }
+.rd-account-welcome .rd-account-actions { margin: 0; }
 .rd-email-signin { display: grid; gap: 10px; max-width: 480px; margin: 18px 0; }
 .rd-email-signin label { font-size: 12px; font-weight: 600; }
 .rd-email-signin p { font-size: 12px; line-height: 1.6; margin: 0; }
