@@ -79,7 +79,7 @@ test.describe("v2 Library evidence estate", () => {
     await expect(workspace.getByLabel("Evidence claims")).toBeHidden();
     await expect(page.locator("aside.rd-v2-rail")).toContainText("Readiness");
     await expect(page.locator("aside.rd-v2-rail")).toContainText("Verification");
-    await expect(workspace.getByRole("button", { name: "Open query" })).toBeVisible();
+    await expect(workspace.getByRole("button", { name: "View all rows" })).toBeVisible();
     await expect(workspace.getByRole("button", { name: "Inspect schema" })).toHaveCount(1);
     await expect(workspace.getByRole("button", { name: "Expand sample" })).toHaveCount(1);
     await expect(page.getByTestId("library-observation-receipt")).toContainText("1 row");

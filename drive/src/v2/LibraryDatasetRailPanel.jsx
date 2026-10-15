@@ -140,10 +140,10 @@ function nextMove({ state, presentation, previewOpen, receipt, verification, fre
   }
   if (state.kind === "query-ready") {
     if (!hasReproductionMethod(receipt)) {
-      return "Open a query when you need analysis; inspect the Source record before treating the workflow as fully reproducible.";
+      return "View all rows or download the CSV to work with it. Check the Source record before you rely on it for a paper.";
     }
     if (verification.kind !== "verified" && verification.kind !== "matched") {
-      return "Open a query when you need analysis, while keeping verification separate from query readiness.";
+      return "View all rows or download the CSV to work with it.";
     }
     return "Use the sample for a quick value check. Open a query for analysis beyond the sample.";
   }

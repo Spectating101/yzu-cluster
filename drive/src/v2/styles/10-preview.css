@@ -628,3 +628,99 @@
     flex-wrap: wrap;
   }
 }
+
+.rd-datatable-scrim {
+  grid-template-columns: minmax(16px, 1fr) minmax(0, 1180px) minmax(16px, 1fr);
+}
+
+.rd-datatable-shell {
+  height: min(88vh, calc(100% - 12px));
+  max-height: none;
+}
+
+.rd-datatable-identity {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.rd-datatable-identity strong {
+  overflow: hidden;
+  color: var(--rd-text);
+  font-size: var(--rd-text-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-datatable-identity span {
+  color: var(--rd-muted);
+  font-size: var(--rd-text-2xs);
+}
+
+.rd-datatable-actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+}
+
+.rd-datatable-actions a.rd-v2-btn {
+  text-decoration: none;
+}
+
+.rd-datatable-toolbar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--rd-border);
+}
+
+.rd-datatable-toolbar input {
+  width: min(320px, 100%);
+  padding: 6px 9px;
+  border: 1px solid var(--rd-border);
+  border-radius: 6px;
+  background: var(--rd-surface);
+  color: var(--rd-text);
+  font: inherit;
+  font-size: var(--rd-text-xs);
+}
+
+.rd-datatable-toolbar span {
+  color: var(--rd-muted);
+  font-size: var(--rd-text-2xs);
+}
+
+.rd-datatable-pager {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.rd-datatable-table th button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+}
+
+.rd-datatable-table th button:hover {
+  color: var(--rd-text);
+}
+
+.rd-datatable-message {
+  padding: 24px 16px;
+  color: var(--rd-muted);
+  font-size: var(--rd-text-xs);
+}
+
+.rd-datatable-table th.num,
+.rd-datatable-table td.num {
+  text-align: right;
+}

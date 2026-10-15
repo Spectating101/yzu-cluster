@@ -241,6 +241,7 @@ export function PreviewModal({
   usingSeed = false,
   onClose,
   onAskAbout,
+  onOpenTable,
   onPrevious,
   onNext,
 }) {
@@ -586,8 +587,12 @@ export function PreviewModal({
               <>
                 <button type="button" onClick={exportRows} disabled={!rows.length}>Export sample</button>
                 {onAskAbout ? <button type="button" onClick={() => onAskAbout(dataset)}>Ask about data</button> : null}
-                <button type="button" className="primary" onClick={() => dataset?.dataset_id && openQueryInNewTab(dataset.dataset_id)}>
-                  Open query
+                <button
+                  type="button"
+                  className="primary"
+                  onClick={() => dataset?.dataset_id && (onOpenTable ? onOpenTable(dataset) : openQueryInNewTab(dataset.dataset_id))}
+                >
+                  View all rows
                 </button>
               </>
             ) : null}

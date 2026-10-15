@@ -490,7 +490,7 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onOpenQuery,
         </div>
 
         <div className="rd-v2-library-workspace-actions" aria-label="Data actions">
-          {canQuery ? <button type="button" className="rd-v2-btn primary" onClick={onOpenQuery}>Open query</button> : null}
+          {canQuery ? <button type="button" className="rd-v2-btn primary" onClick={onOpenQuery}>View all rows</button> : null}
           {datasetDownloadHref(dataset) ? (
             <a className="rd-v2-btn" href={datasetDownloadHref(dataset)} download data-testid="library-workspace-download">Download CSV</a>
           ) : null}
