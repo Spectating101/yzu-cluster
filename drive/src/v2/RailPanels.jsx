@@ -149,6 +149,13 @@ const RAIL_ACTION_LABELS = {
   bq_read: "BQ read",
 };
 
+const HOME_ITEM_KINDS = {
+  decision: "A request waiting for your approval",
+  synthesis_thread: "A Synthesis build",
+  discover_work: "A data collection",
+  library_asset: "A dataset in your Library",
+};
+
 const PAGE_RAIL_COPY = {
   home: {
     title: "Research Drive",
@@ -477,9 +484,9 @@ export function HomeAttentionRailPanel({ object, onAskAbout }) {
       />
       <div className="rd-v2-rail-scroll">
         <RailFieldGrid>
-          <RailField label="Type" value={row.label || row.kind || object?.kind} />
+          <RailField label="What" value={HOME_ITEM_KINDS[row.label || row.kind || object?.kind] || row.label || row.kind || object?.kind} />
           <RailField label="Next" value={row.next || "Review"} />
-          <RailField label="Surface" value={tabLabel(row.tab || "home")} />
+          <RailField label="Where" value={tabLabel(row.tab || "home")} />
           {row.resourceRow?.job?.id ? <RailField label="Job ID" value={row.resourceRow.job.id} mono /> : null}
         </RailFieldGrid>
       </div>

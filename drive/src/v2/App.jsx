@@ -2360,7 +2360,7 @@ function DeskWorkspace({ onIdentityChanged }) {
           allowProfilePreview={canViewFacultyProfile}
           previewOpen={previewOpen}
           onPreview={() => detail && openPreview(detail)}
-          onAskAbout={canUseAsk && composerRuntime?.ready ? askAboutSelection : undefined}
+          onAskAbout={canUseAsk && composerRuntime?.usable ? askAboutSelection : undefined}
           onViewActivity={(filter) => {
             setResourceMode("usage");
             setActivityFilter(filter);
