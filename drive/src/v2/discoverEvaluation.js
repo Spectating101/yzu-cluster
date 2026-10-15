@@ -3,6 +3,7 @@
  */
 
 import { classifyDiscoverResult } from "./discoverTaxonomy.js";
+import { coverageSpan } from "./coverageText.js";
 import { humanizeDiscoverDescription } from "./browseMeta.js";
 import {
   boundProbeResult,
@@ -75,7 +76,7 @@ export function usefulForLine(row) {
   }
 
   const grain = String(row?.grain || "").trim();
-  const coverage = String(row?.coverage || row?.date_range || "").trim();
+  const coverage = coverageSpan(row?.coverage || row?.date_range).trim();
   const source = String(row?.source || row?.publisher || "").trim();
   if (grain || coverage || source) {
     return [source, coverage, grain ? `${grain} unit of observation` : ""]

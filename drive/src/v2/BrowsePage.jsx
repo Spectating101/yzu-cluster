@@ -1,5 +1,6 @@
 import { uiVocabularyLabel } from "./uiVocabularyLabels.js";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { instantLibraryMatches } from "@/v2/discoverInstantMatches";
 import { discoverSearch, discoverSources, webDiscover } from "@/v2/api";
 import { partialFitLine, reconcileDiscoverRegistryRows, searchHitToCandidate, sourcesResponseToRows } from "@/v2/discoverAdapters";
 import { collectRouteDisplayLabel } from "@/v2/collectRouteLabel";
@@ -217,7 +218,7 @@ function DiscoverCandidateRow({
     ["Type", OFFERING_LABELS[offeringType(row, taxonomy)] || offeringType(row, taxonomy)],
     ["Coverage", showCoverage ? coverage : null],
     ["Refresh", row?.refresh_frequency || row?.refresh || row?.update_frequency],
-    ["Route", collectRouteDisplayLabel(row?.collect_via)
+    ["Route", !taxonomy.key.startsWith("local-") && collectRouteDisplayLabel(row?.collect_via)
       ? `Collect via ${collectRouteDisplayLabel(row.collect_via)}`
       : null],
     ["Files", row?.file_summary || null],
@@ -698,6 +699,27 @@ export function BrowsePage({
   const [synthesisStartError, setSynthesisStartError] = useState("");
   const restoredSelectionRef = useRef("");
   const rowsRef = useRef([]);
+  const catalogRef = useRef(catalog);
+  catalogRef.current = catalog;
+
+  useEffect(() => {
+    const menus = ".rd-v2-discover-library-evidence[open], .rd-v2-discover-filter-menu[open]";
+    const closeOutside = (event) => {
+      document.querySelectorAll(menus).forEach((menu) => {
+        if (!menu.contains(event.target)) menu.removeAttribute("open");
+      });
+    };
+    const closeOnEscape = (event) => {
+      if (event.key !== "Escape") return;
+      document.querySelectorAll(menus).forEach((menu) => menu.removeAttribute("open"));
+    };
+    document.addEventListener("pointerdown", closeOutside);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeOutside);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, []);
   const rowsQueryRef = useRef("");
 
   useEffect(() => {
@@ -887,6 +909,8 @@ export function BrowsePage({
         // is usually fast; waiting for the source-route catalogue made a real
         // local match disappear behind one generic spinner. Each partial paint
         // is additive, and the settled merge below remains the final authority.
+        const instant = instantLibraryMatches(catalogRef.current, q);
+        if (instant.length) apply({ results: instant }, "index_local", { append: true });
         let discover = {};
         let knownSources = {};
         let discoverFailure = null;
@@ -1638,7 +1662,7 @@ export function BrowsePage({
                   ? discoverTerritories(resultGroups).map((territory) =>
                     // A page reload can begin a query before /datasets has
                     // answered. That is unmeasured, not zero held evidence.
-                    territory.id === "held" && (catalogLoading || lookupProgress.library === "checking") ? (
+                    territory.id === "held" && !resultGroups.held.length && (catalogLoading || lookupProgress.library === "checking") ? (
                       <span key={territory.id}>Library evidence · Checking…</span>
                     // The freeze makes Library evidence an opener, not a label:
                     // it reveals a bounded preview plus Compare coverage and Open

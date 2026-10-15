@@ -3,6 +3,8 @@
  * Taxonomy lives in discoverTaxonomy.js — this file adapts pills/actions without fit heuristics.
  */
 
+import { coverageSpan } from "./coverageText.js";
+import { plainIdentifiers } from "./plainText.js";
 import {
   classifyDiscoverResult,
   exceptionalRowPill,
@@ -121,11 +123,11 @@ export function discoverStageCounts(rows, labIds) {
 
 export function coverageLine(row) {
   const parts = [
-    row?.coverage,
-    row?.date_range,
-    row?.temporal_coverage,
-    row?.geographic_coverage,
-    row?.grain,
+    coverageSpan(row?.coverage),
+    coverageSpan(row?.date_range),
+    coverageSpan(row?.temporal_coverage),
+    coverageSpan(row?.geographic_coverage),
+    plainIdentifiers(row?.grain),
   ]
     .map((p) => String(p || "").trim())
     .filter(Boolean);

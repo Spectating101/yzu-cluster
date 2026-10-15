@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { LIBRARY_FOLDERS_ROOT } from "@/driveTree";
 import { displayName, libraryAssetPresentation } from "@/v2/datasetMeta";
 import { libraryVerification } from "@/v2/libraryVerification";
+import { coverageSpan } from "@/v2/coverageText";
 import { StatusPill } from "@/v2/StatusPill";
 
 const PAGE_SIZE = 50;
@@ -31,7 +32,7 @@ function descriptionLabel(row = {}) {
 
   const kind = presentationKind(row);
   const grain = String(row.grain || "").trim();
-  const coverage = String(row.coverage || row.date_range || row.temporal_coverage || "").trim();
+  const coverage = coverageSpan(row.coverage || row.date_range || row.temporal_coverage).trim();
   const pieces = [];
   if (kind === "scholarly_work") pieces.push("Bibliographic research evidence");
   else if (kind === "metadata_index") pieces.push("Metadata index");

@@ -1,3 +1,4 @@
+import { coverageSpan } from "./coverageText.js";
 /**
  * Discover local sufficiency / equivalence authority.
  *
@@ -49,7 +50,7 @@ function normalizeGrain(v) {
 }
 
 function coverageText(row) {
-  return String(row?.coverage || row?.date_range || row?.temporal_coverage || "").trim();
+  return coverageSpan(row?.coverage || row?.date_range || row?.temporal_coverage).trim();
 }
 
 function sourceIdentity(row) {
