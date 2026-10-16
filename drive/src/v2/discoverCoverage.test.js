@@ -82,3 +82,13 @@ test("the lane's membership list wins over the row's own field", () => {
     [{ id: "markets", label: "Markets" }]);
   assert.equal(shelves[0].label, "Markets", "row field must not override lane membership");
 });
+
+test("Discover names Library groups by the same topics as the Library when shelves are storage-derived", () => {
+  const catalog = [
+    { dataset_id: "bls", title: "County unemployment rate", source_id: "bls_laus_county", partition_id: "acquired.procured", materialization: { query_ready: true } },
+    { dataset_id: "co2", title: "Mauna Loa Monthly CO2 Record", partition_id: "acquired.procured", materialization: { query_ready: true } },
+  ];
+  const shelves = [{ id: "acquired", label: "Acquired", partition_ids: ["acquired.procured"], derived_from: "domain" }];
+  const labels = coverageShelves(catalog, [{ partition_id: "acquired.procured", shelf_id: "acquired" }], shelves).map((s) => s.label).sort();
+  assert.deepEqual(labels, ["Climate & environment", "Economy & labour"]);
+});
