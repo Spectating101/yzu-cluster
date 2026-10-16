@@ -1161,6 +1161,7 @@ export function BrowsePage({
   const pinned = useMemo(() => {
     const q = String(searchQuery || "").trim();
     if (pinnedOrderRef.current.query !== q) pinnedOrderRef.current = { query: q, order: new Map() };
+    if (rowsQueryRef.current !== q) return merged;
     return pinOrder(merged, (row) => candidateKey(row) || candidateTitle(row), pinnedOrderRef.current.order);
   }, [merged, searchQuery]);
 
