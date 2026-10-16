@@ -25,7 +25,7 @@ test("reviewable Synthesis outranks passive Library recency", () => {
   });
   assert.equal(primary.kind, "synthesis_thread");
   assert.equal(primary.id, "thread-proposal");
-  assert.match(primary.location, /SYNTHESIS \/ PROPOSAL REVIEW/);
+  assert.equal(primary.location, "Synthesis · Proposal review");
   assert.equal(secondary.kind, "library_asset");
 });
 
