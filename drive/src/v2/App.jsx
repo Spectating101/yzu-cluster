@@ -2146,9 +2146,10 @@ function DeskWorkspace({ onIdentityChanged }) {
             </button>
           </section>
           <div className="rd-v2-guest-feature-grid" aria-label="Synthesis workflow">
-            <article><span>01</span><strong>Define</strong><p>Record the research object and the decision it must support.</p></article>
-            <article><span>02</span><strong>Ground</strong><p>Assign data in your Library to specific analytical roles.</p></article>
-            <article><span>03</span><strong>Build</strong><p>Review method choices before running the build or creating data.</p></article>
+            <article><span>1</span><strong>Describe it</strong><p>What the data should measure, in your own words.</p></article>
+            <article><span>2</span><strong>Choose data</strong><p>Pick datasets from your Library, or request more.</p></article>
+            <article><span>3</span><strong>Approve the method</strong><p>Nothing runs before you approve it.</p></article>
+            <article><span>4</span><strong>Get the dataset</strong><p>Saved to your Library with its sources.</p></article>
           </div>
         </PageShell>
       );
