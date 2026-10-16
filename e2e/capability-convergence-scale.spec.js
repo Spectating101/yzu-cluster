@@ -23,6 +23,7 @@ const SCALE_DATASETS = Array.from({ length: 48 }, (_, index) => {
     source,
     source_system: source,
     analysis_readiness: readiness,
+    local_ready: true,
     grain: isPaper || isMetadata ? "procured_snapshot" : index % 2 ? "entity-week" : "country-day",
     access_shape: isPaper ? "scholarly_record" : isMetadata ? "metadata_index" : "table",
     doi: isPaper ? `10.5281/zenodo.${58000 + n}` : undefined,

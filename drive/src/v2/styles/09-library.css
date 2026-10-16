@@ -13,14 +13,6 @@
   font-weight: 700;
 }
 
-.rd-v2-cap-folders-root::after {
-  content: "";
-  width: 1px;
-  height: 18px;
-  margin-left: 2px;
-  background: var(--rd-border2);
-}
-
 .rd-v2-library-pagination {
   display: flex;
   min-height: 42px;
