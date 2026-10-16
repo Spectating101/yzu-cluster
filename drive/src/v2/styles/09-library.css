@@ -64,6 +64,8 @@
 .rd-v2-library-folder-summary .rd-v2-rail-section-label,
 .rd-v2-library-folder-context .rd-v2-rail-section-label,
 .rd-v2-library-folder-add .rd-v2-rail-section-label,
+.rd-v2-library-inspector-basis .rd-v2-rail-section-label,
+.rd-v2-library-inspector-block .rd-v2-rail-section-label,
 .rd-v2-library-folder-context .rd-v2-detail-row {
   padding-inline: 0;
 }
