@@ -23,7 +23,7 @@ test("Explore and History are the only Discover modes", async ({ page }) => {
   // scoped to the page's own mode switcher; the rail's Detail|Ask toggle is a
   // different control and is required by the freeze, not forbidden by it.
   const modes = page.locator(".rd-v2-discover-modes button");
-  expect(await modes.count()).toBeGreaterThan(0);
+  await expect(modes.first()).toBeVisible();
   const labels = (await modes.allInnerTexts()).map((t) => t.trim().split("·")[0].trim());
   expect([...new Set(labels)].sort()).toEqual(["Explore", "History"]);
 });
