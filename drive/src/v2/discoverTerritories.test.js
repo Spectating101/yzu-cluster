@@ -13,7 +13,7 @@ test("every group resultGroups builds is named by a territory", () => {
 
 test("the row carries exactly the three counters the freeze binds", () => {
   const shown = discoverTerritories(groups).map((t) => t.label);
-  assert.deepEqual(shown, ["Available", "Library evidence", "Web context"],
+  assert.deepEqual(shown, ["Sources", "In your Library", "Web results"],
     "DISCOVER_ADAPTIVE_FREEZE_2026-07-28 §3 binds this row to three counters");
 });
 

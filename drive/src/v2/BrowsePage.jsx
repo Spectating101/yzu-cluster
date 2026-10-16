@@ -37,7 +37,7 @@ import {
   hasSpecificDiscoverRoute,
 } from "@/v2/discoverQuerySpecificity";
 import { Chip, PageShell, SourceRibbon } from "@/v2/ui";
-import { discoverTerritories } from "@/v2/discoverTerritories";
+import { discoverTerritories, territoryText } from "@/v2/discoverTerritories";
 import { DiscoverCoveragePanel } from "@/v2/DiscoverCoveragePanel";
 import { DiscoverEvidenceField } from "@/v2/DiscoverEvidenceField";
 import { DeskError } from "@/v2/DeskError";
@@ -1260,24 +1260,6 @@ export function BrowsePage({
   }, [isExplore, rankedOfferings, resultGroups.held.length, resultGroups.context.length, labIds, searchQuery, onRestingSummary]);
 
   useEffect(() => () => onRestingSummary?.(null), [onRestingSummary]);
-  const resultBreakdown = useMemo(
-    () => [
-      resultGroups.available.length
-        ? `${plural(resultGroups.available.length, "offering")} with a documented route`
-        : null,
-      resultGroups.external.length
-        ? `${plural(resultGroups.external.length, "route")} to verify`
-        : null,
-      resultGroups.context.length
-        ? plural(resultGroups.context.length, "reference")
-        : null,
-      resultGroups.held.length
-        ? `${plural(resultGroups.held.length, "result")} in your Library`
-        : null,
-    ].filter(Boolean).join(" · "),
-    [resultGroups],
-  );
-
   const filterCounts = useMemo(
     () =>
       Object.fromEntries(
@@ -1450,7 +1432,7 @@ export function BrowsePage({
 
   const libraryEvidenceMenu = resultGroups.held.length ? (
     <details className="rd-v2-discover-library-evidence" data-testid="discover-library-evidence">
-      <summary>Library evidence · {resultGroups.held.length}</summary>
+      <summary>{territoryText("held", resultGroups.held.length)}</summary>
       <div className="rd-v2-discover-library-popover">
         <span className="rd-v2-eyebrow">Relevant Library evidence</span>
         <DiscoverCandidateList
@@ -1642,14 +1624,14 @@ export function BrowsePage({
                 <div className="rd-v2-discover-frozen-controls">
                   {filterMenu}
                   {sortMenu}
-                  {onOpenAssessment ? (
+                  {onOpenAssessment && !assessmentActive ? (
                     <button
                       type="button"
                       className="rd-v2-discover-assess-action"
                       data-testid="discover-assess-coverage"
                       onClick={() => onOpenAssessment(q)}
                     >
-                      {assessmentActive ? "Review assessment" : "Assess coverage"}
+                      Assess coverage
                     </button>
                   ) : null}
                 </div>
@@ -1660,14 +1642,14 @@ export function BrowsePage({
                     // A page reload can begin a query before /datasets has
                     // answered. That is unmeasured, not zero held evidence.
                     territory.id === "held" && !resultGroups.held.length && (catalogLoading || lookupProgress.library === "checking") ? (
-                      <span key={territory.id}>Library evidence · Checking…</span>
+                      <span key={territory.id}>Checking your Library…</span>
                     // The freeze makes Library evidence an opener, not a label:
                     // it reveals a bounded preview plus Compare coverage and Open
                     // Library results. The popover existed and was never mounted.
                     ) : territory.id === "held" && libraryEvidenceMenu ? (
                       <span key={territory.id}>{libraryEvidenceMenu}</span>
                     ) : (
-                      <span key={territory.id}>{territory.label} · {territory.count}</span>
+                      <span key={territory.id}>{territoryText(territory.id, territory.count)}</span>
                     ),
                   )
                   : null}
@@ -1718,23 +1700,43 @@ export function BrowsePage({
                       <strong>No offering found yet</strong>
                       <span>Search wider or refine the evidence need</span>
                     </>
-                  ) : (
+                  ) : stateFilter !== "all" ? (
                     <>
                       <strong>{plural(centreRows.length, "offering")}</strong>
-                      <span>
-                        {stateFilter === "all"
-                          ? resultBreakdown || "available to inspect"
-                          : activeFilter.label}
-                      </span>
+                      <span>{activeFilter.label}</span>
                     </>
-                  )}
+                  ) : null}
                 </div>
                 <div>
+                  {assessmentPending ? null : strategyNeedsContext ? (
+                    <button
+                      type="button"
+                      className="rd-v2-discover-strategy-trigger"
+                      onClick={() => onAskQuery?.(
+                        q,
+                        {
+                          kind: "strategy_context",
+                          rows: merged,
+                          prompt: `Clarify the evidence requirement for: ${q}. Ask only for the missing context needed to judge coverage and prepare a custom dataset strategy. Do not submit procurement.`,
+                        },
+                      )}
+                    >
+                      Clarify evidence need
+                    </button>
+                  ) : hasEvidenceGap ? (
+                    <button
+                      type="button"
+                      className="rd-v2-discover-strategy-trigger is-ready"
+                      onClick={() => setRouteComparisonOpen(true)}
+                    >
+                      Review collection strategy
+                    </button>
+                  ) : null}
                   {onStartSynthesis && resultGroups.held.length > 0 ? (
                     <button
                       type="button"
                       data-testid="discover-start-synthesis"
-                      className="rd-v2-discover-strategy-trigger is-ready"
+                      className={`rd-v2-discover-strategy-trigger${hasEvidenceGap ? "" : " is-ready"}`}
                       disabled={synthesisStarting}
                       onClick={async () => {
                         setSynthesisStarting(true);
@@ -1765,30 +1767,6 @@ export function BrowsePage({
                       Search wider
                     </button>
                   ) : null}
-                  {assessmentPending ? null : strategyNeedsContext ? (
-                    <button
-                      type="button"
-                      className="rd-v2-discover-strategy-trigger"
-                      onClick={() => onAskQuery?.(
-                        q,
-                        {
-                          kind: "strategy_context",
-                          rows: merged,
-                          prompt: `Clarify the evidence requirement for: ${q}. Ask only for the missing context needed to judge coverage and prepare a custom dataset strategy. Do not submit procurement.`,
-                        },
-                      )}
-                    >
-                      Clarify evidence need
-                    </button>
-                  ) : hasEvidenceGap ? (
-                    <button
-                      type="button"
-                      className="rd-v2-discover-strategy-trigger is-ready"
-                      onClick={() => setRouteComparisonOpen(true)}
-                    >
-                      Review collection strategy
-                    </button>
-                  ) : null}
                 </div>
               </div>
               {synthesisStartError ? (
@@ -1798,9 +1776,6 @@ export function BrowsePage({
               <DiscoverEvidenceField
               candidateCount={centreRows.length}
               resultGroups={resultGroups}
-              assessmentActive={assessmentActive}
-              assessmentResult={assessmentResult}
-              onReviewAssembly={hasEvidenceGap ? () => setRouteComparisonOpen(true) : undefined}
             />
 
               {assessmentActive ? (

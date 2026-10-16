@@ -30,14 +30,14 @@ test.describe("candidate UI against the real backend", () => {
     await openDiscover(page);
     const summary = await search(page, "clinical trial outcomes");
 
-    await expect(summary).toContainText(/Library evidence\s*·\s*\d+/, { timeout: 30_000 });
+    await expect(summary).toContainText(/\d+ in your Library/, { timeout: 30_000 });
     await expect(summary.getByRole("status")).toContainText("Checking broader sources", {
       timeout: 30_000,
     });
     await expect(
       page.getByText(/Clinical[- ]Trial[- ]Outcomes/i).first(),
     ).toBeVisible({ timeout: 60_000 });
-    await expect(summary).toContainText(/Available\s*·\s*[1-9]\d*/);
+    await expect(summary).toContainText(/[1-9]\d* sources?/);
     await expect(summary.getByRole("status")).toHaveCount(0);
   });
 
@@ -53,7 +53,7 @@ test.describe("candidate UI against the real backend", () => {
 
     await openDiscover(page);
     const summary = await search(page, "stablecoin");
-    await expect(summary).toContainText(/Library evidence\s*·\s*[1-9]\d*/, { timeout: 30_000 });
+    await expect(summary).toContainText(/[1-9]\d* in your Library/, { timeout: 30_000 });
     await page.waitForTimeout(2_000);
     expect(widerRequests).toBe(0);
     await expect(summary.getByText("Checking broader sources")).toHaveCount(0);

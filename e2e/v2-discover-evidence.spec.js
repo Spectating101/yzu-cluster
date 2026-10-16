@@ -198,7 +198,7 @@ test.describe("Discover adaptive Explore", () => {
 
     await expect(page.getByTestId("discover-verdict")).toHaveText("Not yet recorded");
     await expect(page.getByTestId("discover-verdict")).toHaveClass(/insufficient_metadata/);
-    await expect(page.getByTestId("discover-assess-coverage")).toHaveText("Review assessment");
+    await expect(page.getByTestId("discover-assess-coverage")).toHaveCount(0);
     await expect(page.getByTestId("discover-route-comparison")).toHaveCount(0);
   });
 
@@ -230,7 +230,7 @@ test.describe("Discover adaptive Explore", () => {
     await waitForShell(page);
     await search(page, "What data covers Taiwan issuer-quarter governance?");
 
-    await page.getByRole("button", { name: "Review assembly plan" }).click();
+    await page.getByLabel("Discover next actions").getByRole("button", { name: "Review collection strategy" }).click();
     const comparison = page.getByTestId("discover-route-comparison");
     await expect(comparison).toBeVisible();
     await expect(comparison).toContainText("How it answers the question");

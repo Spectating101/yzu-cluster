@@ -1,5 +1,5 @@
 // DISCOVER_ADAPTIVE_FREEZE_2026-07-28 §3 binds this row to exactly three
-// counters: [Available · N] [Library evidence · N] [Web context · N].
+// counters: sources, in your Library, web results.
 //
 // The bug it was hiding was real — resultGroups sorts into four groups and the
 // row named three, so a DataCite row classified external-discoverable rendered
@@ -8,10 +8,17 @@
 // everything the centre shows, so the fourth group folds into it instead of
 // earning a label the spec does not have.
 export const TERRITORIES = [
-  { id: "available", label: "Available", inCentre: true, groups: ["available", "external"] },
-  { id: "held", label: "Library evidence", inCentre: false, groups: ["held"] },
-  { id: "context", label: "Web context", inCentre: false, groups: ["context"] },
+  { id: "available", label: "Sources", inCentre: true, groups: ["available", "external"] },
+  { id: "held", label: "In your Library", inCentre: false, groups: ["held"] },
+  { id: "context", label: "Web results", inCentre: false, groups: ["context"] },
 ];
+
+export function territoryText(id, count) {
+  const n = Number(count) || 0;
+  if (id === "held") return `${n} in your Library`;
+  if (id === "context") return `${n} web result${n === 1 ? "" : "s"}`;
+  return `${n} source${n === 1 ? "" : "s"}`;
+}
 
 export function discoverTerritories(groups) {
   const g = groups || {};

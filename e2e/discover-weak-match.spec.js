@@ -56,15 +56,15 @@ test.describe("Discover weak-match continuation", () => {
     await search(page, "clinical trial outcomes");
 
     const summary = page.getByTestId("discover-result-summary");
-    await expect(summary).toContainText("Library evidence · 3");
+    await expect(summary).toContainText("3 in your Library");
     await expect(summary.getByRole("status")).toContainText("Checking broader sources");
     await expect(page.getByLabel("Discover next actions")).toContainText(
       "Related Library evidence remains visible",
     );
 
     await expect(page.getByText("Clinical Trial Outcomes", { exact: true })).toBeVisible();
-    await expect(summary).toContainText("Available · 1");
-    await expect(summary).toContainText("Library evidence · 3");
+    await expect(summary).toContainText("1 source");
+    await expect(summary).toContainText("3 in your Library");
     await expect(summary.getByRole("status")).toHaveCount(0);
   });
 
@@ -155,7 +155,7 @@ test.describe("Discover weak-match continuation", () => {
     await waitForShell(page);
 
     await search(page, "stablecoin");
-    await expect(page.getByTestId("discover-result-summary")).toContainText("Library evidence · 1");
+    await expect(page.getByTestId("discover-result-summary")).toContainText("1 in your Library");
     await page.waitForTimeout(1_000);
     expect(liveRequests).toBe(0);
   });

@@ -19,7 +19,7 @@ import { SynthesisThreadRailPanel } from "@/v2/SynthesisThreadRailPanel";
 import { SynthesisIdleRailPanel } from "@/v2/SynthesisIdleRailPanel";
 import { ResearchSituationRail } from "@/v2/ResearchSituationRail";
 import { DISCOVER_TAB } from "@/v2/tabIdentity";
-import { assessmentGapText, assessmentLabel } from "./assessmentLabels.js";
+import { assessmentGapText, assessmentLabel, assessmentStatusKey, judgedLibraryMatch, librarySupportSummary } from "./assessmentLabels.js";
 
 function railSelectionHint(
   mainTab,
@@ -89,17 +89,26 @@ function DiscoverAssessmentRailSummary({ state, onClose }) {
     ? "Assessment in progress"
     : assessmentLabel(result);
   const gap = assessmentGapText(result);
-  const held = Array.isArray(result?.held_evidence) ? result.held_evidence.length : 0;
+  const support = librarySupportSummary(result);
+  const match = judgedLibraryMatch(result);
+  const next = pending
+    ? "Wait for the check to finish."
+    : assessmentStatusKey(result) === "assistant_unavailable"
+      ? "Try the check again in the centre."
+      : result?.gap
+        ? "Review collection strategy to fill the gap."
+        : match
+          ? "Open the matching dataset in your Library."
+          : "Refine the question or search wider.";
   return (
     <section className="rd-v2-discover-assessment-rail-summary" aria-label="Evidence assessment summary">
       <span className="rd-v2-eyebrow">What your Library covers</span>
       <strong>{status}</strong>
-      <p>{pending ? "The Library coverage assessment is being updated. The previous assessment is not used while this is pending." : gap || "No remaining gap was reported by the current assessment."}</p>
+      <p>{pending ? "Checking your Library against this question." : gap || "No remaining gap was reported."}</p>
       <dl>
-        <div><dt>Data in your Library</dt><dd>{pending ? "—" : held}</dd></div>
-        <div><dt>Centre</dt><dd>{pending ? "Assessment basis" : "Full assessment + collection methods"}</dd></div>
+        <div><dt>Library support</dt><dd>{pending ? "—" : `${support.value} ${support.detail}`}</dd></div>
+        <div><dt>Next step</dt><dd>{next}</dd></div>
       </dl>
-      <p className="muted">{pending ? "The rail mirrors state only; it does not run a second assessment." : "Use Detail for the decision summary or Ask to reason within this exact evidence need."}</p>
       {onClose ? <button type="button" className="rd-v2-btn sm" onClick={onClose}>Hide assessment</button> : null}
     </section>
   );

@@ -30,3 +30,9 @@ test("the judged Library match prefers a covering dataset over a partial one", (
   assert.equal(judgedLibraryMatch({ held_evidence: held }).dataset_id, "b");
   assert.equal(judgedLibraryMatch({ held_evidence: [{ dataset_id: "c" }] }), null);
 });
+
+test("an unavailable assistant is not reported as a missing brief", () => {
+  const result = { assessment_status: "assistant_unavailable" };
+  assert.equal(assessmentLabel(result), "Couldn't check");
+  assert.match(assessmentGapText(result), /did not answer/);
+});

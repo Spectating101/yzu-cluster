@@ -217,6 +217,7 @@ export function DiscoverEvidenceBrief({
   const verdictLabel = assessmentLabel(assessment, text(assessment?.verdict, "Assessment pending"));
   const verdictTone = assessmentStatus || verdictKey || "unknown";
   const briefNeeded = assessmentStatus === "insufficient_requirement";
+  const assistantUnavailable = assessmentStatus === "assistant_unavailable";
   const because = briefNeeded
     ? `${libraryMatchCount ? `${libraryMatchCount} Library ${libraryMatchCount === 1 ? "match" : "matches"} found. ` : ""}Coverage is checked once the brief says what the data must cover: period, frequency, or instruments.`
     : text(assessment?.because, "Reasoning was not provided.");
@@ -467,6 +468,16 @@ export function DiscoverEvidenceBrief({
             {onClose ? <button type="button" className="rd-v2-evidence-close" onClick={onClose}>Hide assessment</button> : null}
           </header>
           <p className="rd-v2-evidence-because">{because}</p>
+          {assistantUnavailable ? (
+            <button
+              type="button"
+              className="rd-v2-btn"
+              data-testid="discover-assessment-retry"
+              onClick={() => requestAssessment({ questionOverride: text(assessment.question, draft) })}
+            >
+              Try again
+            </button>
+          ) : null}
           {libraryAnswer ? (
             <button
               type="button"
@@ -485,12 +496,14 @@ export function DiscoverEvidenceBrief({
           {variant === "workspace" ? (
             <section className="rd-v2-evidence-position-grid" aria-label="Library coverage summary">
               <div><span>Requirement</span><strong>{establishedDimensions.length}/{dimensions.length || 0}</strong><em>dimensions established</em></div>
-              {briefNeeded ? (
+              {briefNeeded || assistantUnavailable ? (
                 <div><span>Library matches</span><strong>{libraryMatchCount}</strong><em>coverage not yet checked</em></div>
               ) : (
                 <div><span>Library support</span><strong>{support.value}</strong><em>{support.detail}</em></div>
               )}
-              {briefNeeded ? (
+              {assistantUnavailable ? (
+                <div><span>Evidence gap</span><strong>Not checked</strong><em>The research assistant did not answer</em></div>
+              ) : briefNeeded ? (
                 <div><span>Evidence gap</span><strong>Brief needed</strong><em>State period, frequency, or instruments</em></div>
               ) : (
                 <div><span>Evidence gap</span><strong>{assessment.gap ? "Open" : "None reported"}</strong><em>{assessment.gap ? text(assessment.gap.statement, "Gap recorded") : "Assessment reported no remaining gap"}</em></div>

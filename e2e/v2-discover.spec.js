@@ -108,9 +108,9 @@ test.describe("v2 Discover tab", () => {
     await expect(page.getByTestId("discover-interpreting")).toBeVisible();
     // "N results" was replaced by the chrome row plus an offering breakdown:
     //   Available · N   Library evidence · N   Web context · N
-    await expect(page.getByTestId("discover-result-summary")).toContainText(/Available\s*·\s*\d+/i);
-    await expect(page.getByTestId("discover-result-summary")).toContainText(/Library evidence\s*·\s*\d+/i);
-    await expect(page.getByLabel("Discover next actions")).toContainText(/with a documented route|Search wider/i);
+    await expect(page.getByTestId("discover-result-summary")).toContainText(/\d+ sources?/i);
+    await expect(page.getByTestId("discover-result-summary")).toContainText(/\d+ in your Library/i);
+    await expect(page.getByLabel("Discover next actions")).toContainText(/Search wider/i);
     await expect(page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-ranked-results-head strong")).toHaveCount(0);
     await expect(page.getByTestId("discover-resting-summary")).toContainText(/External/i);
     await expect(page.getByTestId("discover-resting-summary")).toContainText(/Library results/i);
@@ -154,8 +154,8 @@ test.describe("v2 Discover tab", () => {
     await waitForShell(page);
     await searchDiscover(page, "county unemployment");
     const summary = page.getByTestId("discover-result-summary");
-    await expect(summary).toContainText("Available · 2");
-    await expect(summary).toContainText("Library evidence · 2");
+    await expect(summary).toContainText("2 sources");
+    await expect(summary).toContainText("2 in your Library");
     const results = page.getByTestId("discover-ranked-results");
     await expect(results.locator(".rd-v2-discover-candidate")).toHaveCount(2);
     await expect(results.locator(".rd-v2-source-ribbon").filter({ hasText: /^BLS$/ })).toBeVisible();
@@ -214,7 +214,7 @@ test.describe("v2 Discover tab", () => {
 
     releaseDatasets();
     await page.waitForTimeout(800);
-    await expect(page.getByTestId("discover-result-summary")).toContainText("Library evidence · 1");
+    await expect(page.getByTestId("discover-result-summary")).toContainText("1 in your Library");
     await expect(field.getByText("Forest fire economic impact panel")).toBeVisible();
     await expect(page.locator(".rd-v2-discover-miss")).toHaveCount(0);
   });
@@ -237,8 +237,8 @@ test.describe("v2 Discover tab", () => {
     await searchDiscover(page, missingNeed);
 
     const summary = page.getByTestId("discover-result-summary");
-    await expect(summary).toContainText("Available · 0");
-    await expect(summary).toContainText("Library evidence · 0");
+    await expect(summary).toContainText("0 sources");
+    await expect(summary).toContainText("0 in your Library");
     await expect(page.locator(".rd-v2-discover-miss")).toContainText(
       `No matches for “${missingNeed}” in the current research index.`,
     );
@@ -301,8 +301,8 @@ test.describe("v2 Discover tab", () => {
     await waitForShell(page);
     await searchDiscover(page, "stablecoin");
 
-    await expect(page.getByLabel("Discover next actions")).toContainText("1 offering with a documented route");
-    await expect(page.getByLabel("Discover next actions")).toContainText("1 reference");
+    await expect(page.getByTestId("discover-result-summary")).toContainText("1 source");
+    await expect(page.getByTestId("discover-result-summary")).toContainText("1 web result");
     await expect(page.getByRole("button", { name: /^Add to collection/ })).toHaveCount(1);
     const context = page.getByTestId("discover-context-results");
     await expect(context.getByText("CoinGecko example route")).toBeVisible();
@@ -358,13 +358,13 @@ test.describe("v2 Discover tab", () => {
     await searchDiscover(page, "stablecoin");
 
     const summary = page.getByTestId("discover-result-summary");
-    await expect(summary).toContainText("Available · 0");
-    await expect(summary).toContainText("Library evidence · 1");
+    await expect(summary).toContainText("0 sources");
+    await expect(summary).toContainText("1 in your Library");
     await page.getByRole("button", { name: "Search wider", exact: true }).click();
     await expect(summary).toContainText("Searching wider sources…");
-    await expect(summary).toContainText("Available · 1");
-    await expect(summary).toContainText("Library evidence · 1");
-    await expect(summary).toContainText("Web context · 1");
+    await expect(summary).toContainText("1 source");
+    await expect(summary).toContainText("1 in your Library");
+    await expect(summary).toContainText("1 web result");
     await expect(page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidate")).toHaveCount(1);
   });
 
@@ -477,7 +477,7 @@ test.describe("v2 Discover tab", () => {
     await expect(progress).toContainText("Current evidence is visible");
     await expect(progress).toContainText("Library evidence · checked");
     await expect(progress).toContainText("Known collection methods · checking");
-    await expect(page.getByTestId("discover-result-summary")).toContainText("Library evidence · 1");
+    await expect(page.getByTestId("discover-result-summary")).toContainText("1 in your Library");
     await expect(page.getByLabel("Discover next actions")).toContainText("1 Library match");
     await expect(page.getByLabel("Discover next actions")).not.toContainText("0 offerings");
     // Held evidence remains immediately inspectable through the frozen bounded
@@ -516,8 +516,8 @@ test.describe("v2 Discover tab", () => {
     try {
       await searchDiscover(page, "stablecoin");
       const summary = page.getByTestId("discover-result-summary");
-      await expect(summary).toContainText("Library evidence · Checking…");
-      await expect(summary).not.toContainText("Library evidence · 0");
+      await expect(summary).toContainText("Checking your Library…");
+      await expect(summary).not.toContainText("0 in your Library");
     } finally {
       releaseCatalog();
     }
@@ -574,9 +574,9 @@ test.describe("v2 Discover tab", () => {
     await searchDiscover(page, "stablecoin");
 
     const summary = page.getByTestId("discover-result-summary");
-    await expect(summary).toContainText("Library evidence · Checking…");
-    await expect(summary).not.toContainText("Library evidence · 0");
-    await expect(summary).toContainText("Library evidence · 0", { timeout: 4_000 });
+    await expect(summary).toContainText("Checking your Library…");
+    await expect(summary).not.toContainText("0 in your Library");
+    await expect(summary).toContainText("0 in your Library", { timeout: 4_000 });
   });
 
   test("selecting a discover row keeps Explore visible and updates the Detail rail", async ({ page }) => {
@@ -822,6 +822,6 @@ test.describe("v2 Discover tab", () => {
     await expect(page.locator('[aria-label="Other external matches"]')).toHaveCount(0);
     await expect(page.getByTestId("discover-other-matches")).toHaveCount(0);
     await expect(page.getByTestId("discover-best-fit")).toHaveCount(0);
-    await expect(page.getByTestId("discover-result-summary")).toContainText(/Available\s*·\s*\d+/i);
+    await expect(page.getByTestId("discover-result-summary")).toContainText(/\d+ sources?/i);
   });
 });

@@ -9,6 +9,7 @@ const VERDICT_LABELS = {
 const ASSESSMENT_STATUS_LABELS = {
   insufficient_metadata: "Not yet recorded",
   insufficient_requirement: "Needs a brief",
+  assistant_unavailable: "Couldn't check",
 };
 
 const key = (value) => String(value || "").trim().toLowerCase().replace(/[ -]/g, "_");
@@ -48,6 +49,9 @@ export function librarySupportSummary(result) {
 export function assessmentGapText(result) {
   if (key(result?.assessment_status) === "insufficient_requirement") {
     return "State what the data must cover (period, frequency, or instruments) so coverage in your Library can be checked.";
+  }
+  if (key(result?.assessment_status) === "assistant_unavailable") {
+    return "The research assistant did not answer, so coverage was not checked. Try again in a moment.";
   }
   return String(result?.gap?.statement || "").trim();
 }

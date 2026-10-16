@@ -50,17 +50,20 @@ test("§3 — held evidence is chrome, never a permanent result section", async 
   await open(page, "stablecoin");
   const chrome = page.locator(".rd-v2-discover-frozen-counts");
   await expect(chrome).toBeVisible();
-  await expect(chrome).toContainText("Library evidence");
+  await expect(chrome).toContainText("in your Library");
   // it must not also exist as a results heading
   await expect(page.locator(".rd-v2-discover-results h2, .rd-v2-discover-results h3")
-    .filter({ hasText: "Library evidence" })).toHaveCount(0);
+    .filter({ hasText: "in your Library" })).toHaveCount(0);
 });
 
 test("§3 — the chrome row carries exactly the three frozen counters", async ({ page }) => {
   await open(page, "stablecoin");
   const text = await page.locator(".rd-v2-discover-frozen-counts").innerText();
-  const labels = text.split("\n").map((l) => l.split("·")[0].trim()).filter(Boolean);
-  expect(labels).toEqual(["Available", "Library evidence", "Web context"]);
+  const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+  expect(lines).toHaveLength(3);
+  expect(lines[0]).toMatch(/^\d+ sources?$/);
+  expect(lines[1]).toMatch(/^\d+ in your Library$/);
+  expect(lines[2]).toMatch(/^\d+ web results?$/);
 });
 
 test("§3 — every visible offering carries a description and a row-level Add", async ({ page }) => {

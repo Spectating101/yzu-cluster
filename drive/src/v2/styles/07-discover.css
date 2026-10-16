@@ -374,9 +374,9 @@
 }
 
 .rd-v2-discover-page .rd-v2-discover-result-actions .is-ready {
-  border-color: #b8d1c4;
-  background: #eef1ee;
-  color: #294d40;
+  border-color: #3f6f5c;
+  background: #3f6f5c;
+  color: #fff;
 }
 
 /* ── Evidence rows: scan like an instrument, not a generic card list ───── */
@@ -1100,6 +1100,26 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
   border-radius: 6px;
   background: color-mix(in srgb, var(--rd-active-bg, #eef1ee) 58%, var(--rd-surface, #fffdf6));
   color: var(--rd-text, #182033);
+}
+
+.rd-v2-discover-page .rd-v2-discover-result-actions:has(> div:first-child:empty) {
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.rd-v2-discover-page .rd-v2-discover-result-actions:has(> div:first-child:empty) > div:first-child {
+  display: none;
+}
+
+.rd-v2-discover-page .rd-v2-discover-result-actions:has(> div:first-child:empty) > div:last-child {
+  justify-content: flex-start;
+}
+
+.rd-v2-discover-page .rd-v2-discover-result-actions:has(> div:first-child:empty):has(> div:last-child:empty) {
+  display: none;
 }
 
 .rd-v2-discover-page .rd-v2-discover-result-actions strong {

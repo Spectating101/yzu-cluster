@@ -105,9 +105,8 @@ test.describe("Discover visual convergence", () => {
     await search(page, "stablecoin market evidence");
 
     const summary = page.getByTestId("discover-result-summary");
-    await expect(summary).toContainText(/Available\s*·\s*1/i);
-    await expect(summary).toContainText(/Library evidence\s*·\s*1/i);
-    await expect(summary).toContainText("1 offering with a documented route");
+    await expect(summary).toContainText("1 source");
+    await expect(summary).toContainText("1 in your Library");
     await expect(page.getByTestId("discover-ranked-results")).toBeVisible();
     await expect(page.getByTestId("discover-context-results")).toBeVisible();
     await expect(page.getByRole("button", { name: /Add to collection/ })).toHaveCount(1);
