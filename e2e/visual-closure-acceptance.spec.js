@@ -70,10 +70,10 @@ test("Synthesis new — durable-object start and bounded empty rail", async ({ p
   await open(page, "/?tab=synthesis");
   const rail = page.getByRole("complementary", { name: "Inspector" });
   await expect(rail.getByRole("heading", { name: "No build selected" })).toBeVisible();
-  for (const step of ["Start", "Ask", "Ground", "Review", "Output"]) {
+  for (const step of ["Describe it", "Choose data", "Approve", "Get the dataset"]) {
     await expect(page.getByTestId("rail-pane-detail").getByText(step, { exact: true })).toBeVisible();
   }
-  await expect(rail).toContainText("Archiving, saving to Library, and readiness remain separate");
+  await expect(rail).toContainText("Nothing runs before you approve the method");
   await expect(rail).not.toContainText("Choose a blueprint or custom pair");
   await expect(page.getByRole("button", { name: /Start from a research question/ })).toBeVisible();
   await shot(page, "synthesis-new-1440x900.png");
