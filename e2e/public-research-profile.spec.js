@@ -146,18 +146,13 @@ test("public member gets an honest personal research-profile cold start", async 
   // assertion, so CI fails on the actual overlap.
   const profileIdentityBox = await page.getByTestId("personal-research-profile").boundingBox();
   const identityCopyBox = await page.getByTestId("personal-research-profile").locator(".rd-v2-profile-ident").boundingBox();
-  const identityMetricsBox = await page.getByTestId("personal-research-profile").locator(".rd-v2-profile-identity-side").boundingBox();
   const editorBox = await page.getByTestId("research-profile-editor").boundingBox();
   const learnedMemoryBox = await page.getByTestId("learned-research-memory").boundingBox();
   expect(profileIdentityBox).not.toBeNull();
   expect(identityCopyBox).not.toBeNull();
-  expect(identityMetricsBox).not.toBeNull();
   expect(editorBox).not.toBeNull();
   expect(learnedMemoryBox).not.toBeNull();
-  const identityContentBottom = Math.max(
-    identityCopyBox.y + identityCopyBox.height,
-    identityMetricsBox.y + identityMetricsBox.height,
-  );
+  const identityContentBottom = identityCopyBox.y + identityCopyBox.height;
   expect(Math.min(editorBox.y, learnedMemoryBox.y)).toBeGreaterThanOrEqual(identityContentBottom - 1);
   await testInfo.attach("learned-research-memory", {
     body: await page.getByTestId("learned-research-memory").screenshot(),

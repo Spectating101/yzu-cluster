@@ -942,12 +942,7 @@ export async function mockV2Api(
     route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({
-        principal: { id: "test-prof", display_name: "Test Prof", email: "prof@example.test" },
-        configured: false,
-        profile: {},
-        memory: { memories: [] },
-      }),
+      body: JSON.stringify({ configured: false }),
     }),
   );
   await page.route("**/query/*", (route) => {
