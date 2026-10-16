@@ -1547,8 +1547,6 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
 .rd-v2-discover-ranked-results .rd-v2-discover-offering-facts b {
   color: #5b6578;
   font-size: var(--rd-text-2xs) !important;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 
 .rd-v2-discover-ranked-results .rd-v2-discover-offering-facts em {
@@ -1692,7 +1690,7 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
   line-height: 1.25;
   white-space: normal;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 1;
 }
 
 .rd-v2-discover-ranked-results .rd-v2-discover-sufficiency {

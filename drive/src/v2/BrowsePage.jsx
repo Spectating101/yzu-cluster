@@ -264,7 +264,7 @@ function DiscoverCandidateRow({
             {offeringFacts.map(([label, value]) => (
               <span key={`${label}:${value}`}>
                 <b>{label}</b>
-                <em>{value}</em>
+                <em title={String(value)}>{value}</em>
               </span>
             ))}
           </span>

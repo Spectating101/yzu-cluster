@@ -1090,9 +1090,7 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-rail-fieldgrid .rd-v2-
 .rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-offering-facts b {
   display: block;
   color: #5b6578;
-  font: 700 11px/1.15 var(--rd-mono, ui-monospace, monospace);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font: 600 var(--rd-text-2xs)/1.15 var(--rd-font);
 }
 
 .rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) .rd-v2-discover-offering-facts em {
