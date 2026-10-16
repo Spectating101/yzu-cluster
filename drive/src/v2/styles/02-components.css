@@ -4998,6 +4998,8 @@ body,
   letter-spacing: -0.01em;
 }
 
+.rd-v2-library-asset-header .rd-v2-nowrap { white-space: nowrap; }
+
 .rd-v2-library-asset-header p {
   display: -webkit-box;
   max-width: 82ch;
@@ -5121,6 +5123,15 @@ body,
 }
 
 .rd-v2-library-glimpse-table tr:last-child td { border-bottom: 0; }
+
+.rd-v2-library-glimpse-table .rd-v2-library-column-profile td {
+  padding-top: 5px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(160, 172, 160, 0.7);
+  background: #f6f7f3;
+  color: #44584f;
+  font-size: var(--rd-text-2xs);
+}
 
 .rd-v2-library-schema-only-row td {
   max-width: none;
@@ -5457,8 +5468,11 @@ body,
   }
 
   .rd-v2-library-inspector-shell .rd-v2-library-asset-header h1 {
+    max-width: 48ch;
     margin-top: 3px;
-    font-size: clamp(22px, 2vw, 28px);
+    font-size: clamp(20px, 1.6vw, 24px);
+    line-height: 1.15;
+    text-wrap: balance;
   }
 
   .rd-v2-library-inspector-shell .rd-v2-library-workspace-actions {

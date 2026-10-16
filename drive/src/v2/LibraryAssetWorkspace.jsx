@@ -3,6 +3,7 @@ import { plainRoute } from "./plainText.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { plainIdentifiers } from "@/v2/plainText";
 import { queryDataset } from "@/v2/api";
+import { columnSummary, columnSummaryTitle, profileBasis, sampleReceipt } from "@/v2/columnSummary";
 import {
   detailFields,
   displayName,
@@ -248,6 +249,15 @@ function observedColumns(rows = []) {
   return ordered;
 }
 
+const RANGE = /(\d{4}(?:-\d{2}){0,2}\s*[–-]\s*\d{4}(?:-\d{2}){0,2}|\d{4}-\d{2}(?:-\d{2})?)/g;
+
+function keepRangesTogether(title) {
+  const text = String(title || "");
+  const parts = text.split(RANGE);
+  if (parts.length === 1) return text;
+  return parts.map((part, index) => (index % 2 ? <span key={index} className="rd-v2-nowrap">{part}</span> : part));
+}
+
 const datasetAnalysis = (dataset) => dataset?.analysis || dataset?.synthesis_analysis || null;
 
 function DatasetPreview({ dataset, canQuery, names, fields, state, presentation, onInspect, onExpandSample }) {
@@ -263,13 +273,15 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
       return undefined;
     }
     setPreview({ datasetId: dataset.dataset_id, loading: true, rows: [], error: "" });
-    queryDataset(dataset.dataset_id, analysis ? 10000 : 8, { spread: !analysis })
+    queryDataset(dataset.dataset_id, analysis ? 10000 : 8, { spread: !analysis, profile: !analysis })
       .then((payload) => {
         if (!cancelled) {
           setPreview({
             datasetId: dataset.dataset_id,
             loading: false,
             rows: Array.isArray(payload?.rows) ? (analysis ? payload.rows : payload.rows.slice(0, 8)) : [],
+            profile: payload?.profile && Array.isArray(payload.profile.columns) ? payload.profile : null,
+            total: Number(payload?.meta?.rows_total_after_filter) || 0,
             error: "",
           });
         }
@@ -285,6 +297,7 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
   const columns = observedColumns(preview.rows);
   const schemaColumns = columns.length ? columns : names.slice(0, 12);
   const observed = columns.length > 0 && preview.rows.length > 0;
+  const profileByName = new Map((preview.profile?.columns || []).map((column) => [column.name, column]));
   const joinKeys = fields.joinKeys || [];
   const rowCount = dataset?.rows || dataset?.row_count || dataset?.num_rows || dataset?.records;
   const liveSource = presentation.kind === "live_source";
@@ -301,7 +314,7 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
         <div className="rd-v2-library-preview-tools">
           {observed ? (
             <span className="rd-v2-library-observation-receipt" data-testid="library-observation-receipt">
-              {preview.rows.length} row{preview.rows.length === 1 ? "" : "s"} · {columns.length} column{columns.length === 1 ? "" : "s"}
+              {sampleReceipt(preview.rows.length, columns.length, preview.profile?.rows_total || preview.total)}
             </span>
           ) : null}
           <button type="button" className="rd-v2-btn sm" onClick={onInspect}>Inspect schema</button>
@@ -322,6 +335,15 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
           <table className="rd-v2-library-glimpse-table">
             <thead>
               <tr>{schemaColumns.map((column) => <th key={column}>{column}</th>)}</tr>
+              {observed && profileByName.size ? (
+                <tr className="rd-v2-library-column-profile" data-testid="library-column-profile">
+                  {schemaColumns.map((column) => (
+                    <td key={column} title={columnSummaryTitle(profileByName.get(column))}>
+                      {columnSummary(profileByName.get(column))}
+                    </td>
+                  ))}
+                </tr>
+              ) : null}
             </thead>
             <tbody>
               {observed ? (
@@ -352,7 +374,7 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
       )}
 
       <div className="rd-v2-library-preview-foot">
-        <span>{observed ? "Observed values from the current query path" : "Documented structure only"}</span>
+        <span>{observed ? (profileBasis(preview.profile) || "Values read from the stored data") : "Documented structure only"}</span>
         {coverage ? <span>Coverage: {coverage}</span> : !liveSource ? <span>Coverage: Not documented</span> : null}
         {liveSource ? null : <span>Unit of observation: {grain || "Not documented"}</span>}
         {liveSource ? null : <span>Scale: {rowCount ? `${rowCount} rows` : "Not documented"}</span>}
@@ -479,7 +501,7 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onOpenQuery,
         <header className="rd-v2-library-asset-header">
           <div>
             <span className="rd-v2-eyebrow">{presentation.eyebrow}</span>
-            <h1>{displayName(dataset)}</h1>
+            <h1>{keepRangesTogether(displayName(dataset))}</h1>
             <p>{value(dataset?.description, dataset?.summary, dataset?.recommended_use, `This ${presentation.noun} has no plain-language description in the current registry.`)}</p>
           </div>
         </header>

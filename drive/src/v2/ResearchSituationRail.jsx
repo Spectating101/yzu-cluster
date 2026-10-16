@@ -142,7 +142,7 @@ function librarySituation({ dataset, activeObject }) {
       status: status.label,
       statusKind: status.kind,
       facts: [presentation.noun, source, shape],
-      next: decision.body,
+      next: status.kind === "query-ready" ? "" : decision.body,
     };
   }
 
