@@ -475,7 +475,7 @@ test.describe("v2 Discover tab", () => {
 
     const progress = page.getByTestId("discover-lookup-progress");
     await expect(progress).toContainText("Current evidence is visible");
-    await expect(progress).toContainText("Library evidence · checked");
+    await expect(progress).toContainText("Your Library · checked");
     await expect(progress).toContainText("Known collection methods · checking");
     await expect(page.getByTestId("discover-result-summary")).toContainText("1 in your Library");
     await expect(page.getByLabel("Discover next actions")).toContainText("1 Library match");

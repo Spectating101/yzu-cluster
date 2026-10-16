@@ -366,7 +366,7 @@ function DiscoverQueryComposer({
 
 function DiscoverLookupProgress({ progress, hasResults = false }) {
   const steps = [
-    ["library", "Library evidence"],
+    ["library", "Your Library"],
     ["routes", "Known collection methods"],
   ];
   return (
@@ -1550,7 +1550,7 @@ export function BrowsePage({
               )}
               {idleHoldings.length ? (
                 <div className="rd-v2-discover-idle-library-note">
-                  Library evidence · {plural(libraryEvidenceCount ?? labIds.size, "asset")}{" "}
+                  Your Library · {plural(libraryEvidenceCount ?? labIds.size, "dataset")}{" "}
                   {(libraryEvidenceCount ?? labIds.size) === 1 ? "is" : "are"} checked automatically after a research question.
                 </div>
               ) : null}
@@ -1672,7 +1672,7 @@ export function BrowsePage({
                 <div role={broaderSearchPending ? "status" : undefined}>
                   {broaderSearchPending && resultGroups.held.length > 0 ? (
                     <>
-                      <strong>{plural(resultGroups.held.length, "Library match")}</strong>
+                      <strong>{plural(resultGroups.held.length, "Library match", "Library matches")}</strong>
                       <span>Checking broader sources for a direct route</span>
                     </>
                   ) : broaderSearchPending ? (
@@ -1682,7 +1682,7 @@ export function BrowsePage({
                     </>
                   ) : loading && centreRows.length === 0 && resultGroups.held.length > 0 ? (
                     <>
-                      <strong>{plural(resultGroups.held.length, "Library match")}</strong>
+                      <strong>{plural(resultGroups.held.length, "Library match", "Library matches")}</strong>
                       <span>Known collection methods are still being checked</span>
                     </>
                   ) : loading && centreRows.length === 0 ? (
