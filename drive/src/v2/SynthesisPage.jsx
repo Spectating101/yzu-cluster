@@ -1895,7 +1895,7 @@ export function SynthesisPage({
     if (!newMode) return;
     onSelectThread?.({
       id: "__new__",
-      title: "New construction",
+      title: "New build",
       objective,
       ephemeral: true,
       state: { ephemeral: true, entry_mode: "new", objective },
@@ -2245,7 +2245,7 @@ export function SynthesisPage({
     onBeginNew?.();
     onSelectThread?.({
       id: "__new__",
-      title: "New construction",
+      title: "New build",
       ephemeral: true,
       state: { ephemeral: true, entry_mode: "new" },
     });

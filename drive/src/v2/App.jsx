@@ -2288,7 +2288,7 @@ function DeskWorkspace({ onIdentityChanged }) {
       <V2DeskHeader
         onBrandClick={() => goTab("home")}
         onRetry={refreshBackend}
-        headerInitials={
+        headerInitials={deskAccess?.principal?.role === "public_guest" ? "G" :
           String(deskAccess?.principal?.display_name || deskAccess?.principal?.email || "YZ")
             .split(/[\s@._-]+/)
             .filter(Boolean)

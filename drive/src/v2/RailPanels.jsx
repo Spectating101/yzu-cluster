@@ -158,22 +158,23 @@ const HOME_ITEM_KINDS = {
 
 const PAGE_RAIL_COPY = {
   home: {
-    title: "Research Drive",
-    desc: "Start from data you already have in the Library, or describe what you need in Discover.",
+    title: "Getting around",
+    desc: "Browsing works without an account; Ask, requests and saved builds need one.",
     fields: [
-      ["Use this page", "See what needs attention now"],
-      ["Have data", "Open it in the Library"],
-      ["Need data", "Describe it in Discover"],
+      ["Library", "Preview, query and download datasets"],
+      ["Discover", "Check what the Library covers and where to get the rest"],
+      ["Synthesis", "Build a new dataset from Library data"],
+      ["Ask", "A research assistant for signed-in researchers"],
     ],
   },
   library: {
     title: "Library guide",
     desc: "Your Library: folders, saved datasets, readiness checks, and collection history.",
     fields: [
-      ["Use this page", "Find data you already have"],
-      ["Primary move", "Select a dataset or branch"],
-      ["When missing", "Add URL / DOI or procure missing data"],
-      ["Trust cue", "Rows should show readiness, source, and destination"],
+      ["Find", "Search, or browse a research topic"],
+      ["Open", "Select a dataset to preview rows and download"],
+      ["Missing data", "Add a URL or DOI, or look for it in Discover"],
+      ["Ready to query", "You can preview and download it now"],
     ],
   },
   synthesis: {
@@ -186,12 +187,12 @@ const PAGE_RAIL_COPY = {
     ],
   },
   profile: {
-    title: "Researcher record",
-    desc: "Registry-backed identity, research context, works, and recorded evidence relationships.",
+    title: "Your research profile",
+    desc: "Your topic, methods and works help Discover and Ask suggest relevant data.",
     fields: [
-      ["Source", "Faculty registry"],
-      ["Evidence verification", "Library confirms what data you have"],
-      ["Boundary", "Suggestions are not researcher facts"],
+      ["Yours to edit", "Nothing here is shared as fact without your confirmation"],
+      ["Used by", "Discover suggestions and Ask"],
+      ["Not used for", "Access, approvals or collection permissions"],
     ],
   },
   settings: {
