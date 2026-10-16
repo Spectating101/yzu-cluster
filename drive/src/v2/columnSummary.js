@@ -32,6 +32,13 @@ export function columnSummary(column) {
   return `${distinct.toLocaleString("en-US")} value${distinct === 1 ? "" : "s"}${emptyNote}`;
 }
 
+export function columnBars(column) {
+  const bins = Array.isArray(column?.bins) ? column.bins.map((n) => Number(n) || 0) : [];
+  const peak = Math.max(0, ...bins);
+  if (bins.length < 2 || !peak) return [];
+  return bins.map((n) => n / peak);
+}
+
 export function columnSummaryTitle(column) {
   if (!column || typeof column !== "object") return "";
   const parts = [`${column.name}: ${column.kind}`];

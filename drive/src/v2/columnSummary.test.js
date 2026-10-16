@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { columnSummary, profileBasis, sampleReceipt } from "./columnSummary.js";
+import { columnBars, columnSummary, profileBasis, sampleReceipt } from "./columnSummary.js";
 
 test("numbers read as a range, years stay years", () => {
   assert.equal(columnSummary({ kind: "number", min: 3.711599, max: 6.923532, filled: 120, empty: 0 }), "3.712 – 6.924");
@@ -22,4 +22,10 @@ test("the receipt says when rows are a sample of a larger table", () => {
   assert.equal(sampleReceipt(3, 1, 3), "3 rows · 1 column");
   assert.equal(profileBasis({ rows_profiled: 120, rows_total: 120, complete: true }), "Column summaries cover all 120 rows.");
   assert.equal(profileBasis({ rows_profiled: 2000, rows_total: 51234, complete: false }), "Column summaries cover the first 2,000 of 51,234 rows.");
+});
+
+test("column bars scale bins to the tallest and skip flat or missing ones", () => {
+  assert.deepEqual(columnBars({ bins: [1, 4, 2] }), [0.25, 1, 0.5]);
+  assert.deepEqual(columnBars({ bins: [3] }), []);
+  assert.deepEqual(columnBars({ kind: "text" }), []);
 });

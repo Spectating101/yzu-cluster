@@ -5125,6 +5125,23 @@ body,
   background: #f6f7f3;
   color: #44584f;
   font-size: var(--rd-text-2xs);
+  vertical-align: bottom;
+}
+
+.rd-v2-library-column-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 1px;
+  width: 100%;
+  max-width: 120px;
+  height: 18px;
+  margin-bottom: 4px;
+}
+
+.rd-v2-library-column-bars > i {
+  flex: 1;
+  border-radius: 1px 1px 0 0;
+  background: #8fae9f;
 }
 
 .rd-v2-library-schema-only-row td {

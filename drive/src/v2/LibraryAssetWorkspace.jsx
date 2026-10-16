@@ -3,7 +3,7 @@ import { plainRoute } from "./plainText.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { plainIdentifiers } from "@/v2/plainText";
 import { queryDataset } from "@/v2/api";
-import { columnSummary, columnSummaryTitle, profileBasis, sampleReceipt } from "@/v2/columnSummary";
+import { columnBars, columnSummary, columnSummaryTitle, profileBasis, sampleReceipt } from "@/v2/columnSummary";
 import {
   detailFields,
   displayName,
@@ -339,6 +339,13 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
                 <tr className="rd-v2-library-column-profile" data-testid="library-column-profile">
                   {schemaColumns.map((column) => (
                     <td key={column} title={columnSummaryTitle(profileByName.get(column))}>
+                      {columnBars(profileByName.get(column)).length ? (
+                        <span className="rd-v2-library-column-bars" aria-hidden="true">
+                          {columnBars(profileByName.get(column)).map((height, index) => (
+                            <i key={index} style={{ height: `${Math.max(6, Math.round(height * 100))}%` }} />
+                          ))}
+                        </span>
+                      ) : null}
                       {columnSummary(profileByName.get(column))}
                     </td>
                   ))}
