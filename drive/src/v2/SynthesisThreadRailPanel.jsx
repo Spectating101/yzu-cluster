@@ -45,17 +45,17 @@ function NewEntryRail({ thread, onAsk }) {
   const draft = synthesisDraftBrief(thread?.objective || thread?.state?.objective || "");
   const status = !draft.objective ? "Draft entry" : draft.readyToCreate ? "Ready to create" : "Draft brief";
   const primary = !draft.objective
-    ? "Describe the research object"
+    ? "Describe the dataset you need"
     : draft.readyToCreate
       ? "Review the brief before saving it"
       : `Clarify ${draft.missing[0]?.label?.toLowerCase() || "the missing framing"}`;
   const risk = !draft.objective
-    ? "Ask needs a research purpose to work from"
+    ? ""
     : draft.missing.length
       ? `${draft.missing.length} framing commitment${draft.missing.length === 1 ? " is" : "s are"} still unstated`
       : "No evidence or methodology has been chosen yet";
   const next = !draft.objective
-    ? "State the research purpose or reuse a method saved to Library"
+    ? "Write the purpose, or start from a saved method"
     : draft.readyToCreate
       ? "Create the build, then review data in your Library"
       : "Complete the brief yourself or use Ask to sharpen it";
@@ -80,23 +80,12 @@ function NewEntryRail({ thread, onAsk }) {
           ) : (
             <p className="is-empty">Your purpose will appear here while you write. Nothing is saved yet.</p>
           )}
-          <ul>
-            {draft.cues.map((cue) => (
-              <li key={cue.id} className={cue.ready ? "is-ready" : ""}>
-                <b aria-hidden="true">{cue.ready ? "✓" : "·"}</b>
-                <span>
-                  <strong>{cue.label}</strong>
-                  <small>{cue.ready ? "Mentioned in draft" : `${cue.help} · e.g. ${cue.example}`}</small>
-                </span>
-              </li>
-            ))}
-          </ul>
         </section>
         <RailFieldGrid>
           <RailField label="State" value="Not saved" />
           <RailField label="Evidence" value="None selected" />
           <RailField label="Method" value="None proposed" />
-          <RailField label="Execution" value="Unavailable before later approval" />
+          <RailField label="Running" value="Only after you approve the method" />
         </RailFieldGrid>
       </div>
       <RailStickyFooter>

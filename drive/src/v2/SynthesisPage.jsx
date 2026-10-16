@@ -1502,7 +1502,7 @@ function NewThread({
       <div className="s04-new-entry-grid">
         <section className="s04-new-entry-section s04-new-entry-purpose">
           <small>Research purpose</small>
-          <h2>Describe the build you need.</h2>
+          <h2>What should the dataset measure?</h2>
           <p>Write it the way you would explain it to a colleague. You choose the data and approve the method in the next steps.</p>
           <textarea
             rows={7}
@@ -1539,7 +1539,7 @@ function NewThread({
           <div className="s04-new-entry-framing" aria-label="Research brief framing checklist">
             <header>
               <div>
-                <small>Strong brief checklist</small>
+                <small>Brief checklist</small>
                 <strong>{draft.complete}/4 framing cues</strong>
               </div>
               <button type="button" onClick={() => onFrameInAsk?.(objective)} disabled={!reasoningAvailable}>
@@ -1566,9 +1566,9 @@ function NewThread({
         </section>
 
         <section className="s04-new-entry-section s04-new-entry-methods">
-          <small>Methods saved to Library</small>
-          <h2>Reuse an existing build.</h2>
-          <p>Start from a recorded method, then review how its inputs and assumptions change for this new thread.</p>
+          <small>Saved methods</small>
+          <h2>Or start from a saved method.</h2>
+          <p>Pick one, then review how its data and assumptions change for this build.</p>
           {startingPoints.length ? (
             <div className="s04-new-entry-method-list">
               {startingPoints.map((profile) => (
@@ -1646,7 +1646,7 @@ function EmptyWorkspace({
       ) : null}
       {list.length ? (
         <ul className="s04-blueprint-recipes" aria-label="Synthesis methods saved to Library" data-testid="synthesis-blueprints">
-          <li className="s04-blueprint-heading">Methods saved to Library</li>
+          <li className="s04-blueprint-heading">Saved methods</li>
           {list.map((profile) => {
             const sources = Array.isArray(profile.sources) ? profile.sources : [];
             const joins = Array.isArray(profile.join_keys) ? profile.join_keys : [];
