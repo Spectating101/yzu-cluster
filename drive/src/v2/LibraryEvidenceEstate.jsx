@@ -180,15 +180,23 @@ export function LibraryEvidenceEstate({
               const row = item?.row || item;
               const verification = libraryVerification(row);
               return (
-                <button
+                <div
                   key={row.dataset_id || item.id}
-                  type="button"
                   className="rd-v2-cap-ledger-row"
                   data-testid="library-evidence-row"
                   data-kind="evidence"
                   role="row"
+                  tabIndex={0}
                   aria-keyshortcuts="ArrowUp ArrowDown Home End Enter"
-                  onKeyDown={moveLedgerFocus}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      if (event.target !== event.currentTarget) return;
+                      event.preventDefault();
+                      onSelectDataset?.(row);
+                      return;
+                    }
+                    moveLedgerFocus(event);
+                  }}
                   onClick={() => onSelectDataset?.(row)}
                 >
                   <span className="rd-v2-cap-evidence" role="cell">
@@ -219,9 +227,9 @@ export function LibraryEvidenceEstate({
                     </span>
                   ) : null}
                   <span className="rd-v2-cap-state" data-testid="library-evidence-readiness" role="cell">
-                    <StatusPill dataset={row} explain={false} />
+                    <StatusPill dataset={row} />
                   </span>
-                </button>
+                </div>
               );
             })
           ) : (
