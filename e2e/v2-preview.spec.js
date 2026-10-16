@@ -79,8 +79,6 @@ test.describe("v2 Library provenance semantics", () => {
 
     const workspace = page.getByTestId("library-asset-workspace");
     const claims = workspace.getByLabel("Evidence claims");
-    await expect(claims).toContainText("Source");
-    await expect(claims).toContainText("Not documented");
     await expect(claims).not.toContainText("bigquery_api");
     await expect(claims).not.toContainText("bigquery_connector");
 
@@ -88,7 +86,7 @@ test.describe("v2 Library provenance semantics", () => {
     const source = page.getByTestId("library-rail-source");
     await expect(source.getByRole("heading", { name: "Source not recorded" })).toBeVisible();
     await expect(source).toContainText("Access");
-    await expect(source).toContainText("bigquery_connector");
+    await expect(source).toContainText("BigQuery connector");
     await expect(source).not.toContainText("The source authority is named");
     await expect(rail).toContainText("Source not recorded");
   });

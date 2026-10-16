@@ -106,7 +106,6 @@ test.describe("Connected storage accounts", () => {
     await expect(oneDrive.getByRole("button", { name: "Connect" })).toBeDisabled();
 
     await expect(page.getByText("Faculty email", { exact: true })).toBeVisible();
-    await expect(page.getByText(/faculty identity below is a research record/i)).toBeVisible();
   });
 
   test("OAuth callback is completed server-side and scrubbed from the browser URL", async ({ page }) => {

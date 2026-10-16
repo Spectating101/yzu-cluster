@@ -938,6 +938,18 @@ export async function mockV2Api(
       body: JSON.stringify(profileBody),
     }),
   );
+  await page.route("**/library/profile", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        principal: { id: "test-prof", display_name: "Test Prof", email: "prof@example.test" },
+        configured: false,
+        profile: {},
+        memory: { memories: [] },
+      }),
+    }),
+  );
   await page.route("**/query/*", (route) => {
     const id = decodeURIComponent(new URL(route.request().url()).pathname.split("/query/")[1] || "");
     const dataset = datasetsBody.datasets?.find((item) => item.dataset_id === id);
@@ -972,7 +984,7 @@ export async function v2Nav(page, label) {
 }
 
 export async function waitForShell(page) {
-  await page.locator(".rd-v2-shell").waitFor({ timeout: 30_000 });
+  await page.locator(".rd-v2-shell:not(.rd-v2-session-bootstrap)").waitFor({ timeout: 30_000 });
 }
 
 export async function searchDiscover(page, query) {

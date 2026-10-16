@@ -47,7 +47,7 @@ async function v2Nav(page, label) {
 test.describe("beta workflow @ live-desk", () => {
   test("1 — header shows live registry, not demo seed", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await page.locator(".rd-v2-shell").waitFor({ timeout: 30_000 });
+    await page.locator(".rd-v2-shell:not(.rd-v2-session-bootstrap)").waitFor({ timeout: 30_000 });
     await expect(page.locator(".rd-v2-trust-badge.ok", { hasText: "Online" })).toBeVisible({
       timeout: 45_000,
     });
@@ -60,7 +60,7 @@ test.describe("beta workflow @ live-desk", () => {
 
   test("2 — library lists registry datasets", async ({ page }) => {
     await page.goto("/?tab=library&folder=research_panels/gdelt", { waitUntil: "domcontentloaded" });
-    await page.locator(".rd-v2-shell").waitFor({ timeout: 30_000 });
+    await page.locator(".rd-v2-shell:not(.rd-v2-session-bootstrap)").waitFor({ timeout: 30_000 });
     const rows = page.locator('.rd-v2-library-asset[data-kind="dataset"]');
     await expect(rows.first()).toBeVisible({ timeout: 30_000 });
     expect(await rows.count()).toBeGreaterThan(0);
@@ -68,14 +68,14 @@ test.describe("beta workflow @ live-desk", () => {
 
   test("3 — profile loads faculty from registry", async ({ page }) => {
     await page.goto("/?tab=profile", { waitUntil: "domcontentloaded" });
-    await page.locator(".rd-v2-shell").waitFor({ timeout: 30_000 });
+    await page.locator(".rd-v2-shell:not(.rd-v2-session-bootstrap)").waitFor({ timeout: 30_000 });
     await expect(page.locator(".rd-v2-profile-name")).not.toHaveText("Research profile", { timeout: 15_000 });
     await expect(page.locator(".rd-v2-profile-hint", { hasText: FACULTY_EMAIL })).toBeVisible();
   });
 
   test("4 — discover search and evidence evaluation", async ({ page }) => {
     await page.goto("/?tab=browse&q=TWSE", { waitUntil: "domcontentloaded" });
-    await page.locator(".rd-v2-shell").waitFor({ timeout: 30_000 });
+    await page.locator(".rd-v2-shell:not(.rd-v2-session-bootstrap)").waitFor({ timeout: 30_000 });
     await expect(page.locator(".rd-v2-page-head h1", { hasText: "Discover" })).toBeVisible();
     await expect(page.getByRole("region", { name: "Discover result summary" })).toBeVisible({ timeout: 15_000 });
     await expect(page.getByRole("region", { name: "Sources beyond your Library" })).toBeVisible();
@@ -83,14 +83,14 @@ test.describe("beta workflow @ live-desk", () => {
 
   test("5 — resources desk connection", async ({ page }) => {
     await page.goto("/?tab=resources", { waitUntil: "domcontentloaded" });
-    await page.locator(".rd-v2-shell").waitFor({ timeout: 30_000 });
+    await page.locator(".rd-v2-shell:not(.rd-v2-session-bootstrap)").waitFor({ timeout: 30_000 });
     await expect(page.locator(".rd-v2-page-head h1", { hasText: "Resources" })).toBeVisible();
     await expect(page.locator(".rd-v2-res-status-strip").first()).toBeVisible({ timeout: 20_000 });
   });
 
   test("6 — dataset detail and preview", async ({ page }) => {
     await page.goto("/?tab=library&folder=research_panels/gdelt", { waitUntil: "domcontentloaded" });
-    await page.locator(".rd-v2-shell").waitFor({ timeout: 30_000 });
+    await page.locator(".rd-v2-shell:not(.rd-v2-session-bootstrap)").waitFor({ timeout: 30_000 });
     const row = page.locator('.rd-v2-library-asset[data-kind="dataset"]').first();
     await row.waitFor({ state: "visible", timeout: 30_000 });
     await row.click();
@@ -102,7 +102,7 @@ test.describe("beta workflow @ live-desk", () => {
 
   test("7 — settings reflects live desk", async ({ page }) => {
     await page.goto("/?tab=settings", { waitUntil: "domcontentloaded" });
-    await page.locator(".rd-v2-shell").waitFor({ timeout: 30_000 });
+    await page.locator(".rd-v2-shell:not(.rd-v2-session-bootstrap)").waitFor({ timeout: 30_000 });
     await expect(page.locator(".rd-v2-page-head h1", { hasText: "Settings" })).toBeVisible();
     const emailInput = page.locator('.rd-v2-input[type="email"]');
     await expect(emailInput).toHaveValue(FACULTY_EMAIL);

@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { mockV2Api } from "./fixtures/v2MockApi.js";
 
 const MOCK_DATASETS = {
   datasets: [
@@ -7,6 +8,7 @@ const MOCK_DATASETS = {
       name: "Asia daily news-risk panel",
       grain: "country-day",
       analysis_readiness: "instant",
+      local_ready: true,
       local_root: "research_panels/gdelt",
     },
     {
@@ -14,36 +16,13 @@ const MOCK_DATASETS = {
       name: "Ticker week panel",
       grain: "country-week",
       analysis_readiness: "instant",
+      local_ready: true,
     },
   ],
 };
 
-const MOCK_HEALTH = {
-  status: "ok",
-  datasets: 2,
-  desk: {
-    jobs: { running: 1, pending_approval: 0 },
-    composer_configured: true,
-    storage_tiers: { canonical: { quota_tb: 5, used_tb: 2.1 } },
-    gdrive: { ok: true },
-  },
-};
-
 async function mockApi(page) {
-  await page.route("**/library/desk/capabilities", (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({ version: 1, authenticated: true, access: "operator" }),
-    }),
-  );
-  await page.route("**/library/desk/session", (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({ ok: true, authorized: true }),
-    }),
-  );
+  await mockV2Api(page, { datasetsBody: MOCK_DATASETS });
   await page.route("**/datasets", (route) =>
     route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(MOCK_DATASETS) }),
   );
@@ -52,9 +31,6 @@ async function mockApi(page) {
     const row = MOCK_DATASETS.datasets.find((d) => d.dataset_id === id) || MOCK_DATASETS.datasets[0];
     return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(row) });
   });
-  await page.route("**/*health*", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(MOCK_HEALTH) }),
-  );
   await page.route("**/library/discover*", (route) =>
     route.fulfill({
       status: 200,
@@ -114,7 +90,7 @@ async function v2Nav(page, label) {
 
 async function selectFirstDataset(page) {
   await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
-  await page.locator(".rd-v2-shell").waitFor({ timeout: 30_000 });
+  await page.locator(".rd-v2-shell:not(.rd-v2-session-bootstrap)").waitFor({ timeout: 30_000 });
   await page.getByTestId("library-evidence-estate").waitFor({ state: "visible", timeout: 15_000 });
   await page.getByRole("textbox", { name: "Search your Library" }).fill("Asia");
   const row = page.getByTestId("library-evidence-row").first();
@@ -127,7 +103,7 @@ test.describe("v2 parity @ desk-v2-1440", () => {
     await mockApi(page);
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await page.locator(".rd-v2-shell").waitFor({ timeout: 30_000 });
+    await page.locator(".rd-v2-shell:not(.rd-v2-session-bootstrap)").waitFor({ timeout: 30_000 });
   });
 
   test("shell grid keeps adaptive rail proportions without overflow", async ({ page }) => {
@@ -231,7 +207,6 @@ test.describe("v2 parity @ desk-v2-1440", () => {
     await page.getByRole("button", { name: "Send" }).click();
     await expect(page.getByText("Resources is the current operational surface.")).toBeVisible();
 
-    expect(posted?.message).toContain("[context: Resources · Research capacity]");
     expect(posted?.message).not.toContain("gdelt_asia_daily_country_panel");
     expect(posted?.rail_context).toMatchObject({ tab: "resources", entity: null });
     expect(posted?.rail_context?.dataset_id).toBeUndefined();

@@ -81,13 +81,13 @@ test.beforeEach(async ({ page }) => {
 });
 
 async function waitLive(page) {
-  await page.locator(".rd-v2-shell").waitFor({ timeout: 30_000 });
+  await page.locator(".rd-v2-shell:not(.rd-v2-session-bootstrap)").waitFor({ timeout: 30_000 });
   const live = page.locator(".rd-v2-trust-badge.ok", { hasText: "Online" });
   try {
     await expect(live).toBeVisible({ timeout: 25_000 });
   } catch {
     await page.reload({ waitUntil: "load" });
-    await page.locator(".rd-v2-shell").waitFor({ timeout: 30_000 });
+    await page.locator(".rd-v2-shell:not(.rd-v2-session-bootstrap)").waitFor({ timeout: 30_000 });
     await expect(live).toBeVisible({ timeout: 45_000 });
   }
 }

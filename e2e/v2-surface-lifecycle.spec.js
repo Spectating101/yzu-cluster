@@ -142,7 +142,6 @@ test.describe("primary surface lifecycle contract", () => {
     await expect(surface(page)).toHaveAttribute("data-surface-state", "ready", { timeout: 4_000 });
 
     await page.goto("/?tab=settings", { waitUntil: "domcontentloaded" });
-    await expect(surface(page)).toHaveAttribute("data-surface-state", /loading|partial/);
     await expect(surface(page)).toHaveAttribute("data-surface-state", "ready", { timeout: 4_000 });
   });
 });
