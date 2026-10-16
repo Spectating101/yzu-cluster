@@ -181,9 +181,7 @@
   color: var(--rd-hps-muted);
   font-family: var(--rd-font);
   font-size: var(--rd-text-2xs);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-weight: 600;
 }
 
 .rd-v2-home-pickup-card > h2 {

@@ -72,7 +72,7 @@ test("cold researcher gets a useful seed without connected storage", async ({ pa
   await expect(seed).toBeVisible();
   await expect(seed).toHaveAttribute("data-bootstrap-mode", "yzu_profile_fallback");
   await expect(seed).toContainText("Research Drive is ready — review data you have, then find what is missing");
-  await expect(page.getByTestId("home-research-seed-sources")).toContainText("No connected storage required");
+  await expect(page.getByTestId("home-research-seed-sources")).toContainText("No storage connection needed to start");
   await expect(seed.getByText("Describe the research question you want to investigate")).toBeVisible();
   await expect(seed).not.toContainText("Lab Drive");
 });

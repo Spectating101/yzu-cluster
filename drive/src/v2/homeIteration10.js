@@ -47,8 +47,8 @@ function folderLocation(ds) {
   const folder = folderLabel(
     ds?.library_folder || ds?.folder || ds?.collection || ds?.estate_folder || "",
   );
-  if (folder) return `LIBRARY / ${String(folder).replace(/_/g, " ").toUpperCase()}`;
-  return "LIBRARY";
+  if (folder) return `Library / ${String(folder).replace(/_/g, " ")}`;
+  return "Library";
 }
 
 function formatHeadroom(pct) {

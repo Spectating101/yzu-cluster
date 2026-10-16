@@ -183,6 +183,9 @@ function PickUpCard({ point, loading, posture, onContinue, onReview }) {
       </div>
     );
   }
+  const location = point.pill && String(point.location || "").endsWith(point.pill)
+    ? String(point.location).slice(0, -point.pill.length).replace(/\s*·\s*$/, "")
+    : point.location;
   return (
     <article
       className={`rd-v2-home-pickup-card${point.warn ? " warn" : ""}`}
@@ -198,7 +201,7 @@ function PickUpCard({ point, loading, posture, onContinue, onReview }) {
       <div className="rd-v2-home-pickup-foot">
         <div>
           {point.pill ? <span className="rd-v2-pill">{point.pill}</span> : null}
-          <span className="rd-v2-home-pickup-loc">{point.location}</span>
+          {location ? <span className="rd-v2-home-pickup-loc">{location}</span> : null}
         </div>
         {point.action === "review" ? (
           <button type="button" className="rd-v2-btn sm primary" onClick={() => onReview?.(point)}>
@@ -518,7 +521,7 @@ export function HomePage({
         ) : (
           <div className="rd-v2-home-section-empty-actions">
             <p className="rd-v2-home-section-empty">
-              No saved work yet. Recent work will appear here.
+              Nothing opened recently. Datasets you open and searches you run appear here.
             </p>
             <HomeSuggestedAsks
               profile={profile}

@@ -70,7 +70,7 @@ export function HomeSuggestedAsks({ profile, onAskComposer, allowPrincipalSeed =
         <p className="muted small" data-testid="home-research-seed-sources">
           {connectedSources.length
             ? `${connectedSources.length} verified connected ${connectedSources.length === 1 ? "source" : "sources"} · additive to your base research context`
-            : "No connected storage required · your base research context is available"}
+            : "No storage connection needed to start"}
           {sourceSummary?.reference_holdings
             ? ` · ${sourceSummary.reference_holdings} reference ${sourceSummary.reference_holdings === 1 ? "dataset" : "datasets"}`
             : ""}
