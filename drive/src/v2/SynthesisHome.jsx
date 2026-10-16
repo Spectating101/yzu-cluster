@@ -171,6 +171,11 @@ export function SynthesisHome({
       ) : null}
 
       {loading ? <p className="s04-home-loading">Loading saved builds…</p> : null}
+      {!loading && !allThreads.length ? (
+        <p className="s04-home-empty-row" data-testid="synthesis-empty-state">
+          No builds yet. Start from a research question or a saved method above.
+        </p>
+      ) : null}
 
       {needsYou.length ? (
         <ThreadSection

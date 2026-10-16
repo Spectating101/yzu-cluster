@@ -179,6 +179,7 @@ export function SettingsPage({
       className="rd-v2-settings-page"
       title="Settings"
       lead="Your account, and how Research Drive behaves in this browser."
+      surfaceState="ready"
     >
       <div className="rd-v2-settings-statement">
         <AccountSection deskAccess={deskAccess} onSignOut={onSignOut} onOpenAccess={onOpenAccess} />
