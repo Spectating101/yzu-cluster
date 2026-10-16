@@ -128,17 +128,6 @@ export function LibraryEvidenceEstate({
           <span className="rd-v2-cap-collections-label">Research collections</span>
           {collections.length ? (
             <div className="rd-v2-cap-collection-list">
-              <button
-                type="button"
-                className="rd-v2-cap-collection rd-v2-cap-folders-root"
-                data-testid="library-folders-root"
-                aria-label="Browse storage folders"
-                title="Browse the Library storage structure"
-                onClick={() => onOpenCollection?.({ id: LIBRARY_FOLDERS_ROOT, name: "Folders" })}
-              >
-                <span>Browse folders</span>
-                <span aria-hidden="true">→</span>
-              </button>
               {collections.map((collection) => {
                 const name = collectionName(collection);
                 return (
@@ -153,10 +142,20 @@ export function LibraryEvidenceEstate({
                   >
                     <span>{name}</span>
                     {collectionCountLabel(collection) ? <b>{collectionCountLabel(collection)}</b> : null}
-                    <span aria-hidden="true">→</span>
                   </button>
                 );
               })}
+              <button
+                type="button"
+                className="rd-v2-cap-collection rd-v2-cap-folders-root"
+                data-testid="library-folders-root"
+                aria-label="Browse storage folders"
+                title="Browse the Library storage structure"
+                onClick={() => onOpenCollection?.({ id: LIBRARY_FOLDERS_ROOT, name: "Folders" })}
+              >
+                <span>Browse folders</span>
+                <span aria-hidden="true">→</span>
+              </button>
             </div>
           ) : (
             <span className="rd-v2-cap-collections-loading" role="status" data-testid="library-collections-loading">

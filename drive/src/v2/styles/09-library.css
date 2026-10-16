@@ -53,11 +53,24 @@
 
 .rd-v2-library-folder-context .rd-v2-rail-note {
   max-width: 34ch;
+  font-size: var(--rd-text-xs);
   line-height: 1.48;
 }
 
 .rd-v2-library-folder-context .rd-v2-rail-note + .rd-v2-rail-note {
   margin-top: 7px;
+}
+
+.rd-v2-library-folder-summary .rd-v2-rail-section-label,
+.rd-v2-library-folder-context .rd-v2-rail-section-label,
+.rd-v2-library-folder-add .rd-v2-rail-section-label,
+.rd-v2-library-folder-context .rd-v2-detail-row {
+  padding-inline: 0;
+}
+
+.rd-v2-library-folder-add button {
+  width: calc(100% + 20px);
+  margin-inline: -10px;
 }
 
 /* Selected evidence: keep the rail decisional rather than repeating the centre
@@ -491,9 +504,7 @@
 .rd-v2-cap-collections-label {
   color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-weight: 600;
 }
 
 .rd-v2-cap-collections-loading {

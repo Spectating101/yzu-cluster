@@ -279,7 +279,7 @@ export function InspectorRail({
       />
     );
   } else if (mainTab === "resources" && !allowOperations) {
-    detailPanel = <PageRailPanel page="resources" />;
+    detailPanel = <PageRailPanel page="resources" onAskAbout={onAskAbout} />;
   } else if (mainTab === "resources") {
     detailPanel = resourceRow ? (
       <ResourcesRailPanel
