@@ -1,3 +1,4 @@
+import { datasetTopic } from "./libraryTopics.js";
 import { buildConsumerDriveTree, DRIVE_LAB, LIBRARY_FOLDERS_ROOT } from "../driveTree.js";
 
 /** Professor Library taxonomy plus a separate physical-folder browser. */
@@ -33,37 +34,6 @@ function partitionIdOf(lane) {
 
 function registryIdsOf(lane) {
   return new Set(lane?.detail?.registry_dataset_ids || lane?.registry_dataset_ids || []);
-}
-
-function deriveShelves(partitions = [], shelves = []) {
-  if (Array.isArray(shelves) && shelves.length) {
-    return shelves
-      .filter((s) => s?.professor_visible !== false)
-      .map((s) => ({
-        id: String(s.id || ""),
-        label: String(s.label || s.id || "Shelf"),
-        blurb: String(s.blurb || ""),
-        sort: Number(s.sort || 500),
-        partition_ids: [...(s.partition_ids || [])],
-      }))
-      .filter((s) => s.id);
-  }
-  const byId = new Map();
-  for (const lane of partitions || []) {
-    const sid = String(lane.shelf_id || "ungrouped");
-    if (!byId.has(sid)) {
-      byId.set(sid, {
-        id: sid,
-        label: String(lane.shelf_label || sid),
-        blurb: "",
-        sort: Number(lane.professor_sort || 500),
-        partition_ids: [],
-      });
-    }
-    const pid = partitionIdOf(lane);
-    if (pid) byId.get(sid).partition_ids.push(pid);
-  }
-  return [...byId.values()];
 }
 
 function hasExplicitStorageLocation(row = {}) {
@@ -141,7 +111,39 @@ function buildPhysicalFoldersRoot(datasets = []) {
  * browsing. It is intentionally not inserted into `children`, so Research
  * Collections and Folder storage never become the same taxonomy.
  */
-export function buildProfessorVaultTree(datasets = [], partitions = [], shelves = []) {
+function deriveShelves(partitions = [], shelves = []) {
+  if (Array.isArray(shelves) && shelves.length) {
+    return shelves
+      .filter((s) => s?.professor_visible !== false)
+      .map((s) => ({
+        id: String(s.id || ""),
+        label: String(s.label || s.id || "Shelf"),
+        blurb: String(s.blurb || ""),
+        sort: Number(s.sort || 500),
+        partition_ids: [...(s.partition_ids || [])],
+      }))
+      .filter((s) => s.id);
+  }
+  const byId = new Map();
+  for (const lane of partitions || []) {
+    const sid = String(lane.shelf_id || "ungrouped");
+    if (!byId.has(sid)) {
+      byId.set(sid, {
+        id: sid,
+        label: String(lane.shelf_label || sid),
+        blurb: "",
+        sort: Number(lane.professor_sort || 500),
+        partition_ids: [],
+      });
+    }
+    const pid = partitionIdOf(lane);
+    if (pid) byId.get(sid).partition_ids.push(pid);
+  }
+  return [...byId.values()];
+}
+
+
+function buildShelfTree(datasets, partitions, shelves) {
   const root = {
     id: "",
     kind: "folder",
@@ -307,3 +309,105 @@ export function buildProfessorVaultTree(datasets = [], partitions = [], shelves 
     },
   };
 }
+
+function buildTopicTree(datasets, partitions) {
+  const root = {
+    id: "",
+    kind: "folder",
+    name: "Library",
+    path: [],
+    children: {},
+    foldersRoot: buildPhysicalFoldersRoot(datasets),
+  };
+
+  const lanes = new Map();
+  const registryOwner = new Map();
+  for (const lane of partitions || []) {
+    if (lane?.professor_visible === false) continue;
+    const pid = partitionIdOf(lane);
+    if (!pid) continue;
+    lanes.set(pid, lane);
+    for (const id of registryIdsOf(lane)) if (!registryOwner.has(id)) registryOwner.set(id, pid);
+  }
+
+  const shelfFor = (topic) => {
+    if (!root.children[topic.id]) {
+      root.children[topic.id] = {
+        id: topic.id,
+        kind: "folder",
+        name: topic.label,
+        segment: topic.id,
+        path: [topic.id],
+        blurb: topic.blurb,
+        sort: topic.sort,
+        children: {},
+      };
+    }
+    return root.children[topic.id];
+  };
+
+  const folderFor = (topic, pid) => {
+    const shelf = shelfFor(topic);
+    const folderId = `${topic.id}/${pid}`;
+    if (!shelf.children[folderId]) {
+      const lane = lanes.get(pid);
+      shelf.children[folderId] = {
+        id: folderId,
+        kind: "folder",
+        name: lane ? String(lane.professor_label || lane.subtitle || lane.name || pid) : "Other Library data",
+        segment: pid,
+        path: [topic.id, pid],
+        partition_id: pid,
+        blurb: lane ? String(lane.professor_blurb || lane.scope || "") : "",
+        sort: lane ? Number(lane.professor_sort || 500) : 999,
+        children: {},
+        registry_ids: lane ? registryIdsOf(lane) : new Set(),
+      };
+    }
+    return shelf.children[folderId];
+  };
+
+  let placed = 0;
+  let skipped = 0;
+  for (const row of datasets || []) {
+    if (isOpsNoiseDataset(row)) {
+      skipped += 1;
+      continue;
+    }
+    const did = String(row.dataset_id || "");
+    if (!did) continue;
+    const declared = String(row.partition_id || row.collection?.partition_id || "").trim();
+    const pid = lanes.has(declared) ? declared : registryOwner.get(did) || "unfiled";
+    const topic = datasetTopic(row);
+    const folder = folderFor(topic, pid);
+    const shelfName = topic.label;
+    folder.children[did] = {
+      kind: "dataset",
+      id: did,
+      name: datasetTitle(row),
+      row: { ...row, name: datasetTitle(row) },
+      path: [...folder.path, did],
+      browsePath: [shelfName, folder.name].filter(Boolean),
+      pathLabel: [shelfName, folder.name].filter(Boolean).join(" › "),
+    };
+    placed += 1;
+  }
+
+  return {
+    root,
+    scope: "lab",
+    rootName: "Library",
+    meta: {
+      placed,
+      skipped,
+      shelves: Object.keys(root.children || {}).length,
+      physicalFolders: Object.keys(root.foldersRoot?.children || {}).length,
+    },
+  };
+}
+
+export function buildProfessorVaultTree(datasets = [], partitions = [], shelves = []) {
+  const curated = Array.isArray(shelves) && shelves.some((shelf) => shelf && shelf.derived_from !== "domain");
+  return curated ? buildShelfTree(datasets, partitions, shelves) : buildTopicTree(datasets, partitions);
+}
+
