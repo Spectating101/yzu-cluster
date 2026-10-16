@@ -348,7 +348,7 @@ export function detailFields(dataset) {
       d.access_mode ||
       d.access_shape ||
       (d.local_root ? `Vault · ${d.local_root}` : null) ||
-      (d.backend?.includes("api") ? "API" : "Query engine :8765"),
+      (d.backend?.includes("api") ? "API" : "Through Research Drive"),
     limitations: d.limitations || null,
     partition: partitionParts.length ? partitionParts.join(" · ") : null,
     joinKeys: joinKeys.length ? joinKeys : null,
