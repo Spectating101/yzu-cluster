@@ -1175,6 +1175,8 @@
 
 .yzu-sidebar .s04-threads--sidebar > header span,
 .yzu-sidebar .s04-thread-outputs > small {
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
   color: #5b6578;
   font-size: var(--rd-text-2xs);

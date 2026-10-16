@@ -52,7 +52,7 @@
   --rd-ext-fg: #6e7685;
   --rd-radius: 12px;
   --rd-font: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --rd-text-2xs: 11px;
+  --rd-text-2xs: 12px;
   --rd-text-xs: 12px;
   --rd-text-sm: 13px;
   --rd-text-md: 14px;
@@ -1851,12 +1851,11 @@ summary:focus-visible {
 .rd-v2-profile-kicker,
 .s04-head small,
 .s04-title small {
-  color: #68728a;
+  color: #5f6a80;
   font-family: var(--rd-font);
-  font-size: var(--rd-text-2xs);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: var(--rd-text-xs);
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
 /* Library — one folder-first evidence estate, no card-grid ambiguity. */
