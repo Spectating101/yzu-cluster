@@ -259,6 +259,17 @@ function DeskWorkspace({ onIdentityChanged }) {
   const [previewMode, setPreviewMode] = useState("lab");
   const [previewTarget, setPreviewTarget] = useState(null);
   const [railTab, setRailTab] = useState("detail");
+  const [railFolded, setRailFolded] = useState(() => {
+    try {
+      return window.localStorage.getItem("rd.railFolded") === "1";
+    } catch {
+      return false;
+    }
+  });
+  const foldRail = useCallback((next) => {
+    setRailFolded(next);
+    try { window.localStorage.setItem("rd.railFolded", next ? "1" : "0"); } catch { /* ignore */ }
+  }, []);
   const [datasets, setDatasets] = useState([]);
   // Until the registry has actually answered, an empty array is unmeasured —
   // never a claim that the Library contains zero datasets.
@@ -2275,7 +2286,18 @@ function DeskWorkspace({ onIdentityChanged }) {
   }
 
   return (
-    <div className={`yzu-shell with-inspector rd-theme-light rd-v2-shell${hideRail ? " no-rail" : ""}`}>
+    <div className={`yzu-shell with-inspector rd-theme-light rd-v2-shell${hideRail ? " no-rail" : ""}${railFolded ? " rail-folded" : ""}`}>
+      <button
+        type="button"
+        className="rd-v2-rail-fold"
+        data-testid="rail-fold"
+        aria-expanded={!railFolded}
+        aria-label={railFolded ? "Show side panel" : "Hide side panel"}
+        title={railFolded ? "Show side panel" : "Hide side panel"}
+        onClick={() => foldRail(!railFolded)}
+      >
+        <span aria-hidden="true">{railFolded ? "‹" : "›"}</span>
+      </button>
       {accessMode && deskAccess?.principal?.role === "public_guest" ? (
         <AccessScreen
           mode={accessMode}
@@ -2373,6 +2395,8 @@ function DeskWorkspace({ onIdentityChanged }) {
       </main>
       <AskAccessContext.Provider value={canUseAsk}>
         <InspectorRail
+          folded={railFolded}
+          onUnfold={() => foldRail(false)}
           mainTab={tab}
           railTab={railTab}
           onRailTabChange={setRailTab}

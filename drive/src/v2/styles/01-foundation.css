@@ -171,6 +171,66 @@ button {
   font-size: var(--rd-text-md);
 }
 
+.rd-v2-shell.rail-folded {
+  grid-template-columns: var(--rd-sidebar) minmax(0, 1fr) 40px;
+}
+
+.rd-v2-rail-fold {
+  position: fixed;
+  z-index: 40;
+  top: 50%;
+  right: calc(var(--rd-rail) - 11px);
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--rd-border);
+  border-radius: 6px;
+  background: var(--rd-surface);
+  color: var(--rd-muted);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(24, 32, 51, 0.08);
+}
+
+.rd-v2-rail-fold:hover,
+.rd-v2-rail-fold:focus-visible {
+  color: var(--rd-text);
+  border-color: #91a6a0;
+}
+
+.rd-v2-shell.rail-folded .rd-v2-rail-fold {
+  right: 29px;
+}
+
+.rd-v2-rail-folded {
+  display: flex;
+  justify-content: center;
+  padding-top: 14px;
+  border-left: 1px solid var(--rd-border);
+  background: var(--rd-surface);
+}
+
+.rd-v2-rail-unfold {
+  padding: 10px 0;
+  border: 0;
+  background: transparent;
+  color: var(--rd-muted);
+  font: inherit;
+  font-size: var(--rd-text-2xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  writing-mode: vertical-rl;
+  cursor: pointer;
+}
+
+.rd-v2-rail-unfold:hover,
+.rd-v2-rail-unfold:focus-visible {
+  color: var(--rd-text);
+}
+
 /* ── 3. Header ────────────────────────────────────────────────── */
 .rd-v2-header {
   grid-column: 1 / -1;

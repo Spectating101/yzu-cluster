@@ -178,6 +178,8 @@ function AskSignInPanel({
 }
 
 export function InspectorRail({
+  folded = false,
+  onUnfold,
   mainTab,
   railTab,
   onRailTabChange,
@@ -437,6 +439,16 @@ export function InspectorRail({
     railTab,
     activeObject?.kind,
   ]);
+
+  if (folded) {
+    return (
+      <aside className="yzu-inspector rd-v2-rail rd-v2-rail-folded" aria-label="Inspector">
+        <button type="button" className="rd-v2-rail-unfold" onClick={() => onUnfold?.()}>
+          Details &amp; Ask
+        </button>
+      </aside>
+    );
+  }
 
   return (
     <aside
