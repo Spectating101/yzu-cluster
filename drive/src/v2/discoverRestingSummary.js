@@ -68,12 +68,12 @@ export function buildDiscoverRestingSummary(rows = [], labIds = new Set(), query
     heldBody: found
       ? heldCount
         ? ""
-        : "No offering here matched data in your Library."
+        : "No result here matched data in your Library."
       : "",
     libraryEvidenceCount,
     contextCount,
     landscapeLine: [
-      `${found} external offering${found === 1 ? "" : "s"}`,
+      `${found} source${found === 1 ? "" : "s"} to collect`,
       `${libraryEvidenceCount} Library result${libraryEvidenceCount === 1 ? "" : "s"}`,
       contextCount ? `${contextCount} reference${contextCount === 1 ? "" : "s"}` : "",
     ].filter(Boolean).join(" · "),

@@ -67,17 +67,17 @@ function RestingSearchRail({ summary, onOpenInLibrary }) {
           <p className="rd-v2-eval-prose">{summary.landscapeLine || summary.heldLine || summary.foundLine}</p>
           {routeLine ? (
             <p className="rd-v2-eval-prose">
-              <b>Documented routes</b><br />{routeLine}
+              <b>Ways to collect</b><br />{routeLine}
             </p>
           ) : null}
           {unknownLine ? (
             <p className="rd-v2-eval-prose muted">
-              <b>Still unverified</b><br />{unknownLine}
+              <b>Not yet checked</b><br />{unknownLine}
             </p>
           ) : null}
           <p className="rd-v2-eval-prose muted">
             {summary.found
-              ? "Select an offering to see its coverage, collection route, and what remains unknown before collecting."
+              ? "Select a result to see its coverage, how to collect it, and what is still unknown."
               : "Inspect data in your Library and the references. No external source is confirmed as ready to collect yet."}
           </p>
         </section>
