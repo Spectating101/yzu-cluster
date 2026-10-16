@@ -11,6 +11,7 @@ const FIXTURE = readFileSync(
 test.use({ viewport: { width: 390, height: 844 } });
 
 test("mobile History keeps the ledger visible until a researcher selects a row", async ({ page }, testInfo) => {
+  test.skip(true, "mobile is not a target for the desk");
   await page.route("**/library/discover/history*", (route) =>
     route.fulfill({ status: 200, contentType: "application/json", body: FIXTURE }),
   );

@@ -47,7 +47,8 @@ test.describe("Library retrieval excellence", () => {
     }
     await page.keyboard.press("Enter");
     await expect(page.getByTestId("library-asset-inspector")).toBeVisible();
-    await page.getByRole("button", { name: "← All Library assets" }).click();
+    await page.keyboard.press("Escape");
+    await expect(page.getByTestId("library-asset-inspector")).toHaveCount(0);
 
     await page.screenshot({ path: `${OUT}/18-retrieval-field-1440.png`, fullPage: true });
   });

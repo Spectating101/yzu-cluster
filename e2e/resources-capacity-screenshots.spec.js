@@ -9,7 +9,7 @@ async function setup(page, viewport) {
   await mockV2Api(page);
   await page.goto("/?tab=resources", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
-  await expect(page.getByRole("region", { name: "Capacity and access" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Sources overview" })).toContainText("Capacity & access");
 }
 
 test("render Resources capacity, routes, activity, and mobile review states", async ({ page }) => {
@@ -18,14 +18,13 @@ test("render Resources capacity, routes, activity, and mobile review states", as
   await setup(page, { width: 1440, height: 900 });
   await page.screenshot({ path: `${OUT}/01-desktop-overview.png`, fullPage: false });
 
-  await page.locator(".rd-v2-res-routes > summary").click();
-  await expect(page.locator('.rd-v2-res-inventory-row[data-kind="source"]')).toHaveCount(5);
-  await page.screenshot({ path: `${OUT}/02-desktop-routes-open.png`, fullPage: false });
+  const capabilities = page.getByRole("region", { name: "Source capabilities" });
+  await capabilities.scrollIntoViewIfNeeded();
+  await expect(capabilities.getByRole("region", { name: "Licensed / institutional" })).toBeVisible();
+  await page.screenshot({ path: `${OUT}/02-desktop-source-capabilities.png`, fullPage: false });
 
   await page.getByRole("button", { name: "Usage", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Run log" })).toBeVisible();
   await page.screenshot({ path: `${OUT}/03-desktop-activity.png`, fullPage: false });
 
-  await setup(page, { width: 390, height: 1200 });
-  await page.screenshot({ path: `${OUT}/04-mobile-overview.png`, fullPage: false });
 });

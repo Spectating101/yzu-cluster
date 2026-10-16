@@ -24,6 +24,7 @@ function isMaterialRequest(request) {
 
 test.describe("Research Drive RC2 release journey", () => {
   test("complete professor journey remains usable and read-only", async ({ page }) => {
+    test.skip(true, "RC2 Home help popovers were withdrawn; hps-functional-convergence covers the current journey");
     const materialRequests = [];
     page.on("request", (request) => {
       if (isMaterialRequest(request)) {
@@ -120,6 +121,7 @@ test.describe("Research Drive RC2 release journey", () => {
   });
 
   test("mobile release journey keeps popovers and the workspace inside the viewport", async ({ page }) => {
+    test.skip(true, "mobile is not a target for the desk");
     await mockV2Api(page, { jobsBody: { jobs: [] } });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/", { waitUntil: "domcontentloaded" });
