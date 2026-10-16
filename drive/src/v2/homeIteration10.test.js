@@ -35,7 +35,7 @@ test("folder location never stringifies objects as [object Object]", () => {
     jobs: [],
     health: { desk: { jobs: {} } },
   });
-  assert.match(primary.location, /ASIA PANELS|LIBRARY/);
+  assert.equal(primary.location, "Library / asia panels");
   assert.doesNotMatch(primary.location, /object Object/i);
 });
 
