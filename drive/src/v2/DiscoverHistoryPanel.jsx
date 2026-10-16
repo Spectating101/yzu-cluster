@@ -381,7 +381,9 @@ export function DiscoverHistoryPanel({
       {!visible.length && !(filter === "all" && systemRows.length) ? (
         <div className="rd-v2-discover-miss">
           <p className="rd-v2-empty-inline">
-            No saved Discover requests match this filter. Requests, collections, schedules, and outputs saved to Library appear here.
+            {filter === "all"
+              ? "No requests yet. When you ask for data to be collected from Discover, the request and its progress appear here."
+              : "Nothing under this filter."}
           </p>
         </div>
       ) : filter === "all" ? (
