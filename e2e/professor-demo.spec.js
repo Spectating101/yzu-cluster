@@ -13,6 +13,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { test, expect } from "@playwright/test";
+import { searchDiscover } from "./fixtures/v2MockApi.js";
 
 const API = process.env.YZU_API_URL || "http://127.0.0.1:8765";
 const FACULTY_EMAIL = process.env.DESK_TEST_EMAIL || "drkong@saturn.yzu.edu.tw";
@@ -181,8 +182,7 @@ test.describe("professor demo @ live-desk", () => {
         '.rd-v2-catalog button.row.rd-v2-discover-candidate:not([data-state="in_lab"])',
       );
       if (await notInLab.count()) return notInLab.first();
-      await page.locator(".rd-v2-search-pill input").fill("MOPS");
-      await page.locator(".rd-v2-search-pill input").press("Enter");
+      await searchDiscover(page, "MOPS");
       await page.waitForTimeout(2500);
       const retry = page.locator(
         '.rd-v2-catalog button.row.rd-v2-discover-candidate:not([data-state="in_lab"])',

@@ -1,6 +1,6 @@
 /** Discover lab-coverage visual authority: related, partial, and unknown never imply equivalence. */
 import { test, expect } from "@playwright/test";
-import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
+import { mockV2Api, waitForShell, searchDiscover } from "./fixtures/v2MockApi.js";
 import path from "node:path";
 import fs from "node:fs";
 
@@ -30,7 +30,7 @@ async function selectCandidate(page, candidate) {
   await mockV2Api(page, { discoverBody: body(candidate) });
   await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
-  await page.locator(".rd-v2-search-pill input").fill("coverage");
+  await searchDiscover(page, "coverage");
   await page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate', { hasText: candidate.title }).click();
   const detail = page.locator("aside.rd-v2-rail").getByTestId("discover-eval-surface");
   await expect(page.getByTestId("discover-browse-mode")).toBeVisible();

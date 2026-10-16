@@ -3,6 +3,7 @@ import {
   MOCK_DISCOVER_HIT,
   mockV2Api,
   waitForShell,
+  searchDiscover,
 } from "./fixtures/v2MockApi.js";
 
 async function openTab(page, label) {
@@ -94,8 +95,7 @@ test.describe("Research Drive RC2 release journey", () => {
 
     // Discover: inspect an external candidate without probing or collecting it.
     await openTab(page, "Discover");
-    const search = page.locator(".rd-v2-search-pill input");
-    await search.fill("mops");
+    await searchDiscover(page, "mops");
     const candidate = page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate', { hasText: "MOPS" });
     await candidate.click();
     const evaluation = page.locator("aside.rd-v2-rail").getByTestId("discover-eval-surface");

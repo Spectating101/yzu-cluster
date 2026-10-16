@@ -112,7 +112,7 @@ test.describe("v2 Discover tab", () => {
     await expect(page.getByTestId("discover-result-summary")).toContainText(/\d+ in your Library/i);
     await expect(page.getByLabel("Discover next actions")).toContainText(/Search wider/i);
     await expect(page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-ranked-results-head strong")).toHaveCount(0);
-    await expect(page.getByTestId("discover-resting-summary")).toContainText(/External/i);
+    await expect(page.getByTestId("discover-resting-summary")).toContainText(/sources? to collect/i);
     await expect(page.getByTestId("discover-resting-summary")).toContainText(/Library results/i);
     await expect(page.getByTestId("discover-resting-summary")).toContainText(/Ways to collect/i);
     await expect(page.getByTestId("discover-rank-foot")).toContainText(/Ranked by fit to your question/i);

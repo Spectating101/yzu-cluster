@@ -58,9 +58,7 @@ test.describe("Discover weak-match continuation", () => {
     const summary = page.getByTestId("discover-result-summary");
     await expect(summary).toContainText("3 in your Library");
     await expect(summary.getByRole("status")).toContainText("Checking broader sources");
-    await expect(page.getByLabel("Discover next actions")).toContainText(
-      "Related Library evidence remains visible",
-    );
+    await expect(page.getByLabel("Discover next actions")).toContainText("Start Synthesis with 3 Library results");
 
     await expect(page.getByText("Clinical Trial Outcomes", { exact: true })).toBeVisible();
     await expect(summary).toContainText("1 source");

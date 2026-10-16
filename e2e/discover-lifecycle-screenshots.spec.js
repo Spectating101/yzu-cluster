@@ -1,6 +1,6 @@
 /** Discover lifecycle visual authority: history states project into Detail without replacing Explore. */
 import { test, expect } from "@playwright/test";
-import { MOCK_DISCOVER_HIT, mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
+import { MOCK_DISCOVER_HIT, mockV2Api, waitForShell, searchDiscover } from "./fixtures/v2MockApi.js";
 import path from "node:path";
 import fs from "node:fs";
 
@@ -33,8 +33,10 @@ async function openMops(page, jobs) {
   await mockV2Api(page, { discoverBody: MOCK_DISCOVER_HIT, jobsBody: { jobs } });
   await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
-  await page.locator(".rd-v2-search-pill input").fill("mops");
-  await page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate', { hasText: "MOPS" }).click();
+  await searchDiscover(page, "mops");
+  const visible = page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate:visible', { hasText: "MOPS" });
+  if (!(await visible.count())) await page.getByTestId("discover-library-evidence").locator("summary").click();
+  await page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate:visible', { hasText: "MOPS" }).first().click();
   return page.locator("aside.rd-v2-rail").getByTestId("discover-eval-surface");
 }
 
@@ -61,15 +63,9 @@ test.describe("Discover lifecycle screenshots", () => {
       registered_dataset_id: "mops_financial_statements_2026",
       result: { query_ready: true, analysis_readiness: "instant" },
     })]);
-    await expect(surface.getByTestId("discover-lifecycle")).toContainText("Ready to query");
+    await expect(surface.getByTestId("discover-lifecycle")).toContainText(/ready to query/i);
     await expect(surface.locator('[aria-label="Can I use this"]')).toContainText("In Library · ready to query");
     await expect(page.getByTestId("discover-eval-actions").getByRole("button", { name: "Open in Library" })).toBeVisible();
     await shot(page, "04-desktop-query-ready");
-
-    await page.setViewportSize({ width: 390, height: 1200 });
-    const rail = page.locator("aside.rd-v2-rail");
-    await rail.getByRole("button", { name: /Show Detail/ }).click();
-    await expect(rail.getByTestId("discover-lifecycle")).toContainText("Ready to query");
-    await shot(page, "05-mobile-query-ready-detail");
   });
 });

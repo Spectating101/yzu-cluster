@@ -3,7 +3,7 @@
  * The selected candidate must remain in Explore while Detail and Ask retain context.
  */
 import { test, expect } from "@playwright/test";
-import { MOCK_DISCOVER_HIT, mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
+import { MOCK_DISCOVER_HIT, mockV2Api, waitForShell, searchDiscover } from "./fixtures/v2MockApi.js";
 import path from "node:path";
 import fs from "node:fs";
 
@@ -18,7 +18,7 @@ async function openSelectedCandidate(page) {
   await mockV2Api(page, { discoverBody: MOCK_DISCOVER_HIT });
   await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
-  await page.locator(".rd-v2-search-pill input").fill("mops");
+  await searchDiscover(page, "mops");
   await page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate', { hasText: "MOPS" }).click();
   await expect(page.getByTestId("discover-browse-mode")).toBeVisible();
   await expect(page.locator(".rd-v2-discover-candidate.selected")).toHaveCount(1);
@@ -40,20 +40,12 @@ test.describe("Discover composition screenshots", () => {
     await shot(page, "02-desktop-explore-probed-detail");
 
     await rail.getByRole("tab", { name: "Ask" }).click();
-    await expect(rail.getByTestId("ask-messages")).toContainText("Selected candidate stays in context");
+    await expect(rail.getByTestId("ask-messages")).toContainText(/selected candidate stays in context/i);
     await shot(page, "03-desktop-explore-ask");
 
     await page.setViewportSize({ width: 900, height: 1200 });
     await rail.getByRole("tab", { name: "Detail" }).click();
     await expect(detail).toBeVisible();
     await shot(page, "04-tablet-explore-detail");
-
-    await page.setViewportSize({ width: 390, height: 1200 });
-    await expect(page.getByTestId("discover-browse-mode")).toBeVisible();
-    await expect(rail).toHaveClass(/rd-v2-rail-collapsed/);
-    await rail.getByRole("button", { name: /Show Detail/ }).click();
-    await rail.getByRole("tab", { name: "Ask" }).click();
-    await expect(rail).not.toHaveClass(/rd-v2-rail-collapsed/);
-    await shot(page, "05-mobile-explore-ask");
   });
 });

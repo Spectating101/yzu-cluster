@@ -3,7 +3,7 @@
  * Run: CI=true YZU_PAGES=false TMPDIR=$PWD/.tmp-pw npx playwright test e2e/discover-d1-screenshots.spec.js
  */
 import { test, expect } from "@playwright/test";
-import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
+import { mockV2Api, waitForShell, searchDiscover } from "./fixtures/v2MockApi.js";
 import path from "node:path";
 import fs from "node:fs";
 
@@ -82,8 +82,7 @@ test.describe("Discover D1 screenshots", () => {
     await mockV2Api(page, { discoverBody: MIXED });
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
-    await page.locator(".rd-v2-search-pill input").fill("taxonomy");
-    await page.locator(".rd-v2-search-pill input").press("Enter");
+    await searchDiscover(page, "taxonomy");
     await expect(page.locator(".rd-v2-catalog button.row.rd-v2-discover-candidate")).toHaveCount(4);
     await expect(page.locator('.rd-v2-catalog button.row[data-kind="local-query-ready"]')).toHaveCount(1);
     await expect(page.locator('.rd-v2-catalog button.row[data-kind="licensed-manual"]')).toHaveCount(1);
@@ -95,7 +94,7 @@ test.describe("Discover D1 screenshots", () => {
     await mockV2Api(page, { discoverBody: PROBEABLE });
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
-    await page.locator(".rd-v2-search-pill input").fill("csv");
+    await searchDiscover(page, "csv");
     await page.locator(".rd-v2-catalog button.row.rd-v2-discover-candidate").first().click();
     await page.getByTestId("discover-eval-actions").getByRole("button", { name: "Test connection" }).click();
     await expect(page.locator('.rd-v2-catalog button.row[data-kind="external-probed"]')).toHaveCount(1);
@@ -107,7 +106,7 @@ test.describe("Discover D1 screenshots", () => {
     await mockV2Api(page, { discoverBody: MIXED });
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
-    await page.locator(".rd-v2-search-pill input").fill("taxonomy");
+    await searchDiscover(page, "taxonomy");
     await expect(page.locator(".rd-v2-catalog button.row.rd-v2-discover-candidate")).toHaveCount(4);
     await shot(page, "tablet-900x1200-mixed-taxonomy");
   });
@@ -117,7 +116,7 @@ test.describe("Discover D1 screenshots", () => {
     await mockV2Api(page, { discoverBody: MIXED });
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
-    await page.locator(".rd-v2-search-pill input").fill("taxonomy");
+    await searchDiscover(page, "taxonomy");
     await expect(page.locator(".rd-v2-catalog button.row.rd-v2-discover-candidate")).toHaveCount(4);
     await shot(page, "mobile-390x1200-mixed-scanning");
   });

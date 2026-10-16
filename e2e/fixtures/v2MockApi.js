@@ -974,3 +974,9 @@ export async function v2Nav(page, label) {
 export async function waitForShell(page) {
   await page.locator(".rd-v2-shell").waitFor({ timeout: 30_000 });
 }
+
+export async function searchDiscover(page, query) {
+  await page.getByLabel("Search or describe a research need").fill(query);
+  await page.getByRole("button", { name: "Explore", exact: true }).click();
+  await page.getByTestId("discover-result-summary").waitFor({ timeout: 15_000 });
+}
