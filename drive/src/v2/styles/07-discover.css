@@ -19,12 +19,6 @@
   border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 84%, #94a3b8 16%);
 }
 
-.rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer::before {
-  grid-column: 1 / -1;
-  color: #66788c;
-  font: 700 11px/1.2 var(--rd-mono, ui-monospace, monospace);
-}
-
 .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer textarea {
   resize: none;
   border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 82%, #7389a0 18%);
@@ -79,9 +73,7 @@
 
 .rd-v2-discover-page .rd-v2-discover-composer-examples span {
   color: #5b6578;
-  font: 700 11px/1.2 var(--rd-mono, ui-monospace, monospace);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font: 600 var(--rd-text-2xs)/1.2 var(--rd-font);
 }
 
 .rd-v2-discover-page .rd-v2-discover-composer-examples em {
@@ -102,9 +94,7 @@
 
 .rd-v2-discover-page .rd-v2-discover-coverage-eyebrow {
   color: #5b6578;
-  font: 700 11px/1.2 var(--rd-font);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font: 600 var(--rd-text-2xs)/1.2 var(--rd-font);
 }
 
 .rd-v2-discover-page .rd-v2-discover-coverage .rd-v2-catalog-list {
@@ -400,20 +390,24 @@
 
 .rd-v2-discover-page .rd-v2-discover-candidates {
   display: grid;
-  gap: 7px;
+  gap: 0;
   margin: 0;
 }
 
 .rd-v2-discover-page .rd-v2-discover-candidates > li {
   position: relative;
   overflow: visible;
-  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 90%, transparent);
-  border-radius: 8px;
-  transition: border-color .14s ease, background-color .14s ease, transform .14s ease;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 90%, transparent);
+  border-radius: 0;
+  transition: background-color .14s ease;
+}
+
+.rd-v2-discover-page .rd-v2-discover-candidates > li:last-child {
+  border-bottom: 0;
 }
 
 .rd-v2-discover-page .rd-v2-discover-candidates > li:hover {
-  border-color: var(--rd-active-border, #c5d2cb);
   background: #ffffff;
 }
 
@@ -711,12 +705,6 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
   box-shadow: none;
 }
 
-.rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer::before {
-  content: "DISCOVER EVIDENCE";
-  font-size: var(--rd-text-2xs);
-  letter-spacing: 0.06em;
-}
-
 .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer textarea {
   padding: 13px 14px;
   border-radius: 6px;
@@ -745,10 +733,12 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
    discovery, not displace discovery. */
 .rd-v2-discover-page .rd-v2-discover-coverage {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0;
   width: 100%;
   padding: 0;
   overflow: hidden;
+  white-space: normal;
   border-radius: 8px;
   background: color-mix(in srgb, var(--rd-surface, #fffdf6) 98%, #eef1ee 2%);
   box-shadow: none;
@@ -792,7 +782,6 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   margin: 0;
   padding: 0;
-  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 78%, transparent);
   list-style: none;
 }
 
