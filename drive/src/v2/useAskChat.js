@@ -431,6 +431,7 @@ export function useAskChat({
                 // Completed turns should not keep "Planning…" chrome in the card.
                 activityLog: [],
                 candidates: shaped.candidates || [],
+                referencedDatasets: Array.isArray(out.referenced_datasets) ? out.referenced_datasets : [],
                 suggestedPrompts: shaped.suggestedPrompts || [],
                 nextSteps: shaped.nextSteps || nextSteps || [],
                 pendingJobId: shaped.pendingJobId,

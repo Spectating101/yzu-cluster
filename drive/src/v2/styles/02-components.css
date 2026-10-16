@@ -5502,3 +5502,40 @@ body,
   text-decoration-thickness: 1px;
   text-underline-offset: 2px;
 }
+
+.rd-v2-ask-card-datasets {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.rd-v2-ask-card .rd-v2-ask-card-dataset {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  height: auto;
+  min-height: 36px;
+  padding: 8px 12px;
+  border: 1px solid #b9d3c3;
+  border-radius: 10px;
+  background: #eef6f0;
+  color: var(--rd-text, #182033);
+  font: inherit;
+  font-size: var(--rd-text-xs);
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rd-v2-ask-card-dataset b {
+  flex: 0 0 auto;
+  color: #2f6f4e;
+  font-size: var(--rd-text-2xs);
+}
+
+.rd-v2-ask-card-dataset:hover {
+  border-color: #2f6f4e;
+}

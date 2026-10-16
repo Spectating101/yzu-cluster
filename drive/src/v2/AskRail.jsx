@@ -73,6 +73,7 @@ export function AskRail({
   onToast,
   railContext,
   warmEnabled = false,
+  onOpenDataset,
 }) {
   const { messages, input, setInput, busy, status, send, prime, contextLabel } = useAskChat({
     dataset,
@@ -513,6 +514,7 @@ export function AskRail({
                     approvalLabel={synthesisApprovalLabel}
                     onSend={send}
                     onApprove={requestApproval}
+                    onOpenDataset={onOpenDataset}
                   />
                 );
               }

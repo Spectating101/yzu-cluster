@@ -2448,6 +2448,7 @@ function DeskWorkspace({ onIdentityChanged }) {
               onToast={showToast}
               railContext={railContext}
               warmEnabled={railTab === "ask"}
+              onOpenDataset={(row) => openLibraryDataset(catalog.find((d) => d.dataset_id === row?.dataset_id) || row)}
             /> : null
           }
           askAvailable={canUseAsk}

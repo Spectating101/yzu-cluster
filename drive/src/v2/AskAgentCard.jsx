@@ -27,6 +27,7 @@ export function AskAgentCard({
   approvalLabel = "Approve job",
   onSend,
   onApprove,
+  onOpenDataset,
 }) {
   const streaming = Boolean(message?.streaming);
   const parsed = parseAskReply(message?.text || "");
@@ -101,6 +102,18 @@ export function AskAgentCard({
               approvalLabel
             )}
           </button>
+        </div>
+      ) : null}
+
+      {!streaming && onOpenDataset && message?.referencedDatasets?.length ? (
+        <div className="rd-v2-ask-card-datasets" aria-label="Library datasets in this answer" data-testid="ask-referenced-datasets">
+          <p className="rd-v2-ask-card-next-label">In your Library</p>
+          {message.referencedDatasets.slice(0, 4).map((row) => (
+            <button key={row.dataset_id} type="button" className="rd-v2-ask-card-dataset" onClick={() => onOpenDataset(row)}>
+              <span>{row.title || row.dataset_id}</span>
+              <b aria-hidden="true">Open →</b>
+            </button>
+          ))}
         </div>
       ) : null}
 
