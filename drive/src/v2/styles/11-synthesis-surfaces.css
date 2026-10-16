@@ -79,9 +79,7 @@
   display: block;
   color: #68728a;
   font-size: var(--rd-text-2xs);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-weight: 600;
 }
 
 .s04-home-hero h1 {
@@ -124,9 +122,7 @@
 .s04-home-hero dt {
   color: #5b6578;
   font-size: var(--rd-text-2xs);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-weight: 600;
 }
 .s04-home-hero dd {
   margin-top: 2px;
@@ -152,6 +148,9 @@
 
 .s04-home-entry-card {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
   min-height: 154px;
   padding: 17px 18px 16px;
   border: 1px solid #dfe3ec;
@@ -310,9 +309,7 @@
 .s04-home-thread-state b {
   color: #5b6578;
   font-size: var(--rd-text-2xs);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-weight: 600;
 }
 .s04-home-thread.is-priority .s04-home-thread-state b { color: #965d14; }
 .s04-home-thread-state small,

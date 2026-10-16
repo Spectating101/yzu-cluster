@@ -1503,7 +1503,7 @@ function NewThread({
         <section className="s04-new-entry-section s04-new-entry-purpose">
           <small>Research purpose</small>
           <h2>Describe the build you need.</h2>
-          <p>Use ordinary research language. Evidence and method remain separate decisions after the object is recorded.</p>
+          <p>Write it the way you would explain it to a colleague. You choose the data and approve the method in the next steps.</p>
           <textarea
             rows={7}
             value={objective}

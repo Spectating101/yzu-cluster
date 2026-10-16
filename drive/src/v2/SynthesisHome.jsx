@@ -51,7 +51,7 @@ function ThreadCard({ thread, onOpen, priority = false }) {
         <small>{updatedLabel(thread)}</small>
       </span>
       <strong>{titleFor(thread)}</strong>
-      <p>{summary}</p>
+      {summary && summary !== titleFor(thread) ? <p>{summary}</p> : null}
       <span className="s04-home-thread-foot">
         <small>{projectKey ? `Project · ${projectKey}` : output ? "Library-bound output" : "Saved build"}</small>
         <em>{synthesisWorkspaceActionLabel(thread)} →</em>
@@ -114,7 +114,7 @@ export function SynthesisHome({
         <div>
           <h1>Synthesis</h1>
           <p>
-            Build research datasets from questions, evidence, and reusable methods. Start a new build, return to a saved build, or reuse a method saved to Library.
+            Turn a research question into a dataset you can reuse. Start a new build, continue one, or reuse a saved method.
           </p>
         </div>
         {allThreads.length ? (
@@ -135,7 +135,7 @@ export function SynthesisHome({
         >
           <small>New build</small>
           <strong>Start from a research question</strong>
-          <span>Describe the object you need. Evidence and method become explicit decisions after creation.</span>
+          <span>Describe the dataset you need. You choose the data and approve the method next.</span>
           <em>Start →</em>
         </button>
         <button
@@ -144,9 +144,9 @@ export function SynthesisHome({
           onClick={scrollToMethods}
           disabled={!methods.length}
         >
-          <small>Reusable method</small>
-          <strong>Start from work saved to Library</strong>
-          <span>{methods.length ? `${methods.length} ${methods.length === 1 ? "method" : "methods"} saved to Library can start a new build.` : "No method saved to Library is reported yet."}</span>
+          <small>Saved method</small>
+          <strong>Reuse a saved method</strong>
+          <span>{methods.length ? `${methods.length} saved ${methods.length === 1 ? "method" : "methods"} can start a new build.` : "No saved methods yet."}</span>
           <em>{methods.length ? "Browse methods ↓" : "None available"}</em>
         </button>
         {continueThread ? (
@@ -176,7 +176,7 @@ export function SynthesisHome({
         <ThreadSection
           eyebrow="Decision queue"
           title="Needs your decision"
-          description="Review build choices, proposals, sample checks, approvals, and issues that need attention here."
+          description="These builds are waiting on a choice, an approval or a sample check from you."
           rows={needsYou}
           onOpen={onOpenThread}
           priority
@@ -186,19 +186,19 @@ export function SynthesisHome({
       {allThreads.length ? (
         <ThreadSection
           eyebrow="Active builds"
-          title="Research objects in progress"
-          description="Evidence mapping and method design remain independently resumable when no explicit researcher decision is blocking them."
+          title="Builds in progress"
+          description="Pick up any build where you left off."
           rows={active}
           onOpen={onOpenThread}
-          empty={!loading ? "No build is currently in research or method design." : ""}
+          empty={!loading ? "No builds in progress." : ""}
         />
       ) : null}
 
       {building.length ? (
         <ThreadSection
-          eyebrow="Execution and Library checks"
-          title="Running or verifying"
-          description="Execution, completion, and Library checks remain in progress until result evidence is saved."
+          eyebrow="Running"
+          title="Running or being checked"
+          description="These builds are producing their data, or it is being checked before it is saved to your Library."
           rows={building}
           onOpen={onOpenThread}
         />
@@ -206,9 +206,9 @@ export function SynthesisHome({
 
       {results.length ? (
         <ThreadSection
-          eyebrow="Outputs saved to Library"
-          title="Reusable research data"
-          description="Completed builds keep their method and execution history. Their resulting datasets appear in Library."
+          eyebrow="Finished"
+          title="Finished builds"
+          description="Each keeps its method and history. The datasets are in your Library."
           rows={results}
           onOpen={onOpenThread}
         />
@@ -248,13 +248,13 @@ export function SynthesisHome({
       <section className="s04-home-section s04-home-methods" id="synthesis-home-methods">
         <header>
           <div>
-            <small>Reusable methods</small>
-            <h2>Starting points saved to Library</h2>
-            <p>Using a method creates a new saved build. You review its assumptions before any work runs.</p>
+            <small>Saved methods</small>
+            <h2>Start from a saved method</h2>
+            <p>Using one starts a new build. You review its assumptions before anything runs.</p>
           </div>
           <em>{methods.length}</em>
         </header>
-        {profilesLoading ? <p className="s04-home-empty-row">Loading methods saved to Library…</p> : null}
+        {profilesLoading ? <p className="s04-home-empty-row">Loading saved methods…</p> : null}
         {profilesError ? <DeskError raw={profilesError} surface="Synthesis methods saved to Library" /> : null}
         {!profilesLoading && !profilesError && methods.length ? (
           <div className="s04-home-method-grid" data-testid="synthesis-home-methods">
@@ -265,7 +265,7 @@ export function SynthesisHome({
                 onClick={() => onStartBlueprint?.(profile)}
                 title={text(profile.title, profile.id)}
               >
-                <small>Method saved to Library</small>
+                <small>Saved method</small>
                 <strong>{text(profile.title, profile.id)}</strong>
                 <span>{text(profile.description, "Recorded build recipe")}</span>
                 <em>Use as starting point →</em>
@@ -274,7 +274,7 @@ export function SynthesisHome({
           </div>
         ) : null}
         {!profilesLoading && !profilesError && !methods.length ? (
-          <p className="s04-home-empty-row">No method saved to Library is reported by Research Drive yet.</p>
+          <p className="s04-home-empty-row">No saved methods yet.</p>
         ) : null}
       </section>
     </section>

@@ -218,7 +218,7 @@ function buildSituation(props) {
     return {
       status: "Workspace",
       facts: [],
-      next: "Choose a saved build, start from a research question, or reuse a method saved to Library.",
+      next: "Start a new build, continue one, or reuse a saved method.",
     };
   }
   if (mainTab === "resources") return resourceSituation(props.resourceRow, resourcesDecisionCount);
