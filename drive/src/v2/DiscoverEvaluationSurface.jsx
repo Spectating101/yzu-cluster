@@ -575,6 +575,22 @@ export function DiscoverEvaluationSurface({
             </ul>
           </section>
 
+          {evaluation.hasProbe && evaluation.verified.length ? (
+            <section className="rd-v2-eval-block rd-v2-eval-verified" aria-label="Verified">
+              <p className="rd-v2-eval-section-label">Verified</p>
+              <ul className="rd-v2-eval-checklist">
+                {evaluation.verified.map((item) => (
+                  <li key={item}>
+                    <span className="rd-v2-eval-mark ok" aria-hidden="true">
+                      ✓
+                    </span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
           {evaluation.probeError ? (
             <p className="rd-v2-discover-probe-error">{evaluation.probeError}</p>
           ) : null}
@@ -595,21 +611,6 @@ export function DiscoverEvaluationSurface({
 
               <StrategyCard card={strategyCard} />
 
-              {evaluation.hasProbe && evaluation.verified.length ? (
-                <section className="rd-v2-eval-block rd-v2-eval-verified" aria-label="Verified">
-                  <p className="rd-v2-eval-section-label">Verified</p>
-                  <ul className="rd-v2-eval-checklist">
-                    {evaluation.verified.map((item) => (
-                      <li key={item}>
-                        <span className="rd-v2-eval-mark ok" aria-hidden="true">
-                          ✓
-                        </span>
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              ) : null}
 
               {evaluation.inferred.length ? (
                 <section className="rd-v2-eval-block rd-v2-eval-inferred" aria-label="Inferred">

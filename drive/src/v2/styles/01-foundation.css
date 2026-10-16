@@ -2706,21 +2706,6 @@ button {
   box-shadow: inset 0 0 0 1px rgba(26, 86, 168, 0.08);
 }
 
-.rd-v2-discover-selected-mark {
-  display: inline-block;
-  width: auto;
-  height: auto;
-  margin-right: 6px;
-  border-radius: 0;
-  background: transparent;
-  color: #3f6f5c;
-  font-weight: 700;
-  font-size: var(--rd-text-lg);
-  line-height: 1;
-  vertical-align: baseline;
-  box-shadow: none;
-}
-
 .rd-v2-discover-candidates button.rd-v2-discover-candidate.selected .rd-v2-discover-candidate-title {
   color: #0f2f5c;
 }

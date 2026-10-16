@@ -249,11 +249,6 @@ function DiscoverCandidateRow({
         <span className="rd-v2-discover-candidate-main">
           <span className="rd-v2-discover-candidate-heading">
             <strong className="rd-v2-discover-candidate-title">
-              {selected ? (
-                <span className="rd-v2-discover-selected-mark" aria-hidden="true">
-                  ▌
-                </span>
-              ) : null}
               {candidateTitle(row)}
             </strong>
             <em className="rd-v2-discover-possession">{taxonomyLine}</em>
@@ -1223,7 +1218,7 @@ export function BrowsePage({
 
   useEffect(() => {
     if (!isExplore || !selectedId || !centreRows.length) return;
-    const exact = centreRows.find(
+    const exact = [...centreRows, ...(resultGroups.held || [])].find(
       (row) => isSelectedCandidate(selectedId, row),
     );
     if (exact) {
@@ -1239,7 +1234,7 @@ export function BrowsePage({
     // A stale selection must not leave Detail judging an item that is no longer
     // in the ranked centre. Focus the first actual offering instead.
     onSelectRow?.(centreRows[0]);
-  }, [isExplore, selectedId, centreRows, onSelectRow]);
+  }, [isExplore, selectedId, centreRows, resultGroups.held, onSelectRow]);
 
   useEffect(() => {
     if (!selectedId) restoredSelectionRef.current = "";
@@ -1430,8 +1425,9 @@ export function BrowsePage({
     </details>
   );
 
+  const libraryMenuRef = useRef(null);
   const libraryEvidenceMenu = resultGroups.held.length ? (
-    <details className="rd-v2-discover-library-evidence" data-testid="discover-library-evidence">
+    <details ref={libraryMenuRef} className="rd-v2-discover-library-evidence" data-testid="discover-library-evidence">
       <summary>{territoryText("held", resultGroups.held.length)}</summary>
       <div className="rd-v2-discover-library-popover">
         <span className="rd-v2-eyebrow">Relevant Library evidence</span>
@@ -1439,7 +1435,10 @@ export function BrowsePage({
           rows={resultGroups.held.slice(0, 4)}
           labIds={labIds}
           selectedId={selectedId}
-          onSelectRow={onSelectRow}
+          onSelectRow={(row) => {
+            libraryMenuRef.current?.removeAttribute("open");
+            onSelectRow?.(row);
+          }}
         />
         <div className="rd-v2-discover-library-actions">
           <button
@@ -1884,11 +1883,12 @@ export function BrowsePage({
               </section>
             ) : null}
 
-            {!loading && !broaderSearchPending && !error && centreRows.length === 0 && contextualRows.length === 0 ? (
+            {!loading && !allInLab && !broaderSearchPending && !error && centreRows.length === 0 && contextualRows.length === 0 ? (
               <div className="rd-v2-discover-miss">
                 <p className="rd-v2-empty-inline">
-                  No {stateFilter === "all" ? "" : `${activeFilter.label.toLowerCase()} `}matches for “{q}”
-                  {indexMiss ? " in the current research index." : "."}
+                  {resultGroups.held.length
+                    ? `Nothing outside your Library matches “${q}”.`
+                    : <>No {stateFilter === "all" ? "" : `${activeFilter.label.toLowerCase()} `}matches for “{q}”{indexMiss ? " in the current research index." : "."}</>}
                 </p>
               </div>
             ) : null}
