@@ -42,7 +42,7 @@
   grid-column: 1 / -1;
   max-width: 720px;
   margin: -2px 0 0;
-  color: var(--rd-muted, #6e7685);
+  color: var(--rd-muted, #5d6574);
   font-size: var(--rd-text-2xs);
   line-height: 1.5;
 }
@@ -105,14 +105,14 @@
 .rd-v2-discover-page .rd-v2-discover-coverage-folded,
 .rd-v2-discover-page .rd-v2-discover-coverage-gap {
   margin: 8px 0 0;
-  color: var(--rd-muted, #6e7685);
+  color: var(--rd-muted, #5d6574);
   font-size: var(--rd-text-2xs);
   line-height: 1.45;
 }
 
 .rd-v2-discover-page .rd-v2-discover-idle-library-note {
   padding: 0 2px;
-  color: var(--rd-muted, #6e7685);
+  color: var(--rd-muted, #5d6574);
   font-size: var(--rd-text-2xs);
 }
 
@@ -124,7 +124,7 @@
 }
 
 .rd-v2-discover-page .rd-v2-discover-idle-intake label {
-  color: var(--rd-muted, #6e7685);
+  color: var(--rd-muted, #5d6574);
   font-size: var(--rd-text-2xs);
   font-weight: 700;
 }
@@ -178,7 +178,7 @@
 .rd-v2-discover-page .rd-v2-discover-explore-need .rd-v2-discover-composer > p {
   grid-column: 1 / -1;
   margin: -1px 0 0;
-  color: var(--rd-muted, #6e7685);
+  color: var(--rd-muted, #5d6574);
   font-size: var(--rd-text-2xs);
 }
 
@@ -242,7 +242,7 @@
 
 .rd-v2-discover-page .rd-v2-discover-refine-body p {
   margin: 0;
-  color: var(--rd-muted, #6e7685);
+  color: var(--rd-muted, #5d6574);
   font-size: var(--rd-text-2xs);
   line-height: 1.45;
 }
@@ -287,7 +287,7 @@
   align-items: center;
   min-height: 28px;
   padding: 0 11px;
-  color: var(--rd-muted, #6e7685);
+  color: var(--rd-muted, #5d6574);
   font-size: var(--rd-text-2xs);
   font-weight: 600;
   white-space: nowrap;
@@ -493,7 +493,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 4px 0;
-  color: var(--rd-muted, #6e7685);
+  color: var(--rd-muted, #5d6574);
 }
 
 .rd-v2-discover-page .rd-v2-discover-offering-facts > span {
@@ -511,12 +511,12 @@
 }
 
 .rd-v2-discover-page .rd-v2-discover-offering-facts b {
-  color: #6e7685;
+  color: #5d6574;
   font-weight: 700;
 }
 
 .rd-v2-discover-page .rd-v2-discover-offering-facts em {
-  color: var(--rd-muted, #6e7685);
+  color: var(--rd-muted, #5d6574);
   font-style: normal;
 }
 
@@ -561,7 +561,7 @@
   margin-top: 18px;
   padding-top: 10px;
   border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 68%, transparent);
-  color: var(--rd-muted, #6e7685);
+  color: var(--rd-muted, #5d6574);
   font-size: var(--rd-text-2xs);
 }
 
@@ -776,13 +776,13 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
 }
 
 .rd-v2-discover-page .rd-v2-discover-coverage-heading > span:last-child {
-  color: var(--rd-muted, #6e7685);
+  color: var(--rd-muted, #5d6574);
   font-size: var(--rd-text-2xs);
 }
 
 .rd-v2-discover-page .rd-v2-discover-coverage .rd-v2-discover-coverage-gap {
   margin: 0;
-  color: #8a6b34;
+  color: #74592a;
   font-size: var(--rd-text-2xs);
   white-space: nowrap;
 }
@@ -842,7 +842,7 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
 .rd-v2-discover-page .rd-v2-discover-coverage-shelves button > em {
   min-width: 0;
   white-space: normal;
-  color: var(--rd-muted, #6e7685);
+  color: var(--rd-muted, #5d6574);
   font-size: var(--rd-text-2xs);
   font-style: normal;
 }
@@ -879,7 +879,7 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
 .rd-v2-discover-page .rd-v2-discover-idle-intake::after {
   content: "Direct inspection is separate from acquisition.";
   align-self: center;
-  color: var(--rd-muted, #6e7685);
+  color: var(--rd-muted, #5d6574);
   font-size: var(--rd-text-2xs);
 }
 
@@ -1127,7 +1127,7 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
 }
 
 .rd-v2-discover-page .rd-v2-discover-result-actions span {
-  color: var(--rd-muted, #6e7685);
+  color: var(--rd-muted, #5d6574);
   font-size: var(--rd-text-2xs);
 }
 
@@ -1357,7 +1357,7 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
   padding-top: 6px;
   border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 54%, transparent);
 }
-.rd-v2-discover-composer-scope > span { display: inline-flex; align-items: center; gap: 4px; color: var(--rd-muted, #6e7685); font-size: var(--rd-text-2xs); }
+.rd-v2-discover-composer-scope > span { display: inline-flex; align-items: center; gap: 4px; color: var(--rd-muted, #5d6574); font-size: var(--rd-text-2xs); }
 .rd-v2-discover-composer-scope > span::before { content: ""; width: 4px; height: 4px; border-radius: 50%; background: #7e9589; }
 .rd-v2-discover-composer-scope > span:last-child::before { background: #ae7d43; }
 
@@ -1398,7 +1398,7 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
 .rd-v2-discover-field > header p {
   min-width: 0;
   margin: 0;
-  color: var(--rd-muted, #6e7685);
+  color: var(--rd-muted, #5d6574);
   line-height: 1.35;
 }
 
@@ -1434,7 +1434,7 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
 .rd-v2-discover-assembly > div:nth-child(2) > span,
 .rd-v2-discover-assembly-state > span { color: #5b6578; font: 700 11px/1.2 var(--rd-mono, ui-monospace, monospace); letter-spacing: 0.06em; text-transform: uppercase; }
 .rd-v2-discover-assembly > div:nth-child(2) > strong { display: block; margin-top: 2px; color: var(--rd-text, #182033); font-size: var(--rd-text-2xs); }
-.rd-v2-discover-assembly p { margin: 2px 0 0; color: var(--rd-muted, #6e7685); font-size: var(--rd-text-2xs); line-height: 1.35; }
+.rd-v2-discover-assembly p { margin: 2px 0 0; color: var(--rd-muted, #5d6574); font-size: var(--rd-text-2xs); line-height: 1.35; }
 
 .rd-v2-discover-assembly-state {
   display: grid;
@@ -1550,7 +1550,7 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
 }
 
 .rd-v2-discover-ranked-results .rd-v2-discover-offering-facts em {
-  color: var(--rd-muted, #6e7685);
+  color: var(--rd-muted, #5d6574);
   font-size: var(--rd-text-2xs) !important;
 }
 
@@ -1774,7 +1774,7 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
   content: "▸";
   flex: 0 0 auto;
   margin-right: -5px;
-  color: var(--rd-muted, #6e7685);
+  color: var(--rd-muted, #5d6574);
   font-size: var(--rd-text-2xs);
 }
 
@@ -1784,7 +1784,7 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
 
 .rd-v2-evidence-detail-disclosure.is-workspace > summary em {
   margin-left: auto;
-  color: var(--rd-muted, #6e7685);
+  color: var(--rd-muted, #5d6574);
   font-size: var(--rd-text-2xs);
   font-style: normal;
   font-weight: 500;

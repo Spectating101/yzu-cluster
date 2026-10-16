@@ -1414,7 +1414,7 @@
   min-width: 0;
   padding: 7px 12px 7px 0;
   background: transparent !important;
-  color: #6e7685;
+  color: #5d6574;
 }
 
 .rd-v2-synthesis-page .s04-opening-workflow li + li {
@@ -1446,7 +1446,7 @@
 
 .rd-v2-synthesis-page .s04-opening-workflow li small {
   margin-top: 2px;
-  color: #8a94a6;
+  color: #5d6574;
   font-size: var(--rd-text-2xs);
 }
 
@@ -1553,7 +1553,7 @@
   > .s04-opening-next > footer::before {
   content: "Method reasoning becomes available after you add data from your Library.";
   margin-right: auto;
-  color: #7b8390;
+  color: #5d6574;
   font-size: var(--rd-text-2xs);
   line-height: 1.35;
 }
@@ -1696,7 +1696,7 @@
   content: "Ask is drafting one reviewable method proposal. Nothing is accepted or executed yet.";
   margin-right: auto;
   max-width: 60ch;
-  color: #6e7685;
+  color: #5d6574;
   font-size: var(--rd-text-2xs);
   line-height: 1.35;
 }
@@ -2035,7 +2035,7 @@
     > .s04-opening-next > footer::before {
     content: "Method reasoning becomes available after you add at least one input from your Library.";
     margin-right: auto;
-    color: #7b8390;
+    color: #5d6574;
     font-size: var(--rd-text-2xs);
     line-height: 1.35;
   }
@@ -4840,7 +4840,7 @@
 
 .rd-v2-synthesis-agent-activity button small {
   margin-top: 1px;
-  color: #6e7685;
+  color: #5d6574;
   font-size: var(--rd-text-2xs);
   line-height: 1.34;
   overflow-wrap: anywhere;

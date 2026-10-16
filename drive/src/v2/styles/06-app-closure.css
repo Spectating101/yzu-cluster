@@ -355,7 +355,7 @@
   --rd-polish-canvas: var(--rd-canvas, #eeeae0);
   --rd-polish-line: #dbd4c5;
   --rd-polish-line-soft: #eeeae0;
-  --rd-polish-muted: #6e7685;
+  --rd-polish-muted: #5d6574;
   --rd-polish-fast: 140ms;
   --rd-polish-medium: 180ms;
 }
@@ -427,7 +427,7 @@
 
 .rd-v2-access-lockup small {
   margin: 0;
-  color: #6e7685;
+  color: #5d6574;
   font-size: var(--rd-text-2xs);
   line-height: 1.2;
 }
@@ -561,7 +561,7 @@
   border: 1px solid #e2ddd2;
   border-radius: 10px;
   background: #fffdf6;
-  color: #6e7685;
+  color: #5d6574;
   font-size: var(--rd-text-2xs);
   line-height: 1.45;
 }

@@ -55,7 +55,7 @@
 }
 
 .s04-thread-home small {
-  color: #8a94a6;
+  color: #5d6574;
   font-size: var(--rd-text-2xs);
 }
 
@@ -77,7 +77,7 @@
 .s04-home-entry-card > small,
 .s04-home-method-grid button > small {
   display: block;
-  color: #68728a;
+  color: #5d6574;
   font-size: var(--rd-text-2xs);
   font-weight: 600;
 }
@@ -185,7 +185,7 @@
 .s04-home-entry-card > span {
   display: block;
   margin-top: 7px;
-  color: #68728a;
+  color: #5d6574;
   font-size: var(--rd-text-2xs);
   line-height: 1.5;
 }
@@ -227,7 +227,7 @@
   border: 1px dashed #dfe3ec;
   border-radius: 11px;
   background: #ffffff;
-  color: #7a8498;
+  color: #5d6574;
   font-size: var(--rd-text-2xs);
 }
 
@@ -255,7 +255,7 @@
 .s04-home-section > header p {
   max-width: 78ch;
   margin: 4px 0 0;
-  color: #7a8498;
+  color: #5d6574;
   font-size: var(--rd-text-2xs);
   line-height: 1.5;
 }
@@ -268,7 +268,7 @@
   border: 1px solid #e8ebf1;
   border-radius: 999px;
   background: #ffffff;
-  color: #68728a;
+  color: #5d6574;
   font-size: var(--rd-text-2xs);
   font-style: normal;
   font-weight: 700;
@@ -314,7 +314,7 @@
 .s04-home-thread.is-priority .s04-home-thread-state b { color: #965d14; }
 .s04-home-thread-state small,
 .s04-home-thread-foot small {
-  color: #8a94a6;
+  color: #5d6574;
   font-size: var(--rd-text-2xs);
 }
 
@@ -332,7 +332,7 @@
   min-height: 31px;
   margin: 0;
   overflow: hidden;
-  color: #68728a;
+  color: #5d6574;
   font-size: var(--rd-text-2xs);
   line-height: 1.5;
   -webkit-box-orient: vertical;
@@ -376,7 +376,7 @@
 .s04-home-method-grid button > span {
   display: -webkit-box;
   overflow: hidden;
-  color: #707a8f;
+  color: #5d6574;
   font-size: var(--rd-text-2xs);
   line-height: 1.5;
   -webkit-box-orient: vertical;
@@ -512,7 +512,7 @@
 .s04-opening-map figcaption,
 .s04-opening-map-output > small,
 .s04-opening-facts dt {
-  color: #68728a;
+  color: #5d6574;
   font-size: var(--rd-text-2xs);
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -576,7 +576,7 @@
 }
 
 .s04-opening-brief dd.unstated {
-  color: #8a94a6;
+  color: #5d6574;
   font-style: italic;
   font-weight: 500;
 }
@@ -705,7 +705,7 @@
 .s04-opening-construction--empty > p {
   max-width: 62ch;
   margin: 9px 0 0;
-  color: #68728a;
+  color: #5d6574;
   font-size: var(--rd-text-2xs);
   line-height: 1.55;
 }
@@ -766,7 +766,7 @@
 
 .s04-opening-map li > span,
 .s04-opening-map-output > span {
-  color: #7a8498;
+  color: #5d6574;
   font-size: var(--rd-text-2xs);
   font-variant-numeric: tabular-nums;
 }
@@ -777,7 +777,7 @@
   align-items: center;
   gap: 8px;
   margin: 4px auto;
-  color: #8a94a6;
+  color: #5d6574;
 }
 
 .s04-opening-map-flow > span {
@@ -821,7 +821,7 @@
   justify-content: center;
   gap: 7px;
   margin: 5px 0 0;
-  color: #68728a;
+  color: #5d6574;
   font-size: var(--rd-text-2xs);
 }
 
@@ -864,7 +864,7 @@
 .s04-opening-facts dd > em {
   display: block;
   margin-top: 2px;
-  color: #8a94a6;
+  color: #5d6574;
   font-size: var(--rd-text-2xs);
   font-style: normal;
 }
@@ -960,7 +960,7 @@
   margin-top: 12px;
   padding-top: 10px;
   border-top: 1px solid #e8ebf1;
-  color: #8a94a6;
+  color: #5d6574;
   font-size: var(--rd-text-2xs);
   font-style: normal;
 }
@@ -1175,7 +1175,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: #5b6578;
+  color: rgba(255, 253, 246, 0.6);
   font-size: var(--rd-text-2xs);
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -1184,7 +1184,7 @@
 
 .yzu-sidebar .s04-threads--sidebar > header small {
   display: block;
-  color: #718091;
+  color: rgba(255, 253, 246, 0.6);
   font-size: var(--rd-text-2xs);
   line-height: 1.2;
 }
@@ -1304,9 +1304,13 @@
 .yzu-sidebar .s04-thread-empty,
 .yzu-sidebar .s04-thread-outputs > p {
   margin: 0;
-  color: #7b8390;
+  color: rgba(255, 253, 246, 0.6);
   font-size: var(--rd-text-2xs);
   line-height: 1.45;
+}
+
+.yzu-sidebar .s04-threads--sidebar .s04-thread-home small {
+  color: #5d6574;
 }
 
 /* EvidenceMap uses interactive source nodes.  The older map only styled
@@ -1340,7 +1344,7 @@
 }
 
 .s04-map .sources > .s04-map-node > small {
-  color: #68728a;
+  color: #5d6574;
   font-size: var(--rd-text-2xs);
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -1356,7 +1360,7 @@
 }
 
 .s04-map .sources > .s04-map-node > span {
-  color: #7a8498;
+  color: #5d6574;
   font-size: var(--rd-text-2xs);
   line-height: 1.35;
   overflow-wrap: anywhere;
@@ -1493,7 +1497,7 @@
 
 .rd-v2-synthesis-page .s04-evidence-proposal > p {
   margin: 0;
-  color: #6e7685;
+  color: #5d6574;
   font-size: var(--rd-text-2xs);
   line-height: 1.45;
 }
@@ -1895,7 +1899,7 @@
   border: 1px solid #dbd4c5;
   border-radius: 999px;
   background: rgba(255, 253, 246, 0.72);
-  color: #6e7685;
+  color: #5d6574;
   font-size: var(--rd-text-2xs);
   line-height: 1.1;
 }
@@ -2032,7 +2036,7 @@
   }
 
   .s04-thread-picker > span {
-    color: #68728a;
+    color: #5d6574;
     font-size: var(--rd-text-2xs);
     font-weight: 700;
     letter-spacing: 0.06em;
@@ -2129,7 +2133,7 @@
 
 .s04-reproduce > header small,
 .s04-reproduce dt {
-  color: #68728a;
+  color: #5d6574;
   font-size: var(--rd-text-2xs);
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -2164,7 +2168,7 @@
   font-weight: 700;
 }
 
-.s04-reproduce-chain b { color: #8a94a6; }
+.s04-reproduce-chain b { color: #5d6574; }
 
 .s04-reproduce > dl {
   display: grid;

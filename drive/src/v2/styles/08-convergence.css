@@ -1254,7 +1254,7 @@ body:has(.rd-v2-synthesis-page [data-testid="synthesis-execution-state"] .s04-ex
   flex: 0 0 10px;
   margin-top: 4px;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--rd-v2-muted, #6e7685) 48%, transparent);
+  border: 1px solid color-mix(in srgb, var(--rd-v2-muted, #5d6574) 48%, transparent);
   border-radius: 50%;
   background: transparent;
   color: transparent;

@@ -817,7 +817,7 @@ button {
 
 .rd-v2-status-unknown {
   background: #e8ebf1;
-  color: #68728a;
+  color: #5d6574;
 }
 
 .rd-v2-status-unknown .rd-v2-status-dot { background: #94a3b8; }
@@ -829,7 +829,7 @@ button {
   border-bottom: 1px solid #e8ebf1;
   border-left: 3px solid #94a3b8;
 }
-.rd-v2-library-inspector-decision-remote { border-left-color: #8a94a6; }
+.rd-v2-library-inspector-decision-remote { border-left-color: #5d6574; }
 
 .rd-v2-library-inspector-decision h3 {
   margin: 0 0 5px;
@@ -902,7 +902,7 @@ button {
   list-style: none;
 }
 .rd-v2-library-inspector-tech > summary::-webkit-details-marker { display: none; }
-.rd-v2-library-inspector-tech > summary::before { content: "▸ "; color: #8a94a6; }
+.rd-v2-library-inspector-tech > summary::before { content: "▸ "; color: #5d6574; }
 .rd-v2-library-inspector-tech[open] > summary::before { content: "▾ "; }
 .rd-v2-library-inspector-tech-body { padding: 0 11px 11px; }
 
@@ -1480,7 +1480,7 @@ button {
 .rd-v2-rail-empty-title { font-size: var(--rd-text-md); font-weight: 600; margin: 0 0 6px; }
 .rd-v2-rail-empty-hint { font-size: var(--rd-text-sm); margin: 0; }
 
-.rd-v2-rail .rd-v2-rail-empty-icon { color: #68728a; }
+.rd-v2-rail .rd-v2-rail-empty-icon { color: #5d6574; }
 
 /* Join key chips */
 .rd-v2-join-chips { display: flex; flex-wrap: wrap; gap: 4px; }
@@ -1532,7 +1532,7 @@ button {
   color: var(--rd-ready-fg);
   white-space: nowrap;
 }
-.rd-v2-pill.muted { background: #fffdf6; color: #68728a; }
+.rd-v2-pill.muted { background: #fffdf6; color: #5d6574; }
 .rd-v2-pill.warn { background: #fef7e0; color: #b06000; }
 
 /* ── 11. Catalog table rows — HuggingFace two-line style ─────── */
@@ -1697,7 +1697,7 @@ button {
   padding: 8px 10px;
   border-left: 3px solid #4a6fa5;
   background: rgba(74, 111, 165, 0.12);
-  color: #68728a;
+  color: #5d6574;
   font-size: var(--rd-text-xs);
   line-height: 1.4;
 }
@@ -3576,7 +3576,7 @@ button {
 .rd-v2-intent-empty,
 .rd-v2-intent-collection {
   padding: 12px 14px;
-  border-left: 2px solid #68728a;
+  border-left: 2px solid #5d6574;
 }
 .rd-v2-intent-need p, .rd-v2-intent-empty p, .rd-v2-intent-collection p { margin: 5px 0 0; color: var(--rd-body); font-size: var(--rd-text-xs); line-height: 1.45; }
 .rd-v2-intent-proposal,
@@ -3742,7 +3742,7 @@ button {
 
 .rd-v2-discover-filter-menu > summary::after {
   content: "▾";
-  color: #8a94a6;
+  color: #5d6574;
   font-size: var(--rd-text-2xs);
 }
 
@@ -3837,7 +3837,7 @@ button {
   width: fit-content;
   padding: 12px 0 4px;
   cursor: pointer;
-  color: #7a8498;
+  color: #5d6574;
   font-size: var(--rd-text-2xs);
   font-weight: 600;
 }
@@ -4187,7 +4187,7 @@ button {
 .rd-v2-discover-coverage {
   min-width: 0;
   overflow: hidden;
-  color: #6e7685;
+  color: #5d6574;
   font-size: var(--rd-text-2xs);
   font-weight: 500;
   line-height: 1.4;
@@ -4319,7 +4319,7 @@ button {
 }
 
 .rd-v2-eval-sufficiency-arrow {
-  color: #68728a;
+  color: #5d6574;
   font-size: var(--rd-text-md);
 }
 
@@ -4963,7 +4963,7 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 }
 
 .rd-v2-rail .rd-v2-ask-input textarea::placeholder {
-  color: #8a94a6;
+  color: #5d6574;
 }
 
 .rd-v2-rail .rd-v2-field-skeleton .rd-v2-skel-line {
@@ -5384,7 +5384,7 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
   list-style-position: outside;
   color: #5b6578;
 }
-.rd-v2-history-system-fold > summary::-webkit-details-marker { color: #8a94a6; }
+.rd-v2-history-system-fold > summary::-webkit-details-marker { color: #5d6574; }
 .rd-v2-history-system-fold > summary strong {
   display: block;
   color: #5b6578;
@@ -5396,14 +5396,14 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 .rd-v2-history-system-fold > summary em {
   display: block;
   margin-top: 2px;
-  color: #7a8498;
+  color: #5d6574;
   font-size: var(--rd-text-2xs);
   font-style: normal;
   line-height: 1.35;
 }
 .rd-v2-history-system-count {
   flex: 0 0 auto;
-  color: #7a8498;
+  color: #5d6574;
   font-size: var(--rd-text-2xs);
   font-variant-numeric: tabular-nums;
 }
@@ -5423,7 +5423,7 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 .rd-v2-history-system-cue {
   display: block;
   margin-top: 2px;
-  color: #7a8498;
+  color: #5d6574;
   font-size: var(--rd-text-2xs);
   letter-spacing: 0.02em;
 }

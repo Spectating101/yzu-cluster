@@ -11,7 +11,7 @@
 :root {
   --rd-hps-ink: var(--rd-release-ink, #182033);
   --rd-hps-copy: #344054;
-  --rd-hps-muted: var(--rd-release-subtle, #6e7685);
+  --rd-hps-muted: var(--rd-release-subtle, #5d6574);
   --rd-hps-line: var(--rd-release-line, #e2ddd2);
   --rd-hps-line-strong: #d2d8e2;
   --rd-hps-sage: var(--rd-release-green, #3f6f5c);
