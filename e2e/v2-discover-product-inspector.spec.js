@@ -156,7 +156,7 @@ test.describe("Discover offering inspector", () => {
     await expect(titles).toHaveCount(2);
     await expect(titles.nth(0)).toContainText("Issuer governance panel");
     await expect(titles.nth(1)).toContainText("Broad governance archive");
-    await expect(page.getByTestId("discover-rank-foot")).toContainText("Ranked using active research");
+    await expect(page.getByTestId("discover-rank-foot")).toContainText("Ranked by fit to your question");
   });
 
   test("renders only the bounded rows and fields returned by the source-preview contract", async ({ page }) => {

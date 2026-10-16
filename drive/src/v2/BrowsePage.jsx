@@ -1898,7 +1898,7 @@ export function BrowsePage({
                 <span className="muted">
                   {externalCatalogueActive
                     ? "Ordered by title and description match to this question"
-                    : `Ranked using active research + interpreted evidence need${stateFilter !== "all" ? ` · ${activeFilter.label}` : ""}`}
+                    : `Ranked by fit to your question and research focus${stateFilter !== "all" ? ` · ${activeFilter.label}` : ""}`}
                 </span>
               </footer>
             ) : null}

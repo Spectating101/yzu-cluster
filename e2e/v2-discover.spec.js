@@ -115,7 +115,7 @@ test.describe("v2 Discover tab", () => {
     await expect(page.getByTestId("discover-resting-summary")).toContainText(/External/i);
     await expect(page.getByTestId("discover-resting-summary")).toContainText(/Library results/i);
     await expect(page.getByTestId("discover-resting-summary")).toContainText(/Documented routes/i);
-    await expect(page.getByTestId("discover-rank-foot")).toContainText(/Ranked using active research/i);
+    await expect(page.getByTestId("discover-rank-foot")).toContainText(/Ranked by fit to your question/i);
     await expect(page.getByTestId("discover-filter-menu")).toBeVisible();
     await expect(page.getByTestId("discover-sort-menu")).toBeVisible();
     await expect(page.getByRole("navigation", { name: "Evidence facets" })).toHaveCount(0);
