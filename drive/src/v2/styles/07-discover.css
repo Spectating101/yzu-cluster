@@ -304,8 +304,20 @@
 }
 
 .rd-v2-discover-page .rd-v2-discover-library-evidence > summary {
-  color: var(--rd-text, #182033);
+  color: var(--rd-link, #315f90);
   font-weight: 700;
+}
+
+.rd-v2-discover-page .rd-v2-discover-library-evidence > summary::after {
+  content: " ▾";
+}
+
+.rd-v2-discover-page .rd-v2-discover-library-evidence > summary:hover {
+  text-decoration: underline;
+}
+
+.rd-v2-discover-page .rd-v2-discover-library-evidence[open] > summary::after {
+  content: " ▴";
 }
 
 .rd-v2-discover-page .rd-v2-discover-library-popover {
