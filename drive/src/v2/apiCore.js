@@ -92,6 +92,7 @@ export async function ensureDeskSession({ force = false } = {}) {
     return ensureDeskSessionInflight;
   }
 
+  recentHistoryReads.clear();
   const task = postDeskSessionBootstrap();
   ensureDeskSessionInflight = task;
   try {
@@ -144,6 +145,7 @@ export async function ensureDeskAccess({ force = false } = {}) {
 
 export async function clearDeskSession() {
   ensureDeskSessionInflight = null;
+  recentHistoryReads.clear();
   markDeskSessionBootstrapped(false);
   try {
     return await fetchJson("/library/desk/session", {
@@ -365,7 +367,7 @@ export function discoverHistory({ limit = 50, kind = "", sessionId = "" } = {}) 
   const params = new URLSearchParams({ limit: String(limit) });
   if (kind) params.set("kind", kind);
   if (sessionId) params.set("session_id", sessionId);
-  const key = String(params);
+  const key = `${deskIdentityGeneration()}|${params}`;
   const recent = recentHistoryReads.get(key);
   if (recent && Date.now() - recent.at < HISTORY_SHARE_MS) return recent.task;
   const task = fetchJson(`/library/discover/history?${params}`, { timeoutMs: 8000 });
