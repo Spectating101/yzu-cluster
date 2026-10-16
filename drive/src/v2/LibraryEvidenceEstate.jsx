@@ -219,7 +219,7 @@ export function LibraryEvidenceEstate({
                     </span>
                   ) : null}
                   <span className="rd-v2-cap-state" data-testid="library-evidence-readiness" role="cell">
-                    <StatusPill dataset={row} />
+                    <StatusPill dataset={row} explain={false} />
                   </span>
                 </button>
               );

@@ -98,7 +98,7 @@ export function CatalogRow({
         {!isFolder && state ? (
           <span className={`rd-v2-pill ${state.className}`}>{state.label}</span>
         ) : null}
-        {!isFolder && !state ? <StatusPill dataset={dataset} label={statusPill(dataset)} /> : null}
+        {!isFolder && !state ? <StatusPill dataset={dataset} label={statusPill(dataset)} explain={false} /> : null}
         {isFolder ? (
           <span className="rd-v2-pill muted" title="Datasets in this branch">
             {folderSummary.pill}

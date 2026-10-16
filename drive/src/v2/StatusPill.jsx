@@ -118,7 +118,7 @@ const GUIDANCE = {
   },
 };
 
-export function StatusPill({ dataset, label }) {
+export function StatusPill({ dataset, label, explain = true }) {
   const state = statusPillKind(dataset);
   const text = uiVocabularyLabel(label || state.label);
   const kind = state.kind;
@@ -128,7 +128,7 @@ export function StatusPill({ dataset, label }) {
     <span className={cls}>
       <span className="rd-v2-status-dot" aria-hidden />
       <span title={text}>{text}</span>
-      <RichContextHelp {...guidance} label={`Explain ${text}`} />
+      {explain ? <RichContextHelp {...guidance} label={`Explain ${text}`} /> : null}
     </span>
   );
 }

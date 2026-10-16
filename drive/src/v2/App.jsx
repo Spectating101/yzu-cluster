@@ -1088,6 +1088,10 @@ function DeskWorkspace({ onIdentityChanged }) {
     beginCloudflareMemberSignIn();
   }, [beginCloudflareMemberSignIn, memberAccessCodeAvailable, emailSignInAvailable, openAccess]);
 
+  const selectSynthesisThread = useCallback((thread) => {
+    setActiveObject(synthesisThreadObject(thread));
+  }, []);
+
   const handleSynthesisDiscoverHandoff = useCallback(
     ({ field, handoff, thread } = {}) => {
       if (!field || !thread) return;
@@ -2116,9 +2120,7 @@ function DeskWorkspace({ onIdentityChanged }) {
             const jobId = execution?.job_id || "";
             openDiscoverAwaiting({ job: jobId ? { id: jobId, status: "pending_approval" } : null });
           }}
-          onSelectThread={(thread) => {
-            setActiveObject(synthesisThreadObject(thread));
-          }}
+          onSelectThread={selectSynthesisThread}
           onBeginNew={() => {
             setActiveObject(null);
             setRailTab(canUseAsk && composerRuntime?.ready ? "ask" : "detail");
