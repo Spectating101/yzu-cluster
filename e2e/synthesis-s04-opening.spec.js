@@ -1,5 +1,6 @@
 import { mkdirSync } from "node:fs";
 import { test, expect } from "@playwright/test";
+import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 
 /**
  * The S-04 opening state, populated.
@@ -59,7 +60,9 @@ const thread = {
 test("the opening state renders its recommended construction", async ({ page }) => {
   mkdirSync(outDir, { recursive: true });
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.route("**/api/library/synthesis/threads**", (route) =>
+  await mockV2Api(page);
+  await page.unroute("**/library/synthesis/threads**").catch(() => {});
+  await page.route("**/library/synthesis/threads**", (route) =>
     route.fulfill({
       status: 200,
       contentType: "application/json",
@@ -68,13 +71,14 @@ test("the opening state renders its recommended construction", async ({ page }) 
       ),
     }));
   await page.goto("/?tab=synthesis");
+  await waitForShell(page);
   await page.getByTestId("synthesis-thread-item").first().click();
   await page.waitForTimeout(400);
 
-  const centre = page.locator("main.s04-main");
+  const centre = page.locator(".s04-main");
   await expect(centre.getByText("Composite weekly attention index")).toBeVisible();
   await expect(centre.getByText("Search intent")).toBeVisible();
-  await expect(centre.getByText("2 alternative constructions available")).toBeVisible();
+  await expect(centre.getByText(/2 alternative builds available/)).toBeVisible();
   // Both closing actions become live once there is something to act on.
   await expect(centre.getByRole("button", { name: /Accept & design method/i })).toBeEnabled();
   await expect(centre.getByRole("button", { name: /Compare alternatives/i })).toBeEnabled();

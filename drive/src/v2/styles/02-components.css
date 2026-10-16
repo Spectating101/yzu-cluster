@@ -1427,11 +1427,13 @@ summary:focus-visible {
   border: 1px solid #dfe3ec;
   background: #fff;
   color: #47526a;
+  white-space: nowrap;
 }
 .s04-next-primary {
   border: 1px solid #3f6f5c;
   background: #3f6f5c;
   color: #fff;
+  white-space: nowrap;
 }
 .s04-next-secondary:not(:disabled):hover { border-color: #aebfb6; background: #ffffff; }
 .s04-next-primary:not(:disabled):hover { background: #315f4d; }

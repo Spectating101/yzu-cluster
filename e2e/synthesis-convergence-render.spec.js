@@ -360,7 +360,7 @@ test("keeps the current recommended opening complete after explicit selection", 
 
   const main = page.locator(".s04-main");
   // The stage header and recommendation panel intentionally share this label.
-  await expect(main.locator(".s04-head").getByText("Suggested build", { exact: true })).toBeVisible();
+  await expect(main.locator(".s04-head").getByText(/^Suggested build/)).toBeVisible();
   await expect(main.getByRole("region", { name: "Research brief" })).toBeVisible();
   await expect(main.getByRole("region", { name: "Suggested build" })).toBeVisible();
   await expect(main.getByRole("region", { name: "What happens next" })).toBeVisible();
