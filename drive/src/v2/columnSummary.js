@@ -33,7 +33,10 @@ export function columnSummary(column) {
 }
 
 export function columnBars(column) {
-  const bins = Array.isArray(column?.bins) ? column.bins.map((n) => Number(n) || 0) : [];
+  const counts = Array.isArray(column?.bins)
+    ? column.bins
+    : column?.categorical && Array.isArray(column.top) ? column.top.map((item) => item?.count) : [];
+  const bins = counts.map((n) => Number(n) || 0);
   const peak = Math.max(0, ...bins);
   if (bins.length < 2 || !peak) return [];
   return bins.map((n) => n / peak);

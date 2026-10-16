@@ -29,3 +29,8 @@ test("column bars scale bins to the tallest and skip flat or missing ones", () =
   assert.deepEqual(columnBars({ bins: [3] }), []);
   assert.deepEqual(columnBars({ kind: "text" }), []);
 });
+
+test("categorical columns draw one bar per value", () => {
+  assert.deepEqual(columnBars({ kind: "text", categorical: true, top: [{ value: "NY", count: 4 }, { value: "FL", count: 2 }] }), [1, 0.5]);
+  assert.deepEqual(columnBars({ kind: "text", top: [{ value: "a", count: 4 }, { value: "b", count: 2 }] }), []);
+});
