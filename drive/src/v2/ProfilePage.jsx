@@ -284,14 +284,6 @@ function PersonalResearchProfile({ document, onDocument, onProfileRefresh }) {
             {principal.email || "Verified account"} · Personal research workspace
           </p>
         </div>
-        <div className="rd-v2-profile-identity-side">
-          <div className="rd-v2-profile-identity-metrics" aria-label="Personal research profile summary">
-            <span>
-              <strong>{configured ? "Ready" : "New"}</strong>
-              <em>research context</em>
-            </span>
-          </div>
-        </div>
       </section>
 
       {hasLearnedMemory ? learnedMemory : null}

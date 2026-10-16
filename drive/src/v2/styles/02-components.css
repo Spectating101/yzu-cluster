@@ -630,9 +630,6 @@ summary:focus-visible {
   flex-shrink: 0;
 }
 
-.rd-v2-profile-section-head {
-  background: linear-gradient(180deg, #fff, #ffffff);
-}
 
 .rd-v2-profile-memory {
   display: flex;

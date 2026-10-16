@@ -4540,7 +4540,6 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 .rd-v2-profile-section-head span {
   color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
-  font-family: var(--rd-mono);
 }
 
 /* Memory = one frame, row dividers — not four nested cards */

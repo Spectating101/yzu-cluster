@@ -546,8 +546,6 @@
   align-items: end;
   padding: 26px 0 28px;
   border: 0;
-  border-top: 1px solid var(--rd-hps-line);
-  border-bottom: 1px solid var(--rd-hps-line);
   border-radius: 0;
   background: transparent;
 }
@@ -721,11 +719,12 @@
 }
 
 .rd-v2-profile-section-head > span {
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--rd-hps-muted) 10%, transparent);
   color: var(--rd-hps-muted);
-  font-family: var(--rd-mono);
   font-size: var(--rd-text-2xs);
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-weight: 600;
   white-space: nowrap;
 }
 
