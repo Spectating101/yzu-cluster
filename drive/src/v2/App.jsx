@@ -15,6 +15,7 @@ import {
   createDiscoverIntent,
   craftDiscoverIntentProposal,
   discoverHistory,
+  forgetDiscoverHistory,
   facultyProfile,
   libraryOps,
   libraryOverview,
@@ -1015,6 +1016,12 @@ function DeskWorkspace({ onIdentityChanged }) {
     setActiveObject(discoverHistoryObject(event));
   }, [jobs]);
 
+  const jobsSignature = useMemo(
+    () => (Array.isArray(jobs) ? jobs : []).map((job) => `${job?.id}:${job?.status}`).join("|"),
+    [jobs],
+  );
+  const historyJobsRef = useRef("");
+
   // Durable Discover History (optional endpoint — ignore failures).
   useEffect(() => {
     // Session bootstrap owns the first protected request. Firing History while
@@ -1022,6 +1029,8 @@ function DeskWorkspace({ onIdentityChanged }) {
     // cold Discover visit and exposes an avoidable console/network error even
     // though the desk recovers moments later.
     if (tab !== DISCOVER_TAB || !deskAccess?.authenticated) return undefined;
+    if (historyJobsRef.current && historyJobsRef.current !== jobsSignature) forgetDiscoverHistory();
+    historyJobsRef.current = jobsSignature;
     let cancelled = false;
     discoverHistory({ limit: 50 })
       .then((data) => {
@@ -1034,7 +1043,7 @@ function DeskWorkspace({ onIdentityChanged }) {
     return () => {
       cancelled = true;
     };
-  }, [tab, jobs, deskAccess?.authenticated]);
+  }, [tab, jobsSignature, deskAccess?.authenticated]);
 
 
   const goTab = useCallback(

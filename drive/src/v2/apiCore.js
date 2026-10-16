@@ -358,11 +358,26 @@ export function craftDiscoverIntentProposal({
 }
 
 /** Durable Discover history (intents / subscriptions / collection runs). */
+const recentHistoryReads = new Map();
+const HISTORY_SHARE_MS = 3000;
+
 export function discoverHistory({ limit = 50, kind = "", sessionId = "" } = {}) {
   const params = new URLSearchParams({ limit: String(limit) });
   if (kind) params.set("kind", kind);
   if (sessionId) params.set("session_id", sessionId);
-  return fetchJson(`/library/discover/history?${params}`, { timeoutMs: 8000 });
+  const key = String(params);
+  const recent = recentHistoryReads.get(key);
+  if (recent && Date.now() - recent.at < HISTORY_SHARE_MS) return recent.task;
+  const task = fetchJson(`/library/discover/history?${params}`, { timeoutMs: 8000 });
+  recentHistoryReads.set(key, { at: Date.now(), task });
+  task.catch(() => {
+    if (recentHistoryReads.get(key)?.task === task) recentHistoryReads.delete(key);
+  });
+  return task;
+}
+
+export function forgetDiscoverHistory() {
+  recentHistoryReads.clear();
 }
 
 /** Bounded Explore source preview. */
