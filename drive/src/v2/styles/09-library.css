@@ -1064,7 +1064,7 @@
 
 .rd-v2-library-filter-control:focus-within {
   border-color: var(--rd-text);
-  box-shadow: 0 0 0 1px rgba(29, 42, 54, 0.08);
+  box-shadow: 0 0 0 2px rgba(29, 42, 54, 0.22);
 }
 
 .rd-v2-library-available.compact {
