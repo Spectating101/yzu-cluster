@@ -4,6 +4,7 @@ import { displayName, libraryAssetPresentation } from "@/v2/datasetMeta";
 import { libraryVerification } from "@/v2/libraryVerification";
 import { coverageSpan } from "@/v2/coverageText";
 import { StatusPill } from "@/v2/StatusPill";
+import { listDescription } from "@/v2/listDescription";
 
 const PAGE_SIZE = 50;
 
@@ -192,7 +193,7 @@ export function LibraryEvidenceEstate({
                 >
                   <span className="rd-v2-cap-evidence" role="cell">
                     <strong title={displayName(row)}>{displayName(row)}</strong>
-                    <em>{descriptionLabel(row)}</em>
+                    <em>{listDescription(descriptionLabel(row))}</em>
                     {query && row.search_match?.reasons?.length ? (
                       <span className="rd-v2-library-match" data-testid="library-search-match">
                         <b>Matched</b>
