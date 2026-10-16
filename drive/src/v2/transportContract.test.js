@@ -25,3 +25,9 @@ test("creates an abort signal for bounded requests", async () => {
   assert.equal(request.timedOut(), true);
   request.cancel();
 });
+
+test("a structured error object becomes its message, never [object Object]", () => {
+  assert.equal(normalizeApiError({ error: { code: "forbidden", message: "Operator access required" } }, 403, "/library/admin/accounts"), "Operator access required");
+  assert.equal(normalizeApiError({ error: { code: "forbidden" } }, 403, "/x"), '{"code":"forbidden"}');
+  assert.equal(normalizeApiError({ error: "KeyError" }, 404, "/x"), "KeyError");
+});

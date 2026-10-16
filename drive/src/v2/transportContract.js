@@ -11,7 +11,7 @@ function detailMessage(detail) {
 }
 
 export function normalizeApiError(data, status, path) {
-  return data?.message || data?.error || detailMessage(data?.detail) || `${status || "Request failed"} ${path || ""}`.trim();
+  return detailMessage(data?.message) || detailMessage(data?.error) || detailMessage(data?.detail) || `${status || "Request failed"} ${path || ""}`.trim();
 }
 
 export function decodeNdjson(buffer = "", chunk = "", { final = false } = {}) {

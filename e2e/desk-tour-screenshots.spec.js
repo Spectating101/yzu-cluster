@@ -206,7 +206,7 @@ test.describe("Desk tour", () => {
     await waitForShell(page);
     await page.waitForTimeout(700);
     const dir = page.getByTestId("library-directory");
-    await dir.getByText("Derived", { exact: true }).first().click();
+    await page.getByRole("button", { name: "Open Derived directory" }).first().click();
     await page.waitForTimeout(900);
     await resetScroll(page);
     await page.screenshot({ path: `${outDir}/library-shelf-desktop.png` });
