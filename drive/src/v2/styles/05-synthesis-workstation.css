@@ -284,7 +284,7 @@
   }
 
   .rd-v2-synthesis-page .s04-new-entry-head > div {
-    max-width: 76ch;
+    max-width: none;
   }
 
   /* Recommendation: construction and decision consequences are useful at the

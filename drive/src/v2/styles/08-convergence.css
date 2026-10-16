@@ -28,6 +28,7 @@
 }
 
 .rd-v2-synthesis-page .s04-new-entry-head > div {
+  flex: 1 1 auto;
   min-width: 0;
 }
 
@@ -36,10 +37,9 @@
 .rd-v2-synthesis-page .s04-new-entry-contract dt {
   display: block;
   color: #5b6578;
-  font-size: var(--rd-text-2xs);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: var(--rd-text-xs);
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
 .rd-v2-synthesis-page .s04-new-entry-head h1 {
@@ -56,8 +56,68 @@
   max-width: 66ch;
   margin: 8px 0 0;
   color: var(--s04-muted, #607083);
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-sm);
   line-height: 1.55;
+}
+
+.rd-v2-synthesis-page .s04-new-entry-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 14px 0 4px;
+  padding: 0;
+  list-style: none;
+}
+
+.rd-v2-synthesis-page .s04-new-entry-steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--s04-rule-soft, #e2ddd2);
+  border-radius: 8px;
+  background: rgba(255, 253, 246, 0.6);
+}
+
+.rd-v2-synthesis-page .s04-new-entry-steps li.is-current {
+  border-color: #3f6f5c;
+  background: #eef1ee;
+}
+
+.rd-v2-synthesis-page .s04-new-entry-steps b {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #dfe3dc;
+  color: #44584f;
+  font-size: var(--rd-text-2xs);
+}
+
+.rd-v2-synthesis-page .s04-new-entry-steps li.is-current b {
+  background: #3f6f5c;
+  color: #fff;
+}
+
+.rd-v2-synthesis-page .s04-new-entry-steps span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rd-v2-synthesis-page .s04-new-entry-steps strong {
+  color: var(--s04-ink, #1d2a36);
+  font-size: var(--rd-text-sm);
+}
+
+.rd-v2-synthesis-page .s04-new-entry-steps small {
+  color: var(--s04-muted, #607083);
+  font-size: var(--rd-text-xs);
+  font-weight: 400;
+  letter-spacing: 0;
 }
 
 .rd-v2-synthesis-page .s04-new-entry-back {
@@ -147,9 +207,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-top: 12px;
-  padding-top: 11px;
-  border-top: 1px solid var(--s04-rule-soft, #e2ddd2);
+  margin: 10px 0 14px;
 }
 
 .rd-v2-synthesis-page .s04-new-entry-purpose > footer > span {

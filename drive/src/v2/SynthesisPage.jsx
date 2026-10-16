@@ -1487,15 +1487,18 @@ function NewThread({
         <div>
           <small>New build</small>
           <h1>Describe the dataset you want to build</h1>
-          <p>
-            This Synthesis draft is unsaved. State a research purpose or reuse a method saved to Library. The build is saved only after you choose one.
-          </p>
+          <p>Nothing is saved until you create the build or reuse a saved method.</p>
         </div>
         <button type="button" className="s04-new-entry-back" onClick={onCancel}>
           ← Back to {text(returnLabel, "Synthesis")}
         </button>
       </header>
-
+      <ol className="s04-new-entry-steps" aria-label="How a build works">
+        <li className="is-current"><b>1</b><span><strong>Describe it</strong><small>What the data should measure</small></span></li>
+        <li><b>2</b><span><strong>Choose data</strong><small>From your Library, or request more</small></span></li>
+        <li><b>3</b><span><strong>Approve the method</strong><small>Nothing runs before you approve</small></span></li>
+        <li><b>4</b><span><strong>Get the dataset</strong><small>Saved to your Library with its sources</small></span></li>
+      </ol>
       <div className="s04-new-entry-grid">
         <section className="s04-new-entry-section s04-new-entry-purpose">
           <small>Research purpose</small>
@@ -1512,6 +1515,27 @@ function NewThread({
               });
             }}
           />
+          <footer>
+            <span>
+              {objective.trim()
+                ? "Saves one Synthesis build with this research purpose."
+                : "Enter a research purpose to save a build."}
+            </span>
+            {!reasoningAvailable ? (
+              <button type="button" className="rd-v2-btn" onClick={() => onOpenResources?.()}>
+                Check Resources
+              </button>
+            ) : null}
+            <button
+              type="button"
+              className="rd-v2-btn primary"
+              disabled={busy || !objective.trim()}
+              onClick={onCreate}
+              title={objective.trim() ? undefined : "Enter an objective to continue"}
+            >
+              Create build
+            </button>
+          </footer>
           <div className="s04-new-entry-framing" aria-label="Research brief framing checklist">
             <header>
               <div>
@@ -1539,27 +1563,6 @@ function NewThread({
           <p className="s04-new-entry-boundary">
             No data is built here. After you create the build, Research Drive reviews data in your Library. Ask reasoning is a separate step and waits if the assistant is unavailable.
           </p>
-          <footer>
-            <span>
-              {objective.trim()
-                ? "Saves one Synthesis build with this research purpose."
-                : "Enter a research purpose to save a build."}
-            </span>
-            {!reasoningAvailable ? (
-              <button type="button" className="rd-v2-btn" onClick={() => onOpenResources?.()}>
-                Check Resources
-              </button>
-            ) : null}
-            <button
-              type="button"
-              className="rd-v2-btn primary"
-              disabled={busy || !objective.trim()}
-              onClick={onCreate}
-              title={objective.trim() ? undefined : "Enter an objective to continue"}
-            >
-              Create build
-            </button>
-          </footer>
         </section>
 
         <section className="s04-new-entry-section s04-new-entry-methods">
