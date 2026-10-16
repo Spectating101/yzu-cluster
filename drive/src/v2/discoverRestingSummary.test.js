@@ -25,7 +25,7 @@ test("found counts search rows, never holdings catalog length", () => {
   assert.equal(summary.foundLine, "5 offerings");
   assert.equal(summary.heldCount, 0);
   assert.match(summary.heldLine, /0 of these 5 already in Library/);
-  assert.match(summary.heldBody, /No offering here matched/i);
+  assert.match(summary.heldBody, /No result here matched/i);
 });
 
 test("held join is labIds intersected with search rows, stated once", () => {
