@@ -61,9 +61,9 @@ async function installAuthorityMocks(page, { stale = false } = {}) {
 
     if (!threadId && method === "GET") return respond({ threads: [thread], total: 1 });
     if (threadId === thread.id && !suffix && method === "GET") return respond(thread);
-    if (threadId === thread.id && suffix === "execute" && method === "POST") {
+    if (threadId === thread.id && (suffix === "execute" || suffix === "preview") && method === "POST") {
       const body = route.request().postDataJSON?.() || {};
-      const action = String(body.action || "");
+      const action = suffix === "preview" ? "preview" : String(body.action || "");
       actions.push(action);
       if (action === "preview") {
         thread = {

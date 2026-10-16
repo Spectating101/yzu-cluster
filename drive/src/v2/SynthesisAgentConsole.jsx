@@ -549,6 +549,9 @@ export function SynthesisAgentConsole({
   if (!selected.thread_id) return null;
   const phase = phaseFor(selected);
   const receipts = receiptsFor(selected);
+  const stagePrompts = (Array.isArray(selected.synthesis_ask_prompts) ? selected.synthesis_ask_prompts : [])
+    .slice(0, 2)
+    .map((prompt) => uiVocabularyLabel(prompt));
   const run = useObservableAgentRun({
     threadId: selected.thread_id,
     automationState,
@@ -621,6 +624,15 @@ export function SynthesisAgentConsole({
       ) : null}
 
       <ForensicPanel selected={selected} />
+
+      {stagePrompts.length ? (
+        <div className="rd-v2-synthesis-agent-prompts" aria-label="Questions for this step">
+          <small>Ask about this step</small>
+          {stagePrompts.map((prompt) => (
+            <button key={prompt} type="button" onClick={() => onSend?.(prompt)}>{prompt}</button>
+          ))}
+        </div>
+      ) : null}
 
       <footer className="rd-v2-synthesis-agent-shortcuts" aria-label="Synthesis Ask shortcuts">
         <button type="button" onClick={() => onSend?.("Explain the current Synthesis operation and its exact research consequence.")}>Explain</button>

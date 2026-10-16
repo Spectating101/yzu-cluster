@@ -5111,6 +5111,37 @@
   line-height: 1.4;
 }
 
+.rd-v2-synthesis-agent-prompts {
+  display: grid;
+  gap: 5px;
+  padding: 9px 9px 2px;
+  border-top: 1px solid #eef1ee;
+}
+
+.rd-v2-synthesis-agent-prompts small {
+  color: #5b6578;
+  font-size: var(--rd-text-2xs);
+  font-weight: 600;
+}
+
+.rd-v2-synthesis-agent-prompts button {
+  padding: 6px 9px;
+  border: 1px solid #dfe6e2;
+  border-radius: 7px;
+  background: #fff;
+  color: #315f4d;
+  font-size: var(--rd-text-2xs);
+  line-height: 1.35;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rd-v2-synthesis-agent-prompts button:hover,
+.rd-v2-synthesis-agent-prompts button:focus-visible {
+  border-color: #c5d2cb;
+  outline: none;
+}
+
 .rd-v2-synthesis-agent-shortcuts {
   display: flex;
   gap: 5px;

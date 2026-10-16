@@ -123,8 +123,8 @@ async function installAuthorityMock(page, { thread, counts }) {
       return respond(thread);
     }
 
-    if (suffix === "execute" && method === "POST") {
-      const body = route.request().postDataJSON?.() || {};
+    if ((suffix === "execute" || suffix === "preview") && method === "POST") {
+      const body = suffix === "preview" ? { action: "preview" } : route.request().postDataJSON?.() || {};
       if (body.action === "preview") {
         counts.preview += 1;
         thread.state.preview = {
