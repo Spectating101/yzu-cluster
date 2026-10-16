@@ -350,23 +350,23 @@ function DeskWorkspace({ onIdentityChanged }) {
     return access;
   }, [onIdentityChanged]);
 
-  const refreshDeskAccess = useCallback(async ({ force = false } = {}) => {
-    setDeskAccessBusy(true);
+  const refreshDeskAccess = useCallback(async ({ force = false, quiet = false } = {}) => {
+    if (!quiet) setDeskAccessBusy(true);
     try {
       const access = await ensureDeskAccess({ force });
       applyDeskAccess(access);
       return access;
     } finally {
-      setDeskAccessBusy(false);
+      if (!quiet) setDeskAccessBusy(false);
     }
   }, [applyDeskAccess]);
 
   useEffect(() => {
     const sync = (event) => {
-      if (event.key === DESK_IDENTITY_EVENT_KEY) refreshDeskAccess();
+      if (event.key === DESK_IDENTITY_EVENT_KEY) refreshDeskAccess({ quiet: true });
     };
     window.addEventListener("storage", sync);
-    const expired = () => refreshDeskAccess();
+    const expired = () => refreshDeskAccess({ quiet: true });
     window.addEventListener("rd-desk-session-expired", expired);
     return () => {
       window.removeEventListener("storage", sync);
