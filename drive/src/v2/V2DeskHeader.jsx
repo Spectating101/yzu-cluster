@@ -100,10 +100,17 @@ export function V2DeskHeader({
       </button>
 
       <div className="rd-v2-header-context" aria-label="Active research context">
-        <button type="button" className="rd-v2-header-research" title={activeResearchTitle}>
-          <span>{activeResearchTitle}</span>
-          <em aria-hidden>▾</em>
-        </button>
+        {isGuest ? null : (
+          <button
+            type="button"
+            className="rd-v2-header-research"
+            title={`${activeResearchTitle} · Edit in Profile`}
+            onClick={() => onAccountNavigate?.("profile")}
+          >
+            <span>{activeResearchTitle}</span>
+            <em aria-hidden>▾</em>
+          </button>
+        )}
         <span className="rd-v2-header-page" data-testid="header-page-label">
           {pageLabel}
         </span>

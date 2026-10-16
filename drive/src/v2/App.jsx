@@ -2371,6 +2371,7 @@ function DeskWorkspace({ onIdentityChanged }) {
         activeResearch={activeResearch}
         canViewOperations={canViewOperations}
         canUseAsk={canUseAsk}
+        showResearchContext={deskAccess?.principal?.role !== "public_guest"}
         recentItems={sidebarRecent}
         onOpenRecent={(item) => {
           if (item?.dataset) openLibraryDataset(item.dataset);

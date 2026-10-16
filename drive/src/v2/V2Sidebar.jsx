@@ -11,6 +11,7 @@ export function V2Sidebar({
   activeResearch = null,
   canViewOperations = true,
   canUseAsk = true,
+  showResearchContext = true,
   recentItems = [],
   onOpenRecent,
 }) {
@@ -59,7 +60,7 @@ export function V2Sidebar({
         </>
       ) : (
         <>
-          <div className="rd-v2-sidebar-context" aria-label="Active research">
+          {showResearchContext ? <div className="rd-v2-sidebar-context" aria-label="Active research">
             <p className="rd-v2-sidebar-kicker">Active research</p>
             <strong className="rd-v2-sidebar-research-title">{research.title}</strong>
             {research.emphases?.length ? (
@@ -71,7 +72,7 @@ export function V2Sidebar({
             ) : (
               <p className="rd-v2-sidebar-hint">Add your research focus in Profile.</p>
             )}
-          </div>
+          </div> : null}
 
           {/* VC-8: with no real recent assets the block is removed rather than
               decorated with a placeholder line. */}
