@@ -1133,7 +1133,7 @@ button {
 
 /* Pane host — inactive panes must not paint (Ask used to override display:none) */
 .rd-v2-rail-pane {
-  display: none !important;
+  display: none;
   flex: 1;
   min-height: 0;
   flex-direction: column;
@@ -1141,7 +1141,7 @@ button {
 }
 
 .rd-v2-rail-pane.rd-v2-rail-pane-on {
-  display: flex !important;
+  display: flex;
 }
 
 .rd-v2-rail-chrome {

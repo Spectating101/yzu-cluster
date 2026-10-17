@@ -3130,9 +3130,9 @@ summary:focus-visible {
 }
 .yzu-sidebar.rd-v2-sidebar-wire,
 .yzu-sidebar {
-  background: var(--rd-sidebar-bg, #101820) !important;
+  background: var(--rd-sidebar-bg, #101820);
   color: var(--rd-sidebar-fg, #b7c0cc);
-  border-right-color: var(--rd-sidebar-line, rgba(255, 253, 246, 0.1)) !important;
+  border-right-color: var(--rd-sidebar-line, rgba(255, 253, 246, 0.1));
 }
 .yzu-sidebar button svg {
   opacity: 0.72;
@@ -3145,12 +3145,12 @@ summary:focus-visible {
 .yzu-sidebar .rd-v2-sidebar-foot-nav button.active,
 .yzu-sidebar .rd-v2-sidebar-nav button.active,
 .yzu-sidebar button.active {
-  background: var(--rd-sidebar-active-bg, #eef1ee) !important;
-  color: var(--rd-sidebar-active-fg, #101820) !important;
+  background: var(--rd-sidebar-active-bg, #eef1ee);
+  color: var(--rd-sidebar-active-fg, #101820);
 }
 .yzu-sidebar button.active svg {
-  stroke: var(--rd-sidebar-active-fg, #101820) !important;
-  opacity: 1 !important;
+  stroke: var(--rd-sidebar-active-fg, #101820);
+  opacity: 1;
 }
 .rd-v2-rail,
 .rd-v2-rail-pane,
@@ -3761,7 +3761,7 @@ summary:focus-visible {
   *,
   *::before,
   *::after {
-    scroll-behavior: auto !important;
+    scroll-behavior: auto;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -4386,16 +4386,16 @@ body,
 
   .yzu-inspector,
   .yzu-inspector.rd-v2-rail-collapsed {
-    position: relative !important;
-    top: auto !important;
-    right: auto !important;
-    bottom: auto !important;
-    left: auto !important;
-    width: auto !important;
-    min-width: 0 !important;
-    max-width: none !important;
-    height: auto !important;
-    max-height: none !important;
+    position: relative;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    height: auto;
+    max-height: none;
     overflow: hidden;
     border-radius: 0;
     box-shadow: none;
@@ -4403,15 +4403,15 @@ body,
 
   /* Hide the phone “Show Detail · Ask” grip on desk/laptop */
   .rd-v2-rail-mobile-grip {
-    display: none !important;
+    display: none;
   }
 
   .yzu-inspector.rd-v2-rail-collapsed .rd-v2-rail-pane {
-    display: none !important;
+    display: none;
   }
 
   .yzu-inspector.rd-v2-rail-collapsed .rd-v2-rail-pane.rd-v2-rail-pane-on {
-    display: flex !important;
+    display: flex;
     flex-direction: column;
     min-height: 0;
     flex: 1 1 auto;

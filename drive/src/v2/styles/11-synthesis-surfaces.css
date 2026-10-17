@@ -1255,8 +1255,8 @@
 .yzu-sidebar .s04-threads--sidebar .s04-thread-list > button.active,
 .yzu-sidebar .s04-threads--sidebar .s04-thread-outputs > button.active {
   border-color: rgba(184, 223, 202, 0.38);
-  background: rgba(238, 241, 238, 0.15) !important;
-  color: #eef1ee !important;
+  background: rgba(238, 241, 238, 0.15);
+  color: #eef1ee;
 }
 
 .yzu-sidebar .s04-threads--sidebar button.active::after { content: none; }
@@ -2442,7 +2442,7 @@
   .rd-v2-synthesis-page *,
   .rd-v2-synthesis-page *::before,
   .rd-v2-synthesis-page *::after {
-    scroll-behavior: auto !important;
+    scroll-behavior: auto;
     animation-duration: .01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: .01ms !important;
