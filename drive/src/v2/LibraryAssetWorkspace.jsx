@@ -178,7 +178,7 @@ function AssetOverlay({ kind, dataset, fields, presentation, onClose }) {
                 <div><dt>Access record</dt><dd>{value(dataset?.access_mode, dataset?.access_shape, dataset?.backend)}</dd></div>
               </dl>
               {terms.length ? (
-                <div className="rd-v2-library-field-list" aria-label="Research terms">
+                <div className="rd-v2-library-field-list" role="group" aria-label="Research terms">
                   {terms.map((name) => <code key={name}>{name}</code>)}
                 </div>
               ) : null}
@@ -636,12 +636,12 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onOpenQuery,
           </div>
         </header>
 
-        <div className="rd-v2-library-mobile-claims" aria-label="Evidence claims">
+        <div className="rd-v2-library-mobile-claims" role="group" aria-label="Evidence claims">
           <span>Readiness <strong>{state.label}</strong></span>
           <span>Verification <strong>{verification.label}</strong></span>
         </div>
 
-        <div className="rd-v2-library-workspace-actions" aria-label="Data actions">
+        <div className="rd-v2-library-workspace-actions" role="group" aria-label="Data actions">
           {canQuery ? <button type="button" className="rd-v2-btn primary" onClick={onOpenQuery}>View all rows</button> : null}
           {datasetDownloadHref(dataset) ? (
             <a className="rd-v2-btn" href={datasetDownloadHref(dataset)} download data-testid="library-workspace-download">Download CSV</a>

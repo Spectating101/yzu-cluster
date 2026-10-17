@@ -428,7 +428,7 @@ export function PreviewModal({
         </header>
 
         {metaParts.length ? (
-          <div className="rd-preview-meta-strip" aria-label="Preview metadata">
+          <div className="rd-preview-meta-strip" role="group" aria-label="Preview metadata">
             {metaParts.map((part) => <span key={part}>{part}</span>)}
           </div>
         ) : null}

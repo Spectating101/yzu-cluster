@@ -34,7 +34,7 @@ export function AccountSection({ deskAccess, onSignOut, onOpenAccess }) {
     {!signedIn && !deskAccess?.session?.email_sign_in_available && deskAccess?.session?.member_access_code_available && onOpenAccess ? <div className="rd-access-actions rd-account-entry">
       <button type="button" className="rd-v2-btn sm primary" onClick={() => onOpenAccess("signin")}>Sign in with an invitation code</button>
     </div> : null}
-    {signedIn ? <div className="rd-account-usage" aria-label="Assistant allowance">
+    {signedIn ? <div className="rd-account-usage" role="group" aria-label="Assistant allowance">
       <h3>Shared assistant allowance</h3>
       {usage ? <p><strong>{usage.hourly_remaining} / {usage.limits.hourly_requests}</strong> requests remaining this hour · <strong>{usage.daily_remaining} / {usage.limits.daily_requests}</strong> in the last 24 hours{usage.running_requests ? ` · ${usage.running_requests} running` : ""}</p> : <p>{error ? "Allowance unavailable" : "Checking allowance…"}</p>}
       <p className="rd-v2-settings-hint">Counts Ask, advice and assistant warm-up requests. AI capacity is supplied by the desk; these numbers are request limits, not your provider token balance. Browsing stays available when the allowance is used.</p>

@@ -61,12 +61,13 @@ export function V2Sidebar({
           <div
             id="rd-v2-synthesis-sidebar-slot"
             className="rd-v2-synthesis-sidebar-slot"
+            role="region"
             aria-label="Synthesis work"
           />
         </>
       ) : (
         <>
-          {showResearchContext ? <div className="rd-v2-sidebar-context" aria-label="Active research">
+          {showResearchContext ? <div className="rd-v2-sidebar-context" role="group" aria-label="Active research">
             <p className="rd-v2-sidebar-kicker">Active research</p>
             <strong className="rd-v2-sidebar-research-title">{research.title}</strong>
             {research.emphases?.length ? (
@@ -83,7 +84,7 @@ export function V2Sidebar({
           {/* VC-8: with no real recent assets the block is removed rather than
               decorated with a placeholder line. */}
           {recent.length ? (
-            <div className="rd-v2-sidebar-recent" aria-label="Recent">
+            <div className="rd-v2-sidebar-recent" role="group" aria-label="Recent">
               <p className="rd-v2-sidebar-kicker">Recent</p>
               <ul>
                 {recent.map((item) => (

@@ -156,7 +156,7 @@ function LearnedResearchMemory({ document, onDocument, onProfileRefresh }) {
         <span>{memories.length ? `${memories.length} remembered` : "Nothing learned"}</span>
       </header>
 
-      <div className="rd-v2-memory-controls" aria-label="Research memory controls">
+      <div className="rd-v2-memory-controls" role="group" aria-label="Research memory controls">
         <label>
           <input
             type="checkbox"
@@ -531,7 +531,7 @@ export function ProfilePage({
             </p>
           </div>
           <div className="rd-v2-profile-identity-side">
-            <div className="rd-v2-profile-identity-metrics" aria-label="Researcher record summary">
+            <div className="rd-v2-profile-identity-metrics" role="group" aria-label="Researcher record summary">
               {paperCount ? <span><strong>{paperCount}</strong><em>indexed works</em></span> : null}
               {memory.length ? <span><strong>{memory.length}</strong><em>context fields</em></span> : null}
               {relationships.length ? <span><strong>{heldRelationships}/{relationships.length}</strong><em>links in Library</em></span> : null}

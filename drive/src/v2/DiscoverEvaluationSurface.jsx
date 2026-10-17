@@ -521,7 +521,7 @@ export function DiscoverEvaluationSurface({
             </div>
 
             {sufficiencyDifferences.length ? (
-              <div className="rd-v2-eval-sufficiency-compare" aria-label="Library coverage comparison">
+              <div className="rd-v2-eval-sufficiency-compare" role="group" aria-label="Library coverage comparison">
                 {sufficiencyDifferences.map((difference) => (
                   <div
                     key={`${difference.dimension}-${difference.local}-${difference.candidate}`}
@@ -687,7 +687,7 @@ export function DiscoverEvaluationSurface({
           </button>
         )}
 
-        <div className="rd-v2-eval-actions-wide" aria-label="Additional candidate actions">
+        <div className="rd-v2-eval-actions-wide" role="group" aria-label="Additional candidate actions">
           {footerSecondary.map((action) => (
             <button
               key={action.id}
@@ -701,7 +701,7 @@ export function DiscoverEvaluationSurface({
           ))}
         </div>
 
-        <div className="rd-v2-eval-actions-mobile" aria-label="Additional focused candidate actions">
+        <div className="rd-v2-eval-actions-mobile" role="group" aria-label="Additional focused candidate actions">
           {mobileSecondary || mobileOverflowActions.length ? (
             <div className="rd-v2-eval-mobile-secondary-row">
               {mobileSecondary ? (

@@ -425,7 +425,7 @@ export function DiscoverEvidenceBrief({
             </div>
           ) : <p className="muted">No local metadata is available yet.</p>}
           {DISCOVER_SUGGESTIONS.length ? (
-            <div className="rd-v2-evidence-starters" aria-label="Suggested evidence needs">
+            <div className="rd-v2-evidence-starters" role="group" aria-label="Suggested evidence needs">
               {DISCOVER_SUGGESTIONS.slice(0, 5).map((suggestion) => (
                 <button key={suggestion} type="button" onClick={() => setDraft(suggestion)}>{suggestion}</button>
               ))}

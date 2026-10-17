@@ -2146,7 +2146,7 @@ function DeskWorkspace({ onIdentityChanged }) {
               Sign in to start Synthesis
             </button>
           </section>
-          <div className="rd-v2-guest-feature-grid" aria-label="Synthesis workflow">
+          <div className="rd-v2-guest-feature-grid" role="group" aria-label="Synthesis workflow">
             <article><span>1</span><strong>Describe it</strong><p>What the data should measure, in your own words.</p></article>
             <article><span>2</span><strong>Choose data</strong><p>Pick datasets from your Library, or request more.</p></article>
             <article><span>3</span><strong>Approve the method</strong><p>Nothing runs before you approve it.</p></article>

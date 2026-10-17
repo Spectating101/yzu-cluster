@@ -99,7 +99,7 @@ export function V2DeskHeader({
         </div>
       </button>
 
-      <div className="rd-v2-header-context" aria-label="Active research context">
+      <div className="rd-v2-header-context" role="group" aria-label="Active research context">
         {isGuest ? null : (
           <button
             type="button"
@@ -117,7 +117,7 @@ export function V2DeskHeader({
       </div>
 
       <div className="rd-v2-header-meta">
-        <div className="rd-v2-trust-strip" aria-label="Research Drive status" data-testid="desk-integration-strip">
+        <div className="rd-v2-trust-strip" role="group" aria-label="Research Drive status" data-testid="desk-integration-strip">
           {onDeskStatusNavigate ? (
             <button
               type="button"

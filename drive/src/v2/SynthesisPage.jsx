@@ -963,7 +963,7 @@ function ProposalReview({ thread, busy, onDecide, onAsk }) {
         {text(proposal.summary, "The agent proposed a change to this saved build.")}
       </p>
       {proposal.execution_spec ? (
-        <div className="s04-method-flow" aria-label="Proposed build pipeline">
+        <div className="s04-method-flow" role="group" aria-label="Proposed build pipeline">
           <article>
             <small>Library input</small>
             <strong>{softIdentifier(spec.input_dataset_id)}</strong>
@@ -1097,7 +1097,7 @@ function MethodExportActions({ thread }) {
         The method is reviewable as runnable Python, not reconstructed from prose. The script is the exact
         deterministic artifact archived with this execution.
       </p>
-      <div className="s04-reproduce-chain" aria-label="Method provenance chain">
+      <div className="s04-reproduce-chain" role="group" aria-label="Method provenance chain">
         <span>{composerOrigin ? "Composer proposal" : method ? "Proposal origin not recorded" : "Proposal"}</span>
         <b aria-hidden="true">→</b>
         <span>Researcher accepted</span>
@@ -1536,7 +1536,7 @@ function NewThread({
               Create build
             </button>
           </footer>
-          <div className="s04-new-entry-framing" aria-label="Research brief framing checklist">
+          <div className="s04-new-entry-framing" role="group" aria-label="Research brief framing checklist">
             <header>
               <div>
                 <small>Brief checklist</small>

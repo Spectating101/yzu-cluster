@@ -148,7 +148,7 @@ export function LibraryPackagePanel({ open, onClose, researchNeed = "", assets =
           <strong>{researchNeed || "Current Library selection"}</strong>
         </div>
 
-        <div className="rd-v2-library-package-list" aria-label="Package evidence selection">
+        <div className="rd-v2-library-package-list" role="group" aria-label="Package evidence selection">
           {candidates.map((row) => {
             const id = assetId(row);
             const checked = selectedIds.includes(id);

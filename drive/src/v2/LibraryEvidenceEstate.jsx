@@ -125,7 +125,7 @@ export function LibraryEvidenceEstate({
   return (
     <section className="rd-v2-cap-estate" data-testid="library-evidence-estate" aria-label="Research evidence estate">
       {collections.length || collectionsLoading ? (
-        <div className="rd-v2-cap-collections" aria-label="Research collections and folder storage">
+        <div className="rd-v2-cap-collections" role="group" aria-label="Research collections and folder storage">
           <span className="rd-v2-cap-collections-label">Research collections</span>
           {collections.length ? (
             <div className="rd-v2-cap-collection-list">
@@ -269,7 +269,7 @@ export function LibraryEvidenceEstate({
       </div>
 
       {visibleAssets.length > PAGE_SIZE ? (
-        <div className="rd-v2-library-pagination" aria-label="Library evidence pagination">
+        <div className="rd-v2-library-pagination" role="group" aria-label="Library evidence pagination">
           <span>Showing {pagedAssets.length} of {visibleAssets.length} datasets</span>
           {hasMore ? (
             <button type="button" className="rd-v2-btn sm" onClick={() => setVisibleLimit((limit) => limit + PAGE_SIZE)}>

@@ -134,7 +134,7 @@ export function LibraryIntakeRailPanel({
             Choose files
           </button>
         </div>
-        <div className="rd-v2-rail-file-list" aria-label="Selected files">
+        <div className="rd-v2-rail-file-list" role="group" aria-label="Selected files">
           {names.length ? names.map((name) => <span key={name}>{name}</span>) : <p>No files selected yet.</p>}
         </div>
       </div>

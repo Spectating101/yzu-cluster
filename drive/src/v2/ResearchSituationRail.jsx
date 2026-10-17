@@ -306,7 +306,7 @@ export function ResearchSituationRail({
       </div>
       <h2 title={selectionHint}>{selectionHint}</h2>
       {facts.length ? (
-        <div className="rd-v2-situation-facts" aria-label="Context facts">
+        <div className="rd-v2-situation-facts" role="group" aria-label="Context facts">
           {facts.map((fact) => <span key={fact}>{fact}</span>)}
         </div>
       ) : null}

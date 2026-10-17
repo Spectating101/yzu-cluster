@@ -254,7 +254,7 @@ function DiscoverCandidateRow({
           </span>
           {fitLine ? <span className="rd-v2-discover-evidence" data-testid="discover-partial-fit">{fitLine}</span> : null}
           {evidenceLine ? <span className="rd-v2-discover-evidence">{evidenceLine}</span> : null}
-          <span className="rd-v2-discover-offering-facts" aria-label="Offering facts">
+          <span className="rd-v2-discover-offering-facts" role="group" aria-label="Offering facts">
             {offeringFacts.map(([label, value]) => (
               <span key={`${label}:${value}`}>
                 <b>{label}</b>
@@ -333,7 +333,7 @@ function DiscoverQueryComposer({
       <p>
         Keywords return fast results. A research question also checks what your Library already covers.
       </p>
-      <div className="rd-v2-discover-composer-scope" aria-label="Discover search universe">
+      <div className="rd-v2-discover-composer-scope" role="group" aria-label="Discover search universe">
         <span>Library index</span>
         <span>Source catalogues</span>
         <span>Open web context</span>
@@ -516,7 +516,7 @@ function DiscoverRouteComparison({
           <span>How it answers the question</span>
           <p>{answerLine}</p>
         </section>
-        <div className="rd-v2-discover-strategy-flow" aria-label="Proposed dataset strategy">
+        <div className="rd-v2-discover-strategy-flow" role="group" aria-label="Proposed dataset strategy">
           <div className="rd-v2-discover-strategy-inputs">
             {inputCards.map((input) => (
               <button
@@ -1639,7 +1639,7 @@ export function BrowsePage({
                   ) : null}
                 </div>
               </div>
-              <div className="rd-v2-discover-frozen-counts" aria-label="Discover result territories">
+              <div className="rd-v2-discover-frozen-counts" role="group" aria-label="Discover result territories">
                 {merged.length || !loading || wideningInProgress
                   ? discoverTerritories(resultGroups).map((territory) =>
                     // A page reload can begin a query before /datasets has
@@ -1667,7 +1667,7 @@ export function BrowsePage({
               </div>
               <div
                 className="rd-v2-discover-result-actions"
-                aria-label="Discover next actions"
+                role="group" aria-label="Discover next actions"
                 data-assessment-status={assessmentStatus || "none"}
                 data-assessment-verdict={assessmentVerdict || "none"}
                 data-has-evidence-gap={hasEvidenceGap ? "true" : "false"}

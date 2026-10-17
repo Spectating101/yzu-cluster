@@ -629,7 +629,7 @@ export function LibraryPage({
                 Ask Library
               </button>
             ) : null}
-            <div className="rd-v2-library-toolbar-filters" aria-label="Library filters">
+            <div className="rd-v2-library-toolbar-filters" role="group" aria-label="Library filters">
               <label className="rd-v2-library-filter-control">
                 <span>Type</span>
                 <select
@@ -731,7 +731,7 @@ export function LibraryPage({
         {!isRoot ? (
           <div
             className="rd-v2-library-branchline rd-v2-library-pathbar"
-            aria-label="Library location status"
+            role="group" aria-label="Library location status"
             data-navigation-state={navigationLoading ? "loading" : navigationError ? "error" : "ready"}
           >
             <div className="rd-v2-library-pathcopy">

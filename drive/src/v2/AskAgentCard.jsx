@@ -106,7 +106,7 @@ export function AskAgentCard({
       ) : null}
 
       {!streaming && onOpenDataset && message?.referencedDatasets?.length ? (
-        <div className="rd-v2-ask-card-datasets" aria-label="Library datasets in this answer" data-testid="ask-referenced-datasets">
+        <div className="rd-v2-ask-card-datasets" role="group" aria-label="Library datasets in this answer" data-testid="ask-referenced-datasets">
           <p className="rd-v2-ask-card-next-label">In your Library</p>
           {message.referencedDatasets.slice(0, 4).map((row) => (
             <button key={row.dataset_id} type="button" className="rd-v2-ask-card-dataset" onClick={() => onOpenDataset(row)}>
@@ -118,7 +118,7 @@ export function AskAgentCard({
       ) : null}
 
       {!streaming && steps.length ? (
-        <div className="rd-v2-ask-card-next" aria-label="Suggested next steps">
+        <div className="rd-v2-ask-card-next" role="group" aria-label="Suggested next steps">
           <p className="rd-v2-ask-card-next-label">Next steps</p>
           <div className="rd-v2-ask-card-next-list">
             {steps.slice(0, 4).map((step, idx) => {

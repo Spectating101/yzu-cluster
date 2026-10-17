@@ -56,7 +56,7 @@ export function HomeSuggestedAsks({ profile, onAskComposer, allowPrincipalSeed =
       data-bootstrap-mode={seed?.bootstrap_mode || "fallback"}
     >
       <p className="muted small rd-v2-home-suggested-lead">{lead}</p>
-      <div className="muted small" data-testid="home-first-use-path" aria-label="Research path">
+      <div className="muted small" data-testid="home-first-use-path" role="group" aria-label="Research path">
         <p>
           Start with <strong>Library</strong> when the data is already in your Library. Use <strong>Discover</strong> when evidence is missing.
         </p>

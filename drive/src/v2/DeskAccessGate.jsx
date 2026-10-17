@@ -83,7 +83,7 @@ export function DeskAccessGate({ access, busy = false, onRetry }) {
           This browser has not established an authorized Research Drive session. Catalog data, faculty memory, credentials, jobs, and worker details remain hidden until access is checked.
         </p>
 
-        <div className="rd-v2-access-boundary" aria-label="Access boundary">
+        <div className="rd-v2-access-boundary" role="group" aria-label="Access boundary">
           <span><i aria-hidden="true">•</i> Interface shell</span>
           <span><i aria-hidden="true">•</i> Research data</span>
           <span><i aria-hidden="true">•</i> Ask and collection</span>

@@ -626,7 +626,7 @@ export function SynthesisAgentConsole({
       <ForensicPanel selected={selected} />
 
       {stagePrompts.length ? (
-        <div className="rd-v2-synthesis-agent-prompts" aria-label="Questions for this step">
+        <div className="rd-v2-synthesis-agent-prompts" role="group" aria-label="Questions for this step">
           <small>Ask about this step</small>
           {stagePrompts.map((prompt) => (
             <button key={prompt} type="button" onClick={() => onSend?.(prompt)}>{prompt}</button>

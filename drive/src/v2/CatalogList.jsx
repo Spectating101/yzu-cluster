@@ -70,7 +70,7 @@ export function CatalogList({
         ))}
       </ul>
       {rows.length > PAGE_SIZE ? (
-        <div className="rd-v2-library-pagination directory" aria-label="Directory pagination">
+        <div className="rd-v2-library-pagination directory" role="group" aria-label="Directory pagination">
           <span>Showing {visibleRows.length} of {rows.length} {noun}</span>
           {hasMore ? (
             <button type="button" className="rd-v2-btn sm" onClick={() => setVisibleLimit((limit) => limit + PAGE_SIZE)}>

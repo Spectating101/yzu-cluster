@@ -47,13 +47,13 @@ export function JoinOverlapVisual({ leftLabel, rightLabel, leftTotal, rightTotal
           <text className="region-note right" x="295" y="127">added only</text>
         </svg>
 
-        <div className="s04-viz-overlap-facts" aria-label="Join reach">
+        <div className="s04-viz-overlap-facts" role="group" aria-label="Join reach">
           <span><small>Current population reached</small><strong>{percent(model.leftReach)}</strong></span>
           <span><small>Added dataset reached</small><strong>{percent(model.rightReach)}</strong></span>
         </div>
       </div>
 
-      <div className="s04-viz-population-strip" aria-label="Proportional union of both datasets">
+      <div className="s04-viz-population-strip" role="group" aria-label="Proportional union of both datasets">
         {model.regions.map((region) => (
           <span
             key={region.id}

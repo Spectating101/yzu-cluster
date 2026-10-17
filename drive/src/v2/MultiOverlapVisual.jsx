@@ -44,7 +44,7 @@ function ThreeSetVenn({ overlap }) {
         <text className="region-count all" x="260" y="151">{value(7)}</text>
         <text className="region-note all" x="260" y="169">all three</text>
       </svg>
-      <div className="s04-multi-source-legend" aria-label="Measured sources">
+      <div className="s04-multi-source-legend" role="group" aria-label="Measured sources">
         {[0, 1, 2].map((index) => (
           <span key={sources[index]?.dataset_id || index} title={sources[index]?.label || sources[index]?.dataset_id || ""}>
             <b>{String.fromCharCode(65 + index)}</b>
@@ -68,7 +68,7 @@ function UpSet({ overlap }) {
 
   return (
     <div className="s04-upset" data-testid="synthesis-upset-visual">
-      <div className="s04-upset-legend" aria-label="Measured sources">
+      <div className="s04-upset-legend" role="group" aria-label="Measured sources">
         {sources.map((source, index) => (
           <span key={source.dataset_id || index} title={source.label || source.dataset_id || ""}>
             <b>{String.fromCharCode(65 + index)}</b>
@@ -83,7 +83,7 @@ function UpSet({ overlap }) {
           const members = new Set(row.source_indexes || []);
           return (
             <div className="s04-upset-row" key={row.mask}>
-              <span className="matrix" aria-label={(row.dataset_ids || []).join(", ")}>
+              <span className="matrix" role="group" aria-label={(row.dataset_ids || []).join(", ")}>
                 {sources.map((source, index) => (
                   <i key={source.dataset_id || index} className={members.has(index) ? "on" : ""} />
                 ))}

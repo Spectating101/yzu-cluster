@@ -17,7 +17,7 @@ function HoldingCard({ holding }) {
           <h3>{holding.provider}</h3>
           {holding.custodian ? <p>{holding.custodian}</p> : null}
         </div>
-        <div className="rd-v2-library-holding-status" aria-label={`${access}; ${state}`}>
+        <div className="rd-v2-library-holding-status" role="group" aria-label={`${access}; ${state}`}>
           <span>{access}</span>
           <span>{state}</span>
         </div>

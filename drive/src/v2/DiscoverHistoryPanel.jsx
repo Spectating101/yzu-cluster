@@ -371,7 +371,7 @@ export function DiscoverHistoryPanel({
       </div>
 
       {filter === "all" && !visible.length && !systemRows.length ? null : (
-        <div className="rd-v2-toolbar inline rd-v2-history-filters" aria-label="History filters">
+        <div className="rd-v2-toolbar inline rd-v2-history-filters" role="group" aria-label="History filters">
           {visibleFilters.map((item) => (
             <Chip key={item.id} active={filter === item.id} onClick={() => setFilter(item.id)}>
               {item.label} <b>{filterCounts[item.id] ?? 0}</b>

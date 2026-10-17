@@ -159,7 +159,7 @@ function CapacityAccessGrid({ rollup, health, loading = false, selectedKey, onSe
       : pair.meters,
   }));
   return (
-    <div className="rd-v2-res-capacity-pairs" data-testid="resources-capacity-grid" aria-label="Capacity and access">
+    <div className="rd-v2-res-capacity-pairs" data-testid="resources-capacity-grid" role="group" aria-label="Capacity and access">
       {pairs.map((pair) => (
         <section key={pair.id} className="rd-v2-res-capacity-pair" aria-label={pair.title}>
           <header className="rd-v2-res-capacity-pair-head">
