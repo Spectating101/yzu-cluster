@@ -29,14 +29,12 @@ test.describe("v2 Library evidence estate", () => {
     await expect(page.locator("aside.rd-v2-rail")).not.toContainText("Upload here");
   });
 
-  test("query readiness and source verification have distinct filters", async ({ page }) => {
+  test("query readiness filters; source verification is offered only when it splits the Library", async ({ page }) => {
     const filter = page.getByTestId("library-state-filter");
     await filter.selectOption("ready");
     await expect(page.getByTestId("library-evidence-row")).toHaveCount(3);
-    await filter.selectOption("unconfirmed");
-    await expect(page.getByTestId("library-evidence-row")).toHaveCount(3);
-    await filter.selectOption("confirmed");
-    await expect(page.getByTestId("library-evidence-row")).toHaveCount(0);
+    await expect(filter.locator("option[value=confirmed]")).toHaveCount(0);
+    await expect(filter.locator("option[value=unconfirmed]")).toHaveCount(0);
     await filter.selectOption("not_ready");
     await expect(page.getByTestId("library-evidence-row")).toHaveCount(0);
     await expect(filter).not.toContainText("not yet checked");

@@ -480,13 +480,14 @@ export function HomeAttentionRailPanel({ object, onAskAbout }) {
       <RailEntityHeader
         id="Pick up"
         title={row.title || object?.title || "Pick up"}
-        description={row.detail || "The work Home suggests you return to first."}
+        description={row.detail || row.stateSummary || "The work Home suggests you return to first."}
         pills={row.metric ? <span className={`rd-v2-pill${row.warn ? " warn" : ""}`}>{row.metric}</span> : null}
       />
       <div className="rd-v2-rail-scroll">
         <RailFieldGrid>
           <RailField label="What" value={HOME_ITEM_KINDS[row.label || row.kind || object?.kind] || row.label || row.kind || object?.kind} />
-          <RailField label="Next" value={row.next || "Review"} />
+          {row.pill ? <RailField label="Stage" value={row.pill} /> : null}
+          <RailField label="Next" value={row.next || (row.action === "continue" ? "Continue where you left off" : "Review")} />
           <RailField label="Where" value={tabLabel(row.tab || "home")} />
           {row.resourceRow?.job?.id ? <RailField label="Job ID" value={row.resourceRow.job.id} mono /> : null}
         </RailFieldGrid>

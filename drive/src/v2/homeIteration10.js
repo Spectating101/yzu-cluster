@@ -150,7 +150,7 @@ export function buildPickUp({
     approval: "Approval",
     proposal: "Proposal review",
     preview: "Sample preview",
-    specification: "Specification",
+    specification: "Method",
     evidence: "Evidence",
     build: "Build",
     objective: "Objective",

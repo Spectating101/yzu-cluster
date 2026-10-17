@@ -652,10 +652,12 @@ export function LibraryPage({
                     <option value="ready">Ready to query · {readyCount}</option>
                     <option value="not_ready">Not ready to query · {nonReadyCount}</option>
                   </optgroup>
-                  <optgroup label="Source verification">
-                    <option value="confirmed">Source confirmed · {confirmedCount}</option>
-                    <option value="unconfirmed">Source not confirmed · {branchDatasetRows.length - confirmedCount}</option>
-                  </optgroup>
+                  {(confirmedCount > 0 && confirmedCount < branchDatasetRows.length) || filterMode === "confirmed" || filterMode === "unconfirmed" ? (
+                    <optgroup label="Source verification">
+                      <option value="confirmed">Source confirmed · {confirmedCount}</option>
+                      <option value="unconfirmed">Source not confirmed · {branchDatasetRows.length - confirmedCount}</option>
+                    </optgroup>
+                  ) : null}
                 </select>
               </label>
               <label className="rd-v2-library-filter-control">
