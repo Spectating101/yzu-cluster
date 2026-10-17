@@ -840,7 +840,7 @@ button {
 
 .rd-v2-library-inspector-decision p:last-child {
   margin: 0;
-  color: #607083;
+  color: #5b6a7c;
   font-size: var(--rd-text-xs);
   line-height: 1.45;
 }
@@ -883,7 +883,7 @@ button {
   display: flex;
   gap: 7px;
   margin: 0 0 6px;
-  color: #607083;
+  color: #5b6a7c;
   font-size: var(--rd-text-xs);
   line-height: 1.4;
 }
@@ -918,7 +918,7 @@ button {
 .rd-v2-library-folder-readiness b { font-weight: 700; }
 .rd-v2-library-folder-summary .rd-v2-rail-note {
   margin: 10px 0 0;
-  color: #607083;
+  color: #5b6a7c;
   font-size: var(--rd-text-2xs);
   line-height: 1.45;
 }
@@ -3182,7 +3182,7 @@ button {
 .rd-v2-discover-composer.is-idle { max-width: 860px; }
 .rd-v2-discover-idle { display: grid; gap: 24px; padding: 20px 16px 40px; }
 .rd-v2-discover-idle-held { max-width: 860px; padding-top: 4px; }
-.rd-v2-discover-idle-held .rd-v2-home-section-head h3 { margin-top: 4px; }
+.rd-v2-discover-idle-held .rd-v2-home-section-head :is(h2, h3) { margin-top: 4px; }
 .rd-v2-discover-idle-intake {
   display: flex;
   align-items: center;

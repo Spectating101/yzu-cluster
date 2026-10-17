@@ -220,7 +220,7 @@
   flex: 1 1 0;
   min-width: 120px;
   max-width: 56ch;
-  color: #7a858d;
+  color: #60696f;
   font-size: var(--rd-text-2xs);
   line-height: 1.4;
 }
@@ -265,7 +265,7 @@
 
 .rd-v2-synthesis-page .s04-new-entry-method-list button span {
   grid-column: 1 / -1;
-  color: #7a858d;
+  color: #60696f;
   font-size: var(--rd-text-2xs);
   line-height: 1.4;
 }
@@ -287,7 +287,7 @@
   padding: 10px;
   border: 1px dashed #dbd4c5;
   border-radius: 8px;
-  color: #7a858d;
+  color: #60696f;
   font-size: var(--rd-text-2xs);
   line-height: 1.45;
 }
@@ -486,7 +486,7 @@ body:has(.rd-v2-synthesis-page [data-testid="synthesis-execution-state"] .s04-ex
 
 .rd-v2-synthesis-page .s04-new-entry-framing li small,
 .rd-v2-synthesis-page .s04-new-entry-framing li em {
-  color: #7a858d;
+  color: #60696f;
   font-size: var(--rd-text-2xs);
   font-style: normal;
   line-height: 1.3;
@@ -573,7 +573,7 @@ body:has(.rd-v2-synthesis-page [data-testid="synthesis-execution-state"] .s04-ex
 
 .s04-draft-rail-brief li > span { display: grid; gap: 1px; }
 .s04-draft-rail-brief li strong { color: #465164; font-size: var(--rd-text-2xs); }
-.s04-draft-rail-brief li small { color: #7a858d; font-size: var(--rd-text-2xs); line-height: 1.35; }
+.s04-draft-rail-brief li small { color: #60696f; font-size: var(--rd-text-2xs); line-height: 1.35; }
 
 @media (max-width: 760px) {
   .rd-v2-synthesis-page .s04-new-entry-framing > ul { grid-template-columns: repeat(2, minmax(0, 1fr)); }

@@ -200,7 +200,7 @@
 
 .rd-v2-discover-page .rd-v2-discover-interpreting > .rd-v2-eyebrow {
   margin-right: 2px;
-  color: #607083;
+  color: #5b6a7c;
 }
 
 .rd-v2-discover-page .rd-v2-discover-interpreting-chips {
@@ -396,7 +396,7 @@
 }
 
 .rd-v2-discover-page .rd-v2-discover-ranked-results-head .rd-v2-eyebrow {
-  color: #607083;
+  color: #5b6a7c;
   letter-spacing: 0.06em;
 }
 
@@ -474,7 +474,7 @@
 .rd-v2-discover-page .rd-v2-discover-possession {
   flex: 0 0 auto;
   max-width: 190px;
-  color: #607083;
+  color: #5b6a7c;
   font-size: var(--rd-text-2xs);
   font-style: normal;
   font-weight: 600;
@@ -545,7 +545,6 @@
 
 .rd-v2-discover-page .rd-v2-discover-context-results {
   margin-top: 16px;
-  opacity: .92;
 }
 
 .rd-v2-discover-page .rd-v2-discover-context-results .rd-v2-discover-candidates > li {
@@ -860,7 +859,7 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
   margin: 1px 0 -1px;
 }
 
-.rd-v2-discover-page .rd-v2-discover-idle-held > .rd-v2-home-section-head h3 {
+.rd-v2-discover-page .rd-v2-discover-idle-held > .rd-v2-home-section-head :is(h2, h3) {
   margin-top: 2px;
   font-size: var(--rd-text-sm);
 }
@@ -1541,7 +1540,6 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
 
 /* Search scope is useful context, not a second navigation bar. */
 .rd-v2-discover-composer-scope {
-  opacity: .7;
   gap: 9px;
 }
 
@@ -1882,7 +1880,6 @@ body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(
   overflow: hidden;
   color: transparent !important;
   text-indent: -9999px;
-  opacity: .82;
 }
 
 .rd-v2-discover-ranked-results .rd-v2-discover-row-add::after {
@@ -2035,7 +2032,6 @@ body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(
     min-height: 24px;
     padding: 3px 7px;
     font-size: var(--rd-text-2xs);
-    opacity: .68;
   }
 
   .rd-v2-discover-page .rd-v2-discover-idle-held li:hover .rd-v2-discover-row-add,

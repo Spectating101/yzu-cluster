@@ -633,7 +633,7 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-rail-fieldgrid .rd-v2-
 .rd-v2-discover-page .rd-v2-discover-context-results .rd-v2-discover-possession {
   border-color: var(--rd-border, #dbd4c5);
   background: #eef1ee;
-  color: #7a858d;
+  color: #60696f;
 }
 
 /* ── Acquisition review: product first, infrastructure second. ── */
@@ -1174,7 +1174,7 @@ body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-source {
 
 body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-estate-crumb {
   margin-top: 5px;
-  color: #7a858d;
+  color: #60696f;
   font-size: var(--rd-text-2xs);
   line-height: 1.3;
 }
@@ -1542,7 +1542,7 @@ body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-gaps {
   padding: 7px 10px 8px 24px;
   border-top: 1px dashed color-mix(in srgb, var(--rd-border, #dbd4c5) 70%, transparent);
   background: #ffffff;
-  color: #7a858d;
+  color: #60696f;
   font-size: var(--rd-text-2xs);
   line-height: 1.35;
 }

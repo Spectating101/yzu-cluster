@@ -1533,7 +1533,7 @@ export function BrowsePage({
                   <div className="rd-v2-home-section-head">
                     <div>
                       <span className="rd-v2-eyebrow">Curated beyond your Library</span>
-                      <h3>Sources Research Drive knows how to investigate</h3>
+                      <h2>Sources Research Drive knows how to investigate</h2>
                     </div>
                     <span className="muted">{plural(merged.length, "known collection method")}</span>
                   </div>

@@ -284,7 +284,7 @@ export function LibraryEvidenceEstate({
       ) : null}
 
       {referenceCount > 0 ? (
-        <aside className="rd-v2-library-available compact" aria-label="Available evidence outside your Library" data-testid="library-available-evidence">
+        <section className="rd-v2-library-available compact" aria-label="Available evidence outside your Library" data-testid="library-available-evidence">
           <p>
             <strong>
               {referenceCount} known record{referenceCount === 1 ? "" : "s"} {referenceCount === 1 ? "sits" : "sit"} outside your Library.
@@ -296,7 +296,7 @@ export function LibraryEvidenceEstate({
               Review in Discover
             </button>
           ) : null}
-        </aside>
+        </section>
       ) : null}
     </section>
   );

@@ -606,7 +606,7 @@
   gap: 8px;
   min-width: 0;
   padding: 8px 10px;
-  color: #7a858d;
+  color: #60696f;
 }
 
 .s04-opening-workflow li + li { border-left: 1px solid #dbd4c5; }
@@ -619,7 +619,7 @@
   place-items: center;
   border: 1px solid #c9c4b9;
   border-radius: 50%;
-  color: #7a858d;
+  color: #60696f;
   background: #fffdf6;
   font-size: var(--rd-text-2xs);
   font-weight: 700;
@@ -1029,7 +1029,7 @@
   .s04-mobile-brief-disclosure > summary em {
     margin-top: 4px;
     overflow: hidden;
-    color: #7a858d;
+    color: #60696f;
     font-size: var(--rd-text-2xs);
     font-style: normal;
     line-height: 1.3;
@@ -1082,7 +1082,7 @@
     font-weight: 600;
   }
   .s04-mobile-brief-full dd.unstated {
-    color: #7a858d;
+    color: #60696f;
     font-style: italic;
     font-weight: 500;
   }
@@ -1306,8 +1306,16 @@
   line-height: 1.45;
 }
 
+.yzu-sidebar .s04-threads--sidebar .s04-thread-home:not(.active):not(:hover) {
+  color: var(--rd-sidebar-fg, #b7c0cc);
+}
+
 .yzu-sidebar .s04-threads--sidebar .s04-thread-home small {
   color: #5d6574;
+}
+
+.yzu-sidebar .s04-threads--sidebar .s04-thread-home:not(.active):not(:hover) small {
+  color: rgba(255, 253, 246, 0.6);
 }
 
 /* EvidenceMap uses interactive source nodes.  The older map only styled
@@ -1536,7 +1544,7 @@
   --s04-rule: #dbd4c5;
   --s04-rule-soft: #e2ddd2;
   --s04-ink: #1d2a36;
-  --s04-muted: #607083;
+  --s04-muted: #5b6a7c;
   --s04-accent: #3f6f5c;
 }
 
@@ -1573,7 +1581,7 @@
 .rd-v2-synthesis-page .s04-opening-construction > header > small,
 .rd-v2-synthesis-page .s04-opening-next > header > small,
 .rd-v2-synthesis-page .s04-opening-brief dt {
-  color: #607083;
+  color: #5b6a7c;
 }
 
 .rd-v2-synthesis-page .s04-head h1 {
@@ -1586,7 +1594,7 @@
 .rd-v2-synthesis-page .s04-head > em {
   border-color: #dbd4c5;
   background: var(--s04-paper-quiet);
-  color: #607083;
+  color: #5b6a7c;
   box-shadow: none;
 }
 
@@ -1644,7 +1652,7 @@
 }
 
 .rd-v2-synthesis-page .s04-opening-brief dd.unstated {
-  color: #7a858d;
+  color: #60696f;
 }
 
 .rd-v2-synthesis-page .s04-opening-construction {
@@ -2527,7 +2535,7 @@
 
 .s04-viz figcaption {
   margin: 0;
-  color: #7a858d;
+  color: #60696f;
   font-size: var(--rd-text-2xs);
   line-height: 1.45;
 }
@@ -2899,7 +2907,7 @@
   }
 
   .rd-v2-synthesis-page .s04-exec-track > li small {
-    color: #7a858d;
+    color: #60696f;
     font-size: var(--rd-text-2xs);
     line-height: 1.3;
   }
@@ -3105,7 +3113,7 @@
 
 .s04-upset-row > small {
   min-width: 0;
-  color: #7a858d;
+  color: #60696f;
   font-size: var(--rd-text-2xs);
   white-space: nowrap;
 }
@@ -3113,7 +3121,7 @@
 .s04-upset > p {
   grid-column: 2;
   margin: 2px 0 0;
-  color: #7a858d;
+  color: #60696f;
   font-size: var(--rd-text-2xs);
 }
 

@@ -1336,7 +1336,7 @@
   }
 
   #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-brief) > .s04-opening-brief dt {
-    color: #7a858d;
+    color: #60696f;
     font-size: var(--rd-text-2xs);
     line-height: 1.2;
   }
@@ -3520,7 +3520,7 @@
     white-space: nowrap !important;
   }
   #root .rd-v2-synthesis-page .s04-rail-evidence-ledger li span {
-    color: #7a858d !important;
+    color: #60696f !important;
     font-size: var(--rd-text-2xs) !important;
     line-height: 1.3 !important;
   }
@@ -3710,7 +3710,7 @@
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-evidence-ledger li span {
-    color: #7a858d;
+    color: #60696f;
     font-size: var(--rd-text-2xs);
     line-height: 1.35;
   }
@@ -4138,7 +4138,7 @@
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-evidence-ledger li span {
-    color: #7a858d;
+    color: #60696f;
     font-size: var(--rd-text-2xs);
     line-height: 1.35;
     overflow-wrap: anywhere;
@@ -4330,7 +4330,7 @@
   }
 
   body:has(.rd-v2-synthesis-page) .s04-rail-proof li span {
-    color: #7a858d;
+    color: #60696f;
   }
 
   body:has(.rd-v2-synthesis-page) .s04-rail-proof li strong {
