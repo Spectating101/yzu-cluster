@@ -339,6 +339,7 @@ function DeskWorkspace({ onIdentityChanged }) {
   // Operator-only rollup. Public guests deliberately start with no cached host
   // telemetry, then load only the shared research estate.
   const [resourcesRollup, setResourcesRollup] = useState(undefined);
+  const [resourcesRollupLoading, setResourcesRollupLoading] = useState(false);
   const [resourcesError, setResourcesError] = useState("");
   const [resourcesRefreshedAt, setResourcesRefreshedAt] = useState(null);
   const [resourceMode, setResourceMode] = useState("sources");
@@ -636,6 +637,7 @@ function DeskWorkspace({ onIdentityChanged }) {
         retryHealthAfterQueue();
       }
       setResourcesError("");
+      setResourcesRollupLoading(true);
       try {
         const payload = await deskResources(false);
         writeResourcesRollupCache(payload);
@@ -644,6 +646,8 @@ function DeskWorkspace({ onIdentityChanged }) {
       } catch (error) {
         setResourcesError(error?.message || String(error));
         setResourcesRollup((cur) => (cur === undefined ? null : cur));
+      } finally {
+        setResourcesRollupLoading(false);
       }
     } else {
       // Resources is host/operator telemetry. Do not fetch it, retain its
@@ -2173,7 +2177,7 @@ function DeskWorkspace({ onIdentityChanged }) {
       main = canViewOperations ? (
         <ResourcesPage
           rollup={resourcesRollup}
-          rollupLoading={resourcesRollup === undefined}
+          rollupLoading={resourcesRollup === undefined || resourcesRollupLoading}
           loadError={resourcesError}
           health={health}
           ops={ops}
@@ -2387,7 +2391,7 @@ function DeskWorkspace({ onIdentityChanged }) {
       />
       <main id="rd-main" tabIndex={-1} className="yzu-main rd-v2-shell-main">
         {tab === "home" ? <ResearcherWelcome deskAccess={deskAccess} onGoTab={goTab} /> : null}
-        <Suspense fallback={<div className="rd-v2-page rd-v2-page-pending" aria-busy="true"><p className="rd-v2-muted">Loading…</p></div>}>
+        <Suspense fallback={<p className="rd-v2-route-pending" role="status" aria-busy="true">Loading…</p>}>
           {main}
         </Suspense>
         <JobReviewDialog jobId={reviewingJobId} canApprove={canApproveJobs}
