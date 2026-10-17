@@ -214,7 +214,7 @@ test("1440 opening Inspector is a structured decision ledger", async ({ page }) 
   await openThread(page, thread);
 
   const openingRail = page.getByTestId("synthesis-opening-rail");
-  await expectStyledCard(openingRail.locator(".s04-rail-context"));
+  await expect(openingRail.locator(".s04-rail-context")).toHaveCount(0);
   await expectStyledCard(openingRail.locator(".s04-rail-gates"));
   await expectStyledCard(openingRail.locator(".s04-rail-evidence-ledger"));
   await expectStyledCard(openingRail.locator(".s04-rail-measurement"));

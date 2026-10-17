@@ -139,8 +139,6 @@ function OpeningThreadRail({ thread, onAsk }) {
       ? "Recommended · not accepted"
       : "Not accepted";
   const objective = String(thread?.objective || state.objective || brief.purpose || "").trim();
-  const period = brief.targetPeriod || state.target_period || state.spec?.period || "Not stated";
-  const intendedUse = brief.intendedUse || state.intended_use || state.spec?.intended_use || "Not stated";
   const gates = [
     ["Objective", objective ? "Recorded" : "Missing", Boolean(objective)],
     ["Evidence", nodes.length ? `${nodes.length} mapped` : "Waiting", Boolean(nodes.length)],
@@ -162,16 +160,6 @@ function OpeningThreadRail({ thread, onAsk }) {
           labels={{ primary: "Needs you" }}
         />
         <div className="rd-v2-rail-scroll">
-          <section className="s04-rail-context" aria-label="Recorded research object">
-            <header><span>Research object</span></header>
-            <p>{synthesisObjectiveDisplay(objective) || "No research purpose saved."}</p>
-            <dl>
-              <div><dt>Unit of observation</dt><dd>{brief.targetGrain || state.required_grain || "Not stated"}</dd></div>
-              <div><dt>Period</dt><dd>{period}</dd></div>
-              <div><dt>Intended use</dt><dd>{intendedUse}</dd></div>
-            </dl>
-          </section>
-
           <section className="s04-rail-gates" aria-label="Synthesis readiness ledger">
             <header><span>Readiness ledger</span><strong>{gates.filter((gate) => gate[2]).length}/{gates.length}</strong></header>
             <ul>

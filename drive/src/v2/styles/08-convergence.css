@@ -671,14 +671,12 @@ body:has(.rd-v2-synthesis-page [data-testid="synthesis-execution-state"] .s04-ex
 
   /* The rail is interpretation, not telemetry: give its prose enough room to
      be read as guidance while retaining compact uppercase field labels. */
-  .yzu-inspector .s04-rail-context > p,
   .yzu-inspector .s04-draft-rail-brief > p,
   .yzu-inspector .s04-rail-proof strong {
     font-size: var(--rd-text-2xs);
     line-height: 1.45;
   }
 
-  .yzu-inspector .s04-rail-context,
   .yzu-inspector .s04-rail-proof,
   .yzu-inspector .s04-draft-rail-brief {
     border-radius: 10px;
@@ -702,7 +700,6 @@ body:has(.rd-v2-synthesis-page [data-testid="synthesis-execution-state"] .s04-ex
     border-radius: 12px;
   }
 
-  .yzu-inspector .s04-rail-context,
   .yzu-inspector .s04-rail-proof {
     margin-bottom: 13px;
   }

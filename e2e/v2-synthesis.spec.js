@@ -400,11 +400,9 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await expect(page.getByTestId("synthesis-evidence-state")).toContainText("Historical stablecoin attention");
     await expect(page.getByTestId("synthesis-evidence-state")).toContainText("Search intent");
     await expect(page.locator("aside.rd-v2-rail")).toContainText("Historical stablecoin attention");
-    // S-04's opening rail mirrors the durable research object and current
-    // evidence/method/output state without duplicating the centre dossier.
     const openingRail = page.getByTestId("synthesis-opening-rail");
-    await expect(openingRail).toContainText("Research object");
-    await expect(openingRail).toContainText(EXPLORING_THREAD.objective);
+    await expect(openingRail).not.toContainText("Research object");
+    await expect(page.getByRole("region", { name: "Research brief" })).toContainText(EXPLORING_THREAD.objective);
     await expect(openingRail).toContainText("3 mapped");
     await expect(openingRail).toContainText("Measurement pending");
     await expect(openingRail).toContainText("Not accepted");
@@ -1237,8 +1235,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await expect.poll(async () => (await rail.boundingBox())?.height || 0).toBeGreaterThan(600);
     await expect(rail.getByTestId("rail-pane-detail")).toBeVisible();
     const openingRail = rail.getByTestId("synthesis-opening-rail");
-    await expect(openingRail).toContainText("Research object");
-    await expect(openingRail).toContainText(EXPLORING_THREAD.objective);
+    await expect(openingRail).not.toContainText("Research object");
     await expect(openingRail).toContainText("3 mapped");
     await expect(openingRail).toContainText("Measurement pending");
     await expect(openingRail).toContainText("Not accepted");

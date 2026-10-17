@@ -183,7 +183,6 @@
 
   /* The external Detail/Ask rail remains interpretive. Richer Synthesis rail
      sections use its vertical space for recorded context and authority proof. */
-  body:has(.rd-v2-synthesis-page) .s04-rail-context,
   body:has(.rd-v2-synthesis-page) .s04-rail-proof {
     margin: 10px 12px 0;
     padding: 11px 12px;
@@ -191,22 +190,12 @@
     border-radius: 10px;
     background: color-mix(in srgb, var(--rd-surface) 88%, transparent);
   }
-
-  body:has(.rd-v2-synthesis-page) .s04-rail-context > p {
-    margin: 0;
-    color: var(--rd-body);
-    font-size: var(--rd-text-2xs);
-    line-height: 1.5;
-  }
-
-  body:has(.rd-v2-synthesis-page) .s04-rail-context dl,
   body:has(.rd-v2-synthesis-page) .s04-rail-proof ul {
     margin: 9px 0 0;
     padding: 0;
     list-style: none;
   }
 
-  body:has(.rd-v2-synthesis-page) .s04-rail-context dl > div,
   body:has(.rd-v2-synthesis-page) .s04-rail-proof li {
     display: grid;
     grid-template-columns: 92px minmax(0, 1fr);
@@ -215,13 +204,11 @@
     border-top: 1px solid color-mix(in srgb, var(--rd-border) 70%, transparent);
   }
 
-  body:has(.rd-v2-synthesis-page) .s04-rail-context dt,
   body:has(.rd-v2-synthesis-page) .s04-rail-proof li span {
     color: var(--rd-muted);
     font-size: var(--rd-text-2xs);
   }
 
-  body:has(.rd-v2-synthesis-page) .s04-rail-context dd,
   body:has(.rd-v2-synthesis-page) .s04-rail-proof li strong {
     min-width: 0;
     margin: 0;
@@ -550,13 +537,6 @@
   /* The Inspector has plenty of vertical room at workstation height. Give the
      existing recorded-context/proof sections a little more breathing room; do
      not invent any new facts just to fill the rail. */
-
-  body:has(.rd-v2-synthesis-page) .s04-rail-context > p {
-    font-size: var(--rd-text-2xs);
-    line-height: 1.55;
-  }
-
-  body:has(.rd-v2-synthesis-page) .s04-rail-context dl > div,
   body:has(.rd-v2-synthesis-page) .s04-rail-proof li {
     padding: 7px 0;
   }
@@ -3593,7 +3573,6 @@
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] :is(
-    .s04-rail-context,
     .s04-rail-gates,
     .s04-rail-evidence-ledger,
     .s04-rail-measurement
@@ -4025,7 +4004,6 @@
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] :is(
-    .s04-rail-context,
     .s04-rail-gates,
     .s04-rail-evidence-ledger,
     .s04-rail-measurement
@@ -4041,7 +4019,6 @@
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] :is(
-    .s04-rail-context,
     .s04-rail-gates,
     .s04-rail-evidence-ledger,
     .s04-rail-measurement
@@ -4056,7 +4033,6 @@
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] :is(
-    .s04-rail-context,
     .s04-rail-gates,
     .s04-rail-evidence-ledger,
     .s04-rail-measurement
@@ -4079,45 +4055,6 @@
     line-height: 1.2 !important;
     white-space: nowrap !important;
   }
-
-  body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-context > p {
-    margin: 0 !important;
-    color: #41505d !important;
-    font-size: var(--rd-text-2xs) !important;
-    line-height: 1.5 !important;
-  }
-
-  body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-context dl {
-    margin: 9px 0 0 !important;
-    padding: 0 !important;
-  }
-
-  body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-context dl > div {
-    display: grid !important;
-    grid-template-columns: 78px minmax(0, 1fr) !important;
-    gap: 8px !important;
-    padding: 6px 0 !important;
-    border-top: 1px solid #eeeae0 !important;
-  }
-
-  body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-context dt,
-  body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-context dd {
-    min-width: 0 !important;
-    margin: 0 !important;
-    font-size: var(--rd-text-2xs) !important;
-    line-height: 1.35 !important;
-  }
-
-  body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-context dt {
-    color: #7a858d !important;
-  }
-
-  body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-context dd {
-    color: #314453 !important;
-    font-weight: 700 !important;
-    overflow-wrap: anywhere !important;
-  }
-
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-gates ul,
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-evidence-ledger ul {
     display: grid !important;
@@ -4438,38 +4375,24 @@
   /*
    * Keep the broad workspace stable even when the fine-grained lifecycle label
    * changes from Proposal to Preview to Approval or from Build to Result. The
-   * chip lives beside the durable thread title, so it survives mature states
-   * where the older eyebrow is intentionally suppressed.
+   * phase leads the eyebrow line, so it survives mature states where the
+   * older stage word is intentionally suppressed.
    */
-  .rd-v2-synthesis-page[data-synthesis-workspace-phase] .s04-head h1::after {
-    display: inline-flex;
-    align-items: center;
-    margin-left: 10px;
-    padding: 3px 7px 2px;
-    border: 1px solid #d7dfd4;
-    border-radius: 999px;
-    background: rgba(255, 253, 246, 0.92);
-    color: #5b6578;
-    font-family: var(--rd-font);
-    font-size: var(--rd-text-2xs);
+  .rd-v2-synthesis-page[data-synthesis-workspace-phase] .s04-head > div > small::before {
+    color: var(--s04-ink, #20304a);
     font-weight: 700;
-    line-height: 1.2;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    vertical-align: middle;
-    transform: translateY(-2px);
   }
 
-  .rd-v2-synthesis-page[data-synthesis-workspace-phase="design"] .s04-head h1::after {
-    content: "Design";
+  .rd-v2-synthesis-page[data-synthesis-workspace-phase="design"] .s04-head > div > small::before {
+    content: "Design · ";
   }
 
-  .rd-v2-synthesis-page[data-synthesis-workspace-phase="review"] .s04-head h1::after {
-    content: "Review";
+  .rd-v2-synthesis-page[data-synthesis-workspace-phase="review"] .s04-head > div > small::before {
+    content: "Review · ";
   }
 
-  .rd-v2-synthesis-page[data-synthesis-workspace-phase="execute"] .s04-head h1::after {
-    content: "Execute";
+  .rd-v2-synthesis-page[data-synthesis-workspace-phase="execute"] .s04-head > div > small::before {
+    content: "Execute · ";
   }
 
   /*
