@@ -204,13 +204,21 @@
 
 .rd-v2-synthesis-page .s04-new-entry-purpose > footer {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  justify-content: flex-end;
+  gap: 8px 12px;
   margin: 10px 0 14px;
 }
 
+.rd-v2-synthesis-page .s04-new-entry-purpose > footer > .rd-v2-btn {
+  flex: none;
+  white-space: nowrap;
+}
+
 .rd-v2-synthesis-page .s04-new-entry-purpose > footer > span {
+  flex: 1 1 0;
+  min-width: 120px;
   max-width: 56ch;
   color: #7a858d;
   font-size: var(--rd-text-2xs);
@@ -405,9 +413,8 @@ body:has(.rd-v2-synthesis-page [data-testid="synthesis-execution-state"] .s04-ex
 .rd-v2-synthesis-page .s04-new-entry-framing > header small {
   color: #5b6578;
   font-size: var(--rd-text-2xs);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
 .rd-v2-synthesis-page .s04-new-entry-framing > header strong {
@@ -509,9 +516,8 @@ body:has(.rd-v2-synthesis-page [data-testid="synthesis-execution-state"] .s04-ex
 .s04-draft-rail-brief > header span {
   color: #5b6578;
   font-size: var(--rd-text-2xs);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
 .s04-draft-rail-brief > header strong {
