@@ -227,6 +227,8 @@ export function V2App() {
   return <DeskWorkspace key={identity} onIdentityChanged={setIdentity} />;
 }
 
+let handedDeskAccess = null;
+
 function DeskWorkspace({ onIdentityChanged }) {
   const [reviewingJobId, setReviewingJobId] = useState("");
   const [approvedCollectionId, setApprovedCollectionId] = useState("");
@@ -346,7 +348,10 @@ function DeskWorkspace({ onIdentityChanged }) {
   const applyDeskAccess = useCallback((access) => {
     const changed = bindDeskIdentity(access?.principal);
     setDeskAccess(access || { authenticated: false });
-    if (changed) onIdentityChanged(String(access?.principal?.id || "locked"));
+    if (changed) {
+      handedDeskAccess = { access, at: Date.now() };
+      onIdentityChanged(String(access?.principal?.id || "locked"));
+    }
     return access;
   }, [onIdentityChanged]);
 
@@ -557,26 +562,11 @@ function DeskWorkspace({ onIdentityChanged }) {
       setLibraryGuide(null);
     };
 
-    // The front door deliberately handles one request at a time. The old
-    // startup burst sent health, registry, navigation, operations, history,
-    // resources, profile, and two cache warms together. The browser then
-    // painted “0 datasets” while the real 139-row registry waited its turn.
-    // Establish the visible research estate first; defer aggregate health and
-    // operational enrichment until those facts are on screen. /health may
-    // legitimately wait on probes for 12s, while /datasets is the Library and
-    // Discover truth researchers came to use.
     setCatalogLoading(true);
-    try {
-      applyCatalog(await listDatasets());
-    } catch (err) {
-      applyCatalog([], err?.message || String(err));
-    }
-      // Navigation is the visible research estate. It ran after resources
-      // and health, so the Library waited ~11s for shelves the desk had
-      // already loaded. The server is threaded, but its data endpoints are
-      // GIL-bound: measured 4x concurrent, /library/desk/capabilities gains
-      // 2.95x while /library/partitions gains 1.32x. Ordering is therefore the
-      // lever, not parallelism — this move was worth 4.3x, concurrency ~1.3x.
+    const catalogLanded = listDatasets().then(
+      (rows) => applyCatalog(rows),
+      (err) => applyCatalog([], err?.message || String(err)),
+    );
     setLibraryNavLoading(true);
     setLibraryNavError("");
     listLibraryNav()
@@ -586,6 +576,39 @@ function DeskWorkspace({ onIdentityChanged }) {
         setLibraryNavError(error?.message || String(error));
       })
       .finally(() => setLibraryNavLoading(false));
+
+    // Approval decisions are faculty-visible research work. Hydrate them
+    // before slower operational enrichments so History never advertises a
+    // pending count while its Needs-you territory appears empty.
+    setJobsRefreshing(true);
+    listJobs()
+      .then((rows) => {
+        const list = Array.isArray(rows) ? rows : [];
+        if (preserveJob?.id && !list.some((j) => j?.id === preserveJob.id)) {
+          setJobs([preserveJob, ...list]);
+        } else {
+          setJobs(list);
+        }
+        setJobsLoaded(true);
+        setLifecycleRefreshFailed(false);
+      })
+      .catch(() => {
+        setJobsLoaded(true);
+        setLifecycleRefreshFailed(true);
+      })
+      .finally(() => setJobsRefreshing(false));
+    libraryOverview()
+      .then(setOverview)
+      .catch(() => setOverview(null));
+    procurementCatalogSummary()
+      .then(setCatalogSummary)
+      .catch(() => setCatalogSummary(null));
+    discoverHistory({ limit: 50 })
+      .then((data) => setHistoryEvents(mergeHistoryEvents(durableHistoryToEvents(data), [])))
+      .catch(() => {});
+    reloadProfile();
+
+    await catalogLanded;
 
     if (canViewOperations) {
       // Health owns the header, assistant gate, and canonical-archive truth.
@@ -618,29 +641,6 @@ function DeskWorkspace({ onIdentityChanged }) {
       setResourcesRefreshedAt(null);
       setHealth(null);
     }
-
-    // These are useful operational enrichments, but none may delay the
-    // Library or Discover landing state. They may share the later queue.
-    // Approval decisions are faculty-visible research work. Hydrate them
-    // before slower operational enrichments so History never advertises a
-    // pending count while its Needs-you territory appears empty.
-    setJobsRefreshing(true);
-    listJobs()
-      .then((rows) => {
-        const list = Array.isArray(rows) ? rows : [];
-        if (preserveJob?.id && !list.some((j) => j?.id === preserveJob.id)) {
-          setJobs([preserveJob, ...list]);
-        } else {
-          setJobs(list);
-        }
-        setJobsLoaded(true);
-        setLifecycleRefreshFailed(false);
-      })
-      .catch(() => {
-        setJobsLoaded(true);
-        setLifecycleRefreshFailed(true);
-      })
-      .finally(() => setJobsRefreshing(false));
     if (canViewOperations) {
       listAcquisitions(false)
         .then((d) => setAcquisitions(d.acquisitions || []))
@@ -660,12 +660,6 @@ function DeskWorkspace({ onIdentityChanged }) {
     } else {
       setOps(null);
     }
-    libraryOverview()
-      .then(setOverview)
-      .catch(() => setOverview(null));
-    procurementCatalogSummary()
-      .then(setCatalogSummary)
-      .catch(() => setCatalogSummary(null));
     if (canViewOperations) {
       yzuClusterStatus(false)
         .then(setCluster)
@@ -673,10 +667,6 @@ function DeskWorkspace({ onIdentityChanged }) {
     } else {
       setCluster(null);
     }
-    discoverHistory({ limit: 50 })
-      .then((data) => setHistoryEvents(mergeHistoryEvents(durableHistoryToEvents(data), [])))
-      .catch(() => {});
-    reloadProfile();
     setDeskRefreshedAt(Date.now());
   }, [reloadProfile, applyCatalog, canViewOperations]);
 
@@ -719,8 +709,15 @@ function DeskWorkspace({ onIdentityChanged }) {
   );
 
   useEffect(() => {
+    const handed = handedDeskAccess;
+    handedDeskAccess = null;
+    if (handed && Date.now() - handed.at < 5000) {
+      applyDeskAccess(handed.access);
+      setDeskAccessBusy(false);
+      return;
+    }
     refreshDeskAccess();
-  }, [refreshDeskAccess]);
+  }, [refreshDeskAccess, applyDeskAccess]);
 
   useEffect(() => {
     if (deskAccess?.authenticated) refreshBackend();

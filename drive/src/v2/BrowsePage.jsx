@@ -711,6 +711,7 @@ export function BrowsePage({
     };
   }, []);
   const rowsQueryRef = useRef("");
+  const knownSourcesRef = useRef(null);
 
   useEffect(() => {
     rowsRef.current = rows;
@@ -816,11 +817,14 @@ export function BrowsePage({
         }
         if (!q) {
           try {
-            const knownSources = await discoverSources("", {
-              limit: 8,
-              semantic: false,
-              live: false,
-            });
+            if (knownSourcesRef.current?.revision !== searchRevision) {
+              const request = discoverSources("", { limit: 8, semantic: false, live: false });
+              knownSourcesRef.current = { revision: searchRevision, request };
+              request.catch(() => {
+                if (knownSourcesRef.current?.request === request) knownSourcesRef.current = null;
+              });
+            }
+            const knownSources = await knownSourcesRef.current.request;
             apply({ results: sourcesResponseToRows(knownSources) }, "known_sources");
           } catch {
             setRows([]);

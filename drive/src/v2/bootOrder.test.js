@@ -52,7 +52,14 @@ test("navigation resolves in the background instead of holding the startup queue
 });
 
 test("the catalog still leads the boot sequence", () => {
-  assert.ok(at("applyCatalog(await listDatasets())") < at("listLibraryNav()"));
+  assert.ok(at("listDatasets()") < at("listLibraryNav()"));
+});
+
+test("heavy operator reads wait for the catalog to land", () => {
+  const landed = at("await catalogLanded");
+  assert.ok(at("listDatasets()") < landed);
+  assert.ok(landed < at("applyHealth(await deskHealth(false"), "/health must not compete with the research estate");
+  assert.ok(landed < at("await deskResources(false)"), "the Resources rollup must not compete with the research estate");
 });
 
 test("deferred enrichment is still fetched, not dropped", () => {
