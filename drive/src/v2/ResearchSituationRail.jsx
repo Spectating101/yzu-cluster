@@ -141,7 +141,7 @@ function librarySituation({ dataset, activeObject }) {
     return {
       status: status.label,
       statusKind: status.kind,
-      facts: [presentation.noun, source, shape],
+      facts: [humanize(presentation.noun), source, shape],
       next: status.kind === "query-ready" ? "" : decision.body,
     };
   }

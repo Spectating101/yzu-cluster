@@ -805,9 +805,9 @@ body:has(.rd-v2-synthesis-page [data-testid="synthesis-execution-state"] .s04-ex
   white-space: nowrap;
 }
 
-.rd-v2-situation-facts span + span::before {
+.rd-v2-situation-facts span:not(:last-child)::after {
   content: "·";
-  margin-right: 8px;
+  margin-left: 7px;
   color: var(--rd-border2);
 }
 
