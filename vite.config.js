@@ -56,6 +56,17 @@ export default defineConfig({
     port: Number(process.env.YZU_DESK_PORT || 5178),
     proxy,
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return undefined;
+          if (/node_modules\/(react|react-dom|scheduler)\//.test(id)) return "react";
+          return "vendor";
+        },
+      },
+    },
+  },
   preview: {
     host: "127.0.0.1",
     port: Number(process.env.YZU_PREVIEW_PORT || 4178),

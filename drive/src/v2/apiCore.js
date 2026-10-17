@@ -106,24 +106,26 @@ export async function ensureDeskSession({ force = false } = {}) {
 
 /** Public, non-sensitive contract describing what this browser may do. */
 export function deskCapabilities() {
-  return fetchJson("/library/desk/capabilities").then((payload) => {
-    if (!payload?.authenticated || payload?.permissions || Number(payload?.version || 1) >= 2) {
-      return payload;
-    }
-    // Compatibility with the authenticated v1 pilot contract. Version 2+
-    // must always declare permissions and never receives optimistic defaults.
-    return {
-      ...payload,
-      permissions: {
-        view_research_data: true,
-        view_faculty_profile: true,
-        view_operations: true,
-        use_ask: true,
-        submit_collection: true,
-        approve_jobs: true,
-      },
-    };
-  });
+  return fetchJson("/library/desk/capabilities").then(normalizeDeskCapabilities);
+}
+
+function normalizeDeskCapabilities(payload) {
+  if (!payload?.authenticated || payload?.permissions || Number(payload?.version || 1) >= 2) {
+    return payload;
+  }
+  // Compatibility with the authenticated v1 pilot contract. Version 2+
+  // must always declare permissions and never receives optimistic defaults.
+  return {
+    ...payload,
+    permissions: {
+      view_research_data: true,
+      view_faculty_profile: true,
+      view_operations: true,
+      use_ask: true,
+      submit_collection: true,
+      approve_jobs: true,
+    },
+  };
 }
 
 /** Resolve internal bootstrap or a browser-local fallback token, then re-check. */
@@ -136,6 +138,8 @@ export async function ensureDeskAccess({ force = false } = {}) {
   if (current?.authenticated && !force) return current;
   const session = await ensureDeskSession({ force: true });
   if (!session?.ok) return { ...current, authenticated: false, bootstrap: session };
+  const issued = session.capabilities;
+  if (issued?.authenticated && Number(issued.version || 1) >= 2) return normalizeDeskCapabilities(issued);
   return deskCapabilities().catch((error) => ({
     ...current,
     authenticated: false,
@@ -178,7 +182,10 @@ export async function signInWithMemberAccessCode(code) {
     const session = await ensureDeskSession({ force: true });
     if (!session?.ok) throw new Error(session?.error || "Member sign-in was not accepted.");
     clearDeskToken();
-    const access = await deskCapabilities();
+    const issued = session.capabilities;
+    const access = issued?.authenticated && Number(issued.version || 1) >= 2
+      ? normalizeDeskCapabilities(issued)
+      : await deskCapabilities();
     if (!access?.authenticated || !access?.permissions?.use_ask) {
       throw new Error("This access code does not grant member Ask access.");
     }
