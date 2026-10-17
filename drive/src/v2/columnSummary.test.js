@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { columnBars, columnSummary, profileBasis, sampleReceipt } from "./columnSummary.js";
+import { columnBarFilter, columnBars, columnSummary, profileBasis, sampleReceipt } from "./columnSummary.js";
 
 test("numbers read as a range, years stay years", () => {
   assert.equal(columnSummary({ kind: "number", min: 3.711599, max: 6.923532, filled: 120, empty: 0 }), "3.712 – 6.924");
@@ -33,4 +33,21 @@ test("column bars scale bins to the tallest and skip flat or missing ones", () =
 test("categorical columns draw one bar per value", () => {
   assert.deepEqual(columnBars({ kind: "text", categorical: true, top: [{ value: "NY", count: 4 }, { value: "FL", count: 2 }] }), [1, 0.5]);
   assert.deepEqual(columnBars({ kind: "text", top: [{ value: "a", count: 4 }, { value: "b", count: 2 }] }), []);
+});
+
+test("a number bar selects the rows inside its bin, the last bin closed", () => {
+  const filter = columnBarFilter({ kind: "number", min: 0, max: 30, bins: [2, 5, 1] }, 1);
+  assert.equal(filter.label, "10 – 20");
+  assert.equal(filter.count, 5);
+  assert.deepEqual([9.99, 10, "15", "1,9", 20, null, ""].map(filter.matches), [false, true, true, true, false, false, false]);
+  const last = columnBarFilter({ kind: "number", min: 0, max: 30, bins: [2, 5, 1] }, 2);
+  assert.equal(last.matches(30), true);
+  assert.equal(columnBarFilter({ kind: "number", min: 0, max: 30, bins: [2, 5, 1] }, 3), null);
+});
+
+test("a categorical bar selects one value", () => {
+  const filter = columnBarFilter({ kind: "text", categorical: true, top: [{ value: "NY", count: 4 }, { value: "FL", count: 2 }] }, 1);
+  assert.equal(filter.label, "FL");
+  assert.deepEqual([" FL", "NY", null].map(filter.matches), [true, false, false]);
+  assert.equal(columnBarFilter({ kind: "text", top: [{ value: "a", count: 4 }] }, 0), null);
 });

@@ -3,7 +3,7 @@ import { plainRoute } from "./plainText.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { plainIdentifiers } from "@/v2/plainText";
 import { queryDataset } from "@/v2/api";
-import { columnBars, columnSummary, columnSummaryTitle, profileBasis, sampleReceipt } from "@/v2/columnSummary";
+import { columnBarFilter, columnBars, columnSummary, columnSummaryTitle, profileBasis, sampleReceipt } from "@/v2/columnSummary";
 import {
   detailFields,
   displayName,
@@ -258,6 +258,23 @@ function keepRangesTogether(title) {
   return parts.map((part, index) => (index % 2 ? <span key={index} className="rd-v2-nowrap">{part}</span> : part));
 }
 
+function filterCount(matched, read, profile) {
+  const total = Number(profile?.rows_total) || read;
+  const of = total > read ? `the first ${read.toLocaleString("en-US")}` : read.toLocaleString("en-US");
+  return `${matched.toLocaleString("en-US")} of ${of} rows${matched > 8 ? " · first 8 shown" : ""}`;
+}
+
+function moveBarFocus(event) {
+  const step = event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
+  if (!step) return;
+  const buttons = [...event.currentTarget.querySelectorAll("button")];
+  const next = buttons[buttons.indexOf(document.activeElement) + step];
+  if (next) {
+    event.preventDefault();
+    next.focus();
+  }
+}
+
 const datasetAnalysis = (dataset) => dataset?.analysis || dataset?.synthesis_analysis || null;
 
 function DatasetPreview({ dataset, canQuery, names, fields, state, presentation, onInspect, onExpandSample }) {
@@ -292,12 +309,37 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
     return () => { cancelled = true; };
   }, [canQuery, dataset?.dataset_id, analysis]);
 
+  const [barPick, setBarPick] = useState(null);
+  const [profiledRows, setProfiledRows] = useState(null);
+  const pick = barPick?.datasetId === dataset?.dataset_id ? barPick : null;
+  const pool = profiledRows?.datasetId === dataset?.dataset_id ? profiledRows : null;
+
+  const loadPool = (datasetId) => {
+    setProfiledRows({ datasetId, loading: true, rows: [], error: "" });
+    const settle = (next) => setProfiledRows((current) => (current?.datasetId === datasetId ? next : current));
+    queryDataset(datasetId, 2000)
+      .then((payload) => settle({ datasetId, loading: false, rows: Array.isArray(payload?.rows) ? payload.rows : [], error: "" }))
+      .catch(() => settle({ datasetId, loading: false, rows: [], error: "These rows could not be read right now." }));
+  };
+
   if (analysis) return <AnalysisResults analysis={analysis} chart={dataset.chart} rows={preview.datasetId === dataset.dataset_id ? preview.rows : []} />;
 
   const columns = observedColumns(preview.rows);
   const schemaColumns = columns.length ? columns : names.slice(0, 12);
   const observed = columns.length > 0 && preview.rows.length > 0;
   const profileByName = new Map((preview.profile?.columns || []).map((column) => [column.name, column]));
+  const activeFilter = pick ? columnBarFilter(profileByName.get(pick.column), pick.index) : null;
+  const filtering = Boolean(activeFilter) && observed;
+  const matchedRows = filtering && pool && !pool.loading ? pool.rows.filter((row) => activeFilter.matches(row?.[pick.column])) : [];
+  const shownRows = filtering ? matchedRows.slice(0, 8) : preview.rows;
+  const choose = (column, index) => {
+    if (!pool || pool.error) loadPool(dataset.dataset_id);
+    setBarPick((current) => (
+      current?.datasetId === dataset?.dataset_id && current.column === column && current.index === index
+        ? null
+        : { datasetId: dataset?.dataset_id, column, index }
+    ));
+  };
   const joinKeys = fields.joinKeys || [];
   const rowCount = dataset?.rows || dataset?.row_count || dataset?.num_rows || dataset?.records;
   const liveSource = presentation.kind === "live_source";
@@ -330,6 +372,16 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
         <p className="rd-v2-library-muted">The current query path returned no sample rows.</p>
       ) : null}
 
+      {filtering ? (
+        <div className="rd-v2-library-bar-filter" data-testid="library-bar-filter" role="status">
+          <span>
+            Rows where <strong>{pick.column}</strong> is <strong>{activeFilter.label}</strong>
+            {pool && !pool.loading && !pool.error ? ` · ${filterCount(matchedRows.length, pool.rows.length, preview.profile)}` : ""}
+          </span>
+          <button type="button" className="rd-v2-btn sm" onClick={() => setBarPick(null)}>Show the sample</button>
+        </div>
+      ) : null}
+
       {schemaColumns.length ? (
         <div className="rd-v2-library-glimpse-table-wrap">
           <table className="rd-v2-library-glimpse-table">
@@ -340,10 +392,32 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
                   {schemaColumns.map((column) => (
                     <td key={column} title={columnSummaryTitle(profileByName.get(column))}>
                       {columnBars(profileByName.get(column)).length ? (
-                        <span className="rd-v2-library-column-bars" aria-hidden="true">
-                          {columnBars(profileByName.get(column)).map((height, index) => (
-                            <i key={index} style={{ height: `${Math.max(6, Math.round(height * 100))}%` }} />
-                          ))}
+                        <span
+                          className={`rd-v2-library-column-bars${pick?.column === column ? " has-pick" : ""}`}
+                          role="group"
+                          aria-label={`${column} distribution`}
+                          onKeyDown={moveBarFocus}
+                        >
+                          {columnBars(profileByName.get(column)).map((height, index) => {
+                            const bar = columnBarFilter(profileByName.get(column), index);
+                            const picked = pick?.column === column && pick.index === index;
+                            const label = bar ? `${bar.label} · ${bar.count.toLocaleString("en-US")} row${bar.count === 1 ? "" : "s"}` : "";
+                            return (
+                              <button
+                                key={index}
+                                type="button"
+                                className={picked ? "is-picked" : undefined}
+                                tabIndex={(pick?.column === column ? picked : index === 0) ? 0 : -1}
+                                aria-pressed={picked}
+                                aria-label={`Show rows where ${column} is ${label}`}
+                                title={label}
+                                disabled={!bar}
+                                onClick={() => choose(column, index)}
+                              >
+                                <i style={{ height: `${Math.max(6, Math.round(height * 100))}%` }} />
+                              </button>
+                            );
+                          })}
                         </span>
                       ) : null}
                       {columnSummary(profileByName.get(column))}
@@ -353,8 +427,14 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
               ) : null}
             </thead>
             <tbody>
-              {observed ? (
-                preview.rows.map((row, index) => (
+              {filtering && (!pool || pool.loading || pool.error || !matchedRows.length) ? (
+                <tr className="rd-v2-library-schema-only-row">
+                  <td colSpan={Math.max(schemaColumns.length, 1)}>
+                    {!pool || pool.loading ? "Reading the matching rows…" : pool.error || "None of the summarised rows fall in this bar."}
+                  </td>
+                </tr>
+              ) : observed ? (
+                shownRows.map((row, index) => (
                   <tr key={index}>
                     {schemaColumns.map((column) => <td key={column}>{previewCellValue(row[column])}</td>)}
                   </tr>

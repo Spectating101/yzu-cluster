@@ -42,6 +42,42 @@ export function columnBars(column) {
   return bins.map((n) => n / peak);
 }
 
+const numeric = (value) => {
+  if (value == null || typeof value === "boolean") return null;
+  const text = typeof value === "number" ? value : String(value).replace(/,/g, "").trim();
+  if (text === "") return null;
+  const n = Number(text);
+  return Number.isFinite(n) ? n : null;
+};
+
+export function columnBarFilter(column, index) {
+  if (Array.isArray(column?.bins) && column.bins.length > 1) {
+    const lo = Number(column.min);
+    const hi = Number(column.max);
+    const count = column.bins.length;
+    if (!Number.isFinite(lo) || !Number.isFinite(hi) || hi <= lo || index < 0 || index >= count) return null;
+    const width = (hi - lo) / count;
+    const from = lo + width * index;
+    const to = index === count - 1 ? hi : lo + width * (index + 1);
+    return {
+      label: `${number(from)} – ${number(to)}`,
+      count: Number(column.bins[index]) || 0,
+      matches: (value) => {
+        const n = numeric(value);
+        if (n == null || n < lo || n > hi) return false;
+        return Math.min(Math.floor((n - lo) / width), count - 1) === index;
+      },
+    };
+  }
+  const item = column?.categorical && Array.isArray(column.top) ? column.top[index] : null;
+  if (!item) return null;
+  return {
+    label: short(item.value),
+    count: Number(item.count) || 0,
+    matches: (value) => value != null && String(value).trim().slice(0, 80) === item.value,
+  };
+}
+
 export function columnSummaryTitle(column) {
   if (!column || typeof column !== "object") return "";
   const parts = [`${column.name}: ${column.kind}`];

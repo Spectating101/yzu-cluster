@@ -52,6 +52,37 @@ test.describe("v2 Library evidence estate", () => {
     await expect(row).toBeFocused();
   });
 
+  test("a column bar filters the table to its rows and clears back to the sample", async ({ page }) => {
+    const rows = Array.from({ length: 30 }, (_, index) => ({ region: index % 3 ? "Asia" : "Europe", score: index }));
+    await page.route("**/query/*", (route) => {
+      const limit = Number(new URL(route.request().url()).searchParams.get("limit"));
+      route.fulfill({ json: {
+        rows: limit > 100 ? rows : rows.slice(0, 8),
+        meta: { rows_total_after_filter: 30 },
+        profile: { rows_profiled: 30, rows_total: 30, complete: true, columns: [
+          { name: "region", kind: "text", categorical: true, distinct: 2, filled: 30, empty: 0, top: [{ value: "Asia", count: 20 }, { value: "Europe", count: 10 }] },
+          { name: "score", kind: "number", min: 0, max: 29, distinct: 30, filled: 30, empty: 0, bins: [10, 10, 10] },
+        ] },
+      } });
+    });
+    await page.getByTestId("library-evidence-row").filter({ hasText: "Asia daily news-risk panel" }).click();
+    const preview = page.getByTestId("library-data-preview");
+    const europe = preview.getByRole("button", { name: "Show rows where region is Europe · 10 rows" });
+    await expect(europe).toBeVisible();
+    await europe.click();
+    await expect(europe).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByTestId("library-bar-filter")).toContainText("Rows where region is Europe · 10 of 30 rows · first 8 shown");
+    await expect(preview.locator("tbody tr")).toHaveCount(8);
+    await expect(preview.locator("tbody")).not.toContainText("Asia");
+    await europe.press("ArrowLeft");
+    await expect(preview.getByRole("button", { name: /region is Asia/ })).toBeFocused();
+    await preview.getByRole("button", { name: /score is 19\.333 – 29 ·/ }).click();
+    await expect(page.getByTestId("library-bar-filter")).toContainText("Rows where score is 19.333 – 29 · 10 of 30 rows");
+    await page.getByRole("button", { name: "Show the sample" }).click();
+    await expect(page.getByTestId("library-bar-filter")).toHaveCount(0);
+    await expect(preview.locator("tbody")).toContainText("Asia");
+  });
+
   test("selecting evidence inspects in place while deeper dossier detail stays progressive", async ({ page }) => {
     await page.getByRole("textbox", { name: "Search your Library" }).fill("Asia");
     const row = page.getByTestId("library-evidence-row").filter({ hasText: "Asia daily news-risk panel" });
