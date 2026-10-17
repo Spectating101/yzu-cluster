@@ -268,8 +268,7 @@ test.describe("v2 Discover tab", () => {
     await expect(page.locator(".rd-v2-discover-miss")).toHaveCount(0);
     await expect(page.getByLabel("Discover next actions")).toContainText("1 reference to inspect");
     await expect(page.getByLabel("Discover next actions")).toContainText("No collection method is documented as ready yet");
-    await expect(page.getByTestId("discover-evidence-field")).toContainText("No collection-ready route yet");
-    await expect(page.getByTestId("discover-evidence-field")).toContainText("1 relevant reference is available to inspect or test its connection");
+    await expect(page.getByText("No collection-ready route yet")).toHaveCount(0);
   });
 
   test("reference-only routes can be inspected but never claim an acquisition review route", async ({ page }, testInfo) => {

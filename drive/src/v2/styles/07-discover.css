@@ -890,7 +890,6 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
 }
 
 .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace {
-  margin-inline: 0;
   border-radius: 8px;
   box-shadow: none;
 }
@@ -1069,7 +1068,7 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
 
 /* Active search is one command/evidence strip, not a stack of cards. */
 .rd-v2-discover-page .rd-v2-discover-explore-workspace {
-  border-width: 0 0 1px;
+  border-width: 0;
   border-radius: 0;
   background: transparent;
 }
@@ -1367,41 +1366,6 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
    already carries result territories and the normal filter/sort controls; restore
    those controls and keep the evidence list first. */
 
-/* ── discover-evidence-field ── */
-/* Large-field Discover pass.
-   Results are the primary research object. Persistent controls stay quiet; density
-   increases through ledger structure rather than nested cards. */
-
-.rd-v2-discover-field {
-  display: grid;
-  border-block: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, transparent);
-}
-
-.rd-v2-discover-field > header {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.rd-v2-discover-field > header > div:first-child {
-  display: grid;
-  grid-template-columns: auto auto minmax(0, 1fr);
-  align-items: baseline;
-  gap: 6px 10px;
-  min-width: 0;
-}
-
-.rd-v2-discover-field > header strong {
-  color: var(--rd-text, #182033);
-}
-
-.rd-v2-discover-field > header p {
-  min-width: 0;
-  margin: 0;
-  color: var(--rd-muted, #5d6574);
-  line-height: 1.35;
-}
-
 .rd-v2-discover-assembly-state button {
   border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 82%, #263548 18%);
   border-radius: 5px;
@@ -1476,12 +1440,6 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
 .rd-v2-discover-ranked-results .rd-v2-discover-row-add {
   bottom: auto;
   font-size: var(--rd-text-2xs);
-}
-
-@media (max-width: 1500px) {
-  .rd-v2-discover-field > header > div:first-child {
-    grid-template-columns: auto auto;
-  }
 }
 
 @media (max-width: 1080px) {
@@ -1600,28 +1558,6 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
 
 /* Search wider lives beside the candidate field; do not repeat the same CTA in the rail. */
 
-/* Candidate field: a compact framing line, not another card before the actual results. */
-.rd-v2-discover-field {
-  gap: 5px;
-  margin: 6px 0 8px;
-  padding: 7px 10px 6px;
-  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 68%, transparent);
-  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 52%, transparent);
-  background: transparent;
-}
-
-.rd-v2-discover-field > header {
-  align-items: baseline;
-}
-
-.rd-v2-discover-field > header strong {
-  font-size: var(--rd-text-sm);
-}
-
-.rd-v2-discover-field > header p {
-  font-size: var(--rd-text-2xs);
-}
-
 /* Assembly is the exceptional state, so it earns the strongest emphasis in the field. */
 .rd-v2-discover-assembly {
   margin-top: 3px;
@@ -1721,14 +1657,6 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
     display: none;
   }
 
-  .rd-v2-discover-field {
-    padding-inline: 8px;
-  }
-
-  .rd-v2-discover-field > header p {
-    grid-column: 1 / -1;
-  }
-
   .rd-v2-discover-ranked-results .rd-v2-discover-offering-facts {
     gap: 8px;
   }
@@ -1797,7 +1725,6 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
 }
 
 /* Remove the dead band between the field framing and the result ledger. */
-.rd-v2-discover-field + .rd-v2-discover-ranked-results,
 .rd-v2-discover-explore-workspace + .rd-v2-discover-ranked-results {
   margin-top: 0 !important;
 }

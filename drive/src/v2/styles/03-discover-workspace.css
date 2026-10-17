@@ -109,7 +109,7 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-rail-fieldgrid .rd-v2-
 /* Discover capability convergence: evidence investigation workspace. */
 .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace {
   max-width: none;
-  margin: 0 16px 14px;
+  margin: 12px 0 0;
   padding: 0;
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--rd-border2, #d2ccc0) 78%, #6f8f80 22%);

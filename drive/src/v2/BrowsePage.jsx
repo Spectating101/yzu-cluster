@@ -39,7 +39,6 @@ import {
 import { Chip, PageShell, SourceRibbon } from "@/v2/ui";
 import { discoverTerritories, territoryText } from "@/v2/discoverTerritories";
 import { DiscoverCoveragePanel } from "@/v2/DiscoverCoveragePanel";
-import { DiscoverEvidenceField } from "@/v2/DiscoverEvidenceField";
 import { DeskError } from "@/v2/DeskError";
 import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
 
@@ -1771,11 +1770,6 @@ export function BrowsePage({
               {synthesisStartError ? (
                 <p className="rd-v2-inline-error" role="status">{synthesisStartError}</p>
               ) : null}
-
-              <DiscoverEvidenceField
-              candidateCount={centreRows.length}
-              resultGroups={resultGroups}
-            />
 
               {assessmentActive ? (
                 <DiscoverEvidenceBrief
