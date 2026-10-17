@@ -313,7 +313,7 @@ test.describe("v2 Library navigation", () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
-    await expect(page.locator("aside.rd-v2-rail")).toContainText("Asia daily news-risk panel");
+    await expect(page.locator("aside.rd-v2-rail")).toContainText("Pick up");
 
     await page.locator("aside.yzu-sidebar").getByRole("button", { name: "Library", exact: true }).click();
     await expect(page.getByTestId("research-situation")).toContainText("Library");
