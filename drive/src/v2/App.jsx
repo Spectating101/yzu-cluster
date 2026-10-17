@@ -1,5 +1,5 @@
 import { collectionRecipe } from "./collectionRecipe.js";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { V2DeskHeader } from "@/v2/V2DeskHeader";
 import {
   approveJob,
@@ -58,10 +58,7 @@ import { InspectorRail } from "@/v2/InspectorRail";
 import { LibraryPage } from "@/v2/LibraryPage";
 import { PreviewModal } from "@/v2/PreviewModal";
 import { ProfilePage } from "@/v2/ProfilePage";
-import { ResourcesPage } from "@/v2/ResourcesPage";
-import { SettingsPage } from "@/v2/SettingsPage";
 import { ResearcherWelcome } from "./ResearcherWelcome.jsx";
-import { SynthesisPage } from "@/v2/SynthesisPage";
 import { PageShell } from "@/v2/ui";
 import {
   buildDiscoverLifecycle,
@@ -225,6 +222,19 @@ export function V2App() {
     );
   }
   return <DeskWorkspace key={identity} onIdentityChanged={setIdentity} />;
+}
+
+const loadSynthesisPage = () => import("@/v2/SynthesisPage");
+const loadResourcesPage = () => import("@/v2/ResourcesPage");
+const loadSettingsPage = () => import("@/v2/SettingsPage");
+const SynthesisPage = lazy(() => loadSynthesisPage().then((m) => ({ default: m.SynthesisPage })));
+const ResourcesPage = lazy(() => loadResourcesPage().then((m) => ({ default: m.ResourcesPage })));
+const SettingsPage = lazy(() => loadSettingsPage().then((m) => ({ default: m.SettingsPage })));
+
+function prefetchLaterPages() {
+  const run = () => Promise.allSettled([loadSynthesisPage(), loadResourcesPage(), loadSettingsPage()]);
+  if (typeof window.requestIdleCallback === "function") window.requestIdleCallback(run, { timeout: 4000 });
+  else window.setTimeout(run, 1500);
 }
 
 let handedDeskAccess = null;
@@ -724,6 +734,10 @@ function DeskWorkspace({ onIdentityChanged }) {
   useEffect(() => {
     if (deskAccess?.authenticated) refreshBackend();
   }, [refreshBackend, deskAccess?.authenticated]);
+
+  useEffect(() => {
+    if (deskAccess?.authenticated) prefetchLaterPages();
+  }, [deskAccess?.authenticated]);
 
   useEffect(() => {
     if (!deskAccess?.authenticated || !canViewOperations) return undefined;
@@ -2373,7 +2387,9 @@ function DeskWorkspace({ onIdentityChanged }) {
       />
       <main id="rd-main" tabIndex={-1} className="yzu-main rd-v2-shell-main">
         {tab === "home" ? <ResearcherWelcome deskAccess={deskAccess} onGoTab={goTab} /> : null}
-        {main}
+        <Suspense fallback={<div className="rd-v2-page rd-v2-page-pending" aria-busy="true"><p className="rd-v2-muted">Loading…</p></div>}>
+          {main}
+        </Suspense>
         <JobReviewDialog jobId={reviewingJobId} canApprove={canApproveJobs}
           onClose={() => setReviewingJobId("")}
           onApproved={(id) => { setApprovedCollectionId(id); showToast("Collection approved"); refreshBackend(); }} />
