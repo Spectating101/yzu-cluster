@@ -5418,6 +5418,38 @@ body,
 
 .rd-v2-library-overlay-facts.compact { grid-template-columns: 1fr; }
 
+.rd-v2-library-citation {
+  margin-top: 14px;
+  border: 1px solid var(--rd-release-line, var(--rd-border));
+  border-radius: 10px;
+  background: #fbfaf6;
+}
+
+.rd-v2-library-citation header {
+  align-items: center;
+  margin: 0;
+  padding: 8px 10px 8px 12px;
+  border-bottom: 1px solid var(--rd-release-line, var(--rd-border));
+}
+
+.rd-v2-library-citation header span {
+  color: var(--rd-muted);
+  font-size: var(--rd-text-xs);
+  font-weight: 600;
+}
+
+.rd-v2-library-citation pre {
+  margin: 0;
+  padding: 12px;
+  overflow-x: auto;
+  color: var(--rd-text);
+  font-family: var(--rd-mono, ui-monospace, monospace);
+  font-size: var(--rd-text-xs);
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 .rd-v2-library-tech-disclosure {
   margin-top: 18px;
   padding-top: 14px;

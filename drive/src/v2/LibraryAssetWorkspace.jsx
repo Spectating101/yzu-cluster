@@ -20,6 +20,7 @@ import { collectionRecipe } from "./collectionRecipe.js";
 import { coverageText } from "./coverageText.js";
 import { LibraryPackagePanel } from "./LibraryPackagePanel.jsx";
 import { datasetDownloadHref } from "@/v2/askDownloadLink";
+import { datasetCitation } from "./datasetCitation.js";
 
 function value(...candidates) {
   return candidates.map((item) => String(item || "").trim()).find(Boolean) || "Not documented";
@@ -91,6 +92,28 @@ function ReceiptFact({ label, value: factValue, href = "", mono = false, testId 
   );
 }
 
+function CitationBlock({ label, text: citation, testId }) {
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(citation);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
+    } catch {
+      setCopied(false);
+    }
+  };
+  return (
+    <div className="rd-v2-library-citation" data-testid={testId}>
+      <header>
+        <span>{label}</span>
+        <button type="button" className="rd-v2-btn sm" onClick={copy}>{copied ? "Copied" : "Copy"}</button>
+      </header>
+      <pre tabIndex={0}>{citation}</pre>
+    </div>
+  );
+}
+
 function AssetOverlay({ kind, dataset, fields, presentation, onClose }) {
   const closeButtonRef = useRef(null);
   const restoreFocusRef = useRef(null);
@@ -124,7 +147,7 @@ function AssetOverlay({ kind, dataset, fields, presentation, onClose }) {
   if (!kind) return null;
   const scholarly = presentation.kind === "scholarly_work";
   const liveSource = presentation.kind === "live_source";
-  const title = kind === "fields" ? presentation.structureTitle : "Source and provenance";
+  const title = kind === "fields" ? presentation.structureTitle : kind === "cite" ? "Cite this dataset" : "Source and provenance";
   const names = fieldNames(dataset, fields);
   const terms = recordTerms(dataset);
   const verification = libraryVerification(dataset);
@@ -140,7 +163,9 @@ function AssetOverlay({ kind, dataset, fields, presentation, onClose }) {
           </div>
           <button ref={closeButtonRef} type="button" className="rd-v2-btn sm" onClick={onClose} aria-label="Close inspection">Close</button>
         </header>
-        {kind === "fields" ? (
+        {kind === "cite" ? (
+          <CiteContent dataset={dataset} />
+        ) : kind === "fields" ? (
           scholarly ? (
             <>
               <p>
@@ -235,6 +260,24 @@ function AssetOverlay({ kind, dataset, fields, presentation, onClose }) {
         )}
       </section>
     </div>
+  );
+}
+
+function CiteContent({ dataset }) {
+  const citation = datasetCitation(dataset);
+  const gaps = [
+    citation.hasDate ? "" : "a retrieval date",
+    citation.hasUrl ? "" : "a citable source URL",
+  ].filter(Boolean);
+  return (
+    <>
+      <p>For a methods section or reference list. Check the publisher’s own citation guidance where it has one.</p>
+      <CitationBlock label="APA 7" text={citation.apa} testId="library-citation-apa" />
+      <CitationBlock label="BibTeX" text={citation.bib} testId="library-citation-bibtex" />
+      {gaps.length ? (
+        <p className="rd-v2-library-verification-note">The Library record has no {gaps.join(" or ")} for this data, so the citation leaves it out.</p>
+      ) : null}
+    </>
   );
 }
 
@@ -605,6 +648,7 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onOpenQuery,
           ) : null}
           <span className="rd-v2-library-workspace-secondary">
             <button type="button" className="rd-v2-btn ghost" onClick={() => setOverlay("provenance")}>Source record</button>
+            {presentation.noun === "dataset" ? <button type="button" className="rd-v2-btn ghost" onClick={() => setOverlay("cite")}>Cite</button> : null}
             {canQuery ? <button type="button" className="rd-v2-btn ghost" onClick={() => setPackageOpen(true)}>Export with provenance</button> : null}
             {onRefreshData && collectionRecipe(dataset) ?
               <button type="button" className="rd-v2-btn ghost" disabled={refreshBusy} onClick={refreshData}>{refreshBusy ? "Preparing refresh…" : "Refresh data"}</button> : null}

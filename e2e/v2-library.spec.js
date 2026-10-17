@@ -50,6 +50,23 @@ test.describe("v2 Library evidence estate", () => {
     await expect(row).toBeFocused();
   });
 
+  test("Cite gives an APA and BibTeX citation for the dataset and returns focus on Escape", async ({ page }) => {
+    await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
+    await page.getByTestId("library-evidence-row").filter({ hasText: "Asia daily news-risk panel" }).click();
+    const cite = page.getByRole("button", { name: "Cite", exact: true });
+    await cite.click();
+    const dialog = page.getByRole("dialog", { name: "Cite this dataset" });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByTestId("library-citation-apa")).toContainText("Asia daily news-risk panel [Data set; Research Drive");
+    await expect(dialog.getByTestId("library-citation-bibtex")).toContainText("@misc{");
+    await dialog.getByTestId("library-citation-apa").getByRole("button", { name: "Copy" }).click();
+    await expect(dialog.getByTestId("library-citation-apa").getByRole("button", { name: "Copied" })).toBeVisible();
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toContain("[Data set; Research Drive");
+    await page.keyboard.press("Escape");
+    await expect(dialog).toHaveCount(0);
+    await expect(cite).toBeFocused();
+  });
+
   test("a column bar filters the table to its rows and clears back to the sample", async ({ page }) => {
     const rows = Array.from({ length: 30 }, (_, index) => ({ region: index % 3 ? "Asia" : "Europe", score: index }));
     await page.route("**/query/*", (route) => {
