@@ -1384,6 +1384,7 @@ summary:focus-visible {
 .s04-desk-error > strong { display: block; font-size: var(--rd-text-sm); margin-bottom: 3px; }
 .s04-desk-error > p { margin: 0; font-size: var(--rd-text-xs); color: var(--rd-muted, #5d6574); }
 .s04-desk-error > details { margin-top: 7px; }
+.s04-desk-error > .rd-v2-btn { margin-top: 8px; }
 .s04-desk-error > details > summary {
   font-size: var(--rd-text-2xs); color: var(--rd-muted, #5d6574); cursor: pointer;
 }

@@ -23,7 +23,13 @@ export function V2Sidebar({
   const recent = Array.isArray(recentItems) ? recentItems.slice(0, 4) : [];
 
   useEffect(() => {
-    activeButtonRef.current?.scrollIntoView({ block: "nearest", inline: "center" });
+    const button = activeButtonRef.current;
+    const scroller = button?.closest("nav") || button?.parentElement;
+    if (!button || !scroller) return;
+    const box = button.getBoundingClientRect();
+    const view = scroller.getBoundingClientRect();
+    if (box.left >= view.left && box.right <= view.right && box.top >= view.top && box.bottom <= view.bottom) return;
+    button.scrollIntoView({ block: "nearest", inline: "center" });
   }, [tab]);
 
   function renderNavButton({ id, label, Icon }) {

@@ -624,6 +624,7 @@ export function BrowsePage({
   partitions = [],
   shelves = [],
   loadError = "",
+  onRetryLoad,
   onOpenLibraryResults,
   onOpenInLibrary,
   catalog = [],
@@ -1491,7 +1492,7 @@ export function BrowsePage({
       toolbar={demoMode ? <Chip warn>Demo preview · static sample</Chip> : null}
       surfaceState={exploreSurfaceState}
     >
-      {!q && loadError ? <DeskError raw={loadError} surface="Discover's Library index" /> : null}
+      {!q && loadError ? <DeskError raw={loadError} surface="Discover's Library index" onRetry={onRetryLoad} /> : null}
       <div className="rd-v2-discover-browse" data-testid="discover-browse-mode" data-mode="browse">
         {synthesisHandoff ? (
           <section className="rd-v2-synthesis-handoff" data-testid="synthesis-discover-handoff" aria-label="Synthesis evidence handoff">

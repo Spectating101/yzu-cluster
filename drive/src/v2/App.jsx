@@ -308,6 +308,7 @@ function DeskWorkspace({ onIdentityChanged }) {
   const [historyEvents, setHistoryEvents] = useState([]);
   const [selectedHistoryId, setSelectedHistoryId] = useState("");
   const [loadError, setLoadError] = useState("");
+  const liveCatalogLoadedRef = useRef(false);
   const [deskAccess, setDeskAccess] = useState(null);
   const [deskAccessBusy, setDeskAccessBusy] = useState(true);
   const [health, setHealth] = useState(null);
@@ -511,11 +512,12 @@ function DeskWorkspace({ onIdentityChanged }) {
   }, [profile, deskAccess?.authenticated, canViewFacultyProfile, deskAccess?.principal?.role]);
 
   const applyCatalog = useCallback((rows, errMsg = "") => {
-    const { catalog, usingSeed: seed } = resolveCatalog(rows, { fallbackToSeed: Boolean(errMsg) });
-    setDatasets(catalog);
+    const { catalog, usingSeed: seed } = resolveCatalog(rows, { fallbackToSeed: Boolean(errMsg) && Boolean(import.meta.env?.DEV) });
+    if (!errMsg || seed || !liveCatalogLoadedRef.current) setDatasets(catalog);
+    if (!errMsg) liveCatalogLoadedRef.current = true;
     setCatalogLoading(false);
     setUsingSeed(seed);
-    setLoadError(seed ? errMsg : "");
+    setLoadError(errMsg);
   }, []);
 
   const refreshBackend = useCallback(async (opts = {}) => {
@@ -1918,6 +1920,7 @@ function DeskWorkspace({ onIdentityChanged }) {
           jobs={jobs}
           usingSeed={usingSeed}
           loadError={loadError}
+          onRetryLoad={() => refreshBackend()}
           onAskComposer={canUseAsk ? askFromPrompt : undefined}
           onGoTab={goTab}
           onOpenAttention={openHomeAttention}
@@ -1998,6 +2001,7 @@ function DeskWorkspace({ onIdentityChanged }) {
           partitions={partitions}
           shelves={shelves}
           loadError={loadError}
+          onRetryLoad={() => refreshBackend()}
           onOpenLibraryResults={openLibraryResultsFromDiscover}
           catalog={catalog}
           resourcesRollup={resourcesRollup}
@@ -2296,17 +2300,7 @@ function DeskWorkspace({ onIdentityChanged }) {
 
   return (
     <div className={`yzu-shell with-inspector rd-theme-light rd-v2-shell${hideRail ? " no-rail" : ""}${railFolded ? " rail-folded" : ""}`}>
-      <button
-        type="button"
-        className="rd-v2-rail-fold"
-        data-testid="rail-fold"
-        aria-expanded={!railFolded}
-        aria-label={railFolded ? "Show side panel" : "Hide side panel"}
-        title={railFolded ? "Show side panel" : "Hide side panel"}
-        onClick={() => foldRail(!railFolded)}
-      >
-        <span aria-hidden="true">{railFolded ? "‹" : "›"}</span>
-      </button>
+      <a className="rd-v2-skip-link" href="#rd-main">Skip to main content</a>
       {accessMode && deskAccess?.principal?.role === "public_guest" ? (
         <AccessScreen
           mode={accessMode}
@@ -2342,7 +2336,9 @@ function DeskWorkspace({ onIdentityChanged }) {
         }
         onPendingClick={canApproveJobs ? () => openDiscoverAwaiting() : undefined}
         deskStatus={
-          health == null
+          loadError && !usingSeed
+            ? "degraded"
+            : health == null
             ? !canViewOperations && datasets.length > 0
               ? "ok"
               : "syncing"
@@ -2375,7 +2371,7 @@ function DeskWorkspace({ onIdentityChanged }) {
           if (item?.dataset) openLibraryDataset(item.dataset);
         }}
       />
-      <main className="yzu-main rd-v2-shell-main">
+      <main id="rd-main" tabIndex={-1} className="yzu-main rd-v2-shell-main">
         {tab === "home" ? <ResearcherWelcome deskAccess={deskAccess} onGoTab={goTab} /> : null}
         {main}
         <JobReviewDialog jobId={reviewingJobId} canApprove={canApproveJobs}
@@ -2403,6 +2399,17 @@ function DeskWorkspace({ onIdentityChanged }) {
           }}
         />
       </main>
+      <button
+        type="button"
+        className="rd-v2-rail-fold"
+        data-testid="rail-fold"
+        aria-expanded={!railFolded}
+        aria-label={railFolded ? "Show side panel" : "Hide side panel"}
+        title={railFolded ? "Show side panel" : "Hide side panel"}
+        onClick={() => foldRail(!railFolded)}
+      >
+        <span aria-hidden="true">{railFolded ? "‹" : "›"}</span>
+      </button>
       <AskAccessContext.Provider value={canUseAsk}>
         <InspectorRail
           folded={railFolded}

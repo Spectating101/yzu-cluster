@@ -243,6 +243,7 @@ export function HomePage({
   onSignIn,
   onCreateAccount,
   loadError = "",
+  onRetryLoad,
   onGoTab,
   onOpenAttention,
   onSelectDataset,
@@ -365,7 +366,7 @@ export function HomePage({
       footer={null}
       surfaceState={surfaceState}
     >
-      {loadError ? <DeskError raw={loadError} surface="Home's Library briefing" /> : null}
+      {loadError ? <DeskError raw={loadError} surface="Home's Library briefing" onRetry={onRetryLoad} /> : null}
       <div className="rd-v2-home-topband" data-home-posture={isGuest ? "welcome" : homePosture.id}>
         {isGuest ? (
           <section className="rd-v2-home-pickup" aria-label="Welcome">

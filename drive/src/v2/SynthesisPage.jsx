@@ -1798,6 +1798,7 @@ export function SynthesisPage({
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [threadsLoadError, setThreadsLoadError] = useState("");
   const [newMode, setNewMode] = useState(false);
   const [objective, setObjective] = useState("");
   const [interpretingStalled, setInterpretingStalled] = useState(false);
@@ -1839,7 +1840,9 @@ export function SynthesisPage({
       setSelectedId((current) => current && next.some((thread) => thread.id === current) ? current : "");
       if (!next.length) setNewMode(false);
     } catch (cause) {
-      setError(text(cause?.message, "Synthesis threads could not be loaded."));
+      const message = text(cause?.message, "Synthesis threads could not be loaded.");
+      setError(message);
+      setThreadsLoadError(message);
     } finally {
       setLoading(false);
     }
@@ -2416,7 +2419,7 @@ export function SynthesisPage({
       </SynthesisSidebarPortal>
       <div className="s04-shell" data-testid="synthesis-studio">
         <div className="s04-main">
-          {error ? <DeskError raw={error} surface="your builds" alert /> : null}
+          {error ? <DeskError raw={error} surface="your builds" alert onRetry={error === threadsLoadError ? () => refreshThreads() : undefined} /> : null}
           {newMode ? (
             <NewThread
               objective={objective}

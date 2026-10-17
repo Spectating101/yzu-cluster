@@ -250,13 +250,17 @@ function LibraryHeadActions({
 
 function LibraryAssetInspector({ dataset, onClose, onPreview, onOpenQuery, onAsk, onRefreshData }) {
   const inspectorRef = useRef(null);
+  const scrimRef = useRef(null);
 
   useEffect(() => {
     if (!dataset) return undefined;
     const opener = document.activeElement;
+    const background = scrimRef.current?.previousElementSibling || null;
+    if (background) background.inert = true;
     const frame = window.requestAnimationFrame(() => inspectorRef.current?.focus());
     return () => {
       window.cancelAnimationFrame(frame);
+      if (background) background.inert = false;
       if (opener?.isConnected) opener.focus();
     };
   }, [dataset?.dataset_id]);
@@ -265,6 +269,7 @@ function LibraryAssetInspector({ dataset, onClose, onPreview, onOpenQuery, onAsk
 
   return (
     <div
+      ref={scrimRef}
       className="rd-v2-library-inspector-scrim"
       data-testid="library-asset-inspector"
       onKeyDown={(event) => {
@@ -747,7 +752,7 @@ export function LibraryPage({
             </div>
           </div>
         ) : null}
-        {loadError ? <DeskError raw={loadError} surface="your Library" /> : null}
+        {loadError ? <DeskError raw={loadError} surface="your Library" onRetry={onRefresh} /> : null}
         {navigationError ? <DeskError raw={navigationError} surface="Library collections" /> : null}
 
         {isRoot ? (

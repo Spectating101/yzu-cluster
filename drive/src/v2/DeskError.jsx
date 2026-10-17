@@ -2,13 +2,14 @@ import { deskErrorCopy } from "@/v2/deskErrorCopy";
 
 /** A transport failure said in the reader's terms; the raw text stays as detail.
  *  Shared so every page reports a failed load the same way. */
-export function DeskError({ raw, surface, alert = false }) {
+export function DeskError({ raw, surface, alert = false, onRetry }) {
   const copy = deskErrorCopy(raw, { surface });
   if (!copy) return null;
   return (
     <div className="s04-desk-error" role={alert ? "alert" : undefined} data-testid="desk-error">
       <strong>{copy.headline}</strong>
       <p>{copy.body}</p>
+      {onRetry ? <button type="button" className="rd-v2-btn sm" onClick={onRetry}>Try again</button> : null}
       <details>
         <summary>What Research Drive reported</summary>
         <code>{copy.detail}</code>
