@@ -1250,8 +1250,7 @@ button {
   font-family: var(--rd-font);
   font-size: var(--rd-text-2xs);
   font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
 }
 
 .rd-v2-detail-val {
@@ -4824,9 +4823,8 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
   color: var(--rd-muted);
   font-family: var(--rd-font);
   font-size: var(--rd-text-2xs);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
 .rd-v2-rail-decision-value {

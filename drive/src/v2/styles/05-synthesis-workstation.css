@@ -1439,9 +1439,8 @@
 .rd-v2-synthesis-page .s04-opening-workflow li.now b {
   color: #5b6578 !important;
   font-size: var(--rd-text-2xs);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
 .rd-v2-synthesis-page .s04-opening-workflow li small {
@@ -3491,9 +3490,8 @@
   #root .rd-v2-synthesis-page :is(.s04-rail-gates,.s04-rail-evidence-ledger,.s04-rail-measurement) > header span {
     color: #5b6578 !important;
     font-size: var(--rd-text-2xs) !important;
-    font-weight: 700 !important;
-    letter-spacing: 0.06em !important;
-    text-transform: uppercase !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.01em !important;
   }
 
   #root .rd-v2-synthesis-page :is(.s04-rail-gates,.s04-rail-evidence-ledger,.s04-rail-measurement) > header strong {
@@ -3563,7 +3561,6 @@
   #root .rd-v2-synthesis-page .s04-rail-measurement dt {
     color: #5b6578 !important;
     font-size: var(--rd-text-2xs) !important;
-    text-transform: uppercase !important;
   }
   #root .rd-v2-synthesis-page .s04-rail-measurement dd {
     margin: 2px 0 0 !important;
@@ -3632,10 +3629,9 @@
   ) > header span {
     color: #5b6578 !important;
     font-size: var(--rd-text-2xs) !important;
-    font-weight: 700 !important;
-    letter-spacing: 0.06em !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.01em !important;
     line-height: 1.2 !important;
-    text-transform: uppercase !important;
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] :is(
@@ -3764,9 +3760,8 @@
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-measurement dt {
     color: #5b6578 !important;
     font-size: var(--rd-text-2xs) !important;
-    font-weight: 700 !important;
-    letter-spacing: 0.06em !important;
-    text-transform: uppercase !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.01em !important;
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-measurement dd {
@@ -3941,10 +3936,9 @@
   flex: 0 0 auto;
   color: #5b6578;
   font-size: var(--rd-text-2xs);
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-weight: 600;
+  letter-spacing: 0.01em;
   line-height: 1;
-  text-transform: uppercase;
 }
 
 .rd-v2-synthesis-page-authority select {
@@ -4069,10 +4063,9 @@
   ) > header span {
     color: #5b6578 !important;
     font-size: var(--rd-text-2xs) !important;
-    font-weight: 700 !important;
-    letter-spacing: 0.06em !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.01em !important;
     line-height: 1.2 !important;
-    text-transform: uppercase !important;
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] :is(
@@ -4238,9 +4231,8 @@
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-measurement dt {
     color: #5b6578 !important;
     font-size: var(--rd-text-2xs) !important;
-    font-weight: 700 !important;
-    letter-spacing: 0.06em !important;
-    text-transform: uppercase !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.01em !important;
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-measurement dd {
@@ -4363,10 +4355,9 @@
   body:has(.rd-v2-synthesis-page) .s04-rail-proof > header span {
     color: #5b6578 !important;
     font-size: var(--rd-text-2xs) !important;
-    font-weight: 700 !important;
-    letter-spacing: 0.06em !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.01em !important;
     line-height: 1.2 !important;
-    text-transform: uppercase !important;
   }
 
   body:has(.rd-v2-synthesis-page) .s04-rail-proof ul {
@@ -4565,9 +4556,8 @@
   color: #5b6578;
   font-family: var(--rd-font);
   font-size: var(--rd-text-2xs);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
 .rd-v2-synthesis-agent-head strong {
