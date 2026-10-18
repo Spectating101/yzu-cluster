@@ -15,7 +15,8 @@ import { holdingRoleLabel, summarizeLibraryHoldings } from "@/v2/libraryHoldings
 import { RailFrame, RailStickyFooter } from "@/v2/RailFrame";
 import { plainRoute } from "@/v2/plainText";
 import { datasetDownloadHref } from "@/v2/askDownloadLink";
-import { MEMBERS_ONLY_TEXT, licensedRowsLocked, requestDeskSignIn } from "@/v2/deskPermissions";
+import { requestDeskSignIn } from "@/v2/deskPermissions";
+import { MEMBERS_ONLY_TEXT, licensedRowsLocked } from "@/v2/licensedAccess";
 
 export function decisionFor(dataset) {
   return canIUseDecision(dataset);
@@ -132,7 +133,10 @@ function provenanceBasis(dataset, receipt) {
   return "Not established";
 }
 
-function nextMove({ state, presentation, previewOpen, receipt, verification, freshness }) {
+function nextMove({ state, presentation, previewOpen, receipt, verification, freshness, locked }) {
+  if (locked) {
+    return "Read the description and columns here. Sign in with your Yuan Ze email to query the rows.";
+  }
   if (previewOpen) {
     return "Review the expanded sample in the centre. Observed rows do not upgrade verification, provenance, or freshness.";
   }
@@ -180,7 +184,7 @@ function DecisionBasis({ state, verification, dataset, receipt, previewOpen, pre
       </div>
       <div className="rd-v2-library-inspector-next">
         <span>{previewOpen ? "Sample state" : "Next move"}</span>
-        <p>{nextMove({ state, presentation, previewOpen, receipt, verification, freshness })}</p>
+        <p>{nextMove({ state, presentation, previewOpen, receipt, verification, freshness, locked: licensedRowsLocked(dataset) })}</p>
       </div>
     </section>
   );

@@ -1,5 +1,6 @@
 /** Map registry rows → frozen UI labels (Detail + StatusPill). */
 import { coverageText } from "./coverageText.js";
+import { MEMBERS_ONLY_TEXT, licensedRowsLocked } from "./licensedAccess.js";
 
 /** Exact readiness tokens that mean smoke-proven / instant local query — never fuzzy `/query|ready/`. */
 export function isQueryReadyReadiness(value) {
@@ -121,6 +122,9 @@ export function canIUseDecision(dataset) {
   }
   const state = statusPillKind(dataset);
   const assetKind = libraryAssetKind(dataset);
+  if (state.kind === "query-ready" && licensedRowsLocked(dataset)) {
+    return { headline: "For Yuan Ze members", body: MEMBERS_ONLY_TEXT };
+  }
   if (state.kind === "query-ready") {
     return {
       headline: "Ready to query",

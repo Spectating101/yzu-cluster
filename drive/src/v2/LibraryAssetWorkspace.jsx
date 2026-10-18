@@ -20,7 +20,8 @@ import { collectionRecipe } from "./collectionRecipe.js";
 import { coverageText } from "./coverageText.js";
 import { LibraryPackagePanel } from "./LibraryPackagePanel.jsx";
 import { datasetDownloadHref } from "@/v2/askDownloadLink";
-import { MEMBERS_ONLY_TEXT, licensedRowsLocked, requestDeskSignIn, useDeskPermission } from "@/v2/deskPermissions";
+import { requestDeskSignIn, useDeskPermission } from "@/v2/deskPermissions";
+import { MEMBERS_ONLY_TEXT, licensedRowsLocked } from "@/v2/licensedAccess";
 import { datasetCitation } from "./datasetCitation.js";
 
 function value(...candidates) {

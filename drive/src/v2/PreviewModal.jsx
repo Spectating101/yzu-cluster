@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MEMBERS_ONLY_TEXT, licensedRowsLocked } from "@/v2/deskPermissions";
+import { MEMBERS_ONLY_TEXT, licensedRowsLocked } from "@/v2/licensedAccess";
 import { previewCellValue, researcherPreviewReason } from "@/v2/previewValue";
 import {
   downloadText,

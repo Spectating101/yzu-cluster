@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { queryDataset } from "@/v2/api";
 import { datasetDownloadHref } from "@/v2/askDownloadLink";
-import { MEMBERS_ONLY_TEXT, licensedRowsLocked } from "@/v2/deskPermissions";
+import { MEMBERS_ONLY_TEXT, licensedRowsLocked } from "@/v2/licensedAccess";
 import { previewCellValue } from "@/v2/previewValue";
 import { DATA_TABLE_ROW_LIMIT, filterRows, numericColumns, pageOf, sortRows, tableColumns } from "./dataTable.js";
 
