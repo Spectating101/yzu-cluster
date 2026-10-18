@@ -1,5 +1,14 @@
 import { displayName } from "@/v2/datasetMeta";
 
+export function briefly(text, limit = 130) {
+  const clean = String(text || "").replace(/\s+/g, " ").trim();
+  if (clean.length <= limit) return clean;
+  const first = clean.match(/^.{20,}?[.!?](?=\s|$)/);
+  if (first && first[0].length <= limit) return first[0];
+  const cut = clean.slice(0, limit);
+  return `${cut.slice(0, Math.max(cut.lastIndexOf(" "), 20))}…`;
+}
+
 export function finishedBuilds(catalog = []) {
   return catalog
     .filter((row) => String(row?.dataset_id || "").startsWith("synthesis_") || row?.synthesis_analysis)
@@ -21,7 +30,7 @@ export function GuestSynthesisShowcase({ catalog, onOpen }) {
           <li key={row.dataset_id}>
             <button type="button" onClick={() => onOpen?.({ dataset_id: row.dataset_id })}>
               <strong>{displayName(row)}</strong>
-              <span>{String(row.one_line || row.description || "").trim().slice(0, 140)}</span>
+              <span>{briefly(row.one_line || row.description)}</span>
             </button>
           </li>
         ))}

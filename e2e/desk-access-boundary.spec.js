@@ -184,7 +184,7 @@ test("a public guest can browse shared evidence but must sign in to Ask", async 
 
   await page.goto("/?tab=profile", { waitUntil: "domcontentloaded" });
   await expect(page.getByLabel("Research profile access")).toContainText("Profiles are personal workspaces");
-  await expect(page.getByLabel("Research profile access")).toContainText("Sign in to save your research profile");
+  await expect(page.getByLabel("Research profile access")).toContainText("A profile remembers who you are as a researcher");
   await expect(page.getByText(/Bind example identity|Loading example profile|Use EXAMPLE/)).toHaveCount(0);
   await expect.poll(() => facultyRequests).toEqual([]);
   await expect.poll(() => personalProfileRequests).toEqual([]);
