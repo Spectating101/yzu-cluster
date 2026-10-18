@@ -380,7 +380,7 @@ export function DiscoverEvidenceBrief({
           <p>
             {error
               ? "Results below are still usable. Run the check again before relying on what the Library covers."
-              : "Usually 10–20 seconds. The results below are already usable."}
+              : "Usually about 10 seconds. The results below are already usable."}
           </p>
         </div>
       ) : null}
