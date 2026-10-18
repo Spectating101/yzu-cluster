@@ -16,7 +16,7 @@ import { RailFrame, RailStickyFooter } from "@/v2/RailFrame";
 import { plainRoute } from "@/v2/plainText";
 import { datasetDownloadHref } from "@/v2/askDownloadLink";
 import { requestDeskSignIn } from "@/v2/deskPermissions";
-import { MEMBERS_ONLY_TEXT, licensedRowsLocked } from "@/v2/licensedAccess";
+import { licensedRowsLocked } from "@/v2/licensedAccess";
 
 export function decisionFor(dataset) {
   return canIUseDecision(dataset);
@@ -297,7 +297,6 @@ export function LibraryDatasetRailPanel({ dataset, catalog = [], previewOpen = f
               <button type="button" className="rd-v2-btn sm" onClick={() => requestDeskSignIn("signup")}>Sign in to download</button>
             </p>
           ) : null}
-          {licensedRowsLocked(dataset) ? <p className="rd-v2-library-inspector-prose">{MEMBERS_ONLY_TEXT}</p> : null}
           {hasReceiptDetails ? (
             <div className="rd-v2-library-inspector-facts rd-v2-library-provenance-facts">
               <Fact label={receipt.sourceUrlKind || "Exact source URL"} value={receipt.sourceUrl} href={receipt.sourceUrl} mono />
