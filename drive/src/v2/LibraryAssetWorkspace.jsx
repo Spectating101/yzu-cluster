@@ -389,6 +389,22 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
   const joinKeys = fields.joinKeys || [];
   const rowCount = dataset?.rows || dataset?.row_count || dataset?.num_rows || dataset?.records;
   const liveSource = presentation.kind === "live_source";
+  if (licensedRowsLocked(dataset)) {
+    return (
+      <section className="rd-v2-library-data-preview" aria-label="What this dataset holds" data-testid="library-data-preview">
+        <div className="rd-v2-library-section-heading">
+          <div>
+            <span className="rd-v2-eyebrow">Dataset inspection</span>
+            <h2>What this dataset holds</h2>
+          </div>
+          <div className="rd-v2-library-preview-tools">
+            <button type="button" className="rd-v2-btn sm" onClick={onInspect}>Inspect schema</button>
+          </div>
+        </div>
+        <LicensedBrief dataset={dataset} columns={names} />
+      </section>
+    );
+  }
   const coverage = coverageText(fields.coverage || dataset?.coverage).trim();
   const grain = String(dataset?.grain || "").trim();
 
@@ -414,7 +430,6 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
 
       {preview.loading ? <p className="rd-v2-library-muted">Reading a local sample…</p> : null}
       {!preview.loading && preview.error ? <p className="rd-v2-library-muted">{preview.error}</p> : null}
-      {licensedRowsLocked(dataset) ? <LicensedBrief dataset={dataset} /> : null}
       {!preview.loading && !preview.error && canQuery && !preview.rows.length ? (
         <p className="rd-v2-library-muted">The current query path returned no sample rows.</p>
       ) : null}

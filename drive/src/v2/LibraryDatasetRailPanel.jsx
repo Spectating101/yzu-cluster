@@ -135,7 +135,7 @@ function provenanceBasis(dataset, receipt) {
 
 function nextMove({ state, presentation, previewOpen, receipt, verification, freshness, locked }) {
   if (locked) {
-    return "Read the description and columns here. Sign in with your Yuan Ze email to query the rows.";
+    return "Read what it holds here. Sign in with your Yuan Ze email to query the rows.";
   }
   if (previewOpen) {
     return "Review the expanded sample in the centre. Observed rows do not upgrade verification, provenance, or freshness.";

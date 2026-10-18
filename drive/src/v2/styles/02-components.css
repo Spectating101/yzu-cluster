@@ -5329,6 +5329,31 @@ body,
   line-height: 1.45;
 }
 
+.rd-v2-library-licensed-brief {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 28px;
+  margin-top: 4px;
+}
+
+.rd-v2-library-licensed-brief > div {
+  min-width: 0;
+}
+
+.rd-v2-library-licensed-brief > .is-wide {
+  grid-column: 1 / -1;
+  padding-top: 12px;
+  border-top: 1px solid var(--rd-release-line, var(--rd-border));
+}
+
+.rd-v2-library-licensed-brief p {
+  margin: 4px 0 0;
+  color: var(--rd-text);
+  font-size: var(--rd-text-sm);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
 .rd-v2-library-record-terms {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
