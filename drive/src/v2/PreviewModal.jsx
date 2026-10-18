@@ -336,7 +336,9 @@ export function PreviewModal({
         if (cancelled) return;
         setExternalPreview({
           status: "failed",
-          reason: failure?.message || "The source sample preview could not be loaded.",
+          reason: /lacks permission: inspect_sources/.test(String(failure?.message || ""))
+            ? "Checking an outside source makes our server fetch it, so it needs an account. Create a free account to inspect it, or open the source yourself."
+            : failure?.message || "The source sample preview could not be loaded.",
         });
       })
       .finally(() => {

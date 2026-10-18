@@ -8,7 +8,7 @@ const access = (role) => ({
   principal: { id: `${role}-fixture`, role, display_name: role, email: role === "public_guest" ? null : "alice@example.test" },
   permissions: {
     view_research_data: true,
-    download_research_data: role !== "public_guest",
+    download_research_data: true,
     view_licensed_data: role === "member",
     use_ask: role !== "public_guest",
     manage_research_profile: role !== "public_guest",
@@ -43,22 +43,15 @@ async function explore(page, query) {
   await expect(page.getByTestId("discover-result-summary")).toBeVisible();
 }
 
-test("a guest's question gets Library results and an invitation, not a coverage check", async ({ page }) => {
+test("a guest's question gets the coverage check too, with no sign-in prompt", async ({ page }) => {
   await mockV2Api(page, { discoverBody: MOCK_DISCOVER_HIT, assessmentBody: MOCK_DISCOVER_ASSESSMENT });
   await page.route("**/library/desk/capabilities", (route) => fulfill(route, access("public_guest")));
-  const assessments = [];
-  page.on("request", (request) => { if (request.url().includes("/library/discover/assessment")) assessments.push(request.method()); });
   await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
   await explore(page, "Do we hold issuer-quarter governance data for Taiwan?");
-  await expect(page.locator(".rd-v2-evidence-brief.is-workspace")).toHaveCount(0);
   await page.getByTestId("discover-assess-coverage").click();
-
-  const invite = page.getByTestId("discover-assessment-needs-account");
-  await expect(invite).toContainText("The coverage check needs a free account");
-  expect(assessments).toEqual([]);
-  await invite.getByRole("button", { name: "Create account" }).click();
-  await expect(page.getByTestId("access-screen")).toBeVisible();
+  await expect(page.locator(".rd-v2-evidence-brief.is-workspace").getByTestId("discover-verdict")).toBeVisible();
+  await expect(page.getByTestId("discover-assessment-needs-account")).toHaveCount(0);
 });
 
 test("a public account gets the coverage check", async ({ page }) => {
