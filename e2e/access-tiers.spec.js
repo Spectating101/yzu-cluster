@@ -30,6 +30,11 @@ const LICENSED = {
   licensed: true,
   access: "yzu_members",
   rows_available: false,
+  row_count: 570,
+  coverage: "Snapshot pulled 2026-07-06",
+  join_keys: ["ric"],
+  best_use: "ESG factor overlays on equity panels",
+  limitations: "Snapshot only; not time series.",
 };
 
 async function explore(page, query) {
@@ -77,7 +82,14 @@ test("a licensed dataset shows what it is but asks for a Yuan Ze sign-in instead
 
   const workspace = page.getByTestId("library-asset-workspace");
   await expect(workspace).toContainText("University subscription");
-  await expect(workspace.getByTestId("library-members-only")).toContainText("Yuan Ze members");
+  const brief = workspace.getByTestId("library-members-only");
+  await expect(brief).toContainText("570 rows");
+  await expect(brief).toContainText("Snapshot pulled 2026-07-06");
+  await expect(brief).toContainText("ric");
+  await expect(brief).toContainText("ESG factor overlays on equity panels");
+  await expect(brief).toContainText("Snapshot only; not time series.");
+  await expect(brief).toContainText("Yuan Ze members");
+  await expect(page.getByTestId("library-evidence-row").filter({ hasText: "LSEG ESG pillar snapshot" }).first()).toContainText("Members only");
   await expect(workspace.getByRole("button", { name: "View all rows" })).toHaveCount(0);
   expect(queried).toEqual([]);
   await workspace.getByTestId("library-workspace-members-sign-in").click();

@@ -21,7 +21,8 @@ import { coverageText } from "./coverageText.js";
 import { LibraryPackagePanel } from "./LibraryPackagePanel.jsx";
 import { datasetDownloadHref } from "@/v2/askDownloadLink";
 import { requestDeskSignIn, useDeskPermission } from "@/v2/deskPermissions";
-import { MEMBERS_ONLY_TEXT, licensedRowsLocked } from "@/v2/licensedAccess";
+import { licensedRowsLocked } from "@/v2/licensedAccess";
+import { LicensedBrief } from "./LicensedBrief.jsx";
 import { datasetCitation } from "./datasetCitation.js";
 
 function value(...candidates) {
@@ -413,7 +414,7 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
 
       {preview.loading ? <p className="rd-v2-library-muted">Reading a local sample…</p> : null}
       {!preview.loading && preview.error ? <p className="rd-v2-library-muted">{preview.error}</p> : null}
-      {licensedRowsLocked(dataset) ? <p className="rd-v2-library-muted" data-testid="library-members-only">{MEMBERS_ONLY_TEXT}</p> : null}
+      {licensedRowsLocked(dataset) ? <LicensedBrief dataset={dataset} /> : null}
       {!preview.loading && !preview.error && canQuery && !preview.rows.length ? (
         <p className="rd-v2-library-muted">The current query path returned no sample rows.</p>
       ) : null}

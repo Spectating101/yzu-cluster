@@ -85,7 +85,9 @@ export function statusPillKind(dataset) {
     return { kind: "external", label: "External" };
   }
   if (isQueryReadyReadiness(readiness)) {
-    return { kind: "query-ready", label: "Ready to query" };
+    return licensedRowsLocked(dataset)
+      ? { kind: "query-ready", label: "Members only", locked: true }
+      : { kind: "query-ready", label: "Ready to query" };
   }
   if (readiness === "registered") {
     if (String(dataset?.access_shape || "").toLowerCase() === "local_file_tree") {

@@ -16,6 +16,16 @@ const STYLES = {
 };
 
 const GUIDANCE = {
+  members: {
+    title: "Yuan Ze members",
+    summary: "This data comes from a university subscription (LSEG, CRSP or Compustat). Its licence limits the rows to Yuan Ze members.",
+    checks: [
+      "You can read what it is, its columns, size and coverage",
+      "Rows, samples and downloads need a Yuan Ze member sign-in",
+      "The licence decides this, not Research Drive",
+    ],
+    next: "Sign in with your Yuan Ze email to query it.",
+  },
   "query-ready": {
     title: "Ready to query",
     summary: "This data has passed the checks needed for analysis inside Research Drive.",
@@ -122,8 +132,8 @@ export function StatusPill({ dataset, label, explain = true }) {
   const state = statusPillKind(dataset);
   const text = uiVocabularyLabel(label || state.label);
   const kind = state.kind;
-  const cls = STYLES[kind] || STYLES.unknown;
-  const guidance = GUIDANCE[kind] || GUIDANCE.unknown;
+  const cls = state.locked ? STYLES.registered : STYLES[kind] || STYLES.unknown;
+  const guidance = state.locked ? GUIDANCE.members : GUIDANCE[kind] || GUIDANCE.unknown;
   return (
     <span className={cls}>
       <span className="rd-v2-status-dot" aria-hidden />
