@@ -8,7 +8,7 @@ import {
 import { buildProfessorVaultTree, datasetTitle, isOpsNoiseDataset } from "@/v2/professorVaultTree";
 import { libraryFolderObject } from "@/v2/activeObject";
 import { CatalogList } from "@/v2/CatalogList";
-import { libraryAssetPresentation, statusPillKind } from "@/v2/datasetMeta";
+import { isMembersOnly, libraryAssetPresentation, statusPillKind } from "@/v2/datasetMeta";
 import { libraryVerification } from "@/v2/libraryVerification";
 import { isBrowsableLibraryLocation, normalizeLibraryLocations } from "@/v2/libraryLocations";
 import { LibraryAssetWorkspace } from "@/v2/LibraryAssetWorkspace";
@@ -31,7 +31,11 @@ function datasetListItem(row) {
 }
 
 function readinessCount(rows) {
-  return rows.filter((d) => statusPillKind(d).kind === "query-ready").length;
+  return rows.filter((d) => statusPillKind(d).kind === "query-ready" && !isMembersOnly(d)).length;
+}
+
+function membersOnlyCount(rows) {
+  return rows.filter((d) => isMembersOnly(d)).length;
 }
 
 function itemDataset(item) {
@@ -76,9 +80,11 @@ function itemVerificationConfirmed(item) {
 function itemMatchesFilter(item, mode) {
   if (mode === "all" || item?.kind === "folder") return true;
   const row = itemDataset(item);
-  const ready = statusPillKind(row).kind === "query-ready";
+  const locked = isMembersOnly(row);
+  const ready = statusPillKind(row).kind === "query-ready" && !locked;
   if (mode === "ready") return ready;
-  if (mode === "not_ready") return !ready;
+  if (mode === "members") return locked;
+  if (mode === "not_ready") return !ready && !locked;
   if (mode === "confirmed") return itemVerificationConfirmed(item);
   if (mode === "unconfirmed") return !itemVerificationConfirmed(item);
   return true;
@@ -503,7 +509,8 @@ export function LibraryPage({
     [folderRows, tree],
   );
   const readyCount = readinessCount(branchDatasetRows);
-  const nonReadyCount = Math.max(0, branchDatasetRows.length - readyCount);
+  const lockedCount = membersOnlyCount(branchDatasetRows);
+  const nonReadyCount = Math.max(0, branchDatasetRows.length - readyCount - lockedCount);
   const confirmedCount = branchDatasetRows.filter((row) => itemVerificationConfirmed(datasetListItem(row))).length;
   const browseDatasetCount = branchDatasetRows.length;
   const holdingsPending = loading && !vaultDatasets.length;
@@ -530,11 +537,12 @@ export function LibraryPage({
         folderCount,
         datasetCount: browseDatasetCount,
         readyCount,
+        membersOnlyCount: lockedCount,
         itemCount: isRoot ? estateRows.length : visibleRows.length,
         referenceCount: isRoot ? referenceCount : 0,
         loading: holdingsPending,
       }),
-    [branchNote, browseDatasetCount, destination, estateRows.length, folderCount, folderId, holdingsPending, isRoot, readyCount, referenceCount, trail, visibleRows.length],
+    [branchNote, browseDatasetCount, destination, estateRows.length, folderCount, folderId, holdingsPending, isRoot, lockedCount, readyCount, referenceCount, trail, visibleRows.length],
   );
 
   useEffect(() => {
@@ -656,6 +664,7 @@ export function LibraryPage({
                   <option value="all">Any</option>
                   <optgroup label="Query readiness">
                     <option value="ready">Ready to query · {readyCount}</option>
+                    {lockedCount > 0 || filterMode === "members" ? <option value="members">Members only · {lockedCount}</option> : null}
                     <option value="not_ready">Not ready to query · {nonReadyCount}</option>
                   </optgroup>
                   {(confirmedCount > 0 && confirmedCount < branchDatasetRows.length) || filterMode === "confirmed" || filterMode === "unconfirmed" ? (
@@ -750,6 +759,7 @@ export function LibraryPage({
                 {searchActive ? " matched" : ""}
               </span>
               <span>{readyCount} ready to query</span>
+              {lockedCount > 0 ? <span>{lockedCount} members only</span> : null}
             </div>
           </div>
         ) : null}

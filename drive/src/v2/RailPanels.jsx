@@ -208,7 +208,7 @@ const PAGE_RAIL_COPY = {
     title: "Your resources",
     desc: "What you can use, what you have asked for, and how collection is approved.",
     fields: [
-      ["Assistant", "Ask and coverage checks use your hourly allowance"],
+      ["Assistant", "Ask uses your hourly allowance; coverage checks and downloads are open to everyone"],
       ["Requests", "Each collection waits for a research operator's approval"],
       ["Library", "Collected data returns to the shared Library with its source"],
     ],

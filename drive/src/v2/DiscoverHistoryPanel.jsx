@@ -4,6 +4,7 @@ import { Chip } from "@/v2/ui";
 import { fenceHistoryEvents, systemVerificationClassification } from "@/v2/historyNoiseFence";
 import { historyEvidenceSummary, historyLifecycleBucket } from "@/v2/discoverAdapters";
 import { waitingAge } from "./historyAge.js";
+import { useDeskPermission } from "@/v2/deskPermissions";
 import { historyEvidenceLabel, historyLifecycleLabel } from "@/v2/historyLifecycleLabel";
 
 const HISTORY_FILTERS = [
@@ -243,6 +244,7 @@ export function DiscoverHistoryPanel({
   onSelectEvent,
 }) {
   const [filter, setFilter] = useState("all");
+  const canRequestCollection = useDeskPermission("submit_collection") !== false;
   const [viewportBudget, setViewportBudget] = useState(historyViewportBudget);
   const [visibleCount, setVisibleCount] = useState(historyViewportBudget);
   const fenced = useMemo(() => {
@@ -384,7 +386,9 @@ export function DiscoverHistoryPanel({
         <div className="rd-v2-discover-miss">
           <p className="rd-v2-empty-inline">
             {filter === "all"
-              ? "No requests yet. When you ask for data to be collected from Discover, the request and its progress appear here."
+              ? (canRequestCollection
+                ? "No requests yet. When you ask for data to be collected from Discover, the request and its progress appear here."
+                : "Asking for data to be collected is for Yuan Ze members. Everything Discover finds stays open to you; a member's requests and their progress appear here.")
               : "Nothing under this filter."}
           </p>
         </div>

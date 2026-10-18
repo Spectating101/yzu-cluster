@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { facultyProfile } from "@/v2/api";
 import { saveUserEmail } from "@/v2/deskSession";
+import { requestDeskSignIn } from "@/v2/deskPermissions";
 import {
   clearResearchMemory,
   clearResearchProfile,
@@ -504,11 +505,19 @@ export function ProfilePage({
           <span className="rd-v2-profile-kicker">Research identity</span>
           <h2>Profiles are personal workspaces</h2>
           <p>
-            Browse the shared Library and Discover as a guest. Sign in to save your research profile, reasoning, and request history.
+            A profile remembers who you are as a researcher, so it needs an account. Everything else here works without one.
           </p>
+          <ul className="rd-v2-profile-public-list">
+            <li><strong>Your research focus</strong> helps Discover rank results for your field and helps Ask suggest relevant data.</li>
+            <li><strong>Learned memory</strong> keeps the topics you work on, and you can review or forget any of it.</li>
+            <li><strong>Your request history</strong> follows the data you asked for from approval to ready.</li>
+          </ul>
           <div className="rd-v2-profile-public-actions">
-            <button type="button" className="rd-v2-btn sm primary" onClick={() => onGoTab?.("browse")}>
-              Explore sources
+            <button type="button" className="rd-v2-btn sm primary" onClick={() => requestDeskSignIn("signup")}>
+              Create an account
+            </button>
+            <button type="button" className="rd-v2-btn sm" onClick={() => requestDeskSignIn("signin")}>
+              Sign in
             </button>
             <button type="button" className="rd-v2-btn sm ghost" onClick={() => onGoTab?.("library")}>
               Open Library

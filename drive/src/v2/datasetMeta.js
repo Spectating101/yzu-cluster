@@ -108,6 +108,10 @@ export function statusPillKind(dataset) {
   return { kind: "unknown", label: "Readiness unknown" };
 }
 
+export function isMembersOnly(dataset) {
+  return statusPillKind(dataset).locked === true;
+}
+
 export function statusPill(dataset) {
   return statusPillKind(dataset).label;
 }

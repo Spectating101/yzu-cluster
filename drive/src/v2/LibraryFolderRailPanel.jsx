@@ -41,7 +41,8 @@ export function LibraryFolderRailPanel({
   const collection = !root && !physicalFolder;
   const totalAssets = Number(counts.datasets || 0);
   const scopedRows = Number(counts.items || 0);
-  const notReady = Math.max(0, totalAssets - Number(counts.queryReady || 0));
+  const membersOnly = Number(counts.membersOnly || 0);
+  const notReady = Math.max(0, totalAssets - Number(counts.queryReady || 0) - membersOnly);
 
   const summaryLabel = filteredRoot
     ? "Filtered Library view"
@@ -99,6 +100,7 @@ export function LibraryFolderRailPanel({
           <div className="rd-v2-library-folder-readiness" aria-busy={loading || undefined}>
             {loading ? <span>Data saved to Library is still loading.</span> : null}
             {counts.queryReady > 0 ? <span><b>{counts.queryReady}</b> ready to query</span> : null}
+            {membersOnly > 0 ? <span><b>{membersOnly}</b> members only</span> : null}
             {notReady > 0 ? <span><b>{notReady}</b> not ready to query</span> : null}
             {counts.connected > 0 ? <span><b>{counts.connected}</b> connected</span> : null}
             {counts.metadataOnly > 0 ? <span><b>{counts.metadataOnly}</b> metadata only</span> : null}

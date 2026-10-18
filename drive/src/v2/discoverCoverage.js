@@ -1,4 +1,4 @@
-import { statusPillKind } from "./datasetMeta.js";
+import { isMembersOnly, statusPillKind } from "./datasetMeta.js";
 import { isLibraryHoldingRow, isLibraryVisibleRow } from "./deskCounts.js";
 import { datasetTopic } from "./libraryTopics.js";
 
@@ -16,7 +16,7 @@ import { datasetTopic } from "./libraryTopics.js";
 const label = (id) =>
   String(id || "other").replace(/[-_.]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
-const isReady = (row) => statusPillKind(row).kind === "query-ready";
+const isReady = (row) => statusPillKind(row).kind === "query-ready" && !isMembersOnly(row);
 
 /** Which Library shelf a row belongs to.
  *  The lane's own membership list wins, because that is what the Library tree
@@ -56,11 +56,12 @@ export function coverageShelves(catalog = [], partitions = [], shelves = []) {
     const topic = curated ? null : datasetTopic(row);
     const id = topic ? topic.id : shelfIdFor(row, lanes, membership);
     const shelf = byShelf.get(id)
-      || { id, label: topic ? topic.label : shelfLabels.get(id) || label(id), total: 0, held: 0, queryReady: 0 };
+      || { id, label: topic ? topic.label : shelfLabels.get(id) || label(id), total: 0, held: 0, queryReady: 0, membersOnly: 0 };
     shelf.total += 1;
     if (isLibraryHoldingRow(row)) {
       shelf.held += 1;
       if (isReady(row)) shelf.queryReady += 1;
+      if (isMembersOnly(row)) shelf.membersOnly += 1;
     }
     byShelf.set(id, shelf);
   }
@@ -75,6 +76,7 @@ export function coverageSummary(catalog = [], partitions = [], shelves_ = []) {
     total: shelves.reduce((n, s) => n + s.total, 0),
     held: shelves.reduce((n, s) => n + s.held, 0),
     queryReady: shelves.reduce((n, s) => n + s.queryReady, 0),
+    membersOnly: shelves.reduce((n, s) => n + s.membersOnly, 0),
     declaredNotHeld: shelves.reduce((n, s) => n + (s.total - s.held), 0),
   };
 }

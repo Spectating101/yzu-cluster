@@ -232,6 +232,14 @@
 .rd-v2-guest-feature-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); max-width: 980px; border-block: 1px solid var(--rd-border); }
 .rd-v2-guest-feature-grid article { min-width: 0; padding: 20px 24px; border-right: 1px solid var(--rd-border); }
 .rd-v2-guest-feature-grid article:last-child { border-right: 0; }
+.rd-v2-guest-showcase { max-width: 980px; }
+.rd-v2-guest-showcase h3 { margin: 8px 0 6px; font-size: var(--rd-text-lg); letter-spacing: -0.01em; }
+.rd-v2-guest-showcase p { max-width: 640px; margin: 0; color: var(--rd-muted); font-size: var(--rd-text-sm); line-height: 1.55; }
+.rd-v2-guest-showcase ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 16px 0 0; padding: 0; list-style: none; }
+.rd-v2-guest-showcase button { display: grid; gap: 4px; width: 100%; padding: 12px 14px; border: 1px solid var(--rd-border); border-radius: 10px; background: var(--rd-surface, #fffdf6); color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.rd-v2-guest-showcase button:hover { border-color: var(--rd-muted); }
+.rd-v2-guest-showcase button strong { font-size: var(--rd-text-sm); overflow-wrap: anywhere; }
+.rd-v2-guest-showcase button span { color: var(--rd-muted); font-size: var(--rd-text-2xs); line-height: 1.45; }
 .rd-v2-guest-feature-page .rd-v2-body-scroll,
 .rd-v2-profile-page .rd-v2-body-scroll { flex: 0 1 auto; }
 .rd-v2-member-resources { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; max-width: 1080px; }

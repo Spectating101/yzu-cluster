@@ -105,3 +105,60 @@ test("the Library lists each university subscription with what we hold and what 
   await section.getByRole("button", { name: /Refinitiv ESG Pillar Snapshot/ }).click();
   await expect(page.getByTestId("library-asset-workspace")).toContainText("University subscription");
 });
+
+const SYNTHESIS_BUILD = {
+  dataset_id: "synthesis_county_unemployment_trend_v1",
+  name: "Synthesis: County unemployment trend 2019-2024",
+  one_line: "County unemployment trend built from BLS LAUS.",
+  grain: "county_year",
+  analysis_readiness: "instant",
+  local_root: "synthesis/county",
+  source_system: "derived_synthesis",
+};
+
+test("a visitor sees finished Synthesis builds they can open, not only a sign-in wall", async ({ page }) => {
+  await mockV2Api(page, { datasetsBody: { ...MOCK_DATASETS, datasets: [SYNTHESIS_BUILD, ...MOCK_DATASETS.datasets] } });
+  await page.route("**/library/desk/capabilities", (route) => fulfill(route, access("public_guest")));
+  await page.goto("/?tab=synthesis", { waitUntil: "domcontentloaded" });
+  await waitForShell(page);
+  const showcase = page.getByTestId("guest-synthesis-showcase");
+  await expect(showcase).toContainText("Finished builds you can open now");
+  await showcase.getByRole("button", { name: /County unemployment trend/ }).click();
+  await expect(page).toHaveURL(/tab=library/);
+  await expect(page.getByTestId("library-asset-workspace")).toBeVisible();
+});
+
+test("the Library says how many datasets are members only instead of calling them all ready", async ({ page }) => {
+  await mockV2Api(page, { datasetsBody: { ...MOCK_DATASETS, datasets: [LICENSED, ...MOCK_DATASETS.datasets] } });
+  await page.route("**/library/desk/capabilities", (route) => fulfill(route, access("public_member")));
+  await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
+  await waitForShell(page);
+  const total = MOCK_DATASETS.datasets.length + 1;
+  const summary = page.locator(".rd-v2-library-folder-readiness");
+  await expect(summary).toContainText("1 members only");
+  await expect(summary).toContainText(`${total - 1} ready to query`);
+  await expect(summary).not.toContainText(`${total} ready to query`);
+  await page.getByTestId("library-state-filter").selectOption("members");
+  await expect(page.getByTestId("library-evidence-row")).toHaveCount(1);
+});
+
+test("a guest's Profile explains what it would do and offers to create an account", async ({ page }) => {
+  await mockV2Api(page);
+  await page.route("**/library/desk/capabilities", (route) => fulfill(route, access("public_guest")));
+  await page.goto("/?tab=profile", { waitUntil: "domcontentloaded" });
+  await waitForShell(page);
+  const state = page.locator(".rd-v2-profile-public-state");
+  await expect(state).toContainText("Your research focus");
+  await expect(state).toContainText("Learned memory");
+  await state.getByRole("button", { name: "Create an account" }).click();
+  await expect(page.getByTestId("access-screen")).toBeVisible();
+});
+
+test("a visitor's request history says collection requests are for members", async ({ page }) => {
+  await mockV2Api(page, { historyBody: { items: [] }, jobsBody: { jobs: [] } });
+  await page.route("**/library/desk/capabilities", (route) => fulfill(route, access("public_guest")));
+  await page.goto("/?tab=discover", { waitUntil: "domcontentloaded" });
+  await waitForShell(page);
+  await page.locator("button:visible", { hasText: /^History/ }).first().click();
+  await expect(page.getByText(/is for Yuan Ze members/)).toBeVisible();
+});

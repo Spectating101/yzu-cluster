@@ -1,6 +1,7 @@
 import { collectionRecipe } from "./collectionRecipe.js";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { onDeskSignInRequest, publishDeskAccess } from "@/v2/deskPermissions";
+import { GuestSynthesisShowcase } from "@/v2/GuestSynthesisShowcase";
 import { V2DeskHeader } from "@/v2/V2DeskHeader";
 import {
   approveJob,
@@ -2173,6 +2174,7 @@ function DeskWorkspace({ onIdentityChanged }) {
             <article><span>3</span><strong>Approve the method</strong><p>Nothing runs before you approve it.</p></article>
             <article><span>4</span><strong>Get the dataset</strong><p>Saved to your Library with its sources.</p></article>
           </div>
+          <GuestSynthesisShowcase catalog={catalog} onOpen={openInLibraryFromDiscover} />
         </PageShell>
       );
       break;

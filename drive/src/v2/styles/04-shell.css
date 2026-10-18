@@ -675,6 +675,22 @@
   line-height: 1.6;
 }
 
+.rd-v2-profile-public-list {
+  display: grid;
+  gap: 10px;
+  max-width: 560px;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--rd-hps-muted);
+  font-size: var(--rd-text-xs);
+  line-height: 1.55;
+}
+
+.rd-v2-profile-public-list strong {
+  color: var(--rd-hps-ink);
+}
+
 .rd-v2-profile-public-actions {
   display: flex;
   flex-wrap: wrap;
