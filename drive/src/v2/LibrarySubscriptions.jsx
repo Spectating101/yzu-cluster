@@ -7,6 +7,7 @@ const STATES = {
   members: { label: "Members only", pill: "rd-v2-status-connected" },
   preparing: { label: "On the drive, being prepared", pill: "rd-v2-status-review" },
   needs_export: { label: "Needs a manual export", pill: "rd-v2-status-review" },
+  held_unsafe: { label: "Held, not safe to use yet", pill: "rd-v2-status-review" },
   not_collected: { label: "In the subscription, not collected", pill: "rd-v2-status-external" },
   not_in_subscription: { label: "Not in our subscription", pill: "rd-v2-status-unknown" },
 };

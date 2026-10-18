@@ -159,7 +159,7 @@ test("a public guest can browse shared evidence but must sign in to Ask", async 
   });
   await expect(signInToRequest).toBeVisible();
   await signInToRequest.click();
-  await expect(page.getByTestId("ask-sign-in-gate")).toContainText("Sign in to ask Research Drive.");
+  await expect(page.getByTestId("ask-sign-in-gate")).toContainText("Ask remembers you, so it needs an account.");
   await expect(page.getByTestId("discover-intent-workspace")).toHaveCount(0);
   await page.getByRole("button", { name: "Account" }).click();
   await expect(page.getByRole("menu", { name: "Account destinations" })).toContainText("Guest");
@@ -171,8 +171,8 @@ test("a public guest can browse shared evidence but must sign in to Ask", async 
   await page.keyboard.press("Escape");
   await expect(page.getByRole("menu", { name: "Account destinations" })).toHaveCount(0);
   await page.getByRole("tab", { name: "Ask · sign in" }).click();
-  await expect(page.getByTestId("ask-sign-in-gate")).toContainText("Sign in to ask Research Drive.");
-  await expect(page.getByTestId("ask-sign-in-gate")).toContainText("Shared Library and Discover evidence remain available");
+  await expect(page.getByTestId("ask-sign-in-gate")).toContainText("Ask remembers you, so it needs an account.");
+  await expect(page.getByTestId("ask-sign-in-gate")).toContainText("Everything else works without one");
   await expect(page.getByLabel("Invitation code")).toBeVisible();
   await expect(page.getByRole("button", { name: "Sign in to Ask" })).toBeVisible();
   await expect(page.getByTestId("ask-composer")).toHaveCount(0);

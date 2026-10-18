@@ -141,10 +141,10 @@ function AskSignInPanel({
 
   return (
     <section className="rd-v2-ask-sign-in" data-testid="ask-sign-in-gate" aria-label="Sign in to ask">
-      <span className="rd-v2-eyebrow">Personal research trail</span>
-      <strong>Sign in to ask Research Drive.</strong>
+      <span className="rd-v2-eyebrow">Ask needs an account</span>
+      <strong>Ask remembers you, so it needs an account.</strong>
       <p>
-        Shared Library and Discover evidence remain available here. Asking and saved research work begin with a named member session.
+        Ask keeps your conversation, can plan a collection for you and builds datasets in Synthesis. Everything else works without one: Library, Discover and its coverage check, and downloads of public data.
       </p>
       {providerAvailable && onProviderSignIn ? (
         <button type="button" className="rd-v2-btn primary" onClick={onProviderSignIn}>
