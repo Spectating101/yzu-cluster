@@ -446,6 +446,8 @@ export async function mockV2Api(
         },
         permissions: {
           view_research_data: true,
+          download_research_data: true,
+          view_licensed_data: true,
           view_faculty_profile: true,
           view_operations: true,
           use_ask: true,

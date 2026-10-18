@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { queryDataset } from "@/v2/api";
 import { datasetDownloadHref } from "@/v2/askDownloadLink";
+import { MEMBERS_ONLY_TEXT, licensedRowsLocked } from "@/v2/deskPermissions";
 import { previewCellValue } from "@/v2/previewValue";
 import { DATA_TABLE_ROW_LIMIT, filterRows, numericColumns, pageOf, sortRows, tableColumns } from "./dataTable.js";
 
 export function DataTableView({ dataset, onClose }) {
   const datasetId = dataset?.dataset_id || "";
+  const rowsLocked = licensedRowsLocked(dataset);
   const [state, setState] = useState({ datasetId: "", loading: true, rows: [], error: "" });
   const [filter, setFilter] = useState("");
   const [sort, setSort] = useState({ column: "", direction: "asc" });
@@ -15,10 +17,14 @@ export function DataTableView({ dataset, onClose }) {
   useEffect(() => {
     if (!datasetId) return undefined;
     let cancelled = false;
-    setState({ datasetId, loading: true, rows: [], error: "" });
     setFilter("");
     setSort({ column: "", direction: "asc" });
     setPage(0);
+    if (rowsLocked) {
+      setState({ datasetId, loading: false, rows: [], error: MEMBERS_ONLY_TEXT });
+      return undefined;
+    }
+    setState({ datasetId, loading: true, rows: [], error: "" });
     queryDataset(datasetId, DATA_TABLE_ROW_LIMIT)
       .then((payload) => {
         if (!cancelled) setState({ datasetId, loading: false, rows: Array.isArray(payload?.rows) ? payload.rows : [], error: "" });
@@ -27,7 +33,7 @@ export function DataTableView({ dataset, onClose }) {
         if (!cancelled) setState({ datasetId, loading: false, rows: [], error: cause?.message || "The rows could not be loaded." });
       });
     return () => { cancelled = true; };
-  }, [datasetId]);
+  }, [datasetId, rowsLocked]);
 
   useEffect(() => {
     if (!datasetId) return undefined;

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { assessDiscoverEvidence, listDiscoverGapRoutes } from "@/v2/api";
 import { DISCOVER_SUGGESTIONS } from "@/v2/deskSeed";
 import { handleEnterToRequestSubmit } from "@/v2/enterToSubmit";
+import { requestDeskSignIn, useDeskPermission } from "@/v2/deskPermissions";
 import { buildDiscoverDecisionCapacity } from "@/v2/discoverDecisionCapacity";
 import { assessmentLabel, assessmentStatusKey, judgedLibraryMatch, librarySupportSummary } from "./assessmentLabels.js";
 
@@ -168,6 +169,7 @@ export function DiscoverEvidenceBrief({
   libraryMatchCount = 0,
 }) {
   const [draft, setDraft] = useState(initialQuestion);
+  const canAssess = useDeskPermission("use_ask") !== false;
   const [assessment, setAssessment] = useState(assessmentValue);
   const [dimensions, setDimensions] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -262,6 +264,15 @@ export function DiscoverEvidenceBrief({
   const requestAssessment = async ({ requirement, questionOverride } = {}) => {
     const question = String(questionOverride || draft).trim();
     if (!question) return;
+    if (!canAssess) {
+      setAssessment(null);
+      setDimensions([]);
+      setLoading(false);
+      setError("");
+      onAssessmentChange?.(null);
+      onAssessmentActive?.(true);
+      return;
+    }
     const assessmentRequestId = ++assessmentRequestSeqRef.current;
     // Any sourcing result belongs to the assessment that produced it. Retire
     // that authority synchronously before model work for a corrected brief.
@@ -369,7 +380,18 @@ export function DiscoverEvidenceBrief({
 
   return (
     <section className={`rd-v2-evidence-brief is-${variant}`} aria-label="Evidence assessment" data-testid="discover-evidence-brief">
-      {variant === "workspace" && !assessment ? (
+      {variant === "workspace" && !assessment && !canAssess ? (
+        <div className="rd-v2-evidence-workspace-pending" data-state="needs-account" role="status" data-testid="discover-assessment-needs-account">
+          <span className="rd-v2-eyebrow">What your Library covers</span>
+          <strong>The coverage check needs a free account</strong>
+          <p>Create an account to see what your question requires and how far the Library covers it. The results below are already usable.</p>
+          <div className="rd-access-actions">
+            <button type="button" className="rd-v2-btn sm primary" onClick={() => requestDeskSignIn("signup")}>Create account</button>
+            <button type="button" className="rd-v2-btn sm" onClick={() => requestDeskSignIn("signin")}>Sign in</button>
+          </div>
+        </div>
+      ) : null}
+      {variant === "workspace" && !assessment && canAssess ? (
         <div
           className={`rd-v2-evidence-workspace-pending${error ? " is-unavailable" : ""}`}
           data-state={error ? "unavailable" : loading ? "checking" : "unmeasured"}

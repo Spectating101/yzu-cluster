@@ -1,5 +1,6 @@
 import { collectionRecipe } from "./collectionRecipe.js";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { onDeskSignInRequest, publishDeskAccess } from "@/v2/deskPermissions";
 import { V2DeskHeader } from "@/v2/V2DeskHeader";
 import {
   approveJob,
@@ -359,6 +360,7 @@ function DeskWorkspace({ onIdentityChanged }) {
 
   const applyDeskAccess = useCallback((access) => {
     const changed = bindDeskIdentity(access?.principal);
+    publishDeskAccess(access || { authenticated: false });
     setDeskAccess(access || { authenticated: false });
     if (changed) {
       handedDeskAccess = { access, at: Date.now() };
@@ -406,6 +408,7 @@ function DeskWorkspace({ onIdentityChanged }) {
     setAccessMode(mode);
     setAccessParam(mode);
   }, [setAccessParam]);
+  useEffect(() => onDeskSignInRequest(openAccess), [openAccess]);
   const closeAccess = useCallback(() => {
     setAccessMode("");
     setAccessParam("");
@@ -2319,7 +2322,7 @@ function DeskWorkspace({ onIdentityChanged }) {
   return (
     <div className={`yzu-shell with-inspector rd-theme-light rd-v2-shell${hideRail ? " no-rail" : ""}${railFolded ? " rail-folded" : ""}`}>
       <a className="rd-v2-skip-link" href="#rd-main">Skip to main content</a>
-      {accessMode && deskAccess?.principal?.role === "public_guest" ? (
+      {accessMode && (deskAccess?.principal?.role === "public_guest" || (deskAccess?.principal?.role === "public_member" && accessMode === "signin")) ? (
         <AccessScreen
           mode={accessMode}
           session={deskAccess?.session}

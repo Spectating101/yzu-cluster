@@ -20,6 +20,7 @@ import { collectionRecipe } from "./collectionRecipe.js";
 import { coverageText } from "./coverageText.js";
 import { LibraryPackagePanel } from "./LibraryPackagePanel.jsx";
 import { datasetDownloadHref } from "@/v2/askDownloadLink";
+import { MEMBERS_ONLY_TEXT, licensedRowsLocked, requestDeskSignIn, useDeskPermission } from "@/v2/deskPermissions";
 import { datasetCitation } from "./datasetCitation.js";
 
 function value(...candidates) {
@@ -411,6 +412,7 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
 
       {preview.loading ? <p className="rd-v2-library-muted">Reading a local sample…</p> : null}
       {!preview.loading && preview.error ? <p className="rd-v2-library-muted">{preview.error}</p> : null}
+      {licensedRowsLocked(dataset) ? <p className="rd-v2-library-muted" data-testid="library-members-only">{MEMBERS_ONLY_TEXT}</p> : null}
       {!preview.loading && !preview.error && canQuery && !preview.rows.length ? (
         <p className="rd-v2-library-muted">The current query path returned no sample rows.</p>
       ) : null}
@@ -588,7 +590,9 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onOpenQuery,
   const state = statusPillKind(dataset);
   const verification = useMemo(() => libraryVerification(dataset), [dataset]);
   const holdings = useMemo(() => summarizeLibraryHoldings(dataset), [dataset]);
-  const canQuery = state.kind === "query-ready";
+  const rowsLocked = licensedRowsLocked(dataset);
+  const canQuery = state.kind === "query-ready" && !rowsLocked;
+  const canDownload = useDeskPermission("download_research_data") !== false;
   const hasTableSurface = presentation.previewRows;
   const names = useMemo(() => fieldNames(dataset, fields), [dataset, fields]);
   const rowCount = dataset?.rows || dataset?.row_count || dataset?.num_rows || dataset?.records;
@@ -630,7 +634,7 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onOpenQuery,
       <article className="rd-v2-library-asset-canvas" data-testid="library-asset-workspace" data-asset-kind={presentation.kind}>
         <header className="rd-v2-library-asset-header">
           <div>
-            <span className="rd-v2-eyebrow">{presentation.eyebrow}</span>
+            <span className="rd-v2-eyebrow">{presentation.eyebrow}{dataset?.licensed ? " · University subscription" : ""}</span>
             <h1>{keepRangesTogether(displayName(dataset))}</h1>
             <p>{value(dataset?.description, dataset?.summary, dataset?.recommended_use, `This ${presentation.noun} has no plain-language description in the current registry.`)}</p>
           </div>
@@ -643,13 +647,18 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onOpenQuery,
 
         <div className="rd-v2-library-workspace-actions" role="group" aria-label="Data actions">
           {canQuery ? <button type="button" className="rd-v2-btn primary" onClick={onOpenQuery}>View all rows</button> : null}
+          {rowsLocked ? (
+            <button type="button" className="rd-v2-btn primary" onClick={() => requestDeskSignIn("signin")} data-testid="library-workspace-members-sign-in">Sign in with Yuan Ze email</button>
+          ) : null}
           {datasetDownloadHref(dataset) ? (
             <a className="rd-v2-btn" href={datasetDownloadHref(dataset)} download data-testid="library-workspace-download">Download CSV</a>
+          ) : dataset?.download_requires_account ? (
+            <button type="button" className="rd-v2-btn" onClick={() => requestDeskSignIn("signup")} data-testid="library-workspace-download-sign-in">Sign in to download</button>
           ) : null}
           <span className="rd-v2-library-workspace-secondary">
             <button type="button" className="rd-v2-btn ghost" onClick={() => setOverlay("provenance")}>Source record</button>
             {presentation.noun === "dataset" ? <button type="button" className="rd-v2-btn ghost" onClick={() => setOverlay("cite")}>Cite</button> : null}
-            {canQuery ? <button type="button" className="rd-v2-btn ghost" onClick={() => setPackageOpen(true)}>Export with provenance</button> : null}
+            {canQuery && canDownload ? <button type="button" className="rd-v2-btn ghost" onClick={() => setPackageOpen(true)}>Export with provenance</button> : null}
             {onRefreshData && collectionRecipe(dataset) ?
               <button type="button" className="rd-v2-btn ghost" disabled={refreshBusy} onClick={refreshData}>{refreshBusy ? "Preparing refresh…" : "Refresh data"}</button> : null}
             {holdings.count ? <button type="button" className="rd-v2-btn ghost" onClick={() => setOverlay("holdings")}>Your Library</button> : null}

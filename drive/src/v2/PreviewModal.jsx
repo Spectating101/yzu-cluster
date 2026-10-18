@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { MEMBERS_ONLY_TEXT, licensedRowsLocked } from "@/v2/deskPermissions";
 import { previewCellValue, researcherPreviewReason } from "@/v2/previewValue";
 import {
   downloadText,
@@ -348,6 +349,12 @@ export function PreviewModal({
 
   useEffect(() => {
     if (!open || !dataset?.dataset_id || isExternal || kind !== "table") return undefined;
+    if (licensedRowsLocked(dataset)) {
+      setRows([]);
+      setError(MEMBERS_ONLY_TEXT);
+      setLoading(false);
+      return undefined;
+    }
     let cancelled = false;
     setLoading(true);
     setError("");
