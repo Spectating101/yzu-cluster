@@ -88,3 +88,20 @@ test("a licensed dataset shows what it is but asks for a Yuan Ze sign-in instead
   await workspace.getByTestId("library-workspace-members-sign-in").click();
   await expect(page.getByTestId("access-screen")).toBeVisible();
 });
+
+test("the Library lists each university subscription with what we hold and what we don't", async ({ page }) => {
+  await mockV2Api(page, { datasetsBody: { ...MOCK_DATASETS, datasets: [LICENSED, ...MOCK_DATASETS.datasets] } });
+  await page.route("**/library/desk/capabilities", (route) => fulfill(route, access("public_guest")));
+  await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
+  await waitForShell(page);
+  const section = page.getByTestId("library-subscriptions");
+  await expect(section).toContainText("What Yuan Ze licenses, and what we hold from it");
+  await expect(page.getByTestId("subscription-lseg")).toContainText("Members only");
+  await expect(page.getByTestId("subscription-lseg")).toContainText("570 rows");
+  await expect(page.getByTestId("subscription-lseg")).toContainText("Not in our subscription");
+  await expect(page.getByTestId("subscription-crsp")).toContainText("On the drive, being prepared");
+  await expect(page.getByTestId("subscription-crsp")).toContainText("In the subscription, not collected");
+  await expect(page.getByTestId("subscription-compustat")).toContainText("Needs a manual export");
+  await section.getByRole("button", { name: /Refinitiv ESG Pillar Snapshot/ }).click();
+  await expect(page.getByTestId("library-asset-workspace")).toContainText("University subscription");
+});

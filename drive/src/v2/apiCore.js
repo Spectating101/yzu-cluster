@@ -195,6 +195,10 @@ export async function signInWithMemberAccessCode(code) {
   }
 }
 
+export function listSubscriptions() {
+  return fetchJson("/library/subscriptions");
+}
+
 export function listDatasets() {
   return fetchJson("/datasets").then((d) => d.datasets || []);
 }

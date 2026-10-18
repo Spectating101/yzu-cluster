@@ -381,6 +381,22 @@ export const MOCK_STABLECOIN_ASSESSMENT = {
   },
 };
 
+export const MOCK_SUBSCRIPTIONS = {
+  vendors: [
+    { id: "lseg", name: "LSEG Workspace / EDP", holder: "YZU university EDP / Workspace seat", status: "active", products: [
+      { kind: "dataset", dataset_id: "refinitiv_esg_snapshot", name: "Refinitiv ESG Pillar Snapshot", summary: "", state: "ready", note: "", row_count: 570, coverage: "Snapshot pulled 2026-07-06" },
+      { kind: "blocked", dataset_id: null, name: "institutional ownership", summary: "", state: "not_in_subscription", note: "G1 ownership not on YZU EDP", row_count: null, coverage: null },
+    ] },
+    { id: "crsp", name: "CRSP", holder: "YZU CRSP subscriber (MOVEit)", status: "active", products: [
+      { kind: "dataset", dataset_id: "crsp_us_stock_daily_ciz", name: "CRSP U.S. stock daily file (CIZ)", summary: "", state: "preparing", note: "Downloaded and converted; being checked before it opens for queries.", row_count: null, coverage: null },
+      { kind: "product", dataset_id: null, name: "STOCK_25i_CI_ASCII_Annual", summary: "us daily stock ciz alt", state: "not_collected", note: "In the subscription; not collected yet.", row_count: null, coverage: null },
+    ] },
+    { id: "compustat", name: "Compustat (Capital IQ)", holder: "YZU Capital IQ seat", status: "active", products: [
+      { kind: "dataset", dataset_id: "compustat_na_fundamentals_annual", name: "Compustat North America Fundamentals (Annual)", summary: "", state: "needs_export", note: "Export from Capital IQ Fundamentals screen", row_count: null, coverage: null },
+    ] },
+  ],
+};
+
 export async function mockV2Api(
   page,
   {
@@ -427,6 +443,7 @@ export async function mockV2Api(
   const liveJobs = {
     jobs: Array.isArray(jobsBody?.jobs) ? [...jobsBody.jobs] : [],
   };
+  await page.route("**/library/subscriptions", (route) => route.fulfill({ contentType: "application/json", body: JSON.stringify(MOCK_SUBSCRIPTIONS) }));
   await page.route("**/library/provider-connections", route => route.fulfill({ contentType: "application/json", body: JSON.stringify({ ok: true, providers: [], connections: [] }) }));
   const liveIntents = new Map();
   let nextIntentId = 1;

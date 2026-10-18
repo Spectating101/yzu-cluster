@@ -13,6 +13,7 @@ import { libraryVerification } from "@/v2/libraryVerification";
 import { isBrowsableLibraryLocation, normalizeLibraryLocations } from "@/v2/libraryLocations";
 import { LibraryAssetWorkspace } from "@/v2/LibraryAssetWorkspace";
 import { LibraryEvidenceEstate } from "@/v2/LibraryEvidenceEstate";
+import { LibrarySubscriptions } from "@/v2/LibrarySubscriptions";
 import { resolveLibrarySelection } from "@/v2/librarySelection";
 import { buildLibrarySearchAskPrompt, rankLibraryHoldings } from "@/v2/librarySearch";
 import { PageShell } from "@/v2/ui";
@@ -762,6 +763,7 @@ export function LibraryPage({
               <p>Reading your Library before showing its datasets.</p>
             </div>
           ) : (
+            <>
             <LibraryEvidenceEstate
               assets={estateRows}
               collections={searchActive ? [] : rootCollections}
@@ -776,6 +778,8 @@ export function LibraryPage({
               onSearchWider={onSearchWider}
               onResetFilters={resetFilters}
             />
+            {searchActive ? null : <LibrarySubscriptions datasets={vaultDatasets} onSelectDataset={onSelectDataset} />}
+            </>
           )
         ) : (
           <div className="rd-v2-catalog-list-wrap" data-testid="library-directory">

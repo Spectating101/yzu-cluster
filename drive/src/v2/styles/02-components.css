@@ -5354,6 +5354,81 @@ body,
   overflow-wrap: anywhere;
 }
 
+.rd-v2-subscriptions {
+  margin-top: 28px;
+}
+
+.rd-v2-subscription-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 10px;
+}
+
+.rd-v2-subscription-vendor {
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--rd-border);
+  border-radius: var(--rd-radius-md, 8px);
+  background: var(--rd-surface, transparent);
+}
+
+.rd-v2-subscription-vendor h3 {
+  margin: 0;
+  font-size: var(--rd-text-md);
+}
+
+.rd-v2-subscription-vendor header p {
+  margin: 2px 0 0;
+  color: var(--rd-muted);
+  font-size: var(--rd-text-2xs);
+}
+
+.rd-v2-subscription-vendor ul {
+  display: grid;
+  gap: 2px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rd-v2-subscription-product {
+  display: grid;
+  gap: 3px;
+  width: 100%;
+  padding: 8px 6px;
+  border: 0;
+  border-top: 1px solid var(--rd-border);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.rd-v2-subscription-product.is-openable {
+  cursor: pointer;
+}
+
+.rd-v2-subscription-product.is-openable:hover {
+  background: var(--rd-hover, rgba(0, 0, 0, 0.03));
+}
+
+.rd-v2-subscription-name {
+  font-size: var(--rd-text-sm);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.rd-v2-subscription-product .rd-v2-status-pill {
+  justify-self: start;
+}
+
+.rd-v2-subscription-detail {
+  color: var(--rd-muted);
+  font-size: var(--rd-text-2xs);
+  line-height: 1.4;
+}
+
 .rd-v2-library-record-terms {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
