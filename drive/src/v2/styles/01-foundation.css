@@ -263,6 +263,12 @@ button {
   color: var(--rd-text);
 }
 
+@media (min-width: 761px) and (max-width: 1100px) {
+  .yzu-brand-text {
+    display: none;
+  }
+}
+
 /* Search pill — GDrive rounded pill */
 
 .rd-v2-header-meta {

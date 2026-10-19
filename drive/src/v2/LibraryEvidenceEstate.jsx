@@ -100,6 +100,7 @@ export function LibraryEvidenceEstate({
   const ledgerClass = `rd-v2-cap-ledger ${showVerify ? "with-verify" : "without-verify"} show-kind`;
   const query = String(searchQuery || "").trim();
   const [visibleLimit, setVisibleLimit] = useState(PAGE_SIZE);
+  const [collectionsOpen, setCollectionsOpen] = useState(() => (typeof window === "undefined" ? true : window.innerHeight >= 860));
 
   // A new search is a new semantic scope, so begin it from the first page.
   useEffect(() => {
@@ -127,9 +128,22 @@ export function LibraryEvidenceEstate({
     <section className="rd-v2-cap-estate" data-testid="library-evidence-estate" aria-label="Research evidence estate">
       {collections.length || collectionsLoading ? (
         <div className="rd-v2-cap-collections" role="group" aria-label="Research collections and folder storage">
-          <span className="rd-v2-cap-collections-label">Research collections</span>
+          <span className="rd-v2-cap-collections-label">
+            Research collections
+            {collections.length > 6 ? (
+              <button
+                type="button"
+                className="rd-v2-cap-collections-toggle"
+                data-testid="library-collections-toggle"
+                aria-expanded={collectionsOpen}
+                onClick={() => setCollectionsOpen((open) => !open)}
+              >
+                {collectionsOpen ? "Show fewer" : `Show all ${collections.length}`}
+              </button>
+            ) : null}
+          </span>
           {collections.length ? (
-            <div className="rd-v2-cap-collection-list">
+            <div className={`rd-v2-cap-collection-list${collectionsOpen ? "" : " is-single-row"}`}>
               {collections.map((collection) => {
                 const name = collectionName(collection);
                 return (

@@ -68,6 +68,20 @@
   --rd-shadow-float: 0 24px 70px rgba(24, 32, 51, 0.16);
 }
 
+@media (min-width: 2200px) {
+  :root {
+    --rd-text-2xs: 14px;
+    --rd-text-xs: 14px;
+    --rd-text-sm: 15px;
+    --rd-text-md: 16px;
+    --rd-text-lg: 18px;
+    --rd-text-xl: 21px;
+    --rd-text-2xl: 24px;
+    --rd-text-3xl: 28px;
+    --rd-text-4xl: 32px;
+  }
+}
+
 html,
 body,
 #root {

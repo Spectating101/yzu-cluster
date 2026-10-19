@@ -277,10 +277,10 @@ function DeskWorkspace({ onIdentityChanged }) {
   const [railTab, setRailTab] = useState("detail");
   const [railFolded, setRailFolded] = useState(() => {
     try {
-      return window.localStorage.getItem("rd.railFolded") === "1";
-    } catch {
-      return false;
-    }
+      const stored = window.localStorage.getItem("rd.railFolded");
+      if (stored !== null) return stored === "1";
+    } catch { /* ignore */ }
+    return window.innerWidth > 760 && window.innerWidth < 1280;
   });
   const foldRail = useCallback((next) => {
     setRailFolded(next);
