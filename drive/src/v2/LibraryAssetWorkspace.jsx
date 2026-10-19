@@ -19,6 +19,7 @@ import { previewCellValue } from "@/v2/previewValue";
 import { collectionRecipe } from "./collectionRecipe.js";
 import { coverageText } from "./coverageText.js";
 import { glanceCoverage } from "./libraryGlance.js";
+import { listedSources, sourcesHeading } from "./datasetSources.js";
 import { LibraryPackagePanel } from "./LibraryPackagePanel.jsx";
 import { datasetDownloadHref } from "@/v2/askDownloadLink";
 import { requestDeskSignIn, useDeskPermission } from "@/v2/deskPermissions";
@@ -657,6 +658,21 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onOpenQuery,
             <p>{value(dataset?.description, dataset?.summary, dataset?.recommended_use, `This ${presentation.noun} has no plain-language description in the current registry.`)}</p>
           </div>
         </header>
+
+        {listedSources(dataset).length ? (
+          <section className="rd-v2-library-sources" aria-label="Sources for this dataset" data-testid="library-sources">
+            <h2>{sourcesHeading(dataset)}</h2>
+            <ul>
+              {listedSources(dataset).map((source) => (
+                <li key={source.dataset_id}>
+                  <strong>{source.source_system || source.name}</strong>
+                  <span>{source.name}</span>
+                  <em>{source.held ? "Held on the desk" : "Collected on request"}</em>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
 
         <div className="rd-v2-library-mobile-claims" role="group" aria-label="Evidence claims">
           <span>Readiness <strong>{state.label}</strong></span>

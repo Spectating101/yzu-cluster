@@ -1384,3 +1384,11 @@
   margin: 0;
   padding: 18px 0;
 }
+
+.rd-v2-library-sources { margin: 4px 0 16px; padding: 12px 14px; border: 1px solid var(--rd-border); border-radius: 10px; background: color-mix(in srgb, var(--rd-border) 18%, transparent); }
+.rd-v2-library-sources h2 { margin: 0 0 8px; font-size: var(--rd-text-xs); font-weight: 600; color: var(--rd-muted); }
+.rd-v2-library-sources ul { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.rd-v2-library-sources li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; align-items: baseline; }
+.rd-v2-library-sources strong { font-size: var(--rd-text-sm); }
+.rd-v2-library-sources span { grid-column: 1; color: var(--rd-muted); font-size: var(--rd-text-2xs); }
+.rd-v2-library-sources em { grid-row: 1 / span 2; grid-column: 2; color: var(--rd-muted); font-size: var(--rd-text-2xs); font-style: normal; }

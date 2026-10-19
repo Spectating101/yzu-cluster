@@ -5,17 +5,13 @@ import { libraryVerification } from "@/v2/libraryVerification";
 import { coverageSpan } from "@/v2/coverageText";
 import { StatusPill } from "@/v2/StatusPill";
 import { listDescription } from "@/v2/listDescription";
+import { sourceSummary } from "@/v2/datasetSources";
 import { barBox, filesLabel, glanceTitle, rowsLabel, spanAxis, spanOf, spanText } from "@/v2/libraryGlance";
 
 const PAGE_SIZE = 50;
 
 function sourceLabel(row = {}) {
-  return String(
-    row.source ||
-      row.publisher ||
-      row.source_system ||
-      "Not recorded",
-  ).trim();
+  return sourceSummary(row);
 }
 
 function presentationKind(row = {}) {
