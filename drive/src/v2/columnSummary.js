@@ -97,6 +97,9 @@ export function profileBasis(profile) {
   if (profile.complete || profiled >= total) {
     return `Column summaries cover all ${total.toLocaleString("en-US")} row${total === 1 ? "" : "s"}.`;
   }
+  if (profile.basis === "spread") {
+    return `Column summaries cover ${profiled.toLocaleString("en-US")} rows spread evenly across all ${total.toLocaleString("en-US")}.`;
+  }
   return `Column summaries cover the first ${profiled.toLocaleString("en-US")} of ${total.toLocaleString("en-US")} rows.`;
 }
 

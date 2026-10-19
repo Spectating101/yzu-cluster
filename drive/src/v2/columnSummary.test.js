@@ -22,6 +22,7 @@ test("the receipt says when rows are a sample of a larger table", () => {
   assert.equal(sampleReceipt(3, 1, 3), "3 rows · 1 column");
   assert.equal(profileBasis({ rows_profiled: 120, rows_total: 120, complete: true }), "Column summaries cover all 120 rows.");
   assert.equal(profileBasis({ rows_profiled: 2000, rows_total: 51234, complete: false }), "Column summaries cover the first 2,000 of 51,234 rows.");
+  assert.equal(profileBasis({ rows_profiled: 2000, rows_total: 26253, complete: false, basis: "spread" }), "Column summaries cover 2,000 rows spread evenly across all 26,253.");
 });
 
 test("column bars scale bins to the tallest and skip flat or missing ones", () => {
