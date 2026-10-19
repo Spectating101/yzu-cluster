@@ -71,3 +71,18 @@ export function datasetTopic(row = {}) {
 export function topicById(id) {
   return BY_ID.get(id) || BY_ID.get("other");
 }
+
+const UNLISTED_TOPICS = new Set(["other", "downloads", "lookups", "catalogues"]);
+
+export function topicCounts(rows = [], limit = 6) {
+  const counts = new Map();
+  for (const row of rows) {
+    const topic = datasetTopic(row);
+    if (UNLISTED_TOPICS.has(topic.id)) continue;
+    counts.set(topic.id, (counts.get(topic.id) || 0) + 1);
+  }
+  return [...counts]
+    .map(([id, count]) => ({ id, label: topicById(id).label, count }))
+    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
+    .slice(0, limit);
+}

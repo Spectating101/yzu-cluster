@@ -12,6 +12,8 @@ const guest = {
 const row = (id, name, extra = {}) => ({ dataset_id: id, name, grain: "day", analysis_readiness: "instant", local_root: `lake/${id}`, source_system: "Public source", ...extra });
 const datasets = {
   datasets: [
+    row("bls_unemployment", "County unemployment", { tags: ["labour"], source_id: "bls_laus_county" }),
+    row("btc_prices", "Bitcoin daily prices", { tags: ["bitcoin"] }),
     row("ff_factors", "Fama-French daily factors", { featured_rank: 1, tags: ["asset pricing"] }),
     row("sg_cpi", "Singapore CPI", { tags: ["inflation"], one_line: "Monthly consumer prices for Singapore." }),
     row("us_cpi", "US consumer prices", { tags: ["inflation"] }),
@@ -55,4 +57,14 @@ test("a dataset made of many files shows its file count in the Library", async (
   await page.getByTestId("library-lens-all").click();
   const cell = page.getByTestId("library-evidence-glance").filter({ hasText: "515 files" });
   await expect(cell).toHaveCount(1);
+});
+
+test("a wide window fills the welcome card with what the Library covers, a narrower one does not", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await open(page, "home");
+  const covers = page.getByTestId("home-welcome-covers");
+  await expect(covers).toBeVisible();
+  await expect(covers.locator("li").first()).toContainText(/\d/);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await expect(covers).toBeHidden();
 });

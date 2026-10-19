@@ -10,6 +10,9 @@ import { DeskError } from "@/v2/DeskError";
 import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
 import { displayName, statusPillKind } from "@/v2/datasetMeta";
 import { featuredRows } from "@/v2/libraryFocus";
+import { libraryHoldings } from "@/v2/deskCounts";
+import { licensedRowsLocked } from "@/v2/licensedAccess";
+import { topicCounts } from "@/v2/libraryTopics";
 import { barBox, filesLabel, glanceTitle, rowsLabel, spanAxis, spanOf, spanText } from "@/v2/libraryGlance";
 import {
   buildPickUp,
@@ -93,24 +96,40 @@ function resolveHomePosture({ loading, point }) {
   };
 }
 
-function WelcomeCard({ onGoTab, onSignIn, onCreateAccount }) {
+function WelcomeCard({ onGoTab, onSignIn, onCreateAccount, topics = [] }) {
+  const busiest = topics.reduce((most, topic) => Math.max(most, topic.count), 1);
   return (
     <article className="rd-v2-home-pickup-card rd-v2-home-welcome" data-testid="home-welcome">
-      <span className="rd-v2-home-eyebrow">Welcome to Research Drive</span>
-      <h2>Research data you can use, with where it came from</h2>
-      <ol className="rd-v2-home-welcome-steps">
-        <li><strong>Browse the Library.</strong> Preview datasets that are ready to query, see their source, and download them as CSV.</li>
-        <li><strong>Describe what you need in Discover.</strong> See what the Library already covers and where the rest can be collected.</li>
-        <li><strong>{onCreateAccount ? "Create an account to do more." : "Sign in to do more."}</strong> Ask the research assistant, request new collections, and save builds.</li>
-      </ol>
-      <div className="rd-v2-home-welcome-actions">
-        <button type="button" className="rd-v2-btn primary" onClick={() => onGoTab?.("library")}>Browse the Library</button>
-        <button type="button" className="rd-v2-btn" onClick={() => onGoTab?.("browse")}>Find data</button>
-        {onCreateAccount ? <button type="button" className="rd-v2-btn" onClick={onCreateAccount}>Create account</button> : null}
-        {onSignIn && !onCreateAccount ? <button type="button" className="rd-v2-btn" onClick={onSignIn}>Sign in</button> : null}
+      <div className="rd-v2-home-welcome-main">
+        <span className="rd-v2-home-eyebrow">Welcome to Research Drive</span>
+        <h2>Research data you can use, with where it came from</h2>
+        <ol className="rd-v2-home-welcome-steps">
+          <li><strong>Browse the Library.</strong> Preview datasets that are ready to query, see their source, and download them as CSV.</li>
+          <li><strong>Describe what you need in Discover.</strong> See what the Library already covers and where the rest can be collected.</li>
+          <li><strong>{onCreateAccount ? "Create an account to do more." : "Sign in to do more."}</strong> Ask the research assistant, request new collections, and save builds.</li>
+        </ol>
+        <div className="rd-v2-home-welcome-actions">
+          <button type="button" className="rd-v2-btn primary" onClick={() => onGoTab?.("library")}>Browse the Library</button>
+          <button type="button" className="rd-v2-btn" onClick={() => onGoTab?.("browse")}>Find data</button>
+          {onCreateAccount ? <button type="button" className="rd-v2-btn" onClick={onCreateAccount}>Create account</button> : null}
+          {onSignIn && !onCreateAccount ? <button type="button" className="rd-v2-btn" onClick={onSignIn}>Sign in</button> : null}
+        </div>
+        {onSignIn && onCreateAccount ? (
+          <p className="rd-v2-home-welcome-signin">Already have an account? <button type="button" onClick={onSignIn}>Sign in</button></p>
+        ) : null}
       </div>
-      {onSignIn && onCreateAccount ? (
-        <p className="rd-v2-home-welcome-signin">Already have an account? <button type="button" onClick={onSignIn}>Sign in</button></p>
+      {topics.length ? (
+        <aside className="rd-v2-home-welcome-covers" aria-label="What the Library covers" data-testid="home-welcome-covers">
+          <span className="rd-v2-home-eyebrow">In the Library</span>
+          <ul>
+            {topics.map((topic) => (
+              <li key={topic.id}>
+                <span><b>{topic.label}</b><em>{topic.count}</em></span>
+                <i style={{ width: `${Math.max(6, Math.round((topic.count / busiest) * 100))}%` }} />
+              </li>
+            ))}
+          </ul>
+        </aside>
       ) : null}
     </article>
   );
@@ -165,7 +184,7 @@ function GuestReadyDatasets({ datasets, onGoTab, onSelectDataset }) {
           <li key={row.dataset_id}>
             <button type="button" onClick={() => onSelectDataset?.(row)}>
               <strong>{displayName(row)}</strong>
-              {row.description && !/^collected from https?:/i.test(String(row.description).trim()) ? <span>{firstSentence(row.description)}</span> : null}
+              {row.description && !/^collected from https?:/i.test(String(row.description).trim()) ? <span className="rd-v2-home-guest-desc">{firstSentence(row.description)}</span> : null}
               <HomeGlance span={spanOf(row)} axis={axis} />
             </button>
           </li>
@@ -319,6 +338,10 @@ export function HomePage({
     () => buildPickUp({ datasets, jobs, health, acquisitions, profile, synthesisThreads }),
     [datasets, jobs, health, acquisitions, profile, synthesisThreads],
   );
+  const guestTopics = useMemo(
+    () => (isGuest ? topicCounts(libraryHoldings(datasets).filter((row) => !licensedRowsLocked(row))) : []),
+    [isGuest, datasets],
+  );
   const homePosture = useMemo(
     () => resolveHomePosture({ loading, point: pickUp.primary }),
     [loading, pickUp.primary],
@@ -395,7 +418,7 @@ export function HomePage({
       <div className="rd-v2-home-topband" data-home-posture={isGuest ? "welcome" : homePosture.id}>
         {isGuest ? (
           <section className="rd-v2-home-pickup" aria-label="Welcome">
-            <WelcomeCard onGoTab={onGoTab} onSignIn={onSignIn} onCreateAccount={onCreateAccount} />
+            <WelcomeCard onGoTab={onGoTab} onSignIn={onSignIn} onCreateAccount={onCreateAccount} topics={guestTopics} />
             <GuestReadyDatasets datasets={datasets} onGoTab={onGoTab} onSelectDataset={onSelectDataset} />
           </section>
         ) : <section className="rd-v2-home-pickup" aria-label="Pick up">
