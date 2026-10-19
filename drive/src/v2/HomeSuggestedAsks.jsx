@@ -12,7 +12,7 @@ function seedLead(seed, profile) {
   return "Research Drive is ready — review data you have, then find what is missing";
 }
 
-export function HomeSuggestedAsks({ profile, onAskComposer, allowPrincipalSeed = true }) {
+export function HomeSuggestedAsks({ profile, onAskComposer, allowPrincipalSeed = true, researchTopics = [] }) {
   const [seed, setSeed] = useState(null);
 
   useEffect(() => {
@@ -41,12 +41,18 @@ export function HomeSuggestedAsks({ profile, onAskComposer, allowPrincipalSeed =
     const seeded = Array.isArray(seed?.starter_prompts)
       ? seed.starter_prompts.map((value) => String(value || "").trim()).filter(Boolean)
       : [];
-    return (seeded.length ? seeded : profilePrompts).slice(0, 4);
-  }, [profilePrompts, seed]);
+    const own = researchTopics.slice(0, 2).flatMap((topic) => [
+      `Which datasets in my Library fit ${topic}?`,
+      `Find missing public datasets for ${topic}.`,
+    ]);
+    return [...own, ...(seeded.length ? seeded : profilePrompts)]
+      .filter((value, index, all) => all.indexOf(value) === index)
+      .slice(0, 4);
+  }, [profilePrompts, researchTopics, seed]);
 
   const connectedSources = Array.isArray(seed?.connected_sources) ? seed.connected_sources : [];
   const sourceSummary = seed?.source_summary && typeof seed.source_summary === "object" ? seed.source_summary : null;
-  const lead = seedLead(seed, profile);
+  const lead = researchTopics.length ? `Suggested for your research: ${researchTopics[0]}` : seedLead(seed, profile);
 
   return (
     <section

@@ -1121,7 +1121,7 @@
   width: 100%;
   box-sizing: border-box;
   margin: 0 auto;
-  padding: 18px clamp(18px, 2.4vw, 34px) 28px;
+  padding: 0 clamp(18px, 2.4vw, 34px) 28px 2px;
 }
 
 .s04-thread-picker { display: none; }

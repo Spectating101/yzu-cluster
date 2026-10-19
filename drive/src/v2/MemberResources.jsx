@@ -32,7 +32,7 @@ export function MemberResources({ signedIn, jobs, libraryCount, onGoTab, onOpenH
       <article>
         <span className="rd-v2-eyebrow">Research assistant</span>
         <h2>{usage ? `${usage.hourly_remaining} of ${usage.limits.hourly_requests} left this hour` : usageError ? "Allowance unavailable" : "Reading allowance…"}</h2>
-        <p>{usage ? `${usage.daily_remaining} of ${usage.limits.daily_requests} left in the last 24 hours. Browsing never uses it.` : usageError || "Ask, coverage checks and advice use this allowance."}</p>
+        <p>{usage ? `${usage.daily_remaining} of ${usage.limits.daily_requests} left in the last 24 hours. Browsing never uses it.` : usageError ? "The desk could not read your allowance just now. Browsing and downloads are not affected." : "Ask, coverage checks and advice use this allowance."}</p>
       </article>
       <article>
         <span className="rd-v2-eyebrow">Your collection requests</span>

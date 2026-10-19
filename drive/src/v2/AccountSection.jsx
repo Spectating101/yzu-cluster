@@ -39,7 +39,7 @@ export function AccountSection({ deskAccess, onSignOut, onOpenAccess }) {
       {usage ? <p><strong>{usage.hourly_remaining} / {usage.limits.hourly_requests}</strong> requests remaining this hour · <strong>{usage.daily_remaining} / {usage.limits.daily_requests}</strong> in the last 24 hours{usage.running_requests ? ` · ${usage.running_requests} running` : ""}</p> : <p>{error ? "Allowance unavailable" : "Checking allowance…"}</p>}
       <p className="rd-v2-settings-hint">Counts Ask, advice and assistant warm-up requests. AI capacity is supplied by the desk; these numbers are request limits, not your provider token balance. Browsing stays available when the allowance is used.</p>
       <button type="button" className="rd-v2-btn sm ghost" onClick={reload}>Refresh allowance</button>
-      {error ? <p role="alert">{error}</p> : null}
+      {error ? <p role="alert">The desk could not read your allowance just now. Try Refresh allowance in a moment.</p> : null}
     </div> : null}
   </StatementSection>;
 }

@@ -235,6 +235,7 @@ function threadRows(payload) {
 
 export function HomePage({
   datasets = [],
+  researchTopics = [],
   catalogLoading = false,
   health,
   jobs = [],
@@ -530,6 +531,7 @@ export function HomePage({
             </p>
             <HomeSuggestedAsks
               profile={profile}
+              researchTopics={researchTopics}
               onAskComposer={onAskComposer || onSuggestSearch}
               allowPrincipalSeed={canUseSynthesis}
             />

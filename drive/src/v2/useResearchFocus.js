@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { getResearchProfile } from "./researchProfileApi.js";
 import { profileFocus } from "./libraryFocus.js";
 
-const NONE = { signedIn: false, terms: [], label: "" };
+const NONE = { signedIn: false, terms: [], label: "", topics: [] };
 
-export function useResearchFocus(enabled) {
+export function useResearchFocus(enabled, revision = 0) {
   const [focus, setFocus] = useState(NONE);
   useEffect(() => {
     if (!enabled) {
@@ -20,6 +20,6 @@ export function useResearchFocus(enabled) {
         if (!cancelled) setFocus(NONE);
       });
     return () => { cancelled = true; };
-  }, [enabled]);
+  }, [enabled, revision]);
   return focus;
 }

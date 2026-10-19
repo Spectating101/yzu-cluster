@@ -1034,11 +1034,17 @@ button {
 /* Home Attention: tablet canvas is narrow while shell keeps sidebar + rail. */
 
 .rd-v2-home-suggested {
-  margin: 12px 20px 8px;
+  margin: 14px 0 8px;
 }
 
-.rd-v2-home-suggested-lead {
+.rd-v2-home-suggested .rd-v2-chips-row {
+  padding: 0;
+}
+
+.rd-v2-home-suggested .rd-v2-home-suggested-lead {
   margin: 0 0 10px;
+  color: var(--rd-text);
+  font-weight: 600;
 }
 
 /* ── 7. Chips / filter bar ───────────────────────────────────── */
@@ -5262,11 +5268,6 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
   .rd-v2-discover-possession,
   .rd-v2-discover-coverage em {
     white-space: normal;
-  }
-
-  .rd-v2-home-suggested {
-    margin-right: 14px;
-    margin-left: 14px;
   }
 
   .rd-v2-catalog button.row.rd-v2-row-ext {

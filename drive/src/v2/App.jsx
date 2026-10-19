@@ -56,6 +56,7 @@ import { writeResourcesRollupCache } from "@/v2/resourcesRollupCache";
 import { normalizeReleaseTab } from "@/v2/releaseVisibility";
 import { DISCOVER_TAB, canonicalTab } from "@/v2/tabIdentity";
 import { HomePage } from "@/v2/HomePage";
+import { useResearchFocus } from "@/v2/useResearchFocus";
 import { InspectorRail } from "@/v2/InspectorRail";
 import { LibraryPage } from "@/v2/LibraryPage";
 import { PreviewModal } from "@/v2/PreviewModal";
@@ -500,6 +501,13 @@ function DeskWorkspace({ onIdentityChanged }) {
         setProfile({ email, unknown: true });
       });
   }, [authenticatedEmail, canViewFacultyProfile, deskAccess?.principal?.role]);
+
+  const [focusRevision, setFocusRevision] = useState(0);
+  const personalFocus = useResearchFocus(canUseAsk, focusRevision);
+  const refreshProfiles = useCallback(() => {
+    reloadProfile();
+    setFocusRevision((revision) => revision + 1);
+  }, [reloadProfile]);
 
   useEffect(() => {
     if (!deskAccess?.authenticated || !canViewFacultyProfile || deskAccess?.principal?.role !== "operator") {
@@ -1926,6 +1934,7 @@ function DeskWorkspace({ onIdentityChanged }) {
     case "home":
       main = (
         <HomePage
+          researchTopics={personalFocus.topics}
           datasets={catalog}
           catalogLoading={catalogLoading}
           health={health}
@@ -2227,7 +2236,7 @@ function DeskWorkspace({ onIdentityChanged }) {
           profile={profile}
           libraryHoldings={heldLibraryRows}
           onGoTab={goTab}
-          onProfileRefresh={reloadProfile}
+          onProfileRefresh={refreshProfiles}
           allowExamplePreview={canViewFacultyProfile}
           personalProfileAvailable={canUseAsk}
         />
@@ -2246,7 +2255,7 @@ function DeskWorkspace({ onIdentityChanged }) {
           jobsRefreshFailed={lifecycleRefreshFailed}
           pendingResearchDecisions={pendingResearchDecisions}
           resourcesRollup={resourcesRollup}
-          onProfileRefresh={reloadProfile}
+          onProfileRefresh={refreshProfiles}
           onToast={showToast}
           onSettingsChange={(next, change) => {
             if (Object.prototype.hasOwnProperty.call(change || {}, "discoverScope")) {
@@ -2265,6 +2274,9 @@ function DeskWorkspace({ onIdentityChanged }) {
   const hideRail = false;
 
   const activeResearch = useMemo(() => {
+    if (personalFocus.topics.length) {
+      return { title: String(personalFocus.topics[0]).slice(0, 96), emphases: personalFocus.topics.slice(1, 4) };
+    }
     const source = profile && !profile.unknown ? profile : pilotProfile;
     const lab = buildLab(source || null);
     const primaryTrack =
@@ -2292,7 +2304,7 @@ function DeskWorkspace({ onIdentityChanged }) {
       .filter(Boolean)
       .slice(0, 3);
     return { title: String(title).slice(0, 96), emphases };
-  }, [profile, pilotProfile]);
+  }, [personalFocus, profile, pilotProfile]);
 
   const sidebarRecent = useMemo(
     () =>

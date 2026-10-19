@@ -897,7 +897,7 @@ body:has(.rd-v2-synthesis-page [data-testid="synthesis-execution-state"] .s04-ex
 
   .rd-v2-synthesis-page .s04-home-hero {
     gap: 22px;
-    padding: 17px 19px;
+    padding: 6px 19px 17px 0;
   }
 
   .rd-v2-synthesis-page .s04-home-hero h1 {
