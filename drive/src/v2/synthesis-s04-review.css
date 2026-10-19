@@ -169,9 +169,10 @@
 }
 .s04-exec-track li strong,
 .s04-exec-track li small {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: normal;
 }
 .s04-exec-track li strong {
   font-size: 8px;
@@ -199,6 +200,43 @@
 .s04-live-note {
   color: #6c7688;
   font-size: 8.5px;
+}
+
+/* Five lifecycle stages share the centre desk column at laptop width. Keep
+   their names complete instead of reducing them to ellipses; the exact status
+   remains in the execution and registration evidence immediately below. */
+@media (min-width: 721px) and (max-width: 1536px) {
+  .s04-exec-track li {
+    align-items: start;
+    min-height: 54px;
+  }
+  .s04-exec-track li small {
+    display: none;
+  }
+  .s04-exec-track li strong {
+    font-size: 8.5px;
+    line-height: 1.28;
+  }
+  /* The lifecycle row above it carries the same five stages. Its sub-label
+     names what each stage settled, so wrap it rather than drop it. */
+  .s04-steps li {
+    align-items: start;
+  }
+  .s04-steps li > b,
+  .s04-steps li > small {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+    line-height: 1.25;
+  }
+}
+
+/* Dataset identifiers carry soft break opportunities after their separators.
+   The generic title rule uses `anywhere` for ordinary prose, but using it for
+   an identifier split "expanded" into "ex" / "panded" in the join surface. */
+[data-testid="synthesis-join-decision"] .s04-title h2 {
+  overflow-wrap: normal;
+  word-break: normal;
 }
 
 @media (max-width: 720px) {

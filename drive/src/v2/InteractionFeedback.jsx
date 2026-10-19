@@ -1,29 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Check, LoaderCircle } from "lucide-react";
-
-const DEFAULT_ASK_STEPS = [
-  "Preparing the active research context",
-  "Searching Library holdings and connected evidence",
-  "Checking provenance, readiness, and uncertainty",
-  "Composing a grounded response",
-];
-
-export function useTimedProgress(active, steps = DEFAULT_ASK_STEPS, intervalMs = 1050) {
-  const [index, setIndex] = useState(0);
-
-  useEffect(() => {
-    if (!active) {
-      setIndex(0);
-      return undefined;
-    }
-    const timer = window.setInterval(() => {
-      setIndex((current) => Math.min(current + 1, steps.length - 1));
-    }, intervalMs);
-    return () => window.clearInterval(timer);
-  }, [active, intervalMs, steps.length]);
-
-  return index;
-}
 
 export function useElapsedSeconds(active) {
   const [seconds, setSeconds] = useState(0);
@@ -54,30 +30,20 @@ function elapsedLabel(seconds) {
 export function ProgressSteps({
   active = false,
   activeText = "",
-  steps = DEFAULT_ASK_STEPS,
   label = "Operation progress",
   className = "",
 }) {
-  const index = useTimedProgress(active, steps);
   const elapsed = useElapsedSeconds(active);
-  const visibleSteps = useMemo(
-    () =>
-      steps.map((text, stepIndex) => ({
-        text: stepIndex === index && activeText ? activeText : text,
-        state: stepIndex < index ? "past" : stepIndex === index ? "active" : "pending",
-      })),
-    [activeText, index, steps],
-  );
 
   if (!active) return null;
 
-  const activeStage = visibleSteps[index]?.text || "Working…";
+  const activeStage = String(activeText || "").trim() || "Working…";
 
   return (
     <section
       className={`rd-v2-progress-card${className ? ` ${className}` : ""}`}
       aria-label={label}
-      data-active-step={Math.min(index + 1, steps.length)}
+      data-active-step={1}
       data-testid="interaction-progress"
     >
       <span className="rd-v2-progress-announcement" role="status" aria-live="polite" aria-atomic="true">
@@ -101,22 +67,6 @@ export function ProgressSteps({
       >
         <span className="rd-v2-progress-phase-fill" aria-hidden="true" />
       </div>
-      <ol aria-label="Indicative activity sequence">
-        {visibleSteps.map((step, stepIndex) => (
-          <li
-            key={stepIndex}
-            data-state={step.state}
-            aria-current={step.state === "active" ? "step" : undefined}
-          >
-            {/* VC-7: finished work reads as an explicit check, the current step
-                is accented, and future steps stay quiet. */}
-            <span className="rd-v2-progress-marker" aria-hidden="true">
-              {step.state === "past" ? <Check /> : step.state === "active" ? "●" : "○"}
-            </span>
-            <span>{step.text}</span>
-          </li>
-        ))}
-      </ol>
     </section>
   );
 }

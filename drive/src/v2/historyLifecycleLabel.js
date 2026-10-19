@@ -5,10 +5,32 @@
 
 import { historyHoldingTruth, historyLifecycleBucket } from "./discoverAdapters.js";
 
+const EXPLICIT_STAGE_LABELS = Object.freeze({
+  route_investigating: "Route investigating",
+  route_review: "Route investigating",
+  method_review: "Method review",
+  extracting: "Extracting",
+  schema_review: "Schema review",
+});
+
+function explicitStage(event) {
+  const meta = event?.meta || {};
+  const value =
+    meta.lifecycle_stage ||
+    meta.research_stage ||
+    meta.procurement_stage ||
+    meta.evidence_stage ||
+    event?.lifecycle_stage ||
+    event?.research_stage ||
+    "";
+  return String(value).trim().toLowerCase().replace(/[\s-]+/g, "_");
+}
+
 export function historyLifecycleLabel(event) {
   const status = String(event?.status || event?.meta?.status || "").toLowerCase();
   const action = String(event?.kind || event?.action || "").toLowerCase();
   const truth = historyHoldingTruth(event);
+  const stage = explicitStage(event);
   let kind = historyLifecycleBucket(event);
   if (kind === "all") {
     if (action === "intent") kind = "needs_approval";
@@ -16,6 +38,7 @@ export function historyLifecycleLabel(event) {
   }
 
   if (/cancelled|canceled/.test(status)) return "Cancelled";
+  if (EXPLICIT_STAGE_LABELS[stage]) return EXPLICIT_STAGE_LABELS[stage];
   if (kind === "needs_approval") return "Approval required";
   if (kind === "scheduled") return "Scheduled refresh";
   if (kind === "active") return status === "queued" ? "Queued" : "Collecting";
@@ -31,7 +54,7 @@ export function historyLifecycleLabel(event) {
     if (truth.completed || /completed|ready|done|succeeded/.test(status)) return "Completed";
     return "Completed";
   }
-  return "Route investigating";
+  return status ? status.replace(/[_-]+/g, " ") : "Status not reported";
 }
 
 export function historyLifecycleExplanation(event) {
@@ -63,6 +86,34 @@ export function historyLifecycleExplanation(event) {
         explanation: "This evidence request is waiting for a researcher decision before collection begins.",
         risk: "No collection has started.",
         next: "Review the source and the exact request before approval.",
+      };
+    case "Route investigating":
+      return {
+        label,
+        explanation: "The request exists while a viable acquisition route is being established.",
+        risk: "Acquisition method is not established.",
+        next: "Investigate available source and access routes.",
+      };
+    case "Method review":
+      return {
+        label,
+        explanation: "A collection method is proposed and awaits a researcher-owned decision.",
+        risk: "The proposed method is not accepted or executing yet.",
+        next: "Review or reject the recorded method.",
+      };
+    case "Extracting":
+      return {
+        label,
+        explanation: "The evidence request reports active extraction.",
+        risk: "Observed output is not a registered Library asset.",
+        next: "Track extraction evidence and wait for a reviewable result.",
+      };
+    case "Schema review":
+      return {
+        label,
+        explanation: "Collection returned evidence that needs a researcher-owned shape or mapping decision.",
+        risk: "Unreviewed fields are not silently normalized into a research asset.",
+        next: "Review the recorded evidence shape or mapping.",
       };
     case "Queued":
       return {
@@ -116,10 +167,10 @@ export function historyLifecycleExplanation(event) {
       };
     default:
       return {
-        label: "Route investigating",
-        explanation: "The evidence request exists while Research Drive determines a viable acquisition route.",
-        risk: "Acquisition method is not established.",
-        next: "Investigate available source and access routes.",
+        label,
+        explanation: "The lifecycle record does not report a named research stage.",
+        risk: "Do not infer route, method, or execution state from an absent record.",
+        next: "Inspect the technical record or wait for the next durable update.",
       };
   }
 }

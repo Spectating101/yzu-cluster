@@ -680,13 +680,7 @@ export async function sendChatMessage(
     const started = Date.now();
     const tick = setInterval(() => {
       const elapsed = Math.round((Date.now() - started) / 1000);
-      const text =
-        elapsed < 4
-          ? "Understanding your request…"
-          : elapsed < 12
-            ? "Preparing the Composer research session…"
-            : "Composer is working with the research tools…";
-      onActivity?.({ text, elapsed_seconds: elapsed });
+      onActivity?.({ text: "Working…", elapsed_seconds: elapsed });
     }, 1500);
     try {
       let fallback;

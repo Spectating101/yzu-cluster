@@ -1,5 +1,6 @@
 /** Resources — running jobs, stack, storage (sources/layers live in deskSourcesManifest.js). */
 
+import { measuredComposerLabel } from "./resourcesTruth.js";
 import { normalizeExecutionLifecycle } from "./executionLifecycle.js";
 import { evaluateJobRouting } from "./workerRouting.js";
 
@@ -121,7 +122,7 @@ export function buildStackRows({ health, catalogSummary, cluster }) {
       section: "Desk stack",
       kind: "stack",
       key: "composer",
-      label: `Ask · ${desk.composer_model || "composer-2.5"}`,
+      label: `Ask · ${measuredComposerLabel(desk.composer_model)}`,
       metric: composerOk ? "Composer + MCP" : "Composer not configured",
       ok: composerOk,
       warn: !composerOk,

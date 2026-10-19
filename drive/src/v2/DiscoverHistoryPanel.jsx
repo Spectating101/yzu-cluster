@@ -11,8 +11,6 @@ const HISTORY_FILTERS = [
   { id: "ready", label: "Ready" },
   { id: "needs_recovery", label: "Recovery" },
   { id: "scheduled", label: "Scheduled" },
-  { id: "search", label: "Search" },
-  { id: "system", label: "System" },
 ];
 
 function cleanTarget(value) {

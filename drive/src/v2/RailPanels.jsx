@@ -167,15 +167,11 @@ const PAGE_RAIL_COPY = {
   },
   synthesis: {
     title: "Synthesis studio",
-    desc: "Build a reusable research output from owned Library assets.",
-    // VC-6: the rail describes the objective-first construction lifecycle, not
-    // the retired blueprint/custom-pair picker.
+    desc: "Select a construction to inspect its evidence, review state, and registered proof.",
     fields: [
-      ["Start", "Describe the construct you need"],
-      ["Ask", "Clarifies meaning and required evidence"],
-      ["Ground", "Checks Library inputs and defensible proxies"],
-      ["Review", "You approve the method before execution"],
-      ["Output", "Archive, registration, and readiness remain separate"],
+      ["Current state", "No construction selected"],
+      ["Next", "Start a durable construction or open a registered method"],
+      ["Boundary", "Methods, execution, archive, registration, and readiness are separate records"],
     ],
   },
   profile: {

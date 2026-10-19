@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { discoverSearch, discoverSources, webDiscover } from "@/v2/api";
 import { sourcesResponseToRows } from "@/v2/discoverAdapters";
+import { collectRouteLabel } from "@/v2/collectRouteLabel";
 import { DiscoverHistoryPanel } from "@/v2/DiscoverHistoryPanel";
 import { jobToCandidateRow, pendingApprovalJobs } from "@/v2/procurementJobs";
 import {
@@ -21,6 +22,7 @@ import {
   interpretEvidenceNeed,
 } from "@/v2/discoverComposition";
 import { assessLocalSufficiency } from "@/v2/discoverSufficiency";
+import { buildDiscoverRestingSummary } from "@/v2/discoverRestingSummary";
 import { loadUserEmail } from "@/v2/deskSession";
 import { discoverDemoSearch } from "@/v2/deskSeed";
 import { DiscoverIntentWorkspace } from "@/v2/DiscoverIntentWorkspace";
@@ -217,6 +219,10 @@ function DiscoverCandidateRow({
               offeringType(row, taxonomy),
               showCoverage ? coverage : null,
               row?.refresh_frequency || row?.refresh || row?.update_frequency,
+              collectRouteLabel(row?.collect_via)
+                ? `Collect via ${collectRouteLabel(row.collect_via)}`
+                : null,
+              row?.file_summary || null,
               row?.probe_snapshot?.observed_at ? "Observed probe" : null,
             ].filter(Boolean).join(" · ")}
           </span>
@@ -578,6 +584,7 @@ export function BrowsePage({
   synthesisHandoff = null,
   onReturnToSynthesis,
   onDismissSynthesisHandoff,
+  onRestingSummary,
 }) {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -588,6 +595,7 @@ export function BrowsePage({
   const [indexMiss, setIndexMiss] = useState(false);
   const [externalSearchQuery, setExternalSearchQuery] = useState("");
   const [routeComparisonOpen, setRouteComparisonOpen] = useState(false);
+  const [sortMode, setSortMode] = useState("relevance");
   const [queryDraft, setQueryDraft] = useState(searchQuery || "");
   const [loadedQuery, setLoadedQuery] = useState("");
   const [enrichedQuestion, setEnrichedQuestion] = useState("");
@@ -603,6 +611,7 @@ export function BrowsePage({
     setQueryDraft(searchQuery || "");
     setRouteComparisonOpen(false);
     setEnrichedQuestion("");
+    setSortMode("relevance");
   }, [searchQuery]);
 
   useEffect(() => {
@@ -894,6 +903,13 @@ export function BrowsePage({
     });
   }, [merged, stateFilter, labIds]);
 
+  // The frozen Explore composition has one ranked list.  Filters and sorting
+  // change that list; they never promote a "best" row into a second surface.
+  const renderedRows = useMemo(() => {
+    if (sortMode !== "name") return filtered;
+    return [...filtered].sort((left, right) => candidateTitle(left).localeCompare(candidateTitle(right)));
+  }, [filtered, sortMode]);
+
   const interpretation = useMemo(() => interpretEvidenceNeed(searchQuery), [searchQuery]);
 
   const resultGroups = useMemo(() => {
@@ -913,6 +929,41 @@ export function BrowsePage({
     }
     return groups;
   }, [filtered, labIds]);
+
+  // Explore is a decision surface, not a dump of everything matching a word.
+  // Keep held Library matches reachable through the control above, while the
+  // centre list focuses on sources that can become a request.  A user-selected
+  // filter still owns the list exactly, including Library results.
+  const rankedOfferings = useMemo(
+    () =>
+      renderedRows.filter((row) => {
+        const taxonomy = row.discover_taxonomy || classifyDiscoverResult(row, labIds);
+        const type = offeringType(row, taxonomy);
+        return !taxonomy.key.startsWith("local-") && type !== "Reference only" && type !== "Web context";
+      }),
+    [renderedRows, labIds],
+  );
+  const centreRows = stateFilter === "all" ? rankedOfferings : renderedRows;
+
+  useEffect(() => {
+    if (!isExplore || !selectedId || !centreRows.length) return;
+    if (centreRows.some((row) => candidateKey(row) === selectedId)) return;
+    // A stale Library selection must not leave Detail judging an item that is
+    // no longer in the ranked centre.  Preserve the researcher’s selection
+    // when it is visible; otherwise focus the first actual offering.
+    onSelectRow?.(centreRows[0]);
+  }, [isExplore, selectedId, centreRows, onSelectRow]);
+
+  useEffect(() => {
+    if (!isExplore) {
+      onRestingSummary?.(null);
+      return undefined;
+    }
+    onRestingSummary?.(buildDiscoverRestingSummary(rankedOfferings, labIds, searchQuery));
+    return undefined;
+  }, [isExplore, rankedOfferings, labIds, searchQuery, onRestingSummary]);
+
+  useEffect(() => () => onRestingSummary?.(null), [onRestingSummary]);
   const resultBreakdown = useMemo(
     () => [
       resultGroups.available.length
@@ -1024,6 +1075,39 @@ export function BrowsePage({
             <b>{filterCounts[item.id] || 0}</b>
           </button>
         ))}
+      </div>
+    </details>
+  );
+
+  const sortMenu = (
+    <details className="rd-v2-discover-filter-menu rd-v2-discover-sort-menu" data-testid="discover-sort-menu">
+      <summary>
+        <span>Sort</span>
+        {sortMode === "name" ? <strong>Name A–Z</strong> : null}
+      </summary>
+      <div className="rd-v2-discover-filter-popover" role="group" aria-label="Sort Discover results">
+        <button
+          type="button"
+          className={sortMode === "relevance" ? "on" : ""}
+          aria-pressed={sortMode === "relevance"}
+          onClick={(event) => {
+            setSortMode("relevance");
+            event.currentTarget.closest("details")?.removeAttribute("open");
+          }}
+        >
+          <span>Relevance</span>
+        </button>
+        <button
+          type="button"
+          className={sortMode === "name" ? "on" : ""}
+          aria-pressed={sortMode === "name"}
+          onClick={(event) => {
+            setSortMode("name");
+            event.currentTarget.closest("details")?.removeAttribute("open");
+          }}
+        >
+          <span>Name A–Z</span>
+        </button>
       </div>
     </details>
   );
@@ -1196,15 +1280,23 @@ export function BrowsePage({
                   </details>
                   </div>
                 ) : null}
-                {filterMenu}
+                <div className="rd-v2-discover-frozen-controls">
+                  {filterMenu}
+                  {sortMenu}
+                </div>
+              </div>
+              <div className="rd-v2-discover-frozen-counts" aria-label="Discover result territories">
+                <span>Available · {resultGroups.available.length}</span>
+                <span>Library evidence · {resultGroups.held.length}</span>
+                <span>Web context · {resultGroups.context.length}</span>
               </div>
               <div className="rd-v2-discover-result-actions" aria-label="Discover next actions">
                 <div>
-                  <strong>{plural(filtered.length, "result")}</strong>
+                  <strong>{plural(centreRows.length, "offering")}</strong>
                   <span>
-                    {resultBreakdown || (preferLiveSources || source === "sources" || externalCatalogueActive
-                      ? "wider discovery"
-                      : "index lookup")}
+                    {stateFilter === "all"
+                      ? "available to add"
+                      : activeFilter.label}
                   </span>
                 </div>
                 <div>
@@ -1213,7 +1305,6 @@ export function BrowsePage({
                       Search wider
                     </button>
                   ) : null}
-                  {libraryEvidenceMenu}
                   {assessmentPending ? (
                     <button type="button" className="rd-v2-discover-strategy-trigger is-pending" disabled>
                       Assessing strategy…
@@ -1246,18 +1337,14 @@ export function BrowsePage({
               </div>
             </section>
 
-            {resultGroups.available.length ? (
-              <section className="rd-v2-discover-best-fit" aria-label="Available to add" data-testid="discover-best-fit">
-                {/* VC-5: the result header already states the offering count;
-                    repeating it beside an identical heading is noise. */}
-                <div className="rd-v2-home-section-head">
-                  <div>
-                    <span className="rd-v2-eyebrow">Beyond your Library</span>
-                    <h3>Available to add</h3>
-                  </div>
-                </div>
+            {centreRows.length ? (
+              <section className="rd-v2-discover-ranked-results" aria-label="Ranked Discover results" data-testid="discover-ranked-results">
+                <header className="rd-v2-discover-ranked-results-head">
+                  <span className="rd-v2-eyebrow">Results</span>
+                  <strong>{plural(centreRows.length, "offering")}</strong>
+                </header>
                 <DiscoverCandidateList
-                  rows={resultGroups.available}
+                  rows={centreRows}
                   labIds={labIds}
                   selectedId={selectedId}
                   onSelectRow={onSelectRow}
@@ -1331,47 +1418,7 @@ export function BrowsePage({
               </div>
             ) : null}
 
-            {resultGroups.external.length ? (
-              <section
-                className={resultGroups.available.length ? "rd-v2-discover-other-matches" : "rd-v2-discover-best-fit"}
-                aria-label="Other external matches"
-                data-testid={resultGroups.available.length ? "discover-other-matches" : "discover-best-fit"}
-              >
-                <div className="rd-v2-home-section-head">
-                  <h3>{externalCatalogueActive ? "External catalogue matches" : "Other external matches"}</h3>
-                  {externalCatalogueActive ? (
-                    <span className="muted">{plural(resultGroups.external.length, "external catalogue record")}</span>
-                  ) : (
-                    <span className="muted">{plural(resultGroups.external.length, "result")}</span>
-                  )}
-                </div>
-                <DiscoverCandidateList
-                  rows={resultGroups.external}
-                  labIds={labIds}
-                  selectedId={selectedId}
-                  onSelectRow={onSelectRow}
-                  onAdd={onReviewAcquisition}
-                  externalCatalogue={externalCatalogueActive}
-                />
-              </section>
-            ) : null}
-
-            {resultGroups.context.length ? (
-              <section className="rd-v2-discover-other-matches" aria-label="References and web context">
-                <div className="rd-v2-home-section-head">
-                  <h3>References and web context</h3>
-                </div>
-                <DiscoverCandidateList
-                  rows={resultGroups.context}
-                  labIds={labIds}
-                  selectedId={selectedId}
-                  onSelectRow={onSelectRow}
-                  externalCatalogue={externalCatalogueActive}
-                />
-              </section>
-            ) : null}
-
-            {filtered.length ? (
+            {centreRows.length ? (
               <footer className="rd-v2-discover-rank-foot" data-testid="discover-rank-foot">
                 <span className="muted">
                   {externalCatalogueActive

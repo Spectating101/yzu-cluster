@@ -58,8 +58,8 @@ test.describe("Research Drive interaction guidance", () => {
         composer_model: "composer-2.5",
       },
     };
-    await page.unroute("**/health*");
-    await page.route("**/health*", (route) =>
+    await page.unroute("**/*health*");
+    await page.route("**/*health*", (route) =>
       route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(health) }),
     );
     await page.reload({ waitUntil: "domcontentloaded" });
@@ -95,8 +95,8 @@ test.describe("Research Drive interaction guidance", () => {
         },
       },
     };
-    await page.unroute("**/health*");
-    await page.route("**/health*", (route) =>
+    await page.unroute("**/*health*");
+    await page.route("**/*health*", (route) =>
       route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(health) }),
     );
     await page.reload({ waitUntil: "domcontentloaded" });
@@ -125,8 +125,8 @@ test.describe("Research Drive interaction guidance", () => {
         },
       },
     };
-    await page.unroute("**/health*");
-    await page.route("**/health*", (route) =>
+    await page.unroute("**/*health*");
+    await page.route("**/*health*", (route) =>
       route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(health) }),
     );
     await page.reload({ waitUntil: "domcontentloaded" });
@@ -159,8 +159,8 @@ test.describe("Research Drive interaction guidance", () => {
         },
       },
     };
-    await page.unroute("**/health*");
-    await page.route("**/health*", (route) =>
+    await page.unroute("**/*health*");
+    await page.route("**/*health*", (route) =>
       route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(health) }),
     );
     await page.reload({ waitUntil: "domcontentloaded" });
@@ -190,8 +190,8 @@ test.describe("Research Drive interaction guidance", () => {
         },
       },
     };
-    await page.unroute("**/health*");
-    await page.route("**/health*", (route) =>
+    await page.unroute("**/*health*");
+    await page.route("**/*health*", (route) =>
       route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(health) }),
     );
     await page.reload({ waitUntil: "domcontentloaded" });

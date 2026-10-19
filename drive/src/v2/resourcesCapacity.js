@@ -4,6 +4,7 @@
  */
 
 import { composerRuntimeRead } from "./composerRuntimeStatus.js";
+import { measuredComposerLabel } from "./resourcesTruth.js";
 import { identifyProviderMarkId } from "./providerMarkIds.js";
 import { formatCollectorState, workersToolbarFieldsFromRollup } from "./workersToolbarStat.js";
 
@@ -143,12 +144,12 @@ export function buildCapacityAccessPairs(rollup, health) {
       pct: null,
       available: runtimeRead
         ? runtimeRead.ready
-          ? `API key live · ${composer.model || ai.composer_model || "default"}`
+          ? `API key live · ${measuredComposerLabel(composer.model || ai.composer_model)}`
           : runtimeRead.status === "unavailable"
             ? "Set CURSOR_API_KEY for Ask"
-            : `Key set · ${composer.model || ai.composer_model || "default"} · ${runtimeRead.why}`
+            : `Key set · ${measuredComposerLabel(composer.model || ai.composer_model)} · ${runtimeRead.why}`
         : composerOk
-          ? `API key live · ${composer.model || ai.composer_model || "default"}`
+          ? `Key configured · runtime not verified · ${measuredComposerLabel(composer.model || ai.composer_model)}`
           : "Set CURSOR_API_KEY for Ask",
       warn: runtimeRead ? !runtimeRead.ready : !composerOk,
       action: runtimeRead ? (runtimeRead.status === "unavailable" ? "NEED" : null) : composerOk ? null : "NEED",

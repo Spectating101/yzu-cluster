@@ -1,7 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { buildStageDetail, executionTrack } from "./synthesisLifecycle.js";
+import {
+  buildStageDetail,
+  executionTrack,
+  synthesisShowsEvidenceMap,
+  synthesisShowsStageStrip,
+} from "./synthesisLifecycle.js";
 
 const row = (track, label) => track.find((entry) => entry.label === label);
 
@@ -32,6 +37,14 @@ test("only post-approval lifecycle states describe execution as approved", () =>
 test("a thread with no specification makes no execution claim", () => {
   assert.equal(buildStageDetail({ state: {} }), "Execution record");
   assert.equal(buildStageDetail(undefined), "Execution record");
+});
+
+test("numbered construction stages stay hidden until a method is accepted", () => {
+  assert.equal(synthesisShowsStageStrip({ state: {} }), false);
+  assert.equal(synthesisShowsStageStrip({ state: { nodes: [{ type: "source" }] } }), false);
+  assert.equal(synthesisShowsStageStrip({ state: { proposal: { id: "proposal_1" } } }), false);
+  assert.equal(synthesisShowsStageStrip({ state: { execution_spec: { output_dataset_id: "output" } } }), true);
+  assert.equal(synthesisShowsStageStrip({ state: { execution: { status: "registered" } } }), true);
 });
 
 /* ── Execution track: completed != archived != registered != query-ready ─ */
@@ -75,4 +88,30 @@ test("an unrequested execution claims nothing", () => {
 test("hyphenated and mixed-case statuses normalize", () => {
   const track = executionTrack("Query-Ready", true, true);
   assert.equal(row(track, "Archive + registry").detail, "Verified");
+});
+
+test("registered threads still show the evidence map when nodes exist", () => {
+  assert.equal(
+    synthesisShowsEvidenceMap({
+      state: {
+        execution: { status: "registered", output_dataset_id: "synthesis_keeling_accel_monthly_v1" },
+        nodes: [{ type: "source", label: "Mauna Loa Monthly CO₂", dataset_id: "keeling_mlo_monthly_clean" }],
+      },
+    }),
+    true,
+  );
+});
+
+test("registered threads without mapped nodes do not invent an evidence map", () => {
+  assert.equal(
+    synthesisShowsEvidenceMap({
+      state: { execution: { status: "registered" }, nodes: [] },
+    }),
+    false,
+  );
+});
+
+test("draft threads with no evidence nodes stay off the map", () => {
+  assert.equal(synthesisShowsEvidenceMap({ state: {} }), false);
+  assert.equal(synthesisShowsEvidenceMap(undefined), false);
 });

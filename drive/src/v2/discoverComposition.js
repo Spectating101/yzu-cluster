@@ -93,18 +93,6 @@ export function interpretEvidenceNeed(query = "") {
 }
 
 /**
- * Freeze Explore ranking: first ordered row = Best fit; remainder = Other matches.
- */
-export function splitBestFitAndOthers(rows = []) {
-  const list = Array.isArray(rows) ? rows : [];
-  return {
-    bestFit: list[0] || null,
-    others: list.slice(1),
-    total: list.length,
-  };
-}
-
-/**
  * @param {object[]} rows decorated Discover rows with discover_taxonomy
  * @returns {{ id: string, title: string, description: string, rows: object[] }[]}
  */
