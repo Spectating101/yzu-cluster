@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { accountUsage } from "./accountApi.js";
 import { requestCounts } from "./requestCounts.js";
+import { MEMBERS_ONLY_TEXT } from "./licensedAccess.js";
 
 export function MemberResources({ signedIn, jobs, libraryCount, onGoTab, onOpenHistory, onSignIn }) {
   const [usage, setUsage] = useState(null);
@@ -15,15 +16,44 @@ export function MemberResources({ signedIn, jobs, libraryCount, onGoTab, onOpenH
 
   if (!signedIn) {
     return (
-      <section className="rd-v2-guest-feature-hero">
-        <span className="rd-v2-eyebrow">Resources</span>
-        <h2>Your allowance and requests appear here after you sign in</h2>
-        <p>Signed-in researchers see how much of the research assistant they have left and how their collection requests are progressing. The shared Library and Discover stay open to everyone.</p>
-        <div className="rd-v2-member-resources-actions">
-          {onSignIn ? <button type="button" className="rd-v2-btn primary" onClick={onSignIn}>Sign in</button> : null}
-          <button type="button" className="rd-v2-btn" onClick={() => onGoTab?.("library")}>Browse the Library</button>
+      <>
+        <section className="rd-v2-guest-feature-hero">
+          <span className="rd-v2-eyebrow">Resources</span>
+          <h2>What you can do here, and what needs an account</h2>
+          <p>Most of the desk works without signing in. An account is needed only where the desk has to remember you, and a Yuan Ze email only where a university licence applies.</p>
+          <div className="rd-v2-member-resources-actions">
+            {onSignIn ? <button type="button" className="rd-v2-btn primary" onClick={onSignIn}>Sign in</button> : null}
+            <button type="button" className="rd-v2-btn" onClick={() => onGoTab?.("library")}>Browse the Library</button>
+          </div>
+        </section>
+        <div className="rd-v2-member-resources" data-testid="guest-resources-access" role="group" aria-label="What each level of access includes">
+          <article>
+            <span className="rd-v2-eyebrow">Open to everyone</span>
+            <h2>{libraryCount} dataset{libraryCount === 1 ? "" : "s"} to read now</h2>
+            <ul>
+              <li>Preview, query and download as CSV</li>
+              <li>See each dataset's source and coverage</li>
+              <li>Check what the Library covers in Discover</li>
+              <li>Read saved Synthesis results</li>
+            </ul>
+          </article>
+          <article>
+            <span className="rd-v2-eyebrow">Needs an account</span>
+            <h2>Where the desk remembers you</h2>
+            <ul>
+              <li>Ask, the research assistant</li>
+              <li>Requests for new collections</li>
+              <li>Synthesis builds saved to your Library</li>
+              <li>A research profile that tunes the Library</li>
+            </ul>
+          </article>
+          <article>
+            <span className="rd-v2-eyebrow">Needs a Yuan Ze email</span>
+            <h2>University-licensed data</h2>
+            <p>{MEMBERS_ONLY_TEXT}</p>
+          </article>
         </div>
-      </section>
+      </>
     );
   }
 

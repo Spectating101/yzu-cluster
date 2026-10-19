@@ -10,7 +10,7 @@ import { DeskError } from "@/v2/DeskError";
 import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
 import { displayName, statusPillKind } from "@/v2/datasetMeta";
 import { featuredRows } from "@/v2/libraryFocus";
-import { barBox, glanceTitle, rowsLabel, spanAxis, spanOf, spanText } from "@/v2/libraryGlance";
+import { barBox, filesLabel, glanceTitle, rowsLabel, spanAxis, spanOf, spanText } from "@/v2/libraryGlance";
 import {
   buildPickUp,
   buildRecentTrail,
@@ -127,7 +127,7 @@ function firstSentence(value) {
 }
 
 function HomeGlance({ span, axis }) {
-  const rows = rowsLabel(span.rows);
+  const rows = rowsLabel(span.rows) || filesLabel(span.files);
   const box = barBox(span, axis);
   if (!rows && !box) return null;
   return (

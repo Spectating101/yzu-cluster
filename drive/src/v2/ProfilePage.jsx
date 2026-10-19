@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { GuestFocusTry } from "./GuestFocusTry.jsx";
 import { facultyProfile } from "@/v2/api";
 import { saveUserEmail } from "@/v2/deskSession";
 import { requestDeskSignIn } from "@/v2/deskPermissions";
@@ -381,6 +382,8 @@ export function ProfilePage({
   onProfileRefresh,
   allowExamplePreview = false,
   personalProfileAvailable = false,
+  datasets = [],
+  onOpenDataset,
 }) {
   const [personalDocument, setPersonalDocument] = useState(undefined);
   const [personalAttempt, setPersonalAttempt] = useState(0);
@@ -525,6 +528,8 @@ export function ProfilePage({
           </div>
         </section>
       ) : null}
+
+      {publicProfile ? <GuestFocusTry catalog={datasets} onOpen={onOpenDataset} /> : null}
 
       {active ? (
         <section className="rd-v2-profile-identity" aria-label="Recorded scholarly identity">

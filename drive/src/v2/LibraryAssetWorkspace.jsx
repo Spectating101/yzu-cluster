@@ -18,6 +18,7 @@ import { PageShell } from "@/v2/ui";
 import { previewCellValue } from "@/v2/previewValue";
 import { collectionRecipe } from "./collectionRecipe.js";
 import { coverageText } from "./coverageText.js";
+import { glanceCoverage } from "./libraryGlance.js";
 import { LibraryPackagePanel } from "./LibraryPackagePanel.jsx";
 import { datasetDownloadHref } from "@/v2/askDownloadLink";
 import { requestDeskSignIn, useDeskPermission } from "@/v2/deskPermissions";
@@ -387,7 +388,7 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
     ));
   };
   const joinKeys = fields.joinKeys || [];
-  const rowCount = dataset?.rows || dataset?.row_count || dataset?.num_rows || dataset?.records;
+  const rowCount = dataset?.rows || dataset?.row_count || dataset?.num_rows || dataset?.records || dataset?.glance?.rows;
   const liveSource = presentation.kind === "live_source";
   if (licensedRowsLocked(dataset)) {
     return (
@@ -405,7 +406,7 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
       </section>
     );
   }
-  const coverage = coverageText(fields.coverage || dataset?.coverage).trim();
+  const coverage = coverageText(fields.coverage || dataset?.coverage).trim() || glanceCoverage(dataset);
   const grain = String(dataset?.grain || "").trim();
 
   return (
@@ -526,7 +527,7 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
         <span>{observed ? (profileBasis(preview.profile) || "Values read from the stored data") : "Documented structure only"}</span>
         {coverage ? <span>Coverage: {coverage}</span> : !liveSource ? <span>Coverage: Not documented</span> : null}
         {liveSource ? null : <span>Unit of observation: {grain || "Not documented"}</span>}
-        {liveSource ? null : <span>Scale: {rowCount ? `${rowCount} rows` : "Not documented"}</span>}
+        {liveSource ? null : <span>Scale: {rowCount ? `${Number.isFinite(Number(rowCount)) ? Number(rowCount).toLocaleString("en-US") : rowCount} rows` : "Not documented"}</span>}
         {liveSource ? (joinKeys.length ? <span>Keys: {joinKeys.join(" · ")}</span> : null) : <span>Keys: {joinKeys.length ? joinKeys.join(" · ") : "Not documented"}</span>}
       </div>
     </section>
@@ -570,10 +571,10 @@ function EvidenceShape({ dataset, fields, presentation, rowCount, state }) {
   return (
     <dl className="rd-v2-library-evidence-facts">
       <div><dt>Unit of observation</dt><dd>{value(dataset?.grain)}</dd></div>
-      <div><dt>Period</dt><dd>{value(fields.coverage, dataset?.date_range, dataset?.temporal_coverage)}</dd></div>
+      <div><dt>Period</dt><dd>{value(fields.coverage, dataset?.date_range, dataset?.temporal_coverage, glanceCoverage(dataset))}</dd></div>
       <div><dt>Scope</dt><dd>{value(dataset?.scope, dataset?.universe, dataset?.geography, dataset?.entity_universe)}</dd></div>
       <div><dt>Meaningful keys</dt><dd>{(fields.joinKeys || []).join(" · ") || "Not documented"}</dd></div>
-      <div><dt>Documented scale</dt><dd>{rowCount ? `${rowCount} rows` : "Not documented"}</dd></div>
+      <div><dt>Documented scale</dt><dd>{rowCount ? `${Number.isFinite(Number(rowCount)) ? Number(rowCount).toLocaleString("en-US") : rowCount} rows` : "Not documented"}</dd></div>
     </dl>
   );
 }
@@ -612,7 +613,7 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onOpenQuery,
   const canDownload = useDeskPermission("download_research_data") !== false;
   const hasTableSurface = presentation.previewRows;
   const names = useMemo(() => fieldNames(dataset, fields), [dataset, fields]);
-  const rowCount = dataset?.rows || dataset?.row_count || dataset?.num_rows || dataset?.records;
+  const rowCount = dataset?.rows || dataset?.row_count || dataset?.num_rows || dataset?.records || dataset?.glance?.rows;
   const purpose = value(dataset?.recommended_use, dataset?.description, fields.use, "Research use is not described in the current registry metadata.");
 
   const factContent = (

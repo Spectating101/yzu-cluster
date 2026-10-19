@@ -16,6 +16,12 @@ export function rowsLabel(count) {
   return `${n.toLocaleString("en-US")} ${n === 1 ? "row" : "rows"}`;
 }
 
+export function filesLabel(count) {
+  const n = Number(count);
+  if (!Number.isFinite(n) || n < 1) return "";
+  return `${n.toLocaleString("en-US")} ${n === 1 ? "file" : "files"}`;
+}
+
 export function spanOf(row) {
   const glance = row?.glance || {};
   const coverage = typeof row?.coverage === "string" ? /(\d{4}[-\d]*)\s*(?:→|->|–|—|to)\s*(\d{4}[-\d]*)/.exec(row.coverage) : null;
@@ -28,6 +34,7 @@ export function spanOf(row) {
   return {
     rows: Number.isFinite(rows) && rows >= 0 ? rows : null,
     columns: Number(glance.columns) || null,
+    files: Number(glance.files) || null,
     from,
     to,
     fromYear,
@@ -62,7 +69,16 @@ export function spanText(span) {
 export function glanceTitle(span) {
   const parts = [];
   if (span?.rows !== null && span?.rows !== undefined) parts.push(`${span.rows.toLocaleString("en-US")} rows`);
+  if (span?.files) parts.push(filesLabel(span.files));
   if (span?.columns) parts.push(`${span.columns} columns`);
   if (span?.ranged) parts.push(`${span.from} to ${span.to}`);
   return parts.join(" · ");
+}
+
+export function glanceCoverage(row) {
+  const glance = row?.glance || {};
+  const from = String(glance.from || "").trim();
+  const to = String(glance.to || "").trim();
+  if (!from || !to) return "";
+  return from === to ? from : `${from} → ${to}`;
 }

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { rowsLabel, spanOf, spanAxis, barBox, spanText, glanceTitle } from "./libraryGlance.js";
+import { rowsLabel, filesLabel, glanceCoverage, spanOf, spanAxis, barBox, spanText, glanceTitle } from "./libraryGlance.js";
 
 test("row counts read at a glance", () => {
   assert.equal(rowsLabel(1), "1 row");
@@ -64,4 +64,21 @@ test("labels and tooltips say the years and the facts", () => {
   assert.equal(spanText(spanOf({ glance: { from: "2020", to: "2020" } })), "2020");
   assert.equal(spanText(spanOf({})), "");
   assert.equal(glanceTitle(spanOf({ glance: { rows: 1200, columns: 3, from: "2020-01-02", to: "2021-06-30" } })), "1,200 rows · 3 columns · 2020-01-02 to 2021-06-30");
+});
+
+test("a many-file dataset reads as a file count and never as rows", () => {
+  assert.equal(filesLabel(515), "515 files");
+  assert.equal(filesLabel(1), "1 file");
+  assert.equal(filesLabel(0), "");
+  assert.equal(filesLabel(null), "");
+  const span = spanOf({ glance: { files: 515 } });
+  assert.deepEqual([span.files, span.rows, span.ranged], [515, null, false]);
+  assert.equal(glanceTitle(span), "515 files");
+});
+
+test("the dataset view can name coverage from what the backend read", () => {
+  assert.equal(glanceCoverage({ glance: { from: "1926-07-01", to: "2026-06-30" } }), "1926-07-01 → 2026-06-30");
+  assert.equal(glanceCoverage({ glance: { from: "2020", to: "2020" } }), "2020");
+  assert.equal(glanceCoverage({ glance: { from: "2020" } }), "");
+  assert.equal(glanceCoverage({}), "");
 });

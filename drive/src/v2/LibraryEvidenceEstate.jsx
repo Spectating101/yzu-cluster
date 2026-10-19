@@ -5,7 +5,7 @@ import { libraryVerification } from "@/v2/libraryVerification";
 import { coverageSpan } from "@/v2/coverageText";
 import { StatusPill } from "@/v2/StatusPill";
 import { listDescription } from "@/v2/listDescription";
-import { barBox, glanceTitle, rowsLabel, spanAxis, spanOf, spanText } from "@/v2/libraryGlance";
+import { barBox, filesLabel, glanceTitle, rowsLabel, spanAxis, spanOf, spanText } from "@/v2/libraryGlance";
 
 const PAGE_SIZE = 50;
 
@@ -82,7 +82,7 @@ function moveLedgerFocus(event) {
 
 function GlanceCell({ row, span, axis }) {
   const box = barBox(span, axis);
-  const rows = rowsLabel(span?.rows);
+  const rows = rowsLabel(span?.rows) || filesLabel(span?.files);
   const kind = kindLabel(row);
   if (kind !== "Dataset" || (!rows && !box)) {
     return <span className="rd-v2-cap-kind" role="cell">{kind}</span>;

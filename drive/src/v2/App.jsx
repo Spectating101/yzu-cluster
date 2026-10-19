@@ -2247,6 +2247,8 @@ function DeskWorkspace({ onIdentityChanged }) {
           onProfileRefresh={refreshProfiles}
           allowExamplePreview={canViewFacultyProfile}
           personalProfileAvailable={canUseAsk}
+          datasets={catalog}
+          onOpenDataset={openInLibraryFromDiscover}
         />
       );
       break;
