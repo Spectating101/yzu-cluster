@@ -128,6 +128,17 @@ test("a visitor sees finished Synthesis builds they can open, not only a sign-in
   await expect(page.getByTestId("library-asset-workspace")).toBeVisible();
 });
 
+test("the Synthesis showcase leaves out a build that has no data on the desk", async ({ page }) => {
+  const HOLLOW = { ...SYNTHESIS_BUILD, dataset_id: "synthesis_keeling_accel_monthly_v1", name: "Monthly Keeling Curve acceleration", analysis_readiness: "registered" };
+  await mockV2Api(page, { datasetsBody: { ...MOCK_DATASETS, datasets: [HOLLOW, SYNTHESIS_BUILD, ...MOCK_DATASETS.datasets] } });
+  await page.route("**/library/desk/capabilities", (route) => fulfill(route, access("public_guest")));
+  await page.goto("/?tab=synthesis", { waitUntil: "domcontentloaded" });
+  await waitForShell(page);
+  const showcase = page.getByTestId("guest-synthesis-showcase");
+  await expect(showcase.getByRole("button", { name: /County unemployment trend/ })).toBeVisible();
+  await expect(showcase).not.toContainText("Keeling");
+});
+
 test("the Library says how many datasets are members only instead of calling them all ready", async ({ page }) => {
   await mockV2Api(page, { datasetsBody: { ...MOCK_DATASETS, datasets: [LICENSED, ...MOCK_DATASETS.datasets] } });
   await page.route("**/library/desk/capabilities", (route) => fulfill(route, access("public_member")));

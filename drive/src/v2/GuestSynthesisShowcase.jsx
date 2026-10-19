@@ -1,4 +1,4 @@
-import { displayName } from "@/v2/datasetMeta";
+import { displayName, isQueryReadyReadiness } from "@/v2/datasetMeta";
 
 export function briefly(text, limit = 130) {
   const clean = String(text || "").replace(/\s+/g, " ").trim();
@@ -12,6 +12,7 @@ export function briefly(text, limit = 130) {
 export function finishedBuilds(catalog = []) {
   return catalog
     .filter((row) => String(row?.dataset_id || "").startsWith("synthesis_") || row?.synthesis_analysis)
+    .filter((row) => isQueryReadyReadiness(row?.analysis_readiness))
     .slice(0, 6);
 }
 
