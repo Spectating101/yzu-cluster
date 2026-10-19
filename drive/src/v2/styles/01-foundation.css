@@ -1039,6 +1039,10 @@ button {
 
 /* Home Attention: tablet canvas is narrow while shell keeps sidebar + rail. */
 
+.rd-v2-home-page .rd-v2-body-scroll {
+  max-width: 1280px;
+}
+
 .rd-v2-home-suggested {
   margin: 14px 0 8px;
 }
