@@ -35,7 +35,7 @@ function listOf(value) {
 }
 
 export function profileFocus(document) {
-  if (!document || !document.principal) return { signedIn: false, terms: [], label: "" };
+  if (!document || !document.principal) return { signedIn: false, terms: [], label: "", topics: [] };
   const profile = document.profile || {};
   const memory = document.memory || {};
   const learned = memory?.settings?.use_memory === false
@@ -48,9 +48,9 @@ export function profileFocus(document) {
     ...listOf(learned),
   ];
   const terms = [...new Set(phrases.flatMap(tokens))].slice(0, 24);
-  const label = [...listOf(profile.research_topics), ...listOf(profile.current_project)].slice(0, 3).join(", ")
-    || phrases.slice(0, 3).join(", ");
-  return { signedIn: true, terms, label };
+  const topics = [...listOf(profile.research_topics), ...listOf(profile.current_project)];
+  const label = topics.slice(0, 3).join(", ") || phrases.slice(0, 3).join(", ");
+  return { signedIn: true, terms, label, topics };
 }
 
 function readable(rows) {
@@ -130,4 +130,15 @@ export function lensNote(lens, focus) {
       : "The datasets most worth opening first. Search or pick a collection to see everything.";
   }
   return "";
+}
+
+export const NEUTRAL_EXAMPLES = {
+  keyword: "inflation",
+  question: "What data can I use to study unemployment across countries?",
+};
+
+export function discoverExamples(focus) {
+  const topic = focus?.topics?.[0];
+  if (!topic) return NEUTRAL_EXAMPLES;
+  return { keyword: topic, question: `What data can I use to study ${topic}?` };
 }

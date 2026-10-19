@@ -124,3 +124,26 @@ test("a member whose focus matches nothing still gets featured", async ({ page }
   await expect(page.getByTestId("library-lens-for_you")).toHaveCount(0);
   await expect(page.getByTestId("library-lens-featured")).toHaveAttribute("aria-pressed", "true");
 });
+
+test("Discover suggests neutral searches to a guest", async ({ page }) => {
+  await mockV2Api(page, { datasetsBody: datasetsFor("public_guest") });
+  await page.route("**/library/desk/capabilities", (route) => fulfill(route, access("public_guest")));
+  await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+  await waitForShell(page);
+  const examples = page.getByTestId("discover-composer-examples");
+  await expect(examples).toContainText("inflation");
+  await expect(examples).toContainText("study unemployment across countries");
+  await expect(examples).not.toContainText("stablecoin");
+});
+
+test("Discover suggests a member's own topic", async ({ page }) => {
+  await mockV2Api(page, { datasetsBody: datasetsFor("member") });
+  await page.route("**/library/desk/capabilities", (route) => fulfill(route, access("member")));
+  await page.route("**/library/profile", (route) => fulfill(route, MEMBER_PROFILE(["stablecoin de-pegging"])));
+  await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+  await waitForShell(page);
+  const examples = page.getByTestId("discover-composer-examples");
+  await expect(examples).toContainText("What data can I use to study stablecoin de-pegging?");
+  await examples.getByRole("button").first().click();
+  await expect(page.getByLabel("Search or describe a research need")).toHaveValue("stablecoin de-pegging");
+});

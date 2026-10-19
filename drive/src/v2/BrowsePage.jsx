@@ -1,6 +1,8 @@
 import { uiVocabularyLabel } from "./uiVocabularyLabels.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { instantLibraryMatches } from "@/v2/discoverInstantMatches";
+import { NEUTRAL_EXAMPLES, discoverExamples } from "@/v2/libraryFocus";
+import { useResearchFocus } from "@/v2/useResearchFocus";
 import { discoverSearch, discoverSources, webDiscover } from "@/v2/api";
 import { partialFitLine, reconcileDiscoverRegistryRows, searchHitToCandidate, sourcesResponseToRows } from "@/v2/discoverAdapters";
 import { collectRouteDisplayLabel } from "@/v2/collectRouteLabel";
@@ -58,9 +60,6 @@ function plural(value, singular, pluralValue = `${singular}s`) {
   return `${value} ${value === 1 ? singular : pluralValue}`;
 }
 
-/** VC-5: first-use examples for the single adaptive composer. */
-const DISCOVER_KEYWORD_EXAMPLE = "stablecoin";
-const DISCOVER_QUESTION_EXAMPLE = "What data can I use to study de-pegs?";
 
 
 function candidateTitle(row) {
@@ -307,6 +306,7 @@ function DiscoverQueryComposer({
   onAsk,
   onAssess,
   idle = false,
+  examples = NEUTRAL_EXAMPLES,
 }) {
   const submit = (event) => {
     event.preventDefault();
@@ -346,13 +346,13 @@ function DiscoverQueryComposer({
           demonstration. They are examples, not modes or tabs. */}
       {idle ? (
         <div className="rd-v2-discover-composer-examples" data-testid="discover-composer-examples">
-          <button type="button" onClick={() => onValueChange?.(DISCOVER_KEYWORD_EXAMPLE)}>
+          <button type="button" onClick={() => onValueChange?.(examples.keyword)}>
             <span>Try a keyword</span>
-            <em>{DISCOVER_KEYWORD_EXAMPLE}</em>
+            <em>{examples.keyword}</em>
           </button>
-          <button type="button" onClick={() => onValueChange?.(DISCOVER_QUESTION_EXAMPLE)}>
+          <button type="button" onClick={() => onValueChange?.(examples.question)}>
             <span>Ask a research need</span>
-            <em>{DISCOVER_QUESTION_EXAMPLE}</em>
+            <em>{examples.question}</em>
           </button>
         </div>
       ) : null}
@@ -683,6 +683,7 @@ export function BrowsePage({
   const [sortMode, setSortMode] = useState("relevance");
   const [queryDraft, setQueryDraft] = useState(searchQuery || "");
   const [showAllSources, setShowAllSources] = useState(false);
+  const researchFocus = useResearchFocus(askAvailable);
   const [searchRevision, setSearchRevision] = useState(0);
   const [loadedQuery, setLoadedQuery] = useState("");
   const [enrichedQuestion, setEnrichedQuestion] = useState("");
@@ -1524,6 +1525,7 @@ export function BrowsePage({
               onSearch={requestSearch}
               onAsk={askAvailable ? (question) => onAskQuery?.(question, { kind: "investigation" }) : undefined}
               onAssess={askAvailable ? onOpenAssessment : undefined}
+              examples={discoverExamples(researchFocus)}
               idle
             />
             <div className="rd-v2-discover-idle-held">

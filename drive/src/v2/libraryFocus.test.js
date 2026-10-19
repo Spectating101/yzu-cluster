@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { featuredRows, matchedRows, libraryLenses, lensNote, profileFocus, FOCUS_LIMIT } from "./libraryFocus.js";
+import { featuredRows, matchedRows, libraryLenses, lensNote, profileFocus, discoverExamples, NEUTRAL_EXAMPLES, FOCUS_LIMIT } from "./libraryFocus.js";
 
 const row = (id, extra = {}) => ({ dataset_id: id, name: id, grain: "day", ...extra });
 
@@ -40,8 +40,8 @@ test("featured is capped", () => {
 });
 
 test("a signed-out or empty profile has no terms", () => {
-  assert.deepEqual(profileFocus(undefined), { signedIn: false, terms: [], label: "" });
-  assert.deepEqual(profileFocus({}), { signedIn: false, terms: [], label: "" });
+  assert.deepEqual(profileFocus(undefined), { signedIn: false, terms: [], label: "", topics: [] });
+  assert.deepEqual(profileFocus({}), { signedIn: false, terms: [], label: "", topics: [] });
   const empty = profileFocus(document());
   assert.equal(empty.signedIn, true);
   assert.deepEqual(empty.terms, []);
@@ -108,4 +108,13 @@ test("the note explains the view and nudges a member who has no focus yet", () =
   assert.match(lensNote("featured", profileFocus(undefined)), /most worth opening/);
   assert.match(lensNote("featured", profileFocus(document())), /Add your research focus in Profile/);
   assert.equal(lensNote("all", {}), "");
+});
+
+test("Discover suggests neutral searches until a member has named a topic", () => {
+  assert.deepEqual(discoverExamples(profileFocus(undefined)), NEUTRAL_EXAMPLES);
+  assert.deepEqual(discoverExamples(profileFocus(document())), NEUTRAL_EXAMPLES);
+  assert.deepEqual(discoverExamples(profileFocus(document({ research_topics: ["stablecoin de-pegging"] }))), {
+    keyword: "stablecoin de-pegging",
+    question: "What data can I use to study stablecoin de-pegging?",
+  });
 });
