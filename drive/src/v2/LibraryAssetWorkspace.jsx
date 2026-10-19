@@ -520,7 +520,9 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
       ) : (
         <div className="rd-v2-library-preview-empty">
           <strong>{liveSource ? "No response structure is available yet." : "No table structure is available yet."}</strong>
-          <span>{state.label} does not currently expose {liveSource ? "documented response fields" : "observed columns or a documented field list"}.</span>
+          {state.kind === "available"
+            ? <span>Nothing is downloaded yet, so there is no sample. Once it is collected, its columns and a sample appear here.</span>
+            : <span>{state.label} does not currently expose {liveSource ? "documented response fields" : "observed columns or a documented field list"}.</span>}
         </div>
       )}
 

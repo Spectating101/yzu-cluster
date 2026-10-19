@@ -152,6 +152,9 @@ function nextMove({ state, presentation, previewOpen, receipt, verification, fre
     }
     return "Use the sample for a quick value check. Open a query for analysis beyond the sample.";
   }
+  if (state.kind === "available") {
+    return "Find it in Discover to request its collection. Once collected, its columns and a sample appear here.";
+  }
   if (state.kind === "connected") {
     return "Use the documented remote connection. Connected means the source is reachable. It does not confirm a local copy ready to query.";
   }
