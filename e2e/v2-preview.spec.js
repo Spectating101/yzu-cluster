@@ -11,11 +11,19 @@ test.describe("v2 adaptive Preview", () => {
 
   test("owned datasets open as a bounded rows and fields viewer", async ({ page }) => {
     await page.getByRole("textbox", { name: "Search library holdings" }).fill("Asia");
-    await page.locator('.rd-v2-catalog-list button[data-kind="dataset"]', { hasText: "Asia daily news-risk panel" }).click();
+    await page.getByTestId("library-evidence-row").filter({ hasText: "Asia daily news-risk panel" }).click();
     await page.locator("aside.rd-v2-rail").getByRole("button", { name: "Preview rows" }).click();
 
     const preview = page.getByRole("dialog", { name: "Asia daily news-risk panel preview" });
     await expect(preview).toBeVisible();
+    const scrim = page.locator(".rd-preview-scrim");
+    const inspector = page.getByRole("complementary", { name: "Inspector" });
+    const [scrimBox, inspectorBox] = await Promise.all([scrim.boundingBox(), inspector.boundingBox()]);
+    expect(scrimBox).not.toBeNull();
+    expect(inspectorBox).not.toBeNull();
+    expect(scrimBox.x + scrimBox.width).toBeLessThanOrEqual(inspectorBox.x + 1);
+    await expect(inspector.getByTestId("library-preview-open-state")).toHaveText("Preview open in centre");
+    await expect(inspector.getByRole("button", { name: "Preview rows" })).toHaveCount(0);
     await expect(preview).toContainText("Dataset preview");
     await expect(preview.getByRole("button", { name: "Rows", exact: true })).toBeVisible();
     await expect(preview.getByRole("button", { name: "Fields", exact: true })).toBeVisible();

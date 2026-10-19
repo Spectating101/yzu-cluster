@@ -1,0 +1,308 @@
+/* Synthesis workstation regime.
+   At >=1600px the app shell already supplies durable navigation and Detail/Ask.
+   Use the reclaimed centre width for simultaneous research context rather than
+   carrying the historical embedded S-04 three-column proportions forward. */
+
+@media (min-width: 1600px) {
+  .rd-v2-synthesis-page .s04-shell {
+    display: block;
+    width: 100%;
+    max-width: none;
+    min-height: 100%;
+  }
+
+  .rd-v2-synthesis-page .s04-main {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 20px 26px 30px;
+  }
+
+  .rd-v2-synthesis-page .s04-main > :is(
+    .s04-head,
+    .s04-opening-brief,
+    .s04-brief,
+    .s04-thread-picker,
+    .s04-strip,
+    .s04-opening-workflow-wrap,
+    .s04-measurement-status,
+    .s04-opening-next
+  ) {
+    width: 100%;
+    max-width: none;
+  }
+
+  /* New work should use the workstation as a brief composer plus a narrower
+     reusable-method lane, not a laptop form floating in a wide canvas. */
+  .rd-v2-synthesis-page .s04-new-entry-grid {
+    grid-template-columns: minmax(0, 1.55fr) minmax(340px, .45fr);
+    gap: 18px;
+  }
+
+  .rd-v2-synthesis-page .s04-new-entry-section {
+    padding: 17px 18px;
+  }
+
+  .rd-v2-synthesis-page .s04-new-entry-purpose textarea {
+    min-height: 182px;
+  }
+
+  /* Recommendation and proposal already contain their own internal evidence
+     architecture. Let those structures breathe across the full centre rather
+     than adding another artificial outer split. */
+  .rd-v2-synthesis-page .s04-opening-construction,
+  .rd-v2-synthesis-page [data-testid="synthesis-proposal-state"] {
+    width: 100%;
+    max-width: none;
+  }
+
+  .rd-v2-synthesis-page .s04-opening-map ol {
+    gap: 12px;
+  }
+
+  .rd-v2-synthesis-page .s04-method-flow {
+    gap: 14px;
+    padding: 18px;
+  }
+
+  /* Once a method is accepted, two independent truths are useful at once:
+     execution/result authority and the evidence/method context supporting it.
+     Pair those instead of stacking a narrow single-column feed. */
+  .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-execution-state"],
+    [data-testid="synthesis-failed-state"],
+    [data-testid="synthesis-registered-state"],
+    [data-testid="synthesis-query-ready-state"]
+  )) {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.38fr) minmax(360px, .62fr);
+    column-gap: 16px;
+    row-gap: 14px;
+    align-content: start;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-execution-state"],
+    [data-testid="synthesis-failed-state"],
+    [data-testid="synthesis-registered-state"],
+    [data-testid="synthesis-query-ready-state"]
+  )) > :is(
+    .s04-head,
+    .s04-opening-brief,
+    .s04-brief,
+    .s04-thread-picker,
+    .s04-strip,
+    .s04-measurement-status
+  ) {
+    grid-column: 1 / -1;
+  }
+
+  .rd-v2-synthesis-page .s04-main > :is(
+    [data-testid="synthesis-execution-state"],
+    [data-testid="synthesis-failed-state"],
+    [data-testid="synthesis-registered-state"],
+    [data-testid="synthesis-query-ready-state"]
+  ) {
+    grid-column: 1;
+    align-self: start;
+    margin-top: 0;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-execution-state"],
+    [data-testid="synthesis-failed-state"],
+    [data-testid="synthesis-registered-state"],
+    [data-testid="synthesis-query-ready-state"]
+  )) > [data-testid="synthesis-evidence-state"] {
+    grid-column: 2;
+    align-self: start;
+    margin-top: 0;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-execution-state"],
+    [data-testid="synthesis-failed-state"],
+    [data-testid="synthesis-registered-state"],
+    [data-testid="synthesis-query-ready-state"]
+  )) > [data-testid="synthesis-method-surface"] {
+    grid-column: 2;
+    align-self: start;
+    margin-top: 0;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-execution-state"],
+    [data-testid="synthesis-failed-state"],
+    [data-testid="synthesis-registered-state"],
+    [data-testid="synthesis-query-ready-state"]
+  )) > :is(
+    [data-testid="synthesis-excursion-record"],
+    [data-testid="synthesis-settled-decisions"],
+    [data-testid="synthesis-provenance"],
+    [data-testid="synthesis-reuse"]
+  ) {
+    grid-column: 1 / -1;
+  }
+
+  /* Blocking specification decisions benefit from seeing their measured
+     evidence alongside the choice. Do not apply this to Proposal, which is
+     already appropriately dense as one exact review object. */
+  .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  )) {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(360px, .75fr);
+    column-gap: 16px;
+    row-gap: 14px;
+    align-content: start;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  )) > :is(
+    .s04-head,
+    .s04-opening-brief,
+    .s04-brief,
+    .s04-thread-picker,
+    .s04-strip,
+    .s04-measurement-status
+  ) {
+    grid-column: 1 / -1;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-scope-block"]) > [data-testid="synthesis-scope-block"],
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-unit-conflict"]) > [data-testid="synthesis-unit-conflict"],
+  .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-join-decision"]) > [data-testid="synthesis-join-decision"] {
+    grid-column: 1;
+    align-self: start;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"],
+    [data-testid="synthesis-join-decision"]
+  )) > [data-testid="synthesis-evidence-state"] {
+    grid-column: 2;
+    align-self: start;
+    margin-top: 0;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> :is(
+    [data-testid="synthesis-scope-block"],
+    [data-testid="synthesis-unit-conflict"]
+  )) > [data-testid="synthesis-method-surface"] {
+    grid-column: 2;
+    align-self: start;
+    margin-top: 0;
+  }
+
+  /* The external Detail/Ask rail remains interpretive. Richer Synthesis rail
+     sections use its vertical space for recorded context and authority proof. */
+  body:has(.rd-v2-synthesis-page) .s04-rail-context,
+  body:has(.rd-v2-synthesis-page) .s04-rail-proof,
+  body:has(.rd-v2-synthesis-page) .s04-rail-assist {
+    margin: 10px 12px 0;
+    padding: 11px 12px;
+    border: 1px solid var(--rd-border);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--rd-surface) 88%, transparent);
+  }
+
+  body:has(.rd-v2-synthesis-page) :is(.s04-rail-context, .s04-rail-proof, .s04-rail-assist) > header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  body:has(.rd-v2-synthesis-page) :is(.s04-rail-context, .s04-rail-proof, .s04-rail-assist) > header span {
+    color: var(--rd-muted);
+    font-family: var(--rd-mono);
+    font-size: 8.5px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+
+  body:has(.rd-v2-synthesis-page) .s04-rail-context > p {
+    margin: 0;
+    color: var(--rd-body);
+    font-size: 10.5px;
+    line-height: 1.5;
+  }
+
+  body:has(.rd-v2-synthesis-page) .s04-rail-context dl,
+  body:has(.rd-v2-synthesis-page) .s04-rail-proof ul {
+    margin: 9px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  body:has(.rd-v2-synthesis-page) .s04-rail-context dl > div,
+  body:has(.rd-v2-synthesis-page) .s04-rail-proof li {
+    display: grid;
+    grid-template-columns: 92px minmax(0, 1fr);
+    gap: 9px;
+    padding: 6px 0;
+    border-top: 1px solid color-mix(in srgb, var(--rd-border) 70%, transparent);
+  }
+
+  body:has(.rd-v2-synthesis-page) .s04-rail-context dt,
+  body:has(.rd-v2-synthesis-page) .s04-rail-proof li span {
+    color: var(--rd-muted);
+    font-size: 9px;
+  }
+
+  body:has(.rd-v2-synthesis-page) .s04-rail-context dd,
+  body:has(.rd-v2-synthesis-page) .s04-rail-proof li strong {
+    min-width: 0;
+    margin: 0;
+    color: var(--rd-text);
+    font-size: 9.5px;
+    font-weight: 680;
+    overflow-wrap: anywhere;
+  }
+
+  body:has(.rd-v2-synthesis-page) .s04-rail-proof li.is-done strong {
+    color: var(--rd-ready-fg);
+  }
+
+  body:has(.rd-v2-synthesis-page) .s04-rail-proof li.is-current strong {
+    color: var(--rd-review-fg);
+  }
+
+  body:has(.rd-v2-synthesis-page) .s04-rail-assist {
+    display: grid;
+    gap: 6px;
+  }
+
+  body:has(.rd-v2-synthesis-page) .s04-rail-assist > header {
+    margin-bottom: 2px;
+  }
+
+  body:has(.rd-v2-synthesis-page) .s04-rail-assist button {
+    width: 100%;
+    min-height: 32px;
+    padding: 7px 9px;
+    border: 1px solid color-mix(in srgb, var(--rd-border) 82%, transparent);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--rd-body);
+    cursor: pointer;
+    font: inherit;
+    font-size: 9.5px;
+    line-height: 1.35;
+    text-align: left;
+  }
+
+  body:has(.rd-v2-synthesis-page) .s04-rail-assist button:hover {
+    border-color: var(--rd-active-border);
+    background: var(--rd-active-bg);
+    color: var(--rd-active-fg);
+  }
+}

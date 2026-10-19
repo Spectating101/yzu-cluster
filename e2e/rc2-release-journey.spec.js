@@ -106,7 +106,11 @@ test.describe("Research Drive RC2 release journey", () => {
     // Remaining destinations: prove the whole release surface still opens.
     for (const label of ["Synthesis", "Resources", "Profile", "Settings"]) {
       await openTab(page, label);
-      await expect(page.locator(".rd-v2-page-head h1", { hasText: label })).toBeVisible();
+      if (label === "Synthesis") {
+        await expect(page.getByRole("heading", { name: "Start one durable research object." })).toBeVisible();
+      } else {
+        await expect(page.locator(".rd-v2-page-head h1", { hasText: label })).toBeVisible();
+      }
     }
     const status = page.getByRole("region", { name: "Research desk status" });
     await expect(status).toContainText("Research assistant");

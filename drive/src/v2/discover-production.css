@@ -1,0 +1,80 @@
+/* Discover idle-state convergence: explain the sourcing pipeline without a dashboard. */
+
+.rd-v2-discover-coverage {
+  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 76%, transparent);
+  padding-top: 14px;
+}
+
+.rd-v2-discover-coverage > header {
+  align-items: baseline;
+}
+
+.rd-v2-discover-coverage-eyebrow {
+  color: var(--rd-text, #182033);
+  font-size: 10px;
+  font-weight: 720;
+  letter-spacing: .075em;
+  text-transform: uppercase;
+}
+
+.rd-v2-discover-evidence-path {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  margin: 9px 0 14px;
+  padding: 0;
+  overflow-x: auto;
+  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 74%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 74%, transparent);
+  list-style: none;
+  scrollbar-width: thin;
+}
+
+.rd-v2-discover-evidence-path li {
+  position: relative;
+  display: grid;
+  flex: 1 0 150px;
+  gap: 2px;
+  min-width: 0;
+  padding: 10px 18px 10px 0;
+}
+
+.rd-v2-discover-evidence-path li + li {
+  padding-left: 18px;
+}
+
+.rd-v2-discover-evidence-path li:not(:last-child)::after {
+  content: "→";
+  position: absolute;
+  top: 17px;
+  right: 5px;
+  color: color-mix(in srgb, var(--rd-muted, #6e7685) 62%, transparent);
+  font-size: 10px;
+}
+
+.rd-v2-discover-evidence-path strong {
+  color: var(--rd-text, #182033);
+  font-size: 10.5px;
+  font-weight: 680;
+}
+
+.rd-v2-discover-evidence-path span {
+  color: var(--rd-muted, #6e7685);
+  font-size: 9.5px;
+  line-height: 1.35;
+}
+
+.rd-v2-discover-coverage .rd-v2-catalog-list {
+  margin-top: 4px;
+}
+
+.rd-v2-discover-coverage-folded,
+.rd-v2-discover-coverage-gap {
+  line-height: 1.45;
+}
+
+@media (max-width: 900px) {
+  .rd-v2-discover-evidence-path li {
+    flex-basis: 165px;
+  }
+}

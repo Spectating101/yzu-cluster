@@ -40,3 +40,32 @@ export function visibleIntegrationChips(chips, statusLabel) {
   }
   return out;
 }
+
+/**
+ * Collapse operational warnings into one quiet, inspectable header affordance.
+ * Detailed status belongs to Resources / Settings; the global shell only needs
+ * to say whether attention is required without turning every warning into a
+ * competing pill.
+ */
+export function deskStatusSummary(statusBadge, chips) {
+  const badge = statusBadge || { label: "Desk status", tone: "muted" };
+  const notices = visibleIntegrationChips(chips, badge.label)
+    // Pending work already has its own precise, clickable count beside the
+    // Library count. Repeating its age here made one fact occupy two badges.
+    .filter((chip) => chip.id !== "debt");
+  const attention = badge.tone !== "ok" && badge.tone !== "muted";
+
+  if (!attention && notices.length === 0) {
+    return { label: badge.label, tone: badge.tone, details: [badge.label] };
+  }
+
+  const details = [badge.label, ...notices.map((chip) => chip.label)];
+  if (notices.length === 0) {
+    return { label: badge.label, tone: badge.tone, details };
+  }
+  return {
+    label: `${notices.length} desk ${notices.length === 1 ? "notice" : "notices"}`,
+    tone: notices.some((chip) => ["bad", "danger", "error"].includes(chip.tone)) ? "bad" : "warn",
+    details,
+  };
+}

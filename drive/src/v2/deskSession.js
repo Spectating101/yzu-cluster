@@ -1,6 +1,7 @@
 const EMAIL_KEY = "procure_user_email";
 const TOKEN_KEY = "desk_access_token";
 const SESSION_KEY = "rd_v2_chat_session";
+const SESSION_CONTEXT_PREFIX = `${SESSION_KEY}:context:`;
 const DESK_SESSION_BOOTSTRAPPED_KEY = "rd_desk_session_bootstrapped";
 
 /** Fetch/Headers-compatible: header names are always lowercase in our maps. */
@@ -128,22 +129,44 @@ export function saveUserEmail(email) {
   return v;
 }
 
-export function loadChatSessionId() {
+function normalizedChatContextKey(contextKey = "") {
+  return String(contextKey || "").trim();
+}
+
+/**
+ * Chat sessions are scoped to the research object that owns them. Keeping one
+ * global session made a new Discover question inherit an unrelated prior
+ * investigation even though the visible rail had already rebound correctly.
+ * Empty context retains the legacy key for callers that intentionally want a
+ * general desk conversation.
+ */
+export function chatSessionStorageKey(contextKey = "") {
+  const key = normalizedChatContextKey(contextKey);
+  return key ? `${SESSION_CONTEXT_PREFIX}${encodeURIComponent(key).slice(0, 512)}` : SESSION_KEY;
+}
+
+export function loadChatSessionId(contextKey = "") {
   try {
-    return localStorage.getItem(SESSION_KEY) || "";
+    return localStorage.getItem(chatSessionStorageKey(contextKey)) || "";
   } catch {
     return "";
   }
 }
 
-export function saveChatSessionId(id) {
-  if (!id) return;
-  localStorage.setItem(SESSION_KEY, id);
+export function saveChatSessionId(id, contextKey = "") {
+  const value = String(id || "").trim();
+  if (!value) return "";
+  try {
+    localStorage.setItem(chatSessionStorageKey(contextKey), value);
+  } catch {
+    /* ignore */
+  }
+  return value;
 }
 
-export function clearChatSessionId() {
+export function clearChatSessionId(contextKey = "") {
   try {
-    localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(chatSessionStorageKey(contextKey));
   } catch {
     /* ignore */
   }

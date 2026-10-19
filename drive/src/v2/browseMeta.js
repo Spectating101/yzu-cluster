@@ -110,7 +110,13 @@ export function coverageLine(row) {
 
 export function descriptiveLine(row) {
   const text = String(
-    row?.description || row?.recommended_use || row?.subtitle || row?.grain || "",
+    row?.description ||
+      row?.recommended_use ||
+      row?.subtitle ||
+      row?.public_summary ||
+      row?.notes ||
+      row?.grain ||
+      "",
   )
     .replace(/\s+/g, " ")
     .trim();

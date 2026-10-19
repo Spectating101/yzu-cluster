@@ -5,6 +5,9 @@ import { saveDeskToken } from "@/v2/deskSession";
 export function DeskAccessGate({ access, busy = false, onRetry }) {
   const [token, setToken] = useState("");
   const configured = access?.server_configured;
+  const bootstrapError = String(access?.bootstrap?.error || "");
+  const currentEntryIsUntrusted = /not permitted|forbidden|\b403\b/i.test(bootstrapError);
+  const canTryAutomaticEntry = Boolean(access?.session?.bootstrap_available) && !currentEntryIsUntrusted;
 
   const connect = () => {
     const value = saveDeskToken(token);
@@ -13,7 +16,7 @@ export function DeskAccessGate({ access, busy = false, onRetry }) {
   };
 
   return (
-    <main className="rd-v2-access-gate" aria-labelledby="rd-access-title">
+    <main className="rd-v2-access-gate" aria-labelledby="rd-access-title" data-testid="desk-access-gate">
       <section className="rd-v2-access-card">
         <span className="rd-v2-access-kicker">RESEARCH DRIVE · PRIVATE DESK</span>
         <h1 id="rd-access-title">Research data stays inside the desk.</h1>
@@ -57,15 +60,17 @@ export function DeskAccessGate({ access, busy = false, onRetry }) {
           disabled={busy}
           onClick={() => onRetry?.({ force: true, tokenProvided: false })}
         >
-          Retry trusted internal entry
+          {canTryAutomaticEntry ? "Retry trusted internal entry" : "Check access again"}
         </button>
 
         <small>
           {configured === false
             ? "This host has no desk credential configured; protected APIs fail closed."
+            : currentEntryIsUntrusted
+              ? "This browser is not on a trusted desk entry. Use your issued access token, or open the desk through its approved address."
             : access?.error
               ? "Secure access check is unavailable. The desk remains locked; retry after the service is restored."
-            : "Use the token issued for your member or operator account."}
+              : "Use the token issued for your member or operator account."}
         </small>
       </section>
     </main>

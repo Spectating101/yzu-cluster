@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Chip } from "@/v2/ui";
 import { fenceHistoryEvents, systemVerificationClassification } from "@/v2/historyNoiseFence";
-import { historyLifecycleBucket } from "@/v2/discoverAdapters";
+import { historyEvidenceSummary, historyLifecycleBucket } from "@/v2/discoverAdapters";
 import { historyLifecycleLabel } from "@/v2/historyLifecycleLabel";
 
 const HISTORY_FILTERS = [
@@ -11,9 +11,12 @@ const HISTORY_FILTERS = [
   { id: "ready", label: "Ready" },
   { id: "needs_recovery", label: "Recovery" },
   { id: "scheduled", label: "Scheduled" },
-  { id: "search", label: "Search" },
-  { id: "system", label: "System" },
 ];
+
+function historyViewportBudget() {
+  if (typeof window === "undefined" || !window.matchMedia) return 8;
+  return window.matchMedia("(min-width: 1280px) and (min-height: 1200px)").matches ? 12 : 8;
+}
 
 function cleanTarget(value) {
   const valueText = String(value || "").replace(/\s+/g, " ").trim();
@@ -64,7 +67,7 @@ function eventTime(event) {
 
 function eventSummary(event) {
   const meta = event?.meta || {};
-  const summary = meta.summary || event?.summary;
+  const summary = historyEvidenceSummary(event);
   // Keep low-level collector diagnostics in Detail rather than making an
   // allow-list error read like the primary description of a research record.
   if (opaqueRunReference(event) && /script_key\s+not\s+allowlisted/i.test(String(summary || ""))) {
@@ -223,9 +226,17 @@ function SystemVerificationFold({ events, selectedId, onSelectEvent, startIndex 
   );
 }
 
-export function DiscoverHistoryPanel({ events = [], selectedId = "", onSelectEvent }) {
+export function DiscoverHistoryPanel({
+  events = [],
+  jobsLoaded = true,
+  jobsRefreshing = false,
+  jobsRefreshFailed = false,
+  selectedId = "",
+  onSelectEvent,
+}) {
   const [filter, setFilter] = useState("all");
-  const [visibleCount, setVisibleCount] = useState(8);
+  const [viewportBudget, setViewportBudget] = useState(historyViewportBudget);
+  const [visibleCount, setVisibleCount] = useState(historyViewportBudget);
   const fenced = useMemo(() => {
     const raw = [...events]
       .filter((event) => event && (event.id || event.ts || event.target))
@@ -267,13 +278,27 @@ export function DiscoverHistoryPanel({ events = [], selectedId = "", onSelectEve
   );
 
   useEffect(() => {
-    setVisibleCount(8);
-  }, [filter]);
+    if (!window.matchMedia) return undefined;
+    const query = window.matchMedia("(min-width: 1280px) and (min-height: 1200px)");
+    const update = () => setViewportBudget(query.matches ? 12 : 8);
+    update();
+    query.addEventListener?.("change", update);
+    return () => query.removeEventListener?.("change", update);
+  }, []);
+
+  useEffect(() => {
+    setVisibleCount(viewportBudget);
+  }, [filter, viewportBudget]);
 
   useEffect(() => {
     if (!visible.length || !onSelectEvent) return;
     const hasVisibleSelection = visible.some((event, index) => eventId(event, index) === selectedId);
     if (hasVisibleSelection) return;
+    // Desktop benefits from a populated inspector beside the ledger. On a
+    // phone that same automatic selection opens the inspector sheet over the
+    // entire list before the researcher has touched a row. Keep the mobile
+    // ledger primary and open Detail only after an explicit tap.
+    if (!selectedId && window.matchMedia?.("(max-width: 760px)").matches) return;
     // Prefer researcher trail selection; only fall through to system rows on System filter.
     if (filter === "all" && systemRows.some((event, index) => eventId(event, index) === selectedId)) {
       return;
@@ -282,7 +307,12 @@ export function DiscoverHistoryPanel({ events = [], selectedId = "", onSelectEve
   }, [visible, onSelectEvent, selectedId, filter, systemRows]);
 
   return (
-    <section className="rd-v2-discover-history" data-testid="discover-history" aria-label="Research lifecycle">
+    <section
+      className="rd-v2-discover-history"
+      data-testid="discover-history"
+      aria-label="Research lifecycle"
+      aria-busy={!jobsLoaded || jobsRefreshing}
+    >
       <div className="rd-v2-history-intro">
         <div>
           <span className="rd-v2-eyebrow">Research lifecycle</span>
@@ -291,6 +321,15 @@ export function DiscoverHistoryPanel({ events = [], selectedId = "", onSelectEve
             Approvals, collection, and registered assets. Search activity and host checks remain available without burying
             research work.
           </p>
+          {!jobsLoaded ? (
+            <p className="rd-v2-history-sync" data-testid="discover-history-jobs-sync" role="status">
+              Checking pending approvals…
+            </p>
+          ) : jobsRefreshFailed ? (
+            <p className="rd-v2-history-sync is-warning" data-testid="discover-history-jobs-sync" role="status">
+              Pending approvals could not refresh; showing the latest durable lifecycle.
+            </p>
+          ) : null}
           {fenced.hiddenNoise > 0 ||
           fenced.hiddenSearchTelemetry > 0 ||
           fenced.hiddenSystemVerification > 0 ? (

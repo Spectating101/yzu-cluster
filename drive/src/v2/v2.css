@@ -74,7 +74,7 @@
   padding: 42px 44px 38px;
   border: 1px solid rgba(23, 32, 25, 0.24);
   background: #fffef8;
-  box-shadow: 0 24px 70px rgba(23, 32, 25, 0.1);
+  box-shadow: 0 24px 70px rgba(23, 32, 25, 0.1), 8px 8px 0 rgba(23, 32, 25, 0.035);
 }
 
 .rd-v2-access-kicker {
@@ -158,8 +158,8 @@
 .rd-v2-access-retry {
   width: 100%;
   margin-top: 10px;
-  border-color: transparent;
-  background: transparent;
+  border-color: rgba(23, 32, 25, 0.14);
+  background: #f4f2eb;
   color: #356b56;
 }
 
@@ -1456,6 +1456,12 @@
 .rd-v2-library-folder-readiness { display: flex; flex-wrap: wrap; gap: 7px 12px; }
 .rd-v2-library-folder-readiness span { color: #66768a; font-size: 11.5px; }
 .rd-v2-library-folder-readiness b { color: #2f435b; font-weight: 750; }
+.rd-v2-library-folder-summary .rd-v2-rail-note {
+  margin: 10px 0 0;
+  color: #66768a;
+  font-size: 11.5px;
+  line-height: 1.45;
+}
 
 .rd-v2-library-folder-add { padding: 14px 0; border-bottom: 1px solid #e5eaf0; }
 .rd-v2-library-folder-add button {
@@ -2404,6 +2410,7 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  padding-bottom: 12px;
 }
 
 .rd-v2-detail-section {
@@ -2498,6 +2505,18 @@
   border-radius: 16px;
   font-size: 11px;
   font-weight: 600;
+}
+
+.rd-v2-library-preview-state {
+  min-height: 28px;
+  display: grid;
+  place-items: center;
+  color: var(--rd-accent);
+  font-family: var(--rd-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .rd-v2-rail-sticky .rd-v2-btn:not(.primary),
@@ -5554,6 +5573,184 @@
   text-transform: uppercase;
 }
 
+.rd-v2-resting-rail {
+  padding: 12px 16px 18px;
+}
+
+.rd-v2-resting-rail .rd-v2-eval-prose + .rd-v2-eval-prose {
+  margin-top: 6px;
+}
+
+.rd-v2-resting-routes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.rd-v2-resting-routes li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: baseline;
+  min-height: 20px;
+  color: #dce7f4;
+  font-size: 12px;
+}
+
+.rd-v2-resting-routes li span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-v2-resting-routes li strong {
+  color: #93a4b8;
+  font-weight: 650;
+}
+
+.rd-v2-history-known-unknowns {
+  padding: 12px 16px 4px;
+}
+
+.rd-v2-strategy-card {
+  border: 1px solid var(--rd-border, rgba(120, 143, 173, 0.24));
+  border-radius: 8px;
+  padding: 12px;
+  background: var(--rd-hover, rgba(16, 24, 36, 0.42));
+}
+
+.rd-v2-strategy-block + .rd-v2-strategy-block {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rd-border, rgba(120, 143, 173, 0.16));
+}
+
+.rd-v2-strategy-label {
+  margin: 0 0 4px;
+  color: var(--rd-muted, #8090a8);
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.rd-v2-strategy-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rd-v2-strategy-fields li {
+  padding: 1px 7px;
+  border: 1px solid var(--rd-border, rgba(120, 143, 173, 0.28));
+  border-radius: 999px;
+  color: inherit;
+  font-size: 11px;
+}
+
+.rd-v2-strategy-chain {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rd-v2-strategy-chain li {
+  position: relative;
+  padding-left: 16px;
+  color: inherit;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.rd-v2-strategy-chain li + li::before {
+  content: "↓";
+  position: absolute;
+  left: 2px;
+  color: var(--rd-muted, #6d7f96);
+}
+
+.rd-v2-strategy-chain li:first-child::before {
+  content: "▪";
+  position: absolute;
+  left: 2px;
+  color: var(--rd-muted, #6d7f96);
+}
+
+.rd-v2-strategy-check {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+}
+
+.rd-v2-strategy-check > div {
+  display: grid;
+  grid-template-columns: 82px minmax(0, 1fr);
+  gap: 10px;
+  align-items: baseline;
+}
+
+.rd-v2-strategy-check dt {
+  color: var(--rd-muted, #8090a8);
+  font-size: 11px;
+}
+
+.rd-v2-strategy-check dd {
+  margin: 0;
+  color: inherit;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.rd-v2-strategy-check dd small {
+  display: block;
+  margin-top: 2px;
+  color: var(--rd-muted, #8090a8);
+  font-size: 11px;
+}
+
+.rd-v2-strategy-access {
+  text-transform: uppercase;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+}
+
+.rd-v2-strategy-access[data-access="observed"] {
+  color: #2f6f4e;
+}
+
+.rd-v2-strategy-access[data-access="proposed"] {
+  color: #8a6a24;
+}
+
+.rd-v2-strategy-access[data-access="unknown"] {
+  color: var(--rd-muted, #8090a8);
+}
+
+.rd-v2-strategy-gaps {
+  margin: 12px 0 0;
+  padding: 10px 0 0;
+  border-top: 1px solid var(--rd-border, rgba(120, 143, 173, 0.16));
+  list-style: none;
+}
+
+.rd-v2-strategy-gaps li {
+  color: var(--rd-muted, #8090a8);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.rd-v2-strategy-gaps li b {
+  font-weight: 650;
+}
+
+.rd-v2-history-known-unknowns .rd-v2-eval-block {
+  margin-bottom: 12px;
+}
+
 .rd-v2-eval-prose {
   margin: 0;
   color: #d5deea;
@@ -5858,7 +6055,31 @@
   color: var(--rd-muted);
   cursor: progress;
 }
-.rd-v2-discover-offering-facts { color: var(--rd-muted); font-size: 10.5px; letter-spacing: .01em; }
+.rd-v2-discover-offering-facts {
+  display: flex;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--rd-muted);
+  font-size: 10.5px;
+  letter-spacing: .01em;
+  white-space: nowrap;
+}
+.rd-v2-discover-offering-facts > span {
+  display: inline-flex;
+  min-width: 0;
+  align-items: baseline;
+}
+.rd-v2-discover-offering-facts > span + span::before {
+  content: "·";
+  margin: 0 5px;
+  color: #a4acb7;
+}
+.rd-v2-discover-offering-facts b { display: none; }
+.rd-v2-discover-offering-facts em {
+  overflow: hidden;
+  font-style: normal;
+  text-overflow: ellipsis;
+}
 
 .rd-v2-discover-library-evidence {
   position: relative;
@@ -5877,8 +6098,10 @@
   position: absolute;
   z-index: 40;
   top: calc(100% + 8px);
-  right: 0;
+  right: auto;
+  left: 0;
   width: min(520px, 72vw);
+  max-width: calc(100vw - 32px);
   padding: 12px;
   border: 1px solid var(--rd-border);
   border-radius: 4px;
@@ -8944,6 +9167,9 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
     max-height: min(72dvh, 560px);
     border-top: 1px solid var(--rd-border);
     box-shadow: 0 -10px 28px rgba(15, 23, 42, 0.14);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
 
   .yzu-inspector.rd-v2-rail-collapsed {
@@ -9276,6 +9502,24 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 .rd-v2-history-intro { display: flex; align-items: end; justify-content: space-between; gap: 24px; padding: 12px 0 18px; border-bottom: 1px solid var(--rd-border); }
 .rd-v2-history-intro h2 { margin: 5px 0 0; color: var(--rd-text); font-size: 22px; line-height: 1.2; }
 .rd-v2-history-intro p { max-width: 650px; margin: 7px 0 0; color: var(--rd-muted); font-size: 12.5px; line-height: 1.45; }
+.rd-v2-history-intro .rd-v2-history-sync {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  margin-top: 8px;
+  padding: 3px 9px;
+  border: 1px solid var(--rd-border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--rd-muted);
+  font-family: var(--rd-mono);
+  font-size: 10px;
+}
+.rd-v2-history-intro .rd-v2-history-sync.is-warning {
+  border-color: #e2c58b;
+  background: #fff8e8;
+  color: #7b5615;
+}
 .rd-v2-history-intro > strong { flex: 0 0 auto; color: var(--rd-muted); font-size: 12px; font-variant-numeric: tabular-nums; }
 .rd-v2-history-filters { margin: 0; padding: 0; border: 0; background: transparent; }
 .rd-v2-history-territories { display: grid; gap: 24px; }
@@ -9453,4 +9697,303 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+@media (max-width: 760px) {
+  .rd-v2-resting-rail { max-height: 38dvh; overflow-y: auto; }
+}
+
+/* Frozen Discover composition ------------------------------------------------
+   One ranked centre list survives selection. Detail and Ask change the rail;
+   result grouping never replaces the researcher's current list. */
+.rd-v2-discover-frozen-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.rd-v2-discover-frozen-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 12px;
+  padding: 9px 0;
+  border-top: 1px solid var(--rd-border);
+  border-bottom: 1px solid var(--rd-border);
+  color: var(--rd-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.rd-v2-discover-frozen-counts span:first-child { color: var(--rd-text); font-weight: 720; }
+.rd-v2-discover-frozen-counts .rd-v2-discover-counts-loading {
+  color: var(--rd-muted);
+  font-weight: 600;
+  font-variant-numeric: normal;
+}
+
+.rd-v2-discover-lookup-progress {
+  display: flex;
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px 14px;
+  min-width: 0;
+  padding-top: 2px;
+  color: var(--rd-muted);
+  font-variant-numeric: normal;
+}
+
+.rd-v2-discover-lookup-progress > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  font-weight: 620;
+}
+
+.rd-v2-discover-lookup-progress .rd-v2-discover-lookup-lead {
+  color: var(--rd-text);
+  font-weight: 740;
+}
+
+.rd-v2-discover-lookup-progress i {
+  display: inline-grid;
+  width: 14px;
+  height: 14px;
+  place-items: center;
+  border: 1px solid #b9b3a7;
+  border-radius: 50%;
+  color: #fff;
+  background: #f7f3e9;
+  font-size: 8px;
+  font-style: normal;
+}
+
+.rd-v2-discover-lookup-progress .is-checking i {
+  border-color: #547763;
+  border-top-color: transparent;
+  animation: rd-discover-lookup-spin .8s linear infinite;
+}
+
+.rd-v2-discover-lookup-progress .is-done i {
+  border-color: #547763;
+  background: #547763;
+}
+
+.rd-v2-discover-lookup-progress .is-unavailable i {
+  border-color: #9b6d48;
+  background: #9b6d48;
+}
+
+@keyframes rd-discover-lookup-spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .rd-v2-discover-lookup-progress .is-checking i { animation: none; }
+}
+
+@media (max-width: 600px) {
+  .rd-v2-discover-lookup-progress {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+}
+
+.rd-v2-discover-ranked-results {
+  display: grid;
+  gap: 0;
+  margin: 18px 0 0;
+}
+
+.rd-v2-discover-ranked-results-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 0 8px;
+}
+
+.rd-v2-discover-ranked-results-head strong {
+  color: var(--rd-muted);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-candidates {
+  border-right: 0;
+  border-left: 0;
+  border-radius: 0;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-candidates button.row.rd-v2-discover-candidate {
+  padding-right: 16px;
+  padding-left: 12px;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-candidates li:has(.rd-v2-discover-row-add) button.row.rd-v2-discover-candidate {
+  padding-bottom: 38px;
+}
+
+.rd-v2-discover-ranked-results .rd-v2-discover-row-add {
+  right: 14px;
+  bottom: 9px;
+}
+
+.rd-v2-discover-context-results {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rd-border);
+}
+
+.rd-v2-discover-context-results .rd-v2-discover-candidates {
+  background: color-mix(in srgb, var(--rd-paper, #fff) 88%, var(--rd-panel, #f3f1ea) 12%);
+}
+
+.rd-v2-discover-context-results .rd-v2-discover-candidate {
+  opacity: 0.9;
+}
+
+/* Discover adapts to usable evidence height, not desktop width alone. A
+   standard-height desk keeps the frozen compact rows; a genuinely tall desk
+   spends its additional vertical budget on readable evidence rather than
+   empty canvas. The row fields and order remain the frozen authority. */
+@media (min-width: 761px) and (max-height: 1000px) {
+  .rd-v2-discover-ranked-results {
+    margin-top: 13px;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-candidates button.row.rd-v2-discover-candidate {
+    gap: 10px;
+    padding-top: 11px;
+    padding-bottom: 11px;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-candidates li:has(.rd-v2-discover-row-add) button.row.rd-v2-discover-candidate {
+    padding-bottom: 34px;
+  }
+
+  .rd-v2-discover-candidate-main {
+    gap: 3px;
+  }
+
+  .rd-v2-discover-evidence {
+    -webkit-line-clamp: 1;
+  }
+
+  .rd-v2-discover-sufficiency {
+    margin-top: 3px;
+  }
+}
+
+/* A wide workstation has enough horizontal budget to name compact facts
+   without spending another row of vertical space. This keeps the 1440 ruler
+   terse, while 1920-class desks no longer make researchers infer that
+   “Dataset” is a type and “Collect via …” is a route. */
+@media (min-width: 1600px) and (max-height: 1199px) {
+  .rd-v2-discover-offering-facts b {
+    display: inline;
+    margin-right: 4px;
+    color: #7b8390;
+    font-size: 8.5px;
+    font-weight: 760;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+  }
+}
+
+@media (min-width: 1600px) and (min-height: 1200px) {
+  .rd-v2-discover-ranked-results .rd-v2-discover-candidates button.row.rd-v2-discover-candidate {
+    padding-top: 18px;
+    padding-bottom: 18px;
+  }
+
+  .rd-v2-discover-ranked-results .rd-v2-discover-candidates li:has(.rd-v2-discover-row-add) button.row.rd-v2-discover-candidate {
+    padding-bottom: 46px;
+  }
+
+  .rd-v2-discover-candidate-main {
+    gap: 7px;
+  }
+
+  .rd-v2-discover-candidate-title,
+  .rd-v2-discover-offering-facts {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+  }
+
+  .rd-v2-discover-evidence {
+    font-size: 13.5px;
+    -webkit-line-clamp: 3;
+  }
+
+  .rd-v2-discover-offering-facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+    gap: 8px 18px;
+    margin-top: 2px;
+    padding: 10px 0 2px;
+    border-top: 1px solid var(--rd-border);
+    line-height: 1.35;
+  }
+
+  .rd-v2-discover-offering-facts > span {
+    display: grid;
+    gap: 2px;
+  }
+
+  .rd-v2-discover-offering-facts > span + span::before {
+    content: none;
+  }
+
+  .rd-v2-discover-offering-facts b {
+    display: block;
+    color: #7b8390;
+    font-size: 8.5px;
+    font-weight: 760;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+  }
+
+  .rd-v2-discover-offering-facts em {
+    color: #4d5968;
+    font-size: 11px;
+    white-space: normal;
+  }
+}
+
+/* The History surface is a compact lifecycle ledger: researcher decisions
+   remain first, while system traffic stays folded below durable work. */
+.rd-v2-discover-page--history .rd-v2-history-intro {
+  min-height: 0;
+  padding: 4px 0 10px;
+}
+
+.rd-v2-discover-page--history .rd-v2-history-intro h2,
+.rd-v2-discover-page--history .rd-v2-history-intro > div > p:not(.rd-v2-history-noise-note):not(.rd-v2-history-sync) {
+  display: none;
+}
+
+.rd-v2-discover-page--history .rd-v2-history-filters {
+  gap: 14px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--rd-border);
+}
+
+.rd-v2-discover-page--history .rd-v2-history-territory:first-child .rd-v2-history-territory-head h3 {
+  color: #35634f;
+}
+
+@media (max-width: 760px) {
+  .rd-v2-discover-frozen-controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    margin-left: 0;
+  }
+  .rd-v2-discover-frozen-controls .rd-v2-discover-filter-menu { width: auto; min-width: 0; }
+  .rd-v2-discover-frozen-counts { gap: 8px 12px; }
+  .rd-v2-discover-ranked-results .rd-v2-discover-candidates button.row.rd-v2-discover-candidate { padding-right: 12px; }
 }

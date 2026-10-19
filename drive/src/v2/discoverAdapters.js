@@ -64,6 +64,8 @@ export function sourceResultToCandidate(row = {}) {
     publisher: row.provider || row.publisher || row.source,
     description:
       cleanDescription(row.description) ||
+      cleanDescription(row.public_summary) ||
+      cleanDescription(row.notes) ||
       [row.access_mode, ...caps.slice(0, 3)].filter(Boolean).join(" · "),
     access_mode: row.access_mode || row.access || "",
     collect_via: collect[0] || row.collect_via || "",
@@ -258,6 +260,10 @@ export function durableHistoryToEvents(data) {
         status: item.status,
         kind: item.kind,
         summary: item.summary,
+        readiness,
+        holding_status: item.holding_status,
+        usable: item.usable,
+        query_ready: item.query_ready,
         cadence: item.cadence,
         requested_schedule: item.requested_schedule,
         candidate_key: identity.candidate_key,
@@ -422,6 +428,30 @@ export function historyHoldingTruth(event = null) {
   };
 }
 
+/**
+ * Researcher-facing evidence summary for a durable History event.
+ *
+ * Registration receipts retain what was proven when the job completed.  A
+ * later catalog reconciliation can demote that asset on the current desk.  In
+ * that state the raw receipt summary (often "query-ready on desk") is useful
+ * technical history, but it is not current holding truth and must not be
+ * repeated as the primary row or rail evidence.
+ */
+export function historyEvidenceSummary(event = null) {
+  const meta = event?.meta || {};
+  const raw = String(meta.summary || event?.summary || "").trim();
+  const truth = historyHoldingTruth(event);
+  if (!truth.receiptOnly) return raw;
+
+  const archiveVerified = meta.archive_verified ?? event?.archive_verified;
+  const receiptReadback = meta.registry_readback ?? event?.registry_readback;
+  return [
+    archiveVerified === true ? "Archive verified" : "Archive proof not confirmed",
+    receiptReadback === true ? "registration receipt retains read-back proof" : "registration receipt retained",
+    "current catalog reconciliation pending",
+  ].join(" · ");
+}
+
 /** Library / Explore handoff payload — preserves identities without inventing readiness. */
 export function historyLibraryHandoff(event = null) {
   const truth = historyHoldingTruth(event);
@@ -457,7 +487,10 @@ export function historyLifecycleBucket(event) {
     return "scheduled";
   }
   if (/pending_approval|ready_for_review|awaiting|needs_approval/.test(status)) return "needs_approval";
-  if (/cancelled|canceled/.test(status)) return "ready";
+  // Cancelled is a durable terminal record, but it is not a ready output and
+  // it does not need recovery. Keep it in the unfiltered lifecycle without
+  // inflating either the Ready or Recovery territory.
+  if (/cancelled|canceled/.test(status)) return "cancelled";
   if (/queued|running|active|in_progress/.test(status)) return "active";
   if (/failed|error|needs_recovery|blocked/.test(status)) return "needs_recovery";
   // Lifecycle "ready" means acquisition finished — not necessarily query-ready.

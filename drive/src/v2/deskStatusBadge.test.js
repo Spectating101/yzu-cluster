@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { deskStatusBadge, visibleIntegrationChips } from "./deskStatusBadge.js";
+import { deskStatusBadge, deskStatusSummary, visibleIntegrationChips } from "./deskStatusBadge.js";
 
 describe("deskStatusBadge", () => {
   it("maps each desk state to one label", () => {
@@ -58,5 +58,31 @@ describe("visibleIntegrationChips", () => {
   it("survives absent or malformed input", () => {
     assert.deepEqual(visibleIntegrationChips(null, "Live registry"), []);
     assert.deepEqual(visibleIntegrationChips([null, { tone: "warn" }], "Live registry"), []);
+  });
+});
+
+describe("deskStatusSummary", () => {
+  it("keeps a healthy desk to one quiet status", () => {
+    assert.deepEqual(
+      deskStatusSummary({ label: "Live registry", tone: "ok" }, []),
+      { label: "Live registry", tone: "ok", details: ["Live registry"] },
+    );
+  });
+
+  it("collapses integration warnings and leaves pending work to its own link", () => {
+    assert.deepEqual(
+      deskStatusSummary(
+        { label: "Desk degraded", tone: "warn" },
+        [
+          { id: "composer", label: "Assistant unverified", tone: "warn" },
+          { id: "debt", label: "13 pending · 25d", tone: "warn" },
+        ],
+      ),
+      {
+        label: "1 desk notice",
+        tone: "warn",
+        details: ["Desk degraded", "Assistant unverified"],
+      },
+    );
   });
 });

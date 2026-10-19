@@ -11,13 +11,26 @@ const apiProxy = {
   target: API_TARGET,
   changeOrigin: true,
 };
+// Session bootstrap is deliberately bound to the browser's exact host.  Keep
+// that Host/Origin pair intact in local integration runs; rewriting it to the
+// proxy target makes a valid trusted-entry request indistinguishable from an
+// untrusted one. Data routes may still use the ordinary API proxy.
+const deskSessionProxy = {
+  target: API_TARGET,
+  changeOrigin: false,
+};
 const proxy = {
+  "/api/library/desk/session": {
+    ...deskSessionProxy,
+    rewrite: (p) => p.replace(/^\/api/, ""),
+  },
   "/api": {
     ...apiProxy,
     rewrite: (p) => p.replace(/^\/api/, ""),
   },
   "/datasets": apiProxy,
   "/health": apiProxy,
+  "/library/desk/session": deskSessionProxy,
   "/library": apiProxy,
   "/query": apiProxy,
   "/yzu": apiProxy,

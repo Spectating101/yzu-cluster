@@ -5,7 +5,6 @@ import {
   describeDataset,
   deskHealth,
   deskResources,
-  deskWarm,
   ensureDeskAccess,
   createDiscoverIntent,
   craftDiscoverIntentProposal,
@@ -37,11 +36,10 @@ import {
   synthesisThreadObject,
 } from "@/v2/activeObject";
 import { BrowsePage } from "@/v2/BrowsePage";
-import { ClusterPage } from "@/v2/ClusterPage";
-import { computeDatasetOverlap } from "@/v2/clusterOverlap";
 import { loadUserEmail, saveUserEmail } from "@/v2/deskSession";
 import { readResourcesRollupCache, writeResourcesRollupCache } from "@/v2/resourcesRollupCache";
 import { normalizeReleaseTab } from "@/v2/releaseVisibility";
+import { DISCOVER_TAB, canonicalTab } from "@/v2/tabIdentity";
 import { HomePage } from "@/v2/HomePage";
 import { InspectorRail } from "@/v2/InspectorRail";
 import { LibraryPage } from "@/v2/LibraryPage";
@@ -58,13 +56,12 @@ import {
 import { Toast, useToast } from "@/v2/toast";
 import { V2Sidebar } from "@/v2/V2Sidebar";
 import { recentDatasets, touchRecent } from "@/v2/recent";
-import { displayName, isQueryReadyReadiness } from "@/v2/datasetMeta";
+import { displayName } from "@/v2/datasetMeta";
 import { buildLab, PILOT_PREVIEW_EMAIL } from "@/v2/profileViewModel";
 import { mergeHealth, resolveCatalog } from "@/v2/deskSeed";
 import { projectRollupFromHealth } from "@/v2/homeIteration10";
 import { buildDeskIntegrationChips } from "@/v2/deskIntegration";
 import { loadSettings } from "@/v2/settingsStore";
-import { CLUSTER_NAV_DEFERRED } from "@/v2/nav-config.jsx";
 import {
   buildAddToLabDisplayText,
   buildAddToLabPrompt,
@@ -78,28 +75,40 @@ import {
 import {
   durableHistoryToEvents,
   enrichHistoryEventsFromJobs,
+  historyLifecycleBucket,
   mergeHistoryEvents,
 } from "@/v2/discoverAdapters";
+import { fenceHistoryEvents } from "@/v2/historyNoiseFence";
 import { discoverModeFromLegacy, discoverModeToUrlState } from "@/v2/discoverMode";
-import { jobToDiscoverHistoryEvent, pendingApprovalJobs } from "@/v2/procurementJobs";
+import { isDiscoverHistoryJob, jobToDiscoverHistoryEvent, pendingApprovalJobs } from "@/v2/procurementJobs";
 import { discoverCandidateState } from "@/v2/browseMeta";
 import { buildRailContext } from "@/v2/railContext";
-import { holdingIdsFromCatalog } from "@/v2/discoverTaxonomy";
+import { holdingIdsFromCatalog, isLocalHolding } from "@/v2/discoverTaxonomy";
+import { libraryEvidence, libraryHoldings, libraryReferences } from "@/v2/deskCounts";
+import { composerRuntimeRead } from "@/v2/composerRuntimeStatus";
+
+const DESK_HEALTH_READY_POLL_MS = 60_000;
+const DESK_HEALTH_RECHECK_MS = 10_000;
 
 function readParams() {
   const p = new URLSearchParams(window.location.search);
-  const rawTab = p.get("tab") || loadSettings().defaultTab || "home";
+  const dataset = p.get("dataset") || "";
+  // A bare dataset URL is a Library deep link. Home may still carry a
+  // selected dataset in its inspector, but writeParams makes that ownership
+  // explicit with tab=home so copied dataset-only URLs never open a split
+  // Home-canvas / Library-inspector state.
+  const rawTab = p.get("tab") || (dataset ? "library" : "") || loadSettings().defaultTab || "home";
   const folder = p.get("folder") || "";
   const q = p.get("q") || "";
-  let tab = normalizeReleaseTab(rawTab === "discover" ? "browse" : rawTab);
+  let tab = normalizeReleaseTab(canonicalTab(rawTab));
   // Library deep links: folder+dataset without a Discover query belong on Library.
-  if (tab === "browse" && folder && !q) {
+  if (tab === DISCOVER_TAB && folder && !q) {
     tab = "library";
   }
   const discoverState = discoverModeFromLegacy(p.get("mode") || "");
   return {
     tab,
-    dataset: p.get("dataset") || "",
+    dataset,
     folder,
     preview: p.get("preview") === "1",
     q,
@@ -110,13 +119,13 @@ function readParams() {
 
 /**
  * Only Home/Discover/Library read a selected dataset. Resources, Profile,
- * Synthesis, Settings and Cluster ignore it, so carrying it there produces a
+ * Synthesis and Settings ignore it, so carrying it there produces a
  * shareable deep link pinned to a dataset the page never uses — reopening it
  * restores a stale selection. Allow-list, so a tab added later does not
  * silently inherit the parameter.
  */
 function tabOwnsDataset(tab) {
-  return tab === "home" || tab === "browse" || tab === "library";
+  return tab === "home" || tab === DISCOVER_TAB || tab === "library";
 }
 
 function tabOwnsFolder(tab) {
@@ -125,7 +134,10 @@ function tabOwnsFolder(tab) {
 
 function writeParams({ tab, dataset, folder, preview, q, mode }) {
   const p = new URLSearchParams();
-  if (tab && tab !== "home") p.set("tab", tab);
+  // Home normally owns the clean root URL. If its inspector is pinned to a
+  // dataset, retain tab=home so a reload does not reinterpret the URL as a
+  // Library deep link.
+  if (tab && (tab !== "home" || dataset)) p.set("tab", tab);
   if (folder && tabOwnsFolder(tab)) p.set("folder", folder);
   // Enforced here rather than at call sites: writeParams is the single writer,
   // so no caller can reintroduce the leak.
@@ -133,13 +145,12 @@ function writeParams({ tab, dataset, folder, preview, q, mode }) {
   if (preview) p.set("preview", "1");
   if (q) p.set("q", q);
   const modeUrl = discoverModeToUrlState(mode || "explore");
-  if (tab === "browse" && modeUrl) p.set("mode", modeUrl);
+  if (tab === DISCOVER_TAB && modeUrl) p.set("mode", modeUrl);
   const qs = p.toString();
   const url = `${window.location.pathname}${qs ? `?${qs}` : ""}`;
   window.history.replaceState(null, "", url);
 }
 
-const DEFAULT_COMPARE = ["gdelt_asia_daily_country_panel", "ticker_week_country_broadcast_panel"];
 
 function resourceAskPrompt(row) {
   if (!row) return "";
@@ -174,10 +185,18 @@ function resourceAskPrompt(row) {
 }
 
 export function V2App() {
-  const [tab, setTab] = useState(() => readParams().tab);
+  // Bind the canonical fold to the setter rather than to every caller. Seven
+  // call sites still write "browse"; after the rename the switch matches
+  // "discover", so a stray non-canonical write rendered nothing and dropped the
+  // rest of the URL with it.
+  const [tab, setTabRaw] = useState(() => canonicalTab(readParams().tab));
+  const setTab = useCallback((next) => {
+    setTabRaw((prev) => canonicalTab(typeof next === "function" ? next(prev) : next));
+  }, []);
   const [folderId, setFolderId] = useState(() => readParams().folder);
   const [selectedId, setSelectedId] = useState(() => readParams().dataset);
   const [browseRow, setBrowseRow] = useState(null);
+  const [discoverRestingSummary, setDiscoverRestingSummary] = useState(null);
   const [browseProbe, setBrowseProbe] = useState({ candidateKey: "", loading: false, result: null, error: "" });
   const [collectSubmittingKey, setCollectSubmittingKey] = useState("");
   const [lifecycleRefreshFailed, setLifecycleRefreshFailed] = useState(false);
@@ -189,12 +208,14 @@ export function V2App() {
   const browseSelectedKeyRef = useRef("");
   const [resourceRow, setResourceRow] = useState(null);
   const [activeObject, setActiveObject] = useState(null);
-  const [compareIds, setCompareIds] = useState(DEFAULT_COMPARE);
   const [previewOpen, setPreviewOpen] = useState(() => readParams().preview);
   const [previewMode, setPreviewMode] = useState("lab");
   const [previewTarget, setPreviewTarget] = useState(null);
   const [railTab, setRailTab] = useState("detail");
   const [datasets, setDatasets] = useState([]);
+  // Until the registry has actually answered, an empty array is unmeasured —
+  // never a claim that the Library contains zero datasets.
+  const [catalogLoading, setCatalogLoading] = useState(true);
   const [usingSeed, setUsingSeed] = useState(false);
   const [detail, setDetail] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -217,7 +238,7 @@ export function V2App() {
     question: "",
     result: null,
   });
-  /** One-shot: Explore should hit live source adapters (Search wider / Ask handoff). */
+  /** The current Explore query is using live source adapters after Search wider. */
   const [discoverPreferLive, setDiscoverPreferLive] = useState(false);
   /** A Synthesis evidence gap routed to Discover — cleared on Dismiss or Return. */
   const [synthesisDiscoverHandoff, setSynthesisDiscoverHandoff] = useState(null);
@@ -234,22 +255,29 @@ export function V2App() {
   const [partitions, setPartitions] = useState([]);
   const [shelves, setShelves] = useState([]);
   const [libraryGuide, setLibraryGuide] = useState(null);
+  const [libraryNavLoading, setLibraryNavLoading] = useState(true);
+  const [libraryNavError, setLibraryNavError] = useState("");
   const [ops, setOps] = useState(null);
   const [jobs, setJobs] = useState([]);
+  const [jobsLoaded, setJobsLoaded] = useState(false);
+  const [jobsRefreshing, setJobsRefreshing] = useState(false);
   const [overview, setOverview] = useState(null);
   const [catalogSummary, setCatalogSummary] = useState(null);
   const [cluster, setCluster] = useState(null);
   // Cache-first (same as Resources page) so Home headroom is not blocked on /desk/resources.
   const [resourcesRollup, setResourcesRollup] = useState(() => readResourcesRollupCache() ?? undefined);
+  const [resourcesError, setResourcesError] = useState("");
   const [resourcesRefreshedAt, setResourcesRefreshedAt] = useState(null);
   const [resourceMode, setResourceMode] = useState("sources");
   const [activityFilter, setActivityFilter] = useState(null);
   const [pendingAsk, setPendingAsk] = useState("");
   /** Ask can persist a review proposal; refresh the canvas in the same turn. */
   const [synthesisRefreshVersion, setSynthesisRefreshVersion] = useState(0);
+  const healthRetryRef = useRef(null);
   const { toast, show: showToast, dismissIf: dismissToastIf } = useToast();
   const authenticatedEmail = String(deskAccess?.principal?.email || "").trim();
   const canUseAsk = Boolean(deskAccess?.permissions?.use_ask);
+  const composerRuntime = composerRuntimeRead(health?.desk?.composer_runtime);
   const canSubmitCollection = Boolean(deskAccess?.permissions?.submit_collection);
   const canApproveJobs = Boolean(deskAccess?.permissions?.approve_jobs);
 
@@ -311,7 +339,9 @@ export function V2App() {
 
   useEffect(() => {
     if (!deskAccess?.authenticated) return undefined;
-    if (profile && !profile.unknown) {
+    // reloadProfile owns the first request. Do not duplicate its pilot lookup
+    // while the single-threaded front door is loading the core desk state.
+    if (!profile?.unknown) {
       setPilotProfile(null);
       return undefined;
     }
@@ -330,87 +360,113 @@ export function V2App() {
   }, [profile, deskAccess?.authenticated]);
 
   const applyCatalog = useCallback((rows, errMsg = "") => {
-    const { catalog, usingSeed: seed } = resolveCatalog(rows);
+    const { catalog, usingSeed: seed } = resolveCatalog(rows, { fallbackToSeed: Boolean(errMsg) });
     setDatasets(catalog);
+    setCatalogLoading(false);
     setUsingSeed(seed);
     setLoadError(seed ? errMsg : "");
-    const ids = catalog.map((d) => d.dataset_id);
-    setCompareIds((cur) => {
-      const valid = cur.every((id) => ids.includes(id));
-      if (valid && cur[0] && cur[1]) return cur;
-      const a = ids.find((id) => /gdelt.*asia/i.test(id)) || ids[0];
-      const b = ids.find((id) => /ticker.*week/i.test(id)) || ids[1] || ids[0];
-      return a && b ? [a, b] : cur;
-    });
   }, []);
 
-  const refreshBackend = useCallback((opts = {}) => {
+  const refreshBackend = useCallback(async (opts = {}) => {
     const preserveJob = opts?.preserveJob || null;
-    listDatasets()
-      .then((rows) => applyCatalog(rows))
-      .catch(async (err) => {
-        try {
-          const h = await deskHealth(true);
-          if (h?.status === "ok") {
-            const rows = await listDatasets();
-            applyCatalog(rows);
-            return;
-          }
-        } catch {
-          /* fall through to demo seed */
-        }
-        applyCatalog([], err.message);
+    if (healthRetryRef.current) {
+      window.clearTimeout(healthRetryRef.current);
+      healthRetryRef.current = null;
+    }
+    const applyHealth = (payload) => {
+      const merged = mergeHealth(payload);
+      setHealth(merged);
+      setDeskRefreshedAt(Date.now());
+      // Paint Home headroom from /health immediately; full /desk/resources hydrates after.
+      setResourcesRollup((cur) => {
+        if (cur && typeof cur === "object" && cur.status === "ok") return cur;
+        if (cur && cur.usage?.vault?.used_tb != null) return cur;
+        return projectRollupFromHealth(merged) || cur;
       });
-    deskHealth(false)
-      .then((h) => {
-        const merged = mergeHealth(h);
-        setHealth(merged);
-        setDeskRefreshedAt(Date.now());
-        // Paint Home headroom from /health immediately; full /desk/resources hydrates after.
-        setResourcesRollup((cur) => {
-          if (cur && typeof cur === "object" && cur.status === "ok") return cur;
-          if (cur && cur.usage?.vault?.used_tb != null) return cur;
-          return projectRollupFromHealth(merged) || cur;
-        });
-      })
-      .catch(() =>
-        deskHealth(false)
-          .then((h) => {
-            const merged = mergeHealth(h);
-            setHealth(merged);
-            setDeskRefreshedAt(Date.now());
-            setResourcesRollup((cur) => {
-              if (cur && typeof cur === "object" && cur.status === "ok") return cur;
-              if (cur && cur.usage?.vault?.used_tb != null) return cur;
-              return projectRollupFromHealth(merged) || cur;
-            });
-          })
-          .catch(() => setHealth(mergeHealth(null))),
-      );
-    // Optional live probe — never blank the fast health if it times out.
-    deskHealth(true)
-      .then((h) => {
-        setHealth(mergeHealth(h));
-        setDeskRefreshedAt(Date.now());
-      })
-      .catch(() => {});
-    listAcquisitions(true)
-      .then((d) => setAcquisitions(d.acquisitions || []))
-      .catch(() => setAcquisitions([]));
-    listLibraryNav()
-      .then((payload) => {
-        setPartitions(Array.isArray(payload?.partitions) ? payload.partitions : []);
-        setShelves(Array.isArray(payload?.shelves) ? payload.shelves : []);
-        setLibraryGuide(payload?.guide && typeof payload.guide === "object" ? payload.guide : null);
-      })
-      .catch(() => {
-        setPartitions([]);
-        setShelves([]);
-        setLibraryGuide(null);
-      });
-    libraryOps()
-      .then(setOps)
-      .catch(() => setOps(null));
+    };
+    const markHealthUnmeasured = () => {
+      // An authenticated browser with working data routes is neither “demo”
+      // nor an assistant outage just because the aggregate /health read is
+      // still queued. Keep the absence explicit until the retry settles.
+      setHealth({ status: "unknown", desk: {} });
+    };
+    const retryHealthAfterQueue = () => {
+      healthRetryRef.current = window.setTimeout(() => {
+        deskHealth(false, { timeoutMs: 20000 })
+          .then(applyHealth)
+          .catch(markHealthUnmeasured)
+          .finally(() => {
+            healthRetryRef.current = null;
+          });
+      }, 5000);
+    };
+    const applyNavigation = (payload) => {
+      setPartitions(Array.isArray(payload?.partitions) ? payload.partitions : []);
+      setShelves(Array.isArray(payload?.shelves) ? payload.shelves : []);
+      setLibraryGuide(payload?.guide && typeof payload.guide === "object" ? payload.guide : null);
+    };
+    const clearNavigation = () => {
+      setPartitions([]);
+      setShelves([]);
+      setLibraryGuide(null);
+    };
+
+    // The front door deliberately handles one request at a time. The old
+    // startup burst sent health, registry, navigation, operations, history,
+    // resources, profile, and two cache warms together. The browser then
+    // painted “0 datasets” while the real 139-row registry waited its turn.
+    // Establish the visible research estate first; defer aggregate health and
+    // operational enrichment until those facts are on screen. /health may
+    // legitimately wait on probes for 12s, while /datasets is the Library and
+    // Discover truth researchers came to use.
+    setCatalogLoading(true);
+    try {
+      applyCatalog(await listDatasets());
+    } catch (err) {
+      applyCatalog([], err?.message || String(err));
+    }
+      // Navigation is the visible research estate. It ran after resources
+      // and health, so the Library waited ~11s for shelves the desk had
+      // already loaded. The server is threaded, but its data endpoints are
+      // GIL-bound: measured 4x concurrent, /library/desk/capabilities gains
+      // 2.95x while /library/partitions gains 1.32x. Ordering is therefore the
+      // lever, not parallelism — this move was worth 4.3x, concurrency ~1.3x.
+    setLibraryNavLoading(true);
+    setLibraryNavError("");
+    try {
+      applyNavigation(await listLibraryNav());
+    } catch (error) {
+      clearNavigation();
+      setLibraryNavError(error?.message || String(error));
+    } finally {
+      setLibraryNavLoading(false);
+    }
+
+    setResourcesError("");
+    try {
+      const payload = await deskResources(false);
+      writeResourcesRollupCache(payload);
+      setResourcesRollup(payload);
+      setResourcesRefreshedAt(Date.now());
+    } catch (error) {
+      setResourcesError(error?.message || String(error));
+      setResourcesRollup((cur) => (cur === undefined ? null : cur));
+    }
+    try {
+      applyHealth(await deskHealth(false, { timeoutMs: 12_000 }));
+    } catch {
+      // Working data routes are not evidence of a health failure. Keep the
+      // absence explicit and retry once the primary requests have drained.
+      markHealthUnmeasured();
+      retryHealthAfterQueue();
+    }
+
+    // These are useful operational enrichments, but none may delay the
+    // Library or Discover landing state. They may share the later queue.
+    // Approval decisions are faculty-visible research work. Hydrate them
+    // before slower operational enrichments so History never advertises a
+    // pending count while its Needs-you territory appears empty.
+    setJobsRefreshing(true);
     listJobs()
       .then((rows) => {
         const list = Array.isArray(rows) ? rows : [];
@@ -419,11 +475,20 @@ export function V2App() {
         } else {
           setJobs(list);
         }
+        setJobsLoaded(true);
         setLifecycleRefreshFailed(false);
       })
       .catch(() => {
+        setJobsLoaded(true);
         setLifecycleRefreshFailed(true);
-      });
+      })
+      .finally(() => setJobsRefreshing(false));
+    listAcquisitions(false)
+      .then((d) => setAcquisitions(d.acquisitions || []))
+      .catch(() => setAcquisitions([]));
+    libraryOps()
+      .then(setOps)
+      .catch(() => setOps(null));
     libraryOverview()
       .then(setOverview)
       .catch(() => setOverview(null));
@@ -433,13 +498,6 @@ export function V2App() {
     yzuClusterStatus(false)
       .then(setCluster)
       .catch(() => setCluster(null));
-    deskResources(false)
-      .then((payload) => {
-        writeResourcesRollupCache(payload);
-        setResourcesRollup(payload);
-        setResourcesRefreshedAt(Date.now());
-      })
-      .catch(() => setResourcesRollup((cur) => (cur === undefined ? null : cur)));
     discoverHistory({ limit: 50 })
       .then((data) => setHistoryEvents(mergeHistoryEvents(durableHistoryToEvents(data), [])))
       .catch(() => {});
@@ -472,13 +530,33 @@ export function V2App() {
   useEffect(() => {
     if (!deskAccess?.authenticated) return undefined;
     let cancelled = false;
-    (async () => {
-      deskWarm({ userEmail: authenticatedEmail || loadUserEmail(), background: true }).catch(() => {});
-    })();
+    const pollHealth = () => {
+      if (document.visibilityState === "hidden") return;
+      deskHealth(false, { timeoutMs: 12_000 })
+        .then((payload) => {
+          if (cancelled) return;
+          setHealth(mergeHealth(payload));
+          setDeskRefreshedAt(Date.now());
+        })
+        .catch(() => {
+          // Preserve the last measured truth. The main boot/recovery path owns
+          // the explicit unknown state when no health read has ever succeeded.
+        });
+    };
+    const intervalMs = composerRuntime?.ready
+      ? DESK_HEALTH_READY_POLL_MS
+      : DESK_HEALTH_RECHECK_MS;
+    const handle = window.setInterval(pollHealth, intervalMs);
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") pollHealth();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
     return () => {
       cancelled = true;
+      window.clearInterval(handle);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [authenticatedEmail, deskAccess?.authenticated]);
+  }, [composerRuntime?.ready, deskAccess?.authenticated]);
 
   const askFromPrompt = useCallback((prompt) => {
     if (!prompt) return;
@@ -490,36 +568,28 @@ export function V2App() {
   useEffect(() => {
     const p = new URLSearchParams(window.location.search);
     const rawTab = p.get("tab") || "";
+    const rawDataset = p.get("dataset") || "";
     const rawFolder = p.get("folder") || "";
     const rawQ = p.get("q") || "";
     const needsLibraryRedirect =
-      (rawTab === "browse" || rawTab === "discover") && rawFolder && !rawQ && tab === "library";
+      canonicalTab(rawTab) === DISCOVER_TAB && rawFolder && !rawQ && tab === "library";
+    const needsDatasetRedirect = !rawTab && rawDataset && tab === "library";
     const datasetMismatch = Boolean(selectedId && p.get("dataset") !== selectedId);
-    if (needsLibraryRedirect || datasetMismatch) {
+    if (needsLibraryRedirect || needsDatasetRedirect || datasetMismatch) {
       writeParams({
         tab,
         folder: folderId,
         dataset: selectedId,
         preview: previewOpen,
-        q: tab === "browse" ? discoverSearchQuery.trim() : "",
+        q: tab === DISCOVER_TAB ? discoverSearchQuery.trim() : "",
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot URL normalize on mount
   }, []);
 
-  useEffect(() => {
-    if (!datasets.length || selectedId || tab !== "home") return;
-    const first = datasets[0];
-    const pick = first.dataset_id;
-    setSelectedId(pick);
-    setActiveObject(datasetObject(first));
-    // Do not touchRecent here — Home auto-select must not rewrite recent history.
-    writeParams({ tab, folder: folderId, dataset: pick, preview: previewOpen });
-  }, [datasets, selectedId, tab, folderId, previewOpen]);
-
   const catalog = datasets;
 
-  const pageSearchQuery = tab === "browse" ? discoverSearchQuery : tab === "library" ? librarySearchQuery : "";
+  const pageSearchQuery = tab === DISCOVER_TAB ? discoverSearchQuery : tab === "library" ? librarySearchQuery : "";
 
   // `/datasets` is the registry authority, not a possession list: it includes
   // held assets, catalogue references, connectors, and procurement candidates.
@@ -555,11 +625,19 @@ export function V2App() {
         .filter(Boolean),
     );
     const jobEvents = jobs
+      .filter(isDiscoverHistoryJob)
       .filter((job) => job?.id && !durableJobIds.has(job.id))
       .map(jobToDiscoverHistoryEvent)
       .filter(Boolean);
     return mergeHistoryEvents(enriched, jobEvents);
   }, [historyEvents, jobs]);
+  const pendingResearchDecisions = useMemo(
+    () =>
+      fenceHistoryEvents(historyItems).visible.filter(
+        (event) => historyLifecycleBucket(event) === "needs_approval",
+      ).length,
+    [historyItems],
+  );
   const selectedHistoryEvent = useMemo(
     () => historyItems.find((event) => event?.id === selectedHistoryId) || null,
     [historyItems, selectedHistoryId],
@@ -573,14 +651,6 @@ export function V2App() {
       ? browseProbe
       : { loading: false, result: null, error: "" };
 
-  const clusterContext = useMemo(() => {
-    const [aId, bId] = compareIds;
-    const a = catalog.find((d) => d.dataset_id === aId);
-    const b = catalog.find((d) => d.dataset_id === bId);
-    if (!a || !b) return { a, b };
-    const overlap = computeDatasetOverlap(a, b);
-    return { a, b, ...overlap };
-  }, [compareIds, catalog]);
 
   const railContext = useMemo(
     () =>
@@ -591,19 +661,18 @@ export function V2App() {
         activeObject,
         searchQuery: pageSearchQuery,
         folderId,
-        clusterContext,
         profileEmail: profile?.email || loadUserEmail(),
       }),
-    [tab, railTab, detail, activeObject, pageSearchQuery, folderId, clusterContext, profile],
+    [tab, railTab, detail, activeObject, pageSearchQuery, folderId, profile],
   );
 
   const syncUrl = useCallback(
     (patch) => {
-      const nextTab = patch.tab ?? tab;
+      const nextTab = canonicalTab(patch.tab ?? tab);
       const nextQ =
         patch.q !== undefined
           ? patch.q
-          : nextTab === "browse"
+          : nextTab === DISCOVER_TAB
             ? discoverSearchQuery.trim()
             : "";
       const next = {
@@ -648,7 +717,7 @@ export function V2App() {
       const targetJob =
         (job?.id ? jobs.find((j) => j.id === job.id) : null) ||
         job ||
-        (focusAwaiting ? pendingApprovalJobs(jobs)[0] : null);
+        (focusAwaiting ? pendingApprovalJobs(jobs).find(isDiscoverHistoryJob) : null);
       if (targetJob) {
         const event = jobToDiscoverHistoryEvent(targetJob);
         setBrowseRow(null);
@@ -665,7 +734,7 @@ export function V2App() {
 
   // Durable Discover History (optional endpoint — ignore failures).
   useEffect(() => {
-    if (tab !== "browse") return undefined;
+    if (tab !== DISCOVER_TAB) return undefined;
     let cancelled = false;
     discoverHistory({ limit: 50 })
       .then((data) => {
@@ -683,7 +752,7 @@ export function V2App() {
 
   const goTab = useCallback(
     (id, opts = {}) => {
-      const next = normalizeReleaseTab(id);
+      const next = normalizeReleaseTab(canonicalTab(id));
       if (next === "library") {
         setTab(next);
         setRailTab("detail");
@@ -763,6 +832,31 @@ export function V2App() {
     [goTab, syncUrl],
   );
 
+  /** Keep Home's inspector bound to the exact primary Pick Up object. */
+  const activateHomeResume = useCallback(
+    (point) => {
+      if (tab !== "home") return;
+      const row = point?.dataset;
+      const id = row?.dataset_id || row?.id || "";
+      if (!id) {
+        setSelectedId((current) => (current ? "" : current));
+        setDetail((current) => (current ? null : current));
+        setActiveObject((current) => (current ? null : current));
+        writeParams({ tab: "home", dataset: "", folder: "", preview: false, q: "", mode: "" });
+        return;
+      }
+      setSelectedId((current) => (current === id ? current : id));
+      // The identity may stay stable while the backend hydrates richer
+      // coverage/readiness metadata. Rebind the exact row, not just its id.
+      setDetail(row);
+      setActiveObject(datasetObject(row, { owner: "home" }));
+      // Selecting the projected resume point is not a new user interaction;
+      // do not rewrite Recent merely because Home rendered.
+      writeParams({ tab: "home", dataset: id, folder: "", preview: false, q: "", mode: "" });
+    },
+    [tab],
+  );
+
   const openPreview = useCallback(
     (row) => {
       const id = row?.dataset_id || selectedId;
@@ -770,14 +864,18 @@ export function V2App() {
       setPreviewTarget(row || selectedFromList || { dataset_id: id });
       setPreviewMode("lab");
       setSelectedId(id);
-      setActiveObject(datasetObject(row || selectedFromList || { dataset_id: id }));
+      setActiveObject(
+        datasetObject(row || selectedFromList || { dataset_id: id }, {
+          owner: tab === "home" ? "home" : tab,
+        }),
+      );
       touchRecent(id);
       setRecentEpoch((n) => n + 1);
       setPreviewOpen(true);
       setRailTab("detail");
       syncUrl({ dataset: id, preview: true });
     },
-    [selectedId, selectedFromList, syncUrl],
+    [selectedId, selectedFromList, syncUrl, tab],
   );
 
   const openPreviewExternal = useCallback((row) => {
@@ -816,6 +914,7 @@ export function V2App() {
           ? `Continue this Discover investigation: ${q}. Current index candidates: ${resultNames.join("; ") || "none named"}. Help refine the evidence requirement, explain what is known versus unknown, and identify the next valid action. Do not submit procurement without explicit approval.`
           : `Investigate this evidence need: ${q}. Begin with held evidence, ask for missing requirement details when needed, and use wider discovery only when it adds value. Keep procurement approval-gated.`
       );
+      setDiscoverPreferLive(false);
       setDiscoverSearchQuery(q);
       setActiveObject({
         kind: "discover_investigation",
@@ -1075,17 +1174,23 @@ export function V2App() {
 
   const retryLifecycleRefresh = useCallback(() => {
     setLifecycleRefreshFailed(false);
+    setJobsRefreshing(true);
     listJobs()
       .then((rows) => {
         setJobs(Array.isArray(rows) ? rows : []);
+        setJobsLoaded(true);
         setLifecycleRefreshFailed(false);
       })
-      .catch(() => setLifecycleRefreshFailed(true));
+      .catch(() => {
+        setJobsLoaded(true);
+        setLifecycleRefreshFailed(true);
+      })
+      .finally(() => setJobsRefreshing(false));
   }, []);
 
   // Poll jobs while selected Discover candidate has a nonterminal exact job.
   useEffect(() => {
-    if (tab !== "browse" || !browseTarget || !isLifecycleActive(browseLifecycle)) {
+    if (tab !== DISCOVER_TAB || !browseTarget || !isLifecycleActive(browseLifecycle)) {
       if (jobsPollRef.current) {
         window.clearInterval(jobsPollRef.current);
         jobsPollRef.current = null;
@@ -1096,9 +1201,13 @@ export function V2App() {
       listJobs()
         .then((rows) => {
           setJobs(Array.isArray(rows) ? rows : []);
+          setJobsLoaded(true);
           setLifecycleRefreshFailed(false);
         })
-        .catch(() => setLifecycleRefreshFailed(true));
+        .catch(() => {
+          setJobsLoaded(true);
+          setLifecycleRefreshFailed(true);
+        });
     };
     jobsPollRef.current = window.setInterval(tick, 4000);
     return () => {
@@ -1109,8 +1218,22 @@ export function V2App() {
     };
   }, [tab, browseTarget, browseLifecycle]);
 
+  // DISCOVER_ADAPTIVE_FREEZE §3: the held-evidence popover offers Compare
+  // coverage and Open Library results. Both are transient — §13 forbids a
+  // permanent route-comparison panel, and the authority lists Cluster under
+  // "these are not destinations".
+  const openLibraryResultsFromDiscover = useCallback(() => {
+    setLibrarySearchQuery(discoverSearchQuery.trim());
+    goTab("library");
+  }, [discoverSearchQuery, goTab]);
+
   const openInLibraryFromDiscover = useCallback(
     (target) => {
+      if (target?.library_search) {
+        setLibrarySearchQuery(String(target.query || "").trim());
+        goTab("library");
+        return;
+      }
       const id = target?.dataset_id;
       if (!id) return;
       setTab("library");
@@ -1123,12 +1246,20 @@ export function V2App() {
       setRailTab("detail");
       syncUrl({ tab: "library", dataset: id, preview: false, q: "" });
     },
-    [catalog, syncUrl],
+    [catalog, goTab, syncUrl],
   );
+
+  const handleDiscoverRestingSummary = useCallback((summary) => {
+    setDiscoverRestingSummary((prev) => {
+      const next = summary || null;
+      if (JSON.stringify(prev) === JSON.stringify(next)) return prev;
+      return next;
+    });
+  }, []);
 
   const askAboutSelection = useCallback(
     (target, promptOverride) => {
-      if (tab === "browse" && target) {
+      if (tab === DISCOVER_TAB && target) {
         const label = target.title || target.dataset_id || target.name || "this Discover candidate";
         if (target.kind === "discover_history") {
           setRailTab("ask");
@@ -1176,6 +1307,17 @@ export function V2App() {
         setRailTab("ask");
         setPendingAsk(
           target.row?.prompt || `Explain this Home attention item: ${target.title || "selected work"}.`,
+        );
+        return;
+      }
+      if (target?.kind === "synthesis_thread") {
+        setActiveObject(target);
+        setRailTab("ask");
+        const override = typeof promptOverride === "string" && promptOverride.trim() ? promptOverride.trim() : "";
+        setPendingAsk(
+          override ||
+            `Help me reason through this Synthesis thread: ${target.title || "selected construction"}. ` +
+            "Distinguish the recorded intent, recommendation, assumptions, and the next decision. Do not claim a method has been accepted or built unless the thread proves it.",
         );
         return;
       }
@@ -1307,7 +1449,7 @@ export function V2App() {
 
   const openHomeAttention = useCallback(
     (item) => {
-      if (item?.tab === "browse" || item?.discoverMode === "history") {
+      if (item?.tab === DISCOVER_TAB || item?.discoverMode === "history") {
         setDiscoverModeSafe("history");
         goTab("browse");
         setRailTab("detail");
@@ -1356,9 +1498,10 @@ export function V2App() {
     return byDataset;
   }, [partitions, shelves]);
 
+  const heldLibraryRows = useMemo(() => libraryHoldings(catalog || []), [catalog]);
   const filteredDatasets = useMemo(() => {
     const q = librarySearchQuery.trim().toLowerCase();
-    if (!q) return catalog;
+    if (!q) return heldLibraryRows;
     const shelfHitIds = new Set();
     const laneByPid = new Map(
       (partitions || []).map((lane) => [
@@ -1376,17 +1519,17 @@ export function V2App() {
         }
       }
     }
-    return catalog.filter((d) => {
+    return heldLibraryRows.filter((d) => {
       const did = String(d.dataset_id || "");
       if (shelfHitIds.has(did)) return true;
       const nav = libraryNavHaystack.get(did) || "";
       const text = `${did} ${d.name} ${d.display_name || ""} ${d.grain} ${d.description || ""} ${d.one_line || ""} ${d.partition_id || ""} ${nav}`.toLowerCase();
       return text.includes(q);
     });
-  }, [catalog, libraryNavHaystack, librarySearchQuery, partitions, shelves]);
+  }, [heldLibraryRows, libraryNavHaystack, librarySearchQuery, partitions, shelves]);
 
-  const headerDsCount = catalog.length || Number(health?.datasets) || 0;
-  const headerConnected = catalog.filter((d) => isQueryReadyReadiness(d.analysis_readiness)).length;
+  const libraryEvidenceCount = libraryEvidence(catalog || []);
+  const libraryReferenceCount = libraryReferences(catalog || []);
 
   let main;
   switch (tab) {
@@ -1394,6 +1537,7 @@ export function V2App() {
       main = (
         <HomePage
           datasets={catalog}
+          catalogLoading={catalogLoading}
           health={health}
           cluster={health?.cluster}
           profile={profile && !profile.unknown ? profile : pilotProfile || profile}
@@ -1402,13 +1546,16 @@ export function V2App() {
           partitions={partitions}
           jobs={jobs}
           usingSeed={usingSeed}
+          loadError={loadError}
           onAskComposer={canUseAsk ? askFromPrompt : undefined}
           onGoTab={goTab}
           onOpenAttention={openHomeAttention}
           onSelectDataset={openLibraryDataset}
           onPreviewDataset={openPreview}
+          onPrimaryResume={activateHomeResume}
           onAskAttention={askHomeAttention}
           onSuggestSearch={(q) => {
+            setDiscoverPreferLive(false);
             setDiscoverSearchQuery(q);
             goTab("browse");
           }}
@@ -1419,10 +1566,13 @@ export function V2App() {
       main = (
         <LibraryPage
           datasets={filteredDatasets}
+          loading={catalogLoading}
+          navigationLoading={libraryNavLoading}
+          navigationError={libraryNavError}
           partitions={partitions}
           shelves={shelves}
+          loadError={loadError}
           guide={libraryGuide}
-          cluster={health?.cluster}
           folderId={folderId}
           onFolderChange={changeLibraryFolder}
           selectedId={selectedId}
@@ -1438,30 +1588,27 @@ export function V2App() {
           onStartProcure={canSubmitCollection ? (folder) => startLibraryIntake("procure", folder) : undefined}
           searchQuery={librarySearchQuery}
           onSearchChange={setLibrarySearchQuery}
+          referenceCount={libraryReferenceCount}
+          selectionHoldings={heldLibraryRows}
+          selectionFallback={isLocalHolding(detail) ? detail : null}
         />
       );
       break;
-    case "cluster":
-      main = (
-        <ClusterPage
-          datasets={catalog}
-          compareIds={compareIds}
-          onCompareChange={setCompareIds}
-          onGoTab={goTab}
-          onAskComposer={askFromPrompt}
-        />
-      );
-      break;
-    case "browse":
+    case DISCOVER_TAB:
       main = (
         <BrowsePage
           labIds={labIds}
+          libraryEvidenceCount={libraryEvidenceCount}
+          catalogLoading={catalogLoading}
+          partitions={partitions}
+          shelves={shelves}
+          loadError={loadError}
+          onOpenLibraryResults={openLibraryResultsFromDiscover}
           catalog={catalog}
           selectedId={browseSelectedId}
           searchQuery={discoverSearchQuery}
           onSearchChange={setDiscoverSearchQuery}
           preferLiveSources={discoverPreferLive}
-          onLiveSourcesConsumed={setDiscoverPreferLive}
           jobs={jobs}
           usingSeed={usingSeed}
           probeSnapshots={probeSnapshots}
@@ -1469,6 +1616,9 @@ export function V2App() {
           discoverFocusAwaiting={discoverFocusAwaiting}
           onDiscoverModeChange={setDiscoverModeSafe}
           historyEvents={historyItems}
+          historyJobsLoaded={jobsLoaded}
+          historyJobsRefreshing={jobsRefreshing}
+          historyJobsRefreshFailed={lifecycleRefreshFailed}
           selectedHistoryId={selectedHistoryId}
           intentRecord={discoverIntentRecord}
           onIntentChange={setDiscoverIntentRecord}
@@ -1505,6 +1655,7 @@ export function V2App() {
           onSuggestSearch={(q) => {
             setDiscoverIntentRecord(null);
             setDiscoverAssessment({ active: false, question: "", result: null });
+            setDiscoverPreferLive(false);
             setDiscoverSearchQuery(q);
             goTab("browse");
           }}
@@ -1515,6 +1666,7 @@ export function V2App() {
           assessmentActive={discoverAssessment.active}
           assessmentResult={discoverAssessment.result}
           onOpenAssessment={openDiscoverAssessment}
+          onRestingSummary={handleDiscoverRestingSummary}
           onSelectRow={(row) => {
             setDiscoverAssessment((current) => ({ ...current, active: false }));
             const nextKey = candidateKey(row);
@@ -1544,9 +1696,9 @@ export function V2App() {
       main = (
         <SynthesisPage
           datasets={catalog}
-          compareIds={compareIds}
-          onCompareChange={setCompareIds}
           onAskComposer={askFromPrompt}
+          assistantRuntime={composerRuntime}
+          assistantAllowed={canUseAsk}
           onGoTab={goTab}
           onOpenDataset={openInLibraryFromDiscover}
           onReviewExecution={(execution) => {
@@ -1558,7 +1710,7 @@ export function V2App() {
           }}
           onBeginNew={() => {
             setActiveObject(null);
-            setRailTab("ask");
+            setRailTab(canUseAsk && composerRuntime?.ready ? "ask" : "detail");
           }}
           onDiscoverHandoff={handleSynthesisDiscoverHandoff}
           focusThreadId={focusSynthesisThreadId}
@@ -1572,6 +1724,7 @@ export function V2App() {
         <ResourcesPage
           rollup={resourcesRollup}
           rollupLoading={resourcesRollup === undefined}
+          loadError={resourcesError}
           health={health}
           ops={ops}
           jobs={jobs}
@@ -1610,6 +1763,11 @@ export function V2App() {
       main = (
         <SettingsPage
           health={health}
+          deskAccess={deskAccess}
+          jobs={jobs}
+          jobsLoaded={jobsLoaded}
+          jobsRefreshFailed={lifecycleRefreshFailed}
+          pendingResearchDecisions={pendingResearchDecisions}
           resourcesRollup={resourcesRollup}
           onProfileRefresh={reloadProfile}
           onToast={showToast}
@@ -1664,7 +1822,11 @@ export function V2App() {
     [datasets, recentEpoch],
   );
 
-  if (!deskAccess?.authenticated) {
+  // The API is deliberately private. Never let an unauthenticated response
+  // fall through as a zero, an empty state, or a permanently loading card.
+  // Capabilities and session bootstrap are the one public contract; every
+  // data surface becomes available only after that contract proves a session.
+  if (deskAccessBusy || !deskAccess?.authenticated) {
     return (
       <DeskAccessGate
         access={deskAccess}
@@ -1688,12 +1850,15 @@ export function V2App() {
             .join("") || "YZ"
         }
         principal={deskAccess?.principal || null}
-        datasetCount={headerDsCount}
+        datasetCount={libraryEvidenceCount}
+        datasetLabel={libraryEvidenceCount === 1 ? "Library asset" : "Library assets"}
+        dataLoading={catalogLoading && catalog.length === 0}
         usingSeed={usingSeed}
-        workCount={Math.max(
-          Number(health?.desk?.jobs?.pending_approval ?? 0),
-          pendingApprovalJobs(jobs).length,
-        )}
+        workCount={
+          jobsLoaded
+            ? pendingResearchDecisions
+            : Number(health?.desk?.jobs?.pending_approval ?? 0)
+        }
         onPendingClick={canApproveJobs ? () => openDiscoverAwaiting() : undefined}
         deskStatus={
           health == null
@@ -1713,6 +1878,7 @@ export function V2App() {
         activeResearchTitle={activeResearch.title}
         currentPage={tab}
         onAccountNavigate={goTab}
+        onDeskStatusNavigate={() => goTab("resources")}
       />
       <V2Sidebar
         tab={tab}
@@ -1745,13 +1911,13 @@ export function V2App() {
         onRailTabChange={setRailTab}
         dataset={detail}
         detailLoading={detailLoading}
-        clusterContext={clusterContext}
         browseTarget={browseTarget}
         historyEvent={selectedHistoryEvent}
         historyJob={selectedHistoryJob}
         discoverIntentRecord={discoverIntentRecord}
         discoverAssessment={discoverAssessment}
         discoverCatalog={catalog}
+        discoverRestingSummary={discoverRestingSummary}
         onDiscoverAssessmentChange={(result) => {
           setDiscoverAssessment((current) => ({ ...current, active: true, result }));
         }}
@@ -1767,16 +1933,17 @@ export function V2App() {
         }}
         resourceRow={resourceRow}
         resourcesRollup={resourcesRollup}
+        resourcesDecisionCount={jobsLoaded ? pendingResearchDecisions : null}
         activeObject={activeObject}
         profile={profile}
+        previewOpen={previewOpen}
         onPreview={() => detail && openPreview(detail)}
-        onAskAbout={askAboutSelection}
+        onAskAbout={canUseAsk && composerRuntime?.ready ? askAboutSelection : undefined}
         onViewActivity={(filter) => {
           setResourceMode("usage");
           setActivityFilter(filter);
           setRailTab("detail");
         }}
-        onSeeCluster={CLUSTER_NAV_DEFERRED ? undefined : () => goTab("cluster")}
         onAddToLab={canSubmitCollection ? askAddToLab : undefined}
         onProbeSource={probeDiscoverCandidate}
         probeState={browseProbeState}
@@ -1806,7 +1973,7 @@ export function V2App() {
                 ? {
                     title: `Resources · ${resourceRow.label}`,
                   }
-                : tab === "browse"
+                : tab === DISCOVER_TAB
                   ? discoverIntentRecord
                     ? {
                         title: discoverIntentRecord.intent?.title || discoverIntentRecord.candidate?.title || "Acquisition review",

@@ -85,6 +85,8 @@ describe("buildCapacityAccessPairs", () => {
   it("keeps Composer ready when /health confirms a live-verified probe", () => {
     const health = {
       desk: {
+        brain: "copilot_composer",
+        composer_model: "gpt-5-mini",
         composer_runtime: { status: "ready", configured: true, verified: true, checked_at: "2026-08-12T10:00:00Z" },
       },
     };
@@ -92,6 +94,9 @@ describe("buildCapacityAccessPairs", () => {
     const byId = Object.fromEntries(pairs.flatMap((p) => p.meters.map((m) => [m.id, m])));
     assert.match(byId.cursor.metric, /50 turns/);
     assert.equal(byId.cursor.warn, false);
+    assert.equal(byId.cursor.name, "Copilot Ask");
+    assert.match(byId.cursor.available, /Copilot pool · confirmed live/);
+    assert.doesNotMatch(byId.cursor.available, /gpt-5-mini/);
   });
 
   it("shows Degraded rather than Ready for a failed probe, even though verified is true", () => {
@@ -121,10 +126,37 @@ describe("buildCapacityAccessPairs", () => {
     assert.equal(byId.cursor.warn, true);
   });
 
-  it("falls back to the prior configured-only behavior when no /health signal is available", () => {
+  it("keeps measured usage but does not infer live readiness while /health is loading", () => {
     const pairs = buildCapacityAccessPairs(sampleRollup);
     const byId = Object.fromEntries(pairs.flatMap((p) => p.meters.map((m) => [m.id, m])));
     assert.match(byId.cursor.metric, /50 turns/);
-    assert.equal(byId.cursor.warn, false);
+    assert.equal(byId.cursor.warn, true);
+  });
+
+  it("shows Unverified, never Composer ready, before the first /health observation", () => {
+    const rollup = {
+      ...sampleRollup,
+      ai: { ...sampleRollup.ai, composer_turns_today: 0 },
+    };
+    const pairs = buildCapacityAccessPairs(rollup);
+    const byId = Object.fromEntries(pairs.flatMap((p) => p.meters.map((m) => [m.id, m])));
+    assert.equal(byId.cursor.metric, "Unverified");
+    assert.equal(byId.cursor.warn, true);
+    assert.doesNotMatch(byId.cursor.metric, /^Composer ready$/);
+  });
+
+  it("does not use a configured Composer key as proof that MCP tools loaded", () => {
+    const rollup = {
+      ...sampleRollup,
+      hero: { ...sampleRollup.hero, mcp_tools: 0 },
+      ai: { ...sampleRollup.ai, mcp_tools: { total: 0 }, composer_turns_today: 0 },
+    };
+    const pairs = buildCapacityAccessPairs(rollup, {
+      desk: { composer_runtime: { status: "unverified", configured: true, verified: false } },
+    });
+    const byId = Object.fromEntries(pairs.flatMap((p) => p.meters.map((m) => [m.id, m])));
+    assert.equal(byId.cursor.metric, "Unverified");
+    assert.equal(byId.mcp.metric, "Not reported");
+    assert.equal(byId.mcp.warn, true);
   });
 });

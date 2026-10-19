@@ -20,6 +20,7 @@ export const MOCK_DATASETS = {
       name: "Ticker week panel",
       grain: "country-week",
       analysis_readiness: "instant",
+      local_root: "research_panels/ticker_week",
       source_system: "In-house derived research panels",
       join_keys: ["ticker", "week", "country_iso3"],
     },
@@ -28,6 +29,7 @@ export const MOCK_DATASETS = {
       name: "Issuer weekly fundamentals",
       grain: "issuer_week",
       analysis_readiness: "instant",
+      local_root: "research_panels/issuer_weekly",
       source_system: "MOPS",
       source: "MOPS",
       join_keys: ["issuer_id", "week"],
@@ -65,6 +67,12 @@ export const MOCK_HEALTH = {
     jobs: { running: 1, pending_approval: 1, gdelt_progress: "18 / 99 mo" },
     composer_configured: true,
     composer_model: "composer-2.5",
+    composer_runtime: {
+      status: "ready",
+      configured: true,
+      verified: true,
+      checked_at: "2026-08-12T10:00:00Z",
+    },
     mcp_tools: { total: 62, core: 13, acquire: 28, ops: 21 },
     storage_tiers: {
       canonical: { label: "GDrive vault", quota_tb: 5, used_tb: 2.1, pool_tb: 5 },
@@ -318,7 +326,23 @@ export async function mockV2Api(
   page,
   {
     discoverBody = { sections: [], total: 0 },
+    discoverSourcesBody = null,
+    discoverLiveSourcesBody = null,
+    discoverDelayMs = 0,
+    discoverSourcesDelayMs = 0,
+    discoverLiveSourcesDelayMs = 0,
+    healthBody = MOCK_HEALTH,
+    healthDelayMs = 0,
+    datasetsBody = MOCK_DATASETS,
+    datasetsDelayMs = 0,
+    datasetsStatus = 200,
+    resourcesBody = MOCK_RESOURCES_ROLLUP,
+    resourcesDelayMs = 0,
+    resourcesStatus = 200,
     jobsBody = MOCK_JOBS,
+    jobsDelayMs = 0,
+    libraryNavBody = { partitions: [], shelves: [] },
+    libraryNavDelayMs = 0,
     historyBody = { items: [] },
     profileBody = { found: true, profile: { name_en: "Test Prof", discipline: "YZU" } },
     assessmentBody = null,
@@ -370,24 +394,32 @@ export async function mockV2Api(
       body: JSON.stringify({ ok: true, authorized: true }),
     }),
   );
-  await page.route("**/datasets", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(MOCK_DATASETS) }),
-  );
+  await page.route("**/datasets", async (route) => {
+    if (datasetsDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, datasetsDelayMs));
+    return route.fulfill({
+      status: datasetsStatus,
+      contentType: "application/json",
+      body: JSON.stringify(datasetsStatus >= 400 ? { error: "registry unavailable" } : datasetsBody),
+    });
+  });
   await page.route("**/datasets/*", (route) => {
     const id = decodeURIComponent(route.request().url().split("/datasets/")[1]?.split("?")[0] || "");
-    const row = MOCK_DATASETS.datasets.find((d) => d.dataset_id === id) || MOCK_DATASETS.datasets[0];
+    const rows = Array.isArray(datasetsBody?.datasets) ? datasetsBody.datasets : [];
+    const row = rows.find((d) => d.dataset_id === id) || rows[0] || { dataset_id: id };
     return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(row) });
   });
-  await page.route("**/library/desk/resources*", (route) =>
-    route.fulfill({
-      status: 200,
+  await page.route("**/library/desk/resources*", async (route) => {
+    if (resourcesDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, resourcesDelayMs));
+    return route.fulfill({
+      status: resourcesStatus,
       contentType: "application/json",
-      body: JSON.stringify(MOCK_RESOURCES_ROLLUP),
-    }),
-  );
-  await page.route("**/health*", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(MOCK_HEALTH) }),
-  );
+      body: JSON.stringify(resourcesStatus >= 400 ? { error: "resources unavailable" } : resourcesBody),
+    });
+  });
+  await page.route("**/*health*", async (route) => {
+    if (healthDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, healthDelayMs));
+    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(healthBody) });
+  });
   await page.route("**/library/discover/probe", (route) => {
     if (route.request().method() !== "POST") {
       return route.continue();
@@ -581,21 +613,39 @@ export async function mockV2Api(
   await page.route("**/library/discover/history?*", (route) =>
     route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(historyBody) }),
   );
-  await page.route("**/library/discover?*", (route) =>
-    route.fulfill({
+  await page.route("**/library/discover?*", async (route) => {
+    if (discoverDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, discoverDelayMs));
+    return route.fulfill({
       status: 200,
       contentType: "application/json",
       body: JSON.stringify(discoverBody),
-    }),
-  );
-  await page.route("**/library/discover", (route) =>
-    route.fulfill({
+    });
+  });
+  await page.route("**/library/discover", async (route) => {
+    if (discoverDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, discoverDelayMs));
+    return route.fulfill({
       status: 200,
       contentType: "application/json",
       body: JSON.stringify(discoverBody),
-    }),
-  );
-  await page.route("**/library/discover/sources?*", (route) => {
+    });
+  });
+  await page.route("**/library/discover/sources?*", async (route) => {
+    const url = new URL(route.request().url());
+    const isLiveSourceSearch = url.searchParams.get("live") === "1" || url.searchParams.get("semantic") === "1";
+    const sourceBody = isLiveSourceSearch && discoverLiveSourcesBody
+      ? discoverLiveSourcesBody
+      : discoverSourcesBody;
+    if (sourceBody) {
+      const sourceDelay = isLiveSourceSearch ? discoverLiveSourcesDelayMs : discoverSourcesDelayMs;
+      if (sourceDelay > 0) {
+        await new Promise((resolve) => setTimeout(resolve, sourceDelay));
+      }
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(sourceBody),
+      });
+    }
     const sections = Array.isArray(discoverBody?.sections) ? discoverBody.sections : [];
     const rows = sections.length
       ? sections.flatMap((section) => section?.rows || [])
@@ -627,12 +677,18 @@ export async function mockV2Api(
   await page.route("**/yzu/status*", (route) =>
     route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(MOCK_CLUSTER) }),
   );
-  await page.route("**/library/jobs*", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(liveJobs) }),
-  );
-  await page.route("**/library/partitions*", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ partitions: [] }) }),
-  );
+  await page.route("**/library/jobs*", async (route) => {
+    if (jobsDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, jobsDelayMs));
+    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(liveJobs) });
+  });
+  await page.route("**/library/partitions*", async (route) => {
+    if (libraryNavDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, libraryNavDelayMs));
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(libraryNavBody),
+    });
+  });
   await page.route("**/library/synthesis/profiles", (route) =>
     route.fulfill({
       status: 200,

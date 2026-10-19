@@ -66,17 +66,17 @@ test("Discover idle — first-use examples, no oversized empty route block", asy
   await shot(page, "discover-idle-1440x900.png");
 });
 
-test("Synthesis new — lifecycle rail and stated disabled reason", async ({ page }) => {
+test("Synthesis new — durable-object start and bounded empty rail", async ({ page }) => {
   await open(page, "/?tab=synthesis");
   const rail = page.getByRole("complementary", { name: "Inspector" });
-  // Scope to rail field labels — "Ask" is also the rail tab name.
-  const labels = rail.locator(".rd-v2-detail-label");
-  for (const step of ["Start", "Ask", "Ground", "Review", "Output"]) {
-    await expect(labels.filter({ hasText: new RegExp(`^${step}$`, "i") })).toHaveCount(1);
-  }
+  await expect(rail.getByRole("heading", { name: "Synthesis studio" })).toBeVisible();
+  await expect(rail).toContainText("No construction selected");
+  await expect(rail).toContainText("Start a durable construction or open a registered method");
+  await expect(rail).toContainText("Methods, execution, archive, registration, and readiness are separate records");
   await expect(rail).not.toContainText("Choose a blueprint or custom pair");
   // Synthesis nests a studio <main> inside the shell <main>.
-  await expect(page.locator("main.yzu-main")).toContainText("Enter an objective to continue");
+  await expect(page.locator("main.yzu-main")).toContainText("Start one durable research object.");
+  await expect(page.getByRole("button", { name: "Start a construction" })).toBeVisible();
   await shot(page, "synthesis-new-1440x900.png");
 });
 
@@ -116,7 +116,7 @@ test("Mobile Discover — first result readable, no horizontal overflow", async 
   await open(page, "/?tab=browse&q=stablecoin", MOBILE, { discoverBody: MOCK_DISCOVER_HIT });
   // The freeze requires the first offering to be readable on a phone, so the
   // capture must show a populated result rather than a miss state.
-  const firstRow = page.getByTestId("discover-best-fit").locator(".rd-v2-discover-candidate").first();
+  const firstRow = page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidate").first();
   await expect(firstRow).toBeVisible();
   const rowBox = await firstRow.boundingBox();
   expect(rowBox.x).toBeGreaterThanOrEqual(0);

@@ -4,12 +4,12 @@ import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 /**
  * Discover Explore | History gates for the main-converge tree.
  * Classification: docs/DISCOVER_E2E_AUTHORITY_AUDIT.md
- * Primary viewport 1920×1080.
+ * Workstation content viewport 1920×961 (measured at 100% Chrome zoom).
  */
 test.describe("v2 Discover Explore|History (main converge)", () => {
   test.beforeEach(async ({ page }) => {
     await mockV2Api(page);
-    await page.setViewportSize({ width: 1920, height: 1080 });
+    await page.setViewportSize({ width: 1920, height: 961 });
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
   });
@@ -44,6 +44,23 @@ test.describe("v2 Discover Explore|History (main converge)", () => {
     const rail = page.getByRole("complementary", { name: "Inspector" });
     await expect(rail).toContainText("TWSE governance");
     await expect(rail).toContainText("Approval required");
+  });
+
+  test("History names the pending-approval hydration window instead of looking empty", async ({ page }) => {
+    await mockV2Api(page, {
+      jobsBody: {
+        jobs: [{ id: "pending-delayed", status: "pending_approval", plan: { title: "Delayed TWSE review" } }],
+      },
+      jobsDelayMs: 1_200,
+    });
+    await page.goto("/?tab=browse&mode=history", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+
+    const history = page.getByTestId("discover-history");
+    await expect(history.getByTestId("discover-history-jobs-sync")).toContainText("Checking pending approvals");
+    await expect(history.getByRole("heading", { name: "Needs you" })).toBeVisible({ timeout: 5_000 });
+    await expect(history.getByTestId("discover-history-jobs-sync")).toHaveCount(0);
+    await expect(page.getByTestId("header-pending-link")).toHaveText("1 pending");
   });
 
   test("LEGACY: Activity workspace is not a Discover mode", async ({ page }) => {

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   durableHistoryToEvents,
+  historyEvidenceSummary,
   historyEventForJob,
   historyHoldingTruth,
   historyLibraryHandoff,
@@ -108,6 +109,11 @@ test("receipt_only History never promotes to query-ready; handoff keeps identiti
   assert.equal(truth.stages.collected, true);
   assert.notEqual(truth.label, "Query-ready");
   assert.match(truth.label, /Registered/);
+  assert.equal(
+    historyEvidenceSummary(event),
+    "Archive proof not confirmed · registration receipt retained · current catalog reconciliation pending",
+  );
+  assert.doesNotMatch(historyEvidenceSummary(event), /query-ready on desk/i);
 
   const handoff = historyLibraryHandoff(event);
   assert.equal(handoff.dataset_id, "rev_live2");

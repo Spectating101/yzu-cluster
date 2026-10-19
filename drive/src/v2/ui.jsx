@@ -1,8 +1,11 @@
 /** Shared v2 page chrome — matches docs/design/references/desk-v2-1440.html */
 
-export function PageShell({ title, lead, headExtra, toolbar, footer, children, narrow = false, className = "" }) {
+export function PageShell({ title, lead, headExtra, toolbar, footer, children, narrow = false, className = "", surfaceState }) {
   return (
-    <div className={`rd-v2-page${narrow ? " narrow" : ""}${className ? ` ${className}` : ""}`}>
+    <div
+      className={`rd-v2-page${narrow ? " narrow" : ""}${className ? ` ${className}` : ""}`}
+      data-surface-state={surfaceState || undefined}
+    >
       {(title || lead || headExtra) ? (
         <header className="rd-v2-page-head">
           {title ? <h1>{title}</h1> : null}

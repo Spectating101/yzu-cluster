@@ -33,7 +33,7 @@ test.describe("Discover adaptive Explore", () => {
 
     await expect(page.getByLabel("Public URL or DOI")).toBeVisible();
     await search(page);
-    await expect(page.getByTestId("discover-best-fit")).toContainText("MOPS financial statements");
+    await expect(page.getByTestId("discover-ranked-results")).toContainText("MOPS financial statements");
     expect(deepCalls).toBe(0);
     expect(assessmentCalls).toBe(0);
     await expect(page.locator("aside.rd-v2-rail").getByRole("tab", { name: "Ask" })).toHaveAttribute(
@@ -86,7 +86,7 @@ test.describe("Discover adaptive Explore", () => {
     const result = page.getByTestId("discover-assessment-result");
     await expect(result).toBeVisible();
     await expect(page.getByTestId("discover-verdict")).toHaveText("Partially covered");
-    await expect(page.getByTestId("discover-best-fit")).toContainText("MOPS financial statements");
+    await expect(page.getByTestId("discover-ranked-results")).toContainText("MOPS financial statements");
     await expect(rail.getByRole("tab", { name: "Detail" })).toHaveAttribute("aria-selected", "true");
     await result.locator("details.rd-v2-evidence-edit > summary").click();
     await expect(result.getByLabel("Geography / universe value")).toHaveValue("Taiwan listed issuers");
@@ -157,7 +157,7 @@ test.describe("Discover adaptive Explore", () => {
     await waitForShell(page);
     await search(page, "MOPS filings");
 
-    await page.getByTestId("discover-best-fit").getByRole("button", { name: "Add to collection" }).click();
+    await page.getByTestId("discover-ranked-results").getByRole("button", { name: "Add to collection" }).click();
 
     const workspace = page.getByTestId("discover-intent-workspace");
     await expect(workspace).toBeVisible();
@@ -203,7 +203,7 @@ test.describe("Discover adaptive Explore", () => {
     expect(filterBox).not.toBeNull();
     expect(filterBox.y).toBeGreaterThanOrEqual(briefBox.y + briefBox.height - 1);
 
-    const rowBox = await page.getByTestId("discover-best-fit").locator(".rd-v2-discover-candidate").first().boundingBox();
+    const rowBox = await page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidate").first().boundingBox();
     expect(rowBox).not.toBeNull();
     expect(rowBox.x).toBeGreaterThanOrEqual(0);
     expect(rowBox.x + rowBox.width).toBeLessThanOrEqual(390);

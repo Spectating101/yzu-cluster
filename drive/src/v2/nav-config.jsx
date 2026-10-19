@@ -15,13 +15,6 @@ const LibraryIcon = () => (
     <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
   </svg>
 );
-const ClusterIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-    <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-  </svg>
-);
 const BrowseIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
     <circle cx="11" cy="11" r="8"/>
@@ -56,12 +49,6 @@ const SettingsIcon = () => (
     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
   </svg>
 );
-
-/** Cluster tab deferred from sidebar — code/routes kept; re-enable when canvas ships. */
-export const CLUSTER_NAV_DEFERRED = true;
-
-export const V2_CLUSTER_TAB = { id: "cluster", label: "Cluster", Icon: ClusterIcon };
-
 /** Synthesis tab — parked behind SYNTHESIS_NAV_DEFERRED (default false for showcase). */
 export const V2_SYNTHESIS_TAB = { id: "synthesis", label: "Synthesis", Icon: SynthesisIcon };
 
@@ -69,7 +56,7 @@ export const V2_SYNTHESIS_TAB = { id: "synthesis", label: "Synthesis", Icon: Syn
 export const V2_SIDEBAR_PRIMARY_TABS = [
   { id: "home",      label: "Home",      Icon: HomeIcon },
   { id: "library",   label: "Library",   Icon: LibraryIcon },
-  { id: "browse",    label: "Discover",  Icon: BrowseIcon },
+  { id: "discover",  label: "Discover",  Icon: BrowseIcon },
   ...(SYNTHESIS_NAV_DEFERRED ? [] : [V2_SYNTHESIS_TAB]),
   { id: "resources", label: "Resources", Icon: ResourcesIcon },
 ];
@@ -84,7 +71,5 @@ export const V2_SIDEBAR_TABS = [...V2_SIDEBAR_PRIMARY_TABS, ...V2_SIDEBAR_FOOT_T
 
 export { SYNTHESIS_NAV_DEFERRED };
 
-/** All routable tabs (includes deferred). */
-export const V2_TABS = CLUSTER_NAV_DEFERRED
-  ? V2_SIDEBAR_TABS
-  : [...V2_SIDEBAR_PRIMARY_TABS.slice(0, 2), V2_CLUSTER_TAB, ...V2_SIDEBAR_PRIMARY_TABS.slice(2), ...V2_SIDEBAR_FOOT_TABS];
+/** All routable tabs. */
+export const V2_TABS = V2_SIDEBAR_TABS;

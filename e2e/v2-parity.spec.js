@@ -52,7 +52,7 @@ async function mockApi(page) {
     const row = MOCK_DATASETS.datasets.find((d) => d.dataset_id === id) || MOCK_DATASETS.datasets[0];
     return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(row) });
   });
-  await page.route("**/health*", (route) =>
+  await page.route("**/*health*", (route) =>
     route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(MOCK_HEALTH) }),
   );
   await page.route("**/library/discover*", (route) =>
@@ -115,9 +115,9 @@ async function v2Nav(page, label) {
 async function selectFirstDataset(page) {
   await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
   await page.locator(".rd-v2-shell").waitFor({ timeout: 30_000 });
-  await page.getByTestId("library-directory").waitFor({ state: "visible", timeout: 15_000 });
+  await page.getByTestId("library-evidence-estate").waitFor({ state: "visible", timeout: 15_000 });
   await page.getByRole("textbox", { name: "Search library holdings" }).fill("Asia");
-  const row = page.locator('.rd-v2-catalog-list button[data-kind="dataset"]').first();
+  const row = page.getByTestId("library-evidence-row").first();
   await row.waitFor({ state: "visible", timeout: 15_000 });
   await row.click();
 }
@@ -152,11 +152,8 @@ test.describe("v2 parity @ desk-v2-1440", () => {
     expect(metrics.shellW).toBeLessThanOrEqual(1442);
     expect(metrics.headerH).toBeGreaterThanOrEqual(60);
     expect(metrics.headerH).toBeLessThanOrEqual(66);
-    // Premium shell authority is 216px–252px at this viewport, keeping the
-    // navigation compact while preserving the larger decision rail.
     expect(metrics.sidebarW / metrics.shellW).toBeGreaterThanOrEqual(0.14);
     expect(metrics.sidebarW / metrics.shellW).toBeLessThanOrEqual(0.18);
-    // Release-scale authority uses a 26vw rail at 1440px, bounded to 320–380px.
     expect(metrics.railW / metrics.shellW).toBeGreaterThanOrEqual(0.24);
     expect(metrics.railW / metrics.shellW).toBeLessThanOrEqual(0.28);
     expect(metrics.mainW).toBeGreaterThan(metrics.railW);
@@ -184,25 +181,30 @@ test.describe("v2 parity @ desk-v2-1440", () => {
     await expect(page.locator("aside.yzu-sidebar nav button", { hasText: "Cluster" })).toHaveCount(0);
   });
 
-  test("cluster tab still reachable via URL while deferred", async ({ page }) => {
+  test("cluster is gone, including by deep link", async ({ page }) => {
     await page.goto("/?tab=cluster", { waitUntil: "domcontentloaded" });
-    await expect(page.locator(".rd-v2-page-head h1", { hasText: "Cluster" })).toBeVisible();
+    await expect(page.locator(".rd-v2-page-head h1", { hasText: "Cluster" })).toHaveCount(0);
+    await expect(page.locator("aside.yzu-sidebar nav button", { hasText: "Cluster" })).toHaveCount(0);
   });
 
-  test("Detail rail has sticky CTAs and segmented toggle", async ({ page }) => {
+  test("Detail rail keeps research context while exposing sticky evidence actions", async ({ page }) => {
     await selectFirstDataset(page);
-    await expect(page.locator(".rd-v2-rail-toggle button.on", { hasText: "Detail" })).toBeVisible();
+    const situation = page.getByTestId("research-situation");
+    await expect(situation).toContainText("Asia daily news-risk panel");
+    await expect(situation).toContainText("Query ready");
+    await expect(situation.getByRole("tab", { name: "Detail" })).toHaveAttribute("aria-selected", "true");
     await expect(page.locator('[data-testid="rail-pane-ask"]')).toBeHidden();
     await expect(
       page.locator("aside .rd-v2-rail-sticky .rd-v2-btn.primary", { hasText: "Preview rows" }),
     ).toBeVisible();
     await expect(page.locator('aside.rd-v2-rail [aria-label="Can I use this?"]')).toContainText("Query ready");
-    await page.locator(".rd-v2-rail-toggle").getByRole("tab", { name: "Ask" }).click();
+    await situation.getByRole("tab", { name: "Ask" }).click();
     await expect(page.getByTestId("ask-composer")).toBeVisible();
+    await expect(page.getByTestId("research-situation")).toContainText("Asia daily news-risk panel");
     await expect(page.locator('[data-testid="rail-pane-detail"] .rd-v2-rail-sticky')).not.toBeVisible();
   });
 
-  test("adaptive Preview overlays the main surface with bounded evidence actions", async ({ page }) => {
+  test("adaptive Preview overlays the main surface without losing rail context", async ({ page }) => {
     await selectFirstDataset(page);
     await page.locator("aside .rd-v2-rail-sticky").getByRole("button", { name: "Preview rows" }).click();
     const preview = page.getByRole("dialog", { name: "Asia daily news-risk panel preview" });
@@ -211,7 +213,7 @@ test.describe("v2 parity @ desk-v2-1440", () => {
     await expect(preview.getByRole("button", { name: "Fields", exact: true })).toBeVisible();
     await expect(preview.getByRole("button", { name: "Export sample" })).toBeVisible();
     await expect(preview.getByRole("button", { name: "Open query" })).toBeVisible();
-    await expect(page.locator(".rd-v2-rail-toggle")).toBeVisible();
+    await expect(page.getByTestId("research-situation")).toContainText("Asia daily news-risk panel");
     await page.keyboard.press("Escape");
     await expect(preview).toHaveCount(0);
   });

@@ -1,0 +1,311 @@
+/*
+ * Synthesis production convergence.
+ *
+ * The lifecycle remains strict, but the visible surface should read like one
+ * Research Drive workbench rather than a wizard nested inside the desk.
+ * This layer intentionally follows final-convergence.css and is scoped to
+ * Synthesis only.
+ */
+
+/* Give Synthesis the same page-level identity as Library / Discover / Resources
+ * without introducing another enclosing card. PageShell does not currently
+ * receive title/lead props here, so these two flex items provide the visual
+ * hierarchy until the component contract is consolidated. */
+.rd-v2-synthesis-page::before {
+  content: "Synthesis";
+  order: -2;
+  flex: 0 0 auto;
+  margin: 0 0 4px;
+  color: var(--rd-text, #182033);
+  font-size: 22px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.rd-v2-synthesis-page::after {
+  content: "Build evidence from Library inputs with explicit method, approval, and execution authority.";
+  order: -1;
+  flex: 0 0 auto;
+  margin: 0 0 12px;
+  color: var(--rd-muted, #6e7685);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+/* Remove the hybrid state that made the shared PageShell card and the open
+ * inner stage fight each other. The body becomes neutral canvas; sj-shell is
+ * the one deliberate workbench surface. */
+.rd-v2-synthesis-page .rd-v2-body-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 0 0 30px;
+  overflow-y: auto;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+
+.rd-v2-synthesis-page .sj-shell {
+  display: grid;
+  gap: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: var(--rd-surface, #fffdf6);
+  border: 1px solid var(--rd-border, #dbd4c5);
+  border-radius: 14px;
+  box-shadow: var(--rd-shadow-xs, 0 1px 2px rgba(24, 32, 51, 0.04));
+}
+
+/* One object header, one timeline, one active work surface. */
+.rd-v2-synthesis-page .sj-object-header {
+  padding: 18px 20px 15px;
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 78%, transparent);
+  background: color-mix(in srgb, var(--rd-surface, #fffdf6) 94%, #fff);
+}
+
+.rd-v2-synthesis-page .sj-object-header h1 {
+  margin: 3px 0 5px;
+  font-size: clamp(20px, 1.8vw, 27px);
+  line-height: 1.12;
+}
+
+.rd-v2-synthesis-page .sj-object-actions button {
+  min-height: 32px;
+  border-radius: 7px;
+  background: transparent;
+}
+
+/* The six visible phases are orientation, not six checkout destinations.
+ * Internal proposal/readiness/approval states stay distinct in the lifecycle. */
+.rd-v2-synthesis-page .sj-journey {
+  padding: 0 20px;
+  overflow-x: auto;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 78%, transparent);
+  background: color-mix(in srgb, var(--rd-canvas, #eeeae0) 28%, var(--rd-surface, #fffdf6));
+}
+
+.rd-v2-synthesis-page .sj-journey ol {
+  display: flex;
+  grid-template-columns: none;
+  width: max-content;
+  min-width: 100%;
+  margin: 0;
+  border: 0;
+}
+
+.rd-v2-synthesis-page .sj-journey li {
+  flex: 0 0 auto;
+}
+
+.rd-v2-synthesis-page .sj-journey li:not(:last-child)::after {
+  top: 21px;
+  right: -2px;
+  width: 14px;
+  background: color-mix(in srgb, var(--rd-border, #dbd4c5) 88%, transparent);
+}
+
+.rd-v2-synthesis-page .sj-journey button {
+  width: auto;
+  min-height: 44px;
+  padding: 8px 21px 8px 0;
+  border: 0;
+  background: transparent;
+}
+
+.rd-v2-synthesis-page .sj-journey li + li button {
+  padding-left: 18px;
+}
+
+.rd-v2-synthesis-page .sj-journey li.selected button {
+  background: transparent;
+}
+
+.rd-v2-synthesis-page .sj-journey li.current button,
+.rd-v2-synthesis-page .sj-journey li.earned-current button {
+  box-shadow: inset 0 -2px var(--rd-link, #3f6f5c);
+}
+
+.rd-v2-synthesis-page .sj-journey-copy {
+  display: block;
+}
+
+.rd-v2-synthesis-page .sj-journey-copy strong {
+  font-size: 11px;
+  font-weight: 680;
+}
+
+.rd-v2-synthesis-page .sj-journey-copy small {
+  display: none;
+}
+
+.rd-v2-synthesis-page .sj-journey-index {
+  width: 9px;
+  height: 9px;
+  flex: 0 0 9px;
+  margin-top: 3px;
+}
+
+/* Stage content is now the interior of the one workbench rather than another
+ * card. Constrain prose/forms so the empty state does not read as a mock page. */
+.rd-v2-synthesis-page .sj-stage-page {
+  gap: 16px;
+  width: 100%;
+  padding: 20px 22px 24px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.rd-v2-synthesis-page .sj-stage-header {
+  padding: 0 0 14px;
+}
+
+.rd-v2-synthesis-page .sj-stage-header h2 {
+  max-width: 760px;
+  margin: 0 0 5px;
+  font-size: clamp(19px, 1.7vw, 24px);
+  line-height: 1.16;
+  letter-spacing: -0.02em;
+}
+
+.rd-v2-synthesis-page .sj-stage-header p {
+  max-width: 760px;
+  font-size: 12.5px;
+  line-height: 1.52;
+}
+
+/* “No state written yet” made the new-work view read like a scripted demo.
+ * Absence of durable state is already obvious from the disabled primary action
+ * and the rail's explicit research situation. */
+.rd-v2-synthesis-page [data-testid="synthesis-stage-objective"] .sj-state-chip {
+  display: none;
+}
+
+.rd-v2-synthesis-page .sj-objective-form {
+  max-width: 840px;
+  gap: 11px;
+}
+
+.rd-v2-synthesis-page .sj-objective-form textarea {
+  min-height: 108px;
+  resize: vertical;
+  border-radius: 7px;
+  background: #fffef9;
+  font-size: 13px;
+}
+
+.rd-v2-synthesis-page .sj-objective-grid {
+  grid-template-columns: minmax(240px, 390px);
+}
+
+.rd-v2-synthesis-page .sj-objective-submit {
+  justify-content: flex-start;
+}
+
+.rd-v2-synthesis-page .sj-objective-submit .primary {
+  min-height: 34px;
+  border-radius: 7px;
+}
+
+/* Registered methods are inventory, not marketing cards. */
+.rd-v2-synthesis-page .sj-method-starters {
+  margin-top: 2px;
+  padding-top: 15px;
+  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 78%, transparent);
+}
+
+.rd-v2-synthesis-page .sj-method-starters > header {
+  margin-bottom: 5px;
+}
+
+.rd-v2-synthesis-page .sj-method-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, transparent);
+}
+
+.rd-v2-synthesis-page .sj-method-card {
+  min-height: 52px;
+  padding: 10px 4px;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 72%, transparent);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.rd-v2-synthesis-page .sj-method-card:hover {
+  background: var(--rd-hover, #f5f2ea);
+}
+
+.rd-v2-synthesis-page .sj-method-card strong {
+  font-size: 12px;
+}
+
+.rd-v2-synthesis-page .sj-method-card small {
+  margin-top: 2px;
+  font-size: 10.5px;
+}
+
+/* Keep review/build records dense and documentary once the construction has
+ * advanced. Cards are reserved for actual decisions, not every piece of copy. */
+.rd-v2-synthesis-page .sj-decision-block {
+  padding: 13px 0 15px;
+}
+
+.rd-v2-synthesis-page .sj-choice-grid button,
+.rd-v2-synthesis-page .sj-join-candidates button,
+.rd-v2-synthesis-page .sj-segmented button,
+.rd-v2-synthesis-page .sj-column-picker label,
+.rd-v2-synthesis-page .sj-metric-row,
+.rd-v2-synthesis-page .sj-proposal-fact,
+.rd-v2-synthesis-page .sj-result-fact {
+  border-radius: 7px;
+  background: #fffef9;
+  box-shadow: none;
+}
+
+.rd-v2-synthesis-page .sj-inspection-note {
+  margin: 10px 20px 0;
+}
+
+@media (max-width: 920px) {
+  .rd-v2-synthesis-page::before {
+    font-size: 20px;
+  }
+
+  .rd-v2-synthesis-page::after {
+    font-size: 12px;
+  }
+
+  .rd-v2-synthesis-page .sj-stage-page {
+    padding: 17px 16px 22px;
+  }
+
+  .rd-v2-synthesis-page .sj-object-header,
+  .rd-v2-synthesis-page .sj-journey {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
+@media (max-width: 720px) {
+  .rd-v2-synthesis-page::before,
+  .rd-v2-synthesis-page::after {
+    display: none;
+  }
+
+  .rd-v2-synthesis-page .rd-v2-body-scroll {
+    padding-bottom: 0;
+  }
+
+  .rd-v2-synthesis-page .sj-shell {
+    border-radius: 12px;
+  }
+}

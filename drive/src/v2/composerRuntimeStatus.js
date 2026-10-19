@@ -70,3 +70,51 @@ export function composerRuntimeRead(runtime) {
       };
   }
 }
+
+/**
+ * Name the provider that /health says is actually serving Ask.  The runtime
+ * model is deliberately kept separate: Copilot's `auto` pool may resolve a
+ * different model per turn, so a cached probe model is not a durable product
+ * identity.
+ */
+export function assistantProviderRead(desk = {}) {
+  const provider = String(
+    desk.brain || desk.provider || desk.composer_provider || "",
+  ).trim().toLowerCase();
+
+  if (provider.includes("copilot")) {
+    return {
+      id: "copilot",
+      label: "Copilot Ask",
+      runtimeLabel: "Copilot pool",
+      modelIsDurable: false,
+    };
+  }
+  if (provider.includes("cursor")) {
+    return {
+      id: "cursor",
+      label: "Cursor Ask",
+      runtimeLabel: "Cursor Composer",
+      modelIsDurable: true,
+    };
+  }
+  return {
+    id: "assistant",
+    label: "Research assistant",
+    runtimeLabel: "Assistant runtime",
+    modelIsDurable: true,
+  };
+}
+
+export function assistantRuntimeDetail(desk = {}, runtimeRead = null) {
+  const provider = assistantProviderRead(desk);
+  const model = String(desk.composer_model || desk.model || "").trim();
+  const observed = runtimeRead?.why || "runtime not verified";
+
+  if (!provider.modelIsDurable) {
+    return `${provider.runtimeLabel} · ${observed}`;
+  }
+  return model
+    ? `${provider.runtimeLabel} · ${model} · ${observed}`
+    : `${provider.runtimeLabel} · ${observed}`;
+}

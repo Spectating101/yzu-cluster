@@ -92,12 +92,12 @@ test.describe("Discover History visual acceptance", () => {
     await expect(rail).toContainText("Collecting");
     await shot(page, "02-desktop-active-detail");
 
-    await ledger.getByRole("button", { name: "Recovery", exact: true }).click();
+    await ledger.getByRole("button", { name: /^Recovery(\s|$)/ }).click();
     await expect(ledger).toContainText("Taiwan governance source");
-    await expect(rail).toContainText("Recovery required");
+    await expect(rail).toContainText(/needs recovery/i);
     await shot(page, "03-desktop-recovery-detail");
 
-    await ledger.getByRole("button", { name: "Scheduled", exact: true }).click();
+    await ledger.getByRole("button", { name: /^Scheduled(\s|$)/ }).click();
     await expect(rail).toContainText("Scheduled refresh");
     await expect(rail).toContainText(/Automatic execution is not claimed/i);
     await shot(page, "04-desktop-scheduled-detail");
