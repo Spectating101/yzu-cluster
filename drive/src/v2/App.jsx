@@ -2008,6 +2008,7 @@ function DeskWorkspace({ onIdentityChanged }) {
           searchQuery={librarySearchQuery}
           onSearchChange={setLibrarySearchQuery}
           referenceCount={libraryReferenceCount}
+          researchEnabled={canUseAsk}
           selectionHoldings={heldLibraryRows}
           selectionFallback={isLocalHolding(detail) ? detail : null}
           selectionDetail={detail}

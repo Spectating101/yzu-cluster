@@ -19,6 +19,8 @@ import { buildLibrarySearchAskPrompt, rankLibraryHoldings } from "@/v2/librarySe
 import { PageShell } from "@/v2/ui";
 import { DeskError } from "@/v2/DeskError";
 import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
+import { libraryLenses, lensNote } from "@/v2/libraryFocus";
+import { useResearchFocus } from "@/v2/useResearchFocus";
 
 function datasetListItem(row) {
   const name = datasetTitle(row);
@@ -147,7 +149,8 @@ function branchStatusNote({
   return "No data in this branch";
 }
 
-function toolbarCountLabel({ searchActive, isRoot, folderCount, datasetCount, visibleCount }) {
+function toolbarCountLabel({ searchActive, isRoot, folderCount, datasetCount, visibleCount, focusedCount = 0 }) {
+  if (focusedCount) return `${focusedCount} of ${datasetCount} datasets`;
   if (searchActive) {
     return `${visibleCount} dataset${visibleCount === 1 ? "" : "s"}`;
   }
@@ -343,8 +346,10 @@ export function LibraryPage({
   folderLocations = [],
   onFolderLocationChange,
   referenceCount = 0,
+  researchEnabled = false,
 }) {
   const [sortBy, setSortBy] = useState("name");
+  const [lensChoice, setLensChoice] = useState(null);
   const [typeMode, setTypeMode] = useState("all");
   const [filterMode, setFilterMode] = useState("all");
   const [locationMode, setLocationMode] = useState("all");
@@ -491,16 +496,24 @@ export function LibraryPage({
     if (isRoot) return vaultDatasets;
     return collectDatasetDescendants(tree, folderId).map(itemDataset);
   }, [displayRows, folderId, isRoot, searchActive, tree, vaultDatasets]);
-  const estateRows = useMemo(
-    () =>
-      sortItems(
-        branchDatasetRows
-          .map(datasetListItem)
-          .filter((item) => itemMatchesType(item, typeMode) && itemMatchesFilter(item, filterMode)),
-        sortBy,
-      ),
-    [branchDatasetRows, filterMode, sortBy, typeMode],
-  );
+  const focus = useResearchFocus(researchEnabled);
+  const lenses = useMemo(() => libraryLenses(allHeldDatasets, focus), [allHeldDatasets, focus]);
+  const filtersDefault = typeMode === "all" && filterMode === "all";
+  const lensAvailable = isRoot && !searchActive && lenses.length > 0;
+  const chosenLens = lensChoice === "all" || lenses.some((lens) => lens.id === lensChoice)
+    ? lensChoice
+    : lenses[0]?.id || "all";
+  const activeLens = lensAvailable && filtersDefault ? chosenLens : "all";
+  const estateRows = useMemo(() => {
+    const focused = lenses.find((lens) => lens.id === activeLens);
+    if (focused) return focused.rows.map(datasetListItem);
+    return sortItems(
+      branchDatasetRows
+        .map(datasetListItem)
+        .filter((item) => itemMatchesType(item, typeMode) && itemMatchesFilter(item, filterMode)),
+      sortBy,
+    );
+  }, [activeLens, branchDatasetRows, filterMode, lenses, sortBy, typeMode]);
   const rootCollections = useMemo(
     () => folderRows.map((folder) => ({
       ...folder,
@@ -582,6 +595,21 @@ export function LibraryPage({
     setTypeMode("all");
     setFilterMode("all");
   }, []);
+
+  const lensControl = lensAvailable
+    ? {
+        active: activeLens,
+        options: [
+          ...lenses.map((lens) => ({ id: lens.id, label: lens.label, count: lens.rows.length })),
+          { id: "all", label: "All", count: branchDatasetRows.length },
+        ],
+        note: lensNote(activeLens, focus),
+        onChange: (id) => {
+          resetFilters();
+          setLensChoice(id);
+        },
+      }
+    : null;
 
   return (
     <>
@@ -731,6 +759,7 @@ export function LibraryPage({
                 folderCount,
                 datasetCount: browseDatasetCount,
                 visibleCount: isRoot ? estateRows.length : visibleRows.length,
+                focusedCount: activeLens === "all" ? 0 : estateRows.length,
               })}
             </span>
           </>
@@ -787,6 +816,7 @@ export function LibraryPage({
               onAskCurrentSearch={onAskSearch ? askCurrentSearch : undefined}
               onSearchWider={onSearchWider}
               onResetFilters={resetFilters}
+              lens={lensControl}
             />
             {searchActive ? null : <LibrarySubscriptions datasets={vaultDatasets} onSelectDataset={onSelectDataset} />}
             </>

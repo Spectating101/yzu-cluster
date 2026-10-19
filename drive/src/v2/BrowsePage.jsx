@@ -288,6 +288,8 @@ function DiscoverCandidateRow({
   );
 }
 
+const IDLE_SOURCE_PREVIEW = 4;
+
 export function isDiscoverResearchQuestion(value) {
   const text = String(value || "").trim();
   if (!text) return false;
@@ -680,6 +682,7 @@ export function BrowsePage({
   const [routeComparisonOpen, setRouteComparisonOpen] = useState(false);
   const [sortMode, setSortMode] = useState("relevance");
   const [queryDraft, setQueryDraft] = useState(searchQuery || "");
+  const [showAllSources, setShowAllSources] = useState(false);
   const [searchRevision, setSearchRevision] = useState(0);
   const [loadedQuery, setLoadedQuery] = useState("");
   const [enrichedQuestion, setEnrichedQuestion] = useState("");
@@ -1539,12 +1542,23 @@ export function BrowsePage({
                     <span className="muted">{plural(merged.length, "known collection method")}</span>
                   </div>
                   <DiscoverCandidateList
-                    rows={idleRecommendations}
+                    rows={showAllSources ? idleRecommendations : idleRecommendations.slice(0, IDLE_SOURCE_PREVIEW)}
                     labIds={labIds}
                     selectedId={selectedId}
                     onSelectRow={onSelectRow}
                     onAdd={onReviewAcquisition}
                   />
+                  {idleRecommendations.length > IDLE_SOURCE_PREVIEW ? (
+                    <button
+                      type="button"
+                      className="rd-v2-btn sm rd-v2-discover-sources-toggle"
+                      data-testid="discover-sources-toggle"
+                      aria-expanded={showAllSources}
+                      onClick={() => setShowAllSources((open) => !open)}
+                    >
+                      {showAllSources ? "Show fewer sources" : `Show all ${idleRecommendations.length} sources`}
+                    </button>
+                  ) : null}
                 </>
               ) : (
                 <p className="muted">

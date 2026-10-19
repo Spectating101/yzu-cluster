@@ -92,6 +92,7 @@ export function LibraryEvidenceEstate({
   onAskCurrentSearch,
   onSearchWider,
   onResetFilters,
+  lens = null,
 }) {
   const visibleAssets = assets;
   const showKind = true;
@@ -163,6 +164,27 @@ export function LibraryEvidenceEstate({
               Organizing collections…
             </span>
           )}
+        </div>
+      ) : null}
+
+      {lens ? (
+        <div className="rd-v2-cap-lens" data-testid="library-lens">
+          <div className="rd-v2-cap-lens-options" role="group" aria-label="Choose which datasets to list">
+            {lens.options.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                className="rd-v2-cap-lens-option"
+                aria-pressed={lens.active === option.id}
+                data-testid={`library-lens-${option.id}`}
+                onClick={() => lens.onChange(option.id)}
+              >
+                <span>{option.label}</span>
+                <b>{option.count}</b>
+              </button>
+            ))}
+          </div>
+          {lens.note ? <p className="rd-v2-cap-lens-note" data-testid="library-lens-note">{lens.note}</p> : null}
         </div>
       ) : null}
 

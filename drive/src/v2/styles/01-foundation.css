@@ -3182,6 +3182,7 @@ button {
 .rd-v2-discover-composer.is-idle { max-width: 860px; }
 .rd-v2-discover-idle { display: grid; gap: 24px; padding: 20px 16px 40px; }
 .rd-v2-discover-idle-held { max-width: 860px; padding-top: 4px; }
+.rd-v2-discover-idle-held .rd-v2-discover-sources-toggle { margin: 12px 0 4px; }
 .rd-v2-discover-idle-held .rd-v2-home-section-head :is(h2, h3) { margin-top: 4px; }
 .rd-v2-discover-idle-intake {
   display: flex;

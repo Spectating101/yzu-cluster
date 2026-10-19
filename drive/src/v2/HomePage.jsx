@@ -9,6 +9,7 @@ import { PageShell } from "@/v2/ui";
 import { DeskError } from "@/v2/DeskError";
 import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
 import { displayName, statusPillKind } from "@/v2/datasetMeta";
+import { featuredRows } from "@/v2/libraryFocus";
 import {
   buildPickUp,
   buildRecentTrail,
@@ -125,16 +126,19 @@ function firstSentence(value) {
 }
 
 function GuestReadyDatasets({ datasets, onGoTab, onSelectDataset }) {
-  const ready = datasets
-    .filter((row) => row?.dataset_id && statusPillKind(row).kind === "query-ready")
-    .sort((a, b) => Number(codeLikeTitle(displayName(a))) - Number(codeLikeTitle(displayName(b)))
-      || String(b.retrieved_at || "").localeCompare(String(a.retrieved_at || "")))
-    .slice(0, 4);
+  const featured = featuredRows(datasets).filter((row) => statusPillKind(row).kind === "query-ready");
+  const ready = (featured.length
+    ? featured
+    : datasets
+      .filter((row) => row?.dataset_id && statusPillKind(row).kind === "query-ready")
+      .sort((a, b) => Number(codeLikeTitle(displayName(a))) - Number(codeLikeTitle(displayName(b)))
+        || String(b.retrieved_at || "").localeCompare(String(a.retrieved_at || "")))
+  ).slice(0, 4);
   if (!ready.length) return null;
   return (
     <section className="rd-v2-home-guest-ready" aria-label="Ready to use now" data-testid="home-guest-ready">
       <div className="rd-v2-home-section-head">
-        <h2>Ready to use now</h2>
+        <h2>{datasets.some((row) => Number(row?.featured_rank) > 0) ? "Start with these" : "Ready to use now"}</h2>
         <button type="button" className="rd-v2-linkish" onClick={() => onGoTab?.("library")}>All datasets →</button>
       </div>
       <ul>

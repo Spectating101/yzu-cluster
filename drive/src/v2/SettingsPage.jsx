@@ -220,18 +220,20 @@ export function SettingsPage({
           </div>
         </StatementSection>
 
-        <StatementSection title="Research Drive storage">
-          <StatementRow
-            label="Shared evidence archive"
-            metric={archive.label}
-            sublabel={archive.detail}
-            detail={archive.ready ? "Ready" : archive.known ? "Needs a check" : "Unknown"}
-            warn={archive.known && !archive.ready}
-          />
-          <p className="rd-v2-settings-hint">
-            This service-managed archive supplies the shared Library. Personal storage below is optional and never replaces the default research estate.
-          </p>
-        </StatementSection>
+        {archive.known ? (
+          <StatementSection title="Research Drive storage">
+            <StatementRow
+              label="Shared evidence archive"
+              metric={archive.label}
+              sublabel={archive.detail}
+              detail={archive.ready ? "Ready" : archive.known ? "Needs a check" : "Unknown"}
+              warn={archive.known && !archive.ready}
+            />
+            <p className="rd-v2-settings-hint">
+              This service-managed archive supplies the shared Library. Personal storage below is optional and never replaces the default research estate.
+            </p>
+          </StatementSection>
+        ) : null}
 
         <ConnectedAccountsSection deskAccess={deskAccess} onToast={onToast} showIdentity={false} />
         <ProviderConnectionsSection deskAccess={deskAccess} onToast={onToast} />
