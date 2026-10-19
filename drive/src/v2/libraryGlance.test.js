@@ -35,7 +35,9 @@ test("a range that runs backwards or has no years is not drawn", () => {
 
 test("the shared axis spans the earliest start to the latest end or this year", () => {
   const spans = [spanOf({ glance: { from: "1789", to: "2025" } }), spanOf({ glance: { from: "2016-09-25", to: "2026-09-25" } }), spanOf({})];
-  assert.deepEqual(spanAxis(spans, 2026), { min: 1789, max: 2026 });
+  assert.deepEqual(spanAxis(spans, 2026), { min: 1900, max: 2026 });
+  const modern = [spanOf({ glance: { from: "1926", to: "2024" } }), spanOf({ glance: { from: "2016", to: "2026" } })];
+  assert.deepEqual(spanAxis(modern, 2026), { min: 1926, max: 2026 });
   assert.equal(spanAxis([spanOf({})], 2026), null);
 });
 
@@ -47,6 +49,14 @@ test("bars sit proportionally on the axis and never vanish or overflow", () => {
   const edge = barBox(spanOf({ glance: { from: "2000", to: "2000" } }), axis);
   assert.ok(edge.left + edge.width <= 100.0001);
   assert.equal(barBox(spanOf({}), axis), null);
+});
+
+test("a dataset that starts before the axis is drawn from its left edge", () => {
+  const axis = { min: 1900, max: 2000 };
+  const box = barBox(spanOf({ glance: { from: "1789", to: "1950" } }), axis);
+  assert.deepEqual(box, { left: 0, width: 50 });
+  const before = barBox(spanOf({ glance: { from: "1789", to: "1850" } }), axis);
+  assert.ok(before.left === 0 && before.width >= 2);
 });
 
 test("labels and tooltips say the years and the facts", () => {

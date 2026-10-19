@@ -1,4 +1,5 @@
 const MIN_BAR = 2;
+const AXIS_FLOOR = 1900;
 
 function yearOf(text) {
   const match = /^\s*(\d{4})/.exec(String(text || ""));
@@ -38,16 +39,18 @@ export function spanOf(row) {
 export function spanAxis(spans, thisYear = new Date().getFullYear()) {
   const ranged = spans.filter((span) => span.ranged);
   if (!ranged.length) return null;
-  const min = Math.min(...ranged.map((span) => span.fromYear));
+  const earliest = Math.min(...ranged.map((span) => span.fromYear));
   const max = Math.max(thisYear, ...ranged.map((span) => span.toYear));
+  const min = earliest < AXIS_FLOOR && max > AXIS_FLOOR ? AXIS_FLOOR : earliest;
   return { min, max: max === min ? min + 1 : max };
 }
 
 export function barBox(span, axis) {
   if (!span?.ranged || !axis) return null;
   const total = axis.max - axis.min;
-  const left = ((span.fromYear - axis.min) / total) * 100;
-  const width = Math.max(MIN_BAR, ((span.toYear - span.fromYear) / total) * 100);
+  const from = Math.max(span.fromYear, axis.min);
+  const left = ((from - axis.min) / total) * 100;
+  const width = Math.max(MIN_BAR, ((Math.max(span.toYear, from) - from) / total) * 100);
   return { left: Math.min(left, 100 - MIN_BAR), width: Math.min(width, 100 - Math.min(left, 100 - MIN_BAR)) };
 }
 
