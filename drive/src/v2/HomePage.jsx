@@ -9,7 +9,7 @@ import { PageShell } from "@/v2/ui";
 import { DeskError } from "@/v2/DeskError";
 import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
 import { displayName, statusPillKind } from "@/v2/datasetMeta";
-import { featuredRows } from "@/v2/libraryFocus";
+import { featuredRows, matchedRows, profileFocus } from "@/v2/libraryFocus";
 import { libraryHoldings } from "@/v2/deskCounts";
 import { licensedRowsLocked } from "@/v2/licensedAccess";
 import { topicCounts } from "@/v2/libraryTopics";
@@ -80,6 +80,13 @@ function resolveHomePosture({ loading, point }) {
       lead: point.warn
         ? "An acquisition needs review before evidence can move forward"
         : "Collection is in progress · History shows the current state",
+    };
+  }
+  if (point.kind === "library_asset" && point.start) {
+    return {
+      id: "start-evidence",
+      eyebrow: "Start with",
+      lead: "Nothing opened yet · a good first dataset for your work",
     };
   }
   if (point.kind === "library_asset") {
@@ -252,7 +259,7 @@ function PickUpCard({ point, loading, posture, onContinue, onReview }) {
           </button>
         ) : (
           <button type="button" className="rd-v2-btn sm primary" onClick={() => onContinue?.(point)}>
-            Continue
+            {point.start ? "Open dataset" : "Continue"}
           </button>
         )}
       </div>
@@ -334,9 +341,15 @@ export function HomePage({
     return projectRollupFromHealth(health);
   }, [resourcesRollup, cachedRollup, health]);
   const headroomLoading = headroomRollup == null && resourcesRollup === undefined && health == null;
+  const suggested = useMemo(() => {
+    if (isGuest) return [];
+    const { terms } = profileFocus({ principal: true, profile: { research_topics: researchTopics } });
+    const matched = terms.length ? matchedRows(datasets, terms) : [];
+    return matched.length ? matched : featuredRows(datasets);
+  }, [isGuest, datasets, researchTopics]);
   const pickUp = useMemo(
-    () => buildPickUp({ datasets, jobs, health, acquisitions, profile, synthesisThreads }),
-    [datasets, jobs, health, acquisitions, profile, synthesisThreads],
+    () => buildPickUp({ datasets, jobs, health, acquisitions, profile, synthesisThreads, suggested }),
+    [datasets, jobs, health, acquisitions, profile, synthesisThreads, suggested],
   );
   const guestTopics = useMemo(
     () => (isGuest ? topicCounts(libraryHoldings(datasets).filter((row) => !licensedRowsLocked(row))) : []),
@@ -443,7 +456,7 @@ export function HomePage({
               <span>{uiVocabularyLabel(pickUp.secondary.stateSummary)}</span>
               <em>
                 {pickUp.secondary.location}
-                {pickUp.secondary.action === "review" ? " · Review" : " · Continue →"}
+                {pickUp.secondary.action === "review" ? " · Review" : pickUp.secondary.start ? " · Open →" : " · Continue →"}
               </em>
             </button>
           ) : null}

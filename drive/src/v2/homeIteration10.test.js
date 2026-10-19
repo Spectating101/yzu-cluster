@@ -7,6 +7,7 @@ import {
   buildRecentTrail,
   projectRollupFromHealth,
 } from "./homeIteration10.js";
+import { touchRecent } from "./recent.js";
 
 test("pick up prefers recent library asset as primary", () => {
   const { primary, secondary } = buildPickUp({
@@ -265,4 +266,34 @@ test("a failed collection that a later run completed is not a needs-you item", a
   assert.equal(failureSuperseded(failed, [failed, later]), true);
   assert.equal(failureSuperseded(failed, [failed, other]), false);
   assert.equal(failureSuperseded({ ...failed, updated_at: "2026-09-28T00:00:00Z" }, [failed, later]), false);
+});
+
+test("with nothing opened, the pick-up leads with the best suggestion, marked as a start", () => {
+  const datasets = [
+    { dataset_id: "gdelt", name: "News panel", analysis_readiness: "instant" },
+    { dataset_id: "ff", name: "Factors", analysis_readiness: "instant" },
+    { dataset_id: "cpi", name: "Prices", analysis_readiness: "instant" },
+  ];
+  const { primary, secondary } = buildPickUp({ datasets, suggested: [datasets[1], datasets[2], { dataset_id: "not-held", name: "Ghost" }] });
+  assert.equal(primary.dataset.dataset_id, "ff");
+  assert.equal(primary.start, true);
+  assert.equal(secondary.dataset.dataset_id, "cpi");
+  assert.equal(secondary.start, true);
+});
+
+test("a dataset the researcher opened still comes first and is a continuation", () => {
+  const store = new Map();
+  globalThis.localStorage = { getItem: (key) => store.get(key) ?? null, setItem: (key, value) => store.set(key, value), removeItem: (key) => store.delete(key) };
+  try {
+    const datasets = [
+      { dataset_id: "ff", name: "Factors", analysis_readiness: "instant" },
+      { dataset_id: "gdelt", name: "News panel", analysis_readiness: "instant" },
+    ];
+    touchRecent("gdelt");
+    const { primary } = buildPickUp({ datasets, suggested: [datasets[0]] });
+    assert.equal(primary.dataset.dataset_id, "gdelt");
+    assert.equal(primary.start, false);
+  } finally {
+    delete globalThis.localStorage;
+  }
 });

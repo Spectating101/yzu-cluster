@@ -91,10 +91,10 @@ test("Home distinguishes held evidence from an empty desk", async ({ page }) => 
 
   const pickup = page.getByTestId("home-continue");
   await expect(pickup).toHaveAttribute("data-kind", "library_asset");
-  await expect(pickup).toHaveAttribute("data-posture", "held-evidence");
-  await expect(pickup).toContainText(/Pick up\s*·\s*Evidence/i);
-  await expect(page.locator(".rd-v2-home-topband")).toHaveAttribute("data-home-posture", "held-evidence");
-  await expect(page.locator(".rd-v2-page-head")).toContainText(/Evidence is on hand/i);
+  await expect(pickup).toHaveAttribute("data-posture", "start-evidence");
+  await expect(pickup).toContainText(/Start with/i);
+  await expect(page.locator(".rd-v2-home-topband")).toHaveAttribute("data-home-posture", "start-evidence");
+  await expect(page.locator(".rd-v2-page-head")).toContainText(/Nothing opened yet/i);
 });
 
 test("Home elevates an explicit researcher decision above generic resume copy", async ({ page }) => {

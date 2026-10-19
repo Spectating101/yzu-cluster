@@ -89,15 +89,19 @@ export function buildPickUp({
   acquisitions = [],
   profile,
   synthesisThreads = [],
+  suggested = [],
 } = {}) {
   const briefing = buildHomeBriefing({ datasets, jobs, acquisitions, health, profile });
   const holdings = (datasets || []).filter((ds) => !isReceiptOnlyAsset(ds));
   const recent = recentDatasets(holdings, 2);
-  const primaryDs = recent[0] || holdings[0] || datasets[0] || null;
+  const starts = (suggested || []).filter((ds) => ds?.dataset_id && holdings.some((row) => row.dataset_id === ds.dataset_id));
+  const primaryDs = recent[0] || starts[0] || holdings[0] || datasets[0] || null;
   const secondaryDs =
     recent[1] ||
+    (primaryDs && starts.find((ds) => ds.dataset_id !== primaryDs.dataset_id)) ||
     (primaryDs && holdings.find((ds) => ds?.dataset_id && ds.dataset_id !== primaryDs.dataset_id)) ||
     null;
+  const opened = new Set(recent.map((ds) => ds.dataset_id));
 
   const candidates = [];
   const pendingJobs = (jobs || []).filter((job) =>
@@ -234,6 +238,7 @@ export function buildPickUp({
       dataset: ds,
       tab: "library",
       action: "continue",
+      start: !opened.has(ds.dataset_id),
     },
   } : null;
   const firstLibrary = libraryPoint(primaryDs, 20);

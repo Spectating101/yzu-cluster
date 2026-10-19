@@ -4561,10 +4561,6 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
   background: transparent;
 }
 
-.rd-v2-profile-name {
-  font-family: var(--rd-font);
-}
-
 .rd-v2-profile-org {
   line-height: 1.35;
 }

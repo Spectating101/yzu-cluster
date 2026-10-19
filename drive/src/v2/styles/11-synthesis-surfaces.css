@@ -62,7 +62,7 @@
 .s04-home {
   display: grid;
   gap: 18px;
-  padding: 4px 0 30px;
+  padding: 0 0 30px;
 }
 
 .s04-home-hero {
@@ -1562,6 +1562,9 @@
 
 .rd-v2-synthesis-page .s04-main {
   max-width: 920px;
+}
+
+.rd-v2-synthesis-page .s04-main:not(:has(> .s04-home)) {
   padding-top: 12px;
 }
 

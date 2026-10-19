@@ -897,12 +897,12 @@ body:has(.rd-v2-synthesis-page [data-testid="synthesis-execution-state"] .s04-ex
 
   .rd-v2-synthesis-page .s04-home-hero {
     gap: 22px;
-    padding: 6px 19px 17px 0;
+    padding: 0 19px 17px 0;
   }
 
   .rd-v2-synthesis-page .s04-home-hero h1 {
     max-width: 720px;
-    margin-top: 5px;
+    margin-top: 0;
     font-size: clamp(23px, 1.85vw, 29px);
   }
 

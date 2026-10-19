@@ -104,7 +104,7 @@ for (const [name, width, height] of viewports) {
     await expect(pick).toBeVisible();
     await expect(pick).toHaveAttribute("data-kind", "library_asset");
     const title = (await pick.locator("h2").innerText()).trim();
-    await pick.getByRole("button", { name: "Continue" }).click();
+    await pick.getByRole("button", { name: "Open dataset" }).click();
     const preview = page.getByRole("dialog", { name: `${title} preview` });
     await expect(preview).toBeVisible();
     await assertContained(page, info, ".rd-preview-shell", width, height, "preview");
