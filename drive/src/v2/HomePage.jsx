@@ -126,7 +126,7 @@ function WelcomeCard({ onGoTab, onSignIn, onCreateAccount, topics = [] }) {
         ) : null}
       </div>
       {topics.length ? (
-        <aside className="rd-v2-home-welcome-covers" aria-label="What the Library covers" data-testid="home-welcome-covers">
+        <div className="rd-v2-home-welcome-covers" role="group" aria-label="What the Library covers" data-testid="home-welcome-covers">
           <span className="rd-v2-home-eyebrow">In the Library</span>
           <ul>
             {topics.map((topic) => (
@@ -136,7 +136,7 @@ function WelcomeCard({ onGoTab, onSignIn, onCreateAccount, topics = [] }) {
               </li>
             ))}
           </ul>
-        </aside>
+        </div>
       ) : null}
     </article>
   );
