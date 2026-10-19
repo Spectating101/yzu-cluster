@@ -164,10 +164,10 @@ export function SynthesisHome({
       </section>
 
       {!reasoningAvailable ? (
-        <aside className="s04-home-runtime">
+        <div className="s04-home-runtime" role="group" aria-label="Assistant status">
           <span><strong>Assistant reasoning is paused.</strong> {reasoningStatus}. You can still create builds and review or map data in your Library.</span>
           <button type="button" className="rd-v2-btn" onClick={() => onOpenResources?.()}>Check Resources</button>
-        </aside>
+        </div>
       ) : null}
 
       {loading ? <p className="s04-home-loading">Loading saved builds…</p> : null}

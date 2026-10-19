@@ -249,7 +249,11 @@
   }
 
   .rd-v2-synthesis-page .s04-main {
-    padding: 18px 20px 30px !important;
+    padding: var(--s04-main-top, 18px) 20px 30px !important;
+  }
+
+  .rd-v2-synthesis-page .s04-main:has(> .s04-home) {
+    --s04-main-top: 0px;
   }
 
   .rd-v2-synthesis-page .s04-main > * {
